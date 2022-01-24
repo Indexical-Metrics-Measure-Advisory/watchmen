@@ -4,10 +4,12 @@ from typing import List
 from pydantic import BaseModel
 
 from watchmen.model.common import DashboardId, GraphicRect, ReportId, TenantId, Tuple, UserId
+from watchmen.model.console.report import ReportFunnel
 
 
 class DashboardReport(BaseModel):
 	reportId: ReportId = None
+	funnels: List[ReportFunnel] = None
 	rect: GraphicRect = None
 
 
