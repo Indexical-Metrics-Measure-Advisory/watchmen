@@ -10,8 +10,9 @@ UserGroupId = TypeVar("UserGroupId", bound=str)
 
 EnumId = TypeVar("EnumId", bound=str)
 EnumItemId = TypeVar("EnumItemId", bound=str)
-TopicId = TypeVar("TopicId", bound=str)
 FactorId = TypeVar("FactorId", bound=str)
+TopicId = TypeVar("TopicId", bound=str)
+PipelineId = TypeVar("PipelineId", bound=str)
 
 ReportFunnelId = TypeVar("ReportFunnelId", bound=str)
 ReportId = TypeVar("ReportId", bound=str)
