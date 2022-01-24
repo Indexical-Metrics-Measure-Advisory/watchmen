@@ -14,6 +14,3 @@ class ConnectedSpace(Tuple):
 	userId: UserId = None
 	tenantId: TenantId = None
 	lastVisitTime: datetime = datetime.now().replace(tzinfo=None)
-# subjects: List[Subject] = []
-# groupIds: list = []
-# topics: List[Topic] = []

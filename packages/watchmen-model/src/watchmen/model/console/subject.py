@@ -42,7 +42,3 @@ class Subject(Tuple):
 	userId: UserId = None
 	tenantId: TenantId = None
 	lastVisitTime: datetime = datetime.now().replace(tzinfo=None)
-# topicCount: int = None
-# graphicsCount: int = None
-# createdAt: str = None
-# reports: List[Report] = []
