@@ -4,7 +4,7 @@ from typing import List, Union
 
 from pydantic import BaseModel
 
-from chart import Chart
+from watchmen.model.chart.chart import Chart
 from watchmen.model.common import DataResultSet, GraphicRect, ParameterJoint, ReportFunnelId, ReportId, \
 	SubjectDatasetColumnId, TenantId, Tuple, UserId
 

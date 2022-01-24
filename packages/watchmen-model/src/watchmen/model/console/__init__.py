@@ -1,15 +1,9 @@
-import chart
 import connected_space
+import connected_space_graphic
 import dashboard
 import data_result_set
-import favorite
 import report
 import subject
-
-Favorite = favorite.Favorite
-
-ChartType = chart.ChartType
-Chart = chart.Chart
 
 ReportIndicatorArithmetic = report.ReportIndicatorArithmetic
 ReportIndicator = report.ReportIndicator
@@ -26,6 +20,9 @@ Subject = subject.Subject
 SubjectDataResultSet = data_result_set.SubjectDataResultSet
 
 ConnectedSpace = connected_space.ConnectedSpace
+TopicGraphic = connected_space_graphic.TopicGraphic
+SubjectGraphic = connected_space_graphic.SubjectGraphic
+ConnectedSpaceGraphic = connected_space_graphic.ConnectedSpaceGraphic
 
 DashboardReport = dashboard.DashboardReport
 DashboardParagraph = dashboard.DashboardParagraph
