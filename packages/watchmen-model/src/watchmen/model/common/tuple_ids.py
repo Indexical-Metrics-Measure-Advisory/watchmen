@@ -20,3 +20,8 @@ SubjectId = TypeVar("SubjectId", bound=str)
 SpaceId = TypeVar("SpaceId", bound=str)
 ConnectedSpaceId = TypeVar("ConnectedSpaceId", bound=str)
 DashboardId = TypeVar("DashboardId", bound=str)
+
+BucketId = TypeVar("BucketId", bound=str)
+IndicatorId = TypeVar("IndicatorId", bound=str)
+InspectionId = TypeVar("InspectionId", bound=str)
+NavigationId = TypeVar("NavigationId", bound=str)

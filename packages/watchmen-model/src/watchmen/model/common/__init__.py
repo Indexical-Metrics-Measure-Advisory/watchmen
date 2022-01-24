@@ -22,6 +22,10 @@ SubjectId = tuple_ids.SubjectId
 SpaceId = tuple_ids.SpaceId
 ConnectedSpaceId = tuple_ids.ConnectedSpaceId
 DashboardId = tuple_ids.DashboardId
+BucketId = tuple_ids.BucketId
+IndicatorId = tuple_ids.IndicatorId
+InspectionId = tuple_ids.InspectionId
+NavigationId = tuple_ids.NavigationId
 
 # tuple
 Tuple = tuple.Tuple
