@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from datetime import date, datetime, time
 from enum import Enum
-from typing import Dict, Optional, TypeVar, Union
+from typing import Dict, List, Optional, TypeVar, Union
 
 from pydantic import BaseModel
 
@@ -12,6 +12,7 @@ EntityColumnValue = Union[date, time, datetime, int, float, bool, str, None]
 EntityName = TypeVar('EntityName', bound=str)
 EntityRow = Dict[EntityColumnName, EntityColumnValue]
 Entity = Union[EntityRow, BaseModel]
+EntityList = Union[List[EntityRow], List[BaseModel]]
 EntityId = TypeVar('EntityId', bound=str)
 
 

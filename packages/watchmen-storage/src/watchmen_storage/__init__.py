@@ -9,6 +9,7 @@ InsertConflictError = error.InsertConflictError
 OptimisticLockError = error.OptimisticLockError
 
 Entity = storage_types.Entity
+EntityList = storage_types.EntityList
 EntityColumnName = storage_types.EntityColumnName
 EntityColumnValue = storage_types.EntityColumnValue
 EntityCriteriaOperator = storage_types.EntityCriteriaOperator
