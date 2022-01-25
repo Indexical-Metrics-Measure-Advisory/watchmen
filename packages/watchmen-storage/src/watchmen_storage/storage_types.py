@@ -1,6 +1,7 @@
+from abc import abstractmethod
 from datetime import date, datetime, time
 from enum import Enum
-from typing import Callable, Dict, Optional, TypeVar, Union
+from typing import Dict, Optional, TypeVar, Union
 
 from pydantic import BaseModel
 
@@ -9,12 +10,22 @@ from watchmen_model.common import Pageable
 EntityColumnName = TypeVar('EntityColumnName', bound=str)
 EntityColumnValue = Union[date, time, datetime, int, float, bool, str, None]
 EntityName = TypeVar('EntityName', bound=str)
-Entity = Union[dict, BaseModel]
+EntityRow = Dict[EntityColumnName, EntityColumnValue]
+Entity = Union[EntityRow, BaseModel]
 EntityId = TypeVar('EntityId', bound=str)
-EntityShaper = Callable[[dict], Entity]
 
 
-class EntityHelper:
+class EntityShaper:
+	@abstractmethod
+	def serialize(self, entity: Entity) -> EntityRow:
+		pass
+
+	@abstractmethod
+	def deserialize(self, row: EntityRow) -> Entity:
+		pass
+
+
+class EntityHelper(BaseModel):
 	name: EntityName
 	shaper: EntityShaper
 

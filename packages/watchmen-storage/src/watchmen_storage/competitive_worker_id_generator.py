@@ -37,10 +37,17 @@ class CompetitiveWorker(BaseModel):
 	lastBeatAt: datetime = None
 
 
+def default_heart_beat_interval() -> int:
+	"""
+	:return: in seconds
+	"""
+	return 30
+
+
 class CompetitiveWorkerIdGenerator:
 	worker: CompetitiveWorker = None
 
-	def __init__(self, data_center_id: int, heart_beat_interval: int = 30):
+	def __init__(self, data_center_id: int, heart_beat_interval: int = default_heart_beat_interval()):
 		# will not check sanity of data center id here
 		self.data_center_id = data_center_id
 		self.heart_beat_interval = heart_beat_interval
@@ -48,17 +55,34 @@ class CompetitiveWorkerIdGenerator:
 		# start heart beat
 		Thread(target=self.heart_beat, args=(self,), daemon=True).start()
 
+	@abstractmethod
+	def first_declare_myself(self, worker: CompetitiveWorker) -> None:
+		"""
+		first declare me, implement me
+		"""
+		pass
+
 	def create_worker(self):
 		# create a worker
-		worker = CompetitiveWorker(dataCenterId=self.data_center_id, workerId=self.create_worker_id())
-		self.declare_myself(worker)
-		return worker
+		try:
+			worker = CompetitiveWorker(dataCenterId=self.data_center_id, workerId=self.create_worker_id())
+			self.first_declare_myself(worker)
+			return worker
+		except:
+			return self.create_worker()
 
 	@staticmethod
 	def random_worker_id() -> int:
 		return randrange(0, 1024)
 
 	@abstractmethod
+	def acquire_used_worker_ids(self) -> List[int]:
+		"""
+		acquire used worker ids, implement me
+		:return: used worker ids
+		"""
+		pass
+
 	def create_worker_id(self) -> int:
 		used_worker_ids = self.acquire_used_worker_ids()
 		# random a worker id, return it when it is not used
@@ -67,14 +91,6 @@ class CompetitiveWorkerIdGenerator:
 			new_worker_id = CompetitiveWorkerIdGenerator.random_worker_id()
 		# return
 		return new_worker_id
-
-	@abstractmethod
-	def acquire_used_worker_ids(self) -> List[int]:
-		"""
-		acquire used worker ids, implement me
-		:return:
-		"""
-		pass
 
 	@abstractmethod
 	def declare_myself(self, worker: CompetitiveWorker) -> None:
