@@ -3,7 +3,7 @@ from typing import List
 
 from watchmen_model.common import DataPage
 from watchmen_storage.storage_types import Entity, EntityColumnName, EntityColumnValue, EntityDeleter, \
-	EntityFinder, EntityHelper, EntityId, EntityPager, EntityUpdater
+	EntityFinder, EntityHelper, EntityId, EntityList, EntityPager, EntityUpdater
 
 
 class StorageSPI(ABC):
@@ -13,7 +13,7 @@ class StorageSPI(ABC):
 		pass
 
 	@abstractmethod
-	def insert_all(self, data: List[Entity], helper: EntityHelper) -> List[Entity]:
+	def insert_all(self, data: List[Entity], helper: EntityHelper) -> EntityList:
 		pass
 
 	@abstractmethod
@@ -33,7 +33,7 @@ class StorageSPI(ABC):
 		pass
 
 	@abstractmethod
-	def update_and_pull(self, updater: EntityUpdater) -> List[Entity]:
+	def update_and_pull(self, updater: EntityUpdater) -> EntityList:
 		pass
 
 	@abstractmethod
@@ -57,7 +57,7 @@ class StorageSPI(ABC):
 		pass
 
 	@abstractmethod
-	def delete_and_pull(self, deleter: EntityDeleter) -> List[Entity]:
+	def delete_and_pull(self, deleter: EntityDeleter) -> EntityList:
 		pass
 
 	@abstractmethod
@@ -69,7 +69,7 @@ class StorageSPI(ABC):
 		pass
 
 	@abstractmethod
-	def find(self, finder: EntityFinder) -> List[Entity]:
+	def find(self, finder: EntityFinder) -> EntityList:
 		pass
 
 	@abstractmethod
@@ -79,7 +79,7 @@ class StorageSPI(ABC):
 		pass
 
 	@abstractmethod
-	def find_all(self, helper: EntityHelper) -> List[Entity]:
+	def find_all(self, helper: EntityHelper) -> EntityList:
 		pass
 
 	@abstractmethod

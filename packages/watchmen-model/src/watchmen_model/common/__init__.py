@@ -46,6 +46,7 @@ DatasetCell = data_result_set.DataResultSetCell
 DatasetRow = data_result_set.DataResultSetRow
 DataResultSet = data_result_set.DataResultSet
 Pageable = pagination.Pageable
+PageDataCell = pagination.PageDataCell
 PageDataRow = pagination.PageDataRow
 PageDataSet = pagination.PageDataSet
 DataPage = pagination.DataPage
