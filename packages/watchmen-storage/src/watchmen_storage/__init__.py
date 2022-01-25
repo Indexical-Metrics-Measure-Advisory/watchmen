@@ -1,12 +1,13 @@
 import competitive_worker_id_generator
-import error
 import snowflake
 import snowflake_worker_id_generator
+import storage_based_worker_id_generator
+import storage_exception
 import storage_spi
 import storage_types
 
-InsertConflictError = error.InsertConflictError
-OptimisticLockError = error.OptimisticLockError
+InsertConflictException = storage_exception.InsertConflictException
+OptimisticLockException = storage_exception.OptimisticLockException
 
 Entity = storage_types.Entity
 EntityList = storage_types.EntityList
@@ -34,11 +35,18 @@ StorageSPI = storage_spi.StorageSPI
 WorkerIdGenerator = snowflake_worker_id_generator.WorkerIdGenerator
 immutable_worker_id = snowflake_worker_id_generator.immutable_worker_id
 
+WorkerFirstDeclarationException = competitive_worker_id_generator.WorkerFirstDeclarationException
+WorkerCreationException = competitive_worker_id_generator.WorkerCreationException
 get_host_ip = competitive_worker_id_generator.get_host_ip
 competitive_heart_beat_interval = competitive_worker_id_generator.default_heart_beat_interval
 CompetitiveWorker = competitive_worker_id_generator.CompetitiveWorker
 CompetitiveWorkerIdGenerator = competitive_worker_id_generator.CompetitiveWorkerIdGenerator
 competitive_worker_id = competitive_worker_id_generator.competitive_worker_id
 
-InvalidSystemClock = snowflake.InvalidSystemClock
+COMPETITIVE_WORKER_SHAPER = storage_based_worker_id_generator.COMPETITIVE_WORKER_SHAPER
+CompetitiveWorkerShaper = storage_based_worker_id_generator.CompetitiveWorkerShaper
+SNOWFLAKE_WORKER_ID_TABLE = storage_based_worker_id_generator.SNOWFLAKE_WORKER_ID_TABLE
+StorageBasedWorkerIdGenerator = storage_based_worker_id_generator.StorageBasedWorkerIdGenerator
+
+InvalidSystemClockException = snowflake.InvalidSystemClockException
 SnowflakeWorker = snowflake.SnowflakeGenerator

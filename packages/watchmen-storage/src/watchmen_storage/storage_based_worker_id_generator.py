@@ -53,7 +53,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 		self.storage = storage
 
 	@staticmethod
-	def is_expired(worker: CompetitiveWorker) -> bool:
+	def is_abandoned(worker: CompetitiveWorker) -> bool:
 		return (datetime.now().replace(tzinfo=None) - worker.lastBeatAt).days >= 1
 
 	def first_declare_myself(self, worker: CompetitiveWorker) -> None:
@@ -72,31 +72,54 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 		if workers_count == 0:
 			# worker not exists
 			worker.lastBeatAt = datetime.now().replace(tzinfo=None)
-			# TODO handle insert failed when other process already did it, may raise exception
-			self.storage.insert_one(
-				worker,
-				EntityHelper(
-					name=SNOWFLAKE_WORKER_ID_TABLE,
-					shaper=COMPETITIVE_WORKER_SHAPER
+			# handle insert failed when other process already did it, may raise exception
+			try:
+				self.storage.insert_one(
+					worker,
+					EntityHelper(name=SNOWFLAKE_WORKER_ID_TABLE, shaper=COMPETITIVE_WORKER_SHAPER)
 				)
-			)
-		elif workers_count == 1 and StorageBasedWorkerIdGenerator.is_expired(existing_workers[0]):
-			# worker last beat before 1 day, treat it as discarded by other
-			# replace it
-			worker.lastBeatAt = datetime.now().replace(tzinfo=None)
-			# TODO handle update failed when other process already did it, may raise exception
-			self.storage.update_one(
-				worker,
-				EntityHelper(
-					name=SNOWFLAKE_WORKER_ID_TABLE,
-					shaper=COMPETITIVE_WORKER_SHAPER
-				)
-			)
+			except Exception as e:
+				raise WorkerFirstDeclarationException(
+					f'Failed to declare worker[dataCenterId={worker.dataCenterId}, workerId={worker.workerId}], '
+					f'there might be an existing one in storage.')
 		elif workers_count == 1:
-			# the only work is still alive
-			raise WorkerFirstDeclarationException(
-				f'Worker[dataCenterId={worker.dataCenterId}, workerId={worker.workerId}, lastBeatAt={worker.lastBeatAt}] '
-				f'still alive.')
+			# noinspection PyTypeChecker
+			existing_worker: CompetitiveWorker = existing_workers[0]
+			if StorageBasedWorkerIdGenerator.is_abandoned(existing_worker):
+				# worker last beat before 1 day, treat it as abandoned
+				# replace it
+				worker.lastBeatAt = datetime.now().replace(tzinfo=None)
+				updated_count = self.storage.update_only(
+					EntityUpdater(
+						name=SNOWFLAKE_WORKER_ID_TABLE,
+						shaper=COMPETITIVE_WORKER_SHAPER,
+						criteria=EntityCriteria(
+							data_center_id=self.data_center_id,
+							worker_id=worker.workerId,
+							last_beat_at=EntityCriteriaExpression(
+								operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
+								value=(datetime.now().replace(tzinfo=None) + timedelta(days=-1))
+							)
+						),
+						update=EntityUpdate(
+							ip=worker.ip,
+							process_id=worker.processId,
+							registered_at=worker.registeredAt,
+							last_beat_at=datetime.now().replace(tzinfo=None)
+						)
+					)
+				)
+				# handle update failed when other process already did it, may raise exception
+				if updated_count == 0:
+					# no worker had been updated, which means declaration is failed
+					raise WorkerFirstDeclarationException(
+						f'Failed to declare worker[dataCenterId={worker.dataCenterId}, workerId={worker.workerId}], '
+						f'there might be an alive one or not exists in storage.')
+			else:
+				# the only worker is still alive
+				raise WorkerFirstDeclarationException(
+					f'Worker[dataCenterId={worker.dataCenterId}, workerId={worker.workerId}, lastBeatAt={worker.lastBeatAt}] '
+					f'still alive.')
 		else:
 			# multiple workers found
 			raise WorkerFirstDeclarationException(

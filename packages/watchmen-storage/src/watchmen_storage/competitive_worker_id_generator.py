@@ -19,6 +19,10 @@ class WorkerFirstDeclarationException(Exception):
 	pass
 
 
+class WorkerCreationException(Exception):
+	pass
+
+
 def get_host_ip() -> str:
 	s = None
 	ip = None
@@ -55,7 +59,9 @@ class CompetitiveWorkerIdGenerator:
 		# will not check sanity of data center id here
 		self.data_center_id = data_center_id
 		self.heart_beat_interval = heart_beat_interval
+		self.first_declare_times = 0
 		self.worker = self.create_worker()
+		del self.first_declare_times
 		# start heart beat
 		Thread(target=self.heart_beat, args=(self,), daemon=True).start()
 
@@ -69,11 +75,15 @@ class CompetitiveWorkerIdGenerator:
 	def create_worker(self):
 		# create a worker
 		try:
+			self.first_declare_times += 1
 			worker = CompetitiveWorker(dataCenterId=self.data_center_id, workerId=self.create_worker_id())
 			self.first_declare_myself(worker)
 			return worker
 		except WorkerFirstDeclarationException:
-			return self.create_worker()
+			if self.first_declare_times < 3:
+				return self.create_worker()
+			else:
+				raise
 
 	@staticmethod
 	def random_worker_id() -> int:
