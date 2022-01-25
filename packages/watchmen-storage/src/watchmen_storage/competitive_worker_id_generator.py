@@ -52,6 +52,10 @@ def default_heart_beat_interval() -> int:
 	return 30
 
 
+def default_worker_creation_retry_times() -> int:
+	return 3
+
+
 class CompetitiveWorkerIdGenerator:
 	worker: CompetitiveWorker = None
 
@@ -80,7 +84,7 @@ class CompetitiveWorkerIdGenerator:
 			self.first_declare_myself(worker)
 			return worker
 		except WorkerFirstDeclarationException:
-			if self.first_declare_times < 3:
+			if self.first_declare_times < default_worker_creation_retry_times():
 				return self.create_worker()
 			else:
 				raise
