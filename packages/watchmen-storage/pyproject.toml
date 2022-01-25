@@ -1,16 +1,17 @@
 [tool.poetry]
-name = "watchmen-model"
+name = "watchmen-storage"
 version = "16.0.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
 packages = [
-    { include = "watchmen_model" }
+    { include = "watchmen_storage" }
 ]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-pydantic = "^1.9.0"
+SQLAlchemy = "^1.4.31"
+watchmen-model = { path = "../watchmen-model", develop = true }
 
 [tool.poetry.dev-dependencies]
 
