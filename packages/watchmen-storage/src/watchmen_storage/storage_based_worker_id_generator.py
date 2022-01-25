@@ -80,6 +80,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 		elif workers_count == 1 and StorageBasedWorkerIdGenerator.is_expired(existing_workers[0]):
 			# worker last beat before 1 day, treat it as discarded by other
 			# replace it
+			worker.lastBeatAt = datetime.now().replace(tzinfo=None)
 			self.storage.update_one(
 				worker,
 				EntityHelper(
