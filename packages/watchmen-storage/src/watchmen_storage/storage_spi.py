@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from typing import List
 
 from watchmen_model.common import DataPage
-from watchmen_storage.storage_types import Entity, EntityColumnName, EntityColumnValue, EntityDeleter, \
-	EntityFinder, EntityHelper, EntityId, EntityList, EntityPager, EntityUpdater
+from watchmen_storage.storage_types import Entity, EntityDeleter, \
+	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, EntityList, EntityPager, EntityUpdater
 
 
 class StorageSPI(ABC):
@@ -73,9 +73,7 @@ class StorageSPI(ABC):
 		pass
 
 	@abstractmethod
-	def find_distinct_values(
-			self, distinct_column_name: EntityColumnName, finder: EntityFinder
-	) -> List[EntityColumnValue]:
+	def find_distinct_values(self, finder: EntityDistinctValuesFinder) -> EntityList:
 		pass
 
 	@abstractmethod
