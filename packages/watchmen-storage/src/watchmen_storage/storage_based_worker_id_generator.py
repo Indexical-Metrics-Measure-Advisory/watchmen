@@ -88,7 +88,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 				)
 			)
 		elif workers_count == 1:
-			# multiple workers found
+			# the only work is still alive
 			raise WorkerFirstDeclarationException(
 				f'Worker[dataCenterId={worker.dataCenterId}, workerId={worker.workerId}, lastBeatAt={worker.lastBeatAt}] '
 				f'still alive.')
