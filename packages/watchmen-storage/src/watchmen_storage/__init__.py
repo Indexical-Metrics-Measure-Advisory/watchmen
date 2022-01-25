@@ -18,6 +18,7 @@ EntityCriteriaValue = storage_types.EntityCriteriaValue
 EntityCriteria = storage_types.EntityCriteria
 EntityDeleter = storage_types.EntityDeleter
 EntityFinder = storage_types.EntityFinder
+EntityDistinctValuesFinder = storage_types.EntityDistinctValuesFinder
 EntityHelper = storage_types.EntityHelper
 EntityId = storage_types.EntityId
 EntityName = storage_types.EntityName

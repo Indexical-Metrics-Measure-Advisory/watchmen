@@ -71,6 +71,10 @@ class EntityFinder(EntityHelper):
 	sort: Optional[EntityCriteria] = None
 
 
+class EntityDistinctValuesFinder(EntityFinder):
+	distinctColumnNames: List[EntityColumnName] = None
+
+
 class EntityPager(EntityFinder):
 	pageable: Pageable
 

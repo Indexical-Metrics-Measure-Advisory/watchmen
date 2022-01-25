@@ -1,11 +1,13 @@
 from datetime import datetime, timedelta
 from typing import List
 
+from funct import Array
+
 from watchmen_storage.competitive_worker_id_generator import CompetitiveWorker, CompetitiveWorkerIdGenerator, \
 	default_heart_beat_interval, WorkerFirstDeclarationException
 from watchmen_storage.storage_spi import StorageSPI
 from watchmen_storage.storage_types import EntityCriteria, EntityCriteriaExpression, EntityCriteriaOperator, \
-	EntityFinder, EntityHelper, EntityRow, EntityShaper, EntityUpdate, EntityUpdater
+	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityRow, EntityShaper, EntityUpdate, EntityUpdater
 
 SNOWFLAKE_WORKER_ID_TABLE = 'snowflake_worker_id'
 
@@ -100,9 +102,8 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 				f'determined.')
 
 	def acquire_used_worker_ids(self) -> List[int]:
-		return self.storage.find_distinct_values(
-			'worker_id',
-			EntityFinder(
+		rows = self.storage.find_distinct_values(
+			EntityDistinctValuesFinder(
 				name=SNOWFLAKE_WORKER_ID_TABLE,
 				shaper=COMPETITIVE_WORKER_SHAPER,
 				# workers last beat at in 1 day, means still alive
@@ -112,9 +113,11 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 						operator=EntityCriteriaOperator.GREATER_THAN,
 						value=(datetime.now().replace(tzinfo=None) + timedelta(days=-1))
 					)
-				)
+				),
+				distinctColumnNames=['worker_id']
 			)
 		)
+		return Array(rows).map(lambda x: x.workerId)
 
 	def declare_myself(self, worker: CompetitiveWorker) -> None:
 		self.storage.update_only(
