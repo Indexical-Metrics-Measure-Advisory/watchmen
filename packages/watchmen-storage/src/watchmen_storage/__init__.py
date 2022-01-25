@@ -26,5 +26,8 @@ StorageSPI = storage_spi.StorageSPI
 
 InvalidSystemClock = snowflake.InvalidSystemClock
 WorkerIdGenerator = snowflake.WorkerIdGenerator
-given_worker_id = snowflake.given_worker_id
-SnowflakeWorker = snowflake.SnowflakeWorker
+immutable_worker_id = snowflake.immutable_worker_id
+CompetitiveWorkerIdGenerator = snowflake.CompetitiveWorkerIdGenerator
+get_host_ip = snowflake.get_host_ip
+competitive_worker_id = snowflake.competitive_worker_id
+SnowflakeWorker = snowflake.SnowflakeGenerator
