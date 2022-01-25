@@ -17,7 +17,7 @@ DATACENTER_ID_SHIFT = SEQUENCE_BITS + WORKER_ID_BITS
 TIMESTAMP_LEFT_SHIFT = SEQUENCE_BITS + WORKER_ID_BITS + DATACENTER_ID_BITS
 
 
-class InvalidSystemClock(Exception):
+class InvalidSystemClockException(Exception):
 	pass
 
 
@@ -69,7 +69,7 @@ class SnowflakeGenerator:
 
 		if timestamp < self.last_timestamp:
 			# incorrect timestamp
-			raise InvalidSystemClock
+			raise InvalidSystemClockException
 		elif timestamp == self.last_timestamp:
 			# exactly in same timestamp, increase sequence
 			# and increase timestamp when sequence reaches the max value
