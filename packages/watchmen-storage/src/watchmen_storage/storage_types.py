@@ -36,7 +36,28 @@ class EntitySortMethod(str, Enum):
 
 
 EntitySort = Dict[EntityColumnName, EntitySortMethod]
-EntityCriteria = Dict[EntityColumnName, EntityColumnValue]
+
+
+class EntityCriteriaOperator(str, Enum):
+	IS_EMPTY = 'is-empty',
+	IS_NOT_EMPTY = 'is-not-empty',
+	EQUALS = 'equals',
+	NOT_EQUALS = 'not-equals',
+	LESS_THAN = 'less-than',
+	LESS_THAN_OR_EQUALS = 'less-than-or-equals',
+	GREATER_THAN = 'greater-than',
+	GREATER_THAN_OR_EQUALS = 'greater-than-or-equals',
+	IN = 'in',
+	NOT_IN = 'not-in'
+
+
+class EntityCriteriaExpression(BaseModel):
+	operator: EntityCriteriaOperator = EntityCriteriaOperator.EQUALS
+	value: Optional[EntityColumnValue] = None
+
+
+EntityCriteriaValue = Union[EntityColumnValue, EntityCriteriaExpression]
+EntityCriteria = Dict[EntityColumnName, EntityCriteriaValue]
 EntityUpdate = Dict[EntityColumnName, EntityColumnValue]
 
 
