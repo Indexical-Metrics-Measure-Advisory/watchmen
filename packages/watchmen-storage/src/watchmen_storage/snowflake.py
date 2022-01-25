@@ -68,9 +68,9 @@ class CompetitiveWorkerIdGenerator:
 	def create_worker_id(self) -> int:
 		used_worker_ids = self.acquire_used_worker_ids()
 		# random a worker id, return it when it is not used
-		new_worker_id = self.random_worker_id()
+		new_worker_id = CompetitiveWorkerIdGenerator.random_worker_id()
 		while new_worker_id in used_worker_ids:
-			new_worker_id = self.random_worker_id()
+			new_worker_id = CompetitiveWorkerIdGenerator.random_worker_id()
 		# return
 		return new_worker_id
 
