@@ -45,6 +45,7 @@ GraphicRect = graphic.GraphicRect
 DatasetCell = data_result_set.DataResultSetCell
 DatasetRow = data_result_set.DataResultSetRow
 DataResultSet = data_result_set.DataResultSet
+Pageable = pagination.Pageable
 DataPage = pagination.DataPage
 
 # parameters and conditions
