@@ -79,7 +79,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 					worker,
 					EntityHelper(name=SNOWFLAKE_WORKER_ID_TABLE, shaper=COMPETITIVE_WORKER_SHAPER)
 				)
-			except Exception as e:
+			except Exception:
 				raise WorkerFirstDeclarationException(
 					f'Failed to declare worker[dataCenterId={worker.dataCenterId}, workerId={worker.workerId}], '
 					f'there might be an existing one in storage.')
