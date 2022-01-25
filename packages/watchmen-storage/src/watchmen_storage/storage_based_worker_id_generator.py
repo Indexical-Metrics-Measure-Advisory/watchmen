@@ -4,7 +4,7 @@ from typing import List
 from funct import Array
 
 from watchmen_storage.competitive_worker_id_generator import CompetitiveWorker, CompetitiveWorkerIdGenerator, \
-	default_heart_beat_interval, WorkerFirstDeclarationException
+	default_heart_beat_interval, default_worker_creation_retry_times, WorkerFirstDeclarationException
 from watchmen_storage.storage_spi import StorageSPI
 from watchmen_storage.storage_types import EntityCriteria, EntityCriteriaExpression, EntityCriteriaOperator, \
 	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityRow, EntityShaper, EntityUpdate, EntityUpdater
@@ -47,9 +47,10 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 			self,
 			storage: StorageSPI,
 			data_center_id: int = 0,
-			heart_beat_interval: int = default_heart_beat_interval()
+			heart_beat_interval: int = default_heart_beat_interval(),
+			worker_creation_retry_times: int = default_worker_creation_retry_times()
 	):
-		super().__init__(data_center_id, heart_beat_interval)
+		super().__init__(data_center_id, heart_beat_interval, worker_creation_retry_times)
 		self.storage = storage
 
 	@staticmethod
