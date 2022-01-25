@@ -17,7 +17,7 @@ class StorageSPI(ABC):
 		pass
 
 	@abstractmethod
-	def update_one(self, one: Entity, helper: EntityHelper) -> Entity:
+	def update_one(self, one: Entity, helper: EntityHelper) -> int:
 		pass
 
 	@abstractmethod
