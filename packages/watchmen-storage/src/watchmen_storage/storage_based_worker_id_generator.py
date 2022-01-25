@@ -1,22 +1,14 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List
 
 from watchmen_storage.competitive_worker_id_generator import CompetitiveWorker, CompetitiveWorkerIdGenerator, \
-	default_heart_beat_interval
+	default_heart_beat_interval, WorkerFirstDeclarationException
 from watchmen_storage.storage_spi import StorageSPI
-from watchmen_storage.storage_types import EntityCriteria, EntityFinder, EntityHelper, EntityRow, EntityShaper, \
-	EntityUpdate, \
-	EntityUpdater
+from watchmen_storage.storage_types import EntityCriteria, EntityCriteriaExpression, EntityCriteriaOperator, \
+	EntityFinder, EntityHelper, EntityRow, EntityShaper, EntityUpdate, EntityUpdater
 
 SNOWFLAKE_WORKER_ID_TABLE = 'snowflake_worker_id'
 
-
-# Table("snowflake_workerid", self.metadata,
-#                                      Column('ip', String(100), primary_key=True),
-#                                      Column('processid', String(60), primary_key=True),
-#                                      Column('workerid', Integer, nullable=False),
-#                                      Column('regdate', Date, nullable=True)
-#                                      )
 
 class CompetitiveWorkerShaper(EntityShaper):
 	def serialize(self, entity: CompetitiveWorker) -> EntityRow:
@@ -50,22 +42,61 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 	"""
 
 	def __init__(
-			self, data_center_id: int,
+			self,
 			storage: StorageSPI,
+			data_center_id: int = 0,
 			heart_beat_interval: int = default_heart_beat_interval()
 	):
 		super().__init__(data_center_id, heart_beat_interval)
 		self.storage = storage
 
+	@staticmethod
+	def is_expired(worker: CompetitiveWorker) -> bool:
+		return (datetime.now().replace(tzinfo=None) - worker.lastBeatAt).days >= 1
+
 	def first_declare_myself(self, worker: CompetitiveWorker) -> None:
-		worker.lastBeatAt = datetime.now().replace(tzinfo=None)
-		self.storage.insert_one(
-			worker,
-			EntityHelper(
+		existing_workers = self.storage.find(
+			EntityFinder(
 				name=SNOWFLAKE_WORKER_ID_TABLE,
-				shaper=COMPETITIVE_WORKER_SHAPER
+				shaper=COMPETITIVE_WORKER_SHAPER,
+				criteria=EntityCriteria(
+					data_center_id=worker.dataCenterId,
+					worker_id=worker.workerId
+				)
 			)
 		)
+
+		workers_count = len(existing_workers)
+		if workers_count == 0:
+			# worker not exists
+			worker.lastBeatAt = datetime.now().replace(tzinfo=None)
+			self.storage.insert_one(
+				worker,
+				EntityHelper(
+					name=SNOWFLAKE_WORKER_ID_TABLE,
+					shaper=COMPETITIVE_WORKER_SHAPER
+				)
+			)
+		elif workers_count == 1 and StorageBasedWorkerIdGenerator.is_expired(existing_workers[0]):
+			# worker last beat before 1 day, treat it as discarded by other
+			# replace it
+			self.storage.update_one(
+				worker,
+				EntityHelper(
+					name=SNOWFLAKE_WORKER_ID_TABLE,
+					shaper=COMPETITIVE_WORKER_SHAPER
+				)
+			)
+		elif workers_count == 1:
+			# multiple workers found
+			raise WorkerFirstDeclarationException(
+				f'Worker[dataCenterId={worker.dataCenterId}, workerId={worker.workerId}, lastBeatAt={worker.lastBeatAt}] '
+				f'still alive.')
+		else:
+			# multiple workers found
+			raise WorkerFirstDeclarationException(
+				f'Multiple workers[dataCenterId={worker.dataCenterId}, workerId={worker.workerId}, count={workers_count}] '
+				f'determined.')
 
 	def acquire_used_worker_ids(self) -> List[int]:
 		return self.storage.find_distinct_values(
@@ -73,7 +104,14 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 			EntityFinder(
 				name=SNOWFLAKE_WORKER_ID_TABLE,
 				shaper=COMPETITIVE_WORKER_SHAPER,
-				criteria=EntityCriteria(data_center_id=self.data_center_id)
+				# workers last beat at in 1 day, means still alive
+				criteria=EntityCriteria(
+					data_center_id=self.data_center_id,
+					last_beat_at=EntityCriteriaExpression(
+						operator=EntityCriteriaOperator.GREATER_THAN,
+						value=(datetime.now().replace(tzinfo=None) + timedelta(days=-1))
+					)
+				)
 			)
 		)
 

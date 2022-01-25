@@ -15,6 +15,10 @@ from watchmen_storage.snowflake_worker_id_generator import WorkerIdGenerator
 logger = getLogger(__name__)
 
 
+class WorkerFirstDeclarationException(Exception):
+	pass
+
+
 def get_host_ip() -> str:
 	s = None
 	ip = None
@@ -47,7 +51,7 @@ def default_heart_beat_interval() -> int:
 class CompetitiveWorkerIdGenerator:
 	worker: CompetitiveWorker = None
 
-	def __init__(self, data_center_id: int, heart_beat_interval: int = default_heart_beat_interval()):
+	def __init__(self, data_center_id: int = 0, heart_beat_interval: int = default_heart_beat_interval()):
 		# will not check sanity of data center id here
 		self.data_center_id = data_center_id
 		self.heart_beat_interval = heart_beat_interval
@@ -68,7 +72,7 @@ class CompetitiveWorkerIdGenerator:
 			worker = CompetitiveWorker(dataCenterId=self.data_center_id, workerId=self.create_worker_id())
 			self.first_declare_myself(worker)
 			return worker
-		except:
+		except WorkerFirstDeclarationException:
 			return self.create_worker()
 
 	@staticmethod
