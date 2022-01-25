@@ -1,6 +1,117 @@
-from typing import Callable
+from abc import abstractmethod
+from datetime import datetime
+from logging import getLogger
+from os import getpid
+from random import randrange
+from socket import AF_INET, SOCK_DGRAM, socket
+from threading import Thread
+from typing import Callable, List
 
-import time
+from pydantic import BaseModel
+from time import sleep, time
+
+logger = getLogger(__name__)
+
+WorkerIdGenerator = Callable[[], int]
+
+
+def immutable_worker_id(worker_id: int) -> WorkerIdGenerator:
+	"""
+	create a worker id generator which always returns the given one
+	"""
+	return lambda: worker_id
+
+
+def get_host_ip() -> str:
+	s = None
+	ip = None
+	try:
+		s = socket(AF_INET, SOCK_DGRAM)
+		s.connect(('8.8.8.8', 80))
+		ip = s.getsockname()[0]
+	finally:
+		if s is not None:
+			s.close()
+		return ip
+
+
+class SnowflakeWorker(BaseModel):
+	ip: str = get_host_ip()
+	processId: str = str(getpid())
+	dataCenterId: int
+	workerId: int
+	registeredAt: datetime = datetime.now().replace(tzinfo=None)
+	lastBeatAt: datetime = None
+
+
+class CompetitiveWorkerIdGenerator:
+	worker: SnowflakeWorker = None
+
+	def __init__(self, data_center_id: int):
+		# will not check sanity of data center id here
+		self.data_center_id = data_center_id
+		self.worker = self.create_worker()
+		# start heart beat
+		Thread(target=self.heart_beat, args=(self,), daemon=True).start()
+
+	def create_worker(self):
+		# create a worker
+		worker = SnowflakeWorker(dataCenterId=self.data_center_id, workerId=self.create_worker_id())
+		self.declare_myself(worker)
+		return worker
+
+	@staticmethod
+	def random_worker_id() -> int:
+		return randrange(0, 1024)
+
+	@abstractmethod
+	def create_worker_id(self) -> int:
+		used_worker_ids = self.acquire_used_worker_ids()
+		# random a worker id, return it when it is not used
+		new_worker_id = self.random_worker_id()
+		while new_worker_id in used_worker_ids:
+			new_worker_id = self.random_worker_id()
+		# return
+		return new_worker_id
+
+	@abstractmethod
+	def acquire_used_worker_ids(self) -> List[int]:
+		"""
+		acquire used worker ids, implement me
+		:return:
+		"""
+		pass
+
+	@abstractmethod
+	def declare_myself(self, worker: SnowflakeWorker) -> None:
+		"""
+		declare me is alive, implement me
+		"""
+		pass
+
+	def heart_beat(self):
+		try:
+			while True:
+				self.declare_myself(self.worker)
+				sleep(30)
+		finally:
+			# release in-memory worker, will cause exception only if somebody calls me later
+			del self.worker
+			logger.warning(f'Competitive worker id generator[{self.worker}] heart beat stopped.')
+
+	def generate(self) -> int:
+		"""
+		generate snowflake worker id
+		"""
+		return self.worker.workerId
+
+
+def competitive_worker_id(generator: CompetitiveWorkerIdGenerator) -> WorkerIdGenerator:
+	"""
+	create a worker id generator which delegate to given competitive generator
+	"""
+	return lambda: generator.generate()
+
 
 TWEPOCH = 1420041600000
 # 0 - 3, 4 data centers maximum
@@ -22,7 +133,7 @@ class InvalidSystemClock(Exception):
 
 
 def generate_timestamp() -> int:
-	return int(time.time() * 1000)
+	return int(time() * 1000)
 
 
 def acquire_next_millisecond(last_timestamp):
@@ -34,24 +145,17 @@ def acquire_next_millisecond(last_timestamp):
 	return timestamp
 
 
-WorkerIdGenerator = Callable[[], int]
-
-
-def given_worker_id(worker_id: int) -> WorkerIdGenerator:
+class SnowflakeGenerator:
 	"""
-	return given worker id
+	snowflake id generator
 	"""
-	return lambda: worker_id
-
-
-class SnowflakeWorker:
-	"""
-
-	"""
-
-	# 	threading.Thread(target=WorkerIdGen.heart_beat, args=(gen,), daemon=True).start()
 
 	def __init__(self, data_center_id: int = 0, generate_worker_id: WorkerIdGenerator = None):
+		"""
+		:param data_center_id: data center id, [0, 3]
+		:param generate_worker_id: a function returns worker id, [0, 1023]
+		"""
+
 		# sanity check
 		if data_center_id > MAX_DATACENTER_ID or data_center_id < 0:
 			raise ValueError(
