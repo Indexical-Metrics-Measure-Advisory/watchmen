@@ -1,5 +1,6 @@
 import data_result_set
 import graphic
+import pagination
 import parameter
 import parameter_condition
 import tuple
@@ -44,6 +45,7 @@ GraphicRect = graphic.GraphicRect
 DatasetCell = data_result_set.DataResultSetCell
 DatasetRow = data_result_set.DataResultSetRow
 DataResultSet = data_result_set.DataResultSet
+DataPage = pagination.DataPage
 
 # parameters and conditions
 ParameterKind = parameter.ParameterKind
