@@ -59,10 +59,16 @@ def default_worker_creation_retry_times() -> int:
 class CompetitiveWorkerIdGenerator:
 	worker: CompetitiveWorker = None
 
-	def __init__(self, data_center_id: int = 0, heart_beat_interval: int = default_heart_beat_interval()):
+	def __init__(
+			self,
+			data_center_id: int = 0,
+			heart_beat_interval: int = default_heart_beat_interval(),
+			worker_creation_retry_times: int = default_worker_creation_retry_times()
+	):
 		# will not check sanity of data center id here
 		self.data_center_id = data_center_id
 		self.heart_beat_interval = heart_beat_interval
+		self.worker_creation_retry_times = worker_creation_retry_times
 		self.first_declare_times = 0
 		self.worker = self.create_worker()
 		del self.first_declare_times
@@ -84,10 +90,12 @@ class CompetitiveWorkerIdGenerator:
 			self.first_declare_myself(worker)
 			return worker
 		except WorkerFirstDeclarationException:
-			if self.first_declare_times < default_worker_creation_retry_times():
+			if self.first_declare_times <= self.worker_creation_retry_times:
 				return self.create_worker()
 			else:
-				raise
+				raise WorkerCreationException(
+					f'Failed to create worker[dataCenterId={self.data_center_id}], '
+					f'reaches maximum retry times[{self.worker_creation_retry_times}]')
 
 	@staticmethod
 	def random_worker_id() -> int:
