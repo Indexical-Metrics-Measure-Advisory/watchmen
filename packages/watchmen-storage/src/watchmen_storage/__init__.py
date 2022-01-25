@@ -1,5 +1,7 @@
+import competitive_worker_id_generator
 import error
 import snowflake
+import snowflake_worker_id_generator
 import storage_spi
 import storage_types
 
@@ -24,10 +26,13 @@ EntityUpdater = storage_types.EntityUpdater
 
 StorageSPI = storage_spi.StorageSPI
 
+WorkerIdGenerator = snowflake_worker_id_generator.WorkerIdGenerator
+immutable_worker_id = snowflake_worker_id_generator.immutable_worker_id
+
+get_host_ip = competitive_worker_id_generator.get_host_ip
+CompetitiveWorker = competitive_worker_id_generator.CompetitiveWorker
+CompetitiveWorkerIdGenerator = competitive_worker_id_generator.CompetitiveWorkerIdGenerator
+competitive_worker_id = competitive_worker_id_generator.competitive_worker_id
+
 InvalidSystemClock = snowflake.InvalidSystemClock
-WorkerIdGenerator = snowflake.WorkerIdGenerator
-immutable_worker_id = snowflake.immutable_worker_id
-CompetitiveWorkerIdGenerator = snowflake.CompetitiveWorkerIdGenerator
-get_host_ip = snowflake.get_host_ip
-competitive_worker_id = snowflake.competitive_worker_id
 SnowflakeWorker = snowflake.SnowflakeGenerator
