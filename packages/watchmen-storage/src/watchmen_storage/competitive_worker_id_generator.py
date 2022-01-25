@@ -80,7 +80,7 @@ class CompetitiveWorkerIdGenerator:
 		return randrange(0, 1024)
 
 	@abstractmethod
-	def acquire_used_worker_ids(self) -> List[int]:
+	def acquire_alive_worker_ids(self) -> List[int]:
 		"""
 		acquire used worker ids, implement me
 		:return: used worker ids
@@ -88,10 +88,10 @@ class CompetitiveWorkerIdGenerator:
 		pass
 
 	def create_worker_id(self) -> int:
-		used_worker_ids = self.acquire_used_worker_ids()
+		alive_worker_ids = self.acquire_alive_worker_ids()
 		# random a worker id, return it when it is not used
 		new_worker_id = CompetitiveWorkerIdGenerator.random_worker_id()
-		while new_worker_id in used_worker_ids:
+		while new_worker_id in alive_worker_ids:
 			new_worker_id = CompetitiveWorkerIdGenerator.random_worker_id()
 		# return
 		return new_worker_id
