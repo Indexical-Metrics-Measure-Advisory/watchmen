@@ -72,6 +72,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 		if workers_count == 0:
 			# worker not exists
 			worker.lastBeatAt = datetime.now().replace(tzinfo=None)
+			# TODO handle insert failed when other process already did it, may raise exception
 			self.storage.insert_one(
 				worker,
 				EntityHelper(
@@ -83,6 +84,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 			# worker last beat before 1 day, treat it as discarded by other
 			# replace it
 			worker.lastBeatAt = datetime.now().replace(tzinfo=None)
+			# TODO handle update failed when other process already did it, may raise exception
 			self.storage.update_one(
 				worker,
 				EntityHelper(
@@ -101,7 +103,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 				f'Multiple workers[dataCenterId={worker.dataCenterId}, workerId={worker.workerId}, count={workers_count}] '
 				f'determined.')
 
-	def acquire_used_worker_ids(self) -> List[int]:
+	def acquire_alive_worker_ids(self) -> List[int]:
 		rows = self.storage.find_distinct_values(
 			EntityDistinctValuesFinder(
 				name=SNOWFLAKE_WORKER_ID_TABLE,
