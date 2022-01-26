@@ -15,7 +15,7 @@ class User(Tuple):
 	name: str = None
 	nickName: str = None
 	password: str = None
-	is_active: bool = True
+	isActive: bool = True
 	groupIds: List[UserGroupId] = None
 	role: UserRole = None
 	tenantId: TenantId = None
