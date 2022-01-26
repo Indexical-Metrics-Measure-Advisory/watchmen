@@ -7,7 +7,6 @@ from watchmen_storage.storage_types import Entity, EntityDeleter, \
 
 
 class StorageSPI(ABC):
-
 	@abstractmethod
 	def insert_one(self, one: Entity, helper: EntityHelper) -> Entity:
 		pass
@@ -82,4 +81,18 @@ class StorageSPI(ABC):
 
 	@abstractmethod
 	def page(self, pager: EntityPager) -> DataPage:
+		pass
+
+
+class TransactionalStorageSPI(StorageSPI):
+	@abstractmethod
+	def begin(self) -> None:
+		pass
+
+	@abstractmethod
+	def commit_and_close(self) -> None:
+		pass
+
+	@abstractmethod
+	def rollback_and_close(self) -> None:
 		pass

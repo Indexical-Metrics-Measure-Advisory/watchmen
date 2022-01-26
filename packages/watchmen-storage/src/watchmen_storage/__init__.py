@@ -32,6 +32,7 @@ EntityUpdate = storage_types.EntityUpdate
 EntityUpdater = storage_types.EntityUpdater
 
 StorageSPI = storage_spi.StorageSPI
+TransactionalStorageSPI = storage_spi.TransactionalStorageSPI
 DataSourceHelper = data_source_helper.DataSourceHelper
 
 WorkerIdGenerator = snowflake_worker_id_generator.WorkerIdGenerator
