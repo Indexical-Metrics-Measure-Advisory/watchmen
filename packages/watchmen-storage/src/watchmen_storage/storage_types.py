@@ -7,16 +7,32 @@ from pydantic import BaseModel
 
 from watchmen_model.common import Pageable
 
+"""
+column name of storage entity, not for python object
+"""
 EntityColumnName = TypeVar('EntityColumnName', bound=str)
 EntityColumnValue = Union[date, time, datetime, int, float, bool, str, None]
+"""
+entity name of storage entity, not for python object
+"""
 EntityName = TypeVar('EntityName', bound=str)
 EntityRow = Dict[EntityColumnName, EntityColumnValue]
+"""
+entity can be a row or a base model
+"""
 Entity = Union[EntityRow, BaseModel]
+"""
+entity list can be list of rows or list of base models, cannot be mixed by rows and base models 
+"""
 EntityList = Union[List[EntityRow], List[BaseModel]]
 EntityId = TypeVar('EntityId', bound=str)
 
 
 class EntityShaper:
+	"""
+	serializer/deserializer between python object and entity in storage
+	"""
+
 	@abstractmethod
 	def serialize(self, entity: Entity) -> EntityRow:
 		pass
@@ -68,7 +84,7 @@ class EntityDeleter(EntityHelper):
 
 class EntityFinder(EntityHelper):
 	criteria: Optional[EntityCriteria] = None
-	sort: Optional[EntityCriteria] = None
+	sort: Optional[EntitySort] = None
 
 
 class EntityDistinctValuesFinder(EntityFinder):
