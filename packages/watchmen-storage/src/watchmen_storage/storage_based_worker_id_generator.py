@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from logging import getLogger
 from typing import List
 
 from funct import Array
@@ -79,7 +80,8 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 					worker,
 					EntityHelper(name=SNOWFLAKE_WORKER_ID_TABLE, shaper=COMPETITIVE_WORKER_SHAPER)
 				)
-			except Exception:
+			except Exception as e:
+				getLogger(__name__).error(e, exc_info=True, stack_info=True)
 				raise WorkerFirstDeclarationException(
 					f'Failed to declare worker[dataCenterId={worker.dataCenterId}, workerId={worker.workerId}], '
 					f'there might be an existing one in storage.')

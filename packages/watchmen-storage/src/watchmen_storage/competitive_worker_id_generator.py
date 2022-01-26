@@ -1,18 +1,17 @@
 from abc import abstractmethod
 from datetime import datetime
+from enum import Enum
 from logging import getLogger
 from os import getpid
 from random import randrange
 from socket import AF_INET, SOCK_DGRAM, socket
 from threading import Thread
-from typing import List
+from typing import Callable, List
 
 from pydantic import BaseModel
 from time import sleep
 
 from watchmen_storage.snowflake_worker_id_generator import WorkerIdGenerator
-
-logger = getLogger(__name__)
 
 
 class WorkerFirstDeclarationException(Exception):
@@ -56,24 +55,32 @@ def default_worker_creation_retry_times() -> int:
 	return 3
 
 
+class CompetitiveWorkerShutdownSignal(Enum):
+	EXIT = 1,
+	EXCEPTION_RAISED = 2,
+
+
+CompetitiveWorkerRestarter = Callable[[], None]
+CompetitiveWorkerShutdownListener = Callable[[CompetitiveWorkerShutdownSignal, CompetitiveWorkerRestarter], None]
+
+
 class CompetitiveWorkerIdGenerator:
 	worker: CompetitiveWorker = None
+	first_declare_times: int = 0
 
 	def __init__(
 			self,
 			data_center_id: int = 0,
 			heart_beat_interval: int = default_heart_beat_interval(),
-			worker_creation_retry_times: int = default_worker_creation_retry_times()
+			worker_creation_retry_times: int = default_worker_creation_retry_times(),
+			shutdown_listener: CompetitiveWorkerShutdownListener = None
 	):
 		# will not check sanity of data center id here
 		self.data_center_id = data_center_id
 		self.heart_beat_interval = heart_beat_interval
 		self.worker_creation_retry_times = worker_creation_retry_times
-		self.first_declare_times = 0
-		self.worker = self.create_worker()
-		del self.first_declare_times
-		# start heart beat
-		Thread(target=self.heart_beat, args=(self,), daemon=True).start()
+		self.handle_shutdown = shutdown_listener
+		self.try_create_worker()
 
 	@abstractmethod
 	def first_declare_myself(self, worker: CompetitiveWorker) -> None:
@@ -96,6 +103,13 @@ class CompetitiveWorkerIdGenerator:
 				raise WorkerCreationException(
 					f'Failed to create worker[dataCenterId={self.data_center_id}], '
 					f'reaches maximum retry times[{self.worker_creation_retry_times}]')
+
+	def try_create_worker(self):
+		self.first_declare_times = 0
+		self.worker = self.create_worker()
+		del self.first_declare_times
+		# start heart beat
+		Thread(target=self.heart_beat, args=(self,), daemon=True).start()
 
 	@staticmethod
 	def random_worker_id() -> int:
@@ -125,15 +139,22 @@ class CompetitiveWorkerIdGenerator:
 		"""
 		pass
 
+	# noinspection PyUnreachableCode
 	def heart_beat(self):
 		try:
 			while True:
 				self.declare_myself(self.worker)
 				sleep(self.heart_beat_interval)
+		except Exception as e:
+			getLogger(__name__).error(e, exc_info=True, stack_info=True)
+			self.handle_shutdown(CompetitiveWorkerShutdownSignal.EXCEPTION_RAISED, self.try_create_worker)
+		else:
+			# heart beat stopped with no exception, release signal
+			self.handle_shutdown(CompetitiveWorkerShutdownSignal.EXIT, self.try_create_worker)
 		finally:
 			# release in-memory worker, will raise exception only if somebody calls me later
 			del self.worker
-			logger.warning(f'Competitive worker id generator[{self.worker}] heart beat stopped.')
+			getLogger(__name__).warning(f'Competitive worker id generator[{self.worker}] heart beat stopped.')
 
 	def generate(self) -> int:
 		"""
