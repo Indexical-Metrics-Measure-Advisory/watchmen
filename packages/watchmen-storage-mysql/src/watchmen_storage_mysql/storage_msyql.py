@@ -5,7 +5,7 @@ from pymysql import Connection
 from sqlalchemy.engine import Engine
 
 from watchmen_model.common import DataPage
-from watchmen_storage import TransactionalStorageSPI
+from watchmen_storage import StorageException, TransactionalStorageSPI
 from watchmen_storage.storage_types import Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, \
 	EntityHelper, EntityId, EntityList, EntityPager, EntityUpdater
 
@@ -19,6 +19,9 @@ class StorageMySQL(TransactionalStorageSPI):
 		self.engine = engine
 
 	def begin(self) -> None:
+		if self.connection is not None:
+			raise StorageException('Connection exists, failed to begin another. It should be closed first.')
+
 		self.connection = self.engine.connect()
 		self.connection.begin()
 

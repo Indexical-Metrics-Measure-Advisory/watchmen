@@ -6,6 +6,10 @@ from watchmen_storage.storage_types import Entity, EntityDeleter, \
 	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, EntityList, EntityPager, EntityUpdater
 
 
+class StorageException(Exception):
+	pass
+
+
 class StorageSPI(ABC):
 	@abstractmethod
 	def insert_one(self, one: Entity, helper: EntityHelper) -> Entity:
