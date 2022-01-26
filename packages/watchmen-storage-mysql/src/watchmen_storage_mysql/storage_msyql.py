@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import Callable, List
+from typing import List
 
 from pymysql import Connection
 from sqlalchemy.engine import Engine
@@ -25,14 +25,12 @@ class StorageMySQL(TransactionalStorageSPI):
 		self.connection = self.engine.connect()
 		self.connection.begin()
 
-	def quiet_close(self, do: Callable[[], None], catch: Callable[[], None] = None) -> None:
+	def commit_and_close(self) -> None:
 		try:
-			do()
+			self.connection.commit()
 		except Exception as e:
-			logger.error(e, exc_info=True, stack_info=True)
-			if catch is not None:
-				catch()
-		finally:
+			raise e
+		else:
 			try:
 				if self.connection is not None:
 					self.connection.close()
@@ -40,30 +38,18 @@ class StorageMySQL(TransactionalStorageSPI):
 			except Exception as e:
 				logger.warning('Exception raised on close connection.', e)
 
-	def commit_and_close(self) -> None:
-		"""
-		1. commit successfully -> close
-		2. commit failed -> rollback successfully -> close
-		3. commit failed -> rollback failed -> close
-		"""
-
-		def on_commit_failed() -> None:
-			try:
-				self.connection.rollback()
-			except Exception as e:
-				logger.warning('Exception raised on rollback connection, ignored.', e)
-
-		self.quiet_close(self.connection.commit, on_commit_failed)
-
-	def do_rollback(self) -> None:
-		self.connection.rollback()
-
 	def rollback_and_close(self) -> None:
-		"""
-		1. rollback successfully -> close
-		2. rollback failed -> close
-		"""
-		self.quiet_close(self.do_rollback)
+		try:
+			self.connection.rollback()
+		except Exception as e:
+			logger.warning('Exception raised on rollback.', e, exc_info=True, stack_info=True)
+		finally:
+			try:
+				if self.connection is not None:
+					self.connection.close()
+					del self.connection
+			except Exception as e:
+				logger.warning('Exception raised on close connection.', e)
 
 	# table = self.table.get_table_by_name(name)
 	# one_dict: dict = convert_to_dict(one)

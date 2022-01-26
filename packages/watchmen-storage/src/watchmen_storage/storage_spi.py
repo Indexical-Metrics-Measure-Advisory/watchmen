@@ -89,14 +89,32 @@ class StorageSPI(ABC):
 
 
 class TransactionalStorageSPI(StorageSPI):
+	"""
+	storage = TransactionStorageSPI()
+	storage.begin()
+	try:
+		# do some logic
+		storage.commit_and_close()
+	except:
+		storage.rollback_and_close()
+	"""
+
 	@abstractmethod
 	def begin(self) -> None:
 		pass
 
 	@abstractmethod
 	def commit_and_close(self) -> None:
+		"""
+		1. commit successfully -> close
+		2. commit failed -> throw exception
+		"""
 		pass
 
 	@abstractmethod
 	def rollback_and_close(self) -> None:
+		"""
+		1. rollback successfully -> close
+		2. rollback failed -> close
+		"""
 		pass
