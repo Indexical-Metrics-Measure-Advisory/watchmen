@@ -3,7 +3,7 @@ from typing import List
 
 from pydantic import BaseModel
 
-from watchmen_model.common import DataSourceId, TenantId, Tuple
+from watchmen_model.common import DataSourceId, OptimisticLock, TenantId, Tuple
 
 
 class DataSourceParam(BaseModel):
@@ -17,7 +17,7 @@ class DataSourceType(str, Enum):
 	MONGODB = 'mongodb'
 
 
-class DataSource(Tuple):
+class DataSource(Tuple, OptimisticLock):
 	dataSourceId: DataSourceId = None
 	dataSourceCode: str = None
 	dataSourceType: DataSourceType = None

@@ -1,9 +1,9 @@
 from typing import List
 
-from watchmen_model.common import SpaceId, TenantId, Tuple, UserGroupId, UserId
+from watchmen_model.common import OptimisticLock, SpaceId, TenantId, Tuple, UserGroupId, UserId
 
 
-class UserGroup(Tuple):
+class UserGroup(Tuple, OptimisticLock):
 	userGroupId: UserGroupId = None
 	name: str = None
 	description: str = None

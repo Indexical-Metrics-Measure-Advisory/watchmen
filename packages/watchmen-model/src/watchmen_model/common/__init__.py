@@ -35,6 +35,7 @@ NavigationId = tuple_ids.NavigationId
 
 # tuple
 Tuple = tuple.Tuple
+OptimisticLock = tuple.OptimisticLock
 
 # graphic
 GraphicPosition = graphic.GraphicPosition

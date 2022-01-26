@@ -1,10 +1,10 @@
 from datetime import datetime
 from typing import List
 
-from watchmen_model.common import ConnectedSpaceId, SpaceId, SubjectId, TenantId, Tuple, UserId
+from watchmen_model.common import ConnectedSpaceId, OptimisticLock, SpaceId, SubjectId, TenantId, Tuple, UserId
 
 
-class ConnectedSpace(Tuple):
+class ConnectedSpace(Tuple, OptimisticLock):
 	connectId: ConnectedSpaceId = None
 	spaceId: SpaceId = None
 	name: str = None

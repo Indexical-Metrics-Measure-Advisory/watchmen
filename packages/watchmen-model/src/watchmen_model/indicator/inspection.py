@@ -3,7 +3,7 @@ from typing import Any, List, Literal
 
 from pydantic import BaseModel
 
-from watchmen_model.common import BucketId, FactorId, IndicatorId, InspectionId, TenantId, Tuple
+from watchmen_model.common import BucketId, FactorId, IndicatorId, InspectionId, OptimisticLock, TenantId, Tuple
 from watchmen_model.indicator.indicator import IndicatorAggregateArithmetic
 from watchmen_model.indicator.measure_method import MeasureMethod
 
@@ -112,7 +112,7 @@ class InspectionAmPmRange(InspectionTimeRange):
 	value: Literal[1, 2]
 
 
-class Inspection(Tuple):
+class Inspection(Tuple, OptimisticLock):
 	inspectionId: InspectionId = None
 	name: str = None
 	indicatorId: IndicatorId = None

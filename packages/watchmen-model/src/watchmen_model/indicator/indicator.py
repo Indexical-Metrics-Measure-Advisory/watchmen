@@ -3,7 +3,7 @@ from typing import List
 
 from pydantic import BaseModel
 
-from watchmen_model.common import FactorId, IndicatorId, TenantId, TopicId, Tuple
+from watchmen_model.common import FactorId, IndicatorId, OptimisticLock, TenantId, TopicId, Tuple
 from watchmen_model.indicator.measure_method import MeasureMethod
 
 
@@ -35,7 +35,7 @@ class RelevantIndicator(BaseModel):
 	type: RelevantIndicatorType = None
 
 
-class Indicator(Tuple):
+class Indicator(Tuple, OptimisticLock):
 	indicatorId: IndicatorId = None
 	name: str = None
 	topicId: TopicId = None
@@ -47,5 +47,6 @@ class Indicator(Tuple):
 	description: str = None
 	# /** effective only when factorId is appointed */
 	valueBuckets: List[str] = []
+	# noinspection SpellCheckingInspection
 	relevants: List[RelevantIndicator] = []
 	tenantId: TenantId = None
