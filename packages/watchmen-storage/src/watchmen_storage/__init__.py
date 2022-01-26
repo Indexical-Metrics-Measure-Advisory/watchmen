@@ -1,4 +1,5 @@
 import competitive_worker_id_generator
+import data_source_helper
 import snowflake
 import snowflake_worker_id_generator
 import storage_based_worker_id_generator
@@ -31,6 +32,7 @@ EntityUpdate = storage_types.EntityUpdate
 EntityUpdater = storage_types.EntityUpdater
 
 StorageSPI = storage_spi.StorageSPI
+DataSourceHelper = data_source_helper.DataSourceHelper
 
 WorkerIdGenerator = snowflake_worker_id_generator.WorkerIdGenerator
 immutable_worker_id = snowflake_worker_id_generator.immutable_worker_id
