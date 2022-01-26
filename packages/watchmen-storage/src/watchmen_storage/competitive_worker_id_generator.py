@@ -22,6 +22,10 @@ class WorkerCreationException(Exception):
 	pass
 
 
+class WorkerDeclarationException(Exception):
+	pass
+
+
 def get_host_ip() -> str:
 	s = None
 	ip = None

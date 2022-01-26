@@ -1,7 +1,7 @@
 from logging import getLogger
 from typing import List
 
-from sqlalchemy import insert
+from sqlalchemy import insert, update
 from sqlalchemy.engine import Connection, Engine
 
 from watchmen_model.common import DataPage
@@ -65,7 +65,20 @@ class StorageMySQL(TransactionalStorageSPI):
 		pass
 
 	def update_only(self, updater: EntityUpdater) -> int:
-		pass
+		table = find_table(updater.name)
+		statement = update(table) \
+			.values(updater.update)
+		# TODO update
+		# TODO where
+		result = self.connection.execute(statement)
+		return result.rowcount
+
+	# filter_ = [eq(table.c["ip"], ip), eq(table.c["processid"], process_id)]
+	# stmt = stmt.where(and_(*filter_))
+	# stmt = stmt.values({"regdate": datetime.now()})
+	# with self.engine.connect() as conn:
+	# 	with conn.begin():
+	# 		conn.execute(stmt)
 
 	def update_only_and_pull(self, updater: EntityUpdater) -> Entity:
 		pass
@@ -101,9 +114,11 @@ class StorageMySQL(TransactionalStorageSPI):
 		pass
 
 	def find(self, finder: EntityFinder) -> EntityList:
+		# TODO
 		pass
 
 	def find_distinct_values(self, finder: EntityDistinctValuesFinder) -> EntityList:
+		# TODO
 		pass
 
 	def find_all(self, helper: EntityHelper) -> EntityList:
