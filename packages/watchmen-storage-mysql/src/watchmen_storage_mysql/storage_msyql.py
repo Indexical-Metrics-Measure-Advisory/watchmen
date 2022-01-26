@@ -7,6 +7,9 @@ from watchmen_storage.storage_types import Entity, EntityDeleter, EntityDistinct
 
 
 class StorageMySQL(StorageSPI):
+	def __init__(self, engine):
+		self.engine = engine
+
 	def insert_one(self, one: Entity, helper: EntityHelper) -> Entity:
 		pass
 
