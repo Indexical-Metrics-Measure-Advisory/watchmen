@@ -68,7 +68,6 @@ class StorageMySQL(TransactionalStorageSPI):
 		table = find_table(updater.name)
 		statement = update(table) \
 			.values(updater.update)
-		# TODO update
 		# TODO where
 		result = self.connection.execute(statement)
 		return result.rowcount

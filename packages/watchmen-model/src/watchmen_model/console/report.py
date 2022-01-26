@@ -5,8 +5,8 @@ from typing import List, Union
 from pydantic import BaseModel
 
 from watchmen_model.chart import Chart
-from watchmen_model.common import DataResultSet, GraphicRect, ParameterJoint, ReportFunnelId, ReportId, \
-	SubjectDatasetColumnId, TenantId, Tuple, UserId
+from watchmen_model.common import DataResultSet, GraphicRect, OptimisticLock, ParameterJoint, ReportFunnelId, \
+	ReportId, SubjectDatasetColumnId, TenantId, Tuple, UserId
 
 
 class ReportIndicatorArithmetic(str, Enum):
@@ -57,7 +57,7 @@ class ReportFunnel(BaseModel):
 	values: List[Union[str, None]] = None
 
 
-class Report(Tuple):
+class Report(Tuple, OptimisticLock):
 	reportId: ReportId = None
 	name: str = None
 	filters: ParameterJoint = None

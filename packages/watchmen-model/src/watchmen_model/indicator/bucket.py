@@ -3,8 +3,8 @@ from typing import Any, List, Union
 
 from pydantic import BaseModel
 
-from watchmen_model.common import BucketId, EnumId, TenantId, Tuple
-from watchmen_model.indicator import MeasureMethod
+from watchmen_model.common import BucketId, EnumId, OptimisticLock, TenantId, Tuple
+from watchmen_model.indicator.measure_method import MeasureMethod
 
 
 class BucketType(str, Enum):
@@ -24,7 +24,7 @@ class BucketSegment(BaseModel):
 	value: Any = None
 
 
-class Bucket(Tuple):
+class Bucket(Tuple, OptimisticLock):
 	bucketId: BucketId = None
 	name: str = None
 	type: BucketType = None

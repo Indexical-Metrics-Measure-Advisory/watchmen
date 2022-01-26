@@ -22,3 +22,7 @@ class Tuple(BaseModel):
 			datetime: lambda dt: dt.isoformat(),
 			date: lambda dt: dt.isoformat()
 		}
+
+
+class OptimisticLock(BaseModel):
+	version: int = 1

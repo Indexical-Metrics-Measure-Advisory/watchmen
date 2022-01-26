@@ -4,8 +4,8 @@ from typing import List
 
 from pydantic import BaseModel
 
-from watchmen_model.common import FactorId, Parameter, ParameterJoint, ReportId, SubjectDatasetColumnId, \
-	SubjectId, TenantId, TopicId, Tuple, UserId
+from watchmen_model.common import FactorId, OptimisticLock, Parameter, ParameterJoint, ReportId, \
+	SubjectDatasetColumnId, SubjectId, TenantId, TopicId, Tuple, UserId
 
 
 class SubjectJoinType(str, Enum):
@@ -34,7 +34,7 @@ class SubjectDataset(BaseModel):
 	joins: List[SubjectDatasetJoin] = []
 
 
-class Subject(Tuple):
+class Subject(Tuple, OptimisticLock):
 	subjectId: SubjectId = None
 	name: str = None
 	reportIds: List[ReportId] = []

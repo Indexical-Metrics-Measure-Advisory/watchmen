@@ -1,9 +1,9 @@
 from typing import List
 
-from watchmen_model.common import EnumId, EnumItemId, TenantId, Tuple
+from watchmen_model.common import EnumId, EnumItemId, OptimisticLock, TenantId, Tuple
 
 
-class EnumItem(Tuple):
+class EnumItem(Tuple, OptimisticLock):
 	itemId: EnumItemId = None
 	code: str = None
 	label: str = None
@@ -13,7 +13,7 @@ class EnumItem(Tuple):
 	tenantId: TenantId = None
 
 
-class Enum(Tuple):
+class Enum(Tuple, OptimisticLock):
 	enumId: EnumId = None
 	name: str = None
 	description: str = None
