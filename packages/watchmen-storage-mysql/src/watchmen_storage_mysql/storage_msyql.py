@@ -56,6 +56,10 @@ class StorageMySQL(TransactionalStorageSPI):
 		self.connection.rollback()
 
 	def rollback_and_close(self) -> None:
+		"""
+		1. rollback successfully -> close
+		2. rollback failed -> close
+		"""
 		self.quiet_close(self.do_rollback)
 
 	# table = self.table.get_table_by_name(name)
