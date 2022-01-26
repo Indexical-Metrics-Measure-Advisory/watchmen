@@ -23,6 +23,7 @@ class StorageMySQL(TransactionalStorageSPI):
 			raise StorageException('Connection exists, failed to begin another. It should be closed first.')
 
 		self.connection = self.engine.connect()
+		self.connection.autocommit(False)
 		self.connection.begin()
 
 	def commit_and_close(self) -> None:
@@ -31,12 +32,7 @@ class StorageMySQL(TransactionalStorageSPI):
 		except Exception as e:
 			raise e
 		else:
-			try:
-				if self.connection is not None:
-					self.connection.close()
-					del self.connection
-			except Exception as e:
-				logger.warning('Exception raised on close connection.', e)
+			self.close()
 
 	def rollback_and_close(self) -> None:
 		try:
@@ -44,12 +40,15 @@ class StorageMySQL(TransactionalStorageSPI):
 		except Exception as e:
 			logger.warning('Exception raised on rollback.', e, exc_info=True, stack_info=True)
 		finally:
-			try:
-				if self.connection is not None:
-					self.connection.close()
-					del self.connection
-			except Exception as e:
-				logger.warning('Exception raised on close connection.', e)
+			self.close()
+
+	def close(self) -> None:
+		try:
+			if self.connection is not None:
+				self.connection.close()
+				del self.connection
+		except Exception as e:
+			logger.warning('Exception raised on close connection.', e)
 
 	# table = self.table.get_table_by_name(name)
 	# one_dict: dict = convert_to_dict(one)
