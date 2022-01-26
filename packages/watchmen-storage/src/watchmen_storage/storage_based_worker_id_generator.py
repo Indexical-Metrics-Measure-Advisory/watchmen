@@ -4,6 +4,7 @@ from typing import List
 
 from funct import Array
 
+from watchmen_storage import WorkerDeclarationException
 from watchmen_storage.competitive_worker_id_generator import CompetitiveWorker, CompetitiveWorkerIdGenerator, \
 	default_heart_beat_interval, default_worker_creation_retry_times, WorkerFirstDeclarationException
 from watchmen_storage.storage_spi import TransactionalStorageSPI
@@ -167,7 +168,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 	def declare_myself(self, worker: CompetitiveWorker) -> None:
 		self.storage.begin()
 		try:
-			self.storage.update_only(
+			updated_count = self.storage.update_only(
 				EntityUpdater(
 					name=SNOWFLAKE_WORKER_ID_TABLE,
 					shaper=COMPETITIVE_WORKER_SHAPER,
@@ -180,6 +181,11 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 					)
 				)
 			)
+			if updated_count == 0:
+				raise WorkerDeclarationException(
+					f'Failed to declare worker[dataCenterId={worker.dataCenterId}, workerId={worker.workerId}], '
+					f'certain data not found in storage.')
+
 			self.storage.commit_and_close()
 		except Exception as e:
 			self.storage.rollback_and_close()
