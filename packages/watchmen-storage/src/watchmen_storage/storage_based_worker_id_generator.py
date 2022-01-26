@@ -142,34 +142,45 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 			raise e
 
 	def acquire_alive_worker_ids(self) -> List[int]:
-		rows = self.storage.find_distinct_values(
-			EntityDistinctValuesFinder(
-				name=SNOWFLAKE_WORKER_ID_TABLE,
-				shaper=COMPETITIVE_WORKER_SHAPER,
-				# workers last beat at in 1 day, means still alive
-				criteria=EntityCriteria(
-					data_center_id=self.data_center_id,
-					last_beat_at=EntityCriteriaExpression(
-						operator=EntityCriteriaOperator.GREATER_THAN,
-						value=(datetime.now().replace(tzinfo=None) + timedelta(days=-1))
-					)
-				),
-				distinctColumnNames=['worker_id']
-			)
-		)
-		return Array(rows).map(lambda x: x.workerId)
-
-	def declare_myself(self, worker: CompetitiveWorker) -> None:
-		self.storage.update_only(
-			EntityUpdater(
-				name=SNOWFLAKE_WORKER_ID_TABLE,
-				shaper=COMPETITIVE_WORKER_SHAPER,
-				criteria=EntityCriteria(
-					data_center_id=self.data_center_id,
-					worker_id=worker.workerId
-				),
-				update=EntityUpdate(
-					last_beat_at=datetime.now().replace(tzinfo=None)
+		self.storage.begin()
+		try:
+			rows = self.storage.find_distinct_values(
+				EntityDistinctValuesFinder(
+					name=SNOWFLAKE_WORKER_ID_TABLE,
+					shaper=COMPETITIVE_WORKER_SHAPER,
+					# workers last beat at in 1 day, means still alive
+					criteria=EntityCriteria(
+						data_center_id=self.data_center_id,
+						last_beat_at=EntityCriteriaExpression(
+							operator=EntityCriteriaOperator.GREATER_THAN,
+							value=(datetime.now().replace(tzinfo=None) + timedelta(days=-1))
+						)
+					),
+					distinctColumnNames=['worker_id']
 				)
 			)
-		)
+			return Array(rows).map(lambda x: x.workerId)
+		except Exception as e:
+			self.storage.close()
+			raise e
+
+	def declare_myself(self, worker: CompetitiveWorker) -> None:
+		self.storage.begin()
+		try:
+			self.storage.update_only(
+				EntityUpdater(
+					name=SNOWFLAKE_WORKER_ID_TABLE,
+					shaper=COMPETITIVE_WORKER_SHAPER,
+					criteria=EntityCriteria(
+						data_center_id=self.data_center_id,
+						worker_id=worker.workerId
+					),
+					update=EntityUpdate(
+						last_beat_at=datetime.now().replace(tzinfo=None)
+					)
+				)
+			)
+			self.storage.commit_and_close()
+		except Exception as e:
+			self.storage.rollback_and_close()
+			raise e
