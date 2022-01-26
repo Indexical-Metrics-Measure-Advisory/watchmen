@@ -10,7 +10,7 @@ from watchmen_storage.storage_spi import TransactionalStorageSPI
 from watchmen_storage.storage_types import EntityCriteria, EntityCriteriaExpression, EntityCriteriaOperator, \
 	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityRow, EntityShaper, EntityUpdate, EntityUpdater
 
-SNOWFLAKE_WORKER_ID_TABLE = 'snowflake_worker_id'
+SNOWFLAKE_WORKER_ID_TABLE = 'snowflake_competitive_workers'
 
 
 class CompetitiveWorkerShaper(EntityShaper):
