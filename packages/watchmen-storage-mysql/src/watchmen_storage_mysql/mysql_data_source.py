@@ -12,11 +12,18 @@ def redress_url(value: str) -> str:
 		return value.strip()
 
 
+def redress_url_by_pymysql(url: str) -> str:
+	if url.startswith('mysql://'):
+		return url.replace('mysql://', 'mysql+pymysql://')
+	else:
+		return url
+
+
 class MySQLDataSourceHelper(DataSourceHelper):
 	@staticmethod
 	def acquire_storage_by_url(url: str) -> StorageMySQL:
 		engine = create_engine(
-			url,
+			redress_url_by_pymysql(url),
 			echo=False,
 			future=True,
 			pool_recycle=3600,
