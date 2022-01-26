@@ -9,23 +9,6 @@ from watchmen_storage import TransactionalStorageSPI
 from watchmen_storage.storage_types import Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, \
 	EntityHelper, EntityId, EntityList, EntityPager, EntityUpdater
 
-# table = self.table.get_table_by_name(name)
-# one_dict: dict = convert_to_dict(one)
-# values = {}
-# for key, value in one_dict.items():
-# 	if isinstance(table.c[key.lower()].type, JSON):
-# 		if value is not None:
-# 			values[key.lower()] = value
-# 		else:
-# 			values[key.lower()] = None
-# 	else:
-# 		values[key.lower()] = value
-# stmt = insert(table).values(values)
-# with self.engine.connect() as conn:
-# 	with conn.begin():
-# 		conn.execute(stmt)
-# return model.parse_obj(one)
-
 logger = getLogger(__name__)
 
 
@@ -75,6 +58,22 @@ class StorageMySQL(TransactionalStorageSPI):
 	def rollback_and_close(self) -> None:
 		self.quiet_close(self.do_rollback)
 
+	# table = self.table.get_table_by_name(name)
+	# one_dict: dict = convert_to_dict(one)
+	# values = {}
+	# for key, value in one_dict.items():
+	# 	if isinstance(table.c[key.lower()].type, JSON):
+	# 		if value is not None:
+	# 			values[key.lower()] = value
+	# 		else:
+	# 			values[key.lower()] = None
+	# 	else:
+	# 		values[key.lower()] = value
+	# stmt = insert(table).values(values)
+	# with self.engine.connect() as conn:
+	# 	with conn.begin():
+	# 		conn.execute(stmt)
+	# return model.parse_obj(one)
 	def insert_one(self, one: Entity, helper: EntityHelper) -> Entity:
 		pass
 
