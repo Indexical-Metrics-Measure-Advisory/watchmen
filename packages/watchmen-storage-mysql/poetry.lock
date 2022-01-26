@@ -1,4 +1,12 @@
 [[package]]
+name = "funct"
+version = "0.9.2"
+description = "Functional Python Sequence"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[[package]]
 name = "pydantic"
 version = "1.9.0"
 description = "Data validation and settings management using python 3.6 type hinting"
@@ -28,7 +36,7 @@ description = ""
 category = "main"
 optional = false
 python-versions = "^3.9"
-develop = false
+develop = true
 
 [package.dependencies]
 pydantic = "^1.9.0"
@@ -37,12 +45,33 @@ pydantic = "^1.9.0"
 type = "directory"
 url = "../watchmen-model"
 
+[[package]]
+name = "watchmen-storage"
+version = "16.0.0"
+description = ""
+category = "main"
+optional = false
+python-versions = "^3.9"
+develop = true
+
+[package.dependencies]
+Funct = "^0.9.2"
+watchmen-model = {path = "../watchmen-model", develop = true}
+
+[package.source]
+type = "directory"
+url = "../watchmen-storage"
+
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "765c14d1550f17d13158944d2ce7bdd896b84920b1966d2b745afa5a750ea3eb"
+content-hash = "9629f937ca5e635a85bab5dc283a1cce111be26469a4aaaf8344f00d73aef0a8"
 
 [metadata.files]
+funct = [
+    {file = "Funct-0.9.2-py3-none-any.whl", hash = "sha256:0d838556b373454a4a8d6c561ecc19900d2392ed754bfc5ba24cd3b94782216d"},
+    {file = "Funct-0.9.2.tar.gz", hash = "sha256:13f8c95f154f7b81083411d1e37ea6e988a032c22cd5853bf176dcfc0221695e"},
+]
 pydantic = [
     {file = "pydantic-1.9.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:cb23bcc093697cdea2708baae4f9ba0e972960a835af22560f6ae4e7e47d33f5"},
     {file = "pydantic-1.9.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:1d5278bd9f0eee04a44c712982343103bba63507480bfd2fc2790fa70cd64cf4"},
@@ -85,3 +114,4 @@ typing-extensions = [
     {file = "typing_extensions-4.0.1.tar.gz", hash = "sha256:4ca091dea149f945ec56afb48dae714f21e8692ef22a395223bcd328961b6a0e"},
 ]
 watchmen-model = []
+watchmen-storage = []
