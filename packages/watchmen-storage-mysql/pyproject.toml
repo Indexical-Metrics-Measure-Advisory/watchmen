@@ -4,6 +4,9 @@ version = "16.0.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
+packages = [
+    { include = "watchmen_storage_mysql", from = "src" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.9"

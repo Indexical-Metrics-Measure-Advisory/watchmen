@@ -5,7 +5,7 @@ description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
 packages = [
-    { include = "watchmen_storage" }
+    { include = "watchmen_storage", from = "src" }
 ]
 
 [tool.poetry.dependencies]
