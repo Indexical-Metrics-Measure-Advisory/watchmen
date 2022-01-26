@@ -90,23 +90,25 @@ class StorageSPI(ABC):
 
 class TransactionalStorageSPI(StorageSPI):
 	"""
-	def a_func():
-		# Declare a storage and begin it explicitly
-		storage = TransactionStorageSPI()
-		storage.begin()
+	Example:
+		def a_func():
+			# Declare a storage and begin it explicitly\n
+			storage = TransactionStorageSPI()
+			storage.begin()\n
 
-		# Then do logic with transaction
-		try:
-			# do some logic
-			storage.commit_and_close()
-		except:
-			storage.rollback_and_close()
+			# Then do logic with transaction\n
+			try:
+				# do some logic\n
+				storage.commit_and_close()
+			except:
+				storage.rollback_and_close()
 
-		# Or do logic with no transaction. Use this pattern only when no write logic there
-		try:
-			# do some logic
-		except:
-			storage.close()
+			# Or do logic with no transaction.\n
+			# Use this pattern only when no write logic included\n
+			try:
+				# do some read logic\n
+			except:
+				storage.close()
 	"""
 
 	@abstractmethod
