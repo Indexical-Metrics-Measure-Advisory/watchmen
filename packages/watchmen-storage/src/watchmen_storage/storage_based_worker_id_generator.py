@@ -8,7 +8,7 @@ from watchmen_storage import WorkerDeclarationException
 from watchmen_storage.competitive_worker_id_generator import CompetitiveWorker, CompetitiveWorkerIdGenerator, \
 	default_heart_beat_interval, default_worker_creation_retry_times, WorkerFirstDeclarationException
 from watchmen_storage.storage_spi import TransactionalStorageSPI
-from watchmen_storage.storage_types import EntityCriteria, EntityCriteriaExpression, EntityCriteriaOperator, \
+from watchmen_storage.storage_types import EntityCriteriaExpression, EntityCriteriaOperator, \
 	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityRow, EntityShaper, EntityUpdate, EntityUpdater
 
 SNOWFLAKE_WORKER_ID_TABLE = 'snowflake_competitive_workers'
@@ -67,10 +67,10 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 				EntityFinder(
 					name=SNOWFLAKE_WORKER_ID_TABLE,
 					shaper=COMPETITIVE_WORKER_SHAPER,
-					criteria=EntityCriteria(
-						data_center_id=worker.dataCenterId,
-						worker_id=worker.workerId
-					)
+					criteria=[
+						EntityCriteriaExpression(name='data_center_id', value=worker.dataCenterId),
+						EntityCriteriaExpression(name='worker_id', value=worker.workerId)
+					]
 				)
 			)
 
@@ -100,14 +100,15 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 						EntityUpdater(
 							name=SNOWFLAKE_WORKER_ID_TABLE,
 							shaper=COMPETITIVE_WORKER_SHAPER,
-							criteria=EntityCriteria(
-								data_center_id=self.data_center_id,
-								worker_id=worker.workerId,
-								last_beat_at=EntityCriteriaExpression(
+							criteria=[
+								EntityCriteriaExpression(name='data_center_id', value=self.data_center_id),
+								EntityCriteriaExpression(name='worker_id', value=worker.workerId),
+								EntityCriteriaExpression(
+									name='last_beat_at',
 									operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
 									value=(datetime.now().replace(tzinfo=None) + timedelta(days=-1))
 								)
-							),
+							],
 							update=EntityUpdate(
 								ip=worker.ip,
 								process_id=worker.processId,
@@ -150,13 +151,14 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 					name=SNOWFLAKE_WORKER_ID_TABLE,
 					shaper=COMPETITIVE_WORKER_SHAPER,
 					# workers last beat at in 1 day, means still alive
-					criteria=EntityCriteria(
-						data_center_id=self.data_center_id,
-						last_beat_at=EntityCriteriaExpression(
+					criteria=[
+						EntityCriteriaExpression(name='data_center_id', value=self.data_center_id),
+						EntityCriteriaExpression(
+							name='last_beat_at',
 							operator=EntityCriteriaOperator.GREATER_THAN,
 							value=(datetime.now().replace(tzinfo=None) + timedelta(days=-1))
 						)
-					),
+					],
 					distinctColumnNames=['worker_id']
 				)
 			)
@@ -172,10 +174,10 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 				EntityUpdater(
 					name=SNOWFLAKE_WORKER_ID_TABLE,
 					shaper=COMPETITIVE_WORKER_SHAPER,
-					criteria=EntityCriteria(
-						data_center_id=self.data_center_id,
-						worker_id=worker.workerId
-					),
+					criteria=[
+						EntityCriteriaExpression(name='data_center_id', value=self.data_center_id),
+						EntityCriteriaExpression(name='worker_id', value=worker.workerId)
+					],
 					update=EntityUpdate(
 						last_beat_at=datetime.now().replace(tzinfo=None)
 					)

@@ -9,14 +9,22 @@ import storage_types
 
 InsertConflictException = storage_exception.InsertConflictException
 OptimisticLockException = storage_exception.OptimisticLockException
+UnexpectedStorageException = storage_exception.UnexpectedStorageException
+UnsupportedCriteriaException = storage_exception.UnsupportedCriteriaException
+UnsupportedCriteriaExpressionOperatorException = storage_exception.UnsupportedCriteriaExpressionOperatorException
+UnsupportedCriteriaJointConjunctionException = storage_exception.UnsupportedCriteriaJointConjunctionException
+NoCriteriaForUpdateException = storage_exception.NoCriteriaForUpdateException
+UnsupportedSortMethodException = storage_exception.UnsupportedSortMethodException
 
 Entity = storage_types.Entity
 EntityList = storage_types.EntityList
 EntityColumnName = storage_types.EntityColumnName
 EntityColumnValue = storage_types.EntityColumnValue
+EntityCriteriaStatement = storage_types.EntityCriteriaStatement
 EntityCriteriaOperator = storage_types.EntityCriteriaOperator
 EntityCriteriaExpression = storage_types.EntityCriteriaExpression
-EntityCriteriaValue = storage_types.EntityCriteriaValue
+EntityCriteriaJointConjunction = storage_types.EntityCriteriaJointConjunction
+EntityCriteriaJoint = storage_types.EntityCriteriaJoint
 EntityCriteria = storage_types.EntityCriteria
 EntityDeleter = storage_types.EntityDeleter
 EntityFinder = storage_types.EntityFinder
@@ -26,12 +34,12 @@ EntityId = storage_types.EntityId
 EntityName = storage_types.EntityName
 EntityPager = storage_types.EntityPager
 EntityShaper = storage_types.EntityShaper
-EntitySort = storage_types.EntitySort
 EntitySortMethod = storage_types.EntitySortMethod
+EntitySortColumn = storage_types.EntitySortColumn
+EntitySort = storage_types.EntitySort
 EntityUpdate = storage_types.EntityUpdate
 EntityUpdater = storage_types.EntityUpdater
 
-StorageException = storage_spi.StorageException
 StorageSPI = storage_spi.StorageSPI
 TransactionalStorageSPI = storage_spi.TransactionalStorageSPI
 DataSourceHelper = data_source_helper.DataSourceHelper

@@ -1,7 +1,6 @@
 from abc import abstractmethod
-from datetime import date, datetime, time
 from enum import Enum
-from typing import Dict, List, Optional, TypeVar, Union
+from typing import Any, Dict, List, Optional, TypeVar, Union
 
 from pydantic import BaseModel
 
@@ -11,7 +10,7 @@ from watchmen_model.common import Pageable
 column name of storage entity, not for python object
 """
 EntityColumnName = TypeVar('EntityColumnName', bound=str)
-EntityColumnValue = Union[date, time, datetime, int, float, bool, str, None]
+EntityColumnValue = Any
 """
 entity name of storage entity, not for python object
 """
@@ -52,7 +51,16 @@ class EntitySortMethod(str, Enum):
 	DESC = 'desc'
 
 
-EntitySort = Dict[EntityColumnName, EntitySortMethod]
+class EntitySortColumn(BaseModel):
+	name: EntityColumnName
+	method: EntitySortMethod
+
+
+EntitySort = List[EntitySortColumn]
+
+
+class EntityCriteriaStatement(BaseModel):
+	pass
 
 
 class EntityCriteriaOperator(str, Enum):
@@ -68,13 +76,23 @@ class EntityCriteriaOperator(str, Enum):
 	NOT_IN = 'not-in'
 
 
-class EntityCriteriaExpression(BaseModel):
+class EntityCriteriaExpression(EntityCriteriaStatement):
+	name: EntityColumnName
 	operator: EntityCriteriaOperator = EntityCriteriaOperator.EQUALS
 	value: Optional[EntityColumnValue] = None
 
 
-EntityCriteriaValue = Union[EntityColumnValue, EntityCriteriaExpression]
-EntityCriteria = Dict[EntityColumnName, EntityCriteriaValue]
+class EntityCriteriaJointConjunction(str, Enum):
+	AND = 'and',
+	OR = 'or'
+
+
+class EntityCriteriaJoint(EntityCriteriaStatement):
+	conjunction: EntityCriteriaJointConjunction = EntityCriteriaJointConjunction.AND
+	children: List[EntityCriteriaStatement]
+
+
+EntityCriteria = List[EntityCriteriaStatement]
 EntityUpdate = Dict[EntityColumnName, EntityColumnValue]
 
 
