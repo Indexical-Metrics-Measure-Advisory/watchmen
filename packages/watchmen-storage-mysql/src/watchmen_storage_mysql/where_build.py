@@ -5,6 +5,7 @@ from watchmen_storage import EntityCriteria, EntityCriteriaExpression, EntityCri
 	EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, NoCriteriaForUpdateException, \
 	UnsupportedCriteriaException, UnsupportedCriteriaExpressionOperatorException, \
 	UnsupportedCriteriaJointConjunctionException
+from .types import SQLAlchemyStatement
 
 
 def build_criteria_expression(expression: EntityCriteriaExpression):
@@ -63,9 +64,15 @@ def build_criteria(criteria: EntityCriteria):
 		return build_criteria_statement(EntityCriteriaJoint(children=criteria))
 
 
-def build_criteria_for_statement(statement, criteria: EntityCriteria, raise_exception_on_missed: bool = False) -> None:
+def build_criteria_for_statement(
+		statement: SQLAlchemyStatement,
+		criteria: EntityCriteria,
+		raise_exception_on_missed: bool = False
+) -> SQLAlchemyStatement:
 	where = build_criteria(criteria)
 	if where is not None:
-		statement.where(where)
+		return statement.where(where)
 	elif raise_exception_on_missed:
 		raise NoCriteriaForUpdateException(f'No criteria found for update[{criteria}].')
+	else:
+		return statement
