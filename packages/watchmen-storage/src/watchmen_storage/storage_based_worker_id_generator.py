@@ -9,7 +9,7 @@ from .competitive_worker_id_generator import CompetitiveWorker, CompetitiveWorke
 	WorkerDeclarationException, WorkerFirstDeclarationException
 from .storage_spi import TransactionalStorageSPI
 from .storage_types import EntityCriteriaExpression, EntityCriteriaOperator, \
-	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityRow, EntityShaper, EntityUpdate, EntityUpdater
+	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityRow, EntityShaper, EntityUpdater
 
 SNOWFLAKE_WORKER_ID_TABLE = 'snowflake_competitive_workers'
 
@@ -110,12 +110,12 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 									value=(datetime.now().replace(tzinfo=None) + timedelta(days=-1))
 								)
 							],
-							update=EntityUpdate(
-								ip=worker.ip,
-								process_id=worker.processId,
-								registered_at=worker.registeredAt,
-								last_beat_at=datetime.now().replace(tzinfo=None)
-							)
+							update={
+								'ip': worker.ip,
+								'process_id': worker.processId,
+								'registered_at': worker.registeredAt,
+								'last_beat_at': datetime.now().replace(tzinfo=None)
+							}
 						)
 					)
 					# handle update failed when other process already did it, may raise exception
@@ -176,9 +176,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 						EntityCriteriaExpression(name='data_center_id', value=self.data_center_id),
 						EntityCriteriaExpression(name='worker_id', value=worker.workerId)
 					],
-					update=EntityUpdate(
-						last_beat_at=datetime.now().replace(tzinfo=None)
-					)
+					update={'last_beat_at': datetime.now().replace(tzinfo=None)}
 				)
 			)
 			if updated_count == 0:

@@ -52,7 +52,7 @@ def default_heart_beat_interval() -> int:
 	"""
 	:return: in seconds
 	"""
-	return 30
+	return 60
 
 
 def default_worker_creation_retry_times() -> int:
@@ -113,7 +113,7 @@ class CompetitiveWorkerIdGenerator:
 		self.worker = self.create_worker()
 		del self.first_declare_times
 		# start heart beat
-		Thread(target=self.heart_beat, args=(self,), daemon=True).start()
+		Thread(target=CompetitiveWorkerIdGenerator.heart_beat, args=(self,), daemon=True).start()
 
 	@staticmethod
 	def random_worker_id() -> int:
