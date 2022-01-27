@@ -10,6 +10,7 @@ from watchmen_storage import Entity, EntityDeleter, EntityDistinctValuesFinder, 
 	EntityList, EntityPager, EntityUpdater, TransactionalStorageSPI, UnexpectedStorageException
 from .mysql_table_defs import find_table
 from .sort_build import build_sort_for_statement
+from .types import SQLAlchemyStatement
 from .where_build import build_criteria_for_statement
 
 logger = getLogger(__name__)
@@ -70,7 +71,7 @@ class StorageMySQL(TransactionalStorageSPI):
 	def update_only(self, updater: EntityUpdater) -> int:
 		table = find_table(updater.name)
 		statement = update(table).values(updater.update)
-		build_criteria_for_statement(statement, updater.criteria, True)
+		statement = build_criteria_for_statement(statement, updater.criteria, True)
 		result = self.connection.execute(statement)
 		return result.rowcount
 
@@ -107,22 +108,21 @@ class StorageMySQL(TransactionalStorageSPI):
 	def find_one(self, finder: EntityFinder) -> Entity:
 		pass
 
+	def find_on_statement_by_finder(self, statement: SQLAlchemyStatement, finder: EntityFinder) -> EntityList:
+		statement = build_criteria_for_statement(statement, finder.criteria)
+		statement = build_sort_for_statement(statement, finder.sort)
+		results = self.connection.execute(statement).mappings().all()
+		return list(Array(results).map(lambda x: dict(x)).map(finder.shaper.deserialize))
+
 	def find(self, finder: EntityFinder) -> EntityList:
 		table = find_table(finder.name)
 		statement = select(table)
-		build_criteria_for_statement(statement, finder.criteria)
-		build_sort_for_statement(statement, finder.sort)
-
-		results = self.connection.execute(statement).mappings().all()
-		return list(Array(results).map(finder.shaper.deserialize))
+		return self.find_on_statement_by_finder(statement, finder)
 
 	def find_distinct_values(self, finder: EntityDistinctValuesFinder) -> EntityList:
 		table = find_table(finder.name)
 		statement = select(*Array(finder.distinctColumnNames).map(text)).select_from(table)
-		build_criteria_for_statement(statement, finder.criteria)
-		build_sort_for_statement(statement, finder.sort)
-		results = self.connection.execute(statement).mappings().all()
-		return list(Array(results).map(lambda x: dict(x)).map(finder.shaper.deserialize))
+		return self.find_on_statement_by_finder(statement, finder)
 
 	def find_all(self, helper: EntityHelper) -> EntityList:
 		pass

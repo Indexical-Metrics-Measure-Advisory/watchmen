@@ -27,12 +27,12 @@ class CompetitiveWorkerShaper(EntityShaper):
 
 	def deserialize(self, row: EntityRow) -> CompetitiveWorker:
 		return CompetitiveWorker(
-			ip=row['ip'],
-			processId=row['process_id'],
-			dataCenterId=row['data_center_id'],
-			workerId=row['worker_id'],
-			registeredAt=row['registered_at'],
-			lastBeatAt=row['last_beat_at']
+			ip=row.get('ip'),
+			processId=row.get('process_id'),
+			dataCenterId=row.get('data_center_id'),
+			workerId=row.get('worker_id'),
+			registeredAt=row.get('registered_at'),
+			lastBeatAt=row.get('last_beat_at')
 		)
 
 
@@ -136,8 +136,6 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 					f'determined.')
 			# commit data
 			self.storage.commit_and_close()
-		except WorkerFirstDeclarationException as e:
-			raise e
 		except Exception as e:
 			# rollback data
 			self.storage.rollback_and_close()

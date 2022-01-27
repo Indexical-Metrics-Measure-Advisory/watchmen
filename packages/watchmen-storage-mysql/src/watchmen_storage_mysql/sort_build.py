@@ -4,6 +4,7 @@ from funct import Array
 from sqlalchemy import asc, desc
 
 from watchmen_storage import EntitySort, EntitySortColumn, EntitySortMethod, UnsupportedSortMethodException
+from .types import SQLAlchemyStatement
 
 
 def build_sort_column(column: EntitySortColumn):
@@ -22,7 +23,9 @@ def build_sort(sort: EntitySort) -> Union[None, list]:
 	return list(Array(sort).map(build_sort_column))
 
 
-def build_sort_for_statement(statement, sort: EntitySort) -> None:
+def build_sort_for_statement(statement: SQLAlchemyStatement, sort: EntitySort) -> SQLAlchemyStatement:
 	sort = build_sort(sort)
 	if sort is not None:
-		statement.order_by(*sort)
+		return statement.order_by(*sort)
+	else:
+		return statement

@@ -6,7 +6,7 @@ from os import getpid
 from random import randrange
 from socket import AF_INET, SOCK_DGRAM, socket
 from threading import Thread
-from typing import Callable, List
+from typing import Callable, List, Optional
 
 from pydantic import BaseModel
 from time import sleep
@@ -40,11 +40,11 @@ def get_host_ip() -> str:
 
 
 class CompetitiveWorker(BaseModel):
-	ip: str = get_host_ip()
-	processId: str = str(getpid())
-	dataCenterId: int
-	workerId: int
-	registeredAt: datetime = datetime.now().replace(tzinfo=None)
+	ip: Optional[str] = get_host_ip()
+	processId: Optional[str] = str(getpid())
+	dataCenterId: int = None
+	workerId: int = None
+	registeredAt: Optional[datetime] = datetime.now().replace(tzinfo=None)
 	lastBeatAt: datetime = None
 
 
