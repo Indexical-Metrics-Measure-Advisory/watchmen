@@ -26,7 +26,7 @@ class StorageMySQL(TransactionalStorageSPI):
 			raise UnexpectedStorageException('Connection exists, failed to begin another. It should be closed first.')
 
 		self.connection = self.engine.connect()
-		self.connection.autocommit(False)
+		# self.connection.autocommit(False)
 		self.connection.begin()
 
 	def commit_and_close(self) -> None:
