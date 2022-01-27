@@ -106,7 +106,7 @@ class TransactionalStorageSPI(StorageSPI):
 			# Use this pattern only when no write logic included\n
 			try:
 				# do some read logic\n
-			except:
+			finally:
 				storage.close()
 	"""
 
