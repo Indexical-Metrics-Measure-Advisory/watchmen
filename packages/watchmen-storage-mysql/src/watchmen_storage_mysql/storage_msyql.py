@@ -63,9 +63,11 @@ class StorageMySQL(TransactionalStorageSPI):
 		return one
 
 	def insert_all(self, data: List[Entity], helper: EntityHelper) -> EntityList:
+		# TODO
 		pass
 
 	def update_one(self, one: Entity, helper: EntityHelper) -> int:
+		# TODO
 		pass
 
 	def update_only(self, updater: EntityUpdater) -> int:
@@ -76,36 +78,47 @@ class StorageMySQL(TransactionalStorageSPI):
 		return result.rowcount
 
 	def update_only_and_pull(self, updater: EntityUpdater) -> Entity:
+		# TODO
 		pass
 
 	def update(self, updater: EntityUpdater) -> int:
+		# TODO
 		pass
 
 	def update_and_pull(self, updater: EntityUpdater) -> EntityList:
+		# TODO
 		pass
 
 	def delete_by_id(self, entity_id: EntityId, helper: EntityHelper) -> int:
+		# TODO
 		pass
 
 	def delete_by_id_and_pull(self, entity_id: EntityId, helper: EntityHelper) -> Entity:
+		# TODO
 		pass
 
 	def delete_only(self, deleter: EntityDeleter) -> int:
+		# TODO
 		pass
 
 	def delete_only_and_pull(self, deleter: EntityDeleter) -> Entity:
+		# TODO
 		pass
 
 	def delete(self, deleter: EntityDeleter) -> int:
+		# TODO
 		pass
 
 	def delete_and_pull(self, deleter: EntityDeleter) -> EntityList:
+		# TODO
 		pass
 
 	def find_by_id(self, entity_id: EntityId, helper: EntityHelper) -> Entity:
+		# TODO
 		pass
 
 	def find_one(self, finder: EntityFinder) -> Entity:
+		# TODO
 		pass
 
 	def find_on_statement_by_finder(self, statement: SQLAlchemyStatement, finder: EntityFinder) -> EntityList:
@@ -125,7 +138,8 @@ class StorageMySQL(TransactionalStorageSPI):
 		return self.find_on_statement_by_finder(statement, finder)
 
 	def find_all(self, helper: EntityHelper) -> EntityList:
-		pass
+		return self.find(EntityFinder(name=helper.name, shaper=helper.shaper))
 
 	def page(self, pager: EntityPager) -> DataPage:
+		# TODO
 		pass
