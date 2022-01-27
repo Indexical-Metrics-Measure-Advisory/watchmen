@@ -1,14 +1,17 @@
 from logging import getLogger
 from typing import List
 
-from sqlalchemy import insert, update
+from funct import Array
+from sqlalchemy import insert, select, text, update
 from sqlalchemy.engine import Connection, Engine
 
 from watchmen_model.common import DataPage
-from watchmen_storage import StorageException, TransactionalStorageSPI
+from watchmen_storage import TransactionalStorageSPI, UnexpectedStorageException
 from watchmen_storage.storage_types import Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, \
 	EntityHelper, EntityId, EntityList, EntityPager, EntityUpdater
 from watchmen_storage_mysql.mysql_table_defs import find_table
+from watchmen_storage_mysql.sort_build import build_sort_for_statement
+from watchmen_storage_mysql.where_build import build_criteria_for_statement
 
 logger = getLogger(__name__)
 
@@ -21,7 +24,7 @@ class StorageMySQL(TransactionalStorageSPI):
 
 	def begin(self) -> None:
 		if self.connection is not None:
-			raise StorageException('Connection exists, failed to begin another. It should be closed first.')
+			raise UnexpectedStorageException('Connection exists, failed to begin another. It should be closed first.')
 
 		self.connection = self.engine.connect()
 		self.connection.autocommit(False)
@@ -66,18 +69,10 @@ class StorageMySQL(TransactionalStorageSPI):
 
 	def update_only(self, updater: EntityUpdater) -> int:
 		table = find_table(updater.name)
-		statement = update(table) \
-			.values(updater.update)
-		# TODO where
+		statement = update(table).values(updater.update)
+		build_criteria_for_statement(statement, updater.criteria, True)
 		result = self.connection.execute(statement)
 		return result.rowcount
-
-	# filter_ = [eq(table.c["ip"], ip), eq(table.c["processid"], process_id)]
-	# stmt = stmt.where(and_(*filter_))
-	# stmt = stmt.values({"regdate": datetime.now()})
-	# with self.engine.connect() as conn:
-	# 	with conn.begin():
-	# 		conn.execute(stmt)
 
 	def update_only_and_pull(self, updater: EntityUpdater) -> Entity:
 		pass
@@ -113,12 +108,21 @@ class StorageMySQL(TransactionalStorageSPI):
 		pass
 
 	def find(self, finder: EntityFinder) -> EntityList:
-		# TODO
-		pass
+		table = find_table(finder.name)
+		statement = select(table)
+		build_criteria_for_statement(statement, finder.criteria)
+		build_sort_for_statement(statement, finder.sort)
+
+		results = self.connection.execute(statement).mappings().all()
+		return list(Array(results).map(finder.shaper.deserialize))
 
 	def find_distinct_values(self, finder: EntityDistinctValuesFinder) -> EntityList:
-		# TODO
-		pass
+		table = find_table(finder.name)
+		statement = select(*Array(finder.distinctColumnNames).map(text)).select_from(table)
+		build_criteria_for_statement(statement, finder.criteria)
+		build_sort_for_statement(statement, finder.sort)
+		results = self.connection.execute(statement).mappings().all()
+		return list(Array(results).map(finder.shaper.deserialize))
 
 	def find_all(self, helper: EntityHelper) -> EntityList:
 		pass

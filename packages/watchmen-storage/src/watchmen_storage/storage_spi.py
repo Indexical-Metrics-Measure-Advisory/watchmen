@@ -6,10 +6,6 @@ from watchmen_storage.storage_types import Entity, EntityDeleter, \
 	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, EntityList, EntityPager, EntityUpdater
 
 
-class StorageException(Exception):
-	pass
-
-
 class StorageSPI(ABC):
 	@abstractmethod
 	def insert_one(self, one: Entity, helper: EntityHelper) -> Entity:
@@ -77,6 +73,9 @@ class StorageSPI(ABC):
 
 	@abstractmethod
 	def find_distinct_values(self, finder: EntityDistinctValuesFinder) -> EntityList:
+		"""
+		filled values with given distinct columns event returns an entity list
+		"""
 		pass
 
 	@abstractmethod
