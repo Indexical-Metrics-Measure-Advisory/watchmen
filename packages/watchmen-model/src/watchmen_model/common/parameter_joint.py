@@ -1,6 +1,6 @@
+from enum import Enum
 from typing import List
 
-from watchmen_model.admin import Enum
 from .parameter_condition import ParameterCondition
 
 
