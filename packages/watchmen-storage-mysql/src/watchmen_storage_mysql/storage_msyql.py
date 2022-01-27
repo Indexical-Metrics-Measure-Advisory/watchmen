@@ -2,7 +2,7 @@ from logging import getLogger
 from typing import List
 
 from funct import Array
-from sqlalchemy import insert, select, text, update
+from sqlalchemy import insert, inspect, select, text, update
 from sqlalchemy.engine import Connection, Engine
 
 from watchmen_model.common import DataPage
@@ -20,6 +20,7 @@ class StorageMySQL(TransactionalStorageSPI):
 
 	def __init__(self, engine: Engine):
 		self.engine = engine
+		inspect(engine)
 
 	def begin(self) -> None:
 		if self.connection is not None:
@@ -121,7 +122,7 @@ class StorageMySQL(TransactionalStorageSPI):
 		build_criteria_for_statement(statement, finder.criteria)
 		build_sort_for_statement(statement, finder.sort)
 		results = self.connection.execute(statement).mappings().all()
-		return list(Array(results).map(finder.shaper.deserialize))
+		return list(Array(results).map(lambda x: dict(x)).map(finder.shaper.deserialize))
 
 	def find_all(self, helper: EntityHelper) -> EntityList:
 		pass
