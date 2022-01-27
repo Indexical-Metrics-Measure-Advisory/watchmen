@@ -1,3 +1,4 @@
+from pydantic import BaseModel
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 
@@ -21,40 +22,47 @@ def redress_url_by_pymysql(url: str) -> str:
 		return url
 
 
-class MySQLDataSourceHelper(DataSourceHelper):
-	def __init__(self, data_source: DataSource):
-		super().__init__(data_source)
-		self.engine = self.acquire_engine()
+class MySQLDataSourceParams(BaseModel):
+	echo: bool = False
+	poolRecycle: int = 3600
 
-	def acquire_engine(self) -> Engine:
+
+class MySQLDataSourceHelper(DataSourceHelper):
+	def __init__(self, data_source: DataSource, params: MySQLDataSourceParams):
+		super().__init__(data_source)
+		self.engine = self.acquire_engine(params)
+
+	def acquire_engine(self, params: MySQLDataSourceParams) -> Engine:
 		data_source = self.data_source
 		url = redress_url(data_source.url)
 		if len(url) != 0:
-			return MySQLDataSourceHelper.acquire_engine_by_url(url)
+			return MySQLDataSourceHelper.acquire_engine_by_url(url, params)
 		else:
 			return self.acquire_engine_by_params(
 				data_source.username, data_source.password,
 				data_source.host, data_source.port,
-				data_source.name
+				data_source.name,
+				params
 			)
 
 	@staticmethod
-	def acquire_engine_by_url(url: str) -> Engine:
+	def acquire_engine_by_url(url: str, params: MySQLDataSourceParams) -> Engine:
 		return create_engine(
 			redress_url_by_pymysql(url),
-			echo=False,
+			echo=params.echo,
 			future=True,
-			pool_recycle=3600,
+			pool_recycle=params.poolRecycle,
 			json_serializer=serialize_to_json,
 			encoding='utf-8'
 		)
 
 	@staticmethod
 	def acquire_engine_by_params(
-			username: str, password: str, host: str, port: str, name: str
+			username: str, password: str, host: str, port: str, name: str,
+			params: MySQLDataSourceParams
 	) -> Engine:
 		url = f'mysql+pymysql://{username}:{password}@{host}:{port}/{name}?charset=utf8'
-		return MySQLDataSourceHelper.acquire_engine_by_url(url)
+		return MySQLDataSourceHelper.acquire_engine_by_url(url, params)
 
 	def acquire_storage(self) -> StorageMySQL:
 		return StorageMySQL(self.engine)
