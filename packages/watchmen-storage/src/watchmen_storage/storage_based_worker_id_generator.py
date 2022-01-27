@@ -164,9 +164,8 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 				)
 			)
 			return Array(rows).map(lambda x: x.workerId)
-		except Exception as e:
+		finally:
 			self.storage.close()
-			raise e
 
 	def declare_myself(self, worker: CompetitiveWorker) -> None:
 		self.storage.begin()
