@@ -3,8 +3,9 @@ from .graphic import GraphicPosition, GraphicRect, GraphicSize
 from .pagination import DataPage, Pageable, PageDataCell, PageDataRow, PageDataSet
 from .parameter import ComputedParameter, ConstantParameter, Parameter, ParameterComputeType, ParameterKind, \
 	TopicFactorParameter
-from .parameter_condition import ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, \
-	ParameterJointType
+from .parameter_condition import ParameterCondition
+from .parameter_expression import ParameterExpression, ParameterExpressionOperator
+from .parameter_joint import ParameterJoint, ParameterJointType
 from .tuple import OptimisticLock, Tuple
 from .tuple_ids import BucketId, ConnectedSpaceId, DashboardId, DataSourceId, EnumId, EnumItemId, ExternalWriterId, \
 	FactorId, IndicatorId, InspectionId, NavigationId, PipelineActionId, PipelineId, PipelinesGraphicId, \
