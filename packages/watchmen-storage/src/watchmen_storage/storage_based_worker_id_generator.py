@@ -53,8 +53,8 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 			worker_creation_retry_times: int = default_worker_creation_retry_times(),
 			shutdown_listener: CompetitiveWorkerShutdownListener = None
 	):
-		super().__init__(data_center_id, heart_beat_interval, worker_creation_retry_times, shutdown_listener)
 		self.storage = storage
+		super().__init__(data_center_id, heart_beat_interval, worker_creation_retry_times, shutdown_listener)
 
 	@staticmethod
 	def is_abandoned(worker: CompetitiveWorker) -> bool:

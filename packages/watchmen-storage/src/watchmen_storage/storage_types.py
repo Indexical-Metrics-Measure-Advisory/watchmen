@@ -27,7 +27,7 @@ EntityList = Union[List[EntityRow], List[BaseModel]]
 EntityId = TypeVar('EntityId', bound=str)
 
 
-class EntityShaper:
+class EntityShaper(BaseModel):
 	"""
 	serializer/deserializer between python object and entity in storage
 	"""

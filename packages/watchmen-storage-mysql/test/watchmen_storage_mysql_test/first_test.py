@@ -2,7 +2,7 @@ from unittest import TestCase
 
 from watchmen_model.system import DataSource, DataSourceType
 from watchmen_storage import competitive_worker_id, CompetitiveWorkerRestarter, CompetitiveWorkerShutdownSignal, \
-	SnowflakeGenerator, StorageBasedWorkerIdGenerator
+	StorageBasedWorkerIdGenerator
 from watchmen_storage_mysql import MySQLDataSourceHelper
 
 
@@ -28,4 +28,4 @@ class FirstTest(TestCase):
 			storage=helper.acquire_storage(),
 			shutdown_listener=shutdown_listener
 		))
-		SnowflakeGenerator(generate_worker_id=worker_id_generator)
+	# SnowflakeGenerator(generate_worker_id=worker_id_generator)
