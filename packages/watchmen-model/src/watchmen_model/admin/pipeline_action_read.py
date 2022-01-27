@@ -1,4 +1,4 @@
-from watchmen_model.admin.pipeline_action import AggregateArithmeticHolder, FindBy, FromFactor, FromTopic, \
+from .pipeline_action import AggregateArithmeticHolder, FindBy, FromFactor, FromTopic, \
 	MemoryWriter, PipelineAction, ReadTopicActionType
 
 

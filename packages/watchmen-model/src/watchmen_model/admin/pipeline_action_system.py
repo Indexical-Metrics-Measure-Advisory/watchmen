@@ -1,8 +1,8 @@
 from enum import Enum
 
-from watchmen_model.admin.pipeline import Conditional
-from watchmen_model.admin.pipeline_action import MemoryWriter, PipelineAction, SystemActionType
 from watchmen_model.common import ExternalWriterId, Parameter
+from .pipeline import Conditional
+from .pipeline_action import MemoryWriter, PipelineAction, SystemActionType
 
 
 class AlarmActionSeverity(str, Enum):

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List
 
 from watchmen_model.common import DataPage
-from watchmen_storage.storage_types import Entity, EntityDeleter, \
+from .storage_types import Entity, EntityDeleter, \
 	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, EntityList, EntityPager, EntityUpdater
 
 

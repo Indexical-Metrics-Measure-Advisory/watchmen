@@ -1,8 +1,8 @@
 from enum import Enum
 from typing import List
 
-from factor import Factor
 from watchmen_model.common import DataSourceId, OptimisticLock, TenantId, TopicId, Tuple
+from .factor import Factor
 
 
 class TopicKind(str, Enum):

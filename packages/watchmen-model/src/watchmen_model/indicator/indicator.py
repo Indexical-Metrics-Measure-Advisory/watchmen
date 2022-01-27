@@ -4,7 +4,7 @@ from typing import List
 from pydantic import BaseModel
 
 from watchmen_model.common import FactorId, IndicatorId, OptimisticLock, TenantId, TopicId, Tuple
-from watchmen_model.indicator.measure_method import MeasureMethod
+from .measure_method import MeasureMethod
 
 
 class IndicatorAggregateArithmetic(str, Enum):

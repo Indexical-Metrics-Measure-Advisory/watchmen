@@ -1,6 +1,6 @@
 from time import time
 
-from watchmen_storage.snowflake_worker_id_generator import WorkerIdGenerator
+from .snowflake_worker_id_generator import WorkerIdGenerator
 
 TWEPOCH = 1420041600000
 # 0 - 3, 4 data centers maximum

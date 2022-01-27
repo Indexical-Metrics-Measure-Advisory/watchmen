@@ -4,7 +4,7 @@ from typing import Any, List, Union
 from pydantic import BaseModel
 
 from watchmen_model.common import BucketId, EnumId, OptimisticLock, TenantId, Tuple
-from watchmen_model.indicator.measure_method import MeasureMethod
+from .measure_method import MeasureMethod
 
 
 class BucketType(str, Enum):

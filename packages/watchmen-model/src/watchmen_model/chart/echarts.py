@@ -3,9 +3,9 @@ from typing import Any, Dict, List, Union
 
 from pydantic import BaseModel
 
-from watchmen_model.chart.chart import Chart, ChartColor, ChartSettings, ChartType
-from watchmen_model.chart.chart_basic_style import ChartBorder, ChartFont
-from watchmen_model.chart.chart_enums import ChartBorderStyle
+from .chart import Chart, ChartColor, ChartSettings, ChartType
+from .chart_basic_style import ChartBorder, ChartFont
+from .chart_enums import ChartBorderStyle
 
 
 class EChartsBorderHolder(BaseModel):

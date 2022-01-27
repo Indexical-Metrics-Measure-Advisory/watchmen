@@ -2,10 +2,10 @@ from enum import Enum
 
 from pydantic import BaseModel
 
-from watchmen_model.chart.chart_basic_structure import ChartTruncationHolder
-from watchmen_model.chart.chart_basic_style import ChartBorder
-from watchmen_model.chart.chart_enums import PredefinedChartColorSeries
-from watchmen_model.chart.chart_types import ChartColor
+from .chart_basic_structure import ChartTruncationHolder
+from .chart_basic_style import ChartBorder
+from .chart_enums import PredefinedChartColorSeries
+from .chart_types import ChartColor
 
 
 class ChartType(str, Enum):

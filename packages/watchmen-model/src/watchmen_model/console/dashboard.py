@@ -4,7 +4,7 @@ from typing import List
 from pydantic import BaseModel
 
 from watchmen_model.common import DashboardId, GraphicRect, ReportId, TenantId, Tuple, UserId
-from watchmen_model.console.report import ReportFunnel
+from .report import ReportFunnel
 
 
 class DashboardReport(BaseModel):

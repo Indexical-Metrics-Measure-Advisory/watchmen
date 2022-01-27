@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
-from watchmen_model.chart.chart_enums import ChartBorderStyle, ChartFontStyle, ChartFontWeight
-from watchmen_model.chart.chart_types import ChartColor
+from .chart_enums import ChartBorderStyle, ChartFontStyle, ChartFontWeight
+from .chart_types import ChartColor
 
 
 class ChartFont(BaseModel):

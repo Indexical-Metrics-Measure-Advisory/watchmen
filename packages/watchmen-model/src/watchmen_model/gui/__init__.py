@@ -1,5 +1,2 @@
-import favorite
-import last_snapshot
-
-Favorite = favorite.Favorite
-LastSnapshot = last_snapshot.LastSnapshot
+from .favorite import Favorite
+from .last_snapshot import LastSnapshot

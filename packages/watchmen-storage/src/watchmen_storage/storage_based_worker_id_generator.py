@@ -4,12 +4,11 @@ from typing import List
 
 from funct import Array
 
-from watchmen_storage import WorkerDeclarationException
-from watchmen_storage.competitive_worker_id_generator import CompetitiveWorker, CompetitiveWorkerIdGenerator, \
+from .competitive_worker_id_generator import CompetitiveWorker, CompetitiveWorkerIdGenerator, \
 	CompetitiveWorkerShutdownListener, default_heart_beat_interval, default_worker_creation_retry_times, \
-	WorkerFirstDeclarationException
-from watchmen_storage.storage_spi import TransactionalStorageSPI
-from watchmen_storage.storage_types import EntityCriteriaExpression, EntityCriteriaOperator, \
+	WorkerDeclarationException, WorkerFirstDeclarationException
+from .storage_spi import TransactionalStorageSPI
+from .storage_types import EntityCriteriaExpression, EntityCriteriaOperator, \
 	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityRow, EntityShaper, EntityUpdate, EntityUpdater
 
 SNOWFLAKE_WORKER_ID_TABLE = 'snowflake_competitive_workers'

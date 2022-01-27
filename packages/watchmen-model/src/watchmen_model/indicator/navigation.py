@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 from watchmen_model.admin import Enum
 from watchmen_model.common import BucketId, FactorId, IndicatorId, NavigationId, OptimisticLock, TenantId, Tuple
-from watchmen_model.indicator.indicator import IndicatorAggregateArithmetic
+from .indicator import IndicatorAggregateArithmetic
 
 
 class NavigationIndicatorCriteria(BaseModel):

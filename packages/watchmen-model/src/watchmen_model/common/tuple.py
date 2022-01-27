@@ -2,7 +2,7 @@ from datetime import date, datetime
 
 from pydantic import BaseConfig, BaseModel
 
-from tuple_ids import UserId
+from .tuple_ids import UserId
 
 """
 Super model of tuple, which 
