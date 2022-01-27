@@ -28,7 +28,7 @@ class MySQLDataSourceParams(BaseModel):
 
 
 class MySQLDataSourceHelper(DataSourceHelper):
-	def __init__(self, data_source: DataSource, params: MySQLDataSourceParams):
+	def __init__(self, data_source: DataSource, params: MySQLDataSourceParams = MySQLDataSourceParams()):
 		super().__init__(data_source)
 		self.engine = self.acquire_engine(params)
 
