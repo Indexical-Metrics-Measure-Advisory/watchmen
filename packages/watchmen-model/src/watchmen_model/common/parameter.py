@@ -3,8 +3,8 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
-from parameter_condition import ParameterJoint
-from tuple_ids import FactorId, TopicId
+from .parameter_condition import ParameterJoint
+from .tuple_ids import FactorId, TopicId
 
 
 class ParameterKind(str, Enum):

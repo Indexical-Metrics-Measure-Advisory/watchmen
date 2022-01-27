@@ -1,8 +1,8 @@
 from typing import List, Union
 
-from watchmen_model.admin.pipeline_action import AggregateArithmeticHolder, FindBy, PipelineAction, ToFactor, ToTopic, \
-	WriteTopicActionType
 from watchmen_model.common import FactorId, Parameter
+from .pipeline_action import AggregateArithmeticHolder, FindBy, PipelineAction, ToFactor, ToTopic, \
+	WriteTopicActionType
 
 
 class MappingFactor(AggregateArithmeticHolder):

@@ -4,8 +4,8 @@ from typing import Any, List, Literal
 from pydantic import BaseModel
 
 from watchmen_model.common import BucketId, FactorId, IndicatorId, InspectionId, OptimisticLock, TenantId, Tuple
-from watchmen_model.indicator.indicator import IndicatorAggregateArithmetic
-from watchmen_model.indicator.measure_method import MeasureMethod
+from .indicator import IndicatorAggregateArithmetic
+from .measure_method import MeasureMethod
 
 
 class InspectMeasureOn(str, Enum):

@@ -3,8 +3,8 @@ from sqlalchemy.engine import Engine
 
 from watchmen_model.system import DataSource
 from watchmen_storage import DataSourceHelper
-from watchmen_storage_mysql.storage_msyql import StorageMySQL
 from watchmen_utilities import serialize_to_json
+from .storage_msyql import StorageMySQL
 
 
 def redress_url(value: str) -> str:

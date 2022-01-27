@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
 from watchmen_model.system import DataSource
-from watchmen_storage.storage_spi import StorageSPI
+from .storage_spi import StorageSPI
 
 
 class DataSourceHelper:

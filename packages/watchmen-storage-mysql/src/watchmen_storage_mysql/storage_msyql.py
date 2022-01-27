@@ -6,12 +6,11 @@ from sqlalchemy import insert, select, text, update
 from sqlalchemy.engine import Connection, Engine
 
 from watchmen_model.common import DataPage
-from watchmen_storage import TransactionalStorageSPI, UnexpectedStorageException
-from watchmen_storage.storage_types import Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, \
-	EntityHelper, EntityId, EntityList, EntityPager, EntityUpdater
-from watchmen_storage_mysql.mysql_table_defs import find_table
-from watchmen_storage_mysql.sort_build import build_sort_for_statement
-from watchmen_storage_mysql.where_build import build_criteria_for_statement
+from watchmen_storage import Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
+	EntityList, EntityPager, EntityUpdater, TransactionalStorageSPI, UnexpectedStorageException
+from .mysql_table_defs import find_table
+from .sort_build import build_sort_for_statement
+from .where_build import build_criteria_for_statement
 
 logger = getLogger(__name__)
 

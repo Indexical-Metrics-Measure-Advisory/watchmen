@@ -2,10 +2,10 @@ from typing import List
 
 from pydantic import BaseModel
 
-from watchmen_model.admin.enumeration import Enum
-from watchmen_model.admin.pipeline_action import PipelineAction
 from watchmen_model.common import OptimisticLock, ParameterJoint, PipelineId, PipelineStageId, PipelineUnitId, \
 	TenantId, TopicId, Tuple
+from .enumeration import Enum
+from .pipeline_action import PipelineAction
 
 
 class Conditional(BaseModel):

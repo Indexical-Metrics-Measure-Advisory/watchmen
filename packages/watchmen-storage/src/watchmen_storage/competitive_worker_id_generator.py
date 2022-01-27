@@ -11,7 +11,7 @@ from typing import Callable, List
 from pydantic import BaseModel
 from time import sleep
 
-from watchmen_storage.snowflake_worker_id_generator import WorkerIdGenerator
+from .snowflake_worker_id_generator import WorkerIdGenerator
 
 
 class WorkerFirstDeclarationException(Exception):
