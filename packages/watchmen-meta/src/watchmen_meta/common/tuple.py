@@ -81,10 +81,48 @@ class TupleService:
 	def now() -> datetime:
 		return datetime.now().replace(tzinfo=None)
 
+	@abstractmethod
+	def get_tuple_id(self, a_tuple: Tuple) -> TupleId:
+		pass
+
+	@abstractmethod
+	def set_tuple_id(self, a_tuple: Tuple, tuple_id: TupleId) -> Tuple:
+		"""
+		return exactly the given tuple
+		"""
+		pass
+
+	@staticmethod
+	def is_tuple_id_faked(tuple_id: TupleId) -> bool:
+		if tuple_id is None:
+			return True
+
+		trimmed_tuple_id = tuple_id.strip()
+		if len(trimmed_tuple_id) == 0:
+			return True
+		elif trimmed_tuple_id.startswith('f-'):
+			return True
+		else:
+			return False
+
+	def generate_tuple_id(self) -> TupleId:
+		# TODO
+		pass
+
+	def redress_tuple_id(self, a_tuple: Tuple) -> Tuple:
+		"""
+		return exactly the given tuple, replace by generated id if it is faked
+		"""
+		if TupleService.is_tuple_id_faked(self.get_tuple_id(a_tuple)):
+			self.set_tuple_id(a_tuple, self.generate_tuple_id())
+		return a_tuple
+
 	def create(self, a_tuple: Tuple) -> Tuple:
 		now = TupleService.now()
 		a_tuple.createdAt = now
+		# TODO created by
 		a_tuple.lastModifiedAt = now
+		# TODO last modified by
 		a_tuple.version = 1
 
 		self.storage.insert_one(a_tuple, self.get_entity_helper())
@@ -92,6 +130,7 @@ class TupleService:
 
 	def update(self, a_tuple: Tuple) -> Tuple:
 		a_tuple.lastModifiedAt = TupleService.now()
+		# TODO last modified by
 
 		try:
 			self.storage.update_one(a_tuple, self.get_entity_helper())
