@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, TypeVar, Union
 
 from pydantic import BaseModel
 
-from watchmen_model.common import Pageable, Tuple
+from watchmen_model.common import Pageable, Storable
 
 """
 column name of storage entity, not for python object
@@ -19,7 +19,7 @@ EntityRow = Dict[EntityColumnName, EntityColumnValue]
 """
 entity can be a row or a base model
 """
-Entity = Union[EntityRow, Tuple]
+Entity = Union[EntityRow, Storable]
 """
 entity list can be list of rows or list of base models, cannot be mixed by rows and base models 
 """
