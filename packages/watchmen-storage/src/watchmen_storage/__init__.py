@@ -12,5 +12,5 @@ from .storage_exception import InsertConflictException, NoCriteriaForUpdateExcep
 from .storage_spi import StorageSPI, TransactionalStorageSPI
 from .storage_types import Entity, EntityColumnName, EntityColumnValue, EntityCriteria, EntityCriteriaExpression, \
 	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, EntityDeleter, \
-	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, EntityList, EntityName, EntityPager, EntityShaper, \
-	EntitySort, EntitySortColumn, EntitySortMethod, EntityUpdate, EntityUpdater
+	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, EntityList, EntityName, EntityPager, EntityRow, \
+	EntityShaper, EntitySort, EntitySortColumn, EntitySortMethod, EntityUpdate, EntityUpdater
