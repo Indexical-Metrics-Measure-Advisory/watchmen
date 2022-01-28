@@ -10,16 +10,9 @@ from watchmen_storage_mysql import StorageMySQLConfiguration
 class FirstTest(TestCase):
 
 	def setUp(self) -> None:
-		# self.dataSource = DataSource(
-		# 	dataSourceType=DataSourceType.MYSQL,
-		# 	name='watchmen',
-		# 	host='localhost',
-		# 	port='3306',
-		# 	username='watchmen',
-		# 	password='watchmen'
-		# )
 		self.storage = StorageMySQLConfiguration.config() \
 			.host('localhost', 3306).account('watchmen', 'watchmen').schema('watchmen') \
+			.turn_on_echo() \
 			.build()
 
 	def test_one(self):
