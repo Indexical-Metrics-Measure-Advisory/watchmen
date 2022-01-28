@@ -1,4 +1,12 @@
 [[package]]
+name = "decorator"
+version = "5.1.1"
+description = "Decorators for Humans"
+category = "main"
+optional = false
+python-versions = ">=3.5"
+
+[[package]]
 name = "funct"
 version = "0.9.2"
 description = "Functional Python Sequence"
@@ -43,6 +51,17 @@ python-versions = ">=3.6"
 [package.extras]
 ed25519 = ["PyNaCl (>=1.4.0)"]
 rsa = ["cryptography"]
+
+[[package]]
+name = "self"
+version = "2020.12.3"
+description = "@self decorator makes method return self (jQuery-like chaining)"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+decorator = "*"
 
 [[package]]
 name = "sqlalchemy"
@@ -133,9 +152,13 @@ url = "../watchmen-utilities"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "fad55a894bb0ba321bc8cdba3ad2454daa2f672cf450344a500d7648e3539650"
+content-hash = "aada7cd0c48a11df50df9f3ed169d4c6452bd4b7f5df55c10b7800b5002cdfe0"
 
 [metadata.files]
+decorator = [
+    {file = "decorator-5.1.1-py3-none-any.whl", hash = "sha256:b8c3f85900b9dc423225913c5aace94729fe1fa9763b38939a95226f02d37186"},
+    {file = "decorator-5.1.1.tar.gz", hash = "sha256:637996211036b6385ef91435e4fae22989472f9d571faba8927ba8253acbc330"},
+]
 funct = [
     {file = "Funct-0.9.2-py3-none-any.whl", hash = "sha256:0d838556b373454a4a8d6c561ecc19900d2392ed754bfc5ba24cd3b94782216d"},
     {file = "Funct-0.9.2.tar.gz", hash = "sha256:13f8c95f154f7b81083411d1e37ea6e988a032c22cd5853bf176dcfc0221695e"},
@@ -237,6 +260,9 @@ pydantic = [
 pymysql = [
     {file = "PyMySQL-1.0.2-py3-none-any.whl", hash = "sha256:41fc3a0c5013d5f039639442321185532e3e2c8924687abe6537de157d403641"},
     {file = "PyMySQL-1.0.2.tar.gz", hash = "sha256:816927a350f38d56072aeca5dfb10221fe1dc653745853d30a216637f5d7ad36"},
+]
+self = [
+    {file = "self-2020.12.3.tar.gz", hash = "sha256:a0c408138257e0ba6188f2a7ad80cb3f61c3e48c3f85d1f973a160f6f887dc53"},
 ]
 sqlalchemy = [
     {file = "SQLAlchemy-1.4.31-cp27-cp27m-macosx_10_14_x86_64.whl", hash = "sha256:c3abc34fed19fdeaead0ced8cf56dd121f08198008c033596aa6aae7cc58f59f"},
