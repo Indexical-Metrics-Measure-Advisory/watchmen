@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import List
+from typing import List, Optional
 
 from funct import Array
 from sqlalchemy import insert, inspect, select, text, update
@@ -55,12 +55,10 @@ class StorageMySQL(TransactionalStorageSPI):
 		except Exception as e:
 			logger.warning('Exception raised on close connection.', e)
 
-	def insert_one(self, one: Entity, helper: EntityHelper) -> Entity:
+	def insert_one(self, one: Entity, helper: EntityHelper) -> None:
 		table = find_table(helper.name)
 		row = helper.shaper.serialize(one)
 		self.connection.execute(insert(table).values(row))
-		# return original entity directly
-		return one
 
 	def insert_all(self, data: List[Entity], helper: EntityHelper) -> EntityList:
 		# TODO
@@ -77,7 +75,7 @@ class StorageMySQL(TransactionalStorageSPI):
 		result = self.connection.execute(statement)
 		return result.rowcount
 
-	def update_only_and_pull(self, updater: EntityUpdater) -> Entity:
+	def update_only_and_pull(self, updater: EntityUpdater) -> Optional[Entity]:
 		# TODO
 		pass
 
@@ -93,7 +91,7 @@ class StorageMySQL(TransactionalStorageSPI):
 		# TODO
 		pass
 
-	def delete_by_id_and_pull(self, entity_id: EntityId, helper: EntityHelper) -> Entity:
+	def delete_by_id_and_pull(self, entity_id: EntityId, helper: EntityHelper) -> Optional[Entity]:
 		# TODO
 		pass
 
@@ -101,7 +99,7 @@ class StorageMySQL(TransactionalStorageSPI):
 		# TODO
 		pass
 
-	def delete_only_and_pull(self, deleter: EntityDeleter) -> Entity:
+	def delete_only_and_pull(self, deleter: EntityDeleter) -> Optional[Entity]:
 		# TODO
 		pass
 
@@ -113,11 +111,11 @@ class StorageMySQL(TransactionalStorageSPI):
 		# TODO
 		pass
 
-	def find_by_id(self, entity_id: EntityId, helper: EntityHelper) -> Entity:
+	def find_by_id(self, entity_id: EntityId, helper: EntityHelper) -> Optional[Entity]:
 		# TODO
 		pass
 
-	def find_one(self, finder: EntityFinder) -> Entity:
+	def find_one(self, finder: EntityFinder) -> Optional[Entity]:
 		# TODO
 		pass
 

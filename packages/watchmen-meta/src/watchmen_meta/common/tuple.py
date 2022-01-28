@@ -3,7 +3,8 @@ from datetime import datetime
 from typing import Optional, TypeVar
 
 from watchmen_model.common import Tuple
-from watchmen_storage import EntityHelper, EntityShaper, OptimisticLockException, StorageSPI
+from watchmen_storage import EntityCriteria, EntityDeleter, EntityHelper, EntityShaper, OptimisticLockException, \
+	StorageSPI
 
 TupleId = TypeVar('TupleId', bound=str)
 
@@ -24,6 +25,13 @@ class TupleService:
 
 	def get_entity_helper(self) -> EntityHelper:
 		return EntityHelper(name=self.get_entity_name(), shaper=self.get_entity_shaper())
+
+	def get_entity_deleter(self, criteria: EntityCriteria) -> EntityDeleter:
+		return EntityDeleter(
+			name=self.get_entity_name(),
+			shaper=self.get_entity_shaper(),
+			criteria=criteria
+		)
 
 	@staticmethod
 	def now() -> datetime:
@@ -47,10 +55,8 @@ class TupleService:
 		except OptimisticLockException as ole:
 			raise ole
 
-	@abstractmethod
 	def delete(self, tuple_id: TupleId) -> Optional[Tuple]:
-		pass
+		return self.storage.delete_by_id_and_pull(tuple_id, self.get_entity_helper())
 
-	@abstractmethod
 	def find_by_id(self, tuple_id: TupleId) -> Optional[Tuple]:
-		pass
+		return self.storage.find_by_id(tuple_id, self.get_entity_helper())

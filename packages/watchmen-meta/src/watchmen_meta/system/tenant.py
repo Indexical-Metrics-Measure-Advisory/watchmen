@@ -19,5 +19,11 @@ TENANT_ENTITY_SHAPER = TenantShaper()
 
 
 class TenantService(TupleService):
+	def get_entity_name(self) -> str:
+		return TENANT_ENTITY_NAME
+
+	def get_entity_shaper(self) -> EntityShaper:
+		return TENANT_ENTITY_SHAPER
+
 	def find_tenant_by_text(self, text: Optional[str]) -> DataPage:
 		pass
