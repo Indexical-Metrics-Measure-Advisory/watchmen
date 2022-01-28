@@ -2,8 +2,7 @@ from datetime import date, datetime
 
 from pydantic import BaseConfig, BaseModel
 
-from .storable import Storable
-from .tuple_ids import UserId
+from .storable import Auditable, Storable
 
 """
 Super model of tuple, which 
@@ -12,18 +11,9 @@ Super model of tuple, which
 """
 
 
-class Tuple(Storable, BaseModel):
-	createdAt: datetime = datetime.now().replace(tzinfo=None)
-	createdBy: UserId = None
-	lastModifiedAt: datetime = datetime.now().replace(tzinfo=None)
-	lastModifiedBy: UserId = None
-
+class Tuple(Storable, Auditable, BaseModel):
 	class Config(BaseConfig):
 		json_encoders = {
 			datetime: lambda dt: dt.isoformat(),
 			date: lambda dt: dt.isoformat()
 		}
-
-
-class OptimisticLock(BaseModel):
-	version: int = 1
