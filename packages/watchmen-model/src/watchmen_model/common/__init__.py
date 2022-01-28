@@ -6,6 +6,7 @@ from .parameter import ComputedParameter, ConstantParameter, Parameter, Paramete
 from .parameter_condition import ParameterCondition
 from .parameter_expression import ParameterExpression, ParameterExpressionOperator
 from .parameter_joint import ParameterJoint, ParameterJointType
+from .storable import Storable
 from .tuple import OptimisticLock, Tuple
 from .tuple_ids import BucketId, ConnectedSpaceId, DashboardId, DataSourceId, EnumId, EnumItemId, ExternalWriterId, \
 	FactorId, IndicatorId, InspectionId, NavigationId, PipelineActionId, PipelineId, PipelinesGraphicId, \

@@ -2,6 +2,7 @@ from datetime import date, datetime
 
 from pydantic import BaseConfig, BaseModel
 
+from .storable import Storable
 from .tuple_ids import UserId
 
 """
@@ -11,7 +12,7 @@ Super model of tuple, which
 """
 
 
-class Tuple(BaseModel):
+class Tuple(Storable, BaseModel):
 	createdAt: datetime = datetime.now().replace(tzinfo=None)
 	createdBy: UserId = None
 	lastModifiedAt: datetime = datetime.now().replace(tzinfo=None)

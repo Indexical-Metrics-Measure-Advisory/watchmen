@@ -11,6 +11,7 @@ from typing import Callable, List, Optional
 from pydantic import BaseModel
 from time import sleep
 
+from watchmen_model.common import Storable
 from .snowflake_worker_id_generator import WorkerIdGenerator
 
 
@@ -39,7 +40,7 @@ def get_host_ip() -> str:
 		return ip
 
 
-class CompetitiveWorker(BaseModel):
+class CompetitiveWorker(Storable, BaseModel):
 	ip: Optional[str] = get_host_ip()
 	processId: Optional[str] = str(getpid())
 	dataCenterId: int = None
