@@ -56,6 +56,3 @@ class StorageMySQLConfiguration:
 	@staticmethod
 	def config() -> Configuration:
 		return Configuration()
-
-# for self-referencing model, need python 3.7+
-# Configuration.update_forward_refs()
