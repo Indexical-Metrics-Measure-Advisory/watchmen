@@ -32,4 +32,5 @@ class TenantService(TupleService):
 		return TENANT_ENTITY_SHAPER
 
 	def find_tenant_by_text(self, text: Optional[str]) -> DataPage:
+		# TODO
 		pass
