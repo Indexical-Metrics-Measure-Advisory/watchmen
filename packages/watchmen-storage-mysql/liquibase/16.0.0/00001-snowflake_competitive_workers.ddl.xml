@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.1.xsd">
+    <changeSet id="snowflake_competitive_workers" author="botlikes">
+        <createTable tableName="snowflake_competitive_workers">
+            <column name="ip" type="VARCHAR(100)"/>
+            <column name="process_id" type="VARCHAR(60)"/>
+            <column name="data_center_id" type="INT(3)">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="worker_id" type="INT(4)">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="registered_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_beat_at" type="DATETIME">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>
