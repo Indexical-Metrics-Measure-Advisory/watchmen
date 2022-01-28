@@ -250,9 +250,9 @@ class EchartsScriptHolder(BaseModel):
 
 class ItemType(str, Enum):
 	SECTION = 'section',
-	float = 'float',
+	NUMBER = 'number',
 	PERCENTAGE = 'percentage',
-	bool = 'bool',
+	BOOLEAN = 'boolean',
 	TEXT = 'text',
 	COLOR = 'color',
 	DROPDOWN = 'dropdown'
@@ -271,8 +271,8 @@ class InputItem(DefItem):
 	key: str = None
 
 
-class floatItem(InputItem):
-	type: ItemType.float = ItemType.float
+class NumberItem(InputItem):
+	type: ItemType.NUMBER = ItemType.NUMBER
 	placeholder: str = None
 	unit: str = None
 	defaultValue: float = None
@@ -285,7 +285,7 @@ class PercentageItem(InputItem):
 
 
 class BooleanItem(InputItem):
-	type: ItemType.bool = ItemType.bool
+	type: ItemType.BOOLEAN = ItemType.BOOLEAN
 	defaultValue: bool = None
 
 

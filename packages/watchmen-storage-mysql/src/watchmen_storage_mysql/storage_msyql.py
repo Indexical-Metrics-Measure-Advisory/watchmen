@@ -8,8 +8,8 @@ from sqlalchemy.engine import Connection, Engine
 from watchmen_model.common import DataPage
 from watchmen_storage import Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
 	EntityList, EntityPager, EntityUpdater, TransactionalStorageSPI, UnexpectedStorageException
-from .mysql_table_defs import find_table
 from .sort_build import build_sort_for_statement
+from .table_defs_mysql import find_table
 from .types import SQLAlchemyStatement
 from .where_build import build_criteria_for_statement
 

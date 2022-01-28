@@ -1,8 +1,8 @@
-from pip._internal.configuration import Configuration
+from __future__ import annotations
 
 from watchmen_model.system import DataSource, DataSourceType
-from . import StorageMySQL
-from .mysql_data_source import MySQLDataSourceHelper, MySQLDataSourceParams
+from .data_source_mysql import MySQLDataSourceHelper, MySQLDataSourceParams
+from .storage_msyql import StorageMySQL
 
 
 # noinspection PyRedeclaration
