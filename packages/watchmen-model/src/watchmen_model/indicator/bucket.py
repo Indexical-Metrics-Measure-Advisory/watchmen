@@ -78,7 +78,8 @@ class CategorySegmentsHolder(Bucket):
 class CategoryMeasureBucket(CategorySegmentsHolder, MeasureBucket):
 	type: BucketType.CATEGORY_MEASURE = BucketType.CATEGORY_MEASURE
 	measure: Union[
-		MeasureMethod.CONTINENT, MeasureMethod.REGION, MeasureMethod.COUNTRY, MeasureMethod.PROVINCE, MeasureMethod.CITY, MeasureMethod.DISTRICT,
+		MeasureMethod.CONTINENT, MeasureMethod.REGION, MeasureMethod.COUNTRY,
+		MeasureMethod.PROVINCE, MeasureMethod.CITY, MeasureMethod.DISTRICT,
 		MeasureMethod.RESIDENCE_TYPE,
 		MeasureMethod.GENDER, MeasureMethod.OCCUPATION, MeasureMethod.RELIGION, MeasureMethod.NATIONALITY,
 		MeasureMethod.BIZ_TRADE,
