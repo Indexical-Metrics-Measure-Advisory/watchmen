@@ -1,7 +1,7 @@
 from typing import Optional
 
 from watchmen_meta.common import TupleService, TupleShaper
-from watchmen_model.common import DataPage
+from watchmen_model.common import DataPage, TenantId
 from watchmen_model.system import Tenant
 from watchmen_storage import EntityRow, EntityShaper
 
@@ -30,6 +30,13 @@ class TenantService(TupleService):
 
 	def get_entity_shaper(self) -> EntityShaper:
 		return TENANT_ENTITY_SHAPER
+
+	def get_tuple_id(self, a_tuple: Tenant) -> TenantId:
+		return a_tuple.tenantId
+
+	def set_tuple_id(self, a_tuple: Tenant, tuple_id: TenantId) -> Tenant:
+		a_tuple.tenantId = tuple_id
+		return a_tuple
 
 	def find_tenant_by_text(self, text: Optional[str]) -> DataPage:
 		# TODO
