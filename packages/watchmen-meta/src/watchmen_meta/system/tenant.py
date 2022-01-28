@@ -1,17 +1,23 @@
 from typing import Optional
 
-from watchmen_meta.common import TupleService
+from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_model.common import DataPage
-from watchmen_storage import Entity, EntityShaper
-from watchmen_storage.storage_types import EntityRow
+from watchmen_model.system import Tenant
+from watchmen_storage import EntityRow, EntityShaper
 
 
 class TenantShaper(EntityShaper):
-	def serialize(self, entity: Entity) -> EntityRow:
-		pass
+	def serialize(self, tenant: Tenant) -> EntityRow:
+		return TupleShaper.serialize(tenant, {
+			'tenant_id': tenant.tenantId,
+			'name': tenant.name
+		})
 
-	def deserialize(self, row: EntityRow) -> Entity:
-		pass
+	def deserialize(self, row: EntityRow) -> Tenant:
+		return TupleShaper.deserialize(row, Tenant(
+			tenantId=row.get('tenant_id'),
+			name=row.get('name')
+		))
 
 
 TENANT_ENTITY_NAME = 'tenants'

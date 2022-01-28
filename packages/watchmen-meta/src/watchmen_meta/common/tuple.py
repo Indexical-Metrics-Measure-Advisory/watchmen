@@ -2,11 +2,55 @@ from abc import abstractmethod
 from datetime import datetime
 from typing import Optional, TypeVar
 
-from watchmen_model.common import Tuple
-from watchmen_storage import EntityCriteria, EntityDeleter, EntityHelper, EntityShaper, OptimisticLockException, \
-	StorageSPI
+from watchmen_model.common import Auditable, OptimisticLock, Tuple
+from watchmen_storage import EntityCriteria, EntityDeleter, EntityHelper, EntityRow, EntityShaper, \
+	OptimisticLockException, StorageSPI
 
 TupleId = TypeVar('TupleId', bound=str)
+
+
+class AuditableShaper:
+	@staticmethod
+	def serialize(auditable: Auditable, row: EntityRow) -> EntityRow:
+		row['created_at'] = auditable.createdAt
+		row['created_by'] = auditable.createdBy
+		row['last_modified_at'] = auditable.lastModifiedAt
+		row['last_modified_by'] = auditable.lastModifiedBy
+		return row
+
+	@staticmethod
+	def deserialize(row: EntityRow, auditable: Tuple) -> Tuple:
+		auditable.createdAt = row.get('created_at')
+		auditable.createdBy = row.get('created_by')
+		auditable.lastModifiedAt = row.get('last_modified_at')
+		auditable.lastModifiedBy = row.get('last_modified_by')
+		return auditable
+
+
+class OptimisticLockShaper:
+	@staticmethod
+	def serialize(lock: OptimisticLock, row: EntityRow) -> EntityRow:
+		row['version'] = lock.version
+		return row
+
+	@staticmethod
+	def deserialize(row: EntityRow, lock: Tuple) -> Tuple:
+		lock.version = row.get('version')
+		return lock
+
+
+class TupleShaper:
+	@staticmethod
+	def serialize(a_tuple: Tuple, row: EntityRow) -> EntityRow:
+		row = AuditableShaper.serialize(a_tuple, row)
+		row = OptimisticLockShaper.serialize(a_tuple, row)
+		return row
+
+	@staticmethod
+	def deserialize(row: EntityRow, a_tuple: Tuple) -> Tuple:
+		a_tuple = AuditableShaper.deserialize(row, a_tuple)
+		a_tuple = OptimisticLockShaper.deserialize(row, a_tuple)
+		return a_tuple
 
 
 class TupleService:

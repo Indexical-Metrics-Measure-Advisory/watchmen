@@ -10,9 +10,9 @@ class Storable:
 
 
 class Auditable(Storable, BaseModel):
-	createdAt: datetime = datetime.now().replace(tzinfo=None)
+	createdAt: datetime = None
 	createdBy: UserId = None
-	lastModifiedAt: datetime = datetime.now().replace(tzinfo=None)
+	lastModifiedAt: datetime = None
 	lastModifiedBy: UserId = None
 
 
