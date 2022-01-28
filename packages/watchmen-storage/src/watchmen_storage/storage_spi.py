@@ -8,11 +8,11 @@ from .storage_types import Entity, EntityDeleter, \
 
 class StorageSPI(ABC):
 	@abstractmethod
-	def insert_one(self, one: Entity, helper: EntityHelper) -> Entity:
+	def insert_one(self, one: Entity, helper: EntityHelper) -> None:
 		pass
 
 	@abstractmethod
-	def insert_all(self, data: List[Entity], helper: EntityHelper) -> EntityList:
+	def insert_all(self, data: List[Entity], helper: EntityHelper) -> int:
 		pass
 
 	@abstractmethod
