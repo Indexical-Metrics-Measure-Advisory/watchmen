@@ -46,6 +46,12 @@ table_snowflake_competitive_workers = Table(
 	create_pk('data_center_id', Integer), create_pk('worker_id', Integer),
 	create_datetime('registered_at', False), create_datetime('last_beat_at', False)
 )
+table_tenants = Table(
+	'tenants', meta_data,
+	create_pk('tenant_id'),
+	create_str('name', 45, False),
+	*create_tuple_audit_columns()
+)
 table_users = Table(
 	'users', meta_data,
 	create_pk('user_id'),
@@ -56,7 +62,8 @@ table_users = Table(
 
 tables: Dict[str, Table] = {
 	SNOWFLAKE_WORKER_ID_TABLE: table_snowflake_competitive_workers,
-	'users': table_users
+	'users': table_users,
+	'tenants': table_tenants
 }
 
 

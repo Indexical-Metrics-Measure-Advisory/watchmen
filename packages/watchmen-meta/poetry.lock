@@ -36,7 +36,7 @@ description = ""
 category = "main"
 optional = false
 python-versions = "^3.9"
-develop = false
+develop = true
 
 [package.dependencies]
 pydantic = "^1.9.0"
@@ -52,7 +52,7 @@ description = ""
 category = "main"
 optional = false
 python-versions = "^3.9"
-develop = false
+develop = true
 
 [package.dependencies]
 Funct = "^0.9.2"
@@ -65,7 +65,7 @@ url = "../watchmen-storage"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "3e2567d16b37cdb76d83c6416d6647b118155c3c2aaf27679defc14a4cbabada"
+content-hash = "9629f937ca5e635a85bab5dc283a1cce111be26469a4aaaf8344f00d73aef0a8"
 
 [metadata.files]
 funct = [
