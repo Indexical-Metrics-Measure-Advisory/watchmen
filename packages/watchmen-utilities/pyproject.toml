@@ -10,6 +10,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
+tenant = "^0.1"
 
 [tool.poetry.dev-dependencies]
 
