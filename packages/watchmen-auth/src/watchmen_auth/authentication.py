@@ -6,6 +6,7 @@ from logging import getLogger
 from typing import List, Optional
 
 from watchmen_model.admin import User
+from watchmen_utilities import ArrayHelper
 
 logger = getLogger(__name__)
 
@@ -35,16 +36,17 @@ class AuthenticationManager:
 		self.providers.append(provider)
 		return self
 
-	def authenticate_details(self, details: dict, providers: List[AuthenticationProvider]) -> User:
+	def authenticate_details(self, details: dict, auth_type: AuthenticationType) -> Optional[User]:
+		return ArrayHelper(self.providers) \
+			.filter(lambda x: x.accept(auth_type)) \
+			.first(lambda x: x.authenticate(details))
 
-
-	def authenticate_by_pwd(self, username: str, password: str) -> User:
+	def authenticate_by_pwd(self, username: str, password: str) -> Optional[User]:
 		details = {'username': username, 'password': password}
-		for provider in self.providers:
-			if provider.accept(AuthenticationType.PWD):
-				user = provider.authenticate(details)
-				if user is not None:
-					return user
+		user = self.authenticate_details(details, AuthenticationType.PWD)
+		return user
 
-	def authenticate_by_token(self, token: str) -> User:
-		pass
+	def authenticate_by_token(self, token: str) -> Optional[User]:
+		details = {'token': token}
+		user = self.authenticate_details(details, AuthenticationType.PAT)
+		return user

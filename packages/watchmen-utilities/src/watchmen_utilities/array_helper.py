@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 ArrayPredicate = Callable[[Any], bool]
-ArrayMap = Callable[[Any], Any]
+ArrayTransform = Callable[[Any], Any]
 
 
 class ArrayHelper:
@@ -20,8 +20,22 @@ class ArrayHelper:
 				new_list.append(a_element)
 		return ArrayHelper(new_list)
 
-	def map(self, func: ArrayMap) -> ArrayHelper:
+	def map(self, func: ArrayTransform) -> ArrayHelper:
 		new_list: list = []
 		for a_element in self.a_list:
 			new_list.append(func(a_element))
 		return ArrayHelper(new_list)
+
+	def first(
+			self,
+			transform_to: ArrayTransform = lambda x: x,
+			found: ArrayPredicate = lambda x: x is not None
+	) -> Optional[Any]:
+		"""
+		first one of array which match the found function after transform_to function
+		"""
+		for a_element in self.a_list:
+			new_element = transform_to(a_element)
+			if found(new_element):
+				return new_element
+		return None
