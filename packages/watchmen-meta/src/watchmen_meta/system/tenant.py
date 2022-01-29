@@ -38,6 +38,9 @@ class TenantService(TupleService):
 		a_tuple.tenantId = tuple_id
 		return a_tuple
 
+	def get_tuple_id_column_name(self) -> str:
+		return 'tenant_id'
+
 	def find_tenant_by_text(self, text: Optional[str]) -> DataPage:
 		# TODO
 		pass
