@@ -4,10 +4,15 @@ from typing import Optional, TypeVar
 
 from watchmen_auth import PrincipalService
 from watchmen_model.common import Auditable, OptimisticLock, Tuple
-from watchmen_storage import EntityCriteria, EntityDeleter, EntityHelper, EntityRow, EntityShaper, \
-	OptimisticLockException, SnowflakeGenerator, StorageSPI
+from watchmen_storage import EntityCriteria, EntityCriteriaExpression, EntityDeleter, EntityHelper, EntityRow, \
+	EntityShaper, \
+	EntityUpdate, EntityUpdater, OptimisticLockException, SnowflakeGenerator, StorageSPI
 
 TupleId = TypeVar('TupleId', bound=str)
+
+
+class TupleNotFoundException(Exception):
+	pass
 
 
 class AuditableShaper:
@@ -77,6 +82,14 @@ class TupleService:
 	def get_entity_helper(self) -> EntityHelper:
 		return EntityHelper(name=self.get_entity_name(), shaper=self.get_entity_shaper())
 
+	def get_entity_updater(self, criteria: EntityCriteria, update: EntityUpdate) -> EntityUpdater:
+		return EntityUpdater(
+			name=self.get_entity_name(),
+			shaper=self.get_entity_shaper(),
+			criteria=criteria,
+			update=update
+		)
+
 	def get_entity_deleter(self, criteria: EntityCriteria) -> EntityDeleter:
 		return EntityDeleter(
 			name=self.get_entity_name(),
@@ -87,6 +100,10 @@ class TupleService:
 	@staticmethod
 	def now() -> datetime:
 		return datetime.now().replace(tzinfo=None)
+
+	@abstractmethod
+	def get_tuple_id_column_name(self) -> str:
+		pass
 
 	@abstractmethod
 	def get_tuple_id(self, a_tuple: Tuple) -> TupleId:
@@ -123,6 +140,16 @@ class TupleService:
 			self.set_tuple_id(a_tuple, self.generate_tuple_id())
 		return a_tuple
 
+	@staticmethod
+	def get_optimistic_column_name():
+		return 'version'
+
+	def ignore_optimistic_keys(self, data: EntityRow) -> EntityRow:
+		data.pop(TupleService.get_optimistic_column_name())
+		data.pop(self.get_tuple_id_column_name())
+
+		return data
+
 	def create(self, a_tuple: Tuple) -> Tuple:
 		now = TupleService.now()
 		a_tuple.createdAt = now
@@ -139,11 +166,24 @@ class TupleService:
 		a_tuple.lastModifiedAt = TupleService.now()
 		a_tuple.lastModifiedBy = self.principal_service.get_user_id()
 
-		try:
-			self.storage.update_one(a_tuple, self.get_entity_helper())
-			return a_tuple
-		except OptimisticLockException as ole:
-			raise ole
+		if isinstance(a_tuple, OptimisticLock):
+			version = a_tuple.version
+			a_tuple.version = version + 1
+			updated_count = self.storage.update_only(self.get_entity_updater(
+				criteria=[
+					EntityCriteriaExpression(name=self.get_tuple_id_column_name(), value=self.get_tuple_id(a_tuple)),
+					EntityCriteriaExpression(name=TupleService.get_optimistic_column_name(), value=version)
+				],
+				update=self.get_entity_shaper().serialize(a_tuple)
+			))
+			if updated_count == 0:
+				a_tuple.version = version
+				raise OptimisticLockException('Update 0 row might be caused by optimistic lock.')
+		else:
+			updated_count = self.storage.update_one(a_tuple, self.get_entity_helper())
+			if updated_count == 0:
+				raise TupleNotFoundException('Update 0 row might be caused by tuple not found.')
+		return a_tuple
 
 	def delete(self, tuple_id: TupleId) -> Optional[Tuple]:
 		return self.storage.delete_by_id_and_pull(tuple_id, self.get_entity_helper())
