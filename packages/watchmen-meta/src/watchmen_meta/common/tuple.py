@@ -2,6 +2,7 @@ from abc import abstractmethod
 from datetime import datetime
 from typing import Optional, TypeVar
 
+from watchmen_auth import PrincipalService
 from watchmen_model.common import Auditable, OptimisticLock, Tuple
 from watchmen_storage import EntityCriteria, EntityDeleter, EntityHelper, EntityRow, EntityShaper, \
 	OptimisticLockException, SnowflakeGenerator, StorageSPI
@@ -56,9 +57,14 @@ class TupleShaper:
 class TupleService:
 	storage: StorageSPI
 
-	def __init__(self, storage: StorageSPI, snowflake_generator: SnowflakeGenerator):
+	def __init__(
+			self,
+			storage: StorageSPI, snowflake_generator: SnowflakeGenerator,
+			principal_service: PrincipalService
+	):
 		self.storage = storage
 		self.snowflake_generator = snowflake_generator
+		self.principal_service = principal_service
 
 	@abstractmethod
 	def get_entity_name(self) -> str:
@@ -120,17 +126,18 @@ class TupleService:
 	def create(self, a_tuple: Tuple) -> Tuple:
 		now = TupleService.now()
 		a_tuple.createdAt = now
-		# TODO created by
+		a_tuple.createdBy = self.principal_service.get_user_id()
 		a_tuple.lastModifiedAt = now
-		# TODO last modified by
-		a_tuple.version = 1
+		a_tuple.lastModifiedBy = self.principal_service.get_user_id()
+		if isinstance(a_tuple, OptimisticLock):
+			a_tuple.version = 1
 
 		self.storage.insert_one(a_tuple, self.get_entity_helper())
 		return a_tuple
 
 	def update(self, a_tuple: Tuple) -> Tuple:
 		a_tuple.lastModifiedAt = TupleService.now()
-		# TODO last modified by
+		a_tuple.lastModifiedBy = self.principal_service.get_user_id()
 
 		try:
 			self.storage.update_one(a_tuple, self.get_entity_helper())
