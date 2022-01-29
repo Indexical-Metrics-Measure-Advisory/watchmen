@@ -46,7 +46,7 @@ class AuthenticationManager:
 		user = self.authenticate_details(details, AuthenticationType.PWD)
 		return user
 
-	def authenticate_by_token(self, token: str) -> Optional[User]:
+	def authenticate_by_pat(self, token: str) -> Optional[User]:
 		details = {'token': token}
 		user = self.authenticate_details(details, AuthenticationType.PAT)
 		return user
