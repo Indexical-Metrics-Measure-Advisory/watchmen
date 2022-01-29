@@ -125,7 +125,7 @@ url = "../watchmen-utilities"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "fad55a894bb0ba321bc8cdba3ad2454daa2f672cf450344a500d7648e3539650"
+content-hash = "b8d8f0a52ef68ad7099c42da20ffc01aa2ca42d805df4ba6d74583e30e1f50c0"
 
 [metadata.files]
 greenlet = [
