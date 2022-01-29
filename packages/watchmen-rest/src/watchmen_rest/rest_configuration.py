@@ -10,4 +10,7 @@ class RestConfiguration(BaseModel):
 	description: str = 'A lighter platform for data analytics'
 	cors: bool = True
 
+	"""
+	do post construction
+	"""
 	post_construct: Callable[[FastAPI], None] = None
