@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "watchmen-meta"
+name = "watchmen-meta-service"
 version = "16.0.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
 packages = [
-    { include = "watchmen_meta", from = "src" }
+    { include = "watchmen_meta_service", from = "src" }
 ]
 
 [tool.poetry.dependencies]
