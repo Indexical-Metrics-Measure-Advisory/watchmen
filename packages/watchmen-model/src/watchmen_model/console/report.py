@@ -1,12 +1,11 @@
-from datetime import datetime
 from enum import Enum
 from typing import List, Union
 
 from pydantic import BaseModel
 
 from watchmen_model.chart import Chart
-from watchmen_model.common import DataResultSet, GraphicRect, OptimisticLock, ParameterJoint, ReportFunnelId, \
-	ReportId, SubjectDatasetColumnId, TenantId, Tuple, UserId
+from watchmen_model.common import DataResultSet, GraphicRect, LastVisit, OptimisticLock, ParameterJoint, \
+	ReportFunnelId, ReportId, SubjectDatasetColumnId, UserBasedTuple
 
 
 class ReportIndicatorArithmetic(str, Enum):
@@ -57,7 +56,7 @@ class ReportFunnel(BaseModel):
 	values: List[Union[str, None]] = None
 
 
-class Report(Tuple, OptimisticLock):
+class Report(OptimisticLock, UserBasedTuple, LastVisit):
 	reportId: ReportId = None
 	name: str = None
 	filters: ParameterJoint = None
@@ -71,6 +70,3 @@ class Report(Tuple, OptimisticLock):
 	simulateData: DataResultSet = None
 	# base64
 	simulateThumbnail: str = None
-	userId: UserId = None
-	tenantId: TenantId = None
-	lastVisitTime: datetime = datetime.now().replace(tzinfo=None)

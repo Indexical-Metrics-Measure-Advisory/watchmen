@@ -2,7 +2,8 @@ from typing import List
 
 from pydantic import BaseModel
 
-from watchmen_model.common import GraphicPosition, GraphicRect, PipelinesGraphicId, TenantId, TopicId, Tuple, UserId
+from watchmen_model.common import GraphicPosition, GraphicRect, PipelinesGraphicId, TopicId, \
+	UserBasedTuple
 
 
 class TopicRect(BaseModel):
@@ -16,9 +17,7 @@ class TopicGraphic(BaseModel):
 	rect: TopicRect = None
 
 
-class PipelinesGraphic(Tuple):
+class PipelinesGraphic(UserBasedTuple):
 	pipelineGraphId: PipelinesGraphicId = None
 	name: str = None
 	topics: List[TopicGraphic] = []
-	userId: UserId = None
-	tenantId: TenantId = None

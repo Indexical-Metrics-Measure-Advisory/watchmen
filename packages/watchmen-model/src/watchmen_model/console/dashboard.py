@@ -1,9 +1,8 @@
-from datetime import datetime
 from typing import List
 
 from pydantic import BaseModel
 
-from watchmen_model.common import DashboardId, GraphicRect, ReportId, TenantId, Tuple, UserId
+from watchmen_model.common import DashboardId, GraphicRect, LastVisit, ReportId, UserBasedTuple
 from .report import ReportFunnel
 
 
@@ -18,12 +17,9 @@ class DashboardParagraph(BaseModel):
 	rect: GraphicRect = None
 
 
-class Dashboard(Tuple):
+class Dashboard(UserBasedTuple, LastVisit):
 	dashboardId: DashboardId = None
 	name: str = None
 	reports: List[DashboardReport] = None
 	paragraphs: List[DashboardParagraph] = None
 	autoRefreshInterval: int = None
-	userId: UserId = None
-	tenantId: TenantId = None
-	lastVisitTime: datetime = datetime.now().replace(tzinfo=None)

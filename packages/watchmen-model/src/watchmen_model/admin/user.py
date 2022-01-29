@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import List
 
-from watchmen_model.common import OptimisticLock, TenantId, Tuple, UserGroupId, UserId
+from watchmen_model.common import OptimisticLock, TenantBasedTuple, UserGroupId, UserId
 
 
 class UserRole(str, Enum):
@@ -10,7 +10,7 @@ class UserRole(str, Enum):
 	SUPER_ADMIN = 'superadmin'
 
 
-class User(Tuple, OptimisticLock):
+class User(TenantBasedTuple, OptimisticLock):
 	userId: UserId = None
 	name: str = None
 	nickName: str = None
@@ -18,4 +18,3 @@ class User(Tuple, OptimisticLock):
 	isActive: bool = True
 	groupIds: List[UserGroupId] = None
 	role: UserRole = None
-	tenantId: TenantId = None

@@ -6,8 +6,8 @@ from .parameter import ComputedParameter, ConstantParameter, Parameter, Paramete
 from .parameter_condition import ParameterCondition
 from .parameter_expression import ParameterExpression, ParameterExpressionOperator
 from .parameter_joint import ParameterJoint, ParameterJointType
-from .storable import Auditable, OptimisticLock, Storable
-from .tuple import TenantBasedTuple, Tuple
+from .storable import Auditable, LastVisit, OptimisticLock, Storable
+from .tuple import TenantBasedTuple, Tuple, UserBasedTuple
 from .tuple_ids import BucketId, ConnectedSpaceId, DashboardId, DataSourceId, EnumId, EnumItemId, ExternalWriterId, \
 	FactorId, IndicatorId, InspectionId, NavigationId, PipelineActionId, PipelineId, PipelinesGraphicId, \
 	PipelineStageId, PipelineUnitId, ReportFunnelId, ReportId, SpaceId, SubjectDatasetColumnId, SubjectId, TenantId, \

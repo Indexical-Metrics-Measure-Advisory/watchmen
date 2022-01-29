@@ -1,22 +1,20 @@
 from typing import List
 
-from watchmen_model.common import EnumId, EnumItemId, OptimisticLock, TenantId, Tuple
+from watchmen_model.common import EnumId, EnumItemId, OptimisticLock, TenantBasedTuple
 
 
-class EnumItem(Tuple, OptimisticLock):
+class EnumItem(TenantBasedTuple, OptimisticLock):
 	itemId: EnumItemId = None
 	code: str = None
 	label: str = None
 	parentCode: str = None
 	replaceCode: str = None
 	enumId: EnumId = None
-	tenantId: TenantId = None
 
 
-class Enum(Tuple, OptimisticLock):
+class Enum(TenantBasedTuple, OptimisticLock):
 	enumId: EnumId = None
 	name: str = None
 	description: str = None
 	parentEnumId: EnumId = None
 	items: List[EnumItem] = []
-	tenantId: TenantId = None

@@ -1,16 +1,12 @@
-from datetime import datetime
 from typing import List
 
-from watchmen_model.common import ConnectedSpaceId, OptimisticLock, SpaceId, SubjectId, TenantId, Tuple, UserId
+from watchmen_model.common import ConnectedSpaceId, LastVisit, OptimisticLock, SpaceId, SubjectId, UserBasedTuple
 
 
-class ConnectedSpace(Tuple, OptimisticLock):
+class ConnectedSpace(UserBasedTuple, OptimisticLock, LastVisit):
 	connectId: ConnectedSpaceId = None
 	spaceId: SpaceId = None
 	name: str = None
 	type: str = None
 	subjectIds: List[SubjectId] = []
 	isTemplate: bool = False
-	userId: UserId = None
-	tenantId: TenantId = None
-	lastVisitTime: datetime = datetime.now().replace(tzinfo=None)
