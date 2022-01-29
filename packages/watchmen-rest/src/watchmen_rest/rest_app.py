@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .rest_configuration import RestConfiguration
 
-logger = getLogger("app." + __name__)
+logger = getLogger(f"app.{__name__}")
 
 
 class RestApp:
@@ -29,4 +29,5 @@ class RestApp:
 				allow_headers=["*"],
 			)
 		self.configuration.post_construct(app)
+		logger.info('REST app constructed.')
 		return app
