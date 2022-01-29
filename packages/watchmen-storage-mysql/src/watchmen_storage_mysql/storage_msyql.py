@@ -1,13 +1,13 @@
 from logging import getLogger
 from typing import List, Optional
 
-from funct import Array
 from sqlalchemy import insert, inspect, select, text, update
 from sqlalchemy.engine import Connection, Engine
 
 from watchmen_model.common import DataPage
 from watchmen_storage import Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
 	EntityList, EntityPager, EntityUpdater, TransactionalStorageSPI, UnexpectedStorageException
+from watchmen_utilities import ArrayHelper
 from .sort_build import build_sort_for_statement
 from .table_defs_mysql import find_table
 from .types import SQLAlchemyStatement
@@ -123,7 +123,7 @@ class StorageMySQL(TransactionalStorageSPI):
 		statement = build_criteria_for_statement(statement, finder.criteria)
 		statement = build_sort_for_statement(statement, finder.sort)
 		results = self.connection.execute(statement).mappings().all()
-		return list(Array(results).map(lambda x: dict(x)).map(finder.shaper.deserialize))
+		return ArrayHelper(results).map(lambda x: dict(x)).map(finder.shaper.deserialize).to_list()
 
 	def find(self, finder: EntityFinder) -> EntityList:
 		table = find_table(finder.name)
@@ -132,7 +132,7 @@ class StorageMySQL(TransactionalStorageSPI):
 
 	def find_distinct_values(self, finder: EntityDistinctValuesFinder) -> EntityList:
 		table = find_table(finder.name)
-		statement = select(*Array(finder.distinctColumnNames).map(text)).select_from(table)
+		statement = select(*ArrayHelper(finder.distinctColumnNames).map(text).to_list()).select_from(table)
 		return self.find_on_statement_by_finder(statement, finder)
 
 	def find_all(self, helper: EntityHelper) -> EntityList:

@@ -1,10 +1,10 @@
-from funct import Array
 from sqlalchemy import and_, column, or_
 
 from watchmen_storage import EntityCriteria, EntityCriteriaExpression, EntityCriteriaJoint, \
 	EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, NoCriteriaForUpdateException, \
 	UnsupportedCriteriaException, UnsupportedCriteriaExpressionOperatorException, \
 	UnsupportedCriteriaJointConjunctionException
+from watchmen_utilities import ArrayHelper
 from .types import SQLAlchemyStatement
 
 
@@ -37,9 +37,9 @@ def build_criteria_expression(expression: EntityCriteriaExpression):
 def build_criteria_joint(joint: EntityCriteriaJoint):
 	conjunction = joint.conjunction
 	if conjunction == EntityCriteriaJointConjunction.AND:
-		return and_(*Array(joint.children).map(build_criteria_statement))
+		return and_(*ArrayHelper(joint.children).map(build_criteria_statement).to_list())
 	elif conjunction == EntityCriteriaJointConjunction.OR:
-		return or_(*Array(joint.children).map(build_criteria_statement))
+		return or_(*ArrayHelper(joint.children).map(build_criteria_statement).to_list())
 	else:
 		raise UnsupportedCriteriaJointConjunctionException(
 			f'Unsupported criteria joint conjunction[{conjunction}].')
