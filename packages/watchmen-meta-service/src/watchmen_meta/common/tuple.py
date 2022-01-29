@@ -145,8 +145,8 @@ class TupleService:
 		return 'version'
 
 	def ignore_optimistic_keys(self, data: EntityRow) -> EntityRow:
-		data.pop(TupleService.get_optimistic_column_name())
-		data.pop(self.get_tuple_id_column_name())
+		del data[TupleService.get_optimistic_column_name()]
+		del data[self.get_tuple_id_column_name()]
 
 		return data
 
