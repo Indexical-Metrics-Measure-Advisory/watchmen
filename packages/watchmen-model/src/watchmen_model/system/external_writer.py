@@ -1,6 +1,6 @@
 from enum import Enum
 
-from watchmen_model.common import ExternalWriterId, OptimisticLock, TenantId, Tuple
+from watchmen_model.common import ExternalWriterId, OptimisticLock, TenantBasedTuple
 
 
 class ExternalWriterType(str, Enum):
@@ -8,11 +8,10 @@ class ExternalWriterType(str, Enum):
 	ELASTIC_SEARCH_WRITER = 'elastic-search-writer'
 
 
-class ExternalWriter(Tuple, OptimisticLock):
+class ExternalWriter(TenantBasedTuple, OptimisticLock):
 	writerId: ExternalWriterId = None
 	writerCode: str = None
 	type: ExternalWriterType = ExternalWriterType.STANDARD_WRITER
 	# personal access token
 	pat: str = None
 	url: str = None
-	tenantId: TenantId = None

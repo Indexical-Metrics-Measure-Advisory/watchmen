@@ -18,3 +18,7 @@ class Auditable(Storable, BaseModel):
 
 class OptimisticLock(Storable, BaseModel):
 	version: int = 1
+
+
+class LastVisit(Storable, BaseModel):
+	lastVisitTime: datetime = datetime.now().replace(tzinfo=None)

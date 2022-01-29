@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import List
 
-from watchmen_model.common import DataSourceId, OptimisticLock, TenantId, TopicId, Tuple
+from watchmen_model.common import DataSourceId, OptimisticLock, TenantBasedTuple, TopicId
 from .factor import Factor
 
 
@@ -19,7 +19,7 @@ class TopicType(str, Enum):
 	RATIO = 'ratio'
 
 
-class Topic(Tuple, OptimisticLock):
+class Topic(TenantBasedTuple, OptimisticLock):
 	topicId: TopicId = None
 	name: str = None
 	type: TopicType = TopicType.DISTINCT
@@ -27,4 +27,3 @@ class Topic(Tuple, OptimisticLock):
 	dataSourceId: DataSourceId = None
 	factors: List[Factor] = []
 	description: str = None
-	tenantId: TenantId = None

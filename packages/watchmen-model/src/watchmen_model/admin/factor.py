@@ -1,6 +1,6 @@
 from enum import Enum
 
-from watchmen_model.common import EnumId, FactorId, TenantId, Tuple
+from watchmen_model.common import EnumId, FactorId, TenantBasedTuple
 
 
 class FactorType(str, Enum):
@@ -114,7 +114,7 @@ class FactorEncryptMethod(str, Enum):
 	MASK_MONTH_DAY = 'MASK-MONTH-DAY'
 
 
-class Factor(Tuple):
+class Factor(TenantBasedTuple):
 	factorId: FactorId = None
 	type: FactorType = None
 	name: str = None
@@ -125,4 +125,3 @@ class Factor(Tuple):
 	flatten: bool = False
 	indexGroup: FactorIndexGroup = None
 	encrypt: FactorEncryptMethod = None
-	tenantId: TenantId = None

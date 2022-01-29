@@ -1,11 +1,10 @@
-from datetime import datetime
 from enum import Enum
 from typing import List
 
 from pydantic import BaseModel
 
-from watchmen_model.common import FactorId, OptimisticLock, Parameter, ParameterJoint, ReportId, \
-	SubjectDatasetColumnId, SubjectId, TenantId, TopicId, Tuple, UserId
+from watchmen_model.common import FactorId, LastVisit, OptimisticLock, Parameter, ParameterJoint, ReportId, \
+	SubjectDatasetColumnId, SubjectId, TopicId, UserBasedTuple
 
 
 class SubjectJoinType(str, Enum):
@@ -34,11 +33,8 @@ class SubjectDataset(BaseModel):
 	joins: List[SubjectDatasetJoin] = []
 
 
-class Subject(Tuple, OptimisticLock):
+class Subject(UserBasedTuple, OptimisticLock, LastVisit):
 	subjectId: SubjectId = None
 	name: str = None
 	reportIds: List[ReportId] = []
 	dataset: SubjectDataset = None
-	userId: UserId = None
-	tenantId: TenantId = None
-	lastVisitTime: datetime = datetime.now().replace(tzinfo=None)

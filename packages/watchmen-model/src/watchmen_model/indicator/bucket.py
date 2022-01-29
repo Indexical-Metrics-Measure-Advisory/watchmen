@@ -3,7 +3,7 @@ from typing import Any, List, Union
 
 from pydantic import BaseModel
 
-from watchmen_model.common import BucketId, EnumId, OptimisticLock, TenantId, Tuple
+from watchmen_model.common import BucketId, EnumId, OptimisticLock, TenantBasedTuple
 from .measure_method import MeasureMethod
 
 
@@ -24,13 +24,12 @@ class BucketSegment(BaseModel):
 	value: Any = None
 
 
-class Bucket(Tuple, OptimisticLock):
+class Bucket(TenantBasedTuple, OptimisticLock):
 	bucketId: BucketId = None
 	name: str = None
 	type: BucketType = None
 	segments: List[BucketSegment] = None
 	description: str = None
-	tenantId: TenantId = None
 
 
 class NumericSegmentValue(BaseModel):

@@ -14,9 +14,10 @@ from .echarts import BarChart, BarChartSettings, BarChartSettingsLabel, BarChart
 	EChartsToolbox, EChartsToolboxHolder, EChartsToolboxOrient, EChartsVerticalAlignment, EChartsXAxis, \
 	EChartsXAxisHolder, EChartsXAxisLabel, EChartsXAxisName, EChartsXAxisNameLocation, EChartsXAxisPosition, \
 	EChartsXAxisType, EChartsYAxis, EChartsYAxisHolder, EChartsYAxisLabel, EChartsYAxisName, EChartsYAxisNameLocation, \
-	EChartsYAxisPosition, EChartsYAxisType, floatItem, InputItem, ItemType, LineChart, LineChartSettings, \
+	EChartsYAxisPosition, EChartsYAxisType, InputItem, ItemType, LineChart, LineChartSettings, \
 	LineChartSettingsSeries, MapChart, MapChartRegion, MapChartSettings, MapChartSettingsSeries, NightingaleChart, \
-	NightingaleChartSettings, PercentageItem, PieChart, PieChartSettings, PieChartSettingsLabel, PieChartSettingsSeries, \
-	PieLabelAlignTo, PieLabelPosition, PieRoseType, ScatterChart, ScatterChartSettings, SectionItem, SunburstChart, \
-	SunburstChartSettings, SunburstChartSettingsSeries, TextItem, TreeChart, TreeChartSettings, TreeChartSettingsSeries, \
-	TreeLayout, TreemapChart, TreemapChartSettings, TreemapChartSettingsSeries, TreeOrient
+	NightingaleChartSettings, NumberItem, PercentageItem, PieChart, PieChartSettings, PieChartSettingsLabel, \
+	PieChartSettingsSeries, PieLabelAlignTo, PieLabelPosition, PieRoseType, ScatterChart, ScatterChartSettings, \
+	SectionItem, SunburstChart, SunburstChartSettings, SunburstChartSettingsSeries, TextItem, TreeChart, \
+	TreeChartSettings, TreeChartSettingsSeries, TreeLayout, TreemapChart, TreemapChartSettings, \
+	TreemapChartSettingsSeries, TreeOrient
