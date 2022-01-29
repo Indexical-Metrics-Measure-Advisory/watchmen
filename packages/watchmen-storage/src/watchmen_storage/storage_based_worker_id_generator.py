@@ -2,8 +2,7 @@ from datetime import datetime, timedelta
 from logging import getLogger
 from typing import List
 
-from funct import Array
-
+from watchmen_utilities import ArrayHelper
 from .competitive_worker_id_generator import CompetitiveWorker, CompetitiveWorkerIdGenerator, \
 	CompetitiveWorkerShutdownListener, default_heart_beat_interval, default_worker_creation_retry_times, \
 	WorkerDeclarationException, WorkerFirstDeclarationException
@@ -161,7 +160,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 					distinctColumnNames=['worker_id']
 				)
 			)
-			return Array(rows).map(lambda x: x.workerId)
+			return ArrayHelper(rows).map(lambda x: x.workerId).to_list()
 		finally:
 			self.storage.close()
 

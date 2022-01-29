@@ -1,9 +1,9 @@
 from typing import Union
 
-from funct import Array
 from sqlalchemy import asc, desc
 
 from watchmen_storage import EntitySort, EntitySortColumn, EntitySortMethod, UnsupportedSortMethodException
+from watchmen_utilities import ArrayHelper
 from .types import SQLAlchemyStatement
 
 
@@ -20,7 +20,7 @@ def build_sort(sort: EntitySort) -> Union[None, list]:
 	if sort is None or len(sort) == 0:
 		return None
 
-	return list(Array(sort).map(build_sort_column))
+	return ArrayHelper(sort).map(build_sort_column).to_list()
 
 
 def build_sort_for_statement(statement: SQLAlchemyStatement, sort: EntitySort) -> SQLAlchemyStatement:

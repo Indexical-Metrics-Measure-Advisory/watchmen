@@ -1,19 +1,17 @@
 [tool.poetry]
-name = "watchmen-storage-mysql"
+name = "watchmen-auth"
 version = "16.0.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
 packages = [
-    { include = "watchmen_storage_mysql", from = "src" }
+    { include = "watchmen_auth", from = "src" }
 ]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+watchmen-model = { path = "../watchmen-model", develop = true }
 watchmen-utilities = { path = "../watchmen-utilities", develop = true }
-watchmen-storage = { path = "../watchmen-storage", develop = true }
-SQLAlchemy = "^1.4.31"
-PyMySQL = "^1.0.2"
 
 [tool.poetry.dev-dependencies]
 

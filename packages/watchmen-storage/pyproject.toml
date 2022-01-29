@@ -11,7 +11,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.9"
 watchmen-model = { path = "../watchmen-model", develop = true }
-Funct = "^0.9.2"
+watchmen-utilities = { path = "../watchmen-utilities", develop = true }
 
 [tool.poetry.dev-dependencies]
 

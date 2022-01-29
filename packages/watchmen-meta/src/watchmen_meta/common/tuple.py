@@ -4,7 +4,7 @@ from typing import Optional, TypeVar
 
 from watchmen_model.common import Auditable, OptimisticLock, Tuple
 from watchmen_storage import EntityCriteria, EntityDeleter, EntityHelper, EntityRow, EntityShaper, \
-	OptimisticLockException, StorageSPI
+	OptimisticLockException, SnowflakeGenerator, StorageSPI
 
 TupleId = TypeVar('TupleId', bound=str)
 
@@ -56,8 +56,9 @@ class TupleShaper:
 class TupleService:
 	storage: StorageSPI
 
-	def __init__(self, storage: StorageSPI):
+	def __init__(self, storage: StorageSPI, snowflake_generator: SnowflakeGenerator):
 		self.storage = storage
+		self.snowflake_generator = snowflake_generator
 
 	@abstractmethod
 	def get_entity_name(self) -> str:
@@ -106,8 +107,7 @@ class TupleService:
 			return False
 
 	def generate_tuple_id(self) -> TupleId:
-		# TODO
-		pass
+		return str(self.snowflake_generator.next_id())
 
 	def redress_tuple_id(self, a_tuple: Tuple) -> Tuple:
 		"""
