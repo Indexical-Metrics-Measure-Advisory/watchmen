@@ -28,4 +28,5 @@ class RestApp:
 				allow_methods=["*"],
 				allow_headers=["*"],
 			)
+		self.configuration.post_construct(app)
 		return app
