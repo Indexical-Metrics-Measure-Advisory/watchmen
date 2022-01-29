@@ -37,7 +37,7 @@ class AuthenticationManager:
 		return self
 
 	def authenticate_details(self, details: dict, auth_type: AuthenticationType) -> Optional[User]:
-		return ArrayHelper(self.providers) \
+		return ArrayHelper(self.get_providers()) \
 			.filter(lambda x: x.accept(auth_type)) \
 			.first(lambda x: x.authenticate(details))
 
