@@ -3,6 +3,7 @@ from datetime import date, datetime
 from pydantic import BaseConfig, BaseModel
 
 from .storable import Auditable, Storable
+from .tuple_ids import TenantId
 
 """
 Super model of tuple, which 
@@ -17,3 +18,7 @@ class Tuple(Storable, Auditable, BaseModel):
 			datetime: lambda dt: dt.isoformat(),
 			date: lambda dt: dt.isoformat()
 		}
+
+
+class TenantBasedTuple(Tuple):
+	tenantId: TenantId = None

@@ -22,6 +22,23 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
+name = "watchmen-auth"
+version = "16.0.0"
+description = ""
+category = "main"
+optional = false
+python-versions = "^3.9"
+develop = true
+
+[package.dependencies]
+watchmen-model = {path = "../watchmen-model", develop = true}
+watchmen-utilities = {path = "../watchmen-utilities", develop = true}
+
+[package.source]
+type = "directory"
+url = "../watchmen-auth"
+
+[[package]]
 name = "watchmen-model"
 version = "16.0.0"
 description = ""
@@ -70,7 +87,7 @@ url = "../watchmen-utilities"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "9629f937ca5e635a85bab5dc283a1cce111be26469a4aaaf8344f00d73aef0a8"
+content-hash = "44724e76c5f929873cab8f01442b460fdb1175281248f825f75f8ef0ddad21e8"
 
 [metadata.files]
 pydantic = [
@@ -114,6 +131,7 @@ typing-extensions = [
     {file = "typing_extensions-4.0.1-py3-none-any.whl", hash = "sha256:7f001e5ac290a0c0401508864c7ec868be4e701886d5b573a9528ed3973d9d3b"},
     {file = "typing_extensions-4.0.1.tar.gz", hash = "sha256:4ca091dea149f945ec56afb48dae714f21e8692ef22a395223bcd328961b6a0e"},
 ]
+watchmen-auth = []
 watchmen-model = []
 watchmen-storage = []
 watchmen-utilities = []

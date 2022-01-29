@@ -11,6 +11,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.9"
 watchmen-storage = { path = "../watchmen-storage", develop = true }
+watchmen-auth = { path = "../watchmen-auth", develop = true }
 
 [tool.poetry.dev-dependencies]
 
