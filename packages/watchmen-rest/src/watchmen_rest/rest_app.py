@@ -3,7 +3,7 @@ from __future__ import annotations
 from logging import getLogger
 
 from fastapi import FastAPI
-from starlette.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 
 from .rest_configuration import RestConfiguration
 
