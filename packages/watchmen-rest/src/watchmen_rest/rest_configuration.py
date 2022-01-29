@@ -1,3 +1,6 @@
+from typing import Callable
+
+from fastapi import FastAPI
 from pydantic import BaseModel
 
 
@@ -7,4 +10,4 @@ class RestConfiguration(BaseModel):
 	description: str = 'A lighter platform for data analytics'
 	cors: bool = True
 
-	prometheus: bool = False
+	post_construct: Callable[[FastAPI], None] = None
