@@ -1,1 +1,1 @@
-from .tuple import AuditableShaper, OptimisticLockShaper, TupleService, TupleShaper
+from .tuple import AuditableShaper, OptimisticLockShaper, TupleNotFoundException, TupleService, TupleShaper
