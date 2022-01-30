@@ -1,13 +1,3 @@
-from fastapi import FastAPI
+from .doll import build_doll
 
-from watchmen_rest import RestApp
-from watchmen_rest_doll.settings import DollSettings
-
-
-class DollApp(RestApp):
-	def post_construct(self, app: FastAPI) -> FastAPI:
-		pass
-
-
-app = DollApp(DollSettings())
-doll = app.construct()
+app = build_doll().construct()
