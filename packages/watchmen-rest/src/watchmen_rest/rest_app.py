@@ -3,31 +3,39 @@ from __future__ import annotations
 from logging import getLogger
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 
-from .rest_configuration import RestConfiguration
+from .cors import install_cors
+from .prometheus import install_prometheus
+from .rest_settings import RestSettings
 
 logger = getLogger(f"app.{__name__}")
 
 
 class RestApp:
-	def __init__(self, configuration: RestConfiguration):
-		self.configuration = configuration
+	def __init__(self, settings: RestSettings):
+		self.settings = settings
 
 	def construct(self) -> FastAPI:
 		app = FastAPI(
-			title=self.configuration.title,
-			version=self.configuration.version,
-			description=self.configuration.description
+			title=self.settings.TITLE,
+			version=self.settings.VERSION,
+			description=self.settings.DESCRIPTION
 		)
-		if self.configuration.cors:
-			app.add_middleware(
-				CORSMiddleware,
-				allow_origins=['*'],
-				allow_credentials=True,
-				allow_methods=["*"],
-				allow_headers=["*"],
-			)
-		self.configuration.post_construct(app)
+
+		self.settings.post_construct(app)
 		logger.info('REST app constructed.')
 		return app
+
+	def is_cors_on(self) -> bool:
+		return self.settings.CORS
+
+	def init_cors(self, app: FastAPI) -> None:
+		if self.is_cors_on():
+			install_cors(app)
+
+	def is_prometheus_on(self) -> bool:
+		return self.settings.PROMETHEUS
+
+	def init_prometheus(self, app: FastAPI) -> None:
+		if self.is_prometheus_on():
+			install_prometheus(app)

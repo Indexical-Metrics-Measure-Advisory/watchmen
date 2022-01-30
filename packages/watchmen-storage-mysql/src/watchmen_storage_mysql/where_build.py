@@ -30,6 +30,10 @@ def build_criteria_expression(expression: EntityCriteriaExpression):
 		return column(expression.name).in_(expression.value)
 	elif op == EntityCriteriaOperator.NOT_IN:
 		return column(expression.name).not_in(expression.value)
+	elif op == EntityCriteriaOperator.LIKE:
+		return column(expression.name).ilike(f'%{expression.value}%')
+	elif op == EntityCriteriaOperator.NOT_LIKE:
+		return column(expression.name).not_ilike(f'%{expression.value}%')
 	else:
 		raise UnsupportedCriteriaExpressionOperatorException(f'Unsupported criteria expression operator[{op}].')
 
