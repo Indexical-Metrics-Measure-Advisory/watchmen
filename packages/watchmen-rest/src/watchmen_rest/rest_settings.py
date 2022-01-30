@@ -1,3 +1,5 @@
+from typing import Set
+
 from pydantic import BaseSettings
 
 DEV = "dev"
@@ -10,8 +12,13 @@ class RestSettings(BaseSettings):
 	DESCRIPTION: str = 'A lighter platform for data analytics'
 
 	CORS: bool = True
+	CORS_ALLOWED_ORIGINS: Set[str] = ['*']
+	CORS_ALLOW_CREDENTIALS = True,
+	CORS_ALLOWED_METHODS = ["*"],
+	CORS_ALLOWED_HEADERS = ["*"],
 
 	PROMETHEUS: bool = False
+	PROMETHEUS_CONTEXT: str = '/metrics'
 
 	class Config:
 		env_file = '.env'

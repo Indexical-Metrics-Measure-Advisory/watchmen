@@ -32,14 +32,14 @@ class RestApp:
 
 	def init_cors(self, app: FastAPI) -> None:
 		if self.is_cors_on():
-			install_cors(app)
+			install_cors(app, self.settings)
 
 	def is_prometheus_on(self) -> bool:
 		return self.settings.PROMETHEUS
 
 	def init_prometheus(self, app: FastAPI) -> None:
 		if self.is_prometheus_on():
-			install_prometheus(app)
+			install_prometheus(app, self.settings)
 
 	@abstractmethod
 	def post_construct(self, app: FastAPI) -> FastAPI:
