@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional, TypeVar
 
 from watchmen_auth import PrincipalService
-from watchmen_model.common import Auditable, OptimisticLock, Tuple
+from watchmen_model.common import Auditable, OptimisticLock, TenantBasedTuple, Tuple, UserBasedTuple
 from watchmen_storage import EntityCriteria, EntityCriteriaExpression, EntityDeleter, EntityHelper, EntityRow, \
 	EntityShaper, \
 	EntityUpdate, EntityUpdater, OptimisticLockException, SnowflakeGenerator, StorageSPI
@@ -53,10 +53,34 @@ class TupleShaper:
 		return row
 
 	@staticmethod
+	def serialize_tenant_based(a_tuple: TenantBasedTuple, row: EntityRow) -> EntityRow:
+		row = TupleShaper.serialize(a_tuple, row)
+		row['tenant_id'] = a_tuple.tenantId
+		return row
+
+	@staticmethod
+	def serialize_user_based(a_tuple: UserBasedTuple, row: EntityRow) -> EntityRow:
+		row = TupleShaper.serialize_tenant_based(a_tuple, row)
+		row['user_id'] = a_tuple.userId
+		return row
+
+	@staticmethod
 	def deserialize(row: EntityRow, a_tuple: Tuple) -> Tuple:
 		a_tuple = AuditableShaper.deserialize(row, a_tuple)
 		a_tuple = OptimisticLockShaper.deserialize(row, a_tuple)
 		return a_tuple
+
+	@staticmethod
+	def deserialize_tenant_based(row: EntityRow, a_tuple: TenantBasedTuple) -> TenantBasedTuple:
+		a_tuple = TupleShaper.deserialize(row, a_tuple)
+		a_tuple.tenantId = row.get('tenant_id')
+		return a_tuple
+
+	@staticmethod
+	def deserialize_user_based(row: EntityRow, a_tuple: UserBasedTuple) -> UserBasedTuple:
+		row = TupleShaper.deserialize_tenant_based(row, a_tuple)
+		a_tuple.userId = row.get('user_id')
+		return row
 
 
 class TupleService:
