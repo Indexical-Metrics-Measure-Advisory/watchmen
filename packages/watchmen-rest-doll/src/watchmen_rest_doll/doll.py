@@ -10,7 +10,7 @@ class DollApp(RestApp):
 		self.authentication_manager = build_authentication_manager(self.meta_storage, self.settings)
 
 	def post_construct(self, app: FastAPI) -> None:
-		pass
+		self.init_authentication()
 
 
 settings = DollSettings()
