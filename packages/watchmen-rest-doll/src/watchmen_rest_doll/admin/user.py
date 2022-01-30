@@ -7,6 +7,7 @@ from watchmen_auth import PrincipalService
 from watchmen_meta_service.admin import UserService
 from watchmen_model.admin import User
 from ..doll import doll
+from ..service import get_console_principal
 
 router = APIRouter()
 log = getLogger(__name__)
@@ -19,6 +20,6 @@ def get_user_service(principal_service: PrincipalService) -> UserService:
 @router.get("/user", tags=["admin"], response_model=User)
 async def load_user(
 		user_id: Optional[str] = None,
-		principal_service: PrincipalService = Depends(deps.get_current_user)
+		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> User:
 	return get_user_service(principal_service).find_by_id(user_id)

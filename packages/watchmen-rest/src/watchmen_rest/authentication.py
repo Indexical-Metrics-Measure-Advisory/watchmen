@@ -37,8 +37,11 @@ class JWTAuthenticationProvider(AuthenticationProvider):
 		try:
 			payload = validate_jwt(token, self.secret_key, self.algorithm)
 		except (JWTError, ValidationError):
-			raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials")
-		return payload['sub']
+			raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Cannot validate credentials.")
+
+		username = payload['sub']
+		# TODO get user by user name
+		return None
 
 
 def build_authentication_manager(storage: TransactionalStorageSPI, settings: RestSettings) -> AuthenticationManager:
