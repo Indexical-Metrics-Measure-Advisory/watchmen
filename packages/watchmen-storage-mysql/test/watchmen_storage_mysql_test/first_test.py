@@ -12,11 +12,14 @@ class FirstTest(TestCase):
 	def setUp(self) -> None:
 		self.storage = StorageMySQLConfiguration.config() \
 			.host('localhost', 3306).account('watchmen', 'watchmen').schema('watchmen') \
-			.turn_on_echo() \
+			.echo(True) \
 			.build()
 
 	def test_one(self):
-		def shutdown_listener(signal: CompetitiveWorkerShutdownSignal, restarter: CompetitiveWorkerRestarter) -> None:
+		def shutdown_listener(
+				signal: CompetitiveWorkerShutdownSignal, data_center_id: int, worker_id: int,
+				restart: CompetitiveWorkerRestarter
+		) -> None:
 			print(signal)
 
 		worker_id_generator = competitive_worker_id(StorageBasedWorkerIdGenerator(

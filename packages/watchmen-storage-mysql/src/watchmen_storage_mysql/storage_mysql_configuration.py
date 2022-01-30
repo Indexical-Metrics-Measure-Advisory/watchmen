@@ -33,8 +33,8 @@ class Configuration:
 		self.data_source.name = schema
 		return self
 
-	def turn_on_echo(self) -> Configuration:
-		self.params.echo = True
+	def echo(self, enabled: bool = False) -> Configuration:
+		self.params.echo = enabled
 		return self
 
 	def build(self) -> StorageMySQL:
