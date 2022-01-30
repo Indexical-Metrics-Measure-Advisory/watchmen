@@ -5,14 +5,20 @@ from logging import getLogger
 
 from fastapi import FastAPI
 
+from watchmen_storage import SnowflakeGenerator, TransactionalStorageSPI
 from .cors import install_cors
+from .meta_storage import build_meta_storage
 from .prometheus import install_prometheus
 from .rest_settings import RestSettings
+from .snowflake import build_snowflake_generator
 
-logger = getLogger(f"app.{__name__}")
+logger = getLogger(f'app.{__name__}')
 
 
 class RestApp:
+	meta_storage: TransactionalStorageSPI
+	snowflake_generator: SnowflakeGenerator
+
 	def __init__(self, settings: RestSettings):
 		self.settings = settings
 
@@ -22,6 +28,11 @@ class RestApp:
 			version=self.settings.VERSION,
 			description=self.settings.DESCRIPTION
 		)
+		self.init_cors(app)
+		self.init_prometheus(app)
+
+		self.init_meta_storage()
+		self.init_snowflake()
 
 		self.post_construct(app)
 		logger.info('REST app constructed.')
@@ -40,6 +51,12 @@ class RestApp:
 	def init_prometheus(self, app: FastAPI) -> None:
 		if self.is_prometheus_on():
 			install_prometheus(app, self.settings)
+
+	def init_meta_storage(self) -> None:
+		self.meta_storage = build_meta_storage(self.settings)
+
+	def init_snowflake(self) -> None:
+		self.snowflake_generator = build_snowflake_generator(self.meta_storage, self.settings)
 
 	@abstractmethod
 	def post_construct(self, app: FastAPI) -> FastAPI:

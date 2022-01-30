@@ -66,7 +66,9 @@ class CompetitiveWorkerShutdownSignal(Enum):
 
 
 CompetitiveWorkerRestarter = Callable[[], None]
-CompetitiveWorkerShutdownListener = Callable[[CompetitiveWorkerShutdownSignal, CompetitiveWorkerRestarter], None]
+CompetitiveWorkerShutdownListener = Callable[
+	[CompetitiveWorkerShutdownSignal, int, int, CompetitiveWorkerRestarter], None
+]
 
 
 class CompetitiveWorkerIdGenerator:
@@ -152,10 +154,18 @@ class CompetitiveWorkerIdGenerator:
 				sleep(self.heart_beat_interval)
 		except Exception as e:
 			getLogger(__name__).error(e, exc_info=True, stack_info=True)
-			self.handle_shutdown(CompetitiveWorkerShutdownSignal.EXCEPTION_RAISED, self.try_create_worker)
+			self.handle_shutdown(
+				CompetitiveWorkerShutdownSignal.EXCEPTION_RAISED,
+				self.worker.dataCenterId, self.worker.workerId,
+				self.try_create_worker
+			)
 		else:
 			# heart beat stopped with no exception, release signal
-			self.handle_shutdown(CompetitiveWorkerShutdownSignal.EXIT, self.try_create_worker)
+			self.handle_shutdown(
+				CompetitiveWorkerShutdownSignal.EXIT,
+				self.worker.dataCenterId, self.worker.workerId,
+				self.try_create_worker
+			)
 		finally:
 			# release in-memory worker, will raise exception only if somebody calls me later
 			del self.worker
