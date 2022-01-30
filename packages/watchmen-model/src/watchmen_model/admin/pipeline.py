@@ -1,10 +1,10 @@
+from enum import Enum
 from typing import List
 
 from pydantic import BaseModel
 
 from watchmen_model.common import OptimisticLock, ParameterJoint, PipelineId, PipelineStageId, PipelineUnitId, \
 	TenantBasedTuple, TopicId
-from .enumeration import Enum
 from .pipeline_action import PipelineAction
 
 
