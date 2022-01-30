@@ -52,5 +52,5 @@ class UserService(TupleService):
 		return 'user_id'
 
 	def find_user_by_text(self, text: Optional[str]) -> DataPage:
-		# TODO
+		# TODO find user by text
 		pass
