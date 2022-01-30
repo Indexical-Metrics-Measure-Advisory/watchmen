@@ -11,6 +11,9 @@ class RestSettings(BaseSettings):
 	VERSION: str = '16.0.0'
 	DESCRIPTION: str = 'A lighter platform for data analytics'
 
+	JWT_SECRET_KEY: str = '801GtEAdlE8o-iZRLBMgz30PGE_zxry82EaUYMAhNq8'
+	JWT_ALGORITHM: str = 'HS256'
+
 	CORS: bool = True
 	CORS_ALLOWED_ORIGINS: Set[str] = ['*']
 	CORS_ALLOW_CREDENTIALS = True,

@@ -37,8 +37,8 @@ class Authorization:
 
 		return user
 
-	def authorize_by_pwd(self, username: str, password: str) -> User:
-		return self.authorize(self.authenticator.authenticate_by_pwd(username, password))
+	def authorize_by_jwt(self, token: str) -> User:
+		return self.authorize(self.authenticator.authenticate_by_jwt(token))
 
 	def authorize_by_pat(self, token: str) -> User:
 		return self.authorize(self.authenticator.authenticate_by_pat(token))

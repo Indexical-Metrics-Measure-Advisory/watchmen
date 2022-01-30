@@ -12,7 +12,7 @@ logger = getLogger(__name__)
 
 
 class AuthenticationType(str, Enum):
-	PWD = 'pwd',
+	JWT = 'jwt',
 	PAT = 'pat'
 
 
@@ -41,9 +41,9 @@ class AuthenticationManager:
 			.filter(lambda x: x.accept(auth_type)) \
 			.first(lambda x: x.authenticate(details))
 
-	def authenticate_by_pwd(self, username: str, password: str) -> Optional[User]:
-		details = {'username': username, 'password': password}
-		user = self.authenticate_details(details, AuthenticationType.PWD)
+	def authenticate_by_jwt(self, token: str) -> Optional[User]:
+		details = {'token': token}
+		user = self.authenticate_details(details, AuthenticationType.JWT)
 		return user
 
 	def authenticate_by_pat(self, token: str) -> Optional[User]:
