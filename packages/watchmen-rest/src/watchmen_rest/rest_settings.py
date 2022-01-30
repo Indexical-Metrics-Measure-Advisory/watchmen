@@ -11,6 +11,8 @@ class RestSettings(BaseSettings):
 	VERSION: str = '16.0.0'
 	DESCRIPTION: str = 'A lighter platform for data analytics'
 
+	API_VERSION_STR: str = ''
+
 	JWT_SECRET_KEY: str = '801GtEAdlE8o-iZRLBMgz30PGE_zxry82EaUYMAhNq8'
 	JWT_ALGORITHM: str = 'HS256'
 

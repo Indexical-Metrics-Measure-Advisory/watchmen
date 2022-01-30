@@ -9,4 +9,5 @@ class DollApp(RestApp):
 		pass
 
 
-doll = DollApp(DollSettings())
+settings = DollSettings()
+doll = DollApp(settings)
