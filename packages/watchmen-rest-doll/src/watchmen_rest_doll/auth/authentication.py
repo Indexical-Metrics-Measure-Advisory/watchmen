@@ -55,6 +55,7 @@ def build_authentication_manager(storage: TransactionalStorageSPI, settings: Res
 	authentication_manager = AuthenticationManager()
 	authentication_manager.register_provider(
 		JWTAuthenticationProvider(storage, settings.JWT_SECRET_KEY, settings.JWT_ALGORITHM)
+		# TODO PAT authentication provider
 	)
 
 	# TODO could register other authentication providers here
