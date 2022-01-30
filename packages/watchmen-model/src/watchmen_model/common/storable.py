@@ -5,20 +5,20 @@ from pydantic import BaseModel
 from .tuple_ids import UserId
 
 
-class Storable:
+class Storable(BaseModel):
 	pass
 
 
-class Auditable(Storable, BaseModel):
+class Auditable(Storable):
 	createdAt: datetime = None
 	createdBy: UserId = None
 	lastModifiedAt: datetime = None
 	lastModifiedBy: UserId = None
 
 
-class OptimisticLock(Storable, BaseModel):
+class OptimisticLock(Storable):
 	version: int = 1
 
 
-class LastVisit(Storable, BaseModel):
+class LastVisit(Storable):
 	lastVisitTime: datetime = datetime.now().replace(tzinfo=None)

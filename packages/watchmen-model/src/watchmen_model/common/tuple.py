@@ -1,8 +1,8 @@
 from datetime import date, datetime
 
-from pydantic import BaseConfig, BaseModel
+from pydantic import BaseConfig
 
-from .storable import Auditable, Storable
+from .storable import Auditable
 from .tuple_ids import TenantId, UserId
 
 """
@@ -12,7 +12,7 @@ Super model of tuple, which
 """
 
 
-class Tuple(Storable, Auditable, BaseModel):
+class Tuple(Auditable):
 	class Config(BaseConfig):
 		json_encoders = {
 			datetime: lambda dt: dt.isoformat(),

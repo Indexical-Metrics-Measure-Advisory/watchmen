@@ -26,11 +26,11 @@ class RestSettings(BaseSettings):
 	PROMETHEUS_CONTEXT: str = '/metrics'
 
 	META_STORAGE_TYPE: str = 'mysql'
-	META_STORAGE_USER_NAME: str
-	META_STORAGE_PASSWORD: str
-	META_STORAGE_HOST: str
+	META_STORAGE_USER_NAME: str = 'watchmen'
+	META_STORAGE_PASSWORD: str = 'watchmen'
+	META_STORAGE_HOST: str = 'localhost'
 	META_STORAGE_PORT: Optional[int] = None
-	META_STORAGE_NAME: str
+	META_STORAGE_NAME: str = 'watchmen'
 	META_STORAGE_ECHO: bool = False
 
 	SNOWFLAKE_DATA_CENTER_ID: int = 0  # data center id
