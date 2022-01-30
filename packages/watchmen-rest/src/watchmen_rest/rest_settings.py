@@ -1,6 +1,3 @@
-from abc import abstractmethod
-
-from fastapi import FastAPI
 from pydantic import BaseSettings
 
 DEV = "dev"
@@ -15,10 +12,6 @@ class RestSettings(BaseSettings):
 	CORS: bool = True
 
 	PROMETHEUS: bool = False
-
-	@abstractmethod
-	def post_construct(self, app: FastAPI) -> None:
-		pass
 
 	class Config:
 		env_file = '.env'

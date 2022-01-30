@@ -1,5 +1,3 @@
-from fastapi import FastAPI
-
 from watchmen_rest import RestSettings
 
 
@@ -17,6 +15,3 @@ class DollSettings(RestSettings):
 	KAFKA_CONNECTOR = False
 	KAFKA_BOOTSTRAP_SERVER = "localhost:9092"
 	KAFKA_TOPICS = ""
-
-	def post_construct(self, app: FastAPI) -> None:
-		pass
