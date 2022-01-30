@@ -1,3 +1,6 @@
-from .doll import build_doll
+from .admin import user
+from .doll import doll
 
-app = build_doll().construct()
+app = doll.construct()
+
+app.include_router(user.router)

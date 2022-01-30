@@ -1,8 +1,8 @@
 from logging import getLogger
 
-from watchmen_rest import RestSettings
 from watchmen_storage import competitive_worker_id, CompetitiveWorkerRestarter, CompetitiveWorkerShutdownSignal, \
 	immutable_worker_id, SnowflakeGenerator, StorageBasedWorkerIdGenerator, TransactionalStorageSPI
+from .rest_settings import RestSettings
 
 logger = getLogger(__name__)
 

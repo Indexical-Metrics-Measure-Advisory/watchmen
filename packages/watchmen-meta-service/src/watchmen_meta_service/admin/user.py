@@ -1,6 +1,6 @@
 from typing import Optional
 
-from watchmen_meta.common import TupleService, TupleShaper
+from watchmen_meta_service.common import TupleService, TupleShaper
 from watchmen_model.admin import User
 from watchmen_model.common import DataPage, UserId
 from watchmen_storage import EntityRow, EntityShaper
@@ -30,7 +30,7 @@ class UserShaper(EntityShaper):
 		))
 
 
-USER_ENTITY_NAME = 'tenants'
+USER_ENTITY_NAME = 'users'
 USER_ENTITY_SHAPER = UserShaper()
 
 

@@ -1,7 +1,7 @@
 from logging import getLogger
 from typing import List, Optional
 
-from sqlalchemy import insert, inspect, select, text, update
+from sqlalchemy import insert, select, text, update
 from sqlalchemy.engine import Connection, Engine
 
 from watchmen_model.common import DataPage
@@ -21,7 +21,6 @@ class StorageMySQL(TransactionalStorageSPI):
 
 	def __init__(self, engine: Engine):
 		self.engine = engine
-		inspect(engine)
 
 	def begin(self) -> None:
 		if self.connection is not None:

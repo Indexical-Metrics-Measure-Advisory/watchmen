@@ -1,6 +1,6 @@
 from typing import Optional
 
-from watchmen_meta.common import TupleService, TupleShaper
+from watchmen_meta_service.common import TupleService, TupleShaper
 from watchmen_model.common import DataPage, TenantId
 from watchmen_model.system import Tenant
 from watchmen_storage import EntityRow, EntityShaper

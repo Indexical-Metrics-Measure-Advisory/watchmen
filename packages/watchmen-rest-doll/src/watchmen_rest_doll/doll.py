@@ -5,9 +5,8 @@ from .settings import DollSettings
 
 
 class DollApp(RestApp):
-	def post_construct(self, app: FastAPI) -> FastAPI:
+	def post_construct(self, app: FastAPI) -> None:
 		pass
 
 
-def build_doll() -> DollApp:
-	return DollApp(DollSettings())
+doll = DollApp(DollSettings())
