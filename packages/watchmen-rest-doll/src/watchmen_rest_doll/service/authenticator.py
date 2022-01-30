@@ -10,8 +10,6 @@ from ..doll import doll
 
 
 def parse_token(request: Request) -> Tuple[str, str]:
-	# scheme, token = get_authorization_scheme_param(authorization)
-	# return scheme, token
 	authorization: str = request.headers.get("Authorization")
 
 	if not authorization:

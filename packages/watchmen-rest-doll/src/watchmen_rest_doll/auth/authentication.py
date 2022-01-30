@@ -8,8 +8,9 @@ from starlette import status
 
 from watchmen_auth import AuthenticationManager, AuthenticationProvider, AuthenticationType
 from watchmen_model.admin import User
+from watchmen_rest.rest_settings import RestSettings
 from watchmen_storage import TransactionalStorageSPI
-from .rest_settings import RestSettings
+from .auth_user_service import AuthUserService
 
 
 def validate_jwt(token, secret_key: str, algorithm: str):
@@ -28,6 +29,7 @@ class JWTAuthenticationProvider(AuthenticationProvider):
 		self.storage = storage
 		self.secret_key = secret_key
 		self.algorithm = algorithm
+		self.user_service = AuthUserService(storage)
 
 	def accept(self, auth_type: AuthenticationType) -> bool:
 		return auth_type == AuthenticationType.JWT
