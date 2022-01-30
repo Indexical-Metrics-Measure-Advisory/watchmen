@@ -8,7 +8,7 @@ from starlette import status
 
 from watchmen_auth import AuthenticationManager, AuthenticationProvider, AuthenticationType
 from watchmen_model.admin import User
-from watchmen_rest.rest_settings import RestSettings
+from watchmen_rest import RestSettings
 from watchmen_storage import TransactionalStorageSPI
 from .auth_user_service import AuthUserService
 
