@@ -61,11 +61,11 @@ class StorageMySQL(TransactionalStorageSPI):
 		self.connection.execute(insert(table).values(row))
 
 	def insert_all(self, data: List[Entity], helper: EntityHelper) -> EntityList:
-		# TODO
+		# TODO insert all, storage
 		pass
 
 	def update_one(self, one: Entity, helper: EntityHelper) -> int:
-		# TODO
+		# TODO update one, storage
 		pass
 
 	def update_only(self, updater: EntityUpdater) -> int:
@@ -76,47 +76,47 @@ class StorageMySQL(TransactionalStorageSPI):
 		return result.rowcount
 
 	def update_only_and_pull(self, updater: EntityUpdater) -> Optional[Entity]:
-		# TODO
+		# TODO update only and pull, storage
 		pass
 
 	def update(self, updater: EntityUpdater) -> int:
-		# TODO
+		# TODO update, storage
 		pass
 
 	def update_and_pull(self, updater: EntityUpdater) -> EntityList:
-		# TODO
+		# TODO update and pull, storage
 		pass
 
 	def delete_by_id(self, entity_id: EntityId, helper: EntityHelper) -> int:
-		# TODO
+		# TODO delete by id, storage
 		pass
 
 	def delete_by_id_and_pull(self, entity_id: EntityId, helper: EntityHelper) -> Optional[Entity]:
-		# TODO
+		# TODO delete by id and pull, storage
 		pass
 
 	def delete_only(self, deleter: EntityDeleter) -> int:
-		# TODO
+		# TODO delete only, storage
 		pass
 
 	def delete_only_and_pull(self, deleter: EntityDeleter) -> Optional[Entity]:
-		# TODO
+		# TODO delete only and pull, storage
 		pass
 
 	def delete(self, deleter: EntityDeleter) -> int:
-		# TODO
+		# TODO delete, storage
 		pass
 
 	def delete_and_pull(self, deleter: EntityDeleter) -> EntityList:
-		# TODO
+		# TODO delete and pull, storage
 		pass
 
 	def find_by_id(self, entity_id: EntityId, helper: EntityHelper) -> Optional[Entity]:
-		# TODO
+		# TODO find by id, storage
 		pass
 
 	def find_one(self, finder: EntityFinder) -> Optional[Entity]:
-		# TODO
+		# TODO find one, storage
 		pass
 
 	def find_on_statement_by_finder(self, statement: SQLAlchemyStatement, finder: EntityFinder) -> EntityList:
@@ -139,5 +139,5 @@ class StorageMySQL(TransactionalStorageSPI):
 		return self.find(EntityFinder(name=helper.name, shaper=helper.shaper))
 
 	def page(self, pager: EntityPager) -> DataPage:
-		# TODO
+		# TODO page, storage
 		pass

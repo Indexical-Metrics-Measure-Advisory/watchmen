@@ -42,5 +42,5 @@ class TenantService(TupleService):
 		return 'tenant_id'
 
 	def find_tenant_by_text(self, text: Optional[str]) -> DataPage:
-		# TODO
+		# TODO find tenant by text
 		pass
