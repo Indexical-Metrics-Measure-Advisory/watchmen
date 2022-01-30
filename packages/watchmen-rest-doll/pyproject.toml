@@ -12,6 +12,9 @@ packages = [
 python = "^3.9"
 watchmen-rest = { path = "../watchmen-rest", develop = true }
 watchmen-meta-service = { path = "../watchmen-meta-service", develop = true }
+jsonschema = "^4.4.0"
+python-jose = "^3.3.0"
+jose = "^1.0.0"
 
 [tool.poetry.dev-dependencies]
 

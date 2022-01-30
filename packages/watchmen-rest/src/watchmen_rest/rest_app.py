@@ -7,7 +7,6 @@ from fastapi import FastAPI
 
 from watchmen_auth import AuthenticationManager
 from watchmen_storage import SnowflakeGenerator, TransactionalStorageSPI
-from .authentication import build_authentication_manager
 from .cors import install_cors
 from .meta_storage import build_meta_storage
 from .prometheus import install_prometheus
@@ -60,9 +59,6 @@ class RestApp:
 
 	def init_snowflake(self) -> None:
 		self.snowflake_generator = build_snowflake_generator(self.meta_storage, self.settings)
-
-	def init_authentication(self) -> None:
-		self.authentication_manager = build_authentication_manager(self.meta_storage, self.settings)
 
 	@abstractmethod
 	def post_construct(self, app: FastAPI) -> None:
