@@ -9,5 +9,5 @@ class DollApp(RestApp):
 		pass
 
 
-settings = DollSettings()
-doll = DollApp(settings).construct()
+app = DollApp(DollSettings())
+doll = app.construct()
