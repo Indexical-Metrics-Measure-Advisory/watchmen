@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import abstractmethod
 from logging import getLogger
 
 from fastapi import FastAPI
@@ -22,7 +23,7 @@ class RestApp:
 			description=self.settings.DESCRIPTION
 		)
 
-		self.settings.post_construct(app)
+		self.post_construct(app)
 		logger.info('REST app constructed.')
 		return app
 
@@ -39,3 +40,7 @@ class RestApp:
 	def init_prometheus(self, app: FastAPI) -> None:
 		if self.is_prometheus_on():
 			install_prometheus(app)
+
+	@abstractmethod
+	def post_construct(self, app: FastAPI) -> FastAPI:
+		pass
