@@ -22,4 +22,5 @@ async def load_user(
 		user_id: Optional[str] = None,
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> User:
+	# noinspection PyTypeChecker
 	return get_user_service(principal_service).find_by_id(user_id)

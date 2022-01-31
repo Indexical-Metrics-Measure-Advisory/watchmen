@@ -9,7 +9,7 @@ from .settings import DollSettings
 
 
 class DollApp(RestApp):
-	def find_user_by_name(self) -> Callable[[str], Optional[User]]:
+	def build_find_user_by_name(self) -> Callable[[str], Optional[User]]:
 		return build_find_user_by_name(self.meta_storage)
 
 	def init_kafka_connector(self) -> None:

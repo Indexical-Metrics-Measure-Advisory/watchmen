@@ -40,7 +40,7 @@ class OptimisticLockShaper:
 		return row
 
 	@staticmethod
-	def deserialize(row: EntityRow, lock: Tuple) -> Tuple:
+	def deserialize(row: EntityRow, lock: OptimisticLock) -> OptimisticLock:
 		lock.version = row.get('version')
 		return lock
 
@@ -49,7 +49,8 @@ class TupleShaper:
 	@staticmethod
 	def serialize(a_tuple: Tuple, row: EntityRow) -> EntityRow:
 		row = AuditableShaper.serialize(a_tuple, row)
-		row = OptimisticLockShaper.serialize(a_tuple, row)
+		if isinstance(a_tuple, OptimisticLock):
+			row = OptimisticLockShaper.serialize(a_tuple, row)
 		return row
 
 	@staticmethod
@@ -67,20 +68,23 @@ class TupleShaper:
 	@staticmethod
 	def deserialize(row: EntityRow, a_tuple: Tuple) -> Tuple:
 		a_tuple = AuditableShaper.deserialize(row, a_tuple)
-		a_tuple = OptimisticLockShaper.deserialize(row, a_tuple)
+		if isinstance(a_tuple, OptimisticLock):
+			a_tuple = OptimisticLockShaper.deserialize(row, a_tuple)
 		return a_tuple
 
 	@staticmethod
 	def deserialize_tenant_based(row: EntityRow, a_tuple: TenantBasedTuple) -> TenantBasedTuple:
-		a_tuple = TupleShaper.deserialize(row, a_tuple)
+		# noinspection PyTypeChecker
+		a_tuple: TenantBasedTuple = TupleShaper.deserialize(row, a_tuple)
 		a_tuple.tenantId = row.get('tenant_id')
 		return a_tuple
 
 	@staticmethod
 	def deserialize_user_based(row: EntityRow, a_tuple: UserBasedTuple) -> UserBasedTuple:
-		row = TupleShaper.deserialize_tenant_based(row, a_tuple)
+		# noinspection PyTypeChecker
+		a_tuple: UserBasedTuple = TupleShaper.deserialize_tenant_based(row, a_tuple)
 		a_tuple.userId = row.get('user_id')
-		return row
+		return a_tuple
 
 
 class TupleService:
@@ -193,6 +197,7 @@ class TupleService:
 		if isinstance(a_tuple, OptimisticLock):
 			version = a_tuple.version
 			a_tuple.version = version + 1
+			# noinspection PyTypeChecker
 			updated_count = self.storage.update_only(self.get_entity_updater(
 				criteria=[
 					EntityCriteriaExpression(name=self.get_tuple_id_column_name(), value=self.get_tuple_id(a_tuple)),
