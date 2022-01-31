@@ -1,7 +1,7 @@
-from pydantic import BaseModel
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 
+from watchmen_model.common import DataModel
 from watchmen_model.system import DataSource
 from watchmen_storage import DataSourceHelper
 from watchmen_utilities import serialize_to_json
@@ -22,7 +22,7 @@ def redress_url_by_pymysql(url: str) -> str:
 		return url
 
 
-class MySQLDataSourceParams(BaseModel):
+class MySQLDataSourceParams(DataModel):
 	echo: bool = False
 	poolRecycle: int = 3600
 

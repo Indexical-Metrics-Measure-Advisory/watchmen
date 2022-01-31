@@ -2,9 +2,7 @@ from abc import abstractmethod
 from enum import Enum
 from typing import Any, Dict, List, Optional, TypeVar, Union
 
-from pydantic import BaseModel
-
-from watchmen_model.common import Pageable, Storable
+from watchmen_model.common import DataModel, Pageable, Storable
 
 """
 column name of storage entity, not for python object
@@ -41,7 +39,7 @@ class EntityShaper:
 		pass
 
 
-class EntityHelper(BaseModel):
+class EntityHelper(DataModel):
 	name: EntityName
 	shaper: EntityShaper
 
@@ -51,7 +49,7 @@ class EntitySortMethod(str, Enum):
 	DESC = 'desc'
 
 
-class EntitySortColumn(BaseModel):
+class EntitySortColumn(DataModel):
 	name: EntityColumnName
 	method: EntitySortMethod
 
@@ -59,7 +57,7 @@ class EntitySortColumn(BaseModel):
 EntitySort = List[EntitySortColumn]
 
 
-class EntityCriteriaStatement(BaseModel):
+class EntityCriteriaStatement(DataModel):
 	pass
 
 

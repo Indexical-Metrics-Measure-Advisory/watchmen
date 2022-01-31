@@ -19,6 +19,7 @@ class UserShaper(EntityShaper):
 		})
 
 	def deserialize(self, row: EntityRow) -> User:
+		# noinspection PyTypeChecker
 		return TupleShaper.deserialize_tenant_based(row, User(
 			userId=row.get('user_id'),
 			name=row.get('name'),

@@ -67,10 +67,11 @@ class RestApp:
 		self.snowflake_generator = build_snowflake_generator(self.meta_storage, self.settings)
 
 	def init_authentication(self) -> None:
-		self.authentication_manager = build_authentication_manager(self.meta_storage, self.settings)
+		self.authentication_manager = build_authentication_manager(
+			self.meta_storage, self.settings, self.build_find_user_by_name())
 
 	@abstractmethod
-	def find_user_by_name(self) -> Callable[[str], Optional[User]]:
+	def build_find_user_by_name(self) -> Callable[[str], Optional[User]]:
 		pass
 
 	@abstractmethod

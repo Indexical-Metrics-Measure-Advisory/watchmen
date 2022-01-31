@@ -1,2 +1,7 @@
 class DataModel:
-	pass
+	def __init__(self, **data):
+		for key, value in data.items():
+			self.__setattr__(key, value)
+
+	def __setattr__(self, name, value):
+		self.__dict__[name] = value
