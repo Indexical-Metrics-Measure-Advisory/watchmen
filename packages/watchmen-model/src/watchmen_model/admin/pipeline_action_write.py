@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List
 
 from watchmen_model.common import FactorId, Parameter
 from .pipeline_action import AggregateArithmeticHolder, FindBy, PipelineAction, ToFactor, ToTopic, \
@@ -22,8 +22,12 @@ class InsertRowAction(WriteTopicAction, MappingRow):
 	type: WriteTopicActionType.INSERT_ROW = WriteTopicActionType.INSERT_ROW
 
 
+class InsertOrMergeRowAction(WriteTopicAction, MappingRow, FindBy):
+	type: WriteTopicActionType.INSERT_OR_MERGE_ROW = WriteTopicActionType.INSERT_OR_MERGE_ROW
+
+
 class MergeRowAction(WriteTopicAction, MappingRow, FindBy):
-	type: Union[WriteTopicActionType.MERGE_ROW, WriteTopicActionType.INSERT_OR_MERGE_ROW] = None
+	type: WriteTopicActionType.MERGE_ROW = WriteTopicActionType.MERGE_ROW
 
 
 class WriteFactorAction(ToFactor, WriteTopicAction, FindBy, AggregateArithmeticHolder):
