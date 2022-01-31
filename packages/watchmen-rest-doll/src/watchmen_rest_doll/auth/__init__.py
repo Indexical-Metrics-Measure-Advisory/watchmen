@@ -1,1 +1,1 @@
-from .authentication import build_authentication_manager
+from .get_user_by_name import build_find_user_by_name
