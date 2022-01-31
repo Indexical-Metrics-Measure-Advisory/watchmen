@@ -1,14 +1,12 @@
 from enum import Enum
 from typing import List
 
-from pydantic import BaseModel
-
-from watchmen_model.common import OptimisticLock, ParameterJoint, PipelineId, PipelineStageId, PipelineUnitId, \
-	TenantBasedTuple, TopicId
+from watchmen_model.common import DataModel, OptimisticLock, ParameterJoint, PipelineId, PipelineStageId, \
+	PipelineUnitId, TenantBasedTuple, TopicId
 from .pipeline_action import PipelineAction
 
 
-class Conditional(BaseModel):
+class Conditional(DataModel):
 	conditional: bool = None
 	on: ParameterJoint = None
 

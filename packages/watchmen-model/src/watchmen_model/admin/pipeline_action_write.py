@@ -14,7 +14,7 @@ class MappingRow(PipelineAction):
 	mapping: List[MappingFactor] = []
 
 
-class WriteTopicAction(ToTopic, PipelineAction):
+class WriteTopicAction(ToTopic):
 	type: WriteTopicActionType = None
 
 

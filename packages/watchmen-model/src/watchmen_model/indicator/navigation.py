@@ -1,13 +1,12 @@
 from typing import List
 
-from pydantic import BaseModel
-
 from watchmen_model.admin import Enum
-from watchmen_model.common import BucketId, FactorId, IndicatorId, NavigationId, OptimisticLock, TenantBasedTuple
+from watchmen_model.common import BucketId, DataModel, FactorId, IndicatorId, NavigationId, OptimisticLock, \
+	TenantBasedTuple
 from .indicator import IndicatorAggregateArithmetic
 
 
-class NavigationIndicatorCriteria(BaseModel):
+class NavigationIndicatorCriteria(DataModel):
 	factorId: FactorId = None
 
 
@@ -33,7 +32,7 @@ class NavigationIndicatorCriteriaOnExpression(NavigationIndicatorCriteria):
 	value: str = None
 
 
-class NavigationIndicator(BaseModel):
+class NavigationIndicator(DataModel):
 	indicatorId: IndicatorId = None
 	name: str = None
 	aggregateArithmetic: IndicatorAggregateArithmetic = None

@@ -1,8 +1,8 @@
 from .pipeline_action import AggregateArithmeticHolder, FindBy, FromFactor, FromTopic, \
-	MemoryWriter, PipelineAction, ReadTopicActionType
+	MemoryWriter, ReadTopicActionType
 
 
-class ReadTopicAction(FromTopic, MemoryWriter, FindBy, PipelineAction):
+class ReadTopicAction(FromTopic, MemoryWriter, FindBy):
 	type: ReadTopicActionType
 
 

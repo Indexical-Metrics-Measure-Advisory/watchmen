@@ -1,18 +1,16 @@
 from typing import List
 
-from pydantic import BaseModel
-
-from watchmen_model.common import GraphicPosition, GraphicRect, PipelinesGraphicId, TopicId, \
+from watchmen_model.common import DataModel, GraphicPosition, GraphicRect, PipelinesGraphicId, TopicId, \
 	UserBasedTuple
 
 
-class TopicRect(BaseModel):
+class TopicRect(DataModel):
 	coordinate: GraphicPosition = None
 	frame: GraphicRect = None
 	name: GraphicPosition = None
 
 
-class TopicGraphic(BaseModel):
+class TopicGraphic(DataModel):
 	topicId: TopicId = None
 	rect: TopicRect = None
 

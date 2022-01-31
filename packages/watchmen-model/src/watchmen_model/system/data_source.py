@@ -1,12 +1,10 @@
 from enum import Enum
 from typing import List
 
-from pydantic import BaseModel
-
-from watchmen_model.common import DataSourceId, OptimisticLock, TenantBasedTuple
+from watchmen_model.common import DataModel, DataSourceId, OptimisticLock, TenantBasedTuple
 
 
-class DataSourceParam(BaseModel):
+class DataSourceParam(DataModel):
 	name: str = None
 	value: str = None
 

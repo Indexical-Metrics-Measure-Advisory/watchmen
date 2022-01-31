@@ -1,9 +1,7 @@
 from enum import Enum
 from typing import List
 
-from pydantic import BaseModel
-
-from watchmen_model.common import FactorId, LastVisit, OptimisticLock, Parameter, ParameterJoint, ReportId, \
+from watchmen_model.common import DataModel, FactorId, LastVisit, OptimisticLock, Parameter, ParameterJoint, ReportId, \
 	SubjectDatasetColumnId, SubjectId, TopicId, UserBasedTuple
 
 
@@ -13,7 +11,7 @@ class SubjectJoinType(str, Enum):
 	INNER = 'inner',
 
 
-class SubjectDatasetJoin(BaseModel):
+class SubjectDatasetJoin(DataModel):
 	topicId: TopicId = None
 	factorId: FactorId = None
 	secondaryTopicId: TopicId = None
@@ -21,13 +19,13 @@ class SubjectDatasetJoin(BaseModel):
 	type: SubjectJoinType = SubjectJoinType.INNER
 
 
-class SubjectDatasetColumn(BaseModel):
+class SubjectDatasetColumn(DataModel):
 	columnId: SubjectDatasetColumnId = None
 	parameter: Parameter
 	alias: str = None
 
 
-class SubjectDataset(BaseModel):
+class SubjectDataset(DataModel):
 	filters: ParameterJoint
 	columns: List[SubjectDatasetColumn] = []
 	joins: List[SubjectDatasetJoin] = []

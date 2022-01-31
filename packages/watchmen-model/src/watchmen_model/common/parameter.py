@@ -1,8 +1,7 @@
 from enum import Enum
 from typing import List, Optional
 
-from pydantic import BaseModel
-
+from .model import DataModel
 from .parameter_joint import ParameterJoint
 from .tuple_ids import FactorId, TopicId
 
@@ -13,7 +12,7 @@ class ParameterKind(str, Enum):
 	COMPUTED = 'computed'
 
 
-class Parameter(BaseModel):
+class Parameter(DataModel):
 	kind: ParameterKind = None
 	conditional: bool = False
 	on: Optional[ParameterJoint] = None

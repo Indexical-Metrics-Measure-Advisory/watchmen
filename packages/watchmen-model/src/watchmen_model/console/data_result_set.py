@@ -1,10 +1,8 @@
 from typing import List
 
-from pydantic import BaseModel
-
-from watchmen_model.common import DataResultSet
+from watchmen_model.common import DataModel, DataResultSet
 
 
-class SubjectDataResultSet(BaseModel):
+class SubjectDataResultSet(DataModel):
 	meta: List[str] = []
 	data: DataResultSet = []

@@ -1,9 +1,7 @@
 from enum import Enum
 from typing import List
 
-from pydantic import BaseModel
-
-from watchmen_model.common import FactorId, IndicatorId, OptimisticLock, TenantBasedTuple, TopicId
+from watchmen_model.common import DataModel, FactorId, IndicatorId, OptimisticLock, TenantBasedTuple, TopicId
 from .measure_method import MeasureMethod
 
 
@@ -15,7 +13,7 @@ class IndicatorAggregateArithmetic(str, Enum):
 	MIN = 'min'
 
 
-class IndicatorMeasure(BaseModel):
+class IndicatorMeasure(DataModel):
 	factorId: FactorId = None
 	method: MeasureMethod = None
 
@@ -30,7 +28,7 @@ class RelevantIndicatorType(str, Enum):
 	RELEVANT_CAUSES_THIS = 'relevant-causes-this'
 
 
-class RelevantIndicator(BaseModel):
+class RelevantIndicator(DataModel):
 	indicatorId: IndicatorId = None
 	type: RelevantIndicatorType = None
 

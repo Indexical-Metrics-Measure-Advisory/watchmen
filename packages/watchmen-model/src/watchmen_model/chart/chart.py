@@ -1,7 +1,6 @@
 from enum import Enum
 
-from pydantic import BaseModel
-
+from watchmen_model.common import DataModel
 from .chart_basic_structure import ChartTruncationHolder
 from .chart_basic_style import ChartBorder
 from .chart_enums import PredefinedChartColorSeries
@@ -30,6 +29,6 @@ class ChartSettings(ChartTruncationHolder):
 	colorSeries: PredefinedChartColorSeries = PredefinedChartColorSeries.REGULAR
 
 
-class Chart(BaseModel):
+class Chart(DataModel):
 	type: ChartType = ChartType.COUNT
 	settings: ChartSettings = None

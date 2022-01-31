@@ -1,5 +1,5 @@
-from pydantic import BaseModel
+from .model import DataModel
 
 
-class ParameterCondition(BaseModel):
+class ParameterCondition(DataModel):
 	pass
