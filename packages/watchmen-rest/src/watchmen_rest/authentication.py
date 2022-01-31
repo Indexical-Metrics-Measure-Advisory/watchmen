@@ -8,8 +8,8 @@ from starlette import status
 
 from watchmen_auth import AuthenticationManager, AuthenticationProvider, AuthenticationType
 from watchmen_model.admin import User
-from watchmen_rest import RestSettings
 from watchmen_storage import TransactionalStorageSPI
+from .rest_settings import RestSettings
 
 
 def validate_jwt(token, secret_key: str, algorithm: str):
