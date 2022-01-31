@@ -1,11 +1,10 @@
 from typing import List
 
-from pydantic import BaseModel
+from watchmen_model.common import DataModel, OptimisticLock, ParameterJoint, SpaceId, TenantBasedTuple, TopicId, \
+	UserGroupId
 
-from watchmen_model.common import OptimisticLock, ParameterJoint, SpaceId, TenantBasedTuple, TopicId, UserGroupId
 
-
-class SpaceFilter(BaseModel):
+class SpaceFilter(DataModel):
 	topicId: TopicId = None
 	joint: ParameterJoint = None
 	enabled: bool = False

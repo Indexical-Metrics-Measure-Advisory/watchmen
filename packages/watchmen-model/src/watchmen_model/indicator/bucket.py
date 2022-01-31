@@ -1,9 +1,7 @@
 from enum import Enum
 from typing import Any, List, Union
 
-from pydantic import BaseModel
-
-from watchmen_model.common import BucketId, EnumId, OptimisticLock, TenantBasedTuple
+from watchmen_model.common import BucketId, DataModel, EnumId, OptimisticLock, TenantBasedTuple
 from .measure_method import MeasureMethod
 
 
@@ -19,7 +17,7 @@ class RangeBucketValueIncluding(str, Enum):
 	INCLUDE_MAX = "include-max"
 
 
-class BucketSegment(BaseModel):
+class BucketSegment(DataModel):
 	name: str = None
 	value: Any = None
 
@@ -32,7 +30,7 @@ class Bucket(TenantBasedTuple, OptimisticLock):
 	description: str = None
 
 
-class NumericSegmentValue(BaseModel):
+class NumericSegmentValue(DataModel):
 	min: str = None
 	max: str = None
 

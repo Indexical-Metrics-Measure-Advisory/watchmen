@@ -1,11 +1,10 @@
 from datetime import datetime
 
-from pydantic import BaseModel
-
+from .model import DataModel
 from .tuple_ids import UserId
 
 
-class Storable(BaseModel):
+class Storable(DataModel):
 	pass
 
 

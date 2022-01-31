@@ -1,18 +1,16 @@
 from typing import List
 
-from pydantic import BaseModel
-
-from watchmen_model.common import DashboardId, GraphicRect, LastVisit, ReportId, UserBasedTuple
+from watchmen_model.common import DashboardId, DataModel, GraphicRect, LastVisit, ReportId, UserBasedTuple
 from .report import ReportFunnel
 
 
-class DashboardReport(BaseModel):
+class DashboardReport(DataModel):
 	reportId: ReportId = None
 	funnels: List[ReportFunnel] = None
 	rect: GraphicRect = None
 
 
-class DashboardParagraph(BaseModel):
+class DashboardParagraph(DataModel):
 	content: str = None
 	rect: GraphicRect = None
 

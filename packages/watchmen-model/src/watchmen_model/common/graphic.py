@@ -1,12 +1,12 @@
-from pydantic import BaseModel
+from .model import DataModel
 
 
-class GraphicPosition(BaseModel):
+class GraphicPosition(DataModel):
 	x: float = 0
 	y: float = 0
 
 
-class GraphicSize(BaseModel):
+class GraphicSize(DataModel):
 	width: float = 0
 	height: float = 0
 

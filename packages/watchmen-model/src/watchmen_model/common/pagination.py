@@ -1,9 +1,9 @@
 from typing import Dict, List, Union
 
-from pydantic import BaseModel
+from .model import DataModel
 
 
-class Pageable(BaseModel):
+class Pageable(DataModel):
 	pageNumber: int = None
 	pageSize: int = None
 
@@ -12,8 +12,8 @@ PageDataCell = Union[int, float, bool, str, None]
 """
 data row with name
 """
-PageDataRow = Union[Dict[str, PageDataCell], BaseModel]
-PageDataSet = Union[List[Dict[str, PageDataCell]], List[BaseModel]]
+PageDataRow = Union[Dict[str, PageDataCell], DataModel]
+PageDataSet = Union[List[Dict[str, PageDataCell]], List[DataModel]]
 
 
 class DataPage(Pageable):

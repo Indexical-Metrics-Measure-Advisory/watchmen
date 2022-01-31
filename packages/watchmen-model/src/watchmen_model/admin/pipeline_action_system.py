@@ -18,7 +18,7 @@ class AlarmAction(PipelineAction, Conditional):
 	message: str = None
 
 
-class CopyToMemoryAction(PipelineAction, MemoryWriter):
+class CopyToMemoryAction(MemoryWriter):
 	"""
 	copy something to memory variable
 	"""

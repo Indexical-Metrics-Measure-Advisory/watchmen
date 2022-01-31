@@ -1,9 +1,8 @@
 from enum import Enum
 from typing import Any, List, Literal
 
-from pydantic import BaseModel
-
-from watchmen_model.common import BucketId, FactorId, IndicatorId, InspectionId, OptimisticLock, TenantBasedTuple
+from watchmen_model.common import BucketId, DataModel, FactorId, IndicatorId, InspectionId, OptimisticLock, \
+	TenantBasedTuple
 from .indicator import IndicatorAggregateArithmetic
 from .measure_method import MeasureMethod
 
@@ -32,7 +31,7 @@ class InspectionTimeRangeType(str, Enum):
 	AM_PM = 'am-pm',
 
 
-class InspectionTimeRange(BaseModel):
+class InspectionTimeRange(DataModel):
 	type: InspectionTimeRangeType = None
 	value: Any = None
 

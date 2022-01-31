@@ -1,9 +1,7 @@
 from enum import Enum
 from typing import Union
 
-from pydantic import BaseModel
-
-from watchmen_model.common import FactorId, ParameterJoint, PipelineActionId, TopicId
+from watchmen_model.common import DataModel, FactorId, ParameterJoint, PipelineActionId, TopicId
 
 
 class SystemActionType(str, Enum):
@@ -30,7 +28,7 @@ class WriteTopicActionType(str, Enum):
 PipelineStageUnitActionType = Union[WriteTopicActionType, ReadTopicActionType, SystemActionType]
 
 
-class PipelineAction(BaseModel):
+class PipelineAction(DataModel):
 	actionId: PipelineActionId = None
 	type: PipelineStageUnitActionType = None
 
@@ -66,5 +64,5 @@ class AggregateArithmetic(str, Enum):
 	AVG = 'avg'
 
 
-class AggregateArithmeticHolder(BaseModel):
+class AggregateArithmeticHolder(DataModel):
 	arithmetic: AggregateArithmetic = None

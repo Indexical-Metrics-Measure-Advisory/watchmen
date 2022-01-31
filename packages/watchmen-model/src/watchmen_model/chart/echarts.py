@@ -1,39 +1,38 @@
 from enum import Enum
 from typing import Any, Dict, List, Union
 
-from pydantic import BaseModel
-
+from watchmen_model.common import DataModel
 from .chart import Chart, ChartColor, ChartSettings, ChartType
 from .chart_basic_style import ChartBorder, ChartFont
 from .chart_enums import ChartBorderStyle
 
 
-class EChartsBorderHolder(BaseModel):
+class EChartsBorderHolder(DataModel):
 	border: ChartBorder = None
 
 
-class EChartsBorderOmitRadius(BaseModel):
+class EChartsBorderOmitRadius(DataModel):
 	color: ChartColor = None
 	style: ChartBorderStyle = None
 	width: float = None
 
 
-class EChartsBorderHolderNoRadius(BaseModel):
+class EChartsBorderHolderNoRadius(DataModel):
 	border: EChartsBorderOmitRadius = None
 
 
-class EChartsFontHolder(BaseModel):
+class EChartsFontHolder(DataModel):
 	font: ChartFont = None
 
 
-class EChartsPosition(BaseModel):
+class EChartsPosition(DataModel):
 	top: float = None
 	right: float = None
 	left: float = None
 	bottom: float = None
 
 
-class EChartsPositionHolder(BaseModel):
+class EChartsPositionHolder(DataModel):
 	position: EChartsPosition = None
 
 
@@ -51,7 +50,7 @@ class EChartsVerticalAlignment(str, Enum):
 	MIDDLE = 'middle'
 
 
-class EChartsAlignmentHolder(BaseModel):
+class EChartsAlignmentHolder(DataModel):
 	horizontalAlign: EChartsHorizontalAlignment = None
 	verticalAlign: EChartsVerticalAlignment = None
 
@@ -68,7 +67,7 @@ class EChartsTitle(EChartsBorderHolder, EChartsPositionHolder, EChartsAlignmentH
 	itemGap: float = None
 
 
-class EChartsTitleHolder(BaseModel):
+class EChartsTitleHolder(DataModel):
 	title: EChartsTitle = None
 
 
@@ -84,7 +83,7 @@ class EChartsLegend(EChartsBorderHolder, EChartsPositionHolder, EChartsFontHolde
 	padding: float = None
 
 
-class EChartsLegendHolder(BaseModel):
+class EChartsLegendHolder(DataModel):
 	legend: EChartsLegend = None
 
 
@@ -98,7 +97,7 @@ class EChartsGridPositionOnly(EChartsPositionHolder):
 	pass
 
 
-class EChartsGridHolder(BaseModel):
+class EChartsGridHolder(DataModel):
 	grid: EChartsGrid = None
 
 
@@ -108,18 +107,18 @@ class EChartsAxisSplitLineStyle(str, Enum):
 	DOTTED = 'dotted'
 
 
-class EChartsAxisSplitLine(BaseModel):
+class EChartsAxisSplitLine(DataModel):
 	show: bool = None
 	color: ChartColor = None
 	width: float = None
 	style: EChartsAxisSplitLineStyle = None
 
 
-class EChartsAxisSplitLineHolder(BaseModel):
+class EChartsAxisSplitLineHolder(DataModel):
 	splitLine: EChartsAxisSplitLine = None
 
 
-class EChartsAxisMinorSplitLineHolder(BaseModel):
+class EChartsAxisMinorSplitLineHolder(DataModel):
 	minorSplitLine: EChartsAxisSplitLine = None
 
 
@@ -170,7 +169,7 @@ class EChartsXAxis(EChartsAxisSplitLineHolder, EChartsAxisMinorSplitLineHolder):
 	max: float = None
 
 
-class EChartsXAxisHolder(BaseModel):
+class EChartsXAxisHolder(DataModel):
 	xaxis: EChartsXAxis = None
 
 
@@ -221,7 +220,7 @@ class EChartsYAxis(EChartsAxisSplitLineHolder, EChartsAxisMinorSplitLineHolder):
 	max: float = None
 
 
-class EChartsYAxisHolder(BaseModel):
+class EChartsYAxisHolder(DataModel):
 	yaxis: EChartsYAxis = None
 
 
@@ -235,14 +234,14 @@ class EChartsToolbox(EChartsPositionHolder):
 	orient: EChartsToolboxOrient = None
 
 
-class EChartsToolboxHolder(BaseModel):
+class EChartsToolboxHolder(DataModel):
 	toolbox: EChartsToolbox = None
 
 
 EchartsScriptsVars = Dict[str, str]
 
 
-class EchartsScriptHolder(BaseModel):
+class EchartsScriptHolder(DataModel):
 	script: str = None
 	scriptVarsDefs: str = None
 	scriptVars: EchartsScriptsVars = None
@@ -258,7 +257,7 @@ class ItemType(str, Enum):
 	DROPDOWN = 'dropdown'
 
 
-class DefItem(BaseModel):
+class DefItem(DataModel):
 	type: ItemType = None
 	label: str = None
 
@@ -300,7 +299,7 @@ class ColorItem(InputItem):
 	defaultValue: ChartColor = None
 
 
-class DropdownItemOption(BaseModel):
+class DropdownItemOption(DataModel):
 	value: Union[str, int, float, bool] = None
 	label: str = None
 
@@ -316,7 +315,7 @@ class EChartsSettings(ChartSettings, EChartsTitleHolder):
 	pass
 
 
-class CountChartSettingsText(BaseModel):
+class CountChartSettingsText(DataModel):
 	font: ChartFont = None
 	formatUseGrouping: bool = None
 
@@ -359,7 +358,7 @@ class BarChartSettingsLabel(EChartsBorderHolder, EChartsFontHolder, EChartsAlign
 	fractionDigits: int = None
 
 
-class BarChartSettingsSeries(BaseModel):
+class BarChartSettingsSeries(DataModel):
 	transformAxis: bool = None
 
 
@@ -496,7 +495,7 @@ class TreeOrient(str, Enum):
 	BOTTOM_TOP = 'BT'
 
 
-class TreeChartSettingsSeries(BaseModel):
+class TreeChartSettingsSeries(DataModel):
 	layout: TreeLayout = None
 	orient: TreeOrient = None
 	roam: bool = None
@@ -512,7 +511,7 @@ class TreeChart(Chart):
 	settings: TreeChartSettings = None
 
 
-class TreemapChartSettingsSeries(BaseModel):
+class TreemapChartSettingsSeries(DataModel):
 	roam: bool = None
 
 
@@ -534,7 +533,7 @@ class MapChartRegion(str, Enum):
 	USA_L1 = 'usa-l1'
 
 
-class MapChartSettingsSeries(BaseModel):
+class MapChartSettingsSeries(DataModel):
 	region: MapChartRegion = None
 
 
