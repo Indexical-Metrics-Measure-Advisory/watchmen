@@ -318,7 +318,10 @@ develop = true
 
 [package.dependencies]
 fastapi = "^0.73.0"
+jose = "^1.0.0"
+jsonschema = "^4.4.0"
 pydantic = "^1.9.0"
+python-jose = "^3.3.0"
 uvicorn = "^0.17.1"
 watchmen-auth = {path = "../watchmen-auth", develop = true}
 watchmen-storage = {path = "../watchmen-storage", develop = true}
@@ -360,7 +363,7 @@ url = "../watchmen-utilities"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "ffd2c51acc64eb6a01a27bfde44ccf8eadfe135ba9b13d0b90be714a184d2754"
+content-hash = "1f47e0248c7e6ea1e96e83e77f9db96c540262c3fd2852c2901afc6f7178eed0"
 
 [metadata.files]
 anyio = [

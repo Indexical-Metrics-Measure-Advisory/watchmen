@@ -17,5 +17,7 @@ def build_meta_storage(settings: RestSettings) -> TransactionalStorageSPI:
 	storage_type = settings.META_STORAGE_TYPE
 	if storage_type == 'mysql':
 		return build_mysql_storage(settings)
+	# TODO build oracle storage
+	# TODO build mongodb storage
 
 	raise InitialRestAppException(f'Meta storage type[{storage_type}] is not supported yet.')
