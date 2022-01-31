@@ -1,7 +1,7 @@
 from logging import getLogger
 from typing import List, Optional
 
-from sqlalchemy import insert, select, text, update
+from sqlalchemy import insert, select, Table, text, update
 from sqlalchemy.engine import Connection, Engine
 
 from watchmen_model.common import DataPage
@@ -71,7 +71,7 @@ class StorageMySQL(TransactionalStorageSPI):
 	def update_only(self, updater: EntityUpdater) -> int:
 		table = find_table(updater.name)
 		statement = update(table).values(updater.update)
-		statement = build_criteria_for_statement(statement, updater.criteria, True)
+		statement = build_criteria_for_statement(table, statement, updater.criteria, True)
 		result = self.connection.execute(statement)
 		return result.rowcount
 
@@ -119,8 +119,10 @@ class StorageMySQL(TransactionalStorageSPI):
 		# TODO find one, storage
 		pass
 
-	def find_on_statement_by_finder(self, statement: SQLAlchemyStatement, finder: EntityFinder) -> EntityList:
-		statement = build_criteria_for_statement(statement, finder.criteria)
+	def find_on_statement_by_finder(
+			self, table: Table, statement: SQLAlchemyStatement, finder: EntityFinder
+	) -> EntityList:
+		statement = build_criteria_for_statement(table, statement, finder.criteria)
 		statement = build_sort_for_statement(statement, finder.sort)
 		results = self.connection.execute(statement).mappings().all()
 		return ArrayHelper(results).map(lambda x: dict(x)).map(finder.shaper.deserialize).to_list()
@@ -128,12 +130,12 @@ class StorageMySQL(TransactionalStorageSPI):
 	def find(self, finder: EntityFinder) -> EntityList:
 		table = find_table(finder.name)
 		statement = select(table)
-		return self.find_on_statement_by_finder(statement, finder)
+		return self.find_on_statement_by_finder(table, statement, finder)
 
 	def find_distinct_values(self, finder: EntityDistinctValuesFinder) -> EntityList:
 		table = find_table(finder.name)
 		statement = select(*ArrayHelper(finder.distinctColumnNames).map(text).to_list()).select_from(table)
-		return self.find_on_statement_by_finder(statement, finder)
+		return self.find_on_statement_by_finder(table, statement, finder)
 
 	def find_all(self, helper: EntityHelper) -> EntityList:
 		return self.find(EntityFinder(name=helper.name, shaper=helper.shaper))
