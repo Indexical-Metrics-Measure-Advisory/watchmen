@@ -1,9 +1,9 @@
 from typing import Optional
 
 from watchmen_meta_service.common import TupleService, TupleShaper
-from watchmen_model.admin import User
-from watchmen_model.common import DataPage, UserId
-from watchmen_storage import EntityCriteriaExpression, EntityFinder, EntityRow, EntityShaper
+from watchmen_model.admin import User, UserRole
+from watchmen_model.common import DataPage, Pageable, TenantId, UserId
+from watchmen_storage import EntityCriteriaExpression, EntityCriteriaOperator, EntityPager, EntityRow, EntityShaper
 
 
 class UserShaper(EntityShaper):
@@ -52,17 +52,32 @@ class UserService(TupleService):
 	def get_tuple_id_column_name(self) -> str:
 		return 'user_id'
 
-	def find_by_name(self, username: Optional[str]) -> Optional[User]:
-		if username is None or len(username.strip()) == 0:
-			return None
-		return self.storage.find_one(EntityFinder(
+	#
+	# def find_by_name(self, username: Optional[str]) -> Optional[User]:
+	# 	if username is None or len(username.strip()) == 0:
+	# 		return None
+	# 	return self.storage.find_one(EntityFinder(
+	# 		name=self.get_entity_name(),
+	# 		shaper=self.get_entity_shaper(),
+	# 		criteria=[
+	# 			EntityCriteriaExpression(name='name', value=username)
+	# 		]
+	# 	))
+
+	def find_users_by_text(self, text: Optional[str], tenantId: Optional[TenantId], pageable: Pageable) -> DataPage:
+		# always ignore super admin
+		criteria = [
+			EntityCriteriaExpression(
+				name='role', operator=EntityCriteriaOperator.NOT_EQUALS, value=UserRole.SUPER_ADMIN)
+		]
+		if text is not None and len(text.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(name='name', operator=EntityCriteriaOperator.LIKE, value=text))
+			criteria.append(EntityCriteriaExpression(name='nickname', operator=EntityCriteriaOperator.LIKE, value=text))
+		if tenantId is not None and len(tenantId.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(name='tenant_id', value=tenantId))
+		return self.storage.page(EntityPager(
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),
-			criteria=[
-				EntityCriteriaExpression(name='name', value=username)
-			]
+			criteria=criteria,
+			pageable=pageable
 		))
-
-	def find_user_by_text(self, text: Optional[str]) -> DataPage:
-		# TODO find user by text
-		pass

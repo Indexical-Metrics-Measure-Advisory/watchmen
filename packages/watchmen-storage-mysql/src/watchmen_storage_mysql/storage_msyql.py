@@ -147,5 +147,9 @@ class StorageMySQL(TransactionalStorageSPI):
 		return self.find(EntityFinder(name=helper.name, shaper=helper.shaper))
 
 	def page(self, pager: EntityPager) -> DataPage:
-		# TODO page, storage
+		table = find_table(pager.name)
+		statement = select(table)
+		statement = build_criteria_for_statement(table, statement, pager.criteria)
+		statement = build_sort_for_statement(statement, pager.sort)
+		# TODO build pageable
 		pass
