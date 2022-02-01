@@ -20,7 +20,7 @@ logger = getLogger(f'app.{__name__}')
 
 
 class RestApp:
-	meta_storage: TransactionalStorageSPI
+	retrieve_meta_storage: Callable[[], TransactionalStorageSPI]
 	snowflake_generator: SnowflakeGenerator
 	authentication_manager: AuthenticationManager
 
@@ -61,10 +61,10 @@ class RestApp:
 			install_prometheus(app, self.settings)
 
 	def build_meta_storage(self) -> TransactionalStorageSPI:
-		return build_meta_storage(self.settings)
+		return self.retrieve_meta_storage()
 
 	def init_meta_storage(self) -> None:
-		self.meta_storage = self.build_meta_storage()
+		self.retrieve_meta_storage = build_meta_storage(self.settings)
 
 	def init_snowflake(self) -> None:
 		# snowflake use another storage,
@@ -73,7 +73,7 @@ class RestApp:
 
 	def init_authentication(self) -> None:
 		self.authentication_manager = build_authentication_manager(
-			self.meta_storage, self.settings, self.build_find_user_by_name())
+			self.build_meta_storage(), self.settings, self.build_find_user_by_name())
 
 	@abstractmethod
 	def build_find_user_by_name(self) -> Callable[[str], Optional[User]]:
