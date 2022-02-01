@@ -5,8 +5,7 @@ from typing import Optional, TypeVar
 from watchmen_auth import PrincipalService
 from watchmen_model.common import Auditable, OptimisticLock, TenantBasedTuple, Tuple, UserBasedTuple
 from watchmen_storage import EntityCriteria, EntityCriteriaExpression, EntityDeleter, EntityHelper, EntityRow, \
-	EntityShaper, \
-	EntityUpdate, EntityUpdater, OptimisticLockException, SnowflakeGenerator, StorageSPI
+	EntityShaper, EntityUpdate, EntityUpdater, OptimisticLockException, SnowflakeGenerator, TransactionalStorageSPI
 
 TupleId = TypeVar('TupleId', bound=str)
 
@@ -88,16 +87,25 @@ class TupleShaper:
 
 
 class TupleService:
-	storage: StorageSPI
+	storage: TransactionalStorageSPI
 
 	def __init__(
 			self,
-			storage: StorageSPI, snowflake_generator: SnowflakeGenerator,
+			storage: TransactionalStorageSPI, snowflake_generator: SnowflakeGenerator,
 			principal_service: PrincipalService
 	):
 		self.storage = storage
 		self.snowflake_generator = snowflake_generator
 		self.principal_service = principal_service
+
+	def begin_transaction(self):
+		self.storage.begin()
+
+	def commit_transaction(self):
+		self.storage.commit_and_close()
+
+	def rollback_transaction(self):
+		self.storage.rollback_and_close()
 
 	@abstractmethod
 	def get_entity_name(self) -> str:
