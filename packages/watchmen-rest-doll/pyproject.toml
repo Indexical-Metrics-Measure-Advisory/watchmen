@@ -13,6 +13,8 @@ python = "^3.9"
 watchmen-rest = { path = "../watchmen-rest", develop = true }
 watchmen-meta-service = { path = "../watchmen-meta-service", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
+passlib = "^1.7.4"
+bcrypt = "^3.2.0"
 
 [tool.poetry.dev-dependencies]
 
