@@ -1,14 +1,16 @@
-from typing import Dict, List, Union
+from typing import Any, Dict, List, Union
+
+from pydantic import BaseModel
 
 from .model import DataModel
 
 
-class Pageable(DataModel):
+class Pageable(DataModel, BaseModel):
 	pageNumber: int = None
 	pageSize: int = None
 
 
-PageDataCell = Union[int, float, bool, str, None]
+PageDataCell = Any
 """
 data row with name
 """
@@ -17,6 +19,12 @@ PageDataSet = Union[List[Dict[str, PageDataCell]], List[DataModel]]
 
 
 class DataPage(Pageable):
-	data: PageDataSet = []
+	"""
+	PageDataSet
+	"""
+	data: list = []
 	itemCount: int = None
 	pageCount: int = None
+
+	class Config:
+		arbitrary_types_allowed = True
