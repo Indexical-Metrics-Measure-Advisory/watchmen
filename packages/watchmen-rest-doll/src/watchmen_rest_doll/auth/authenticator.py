@@ -12,8 +12,7 @@ from watchmen_model.admin import User, UserRole
 from watchmen_model.system import Token
 from watchmen_rest import create_jwt_token
 from watchmen_rest_doll.doll import ask_meta_storage, doll
-from watchmen_rest_doll.system.helper import build_find_user_by_name
-from watchmen_rest_doll.util import verify_password
+from watchmen_rest_doll.util import build_find_user_by_name, verify_password
 from watchmen_storage import TransactionalStorageSPI
 
 router = APIRouter()
