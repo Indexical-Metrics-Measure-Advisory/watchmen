@@ -7,10 +7,11 @@ from .snowflake_worker_id_generator import immutable_worker_id, WorkerIdGenerato
 from .storage_based_worker_id_generator import COMPETITIVE_WORKER_SHAPER, CompetitiveWorkerShaper, \
 	SNOWFLAKE_WORKER_ID_TABLE, StorageBasedWorkerIdGenerator
 from .storage_exception import InsertConflictException, NoCriteriaForUpdateException, OptimisticLockException, \
-	UnexpectedStorageException, UnsupportedCriteriaException, UnsupportedCriteriaExpressionOperatorException, \
-	UnsupportedCriteriaJointConjunctionException, UnsupportedSortMethodException
+	TooManyEntitiesFoundException, UnexpectedStorageException, UnsupportedCriteriaException, \
+	UnsupportedCriteriaExpressionOperatorException, UnsupportedCriteriaJointConjunctionException, \
+	UnsupportedSortMethodException
 from .storage_spi import StorageSPI, TransactionalStorageSPI
 from .storage_types import Entity, EntityColumnName, EntityColumnValue, EntityCriteria, EntityCriteriaExpression, \
 	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, EntityDeleter, \
-	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, EntityList, EntityName, EntityPager, EntityRow, \
-	EntityShaper, EntitySort, EntitySortColumn, EntitySortMethod, EntityUpdate, EntityUpdater
+	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, EntityIdHelper, EntityList, EntityName, \
+	EntityPager, EntityRow, EntityShaper, EntitySort, EntitySortColumn, EntitySortMethod, EntityUpdate, EntityUpdater

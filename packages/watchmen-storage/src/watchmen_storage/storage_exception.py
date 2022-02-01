@@ -28,3 +28,7 @@ class NoCriteriaForUpdateException(UnexpectedStorageException):
 
 class UnsupportedSortMethodException(UnexpectedStorageException):
 	pass
+
+
+class TooManyEntitiesFoundException(Exception):
+	pass

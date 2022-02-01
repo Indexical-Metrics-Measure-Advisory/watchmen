@@ -10,7 +10,11 @@ from .system import build_find_user_by_name
 
 class DollApp(RestApp):
 	def build_find_user_by_name(self) -> Callable[[str], Optional[User]]:
-		return build_find_user_by_name(self.meta_storage)
+		self.meta_storage.begin()
+		try:
+			return build_find_user_by_name(self.meta_storage)
+		finally:
+			self.meta_storage.close()
 
 	def init_kafka_connector(self) -> None:
 		pass

@@ -107,6 +107,9 @@ class TupleService:
 	def rollback_transaction(self):
 		self.storage.rollback_and_close()
 
+	def close_transaction(self):
+		self.storage.close()
+
 	@abstractmethod
 	def get_entity_name(self) -> str:
 		pass

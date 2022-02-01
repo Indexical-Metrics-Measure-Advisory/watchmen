@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from typing import List, Optional
 
 from watchmen_model.common import DataPage
-from .storage_types import Entity, EntityDeleter, \
-	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, EntityList, EntityPager, EntityUpdater
+from .storage_types import Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
+	EntityIdHelper, EntityList, EntityPager, EntityUpdater
 
 
 class StorageSPI(ABC):
@@ -36,11 +36,11 @@ class StorageSPI(ABC):
 		pass
 
 	@abstractmethod
-	def delete_by_id(self, entity_id: EntityId, helper: EntityHelper) -> int:
+	def delete_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> int:
 		pass
 
 	@abstractmethod
-	def delete_by_id_and_pull(self, entity_id: EntityId, helper: EntityHelper) -> Optional[Entity]:
+	def delete_by_id_and_pull(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
 		pass
 
 	@abstractmethod
@@ -60,7 +60,7 @@ class StorageSPI(ABC):
 		pass
 
 	@abstractmethod
-	def find_by_id(self, entity_id: EntityId, helper: EntityHelper) -> Optional[Entity]:
+	def find_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
 		pass
 
 	@abstractmethod

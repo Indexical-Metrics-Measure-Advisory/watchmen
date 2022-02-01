@@ -6,7 +6,8 @@ from sqlalchemy.engine import Connection, Engine
 
 from watchmen_model.common import DataPage
 from watchmen_storage import Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
-	EntityList, EntityPager, EntityUpdater, TransactionalStorageSPI, UnexpectedStorageException
+	EntityIdHelper, EntityList, EntityPager, EntityUpdater, TooManyEntitiesFoundException, TransactionalStorageSPI, \
+	UnexpectedStorageException
 from watchmen_utilities import ArrayHelper
 from .sort_build import build_sort_for_statement
 from .table_defs_mysql import find_table
@@ -87,11 +88,11 @@ class StorageMySQL(TransactionalStorageSPI):
 		# TODO update and pull, storage
 		pass
 
-	def delete_by_id(self, entity_id: EntityId, helper: EntityHelper) -> int:
+	def delete_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> int:
 		# TODO delete by id, storage
 		pass
 
-	def delete_by_id_and_pull(self, entity_id: EntityId, helper: EntityHelper) -> Optional[Entity]:
+	def delete_by_id_and_pull(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
 		# TODO delete by id and pull, storage
 		pass
 
@@ -111,13 +112,18 @@ class StorageMySQL(TransactionalStorageSPI):
 		# TODO delete and pull, storage
 		pass
 
-	def find_by_id(self, entity_id: EntityId, helper: EntityHelper) -> Optional[Entity]:
+	def find_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
 		# TODO find by id, storage
 		pass
 
 	def find_one(self, finder: EntityFinder) -> Optional[Entity]:
-		# TODO find one, storage
-		pass
+		data = self.find(finder)
+		if len(data) == 0:
+			return None
+		elif len(data) == 1:
+			return data[0]
+		else:
+			raise TooManyEntitiesFoundException(f'Too many entities found by finder[{finder}].')
 
 	def find_on_statement_by_finder(
 			self, table: Table, statement: SQLAlchemyStatement, finder: EntityFinder
