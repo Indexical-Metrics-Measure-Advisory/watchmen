@@ -9,6 +9,7 @@ from watchmen_meta_service.admin import UserService
 from watchmen_model.admin import User, UserRole
 from watchmen_rest_doll.doll import doll
 from watchmen_rest_doll.service import get_any_admin_principal, get_any_principal
+from watchmen_rest_doll.util import validate_tenant_id
 
 router = APIRouter()
 logger = getLogger(__name__)
@@ -74,7 +75,10 @@ async def load_user(
 
 @router.post('/user', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=User)
 async def save_user(user: User, principal_service: PrincipalService = Depends(get_any_admin_principal)) -> User:
+	validate_tenant_id(user, principal_service)
+
 	user_service = get_user_service(principal_service)
+
 	if user_service.is_tuple_id_faked(user.userId):
 		user_service.begin_transaction()
 		try:
@@ -87,5 +91,12 @@ async def save_user(user: User, principal_service: PrincipalService = Depends(ge
 			user_service.rollback_transaction()
 		return user
 	else:
-		# TODO 
-		pass
+		user_service.begin_transaction()
+		try:
+			# noinspection PyTypeChecker
+			user: User = user_service.update(user)
+			# TODO synchronize user to user group
+			user_service.commit_transaction()
+		except Exception as e:
+			logger.error(e, exc_info=True, stack_info=True)
+			user_service.rollback_transaction()
