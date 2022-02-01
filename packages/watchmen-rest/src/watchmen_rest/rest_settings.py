@@ -15,6 +15,7 @@ class RestSettings(BaseSettings):
 
 	JWT_SECRET_KEY: str = '801GtEAdlE8o-iZRLBMgz30PGE_zxry82EaUYMAhNq8'
 	JWT_ALGORITHM: str = 'HS256'
+	ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
 
 	CORS: bool = True
 	CORS_ALLOWED_ORIGINS: Set[str] = ['*']

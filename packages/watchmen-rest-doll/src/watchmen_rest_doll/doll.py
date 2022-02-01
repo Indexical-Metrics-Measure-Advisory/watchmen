@@ -4,8 +4,8 @@ from fastapi import FastAPI
 
 from watchmen_model.admin import User
 from watchmen_rest import RestApp
-from .auth import build_find_user_by_name
 from .settings import DollSettings
+from .system import build_find_user_by_name
 
 
 class DollApp(RestApp):

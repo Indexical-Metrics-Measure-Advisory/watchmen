@@ -1,12 +1,13 @@
 from logging import getLogger
-from typing import Optional
+from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException
 from starlette import status
 
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.admin import UserService
 from watchmen_model.admin import User, UserRole
+from watchmen_model.common import DataPage, Pageable
 from watchmen_rest_doll.doll import doll
 from watchmen_rest_doll.service import get_any_admin_principal, get_any_principal
 from watchmen_rest_doll.util import crypt_password, is_blank, is_not_blank, validate_tenant_id
@@ -86,6 +87,9 @@ async def save_user(user: User, principal_service: PrincipalService = Depends(ge
 						status_code=status.HTTP_403_FORBIDDEN,
 						detail="Unauthorized visit."
 					)
+				elif is_blank(user.password):
+					# keep original password
+					user.password = existing_user.password
 
 			# noinspection PyTypeChecker
 			user: User = user_service.update(user)
@@ -98,3 +102,23 @@ async def save_user(user: User, principal_service: PrincipalService = Depends(ge
 	# remove password
 	user.password = ''
 	return user
+
+
+@router.post("/user/name", tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=DataPage)
+async def find_users_by_name(
+		query_name: Optional[str], pagination: Pageable = Body(...),
+		current_user: User = Depends(get_any_admin_principal)
+) -> DataPage:
+	pass
+
+
+# return query_users_by_name_with_pagination(query_name, pagination, current_user)
+
+@router.post("/user/ids", tags=["admin"], response_model=List[User])
+async def query_user_list_by_ids(
+		user_ids: List[str], current_user: User = Depends(get_any_admin_principal)
+) -> List[User]:
+	pass
+# list_user = get_user_list_by_ids(user_ids, current_user)
+# 	# lambda user : user.password = None ,
+# 	return clean_password(list_user)

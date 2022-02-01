@@ -1,8 +1,9 @@
+from datetime import datetime, timedelta
 from typing import Callable, Optional
 
 from fastapi import HTTPException
 from jose import JWTError
-from jose.jwt import decode
+from jose.jwt import decode, encode
 from jsonschema.exceptions import ValidationError
 from starlette import status
 
@@ -10,6 +11,12 @@ from watchmen_auth import AuthenticationManager, AuthenticationProvider, Authent
 from watchmen_model.admin import User
 from watchmen_storage import TransactionalStorageSPI
 from .rest_settings import RestSettings
+
+
+def create_jwt_token(subject: str, expires_delta: timedelta, secret_key: str, algorithm: str) -> str:
+	to_encode = {'exp': datetime.now() + expires_delta, 'sub': subject}
+	encoded_jwt = encode(to_encode, secret_key, algorithm=algorithm)
+	return encoded_jwt
 
 
 def validate_jwt(token, secret_key: str, algorithm: str):
