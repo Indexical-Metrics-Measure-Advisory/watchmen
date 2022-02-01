@@ -3,6 +3,7 @@ from starlette import status
 
 from watchmen_auth import PrincipalService
 from watchmen_model.common import TenantBasedTuple
+from .utils import is_blank, is_not_blank
 
 
 def validate_tenant_id(a_tuple: TenantBasedTuple, principal_service: PrincipalService) -> None:
@@ -14,12 +15,12 @@ def validate_tenant_id(a_tuple: TenantBasedTuple, principal_service: PrincipalSe
 	"""
 	tenant_id = a_tuple.tenantId
 	if principal_service.is_super_admin():
-		if tenant_id is None or len(tenant_id.strip()) == 0:
+		if is_blank(tenant_id):
 			raise HTTPException(
 				status_code=status.HTTP_400_BAD_REQUEST,
 				detail="Tenant id is required."
 			)
-	elif tenant_id is not None and len(tenant_id) != 0:
+	elif is_not_blank(tenant_id):
 		if tenant_id != principal_service.get_tenant_id():
 			raise HTTPException(
 				status_code=status.HTTP_403_FORBIDDEN,
