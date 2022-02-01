@@ -15,6 +15,7 @@ watchmen-meta-service = { path = "../watchmen-meta-service", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
 passlib = "^1.7.4"
 bcrypt = "^3.2.0"
+python-multipart = "^0.0.5"
 
 [tool.poetry.dev-dependencies]
 

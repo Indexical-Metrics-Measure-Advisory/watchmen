@@ -20,7 +20,7 @@ def get_user_service(principal_service: PrincipalService) -> UserService:
 	return UserService(doll.meta_storage, doll.snowflake_generator, principal_service)
 
 
-@router.get("/user", tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=User)
+@router.get("/user", tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=User)
 async def load_user(
 		user_id: Optional[str] = None,
 		principal_service: PrincipalService = Depends(get_any_principal)
