@@ -7,7 +7,7 @@ PROD = "production"
 
 
 class RestSettings(BaseSettings):
-	TITLE: str = 'Watchmen REST App',
+	APP_NAME: str = 'Watchmen REST App',
 	VERSION: str = '16.0.0'
 	DESCRIPTION: str = 'A lighter platform for data analytics'
 
@@ -18,9 +18,9 @@ class RestSettings(BaseSettings):
 
 	CORS: bool = True
 	CORS_ALLOWED_ORIGINS: Set[str] = ['*']
-	CORS_ALLOW_CREDENTIALS = True,
-	CORS_ALLOWED_METHODS = ["*"],
-	CORS_ALLOWED_HEADERS = ["*"],
+	CORS_ALLOW_CREDENTIALS: bool = True
+	CORS_ALLOWED_METHODS: Set[str] = ['*']
+	CORS_ALLOWED_HEADERS: Set[str] = ['*']
 
 	PROMETHEUS: bool = False
 	PROMETHEUS_CONTEXT: str = '/metrics'
@@ -40,10 +40,10 @@ class RestSettings(BaseSettings):
 	SNOWFLAKE_COMPETITIVE_WORKER_CREATION_RETRY_TIMES: int = 3  # competitive worker creation max retry times
 	SNOWFLAKE_COMPETITIVE_WORKER_RESTART_ON_SHOWDOWN: bool = False  # competitive worker restart automatically on shutdown
 
-	class Config:
-		env_file = '.env'
-		env_file_encoding = 'utf-8'
-		case_sensitive = True
+# class Config:
+# 	env_file = '.env'
+# 	env_file_encoding = 'utf-8'
+# 	case_sensitive = True
 # SECRET_KEY: str = '801GtEAdlE8o-iZRLBMgz30PGE_zxry82EaUYMAhNq8'
 # ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
 # BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []

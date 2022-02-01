@@ -29,7 +29,7 @@ class RestApp:
 
 	def construct(self) -> FastAPI:
 		app = FastAPI(
-			title=self.settings.TITLE,
+			title=self.settings.APP_NAME,
 			version=self.settings.VERSION,
 			description=self.settings.DESCRIPTION
 		)

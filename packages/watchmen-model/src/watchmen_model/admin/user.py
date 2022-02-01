@@ -1,6 +1,8 @@
 from enum import Enum
 from typing import List
 
+from pydantic import BaseModel
+
 from watchmen_model.common import OptimisticLock, TenantBasedTuple, UserGroupId, UserId
 
 
@@ -10,7 +12,7 @@ class UserRole(str, Enum):
 	SUPER_ADMIN = 'superadmin'
 
 
-class User(TenantBasedTuple, OptimisticLock):
+class User(TenantBasedTuple, OptimisticLock, BaseModel):
 	userId: UserId = None
 	name: str = None
 	nickName: str = None

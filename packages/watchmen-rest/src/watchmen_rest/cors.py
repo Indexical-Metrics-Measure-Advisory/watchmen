@@ -1,10 +1,11 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 
 from .rest_settings import RestSettings
 
 
 def install_cors(app: FastAPI, settings: RestSettings) -> None:
+	from fastapi.middleware.cors import CORSMiddleware
+
 	app.add_middleware(
 		CORSMiddleware,
 		allow_origins=settings.CORS_ALLOWED_ORIGINS,
