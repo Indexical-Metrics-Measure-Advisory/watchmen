@@ -1,1 +1,1 @@
-from .auth import build_find_user_by_name
+from .helper import build_find_user_by_name

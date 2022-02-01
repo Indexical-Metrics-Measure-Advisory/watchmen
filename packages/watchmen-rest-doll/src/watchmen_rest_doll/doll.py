@@ -4,6 +4,7 @@ from fastapi import FastAPI
 
 from watchmen_model.admin import User
 from watchmen_rest import RestApp
+from watchmen_storage import SnowflakeGenerator, TransactionalStorageSPI
 from .settings import DollSettings
 from .system import build_find_user_by_name
 
@@ -28,3 +29,11 @@ class DollApp(RestApp):
 
 
 doll = DollApp(DollSettings())
+
+
+def ask_meta_storage() -> TransactionalStorageSPI:
+	return doll.meta_storage
+
+
+def ask_snowflake_generator() -> SnowflakeGenerator:
+	return doll.snowflake_generator
