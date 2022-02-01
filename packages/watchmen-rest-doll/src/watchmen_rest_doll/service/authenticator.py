@@ -1,12 +1,12 @@
-from typing import Tuple
+from typing import List, Tuple
 
 from fastapi import HTTPException
 from starlette import status
 from starlette.requests import Request
 
-from watchmen_auth import Authorization, PrincipalService
+from watchmen_auth import AuthFailOn401, AuthFailOn403, Authorization, PrincipalService
 from watchmen_model.admin import UserRole
-from ..doll import doll
+from watchmen_rest_doll.doll import doll
 
 
 def parse_token(request: Request) -> Tuple[str, str]:
@@ -24,30 +24,39 @@ def parse_token(request: Request) -> Tuple[str, str]:
 		return scheme, token
 
 
-def get_principal(request: Request, role: UserRole) -> PrincipalService:
+def get_principal(request: Request, roles: List[UserRole]) -> PrincipalService:
 	scheme, token = parse_token(request)
-	if scheme == 'Bearer':
-		return PrincipalService(Authorization(doll.authentication_manager, role).authorize_by_jwt(token))
-	elif scheme == 'PAT':
-		return PrincipalService(Authorization(doll.authentication_manager, role).authorize_by_pat(token))
-	else:
-		raise HTTPException(
-			status_code=status.HTTP_401_UNAUTHORIZED,
-			detail="Not authenticated",
-			headers={"WWW-Authenticate": "Bearer"},
-		)
+	try:
+		if scheme == 'Bearer':
+			return PrincipalService(Authorization(doll.authentication_manager, roles).authorize_by_jwt(token))
+		elif scheme == 'PAT':
+			return PrincipalService(Authorization(doll.authentication_manager, roles).authorize_by_pat(token))
+		else:
+			raise AuthFailOn401('Unauthorized on undetected token.')
+	except AuthFailOn403:
+		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authenticated")
+	except AuthFailOn401:
+		raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+
+
+def get_any_principal(request: Request) -> PrincipalService:
+	return get_principal(request, [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.CONSOLE])
 
 
 def get_console_principal(request: Request) -> PrincipalService:
-	return get_principal(request, UserRole.CONSOLE)
+	return get_principal(request, [UserRole.ADMIN, UserRole.CONSOLE])
 
 
 def get_admin_principal(request: Request) -> PrincipalService:
-	return get_principal(request, UserRole.ADMIN)
+	return get_principal(request, [UserRole.ADMIN])
+
+
+def get_any_admin_principal(request: Request) -> PrincipalService:
+	return get_principal(request, [UserRole.ADMIN, UserRole.SUPER_ADMIN])
 
 
 def get_super_admin_principal(request: Request) -> PrincipalService:
-	return get_principal(request, UserRole.SUPER_ADMIN)
+	return get_principal(request, [UserRole.SUPER_ADMIN])
 
 # username = get_username(scheme, token)
 #
