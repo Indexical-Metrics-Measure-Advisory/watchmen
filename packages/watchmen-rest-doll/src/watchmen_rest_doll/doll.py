@@ -11,11 +11,15 @@ from .util import build_find_user_by_name
 
 class DollApp(RestApp):
 	def build_find_user_by_name(self) -> Callable[[str], Optional[User]]:
-		self.meta_storage.begin()
+		"""
+		autonomous transaction
+		"""
+		meta_storage = self.build_meta_storage()
+		meta_storage.begin()
 		try:
-			return build_find_user_by_name(self.meta_storage)
+			return build_find_user_by_name(meta_storage)
 		finally:
-			self.meta_storage.close()
+			meta_storage.close()
 
 	def init_kafka_connector(self) -> None:
 		pass
@@ -32,7 +36,7 @@ doll = DollApp(DollSettings())
 
 
 def ask_meta_storage() -> TransactionalStorageSPI:
-	return doll.meta_storage
+	return doll.build_meta_storage()
 
 
 def ask_snowflake_generator() -> SnowflakeGenerator:
