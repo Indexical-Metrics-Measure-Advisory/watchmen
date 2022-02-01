@@ -6,7 +6,7 @@ from watchmen_model.admin import User
 from watchmen_rest import RestApp
 from watchmen_storage import SnowflakeGenerator, TransactionalStorageSPI
 from .settings import DollSettings
-from .system import build_find_user_by_name
+from .util import build_find_user_by_name
 
 
 class DollApp(RestApp):
