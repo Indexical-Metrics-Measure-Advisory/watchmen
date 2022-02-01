@@ -1,8 +1,8 @@
 from .admin import user
+from .auth import authenticator
 from .doll import doll
-from .system import login
 
 app = doll.construct()
 
-app.include_router(login.router)
+app.include_router(authenticator.router)
 app.include_router(user.router)
