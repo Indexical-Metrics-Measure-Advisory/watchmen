@@ -1,4 +1,4 @@
-from typing import Optional, Set
+from typing import Set
 
 from pydantic import BaseSettings
 
@@ -29,7 +29,7 @@ class RestSettings(BaseSettings):
 	META_STORAGE_USER_NAME: str = 'watchmen'
 	META_STORAGE_PASSWORD: str = 'watchmen'
 	META_STORAGE_HOST: str = 'localhost'
-	META_STORAGE_PORT: Optional[int] = None
+	META_STORAGE_PORT: int = 3306
 	META_STORAGE_NAME: str = 'watchmen'
 	META_STORAGE_ECHO: bool = False
 
@@ -44,7 +44,7 @@ class RestSettings(BaseSettings):
 		env_file = '.env'
 		env_file_encoding = 'utf-8'
 		case_sensitive = True
-		
+
 # SECRET_KEY: str = '801GtEAdlE8o-iZRLBMgz30PGE_zxry82EaUYMAhNq8'
 # ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
 # BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
