@@ -3,7 +3,7 @@ from typing import Optional
 from watchmen_meta_service.common import TupleService, TupleShaper
 from watchmen_model.admin import User
 from watchmen_model.common import DataPage, UserId
-from watchmen_storage import EntityRow, EntityShaper
+from watchmen_storage import EntityCriteriaExpression, EntityFinder, EntityRow, EntityShaper
 
 
 class UserShaper(EntityShaper):
@@ -51,6 +51,17 @@ class UserService(TupleService):
 
 	def get_tuple_id_column_name(self) -> str:
 		return 'user_id'
+
+	def find_by_name(self, username: Optional[str]) -> Optional[User]:
+		if username is None or len(username.strip()) == 0:
+			return None
+		return self.storage.find_one(EntityFinder(
+			name=self.get_entity_name(),
+			shaper=self.get_entity_shaper(),
+			criteria=[
+				EntityCriteriaExpression(name='name', value=username)
+			]
+		))
 
 	def find_user_by_text(self, text: Optional[str]) -> DataPage:
 		# TODO find user by text

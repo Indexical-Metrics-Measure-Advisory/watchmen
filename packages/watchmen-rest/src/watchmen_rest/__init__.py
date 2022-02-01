@@ -1,3 +1,4 @@
+from .authentication import create_jwt_token
 from .cors import install_cors
 from .exceptions import InitialRestAppException, RestAppException
 from .prometheus import install_prometheus
