@@ -40,10 +40,11 @@ class RestSettings(BaseSettings):
 	SNOWFLAKE_COMPETITIVE_WORKER_CREATION_RETRY_TIMES: int = 3  # competitive worker creation max retry times
 	SNOWFLAKE_COMPETITIVE_WORKER_RESTART_ON_SHOWDOWN: bool = False  # competitive worker restart automatically on shutdown
 
-# class Config:
-# 	env_file = '.env'
-# 	env_file_encoding = 'utf-8'
-# 	case_sensitive = True
+	class Config:
+		env_file = '.env'
+		env_file_encoding = 'utf-8'
+		case_sensitive = True
+		
 # SECRET_KEY: str = '801GtEAdlE8o-iZRLBMgz30PGE_zxry82EaUYMAhNq8'
 # ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
 # BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = []
