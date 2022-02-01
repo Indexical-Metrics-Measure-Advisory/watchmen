@@ -4,7 +4,8 @@ from typing import Optional, TypeVar
 
 from watchmen_auth import PrincipalService
 from watchmen_model.common import Auditable, OptimisticLock, TenantBasedTuple, Tuple, UserBasedTuple
-from watchmen_storage import EntityCriteria, EntityCriteriaExpression, EntityDeleter, EntityHelper, EntityRow, \
+from watchmen_storage import EntityCriteria, EntityCriteriaExpression, EntityDeleter, EntityHelper, EntityIdHelper, \
+	EntityRow, \
 	EntityShaper, EntityUpdate, EntityUpdater, OptimisticLockException, SnowflakeGenerator, TransactionalStorageSPI
 
 TupleId = TypeVar('TupleId', bound=str)
@@ -121,6 +122,10 @@ class TupleService:
 	def get_entity_helper(self) -> EntityHelper:
 		return EntityHelper(name=self.get_entity_name(), shaper=self.get_entity_shaper())
 
+	def get_entity_id_helper(self) -> EntityIdHelper:
+		return EntityIdHelper(
+			name=self.get_entity_name(), shaper=self.get_entity_shaper(), idColumnName=self.get_tuple_id_column_name())
+
 	def get_entity_updater(self, criteria: EntityCriteria, update: EntityUpdate) -> EntityUpdater:
 		return EntityUpdater(
 			name=self.get_entity_name(),
@@ -226,7 +231,7 @@ class TupleService:
 		return a_tuple
 
 	def delete(self, tuple_id: TupleId) -> Optional[Tuple]:
-		return self.storage.delete_by_id_and_pull(tuple_id, self.get_entity_helper())
+		return self.storage.delete_by_id_and_pull(tuple_id, self.get_entity_id_helper())
 
 	def find_by_id(self, tuple_id: TupleId) -> Optional[Tuple]:
-		return self.storage.find_by_id(tuple_id, self.get_entity_helper())
+		return self.storage.find_by_id(tuple_id, self.get_entity_id_helper())
