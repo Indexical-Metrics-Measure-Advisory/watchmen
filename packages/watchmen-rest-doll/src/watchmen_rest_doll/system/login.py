@@ -24,9 +24,8 @@ def authenticate(username, password) -> User:
 		user = find_user_by_name(username)
 		if user is None:
 			raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password.")
-		user = User.parse_obj(user)
 		if verify_password(password, user.password):
-			return User.parse_obj(user)
+			return user
 		else:
 			raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password.")
 	finally:

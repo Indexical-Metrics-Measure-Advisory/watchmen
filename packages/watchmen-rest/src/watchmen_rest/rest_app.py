@@ -60,11 +60,16 @@ class RestApp:
 		if self.is_prometheus_on():
 			install_prometheus(app, self.settings)
 
+	def build_meta_storage(self) -> TransactionalStorageSPI:
+		return build_meta_storage(self.settings)
+
 	def init_meta_storage(self) -> None:
-		self.meta_storage = build_meta_storage(self.settings)
+		self.meta_storage = self.build_meta_storage()
 
 	def init_snowflake(self) -> None:
-		self.snowflake_generator = build_snowflake_generator(self.meta_storage, self.settings)
+		# snowflake use another storage,
+		# since there might be a heart beat, cannot share storage api
+		self.snowflake_generator = build_snowflake_generator(self.build_meta_storage(), self.settings)
 
 	def init_authentication(self) -> None:
 		self.authentication_manager = build_authentication_manager(
