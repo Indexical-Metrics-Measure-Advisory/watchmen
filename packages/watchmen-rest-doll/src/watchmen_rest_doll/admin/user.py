@@ -7,10 +7,11 @@ from starlette import status
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.admin import UserService
 from watchmen_model.admin import User, UserRole
-from watchmen_model.common import DataPage, Pageable
+from watchmen_model.common import DataPage, Pageable, TenantId
 from watchmen_rest_doll.auth import get_any_admin_principal, get_any_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
 from watchmen_rest_doll.util import crypt_password, is_blank, is_not_blank, validate_tenant_id
+from watchmen_utilities import ArrayHelper
 
 router = APIRouter()
 logger = getLogger(__name__)
@@ -18,6 +19,10 @@ logger = getLogger(__name__)
 
 def get_user_service(principal_service: PrincipalService) -> UserService:
 	return UserService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
+def clear_pwd(user: User):
+	user.password = None
 
 
 @router.get("/user", tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=User)
@@ -52,7 +57,7 @@ async def load_user(
 					detail="Data not found."
 				)
 		# remove password
-		user.password = ''
+		clear_pwd(user)
 		return user
 	finally:
 		user_service.close_transaction()
@@ -104,23 +109,37 @@ async def save_user(user: User, principal_service: PrincipalService = Depends(ge
 			user_service.rollback_transaction()
 
 	# remove password
-	user.password = ''
+	clear_pwd(user)
 	return user
 
 
 @router.post("/user/name", tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=DataPage)
 async def find_users_by_name(
-		query_name: Optional[str], pagination: Pageable = Body(...),
-		current_user: User = Depends(get_any_admin_principal)
+		query_name: Optional[str], pageable: Pageable = Body(...),
+		principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> DataPage:
-	pass
+	tenant_id: Optional[TenantId] = None
+	if principal_service.is_tenant_admin():
+		tenant_id = principal_service.get_tenant_id()
+	if is_blank(query_name):
+		query_name = None
+
+	user_service = get_user_service(principal_service)
+	user_service.begin_transaction()
+	try:
+		page = user_service.find_users_by_text(query_name, tenant_id, pageable)
+
+		ArrayHelper(page.data).each(clear_pwd)
+		return page
+	finally:
+		user_service.close_transaction()
 
 
 # return query_users_by_name_with_pagination(query_name, pagination, current_user)
 
 @router.post("/user/ids", tags=["admin"], response_model=List[User])
 async def query_user_list_by_ids(
-		user_ids: List[str], current_user: User = Depends(get_any_admin_principal)
+		user_ids: List[str], principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> List[User]:
 	pass
 # list_user = get_user_list_by_ids(user_ids, current_user)

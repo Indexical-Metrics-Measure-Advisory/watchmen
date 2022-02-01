@@ -4,6 +4,7 @@ from typing import Any, Callable, Optional
 
 ArrayPredicate = Callable[[Any], bool]
 ArrayTransform = Callable[[Any], Any]
+ArrayAction = Callable[[Any], None]
 
 
 class ArrayHelper:
@@ -12,6 +13,10 @@ class ArrayHelper:
 
 	def to_list(self):
 		return self.a_list
+
+	def each(self, func: ArrayAction) -> None:
+		for a_element in self.a_list:
+			func(a_element)
 
 	def filter(self, func: ArrayPredicate) -> ArrayHelper:
 		new_list: list = []
