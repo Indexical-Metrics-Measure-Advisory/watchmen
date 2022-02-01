@@ -19,14 +19,18 @@ logger = getLogger(__name__)
 def authenticate(username, password) -> User:
 	# principal is careless
 	find_user_by_name = build_find_user_by_name(doll.meta_storage)
-	user = find_user_by_name(username)
-	if user is None:
-		raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password.")
-	user = User.parse_obj(user)
-	if verify_password(password, user.password):
-		return User.parse_obj(user)
-	else:
-		raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password.")
+	doll.meta_storage.begin()
+	try:
+		user = find_user_by_name(username)
+		if user is None:
+			raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password.")
+		user = User.parse_obj(user)
+		if verify_password(password, user.password):
+			return User.parse_obj(user)
+		else:
+			raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password.")
+	finally:
+		doll.meta_storage.close()
 
 
 @router.post("/login/access-token", response_model=Token, tags=["authenticate"])

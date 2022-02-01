@@ -38,20 +38,24 @@ async def load_user(
 				detail="Unauthorized visit."
 			)
 
-	# noinspection PyTypeChecker
-	user: User = get_user_service(principal_service).find_by_id(user_id)
-	# check tenant id
-	if not principal_service.is_super_admin():
-		# tenant id must match current principal's, except current is super admin
-		if user.tenantId != principal_service.get_tenant_id():
-			raise HTTPException(
-				status_code=status.HTTP_404_NOT_FOUND,
-				detail="Data not found."
-			)
-
-	# remove password
-	user.password = ''
-	return user
+	user_service = get_user_service(principal_service)
+	user_service.begin_transaction()
+	try:
+		# noinspection PyTypeChecker
+		user: User = user_service.find_by_id(user_id)
+		# check tenant id
+		if not principal_service.is_super_admin():
+			# tenant id must match current principal's, except current is super admin
+			if user.tenantId != principal_service.get_tenant_id():
+				raise HTTPException(
+					status_code=status.HTTP_404_NOT_FOUND,
+					detail="Data not found."
+				)
+		# remove password
+		user.password = ''
+		return user
+	finally:
+		user_service.close_transaction()
 
 
 @router.post('/user', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=User)

@@ -44,6 +44,10 @@ class EntityHelper(DataModel):
 	shaper: EntityShaper
 
 
+class EntityIdHelper(EntityHelper):
+	idColumnName: EntityColumnName
+
+
 class EntitySortMethod(str, Enum):
 	ASC = 'asc',
 	DESC = 'desc'
