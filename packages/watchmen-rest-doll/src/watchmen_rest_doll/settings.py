@@ -3,7 +3,9 @@ from watchmen_rest import RestSettings
 
 class DollSettings(RestSettings):
 	APP_NAME: str = 'Watchmen Doll'
-	
+
+	ENABLE_TUPLE_DELETE: bool = False
+
 	RABBITMQ_CONNECTOR: bool = False
 	RABBITMQ_HOST: str = ""
 	RABBITMQ_PORT: str = "5672"
