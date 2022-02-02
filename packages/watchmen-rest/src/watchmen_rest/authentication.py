@@ -7,7 +7,6 @@ from jsonschema.exceptions import ValidationError
 
 from watchmen_auth import AuthenticationManager, AuthenticationProvider, AuthenticationType
 from watchmen_model.admin import User
-from watchmen_storage import TransactionalStorageSPI
 from .rest_settings import RestSettings
 from .util import raise_401
 
@@ -26,11 +25,7 @@ def validate_jwt(token, secret_key: str, algorithm: str):
 
 
 class JWTAuthenticationProvider(AuthenticationProvider):
-	def __init__(
-			self, storage: TransactionalStorageSPI, secret_key: str, algorithm: str,
-			find_user_by_name: Callable[[str], Optional[User]]
-	):
-		self.storage = storage
+	def __init__(self, secret_key: str, algorithm: str, find_user_by_name: Callable[[str], Optional[User]]):
 		self.secret_key = secret_key
 		self.algorithm = algorithm
 		self.find_user_by_name = find_user_by_name
@@ -49,10 +44,7 @@ class JWTAuthenticationProvider(AuthenticationProvider):
 
 
 class PATAuthenticationProvider(AuthenticationProvider):
-	def __init__(
-			self, storage: TransactionalStorageSPI, find_user_by_pat: Callable[[str], Optional[User]]
-	):
-		self.storage = storage
+	def __init__(self, find_user_by_pat: Callable[[str], Optional[User]]):
 		self.find_user_by_pat = find_user_by_pat
 
 	def accept(self, auth_type: AuthenticationType) -> bool:
@@ -67,16 +59,15 @@ class PATAuthenticationProvider(AuthenticationProvider):
 
 
 def build_authentication_manager(
-		storage: TransactionalStorageSPI,
 		settings: RestSettings,
 		find_user_by_name: Callable[[str], Optional[User]],
 		find_user_by_pat: Callable[[str], Optional[User]]
 ) -> AuthenticationManager:
 	authentication_manager = AuthenticationManager()
 	authentication_manager.register_provider(
-		JWTAuthenticationProvider(storage, settings.JWT_SECRET_KEY, settings.JWT_ALGORITHM, find_user_by_name)
+		JWTAuthenticationProvider(settings.JWT_SECRET_KEY, settings.JWT_ALGORITHM, find_user_by_name)
 	)
-	authentication_manager.register_provider(PATAuthenticationProvider(storage, find_user_by_pat))
+	authentication_manager.register_provider(PATAuthenticationProvider(find_user_by_pat))
 
 	# TODO could register other authentication providers here
 

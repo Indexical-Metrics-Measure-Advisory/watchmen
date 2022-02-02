@@ -40,6 +40,10 @@ def create_tuple_audit_columns() -> List[Column]:
 	]
 
 
+def create_optimistic_lock() -> Column:
+	return Column('version', Integer, nullable=False)
+
+
 table_snowflake_competitive_workers = Table(
 	SNOWFLAKE_WORKER_ID_TABLE, meta_data,
 	create_str('ip', String(100)), create_str('process_id', String(60)),
@@ -50,14 +54,14 @@ table_tenants = Table(
 	'tenants', meta_data,
 	create_pk('tenant_id'),
 	create_str('name', 45, False),
-	*create_tuple_audit_columns()
+	*create_tuple_audit_columns(), create_optimistic_lock()
 )
 table_users = Table(
 	'users', meta_data,
 	create_pk('user_id'),
 	create_str('name', 45, False), create_str('nickname', 45), create_str('password', 100),
 	create_bool('is_active'), create_json('group_ids'), create_str('role', 45),
-	create_tenant_id(), *create_tuple_audit_columns()
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 
 tables: Dict[str, Table] = {
