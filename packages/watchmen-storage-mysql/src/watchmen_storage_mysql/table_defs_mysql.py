@@ -72,6 +72,13 @@ table_data_sources = Table(
 	create_str('name', 50), create_str('url', 255), create_json('params'),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
+table_external_writers = Table(
+	'external_writers', meta_data,
+	create_pk('writer_id'),
+	create_str('writer_code', 50, False), create_str('type', 50, False),
+	create_str('pat', 255), create_str('url', 255),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
 table_users = Table(
 	'users', meta_data,
 	create_pk('user_id'),
@@ -84,6 +91,7 @@ tables: Dict[str, Table] = {
 	SNOWFLAKE_WORKER_ID_TABLE: table_snowflake_competitive_workers,
 	'pats': table_pats,
 	'tenants': table_tenants,
+	'external_writers': table_external_writers,
 	'data_sources': table_data_sources,
 	'users': table_users,
 }
