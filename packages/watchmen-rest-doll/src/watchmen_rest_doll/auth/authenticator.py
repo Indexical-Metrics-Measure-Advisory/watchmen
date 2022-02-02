@@ -2,16 +2,16 @@ from datetime import timedelta
 from logging import getLogger
 from typing import List, Tuple
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
-from starlette import status
 from starlette.requests import Request
 
 from watchmen_auth import AuthFailOn401, AuthFailOn403, Authorization, PrincipalService
 from watchmen_model.admin import User, UserRole
 from watchmen_model.system import Token
 from watchmen_rest import create_jwt_token
-from watchmen_rest_doll.doll import ask_jwt_params, ask_meta_storage, doll
+from watchmen_rest.util import raise_401, raise_403
+from watchmen_rest_doll.doll import ask_access_token_expires_in, ask_jwt_params, ask_meta_storage, doll
 from watchmen_rest_doll.util import build_find_user_by_name, verify_password
 from watchmen_storage import TransactionalStorageSPI
 
@@ -23,11 +23,7 @@ def parse_token(request: Request) -> Tuple[str, str]:
 	authorization: str = request.headers.get("Authorization")
 
 	if not authorization:
-		raise HTTPException(
-			status_code=status.HTTP_401_UNAUTHORIZED,
-			detail="Not authenticated",
-			headers={"WWW-Authenticate": "Bearer"},
-		)
+		raise_401('Unauthorized caused by token not found.', {"WWW-Authenticate": "Bearer"})
 	else:
 		scheme, _, param = authorization.partition(" ")
 		token = param
@@ -42,11 +38,11 @@ def get_principal(request: Request, roles: List[UserRole]) -> PrincipalService:
 		elif scheme == 'PAT':
 			return PrincipalService(Authorization(doll.authentication_manager, roles).authorize_by_pat(token))
 		else:
-			raise AuthFailOn401('Unauthorized on undetected token.')
+			raise AuthFailOn401()
 	except AuthFailOn403:
-		raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authenticated")
+		raise_403()
 	except AuthFailOn401:
-		raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+		raise_401('Unauthorized caused by unrecognized token.')
 
 
 def get_any_principal(request: Request) -> PrincipalService:
@@ -77,32 +73,26 @@ def authenticate(username, password) -> User:
 	try:
 		user = find_user_by_name(username)
 		if user is None:
-			raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password.")
+			raise_401('Incorrect username or password.')
+		if not user.isActive:
+			# hide failure details
+			raise_401('Incorrect username or password.')
 		if verify_password(password, user.password):
 			return user
 		else:
-			raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect username or password.")
+			raise_401('Incorrect username or password.')
 	finally:
 		storage.close()
 
 
-@router.post("/login/access-token", response_model=Token, tags=["authenticate"])
+@router.post('/login/access-token', response_model=Token, tags=['authenticate'])
 async def login_access_token(form_data: OAuth2PasswordRequestForm = Depends()) -> Token:
 	"""
 	OAuth2 compatible token login, get an access token for future requests
 	"""
 	user: User = authenticate(form_data.username, form_data.password)
-
-	if not user:
-		raise HTTPException(status_code=400, detail="Incorrect username or password.")
-	elif not user.isActive:
-		# hide failure details
-		raise HTTPException(status_code=400, detail="Incorrect username or password.")
-
 	logger.info(f'User[{user.name}] signed in.')
-
-	access_token_expires = timedelta(minutes=doll.settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-
+	access_token_expires = timedelta(minutes=ask_access_token_expires_in())
 	jwt_secret_key, jwt_algorithm = ask_jwt_params()
 	return Token(
 		accessToken=create_jwt_token(

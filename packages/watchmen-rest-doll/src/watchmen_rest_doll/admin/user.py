@@ -6,10 +6,10 @@ from watchmen_auth import PrincipalService
 from watchmen_meta_service.admin import UserService
 from watchmen_model.admin import User, UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId
+from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
 from watchmen_rest_doll.auth import get_any_admin_principal, get_any_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
-from watchmen_rest_doll.util import crypt_password, is_blank, is_not_blank, raise_400, raise_403, raise_404, \
-	raise_500, validate_tenant_id
+from watchmen_rest_doll.util import crypt_password, is_blank, is_not_blank, validate_tenant_id
 from watchmen_utilities import ArrayHelper
 
 router = APIRouter()

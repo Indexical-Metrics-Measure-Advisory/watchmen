@@ -5,9 +5,9 @@ from sqlalchemy import delete, func, insert, select, Table, text, update
 from sqlalchemy.engine import Connection, Engine
 
 from watchmen_model.common import DataPage
-from watchmen_storage import Entity, EntityCriteriaExpression, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, \
-	EntityHelper, EntityId, EntityIdHelper, EntityList, EntityNotFoundException, EntityPager, EntityUpdater, \
-	TooManyEntitiesFoundException, TransactionalStorageSPI, UnexpectedStorageException
+from watchmen_storage import Entity, EntityCriteriaExpression, EntityDeleter, EntityDistinctValuesFinder, \
+	EntityFinder, EntityHelper, EntityId, EntityIdHelper, EntityList, EntityNotFoundException, EntityPager, \
+	EntityUpdater, TooManyEntitiesFoundException, TransactionalStorageSPI, UnexpectedStorageException
 from watchmen_utilities import ArrayHelper
 from .sort_build import build_sort_for_statement
 from .table_defs_mysql import find_table

@@ -1,16 +1,15 @@
 from datetime import datetime, timedelta
 from typing import Callable, Optional
 
-from fastapi import HTTPException
 from jose import JWTError
 from jose.jwt import decode, encode
 from jsonschema.exceptions import ValidationError
-from starlette import status
 
 from watchmen_auth import AuthenticationManager, AuthenticationProvider, AuthenticationType
 from watchmen_model.admin import User
 from watchmen_storage import TransactionalStorageSPI
 from .rest_settings import RestSettings
+from .util import raise_401
 
 
 def create_jwt_token(subject: str, expires_delta: timedelta, secret_key: str, algorithm: str) -> str:
@@ -21,13 +20,9 @@ def create_jwt_token(subject: str, expires_delta: timedelta, secret_key: str, al
 
 def validate_jwt(token, secret_key: str, algorithm: str):
 	try:
-		payload = decode(token, secret_key, algorithms=[algorithm])
-		return payload
+		return decode(token, secret_key, algorithms=[algorithm])
 	except (JWTError, ValidationError):
-		raise HTTPException(
-			status_code=status.HTTP_401_UNAUTHORIZED,
-			detail="Could not validate credentials",
-		)
+		raise_401('Unauthorized caused by unrecognized token.')
 
 
 class JWTAuthenticationProvider(AuthenticationProvider):
@@ -45,18 +40,11 @@ class JWTAuthenticationProvider(AuthenticationProvider):
 
 	def authenticate(self, details: dict) -> Optional[User]:
 		token = details['token']
-		try:
-			payload = validate_jwt(token, self.secret_key, self.algorithm)
-		except (JWTError, ValidationError):
-			raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Cannot validate credentials.")
-
+		payload = validate_jwt(token, self.secret_key, self.algorithm)
 		username = payload['sub']
 		user = self.find_user_by_name(username)
 		if user is None:
-			raise HTTPException(
-				status_code=status.HTTP_401_UNAUTHORIZED,
-				detail="Could not validate credentials",
-			)
+			raise_401('Unauthorized visit.')
 		return user
 
 
@@ -74,10 +62,7 @@ class PATAuthenticationProvider(AuthenticationProvider):
 		token = details['token']
 		user = self.find_user_by_pat(token)
 		if user is None:
-			raise HTTPException(
-				status_code=status.HTTP_401_UNAUTHORIZED,
-				detail="Could not validate credentials",
-			)
+			raise_401('Unauthorized visit.')
 		return user
 
 
