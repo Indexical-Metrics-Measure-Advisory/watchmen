@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from watchmen_model.admin import User
 from watchmen_rest import RestApp
 from watchmen_storage import SnowflakeGenerator, TransactionalStorageSPI
+from .connectors import init_kafka, init_rabbitmq
 from .settings import DollSettings
 from .util import build_find_user_by_name, build_find_user_by_pat
 
@@ -29,17 +30,26 @@ class DollApp(RestApp):
 	def is_tuple_delete_enabled(self):
 		return self.get_settings().ENABLE_TUPLE_DELETE
 
-	def init_kafka_connector(self) -> None:
-		# TODO kafka connector
-		pass
+	def is_kafka_connector_enabled(self):
+		return self.get_settings().KAFKA_CONNECTOR
 
-	def init_rabbitmq_connector(self) -> None:
-		# TODO rabbitmq connector
-		pass
+	def init_kafka_connector(self):
+		init_kafka()
+
+	def is_rabbitmq_connector_enabled(self):
+		return self.get_settings().RABBITMQ_CONNECTOR
+
+	def init_rabbitmq_connector(self):
+		init_rabbitmq()
+
+	def init_connectors(self):
+		if self.is_kafka_connector_enabled():
+			self.init_kafka_connector()
+		if self.is_rabbitmq_connector_enabled():
+			self.init_rabbitmq_connector()
 
 	def post_construct(self, app: FastAPI) -> None:
-		self.init_kafka_connector()
-		self.init_rabbitmq_connector()
+		pass
 
 
 doll = DollApp(DollSettings())
