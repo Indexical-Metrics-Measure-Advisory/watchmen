@@ -1,9 +1,10 @@
-from typing import Optional
+from typing import List, Optional
 
 from watchmen_meta_service.common import TupleService, TupleShaper
 from watchmen_model.admin import User, UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId, UserId
-from watchmen_storage import EntityCriteriaExpression, EntityCriteriaOperator, EntityPager, EntityRow, EntityShaper
+from watchmen_storage import EntityCriteriaExpression, EntityCriteriaOperator, EntityFinder, EntityPager, EntityRow, \
+	EntityShaper
 
 
 class UserShaper(EntityShaper):
@@ -64,7 +65,7 @@ class UserService(TupleService):
 	# 		]
 	# 	))
 
-	def find_users_by_text(self, text: Optional[str], tenantId: Optional[TenantId], pageable: Pageable) -> DataPage:
+	def find_users_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
 		# always ignore super admin
 		criteria = [
 			EntityCriteriaExpression(
@@ -73,11 +74,27 @@ class UserService(TupleService):
 		if text is not None and len(text.strip()) != 0:
 			criteria.append(EntityCriteriaExpression(name='name', operator=EntityCriteriaOperator.LIKE, value=text))
 			criteria.append(EntityCriteriaExpression(name='nickname', operator=EntityCriteriaOperator.LIKE, value=text))
-		if tenantId is not None and len(tenantId.strip()) != 0:
-			criteria.append(EntityCriteriaExpression(name='tenant_id', value=tenantId))
+		if tenant_id is not None and len(tenant_id.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(name='tenant_id', value=tenant_id))
 		return self.storage.page(EntityPager(
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),
 			criteria=criteria,
 			pageable=pageable
+		))
+
+	def find_by_ids(self, user_ids: List[UserId], tenant_id: Optional[TenantId]) -> List[User]:
+		# always ignore super admin
+		criteria = [
+			EntityCriteriaExpression(
+				name='role', operator=EntityCriteriaOperator.NOT_EQUALS, value=UserRole.SUPER_ADMIN),
+			EntityCriteriaExpression(name='user_id', operator=EntityCriteriaOperator.IN, value=user_ids)
+		]
+		if tenant_id is not None and len(tenant_id.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(name='tenant_id', value=tenant_id))
+		# noinspection PyTypeChecker
+		return self.storage.find(EntityFinder(
+			name=self.get_entity_name(),
+			shaper=self.get_entity_shaper(),
+			criteria=criteria,
 		))
