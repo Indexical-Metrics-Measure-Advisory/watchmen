@@ -25,6 +25,3 @@ class DataPage(Pageable):
 	data: list = []
 	itemCount: int = None
 	pageCount: int = None
-
-	class Config:
-		arbitrary_types_allowed = True
