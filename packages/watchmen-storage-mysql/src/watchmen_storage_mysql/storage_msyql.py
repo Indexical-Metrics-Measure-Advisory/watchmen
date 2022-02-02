@@ -229,16 +229,26 @@ class StorageMySQL(TransactionalStorageSPI):
 		statement = build_criteria_for_statement(table, statement, pager.criteria)
 		count = self.connection.execute(statement).scalar()
 
+		if count == 0:
+			return DataPage(
+				data=[],
+				pageNumber=1,
+				pageSize=pager.pageable.pageSize,
+				itemCount=0,
+				pageCount=0
+			)
+
 		page_size = pager.pageable.pageSize
 		page_number = pager.pageable.pageNumber
 		pages = count / page_size
 		max_page_number = int(pages)
-		if max_page_number != pages:
+		if pages > max_page_number:
 			max_page_number += 1
-		max_page_number += 1
 		if page_number > max_page_number:
 			page_number = max_page_number
 
+		statement = select(table)
+		statement = build_criteria_for_statement(table, statement, pager.criteria)
 		statement = build_sort_for_statement(statement, pager.sort)
 		offset = page_size * (page_number - 1)
 		statement = statement.offset(offset).limit(page_size)

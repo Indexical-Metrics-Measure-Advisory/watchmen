@@ -79,7 +79,7 @@ async def save_tenant(
 
 @router.post('/tenant/name', tags=[UserRole.SUPER_ADMIN], response_model=DataPage)
 async def find_users_by_name(
-		query_name: Optional[str], pageable: Pageable = Body(...),
+		query_name: Optional[str] = None, pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
 ) -> DataPage:
 	if is_blank(query_name):
