@@ -27,7 +27,7 @@ def raise_404(detail: Any = 'Data not found.') -> None:
 
 
 def raise_500(e: Optional[Exception] = None) -> None:
-	if e is None:
+	if e is not None:
 		logger.error(e, exc_info=True, stack_info=True)
 
 	raise HTTPException(
