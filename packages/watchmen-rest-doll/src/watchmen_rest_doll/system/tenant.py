@@ -78,7 +78,7 @@ async def save_tenant(
 
 
 @router.post('/tenant/name', tags=[UserRole.SUPER_ADMIN], response_model=DataPage)
-async def find_users_by_name(
+async def find_tenants_by_name(
 		query_name: Optional[str] = None, pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
 ) -> DataPage:
@@ -89,6 +89,32 @@ async def find_users_by_name(
 	tenant_service.begin_transaction()
 	try:
 		return tenant_service.find_tenants_by_text(query_name, pageable)
+	except Exception as e:
+		raise_500(e)
+	finally:
+		tenant_service.close_transaction()
+
+
+@router.delete('/tenant', tags=[UserRole.SUPER_ADMIN], response_model=Tenant)
+async def delete_tenant_by_id(
+		tenant_id: Optional[str] = None,
+		principal_service: PrincipalService = Depends(get_super_admin_principal)
+) -> Optional[Tenant]:
+	if is_blank(tenant_id):
+		raise_400('Tenant id is required.')
+	if not principal_service.is_super_admin():
+		raise_403()
+
+	tenant_service = get_tenant_service(principal_service)
+	tenant_service.begin_transaction()
+	try:
+		# noinspection PyTypeChecker
+		tenant: Tenant = tenant_service.delete(tenant_id)
+		if tenant is None:
+			raise_404()
+		return tenant
+	except HTTPException as e:
+		raise e
 	except Exception as e:
 		raise_500(e)
 	finally:
