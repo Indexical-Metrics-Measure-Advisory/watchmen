@@ -1,6 +1,8 @@
 from enum import Enum
 from typing import List
 
+from pydantic import BaseModel
+
 from watchmen_model.common import DataModel, DataSourceId, OptimisticLock, TenantBasedTuple
 
 
@@ -15,7 +17,7 @@ class DataSourceType(str, Enum):
 	MONGODB = 'mongodb'
 
 
-class DataSource(TenantBasedTuple, OptimisticLock):
+class DataSource(TenantBasedTuple, OptimisticLock, BaseModel):
 	dataSourceId: DataSourceId = None
 	dataSourceCode: str = None
 	dataSourceType: DataSourceType = None

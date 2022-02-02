@@ -1,0 +1,26 @@
+CREATE TABLE data_sources
+(
+    data_source_id   VARCHAR(50) NOT NULL,
+    data_source_code VARCHAR(50),
+    data_source_type VARCHAR(50),
+    host             VARCHAR(50),
+    port             VARCHAR(5),
+    username         VARCHAR(50),
+    password         VARCHAR(50),
+    name             VARCHAR(50),
+    url              VARCHAR(255),
+    params           JSON,
+    tenant_id        VARCHAR(50) NOT NULL,
+    created_at       DATETIME    NOT NULL,
+    created_by       VARCHAR(50) NOT NULL,
+    last_modified_at DATETIME    NOT NULL,
+    last_modified_by VARCHAR(50) NOT NULL,
+    version          BIGINT,
+    PRIMARY KEY (data_source_id),
+    UNIQUE INDEX (data_source_code),
+    INDEX (tenant_id),
+    INDEX (created_at),
+    INDEX (created_by),
+    INDEX (last_modified_at),
+    INDEX (last_modified_by)
+);
