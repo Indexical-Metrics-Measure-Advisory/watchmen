@@ -84,7 +84,16 @@ class RestApp:
 		)
 
 	def get_jwt_params(self) -> Tuple[str, str]:
+		"""
+		Tuple(secret_key, algorithm)
+		"""
 		return self.settings.JWT_SECRET_KEY, self.settings.JWT_ALGORITHM
+
+	def get_access_token_expires_in(self) -> int:
+		"""
+		in minutes
+		"""
+		return self.settings.ACCESS_TOKEN_EXPIRE_MINUTES
 
 	@abstractmethod
 	def build_find_user_by_name(self) -> Callable[[str], Optional[User]]:

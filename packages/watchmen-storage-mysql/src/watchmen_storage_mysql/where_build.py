@@ -9,6 +9,7 @@ from .types import SQLAlchemyStatement
 
 
 def build_criteria_expression(table: Table, expression: EntityCriteriaExpression):
+	# noinspection PyPropertyAccess
 	column = table.c[expression.name]
 	op = expression.operator
 	if op == EntityCriteriaOperator.IS_EMPTY:

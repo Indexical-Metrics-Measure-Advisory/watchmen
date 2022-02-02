@@ -56,3 +56,7 @@ def ask_snowflake_generator() -> SnowflakeGenerator:
 
 def ask_jwt_params() -> Tuple[str, str]:
 	return doll.get_jwt_params()
+
+
+def ask_access_token_expires_in() -> int:
+	return doll.get_access_token_expires_in()

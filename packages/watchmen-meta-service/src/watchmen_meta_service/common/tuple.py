@@ -225,7 +225,7 @@ class TupleService:
 				a_tuple.version = version
 				raise OptimisticLockException('Update 0 row might be caused by optimistic lock.')
 		else:
-			updated_count = self.storage.update_one(a_tuple, self.get_entity_helper())
+			updated_count = self.storage.update_one(a_tuple, self.get_entity_id_helper())
 			if updated_count == 0:
 				raise TupleNotFoundException('Update 0 row might be caused by tuple not found.')
 		return a_tuple

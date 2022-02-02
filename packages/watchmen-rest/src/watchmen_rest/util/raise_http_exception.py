@@ -11,6 +11,13 @@ def raise_400(detail: Any) -> None:
 	raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
 
 
+def raise_401(detail: Any, headers: Optional[dict] = None) -> None:
+	if headers is not None:
+		raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail, headers=headers)
+	else:
+		raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail)
+
+
 def raise_403() -> None:
 	raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Unauthorized visit.")
 
