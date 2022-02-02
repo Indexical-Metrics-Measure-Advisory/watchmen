@@ -10,6 +10,10 @@ from .util import build_find_user_by_name, build_find_user_by_pat
 
 
 class DollApp(RestApp):
+	def get_settings(self) -> DollSettings:
+		# noinspection PyTypeChecker
+		return self.settings
+
 	def build_find_user_by_name(self) -> Callable[[str], Optional[User]]:
 		"""
 		autonomous transaction
@@ -21,6 +25,9 @@ class DollApp(RestApp):
 		autonomous transaction
 		"""
 		return build_find_user_by_pat(self.build_meta_storage())
+
+	def is_tuple_delete_enabled(self):
+		return self.get_settings().ENABLE_TUPLE_DELETE
 
 	def init_kafka_connector(self) -> None:
 		# TODO kafka connector
@@ -52,3 +59,7 @@ def ask_jwt_params() -> Tuple[str, str]:
 
 def ask_access_token_expires_in() -> int:
 	return doll.get_access_token_expires_in()
+
+
+def ask_tuple_delete_enabled() -> bool:
+	return doll.is_tuple_delete_enabled()

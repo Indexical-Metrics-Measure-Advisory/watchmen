@@ -27,6 +27,9 @@ class RestApp:
 	def __init__(self, settings: RestSettings):
 		self.settings = settings
 
+	def get_settings(self) -> RestSettings:
+		return self.settings
+
 	def construct(self) -> FastAPI:
 		app = FastAPI(
 			title=self.settings.APP_NAME,
