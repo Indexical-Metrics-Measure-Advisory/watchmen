@@ -2,7 +2,7 @@ CREATE TABLE data_sources
 (
     data_source_id   VARCHAR(50) NOT NULL,
     data_source_code VARCHAR(50),
-    data_source_type VARCHAR(50),
+    data_source_type VARCHAR(20),
     host             VARCHAR(50),
     port             VARCHAR(5),
     username         VARCHAR(50),

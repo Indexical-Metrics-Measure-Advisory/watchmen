@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from watchmen_model.common import DataModel, DataSourceId, OptimisticLock, TenantBasedTuple
 
 
-class DataSourceParam(DataModel):
+class DataSourceParam(DataModel, BaseModel):
 	name: str = None
 	value: str = None
 
