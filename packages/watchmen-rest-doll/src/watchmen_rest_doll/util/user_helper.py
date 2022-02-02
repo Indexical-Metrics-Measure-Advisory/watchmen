@@ -9,16 +9,17 @@ from watchmen_storage import EntityCriteriaExpression, EntityFinder, EntityIdHel
 from .utils import is_blank
 
 
-def redress_user(user: Optional[User]) -> Optional[User]:
+def redress_user(user: Optional[User], clear_pwd: bool) -> Optional[User]:
 	if user is None:
 		return None
 	if not user.isActive:
 		return None
-	user.password = None
+	if clear_pwd:
+		user.password = None
 	return user
 
 
-def find_user_by_name(storage: StorageSPI, username: str) -> Optional[User]:
+def find_user_by_name(storage: StorageSPI, username: str, clear_pwd: bool) -> Optional[User]:
 	if is_blank(username):
 		return None
 	# noinspection PyTypeChecker
@@ -29,11 +30,11 @@ def find_user_by_name(storage: StorageSPI, username: str) -> Optional[User]:
 			EntityCriteriaExpression(name='name', value=username)
 		]
 	))
-	return redress_user(user)
+	return redress_user(user, clear_pwd)
 
 
-def build_find_user_by_name(storage: StorageSPI) -> Callable[[str], Optional[User]]:
-	return lambda username: find_user_by_name(storage, username)
+def build_find_user_by_name(storage: StorageSPI, clear_pwd: bool = True) -> Callable[[str], Optional[User]]:
+	return lambda username: find_user_by_name(storage, username, clear_pwd)
 
 
 def find_pat_by_token(storage: StorageSPI, pat_token: str) -> Optional[PersonalAccessToken]:
@@ -71,7 +72,7 @@ def find_user_by_pat(storage: StorageSPI, pat_token: str) -> Optional[User]:
 		shaper=USER_ENTITY_SHAPER,
 		idColumnName='user_id'
 	))
-	return redress_user(user)
+	return redress_user(user, True)
 
 
 def build_find_user_by_pat(storage: StorageSPI) -> Callable[[str], Optional[User]]:
