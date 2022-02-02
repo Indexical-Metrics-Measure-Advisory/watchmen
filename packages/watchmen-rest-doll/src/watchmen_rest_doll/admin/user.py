@@ -24,7 +24,7 @@ def clear_pwd(user: User):
 
 
 @router.get('/user', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=User)
-async def load_user(
+async def load_user_by_id(
 		user_id: Optional[str] = None,
 		principal_service: PrincipalService = Depends(get_any_principal)
 ) -> User:
