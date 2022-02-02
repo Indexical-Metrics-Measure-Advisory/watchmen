@@ -15,7 +15,6 @@ from watchmen_rest.util import raise_401, raise_403
 from watchmen_rest_doll.doll import ask_access_token_expires_in, ask_jwt_params, ask_meta_storage, \
 	ask_snowflake_generator, doll
 from watchmen_rest_doll.util import build_find_user_by_name, verify_password
-from watchmen_storage import TransactionalStorageSPI
 
 router = APIRouter()
 logger = getLogger(__name__)
@@ -68,9 +67,8 @@ def get_super_admin_principal(request: Request) -> PrincipalService:
 
 
 def authenticate(username, password) -> User:
-	storage: TransactionalStorageSPI = ask_meta_storage()
 	# principal is careless
-	find_user_by_name = build_find_user_by_name(storage, False)
+	find_user_by_name = build_find_user_by_name(ask_meta_storage(), False)
 	user = find_user_by_name(username)
 	if user is None:
 		raise_401('Incorrect username or password.')
