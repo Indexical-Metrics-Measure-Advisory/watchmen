@@ -6,8 +6,8 @@ from .snowflake import InvalidSystemClockException, SnowflakeGenerator
 from .snowflake_worker_id_generator import immutable_worker_id, WorkerIdGenerator
 from .storage_based_worker_id_generator import COMPETITIVE_WORKER_SHAPER, CompetitiveWorkerShaper, \
 	SNOWFLAKE_WORKER_ID_TABLE, StorageBasedWorkerIdGenerator
-from .storage_exception import InsertConflictException, NoCriteriaForUpdateException, OptimisticLockException, \
-	TooManyEntitiesFoundException, UnexpectedStorageException, UnsupportedCriteriaException, \
+from .storage_exception import EntityNotFoundException, InsertConflictException, NoCriteriaForUpdateException, \
+	OptimisticLockException, TooManyEntitiesFoundException, UnexpectedStorageException, UnsupportedCriteriaException, \
 	UnsupportedCriteriaExpressionOperatorException, UnsupportedCriteriaJointConjunctionException, \
 	UnsupportedSortMethodException
 from .storage_spi import StorageSPI, TransactionalStorageSPI
