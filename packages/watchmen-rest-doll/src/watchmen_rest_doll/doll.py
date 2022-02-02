@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable, Optional, Tuple
 
 from fastapi import FastAPI
 
@@ -40,4 +40,8 @@ def ask_meta_storage() -> TransactionalStorageSPI:
 
 
 def ask_snowflake_generator() -> SnowflakeGenerator:
-	return doll.snowflake_generator
+	return doll.get_snowflake_generator()
+
+
+def ask_jwt_params() -> Tuple[str, str]:
+	return doll.get_jwt_params()
