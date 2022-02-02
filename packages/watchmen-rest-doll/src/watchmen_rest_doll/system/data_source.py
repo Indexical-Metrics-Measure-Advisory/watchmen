@@ -21,20 +21,20 @@ def get_data_source_service(principal_service: PrincipalService) -> DataSourceSe
 
 @router.get('/datasource', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=DataSource)
 async def load_data_source_by_id(
-		data_source_id: Optional[str] = None,
+		datasource_id: Optional[str] = None,
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> Optional[DataSource]:
-	if is_blank(data_source_id):
+	if is_blank(datasource_id):
 		raise_400('Data source id is required.')
 	if not principal_service.is_super_admin():
-		if data_source_id != principal_service.get_tenant_id():
+		if datasource_id != principal_service.get_tenant_id():
 			raise_403()
 
 	data_source_service = get_data_source_service(principal_service)
 	data_source_service.begin_transaction()
 	try:
 		# noinspection PyTypeChecker
-		data_source: DataSource = data_source_service.find_by_id(data_source_id)
+		data_source: DataSource = data_source_service.find_by_id(datasource_id)
 		if data_source is None:
 			raise_404()
 		return data_source
