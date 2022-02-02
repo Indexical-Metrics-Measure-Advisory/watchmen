@@ -124,7 +124,7 @@ async def delete_data_source_by_id(
 		raise_404('Not Found')
 
 	if is_blank(data_source_id):
-		raise_400('DataSource id is required.')
+		raise_400('Data source id is required.')
 	if not principal_service.is_super_admin():
 		raise_403()
 
