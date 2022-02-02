@@ -79,13 +79,19 @@ class RestApp:
 
 	def init_authentication(self) -> None:
 		self.authentication_manager = build_authentication_manager(
-			self.build_meta_storage(), self.settings, self.build_find_user_by_name())
+			self.build_meta_storage(), self.settings,
+			self.build_find_user_by_name(), self.build_find_user_by_pat()
+		)
 
 	def get_jwt_params(self) -> Tuple[str, str]:
 		return self.settings.JWT_SECRET_KEY, self.settings.JWT_ALGORITHM
 
 	@abstractmethod
 	def build_find_user_by_name(self) -> Callable[[str], Optional[User]]:
+		pass
+
+	@abstractmethod
+	def build_find_user_by_pat(self) -> Callable[[str], Optional[User]]:
 		pass
 
 	@abstractmethod

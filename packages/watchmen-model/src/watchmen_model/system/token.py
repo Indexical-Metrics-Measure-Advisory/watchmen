@@ -2,7 +2,7 @@ from datetime import date
 
 from pydantic import BaseModel
 
-from watchmen_model.common import TenantId, UserId
+from watchmen_model.common import DataModel, TenantId, UserId
 
 
 class Token(BaseModel):
@@ -12,7 +12,7 @@ class Token(BaseModel):
 	tenantId: TenantId = None
 
 
-class PersonalAccessToken(BaseModel):
+class PersonalAccessToken(BaseModel, DataModel):
 	patId: str = None
 	token: str = None
 	userId: UserId = None
