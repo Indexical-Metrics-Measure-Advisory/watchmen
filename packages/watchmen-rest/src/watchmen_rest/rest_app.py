@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from logging import getLogger
-from typing import Callable, Optional
+from typing import Callable, Optional, Tuple
 
 from fastapi import FastAPI
 
@@ -61,10 +61,16 @@ class RestApp:
 			install_prometheus(app, self.settings)
 
 	def build_meta_storage(self) -> TransactionalStorageSPI:
+		"""
+		build a new meta storage instance
+		"""
 		return self.retrieve_meta_storage()
 
 	def init_meta_storage(self) -> None:
 		self.retrieve_meta_storage = build_meta_storage(self.settings)
+
+	def get_snowflake_generator(self):
+		return self.snowflake_generator
 
 	def init_snowflake(self) -> None:
 		# snowflake use another storage,
@@ -74,6 +80,9 @@ class RestApp:
 	def init_authentication(self) -> None:
 		self.authentication_manager = build_authentication_manager(
 			self.build_meta_storage(), self.settings, self.build_find_user_by_name())
+
+	def get_jwt_params(self) -> Tuple[str, str]:
+		return self.settings.JWT_SECRET_KEY, self.settings.JWT_ALGORITHM
 
 	@abstractmethod
 	def build_find_user_by_name(self) -> Callable[[str], Optional[User]]:

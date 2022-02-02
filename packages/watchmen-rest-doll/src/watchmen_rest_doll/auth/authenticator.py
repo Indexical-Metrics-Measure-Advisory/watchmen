@@ -11,7 +11,7 @@ from watchmen_auth import AuthFailOn401, AuthFailOn403, Authorization, Principal
 from watchmen_model.admin import User, UserRole
 from watchmen_model.system import Token
 from watchmen_rest import create_jwt_token
-from watchmen_rest_doll.doll import ask_meta_storage, doll
+from watchmen_rest_doll.doll import ask_jwt_params, ask_meta_storage, doll
 from watchmen_rest_doll.util import build_find_user_by_name, verify_password
 from watchmen_storage import TransactionalStorageSPI
 
@@ -103,10 +103,11 @@ async def login_access_token(form_data: OAuth2PasswordRequestForm = Depends()) -
 
 	access_token_expires = timedelta(minutes=doll.settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
+	jwt_secret_key, jwt_algorithm = ask_jwt_params()
 	return Token(
 		accessToken=create_jwt_token(
 			subject=user.name, expires_delta=access_token_expires,
-			secret_key=doll.settings.JWT_SECRET_KEY, algorithm=doll.settings.JWT_ALGORITHM
+			secret_key=jwt_secret_key, algorithm=jwt_algorithm
 		),
 		tokenType='bearer',
 		role=user.role,
