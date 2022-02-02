@@ -5,6 +5,13 @@ from .system import data_source, external_writer, pat, tenant
 
 app = doll.construct()
 
+
+@app.on_event("startup")
+def startup():
+	doll.init_kafka_connector()
+	doll.init_rabbitmq_connector()
+
+
 app.include_router(authenticator.router)
 app.include_router(pat.router)
 app.include_router(tenant.router)
