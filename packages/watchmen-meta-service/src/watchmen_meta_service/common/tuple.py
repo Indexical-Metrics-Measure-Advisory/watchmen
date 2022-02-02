@@ -143,7 +143,7 @@ class TupleService:
 
 	@staticmethod
 	def now() -> datetime:
-		return datetime.now().replace(tzinfo=None)
+		return datetime.now().replace(tzinfo=None, microsecond=0)
 
 	@abstractmethod
 	def get_tuple_id_column_name(self) -> str:
