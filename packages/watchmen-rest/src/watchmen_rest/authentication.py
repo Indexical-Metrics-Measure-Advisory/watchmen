@@ -60,16 +60,38 @@ class JWTAuthenticationProvider(AuthenticationProvider):
 		return user
 
 
+class PATAuthenticationProvider(AuthenticationProvider):
+	def __init__(
+			self, storage: TransactionalStorageSPI, find_user_by_pat: Callable[[str], Optional[User]]
+	):
+		self.storage = storage
+		self.find_user_by_pat = find_user_by_pat
+
+	def accept(self, auth_type: AuthenticationType) -> bool:
+		return auth_type == AuthenticationType.PAT
+
+	def authenticate(self, details: dict) -> Optional[User]:
+		token = details['token']
+		user = self.find_user_by_pat(token)
+		if user is None:
+			raise HTTPException(
+				status_code=status.HTTP_401_UNAUTHORIZED,
+				detail="Could not validate credentials",
+			)
+		return user
+
+
 def build_authentication_manager(
 		storage: TransactionalStorageSPI,
 		settings: RestSettings,
-		find_user_by_name: Callable[[str], Optional[User]]
+		find_user_by_name: Callable[[str], Optional[User]],
+		find_user_by_pat: Callable[[str], Optional[User]]
 ) -> AuthenticationManager:
 	authentication_manager = AuthenticationManager()
 	authentication_manager.register_provider(
 		JWTAuthenticationProvider(storage, settings.JWT_SECRET_KEY, settings.JWT_ALGORITHM, find_user_by_name)
-		# TODO PAT authentication provider
 	)
+	authentication_manager.register_provider(PATAuthenticationProvider(storage, find_user_by_pat))
 
 	# TODO could register other authentication providers here
 
