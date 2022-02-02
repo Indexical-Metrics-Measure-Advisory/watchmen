@@ -30,5 +30,9 @@ class UnsupportedSortMethodException(UnexpectedStorageException):
 	pass
 
 
+class EntityNotFoundException(Exception):
+	pass
+
+
 class TooManyEntitiesFoundException(Exception):
 	pass

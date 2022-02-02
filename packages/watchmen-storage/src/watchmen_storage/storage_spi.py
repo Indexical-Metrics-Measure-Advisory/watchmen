@@ -12,19 +12,29 @@ class StorageSPI(ABC):
 		pass
 
 	@abstractmethod
-	def insert_all(self, data: List[Entity], helper: EntityHelper) -> int:
+	def insert_all(self, data: List[Entity], helper: EntityHelper) -> None:
 		pass
 
 	@abstractmethod
-	def update_one(self, one: Entity, helper: EntityHelper) -> int:
+	def update_one(self, one: Entity, helper: EntityIdHelper) -> int:
+		"""
+		returns 0 when update none, or 1 when update one
+		"""
 		pass
 
 	@abstractmethod
 	def update_only(self, updater: EntityUpdater) -> int:
+		"""
+		update only one, if update none or more than one item, raise exception
+		"""
 		pass
 
 	@abstractmethod
 	def update_only_and_pull(self, updater: EntityUpdater) -> Optional[Entity]:
+		"""
+		update only one, if update none or more than one item, raise exception
+		return the one before update
+		"""
 		pass
 
 	@abstractmethod
@@ -37,18 +47,31 @@ class StorageSPI(ABC):
 
 	@abstractmethod
 	def delete_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> int:
+		"""
+		returns 0 when delete none, or 1 when delete one
+		"""
 		pass
 
 	@abstractmethod
 	def delete_by_id_and_pull(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
+		"""
+		return deleted none when delete none, or deleted one when delete one
+		"""
 		pass
 
 	@abstractmethod
 	def delete_only(self, deleter: EntityDeleter) -> int:
+		"""
+		delete only one, if delete none or more than one item, raise exception
+		"""
 		pass
 
 	@abstractmethod
 	def delete_only_and_pull(self, deleter: EntityDeleter) -> Optional[Entity]:
+		"""
+		delete only one, if delete none or more than one item, raise exception
+		return the one before delete
+		"""
 		pass
 
 	@abstractmethod

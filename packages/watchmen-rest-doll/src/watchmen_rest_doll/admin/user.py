@@ -23,7 +23,7 @@ def clear_pwd(user: User):
 	user.password = None
 
 
-@router.get("/user", tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=User)
+@router.get('/user', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=User)
 async def load_user(
 		user_id: Optional[str] = None,
 		principal_service: PrincipalService = Depends(get_any_principal)
@@ -105,7 +105,7 @@ async def save_user(user: User, principal_service: PrincipalService = Depends(ge
 	return user
 
 
-@router.post("/user/name", tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=DataPage)
+@router.post('/user/name', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=DataPage)
 async def find_users_by_name(
 		query_name: Optional[str], pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
@@ -131,10 +131,11 @@ async def find_users_by_name(
 
 # return query_users_by_name_with_pagination(query_name, pagination, current_user)
 
-@router.post("/user/ids", tags=["admin"], response_model=List[User])
+@router.post('/user/ids', tags=["admin"], response_model=List[User])
 async def query_user_list_by_ids(
 		user_ids: List[str], principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> List[User]:
+	# TODO find users by ids
 	pass
 # list_user = get_user_list_by_ids(user_ids, current_user)
 # 	# lambda user : user.password = None ,
