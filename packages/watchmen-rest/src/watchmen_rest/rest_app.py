@@ -67,6 +67,9 @@ class RestApp:
 		return self.retrieve_meta_storage()
 
 	def init_meta_storage(self) -> None:
+		"""
+		initialize a meta storage builder
+		"""
 		self.retrieve_meta_storage = build_meta_storage(self.settings)
 
 	def get_snowflake_generator(self):
@@ -79,8 +82,7 @@ class RestApp:
 
 	def init_authentication(self) -> None:
 		self.authentication_manager = build_authentication_manager(
-			self.build_meta_storage(), self.settings,
-			self.build_find_user_by_name(), self.build_find_user_by_pat()
+			self.settings, self.build_find_user_by_name(), self.build_find_user_by_pat()
 		)
 
 	def get_jwt_params(self) -> Tuple[str, str]:

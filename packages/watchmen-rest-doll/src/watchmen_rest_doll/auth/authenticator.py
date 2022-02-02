@@ -69,20 +69,16 @@ def authenticate(username, password) -> User:
 	storage: TransactionalStorageSPI = ask_meta_storage()
 	# principal is careless
 	find_user_by_name = build_find_user_by_name(storage, False)
-	storage.begin()
-	try:
-		user = find_user_by_name(username)
-		if user is None:
-			raise_401('Incorrect username or password.')
-		if not user.isActive:
-			# hide failure details
-			raise_401('Incorrect username or password.')
-		if verify_password(password, user.password):
-			return user
-		else:
-			raise_401('Incorrect username or password.')
-	finally:
-		storage.close()
+	user = find_user_by_name(username)
+	if user is None:
+		raise_401('Incorrect username or password.')
+	if not user.isActive:
+		# hide failure details
+		raise_401('Incorrect username or password.')
+	if verify_password(password, user.password):
+		return user
+	else:
+		raise_401('Incorrect username or password.')
 
 
 @router.post('/login/access-token', response_model=Token, tags=['authenticate'])
@@ -103,3 +99,15 @@ async def login_access_token(form_data: OAuth2PasswordRequestForm = Depends()) -
 		role=user.role,
 		tenantId=user.tenantId
 	)
+
+
+@router.get("/login/validate_token", response_model=User, tags=["authenticate"])
+async def validate_token(token: str) -> User:
+	return doll.authentication_manager.authenticate_by_jwt(token)
+
+# @router.post("/login/test-token", response_model=User, tags=["authenticate"])
+# async def test_token(current_user: User = Depends(deps.get_current_user)) -> Any:
+# 	"""
+# 	Test access token
+# 	"""
+# 	return current_user

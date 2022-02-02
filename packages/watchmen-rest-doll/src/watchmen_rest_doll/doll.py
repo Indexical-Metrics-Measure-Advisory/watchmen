@@ -14,28 +14,20 @@ class DollApp(RestApp):
 		"""
 		autonomous transaction
 		"""
-		meta_storage = self.build_meta_storage()
-		meta_storage.begin()
-		try:
-			return build_find_user_by_name(meta_storage)
-		finally:
-			meta_storage.close()
+		return build_find_user_by_name(self.build_meta_storage())
 
 	def build_find_user_by_pat(self) -> Callable[[str], Optional[User]]:
 		"""
 		autonomous transaction
 		"""
-		meta_storage = self.build_meta_storage()
-		meta_storage.begin()
-		try:
-			return build_find_user_by_pat(meta_storage)
-		finally:
-			meta_storage.close()
+		return build_find_user_by_pat(self.build_meta_storage())
 
 	def init_kafka_connector(self) -> None:
+		# TODO kafka connector
 		pass
 
 	def init_rabbitmq_connector(self) -> None:
+		# TODO rabbitmq connector
 		pass
 
 	def post_construct(self, app: FastAPI) -> None:

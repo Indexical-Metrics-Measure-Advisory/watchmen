@@ -20,7 +20,7 @@ def get_user_service(principal_service: PrincipalService) -> UserService:
 
 
 def clear_pwd(user: User):
-	user.password = None
+	del user.password
 
 
 @router.get('/user', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=User)
