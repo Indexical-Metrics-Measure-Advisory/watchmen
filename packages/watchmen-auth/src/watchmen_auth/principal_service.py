@@ -20,6 +20,9 @@ class PrincipalService:
 	def get_user_id(self) -> UserId:
 		return self.user_id
 
+	def get_user_name(self) -> str:
+		return self.name
+
 	def is_admin(self) -> bool:
 		return self.role == UserRole.ADMIN or self.role == UserRole.SUPER_ADMIN
 

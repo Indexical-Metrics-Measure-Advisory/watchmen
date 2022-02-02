@@ -1,8 +1,8 @@
-from datetime import date
+from datetime import date, datetime
 
 from pydantic import BaseModel
 
-from watchmen_model.common import DataModel, TenantId, UserId
+from watchmen_model.common import PatId, Storable, TenantId, UserId
 
 
 class Token(BaseModel):
@@ -12,8 +12,8 @@ class Token(BaseModel):
 	tenantId: TenantId = None
 
 
-class PersonalAccessToken(BaseModel, DataModel):
-	patId: str = None
+class PersonalAccessToken(BaseModel, Storable):
+	patId: str = PatId
 	token: str = None
 	userId: UserId = None
 	username: str = None
@@ -21,3 +21,4 @@ class PersonalAccessToken(BaseModel, DataModel):
 	note: str = None
 	expired: date = None
 	permissions: list = None
+	createdAt: datetime = None
