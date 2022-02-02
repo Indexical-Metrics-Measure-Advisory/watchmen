@@ -20,7 +20,7 @@ python-multipart = "^0.0.5"
 [tool.poetry.dev-dependencies]
 
 [tool.poetry.extras]
-mysql = ["SQLAlchemy", "PyMySQL"]
+mysql = ["watchmen-storage-mysql", "SQLAlchemy", "PyMySQL"]
 #mongo = ["pymongo"]
 kafka = ["kafka-python", "aiokafka"]
 rabbit = ["aio-pika"]

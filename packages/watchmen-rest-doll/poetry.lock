@@ -493,10 +493,16 @@ develop = true
 type = "directory"
 url = "../watchmen-utilities"
 
+[extras]
+kafka = []
+mysql = ["watchmen-storage-mysql"]
+prometheus = []
+rabbit = []
+
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "00467c56cc1cfb83567b78e5712bf5bc7600cd06a200974f33609a1ff8a763d3"
+content-hash = "fef01840956d8327cb47e09a35d7bcf45caa2c467fe28e520b5e4c649aa61a77"
 
 [metadata.files]
 anyio = [
