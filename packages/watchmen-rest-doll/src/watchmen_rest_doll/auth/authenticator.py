@@ -72,7 +72,7 @@ def get_super_admin_principal(request: Request) -> PrincipalService:
 def authenticate(username, password) -> User:
 	storage: TransactionalStorageSPI = ask_meta_storage()
 	# principal is careless
-	find_user_by_name = build_find_user_by_name(storage)
+	find_user_by_name = build_find_user_by_name(storage, False)
 	storage.begin()
 	try:
 		user = find_user_by_name(username)
