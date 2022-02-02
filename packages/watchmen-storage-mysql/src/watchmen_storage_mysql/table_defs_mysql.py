@@ -7,7 +7,7 @@ from watchmen_storage import SNOWFLAKE_WORKER_ID_TABLE
 meta_data = MetaData()
 
 
-def create_pk(name: str, column_type: Union[Type[Integer], String] = String(60)) -> Column:
+def create_pk(name: str, column_type: Union[Type[Integer], String] = String(50)) -> Column:
 	return Column(name, column_type, primary_key=True)
 
 
@@ -50,11 +50,27 @@ table_snowflake_competitive_workers = Table(
 	create_pk('data_center_id', Integer), create_pk('worker_id', Integer),
 	create_datetime('registered_at', False), create_datetime('last_beat_at', False)
 )
+table_pats = Table(
+	'pats', meta_data,
+	create_pk('pat_id'),
+	create_str('token', 255, False),
+	create_str('user_id', 50, False), create_str('username', 45),
+	create_str('tenant_id', 50, False), create_str('note', 255),
+	create_datetime('expired'), create_json('permissions'), create_datetime('created_at', False)
+)
 table_tenants = Table(
 	'tenants', meta_data,
 	create_pk('tenant_id'),
 	create_str('name', 45, False),
 	*create_tuple_audit_columns(), create_optimistic_lock()
+)
+table_data_sources = Table(
+	'data_sources', meta_data,
+	create_pk('data_source_id'),
+	create_str('data_source_code', 50, False), create_str('data_source_type', 20, False),
+	create_str('host', 50), create_str('port', 5), create_str('username', 50), create_str('password', 50),
+	create_str('name', 50), create_str('url', 255), create_json('params'),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 table_users = Table(
 	'users', meta_data,
@@ -66,8 +82,10 @@ table_users = Table(
 
 tables: Dict[str, Table] = {
 	SNOWFLAKE_WORKER_ID_TABLE: table_snowflake_competitive_workers,
+	'pats': table_pats,
+	'tenants': table_tenants,
+	'data_sources': table_data_sources,
 	'users': table_users,
-	'tenants': table_tenants
 }
 
 
