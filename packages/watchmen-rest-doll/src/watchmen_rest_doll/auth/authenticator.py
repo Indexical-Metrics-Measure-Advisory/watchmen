@@ -1,17 +1,19 @@
 from datetime import timedelta
 from logging import getLogger
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette.requests import Request
 
 from watchmen_auth import AuthFailOn401, AuthFailOn403, Authorization, PrincipalService
+from watchmen_meta_service.admin import UserService
 from watchmen_model.admin import User, UserRole
 from watchmen_model.system import Token
 from watchmen_rest import create_jwt_token
 from watchmen_rest.util import raise_401, raise_403
-from watchmen_rest_doll.doll import ask_access_token_expires_in, ask_jwt_params, ask_meta_storage, doll
+from watchmen_rest_doll.doll import ask_access_token_expires_in, ask_jwt_params, ask_meta_storage, \
+	ask_snowflake_generator, doll
 from watchmen_rest_doll.util import build_find_user_by_name, verify_password
 from watchmen_storage import TransactionalStorageSPI
 
@@ -101,13 +103,29 @@ async def login_access_token(form_data: OAuth2PasswordRequestForm = Depends()) -
 	)
 
 
-@router.get("/login/validate_token", response_model=User, tags=["authenticate"])
+@router.get("/login/validate-token", response_model=User, tags=["authenticate"])
 async def validate_token(token: str) -> User:
+	"""
+	Validate given token, returns user of this token when validated
+	"""
 	return doll.authentication_manager.authenticate_by_jwt(token)
 
-# @router.post("/login/test-token", response_model=User, tags=["authenticate"])
-# async def test_token(current_user: User = Depends(deps.get_current_user)) -> Any:
-# 	"""
-# 	Test access token
-# 	"""
-# 	return current_user
+
+@router.get("/login/test-token", response_model=User, tags=["authenticate"])
+async def test_token(principal_service: PrincipalService = Depends(get_any_principal)) -> Optional[User]:
+	"""
+	returns current principal
+	"""
+	user_id = principal_service.get_user_id()
+	user_service = UserService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+	user_service.begin_transaction()
+	try:
+		# noinspection PyTypeChecker
+		user: User = user_service.find_by_id(user_id)
+		if user is None:
+			return None
+		else:
+			del user.password
+			return user
+	finally:
+		user_service.close_transaction()
