@@ -112,10 +112,11 @@ async def delete_tenant_by_id(
 		tenant: Tenant = tenant_service.delete(tenant_id)
 		if tenant is None:
 			raise_404()
+		tenant_service.commit_transaction()
 		return tenant
 	except HTTPException as e:
+		tenant_service.rollback_transaction()
 		raise e
 	except Exception as e:
+		tenant_service.rollback_transaction()
 		raise_500(e)
-	finally:
-		tenant_service.close_transaction()
