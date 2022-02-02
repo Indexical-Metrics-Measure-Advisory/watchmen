@@ -14,7 +14,7 @@ CREATE TABLE users
     last_modified_by VARCHAR(50) NOT NULL,
     version          BIGINT,
     PRIMARY KEY (user_id),
-    INDEX (name),
+    UNIQUE INDEX (name),
     INDEX (role),
     INDEX (tenant_id),
     INDEX (created_at),
