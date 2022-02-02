@@ -131,12 +131,24 @@ async def find_users_by_name(
 
 # return query_users_by_name_with_pagination(query_name, pagination, current_user)
 
-@router.post('/user/ids', tags=["admin"], response_model=List[User])
+@router.post('/user/ids', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=List[User])
 async def query_user_list_by_ids(
 		user_ids: List[str], principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> List[User]:
-	# TODO find users by ids
-	pass
-# list_user = get_user_list_by_ids(user_ids, current_user)
-# 	# lambda user : user.password = None ,
-# 	return clean_password(list_user)
+	if len(user_ids) == 0:
+		return []
+
+	tenant_id: Optional[TenantId] = None
+	if principal_service.is_tenant_admin():
+		tenant_id = principal_service.get_tenant_id()
+
+	user_service = get_user_service(principal_service)
+	user_service.begin_transaction()
+	try:
+		users = user_service.find_by_ids(user_ids, tenant_id)
+		ArrayHelper(users).each(clear_pwd)
+		return users
+	except Exception as e:
+		raise_500(e)
+	finally:
+		user_service.close_transaction()

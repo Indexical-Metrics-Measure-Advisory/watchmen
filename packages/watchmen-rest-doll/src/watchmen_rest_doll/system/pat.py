@@ -80,8 +80,6 @@ async def pat_delete(pat_id: str, principal_service: PrincipalService = Depends(
 		pat = pat_service.find_by_id(pat_id, principal_service.get_user_id(), principal_service.get_tenant_id())
 		if pat is not None:
 			pat_service.delete_by_id(pat_id)
-		# pats = pat_service.find_by_user_id(principal_service.get_user_id(), principal_service.get_tenant_id())
-		# return ArrayHelper(pats).map(lambda pat: ClientPat(patId=pat.patId, token=pat.token, note=pat.note))
 		pat_service.commit_transaction()
 	except Exception as e:
 		pat_service.rollback_transaction()
