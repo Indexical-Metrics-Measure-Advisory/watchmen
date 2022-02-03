@@ -7,8 +7,8 @@ from watchmen_meta_service.admin import SpaceService, TopicService, UserGroupSer
 from watchmen_model.admin import Space, UserGroup, UserRole
 from watchmen_model.common import DataPage, Pageable, SpaceId, TenantId, TopicId, UserGroupId
 from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
-from watchmen_rest_doll.auth import get_admin_principal
-from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
+from watchmen_rest_doll.auth import get_admin_principal, get_super_admin_principal
+from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator, ask_tuple_delete_enabled
 from watchmen_rest_doll.util import is_blank, validate_tenant_id
 from watchmen_utilities import ArrayHelper
 
@@ -39,6 +39,8 @@ async def load_space_by_id(
 	try:
 		# noinspection PyTypeChecker
 		space: Space = space_service.find_by_id(space_id)
+		if space is None:
+			raise_404()
 		# tenant id must match current principal's
 		if space.tenantId != principal_service.get_tenant_id():
 			raise_404()
@@ -236,3 +238,31 @@ async def find_user_groups_by_ids(
 		raise_500(e)
 	finally:
 		user_group_service.close_transaction()
+
+
+@router.delete('/space', tags=[UserRole.SUPER_ADMIN], response_model=Space)
+async def delete_user_group_by_id(
+		space_id: Optional[SpaceId] = None,
+		principal_service: PrincipalService = Depends(get_super_admin_principal)
+) -> Optional[Space]:
+	if not ask_tuple_delete_enabled():
+		raise_404('Not Found')
+
+	if is_blank(space_id):
+		raise_400('Space id is required.')
+
+	space_service = get_space_service(principal_service)
+	space_service.begin_transaction()
+	try:
+		# noinspection PyTypeChecker
+		space: Space = space_service.delete(space_id)
+		if space is None:
+			raise_404()
+		space_service.commit_transaction()
+		return space
+	except HTTPException as e:
+		space_service.rollback_transaction()
+		raise e
+	except Exception as e:
+		space_service.rollback_transaction()
+		raise_500(e)

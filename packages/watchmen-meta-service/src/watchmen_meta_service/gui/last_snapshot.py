@@ -3,7 +3,7 @@ from typing import Optional
 from watchmen_auth import PrincipalService
 from watchmen_model.common import TenantId, UserId
 from watchmen_model.gui import LastSnapshot
-from watchmen_storage import EntityCriteriaExpression, EntityFinder, EntityHelper, EntityRow, \
+from watchmen_storage import EntityCriteriaExpression, EntityFinder, EntityHelper, EntityIdHelper, EntityRow, \
 	EntityShaper, EntityUpdater, TransactionalStorageSPI
 
 
@@ -65,6 +65,13 @@ class LastSnapshotService:
 	def get_entity_helper(self) -> EntityHelper:
 		return EntityHelper(name=self.get_entity_name(), shaper=self.get_entity_shaper())
 
+	def get_entity_id_helper(self) -> EntityIdHelper:
+		return EntityIdHelper(
+			name=self.get_entity_name(),
+			shaper=self.get_entity_shaper(),
+			idColumnName='user_id'
+		)
+
 	def create(self, last_snapshot: LastSnapshot) -> None:
 		return self.storage.insert_one(last_snapshot, self.get_entity_helper())
 
@@ -88,3 +95,6 @@ class LastSnapshotService:
 				EntityCriteriaExpression(name='tenant_id', value=tenant_id)
 			]
 		))
+
+	def delete_by_id(self, user_id: UserId) -> Optional[LastSnapshot]:
+		return self.storage.delete_by_id_and_pull(user_id, self.get_entity_id_helper())
