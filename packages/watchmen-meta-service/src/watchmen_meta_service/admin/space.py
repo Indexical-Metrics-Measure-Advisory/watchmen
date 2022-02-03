@@ -13,7 +13,7 @@ class SpaceShaper(EntityShaper):
 			'name': space.name,
 			'description': space.description,
 			'topic_ids': space.topicIds,
-			'user_group_ids': space.groupIds,
+			'group_ids': space.groupIds,
 			'filters': space.filters,
 		})
 
@@ -24,7 +24,7 @@ class SpaceShaper(EntityShaper):
 			name=row.get('name'),
 			description=row.get('description'),
 			topicIds=row.get('topic_ids'),
-			groupIds=row.get('user_group_ids'),
+			groupIds=row.get('group_ids'),
 			filters=row.get('filters')
 		))
 
