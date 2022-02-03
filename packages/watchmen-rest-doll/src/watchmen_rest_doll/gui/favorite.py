@@ -7,6 +7,7 @@ from watchmen_model.gui import Favorite
 from watchmen_rest.util import raise_500
 from watchmen_rest_doll.auth import get_any_principal
 from watchmen_rest_doll.doll import ask_meta_storage
+from watchmen_utilities import get_current_time_seconds
 
 router = APIRouter()
 
@@ -38,6 +39,7 @@ async def load_my_favorite(principal_service: PrincipalService = Depends(get_any
 async def save_favorite_with_user(favorite: Favorite, principal_service: PrincipalService = Depends(get_any_principal)):
 	favorite.userId = principal_service.get_user_id()
 	favorite.tenantId = principal_service.get_tenant_id()
+	favorite.lastVisitTime = get_current_time_seconds()
 	if favorite.connectedSpaceIds is None:
 		favorite.connectedSpaceIds = []
 	if favorite.dashboardIds is None:

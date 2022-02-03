@@ -13,7 +13,8 @@ class FavoriteShaper(EntityShaper):
 			'connected_space_ids': favorite.connectedSpaceIds,
 			'dashboard_ids': favorite.dashboardIds,
 			'tenant_id': favorite.tenantId,
-			'user_id': favorite.userId
+			'user_id': favorite.userId,
+			'last_visit_time': favorite.lastVisitTime
 		}
 
 	def deserialize(self, row: EntityRow) -> Favorite:
@@ -21,7 +22,8 @@ class FavoriteShaper(EntityShaper):
 			connectedSpaceIds=row.get('connected_space_ids'),
 			dashboardIds=row.get('dashboard_ids'),
 			tenantId=row.get('tenant_id'),
-			userId=row.get('user_id')
+			userId=row.get('user_id'),
+			lastVisitTime=row.get('last_visit_time')
 		)
 
 
