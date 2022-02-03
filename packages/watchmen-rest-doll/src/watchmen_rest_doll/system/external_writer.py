@@ -126,8 +126,6 @@ async def delete_external_writer_by_id(
 
 	if is_blank(writer_id):
 		raise_400('External writer id is required.')
-	if not principal_service.is_super_admin():
-		raise_403()
 
 	external_writer_service = get_external_writer_service(principal_service)
 	external_writer_service.begin_transaction()

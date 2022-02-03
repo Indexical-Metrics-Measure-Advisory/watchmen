@@ -7,8 +7,8 @@ from watchmen_meta_service.admin import SpaceService, UserGroupService, UserServ
 from watchmen_model.admin import Space, User, UserGroup, UserRole
 from watchmen_model.common import DataPage, Pageable, SpaceId, TenantId, UserGroupId, UserId
 from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
-from watchmen_rest_doll.auth import get_admin_principal
-from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
+from watchmen_rest_doll.auth import get_admin_principal, get_super_admin_principal
+from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator, ask_tuple_delete_enabled
 from watchmen_rest_doll.util import is_blank, validate_tenant_id
 from watchmen_utilities import ArrayHelper
 
@@ -41,6 +41,8 @@ async def load_user_group_by_id(
 	try:
 		# noinspection PyTypeChecker
 		user_group: UserGroup = user_group_service.find_by_id(user_group_id)
+		if user_group is None:
+			raise_404()
 		# tenant id must match current principal's
 		if user_group.tenantId != principal_service.get_tenant_id():
 			raise_404()
@@ -237,3 +239,31 @@ async def find_user_groups_by_ids(
 		raise_500(e)
 	finally:
 		user_group_service.close_transaction()
+
+
+@router.delete('/user_group', tags=[UserRole.SUPER_ADMIN], response_model=UserGroup)
+async def delete_user_group_by_id(
+		user_group_id: Optional[UserGroupId] = None,
+		principal_service: PrincipalService = Depends(get_super_admin_principal)
+) -> Optional[UserGroup]:
+	if not ask_tuple_delete_enabled():
+		raise_404('Not Found')
+
+	if is_blank(user_group_id):
+		raise_400('User group id is required.')
+
+	user_group_service = get_user_group_service(principal_service)
+	user_group_service.begin_transaction()
+	try:
+		# noinspection PyTypeChecker
+		user_group: UserGroup = user_group_service.delete(user_group_id)
+		if user_group is None:
+			raise_404()
+		user_group_service.commit_transaction()
+		return user_group
+	except HTTPException as e:
+		user_group_service.rollback_transaction()
+		raise e
+	except Exception as e:
+		user_group_service.rollback_transaction()
+		raise_500(e)

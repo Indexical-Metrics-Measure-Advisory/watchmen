@@ -106,8 +106,6 @@ async def delete_tenant_by_id(
 
 	if is_blank(tenant_id):
 		raise_400('Tenant id is required.')
-	if not principal_service.is_super_admin():
-		raise_403()
 
 	tenant_service = get_tenant_service(principal_service)
 	tenant_service.begin_transaction()

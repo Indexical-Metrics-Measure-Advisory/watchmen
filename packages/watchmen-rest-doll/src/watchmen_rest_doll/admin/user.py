@@ -7,8 +7,8 @@ from watchmen_meta_service.admin import UserGroupService, UserService
 from watchmen_model.admin import User, UserGroup, UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId, UserGroupId, UserId
 from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
-from watchmen_rest_doll.auth import get_any_admin_principal, get_any_principal
-from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
+from watchmen_rest_doll.auth import get_any_admin_principal, get_any_principal, get_super_admin_principal
+from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator, ask_tuple_delete_enabled
 from watchmen_rest_doll.util import crypt_password, is_blank, is_not_blank, validate_tenant_id
 from watchmen_utilities import ArrayHelper
 
@@ -44,6 +44,8 @@ async def load_user_by_id(
 	try:
 		# noinspection PyTypeChecker
 		user: User = user_service.find_by_id(user_id)
+		if user is None:
+			raise_404()
 		# check tenant id
 		if not principal_service.is_super_admin():
 			# tenant id must match current principal's, except current is super admin
@@ -256,3 +258,31 @@ async def query_user_list_by_ids(
 		raise_500(e)
 	finally:
 		user_service.close_transaction()
+
+
+@router.delete('/user', tags=[UserRole.SUPER_ADMIN], response_model=User)
+async def delete_user_by_id(
+		user_id: Optional[UserId] = None,
+		principal_service: PrincipalService = Depends(get_super_admin_principal)
+) -> Optional[User]:
+	if not ask_tuple_delete_enabled():
+		raise_404('Not Found')
+
+	if is_blank(user_id):
+		raise_400('User id is required.')
+
+	user_service = get_user_service(principal_service)
+	user_service.begin_transaction()
+	try:
+		# noinspection PyTypeChecker
+		user: User = user_service.delete(user_id)
+		if user is None:
+			raise_404()
+		user_service.commit_transaction()
+		return user
+	except HTTPException as e:
+		user_service.rollback_transaction()
+		raise e
+	except Exception as e:
+		user_service.rollback_transaction()
+		raise_500(e)
