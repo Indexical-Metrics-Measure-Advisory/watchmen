@@ -358,7 +358,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "uvicorn"
-version = "0.17.1"
+version = "0.17.2"
 description = "The lightning-fast ASGI server."
 category = "main"
 optional = false
@@ -401,6 +401,9 @@ develop = true
 [package.dependencies]
 watchmen-auth = {path = "../watchmen-auth", develop = true}
 watchmen-storage = {path = "../watchmen-storage", develop = true}
+
+[package.extras]
+mysql = ["watchmen-storage-mysql @ ../watchmen-storage-mysql"]
 
 [package.source]
 type = "directory"
@@ -502,7 +505,7 @@ rabbit = []
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "fef01840956d8327cb47e09a35d7bcf45caa2c467fe28e520b5e4c649aa61a77"
+content-hash = "472a64d45f4ed2012d95e18cd9e58f2bf349cd8b0d1f0b2ea2120629c2242f74"
 
 [metadata.files]
 anyio = [
@@ -825,8 +828,8 @@ typing-extensions = [
     {file = "typing_extensions-4.0.1.tar.gz", hash = "sha256:4ca091dea149f945ec56afb48dae714f21e8692ef22a395223bcd328961b6a0e"},
 ]
 uvicorn = [
-    {file = "uvicorn-0.17.1-py3-none-any.whl", hash = "sha256:8b16d9ecb76500f7804184f182835fe8a2b54716d3b0b6bb2da0b2b192f62c73"},
-    {file = "uvicorn-0.17.1.tar.gz", hash = "sha256:dffbacb8cc25d924d68d231d2c478c4fe6727c36537d8de21e5de591b37afc41"},
+    {file = "uvicorn-0.17.2-py3-none-any.whl", hash = "sha256:88b64ad6d4a77806b20b8df1a2465b49121845fff40df96e94b81de6ba9428df"},
+    {file = "uvicorn-0.17.2.tar.gz", hash = "sha256:dbad5925f50d0986404b79328d253d63e5ed22419539441246efa28ad5725069"},
 ]
 watchmen-auth = []
 watchmen-meta-service = []
