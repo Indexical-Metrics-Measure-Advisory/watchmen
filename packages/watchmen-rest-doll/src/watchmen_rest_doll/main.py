@@ -1,4 +1,4 @@
-from .admin import enumeration, space, topic, user, user_group
+from .admin import enumeration, pipeline, space, topic, user, user_group
 from .auth import authenticator
 from .doll import doll
 from .gui import favorite, last_snapshot
@@ -23,6 +23,7 @@ app.include_router(user_group.router)
 app.include_router(space.router)
 app.include_router(enumeration.router)
 app.include_router(topic.router)
+app.include_router(pipeline.router)
 
 app.include_router(favorite.router)
 app.include_router(last_snapshot.router)
