@@ -40,6 +40,24 @@ class ArrayHelper:
 				new_list.append(an_element)
 		return ArrayHelper(new_list)
 
+	def some(self, func: ArrayPredicate) -> bool:
+		"""
+		return true when at least one element satisfies the given predicate function
+		"""
+		for an_element in self.a_list:
+			if func(an_element):
+				return True
+		return False
+
+	def every(self, func: ArrayPredicate) -> bool:
+		"""
+		return true when every element satisfies the given predicate function
+		"""
+		for an_element in self.a_list:
+			if not func(an_element):
+				return False
+		return True
+
 	def map(self, func: ArrayTransform) -> ArrayHelper:
 		"""
 		transform each element by given transform function

@@ -101,7 +101,7 @@ async def find_external_writers_by_name(
 
 @router.get(
 	"/external_writer/all", tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=List[ExternalWriter])
-async def load_all_external_writers(principal_service: PrincipalService = Depends(get_any_admin_principal)):
+async def find_all_external_writers(principal_service: PrincipalService = Depends(get_any_admin_principal)):
 	tenant_id = None
 	if principal_service.is_tenant_admin():
 		tenant_id = principal_service.get_tenant_id()
@@ -109,7 +109,7 @@ async def load_all_external_writers(principal_service: PrincipalService = Depend
 	external_writer_service = get_external_writer_service(principal_service)
 	external_writer_service.begin_transaction()
 	try:
-		return external_writer_service.find_external_writers(tenant_id)
+		return external_writer_service.find_all(tenant_id)
 	except Exception as e:
 		raise_500(e)
 	finally:
