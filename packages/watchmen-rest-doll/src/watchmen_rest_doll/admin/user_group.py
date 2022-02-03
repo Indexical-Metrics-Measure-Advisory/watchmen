@@ -91,7 +91,7 @@ def sync_group(
 	users = service.find_by_ids(user_or_space_ids, tenant_id)
 	found_count = len(users)
 	if given_count != found_count:
-		raise_400(f'{where} ids does not match.')
+		raise_400(f'{where} ids do not match.')
 
 	ArrayHelper(users) \
 		.filter(lambda x: not has_user_group_id(x, user_group_id)) \
@@ -121,164 +121,12 @@ def remove_group(
 	users = service.find_by_ids(user_or_space_ids, tenant_id)
 	found_count = len(users)
 	if given_count != found_count:
-		raise_400(f'{where} ids does not match.')
+		raise_400(f'{where} ids do not match.')
 
 	ArrayHelper(users) \
 		.filter(lambda x: has_user_group_id(x, user_group_id)) \
 		.map(lambda x: remove_user_group_id(x, user_group_id)) \
 		.each(lambda x: update_user_or_space(service, x))
-
-
-# def is_user_has_user_group_id(user: User, user_group_id: UserGroupId) -> bool:
-# 	if user.groupIds is None:
-# 		return False
-# 	elif len(user.groupIds) == 0:
-# 		return False
-# 	else:
-# 		return user_group_id in user.groupIds
-
-
-# def append_user_group_id_to_user(user: User, user_group_id: UserGroupId) -> User:
-# 	if user.groupIds is None:
-# 		user.groupIds = [user_group_id]
-# 	else:
-# 		user.groupIds.append(user_group_id)
-# 	return user
-
-
-# def update_user(user_service: UserService, user: User) -> None:
-# 	user_service.update(user)
-
-
-# def sync_group_to_users(
-# 		user_group_service: UserGroupService,
-# 		user_group_id: UserGroupId, user_ids: List[UserId],
-# 		tenant_id: TenantId
-# ) -> None:
-# 	if user_ids is None:
-# 		return
-#
-# 	given_count = len(user_ids)
-# 	if given_count == 0:
-# 		# do nothing
-# 		return
-#
-# 	user_service = get_user_service(user_group_service)
-# 	users = user_service.find_by_ids(user_ids, tenant_id)
-# 	found_count = len(users)
-# 	if given_count != found_count:
-# 		raise_400(f'User ids does not match.')
-#
-# 	ArrayHelper(users) \
-# 		.filter(lambda x: not has_user_group_id(x, user_group_id)) \
-# 		.map(lambda x: append_user_group_id(x, user_group_id)) \
-# 		.each(lambda x: update_user_or_space(user_service, x))
-
-
-# def remove_user_group_id_from_user(user: User, user_group_id: UserGroupId) -> User:
-# 	user.groupIds = ArrayHelper(user.groupIds).filter(lambda x: x != user_group_id).to_list()
-# 	return user
-
-
-# def remove_group_from_users(
-# 		user_group_service: UserGroupService,
-# 		user_group_id: UserId, user_ids: List[UserId],
-# 		tenant_id: TenantId
-# ) -> None:
-# 	if user_ids is None:
-# 		return
-#
-# 	given_count = len(user_ids)
-# 	if given_count == 0:
-# 		# do nothing
-# 		return
-#
-# 	user_service = get_user_service(user_group_service)
-# 	users = user_service.find_by_ids(user_ids, tenant_id)
-# 	found_count = len(users)
-# 	if given_count != found_count:
-# 		raise_400(f'User ids does not match.')
-#
-# 	ArrayHelper(users) \
-# 		.filter(lambda x: has_user_group_id(x, user_group_id)) \
-# 		.map(lambda x: remove_user_group_id_from_user(x, user_group_id)) \
-# 		.each(lambda x: update_user_or_space(user_service, x))
-
-
-# def is_space_has_user_group_id(space: Space, user_group_id: UserGroupId) -> bool:
-# 	if space.groupIds is None:
-# 		return False
-# 	elif len(space.groupIds) == 0:
-# 		return False
-# 	else:
-# 		return user_group_id in space.groupIds
-
-
-# def append_user_group_id_to_space(space: Space, user_group_id: UserGroupId) -> Space:
-# 	if space.groupIds is None:
-# 		space.groupIds = [user_group_id]
-# 	else:
-# 		space.groupIds.append(user_group_id)
-# 	return space
-
-
-# def update_space(space_service: SpaceService, space: Space) -> None:
-# 	space_service.update(space)
-
-
-# def sync_group_to_spaces(
-# 		user_group_service: UserGroupService,
-# 		user_group_id: UserGroupId, space_ids: List[SpaceId],
-# 		tenant_id: TenantId
-# ) -> None:
-# 	if space_ids is None:
-# 		return
-#
-# 	given_count = len(space_ids)
-# 	if given_count == 0:
-# 		# do nothing
-# 		return
-#
-# 	space_service = get_space_service(user_group_service)
-# 	spaces = space_service.find_by_ids(space_ids, tenant_id)
-# 	found_count = len(spaces)
-# 	if given_count != found_count:
-# 		raise_400(f'Space ids does not match.')
-#
-# 	ArrayHelper(spaces) \
-# 		.filter(lambda x: not is_space_has_user_group_id(x, user_group_id)) \
-# 		.map(lambda x: append_user_group_id_to_space(x, user_group_id)) \
-# 		.each(lambda x: update_space(space_service, x))
-
-
-# def remove_user_group_id_from_space(space: Space, user_group_id: UserGroupId) -> Space:
-# 	space.groupIds = ArrayHelper(space.groupIds).filter(lambda x: x != user_group_id).to_list()
-# 	return space
-
-
-# def remove_group_from_spaces(
-# 		user_group_service: UserGroupService,
-# 		user_group_id: UserId, user_ids: List[UserId],
-# 		tenant_id: TenantId
-# ) -> None:
-# 	if user_ids is None:
-# 		return
-#
-# 	given_count = len(user_ids)
-# 	if given_count == 0:
-# 		# do nothing
-# 		return
-#
-# 	space_service = get_space_service(user_group_service)
-# 	spaces = space_service.find_by_ids(user_ids, tenant_id)
-# 	found_count = len(spaces)
-# 	if given_count != found_count:
-# 		raise_400(f'Space ids does not match.')
-#
-# 	ArrayHelper(spaces) \
-# 		.filter(lambda x: is_space_has_user_group_id(x, user_group_id)) \
-# 		.map(lambda x: remove_user_group_id_from_space(x, user_group_id)) \
-# 		.each(lambda x: update_space(space_service, x))
 
 
 @router.post('/user_group', tags=[UserRole.ADMIN], response_model=UserGroup)

@@ -1,7 +1,10 @@
+from typing import List
+
 from watchmen_meta_service.common import TupleService, TupleShaper
 from watchmen_model.admin import Topic
-from watchmen_model.common import TopicId
-from watchmen_storage import EntityRow, EntityShaper
+from watchmen_model.common import TenantId, TopicId
+from watchmen_storage import EntityCriteriaExpression, EntityCriteriaOperator, EntityDistinctValuesFinder, EntityRow, \
+	EntityShaper
 
 
 class TopicShaper(EntityShaper):
@@ -49,3 +52,15 @@ class TopicService(TupleService):
 
 	def get_tuple_id_column_name(self) -> str:
 		return 'topic_id'
+
+	def find_ids_by_ids(self, topic_ids: List[TopicId], tenant_id: TenantId) -> List[TopicId]:
+		# noinspection PyTypeChecker
+		return self.storage.find_distinct_values(EntityDistinctValuesFinder(
+			name=self.get_entity_name(),
+			shaper=self.get_entity_shaper(),
+			criteria=[
+				EntityCriteriaExpression(name='topic_id', operator=EntityCriteriaOperator.IN, value=topic_ids),
+				EntityCriteriaExpression(name='tenant_id', value=tenant_id)
+			],
+			distinctColumnNames=['topic_id']
+		))

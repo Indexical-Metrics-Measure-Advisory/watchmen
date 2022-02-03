@@ -3,9 +3,9 @@ from typing import List, Optional
 from fastapi import APIRouter, Body, Depends, HTTPException
 
 from watchmen_auth import PrincipalService
-from watchmen_meta_service.admin import SpaceService, UserGroupService
+from watchmen_meta_service.admin import SpaceService, TopicService, UserGroupService
 from watchmen_model.admin import Space, UserGroup, UserRole
-from watchmen_model.common import DataPage, Pageable, SpaceId, TenantId, UserGroupId
+from watchmen_model.common import DataPage, Pageable, SpaceId, TenantId, TopicId, UserGroupId
 from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
 from watchmen_rest_doll.auth import get_admin_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
@@ -21,6 +21,10 @@ def get_space_service(principal_service: PrincipalService) -> SpaceService:
 
 def get_user_group_service(space_service: SpaceService) -> UserGroupService:
 	return UserGroupService(space_service.storage, space_service.snowflake_generator, space_service.principal_service)
+
+
+def get_topic_service(space_service: SpaceService) -> TopicService:
+	return TopicService(space_service.storage, space_service.snowflake_generator, space_service.principal_service)
 
 
 @router.get('/space', tags=[UserRole.ADMIN], response_model=Space)
@@ -85,7 +89,7 @@ def sync_space_to_groups(
 	user_groups = user_group_service.find_by_ids(user_group_ids, tenant_id)
 	found_count = len(user_groups)
 	if given_count != found_count:
-		raise_400(f'User group ids does not match.')
+		raise_400('User group ids do not match.')
 
 	ArrayHelper(user_groups) \
 		.filter(lambda x: not has_space_id(x, space_id)) \
@@ -115,12 +119,24 @@ def remove_space_from_groups(
 	user_groups = user_group_service.find_by_ids(user_group_ids, tenant_id)
 	found_count = len(user_groups)
 	if given_count != found_count:
-		raise_400(f'User group ids does not match.')
+		raise_400('User group ids do not match.')
 
 	ArrayHelper(user_groups) \
 		.filter(lambda x: has_space_id(x, space_id)) \
 		.map(lambda x: remove_space_id_from_user_group(x, space_id)) \
 		.each(lambda x: update_user_group(user_group_service, x))
+
+
+def validate_topics(space_service: SpaceService, topic_ids: List[TopicId], tenant_id: TenantId) -> None:
+	if topic_ids is None:
+		return
+	given_count = len(topic_ids)
+	if given_count == 0:
+		return
+	topic_service = get_topic_service(space_service)
+	existing_topic_ids = topic_service.find_ids_by_ids(topic_ids, tenant_id)
+	if given_count != len(existing_topic_ids):
+		raise_400('Topic ids do not match')
 
 
 @router.post('/space', tags=[UserRole.ADMIN], response_model=Space)
@@ -136,6 +152,9 @@ async def save_user_group(
 			space_service.redress_tuple_id(space)
 			user_group_ids = ArrayHelper(space.groupIds).distinct().to_list()
 			space.groupIds = user_group_ids
+			topic_ids = ArrayHelper(space.topicIds).distinct().to_list()
+			space.topicIds = topic_ids
+			validate_topics(space_service, topic_ids, space.tenantId)
 			# noinspection PyTypeChecker
 			space: Space = space_service.create(space)
 			# TODO check topics
@@ -159,6 +178,9 @@ async def save_user_group(
 
 			user_group_ids = ArrayHelper(space.groupIds).distinct().to_list()
 			space.groupIds = user_group_ids
+			topic_ids = ArrayHelper(space.topicIds).distinct().to_list()
+			space.topicIds = topic_ids
+			validate_topics(space_service, topic_ids, space.tenantId)
 			# noinspection PyTypeChecker
 			space: Space = space_service.update(space)
 			# TODO check topics
