@@ -101,7 +101,7 @@ async def find_data_sources_by_name(
 
 @router.get(
 	"/datasource/all", tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=List[DataSource])
-async def load_all_data_sources(principal_service: PrincipalService = Depends(get_any_admin_principal)):
+async def find_all_data_sources(principal_service: PrincipalService = Depends(get_any_admin_principal)):
 	tenant_id = None
 	if principal_service.is_tenant_admin():
 		tenant_id = principal_service.get_tenant_id()
@@ -109,7 +109,7 @@ async def load_all_data_sources(principal_service: PrincipalService = Depends(ge
 	data_source_service = get_data_source_service(principal_service)
 	data_source_service.begin_transaction()
 	try:
-		return data_source_service.find_data_sources(tenant_id)
+		return data_source_service.find_all(tenant_id)
 	except Exception as e:
 		raise_500(e)
 	finally:

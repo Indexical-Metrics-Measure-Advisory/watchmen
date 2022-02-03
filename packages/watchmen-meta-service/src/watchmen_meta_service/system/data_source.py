@@ -68,7 +68,7 @@ class DataSourceService(TupleService):
 			criteria.append(EntityCriteriaExpression(name='tenant_id', value=tenant_id))
 		return self.storage.page(self.get_entity_pager(criteria, pageable))
 
-	def find_data_sources(self, tenant_id: Optional[TenantId]) -> List[DataSource]:
+	def find_all(self, tenant_id: Optional[TenantId]) -> List[DataSource]:
 		criteria = []
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
 			criteria.append(EntityCriteriaExpression(name='tenant_id', value=tenant_id))
