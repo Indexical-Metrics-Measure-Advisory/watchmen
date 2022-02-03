@@ -57,5 +57,5 @@ async def save_favorite_with_user(favorite: Favorite, principal_service: Princip
 		favorite_service.commit_transaction()
 		return favorite
 	except Exception as e:
-		raise_500(e)
 		favorite_service.rollback_transaction()
+		raise_500(e)

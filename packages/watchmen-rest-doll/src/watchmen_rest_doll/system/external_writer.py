@@ -69,6 +69,7 @@ async def save_external_writer(
 			external_writer: ExternalWriter = external_writer_service.update(external_writer)
 			external_writer_service.commit_transaction()
 		except HTTPException as e:
+			external_writer_service.rollback_transaction()
 			raise e
 		except Exception as e:
 			external_writer_service.rollback_transaction()

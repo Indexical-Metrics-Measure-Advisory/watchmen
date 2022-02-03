@@ -69,6 +69,7 @@ async def save_tenant(
 			tenant: Tenant = tenant_service.update(tenant)
 			tenant_service.commit_transaction()
 		except HTTPException as e:
+			tenant_service.rollback_transaction()
 			raise e
 		except Exception as e:
 			tenant_service.rollback_transaction()

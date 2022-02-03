@@ -162,6 +162,9 @@ async def save_user(user: User, principal_service: PrincipalService = Depends(ge
 			# synchronize user to user groups
 			sync_user_to_groups(user_service, user.userId, user_group_ids, user.tenantId)
 			user_service.commit_transaction()
+		except HTTPException as e:
+			user_service.rollback_transaction()
+			raise e
 		except Exception as e:
 			user_service.rollback_transaction()
 			raise_500(e)
@@ -195,6 +198,7 @@ async def save_user(user: User, principal_service: PrincipalService = Depends(ge
 				sync_user_to_groups(user_service, user.userId, user_group_ids, user.tenantId)
 			user_service.commit_transaction()
 		except HTTPException as e:
+			user_service.rollback_transaction()
 			raise e
 		except Exception as e:
 			user_service.rollback_transaction()
