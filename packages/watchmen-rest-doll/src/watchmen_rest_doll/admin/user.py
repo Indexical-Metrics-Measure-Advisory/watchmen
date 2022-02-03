@@ -148,6 +148,10 @@ async def save_user(user: User, principal_service: PrincipalService = Depends(ge
 	user_service = get_user_service(principal_service)
 
 	if user_service.is_tuple_id_faked(user.userId):
+		if principal_service.is_super_admin():
+			if user.groupIds is not None and len(user.groupIds) != 0:
+				# for super admin create user, there is no user group allowed
+				raise_400('No user group allowed for creating user by super admin.')
 		user_service.begin_transaction()
 		try:
 			user_service.redress_tuple_id(user)
@@ -156,7 +160,7 @@ async def save_user(user: User, principal_service: PrincipalService = Depends(ge
 			# noinspection PyTypeChecker
 			user: User = user_service.create(user)
 			# synchronize user to user groups
-			sync_user_to_groups(user_service, user.userId, user_group_ids, principal_service.get_tenant_id())
+			sync_user_to_groups(user_service, user.userId, user_group_ids, user.tenantId)
 			user_service.commit_transaction()
 		except Exception as e:
 			user_service.rollback_transaction()
@@ -173,16 +177,22 @@ async def save_user(user: User, principal_service: PrincipalService = Depends(ge
 					# keep original password
 					user.password = existing_user.password
 
-			user_group_ids = ArrayHelper(user.groupIds).distinct().to_list()
-			user.groupIds = user_group_ids
+			if principal_service.is_super_admin():
+				# for super admin update user, simply keep user group
+				user.groupIds = existing_user.groupIds
+			else:
+				user_group_ids = ArrayHelper(user.groupIds).distinct().to_list()
+				user.groupIds = user_group_ids
+			user_group_ids = user.groupIds
 			# noinspection PyTypeChecker
 			user: User = user_service.update(user)
-			# remove user from user groups, in case user groups are removed
-			removed_user_group_ids = ArrayHelper(existing_user.groupIds).difference(user_group_ids).to_list()
-			remove_user_from_groups(
-				user_service, user.userId, removed_user_group_ids, principal_service.get_tenant_id())
-			# synchronize user to user groups
-			sync_user_to_groups(user_service, user.userId, user_group_ids, principal_service.get_tenant_id())
+
+			if principal_service.is_tenant_admin():
+				# remove user from user groups, in case user groups are removed
+				removed_user_group_ids = ArrayHelper(existing_user.groupIds).difference(user_group_ids).to_list()
+				remove_user_from_groups(user_service, user.userId, removed_user_group_ids, user.tenantId)
+				# synchronize user to user groups
+				sync_user_to_groups(user_service, user.userId, user_group_ids, user.tenantId)
 			user_service.commit_transaction()
 		except HTTPException as e:
 			raise e
