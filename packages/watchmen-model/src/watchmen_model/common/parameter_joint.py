@@ -1,6 +1,8 @@
 from enum import Enum
 from typing import List
 
+from pydantic import BaseModel
+
 from .parameter_condition import ParameterCondition
 
 
@@ -9,6 +11,6 @@ class ParameterJointType(str, Enum):
 	OR = 'or'
 
 
-class ParameterJoint(ParameterCondition):
+class ParameterJoint(ParameterCondition, BaseModel):
 	jointType: ParameterJointType = ParameterJointType.AND
 	filters: List[ParameterCondition] = []
