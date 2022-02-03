@@ -7,7 +7,7 @@ from watchmen_meta_service.admin import SpaceService, TopicService, UserGroupSer
 from watchmen_model.admin import Space, UserGroup, UserRole
 from watchmen_model.common import DataPage, Pageable, SpaceId, TenantId, TopicId, UserGroupId
 from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
-from watchmen_rest_doll.auth import get_admin_principal, get_super_admin_principal
+from watchmen_rest_doll.auth import get_admin_principal, get_console_principal, get_super_admin_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator, ask_tuple_delete_enabled
 from watchmen_rest_doll.util import is_blank, validate_tenant_id
 from watchmen_utilities import ArrayHelper
@@ -29,7 +29,7 @@ def get_topic_service(space_service: SpaceService) -> TopicService:
 
 @router.get('/space', tags=[UserRole.ADMIN], response_model=Space)
 async def load_space_by_id(
-		space_id: Optional[SpaceId] = None, principal_service: PrincipalService = Depends(get_admin_principal)
+		space_id: Optional[SpaceId] = None, principal_service: PrincipalService = Depends(get_console_principal)
 ) -> Space:
 	if is_blank(space_id):
 		raise_400('Space id is required.')
@@ -202,11 +202,15 @@ async def save_user_group(
 	return space
 
 
-@router.post('/space/name', tags=[UserRole.ADMIN], response_model=DataPage)
-async def find_user_groups_by_name(
+class QuerySpaceDataPage(DataPage):
+	data: List[Space]
+
+
+@router.post('/space/name', tags=[UserRole.ADMIN], response_model=QuerySpaceDataPage)
+async def find_spaces_by_name(
 		query_name: Optional[str], pageable: Pageable = Body(...),
-		principal_service: PrincipalService = Depends(get_admin_principal)
-) -> DataPage:
+		principal_service: PrincipalService = Depends(get_console_principal)
+) -> QuerySpaceDataPage:
 	tenant_id: TenantId = principal_service.get_tenant_id()
 	if is_blank(query_name):
 		query_name = None
@@ -214,6 +218,7 @@ async def find_user_groups_by_name(
 	space_service = get_space_service(principal_service)
 	space_service.begin_transaction()
 	try:
+		# noinspection PyTypeChecker
 		return space_service.find_by_text(query_name, tenant_id, pageable)
 	except Exception as e:
 		raise_500(e)
@@ -222,8 +227,8 @@ async def find_user_groups_by_name(
 
 
 @router.post('/space/ids', tags=[UserRole.ADMIN], response_model=List[Space])
-async def find_user_groups_by_ids(
-		space_ids: List[SpaceId], principal_service: PrincipalService = Depends(get_admin_principal)
+async def find_spaces_by_ids(
+		space_ids: List[SpaceId], principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[Space]:
 	if len(space_ids) == 0:
 		return []

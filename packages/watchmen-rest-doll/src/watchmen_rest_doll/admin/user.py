@@ -211,11 +211,15 @@ async def save_user(user: User, principal_service: PrincipalService = Depends(ge
 	return user
 
 
-@router.post('/user/name', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=DataPage)
+class QueryUserDataPage(DataPage):
+	data: List[User]
+
+
+@router.post('/user/name', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=QueryUserDataPage)
 async def find_users_by_name(
 		query_name: Optional[str], pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
-) -> DataPage:
+) -> QueryUserDataPage:
 	tenant_id: Optional[TenantId] = None
 	if principal_service.is_tenant_admin():
 		tenant_id = principal_service.get_tenant_id()
@@ -228,6 +232,7 @@ async def find_users_by_name(
 		page = user_service.find_by_text(query_name, tenant_id, pageable)
 
 		ArrayHelper(page.data).each(clear_pwd)
+		# noinspection PyTypeChecker
 		return page
 	except Exception as e:
 		raise_500(e)

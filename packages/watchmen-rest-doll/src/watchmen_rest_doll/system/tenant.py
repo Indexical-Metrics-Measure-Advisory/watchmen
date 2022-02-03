@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException
 
@@ -78,17 +78,22 @@ async def save_tenant(
 	return tenant
 
 
-@router.post('/tenant/name', tags=[UserRole.SUPER_ADMIN], response_model=DataPage)
+class QueryTenantDataPage(DataPage):
+	data: List[Tenant]
+
+
+@router.post('/tenant/name', tags=[UserRole.SUPER_ADMIN], response_model=QueryTenantDataPage)
 async def find_tenants_by_name(
 		query_name: Optional[str] = None, pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
-) -> DataPage:
+) -> QueryTenantDataPage:
 	if is_blank(query_name):
 		query_name = None
 
 	tenant_service = get_tenant_service(principal_service)
 	tenant_service.begin_transaction()
 	try:
+		# noinspection PyTypeChecker
 		return tenant_service.find_by_text(query_name, pageable)
 	except Exception as e:
 		raise_500(e)
