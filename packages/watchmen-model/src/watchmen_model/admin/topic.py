@@ -1,6 +1,8 @@
 from enum import Enum
 from typing import List
 
+from pydantic import BaseModel
+
 from watchmen_model.common import DataSourceId, OptimisticLock, TenantBasedTuple, TopicId
 from .factor import Factor
 
@@ -19,7 +21,7 @@ class TopicType(str, Enum):
 	RATIO = 'ratio'
 
 
-class Topic(TenantBasedTuple, OptimisticLock):
+class Topic(TenantBasedTuple, OptimisticLock, BaseModel):
 	topicId: TopicId = None
 	name: str = None
 	type: TopicType = TopicType.DISTINCT

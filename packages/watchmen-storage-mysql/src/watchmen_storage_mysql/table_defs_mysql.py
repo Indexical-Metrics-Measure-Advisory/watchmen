@@ -61,12 +61,18 @@ def create_last_visit_time() -> Column:
 	return Column('last_visit_time', Date, nullable=False)
 
 
+def create_description() -> Column:
+	return Column('description', String(255), nullable=True)
+
+
+# snowflake workers
 table_snowflake_competitive_workers = Table(
 	SNOWFLAKE_WORKER_ID_TABLE, meta_data,
 	create_str('ip', String(100)), create_str('process_id', String(60)),
 	create_pk('data_center_id', Integer), create_pk('worker_id', Integer),
 	create_datetime('registered_at', False), create_datetime('last_beat_at', False)
 )
+# system
 table_pats = Table(
 	'pats', meta_data,
 	create_pk('pat_id'),
@@ -96,6 +102,7 @@ table_external_writers = Table(
 	create_str('pat', 255), create_str('url', 255),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
+# admin
 table_users = Table(
 	'users', meta_data,
 	create_pk('user_id'),
@@ -103,6 +110,45 @@ table_users = Table(
 	create_bool('is_active'), create_json('group_ids'), create_str('role', 45),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
+table_user_groups = Table(
+	'user_groups', meta_data,
+	create_pk('user_group_id'),
+	create_str('name', 45, False), create_description(),
+	create_json('user_ids'), create_json('space_ids'),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+table_spaces = Table(
+	'spaces', meta_data,
+	create_pk('space_id'),
+	create_str('name', 45, False), create_description(),
+	create_json('topic_ids'), create_json('user_group_ids'), create_json('filters'),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+table_enums = Table(
+	'enums', meta_data,
+	create_pk('enum_id'),
+	create_str('name', 45, False), create_description(),
+	create_tuple_id_column('parent_enum_id'),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+table_enum_items = Table(
+	'enum_items', meta_data,
+	create_pk('item_id'),
+	create_str('code', 50, False), create_str('label', 100),
+	create_str('parent_code', 50), create_str('replace_code', 50),
+	create_tuple_id_column('enum_id'),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+table_topics = Table(
+	'topics', meta_data,
+	create_pk('topic_id'),
+	create_str('name', 25, False), create_description(),
+	create_str('type', 20, False), create_str('kind', 20, False),
+	create_tuple_id_column('data_source_id', False),
+	create_json('factors'),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+# gui
 table_favorites = Table(
 	'favorites', meta_data,
 	create_json('connected_space_ids'), create_json('dashboard_ids'),
@@ -123,6 +169,11 @@ tables: Dict[str, Table] = {
 	'external_writers': table_external_writers,
 	'data_sources': table_data_sources,
 	'users': table_users,
+	'user_groups': table_user_groups,
+	'spaces': table_spaces,
+	'enums': table_enums,
+	'enum_items': table_enum_items,
+	'topics': table_topics,
 	'favorites': table_favorites,
 	'last_snapshots': table_last_snapshot
 }

@@ -1,6 +1,8 @@
 from enum import Enum
 
-from watchmen_model.common import EnumId, FactorId, TenantBasedTuple
+from pydantic import BaseModel
+
+from watchmen_model.common import EnumId, FactorId, Storable
 
 
 class FactorType(str, Enum):
@@ -114,7 +116,7 @@ class FactorEncryptMethod(str, Enum):
 	MASK_MONTH_DAY = 'MASK-MONTH-DAY'
 
 
-class Factor(TenantBasedTuple):
+class Factor(Storable, BaseModel):
 	factorId: FactorId = None
 	type: FactorType = None
 	name: str = None
