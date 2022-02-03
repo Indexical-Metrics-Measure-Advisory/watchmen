@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.system import PatService
 from watchmen_model.admin import UserRole
+from watchmen_model.common import PatId
 from watchmen_model.system import PersonalAccessToken
 from watchmen_rest.util import raise_400, raise_500
 from watchmen_rest_doll.auth import get_any_principal
@@ -28,7 +29,7 @@ class PatCreationParams(BaseModel):
 
 
 class ClientPat(BaseModel):
-	patId: str
+	patId: PatId
 	token: str
 	note: str
 
@@ -71,7 +72,8 @@ async def pat_list(principal_service: PrincipalService = Depends(get_any_princip
 
 
 @router.post('/pat/delete', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
-async def pat_delete(pat_id: str, principal_service: PrincipalService = Depends(get_any_principal)) -> None:
+async def pat_delete(
+		pat_id: Optional[PatId] = None, principal_service: PrincipalService = Depends(get_any_principal)) -> None:
 	if is_blank(pat_id):
 		raise_400('Pat id is required.')
 

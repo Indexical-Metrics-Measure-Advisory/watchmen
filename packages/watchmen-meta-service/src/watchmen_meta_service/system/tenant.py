@@ -42,7 +42,7 @@ class TenantService(TupleService):
 	def get_tuple_id_column_name(self) -> str:
 		return 'tenant_id'
 
-	def find_tenants_by_text(self, text: Optional[str], pageable: Pageable) -> DataPage:
+	def find_by_text(self, text: Optional[str], pageable: Pageable) -> DataPage:
 		criteria = []
 		if text is not None and len(text.strip()) != 0:
 			criteria.append(EntityCriteriaExpression(name='name', operator=EntityCriteriaOperator.LIKE, value=text))

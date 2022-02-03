@@ -5,7 +5,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.admin import UserService
 from watchmen_model.admin import User, UserRole
-from watchmen_model.common import DataPage, Pageable, TenantId
+from watchmen_model.common import DataPage, Pageable, TenantId, UserId
 from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
 from watchmen_rest_doll.auth import get_any_admin_principal, get_any_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
@@ -25,7 +25,7 @@ def clear_pwd(user: User):
 
 @router.get('/user', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=User)
 async def load_user_by_id(
-		user_id: Optional[str] = None,
+		user_id: Optional[UserId] = None,
 		principal_service: PrincipalService = Depends(get_any_principal)
 ) -> User:
 	if is_blank(user_id):
@@ -119,7 +119,7 @@ async def find_users_by_name(
 	user_service = get_user_service(principal_service)
 	user_service.begin_transaction()
 	try:
-		page = user_service.find_users_by_text(query_name, tenant_id, pageable)
+		page = user_service.find_by_text(query_name, tenant_id, pageable)
 
 		ArrayHelper(page.data).each(clear_pwd)
 		return page
@@ -133,7 +133,7 @@ async def find_users_by_name(
 
 @router.post('/user/ids', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=List[User])
 async def query_user_list_by_ids(
-		user_ids: List[str], principal_service: PrincipalService = Depends(get_any_admin_principal)
+		user_ids: List[UserId], principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> List[User]:
 	if len(user_ids) == 0:
 		return []

@@ -5,7 +5,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.system import ExternalWriterService
 from watchmen_model.admin import UserRole
-from watchmen_model.common import DataPage, Pageable
+from watchmen_model.common import DataPage, ExternalWriterId, Pageable
 from watchmen_model.system import ExternalWriter
 from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
 from watchmen_rest_doll.auth import get_any_admin_principal, get_super_admin_principal
@@ -21,7 +21,7 @@ def get_external_writer_service(principal_service: PrincipalService) -> External
 
 @router.get('/external_writer', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=ExternalWriter)
 async def load_external_writer_by_id(
-		writer_id: Optional[str] = None,
+		writer_id: Optional[ExternalWriterId] = None,
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> Optional[ExternalWriter]:
 	if is_blank(writer_id):
@@ -91,7 +91,7 @@ async def find_external_writers_by_name(
 	external_writer_service = get_external_writer_service(principal_service)
 	external_writer_service.begin_transaction()
 	try:
-		return external_writer_service.find_external_writers_by_text(query_name, tenant_id, pageable)
+		return external_writer_service.find_by_text(query_name, tenant_id, pageable)
 	except Exception as e:
 		raise_500(e)
 	finally:
@@ -117,13 +117,13 @@ async def load_all_external_writers(principal_service: PrincipalService = Depend
 
 @router.delete('/external_writer', tags=[UserRole.SUPER_ADMIN], response_model=ExternalWriter)
 async def delete_external_writer_by_id(
-		external_writer_id: Optional[str] = None,
+		writer_id: Optional[ExternalWriterId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
 ) -> Optional[ExternalWriter]:
 	if not ask_tuple_delete_enabled():
 		raise_404('Not Found')
 
-	if is_blank(external_writer_id):
+	if is_blank(writer_id):
 		raise_400('External writer id is required.')
 	if not principal_service.is_super_admin():
 		raise_403()
@@ -132,7 +132,7 @@ async def delete_external_writer_by_id(
 	external_writer_service.begin_transaction()
 	try:
 		# noinspection PyTypeChecker
-		external_writer: ExternalWriter = external_writer_service.delete(external_writer_id)
+		external_writer: ExternalWriter = external_writer_service.delete(writer_id)
 		if external_writer is None:
 			raise_404()
 		external_writer_service.commit_transaction()

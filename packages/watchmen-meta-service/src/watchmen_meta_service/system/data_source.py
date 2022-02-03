@@ -59,7 +59,7 @@ class DataSourceService(TupleService):
 	def get_tuple_id_column_name(self) -> str:
 		return 'data_source_id'
 
-	def find_data_sources_by_text(
+	def find_by_text(
 			self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
 		criteria = []
 		if text is not None and len(text.strip()) != 0:

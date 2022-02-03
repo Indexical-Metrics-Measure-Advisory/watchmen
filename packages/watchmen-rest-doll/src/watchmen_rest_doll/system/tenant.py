@@ -5,7 +5,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.system import TenantService
 from watchmen_model.admin import UserRole
-from watchmen_model.common import DataPage, Pageable
+from watchmen_model.common import DataPage, Pageable, TenantId
 from watchmen_model.system import Tenant
 from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
 from watchmen_rest_doll.auth import get_any_principal, get_super_admin_principal
@@ -21,7 +21,7 @@ def get_tenant_service(principal_service: PrincipalService) -> TenantService:
 
 @router.get('/tenant', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=Tenant)
 async def load_tenant_by_id(
-		tenant_id: Optional[str] = None,
+		tenant_id: Optional[TenantId] = None,
 		principal_service: PrincipalService = Depends(get_any_principal)
 ) -> Optional[Tenant]:
 	if is_blank(tenant_id):
@@ -88,7 +88,7 @@ async def find_tenants_by_name(
 	tenant_service = get_tenant_service(principal_service)
 	tenant_service.begin_transaction()
 	try:
-		return tenant_service.find_tenants_by_text(query_name, pageable)
+		return tenant_service.find_by_text(query_name, pageable)
 	except Exception as e:
 		raise_500(e)
 	finally:
@@ -97,7 +97,7 @@ async def find_tenants_by_name(
 
 @router.delete('/tenant', tags=[UserRole.SUPER_ADMIN], response_model=Tenant)
 async def delete_tenant_by_id(
-		tenant_id: Optional[str] = None,
+		tenant_id: Optional[TenantId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
 ) -> Optional[Tenant]:
 	if not ask_tuple_delete_enabled():
