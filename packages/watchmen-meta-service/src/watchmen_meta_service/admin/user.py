@@ -53,7 +53,7 @@ class UserService(TupleService):
 	def get_tuple_id_column_name(self) -> str:
 		return 'user_id'
 
-	def find_users_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
+	def find_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
 		# always ignore super admin
 		criteria = [
 			EntityCriteriaExpression(

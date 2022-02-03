@@ -1,4 +1,4 @@
-from .admin import user
+from .admin import user, user_group
 from .auth import authenticator
 from .doll import doll
 from .gui import favorite, last_snapshot
@@ -17,6 +17,9 @@ app.include_router(pat.router)
 app.include_router(tenant.router)
 app.include_router(data_source.router)
 app.include_router(external_writer.router)
+
 app.include_router(user.router)
+app.include_router(user_group.router)
+
 app.include_router(favorite.router)
 app.include_router(last_snapshot.router)

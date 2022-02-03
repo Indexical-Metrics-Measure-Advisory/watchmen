@@ -5,7 +5,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.system import DataSourceService
 from watchmen_model.admin import UserRole
-from watchmen_model.common import DataPage, Pageable
+from watchmen_model.common import DataPage, DataSourceId, Pageable
 from watchmen_model.system import DataSource
 from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
 from watchmen_rest_doll.auth import get_any_admin_principal, get_super_admin_principal
@@ -21,20 +21,20 @@ def get_data_source_service(principal_service: PrincipalService) -> DataSourceSe
 
 @router.get('/datasource', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=DataSource)
 async def load_data_source_by_id(
-		datasource_id: Optional[str] = None,
+		data_source_id: Optional[DataSourceId] = None,
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> Optional[DataSource]:
-	if is_blank(datasource_id):
+	if is_blank(data_source_id):
 		raise_400('Data source id is required.')
 	if not principal_service.is_super_admin():
-		if datasource_id != principal_service.get_tenant_id():
+		if data_source_id != principal_service.get_tenant_id():
 			raise_403()
 
 	data_source_service = get_data_source_service(principal_service)
 	data_source_service.begin_transaction()
 	try:
 		# noinspection PyTypeChecker
-		data_source: DataSource = data_source_service.find_by_id(datasource_id)
+		data_source: DataSource = data_source_service.find_by_id(data_source_id)
 		if data_source is None:
 			raise_404()
 		return data_source
@@ -91,7 +91,7 @@ async def find_data_sources_by_name(
 	data_source_service = get_data_source_service(principal_service)
 	data_source_service.begin_transaction()
 	try:
-		return data_source_service.find_data_sources_by_text(query_name, tenant_id, pageable)
+		return data_source_service.find_by_text(query_name, tenant_id, pageable)
 	except Exception as e:
 		raise_500(e)
 	finally:
@@ -117,7 +117,7 @@ async def load_all_data_sources(principal_service: PrincipalService = Depends(ge
 
 @router.delete('/datasource', tags=[UserRole.SUPER_ADMIN], response_model=DataSource)
 async def delete_data_source_by_id(
-		data_source_id: Optional[str] = None,
+		data_source_id: Optional[DataSourceId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
 ) -> Optional[DataSource]:
 	if not ask_tuple_delete_enabled():
