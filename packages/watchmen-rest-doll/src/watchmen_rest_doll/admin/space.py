@@ -3,19 +3,24 @@ from typing import List, Optional
 from fastapi import APIRouter, Body, Depends, HTTPException
 
 from watchmen_auth import PrincipalService
-from watchmen_meta_service.admin import SpaceService
-from watchmen_model.admin import Space, UserRole
-from watchmen_model.common import DataPage, Pageable, SpaceId, TenantId
+from watchmen_meta_service.admin import SpaceService, UserGroupService
+from watchmen_model.admin import Space, UserGroup, UserRole
+from watchmen_model.common import DataPage, Pageable, SpaceId, TenantId, UserGroupId
 from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
 from watchmen_rest_doll.auth import get_admin_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
 from watchmen_rest_doll.util import is_blank, validate_tenant_id
+from watchmen_utilities import ArrayHelper
 
 router = APIRouter()
 
 
 def get_space_service(principal_service: PrincipalService) -> SpaceService:
 	return SpaceService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
+def get_user_group_service(space_service: SpaceService) -> UserGroupService:
+	return UserGroupService(space_service.storage, space_service.snowflake_generator, space_service.principal_service)
 
 
 @router.get('/space', tags=[UserRole.ADMIN], response_model=Space)
@@ -42,6 +47,82 @@ async def load_space_by_id(
 		space_service.close_transaction()
 
 
+def has_space_id(user_group: UserGroup, space_id: SpaceId) -> bool:
+	if user_group.spaceIds is None:
+		return False
+	elif len(user_group.spaceIds) == 0:
+		return False
+	else:
+		return space_id in user_group.spaceIds
+
+
+def append_space_id_to_user_group(user_group: UserGroup, space_id: SpaceId) -> UserGroup:
+	if user_group.spaceIds is None:
+		user_group.spaceIds = [space_id]
+	else:
+		user_group.spaceIds.append(space_id)
+	return user_group
+
+
+def update_user_group(user_group_service: UserGroupService, user_group: UserGroup) -> None:
+	user_group_service.update(user_group)
+
+
+def sync_space_to_groups(
+		space_service: SpaceService,
+		space_id: SpaceId, user_group_ids: List[UserGroupId],
+		tenant_id: TenantId
+) -> None:
+	if user_group_ids is None:
+		return
+
+	given_count = len(user_group_ids)
+	if given_count == 0:
+		# do nothing
+		return
+
+	user_group_service = get_user_group_service(space_service)
+	user_groups = user_group_service.find_by_ids(user_group_ids, tenant_id)
+	found_count = len(user_groups)
+	if given_count != found_count:
+		raise_400(f'User group ids does not match.')
+
+	ArrayHelper(user_groups) \
+		.filter(lambda x: not has_space_id(x, space_id)) \
+		.map(lambda x: append_space_id_to_user_group(x, space_id)) \
+		.each(lambda x: update_user_group(user_group_service, x))
+
+
+def remove_space_id_from_user_group(user_group: UserGroup, space_id: SpaceId) -> UserGroup:
+	user_group.spaceIds = ArrayHelper(user_group.spaceIds).filter(lambda x: x != space_id).to_list()
+	return user_group
+
+
+def remove_space_from_groups(
+		space_service: SpaceService,
+		space_id: SpaceId, user_group_ids: List[UserGroupId],
+		tenant_id: TenantId
+) -> None:
+	if user_group_ids is None:
+		return
+
+	given_count = len(user_group_ids)
+	if given_count == 0:
+		# do nothing
+		return
+
+	user_group_service = get_user_group_service(space_service)
+	user_groups = user_group_service.find_by_ids(user_group_ids, tenant_id)
+	found_count = len(user_groups)
+	if given_count != found_count:
+		raise_400(f'User group ids does not match.')
+
+	ArrayHelper(user_groups) \
+		.filter(lambda x: has_space_id(x, space_id)) \
+		.map(lambda x: remove_space_id_from_user_group(x, space_id)) \
+		.each(lambda x: update_user_group(user_group_service, x))
+
+
 @router.post('/space', tags=[UserRole.ADMIN], response_model=Space)
 async def save_user_group(
 		space: Space, principal_service: PrincipalService = Depends(get_admin_principal)) -> Space:
@@ -53,10 +134,13 @@ async def save_user_group(
 		space_service.begin_transaction()
 		try:
 			space_service.redress_tuple_id(space)
+			user_group_ids = ArrayHelper(space.groupIds).distinct().to_list()
+			space.groupIds = user_group_ids
 			# noinspection PyTypeChecker
 			space: Space = space_service.create(space)
 			# TODO check topics
-			# TODO synchronize space to user group
+			# synchronize space to user groups
+			sync_space_to_groups(space_service, space.spaceId, user_group_ids, space.tenantId)
 			space_service.commit_transaction()
 		except HTTPException as e:
 			space_service.rollback_transaction()
@@ -73,10 +157,16 @@ async def save_user_group(
 				if existing_space.tenantId != space.tenantId:
 					raise_403()
 
+			user_group_ids = ArrayHelper(space.groupIds).distinct().to_list()
+			space.groupIds = user_group_ids
 			# noinspection PyTypeChecker
 			space: Space = space_service.update(space)
 			# TODO check topics
-			# TODO synchronize space to user group
+			# remove user from user groups, in case user groups are removed
+			removed_user_group_ids = ArrayHelper(existing_space.groupIds).difference(user_group_ids).to_list()
+			remove_space_from_groups(space_service, space.spaceId, removed_user_group_ids, space.tenantId)
+			# synchronize user to user groups
+			sync_space_to_groups(space_service, space.spaceId, user_group_ids, space.tenantId)
 			space_service.commit_transaction()
 		except HTTPException as e:
 			space_service.rollback_transaction()
