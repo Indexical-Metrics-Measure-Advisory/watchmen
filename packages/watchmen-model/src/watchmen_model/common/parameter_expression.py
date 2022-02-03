@@ -1,5 +1,7 @@
 from enum import Enum
 
+from pydantic import BaseModel
+
 from .parameter import Parameter
 from .parameter_condition import ParameterCondition
 
@@ -17,7 +19,7 @@ class ParameterExpressionOperator(str, Enum):
 	NOT_IN = 'not-in',
 
 
-class ParameterExpression(ParameterCondition):
+class ParameterExpression(ParameterCondition, BaseModel):
 	left: Parameter = None
 	operator: ParameterExpressionOperator = ParameterExpressionOperator.EQUALS
 	right: Parameter = None
