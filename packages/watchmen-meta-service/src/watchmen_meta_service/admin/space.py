@@ -1,7 +1,9 @@
+from typing import List, Optional
+
 from watchmen_meta_service.common import TupleService, TupleShaper
 from watchmen_model.admin import Space
-from watchmen_model.common import SpaceId
-from watchmen_storage import EntityRow, EntityShaper
+from watchmen_model.common import DataPage, Pageable, SpaceId, TenantId
+from watchmen_storage import EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, EntityShaper
 
 
 class SpaceShaper(EntityShaper):
@@ -47,3 +49,22 @@ class SpaceService(TupleService):
 
 	def get_tuple_id_column_name(self) -> str:
 		return 'space_id'
+
+	def find_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
+		criteria = []
+		if text is not None and len(text.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(name='name', operator=EntityCriteriaOperator.LIKE, value=text))
+			criteria.append(
+				EntityCriteriaExpression(name='description', operator=EntityCriteriaOperator.LIKE, value=text))
+		if tenant_id is not None and len(tenant_id.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(name='tenant_id', value=tenant_id))
+		return self.storage.page(self.get_entity_pager(criteria, pageable))
+
+	def find_by_ids(self, space_ids: List[SpaceId], tenant_id: Optional[TenantId]) -> List[Space]:
+		criteria = [
+			EntityCriteriaExpression(name='space_id', operator=EntityCriteriaOperator.IN, value=space_ids)
+		]
+		if tenant_id is not None and len(tenant_id.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(name='tenant_id', value=tenant_id))
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria))

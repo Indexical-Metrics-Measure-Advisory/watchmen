@@ -103,7 +103,7 @@ async def find_user_groups_by_name(
 		user_group_service.close_transaction()
 
 
-@router.post('/user_groups/ids', tags=[UserRole.ADMIN], response_model=List[UserGroup])
+@router.post('/user_group/ids', tags=[UserRole.ADMIN], response_model=List[UserGroup])
 async def find_user_groups_by_ids(
 		user_group_ids: List[UserGroupId], principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> List[UserGroup]:
