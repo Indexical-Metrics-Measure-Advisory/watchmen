@@ -3,10 +3,10 @@ from datetime import datetime
 from typing import Optional, TypeVar
 
 from watchmen_auth import PrincipalService
-from watchmen_model.common import Auditable, OptimisticLock, TenantBasedTuple, Tuple, UserBasedTuple
-from watchmen_storage import EntityCriteria, EntityCriteriaExpression, EntityDeleter, EntityHelper, EntityIdHelper, \
-	EntityRow, \
-	EntityShaper, EntityUpdate, EntityUpdater, OptimisticLockException, SnowflakeGenerator, TransactionalStorageSPI
+from watchmen_model.common import Auditable, OptimisticLock, Pageable, TenantBasedTuple, Tuple, UserBasedTuple
+from watchmen_storage import EntityCriteria, EntityCriteriaExpression, EntityDeleter, EntityFinder, EntityHelper, \
+	EntityIdHelper, EntityPager, EntityRow, EntityShaper, EntitySort, EntityUpdate, EntityUpdater, \
+	OptimisticLockException, SnowflakeGenerator, TransactionalStorageSPI
 
 TupleId = TypeVar('TupleId', bound=str)
 
@@ -125,6 +125,25 @@ class TupleService:
 	def get_entity_id_helper(self) -> EntityIdHelper:
 		return EntityIdHelper(
 			name=self.get_entity_name(), shaper=self.get_entity_shaper(), idColumnName=self.get_tuple_id_column_name())
+
+	def get_entity_finder(self, criteria: EntityCriteria, sort: Optional[EntitySort] = None) -> EntityFinder:
+		return EntityFinder(
+			name=self.get_entity_name(),
+			shaper=self.get_entity_shaper(),
+			criteria=criteria,
+			sort=sort
+		)
+
+	def get_entity_pager(
+			self, criteria: EntityCriteria, pageable: Pageable, sort: Optional[EntitySort] = None
+	) -> EntityPager:
+		return EntityPager(
+			name=self.get_entity_name(),
+			shaper=self.get_entity_shaper(),
+			criteria=criteria,
+			sort=sort,
+			pageable=pageable
+		)
 
 	def get_entity_updater(self, criteria: EntityCriteria, update: EntityUpdate) -> EntityUpdater:
 		return EntityUpdater(

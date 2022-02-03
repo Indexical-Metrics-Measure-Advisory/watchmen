@@ -1,8 +1,12 @@
 from typing import List
 
-from watchmen_model.common import ConnectedSpaceId, DashboardId, UserBasedTuple
+from pydantic import BaseModel
+
+from watchmen_model.common import ConnectedSpaceId, DashboardId, Storable, TenantId, UserId
 
 
-class Favorite(UserBasedTuple):
+class Favorite(Storable, BaseModel):
 	connectedSpaceIds: List[ConnectedSpaceId] = []
 	dashboardIds: List[DashboardId] = []
+	tenantId: TenantId = None
+	userId: UserId = None
