@@ -5,7 +5,6 @@ from logging import getLogger
 # from watchmen.raw_data.service.import_raw_data import import_raw_topic_data
 # from watchmen_boot.config.config import settings
 
-
 logger = getLogger(__name__)
 
 
