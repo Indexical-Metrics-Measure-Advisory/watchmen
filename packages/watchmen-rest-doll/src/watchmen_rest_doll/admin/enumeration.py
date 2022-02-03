@@ -27,7 +27,7 @@ def get_enum_item_service(enum_service: EnumService) -> EnumItemService:
 
 @router.get('/enum', tags=[UserRole.ADMIN], response_model=Enum)
 async def load_enum_by_id(
-		enum_id: Optional[EnumId] = None, principal_service: PrincipalService = Depends(get_admin_principal)
+		enum_id: Optional[EnumId] = None, principal_service: PrincipalService = Depends(get_console_principal)
 ) -> Optional[Enum]:
 	if is_blank(enum_id):
 		raise_400('Enumeration id is required.')
@@ -172,7 +172,7 @@ def copy_enum_to_tiny_enum(an_enum: Enum) -> TinyEnum:
 
 
 @router.get("/enum/all", tags=[UserRole.ADMIN], response_model=List[TinyEnum])
-async def find_all_enums(principal_service: PrincipalService = Depends(get_admin_principal)) -> List[TinyEnum]:
+async def find_all_enums(principal_service: PrincipalService = Depends(get_console_principal)) -> List[TinyEnum]:
 	tenant_id = principal_service.get_tenant_id()
 
 	enum_service = get_enum_service(principal_service)
@@ -183,16 +183,3 @@ async def find_all_enums(principal_service: PrincipalService = Depends(get_admin
 		raise_500(e)
 	finally:
 		enum_service.close_transaction()
-
-# @router.get("/enum/all", tags=["admin"], response_model=List[Enum])
-# async def load_enum_all(current_user: User = Depends(deps.get_current_user)):
-#     return load_enum_list(current_user)
-
-# @router.get("/enum/list/selection", tags=["admin"], response_model=List[Enum])
-# async def load_enum_list_by_topic(topic_id: str, current_user: User = Depends(deps.get_current_user)):
-#     topic = get_topic_by_id(topic_id, current_user)
-#     enum_list = []
-#     for factor in topic.factors:
-#         if factor.enumId is not None:
-#             enum_list.append(load_enum_by_id(factor.enumId, current_user))
-#     return enum_list
