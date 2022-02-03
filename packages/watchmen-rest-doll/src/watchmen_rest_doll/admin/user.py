@@ -98,7 +98,7 @@ def sync_user_to_groups(
 	user_groups = user_group_service.find_by_ids(user_group_ids, tenant_id)
 	found_count = len(user_groups)
 	if given_count != found_count:
-		raise_400(f'User group ids does not match.')
+		raise_400('User group ids do not match.')
 
 	ArrayHelper(user_groups) \
 		.filter(lambda x: not has_user_id(x, user_id)) \
@@ -128,7 +128,7 @@ def remove_user_from_groups(
 	user_groups = user_group_service.find_by_ids(user_group_ids, tenant_id)
 	found_count = len(user_groups)
 	if given_count != found_count:
-		raise_400(f'User group ids does not match.')
+		raise_400('User group ids do not match.')
 
 	ArrayHelper(user_groups) \
 		.filter(lambda x: has_user_id(x, user_id)) \
