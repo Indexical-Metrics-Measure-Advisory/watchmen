@@ -154,10 +154,10 @@ async def save_user_group(
 			space.groupIds = user_group_ids
 			topic_ids = ArrayHelper(space.topicIds).distinct().to_list()
 			space.topicIds = topic_ids
+			# check topics
 			validate_topics(space_service, topic_ids, space.tenantId)
 			# noinspection PyTypeChecker
 			space: Space = space_service.create(space)
-			# TODO check topics
 			# synchronize space to user groups
 			sync_space_to_groups(space_service, space.spaceId, user_group_ids, space.tenantId)
 			space_service.commit_transaction()
@@ -180,10 +180,10 @@ async def save_user_group(
 			space.groupIds = user_group_ids
 			topic_ids = ArrayHelper(space.topicIds).distinct().to_list()
 			space.topicIds = topic_ids
+			# check topics
 			validate_topics(space_service, topic_ids, space.tenantId)
 			# noinspection PyTypeChecker
 			space: Space = space_service.update(space)
-			# TODO check topics
 			# remove user from user groups, in case user groups are removed
 			removed_user_group_ids = ArrayHelper(existing_space.groupIds).difference(user_group_ids).to_list()
 			remove_space_from_groups(space_service, space.spaceId, removed_user_group_ids, space.tenantId)
