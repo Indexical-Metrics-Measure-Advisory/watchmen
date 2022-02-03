@@ -9,8 +9,7 @@ app = doll.construct()
 
 @app.on_event("startup")
 def startup():
-	doll.init_kafka_connector()
-	doll.init_rabbitmq_connector()
+	doll.on_startup(app)
 
 
 app.include_router(authenticator.router)

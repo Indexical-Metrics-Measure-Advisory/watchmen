@@ -34,22 +34,25 @@ class DollApp(RestApp):
 		return self.get_settings().KAFKA_CONNECTOR
 
 	def init_kafka_connector(self):
-		init_kafka()
+		if self.is_kafka_connector_enabled():
+			init_kafka()
 
 	def is_rabbitmq_connector_enabled(self):
 		return self.get_settings().RABBITMQ_CONNECTOR
 
 	def init_rabbitmq_connector(self):
-		init_rabbitmq()
+		if self.is_rabbitmq_connector_enabled():
+			init_rabbitmq()
 
 	def init_connectors(self):
-		if self.is_kafka_connector_enabled():
-			self.init_kafka_connector()
-		if self.is_rabbitmq_connector_enabled():
-			self.init_rabbitmq_connector()
+		self.init_kafka_connector()
+		self.init_rabbitmq_connector()
 
 	def post_construct(self, app: FastAPI) -> None:
 		pass
+
+	def on_startup(self, app: FastAPI) -> None:
+		self.init_connectors()
 
 
 doll = DollApp(DollSettings())

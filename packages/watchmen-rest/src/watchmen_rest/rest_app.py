@@ -111,3 +111,7 @@ class RestApp:
 	@abstractmethod
 	def post_construct(self, app: FastAPI) -> None:
 		pass
+
+	@abstractmethod
+	def on_startup(self, app: FastAPI) -> None:
+		pass
