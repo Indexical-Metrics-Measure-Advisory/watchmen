@@ -4,7 +4,7 @@ CREATE TABLE spaces
     name             VARCHAR(45) NOT NULL,
     description      VARCHAR(255),
     topic_ids        JSON,
-    user_group_ids   JSON,
+    group_ids        JSON,
     filters          JSON,
     tenant_id        VARCHAR(50) NOT NULL,
     created_at       DATETIME    NOT NULL,

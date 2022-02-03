@@ -121,7 +121,7 @@ table_spaces = Table(
 	'spaces', meta_data,
 	create_pk('space_id'),
 	create_str('name', 45, False), create_description(),
-	create_json('topic_ids'), create_json('user_group_ids'), create_json('filters'),
+	create_json('topic_ids'), create_json('group_ids'), create_json('filters'),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 table_enums = Table(
