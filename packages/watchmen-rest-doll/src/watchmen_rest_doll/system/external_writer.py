@@ -78,11 +78,16 @@ async def save_external_writer(
 	return external_writer
 
 
-@router.post('/external_writer/name', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=DataPage)
+class QueryExternalWriterDataPage(DataPage):
+	data: List[ExternalWriter]
+
+
+@router.post(
+	'/external_writer/name', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=QueryExternalWriterDataPage)
 async def find_external_writers_by_name(
 		query_name: Optional[str] = None, pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
-) -> DataPage:
+) -> QueryExternalWriterDataPage:
 	if is_blank(query_name):
 		query_name = None
 	tenant_id = None
@@ -92,6 +97,7 @@ async def find_external_writers_by_name(
 	external_writer_service = get_external_writer_service(principal_service)
 	external_writer_service.begin_transaction()
 	try:
+		# noinspection PyTypeChecker
 		return external_writer_service.find_by_text(query_name, tenant_id, pageable)
 	except Exception as e:
 		raise_500(e)

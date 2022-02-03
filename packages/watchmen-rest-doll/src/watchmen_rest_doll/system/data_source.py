@@ -78,11 +78,15 @@ async def save_data_source(
 	return data_source
 
 
-@router.post('/datasource/name', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=DataPage)
+class QueryDataSourceDataPage(DataPage):
+	data: List[DataSource]
+
+
+@router.post('/datasource/name', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=QueryDataSourceDataPage)
 async def find_data_sources_by_name(
 		query_name: Optional[str] = None, pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
-) -> DataPage:
+) -> QueryDataSourceDataPage:
 	if is_blank(query_name):
 		query_name = None
 	tenant_id = None
@@ -92,6 +96,7 @@ async def find_data_sources_by_name(
 	data_source_service = get_data_source_service(principal_service)
 	data_source_service.begin_transaction()
 	try:
+		# noinspection PyTypeChecker
 		return data_source_service.find_by_text(query_name, tenant_id, pageable)
 	except Exception as e:
 		raise_500(e)

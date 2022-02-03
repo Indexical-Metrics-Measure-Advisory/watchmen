@@ -203,11 +203,15 @@ async def save_user_group(
 	return user_group
 
 
-@router.post('/user_group/name', tags=[UserRole.ADMIN], response_model=DataPage)
+class QueryUserGroupDataPage(DataPage):
+	data: List[UserGroup]
+
+
+@router.post('/user_group/name', tags=[UserRole.ADMIN], response_model=QueryUserGroupDataPage)
 async def find_user_groups_by_name(
 		query_name: Optional[str], pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_admin_principal)
-) -> DataPage:
+) -> QueryUserGroupDataPage:
 	tenant_id: TenantId = principal_service.get_tenant_id()
 	if is_blank(query_name):
 		query_name = None
@@ -215,6 +219,7 @@ async def find_user_groups_by_name(
 	user_group_service = get_user_group_service(principal_service)
 	user_group_service.begin_transaction()
 	try:
+		# noinspection PyTypeChecker
 		return user_group_service.find_by_text(query_name, tenant_id, pageable)
 	except Exception as e:
 		raise_500(e)

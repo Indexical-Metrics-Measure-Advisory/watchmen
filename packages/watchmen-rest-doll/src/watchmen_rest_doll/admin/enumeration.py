@@ -1,16 +1,14 @@
-from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException
-from pydantic import BaseModel
 
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.admin import EnumItemService, EnumService
 from watchmen_model.admin import Enum, EnumItem, UserRole
 from watchmen_model.common import DataPage, EnumId, Pageable, TenantId
 from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
-from watchmen_rest_doll.auth import get_admin_principal, get_console_principal
-from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
+from watchmen_rest_doll.auth import get_admin_principal, get_console_principal, get_super_admin_principal
+from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator, ask_tuple_delete_enabled
 from watchmen_rest_doll.util import is_blank, validate_tenant_id
 from watchmen_utilities import ArrayHelper
 
@@ -118,26 +116,8 @@ async def save_enum(
 	return an_enum
 
 
-class QueryEnum(BaseModel):
-	enumId: EnumId = None
-	name: str = None
-	description: str = None
-	createdAt: datetime = None
-	lastModifiedAt: datetime = None
-
-
-def copy_enum_to_query_enum(an_enum: Enum) -> QueryEnum:
-	return QueryEnum(
-		enumId=an_enum.enumId,
-		name=an_enum.name,
-		description=an_enum.description,
-		createdAt=an_enum.createdAt,
-		lastModifiedAt=an_enum.lastModifiedAt
-	)
-
-
-class QueryEnumDataPage(DataPage, BaseModel):
-	data: List[QueryEnum]
+class QueryEnumDataPage(DataPage):
+	data: List[Enum]
 
 
 @router.post('/enum/name', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=QueryEnumDataPage)
@@ -145,6 +125,9 @@ async def find_enums_by_name(
 		query_name: Optional[str], pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> QueryEnumDataPage:
+	"""
+	no enumeration items included, only enumeration itself
+	"""
 	tenant_id: TenantId = principal_service.get_tenant_id()
 	if is_blank(query_name):
 		query_name = None
@@ -152,34 +135,61 @@ async def find_enums_by_name(
 	enum_service = get_enum_service(principal_service)
 	enum_service.begin_transaction()
 	try:
-		page = enum_service.find_by_text(query_name, tenant_id, pageable)
-		page.data = ArrayHelper(page.data).map(lambda x: copy_enum_to_query_enum(x)).to_list()
 		# noinspection PyTypeChecker
-		return page
+		return enum_service.find_by_text(query_name, tenant_id, pageable)
 	except Exception as e:
 		raise_500(e)
 	finally:
 		enum_service.close_transaction()
 
 
-class TinyEnum(BaseModel):
-	enumId: EnumId = None
-	name: str = None
-
-
-def copy_enum_to_tiny_enum(an_enum: Enum) -> TinyEnum:
-	return TinyEnum(enumId=an_enum.enumId, name=an_enum.name)
-
-
-@router.get("/enum/all", tags=[UserRole.ADMIN], response_model=List[TinyEnum])
-async def find_all_enums(principal_service: PrincipalService = Depends(get_console_principal)) -> List[TinyEnum]:
+@router.get("/enum/all", tags=[UserRole.ADMIN], response_model=List[Enum])
+async def find_all_enums(principal_service: PrincipalService = Depends(get_console_principal)) -> List[Enum]:
+	"""
+	no enumeration items included, only enumeration itself
+	"""
 	tenant_id = principal_service.get_tenant_id()
 
 	enum_service = get_enum_service(principal_service)
 	enum_service.begin_transaction()
 	try:
-		return ArrayHelper(enum_service.find_all(tenant_id)).map(lambda x: copy_enum_to_tiny_enum(x)).to_list()
+		return enum_service.find_all(tenant_id)
 	except Exception as e:
 		raise_500(e)
 	finally:
 		enum_service.close_transaction()
+
+
+@router.delete('/enum', tags=[UserRole.SUPER_ADMIN], response_model=Enum)
+async def delete_user_group_by_id(
+		enum_id: Optional[EnumId] = None,
+		principal_service: PrincipalService = Depends(get_super_admin_principal)
+) -> Optional[Enum]:
+	if not ask_tuple_delete_enabled():
+		raise_404('Not Found')
+
+	if is_blank(enum_id):
+		raise_400('Enumeration id is required.')
+
+	enum_service = get_enum_service(principal_service)
+	enum_service.begin_transaction()
+	try:
+		# noinspection PyTypeChecker
+		an_enum: Enum = enum_service.delete(enum_id)
+		if an_enum is None:
+			raise_404()
+		enum_item_service = get_enum_item_service(enum_service)
+		enum_items = enum_item_service.find_by_enum_id(an_enum.enumId)
+		if enum_items is None:
+			an_enum.items = []
+		else:
+			an_enum.items = enum_items
+		enum_item_service.delete_by_enum_id(an_enum.enumId)
+		enum_service.commit_transaction()
+		return an_enum
+	except HTTPException as e:
+		enum_service.rollback_transaction()
+		raise e
+	except Exception as e:
+		enum_service.rollback_transaction()
+		raise_500(e)
