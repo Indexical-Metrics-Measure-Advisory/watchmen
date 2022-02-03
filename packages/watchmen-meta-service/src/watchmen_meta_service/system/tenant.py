@@ -3,7 +3,7 @@ from typing import Optional
 from watchmen_meta_service.common import TupleService, TupleShaper
 from watchmen_model.common import DataPage, Pageable, TenantId
 from watchmen_model.system import Tenant
-from watchmen_storage import EntityCriteriaExpression, EntityCriteriaOperator, EntityPager, EntityRow, EntityShaper
+from watchmen_storage import EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, EntityShaper
 
 
 class TenantShaper(EntityShaper):
@@ -46,9 +46,4 @@ class TenantService(TupleService):
 		criteria = []
 		if text is not None and len(text.strip()) != 0:
 			criteria.append(EntityCriteriaExpression(name='name', operator=EntityCriteriaOperator.LIKE, value=text))
-		return self.storage.page(EntityPager(
-			name=self.get_entity_name(),
-			shaper=self.get_entity_shaper(),
-			criteria=criteria,
-			pageable=pageable
-		))
+		return self.storage.page(self.get_entity_pager(criteria, pageable))
