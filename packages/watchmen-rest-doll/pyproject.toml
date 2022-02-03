@@ -16,6 +16,7 @@ watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, o
 passlib = "^1.7.4"
 bcrypt = "^3.2.0"
 python-multipart = "^0.0.5"
+each = "^0.0.6"
 
 [tool.poetry.dev-dependencies]
 
