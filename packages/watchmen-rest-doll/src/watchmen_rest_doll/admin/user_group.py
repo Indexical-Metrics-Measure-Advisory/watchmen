@@ -305,6 +305,9 @@ async def save_user_group(
 			sync_group(
 				get_space_service(user_group_service), user_group.userGroupId, space_ids, user_group.tenantId, 'Space')
 			user_group_service.commit_transaction()
+		except HTTPException as e:
+			user_group_service.rollback_transaction()
+			raise e
 		except Exception as e:
 			user_group_service.rollback_transaction()
 			raise_500(e)
@@ -341,6 +344,7 @@ async def save_user_group(
 				get_space_service(user_group_service), user_group.userGroupId, space_ids, user_group.tenantId, 'Space')
 			user_group_service.commit_transaction()
 		except HTTPException as e:
+			user_group_service.rollback_transaction()
 			raise e
 		except Exception as e:
 			user_group_service.rollback_transaction()

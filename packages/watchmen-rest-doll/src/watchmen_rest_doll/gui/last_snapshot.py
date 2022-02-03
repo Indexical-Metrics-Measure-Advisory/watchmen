@@ -61,5 +61,5 @@ async def save_last_snapshot_with_user(
 		last_snapshot_service.commit_transaction()
 		return last_snapshot
 	except Exception as e:
-		raise_500(e)
 		last_snapshot_service.rollback_transaction()
+		raise_500(e)

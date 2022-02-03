@@ -58,6 +58,9 @@ async def save_user_group(
 			# TODO check topics
 			# TODO synchronize space to user group
 			space_service.commit_transaction()
+		except HTTPException as e:
+			space_service.rollback_transaction()
+			raise e
 		except Exception as e:
 			space_service.rollback_transaction()
 			raise_500(e)
@@ -76,6 +79,7 @@ async def save_user_group(
 			# TODO synchronize space to user group
 			space_service.commit_transaction()
 		except HTTPException as e:
+			space_service.rollback_transaction()
 			raise e
 		except Exception as e:
 			space_service.rollback_transaction()

@@ -69,6 +69,7 @@ async def save_data_source(
 			data_source: DataSource = data_source_service.update(data_source)
 			data_source_service.commit_transaction()
 		except HTTPException as e:
+			data_source_service.rollback_transaction()
 			raise e
 		except Exception as e:
 			data_source_service.rollback_transaction()
