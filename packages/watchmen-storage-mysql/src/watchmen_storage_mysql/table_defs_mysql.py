@@ -148,6 +148,14 @@ table_topics = Table(
 	create_json('factors'),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
+table_pipelines = Table(
+	'pipelines', meta_data,
+	create_pk('pipeline_id'),
+	create_tuple_id_column('topic_id', False),
+	create_str('name', 45, False), create_str('type', 20, False),
+	create_json('stages'), create_bool('enabled', False), create_bool('validated', False),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
 # gui
 table_favorites = Table(
 	'favorites', meta_data,
@@ -163,17 +171,22 @@ table_last_snapshot = Table(
 )
 
 tables: Dict[str, Table] = {
+	# snowflake workers
 	SNOWFLAKE_WORKER_ID_TABLE: table_snowflake_competitive_workers,
+	# system
 	'pats': table_pats,
 	'tenants': table_tenants,
 	'external_writers': table_external_writers,
 	'data_sources': table_data_sources,
+	# admin
 	'users': table_users,
 	'user_groups': table_user_groups,
 	'spaces': table_spaces,
 	'enums': table_enums,
 	'enum_items': table_enum_items,
 	'topics': table_topics,
+	'pipelines': table_pipelines,
+	# gui
 	'favorites': table_favorites,
 	'last_snapshots': table_last_snapshot
 }
