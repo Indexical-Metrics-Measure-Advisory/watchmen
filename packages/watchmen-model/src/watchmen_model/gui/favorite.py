@@ -2,10 +2,10 @@ from typing import List
 
 from pydantic import BaseModel
 
-from watchmen_model.common import ConnectedSpaceId, DashboardId, Storable, TenantId, UserId
+from watchmen_model.common import ConnectedSpaceId, DashboardId, LastVisit, TenantId, UserId
 
 
-class Favorite(Storable, BaseModel):
+class Favorite(LastVisit, BaseModel):
 	connectedSpaceIds: List[ConnectedSpaceId] = []
 	dashboardIds: List[DashboardId] = []
 	tenantId: TenantId = None

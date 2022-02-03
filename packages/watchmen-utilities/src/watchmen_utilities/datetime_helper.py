@@ -10,3 +10,7 @@ class DateTimeEncoder(JSONEncoder):
 		if isinstance(o, Decimal):
 			return float(o)
 		return super().default(o)
+
+
+def get_current_time_seconds() -> datetime:
+	return datetime.now().replace(tzinfo=None, microsecond=0)

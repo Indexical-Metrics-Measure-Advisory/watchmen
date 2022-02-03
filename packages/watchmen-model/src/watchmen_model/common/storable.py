@@ -20,4 +20,4 @@ class OptimisticLock(Storable):
 
 
 class LastVisit(Storable):
-	lastVisitTime: datetime = datetime.now().replace(tzinfo=None)
+	lastVisitTime: datetime = datetime.now().replace(tzinfo=None, microsecond=0)
