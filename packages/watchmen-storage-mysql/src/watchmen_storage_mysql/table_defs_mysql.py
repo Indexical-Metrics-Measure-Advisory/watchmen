@@ -6,9 +6,7 @@ from watchmen_storage import SNOWFLAKE_WORKER_ID_TABLE
 
 meta_data = MetaData()
 
-
-def create_pk(name: str, column_type: Union[Type[Integer], String] = String(50)) -> Column:
-	return Column(name, column_type, primary_key=True)
+ID_TYPE = String(50)
 
 
 def create_str(name: str, length: int, nullable: bool = True) -> Column:
@@ -27,23 +25,31 @@ def create_json(name: str) -> Column:
 	return Column(name, JSON, nullable=True)
 
 
+def create_tuple_id_column(name: str, nullable: bool = True) -> Column:
+	return Column(name, ID_TYPE, nullable=nullable)
+
+
+def create_pk(name: str, column_type: Union[Type[Integer], String] = ID_TYPE) -> Column:
+	return Column(name, column_type, primary_key=True)
+
+
 def create_tenant_id() -> Column:
-	return Column('tenant_id', String(50), nullable=False)
+	return create_tuple_id_column('tenant_id', nullable=False)
 
 
 def create_user_id(primary_key: bool = False) -> Column:
 	if primary_key:
 		return create_pk('user_id')
 	else:
-		return Column('user_id', String(50), nullable=False)
+		return create_tuple_id_column('user_id', nullable=False)
 
 
 def create_tuple_audit_columns() -> List[Column]:
 	return [
 		create_datetime('created_at', False),
-		create_str('created_by', 50, False),
+		create_tuple_id_column('created_by', nullable=False),
 		create_datetime('last_modified_at', False),
-		create_str('last_modified_by', 50, False)
+		create_tuple_id_column('last_modified_by', False)
 	]
 
 
@@ -102,6 +108,13 @@ table_favorites = Table(
 	create_json('connected_space_ids'), create_json('dashboard_ids'),
 	create_tenant_id(), create_user_id(primary_key=True), create_last_visit_time()
 )
+table_last_snapshot = Table(
+	'last_snapshots', meta_data,
+	create_str('language', 20),
+	create_tuple_id_column('last_dashboard_id'), create_tuple_id_column('admin_dashboard_id'),
+	create_bool('favorite_pin'),
+	create_tenant_id(), create_user_id(primary_key=True), create_last_visit_time()
+)
 
 tables: Dict[str, Table] = {
 	SNOWFLAKE_WORKER_ID_TABLE: table_snowflake_competitive_workers,
@@ -110,7 +123,8 @@ tables: Dict[str, Table] = {
 	'external_writers': table_external_writers,
 	'data_sources': table_data_sources,
 	'users': table_users,
-	'favorites': table_favorites
+	'favorites': table_favorites,
+	'last_snapshots': table_last_snapshot
 }
 
 

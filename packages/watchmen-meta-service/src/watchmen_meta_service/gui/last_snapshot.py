@@ -13,7 +13,7 @@ class LastSnapshotShaper(EntityShaper):
 			'language': last_snapshot.language,
 			'last_dashboard_id': last_snapshot.lastDashboardId,
 			'admin_dashboard_id': last_snapshot.adminDashboardId,
-			'last_snapshot_pin': last_snapshot.last_snapshotPin,
+			'favorite_pin': last_snapshot.favoritePin,
 			'tenant_id': last_snapshot.tenantId,
 			'user_id': last_snapshot.userId,
 			'last_visit_time': last_snapshot.lastVisitTime
@@ -24,7 +24,7 @@ class LastSnapshotShaper(EntityShaper):
 			language=row.get('language'),
 			lastDashboardId=row.get('last_dashboard_id'),
 			adminDashboardId=row.get('admin_dashboard_id'),
-			last_snapshotPin=row.get('last_snapshot_pin'),
+			favoritePin=row.get('favorite_pin'),
 			tenantId=row.get('tenant_id'),
 			userId=row.get('user_id'),
 			lastVisitTime=row.get('last_visit_time')
