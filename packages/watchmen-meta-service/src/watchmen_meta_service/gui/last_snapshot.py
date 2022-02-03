@@ -2,36 +2,40 @@ from typing import Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_model.common import TenantId, UserId
-from watchmen_model.gui import Favorite
+from watchmen_model.gui import LastSnapshot
 from watchmen_storage import EntityCriteriaExpression, EntityFinder, EntityHelper, EntityRow, \
 	EntityShaper, EntityUpdater, TransactionalStorageSPI
 
 
-class FavoriteShaper(EntityShaper):
-	def serialize(self, favorite: Favorite) -> EntityRow:
+class LastSnapshotShaper(EntityShaper):
+	def serialize(self, last_snapshot: LastSnapshot) -> EntityRow:
 		return {
-			'connected_space_ids': favorite.connectedSpaceIds,
-			'dashboard_ids': favorite.dashboardIds,
-			'tenant_id': favorite.tenantId,
-			'user_id': favorite.userId,
-			'last_visit_time': favorite.lastVisitTime
+			'language': last_snapshot.language,
+			'last_dashboard_id': last_snapshot.lastDashboardId,
+			'admin_dashboard_id': last_snapshot.adminDashboardId,
+			'last_snapshot_pin': last_snapshot.last_snapshotPin,
+			'tenant_id': last_snapshot.tenantId,
+			'user_id': last_snapshot.userId,
+			'last_visit_time': last_snapshot.lastVisitTime
 		}
 
-	def deserialize(self, row: EntityRow) -> Favorite:
-		return Favorite(
-			connectedSpaceIds=row.get('connected_space_ids'),
-			dashboardIds=row.get('dashboard_ids'),
+	def deserialize(self, row: EntityRow) -> LastSnapshot:
+		return LastSnapshot(
+			language=row.get('language'),
+			lastDashboardId=row.get('last_dashboard_id'),
+			adminDashboardId=row.get('admin_dashboard_id'),
+			last_snapshotPin=row.get('last_snapshot_pin'),
 			tenantId=row.get('tenant_id'),
 			userId=row.get('user_id'),
 			lastVisitTime=row.get('last_visit_time')
 		)
 
 
-FAVORITE_ENTITY_NAME = 'favorites'
-FAVORITE_ENTITY_SHAPER = FavoriteShaper()
+LAST_SNAPSHOT_ENTITY_NAME = 'last_snapshots'
+LAST_SNAPSHOT_ENTITY_SHAPER = LastSnapshotShaper()
 
 
-class FavoriteService:
+class LastSnapshotService:
 	storage: TransactionalStorageSPI
 
 	def __init__(self, storage: TransactionalStorageSPI, principal_service: PrincipalService):
@@ -52,30 +56,30 @@ class FavoriteService:
 
 	# noinspection PyMethodMayBeStatic
 	def get_entity_name(self) -> str:
-		return FAVORITE_ENTITY_NAME
+		return LAST_SNAPSHOT_ENTITY_NAME
 
 	# noinspection PyMethodMayBeStatic
 	def get_entity_shaper(self) -> EntityShaper:
-		return FAVORITE_ENTITY_SHAPER
+		return LAST_SNAPSHOT_ENTITY_SHAPER
 
 	def get_entity_helper(self) -> EntityHelper:
 		return EntityHelper(name=self.get_entity_name(), shaper=self.get_entity_shaper())
 
-	def create(self, favorite: Favorite) -> None:
-		return self.storage.insert_one(favorite, self.get_entity_helper())
+	def create(self, last_snapshot: LastSnapshot) -> None:
+		return self.storage.insert_one(last_snapshot, self.get_entity_helper())
 
-	def update(self, favorite: Favorite) -> None:
+	def update(self, last_snapshot: LastSnapshot) -> None:
 		self.storage.update_only(EntityUpdater(
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),
 			criteria=[
-				EntityCriteriaExpression(name='user_id', value=favorite.userId),
-				EntityCriteriaExpression(name='tenant_id', value=favorite.tenantId)
+				EntityCriteriaExpression(name='user_id', value=last_snapshot.userId),
+				EntityCriteriaExpression(name='tenant_id', value=last_snapshot.tenantId)
 			],
-			update={'connected_space_ids': favorite.connectedSpaceIds, 'dashboardIds': favorite.dashboardIds}
+			update={'connected_space_ids': last_snapshot.connectedSpaceIds, 'dashboardIds': last_snapshot.dashboardIds}
 		))
 
-	def find_by_id(self, user_id: UserId, tenant_id: TenantId) -> Optional[Favorite]:
+	def find_by_id(self, user_id: UserId, tenant_id: TenantId) -> Optional[LastSnapshot]:
 		return self.storage.find_one(EntityFinder(
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),

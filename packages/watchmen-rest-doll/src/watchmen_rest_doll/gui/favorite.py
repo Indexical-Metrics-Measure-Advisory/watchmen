@@ -23,14 +23,13 @@ async def load_my_favorite(principal_service: PrincipalService = Depends(get_any
 	try:
 		favorite = favorite_service.find_by_id(principal_service.get_user_id(), principal_service.get_tenant_id())
 		if favorite is None:
-			return Favorite(
+			favorite = Favorite(
 				connectedSpaceIds=[],
 				dashboardIds=[],
 				tenantId=principal_service.get_tenant_id(),
 				userId=principal_service.get_user_id(),
 			)
-		else:
-			return favorite
+		return favorite
 	finally:
 		favorite_service.close_transaction()
 
