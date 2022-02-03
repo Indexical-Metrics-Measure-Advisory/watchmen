@@ -10,10 +10,14 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
-watchmen-storage = { path = "../watchmen-storage", develop = true }
 watchmen-auth = { path = "../watchmen-auth", develop = true }
+watchmen-storage = { path = "../watchmen-storage", develop = true }
+watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
 
 [tool.poetry.dev-dependencies]
+
+[tool.poetry.extras]
+mysql = ["watchmen-storage-mysql"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
