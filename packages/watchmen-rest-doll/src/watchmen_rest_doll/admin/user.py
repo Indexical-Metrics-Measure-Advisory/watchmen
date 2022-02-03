@@ -3,9 +3,9 @@ from typing import List, Optional
 from fastapi import APIRouter, Body, Depends, HTTPException
 
 from watchmen_auth import PrincipalService
-from watchmen_meta_service.admin import UserService
-from watchmen_model.admin import User, UserRole
-from watchmen_model.common import DataPage, Pageable, TenantId, UserId
+from watchmen_meta_service.admin import UserGroupService, UserService
+from watchmen_model.admin import User, UserGroup, UserRole
+from watchmen_model.common import DataPage, Pageable, TenantId, UserGroupId, UserId
 from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
 from watchmen_rest_doll.auth import get_any_admin_principal, get_any_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
@@ -17,6 +17,10 @@ router = APIRouter()
 
 def get_user_service(principal_service: PrincipalService) -> UserService:
 	return UserService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
+def get_user_group_service(user_service: UserService) -> UserGroupService:
+	return UserGroupService(user_service.storage, user_service.snowflake_generator, user_service.principal_service)
 
 
 def clear_pwd(user: User):
@@ -56,6 +60,82 @@ async def load_user_by_id(
 		user_service.close_transaction()
 
 
+def has_user_id(user_group: UserGroup, user_id: UserId) -> bool:
+	if user_group.userIds is None:
+		return False
+	elif len(user_group.userIds) == 0:
+		return False
+	else:
+		return user_id in user_group.userIds
+
+
+def append_user_id_to_user_group(user_group: UserGroup, user_id: UserId) -> UserGroup:
+	if user_group.userIds is None:
+		user_group.userIds = [user_id]
+	else:
+		user_group.userIds.append(user_id)
+	return user_group
+
+
+def update_user_group(user_group_service: UserGroupService, user_group: UserGroup) -> None:
+	user_group_service.update(user_group)
+
+
+def sync_user_to_groups(
+		user_service: UserService,
+		user_id: UserId, user_group_ids: List[UserGroupId],
+		tenant_id: TenantId
+) -> None:
+	if user_group_ids is None:
+		return
+
+	given_count = len(user_group_ids)
+	if given_count == 0:
+		# do nothing
+		return
+
+	user_group_service = get_user_group_service(user_service)
+	user_groups = user_group_service.find_by_ids(user_group_ids, tenant_id)
+	found_count = len(user_groups)
+	if given_count != found_count:
+		raise_400(f'User group ids does not match.')
+
+	ArrayHelper(user_groups) \
+		.filter(lambda x: not has_user_id(x, user_id)) \
+		.map(lambda x: append_user_id_to_user_group(x, user_id)) \
+		.each(lambda x: update_user_group(user_group_service, x))
+
+
+def remove_user_id_from_user_group(user_group: UserGroup, user_id: UserId) -> UserGroup:
+	user_group.userIds = ArrayHelper(user_group.userIds).filter(lambda x: x != user_id).to_list()
+	return user_group
+
+
+def remove_user_from_groups(
+		user_service: UserService,
+		user_id: UserId, user_group_ids: List[UserGroupId],
+		tenant_id: TenantId
+) -> None:
+	if user_group_ids is None:
+		return
+
+	given_count = len(user_group_ids)
+	if given_count == 0:
+		# do nothing
+		return
+
+	user_group_service = get_user_group_service(user_service)
+	user_groups = user_group_service.find_by_ids(user_group_ids, tenant_id)
+	found_count = len(user_groups)
+	if given_count != found_count:
+		raise_400(f'User group ids does not match.')
+
+	ArrayHelper(user_groups) \
+		.filter(lambda x: has_user_id(x, user_id)) \
+		.map(lambda x: remove_user_id_from_user_group(x, user_id)) \
+		.each(lambda x: update_user_group(user_group_service, x))
+
+
 @router.post('/user', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=User)
 async def save_user(user: User, principal_service: PrincipalService = Depends(get_any_admin_principal)) -> User:
 	validate_tenant_id(user, principal_service)
@@ -71,9 +151,12 @@ async def save_user(user: User, principal_service: PrincipalService = Depends(ge
 		user_service.begin_transaction()
 		try:
 			user_service.redress_tuple_id(user)
+			user_group_ids = ArrayHelper(user.groupIds).distinct().to_list()
+			user.groupIds = user_group_ids
 			# noinspection PyTypeChecker
 			user: User = user_service.create(user)
-			# TODO synchronize user to user group
+			# synchronize user to user groups
+			sync_user_to_groups(user_service, user.userId, user_group_ids, principal_service.get_tenant_id())
 			user_service.commit_transaction()
 		except Exception as e:
 			user_service.rollback_transaction()
@@ -90,9 +173,16 @@ async def save_user(user: User, principal_service: PrincipalService = Depends(ge
 					# keep original password
 					user.password = existing_user.password
 
+			user_group_ids = ArrayHelper(user.groupIds).distinct().to_list()
+			user.groupIds = user_group_ids
 			# noinspection PyTypeChecker
 			user: User = user_service.update(user)
-			# TODO synchronize user to user group
+			# remove user from user groups, in case user groups are removed
+			removed_user_group_ids = ArrayHelper(existing_user.groupIds).difference(user_group_ids).to_list()
+			remove_user_from_groups(
+				user_service, user.userId, removed_user_group_ids, principal_service.get_tenant_id())
+			# synchronize user to user groups
+			sync_user_to_groups(user_service, user.userId, user_group_ids, principal_service.get_tenant_id())
 			user_service.commit_transaction()
 		except HTTPException as e:
 			raise e
