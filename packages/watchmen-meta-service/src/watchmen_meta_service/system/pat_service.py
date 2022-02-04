@@ -1,11 +1,11 @@
 from typing import List, Optional
 
 from watchmen_auth import PrincipalService
+from watchmen_meta_service.common import StorageService
 from watchmen_model.common import PatId, TenantId, UserId
 from watchmen_model.system import PersonalAccessToken
 from watchmen_storage import EntityCriteriaExpression, EntityFinder, EntityHelper, EntityIdHelper, EntityRow, \
-	EntityShaper, SnowflakeGenerator, \
-	TransactionalStorageSPI
+	EntityShaper, SnowflakeGenerator, TransactionalStorageSPI
 from watchmen_utilities import get_current_time_seconds
 
 
@@ -39,29 +39,16 @@ PAT_ENTITY_NAME = 'pats'
 PAT_ENTITY_SHAPER = PatShaper()
 
 
-class PatService:
-	storage: TransactionalStorageSPI
-
+class PatService(StorageService):
 	def __init__(
 			self,
-			storage: TransactionalStorageSPI, snowflake_generator: SnowflakeGenerator,
+			storage: TransactionalStorageSPI,
+			snowflake_generator: SnowflakeGenerator,
 			principal_service: PrincipalService
 	):
-		self.storage = storage
-		self.snowflake_generator = snowflake_generator
-		self.principal_service = principal_service
-
-	def begin_transaction(self):
-		self.storage.begin()
-
-	def commit_transaction(self):
-		self.storage.commit_and_close()
-
-	def rollback_transaction(self):
-		self.storage.rollback_and_close()
-
-	def close_transaction(self):
-		self.storage.close()
+		super().__init__(storage)
+		self.with_snowflake_generator(snowflake_generator)
+		self.with_principal_service(principal_service)
 
 	# noinspection PyMethodMayBeStatic
 	def get_entity_name(self) -> str:

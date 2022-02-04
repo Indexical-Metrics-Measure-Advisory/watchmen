@@ -1,6 +1,7 @@
 from typing import Optional
 
 from watchmen_auth import PrincipalService
+from watchmen_meta_service.common import StorageService
 from watchmen_model.common import TenantId, UserId
 from watchmen_model.gui import LastSnapshot
 from watchmen_storage import EntityCriteriaExpression, EntityFinder, EntityHelper, EntityIdHelper, EntityRow, \
@@ -35,24 +36,10 @@ LAST_SNAPSHOT_ENTITY_NAME = 'last_snapshots'
 LAST_SNAPSHOT_ENTITY_SHAPER = LastSnapshotShaper()
 
 
-class LastSnapshotService:
-	storage: TransactionalStorageSPI
-
+class LastSnapshotService(StorageService):
 	def __init__(self, storage: TransactionalStorageSPI, principal_service: PrincipalService):
-		self.storage = storage
-		self.principal_service = principal_service
-
-	def begin_transaction(self):
-		self.storage.begin()
-
-	def commit_transaction(self):
-		self.storage.commit_and_close()
-
-	def rollback_transaction(self):
-		self.storage.rollback_and_close()
-
-	def close_transaction(self):
-		self.storage.close()
+		super().__init__(storage)
+		self.with_principal_service(principal_service)
 
 	# noinspection PyMethodMayBeStatic
 	def get_entity_name(self) -> str:
