@@ -7,9 +7,9 @@ from watchmen_meta_service.admin import PipelineGraphicService
 from watchmen_meta_service.common import TupleService
 from watchmen_model.admin import PipelineGraphic, UserRole
 from watchmen_model.common import PipelineGraphicId
-from watchmen_rest.util import raise_403, raise_500
-from watchmen_rest_doll.auth import get_console_principal
-from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
+from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
+from watchmen_rest_doll.auth import get_console_principal, get_super_admin_principal
+from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator, ask_tuple_delete_enabled
 from watchmen_rest_doll.util import is_blank
 
 router = APIRouter()
@@ -22,10 +22,14 @@ def get_pipeline_graphic_service(principal_service: PrincipalService) -> Pipelin
 @router.get('/pipeline/graphics/me', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[PipelineGraphic])
 async def load_my_pipeline_graphics(
 		principal_service: PrincipalService = Depends(get_console_principal)) -> List[PipelineGraphic]:
+	"""
+	get my all pipeline graphics
+	"""
 	pipeline_graphic_service = get_pipeline_graphic_service(principal_service)
 	pipeline_graphic_service.begin_transaction()
 	try:
-		return pipeline_graphic_service.find_all_by_id(
+		# noinspection PyTypeChecker
+		return pipeline_graphic_service.find_all_by_user_id(
 			principal_service.get_user_id(), principal_service.get_tenant_id())
 	finally:
 		pipeline_graphic_service.close_transaction()
@@ -35,6 +39,9 @@ async def load_my_pipeline_graphics(
 async def save_pipeline_graphic(
 		pipeline_graphic: PipelineGraphic, principal_service: PrincipalService = Depends(get_console_principal)
 ) -> PipelineGraphic:
+	"""
+	create or update my pipeline graphic
+	"""
 	pipeline_graphic.userId = principal_service.get_user_id()
 	pipeline_graphic.tenantId = principal_service.get_tenant_id()
 
@@ -80,6 +87,9 @@ async def delete_pipeline_graphic_by_id(
 		pipeline_graph_id: Optional[PipelineGraphicId],
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> None:
+	"""
+	delete my pipeline graphic
+	"""
 	if is_blank(pipeline_graph_id):
 		return
 
@@ -98,6 +108,34 @@ async def delete_pipeline_graphic_by_id(
 		# noinspection PyTypeChecker
 		pipeline_graphic_service.delete_by_id(pipeline_graph_id)
 		pipeline_graphic_service.commit_transaction()
+	except HTTPException as e:
+		pipeline_graphic_service.rollback_transaction()
+		raise e
+	except Exception as e:
+		pipeline_graphic_service.rollback_transaction()
+		raise_500(e)
+
+
+@router.delete('/pipeline/graphics', tags=[UserRole.SUPER_ADMIN], response_model=PipelineGraphic)
+async def delete_pipeline_graphic_by_id_by_super_admin(
+		pipeline_graphic_id: Optional[PipelineGraphicId] = None,
+		principal_service: PrincipalService = Depends(get_super_admin_principal)
+) -> Optional[PipelineGraphic]:
+	if not ask_tuple_delete_enabled():
+		raise_404('Not Found')
+
+	if is_blank(pipeline_graphic_id):
+		raise_400('Pipeline graphic id is required.')
+
+	pipeline_graphic_service = get_pipeline_graphic_service(principal_service)
+	pipeline_graphic_service.begin_transaction()
+	try:
+		# noinspection PyTypeChecker
+		pipeline_graphic: PipelineGraphic = pipeline_graphic_service.delete(pipeline_graphic_id)
+		if pipeline_graphic is None:
+			raise_404()
+		pipeline_graphic_service.commit_transaction()
+		return pipeline_graphic
 	except HTTPException as e:
 		pipeline_graphic_service.rollback_transaction()
 		raise e
