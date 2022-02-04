@@ -9,7 +9,7 @@ from .pipeline_action_read import ExistsAction, ReadFactorAction, ReadFactorsAct
 from .pipeline_action_system import AlarmAction, AlarmActionSeverity, CopyToMemoryAction, WriteToExternalAction
 from .pipeline_action_write import InsertRowAction, MappingFactor, MappingRow, MergeRowAction, WriteFactorAction, \
 	WriteTopicAction
-from .pipeline_graphic import PipelinesGraphic, TopicGraphic, TopicRect
+from .pipeline_graphic import PipelineGraphic, TopicGraphic, TopicRect
 from .space import Space
 from .topic import Topic, TopicKind, TopicType
 from .user import User, UserRole
