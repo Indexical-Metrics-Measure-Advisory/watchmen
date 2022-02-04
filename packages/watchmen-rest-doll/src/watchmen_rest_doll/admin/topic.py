@@ -81,6 +81,12 @@ def build_presto_schema(topic: Topic, topic_service: TopicService) -> None:
 	pass
 
 
+def post_save_topic(topic: Topic, topic_service: TopicService) -> None:
+	build_topic_index(topic, topic_service)
+	build_topic_cache(topic, topic_service)
+	build_presto_schema(topic, topic_service)
+
+
 @router.post("/topic", tags=[UserRole.ADMIN], response_model=Topic)
 async def save_enum(
 		topic: Topic, principal_service: PrincipalService = Depends(get_admin_principal)
@@ -96,7 +102,7 @@ async def save_enum(
 			redress_factor_ids(topic, topic_service)
 			# noinspection PyTypeChecker
 			topic: Topic = topic_service.create(topic)
-			build_topic_index(topic)
+			post_save_topic(topic, topic_service)
 			topic_service.commit_transaction()
 		except Exception as e:
 			topic_service.rollback_transaction()
@@ -113,7 +119,7 @@ async def save_enum(
 			redress_factor_ids(topic, topic_service)
 			# noinspection PyTypeChecker
 			topic: Topic = topic_service.update(topic)
-			build_topic_index(topic)
+			post_save_topic(topic, topic_service)
 			topic_service.commit_transaction()
 		except HTTPException as e:
 			topic_service.rollback_transaction()
