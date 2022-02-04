@@ -1,4 +1,5 @@
-from .admin import enumeration_router, pipeline_router, space_router, topic_router, user_group_router, user_router
+from .admin import enumeration_router, pipeline_graphic_router, pipeline_router, space_router, topic_router, \
+	user_group_router, user_router
 from .auth import authenticate_router
 from .doll import doll
 from .gui import favorite_router, last_snapshot_router
@@ -24,6 +25,7 @@ app.include_router(space_router.router)
 app.include_router(enumeration_router.router)
 app.include_router(topic_router.router)
 app.include_router(pipeline_router.router)
+app.include_router(pipeline_graphic_router.router)
 
 app.include_router(favorite_router.router)
 app.include_router(last_snapshot_router.router)
