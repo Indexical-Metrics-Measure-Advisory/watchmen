@@ -106,7 +106,7 @@ def remove_user_group_id(x: Union[User, Space], user_group_id: UserGroupId) -> U
 	return x
 
 
-def remove_group(
+def remove_user_group(
 		service: Union[UserService, SpaceService],
 		user_group_id: UserId, user_or_space_ids: Union[List[UserId], List[SpaceId]],
 		tenant_id: TenantId,
@@ -178,7 +178,7 @@ async def save_user_group(
 			user_group: UserGroup = user_group_service.update(user_group)
 			# remove user group from users, in case users are removed
 			removed_user_ids = ArrayHelper(existing_user_group.userIds).difference(user_ids).to_list()
-			remove_group(
+			remove_user_group(
 				get_user_service(user_group_service),
 				user_group.userGroupId, removed_user_ids, user_group.tenantId, 'User')
 			# synchronize user group to user
@@ -186,7 +186,7 @@ async def save_user_group(
 				get_user_service(user_group_service), user_group.userGroupId, user_ids, user_group.tenantId, 'User')
 			# remove user group from spaces, in case spaces are removed
 			removed_space_ids = ArrayHelper(existing_user_group.spaceIds).difference(space_ids).to_list()
-			remove_group(
+			remove_user_group(
 				get_space_service(user_group_service),
 				user_group.userGroupId, removed_space_ids, user_group.tenantId, 'Space')
 			# synchronize user group to space

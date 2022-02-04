@@ -96,8 +96,8 @@ def authenticate(username, password) -> User:
 		raise_401('Incorrect username or password.')
 
 
-@router.post('/login/access-token', response_model=Token, tags=['authenticate'])
-async def login_access_token(form_data: OAuth2PasswordRequestForm = Depends()) -> Token:
+@router.post('/login', response_model=Token, tags=['authenticate'])
+async def login_by_user_pwd(form_data: OAuth2PasswordRequestForm = Depends()) -> Token:
 	"""
 	OAuth2 compatible token login, get an access token for future requests
 	"""
@@ -116,16 +116,16 @@ async def login_access_token(form_data: OAuth2PasswordRequestForm = Depends()) -
 	)
 
 
-@router.get("/login/validate-token", response_model=User, tags=["authenticate"])
-async def validate_token(token: str) -> User:
+@router.get("/token/validate/jwt", response_model=User, tags=["authenticate"])
+async def validate_jwt_token(token: str) -> User:
 	"""
 	Validate given token, returns user of this token when validated
 	"""
 	return doll.authentication_manager.authenticate_by_jwt(token)
 
 
-@router.get("/login/test-token", response_model=User, tags=["authenticate"])
-async def test_token(principal_service: PrincipalService = Depends(get_any_principal)) -> Optional[User]:
+@router.get("/token/exchange-user", response_model=User, tags=["authenticate"])
+async def exchange_user(principal_service: PrincipalService = Depends(get_any_principal)) -> Optional[User]:
 	"""
 	returns current principal
 	"""

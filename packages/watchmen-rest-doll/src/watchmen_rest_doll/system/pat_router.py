@@ -35,7 +35,7 @@ class ClientPat(BaseModel):
 
 
 @router.post('/pat/create', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=ClientPat)
-async def pat_create(
+async def create_pat(
 		params: PatCreationParams = Body(...),
 		principal_service: PrincipalService = Depends(get_any_principal)) -> ClientPat:
 	pat_service = get_pat_service(principal_service)
@@ -59,7 +59,7 @@ async def pat_create(
 
 
 @router.get('/pat/list', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=List[ClientPat])
-async def pat_list(principal_service: PrincipalService = Depends(get_any_principal)):
+async def find_my_pats(principal_service: PrincipalService = Depends(get_any_principal)):
 	pat_service = get_pat_service(principal_service)
 	pat_service.begin_transaction()
 	try:
@@ -72,7 +72,7 @@ async def pat_list(principal_service: PrincipalService = Depends(get_any_princip
 
 
 @router.post('/pat/delete', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
-async def pat_delete(
+async def delete_pat(
 		pat_id: Optional[PatId] = None, principal_service: PrincipalService = Depends(get_any_principal)) -> None:
 	if is_blank(pat_id):
 		raise_400('Pat id is required.')

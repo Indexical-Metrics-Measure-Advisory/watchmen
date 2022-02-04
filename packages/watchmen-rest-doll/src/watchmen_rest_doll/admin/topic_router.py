@@ -4,7 +4,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException
 
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.admin import FactorService, TopicService
-from watchmen_meta_service.analysis import FactorIndexService
+from watchmen_meta_service.analysis import TopicIndexService
 from watchmen_model.admin import Topic, UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId, TopicId
 from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
@@ -25,8 +25,8 @@ def get_factor_service(topic_service: TopicService) -> FactorService:
 	return FactorService(topic_service.snowflake_generator)
 
 
-def get_factor_index_service(topic_service: TopicService) -> FactorIndexService:
-	return FactorIndexService(topic_service.storage, topic_service.snowflake_generator)
+def get_topic_index_service(topic_service: TopicService) -> TopicIndexService:
+	return TopicIndexService(topic_service.storage, topic_service.snowflake_generator)
 
 
 @router.get('/topic', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=Topic)
@@ -64,7 +64,7 @@ def redress_factor_ids(topic: Topic, topic_service: TopicService) -> None:
 def build_topic_index(topic: Topic, topic_service: TopicService) -> None:
 	if not ask_engine_index_enabled():
 		return
-	get_factor_index_service(topic_service).build_index(topic)
+	get_topic_index_service(topic_service).build_index(topic)
 
 
 def build_topic_cache(topic: Topic, topic_service: TopicService) -> None:
@@ -88,7 +88,7 @@ def post_save_topic(topic: Topic, topic_service: TopicService) -> None:
 
 
 @router.post("/topic", tags=[UserRole.ADMIN], response_model=Topic)
-async def save_enum(
+async def save_topic(
 		topic: Topic, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> Topic:
 	validate_tenant_id(topic, principal_service)
@@ -192,7 +192,7 @@ async def find_all_topics(principal_service: PrincipalService = Depends(get_cons
 def remove_topic_index(topic_id: TopicId, topic_service: TopicService) -> None:
 	if not ask_engine_index_enabled():
 		return
-	get_factor_index_service(topic_service).remove_index(topic_id)
+	get_topic_index_service(topic_service).remove_index(topic_id)
 
 
 def remove_topic_cache(topic_id: TopicId, topic_service: TopicService) -> None:
@@ -210,9 +210,9 @@ def remove_presto_schema(topic_id: TopicId, topic_service: TopicService) -> None
 
 
 def post_delete_topic(topic_id: TopicId, topic_service: TopicService) -> None:
-	build_topic_index(topic_id, topic_service)
-	build_topic_cache(topic_id, topic_service)
-	build_presto_schema(topic_id, topic_service)
+	remove_topic_index(topic_id, topic_service)
+	remove_topic_cache(topic_id, topic_service)
+	remove_presto_schema(topic_id, topic_service)
 
 
 @router.delete('/topic', tags=[UserRole.SUPER_ADMIN], response_model=Topic)
@@ -224,7 +224,7 @@ async def delete_topic_by_id(
 		raise_404('Not Found')
 
 	if is_blank(topic_id):
-		raise_400('Enumeration id is required.')
+		raise_400('Topic id is required.')
 
 	topic_service = get_topic_service(principal_service)
 	topic_service.begin_transaction()
