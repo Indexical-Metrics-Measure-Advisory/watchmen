@@ -1,3 +1,4 @@
+from watchmen_rest.system import health_router
 from .admin import enumeration_router, pipeline_graphic_router, pipeline_router, space_router, topic_router, \
 	user_group_router, user_router
 from .auth import authenticate_router
@@ -12,6 +13,8 @@ app = doll.construct()
 def startup():
 	doll.on_startup(app)
 
+
+app.include_router(health_router.router)
 
 app.include_router(authenticate_router.router)
 app.include_router(pat_router.router)
