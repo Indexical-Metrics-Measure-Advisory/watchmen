@@ -9,6 +9,6 @@ from .parameter_and_condition import ComputedParameter, ConstantParameter, const
 from .storable import Auditable, LastVisit, OptimisticLock, Storable
 from .tuple import TenantBasedTuple, Tuple, UserBasedTuple
 from .tuple_ids import BucketId, ConnectedSpaceId, DashboardId, DataSourceId, EnumId, EnumItemId, ExternalWriterId, \
-	FactorId, IndicatorId, InspectionId, NavigationId, PatId, PipelineActionId, PipelineId, PipelinesGraphicId, \
+	FactorId, IndicatorId, InspectionId, NavigationId, PatId, PipelineActionId, PipelineGraphicId, PipelineId, \
 	PipelineStageId, PipelineUnitId, ReportFunnelId, ReportId, SpaceId, SubjectDatasetColumnId, SubjectId, TenantId, \
 	TopicId, UserGroupId, UserId

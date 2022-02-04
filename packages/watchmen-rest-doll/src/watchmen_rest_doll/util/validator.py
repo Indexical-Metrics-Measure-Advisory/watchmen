@@ -1,10 +1,12 @@
+from typing import Union
+
 from watchmen_auth import PrincipalService
-from watchmen_model.common import TenantBasedTuple
+from watchmen_model.common import TenantBasedTuple, UserBasedTuple
 from watchmen_rest.util.raise_http_exception import raise_400, raise_403
 from .utils import is_blank, is_not_blank
 
 
-def validate_tenant_id(a_tuple: TenantBasedTuple, principal_service: PrincipalService) -> None:
+def validate_tenant_id(a_tuple: Union[TenantBasedTuple, UserBasedTuple], principal_service: PrincipalService) -> None:
 	"""
 	validate tenant id of tuple.\n
 	a. for super admin, tenant id is required,\

@@ -2,7 +2,7 @@ from typing import List
 
 from pydantic import BaseModel
 
-from watchmen_model.common import DataModel, GraphicPosition, GraphicRect, PipelinesGraphicId, TopicId, \
+from watchmen_model.common import DataModel, GraphicPosition, GraphicRect, PipelineGraphicId, TopicId, \
 	UserBasedTuple
 
 
@@ -18,6 +18,6 @@ class TopicGraphic(DataModel, BaseModel):
 
 
 class PipelineGraphic(UserBasedTuple, BaseModel):
-	pipelineGraphId: PipelinesGraphicId = None
+	pipelineGraphId: PipelineGraphicId = None
 	name: str = None
 	topics: List[TopicGraphic] = []
