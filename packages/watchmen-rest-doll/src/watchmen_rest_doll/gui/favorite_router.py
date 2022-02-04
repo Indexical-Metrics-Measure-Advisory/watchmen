@@ -1,3 +1,4 @@
+from logging import getLogger
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -5,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.gui import FavoriteService
 from watchmen_model.admin import UserRole
-from watchmen_model.common import UserId
+from watchmen_model.common import TenantId, UserId
 from watchmen_model.gui import Favorite
 from watchmen_rest.util import raise_400, raise_404, raise_500
 from watchmen_rest_doll.auth import get_any_principal, get_super_admin_principal
@@ -14,10 +15,20 @@ from watchmen_rest_doll.util import is_blank
 from watchmen_utilities import get_current_time_seconds
 
 router = APIRouter()
+logger = getLogger(__name__)
 
 
 def get_favorite_service(principal_service: PrincipalService) -> FavoriteService:
 	return FavoriteService(ask_meta_storage(), principal_service)
+
+
+def build_empty_favorite(tenant_id: TenantId, user_id: UserId):
+	return Favorite(
+		connectedSpaceIds=[],
+		dashboardIds=[],
+		tenantId=tenant_id,
+		userId=user_id
+	)
 
 
 @router.get('/favorite', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=Favorite)
@@ -27,15 +38,18 @@ async def load_my_favorite(principal_service: PrincipalService = Depends(get_any
 	try:
 		favorite = favorite_service.find_by_id(principal_service.get_user_id(), principal_service.get_tenant_id())
 		if favorite is None:
-			favorite = Favorite(
-				connectedSpaceIds=[],
-				dashboardIds=[],
-				tenantId=principal_service.get_tenant_id(),
-				userId=principal_service.get_user_id(),
-			)
+			favorite = build_empty_favorite(
+				principal_service.get_tenant_id(), principal_service.get_user_id())
+		else:
+			favorite.lastVisitTime = get_current_time_seconds()
+			favorite_service.update(favorite)
+		favorite_service.commit_transaction()
 		return favorite
-	finally:
-		favorite_service.close_transaction()
+	except Exception as e:
+		logger.error(e, exc_info=True, stack_info=True)
+		favorite_service.rollback_transaction()
+		# ignore exception and return empty one
+		return build_empty_favorite(principal_service.get_tenant_id(), principal_service.get_user_id())
 
 
 @router.post('/favorite', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=Favorite)

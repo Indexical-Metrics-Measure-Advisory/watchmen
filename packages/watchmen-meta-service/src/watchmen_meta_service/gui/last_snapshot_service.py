@@ -70,7 +70,13 @@ class LastSnapshotService(StorageService):
 				EntityCriteriaExpression(name='user_id', value=last_snapshot.userId),
 				EntityCriteriaExpression(name='tenant_id', value=last_snapshot.tenantId)
 			],
-			update={'connected_space_ids': last_snapshot.connectedSpaceIds, 'dashboardIds': last_snapshot.dashboardIds}
+			update={
+				'language': last_snapshot.language,
+				'last_dashboard_id': last_snapshot.lastDashboardId,
+				'admin_dashboard_id': last_snapshot.adminDashboardId,
+				'favorite_pin': last_snapshot.favoritePin,
+				'last_visit_time': last_snapshot.lastVisitTime
+			}
 		))
 
 	def find_by_id(self, user_id: UserId, tenant_id: TenantId) -> Optional[LastSnapshot]:
