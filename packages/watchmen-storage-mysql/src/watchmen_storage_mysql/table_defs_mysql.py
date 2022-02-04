@@ -156,6 +156,12 @@ table_pipelines = Table(
 	create_json('stages'), create_bool('enabled', False), create_bool('validated', False),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
+table_pipeline_graphics = Table(
+	'pipeline_graphics', meta_data,
+	create_pk('pipeline_graphic_id'),
+	create_str('name', 45), create_json('topics'),
+	create_user_id(), create_tenant_id()
+)
 # gui
 table_favorites = Table(
 	'favorites', meta_data,
@@ -186,6 +192,7 @@ tables: Dict[str, Table] = {
 	'enum_items': table_enum_items,
 	'topics': table_topics,
 	'pipelines': table_pipelines,
+	'pipeline_graphics': table_pipeline_graphics,
 	# gui
 	'favorites': table_favorites,
 	'last_snapshots': table_last_snapshot
