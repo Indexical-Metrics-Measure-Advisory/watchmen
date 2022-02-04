@@ -22,11 +22,11 @@ class CopyToMemoryAction(MemoryWriter):
 	"""
 	copy something to memory variable
 	"""
-	type: SystemActionType.COPY_TO_MEMORY = SystemActionType.COPY_TO_MEMORY
+	type: SystemActionType = SystemActionType.COPY_TO_MEMORY
 	source: Parameter = None
 
 
 class WriteToExternalAction(PipelineAction):
-	type: SystemActionType.WRITE_TO_EXTERNAL = SystemActionType.WRITE_TO_EXTERNAL
+	type: SystemActionType = SystemActionType.WRITE_TO_EXTERNAL
 	externalWriterId: ExternalWriterId = None
 	eventCode: str = None

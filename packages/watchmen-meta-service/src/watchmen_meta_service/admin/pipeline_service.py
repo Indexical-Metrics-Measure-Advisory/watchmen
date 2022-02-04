@@ -1,8 +1,10 @@
-from watchmen_meta_service.common import TupleService, TupleShaper
+from datetime import datetime
+from typing import List, Optional, Tuple
+
+from watchmen_meta_service.common import TupleNotFoundException, TupleService, TupleShaper
 from watchmen_model.admin import Pipeline
-from watchmen_model.common import PipelineId
-from watchmen_storage import EntityRow, \
-	EntityShaper
+from watchmen_model.common import PipelineId, TenantId, UserId
+from watchmen_storage import EntityCriteriaExpression, EntityRow, EntityShaper
 
 
 class PipelineShaper(EntityShaper):
@@ -50,3 +52,52 @@ class PipelineService(TupleService):
 
 	def get_tuple_id_column_name(self) -> str:
 		return 'pipeline_id'
+
+	def update_name(self, pipeline_id: PipelineId, name: str, tenant_id: TenantId) -> Tuple[UserId, datetime]:
+		"""
+		update name will not increase optimistic lock version
+		"""
+		last_modified_at = self.now()
+		last_modified_by = self.principal_service.get_user_id()
+		updated_count = self.storage.update_only(self.get_entity_updater(
+			criteria=[
+				EntityCriteriaExpression(name=self.get_tuple_id_column_name(), value=pipeline_id),
+				EntityCriteriaExpression(name='tenant_id', value=tenant_id)
+			],
+			update={
+				'name': name,
+				'last_modified_at': last_modified_at,
+				'last_modified_by': last_modified_by
+			}
+		))
+		if updated_count == 0:
+			raise TupleNotFoundException('Update 0 row might be caused by tuple not found.')
+		return last_modified_by, last_modified_at
+
+	def update_enablement(self, pipeline_id: PipelineId, enabled: bool, tenant_id: TenantId) -> Tuple[UserId, datetime]:
+		"""
+		update enablement will not increase optimistic lock version
+		"""
+		last_modified_at = self.now()
+		last_modified_by = self.principal_service.get_user_id()
+		updated_count = self.storage.update_only(self.get_entity_updater(
+			criteria=[
+				EntityCriteriaExpression(name=self.get_tuple_id_column_name(), value=pipeline_id),
+				EntityCriteriaExpression(name='tenant_id', value=tenant_id)
+			],
+			update={
+				'enabled': enabled,
+				'last_modified_at': last_modified_at,
+				'last_modified_by': last_modified_by
+			}
+		))
+		if updated_count == 0:
+			raise TupleNotFoundException('Update 0 row might be caused by tuple not found.')
+		return last_modified_by, last_modified_at
+
+	def find_all(self, tenant_id: Optional[TenantId]) -> List[Pipeline]:
+		criteria = []
+		if tenant_id is not None and len(tenant_id.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(name='tenant_id', value=tenant_id))
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria))

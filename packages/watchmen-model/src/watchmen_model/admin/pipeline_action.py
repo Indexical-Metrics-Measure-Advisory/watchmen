@@ -1,6 +1,8 @@
 from enum import Enum
 from typing import Union
 
+from pydantic import BaseModel
+
 from watchmen_model.common import DataModel, FactorId, ParameterJoint, PipelineActionId, TopicId
 
 
@@ -28,7 +30,7 @@ class WriteTopicActionType(str, Enum):
 PipelineStageUnitActionType = Union[WriteTopicActionType, ReadTopicActionType, SystemActionType]
 
 
-class PipelineAction(DataModel):
+class PipelineAction(DataModel, BaseModel):
 	actionId: PipelineActionId = None
 	type: PipelineStageUnitActionType = None
 
