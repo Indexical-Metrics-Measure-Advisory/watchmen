@@ -161,7 +161,7 @@ async def find_all_enums(principal_service: PrincipalService = Depends(get_conso
 
 
 @router.delete('/enum', tags=[UserRole.SUPER_ADMIN], response_model=Enum)
-async def delete_user_group_by_id(
+async def delete_enum_by_id(
 		enum_id: Optional[EnumId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
 ) -> Optional[Enum]:

@@ -70,7 +70,7 @@ async def save_last_snapshot_with_user(
 
 
 @router.delete('/last_snapshot', tags=[UserRole.SUPER_ADMIN], response_model=LastSnapshot)
-async def delete_user_group_by_id(
+async def delete_last_snapshot_by_id(
 		user_id: Optional[UserId],
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
 ) -> Optional[LastSnapshot]:

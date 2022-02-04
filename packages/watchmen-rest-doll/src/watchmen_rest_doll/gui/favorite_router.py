@@ -66,7 +66,7 @@ async def save_favorite_with_user(favorite: Favorite, principal_service: Princip
 
 
 @router.delete('/favorite', tags=[UserRole.SUPER_ADMIN], response_model=Favorite)
-async def delete_user_group_by_id(
+async def delete_favorite_by_id(
 		user_id: Optional[UserId],
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
 ) -> Optional[Favorite]:
