@@ -66,7 +66,11 @@ class FavoriteService(StorageService):
 				EntityCriteriaExpression(name='user_id', value=favorite.userId),
 				EntityCriteriaExpression(name='tenant_id', value=favorite.tenantId)
 			],
-			update={'connected_space_ids': favorite.connectedSpaceIds, 'dashboardIds': favorite.dashboardIds}
+			update={
+				'connected_space_ids': favorite.connectedSpaceIds,
+				'dashboard_ids': favorite.dashboardIds,
+				'last_visit_time': favorite.lastVisitTime
+			}
 		))
 
 	def find_by_id(self, user_id: UserId, tenant_id: TenantId) -> Optional[Favorite]:
