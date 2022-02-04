@@ -1,5 +1,6 @@
 from watchmen_meta_service.common import StorageService
 from watchmen_model.admin import Topic
+from watchmen_model.common import TopicId
 from watchmen_storage import SnowflakeGenerator, TransactionalStorageSPI
 
 
@@ -12,4 +13,8 @@ class FactorIndexService(StorageService):
 
 	def build_index(self, topic: Topic) -> None:
 		# TODO build factor index
+		pass
+
+	def remove_index(self, topic_id: TopicId) -> None:
+		# TODO remove factor index
 		pass

@@ -8,9 +8,9 @@ from watchmen_meta_service.analysis import FactorIndexService
 from watchmen_model.admin import Topic, UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId, TopicId
 from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
-from watchmen_rest_doll.auth import get_admin_principal, get_console_principal
+from watchmen_rest_doll.auth import get_admin_principal, get_console_principal, get_super_admin_principal
 from watchmen_rest_doll.doll import ask_engine_cache_enabled, ask_engine_index_enabled, ask_meta_storage, \
-	ask_presto_enabled, ask_snowflake_generator
+	ask_presto_enabled, ask_snowflake_generator, ask_tuple_delete_enabled
 from watchmen_rest_doll.util import is_blank, validate_tenant_id
 from watchmen_utilities import ArrayHelper
 
@@ -187,3 +187,58 @@ async def find_all_topics(principal_service: PrincipalService = Depends(get_cons
 		raise_500(e)
 	finally:
 		topic_service.close_transaction()
+
+
+def remove_topic_index(topic_id: TopicId, topic_service: TopicService) -> None:
+	if not ask_engine_index_enabled():
+		return
+	get_factor_index_service(topic_service).remove_index(topic_id)
+
+
+def remove_topic_cache(topic_id: TopicId, topic_service: TopicService) -> None:
+	if not ask_engine_cache_enabled():
+		return
+	# TODO remove topic from cache
+	pass
+
+
+def remove_presto_schema(topic_id: TopicId, topic_service: TopicService) -> None:
+	if not ask_presto_enabled():
+		return
+	# TODO remove topic schema from presto
+	pass
+
+
+def post_delete_topic(topic_id: TopicId, topic_service: TopicService) -> None:
+	build_topic_index(topic_id, topic_service)
+	build_topic_cache(topic_id, topic_service)
+	build_presto_schema(topic_id, topic_service)
+
+
+@router.delete('/topic', tags=[UserRole.SUPER_ADMIN], response_model=Topic)
+async def delete_user_group_by_id(
+		topic_id: Optional[TopicId] = None,
+		principal_service: PrincipalService = Depends(get_super_admin_principal)
+) -> Optional[Topic]:
+	if not ask_tuple_delete_enabled():
+		raise_404('Not Found')
+
+	if is_blank(topic_id):
+		raise_400('Enumeration id is required.')
+
+	topic_service = get_topic_service(principal_service)
+	topic_service.begin_transaction()
+	try:
+		# noinspection PyTypeChecker
+		topic: Topic = topic_service.delete(topic_id)
+		if topic is None:
+			raise_404()
+		post_delete_topic(topic.topicId, topic_service)
+		topic_service.commit_transaction()
+		return topic
+	except HTTPException as e:
+		topic_service.rollback_transaction()
+		raise e
+	except Exception as e:
+		topic_service.rollback_transaction()
+		raise_500(e)
