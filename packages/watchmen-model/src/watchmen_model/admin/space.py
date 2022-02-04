@@ -26,14 +26,10 @@ def construct_filter(a_filter: Optional[Union[dict, SpaceFilter]]) -> Optional[S
 		return a_filter
 	else:
 		# noinspection PyArgumentList
-		return SpaceFilter(
-			topicId=a_filter.get('topicId'),
-			joint=a_filter.get('joint'),
-			enabled=a_filter.get('enabled')
-		)
+		return SpaceFilter(**a_filter)
 
 
-def construct_filters(filters: Optional[Union[list, str]] = None) -> Optional[List[SpaceFilter]]:
+def construct_filters(filters: Optional[list] = None) -> Optional[List[SpaceFilter]]:
 	if filters is None:
 		return None
 	else:
