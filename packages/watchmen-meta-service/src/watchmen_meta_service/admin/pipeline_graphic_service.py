@@ -29,7 +29,7 @@ PIPELINE_GRAPHIC_ENTITY_NAME = 'pipeline_graphics'
 PIPELINE_GRAPHIC_ENTITY_SHAPER = PipelineGraphicShaper()
 
 
-class FavoriteService(StorageService):
+class PipelineGraphicService(StorageService):
 	def __init__(
 			self,
 			storage: TransactionalStorageSPI,
