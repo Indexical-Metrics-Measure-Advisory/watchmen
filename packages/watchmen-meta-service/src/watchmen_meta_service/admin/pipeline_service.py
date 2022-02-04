@@ -2,19 +2,33 @@ from datetime import datetime
 from typing import List, Optional, Tuple
 
 from watchmen_meta_service.common import TupleNotFoundException, TupleService, TupleShaper
-from watchmen_model.admin import Pipeline
+from watchmen_model.admin import Pipeline, PipelineStage
 from watchmen_model.common import PipelineId, TenantId, UserId
 from watchmen_storage import EntityCriteriaExpression, EntityRow, EntityShaper
+from watchmen_utilities import ArrayHelper
 
 
 class PipelineShaper(EntityShaper):
+	@staticmethod
+	def serialize_stage(stage: PipelineStage) -> dict:
+		if isinstance(stage, dict):
+			return stage
+		else:
+			return stage.dict()
+
+	@staticmethod
+	def serialize_stages(stages: Optional[List[PipelineStage]]) -> Optional[list]:
+		if stages is None:
+			return None
+		return ArrayHelper(stages).map(lambda x: PipelineShaper.serialize_stage(x)).to_list()
+
 	def serialize(self, pipeline: Pipeline) -> EntityRow:
 		return TupleShaper.serialize_tenant_based(pipeline, {
 			'pipeline_id': pipeline.pipelineId,
 			'topic_id': pipeline.topicId,
 			'name': pipeline.name,
 			'type': pipeline.type,
-			'stages': pipeline.stages,
+			'stages': PipelineShaper.serialize_stages(pipeline.stages),
 			'enabled': pipeline.enabled,
 			'validated': pipeline.validated
 		})
