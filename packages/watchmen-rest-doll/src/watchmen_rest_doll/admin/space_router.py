@@ -142,7 +142,7 @@ def validate_topics(space_service: SpaceService, topic_ids: List[TopicId], tenan
 
 
 @router.post('/space', tags=[UserRole.ADMIN], response_model=Space)
-async def save_user_group(
+async def save_space(
 		space: Space, principal_service: PrincipalService = Depends(get_admin_principal)) -> Space:
 	validate_tenant_id(space, principal_service)
 

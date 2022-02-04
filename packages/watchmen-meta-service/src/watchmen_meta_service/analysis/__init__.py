@@ -1,1 +1,2 @@
-from .factor_index_service import FactorIndexService
+from .pipeline_index_service import PipelineIndexService
+from .topic_index_service import TopicIndexService

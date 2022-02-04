@@ -42,7 +42,7 @@ async def load_my_last_snapshot(principal_service: PrincipalService = Depends(ge
 
 @router.post(
 	'/last_snapshot', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=LastSnapshot)
-async def save_last_snapshot_with_user(
+async def save_my_last_snapshot(
 		last_snapshot: LastSnapshot, principal_service: PrincipalService = Depends(get_any_principal)):
 	last_snapshot.userId = principal_service.get_user_id()
 	last_snapshot.tenantId = principal_service.get_tenant_id()

@@ -39,7 +39,7 @@ async def load_my_favorite(principal_service: PrincipalService = Depends(get_any
 
 
 @router.post('/favorite', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=Favorite)
-async def save_favorite_with_user(favorite: Favorite, principal_service: PrincipalService = Depends(get_any_principal)):
+async def save_my_favorite(favorite: Favorite, principal_service: PrincipalService = Depends(get_any_principal)):
 	favorite.userId = principal_service.get_user_id()
 	favorite.tenantId = principal_service.get_tenant_id()
 	favorite.lastVisitTime = get_current_time_seconds()

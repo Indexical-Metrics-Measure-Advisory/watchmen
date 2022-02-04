@@ -243,7 +243,7 @@ async def find_users_by_name(
 # return query_users_by_name_with_pagination(query_name, pagination, current_user)
 
 @router.post('/user/ids', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=List[User])
-async def query_user_list_by_ids(
+async def find_users_by_ids(
 		user_ids: List[UserId], principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> List[User]:
 	if len(user_ids) == 0:

@@ -1,6 +1,8 @@
 from enum import Enum
 from typing import List
 
+from pydantic import BaseModel
+
 from watchmen_model.common import DataModel, OptimisticLock, ParameterJoint, PipelineId, PipelineStageId, \
 	PipelineUnitId, TenantBasedTuple, TopicId
 from .pipeline_action import PipelineAction
@@ -31,7 +33,7 @@ class PipelineTriggerType(str, Enum):
 	DELETE = 'delete',
 
 
-class Pipeline(Conditional, TenantBasedTuple, OptimisticLock):
+class Pipeline(Conditional, TenantBasedTuple, OptimisticLock, BaseModel):
 	pipelineId: PipelineId = None
 	topicId: TopicId = None
 	name: str = None
