@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional, TypeVar
 
 from watchmen_auth import PrincipalService
-from watchmen_model.common import Auditable, OptimisticLock, Pageable, TenantBasedTuple, Tuple, UserBasedTuple
+from watchmen_model.common import Auditable, OptimisticLock, Pageable, TenantBasedTuple, Tuple
 from watchmen_storage import EntityCriteria, EntityCriteriaExpression, EntityDeleter, EntityFinder, EntityHelper, \
 	EntityIdHelper, EntityPager, EntityRow, EntityShaper, EntitySort, EntityUpdate, EntityUpdater, \
 	OptimisticLockException, SnowflakeGenerator, TransactionalStorageSPI
@@ -62,12 +62,6 @@ class TupleShaper:
 		return row
 
 	@staticmethod
-	def serialize_user_based(a_tuple: UserBasedTuple, row: EntityRow) -> EntityRow:
-		row = TupleShaper.serialize_tenant_based(a_tuple, row)
-		row['user_id'] = a_tuple.userId
-		return row
-
-	@staticmethod
 	def deserialize(row: EntityRow, a_tuple: Tuple) -> Tuple:
 		a_tuple = AuditableShaper.deserialize(row, a_tuple)
 		if isinstance(a_tuple, OptimisticLock):
@@ -79,13 +73,6 @@ class TupleShaper:
 		# noinspection PyTypeChecker
 		a_tuple: TenantBasedTuple = TupleShaper.deserialize(row, a_tuple)
 		a_tuple.tenantId = row.get('tenant_id')
-		return a_tuple
-
-	@staticmethod
-	def deserialize_user_based(row: EntityRow, a_tuple: UserBasedTuple) -> UserBasedTuple:
-		# noinspection PyTypeChecker
-		a_tuple: UserBasedTuple = TupleShaper.deserialize_tenant_based(row, a_tuple)
-		a_tuple.userId = row.get('user_id')
 		return a_tuple
 
 
