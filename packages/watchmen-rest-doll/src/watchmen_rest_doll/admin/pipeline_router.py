@@ -6,13 +6,15 @@ from fastapi import APIRouter, Depends, HTTPException
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.admin import PipelineService
 from watchmen_meta_service.analysis import PipelineIndexService
-from watchmen_model.admin import Pipeline, UserRole
+from watchmen_meta_service.common import TupleService
+from watchmen_model.admin import Pipeline, PipelineAction, PipelineStage, PipelineUnit, UserRole
 from watchmen_model.common import PipelineId, UserId
 from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
 from watchmen_rest_doll.auth import get_admin_principal, get_super_admin_principal
 from watchmen_rest_doll.doll import ask_engine_cache_enabled, ask_engine_index_enabled, ask_meta_storage, \
 	ask_snowflake_generator, ask_tuple_delete_enabled
 from watchmen_rest_doll.util import is_blank, validate_tenant_id
+from watchmen_utilities import ArrayHelper
 
 router = APIRouter()
 
@@ -52,6 +54,27 @@ async def load_pipeline_by_id(
 		pipeline_service.close_transaction()
 
 
+def redress_action_ids(action: PipelineAction, pipeline_service: PipelineService) -> None:
+	if TupleService.is_tuple_id_faked(action.actionId):
+		action.actionId = pipeline_service.generate_tuple_id()
+
+
+def redress_unit_ids(unit: PipelineUnit, pipeline_service: PipelineService) -> None:
+	if TupleService.is_tuple_id_faked(unit.unitId):
+		unit.unitId = pipeline_service.generate_tuple_id()
+	ArrayHelper(unit.do).each(lambda x: redress_action_ids(x, pipeline_service))
+
+
+def redress_stage_ids(stage: PipelineStage, pipeline_service: PipelineService) -> None:
+	if TupleService.is_tuple_id_faked(stage.stageId):
+		stage.stageId = pipeline_service.generate_tuple_id()
+	ArrayHelper(stage.units).each(lambda x: redress_unit_ids(x, pipeline_service))
+
+
+def redress_ids(pipeline: Pipeline, pipeline_service: PipelineService) -> None:
+	ArrayHelper(pipeline.stages).each(lambda x: redress_stage_ids(x, pipeline_service))
+
+
 def build_pipeline_index(pipeline: Pipeline, pipeline_service: PipelineService) -> None:
 	if not ask_engine_index_enabled():
 		return
@@ -82,6 +105,7 @@ async def save_pipeline(
 		pipeline_service.begin_transaction()
 		try:
 			pipeline_service.redress_tuple_id(pipeline)
+			redress_ids(pipeline, pipeline_service)
 			# noinspection PyTypeChecker
 			pipeline: Pipeline = pipeline_service.create(pipeline)
 			post_save_pipeline(pipeline, pipeline_service)
@@ -98,6 +122,7 @@ async def save_pipeline(
 				if existing_pipeline.tenantId != pipeline.tenantId:
 					raise_403()
 
+			redress_ids(pipeline, pipeline_service)
 			# noinspection PyTypeChecker
 			pipeline: Pipeline = pipeline_service.update(pipeline)
 			post_save_pipeline(pipeline, pipeline_service)

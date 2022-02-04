@@ -1,6 +1,7 @@
+from .conditional import Conditional
 from .enumeration import Enum, EnumItem
 from .factor import Factor, FactorEncryptMethod, FactorIndexGroup, FactorType
-from .pipeline import Conditional, Pipeline, PipelineStage, PipelineTriggerType, PipelineUnit
+from .pipeline import Pipeline, PipelineStage, PipelineTriggerType, PipelineUnit
 from .pipeline_action import AggregateArithmetic, AggregateArithmeticHolder, FindBy, FromFactor, FromTopic, \
 	MemoryWriter, PipelineAction, PipelineStageUnitActionType, ReadTopicActionType, SystemActionType, ToFactor, ToTopic, \
 	WriteTopicActionType

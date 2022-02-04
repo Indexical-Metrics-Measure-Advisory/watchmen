@@ -127,7 +127,7 @@ def construct_parameter(parameter: Optional[Union[dict | Parameter]]) -> Optiona
 		elif kind == ParameterKind.COMPUTED:
 			return ComputedParameter(**parameter)
 		else:
-			raise Exception(f'Parameter kind[{kind}] cannot be determined.')
+			raise Exception(f'Parameter kind[{kind}] cannot be recognized.')
 
 
 def construct_parameters(parameters: Optional[list]) -> Optional[List[Parameter]]:
