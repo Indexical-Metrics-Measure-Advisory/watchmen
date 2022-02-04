@@ -9,9 +9,9 @@ from watchmen_meta_service.analysis import PipelineIndexService
 from watchmen_model.admin import Pipeline, UserRole
 from watchmen_model.common import PipelineId, UserId
 from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
-from watchmen_rest_doll.auth import get_admin_principal
+from watchmen_rest_doll.auth import get_admin_principal, get_super_admin_principal
 from watchmen_rest_doll.doll import ask_engine_cache_enabled, ask_engine_index_enabled, ask_meta_storage, \
-	ask_snowflake_generator
+	ask_snowflake_generator, ask_tuple_delete_enabled
 from watchmen_rest_doll.util import is_blank, validate_tenant_id
 
 router = APIRouter()
@@ -240,3 +240,50 @@ async def find_all_pipelines(principal_service: PrincipalService = Depends(get_a
 		raise_500(e)
 	finally:
 		pipeline_service.close_transaction()
+
+
+def remove_pipeline_index(pipeline_id: PipelineId, pipeline_service: PipelineService) -> None:
+	if not ask_engine_index_enabled():
+		return
+	get_pipeline_index_service(pipeline_service).remove_index(pipeline_id)
+
+
+def remove_pipeline_cache(pipeline_id: PipelineId, pipeline_service: PipelineService) -> None:
+	if not ask_engine_cache_enabled():
+		return
+	# TODO remove topic from cache
+	pass
+
+
+def post_delete_pipeline(pipeline_id: PipelineId, pipeline_service: PipelineService) -> None:
+	remove_pipeline_index(pipeline_id, pipeline_service)
+	remove_pipeline_cache(pipeline_id, pipeline_service)
+
+
+@router.delete('/pipeline', tags=[UserRole.SUPER_ADMIN], response_model=Pipeline)
+async def delete_topic_by_id(
+		pipeline_id: Optional[PipelineId] = None,
+		principal_service: PrincipalService = Depends(get_super_admin_principal)
+) -> Optional[Pipeline]:
+	if not ask_tuple_delete_enabled():
+		raise_404('Not Found')
+
+	if is_blank(pipeline_id):
+		raise_400('Topic id is required.')
+
+	pipeline_service = get_pipeline_service(principal_service)
+	pipeline_service.begin_transaction()
+	try:
+		# noinspection PyTypeChecker
+		pipeline: Pipeline = pipeline_service.delete(pipeline_id)
+		if pipeline is None:
+			raise_404()
+		post_delete_pipeline(pipeline.topicId, pipeline_service)
+		pipeline_service.commit_transaction()
+		return pipeline
+	except HTTPException as e:
+		pipeline_service.rollback_transaction()
+		raise e
+	except Exception as e:
+		pipeline_service.rollback_transaction()
+		raise_500(e)
