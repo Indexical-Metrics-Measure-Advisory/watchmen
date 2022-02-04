@@ -11,6 +11,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.9"
 pydantic = "^1.9.0"
+watchmen-utilities = { path = "../watchmen-utilities", develop = true }
 
 [tool.poetry.dev-dependencies]
 
