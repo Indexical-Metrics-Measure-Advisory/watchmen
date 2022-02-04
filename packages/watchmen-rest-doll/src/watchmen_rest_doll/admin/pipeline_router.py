@@ -1,4 +1,5 @@
-from typing import Optional
+from datetime import datetime
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -6,7 +7,7 @@ from watchmen_auth import PrincipalService
 from watchmen_meta_service.admin import PipelineService
 from watchmen_meta_service.analysis import PipelineIndexService
 from watchmen_model.admin import Pipeline, UserRole
-from watchmen_model.common import PipelineId
+from watchmen_model.common import PipelineId, UserId
 from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
 from watchmen_rest_doll.auth import get_admin_principal
 from watchmen_rest_doll.doll import ask_engine_cache_enabled, ask_engine_index_enabled, ask_meta_storage, \
@@ -111,21 +112,131 @@ async def save_pipeline(
 	return pipeline
 
 
+def update_pipeline_index_on_name_changed(
+		pipeline_id: PipelineId, name: str,
+		last_modified_by: UserId, last_modified_at: datetime,
+		pipeline_service: PipelineService) -> None:
+	if not ask_engine_index_enabled():
+		return
+	get_pipeline_index_service(pipeline_service).update_index_on_name_changed(
+		pipeline_id, name, last_modified_by, last_modified_at)
+
+
+def update_pipeline_cache_on_name_changed(
+		pipeline_id: PipelineId, name: str,
+		last_modified_by: UserId, last_modified_at: datetime,
+		pipeline_service: PipelineService) -> None:
+	if not ask_engine_cache_enabled():
+		return
+	# TODO update pipeline cache
+	pass
+
+
+def post_update_pipeline_name(
+		pipeline_id: PipelineId, name: str,
+		last_modified_by: UserId, last_modified_at: datetime,
+		pipeline_service: PipelineService
+) -> None:
+	update_pipeline_index_on_name_changed(pipeline_id, name, last_modified_by, last_modified_at, pipeline_service)
+	update_pipeline_cache_on_name_changed(pipeline_id, name, last_modified_by, last_modified_at, pipeline_service)
+
+
 @router.get('/pipeline/rename', tags=[UserRole.ADMIN], response_model=None)
-async def rename_pipeline_by_id(
+async def update_pipeline_name_by_id(
 		pipeline_id: Optional[PipelineId], name: Optional[str],
 		principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> None:
+	"""
+	rename pipeline will not increase the optimistic lock version
+	"""
 	if is_blank(pipeline_id):
 		raise_400('Pipeline id is required.')
 
-# @router.get("/pipeline/rename", tags=["admin"])
-# async def rename_pipeline(pipeline_id, name, current_user: User = Depends(deps.get_current_user)):
-# 	update_pipeline_name(pipeline_id, name)
+	pipeline_service = get_pipeline_service(principal_service)
+	pipeline_service.begin_transaction()
+	try:
+		# noinspection PyTypeChecker
+		last_modified_by, last_modified_at = pipeline_service.update_name(
+			pipeline_id, name, principal_service.get_tenant_id())
+		post_update_pipeline_name(pipeline_id, name, last_modified_by, last_modified_at, pipeline_service)
+		pipeline_service.commit_transaction()
+	except HTTPException as e:
+		pipeline_service.rollback_transaction()
+		raise e
+	except Exception as e:
+		pipeline_service.rollback_transaction()
+		raise_500(e)
 
-# @router.get("/pipeline/all", tags=["admin"], response_model=List[Pipeline])
-# async def load_all_pipelines(current_user: User = Depends(deps.get_current_user)):
-# 	return load_pipeline_list(current_user)
-# @router.get("/pipeline/enabled", tags=["admin"])
-# async def update_pipeline_enabled(pipeline_id, enabled, current_user: User = Depends(deps.get_current_user)):
-# 	update_pipeline_status(pipeline_id, enabled)
+
+def update_pipeline_index_on_enablement_changed(
+		pipeline_id: PipelineId, enabled: bool,
+		last_modified_by: UserId, last_modified_at: datetime,
+		pipeline_service: PipelineService) -> None:
+	if not ask_engine_index_enabled():
+		return
+	get_pipeline_index_service(pipeline_service).update_index_on_enablement_changed(
+		pipeline_id, enabled, last_modified_by, last_modified_at)
+
+
+def update_pipeline_cache_on_enablement_changed(
+		pipeline_id: PipelineId, enabled: bool,
+		last_modified_by: UserId, last_modified_at: datetime,
+		pipeline_service: PipelineService) -> None:
+	if not ask_engine_cache_enabled():
+		return
+	# TODO update pipeline cache
+	pass
+
+
+def post_update_pipeline_enablement(
+		pipeline_id: PipelineId, enabled: bool,
+		last_modified_by: UserId, last_modified_at: datetime,
+		pipeline_service: PipelineService
+) -> None:
+	update_pipeline_index_on_enablement_changed(
+		pipeline_id, enabled, last_modified_by, last_modified_at, pipeline_service)
+	update_pipeline_cache_on_enablement_changed(
+		pipeline_id, enabled, last_modified_by, last_modified_at, pipeline_service)
+
+
+@router.get('/pipeline/enabled', tags=[UserRole.ADMIN], response_model=None)
+async def update_pipeline_enabled_by_id(
+		pipeline_id: Optional[PipelineId], enabled: Optional[bool],
+		principal_service: PrincipalService = Depends(get_admin_principal)
+) -> None:
+	"""
+	enable/disable pipeline will not increase the optimistic lock version
+	"""
+	if is_blank(pipeline_id):
+		raise_400('Pipeline id is required.')
+	if enabled is None:
+		raise_400('Enabled is required.')
+
+	pipeline_service = get_pipeline_service(principal_service)
+	pipeline_service.begin_transaction()
+	try:
+		# noinspection PyTypeChecker
+		last_modified_by, last_modified_at = pipeline_service.update_enablement(
+			pipeline_id, enabled, principal_service.get_tenant_id())
+		post_update_pipeline_enablement(pipeline_id, enabled, last_modified_by, last_modified_at, pipeline_service)
+		pipeline_service.commit_transaction()
+	except HTTPException as e:
+		pipeline_service.rollback_transaction()
+		raise e
+	except Exception as e:
+		pipeline_service.rollback_transaction()
+		raise_500(e)
+
+
+@router.get('/pipeline/all', tags=[UserRole.ADMIN], response_model=List[Pipeline])
+async def find_all_pipelines(principal_service: PrincipalService = Depends(get_admin_principal)) -> List[Pipeline]:
+	tenant_id = principal_service.get_tenant_id()
+
+	pipeline_service = get_pipeline_service(principal_service)
+	pipeline_service.begin_transaction()
+	try:
+		return pipeline_service.find_all(tenant_id)
+	except Exception as e:
+		raise_500(e)
+	finally:
+		pipeline_service.close_transaction()

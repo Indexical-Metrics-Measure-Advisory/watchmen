@@ -13,14 +13,14 @@ class Conditional(DataModel):
 	on: ParameterJoint = None
 
 
-class PipelineUnit(Conditional):
+class PipelineUnit(Conditional, BaseModel):
 	unitId: PipelineUnitId = None
 	name: str = None
 	loopVariableName: str = None
 	do: List[PipelineAction] = []
 
 
-class PipelineStage(Conditional):
+class PipelineStage(Conditional, BaseModel):
 	stageId: PipelineStageId = None
 	name: str = None
 	units: List[PipelineUnit] = []
