@@ -28,7 +28,16 @@ class DollApp(RestApp):
 		return build_find_user_by_pat(self.build_meta_storage())
 
 	def is_tuple_delete_enabled(self):
-		return self.get_settings().ENABLE_TUPLE_DELETE
+		return self.get_settings().TUPLE_DELETABLE
+
+	def is_engine_cache_enabled(self):
+		return self.get_settings().ENGINE_CACHE
+
+	def is_engine_index_enabled(self):
+		return self.get_settings().ENGINE_INDEX
+
+	def is_presto_enabled(self):
+		return self.get_settings().PRESTO
 
 	def is_kafka_connector_enabled(self):
 		return self.get_settings().KAFKA_CONNECTOR
@@ -76,3 +85,15 @@ def ask_access_token_expires_in() -> int:
 
 def ask_tuple_delete_enabled() -> bool:
 	return doll.is_tuple_delete_enabled()
+
+
+def ask_engine_cache_enabled() -> bool:
+	return doll.is_engine_cache_enabled()
+
+
+def ask_engine_index_enabled() -> bool:
+	return doll.is_engine_index_enabled()
+
+
+def ask_presto_enabled() -> bool:
+	return doll.is_presto_enabled()

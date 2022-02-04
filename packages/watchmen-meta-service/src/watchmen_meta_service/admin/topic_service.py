@@ -1,10 +1,10 @@
 from typing import List
 
 from watchmen_meta_service.common import TupleService, TupleShaper
-from watchmen_model.admin import Topic
-from watchmen_model.common import TenantId, TopicId
+from watchmen_model.admin import Factor, Topic
+from watchmen_model.common import FactorId, TenantId, TopicId
 from watchmen_storage import EntityCriteriaExpression, EntityCriteriaOperator, EntityDistinctValuesFinder, EntityRow, \
-	EntityShaper
+	EntityShaper, SnowflakeGenerator
 
 
 class TopicShaper(EntityShaper):
@@ -34,6 +34,22 @@ class TopicShaper(EntityShaper):
 
 TOPIC_ENTITY_NAME = 'topics'
 TOPIC_ENTITY_SHAPER = TopicShaper()
+
+
+class FactorService:
+	def __init__(self, snowflake_generator: SnowflakeGenerator):
+		self.snowflake_generator = snowflake_generator
+
+	def generate_factor_id(self) -> FactorId:
+		return str(self.snowflake_generator.next_id())
+
+	def redress_factor_id(self, factor: Factor) -> Factor:
+		"""
+		return exactly the given factor, replace by generated id if it is faked
+		"""
+		if TupleService.is_tuple_id_faked(factor.factorId):
+			factor.factorId = self.generate_factor_id()
+		return factor
 
 
 class TopicService(TupleService):

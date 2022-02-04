@@ -4,7 +4,7 @@ from watchmen_rest import RestSettings
 class DollSettings(RestSettings):
 	APP_NAME: str = 'Watchmen Doll'
 
-	ENABLE_TUPLE_DELETE: bool = False
+	TUPLE_DELETABLE: bool = False
 
 	RABBITMQ_CONNECTOR: bool = False
 	RABBITMQ_HOST: str = ''
@@ -19,3 +19,8 @@ class DollSettings(RestSettings):
 	KAFKA_CONNECTOR: bool = False
 	KAFKA_BOOTSTRAP_SERVER: str = 'localhost:9092'
 	KAFKA_TOPICS: str = ''
+
+	ENGINE_CACHE: bool = True
+	ENGINE_INDEX: bool = True
+	
+	PRESTO: bool = True
