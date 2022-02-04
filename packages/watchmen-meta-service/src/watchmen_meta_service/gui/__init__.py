@@ -1,2 +1,2 @@
-from .favorite import FavoriteService
-from .last_snapshot import LastSnapshotService
+from .favorite_service import FavoriteService
+from .last_snapshot_service import LastSnapshotService

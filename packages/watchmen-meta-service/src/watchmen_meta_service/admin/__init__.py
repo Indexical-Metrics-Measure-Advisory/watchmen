@@ -1,6 +1,6 @@
-from .enumeration import EnumItemService, EnumService
-from .pipeline import PipelineService
-from .space import SpaceService
-from .topic import TopicService
-from .user import UserService
-from .user_group import UserGroupService
+from .enumeration_service import EnumItemService, EnumService
+from .pipeline_service import PipelineService
+from .space_service import SpaceService
+from .topic_service import TopicService
+from .user_group_service import UserGroupService
+from .user_service import UserService

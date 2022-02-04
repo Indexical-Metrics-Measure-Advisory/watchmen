@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import Callable, Optional
 
-from watchmen_meta_service.admin.user import USER_ENTITY_NAME, USER_ENTITY_SHAPER
-from watchmen_meta_service.system.pat import PAT_ENTITY_NAME, PAT_ENTITY_SHAPER
+from watchmen_meta_service.admin.user_service import USER_ENTITY_NAME, USER_ENTITY_SHAPER
+from watchmen_meta_service.system.pat_service import PAT_ENTITY_NAME, PAT_ENTITY_SHAPER
 from watchmen_model.admin import User
 from watchmen_model.system import PersonalAccessToken
 from watchmen_storage import EntityCriteriaExpression, EntityFinder, EntityIdHelper, TransactionalStorageSPI
