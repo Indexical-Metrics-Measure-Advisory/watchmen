@@ -32,6 +32,7 @@ develop = true
 
 [package.dependencies]
 pydantic = "^1.9.0"
+watchmen-utilities = {path = "../watchmen-utilities", develop = true}
 
 [package.source]
 type = "directory"
@@ -53,7 +54,7 @@ url = "../watchmen-utilities"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "bbb01ba0e0877f3ed69f1c08eab6d270751c77d36a4b178f406a258926cd3237"
+content-hash = "6067f36ee173380b8e3a493d5a2fb62d136e5c4e588a4f90cd2ffd8e4e2d613e"
 
 [metadata.files]
 pydantic = [
