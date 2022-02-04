@@ -246,7 +246,7 @@ async def find_spaces_by_ids(
 
 
 @router.delete('/space', tags=[UserRole.SUPER_ADMIN], response_model=Space)
-async def delete_user_group_by_id(
+async def delete_space_by_id(
 		space_id: Optional[SpaceId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
 ) -> Optional[Space]:

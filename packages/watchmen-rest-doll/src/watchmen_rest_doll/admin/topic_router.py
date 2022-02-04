@@ -216,7 +216,7 @@ def post_delete_topic(topic_id: TopicId, topic_service: TopicService) -> None:
 
 
 @router.delete('/topic', tags=[UserRole.SUPER_ADMIN], response_model=Topic)
-async def delete_user_group_by_id(
+async def delete_topic_by_id(
 		topic_id: Optional[TopicId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
 ) -> Optional[Topic]:
