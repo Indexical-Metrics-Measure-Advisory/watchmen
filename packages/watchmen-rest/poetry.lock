@@ -209,6 +209,17 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
+name = "python-dotenv"
+version = "0.19.2"
+description = "Read key-value pairs from a .env file and set them as environment variables"
+category = "main"
+optional = false
+python-versions = ">=3.5"
+
+[package.extras]
+cli = ["click (>=5.0)"]
+
+[[package]]
 name = "python-jose"
 version = "3.3.0"
 description = "JOSE implementation in Python"
@@ -321,7 +332,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "uvicorn"
-version = "0.17.2"
+version = "0.17.3"
 description = "The lightning-fast ASGI server."
 category = "main"
 optional = false
@@ -419,7 +430,7 @@ url = "../watchmen-utilities"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "852357838888613752c6a42ee3be845fa940976e2abed8a4fa0cafec51c15f82"
+content-hash = "214f1f7ef4a107098e640dcd8801a24903b55dbd5a27893e6d36ef27361511a5"
 
 [metadata.files]
 anyio = [
@@ -608,6 +619,10 @@ pyrsistent = [
     {file = "pyrsistent-0.18.1-cp39-cp39-win_amd64.whl", hash = "sha256:e24a828f57e0c337c8d8bb9f6b12f09dfdf0273da25fda9e314f0b684b415a07"},
     {file = "pyrsistent-0.18.1.tar.gz", hash = "sha256:d4d61f8b993a7255ba714df3aca52700f8125289f84f704cf80916517c46eb96"},
 ]
+python-dotenv = [
+    {file = "python-dotenv-0.19.2.tar.gz", hash = "sha256:a5de49a31e953b45ff2d2fd434bbc2670e8db5273606c1e737cc6b93eff3655f"},
+    {file = "python_dotenv-0.19.2-py2.py3-none-any.whl", hash = "sha256:32b2bdc1873fd3a3c346da1c6db83d0053c3c62f28f1f38516070c4c8971b1d3"},
+]
 python-jose = [
     {file = "python-jose-3.3.0.tar.gz", hash = "sha256:55779b5e6ad599c6336191246e95eb2293a9ddebd555f796a65f838f07e5d78a"},
     {file = "python_jose-3.3.0-py2.py3-none-any.whl", hash = "sha256:9b1376b023f8b298536eedd47ae1089bcdb848f1535ab30555cd92002d78923a"},
@@ -675,8 +690,8 @@ typing-extensions = [
     {file = "typing_extensions-4.0.1.tar.gz", hash = "sha256:4ca091dea149f945ec56afb48dae714f21e8692ef22a395223bcd328961b6a0e"},
 ]
 uvicorn = [
-    {file = "uvicorn-0.17.2-py3-none-any.whl", hash = "sha256:88b64ad6d4a77806b20b8df1a2465b49121845fff40df96e94b81de6ba9428df"},
-    {file = "uvicorn-0.17.2.tar.gz", hash = "sha256:dbad5925f50d0986404b79328d253d63e5ed22419539441246efa28ad5725069"},
+    {file = "uvicorn-0.17.3-py3-none-any.whl", hash = "sha256:3ab1bf48aa512692db93a91c514576a0739a9d3522827e1656a172ee87118fa5"},
+    {file = "uvicorn-0.17.3.tar.gz", hash = "sha256:3cebddac78c7dd6bfce2f8f838c2c9b0cfcf3dddf417315ba62378ebe7e8fae2"},
 ]
 watchmen-auth = []
 watchmen-model = []
