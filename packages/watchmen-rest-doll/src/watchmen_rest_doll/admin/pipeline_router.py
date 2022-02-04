@@ -128,7 +128,7 @@ def update_pipeline_cache_on_name_changed(
 		pipeline_service: PipelineService) -> None:
 	if not ask_engine_cache_enabled():
 		return
-	# TODO update pipeline cache
+	# TODO update pipeline cache on name changed
 	pass
 
 
@@ -184,7 +184,7 @@ def update_pipeline_cache_on_enablement_changed(
 		pipeline_service: PipelineService) -> None:
 	if not ask_engine_cache_enabled():
 		return
-	# TODO update pipeline cache
+	# TODO update pipeline cache on enablement changed
 	pass
 
 
@@ -251,7 +251,7 @@ def remove_pipeline_index(pipeline_id: PipelineId, pipeline_service: PipelineSer
 def remove_pipeline_cache(pipeline_id: PipelineId, pipeline_service: PipelineService) -> None:
 	if not ask_engine_cache_enabled():
 		return
-	# TODO remove topic from cache
+	# TODO remove pipeline from cache
 	pass
 
 
