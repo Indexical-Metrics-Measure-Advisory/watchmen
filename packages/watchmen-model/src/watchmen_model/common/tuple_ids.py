@@ -16,7 +16,7 @@ PipelineActionId = TypeVar('PipelineActionId', bound=str)
 PipelineUnitId = TypeVar('PipelineUnitId', bound=str)
 PipelineStageId = TypeVar('PipelineStageId', bound=str)
 PipelineId = TypeVar('PipelineId', bound=str)
-PipelinesGraphicId = TypeVar('PipelinesGraphicId', bound=str)
+PipelineGraphicId = TypeVar('PipelineGraphicId', bound=str)
 
 ReportFunnelId = TypeVar('ReportFunnelId', bound=str)
 ReportId = TypeVar('ReportId', bound=str)
