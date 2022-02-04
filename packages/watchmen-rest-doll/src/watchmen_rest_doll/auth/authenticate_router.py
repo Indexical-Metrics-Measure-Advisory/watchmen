@@ -8,13 +8,14 @@ from starlette.requests import Request
 
 from watchmen_auth import AuthFailOn401, AuthFailOn403, Authorization, PrincipalService
 from watchmen_meta_service.admin import UserService
+from watchmen_meta_service.auth import build_find_user_by_name
 from watchmen_model.admin import User, UserRole
 from watchmen_model.system import Token
 from watchmen_rest import create_jwt_token
 from watchmen_rest.util import raise_401, raise_403
 from watchmen_rest_doll.doll import ask_access_token_expires_in, ask_jwt_params, ask_meta_storage, \
 	ask_snowflake_generator, doll
-from watchmen_rest_doll.util import build_find_user_by_name, verify_password
+from watchmen_rest_doll.util import verify_password
 
 router = APIRouter()
 logger = getLogger(__name__)

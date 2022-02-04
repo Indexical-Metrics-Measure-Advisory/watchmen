@@ -2,12 +2,12 @@ from typing import Callable, Optional, Tuple
 
 from fastapi import FastAPI
 
+from watchmen_meta_service.auth import build_find_user_by_name, build_find_user_by_pat
 from watchmen_model.admin import User
 from watchmen_rest import RestApp
 from watchmen_storage import SnowflakeGenerator, TransactionalStorageSPI
 from .connectors import init_kafka, init_rabbitmq
 from .settings import DollSettings
-from .util import build_find_user_by_name, build_find_user_by_pat
 
 
 class DollApp(RestApp):
