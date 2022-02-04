@@ -47,22 +47,37 @@ def get_principal(request: Request, roles: List[UserRole]) -> PrincipalService:
 
 
 def get_any_principal(request: Request) -> PrincipalService:
+	"""
+	any authenticated
+	"""
 	return get_principal(request, [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.CONSOLE])
 
 
 def get_console_principal(request: Request) -> PrincipalService:
+	"""
+	console + admin
+	"""
 	return get_principal(request, [UserRole.ADMIN, UserRole.CONSOLE])
 
 
 def get_admin_principal(request: Request) -> PrincipalService:
+	"""
+	admin only
+	"""
 	return get_principal(request, [UserRole.ADMIN])
 
 
 def get_any_admin_principal(request: Request) -> PrincipalService:
+	"""
+	super admin + admin
+	"""
 	return get_principal(request, [UserRole.ADMIN, UserRole.SUPER_ADMIN])
 
 
 def get_super_admin_principal(request: Request) -> PrincipalService:
+	"""
+	super admin only
+	"""
 	return get_principal(request, [UserRole.SUPER_ADMIN])
 
 

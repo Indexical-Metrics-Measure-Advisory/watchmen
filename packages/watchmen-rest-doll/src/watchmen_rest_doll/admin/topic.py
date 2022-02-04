@@ -1,12 +1,12 @@
-from typing import Optional
+from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends, HTTPException
 
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.admin import FactorService, TopicService
 from watchmen_meta_service.analysis import FactorIndexService
 from watchmen_model.admin import Topic, UserRole
-from watchmen_model.common import TopicId
+from watchmen_model.common import DataPage, Pageable, TenantId, TopicId
 from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
 from watchmen_rest_doll.auth import get_admin_principal, get_console_principal
 from watchmen_rest_doll.doll import ask_engine_cache_enabled, ask_engine_index_enabled, ask_meta_storage, \
@@ -130,22 +130,60 @@ async def save_enum(
 
 	return topic
 
-# @router.post("/topic/name", tags=["admin"], response_model=DataPage)
-# async def query_topic_list_by_name(query_name: str, pagination: Pagination = Body(...),
-#                                    current_user: User = Depends(deps.get_current_user)):
-#     result = query_topic_list_with_pagination(query_name, pagination, current_user)
-#     # merge_summary_data_for_topic(result,current_user)
-#     return result
-# @router.get("/topic/query", tags=["admin"], response_model=List[Topic])
-# async def load_topic_list_by_name_without_page(query_name, current_user: User = Depends(deps.get_current_user)):
-#     return load_topic_list_by_name(query_name, current_user)
-# @router.post("/topic/list/name", tags=["admin"], response_model=List[Topic])
-# async def load_topic_list_by_name_list(name_list: List[str], current_user: User = Depends(deps.get_current_user)) -> \
-#         List[Topic]:
-#     results = []
-#     for name in name_list:
-#         results.append(load_topic_by_name(name, current_user))
-#     return results
-# @router.get("/topic/name/tenant", tags=["admin"], response_model=Topic)
-# async def load_topic_by_name_and_tenant(name: str, tenant_id: str, current_user: User = Depends(deps.get_current_user)):
-#     return get_topic_by_name_and_tenant_id(name, tenant_id)
+
+class QueryTopicDataPage(DataPage):
+	data: List[Topic]
+
+
+@router.post("/topic/name", tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=QueryTopicDataPage)
+async def find_topics_by_name(
+		query_name: Optional[str], pageable: Pageable = Body(...),
+		principal_service: PrincipalService = Depends(get_console_principal)
+) -> QueryTopicDataPage:
+	tenant_id: TenantId = principal_service.get_tenant_id()
+	if is_blank(query_name):
+		query_name = None
+
+	topic_service = get_topic_service(principal_service)
+	topic_service.begin_transaction()
+	try:
+		# noinspection PyTypeChecker
+		return topic_service.find_by_text(query_name, tenant_id, pageable)
+	except Exception as e:
+		raise_500(e)
+	finally:
+		topic_service.close_transaction()
+
+
+@router.post("/topic/ids", tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Topic])
+async def find_topics_by_ids(
+		topic_ids: List[TopicId],
+		principal_service: PrincipalService = Depends(get_console_principal)
+) -> List[Topic]:
+	if len(topic_ids) == 0:
+		return []
+
+	tenant_id: TenantId = principal_service.get_tenant_id()
+
+	topic_service = get_topic_service(principal_service)
+	topic_service.begin_transaction()
+	try:
+		return topic_service.find_by_ids(topic_ids, tenant_id)
+	except Exception as e:
+		raise_500(e)
+	finally:
+		topic_service.close_transaction()
+
+
+@router.post("/topic/all", tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Topic])
+async def find_all_topics(principal_service: PrincipalService = Depends(get_console_principal)) -> List[Topic]:
+	tenant_id = principal_service.get_tenant_id()
+
+	topic_service = get_topic_service(principal_service)
+	topic_service.begin_transaction()
+	try:
+		return topic_service.find_all(tenant_id)
+	except Exception as e:
+		raise_500(e)
+	finally:
+		topic_service.close_transaction()
