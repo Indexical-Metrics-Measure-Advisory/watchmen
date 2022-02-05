@@ -1,8 +1,10 @@
 from enum import Enum
 from typing import List, Union
 
+from pydantic import BaseModel
+
 from watchmen_model.chart import Chart
-from watchmen_model.common import DataModel, DataResultSet, GraphicRect, LastVisit, OptimisticLock, ParameterJoint, \
+from watchmen_model.common import Auditable, DataModel, DataResultSet, GraphicRect, LastVisit, ParameterJoint, \
 	ReportFunnelId, ReportId, SubjectDatasetColumnId, UserBasedTuple
 
 
@@ -15,13 +17,13 @@ class ReportIndicatorArithmetic(str, Enum):
 	MINIMUM = 'min'
 
 
-class ReportIndicator(DataModel):
+class ReportIndicator(DataModel, BaseModel):
 	columnId: SubjectDatasetColumnId = None
 	name: str = None
 	arithmetic: ReportIndicatorArithmetic = ReportIndicatorArithmetic.NONE
 
 
-class ReportDimension(DataModel):
+class ReportDimension(DataModel, BaseModel):
 	columnId: SubjectDatasetColumnId = None
 	name: str = None
 
@@ -45,7 +47,7 @@ class ReportFunnelType(str, Enum):
 	ENUM = 'enum'
 
 
-class ReportFunnel(DataModel):
+class ReportFunnel(DataModel, BaseModel):
 	funnelId: ReportFunnelId = None
 	columnId: SubjectDatasetColumnId = None
 	type: ReportFunnelType = None
@@ -54,7 +56,7 @@ class ReportFunnel(DataModel):
 	values: List[Union[str, None]] = None
 
 
-class Report(OptimisticLock, UserBasedTuple, LastVisit):
+class Report(UserBasedTuple, Auditable, LastVisit, BaseModel):
 	reportId: ReportId = None
 	name: str = None
 	filters: ParameterJoint = None
