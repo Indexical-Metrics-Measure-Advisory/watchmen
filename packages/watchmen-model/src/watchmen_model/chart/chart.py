@@ -1,36 +1,20 @@
-from enum import Enum
-
 from pydantic import BaseModel
 
 from watchmen_model.common import DataModel
-from .chart_basic_structure import ChartTruncationHolder
-from .chart_basic_style import ChartBorder
-from .chart_enums import PredefinedChartColorSeries
-from .chart_types import ChartColor
-
-
-class ChartType(str, Enum):
-	COUNT = 'count'
-	BAR = 'bar'
-	LINE = 'line'
-	SCATTER = 'scatter'
-	PIE = 'pie'
-	DOUGHNUT = 'doughnut'
-	NIGHTINGALE = 'nightingale'
-	SUNBURST = 'sunburst'
-	TREE = 'tree'
-	TREEMAP = 'treemap'
-	MAP = 'map'
-	CUSTOMIZED = 'customized'
-
-
-class ChartSettings(ChartTruncationHolder, BaseModel):
-	border: ChartBorder = None
-	backgroundColor: ChartColor = None
-
-	colorSeries: PredefinedChartColorSeries = PredefinedChartColorSeries.REGULAR
+from .chart_settings import ChartSettings
+from .chart_types import ChartType
 
 
 class Chart(DataModel, BaseModel):
 	type: ChartType = ChartType.COUNT
 	settings: ChartSettings = None
+
+	def __setattr__(self, name, value):
+		if name == 'settings':
+			if self.type is not None:
+				super().__setattr__(name, construct_settings(value, self.type))
+		elif name == 'type':
+			if self.settings is not None:
+				super().__setattr__(name, construct_settings(self.settings, value))
+		else:
+			super().__setattr__(name, value)

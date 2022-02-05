@@ -176,7 +176,7 @@ table_connected_spaces = Table(
 	create_pk('connect_id'),
 	create_tuple_id_column('space_id', False), create_str('name', 45, False),
 	create_json('subject_ids'), create_bool('is_template', False),
-	create_tenant_id(), create_user_id(), create_last_visit_time()
+	create_tenant_id(), create_user_id(), create_last_visit_time(), *create_tuple_audit_columns()
 )
 table_connected_space_graphics = Table(
 	'connected_space_graphics', meta_data,

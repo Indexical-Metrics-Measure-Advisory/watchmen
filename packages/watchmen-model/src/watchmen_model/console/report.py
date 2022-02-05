@@ -1,10 +1,11 @@
 from enum import Enum
-from typing import List, Union
+from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
 from watchmen_model.chart import Chart
-from watchmen_model.common import Auditable, DataModel, DataResultSet, GraphicRect, LastVisit, ParameterJoint, \
+from watchmen_model.common import Auditable, construct_parameter_joint, DataModel, DataResultSet, GraphicRect, \
+	LastVisit, ParameterJoint, \
 	ReportFunnelId, ReportId, SubjectDatasetColumnId, UserBasedTuple
 
 
@@ -56,6 +57,15 @@ class ReportFunnel(DataModel, BaseModel):
 	values: List[Union[str, None]] = None
 
 
+def construct_chart(chart: Optional[Union[dict, Chart]]) -> Optional[Chart]:
+	if chart is None:
+		return None
+	elif isinstance(chart, Chart):
+		return chart
+	else:
+		return Chart(**chart)
+
+
 class Report(UserBasedTuple, Auditable, LastVisit, BaseModel):
 	reportId: ReportId = None
 	name: str = None
@@ -70,3 +80,11 @@ class Report(UserBasedTuple, Auditable, LastVisit, BaseModel):
 	simulateData: DataResultSet = None
 	# base64
 	simulateThumbnail: str = None
+
+	def __setattr__(self, name, value):
+		if name == 'filters':
+			super().__setattr__(name, construct_parameter_joint(value))
+		elif name == 'chart':
+			super().__setattr__(name, construct_chart(value))
+		else:
+			super().__setattr__(name, value)
