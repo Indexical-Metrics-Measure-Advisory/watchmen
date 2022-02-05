@@ -1,8 +1,9 @@
-from .chart import Chart, ChartSettings, ChartType
+from .chart import Chart
 from .chart_basic_structure import ChartTruncation, ChartTruncationHolder, ChartTruncationType
 from .chart_basic_style import ChartBorder, ChartFont
 from .chart_enums import ChartBorderStyle, ChartFontStyle, ChartFontWeight, PredefinedChartColorSeries
-from .chart_types import ChartColor
+from .chart_settings import ChartSettings
+from .chart_types import ChartColor, ChartType
 from .echarts import BarChart, BarChartSettings, BarChartSettingsLabel, BarChartSettingsSeries, BarLabelPosition, \
 	BooleanItem, ColorItem, CountChart, CountChartSettings, CountChartSettingsText, CustomizedChart, \
 	CustomizedChartSettings, DefItem, DoughnutChart, DoughnutChartSettings, DropdownItem, DropdownItemOption, \

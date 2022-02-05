@@ -1,10 +1,11 @@
 from enum import Enum
-from typing import List
+from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
-from watchmen_model.common import Auditable, DataModel, FactorId, LastVisit, Parameter, ParameterJoint, ReportId, \
-	SubjectDatasetColumnId, SubjectId, TopicId, UserBasedTuple
+from watchmen_model.common import Auditable, construct_parameter, construct_parameter_joint, DataModel, FactorId, \
+	LastVisit, Parameter, ParameterJoint, ReportId, SubjectDatasetColumnId, SubjectId, TopicId, UserBasedTuple
+from watchmen_utilities import ArrayHelper
 
 
 class SubjectJoinType(str, Enum):
@@ -26,11 +27,68 @@ class SubjectDatasetColumn(DataModel, BaseModel):
 	parameter: Parameter
 	alias: str = None
 
+	def __setattr__(self, name, value):
+		if name == 'parameter':
+			super().__setattr__(name, construct_parameter(value))
+		else:
+			super().__setattr__(name, value)
+
+
+def construct_column(column: Optional[Union[dict, SubjectDatasetColumn]]) -> Optional[SubjectDatasetColumn]:
+	if column is None:
+		return None
+	elif isinstance(column, SubjectDatasetColumn):
+		return column
+	else:
+		return SubjectDatasetColumn(**column)
+
+
+def construct_columns(columns: Optional[list] = None) -> Optional[List[SubjectDatasetColumn]]:
+	if columns is None:
+		return None
+	else:
+		return ArrayHelper(columns).map(lambda x: construct_column(x)).to_list()
+
+
+def construct_join(join: Optional[Union[dict, SubjectDatasetJoin]]) -> Optional[SubjectDatasetJoin]:
+	if join is None:
+		return None
+	elif isinstance(join, SubjectDatasetJoin):
+		return join
+	else:
+		return SubjectDatasetJoin(**join)
+
+
+def construct_joins(joins: Optional[list] = None) -> Optional[List[SubjectDatasetJoin]]:
+	if joins is None:
+		return None
+	else:
+		return ArrayHelper(joins).map(lambda x: construct_join(x)).to_list()
+
 
 class SubjectDataset(DataModel, BaseModel):
 	filters: ParameterJoint
 	columns: List[SubjectDatasetColumn] = []
 	joins: List[SubjectDatasetJoin] = []
+
+	def __setattr__(self, name, value):
+		if name == 'filters':
+			super().__setattr__(name, construct_parameter_joint(value))
+		elif name == 'columns':
+			super().__setattr__(name, construct_columns(value))
+		elif name == 'joins':
+			super().__setattr__(name, construct_joins(value))
+		else:
+			super().__setattr__(name, value)
+
+
+def construct_dataset(dataset: Optional[dict] = None) -> Optional[SubjectDataset]:
+	if dataset is None:
+		return None
+	elif isinstance(dataset, SubjectDataset):
+		return dataset
+	else:
+		return SubjectDataset(**dataset)
 
 
 class Subject(UserBasedTuple, Auditable, LastVisit, BaseModel):
@@ -39,3 +97,9 @@ class Subject(UserBasedTuple, Auditable, LastVisit, BaseModel):
 	reportIds: List[ReportId] = []
 	autoRefreshInterval: int = 0
 	dataset: SubjectDataset = None
+
+	def __setattr__(self, name, value):
+		if name == 'dataset':
+			super().__setattr__(name, construct_dataset(value))
+		else:
+			super().__setattr__(name, value)

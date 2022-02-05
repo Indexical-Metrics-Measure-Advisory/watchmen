@@ -2,9 +2,11 @@ from enum import Enum
 from typing import Any, Dict, List, Union
 
 from watchmen_model.common import DataModel
-from .chart import Chart, ChartColor, ChartSettings, ChartType
+from .chart import Chart
 from .chart_basic_style import ChartBorder, ChartFont
 from .chart_enums import ChartBorderStyle
+from .chart_settings import ChartSettings
+from .chart_types import ChartColor, ChartType
 
 
 class EChartsBorderHolder(DataModel):

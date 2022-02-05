@@ -113,7 +113,7 @@ class ParameterExpression(ParameterCondition, BaseModel):
 			super().__setattr__(name, value)
 
 
-def construct_parameter(parameter: Optional[Union[dict | Parameter]]) -> Optional[Parameter]:
+def construct_parameter(parameter: Optional[Union[dict, Parameter]]) -> Optional[Parameter]:
 	if parameter is None:
 		return None
 	elif isinstance(parameter, Parameter):
@@ -157,11 +157,10 @@ def construct_parameter_conditions(conditions: Optional[list]) -> Optional[List[
 	return ArrayHelper(conditions).map(lambda x: construct_parameter_condition(x)).to_list()
 
 
-def construct_parameter_joint(joint: Optional[dict]) -> Optional[ParameterJoint]:
+def construct_parameter_joint(joint: Optional[Union[dict, ParameterJoint]]) -> Optional[ParameterJoint]:
 	if joint is None:
 		return None
-	# noinspection PyArgumentList
-	return ParameterJoint(
-		jointType=joint.get('jointType'),
-		filters=construct_parameter_conditions(joint.get('filters'))
-	)
+	elif isinstance(joint, ParameterJoint):
+		return joint
+	else:
+		return ParameterJoint(**joint)
