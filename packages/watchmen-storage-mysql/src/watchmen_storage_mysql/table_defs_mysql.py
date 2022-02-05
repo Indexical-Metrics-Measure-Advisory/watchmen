@@ -145,7 +145,7 @@ table_enum_items = Table(
 	create_str('code', 50, False), create_str('label', 100),
 	create_str('parent_code', 50), create_str('replace_code', 50),
 	create_tuple_id_column('enum_id'),
-	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+	create_tenant_id()
 )
 table_topics = Table(
 	'topics', meta_data,
