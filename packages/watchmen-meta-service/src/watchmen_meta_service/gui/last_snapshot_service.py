@@ -1,7 +1,7 @@
 from typing import Optional
 
 from watchmen_auth import PrincipalService
-from watchmen_meta_service.common import StorageService
+from watchmen_meta_service.common import LastVisitShaper, StorageService, UserBasedTupleShaper
 from watchmen_model.common import TenantId, UserId
 from watchmen_model.gui import LastSnapshot
 from watchmen_storage import EntityCriteriaExpression, EntityFinder, EntityHelper, EntityIdHelper, EntityRow, \
@@ -10,26 +10,28 @@ from watchmen_storage import EntityCriteriaExpression, EntityFinder, EntityHelpe
 
 class LastSnapshotShaper(EntityShaper):
 	def serialize(self, last_snapshot: LastSnapshot) -> EntityRow:
-		return {
+		row = {
 			'language': last_snapshot.language,
 			'last_dashboard_id': last_snapshot.lastDashboardId,
 			'admin_dashboard_id': last_snapshot.adminDashboardId,
-			'favorite_pin': last_snapshot.favoritePin,
-			'tenant_id': last_snapshot.tenantId,
-			'user_id': last_snapshot.userId,
-			'last_visit_time': last_snapshot.lastVisitTime
+			'favorite_pin': last_snapshot.favoritePin
 		}
+		row = UserBasedTupleShaper.serialize(last_snapshot, row)
+		row = LastVisitShaper.serialize(last_snapshot, row)
+		return row
 
 	def deserialize(self, row: EntityRow) -> LastSnapshot:
-		return LastSnapshot(
+		last_snapshot = LastSnapshot(
 			language=row.get('language'),
 			lastDashboardId=row.get('last_dashboard_id'),
 			adminDashboardId=row.get('admin_dashboard_id'),
-			favoritePin=row.get('favorite_pin'),
-			tenantId=row.get('tenant_id'),
-			userId=row.get('user_id'),
-			lastVisitTime=row.get('last_visit_time')
+			favoritePin=row.get('favorite_pin')
 		)
+		# noinspection PyTypeChecker
+		last_snapshot: LastSnapshot = UserBasedTupleShaper.deserialize(row, last_snapshot)
+		# noinspection PyTypeChecker
+		last_snapshot: LastSnapshot = LastVisitShaper.deserialize(row, last_snapshot)
+		return last_snapshot
 
 
 LAST_SNAPSHOT_ENTITY_NAME = 'last_snapshots'

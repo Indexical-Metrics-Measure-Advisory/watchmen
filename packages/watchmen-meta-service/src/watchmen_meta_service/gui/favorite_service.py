@@ -1,7 +1,7 @@
 from typing import Optional
 
 from watchmen_auth import PrincipalService
-from watchmen_meta_service.common import StorageService
+from watchmen_meta_service.common import LastVisitShaper, StorageService, UserBasedTupleShaper
 from watchmen_model.common import TenantId, UserId
 from watchmen_model.gui import Favorite
 from watchmen_storage import EntityCriteriaExpression, EntityFinder, EntityHelper, EntityIdHelper, EntityRow, \
@@ -10,22 +10,24 @@ from watchmen_storage import EntityCriteriaExpression, EntityFinder, EntityHelpe
 
 class FavoriteShaper(EntityShaper):
 	def serialize(self, favorite: Favorite) -> EntityRow:
-		return {
+		row = {
 			'connected_space_ids': favorite.connectedSpaceIds,
-			'dashboard_ids': favorite.dashboardIds,
-			'tenant_id': favorite.tenantId,
-			'user_id': favorite.userId,
-			'last_visit_time': favorite.lastVisitTime
+			'dashboard_ids': favorite.dashboardIds
 		}
+		row = UserBasedTupleShaper.serialize(favorite, row)
+		row = LastVisitShaper.serialize(favorite, row)
+		return row
 
 	def deserialize(self, row: EntityRow) -> Favorite:
-		return Favorite(
+		favorite = Favorite(
 			connectedSpaceIds=row.get('connected_space_ids'),
-			dashboardIds=row.get('dashboard_ids'),
-			tenantId=row.get('tenant_id'),
-			userId=row.get('user_id'),
-			lastVisitTime=row.get('last_visit_time')
+			dashboardIds=row.get('dashboard_ids')
 		)
+		# noinspection PyTypeChecker
+		favorite: Favorite = UserBasedTupleShaper.deserialize(row, favorite)
+		# noinspection PyTypeChecker
+		favorite: Favorite = LastVisitShaper.deserialize(row, favorite)
+		return favorite
 
 
 FAVORITE_ENTITY_NAME = 'favorites'

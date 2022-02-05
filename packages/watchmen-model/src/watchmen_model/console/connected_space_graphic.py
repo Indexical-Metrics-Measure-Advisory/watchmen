@@ -1,5 +1,7 @@
 from typing import List
 
+from pydantic import BaseModel
+
 from watchmen_model.common import ConnectedSpaceId, DataModel, GraphicRect, SubjectId, TopicId, UserBasedTuple
 
 
@@ -13,7 +15,7 @@ class SubjectGraphic(DataModel):
 	rect: GraphicRect = None
 
 
-class ConnectedSpaceGraphic(UserBasedTuple):
+class ConnectedSpaceGraphic(UserBasedTuple, BaseModel):
 	connectId: ConnectedSpaceId = None
 	topics: List[TopicGraphic] = None
 	subjects: List[SubjectGraphic] = None
