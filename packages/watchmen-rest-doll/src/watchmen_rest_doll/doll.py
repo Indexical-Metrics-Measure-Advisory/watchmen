@@ -6,8 +6,9 @@ from watchmen_meta_service.auth import build_find_user_by_name, build_find_user_
 from watchmen_model.admin import User
 from watchmen_rest import RestApp
 from watchmen_storage import SnowflakeGenerator, TransactionalStorageSPI
-from .connectors import init_kafka, init_rabbitmq
+from .connectors import init_kafka, init_rabbitmq, KafkaSettings, RabbitmqSettings
 from .settings import DollSettings
+from .util import is_blank
 
 
 class DollApp(RestApp):
@@ -27,33 +28,58 @@ class DollApp(RestApp):
 		"""
 		return build_find_user_by_pat(self.build_meta_storage())
 
-	def is_tuple_delete_enabled(self):
+	def is_tuple_delete_enabled(self) -> bool:
 		return self.get_settings().TUPLE_DELETABLE
 
-	def is_engine_cache_enabled(self):
+	def is_engine_cache_enabled(self) -> bool:
 		return self.get_settings().ENGINE_CACHE
 
-	def is_engine_index_enabled(self):
+	def is_engine_index_enabled(self) -> bool:
 		return self.get_settings().ENGINE_INDEX
 
-	def is_presto_enabled(self):
+	def is_presto_enabled(self) -> bool:
 		return self.get_settings().PRESTO
 
-	def is_kafka_connector_enabled(self):
+	def is_kafka_connector_enabled(self) -> bool:
 		return self.get_settings().KAFKA_CONNECTOR
 
-	def init_kafka_connector(self):
-		if self.is_kafka_connector_enabled():
-			init_kafka()
+	def get_kafka_connector_settings(self) -> KafkaSettings:
+		settings = self.get_settings()
+		topics = settings.KAFKA_TOPICS
+		if is_blank(topics):
+			topics = []
+		else:
+			topics = topics.split(',')
+		return KafkaSettings(
+			bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVER,
+			topics=topics
+		)
 
-	def is_rabbitmq_connector_enabled(self):
+	def init_kafka_connector(self) -> None:
+		if self.is_kafka_connector_enabled():
+			init_kafka(self.get_kafka_connector_settings())
+
+	def is_rabbitmq_connector_enabled(self) -> bool:
 		return self.get_settings().RABBITMQ_CONNECTOR
 
-	def init_rabbitmq_connector(self):
-		if self.is_rabbitmq_connector_enabled():
-			init_rabbitmq()
+	def get_rabbitmq_connector_settings(self) -> RabbitmqSettings:
+		settings = self.get_settings()
+		return RabbitmqSettings(
+			host=settings.RABBITMQ_HOST,
+			port=settings.RABBITMQ_PORT,
+			virtual_host=settings.RABBITMQ_VIRTUALHOST,
+			username=settings.RABBITMQ_USERNAME,
+			password=settings.RABBITMQ_PASSWORD,
+			queue=settings.RABBITMQ_QUEUE,
+			durable=settings.RABBITMQ_DURABLE,
+			auto_delete=settings.RABBITMQ_AUTO_DELETE
+		)
 
-	def init_connectors(self):
+	def init_rabbitmq_connector(self) -> None:
+		if self.is_rabbitmq_connector_enabled():
+			init_rabbitmq(self.get_rabbitmq_connector_settings())
+
+	def init_connectors(self) -> None:
 		self.init_kafka_connector()
 		self.init_rabbitmq_connector()
 
