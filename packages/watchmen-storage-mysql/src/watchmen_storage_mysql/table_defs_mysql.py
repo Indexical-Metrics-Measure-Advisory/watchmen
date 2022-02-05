@@ -1,6 +1,6 @@
 from typing import Dict, List, Type, Union
 
-from sqlalchemy import Boolean, Column, Date, Integer, JSON, MetaData, String, Table
+from sqlalchemy import Boolean, Column, Date, Integer, JSON, MetaData, String, Table, Text
 
 from watchmen_storage import SNOWFLAKE_WORKER_ID_TABLE
 
@@ -17,12 +17,20 @@ def create_bool(name: str, nullable: bool = True) -> Column:
 	return Column(name, Boolean, nullable=nullable)
 
 
+def create_int(name: str, nullable: bool = True) -> Column:
+	return Column(name, Integer, nullable=nullable)
+
+
 def create_datetime(name: str, nullable: bool = True) -> Column:
 	return Column(name, Date, nullable=nullable)
 
 
 def create_json(name: str) -> Column:
 	return Column(name, JSON, nullable=True)
+
+
+def create_medium_text(name: str) -> Column:
+	return Column(name, Text, nullable=True)
 
 
 def create_tuple_id_column(name: str, nullable: bool = True) -> Column:
@@ -174,7 +182,26 @@ table_connected_space_graphics = Table(
 	'connected_space_graphics', meta_data,
 	create_pk('connect_id'),
 	create_json('topics'), create_json('subjects'),
-	create_tenant_id(), create_user_id(), create_last_visit_time()
+	create_tenant_id(), create_user_id()
+)
+table_subjects = Table(
+	'subjects', meta_data,
+	create_pk('subject_id'),
+	create_str('name', 45, False), create_int('auto_refresh_interval'),
+	create_json('report_ids'), create_json('dataset'),
+	create_tenant_id(), create_user_id(), create_last_visit_time(), *create_tuple_audit_columns()
+)
+table_reports = Table(
+	'reports', meta_data,
+	create_pk('report_id'),
+	create_str('name', 45, False),
+	create_json('filters'), create_json('funnels'),
+	create_json('indicators'), create_json('dimensions'),
+	create_description(),
+	create_json('rect'), create_json('chart'),
+	create_bool('simulating', False), create_json('simulate_data'),
+	create_medium_text('simulate_thumbnail'),
+	create_tenant_id(), create_user_id(), create_last_visit_time(), *create_tuple_audit_columns()
 )
 # gui
 table_favorites = Table(
@@ -210,6 +237,8 @@ tables: Dict[str, Table] = {
 	# console
 	'connected_spaces': table_connected_spaces,
 	'connected_space_graphics': table_connected_space_graphics,
+	'subjects': table_subjects,
+	'reports': table_reports,
 	# gui
 	'favorites': table_favorites,
 	'last_snapshots': table_last_snapshot
