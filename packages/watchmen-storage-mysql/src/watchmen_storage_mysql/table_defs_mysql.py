@@ -160,7 +160,21 @@ table_pipeline_graphics = Table(
 	'pipeline_graphics', meta_data,
 	create_pk('pipeline_graphic_id'),
 	create_str('name', 45), create_json('topics'),
-	create_user_id(), create_tenant_id()
+	create_tenant_id(), create_user_id()
+)
+# console
+table_connected_spaces = Table(
+	'connected_spaces', meta_data,
+	create_pk('connect_id'),
+	create_tuple_id_column('space_id', False), create_str('name', 45, False),
+	create_json('subject_ids'), create_bool('is_template', False),
+	create_tenant_id(), create_user_id(), create_last_visit_time()
+)
+table_connected_space_graphics = Table(
+	'connected_space_graphics', meta_data,
+	create_pk('connect_id'),
+	create_json('topics'), create_json('subjects'),
+	create_tenant_id(), create_user_id(), create_last_visit_time()
 )
 # gui
 table_favorites = Table(
@@ -193,6 +207,9 @@ tables: Dict[str, Table] = {
 	'topics': table_topics,
 	'pipelines': table_pipelines,
 	'pipeline_graphics': table_pipeline_graphics,
+	# console
+	'connected_spaces': table_connected_spaces,
+	'connected_space_graphics': table_connected_space_graphics,
 	# gui
 	'favorites': table_favorites,
 	'last_snapshots': table_last_snapshot
