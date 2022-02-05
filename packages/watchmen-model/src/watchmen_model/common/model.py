@@ -12,3 +12,7 @@ class DataModel:
 	def __getattr__(self, name) -> Any:
 		# to avoid property not found
 		return self.__dict__.get(name)
+
+
+class SettingsModel(DataModel):
+	pass

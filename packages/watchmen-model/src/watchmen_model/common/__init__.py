@@ -1,6 +1,6 @@
 from .data_result_set import DataResultSet, DataResultSetCell, DataResultSetRow
 from .graphic import GraphicPosition, GraphicRect, GraphicSize
-from .model import DataModel
+from .model import DataModel, SettingsModel
 from .pagination import DataPage, Pageable, PageDataCell, PageDataRow, PageDataSet
 from .parameter_and_condition import ComputedParameter, ConstantParameter, construct_parameter, \
 	construct_parameter_condition, construct_parameter_conditions, construct_parameter_joint, Parameter, \

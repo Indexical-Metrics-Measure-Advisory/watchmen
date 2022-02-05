@@ -16,6 +16,9 @@ watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, o
 passlib = "^1.7.4"
 bcrypt = "^3.2.0"
 python-multipart = "^0.0.5"
+kafka-python = { version = "^2.0.2", optional = true }
+aiokafka = { version = "^0.7.2", optional = true }
+aio-pika = { version = "^6.8.2", optional = true }
 
 [tool.poetry.dev-dependencies]
 
