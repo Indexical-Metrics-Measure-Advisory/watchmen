@@ -1,10 +1,22 @@
+from typing import Optional, Union
+
 from watchmen_meta_service.common import AuditableShaper, LastVisitShaper, UserBasedTupleService, UserBasedTupleShaper
+from watchmen_model.chart import Chart
 from watchmen_model.common import ReportId
 from watchmen_model.console import Report
 from watchmen_storage import EntityRow, EntityShaper
 
 
 class ReportShaper(EntityShaper):
+	@staticmethod
+	def serialize_chart(chart: Optional[Union[dict, Chart]]) -> Optional[dict]:
+		if chart is None:
+			return None
+		elif isinstance(chart, dict):
+			return chart
+		else:
+			return chart.dict()
+
 	def serialize(self, report: Report) -> EntityRow:
 		row = {
 			'report_id': report.reportId,
@@ -15,7 +27,7 @@ class ReportShaper(EntityShaper):
 			'dimensions': report.dimensions,
 			'description': report.description,
 			'rect': report.rect,
-			'chart': report.chart,
+			'chart': ReportShaper.serialize_chart(report.chart),
 			'simulating': report.simulating,
 			'simulate_data': report.simulateData,
 			'simulate_thumbnail': report.simulateThumbnail

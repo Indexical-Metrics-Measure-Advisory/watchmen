@@ -1,17 +1,28 @@
+from typing import Optional, Union
+
 from watchmen_meta_service.common import AuditableShaper, LastVisitShaper, UserBasedTupleService, UserBasedTupleShaper
 from watchmen_model.common import SubjectId
-from watchmen_model.console import Subject
+from watchmen_model.console import Subject, SubjectDataset
 from watchmen_storage import EntityRow, EntityShaper
 
 
 class SubjectShaper(EntityShaper):
+	@staticmethod
+	def serialize_dataset(dataset: Optional[Union[dict, SubjectDataset]]) -> Optional[dict]:
+		if dataset is None:
+			return None
+		elif isinstance(dataset, dict):
+			return dataset
+		else:
+			return dataset.dict()
+
 	def serialize(self, subject: Subject) -> EntityRow:
 		row = {
 			'subject_id': subject.subjectId,
 			'name': subject.name,
 			'auto_refresh_interval': subject.autoRefreshInterval,
 			'report_ids': subject.reportIds,
-			'dataset': subject.dataset
+			'dataset': SubjectDataset.serialize_dataset(subject.dataset)
 		}
 		row = AuditableShaper.serialize(subject, row)
 		row = UserBasedTupleShaper.serialize(subject, row)
