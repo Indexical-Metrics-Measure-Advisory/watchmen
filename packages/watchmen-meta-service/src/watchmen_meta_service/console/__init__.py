@@ -1,2 +1,4 @@
 from .connected_space_graphic_service import ConnectedSpaceGraphicService
 from .connected_space_service import ConnectedSpaceService
+from .report_service import ReportService
+from .subject_service import SubjectService
