@@ -10,6 +10,7 @@ router = APIRouter()
 def get_connected_space_service(principal_service: PrincipalService) -> ConnectedSpaceService:
 	return ConnectedSpaceService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
+# TODO connected space routers
 # @router.get("/console_space/connected/me", tags=["console"], response_model=List[ConsoleSpace])
 # async def load_connected_space(current_user: User = Depends(deps.get_current_user)):
 #     user_id = current_user.userId
