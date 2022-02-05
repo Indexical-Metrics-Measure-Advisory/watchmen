@@ -50,6 +50,7 @@ async def consume(loop, settings: RabbitmqSettings):
 					async with message.process():
 						payload = loads(message.body)
 						topic_event = TopicData.parse_obj(payload)
+			# TODO consume topic data from rabbitmq
 			# if topic_event.user is None:
 			# 	user = load_user_by_name(settings.MOCK_USER)
 			# 	log.warning("user is mock user , pls check user in topic_event")
@@ -60,7 +61,6 @@ async def consume(loop, settings: RabbitmqSettings):
 			except Exception as e:
 				log.error(e, exc_info=True, stack_info=True)
 				await consume(loop, settings)
-	# TODO init rabbitmq connector
 	pass
 
 
