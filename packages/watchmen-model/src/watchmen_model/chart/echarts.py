@@ -1,6 +1,8 @@
 from enum import Enum
 from typing import Any, Dict, List, Union
 
+from pydantic import BaseModel
+
 from watchmen_model.common import DataModel
 from .chart import Chart
 from .chart_basic_style import ChartBorder, ChartFont
@@ -95,7 +97,7 @@ class EChartsGrid(EChartsBorderHolderNoRadius, EChartsPositionHolder):
 	backgroundColor: ChartColor = None
 
 
-class EChartsGridPositionOnly(EChartsPositionHolder):
+class EChartsGridPositionOnly(EChartsPositionHolder, BaseModel):
 	pass
 
 
@@ -317,7 +319,7 @@ class EChartsSettings(ChartSettings, EChartsTitleHolder):
 	pass
 
 
-class CountChartSettingsText(DataModel):
+class CountChartSettingsText(DataModel, BaseModel):
 	font: ChartFont = None
 	formatUseGrouping: bool = None
 
@@ -327,7 +329,7 @@ class CountChartSettings(EChartsSettings):
 
 
 class CountChart(Chart):
-	type: ChartType.COUNT = ChartType.COUNT
+	type: ChartType = ChartType.COUNT
 	settings: CountChartSettings = None
 
 
@@ -347,7 +349,7 @@ class BarLabelPosition(str, Enum):
 	INSIDE_BOTTOM_RIGHT = 'insideBottomRight'
 
 
-class BarChartSettingsLabel(EChartsBorderHolder, EChartsFontHolder, EChartsAlignmentHolder):
+class BarChartSettingsLabel(EChartsBorderHolder, EChartsFontHolder, EChartsAlignmentHolder, BaseModel):
 	show: bool = None
 	backgroundColor: ChartColor = None
 	position: BarLabelPosition = None
@@ -360,7 +362,7 @@ class BarChartSettingsLabel(EChartsBorderHolder, EChartsFontHolder, EChartsAlign
 	fractionDigits: int = None
 
 
-class BarChartSettingsSeries(DataModel):
+class BarChartSettingsSeries(DataModel, BaseModel):
 	transformAxis: bool = None
 
 
@@ -371,7 +373,7 @@ class BarChartSettings(EChartsSettings, EChartsLegendHolder, EChartsGrid, EChart
 
 
 class BarChart(Chart):
-	type: ChartType.BAR = ChartType.BAR
+	type: ChartType = ChartType.BAR
 	settings: BarChartSettings = None
 
 
@@ -385,7 +387,7 @@ class LineChartSettings(EChartsSettings, EChartsLegendHolder, EChartsGrid, EChar
 
 
 class LineChart(Chart):
-	type: ChartType.LINE = ChartType.LINE
+	type: ChartType = ChartType.LINE
 	settings: LineChartSettings = None
 
 
@@ -394,7 +396,7 @@ class ScatterChartSettings(EChartsSettings, EChartsLegendHolder, EChartsGrid, EC
 
 
 class ScatterChart(Chart):
-	type: ChartType.SCATTER = ChartType.SCATTER
+	type: ChartType = ChartType.SCATTER
 	settings: ScatterChartSettings = None
 
 
@@ -416,7 +418,7 @@ class PieLabelAlignTo(str, Enum):
 	EDGE = 'edge'
 
 
-class PieChartSettingsLabel(EChartsBorderHolder, EChartsFontHolder, EChartsAlignmentHolder):
+class PieChartSettingsLabel(EChartsBorderHolder, EChartsFontHolder, EChartsAlignmentHolder, BaseModel):
 	show: bool = None
 	backgroundColor: ChartColor = None
 	position: PieLabelPosition = None
@@ -430,7 +432,7 @@ class PieChartSettingsLabel(EChartsBorderHolder, EChartsFontHolder, EChartsAlign
 	fractionDigits: int = None
 
 
-class PieChartSettingsSeries(EChartsBorderHolder):
+class PieChartSettingsSeries(EChartsBorderHolder, BaseModel):
 	centerX: float = None
 	centerY: float = None
 	insideRadius: float = None
@@ -447,7 +449,7 @@ class PieChartSettings(EChartsSettings, EChartsLegendHolder):
 
 
 class PieChart(Chart):
-	type: ChartType.PIE = ChartType.PIE
+	type: ChartType = ChartType.PIE
 	settings: PieChartSettings = None
 
 
@@ -456,7 +458,7 @@ class DoughnutChartSettings(PieChartSettings):
 
 
 class DoughnutChart(Chart):
-	type: ChartType.DOUGHNUT = ChartType.DOUGHNUT
+	type: ChartType = ChartType.DOUGHNUT
 	settings: DoughnutChartSettings = None
 
 
@@ -465,11 +467,11 @@ class NightingaleChartSettings(PieChartSettings):
 
 
 class NightingaleChart(Chart):
-	type: ChartType.NIGHTINGALE = ChartType.NIGHTINGALE
+	type: ChartType = ChartType.NIGHTINGALE
 	settings: NightingaleChartSettings = None
 
 
-class SunburstChartSettingsSeries(EChartsBorderHolder):
+class SunburstChartSettingsSeries(EChartsBorderHolder, BaseModel):
 	centerX: float = None
 	centerY: float = None
 	insideRadius: float = None
@@ -481,7 +483,7 @@ class SunburstChartSettings(PieChartSettings):
 
 
 class SunburstChart(Chart):
-	type: ChartType.SUNBURST = ChartType.SUNBURST
+	type: ChartType = ChartType.SUNBURST
 	settings: SunburstChartSettings = None
 
 
@@ -497,7 +499,7 @@ class TreeOrient(str, Enum):
 	BOTTOM_TOP = 'BT'
 
 
-class TreeChartSettingsSeries(DataModel):
+class TreeChartSettingsSeries(DataModel, BaseModel):
 	layout: TreeLayout = None
 	orient: TreeOrient = None
 	roam: bool = None
@@ -509,11 +511,11 @@ class TreeChartSettings(EChartsSettings):
 
 
 class TreeChart(Chart):
-	type: ChartType.TREE = ChartType.TREE
+	type: ChartType = ChartType.TREE
 	settings: TreeChartSettings = None
 
 
-class TreemapChartSettingsSeries(DataModel):
+class TreemapChartSettingsSeries(DataModel, BaseModel):
 	roam: bool = None
 
 
@@ -523,7 +525,7 @@ class TreemapChartSettings(EChartsSettings):
 
 
 class TreemapChart(Chart):
-	type: ChartType.TREEMAP = ChartType.TREEMAP
+	type: ChartType = ChartType.TREEMAP
 	settings: TreemapChartSettings = None
 
 
@@ -535,7 +537,7 @@ class MapChartRegion(str, Enum):
 	USA_L1 = 'usa-l1'
 
 
-class MapChartSettingsSeries(DataModel):
+class MapChartSettingsSeries(DataModel, BaseModel):
 	region: MapChartRegion = None
 
 
@@ -545,7 +547,7 @@ class MapChartSettings(EChartsSettings):
 
 
 class MapChart(Chart):
-	type: ChartType.MAP = ChartType.MAP
+	type: ChartType = ChartType.MAP
 	settings: MapChartSettings = None
 
 
@@ -554,5 +556,5 @@ class CustomizedChartSettings(EChartsSettings, EchartsScriptHolder):
 
 
 class CustomizedChart(Chart):
-	type: ChartType.CUSTOMIZED = ChartType.CUSTOMIZED
+	type: ChartType = ChartType.CUSTOMIZED
 	settings: CustomizedChartSettings = None
