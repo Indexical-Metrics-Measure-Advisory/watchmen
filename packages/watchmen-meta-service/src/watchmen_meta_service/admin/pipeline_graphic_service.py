@@ -1,4 +1,4 @@
-from watchmen_meta_service.common import UserBasedTupleService
+from watchmen_meta_service.common import UserBasedTupleService, UserBasedTupleShaper
 from watchmen_model.admin import PipelineGraphic
 from watchmen_model.common import PipelineGraphicId
 from watchmen_storage import EntityRow, \
@@ -7,22 +7,23 @@ from watchmen_storage import EntityRow, \
 
 class PipelineGraphicShaper(EntityShaper):
 	def serialize(self, pipeline_graphic: PipelineGraphic) -> EntityRow:
-		return {
+		row = {
 			'pipeline_graphic_id': pipeline_graphic.pipelineGraphId,
 			'name': pipeline_graphic.name,
-			'topics': pipeline_graphic.topics,
-			'tenant_id': pipeline_graphic.tenantId,
-			'user_id': pipeline_graphic.userId
+			'topics': pipeline_graphic.topics
 		}
+		row = UserBasedTupleShaper.serialize(pipeline_graphic, row)
+		return row
 
 	def deserialize(self, row: EntityRow) -> PipelineGraphic:
-		return PipelineGraphic(
+		pipeline_graphic = PipelineGraphic(
 			pipelineGraphId=row.get('pipeline_graphic_id'),
 			name=row.get('name'),
-			topics=row.get('topics'),
-			tenantId=row.get('tenant_id'),
-			userId=row.get('user_id')
+			topics=row.get('topics')
 		)
+		# noinspection PyTypeChecker
+		pipeline_graphic: PipelineGraphic = UserBasedTupleShaper.deserialize(row, pipeline_graphic)
+		return pipeline_graphic
 
 
 PIPELINE_GRAPHIC_ENTITY_NAME = 'pipeline_graphics'

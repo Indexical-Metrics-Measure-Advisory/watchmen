@@ -27,7 +27,7 @@ class AuditableShaper:
 		return row
 
 	@staticmethod
-	def deserialize(row: EntityRow, auditable: Tuple) -> Tuple:
+	def deserialize(row: EntityRow, auditable: Auditable) -> Auditable:
 		auditable.createdAt = row.get('created_at')
 		auditable.createdBy = row.get('created_by')
 		auditable.lastModifiedAt = row.get('last_modified_at')
@@ -66,6 +66,7 @@ class TupleShaper:
 		a_tuple = AuditableShaper.deserialize(row, a_tuple)
 		if isinstance(a_tuple, OptimisticLock):
 			a_tuple = OptimisticLockShaper.deserialize(row, a_tuple)
+		# noinspection PyTypeChecker
 		return a_tuple
 
 	@staticmethod

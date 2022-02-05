@@ -4,10 +4,25 @@ from typing import List, Optional, TypeVar
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.common import StorageService
 from watchmen_model.common import TenantId, UserBasedTuple, UserId
-from watchmen_storage import EntityCriteriaExpression, EntityFinder, EntityHelper, EntityIdHelper, EntityShaper, \
+from watchmen_storage import EntityCriteriaExpression, EntityFinder, EntityHelper, EntityIdHelper, EntityRow, \
+	EntityShaper, \
 	SnowflakeGenerator, TransactionalStorageSPI
 
 TupleId = TypeVar('TupleId', bound=str)
+
+
+class UserBasedTupleShaper:
+	@staticmethod
+	def serialize(user_based_tuple: UserBasedTuple, row: EntityRow) -> EntityRow:
+		row['user_id'] = user_based_tuple.userId
+		row['tenant_id'] = user_based_tuple.tenantId
+		return row
+
+	@staticmethod
+	def deserialize(row: EntityRow, user_based_tuple: UserBasedTuple) -> UserBasedTuple:
+		user_based_tuple.userId = row.get('user_id')
+		user_based_tuple.tenantId = row.get('tenant_id')
+		return user_based_tuple
 
 
 class UserBasedTupleService(StorageService):

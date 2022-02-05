@@ -1,12 +1,13 @@
 from typing import List
 
-from watchmen_model.common import ConnectedSpaceId, LastVisit, OptimisticLock, SpaceId, SubjectId, UserBasedTuple
+from pydantic import BaseModel
+
+from watchmen_model.common import Auditable, ConnectedSpaceId, LastVisit, SpaceId, SubjectId, UserBasedTuple
 
 
-class ConnectedSpace(UserBasedTuple, OptimisticLock, LastVisit):
+class ConnectedSpace(UserBasedTuple, Auditable, LastVisit, BaseModel):
 	connectId: ConnectedSpaceId = None
 	spaceId: SpaceId = None
 	name: str = None
-	type: str = None
 	subjectIds: List[SubjectId] = []
 	isTemplate: bool = False
