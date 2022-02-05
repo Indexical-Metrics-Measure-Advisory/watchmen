@@ -5,12 +5,12 @@ from pydantic import BaseModel
 from watchmen_model.common import ConnectedSpaceId, DataModel, GraphicRect, SubjectId, TopicId, UserBasedTuple
 
 
-class TopicGraphic(DataModel):
+class TopicGraphic(DataModel, BaseModel):
 	topicId: TopicId = None
 	rect: GraphicRect = None
 
 
-class SubjectGraphic(DataModel):
+class SubjectGraphic(DataModel, BaseModel):
 	subjectId: SubjectId = None
 	rect: GraphicRect = None
 
