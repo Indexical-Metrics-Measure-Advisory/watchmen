@@ -21,6 +21,8 @@ class ReportShaper(EntityShaper):
 		row = {
 			'report_id': report.reportId,
 			'name': report.name,
+			'subject_id': report.subjectId,
+			'connect_id': report.connectId,
 			'filters': report.filters,
 			'funnels': report.funnels,
 			'indicators': report.indicators,
@@ -41,6 +43,8 @@ class ReportShaper(EntityShaper):
 		report = Report(
 			reportId=row.get('report_id'),
 			name=row.get('name'),
+			subjectId=row.get('subject_id'),
+			connectId=row.get('connect_id'),
 			filters=row.get('filters'),
 			funnels=row.get('funnels'),
 			indicators=row.get('indicators'),

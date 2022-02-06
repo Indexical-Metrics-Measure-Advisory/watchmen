@@ -3,8 +3,9 @@ from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
-from watchmen_model.common import Auditable, construct_parameter, construct_parameter_joint, DataModel, FactorId, \
-	LastVisit, Parameter, ParameterJoint, ReportId, SubjectDatasetColumnId, SubjectId, TopicId, UserBasedTuple
+from watchmen_model.common import Auditable, ConnectedSpaceId, construct_parameter, construct_parameter_joint, \
+	DataModel, FactorId, \
+	LastVisit, Parameter, ParameterJoint, SubjectDatasetColumnId, SubjectId, TopicId, UserBasedTuple
 from watchmen_utilities import ArrayHelper
 
 
@@ -94,7 +95,7 @@ def construct_dataset(dataset: Optional[dict] = None) -> Optional[SubjectDataset
 class Subject(UserBasedTuple, Auditable, LastVisit, BaseModel):
 	subjectId: SubjectId = None
 	name: str = None
-	reportIds: List[ReportId] = []
+	connectId: ConnectedSpaceId = None
 	autoRefreshInterval: int = 0
 	dataset: SubjectDataset = None
 

@@ -4,9 +4,10 @@ from typing import List, Optional, Union
 from pydantic import BaseModel
 
 from watchmen_model.chart import Chart
-from watchmen_model.common import Auditable, construct_parameter_joint, DataModel, DataResultSet, GraphicRect, \
+from watchmen_model.common import Auditable, ConnectedSpaceId, construct_parameter_joint, DataModel, DataResultSet, \
+	GraphicRect, \
 	LastVisit, ParameterJoint, \
-	ReportFunnelId, ReportId, SubjectDatasetColumnId, UserBasedTuple
+	ReportFunnelId, ReportId, SubjectDatasetColumnId, SubjectId, UserBasedTuple
 
 
 class ReportIndicatorArithmetic(str, Enum):
@@ -69,6 +70,8 @@ def construct_chart(chart: Optional[Union[dict, Chart]]) -> Optional[Chart]:
 class Report(UserBasedTuple, Auditable, LastVisit, BaseModel):
 	reportId: ReportId = None
 	name: str = None
+	subjectId: SubjectId = None
+	connectId: ConnectedSpaceId = None
 	filters: ParameterJoint = None
 	funnels: List[ReportFunnel] = None
 	indicators: List[ReportIndicator] = None

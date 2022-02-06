@@ -2,8 +2,8 @@ CREATE TABLE subjects
 (
     subject_id            VARCHAR(50) NOT NULL,
     name                  VARCHAR(45) NOT NULL,
+    connect_id            VARCHAR(50) NOT NULL,
     auto_refresh_interval BIGINT,
-    report_ids            JSON,
     dataset               JSON,
     user_id               VARCHAR(50) NOT NULL,
     tenant_id             VARCHAR(50) NOT NULL,

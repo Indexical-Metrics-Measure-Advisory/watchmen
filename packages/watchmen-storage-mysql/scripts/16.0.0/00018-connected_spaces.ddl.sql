@@ -3,7 +3,6 @@ CREATE TABLE connected_spaces
     connect_id       VARCHAR(50) NOT NULL,
     space_id         VARCHAR(50) NOT NULL,
     name             VARCHAR(45) NOT NULL,
-    subject_ids      JSON,
     is_template      TINYINT(1)  NOT NULL,
     user_id          VARCHAR(50) NOT NULL,
     tenant_id        VARCHAR(50) NOT NULL,
