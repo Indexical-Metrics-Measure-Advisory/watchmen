@@ -1,9 +1,11 @@
+from datetime import datetime
 from typing import Optional, Union
 
-from watchmen_meta_service.common import AuditableShaper, LastVisitShaper, UserBasedTupleService, UserBasedTupleShaper
-from watchmen_model.common import SubjectId
+from watchmen_meta_service.common import AuditableShaper, LastVisitShaper, TupleNotFoundException, \
+	UserBasedTupleService, UserBasedTupleShaper
+from watchmen_model.common import SubjectId, TenantId, UserId
 from watchmen_model.console import Subject, SubjectDataset
-from watchmen_storage import EntityRow, EntityShaper
+from watchmen_storage import EntityCriteriaExpression, EntityRow, EntityShaper, TooManyEntitiesFoundException
 
 
 class SubjectShaper(EntityShaper):
@@ -66,3 +68,42 @@ class SubjectService(UserBasedTupleService):
 	def set_storable_id(self, storable: Subject, storable_id: SubjectId) -> Subject:
 		storable.subjectId = storable_id
 		return storable
+
+	# noinspection DuplicatedCode
+	def find_tenant_id(self, subject_id: SubjectId) -> Optional[TenantId]:
+		finder = self.get_entity_finder_for_columns(
+			criteria=[
+				EntityCriteriaExpression(name=self.get_storable_id_column_name(), value=subject_id),
+			],
+			distinctColumnNames=['tenant_id']
+		)
+		rows = self.storage.find_distinct_values(finder)
+		count = len(rows)
+		if count == 0:
+			return None
+		elif count == 1:
+			return rows[0].get('tenant_id')
+		else:
+			raise TooManyEntitiesFoundException(f'Too many entities found by finder[{finder}].')
+
+	def update_name(self, subject_id: SubjectId, name: str, user_id: UserId, tenant_id: TenantId) -> datetime:
+		"""
+		update name will not increase optimistic lock version
+		"""
+		last_modified_at = self.now()
+		last_modified_by = self.principal_service.get_user_id()
+		updated_count = self.storage.update_only(self.get_entity_updater(
+			criteria=[
+				EntityCriteriaExpression(name=self.get_storable_id_column_name(), value=subject_id),
+				EntityCriteriaExpression(name='user_id', value=user_id),
+				EntityCriteriaExpression(name='tenant_id', value=tenant_id)
+			],
+			update={
+				'name': name,
+				'last_modified_at': last_modified_at,
+				'last_modified_by': last_modified_by
+			}
+		))
+		if updated_count == 0:
+			raise TupleNotFoundException('Update 0 row might be caused by tuple not found.')
+		return last_modified_at
