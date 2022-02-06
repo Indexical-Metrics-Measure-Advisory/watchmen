@@ -7,9 +7,12 @@ from watchmen_model.common import construct_parameter_joint, DataModel, Optimist
 from watchmen_utilities import ArrayHelper
 
 
-class SpaceFilter(DataModel, BaseModel):
-	topicId: TopicId = None
+class AvoidFastApiError():
 	joint: ParameterJoint = None
+
+
+class SpaceFilter(DataModel, AvoidFastApiError, BaseModel):
+	topicId: TopicId = None
 	enabled: bool = False
 
 	def __setattr__(self, name, value):

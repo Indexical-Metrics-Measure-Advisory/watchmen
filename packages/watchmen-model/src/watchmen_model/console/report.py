@@ -92,12 +92,15 @@ def construct_chart(chart: Optional[Union[dict, Chart]]) -> Optional[Chart]:
 			raise Exception(f'Chart type[{chart_type}] cannot be recognized.')
 
 
-class Report(UserBasedTuple, Auditable, LastVisit, BaseModel):
+class AvoidFastApiError():
+	filters: ParameterJoint = None
+
+
+class Report(UserBasedTuple, Auditable, LastVisit, AvoidFastApiError, BaseModel):
 	reportId: ReportId = None
 	name: str = None
 	subjectId: SubjectId = None
 	connectId: ConnectedSpaceId = None
-	filters: ParameterJoint = None
 	funnels: List[ReportFunnel] = None
 	indicators: List[ReportIndicator] = None
 	dimensions: List[ReportDimension] = None
