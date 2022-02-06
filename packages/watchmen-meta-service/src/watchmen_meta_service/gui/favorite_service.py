@@ -57,10 +57,11 @@ class FavoriteService(StorageService):
 			idColumnName='user_id'
 		)
 
-	def create(self, favorite: Favorite) -> None:
-		return self.storage.insert_one(favorite, self.get_entity_helper())
+	def create(self, favorite: Favorite) -> Favorite:
+		self.storage.insert_one(favorite, self.get_entity_helper())
+		return favorite
 
-	def update(self, favorite: Favorite) -> None:
+	def update(self, favorite: Favorite) -> Favorite:
 		self.storage.update_only(EntityUpdater(
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),
@@ -74,8 +75,9 @@ class FavoriteService(StorageService):
 				'last_visit_time': favorite.lastVisitTime
 			}
 		))
+		return favorite
 
-	def find_by_id(self, user_id: UserId, tenant_id: TenantId) -> Optional[Favorite]:
+	def find_by_user_id(self, user_id: UserId, tenant_id: TenantId) -> Optional[Favorite]:
 		return self.storage.find_one(EntityFinder(
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),

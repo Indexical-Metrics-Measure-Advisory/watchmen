@@ -36,7 +36,7 @@ async def load_my_favorite(principal_service: PrincipalService = Depends(get_any
 	favorite_service = get_favorite_service(principal_service)
 	favorite_service.begin_transaction()
 	try:
-		favorite = favorite_service.find_by_id(principal_service.get_user_id(), principal_service.get_tenant_id())
+		favorite = favorite_service.find_by_user_id(principal_service.get_user_id(), principal_service.get_tenant_id())
 		if favorite is None:
 			favorite = build_empty_favorite(
 				principal_service.get_tenant_id(), principal_service.get_user_id())
@@ -65,7 +65,7 @@ async def save_my_favorite(favorite: Favorite, principal_service: PrincipalServi
 	favorite_service = get_favorite_service(principal_service)
 	favorite_service.begin_transaction()
 	try:
-		existing_favorite = favorite_service.find_by_id(
+		existing_favorite = favorite_service.find_by_user_id(
 			principal_service.get_user_id(), principal_service.get_tenant_id())
 		if existing_favorite is None:
 			favorite_service.create(favorite)

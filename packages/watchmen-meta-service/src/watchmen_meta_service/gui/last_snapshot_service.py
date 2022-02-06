@@ -61,10 +61,11 @@ class LastSnapshotService(StorageService):
 			idColumnName='user_id'
 		)
 
-	def create(self, last_snapshot: LastSnapshot) -> None:
-		return self.storage.insert_one(last_snapshot, self.get_entity_helper())
+	def create(self, last_snapshot: LastSnapshot) -> LastSnapshot:
+		self.storage.insert_one(last_snapshot, self.get_entity_helper())
+		return last_snapshot
 
-	def update(self, last_snapshot: LastSnapshot) -> None:
+	def update(self, last_snapshot: LastSnapshot) -> LastSnapshot:
 		self.storage.update_only(EntityUpdater(
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),
@@ -80,8 +81,9 @@ class LastSnapshotService(StorageService):
 				'last_visit_time': last_snapshot.lastVisitTime
 			}
 		))
+		return last_snapshot
 
-	def find_by_id(self, user_id: UserId, tenant_id: TenantId) -> Optional[LastSnapshot]:
+	def find_by_user_id(self, user_id: UserId, tenant_id: TenantId) -> Optional[LastSnapshot]:
 		return self.storage.find_one(EntityFinder(
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),

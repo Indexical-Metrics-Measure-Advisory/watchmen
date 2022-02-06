@@ -39,7 +39,7 @@ async def load_my_last_snapshot(principal_service: PrincipalService = Depends(ge
 	last_snapshot_service = get_last_snapshot_service(principal_service)
 	last_snapshot_service.begin_transaction()
 	try:
-		last_snapshot = last_snapshot_service.find_by_id(
+		last_snapshot = last_snapshot_service.find_by_user_id(
 			principal_service.get_user_id(), principal_service.get_tenant_id())
 		if last_snapshot is None:
 			last_snapshot = build_empty_last_snapshot(
@@ -69,7 +69,7 @@ async def save_my_last_snapshot(
 	last_snapshot_service = get_last_snapshot_service(principal_service)
 	last_snapshot_service.begin_transaction()
 	try:
-		existing_last_snapshot = last_snapshot_service.find_by_id(
+		existing_last_snapshot = last_snapshot_service.find_by_user_id(
 			principal_service.get_user_id(), principal_service.get_tenant_id())
 		if existing_last_snapshot is None:
 			last_snapshot_service.create(last_snapshot)
