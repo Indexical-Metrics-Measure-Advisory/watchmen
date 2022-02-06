@@ -1,17 +1,11 @@
 from abc import ABC
-from typing import Optional, TypeVar
+from typing import Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_model.common import Auditable, OptimisticLock, TenantBasedTuple, Tuple
 from watchmen_storage import EntityCriteriaExpression, EntityRow, OptimisticLockException, SnowflakeGenerator, \
 	TransactionalStorageSPI
-from .storage_service import EntityService
-
-TupleId = TypeVar('TupleId', bound=str)
-
-
-class TupleNotFoundException(Exception):
-	pass
+from .storage_service import EntityService, TupleId, TupleNotFoundException
 
 
 class AuditableShaper:

@@ -1,13 +1,11 @@
 from abc import abstractmethod
-from typing import List, Optional, TypeVar
+from typing import List, Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_model.common import TenantId, UserBasedTuple, UserId
 from watchmen_storage import EntityCriteriaExpression, EntityFinder, EntityHelper, EntityIdHelper, EntityRow, \
 	EntityShaper, SnowflakeGenerator, TransactionalStorageSPI
-from .storage_service import IdentifiedStorableService
-
-TupleId = TypeVar('TupleId', bound=str)
+from .storage_service import IdentifiedStorableService, TupleId, TupleNotFoundException
 
 
 class UserBasedTupleShaper:
@@ -61,7 +59,9 @@ class UserBasedTupleService(IdentifiedStorableService):
 
 	def update(self, a_tuple: UserBasedTuple) -> UserBasedTuple:
 		self.try_to_prepare_auditable_on_update(a_tuple)
-		self.storage.update_one(a_tuple, self.get_entity_id_helper())
+		updated_count = self.storage.update_one(a_tuple, self.get_entity_id_helper())
+		if updated_count == 0:
+			raise TupleNotFoundException('Update 0 row might be caused by tuple not found.')
 		return a_tuple
 
 	def delete(self, tuple_id: TupleId) -> Optional[UserBasedTuple]:
