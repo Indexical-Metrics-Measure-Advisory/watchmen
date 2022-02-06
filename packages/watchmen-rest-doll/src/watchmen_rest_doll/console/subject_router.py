@@ -69,7 +69,7 @@ async def save_subject(
 
 
 @router.get('/subject/rename', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
-async def update_pipeline_name_by_id(
+async def update_subject_name_by_id(
 		subject_id: Optional[SubjectId], name: Optional[str],
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> None:
@@ -95,7 +95,7 @@ async def update_pipeline_name_by_id(
 
 
 @router.get('/subject/delete', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
-async def delete_report(
+async def delete_subject(
 		subject_id: Optional[SubjectId], principal_service: PrincipalService = Depends(get_console_principal)
 ) -> None:
 	if is_blank(subject_id):
@@ -119,7 +119,7 @@ async def delete_report(
 
 
 @router.delete('/subject', tags=[UserRole.SUPER_ADMIN], response_model=Subject)
-async def delete_report_by_id_by_super_admin(
+async def delete_subject_by_id_by_super_admin(
 		subject_id: Optional[SubjectId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
 ) -> Subject:
