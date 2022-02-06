@@ -204,6 +204,14 @@ table_reports = Table(
 	create_medium_text('simulate_thumbnail'),
 	create_tenant_id(), create_user_id(), create_last_visit_time(), *create_tuple_audit_columns()
 )
+table_dashboards = Table(
+	'dashboards', meta_data,
+	create_pk('dashboard_id'),
+	create_str('name', 45, False),
+	create_json('reports'), create_json('paragraphs'),
+	create_int('auto_refresh_interval'),
+	create_tenant_id(), create_user_id(), create_last_visit_time(), *create_tuple_audit_columns()
+)
 # gui
 table_favorites = Table(
 	'favorites', meta_data,
@@ -240,6 +248,7 @@ tables: Dict[str, Table] = {
 	'connected_space_graphics': table_connected_space_graphics,
 	'subjects': table_subjects,
 	'reports': table_reports,
+	'dashboards': table_dashboards,
 	# gui
 	'favorites': table_favorites,
 	'last_snapshots': table_last_snapshot
