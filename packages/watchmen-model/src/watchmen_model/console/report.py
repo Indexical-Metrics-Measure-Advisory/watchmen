@@ -3,11 +3,10 @@ from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
-from watchmen_model.chart import Chart
+from watchmen_model.chart import BarChart, Chart, ChartType, CountChart, CustomizedChart, DoughnutChart, LineChart, \
+	MapChart, NightingaleChart, PieChart, ScatterChart, SunburstChart, TreeChart, TreemapChart
 from watchmen_model.common import Auditable, ConnectedSpaceId, construct_parameter_joint, DataModel, DataResultSet, \
-	GraphicRect, \
-	LastVisit, ParameterJoint, \
-	ReportFunnelId, ReportId, SubjectDatasetColumnId, SubjectId, UserBasedTuple
+	GraphicRect, LastVisit, ParameterJoint, ReportFunnelId, ReportId, SubjectDatasetColumnId, SubjectId, UserBasedTuple
 
 
 class ReportIndicatorArithmetic(str, Enum):
@@ -64,7 +63,33 @@ def construct_chart(chart: Optional[Union[dict, Chart]]) -> Optional[Chart]:
 	elif isinstance(chart, Chart):
 		return chart
 	else:
-		return Chart(**chart)
+		chart_type = chart.get('type')
+		if chart_type == ChartType.COUNT:
+			return CountChart(**chart)
+		elif chart_type == ChartType.BAR:
+			return BarChart(**chart)
+		elif chart_type == ChartType.LINE:
+			return LineChart(**chart)
+		elif chart_type == ChartType.SCATTER:
+			return ScatterChart(**chart)
+		elif chart_type == ChartType.PIE:
+			return PieChart(**chart)
+		elif chart_type == ChartType.DOUGHNUT:
+			return DoughnutChart(**chart)
+		elif chart_type == ChartType.NIGHTINGALE:
+			return NightingaleChart(**chart)
+		elif chart_type == ChartType.SUNBURST:
+			return SunburstChart(**chart)
+		elif chart_type == ChartType.TREE:
+			return TreeChart(**chart)
+		elif chart_type == ChartType.TREEMAP:
+			return TreemapChart(**chart)
+		elif chart_type == ChartType.MAP:
+			return MapChart(**chart)
+		elif chart_type == ChartType.CUSTOMIZED:
+			return CustomizedChart(**chart)
+		else:
+			raise Exception(f'Chart type[{chart_type}] cannot be recognized.')
 
 
 class Report(UserBasedTuple, Auditable, LastVisit, BaseModel):
