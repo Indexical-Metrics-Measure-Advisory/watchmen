@@ -7,7 +7,7 @@ from watchmen_model.common import Auditable, OptimisticLock, Pageable, TenantBas
 from watchmen_storage import EntityCriteria, EntityCriteriaExpression, EntityDeleter, EntityFinder, EntityHelper, \
 	EntityIdHelper, EntityPager, EntityRow, EntityShaper, EntitySort, EntityUpdate, EntityUpdater, \
 	OptimisticLockException, SnowflakeGenerator, TransactionalStorageSPI
-from watchmen_utilities import get_current_time_seconds
+from watchmen_utilities import get_current_time_in_seconds
 from .storage_service import StorageService
 
 TupleId = TypeVar('TupleId', bound=str)
@@ -139,7 +139,7 @@ class TupleService(StorageService):
 
 	@staticmethod
 	def now() -> datetime:
-		return get_current_time_seconds()
+		return get_current_time_in_seconds()
 
 	@abstractmethod
 	def get_tuple_id_column_name(self) -> str:

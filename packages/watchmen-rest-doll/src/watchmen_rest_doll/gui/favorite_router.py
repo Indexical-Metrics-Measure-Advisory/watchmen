@@ -12,7 +12,7 @@ from watchmen_rest.util import raise_400, raise_404, raise_500
 from watchmen_rest_doll.auth import get_any_principal, get_super_admin_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_tuple_delete_enabled
 from watchmen_rest_doll.util import is_blank
-from watchmen_utilities import get_current_time_seconds
+from watchmen_utilities import get_current_time_in_seconds
 
 router = APIRouter()
 logger = getLogger(__name__)
@@ -41,7 +41,7 @@ async def load_my_favorite(principal_service: PrincipalService = Depends(get_any
 			favorite = build_empty_favorite(
 				principal_service.get_tenant_id(), principal_service.get_user_id())
 		else:
-			favorite.lastVisitTime = get_current_time_seconds()
+			favorite.lastVisitTime = get_current_time_in_seconds()
 			favorite_service.update(favorite)
 		favorite_service.commit_transaction()
 		return favorite
@@ -56,7 +56,7 @@ async def load_my_favorite(principal_service: PrincipalService = Depends(get_any
 async def save_my_favorite(favorite: Favorite, principal_service: PrincipalService = Depends(get_any_principal)):
 	favorite.userId = principal_service.get_user_id()
 	favorite.tenantId = principal_service.get_tenant_id()
-	favorite.lastVisitTime = get_current_time_seconds()
+	favorite.lastVisitTime = get_current_time_in_seconds()
 	if favorite.connectedSpaceIds is None:
 		favorite.connectedSpaceIds = []
 	if favorite.dashboardIds is None:

@@ -12,7 +12,7 @@ from watchmen_rest.util import raise_400, raise_404, raise_500
 from watchmen_rest_doll.auth import get_any_principal, get_super_admin_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_tuple_delete_enabled
 from watchmen_rest_doll.util import is_blank
-from watchmen_utilities import get_current_time_seconds
+from watchmen_utilities import get_current_time_in_seconds
 
 router = APIRouter()
 logger = getLogger(__name__)
@@ -45,7 +45,7 @@ async def load_my_last_snapshot(principal_service: PrincipalService = Depends(ge
 			last_snapshot = build_empty_last_snapshot(
 				principal_service.get_tenant_id(), principal_service.get_user_id())
 		else:
-			last_snapshot.lastVisitTime = get_current_time_seconds()
+			last_snapshot.lastVisitTime = get_current_time_in_seconds()
 			last_snapshot_service.update(last_snapshot)
 		last_snapshot_service.commit_transaction()
 		return last_snapshot
@@ -62,7 +62,7 @@ async def save_my_last_snapshot(
 		last_snapshot: LastSnapshot, principal_service: PrincipalService = Depends(get_any_principal)):
 	last_snapshot.userId = principal_service.get_user_id()
 	last_snapshot.tenantId = principal_service.get_tenant_id()
-	last_snapshot.lastVisitTime = get_current_time_seconds()
+	last_snapshot.lastVisitTime = get_current_time_in_seconds()
 	if last_snapshot.favoritePin is None:
 		last_snapshot.favoritePin = False
 
