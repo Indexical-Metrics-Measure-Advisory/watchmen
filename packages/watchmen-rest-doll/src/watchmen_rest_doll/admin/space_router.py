@@ -1,15 +1,15 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends
 
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.admin import SpaceService, TopicService, UserGroupService
 from watchmen_model.admin import Space, UserGroup, UserRole
 from watchmen_model.common import DataPage, Pageable, SpaceId, TenantId, TopicId, UserGroupId
-from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
+from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.auth import get_admin_principal, get_console_principal, get_super_admin_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator, ask_tuple_delete_enabled
-from watchmen_rest_doll.util import is_blank, validate_tenant_id
+from watchmen_rest_doll.util import is_blank, trans, trans_readonly, validate_tenant_id
 from watchmen_utilities import ArrayHelper
 
 router = APIRouter()
@@ -35,8 +35,8 @@ async def load_space_by_id(
 		raise_400('Space id is required.')
 
 	space_service = get_space_service(principal_service)
-	space_service.begin_transaction()
-	try:
+
+	def action() -> Space:
 		# noinspection PyTypeChecker
 		space: Space = space_service.find_by_id(space_id)
 		if space is None:
@@ -45,14 +45,11 @@ async def load_space_by_id(
 		if space.tenantId != principal_service.get_tenant_id():
 			raise_404()
 		return space
-	except HTTPException as e:
-		raise e
-	except Exception as e:
-		raise_500(e)
-	finally:
-		space_service.close_transaction()
+
+	return trans_readonly(space_service, action)
 
 
+# noinspection DuplicatedCode
 def has_space_id(user_group: UserGroup, space_id: SpaceId) -> bool:
 	if user_group.spaceIds is None:
 		return False
@@ -74,6 +71,7 @@ def update_user_group(user_group_service: UserGroupService, user_group: UserGrou
 	user_group_service.update(user_group)
 
 
+# noinspection DuplicatedCode
 def sync_space_to_groups(
 		space_service: SpaceService,
 		space_id: SpaceId, user_group_ids: List[UserGroupId],
@@ -104,6 +102,7 @@ def remove_space_id_from_user_group(user_group: UserGroup, space_id: SpaceId) ->
 	return user_group
 
 
+# noinspection DuplicatedCode
 def remove_space_from_groups(
 		space_service: SpaceService,
 		space_id: SpaceId, user_group_ids: List[UserGroupId],
@@ -148,58 +147,42 @@ async def save_space(
 
 	space_service = get_space_service(principal_service)
 
-	if space_service.is_storable_id_faked(space.spaceId):
-		space_service.begin_transaction()
-		try:
-			space_service.redress_storable_id(space)
-			user_group_ids = ArrayHelper(space.groupIds).distinct().to_list()
-			space.groupIds = user_group_ids
-			topic_ids = ArrayHelper(space.topicIds).distinct().to_list()
-			space.topicIds = topic_ids
+	def action(a_space: Space) -> Space:
+		if space_service.is_storable_id_faked(a_space.spaceId):
+			space_service.redress_storable_id(a_space)
+			user_group_ids = ArrayHelper(a_space.groupIds).distinct().to_list()
+			a_space.groupIds = user_group_ids
+			topic_ids = ArrayHelper(a_space.topicIds).distinct().to_list()
+			a_space.topicIds = topic_ids
 			# check topics
-			validate_topics(space_service, topic_ids, space.tenantId)
+			validate_topics(space_service, topic_ids, a_space.tenantId)
 			# noinspection PyTypeChecker
-			space: Space = space_service.create(space)
+			a_space: Space = space_service.create(a_space)
 			# synchronize space to user groups
-			sync_space_to_groups(space_service, space.spaceId, user_group_ids, space.tenantId)
-			space_service.commit_transaction()
-		except HTTPException as e:
-			space_service.rollback_transaction()
-			raise e
-		except Exception as e:
-			space_service.rollback_transaction()
-			raise_500(e)
-	else:
-		space_service.begin_transaction()
-		try:
-			# noinspection PyTypeChecker
-			existing_space: Optional[Space] = space_service.find_by_id(space.spaceId)
+			sync_space_to_groups(space_service, a_space.spaceId, user_group_ids, a_space.tenantId)
+		else:
+			# noinspection PyTypeChecker,DuplicatedCode
+			existing_space: Optional[Space] = space_service.find_by_id(a_space.spaceId)
 			if existing_space is not None:
-				if existing_space.tenantId != space.tenantId:
+				if existing_space.tenantId != a_space.tenantId:
 					raise_403()
 
-			user_group_ids = ArrayHelper(space.groupIds).distinct().to_list()
-			space.groupIds = user_group_ids
-			topic_ids = ArrayHelper(space.topicIds).distinct().to_list()
-			space.topicIds = topic_ids
+			user_group_ids = ArrayHelper(a_space.groupIds).distinct().to_list()
+			a_space.groupIds = user_group_ids
+			topic_ids = ArrayHelper(a_space.topicIds).distinct().to_list()
+			a_space.topicIds = topic_ids
 			# check topics
-			validate_topics(space_service, topic_ids, space.tenantId)
+			validate_topics(space_service, topic_ids, a_space.tenantId)
 			# noinspection PyTypeChecker
-			space: Space = space_service.update(space)
+			a_space: Space = space_service.update(a_space)
 			# remove user from user groups, in case user groups are removed
 			removed_user_group_ids = ArrayHelper(existing_space.groupIds).difference(user_group_ids).to_list()
-			remove_space_from_groups(space_service, space.spaceId, removed_user_group_ids, space.tenantId)
+			remove_space_from_groups(space_service, a_space.spaceId, removed_user_group_ids, a_space.tenantId)
 			# synchronize user to user groups
-			sync_space_to_groups(space_service, space.spaceId, user_group_ids, space.tenantId)
-			space_service.commit_transaction()
-		except HTTPException as e:
-			space_service.rollback_transaction()
-			raise e
-		except Exception as e:
-			space_service.rollback_transaction()
-			raise_500(e)
+			sync_space_to_groups(space_service, a_space.spaceId, user_group_ids, a_space.tenantId)
+		return a_space
 
-	return space
+	return trans(space_service, lambda: action(space))
 
 
 class QuerySpaceDataPage(DataPage):
@@ -211,19 +194,18 @@ async def find_spaces_by_name(
 		query_name: Optional[str], pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> QuerySpaceDataPage:
-	tenant_id: TenantId = principal_service.get_tenant_id()
-	if is_blank(query_name):
-		query_name = None
-
 	space_service = get_space_service(principal_service)
-	space_service.begin_transaction()
-	try:
-		# noinspection PyTypeChecker
-		return space_service.find_by_text(query_name, tenant_id, pageable)
-	except Exception as e:
-		raise_500(e)
-	finally:
-		space_service.close_transaction()
+
+	def action() -> QuerySpaceDataPage:
+		tenant_id: TenantId = principal_service.get_tenant_id()
+		if is_blank(query_name):
+			# noinspection PyTypeChecker
+			return space_service.find_by_text(None, tenant_id, pageable)
+		else:
+			# noinspection PyTypeChecker
+			return space_service.find_by_text(query_name, tenant_id, pageable)
+
+	return trans_readonly(space_service, action)
 
 
 @router.post('/space/ids', tags=[UserRole.ADMIN], response_model=List[Space])
@@ -233,23 +215,20 @@ async def find_spaces_by_ids(
 	if len(space_ids) == 0:
 		return []
 
-	tenant_id: TenantId = principal_service.get_tenant_id()
+	space_service = get_space_service(principal_service)
 
-	user_group_service = get_space_service(principal_service)
-	user_group_service.begin_transaction()
-	try:
-		return user_group_service.find_by_ids(space_ids, tenant_id)
-	except Exception as e:
-		raise_500(e)
-	finally:
-		user_group_service.close_transaction()
+	def action() -> List[Space]:
+		tenant_id: TenantId = principal_service.get_tenant_id()
+		return space_service.find_by_ids(space_ids, tenant_id)
+
+	return trans_readonly(space_service, action)
 
 
 @router.delete('/space', tags=[UserRole.SUPER_ADMIN], response_model=Space)
-async def delete_space_by_id(
+async def delete_space_by_id_by_super_admin(
 		space_id: Optional[SpaceId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
-) -> Optional[Space]:
+) -> Space:
 	if not ask_tuple_delete_enabled():
 		raise_404('Not Found')
 
@@ -257,17 +236,12 @@ async def delete_space_by_id(
 		raise_400('Space id is required.')
 
 	space_service = get_space_service(principal_service)
-	space_service.begin_transaction()
-	try:
+
+	def action() -> Space:
 		# noinspection PyTypeChecker
 		space: Space = space_service.delete(space_id)
 		if space is None:
 			raise_404()
-		space_service.commit_transaction()
 		return space
-	except HTTPException as e:
-		space_service.rollback_transaction()
-		raise e
-	except Exception as e:
-		space_service.rollback_transaction()
-		raise_500(e)
+
+	return trans(space_service, action)

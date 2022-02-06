@@ -1,11 +1,10 @@
-from abc import abstractmethod
 from typing import List, Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_model.common import TenantId, UserBasedTuple, UserId
-from watchmen_storage import EntityCriteriaExpression, EntityFinder, EntityHelper, EntityIdHelper, EntityRow, \
-	EntityShaper, SnowflakeGenerator, TransactionalStorageSPI
-from .storage_service import IdentifiedStorableService, TupleId, TupleNotFoundException
+from watchmen_storage import EntityCriteriaExpression, EntityRow, \
+	SnowflakeGenerator, TransactionalStorageSPI
+from .storage_service import EntityService, TupleId, TupleNotFoundException
 
 
 class UserBasedTupleShaper:
@@ -22,7 +21,7 @@ class UserBasedTupleShaper:
 		return user_based_tuple
 
 
-class UserBasedTupleService(IdentifiedStorableService):
+class UserBasedTupleService(EntityService):
 	def __init__(
 			self,
 			storage: TransactionalStorageSPI,
@@ -33,24 +32,6 @@ class UserBasedTupleService(IdentifiedStorableService):
 		super().__init__(storage)
 		self.with_snowflake_generator(snowflake_generator)
 		self.with_principal_service(principal_service)
-
-	@abstractmethod
-	def get_entity_name(self) -> str:
-		pass
-
-	@abstractmethod
-	def get_entity_shaper(self) -> EntityShaper:
-		pass
-
-	def get_entity_helper(self) -> EntityHelper:
-		return EntityHelper(name=self.get_entity_name(), shaper=self.get_entity_shaper())
-
-	def get_entity_id_helper(self) -> EntityIdHelper:
-		return EntityIdHelper(
-			name=self.get_entity_name(),
-			shaper=self.get_entity_shaper(),
-			idColumnName=self.get_storable_id_column_name()
-		)
 
 	def create(self, a_tuple: UserBasedTuple) -> UserBasedTuple:
 		self.try_to_prepare_auditable_on_create(a_tuple)
@@ -68,9 +49,7 @@ class UserBasedTupleService(IdentifiedStorableService):
 		return self.storage.delete_by_id_and_pull(tuple_id, self.get_entity_id_helper())
 
 	def find_by_id(self, tuple_id: TupleId) -> Optional[UserBasedTuple]:
-		return self.storage.find_one(EntityFinder(
-			name=self.get_entity_name(),
-			shaper=self.get_entity_shaper(),
+		return self.storage.find_one(self.get_entity_finder(
 			criteria=[
 				EntityCriteriaExpression(name=self.get_storable_id_column_name(), value=tuple_id),
 			]
@@ -78,9 +57,7 @@ class UserBasedTupleService(IdentifiedStorableService):
 
 	def find_all_by_user_id(self, user_id: UserId, tenant_id: TenantId) -> List[UserBasedTuple]:
 		# noinspection PyTypeChecker
-		return self.storage.find(EntityFinder(
-			name=self.get_entity_name(),
-			shaper=self.get_entity_shaper(),
+		return self.storage.find(self.get_entity_finder(
 			criteria=[
 				EntityCriteriaExpression(name='user_id', value=user_id),
 				EntityCriteriaExpression(name='tenant_id', value=tenant_id)

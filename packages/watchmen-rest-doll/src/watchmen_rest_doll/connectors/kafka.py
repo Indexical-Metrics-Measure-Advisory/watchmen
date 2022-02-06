@@ -14,6 +14,11 @@ class KafkaSettings(SettingsModel):
 	topics: List[str] = []
 
 
+async def import_raw_topic_data(topic_data: TopicData) -> None:
+	# TODO consume topic data from kafka
+	pass
+
+
 async def consume(loop, settings: KafkaSettings):
 	from aiokafka import AIOKafkaConsumer
 	# noinspection PyTypeChecker
@@ -24,9 +29,8 @@ async def consume(loop, settings: KafkaSettings):
 	await consumer.start()
 	try:
 		async for msg in consumer:
-			topic_event = TopicData.parse_obj(msg.value)
-		# TODO consume topic data from kafka
-		# await import_raw_topic_data(topic_event)
+			topic_data = TopicData.parse_obj(msg.value)
+			await import_raw_topic_data(topic_data)
 	except Exception as e:
 		logger.error(e, exc_info=True, stack_info=True)
 		await consume(get_event_loop(), settings)

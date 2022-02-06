@@ -65,6 +65,7 @@ class SpaceService(TupleService):
 	def get_storable_id_column_name(self) -> str:
 		return 'space_id'
 
+	# noinspection DuplicatedCode
 	def find_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
 		criteria = []
 		if text is not None and len(text.strip()) != 0:

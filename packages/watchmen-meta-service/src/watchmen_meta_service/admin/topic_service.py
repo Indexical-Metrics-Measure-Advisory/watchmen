@@ -84,6 +84,7 @@ class TopicService(TupleService):
 			distinctColumnNames=['topic_id']
 		))
 
+	# noinspection DuplicatedCode
 	def find_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
 		criteria = []
 		if text is not None and len(text.strip()) != 0:

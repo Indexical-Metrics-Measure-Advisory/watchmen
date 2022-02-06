@@ -1,16 +1,16 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends
 
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.system import TenantService
 from watchmen_model.admin import UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId
 from watchmen_model.system import Tenant
-from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
+from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.auth import get_any_principal, get_super_admin_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator, ask_tuple_delete_enabled
-from watchmen_rest_doll.util import is_blank
+from watchmen_rest_doll.util import is_blank, trans, trans_readonly
 
 router = APIRouter()
 
@@ -23,7 +23,7 @@ def get_tenant_service(principal_service: PrincipalService) -> TenantService:
 async def load_tenant_by_id(
 		tenant_id: Optional[TenantId] = None,
 		principal_service: PrincipalService = Depends(get_any_principal)
-) -> Optional[Tenant]:
+) -> Tenant:
 	if is_blank(tenant_id):
 		raise_400('Tenant id is required.')
 	if not principal_service.is_super_admin():
@@ -31,19 +31,15 @@ async def load_tenant_by_id(
 			raise_403()
 
 	tenant_service = get_tenant_service(principal_service)
-	tenant_service.begin_transaction()
-	try:
+
+	def action() -> Tenant:
 		# noinspection PyTypeChecker
 		tenant: Tenant = tenant_service.find_by_id(tenant_id)
 		if tenant is None:
 			raise_404()
 		return tenant
-	except HTTPException as e:
-		raise e
-	except Exception as e:
-		raise_500(e)
-	finally:
-		tenant_service.close_transaction()
+
+	return trans_readonly(tenant_service, action)
 
 
 @router.post('/tenant', tags=[UserRole.SUPER_ADMIN], response_model=Tenant)
@@ -52,30 +48,19 @@ async def save_tenant(
 ) -> Tenant:
 	tenant_service = get_tenant_service(principal_service)
 
-	if tenant_service.is_storable_id_faked(tenant.tenantId):
-		tenant_service.begin_transaction()
-		try:
-			tenant_service.redress_storable_id(tenant)
+	# noinspection DuplicatedCode
+	def action(a_tenant: Tenant) -> Tenant:
+		if tenant_service.is_storable_id_faked(a_tenant.tenantId):
+			tenant_service.redress_storable_id(a_tenant)
 			# noinspection PyTypeChecker
-			tenant: Tenant = tenant_service.create(tenant)
-			tenant_service.commit_transaction()
-		except Exception as e:
-			tenant_service.rollback_transaction()
-			raise_500(e)
-	else:
-		tenant_service.begin_transaction()
-		try:
+			a_tenant: Tenant = tenant_service.create(a_tenant)
+		else:
 			# noinspection PyTypeChecker
-			tenant: Tenant = tenant_service.update(tenant)
-			tenant_service.commit_transaction()
-		except HTTPException as e:
-			tenant_service.rollback_transaction()
-			raise e
-		except Exception as e:
-			tenant_service.rollback_transaction()
-			raise_500(e)
+			a_tenant: Tenant = tenant_service.update(a_tenant)
 
-	return tenant
+		return a_tenant
+
+	return trans(tenant_service, lambda: action(tenant))
 
 
 class QueryTenantDataPage(DataPage):
@@ -87,25 +72,24 @@ async def find_tenants_by_name(
 		query_name: Optional[str] = None, pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
 ) -> QueryTenantDataPage:
-	if is_blank(query_name):
-		query_name = None
-
 	tenant_service = get_tenant_service(principal_service)
-	tenant_service.begin_transaction()
-	try:
-		# noinspection PyTypeChecker
-		return tenant_service.find_by_text(query_name, pageable)
-	except Exception as e:
-		raise_500(e)
-	finally:
-		tenant_service.close_transaction()
+
+	def action() -> QueryTenantDataPage:
+		if is_blank(query_name):
+			# noinspection PyTypeChecker
+			return tenant_service.find_by_text(None, pageable)
+		else:
+			# noinspection PyTypeChecker
+			return tenant_service.find_by_text(query_name, pageable)
+
+	return trans_readonly(tenant_service, action)
 
 
 @router.delete('/tenant', tags=[UserRole.SUPER_ADMIN], response_model=Tenant)
-async def delete_tenant_by_id(
+async def delete_tenant_by_id_by_super_admin(
 		tenant_id: Optional[TenantId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
-) -> Optional[Tenant]:
+) -> Tenant:
 	if not ask_tuple_delete_enabled():
 		raise_404('Not Found')
 
@@ -113,17 +97,12 @@ async def delete_tenant_by_id(
 		raise_400('Tenant id is required.')
 
 	tenant_service = get_tenant_service(principal_service)
-	tenant_service.begin_transaction()
-	try:
+
+	def action() -> Tenant:
 		# noinspection PyTypeChecker
 		tenant: Tenant = tenant_service.delete(tenant_id)
 		if tenant is None:
 			raise_404()
-		tenant_service.commit_transaction()
 		return tenant
-	except HTTPException as e:
-		tenant_service.rollback_transaction()
-		raise e
-	except Exception as e:
-		tenant_service.rollback_transaction()
-		raise_500(e)
+
+	return trans(tenant_service, action)

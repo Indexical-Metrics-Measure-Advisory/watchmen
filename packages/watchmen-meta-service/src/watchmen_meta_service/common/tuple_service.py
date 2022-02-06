@@ -1,4 +1,3 @@
-from abc import ABC
 from typing import Optional
 
 from watchmen_auth import PrincipalService
@@ -68,7 +67,7 @@ class TupleShaper:
 		return a_tuple
 
 
-class TupleService(EntityService, ABC):
+class TupleService(EntityService):
 	def __init__(
 			self,
 			storage: TransactionalStorageSPI,

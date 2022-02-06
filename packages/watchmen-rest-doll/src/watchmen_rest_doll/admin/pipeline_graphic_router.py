@@ -1,16 +1,16 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.admin import PipelineGraphicService
 from watchmen_meta_service.common import TupleService
 from watchmen_model.admin import PipelineGraphic, UserRole
 from watchmen_model.common import PipelineGraphicId
-from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
+from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.auth import get_admin_principal, get_super_admin_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator, ask_tuple_delete_enabled
-from watchmen_rest_doll.util import is_blank
+from watchmen_rest_doll.util import is_blank, trans, trans_readonly
 
 router = APIRouter()
 
@@ -26,13 +26,13 @@ async def find_my_pipeline_graphics(
 	get my all pipeline graphics
 	"""
 	pipeline_graphic_service = get_pipeline_graphic_service(principal_service)
-	pipeline_graphic_service.begin_transaction()
-	try:
+
+	def action() -> List[PipelineGraphic]:
 		# noinspection PyTypeChecker
 		return pipeline_graphic_service.find_all_by_user_id(
 			principal_service.get_user_id(), principal_service.get_tenant_id())
-	finally:
-		pipeline_graphic_service.close_transaction()
+
+	return trans_readonly(pipeline_graphic_service, action)
 
 
 @router.post('/pipeline/graphics', tags=[UserRole.ADMIN], response_model=PipelineGraphic)
@@ -42,44 +42,33 @@ async def save_pipeline_graphic(
 	"""
 	create or update my pipeline graphic
 	"""
-	pipeline_graphic.userId = principal_service.get_user_id()
-	pipeline_graphic.tenantId = principal_service.get_tenant_id()
 
 	pipeline_graphic_service = get_pipeline_graphic_service(principal_service)
 
-	if TupleService.is_storable_id_faked(pipeline_graphic.pipeline_graphicId):
-		pipeline_graphic_service.begin_transaction()
-		try:
-			pipeline_graphic_service.redress_storable_id(pipeline_graphic)
+	def action(graphic: PipelineGraphic) -> PipelineGraphic:
+		graphic.userId = principal_service.get_user_id()
+		graphic.tenantId = principal_service.get_tenant_id()
+
+		if TupleService.is_storable_id_faked(graphic.pipeline_graphicId):
+			pipeline_graphic_service.redress_storable_id(graphic)
 			# noinspection PyTypeChecker
-			pipeline_graphic: PipelineGraphic = pipeline_graphic_service.create(pipeline_graphic)
-			pipeline_graphic_service.commit_transaction()
-		except Exception as e:
-			pipeline_graphic_service.rollback_transaction()
-			raise_500(e)
-	else:
-		pipeline_graphic_service.begin_transaction()
-		try:
+			graphic: PipelineGraphic = pipeline_graphic_service.create(graphic)
+		else:
 			# noinspection PyTypeChecker
 			existing_pipeline_graphic: Optional[PipelineGraphic] = \
-				pipeline_graphic_service.find_by_id(pipeline_graphic.pipelineGraphId)
+				pipeline_graphic_service.find_by_id(graphic.pipelineGraphId)
 			if existing_pipeline_graphic is not None:
-				if existing_pipeline_graphic.tenantId != pipeline_graphic.tenantId:
+				if existing_pipeline_graphic.tenantId != graphic.tenantId:
 					raise_403()
-				if existing_pipeline_graphic.userId != pipeline_graphic.userId:
+				if existing_pipeline_graphic.userId != graphic.userId:
 					raise_403()
 
 			# noinspection PyTypeChecker
-			pipeline_graphic: PipelineGraphic = pipeline_graphic_service.update(pipeline_graphic)
-			pipeline_graphic_service.commit_transaction()
-		except HTTPException as e:
-			pipeline_graphic_service.rollback_transaction()
-			raise e
-		except Exception as e:
-			pipeline_graphic_service.rollback_transaction()
-			raise_500(e)
+			graphic: PipelineGraphic = pipeline_graphic_service.update(graphic)
 
-	return pipeline_graphic
+		return graphic
+
+	return trans(pipeline_graphic_service, lambda: action(pipeline_graphic))
 
 
 @router.get("/pipeline/graphics/delete", tags=[UserRole.ADMIN], response_model=None)
@@ -94,8 +83,8 @@ async def delete_pipeline_graphic_by_id(
 		return
 
 	pipeline_graphic_service = get_pipeline_graphic_service(principal_service)
-	pipeline_graphic_service.begin_transaction()
-	try:
+
+	def action() -> None:
 		# noinspection PyTypeChecker
 		existing_pipeline_graphic: Optional[PipelineGraphic] = \
 			pipeline_graphic_service.find_by_id(pipeline_graph_id)
@@ -107,20 +96,15 @@ async def delete_pipeline_graphic_by_id(
 
 		# noinspection PyTypeChecker
 		pipeline_graphic_service.delete_by_id(pipeline_graph_id)
-		pipeline_graphic_service.commit_transaction()
-	except HTTPException as e:
-		pipeline_graphic_service.rollback_transaction()
-		raise e
-	except Exception as e:
-		pipeline_graphic_service.rollback_transaction()
-		raise_500(e)
+
+	trans(pipeline_graphic_service, action)
 
 
 @router.delete('/pipeline/graphics', tags=[UserRole.SUPER_ADMIN], response_model=PipelineGraphic)
 async def delete_pipeline_graphic_by_id_by_super_admin(
 		pipeline_graphic_id: Optional[PipelineGraphicId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
-) -> Optional[PipelineGraphic]:
+) -> PipelineGraphic:
 	if not ask_tuple_delete_enabled():
 		raise_404('Not Found')
 
@@ -128,17 +112,12 @@ async def delete_pipeline_graphic_by_id_by_super_admin(
 		raise_400('Pipeline graphic id is required.')
 
 	pipeline_graphic_service = get_pipeline_graphic_service(principal_service)
-	pipeline_graphic_service.begin_transaction()
-	try:
+
+	def action() -> PipelineGraphic:
 		# noinspection PyTypeChecker
 		pipeline_graphic: PipelineGraphic = pipeline_graphic_service.delete(pipeline_graphic_id)
 		if pipeline_graphic is None:
 			raise_404()
-		pipeline_graphic_service.commit_transaction()
 		return pipeline_graphic
-	except HTTPException as e:
-		pipeline_graphic_service.rollback_transaction()
-		raise e
-	except Exception as e:
-		pipeline_graphic_service.rollback_transaction()
-		raise_500(e)
+
+	return trans(pipeline_graphic_service, action)

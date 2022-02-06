@@ -1,15 +1,15 @@
 from typing import List, Optional, Union
 
-from fastapi import APIRouter, Body, Depends, HTTPException
+from fastapi import APIRouter, Body, Depends
 
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.admin import SpaceService, UserGroupService, UserService
 from watchmen_model.admin import Space, User, UserGroup, UserRole
 from watchmen_model.common import DataPage, Pageable, SpaceId, TenantId, UserGroupId, UserId
-from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
+from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.auth import get_admin_principal, get_super_admin_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator, ask_tuple_delete_enabled
-from watchmen_rest_doll.util import is_blank, validate_tenant_id
+from watchmen_rest_doll.util import is_blank, trans, trans_readonly, validate_tenant_id
 from watchmen_utilities import ArrayHelper
 
 router = APIRouter()
@@ -37,8 +37,8 @@ async def load_user_group_by_id(
 		raise_400('User group id is required.')
 
 	user_group_service = get_user_group_service(principal_service)
-	user_group_service.begin_transaction()
-	try:
+
+	def action() -> UserGroup:
 		# noinspection PyTypeChecker
 		user_group: UserGroup = user_group_service.find_by_id(user_group_id)
 		if user_group is None:
@@ -47,12 +47,8 @@ async def load_user_group_by_id(
 		if user_group.tenantId != principal_service.get_tenant_id():
 			raise_404()
 		return user_group
-	except HTTPException as e:
-		raise e
-	except Exception as e:
-		raise_500(e)
-	finally:
-		user_group_service.close_transaction()
+
+	return trans_readonly(user_group_service, action)
 
 
 def has_user_group_id(x: Union[User, Space], user_group_id: UserGroupId) -> bool:
@@ -76,6 +72,7 @@ def update_user_or_space(service: Union[UserService, SpaceService], x: Union[Use
 	service.update(x)
 
 
+# noinspection DuplicatedCode
 def sync_group(
 		service: Union[UserService, SpaceService],
 		user_group_id: UserGroupId, user_or_space_ids: Union[List[UserId], List[SpaceId]],
@@ -106,6 +103,7 @@ def remove_user_group_id(x: Union[User, Space], user_group_id: UserGroupId) -> U
 	return x
 
 
+# noinspection DuplicatedCode
 def remove_user_group(
 		service: Union[UserService, SpaceService],
 		user_group_id: UserId, user_or_space_ids: Union[List[UserId], List[SpaceId]],
@@ -138,69 +136,56 @@ async def save_user_group(
 
 	user_group_service = get_user_group_service(principal_service)
 
-	if user_group_service.is_storable_id_faked(user_group.userGroupId):
-		user_group_service.begin_transaction()
-		try:
-			user_group_service.redress_storable_id(user_group)
-			user_ids = ArrayHelper(user_group.userIds).distinct().to_list()
-			user_group.userIds = user_ids
-			space_ids = ArrayHelper(user_group.spaceIds).distinct().to_list()
-			user_group.spaceIds = space_ids
+	def action(group: UserGroup) -> UserGroup:
+		if user_group_service.is_storable_id_faked(group.userGroupId):
+			user_group_service.redress_storable_id(group)
+			user_ids = ArrayHelper(group.userIds).distinct().to_list()
+			group.userIds = user_ids
+			space_ids = ArrayHelper(group.spaceIds).distinct().to_list()
+			group.spaceIds = space_ids
 			# noinspection PyTypeChecker
-			user_group: UserGroup = user_group_service.create(user_group)
+			group: UserGroup = user_group_service.create(group)
 			# synchronize user group to user
 			sync_group(
-				get_user_service(user_group_service), user_group.userGroupId, user_ids, user_group.tenantId, 'User')
+				get_user_service(user_group_service), group.userGroupId, user_ids, group.tenantId, 'User')
 			# synchronize user group to space
 			sync_group(
-				get_space_service(user_group_service), user_group.userGroupId, space_ids, user_group.tenantId, 'Space')
-			user_group_service.commit_transaction()
-		except HTTPException as e:
-			user_group_service.rollback_transaction()
-			raise e
-		except Exception as e:
-			user_group_service.rollback_transaction()
-			raise_500(e)
-	else:
-		user_group_service.begin_transaction()
-		try:
-			# noinspection PyTypeChecker
-			existing_user_group: Optional[UserGroup] = user_group_service.find_by_id(user_group.userGroupId)
+				get_space_service(user_group_service), group.userGroupId, space_ids, group.tenantId,
+				'Space')
+		else:
+			# noinspection PyTypeChecker,DuplicatedCode
+			existing_user_group: Optional[UserGroup] = user_group_service.find_by_id(group.userGroupId)
 			if existing_user_group is not None:
-				if existing_user_group.tenantId != user_group.tenantId:
+				if existing_user_group.tenantId != group.tenantId:
 					raise_403()
 
-			user_ids = ArrayHelper(user_group.userIds).distinct().to_list()
-			user_group.userIds = user_ids
-			space_ids = ArrayHelper(user_group.spaceIds).distinct().to_list()
-			user_group.spaceIds = space_ids
+			user_ids = ArrayHelper(group.userIds).distinct().to_list()
+			group.userIds = user_ids
+			space_ids = ArrayHelper(group.spaceIds).distinct().to_list()
+			group.spaceIds = space_ids
 			# noinspection PyTypeChecker
-			user_group: UserGroup = user_group_service.update(user_group)
+			group: UserGroup = user_group_service.update(group)
 			# remove user group from users, in case users are removed
 			removed_user_ids = ArrayHelper(existing_user_group.userIds).difference(user_ids).to_list()
 			remove_user_group(
 				get_user_service(user_group_service),
-				user_group.userGroupId, removed_user_ids, user_group.tenantId, 'User')
+				group.userGroupId, removed_user_ids, group.tenantId, 'User')
 			# synchronize user group to user
 			sync_group(
-				get_user_service(user_group_service), user_group.userGroupId, user_ids, user_group.tenantId, 'User')
+				get_user_service(user_group_service), group.userGroupId, user_ids, group.tenantId, 'User')
 			# remove user group from spaces, in case spaces are removed
 			removed_space_ids = ArrayHelper(existing_user_group.spaceIds).difference(space_ids).to_list()
 			remove_user_group(
 				get_space_service(user_group_service),
-				user_group.userGroupId, removed_space_ids, user_group.tenantId, 'Space')
+				group.userGroupId, removed_space_ids, group.tenantId, 'Space')
 			# synchronize user group to space
 			sync_group(
-				get_space_service(user_group_service), user_group.userGroupId, space_ids, user_group.tenantId, 'Space')
-			user_group_service.commit_transaction()
-		except HTTPException as e:
-			user_group_service.rollback_transaction()
-			raise e
-		except Exception as e:
-			user_group_service.rollback_transaction()
-			raise_500(e)
+				get_space_service(user_group_service), group.userGroupId, space_ids, group.tenantId,
+				'Space')
 
-	return user_group
+		return group
+
+	return trans(user_group_service, lambda: action(user_group))
 
 
 class QueryUserGroupDataPage(DataPage):
@@ -212,19 +197,18 @@ async def find_user_groups_by_name(
 		query_name: Optional[str], pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> QueryUserGroupDataPage:
-	tenant_id: TenantId = principal_service.get_tenant_id()
-	if is_blank(query_name):
-		query_name = None
-
 	user_group_service = get_user_group_service(principal_service)
-	user_group_service.begin_transaction()
-	try:
-		# noinspection PyTypeChecker
-		return user_group_service.find_by_text(query_name, tenant_id, pageable)
-	except Exception as e:
-		raise_500(e)
-	finally:
-		user_group_service.close_transaction()
+
+	def action() -> QueryUserGroupDataPage:
+		tenant_id: TenantId = principal_service.get_tenant_id()
+		if is_blank(query_name):
+			# noinspection PyTypeChecker
+			return user_group_service.find_by_text(None, tenant_id, pageable)
+		else:
+			# noinspection PyTypeChecker
+			return user_group_service.find_by_text(query_name, tenant_id, pageable)
+
+	return trans_readonly(user_group_service, action)
 
 
 @router.post('/user_group/ids', tags=[UserRole.ADMIN], response_model=List[UserGroup])
@@ -234,23 +218,20 @@ async def find_user_groups_by_ids(
 	if len(user_group_ids) == 0:
 		return []
 
-	tenant_id: TenantId = principal_service.get_tenant_id()
-
 	user_group_service = get_user_group_service(principal_service)
-	user_group_service.begin_transaction()
-	try:
+
+	def action() -> List[UserGroup]:
+		tenant_id: TenantId = principal_service.get_tenant_id()
 		return user_group_service.find_by_ids(user_group_ids, tenant_id)
-	except Exception as e:
-		raise_500(e)
-	finally:
-		user_group_service.close_transaction()
+
+	return trans_readonly(user_group_service, action)
 
 
 @router.delete('/user_group', tags=[UserRole.SUPER_ADMIN], response_model=UserGroup)
-async def delete_user_group_by_id(
+async def delete_user_group_by_id_by_super_admin(
 		user_group_id: Optional[UserGroupId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
-) -> Optional[UserGroup]:
+) -> UserGroup:
 	if not ask_tuple_delete_enabled():
 		raise_404('Not Found')
 
@@ -258,17 +239,12 @@ async def delete_user_group_by_id(
 		raise_400('User group id is required.')
 
 	user_group_service = get_user_group_service(principal_service)
-	user_group_service.begin_transaction()
-	try:
+
+	def action() -> UserGroup:
 		# noinspection PyTypeChecker
 		user_group: UserGroup = user_group_service.delete(user_group_id)
 		if user_group is None:
 			raise_404()
-		user_group_service.commit_transaction()
 		return user_group
-	except HTTPException as e:
-		user_group_service.rollback_transaction()
-		raise e
-	except Exception as e:
-		user_group_service.rollback_transaction()
-		raise_500(e)
+
+	return trans(user_group_service, action)
