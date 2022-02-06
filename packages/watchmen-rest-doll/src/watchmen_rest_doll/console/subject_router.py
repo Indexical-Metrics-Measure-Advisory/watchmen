@@ -68,9 +68,6 @@ async def save_subject(
 	return trans(subject_service, lambda: action(subject))
 
 
-# @router.get("/console_space/subject/rename", tags=["console"])
-# async def rename_console_space_subject(subject_id: str, name: str, current_user: User = Depends(deps.get_current_user)):
-#     rename_console_subject_by_id(subject_id, name)
 @router.get('/subject/rename', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
 async def update_pipeline_name_by_id(
 		subject_id: Optional[SubjectId], name: Optional[str],
