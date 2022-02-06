@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_storage import SnowflakeGenerator, TransactionalStorageSPI
+from watchmen_utilities import get_current_time_in_seconds
 
 
 class StorageService:
@@ -33,3 +35,7 @@ class StorageService:
 
 	def close_transaction(self):
 		self.storage.close()
+
+	# noinspection PyMethodMayBeStatic
+	def now(self) -> datetime:
+		return get_current_time_in_seconds()

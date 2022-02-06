@@ -2,6 +2,7 @@ from pydantic import BaseModel
 
 from watchmen_model.common import DataModel
 from .chart_settings import ChartSettings
+from .chart_settings_construct import construct_settings
 from .chart_types import ChartType
 
 

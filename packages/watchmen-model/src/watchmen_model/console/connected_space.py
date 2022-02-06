@@ -1,7 +1,5 @@
 from pydantic import BaseModel
 
-from pydantic import BaseModel
-
 from watchmen_model.common import Auditable, ConnectedSpaceId, LastVisit, SpaceId, UserBasedTuple
 
 

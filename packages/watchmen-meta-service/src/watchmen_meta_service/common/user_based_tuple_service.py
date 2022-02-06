@@ -3,7 +3,7 @@ from typing import List, Optional, TypeVar
 
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.common import StorageService
-from watchmen_model.common import TenantId, UserBasedTuple, UserId
+from watchmen_model.common import Auditable, TenantId, UserBasedTuple, UserId
 from watchmen_storage import EntityCriteriaExpression, EntityFinder, EntityHelper, EntityIdHelper, EntityRow, \
 	EntityShaper, \
 	SnowflakeGenerator, TransactionalStorageSPI
@@ -95,6 +95,13 @@ class UserBasedTupleService(StorageService):
 		return a_tuple
 
 	def create(self, a_tuple: UserBasedTuple) -> UserBasedTuple:
+		if isinstance(a_tuple, Auditable):
+			now = self.now()
+			a_tuple.createdAt = now
+			a_tuple.createdBy = self.principal_service.get_user_id()
+			a_tuple.lastModifiedAt = now
+			a_tuple.lastModifiedBy = self.principal_service.get_user_id()
+
 		self.storage.insert_one(a_tuple, self.get_entity_helper())
 		return a_tuple
 
