@@ -156,6 +156,7 @@ class EChartsXAxisNameLocation(str, Enum):
 	END = 'end'
 
 
+# noinspection DuplicatedCode
 class EChartsXAxisName(EChartsFontHolder, EChartsBorderHolder, EChartsAlignmentHolder):
 	text: str = None
 	location: EChartsXAxisNameLocation = None
@@ -207,6 +208,7 @@ class EChartsYAxisNameLocation(str, Enum):
 	END = 'end'
 
 
+# noinspection DuplicatedCode
 class EChartsYAxisName(EChartsFontHolder, EChartsBorderHolder, EChartsAlignmentHolder):
 	text: str = None
 	location: EChartsYAxisNameLocation = None

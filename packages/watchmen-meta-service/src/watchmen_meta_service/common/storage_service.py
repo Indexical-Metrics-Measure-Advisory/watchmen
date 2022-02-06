@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Optional, Tuple, TypeVar
 
 from watchmen_auth import PrincipalService
 from watchmen_model.common import Auditable, OptimisticLock, Pageable, Storable
-from watchmen_storage import EntityCriteria, EntityDeleter, EntityFinder, EntityHelper, EntityIdHelper, EntityPager, \
+from watchmen_storage import EntityCriteria, EntityDeleter, EntityFinder, EntityHelper, EntityIdHelper, EntityName, \
+	EntityPager, \
 	EntityRow, EntityShaper, EntitySort, EntityUpdate, EntityUpdater, SnowflakeGenerator, TransactionalStorageSPI
 from watchmen_utilities import get_current_time_in_seconds
 
@@ -18,7 +19,7 @@ class TupleNotFoundException(Exception):
 	pass
 
 
-class StorageService:
+class StorageService(ABC):
 	storage: TransactionalStorageSPI
 	principal_service: Optional[PrincipalService] = None
 	snowflake_generator: Optional[SnowflakeGenerator] = None
@@ -96,7 +97,7 @@ class StorageService:
 
 class IdentifiedStorableService(StorageService):
 	@abstractmethod
-	def get_storable_id_column_name(self) -> str:
+	def get_storable_id_column_name(self) -> EntityName:
 		pass
 
 	@abstractmethod
@@ -147,7 +148,7 @@ class IdentifiedStorableService(StorageService):
 
 class EntityService(IdentifiedStorableService):
 	@abstractmethod
-	def get_entity_name(self) -> str:
+	def get_entity_name(self) -> EntityName:
 		pass
 
 	@abstractmethod

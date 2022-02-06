@@ -10,10 +10,10 @@ from watchmen_meta_service.system import PatService
 from watchmen_model.admin import UserRole
 from watchmen_model.common import PatId
 from watchmen_model.system import PersonalAccessToken
-from watchmen_rest.util import raise_400, raise_500
+from watchmen_rest.util import raise_400
 from watchmen_rest_doll.auth import get_any_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
-from watchmen_rest_doll.util import is_blank
+from watchmen_rest_doll.util import is_blank, trans
 from watchmen_utilities import ArrayHelper
 
 router = APIRouter()
@@ -39,8 +39,8 @@ async def create_pat(
 		params: PatCreationParams = Body(...),
 		principal_service: PrincipalService = Depends(get_any_principal)) -> ClientPat:
 	pat_service = get_pat_service(principal_service)
-	pat_service.begin_transaction()
-	try:
+
+	def action() -> ClientPat:
 		pat = PersonalAccessToken(
 			token=token_urlsafe(16),
 			userId=principal_service.get_user_id(),
@@ -51,24 +51,22 @@ async def create_pat(
 			permissions=[],
 		)
 		pat_service.create(pat)
-		pat_service.commit_transaction()
 		return ClientPat(patId=pat.patId, token=pat.token, note=pat.note)
-	except Exception as e:
-		pat_service.rollback_transaction()
-		raise_500(e)
+
+	return trans(pat_service, action)
 
 
 @router.get('/pat/list', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=List[ClientPat])
-async def find_my_pats(principal_service: PrincipalService = Depends(get_any_principal)):
+async def find_my_pats(principal_service: PrincipalService = Depends(get_any_principal)) -> List[ClientPat]:
 	pat_service = get_pat_service(principal_service)
-	pat_service.begin_transaction()
-	try:
+
+	def action() -> List[ClientPat]:
 		pats = pat_service.find_by_user_id(principal_service.get_user_id(), principal_service.get_tenant_id())
-		return ArrayHelper(pats).map(lambda pat: ClientPat(patId=pat.patId, token=pat.token, note=pat.note))
-	except Exception as e:
-		raise_500(e)
-	finally:
-		pat_service.close_transaction()
+		return ArrayHelper(pats) \
+			.map(lambda pat: ClientPat(patId=pat.patId, token=pat.token, note=pat.note)) \
+			.to_list()
+
+	return trans(pat_service, action)
 
 
 @router.post('/pat/delete', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
@@ -78,12 +76,10 @@ async def delete_pat(
 		raise_400('Pat id is required.')
 
 	pat_service = get_pat_service(principal_service)
-	pat_service.begin_transaction()
-	try:
+
+	def action() -> None:
 		pat = pat_service.find_by_id(pat_id, principal_service.get_user_id(), principal_service.get_tenant_id())
 		if pat is not None:
 			pat_service.delete_by_id(pat_id)
-		pat_service.commit_transaction()
-	except Exception as e:
-		pat_service.rollback_transaction()
-		raise_500(e)
+
+	return trans(pat_service, action)

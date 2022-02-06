@@ -71,6 +71,7 @@ class ArrayHelper:
 		"""
 		remove elements duplicated which satisfies given compare function
 		"""
+		# noinspection DuplicatedCode
 		new_list: list = []
 		for an_element in self.a_list:
 			found: bool = False
@@ -89,6 +90,7 @@ class ArrayHelper:
 		if another_list is None or len(another_list) == 0:
 			return self
 
+		# noinspection DuplicatedCode
 		new_list: list = []
 		for an_element in self.a_list:
 			found: bool = False
