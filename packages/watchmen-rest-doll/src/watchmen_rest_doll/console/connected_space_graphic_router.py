@@ -5,10 +5,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.console import ConnectedSpaceGraphicService
 from watchmen_model.admin import UserRole
+from watchmen_model.common import ConnectedSpaceId
 from watchmen_model.console import ConnectedSpaceGraphic
-from watchmen_rest.util import raise_403, raise_500
-from watchmen_rest_doll.auth import get_console_principal
-from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
+from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
+from watchmen_rest_doll.auth import get_console_principal, get_super_admin_principal
+from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator, ask_tuple_delete_enabled
+from watchmen_rest_doll.util import is_blank
 
 router = APIRouter()
 
@@ -76,3 +78,31 @@ async def save_console_space_graphic(
 		raise_500(e)
 
 	return connected_space_graphic
+
+
+@router.delete('/connected_space/graphics', tags=[UserRole.SUPER_ADMIN], response_model=ConnectedSpaceGraphic)
+async def delete_pipeline_graphic_by_id_by_super_admin(
+		connect_id: Optional[ConnectedSpaceId] = None,
+		principal_service: PrincipalService = Depends(get_super_admin_principal)
+) -> Optional[ConnectedSpaceGraphic]:
+	if not ask_tuple_delete_enabled():
+		raise_404('Not Found')
+
+	if is_blank(connect_id):
+		raise_400('Connect id is required.')
+
+	connected_space_graphic_service = get_connected_space_graphic_service(principal_service)
+	connected_space_graphic_service.begin_transaction()
+	try:
+		# noinspection PyTypeChecker
+		connected_space_graphic: ConnectedSpaceGraphic = connected_space_graphic_service.delete(connect_id)
+		if connected_space_graphic is None:
+			raise_404()
+		connected_space_graphic_service.commit_transaction()
+		return connected_space_graphic
+	except HTTPException as e:
+		connected_space_graphic_service.rollback_transaction()
+		raise e
+	except Exception as e:
+		connected_space_graphic_service.rollback_transaction()
+		raise_500(e)
