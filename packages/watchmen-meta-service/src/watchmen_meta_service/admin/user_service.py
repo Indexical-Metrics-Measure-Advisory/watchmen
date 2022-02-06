@@ -43,14 +43,14 @@ class UserService(TupleService):
 	def get_entity_shaper(self) -> EntityShaper:
 		return USER_ENTITY_SHAPER
 
-	def get_tuple_id(self, a_tuple: User) -> UserId:
-		return a_tuple.userId
+	def get_storable_id(self, storable: User) -> UserId:
+		return storable.userId
 
-	def set_tuple_id(self, a_tuple: User, tuple_id: UserId) -> User:
-		a_tuple.userId = tuple_id
-		return a_tuple
+	def set_storable_id(self, storable: User, storable_id: UserId) -> User:
+		storable.userId = storable_id
+		return storable
 
-	def get_tuple_id_column_name(self) -> str:
+	def get_storable_id_column_name(self) -> str:
 		return 'user_id'
 
 	def find_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:

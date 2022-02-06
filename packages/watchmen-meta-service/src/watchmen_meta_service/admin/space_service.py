@@ -55,14 +55,14 @@ class SpaceService(TupleService):
 	def get_entity_shaper(self) -> EntityShaper:
 		return SPACE_ENTITY_SHAPER
 
-	def get_tuple_id(self, a_tuple: Space) -> SpaceId:
-		return a_tuple.spaceId
+	def get_storable_id(self, storable: Space) -> SpaceId:
+		return storable.spaceId
 
-	def set_tuple_id(self, a_tuple: Space, tuple_id: SpaceId) -> Space:
-		a_tuple.spaceId = tuple_id
-		return a_tuple
+	def set_storable_id(self, storable: Space, storable_id: SpaceId) -> Space:
+		storable.spaceId = storable_id
+		return storable
 
-	def get_tuple_id_column_name(self) -> str:
+	def get_storable_id_column_name(self) -> str:
 		return 'space_id'
 
 	def find_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:

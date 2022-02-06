@@ -36,12 +36,12 @@ class ConnectedSpaceGraphicService(UserBasedTupleService):
 	def get_entity_shaper(self) -> EntityShaper:
 		return CONNECTED_SPACE_GRAPHIC_ENTITY_SHAPER
 
-	def get_tuple_id_column_name(self) -> str:
+	def get_storable_id_column_name(self) -> str:
 		return 'connect_id'
 
-	def get_tuple_id(self, a_tuple: ConnectedSpaceGraphic) -> ConnectedSpaceId:
-		return a_tuple.connectId
+	def get_storable_id(self, storable: ConnectedSpaceGraphic) -> ConnectedSpaceId:
+		return storable.connectId
 
-	def set_tuple_id(self, a_tuple: ConnectedSpaceGraphic, tuple_id: ConnectedSpaceId) -> ConnectedSpaceGraphic:
-		a_tuple.connectId = tuple_id
-		return a_tuple
+	def set_storable_id(self, storable: ConnectedSpaceGraphic, storable_id: ConnectedSpaceId) -> ConnectedSpaceGraphic:
+		storable.connectId = storable_id
+		return storable

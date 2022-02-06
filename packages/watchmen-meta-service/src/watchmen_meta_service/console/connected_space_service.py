@@ -44,12 +44,12 @@ class ConnectedSpaceService(UserBasedTupleService):
 	def get_entity_shaper(self) -> EntityShaper:
 		return CONNECTED_SPACE_ENTITY_SHAPER
 
-	def get_tuple_id_column_name(self) -> str:
+	def get_storable_id_column_name(self) -> str:
 		return 'connect_id'
 
-	def get_tuple_id(self, a_tuple: ConnectedSpace) -> ConnectedSpaceId:
-		return a_tuple.connectId
+	def get_storable_id(self, storable: ConnectedSpace) -> ConnectedSpaceId:
+		return storable.connectId
 
-	def set_tuple_id(self, a_tuple: ConnectedSpace, tuple_id: ConnectedSpaceId) -> ConnectedSpace:
-		a_tuple.connectId = tuple_id
-		return a_tuple
+	def set_storable_id(self, storable: ConnectedSpace, storable_id: ConnectedSpaceId) -> ConnectedSpace:
+		storable.connectId = storable_id
+		return storable

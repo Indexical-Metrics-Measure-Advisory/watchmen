@@ -52,10 +52,10 @@ async def save_external_writer(
 ) -> ExternalWriter:
 	external_writer_service = get_external_writer_service(principal_service)
 
-	if external_writer_service.is_tuple_id_faked(external_writer.external_writerId):
+	if external_writer_service.is_storable_id_faked(external_writer.external_writerId):
 		external_writer_service.begin_transaction()
 		try:
-			external_writer_service.redress_tuple_id(external_writer)
+			external_writer_service.redress_storable_id(external_writer)
 			# noinspection PyTypeChecker
 			external_writer: ExternalWriter = external_writer_service.create(external_writer)
 			external_writer_service.commit_transaction()

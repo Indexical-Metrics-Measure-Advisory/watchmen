@@ -42,14 +42,14 @@ class EnumService(TupleService):
 	def get_entity_shaper(self) -> EntityShaper:
 		return ENUM_ENTITY_SHAPER
 
-	def get_tuple_id(self, a_tuple: Enum) -> EnumId:
-		return a_tuple.enumId
+	def get_storable_id(self, storable: Enum) -> EnumId:
+		return storable.enumId
 
-	def set_tuple_id(self, a_tuple: Enum, tuple_id: EnumId) -> Enum:
-		a_tuple.enumId = tuple_id
-		return a_tuple
+	def set_storable_id(self, storable: Enum, storable_id: EnumId) -> Enum:
+		storable.enumId = storable_id
+		return storable
 
-	def get_tuple_id_column_name(self) -> str:
+	def get_storable_id_column_name(self) -> str:
 		return 'enum_id'
 
 	def find_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
@@ -139,7 +139,7 @@ class EnumItemService:
 		"""
 		return exactly the given tuple, replace by generated id if it is faked
 		"""
-		if TupleService.is_tuple_id_faked(enum_item.itemId):
+		if TupleService.is_storable_id_faked(enum_item.itemId):
 			enum_item.itemId = self.generate_item_id()
 		return enum_item
 

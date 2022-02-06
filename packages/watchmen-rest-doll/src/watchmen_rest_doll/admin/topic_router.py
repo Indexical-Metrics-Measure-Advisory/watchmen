@@ -95,10 +95,10 @@ async def save_topic(
 
 	topic_service = get_topic_service(principal_service)
 
-	if topic_service.is_tuple_id_faked(topic.topicId):
+	if topic_service.is_storable_id_faked(topic.topicId):
 		topic_service.begin_transaction()
 		try:
-			topic_service.redress_tuple_id(topic)
+			topic_service.redress_storable_id(topic)
 			redress_factor_ids(topic, topic_service)
 			# noinspection PyTypeChecker
 			topic: Topic = topic_service.create(topic)

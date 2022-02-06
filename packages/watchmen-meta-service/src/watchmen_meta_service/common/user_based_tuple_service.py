@@ -2,11 +2,10 @@ from abc import abstractmethod
 from typing import List, Optional, TypeVar
 
 from watchmen_auth import PrincipalService
-from watchmen_meta_service.common import StorageService
-from watchmen_model.common import Auditable, TenantId, UserBasedTuple, UserId
+from watchmen_model.common import TenantId, UserBasedTuple, UserId
 from watchmen_storage import EntityCriteriaExpression, EntityFinder, EntityHelper, EntityIdHelper, EntityRow, \
-	EntityShaper, \
-	SnowflakeGenerator, TransactionalStorageSPI
+	EntityShaper, SnowflakeGenerator, TransactionalStorageSPI
+from .storage_service import IdentifiedStorableService
 
 TupleId = TypeVar('TupleId', bound=str)
 
@@ -25,7 +24,7 @@ class UserBasedTupleShaper:
 		return user_based_tuple
 
 
-class UserBasedTupleService(StorageService):
+class UserBasedTupleService(IdentifiedStorableService):
 	def __init__(
 			self,
 			storage: TransactionalStorageSPI,
@@ -52,60 +51,16 @@ class UserBasedTupleService(StorageService):
 		return EntityIdHelper(
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),
-			idColumnName=self.get_tuple_id_column_name()
+			idColumnName=self.get_storable_id_column_name()
 		)
 
-	@abstractmethod
-	def get_tuple_id_column_name(self) -> str:
-		pass
-
-	@abstractmethod
-	def get_tuple_id(self, a_tuple: UserBasedTuple) -> TupleId:
-		pass
-
-	@abstractmethod
-	def set_tuple_id(self, a_tuple: UserBasedTuple, tuple_id: TupleId) -> UserBasedTuple:
-		"""
-		return exactly the given tuple
-		"""
-		pass
-
-	@staticmethod
-	def is_tuple_id_faked(tuple_id: TupleId) -> bool:
-		if tuple_id is None:
-			return True
-
-		trimmed_tuple_id = tuple_id.strip()
-		if len(trimmed_tuple_id) == 0:
-			return True
-		elif trimmed_tuple_id.startswith('f-'):
-			return True
-		else:
-			return False
-
-	def generate_tuple_id(self) -> TupleId:
-		return str(self.snowflake_generator.next_id())
-
-	def redress_tuple_id(self, a_tuple: UserBasedTuple) -> UserBasedTuple:
-		"""
-		return exactly the given tuple, replace by generated id if it is faked
-		"""
-		if UserBasedTupleService.is_tuple_id_faked(self.get_tuple_id(a_tuple)):
-			self.set_tuple_id(a_tuple, self.generate_tuple_id())
-		return a_tuple
-
 	def create(self, a_tuple: UserBasedTuple) -> UserBasedTuple:
-		if isinstance(a_tuple, Auditable):
-			now = self.now()
-			a_tuple.createdAt = now
-			a_tuple.createdBy = self.principal_service.get_user_id()
-			a_tuple.lastModifiedAt = now
-			a_tuple.lastModifiedBy = self.principal_service.get_user_id()
-
+		self.try_to_prepare_auditable_on_create(a_tuple)
 		self.storage.insert_one(a_tuple, self.get_entity_helper())
 		return a_tuple
 
 	def update(self, a_tuple: UserBasedTuple) -> UserBasedTuple:
+		self.try_to_prepare_auditable_on_update(a_tuple)
 		self.storage.update_one(a_tuple, self.get_entity_id_helper())
 		return a_tuple
 
@@ -117,7 +72,7 @@ class UserBasedTupleService(StorageService):
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),
 			criteria=[
-				EntityCriteriaExpression(name=self.get_tuple_id_column_name(), value=tuple_id),
+				EntityCriteriaExpression(name=self.get_storable_id_column_name(), value=tuple_id),
 			]
 		))
 

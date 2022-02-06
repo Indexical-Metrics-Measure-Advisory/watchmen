@@ -148,10 +148,10 @@ async def save_space(
 
 	space_service = get_space_service(principal_service)
 
-	if space_service.is_tuple_id_faked(space.spaceId):
+	if space_service.is_storable_id_faked(space.spaceId):
 		space_service.begin_transaction()
 		try:
-			space_service.redress_tuple_id(space)
+			space_service.redress_storable_id(space)
 			user_group_ids = ArrayHelper(space.groupIds).distinct().to_list()
 			space.groupIds = user_group_ids
 			topic_ids = ArrayHelper(space.topicIds).distinct().to_list()

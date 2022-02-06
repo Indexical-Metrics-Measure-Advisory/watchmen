@@ -39,14 +39,14 @@ class ExternalWriterService(TupleService):
 	def get_entity_shaper(self) -> EntityShaper:
 		return EXTERNAL_WRITER_ENTITY_SHAPER
 
-	def get_tuple_id(self, a_tuple: ExternalWriter) -> ExternalWriterId:
-		return a_tuple.writerId
+	def get_storable_id(self, storable: ExternalWriter) -> ExternalWriterId:
+		return storable.writerId
 
-	def set_tuple_id(self, a_tuple: ExternalWriter, tuple_id: ExternalWriterId) -> ExternalWriter:
-		a_tuple.writerId = tuple_id
-		return a_tuple
+	def set_storable_id(self, storable: ExternalWriter, storable_id: ExternalWriterId) -> ExternalWriter:
+		storable.writerId = storable_id
+		return storable
 
-	def get_tuple_id_column_name(self) -> str:
+	def get_storable_id_column_name(self) -> str:
 		return 'writer_id'
 
 	def find_by_text(

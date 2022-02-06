@@ -47,10 +47,10 @@ async def save_pipeline_graphic(
 
 	pipeline_graphic_service = get_pipeline_graphic_service(principal_service)
 
-	if TupleService.is_tuple_id_faked(pipeline_graphic.pipeline_graphicId):
+	if TupleService.is_storable_id_faked(pipeline_graphic.pipeline_graphicId):
 		pipeline_graphic_service.begin_transaction()
 		try:
-			pipeline_graphic_service.redress_tuple_id(pipeline_graphic)
+			pipeline_graphic_service.redress_storable_id(pipeline_graphic)
 			# noinspection PyTypeChecker
 			pipeline_graphic: PipelineGraphic = pipeline_graphic_service.create(pipeline_graphic)
 			pipeline_graphic_service.commit_transaction()

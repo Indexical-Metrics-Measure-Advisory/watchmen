@@ -52,10 +52,10 @@ async def save_data_source(
 ) -> DataSource:
 	data_source_service = get_data_source_service(principal_service)
 
-	if data_source_service.is_tuple_id_faked(data_source.data_sourceId):
+	if data_source_service.is_storable_id_faked(data_source.data_sourceId):
 		data_source_service.begin_transaction()
 		try:
-			data_source_service.redress_tuple_id(data_source)
+			data_source_service.redress_storable_id(data_source)
 			# noinspection PyTypeChecker
 			data_source: DataSource = data_source_service.create(data_source)
 			data_source_service.commit_transaction()

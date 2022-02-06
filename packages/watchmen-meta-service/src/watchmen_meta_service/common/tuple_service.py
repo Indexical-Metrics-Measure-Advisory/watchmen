@@ -1,12 +1,11 @@
-from abc import abstractmethod
+from abc import ABC
 from typing import Optional, TypeVar
 
 from watchmen_auth import PrincipalService
-from watchmen_model.common import Auditable, OptimisticLock, Pageable, TenantBasedTuple, Tuple
-from watchmen_storage import EntityCriteria, EntityCriteriaExpression, EntityDeleter, EntityFinder, EntityHelper, \
-	EntityIdHelper, EntityPager, EntityRow, EntityShaper, EntitySort, EntityUpdate, EntityUpdater, \
-	OptimisticLockException, SnowflakeGenerator, TransactionalStorageSPI
-from .storage_service import StorageService
+from watchmen_model.common import Auditable, OptimisticLock, TenantBasedTuple, Tuple
+from watchmen_storage import EntityCriteriaExpression, EntityRow, OptimisticLockException, SnowflakeGenerator, \
+	TransactionalStorageSPI
+from .storage_service import EntityService
 
 TupleId = TypeVar('TupleId', bound=str)
 
@@ -75,7 +74,7 @@ class TupleShaper:
 		return a_tuple
 
 
-class TupleService(StorageService):
+class TupleService(EntityService, ABC):
 	def __init__(
 			self,
 			storage: TransactionalStorageSPI,
@@ -86,110 +85,8 @@ class TupleService(StorageService):
 		self.with_snowflake_generator(snowflake_generator)
 		self.with_principal_service(principal_service)
 
-	@abstractmethod
-	def get_entity_name(self) -> str:
-		pass
-
-	@abstractmethod
-	def get_entity_shaper(self) -> EntityShaper:
-		pass
-
-	def get_entity_helper(self) -> EntityHelper:
-		return EntityHelper(name=self.get_entity_name(), shaper=self.get_entity_shaper())
-
-	def get_entity_id_helper(self) -> EntityIdHelper:
-		return EntityIdHelper(
-			name=self.get_entity_name(), shaper=self.get_entity_shaper(), idColumnName=self.get_tuple_id_column_name())
-
-	def get_entity_finder(self, criteria: EntityCriteria, sort: Optional[EntitySort] = None) -> EntityFinder:
-		return EntityFinder(
-			name=self.get_entity_name(),
-			shaper=self.get_entity_shaper(),
-			criteria=criteria,
-			sort=sort
-		)
-
-	def get_entity_pager(
-			self, criteria: EntityCriteria, pageable: Pageable, sort: Optional[EntitySort] = None
-	) -> EntityPager:
-		return EntityPager(
-			name=self.get_entity_name(),
-			shaper=self.get_entity_shaper(),
-			criteria=criteria,
-			sort=sort,
-			pageable=pageable
-		)
-
-	def get_entity_updater(self, criteria: EntityCriteria, update: EntityUpdate) -> EntityUpdater:
-		return EntityUpdater(
-			name=self.get_entity_name(),
-			shaper=self.get_entity_shaper(),
-			criteria=criteria,
-			update=update
-		)
-
-	def get_entity_deleter(self, criteria: EntityCriteria) -> EntityDeleter:
-		return EntityDeleter(
-			name=self.get_entity_name(),
-			shaper=self.get_entity_shaper(),
-			criteria=criteria
-		)
-
-	@abstractmethod
-	def get_tuple_id_column_name(self) -> str:
-		pass
-
-	@abstractmethod
-	def get_tuple_id(self, a_tuple: Tuple) -> TupleId:
-		pass
-
-	@abstractmethod
-	def set_tuple_id(self, a_tuple: Tuple, tuple_id: TupleId) -> Tuple:
-		"""
-		return exactly the given tuple
-		"""
-		pass
-
-	@staticmethod
-	def is_tuple_id_faked(tuple_id: TupleId) -> bool:
-		if tuple_id is None:
-			return True
-
-		trimmed_tuple_id = tuple_id.strip()
-		if len(trimmed_tuple_id) == 0:
-			return True
-		elif trimmed_tuple_id.startswith('f-'):
-			return True
-		else:
-			return False
-
-	def generate_tuple_id(self) -> TupleId:
-		return str(self.snowflake_generator.next_id())
-
-	def redress_tuple_id(self, a_tuple: Tuple) -> Tuple:
-		"""
-		return exactly the given tuple, replace by generated id if it is faked
-		"""
-		if TupleService.is_tuple_id_faked(self.get_tuple_id(a_tuple)):
-			self.set_tuple_id(a_tuple, self.generate_tuple_id())
-		return a_tuple
-
-	@staticmethod
-	def get_optimistic_column_name():
-		return 'version'
-
-	def ignore_optimistic_keys(self, data: EntityRow) -> EntityRow:
-		del data[TupleService.get_optimistic_column_name()]
-		del data[self.get_tuple_id_column_name()]
-
-		return data
-
 	def create(self, a_tuple: Tuple) -> Tuple:
-		now = self.now()
-		a_tuple.createdAt = now
-		a_tuple.createdBy = self.principal_service.get_user_id()
-		a_tuple.lastModifiedAt = now
-		a_tuple.lastModifiedBy = self.principal_service.get_user_id()
+		self.try_to_prepare_auditable_on_create(a_tuple)
 		if isinstance(a_tuple, OptimisticLock):
 			a_tuple.version = 1
 
@@ -197,19 +94,20 @@ class TupleService(StorageService):
 		return a_tuple
 
 	def update(self, a_tuple: Tuple) -> Tuple:
-		a_tuple.lastModifiedAt = self.now()
-		a_tuple.lastModifiedBy = self.principal_service.get_user_id()
-
-		if isinstance(a_tuple, OptimisticLock):
-			version = a_tuple.version
-			a_tuple.version = version + 1
+		"""
+		with optimistic lock logic
+		"""
+		self.try_to_prepare_auditable_on_update(a_tuple)
+		is_optimistic_lock, version = self.try_to_prepare_optimistic_lock_on_update(a_tuple)
+		if is_optimistic_lock:
 			# noinspection PyTypeChecker
 			updated_count = self.storage.update_only(self.get_entity_updater(
 				criteria=[
-					EntityCriteriaExpression(name=self.get_tuple_id_column_name(), value=self.get_tuple_id(a_tuple)),
-					EntityCriteriaExpression(name=TupleService.get_optimistic_column_name(), value=version)
+					EntityCriteriaExpression(
+						name=self.get_storable_id_column_name(), value=self.get_storable_id(a_tuple)),
+					EntityCriteriaExpression(name=self.get_optimistic_column_name(), value=version)
 				],
-				update=self.get_entity_shaper().serialize(a_tuple)
+				update=self.ignore_optimistic_keys(self.get_entity_shaper().serialize(a_tuple))
 			))
 			if updated_count == 0:
 				a_tuple.version = version

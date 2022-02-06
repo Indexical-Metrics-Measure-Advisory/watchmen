@@ -49,14 +49,14 @@ class DataSourceService(TupleService):
 	def get_entity_shaper(self) -> EntityShaper:
 		return DATA_SOURCE_ENTITY_SHAPER
 
-	def get_tuple_id(self, a_tuple: DataSource) -> DataSourceId:
-		return a_tuple.dataSourceId
+	def get_storable_id(self, storable: DataSource) -> DataSourceId:
+		return storable.dataSourceId
 
-	def set_tuple_id(self, a_tuple: DataSource, tuple_id: DataSourceId) -> DataSource:
-		a_tuple.dataSourceId = tuple_id
-		return a_tuple
+	def set_storable_id(self, storable: DataSource, storable_id: DataSourceId) -> DataSource:
+		storable.dataSourceId = storable_id
+		return storable
 
-	def get_tuple_id_column_name(self) -> str:
+	def get_storable_id_column_name(self) -> str:
 		return 'data_source_id'
 
 	def find_by_text(
