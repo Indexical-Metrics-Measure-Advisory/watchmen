@@ -1,5 +1,4 @@
 from abc import abstractmethod
-from datetime import datetime
 from typing import Optional, TypeVar
 
 from watchmen_auth import PrincipalService
@@ -7,7 +6,6 @@ from watchmen_model.common import Auditable, OptimisticLock, Pageable, TenantBas
 from watchmen_storage import EntityCriteria, EntityCriteriaExpression, EntityDeleter, EntityFinder, EntityHelper, \
 	EntityIdHelper, EntityPager, EntityRow, EntityShaper, EntitySort, EntityUpdate, EntityUpdater, \
 	OptimisticLockException, SnowflakeGenerator, TransactionalStorageSPI
-from watchmen_utilities import get_current_time_in_seconds
 from .storage_service import StorageService
 
 TupleId = TypeVar('TupleId', bound=str)
@@ -137,10 +135,6 @@ class TupleService(StorageService):
 			criteria=criteria
 		)
 
-	@staticmethod
-	def now() -> datetime:
-		return get_current_time_in_seconds()
-
 	@abstractmethod
 	def get_tuple_id_column_name(self) -> str:
 		pass
@@ -191,7 +185,7 @@ class TupleService(StorageService):
 		return data
 
 	def create(self, a_tuple: Tuple) -> Tuple:
-		now = TupleService.now()
+		now = self.now()
 		a_tuple.createdAt = now
 		a_tuple.createdBy = self.principal_service.get_user_id()
 		a_tuple.lastModifiedAt = now
@@ -203,7 +197,7 @@ class TupleService(StorageService):
 		return a_tuple
 
 	def update(self, a_tuple: Tuple) -> Tuple:
-		a_tuple.lastModifiedAt = TupleService.now()
+		a_tuple.lastModifiedAt = self.now()
 		a_tuple.lastModifiedBy = self.principal_service.get_user_id()
 
 		if isinstance(a_tuple, OptimisticLock):
