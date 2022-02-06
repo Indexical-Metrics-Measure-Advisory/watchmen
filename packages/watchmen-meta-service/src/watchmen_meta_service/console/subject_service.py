@@ -20,8 +20,8 @@ class SubjectShaper(EntityShaper):
 		row = {
 			'subject_id': subject.subjectId,
 			'name': subject.name,
+			'connect_id': subject.connectId,
 			'auto_refresh_interval': subject.autoRefreshInterval,
-			'report_ids': subject.reportIds,
 			'dataset': SubjectDataset.serialize_dataset(subject.dataset)
 		}
 		row = AuditableShaper.serialize(subject, row)
@@ -33,8 +33,8 @@ class SubjectShaper(EntityShaper):
 		subject = Subject(
 			subjectId=row.get('subject_id'),
 			name=row.get('name'),
+			connectId=row.get('connect_id'),
 			autoRefreshInterval=row.get('auto_refresh_interval'),
-			reportIds=row.get('report_ids'),
 			dataset=row.get('dataset')
 		)
 		# noinspection PyTypeChecker

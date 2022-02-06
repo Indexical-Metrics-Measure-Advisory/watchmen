@@ -174,8 +174,7 @@ table_pipeline_graphics = Table(
 table_connected_spaces = Table(
 	'connected_spaces', meta_data,
 	create_pk('connect_id'),
-	create_tuple_id_column('space_id', False), create_str('name', 45, False),
-	create_json('subject_ids'), create_bool('is_template', False),
+	create_tuple_id_column('space_id', False), create_str('name', 45, False), create_bool('is_template', False),
 	create_tenant_id(), create_user_id(), create_last_visit_time(), *create_tuple_audit_columns()
 )
 table_connected_space_graphics = Table(
@@ -187,14 +186,16 @@ table_connected_space_graphics = Table(
 table_subjects = Table(
 	'subjects', meta_data,
 	create_pk('subject_id'),
-	create_str('name', 45, False), create_int('auto_refresh_interval'),
-	create_json('report_ids'), create_json('dataset'),
+	create_str('name', 45, False),
+	create_tuple_id_column('connect_id', False),
+	create_int('auto_refresh_interval'), create_json('dataset'),
 	create_tenant_id(), create_user_id(), create_last_visit_time(), *create_tuple_audit_columns()
 )
 table_reports = Table(
 	'reports', meta_data,
 	create_pk('report_id'),
 	create_str('name', 45, False),
+	create_tuple_id_column('subject_id', False), create_tuple_id_column('connect_id', False),
 	create_json('filters'), create_json('funnels'),
 	create_json('indicators'), create_json('dimensions'),
 	create_description(),

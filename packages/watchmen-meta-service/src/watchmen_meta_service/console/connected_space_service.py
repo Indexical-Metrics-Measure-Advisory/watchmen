@@ -10,7 +10,6 @@ class ConnectedSpaceShaper(EntityShaper):
 			'connect_id': connected_space.connectId,
 			'space_id': connected_space.spaceId,
 			'name': connected_space.name,
-			'subject_ids': connected_space.subjectIds,
 			'is_template': connected_space.isTemplate
 		}
 		row = AuditableShaper.serialize(connected_space, row)
@@ -23,7 +22,6 @@ class ConnectedSpaceShaper(EntityShaper):
 			connectId=row.get('connect_id'),
 			spaceId=row.get('space_id'),
 			name=row.get('name'),
-			subjectIds=row.get('subject_ids'),
 			isTemplate=row.get('is_template')
 		)
 		# noinspection PyTypeChecker
