@@ -11,7 +11,7 @@ from typing import Callable, List, Optional
 from time import sleep
 
 from watchmen_model.common import Storable
-from watchmen_utilities import get_current_time_seconds
+from watchmen_utilities import get_current_time_in_seconds
 from .snowflake_worker_id_generator import WorkerIdGenerator
 
 
@@ -45,7 +45,7 @@ class CompetitiveWorker(Storable):
 	processId: Optional[str] = str(getpid())
 	dataCenterId: int = None
 	workerId: int = None
-	registeredAt: Optional[datetime] = get_current_time_seconds()
+	registeredAt: Optional[datetime] = get_current_time_in_seconds()
 	lastBeatAt: datetime = None
 
 

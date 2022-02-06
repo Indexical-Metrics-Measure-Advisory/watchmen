@@ -2,7 +2,7 @@ from datetime import timedelta
 from logging import getLogger
 from typing import List
 
-from watchmen_utilities import ArrayHelper, get_current_time_seconds
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
 from .competitive_worker_id_generator import CompetitiveWorker, CompetitiveWorkerIdGenerator, \
 	CompetitiveWorkerShutdownListener, default_heart_beat_interval, default_worker_creation_retry_times, \
 	WorkerDeclarationException, WorkerFirstDeclarationException
@@ -57,7 +57,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 
 	@staticmethod
 	def is_abandoned(worker: CompetitiveWorker) -> bool:
-		return (get_current_time_seconds() - worker.lastBeatAt).days >= 1
+		return (get_current_time_in_seconds() - worker.lastBeatAt).days >= 1
 
 	def first_declare_myself(self, worker: CompetitiveWorker) -> None:
 		self.storage.begin()
@@ -77,7 +77,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 			workers_count = len(existing_workers)
 			if workers_count == 0:
 				# worker not exists
-				worker.lastBeatAt = get_current_time_seconds()
+				worker.lastBeatAt = get_current_time_in_seconds()
 				# handle insert failed when other process already did it, may raise exception
 				try:
 					self.storage.insert_one(
@@ -95,7 +95,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 				if StorageBasedWorkerIdGenerator.is_abandoned(existing_worker):
 					# worker last beat before 1 day, treat it as abandoned
 					# replace it
-					worker.lastBeatAt = get_current_time_seconds()
+					worker.lastBeatAt = get_current_time_in_seconds()
 					updated_count = self.storage.update_only(
 						EntityUpdater(
 							name=SNOWFLAKE_WORKER_ID_TABLE,
@@ -106,7 +106,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 								EntityCriteriaExpression(
 									name='last_beat_at',
 									operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
-									value=(get_current_time_seconds() + timedelta(days=-1))
+									value=(get_current_time_in_seconds() + timedelta(days=-1))
 								)
 							],
 							update={
@@ -154,7 +154,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 						EntityCriteriaExpression(
 							name='last_beat_at',
 							operator=EntityCriteriaOperator.GREATER_THAN,
-							value=(get_current_time_seconds() + timedelta(days=-1))
+							value=(get_current_time_in_seconds() + timedelta(days=-1))
 						)
 					],
 					distinctColumnNames=['worker_id']
@@ -175,7 +175,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 						EntityCriteriaExpression(name='data_center_id', value=self.data_center_id),
 						EntityCriteriaExpression(name='worker_id', value=worker.workerId)
 					],
-					update={'last_beat_at': get_current_time_seconds()}
+					update={'last_beat_at': get_current_time_in_seconds()}
 				)
 			)
 			if updated_count == 0:

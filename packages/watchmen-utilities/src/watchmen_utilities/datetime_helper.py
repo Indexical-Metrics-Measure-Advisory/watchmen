@@ -12,5 +12,5 @@ class DateTimeEncoder(JSONEncoder):
 		return super().default(o)
 
 
-def get_current_time_seconds() -> datetime:
+def get_current_time_in_seconds() -> datetime:
 	return datetime.now().replace(tzinfo=None, microsecond=0)

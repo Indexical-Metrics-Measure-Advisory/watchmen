@@ -6,7 +6,7 @@ from watchmen_model.common import PatId, TenantId, UserId
 from watchmen_model.system import PersonalAccessToken
 from watchmen_storage import EntityCriteriaExpression, EntityFinder, EntityHelper, EntityIdHelper, EntityRow, \
 	EntityShaper, SnowflakeGenerator, TransactionalStorageSPI
-from watchmen_utilities import get_current_time_seconds
+from watchmen_utilities import get_current_time_in_seconds
 
 
 class PatShaper(EntityShaper):
@@ -74,7 +74,7 @@ class PatService(StorageService):
 
 	def create(self, a_pat: PersonalAccessToken) -> PersonalAccessToken:
 		a_pat.patId = self.generate_pat_id()
-		a_pat.createdAt = get_current_time_seconds()
+		a_pat.createdAt = get_current_time_in_seconds()
 
 		self.storage.insert_one(a_pat, self.get_entity_helper())
 		return a_pat
