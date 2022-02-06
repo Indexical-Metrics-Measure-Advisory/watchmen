@@ -10,6 +10,13 @@ from watchmen_storage import EntityCriteria, EntityDeleter, EntityFinder, Entity
 	EntityRow, EntityShaper, EntitySort, EntityUpdate, EntityUpdater, SnowflakeGenerator, TransactionalStorageSPI
 from watchmen_utilities import get_current_time_in_seconds
 
+StorableId = TypeVar('StorableId', bound=str)
+TupleId = TypeVar('TupleId', bound=str)
+
+
+class TupleNotFoundException(Exception):
+	pass
+
 
 class StorageService:
 	storage: TransactionalStorageSPI
@@ -85,9 +92,6 @@ class StorageService:
 			return True, version
 		else:
 			return False, 0
-
-
-StorableId = TypeVar('StorableId', bound=str)
 
 
 class IdentifiedStorableService(StorageService):
