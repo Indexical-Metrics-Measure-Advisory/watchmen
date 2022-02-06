@@ -7,6 +7,7 @@ from watchmen_model.common import construct_parameter_joint, DataModel, Optimist
 from watchmen_utilities import ArrayHelper
 
 
+# noinspection PyRedundantParentheses
 class AvoidFastApiError():
 	joint: ParameterJoint = None
 

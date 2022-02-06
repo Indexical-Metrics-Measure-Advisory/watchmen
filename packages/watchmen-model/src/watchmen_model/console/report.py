@@ -92,6 +92,7 @@ def construct_chart(chart: Optional[Union[dict, Chart]]) -> Optional[Chart]:
 			raise Exception(f'Chart type[{chart_type}] cannot be recognized.')
 
 
+# noinspection PyRedundantParentheses
 class AvoidFastApiError():
 	filters: ParameterJoint = None
 
