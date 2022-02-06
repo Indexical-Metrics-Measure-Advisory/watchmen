@@ -4,7 +4,7 @@ from typing import List, Optional, Tuple
 from watchmen_meta_service.common import TupleNotFoundException, TupleService, TupleShaper
 from watchmen_model.admin import Pipeline, PipelineStage
 from watchmen_model.common import PipelineId, TenantId, UserId
-from watchmen_storage import EntityCriteriaExpression, EntityRow, EntityShaper
+from watchmen_storage import EntityCriteriaExpression, EntityRow, EntityShaper, TooManyEntitiesFoundException
 from watchmen_utilities import ArrayHelper
 
 
@@ -66,6 +66,23 @@ class PipelineService(TupleService):
 
 	def get_storable_id_column_name(self) -> str:
 		return 'pipeline_id'
+
+	# noinspection DuplicatedCode
+	def find_tenant_id(self, pipeline_id: PipelineId) -> Optional[TenantId]:
+		finder = self.get_entity_finder_for_columns(
+			criteria=[
+				EntityCriteriaExpression(name=self.get_storable_id_column_name(), value=pipeline_id),
+			],
+			distinctColumnNames=['tenant_id']
+		)
+		rows = self.storage.find_distinct_values(finder)
+		count = len(rows)
+		if count == 0:
+			return None
+		elif count == 1:
+			return rows[0].get('tenant_id')
+		else:
+			raise TooManyEntitiesFoundException(f'Too many entities found by finder[{finder}].')
 
 	def update_name(self, pipeline_id: PipelineId, name: str, tenant_id: TenantId) -> Tuple[UserId, datetime]:
 		"""

@@ -46,14 +46,12 @@ async def save_report(
 			elif existing_subject.tenantId != a_report.tenantId or existing_subject.userId != a_report.userId:
 				raise_403()
 			else:
-				a_report.subjectId = existing_subject.subjectId
 				a_report.connectId = existing_subject.connectId
 
 			report_service.redress_storable_id(a_report)
 			# noinspection PyTypeChecker
 			a_report: Report = report_service.create(a_report)
 		else:
-			report_service.begin_transaction()
 			# noinspection PyTypeChecker
 			existing_report: Optional[Report] = report_service.find_by_id(a_report.reportId)
 			if existing_report is not None:
@@ -81,6 +79,7 @@ async def delete_report(
 
 	report_service = get_report_service(principal_service)
 
+	# noinspection DuplicatedCode
 	def action() -> None:
 		# noinspection PyTypeChecker
 		existing_report: Optional[Report] = report_service.find_by_id(report_id)

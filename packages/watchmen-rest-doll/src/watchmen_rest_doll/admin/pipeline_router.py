@@ -8,7 +8,7 @@ from watchmen_meta_service.admin import PipelineService
 from watchmen_meta_service.analysis import PipelineIndexService
 from watchmen_meta_service.common import TupleService
 from watchmen_model.admin import Pipeline, PipelineAction, PipelineStage, PipelineUnit, UserRole
-from watchmen_model.common import PipelineId, UserId
+from watchmen_model.common import PipelineId, TenantId, UserId
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.auth import get_admin_principal, get_super_admin_principal
 from watchmen_rest_doll.doll import ask_engine_cache_enabled, ask_engine_index_enabled, ask_meta_storage, \
@@ -164,6 +164,11 @@ async def update_pipeline_name_by_id(
 	pipeline_service = get_pipeline_service(principal_service)
 
 	def action() -> None:
+		existing_tenant_id: Optional[TenantId] = pipeline_service.find_tenant_id(pipeline_id)
+		if existing_tenant_id is None:
+			raise_404()
+		elif existing_tenant_id != principal_service.get_tenant_id():
+			raise_403()
 		# noinspection PyTypeChecker
 		last_modified_by, last_modified_at = pipeline_service.update_name(
 			pipeline_id, name, principal_service.get_tenant_id())
@@ -219,6 +224,11 @@ async def update_pipeline_enabled_by_id(
 	pipeline_service = get_pipeline_service(principal_service)
 
 	def action() -> None:
+		existing_tenant_id: Optional[TenantId] = pipeline_service.find_tenant_id(pipeline_id)
+		if existing_tenant_id is None:
+			raise_404()
+		elif existing_tenant_id != principal_service.get_tenant_id():
+			raise_403()
 		# noinspection PyTypeChecker
 		last_modified_by, last_modified_at = pipeline_service.update_enablement(
 			pipeline_id, enabled, principal_service.get_tenant_id())

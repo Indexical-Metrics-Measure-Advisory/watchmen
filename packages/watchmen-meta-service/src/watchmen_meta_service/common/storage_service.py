@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Optional, Tuple, TypeVar
+from typing import List, Optional, Tuple, TypeVar
 
 from watchmen_auth import PrincipalService
 from watchmen_model.common import Auditable, OptimisticLock, Pageable, Storable
-from watchmen_storage import EntityCriteria, EntityDeleter, EntityFinder, EntityHelper, EntityIdHelper, EntityName, \
-	EntityPager, \
-	EntityRow, EntityShaper, EntitySort, EntityUpdate, EntityUpdater, SnowflakeGenerator, TransactionalStorageSPI
+from watchmen_storage import EntityColumnName, EntityCriteria, EntityDeleter, EntityDistinctValuesFinder, \
+	EntityFinder, EntityHelper, EntityIdHelper, EntityName, EntityPager, EntityRow, EntityShaper, EntitySort, \
+	EntityUpdate, EntityUpdater, SnowflakeGenerator, TransactionalStorageSPI
 from watchmen_utilities import get_current_time_in_seconds
 
 StorableId = TypeVar('StorableId', bound=str)
@@ -169,6 +169,19 @@ class EntityService(IdentifiedStorableService):
 			shaper=self.get_entity_shaper(),
 			criteria=criteria,
 			sort=sort
+		)
+
+	def get_entity_finder_for_columns(
+			self, criteria: EntityCriteria,
+			distinctColumnNames: List[EntityColumnName],
+			sort: Optional[EntitySort] = None
+	) -> EntityDistinctValuesFinder:
+		return EntityDistinctValuesFinder(
+			name=self.get_entity_name(),
+			shaper=self.get_entity_shaper(),
+			criteria=criteria,
+			sort=sort,
+			distinctColumnNames=distinctColumnNames
 		)
 
 	def get_entity_pager(
