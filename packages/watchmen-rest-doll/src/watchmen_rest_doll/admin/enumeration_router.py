@@ -75,10 +75,10 @@ async def save_enum(
 
 	enum_service = get_enum_service(principal_service)
 
-	if enum_service.is_tuple_id_faked(an_enum.enumId):
+	if enum_service.is_storable_id_faked(an_enum.enumId):
 		enum_service.begin_transaction()
 		try:
-			enum_service.redress_tuple_id(an_enum)
+			enum_service.redress_storable_id(an_enum)
 			if an_enum.items is None:
 				an_enum.items = []
 			# noinspection PyTypeChecker

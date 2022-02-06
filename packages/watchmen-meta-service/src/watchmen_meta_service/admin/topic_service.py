@@ -47,7 +47,7 @@ class FactorService:
 		"""
 		return exactly the given factor, replace by generated id if it is faked
 		"""
-		if TupleService.is_tuple_id_faked(factor.factorId):
+		if TupleService.is_storable_id_faked(factor.factorId):
 			factor.factorId = self.generate_factor_id()
 		return factor
 
@@ -59,14 +59,14 @@ class TopicService(TupleService):
 	def get_entity_shaper(self) -> EntityShaper:
 		return TOPIC_ENTITY_SHAPER
 
-	def get_tuple_id(self, a_tuple: Topic) -> TopicId:
-		return a_tuple.topicId
+	def get_storable_id(self, storable: Topic) -> TopicId:
+		return storable.topicId
 
-	def set_tuple_id(self, a_tuple: Topic, tuple_id: TopicId) -> Topic:
-		a_tuple.topicId = tuple_id
-		return a_tuple
+	def set_storable_id(self, storable: Topic, storable_id: TopicId) -> Topic:
+		storable.topicId = storable_id
+		return storable
 
-	def get_tuple_id_column_name(self) -> str:
+	def get_storable_id_column_name(self) -> str:
 		return 'topic_id'
 
 	def find_ids_by_ids(self, topic_ids: List[TopicId], tenant_id: TenantId) -> List[TopicId]:

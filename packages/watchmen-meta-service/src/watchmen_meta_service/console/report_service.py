@@ -76,12 +76,12 @@ class ReportService(UserBasedTupleService):
 	def get_entity_shaper(self) -> EntityShaper:
 		return REPORT_ENTITY_SHAPER
 
-	def get_tuple_id_column_name(self) -> str:
+	def get_storable_id_column_name(self) -> str:
 		return 'report_id'
 
-	def get_tuple_id(self, a_tuple: Report) -> ReportId:
-		return a_tuple.reportId
+	def get_storable_id(self, storable: Report) -> ReportId:
+		return storable.reportId
 
-	def set_tuple_id(self, a_tuple: Report, tuple_id: ReportId) -> Report:
-		a_tuple.reportId = tuple_id
-		return a_tuple
+	def set_storable_id(self, storable: Report, storable_id: ReportId) -> Report:
+		storable.reportId = storable_id
+		return storable

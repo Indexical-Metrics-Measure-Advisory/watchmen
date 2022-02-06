@@ -46,12 +46,12 @@ class DashboardService(UserBasedTupleService):
 	def get_entity_shaper(self) -> EntityShaper:
 		return DASHBOARD_ENTITY_SHAPER
 
-	def get_tuple_id_column_name(self) -> str:
+	def get_storable_id_column_name(self) -> str:
 		return 'dashboard_id'
 
-	def get_tuple_id(self, a_tuple: Dashboard) -> DashboardId:
-		return a_tuple.dashboardId
+	def get_storable_id(self, storable: Dashboard) -> DashboardId:
+		return storable.dashboardId
 
-	def set_tuple_id(self, a_tuple: Dashboard, tuple_id: DashboardId) -> Dashboard:
-		a_tuple.dashboardId = tuple_id
-		return a_tuple
+	def set_storable_id(self, storable: Dashboard, storable_id: DashboardId) -> Dashboard:
+		storable.dashboardId = storable_id
+		return storable

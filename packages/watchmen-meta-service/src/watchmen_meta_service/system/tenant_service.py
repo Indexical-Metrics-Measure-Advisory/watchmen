@@ -32,14 +32,14 @@ class TenantService(TupleService):
 	def get_entity_shaper(self) -> EntityShaper:
 		return TENANT_ENTITY_SHAPER
 
-	def get_tuple_id(self, a_tuple: Tenant) -> TenantId:
-		return a_tuple.tenantId
+	def get_storable_id(self, storable: Tenant) -> TenantId:
+		return storable.tenantId
 
-	def set_tuple_id(self, a_tuple: Tenant, tuple_id: TenantId) -> Tenant:
-		a_tuple.tenantId = tuple_id
-		return a_tuple
+	def set_storable_id(self, storable: Tenant, storable_id: TenantId) -> Tenant:
+		storable.tenantId = storable_id
+		return storable
 
-	def get_tuple_id_column_name(self) -> str:
+	def get_storable_id_column_name(self) -> str:
 		return 'tenant_id'
 
 	def find_by_text(self, text: Optional[str], pageable: Pageable) -> DataPage:

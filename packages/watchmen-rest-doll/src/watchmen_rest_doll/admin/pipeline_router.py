@@ -55,19 +55,19 @@ async def load_pipeline_by_id(
 
 
 def redress_action_ids(action: PipelineAction, pipeline_service: PipelineService) -> None:
-	if TupleService.is_tuple_id_faked(action.actionId):
-		action.actionId = pipeline_service.generate_tuple_id()
+	if TupleService.is_storable_id_faked(action.actionId):
+		action.actionId = pipeline_service.generate_storable_id()
 
 
 def redress_unit_ids(unit: PipelineUnit, pipeline_service: PipelineService) -> None:
-	if TupleService.is_tuple_id_faked(unit.unitId):
-		unit.unitId = pipeline_service.generate_tuple_id()
+	if TupleService.is_storable_id_faked(unit.unitId):
+		unit.unitId = pipeline_service.generate_storable_id()
 	ArrayHelper(unit.do).each(lambda x: redress_action_ids(x, pipeline_service))
 
 
 def redress_stage_ids(stage: PipelineStage, pipeline_service: PipelineService) -> None:
-	if TupleService.is_tuple_id_faked(stage.stageId):
-		stage.stageId = pipeline_service.generate_tuple_id()
+	if TupleService.is_storable_id_faked(stage.stageId):
+		stage.stageId = pipeline_service.generate_storable_id()
 	ArrayHelper(stage.units).each(lambda x: redress_unit_ids(x, pipeline_service))
 
 
@@ -101,10 +101,10 @@ async def save_pipeline(
 
 	pipeline_service = get_pipeline_service(principal_service)
 
-	if pipeline_service.is_tuple_id_faked(pipeline.pipelineId):
+	if pipeline_service.is_storable_id_faked(pipeline.pipelineId):
 		pipeline_service.begin_transaction()
 		try:
-			pipeline_service.redress_tuple_id(pipeline)
+			pipeline_service.redress_storable_id(pipeline)
 			redress_ids(pipeline, pipeline_service)
 			# noinspection PyTypeChecker
 			pipeline: Pipeline = pipeline_service.create(pipeline)

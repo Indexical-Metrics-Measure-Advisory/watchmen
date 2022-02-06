@@ -138,10 +138,10 @@ async def save_user_group(
 
 	user_group_service = get_user_group_service(principal_service)
 
-	if user_group_service.is_tuple_id_faked(user_group.userGroupId):
+	if user_group_service.is_storable_id_faked(user_group.userGroupId):
 		user_group_service.begin_transaction()
 		try:
-			user_group_service.redress_tuple_id(user_group)
+			user_group_service.redress_storable_id(user_group)
 			user_ids = ArrayHelper(user_group.userIds).distinct().to_list()
 			user_group.userIds = user_ids
 			space_ids = ArrayHelper(user_group.spaceIds).distinct().to_list()

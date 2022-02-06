@@ -52,10 +52,10 @@ async def save_tenant(
 ) -> Tenant:
 	tenant_service = get_tenant_service(principal_service)
 
-	if tenant_service.is_tuple_id_faked(tenant.tenantId):
+	if tenant_service.is_storable_id_faked(tenant.tenantId):
 		tenant_service.begin_transaction()
 		try:
-			tenant_service.redress_tuple_id(tenant)
+			tenant_service.redress_storable_id(tenant)
 			# noinspection PyTypeChecker
 			tenant: Tenant = tenant_service.create(tenant)
 			tenant_service.commit_transaction()

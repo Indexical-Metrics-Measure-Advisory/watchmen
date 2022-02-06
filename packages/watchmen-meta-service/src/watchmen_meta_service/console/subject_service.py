@@ -57,12 +57,12 @@ class SubjectService(UserBasedTupleService):
 	def get_entity_shaper(self) -> EntityShaper:
 		return SUBJECT_ENTITY_SHAPER
 
-	def get_tuple_id_column_name(self) -> str:
+	def get_storable_id_column_name(self) -> str:
 		return 'subject_id'
 
-	def get_tuple_id(self, a_tuple: Subject) -> SubjectId:
-		return a_tuple.subjectId
+	def get_storable_id(self, storable: Subject) -> SubjectId:
+		return storable.subjectId
 
-	def set_tuple_id(self, a_tuple: Subject, tuple_id: SubjectId) -> Subject:
-		a_tuple.subjectId = tuple_id
-		return a_tuple
+	def set_storable_id(self, storable: Subject, storable_id: SubjectId) -> Subject:
+		storable.subjectId = storable_id
+		return storable

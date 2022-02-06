@@ -149,14 +149,14 @@ async def save_user(user: User, principal_service: PrincipalService = Depends(ge
 
 	user_service = get_user_service(principal_service)
 
-	if user_service.is_tuple_id_faked(user.userId):
+	if user_service.is_storable_id_faked(user.userId):
 		if principal_service.is_super_admin():
 			if user.groupIds is not None and len(user.groupIds) != 0:
 				# for super admin create user, there is no user group allowed
 				raise_400('No user group allowed for creating user by super admin.')
 		user_service.begin_transaction()
 		try:
-			user_service.redress_tuple_id(user)
+			user_service.redress_storable_id(user)
 			user_group_ids = ArrayHelper(user.groupIds).distinct().to_list()
 			user.groupIds = user_group_ids
 			# noinspection PyTypeChecker

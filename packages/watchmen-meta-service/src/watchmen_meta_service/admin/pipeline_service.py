@@ -57,14 +57,14 @@ class PipelineService(TupleService):
 	def get_entity_shaper(self) -> EntityShaper:
 		return PIPELINE_ENTITY_SHAPER
 
-	def get_tuple_id(self, a_tuple: Pipeline) -> PipelineId:
-		return a_tuple.pipelineId
+	def get_storable_id(self, storable: Pipeline) -> PipelineId:
+		return storable.pipelineId
 
-	def set_tuple_id(self, a_tuple: Pipeline, tuple_id: PipelineId) -> Pipeline:
-		a_tuple.pipelineId = tuple_id
-		return a_tuple
+	def set_storable_id(self, storable: Pipeline, storable_id: PipelineId) -> Pipeline:
+		storable.pipelineId = storable_id
+		return storable
 
-	def get_tuple_id_column_name(self) -> str:
+	def get_storable_id_column_name(self) -> str:
 		return 'pipeline_id'
 
 	def update_name(self, pipeline_id: PipelineId, name: str, tenant_id: TenantId) -> Tuple[UserId, datetime]:
@@ -75,7 +75,7 @@ class PipelineService(TupleService):
 		last_modified_by = self.principal_service.get_user_id()
 		updated_count = self.storage.update_only(self.get_entity_updater(
 			criteria=[
-				EntityCriteriaExpression(name=self.get_tuple_id_column_name(), value=pipeline_id),
+				EntityCriteriaExpression(name=self.get_storable_id_column_name(), value=pipeline_id),
 				EntityCriteriaExpression(name='tenant_id', value=tenant_id)
 			],
 			update={
@@ -96,7 +96,7 @@ class PipelineService(TupleService):
 		last_modified_by = self.principal_service.get_user_id()
 		updated_count = self.storage.update_only(self.get_entity_updater(
 			criteria=[
-				EntityCriteriaExpression(name=self.get_tuple_id_column_name(), value=pipeline_id),
+				EntityCriteriaExpression(name=self.get_storable_id_column_name(), value=pipeline_id),
 				EntityCriteriaExpression(name='tenant_id', value=tenant_id)
 			],
 			update={

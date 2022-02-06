@@ -35,7 +35,7 @@ async def save_report(
 
 	report_service.begin_transaction()
 	try:
-		if report_service.is_tuple_id_faked(report.reportId):
+		if report_service.is_storable_id_faked(report.reportId):
 			subject_id = report.subjectId
 			if is_blank(subject_id):
 				raise_400('Subject id is required.')
@@ -50,7 +50,7 @@ async def save_report(
 				report.subjectId = existing_subject.subjectId
 				report.connectId = existing_subject.connectId
 
-			report_service.redress_tuple_id(report)
+			report_service.redress_storable_id(report)
 			# noinspection PyTypeChecker
 			report: Report = report_service.create(report)
 		else:

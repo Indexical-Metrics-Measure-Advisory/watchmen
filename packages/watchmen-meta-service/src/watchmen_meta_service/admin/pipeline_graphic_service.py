@@ -37,12 +37,12 @@ class PipelineGraphicService(UserBasedTupleService):
 	def get_entity_shaper(self) -> EntityShaper:
 		return PIPELINE_GRAPHIC_ENTITY_SHAPER
 
-	def get_tuple_id_column_name(self) -> str:
+	def get_storable_id_column_name(self) -> str:
 		return 'pipeline_graphic_id'
 
-	def get_tuple_id(self, a_tuple: PipelineGraphic) -> PipelineGraphicId:
-		return a_tuple.pipelineGraphId
+	def get_storable_id(self, storable: PipelineGraphic) -> PipelineGraphicId:
+		return storable.pipelineGraphId
 
-	def set_tuple_id(self, a_tuple: PipelineGraphic, tuple_id: PipelineGraphicId) -> PipelineGraphic:
-		a_tuple.pipelineGraphId = tuple_id
-		return a_tuple
+	def set_storable_id(self, storable: PipelineGraphic, storable_id: PipelineGraphicId) -> PipelineGraphic:
+		storable.pipelineGraphId = storable_id
+		return storable
