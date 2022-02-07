@@ -4,7 +4,7 @@ from logging import getLogger
 from typing import List
 
 from watchmen_model.common import SettingsModel
-from watchmen_model.kernal import TopicData
+from watchmen_model.reactor import TopicData
 
 logger = getLogger(__name__)
 
