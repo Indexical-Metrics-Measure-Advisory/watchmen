@@ -15,10 +15,13 @@ class ParameterKind(str, Enum):
 	COMPUTED = 'computed'
 
 
-class Parameter(DataModel, BaseModel):
+class AvoidFastApiError:
+	on: Optional[ParameterJoint] = None
+
+
+class Parameter(DataModel, AvoidFastApiError, BaseModel):
 	kind: ParameterKind = None
 	conditional: bool = False
-	on: Optional[ParameterJoint] = None
 
 	def __setattr__(self, name, value):
 		if name == 'on':
