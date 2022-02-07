@@ -3,7 +3,7 @@ from json import loads
 from logging import getLogger
 
 from watchmen_model.common import SettingsModel
-from watchmen_model.kernal import TopicData
+from watchmen_model.reactor import TopicData
 
 log = getLogger(__name__)
 
