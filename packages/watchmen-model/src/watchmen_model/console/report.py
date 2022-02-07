@@ -93,7 +93,7 @@ def construct_chart(chart: Optional[Union[dict, Chart]]) -> Optional[Chart]:
 
 
 # noinspection PyRedundantParentheses
-class AvoidFastApiError():
+class AvoidFastApiError:
 	filters: ParameterJoint = None
 
 

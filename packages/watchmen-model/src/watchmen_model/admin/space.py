@@ -8,7 +8,7 @@ from watchmen_utilities import ArrayHelper
 
 
 # noinspection PyRedundantParentheses
-class AvoidFastApiError():
+class AvoidFastApiError:
 	joint: ParameterJoint = None
 
 

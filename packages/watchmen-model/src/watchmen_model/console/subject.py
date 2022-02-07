@@ -67,8 +67,11 @@ def construct_joins(joins: Optional[list] = None) -> Optional[List[SubjectDatase
 		return ArrayHelper(joins).map(lambda x: construct_join(x)).to_list()
 
 
-class SubjectDataset(DataModel, BaseModel):
+class AvoidFastApiError:
 	filters: ParameterJoint
+
+
+class SubjectDataset(DataModel, AvoidFastApiError, BaseModel):
 	columns: List[SubjectDatasetColumn] = []
 	joins: List[SubjectDatasetJoin] = []
 
