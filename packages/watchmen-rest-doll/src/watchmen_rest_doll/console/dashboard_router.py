@@ -3,7 +3,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends
 
 from watchmen_auth import PrincipalService
-from watchmen_meta_service.console import DashboardService
+from watchmen_meta_service.console import DashboardService, ReportService
 from watchmen_model.admin import UserRole
 from watchmen_model.common import DashboardId
 from watchmen_model.console import Dashboard
@@ -11,13 +11,18 @@ from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.auth import get_console_principal, get_super_admin_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator, ask_tuple_delete_enabled
 from watchmen_rest_doll.util import is_blank, trans, trans_readonly
-from watchmen_utilities import get_current_time_in_seconds
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
 
 router = APIRouter()
 
 
 def get_dashboard_service(principal_service: PrincipalService) -> DashboardService:
 	return DashboardService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
+def get_report_service(dashboard_service: DashboardService) -> ReportService:
+	return ReportService(
+		dashboard_service.storage, dashboard_service.snowflake_generator, dashboard_service.principal_service)
 
 
 @router.get('/dashboard/list', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Dashboard])
@@ -34,6 +39,33 @@ async def find_my_dashboards(
 	return trans_readonly(dashboard_service, action)
 
 
+def validate_reports(
+		dashboard: Dashboard, dashboard_service: DashboardService, principal_service: PrincipalService) -> None:
+	reports = dashboard.reports
+	if reports is None:
+		dashboard.reports = []
+		return
+	if len(reports) == 0:
+		return
+
+	report_ids = ArrayHelper(reports).map(lambda x: x.reportId).distinct().to_list()
+	if len(report_ids) == 0:
+		dashboard.reports = []
+		return
+
+	report_service = get_report_service(dashboard_service)
+
+	for report_id in report_ids:
+		existing_one = report_service.find_tenant_and_user(report_id)
+		if existing_one is None:
+			raise_400('Report ids do not match.')
+		existing_tenant_id, existing_user_id = existing_one
+		if existing_tenant_id != principal_service.get_tenant_id():
+			raise_403()
+		if existing_user_id != principal_service.get_user_id():
+			raise_403()
+
+
 @router.post('/dashboard', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=Dashboard)
 async def save_dashboard(
 		dashboard: Dashboard, principal_service: PrincipalService = Depends(get_console_principal)
@@ -47,6 +79,7 @@ async def save_dashboard(
 		# noinspection DuplicatedCode
 		if dashboard_service.is_storable_id_faked(a_dashboard.dashboardId):
 			dashboard_service.redress_storable_id(a_dashboard)
+			validate_reports(a_dashboard, dashboard_service, principal_service)
 			# noinspection PyTypeChecker
 			a_dashboard: Dashboard = dashboard_service.create(a_dashboard)
 		else:
@@ -58,6 +91,7 @@ async def save_dashboard(
 				if existing_dashboard.userId != a_dashboard.userId:
 					raise_403()
 
+			validate_reports(a_dashboard, dashboard_service, principal_service)
 			# noinspection PyTypeChecker
 			a_dashboard: Dashboard = dashboard_service.update(a_dashboard)
 		return a_dashboard
