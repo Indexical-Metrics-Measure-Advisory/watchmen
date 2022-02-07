@@ -1,7 +1,9 @@
+from typing import List, Optional
+
 from watchmen_meta_service.common import AuditableShaper, LastVisitShaper, UserBasedTupleService, UserBasedTupleShaper
-from watchmen_model.common import ConnectedSpaceId
+from watchmen_model.common import ConnectedSpaceId, SpaceId, TenantId
 from watchmen_model.console import ConnectedSpace
-from watchmen_storage import EntityRow, EntityShaper
+from watchmen_storage import EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, EntityShaper
 
 
 class ConnectedSpaceShaper(EntityShaper):
@@ -53,3 +55,17 @@ class ConnectedSpaceService(UserBasedTupleService):
 	def set_storable_id(self, storable: ConnectedSpace, storable_id: ConnectedSpaceId) -> ConnectedSpace:
 		storable.connectId = storable_id
 		return storable
+
+	def find_templates_by_ids(
+			self, connect_ids: List[ConnectedSpaceId], space_id: Optional[SpaceId], tenant_id: TenantId
+	) -> List[ConnectedSpace]:
+		criteria = [
+			EntityCriteriaExpression(name='connect_id', operator=EntityCriteriaOperator.IN, value=connect_ids),
+			EntityCriteriaExpression(name='is_template', value=True),
+			EntityCriteriaExpression(name='tenant_id', value=tenant_id)
+		]
+		if space_id is not None and len(space_id.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(name='space_id', value=space_id))
+
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria=criteria))

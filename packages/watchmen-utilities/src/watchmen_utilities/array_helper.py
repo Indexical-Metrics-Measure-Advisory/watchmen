@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Optional
+from typing import Any, Callable, List, Optional
 
 ArrayPredicate = Callable[[Any], bool]
 ArrayTransform = Callable[[Any], Any]
@@ -18,6 +18,21 @@ class ArrayHelper:
 			self.a_list = []
 		else:
 			self.a_list = a_list
+
+	def flatten(self, level: int = 1) -> ArrayHelper:
+		new_list: list = []
+		for an_element in self.a_list:
+			if isinstance(an_element, list):
+				for a_sub_element in an_element:
+					new_list.append(a_sub_element)
+			else:
+				new_list.append(an_element)
+
+		level = level - 1
+		if level <= 0:
+			return ArrayHelper(new_list)
+		else:
+			return ArrayHelper(new_list).flatten(level)
 
 	def to_list(self):
 		return self.a_list
@@ -115,3 +130,14 @@ class ArrayHelper:
 			if found(new_element):
 				return new_element
 		return None
+
+	def group_by(self, group: ArrayTransform) -> dict[Any, List[Any]]:
+		a_dict = {}
+		for an_element in self.a_list:
+			key = group(an_element)
+			existing: list = a_dict.get(key)
+			if existing is not None:
+				existing.append(an_element)
+			else:
+				a_dict[key] = [an_element]
+		return a_dict

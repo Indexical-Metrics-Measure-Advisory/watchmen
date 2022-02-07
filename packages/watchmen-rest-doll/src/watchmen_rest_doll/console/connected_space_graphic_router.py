@@ -24,7 +24,7 @@ def get_connected_space_graphic_service(principal_service: PrincipalService) -> 
 async def find_my_connected_space_graphics(
 		principal_service: PrincipalService = Depends(get_console_principal)) -> List[ConnectedSpaceGraphic]:
 	"""
-	get my all pipeline graphics
+	get my all connected space graphics
 	"""
 	connected_space_graphic_service = get_connected_space_graphic_service(principal_service)
 
@@ -43,7 +43,7 @@ async def save_console_space_graphic(
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> ConnectedSpaceGraphic:
 	"""
-	create or update my pipeline graphic
+	create or update my connected space graphic
 	"""
 	connected_space_graphic_service = get_connected_space_graphic_service(principal_service)
 
