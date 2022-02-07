@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Optional, Union
 
 from watchmen_meta_service.common import AuditableShaper, LastVisitShaper, UserBasedTupleService, UserBasedTupleShaper
@@ -94,6 +95,14 @@ class ReportService(UserBasedTupleService):
 			]
 		))
 
+	def delete_by_connect_id(self, connect_id: ConnectedSpaceId) -> List[Report]:
+		# noinspection PyTypeChecker
+		return self.storage.delete_and_pull(self.get_entity_deleter(
+			criteria=[
+				EntityCriteriaExpression(name='connect_id', value=connect_id)
+			]
+		))
+
 	def delete_by_subject_id(self, subject_id: SubjectId) -> List[Report]:
 		# noinspection PyTypeChecker
 		return self.storage.delete_and_pull(self.get_entity_deleter(
@@ -101,3 +110,11 @@ class ReportService(UserBasedTupleService):
 				EntityCriteriaExpression(name='subject_id', value=subject_id)
 			]
 		))
+
+	def update_last_visit_time(self, report_id: ReportId) -> datetime:
+		now = self.now()
+		self.storage.update(self.get_entity_updater(
+			criteria=[EntityCriteriaExpression(name=self.get_storable_id_column_name(), value=report_id)],
+			update={'last_visit_time': now}
+		))
+		return now

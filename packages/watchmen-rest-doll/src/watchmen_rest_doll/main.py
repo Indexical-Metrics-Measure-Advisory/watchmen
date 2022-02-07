@@ -28,8 +28,7 @@ ArrayHelper([
 	topic_router.router, pipeline_router.router, pipeline_graphic_router.router,
 	space_router.router,
 	# console
-	connected_space_router.router,
-	connected_space_graphic_router.router,
+	connected_space_router.router, connected_space_graphic_router.router,
 	subject_router.router, report_router.router,
 	dashboard_router.router,
 	# gui

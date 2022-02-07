@@ -86,6 +86,7 @@ async def update_subject_name_by_id(
 
 	subject_service = get_subject_service(principal_service)
 
+	# noinspection DuplicatedCode
 	def action() -> None:
 		existing_tenant_id: Optional[TenantId] = subject_service.find_tenant_id(subject_id)
 		if existing_tenant_id is None:

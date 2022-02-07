@@ -37,6 +37,14 @@ class ArrayHelper:
 	def to_list(self):
 		return self.a_list
 
+	def to_map(self, as_key: ArrayTransform, as_value: ArrayTransform) -> dict[Any, Any]:
+		a_dict = {}
+		for an_element in self.a_list:
+			key = as_key(an_element)
+			value = as_value(an_element)
+			a_dict[key] = value
+		return a_dict
+
 	def each(self, func: ArrayAction) -> ArrayHelper:
 		"""
 		apply given function to each element, and return myself
