@@ -1,10 +1,10 @@
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 from watchmen_meta_service.common import AuditableShaper, LastVisitShaper, UserBasedTupleService, UserBasedTupleShaper
 from watchmen_model.chart import Chart
-from watchmen_model.common import ReportId
+from watchmen_model.common import ReportId, SubjectId
 from watchmen_model.console import Report
-from watchmen_storage import EntityRow, EntityShaper
+from watchmen_storage import EntityCriteriaExpression, EntityRow, EntityShaper
 
 
 class ReportShaper(EntityShaper):
@@ -85,3 +85,11 @@ class ReportService(UserBasedTupleService):
 	def set_storable_id(self, storable: Report, storable_id: ReportId) -> Report:
 		storable.reportId = storable_id
 		return storable
+
+	def delete_by_subject_id(self, subject_id: SubjectId) -> List[Report]:
+		# noinspection PyTypeChecker
+		return self.storage.delete_and_pull(self.get_entity_deleter(
+			criteria=[
+				EntityCriteriaExpression(name='subject_id', value=subject_id)
+			]
+		))

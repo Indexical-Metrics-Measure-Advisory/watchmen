@@ -1,12 +1,12 @@
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends
 
 from watchmen_auth import PrincipalService
-from watchmen_meta_service.console import ConnectedSpaceService, SubjectService
+from watchmen_meta_service.console import ConnectedSpaceService, ReportService, SubjectService
 from watchmen_model.admin import UserRole
 from watchmen_model.common import SubjectId, TenantId
-from watchmen_model.console import Subject
+from watchmen_model.console import Report, Subject
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.auth import get_console_principal, get_super_admin_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator, ask_tuple_delete_enabled
@@ -22,6 +22,11 @@ def get_subject_service(principal_service: PrincipalService) -> SubjectService:
 
 def get_connected_space_service(subject_service: SubjectService) -> ConnectedSpaceService:
 	return ConnectedSpaceService(
+		subject_service.storage, subject_service.snowflake_generator, subject_service.principal_service)
+
+
+def get_report_service(subject_service: SubjectService) -> ReportService:
+	return ReportService(
 		subject_service.storage, subject_service.snowflake_generator, subject_service.principal_service)
 
 
@@ -114,15 +119,21 @@ async def delete_subject(
 		if not principal_service.is_tenant_admin() and existing_subject.userId != principal_service.get_user_id():
 			raise_403()
 		subject_service.delete(subject_id)
+		report_service: ReportService = get_report_service(subject_service)
+		report_service.delete_by_subject_id(subject_id)
 
 	trans(subject_service, action)
 
 
-@router.delete('/subject', tags=[UserRole.SUPER_ADMIN], response_model=Subject)
+class SubjectWithReports(Subject):
+	reports: List[Report] = []
+
+
+@router.delete('/subject', tags=[UserRole.SUPER_ADMIN], response_model=SubjectWithReports)
 async def delete_subject_by_id_by_super_admin(
 		subject_id: Optional[SubjectId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
-) -> Subject:
+) -> SubjectWithReports:
 	if not ask_tuple_delete_enabled():
 		raise_404('Not Found')
 
@@ -131,11 +142,13 @@ async def delete_subject_by_id_by_super_admin(
 
 	subject_service = get_subject_service(principal_service)
 
-	def action() -> Subject:
+	def action() -> SubjectWithReports:
 		# noinspection PyTypeChecker
 		subject: Subject = subject_service.delete(subject_id)
 		if subject is None:
 			raise_404()
-		return subject
+		report_service: ReportService = get_report_service(subject_service)
+		reports: List[Report] = report_service.delete_by_subject_id(subject_id)
+		return SubjectWithReports(**subject.dict(), reports=reports)
 
 	return trans(subject_service, action)
