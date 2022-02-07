@@ -67,6 +67,7 @@ class TupleShaper:
 		return a_tuple
 
 
+# noinspection PyAbstractClass
 class TupleService(EntityService):
 	def __init__(
 			self,

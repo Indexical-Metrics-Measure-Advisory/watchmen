@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.console import ConnectedSpaceService, ReportService, SubjectService
 from watchmen_model.admin import UserRole
-from watchmen_model.common import SubjectId, TenantId
+from watchmen_model.common import SubjectId
 from watchmen_model.console import Report, Subject
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.auth import get_console_principal, get_super_admin_principal
@@ -79,7 +79,7 @@ async def update_subject_name_by_id(
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> None:
 	"""
-	rename pipeline will not increase the optimistic lock version
+	rename subject will not increase the optimistic lock version
 	"""
 	if is_blank(subject_id):
 		raise_400('Subject id is required.')
@@ -88,10 +88,13 @@ async def update_subject_name_by_id(
 
 	# noinspection DuplicatedCode
 	def action() -> None:
-		existing_tenant_id: Optional[TenantId] = subject_service.find_tenant_id(subject_id)
-		if existing_tenant_id is None:
+		existing_one = subject_service.find_tenant_and_user(subject_id)
+		if existing_one is None:
 			raise_404()
-		elif existing_tenant_id != principal_service.get_tenant_id():
+		existing_tenant_id, existing_user_id = existing_one
+		if existing_tenant_id != principal_service.get_tenant_id():
+			raise_403()
+		elif existing_user_id != principal_service.get_user_id():
 			raise_403()
 		# noinspection PyTypeChecker
 		subject_service.update_name(
@@ -101,7 +104,7 @@ async def update_subject_name_by_id(
 
 
 @router.get('/subject/delete', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
-async def delete_subject(
+async def delete_subject_by_id(
 		subject_id: Optional[SubjectId], principal_service: PrincipalService = Depends(get_console_principal)
 ) -> None:
 	if is_blank(subject_id):

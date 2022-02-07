@@ -49,6 +49,7 @@ async def save_pipeline_graphic(
 		graphic.userId = principal_service.get_user_id()
 		graphic.tenantId = principal_service.get_tenant_id()
 
+		# noinspection DuplicatedCode
 		if TupleService.is_storable_id_faked(graphic.pipeline_graphicId):
 			pipeline_graphic_service.redress_storable_id(graphic)
 			# noinspection PyTypeChecker

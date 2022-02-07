@@ -1,7 +1,10 @@
-from watchmen_meta_service.common import AuditableShaper, LastVisitShaper, UserBasedTupleService, UserBasedTupleShaper
-from watchmen_model.common import DashboardId
+from datetime import datetime
+
+from watchmen_meta_service.common import AuditableShaper, LastVisitShaper, TupleNotFoundException, \
+	UserBasedTupleService, UserBasedTupleShaper
+from watchmen_model.common import DashboardId, TenantId, UserId
 from watchmen_model.console import Dashboard
-from watchmen_storage import EntityRow, EntityShaper
+from watchmen_storage import EntityCriteriaExpression, EntityRow, EntityShaper
 
 
 class DashboardShaper(EntityShaper):
@@ -55,3 +58,26 @@ class DashboardService(UserBasedTupleService):
 	def set_storable_id(self, storable: Dashboard, storable_id: DashboardId) -> Dashboard:
 		storable.dashboardId = storable_id
 		return storable
+
+	# noinspection DuplicatedCode
+	def update_name(self, dashboard_id: DashboardId, name: str, user_id: UserId, tenant_id: TenantId) -> datetime:
+		"""
+		update name will not increase optimistic lock version
+		"""
+		last_modified_at = self.now()
+		last_modified_by = self.principal_service.get_user_id()
+		updated_count = self.storage.update_only(self.get_entity_updater(
+			criteria=[
+				EntityCriteriaExpression(name=self.get_storable_id_column_name(), value=dashboard_id),
+				EntityCriteriaExpression(name='user_id', value=user_id),
+				EntityCriteriaExpression(name='tenant_id', value=tenant_id)
+			],
+			update={
+				'name': name,
+				'last_modified_at': last_modified_at,
+				'last_modified_by': last_modified_by
+			}
+		))
+		if updated_count == 0:
+			raise TupleNotFoundException('Update 0 row might be caused by tuple not found.')
+		return last_modified_at

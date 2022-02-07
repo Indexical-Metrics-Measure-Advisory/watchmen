@@ -10,8 +10,8 @@ from watchmen_model.admin import Space, User, UserRole
 from watchmen_model.common import ConnectedSpaceId, LastVisit, ReportId, SpaceId, SubjectId, TenantId, UserId
 from watchmen_model.console import ConnectedSpace, Report, Subject
 from watchmen_rest.util import raise_400, raise_403, raise_404
-from watchmen_rest_doll.auth import get_admin_principal, get_console_principal
-from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
+from watchmen_rest_doll.auth import get_admin_principal, get_console_principal, get_super_admin_principal
+from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator, ask_tuple_delete_enabled
 from watchmen_rest_doll.util import is_blank, trans, trans_readonly
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
 
@@ -171,6 +171,15 @@ def update_last_visit_time(
 	last_visit.lastVisitTime = service.update_last_visit_time(storable_id)
 
 
+def to_subject_with_reports(subject: Subject, reports: Optional[List[Report]]) -> SubjectWithReports:
+	subject_with_reports = SubjectWithReports(**subject.dict())
+	if reports is not None and len(reports) != 0:
+		subject_with_reports.reports = reports
+	else:
+		subject_with_reports.reports = []
+	return subject_with_reports
+
+
 def load_subjects_and_reports(
 		connected_space: ConnectedSpace, connected_space_service: ConnectedSpaceService,
 		should_update_last_visit_time: bool
@@ -180,20 +189,12 @@ def load_subjects_and_reports(
 	subjects: List[Subject] = subject_service.find_by_connect_id(connect_id)
 	report_service = get_report_service(connected_space_service)
 	reports: List[Report] = report_service.find_by_connect_id(connect_id)
+	# noinspection DuplicatedCode
 	report_map: Dict[SubjectId, List[Report]] = ArrayHelper(reports).group_by(lambda x: x.subjectId)
-
-	def to_subject_with_reports(subject: Subject) -> SubjectWithReports:
-		my_reports = report_map.get(subject.subjectId)
-		subject_with_reports = SubjectWithReports(**subject.dict())
-		if my_reports is not None and len(my_reports) != 0:
-			subject_with_reports.reports = my_reports
-		else:
-			subject_with_reports.reports = []
-		return subject_with_reports
 
 	connected_space_with_subjects = ConnectedSpaceWithSubjects(**connected_space.dict())
 	connected_space_with_subjects.subjects = ArrayHelper(subjects) \
-		.map(lambda x: to_subject_with_reports(x)).to_list()
+		.map(lambda x: to_subject_with_reports(x, report_map.get(x.subjectId))).to_list()
 
 	if should_update_last_visit_time:
 		# update last visit time
@@ -234,7 +235,7 @@ async def update_connected_space_name_by_id(
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> None:
 	"""
-	rename pipeline will not increase the optimistic lock version
+	rename connected space will not increase the optimistic lock version
 	"""
 	if is_blank(connect_id):
 		raise_400('Connected space id is required.')
@@ -243,10 +244,13 @@ async def update_connected_space_name_by_id(
 
 	# noinspection DuplicatedCode
 	def action() -> None:
-		existing_tenant_id: Optional[TenantId] = connected_space_service.find_tenant_id(connect_id)
-		if existing_tenant_id is None:
+		existing_one = connected_space_service.find_tenant_and_user(connect_id)
+		if existing_one is None:
 			raise_404()
-		elif existing_tenant_id != principal_service.get_tenant_id():
+		existing_tenant_id, existing_user_id = existing_one
+		if existing_tenant_id != principal_service.get_tenant_id():
+			raise_403()
+		elif existing_user_id != principal_service.get_user_id():
 			raise_403()
 		# noinspection PyTypeChecker
 		connected_space_service.update_name(
@@ -256,7 +260,7 @@ async def update_connected_space_name_by_id(
 
 
 @router.get('/connected_space/delete', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
-async def delete_connected_space(
+async def delete_connected_space_by_id(
 		connect_id: Optional[ConnectedSpaceId], principal_service: PrincipalService = Depends(get_console_principal)
 ) -> None:
 	if is_blank(connect_id):
@@ -345,8 +349,42 @@ async def find_template_connected_spaces_for_export(
 				.to_list()
 
 	return trans_readonly(connected_space_service, action)
-# @router.get("/console_space/export", tags=["console"], response_model=List[ConsoleSpace])
-# async def load_template_for_export(current_user: User = Depends(deps.get_current_user)):
-#     console_space_list = load_console_space_template_list_by_user(current_user.userId, current_user)
-#     # template_list = list(filter(lambda x: x.isTemplate, console_space_list))
-#     return await load_complete_console_space(console_space_list, current_user)
+
+
+@router.delete('/connected_space', tags=[UserRole.SUPER_ADMIN], response_model=ConnectedSpaceWithSubjects)
+async def delete_connected_space_by_id_by_super_admin(
+		connect_id: Optional[ConnectedSpaceId] = None,
+		principal_service: PrincipalService = Depends(get_super_admin_principal)
+) -> ConnectedSpaceWithSubjects:
+	if not ask_tuple_delete_enabled():
+		raise_404('Not Found')
+
+	if is_blank(connect_id):
+		raise_400('Connected space id is required.')
+
+	connected_space_service = get_connected_space_service(principal_service)
+
+	# noinspection DuplicatedCode
+	def action() -> ConnectedSpaceWithSubjects:
+		# noinspection PyTypeChecker
+		existing_connected_space: Optional[ConnectedSpace] = connected_space_service.find_by_id(connect_id)
+		if existing_connected_space is None:
+			raise_404()
+		if existing_connected_space.tenantId != principal_service.get_tenant_id():
+			raise_403()
+		if not principal_service.is_tenant_admin() and existing_connected_space.userId != principal_service.get_user_id():
+			raise_403()
+		# noinspection PyTypeChecker
+		connected_space: ConnectedSpace = connected_space_service.delete(connect_id)
+		subject_service: SubjectService = get_subject_service(connected_space_service)
+		subjects: List[Subject] = subject_service.delete_by_connect_id(connect_id)
+		report_service: ReportService = get_report_service(connected_space_service)
+		reports: List[Report] = report_service.delete_by_connect_id(connect_id)
+		report_map: Dict[SubjectId, List[Report]] = ArrayHelper(reports).group_by(lambda x: x.subjectId)
+
+		connected_space_with_subjects = ConnectedSpaceWithSubjects(**connected_space.dict())
+		connected_space_with_subjects.subjects = ArrayHelper(subjects) \
+			.map(lambda x: to_subject_with_reports(x, report_map.get(x.subjectId))).to_list()
+		return connected_space_with_subjects
+
+	return trans(connected_space_service, action)
