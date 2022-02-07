@@ -1,9 +1,9 @@
 from datetime import datetime
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 from watchmen_meta_service.common import AuditableShaper, LastVisitShaper, TupleNotFoundException, \
 	UserBasedTupleService, UserBasedTupleShaper
-from watchmen_model.common import SubjectId, TenantId, UserId
+from watchmen_model.common import ConnectedSpaceId, SubjectId, TenantId, UserId
 from watchmen_model.console import Subject, SubjectDataset
 from watchmen_storage import EntityCriteriaExpression, EntityRow, EntityShaper, TooManyEntitiesFoundException
 
@@ -85,6 +85,14 @@ class SubjectService(UserBasedTupleService):
 			return rows[0].get('tenant_id')
 		else:
 			raise TooManyEntitiesFoundException(f'Too many entities found by finder[{finder}].')
+
+	def find_by_connect_id(self, connect_id: ConnectedSpaceId) -> List[Subject]:
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(
+			criteria=[
+				EntityCriteriaExpression(name='connect_id', value=connect_id)
+			]
+		))
 
 	def update_name(self, subject_id: SubjectId, name: str, user_id: UserId, tenant_id: TenantId) -> datetime:
 		"""
