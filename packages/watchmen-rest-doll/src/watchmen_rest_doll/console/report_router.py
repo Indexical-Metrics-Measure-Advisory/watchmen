@@ -71,7 +71,7 @@ async def save_report(
 
 
 @router.get('/report/delete', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
-async def delete_report(
+async def delete_report_by_id(
 		report_id: Optional[ReportId], principal_service: PrincipalService = Depends(get_console_principal)
 ) -> None:
 	if is_blank(report_id):

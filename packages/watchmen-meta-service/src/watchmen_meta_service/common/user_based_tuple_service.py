@@ -1,9 +1,9 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from watchmen_auth import PrincipalService
 from watchmen_model.common import TenantId, UserBasedTuple, UserId
 from watchmen_storage import EntityCriteriaExpression, EntityRow, \
-	SnowflakeGenerator, TransactionalStorageSPI
+	SnowflakeGenerator, TooManyEntitiesFoundException, TransactionalStorageSPI
 from .storage_service import EntityService, TupleId, TupleNotFoundException
 
 
@@ -21,6 +21,7 @@ class UserBasedTupleShaper:
 		return user_based_tuple
 
 
+# noinspection PyAbstractClass
 class UserBasedTupleService(EntityService):
 	def __init__(
 			self,
@@ -63,6 +64,22 @@ class UserBasedTupleService(EntityService):
 				EntityCriteriaExpression(name='tenant_id', value=tenant_id)
 			]
 		))
+
+	def find_tenant_and_user(self, tuple_id: TupleId) -> Optional[Tuple[TenantId, UserId]]:
+		finder = self.get_entity_finder_for_columns(
+			criteria=[
+				EntityCriteriaExpression(name=self.get_storable_id_column_name(), value=tuple_id),
+			],
+			distinctColumnNames=['tenant_id', 'user_id']
+		)
+		rows = self.storage.find_distinct_values(finder)
+		count = len(rows)
+		if count == 0:
+			return None
+		elif count == 1:
+			return rows[0].get('tenant_id'), rows[0].get('user_id')
+		else:
+			raise TooManyEntitiesFoundException(f'Too many entities found by finder[{finder}].')
 
 	def delete_by_id(self, tuple_id: TupleId) -> None:
 		self.storage.delete_by_id(tuple_id, self.get_entity_id_helper())

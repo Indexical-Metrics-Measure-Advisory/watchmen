@@ -5,8 +5,7 @@ from watchmen_meta_service.common import AuditableShaper, LastVisitShaper, Tuple
 	UserBasedTupleService, UserBasedTupleShaper
 from watchmen_model.common import ConnectedSpaceId, SpaceId, TenantId, UserId
 from watchmen_model.console import ConnectedSpace
-from watchmen_storage import EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, EntityShaper, \
-	TooManyEntitiesFoundException
+from watchmen_storage import EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, EntityShaper
 
 
 class ConnectedSpaceShaper(EntityShaper):
@@ -58,23 +57,6 @@ class ConnectedSpaceService(UserBasedTupleService):
 	def set_storable_id(self, storable: ConnectedSpace, storable_id: ConnectedSpaceId) -> ConnectedSpace:
 		storable.connectId = storable_id
 		return storable
-
-	# noinspection DuplicatedCode
-	def find_tenant_id(self, connect_id: ConnectedSpaceId) -> Optional[TenantId]:
-		finder = self.get_entity_finder_for_columns(
-			criteria=[
-				EntityCriteriaExpression(name=self.get_storable_id_column_name(), value=connect_id),
-			],
-			distinctColumnNames=['tenant_id']
-		)
-		rows = self.storage.find_distinct_values(finder)
-		count = len(rows)
-		if count == 0:
-			return None
-		elif count == 1:
-			return rows[0].get('tenant_id')
-		else:
-			raise TooManyEntitiesFoundException(f'Too many entities found by finder[{finder}].')
 
 	def find_templates_by_ids(
 			self, connect_ids: List[ConnectedSpaceId], space_id: Optional[SpaceId], tenant_id: TenantId
