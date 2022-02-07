@@ -94,6 +94,7 @@ class SubjectService(UserBasedTupleService):
 			]
 		))
 
+	# noinspection DuplicatedCode
 	def update_name(self, subject_id: SubjectId, name: str, user_id: UserId, tenant_id: TenantId) -> datetime:
 		"""
 		update name will not increase optimistic lock version
@@ -115,3 +116,19 @@ class SubjectService(UserBasedTupleService):
 		if updated_count == 0:
 			raise TupleNotFoundException('Update 0 row might be caused by tuple not found.')
 		return last_modified_at
+
+	def update_last_visit_time(self, subject_id: SubjectId) -> datetime:
+		now = self.now()
+		self.storage.update(self.get_entity_updater(
+			criteria=[EntityCriteriaExpression(name=self.get_storable_id_column_name(), value=subject_id)],
+			update={'last_visit_time': now}
+		))
+		return now
+
+	def delete_by_connect_id(self, connect_id: ConnectedSpaceId) -> List[Subject]:
+		# noinspection PyTypeChecker
+		return self.storage.delete_and_pull(self.get_entity_deleter(
+			criteria=[
+				EntityCriteriaExpression(name='connect_id', value=connect_id)
+			]
+		))
