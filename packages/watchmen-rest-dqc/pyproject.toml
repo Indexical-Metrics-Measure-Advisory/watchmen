@@ -1,16 +1,17 @@
 [tool.poetry]
-name = "watchmen-dqc"
-version = "0.1.0"
+name = "watchmen-rest-dqc"
+version = "16.0.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
 packages = [
-    { include = "watchmen_dqc", from = "src" }
+    { include = "watchmen_rest_dqc", from = "src" }
 ]
+
 
 [tool.poetry.dependencies]
 python = "^3.9"
-watchmen-meta = { path = "../watchmen-meta", develop = true }
+watchmen-dqc = { path = "../watchmen-dqc", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
 
 [tool.poetry.dev-dependencies]
