@@ -1,18 +1,20 @@
 from datetime import datetime, timedelta
-from typing import Callable, Optional
+from typing import Callable, List, Optional, Tuple
 
 from jose import JWTError
 from jose.jwt import decode, encode
 from jsonschema.exceptions import ValidationError
+from starlette.requests import Request
+from watchmen_auth import AuthenticationManager, AuthenticationProvider, AuthenticationType, AuthFailOn401, \
+	AuthFailOn403, Authorization, PrincipalService
+from watchmen_model.admin import User, UserRole
 
-from watchmen_auth import AuthenticationManager, AuthenticationProvider, AuthenticationType
-from watchmen_model.admin import User
 from .rest_settings import RestSettings
-from .util import raise_401
+from .util import raise_401, raise_403
 
 
 def create_jwt_token(subject: str, expires_delta: timedelta, secret_key: str, algorithm: str) -> str:
-	to_encode = {'exp': datetime.now() + expires_delta, 'sub': subject}
+	to_encode = {'exp': datetime.utcnow() + expires_delta, 'sub': subject}
 	encoded_jwt = encode(to_encode, secret_key, algorithm=algorithm)
 	return encoded_jwt
 
@@ -72,3 +74,80 @@ def build_authentication_manager(
 	# TODO other authentication providers could be registered here
 
 	return authentication_manager
+
+
+def parse_token(request: Request) -> Tuple[str, str]:
+	authorization: str = request.headers.get("Authorization")
+
+	if not authorization:
+		raise_401('Unauthorized caused by token not found.', {"WWW-Authenticate": "Bearer"})
+	else:
+		scheme, _, param = authorization.partition(" ")
+		token = param
+		return scheme, token
+
+
+def get_principal_by_jwt(
+		authentication_manager: AuthenticationManager, token: str, roles: List[UserRole]) -> PrincipalService:
+	return PrincipalService(Authorization(authentication_manager, roles).authorize_by_jwt(token))
+
+
+def get_principal_by_pat(
+		authentication_manager: AuthenticationManager, token: str, roles: List[UserRole]) -> PrincipalService:
+	return PrincipalService(Authorization(authentication_manager, roles).authorize_by_pat(token))
+
+
+def get_principal_by(
+		authentication_manager: AuthenticationManager, roles: List[UserRole]
+) -> Callable[[Request], PrincipalService]:
+	def get_principal(request: Request) -> PrincipalService:
+		scheme, token = parse_token(request)
+		try:
+			if scheme == 'Bearer':
+				return get_principal_by_jwt(authentication_manager, token, roles)
+			elif scheme == 'PAT':
+				return get_principal_by_pat(authentication_manager, token, roles)
+			else:
+				raise AuthFailOn401()
+		except AuthFailOn403:
+			raise_403()
+		except AuthFailOn401:
+			raise_401('Unauthorized caused by unrecognized token.')
+
+	return get_principal
+
+
+def get_any_principal_by(authentication_manager: AuthenticationManager) -> Callable[[Request], PrincipalService]:
+	"""
+	console + admin + super admin
+	"""
+	return get_principal_by(authentication_manager, [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.CONSOLE])
+
+
+def get_console_principal_by(authentication_manager: AuthenticationManager) -> Callable[[Request], PrincipalService]:
+	"""
+	console + admin
+	"""
+	return get_principal_by(authentication_manager, [UserRole.ADMIN, UserRole.CONSOLE])
+
+
+def get_admin_principal_by(authentication_manager: AuthenticationManager) -> Callable[[Request], PrincipalService]:
+	"""
+	admin only
+	"""
+	return get_principal_by(authentication_manager, [UserRole.ADMIN])
+
+
+def get_any_admin_principal_by(authentication_manager: AuthenticationManager) -> Callable[[Request], PrincipalService]:
+	"""
+	super admin + admin
+	"""
+	return get_principal_by(authentication_manager, [UserRole.SUPER_ADMIN, UserRole.ADMIN])
+
+
+def get_super_admin_principal_by(authentication_manager: AuthenticationManager) -> Callable[
+	[Request], PrincipalService]:
+	"""
+	super admin only
+	"""
+	return get_principal_by(authentication_manager, [UserRole.SUPER_ADMIN])
