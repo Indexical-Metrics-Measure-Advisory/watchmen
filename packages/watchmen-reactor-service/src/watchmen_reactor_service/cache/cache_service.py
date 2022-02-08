@@ -1,12 +1,12 @@
 from typing import Any, Callable, Hashable, List, Optional, Union
 
 from cacheout import Cache
+
 from watchmen_model.admin import Pipeline, Topic
 from watchmen_model.common import DataSourceId, PipelineId, TopicId
 from watchmen_model.system import DataSource
 from watchmen_reactor_service.settings import ask_cache_enabled
 from watchmen_utilities import ArrayHelper
-
 from .cache_manager import get_data_source_by_id_cache, get_pipeline_by_id_cache, get_pipeline_by_topic_id_cache, \
 	get_topic_by_id_cache
 
@@ -77,21 +77,23 @@ class PipelineByTopicCache:
 		self.by_topic_id_cache.clear()
 
 
+pipeline_by_topic_cache = PipelineByTopicCache()
+
+
 class PipelineCache:
 	def __init__(self):
 		self.by_id_cache = InternalCache(cache=get_pipeline_by_id_cache)
-		self.by_topic_id_cache = PipelineByTopicCache()
 
 	def put(self, pipeline: Pipeline) -> Optional[Pipeline]:
 		existing: Optional[Pipeline] = self.by_id_cache.put(pipeline.pipelineId, pipeline)
 		if existing is not None:
 			if existing.topicId != pipeline.topicId:
 				# trigger topic changed
-				self.by_topic_id_cache.remove_one(existing.topicId, existing.pipelineId)
-				self.by_topic_id_cache.append_one(pipeline.topicId, pipeline.pipelineId)
+				pipeline_by_topic_cache.remove_one(existing.topicId, existing.pipelineId)
+				pipeline_by_topic_cache.append_one(pipeline.topicId, pipeline.pipelineId)
 		else:
 			# new pipline
-			self.by_topic_id_cache.append_one(pipeline.topicId, pipeline.pipelineId)
+			pipeline_by_topic_cache.append_one(pipeline.topicId, pipeline.pipelineId)
 		return existing
 
 	def get(self, pipeline_id: PipelineId) -> Optional[Pipeline]:
@@ -100,19 +102,20 @@ class PipelineCache:
 	def remove(self, pipeline_id: PipelineId) -> Optional[Pipeline]:
 		existing: Optional[Pipeline] = self.by_id_cache.remove(pipeline_id)
 		if existing is not None:
-			self.by_topic_id_cache.remove_one(existing.topicId, existing.pipelineId)
+			pipeline_by_topic_cache.remove_one(existing.topicId, existing.pipelineId)
 		return existing
 
 	def clear(self) -> None:
 		self.by_id_cache.clear()
-		self.by_topic_id_cache.clear()
+		pipeline_by_topic_cache.clear()
+
+
+pipeline_cache = PipelineCache()
 
 
 class TopicCache:
 	def __init__(self):
 		self.by_id_cache = InternalCache(cache=get_topic_by_id_cache)
-		self.triggered_pipelines_cache = PipelineByTopicCache()
-		self.pipeline_cache = PipelineCache()
 
 	def put(self, topic: Topic) -> Optional[Topic]:
 		return self.by_id_cache.put(topic.topicId, topic)
@@ -120,18 +123,20 @@ class TopicCache:
 	def get(self, topic_id: TopicId) -> Optional[Topic]:
 		return self.get(topic_id)
 
+	# noinspection PyMethodMayBeStatic
 	def get_trigger_pipelines(self, topic_id: TopicId) -> List[Pipeline]:
-		pipeline_ids: List[PipelineId] = self.triggered_pipelines_cache.get(topic_id)
-		return ArrayHelper(pipeline_ids).map(lambda x: self.pipeline_cache.get(x)).to_list()
+		pipeline_ids: List[PipelineId] = pipeline_by_topic_cache.get(topic_id)
+		return ArrayHelper(pipeline_ids).map(lambda x: pipeline_cache.get(x)).to_list()
 
 	def remove(self, topic_id: TopicId) -> Optional[Topic]:
 		existing: Optional[Topic] = self.by_id_cache.remove(topic_id)
 		if existing is not None:
-			self.triggered_pipelines_cache.remove(topic_id)
+			pipeline_by_topic_cache.remove(topic_id)
 		return existing
 
 	def clear(self) -> None:
 		self.by_id_cache.clear()
+		pipeline_by_topic_cache.clear()
 
 
 class DataSourceCache:
@@ -151,7 +156,6 @@ class DataSourceCache:
 		self.by_id_cache.clear()
 
 
-pipeline_cache = PipelineCache()
 topic_cache = TopicCache()
 data_source_cache = DataSourceCache()
 
