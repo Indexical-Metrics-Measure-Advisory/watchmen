@@ -3,7 +3,7 @@ from typing import Callable, TypeVar
 
 from fastapi import HTTPException
 
-from watchmen_meta_service.common import StorageService
+from watchmen_meta.common import StorageService
 from watchmen_rest.util import raise_500
 
 logger = getLogger(__name__)

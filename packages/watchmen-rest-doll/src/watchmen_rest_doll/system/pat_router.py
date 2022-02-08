@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
-from watchmen_meta_service.system import PatService
+from watchmen_meta.system import PatService
 from watchmen_model.admin import UserRole
 from watchmen_model.common import PatId
 from watchmen_model.system import PersonalAccessToken

@@ -3,12 +3,12 @@ from typing import List, Optional
 from fastapi import APIRouter, Body, Depends
 
 from watchmen_auth import PrincipalService
-from watchmen_meta_service.admin import FactorService, TopicService
-from watchmen_meta_service.analysis import TopicIndexService
+from watchmen_meta.admin import FactorService, TopicService
+from watchmen_meta.analysis import TopicIndexService
 from watchmen_model.admin import Topic, TopicType, UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId, TopicId
-from watchmen_reactor_service.cache import CacheService
-from watchmen_reactor_service.settings import ask_presto_enabled
+from watchmen_reactor.cache import CacheService
+from watchmen_reactor.settings import ask_presto_enabled
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.auth import get_admin_principal, get_console_principal, get_super_admin_principal
 from watchmen_rest_doll.doll import ask_engine_index_enabled, ask_meta_storage, ask_snowflake_generator, \

@@ -3,7 +3,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends
 
 from watchmen_auth import PrincipalService
-from watchmen_meta_service.console import ConnectedSpaceGraphicService
+from watchmen_meta.console import ConnectedSpaceGraphicService
 from watchmen_model.admin import UserRole
 from watchmen_model.common import ConnectedSpaceId
 from watchmen_model.console import ConnectedSpaceGraphic

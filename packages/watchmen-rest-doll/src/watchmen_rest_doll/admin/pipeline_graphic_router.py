@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
-from watchmen_meta_service.admin import PipelineGraphicService
-from watchmen_meta_service.common import TupleService
+from watchmen_meta.admin import PipelineGraphicService
+from watchmen_meta.common import TupleService
 from watchmen_model.admin import PipelineGraphic, UserRole
 from watchmen_model.common import PipelineGraphicId
 from watchmen_rest.util import raise_400, raise_403, raise_404

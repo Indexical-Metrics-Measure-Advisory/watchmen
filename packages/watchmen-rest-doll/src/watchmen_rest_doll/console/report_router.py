@@ -4,7 +4,7 @@ from fastapi import APIRouter, Body, Depends
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
-from watchmen_meta_service.console import ReportService, SubjectService
+from watchmen_meta.console import ReportService, SubjectService
 from watchmen_model.admin import UserRole
 from watchmen_model.common import DataPage, Pageable, ReportId, TenantId
 from watchmen_model.console import Report, Subject

@@ -5,8 +5,8 @@ from pydantic import BaseModel
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
-from watchmen_meta_service.admin import SpaceService, UserService
-from watchmen_meta_service.console import ConnectedSpaceService, ReportService, SubjectService
+from watchmen_meta.admin import SpaceService, UserService
+from watchmen_meta.console import ConnectedSpaceService, ReportService, SubjectService
 from watchmen_model.admin import Space, User, UserRole
 from watchmen_model.common import ConnectedSpaceId, LastVisit, ReportId, SpaceId, SubjectId, TenantId, UserId
 from watchmen_model.console import ConnectedSpace, Report, Subject
