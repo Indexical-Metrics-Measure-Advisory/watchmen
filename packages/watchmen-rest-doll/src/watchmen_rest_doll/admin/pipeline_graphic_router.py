@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends
+from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.admin import PipelineGraphicService
@@ -73,7 +74,7 @@ async def save_pipeline_graphic(
 	return trans(pipeline_graphic_service, lambda: action(pipeline_graphic))
 
 
-@router.get("/pipeline/graphics/delete", tags=[UserRole.ADMIN], response_model=None)
+@router.get("/pipeline/graphics/delete", tags=[UserRole.ADMIN], response_class=Response)
 async def delete_pipeline_graphic_by_id(
 		pipeline_graph_id: Optional[PipelineGraphicId],
 		principal_service: PrincipalService = Depends(get_admin_principal)

@@ -3,6 +3,8 @@ from typing import Dict, List, Optional
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from starlette.responses import Response
+
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.console import ConnectedSpaceService, DashboardService, ReportService, SubjectService
 from watchmen_meta_service.gui import LastSnapshotService
@@ -10,13 +12,12 @@ from watchmen_model.admin import UserRole
 from watchmen_model.common import ConnectedSpaceId, DashboardId, SubjectId
 from watchmen_model.console import Dashboard, Report
 from watchmen_model.gui import LastSnapshot
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank
-
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.auth import get_admin_principal, get_console_principal, \
 	get_principal_by_jwt, get_super_admin_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator, ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank
 from .connected_space_router import ConnectedSpaceWithSubjects, SubjectWithReports
 
 router = APIRouter()
@@ -255,7 +256,7 @@ async def load_shared_dashboard(dashboard_id: Optional[DashboardId], token: Opti
 	return trans_readonly(dashboard_service, action)
 
 
-@router.get('/dashboard/rename', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+@router.get('/dashboard/rename', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_class=Response)
 async def update_dashboard_name_by_id(
 		dashboard_id: Optional[DashboardId], name: Optional[str],
 		principal_service: PrincipalService = Depends(get_console_principal)
@@ -285,7 +286,7 @@ async def update_dashboard_name_by_id(
 	trans(dashboard_service, action)
 
 
-@router.get('/dashboard/delete', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+@router.get('/dashboard/delete', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_class=Response)
 async def delete_dashboard_by_id(
 		dashboard_id: Optional[DashboardId], principal_service: PrincipalService = Depends(get_console_principal)
 ) -> None:

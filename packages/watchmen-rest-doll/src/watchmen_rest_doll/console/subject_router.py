@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends
+from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.console import ConnectedSpaceService, ReportService, SubjectService
@@ -73,7 +74,7 @@ async def save_subject(
 	return trans(subject_service, lambda: action(subject))
 
 
-@router.get('/subject/rename', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+@router.get('/subject/rename', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_class=Response)
 async def update_subject_name_by_id(
 		subject_id: Optional[SubjectId], name: Optional[str],
 		principal_service: PrincipalService = Depends(get_console_principal)
@@ -103,7 +104,7 @@ async def update_subject_name_by_id(
 	trans(subject_service, action)
 
 
-@router.get('/subject/delete', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+@router.get('/subject/delete', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_class=Response)
 async def delete_subject_by_id(
 		subject_id: Optional[SubjectId], principal_service: PrincipalService = Depends(get_console_principal)
 ) -> None:

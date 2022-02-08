@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends
+from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.admin import PipelineService
@@ -123,7 +124,7 @@ def post_update_pipeline_name(pipeline: Pipeline, pipeline_service: PipelineServ
 	CacheService.pipeline().put(pipeline)
 
 
-@router.get('/pipeline/rename', tags=[UserRole.ADMIN], response_model=None)
+@router.get('/pipeline/rename', tags=[UserRole.ADMIN], response_class=Response)
 async def update_pipeline_name_by_id(
 		pipeline_id: Optional[PipelineId], name: Optional[str],
 		principal_service: PrincipalService = Depends(get_admin_principal)
@@ -154,7 +155,7 @@ def post_update_pipeline_enablement(pipeline: Pipeline, pipeline_service: Pipeli
 	CacheService.pipeline().put(pipeline)
 
 
-@router.get('/pipeline/enabled', tags=[UserRole.ADMIN], response_model=None)
+@router.get('/pipeline/enabled', tags=[UserRole.ADMIN], response_class=Response)
 async def update_pipeline_enabled_by_id(
 		pipeline_id: Optional[PipelineId], enabled: Optional[bool],
 		principal_service: PrincipalService = Depends(get_admin_principal)
