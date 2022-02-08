@@ -69,6 +69,7 @@ def as_empty_dashboard(dashboard: Optional[Dashboard] = None) -> StandaloneDashb
 	return StandaloneDashboard(dashboard=dashboard, connectedSpaces=[])
 
 
+# noinspection DuplicatedCode
 def load_standalone_dashboard(
 		admin_dashboard_id: Optional[DashboardId],
 		dashboard_service: DashboardService, principal_service: PrincipalService
@@ -109,11 +110,10 @@ def load_standalone_dashboard(
 		my_reports = report_map.get(subject_id)
 		return [] if my_reports is None else my_reports
 
-	subject_map: Dict[ConnectedSpaceId, List[SubjectWithReports]] = \
-		ArrayHelper(subjects) \
-			.map(lambda x: SubjectWithReports(**x.dict(), reports=get_my_reports(x.subjectId))) \
-			.filter(lambda x: x.reports is not None and len(x.reports) != 0) \
-			.group_by(lambda x: x.connectId)
+	subject_map: Dict[ConnectedSpaceId, List[SubjectWithReports]] = ArrayHelper(subjects) \
+		.map(lambda x: SubjectWithReports(**x.dict(), reports=get_my_reports(x.subjectId))) \
+		.filter(lambda x: x.reports is not None and len(x.reports) != 0) \
+		.group_by(lambda x: x.connectId)
 	connect_ids = ArrayHelper(subjects).map(lambda x: x.connectId).distinct().to_list()
 	connected_space_service = get_connected_space_service(dashboard_service)
 	connected_spaces = ArrayHelper(connect_ids).map(lambda x: connected_space_service.find_by_id(x)).to_list()
@@ -170,7 +170,6 @@ async def load_admin_dashboard(
 			return None
 		return last_snapshot.adminDashboardId
 
-	# noinspection DuplicatedCode
 	def action() -> StandaloneDashboard:
 		return load_standalone_dashboard(find_admin_dashboard_id(), dashboard_service, principal_service)
 

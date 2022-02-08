@@ -203,10 +203,10 @@ async def find_user_groups_page_by_name(
 		tenant_id: TenantId = principal_service.get_tenant_id()
 		if is_blank(query_name):
 			# noinspection PyTypeChecker
-			return user_group_service.find_by_name(None, tenant_id, pageable)
+			return user_group_service.find_page_by_text(None, tenant_id, pageable)
 		else:
 			# noinspection PyTypeChecker
-			return user_group_service.find_by_name(query_name, tenant_id, pageable)
+			return user_group_service.find_page_by_text(query_name, tenant_id, pageable)
 
 	return trans_readonly(user_group_service, action)
 
