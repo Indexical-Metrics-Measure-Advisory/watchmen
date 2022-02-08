@@ -94,3 +94,11 @@ class SpaceService(TupleService):
 			criteria.append(EntityCriteriaExpression(name='tenant_id', value=tenant_id))
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(criteria))
+
+	# noinspection DuplicatedCode
+	def find_all(self, tenant_id: Optional[TenantId]) -> List[Space]:
+		criteria = []
+		if tenant_id is not None and len(tenant_id.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(name='tenant_id', value=tenant_id))
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria=criteria))
