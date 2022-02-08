@@ -3,9 +3,9 @@ from typing import List, Optional
 from fastapi import APIRouter, Body, Depends
 
 from watchmen_auth import PrincipalService
-from watchmen_meta_service.admin import EnumItemService, EnumService
-from watchmen_model.admin import Enum, EnumItem, UserRole
-from watchmen_model.common import DataPage, EnumId, Pageable, TenantId
+from watchmen_meta_service.admin import EnumItemService, EnumService, TopicService
+from watchmen_model.admin import Enum, EnumItem, Topic, UserRole
+from watchmen_model.common import DataPage, EnumId, Pageable, TenantId, TopicId
 from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
 from watchmen_rest_doll.auth import get_admin_principal, get_console_principal, get_super_admin_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator, ask_tuple_delete_enabled
@@ -21,6 +21,10 @@ def get_enum_service(principal_service: PrincipalService) -> EnumService:
 
 def get_enum_item_service(enum_service: EnumService) -> EnumItemService:
 	return EnumItemService(enum_service.storage, enum_service.snowflake_generator)
+
+
+def get_topic_service(enum_service: EnumService) -> TopicService:
+	return TopicService(enum_service.storage, enum_service.snowflake_generator, enum_service.principal_service)
 
 
 @router.get('/enum', tags=[UserRole.ADMIN], response_model=Enum)
@@ -121,6 +125,31 @@ async def find_enums_by_name(
 		else:
 			# noinspection PyTypeChecker
 			return enum_service.find_by_text(query_name, tenant_id, pageable)
+
+	return trans_readonly(enum_service, action)
+
+
+@router.get('/enum/list/topic', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Enum])
+async def find_enums_by_topic(
+		topic_id: Optional[TopicId], principal_service: PrincipalService = Depends(get_console_principal)
+) -> List[Enum]:
+	"""
+	find enumerations by given topic
+	"""
+	if is_blank(topic_id):
+		raise_400('Topic id is required.')
+
+	enum_service = get_enum_service(principal_service)
+
+	def action() -> List[Enum]:
+		topic_service = get_topic_service(enum_service)
+		topic: Optional[Topic] = topic_service.find_by_id(topic_id)
+		if topic.tenantId != principal_service.get_tenant_id():
+			raise_403()
+		return ArrayHelper(topic.factors) \
+			.map(lambda x: not is_blank(x.enumId)) \
+			.map(lambda x: enum_service.find_by_id(x.enumId)) \
+			.to_list()
 
 	return trans_readonly(enum_service, action)
 
