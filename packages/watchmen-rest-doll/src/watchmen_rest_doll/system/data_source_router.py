@@ -7,6 +7,7 @@ from watchmen_meta_service.system import DataSourceService
 from watchmen_model.admin import UserRole
 from watchmen_model.common import DataPage, DataSourceId, Pageable
 from watchmen_model.system import DataSource
+from watchmen_reactor_service.cache import CacheService
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.auth import get_any_admin_principal, get_super_admin_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator, ask_tuple_delete_enabled
@@ -58,7 +59,7 @@ async def save_data_source(
 		else:
 			# noinspection PyTypeChecker
 			a_data_source: DataSource = data_source_service.update(a_data_source)
-
+		CacheService.data_source().put(a_data_source)
 		return a_data_source
 
 	return trans(data_source_service, lambda: action(data_source))
@@ -123,6 +124,7 @@ async def delete_data_source_by_id_by_super_admin(
 		data_source: DataSource = data_source_service.delete(data_source_id)
 		if data_source is None:
 			raise_404()
+		CacheService.data_source().remove(data_source_id)
 		return data_source
 
 	return trans(data_source_service, action)
