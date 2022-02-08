@@ -15,5 +15,13 @@ def ask_cache_enabled() -> bool:
 	return settings.REACTOR_CACHE
 
 
+def ask_cache_heart_beat_enabled() -> bool:
+	return settings.REACTOR_CACHE_HEART_BEAT
+
+
+def ask_cache_heart_beat_interval() -> int:
+	return settings.REACTOR_CACHE_HEART_BEAT_INTERVAL
+
+
 def ask_presto_enabled() -> bool:
 	return settings.PRESTO
