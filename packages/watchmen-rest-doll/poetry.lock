@@ -101,6 +101,17 @@ tests = ["pytest (>=3.2.1,!=3.3.0)"]
 typecheck = ["mypy"]
 
 [[package]]
+name = "cacheout"
+version = "0.13.1"
+description = "A caching library for Python"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.extras]
+dev = ["black", "coverage", "docformatter", "flake8", "flake8-black", "flake8-bugbear", "flake8-isort", "invoke", "isort", "mypy", "pylint", "pytest", "pytest-cov", "pytest-flake8", "pytest-mypy", "pytest-pylint", "sphinx", "sphinx-autodoc-typehints", "sphinx-rtd-theme", "tox", "twine", "wheel"]
+
+[[package]]
 name = "cffi"
 version = "1.15.0"
 description = "Foreign Function Interface for Python calling C code."
@@ -511,6 +522,47 @@ type = "directory"
 url = "../watchmen-model"
 
 [[package]]
+name = "watchmen-reactor-service"
+version = "16.0.0"
+description = ""
+category = "main"
+optional = false
+python-versions = "^3.9"
+develop = true
+
+[package.dependencies]
+cacheout = "^0.13.1"
+watchmen-meta-service = {path = "../watchmen-meta-service", develop = true}
+
+[package.extras]
+mysql = ["watchmen-storage-mysql @ ../watchmen-storage-mysql"]
+
+[package.source]
+type = "directory"
+url = "../watchmen-reactor-service"
+
+[[package]]
+name = "watchmen-reactor-surface"
+version = "16.0.0"
+description = ""
+category = "main"
+optional = false
+python-versions = "^3.9"
+develop = true
+
+[package.dependencies]
+watchmen-reactor-service = {path = "../watchmen-reactor-service", develop = true}
+
+[package.extras]
+mysql = ["watchmen-storage-mysql @ ../watchmen-storage-mysql"]
+kafka = ["kafka-python (>=2.0.2,<3.0.0)", "aiokafka (>=0.7.2,<0.8.0)"]
+rabbitmq = ["aio-pika (>=6.8.2,<7.0.0)"]
+
+[package.source]
+type = "directory"
+url = "../watchmen-reactor-surface"
+
+[[package]]
 name = "watchmen-rest"
 version = "16.0.0"
 description = ""
@@ -526,9 +578,12 @@ jsonschema = "^4.4.0"
 pydantic = "^1.9.0"
 python-dotenv = "^0.19.2"
 python-jose = "^3.3.0"
-uvicorn = "^0.17.3"
+uvicorn = "^0.17.4"
 watchmen-auth = {path = "../watchmen-auth", develop = true}
 watchmen-storage = {path = "../watchmen-storage", develop = true}
+
+[package.extras]
+mysql = ["watchmen-storage-mysql @ ../watchmen-storage-mysql"]
 
 [package.source]
 type = "directory"
@@ -602,7 +657,7 @@ rabbit = ["aio-pika"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "c08f98837afa48065a51fba7d62a1794654db407c55613b823e80fd282d83d68"
+content-hash = "dcd8ae60330d9ac80c8c98f4217aeb4621d79c94cf9a731b22613e34b3744c50"
 
 [metadata.files]
 aio-pika = [
@@ -659,6 +714,10 @@ bcrypt = [
     {file = "bcrypt-3.2.0-cp36-abi3-win32.whl", hash = "sha256:a67fb841b35c28a59cebed05fbd3e80eea26e6d75851f0574a9273c80f3e9b55"},
     {file = "bcrypt-3.2.0-cp36-abi3-win_amd64.whl", hash = "sha256:81fec756feff5b6818ea7ab031205e1d323d8943d237303baca2c5f9c7846f34"},
     {file = "bcrypt-3.2.0.tar.gz", hash = "sha256:5b93c1726e50a93a033c36e5ca7fdcd29a5c7395af50a6892f5d9e7c6cfbfb29"},
+]
+cacheout = [
+    {file = "cacheout-0.13.1-py3-none-any.whl", hash = "sha256:dc357ba56599444e24a41a514bd18b6a2460e9a9de6aa960e5ee3bb8c0bebb3f"},
+    {file = "cacheout-0.13.1.tar.gz", hash = "sha256:296d1a46ce7858e6f45b0fd5d407e5236fefe8fc01be80c56161c23b386849ff"},
 ]
 cffi = [
     {file = "cffi-1.15.0-cp27-cp27m-macosx_10_9_x86_64.whl", hash = "sha256:c2502a1a03b6312837279c8c1bd3ebedf6c12c4228ddbad40912d671ccc8a962"},
@@ -1035,6 +1094,8 @@ uvicorn = [
 watchmen-auth = []
 watchmen-meta-service = []
 watchmen-model = []
+watchmen-reactor-service = []
+watchmen-reactor-surface = []
 watchmen-rest = []
 watchmen-storage = []
 watchmen-storage-mysql = []
