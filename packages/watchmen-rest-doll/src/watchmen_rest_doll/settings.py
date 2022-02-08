@@ -20,7 +20,7 @@ class DollSettings(RestSettings):
 	KAFKA_BOOTSTRAP_SERVER: str = 'localhost:9092'
 	KAFKA_TOPICS: str = ''
 
-	ENGINE_CACHE: bool = True
+	REACTOR_CACHE: bool = True
 	ENGINE_INDEX: bool = True
-	
+
 	PRESTO: bool = True

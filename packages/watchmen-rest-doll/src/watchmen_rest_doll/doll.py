@@ -31,8 +31,8 @@ class DollApp(RestApp):
 	def is_tuple_delete_enabled(self) -> bool:
 		return self.get_settings().TUPLE_DELETABLE
 
-	def is_engine_cache_enabled(self) -> bool:
-		return self.get_settings().ENGINE_CACHE
+	def is_reactor_cache_enabled(self) -> bool:
+		return self.get_settings().REACTOR_CACHE
 
 	def is_engine_index_enabled(self) -> bool:
 		return self.get_settings().ENGINE_INDEX
@@ -113,8 +113,8 @@ def ask_tuple_delete_enabled() -> bool:
 	return doll.is_tuple_delete_enabled()
 
 
-def ask_engine_cache_enabled() -> bool:
-	return doll.is_engine_cache_enabled()
+def ask_reactor_cache_enabled() -> bool:
+	return doll.is_reactor_cache_enabled()
 
 
 def ask_engine_index_enabled() -> bool:
