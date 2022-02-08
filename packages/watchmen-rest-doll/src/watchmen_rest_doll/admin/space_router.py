@@ -190,7 +190,7 @@ class QuerySpaceDataPage(DataPage):
 
 
 @router.post('/space/name', tags=[UserRole.ADMIN], response_model=QuerySpaceDataPage)
-async def find_pageable_spaces_by_name(
+async def find_spaces_page_by_name(
 		query_name: Optional[str], pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> QuerySpaceDataPage:
