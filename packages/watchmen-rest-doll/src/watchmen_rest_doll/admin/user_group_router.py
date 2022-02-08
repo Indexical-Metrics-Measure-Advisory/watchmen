@@ -193,7 +193,7 @@ class QueryUserGroupDataPage(DataPage):
 
 
 @router.post('/user_group/name', tags=[UserRole.ADMIN], response_model=QueryUserGroupDataPage)
-async def find_user_groups_by_name(
+async def find_user_groups_page_by_name(
 		query_name: Optional[str], pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> QueryUserGroupDataPage:
@@ -203,13 +203,35 @@ async def find_user_groups_by_name(
 		tenant_id: TenantId = principal_service.get_tenant_id()
 		if is_blank(query_name):
 			# noinspection PyTypeChecker
-			return user_group_service.find_by_text(None, tenant_id, pageable)
+			return user_group_service.find_by_name(None, tenant_id, pageable)
 		else:
 			# noinspection PyTypeChecker
-			return user_group_service.find_by_text(query_name, tenant_id, pageable)
+			return user_group_service.find_by_name(query_name, tenant_id, pageable)
 
 	return trans_readonly(user_group_service, action)
 
+
+@router.get('/user_group/list/name', tags=[UserRole.ADMIN], response_model=List[UserGroup])
+async def find_user_groups_by_name(
+		query_name: Optional[str], principal_service: PrincipalService = Depends(get_admin_principal)
+) -> List[UserGroup]:
+	user_group_service = get_user_group_service(principal_service)
+
+	def action() -> List[UserGroup]:
+		tenant_id: TenantId = principal_service.get_tenant_id()
+		if is_blank(query_name):
+			# noinspection PyTypeChecker
+			return user_group_service.find_by_name(None, tenant_id)
+		else:
+			# noinspection PyTypeChecker
+			return user_group_service.find_by_name(query_name, tenant_id)
+
+	return trans_readonly(user_group_service, action)
+
+
+# @router.get("/query/user_group/space", tags=["admin"], response_model=List[UserGroup])
+# async def query_group_list_for_space(query_name: str, current_user: User = Depends(deps.get_current_user)):
+#     return load_group_list_by_name(query_name, current_user)
 
 @router.post('/user_group/ids', tags=[UserRole.ADMIN], response_model=List[UserGroup])
 async def find_user_groups_by_ids(

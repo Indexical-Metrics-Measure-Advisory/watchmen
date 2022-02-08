@@ -7,7 +7,8 @@ from watchmen_meta_service.admin import UserGroupService, UserService
 from watchmen_model.admin import User, UserGroup, UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId, UserGroupId, UserId
 from watchmen_rest.util import raise_400, raise_403, raise_404
-from watchmen_rest_doll.auth import get_any_admin_principal, get_any_principal, get_super_admin_principal
+from watchmen_rest_doll.auth import get_admin_principal, get_any_admin_principal, get_any_principal, \
+	get_super_admin_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator, ask_tuple_delete_enabled
 from watchmen_rest_doll.util import crypt_password, is_blank, is_not_blank, trans, trans_readonly, validate_tenant_id
 from watchmen_utilities import ArrayHelper
@@ -200,7 +201,7 @@ class QueryUserDataPage(DataPage):
 
 
 @router.post('/user/name', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=QueryUserDataPage)
-async def find_users_by_name(
+async def find_users_page_by_name(
 		query_name: Optional[str], pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> QueryUserDataPage:
@@ -211,9 +212,9 @@ async def find_users_by_name(
 		if principal_service.is_tenant_admin():
 			tenant_id = principal_service.get_tenant_id()
 		if is_blank(query_name):
-			page = user_service.find_by_text(None, tenant_id, pageable)
+			page = user_service.find_page_by_text(None, tenant_id, pageable)
 		else:
-			page = user_service.find_by_text(query_name, tenant_id, pageable)
+			page = user_service.find_page_by_text(query_name, tenant_id, pageable)
 
 		ArrayHelper(page.data).each(clear_pwd)
 		# noinspection PyTypeChecker
@@ -221,6 +222,30 @@ async def find_users_by_name(
 
 	return trans_readonly(user_service, action)
 
+
+@router.get('/user/list/name', tags=[UserRole.ADMIN], response_model=List[User])
+async def find_users_by_name(
+		query_name: Optional[str], principal_service: PrincipalService = Depends(get_admin_principal)
+) -> List[User]:
+	user_service = get_user_service(principal_service)
+
+	def action() -> List[User]:
+		tenant_id: TenantId = principal_service.get_tenant_id()
+		if is_blank(query_name):
+			users = user_service.find_by_name(None, tenant_id)
+		else:
+			users = user_service.find_by_name(query_name, tenant_id)
+
+		ArrayHelper(users).each(clear_pwd)
+		# noinspection PyTypeChecker
+		return users
+
+	return trans_readonly(user_service, action)
+
+
+# @router.get("/query/user/group", tags=["admin"], response_model=List[User])
+# async def query_user_list_for_user_group(query_name, current_user: User = Depends(deps.get_current_user)):
+#     return load_user_list_by_name(query_name, current_user)
 
 @router.post('/user/ids', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=List[User])
 async def find_users_by_ids(
