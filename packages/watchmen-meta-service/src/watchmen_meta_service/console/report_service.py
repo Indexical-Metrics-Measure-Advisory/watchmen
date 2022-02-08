@@ -3,9 +3,9 @@ from typing import List, Optional, Union
 
 from watchmen_meta_service.common import AuditableShaper, LastVisitShaper, UserBasedTupleService, UserBasedTupleShaper
 from watchmen_model.chart import Chart
-from watchmen_model.common import ConnectedSpaceId, ReportId, SubjectId
+from watchmen_model.common import ConnectedSpaceId, DataPage, Pageable, ReportId, SubjectId, TenantId
 from watchmen_model.console import Report
-from watchmen_storage import EntityCriteriaExpression, EntityRow, EntityShaper
+from watchmen_storage import EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, EntityShaper
 
 
 class ReportShaper(EntityShaper):
@@ -94,6 +94,17 @@ class ReportService(UserBasedTupleService):
 				EntityCriteriaExpression(name='connect_id', value=connect_id)
 			]
 		))
+
+	# noinspection DuplicatedCode
+	def find_page_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
+		criteria = []
+		if text is not None and len(text.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(name='name', operator=EntityCriteriaOperator.LIKE, value=text))
+			criteria.append(
+				EntityCriteriaExpression(name='description', operator=EntityCriteriaOperator.LIKE, value=text))
+		if tenant_id is not None and len(tenant_id.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(name='tenant_id', value=tenant_id))
+		return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))
 
 	def delete_by_connect_id(self, connect_id: ConnectedSpaceId) -> List[Report]:
 		# noinspection PyTypeChecker
