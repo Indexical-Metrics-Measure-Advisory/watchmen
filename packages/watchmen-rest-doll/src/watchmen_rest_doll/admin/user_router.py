@@ -10,8 +10,8 @@ from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.auth import get_admin_principal, get_any_admin_principal, get_any_principal, \
 	get_super_admin_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator, ask_tuple_delete_enabled
-from watchmen_rest_doll.util import crypt_password, is_blank, is_not_blank, trans, trans_readonly, validate_tenant_id
-from watchmen_utilities import ArrayHelper
+from watchmen_rest_doll.util import crypt_password, trans, trans_readonly, validate_tenant_id
+from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 
 router = APIRouter()
 

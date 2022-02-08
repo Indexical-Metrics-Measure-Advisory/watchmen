@@ -3,7 +3,7 @@ from typing import Union
 from watchmen_auth import PrincipalService
 from watchmen_model.common import TenantBasedTuple, UserBasedTuple
 from watchmen_rest.util.raise_http_exception import raise_400, raise_403
-from .utils import is_blank, is_not_blank
+from watchmen_utilities import is_blank, is_not_blank
 
 
 def validate_tenant_id(a_tuple: Union[TenantBasedTuple, UserBasedTuple], principal_service: PrincipalService) -> None:

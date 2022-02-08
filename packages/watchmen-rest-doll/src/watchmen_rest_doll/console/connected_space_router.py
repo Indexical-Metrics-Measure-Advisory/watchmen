@@ -12,8 +12,8 @@ from watchmen_model.console import ConnectedSpace, Report, Subject
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.auth import get_admin_principal, get_console_principal, get_super_admin_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator, ask_tuple_delete_enabled
-from watchmen_rest_doll.util import is_blank, trans, trans_readonly
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
+from watchmen_rest_doll.util import trans, trans_readonly
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_not_blank
 
 router = APIRouter()
 
@@ -49,7 +49,7 @@ def get_user_service(connected_space_service: ConnectedSpaceService) -> UserServ
 def parse_template_ids(template_ids: Optional[str]) -> List[ConnectedSpaceId]:
 	if is_blank(template_ids):
 		return []
-	return ArrayHelper(template_ids.split(',')).filter(lambda x: not is_blank(x)).to_list()
+	return ArrayHelper(template_ids.split(',')).filter(lambda x: is_not_blank(x)).to_list()
 
 
 def find_template_connected_spaces_by_ids(

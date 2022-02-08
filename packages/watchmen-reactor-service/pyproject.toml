@@ -13,11 +13,16 @@ python = "^3.9"
 cacheout = "^0.13.1"
 watchmen-meta-service = { path = "../watchmen-meta-service", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
+kafka-python = { version = "^2.0.2", optional = true }
+aiokafka = { version = "^0.7.2", optional = true }
+aio-pika = { version = "^6.8.2", optional = true }
 
 [tool.poetry.dev-dependencies]
 
 [tool.poetry.extras]
 mysql = ["watchmen-storage-mysql"]
+kafka = ["kafka-python", "aiokafka"]
+rabbitmq = ["aio-pika"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

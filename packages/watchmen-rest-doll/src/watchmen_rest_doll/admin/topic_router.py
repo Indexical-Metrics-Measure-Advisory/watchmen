@@ -11,8 +11,8 @@ from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.auth import get_admin_principal, get_console_principal, get_super_admin_principal
 from watchmen_rest_doll.doll import ask_engine_index_enabled, ask_meta_storage, ask_presto_enabled, \
 	ask_reactor_cache_enabled, ask_snowflake_generator, ask_tuple_delete_enabled
-from watchmen_rest_doll.util import is_blank, trans, trans_readonly, validate_tenant_id
-from watchmen_utilities import ArrayHelper
+from watchmen_rest_doll.util import trans, trans_readonly, validate_tenant_id
+from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 
 router = APIRouter()
 
@@ -152,7 +152,7 @@ def to_exclude_types(exclude_types: Optional[str]) -> List[TopicType]:
 	else:
 		return ArrayHelper(exclude_types.strip().split(',')) \
 			.map(lambda x: x.strip()) \
-			.filter(lambda x: not is_blank(x)) \
+			.filter(lambda x: is_not_blank(x)) \
 			.map(lambda x: to_topic_type(x)) \
 			.filter(lambda x: x is not None) \
 			.to_list()
