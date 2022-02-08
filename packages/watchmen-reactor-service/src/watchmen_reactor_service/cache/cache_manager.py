@@ -19,9 +19,9 @@ class DataSourceByIdCache(Cache):
 
 cache_set = CacheManager()
 cache_set.setup({
-	'TOPIC_BY_ID': {'cache_class': TopicByIdCache, 'max_size': 512},
-	'PIPELINE_BY_ID': {'cache_class': PipelineByIdCache, 'max_size': 1024},
-	'PIPELINE_BY_TOPIC_ID': {'cache_class': PipelineByTopicIdCache, 'max_size': 512},
+	'TOPIC_BY_ID': {'cache_class': TopicByIdCache, 'maxsize': 512},
+	'PIPELINE_BY_ID': {'cache_class': PipelineByIdCache, 'maxsize': 1024},
+	'PIPELINE_BY_TOPIC_ID': {'cache_class': PipelineByTopicIdCache, 'maxsize': 512},
 	'DATA_SOURCE_BY_ID': {'cache_class': DataSourceByIdCache}
 })
 
