@@ -1,23 +1,20 @@
 [tool.poetry]
-name = "watchmen-reactor-service"
+name = "watchmen-rest-reactor"
 version = "16.0.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
 packages = [
-    { include = "watchmen_reactor_service", from = "src" }
+    { include = "watchmen_rest_reactor", from = "src" }
 ]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-cacheout = "^0.13.1"
-watchmen-meta-service = { path = "../watchmen-meta-service", develop = true }
+watchmen-rest = { path = "../watchmen-rest", develop = true }
+watchmen-reactor-service = { path = "../watchmen-reactor-service", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
 
 [tool.poetry.dev-dependencies]
-
-[tool.poetry.extras]
-mysql = ["watchmen-storage-mysql"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

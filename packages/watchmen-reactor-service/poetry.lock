@@ -110,14 +110,14 @@ description = ""
 category = "main"
 optional = false
 python-versions = "^3.9"
-develop = false
+develop = true
 
 [package.dependencies]
 watchmen-auth = {path = "../watchmen-auth", develop = true}
 watchmen-storage = {path = "../watchmen-storage", develop = true}
 
 [package.extras]
-mysql = ["watchmen-storage-mysql"]
+mysql = ["watchmen-storage-mysql @ ../watchmen-storage-mysql"]
 
 [package.source]
 type = "directory"
@@ -193,7 +193,7 @@ mysql = ["watchmen-storage-mysql"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "6cbffe0345bd46ade714e2bf14a96783e10208a6a9759d8ff8ff30046dd2eea0"
+content-hash = "75732b40c468714a897de23284ea84b292372bd0ec6825c16946ee88397c2f6b"
 
 [metadata.files]
 cacheout = [
