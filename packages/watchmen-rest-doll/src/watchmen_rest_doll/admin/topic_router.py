@@ -7,7 +7,8 @@ from watchmen_meta_service.admin import FactorService, TopicService
 from watchmen_meta_service.analysis import TopicIndexService
 from watchmen_model.admin import Topic, TopicType, UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId, TopicId
-from watchmen_reactor_service.settings import ask_cache_enabled, ask_presto_enabled
+from watchmen_reactor_service.cache import CacheService
+from watchmen_reactor_service.settings import ask_presto_enabled
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.auth import get_admin_principal, get_console_principal, get_super_admin_principal
 from watchmen_rest_doll.doll import ask_engine_index_enabled, ask_meta_storage, ask_snowflake_generator, \
@@ -64,13 +65,6 @@ def build_topic_index(topic: Topic, topic_service: TopicService) -> None:
 	get_topic_index_service(topic_service).build_index(topic)
 
 
-def build_topic_cache(topic: Topic, topic_service: TopicService) -> None:
-	if not ask_cache_enabled():
-		return
-	# TODO build topic cache
-	pass
-
-
 def build_presto_schema(topic: Topic, topic_service: TopicService) -> None:
 	if not ask_presto_enabled():
 		return
@@ -80,7 +74,7 @@ def build_presto_schema(topic: Topic, topic_service: TopicService) -> None:
 
 def post_save_topic(topic: Topic, topic_service: TopicService) -> None:
 	build_topic_index(topic, topic_service)
-	build_topic_cache(topic, topic_service)
+	CacheService.topic().put(topic)
 	build_presto_schema(topic, topic_service)
 
 
@@ -213,13 +207,6 @@ def remove_topic_index(topic_id: TopicId, topic_service: TopicService) -> None:
 	get_topic_index_service(topic_service).remove_index(topic_id)
 
 
-def remove_topic_cache(topic_id: TopicId, topic_service: TopicService) -> None:
-	if not ask_cache_enabled():
-		return
-	# TODO remove topic from cache
-	pass
-
-
 def remove_presto_schema(topic_id: TopicId, topic_service: TopicService) -> None:
 	if not ask_presto_enabled():
 		return
@@ -229,7 +216,7 @@ def remove_presto_schema(topic_id: TopicId, topic_service: TopicService) -> None
 
 def post_delete_topic(topic_id: TopicId, topic_service: TopicService) -> None:
 	remove_topic_index(topic_id, topic_service)
-	remove_topic_cache(topic_id, topic_service)
+	CacheService.topic().remove(topic_id)
 	remove_presto_schema(topic_id, topic_service)
 
 

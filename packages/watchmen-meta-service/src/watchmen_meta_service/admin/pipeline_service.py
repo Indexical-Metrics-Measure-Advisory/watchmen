@@ -1,9 +1,8 @@
-from datetime import datetime
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 from watchmen_meta_service.common import TupleNotFoundException, TupleService, TupleShaper
 from watchmen_model.admin import Pipeline, PipelineStage
-from watchmen_model.common import PipelineId, TenantId, UserId
+from watchmen_model.common import PipelineId, TenantId
 from watchmen_storage import EntityCriteriaExpression, EntityRow, EntityShaper, TooManyEntitiesFoundException
 from watchmen_utilities import ArrayHelper
 
@@ -84,7 +83,7 @@ class PipelineService(TupleService):
 		else:
 			raise TooManyEntitiesFoundException(f'Too many entities found by finder[{finder}].')
 
-	def update_name(self, pipeline_id: PipelineId, name: str, tenant_id: TenantId) -> Tuple[UserId, datetime]:
+	def update_name(self, pipeline_id: PipelineId, name: str, tenant_id: TenantId) -> Pipeline:
 		"""
 		update name will not increase optimistic lock version
 		"""
@@ -103,9 +102,10 @@ class PipelineService(TupleService):
 		))
 		if updated_count == 0:
 			raise TupleNotFoundException('Update 0 row might be caused by tuple not found.')
-		return last_modified_by, last_modified_at
+		# noinspection PyTypeChecker
+		return self.find_by_id(pipeline_id)
 
-	def update_enablement(self, pipeline_id: PipelineId, enabled: bool, tenant_id: TenantId) -> Tuple[UserId, datetime]:
+	def update_enablement(self, pipeline_id: PipelineId, enabled: bool, tenant_id: TenantId) -> Pipeline:
 		"""
 		update enablement will not increase optimistic lock version
 		"""
@@ -124,7 +124,8 @@ class PipelineService(TupleService):
 		))
 		if updated_count == 0:
 			raise TupleNotFoundException('Update 0 row might be caused by tuple not found.')
-		return last_modified_by, last_modified_at
+		# noinspection PyTypeChecker
+		return self.find_by_id(pipeline_id)
 
 	def find_all(self, tenant_id: Optional[TenantId]) -> List[Pipeline]:
 		criteria = []
