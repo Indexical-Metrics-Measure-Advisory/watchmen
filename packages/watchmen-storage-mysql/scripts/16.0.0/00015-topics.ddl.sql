@@ -18,6 +18,7 @@ CREATE TABLE topics
     INDEX (type),
     INDEX (kind),
     INDEX (data_source_id),
+    UNIQUE INDEX (name, data_source_id),
     INDEX (tenant_id),
     INDEX (created_at),
     INDEX (created_by),
