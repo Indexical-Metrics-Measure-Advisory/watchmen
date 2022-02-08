@@ -32,13 +32,21 @@ def parse_token(request: Request) -> Tuple[str, str]:
 		return scheme, token
 
 
+def get_principal_by_jwt(token: str, roles: List[UserRole]) -> PrincipalService:
+	return PrincipalService(Authorization(doll.authentication_manager, roles).authorize_by_jwt(token))
+
+
+def get_principal_by_pat(token: str, roles: List[UserRole]) -> PrincipalService:
+	return PrincipalService(Authorization(doll.authentication_manager, roles).authorize_by_pat(token))
+
+
 def get_principal(request: Request, roles: List[UserRole]) -> PrincipalService:
 	scheme, token = parse_token(request)
 	try:
 		if scheme == 'Bearer':
-			return PrincipalService(Authorization(doll.authentication_manager, roles).authorize_by_jwt(token))
+			return get_principal_by_jwt(token, roles)
 		elif scheme == 'PAT':
-			return PrincipalService(Authorization(doll.authentication_manager, roles).authorize_by_pat(token))
+			return get_principal_by_pat(token, roles)
 		else:
 			raise AuthFailOn401()
 	except AuthFailOn403:
