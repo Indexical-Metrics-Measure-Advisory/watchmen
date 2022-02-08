@@ -3,11 +3,19 @@ name = "watchmen-dqc"
 version = "0.1.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
+packages = [
+    { include = "watchmen_dqc", from = "src" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+watchmen-meta = { path = "../watchmen-meta", develop = true }
+watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
 
 [tool.poetry.dev-dependencies]
+
+[tool.poetry.extras]
+mysql = ["watchmen-storage-mysql"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
