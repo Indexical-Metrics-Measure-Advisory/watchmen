@@ -12,7 +12,8 @@ from watchmen_model.common import ConnectedSpaceId, DashboardId, SubjectId
 from watchmen_model.console import Dashboard, Report
 from watchmen_model.gui import LastSnapshot
 from watchmen_rest.util import raise_400, raise_403, raise_404
-from watchmen_rest_doll.auth import get_admin_principal, get_console_principal, get_super_admin_principal
+from watchmen_rest_doll.auth import get_admin_principal, get_console_principal, get_principal_by_jwt, \
+	get_super_admin_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator, ask_tuple_delete_enabled
 from watchmen_rest_doll.util import is_blank, trans, trans_readonly
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
@@ -59,107 +60,119 @@ async def find_my_dashboards(
 	return trans_readonly(dashboard_service, action)
 
 
-class AdminDashboard(BaseModel):
+class StandaloneDashboard(BaseModel):
 	dashboard: Dashboard = None
 	connectedSpaces: List[ConnectedSpaceWithSubjects] = []
 
 
-def as_empty_dashboard(dashboard: Optional[Dashboard] = None) -> AdminDashboard:
-	return AdminDashboard(dashboard=dashboard, connectedSpaces=[])
+def as_empty_dashboard(dashboard: Optional[Dashboard] = None) -> StandaloneDashboard:
+	return StandaloneDashboard(dashboard=dashboard, connectedSpaces=[])
 
 
-@router.get('/dashboard/admin', tags=[UserRole.ADMIN], response_model=AdminDashboard)
-async def load_admin_dashboard(principal_service: PrincipalService = Depends(get_admin_principal)) -> AdminDashboard:
+def load_standalone_dashboard(
+		admin_dashboard_id: Optional[DashboardId],
+		dashboard_service: DashboardService, principal_service: PrincipalService
+) -> StandaloneDashboard:
+	if is_blank(admin_dashboard_id):
+		return as_empty_dashboard()
+	dashboard: Optional[Dashboard] = dashboard_service.find_by_id(admin_dashboard_id)
+	if dashboard is None:
+		return as_empty_dashboard()
+	if dashboard.tenantId != principal_service.get_tenant_id() or dashboard.userId != principal_service.get_user_id():
+		raise_403()
+	report_ids = ArrayHelper(dashboard.reports).map(lambda x: x.reportId).to_list()
+	if len(report_ids) == 0:
+		return as_empty_dashboard(dashboard=Dashboard(**dashboard.dict(), reports=[]))
+	report_service = get_report_service(dashboard_service)
+	reports: List[Report] = ArrayHelper(report_ids).map(lambda x: report_service.find_by_id(x)).to_list()
+	if len(reports) == 0:
+		return as_empty_dashboard(dashboard=Dashboard(**dashboard.dict(), reports=[]))
+	if ArrayHelper(reports).some(
+			lambda x: x.tenantId != principal_service.get_tenant_id() and x.userId != principal_service.get_user_id()):
+		# something wrong with data
+		logger.error(f'Something wrong with report data for dashboard[{dashboard.dashboardId}]')
+		return as_empty_dashboard(dashboard=Dashboard(**dashboard.dict(), reports=[]))
+	report_map: Dict[SubjectId, List[Report]] = ArrayHelper(reports).group_by(lambda x: x.subjectId)
+	subject_ids = ArrayHelper(reports).map(lambda x: x.subjectId).distinct().to_list()
+	subject_service = get_subject_service(dashboard_service)
+	subjects = ArrayHelper(subject_ids).map(lambda x: subject_service.find_by_id(x)).to_list()
+	if len(subjects) == 0:
+		logger.error(f'Subject data not found for dashboard[{dashboard.dashboardId}]')
+		return as_empty_dashboard(dashboard=Dashboard(**dashboard.dict(), reports=[]))
+	if ArrayHelper(subjects).some(
+			lambda x: x.tenantId != principal_service.get_tenant_id() and x.userId != principal_service.get_user_id()):
+		# something wrong with data
+		logger.error(f'Something wrong with subject data for dashboard[{dashboard.dashboardId}]')
+		return as_empty_dashboard(dashboard=Dashboard(**dashboard.dict(), reports=[]))
+
+	def get_my_reports(subject_id: SubjectId) -> List[Report]:
+		my_reports = report_map.get(subject_id)
+		return [] if my_reports is None else my_reports
+
+	subject_map: Dict[ConnectedSpaceId, List[SubjectWithReports]] = \
+		ArrayHelper(subjects) \
+			.map(lambda x: SubjectWithReports(**x.dict(), reports=get_my_reports(x.subjectId))) \
+			.filter(lambda x: x.reports is not None and len(x.reports) != 0) \
+			.group_by(lambda x: x.connectId)
+	connect_ids = ArrayHelper(subjects).map(lambda x: x.connectId).distinct().to_list()
+	connected_space_service = get_connected_space_service(dashboard_service)
+	connected_spaces = ArrayHelper(connect_ids).map(lambda x: connected_space_service.find_by_id(x)).to_list()
+	if len(connected_spaces) == 0:
+		logger.error(f'Connected space data not found for dashboard[{dashboard.dashboardId}]')
+		return as_empty_dashboard(dashboard=Dashboard(**dashboard.dict(), reports=[]))
+	if ArrayHelper(connected_spaces).some(
+			lambda x: x.tenantId != principal_service.get_tenant_id() and x.userId != principal_service.get_user_id()):
+		# something wrong with data
+		logger.error(f'Something wrong with connected space data for dashboard[{dashboard.dashboardId}]')
+		return as_empty_dashboard(dashboard=Dashboard(**dashboard.dict(), reports=[]))
+
+	def get_my_subjects(connect_id: ConnectedSpaceId) -> List[SubjectWithReports]:
+		my_subjects = subject_map.get(connect_id)
+		return [] if my_subjects is None else my_subjects
+
+	connected_spaces_with_subjects = ArrayHelper(connected_spaces) \
+		.map(lambda x: ConnectedSpaceWithSubjects(**x.dict(), subjects=get_my_subjects(x.connectId))) \
+		.filter(lambda x: x.subjects is not None and len(x.subjects) != 0) \
+		.to_list()
+	if len(connected_spaces_with_subjects) == 0:
+		# something wrong with data
+		logger.error(f'Something wrong with connected space data for dashboard[{dashboard.dashboardId}]')
+		return as_empty_dashboard(dashboard=Dashboard(**dashboard.dict(), reports=[]))
+
+	# get available reports
+	available_report_map = ArrayHelper(reports).to_map(lambda x: x.reportId, lambda x: x)
+
+	return StandaloneDashboard(
+		dashboard=Dashboard(
+			**dashboard.dict(),
+			# remove useless report data from dashboard
+			reports=ArrayHelper(dashboard.reports).filter(
+				lambda x: available_report_map[x.reportId] is not None).to_list()
+		),
+		connected_spaces=connected_spaces_with_subjects
+	)
+
+
+@router.get('/dashboard/admin', tags=[UserRole.ADMIN], response_model=StandaloneDashboard)
+async def load_admin_dashboard(
+		principal_service: PrincipalService = Depends(get_admin_principal)
+) -> StandaloneDashboard:
 	"""
-
+	load admin dashboard
 	"""
 	dashboard_service = get_dashboard_service(principal_service)
 
-	# noinspection DuplicatedCode
-	def action() -> AdminDashboard:
+	def find_admin_dashboard_id() -> Optional[DashboardId]:
 		last_snapshot_service = get_last_snapshot_service(dashboard_service)
 		last_snapshot: Optional[LastSnapshot] = last_snapshot_service.find_by_user_id(
 			principal_service.get_user_id(), principal_service.get_tenant_id())
 		if last_snapshot is None:
-			return as_empty_dashboard()
-		if is_blank(last_snapshot.adminDashboardId):
-			return as_empty_dashboard()
-		dashboard: Optional[Dashboard] = dashboard_service.find_by_id(last_snapshot.adminDashboardId)
-		if dashboard is None:
-			return as_empty_dashboard()
-		if dashboard.tenantId != principal_service.get_tenant_id() or dashboard.userId != principal_service.get_user_id():
-			raise_403()
-		report_ids = ArrayHelper(dashboard.reports).map(lambda x: x.reportId).to_list()
-		if len(report_ids) == 0:
-			return as_empty_dashboard(dashboard=Dashboard(**dashboard.dict(), reports=[]))
-		report_service = get_report_service(dashboard_service)
-		reports: List[Report] = ArrayHelper(report_ids).map(lambda x: report_service.find_by_id(x)).to_list()
-		if len(reports) == 0:
-			return as_empty_dashboard(dashboard=Dashboard(**dashboard.dict(), reports=[]))
-		if ArrayHelper(reports).some(
-				lambda x: x.tenantId != principal_service.get_tenant_id() and x.userId != principal_service.get_user_id()):
-			# something wrong with data
-			logger.error(f'Something wrong with report data for dashboard[{dashboard.dashboardId}]')
-			return as_empty_dashboard(dashboard=Dashboard(**dashboard.dict(), reports=[]))
-		report_map: Dict[SubjectId, List[Report]] = ArrayHelper(reports).group_by(lambda x: x.subjectId)
-		subject_ids = ArrayHelper(reports).map(lambda x: x.subjectId).distinct().to_list()
-		subject_service = get_subject_service(dashboard_service)
-		subjects = ArrayHelper(subject_ids).map(lambda x: subject_service.find_by_id(x)).to_list()
-		if len(subjects) == 0:
-			logger.error(f'Subject data not found for dashboard[{dashboard.dashboardId}]')
-			return as_empty_dashboard(dashboard=Dashboard(**dashboard.dict(), reports=[]))
-		if ArrayHelper(subjects).some(
-				lambda x: x.tenantId != principal_service.get_tenant_id() and x.userId != principal_service.get_user_id()):
-			# something wrong with data
-			logger.error(f'Something wrong with subject data for dashboard[{dashboard.dashboardId}]')
-			return as_empty_dashboard(dashboard=Dashboard(**dashboard.dict(), reports=[]))
+			return None
+		return last_snapshot.adminDashboardId
 
-		def get_my_reports(subject_id: SubjectId) -> List[Report]:
-			my_reports = report_map.get(subject_id)
-			return [] if my_reports is None else my_reports
-
-		subject_map: Dict[ConnectedSpaceId, List[SubjectWithReports]] = \
-			ArrayHelper(subjects) \
-				.map(lambda x: SubjectWithReports(**x.dict(), reports=get_my_reports(x.subjectId))) \
-				.filter(lambda x: x.reports is not None and len(x.reports) != 0) \
-				.group_by(lambda x: x.connectId)
-		connect_ids = ArrayHelper(subjects).map(lambda x: x.connectId).distinct().to_list()
-		connected_space_service = get_connected_space_service(dashboard_service)
-		connected_spaces = ArrayHelper(connect_ids).map(lambda x: connected_space_service.find_by_id(x)).to_list()
-		if len(connected_spaces) == 0:
-			logger.error(f'Connected space data not found for dashboard[{dashboard.dashboardId}]')
-			return as_empty_dashboard(dashboard=Dashboard(**dashboard.dict(), reports=[]))
-		if ArrayHelper(connected_spaces).some(
-				lambda x: x.tenantId != principal_service.get_tenant_id() and x.userId != principal_service.get_user_id()):
-			# something wrong with data
-			logger.error(f'Something wrong with connected space data for dashboard[{dashboard.dashboardId}]')
-			return as_empty_dashboard(dashboard=Dashboard(**dashboard.dict(), reports=[]))
-
-		def get_my_subjects(connect_id: ConnectedSpaceId) -> List[SubjectWithReports]:
-			my_subjects = subject_map.get(connect_id)
-			return [] if my_subjects is None else my_subjects
-
-		connected_spaces_with_subjects = ArrayHelper(connected_spaces) \
-			.map(lambda x: ConnectedSpaceWithSubjects(**x.dict(), subjects=get_my_subjects(x.connectId))) \
-			.filter(lambda x: x.subjects is not None and len(x.subjects) != 0) \
-			.to_list()
-		if len(connected_spaces_with_subjects) == 0:
-			# something wrong with data
-			logger.error(f'Something wrong with connected space data for dashboard[{dashboard.dashboardId}]')
-			return as_empty_dashboard(dashboard=Dashboard(**dashboard.dict(), reports=[]))
-
-		# get available reports
-		available_report_map = ArrayHelper(reports).to_map(lambda x: x.reportId, lambda x: x)
-
-		return AdminDashboard(
-			dashboard=Dashboard(
-				**dashboard.dict(),
-				# remove useless report data from dashboard
-				reports=ArrayHelper(dashboard.reports).filter(
-					lambda x: available_report_map[x.reportId] is not None).to_list()
-			),
-			connected_spaces=connected_spaces_with_subjects
-		)
+	# noinspection DuplicatedCode
+	def action() -> StandaloneDashboard:
+		return load_standalone_dashboard(find_admin_dashboard_id(), dashboard_service, principal_service)
 
 	return trans_readonly(dashboard_service, action)
 
@@ -222,6 +235,25 @@ async def save_dashboard(
 		return a_dashboard
 
 	return trans(dashboard_service, lambda: action(dashboard))
+
+
+@router.get('/dashboard/shared', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=StandaloneDashboard)
+async def load_shared_dashboard(dashboard_id: Optional[DashboardId], token: Optional[str]) -> StandaloneDashboard:
+	"""
+	load shared dashboard
+	"""
+	if is_blank(dashboard_id):
+		raise_400('Dashboard id is required.')
+	if is_blank(token):
+		raise_400('Token is required.')
+
+	principal_service: PrincipalService = get_principal_by_jwt(token, [UserRole.CONSOLE, UserRole.ADMIN])
+	dashboard_service = get_dashboard_service(principal_service)
+
+	def action() -> StandaloneDashboard:
+		return load_standalone_dashboard(dashboard_id, dashboard_service, principal_service)
+
+	return trans_readonly(dashboard_service, action)
 
 
 @router.get('/dashboard/rename', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
