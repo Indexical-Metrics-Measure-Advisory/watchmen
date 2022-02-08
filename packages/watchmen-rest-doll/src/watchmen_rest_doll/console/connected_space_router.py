@@ -2,6 +2,7 @@ from typing import Dict, List, Optional, Union
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.admin import SpaceService, UserService
@@ -229,7 +230,7 @@ async def find_my_connected_spaces(
 	return trans(connected_space_service, action)
 
 
-@router.get('/connected_space/rename', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+@router.get('/connected_space/rename', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_class=Response)
 async def update_connected_space_name_by_id(
 		connect_id: Optional[ConnectedSpaceId], name: Optional[str],
 		principal_service: PrincipalService = Depends(get_console_principal)
@@ -259,7 +260,7 @@ async def update_connected_space_name_by_id(
 	trans(connected_space_service, action)
 
 
-@router.get('/connected_space/delete', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=None)
+@router.get('/connected_space/delete', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_class=Response)
 async def delete_connected_space_by_id(
 		connect_id: Optional[ConnectedSpaceId], principal_service: PrincipalService = Depends(get_console_principal)
 ) -> None:

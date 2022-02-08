@@ -4,6 +4,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Body, Depends
 from pydantic import BaseModel
+from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.system import PatService
@@ -69,7 +70,7 @@ async def find_my_pats(principal_service: PrincipalService = Depends(get_any_pri
 	return trans(pat_service, action)
 
 
-@router.post('/pat/delete', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=None)
+@router.post('/pat/delete', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
 async def delete_pat(
 		pat_id: Optional[PatId] = None, principal_service: PrincipalService = Depends(get_any_principal)) -> None:
 	if is_blank(pat_id):

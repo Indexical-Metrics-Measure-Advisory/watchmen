@@ -1,5 +1,4 @@
 from watchmen_auth import AuthenticationManager
-
 from .connectors import init_kafka, init_rabbitmq
 from .settings import ask_kafka_connector_enabled, ask_kafka_connector_settings, ask_rabbitmq_connector_enabled, \
 	ask_rabbitmq_connector_settings
