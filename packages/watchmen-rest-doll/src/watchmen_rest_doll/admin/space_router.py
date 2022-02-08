@@ -226,6 +226,18 @@ async def find_spaces_by_name(
 	return trans_readonly(space_service, action)
 
 
+@router.get("/space/available", tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Space])
+async def find_available_spaces(principal_service: PrincipalService = Depends(get_console_principal)) -> List[Space]:
+	space_service = get_space_service(principal_service)
+
+	def action() -> List[Space]:
+		tenant_id: TenantId = principal_service.get_tenant_id()
+		# noinspection PyTypeChecker
+		return space_service.find_all(tenant_id)
+
+	return trans_readonly(space_service, action)
+
+
 @router.post('/space/ids', tags=[UserRole.ADMIN], response_model=List[Space])
 async def find_spaces_by_ids(
 		space_ids: List[SpaceId], principal_service: PrincipalService = Depends(get_console_principal)
@@ -238,6 +250,17 @@ async def find_spaces_by_ids(
 	def action() -> List[Space]:
 		tenant_id: TenantId = principal_service.get_tenant_id()
 		return space_service.find_by_ids(space_ids, tenant_id)
+
+	return trans_readonly(space_service, action)
+
+
+@router.get("/space/export", tags=[UserRole.ADMIN], response_model=List[Space])
+async def find_spaces_for_export(principal_service: PrincipalService = Depends(get_admin_principal)):
+	space_service = get_space_service(principal_service)
+
+	def action() -> List[Space]:
+		tenant_id: TenantId = principal_service.get_tenant_id()
+		return space_service.find_all(tenant_id)
 
 	return trans_readonly(space_service, action)
 
