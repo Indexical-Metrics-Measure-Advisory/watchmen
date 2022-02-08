@@ -34,11 +34,13 @@ class DollApp(RestApp):
 		return self.get_settings().ENGINE_INDEX
 
 	def post_construct(self, app: FastAPI) -> None:
-		pass
+		reactor_surface.init_meta_storage(self.retrieve_meta_storage)
+		reactor_surface.init_snowflake(self.snowflake_generator)
+		reactor_surface.init_authentication(self.authentication_manager)
 
 	# noinspection PyMethodMayBeStatic
 	def init_reactor(self) -> None:
-		reactor_surface.init(self.authentication_manager)
+		reactor_surface.init_connectors()
 
 	def on_startup(self, app: FastAPI) -> None:
 		self.init_reactor()
