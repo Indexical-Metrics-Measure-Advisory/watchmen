@@ -1,93 +1,24 @@
 from datetime import timedelta
 from logging import getLogger
-from typing import List, Optional, Tuple
+from typing import Optional
 
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
-from starlette.requests import Request
-
-from watchmen_auth import AuthFailOn401, AuthFailOn403, Authorization, PrincipalService
+from watchmen_auth import PrincipalService
 from watchmen_meta_service.admin import UserService
 from watchmen_meta_service.auth import build_find_user_by_name
-from watchmen_model.admin import User, UserRole
+from watchmen_model.admin import User
 from watchmen_model.system import Token
+
 from watchmen_rest import create_jwt_token
-from watchmen_rest.util import raise_401, raise_403
+from watchmen_rest.util import raise_401
 from watchmen_rest_doll.doll import ask_access_token_expires_in, ask_jwt_params, ask_meta_storage, \
 	ask_snowflake_generator, doll
 from watchmen_rest_doll.util import verify_password
+from .auth_helper import get_any_principal
 
 router = APIRouter()
 logger = getLogger(__name__)
-
-
-def parse_token(request: Request) -> Tuple[str, str]:
-	authorization: str = request.headers.get("Authorization")
-
-	if not authorization:
-		raise_401('Unauthorized caused by token not found.', {"WWW-Authenticate": "Bearer"})
-	else:
-		scheme, _, param = authorization.partition(" ")
-		token = param
-		return scheme, token
-
-
-def get_principal_by_jwt(token: str, roles: List[UserRole]) -> PrincipalService:
-	return PrincipalService(Authorization(doll.authentication_manager, roles).authorize_by_jwt(token))
-
-
-def get_principal_by_pat(token: str, roles: List[UserRole]) -> PrincipalService:
-	return PrincipalService(Authorization(doll.authentication_manager, roles).authorize_by_pat(token))
-
-
-def get_principal(request: Request, roles: List[UserRole]) -> PrincipalService:
-	scheme, token = parse_token(request)
-	try:
-		if scheme == 'Bearer':
-			return get_principal_by_jwt(token, roles)
-		elif scheme == 'PAT':
-			return get_principal_by_pat(token, roles)
-		else:
-			raise AuthFailOn401()
-	except AuthFailOn403:
-		raise_403()
-	except AuthFailOn401:
-		raise_401('Unauthorized caused by unrecognized token.')
-
-
-def get_any_principal(request: Request) -> PrincipalService:
-	"""
-	any authenticated
-	"""
-	return get_principal(request, [UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.CONSOLE])
-
-
-def get_console_principal(request: Request) -> PrincipalService:
-	"""
-	console + admin
-	"""
-	return get_principal(request, [UserRole.ADMIN, UserRole.CONSOLE])
-
-
-def get_admin_principal(request: Request) -> PrincipalService:
-	"""
-	admin only
-	"""
-	return get_principal(request, [UserRole.ADMIN])
-
-
-def get_any_admin_principal(request: Request) -> PrincipalService:
-	"""
-	super admin + admin
-	"""
-	return get_principal(request, [UserRole.ADMIN, UserRole.SUPER_ADMIN])
-
-
-def get_super_admin_principal(request: Request) -> PrincipalService:
-	"""
-	super admin only
-	"""
-	return get_principal(request, [UserRole.SUPER_ADMIN])
 
 
 def authenticate(username, password) -> User:
