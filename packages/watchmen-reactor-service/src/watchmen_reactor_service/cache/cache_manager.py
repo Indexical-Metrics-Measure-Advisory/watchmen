@@ -1,37 +1,47 @@
 from cacheout import Cache, CacheManager
 
 
-class TopicIdCache(Cache):
+class TopicByIdCache(Cache):
 	pass
 
 
-class PipelineIdCache(Cache):
+class PipelineByIdCache(Cache):
 	pass
 
 
-class DataSourceIdCache(Cache):
+class PipelineByTopicIdCache(Cache):
+	pass
+
+
+class DataSourceByIdCache(Cache):
 	pass
 
 
 cache_set = CacheManager()
 cache_set.setup({
-	'TOPIC_BY_ID': {'cache_class': TopicIdCache},
-	'PIPELINE_BY_ID': {'cache_class': PipelineIdCache},
-	'DATA_SOURCE_BY_ID': {'cache_class': DataSourceIdCache}
+	'TOPIC_BY_ID': {'cache_class': TopicByIdCache, 'max_size': 512},
+	'PIPELINE_BY_ID': {'cache_class': PipelineByIdCache, 'max_size': 1024},
+	'PIPELINE_BY_TOPIC_ID': {'cache_class': PipelineByTopicIdCache, 'max_size': 512},
+	'DATA_SOURCE_BY_ID': {'cache_class': DataSourceByIdCache}
 })
 
 topic_cache_by_id = cache_set['TOPIC_BY_ID']
 pipeline_cache_by_id = cache_set['PIPELINE_BY_ID']
+pipeline_cache_by_topic_id = cache_set['PIPELINE_BY_TOPIC_ID']
 data_source_cache_by_id = cache_set['DATA_SOURCE_BY_ID']
 
 
-def get_topic_by_id_cache() -> TopicIdCache:
+def get_topic_by_id_cache() -> TopicByIdCache:
 	return topic_cache_by_id
 
 
-def get_pipeline_by_id_cache() -> PipelineIdCache:
+def get_pipeline_by_id_cache() -> PipelineByIdCache:
 	return pipeline_cache_by_id
 
 
-def get_data_source_by_id_cache() -> DataSourceIdCache:
+def get_pipeline_by_topic_id_cache() -> PipelineByTopicIdCache:
+	return pipeline_cache_by_topic_id
+
+
+def get_data_source_by_id_cache() -> DataSourceByIdCache:
 	return data_source_cache_by_id

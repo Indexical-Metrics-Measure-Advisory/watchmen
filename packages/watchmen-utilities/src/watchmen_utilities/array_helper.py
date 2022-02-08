@@ -139,6 +139,11 @@ class ArrayHelper:
 				return new_element
 		return None
 
+	def grab(self, *elements: Any) -> ArrayHelper:
+		for an_element in elements:
+			self.a_list.append(an_element)
+		return self
+
 	def group_by(self, group: ArrayTransform) -> dict[Any, List[Any]]:
 		a_dict = {}
 		for an_element in self.a_list:

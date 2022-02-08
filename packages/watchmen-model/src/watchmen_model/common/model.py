@@ -2,7 +2,7 @@ from typing import Any
 
 
 class DataModel:
-	def __init__(self, **data):
+	def __init__(self, **data: Any):
 		for key, value in data.items():
 			self.__setattr__(key, value)
 
