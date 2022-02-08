@@ -190,7 +190,7 @@ class QuerySpaceDataPage(DataPage):
 
 
 @router.post('/space/name', tags=[UserRole.ADMIN], response_model=QuerySpaceDataPage)
-async def find_spaces_by_name(
+async def find_pageable_spaces_by_name(
 		query_name: Optional[str], pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> QuerySpaceDataPage:
@@ -200,10 +200,28 @@ async def find_spaces_by_name(
 		tenant_id: TenantId = principal_service.get_tenant_id()
 		if is_blank(query_name):
 			# noinspection PyTypeChecker
-			return space_service.find_by_text(None, tenant_id, pageable)
+			return space_service.find_page_by_text(None, tenant_id, pageable)
 		else:
 			# noinspection PyTypeChecker
-			return space_service.find_by_text(query_name, tenant_id, pageable)
+			return space_service.find_page_by_text(query_name, tenant_id, pageable)
+
+	return trans_readonly(space_service, action)
+
+
+@router.get('/space/list/name', tags=[UserRole.ADMIN], response_model=List[Space])
+async def find_spaces_by_name(
+		query_name: Optional[str], principal_service: PrincipalService = Depends(get_console_principal)
+) -> List[Space]:
+	space_service = get_space_service(principal_service)
+
+	def action() -> List[Space]:
+		tenant_id: TenantId = principal_service.get_tenant_id()
+		if is_blank(query_name):
+			# noinspection PyTypeChecker
+			return space_service.find_by_text(None, tenant_id)
+		else:
+			# noinspection PyTypeChecker
+			return space_service.find_by_text(query_name, tenant_id)
 
 	return trans_readonly(space_service, action)
 
