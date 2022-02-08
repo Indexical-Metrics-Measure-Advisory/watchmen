@@ -432,7 +432,7 @@ mysql = ["watchmen-storage-mysql"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "dc8cbf03c1fc1968cfe77fe2e526b61bf78111dcb17b4ce9cc2261b47df60d8d"
+content-hash = "9041737889f6447d344c71038570d2686e4ab8ee2208a3ef3f9168f62072738d"
 
 [metadata.files]
 anyio = [

@@ -1,1 +1,1 @@
-from .main import ReactorSurface
+from .surface import ReactorSurface, surface

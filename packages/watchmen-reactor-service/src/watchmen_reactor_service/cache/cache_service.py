@@ -1,12 +1,12 @@
 from typing import Any, Callable, Hashable, List, Optional, Union
 
 from cacheout import Cache
-
 from watchmen_model.admin import Pipeline, Topic
 from watchmen_model.common import DataSourceId, PipelineId, TopicId
 from watchmen_model.system import DataSource
 from watchmen_reactor_service.settings import ask_cache_enabled
 from watchmen_utilities import ArrayHelper
+
 from .cache_manager import get_data_source_by_id_cache, get_pipeline_by_id_cache, get_pipeline_by_topic_id_cache, \
 	get_topic_by_id_cache
 
@@ -168,5 +168,11 @@ class CacheService:
 	@staticmethod
 	def data_source() -> DataSourceCache:
 		return data_source_cache
+
+	@staticmethod
+	def clear_all() -> None:
+		CacheService.pipeline().clear()
+		CacheService.topic().clear()
+		CacheService.data_source().clear()
 
 # TODO cache refresher

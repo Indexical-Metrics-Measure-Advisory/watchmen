@@ -1,3 +1,4 @@
+from .auth_helper import authorize, authorize_jwt, authorize_pat
 from .authentication import AuthenticationManager, AuthenticationProvider, AuthenticationType
 from .authorization import AuthFailOn401, AuthFailOn403, Authorization
 from .principal_service import PrincipalService

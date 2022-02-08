@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from logging import getLogger
 from typing import Callable, List, Optional, Tuple
 
 from jose import JWTError
@@ -6,11 +7,13 @@ from jose.jwt import decode, encode
 from jsonschema.exceptions import ValidationError
 from starlette.requests import Request
 from watchmen_auth import AuthenticationManager, AuthenticationProvider, AuthenticationType, AuthFailOn401, \
-	AuthFailOn403, Authorization, PrincipalService
+	AuthFailOn403, authorize, authorize_jwt, authorize_pat, PrincipalService
 from watchmen_model.admin import User, UserRole
 
 from .rest_settings import RestSettings
 from .util import raise_401, raise_403
+
+logger = getLogger(__name__)
 
 
 def create_jwt_token(subject: str, expires_delta: timedelta, secret_key: str, algorithm: str) -> str:
@@ -23,7 +26,7 @@ def validate_jwt(token, secret_key: str, algorithm: str):
 	try:
 		return decode(token, secret_key, algorithms=[algorithm])
 	except (JWTError, ValidationError):
-		raise_401('Unauthorized caused by unrecognized token.')
+		raise AuthFailOn401('Unauthorized caused by unrecognized token.')
 
 
 class JWTAuthenticationProvider(AuthenticationProvider):
@@ -36,13 +39,19 @@ class JWTAuthenticationProvider(AuthenticationProvider):
 		return auth_type == AuthenticationType.JWT
 
 	def authenticate(self, details: dict) -> Optional[User]:
-		token = details['token']
-		payload = validate_jwt(token, self.secret_key, self.algorithm)
-		username = payload['sub']
-		user = self.find_user_by_name(username)
-		if user is None:
-			raise_401('Unauthorized visit.')
-		return user
+		try:
+			token = details['token']
+			payload = validate_jwt(token, self.secret_key, self.algorithm)
+			username = payload['sub']
+			user = self.find_user_by_name(username)
+			if user is None:
+				raise AuthFailOn401('Unauthorized visit.')
+			return user
+		except AuthFailOn401 as e:
+			raise e
+		except Exception as e:
+			logger.error(e, exc_info=True, stack_info=True)
+			raise AuthFailOn401('Unauthorized visit.')
 
 
 class PATAuthenticationProvider(AuthenticationProvider):
@@ -54,10 +63,16 @@ class PATAuthenticationProvider(AuthenticationProvider):
 
 	def authenticate(self, details: dict) -> Optional[User]:
 		token = details['token']
-		user = self.find_user_by_pat(token)
-		if user is None:
-			raise_401('Unauthorized visit.')
-		return user
+		try:
+			user = self.find_user_by_pat(token)
+			if user is None:
+				raise AuthFailOn401('Unauthorized visit.')
+			return user
+		except AuthFailOn401 as e:
+			raise e
+		except Exception as e:
+			logger.error(e, exc_info=True, stack_info=True)
+			raise AuthFailOn401('Unauthorized visit.')
 
 
 def build_authentication_manager(
@@ -80,7 +95,7 @@ def parse_token(request: Request) -> Tuple[str, str]:
 	authorization: str = request.headers.get("Authorization")
 
 	if not authorization:
-		raise_401('Unauthorized caused by token not found.', {"WWW-Authenticate": "Bearer"})
+		raise AuthFailOn401('Unauthorized caused by token not found.')
 	else:
 		scheme, _, param = authorization.partition(" ")
 		token = param
@@ -89,30 +104,25 @@ def parse_token(request: Request) -> Tuple[str, str]:
 
 def get_principal_by_jwt(
 		authentication_manager: AuthenticationManager, token: str, roles: List[UserRole]) -> PrincipalService:
-	return PrincipalService(Authorization(authentication_manager, roles).authorize_by_jwt(token))
+	return authorize_jwt(authentication_manager, token, roles)
 
 
 def get_principal_by_pat(
 		authentication_manager: AuthenticationManager, token: str, roles: List[UserRole]) -> PrincipalService:
-	return PrincipalService(Authorization(authentication_manager, roles).authorize_by_pat(token))
+	return authorize_pat(authentication_manager, token, roles)
 
 
 def get_principal_by(
 		authentication_manager: AuthenticationManager, roles: List[UserRole]
 ) -> Callable[[Request], PrincipalService]:
 	def get_principal(request: Request) -> PrincipalService:
-		scheme, token = parse_token(request)
 		try:
-			if scheme == 'Bearer':
-				return get_principal_by_jwt(authentication_manager, token, roles)
-			elif scheme == 'PAT':
-				return get_principal_by_pat(authentication_manager, token, roles)
-			else:
-				raise AuthFailOn401()
+			scheme, token = parse_token(request)
+			return authorize(authentication_manager, roles)(scheme, token)
+		except AuthFailOn401:
+			raise_401('Unauthorized visit.')
 		except AuthFailOn403:
 			raise_403()
-		except AuthFailOn401:
-			raise_401('Unauthorized caused by unrecognized token.')
 
 	return get_principal
 
