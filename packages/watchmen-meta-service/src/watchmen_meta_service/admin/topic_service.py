@@ -1,7 +1,7 @@
 from typing import List, Optional
 
 from watchmen_meta_service.common import TupleService, TupleShaper
-from watchmen_model.admin import Factor, Topic
+from watchmen_model.admin import Factor, Topic, TopicType
 from watchmen_model.common import DataPage, FactorId, Pageable, TenantId, TopicId
 from watchmen_storage import EntityCriteriaExpression, EntityCriteriaOperator, EntityDistinctValuesFinder, EntityRow, \
 	EntityShaper, SnowflakeGenerator
@@ -85,7 +85,7 @@ class TopicService(TupleService):
 		))
 
 	# noinspection DuplicatedCode
-	def find_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
+	def find_page_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
 		criteria = []
 		if text is not None and len(text.strip()) != 0:
 			criteria.append(EntityCriteriaExpression(name='name', operator=EntityCriteriaOperator.LIKE, value=text))
@@ -93,7 +93,24 @@ class TopicService(TupleService):
 				EntityCriteriaExpression(name='description', operator=EntityCriteriaOperator.LIKE, value=text))
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
 			criteria.append(EntityCriteriaExpression(name='tenant_id', value=tenant_id))
-		return self.storage.page(self.get_entity_pager(criteria, pageable))
+		return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))
+
+	# noinspection DuplicatedCode
+	def find_by_text(
+			self, text: Optional[str], exclude_types: Optional[List[TopicType]],
+			tenant_id: Optional[TenantId]) -> List[Topic]:
+		criteria = []
+		if text is not None and len(text.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(name='name', operator=EntityCriteriaOperator.LIKE, value=text))
+			criteria.append(
+				EntityCriteriaExpression(name='description', operator=EntityCriteriaOperator.LIKE, value=text))
+		if exclude_types is not None and len(exclude_types) != 0:
+			criteria.append(
+				EntityCriteriaExpression(name='type', operator=EntityCriteriaOperator.NOT_IN, value=exclude_types))
+		if tenant_id is not None and len(tenant_id.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(name='tenant_id', value=tenant_id))
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria=criteria))
 
 	def find_by_ids(self, topic_ids: List[TopicId], tenant_id: Optional[TenantId]) -> List[Topic]:
 		criteria = [

@@ -5,7 +5,7 @@ from fastapi import APIRouter, Body, Depends
 from watchmen_auth import PrincipalService
 from watchmen_meta_service.admin import FactorService, TopicService
 from watchmen_meta_service.analysis import TopicIndexService
-from watchmen_model.admin import Topic, UserRole
+from watchmen_model.admin import Topic, TopicType, UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId, TopicId
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.auth import get_admin_principal, get_console_principal, get_super_admin_principal
@@ -120,7 +120,7 @@ class QueryTopicDataPage(DataPage):
 
 
 @router.post("/topic/name", tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=QueryTopicDataPage)
-async def find_topics_by_name(
+async def find_topics_page_by_name(
 		query_name: Optional[str], pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> QueryTopicDataPage:
@@ -130,10 +130,49 @@ async def find_topics_by_name(
 		tenant_id: TenantId = principal_service.get_tenant_id()
 		if is_blank(query_name):
 			# noinspection PyTypeChecker
-			return topic_service.find_by_text(None, tenant_id, pageable)
+			return topic_service.find_page_by_text(None, tenant_id, pageable)
 		else:
 			# noinspection PyTypeChecker
-			return topic_service.find_by_text(query_name, tenant_id, pageable)
+			return topic_service.find_page_by_text(query_name, tenant_id, pageable)
+
+	return trans_readonly(topic_service, action)
+
+
+def to_topic_type(topic_type: str) -> Optional[TopicType]:
+	for a_topic_type in TopicType:
+		if topic_type == a_topic_type:
+			# noinspection PyTypeChecker
+			return a_topic_type
+	return None
+
+
+def to_exclude_types(exclude_types: Optional[str]) -> List[TopicType]:
+	if is_blank(exclude_types):
+		return []
+	else:
+		return ArrayHelper(exclude_types.strip().split(',')) \
+			.map(lambda x: x.strip()) \
+			.filter(lambda x: not is_blank(x)) \
+			.map(lambda x: to_topic_type(x)) \
+			.filter(lambda x: x is not None) \
+			.to_list()
+
+
+@router.get("/topic/list/name", tags=[UserRole.ADMIN], response_model=List[Topic])
+async def find_topics_by_name(
+		query_name: Optional[str], exclude_types: Optional[str],
+		principal_service: PrincipalService = Depends(get_console_principal)
+) -> List[Topic]:
+	topic_service = get_topic_service(principal_service)
+
+	def action() -> List[Topic]:
+		tenant_id: TenantId = principal_service.get_tenant_id()
+		if is_blank(query_name):
+			# noinspection PyTypeChecker
+			return topic_service.find_by_text(None, to_exclude_types(exclude_types), tenant_id)
+		else:
+			# noinspection PyTypeChecker
+			return topic_service.find_by_text(query_name, to_exclude_types(exclude_types), tenant_id)
 
 	return trans_readonly(topic_service, action)
 
