@@ -4,7 +4,8 @@ from .settings import ask_kafka_connector_enabled, ask_kafka_connector_settings,
 
 
 class Reactor:
-	def __init__(self):
+	@staticmethod
+	def init():
 		Reactor.init_kafka_connector()
 		Reactor.init_rabbitmq_connector()
 

@@ -38,7 +38,7 @@ class DollApp(RestApp):
 	# noinspection PyMethodMayBeStatic
 	def init_reactor(self) -> None:
 		from watchmen_reactor_service import Reactor
-		Reactor()
+		Reactor.init()
 
 	def on_startup(self, app: FastAPI) -> None:
 		self.init_reactor()

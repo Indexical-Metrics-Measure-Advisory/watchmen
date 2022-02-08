@@ -9,9 +9,10 @@ from watchmen_meta_service.analysis import PipelineIndexService
 from watchmen_meta_service.common import TupleService
 from watchmen_model.admin import Pipeline, PipelineAction, PipelineStage, PipelineUnit, UserRole
 from watchmen_model.common import PipelineId, TenantId, UserId
+from watchmen_reactor_service.settings import ask_cache_enabled
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.auth import get_admin_principal, get_super_admin_principal
-from watchmen_rest_doll.doll import ask_engine_index_enabled, ask_meta_storage, ask_reactor_cache_enabled, \
+from watchmen_rest_doll.doll import ask_engine_index_enabled, ask_meta_storage, \
 	ask_snowflake_generator, ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly, validate_tenant_id
 from watchmen_utilities import ArrayHelper, is_blank
@@ -78,7 +79,7 @@ def build_pipeline_index(pipeline: Pipeline, pipeline_service: PipelineService) 
 
 
 def build_pipeline_cache(pipeline: Pipeline, pipeline_service: PipelineService) -> None:
-	if not ask_reactor_cache_enabled():
+	if not ask_cache_enabled():
 		return
 	# TODO build pipeline cache
 	pass
@@ -135,7 +136,7 @@ def update_pipeline_cache_on_name_changed(
 		pipeline_id: PipelineId, name: str,
 		last_modified_by: UserId, last_modified_at: datetime,
 		pipeline_service: PipelineService) -> None:
-	if not ask_reactor_cache_enabled():
+	if not ask_cache_enabled():
 		return
 	# TODO update pipeline cache on name changed
 	pass
@@ -191,7 +192,7 @@ def update_pipeline_cache_on_enablement_changed(
 		pipeline_id: PipelineId, enabled: bool,
 		last_modified_by: UserId, last_modified_at: datetime,
 		pipeline_service: PipelineService) -> None:
-	if not ask_reactor_cache_enabled():
+	if not ask_cache_enabled():
 		return
 	# TODO update pipeline cache on enablement changed
 	pass
@@ -255,7 +256,7 @@ def remove_pipeline_index(pipeline_id: PipelineId, pipeline_service: PipelineSer
 
 
 def remove_pipeline_cache(pipeline_id: PipelineId, pipeline_service: PipelineService) -> None:
-	if not ask_reactor_cache_enabled():
+	if not ask_cache_enabled():
 		return
 	# TODO remove pipeline from cache
 	pass
