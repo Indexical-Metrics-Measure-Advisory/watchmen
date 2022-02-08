@@ -53,7 +53,8 @@ class UserService(TupleService):
 	def get_storable_id_column_name(self) -> str:
 		return 'user_id'
 
-	def find_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
+	# noinspection DuplicatedCode
+	def find_page_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
 		# always ignore super admin
 		criteria = [
 			EntityCriteriaExpression(
@@ -64,7 +65,21 @@ class UserService(TupleService):
 			criteria.append(EntityCriteriaExpression(name='nickname', operator=EntityCriteriaOperator.LIKE, value=text))
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
 			criteria.append(EntityCriteriaExpression(name='tenant_id', value=tenant_id))
-		return self.storage.page(self.get_entity_pager(criteria, pageable))
+		return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))
+
+	# noinspection DuplicatedCode
+	def find_by_name(self, text: Optional[str], tenant_id: Optional[TenantId]) -> List[User]:
+		# always ignore super admin
+		criteria = [
+			EntityCriteriaExpression(
+				name='role', operator=EntityCriteriaOperator.NOT_EQUALS, value=UserRole.SUPER_ADMIN)
+		]
+		if text is not None and len(text.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(name='name', operator=EntityCriteriaOperator.LIKE, value=text))
+		if tenant_id is not None and len(tenant_id.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(name='tenant_id', value=tenant_id))
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria=criteria))
 
 	def find_by_ids(self, user_ids: List[UserId], tenant_id: Optional[TenantId]) -> List[User]:
 		# always ignore super admin

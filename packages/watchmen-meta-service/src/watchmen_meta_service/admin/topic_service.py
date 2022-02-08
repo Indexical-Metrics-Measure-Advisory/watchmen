@@ -96,14 +96,12 @@ class TopicService(TupleService):
 		return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))
 
 	# noinspection DuplicatedCode
-	def find_by_text(
+	def find_by_name(
 			self, text: Optional[str], exclude_types: Optional[List[TopicType]],
 			tenant_id: Optional[TenantId]) -> List[Topic]:
 		criteria = []
 		if text is not None and len(text.strip()) != 0:
 			criteria.append(EntityCriteriaExpression(name='name', operator=EntityCriteriaOperator.LIKE, value=text))
-			criteria.append(
-				EntityCriteriaExpression(name='description', operator=EntityCriteriaOperator.LIKE, value=text))
 		if exclude_types is not None and len(exclude_types) != 0:
 			criteria.append(
 				EntityCriteriaExpression(name='type', operator=EntityCriteriaOperator.NOT_IN, value=exclude_types))

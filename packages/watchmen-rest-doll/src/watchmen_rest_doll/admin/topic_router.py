@@ -169,10 +169,10 @@ async def find_topics_by_name(
 		tenant_id: TenantId = principal_service.get_tenant_id()
 		if is_blank(query_name):
 			# noinspection PyTypeChecker
-			return topic_service.find_by_text(None, to_exclude_types(exclude_types), tenant_id)
+			return topic_service.find_by_name(None, to_exclude_types(exclude_types), tenant_id)
 		else:
 			# noinspection PyTypeChecker
-			return topic_service.find_by_text(query_name, to_exclude_types(exclude_types), tenant_id)
+			return topic_service.find_by_name(query_name, to_exclude_types(exclude_types), tenant_id)
 
 	return trans_readonly(topic_service, action)
 

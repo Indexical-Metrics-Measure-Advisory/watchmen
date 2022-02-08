@@ -218,10 +218,10 @@ async def find_spaces_by_name(
 		tenant_id: TenantId = principal_service.get_tenant_id()
 		if is_blank(query_name):
 			# noinspection PyTypeChecker
-			return space_service.find_by_text(None, tenant_id)
+			return space_service.find_by_name(None, tenant_id)
 		else:
 			# noinspection PyTypeChecker
-			return space_service.find_by_text(query_name, tenant_id)
+			return space_service.find_by_name(query_name, tenant_id)
 
 	return trans_readonly(space_service, action)
 

@@ -77,12 +77,10 @@ class SpaceService(TupleService):
 		return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))
 
 	# noinspection DuplicatedCode
-	def find_by_text(self, text: Optional[str], tenant_id: Optional[TenantId]) -> List[Space]:
+	def find_by_name(self, text: Optional[str], tenant_id: Optional[TenantId]) -> List[Space]:
 		criteria = []
 		if text is not None and len(text.strip()) != 0:
 			criteria.append(EntityCriteriaExpression(name='name', operator=EntityCriteriaOperator.LIKE, value=text))
-			criteria.append(
-				EntityCriteriaExpression(name='description', operator=EntityCriteriaOperator.LIKE, value=text))
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
 			criteria.append(EntityCriteriaExpression(name='tenant_id', value=tenant_id))
 		# noinspection PyTypeChecker
