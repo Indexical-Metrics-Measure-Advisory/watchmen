@@ -15,6 +15,7 @@ bcrypt = "^3.2.0"
 python-multipart = "^0.0.5"
 watchmen-rest = { path = "../watchmen-rest", develop = true }
 watchmen-meta-service = { path = "../watchmen-meta-service", develop = true }
+watchmen-reactor-service = { path = "../watchmen-reactor-service", develop = true, optional = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
 kafka-python = { version = "^2.0.2", optional = true }
 aiokafka = { version = "^0.7.2", optional = true }
@@ -23,6 +24,7 @@ aio-pika = { version = "^6.8.2", optional = true }
 [tool.poetry.dev-dependencies]
 
 [tool.poetry.extras]
+reactor = ["watchmen-reactor-service"]
 mysql = ["watchmen-storage-mysql"]
 #mongo = ["pymongo"]
 kafka = ["kafka-python", "aiokafka"]
