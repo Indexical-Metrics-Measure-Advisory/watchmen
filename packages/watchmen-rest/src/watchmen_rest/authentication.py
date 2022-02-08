@@ -69,6 +69,6 @@ def build_authentication_manager(
 	)
 	authentication_manager.register_provider(PATAuthenticationProvider(find_user_by_pat))
 
-	# TODO could register other authentication providers here
+	# TODO other authentication providers could be registered here
 
 	return authentication_manager
