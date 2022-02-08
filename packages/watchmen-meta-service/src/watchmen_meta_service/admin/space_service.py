@@ -66,7 +66,7 @@ class SpaceService(TupleService):
 		return 'space_id'
 
 	# noinspection DuplicatedCode
-	def find_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
+	def find_page_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
 		criteria = []
 		if text is not None and len(text.strip()) != 0:
 			criteria.append(EntityCriteriaExpression(name='name', operator=EntityCriteriaOperator.LIKE, value=text))
@@ -74,7 +74,19 @@ class SpaceService(TupleService):
 				EntityCriteriaExpression(name='description', operator=EntityCriteriaOperator.LIKE, value=text))
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
 			criteria.append(EntityCriteriaExpression(name='tenant_id', value=tenant_id))
-		return self.storage.page(self.get_entity_pager(criteria, pageable))
+		return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))
+
+	# noinspection DuplicatedCode
+	def find_by_text(self, text: Optional[str], tenant_id: Optional[TenantId]) -> List[Space]:
+		criteria = []
+		if text is not None and len(text.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(name='name', operator=EntityCriteriaOperator.LIKE, value=text))
+			criteria.append(
+				EntityCriteriaExpression(name='description', operator=EntityCriteriaOperator.LIKE, value=text))
+		if tenant_id is not None and len(tenant_id.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(name='tenant_id', value=tenant_id))
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria=criteria))
 
 	def find_by_ids(self, space_ids: List[SpaceId], tenant_id: Optional[TenantId]) -> List[Space]:
 		criteria = [
