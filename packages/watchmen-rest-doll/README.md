@@ -1,3 +1,3 @@
 # Watchmen Rest Doll
 
-Doll service of _**Watchmen**_.
+Doll REST service of _**Watchmen**_.
