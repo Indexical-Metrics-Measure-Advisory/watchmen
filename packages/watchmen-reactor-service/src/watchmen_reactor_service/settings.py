@@ -2,8 +2,10 @@ from pydantic import BaseSettings
 
 
 class ReactorSettings(BaseSettings):
-	REACTOR_CACHE: bool = True
-	PRESTO: bool = True
+	REACTOR_CACHE: bool = True  # enable reactor cache, keep it enabled in production
+	REACTOR_CACHE_HEART_BEAT: bool = True  # enable reactor cache heart beat
+	REACTOR_CACHE_HEART_BEAT_INTERVAL: int = 60  # reactor cache heart beat interval, in seconds
+	PRESTO: bool = True  # presto
 
 
 settings = ReactorSettings()
