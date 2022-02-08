@@ -485,7 +485,7 @@ type = "directory"
 url = "../watchmen-auth"
 
 [[package]]
-name = "watchmen-meta-service"
+name = "watchmen-meta"
 version = "16.0.0"
 description = ""
 category = "main"
@@ -502,7 +502,7 @@ mysql = ["watchmen-storage-mysql @ ../watchmen-storage-mysql"]
 
 [package.source]
 type = "directory"
-url = "../watchmen-meta-service"
+url = "../watchmen-meta"
 
 [[package]]
 name = "watchmen-model"
@@ -522,7 +522,7 @@ type = "directory"
 url = "../watchmen-model"
 
 [[package]]
-name = "watchmen-reactor-service"
+name = "watchmen-reactor"
 version = "16.0.0"
 description = ""
 category = "main"
@@ -532,14 +532,14 @@ develop = true
 
 [package.dependencies]
 cacheout = "^0.13.1"
-watchmen-meta-service = {path = "../watchmen-meta-service", develop = true}
+watchmen-meta = {path = "../watchmen-meta", develop = true}
 
 [package.extras]
 mysql = ["watchmen-storage-mysql @ ../watchmen-storage-mysql"]
 
 [package.source]
 type = "directory"
-url = "../watchmen-reactor-service"
+url = "../watchmen-reactor"
 
 [[package]]
 name = "watchmen-reactor-surface"
@@ -551,7 +551,9 @@ python-versions = "^3.9"
 develop = true
 
 [package.dependencies]
-watchmen-reactor-service = {path = "../watchmen-reactor-service", develop = true}
+fastapi = "^0.73.0"
+watchmen-reactor = {path = "../watchmen-reactor", develop = true}
+watchmen-rest = {path = "../watchmen-rest", develop = true}
 
 [package.extras]
 mysql = ["watchmen-storage-mysql @ ../watchmen-storage-mysql"]
@@ -575,7 +577,6 @@ develop = true
 fastapi = "^0.73.0"
 jose = "^1.0.0"
 jsonschema = "^4.4.0"
-pydantic = "^1.9.0"
 python-dotenv = "^0.19.2"
 python-jose = "^3.3.0"
 uvicorn = "^0.17.4"
@@ -657,7 +658,7 @@ rabbit = ["aio-pika"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "dcd8ae60330d9ac80c8c98f4217aeb4621d79c94cf9a731b22613e34b3744c50"
+content-hash = "363d121cab67c05a9133811a258ed243c6f30f345b5f4fc329b3337d79a3ad47"
 
 [metadata.files]
 aio-pika = [
@@ -1092,9 +1093,9 @@ uvicorn = [
     {file = "uvicorn-0.17.4.tar.gz", hash = "sha256:25850bbc86195a71a6477b3e4b3b7b4c861fb687fb96912972ce5324472b1011"},
 ]
 watchmen-auth = []
-watchmen-meta-service = []
+watchmen-meta = []
 watchmen-model = []
-watchmen-reactor-service = []
+watchmen-reactor = []
 watchmen-reactor-surface = []
 watchmen-rest = []
 watchmen-storage = []
