@@ -9,8 +9,8 @@ from watchmen_model.common import DataPage, EnumId, Pageable, TenantId, TopicId
 from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
 from watchmen_rest_doll.auth import get_admin_principal, get_console_principal, get_super_admin_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator, ask_tuple_delete_enabled
-from watchmen_rest_doll.util import is_blank, trans, trans_readonly, validate_tenant_id
-from watchmen_utilities import ArrayHelper
+from watchmen_rest_doll.util import trans, trans_readonly, validate_tenant_id
+from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 
 router = APIRouter()
 
@@ -147,7 +147,7 @@ async def find_enums_by_topic(
 		if topic.tenantId != principal_service.get_tenant_id():
 			raise_403()
 		return ArrayHelper(topic.factors) \
-			.map(lambda x: not is_blank(x.enumId)) \
+			.filter(lambda x: is_not_blank(x.enumId)) \
 			.map(lambda x: enum_service.find_by_id(x.enumId)) \
 			.to_list()
 

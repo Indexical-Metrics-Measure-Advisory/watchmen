@@ -10,7 +10,8 @@ from watchmen_model.console import ConnectedSpaceGraphic
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.auth import get_console_principal, get_super_admin_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator, ask_tuple_delete_enabled
-from watchmen_rest_doll.util import is_blank, trans, trans_readonly
+from watchmen_rest_doll.util import trans, trans_readonly
+from watchmen_utilities import is_blank
 
 router = APIRouter()
 
@@ -79,7 +80,7 @@ async def delete_connected_space_graphic_by_id_by_super_admin(
 		raise_404('Not Found')
 
 	if is_blank(connect_id):
-		raise_400('Connect id is required.')
+		raise_400('Connected space id is required.')
 
 	connected_space_graphic_service = get_connected_space_graphic_service(principal_service)
 

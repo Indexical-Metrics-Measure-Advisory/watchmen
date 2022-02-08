@@ -13,8 +13,8 @@ from watchmen_model.system import PersonalAccessToken
 from watchmen_rest.util import raise_400
 from watchmen_rest_doll.auth import get_any_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
-from watchmen_rest_doll.util import is_blank, trans
-from watchmen_utilities import ArrayHelper
+from watchmen_rest_doll.util import trans
+from watchmen_utilities import ArrayHelper, is_blank
 
 router = APIRouter()
 

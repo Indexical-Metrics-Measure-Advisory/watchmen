@@ -6,9 +6,8 @@ from watchmen_meta_service.auth import build_find_user_by_name, build_find_user_
 from watchmen_model.admin import User
 from watchmen_rest import RestApp
 from watchmen_storage import SnowflakeGenerator, TransactionalStorageSPI
-from .connectors import init_kafka, init_rabbitmq, KafkaSettings, RabbitmqSettings
+from watchmen_utilities import is_blank
 from .settings import DollSettings
-from .util import is_blank
 
 
 class DollApp(RestApp):
