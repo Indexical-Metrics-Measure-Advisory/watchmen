@@ -12,6 +12,7 @@ packages = [
 python = "^3.9"
 fastapi = "^0.73.0"
 watchmen-reactor-service = { path = "../watchmen-reactor-service", develop = true }
+watchmen-rest = { path = "../watchmen-rest", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
 kafka-python = { version = "^2.0.2", optional = true }
 aiokafka = { version = "^0.7.2", optional = true }

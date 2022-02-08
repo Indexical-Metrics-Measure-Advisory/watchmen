@@ -12,7 +12,6 @@ packages = [
 python = "^3.9"
 fastapi = "^0.73.0"
 uvicorn = "^0.17.4"
-pydantic = "^1.9.0"
 jsonschema = "^4.4.0"
 python-jose = "^3.3.0"
 jose = "^1.0.0"

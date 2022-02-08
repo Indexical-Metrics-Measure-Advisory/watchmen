@@ -1,12 +1,12 @@
 from typing import Callable, Optional, Tuple
 
 from fastapi import FastAPI
-from watchmen_reactor_surface import ReactorSurface
-
 from watchmen_meta_service.auth import build_find_user_by_name, build_find_user_by_pat
 from watchmen_model.admin import User
-from watchmen_rest import RestApp
+from watchmen_reactor_surface import surface as reactor_surface
 from watchmen_storage import SnowflakeGenerator, TransactionalStorageSPI
+
+from watchmen_rest import RestApp
 from .settings import DollSettings
 
 
@@ -38,7 +38,7 @@ class DollApp(RestApp):
 
 	# noinspection PyMethodMayBeStatic
 	def init_reactor(self) -> None:
-		ReactorSurface.init()
+		reactor_surface.init(self.authentication_manager)
 
 	def on_startup(self, app: FastAPI) -> None:
 		self.init_reactor()
