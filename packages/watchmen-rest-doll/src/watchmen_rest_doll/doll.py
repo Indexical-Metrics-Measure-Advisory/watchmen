@@ -1,6 +1,7 @@
 from typing import Callable, Optional, Tuple
 
 from fastapi import FastAPI
+from watchmen_reactor_surface import ReactorSurface
 
 from watchmen_meta_service.auth import build_find_user_by_name, build_find_user_by_pat
 from watchmen_model.admin import User
@@ -37,8 +38,7 @@ class DollApp(RestApp):
 
 	# noinspection PyMethodMayBeStatic
 	def init_reactor(self) -> None:
-		from watchmen_reactor_service import Reactor
-		Reactor.init()
+		ReactorSurface.init()
 
 	def on_startup(self, app: FastAPI) -> None:
 		self.init_reactor()
