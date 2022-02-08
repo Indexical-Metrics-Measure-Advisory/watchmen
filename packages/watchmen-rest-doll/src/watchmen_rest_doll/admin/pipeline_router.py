@@ -4,12 +4,12 @@ from fastapi import APIRouter, Depends
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
-from watchmen_meta_service.admin import PipelineService
-from watchmen_meta_service.analysis import PipelineIndexService
-from watchmen_meta_service.common import TupleService
+from watchmen_meta.admin import PipelineService
+from watchmen_meta.analysis import PipelineIndexService
+from watchmen_meta.common import TupleService
 from watchmen_model.admin import Pipeline, PipelineAction, PipelineStage, PipelineUnit, UserRole
 from watchmen_model.common import PipelineId, TenantId
-from watchmen_reactor_service.cache import CacheService
+from watchmen_reactor.cache import CacheService
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.auth import get_admin_principal, get_super_admin_principal
 from watchmen_rest_doll.doll import ask_engine_index_enabled, ask_meta_storage, \

@@ -4,7 +4,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends
 
 from watchmen_auth import PrincipalService
-from watchmen_meta_service.gui import FavoriteService
+from watchmen_meta.gui import FavoriteService
 from watchmen_model.admin import UserRole
 from watchmen_model.common import TenantId, UserId
 from watchmen_model.gui import Favorite

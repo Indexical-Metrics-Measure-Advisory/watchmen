@@ -3,7 +3,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Body, Depends
 
 from watchmen_auth import PrincipalService
-from watchmen_meta_service.system import ExternalWriterService
+from watchmen_meta.system import ExternalWriterService
 from watchmen_model.admin import UserRole
 from watchmen_model.common import DataPage, ExternalWriterId, Pageable
 from watchmen_model.system import ExternalWriter

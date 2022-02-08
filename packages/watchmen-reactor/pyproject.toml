@@ -1,29 +1,23 @@
 [tool.poetry]
-name = "watchmen-reactor-surface"
+name = "watchmen-reactor"
 version = "16.0.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
 packages = [
-    { include = "watchmen_reactor_surface", from = "src" }
+    { include = "watchmen_reactor", from = "src" }
 ]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-fastapi = "^0.73.0"
-watchmen-reactor = { path = "../watchmen-reactor", develop = true }
-watchmen-rest = { path = "../watchmen-rest", develop = true }
+cacheout = "^0.13.1"
+watchmen-meta = { path = "../watchmen-meta", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
-kafka-python = { version = "^2.0.2", optional = true }
-aiokafka = { version = "^0.7.2", optional = true }
-aio-pika = { version = "^6.8.2", optional = true }
 
 [tool.poetry.dev-dependencies]
 
 [tool.poetry.extras]
 mysql = ["watchmen-storage-mysql"]
-kafka = ["kafka-python", "aiokafka"]
-rabbitmq = ["aio-pika"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
