@@ -6,6 +6,7 @@ ArrayPredicate = Callable[[Any], bool]
 ArrayTransform = Callable[[Any], Any]
 ArrayAction = Callable[[Any], None]
 ArrayCompare = Callable[[Any, Any], bool]
+ArrayReduce = Callable[[Any, Any], Any]
 
 
 def equals(a: Any, b: Any) -> bool:
@@ -37,7 +38,7 @@ class ArrayHelper:
 	def to_list(self):
 		return self.a_list
 
-	def to_map(self, as_key: ArrayTransform, as_value: ArrayTransform) -> dict[Any, Any]:
+	def to_map(self, as_key: ArrayTransform, as_value: ArrayTransform = lambda x: x) -> dict[Any, Any]:
 		a_dict = {}
 		for an_element in self.a_list:
 			key = as_key(an_element)
@@ -90,11 +91,27 @@ class ArrayHelper:
 			new_list.append(func(an_element))
 		return ArrayHelper(new_list)
 
-	def distinct(self, func: ArrayCompare = equals) -> ArrayHelper:
+	def reduce(self, func: ArrayReduce, accumulator: Optional[Any]) -> Any:
+		if len(self.a_list) == 0:
+			return accumulator
+
+		if accumulator is None:
+			accumulator = self.a_list[0]
+			rest = self.a_list[1:]
+		else:
+			rest = self.a_list
+		for an_element in rest:
+			accumulator = func(accumulator, an_element)
+		return accumulator
+
+	# noinspection DuplicatedCode
+	def distinct(self, func: Optional[ArrayCompare] = None) -> ArrayHelper:
 		"""
 		remove elements duplicated which satisfies given compare function
 		"""
-		# noinspection DuplicatedCode
+		if func is None:
+			return ArrayHelper(list(set(self.a_list)))
+
 		new_list: list = []
 		for an_element in self.a_list:
 			found: bool = False
@@ -106,7 +123,7 @@ class ArrayHelper:
 				new_list.append(an_element)
 		return ArrayHelper(new_list)
 
-	def difference(self, another_list: Optional[list], func: ArrayCompare = equals) -> ArrayHelper:
+	def difference(self, another_list: Optional[list], func: Optional[ArrayCompare] = equals) -> ArrayHelper:
 		"""
 		pick elements which included in self but not in another
 		"""
