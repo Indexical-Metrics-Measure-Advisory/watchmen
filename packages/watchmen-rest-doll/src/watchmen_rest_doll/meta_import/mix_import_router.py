@@ -6,8 +6,10 @@ from pydantic import BaseModel
 
 from watchmen_auth import PrincipalService
 from watchmen_meta.admin import UserService
+from watchmen_meta.system import TenantService
 from watchmen_model.admin import Pipeline, Space, Topic, UserRole
 from watchmen_model.common import ConnectedSpaceId, PipelineId, SpaceId, TenantBasedTuple, TenantId, TopicId
+from watchmen_model.system import Tenant
 from watchmen_rest.util import raise_400, raise_403
 from watchmen_rest_doll.auth import get_any_admin_principal
 from watchmen_rest_doll.console.connected_space_router import ConnectedSpaceWithSubjects
@@ -100,11 +102,19 @@ def fill_tenant_id(request: MixImportDataRequest, tenant_id: TenantId) -> None:
 		.each(lambda x: set_tenant_id(x, tenant_id))
 
 
-def validate_tenant_id_when_super_admin(request: MixImportDataRequest) -> None:
-	tenant_id = find_tenant_id(request)
-	if tenant_id is None:
+def validate_tenant_id_when_super_admin(
+		request: MixImportDataRequest, user_service: UserService, tenant_id: TenantId) -> None:
+	found_tenant_id = find_tenant_id(request)
+	if found_tenant_id is None:
 		raise_400('Tenant id is required.')
-	fill_tenant_id(request, tenant_id)
+	if found_tenant_id == tenant_id:
+		raise_400('Incorrect tenant id.')
+	tenant_service = TenantService(
+		user_service.storage, user_service.snowflake_generator, user_service.principal_service)
+	tenant: Optional[Tenant] = tenant_service.find_by_id(found_tenant_id)
+	if tenant is None:
+		raise_400('Incorrect tenant id.')
+	fill_tenant_id(request, found_tenant_id)
 
 
 def validate_tenant_id_when_tenant_admin(request: MixImportDataRequest, tenant_id: TenantId) -> None:
@@ -114,9 +124,11 @@ def validate_tenant_id_when_tenant_admin(request: MixImportDataRequest, tenant_i
 	fill_tenant_id(request, found_tenant_id)
 
 
-def validate_tenant_id(request: MixImportDataRequest, principal_service: PrincipalService) -> None:
+def validate_tenant_id(
+		request: MixImportDataRequest,
+		user_service: UserService, principal_service: PrincipalService) -> None:
 	if principal_service.is_super_admin():
-		validate_tenant_id_when_super_admin(request)
+		validate_tenant_id_when_super_admin(request, user_service, principal_service.get_tenant_id())
 	elif principal_service.is_tenant_admin():
 		validate_tenant_id_when_tenant_admin(request, principal_service.get_tenant_id())
 	else:
@@ -130,13 +142,20 @@ def clear_data_source_id(topics: Optional[List[Topic]]):
 	ArrayHelper(topics).each(clear)
 
 
+def prepare_and_validate_request(
+		request: MixImportDataRequest,
+		user_service: UserService, principal_service: PrincipalService) -> None:
+	validate_tenant_id(request, user_service, principal_service)
+	clear_data_source_id(request.topics)
+
+
 def import_on_non_redundant(
 		request: MixImportDataRequest,
 		user_service: UserService, principal_service: PrincipalService) -> MixImportDataResponse:
 	"""
 	import with non-redundant, any tuple already exists will be ignored
 	"""
-	validate_tenant_id(request, principal_service)
+	prepare_and_validate_request(request, user_service, principal_service)
 	pass
 
 
@@ -146,7 +165,7 @@ def import_on_replace(
 	"""
 	import with replace
 	"""
-	validate_tenant_id(request, principal_service)
+	prepare_and_validate_request(request, user_service, principal_service)
 	pass
 
 
@@ -156,7 +175,7 @@ def import_on_force_new(
 	"""
 	import with force new
 	"""
-	validate_tenant_id(request, principal_service)
+	prepare_and_validate_request(request, user_service, principal_service)
 	pass
 
 
