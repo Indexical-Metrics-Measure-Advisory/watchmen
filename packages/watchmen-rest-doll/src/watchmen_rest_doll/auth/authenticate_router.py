@@ -4,12 +4,12 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
+
 from watchmen_auth import PrincipalService
 from watchmen_meta.admin import UserService
 from watchmen_meta.auth import build_find_user_by_name
 from watchmen_model.admin import User
 from watchmen_model.system import Token
-
 from watchmen_rest import create_jwt_token
 from watchmen_rest.util import raise_401
 from watchmen_rest_doll.doll import ask_access_token_expires_in, ask_jwt_params, ask_meta_storage, \
