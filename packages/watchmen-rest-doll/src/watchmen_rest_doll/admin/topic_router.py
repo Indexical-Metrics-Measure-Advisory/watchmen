@@ -65,6 +65,7 @@ def build_topic_index(topic: Topic, topic_service: TopicService) -> None:
 	get_topic_index_service(topic_service).build_index(topic)
 
 
+# noinspection PyUnusedLocal
 def build_presto_schema(topic: Topic, topic_service: TopicService) -> None:
 	if not ask_presto_enabled():
 		return
@@ -78,6 +79,7 @@ def post_save_topic(topic: Topic, topic_service: TopicService) -> None:
 	build_presto_schema(topic, topic_service)
 
 
+# noinspection PyUnusedLocal
 def ask_save_topic_action(topic_service: TopicService, principal_service: PrincipalService) -> Callable[[Topic], Topic]:
 	def action(topic: Topic) -> Topic:
 		if topic_service.is_storable_id_faked(topic.topicId):
@@ -210,6 +212,7 @@ def remove_topic_index(topic_id: TopicId, topic_service: TopicService) -> None:
 	get_topic_index_service(topic_service).remove_index(topic_id)
 
 
+# noinspection PyUnusedLocal
 def remove_presto_schema(topic_id: TopicId, topic_service: TopicService) -> None:
 	if not ask_presto_enabled():
 		return

@@ -140,6 +140,7 @@ def validate_topics(space_service: SpaceService, topic_ids: List[TopicId], tenan
 		raise_400('Topic ids do not match')
 
 
+# noinspection PyUnusedLocal
 def ask_save_space_action(space_service: SpaceService, principal_service: PrincipalService) -> Callable[[Space], Space]:
 	def action(space: Space) -> Space:
 		if space_service.is_storable_id_faked(space.spaceId):

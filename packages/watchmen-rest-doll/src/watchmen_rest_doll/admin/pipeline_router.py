@@ -87,6 +87,7 @@ def post_save_pipeline(pipeline: Pipeline, pipeline_service: PipelineService) ->
 	build_pipeline_cache(pipeline)
 
 
+# noinspection PyUnusedLocal
 def ask_save_pipeline_action(
 		pipeline_service: PipelineService, principal_service: PrincipalService) -> Callable[[Pipeline], Pipeline]:
 	def action(pipeline: Pipeline) -> Pipeline:
