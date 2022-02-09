@@ -8,6 +8,7 @@ class DollSettings(RestSettings):
 
 
 class FirstTest(TestCase):
+	# noinspection PyMethodMayBeStatic
 	def test_one(self):
 		x = DollSettings()
 		print(x.APP_NAME)

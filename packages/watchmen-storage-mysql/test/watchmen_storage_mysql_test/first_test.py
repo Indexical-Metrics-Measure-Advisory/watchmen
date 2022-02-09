@@ -16,12 +16,14 @@ class FirstTest(TestCase):
 			.build()
 
 	def test_one(self):
+		# noinspection PyUnusedLocal
 		def shutdown_listener(
 				signal: CompetitiveWorkerShutdownSignal, data_center_id: int, worker_id: int,
 				restart: CompetitiveWorkerRestarter
 		) -> None:
 			print(signal)
 
+		# noinspection PyUnusedLocal
 		worker_id_generator = competitive_worker_id(StorageBasedWorkerIdGenerator(
 			storage=self.storage,
 			shutdown_listener=shutdown_listener

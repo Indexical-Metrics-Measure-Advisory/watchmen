@@ -14,6 +14,7 @@ class KafkaSettings(SettingsModel):
 	topics: List[str] = []
 
 
+# noinspection PyUnusedLocal
 async def import_raw_topic_data(topic_data: TopicData) -> None:
 	# TODO consume topic data from kafka
 	pass

@@ -129,6 +129,7 @@ def remove_user_group(
 		.each(lambda x: update_user_or_space(service, x))
 
 
+# noinspection PyUnusedLocal
 def ask_save_user_group_action(
 		user_group_service: UserGroupService, principal_service: PrincipalService) -> Callable[[UserGroup], UserGroup]:
 	def action(user_group: UserGroup) -> UserGroup:

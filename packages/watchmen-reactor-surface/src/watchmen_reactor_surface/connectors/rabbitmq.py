@@ -19,6 +19,7 @@ class RabbitmqSettings(SettingsModel):
 	auto_delete: bool
 
 
+# noinspection PyUnusedLocal
 async def import_raw_topic_data(topic_data: TopicData) -> None:
 	# TODO consume topic data from rabbitmq
 	# if topic_event.user is None:

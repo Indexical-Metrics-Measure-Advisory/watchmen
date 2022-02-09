@@ -4,6 +4,7 @@ from watchmen_rest_doll.util import crypt_password
 
 
 class CreateDefaultUsers(TestCase):
+	# noinspection PyMethodMayBeStatic
 	def test_create(self):
 		# for imma-super
 		print(f'imma-super[{crypt_password("change-me")}]')
