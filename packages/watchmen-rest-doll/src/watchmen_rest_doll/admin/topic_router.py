@@ -80,7 +80,6 @@ def post_save_topic(topic: Topic, topic_service: TopicService) -> None:
 
 def ask_save_topic_action(topic_service: TopicService, principal_service: PrincipalService) -> Callable[[Topic], Topic]:
 	def action(topic: Topic) -> Topic:
-		validate_tenant_id(topic, principal_service)
 		if topic_service.is_storable_id_faked(topic.topicId):
 			topic_service.redress_storable_id(topic)
 			redress_factor_ids(topic, topic_service)
@@ -108,6 +107,7 @@ def ask_save_topic_action(topic_service: TopicService, principal_service: Princi
 async def save_topic(
 		topic: Topic, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> Topic:
+	validate_tenant_id(topic, principal_service)
 	topic_service = get_topic_service(principal_service)
 	action = ask_save_topic_action(topic_service, principal_service)
 	return trans(topic_service, lambda: action(topic))
