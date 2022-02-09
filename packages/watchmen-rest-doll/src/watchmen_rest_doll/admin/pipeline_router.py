@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Callable, List, Optional
 
 from fastapi import APIRouter, Depends
 from starlette.responses import Response
@@ -87,35 +87,39 @@ def post_save_pipeline(pipeline: Pipeline, pipeline_service: PipelineService) ->
 	build_pipeline_cache(pipeline)
 
 
+def ask_save_pipeline_action(
+		pipeline_service: PipelineService, principal_service: PrincipalService) -> Callable[[Pipeline], Pipeline]:
+	def action(pipeline: Pipeline) -> Pipeline:
+		validate_tenant_id(pipeline, principal_service)
+		if pipeline_service.is_storable_id_faked(pipeline.pipelineId):
+			pipeline_service.redress_storable_id(pipeline)
+			redress_ids(pipeline, pipeline_service)
+			# noinspection PyTypeChecker
+			pipeline: Pipeline = pipeline_service.create(pipeline)
+		else:
+			# noinspection PyTypeChecker
+			existing_pipeline: Optional[Pipeline] = pipeline_service.find_by_id(pipeline.pipelineId)
+			if existing_pipeline is not None:
+				if existing_pipeline.tenantId != pipeline.tenantId:
+					raise_403()
+
+			redress_ids(pipeline, pipeline_service)
+			# noinspection PyTypeChecker
+			pipeline: Pipeline = pipeline_service.update(pipeline)
+
+		post_save_pipeline(pipeline, pipeline_service)
+
+		return pipeline
+
+	return action
+
+
 @router.post('/pipeline', tags=[UserRole.ADMIN], response_model=Pipeline)
 async def save_pipeline(
 		pipeline: Pipeline, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> Pipeline:
-	validate_tenant_id(pipeline, principal_service)
-
 	pipeline_service = get_pipeline_service(principal_service)
-
-	def action(a_pipeline: Pipeline) -> Pipeline:
-		if pipeline_service.is_storable_id_faked(a_pipeline.pipelineId):
-			pipeline_service.redress_storable_id(a_pipeline)
-			redress_ids(a_pipeline, pipeline_service)
-			# noinspection PyTypeChecker
-			a_pipeline: Pipeline = pipeline_service.create(a_pipeline)
-		else:
-			# noinspection PyTypeChecker
-			existing_pipeline: Optional[Pipeline] = pipeline_service.find_by_id(a_pipeline.pipelineId)
-			if existing_pipeline is not None:
-				if existing_pipeline.tenantId != a_pipeline.tenantId:
-					raise_403()
-
-			redress_ids(a_pipeline, pipeline_service)
-			# noinspection PyTypeChecker
-			a_pipeline: Pipeline = pipeline_service.update(a_pipeline)
-
-		post_save_pipeline(a_pipeline, pipeline_service)
-
-		return a_pipeline
-
+	action = ask_save_pipeline_action(pipeline_service, principal_service)
 	return trans(pipeline_service, lambda: action(pipeline))
 
 
