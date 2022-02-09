@@ -8,9 +8,9 @@ from .console import connected_space_graphic_router, connected_space_router, das
 	subject_router
 from .doll import doll
 from .gui import favorite_router, last_snapshot_router
-from .meta_import import connected_space_import_router, dashboard_import_router, pipeline_import_router, \
-	report_import_router, space_import_router, subject_import_router, topic_import_router, user_group_import_router, \
-	user_import_router
+from .meta_import import connected_space_import_router, dashboard_import_router, mix_import_router, \
+	pipeline_import_router, report_import_router, space_import_router, subject_import_router, topic_import_router, \
+	user_group_import_router, user_import_router
 from .system import data_source_router, external_writer_router, pat_router, tenant_router
 
 app = doll.construct()
@@ -42,6 +42,7 @@ ArrayHelper([
 	space_import_router.router, topic_import_router.router, pipeline_import_router.router,
 	connected_space_import_router.router, subject_import_router.router, report_import_router.router,
 	dashboard_import_router.router,
+	mix_import_router.router
 ]).each(lambda x: app.include_router(x))
 
 ArrayHelper(get_reactor_routers()).each(lambda x: app.include_router(x))
