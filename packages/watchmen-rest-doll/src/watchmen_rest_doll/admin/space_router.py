@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Callable, List, Optional
 
 from fastapi import APIRouter, Body, Depends
 
@@ -140,48 +140,51 @@ def validate_topics(space_service: SpaceService, topic_ids: List[TopicId], tenan
 		raise_400('Topic ids do not match')
 
 
+def ask_save_space_action(space_service: SpaceService, principal_service: PrincipalService) -> Callable[[Space], Space]:
+	def action(space: Space) -> Space:
+		validate_tenant_id(space, principal_service)
+		if space_service.is_storable_id_faked(space.spaceId):
+			space_service.redress_storable_id(space)
+			user_group_ids = ArrayHelper(space.groupIds).distinct().to_list()
+			space.groupIds = user_group_ids
+			topic_ids = ArrayHelper(space.topicIds).distinct().to_list()
+			space.topicIds = topic_ids
+			# check topics
+			validate_topics(space_service, topic_ids, space.tenantId)
+			# noinspection PyTypeChecker
+			space: Space = space_service.create(space)
+			# synchronize space to user groups
+			sync_space_to_groups(space_service, space.spaceId, user_group_ids, space.tenantId)
+		else:
+			# noinspection PyTypeChecker,DuplicatedCode
+			existing_space: Optional[Space] = space_service.find_by_id(space.spaceId)
+			if existing_space is not None:
+				if existing_space.tenantId != space.tenantId:
+					raise_403()
+
+			user_group_ids = ArrayHelper(space.groupIds).distinct().to_list()
+			space.groupIds = user_group_ids
+			topic_ids = ArrayHelper(space.topicIds).distinct().to_list()
+			space.topicIds = topic_ids
+			# check topics
+			validate_topics(space_service, topic_ids, space.tenantId)
+			# noinspection PyTypeChecker
+			space: Space = space_service.update(space)
+			# remove user from user groups, in case user groups are removed
+			removed_user_group_ids = ArrayHelper(existing_space.groupIds).difference(user_group_ids).to_list()
+			remove_space_from_groups(space_service, space.spaceId, removed_user_group_ids, space.tenantId)
+			# synchronize user to user groups
+			sync_space_to_groups(space_service, space.spaceId, user_group_ids, space.tenantId)
+		return space
+
+	return action
+
+
 @router.post('/space', tags=[UserRole.ADMIN], response_model=Space)
 async def save_space(
 		space: Space, principal_service: PrincipalService = Depends(get_admin_principal)) -> Space:
-	validate_tenant_id(space, principal_service)
-
 	space_service = get_space_service(principal_service)
-
-	def action(a_space: Space) -> Space:
-		if space_service.is_storable_id_faked(a_space.spaceId):
-			space_service.redress_storable_id(a_space)
-			user_group_ids = ArrayHelper(a_space.groupIds).distinct().to_list()
-			a_space.groupIds = user_group_ids
-			topic_ids = ArrayHelper(a_space.topicIds).distinct().to_list()
-			a_space.topicIds = topic_ids
-			# check topics
-			validate_topics(space_service, topic_ids, a_space.tenantId)
-			# noinspection PyTypeChecker
-			a_space: Space = space_service.create(a_space)
-			# synchronize space to user groups
-			sync_space_to_groups(space_service, a_space.spaceId, user_group_ids, a_space.tenantId)
-		else:
-			# noinspection PyTypeChecker,DuplicatedCode
-			existing_space: Optional[Space] = space_service.find_by_id(a_space.spaceId)
-			if existing_space is not None:
-				if existing_space.tenantId != a_space.tenantId:
-					raise_403()
-
-			user_group_ids = ArrayHelper(a_space.groupIds).distinct().to_list()
-			a_space.groupIds = user_group_ids
-			topic_ids = ArrayHelper(a_space.topicIds).distinct().to_list()
-			a_space.topicIds = topic_ids
-			# check topics
-			validate_topics(space_service, topic_ids, a_space.tenantId)
-			# noinspection PyTypeChecker
-			a_space: Space = space_service.update(a_space)
-			# remove user from user groups, in case user groups are removed
-			removed_user_group_ids = ArrayHelper(existing_space.groupIds).difference(user_group_ids).to_list()
-			remove_space_from_groups(space_service, a_space.spaceId, removed_user_group_ids, a_space.tenantId)
-			# synchronize user to user groups
-			sync_space_to_groups(space_service, a_space.spaceId, user_group_ids, a_space.tenantId)
-		return a_space
-
+	action = ask_save_space_action(space_service, principal_service)
 	return trans(space_service, lambda: action(space))
 
 
