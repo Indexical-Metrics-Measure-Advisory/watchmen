@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Callable, List, Optional
 
 from fastapi import APIRouter, Body, Depends
 
@@ -78,35 +78,38 @@ def post_save_topic(topic: Topic, topic_service: TopicService) -> None:
 	build_presto_schema(topic, topic_service)
 
 
+def ask_save_topic_action(topic_service: TopicService, principal_service: PrincipalService) -> Callable[[Topic], Topic]:
+	def action(topic: Topic) -> Topic:
+		validate_tenant_id(topic, principal_service)
+		if topic_service.is_storable_id_faked(topic.topicId):
+			topic_service.redress_storable_id(topic)
+			redress_factor_ids(topic, topic_service)
+			# noinspection PyTypeChecker
+			topic: Topic = topic_service.create(topic)
+		else:
+			# noinspection PyTypeChecker
+			existing_topic: Optional[Topic] = topic_service.find_by_id(topic.topicId)
+			if existing_topic is not None:
+				if existing_topic.tenantId != topic.tenantId:
+					raise_403()
+
+			redress_factor_ids(topic, topic_service)
+			# noinspection PyTypeChecker
+			topic: Topic = topic_service.update(topic)
+
+		post_save_topic(topic, topic_service)
+
+		return topic
+
+	return action
+
+
 @router.post("/topic", tags=[UserRole.ADMIN], response_model=Topic)
 async def save_topic(
 		topic: Topic, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> Topic:
-	validate_tenant_id(topic, principal_service)
-
 	topic_service = get_topic_service(principal_service)
-
-	def action(a_topic: Topic) -> Topic:
-		if topic_service.is_storable_id_faked(a_topic.topicId):
-			topic_service.redress_storable_id(a_topic)
-			redress_factor_ids(a_topic, topic_service)
-			# noinspection PyTypeChecker
-			a_topic: Topic = topic_service.create(a_topic)
-		else:
-			# noinspection PyTypeChecker
-			existing_topic: Optional[Topic] = topic_service.find_by_id(a_topic.topicId)
-			if existing_topic is not None:
-				if existing_topic.tenantId != a_topic.tenantId:
-					raise_403()
-
-			redress_factor_ids(a_topic, topic_service)
-			# noinspection PyTypeChecker
-			a_topic: Topic = topic_service.update(a_topic)
-
-		post_save_topic(a_topic, topic_service)
-
-		return a_topic
-
+	action = ask_save_topic_action(topic_service, principal_service)
 	return trans(topic_service, lambda: action(topic))
 
 
