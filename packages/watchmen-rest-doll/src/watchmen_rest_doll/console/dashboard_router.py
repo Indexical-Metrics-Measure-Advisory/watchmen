@@ -206,29 +206,29 @@ def validate_reports(
 
 def ask_save_dashboard_action(
 		dashboard_service: DashboardService, principal_service: PrincipalService) -> Callable[[Dashboard], Dashboard]:
-	def action(a_dashboard: Dashboard) -> Dashboard:
-		a_dashboard.userId = principal_service.get_user_id()
-		a_dashboard.tenantId = principal_service.get_tenant_id()
-		a_dashboard.lastVisitTime = get_current_time_in_seconds()
+	def action(dashboard: Dashboard) -> Dashboard:
+		dashboard.userId = principal_service.get_user_id()
+		dashboard.tenantId = principal_service.get_tenant_id()
+		dashboard.lastVisitTime = get_current_time_in_seconds()
 		# noinspection DuplicatedCode
-		if dashboard_service.is_storable_id_faked(a_dashboard.dashboardId):
-			dashboard_service.redress_storable_id(a_dashboard)
-			validate_reports(a_dashboard, dashboard_service, principal_service)
+		if dashboard_service.is_storable_id_faked(dashboard.dashboardId):
+			dashboard_service.redress_storable_id(dashboard)
+			validate_reports(dashboard, dashboard_service, principal_service)
 			# noinspection PyTypeChecker
-			a_dashboard: Dashboard = dashboard_service.create(a_dashboard)
+			dashboard: Dashboard = dashboard_service.create(dashboard)
 		else:
 			# noinspection PyTypeChecker
-			existing_dashboard: Optional[Dashboard] = dashboard_service.find_by_id(a_dashboard.dashboardId)
+			existing_dashboard: Optional[Dashboard] = dashboard_service.find_by_id(dashboard.dashboardId)
 			if existing_dashboard is not None:
-				if existing_dashboard.tenantId != a_dashboard.tenantId:
+				if existing_dashboard.tenantId != dashboard.tenantId:
 					raise_403()
-				if existing_dashboard.userId != a_dashboard.userId:
+				if existing_dashboard.userId != dashboard.userId:
 					raise_403()
 
-			validate_reports(a_dashboard, dashboard_service, principal_service)
+			validate_reports(dashboard, dashboard_service, principal_service)
 			# noinspection PyTypeChecker
-			a_dashboard: Dashboard = dashboard_service.update(a_dashboard)
-		return a_dashboard
+			dashboard: Dashboard = dashboard_service.update(dashboard)
+		return dashboard
 
 	return action
 
