@@ -13,7 +13,7 @@ from watchmen_rest_doll.auth import get_any_admin_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
 from watchmen_rest_doll.util import trans
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank
-from .validator import get_user_service, validate_users
+from .validator import get_user_service, validate_user_based_tuples
 
 router = APIRouter()
 
@@ -79,7 +79,7 @@ async def import_dashboards(
 	connected_space_service = get_connected_space_service(principal_service)
 
 	def action() -> None:
-		validate_users(connected_spaces, get_user_service(connected_space_service), principal_service)
+		validate_user_based_tuples(connected_spaces, get_user_service(connected_space_service), principal_service)
 		save = ask_save_connected_space_action(connected_space_service, principal_service)
 		# noinspection PyTypeChecker
 		ArrayHelper(connected_spaces).each(lambda x: save(x))
