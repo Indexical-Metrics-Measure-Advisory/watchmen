@@ -12,6 +12,7 @@ from watchmen_rest_doll.console import ask_save_report_action
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
 from watchmen_rest_doll.util import trans
 from watchmen_utilities import ArrayHelper
+from .validator import get_user_service, validate_users
 
 router = APIRouter()
 
@@ -31,6 +32,7 @@ async def import_dashboards(
 	report_service = get_report_service(principal_service)
 
 	def action() -> None:
+		validate_users(reports, get_user_service(report_service), principal_service)
 		save = ask_save_report_action(report_service, principal_service)
 		# noinspection PyTypeChecker
 		ArrayHelper(reports).each(lambda x: save(x))
