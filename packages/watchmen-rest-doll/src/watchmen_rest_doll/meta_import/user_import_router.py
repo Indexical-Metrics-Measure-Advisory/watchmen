@@ -11,6 +11,7 @@ from watchmen_rest_doll.auth import get_any_admin_principal
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
 from watchmen_rest_doll.util import trans
 from watchmen_utilities import ArrayHelper
+from .validator import validate_tenant_based_tuples
 
 router = APIRouter()
 
@@ -30,6 +31,7 @@ async def import_users(
 	user_service = get_user_service(principal_service)
 
 	def action() -> None:
+		validate_tenant_based_tuples(users, user_service, principal_service)
 		save = ask_save_user_action(user_service, principal_service)
 		# noinspection PyTypeChecker
 		ArrayHelper(users).each(lambda x: save(x))

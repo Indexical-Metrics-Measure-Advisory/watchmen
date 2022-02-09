@@ -12,7 +12,7 @@ from watchmen_rest_doll.console import ask_save_subject_action
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
 from watchmen_rest_doll.util import trans
 from watchmen_utilities import ArrayHelper
-from .validator import get_user_service, validate_users
+from .validator import get_user_service, validate_user_based_tuples
 
 router = APIRouter()
 
@@ -32,7 +32,7 @@ async def import_dashboards(
 	subject_service = get_subject_service(principal_service)
 
 	def action() -> None:
-		validate_users(subjects, get_user_service(subject_service), principal_service)
+		validate_user_based_tuples(subjects, get_user_service(subject_service), principal_service)
 		save = ask_save_subject_action(subject_service, principal_service)
 		# noinspection PyTypeChecker
 		ArrayHelper(subjects).each(lambda x: save(x))
