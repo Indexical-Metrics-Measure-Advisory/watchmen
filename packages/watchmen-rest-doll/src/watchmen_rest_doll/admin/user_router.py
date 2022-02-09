@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Callable, List, Optional
 
 from fastapi import APIRouter, Body, Depends
 
@@ -138,12 +138,7 @@ def remove_user_from_groups(
 		.each(lambda x: update_user_group(user_group_service, x))
 
 
-@router.post('/user', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=User)
-async def save_user(user: User, principal_service: PrincipalService = Depends(get_any_admin_principal)) -> User:
-	validate_tenant_id(user, principal_service)
-
-	user_service = get_user_service(principal_service)
-
+def ask_save_user_action(user_service: UserService, principal_service: PrincipalService) -> Callable[[User], User]:
 	def action(an_user: User) -> User:
 		# crypt password
 		pwd = an_user.password
@@ -193,6 +188,15 @@ async def save_user(user: User, principal_service: PrincipalService = Depends(ge
 		clear_pwd(an_user)
 		return an_user
 
+	return action
+
+
+@router.post('/user', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=User)
+async def save_user(user: User, principal_service: PrincipalService = Depends(get_any_admin_principal)) -> User:
+	validate_tenant_id(user, principal_service)
+
+	user_service = get_user_service(principal_service)
+	action = ask_save_user_action(user_service, principal_service)
 	return trans(user_service, action)
 
 
