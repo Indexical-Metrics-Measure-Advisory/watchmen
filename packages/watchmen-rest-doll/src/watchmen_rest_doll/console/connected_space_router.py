@@ -124,7 +124,7 @@ def copy_to_connected_space(
 
 
 @router.get(
-	'/connected-space/connect', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=ConnectedSpaceWithSubjects)
+	'/connected_space/connect', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=ConnectedSpaceWithSubjects)
 async def connect_as_connected_space(
 		space_id: Optional[SpaceId], name: Optional[str], template_ids: Optional[str],
 		principal_service: PrincipalService = Depends(get_console_principal)
