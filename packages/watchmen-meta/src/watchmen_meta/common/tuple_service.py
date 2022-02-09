@@ -101,13 +101,23 @@ class TupleService(EntityService):
 						name=self.get_storable_id_column_name(), value=self.get_storable_id(a_tuple)),
 					EntityCriteriaExpression(name=self.get_optimistic_column_name(), value=version)
 				],
-				update=self.ignore_optimistic_keys(self.get_entity_shaper().serialize(a_tuple))
+				# to avoid update created columns in update
+				update=self.try_to_ignore_created_columns(
+					self.ignore_optimistic_keys(self.get_entity_shaper().serialize(a_tuple)))
 			))
 			if updated_count == 0:
 				a_tuple.version = version
 				raise OptimisticLockException('Update 0 row might be caused by optimistic lock.')
 		else:
-			updated_count = self.storage.update_one(a_tuple, self.get_entity_id_helper())
+			updated_count = self.storage.update_only(self.get_entity_updater(
+				criteria=[
+					EntityCriteriaExpression(
+						name=self.get_storable_id_column_name(), value=self.get_storable_id(a_tuple))
+				],
+				# to avoid update created columns in update
+				update=self.try_to_ignore_created_columns(
+					self.ignore_storable_id(self.get_entity_shaper().serialize(a_tuple)))
+			))
 			if updated_count == 0:
 				raise TupleNotFoundException('Update 0 row might be caused by tuple not found.')
 		return a_tuple
