@@ -1,4 +1,4 @@
-from typing import List, Optional, Union
+from typing import Callable, List, Optional, Union
 
 from fastapi import APIRouter, Body, Depends
 
@@ -129,62 +129,66 @@ def remove_user_group(
 		.each(lambda x: update_user_or_space(service, x))
 
 
-@router.post('/user_group', tags=[UserRole.ADMIN], response_model=UserGroup)
-async def save_user_group(
-		user_group: UserGroup, principal_service: PrincipalService = Depends(get_admin_principal)) -> UserGroup:
-	validate_tenant_id(user_group, principal_service)
-
-	user_group_service = get_user_group_service(principal_service)
-
-	def action(group: UserGroup) -> UserGroup:
-		if user_group_service.is_storable_id_faked(group.userGroupId):
-			user_group_service.redress_storable_id(group)
-			user_ids = ArrayHelper(group.userIds).distinct().to_list()
-			group.userIds = user_ids
-			space_ids = ArrayHelper(group.spaceIds).distinct().to_list()
-			group.spaceIds = space_ids
+def ask_save_user_group_action(
+		user_group_service: UserGroupService, principal_service: PrincipalService) -> Callable[[UserGroup], UserGroup]:
+	def action(user_group: UserGroup) -> UserGroup:
+		validate_tenant_id(user_group, principal_service)
+		if user_group_service.is_storable_id_faked(user_group.userGroupId):
+			user_group_service.redress_storable_id(user_group)
+			user_ids = ArrayHelper(user_group.userIds).distinct().to_list()
+			user_group.userIds = user_ids
+			space_ids = ArrayHelper(user_group.spaceIds).distinct().to_list()
+			user_group.spaceIds = space_ids
 			# noinspection PyTypeChecker
-			group: UserGroup = user_group_service.create(group)
+			user_group: UserGroup = user_group_service.create(user_group)
 			# synchronize user group to user
 			sync_group(
-				get_user_service(user_group_service), group.userGroupId, user_ids, group.tenantId, 'User')
+				get_user_service(user_group_service), user_group.userGroupId, user_ids, user_group.tenantId, 'User')
 			# synchronize user group to space
 			sync_group(
-				get_space_service(user_group_service), group.userGroupId, space_ids, group.tenantId,
+				get_space_service(user_group_service), user_group.userGroupId, space_ids, user_group.tenantId,
 				'Space')
 		else:
 			# noinspection PyTypeChecker,DuplicatedCode
-			existing_user_group: Optional[UserGroup] = user_group_service.find_by_id(group.userGroupId)
+			existing_user_group: Optional[UserGroup] = user_group_service.find_by_id(user_group.userGroupId)
 			if existing_user_group is not None:
-				if existing_user_group.tenantId != group.tenantId:
+				if existing_user_group.tenantId != user_group.tenantId:
 					raise_403()
 
-			user_ids = ArrayHelper(group.userIds).distinct().to_list()
-			group.userIds = user_ids
-			space_ids = ArrayHelper(group.spaceIds).distinct().to_list()
-			group.spaceIds = space_ids
+			user_ids = ArrayHelper(user_group.userIds).distinct().to_list()
+			user_group.userIds = user_ids
+			space_ids = ArrayHelper(user_group.spaceIds).distinct().to_list()
+			user_group.spaceIds = space_ids
 			# noinspection PyTypeChecker
-			group: UserGroup = user_group_service.update(group)
+			user_group: UserGroup = user_group_service.update(user_group)
 			# remove user group from users, in case users are removed
 			removed_user_ids = ArrayHelper(existing_user_group.userIds).difference(user_ids).to_list()
 			remove_user_group(
 				get_user_service(user_group_service),
-				group.userGroupId, removed_user_ids, group.tenantId, 'User')
+				user_group.userGroupId, removed_user_ids, user_group.tenantId, 'User')
 			# synchronize user group to user
 			sync_group(
-				get_user_service(user_group_service), group.userGroupId, user_ids, group.tenantId, 'User')
+				get_user_service(user_group_service), user_group.userGroupId, user_ids, user_group.tenantId, 'User')
 			# remove user group from spaces, in case spaces are removed
 			removed_space_ids = ArrayHelper(existing_user_group.spaceIds).difference(space_ids).to_list()
 			remove_user_group(
 				get_space_service(user_group_service),
-				group.userGroupId, removed_space_ids, group.tenantId, 'Space')
+				user_group.userGroupId, removed_space_ids, user_group.tenantId, 'Space')
 			# synchronize user group to space
 			sync_group(
-				get_space_service(user_group_service), group.userGroupId, space_ids, group.tenantId,
+				get_space_service(user_group_service), user_group.userGroupId, space_ids, user_group.tenantId,
 				'Space')
 
-		return group
+		return user_group
 
+	return action
+
+
+@router.post('/user_group', tags=[UserRole.ADMIN], response_model=UserGroup)
+async def save_user_group(
+		user_group: UserGroup, principal_service: PrincipalService = Depends(get_admin_principal)) -> UserGroup:
+	user_group_service = get_user_group_service(principal_service)
+	action = ask_save_user_group_action(user_group_service, principal_service)
 	return trans(user_group_service, lambda: action(user_group))
 
 
