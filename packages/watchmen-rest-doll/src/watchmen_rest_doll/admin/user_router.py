@@ -140,6 +140,8 @@ def remove_user_from_groups(
 
 def ask_save_user_action(user_service: UserService, principal_service: PrincipalService) -> Callable[[User], User]:
 	def action(an_user: User) -> User:
+		validate_tenant_id(an_user, principal_service)
+
 		# crypt password
 		pwd = an_user.password
 		if is_not_blank(pwd):
@@ -193,11 +195,9 @@ def ask_save_user_action(user_service: UserService, principal_service: Principal
 
 @router.post('/user', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=User)
 async def save_user(user: User, principal_service: PrincipalService = Depends(get_any_admin_principal)) -> User:
-	validate_tenant_id(user, principal_service)
-
 	user_service = get_user_service(principal_service)
 	action = ask_save_user_action(user_service, principal_service)
-	return trans(user_service, action)
+	return trans(user_service, lambda x: action(x))
 
 
 class QueryUserDataPage(DataPage):

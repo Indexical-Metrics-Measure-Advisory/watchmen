@@ -19,16 +19,8 @@ def get_user_service(principal_service: PrincipalService) -> UserService:
 	return UserService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-# @router.post("/import/admin/user", tags=["import"])
-# async def import_user(user: User):
-#     result = get_user(user.userId)
-#     if result is None:
-#         import_user_to_db(user)
-#     else:
-#         update_user_storage(user)
-
 @router.post('/user/import', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
-async def import_user(
+async def import_users(
 		users: List[User], principal_service: PrincipalService = Depends(get_any_admin_principal)) -> None:
 	if users is None:
 		return
