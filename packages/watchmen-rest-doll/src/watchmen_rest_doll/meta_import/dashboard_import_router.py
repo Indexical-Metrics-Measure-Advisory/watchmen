@@ -36,12 +36,3 @@ async def import_dashboards(
 		ArrayHelper(dashboards).each(lambda x: save(x))
 
 	trans(dashboard_service, action)
-
-# @router.post("/import/console/dashboard", tags=["import"])
-# async def import_dashboard(dashboard: ConsoleDashboard, current_user: User = Depends(deps.get_current_user)):
-#     result = load_dashboard_by_id(dashboard.dashboardId, current_user)
-#     dashboard = add_tenant_id_to_model(dashboard, current_user)
-#     if result is None:
-#         import_dashboard_to_db(dashboard)
-#     else:
-#         update_dashboard_to_storage(dashboard)

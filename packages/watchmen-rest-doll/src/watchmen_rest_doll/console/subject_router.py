@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Callable, List, Optional
 
 from fastapi import APIRouter, Depends
 from starlette.responses import Response
@@ -31,18 +31,14 @@ def get_report_service(subject_service: SubjectService) -> ReportService:
 		subject_service.storage, subject_service.snowflake_generator, subject_service.principal_service)
 
 
-@router.post('/subject', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=Subject)
-async def save_subject(
-		subject: Subject, principal_service: PrincipalService = Depends(get_console_principal)
-) -> Subject:
-	subject_service = get_subject_service(principal_service)
-
-	def action(a_subject: Subject) -> Subject:
-		a_subject.userId = principal_service.get_user_id()
-		a_subject.tenantId = principal_service.get_tenant_id()
-		a_subject.lastVisitTime = get_current_time_in_seconds()
-		if subject_service.is_storable_id_faked(a_subject.reportId):
-			connect_id = a_subject.connectId
+def ask_save_subject_action(
+		subject_service: SubjectService, principal_service: PrincipalService) -> Callable[[Subject], Subject]:
+	def action(subject: Subject) -> Subject:
+		subject.userId = principal_service.get_user_id()
+		subject.tenantId = principal_service.get_tenant_id()
+		subject.lastVisitTime = get_current_time_in_seconds()
+		if subject_service.is_storable_id_faked(subject.reportId):
+			connect_id = subject.connectId
 			if is_blank(connect_id):
 				raise_400('Connected space id is required.')
 
@@ -50,27 +46,36 @@ async def save_subject(
 			existing_connected_space: Optional[Subject] = connected_space_service.find_by_id(connect_id)
 			if existing_connected_space is None:
 				raise_400('Incorrect connected space id.')
-			elif existing_connected_space.tenantId != a_subject.tenantId or existing_connected_space.userId != a_subject.userId:
+			elif existing_connected_space.tenantId != subject.tenantId or existing_connected_space.userId != subject.userId:
 				raise_403()
 
-			subject_service.redress_storable_id(a_subject)
+			subject_service.redress_storable_id(subject)
 			# noinspection PyTypeChecker
-			a_subject: Subject = subject_service.create(a_subject)
+			subject: Subject = subject_service.create(subject)
 		else:
 			# noinspection PyTypeChecker
-			existing_subject: Optional[Subject] = subject_service.find_by_id(a_subject.subjectId)
+			existing_subject: Optional[Subject] = subject_service.find_by_id(subject.subjectId)
 			if existing_subject is not None:
-				if existing_subject.tenantId != a_subject.tenantId:
+				if existing_subject.tenantId != subject.tenantId:
 					raise_403()
-				if existing_subject.userId != a_subject.userId:
+				if existing_subject.userId != subject.userId:
 					raise_403()
 
-			a_subject.connectId = existing_subject.connectId
+			subject.connectId = existing_subject.connectId
 
 			# noinspection PyTypeChecker
-			a_subject: Subject = subject_service.update(a_subject)
-		return a_subject
+			subject: Subject = subject_service.update(subject)
+		return subject
 
+	return action
+
+
+@router.post('/subject', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=Subject)
+async def save_subject(
+		subject: Subject, principal_service: PrincipalService = Depends(get_console_principal)
+) -> Subject:
+	subject_service = get_subject_service(principal_service)
+	action = ask_save_subject_action(subject_service, principal_service)
 	return trans(subject_service, lambda: action(subject))
 
 

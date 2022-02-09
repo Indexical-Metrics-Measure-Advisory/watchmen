@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Callable, List, Optional
 
 from fastapi import APIRouter, Body, Depends
 from starlette.responses import Response
@@ -25,18 +25,14 @@ def get_subject_service(report_service: ReportService) -> SubjectService:
 	return SubjectService(report_service.storage, report_service.snowflake_generator, report_service.principal_service)
 
 
-@router.post('/report', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=Report)
-async def save_report(
-		report: Report, principal_service: PrincipalService = Depends(get_console_principal)
-) -> Report:
-	report_service = get_report_service(principal_service)
-
-	def action(a_report: Report) -> Report:
-		a_report.userId = principal_service.get_user_id()
-		a_report.tenantId = principal_service.get_tenant_id()
-		a_report.lastVisitTime = get_current_time_in_seconds()
-		if report_service.is_storable_id_faked(a_report.reportId):
-			subject_id = a_report.subjectId
+def ask_save_report_action(
+		report_service: ReportService, principal_service: PrincipalService) -> Callable[[Report], Report]:
+	def action(report: Report) -> Report:
+		report.userId = principal_service.get_user_id()
+		report.tenantId = principal_service.get_tenant_id()
+		report.lastVisitTime = get_current_time_in_seconds()
+		if report_service.is_storable_id_faked(report.reportId):
+			subject_id = report.subjectId
 			if is_blank(subject_id):
 				raise_400('Subject id is required.')
 
@@ -44,30 +40,39 @@ async def save_report(
 			existing_subject: Optional[Subject] = subject_service.find_by_id(subject_id)
 			if existing_subject is None:
 				raise_400('Incorrect subject id.')
-			elif existing_subject.tenantId != a_report.tenantId or existing_subject.userId != a_report.userId:
+			elif existing_subject.tenantId != report.tenantId or existing_subject.userId != report.userId:
 				raise_403()
 			else:
-				a_report.connectId = existing_subject.connectId
+				report.connectId = existing_subject.connectId
 
-			report_service.redress_storable_id(a_report)
+			report_service.redress_storable_id(report)
 			# noinspection PyTypeChecker
-			a_report: Report = report_service.create(a_report)
+			report: Report = report_service.create(report)
 		else:
 			# noinspection PyTypeChecker
-			existing_report: Optional[Report] = report_service.find_by_id(a_report.reportId)
+			existing_report: Optional[Report] = report_service.find_by_id(report.reportId)
 			if existing_report is not None:
-				if existing_report.tenantId != a_report.tenantId:
+				if existing_report.tenantId != report.tenantId:
 					raise_403()
-				if existing_report.userId != a_report.userId:
+				if existing_report.userId != report.userId:
 					raise_403()
 
-			a_report.subjectId = existing_report.subjectId
-			a_report.connectId = existing_report.connectId
+			report.subjectId = existing_report.subjectId
+			report.connectId = existing_report.connectId
 
 			# noinspection PyTypeChecker
-			a_report: Report = report_service.update(a_report)
-		return a_report
+			report: Report = report_service.update(report)
+		return report
 
+	return action
+
+
+@router.post('/report', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=Report)
+async def save_report(
+		report: Report, principal_service: PrincipalService = Depends(get_console_principal)
+) -> Report:
+	report_service = get_report_service(principal_service)
+	action = ask_save_report_action(report_service, principal_service)
 	return trans(report_service, lambda: action(report))
 
 

@@ -139,56 +139,56 @@ def remove_user_from_groups(
 
 
 def ask_save_user_action(user_service: UserService, principal_service: PrincipalService) -> Callable[[User], User]:
-	def action(an_user: User) -> User:
-		validate_tenant_id(an_user, principal_service)
+	def action(user: User) -> User:
+		validate_tenant_id(user, principal_service)
 
 		# crypt password
-		pwd = an_user.password
+		pwd = user.password
 		if is_not_blank(pwd):
-			an_user.password = crypt_password(pwd)
+			user.password = crypt_password(pwd)
 
-		if user_service.is_storable_id_faked(an_user.userId):
+		if user_service.is_storable_id_faked(user.userId):
 			if principal_service.is_super_admin():
-				if an_user.groupIds is not None and len(an_user.groupIds) != 0:
+				if user.groupIds is not None and len(user.groupIds) != 0:
 					# for super admin create user, there is no user group allowed
 					raise_400('No user group allowed for creating user by super admin.')
-			user_service.redress_storable_id(an_user)
-			user_group_ids = ArrayHelper(an_user.groupIds).distinct().to_list()
-			an_user.groupIds = user_group_ids
+			user_service.redress_storable_id(user)
+			user_group_ids = ArrayHelper(user.groupIds).distinct().to_list()
+			user.groupIds = user_group_ids
 			# noinspection PyTypeChecker
-			an_user: User = user_service.create(an_user)
+			user: User = user_service.create(user)
 			# synchronize user to user groups
-			sync_user_to_groups(user_service, an_user.userId, user_group_ids, an_user.tenantId)
+			sync_user_to_groups(user_service, user.userId, user_group_ids, user.tenantId)
 		else:
 			# noinspection PyTypeChecker
-			existing_user: Optional[User] = user_service.find_by_id(an_user.userId)
+			existing_user: Optional[User] = user_service.find_by_id(user.userId)
 			if existing_user is not None:
-				if existing_user.tenantId != an_user.tenantId:
+				if existing_user.tenantId != user.tenantId:
 					raise_403()
-				elif is_blank(an_user.password):
+				elif is_blank(user.password):
 					# keep original password
-					an_user.password = existing_user.password
+					user.password = existing_user.password
 
 			if principal_service.is_super_admin():
 				# for super admin update user, simply keep user group
-				an_user.groupIds = existing_user.groupIds
+				user.groupIds = existing_user.groupIds
 			else:
-				user_group_ids = ArrayHelper(an_user.groupIds).distinct().to_list()
-				an_user.groupIds = user_group_ids
-			user_group_ids = an_user.groupIds
+				user_group_ids = ArrayHelper(user.groupIds).distinct().to_list()
+				user.groupIds = user_group_ids
+			user_group_ids = user.groupIds
 			# noinspection PyTypeChecker
-			an_user: User = user_service.update(an_user)
+			user: User = user_service.update(user)
 
 			if principal_service.is_tenant_admin():
 				# remove user from user groups, in case user groups are removed
 				removed_user_group_ids = ArrayHelper(existing_user.groupIds).difference(user_group_ids).to_list()
-				remove_user_from_groups(user_service, an_user.userId, removed_user_group_ids, an_user.tenantId)
+				remove_user_from_groups(user_service, user.userId, removed_user_group_ids, user.tenantId)
 				# synchronize user to user groups
-				sync_user_to_groups(user_service, an_user.userId, user_group_ids, an_user.tenantId)
+				sync_user_to_groups(user_service, user.userId, user_group_ids, user.tenantId)
 
 		# remove password
-		clear_pwd(an_user)
-		return an_user
+		clear_pwd(user)
+		return user
 
 	return action
 
