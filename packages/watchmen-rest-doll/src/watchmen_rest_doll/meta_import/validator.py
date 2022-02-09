@@ -36,6 +36,8 @@ def validate_tenant(
 			if a_tuple.tenantId != principal_service.get_tenant_id():
 				raise_403()
 		elif principal_service.is_super_admin():
+			if a_tuple.tenantId == principal_service.get_tenant_id():
+				raise_400(f'Incorrect tenant id[{a_tuple.tenantId}].')
 			tenant_service = get_tenant_service(user_service)
 			tenant: Optional[Tenant] = tenant_service.find_by_id(a_tuple.tenantId)
 			if tenant is None:
@@ -54,15 +56,19 @@ def validate_user(a_tuple: UserBasedTuple, user_service: UserService, principal_
 		else:
 			raise_403()
 	else:
-		user: Optional[User] = user_service.find_by_id(a_tuple.userId)
-		if user is None:
-			raise_400('User id is required.')
-		if principal_service.is_super_admin():
-			if user.tenantId == principal_service.get_tenant_id():
+		if a_tuple.userId == principal_service.get_user_id():
+			if principal_service.is_super_admin():
 				raise_400(f'Incorrect user id[{a_tuple.userId}].')
-		elif principal_service.is_tenant_admin():
-			if user.tenantId != principal_service.get_tenant_id():
-				raise_400(f'Incorrect user id[{a_tuple.userId}].')
+		else:
+			user: Optional[User] = user_service.find_by_id(a_tuple.userId)
+			if user is None:
+				raise_400('User id is required.')
+			if principal_service.is_super_admin():
+				if user.tenantId == principal_service.get_tenant_id():
+					raise_400(f'Incorrect user id[{a_tuple.userId}].')
+			elif principal_service.is_tenant_admin():
+				if user.tenantId != principal_service.get_tenant_id():
+					raise_400(f'Incorrect user id[{a_tuple.userId}].')
 
 
 def validate_tenant_and_user(
