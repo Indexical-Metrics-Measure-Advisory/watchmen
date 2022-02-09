@@ -90,7 +90,6 @@ def post_save_pipeline(pipeline: Pipeline, pipeline_service: PipelineService) ->
 def ask_save_pipeline_action(
 		pipeline_service: PipelineService, principal_service: PrincipalService) -> Callable[[Pipeline], Pipeline]:
 	def action(pipeline: Pipeline) -> Pipeline:
-		validate_tenant_id(pipeline, principal_service)
 		if pipeline_service.is_storable_id_faked(pipeline.pipelineId):
 			pipeline_service.redress_storable_id(pipeline)
 			redress_ids(pipeline, pipeline_service)
@@ -118,6 +117,7 @@ def ask_save_pipeline_action(
 async def save_pipeline(
 		pipeline: Pipeline, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> Pipeline:
+	validate_tenant_id(pipeline, principal_service)
 	pipeline_service = get_pipeline_service(principal_service)
 	action = ask_save_pipeline_action(pipeline_service, principal_service)
 	return trans(pipeline_service, lambda: action(pipeline))

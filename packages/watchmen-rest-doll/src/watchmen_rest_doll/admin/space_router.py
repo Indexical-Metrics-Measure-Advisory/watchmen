@@ -142,7 +142,6 @@ def validate_topics(space_service: SpaceService, topic_ids: List[TopicId], tenan
 
 def ask_save_space_action(space_service: SpaceService, principal_service: PrincipalService) -> Callable[[Space], Space]:
 	def action(space: Space) -> Space:
-		validate_tenant_id(space, principal_service)
 		if space_service.is_storable_id_faked(space.spaceId):
 			space_service.redress_storable_id(space)
 			user_group_ids = ArrayHelper(space.groupIds).distinct().to_list()
@@ -183,6 +182,7 @@ def ask_save_space_action(space_service: SpaceService, principal_service: Princi
 @router.post('/space', tags=[UserRole.ADMIN], response_model=Space)
 async def save_space(
 		space: Space, principal_service: PrincipalService = Depends(get_admin_principal)) -> Space:
+	validate_tenant_id(space, principal_service)
 	space_service = get_space_service(principal_service)
 	action = ask_save_space_action(space_service, principal_service)
 	return trans(space_service, lambda: action(space))

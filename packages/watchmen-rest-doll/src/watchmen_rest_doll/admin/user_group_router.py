@@ -132,7 +132,6 @@ def remove_user_group(
 def ask_save_user_group_action(
 		user_group_service: UserGroupService, principal_service: PrincipalService) -> Callable[[UserGroup], UserGroup]:
 	def action(user_group: UserGroup) -> UserGroup:
-		validate_tenant_id(user_group, principal_service)
 		if user_group_service.is_storable_id_faked(user_group.userGroupId):
 			user_group_service.redress_storable_id(user_group)
 			user_ids = ArrayHelper(user_group.userIds).distinct().to_list()
@@ -187,6 +186,7 @@ def ask_save_user_group_action(
 @router.post('/user_group', tags=[UserRole.ADMIN], response_model=UserGroup)
 async def save_user_group(
 		user_group: UserGroup, principal_service: PrincipalService = Depends(get_admin_principal)) -> UserGroup:
+	validate_tenant_id(user_group, principal_service)
 	user_group_service = get_user_group_service(principal_service)
 	action = ask_save_user_group_action(user_group_service, principal_service)
 	return trans(user_group_service, lambda: action(user_group))

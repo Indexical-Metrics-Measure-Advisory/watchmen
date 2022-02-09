@@ -138,17 +138,17 @@ def remove_user_from_groups(
 		.each(lambda x: update_user_group(user_group_service, x))
 
 
-def ask_save_user_action(user_service: UserService, principal_service: PrincipalService) -> Callable[[User], User]:
+def ask_save_user_action(
+		user_service: UserService, principal_service: PrincipalService, check_user_group: bool = True
+) -> Callable[[User], User]:
 	def action(user: User) -> User:
-		validate_tenant_id(user, principal_service)
-
 		# crypt password
 		pwd = user.password
 		if is_not_blank(pwd):
 			user.password = crypt_password(pwd)
 
 		if user_service.is_storable_id_faked(user.userId):
-			if principal_service.is_super_admin():
+			if principal_service.is_super_admin() and check_user_group:
 				if user.groupIds is not None and len(user.groupIds) != 0:
 					# for super admin create user, there is no user group allowed
 					raise_400('No user group allowed for creating user by super admin.')
@@ -169,7 +169,7 @@ def ask_save_user_action(user_service: UserService, principal_service: Principal
 					# keep original password
 					user.password = existing_user.password
 
-			if principal_service.is_super_admin():
+			if principal_service.is_super_admin() and check_user_group:
 				# for super admin update user, simply keep user group
 				user.groupIds = existing_user.groupIds
 			else:
@@ -195,6 +195,7 @@ def ask_save_user_action(user_service: UserService, principal_service: Principal
 
 @router.post('/user', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=User)
 async def save_user(user: User, principal_service: PrincipalService = Depends(get_any_admin_principal)) -> User:
+	validate_tenant_id(user, principal_service)
 	user_service = get_user_service(principal_service)
 	action = ask_save_user_action(user_service, principal_service)
 	return trans(user_service, lambda: action(user))

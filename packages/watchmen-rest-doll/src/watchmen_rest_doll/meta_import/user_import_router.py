@@ -32,7 +32,7 @@ async def import_users(
 
 	def action() -> None:
 		validate_tenant_based_tuples(users, user_service, principal_service)
-		save = ask_save_user_action(user_service, principal_service)
+		save = ask_save_user_action(user_service, principal_service, False)
 		# noinspection PyTypeChecker
 		ArrayHelper(users).each(lambda x: save(x))
 
