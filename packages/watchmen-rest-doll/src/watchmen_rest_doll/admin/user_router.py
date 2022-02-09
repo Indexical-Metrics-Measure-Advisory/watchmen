@@ -197,7 +197,7 @@ def ask_save_user_action(user_service: UserService, principal_service: Principal
 async def save_user(user: User, principal_service: PrincipalService = Depends(get_any_admin_principal)) -> User:
 	user_service = get_user_service(principal_service)
 	action = ask_save_user_action(user_service, principal_service)
-	return trans(user_service, lambda x: action(x))
+	return trans(user_service, lambda: action(user))
 
 
 class QueryUserDataPage(DataPage):
