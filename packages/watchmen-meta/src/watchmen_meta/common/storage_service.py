@@ -94,6 +94,15 @@ class StorageService(ABC):
 		else:
 			return False, 0
 
+	# noinspection PyMethodMayBeStatic
+	def try_to_ignore_created_columns(self, data: EntityRow) -> EntityRow:
+		if 'created_at' in data:
+			del data['created_at']
+		if 'created_by' in data:
+			del data['created_by']
+
+		return data
+
 
 class IdentifiedStorableService(StorageService):
 	@abstractmethod
@@ -143,6 +152,10 @@ class IdentifiedStorableService(StorageService):
 		del data[self.get_optimistic_column_name()]
 		del data[self.get_storable_id_column_name()]
 
+		return data
+
+	def ignore_storable_id(self, data: EntityRow) -> EntityRow:
+		del data[self.get_storable_id_column_name()]
 		return data
 
 
