@@ -1,0 +1,47 @@
+from typing import List
+
+from fastapi import APIRouter, Depends
+from starlette.responses import Response
+
+from watchmen_auth import PrincipalService
+from watchmen_meta.console import DashboardService
+from watchmen_model.admin import UserRole
+from watchmen_model.console import Dashboard
+from watchmen_rest_doll.auth import get_any_admin_principal
+from watchmen_rest_doll.console import ask_save_dashboard_action
+from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
+from watchmen_rest_doll.util import trans
+from watchmen_utilities import ArrayHelper
+
+router = APIRouter()
+
+
+def get_dashboard_service(principal_service: PrincipalService) -> DashboardService:
+	return DashboardService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
+@router.post('/dashboard/import', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
+async def import_dashboards(
+		dashboards: List[Dashboard], principal_service: PrincipalService = Depends(get_any_admin_principal)) -> None:
+	if dashboards is None:
+		return
+	if len(dashboards) == 0:
+		return
+
+	dashboard_service = get_dashboard_service(principal_service)
+
+	def action() -> None:
+		save = ask_save_dashboard_action(dashboard_service, principal_service)
+		# noinspection PyTypeChecker
+		ArrayHelper(dashboards).each(lambda x: save(x))
+
+	trans(dashboard_service, action)
+
+# @router.post("/import/console/dashboard", tags=["import"])
+# async def import_dashboard(dashboard: ConsoleDashboard, current_user: User = Depends(deps.get_current_user)):
+#     result = load_dashboard_by_id(dashboard.dashboardId, current_user)
+#     dashboard = add_tenant_id_to_model(dashboard, current_user)
+#     if result is None:
+#         import_dashboard_to_db(dashboard)
+#     else:
+#         update_dashboard_to_storage(dashboard)

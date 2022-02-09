@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import Dict, List, Optional
+from typing import Callable, Dict, List, Optional
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
@@ -204,12 +204,8 @@ def validate_reports(
 			raise_403()
 
 
-@router.post('/dashboard', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=Dashboard)
-async def save_dashboard(
-		dashboard: Dashboard, principal_service: PrincipalService = Depends(get_console_principal)
-) -> Dashboard:
-	dashboard_service = get_dashboard_service(principal_service)
-
+def ask_save_dashboard_action(
+		dashboard_service: DashboardService, principal_service: PrincipalService) -> Callable[[Dashboard], Dashboard]:
 	def action(a_dashboard: Dashboard) -> Dashboard:
 		a_dashboard.userId = principal_service.get_user_id()
 		a_dashboard.tenantId = principal_service.get_tenant_id()
@@ -234,6 +230,15 @@ async def save_dashboard(
 			a_dashboard: Dashboard = dashboard_service.update(a_dashboard)
 		return a_dashboard
 
+	return action
+
+
+@router.post('/dashboard', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=Dashboard)
+async def save_dashboard(
+		dashboard: Dashboard, principal_service: PrincipalService = Depends(get_console_principal)
+) -> Dashboard:
+	dashboard_service = get_dashboard_service(principal_service)
+	action = ask_save_dashboard_action(dashboard_service, principal_service)
 	return trans(dashboard_service, lambda: action(dashboard))
 
 
