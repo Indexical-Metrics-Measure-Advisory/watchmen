@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
+from watchmen_meta.admin import UserService
 from watchmen_meta.console import SubjectService
 from watchmen_model.admin import UserRole
 from watchmen_model.console import Subject
@@ -12,6 +13,7 @@ from watchmen_rest_doll.console import ask_save_subject_action
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
 from watchmen_rest_doll.util import trans
 from watchmen_utilities import ArrayHelper
+from .validator import get_user_service, validate_users
 
 router = APIRouter()
 
@@ -31,6 +33,7 @@ async def import_dashboards(
 	subject_service = get_subject_service(principal_service)
 
 	def action() -> None:
+		validate_users(subjects, get_user_service(subject_service), principal_service)
 		save = ask_save_subject_action(subject_service, principal_service)
 		# noinspection PyTypeChecker
 		ArrayHelper(subjects).each(lambda x: save(x))
