@@ -8,3 +8,11 @@ async def try_to_invoke_pipelines(
 ) -> None:
 	# TODO trigger pipelines
 	pass
+
+
+async def try_to_invoke_pipelines_async(
+		trigger_data: PipelineTriggerData, trace_id: PipelineTriggerTraceId,
+		principal_service: PrincipalService
+) -> None:
+	# TODO trigger pipelines
+	pass
