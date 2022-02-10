@@ -17,6 +17,7 @@ def get_tenant_service(principal_service: PrincipalService) -> TenantService:
 
 
 async def handle_trigger_data(trigger_data: PipelineTriggerDataWithPAT) -> None:
+	# TODO should log trigger data
 	pat = trigger_data.pat
 	if is_blank(pat):
 		raise Exception('PAT not found.')

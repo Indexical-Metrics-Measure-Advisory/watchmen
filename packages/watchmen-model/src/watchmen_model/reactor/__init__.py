@@ -1,1 +1,2 @@
-from .pipeline_trigger_data import PipelineTriggerResult, PipelineTriggerTraceId, PipelineTriggerData, PipelineTriggerDataWithPAT
+from .pipeline_trigger_data import PipelineTriggerData, PipelineTriggerDataWithPAT, PipelineTriggerResult, \
+	PipelineTriggerTraceId
