@@ -7,6 +7,7 @@ from watchmen_meta.system import TenantService
 from watchmen_model.admin import UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId
 from watchmen_model.system import Tenant
+from watchmen_reactor.cache import CacheService
 from watchmen_rest import get_any_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator, ask_tuple_delete_enabled
@@ -58,7 +59,7 @@ async def save_tenant(
 		else:
 			# noinspection PyTypeChecker
 			a_tenant: Tenant = tenant_service.update(a_tenant)
-
+		CacheService.tenant().put(a_tenant)
 		return a_tenant
 
 	return trans(tenant_service, lambda: action(tenant))
@@ -104,6 +105,7 @@ async def delete_tenant_by_id_by_super_admin(
 		tenant: Tenant = tenant_service.delete(tenant_id)
 		if tenant is None:
 			raise_404()
+		CacheService.tenant().remove(tenant_id)
 		return tenant
 
 	return trans(tenant_service, action)

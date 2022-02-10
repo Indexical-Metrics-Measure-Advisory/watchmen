@@ -3,12 +3,12 @@ from typing import Any, Callable, Hashable, List, Optional, Union
 from cacheout import Cache
 
 from watchmen_model.admin import Pipeline, Topic
-from watchmen_model.common import DataSourceId, PipelineId, TopicId
-from watchmen_model.system import DataSource
+from watchmen_model.common import DataSourceId, PipelineId, TenantId, TopicId
+from watchmen_model.system import DataSource, Tenant
 from watchmen_reactor.settings import ask_cache_enabled
 from watchmen_utilities import ArrayHelper
 from .cache_manager import get_data_source_by_id_cache, get_pipeline_by_id_cache, get_pipeline_by_topic_id_cache, \
-	get_topic_by_id_cache
+	get_tenant_by_id_cache, get_topic_by_id_cache
 
 
 class InternalCache:
@@ -139,12 +139,17 @@ class TopicCache:
 		pipeline_by_topic_cache.clear()
 
 
+# noinspection DuplicatedCode
 class DataSourceCache:
+	"""
+	data source cache will not impact other caches
+	"""
+
 	def __init__(self):
 		self.by_id_cache = InternalCache(cache=get_data_source_by_id_cache)
 
 	def put(self, data_source: DataSource) -> Optional[DataSource]:
-		return self.by_id_cache.put(data_source.topicId, data_source)
+		return self.by_id_cache.put(data_source.dataSourceId, data_source)
 
 	def get(self, data_source_id: DataSourceId) -> Optional[DataSource]:
 		return self.get(data_source_id)
@@ -158,6 +163,31 @@ class DataSourceCache:
 
 topic_cache = TopicCache()
 data_source_cache = DataSourceCache()
+
+
+# noinspection DuplicatedCode
+class TenantCache:
+	"""
+	tenant cache will not impact other caches
+	"""
+
+	def __init__(self):
+		self.by_id_cache = InternalCache(cache=get_tenant_by_id_cache)
+
+	def put(self, tenant: Tenant) -> Optional[Tenant]:
+		return self.by_id_cache.put(tenant.tenantId, tenant)
+
+	def get(self, tenant_id: TenantId) -> Optional[Tenant]:
+		return self.get(tenant_id)
+
+	def remove(self, tenant_id: TenantId) -> Optional[Tenant]:
+		return self.by_id_cache.remove(tenant_id)
+
+	def clear(self) -> None:
+		self.by_id_cache.clear()
+
+
+tenant_cache = TenantCache()
 
 
 class CacheService:
@@ -174,9 +204,14 @@ class CacheService:
 		return data_source_cache
 
 	@staticmethod
+	def tenant() -> TenantCache:
+		return tenant_cache
+
+	@staticmethod
 	def clear_all() -> None:
 		CacheService.pipeline().clear()
 		CacheService.topic().clear()
 		CacheService.data_source().clear()
+		CacheService.tenant().clear()
 
 # TODO cache refresher, with heart beat
