@@ -1,4 +1,8 @@
+import logging
+
 from pydantic import BaseSettings
+
+logger = logging.getLogger(__name__)
 
 
 class ReactorSettings(BaseSettings):
@@ -11,9 +15,11 @@ class ReactorSettings(BaseSettings):
 		env_file = '.env'
 		env_file_encoding = 'utf-8'
 		case_sensitive = True
+		secrets_dir = '/var/run'
 
 
 settings = ReactorSettings()
+logger.info(f'Reactor settings[{settings.dict()}].')
 
 
 def ask_cache_enabled() -> bool:
