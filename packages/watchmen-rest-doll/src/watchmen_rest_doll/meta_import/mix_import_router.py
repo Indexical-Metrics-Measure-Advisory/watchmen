@@ -16,6 +16,8 @@ from watchmen_model.console import ConnectedSpace, Report, Subject, SubjectDatas
 from watchmen_model.system import Tenant
 from watchmen_rest import get_any_admin_principal
 from watchmen_rest.util import raise_400, raise_403
+from watchmen_rest_doll.admin.pipeline_router import post_save_pipeline
+from watchmen_rest_doll.admin.topic_router import post_save_topic
 from watchmen_rest_doll.console.connected_space_router import ConnectedSpaceWithSubjects, SubjectWithReports
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
 from watchmen_rest_doll.util import trans
@@ -237,6 +239,7 @@ def try_to_import_topic(topic: Topic, topic_service: TopicService, do_update: bo
 			return TopicImportDataResult(
 				topicId=topic.topicId, name=topic.name, passed=False, reason='Topic already exists.')
 
+	post_save_topic(topic, topic_service)
 	return TopicImportDataResult(topicId=topic.topicId, name=topic.name, passed=True)
 
 
@@ -256,6 +259,7 @@ def try_to_import_pipeline(
 			return PipelineImportDataResult(
 				pipelineId=pipeline.pipelineId, name=pipeline.name, passed=False, reason='Pipeline already exists.')
 
+	post_save_pipeline(pipeline, pipeline_service)
 	return PipelineImportDataResult(pipelineId=pipeline.pipelineId, name=pipeline.name, passed=True)
 
 
@@ -580,12 +584,14 @@ def force_new_import(request: MixImportDataRequest, user_service: UserService) -
 	topic_id_map, factor_id_map = fill_topic_ids(request.topics, topic_service)
 	topic_results = ArrayHelper(request.topics) \
 		.map(lambda x: topic_service.create(x)) \
+		.each(lambda x: post_save_topic(x, topic_service)) \
 		.map(lambda x: TopicImportDataResult(topicId=x.topicId, name=x.name, passed=True)).to_list()
 
 	pipeline_service = get_pipeline_service(user_service)
 	fill_pipeline_ids(request.pipelines, pipeline_service, topic_id_map, factor_id_map)
 	pipeline_results = ArrayHelper(request.pipelines) \
 		.map(lambda x: pipeline_service.create(x)) \
+		.each(lambda x: post_save_pipeline(x, pipeline_service)) \
 		.map(lambda x: PipelineImportDataResult(pipelineId=x.pipelineId, name=x.name, passed=True)).to_list()
 
 	space_service = get_space_service(user_service)
