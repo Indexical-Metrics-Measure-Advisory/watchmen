@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from watchmen_auth import AuthenticationManager
 from watchmen_model.admin import User
 from watchmen_storage import SnowflakeGenerator, TransactionalStorageSPI
+from .auth_helper import register_authentication_manager
 from .authentication import build_authentication_manager
 from .cors import install_cors
 from .meta_storage import build_meta_storage
@@ -87,6 +88,7 @@ class RestApp:
 		self.authentication_manager = build_authentication_manager(
 			self.settings, self.build_find_user_by_name(), self.build_find_user_by_pat()
 		)
+		register_authentication_manager(self.authentication_manager)
 
 	def get_jwt_params(self) -> Tuple[str, str]:
 		"""

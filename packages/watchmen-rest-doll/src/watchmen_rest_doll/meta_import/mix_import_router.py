@@ -14,7 +14,7 @@ from watchmen_model.common import ConnectedSpaceId, PipelineId, ReportId, SpaceI
 from watchmen_model.console import ConnectedSpace, Report, Subject
 from watchmen_model.system import Tenant
 from watchmen_rest.util import raise_400, raise_403
-from watchmen_rest_doll.auth import get_any_admin_principal
+from watchmen_rest import get_any_admin_principal
 from watchmen_rest_doll.console.connected_space_router import ConnectedSpaceWithSubjects, SubjectWithReports
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
 from watchmen_utilities import ArrayHelper, is_blank
@@ -143,7 +143,7 @@ def fill_tenant_id(request: MixImportDataRequest, tenant_id: TenantId) -> None:
 def validate_tenant_id_when_super_admin(
 		request: MixImportDataRequest, user_service: UserService, principal_service: PrincipalService) -> None:
 	"""
-	tenant id must be designated by data, because super admin doesn't need any meta data
+	tenant id must be designated by data, because super admin doesn't need any metadata
 	"""
 	found_tenant_id = find_tenant_id(request)
 	if found_tenant_id == principal_service.get_tenant_id():
