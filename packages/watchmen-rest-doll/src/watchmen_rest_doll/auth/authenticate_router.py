@@ -11,9 +11,9 @@ from watchmen_meta.auth import build_find_user_by_name
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import User
 from watchmen_model.system import Token
-from watchmen_rest import create_jwt_token, get_any_principal
+from watchmen_rest import create_jwt_token, get_any_principal, retrieve_authentication_manager
 from watchmen_rest.util import raise_401
-from watchmen_rest_doll.doll import ask_access_token_expires_in, ask_jwt_params, doll
+from watchmen_rest_doll.doll import ask_access_token_expires_in, ask_jwt_params
 from watchmen_rest_doll.util import verify_password
 
 router = APIRouter()
@@ -60,7 +60,7 @@ async def validate_jwt_token(token: str) -> User:
 	"""
 	Validate given token, returns user of this token when validated
 	"""
-	return doll.authentication_manager.authenticate_by_jwt(token)
+	return retrieve_authentication_manager().authenticate_by_jwt(token)
 
 
 @router.get("/token/exchange-user", response_model=User, tags=["authenticate"])
