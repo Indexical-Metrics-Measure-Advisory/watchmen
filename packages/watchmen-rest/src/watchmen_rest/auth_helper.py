@@ -21,6 +21,10 @@ def register_authentication_manager(authentication_manager: AuthenticationManage
 	WRAPPER.authentication_manager = authentication_manager
 
 
+def retrieve_authentication_manager() -> Optional[AuthenticationManager]:
+	return WRAPPER.authentication_manager
+
+
 def get_principal_by_jwt(token: str, roles: List[UserRole]) -> PrincipalService:
 	try:
 		return by_jwt(WRAPPER.authentication_manager, token, roles)

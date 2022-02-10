@@ -3,7 +3,7 @@ from json import loads
 from logging import getLogger
 
 from watchmen_model.common import SettingsModel
-from watchmen_model.reactor import TopicData
+from watchmen_model.reactor import PipelineTriggerDataWithPAT
 
 log = getLogger(__name__)
 
@@ -19,20 +19,10 @@ class RabbitmqSettings(SettingsModel):
 	auto_delete: bool
 
 
-# noinspection PyUnusedLocal
-async def import_raw_topic_data(topic_data: TopicData) -> None:
-	# TODO consume topic data from rabbitmq
-	# if topic_event.user is None:
-	# 	user = load_user_by_name(settings.MOCK_USER)
-	# 	log.warning("user is mock user , pls check user in topic_event")
-	# else:
-	# 	user = load_user_by_name(topic_event.user)
-	# await import_raw_topic_data(topic_event, user)
-	pass
-
-
 async def consume(loop, settings: RabbitmqSettings):
 	from aio_pika import connect, ExchangeType
+	# to avoid loop import with surface
+	from .handler import handle_trigger_data
 	connection = await connect(
 		host=settings.host,
 		port=settings.port,
@@ -61,8 +51,8 @@ async def consume(loop, settings: RabbitmqSettings):
 				async for message in queue_iter:
 					async with message.process():
 						payload = loads(message.body)
-						topic_data = TopicData.parse_obj(payload)
-						await import_raw_topic_data(topic_data)
+						trigger_data = PipelineTriggerDataWithPAT.parse_obj(payload)
+						await handle_trigger_data(trigger_data)
 			except Exception as e:
 				log.error(e, exc_info=True, stack_info=True)
 				await consume(loop, settings)

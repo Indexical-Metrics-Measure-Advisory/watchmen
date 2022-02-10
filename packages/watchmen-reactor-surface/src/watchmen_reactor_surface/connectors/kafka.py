@@ -4,7 +4,7 @@ from logging import getLogger
 from typing import List
 
 from watchmen_model.common import SettingsModel
-from watchmen_model.reactor import TopicData
+from watchmen_model.reactor import PipelineTriggerDataWithPAT
 
 logger = getLogger(__name__)
 
@@ -14,14 +14,10 @@ class KafkaSettings(SettingsModel):
 	topics: List[str] = []
 
 
-# noinspection PyUnusedLocal
-async def import_raw_topic_data(topic_data: TopicData) -> None:
-	# TODO consume topic data from kafka
-	pass
-
-
 async def consume(loop, settings: KafkaSettings):
 	from aiokafka import AIOKafkaConsumer
+	# to avoid loop import with surface
+	from .handler import handle_trigger_data
 	# noinspection PyTypeChecker
 	consumer = AIOKafkaConsumer(
 		settings.topics, loop=loop, bootstrap_servers=settings.bootstrap_servers,
@@ -30,8 +26,8 @@ async def consume(loop, settings: KafkaSettings):
 	await consumer.start()
 	try:
 		async for msg in consumer:
-			topic_data = TopicData.parse_obj(msg.value)
-			await import_raw_topic_data(topic_data)
+			trigger_data = PipelineTriggerDataWithPAT.parse_obj(msg.value)
+			await handle_trigger_data(trigger_data)
 	except Exception as e:
 		logger.error(e, exc_info=True, stack_info=True)
 		await consume(get_event_loop(), settings)
