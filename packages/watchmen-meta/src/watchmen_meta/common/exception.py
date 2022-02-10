@@ -1,0 +1,2 @@
+class InitialMetaAppException(Exception):
+	pass

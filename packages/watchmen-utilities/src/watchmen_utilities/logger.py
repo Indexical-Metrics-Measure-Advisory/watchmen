@@ -19,6 +19,7 @@ class LoggerSettings(BaseSettings):
 	LOGGER_TO_FILE: bool = False
 	LOGGER_FILE: str = 'temp/rotating.log'
 	LOGGER_JSON_FORMAT: bool = False
+	# noinspection SpellCheckingInspection
 	LOGGER_FORMAT: str = '%(asctime)s - %(process)d - %(threadName)s - %(name)s - %(levelname)s - %(message)s'
 
 	class Config:

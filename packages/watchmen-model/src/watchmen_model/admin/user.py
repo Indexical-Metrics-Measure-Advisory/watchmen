@@ -9,6 +9,7 @@ from watchmen_model.common import OptimisticLock, TenantBasedTuple, UserGroupId,
 class UserRole(str, Enum):
 	CONSOLE = 'console',
 	ADMIN = 'admin',
+	# noinspection SpellCheckingInspection
 	SUPER_ADMIN = 'superadmin'
 
 
