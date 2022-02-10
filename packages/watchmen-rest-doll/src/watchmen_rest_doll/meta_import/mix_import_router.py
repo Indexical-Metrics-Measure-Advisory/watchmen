@@ -197,6 +197,7 @@ def try_to_import_topic(topic: Topic, topic_service: TopicService, do_update: bo
 		if existing_topic is None:
 			topic_service.create(topic)
 		elif do_update:
+			topic.version = existing_topic.version
 			topic_service.update(topic)
 		else:
 			return TopicImportDataResult(
@@ -215,6 +216,7 @@ def try_to_import_pipeline(
 		if existing_pipeline is None:
 			pipeline_service.create(pipeline)
 		elif do_update:
+			pipeline.version = existing_pipeline.version
 			pipeline_service.update(pipeline)
 		else:
 			return PipelineImportDataResult(
@@ -233,6 +235,7 @@ def try_to_import_space(
 		if existing_space is None:
 			space_service.create(space)
 		elif do_update:
+			space.version = existing_space.version
 			space_service.update(space)
 		else:
 			return SpaceImportDataResult(
@@ -311,6 +314,10 @@ def try_to_import_report(
 	return ReportImportDataResult(reportId=report.reportId, name=report.name, passed=True)
 
 
+def is_all_passed(results: List[List[ImportDataResult]]) -> bool:
+	return ArrayHelper(results).flatten().every(lambda x: x.passed)
+
+
 def try_to_import(request: MixImportDataRequest, user_service: UserService, do_update: bool) -> MixImportDataResponse:
 	topic_service = get_topic_service(user_service)
 	topic_results = ArrayHelper(request.topics).map(
@@ -334,7 +341,8 @@ def try_to_import(request: MixImportDataRequest, user_service: UserService, do_u
 		.filter(lambda x: x.connectId in success_connected_space_ids) \
 		.map(lambda x: x.subjects).flatten().to_list()
 	subject_service = get_subject_service(user_service)
-	subject_results = subjects.map(lambda x: try_to_import_subject(x, subject_service, do_update)).to_list()
+	subject_results = ArrayHelper(subjects) \
+		.map(lambda x: try_to_import_subject(x, subject_service, do_update)).to_list()
 	success_subject_ids = ArrayHelper(subject_results).filter(lambda x: x.passed).map(lambda x: x.subjectId).to_list()
 
 	reports = ArrayHelper(subjects).filter(lambda x: x.subjectId in success_subject_ids) \
@@ -343,6 +351,8 @@ def try_to_import(request: MixImportDataRequest, user_service: UserService, do_u
 	report_results = ArrayHelper(reports).map(lambda x: try_to_import_report(x, report_service, do_update)).to_list()
 
 	return MixImportDataResponse(
+		passed=is_all_passed([
+			topic_results, pipeline_results, space_results, connected_space_results, subject_results, report_results]),
 		topics=topic_results,
 		pipelines=pipeline_results,
 		spaces=space_results,
@@ -372,6 +382,51 @@ def import_on_replace(
 	return try_to_import(request, user_service, True)
 
 
+def force_new_import(request: MixImportDataRequest, user_service: UserService) -> MixImportDataResponse:
+	# TODO keep relationship, replace them all
+	topic_service = get_topic_service(user_service)
+	topic_results = ArrayHelper(request.topics) \
+		.map(lambda x: topic_service.create(x)) \
+		.map(lambda x: TopicImportDataResult(topicId=x.topicId, name=x.name, passed=True)).to_list()
+
+	pipeline_service = get_pipeline_service(user_service)
+	pipeline_results = ArrayHelper(request.pipelines) \
+		.map(lambda x: pipeline_service.create(x)) \
+		.map(lambda x: PipelineImportDataResult(pipelineId=x.pipelineId, name=x.name, passed=True)).to_list()
+
+	space_service = get_space_service(user_service)
+	space_results = ArrayHelper(request.spaces) \
+		.map(lambda x: space_service.create(x)) \
+		.map(lambda x: SpaceImportDataResult(spaceId=x.spaceId, name=x.name, passed=True)).to_list()
+
+	connected_space_service = get_connected_space_service(user_service)
+	connected_space_results = ArrayHelper(request.connectedSpaces) \
+		.map(lambda x: connected_space_service.create(x)) \
+		.map(lambda x: ConnectedSpaceImportDataResult(connectId=x.connectId, name=x.name, passed=True)).to_list()
+
+	subjects = ArrayHelper(request.connectedSpaces).map(lambda x: x.subjects).flatten().to_list()
+	subject_service = get_subject_service(user_service)
+	subject_results = subjects.map(lambda x: subject_service.create(x)) \
+		.map(lambda x: SubjectImportDataResult(subjectId=x.subjectId, name=x.name, passed=True)).to_list()
+
+	reports = ArrayHelper(subjects).map(lambda x: x.reports).flatten().to_list()
+	report_service = get_report_service(user_service)
+	report_results = ArrayHelper(reports) \
+		.map(lambda x: report_service.create(x)) \
+		.map(lambda x: ReportImportDataResult(reportId=x.reportId, name=x.name, passed=True)).to_list()
+
+	return MixImportDataResponse(
+		passed=is_all_passed([
+			topic_results, pipeline_results, space_results, connected_space_results, subject_results, report_results]),
+		topics=topic_results,
+		pipelines=pipeline_results,
+		spaces=space_results,
+		connectedSpaces=connected_space_results,
+		subjects=subject_results,
+		reports=report_results
+	)
+
+
 def import_on_force_new(
 		request: MixImportDataRequest,
 		user_service: UserService, principal_service: PrincipalService) -> MixImportDataResponse:
@@ -379,8 +434,7 @@ def import_on_force_new(
 	import with force new
 	"""
 	prepare_and_validate_request(request, user_service, principal_service)
-	# TODO keep relationship, replace them all
-	return try_to_import(request, user_service, False)
+	return force_new_import(request, user_service)
 
 
 @router.post('/import', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=MixImportDataResponse)
