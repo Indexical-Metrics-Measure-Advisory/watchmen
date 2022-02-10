@@ -2,6 +2,7 @@ from time import time
 
 from .snowflake_worker_id_generator import WorkerIdGenerator
 
+# noinspection SpellCheckingInspection
 TWEPOCH = 1420041600000
 # 0 - 3, 4 data centers maximum
 DATACENTER_ID_BITS = 2

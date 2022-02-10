@@ -7,13 +7,13 @@ from pydantic import BaseModel
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
+from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.system import PatService
 from watchmen_model.admin import UserRole
 from watchmen_model.common import PatId
 from watchmen_model.system import PersonalAccessToken
 from watchmen_rest import get_any_principal
 from watchmen_rest.util import raise_400
-from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
 from watchmen_rest_doll.util import trans
 from watchmen_utilities import ArrayHelper, is_blank
 

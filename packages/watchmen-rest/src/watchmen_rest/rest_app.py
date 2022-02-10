@@ -8,20 +8,17 @@ from fastapi import FastAPI
 
 from watchmen_auth import AuthenticationManager
 from watchmen_model.admin import User
-from watchmen_storage import SnowflakeGenerator, TransactionalStorageSPI
+from watchmen_storage import SnowflakeGenerator
 from .auth_helper import register_authentication_manager
 from .authentication import build_authentication_manager
 from .cors import install_cors
-from .meta_storage import build_meta_storage
 from .prometheus import install_prometheus
 from .rest_settings import RestSettings
-from .snowflake import build_snowflake_generator
 
 logger = getLogger(f'app.{__name__}')
 
 
 class RestApp:
-	retrieve_meta_storage: Callable[[], TransactionalStorageSPI]
 	snowflake_generator: SnowflakeGenerator
 	authentication_manager: AuthenticationManager
 
@@ -39,9 +36,6 @@ class RestApp:
 		)
 		self.init_cors(app)
 		self.init_prometheus(app)
-
-		self.init_meta_storage()
-		self.init_snowflake()
 
 		self.init_authentication()
 
@@ -63,26 +57,6 @@ class RestApp:
 	def init_prometheus(self, app: FastAPI) -> None:
 		if self.is_prometheus_on():
 			install_prometheus(app, self.settings)
-
-	def build_meta_storage(self) -> TransactionalStorageSPI:
-		"""
-		build a new meta storage instance
-		"""
-		return self.retrieve_meta_storage()
-
-	def init_meta_storage(self) -> None:
-		"""
-		initialize a meta storage builder
-		"""
-		self.retrieve_meta_storage = build_meta_storage(self.settings)
-
-	def get_snowflake_generator(self):
-		return self.snowflake_generator
-
-	def init_snowflake(self) -> None:
-		# snowflake use another storage,
-		# since there might be a heart beat, cannot share storage api
-		self.snowflake_generator = build_snowflake_generator(self.build_meta_storage(), self.settings)
 
 	def init_authentication(self) -> None:
 		self.authentication_manager = build_authentication_manager(

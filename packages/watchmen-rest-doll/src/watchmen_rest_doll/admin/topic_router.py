@@ -5,14 +5,14 @@ from fastapi import APIRouter, Body, Depends
 from watchmen_auth import PrincipalService
 from watchmen_meta.admin import FactorService, TopicService
 from watchmen_meta.analysis import TopicIndexService
+from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import Topic, TopicType, UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId, TopicId
 from watchmen_reactor.cache import CacheService
 from watchmen_reactor.topic_schema import TopicSchemaService
 from watchmen_rest import get_admin_principal, get_console_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
-from watchmen_rest_doll.doll import ask_engine_index_enabled, ask_meta_storage, ask_snowflake_generator, \
-	ask_tuple_delete_enabled
+from watchmen_rest_doll.doll import ask_engine_index_enabled, ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly, validate_tenant_id
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 

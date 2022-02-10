@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends
 
 from watchmen_auth import PrincipalService
+from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import UserRole
 from watchmen_model.reactor import PipelineTriggerData, PipelineTriggerResult
 from watchmen_reactor.pipeline import try_to_invoke_pipelines, try_to_invoke_pipelines_async
-from watchmen_reactor_surface.surface import ask_snowflake_generator
 from watchmen_rest import get_any_admin_principal
 from watchmen_utilities import is_not_blank
 

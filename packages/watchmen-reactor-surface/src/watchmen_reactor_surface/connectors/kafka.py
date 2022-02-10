@@ -15,6 +15,7 @@ class KafkaSettings(SettingsModel):
 
 
 async def consume(loop, settings: KafkaSettings):
+	# noinspection PyPackageRequirements
 	from aiokafka import AIOKafkaConsumer
 	# to avoid loop import with surface
 	from .handler import handle_trigger_data

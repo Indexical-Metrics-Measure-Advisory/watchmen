@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from watchmen_auth import PrincipalService
 from watchmen_meta.admin import FactorService, PipelineService, SpaceService, TopicService, UserService
+from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.console import ConnectedSpaceService, ReportService, SubjectService
 from watchmen_meta.system import TenantService
 from watchmen_model.admin import Factor, Pipeline, PipelineStage, Space, Topic, User, UserRole
@@ -19,7 +20,6 @@ from watchmen_rest.util import raise_400, raise_403
 from watchmen_rest_doll.admin.pipeline_router import post_save_pipeline
 from watchmen_rest_doll.admin.topic_router import post_save_topic
 from watchmen_rest_doll.console.connected_space_router import ConnectedSpaceWithSubjects, SubjectWithReports
-from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
 from watchmen_rest_doll.util import trans
 from watchmen_utilities import ArrayHelper, is_blank
 

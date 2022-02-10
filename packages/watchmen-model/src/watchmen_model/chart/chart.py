@@ -188,6 +188,7 @@ class EChartsXAxis(EChartsAxisSplitLineHolder, EChartsAxisMinorSplitLineHolder):
 
 
 class EChartsXAxisHolder(DataModel):
+	# noinspection SpellCheckingInspection
 	xaxis: EChartsXAxis = None
 
 
@@ -262,6 +263,7 @@ EchartsScriptsVars = Dict[str, str]
 
 class EchartsScriptHolder(DataModel):
 	script: str = None
+	# noinspection SpellCheckingInspection
 	scriptVarsDefs: str = None
 	scriptVars: EchartsScriptsVars = None
 

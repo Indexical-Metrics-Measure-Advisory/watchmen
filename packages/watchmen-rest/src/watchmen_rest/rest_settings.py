@@ -13,6 +13,7 @@ class RestSettings(BaseSettings):
 
 	API_VERSION_STR: str = ''
 
+	# noinspection SpellCheckingInspection
 	JWT_SECRET_KEY: str = '801GtEAdlE8o-iZRLBMgz30PGE_zxry82EaUYMAhNq8'
 	JWT_ALGORITHM: str = 'HS256'
 	ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
