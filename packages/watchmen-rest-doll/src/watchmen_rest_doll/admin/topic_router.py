@@ -8,7 +8,7 @@ from watchmen_meta.analysis import TopicIndexService
 from watchmen_model.admin import Topic, TopicType, UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId, TopicId
 from watchmen_reactor.cache import CacheService
-from watchmen_reactor.settings import ask_presto_enabled
+from watchmen_reactor.topic_schema import TopicSchemaService
 from watchmen_rest import get_admin_principal, get_console_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.doll import ask_engine_index_enabled, ask_meta_storage, ask_snowflake_generator, \
@@ -65,18 +65,10 @@ def build_topic_index(topic: Topic, topic_service: TopicService) -> None:
 	get_topic_index_service(topic_service).build_index(topic)
 
 
-# noinspection PyUnusedLocal
-def build_presto_schema(topic: Topic, topic_service: TopicService) -> None:
-	if not ask_presto_enabled():
-		return
-	# TODO build presto schema for topic
-	pass
-
-
 def post_save_topic(topic: Topic, topic_service: TopicService) -> None:
 	build_topic_index(topic, topic_service)
 	CacheService.topic().put(topic)
-	build_presto_schema(topic, topic_service)
+	TopicSchemaService.put(topic)
 
 
 # noinspection PyUnusedLocal
@@ -212,18 +204,10 @@ def remove_topic_index(topic_id: TopicId, topic_service: TopicService) -> None:
 	get_topic_index_service(topic_service).remove_index(topic_id)
 
 
-# noinspection PyUnusedLocal
-def remove_presto_schema(topic_id: TopicId, topic_service: TopicService) -> None:
-	if not ask_presto_enabled():
-		return
-	# TODO remove topic schema from presto
-	pass
-
-
 def post_delete_topic(topic_id: TopicId, topic_service: TopicService) -> None:
 	remove_topic_index(topic_id, topic_service)
 	CacheService.topic().remove(topic_id)
-	remove_presto_schema(topic_id, topic_service)
+	TopicSchemaService.remove(topic_id)
 
 
 @router.delete('/topic', tags=[UserRole.SUPER_ADMIN], response_model=Topic)
