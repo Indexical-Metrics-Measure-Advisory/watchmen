@@ -8,7 +8,7 @@ from watchmen_model.system import Tenant
 from watchmen_reactor.pipeline import try_to_invoke_pipelines
 from watchmen_reactor_surface.surface import ask_meta_storage, ask_snowflake_generator
 from watchmen_rest import get_principal_by_pat, retrieve_authentication_manager
-from watchmen_utilities import is_blank
+from watchmen_utilities import is_blank, is_not_blank
 
 
 def get_tenant_service(principal_service: PrincipalService) -> TenantService:
@@ -35,5 +35,7 @@ async def handle_trigger_data(trigger_data: PipelineTriggerDataWithPAT) -> None:
 		trace_id: PipelineTriggerTraceId = str(ask_snowflake_generator().next_id())
 		await try_to_invoke_pipelines(trigger_data, trace_id, fake_principal_service)
 	else:
+		if is_not_blank(trigger_data.tenantId) and trigger_data.tenantId != principal_service.get_tenant_id():
+			raise Exception(f'Tenant[{trigger_data.tenantId}] does not match principal.')
 		trace_id: PipelineTriggerTraceId = str(ask_snowflake_generator().next_id())
 		await try_to_invoke_pipelines(trigger_data, trace_id, principal_service)
