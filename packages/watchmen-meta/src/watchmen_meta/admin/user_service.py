@@ -92,3 +92,15 @@ class UserService(TupleService):
 			criteria.append(EntityCriteriaExpression(name='tenant_id', value=tenant_id))
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(criteria))
+
+	def find_admin(self, tenant_id: TenantId) -> Optional[User]:
+		criteria = [
+			EntityCriteriaExpression(name='role', value=UserRole.ADMIN),
+			EntityCriteriaExpression(name='tenant_id', value=tenant_id)
+		]
+		# noinspection PyTypeChecker
+		admins: List[User] = self.storage.find(self.get_entity_finder(criteria=criteria))
+		if len(admins) == 0:
+			return None
+		else:
+			return admins[0]
