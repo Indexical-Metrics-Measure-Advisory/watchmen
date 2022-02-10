@@ -30,6 +30,7 @@ class MetaSettings(BaseSettings):
 		env_file = '.env'
 		env_file_encoding = 'utf-8'
 		case_sensitive = True
+		secrets_dir = '/var/run'
 
 
 def build_mysql_storage(settings: MetaSettings) -> Callable[[], TransactionalStorageSPI]:
@@ -52,6 +53,7 @@ meta_storage_holder = MetaStorageHolder()
 def build_meta_storage(settings: Optional[MetaSettings] = None) -> Callable[[], TransactionalStorageSPI]:
 	if settings is None:
 		settings = MetaSettings()
+	logger.info(f'Meta settings[{settings.dict()}].')
 
 	storage_type = settings.META_STORAGE_TYPE
 	if storage_type == 'mysql':

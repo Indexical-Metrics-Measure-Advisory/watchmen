@@ -1,7 +1,11 @@
+import logging
+
 from pydantic import BaseSettings
 
 from watchmen_utilities import is_blank
 from .connectors import KafkaSettings, RabbitmqSettings
+
+logger = logging.getLogger(__name__)
 
 
 class ReactorSurfaceSettings(BaseSettings):
@@ -23,9 +27,11 @@ class ReactorSurfaceSettings(BaseSettings):
 		env_file = '.env'
 		env_file_encoding = 'utf-8'
 		case_sensitive = True
+		secrets_dir = '/var/run'
 
 
 settings = ReactorSurfaceSettings()
+logger.info(f'Reactor surface settings[{settings.dict()}].')
 
 
 def ask_kafka_connector_enabled() -> bool:

@@ -4,6 +4,7 @@ from logging import getLogger
 
 from watchmen_model.common import SettingsModel
 from watchmen_model.reactor import PipelineTriggerDataWithPAT
+from .handler import handle_trigger_data
 
 log = getLogger(__name__)
 
@@ -21,8 +22,6 @@ class RabbitmqSettings(SettingsModel):
 
 async def consume(loop, settings: RabbitmqSettings):
 	from aio_pika import connect, ExchangeType
-	# to avoid loop import with surface
-	from .handler import handle_trigger_data
 	connection = await connect(
 		host=settings.host,
 		port=settings.port,

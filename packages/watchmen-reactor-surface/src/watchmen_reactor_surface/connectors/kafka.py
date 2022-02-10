@@ -5,6 +5,7 @@ from typing import List
 
 from watchmen_model.common import SettingsModel
 from watchmen_model.reactor import PipelineTriggerDataWithPAT
+from .handler import handle_trigger_data
 
 logger = getLogger(__name__)
 
@@ -17,8 +18,6 @@ class KafkaSettings(SettingsModel):
 async def consume(loop, settings: KafkaSettings):
 	# noinspection PyPackageRequirements
 	from aiokafka import AIOKafkaConsumer
-	# to avoid loop import with surface
-	from .handler import handle_trigger_data
 	# noinspection PyTypeChecker
 	consumer = AIOKafkaConsumer(
 		settings.topics, loop=loop, bootstrap_servers=settings.bootstrap_servers,
