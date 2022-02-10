@@ -1,16 +1,16 @@
 from enum import Enum
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from watchmen_auth import PrincipalService
-from watchmen_meta.admin import PipelineService, SpaceService, TopicService, UserService
+from watchmen_meta.admin import FactorService, PipelineService, SpaceService, TopicService, UserService
 from watchmen_meta.console import ConnectedSpaceService, ReportService, SubjectService
 from watchmen_meta.system import TenantService
-from watchmen_model.admin import Pipeline, Space, Topic, UserRole
-from watchmen_model.common import ConnectedSpaceId, PipelineId, ReportId, SpaceId, SubjectId, TenantBasedTuple, \
-	TenantId, TopicId
+from watchmen_model.admin import Factor, Pipeline, Space, Topic, User, UserRole
+from watchmen_model.common import ConnectedSpaceId, FactorId, PipelineId, ReportId, SpaceId, SubjectId, \
+	TenantBasedTuple, TenantId, TopicId, UserId
 from watchmen_model.console import ConnectedSpace, Report, Subject
 from watchmen_model.system import Tenant
 from watchmen_rest import get_any_admin_principal
@@ -30,10 +30,10 @@ class MixedImportType(str, Enum):
 
 
 class MixImportDataRequest(BaseModel):
-	topics: List[Topic] = []
-	pipelines: List[Pipeline] = []
-	spaces: List[Space] = []
-	connectedSpaces: List[ConnectedSpaceWithSubjects] = []
+	topics: Optional[List[Topic]] = []
+	pipelines: Optional[List[Pipeline]] = []
+	spaces: Optional[List[Space]] = []
+	connectedSpaces: Optional[List[ConnectedSpaceWithSubjects]] = []
 	importType: MixedImportType = None
 
 
@@ -141,7 +141,7 @@ def fill_tenant_id(request: MixImportDataRequest, tenant_id: TenantId) -> None:
 
 
 def validate_tenant_id_when_super_admin(
-		request: MixImportDataRequest, user_service: UserService, principal_service: PrincipalService) -> None:
+		request: MixImportDataRequest, user_service: UserService, principal_service: PrincipalService) -> TenantId:
 	"""
 	tenant id must be designated by data, because super admin doesn't need any metadata
 	"""
@@ -154,22 +154,25 @@ def validate_tenant_id_when_super_admin(
 	if tenant is None:
 		raise_400('Incorrect tenant id.')
 	fill_tenant_id(request, found_tenant_id)
+	return found_tenant_id
 
 
-def validate_tenant_id_when_tenant_admin(request: MixImportDataRequest, principal_service: PrincipalService) -> None:
+def validate_tenant_id_when_tenant_admin(
+		request: MixImportDataRequest, principal_service: PrincipalService) -> TenantId:
 	"""
 	simply assign tenant id of current principal
 	"""
-	fill_tenant_id(request, principal_service.tenant_id)
+	fill_tenant_id(request, principal_service.get_tenant_id())
+	return principal_service.get_tenant_id()
 
 
 def validate_tenant_id(
 		request: MixImportDataRequest,
-		user_service: UserService, principal_service: PrincipalService) -> None:
+		user_service: UserService, principal_service: PrincipalService) -> TenantId:
 	if principal_service.is_super_admin():
-		validate_tenant_id_when_super_admin(request, user_service, principal_service)
+		return validate_tenant_id_when_super_admin(request, user_service, principal_service)
 	elif principal_service.is_tenant_admin():
-		validate_tenant_id_when_tenant_admin(request, principal_service)
+		return validate_tenant_id_when_tenant_admin(request, principal_service)
 	else:
 		raise_403()
 
@@ -184,8 +187,30 @@ def clear_data_source_id(topics: Optional[List[Topic]]):
 def prepare_and_validate_request(
 		request: MixImportDataRequest,
 		user_service: UserService, principal_service: PrincipalService) -> None:
-	validate_tenant_id(request, user_service, principal_service)
+	tenant_id = validate_tenant_id(request, user_service, principal_service)
 	clear_data_source_id(request.topics)
+
+	def set_user_id_to_report(report: Report, user_id: UserId) -> None:
+		report.userId = user_id
+
+	def set_user_id_to_subject(subject: SubjectWithReports, user_id: UserId) -> None:
+		subject.userId = user_id
+		ArrayHelper(subject.reports).flatten().each(lambda x: set_user_id_to_report(x, user_id))
+
+	def set_user_id_to_connected_space(connected_space: ConnectedSpaceWithSubjects, user_id: UserId) -> None:
+		connected_space.userId = user_id
+		ArrayHelper(connected_space.subjects).flatten().each(lambda x: set_user_id_to_subject(x, user_id))
+
+	if principal_service.is_super_admin():
+		# to find a tenant admin
+		tenant_admin: Optional[User] = user_service.find_admin(tenant_id)
+		if tenant_admin is None:
+			raise_400(f'Admin user on tenant[{tenant_id}] to receive imported data is not found.')
+	elif principal_service.is_tenant_admin():
+		ArrayHelper(request.connectedSpaces).each(
+			lambda x: set_user_id_to_connected_space(x, principal_service.get_user_id()))
+	else:
+		raise_403()
 
 
 def try_to_import_topic(topic: Topic, topic_service: TopicService, do_update: bool) -> TopicImportDataResult:
@@ -382,9 +407,35 @@ def import_on_replace(
 	return try_to_import(request, user_service, True)
 
 
+def fill_topic_ids(
+		topics: Optional[List[Topic]], topic_service: TopicService
+) -> Tuple[Dict[TopicId, TopicId], Dict[FactorId, FactorId]]:
+	topic_id_map: Dict[TopicId, TopicId] = {}
+	factor_id_map: Dict[FactorId, FactorId] = {}
+
+	factor_service: FactorService(topic_service.snowflake_generator)
+
+	def fill_factor_id(factor: Factor) -> None:
+		old_factor_id = factor.factorId
+		factor_service.redress_storable_id(factor)
+		factor_id_map[old_factor_id] = factor.factorId
+
+	def fill_topic_id(topic: Topic) -> None:
+		old_topic_id = topic.topicId
+		topic_service.redress_storable_id(topic)
+		topic_id_map[old_topic_id] = topic.topicId
+
+		ArrayHelper(topic.factors).each(fill_factor_id)
+
+	ArrayHelper(topics).each(fill_topic_id)
+
+	return topic_id_map, factor_id_map
+
+
 def force_new_import(request: MixImportDataRequest, user_service: UserService) -> MixImportDataResponse:
-	# TODO keep relationship, replace them all
+	# keep relationship, replace them all
 	topic_service = get_topic_service(user_service)
+	topic_id_map, factor_id_map = fill_topic_ids(request.topics, topic_service)
 	topic_results = ArrayHelper(request.topics) \
 		.map(lambda x: topic_service.create(x)) \
 		.map(lambda x: TopicImportDataResult(topicId=x.topicId, name=x.name, passed=True)).to_list()
@@ -417,7 +468,8 @@ def force_new_import(request: MixImportDataRequest, user_service: UserService) -
 
 	return MixImportDataResponse(
 		passed=is_all_passed([
-			topic_results, pipeline_results, space_results, connected_space_results, subject_results, report_results]),
+			topic_results, pipeline_results, space_results, connected_space_results, subject_results,
+			report_results]),
 		topics=topic_results,
 		pipelines=pipeline_results,
 		spaces=space_results,
