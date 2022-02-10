@@ -6,8 +6,8 @@ from watchmen_auth import PrincipalService
 from watchmen_meta.admin import EnumItemService, EnumService, TopicService
 from watchmen_model.admin import Enum, EnumItem, Topic, UserRole
 from watchmen_model.common import DataPage, EnumId, Pageable, TenantId, TopicId
-from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
 from watchmen_rest import get_admin_principal, get_console_principal, get_super_admin_principal
+from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator, ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly, validate_tenant_id
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
