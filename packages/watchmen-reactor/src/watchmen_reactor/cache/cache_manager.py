@@ -17,18 +17,24 @@ class DataSourceByIdCache(Cache):
 	pass
 
 
+class TenantByIdCache(Cache):
+	pass
+
+
 cache_set = CacheManager()
 cache_set.setup({
 	'TOPIC_BY_ID': {'cache_class': TopicByIdCache, 'maxsize': 512},
 	'PIPELINE_BY_ID': {'cache_class': PipelineByIdCache, 'maxsize': 1024},
 	'PIPELINE_BY_TOPIC_ID': {'cache_class': PipelineByTopicIdCache, 'maxsize': 512},
-	'DATA_SOURCE_BY_ID': {'cache_class': DataSourceByIdCache}
+	'DATA_SOURCE_BY_ID': {'cache_class': DataSourceByIdCache},
+	'TENANT_BY_ID': {'cache_class': TenantByIdCache, 'maxsize': 32}
 })
 
 topic_cache_by_id = cache_set['TOPIC_BY_ID']
 pipeline_cache_by_id = cache_set['PIPELINE_BY_ID']
 pipeline_cache_by_topic_id = cache_set['PIPELINE_BY_TOPIC_ID']
 data_source_cache_by_id = cache_set['DATA_SOURCE_BY_ID']
+tenant_cache_by_id = cache_set['TENANT_BY_ID']
 
 
 def get_topic_by_id_cache() -> TopicByIdCache:
@@ -45,3 +51,7 @@ def get_pipeline_by_topic_id_cache() -> PipelineByTopicIdCache:
 
 def get_data_source_by_id_cache() -> DataSourceByIdCache:
 	return data_source_cache_by_id
+
+
+def get_tenant_by_id_cache() -> TenantByIdCache:
+	return tenant_cache_by_id
