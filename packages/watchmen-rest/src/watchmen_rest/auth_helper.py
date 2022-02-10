@@ -10,6 +10,7 @@ from .authentication import get_admin_principal_by, get_any_admin_principal_by, 
 from .util import raise_401, raise_403
 
 
+# singleton
 class AuthenticationManagerWrapper:
 	authentication_manager: Optional[AuthenticationManager] = None
 
