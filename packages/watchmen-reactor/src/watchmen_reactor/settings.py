@@ -7,6 +7,11 @@ class ReactorSettings(BaseSettings):
 	REACTOR_CACHE_HEART_BEAT_INTERVAL: int = 60  # reactor cache heart beat interval, in seconds
 	PRESTO: bool = True  # presto
 
+	class Config:
+		env_file = '.env'
+		env_file_encoding = 'utf-8'
+		case_sensitive = True
+
 
 settings = ReactorSettings()
 

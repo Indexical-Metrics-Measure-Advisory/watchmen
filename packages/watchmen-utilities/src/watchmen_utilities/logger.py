@@ -21,6 +21,11 @@ class LoggerSettings(BaseSettings):
 	LOGGER_JSON_FORMAT: bool = False
 	LOGGER_FORMAT: str = '%(asctime)s - %(process)d - %(threadName)s - %(name)s - %(levelname)s - %(message)s'
 
+	class Config:
+		env_file = '.env'
+		env_file_encoding = 'utf-8'
+		case_sensitive = True
+
 
 def get_logger_level(level: LogLevel) -> int:
 	if level == LogLevel.FATAL:
