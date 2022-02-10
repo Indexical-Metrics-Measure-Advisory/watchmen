@@ -10,7 +10,8 @@ from starlette.requests import Request
 from watchmen_auth import AuthenticationManager, AuthenticationProvider, AuthenticationType, AuthFailOn401, \
 	AuthFailOn403, authorize, authorize_jwt, authorize_pat, PrincipalService
 from watchmen_model.admin import User, UserRole
-from .rest_settings import RestSettings
+from watchmen_utilities import ArrayHelper
+from .settings import RestSettings
 from .util import raise_401, raise_403
 
 logger = getLogger(__name__)
@@ -78,15 +79,16 @@ class PATAuthenticationProvider(AuthenticationProvider):
 def build_authentication_manager(
 		settings: RestSettings,
 		find_user_by_name: Callable[[str], Optional[User]],
-		find_user_by_pat: Callable[[str], Optional[User]]
+		find_user_by_pat: Callable[[str], Optional[User]],
+		authentication_providers: List[AuthenticationProvider]
 ) -> AuthenticationManager:
 	authentication_manager = AuthenticationManager()
 	authentication_manager.register_provider(
 		JWTAuthenticationProvider(settings.JWT_SECRET_KEY, settings.JWT_ALGORITHM, find_user_by_name)
-	)
-	authentication_manager.register_provider(PATAuthenticationProvider(find_user_by_pat))
+	).register_provider(PATAuthenticationProvider(find_user_by_pat))
 
-	# TODO other authentication providers could be registered here
+	ArrayHelper(authentication_providers) \
+		.reduce(lambda x: authentication_manager.register_provider(x), authentication_manager)
 
 	return authentication_manager
 

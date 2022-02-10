@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from .rest_settings import RestSettings
+from .settings import RestSettings
 
 
 def install_cors(app: FastAPI, settings: RestSettings) -> None:

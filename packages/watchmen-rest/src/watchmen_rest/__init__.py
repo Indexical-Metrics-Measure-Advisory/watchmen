@@ -7,4 +7,4 @@ from .cors import install_cors
 from .exceptions import InitialRestAppException, RestAppException
 from .prometheus import install_prometheus
 from .rest_app import RestApp
-from .rest_settings import RestSettings
+from .settings import RestSettings
