@@ -10,8 +10,8 @@ from watchmen_meta.console import ConnectedSpaceService, ReportService, SubjectS
 from watchmen_meta.system import TenantService
 from watchmen_model.admin import Factor, Pipeline, PipelineStage, Space, Topic, User, UserRole
 from watchmen_model.admin.space import SpaceFilter
-from watchmen_model.common import ConnectedSpaceId, FactorId, ParameterJoint, PipelineId, ReportId, SpaceId, SubjectId, \
-	TenantBasedTuple, TenantId, TopicId, UserId
+from watchmen_model.common import ConnectedSpaceId, FactorId, ParameterJoint, PipelineId, ReportId, SpaceId, \
+	SubjectId, TenantBasedTuple, TenantId, TopicId, UserId
 from watchmen_model.console import ConnectedSpace, Report, Subject, SubjectDataset
 from watchmen_model.system import Tenant
 from watchmen_rest import get_any_admin_principal
@@ -566,7 +566,6 @@ def fill_report_ids(
 	replace_topic_and_factor_ids = create_topic_and_factor_ids_replacer(topic_id_map, factor_id_map)
 
 	def fill_report_id(report: Report) -> None:
-		old_report_id = report.reportId
 		report_service.redress_storable_id(report)
 		report.subjectId = subject_id_map[report.subjectId] \
 			if report.subjectId in subject_id_map else report.subjectId
