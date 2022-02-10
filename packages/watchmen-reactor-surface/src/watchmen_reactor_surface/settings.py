@@ -19,6 +19,11 @@ class ReactorSurfaceSettings(BaseSettings):
 	KAFKA_BOOTSTRAP_SERVER: str = 'localhost:9092'
 	KAFKA_TOPICS: str = ''
 
+	class Config:
+		env_file = '.env'
+		env_file_encoding = 'utf-8'
+		case_sensitive = True
+
 
 settings = ReactorSurfaceSettings()
 
