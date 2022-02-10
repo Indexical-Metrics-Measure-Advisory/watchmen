@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
@@ -8,17 +8,18 @@ from watchmen_auth import PrincipalService
 from watchmen_meta.admin import FactorService, PipelineService, SpaceService, TopicService, UserService
 from watchmen_meta.console import ConnectedSpaceService, ReportService, SubjectService
 from watchmen_meta.system import TenantService
-from watchmen_model.admin import Factor, Pipeline, Space, Topic, User, UserRole
-from watchmen_model.common import ConnectedSpaceId, FactorId, PipelineId, ReportId, SpaceId, SubjectId, \
+from watchmen_model.admin import Factor, Pipeline, PipelineStage, Space, Topic, User, UserRole
+from watchmen_model.admin.space import SpaceFilter
+from watchmen_model.common import ConnectedSpaceId, FactorId, ParameterJoint, PipelineId, ReportId, SpaceId, SubjectId, \
 	TenantBasedTuple, TenantId, TopicId, UserId
-from watchmen_model.console import ConnectedSpace, Report, Subject
+from watchmen_model.console import ConnectedSpace, Report, Subject, SubjectDataset
 from watchmen_model.system import Tenant
 from watchmen_rest import get_any_admin_principal
 from watchmen_rest.util import raise_400, raise_403
 from watchmen_rest_doll.console.connected_space_router import ConnectedSpaceWithSubjects, SubjectWithReports
 from watchmen_rest_doll.doll import ask_meta_storage, ask_snowflake_generator
+from watchmen_rest_doll.util import trans
 from watchmen_utilities import ArrayHelper, is_blank
-from ..util import trans
 
 router = APIRouter()
 
@@ -177,11 +178,18 @@ def validate_tenant_id(
 		raise_403()
 
 
-def clear_data_source_id(topics: Optional[List[Topic]]):
+def clear_data_source_id(topics: Optional[List[Topic]]) -> None:
 	def clear(topic: Topic) -> None:
 		topic.dataSourceId = None
 
 	ArrayHelper(topics).each(clear)
+
+
+def clear_user_group_ids(spaces: Optional[List[Space]]) -> None:
+	def clear(space: Space) -> None:
+		space.groupIds = None
+
+	ArrayHelper(spaces).each(clear)
 
 
 def prepare_and_validate_request(
@@ -189,6 +197,7 @@ def prepare_and_validate_request(
 		user_service: UserService, principal_service: PrincipalService) -> None:
 	tenant_id = validate_tenant_id(request, user_service, principal_service)
 	clear_data_source_id(request.topics)
+	clear_user_group_ids(request.spaces)
 
 	def set_user_id_to_report(report: Report, user_id: UserId) -> None:
 		report.userId = user_id
@@ -424,12 +433,145 @@ def fill_topic_ids(
 		old_topic_id = topic.topicId
 		topic_service.redress_storable_id(topic)
 		topic_id_map[old_topic_id] = topic.topicId
-
 		ArrayHelper(topic.factors).each(fill_factor_id)
 
 	ArrayHelper(topics).each(fill_topic_id)
 
 	return topic_id_map, factor_id_map
+
+
+def replace_ids(a_dict: dict, replace: Callable[[dict, str], None]) -> dict:
+	ArrayHelper(list(a_dict.keys())).each(lambda x: replace(a_dict, x))
+	return a_dict
+
+
+def create_topic_and_factor_ids_replacer(
+		topic_id_map: Dict[TopicId, TopicId], factor_id_map: Dict[FactorId, FactorId]
+) -> Callable[[dict, str], None]:
+	def replace_topic_and_factor_ids(a_dict: dict, key: str) -> None:
+		if key == 'topicId':
+			old_topic_id = a_dict['topic_id']
+			new_topic_id = topic_id_map.get(old_topic_id)
+			if new_topic_id is not None:
+				a_dict['topic_id'] = new_topic_id
+		if key == 'factorId':
+			old_factor_id = a_dict['factor_id']
+			new_factor_id = factor_id_map.get(old_factor_id)
+			if new_factor_id is not None:
+				a_dict['factor_id'] = new_factor_id
+
+	return replace_topic_and_factor_ids
+
+
+def fill_pipeline_ids(
+		pipelines: Optional[List[Pipeline]], pipeline_service: PipelineService,
+		topic_id_map: Dict[TopicId, TopicId], factor_id_map: Dict[FactorId, FactorId]
+) -> None:
+	replace_topic_and_factor_ids = create_topic_and_factor_ids_replacer(topic_id_map, factor_id_map)
+
+	def fill_pipeline_id(pipeline: Pipeline) -> None:
+		pipeline_service.redress_storable_id(pipeline)
+		pipeline.topicId = topic_id_map.get(pipeline.topicId) if pipeline.topicId in topic_id_map else pipeline.topicId
+		if pipeline.on is not None:
+			pipeline.on = ParameterJoint(**replace_ids(pipeline.on.dict(), replace_topic_and_factor_ids))
+		pipeline.stages = ArrayHelper(pipeline.stages) \
+			.map(lambda x: PipelineStage(**replace_ids(x.dict(), replace_topic_and_factor_ids)))
+
+	ArrayHelper(pipelines).each(fill_pipeline_id)
+
+
+def fill_space_ids(
+		spaces: Optional[List[Space]], space_service: SpaceService,
+		topic_id_map: Dict[TopicId, TopicId], factor_id_map: Dict[FactorId, FactorId]
+) -> Dict[SpaceId, SpaceId]:
+	space_id_map: Dict[SpaceId, SpaceId] = {}
+
+	def fill_space_id(space: Space) -> None:
+		old_space_id = space.spaceId
+		space_service.redress_storable_id(space)
+		space_id_map[old_space_id] = space.spaceId
+
+	def replace_topic_id(space: Space) -> None:
+		space.topicIds = ArrayHelper(space.topicIds) \
+			.map(lambda x: topic_id_map.get(x) if x in topic_id_map else x).to_list()
+
+	replace_topic_and_factor_ids = create_topic_and_factor_ids_replacer(topic_id_map, factor_id_map)
+
+	def replace_filter(a_filter: SpaceFilter) -> None:
+		if a_filter.topicId is not None:
+			a_filter.topicId = topic_id_map.get(a_filter.topicId) \
+				if a_filter.topicId in topic_id_map else a_filter.topicId
+		if a_filter.joint is not None:
+			a_filter.joint = ParameterJoint(**replace_ids(a_filter.joint.dict(), replace_topic_and_factor_ids))
+
+	def replace_filters(space: Space) -> None:
+		ArrayHelper(space.filters).each(replace_filter)
+
+	ArrayHelper(spaces).each(fill_space_id).each(replace_topic_id).each(replace_filters)
+
+	return space_id_map
+
+
+def fill_connected_space_ids(
+		connected_spaces: Optional[List[ConnectedSpace]], connected_space_service: ConnectedSpaceService,
+		space_id_map: Dict[SpaceId, SpaceId]
+) -> Dict[ConnectedSpaceId, ConnectedSpaceId]:
+	connected_space_id_map: Dict[ConnectedSpaceId, ConnectedSpaceId] = {}
+
+	def fill_connected_space_id(connected_space: ConnectedSpace) -> None:
+		old_connect_id = connected_space.connectId
+		connected_space_service.redress_storable_id(connected_space)
+		connected_space_id_map[old_connect_id] = connected_space.connectId
+		connected_space.spaceId = space_id_map[connected_space.spaceId] \
+			if connected_space.spaceId in space_id_map else connected_space.spaceId
+
+	ArrayHelper(connected_spaces).each(fill_connected_space_id)
+
+	return space_id_map
+
+
+def fill_subject_ids(
+		subjects: Optional[List[SubjectWithReports]], subject_service: SubjectService,
+		connected_space_id_map: Dict[ConnectedSpaceId, ConnectedSpaceId],
+		topic_id_map: Dict[TopicId, TopicId], factor_id_map: Dict[FactorId, FactorId]
+) -> Dict[SubjectId, SubjectId]:
+	subject_id_map: Dict[SubjectId, SubjectId] = {}
+
+	replace_topic_and_factor_ids = create_topic_and_factor_ids_replacer(topic_id_map, factor_id_map)
+
+	def fill_subject_id(subject: Subject) -> None:
+		old_subject_id = subject.subjectId
+		subject_service.redress_storable_id(subject)
+		subject_id_map[old_subject_id] = subject.subjectId
+		subject.connectId = connected_space_id_map[subject.connectId] \
+			if subject.connectId in connected_space_id_map else subject.connectId
+		if subject.dataset is not None:
+			subject.dataset = SubjectDataset(**replace_ids(subject.dataset.dict(), replace_topic_and_factor_ids))
+
+	ArrayHelper(subjects).each(fill_subject_id)
+
+	return subject_id_map
+
+
+def fill_report_ids(
+		reports: Optional[List[Report]], report_service: ReportService,
+		connected_space_id_map: Dict[ConnectedSpaceId, ConnectedSpaceId],
+		subject_id_map: Dict[SubjectId, SubjectId],
+		topic_id_map: Dict[TopicId, TopicId], factor_id_map: Dict[FactorId, FactorId]
+) -> None:
+	replace_topic_and_factor_ids = create_topic_and_factor_ids_replacer(topic_id_map, factor_id_map)
+
+	def fill_report_id(report: Report) -> None:
+		old_report_id = report.reportId
+		report_service.redress_storable_id(report)
+		report.subjectId = subject_id_map[report.subjectId] \
+			if report.subjectId in subject_id_map else report.subjectId
+		report.connectId = connected_space_id_map[report.connectId] \
+			if report.connectId in connected_space_id_map else report.connectId
+		if report.filters is not None:
+			report.filters = ParameterJoint(**replace_ids(report.filters.dict(), replace_topic_and_factor_ids))
+
+	ArrayHelper(reports).each(fill_report_id)
 
 
 def force_new_import(request: MixImportDataRequest, user_service: UserService) -> MixImportDataResponse:
@@ -441,27 +583,32 @@ def force_new_import(request: MixImportDataRequest, user_service: UserService) -
 		.map(lambda x: TopicImportDataResult(topicId=x.topicId, name=x.name, passed=True)).to_list()
 
 	pipeline_service = get_pipeline_service(user_service)
+	fill_pipeline_ids(request.pipelines, pipeline_service, topic_id_map, factor_id_map)
 	pipeline_results = ArrayHelper(request.pipelines) \
 		.map(lambda x: pipeline_service.create(x)) \
 		.map(lambda x: PipelineImportDataResult(pipelineId=x.pipelineId, name=x.name, passed=True)).to_list()
 
 	space_service = get_space_service(user_service)
+	space_id_map = fill_space_ids(request.spaces, space_service, topic_id_map, factor_id_map)
 	space_results = ArrayHelper(request.spaces) \
 		.map(lambda x: space_service.create(x)) \
 		.map(lambda x: SpaceImportDataResult(spaceId=x.spaceId, name=x.name, passed=True)).to_list()
 
 	connected_space_service = get_connected_space_service(user_service)
+	connected_space_id_map = fill_connected_space_ids(request.connectedSpaces, connected_space_service, space_id_map)
 	connected_space_results = ArrayHelper(request.connectedSpaces) \
 		.map(lambda x: connected_space_service.create(x)) \
 		.map(lambda x: ConnectedSpaceImportDataResult(connectId=x.connectId, name=x.name, passed=True)).to_list()
 
 	subjects = ArrayHelper(request.connectedSpaces).map(lambda x: x.subjects).flatten().to_list()
 	subject_service = get_subject_service(user_service)
+	subject_id_map = fill_subject_ids(subjects, subject_service, connected_space_id_map, topic_id_map, factor_id_map)
 	subject_results = subjects.map(lambda x: subject_service.create(x)) \
 		.map(lambda x: SubjectImportDataResult(subjectId=x.subjectId, name=x.name, passed=True)).to_list()
 
 	reports = ArrayHelper(subjects).map(lambda x: x.reports).flatten().to_list()
 	report_service = get_report_service(user_service)
+	fill_report_ids(reports, report_service, connected_space_id_map, subject_id_map, topic_id_map, factor_id_map)
 	report_results = ArrayHelper(reports) \
 		.map(lambda x: report_service.create(x)) \
 		.map(lambda x: ReportImportDataResult(reportId=x.reportId, name=x.name, passed=True)).to_list()
