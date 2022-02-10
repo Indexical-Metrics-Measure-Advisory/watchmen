@@ -1,7 +1,6 @@
 from typing import Callable, List
 
 from watchmen_model.admin import UserRole
-
 from .authentication import AuthenticationManager
 from .authorization import AuthFailOn401, Authorization
 from .principal_service import PrincipalService

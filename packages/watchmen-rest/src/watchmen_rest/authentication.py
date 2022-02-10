@@ -6,10 +6,10 @@ from jose import JWTError
 from jose.jwt import decode, encode
 from jsonschema.exceptions import ValidationError
 from starlette.requests import Request
+
 from watchmen_auth import AuthenticationManager, AuthenticationProvider, AuthenticationType, AuthFailOn401, \
 	AuthFailOn403, authorize, authorize_jwt, authorize_pat, PrincipalService
 from watchmen_model.admin import User, UserRole
-
 from .rest_settings import RestSettings
 from .util import raise_401, raise_403
 
