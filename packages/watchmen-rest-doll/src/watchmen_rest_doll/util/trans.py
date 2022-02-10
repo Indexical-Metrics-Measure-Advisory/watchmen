@@ -35,7 +35,6 @@ def trans_with_fail_over(
 		storage_service.commit_transaction()
 		return returned
 	except HTTPException as e:
-		logger.error(e, exc_info=True, stack_info=True)
 		storage_service.rollback_transaction()
 		return fail_over()
 	except Exception as e:

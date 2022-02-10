@@ -43,12 +43,13 @@ class FactorService:
 	def generate_factor_id(self) -> FactorId:
 		return str(self.snowflake_generator.next_id())
 
+	# noinspection PyMethodMayBeStatic
 	def redress_factor_id(self, factor: Factor) -> Factor:
 		"""
-		return exactly the given factor, replace by generated id if it is faked
+		return exactly the given factor
 		"""
-		if TupleService.is_storable_id_faked(factor.factorId):
-			factor.factorId = self.generate_factor_id()
+		# if TupleService.is_storable_id_faked(factor.factorId):
+		# 	factor.factorId = self.generate_factor_id()
 		return factor
 
 

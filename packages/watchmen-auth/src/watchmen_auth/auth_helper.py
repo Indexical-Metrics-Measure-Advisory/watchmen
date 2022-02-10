@@ -22,7 +22,7 @@ def authorize(
 	def get_principal(scheme: str, token: str) -> PrincipalService:
 		if scheme == 'Bearer':
 			return authorize_jwt(authentication_manager, token, roles)
-		elif scheme == 'PAT':
+		elif scheme == 'pat':
 			return authorize_pat(authentication_manager, token, roles)
 		else:
 			raise AuthFailOn401()
