@@ -53,7 +53,7 @@ def init_log():
 	# Add stdout handler, with level INFO
 	console = StreamHandler(stdout)
 	console.setLevel(logger_level)
-	formatter = Formatter('%(name)-13s: %(levelname)-8s %(message)s')
+	formatter = Formatter(settings.LOGGER_FORMAT)
 	console.setFormatter(formatter)
 	logger.addHandler(console)
 

@@ -1,3 +1,4 @@
+# noinspection SpellCheckingInspectionForFile
 INSERT INTO users(user_id, name, nickname, password, is_active, group_ids, role, tenant_id, created_at, created_by,
                   last_modified_at, last_modified_by, version)
 VALUES (1, 'imma-super', 'IMMA Super', '$2b$12$TLbw0H1y70TRO51Jf6V6y.Yf8aHO.xr7VcCdsZInYk5qhSf8Po6Bu', 1, '[]',
