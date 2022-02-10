@@ -26,6 +26,11 @@ class MetaSettings(BaseSettings):
 	SNOWFLAKE_COMPETITIVE_WORKER_CREATION_RETRY_TIMES: int = 3  # competitive worker creation max retry times
 	SNOWFLAKE_COMPETITIVE_WORKER_RESTART_ON_SHOWDOWN: bool = False  # competitive worker restart automatically on shutdown
 
+	class Config:
+		env_file = '.env'
+		env_file_encoding = 'utf-8'
+		case_sensitive = True
+
 
 def build_mysql_storage(settings: MetaSettings) -> Callable[[], TransactionalStorageSPI]:
 	from watchmen_storage_mysql import StorageMySQLConfiguration

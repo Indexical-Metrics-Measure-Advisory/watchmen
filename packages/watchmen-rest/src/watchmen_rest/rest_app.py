@@ -2,16 +2,17 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from logging import getLogger
-from typing import Callable, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 
 from fastapi import FastAPI
 
+from watchmen_auth import AuthenticationProvider
 from watchmen_model.admin import User
 from .auth_helper import register_authentication_manager
 from .authentication import build_authentication_manager
 from .cors import install_cors
 from .prometheus import install_prometheus
-from .rest_settings import RestSettings
+from .settings import RestSettings
 
 logger = getLogger(f'app.{__name__}')
 
@@ -53,9 +54,17 @@ class RestApp:
 		if self.is_prometheus_on():
 			install_prometheus(app, self.settings)
 
+	# noinspection PyMethodMayBeStatic
+	def get_authentication_providers(self) -> List[AuthenticationProvider]:
+		"""
+		default return empty list, override me and return your authentication providers here.
+		"""
+		return []
+
 	def init_authentication(self) -> None:
 		register_authentication_manager(build_authentication_manager(
-			self.settings, self.build_find_user_by_name(), self.build_find_user_by_pat()
+			self.settings, self.build_find_user_by_name(), self.build_find_user_by_pat(),
+			self.get_authentication_providers()
 		))
 
 	def get_jwt_params(self) -> Tuple[str, str]:

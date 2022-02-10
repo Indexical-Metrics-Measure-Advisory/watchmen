@@ -27,21 +27,6 @@ class RestSettings(BaseSettings):
 	PROMETHEUS: bool = False
 	PROMETHEUS_CONTEXT: str = '/metrics'
 
-	META_STORAGE_TYPE: str = 'mysql'
-	META_STORAGE_USER_NAME: str = 'watchmen'
-	META_STORAGE_PASSWORD: str = 'watchmen'
-	META_STORAGE_HOST: str = 'localhost'
-	META_STORAGE_PORT: int = 3306
-	META_STORAGE_NAME: str = 'watchmen'
-	META_STORAGE_ECHO: bool = False
-
-	SNOWFLAKE_DATA_CENTER_ID: int = 0  # data center id
-	SNOWFLAKE_WORKER_ID: int = 0  # worker id
-	SNOWFLAKE_COMPETITIVE_WORKERS: bool = True  # enable competitive snowflake worker
-	SNOWFLAKE_COMPETITIVE_WORKER_HEART_BEAT_INTERVAL: int = 60  # competitive worker heart beat interval, in seconds
-	SNOWFLAKE_COMPETITIVE_WORKER_CREATION_RETRY_TIMES: int = 3  # competitive worker creation max retry times
-	SNOWFLAKE_COMPETITIVE_WORKER_RESTART_ON_SHOWDOWN: bool = False  # competitive worker restart automatically on shutdown
-
 	class Config:
 		env_file = '.env'
 		env_file_encoding = 'utf-8'
