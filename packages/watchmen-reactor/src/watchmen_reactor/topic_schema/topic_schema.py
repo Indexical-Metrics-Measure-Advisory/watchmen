@@ -28,6 +28,8 @@ class FlattenFactor:
 				# break and set to root
 				root[self.factor_name] = None
 				return None
+			else:
+				data = value
 		# set to root
 		root[self.factor_name] = value
 		return value
@@ -40,7 +42,7 @@ class EncryptFactor:
 		self.names = self.factor_name.split('.')
 
 	def encrypt(self, root: Dict[str, Any]) -> None:
-		# TODO encrypt factor
+		# TODO
 		pass
 
 
