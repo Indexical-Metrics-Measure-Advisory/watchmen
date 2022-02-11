@@ -90,5 +90,7 @@ def parse_encrypt_factors(topic: Topic) -> List[EncryptFactorGroup]:
 
 
 def encrypt(value: Any, method: FactorEncryptMethod) -> Any:
-	# TODO do encryption
+	# TODO do encryption,
+	# check it is encrypted or not first
+	# data read from topic, and write again, might be encrypted already
 	return value
