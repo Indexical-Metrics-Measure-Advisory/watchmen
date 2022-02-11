@@ -3,65 +3,18 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from watchmen_meta.common import ask_snowflake_generator
-from watchmen_model.admin import Factor, FactorEncryptMethod, Topic, TopicType
-from watchmen_utilities import ArrayHelper, is_blank
+from watchmen_model.admin import Topic, TopicType
+from watchmen_utilities import ArrayHelper
 from .aid_hierarchy import aid
-
-
-class FlattenFactor:
-	def __init__(self, factor: Factor):
-		self.factor = factor
-		self.factor_name = '' if is_blank(factor.name) else factor.name.strip()
-		self.names = self.factor_name.split('.')
-
-	def get_factor(self):
-		return self.factor
-
-	def get_names(self):
-		return self.names
-
-	def flatten(self, root: Dict[str, Any]) -> Any:
-		data = root
-		value = None
-		for name in self.names:
-			value = data.get(name)
-			if value is None:
-				# break and set to root
-				root[self.factor_name] = None
-				return None
-			else:
-				data = value
-		# set to root
-		root[self.factor_name] = value
-		return value
-
-
-class EncryptFactor:
-	def __init__(self, factor: Factor):
-		self.factor = factor
-		self.factor_name = '' if is_blank(factor.name) else factor.name.strip()
-		self.names = self.factor_name.split('.')
-
-	def encrypt(self, root: Dict[str, Any]) -> None:
-		# TODO
-		pass
-
-
-def parse_flatten_factors(topic: Topic) -> List[FlattenFactor]:
-	return ArrayHelper(topic.factors).filter(lambda x: x.flatten).map(lambda x: FlattenFactor(x)).to_list()
-
-
-def parse_encrypt_factors(topic: Topic) -> List[EncryptFactor]:
-	return ArrayHelper(topic.factors) \
-		.filter(lambda x: x.encrypt is not None and x.encrypt != FactorEncryptMethod.NONE) \
-		.map(lambda x: EncryptFactor(x)).to_list()
+from .encrypt_factor import EncryptFactorGroup, parse_encrypt_factors
+from .flatten_factor import FlattenFactor, parse_flatten_factors
 
 
 class TopicSchema:
 	def __init__(self, topic: Topic):
 		self.topic = topic
 		self.flatten_factors = parse_flatten_factors(self.topic)
-		self.encrypt_factors = parse_encrypt_factors(self.topic)
+		self.encrypt_factor_groups = parse_encrypt_factors(self.topic)
 
 	def get_topic(self) -> Topic:
 		return self.topic
@@ -72,8 +25,8 @@ class TopicSchema:
 	def get_flatten_factors(self) -> List[FlattenFactor]:
 		return self.flatten_factors
 
-	def get_encrypt_factors(self) -> List[EncryptFactor]:
-		return self.encrypt_factors
+	def get_encrypt_factor_groups(self) -> List[EncryptFactorGroup]:
+		return self.encrypt_factor_groups
 
 	def flatten(self, data: Dict[str, Any]) -> Dict[str, Any]:
 		"""
@@ -88,7 +41,7 @@ class TopicSchema:
 		"""
 		given data might be changed, and returns exactly the given one
 		"""
-		ArrayHelper(self.encrypt_factors).each(lambda x: x.encrypt(data))
+		ArrayHelper(self.encrypt_factor_groups).each(lambda x: x.encrypt(data))
 		return data
 
 	def aid_hierarchy(self, data: Dict[str, Any]) -> Dict[str, Any]:
