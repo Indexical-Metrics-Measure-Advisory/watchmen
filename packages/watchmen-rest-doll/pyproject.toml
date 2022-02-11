@@ -15,6 +15,9 @@ bcrypt = "^3.2.0"
 python-multipart = "^0.0.5"
 watchmen-reactor-surface = { path = "../watchmen-reactor-surface", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
+watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
+watchmen-storage-mongodb = { path = "../watchmen-storage-mongodb", develop = true, optional = true }
+watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, optional = true }
 kafka-python = { version = "^2.0.2", optional = true }
 aiokafka = { version = "^0.7.2", optional = true }
 aio-pika = { version = "^6.8.2", optional = true }
@@ -23,7 +26,9 @@ aio-pika = { version = "^6.8.2", optional = true }
 
 [tool.poetry.extras]
 mysql = ["watchmen-storage-mysql"]
-#mongo = ["pymongo"]
+oracle = ["watchmen-storage-oracle"]
+mongodb = ["watchmen-storage-mongodb"]
+mssql = ["watchmen-storage-mssql"]
 kafka = ["kafka-python", "aiokafka"]
 rabbit = ["aio-pika"]
 prometheus = ["starlette-prometheus"]

@@ -25,6 +25,14 @@ dotenv = ["python-dotenv (>=0.10.4)"]
 email = ["email-validator (>=1.0.3)"]
 
 [[package]]
+name = "python-json-logger"
+version = "2.0.2"
+description = "A python library adding a json log formatter"
+category = "main"
+optional = false
+python-versions = ">=3.5"
+
+[[package]]
 name = "sqlalchemy"
 version = "1.4.31"
 description = "Database Abstraction Library"
@@ -105,6 +113,10 @@ category = "main"
 optional = false
 python-versions = "^3.9"
 develop = true
+
+[package.dependencies]
+pydantic = "^1.9.0"
+python-json-logger = "^2.0.2"
 
 [package.source]
 type = "directory"
@@ -209,6 +221,10 @@ pydantic = [
     {file = "pydantic-1.9.0-cp39-cp39-win_amd64.whl", hash = "sha256:2cc6a4cb8a118ffec2ca5fcb47afbacb4f16d0ab8b7350ddea5e8ef7bcc53a16"},
     {file = "pydantic-1.9.0-py3-none-any.whl", hash = "sha256:085ca1de245782e9b46cefcf99deecc67d418737a1fd3f6a4f511344b613a5b3"},
     {file = "pydantic-1.9.0.tar.gz", hash = "sha256:742645059757a56ecd886faf4ed2441b9c0cd406079c2b4bee51bcc3fbcd510a"},
+]
+python-json-logger = [
+    {file = "python-json-logger-2.0.2.tar.gz", hash = "sha256:202a4f29901a4b8002a6d1b958407eeb2dd1d83c18b18b816f5b64476dde9096"},
+    {file = "python_json_logger-2.0.2-py3-none-any.whl", hash = "sha256:99310d148f054e858cd5f4258794ed6777e7ad2c3fd7e1c1b527f1cba4d08420"},
 ]
 sqlalchemy = [
     {file = "SQLAlchemy-1.4.31-cp27-cp27m-macosx_10_14_x86_64.whl", hash = "sha256:c3abc34fed19fdeaead0ced8cf56dd121f08198008c033596aa6aae7cc58f59f"},
