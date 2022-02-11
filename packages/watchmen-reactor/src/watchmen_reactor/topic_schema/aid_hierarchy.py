@@ -1,6 +1,5 @@
 from typing import Any, Dict, List, Optional
 
-from watchmen_meta.common import ask_snowflake_generator
 from watchmen_storage import SnowflakeGenerator
 from watchmen_utilities import ArrayHelper
 
@@ -46,8 +45,7 @@ def apply_ancestor_aid_id(
 
 
 def aid(
-		data: Dict[str, Any], ancestors: Optional[List[Ancestor]] = None,
-		snowflake_generator: SnowflakeGenerator = ask_snowflake_generator()
+		data: Dict[str, Any], ancestors: Optional[List[Ancestor]], snowflake_generator: SnowflakeGenerator
 ) -> None:
 	"""
 	given data should be modified
