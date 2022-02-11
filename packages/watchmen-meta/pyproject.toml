@@ -12,12 +12,18 @@ packages = [
 python = "^3.9"
 watchmen-auth = { path = "../watchmen-auth", develop = true }
 watchmen-storage = { path = "../watchmen-storage", develop = true }
-watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true }
+watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true}
+watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
+watchmen-storage-mongodb = { path = "../watchmen-storage-mongodb", develop = true, optional = true }
+watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, optional = true }
 
 [tool.poetry.dev-dependencies]
 
 [tool.poetry.extras]
 mysql = ["watchmen-storage-mysql"]
+oracle = ["watchmen-storage-oracle"]
+mongodb = ["watchmen-storage-mongodb"]
+mssql = ["watchmen-storage-mssql"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
