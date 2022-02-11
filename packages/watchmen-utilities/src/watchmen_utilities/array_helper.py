@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, List, Optional, Tuple
 
 ArrayPredicate = Callable[[Any], bool]
+ArrayFind = Callable[[Any], Tuple[bool, Any]]
 ArrayTransform = Callable[[Any], Any]
 ArrayAction = Callable[[Any], None]
 ArrayWithIndexAction = Callable[[Any, int], None]
@@ -156,16 +157,15 @@ class ArrayHelper:
 
 	def first(
 			self,
-			transform_to: ArrayTransform = lambda x: x,
-			found: ArrayPredicate = lambda x: x is not None
+			find: ArrayFind = lambda x: (True, x) if x is not None else (False, None)
 	) -> Optional[Any]:
 		"""
 		first one of array which match the found function after transform_to function
 		"""
 		for an_element in self.a_list:
-			new_element = transform_to(an_element)
-			if found(new_element):
-				return new_element
+			found, value = find(an_element)
+			if found:
+				return value
 		return None
 
 	def grab(self, *elements: Any) -> ArrayHelper:

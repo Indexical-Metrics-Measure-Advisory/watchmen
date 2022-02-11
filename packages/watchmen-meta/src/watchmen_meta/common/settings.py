@@ -33,6 +33,10 @@ class MetaSettings(BaseSettings):
 		secrets_dir = '/var/run'
 
 
+settings = MetaSettings()
+logger.info(f'Meta settings[{settings.dict()}].')
+
+
 def build_mysql_storage(settings: MetaSettings) -> Callable[[], TransactionalStorageSPI]:
 	from watchmen_storage_mysql import StorageMySQLConfiguration
 	configuration = StorageMySQLConfiguration.config() \
@@ -50,11 +54,7 @@ class MetaStorageHolder:
 meta_storage_holder = MetaStorageHolder()
 
 
-def build_meta_storage(settings: Optional[MetaSettings] = None) -> Callable[[], TransactionalStorageSPI]:
-	if settings is None:
-		settings = MetaSettings()
-	logger.info(f'Meta settings[{settings.dict()}].')
-
+def build_meta_storage() -> Callable[[], TransactionalStorageSPI]:
 	storage_type = settings.META_STORAGE_TYPE
 	if storage_type == 'mysql':
 		return build_mysql_storage(settings)
@@ -80,8 +80,7 @@ class SnowflakeGeneratorHolder:
 snowflake_generator_holder = SnowflakeGeneratorHolder()
 
 
-def build_snowflake_generator(
-		storage: TransactionalStorageSPI, settings: Optional[MetaSettings] = None) -> SnowflakeGenerator:
+def build_snowflake_generator(storage: TransactionalStorageSPI) -> SnowflakeGenerator:
 	if settings.SNOWFLAKE_COMPETITIVE_WORKERS:
 		# competitive workers
 		def shutdown_listener(
@@ -115,13 +114,3 @@ def ask_snowflake_generator() -> SnowflakeGenerator:
 	if snowflake_generator_holder.snowflake_generator is None:
 		snowflake_generator_holder.snowflake_generator = build_snowflake_generator(ask_meta_storage())
 	return snowflake_generator_holder.snowflake_generator
-
-
-def init_meta(settings: MetaSettings):
-	"""
-	build meta by given settings,\n
-	1. meta storage,\n
-	2. snowflake generator.
-	"""
-	meta_storage_holder.meta_storage = build_meta_storage(settings)
-	snowflake_generator_holder.snowflake_generator = build_snowflake_generator(ask_meta_storage(), settings)

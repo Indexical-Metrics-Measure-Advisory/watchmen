@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from enum import Enum
 from logging import getLogger
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from watchmen_model.admin import User
 from watchmen_utilities import ArrayHelper
@@ -37,9 +37,13 @@ class AuthenticationManager:
 		return self
 
 	def authenticate_details(self, details: dict, auth_type: AuthenticationType) -> Optional[User]:
+		def authenticate_by(provider: AuthenticationProvider) -> Tuple[bool, Optional[User]]:
+			user = provider.authenticate(details)
+			return (True, user) if user is not None else (False, None)
+
 		return ArrayHelper(self.get_providers()) \
 			.filter(lambda x: x.accept(auth_type)) \
-			.first(lambda x: x.authenticate(details))
+			.first(lambda x: authenticate_by(x))
 
 	def authenticate_by_jwt(self, token: str) -> Optional[User]:
 		details = {'token': token}
