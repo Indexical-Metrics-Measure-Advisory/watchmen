@@ -4,6 +4,7 @@ from typing import Any, Dict, List
 
 from watchmen_model.admin import Factor, FactorEncryptMethod, Topic, TopicType
 from watchmen_utilities import ArrayHelper, is_blank
+from .aid_hierarchy import aid
 
 
 class FlattenFactor:
@@ -94,7 +95,7 @@ class TopicSchema:
 		if not self.is_raw_topic():
 			return data
 
-		# TODO aid hierarchy
+		aid(data)
 		return data
 
 	def prepare_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
