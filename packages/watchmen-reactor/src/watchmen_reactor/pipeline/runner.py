@@ -20,7 +20,7 @@ def find_topic(name: str, principal_service: PrincipalService) -> TopicSchema:
 
 def save_topic_data(schema: TopicSchema, data: Dict[str, any], trigger_type: PipelineTriggerType) -> Dict[str, any]:
 	data = schema.prepare_data(data)
-
+	# TODO save
 	return data
 
 

@@ -87,6 +87,7 @@ class PipelineService(TupleService):
 		finder = self.get_entity_finder_for_columns(
 			criteria=[
 				EntityCriteriaExpression(name='topic_id', value=topic_id),
+				EntityCriteriaExpression(name='tenant_id', value=tenant_id),
 			],
 			distinctColumnNames=['tenant_id']
 		)
