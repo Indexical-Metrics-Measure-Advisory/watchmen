@@ -73,20 +73,20 @@ class TopicSchema:
 
 	def flatten(self, data: Dict[str, Any]) -> Dict[str, Any]:
 		if self.topic.type != TopicType.RAW:
-			return self
+			return data
 		ArrayHelper(self.flatten_factors).each(lambda x: x.flatten(data))
-		return self
+		return data
 
 	def encrypt(self, data: Dict[str, Any]) -> Dict[str, Any]:
 		ArrayHelper(self.encrypt_factors).each(lambda x: x.encrypt(data))
-		return self
+		return data
 
 	def aid_hierarchy(self, data: Dict[str, Any]) -> Dict[str, Any]:
 		if not self.is_raw_topic():
-			return self
+			return data
 
 		# TODO aid hierarchy
-		return self
+		return data
 
 	def prepare_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
 		"""
