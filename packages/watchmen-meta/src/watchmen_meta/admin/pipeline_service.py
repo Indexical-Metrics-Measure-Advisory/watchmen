@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from watchmen_meta.common import TupleNotFoundException, TupleService, TupleShaper
 from watchmen_model.admin import Pipeline, PipelineStage
-from watchmen_model.common import PipelineId, TenantId
+from watchmen_model.common import PipelineId, TenantId, TopicId
 from watchmen_storage import EntityCriteriaExpression, EntityRow, EntityShaper, TooManyEntitiesFoundException
 from watchmen_utilities import ArrayHelper
 
@@ -82,6 +82,16 @@ class PipelineService(TupleService):
 			return rows[0].get('tenant_id')
 		else:
 			raise TooManyEntitiesFoundException(f'Too many entities found by finder[{finder}].')
+
+	def find_by_topic_id(self, topic_id: TopicId, tenant_id: TenantId) -> List[Pipeline]:
+		finder = self.get_entity_finder_for_columns(
+			criteria=[
+				EntityCriteriaExpression(name='topic_id', value=topic_id),
+			],
+			distinctColumnNames=['tenant_id']
+		)
+		# noinspection PyTypeChecker
+		return self.storage.find(finder)
 
 	def update_name(self, pipeline_id: PipelineId, name: str, tenant_id: TenantId) -> Pipeline:
 		"""
