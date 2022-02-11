@@ -70,8 +70,11 @@ class SnowflakeGenerator:
 
 		if timestamp < self.last_timestamp:
 			# incorrect timestamp
-			raise InvalidSystemClockException
-		elif timestamp == self.last_timestamp:
+			# raise InvalidSystemClockException
+			# use current time stamp
+			timestamp = self.last_timestamp
+
+		if timestamp == self.last_timestamp:
 			# exactly in same timestamp, increase sequence
 			# and increase timestamp when sequence reaches the max value
 			self.sequence = (self.sequence + 1) & MAX_SEQUENCE
