@@ -98,11 +98,11 @@ class TopicService(TupleService):
 
 	# noinspection DuplicatedCode
 	def find_by_name(
-			self, text: Optional[str], exclude_types: Optional[List[TopicType]],
+			self, name: Optional[str], exclude_types: Optional[List[TopicType]],
 			tenant_id: Optional[TenantId]) -> List[Topic]:
 		criteria = []
-		if text is not None and len(text.strip()) != 0:
-			criteria.append(EntityCriteriaExpression(name='name', operator=EntityCriteriaOperator.LIKE, value=text))
+		if name is not None and len(name.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(name='name', operator=EntityCriteriaOperator.LIKE, value=name))
 		if exclude_types is not None and len(exclude_types) != 0:
 			criteria.append(
 				EntityCriteriaExpression(name='type', operator=EntityCriteriaOperator.NOT_IN, value=exclude_types))
@@ -110,6 +110,14 @@ class TopicService(TupleService):
 			criteria.append(EntityCriteriaExpression(name='tenant_id', value=tenant_id))
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(criteria=criteria))
+
+	def find_by_name_and_tenant(self, name: str, tenant_id: TenantId) -> Optional[Topic]:
+		return self.storage.find_one(self.get_entity_finder(
+			criteria=[
+				EntityCriteriaExpression(name='name', value=name),
+				EntityCriteriaExpression(name='tenant_id', value=tenant_id)
+			]
+		))
 
 	def find_by_ids(self, topic_ids: List[TopicId], tenant_id: Optional[TenantId]) -> List[Topic]:
 		criteria = [
