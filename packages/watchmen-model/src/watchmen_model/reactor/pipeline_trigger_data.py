@@ -1,4 +1,4 @@
-from typing import Any, TypeVar
+from typing import Any, Dict, TypeVar
 
 from pydantic import BaseModel
 
@@ -12,9 +12,7 @@ class PipelineTriggerData(BaseModel):
 	# topic name
 	code: str = None
 	# current data
-	data: Any = None
-	# previous data, ignored when trigger type INSERT/DELETE
-	previous: Any = None
+	data: Dict[str, Any] = None
 	triggerType: PipelineTriggerType = PipelineTriggerType.INSERT
 	# pass tenant id when use super admin
 	tenantId: TenantId = None

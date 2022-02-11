@@ -1,1 +1,1 @@
-from .topic_schema_service import TopicSchemaService
+from .topic_schema import TopicSchema

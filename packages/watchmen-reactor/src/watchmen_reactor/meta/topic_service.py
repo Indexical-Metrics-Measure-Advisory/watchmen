@@ -4,8 +4,9 @@ from watchmen_auth import PrincipalService
 from watchmen_meta.admin import TopicService as TopicStorageService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import Topic
-from watchmen_model.common import TopicId
+from watchmen_model.common import TenantId, TopicId
 from watchmen_reactor.cache import CacheService
+from watchmen_reactor.topic_schema import TopicSchema
 
 
 class TopicService:
@@ -27,5 +28,30 @@ class TopicService:
 
 			CacheService.topic().put(topic)
 			return topic
+		finally:
+			storage_service.close_transaction()
+
+	def find_schema_by_name(self, name: str, tenant_id: TenantId) -> Optional[TopicSchema]:
+		if self.principal_service.is_tenant_admin():
+			if self.principal_service.get_tenant_id() != tenant_id:
+				raise Exception('Forbidden')
+
+		schema = None
+		topic = CacheService.topic().get_by_name(name, tenant_id)
+		if topic is not None:
+			schema = CacheService.topic().get_schema(topic.topicId)
+		if schema is not None:
+			return schema
+
+		storage_service = TopicStorageService(ask_meta_storage(), ask_snowflake_generator(), self.principal_service)
+		storage_service.begin_transaction()
+		try:
+			# noinspection PyTypeChecker
+			topic: Topic = storage_service.find_by_name_and_tenant(name, tenant_id)
+			if topic is None:
+				return None
+
+			CacheService.topic().put(topic)
+			return CacheService.topic().get_schema(topic.topicId)
 		finally:
 			storage_service.close_transaction()

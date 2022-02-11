@@ -6,9 +6,10 @@ from watchmen_model.admin import Pipeline, Topic
 from watchmen_model.common import DataSourceId, PipelineId, TenantId, TopicId
 from watchmen_model.system import DataSource, Tenant
 from watchmen_reactor.settings import ask_cache_enabled
+from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_utilities import ArrayHelper
 from .cache_manager import get_data_source_by_id_cache, get_pipeline_by_id_cache, get_pipeline_by_topic_id_cache, \
-	get_tenant_by_id_cache, get_topic_by_id_cache
+	get_tenant_by_id_cache, get_topic_by_id_cache, get_topic_by_tenant_and_name_cache, get_topic_schema_by_id_cache
 
 
 class InternalCache:
@@ -97,7 +98,7 @@ class PipelineCache:
 		return existing
 
 	def get(self, pipeline_id: PipelineId) -> Optional[Pipeline]:
-		return self.get(pipeline_id)
+		return self.by_id_cache.get(pipeline_id)
 
 	def remove(self, pipeline_id: PipelineId) -> Optional[Pipeline]:
 		existing: Optional[Pipeline] = self.by_id_cache.remove(pipeline_id)
@@ -116,21 +117,41 @@ pipeline_cache = PipelineCache()
 class TopicCache:
 	def __init__(self):
 		self.by_id_cache = InternalCache(cache=get_topic_by_id_cache)
+		self.by_tenant_and_name_cache = InternalCache(cache=get_topic_by_tenant_and_name_cache)
+		self.schema_by_id_cache = InternalCache(cache=get_topic_schema_by_id_cache)
+
+	# noinspection PyMethodMayBeStatic
+	def to_tenant_and_name_key(self, name: str, tenant_id: TenantId) -> str:
+		return f'{tenant_id}-{name}'
 
 	def put(self, topic: Topic) -> Optional[Topic]:
-		return self.by_id_cache.put(topic.topicId, topic)
+		existing_topic = self.by_id_cache.put(topic.topicId, topic)
+		self.by_tenant_and_name_cache.put(
+			self.to_tenant_and_name_key(topic.name, topic.tenantId), topic)
+		self.schema_by_id_cache.put(topic.topicId, TopicSchema(topic))
+		return existing_topic
 
 	def get(self, topic_id: TopicId) -> Optional[Topic]:
-		return self.get(topic_id)
+		return self.by_id_cache.get(topic_id)
+
+	def get_schema(self, topic_id: TopicId) -> Optional[TopicSchema]:
+		return self.schema_by_id_cache.get(topic_id)
+
+	def get_by_name(self, name: str, tenant_id: TenantId) -> Optional[Topic]:
+		return self.by_tenant_and_name_cache.get(self.to_tenant_and_name_key(name, tenant_id))
 
 	def remove(self, topic_id: TopicId) -> Optional[Topic]:
 		existing: Optional[Topic] = self.by_id_cache.remove(topic_id)
 		if existing is not None:
 			pipeline_by_topic_cache.remove(topic_id)
+			self.by_tenant_and_name_cache.remove(self.to_tenant_and_name_key(existing.name, existing.tenantId))
+		self.schema_by_id_cache.remove(topic_id)
 		return existing
 
 	def clear(self) -> None:
 		self.by_id_cache.clear()
+		self.by_tenant_and_name_cache.clear()
+		self.schema_by_id_cache.clear()
 		pipeline_by_topic_cache.clear()
 
 
@@ -147,7 +168,7 @@ class DataSourceCache:
 		return self.by_id_cache.put(data_source.dataSourceId, data_source)
 
 	def get(self, data_source_id: DataSourceId) -> Optional[DataSource]:
-		return self.get(data_source_id)
+		return self.by_id_cache.get(data_source_id)
 
 	def remove(self, data_source_id: DataSourceId) -> Optional[DataSource]:
 		return self.by_id_cache.remove(data_source_id)
@@ -173,7 +194,7 @@ class TenantCache:
 		return self.by_id_cache.put(tenant.tenantId, tenant)
 
 	def get(self, tenant_id: TenantId) -> Optional[Tenant]:
-		return self.get(tenant_id)
+		return self.by_id_cache.get(tenant_id)
 
 	def remove(self, tenant_id: TenantId) -> Optional[Tenant]:
 		return self.by_id_cache.remove(tenant_id)
