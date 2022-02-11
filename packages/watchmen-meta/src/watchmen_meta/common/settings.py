@@ -74,7 +74,7 @@ def ask_meta_storage() -> TransactionalStorageSPI:
 
 
 class SnowflakeGeneratorHolder:
-	snowflake_generator: SnowflakeGenerator
+	snowflake_generator: Optional[SnowflakeGenerator] = None
 
 
 snowflake_generator_holder = SnowflakeGeneratorHolder()

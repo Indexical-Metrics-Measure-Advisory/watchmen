@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
+from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import Factor, FactorEncryptMethod, Topic, TopicType
 from watchmen_utilities import ArrayHelper, is_blank
 from .aid_hierarchy import aid
@@ -97,7 +98,7 @@ class TopicSchema:
 		if not self.is_raw_topic():
 			return data
 
-		aid(data)
+		aid(data, [], ask_snowflake_generator())
 		return data
 
 	def prepare_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
