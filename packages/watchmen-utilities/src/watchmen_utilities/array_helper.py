@@ -5,6 +5,7 @@ from typing import Any, Callable, List, Optional
 ArrayPredicate = Callable[[Any], bool]
 ArrayTransform = Callable[[Any], Any]
 ArrayAction = Callable[[Any], None]
+ArrayWithIndexAction = Callable[[Any, int], None]
 ArrayCompare = Callable[[Any, Any], bool]
 ArrayReduce = Callable[[Any, Any], Any]
 
@@ -46,12 +47,23 @@ class ArrayHelper:
 			a_dict[key] = value
 		return a_dict
 
+	def copy(self) -> ArrayHelper:
+		return ArrayHelper(list(self.a_list))
+
 	def each(self, func: ArrayAction) -> ArrayHelper:
 		"""
 		apply given function to each element, and return myself
 		"""
 		for an_element in self.a_list:
 			func(an_element)
+		return self
+
+	def each_with_index(self, func: ArrayWithIndexAction) -> ArrayHelper:
+		"""
+		apply given function to each element, and return myself
+		"""
+		for index, an_element in enumerate(self.a_list):
+			func(an_element, index)
 		return self
 
 	def filter(self, func: ArrayPredicate) -> ArrayHelper:

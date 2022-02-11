@@ -72,16 +72,25 @@ class TopicSchema:
 		return self.encrypt_factors
 
 	def flatten(self, data: Dict[str, Any]) -> Dict[str, Any]:
-		if self.topic.type != TopicType.RAW:
+		"""
+		given data might be changed, and returns exactly the given one
+		"""
+		if not self.is_raw_topic():
 			return data
 		ArrayHelper(self.flatten_factors).each(lambda x: x.flatten(data))
 		return data
 
 	def encrypt(self, data: Dict[str, Any]) -> Dict[str, Any]:
+		"""
+		given data might be changed, and returns exactly the given one
+		"""
 		ArrayHelper(self.encrypt_factors).each(lambda x: x.encrypt(data))
 		return data
 
 	def aid_hierarchy(self, data: Dict[str, Any]) -> Dict[str, Any]:
+		"""
+		given data might be changed, and returns exactly the given one
+		"""
 		if not self.is_raw_topic():
 			return data
 
@@ -92,7 +101,7 @@ class TopicSchema:
 		"""
 		given data might be changed, and returns exactly the given one
 		"""
-		data = self.flatten(data)
 		data = self.encrypt(data)
 		data = self.aid_hierarchy(data)
+		data = self.flatten(data)
 		return data
