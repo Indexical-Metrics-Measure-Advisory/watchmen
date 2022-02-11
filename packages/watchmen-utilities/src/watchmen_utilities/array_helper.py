@@ -183,3 +183,6 @@ class ArrayHelper:
 			else:
 				a_dict[key] = [an_element]
 		return a_dict
+
+	def size(self) -> int:
+		return len(self.a_list)
