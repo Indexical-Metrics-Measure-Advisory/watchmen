@@ -123,11 +123,6 @@ class TopicCache:
 	def get(self, topic_id: TopicId) -> Optional[Topic]:
 		return self.get(topic_id)
 
-	# noinspection PyMethodMayBeStatic
-	def get_trigger_pipelines(self, topic_id: TopicId) -> List[Pipeline]:
-		pipeline_ids: List[PipelineId] = pipeline_by_topic_cache.get(topic_id)
-		return ArrayHelper(pipeline_ids).map(lambda x: pipeline_cache.get(x)).to_list()
-
 	def remove(self, topic_id: TopicId) -> Optional[Topic]:
 		existing: Optional[Topic] = self.by_id_cache.remove(topic_id)
 		if existing is not None:
@@ -200,6 +195,10 @@ class CacheService:
 		return topic_cache
 
 	@staticmethod
+	def pipelines_by_topic() -> PipelineByTopicCache:
+		return pipeline_by_topic_cache
+
+	@staticmethod
 	def data_source() -> DataSourceCache:
 		return data_source_cache
 
@@ -211,6 +210,7 @@ class CacheService:
 	def clear_all() -> None:
 		CacheService.pipeline().clear()
 		CacheService.topic().clear()
+		CacheService.pipelines_by_topic().clear()
 		CacheService.data_source().clear()
 		CacheService.tenant().clear()
 

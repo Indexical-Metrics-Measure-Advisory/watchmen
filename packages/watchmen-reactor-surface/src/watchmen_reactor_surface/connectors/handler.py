@@ -1,11 +1,11 @@
 from typing import Optional
 
 from watchmen_auth import PrincipalService
-from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
-from watchmen_meta.system import TenantService
+from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import User, UserRole
 from watchmen_model.reactor import PipelineTriggerDataWithPAT, PipelineTriggerTraceId
 from watchmen_model.system import Tenant
+from watchmen_reactor.meta import TenantService
 from watchmen_reactor.pipeline import try_to_invoke_pipelines
 from watchmen_rest import get_principal_by_pat, retrieve_authentication_manager
 from watchmen_utilities import is_blank, is_not_blank
@@ -13,7 +13,7 @@ from watchmen_utilities import is_blank, is_not_blank
 
 # TODO should read from cache
 def get_tenant_service(principal_service: PrincipalService) -> TenantService:
-	return TenantService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+	return TenantService(principal_service)
 
 
 async def handle_trigger_data(trigger_data: PipelineTriggerDataWithPAT) -> None:
@@ -31,9 +31,11 @@ async def handle_trigger_data(trigger_data: PipelineTriggerDataWithPAT) -> None:
 		tenant: Optional[Tenant] = tenant_service.find_by_id(trigger_data.tenantId)
 		if tenant is None:
 			raise Exception(f'Tenant[{trigger_data.tenantId}] not exists.')
-		# run by super admin, fake a tenant admin
+		# run by super admin, fake a tenant admin.
+		# user id and name still use current principal's
 		fake_principal_service = PrincipalService(User(
-			userId='-1', tenantId=trigger_data.tenantId, name='Faked User', role=UserRole.ADMIN))
+			userId=principal_service.get_user_id(), tenantId=trigger_data.tenantId,
+			name=principal_service.get_user_name(), role=UserRole.ADMIN))
 		trace_id: PipelineTriggerTraceId = str(ask_snowflake_generator().next_id())
 		await try_to_invoke_pipelines(trigger_data, trace_id, fake_principal_service)
 	else:
