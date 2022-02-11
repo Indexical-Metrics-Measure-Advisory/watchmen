@@ -30,6 +30,7 @@ async def try_to_invoke_pipelines(
 ) -> None:
 	schema = find_topic(trigger_data.code, principal_service)
 	save_topic_data(schema, trigger_data.data, trigger_data.triggerType)
+	# TODO trigger pipelines
 	pass
 
 
@@ -39,4 +40,5 @@ async def try_to_invoke_pipelines_async(
 ) -> None:
 	schema = find_topic(trigger_data.code, principal_service)
 	save_topic_data(schema, trigger_data.data, trigger_data.triggerType)
+	# TODO trigger pipelines
 	pass
