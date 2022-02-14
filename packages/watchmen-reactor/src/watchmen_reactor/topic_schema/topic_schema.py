@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from enum import Enum
 from typing import Any, Dict, List
 
 from watchmen_meta.common import ask_snowflake_generator
@@ -8,6 +9,16 @@ from watchmen_utilities import ArrayHelper
 from .aid_hierarchy import aid
 from .encrypt_factor import EncryptFactorGroup, parse_encrypt_factors
 from .flatten_factor import FlattenFactor, parse_flatten_factors
+
+
+class ColumnNames(str, Enum):
+	ID = 'id_',
+	RAW_TOPIC_DATA = 'data_',
+	AGGREGATE_ASSIST = 'aggregate_assist_',
+	VERSION = 'version_',
+	TENANT_ID = 'tenant_id_',
+	INSERT_TIME = 'insert_time_',
+	UPDATE_TIME = 'update_time_'
 
 
 class TopicSchema:
