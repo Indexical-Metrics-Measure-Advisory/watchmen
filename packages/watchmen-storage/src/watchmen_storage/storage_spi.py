@@ -8,6 +8,18 @@ from .storage_types import Entity, EntityDeleter, EntityDistinctValuesFinder, En
 
 class StorageSPI(ABC):
 	@abstractmethod
+	def connect(self) -> None:
+		"""
+		connect when not connected, or do nothing if connected.
+		call close if want to connect again
+		"""
+		pass
+
+	@abstractmethod
+	def close(self) -> None:
+		pass
+
+	@abstractmethod
 	def insert_one(self, one: Entity, helper: EntityHelper) -> None:
 		pass
 
@@ -151,8 +163,4 @@ class TransactionalStorageSPI(StorageSPI):
 		1. rollback successfully -> close
 		2. rollback failed -> close
 		"""
-		pass
-
-	@abstractmethod
-	def close(self) -> None:
 		pass
