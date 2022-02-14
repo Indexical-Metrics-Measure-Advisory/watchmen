@@ -1,49 +1,49 @@
-from typing import Any, Dict
+from typing import Any, Dict, List
 
-from watchmen_reactor.common import ReactorException
+from watchmen_model.admin import Factor
 from watchmen_reactor.topic_schema import ColumnNames, TopicSchema
 from watchmen_storage import EntityRow, EntityShaper
-from .data_service import TopicDataEntityHelper, TopicDataService
+from watchmen_utilities import ArrayHelper
+from .data_service import TopicDataEntityHelper, TopicDataService, TopicFactorColumnMapper, TopicShaper
 
 
-class RawTopicShaper(EntityShaper):
-	def __init__(self, topic_schema: TopicSchema):
-		pass
+class RawTopicFactorColumnMapper(TopicFactorColumnMapper):
+	def get_factors(self, schema: TopicSchema) -> List[Factor]:
+		return ArrayHelper(schema.get_flatten_factors()).map(lambda x: x.get_factor()).to_list()
 
-	def serialize(self, data: EntityRow) -> EntityRow:
-		return {
+
+class RawTopicShaper(TopicShaper):
+	def create_factor_column_mapper(self, schema: TopicSchema) -> TopicFactorColumnMapper:
+		return RawTopicFactorColumnMapper(schema)
+
+	def serialize(self, data: Dict[str, Any]) -> EntityRow:
+		row = {
 			ColumnNames.ID: data.get(ColumnNames.ID),
 			ColumnNames.RAW_TOPIC_DATA: data.get(ColumnNames.RAW_TOPIC_DATA),
 			ColumnNames.TENANT_ID: data.get(ColumnNames.TENANT_ID),
 			ColumnNames.INSERT_TIME: data.get(ColumnNames.INSERT_TIME),
 			ColumnNames.UPDATE_TIME: data.get(ColumnNames.UPDATE_TIME)
 		}
-
-	def deserialize(self, row: EntityRow) -> EntityRow:
+		ArrayHelper(self.mapper.get_factor_names()).each(lambda x: self.serialize_factor(data, x, row))
 		return row
+
+	def deserialize(self, row: EntityRow) -> Dict[str, Any]:
+		data = {
+			ColumnNames.ID: row.get(ColumnNames.ID),
+			ColumnNames.RAW_TOPIC_DATA: row.get(ColumnNames.RAW_TOPIC_DATA),
+			ColumnNames.TENANT_ID: row.get(ColumnNames.TENANT_ID),
+			ColumnNames.INSERT_TIME: row.get(ColumnNames.INSERT_TIME),
+			ColumnNames.UPDATE_TIME: row.get(ColumnNames.UPDATE_TIME)
+		}
+		ArrayHelper(self.mapper.get_column_names()).each(lambda x: self.deserialize_column(row, x, data))
+		return data
 
 
 class RawTopicDataEntityHelper(TopicDataEntityHelper):
-	def create_entity_shaper(self, topic_schema: TopicSchema) -> EntityShaper:
-		return RawTopicShaper(topic_schema)
+	def create_entity_shaper(self, schema: TopicSchema) -> EntityShaper:
+		return RawTopicShaper(schema)
 
 
 class RawTopicDataService(TopicDataService):
-	def create_data_entity_helper(self, topic_schema: TopicSchema) -> TopicDataEntityHelper:
-		return RawTopicDataEntityHelper(topic_schema)
-
-	def create(self, data: Dict[str, Any]):
-		try:
-			self.get_storage().insert_one(data, self.get_entity_helper())
-		except Exception as e:
-			topic = self.get_topic()
-			raise ReactorException(f'Failed to create data[{data}] on topic[id={topic.topicId}, name={topic.name}].')
-
-	def find(self, data: Dict[str, Any]):
-		pass
-
-	def update(self, data: Dict[str, Any]):
-		pass
-
-	def delete(self, data: Dict[str, Any]):
-		pass
+	def create_data_entity_helper(self, schema: TopicSchema) -> TopicDataEntityHelper:
+		return RawTopicDataEntityHelper(schema)

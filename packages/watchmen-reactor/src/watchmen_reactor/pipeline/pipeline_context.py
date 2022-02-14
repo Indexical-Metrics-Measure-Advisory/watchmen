@@ -8,7 +8,7 @@ from watchmen_model.reactor import PipelineTriggerTraceId
 from watchmen_reactor.cache import CacheService
 from watchmen_reactor.common import ReactorException
 from watchmen_reactor.meta import DataSourceService
-from watchmen_reactor.storage import build_topic_storage, RawTopicDataService, RegularTopicDataService, TopicDataService
+from watchmen_reactor.storage import build_topic_data_storage, RawTopicDataService, RegularTopicDataService, TopicDataService
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_storage import TransactionalStorageSPI
 from watchmen_utilities import is_blank
@@ -54,7 +54,7 @@ class PipelineContext:
 				f'Data source definition not found for topic'
 				f'[id={topic.topicId}, name={topic.name}, dataSourceId={data_source_id}]')
 
-		build = build_topic_storage(data_source)
+		build = build_topic_data_storage(data_source)
 		CacheService.data_source().put_builder(data_source_id, build)
 		storage = build()
 		self.storages[data_source_id] = storage
