@@ -8,7 +8,6 @@ from .data_entity_helper import TopicDataEntityHelper
 from .data_service import TopicDataService
 from .factor_column_mapper import TopicFactorColumnMapper
 from .shaper import TopicShaper
-from ..common import ReactorException
 
 
 class RegularTopicFactorColumnMapper(TopicFactorColumnMapper):
@@ -41,22 +40,15 @@ class RegularTopicDataEntityHelper(TopicDataEntityHelper):
 	def create_entity_shaper(self, schema: TopicSchema) -> EntityShaper:
 		return RegularTopicShaper(schema)
 
+	def find_version(self, data: Dict[str, Any]) -> int:
+		if self.get_schema().is_aggregation_topic():
+			return data.get(ColumnNames.VERSION)
+		else:
+			return -1
+
 	def assign_version(self, data: Dict[str, Any], version: int):
 		if self.get_schema().is_aggregation_topic():
 			data[ColumnNames.VERSION] = version
-
-	def increase_version(self, data: Dict[str, Any]) -> int:
-		if self.get_schema().is_aggregation_topic():
-			old_version = data.get(ColumnNames.VERSION)
-			if old_version is None:
-				topic = self.get_topic()
-				raise ReactorException(
-					f'Version not found from data[{data}] on topic[id={topic.topicId}, name={topic.name}].')
-			new_version = old_version + 1
-			data[ColumnNames.VERSION] = new_version
-			return new_version
-		else:
-			return super().increase_version(data)
 
 
 class RegularTopicDataService(TopicDataService):

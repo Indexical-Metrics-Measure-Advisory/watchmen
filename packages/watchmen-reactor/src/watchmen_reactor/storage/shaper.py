@@ -19,7 +19,6 @@ class TopicShaper(EntityShaper):
 	def serialize_fix_columns(self, data: Dict[str, Any]) -> EntityRow:
 		return {
 			ColumnNames.ID: data.get(ColumnNames.ID),
-			ColumnNames.USER_ID: data.get(ColumnNames.USER_ID),
 			ColumnNames.TENANT_ID: data.get(ColumnNames.TENANT_ID),
 			ColumnNames.INSERT_TIME: data.get(ColumnNames.INSERT_TIME),
 			ColumnNames.UPDATE_TIME: data.get(ColumnNames.UPDATE_TIME)
@@ -29,7 +28,6 @@ class TopicShaper(EntityShaper):
 	def deserialize_fix_columns(self, row: EntityRow) -> Dict[str, Any]:
 		return {
 			ColumnNames.ID: row.get(ColumnNames.ID),
-			ColumnNames.USER_ID: row.get(ColumnNames.USER_ID),
 			ColumnNames.TENANT_ID: row.get(ColumnNames.TENANT_ID),
 			ColumnNames.INSERT_TIME: row.get(ColumnNames.INSERT_TIME),
 			ColumnNames.UPDATE_TIME: row.get(ColumnNames.UPDATE_TIME)

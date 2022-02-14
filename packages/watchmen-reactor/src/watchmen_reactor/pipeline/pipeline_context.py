@@ -89,43 +89,30 @@ class PipelineContext:
 	def prepare_trigger_data(self):
 		self.trigger_topic_schema.prepare_data(self.trigger_data)
 
-	def save_trigger_data(self) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
+	def save_trigger_data(self) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]], PipelineTriggerType]:
 		data_service = self.ask_topic_data_service(self.trigger_topic_schema)
 		if self.trigger_type == PipelineTriggerType.INSERT:
-			trigger_data = data_service.create(self.trigger_data)
-			return None, trigger_data
+			return data_service.trigger_by_insert(self.trigger_data)
 		elif self.trigger_type == PipelineTriggerType.INSERT_OR_MERGE:
-			previous_data = data_service.find(self.trigger_data)
-			if previous_data is not None:
-				trigger_data = data_service.update(self.trigger_data)
-			else:
-				trigger_data = data_service.create(self.trigger_data)
-			return previous_data, trigger_data
+			return data_service.trigger_by_insert_or_merge(self.trigger_data)
 		elif self.trigger_type == PipelineTriggerType.MERGE:
-			previous_data = data_service.find(self.trigger_data)
-			if previous_data is not None:
-				trigger_data = data_service.update(self.trigger_data)
-			else:
-				raise ReactorException('Previous data not found, cannot perform merge operation.')
-			return previous_data, trigger_data
+			return data_service.trigger_by_merge(self.trigger_data)
 		elif self.trigger_type == PipelineTriggerType.DELETE:
-			previous_data = data_service.find(self.trigger_data)
-			if previous_data is not None:
-				data_service.delete(self.trigger_data)
-			else:
-				raise ReactorException('Previous data not found, cannot perform delete operation.')
-			return previous_data, None
+			return data_service.trigger_by_delete(self.trigger_data)
 		else:
 			raise ReactorException(f'Trigger type[{self.trigger_type}] is not supported.')
 
-	async def start(self, previous: Optional[Dict[str, Any]], current: Optional[Dict[str, Any]]) -> None:
+	async def start(
+			self, previous: Optional[Dict[str, Any]], current: Optional[Dict[str, Any]],
+			trigger_type: PipelineTriggerType
+	) -> None:
 		# start pipeline
 		pass
 
 	async def run(self):
 		self.prepare_trigger_data()
-		previous, current = self.save_trigger_data()
+		previous, current, trigger_type = self.save_trigger_data()
 		if self.asynchronized:
-			ensure_future(self.start(previous, current))
+			ensure_future(self.start(previous, current, trigger_type))
 		else:
-			await self.start(previous, current)
+			await self.start(previous, current, trigger_type)

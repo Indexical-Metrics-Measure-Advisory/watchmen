@@ -1,3 +1,4 @@
+# noinspection DuplicatedCode
 class InsertConflictException(Exception):
 	pass
 
