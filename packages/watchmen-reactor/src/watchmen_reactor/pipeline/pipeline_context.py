@@ -81,6 +81,7 @@ class PipelineContext:
 		"""
 		data_entity_helper = self.ask_topic_data_entity_helper(schema)
 		storage = self.ask_topic_storage(schema)
+		storage.register_topic(schema.get_topic())
 		if schema.is_raw_topic():
 			return RawTopicDataService(schema, data_entity_helper, storage, self.principal_service)
 		else:

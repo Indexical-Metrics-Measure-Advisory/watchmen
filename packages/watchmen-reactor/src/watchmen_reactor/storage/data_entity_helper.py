@@ -26,7 +26,7 @@ class TopicDataEntityHelper:
 		return self.schema
 
 	def get_topic(self) -> Topic:
-		return self.schema.topic
+		return self.schema.get_topic()
 
 	def get_entity_name(self) -> str:
 		return self.entity_name
@@ -110,7 +110,9 @@ class TopicDataEntityHelper:
 		self.assign_version(data, 1)
 
 	def assign_fix_columns_on_update(
-			self, data: Dict[str, Any], principal_service: PrincipalService, now: datetime, version: int
+			self, data: Dict[str, Any],
+			principal_service: PrincipalService,
+			now: datetime, version: int
 	) -> None:
 		self.assign_tenant_id(data, principal_service.get_tenant_id())
 		self.assign_update_time(data, now)

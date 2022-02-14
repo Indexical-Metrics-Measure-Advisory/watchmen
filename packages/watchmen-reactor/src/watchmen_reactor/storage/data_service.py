@@ -16,19 +16,19 @@ logger = getLogger(__name__)
 
 class TopicDataService:
 	def __init__(
-			self, topic_schema: TopicSchema, topic_data_entity_helper: TopicDataEntityHelper,
+			self, schema: TopicSchema, topic_data_entity_helper: TopicDataEntityHelper,
 			storage: TransactionalStorageSPI, principal_service: PrincipalService):
-		self.topic_schema = topic_schema
+		self.schema = schema
 		self.data_entity_helper = topic_data_entity_helper
 		self.storage = storage
 		self.principal_service = principal_service
 		self.snowflake_generator = ask_snowflake_generator()
 
 	def get_schema(self) -> TopicSchema:
-		return self.topic_schema
+		return self.schema
 
 	def get_topic(self) -> Topic:
-		return self.topic_schema.get_topic()
+		return self.get_schema().get_topic()
 
 	def get_storage(self) -> TransactionalStorageSPI:
 		return self.storage

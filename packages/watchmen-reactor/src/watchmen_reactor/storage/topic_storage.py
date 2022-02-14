@@ -2,7 +2,7 @@ from typing import Callable
 
 from watchmen_model.system import DataSource, DataSourceType
 from watchmen_reactor.common import ask_storage_echo_enabled, ReactorException
-from watchmen_storage import TopicDataStorageSPI, TransactionalStorageSPI
+from watchmen_storage import TopicDataStorageSPI
 from watchmen_storage_mysql import MySQLDataSourceParams
 
 
