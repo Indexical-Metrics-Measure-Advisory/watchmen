@@ -32,7 +32,7 @@ async def invoke(
 		trace_id=trace_id,
 		principal_service=principal_service,
 		asynchronized=asynchronized
-	).run()
+	).invoke()
 
 
 async def try_to_invoke_pipelines(

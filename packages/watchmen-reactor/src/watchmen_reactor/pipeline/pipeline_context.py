@@ -109,7 +109,7 @@ class PipelineContext:
 		# start pipeline
 		pass
 
-	async def run(self):
+	async def invoke(self):
 		self.prepare_trigger_data()
 		previous, current, trigger_type = self.save_trigger_data()
 		if self.asynchronized:
