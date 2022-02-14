@@ -4,10 +4,10 @@ from watchmen_model.admin import Factor
 from watchmen_reactor.topic_schema import ColumnNames, TopicSchema
 from watchmen_storage import EntityRow, EntityShaper
 from watchmen_utilities import ArrayHelper
-from .data_service import TopicDataService
 from .data_entity_helper import TopicDataEntityHelper
-from .shaper import TopicShaper
+from .data_service import TopicDataService
 from .factor_column_mapper import TopicFactorColumnMapper
+from .shaper import TopicShaper
 from ..common import ReactorException
 
 
@@ -42,14 +42,14 @@ class RegularTopicDataEntityHelper(TopicDataEntityHelper):
 		return RegularTopicShaper(schema)
 
 	def assign_version(self, data: Dict[str, Any], version: int):
-		if self.schema.is_aggregation_topic():
+		if self.get_schema().is_aggregation_topic():
 			data[ColumnNames.VERSION] = version
 
 	def increase_version(self, data: Dict[str, Any]) -> int:
-		if self.schema.is_aggregation_topic():
+		if self.get_schema().is_aggregation_topic():
 			old_version = data.get(ColumnNames.VERSION)
 			if old_version is None:
-				topic = self.schema.get_topic()
+				topic = self.get_topic()
 				raise ReactorException(
 					f'Version not found from data[{data}] on topic[id={topic.topicId}, name={topic.name}].')
 			new_version = old_version + 1
@@ -60,5 +60,4 @@ class RegularTopicDataEntityHelper(TopicDataEntityHelper):
 
 
 class RegularTopicDataService(TopicDataService):
-	def create_data_entity_helper(self, schema: TopicSchema) -> TopicDataEntityHelper:
-		return RegularTopicDataEntityHelper(schema)
+	pass

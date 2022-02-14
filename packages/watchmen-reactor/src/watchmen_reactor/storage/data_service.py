@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from datetime import datetime
 from typing import Any, Dict, Optional
 
@@ -14,9 +13,10 @@ from .data_entity_helper import TopicDataEntityHelper
 
 class TopicDataService:
 	def __init__(
-			self, topic_schema: TopicSchema, storage: TransactionalStorageSPI, principal_service: PrincipalService):
+			self, topic_schema: TopicSchema, topic_data_entity_helper: TopicDataEntityHelper,
+			storage: TransactionalStorageSPI, principal_service: PrincipalService):
 		self.topic_schema = topic_schema
-		self.data_entity_helper = self.create_data_entity_helper(topic_schema)
+		self.data_entity_helper = topic_data_entity_helper
 		self.storage = storage
 		self.principal_service = principal_service
 		self.snowflake_generator = ask_snowflake_generator()
@@ -49,10 +49,6 @@ class TopicDataService:
 	def get_entity_helper(self):
 		return self.get_data_entity_helper().get_entity_helper()
 
-	@abstractmethod
-	def create_data_entity_helper(self, schema: TopicSchema) -> TopicDataEntityHelper:
-		pass
-
 	def has_id(self, data: [str, Any]) -> bool:
 		has_id, _ = self.get_data_entity_helper().find_data_id(data)
 		return has_id
@@ -82,8 +78,29 @@ class TopicDataService:
 			topic = self.get_topic()
 			raise ReactorException(f'Failed to find data[id={id_}] on topic[id={topic.topicId}, name={topic.name}].')
 
-	def update(self, data: Dict[str, Any]):
-		pass
+	def update(self, data: Dict[str, Any]) -> Dict[str, Any]:
+		has_id, id_ = self.get_data_entity_helper().find_data_id(data)
+		if not has_id:
+			topic = self.get_topic()
+			raise ReactorException(
+				f'Id not found in data[{data}] for updating topic[id={topic.topicId}, name={topic.name}].')
+		try:
+			self.get_storage().connect()
+			# TODO
+			return self.get_storage().update_only_and_pull(id_, self.get_data_entity_helper().get_entity_id_helper())
+		except Exception as e:
+			topic = self.get_topic()
+			raise ReactorException(f'Failed to delete data[id={id_}] on topic[id={topic.topicId}, name={topic.name}].')
 
-	def delete(self, data: Dict[str, Any]):
-		pass
+	def delete(self, data: Dict[str, Any]) -> Dict[str, Any]:
+		has_id, id_ = self.get_data_entity_helper().find_data_id(data)
+		if not has_id:
+			topic = self.get_topic()
+			raise ReactorException(
+				f'Id not found in data[{data}] for deleting topic[id={topic.topicId}, name={topic.name}].')
+		try:
+			self.get_storage().connect()
+			return self.get_storage().delete_by_id_and_pull(id_, self.get_data_entity_helper().get_entity_id_helper())
+		except Exception as e:
+			topic = self.get_topic()
+			raise ReactorException(f'Failed to delete data[id={id_}] on topic[id={topic.topicId}, name={topic.name}].')

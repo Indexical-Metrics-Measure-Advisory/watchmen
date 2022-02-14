@@ -1,4 +1,4 @@
-from .data_service import TopicDataService
-from .raw_data_service import RawTopicDataService
-from .regular_data_service import RegularTopicDataService
+from .data_service import TopicDataService, TopicDataEntityHelper
+from .raw_data_service import RawTopicDataEntityHelper, RawTopicDataService
+from .regular_data_service import RegularTopicDataEntityHelper, RegularTopicDataService
 from .topic_storage import build_topic_data_storage

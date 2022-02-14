@@ -8,7 +8,8 @@ from watchmen_model.reactor import PipelineTriggerTraceId
 from watchmen_reactor.cache import CacheService
 from watchmen_reactor.common import ReactorException
 from watchmen_reactor.meta import DataSourceService
-from watchmen_reactor.storage import build_topic_data_storage, RawTopicDataService, RegularTopicDataService, TopicDataService
+from watchmen_reactor.storage import build_topic_data_storage, RawTopicDataEntityHelper, RawTopicDataService, \
+	RegularTopicDataEntityHelper, RegularTopicDataService, TopicDataEntityHelper, TopicDataService
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_storage import TransactionalStorageSPI
 from watchmen_utilities import is_blank
@@ -60,12 +61,24 @@ class PipelineContext:
 		self.storages[data_source_id] = storage
 		return storage
 
+	# noinspection PyMethodMayBeStatic
+	def ask_topic_data_entity_helper(self, schema: TopicSchema) -> TopicDataEntityHelper:
+		data_entity_helper = CacheService.topic().get_entity_helper(schema.get_topic().topicId)
+		if data_entity_helper is None:
+			if schema.is_raw_topic():
+				data_entity_helper = RawTopicDataEntityHelper(schema)
+			else:
+				data_entity_helper = RegularTopicDataEntityHelper(schema)
+			CacheService.topic().put_entity_helper(data_entity_helper)
+		return data_entity_helper
+
 	def ask_topic_data_service(self, schema: TopicSchema) -> TopicDataService:
+		data_entity_helper = self.ask_topic_data_entity_helper(schema)
 		storage = self.ask_topic_storage(schema)
 		if schema.is_raw_topic():
-			return RawTopicDataService(schema, storage, self.principal_service)
+			return RawTopicDataService(schema, data_entity_helper, storage, self.principal_service)
 		else:
-			return RegularTopicDataService(schema, storage, self.principal_service)
+			return RegularTopicDataService(schema, data_entity_helper, storage, self.principal_service)
 
 	def prepare_trigger_data(self):
 		self.trigger_topic_schema.prepare_data(self.trigger_data)
@@ -99,13 +112,14 @@ class PipelineContext:
 		else:
 			raise ReactorException(f'Trigger type[{self.trigger_type}] is not supported.')
 
-	async def start(self):
+	async def start(self, previous: Optional[Dict[str, Any]], current: Optional[Dict[str, Any]]) -> None:
+		# start pipeline
 		pass
 
 	async def run(self):
 		self.prepare_trigger_data()
-		self.save_trigger_data()
+		previous, current = self.save_trigger_data()
 		if self.asynchronized:
-			ensure_future(self.start())
+			ensure_future(self.start(previous, current))
 		else:
-			await self.start()
+			await self.start(previous, current)
