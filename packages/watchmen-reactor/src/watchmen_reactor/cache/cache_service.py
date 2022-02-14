@@ -5,10 +5,12 @@ from cacheout import Cache
 from watchmen_model.admin import Pipeline, Topic
 from watchmen_model.common import DataSourceId, PipelineId, TenantId, TopicId
 from watchmen_model.system import DataSource, Tenant
-from watchmen_reactor.settings import ask_cache_enabled
+from watchmen_reactor.common import ask_cache_enabled
 from watchmen_reactor.topic_schema import TopicSchema
+from watchmen_storage import TransactionalStorageSPI
 from watchmen_utilities import ArrayHelper
-from .cache_manager import get_data_source_by_id_cache, get_pipeline_by_id_cache, get_pipeline_by_topic_id_cache, \
+from .cache_manager import get_data_source_by_id_cache, get_data_storage_builder_by_id_cache, get_pipeline_by_id_cache, \
+	get_pipeline_by_topic_id_cache, \
 	get_tenant_by_id_cache, get_topic_by_id_cache, get_topic_by_tenant_and_name_cache, get_topic_schema_by_id_cache
 
 
@@ -163,15 +165,27 @@ class DataSourceCache:
 
 	def __init__(self):
 		self.by_id_cache = InternalCache(cache=get_data_source_by_id_cache)
+		self.builder_by_id_cache = InternalCache(cache=get_data_storage_builder_by_id_cache)
 
 	def put(self, data_source: DataSource) -> Optional[DataSource]:
 		return self.by_id_cache.put(data_source.dataSourceId, data_source)
 
+	def put_builder(
+			self, data_source_id: DataSourceId, builder: Callable[[], TransactionalStorageSPI]
+	) -> Optional[Callable[[], TransactionalStorageSPI]]:
+		return self.builder_by_id_cache.put(data_source_id, builder)
+
 	def get(self, data_source_id: DataSourceId) -> Optional[DataSource]:
 		return self.by_id_cache.get(data_source_id)
 
+	def get_builder(self, data_source_id: DataSourceId) -> Optional[Callable[[], TransactionalStorageSPI]]:
+		return self.builder_by_id_cache.get(data_source_id)
+
 	def remove(self, data_source_id: DataSourceId) -> Optional[DataSource]:
 		return self.by_id_cache.remove(data_source_id)
+
+	def remove_builder(self, data_source_id: DataSourceId) -> Optional[Callable[[], TransactionalStorageSPI]]:
+		return self.builder_by_id_cache.remove(data_source_id)
 
 	def clear(self) -> None:
 		self.by_id_cache.clear()
