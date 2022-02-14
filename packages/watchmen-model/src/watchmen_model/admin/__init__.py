@@ -12,6 +12,6 @@ from .pipeline_action_write import InsertRowAction, MappingFactor, MappingRow, M
 	WriteTopicAction
 from .pipeline_graphic import PipelineGraphic, TopicGraphic, TopicRect
 from .space import Space
-from .topic import Topic, TopicKind, TopicType
+from .topic import is_aggregation_topic, is_raw_topic, Topic, TopicKind, TopicType
 from .user import User, UserRole
 from .user_group import UserGroup

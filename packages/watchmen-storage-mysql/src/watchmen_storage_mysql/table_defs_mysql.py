@@ -1,8 +1,12 @@
-from typing import Dict, List, Type, Union
+from datetime import datetime
+from typing import Dict, List, Tuple, Type, Union
 
 from sqlalchemy import Boolean, Column, Date, Integer, JSON, MetaData, String, Table, Text
 
+from watchmen_model.admin import is_aggregation_topic, is_raw_topic, Topic
+from watchmen_model.common import TopicId
 from watchmen_storage import SNOWFLAKE_WORKER_ID_TABLE
+from .topic_table_generate import build_by_aggregation, build_by_raw, build_by_regular
 
 meta_data = MetaData()
 
@@ -254,6 +258,24 @@ tables: Dict[str, Table] = {
 	'last_snapshots': table_last_snapshot
 }
 
+topic_tables: Dict[TopicId, Tuple[Table, datetime]] = {}
+
 
 def find_table(table_name: str) -> Table:
 	return tables[table_name]
+
+
+def register_table(topic: Topic) -> None:
+	existing = topic_tables.get(topic.topicId)
+	if existing is not None:
+		last_modified_at = existing[1]
+		if last_modified_at >= topic.lastModifiedAt:
+			# do nothing
+			return
+
+	if is_raw_topic(topic):
+		topic_tables[topic.topicId] = (build_by_raw(topic), topic.lastModifiedAt)
+	elif is_aggregation_topic(topic):
+		topic_tables[topic.topicId] = (build_by_aggregation(topic), topic.lastModifiedAt)
+	else:
+		topic_tables[topic.topicId] = (build_by_regular(topic), topic.lastModifiedAt)

@@ -53,31 +53,40 @@ class TopicDataService:
 		has_id, _ = self.get_data_entity_helper().find_data_id(data)
 		return has_id
 
-	def trigger_by_insert(self, data: Dict[str, Any]) -> Tuple[
-		Optional[Dict[str, Any]], Optional[Dict[str, Any]], PipelineTriggerType]:
+	def raise_on_topic(self) -> str:
+		topic = self.get_schema().get_topic()
+		return f'topic[id={topic.topicId}, name={topic.name}]'
+
+	# noinspection PyMethodMayBeStatic
+	def raise_exception(self, message: str, e: Optional[Exception] = None) -> None:
+		if e is not None:
+			logger.error(e, exc_info=True, stack_info=True)
+		raise ReactorException(message)
+
+	def trigger_by_insert(
+			self, data: Dict[str, Any]
+	) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]], PipelineTriggerType]:
+
 		data_entity_helper = self.get_data_entity_helper()
+		storage = self.get_storage()
 		try:
-			self.get_storage().connect()
 			data_entity_helper.assign_fix_columns_on_create(
 				data=data,
 				snowflake_generator=self.get_snowflake_generator(), principal_service=self.get_principal_service(),
 				now=self.now()
 			)
-			self.get_storage().insert_one(data, data_entity_helper.get_entity_helper())
+			storage.connect()
+			storage.insert_one(data, data_entity_helper.get_entity_helper())
 			return None, data, PipelineTriggerType.INSERT
 		except Exception as e:
-			logger.error(e, exc_info=True, stack_info=True)
-			topic = self.get_topic()
-			raise ReactorException(f'Failed to create data[{data}] into topic[id={topic.topicId}, name={topic.name}].')
+			self.raise_exception(f'Failed to create data[{data}] into {self.raise_on_topic()}.', e)
 
 	def find_previous_data_by_id(self, id_: int, raise_on_not_found: bool = False) -> Optional[Dict[str, Any]]:
 		self.get_storage().connect()
-		previous: Optional[Dict[str, Any]] = self.get_storage().find_by_id(
-			id_, self.get_data_entity_helper().get_entity_id_helper())
+		previous: Optional[Dict[str, Any]] = \
+			self.get_storage().find_by_id(id_, self.get_data_entity_helper().get_entity_id_helper())
 		if previous is None and raise_on_not_found:
-			topic = self.get_topic()
-			raise ReactorException(
-				f'Data not found by data[id={id_}] from topic[id={topic.topicId}, name={topic.name}].')
+			self.raise_exception(f'Data not found by data[id={id_}] from {self.raise_on_topic()}.')
 		return previous
 
 	def trigger_by_merge(
@@ -87,8 +96,7 @@ class TopicDataService:
 		data_entity_helper = self.get_data_entity_helper()
 		has_id, id_ = data_entity_helper.find_data_id(data)
 		if not has_id:
-			raise ReactorException(
-				f'Id not found from data[{data}] on merge into topic[id={topic.topicId}, name={topic.name}].')
+			self.raise_exception(f'Id not found from data[{data}] on merge into {self.raise_on_topic()}.')
 		try:
 			previous = self.find_previous_data_by_id(id_, True)
 			# copy insert time from previous
@@ -103,8 +111,7 @@ class TopicDataService:
 					f'Data not found by data[{data}] on merge into topic[id={topic.topicId}, name={topic.name}].')
 			return previous, data, PipelineTriggerType.MERGE
 		except Exception as e:
-			logger.error(e, exc_info=True, stack_info=True)
-			raise ReactorException(f'Failed to merge data[id={id_}] into topic[id={topic.topicId}, name={topic.name}].')
+			self.raise_exception(f'Failed to merge data[id={id_}] into {self.raise_on_topic()}.', e)
 
 	def trigger_by_insert_or_merge(
 			self, data: Dict[str, Any]
@@ -117,20 +124,16 @@ class TopicDataService:
 			return self.trigger_by_merge(data)
 
 	def trigger_by_delete(self, data: Dict[str, Any]) -> Tuple[Optional[Dict[str, Any]], None, PipelineTriggerType]:
-		topic = self.get_topic()
 		data_entity_helper = self.get_data_entity_helper()
 		has_id, id_ = data_entity_helper.find_data_id(data)
 		if not has_id:
-			raise ReactorException(
-				f'Id not found in data[{data}] on delete from topic[id={topic.topicId}, name={topic.name}].')
+			self.raise_exception(f'Id not found in data[{data}] on delete from {self.raise_on_topic()}.')
 		try:
 			self.get_storage().connect()
 			previous = self.find_previous_data_by_id(id_, True)
 			deleted_count = self.get_storage().delete_by_id(id_, self.get_data_entity_helper().get_entity_id_helper())
 			if deleted_count == 0:
-				raise ReactorException(
-					f'Data not found by data[{data}] on delete from topic[id={topic.topicId}, name={topic.name}].')
+				self.raise_exception(f'Data not found by data[{data}] on delete from {self.raise_on_topic()}.')
 			return previous, None, PipelineTriggerType.DELETE
 		except Exception as e:
-			logger.error(e, exc_info=True, stack_info=True)
-			raise ReactorException(f'Failed to delete data[id={id_}] on topic[id={topic.topicId}, name={topic.name}].')
+			self.raise_exception(f'Failed to delete data[id={id_}] on {self.raise_on_topic()}.', e)

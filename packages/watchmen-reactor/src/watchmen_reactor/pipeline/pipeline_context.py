@@ -2,7 +2,7 @@ from asyncio import ensure_future
 from typing import Any, Dict, Optional, Tuple
 
 from watchmen_auth import PrincipalService
-from watchmen_model.admin import PipelineTriggerType
+from watchmen_model.admin import is_raw_topic, PipelineTriggerType
 from watchmen_model.common import DataSourceId
 from watchmen_model.reactor import PipelineTriggerTraceId
 from watchmen_reactor.cache import CacheService
@@ -68,7 +68,7 @@ class PipelineContext:
 		"""
 		data_entity_helper = CacheService.topic().get_entity_helper(schema.get_topic().topicId)
 		if data_entity_helper is None:
-			if schema.is_raw_topic():
+			if is_raw_topic(schema.get_topic()):
 				data_entity_helper = RawTopicDataEntityHelper(schema)
 			else:
 				data_entity_helper = RegularTopicDataEntityHelper(schema)
@@ -82,7 +82,7 @@ class PipelineContext:
 		data_entity_helper = self.ask_topic_data_entity_helper(schema)
 		storage = self.ask_topic_storage(schema)
 		storage.register_topic(schema.get_topic())
-		if schema.is_raw_topic():
+		if is_raw_topic(schema.get_topic()):
 			return RawTopicDataService(schema, data_entity_helper, storage, self.principal_service)
 		else:
 			return RegularTopicDataService(schema, data_entity_helper, storage, self.principal_service)
