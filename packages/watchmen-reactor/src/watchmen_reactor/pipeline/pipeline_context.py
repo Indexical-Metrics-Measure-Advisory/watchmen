@@ -63,6 +63,9 @@ class PipelineContext:
 
 	# noinspection PyMethodMayBeStatic
 	def ask_topic_data_entity_helper(self, schema: TopicSchema) -> TopicDataEntityHelper:
+		"""
+		ask topic data entity helper, from cache first
+		"""
 		data_entity_helper = CacheService.topic().get_entity_helper(schema.get_topic().topicId)
 		if data_entity_helper is None:
 			if schema.is_raw_topic():
@@ -73,6 +76,9 @@ class PipelineContext:
 		return data_entity_helper
 
 	def ask_topic_data_service(self, schema: TopicSchema) -> TopicDataService:
+		"""
+		ask topic data service
+		"""
 		data_entity_helper = self.ask_topic_data_entity_helper(schema)
 		storage = self.ask_topic_storage(schema)
 		if schema.is_raw_topic():
