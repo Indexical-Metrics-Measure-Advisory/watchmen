@@ -8,7 +8,6 @@ from watchmen_utilities import ArrayHelper, is_blank
 
 class TopicFactorColumnMapper:
 	def __init__(self, schema: TopicSchema):
-		self.topic = schema.topic
 		self.factors = self.get_factors(schema)
 		self.factor_to_column = self.create_factor_to_column_dict(self.factors)
 		self.factor_names = list(self.factor_to_column.keys())

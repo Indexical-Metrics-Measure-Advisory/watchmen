@@ -21,18 +21,18 @@ class RegularTopicShaper(TopicShaper):
 
 	def serialize(self, data: Dict[str, Any]) -> EntityRow:
 		row = self.serialize_fix_columns(data)
-		if self.schema.is_aggregation_topic():
+		if self.get_schema().is_aggregation_topic():
 			row[ColumnNames.AGGREGATE_ASSIST] = data.get(ColumnNames.AGGREGATE_ASSIST)
 			row[ColumnNames.VERSION] = data.get(ColumnNames.VERSION)
-		ArrayHelper(self.mapper.get_factor_names()).each(lambda x: self.serialize_factor(data, x, row))
+		ArrayHelper(self.get_mapper().get_factor_names()).each(lambda x: self.serialize_factor(data, x, row))
 		return row
 
 	def deserialize(self, row: EntityRow) -> Dict[str, Any]:
 		data = self.deserialize_fix_columns(row)
-		if self.schema.is_aggregation_topic():
+		if self.get_schema().is_aggregation_topic():
 			row[ColumnNames.AGGREGATE_ASSIST] = data.get(ColumnNames.AGGREGATE_ASSIST)
 			row[ColumnNames.VERSION] = data.get(ColumnNames.VERSION)
-		ArrayHelper(self.mapper.get_column_names()).each(lambda x: self.deserialize_column(row, x, data))
+		ArrayHelper(self.get_mapper().get_column_names()).each(lambda x: self.deserialize_column(row, x, data))
 		return data
 
 
