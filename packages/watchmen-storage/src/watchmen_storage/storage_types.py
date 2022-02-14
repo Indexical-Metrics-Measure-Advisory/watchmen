@@ -22,7 +22,7 @@ Entity = Union[EntityRow, Storable]
 entity list can be list of rows or list of base models, cannot be mixed by rows and base models 
 """
 EntityList = Union[List[EntityRow], List[Storable]]
-EntityId = TypeVar('EntityId', bound=str)
+EntityId = TypeVar('EntityId', str, int)
 
 
 class EntityShaper:

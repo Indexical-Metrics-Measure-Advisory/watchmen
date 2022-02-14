@@ -4,7 +4,11 @@ from watchmen_model.admin import Factor
 from watchmen_reactor.topic_schema import ColumnNames, TopicSchema
 from watchmen_storage import EntityRow, EntityShaper
 from watchmen_utilities import ArrayHelper
-from .data_service import TopicDataEntityHelper, TopicDataService, TopicFactorColumnMapper, TopicShaper
+from .data_service import TopicDataService
+from .data_entity_helper import TopicDataEntityHelper
+from .shaper import TopicShaper
+from .factor_column_mapper import TopicFactorColumnMapper
+from ..common import ReactorException
 
 
 class RegularTopicFactorColumnMapper(TopicFactorColumnMapper):
@@ -16,28 +20,16 @@ class RegularTopicShaper(TopicShaper):
 	def create_factor_column_mapper(self, schema: TopicSchema) -> TopicFactorColumnMapper:
 		return RegularTopicFactorColumnMapper(schema)
 
-	# noinspection DuplicatedCode
 	def serialize(self, data: Dict[str, Any]) -> EntityRow:
-		row = {
-			ColumnNames.ID: data.get(ColumnNames.ID),
-			ColumnNames.TENANT_ID: data.get(ColumnNames.TENANT_ID),
-			ColumnNames.INSERT_TIME: data.get(ColumnNames.INSERT_TIME),
-			ColumnNames.UPDATE_TIME: data.get(ColumnNames.UPDATE_TIME)
-		}
+		row = self.serialize_fix_columns(data)
 		if self.schema.is_aggregation_topic():
 			row[ColumnNames.AGGREGATE_ASSIST] = data.get(ColumnNames.AGGREGATE_ASSIST)
 			row[ColumnNames.VERSION] = data.get(ColumnNames.VERSION)
 		ArrayHelper(self.mapper.get_factor_names()).each(lambda x: self.serialize_factor(data, x, row))
 		return row
 
-	# noinspection DuplicatedCode
 	def deserialize(self, row: EntityRow) -> Dict[str, Any]:
-		data = {
-			ColumnNames.ID: row.get(ColumnNames.ID),
-			ColumnNames.TENANT_ID: row.get(ColumnNames.TENANT_ID),
-			ColumnNames.INSERT_TIME: row.get(ColumnNames.INSERT_TIME),
-			ColumnNames.UPDATE_TIME: row.get(ColumnNames.UPDATE_TIME)
-		}
+		data = self.deserialize_fix_columns(row)
 		if self.schema.is_aggregation_topic():
 			row[ColumnNames.AGGREGATE_ASSIST] = data.get(ColumnNames.AGGREGATE_ASSIST)
 			row[ColumnNames.VERSION] = data.get(ColumnNames.VERSION)
@@ -48,6 +40,23 @@ class RegularTopicShaper(TopicShaper):
 class RegularTopicDataEntityHelper(TopicDataEntityHelper):
 	def create_entity_shaper(self, schema: TopicSchema) -> EntityShaper:
 		return RegularTopicShaper(schema)
+
+	def assign_version(self, data: Dict[str, Any], version: int):
+		if self.schema.is_aggregation_topic():
+			data[ColumnNames.VERSION] = version
+
+	def increase_version(self, data: Dict[str, Any]) -> int:
+		if self.schema.is_aggregation_topic():
+			old_version = data.get(ColumnNames.VERSION)
+			if old_version is None:
+				topic = self.schema.get_topic()
+				raise ReactorException(
+					f'Version not found from data[{data}] on topic[id={topic.topicId}, name={topic.name}].')
+			new_version = old_version + 1
+			data[ColumnNames.VERSION] = new_version
+			return new_version
+		else:
+			return super().increase_version(data)
 
 
 class RegularTopicDataService(TopicDataService):
