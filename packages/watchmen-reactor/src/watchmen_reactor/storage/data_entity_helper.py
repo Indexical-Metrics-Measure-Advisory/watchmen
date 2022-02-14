@@ -5,21 +5,25 @@ from typing import Any, Dict, Optional, Tuple
 from watchmen_auth import PrincipalService
 from watchmen_model.admin import Topic
 from watchmen_model.common import TenantId
-from watchmen_reactor.topic_schema import ColumnNames, TopicSchema
+from watchmen_model.reactor import TopicDataColumnNames
+from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_storage import EntityCriteria, EntityFinder, EntityHelper, EntityIdHelper, EntityShaper, \
 	EntitySort, EntityUpdate, EntityUpdater, SnowflakeGenerator
 
 
 class TopicDataEntityHelper:
+	"""
+	use topic id as entity name
+	"""
+
 	def __init__(self, schema: TopicSchema):
 		self.schema = schema
-		self.entity_name = f'topic_{schema.topic.name.strip().lower()}'
 		self.shaper = self.create_entity_shaper(schema)
-		self.entity_helper = EntityHelper(name=self.entity_name, shaper=self.shaper)
+		self.entity_helper = EntityHelper(name=self.schema.get_topic().topicId, shaper=self.shaper)
 		self.entity_id_helper = EntityIdHelper(
-			name=self.entity_name,
+			name=self.schema.get_topic().topicId,
 			shaper=self.shaper,
-			idColumnName=ColumnNames.ID
+			idColumnName=TopicDataColumnNames.ID
 		)
 
 	def get_schema(self) -> TopicSchema:
@@ -27,9 +31,6 @@ class TopicDataEntityHelper:
 
 	def get_topic(self) -> Topic:
 		return self.schema.get_topic()
-
-	def get_entity_name(self) -> str:
-		return self.entity_name
 
 	@abstractmethod
 	def create_entity_shaper(self, schema: TopicSchema) -> EntityShaper:
@@ -64,12 +65,12 @@ class TopicDataEntityHelper:
 		"""
 		find data if from given data dictionary.
 		"""
-		id_ = data.get(ColumnNames.ID)
+		id_ = data.get(TopicDataColumnNames.ID)
 		return id_ is not None, id_
 
 	# noinspection PyMethodMayBeStatic
 	def find_insert_time(self, data: Dict[str, Any]) -> Optional[datetime]:
-		return data.get(ColumnNames.INSERT_TIME)
+		return data.get(TopicDataColumnNames.INSERT_TIME)
 
 	@abstractmethod
 	def find_version(self, data: Dict[str, Any]) -> int:
@@ -77,19 +78,19 @@ class TopicDataEntityHelper:
 
 	# noinspection PyMethodMayBeStatic
 	def assign_id_column(self, data: Dict[str, Any], id_value: int) -> None:
-		data[ColumnNames.ID] = id_value
+		data[TopicDataColumnNames.ID] = id_value
 
 	# noinspection PyMethodMayBeStatic
 	def assign_tenant_id(self, data: Dict[str, Any], tenant_id: TenantId) -> None:
-		data[ColumnNames.TENANT_ID] = tenant_id
+		data[TopicDataColumnNames.TENANT_ID] = tenant_id
 
 	# noinspection PyMethodMayBeStatic
 	def assign_insert_time(self, data: Dict[str, Any], insert_time: datetime) -> None:
-		data[ColumnNames.INSERT_TIME] = insert_time
+		data[TopicDataColumnNames.INSERT_TIME] = insert_time
 
 	# noinspection PyMethodMayBeStatic
 	def assign_update_time(self, data: Dict[str, Any], update_time: datetime) -> None:
-		data[ColumnNames.UPDATE_TIME] = update_time
+		data[TopicDataColumnNames.UPDATE_TIME] = update_time
 
 	@abstractmethod
 	def assign_version(self, data: Dict[str, Any], version: int) -> None:

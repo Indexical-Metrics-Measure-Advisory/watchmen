@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Any, Dict, TypeVar
 
 from pydantic import BaseModel
@@ -27,3 +28,13 @@ class PipelineTriggerDataWithPAT(PipelineTriggerData):
 class PipelineTriggerResult(BaseModel):
 	received: bool = True
 	traceId: PipelineTriggerTraceId
+
+
+class TopicDataColumnNames(str, Enum):
+	ID = 'id_',
+	RAW_TOPIC_DATA = 'data_',
+	AGGREGATE_ASSIST = 'aggregate_assist_',
+	VERSION = 'version_',
+	TENANT_ID = 'tenant_id_',
+	INSERT_TIME = 'insert_time_',
+	UPDATE_TIME = 'update_time_'

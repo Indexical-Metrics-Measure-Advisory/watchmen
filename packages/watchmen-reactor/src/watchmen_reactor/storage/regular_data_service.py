@@ -1,7 +1,8 @@
 from typing import Any, Dict, List
 
 from watchmen_model.admin import Factor, is_aggregation_topic
-from watchmen_reactor.topic_schema import ColumnNames, TopicSchema
+from watchmen_model.reactor import TopicDataColumnNames
+from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_storage import EntityRow, EntityShaper
 from watchmen_utilities import ArrayHelper
 from .data_entity_helper import TopicDataEntityHelper
@@ -22,16 +23,16 @@ class RegularTopicShaper(TopicShaper):
 	def serialize(self, data: Dict[str, Any]) -> EntityRow:
 		row = self.serialize_fix_columns(data)
 		if is_aggregation_topic(self.get_schema().get_topic()):
-			row[ColumnNames.AGGREGATE_ASSIST] = data.get(ColumnNames.AGGREGATE_ASSIST)
-			row[ColumnNames.VERSION] = data.get(ColumnNames.VERSION)
+			row[TopicDataColumnNames.AGGREGATE_ASSIST] = data.get(TopicDataColumnNames.AGGREGATE_ASSIST)
+			row[TopicDataColumnNames.VERSION] = data.get(TopicDataColumnNames.VERSION)
 		ArrayHelper(self.get_mapper().get_factor_names()).each(lambda x: self.serialize_factor(data, x, row))
 		return row
 
 	def deserialize(self, row: EntityRow) -> Dict[str, Any]:
 		data = self.deserialize_fix_columns(row)
 		if is_aggregation_topic(self.get_schema().get_topic()):
-			row[ColumnNames.AGGREGATE_ASSIST] = data.get(ColumnNames.AGGREGATE_ASSIST)
-			row[ColumnNames.VERSION] = data.get(ColumnNames.VERSION)
+			row[TopicDataColumnNames.AGGREGATE_ASSIST] = data.get(TopicDataColumnNames.AGGREGATE_ASSIST)
+			row[TopicDataColumnNames.VERSION] = data.get(TopicDataColumnNames.VERSION)
 		ArrayHelper(self.get_mapper().get_column_names()).each(lambda x: self.deserialize_column(row, x, data))
 		return data
 
@@ -42,13 +43,13 @@ class RegularTopicDataEntityHelper(TopicDataEntityHelper):
 
 	def find_version(self, data: Dict[str, Any]) -> int:
 		if is_aggregation_topic(self.get_schema().get_topic()):
-			return data.get(ColumnNames.VERSION)
+			return data.get(TopicDataColumnNames.VERSION)
 		else:
 			return -1
 
 	def assign_version(self, data: Dict[str, Any], version: int):
 		if is_aggregation_topic(self.get_schema().get_topic()):
-			data[ColumnNames.VERSION] = version
+			data[TopicDataColumnNames.VERSION] = version
 
 
 class RegularTopicDataService(TopicDataService):
