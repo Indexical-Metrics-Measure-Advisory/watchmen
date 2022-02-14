@@ -92,7 +92,7 @@ class PipelineContext:
 		elif self.trigger_type == PipelineTriggerType.DELETE:
 			previous_data = data_service.find(self.trigger_data)
 			if previous_data is not None:
-				trigger_data = data_service.delete(self.trigger_data)
+				data_service.delete(self.trigger_data)
 			else:
 				raise ReactorException('Previous data not found, cannot perform delete operation.')
 			return previous_data, None

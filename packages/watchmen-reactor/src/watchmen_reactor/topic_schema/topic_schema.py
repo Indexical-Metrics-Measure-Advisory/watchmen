@@ -73,3 +73,4 @@ class TopicSchema:
 		data = self.aid_hierarchy(data)
 		data = self.flatten(data)
 		return data
+

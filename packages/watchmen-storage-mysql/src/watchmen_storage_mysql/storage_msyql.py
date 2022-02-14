@@ -23,6 +23,10 @@ class StorageMySQL(TransactionalStorageSPI):
 	def __init__(self, engine: Engine):
 		self.engine = engine
 
+	def connect(self) -> None:
+		if self.connection is None:
+			self.connection = self.engine.connect()
+
 	def begin(self) -> None:
 		if self.connection is not None:
 			raise UnexpectedStorageException('Connection exists, failed to begin another. It should be closed first.')

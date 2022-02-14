@@ -4,21 +4,51 @@ from typing import Any, Dict, Optional, Tuple
 
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_snowflake_generator
+from watchmen_model.admin import Topic
 from watchmen_reactor.topic_schema import ColumnNames, TopicSchema
-from watchmen_storage import SnowflakeGenerator, TransactionalStorageSPI
+from watchmen_storage import EntityHelper, EntityIdHelper, EntityShaper, SnowflakeGenerator, TransactionalStorageSPI
 from watchmen_utilities import get_current_time_in_seconds
+
+
+class TopicDataEntityHelper:
+	def __init__(self, topic_schema: TopicSchema):
+		self.entity_name = f'topic_{topic_schema.topic.name.strip().lower()}'
+		self.shaper = self.create_entity_shaper(topic_schema)
+		self.entity_helper = EntityHelper(name=self.entity_name, shaper=self.shaper)
+		self.entity_id_helper = EntityIdHelper(
+			name=self.entity_name,
+			shaper=self.shaper,
+			idColumnName=ColumnNames.ID
+		)
+
+	def get_entity_name(self) -> str:
+		return self.entity_name
+
+	@abstractmethod
+	def create_entity_shaper(self, topic_schema: TopicSchema) -> EntityShaper:
+		pass
+
+	def get_entity_helper(self):
+		return self.entity_helper
+
+	def get_entity_id_helper(self):
+		return self.entity_id_helper
 
 
 class TopicDataService:
 	def __init__(
 			self, topic_schema: TopicSchema, storage: TransactionalStorageSPI, principal_service: PrincipalService):
 		self.topic_schema = topic_schema
+		self.data_entity_helper = self.create_data_entity_helper(topic_schema)
 		self.storage = storage
 		self.principal_service = principal_service
 		self.snowflake_generator = ask_snowflake_generator()
 
 	def get_schema(self) -> TopicSchema:
 		return self.topic_schema
+
+	def get_topic(self) -> Topic:
+		return self.topic_schema.get_topic()
 
 	def get_storage(self) -> TransactionalStorageSPI:
 		return self.storage
@@ -35,6 +65,13 @@ class TopicDataService:
 		get current time in seconds
 		"""
 		return get_current_time_in_seconds()
+
+	def get_entity_helper(self):
+		return self.data_entity_helper.get_entity_helper()
+
+	@abstractmethod
+	def create_data_entity_helper(self, topic_schema: TopicSchema) -> TopicDataEntityHelper:
+		pass
 
 	@abstractmethod
 	def create(self, data: Dict[str, Any]):
