@@ -16,6 +16,7 @@ class ColumnNames(str, Enum):
 	RAW_TOPIC_DATA = 'data_',
 	AGGREGATE_ASSIST = 'aggregate_assist_',
 	VERSION = 'version_',
+	USER_ID = 'user_id_',
 	TENANT_ID = 'tenant_id_',
 	INSERT_TIME = 'insert_time_',
 	UPDATE_TIME = 'update_time_'

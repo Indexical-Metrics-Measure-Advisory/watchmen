@@ -4,7 +4,10 @@ from watchmen_model.admin import Factor
 from watchmen_reactor.topic_schema import ColumnNames, TopicSchema
 from watchmen_storage import EntityRow, EntityShaper
 from watchmen_utilities import ArrayHelper
-from .data_service import TopicDataEntityHelper, TopicDataService, TopicFactorColumnMapper, TopicShaper
+from .data_service import TopicDataService
+from .data_entity_helper import TopicDataEntityHelper
+from .shaper import TopicShaper
+from .factor_column_mapper import TopicFactorColumnMapper
 
 
 class RawTopicFactorColumnMapper(TopicFactorColumnMapper):
@@ -17,24 +20,14 @@ class RawTopicShaper(TopicShaper):
 		return RawTopicFactorColumnMapper(schema)
 
 	def serialize(self, data: Dict[str, Any]) -> EntityRow:
-		row = {
-			ColumnNames.ID: data.get(ColumnNames.ID),
-			ColumnNames.RAW_TOPIC_DATA: data.get(ColumnNames.RAW_TOPIC_DATA),
-			ColumnNames.TENANT_ID: data.get(ColumnNames.TENANT_ID),
-			ColumnNames.INSERT_TIME: data.get(ColumnNames.INSERT_TIME),
-			ColumnNames.UPDATE_TIME: data.get(ColumnNames.UPDATE_TIME)
-		}
+		row = self.serialize_fix_columns(data)
+		row[ColumnNames.RAW_TOPIC_DATA] = data.get(ColumnNames.RAW_TOPIC_DATA)
 		ArrayHelper(self.mapper.get_factor_names()).each(lambda x: self.serialize_factor(data, x, row))
 		return row
 
 	def deserialize(self, row: EntityRow) -> Dict[str, Any]:
-		data = {
-			ColumnNames.ID: row.get(ColumnNames.ID),
-			ColumnNames.RAW_TOPIC_DATA: row.get(ColumnNames.RAW_TOPIC_DATA),
-			ColumnNames.TENANT_ID: row.get(ColumnNames.TENANT_ID),
-			ColumnNames.INSERT_TIME: row.get(ColumnNames.INSERT_TIME),
-			ColumnNames.UPDATE_TIME: row.get(ColumnNames.UPDATE_TIME)
-		}
+		data = self.deserialize_fix_columns(row)
+		data[ColumnNames.RAW_TOPIC_DATA] = row.get(ColumnNames.RAW_TOPIC_DATA)
 		ArrayHelper(self.mapper.get_column_names()).each(lambda x: self.deserialize_column(row, x, data))
 		return data
 
