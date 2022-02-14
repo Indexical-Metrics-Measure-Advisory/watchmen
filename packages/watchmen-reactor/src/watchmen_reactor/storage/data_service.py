@@ -64,7 +64,7 @@ class TopicDataService:
 				now=self.now()
 			)
 			self.get_storage().insert_one(data, data_entity_helper.get_entity_helper())
-			return None, data
+			return None, data, PipelineTriggerType.INSERT
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
 			topic = self.get_topic()
