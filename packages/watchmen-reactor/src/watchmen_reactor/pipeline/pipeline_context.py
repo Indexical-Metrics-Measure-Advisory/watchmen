@@ -11,7 +11,7 @@ from watchmen_reactor.meta import DataSourceService
 from watchmen_reactor.storage import build_topic_data_storage, RawTopicDataEntityHelper, RawTopicDataService, \
 	RegularTopicDataEntityHelper, RegularTopicDataService, TopicDataEntityHelper, TopicDataService
 from watchmen_reactor.topic_schema import TopicSchema
-from watchmen_storage import TransactionalStorageSPI
+from watchmen_storage import TopicDataStorageSPI
 from watchmen_utilities import is_blank
 
 
@@ -20,7 +20,7 @@ def get_data_source_service(principal_service: PrincipalService) -> DataSourceSe
 
 
 class PipelineContext:
-	storages: Dict[DataSourceId, TransactionalStorageSPI] = {}
+	storages: Dict[DataSourceId, TopicDataStorageSPI] = {}
 
 	def __init__(
 			self, trigger_topic_schema: TopicSchema, trigger_type: PipelineTriggerType,
@@ -34,7 +34,7 @@ class PipelineContext:
 		self.principal_service = principal_service
 		self.asynchronized = asynchronized
 
-	def ask_topic_storage(self, schema: TopicSchema) -> TransactionalStorageSPI:
+	def ask_topic_storage(self, schema: TopicSchema) -> TopicDataStorageSPI:
 		topic = schema.get_topic()
 		data_source_id = topic.dataSourceId
 		if is_blank(data_source_id):

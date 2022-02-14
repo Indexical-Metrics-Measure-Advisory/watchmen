@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
+from watchmen_model.admin import Topic
 from watchmen_model.common import DataPage
 from .storage_types import Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
 	EntityIdHelper, EntityList, EntityPager, EntityUpdater
@@ -163,4 +164,10 @@ class TransactionalStorageSPI(StorageSPI):
 		1. rollback successfully -> close
 		2. rollback failed -> close
 		"""
+		pass
+
+
+class TopicDataStorageSPI(TransactionalStorageSPI):
+	@abstractmethod
+	def register_topic(self, topic: Topic) -> None:
 		pass
