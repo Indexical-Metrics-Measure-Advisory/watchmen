@@ -11,7 +11,6 @@ from watchmen_rest import get_principal_by_pat, retrieve_authentication_manager
 from watchmen_utilities import is_blank, is_not_blank
 
 
-# TODO should read from cache
 def get_tenant_service(principal_service: PrincipalService) -> TenantService:
 	return TenantService(principal_service)
 

@@ -107,7 +107,7 @@ class PipelineContext:
 			self, previous: Optional[Dict[str, Any]], current: Optional[Dict[str, Any]],
 			trigger_type: PipelineTriggerType
 	) -> None:
-		# start pipeline
+		# TODO start pipeline
 		pass
 
 	async def invoke(self):
