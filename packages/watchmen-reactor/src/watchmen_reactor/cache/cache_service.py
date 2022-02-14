@@ -182,10 +182,9 @@ class DataSourceCache:
 		return self.builder_by_id_cache.get(data_source_id)
 
 	def remove(self, data_source_id: DataSourceId) -> Optional[DataSource]:
-		return self.by_id_cache.remove(data_source_id)
-
-	def remove_builder(self, data_source_id: DataSourceId) -> Optional[Callable[[], TransactionalStorageSPI]]:
-		return self.builder_by_id_cache.remove(data_source_id)
+		data_source = self.by_id_cache.remove(data_source_id)
+		self.builder_by_id_cache.remove(data_source_id)
+		return data_source
 
 	def clear(self) -> None:
 		self.by_id_cache.clear()

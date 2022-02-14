@@ -1,1 +1,1 @@
-from .topic_schema import TopicSchema
+from .topic_schema import TopicSchema, ColumnNames
