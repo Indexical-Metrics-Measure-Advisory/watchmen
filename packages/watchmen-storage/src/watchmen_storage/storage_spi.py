@@ -11,7 +11,7 @@ class StorageSPI(ABC):
 	def connect(self) -> None:
 		"""
 		connect when not connected, or do nothing if connected.
-		call close if want to connect again
+		call close when want to connect again
 		"""
 		pass
 

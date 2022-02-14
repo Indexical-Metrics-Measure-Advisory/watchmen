@@ -1,6 +1,7 @@
 from cacheout import Cache, CacheManager
 
 
+# noinspection DuplicatedCode
 class TopicByIdCache(Cache):
 	pass
 

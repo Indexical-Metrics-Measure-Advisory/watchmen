@@ -36,6 +36,18 @@ class RawTopicDataEntityHelper(TopicDataEntityHelper):
 	def create_entity_shaper(self, schema: TopicSchema) -> EntityShaper:
 		return RawTopicShaper(schema)
 
+	def find_version(self, data: Dict[str, Any]) -> int:
+		"""
+		always return -1
+		"""
+		return -1
+
+	def assign_version(self, data: Dict[str, Any], version: int) -> None:
+		"""
+		do nothing, raw topic has no version column
+		"""
+		pass
+
 
 class RawTopicDataService(TopicDataService):
 	pass

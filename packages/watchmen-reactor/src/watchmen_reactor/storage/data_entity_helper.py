@@ -4,9 +4,10 @@ from typing import Any, Dict, Optional, Tuple
 
 from watchmen_auth import PrincipalService
 from watchmen_model.admin import Topic
-from watchmen_model.common import TenantId, UserId
+from watchmen_model.common import TenantId
 from watchmen_reactor.topic_schema import ColumnNames, TopicSchema
-from watchmen_storage import EntityHelper, EntityIdHelper, EntityShaper, SnowflakeGenerator
+from watchmen_storage import EntityCriteria, EntityFinder, EntityHelper, EntityIdHelper, EntityShaper, \
+	EntitySort, EntityUpdate, EntityUpdater, SnowflakeGenerator
 
 
 class TopicDataEntityHelper:
@@ -34,11 +35,29 @@ class TopicDataEntityHelper:
 	def create_entity_shaper(self, schema: TopicSchema) -> EntityShaper:
 		pass
 
-	def get_entity_helper(self):
+	def get_entity_helper(self) -> EntityHelper:
 		return self.entity_helper
 
-	def get_entity_id_helper(self):
+	def get_entity_id_helper(self) -> EntityIdHelper:
 		return self.entity_id_helper
+
+	def get_entity_finder(self, criteria: EntityCriteria, sort: Optional[EntitySort] = None) -> EntityFinder:
+		entity_helper = self.get_entity_helper()
+		return EntityFinder(
+			name=entity_helper.name,
+			shaper=entity_helper.shaper,
+			criteria=criteria,
+			sort=sort
+		)
+
+	def get_entity_updater(self, criteria: EntityCriteria, update: EntityUpdate) -> EntityUpdater:
+		entity_helper = self.get_entity_helper()
+		return EntityUpdater(
+			name=entity_helper.name,
+			shaper=entity_helper.shaper,
+			criteria=criteria,
+			update=update
+		)
 
 	# noinspection PyMethodMayBeStatic
 	def find_data_id(self, data: Dict[str, Any]) -> Tuple[bool, Optional[int]]:
@@ -49,12 +68,16 @@ class TopicDataEntityHelper:
 		return id_ is not None, id_
 
 	# noinspection PyMethodMayBeStatic
-	def assign_id_column(self, data: Dict[str, Any], id_value: int) -> None:
-		data[ColumnNames.ID] = id_value
+	def find_insert_time(self, data: Dict[str, Any]) -> Optional[datetime]:
+		return data.get(ColumnNames.INSERT_TIME)
+
+	@abstractmethod
+	def find_version(self, data: Dict[str, Any]) -> int:
+		pass
 
 	# noinspection PyMethodMayBeStatic
-	def assign_user_id(self, data: Dict[str, Any], user_id: UserId) -> None:
-		data[ColumnNames.USER_ID] = user_id
+	def assign_id_column(self, data: Dict[str, Any], id_value: int) -> None:
+		data[ColumnNames.ID] = id_value
 
 	# noinspection PyMethodMayBeStatic
 	def assign_tenant_id(self, data: Dict[str, Any], tenant_id: TenantId) -> None:
@@ -68,18 +91,12 @@ class TopicDataEntityHelper:
 	def assign_update_time(self, data: Dict[str, Any], update_time: datetime) -> None:
 		data[ColumnNames.UPDATE_TIME] = update_time
 
-	# noinspection PyMethodMayBeStatic
+	@abstractmethod
 	def assign_version(self, data: Dict[str, Any], version: int) -> None:
 		"""
 		default ignore version assignment
 		"""
 		pass
-
-	def increase_version(self, data: Dict[str, Any]) -> int:
-		"""
-		default return -1
-		"""
-		return -1
 
 	def assign_fix_columns_on_create(
 			self, data: Dict[str, Any],
@@ -87,16 +104,14 @@ class TopicDataEntityHelper:
 			now: datetime
 	) -> None:
 		self.assign_id_column(data, snowflake_generator.next_id())
-		self.assign_user_id(data, principal_service.get_user_id())
 		self.assign_tenant_id(data, principal_service.get_tenant_id())
 		self.assign_insert_time(data, now)
 		self.assign_update_time(data, now)
 		self.assign_version(data, 1)
 
 	def assign_fix_columns_on_update(
-			self, data: Dict[str, Any], principal_service: PrincipalService, now: datetime
+			self, data: Dict[str, Any], principal_service: PrincipalService, now: datetime, version: int
 	) -> None:
-		self.assign_user_id(data, principal_service.get_user_id())
 		self.assign_tenant_id(data, principal_service.get_tenant_id())
 		self.assign_update_time(data, now)
-		self.increase_version(data)
+		self.assign_version(data, version)
