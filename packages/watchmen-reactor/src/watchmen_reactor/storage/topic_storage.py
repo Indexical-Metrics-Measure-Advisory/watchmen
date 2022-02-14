@@ -12,7 +12,7 @@ def build_mysql_storage(data_source: DataSource) -> Callable[[], TransactionalSt
 	return lambda: configuration.create_storage()
 
 
-def build_topic_storage(data_source: DataSource) -> Callable[[], TransactionalStorageSPI]:
+def build_topic_data_storage(data_source: DataSource) -> Callable[[], TransactionalStorageSPI]:
 	if data_source.dataSourceType == DataSourceType.MYSQL:
 		return build_mysql_storage(data_source)
 	# TODO build oracle storage

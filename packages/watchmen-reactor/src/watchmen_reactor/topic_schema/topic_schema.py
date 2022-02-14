@@ -33,6 +33,10 @@ class TopicSchema:
 	def is_raw_topic(self) -> bool:
 		return self.topic.type == TopicType.RAW
 
+	def is_aggregation_topic(self) -> bool:
+		topic_type = self.topic.type
+		return topic_type == TopicType.AGGREGATE or topic_type == TopicType.RATIO or topic_type == TopicType.TIME
+
 	def get_flatten_factors(self) -> List[FlattenFactor]:
 		return self.flatten_factors
 
@@ -73,4 +77,3 @@ class TopicSchema:
 		data = self.aid_hierarchy(data)
 		data = self.flatten(data)
 		return data
-
