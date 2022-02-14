@@ -4,10 +4,10 @@ from watchmen_model.admin import Factor
 from watchmen_reactor.topic_schema import ColumnNames, TopicSchema
 from watchmen_storage import EntityRow, EntityShaper
 from watchmen_utilities import ArrayHelper
-from .data_service import TopicDataService
 from .data_entity_helper import TopicDataEntityHelper
-from .shaper import TopicShaper
+from .data_service import TopicDataService
 from .factor_column_mapper import TopicFactorColumnMapper
+from .shaper import TopicShaper
 
 
 class RawTopicFactorColumnMapper(TopicFactorColumnMapper):
@@ -38,5 +38,4 @@ class RawTopicDataEntityHelper(TopicDataEntityHelper):
 
 
 class RawTopicDataService(TopicDataService):
-	def create_data_entity_helper(self, schema: TopicSchema) -> TopicDataEntityHelper:
-		return RawTopicDataEntityHelper(schema)
+	pass

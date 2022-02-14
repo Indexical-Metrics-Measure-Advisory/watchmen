@@ -59,8 +59,12 @@ class StorageMySQL(TransactionalStorageSPI):
 		except Exception as e:
 			logger.warning('Exception raised on close connection.', e)
 
+	# noinspection PyMethodMayBeStatic
+	def find_table(self, table_name: str) -> Table:
+		return find_table(table_name)
+
 	def insert_one(self, one: Entity, helper: EntityHelper) -> None:
-		table = find_table(helper.name)
+		table = self.find_table(helper.name)
 		row = helper.shaper.serialize(one)
 		# TODO InsertConflictException should be determined
 		self.connection.execute(insert(table).values(row))
@@ -105,7 +109,7 @@ class StorageMySQL(TransactionalStorageSPI):
 			return entity
 
 	def update(self, updater: EntityUpdater) -> int:
-		table = find_table(updater.name)
+		table = self.find_table(updater.name)
 		statement = update(table).values(updater.update)
 		statement = build_criteria_for_statement(table, statement, updater.criteria, True)
 		result = self.connection.execute(statement)
@@ -128,7 +132,7 @@ class StorageMySQL(TransactionalStorageSPI):
 			return entity_list
 
 	def delete_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> int:
-		table = find_table(helper.name)
+		table = self.find_table(helper.name)
 		statement = delete(table)
 		statement = build_criteria_for_statement(table, statement, [
 			EntityCriteriaExpression(name=helper.idColumnName, value=entity_id)
@@ -167,7 +171,7 @@ class StorageMySQL(TransactionalStorageSPI):
 			return entity
 
 	def delete(self, deleter: EntityDeleter) -> int:
-		table = find_table(deleter.name)
+		table = self.find_table(deleter.name)
 		statement = delete(table)
 		statement = build_criteria_for_statement(table, statement, deleter.criteria)
 		result = self.connection.execute(statement)
@@ -215,12 +219,12 @@ class StorageMySQL(TransactionalStorageSPI):
 		return ArrayHelper(results).map(lambda x: dict(x)).map(finder.shaper.deserialize).to_list()
 
 	def find(self, finder: EntityFinder) -> EntityList:
-		table = find_table(finder.name)
+		table = self.find_table(finder.name)
 		statement = select(table)
 		return self.find_on_statement_by_finder(table, statement, finder)
 
 	def find_distinct_values(self, finder: EntityDistinctValuesFinder) -> EntityList:
-		table = find_table(finder.name)
+		table = self.find_table(finder.name)
 		statement = select(*ArrayHelper(finder.distinctColumnNames).map(text).to_list()).select_from(table)
 		return self.find_on_statement_by_finder(table, statement, finder)
 
@@ -228,7 +232,7 @@ class StorageMySQL(TransactionalStorageSPI):
 		return self.find(EntityFinder(name=helper.name, shaper=helper.shaper))
 
 	def page(self, pager: EntityPager) -> DataPage:
-		table = find_table(pager.name)
+		table = self.find_table(pager.name)
 		statement = select(func.count()).select_from(table)
 		statement = build_criteria_for_statement(table, statement, pager.criteria)
 		count = self.connection.execute(statement).scalar()

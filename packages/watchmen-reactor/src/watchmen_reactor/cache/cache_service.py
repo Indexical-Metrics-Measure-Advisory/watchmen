@@ -6,12 +6,13 @@ from watchmen_model.admin import Pipeline, Topic
 from watchmen_model.common import DataSourceId, PipelineId, TenantId, TopicId
 from watchmen_model.system import DataSource, Tenant
 from watchmen_reactor.common import ask_cache_enabled
+from watchmen_reactor.storage import TopicDataEntityHelper
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_storage import TransactionalStorageSPI
 from watchmen_utilities import ArrayHelper
-from .cache_manager import get_data_source_by_id_cache, get_data_storage_builder_by_id_cache, get_pipeline_by_id_cache, \
-	get_pipeline_by_topic_id_cache, \
-	get_tenant_by_id_cache, get_topic_by_id_cache, get_topic_by_tenant_and_name_cache, get_topic_schema_by_id_cache
+from .cache_manager import get_data_source_by_id_cache, get_data_storage_builder_by_id_cache, \
+	get_pipeline_by_id_cache, get_pipeline_by_topic_id_cache, get_tenant_by_id_cache, get_topic_by_id_cache, \
+	get_topic_by_tenant_and_name_cache, get_topic_entity_helper_by_id_cache, get_topic_schema_by_id_cache
 
 
 class InternalCache:
@@ -121,6 +122,7 @@ class TopicCache:
 		self.by_id_cache = InternalCache(cache=get_topic_by_id_cache)
 		self.by_tenant_and_name_cache = InternalCache(cache=get_topic_by_tenant_and_name_cache)
 		self.schema_by_id_cache = InternalCache(cache=get_topic_schema_by_id_cache)
+		self.entity_helper_by_id_cache = InternalCache(cache=get_topic_entity_helper_by_id_cache)
 
 	# noinspection PyMethodMayBeStatic
 	def to_tenant_and_name_key(self, name: str, tenant_id: TenantId) -> str:
@@ -133,11 +135,17 @@ class TopicCache:
 		self.schema_by_id_cache.put(topic.topicId, TopicSchema(topic))
 		return existing_topic
 
+	def put_entity_helper(self, entity_helper: TopicDataEntityHelper) -> Optional[TopicDataEntityHelper]:
+		return self.entity_helper_by_id_cache.put(entity_helper.get_topic().topicId, entity_helper)
+
 	def get(self, topic_id: TopicId) -> Optional[Topic]:
 		return self.by_id_cache.get(topic_id)
 
 	def get_schema(self, topic_id: TopicId) -> Optional[TopicSchema]:
 		return self.schema_by_id_cache.get(topic_id)
+
+	def get_entity_helper(self, topic_id: TopicId) -> Optional[TopicDataEntityHelper]:
+		return self.entity_helper_by_id_cache.get(topic_id)
 
 	def get_by_name(self, name: str, tenant_id: TenantId) -> Optional[Topic]:
 		return self.by_tenant_and_name_cache.get(self.to_tenant_and_name_key(name, tenant_id))
@@ -148,6 +156,7 @@ class TopicCache:
 			pipeline_by_topic_cache.remove(topic_id)
 			self.by_tenant_and_name_cache.remove(self.to_tenant_and_name_key(existing.name, existing.tenantId))
 		self.schema_by_id_cache.remove(topic_id)
+		self.entity_helper_by_id_cache.remove(topic_id)
 		return existing
 
 	def clear(self) -> None:

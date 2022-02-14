@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any, Dict, Optional, Tuple
 
 from watchmen_auth import PrincipalService
+from watchmen_model.admin import Topic
 from watchmen_model.common import TenantId, UserId
 from watchmen_reactor.topic_schema import ColumnNames, TopicSchema
 from watchmen_storage import EntityHelper, EntityIdHelper, EntityShaper, SnowflakeGenerator
@@ -19,6 +20,12 @@ class TopicDataEntityHelper:
 			shaper=self.shaper,
 			idColumnName=ColumnNames.ID
 		)
+
+	def get_schema(self) -> TopicSchema:
+		return self.schema
+
+	def get_topic(self) -> Topic:
+		return self.schema.topic
 
 	def get_entity_name(self) -> str:
 		return self.entity_name
