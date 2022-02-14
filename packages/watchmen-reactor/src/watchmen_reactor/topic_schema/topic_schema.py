@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Any, Dict, List
 
 from watchmen_meta.common import ask_snowflake_generator
-from watchmen_model.admin import Topic, TopicType
+from watchmen_model.admin import is_raw_topic, Topic
 from watchmen_utilities import ArrayHelper
 from .aid_hierarchy import aid
 from .encrypt_factor import EncryptFactorGroup, parse_encrypt_factors
@@ -30,13 +30,6 @@ class TopicSchema:
 	def get_topic(self) -> Topic:
 		return self.topic
 
-	def is_raw_topic(self) -> bool:
-		return self.topic.type == TopicType.RAW
-
-	def is_aggregation_topic(self) -> bool:
-		topic_type = self.topic.type
-		return topic_type == TopicType.AGGREGATE or topic_type == TopicType.RATIO or topic_type == TopicType.TIME
-
 	def get_flatten_factors(self) -> List[FlattenFactor]:
 		return self.flatten_factors
 
@@ -47,7 +40,7 @@ class TopicSchema:
 		"""
 		given data might be changed, and returns exactly the given one
 		"""
-		if not self.is_raw_topic():
+		if not is_raw_topic(self.get_topic()):
 			return data
 		ArrayHelper(self.flatten_factors).each(lambda x: x.flatten(data))
 		return data
@@ -63,7 +56,7 @@ class TopicSchema:
 		"""
 		given data might be changed, and returns exactly the given one
 		"""
-		if not self.is_raw_topic():
+		if not is_raw_topic(self.get_topic()):
 			return data
 
 		aid(data, [], ask_snowflake_generator())

@@ -12,7 +12,7 @@ from watchmen_storage import Entity, EntityCriteriaExpression, EntityDeleter, En
 from watchmen_storage.storage_spi import TopicDataStorageSPI
 from watchmen_utilities import ArrayHelper
 from .sort_build import build_sort_for_statement
-from .table_defs_mysql import find_table
+from .table_defs_mysql import find_table, register_table
 from .types import SQLAlchemyStatement
 from .where_build import build_criteria_for_statement
 
@@ -275,5 +275,4 @@ class StorageMySQL(TransactionalStorageSPI):
 
 class TopicDataStorageMySQL(StorageMySQL, TopicDataStorageSPI):
 	def register_topic(self, topic: Topic) -> None:
-		# TODO
-		pass
+		register_table(topic)

@@ -29,3 +29,12 @@ class Topic(TenantBasedTuple, OptimisticLock, BaseModel):
 	dataSourceId: DataSourceId = None
 	factors: List[Factor] = []
 	description: str = None
+
+
+def is_raw_topic(self) -> bool:
+	return self.topic.type == TopicType.RAW
+
+
+def is_aggregation_topic(self) -> bool:
+	topic_type = self.topic.type
+	return topic_type == TopicType.AGGREGATE or topic_type == TopicType.RATIO or topic_type == TopicType.TIME
