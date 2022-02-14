@@ -3,6 +3,7 @@ from typing import Callable, Optional
 
 from pydantic import BaseSettings
 
+from watchmen_model.system import DataSourceType
 from watchmen_storage import competitive_worker_id, CompetitiveWorkerRestarter, CompetitiveWorkerShutdownSignal, \
 	immutable_worker_id, SnowflakeGenerator, StorageBasedWorkerIdGenerator, TransactionalStorageSPI
 from .exception import InitialMetaAppException
@@ -11,7 +12,7 @@ logger = getLogger(__name__)
 
 
 class MetaSettings(BaseSettings):
-	META_STORAGE_TYPE: str = 'mysql'
+	META_STORAGE_TYPE: str = DataSourceType.MYSQL
 	META_STORAGE_USER_NAME: str = 'watchmen'
 	META_STORAGE_PASSWORD: str = 'watchmen'
 	META_STORAGE_HOST: str = 'localhost'
@@ -37,7 +38,7 @@ settings = MetaSettings()
 logger.info(f'Meta settings[{settings.dict()}].')
 
 
-def build_mysql_storage(settings: MetaSettings) -> Callable[[], TransactionalStorageSPI]:
+def build_mysql_storage() -> Callable[[], TransactionalStorageSPI]:
 	from watchmen_storage_mysql import StorageMySQLConfiguration
 	configuration = StorageMySQLConfiguration.config() \
 		.host(settings.META_STORAGE_HOST, settings.META_STORAGE_PORT) \
@@ -56,8 +57,8 @@ meta_storage_holder = MetaStorageHolder()
 
 def build_meta_storage() -> Callable[[], TransactionalStorageSPI]:
 	storage_type = settings.META_STORAGE_TYPE
-	if storage_type == 'mysql':
-		return build_mysql_storage(settings)
+	if storage_type == DataSourceType.MYSQL:
+		return build_mysql_storage()
 	# TODO build oracle storage
 	# TODO build mongodb storage
 
