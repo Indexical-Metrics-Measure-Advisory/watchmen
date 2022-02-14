@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from watchmen_model.system import DataSource, DataSourceType
 from .data_source_mysql import MySQLDataSourceHelper, MySQLDataSourceParams
-from .storage_msyql import StorageMySQL
+from .storage_msyql import StorageMySQL, TopicDataStorageMySQL
 
 
 # noinspection PyRedeclaration
@@ -40,6 +40,9 @@ class Configuration:
 	def build(self) -> StorageMySQL:
 		return StorageMySQLConfiguration(self.data_source, self.params).create_storage()
 
+	def build_topic_data(self) -> StorageMySQL:
+		return StorageMySQLConfiguration(self.data_source, self.params).create_topic_data_storage()
+
 
 class StorageMySQLConfiguration:
 	"""
@@ -52,6 +55,9 @@ class StorageMySQLConfiguration:
 
 	def create_storage(self) -> StorageMySQL:
 		return self.helper.acquire_storage()
+
+	def create_topic_data_storage(self) -> TopicDataStorageMySQL:
+		return self.helper.acquire_topic_data_storage()
 
 	@staticmethod
 	def config() -> Configuration:

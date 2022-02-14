@@ -10,7 +10,7 @@ from .storage_exception import EntityNotFoundException, InsertConflictException,
 	OptimisticLockException, TooManyEntitiesFoundException, UnexpectedStorageException, UnsupportedCriteriaException, \
 	UnsupportedCriteriaExpressionOperatorException, UnsupportedCriteriaJointConjunctionException, \
 	UnsupportedSortMethodException
-from .storage_spi import StorageSPI, TransactionalStorageSPI
+from .storage_spi import StorageSPI, TopicDataStorageSPI, TransactionalStorageSPI
 from .storage_types import Entity, EntityColumnName, EntityColumnValue, EntityCriteria, EntityCriteriaExpression, \
 	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, EntityDeleter, \
 	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, EntityIdHelper, EntityList, EntityName, \

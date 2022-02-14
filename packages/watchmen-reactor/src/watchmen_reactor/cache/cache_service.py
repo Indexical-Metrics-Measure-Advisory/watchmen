@@ -8,7 +8,7 @@ from watchmen_model.system import DataSource, Tenant
 from watchmen_reactor.common import ask_cache_enabled
 from watchmen_reactor.storage import TopicDataEntityHelper
 from watchmen_reactor.topic_schema import TopicSchema
-from watchmen_storage import TransactionalStorageSPI
+from watchmen_storage import TopicDataStorageSPI
 from watchmen_utilities import ArrayHelper
 from .cache_manager import get_data_source_by_id_cache, get_data_storage_builder_by_id_cache, \
 	get_pipeline_by_id_cache, get_pipeline_by_topic_id_cache, get_tenant_by_id_cache, get_topic_by_id_cache, \
@@ -180,14 +180,14 @@ class DataSourceCache:
 		return self.by_id_cache.put(data_source.dataSourceId, data_source)
 
 	def put_builder(
-			self, data_source_id: DataSourceId, builder: Callable[[], TransactionalStorageSPI]
-	) -> Optional[Callable[[], TransactionalStorageSPI]]:
+			self, data_source_id: DataSourceId, builder: Callable[[], TopicDataStorageSPI]
+	) -> Optional[Callable[[], TopicDataStorageSPI]]:
 		return self.builder_by_id_cache.put(data_source_id, builder)
 
 	def get(self, data_source_id: DataSourceId) -> Optional[DataSource]:
 		return self.by_id_cache.get(data_source_id)
 
-	def get_builder(self, data_source_id: DataSourceId) -> Optional[Callable[[], TransactionalStorageSPI]]:
+	def get_builder(self, data_source_id: DataSourceId) -> Optional[Callable[[], TopicDataStorageSPI]]:
 		return self.builder_by_id_cache.get(data_source_id)
 
 	def remove(self, data_source_id: DataSourceId) -> Optional[DataSource]:
