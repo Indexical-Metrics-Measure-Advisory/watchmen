@@ -62,8 +62,8 @@ class StorageMySQL(TransactionalStorageSPI):
 			logger.warning('Exception raised on close connection.', e)
 
 	# noinspection PyMethodMayBeStatic
-	def find_table(self, table_name: str) -> Table:
-		return find_table(table_name)
+	def find_table(self, name: str) -> Table:
+		return find_table(name)
 
 	def insert_one(self, one: Entity, helper: EntityHelper) -> None:
 		table = self.find_table(helper.name)
