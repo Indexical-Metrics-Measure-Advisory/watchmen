@@ -52,9 +52,14 @@ class PipelineByTopicCache:
 	def __init__(self):
 		self.by_topic_id_cache = InternalCache(cache=get_pipeline_by_topic_id_cache)
 
-	def get(self, topic_id: TopicId) -> List[PipelineId]:
-		pipeline_ids: Optional[List[PipelineId]] = self.by_topic_id_cache.get(topic_id)
-		return pipeline_ids if pipeline_ids is not None else []
+	def get(self, topic_id: TopicId) -> Optional[List[PipelineId]]:
+		"""
+		none means not initialized. empty list means no pipeline.
+		"""
+		return self.by_topic_id_cache.get(topic_id)
+
+	def declare_no_pipelines(self, topic_id: TopicId) -> None:
+		self.by_topic_id_cache.put(topic_id, [])
 
 	def append_one(self, topic_id: TopicId, pipeline_id: PipelineId) -> None:
 		"""
@@ -72,7 +77,11 @@ class PipelineByTopicCache:
 		"""
 		pipeline_ids: Optional[List[PipelineId]] = self.by_topic_id_cache.get(topic_id)
 		if pipeline_ids is not None:
-			self.by_topic_id_cache.put(topic_id, ArrayHelper(pipeline_ids).filter(lambda x: x != pipeline_id).to_list())
+			remains = ArrayHelper(pipeline_ids).filter(lambda x: x != pipeline_id).to_list()
+			if len(remains) == 0:
+				self.by_topic_id_cache.remove(topic_id)
+			else:
+				self.by_topic_id_cache.put(topic_id, remains)
 
 	def remove(self, topic_id: TopicId) -> None:
 		self.by_topic_id_cache.remove(topic_id)
