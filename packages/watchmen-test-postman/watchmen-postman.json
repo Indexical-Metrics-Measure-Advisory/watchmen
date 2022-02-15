@@ -55,7 +55,7 @@
                     }
                   ]
                 },
-                "url": "{{URL_PREFIX}}/login "
+                "url": "{{URL_PREFIX}}/login"
               },
               "response": []
             },
