@@ -20,12 +20,12 @@ def find_topic(name: str, principal_service: PrincipalService) -> TopicSchema:
 async def invoke(
 		trigger_data: PipelineTriggerData,
 		trace_id: PipelineTriggerTraceId, principal_service: PrincipalService,
-		asynchronized: bool) -> None:
+		asynchronized: bool) -> int:
 	if trigger_data.data is None:
 		raise ReactorException(f'Trigger data is null.')
 
 	schema = find_topic(trigger_data.code, principal_service)
-	await PipelineContext(
+	return await PipelineContext(
 		trigger_topic_schema=schema,
 		trigger_type=trigger_data.triggerType,
 		trigger_data=trigger_data.data,
@@ -38,12 +38,12 @@ async def invoke(
 async def try_to_invoke_pipelines(
 		trigger_data: PipelineTriggerData, trace_id: PipelineTriggerTraceId,
 		principal_service: PrincipalService
-) -> None:
-	await invoke(trigger_data, trace_id, principal_service, False)
+) -> int:
+	return await invoke(trigger_data, trace_id, principal_service, False)
 
 
 async def try_to_invoke_pipelines_async(
 		trigger_data: PipelineTriggerData, trace_id: PipelineTriggerTraceId,
 		principal_service: PrincipalService
-) -> None:
-	await invoke(trigger_data, trace_id, principal_service, True)
+) -> int:
+	return await invoke(trigger_data, trace_id, principal_service, True)

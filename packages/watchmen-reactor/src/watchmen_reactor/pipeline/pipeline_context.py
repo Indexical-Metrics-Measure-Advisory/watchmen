@@ -1,5 +1,5 @@
 from asyncio import ensure_future
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict
 
 from watchmen_auth import PrincipalService
 from watchmen_model.admin import is_raw_topic, PipelineTriggerType
@@ -9,7 +9,7 @@ from watchmen_reactor.cache import CacheService
 from watchmen_reactor.common import ReactorException
 from watchmen_reactor.meta import DataSourceService
 from watchmen_reactor.storage import build_topic_data_storage, RawTopicDataEntityHelper, RawTopicDataService, \
-	RegularTopicDataEntityHelper, RegularTopicDataService, TopicDataEntityHelper, TopicDataService
+	RegularTopicDataEntityHelper, RegularTopicDataService, TopicDataEntityHelper, TopicDataService, TopicTriggerResult
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_storage import TopicDataStorageSPI
 from watchmen_utilities import is_blank
@@ -90,7 +90,7 @@ class PipelineContext:
 	def prepare_trigger_data(self):
 		self.trigger_topic_schema.prepare_data(self.trigger_data)
 
-	def save_trigger_data(self) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]], PipelineTriggerType]:
+	def save_trigger_data(self) -> TopicTriggerResult:
 		data_service = self.ask_topic_data_service(self.trigger_topic_schema)
 		if self.trigger_type == PipelineTriggerType.INSERT:
 			return data_service.trigger_by_insert(self.trigger_data)
@@ -103,17 +103,15 @@ class PipelineContext:
 		else:
 			raise ReactorException(f'Trigger type[{self.trigger_type}] is not supported.')
 
-	async def start(
-			self, previous: Optional[Dict[str, Any]], current: Optional[Dict[str, Any]],
-			trigger_type: PipelineTriggerType
-	) -> None:
+	async def start(self, trigger: TopicTriggerResult) -> None:
 		# TODO start pipeline
 		pass
 
-	async def invoke(self):
+	async def invoke(self) -> int:
 		self.prepare_trigger_data()
-		previous, current, trigger_type = self.save_trigger_data()
+		result = self.save_trigger_data()
 		if self.asynchronized:
-			ensure_future(self.start(previous, current, trigger_type))
+			ensure_future(self.start(result))
 		else:
-			await self.start(previous, current, trigger_type)
+			await self.start(result)
+		return result.internalDataId
