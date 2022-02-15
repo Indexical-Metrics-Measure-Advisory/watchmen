@@ -1,11 +1,12 @@
 from abc import abstractmethod
 from datetime import datetime
 from logging import getLogger
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import PipelineTriggerType, Topic
+from watchmen_model.common import DataModel
 from watchmen_reactor.common import ReactorException
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_storage import SnowflakeGenerator, TopicDataStorageSPI
@@ -13,6 +14,13 @@ from watchmen_utilities import get_current_time_in_seconds
 from .data_entity_helper import TopicDataEntityHelper
 
 logger = getLogger(__name__)
+
+
+class TopicTriggerResult(DataModel):
+	previous: Optional[Dict[str, Any]] = None
+	current: Optional[Dict[str, Any]] = None
+	triggerType: PipelineTriggerType = PipelineTriggerType.INSERT
+	internalDataId: int = -1
 
 
 class TopicDataService:
@@ -72,9 +80,7 @@ class TopicDataService:
 		# 	logger.error(e, exc_info=True, stack_info=True)
 		raise ReactorException(message)
 
-	def trigger_by_insert(
-			self, data: Dict[str, Any]
-	) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]], PipelineTriggerType]:
+	def trigger_by_insert(self, data: Dict[str, Any]) -> TopicTriggerResult:
 		"""
 		data is pure data
 		"""
@@ -89,7 +95,12 @@ class TopicDataService:
 			)
 			storage.connect()
 			storage.insert_one(topic_data, data_entity_helper.get_entity_helper())
-			return None, data, PipelineTriggerType.INSERT
+			return TopicTriggerResult(
+				previous=None,
+				current=data,
+				triggerType=PipelineTriggerType.INSERT,
+				internalDataId=data_entity_helper.find_data_id(topic_data)[1]
+			)
 		except Exception as e:
 			self.raise_exception(f'Failed to create data[{data}] into {self.raise_on_topic()}.', e)
 		finally:
@@ -108,9 +119,7 @@ class TopicDataService:
 			self.raise_exception(f'Data not found by data[id={id_}] from {self.raise_on_topic()}.')
 		return previous_topic_data
 
-	def trigger_by_merge(
-			self, data: Dict[str, Any]
-	) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]], PipelineTriggerType]:
+	def trigger_by_merge(self, data: Dict[str, Any]) -> TopicTriggerResult:
 		topic = self.get_topic()
 		data_entity_helper = self.get_data_entity_helper()
 		storage = self.get_storage()
@@ -133,15 +142,18 @@ class TopicDataService:
 			if updated_count == 0:
 				raise ReactorException(
 					f'Data not found by data[{data}] on merge into topic[id={topic.topicId}, name={topic.name}].')
-			return self.try_to_unwrap_topic_data(previous_topic_data), data, PipelineTriggerType.MERGE
+			return TopicTriggerResult(
+				previous=self.try_to_unwrap_topic_data(previous_topic_data),
+				current=data,
+				triggerType=PipelineTriggerType.MERGE,
+				internalDataId=id_
+			)
 		except Exception as e:
 			self.raise_exception(f'Failed to merge data[id={id_}] into {self.raise_on_topic()}.', e)
 		finally:
 			storage.close()
 
-	def trigger_by_insert_or_merge(
-			self, data: Dict[str, Any]
-	) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]], PipelineTriggerType]:
+	def trigger_by_insert_or_merge(self, data: Dict[str, Any]) -> TopicTriggerResult:
 		data_entity_helper = self.get_data_entity_helper()
 		has_id, id_ = data_entity_helper.find_data_id(data)
 		if not has_id:
@@ -149,7 +161,7 @@ class TopicDataService:
 		else:
 			return self.trigger_by_merge(data)
 
-	def trigger_by_delete(self, data: Dict[str, Any]) -> Tuple[Optional[Dict[str, Any]], None, PipelineTriggerType]:
+	def trigger_by_delete(self, data: Dict[str, Any]) -> TopicTriggerResult:
 		data_entity_helper = self.get_data_entity_helper()
 		storage = self.get_storage()
 		has_id, id_ = data_entity_helper.find_data_id(data)
@@ -161,7 +173,12 @@ class TopicDataService:
 			deleted_count = storage.delete_by_id(id_, self.get_data_entity_helper().get_entity_id_helper())
 			if deleted_count == 0:
 				self.raise_exception(f'Data not found by data[{data}] on delete from {self.raise_on_topic()}.')
-			return self.try_to_unwrap_topic_data(previous_topic_data), None, PipelineTriggerType.DELETE
+			return TopicTriggerResult(
+				previous=self.try_to_unwrap_topic_data(previous_topic_data),
+				current=None,
+				triggerType=PipelineTriggerType.DELETE,
+				internalDataId=id_
+			)
 		except Exception as e:
 			self.raise_exception(f'Failed to delete data[id={id_}] on {self.raise_on_topic()}.', e)
 		finally:

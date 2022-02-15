@@ -17,8 +17,8 @@ async def trigger_pipeline(
 ) -> PipelineTriggerResult:
 	# use given trace id or generate new one
 	trace_id = trigger_data.traceId if is_not_blank(trigger_data.traceId) else ask_snowflake_generator().next_id()
-	await try_to_invoke_pipelines(trigger_data, trace_id, principal_service)
-	return PipelineTriggerResult(received=True, traceId=trace_id)
+	internal_data_id = await try_to_invoke_pipelines(trigger_data, trace_id, principal_service)
+	return PipelineTriggerResult(received=True, traceId=trace_id, internalDataId=str(internal_data_id))
 
 
 @router.post('/pipeline/data/async', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=PipelineTriggerResult)
@@ -26,5 +26,5 @@ async def trigger_pipeline_async(
 		trigger_data: PipelineTriggerData, principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> PipelineTriggerResult:
 	trace_id = trigger_data.traceId if is_not_blank(trigger_data.traceId) else ask_snowflake_generator().next_id()
-	await try_to_invoke_pipelines_async(trigger_data, trace_id, principal_service)
-	return PipelineTriggerResult(received=True, traceId=trace_id)
+	internal_data_id = await try_to_invoke_pipelines_async(trigger_data, trace_id, principal_service)
+	return PipelineTriggerResult(received=True, traceId=trace_id, internalDataId=str(internal_data_id))

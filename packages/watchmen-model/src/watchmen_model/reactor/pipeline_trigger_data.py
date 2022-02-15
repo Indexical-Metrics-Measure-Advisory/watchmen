@@ -28,6 +28,10 @@ class PipelineTriggerDataWithPAT(PipelineTriggerData):
 class PipelineTriggerResult(BaseModel):
 	received: bool = True
 	traceId: PipelineTriggerTraceId
+	"""
+	id of trigger data
+	"""
+	internalDataId: str
 
 
 class TopicDataColumnNames(str, Enum):
