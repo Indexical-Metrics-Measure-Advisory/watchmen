@@ -134,34 +134,34 @@ def create_columns(factors: List[Factor]) -> List[Column]:
 def build_by_raw(topic: Topic) -> Table:
 	return Table(
 		as_table_name(topic), meta_data,
-		create_pk(TopicDataColumnNames.ID, Integer),
+		create_pk(TopicDataColumnNames.ID.value, Integer),
 		*create_columns(ArrayHelper(topic.factors).filter(lambda x: x.flatten).to_list()),
-		create_json(TopicDataColumnNames.RAW_TOPIC_DATA),
-		create_tuple_id_column(TopicDataColumnNames.TENANT_ID, nullable=False),
-		create_datetime(TopicDataColumnNames.INSERT_TIME, nullable=False),
-		create_datetime(TopicDataColumnNames.UPDATE_TIME, nullable=False)
+		create_json(TopicDataColumnNames.RAW_TOPIC_DATA.value),
+		create_tuple_id_column(TopicDataColumnNames.TENANT_ID.value, nullable=False),
+		create_datetime(TopicDataColumnNames.INSERT_TIME.value, nullable=False),
+		create_datetime(TopicDataColumnNames.UPDATE_TIME.value, nullable=False)
 	)
 
 
 def build_by_aggregation(topic: Topic) -> Table:
 	return Table(
 		as_table_name(topic), meta_data,
-		create_pk(TopicDataColumnNames.ID, Integer),
+		create_pk(TopicDataColumnNames.ID.value, Integer),
 		*create_columns(topic.factors),
-		create_json(TopicDataColumnNames.AGGREGATE_ASSIST),
-		create_tuple_id_column(TopicDataColumnNames.TENANT_ID, nullable=False),
-		create_int(TopicDataColumnNames.VERSION),
-		create_datetime(TopicDataColumnNames.INSERT_TIME, nullable=False),
-		create_datetime(TopicDataColumnNames.UPDATE_TIME, nullable=False)
+		create_json(TopicDataColumnNames.AGGREGATE_ASSIST.value),
+		create_tuple_id_column(TopicDataColumnNames.TENANT_ID.value, nullable=False),
+		create_int(TopicDataColumnNames.VERSION.value),
+		create_datetime(TopicDataColumnNames.INSERT_TIME.value, nullable=False),
+		create_datetime(TopicDataColumnNames.UPDATE_TIME.value, nullable=False)
 	)
 
 
 def build_by_regular(topic: Topic) -> Table:
 	return Table(
 		as_table_name(topic), meta_data,
-		create_pk(TopicDataColumnNames.ID, Integer),
+		create_pk(TopicDataColumnNames.ID.value, Integer),
 		*create_columns(topic.factors),
-		create_tuple_id_column(TopicDataColumnNames.TENANT_ID, nullable=False),
-		create_datetime(TopicDataColumnNames.INSERT_TIME, nullable=False),
-		create_datetime(TopicDataColumnNames.UPDATE_TIME, nullable=False)
+		create_tuple_id_column(TopicDataColumnNames.TENANT_ID.value, nullable=False),
+		create_datetime(TopicDataColumnNames.INSERT_TIME.value, nullable=False),
+		create_datetime(TopicDataColumnNames.UPDATE_TIME.value, nullable=False)
 	)

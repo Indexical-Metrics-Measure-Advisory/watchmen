@@ -5,7 +5,7 @@ from sqlalchemy import Integer, String, Table
 
 from watchmen_model.admin import is_aggregation_topic, is_raw_topic, Topic
 from watchmen_model.common import TopicId
-from watchmen_storage import SNOWFLAKE_WORKER_ID_TABLE
+from watchmen_storage import SNOWFLAKE_WORKER_ID_TABLE, UnexpectedStorageException
 from .table_defs_helper import create_bool, create_datetime, create_description, create_int, create_json, \
 	create_last_visit_time, create_medium_text, create_optimistic_lock, create_pk, create_str, \
 	create_tenant_id, create_tuple_audit_columns, create_tuple_id_column, create_user_id, meta_data
@@ -196,7 +196,12 @@ topic_tables: Dict[TopicId, Tuple[Table, datetime]] = {}
 
 
 def find_table(table_name: str) -> Table:
-	return tables[table_name]
+	table = tables.get(table_name)
+	if table is None:
+		table = topic_tables.get(table_name)
+	if table is None:
+		raise UnexpectedStorageException(f'Table[{table_name}] definition not found.')
+	return table
 
 
 def register_table(topic: Topic) -> None:

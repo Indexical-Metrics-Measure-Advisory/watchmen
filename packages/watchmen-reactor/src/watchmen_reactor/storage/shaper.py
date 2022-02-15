@@ -25,19 +25,19 @@ class TopicShaper(EntityShaper):
 	# noinspection PyMethodMayBeStatic
 	def serialize_fix_columns(self, data: Dict[str, Any]) -> EntityRow:
 		return {
-			TopicDataColumnNames.ID: data.get(TopicDataColumnNames.ID),
-			TopicDataColumnNames.TENANT_ID: data.get(TopicDataColumnNames.TENANT_ID),
-			TopicDataColumnNames.INSERT_TIME: data.get(TopicDataColumnNames.INSERT_TIME),
-			TopicDataColumnNames.UPDATE_TIME: data.get(TopicDataColumnNames.UPDATE_TIME)
+			TopicDataColumnNames.ID.value: data.get(TopicDataColumnNames.ID.value),
+			TopicDataColumnNames.TENANT_ID.value: data.get(TopicDataColumnNames.TENANT_ID.value),
+			TopicDataColumnNames.INSERT_TIME.value: data.get(TopicDataColumnNames.INSERT_TIME.value),
+			TopicDataColumnNames.UPDATE_TIME.value: data.get(TopicDataColumnNames.UPDATE_TIME.value)
 		}
 
 	# noinspection PyMethodMayBeStatic
 	def deserialize_fix_columns(self, row: EntityRow) -> Dict[str, Any]:
 		return {
-			TopicDataColumnNames.ID: row.get(TopicDataColumnNames.ID),
-			TopicDataColumnNames.TENANT_ID: row.get(TopicDataColumnNames.TENANT_ID),
-			TopicDataColumnNames.INSERT_TIME: row.get(TopicDataColumnNames.INSERT_TIME),
-			TopicDataColumnNames.UPDATE_TIME: row.get(TopicDataColumnNames.UPDATE_TIME)
+			TopicDataColumnNames.ID.value: row.get(TopicDataColumnNames.ID.value),
+			TopicDataColumnNames.TENANT_ID.value: row.get(TopicDataColumnNames.TENANT_ID.value),
+			TopicDataColumnNames.INSERT_TIME.value: row.get(TopicDataColumnNames.INSERT_TIME.value),
+			TopicDataColumnNames.UPDATE_TIME.value: row.get(TopicDataColumnNames.UPDATE_TIME.value)
 		}
 
 	def serialize_factor(self, data: Dict[str, Any], factor_name: str, row: EntityRow) -> None:
