@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 from sqlalchemy import Integer, String, Table
 
@@ -198,10 +198,18 @@ topic_tables: Dict[TopicId, Tuple[Table, datetime]] = {}
 def find_table(table_name: str) -> Table:
 	table = tables.get(table_name)
 	if table is None:
-		table = topic_tables.get(table_name)
+		table = find_from_topic_tables(table_name)
 	if table is None:
 		raise UnexpectedStorageException(f'Table[{table_name}] definition not found.')
 	return table
+
+
+def find_from_topic_tables(table_name: str) -> Optional[Table]:
+	found = topic_tables.get(table_name)
+	if found is None:
+		return None
+	else:
+		return found[0]
 
 
 def register_table(topic: Topic) -> None:
