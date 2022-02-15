@@ -5,6 +5,7 @@ from watchmen_model.admin import Factor, Topic, TopicType
 from watchmen_model.common import DataPage, FactorId, Pageable, TenantId, TopicId
 from watchmen_storage import EntityCriteriaExpression, EntityCriteriaOperator, EntityDistinctValuesFinder, EntityRow, \
 	EntityShaper, SnowflakeGenerator
+from watchmen_utilities import ArrayHelper
 
 
 class TopicShaper(EntityShaper):
@@ -16,7 +17,7 @@ class TopicShaper(EntityShaper):
 			'type': topic.type,
 			'kind': topic.kind,
 			'data_source_id': topic.dataSourceId,
-			'factors': topic.factors
+			'factors': ArrayHelper(topic.factors).map(lambda x: x.dict()).to_list(),
 		})
 
 	def deserialize(self, row: EntityRow) -> Topic:

@@ -23,7 +23,7 @@ class TopicDataEntityHelper:
 		self.entity_id_helper = EntityIdHelper(
 			name=self.schema.get_topic().topicId,
 			shaper=self.shaper,
-			idColumnName=TopicDataColumnNames.ID
+			idColumnName=TopicDataColumnNames.ID.value
 		)
 
 	def get_schema(self) -> TopicSchema:
@@ -65,12 +65,12 @@ class TopicDataEntityHelper:
 		"""
 		find data if from given data dictionary.
 		"""
-		id_ = data.get(TopicDataColumnNames.ID)
+		id_ = data.get(TopicDataColumnNames.ID.value)
 		return id_ is not None, id_
 
 	# noinspection PyMethodMayBeStatic
 	def find_insert_time(self, data: Dict[str, Any]) -> Optional[datetime]:
-		return data.get(TopicDataColumnNames.INSERT_TIME)
+		return data.get(TopicDataColumnNames.INSERT_TIME.value)
 
 	@abstractmethod
 	def find_version(self, data: Dict[str, Any]) -> int:
@@ -78,19 +78,19 @@ class TopicDataEntityHelper:
 
 	# noinspection PyMethodMayBeStatic
 	def assign_id_column(self, data: Dict[str, Any], id_value: int) -> None:
-		data[TopicDataColumnNames.ID] = id_value
+		data[TopicDataColumnNames.ID.value] = id_value
 
 	# noinspection PyMethodMayBeStatic
 	def assign_tenant_id(self, data: Dict[str, Any], tenant_id: TenantId) -> None:
-		data[TopicDataColumnNames.TENANT_ID] = tenant_id
+		data[TopicDataColumnNames.TENANT_ID.value] = tenant_id
 
 	# noinspection PyMethodMayBeStatic
 	def assign_insert_time(self, data: Dict[str, Any], insert_time: datetime) -> None:
-		data[TopicDataColumnNames.INSERT_TIME] = insert_time
+		data[TopicDataColumnNames.INSERT_TIME.value] = insert_time
 
 	# noinspection PyMethodMayBeStatic
 	def assign_update_time(self, data: Dict[str, Any], update_time: datetime) -> None:
-		data[TopicDataColumnNames.UPDATE_TIME] = update_time
+		data[TopicDataColumnNames.UPDATE_TIME.value] = update_time
 
 	@abstractmethod
 	def assign_version(self, data: Dict[str, Any], version: int) -> None:

@@ -22,13 +22,13 @@ class RawTopicShaper(TopicShaper):
 
 	def serialize(self, data: Dict[str, Any]) -> EntityRow:
 		row = self.serialize_fix_columns(data)
-		row[TopicDataColumnNames.RAW_TOPIC_DATA] = data.get(TopicDataColumnNames.RAW_TOPIC_DATA)
+		row[TopicDataColumnNames.RAW_TOPIC_DATA.value] = data.get(TopicDataColumnNames.RAW_TOPIC_DATA.value)
 		ArrayHelper(self.get_mapper().get_factor_names()).each(lambda x: self.serialize_factor(data, x, row))
 		return row
 
 	def deserialize(self, row: EntityRow) -> Dict[str, Any]:
 		data = self.deserialize_fix_columns(row)
-		data[TopicDataColumnNames.RAW_TOPIC_DATA] = row.get(TopicDataColumnNames.RAW_TOPIC_DATA)
+		data[TopicDataColumnNames.RAW_TOPIC_DATA.value] = row.get(TopicDataColumnNames.RAW_TOPIC_DATA.value)
 		ArrayHelper(self.get_mapper().get_column_names()).each(lambda x: self.deserialize_column(row, x, data))
 		return data
 

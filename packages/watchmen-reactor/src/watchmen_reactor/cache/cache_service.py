@@ -32,14 +32,14 @@ class InternalCache:
 		if not ask_cache_enabled():
 			return None
 
-		existing: Optional[Any] = self.cache.get(key, lambda: None)
+		existing: Optional[Any] = self.cache.get(key)
 		return existing if existing is not None else default_value
 
 	def remove(self, key: Hashable) -> Optional[Any]:
 		if not ask_cache_enabled():
 			return None
 
-		existing: Optional[Any] = self.cache.get(key, lambda: None)
+		existing: Optional[Any] = self.cache.get(key)
 		self.cache.delete(key)
 		return existing
 
