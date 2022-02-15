@@ -1,0 +1,1419 @@
+{
+  "info": {
+    "_postman_id": "216348af-600c-4110-80c4-df648ef8cf87",
+    "name": "Watchmen 16",
+    "schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "SUPER ADMIN",
+      "item": [
+        {
+          "name": "AUTHENTICATE",
+          "item": [
+            {
+              "name": "LOGIN - SUPER ADMIN",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "5988ee8d-8fee-4cc5-b31c-137ea37ea588",
+                    "exec": [
+                      "pm.test('Login Access Token', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.accessToken).to.not.be.null;",
+                      "    pm.expect(data.tokenType).to.eql('bearer');",
+                      "    pm.expect(data.role).to.eql('superadmin');",
+                      "    pm.expect(data.tenantId).to.eql('-1');",
+                      "    pm.environment.set('JWT_TOKEN', data.accessToken)",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "_postman_id": "c793d438-0f8c-4568-a6dc-e446d7705f1f",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "key": "username",
+                      "value": "imma-super",
+                      "type": "text"
+                    },
+                    {
+                      "key": "password",
+                      "value": "change-me",
+                      "type": "text"
+                    }
+                  ],
+                  "options": {
+                    "urlencoded": {}
+                  }
+                },
+                "url": "{{URL_PREFIX}}/login"
+              },
+              "response": []
+            },
+            {
+              "name": "VALIDATE ACCESS TOKEN - SUPER ADMIN",
+              "_postman_id": "0def2ec7-1e1a-4050-954c-31c81b6f68c8",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/token/validate/jwt?token={{JWT_TOKEN}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "token",
+                    "validate",
+                    "jwt"
+                  ],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "{{JWT_TOKEN}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "TEST ACCESS TOKEN - SUPER ADMIN",
+              "_postman_id": "32302dba-850b-4097-be13-5a0fef3f20ee",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": "{{URL_PREFIX}}/token/exchange-user"
+              },
+              "response": []
+            }
+          ],
+          "_postman_id": "1382ab45-3f9c-43c6-8911-a80066686b3e",
+          "_postman_isSubFolder": true
+        },
+        {
+          "name": "TENANT",
+          "item": [
+            {
+              "name": "TENANT - LOAD 1",
+              "_postman_id": "a7ae9e14-0d6b-4dea-8170-1c14c7b0767a",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/tenant?tenant_id=1",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "tenant"
+                  ],
+                  "query": [
+                    {
+                      "key": "tenant_id",
+                      "value": "1"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "TENANT CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "4d1bb1a8-00ba-45bf-93a6-2dea10c09da1",
+                    "exec": [
+                      "pm.test('Create Tenant', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.tenantId).to.not.be.null;",
+                      "    pm.expect(data.name).to.eql('IMMA-Test')",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "    pm.environment.set('TENANT_ID', data.tenantId);",
+                      "    pm.environment.set('TENANT_CREATED_AT', data.createdAt);",
+                      "    pm.environment.set('TENANT_CREATED_BY', data.createdBy);",
+                      "    pm.environment.set('TENANT_VERSION', data.version);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "_postman_id": "1ad9a344-e27f-42dd-867a-846f37be3f6b",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"IMMA-Test\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/tenant"
+              },
+              "response": []
+            },
+            {
+              "name": "TENANT FIND BY NAME AFTER CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "bbae9cd7-bf41-4387-8815-0e927b3abcd0",
+                    "exec": [
+                      "pm.test('Find Tenant By Name', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.pageNumber).to.eql(1);",
+                      "    pm.expect(data.pageSize).to.eql(9)",
+                      "    pm.expect(data.itemCount).to.eql(1);",
+                      "    pm.expect(data.pageCount).to.eql(1);",
+                      "    pm.expect(data.data.length).to.eql(1);",
+                      "    const tenant = data.data[0];",
+                      "    pm.expect(tenant.tenantId).to.not.be.null;",
+                      "    pm.expect(tenant.name).to.eql('IMMA-Test')",
+                      "    pm.expect(tenant.createdAt).to.not.be.null;",
+                      "    pm.expect(tenant.createdBy).to.not.be.null;",
+                      "    pm.expect(tenant.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(tenant.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(tenant.version).to.eql(1);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "_postman_id": "6a774ba4-f572-4546-8e71-a02feacbe4fe",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"pageNumber\": 1,\n    \"pageSize\": 9\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL_PREFIX}}/tenant/name?query_name=test",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "tenant",
+                    "name"
+                  ],
+                  "query": [
+                    {
+                      "key": "query_name",
+                      "value": "test"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "TENANT UPDATE CREATED",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "36cae3c3-b439-4ef0-8aa0-6e54440e5a8f",
+                    "exec": [
+                      "pm.test('Update Tenant', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.tenantId).to.not.be.null;",
+                      "    pm.expect(data.name).to.eql('IMMA-Test-1')",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(2);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "_postman_id": "c72da620-f96b-4c54-88bf-0b17edda7708",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"tenantId\": \"{{TENANT_ID}}\",\n    \"name\": \"IMMA-Test-1\",\n    \"createdAt\": \"{{TENANT_CREATED_AT}}\",\n    \"createdBy\": \"{{TENANT_CREATED_BY}}\",\n    \"version\": {{TENANT_VERSION}}\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/tenant"
+              },
+              "response": []
+            },
+            {
+              "name": "TENANT DELETE CREATED",
+              "_postman_id": "92f56950-5a06-4fc3-b7e9-4af7b63783a2",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/tenant?tenant_id={{TENANT_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "tenant"
+                  ],
+                  "query": [
+                    {
+                      "key": "tenant_id",
+                      "value": "{{TENANT_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "TENANT FIND BY NAME AFTER DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "20d074f6-593c-48cd-95ba-4080bb84da1a",
+                    "exec": [
+                      "pm.test('Find Tenant By Name', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.pageNumber).to.eql(1);",
+                      "    pm.expect(data.pageSize).to.eql(9)",
+                      "    pm.expect(data.itemCount).to.eql(0);",
+                      "    pm.expect(data.pageCount).to.eql(0);",
+                      "    pm.expect(data.data.length).to.eql(0);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "_postman_id": "9ded9b18-76f7-4327-9509-f25a4e79df4f",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"pageNumber\": 1,\n    \"pageSize\": 9\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL_PREFIX}}/tenant/name?query_name=test",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "tenant",
+                    "name"
+                  ],
+                  "query": [
+                    {
+                      "key": "query_name",
+                      "value": "test"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "_postman_id": "98bfa752-aba1-45df-80b5-5fbb641939de",
+          "_postman_isSubFolder": true
+        },
+        {
+          "name": "DATASOURCE",
+          "item": [
+            {
+              "name": "DATASOURCE CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "1e7da9e0-c675-4339-a895-28fb9c8b0971",
+                    "exec": [
+                      "pm.test('Create DataSource', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.dataSourceId).to.not.be.null;",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "    pm.environment.set('DATA_SOURCE_ID', data.dataSourceId);",
+                      "    pm.environment.set('DATA_SOURCE_VERSION', data.version);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "_postman_id": "849bcbbb-b5fd-47e8-b673-0740f5b6e675",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"dataSourceCode\": \"Test-DataSource\",\n    \"dataSourceType\": \"mysql\",\n    \"host\": \"127.0.0.1\",\n    \"port\": \"3306\",\n    \"username\": \"watchmen\",\n    \"password\": \"watchmen\",\n    \"name\": \"watchmen\",\n    \"url\": \"mysql://watchmen:watchmen@127.0.0.1:3306/watchmen?charset=utf8\",\n    \"params\": [\n        {\"name\": \"x\", \"value\": \"1\"},\n        {\"name\": \"y\", \"value\": \"2\"}\n    ],\n    \"tenantId\": \"1\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/datasource"
+              },
+              "response": []
+            },
+            {
+              "name": "DATASOURCE LOAD",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "7aeb31ab-47f7-4bef-93a2-55657eb65a84",
+                    "exec": [
+                      "pm.test('Load DataSource', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.dataSourceId).to.not.be.null;",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "_postman_id": "be67bf15-89c3-48bc-9f9f-82beef0d6f4c",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/datasource?datasource_id={{DATA_SOURCE_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "datasource"
+                  ],
+                  "query": [
+                    {
+                      "key": "datasource_id",
+                      "value": "{{DATA_SOURCE_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "_postman_id": "9e542866-d6d4-49ae-a125-32810f193d45",
+          "_postman_isSubFolder": true
+        },
+        {
+          "name": "EXTERNAL WRITER",
+          "item": [
+            {
+              "name": "EXTERNAL WRITER CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "3e0e11bc-7291-480e-b888-628b775af24e",
+                    "exec": [
+                      "pm.test('Create ExternalWriter', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.writerId).to.not.be.null;",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "    pm.environment.set('EXTERNAL_WRITER_ID', data.writerId);",
+                      "    pm.environment.set('EXTERNAL_WRITER_VERSION', data.version);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "_postman_id": "ef16e995-71c9-4d1e-8d76-b692c5d06745",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"writerCode\": \"Test-External-Writer\",\n    \"type\": \"standard-writer\",\n    \"pat\": \"a-pat\",\n    \"url\": \"mysql://watchmen:watchmen@127.0.0.1:3306/watchmen?charset=utf8\",\n    \"tenantId\": \"1\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/external_writer"
+              },
+              "response": []
+            },
+            {
+              "name": "EXTERNAL WRITER LOAD",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "187d5a70-a313-4427-9b1e-f2eb0fcf1005",
+                    "exec": [
+                      "pm.test('Load ExternalWriter', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.writerId).to.not.be.null;",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "_postman_id": "1a75b5bb-f25a-4c41-93bc-e25c4e8b3f11",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/external_writer?writer_id={{EXTERNAL_WRITER_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "external_writer"
+                  ],
+                  "query": [
+                    {
+                      "key": "writer_id",
+                      "value": "{{EXTERNAL_WRITER_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "_postman_id": "17c471ba-9990-4f45-9079-6db6dec5ec67",
+          "_postman_isSubFolder": true
+        },
+        {
+          "name": "PAT",
+          "item": [],
+          "_postman_id": "81a9ceae-4e7d-49a9-80a3-20b14e6fb947",
+          "_postman_isSubFolder": true
+        },
+        {
+          "name": "CACHE",
+          "item": [
+            {
+              "name": "CLEAR ALL CACHE",
+              "_postman_id": "7b72bcc3-c43c-450d-b310-859befe8f2fa",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": "{{URL_PREFIX}}/cache/clear/all"
+              },
+              "response": []
+            }
+          ],
+          "_postman_id": "e6777f71-4736-4cc4-b57f-fbb98f51fa26",
+          "_postman_isSubFolder": true
+        }
+      ],
+      "_postman_id": "13f7d30b-1bc5-4cd0-9a31-96cb02ed7c27"
+    },
+    {
+      "name": "ADMIN",
+      "item": [
+        {
+          "name": "AUTHENTICATE - ADMIN",
+          "item": [
+            {
+              "name": "LOGIN - ADMIN",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "256d3699-0b27-45eb-85f9-f66db1927d0c",
+                    "exec": [
+                      "pm.test('Login Access Token', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.accessToken).to.not.be.null;",
+                      "    pm.expect(data.tokenType).to.eql('bearer');",
+                      "    pm.expect(data.role).to.eql('admin');",
+                      "    pm.expect(data.tenantId).to.eql('1');",
+                      "    pm.environment.set('JWT_TOKEN', data.accessToken)",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "_postman_id": "31b79fac-116a-442e-8a26-bd8bab25bb60",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "key": "username",
+                      "value": "imma-admin",
+                      "type": "text"
+                    },
+                    {
+                      "key": "password",
+                      "value": "1234abcd",
+                      "type": "text"
+                    }
+                  ],
+                  "options": {
+                    "urlencoded": {}
+                  }
+                },
+                "url": "{{URL_PREFIX}}/login"
+              },
+              "response": []
+            }
+          ],
+          "_postman_id": "5f61e34f-fab9-435f-982d-50c88922ee67",
+          "_postman_isSubFolder": true
+        },
+        {
+          "name": "FAVORITE",
+          "item": [],
+          "_postman_id": "9f1d8885-fa09-4bf1-b623-91d2e9c3f951",
+          "_postman_isSubFolder": true
+        },
+        {
+          "name": "LAST SNAPSHOT",
+          "item": [],
+          "_postman_id": "deeee44b-b4bd-4f34-993e-0e57975583e2",
+          "_postman_isSubFolder": true
+        },
+        {
+          "name": "USER",
+          "item": [
+            {
+              "name": "USER LOAD 2",
+              "_postman_id": "df2c60c7-092d-4e46-9b1f-5888237ef070",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/user?user_id=2",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "user"
+                  ],
+                  "query": [
+                    {
+                      "key": "user_id",
+                      "value": "2"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "USER CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "0feae4d0-e5dc-48f2-bfff-4c39e6ffecd7",
+                    "exec": [
+                      "pm.test('Create User', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.userId).to.not.be.null;",
+                      "    pm.expect(data.name).to.eql('Test-User')",
+                      "    pm.expect(data.tenantId).to.not.be.null;",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "    pm.environment.set('USER_ID', data.userId);",
+                      "    pm.environment.set('USER_CREATED_AT', data.createdAt);",
+                      "    pm.environment.set('USER_CREATED_BY', data.createdBy);",
+                      "    pm.environment.set('USER_VERSION', data.version);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "_postman_id": "2ed1b18e-efd7-467f-9df3-f30af6c174db",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Test-User\",\n    \"nickName\": \"Test-User-Nickname\",\n    \"password\": \"abcd1234\",\n    \"isActive\": true,\n    \"groupIds\": [],\n    \"role\": \"console\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/user"
+              },
+              "response": []
+            }
+          ],
+          "_postman_id": "2447d2f8-9676-485c-9344-0192d5fac66f",
+          "_postman_isSubFolder": true
+        },
+        {
+          "name": "USER GROUP",
+          "item": [
+            {
+              "name": "USER GROUP CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "e928236a-c9a2-4b7c-b65c-614dfc94ff0e",
+                    "exec": [
+                      "pm.test('Create User Group', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.userGroupId).to.not.be.null;",
+                      "    pm.expect(data.name).to.eql('Test-Group')",
+                      "    pm.expect(data.tenantId).to.not.be.null;",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "    pm.environment.set('USER_GROUP_ID', data.userGroupId);",
+                      "    pm.environment.set('USER_GROUP_CREATED_AT', data.createdAt);",
+                      "    pm.environment.set('USER_GROUP_CREATED_BY', data.createdBy);",
+                      "    pm.environment.set('USER_GROUP_VERSION', data.version);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "_postman_id": "a5b1a6b5-0bf6-434a-aef6-4c96f65a45cc",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Test-Group\",\n    \"description\": \"A description\",\n    \"userIds\": [\"{{USER_ID}}\", \"2\"]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/user_group"
+              },
+              "response": []
+            },
+            {
+              "name": "USER GROUP UPDATE",
+              "_postman_id": "f077217c-4177-4989-b053-59d119364166",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Test-Group\",\n    \"description\": \"A description\",\n    \"userIds\": [\n        \"3\",\n        \"2\"\n    ],\n    \"userGroupId\": \"{{USER_GROUP_ID}}\",\n    \"spaceIds\": [],\n    \"createdAt\": \"{{USER_GROUP_CREATED_AT}}\",\n    \"createdBy\": \"{{USER_GROUP_CREATED_BY}}\",\n    \"version\": {{USER_GROUP_VERSION}}\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/user_group"
+              },
+              "response": []
+            }
+          ],
+          "_postman_id": "695159a0-1c4b-4844-9998-31d00d55a92b",
+          "_postman_isSubFolder": true
+        },
+        {
+          "name": "SPACE",
+          "item": [
+            {
+              "name": "SPACE CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "489b4e2f-b6d5-462c-9be0-a2ace00ea297",
+                    "exec": [
+                      "pm.test('Create Space', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.spaceId).to.not.be.null;",
+                      "    pm.expect(data.name).to.eql('Test-Space')",
+                      "    pm.expect(data.tenantId).to.not.be.null;",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "    pm.environment.set('SPACE_ID', data.spaceId);",
+                      "    pm.environment.set('SPACE_CREATED_AT', data.createdAt);",
+                      "    pm.environment.set('SPACE_CREATED_BY', data.createdBy);",
+                      "    pm.environment.set('SPACE_VERSION', data.version);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "_postman_id": "43f3336a-fe2c-433b-9f12-9b9c518b57a6",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Test-Space\",\n    \"description\": \"A description\",\n    \"topicIds\": [],\n    \"groupIds\": [],\n    \"filters\": [\n        {\n            \"topicId\": \"1\",\n            \"enabled\": true,\n            \"joint\": {\n                \"jointType\": \"and\",\n                \"filters\": [\n                    {\n                        \"left\": {\n                            \"kind\": \"topic\",\n                            \"topicId\": \"1\",\n                            \"factorId\": \"1\"\n                        },\n                        \"operator\": \"empty\"\n                    },\n                    {\n                        \"jointType\": \"or\",\n                        \"filters\": [\n                            {\n                                \"left\": {\n                                    \"kind\": \"constant\",\n                                    \"value\": \"2\"\n                                },\n                                \"operator\": \"not-equals\",\n                                \"right\": {\n                                    \"kind\": \"computed\",\n                                    \"type\": \"add\",\n                                    \"parameters\": [\n                                        {\"kind\": \"constant\", \"value\": \"3\"},\n                                        {\"kind\": \"constant\", \"value\": \"4\"}\n                                    ]\n                                }\n                            }\n                        ]\n                    }\n                ]\n            }\n        }\n    ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/space"
+              },
+              "response": []
+            },
+            {
+              "name": "SPACE LOAD",
+              "_postman_id": "34629a47-398a-483d-9008-050339be27fe",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/space?space_id={{SPACE_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "space"
+                  ],
+                  "query": [
+                    {
+                      "key": "space_id",
+                      "value": "{{SPACE_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "_postman_id": "1ef7cc43-850d-4db9-a66c-4216a70d114e",
+          "_postman_isSubFolder": true
+        },
+        {
+          "name": "ENUMERATION",
+          "item": [],
+          "_postman_id": "03745d16-5763-4e02-8bfc-0c28721f3e80",
+          "_postman_isSubFolder": true
+        },
+        {
+          "name": "TOPIC",
+          "item": [],
+          "_postman_id": "792d1f3c-b699-4d36-bf61-bbdb60a25982",
+          "_postman_isSubFolder": true
+        },
+        {
+          "name": "PIPELINE",
+          "item": [
+            {
+              "name": "PIPELINE CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "fc145713-ab6d-4b28-9230-0a7cd6ff6f77",
+                    "exec": [
+                      "pm.test('Create Pipeline', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.pipelineId).to.not.be.null;",
+                      "    pm.expect(data.name).to.eql('Test-Pipeline')",
+                      "    pm.expect(data.tenantId).to.not.be.null;",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "    pm.environment.set('PIPELINE_ID', data.pipelineId);",
+                      "    pm.environment.set('PIPELINE_CREATED_AT', data.createdAt);",
+                      "    pm.environment.set('PIPELINE_CREATED_BY', data.createdBy);",
+                      "    pm.environment.set('PIPELINE_VERSION', data.version);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "_postman_id": "cfd94970-db70-4c99-a0da-8a4d80f894cd",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"topicId\": \"1\",\n    \"name\": \"Test-Pipeline\",\n    \"type\": \"insert-or-merge\",\n    \"stages\": [\n        {\n            \"stageId\": \"f-1\",\n            \"name\": \"Stage 1\",\n            \"units\": [\n                {\n                    \"unitId\": \"f-2\",\n                    \"name\": \"Unit 1.1\",\n                    \"do\": [\n                        {\n                            \"actionId\": \"f-3\",\n                            \"type\": \"alarm\",\n                            \"severity\": \"high\",\n                            \"message\": \"Hello world!\"\n                        }\n                    ]\n                }\n            ]\n        }\n    ],\n    \"enabled\": true,\n    \"validated\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/pipeline"
+              },
+              "response": []
+            },
+            {
+              "name": "PIPELINE LOAD",
+              "_postman_id": "3d88d558-5b26-452f-b5b0-57b35923acd4",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "pipeline"
+                  ],
+                  "query": [
+                    {
+                      "key": "pipeline_id",
+                      "value": "{{PIPELINE_ID}}",
+                      "type": "text"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "_postman_id": "13156c3c-75f0-4ae4-b8b6-aa856055618a",
+          "_postman_isSubFolder": true
+        },
+        {
+          "name": "PIPELINE GRAPHIC",
+          "item": [],
+          "_postman_id": "7dc3f01a-b535-4225-ae5a-74f0df01d407",
+          "_postman_isSubFolder": true
+        }
+      ],
+      "_postman_id": "22d9b007-f6be-4ee5-b4f3-89374c0d3578"
+    },
+    {
+      "name": "REACTOR",
+      "item": [
+        {
+          "name": "SIMPLE",
+          "item": [
+            {
+              "name": "LOGIN - SUPER ADMIN",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "1d8b7f04-30a8-40bc-9e98-c9ebd30fc717",
+                    "exec": [
+                      "pm.test('Login Access Token', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.accessToken).to.not.be.null;",
+                      "    pm.expect(data.tokenType).to.eql('bearer');",
+                      "    pm.expect(data.role).to.eql('superadmin');",
+                      "    pm.expect(data.tenantId).to.eql('-1');",
+                      "    pm.environment.set('SUPER_ADMIN_JWT_TOKEN', data.accessToken)",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "_postman_id": "0815a1f1-7240-4e21-91ed-a45b771f2189",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "key": "username",
+                      "value": "imma-super",
+                      "type": "text"
+                    },
+                    {
+                      "key": "password",
+                      "value": "change-me",
+                      "type": "text"
+                    }
+                  ],
+                  "options": {
+                    "urlencoded": {}
+                  }
+                },
+                "url": "{{URL_PREFIX}}/login"
+              },
+              "response": []
+            },
+            {
+              "name": "CREATE DATASOURCE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "f29f51de-fb1f-4721-ba05-b561426c2fe3",
+                    "exec": [
+                      "pm.test('Datasource created', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.dataSourceId).to.not.be.null;",
+                      "    pm.environment.set('SIMPLE_DATA_SOURCE_ID', data.dataSourceId)",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "_postman_id": "c01dbb4c-7635-43e2-b9dd-0a8aab3382ec",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"dataSourceCode\": \"TEST-DATASOURCE\",\n    \"dataSourceType\": \"mysql\",\n    \"host\": \"localhost\",\n    \"port\": \"3306\",\n    \"username\": \"watchmen\",\n    \"password\": \"watchmen\",\n    \"name\": \"watchmen\",\n    \"tenantId\": \"1\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/datasource"
+              },
+              "response": []
+            },
+            {
+              "name": "LOGIN - ADMIN",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "e49a9bbb-b13f-4dd0-8392-2a5189ccb43b",
+                    "exec": [
+                      "pm.test('Login Access Token', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.accessToken).to.not.be.null;",
+                      "    pm.expect(data.tokenType).to.eql('bearer');",
+                      "    pm.expect(data.role).to.eql('admin');",
+                      "    pm.expect(data.tenantId).to.eql('1');",
+                      "    pm.environment.set('ADMIN_JWT_TOKEN', data.accessToken)",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "_postman_id": "bc7cda35-dad5-4edc-830f-9ecae12b96d4",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "key": "username",
+                      "value": "imma-admin",
+                      "type": "text"
+                    },
+                    {
+                      "key": "password",
+                      "value": "1234abcd",
+                      "type": "text"
+                    }
+                  ],
+                  "options": {
+                    "urlencoded": {}
+                  }
+                },
+                "url": "{{URL_PREFIX}}/login"
+              },
+              "response": []
+            },
+            {
+              "name": "CREATE TOPIC",
+              "_postman_id": "f0930857-d18f-44b8-8d58-3589083e8208",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{ADMIN_JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Test_Topic\",\n    \"type\": \"raw\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{SIMPLE_DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"text\", \"name\": \"propB\"}\n    ],\n    \"description\": \"Test Raw Topic\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/topic"
+              },
+              "response": []
+            },
+            {
+              "name": "INSERT RAW",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "3d2a11f7-def3-4a1a-bac2-b7ba993ecf4f",
+                    "exec": [
+                      "pm.test('Insert Raw Successfully', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.internalDataId).to.not.be.null;",
+                      "    pm.environment.set('INTERNAL_DATA_ID', data.internalDataId)",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "_postman_id": "e3c98e82-2f1b-48ee-adb2-c87adf7626bc",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{ADMIN_JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"code\": \"Test_Topic\",\n    \"triggerType\": \"insert\",\n    \"data\": {\n        \"propA\": 1,\n        \"propB\": 2\n    }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/pipeline/data"
+              },
+              "response": []
+            },
+            {
+              "name": "UPDATE RAW",
+              "_postman_id": "4f090d72-9db9-45ab-afb6-46d494a434d4",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{ADMIN_JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"code\": \"Test_Topic\",\n    \"triggerType\": \"merge\",\n    \"data\": {\n        \"id_\": \"{{INTERNAL_DATA_ID}}\",\n        \"propA\": 3,\n        \"propB\": 4,\n        \"propC\": {\n            \"propD\": \"x\",\n            \"propE\": \"y\",\n            \"propF\": [\n                {\"propG\": true},\n                {\"propG\": false}\n            ]\n        },\n        \"propD\": {\n            \"propE\": {\n                \"propD\": {\n                    \"propE\": 1,\n                    \"propD\": {\n                        \"propE\": 2\n                    }\n                }\n            }\n        }\n    }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/pipeline/data"
+              },
+              "response": []
+            }
+          ],
+          "_postman_id": "f69ec778-cfd0-4bfc-a55d-34f9202dd099",
+          "_postman_isSubFolder": true
+        }
+      ],
+      "_postman_id": "b4f1a636-e9ca-4463-a51c-53c4e2be3949"
+    }
+  ]
+}
