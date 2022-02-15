@@ -1,8 +1,9 @@
 from asyncio import ensure_future
+from logging import getLogger
 from typing import Any, Dict
 
 from watchmen_auth import PrincipalService
-from watchmen_model.admin import is_raw_topic, PipelineTriggerType
+from watchmen_model.admin import is_raw_topic, Pipeline, PipelineTriggerType
 from watchmen_model.common import DataSourceId
 from watchmen_model.reactor import PipelineTriggerTraceId
 from watchmen_reactor.cache import CacheService
@@ -12,14 +13,16 @@ from watchmen_reactor.storage import build_topic_data_storage, RawTopicDataEntit
 	RegularTopicDataEntityHelper, RegularTopicDataService, TopicDataEntityHelper, TopicDataService, TopicTriggerResult
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_storage import TopicDataStorageSPI
-from watchmen_utilities import is_blank
+from watchmen_utilities import ArrayHelper, is_blank
+
+logger = getLogger(__name__)
 
 
 def get_data_source_service(principal_service: PrincipalService) -> DataSourceService:
 	return DataSourceService(principal_service)
 
 
-class PipelineContext:
+class PipelineTrigger:
 	storages: Dict[DataSourceId, TopicDataStorageSPI] = {}
 
 	def __init__(
@@ -103,9 +106,36 @@ class PipelineContext:
 		else:
 			raise ReactorException(f'Trigger type[{self.trigger_type}] is not supported.')
 
+	# noinspection PyMethodMayBeStatic
+	def should_run(self, trigger_type: PipelineTriggerType, pipeline: Pipeline) -> bool:
+		if trigger_type == PipelineTriggerType.DELETE:
+			return pipeline.type == PipelineTriggerType.DELETE
+		elif trigger_type == PipelineTriggerType.INSERT:
+			return pipeline.type == PipelineTriggerType.INSERT or pipeline.type == PipelineTriggerType.INSERT_OR_MERGE
+		elif trigger_type == PipelineTriggerType.MERGE:
+			return pipeline.type == PipelineTriggerType.MERGE or pipeline.type == PipelineTriggerType.INSERT_OR_MERGE
+		elif trigger_type == PipelineTriggerType.INSERT_OR_MERGE:
+			return pipeline.type == PipelineTriggerType.INSERT_OR_MERGE
+		else:
+			raise ReactorException(f'Pipeline trigger type[{trigger_type}] is not supported.')
+
 	async def start(self, trigger: TopicTriggerResult) -> None:
-		# TODO start pipeline
-		pass
+		schema = self.trigger_topic_schema
+		topic = schema.get_topic()
+		pipeline_ids = CacheService.pipelines_by_topic().get(topic.topicId)
+		if pipeline_ids is None or len(pipeline_ids) == 0:
+			logger.warning(f'No pipeline needs to be triggered by topic[id={topic.topicId}, name={topic.name}].')
+			return
+
+		pipelines = ArrayHelper(pipeline_ids) \
+			.map(lambda x: CacheService.pipeline().get(x)) \
+			.filter(lambda x: self.should_run(trigger.triggerType, x)).to_list()
+		if len(pipelines) == 0:
+			logger.warning(f'No pipeline needs to be triggered by topic[id={topic.topicId}, name={topic.name}].')
+			return
+
+		# TODO
+		# ArrayHelper(pipelines).each()
 
 	async def invoke(self) -> int:
 		self.prepare_trigger_data()

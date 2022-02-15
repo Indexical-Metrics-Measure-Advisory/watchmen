@@ -29,7 +29,8 @@ class PipelineTriggerResult(BaseModel):
 	received: bool = True
 	traceId: PipelineTriggerTraceId
 	"""
-	id of trigger data
+	id of trigger data, 
+	type must be str since length of value beyonds the limitation of serialization of javascript json number
 	"""
 	internalDataId: str
 
