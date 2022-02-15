@@ -27,14 +27,13 @@ class StorageMySQL(TransactionalStorageSPI):
 
 	def connect(self) -> None:
 		if self.connection is None:
-			self.connection = self.engine.connect()
+			self.connection = self.engine.connect().execution_options(isolation_level="AUTOCOMMIT")
 
 	def begin(self) -> None:
 		if self.connection is not None:
 			raise UnexpectedStorageException('Connection exists, failed to begin another. It should be closed first.')
 
 		self.connection = self.engine.connect()
-		# self.connection.autocommit(False)
 		self.connection.begin()
 
 	def commit_and_close(self) -> None:
