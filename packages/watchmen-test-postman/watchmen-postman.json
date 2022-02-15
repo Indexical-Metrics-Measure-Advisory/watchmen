@@ -1,0 +1,1390 @@
+{
+  "info": {
+    "_postman_id": "c0f324a6-e091-4436-ac8f-e27a66b7153e",
+    "name": "Watchmen 16",
+    "schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "SUPER ADMIN",
+      "item": [
+        {
+          "name": "AUTHENTICATE",
+          "item": [
+            {
+              "name": "LOGIN - SUPER ADMIN",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "75bd6511-7b9f-4087-9743-7d7c27b6c55e",
+                    "exec": [
+                      "pm.test('Login Access Token', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.accessToken).to.not.be.null;",
+                      "    pm.expect(data.tokenType).to.eql('bearer');",
+                      "    pm.expect(data.role).to.eql('superadmin');",
+                      "    pm.expect(data.tenantId).to.eql('-1');",
+                      "    pm.environment.set('JWT_TOKEN', data.accessToken)",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "ff63d21c-61d5-40c1-ae76-9e3a3cf72fb2",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "key": "username",
+                      "value": "imma-super",
+                      "type": "text"
+                    },
+                    {
+                      "key": "password",
+                      "value": "change-me",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "url": "{{URL_PREFIX}}/login "
+              },
+              "response": []
+            },
+            {
+              "name": "VALIDATE ACCESS TOKEN - SUPER ADMIN",
+              "id": "64b43cdb-b094-4474-8b6f-3060a32115cb",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/token/validate/jwt?token={{JWT_TOKEN}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "token",
+                    "validate",
+                    "jwt"
+                  ],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "{{JWT_TOKEN}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "TEST ACCESS TOKEN - SUPER ADMIN",
+              "id": "3d555c25-7422-45a6-8974-634f65027c04",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": "{{URL_PREFIX}}/token/exchange-user"
+              },
+              "response": []
+            }
+          ],
+          "id": "19c1859c-d8cc-43c6-854c-e4513c2a70fd"
+        },
+        {
+          "name": "TENANT",
+          "item": [
+            {
+              "name": "TENANT - LOAD 1",
+              "id": "55bebab3-c26a-432d-9468-3c4f4d14c671",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/tenant?tenant_id=1",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "tenant"
+                  ],
+                  "query": [
+                    {
+                      "key": "tenant_id",
+                      "value": "1"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "TENANT CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "9d7b6faf-b6ad-4e02-906c-3141034f9c73",
+                    "exec": [
+                      "pm.test('Create Tenant', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.tenantId).to.not.be.null;",
+                      "    pm.expect(data.name).to.eql('IMMA-Test')",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "    pm.environment.set('TENANT_ID', data.tenantId);",
+                      "    pm.environment.set('TENANT_CREATED_AT', data.createdAt);",
+                      "    pm.environment.set('TENANT_CREATED_BY', data.createdBy);",
+                      "    pm.environment.set('TENANT_VERSION', data.version);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "d1e31b53-91c4-4a67-b550-65bc320e1e74",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"IMMA-Test\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/tenant"
+              },
+              "response": []
+            },
+            {
+              "name": "TENANT FIND BY NAME AFTER CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "4fd72b60-cef7-4e3f-816f-93455c8c3cea",
+                    "exec": [
+                      "pm.test('Find Tenant By Name', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.pageNumber).to.eql(1);",
+                      "    pm.expect(data.pageSize).to.eql(9)",
+                      "    pm.expect(data.itemCount).to.eql(1);",
+                      "    pm.expect(data.pageCount).to.eql(1);",
+                      "    pm.expect(data.data.length).to.eql(1);",
+                      "    const tenant = data.data[0];",
+                      "    pm.expect(tenant.tenantId).to.not.be.null;",
+                      "    pm.expect(tenant.name).to.eql('IMMA-Test')",
+                      "    pm.expect(tenant.createdAt).to.not.be.null;",
+                      "    pm.expect(tenant.createdBy).to.not.be.null;",
+                      "    pm.expect(tenant.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(tenant.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(tenant.version).to.eql(1);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "f237e4d8-32af-46da-9689-806f0f697531",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"pageNumber\": 1,\n    \"pageSize\": 9\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL_PREFIX}}/tenant/name?query_name=test",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "tenant",
+                    "name"
+                  ],
+                  "query": [
+                    {
+                      "key": "query_name",
+                      "value": "test"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "TENANT UPDATE CREATED",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "ef9b7ae5-b09f-44e1-8f7c-3cb697ddd9af",
+                    "exec": [
+                      "pm.test('Update Tenant', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.tenantId).to.not.be.null;",
+                      "    pm.expect(data.name).to.eql('IMMA-Test-1')",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(2);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "61b413d1-7d72-4260-96ac-fbac334ec556",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"tenantId\": \"{{TENANT_ID}}\",\n    \"name\": \"IMMA-Test-1\",\n    \"createdAt\": \"{{TENANT_CREATED_AT}}\",\n    \"createdBy\": \"{{TENANT_CREATED_BY}}\",\n    \"version\": {{TENANT_VERSION}}\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/tenant"
+              },
+              "response": []
+            },
+            {
+              "name": "TENANT DELETE CREATED",
+              "id": "f1ffa00d-597a-4091-a011-91d736922b2e",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/tenant?tenant_id={{TENANT_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "tenant"
+                  ],
+                  "query": [
+                    {
+                      "key": "tenant_id",
+                      "value": "{{TENANT_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "TENANT FIND BY NAME AFTER DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "1bd89a02-9315-4408-808a-416414c816b4",
+                    "exec": [
+                      "pm.test('Find Tenant By Name', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.pageNumber).to.eql(1);",
+                      "    pm.expect(data.pageSize).to.eql(9)",
+                      "    pm.expect(data.itemCount).to.eql(0);",
+                      "    pm.expect(data.pageCount).to.eql(0);",
+                      "    pm.expect(data.data.length).to.eql(0);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "6ac65f10-39bc-4a10-96c4-3153709e8e63",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"pageNumber\": 1,\n    \"pageSize\": 9\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL_PREFIX}}/tenant/name?query_name=test",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "tenant",
+                    "name"
+                  ],
+                  "query": [
+                    {
+                      "key": "query_name",
+                      "value": "test"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "235f1e6d-5346-4d41-89f8-9f181827c7a7"
+        },
+        {
+          "name": "DATASOURCE",
+          "item": [
+            {
+              "name": "DATASOURCE CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "63392e93-6aab-41a7-a162-33811530288b",
+                    "exec": [
+                      "pm.test('Create DataSource', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.dataSourceId).to.not.be.null;",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "    pm.environment.set('DATA_SOURCE_ID', data.dataSourceId);",
+                      "    pm.environment.set('DATA_SOURCE_VERSION', data.version);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "c256fe69-bd50-46bc-a725-bc48cc24c85f",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"dataSourceCode\": \"Test-DataSource\",\n    \"dataSourceType\": \"mysql\",\n    \"host\": \"127.0.0.1\",\n    \"port\": \"3306\",\n    \"username\": \"watchmen\",\n    \"password\": \"watchmen\",\n    \"name\": \"watchmen\",\n    \"url\": \"mysql://watchmen:watchmen@127.0.0.1:3306/watchmen?charset=utf8\",\n    \"params\": [\n        {\"name\": \"x\", \"value\": \"1\"},\n        {\"name\": \"y\", \"value\": \"2\"}\n    ],\n    \"tenantId\": \"1\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/datasource"
+              },
+              "response": []
+            },
+            {
+              "name": "DATASOURCE LOAD",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "15810263-0235-47fe-9ef2-309775e4ac4d",
+                    "exec": [
+                      "pm.test('Load DataSource', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.dataSourceId).to.not.be.null;",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "6bda239a-d34f-428a-b8a7-4ef94eb3e4b3",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/datasource?datasource_id={{DATA_SOURCE_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "datasource"
+                  ],
+                  "query": [
+                    {
+                      "key": "datasource_id",
+                      "value": "{{DATA_SOURCE_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "9bff87c2-1e5e-41ef-8562-ed9f90ae0465"
+        },
+        {
+          "name": "EXTERNAL WRITER",
+          "item": [
+            {
+              "name": "EXTERNAL WRITER CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "30be7fdf-e221-44bd-b731-5f220ae6c8c2",
+                    "exec": [
+                      "pm.test('Create ExternalWriter', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.writerId).to.not.be.null;",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "    pm.environment.set('EXTERNAL_WRITER_ID', data.writerId);",
+                      "    pm.environment.set('EXTERNAL_WRITER_VERSION', data.version);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "b88d242c-5553-4e54-9be1-fdf7235c2f66",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"writerCode\": \"Test-External-Writer\",\n    \"type\": \"standard-writer\",\n    \"pat\": \"a-pat\",\n    \"url\": \"mysql://watchmen:watchmen@127.0.0.1:3306/watchmen?charset=utf8\",\n    \"tenantId\": \"1\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/external_writer"
+              },
+              "response": []
+            },
+            {
+              "name": "EXTERNAL WRITER LOAD",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "34a120da-c0e3-4c8f-abde-02fae9f656a7",
+                    "exec": [
+                      "pm.test('Load ExternalWriter', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.writerId).to.not.be.null;",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "dd74b607-fc39-4779-a18e-8e98332cd9f3",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/external_writer?writer_id={{EXTERNAL_WRITER_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "external_writer"
+                  ],
+                  "query": [
+                    {
+                      "key": "writer_id",
+                      "value": "{{EXTERNAL_WRITER_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "15e1b163-cae1-4d47-b840-3631b95b1034"
+        },
+        {
+          "name": "PAT",
+          "item": [],
+          "id": "4f32c2fe-3929-4ad3-ae0a-79e5acf628ea"
+        },
+        {
+          "name": "CACHE",
+          "item": [
+            {
+              "name": "CLEAR ALL CACHE",
+              "id": "f38a0473-7618-46b1-8e88-b8977cb5546a",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": "{{URL_PREFIX}}/cache/clear/all"
+              },
+              "response": []
+            }
+          ],
+          "id": "9ad8ec77-1f5f-4c19-bb36-c7ac18e471a5"
+        }
+      ],
+      "id": "2b7a2b9f-c93f-4224-aa8b-93576ab0457e"
+    },
+    {
+      "name": "ADMIN",
+      "item": [
+        {
+          "name": "AUTHENTICATE - ADMIN",
+          "item": [
+            {
+              "name": "LOGIN - ADMIN",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "0142ee34-8fe7-4fbf-a6ec-698075d7e2b3",
+                    "exec": [
+                      "pm.test('Login Access Token', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.accessToken).to.not.be.null;",
+                      "    pm.expect(data.tokenType).to.eql('bearer');",
+                      "    pm.expect(data.role).to.eql('admin');",
+                      "    pm.expect(data.tenantId).to.eql('1');",
+                      "    pm.environment.set('JWT_TOKEN', data.accessToken)",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "4ab44232-f878-4ef5-8d77-ac6c558b6d19",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "key": "username",
+                      "value": "imma-admin",
+                      "type": "text"
+                    },
+                    {
+                      "key": "password",
+                      "value": "1234abcd",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "url": "{{URL_PREFIX}}/login"
+              },
+              "response": []
+            }
+          ],
+          "id": "44ea97e6-ca53-46d5-b7da-47cffeb17e65"
+        },
+        {
+          "name": "FAVORITE",
+          "item": [],
+          "id": "44fb9bb6-8eb5-4c79-8511-759d72890db8"
+        },
+        {
+          "name": "LAST SNAPSHOT",
+          "item": [],
+          "id": "20f66fc1-ed24-4b0f-ad3a-3ba62b0a2e02"
+        },
+        {
+          "name": "USER",
+          "item": [
+            {
+              "name": "USER LOAD 2",
+              "id": "737c0ee8-22de-4823-8646-984087e92cfb",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/user?user_id=2",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "user"
+                  ],
+                  "query": [
+                    {
+                      "key": "user_id",
+                      "value": "2"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "USER CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "5ce09799-b203-4a1a-b03a-041d24f5bbff",
+                    "exec": [
+                      "pm.test('Create User', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.userId).to.not.be.null;",
+                      "    pm.expect(data.name).to.eql('Test-User')",
+                      "    pm.expect(data.tenantId).to.not.be.null;",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "    pm.environment.set('USER_ID', data.userId);",
+                      "    pm.environment.set('USER_CREATED_AT', data.createdAt);",
+                      "    pm.environment.set('USER_CREATED_BY', data.createdBy);",
+                      "    pm.environment.set('USER_VERSION', data.version);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "c22d60f5-3131-42a6-bc19-82e08de03909",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Test-User\",\n    \"nickName\": \"Test-User-Nickname\",\n    \"password\": \"abcd1234\",\n    \"isActive\": true,\n    \"groupIds\": [],\n    \"role\": \"console\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/user"
+              },
+              "response": []
+            }
+          ],
+          "id": "131eba13-234e-4f94-b512-6ef482f21610"
+        },
+        {
+          "name": "USER GROUP",
+          "item": [
+            {
+              "name": "USER GROUP CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "a6a3df82-9003-4edc-8817-e675fe7e27e4",
+                    "exec": [
+                      "pm.test('Create User Group', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.userGroupId).to.not.be.null;",
+                      "    pm.expect(data.name).to.eql('Test-Group')",
+                      "    pm.expect(data.tenantId).to.not.be.null;",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "    pm.environment.set('USER_GROUP_ID', data.userGroupId);",
+                      "    pm.environment.set('USER_GROUP_CREATED_AT', data.createdAt);",
+                      "    pm.environment.set('USER_GROUP_CREATED_BY', data.createdBy);",
+                      "    pm.environment.set('USER_GROUP_VERSION', data.version);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "15cd648b-ee54-423a-b710-50af990936ae",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Test-Group\",\n    \"description\": \"A description\",\n    \"userIds\": [\"{{USER_ID}}\", \"2\"]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/user_group"
+              },
+              "response": []
+            },
+            {
+              "name": "USER GROUP UPDATE",
+              "id": "83ddd905-2c63-4e4d-a1e9-869345671486",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Test-Group\",\n    \"description\": \"A description\",\n    \"userIds\": [\n        \"3\",\n        \"2\"\n    ],\n    \"userGroupId\": \"{{USER_GROUP_ID}}\",\n    \"spaceIds\": [],\n    \"createdAt\": \"{{USER_GROUP_CREATED_AT}}\",\n    \"createdBy\": \"{{USER_GROUP_CREATED_BY}}\",\n    \"version\": {{USER_GROUP_VERSION}}\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/user_group"
+              },
+              "response": []
+            }
+          ],
+          "id": "0fe9431c-63bc-4ae4-94ce-9c5af3fab63b"
+        },
+        {
+          "name": "SPACE",
+          "item": [
+            {
+              "name": "SPACE CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "f7607af5-d3fd-45d5-9b38-01222c3c80b0",
+                    "exec": [
+                      "pm.test('Create Space', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.spaceId).to.not.be.null;",
+                      "    pm.expect(data.name).to.eql('Test-Space')",
+                      "    pm.expect(data.tenantId).to.not.be.null;",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "    pm.environment.set('SPACE_ID', data.spaceId);",
+                      "    pm.environment.set('SPACE_CREATED_AT', data.createdAt);",
+                      "    pm.environment.set('SPACE_CREATED_BY', data.createdBy);",
+                      "    pm.environment.set('SPACE_VERSION', data.version);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "d9ff7c72-2254-4911-b408-7b70d7184edc",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Test-Space\",\n    \"description\": \"A description\",\n    \"topicIds\": [],\n    \"groupIds\": [],\n    \"filters\": [\n        {\n            \"topicId\": \"1\",\n            \"enabled\": true,\n            \"joint\": {\n                \"jointType\": \"and\",\n                \"filters\": [\n                    {\n                        \"left\": {\n                            \"kind\": \"topic\",\n                            \"topicId\": \"1\",\n                            \"factorId\": \"1\"\n                        },\n                        \"operator\": \"empty\"\n                    },\n                    {\n                        \"jointType\": \"or\",\n                        \"filters\": [\n                            {\n                                \"left\": {\n                                    \"kind\": \"constant\",\n                                    \"value\": \"2\"\n                                },\n                                \"operator\": \"not-equals\",\n                                \"right\": {\n                                    \"kind\": \"computed\",\n                                    \"type\": \"add\",\n                                    \"parameters\": [\n                                        {\"kind\": \"constant\", \"value\": \"3\"},\n                                        {\"kind\": \"constant\", \"value\": \"4\"}\n                                    ]\n                                }\n                            }\n                        ]\n                    }\n                ]\n            }\n        }\n    ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/space"
+              },
+              "response": []
+            },
+            {
+              "name": "SPACE LOAD",
+              "id": "816a584c-e9fe-4096-8343-538e9b30061d",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/space?space_id={{SPACE_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "space"
+                  ],
+                  "query": [
+                    {
+                      "key": "space_id",
+                      "value": "{{SPACE_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "bfaf41d2-d6c4-4d0b-a586-66cccf43c775"
+        },
+        {
+          "name": "ENUMERATION",
+          "item": [],
+          "id": "c7f9a032-5a56-4fe9-a47b-c3e337318536"
+        },
+        {
+          "name": "TOPIC",
+          "item": [],
+          "id": "50d4c648-0bb5-4f9d-9d8a-a790b14663c8"
+        },
+        {
+          "name": "PIPELINE",
+          "item": [
+            {
+              "name": "PIPELINE CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "3d7ca026-1c12-4178-8970-7c6c9ad63e18",
+                    "exec": [
+                      "pm.test('Create Pipeline', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.pipelineId).to.not.be.null;",
+                      "    pm.expect(data.name).to.eql('Test-Pipeline')",
+                      "    pm.expect(data.tenantId).to.not.be.null;",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "    pm.environment.set('PIPELINE_ID', data.pipelineId);",
+                      "    pm.environment.set('PIPELINE_CREATED_AT', data.createdAt);",
+                      "    pm.environment.set('PIPELINE_CREATED_BY', data.createdBy);",
+                      "    pm.environment.set('PIPELINE_VERSION', data.version);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "4c4a8b5e-9182-4c19-abcb-66b618475e67",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"topicId\": \"1\",\n    \"name\": \"Test-Pipeline\",\n    \"type\": \"insert-or-merge\",\n    \"stages\": [\n        {\n            \"stageId\": \"f-1\",\n            \"name\": \"Stage 1\",\n            \"units\": [\n                {\n                    \"unitId\": \"f-2\",\n                    \"name\": \"Unit 1.1\",\n                    \"do\": [\n                        {\n                            \"actionId\": \"f-3\",\n                            \"type\": \"alarm\",\n                            \"severity\": \"high\",\n                            \"message\": \"Hello world!\"\n                        }\n                    ]\n                }\n            ]\n        }\n    ],\n    \"enabled\": true,\n    \"validated\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/pipeline"
+              },
+              "response": []
+            },
+            {
+              "name": "PIPELINE LOAD",
+              "id": "2474ce33-cf84-43cb-8ee7-b3184f41866d",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "pipeline"
+                  ],
+                  "query": [
+                    {
+                      "key": "pipeline_id",
+                      "value": "{{PIPELINE_ID}}",
+                      "type": "text"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
+          "id": "07093b23-4880-496e-8d5e-a2039c610d15"
+        },
+        {
+          "name": "PIPELINE GRAPHIC",
+          "item": [],
+          "id": "32a109db-7069-4190-b885-0f369025d78d"
+        }
+      ],
+      "id": "94683bf7-58e6-461b-9281-d94ffe0dbe40"
+    },
+    {
+      "name": "REACTOR",
+      "item": [
+        {
+          "name": "SIMPLE",
+          "item": [
+            {
+              "name": "LOGIN - SUPER ADMIN",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "e4e314bc-87d4-4898-9e96-98843da6a78c",
+                    "exec": [
+                      "pm.test('Login Access Token', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.accessToken).to.not.be.null;",
+                      "    pm.expect(data.tokenType).to.eql('bearer');",
+                      "    pm.expect(data.role).to.eql('superadmin');",
+                      "    pm.expect(data.tenantId).to.eql('-1');",
+                      "    pm.environment.set('SUPER_ADMIN_JWT_TOKEN', data.accessToken)",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "6548cf1c-aada-490e-b8b9-9d531679813f",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "key": "username",
+                      "value": "imma-super",
+                      "type": "text"
+                    },
+                    {
+                      "key": "password",
+                      "value": "change-me",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "url": "{{URL_PREFIX}}/login"
+              },
+              "response": []
+            },
+            {
+              "name": "CREATE DATASOURCE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "591d33a2-c0c4-4af2-b9c1-ef3c8bc30661",
+                    "exec": [
+                      "pm.test('Datasource created', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.dataSourceId).to.not.be.null;",
+                      "    pm.environment.set('SIMPLE_DATA_SOURCE_ID', data.dataSourceId)",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "ff58c885-c134-44c5-9ea3-7d24f3e167b1",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"dataSourceCode\": \"TEST-DATASOURCE\",\n    \"dataSourceType\": \"mysql\",\n    \"host\": \"localhost\",\n    \"port\": \"3306\",\n    \"username\": \"watchmen\",\n    \"password\": \"watchmen\",\n    \"name\": \"watchmen\",\n    \"tenantId\": \"1\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/datasource"
+              },
+              "response": []
+            },
+            {
+              "name": "LOGIN - ADMIN",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "b9ac091a-3c37-44a3-b0b6-b898c369638c",
+                    "exec": [
+                      "pm.test('Login Access Token', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.accessToken).to.not.be.null;",
+                      "    pm.expect(data.tokenType).to.eql('bearer');",
+                      "    pm.expect(data.role).to.eql('admin');",
+                      "    pm.expect(data.tenantId).to.eql('1');",
+                      "    pm.environment.set('ADMIN_JWT_TOKEN', data.accessToken)",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "43c73c06-cde0-46ae-83e6-a0195b1e6025",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "key": "username",
+                      "value": "imma-admin",
+                      "type": "text"
+                    },
+                    {
+                      "key": "password",
+                      "value": "1234abcd",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "url": "{{URL_PREFIX}}/login"
+              },
+              "response": []
+            },
+            {
+              "name": "CREATE TOPIC",
+              "id": "b74fe091-18c1-437c-acf4-f6044b3296cd",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{ADMIN_JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Test_Topic\",\n    \"type\": \"raw\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{SIMPLE_DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"text\", \"name\": \"propB\"}\n    ],\n    \"description\": \"Test Raw Topic\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/topic"
+              },
+              "response": []
+            },
+            {
+              "name": "INSERT RAW",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "c6851738-6a19-4b97-a1f6-00e58d7c4673",
+                    "exec": [
+                      "pm.test('Insert Raw Successfully', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.internalDataId).to.not.be.null;",
+                      "    pm.environment.set('INTERNAL_DATA_ID', data.internalDataId)",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "da23c34f-1007-4e4c-ac4d-8f3337df718c",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{ADMIN_JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"code\": \"Test_Topic\",\n    \"triggerType\": \"insert\",\n    \"data\": {\n        \"propA\": 1,\n        \"propB\": 2\n    }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/pipeline/data"
+              },
+              "response": []
+            },
+            {
+              "name": "UPDATE RAW",
+              "id": "2ed85ff1-4cd8-4a6d-ab79-ba620e1d6b2f",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{ADMIN_JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"code\": \"Test_Topic\",\n    \"triggerType\": \"merge\",\n    \"data\": {\n        \"id_\": \"{{INTERNAL_DATA_ID}}\",\n        \"propA\": 3,\n        \"propB\": 4,\n        \"propC\": {\n            \"propD\": \"x\",\n            \"propE\": \"y\",\n            \"propF\": [\n                {\"propG\": true},\n                {\"propG\": false}\n            ]\n        },\n        \"propD\": {\n            \"propE\": {\n                \"propD\": {\n                    \"propE\": 1,\n                    \"propD\": {\n                        \"propE\": 2\n                    }\n                }\n            }\n        }\n    }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/pipeline/data"
+              },
+              "response": []
+            }
+          ],
+          "id": "80c81bf9-0c66-480c-bbef-7ac577397fc8"
+        }
+      ],
+      "id": "fc9b3994-8acd-4633-8780-7317723d8d8b"
+    }
+  ]
+}
