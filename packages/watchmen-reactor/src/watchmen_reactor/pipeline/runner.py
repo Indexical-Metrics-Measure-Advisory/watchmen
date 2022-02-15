@@ -3,7 +3,7 @@ from watchmen_model.reactor import PipelineTriggerData, PipelineTriggerTraceId
 from watchmen_reactor.common import ReactorException
 from watchmen_reactor.meta import TopicService
 from watchmen_reactor.topic_schema import TopicSchema
-from .pipeline_context import PipelineContext
+from .pipeline_trigger import PipelineTrigger
 
 
 def get_topic_service(principal_service: PrincipalService) -> TopicService:
@@ -25,7 +25,7 @@ async def invoke(
 		raise ReactorException(f'Trigger data is null.')
 
 	schema = find_topic(trigger_data.code, principal_service)
-	return await PipelineContext(
+	return await PipelineTrigger(
 		trigger_topic_schema=schema,
 		trigger_type=trigger_data.triggerType,
 		trigger_data=trigger_data.data,
