@@ -51,4 +51,18 @@ class RawTopicDataEntityHelper(TopicDataEntityHelper):
 
 
 class RawTopicDataService(TopicDataService):
-	pass
+	def try_to_wrap_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
+		if TopicDataColumnNames.ID.value in data:
+			del data[TopicDataColumnNames.ID.value]
+		if TopicDataColumnNames.TENANT_ID.value in data:
+			del data[TopicDataColumnNames.TENANT_ID.value]
+		if TopicDataColumnNames.INSERT_TIME.value in data:
+			del data[TopicDataColumnNames.INSERT_TIME.value]
+		if TopicDataColumnNames.UPDATE_TIME.value in data:
+			del data[TopicDataColumnNames.UPDATE_TIME.value]
+		return {
+			TopicDataColumnNames.RAW_TOPIC_DATA.value: data
+		}
+
+	def try_to_unwrap_topic_data(self, topic_data: Dict[str, Any]) -> Dict[str, Any]:
+		return topic_data.get(TopicDataColumnNames.RAW_TOPIC_DATA.value)
