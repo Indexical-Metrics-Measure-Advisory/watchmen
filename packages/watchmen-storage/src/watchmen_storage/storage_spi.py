@@ -12,7 +12,8 @@ class StorageSPI(ABC):
 	def connect(self) -> None:
 		"""
 		connect when not connected, or do nothing if connected.
-		call close when want to connect again. connection is autocommit
+		call close when want to connect again. connection is autocommit.
+		this method can be called multiple times, if there is a connection existing, do nothing
 		"""
 		pass
 

@@ -92,6 +92,8 @@ class TopicDataService:
 			return None, data, PipelineTriggerType.INSERT
 		except Exception as e:
 			self.raise_exception(f'Failed to create data[{data}] into {self.raise_on_topic()}.', e)
+		finally:
+			storage.close()
 
 	def find_previous_data_by_id(self, id_: int, raise_on_not_found: bool = False) -> Optional[Dict[str, Any]]:
 		"""
@@ -119,12 +121,14 @@ class TopicDataService:
 		try:
 			previous_topic_data = self.find_previous_data_by_id(id_, True)
 			topic_data = self.try_to_wrap_data(data)
+			data_entity_helper.assign_id_column(topic_data, id_)
 			# copy insert time from previous
 			insert_time = data_entity_helper.find_insert_time(previous_topic_data)
 			data_entity_helper.assign_insert_time(topic_data, insert_time)
 			version = data_entity_helper.find_version(previous_topic_data)
 			data_entity_helper.assign_fix_columns_on_update(
 				data=topic_data, principal_service=self.get_principal_service(), now=self.now(), version=version + 1)
+			storage.connect()
 			updated_count = storage.update_one(topic_data, data_entity_helper.get_entity_id_helper())
 			if updated_count == 0:
 				raise ReactorException(
@@ -132,6 +136,8 @@ class TopicDataService:
 			return self.try_to_unwrap_topic_data(previous_topic_data), data, PipelineTriggerType.MERGE
 		except Exception as e:
 			self.raise_exception(f'Failed to merge data[id={id_}] into {self.raise_on_topic()}.', e)
+		finally:
+			storage.close()
 
 	def trigger_by_insert_or_merge(
 			self, data: Dict[str, Any]
@@ -151,9 +157,12 @@ class TopicDataService:
 			self.raise_exception(f'Id not found in data[{data}] on delete from {self.raise_on_topic()}.')
 		try:
 			previous_topic_data = self.find_previous_data_by_id(id_, True)
+			storage.connect()
 			deleted_count = storage.delete_by_id(id_, self.get_data_entity_helper().get_entity_id_helper())
 			if deleted_count == 0:
 				self.raise_exception(f'Data not found by data[{data}] on delete from {self.raise_on_topic()}.')
 			return self.try_to_unwrap_topic_data(previous_topic_data), None, PipelineTriggerType.DELETE
 		except Exception as e:
 			self.raise_exception(f'Failed to delete data[id={id_}] on {self.raise_on_topic()}.', e)
+		finally:
+			storage.close()
