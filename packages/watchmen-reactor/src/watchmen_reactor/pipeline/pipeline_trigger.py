@@ -4,32 +4,31 @@ from typing import Any, Dict
 
 from watchmen_auth import PrincipalService
 from watchmen_model.admin import is_raw_topic, Pipeline, PipelineTriggerType
-from watchmen_model.common import DataSourceId
 from watchmen_model.reactor import PipelineTriggerTraceId
-from watchmen_reactor.cache import CacheService
 from watchmen_reactor.common import ReactorException
-from watchmen_reactor.meta import DataSourceService
-from watchmen_reactor.storage import build_topic_data_storage, RawTopicDataEntityHelper, RawTopicDataService, \
-	RegularTopicDataEntityHelper, RegularTopicDataService, TopicDataEntityHelper, TopicDataService, TopicTriggerResult
+from watchmen_reactor.meta import PipelineService
+from watchmen_reactor.storage import RawTopicDataService, RegularTopicDataService, TopicDataService, TopicTriggerResult
 from watchmen_reactor.topic_schema import TopicSchema
-from watchmen_storage import TopicDataStorageSPI
-from watchmen_utilities import ArrayHelper, is_blank
+from watchmen_utilities import ArrayHelper
+from .pipeline_context import PipelineContext, QueuedPipeline
+from .topic_helper import ask_topic_data_entity_helper, TopicStorages
 
 logger = getLogger(__name__)
 
 
-def get_data_source_service(principal_service: PrincipalService) -> DataSourceService:
-	return DataSourceService(principal_service)
+def get_pipeline_service(principal_service: PrincipalService) -> PipelineService:
+	return PipelineService(principal_service)
 
 
 class PipelineTrigger:
-	storages: Dict[DataSourceId, TopicDataStorageSPI] = {}
+	storages: TopicStorages
 
 	def __init__(
 			self, trigger_topic_schema: TopicSchema, trigger_type: PipelineTriggerType,
 			trigger_data: Dict[str, Any], trace_id: PipelineTriggerTraceId,
 			principal_service: PrincipalService,
 			asynchronized: bool = False):
+		self.storages = TopicStorages(principal_service)
 		self.trigger_topic_schema = trigger_topic_schema
 		self.trigger_type = trigger_type
 		self.trigger_data = trigger_data
@@ -37,53 +36,12 @@ class PipelineTrigger:
 		self.principal_service = principal_service
 		self.asynchronized = asynchronized
 
-	def ask_topic_storage(self, schema: TopicSchema) -> TopicDataStorageSPI:
-		topic = schema.get_topic()
-		data_source_id = topic.dataSourceId
-		if is_blank(data_source_id):
-			raise ReactorException(f'Data source is not defined for topic[id={topic.topicId}, name={topic.name}]')
-		storage = self.storages.get(data_source_id)
-		if storage is not None:
-			return storage
-
-		build = CacheService.data_source().get_builder(data_source_id)
-		if build is not None:
-			storage = build()
-			self.storages[data_source_id] = storage
-			return storage
-
-		data_source = get_data_source_service(self.principal_service).find_by_id(data_source_id)
-		if data_source is None:
-			raise ReactorException(
-				f'Data source definition not found for topic'
-				f'[id={topic.topicId}, name={topic.name}, dataSourceId={data_source_id}]')
-
-		build = build_topic_data_storage(data_source)
-		CacheService.data_source().put_builder(data_source_id, build)
-		storage = build()
-		self.storages[data_source_id] = storage
-		return storage
-
-	# noinspection PyMethodMayBeStatic
-	def ask_topic_data_entity_helper(self, schema: TopicSchema) -> TopicDataEntityHelper:
-		"""
-		ask topic data entity helper, from cache first
-		"""
-		data_entity_helper = CacheService.topic().get_entity_helper(schema.get_topic().topicId)
-		if data_entity_helper is None:
-			if is_raw_topic(schema.get_topic()):
-				data_entity_helper = RawTopicDataEntityHelper(schema)
-			else:
-				data_entity_helper = RegularTopicDataEntityHelper(schema)
-			CacheService.topic().put_entity_helper(data_entity_helper)
-		return data_entity_helper
-
 	def ask_topic_data_service(self, schema: TopicSchema) -> TopicDataService:
 		"""
 		ask topic data service
 		"""
-		data_entity_helper = self.ask_topic_data_entity_helper(schema)
-		storage = self.ask_topic_storage(schema)
+		data_entity_helper = ask_topic_data_entity_helper(schema)
+		storage = self.storages.ask_topic_storage(schema)
 		storage.register_topic(schema.get_topic())
 		if is_raw_topic(schema.get_topic()):
 			return RawTopicDataService(schema, data_entity_helper, storage, self.principal_service)
@@ -122,20 +80,34 @@ class PipelineTrigger:
 	async def start(self, trigger: TopicTriggerResult) -> None:
 		schema = self.trigger_topic_schema
 		topic = schema.get_topic()
-		pipeline_ids = CacheService.pipelines_by_topic().get(topic.topicId)
-		if pipeline_ids is None or len(pipeline_ids) == 0:
+		pipelines = get_pipeline_service(self.principal_service).find_by_topic_id(topic.topicId)
+		if len(pipelines) == 0:
 			logger.warning(f'No pipeline needs to be triggered by topic[id={topic.topicId}, name={topic.name}].')
 			return
-
-		pipelines = ArrayHelper(pipeline_ids) \
-			.map(lambda x: CacheService.pipeline().get(x)) \
+		pipelines = ArrayHelper(pipelines) \
 			.filter(lambda x: self.should_run(trigger.triggerType, x)).to_list()
 		if len(pipelines) == 0:
 			logger.warning(f'No pipeline needs to be triggered by topic[id={topic.topicId}, name={topic.name}].')
 			return
 
-		# TODO
-		# ArrayHelper(pipelines).each()
+		def construct_queued_pipeline(pipeline: Pipeline) -> QueuedPipeline:
+			return QueuedPipeline(
+				pipeline=pipeline,
+				trigger_topic_schema=self.trigger_topic_schema,
+				previous_data=trigger.previous,
+				current_data=trigger.current
+			)
+
+		PipelineContext(
+			pipeline=pipelines[0],
+			queued=ArrayHelper(pipelines[1:]).map(lambda x: construct_queued_pipeline(x)).to_list(),
+			principal_service=self.principal_service,
+			storages=self.storages,
+			trace_id=self.trace_id,
+			trigger_topic_schema=self.trigger_topic_schema,
+			previous_data=trigger.previous,
+			current_data=trigger.current
+		).start()
 
 	async def invoke(self) -> int:
 		self.prepare_trigger_data()

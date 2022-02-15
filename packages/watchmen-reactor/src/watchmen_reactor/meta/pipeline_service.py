@@ -33,7 +33,7 @@ class PipelineService:
 
 	def find_by_topic_id(self, topic_id: TopicId) -> List[Pipeline]:
 		pipeline_ids = CacheService.pipelines_by_topic().get(topic_id)
-		if pipeline_ids is not None and len(pipeline_ids) != 0:
+		if pipeline_ids is not None:
 			pipelines = ArrayHelper(pipeline_ids) \
 				.map(lambda x: self.find_by_id(x)) \
 				.filter(lambda x: x is not None).to_list()
@@ -49,6 +49,7 @@ class PipelineService:
 			pipelines: List[Pipeline] = storage_service.find_by_topic_id(
 				topic_id, self.principal_service.get_tenant_id())
 			if len(pipelines) == 0:
+				CacheService.pipelines_by_topic().declare_no_pipelines(topic_id)
 				return pipelines
 
 			return ArrayHelper(pipelines).each(lambda x: CacheService.pipeline().put(x)).to_list()
