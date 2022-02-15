@@ -24,7 +24,7 @@ class InternalCache:
 		if not ask_cache_enabled():
 			return None
 
-		existing: Optional[Any] = self.cache.get(key, lambda: None)
+		existing: Optional[Any] = self.cache.get(key)
 		self.cache.set(key, value, ttl)
 		return existing
 
