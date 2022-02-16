@@ -1,6 +1,8 @@
+from typing import Optional
+
 from watchmen_model.common import DataModel, ParameterJoint
 
 
 class Conditional(DataModel):
-	conditional: bool = None
-	on: ParameterJoint = None
+	conditional: Optional[bool] = None
+	on: Optional[ParameterJoint] = None

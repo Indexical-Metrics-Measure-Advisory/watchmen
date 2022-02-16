@@ -185,7 +185,7 @@ class PipelineMonitorLog(Storable, BaseModel):
 	topicId: TopicId
 	status: MonitorLogStatus
 	startTime: datetime
-	completeTime: datetime
+	completeTime: Optional[datetime] = None
 	oldValue: Any
 	newValue: Any
 	conditionResult: bool
