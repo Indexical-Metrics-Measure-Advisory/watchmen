@@ -113,9 +113,83 @@ class ParsedExpression(ParsedCondition):
 		self.operator = condition.operator
 		self.right = parse_parameter(condition.right)
 
-	def run(self, variables: PipelineVariables) -> bool:
+	# noinspection PyMethodMayBeStatic
+	def is_empty(self, value: Any) -> bool:
+		if value is None:
+			return True
+		elif isinstance(value, str):
+			return len(str) == 0
+		elif isinstance(value, list):
+			return len(value) == 0
+		else:
+			return False
+
+	def is_not_empty(self, value: Any) -> bool:
+		return not self.is_empty(value)
+
+	# noinspection PyMethodMayBeStatic
+	def equals(self, one: Any, another: Any) -> bool:
 		# TODO
 		pass
+
+	def not_equals(self, one: Any, another: Any) -> bool:
+		return not self.equals(one, another)
+
+	# noinspection PyMethodMayBeStatic
+	def less_than(self, one: Any, another: Any) -> bool:
+		# TODO
+		return True
+
+	# noinspection PyMethodMayBeStatic
+	def less_than_or_equals(self, one: Any, another: Any) -> bool:
+		# TODO
+		return True
+
+	# noinspection PyMethodMayBeStatic
+	def greater_than(self, one: Any, another: Any) -> bool:
+		# TODO
+		return True
+
+	# noinspection PyMethodMayBeStatic
+	def greater_than_or_equals(self, one: Any, another: Any) -> bool:
+		# TODO
+		return True
+
+	# noinspection PyMethodMayBeStatic
+	def exists(self, one: Any, another: Any) -> bool:
+		# TODO
+		return True
+
+	def not_exists(self, one: Any, another: Any) -> bool:
+		return not self.exists(one, another)
+
+	def run(self, variables: PipelineVariables) -> bool:
+		left_value = self.left.value(variables)
+		if self.operator == ParameterExpressionOperator.EMPTY:
+			return self.is_empty(left_value)
+		elif self.operator == ParameterExpressionOperator.NOT_EMPTY:
+			return self.is_not_empty(left_value)
+
+		right_value = self.right.value(variables)
+		if self.operator == ParameterExpressionOperator.EQUALS:
+			return self.equals(left_value, right_value)
+		elif self.operator == ParameterExpressionOperator.NOT_EQUALS:
+			return self.not_equals(left_value, right_value)
+		elif self.operator == ParameterExpressionOperator.LESS:
+			return self.less_than(left_value, right_value)
+		elif self.operator == ParameterExpressionOperator.LESS_EQUALS:
+			return self.less_than_or_equals(left_value, right_value)
+		elif self.operator == ParameterExpressionOperator.MORE:
+			return self.greater_than(left_value, right_value)
+		elif self.operator == ParameterExpressionOperator.MORE_EQUALS:
+			return self.greater_than_or_equals(left_value, right_value)
+		elif self.operator == ParameterExpressionOperator.IN:
+			return self.exists(left_value, right_value)
+		elif self.operator == ParameterExpressionOperator.NOT_IN:
+			return self.not_exists(left_value, right_value)
+		else:
+			raise ReactorException(
+				f'Operator[{self.operator}] is not supported, found from expression[{self.condition.dict()}].')
 
 
 class ParsedTopicFactorParameter(ParsedParameter):
