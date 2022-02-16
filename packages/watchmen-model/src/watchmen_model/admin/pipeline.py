@@ -7,7 +7,9 @@ from watchmen_model.common import construct_parameter_joint, OptimisticLock, Pip
 	PipelineStageId, PipelineUnitId, TenantBasedTuple, TopicId
 from watchmen_utilities import ArrayHelper
 from .conditional import Conditional
-from .pipeline_action import PipelineAction, ReadTopicActionType, SystemActionType, WriteTopicActionType
+from .pipeline_action import DeleteTopicActionType, PipelineAction, ReadTopicActionType, SystemActionType, \
+	WriteTopicActionType
+from .pipeline_action_delete import DeleteRowAction, DeleteRowsAction
 from .pipeline_action_read import ExistsAction, ReadFactorAction, ReadFactorsAction, ReadRowAction, ReadRowsAction
 from .pipeline_action_system import AlarmAction, CopyToMemoryAction, WriteToExternalAction
 from .pipeline_action_write import InsertOrMergeRowAction, InsertRowAction, MergeRowAction, WriteFactorAction
@@ -44,6 +46,10 @@ def construct_action(action: Optional[Union[dict, PipelineAction]]) -> Optional[
 			return InsertOrMergeRowAction(**action)
 		elif action_type == WriteTopicActionType.WRITE_FACTOR:
 			return WriteFactorAction(**action)
+		elif action_type == DeleteTopicActionType.DELETE_ROW:
+			return DeleteRowAction(**action)
+		elif action_type == DeleteTopicActionType.DELETE_ROWS:
+			return DeleteRowsAction(**action)
 		else:
 			raise Exception(f'Pipeline action type[{action_type}] cannot be recognized.')
 
