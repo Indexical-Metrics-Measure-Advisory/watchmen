@@ -67,6 +67,9 @@ class PipelineTrigger:
 
 	# noinspection PyMethodMayBeStatic
 	def should_run(self, trigger_type: PipelineTriggerType, pipeline: Pipeline) -> bool:
+		if not pipeline.enabled:
+			return False
+
 		if trigger_type == PipelineTriggerType.DELETE:
 			return pipeline.type == PipelineTriggerType.DELETE
 		elif trigger_type == PipelineTriggerType.INSERT:

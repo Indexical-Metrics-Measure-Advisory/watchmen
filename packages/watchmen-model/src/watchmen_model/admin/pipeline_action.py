@@ -24,15 +24,20 @@ class WriteTopicActionType(str, Enum):
 	MERGE_ROW = 'merge-row',
 	INSERT_ROW = 'insert-row',
 	INSERT_OR_MERGE_ROW = 'insert-or-merge-row',
-	WRITE_FACTOR = 'write-factor',
+	WRITE_FACTOR = 'write-factor'
 
 
-PipelineStageUnitActionType = Union[WriteTopicActionType, ReadTopicActionType, SystemActionType]
+class DeleteTopicActionType(str, Enum):
+	DELETE_ROW = 'delete-row',
+	DELETE_ROWS = 'delete-rows'
+
+
+PipelineActionType = Union[WriteTopicActionType, ReadTopicActionType, DeleteTopicActionType, SystemActionType]
 
 
 class PipelineAction(DataModel, BaseModel):
 	actionId: PipelineActionId = None
-	type: PipelineStageUnitActionType = None
+	type: PipelineActionType = None
 
 
 class MemoryWriter(PipelineAction):

@@ -5,6 +5,12 @@ from watchmen_model.admin import Pipeline
 from watchmen_model.reactor import PipelineTriggerTraceId
 from watchmen_reactor.pipeline_schema import CompiledPipeline, PipelineContext, TopicStorages
 
+PipelineVariables = Dict[str, Any]
+
+
+def create_variables() -> PipelineVariables:
+	return {}
+
 
 class RuntimeCompiledPipeline(CompiledPipeline):
 	def __init__(self, pipeline: Pipeline):
@@ -19,5 +25,4 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 			principal_service: PrincipalService, trace_id: PipelineTriggerTraceId,
 			storages: TopicStorages
 	) -> List[PipelineContext]:
-		# TODO
-		pass
+		variables = create_variables()

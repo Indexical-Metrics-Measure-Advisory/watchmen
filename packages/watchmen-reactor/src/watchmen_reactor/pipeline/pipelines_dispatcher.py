@@ -18,7 +18,7 @@ class PipelinesDispatcher:
 
 		created_contexts = context.start(self.storages)
 		if len(created_contexts) != 0:
-			self.contexts.extend(created_contexts)
+			self.contexts.extend(*created_contexts)
 		# invoke next
 		self.start()
 
