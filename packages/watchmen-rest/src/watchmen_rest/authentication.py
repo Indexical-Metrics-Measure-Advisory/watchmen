@@ -18,7 +18,7 @@ logger = getLogger(__name__)
 
 
 def create_jwt_token(subject: str, expires_delta: timedelta, secret_key: str, algorithm: str) -> str:
-	to_encode = {'exp': datetime.utcnow() + expires_delta, 'sub': subject}
+	to_encode = {'exp': datetime.now() + expires_delta, 'sub': subject}
 	encoded_jwt = encode(to_encode, secret_key, algorithm=algorithm)
 	return encoded_jwt
 
