@@ -10,10 +10,11 @@ from watchmen_reactor.storage import TopicDataEntityHelper
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_storage import TopicDataStorageSPI
 from watchmen_utilities import ArrayHelper
-from .cache_manager import get_data_source_by_id_cache, \
+from .cache_manager import get_compiled_pipeline_by_id_cache, get_data_source_by_id_cache, \
 	get_data_storage_builder_by_id_cache, get_pipeline_by_id_cache, get_pipeline_by_topic_id_cache, \
 	get_tenant_by_id_cache, get_topic_by_id_cache, get_topic_by_tenant_and_name_cache, \
 	get_topic_entity_helper_by_id_cache, get_topic_schema_by_id_cache
+from ..pipeline_schema import CompiledPipeline
 
 
 class InternalCache:
@@ -97,8 +98,11 @@ pipeline_by_topic_cache = PipelineByTopicCache()
 class PipelineCache:
 	def __init__(self):
 		self.by_id_cache = InternalCache(cache=get_pipeline_by_id_cache)
+		self.compiled_by_id_cache = InternalCache(cache=get_compiled_pipeline_by_id_cache)
 
 	def put(self, pipeline: Pipeline) -> Optional[Pipeline]:
+		# remove compiled
+		self.compiled_by_id_cache.remove(pipeline.pipelineId)
 		existing: Optional[Pipeline] = self.by_id_cache.put(pipeline.pipelineId, pipeline)
 		if existing is not None:
 			if existing.topicId != pipeline.topicId:
@@ -110,14 +114,23 @@ class PipelineCache:
 			pipeline_by_topic_cache.append_one(pipeline.topicId, pipeline.pipelineId)
 		return existing
 
+	def put_compiled(self, pipeline_id: PipelineId, compiled: CompiledPipeline) -> Optional[CompiledPipeline]:
+		return self.compiled_by_id_cache.put(pipeline_id, compiled)
+
 	def get(self, pipeline_id: PipelineId) -> Optional[Pipeline]:
 		return self.by_id_cache.get(pipeline_id)
+
+	def get_compiled(self, pipeline_id: PipelineId) -> Optional[CompiledPipeline]:
+		return self.compiled_by_id_cache.get(pipeline_id)
 
 	def remove(self, pipeline_id: PipelineId) -> Optional[Pipeline]:
 		existing: Optional[Pipeline] = self.by_id_cache.remove(pipeline_id)
 		if existing is not None:
 			pipeline_by_topic_cache.remove_one(existing.topicId, existing.pipelineId)
 		return existing
+
+	def remove_compiled(self, pipeline_id: PipelineId) -> Optional[CompiledPipeline]:
+		return self.compiled_by_id_cache.remove(pipeline_id)
 
 	def clear(self) -> None:
 		self.by_id_cache.clear()

@@ -8,10 +8,11 @@ from watchmen_model.reactor import PipelineTriggerTraceId
 from watchmen_reactor.common import ReactorException
 from watchmen_reactor.meta import PipelineService
 from watchmen_reactor.pipeline.pipelines_dispatcher import PipelinesDispatcher
-from watchmen_reactor.pipeline_schema import ask_topic_data_entity_helper, QueuedPipeline, TopicStorages
 from watchmen_reactor.storage import RawTopicDataService, RegularTopicDataService, TopicDataService, TopicTriggerResult
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_utilities import ArrayHelper
+from .pipeline_context import RuntimePipelineContext
+from .topic_helper import ask_topic_data_entity_helper, RuntimeTopicStorages
 
 logger = getLogger(__name__)
 
@@ -21,14 +22,14 @@ def get_pipeline_service(principal_service: PrincipalService) -> PipelineService
 
 
 class PipelineTrigger:
-	storages: TopicStorages
+	storages: RuntimeTopicStorages
 
 	def __init__(
 			self, trigger_topic_schema: TopicSchema, trigger_type: PipelineTriggerType,
 			trigger_data: Dict[str, Any], trace_id: PipelineTriggerTraceId,
 			principal_service: PrincipalService,
 			asynchronized: bool = False):
-		self.storages = TopicStorages(principal_service)
+		self.storages = RuntimeTopicStorages(principal_service)
 		self.trigger_topic_schema = trigger_topic_schema
 		self.trigger_type = trigger_type
 		self.trigger_data = trigger_data
@@ -78,6 +79,9 @@ class PipelineTrigger:
 			raise ReactorException(f'Pipeline trigger type[{trigger_type}] is not supported.')
 
 	async def start(self, trigger: TopicTriggerResult) -> None:
+		"""
+		data of trigger must be prepared already
+		"""
 		schema = self.trigger_topic_schema
 		topic = schema.get_topic()
 		pipelines = get_pipeline_service(self.principal_service).find_by_topic_id(topic.topicId)
@@ -90,22 +94,25 @@ class PipelineTrigger:
 			logger.warning(f'No pipeline needs to be triggered by topic[id={topic.topicId}, name={topic.name}].')
 			return
 
-		def construct_queued_pipeline(pipeline: Pipeline) -> QueuedPipeline:
-			return QueuedPipeline(
+		def construct_queued_pipeline(pipeline: Pipeline) -> RuntimePipelineContext:
+			return RuntimePipelineContext(
 				pipeline=pipeline,
 				trigger_topic_schema=self.trigger_topic_schema,
 				previous_data=trigger.previous,
-				current_data=trigger.current
+				current_data=trigger.current,
+				principal_service=self.principal_service,
+				trace_id=self.trace_id
 			)
 
 		PipelinesDispatcher(
-			pipelines=ArrayHelper(pipelines).map(lambda x: construct_queued_pipeline(x)).to_list(),
+			contexts=ArrayHelper(pipelines).map(lambda x: construct_queued_pipeline(x)).to_list(),
 			storages=self.storages,
-			principal_service=self.principal_service,
-			trace_id=self.trace_id,
 		).start()
 
 	async def invoke(self) -> int:
+		"""
+		trigger data should be prepared and saved
+		"""
 		self.prepare_trigger_data()
 		result = self.save_trigger_data()
 		if self.asynchronized:

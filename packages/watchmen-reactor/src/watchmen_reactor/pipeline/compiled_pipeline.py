@@ -1,0 +1,23 @@
+from typing import Any, Dict, List, Optional
+
+from watchmen_auth import PrincipalService
+from watchmen_model.admin import Pipeline
+from watchmen_model.reactor import PipelineTriggerTraceId
+from watchmen_reactor.pipeline_schema import CompiledPipeline, PipelineContext, TopicStorages
+
+
+class RuntimeCompiledPipeline(CompiledPipeline):
+	def __init__(self, pipeline: Pipeline):
+		self.pipeline = pipeline
+
+	def get_pipeline(self):
+		return self.pipeline
+
+	def run(
+			self,
+			previous_data: Optional[Dict[str, Any]], current_data: Optional[Dict[str, Any]],
+			principal_service: PrincipalService, trace_id: PipelineTriggerTraceId,
+			storages: TopicStorages
+	) -> List[PipelineContext]:
+		# TODO
+		pass
