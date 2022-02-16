@@ -47,4 +47,9 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 			error=None
 		)
 
+		pipeline_prerequisite = self.pipeline_conditional_test(variables)
+		if not pipeline_prerequisite:
+			monitor_log.conditionResult = False
+			monitor_log.completeTime = self.timestamp()
+
 		return []
