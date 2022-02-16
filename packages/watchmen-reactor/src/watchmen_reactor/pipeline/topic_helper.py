@@ -6,6 +6,7 @@ from watchmen_model.common import DataSourceId
 from watchmen_reactor.cache import CacheService
 from watchmen_reactor.common import ReactorException
 from watchmen_reactor.meta import DataSourceService
+from watchmen_reactor.pipeline_schema import TopicStorages
 from watchmen_reactor.storage import build_topic_data_storage, RawTopicDataEntityHelper, RegularTopicDataEntityHelper, \
 	TopicDataEntityHelper
 from watchmen_reactor.topic_schema import TopicSchema
@@ -31,7 +32,7 @@ def ask_topic_data_entity_helper(schema: TopicSchema) -> TopicDataEntityHelper:
 	return data_entity_helper
 
 
-class TopicStorages:
+class RuntimeTopicStorages(TopicStorages):
 	storages: Dict[DataSourceId, TopicDataStorageSPI]
 
 	def __init__(self, principal_service: PrincipalService):

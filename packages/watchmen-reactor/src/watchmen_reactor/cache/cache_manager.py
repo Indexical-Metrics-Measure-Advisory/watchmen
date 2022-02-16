@@ -2,6 +2,8 @@ from cacheout import Cache, CacheManager
 
 
 # noinspection DuplicatedCode
+
+
 class TopicByIdCache(Cache):
 	pass
 
@@ -19,6 +21,10 @@ class TopicEntityHelperByIdCache(Cache):
 
 
 class PipelineByIdCache(Cache):
+	pass
+
+
+class CompiledPipelineByIdCache(Cache):
 	pass
 
 
@@ -45,6 +51,7 @@ cache_set.setup({
 	'TOPIC_SCHEMA_BY_ID': {'cache_class': TopicSchemaByIdCache, 'maxsize': 512},
 	'TOPIC_ENTITY_HELPER_BY_ID': {'cache_class': TopicEntityHelperByIdCache, 'maxsize': 512},
 	'PIPELINE_BY_ID': {'cache_class': PipelineByIdCache, 'maxsize': 1024},
+	'COMPILED_PIPELINE_BY_ID': {'cache_class': CompiledPipelineByIdCache, 'maxsize': 1024},
 	'PIPELINE_BY_TOPIC_ID': {'cache_class': PipelineByTopicIdCache, 'maxsize': 512},
 	'DATA_SOURCE_BY_ID': {'cache_class': DataSourceByIdCache, 'maxsize': 64},
 	'DATA_STORAGE_BUILDER_BY_ID': {'cache_class': DataStorageBuilderByIdCache, 'maxsize': 64},
@@ -56,6 +63,7 @@ topic_cache_by_tenant_and_name = cache_set['TOPIC_BY_TENANT_AND_NAME']
 topic_schema_by_id_cache = cache_set['TOPIC_SCHEMA_BY_ID']
 topic_entity_helper_by_id_cache = cache_set['TOPIC_ENTITY_HELPER_BY_ID']
 pipeline_cache_by_id = cache_set['PIPELINE_BY_ID']
+compiled_pipeline_cache_by_id = cache_set['COMPILED_PIPELINE_BY_ID']
 pipeline_cache_by_topic_id = cache_set['PIPELINE_BY_TOPIC_ID']
 data_source_cache_by_id = cache_set['DATA_SOURCE_BY_ID']
 data_storage_builder_cache_by_id = cache_set['DATA_STORAGE_BUILDER_BY_ID']
@@ -80,6 +88,10 @@ def get_topic_entity_helper_by_id_cache() -> TopicEntityHelperByIdCache:
 
 def get_pipeline_by_id_cache() -> PipelineByIdCache:
 	return pipeline_cache_by_id
+
+
+def get_compiled_pipeline_by_id_cache() -> compiled_pipeline_cache_by_id:
+	return compiled_pipeline_cache_by_id
 
 
 def get_pipeline_by_topic_id_cache() -> PipelineByTopicIdCache:
