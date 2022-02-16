@@ -7,11 +7,11 @@ from watchmen_model.admin import is_raw_topic, Pipeline, PipelineTriggerType
 from watchmen_model.reactor import PipelineTriggerTraceId
 from watchmen_reactor.common import ReactorException
 from watchmen_reactor.meta import PipelineService
+from watchmen_reactor.pipeline.pipelines_dispatcher import PipelinesDispatcher
+from watchmen_reactor.pipeline_schema import ask_topic_data_entity_helper, QueuedPipeline, TopicStorages
 from watchmen_reactor.storage import RawTopicDataService, RegularTopicDataService, TopicDataService, TopicTriggerResult
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_utilities import ArrayHelper
-from .pipeline_context import PipelineContext, QueuedPipeline
-from .topic_helper import ask_topic_data_entity_helper, TopicStorages
 
 logger = getLogger(__name__)
 
@@ -98,15 +98,11 @@ class PipelineTrigger:
 				current_data=trigger.current
 			)
 
-		PipelineContext(
-			pipeline=pipelines[0],
-			queued=ArrayHelper(pipelines[1:]).map(lambda x: construct_queued_pipeline(x)).to_list(),
-			principal_service=self.principal_service,
+		PipelinesDispatcher(
+			pipelines=ArrayHelper(pipelines).map(lambda x: construct_queued_pipeline(x)).to_list(),
 			storages=self.storages,
+			principal_service=self.principal_service,
 			trace_id=self.trace_id,
-			trigger_topic_schema=self.trigger_topic_schema,
-			previous_data=trigger.previous,
-			current_data=trigger.current
 		).start()
 
 	async def invoke(self) -> int:
