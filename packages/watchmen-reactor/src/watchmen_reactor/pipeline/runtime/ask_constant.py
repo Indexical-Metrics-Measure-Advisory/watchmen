@@ -1,6 +1,6 @@
 from typing import Callable, Optional
 
-from watchmen_reactor.pipeline.runtime import PipelineVariables
+from .variables import PipelineVariables
 
 ConstantValue = Callable[[PipelineVariables], bool]
 
