@@ -24,11 +24,13 @@ class MonitorLogAction(DataModel, BaseModel):
 	uid: MonitorLogActionId
 	actionId: PipelineActionId
 	type: PipelineActionType
-	status: MonitorLogStatus
+	status: Optional[MonitorLogStatus] = None
+	startTime: datetime
 	completeTime: datetime
 	error: Optional[str] = None
 	insertCount: int = 0
 	updateCount: int = 0
+	deleteCount: int = 0
 
 
 class MonitorReadAction(MonitorLogAction):
@@ -49,18 +51,18 @@ class MonitorDeleteAction(MonitorLogAction):
 
 
 class MonitorAlarmAction(MonitorLogAction):
-	type: SystemActionType.ALARM
+	type: SystemActionType = SystemActionType.ALARM
 	conditionResult: bool
 	value: Optional[Any]
 
 
 class MonitorCopyToMemoryAction(MonitorLogAction):
-	type: SystemActionType.COPY_TO_MEMORY
+	type: SystemActionType = SystemActionType.COPY_TO_MEMORY
 	value: Optional[Any]
 
 
 class MonitorWriteToExternalAction(MonitorLogAction):
-	type: SystemActionType.WRITE_TO_EXTERNAL
+	type: SystemActionType = SystemActionType.WRITE_TO_EXTERNAL
 	value: Optional[Any]
 
 
@@ -120,8 +122,11 @@ def construct_actions(actions: Optional[list] = None) -> Optional[List[MonitorLo
 class MonitorLogUnit(DataModel, BaseModel):
 	unitId: PipelineUnitId
 	name: str
+	startTime: datetime
+	completeTime: Optional[datetime] = None
 	conditionResult: bool
 	actions: List[MonitorLogAction]
+	error: Optional[str]
 
 	def __setattr__(self, name, value):
 		if name == 'actions':
@@ -149,8 +154,11 @@ def construct_units(units: Optional[list] = None) -> Optional[List[MonitorLogUni
 class MonitorLogStage(DataModel, BaseModel):
 	stageId: PipelineStageId
 	name: str
+	startTime: datetime
+	completeTime: Optional[datetime] = None
 	conditionResult: bool
 	units: List[MonitorLogUnit]
+	error: Optional[str]
 
 	def __setattr__(self, name, value):
 		if name == 'units':

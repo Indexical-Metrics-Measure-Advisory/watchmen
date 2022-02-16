@@ -46,7 +46,7 @@ class RuntimePipelineContext(PipelineContext):
 		if id(compiled.get_pipeline()) != id(self.pipeline):
 			# not same pipeline, abandon compiled cache
 			CacheService.pipeline().remove_compiled(self.pipeline.pipelineId)
-			RuntimeCompiledPipeline(self.pipeline)
+			compiled = RuntimeCompiledPipeline(self.pipeline)
 			CacheService.pipeline().put_compiled(self.pipeline.pipelineId, compiled)
 			return compiled
 

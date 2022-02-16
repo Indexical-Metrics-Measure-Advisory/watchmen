@@ -226,7 +226,10 @@ def ask_condition(condition: ParsedCondition, variables: PipelineVariables) -> b
 	return condition.run(variables)
 
 
-def ask_conditional(conditional: Conditional) -> Callable[[PipelineVariables], bool]:
+ConditionalTest = Callable[[PipelineVariables], bool]
+
+
+def parse_conditional(conditional: Conditional) -> ConditionalTest:
 	if conditional.conditional is None or not conditional.conditional:
 		# no condition is needed
 		return always_true

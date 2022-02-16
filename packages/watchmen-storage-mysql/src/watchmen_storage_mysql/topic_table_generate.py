@@ -6,8 +6,8 @@ from watchmen_model.admin import Factor, FactorType, Topic
 from watchmen_model.reactor import TopicDataColumnNames
 from watchmen_storage import UnexpectedStorageException
 from watchmen_utilities import ArrayHelper, is_blank
-from .table_defs_helper import create_bool, create_datetime, create_int, create_json, create_pk, create_tuple_id_column, \
-	meta_data
+from .table_defs_helper import create_bool, create_datetime, create_int, create_json, create_pk, \
+	create_tuple_id_column, meta_data
 
 
 def as_table_name(topic: Topic) -> str:
