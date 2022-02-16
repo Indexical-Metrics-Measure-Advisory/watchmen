@@ -47,7 +47,7 @@ class CompiledStage:
 			stage_monitor_log.conditionResult = True
 			all_run = ArrayHelper(self.units) \
 				.reduce(lambda should_run, x: self.run_unit(should_run, x, variables, stage_monitor_log), True)
-		monitor_log.completeTime = self.timestamp()
+		stage_monitor_log.completeTime = self.timestamp()
 
 		return all_run
 
