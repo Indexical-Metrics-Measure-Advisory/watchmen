@@ -1,5 +1,4 @@
 from abc import abstractmethod
-from datetime import datetime
 from logging import getLogger
 from traceback import format_exc
 from typing import Any, Callable, Dict, List
@@ -14,8 +13,8 @@ from watchmen_model.reactor import MonitorAlarmAction, MonitorCopyToMemoryAction
 	MonitorWriteToExternalAction
 from watchmen_reactor.common import ReactorException
 from watchmen_utilities import ArrayHelper
-from .runtime import ConditionalTest, ConstantValue, CreateQueuePipeline, parse_conditional, parse_constant, \
-	PipelineVariables, spent_ms
+from .runtime import ConditionalTest, ConstantValue, CreateQueuePipeline, now, parse_action_defined_as, \
+	parse_conditional, parse_constant, parse_prerequisite_defined_as, PipelineVariables, PrerequisiteDefinedAs, spent_ms
 
 logger = getLogger(__name__)
 
@@ -26,15 +25,12 @@ class CompiledAction:
 		self.stage = stage
 		self.unit = unit
 		self.action = action
+		self.actionDefinedAs = parse_action_defined_as(action)
 		self.parse_action(action)
 
 	@abstractmethod
 	def parse_action(self, action: PipelineAction) -> None:
 		pass
-
-	# noinspection PyMethodMayBeStatic
-	def timestamp(self):
-		return datetime.now()
 
 	def run(
 			self, variables: PipelineVariables,
@@ -79,10 +75,10 @@ class CompiledAction:
 		return {
 			# create uid of action monitor log
 			'uid': str(ask_snowflake_generator().next_id()),
-			'actionId': self.action.actionId, 'type': self.action.type, 'status': None,
-			'startTime': self.timestamp(), 'completeTime': None,
-			'error': None,
-			'insertCount': 0, 'updateCount': 0, 'deleteCount': 0
+			'actionId': self.action.actionId, 'type': self.action.type,
+			'status': MonitorLogStatus.DONE, 'startTime': now(), 'spentInMills': 0, 'error': None,
+			'insertCount': 0, 'updateCount': 0, 'deleteCount': 0,
+			'definedAs': self.actionDefinedAs(), 'touched': None
 		}
 
 	@abstractmethod
@@ -91,12 +87,14 @@ class CompiledAction:
 
 
 class CompiledAlarmAction(CompiledAction):
-	conditional_test: ConditionalTest = None
+	prerequisiteDefinedAs: PrerequisiteDefinedAs
+	prerequisiteTest: ConditionalTest
 	severity: AlarmActionSeverity = AlarmActionSeverity.MEDIUM
 	message: ConstantValue = None
 
 	def parse_action(self, action: AlarmAction) -> None:
-		self.conditional_test = parse_conditional(action)
+		self.prerequisiteDefinedAs = parse_prerequisite_defined_as(action)
+		self.prerequisiteTest = parse_conditional(action)
 		self.severity = AlarmActionSeverity.MEDIUM if action.severity is None else action.severity
 		self.message = parse_constant(action.message)
 
@@ -105,29 +103,30 @@ class CompiledAlarmAction(CompiledAction):
 			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorLogAction,
 			principal_service: PrincipalService) -> bool:
 		try:
-			prerequisite = self.conditional_test(variables)
+			prerequisite = self.prerequisiteTest(variables)
+			if not prerequisite:
+				action_monitor_log.prerequisite = False
+				action_monitor_log.spentInMills = spent_ms(action_monitor_log.startTime)
+				action_monitor_log.status = MonitorLogStatus.DONE
+				return True
+			else:
+				action_monitor_log.prerequisite = True
+
+				# default log on error label
+				def work() -> None:
+					value = self.message(variables)
+					action_monitor_log.touched = value
+					logger.error(f'[PIPELINE] [ALARM] [{self.severity.upper()}] {value}')
+
+				return self.safe_run(action_monitor_log, work)
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
-			prerequisite = False
+			action_monitor_log.status = MonitorLogStatus.ERROR
 			action_monitor_log.error = format_exc()
-
-		if not prerequisite:
-			action_monitor_log.conditionResult = False
-			action_monitor_log.completeTime = self.timestamp()
-			return True
-		else:
-			action_monitor_log.conditionResult = True
-
-			# default log on error label
-			def work() -> None:
-				value = self.message(variables)
-				action_monitor_log.value = value
-				logger.error(f'[PIPELINE] [ALARM] [{self.severity.upper()}] {value}')
-
-			return self.safe_run(action_monitor_log, work)
+			return False
 
 	def create_action_log(self, common: Dict[str, Any]) -> MonitorAlarmAction:
-		return MonitorAlarmAction(**common, conditionResult=True, value=None)
+		return MonitorAlarmAction(**common, prerequisite=True, prerequisiteDefinedAs=self.prerequisiteDefinedAs())
 
 
 class CompiledCopyToMemoryAction(CompiledAction):

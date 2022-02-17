@@ -1,12 +1,11 @@
-from datetime import datetime
 from typing import List
 
 from watchmen_auth import PrincipalService
 from watchmen_model.admin import Pipeline, PipelineStage, PipelineUnit
-from watchmen_model.reactor import MonitorLogStage, MonitorLogUnit
+from watchmen_model.reactor import MonitorLogStage, MonitorLogStatus, MonitorLogUnit
 from watchmen_utilities import ArrayHelper, is_not_blank
 from .compiled_action import compile_actions, CompiledAction
-from .runtime import CreateQueuePipeline, PipelineVariables
+from .runtime import CreateQueuePipeline, now, PipelineVariables, spent_ms
 
 
 class CompiledUnit:
@@ -18,10 +17,6 @@ class CompiledUnit:
 		self.hasLoop = is_not_blank(self.loopVariableName)
 		self.actions = compile_actions(pipeline, stage, unit)
 
-	# noinspection PyMethodMayBeStatic
-	def timestamp(self):
-		return datetime.now()
-
 	def run(
 			self, variables: PipelineVariables,
 			new_pipeline: CreateQueuePipeline, stage_monitor_log: MonitorLogStage,
@@ -29,17 +24,23 @@ class CompiledUnit:
 		"""
 		returns True means continue, False means something wrong occurred, break the following
 		"""
+		# TODO run unit
 		pass
 
 	def do_run(
 			self, variables: PipelineVariables,
 			new_pipeline: CreateQueuePipeline, stage_monitor_log: MonitorLogStage,
 			principal_service: PrincipalService) -> bool:
+		loop_variable_name = self.loopVariableName
+		if is_not_blank(loop_variable_name):
+			loop_variable_value = variables.find(loop_variable_name)
+		else:
+			loop_variable_value = None
 		unit_monitor_log = MonitorLogUnit(
 			unitId=self.unit.unitId, name=self.unit.name,
-			startTime=self.timestamp(), completeTime=None,
-			units=[],
-			error=None
+			status=MonitorLogStatus.DONE, startTime=now(), spentInMills=0, error=None,
+			loopVariableName=self.loopVariableName, loopVariableValue=loop_variable_value,
+			units=[]
 		)
 		stage_monitor_log.stages.append(unit_monitor_log)
 
@@ -47,6 +48,11 @@ class CompiledUnit:
 			return self.run_action(should_run, action, variables, new_pipeline, unit_monitor_log, principal_service)
 
 		all_run = ArrayHelper(self.actions).reduce(lambda should_run, x: run(should_run, x), True)
+		if all_run:
+			unit_monitor_log.status = MonitorLogStatus.DONE
+		else:
+			unit_monitor_log.status = MonitorLogStatus.ERROR
+		unit_monitor_log.spentInMills = spent_ms(unit_monitor_log.startTime)
 		return all_run
 
 	# noinspection PyMethodMayBeStatic
