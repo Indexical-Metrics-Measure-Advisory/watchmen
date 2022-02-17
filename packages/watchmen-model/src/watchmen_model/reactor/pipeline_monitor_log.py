@@ -47,6 +47,7 @@ class MonitorWriteAction(MonitorLogAction):
 
 class MonitorDeleteAction(MonitorLogAction):
 	type: DeleteTopicActionType
+	value: Optional[Any]
 	by: Optional[Any]
 
 
