@@ -3,11 +3,12 @@ from logging import getLogger
 from traceback import format_exc
 from typing import List
 
+from watchmen_auth import PrincipalService
 from watchmen_model.admin import Pipeline, PipelineStage
 from watchmen_model.reactor import MonitorLogStage, PipelineMonitorLog
 from watchmen_utilities import ArrayHelper
 from .compiled_unit import compile_units, CompiledUnit
-from .runtime import parse_conditional, PipelineVariables
+from .runtime import CreateQueuePipeline, parse_conditional, PipelineVariables
 
 logger = getLogger(__name__)
 
@@ -23,7 +24,10 @@ class CompiledStage:
 	def timestamp(self):
 		return datetime.now()
 
-	def run(self, variables: PipelineVariables, monitor_log: PipelineMonitorLog) -> bool:
+	def run(
+			self, variables: PipelineVariables,
+			new_pipeline: CreateQueuePipeline, monitor_log: PipelineMonitorLog,
+			principal_service: PrincipalService) -> bool:
 		stage_monitor_log = MonitorLogStage(
 			stageId=self.stage.stageId, name=self.stage.name,
 			startTime=self.timestamp(), completeTime=None,
@@ -45,8 +49,11 @@ class CompiledStage:
 			stage_monitor_log.conditionResult = False
 		else:
 			stage_monitor_log.conditionResult = True
-			all_run = ArrayHelper(self.units) \
-				.reduce(lambda should_run, x: self.run_unit(should_run, x, variables, stage_monitor_log), True)
+
+			def run(should_run: bool, unit: CompiledUnit) -> bool:
+				return self.run_unit(should_run, unit, variables, new_pipeline, stage_monitor_log, principal_service)
+
+			all_run = ArrayHelper(self.units).reduce(lambda should_run, x: run(should_run, x), True)
 		stage_monitor_log.completeTime = self.timestamp()
 
 		return all_run
@@ -55,12 +62,13 @@ class CompiledStage:
 	def run_unit(
 			self, should_run: bool,
 			unit: CompiledUnit, variables: PipelineVariables,
-			stage_monitor_log: MonitorLogStage
+			new_pipeline: CreateQueuePipeline, stage_monitor_log: MonitorLogStage,
+			principal_service: PrincipalService
 	) -> bool:
 		if not should_run:
 			return False
 		else:
-			return unit.run(variables, stage_monitor_log)
+			return unit.run(variables, new_pipeline, stage_monitor_log, principal_service)
 
 
 def compile_stages(pipeline: Pipeline) -> List[CompiledStage]:

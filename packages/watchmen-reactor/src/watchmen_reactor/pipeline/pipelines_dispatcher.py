@@ -1,7 +1,7 @@
 from typing import List, Optional
 
 from watchmen_reactor.common import ReactorException
-from .pipeline_context import RuntimePipelineContext
+from .compiled_pipeline import RuntimePipelineContext
 from .topic_helper import RuntimeTopicStorages
 
 
