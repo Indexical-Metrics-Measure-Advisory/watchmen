@@ -59,8 +59,7 @@ def build_meta_storage() -> Callable[[], TransactionalStorageSPI]:
 	storage_type = settings.META_STORAGE_TYPE
 	if storage_type == DataSourceType.MYSQL:
 		return build_mysql_storage()
-	# TODO build oracle storage
-	# TODO build mongodb storage
+	# TODO build oracle storage, mssql storage, mongodb storage
 
 	raise InitialMetaAppException(f'Meta storage type[{storage_type}] is not supported yet.')
 
