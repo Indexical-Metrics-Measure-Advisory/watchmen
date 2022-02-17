@@ -13,23 +13,26 @@ from watchmen_model.reactor import MonitorAlarmAction, MonitorCopyToMemoryAction
 	MonitorWriteToExternalAction
 from watchmen_reactor.common import ReactorException
 from watchmen_utilities import ArrayHelper
-from .runtime import PrerequisiteTest, ConstantValue, CreateQueuePipeline, now, parse_action_defined_as, \
-	parse_prerequisite, parse_constant, parse_prerequisite_defined_as, PipelineVariables, PrerequisiteDefinedAs, spent_ms
+from .runtime import ConstantValue, CreateQueuePipeline, now, parse_action_defined_as, parse_constant, \
+	parse_prerequisite, parse_prerequisite_defined_as, PipelineVariables, PrerequisiteDefinedAs, PrerequisiteTest, \
+	spent_ms
 
 logger = getLogger(__name__)
 
 
 class CompiledAction:
-	def __init__(self, pipeline: Pipeline, stage: PipelineStage, unit: PipelineUnit, action: PipelineAction):
+	def __init__(
+			self, pipeline: Pipeline, stage: PipelineStage, unit: PipelineUnit, action: PipelineAction,
+			principal_service: PrincipalService):
 		self.pipeline = pipeline
 		self.stage = stage
 		self.unit = unit
 		self.action = action
 		self.actionDefinedAs = parse_action_defined_as(action)
-		self.parse_action(action)
+		self.parse_action(action, principal_service)
 
 	@abstractmethod
-	def parse_action(self, action: PipelineAction) -> None:
+	def parse_action(self, action: PipelineAction, principal_service: PrincipalService) -> None:
 		pass
 
 	def run(
@@ -92,11 +95,11 @@ class CompiledAlarmAction(CompiledAction):
 	severity: AlarmActionSeverity = AlarmActionSeverity.MEDIUM
 	message: ConstantValue = None
 
-	def parse_action(self, action: AlarmAction) -> None:
-		self.prerequisiteDefinedAs = parse_prerequisite_defined_as(action)
-		self.prerequisiteTest = parse_prerequisite(action)
+	def parse_action(self, action: AlarmAction, principal_service: PrincipalService) -> None:
+		self.prerequisiteDefinedAs = parse_prerequisite_defined_as(action, principal_service)
+		self.prerequisiteTest = parse_prerequisite(action, principal_service)
 		self.severity = AlarmActionSeverity.MEDIUM if action.severity is None else action.severity
-		self.message = parse_constant(action.message)
+		self.message = parse_constant(action.message, principal_service)
 
 	def do_run(
 			self, variables: PipelineVariables,
@@ -131,7 +134,7 @@ class CompiledAlarmAction(CompiledAction):
 
 
 class CompiledCopyToMemoryAction(CompiledAction):
-	def parse_action(self, action: CopyToMemoryAction) -> None:
+	def parse_action(self, action: CopyToMemoryAction, principal_service: PrincipalService) -> None:
 		# TODO
 		pass
 
@@ -147,7 +150,7 @@ class CompiledCopyToMemoryAction(CompiledAction):
 
 
 class CompiledWriteToExternalAction(CompiledAction):
-	def parse_action(self, action: WriteToExternalAction) -> None:
+	def parse_action(self, action: WriteToExternalAction, principal_service: PrincipalService) -> None:
 		# TODO
 		pass
 
@@ -163,7 +166,7 @@ class CompiledWriteToExternalAction(CompiledAction):
 
 
 class CompiledReadTopicAction(CompiledAction):
-	def parse_action(self, action: ReadTopicAction) -> None:
+	def parse_action(self, action: ReadTopicAction, principal_service: PrincipalService) -> None:
 		# TODO
 		pass
 
@@ -199,7 +202,7 @@ class CompiledExistsAction(CompiledReadTopicAction):
 
 
 class CompiledWriteTopicAction(CompiledAction):
-	def parse_action(self, action: WriteTopicAction) -> None:
+	def parse_action(self, action: WriteTopicAction, principal_service: PrincipalService) -> None:
 		# TODO
 		pass
 
@@ -231,7 +234,7 @@ class CompiledWriteFactorAction(CompiledWriteTopicAction):
 
 
 class CompiledDeleteTopicAction(CompiledAction):
-	def parse_action(self, action: DeleteTopicAction) -> None:
+	def parse_action(self, action: DeleteTopicAction, principal_service: PrincipalService) -> None:
 		# TODO
 		pass
 
@@ -255,44 +258,48 @@ class CompiledDeleteRowsAction(CompiledDeleteTopicAction):
 
 
 def compile_action(
-		pipeline: Pipeline, stage: PipelineStage, unit: PipelineUnit, action: PipelineAction
+		pipeline: Pipeline, stage: PipelineStage, unit: PipelineUnit, action: PipelineAction,
+		principal_service: PrincipalService
 ) -> CompiledAction:
 	action_type = action.type
 	if action_type == SystemActionType.ALARM:
-		return CompiledAlarmAction(pipeline, stage, unit, action)
+		return CompiledAlarmAction(pipeline, stage, unit, action, principal_service)
 	elif action_type == SystemActionType.COPY_TO_MEMORY:
-		return CompiledCopyToMemoryAction(pipeline, stage, unit, action)
+		return CompiledCopyToMemoryAction(pipeline, stage, unit, action, principal_service)
 	elif action_type == SystemActionType.WRITE_TO_EXTERNAL:
-		return CompiledWriteToExternalAction(pipeline, stage, unit, action)
+		return CompiledWriteToExternalAction(pipeline, stage, unit, action, principal_service)
 	elif action_type == ReadTopicActionType.READ_ROW:
-		return CompiledReadRowAction(pipeline, stage, unit, action)
+		return CompiledReadRowAction(pipeline, stage, unit, action, principal_service)
 	elif action_type == ReadTopicActionType.READ_ROWS:
-		return CompiledReadRowsAction(pipeline, stage, unit, action)
+		return CompiledReadRowsAction(pipeline, stage, unit, action, principal_service)
 	elif action_type == ReadTopicActionType.READ_FACTOR:
-		return CompiledReadFactorAction(pipeline, stage, unit, action)
+		return CompiledReadFactorAction(pipeline, stage, unit, action, principal_service)
 	elif action_type == ReadTopicActionType.READ_FACTORS:
-		return CompiledReadFactorsAction(pipeline, stage, unit, action)
+		return CompiledReadFactorsAction(pipeline, stage, unit, action, principal_service)
 	elif action_type == ReadTopicActionType.EXISTS:
-		return CompiledExistsAction(pipeline, stage, unit, action)
+		return CompiledExistsAction(pipeline, stage, unit, action, principal_service)
 	elif action_type == WriteTopicActionType.INSERT_ROW:
-		return CompiledInsertRowAction(pipeline, stage, unit, action)
+		return CompiledInsertRowAction(pipeline, stage, unit, action, principal_service)
 	elif action_type == WriteTopicActionType.INSERT_OR_MERGE_ROW:
-		return CompiledInsertOrMergeRowAction(pipeline, stage, unit, action)
+		return CompiledInsertOrMergeRowAction(pipeline, stage, unit, action, principal_service)
 	elif action_type == WriteTopicActionType.MERGE_ROW:
-		return CompiledMergeRowAction(pipeline, stage, unit, action)
+		return CompiledMergeRowAction(pipeline, stage, unit, action, principal_service)
 	elif action_type == WriteTopicActionType.WRITE_FACTOR:
-		return CompiledWriteFactorAction(pipeline, stage, unit, action)
+		return CompiledWriteFactorAction(pipeline, stage, unit, action, principal_service)
 	elif action_type == DeleteTopicActionType.DELETE_ROW:
-		return CompiledDeleteRowAction(pipeline, stage, unit, action)
+		return CompiledDeleteRowAction(pipeline, stage, unit, action, principal_service)
 	elif action_type == DeleteTopicActionType.DELETE_ROWS:
-		return CompiledDeleteRowsAction(pipeline, stage, unit, action)
+		return CompiledDeleteRowsAction(pipeline, stage, unit, action, principal_service)
 	else:
 		raise ReactorException(f'Action type[{action_type}] is not supported.')
 
 
-def compile_actions(pipeline: Pipeline, stage: PipelineStage, unit: PipelineUnit) -> List[CompiledAction]:
+def compile_actions(
+		pipeline: Pipeline, stage: PipelineStage, unit: PipelineUnit,
+		principal_service: PrincipalService) -> List[CompiledAction]:
 	actions = unit.do
 	if actions is None or len(actions) == 0:
 		return []
 	else:
-		return ArrayHelper(actions).map(lambda x: compile_action(pipeline, stage, unit, x)).to_list()
+		return ArrayHelper(actions) \
+			.map(lambda x: compile_action(pipeline, stage, unit, x, principal_service)).to_list()
