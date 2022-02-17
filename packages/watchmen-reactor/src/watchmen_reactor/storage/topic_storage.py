@@ -15,8 +15,7 @@ def build_mysql_storage(data_source: DataSource) -> Callable[[], TopicDataStorag
 def build_topic_data_storage(data_source: DataSource) -> Callable[[], TopicDataStorageSPI]:
 	if data_source.dataSourceType == DataSourceType.MYSQL:
 		return build_mysql_storage(data_source)
-	# TODO build oracle storage
-	# TODO build mongodb storage
+	# TODO build oracle storage, mssql storage, mongodb storage
 
 	raise ReactorException(
 		f'Reactor storage[id={data_source.dataSourceId}, name={data_source.name} type={data_source.dataSourceType}] '

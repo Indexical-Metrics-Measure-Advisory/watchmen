@@ -15,7 +15,7 @@ class PipelineVariables:
 		self.variables[name] = value
 
 	def find(self, name: str) -> Optional[Any]:
-		# TODO  find variables
+		# TODO find variables
 		return self.variables.get(name)
 
 	def clone(self) -> PipelineVariables:
