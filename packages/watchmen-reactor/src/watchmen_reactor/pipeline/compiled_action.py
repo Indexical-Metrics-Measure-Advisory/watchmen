@@ -1,8 +1,10 @@
 from abc import abstractmethod
 from datetime import datetime
 from logging import getLogger
+from traceback import format_exc
 from typing import Any, Dict, List
 
+from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import AlarmAction, AlarmActionSeverity, Pipeline, PipelineAction, PipelineStage, PipelineUnit
 from watchmen_model.reactor import MonitorAlarmAction, MonitorLogAction, MonitorLogUnit
 from watchmen_utilities import ArrayHelper
@@ -22,25 +24,32 @@ class CompiledAction:
 	def timestamp(self):
 		return datetime.now()
 
-	@abstractmethod
 	def run(self, variables: PipelineVariables, unit_monitor_log: MonitorLogUnit) -> bool:
+		"""
+		returns True means continue, False means something wrong occurred, break the following
+		"""
+		action_monitor_log = self.create_action_log(self.create_common_action_log())
+		unit_monitor_log.actions.append(action_monitor_log)
+		return self.do_run(variables, action_monitor_log)
+
+	@abstractmethod
+	def do_run(self, variables: PipelineVariables, action_monitor_log: MonitorLogAction) -> bool:
+		"""
+		returns True means continue, False means something wrong occurred, break the following
+		"""
 		pass
 
 	def create_common_action_log(self) -> Dict[str, Any]:
 		return {
+			'uid': str(ask_snowflake_generator().next_id()),
 			'actionId': self.action.actionId, 'type': self.action.type, 'status': None,
 			'startTime': self.timestamp(), 'completeTime': None,
 			'error': None,
 			'insertCount': 0, 'updateCount': 0, 'deleteCount': 0
 		}
 
-	def create_action_log(self, unit_monitor_log: MonitorLogUnit) -> MonitorLogAction:
-		action_monitor_log = self.do_create_action_log(self.create_common_action_log())
-		unit_monitor_log.actions.append(action_monitor_log)
-		return action_monitor_log
-
 	@abstractmethod
-	def do_create_action_log(self, common: Dict[str, Any]) -> MonitorLogAction:
+	def create_action_log(self, common: Dict[str, Any]) -> MonitorLogAction:
 		pass
 
 
@@ -51,14 +60,25 @@ class CompiledAlarmAction(CompiledAction):
 		self.severity = AlarmActionSeverity.MEDIUM if action.severity is None else action.severity
 		self.message = parse_constant(action.message)
 
-	def run(self, variables: PipelineVariables, unit_monitor_log: MonitorLogUnit) -> bool:
-		# TODO
-		pass
+	def do_run(self, variables: PipelineVariables, action_monitor_log: MonitorAlarmAction) -> bool:
+		try:
+			prerequisite = self.conditional_test(variables)
+		except Exception as e:
+			logger.error(e, exc_info=True, stack_info=True)
+			prerequisite = False
+			action_monitor_log.error = format_exc()
 
-	def do_create_action_log(self, common: Dict[str, Any]) -> MonitorLogAction:
+		if not prerequisite:
+			action_monitor_log.conditionResult = False
+		else:
+			action_monitor_log.conditionResult = True
+			# default log on error label
+			logger.error(f'[PIPELINE] [ALARM] [{self.severity.upper()}] {self.message(variables)}')
+		action_monitor_log.completeTime = self.timestamp()
+		return True
+
+	def create_action_log(self, common: Dict[str, Any]) -> MonitorAlarmAction:
 		return MonitorAlarmAction(
-			# TODO uid for action monitor log
-			# uid: MonitorLogActionId
 			**common,
 			conditionResult=True,
 			value=None
