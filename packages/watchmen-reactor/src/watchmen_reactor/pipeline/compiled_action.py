@@ -2,13 +2,19 @@ from abc import abstractmethod
 from datetime import datetime
 from logging import getLogger
 from traceback import format_exc
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List
 
 from watchmen_meta.common import ask_snowflake_generator
-from watchmen_model.admin import AlarmAction, AlarmActionSeverity, Pipeline, PipelineAction, PipelineStage, PipelineUnit
-from watchmen_model.reactor import MonitorAlarmAction, MonitorLogAction, MonitorLogUnit
+from watchmen_model.admin import AlarmAction, AlarmActionSeverity, CopyToMemoryAction, DeleteTopicAction, \
+	DeleteTopicActionType, Pipeline, \
+	PipelineAction, PipelineStage, PipelineUnit, ReadTopicAction, ReadTopicActionType, SystemActionType, \
+	WriteToExternalAction, \
+	WriteTopicAction, WriteTopicActionType
+from watchmen_model.reactor import MonitorAlarmAction, MonitorCopyToMemoryAction, MonitorDeleteAction, \
+	MonitorLogAction, MonitorLogUnit, MonitorReadAction, MonitorWriteAction, MonitorWriteToExternalAction
+from watchmen_reactor.common import ReactorException
 from watchmen_utilities import ArrayHelper
-from .runtime import parse_conditional, parse_constant, PipelineVariables
+from .runtime import ConditionalTest, ConstantValue, parse_conditional, parse_constant, PipelineVariables
 
 logger = getLogger(__name__)
 
@@ -19,6 +25,11 @@ class CompiledAction:
 		self.stage = stage
 		self.unit = unit
 		self.action = action
+		self.parse_action(action)
+
+	@abstractmethod
+	def parse_action(self, action: PipelineAction) -> None:
+		pass
 
 	# noinspection PyMethodMayBeStatic
 	def timestamp(self):
@@ -31,6 +42,20 @@ class CompiledAction:
 		action_monitor_log = self.create_action_log(self.create_common_action_log())
 		unit_monitor_log.actions.append(action_monitor_log)
 		return self.do_run(variables, action_monitor_log)
+
+	def safe_run(self, action_monitor_log: MonitorLogAction, work: Callable[[], None]) -> bool:
+		"""
+		returns True means continue, False means something wrong occurred, break the following
+		"""
+		# noinspection PyBroadException
+		try:
+			work()
+			action_monitor_log.completeTime = self.timestamp()
+			return True
+		except Exception as e:
+			action_monitor_log.error = format_exc()
+			action_monitor_log.completeTime = self.timestamp()
+			return False
 
 	@abstractmethod
 	def do_run(self, variables: PipelineVariables, action_monitor_log: MonitorLogAction) -> bool:
@@ -54,8 +79,11 @@ class CompiledAction:
 
 
 class CompiledAlarmAction(CompiledAction):
-	def __init__(self, pipeline: Pipeline, stage: PipelineStage, unit: PipelineUnit, action: AlarmAction):
-		super().__init__(pipeline, stage, unit, action)
+	conditional_test: ConditionalTest = None
+	severity: AlarmActionSeverity = AlarmActionSeverity.MEDIUM
+	message: ConstantValue = None
+
+	def parse_action(self, action: AlarmAction) -> None:
 		self.conditional_test = parse_conditional(action)
 		self.severity = AlarmActionSeverity.MEDIUM if action.severity is None else action.severity
 		self.message = parse_constant(action.message)
@@ -70,19 +98,166 @@ class CompiledAlarmAction(CompiledAction):
 
 		if not prerequisite:
 			action_monitor_log.conditionResult = False
+			action_monitor_log.completeTime = self.timestamp()
+			return True
 		else:
 			action_monitor_log.conditionResult = True
+
 			# default log on error label
-			logger.error(f'[PIPELINE] [ALARM] [{self.severity.upper()}] {self.message(variables)}')
-		action_monitor_log.completeTime = self.timestamp()
-		return True
+			def work() -> None:
+				value = self.message(variables)
+				action_monitor_log.value = value
+				logger.error(f'[PIPELINE] [ALARM] [{self.severity.upper()}] {value}')
+
+			return self.safe_run(action_monitor_log, work)
 
 	def create_action_log(self, common: Dict[str, Any]) -> MonitorAlarmAction:
-		return MonitorAlarmAction(
-			**common,
-			conditionResult=True,
-			value=None
-		)
+		return MonitorAlarmAction(**common, conditionResult=True, value=None)
+
+
+class CompiledCopyToMemoryAction(CompiledAction):
+	def parse_action(self, action: CopyToMemoryAction) -> None:
+		# TODO
+		pass
+
+	def do_run(self, variables: PipelineVariables, action_monitor_log: CopyToMemoryAction) -> bool:
+		# TODO
+		pass
+
+	def create_action_log(self, common: Dict[str, Any]) -> MonitorCopyToMemoryAction:
+		return MonitorCopyToMemoryAction(**common, value=None)
+
+
+class CompiledWriteToExternalAction(CompiledAction):
+	def parse_action(self, action: WriteToExternalAction) -> None:
+		# TODO
+		pass
+
+	def do_run(self, variables: PipelineVariables, action_monitor_log: MonitorWriteToExternalAction) -> bool:
+		# TODO
+		pass
+
+	def create_action_log(self, common: Dict[str, Any]) -> MonitorWriteToExternalAction:
+		return MonitorWriteToExternalAction(**common, value=None)
+
+
+class CompiledReadTopicAction(CompiledAction):
+	def parse_action(self, action: ReadTopicAction) -> None:
+		# TODO
+		pass
+
+	def do_run(self, variables: PipelineVariables, action_monitor_log: MonitorReadAction) -> bool:
+		# TODO
+		pass
+
+	def create_action_log(self, common: Dict[str, Any]) -> MonitorReadAction:
+		return MonitorReadAction(**common, by=None, value=None)
+
+
+class CompiledReadRowAction(CompiledReadTopicAction):
+	pass
+
+
+class CompiledReadRowsAction(CompiledReadTopicAction):
+	pass
+
+
+class CompiledReadFactorAction(CompiledReadTopicAction):
+	pass
+
+
+class CompiledReadFactorsAction(CompiledReadTopicAction):
+	pass
+
+
+class CompiledExistsAction(CompiledReadTopicAction):
+	pass
+
+
+class CompiledWriteTopicAction(CompiledAction):
+	def parse_action(self, action: WriteTopicAction) -> None:
+		# TODO
+		pass
+
+	def do_run(self, variables: PipelineVariables, action_monitor_log: MonitorWriteAction) -> bool:
+		# TODO
+		pass
+
+	def create_action_log(self, common: Dict[str, Any]) -> MonitorWriteAction:
+		return MonitorWriteAction(**common, by=None, value=None)
+
+
+class CompiledInsertRowAction(CompiledWriteTopicAction):
+	pass
+
+
+class CompiledInsertOrMergeRowAction(CompiledWriteTopicAction):
+	pass
+
+
+class CompiledMergeRowAction(CompiledWriteTopicAction):
+	pass
+
+
+class CompiledWriteFactorAction(CompiledWriteTopicAction):
+	pass
+
+
+class CompiledDeleteTopicAction(CompiledAction):
+	def parse_action(self, action: DeleteTopicAction) -> None:
+		# TODO
+		pass
+
+	def do_run(self, variables: PipelineVariables, action_monitor_log: MonitorDeleteAction) -> bool:
+		# TODO
+		pass
+
+	def create_action_log(self, common: Dict[str, Any]) -> MonitorDeleteAction:
+		return MonitorDeleteAction(**common, by=None, value=None)
+
+
+class CompiledDeleteRowAction(CompiledDeleteTopicAction):
+	pass
+
+
+class CompiledDeleteRowsAction(CompiledDeleteTopicAction):
+	pass
+
+
+def compile_action(
+		pipeline: Pipeline, stage: PipelineStage, unit: PipelineUnit, action: PipelineAction
+) -> CompiledAction:
+	action_type = action.type
+	if action_type == SystemActionType.ALARM:
+		return CompiledAlarmAction(pipeline, stage, unit, action)
+	elif action_type == SystemActionType.COPY_TO_MEMORY:
+		return CompiledCopyToMemoryAction(pipeline, stage, unit, action)
+	elif action_type == SystemActionType.WRITE_TO_EXTERNAL:
+		return CompiledWriteToExternalAction(pipeline, stage, unit, action)
+	elif action_type == ReadTopicActionType.READ_ROW:
+		return CompiledReadRowAction(pipeline, stage, unit, action)
+	elif action_type == ReadTopicActionType.READ_ROWS:
+		return CompiledReadRowsAction(pipeline, stage, unit, action)
+	elif action_type == ReadTopicActionType.READ_FACTOR:
+		return CompiledReadFactorAction(pipeline, stage, unit, action)
+	elif action_type == ReadTopicActionType.READ_FACTORS:
+		return CompiledReadFactorsAction(pipeline, stage, unit, action)
+	elif action_type == ReadTopicActionType.EXISTS:
+		return CompiledExistsAction(pipeline, stage, unit, action)
+	elif action_type == WriteTopicActionType.INSERT_ROW:
+		return CompiledInsertRowAction(pipeline, stage, unit, action)
+	elif action_type == WriteTopicActionType.INSERT_OR_MERGE_ROW:
+		return CompiledInsertOrMergeRowAction(pipeline, stage, unit, action)
+	elif action_type == WriteTopicActionType.MERGE_ROW:
+		return CompiledMergeRowAction(pipeline, stage, unit, action)
+	elif action_type == WriteTopicActionType.WRITE_FACTOR:
+		return CompiledWriteFactorAction(pipeline, stage, unit, action)
+	elif action_type == DeleteTopicActionType.DELETE_ROW:
+		return CompiledDeleteRowAction(pipeline, stage, unit, action)
+	elif action_type == DeleteTopicActionType.DELETE_ROWS:
+		return CompiledDeleteRowsAction(pipeline, stage, unit, action)
+	else:
+		raise ReactorException(f'Action type[{action_type}] is not supported.')
 
 
 def compile_actions(pipeline: Pipeline, stage: PipelineStage, unit: PipelineUnit) -> List[CompiledAction]:
@@ -90,4 +265,4 @@ def compile_actions(pipeline: Pipeline, stage: PipelineStage, unit: PipelineUnit
 	if actions is None or len(actions) == 0:
 		return []
 	else:
-		return ArrayHelper(actions).map(lambda x: CompiledAction(pipeline, stage, unit, x)).to_list()
+		return ArrayHelper(actions).map(lambda x: compile_action(pipeline, stage, unit, x)).to_list()
