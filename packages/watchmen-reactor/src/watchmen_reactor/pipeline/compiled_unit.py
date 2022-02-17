@@ -16,15 +16,17 @@ logger = getLogger(__name__)
 
 
 class CompiledUnit:
-	def __init__(self, pipeline: Pipeline, stage: PipelineStage, unit: PipelineUnit):
+	def __init__(
+			self, pipeline: Pipeline, stage: PipelineStage, unit: PipelineUnit,
+			principal_service: PrincipalService):
 		self.pipeline = pipeline
 		self.stage = stage
 		self.unit = unit
-		self.prerequisiteDefinedAs = parse_prerequisite_defined_as(unit)
-		self.prerequisiteTest = parse_prerequisite(unit)
+		self.prerequisiteDefinedAs = parse_prerequisite_defined_as(unit, principal_service)
+		self.prerequisiteTest = parse_prerequisite(unit, principal_service)
 		self.loopVariableName = unit.loopVariableName
 		self.hasLoop = is_not_blank(self.loopVariableName)
-		self.actions = compile_actions(pipeline, stage, unit)
+		self.actions = compile_actions(pipeline, stage, unit, principal_service)
 
 	def run(
 			self, variables: PipelineVariables,
@@ -124,9 +126,9 @@ class CompiledUnit:
 			return action.run(variables, new_pipeline, unit_monitor_log, principal_service)
 
 
-def compile_units(pipeline: Pipeline, stage: PipelineStage) -> List[CompiledUnit]:
+def compile_units(pipeline: Pipeline, stage: PipelineStage, principal_service: PrincipalService) -> List[CompiledUnit]:
 	units = stage.units
 	if units is None or len(units) == 0:
 		return []
 	else:
-		return ArrayHelper(units).map(lambda x: CompiledUnit(pipeline, stage, x)).to_list()
+		return ArrayHelper(units).map(lambda x: CompiledUnit(pipeline, stage, x, principal_service)).to_list()

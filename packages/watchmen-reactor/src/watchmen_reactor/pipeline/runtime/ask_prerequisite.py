@@ -21,12 +21,12 @@ def always_true(variables: PipelineVariables) -> bool:
 
 
 class ParsedCondition:
-	def __init__(self, condition: ParameterCondition):
+	def __init__(self, condition: ParameterCondition, principal_service: PrincipalService):
 		self.condition = condition
-		self.parse(condition)
+		self.parse(condition, principal_service)
 
 	@abstractmethod
-	def parse(self, condition: ParameterCondition) -> None:
+	def parse(self, condition: ParameterCondition, principal_service: PrincipalService) -> None:
 		pass
 
 	@abstractmethod
@@ -35,12 +35,12 @@ class ParsedCondition:
 
 
 class ParsedParameter:
-	def __init__(self, parameter: Optional[Parameter]):
+	def __init__(self, parameter: Optional[Parameter], principal_service: PrincipalService):
 		self.parameter = parameter
-		self.parse(parameter)
+		self.parse(parameter, principal_service)
 
 	@abstractmethod
-	def parse(self, parameter: Parameter) -> None:
+	def parse(self, parameter: Parameter, principal_service: PrincipalService) -> None:
 		pass
 
 	@abstractmethod
@@ -49,7 +49,7 @@ class ParsedParameter:
 
 
 class NoopParameter(ParsedParameter):
-	def parse(self, parameter: Parameter) -> None:
+	def parse(self, parameter: Parameter, principal_service: PrincipalService) -> None:
 		"""
 		do nothing
 		"""
@@ -62,26 +62,26 @@ class NoopParameter(ParsedParameter):
 		return None
 
 
-def parse_condition(condition: Optional[ParameterCondition]) -> ParsedCondition:
+def parse_condition(condition: Optional[ParameterCondition], principal_service: PrincipalService) -> ParsedCondition:
 	if condition is None:
 		raise ReactorException('Condition cannot be null.')
 	if isinstance(condition, ParameterJoint):
-		return ParsedJoint(condition)
+		return ParsedJoint(condition, principal_service)
 	elif isinstance(condition, ParameterExpression):
-		return ParsedExpression(condition)
+		return ParsedExpression(condition, principal_service)
 	else:
 		raise ReactorException(f'Condition[{condition.dict()}] is not supported.')
 
 
-def parse_parameter(parameter: Optional[Parameter]) -> ParsedParameter:
+def parse_parameter(parameter: Optional[Parameter], principal_service: PrincipalService) -> ParsedParameter:
 	if parameter is None:
-		return NoopParameter(None)
+		return NoopParameter(None, principal_service)
 	elif isinstance(parameter, TopicFactorParameter):
-		return ParsedTopicFactorParameter(parameter)
+		return ParsedTopicFactorParameter(parameter, principal_service)
 	elif isinstance(parameter, ConstantParameter):
-		return ParsedConstantParameter(parameter)
+		return ParsedConstantParameter(parameter, principal_service)
 	elif isinstance(parameter, ComputedParameter):
-		return ParsedComputedParameter(parameter)
+		return ParsedComputedParameter(parameter, principal_service)
 	else:
 		raise ReactorException(f'Parameter[{parameter.dict()}] is not supported.')
 
@@ -90,10 +90,11 @@ class ParsedJoint(ParsedCondition):
 	jointType: ParameterJointType = ParameterJointType.AND
 	filters: List[ParsedCondition] = []
 
-	def parse(self, condition: ParameterJoint) -> None:
+	def parse(self, condition: ParameterJoint, principal_service: PrincipalService) -> None:
 		self.jointType = ParameterJointType.OR \
 			if condition.jointType == ParameterJointType.OR else ParameterJointType.AND
-		self.filters = ArrayHelper(condition.filters).map(parse_condition).to_list()
+		self.filters = ArrayHelper(condition.filters) \
+			.map(lambda x: parse_condition(x, principal_service)).to_list()
 
 	def run(self, variables: PipelineVariables, principal_service: PrincipalService) -> bool:
 		if self.jointType == ParameterJointType.OR:
@@ -108,10 +109,10 @@ class ParsedExpression(ParsedCondition):
 	operator: Optional[ParameterExpressionOperator] = None
 	right: Optional[ParsedParameter] = None
 
-	def parse(self, condition: ParameterExpression) -> None:
-		self.left = parse_parameter(condition.left)
+	def parse(self, condition: ParameterExpression, principal_service: PrincipalService) -> None:
+		self.left = parse_parameter(condition.left, principal_service)
 		self.operator = condition.operator
-		self.right = parse_parameter(condition.right)
+		self.right = parse_parameter(condition.right, principal_service)
 
 	# noinspection PyMethodMayBeStatic
 	def is_empty(self, value: Any) -> bool:
@@ -193,7 +194,7 @@ class ParsedExpression(ParsedCondition):
 
 
 class ParsedTopicFactorParameter(ParsedParameter):
-	def parse(self, parameter: TopicFactorParameter) -> None:
+	def parse(self, parameter: TopicFactorParameter, principal_service: PrincipalService) -> None:
 		if is_blank(parameter.topicId):
 			raise ReactorException(f'Topic not declared.')
 		if is_blank(parameter.factorId):
@@ -204,7 +205,7 @@ class ParsedTopicFactorParameter(ParsedParameter):
 
 
 class ParsedConstantParameter(ParsedParameter):
-	def parse(self, parameter: ConstantParameter) -> None:
+	def parse(self, parameter: ConstantParameter, principal_service: PrincipalService) -> None:
 		# TODO
 		pass
 
@@ -214,7 +215,7 @@ class ParsedConstantParameter(ParsedParameter):
 
 
 class ParsedComputedParameter(ParsedParameter):
-	def parse(self, parameter: ComputedParameter) -> None:
+	def parse(self, parameter: ComputedParameter, principal_service: PrincipalService) -> None:
 		# TODO
 		pass
 
@@ -232,7 +233,7 @@ def ask_condition(
 PrerequisiteTest = Callable[[PipelineVariables, PrincipalService], bool]
 
 
-def parse_prerequisite(conditional: Conditional) -> PrerequisiteTest:
+def parse_prerequisite(conditional: Conditional, principal_service: PrincipalService) -> PrerequisiteTest:
 	if conditional.conditional is None or not conditional.conditional:
 		# no condition is needed
 		return always_true
@@ -246,10 +247,10 @@ def parse_prerequisite(conditional: Conditional) -> PrerequisiteTest:
 	if filters is None or len(filters) == 0:
 		# no filters defined
 		return always_true
-	condition = ParsedCondition(joint)
+	condition = ParsedCondition(joint, principal_service)
 
-	def ask(variables: PipelineVariables, principal_service: PrincipalService) -> bool:
-		return ask_condition(condition, variables, principal_service)
+	def ask(variables: PipelineVariables, runtime_principal_service: PrincipalService) -> bool:
+		return ask_condition(condition, variables, runtime_principal_service)
 
 	return ask
 
@@ -257,7 +258,10 @@ def parse_prerequisite(conditional: Conditional) -> PrerequisiteTest:
 PrerequisiteDefinedAs = Callable[[], Any]
 
 
-def parse_prerequisite_defined_as(conditional: Conditional) -> PrerequisiteDefinedAs:
+# noinspection PyUnusedLocal
+def parse_prerequisite_defined_as(
+		conditional: Conditional, principal_service: PrincipalService
+) -> PrerequisiteDefinedAs:
 	defined_as = {
 		'conditional': False if conditional.conditional is None else conditional.conditional,
 		'on': None if conditional.on is None else conditional.on.dict()

@@ -62,11 +62,16 @@ class CreatedPipelineContexts:
 
 
 class RuntimeCompiledPipeline(CompiledPipeline):
-	def __init__(self, pipeline: Pipeline):
+	def __init__(self, pipeline: Pipeline, principal_service: PrincipalService):
+		"""
+		principal is for loading definition when do compiling, will not be cached.
+		pipeline, topic and related resources are under same tenant,
+		therefore compiled resources can be shared within one tenant
+		"""
 		self.pipeline = pipeline
-		self.prerequisiteDefinedAs = parse_prerequisite_defined_as(pipeline)
-		self.prerequisiteTest = parse_prerequisite(pipeline)
-		self.stages = compile_stages(pipeline)
+		self.prerequisiteDefinedAs = parse_prerequisite_defined_as(pipeline, principal_service)
+		self.prerequisiteTest = parse_prerequisite(pipeline, principal_service)
+		self.stages = compile_stages(pipeline, principal_service)
 
 	def get_pipeline(self):
 		return self.pipeline
@@ -173,14 +178,14 @@ class RuntimePipelineContext(PipelineContext):
 	def build_compiled_pipeline(self) -> CompiledPipeline:
 		compiled = CacheService.pipeline().get_compiled(self.pipeline.pipelineId)
 		if compiled is None:
-			compiled = RuntimeCompiledPipeline(self.pipeline)
+			compiled = RuntimeCompiledPipeline(self.pipeline, self.principal_service)
 			CacheService.pipeline().put_compiled(self.pipeline.pipelineId, compiled)
 			return compiled
 
 		if id(compiled.get_pipeline()) != id(self.pipeline):
 			# not same pipeline, abandon compiled cache
 			CacheService.pipeline().remove_compiled(self.pipeline.pipelineId)
-			compiled = RuntimeCompiledPipeline(self.pipeline)
+			compiled = RuntimeCompiledPipeline(self.pipeline, self.principal_service)
 			CacheService.pipeline().put_compiled(self.pipeline.pipelineId, compiled)
 			return compiled
 

@@ -14,12 +14,12 @@ logger = getLogger(__name__)
 
 
 class CompiledStage:
-	def __init__(self, pipeline: Pipeline, stage: PipelineStage):
+	def __init__(self, pipeline: Pipeline, stage: PipelineStage, principal_service: PrincipalService):
 		self.pipeline = pipeline
 		self.stage = stage
-		self.prerequisiteDefinedAs = parse_prerequisite_defined_as(stage)
-		self.prerequisiteTest = parse_prerequisite(stage)
-		self.units = compile_units(pipeline, stage)
+		self.prerequisiteDefinedAs = parse_prerequisite_defined_as(stage, principal_service)
+		self.prerequisiteTest = parse_prerequisite(stage, principal_service)
+		self.units = compile_units(pipeline, stage, principal_service)
 
 	def run(
 			self, variables: PipelineVariables,
@@ -75,9 +75,9 @@ class CompiledStage:
 			return unit.run(variables, new_pipeline, stage_monitor_log, principal_service)
 
 
-def compile_stages(pipeline: Pipeline) -> List[CompiledStage]:
+def compile_stages(pipeline: Pipeline, principal_service: PrincipalService) -> List[CompiledStage]:
 	stages = pipeline.stages
 	if stages is None or len(stages) == 0:
 		return []
 	else:
-		return ArrayHelper(stages).map(lambda x: CompiledStage(pipeline, x)).to_list()
+		return ArrayHelper(stages).map(lambda x: CompiledStage(pipeline, x, principal_service)).to_list()
