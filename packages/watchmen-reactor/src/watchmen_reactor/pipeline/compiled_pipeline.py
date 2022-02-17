@@ -11,7 +11,7 @@ from watchmen_model.reactor import PipelineMonitorLog, PipelineTriggerTraceId
 from watchmen_reactor.pipeline_schema import CompiledPipeline, PipelineContext, TopicStorages
 from watchmen_utilities import ArrayHelper
 from .compiled_stage import compile_stages, CompiledStage
-from .runtime import parse_conditional, PipelineVariables
+from .runtime import parse_conditional, parse_prerequisite_defined_as, PipelineVariables
 
 logger = getLogger(__name__)
 
@@ -19,15 +19,12 @@ logger = getLogger(__name__)
 class RuntimeCompiledPipeline(CompiledPipeline):
 	def __init__(self, pipeline: Pipeline):
 		self.pipeline = pipeline
+		self.prerequisiteDefinedAs = parse_prerequisite_defined_as(pipeline)
 		self.conditional_test = parse_conditional(pipeline)
 		self.stages = compile_stages(pipeline)
 
 	def get_pipeline(self):
 		return self.pipeline
-
-	# noinspection PyMethodMayBeStatic
-	def get_snowflake_generator(self):
-		return ask_snowflake_generator()
 
 	# noinspection PyMethodMayBeStatic
 	def timestamp(self):
@@ -42,13 +39,14 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 		variables = PipelineVariables(previous_data, current_data)
 		monitor_log = PipelineMonitorLog(
 			# create uid of pipeline monitor log
-			uid=str(self.get_snowflake_generator().next_id()),
+			uid=str(ask_snowflake_generator().next_id()),
 			traceId=trace_id,
 			pipelineId=self.pipeline.pipelineId, topicId=self.pipeline.topicId,
-			startTime=self.timestamp(), completeTime=None,
+			startTime=self.timestamp(), spentInMills=None,
 			oldValue=deepcopy(previous_data) if previous_data is not None else None,
 			newValue=deepcopy(current_data) if current_data is not None else None,
-			conditionResult=True,
+			prerequisite=True,
+			prerequisiteDefinedAs=self.prerequisiteDefinedAs(),
 			stages=[],
 			error=None
 		)
@@ -61,9 +59,9 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 			monitor_log.error = format_exc()
 
 		if not prerequisite:
-			monitor_log.conditionResult = False
+			monitor_log.prerequisite = False
 		else:
-			monitor_log.conditionResult = True
+			monitor_log.prerequisite = True
 			ArrayHelper(self.stages) \
 				.reduce(lambda should_run, x: self.run_stage(should_run, x, variables, monitor_log), True)
 		monitor_log.completeTime = self.timestamp()

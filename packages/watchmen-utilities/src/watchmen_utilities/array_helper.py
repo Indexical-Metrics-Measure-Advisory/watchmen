@@ -67,6 +67,15 @@ class ArrayHelper:
 			func(an_element, index)
 		return self
 
+	def find(self, func: ArrayPredicate) -> Optional[Any]:
+		"""
+		find element which satisfies the given predicate function, returns None when not found
+		"""
+		for an_element in self.a_list:
+			if func(an_element):
+				return an_element
+		return None
+
 	def filter(self, func: ArrayPredicate) -> ArrayHelper:
 		"""
 		pick elements which satisfies the given predicate function

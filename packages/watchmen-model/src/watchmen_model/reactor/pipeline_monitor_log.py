@@ -26,8 +26,7 @@ class StandardMonitorLog(DataModel, BaseModel):
 
 class ConditionalMonitorLog(StandardMonitorLog):
 	prerequisite: bool  # result of prerequisite, True when it is not defined
-	prerequisiteBy: Optional[Any] = None  # definition of prerequisite
-	prerequisiteInRuntime: Optional[str] = None  # runtime describing of prerequisite
+	prerequisiteDefinedAs: Optional[Any] = None  # definition of prerequisite
 
 
 MonitorLogActionId = TypeVar('MonitorLogActionId', bound=str)
@@ -50,17 +49,14 @@ class MonitorLogFindByAction(MonitorLogAction):
 
 class MonitorReadAction(MonitorLogFindByAction):
 	type: ReadTopicActionType
-	by: Optional[Any]
 
 
 class MonitorWriteAction(MonitorLogFindByAction):
 	type: WriteTopicActionType
-	by: Optional[Any]
 
 
 class MonitorDeleteAction(MonitorLogFindByAction):
 	type: DeleteTopicActionType
-	by: Optional[Any]
 
 
 class MonitorAlarmAction(MonitorLogAction, ConditionalMonitorLog):

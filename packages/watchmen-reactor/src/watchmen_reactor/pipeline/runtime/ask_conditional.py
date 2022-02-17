@@ -84,9 +84,6 @@ class ParsedJoint(ParsedCondition):
 	jointType: ParameterJointType = ParameterJointType.AND
 	filters: List[ParsedCondition] = []
 
-	def __init__(self, condition: ParameterJoint):
-		super().__init__(condition)
-
 	def parse(self, condition: ParameterJoint) -> None:
 		self.jointType = ParameterJointType.OR \
 			if condition.jointType == ParameterJointType.OR else ParameterJointType.AND
@@ -104,9 +101,6 @@ class ParsedExpression(ParsedCondition):
 	left: Optional[ParsedParameter] = None
 	operator: Optional[ParameterExpressionOperator] = None
 	right: Optional[ParsedParameter] = None
-
-	def __int__(self, condition: ParameterExpression):
-		super().__init__(condition)
 
 	def parse(self, condition: ParameterExpression) -> None:
 		self.left = parse_parameter(condition.left)
