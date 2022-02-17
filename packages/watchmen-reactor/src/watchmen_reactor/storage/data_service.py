@@ -16,7 +16,7 @@ from .data_entity_helper import TopicDataEntityHelper
 logger = getLogger(__name__)
 
 
-class TopicTriggerResult(DataModel):
+class TopicTrigger(DataModel):
 	previous: Optional[Dict[str, Any]] = None
 	current: Optional[Dict[str, Any]] = None
 	triggerType: PipelineTriggerType = PipelineTriggerType.INSERT
@@ -80,7 +80,7 @@ class TopicDataService:
 		# 	logger.error(e, exc_info=True, stack_info=True)
 		raise ReactorException(message)
 
-	def trigger_by_insert(self, data: Dict[str, Any]) -> TopicTriggerResult:
+	def trigger_by_insert(self, data: Dict[str, Any]) -> TopicTrigger:
 		"""
 		data is pure data
 		"""
@@ -95,7 +95,7 @@ class TopicDataService:
 			)
 			storage.connect()
 			storage.insert_one(topic_data, data_entity_helper.get_entity_helper())
-			return TopicTriggerResult(
+			return TopicTrigger(
 				previous=None,
 				current=data,
 				triggerType=PipelineTriggerType.INSERT,
@@ -119,7 +119,7 @@ class TopicDataService:
 			self.raise_exception(f'Data not found by data[id={id_}] from {self.raise_on_topic()}.')
 		return previous_topic_data
 
-	def trigger_by_merge(self, data: Dict[str, Any]) -> TopicTriggerResult:
+	def trigger_by_merge(self, data: Dict[str, Any]) -> TopicTrigger:
 		topic = self.get_topic()
 		data_entity_helper = self.get_data_entity_helper()
 		storage = self.get_storage()
@@ -142,7 +142,7 @@ class TopicDataService:
 			if updated_count == 0:
 				raise ReactorException(
 					f'Data not found by data[{data}] on merge into topic[id={topic.topicId}, name={topic.name}].')
-			return TopicTriggerResult(
+			return TopicTrigger(
 				previous=self.try_to_unwrap_topic_data(previous_topic_data),
 				current=data,
 				triggerType=PipelineTriggerType.MERGE,
@@ -153,7 +153,7 @@ class TopicDataService:
 		finally:
 			storage.close()
 
-	def trigger_by_insert_or_merge(self, data: Dict[str, Any]) -> TopicTriggerResult:
+	def trigger_by_insert_or_merge(self, data: Dict[str, Any]) -> TopicTrigger:
 		data_entity_helper = self.get_data_entity_helper()
 		has_id, id_ = data_entity_helper.find_data_id(data)
 		if not has_id:
@@ -161,7 +161,7 @@ class TopicDataService:
 		else:
 			return self.trigger_by_merge(data)
 
-	def trigger_by_delete(self, data: Dict[str, Any]) -> TopicTriggerResult:
+	def trigger_by_delete(self, data: Dict[str, Any]) -> TopicTrigger:
 		data_entity_helper = self.get_data_entity_helper()
 		storage = self.get_storage()
 		has_id, id_ = data_entity_helper.find_data_id(data)
@@ -173,7 +173,7 @@ class TopicDataService:
 			deleted_count = storage.delete_by_id(id_, self.get_data_entity_helper().get_entity_id_helper())
 			if deleted_count == 0:
 				self.raise_exception(f'Data not found by data[{data}] on delete from {self.raise_on_topic()}.')
-			return TopicTriggerResult(
+			return TopicTrigger(
 				previous=self.try_to_unwrap_topic_data(previous_topic_data),
 				current=None,
 				triggerType=PipelineTriggerType.DELETE,

@@ -8,10 +8,10 @@ from watchmen_model.reactor import PipelineTriggerTraceId
 from watchmen_reactor.common import ReactorException
 from watchmen_reactor.meta import PipelineService
 from watchmen_reactor.pipeline.pipelines_dispatcher import PipelinesDispatcher
-from watchmen_reactor.storage import RawTopicDataService, RegularTopicDataService, TopicDataService, TopicTriggerResult
+from watchmen_reactor.storage import RawTopicDataService, RegularTopicDataService, TopicDataService, TopicTrigger
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_utilities import ArrayHelper
-from .pipeline_context import RuntimePipelineContext
+from .compiled_pipeline import RuntimePipelineContext
 from .topic_helper import ask_topic_data_entity_helper, RuntimeTopicStorages
 
 logger = getLogger(__name__)
@@ -52,7 +52,7 @@ class PipelineTrigger:
 	def prepare_trigger_data(self):
 		self.trigger_topic_schema.prepare_data(self.trigger_data)
 
-	def save_trigger_data(self) -> TopicTriggerResult:
+	def save_trigger_data(self) -> TopicTrigger:
 		data_service = self.ask_topic_data_service(self.trigger_topic_schema)
 		if self.trigger_type == PipelineTriggerType.INSERT:
 			return data_service.trigger_by_insert(self.trigger_data)
@@ -81,7 +81,7 @@ class PipelineTrigger:
 		else:
 			raise ReactorException(f'Pipeline trigger type[{trigger_type}] is not supported.')
 
-	async def start(self, trigger: TopicTriggerResult) -> None:
+	async def start(self, trigger: TopicTrigger) -> None:
 		"""
 		data of trigger must be prepared already
 		"""

@@ -4,17 +4,18 @@ from logging import getLogger
 from traceback import format_exc
 from typing import Any, Callable, Dict, List
 
+from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import AlarmAction, AlarmActionSeverity, CopyToMemoryAction, DeleteTopicAction, \
-	DeleteTopicActionType, Pipeline, \
-	PipelineAction, PipelineStage, PipelineUnit, ReadTopicAction, ReadTopicActionType, SystemActionType, \
-	WriteToExternalAction, \
-	WriteTopicAction, WriteTopicActionType
+	DeleteTopicActionType, Pipeline, PipelineAction, PipelineStage, PipelineUnit, ReadTopicAction, \
+	ReadTopicActionType, SystemActionType, WriteToExternalAction, WriteTopicAction, WriteTopicActionType
 from watchmen_model.reactor import MonitorAlarmAction, MonitorCopyToMemoryAction, MonitorDeleteAction, \
-	MonitorLogAction, MonitorLogUnit, MonitorReadAction, MonitorWriteAction, MonitorWriteToExternalAction
+	MonitorLogAction, MonitorLogStatus, MonitorLogUnit, MonitorReadAction, MonitorWriteAction, \
+	MonitorWriteToExternalAction
 from watchmen_reactor.common import ReactorException
 from watchmen_utilities import ArrayHelper
-from .runtime import ConditionalTest, ConstantValue, parse_conditional, parse_constant, PipelineVariables
+from .runtime import ConditionalTest, ConstantValue, CreateQueuePipeline, parse_conditional, parse_constant, \
+	PipelineVariables, spent_ms
 
 logger = getLogger(__name__)
 
@@ -35,14 +36,18 @@ class CompiledAction:
 	def timestamp(self):
 		return datetime.now()
 
-	def run(self, variables: PipelineVariables, unit_monitor_log: MonitorLogUnit) -> bool:
+	def run(
+			self, variables: PipelineVariables,
+			new_pipeline: CreateQueuePipeline, unit_monitor_log: MonitorLogUnit,
+			principal_service: PrincipalService) -> bool:
 		"""
 		returns True means continue, False means something wrong occurred, break the following
 		"""
 		action_monitor_log = self.create_action_log(self.create_common_action_log())
 		unit_monitor_log.actions.append(action_monitor_log)
-		return self.do_run(variables, action_monitor_log)
+		return self.do_run(variables, new_pipeline, action_monitor_log, principal_service)
 
+	# noinspection PyMethodMayBeStatic
 	def safe_run(self, action_monitor_log: MonitorLogAction, work: Callable[[], None]) -> bool:
 		"""
 		returns True means continue, False means something wrong occurred, break the following
@@ -50,15 +55,21 @@ class CompiledAction:
 		# noinspection PyBroadException
 		try:
 			work()
-			action_monitor_log.completeTime = self.timestamp()
+			action_monitor_log.status = MonitorLogStatus.DONE
+			action_monitor_log.spentInMills = spent_ms(action_monitor_log.startTime)
 			return True
 		except Exception as e:
+			logger.error(e, exc_info=True, stack_info=True)
+			action_monitor_log.status = MonitorLogStatus.ERROR
 			action_monitor_log.error = format_exc()
-			action_monitor_log.completeTime = self.timestamp()
+			action_monitor_log.spentInMills = spent_ms(action_monitor_log.startTime)
 			return False
 
 	@abstractmethod
-	def do_run(self, variables: PipelineVariables, action_monitor_log: MonitorLogAction) -> bool:
+	def do_run(
+			self, variables: PipelineVariables,
+			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorLogAction,
+			principal_service: PrincipalService) -> bool:
 		"""
 		returns True means continue, False means something wrong occurred, break the following
 		"""
@@ -89,7 +100,10 @@ class CompiledAlarmAction(CompiledAction):
 		self.severity = AlarmActionSeverity.MEDIUM if action.severity is None else action.severity
 		self.message = parse_constant(action.message)
 
-	def do_run(self, variables: PipelineVariables, action_monitor_log: MonitorAlarmAction) -> bool:
+	def do_run(
+			self, variables: PipelineVariables,
+			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorLogAction,
+			principal_service: PrincipalService) -> bool:
 		try:
 			prerequisite = self.conditional_test(variables)
 		except Exception as e:
@@ -121,7 +135,10 @@ class CompiledCopyToMemoryAction(CompiledAction):
 		# TODO
 		pass
 
-	def do_run(self, variables: PipelineVariables, action_monitor_log: CopyToMemoryAction) -> bool:
+	def do_run(
+			self, variables: PipelineVariables,
+			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorLogAction,
+			principal_service: PrincipalService) -> bool:
 		# TODO
 		pass
 
@@ -134,7 +151,10 @@ class CompiledWriteToExternalAction(CompiledAction):
 		# TODO
 		pass
 
-	def do_run(self, variables: PipelineVariables, action_monitor_log: MonitorWriteToExternalAction) -> bool:
+	def do_run(
+			self, variables: PipelineVariables,
+			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorLogAction,
+			principal_service: PrincipalService) -> bool:
 		# TODO
 		pass
 
@@ -147,7 +167,10 @@ class CompiledReadTopicAction(CompiledAction):
 		# TODO
 		pass
 
-	def do_run(self, variables: PipelineVariables, action_monitor_log: MonitorReadAction) -> bool:
+	def do_run(
+			self, variables: PipelineVariables,
+			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorLogAction,
+			principal_service: PrincipalService) -> bool:
 		# TODO
 		pass
 
@@ -180,7 +203,10 @@ class CompiledWriteTopicAction(CompiledAction):
 		# TODO
 		pass
 
-	def do_run(self, variables: PipelineVariables, action_monitor_log: MonitorWriteAction) -> bool:
+	def do_run(
+			self, variables: PipelineVariables,
+			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorLogAction,
+			principal_service: PrincipalService) -> bool:
 		# TODO
 		pass
 
@@ -209,7 +235,10 @@ class CompiledDeleteTopicAction(CompiledAction):
 		# TODO
 		pass
 
-	def do_run(self, variables: PipelineVariables, action_monitor_log: MonitorDeleteAction) -> bool:
+	def do_run(
+			self, variables: PipelineVariables,
+			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorLogAction,
+			principal_service: PrincipalService) -> bool:
 		# TODO
 		pass
 

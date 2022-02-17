@@ -19,4 +19,5 @@ def build_topic_data_storage(data_source: DataSource) -> Callable[[], TopicDataS
 	# TODO build mongodb storage
 
 	raise ReactorException(
-		f'Reactor storage[id={data_source.name}, type={data_source.dataSourceType}] is not supported yet.')
+		f'Reactor storage[id={data_source.dataSourceId}, name={data_source.name} type={data_source.dataSourceType}] '
+		f'is not supported yet.')
