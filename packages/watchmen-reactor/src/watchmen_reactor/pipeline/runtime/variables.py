@@ -18,6 +18,9 @@ class PipelineVariables:
 		# TODO find variables
 		return self.variables.get(name)
 
+	def find_from_current_data(self, name: str) -> Optional[Any]:
+		return self.current_data.get(name)
+
 	def clone(self) -> PipelineVariables:
 		cloned = PipelineVariables(self.previous_data, self.current_data)
 		cloned.variables = deepcopy(self.variables)
