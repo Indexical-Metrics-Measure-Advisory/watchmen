@@ -1,4 +1,6 @@
 from copy import deepcopy
+from logging import getLogger
+from traceback import format_exc
 from typing import Any, List
 
 from watchmen_auth import PrincipalService
@@ -10,14 +12,16 @@ from .compiled_action import compile_actions, CompiledAction
 from .runtime import CreateQueuePipeline, now, parse_conditional, parse_prerequisite_defined_as, PipelineVariables, \
 	spent_ms
 
+logger = getLogger(__name__)
+
 
 class CompiledUnit:
 	def __init__(self, pipeline: Pipeline, stage: PipelineStage, unit: PipelineUnit):
 		self.pipeline = pipeline
 		self.stage = stage
 		self.unit = unit
-		self.prerequisiteDefinedAs = parse_prerequisite_defined_as(pipeline)
-		self.prerequisiteTest = parse_conditional(pipeline)
+		self.prerequisiteDefinedAs = parse_prerequisite_defined_as(unit)
+		self.prerequisiteTest = parse_conditional(unit)
 		self.loopVariableName = unit.loopVariableName
 		self.hasLoop = is_not_blank(self.loopVariableName)
 		self.actions = compile_actions(pipeline, stage, unit)
@@ -30,7 +34,7 @@ class CompiledUnit:
 		returns True means continue, False means something wrong occurred, break the following
 		"""
 		loop_variable_name = self.loopVariableName
-		if is_not_blank(loop_variable_name):
+		if self.hasLoop:
 			loop_variable_value = variables.find(loop_variable_name)
 			if loop_variable_value is None:
 				# no value or it is none, run once
@@ -65,7 +69,7 @@ class CompiledUnit:
 			new_pipeline: CreateQueuePipeline, stage_monitor_log: MonitorLogStage,
 			principal_service: PrincipalService) -> bool:
 		loop_variable_name = self.loopVariableName
-		if is_not_blank(loop_variable_name):
+		if self.hasLoop:
 			loop_variable_value = variables.find(loop_variable_name)
 		else:
 			loop_variable_value = None
@@ -77,15 +81,34 @@ class CompiledUnit:
 		)
 		stage_monitor_log.stages.append(unit_monitor_log)
 
-		def run(should_run, action: CompiledAction) -> bool:
-			return self.run_action(should_run, action, variables, new_pipeline, unit_monitor_log, principal_service)
+		try:
+			# test prerequisite
+			prerequisite = self.prerequisiteTest(variables)
+			if not prerequisite:
+				unit_monitor_log.prerequisite = False
+				unit_monitor_log.status = MonitorLogStatus.DONE
+				all_run = True
+			else:
+				unit_monitor_log.prerequisite = True
 
-		all_run = ArrayHelper(self.actions).reduce(lambda should_run, x: run(should_run, x), True)
-		if all_run:
-			unit_monitor_log.status = MonitorLogStatus.DONE
-		else:
+				def run(should_run, action: CompiledAction) -> bool:
+					return self.run_action(
+						should_run, action, variables, new_pipeline, unit_monitor_log, principal_service)
+
+				all_run = ArrayHelper(self.actions).reduce(lambda should_run, x: run(should_run, x), True)
+				if all_run:
+					unit_monitor_log.status = MonitorLogStatus.DONE
+				else:
+					unit_monitor_log.status = MonitorLogStatus.ERROR
+		except Exception as e:
+			# treat exception on test prerequisite as ignore, and log error
+			logger.error(e, exc_info=True, stack_info=True)
 			unit_monitor_log.status = MonitorLogStatus.ERROR
+			unit_monitor_log.error = format_exc()
+			all_run = False
+
 		unit_monitor_log.spentInMills = spent_ms(unit_monitor_log.startTime)
+
 		return all_run
 
 	# noinspection PyMethodMayBeStatic

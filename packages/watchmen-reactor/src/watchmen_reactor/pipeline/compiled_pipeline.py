@@ -95,8 +95,8 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 		)
 
 		created_pipeline_contexts = CreatedPipelineContexts()
-		# test prerequisite
 		try:
+			# test prerequisite
 			prerequisite = self.prerequisiteTest(variables)
 			if not prerequisite:
 				monitor_log.prerequisite = False
