@@ -20,6 +20,9 @@ class CompiledUnit:
 		return datetime.now()
 
 	def run(self, variables: PipelineVariables, stage_monitor_log: MonitorLogStage) -> bool:
+		"""
+		returns True means continue, False means something wrong occurred, break the following
+		"""
 		# TODO, run unit, be careful, might contain loop
 		pass
 
