@@ -65,7 +65,7 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 	def __init__(self, pipeline: Pipeline):
 		self.pipeline = pipeline
 		self.prerequisiteDefinedAs = parse_prerequisite_defined_as(pipeline)
-		self.conditional_test = parse_conditional(pipeline)
+		self.prerequisiteTest = parse_conditional(pipeline)
 		self.stages = compile_stages(pipeline)
 
 	def get_pipeline(self):
@@ -86,7 +86,7 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 			uid=str(ask_snowflake_generator().next_id()),
 			traceId=trace_id,
 			pipelineId=self.pipeline.pipelineId, topicId=self.pipeline.topicId,
-			status=MonitorLogStatus.DONE, startTime=now(), spentInMills=None, error=None,
+			status=MonitorLogStatus.DONE, startTime=now(), spentInMills=0, error=None,
 			oldValue=deepcopy(previous_data) if previous_data is not None else None,
 			newValue=deepcopy(current_data) if current_data is not None else None,
 			prerequisite=True,
@@ -94,29 +94,36 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 			stages=[]
 		)
 
+		created_pipeline_contexts = CreatedPipelineContexts()
 		# test prerequisite
 		try:
-			prerequisite = self.conditional_test(variables)
+			prerequisite = self.prerequisiteTest(variables)
+			if not prerequisite:
+				monitor_log.prerequisite = False
+				monitor_log.status = MonitorLogStatus.DONE
+			else:
+				monitor_log.prerequisite = True
+
+				def run(should_run: bool, stage: CompiledStage) -> bool:
+					return self.run_stage(
+						should_run, stage, variables,
+						created_pipeline_contexts, monitor_log, principal_service)
+
+				all_run = ArrayHelper(self.stages).reduce(lambda should_run, x: run(should_run, x), True)
+				if all_run:
+					monitor_log.status = MonitorLogStatus.DONE
+				else:
+					monitor_log.status = MonitorLogStatus.ERROR
 		except Exception as e:
 			# treat exception on test prerequisite as ignore, and log error
 			logger.error(e, exc_info=True, stack_info=True)
-			prerequisite = False
+			monitor_log.status = MonitorLogStatus.ERROR
 			monitor_log.error = format_exc()
 
-		created_pipeline_contexts = CreatedPipelineContexts()
-		if not prerequisite:
-			monitor_log.prerequisite = False
-		else:
-			monitor_log.prerequisite = True
-
-			def run(should_run: bool, stage: CompiledStage) -> bool:
-				return self.run_stage(
-					should_run, stage, variables,
-					created_pipeline_contexts, monitor_log, principal_service)
-
-			ArrayHelper(self.stages).reduce(lambda should_run, x: run(should_run, x), True)
+		# log spent in milliseconds
 		monitor_log.spentInMills = spent_ms(monitor_log.startTime)
 
+		# return created pipelines
 		return created_pipeline_contexts.to_list()
 
 	# noinspection PyMethodMayBeStatic
@@ -126,6 +133,7 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 			created_pipeline_contexts: CreatedPipelineContexts, monitor_log: PipelineMonitorLog,
 			principal_service: PrincipalService) -> bool:
 		if not should_run:
+			# ignored
 			return False
 		else:
 			def new_pipeline(pipeline: Pipeline, trigger: TopicTrigger) -> PipelineContext:
