@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+from copy import deepcopy
 from typing import Any, Dict, Optional
 
 
@@ -14,3 +17,8 @@ class PipelineVariables:
 	def find(self, name: str) -> Optional[Any]:
 		# TODO  find variables
 		return self.variables.get(name)
+
+	def clone(self) -> PipelineVariables:
+		cloned = PipelineVariables(self.previous_data, self.current_data)
+		cloned.variables = deepcopy(self.variables)
+		return cloned

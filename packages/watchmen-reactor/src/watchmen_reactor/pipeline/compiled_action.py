@@ -122,6 +122,7 @@ class CompiledAlarmAction(CompiledAction):
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
 			action_monitor_log.status = MonitorLogStatus.ERROR
+			action_monitor_log.spentInMills = spent_ms(action_monitor_log.startTime)
 			action_monitor_log.error = format_exc()
 			return False
 

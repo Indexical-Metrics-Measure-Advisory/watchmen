@@ -1,11 +1,14 @@
-from typing import List
+from copy import deepcopy
+from typing import Any, List
 
 from watchmen_auth import PrincipalService
 from watchmen_model.admin import Pipeline, PipelineStage, PipelineUnit
 from watchmen_model.reactor import MonitorLogStage, MonitorLogStatus, MonitorLogUnit
+from watchmen_reactor.common import ask_parallel_actions_in_loop_unit
 from watchmen_utilities import ArrayHelper, is_not_blank
 from .compiled_action import compile_actions, CompiledAction
-from .runtime import CreateQueuePipeline, now, PipelineVariables, spent_ms
+from .runtime import CreateQueuePipeline, now, parse_conditional, parse_prerequisite_defined_as, PipelineVariables, \
+	spent_ms
 
 
 class CompiledUnit:
@@ -13,6 +16,8 @@ class CompiledUnit:
 		self.pipeline = pipeline
 		self.stage = stage
 		self.unit = unit
+		self.prerequisiteDefinedAs = parse_prerequisite_defined_as(pipeline)
+		self.prerequisiteTest = parse_conditional(pipeline)
 		self.loopVariableName = unit.loopVariableName
 		self.hasLoop = is_not_blank(self.loopVariableName)
 		self.actions = compile_actions(pipeline, stage, unit)
@@ -24,8 +29,36 @@ class CompiledUnit:
 		"""
 		returns True means continue, False means something wrong occurred, break the following
 		"""
-		# TODO run unit
-		pass
+		loop_variable_name = self.loopVariableName
+		if is_not_blank(loop_variable_name):
+			loop_variable_value = variables.find(loop_variable_name)
+			if loop_variable_value is None:
+				# no value or it is none, run once
+				return self.do_run(variables, new_pipeline, stage_monitor_log, principal_service)
+			elif isinstance(loop_variable_value, list):
+				# a list, run for each element
+				# note variables CANNOT be passed from inside of loop, which means even variables are changed in loop,
+				# the next loop will not be impacted, and also will not impact steps followed
+				def clone_variables(replaced: Any) -> PipelineVariables:
+					cloned = variables.clone()
+					cloned.put(loop_variable_name, deepcopy(replaced))
+					return cloned
+
+				def run_element_in_loop(replaced: Any) -> bool:
+					return self.do_run(clone_variables(replaced), new_pipeline, stage_monitor_log, principal_service)
+
+				if ask_parallel_actions_in_loop_unit():
+					# TODO parallel version, now use sequential version
+					return ArrayHelper(loop_variable_value).every(run_element_in_loop)
+				else:
+					# sequential version
+					return ArrayHelper(loop_variable_value).every(run_element_in_loop)
+			else:
+				# not a list, run once
+				return self.do_run(variables, new_pipeline, stage_monitor_log, principal_service)
+		else:
+			# no loop declared
+			return self.do_run(variables, new_pipeline, stage_monitor_log, principal_service)
 
 	def do_run(
 			self, variables: PipelineVariables,
