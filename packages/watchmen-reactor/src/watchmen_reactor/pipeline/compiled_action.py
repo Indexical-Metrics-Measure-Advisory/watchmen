@@ -66,6 +66,7 @@ class CompiledAction:
 
 	def create_common_action_log(self) -> Dict[str, Any]:
 		return {
+			# create uid of action monitor log
 			'uid': str(ask_snowflake_generator().next_id()),
 			'actionId': self.action.actionId, 'type': self.action.type, 'status': None,
 			'startTime': self.timestamp(), 'completeTime': None,

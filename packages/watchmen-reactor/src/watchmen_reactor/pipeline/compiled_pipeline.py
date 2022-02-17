@@ -41,7 +41,7 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 	) -> List[PipelineContext]:
 		variables = PipelineVariables(previous_data, current_data)
 		monitor_log = PipelineMonitorLog(
-			# TODO is it necessary for create uid of pipeline monitor log
+			# create uid of pipeline monitor log
 			uid=str(self.get_snowflake_generator().next_id()),
 			traceId=trace_id,
 			pipelineId=self.pipeline.pipelineId, topicId=self.pipeline.topicId,
