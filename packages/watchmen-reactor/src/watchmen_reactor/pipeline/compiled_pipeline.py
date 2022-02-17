@@ -17,7 +17,7 @@ from watchmen_reactor.storage import TopicTrigger
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_utilities import ArrayHelper, is_blank
 from .compiled_stage import compile_stages, CompiledStage
-from .runtime import now, parse_conditional, parse_prerequisite_defined_as, PipelineVariables, spent_ms
+from .runtime import now, parse_prerequisite, parse_prerequisite_defined_as, PipelineVariables, spent_ms
 
 logger = getLogger(__name__)
 
@@ -65,7 +65,7 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 	def __init__(self, pipeline: Pipeline):
 		self.pipeline = pipeline
 		self.prerequisiteDefinedAs = parse_prerequisite_defined_as(pipeline)
-		self.prerequisiteTest = parse_conditional(pipeline)
+		self.prerequisiteTest = parse_prerequisite(pipeline)
 		self.stages = compile_stages(pipeline)
 
 	def get_pipeline(self):
@@ -97,7 +97,7 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 		created_pipeline_contexts = CreatedPipelineContexts()
 		try:
 			# test prerequisite
-			prerequisite = self.prerequisiteTest(variables)
+			prerequisite = self.prerequisiteTest(variables, principal_service)
 			if not prerequisite:
 				monitor_log.prerequisite = False
 				monitor_log.status = MonitorLogStatus.DONE

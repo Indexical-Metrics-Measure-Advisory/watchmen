@@ -13,8 +13,8 @@ from watchmen_model.reactor import MonitorAlarmAction, MonitorCopyToMemoryAction
 	MonitorWriteToExternalAction
 from watchmen_reactor.common import ReactorException
 from watchmen_utilities import ArrayHelper
-from .runtime import ConditionalTest, ConstantValue, CreateQueuePipeline, now, parse_action_defined_as, \
-	parse_conditional, parse_constant, parse_prerequisite_defined_as, PipelineVariables, PrerequisiteDefinedAs, spent_ms
+from .runtime import PrerequisiteTest, ConstantValue, CreateQueuePipeline, now, parse_action_defined_as, \
+	parse_prerequisite, parse_constant, parse_prerequisite_defined_as, PipelineVariables, PrerequisiteDefinedAs, spent_ms
 
 logger = getLogger(__name__)
 
@@ -88,13 +88,13 @@ class CompiledAction:
 
 class CompiledAlarmAction(CompiledAction):
 	prerequisiteDefinedAs: PrerequisiteDefinedAs
-	prerequisiteTest: ConditionalTest
+	prerequisiteTest: PrerequisiteTest
 	severity: AlarmActionSeverity = AlarmActionSeverity.MEDIUM
 	message: ConstantValue = None
 
 	def parse_action(self, action: AlarmAction) -> None:
 		self.prerequisiteDefinedAs = parse_prerequisite_defined_as(action)
-		self.prerequisiteTest = parse_conditional(action)
+		self.prerequisiteTest = parse_prerequisite(action)
 		self.severity = AlarmActionSeverity.MEDIUM if action.severity is None else action.severity
 		self.message = parse_constant(action.message)
 
@@ -103,7 +103,7 @@ class CompiledAlarmAction(CompiledAction):
 			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorLogAction,
 			principal_service: PrincipalService) -> bool:
 		try:
-			prerequisite = self.prerequisiteTest(variables)
+			prerequisite = self.prerequisiteTest(variables, principal_service)
 			if not prerequisite:
 				action_monitor_log.prerequisite = False
 				action_monitor_log.spentInMills = spent_ms(action_monitor_log.startTime)
