@@ -124,7 +124,7 @@ def construct_actions(actions: Optional[list] = None) -> Optional[List[MonitorLo
 		return ArrayHelper(actions).map(lambda x: construct_action(x)).to_list()
 
 
-class MonitorLogUnit(StandardMonitorLog):
+class MonitorLogUnit(ConditionalMonitorLog):
 	unitId: PipelineUnitId
 	name: str
 	loopVariableName: Optional[str] = None
