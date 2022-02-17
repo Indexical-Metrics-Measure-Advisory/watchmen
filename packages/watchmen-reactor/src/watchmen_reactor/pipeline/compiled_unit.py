@@ -2,9 +2,9 @@ from datetime import datetime
 from typing import List
 
 from watchmen_model.admin import Pipeline, PipelineStage, PipelineUnit
-from watchmen_model.reactor import MonitorLogStage
-from watchmen_utilities import ArrayHelper
-from .compiled_action import compile_actions
+from watchmen_model.reactor import MonitorLogStage, MonitorLogUnit
+from watchmen_utilities import ArrayHelper, is_not_blank
+from .compiled_action import compile_actions, CompiledAction
 from .runtime import PipelineVariables
 
 
@@ -13,6 +13,8 @@ class CompiledUnit:
 		self.pipeline = pipeline
 		self.stage = stage
 		self.unit = unit
+		self.loopVariableName = unit.loopVariableName
+		self.hasLoop = is_not_blank(self.loopVariableName)
 		self.actions = compile_actions(pipeline, stage, unit)
 
 	# noinspection PyMethodMayBeStatic
@@ -23,8 +25,30 @@ class CompiledUnit:
 		"""
 		returns True means continue, False means something wrong occurred, break the following
 		"""
-		# TODO, run unit, be careful, might contain loop
 		pass
+
+	def do_run(self, variables: PipelineVariables, stage_monitor_log: MonitorLogStage) -> bool:
+		unit_monitor_log = MonitorLogUnit(
+			unitId=self.unit.unitId, name=self.unit.name,
+			startTime=self.timestamp(), completeTime=None,
+			units=[],
+			error=None
+		)
+		stage_monitor_log.stages.append(unit_monitor_log)
+
+		all_run = ArrayHelper(self.actions) \
+			.reduce(lambda should_run, x: self.run_action(should_run, x, variables, unit_monitor_log), True)
+
+	# noinspection PyMethodMayBeStatic
+	def run_action(
+			self, should_run: bool,
+			action: CompiledAction, variables: PipelineVariables,
+			unit_monitor_log: MonitorLogUnit
+	) -> bool:
+		if not should_run:
+			return False
+		else:
+			return action.run(variables, unit_monitor_log)
 
 
 def compile_units(pipeline: Pipeline, stage: PipelineStage) -> List[CompiledUnit]:

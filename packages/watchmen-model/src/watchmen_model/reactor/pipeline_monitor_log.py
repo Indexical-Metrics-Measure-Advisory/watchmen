@@ -6,65 +6,73 @@ from pydantic import BaseModel
 
 from watchmen_model.admin import DeleteTopicActionType, PipelineActionType, ReadTopicActionType, SystemActionType, \
 	WriteTopicActionType
-from watchmen_model.common import DataModel, PipelineActionId, PipelineId, PipelineStageId, PipelineUnitId, Storable, \
-	TopicId
+from watchmen_model.common import DataModel, PipelineActionId, PipelineId, PipelineStageId, PipelineUnitId, TopicId
 from watchmen_utilities import ArrayHelper
 from .pipeline_trigger_data import PipelineTriggerTraceId
 
 
 class MonitorLogStatus(str, Enum):
-	DONE = 'DONE',
-	ERROR = 'ERROR',
+	DONE = 'DONE',  # even step is ignored by prerequisite is false, it is treated as DONE
+	IGNORED = 'IGNORED',  # step never be touched
+	ERROR = 'ERROR',  # exception occurred
+
+
+class StandardMonitorLog(DataModel, BaseModel):
+	status: MonitorLogStatus
+	startTime: Optional[datetime] = None  # keep none when step is ignored
+	spentInMills: Optional[int] = 0  # keep 0 when step is ignored
+	error: Optional[str]  # if status is ERROR
+
+
+class ConditionalMonitorLog(StandardMonitorLog):
+	prerequisite: bool  # result of prerequisite, True when it is not defined
+	prerequisiteBy: Optional[Any] = None  # definition of prerequisite
+	prerequisiteInRuntime: Optional[str] = None  # runtime describing of prerequisite
 
 
 MonitorLogActionId = TypeVar('MonitorLogActionId', bound=str)
 
 
-class MonitorLogAction(DataModel, BaseModel):
+class MonitorLogAction(StandardMonitorLog):
 	uid: MonitorLogActionId
 	actionId: PipelineActionId
 	type: PipelineActionType
-	status: Optional[MonitorLogStatus] = None
-	startTime: datetime
-	completeTime: datetime
-	error: Optional[str] = None
 	insertCount: int = 0
 	updateCount: int = 0
 	deleteCount: int = 0
+	definedAs: Optional[Any] = None  # definition of action
+	touched: Optional[Any] = None  # touched value
 
 
-class MonitorReadAction(MonitorLogAction):
+class MonitorLogFindByAction(MonitorLogAction):
+	findBy: Optional[Any] = None  # runtime describing of find by
+
+
+class MonitorReadAction(MonitorLogFindByAction):
 	type: ReadTopicActionType
-	value: Optional[Any]
 	by: Optional[Any]
 
 
-class MonitorWriteAction(MonitorLogAction):
+class MonitorWriteAction(MonitorLogFindByAction):
 	type: WriteTopicActionType
-	value: Optional[Any]
 	by: Optional[Any]
 
 
-class MonitorDeleteAction(MonitorLogAction):
+class MonitorDeleteAction(MonitorLogFindByAction):
 	type: DeleteTopicActionType
-	value: Optional[Any]
 	by: Optional[Any]
 
 
-class MonitorAlarmAction(MonitorLogAction):
+class MonitorAlarmAction(MonitorLogAction, ConditionalMonitorLog):
 	type: SystemActionType = SystemActionType.ALARM
-	conditionResult: bool
-	value: Optional[Any]
 
 
 class MonitorCopyToMemoryAction(MonitorLogAction):
 	type: SystemActionType = SystemActionType.COPY_TO_MEMORY
-	value: Optional[Any]
 
 
 class MonitorWriteToExternalAction(MonitorLogAction):
 	type: SystemActionType = SystemActionType.WRITE_TO_EXTERNAL
-	value: Optional[Any]
 
 
 def is_read_action(action_type: PipelineActionType) -> bool:
@@ -120,14 +128,12 @@ def construct_actions(actions: Optional[list] = None) -> Optional[List[MonitorLo
 		return ArrayHelper(actions).map(lambda x: construct_action(x)).to_list()
 
 
-class MonitorLogUnit(DataModel, BaseModel):
+class MonitorLogUnit(StandardMonitorLog):
 	unitId: PipelineUnitId
 	name: str
-	startTime: datetime
-	completeTime: Optional[datetime] = None
-	conditionResult: bool
+	loopVariableName: Optional[str] = None
+	loopVariableValue: Optional[Any] = None
 	actions: List[MonitorLogAction]
-	error: Optional[str]
 
 	def __setattr__(self, name, value):
 		if name == 'actions':
@@ -152,14 +158,10 @@ def construct_units(units: Optional[list] = None) -> Optional[List[MonitorLogUni
 		return ArrayHelper(units).map(lambda x: construct_unit(x)).to_list()
 
 
-class MonitorLogStage(DataModel, BaseModel):
+class MonitorLogStage(ConditionalMonitorLog):
 	stageId: PipelineStageId
 	name: str
-	startTime: datetime
-	completeTime: Optional[datetime] = None
-	conditionResult: bool
 	units: List[MonitorLogUnit]
-	error: Optional[str]
 
 	def __setattr__(self, name, value):
 		if name == 'units':
@@ -187,19 +189,14 @@ def construct_stages(stages: Optional[list] = None) -> Optional[List[MonitorLogS
 PipelineMonitorLogId = TypeVar('PipelineMonitorLogId', bound=str)
 
 
-class PipelineMonitorLog(Storable, BaseModel):
+class PipelineMonitorLog(ConditionalMonitorLog):
 	uid: PipelineMonitorLogId
 	traceId: PipelineTriggerTraceId
 	pipelineId: PipelineId
 	topicId: TopicId
-	status: MonitorLogStatus
-	startTime: datetime
-	completeTime: Optional[datetime] = None
 	oldValue: Any
 	newValue: Any
-	conditionResult: bool
 	stages: List[MonitorLogStage]
-	error: Optional[str]
 
 	def __setattr__(self, name, value):
 		if name == 'stages':

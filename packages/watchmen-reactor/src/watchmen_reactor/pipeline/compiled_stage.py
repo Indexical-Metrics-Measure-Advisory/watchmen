@@ -55,7 +55,8 @@ class CompiledStage:
 	def run_unit(
 			self, should_run: bool,
 			unit: CompiledUnit, variables: PipelineVariables,
-			stage_monitor_log: MonitorLogStage) -> bool:
+			stage_monitor_log: MonitorLogStage
+	) -> bool:
 		if not should_run:
 			return False
 		else:
