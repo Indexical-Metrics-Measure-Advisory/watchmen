@@ -7,7 +7,7 @@ from watchmen_model.admin import Pipeline, PipelineStage
 from watchmen_model.reactor import MonitorLogStage, MonitorLogStatus, PipelineMonitorLog
 from watchmen_utilities import ArrayHelper
 from .compiled_unit import compile_units, CompiledUnit
-from .runtime import CreateQueuePipeline, now, parse_conditional, parse_prerequisite_defined_as, PipelineVariables, \
+from .runtime import CreateQueuePipeline, now, parse_prerequisite, parse_prerequisite_defined_as, PipelineVariables, \
 	spent_ms
 
 logger = getLogger(__name__)
@@ -18,7 +18,7 @@ class CompiledStage:
 		self.pipeline = pipeline
 		self.stage = stage
 		self.prerequisiteDefinedAs = parse_prerequisite_defined_as(stage)
-		self.prerequisiteTest = parse_conditional(stage)
+		self.prerequisiteTest = parse_prerequisite(stage)
 		self.units = compile_units(pipeline, stage)
 
 	def run(
@@ -35,13 +35,13 @@ class CompiledStage:
 		monitor_log.stages.append(stage_monitor_log)
 
 		try:
-			prerequisite = self.prerequisiteTest(variables)
+			prerequisite = self.prerequisiteTest(variables, principal_service)
 			if not prerequisite:
-				stage_monitor_log.conditionResult = False
+				stage_monitor_log.prerequisite = False
 				stage_monitor_log.status = MonitorLogStatus.DONE
 				all_run = True
 			else:
-				stage_monitor_log.conditionResult = True
+				stage_monitor_log.prerequisite = True
 
 				def run(should_run: bool, unit: CompiledUnit) -> bool:
 					return self.run_unit(

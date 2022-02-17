@@ -9,7 +9,7 @@ from watchmen_model.reactor import MonitorLogStage, MonitorLogStatus, MonitorLog
 from watchmen_reactor.common import ask_parallel_actions_in_loop_unit
 from watchmen_utilities import ArrayHelper, is_not_blank
 from .compiled_action import compile_actions, CompiledAction
-from .runtime import CreateQueuePipeline, now, parse_conditional, parse_prerequisite_defined_as, PipelineVariables, \
+from .runtime import CreateQueuePipeline, now, parse_prerequisite, parse_prerequisite_defined_as, PipelineVariables, \
 	spent_ms
 
 logger = getLogger(__name__)
@@ -21,7 +21,7 @@ class CompiledUnit:
 		self.stage = stage
 		self.unit = unit
 		self.prerequisiteDefinedAs = parse_prerequisite_defined_as(unit)
-		self.prerequisiteTest = parse_conditional(unit)
+		self.prerequisiteTest = parse_prerequisite(unit)
 		self.loopVariableName = unit.loopVariableName
 		self.hasLoop = is_not_blank(self.loopVariableName)
 		self.actions = compile_actions(pipeline, stage, unit)
@@ -83,7 +83,7 @@ class CompiledUnit:
 
 		try:
 			# test prerequisite
-			prerequisite = self.prerequisiteTest(variables)
+			prerequisite = self.prerequisiteTest(variables, principal_service)
 			if not prerequisite:
 				unit_monitor_log.prerequisite = False
 				unit_monitor_log.status = MonitorLogStatus.DONE
