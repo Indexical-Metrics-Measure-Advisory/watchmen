@@ -2,7 +2,7 @@ from abc import abstractmethod
 from typing import Any, Callable, List, Optional
 
 from watchmen_auth import PrincipalService
-from watchmen_model.admin import Conditional
+from watchmen_model.admin import Conditional, Factor, Topic
 from watchmen_model.common import ComputedParameter, ConstantParameter, Parameter, ParameterCondition, \
 	ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, TopicFactorParameter
 from watchmen_reactor.common import ReactorException
@@ -194,14 +194,72 @@ class ParsedExpression(ParsedCondition):
 
 
 class ParsedTopicFactorParameter(ParsedParameter):
+	topic: Topic = None
+	factor: Factor = None
+	askValue: Callable[[PipelineVariables, PrincipalService], Any] = None
+
 	def parse(self, parameter: TopicFactorParameter, principal_service: PrincipalService) -> None:
 		if is_blank(parameter.topicId):
 			raise ReactorException(f'Topic not declared.')
+		topic_service = get_topic_service(principal_service)
+		topic: Optional[Topic] = topic_service.find_by_id(parameter.topicId)
+		if topic is None:
+			raise ReactorException(f'Topic[id={parameter.topicId}] not found.')
+		self.topic = topic
+
 		if is_blank(parameter.factorId):
 			raise ReactorException(f'Factor not declared.')
+		factor: Optional[Factor] = ArrayHelper(topic.factors).find(lambda x: x.factorId == parameter.factorId)
+		if factor is None:
+			raise ReactorException(
+				f'Factor[id={parameter.factorId}] in topic[id={topic.topicId}, name={topic.name}] not found.')
+		self.factor = factor
+		name = factor.name
+		if is_blank(name):
+			raise ReactorException(f'Name of factor[id={factor.factorId}, topicId={topic.topicId}] not declared.')
+		names = name.strip().split('.')
+
+		# topic factor parameter always retrieve data from current trigger data
+		if len(names) == 1:
+			# noinspection PyUnusedLocal
+			def value(variables: PipelineVariables, runtime_principal_service: PrincipalService) -> Any:
+				return variables.find_from_current_data(names[0])
+		else:
+			# noinspection PyUnusedLocal
+			def value(variables: PipelineVariables, runtime_principal_service: PrincipalService) -> Any:
+				data = variables.find_from_current_data(names[0])
+				if data is None:
+					return None
+
+				remains_count: int = len(names) - 1
+				current_index: int = 1
+				while current_index <= remains_count:
+					if isinstance(data, dict):
+						data = data.get(names[current_index])
+					elif isinstance(data, list):
+						data = ArrayHelper(data) \
+							.map(lambda x: x.get(names[current_index])) \
+							.flatten().to_list()
+					else:
+						# cannot retrieve value from plain type variable
+						raise ReactorException(f'Cannot retrieve[key={name}, current={names[current_index]}] from [{data}].')
+
+					if data is None:
+						# no need to go deeper
+						return None
+					elif isinstance(data, list) and len(data) == 0:
+						# no need to go deeper
+						return []
+
+					# next loop
+					current_index = current_index + 1
+				# reaches target
+				return data
+
+		self.askValue = value
 
 	def value(self, variables: PipelineVariables, principal_service: PrincipalService) -> Any:
-		pass
+		return self.askValue(variables, principal_service)
 
 
 class ParsedConstantParameter(ParsedParameter):
