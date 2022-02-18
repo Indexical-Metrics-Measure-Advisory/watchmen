@@ -2,6 +2,10 @@ from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
 from json import JSONEncoder
+from re import sub
+from typing import Any, List, Optional, Tuple
+
+from .array_helper import ArrayHelper
 
 
 class DateTimeEncoder(JSONEncoder):
@@ -15,6 +19,53 @@ class DateTimeEncoder(JSONEncoder):
 
 def get_current_time_in_seconds() -> datetime:
 	return datetime.now().replace(tzinfo=None, microsecond=0)
+
+
+def try_to_format_date(might_be_date: str, date_format: str) -> Tuple[bool, Optional[date]]:
+	"""
+	return a datetime object is parsed
+	"""
+	try:
+		d = datetime.strptime(might_be_date, date_format)
+		return True, d
+	except ValueError:
+		return False, None
+
+
+def is_date(value: Optional[str], formats: List[str]) -> Tuple[bool, Optional[date]]:
+	"""
+	none is not a date value, otherwise remove non-number characters and try to parse by given formats.
+	digits after removing must match digits of format
+	"""
+	tidy_value = sub(r'\D', '', value)
+	count = len(tidy_value)
+	suitable_formats = ArrayHelper(formats).filter(lambda x: len(x) == count).to_list()
+	for suitable_format in suitable_formats:
+		parsed, date_value = try_to_format_date(tidy_value, suitable_format)
+		if parsed:
+			return parsed, date_value
+	return False, None
+
+
+def try_to_date(value: Any, formats: List[str], allow_timestamp: bool = False) -> Optional[date]:
+	"""
+	try to parse given value to date, or returns none when cannot be parsed.
+	formats can be datetime and date format
+	"""
+	if value is None:
+		return None
+	elif isinstance(value, date):
+		return value
+	elif allow_timestamp and (isinstance(value, int) or isinstance(value, float)):
+		# timestamp
+		return datetime.fromtimestamp(value, tz=None)
+	elif allow_timestamp and isinstance(value, Decimal):
+		return datetime.fromtimestamp(float(value), tz=None)
+	elif isinstance(value, str):
+		parsed, date_value = is_date(value, formats)
+		if parsed:
+			return date_value
+	return None
 
 
 class DateTimeConstants(int, Enum):
@@ -81,3 +132,60 @@ class DateTimeConstants(int, Enum):
 
 	AM = 1
 	PM = 2
+
+
+def get_year(dt: date) -> int:
+	return dt.year
+
+
+def get_month(dt: date) -> int:
+	return dt.month
+
+
+def get_half_year(dt: date) -> int:
+	return DateTimeConstants.HALF_YEAR_FIRST.value if get_month(dt) <= 6 else DateTimeConstants.HALF_YEAR_SECOND.value
+
+
+def get_quarter(dt: date) -> int:
+	month = get_month(dt)
+	if month <= 3:
+		return DateTimeConstants.QUARTER_FIRST.value
+	elif month <= 6:
+		return DateTimeConstants.QUARTER_SECOND.value
+	elif month <= 9:
+		return DateTimeConstants.QUARTER_THIRD.value
+	else:
+		return DateTimeConstants.QUARTER_FOURTH.value
+
+
+def get_week_of_year(dt: date) -> int:
+	return int(dt.strftime('%U'))
+
+
+def get_week_of_month(dt: date) -> int:
+	first_day = dt.replace(day=1)
+	first_day_week = get_week_of_year(first_day)
+	week_of_year = get_week_of_year(dt)
+	if first_day_week == week_of_year:
+		if get_day_of_week(first_day) == DateTimeConstants.SUNDAY.value:
+			# first week is full week
+			return DateTimeConstants.WEEK_OF_MONTH_FIRST
+		else:
+			# first week is short
+			return DateTimeConstants.WEEK_OF_MONTH_FIRST_SHORT
+	else:
+		if get_day_of_week(first_day) == DateTimeConstants.SUNDAY.value:
+			# first week is full week, must add 1
+			return week_of_year - first_day_week + 1
+		else:
+			# first week is short
+			return week_of_year - first_day_week
+
+
+def get_day_of_month(dt: date) -> int:
+	return dt.day
+
+
+def get_day_of_week(dt: date) -> int:
+	# iso weekday: Monday is 1 and Sunday is 7
+	return (dt.isoweekday() + 1) % 8
