@@ -1,4 +1,5 @@
 import logging
+from typing import List, Set
 
 from pydantic import BaseSettings
 
@@ -7,7 +8,18 @@ logger = logging.getLogger(__name__)
 
 class ReactorSettings(BaseSettings):
 	REACTOR_STORAGE_ECHO: bool = False
-	REACTOR_PARALLEL_ACTION_IN_LOOP_UNIT = False
+	REACTOR_PARALLEL_ACTION_IN_LOOP_UNIT: bool = False
+	REACTOR_DATETIME_FORMATS: Set[str] = [
+		'%Y%m%d%H%M%S', '%d%m%Y%H%M%S', '%m%d%Y%H%M%S',  # 14 digits,
+		'%Y%m%d%H%M', '%d%m%Y%H%M', '%m%d%Y%H%M'  # 12 digits
+	]  # all digits, other characters are prohibitive
+	REACTOR_DATE_FORMATS: Set[str] = [
+		'%Y%m%d', '%d%m%Y', '%m%d%Y',  # 8 digits
+	]  # all digits, other characters are prohibitive
+	REACTOR_TIME_FORMATS: Set[str] = [
+		'%H%M%S',  # 6 digits
+		'%H%M'  # 4 digits
+	]  # all digits, other characters are prohibitive
 	REACTOR_CACHE: bool = True  # enable reactor cache, keep it enabled in production
 	REACTOR_CACHE_HEART_BEAT: bool = True  # enable reactor cache heart beat
 	REACTOR_CACHE_HEART_BEAT_INTERVAL: int = 60  # reactor cache heart beat interval, in seconds
@@ -30,6 +42,22 @@ def ask_storage_echo_enabled() -> bool:
 
 def ask_parallel_actions_in_loop_unit() -> bool:
 	return settings.REACTOR_PARALLEL_ACTION_IN_LOOP_UNIT
+
+
+def ask_datetime_formats() -> List[str]:
+	return list(settings.REACTOR_DATETIME_FORMATS)
+
+
+def ask_date_formats() -> List[str]:
+	return list(settings.REACTOR_DATE_FORMATS)
+
+
+def ask_all_date_formats() -> List[str]:
+	return list(settings.REACTOR_DATETIME_FORMATS.union(settings.REACTOR_DATE_FORMATS))
+
+
+def ask_time_formats() -> List[str]:
+	return list(settings.REACTOR_TIME_FORMATS)
 
 
 def ask_cache_enabled() -> bool:

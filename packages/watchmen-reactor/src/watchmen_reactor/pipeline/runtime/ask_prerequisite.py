@@ -10,9 +10,13 @@ from watchmen_model.admin import Conditional, Factor, Topic
 from watchmen_model.common import ComputedParameter, ConstantParameter, Parameter, ParameterComputeType, \
 	ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, \
 	TopicFactorParameter
-from watchmen_reactor.common import ReactorException
+from watchmen_reactor.common import ask_all_date_formats, ReactorException
 from watchmen_reactor.meta import TopicService
-from watchmen_utilities import ArrayHelper, DateTimeConstants, is_blank, try_to_decimal
+from watchmen_utilities import ArrayHelper, get_day_of_month, get_day_of_week, get_half_year, \
+	get_month, \
+	get_quarter, get_week_of_month, \
+	get_week_of_year, get_year, is_blank, \
+	try_to_date, try_to_decimal
 from .utils import get_value_from_pipeline_variables
 from .variables import PipelineVariables
 
@@ -313,7 +317,7 @@ def create_datetime_func(
 		value = parameter.value(variables, principal_service)
 		if value is None:
 			return None
-		parsed, dt_value = parse_to_datetime(value, formats)
+		parsed, dt_value = try_to_date(value, ask_all_date_formats())
 		if not parsed:
 			raise ReactorException(f'Cannot parse value[{value}] to datetime.')
 		if dt_value is None:
@@ -321,63 +325,6 @@ def create_datetime_func(
 		return func(dt_value)
 
 	return get_part_of_datetime
-
-
-def get_year(dt: datetime) -> int:
-	return dt.year
-
-
-def get_month(dt: datetime) -> int:
-	return dt.month
-
-
-def get_half_year(dt: datetime) -> int:
-	return DateTimeConstants.HALF_YEAR_FIRST.value if get_month(dt) <= 6 else DateTimeConstants.HALF_YEAR_SECOND.value
-
-
-def get_quarter(dt: datetime) -> int:
-	month = get_month(dt)
-	if month <= 3:
-		return DateTimeConstants.QUARTER_FIRST.value
-	elif month <= 6:
-		return DateTimeConstants.QUARTER_SECOND.value
-	elif month <= 9:
-		return DateTimeConstants.QUARTER_THIRD.value
-	else:
-		return DateTimeConstants.QUARTER_FOURTH.value
-
-
-def get_week_of_year(dt: datetime) -> int:
-	return int(dt.strftime('%U'))
-
-
-def get_week_of_month(dt: datetime) -> int:
-	first_day = dt.replace(day=1)
-	first_day_week = get_week_of_year(first_day)
-	week_of_year = get_week_of_year(dt)
-	if first_day_week == week_of_year:
-		if get_day_of_week(first_day) == DateTimeConstants.SUNDAY.value:
-			# first week is full week
-			return DateTimeConstants.WEEK_OF_MONTH_FIRST
-		else:
-			# first week is short
-			return DateTimeConstants.WEEK_OF_MONTH_FIRST_SHORT
-	else:
-		if get_day_of_week(first_day) == DateTimeConstants.SUNDAY.value:
-			# first week is full week, must add 1
-			return week_of_year - first_day_week + 1
-		else:
-			# first week is short
-			return week_of_year - first_day_week
-
-
-def get_day_of_month(dt: datetime) -> int:
-	return dt.day
-
-
-def get_day_of_week(dt: datetime) -> int:
-	# iso weekday: Monday is 1 and Sunday is 7
-	return (dt.isoweekday() + 1) % 8
 
 
 def create_case_then(

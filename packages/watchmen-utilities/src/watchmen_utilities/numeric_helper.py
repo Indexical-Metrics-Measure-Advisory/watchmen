@@ -2,21 +2,12 @@ from decimal import Decimal
 from typing import Any, Optional, Tuple
 
 
-def is_blank(text: Optional[str]) -> bool:
-	if text is None:
-		return True
-	if len(text) == 0:
-		return True
-	if len(text.strip()) == 0:
-		return True
-	return False
-
-
-def is_not_blank(text: Optional[str]) -> bool:
-	return not is_blank(text)
-
-
-def is_numeric(value: str) -> Tuple[bool, Optional[Decimal]]:
+def is_numeric(value: Optional[str]) -> Tuple[bool, Optional[Decimal]]:
+	"""
+	none is not a numeric value, otherwise try to parse it by float function
+	"""
+	if value is None:
+		return False, None
 	try:
 		v = float(value)
 		return True, Decimal(v)
@@ -26,7 +17,7 @@ def is_numeric(value: str) -> Tuple[bool, Optional[Decimal]]:
 
 def try_to_decimal(value: Any) -> Optional[Decimal]:
 	"""
-	try to parse given value to decimal, or returns none if cannot be parsed
+	try to parse given value to decimal, or returns none when cannot be parsed
 	"""
 	if value is None:
 		return None
