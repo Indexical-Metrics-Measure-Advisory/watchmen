@@ -1,13 +1,18 @@
+from __future__ import annotations
+
 from abc import abstractmethod
-from typing import Any, Callable, List, Optional
+from datetime import datetime
+from decimal import Decimal
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 from watchmen_auth import PrincipalService
 from watchmen_model.admin import Conditional, Factor, Topic
-from watchmen_model.common import ComputedParameter, ConstantParameter, Parameter, ParameterCondition, \
-	ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, TopicFactorParameter
+from watchmen_model.common import ComputedParameter, ConstantParameter, Parameter, ParameterComputeType, \
+	ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, \
+	TopicFactorParameter
 from watchmen_reactor.common import ReactorException
 from watchmen_reactor.meta import TopicService
-from watchmen_utilities import ArrayHelper, is_blank
+from watchmen_utilities import ArrayHelper, DateTimeConstants, is_blank, try_to_decimal
 from .utils import get_value_from_pipeline_variables
 from .variables import PipelineVariables
 
@@ -250,14 +255,269 @@ class ParsedConstantParameter(ParsedParameter):
 		pass
 
 
+def reducer_add(one: Decimal, another: Decimal) -> Decimal:
+	return one + another
+
+
+def reducer_subtract(one: Decimal, another: Decimal) -> Decimal:
+	return one - another
+
+
+def reducer_multiply(one: Decimal, another: Decimal) -> Decimal:
+	return one * another
+
+
+def reducer_divide(one: Decimal, another: Decimal) -> Decimal:
+	return one / another
+
+
+def reducer_modulus(one: Decimal, another: Decimal) -> Decimal:
+	return one % another
+
+
+def parse_to_decimal(value: Any, fallback_value: Callable[[], Optional[Decimal]] = lambda x: None) -> Optional[Decimal]:
+	decimal_value = try_to_decimal(value)
+	return fallback_value() if decimal_value is None else decimal_value
+
+
+def create_numeric_reducer(
+		parameters: List[ParsedParameter], reduce_func: Callable[[Decimal, Decimal], Decimal], numeric_name: str,
+		fallback_first: Callable[[], Optional[Decimal]] = lambda x: None,
+		fallback_rest: Callable[[], Optional[Decimal]] = lambda x: None
+) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	def reduce(variables: PipelineVariables, principal_service: PrincipalService) -> Decimal:
+		first_value = parameters[0].value(variables, principal_service)
+		first_decimal_value = parse_to_decimal(first_value, fallback_first)
+		if first_decimal_value is None:
+			raise ReactorException(f'{numeric_name} [value={first_value}, type={type(first_value)}] is not supported.')
+
+		result_decimal_value = first_decimal_value
+
+		rest_parameters = parameters[1:]
+		for rest_parameter in rest_parameters:
+			rest_value = rest_parameter.value(variables, principal_service)
+			rest_decimal_value = parse_to_decimal(rest_value, fallback_rest)
+			if rest_decimal_value is None:
+				raise ReactorException(
+					f'{numeric_name} [value={rest_value}, type={type(rest_value)}] is not supported.')
+			result_decimal_value = reduce_func(result_decimal_value, rest_decimal_value)
+		return result_decimal_value
+
+	return reduce
+
+
+def create_datetime_func(
+		parameter: ParsedParameter, func: Callable[[datetime], int]
+) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	def get_part_of_datetime(variables: PipelineVariables, principal_service: PrincipalService) -> Optional[int]:
+		value = parameter.value(variables, principal_service)
+		if value is None:
+			return None
+		parsed, dt_value = parse_to_datetime(value, formats)
+		if not parsed:
+			raise ReactorException(f'Cannot parse value[{value}] to datetime.')
+		if dt_value is None:
+			return None
+		return func(dt_value)
+
+	return get_part_of_datetime
+
+
+def get_year(dt: datetime) -> int:
+	return dt.year
+
+
+def get_month(dt: datetime) -> int:
+	return dt.month
+
+
+def get_half_year(dt: datetime) -> int:
+	return DateTimeConstants.HALF_YEAR_FIRST.value if get_month(dt) <= 6 else DateTimeConstants.HALF_YEAR_SECOND.value
+
+
+def get_quarter(dt: datetime) -> int:
+	month = get_month(dt)
+	if month <= 3:
+		return DateTimeConstants.QUARTER_FIRST.value
+	elif month <= 6:
+		return DateTimeConstants.QUARTER_SECOND.value
+	elif month <= 9:
+		return DateTimeConstants.QUARTER_THIRD.value
+	else:
+		return DateTimeConstants.QUARTER_FOURTH.value
+
+
+def get_week_of_year(dt: datetime) -> int:
+	return int(dt.strftime('%U'))
+
+
+def get_week_of_month(dt: datetime) -> int:
+	first_day = dt.replace(day=1)
+	first_day_week = get_week_of_year(first_day)
+	week_of_year = get_week_of_year(dt)
+	if first_day_week == week_of_year:
+		if get_day_of_week(first_day) == DateTimeConstants.SUNDAY.value:
+			# first week is full week
+			return DateTimeConstants.WEEK_OF_MONTH_FIRST
+		else:
+			# first week is short
+			return DateTimeConstants.WEEK_OF_MONTH_FIRST_SHORT
+	else:
+		if get_day_of_week(first_day) == DateTimeConstants.SUNDAY.value:
+			# first week is full week, must add 1
+			return week_of_year - first_day_week + 1
+		else:
+			# first week is short
+			return week_of_year - first_day_week
+
+
+def get_day_of_month(dt: datetime) -> int:
+	return dt.day
+
+
+def get_day_of_week(dt: datetime) -> int:
+	# iso weekday: Monday is 1 and Sunday is 7
+	return (dt.isoweekday() + 1) % 8
+
+
+def create_case_then(
+		cases: List[Tuple[PrerequisiteTest, ParsedParameter]], anyway: Optional[ParsedParameter]
+) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	def run_case_then(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+		found: Optional[Tuple[PrerequisiteTest, ParsedParameter]] = \
+			ArrayHelper(cases).find(lambda x: x[0](variables, principal_service))
+		if found is not None:
+			# find a route
+			return found[1].value(variables, principal_service)
+		elif anyway is not None:
+			# return anyway value when no route found
+			return anyway.value(variables, principal_service)
+		else:
+			# return none when no route found and no anyway route
+			return None
+
+	return run_case_then
+
+
+def parse_conditional_parameter(
+		parameter: Parameter, principal_service: PrincipalService
+) -> Tuple[PrerequisiteTest, ParsedParameter]:
+	return \
+		parse_prerequisite(parameter, principal_service), \
+		parse_parameter(parameter, principal_service)
+
+
+def assert_parameter_count(
+		func_name: str, parameters: Optional[List[Parameter]],
+		min_count: int = 1, max_count: int = 9999, allow_undefined: bool = False
+) -> None:
+	if parameters is None:
+		raise ReactorException(f'Parameter not found on computation[{func_name}].')
+	count = len(parameters)
+	if count < min_count:
+		raise ReactorException(
+			f'At least {min_count} parameter(s) on computation[{func_name}], current is [{parameters}].')
+	if count > max_count:
+		raise ReactorException(
+			f'At most {max_count} parameter(s) on computation[{func_name}], current is [{parameters}].')
+	if not allow_undefined:
+		found = ArrayHelper(parameters).some(lambda x: x is None)
+		if found:
+			raise ReactorException(
+				f'None parameter is not allowed on computation[{func_name}], current is [{parameters}].')
+
+
 class ParsedComputedParameter(ParsedParameter):
+	askValue: Callable[[PipelineVariables, PrincipalService], Any] = None
+
 	def parse(self, parameter: ComputedParameter, principal_service: PrincipalService) -> None:
-		# TODO
-		pass
+		compute_type = parameter.type
+		if is_blank(compute_type) or compute_type == ParameterComputeType.NONE:
+			raise ReactorException(f'Compute type not declared.')
+
+		if compute_type == ParameterComputeType.ADD:
+			assert_parameter_count('add', parameter.parameters, 2)
+			# treat none value as 0
+			self.askValue = create_numeric_reducer(
+				ArrayHelper(parameter.parameters).map(lambda x: parse_parameter(x, principal_service)).to_list(),
+				reducer_add, 'Add', lambda: Decimal(0), lambda: Decimal(0)
+			)
+		elif compute_type == ParameterComputeType.SUBTRACT:
+			assert_parameter_count('subtract', parameter.parameters, 2)
+			# treat none value as 0
+			self.askValue = create_numeric_reducer(
+				ArrayHelper(parameter.parameters).map(lambda x: parse_parameter(x, principal_service)).to_list(),
+				reducer_subtract, 'Subtract', lambda: Decimal(0), lambda: Decimal(0)
+			)
+		elif compute_type == ParameterComputeType.MULTIPLY:
+			assert_parameter_count('multiply', parameter.parameters, 2)
+			self.askValue = create_numeric_reducer(
+				ArrayHelper(parameter.parameters).map(lambda x: parse_parameter(x, principal_service)).to_list(),
+				reducer_multiply, 'Multiply'
+			)
+		elif compute_type == ParameterComputeType.DIVIDE:
+			assert_parameter_count('divide', parameter.parameters, 2)
+			self.askValue = create_numeric_reducer(
+				ArrayHelper(parameter.parameters).map(lambda x: parse_parameter(x, principal_service)).to_list(),
+				reducer_divide, 'Divide'
+			)
+		elif compute_type == ParameterComputeType.MODULUS:
+			assert_parameter_count('modulus', parameter.parameters, 2)
+			self.askValue = create_numeric_reducer(
+				ArrayHelper(parameter.parameters).map(lambda x: parse_parameter(x, principal_service)).to_list(),
+				reducer_modulus, 'Modulus'
+			)
+		elif compute_type == ParameterComputeType.YEAR_OF:
+			assert_parameter_count('year-of', parameter.parameters, 1, 1)
+			self.askValue = create_datetime_func(
+				parse_parameter(parameter.parameters[0], principal_service), get_year)
+		elif compute_type == ParameterComputeType.HALF_YEAR_OF:
+			assert_parameter_count('half-year-of', parameter.parameters, 1, 1)
+			self.askValue = create_datetime_func(
+				parse_parameter(parameter.parameters[0], principal_service), get_half_year)
+		elif compute_type == ParameterComputeType.QUARTER_OF:
+			assert_parameter_count('quarter-of', parameter.parameters, 1, 1)
+			self.askValue = create_datetime_func(
+				parse_parameter(parameter.parameters[0], principal_service), get_quarter)
+		elif compute_type == ParameterComputeType.MONTH_OF:
+			assert_parameter_count('month-of', parameter.parameters, 1, 1)
+			self.askValue = create_datetime_func(
+				parse_parameter(parameter.parameters[0], principal_service), get_month)
+		elif compute_type == ParameterComputeType.WEEK_OF_YEAR:
+			assert_parameter_count('week-of-year', parameter.parameters, 1, 1)
+			self.askValue = create_datetime_func(
+				parse_parameter(parameter.parameters[0], principal_service), get_week_of_year)
+		elif compute_type == ParameterComputeType.WEEK_OF_MONTH:
+			assert_parameter_count('week-of-month', parameter.parameters, 1, 1)
+			self.askValue = create_datetime_func(
+				parse_parameter(parameter.parameters[0], principal_service), get_week_of_month)
+		elif compute_type == ParameterComputeType.DAY_OF_MONTH:
+			assert_parameter_count('day-of-month', parameter.parameters, 1, 1)
+			self.askValue = create_datetime_func(
+				parse_parameter(parameter.parameters[0], principal_service), get_day_of_month)
+		elif compute_type == ParameterComputeType.DAY_OF_WEEK:
+			assert_parameter_count('day-of-week', parameter.parameters, 1, 1)
+			self.askValue = create_datetime_func(
+				parse_parameter(parameter.parameters[0], principal_service), get_day_of_week)
+		elif compute_type == ParameterComputeType.CASE_THEN:
+			assert_parameter_count('case-then', parameter.parameters, 1)
+			cases = parameter.parameters
+			if cases is None or len(cases) == 0:
+				raise ReactorException(f'Case not declared in case then computation.')
+			anyways = ArrayHelper(cases).filter(lambda x: not x.conditional).to_list()
+			if len(anyways) > 1:
+				raise ReactorException(f'Multiple anyway routes declared in case then computation[{parameter.dict()}].')
+			anyway = anyways[0] if len(anyways) == 1 else None
+			self.askValue = create_case_then(
+				ArrayHelper(cases).filter(lambda x: x.conditional) \
+					.map(lambda x: parse_conditional_parameter(x, principal_service)).to_list(),
+				parse_parameter(anyway, principal_service) if anyway is not None else None
+			)
+		else:
+			raise ReactorException(f'Compute type[{compute_type}] is not supported.')
 
 	def value(self, variables: PipelineVariables, principal_service: PrincipalService) -> Any:
-		# TODO
-		pass
+		return self.askValue(variables, principal_service)
 
 
 def ask_condition(
@@ -269,7 +529,15 @@ def ask_condition(
 PrerequisiteTest = Callable[[PipelineVariables, PrincipalService], bool]
 
 
-def parse_prerequisite(conditional: Conditional, principal_service: PrincipalService) -> PrerequisiteTest:
+def create_ask_prerequisite(condition: ParsedCondition) -> PrerequisiteTest:
+	def ask(variables: PipelineVariables, principal_service: PrincipalService) -> bool:
+		return ask_condition(condition, variables, principal_service)
+
+	return ask
+
+
+def parse_prerequisite(
+		conditional: Union[Conditional, Parameter], principal_service: PrincipalService) -> PrerequisiteTest:
 	if conditional.conditional is None or not conditional.conditional:
 		# no condition is needed
 		return always_true
@@ -285,10 +553,7 @@ def parse_prerequisite(conditional: Conditional, principal_service: PrincipalSer
 		return always_true
 	condition = ParsedCondition(joint, principal_service)
 
-	def ask(variables: PipelineVariables, runtime_principal_service: PrincipalService) -> bool:
-		return ask_condition(condition, variables, runtime_principal_service)
-
-	return ask
+	return create_ask_prerequisite(condition)
 
 
 PrerequisiteDefinedAs = Callable[[], Any]
