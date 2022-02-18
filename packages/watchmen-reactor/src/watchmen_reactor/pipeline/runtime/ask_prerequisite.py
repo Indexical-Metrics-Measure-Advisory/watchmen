@@ -194,6 +194,16 @@ class ParsedExpression(ParsedCondition):
 				f'Operator[{self.operator}] is not supported, found from expression[{self.condition.dict()}].')
 
 
+def create_value_getter_from_current_data(name: str) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	return lambda variables, principal_service: variables.find_from_current_data(name)
+
+
+def create_value_recursive_getter_from_current_data(
+		name: str, names: List[str]
+) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	return lambda variables, principal_service: get_value_from_pipeline_variables(variables, name, names)
+
+
 class ParsedTopicFactorParameter(ParsedParameter):
 	topic: Topic = None
 	factor: Factor = None
@@ -222,15 +232,9 @@ class ParsedTopicFactorParameter(ParsedParameter):
 
 		# topic factor parameter always retrieve data from current trigger data
 		if len(names) == 1:
-			# noinspection PyUnusedLocal
-			def value(variables: PipelineVariables, runtime_principal_service: PrincipalService) -> Any:
-				return variables.find_from_current_data(names[0])
+			self.askValue = create_value_getter_from_current_data(names[0])
 		else:
-			# noinspection PyUnusedLocal
-			def value(variables: PipelineVariables, runtime_principal_service: PrincipalService) -> Any:
-				return get_value_from_pipeline_variables(variables, name, names)
-
-		self.askValue = value
+			self.askValue = create_value_recursive_getter_from_current_data(name, names)
 
 	def value(self, variables: PipelineVariables, principal_service: PrincipalService) -> Any:
 		return self.askValue(variables, principal_service)
