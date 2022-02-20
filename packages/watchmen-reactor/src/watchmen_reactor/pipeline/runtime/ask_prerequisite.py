@@ -320,7 +320,7 @@ class ParsedExpression(ParsedCondition):
 			return ArrayHelper(another.split(',')).some(lambda x: self.equals(x, one))
 		else:
 			raise ReactorException(
-				f'In comparison of [none|int|float|decimal|date|time|datetime] are supported, '
+				f'Comparison of [none|int|float|decimal|date|time|datetime] in [list|comma joined string] are supported, '
 				f'current are [one={one}, another={another}].')
 
 	def not_exists(self, one: Any, another: Any) -> bool:
