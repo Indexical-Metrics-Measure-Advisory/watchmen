@@ -12,10 +12,14 @@ from watchmen_model.common import ComputedParameter, ConstantParameter, Paramete
 	TopicFactorParameter
 from watchmen_reactor.common import ask_all_date_formats, ask_time_formats, ReactorException
 from watchmen_reactor.meta import TopicService
-from watchmen_utilities import ArrayHelper, get_day_of_month, get_day_of_week, get_half_year, \
-	get_month, get_quarter, get_week_of_month, get_week_of_year, get_year, is_blank, is_date, is_decimal, is_time, \
+from watchmen_utilities import ArrayHelper, get_day_of_month, get_day_of_week, get_half_year, get_month, get_quarter, \
+	get_week_of_month, get_week_of_year, get_year, greater_or_equals_date, greater_or_equals_decimal, \
+	greater_or_equals_time, is_blank, \
+	is_date_or_time_instance, \
+	is_empty, is_not_empty, is_numeric_instance, less_or_equals_date, less_or_equals_decimal, less_or_equals_time, \
 	try_to_date, \
-	try_to_decimal
+	try_to_decimal, value_equals, \
+	value_not_equals
 from .utils import get_value_from_pipeline_variables
 from .variables import PipelineVariables
 
@@ -123,129 +127,201 @@ class ParsedExpression(ParsedCondition):
 		self.operator = condition.operator
 		self.right = parse_parameter(condition.right, principal_service)
 
-	# noinspection PyMethodMayBeStatic
-	def is_empty(self, value: Any) -> bool:
-		if value is None:
-			return True
-		elif isinstance(value, str):
-			return len(str) == 0
-		elif isinstance(value, list):
-			return len(value) == 0
-		else:
-			return False
-
-	def is_not_empty(self, value: Any) -> bool:
-		return not self.is_empty(value)
-
-	# noinspection PyMethodMayBeStatic
-	def equals_decimal(self, value: Decimal, another: Any) -> bool:
-		if isinstance(another, Decimal):
-			return value == another
-		elif isinstance(another, int) or isinstance(another, float):
-			return value == Decimal(another)
-		elif isinstance(another, str):
-			parsed, another_value = is_decimal(another)
-			return parsed and value == another_value
-		else:
-			return False
-
-	# noinspection PyMethodMayBeStatic
-	def equals_time(self, value: time, another: Any) -> bool:
-		# time
-		if isinstance(another, time):
-			return value == another
-		elif isinstance(another, str):
-			parsed, another_value = is_time(another, ask_time_formats())
-			return parsed and value == another_value
-		else:
-			return False
-
-	# noinspection PyMethodMayBeStatic
-	def equals_date(self, value: date, another: Any) -> bool:
-		# date compare, drop time
-		if isinstance(value, datetime):
-			value = value.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
-		if isinstance(another, datetime):
-			return value == another.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
-		if isinstance(another, date):
-			return value == another
-		elif isinstance(another, str):
-			parsed, another_value = is_date(another, ask_all_date_formats())
-			if not parsed or another_value is None:
-				return False
-			else:
-				if isinstance(another_value, datetime):
-					return value == another_value.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
-				else:
-					return value == another_value
-		else:
-			return False
+	def raise_cannot_compare(self, one: Any, another: Any) -> None:
+		raise ReactorException(
+			f'Comparison of [none|int|float|decimal|date|time|datetime] are supported, '
+			f'current are [one={one}, another={another}].')
 
 	# noinspection PyMethodMayBeStatic
 	def equals(self, one: Any, another: Any) -> bool:
-		if one is None or (isinstance(one, str) and one == ''):
-			return another is None or (isinstance(another, str) and another == '')
-		elif another is None:
-			return False
-		elif isinstance(one, Decimal):
-			return self.equals_decimal(one, another)
-		elif isinstance(one, int) or isinstance(one, float):
-			return self.equals_decimal(Decimal(one), another)
-		elif isinstance(another, Decimal):
-			return self.equals_decimal(another, one)
-		elif isinstance(another, int) or isinstance(another, float):
-			return self.equals_decimal(Decimal(another), one)
-		elif isinstance(one, time):
-			# compare time
-			return self.equals_time(one, another)
-		elif isinstance(another, time):
-			# compare time
-			return self.equals_time(another, one)
-		elif isinstance(one, datetime) or isinstance(one, date):
-			# compare date
-			return self.equals_date(one, another)
-		elif isinstance(another, datetime) or isinstance(another, date):
-			# compare date
-			return self.equals_date(another, one)
-		elif isinstance(one, str):
-			# compare string
-			if isinstance(another, int) or isinstance(another, float) or isinstance(another, Decimal):
-				return one == str(another)
-			elif isinstance(another, str):
-				return one == another
-			else:
-				return False
-		else:
-			# any other type is not comparable
-			return False
+		return value_equals(one, another, ask_time_formats(), ask_all_date_formats())
 
+	# noinspection PyMethodMayBeStatic
 	def not_equals(self, one: Any, another: Any) -> bool:
-		return not self.equals(one, another)
+		return value_not_equals(one, another, ask_time_formats(), ask_all_date_formats())
+
+	# noinspection PyMethodMayBeStatic
+	def try_compare(self, func: Callable[[], Tuple[bool, bool]], or_raise: Callable[[], None]) -> bool:
+		parsed, result = func()
+		if parsed:
+			return result
+		else:
+			or_raise()
 
 	# noinspection PyMethodMayBeStatic
 	def less_than(self, one: Any, another: Any) -> bool:
-		# TODO
-		return True
+		if one is None:
+			if another is None:
+				return False
+			elif is_numeric_instance(another) or is_date_or_time_instance(another):
+				return True
+		elif another is None:
+			if is_numeric_instance(one) or is_date_or_time_instance(one):
+				return False
+		elif isinstance(one, int) or isinstance(one, float) or isinstance(one, Decimal):
+			return self.try_compare(
+				lambda: less_or_equals_decimal(one, another, False),
+				lambda: self.raise_cannot_compare(one, another))
+		elif isinstance(another, int) or isinstance(another, float) or isinstance(another, Decimal):
+			return self.try_compare(
+				lambda: greater_or_equals_decimal(one, another, True),
+				lambda: self.raise_cannot_compare(one, another))
+		elif isinstance(one, time):
+			# compare time
+			return self.try_compare(
+				lambda: less_or_equals_time(one, another, ask_time_formats(), False),
+				lambda: self.raise_cannot_compare(one, another))
+		elif isinstance(another, time):
+			# compare time
+			return self.try_compare(
+				lambda: greater_or_equals_time(another, one, ask_time_formats(), True),
+				lambda: self.raise_cannot_compare(one, another))
+		elif isinstance(one, datetime) or isinstance(one, date):
+			# compare datetime or date
+			return self.try_compare(
+				lambda: less_or_equals_date(another, one, ask_all_date_formats(), False),
+				lambda: self.raise_cannot_compare(one, another))
+		elif isinstance(another, datetime) or isinstance(another, date):
+			# compare datetime or date
+			return self.try_compare(
+				lambda: greater_or_equals_date(another, one, ask_all_date_formats(), True),
+				lambda: self.raise_cannot_compare(one, another))
+
+		self.raise_cannot_compare(one, another)
 
 	# noinspection PyMethodMayBeStatic
 	def less_than_or_equals(self, one: Any, another: Any) -> bool:
-		# TODO
-		return True
+		if one is None:
+			if another is None or is_numeric_instance(another) or is_date_or_time_instance(another):
+				return True
+		elif another is None:
+			if is_numeric_instance(one) or is_date_or_time_instance(one):
+				return False
+		elif isinstance(one, int) or isinstance(one, float) or isinstance(one, Decimal):
+			return self.try_compare(
+				lambda: less_or_equals_decimal(one, another, True),
+				lambda: self.raise_cannot_compare(one, another))
+		elif isinstance(another, int) or isinstance(another, float) or isinstance(another, Decimal):
+			return self.try_compare(
+				lambda: greater_or_equals_decimal(one, another, False),
+				lambda: self.raise_cannot_compare(one, another))
+		elif isinstance(one, time):
+			# compare time
+			return self.try_compare(
+				lambda: less_or_equals_time(one, another, ask_time_formats(), True),
+				lambda: self.raise_cannot_compare(one, another))
+		elif isinstance(another, time):
+			# compare time
+			return self.try_compare(
+				lambda: greater_or_equals_time(another, one, ask_time_formats(), False),
+				lambda: self.raise_cannot_compare(one, another))
+		elif isinstance(one, datetime) or isinstance(one, date):
+			# compare datetime or date
+			return self.try_compare(
+				lambda: less_or_equals_date(another, one, ask_all_date_formats(), True),
+				lambda: self.raise_cannot_compare(one, another))
+		elif isinstance(another, datetime) or isinstance(another, date):
+			# compare datetime or date
+			return self.try_compare(
+				lambda: greater_or_equals_date(another, one, ask_all_date_formats(), False),
+				lambda: self.raise_cannot_compare(one, another))
+
+		self.raise_cannot_compare(one, another)
 
 	# noinspection PyMethodMayBeStatic
 	def greater_than(self, one: Any, another: Any) -> bool:
-		# TODO
-		return True
+		if one is None:
+			if another is None or is_numeric_instance(another) or is_date_or_time_instance(another):
+				return False
+		elif another is None:
+			if is_numeric_instance(one) or is_date_or_time_instance(one):
+				return True
+		elif isinstance(one, int) or isinstance(one, float) or isinstance(one, Decimal):
+			return self.try_compare(
+				lambda: greater_or_equals_decimal(one, another, False),
+				lambda: self.raise_cannot_compare(one, another))
+		elif isinstance(another, int) or isinstance(another, float) or isinstance(another, Decimal):
+			return self.try_compare(
+				lambda: less_or_equals_decimal(one, another, True),
+				lambda: self.raise_cannot_compare(one, another))
+		elif isinstance(one, time):
+			# compare time
+			return self.try_compare(
+				lambda: greater_or_equals_time(one, another, ask_time_formats(), False),
+				lambda: self.raise_cannot_compare(one, another))
+		elif isinstance(another, time):
+			# compare time
+			return self.try_compare(
+				lambda: less_or_equals_time(another, one, ask_time_formats(), True),
+				lambda: self.raise_cannot_compare(one, another))
+		elif isinstance(one, datetime) or isinstance(one, date):
+			# compare datetime or date
+			return self.try_compare(
+				lambda: greater_or_equals_date(another, one, ask_all_date_formats(), False),
+				lambda: self.raise_cannot_compare(one, another))
+		elif isinstance(another, datetime) or isinstance(another, date):
+			# compare datetime or date
+			return self.try_compare(
+				lambda: less_or_equals_date(another, one, ask_all_date_formats(), True),
+				lambda: self.raise_cannot_compare(one, another))
+
+		self.raise_cannot_compare(one, another)
 
 	# noinspection PyMethodMayBeStatic
 	def greater_than_or_equals(self, one: Any, another: Any) -> bool:
-		# TODO
-		return True
+		if one is None:
+			if another is None:
+				return True
+			elif is_numeric_instance(another) or is_date_or_time_instance(another):
+				return False
+		elif another is None:
+			if is_numeric_instance(one) or is_date_or_time_instance(one):
+				return True
+		elif isinstance(one, int) or isinstance(one, float) or isinstance(one, Decimal):
+			return self.try_compare(
+				lambda: greater_or_equals_decimal(one, another, True),
+				lambda: self.raise_cannot_compare(one, another))
+		elif isinstance(another, int) or isinstance(another, float) or isinstance(another, Decimal):
+			return self.try_compare(
+				lambda: less_or_equals_decimal(one, another, False),
+				lambda: self.raise_cannot_compare(one, another))
+		elif isinstance(one, time):
+			# compare time
+			return self.try_compare(
+				lambda: greater_or_equals_time(one, another, ask_time_formats(), True),
+				lambda: self.raise_cannot_compare(one, another))
+		elif isinstance(another, time):
+			# compare time
+			return self.try_compare(
+				lambda: less_or_equals_time(another, one, ask_time_formats(), False),
+				lambda: self.raise_cannot_compare(one, another))
+		elif isinstance(one, datetime) or isinstance(one, date):
+			# compare datetime or date
+			return self.try_compare(
+				lambda: greater_or_equals_date(another, one, ask_all_date_formats(), True),
+				lambda: self.raise_cannot_compare(one, another))
+		elif isinstance(another, datetime) or isinstance(another, date):
+			# compare datetime or date
+			return self.try_compare(
+				lambda: less_or_equals_date(another, one, ask_all_date_formats(), False),
+				lambda: self.raise_cannot_compare(one, another))
+
+		self.raise_cannot_compare(one, another)
 
 	# noinspection PyMethodMayBeStatic
 	def exists(self, one: Any, another: Any) -> bool:
-		# TODO
-		return True
+		if another is None:
+			return False
+		elif isinstance(another, list):
+			return ArrayHelper(another).some(lambda x: self.equals(x, one))
+		elif isinstance(another, str):
+			if is_blank(another):
+				return False
+			return ArrayHelper(another.split(',')).some(lambda x: self.equals(x, one))
+		else:
+			raise ReactorException(
+				f'In comparison of [none|int|float|decimal|date|time|datetime] are supported, '
+				f'current are [one={one}, another={another}].')
 
 	def not_exists(self, one: Any, another: Any) -> bool:
 		return not self.exists(one, another)
@@ -253,9 +329,9 @@ class ParsedExpression(ParsedCondition):
 	def run(self, variables: PipelineVariables, principal_service: PrincipalService) -> bool:
 		left_value = self.left.value(variables, principal_service)
 		if self.operator == ParameterExpressionOperator.EMPTY:
-			return self.is_empty(left_value)
+			return is_empty(left_value)
 		elif self.operator == ParameterExpressionOperator.NOT_EMPTY:
-			return self.is_not_empty(left_value)
+			return is_not_empty(left_value)
 
 		right_value = self.right.value(variables, principal_service)
 		if self.operator == ParameterExpressionOperator.EQUALS:

@@ -2,6 +2,10 @@ from decimal import Decimal
 from typing import Any, Optional, Tuple
 
 
+def is_numeric_instance(value: Any) -> bool:
+	return value is not None and (isinstance(value, int) or isinstance(value, float) or isinstance(value, Decimal))
+
+
 def is_decimal(value: Optional[str]) -> Tuple[bool, Optional[Decimal]]:
 	"""
 	none is not a numeric value, otherwise try to parse it by float function
