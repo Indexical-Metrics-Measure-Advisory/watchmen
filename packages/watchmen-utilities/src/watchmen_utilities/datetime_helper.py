@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, time
 from decimal import Decimal
 from enum import Enum
 from json import JSONEncoder
@@ -19,6 +19,48 @@ class DateTimeEncoder(JSONEncoder):
 
 def get_current_time_in_seconds() -> datetime:
 	return datetime.now().replace(tzinfo=None, microsecond=0)
+
+
+def try_to_format_time(might_be_time: str, time_format: str) -> Tuple[bool, Optional[time]]:
+	"""
+	return a datetime object is parsed
+	"""
+	try:
+		d = datetime.strptime(might_be_time, time_format)
+		return True, d.time()
+	except ValueError:
+		return False, None
+
+
+def is_time(value: Optional[str], formats: List[str]) -> Tuple[bool, Optional[time]]:
+	"""
+	none is not a date value, otherwise remove non-number characters and try to parse by given formats.
+	digits after removing must match digits of format
+	"""
+	tidy_value = sub(r'\D', '', value)
+	count = len(tidy_value)
+	suitable_formats = ArrayHelper(formats).filter(lambda x: len(x) == count).to_list()
+	for suitable_format in suitable_formats:
+		parsed, date_value = try_to_format_time(tidy_value, suitable_format)
+		if parsed:
+			return parsed, date_value
+	return False, None
+
+
+def try_to_time(value: Any, formats: List[str]) -> Optional[time]:
+	"""
+	try to parse given value to date, or returns none when cannot be parsed.
+	formats can be datetime and date format
+	"""
+	if value is None:
+		return None
+	elif isinstance(value, time):
+		return value
+	elif isinstance(value, str):
+		parsed, date_value = is_time(value, formats)
+		if parsed:
+			return date_value
+	return None
 
 
 def try_to_format_date(might_be_date: str, date_format: str) -> Tuple[bool, Optional[date]]:

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from datetime import datetime
+from datetime import date, datetime, time
 from decimal import Decimal
 from typing import Any, Callable, List, Optional, Tuple, Union
 
@@ -10,13 +10,12 @@ from watchmen_model.admin import Conditional, Factor, Topic
 from watchmen_model.common import ComputedParameter, ConstantParameter, Parameter, ParameterComputeType, \
 	ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, \
 	TopicFactorParameter
-from watchmen_reactor.common import ask_all_date_formats, ReactorException
+from watchmen_reactor.common import ask_all_date_formats, ask_time_formats, ReactorException
 from watchmen_reactor.meta import TopicService
 from watchmen_utilities import ArrayHelper, get_day_of_month, get_day_of_week, get_half_year, \
-	get_month, \
-	get_quarter, get_week_of_month, \
-	get_week_of_year, get_year, is_blank, \
-	try_to_date, try_to_decimal
+	get_month, get_quarter, get_week_of_month, get_week_of_year, get_year, is_blank, is_date, is_decimal, is_time, \
+	try_to_date, \
+	try_to_decimal
 from .utils import get_value_from_pipeline_variables
 from .variables import PipelineVariables
 
@@ -139,9 +138,86 @@ class ParsedExpression(ParsedCondition):
 		return not self.is_empty(value)
 
 	# noinspection PyMethodMayBeStatic
+	def equals_decimal(self, value: Decimal, another: Any) -> bool:
+		if isinstance(another, Decimal):
+			return value == another
+		elif isinstance(another, int) or isinstance(another, float):
+			return value == Decimal(another)
+		elif isinstance(another, str):
+			parsed, another_value = is_decimal(another)
+			return parsed and value == another_value
+		else:
+			return False
+
+	# noinspection PyMethodMayBeStatic
+	def equals_time(self, value: time, another: Any) -> bool:
+		# time
+		if isinstance(another, time):
+			return value == another
+		elif isinstance(another, str):
+			parsed, another_value = is_time(another, ask_time_formats())
+			return parsed and value == another_value
+		else:
+			return False
+
+	# noinspection PyMethodMayBeStatic
+	def equals_date(self, value: date, another: Any) -> bool:
+		# date compare, drop time
+		if isinstance(value, datetime):
+			value = value.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
+		if isinstance(another, datetime):
+			return value == another.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
+		if isinstance(another, date):
+			return value == another
+		elif isinstance(another, str):
+			parsed, another_value = is_date(another, ask_all_date_formats())
+			if not parsed or another_value is None:
+				return False
+			else:
+				if isinstance(another_value, datetime):
+					return value == another_value.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
+				else:
+					return value == another_value
+		else:
+			return False
+
+	# noinspection PyMethodMayBeStatic
 	def equals(self, one: Any, another: Any) -> bool:
-		# TODO
-		pass
+		if one is None or (isinstance(one, str) and one == ''):
+			return another is None or (isinstance(another, str) and another == '')
+		elif another is None:
+			return False
+		elif isinstance(one, Decimal):
+			return self.equals_decimal(one, another)
+		elif isinstance(one, int) or isinstance(one, float):
+			return self.equals_decimal(Decimal(one), another)
+		elif isinstance(another, Decimal):
+			return self.equals_decimal(another, one)
+		elif isinstance(another, int) or isinstance(another, float):
+			return self.equals_decimal(Decimal(another), one)
+		elif isinstance(one, time):
+			# compare time
+			return self.equals_time(one, another)
+		elif isinstance(another, time):
+			# compare time
+			return self.equals_time(another, one)
+		elif isinstance(one, datetime) or isinstance(one, date):
+			# compare date
+			return self.equals_date(one, another)
+		elif isinstance(another, datetime) or isinstance(another, date):
+			# compare date
+			return self.equals_date(another, one)
+		elif isinstance(one, str):
+			# compare string
+			if isinstance(another, int) or isinstance(another, float) or isinstance(another, Decimal):
+				return one == str(another)
+			elif isinstance(another, str):
+				return one == another
+			else:
+				return False
+		else:
+			# any other type is not comparable
+			return False
 
 	def not_equals(self, one: Any, another: Any) -> bool:
 		return not self.equals(one, another)
