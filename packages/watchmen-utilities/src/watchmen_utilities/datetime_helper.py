@@ -3,7 +3,7 @@ from decimal import Decimal
 from enum import Enum
 from json import JSONEncoder
 from re import sub
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, Union
 
 from .array_helper import ArrayHelper
 
@@ -19,6 +19,18 @@ class DateTimeEncoder(JSONEncoder):
 
 def get_current_time_in_seconds() -> datetime:
 	return datetime.now().replace(tzinfo=None, microsecond=0)
+
+
+def is_date_or_time_instance(value: Any) -> bool:
+	return value is not None and (isinstance(value, date) or isinstance(value, time) or isinstance(value, datetime))
+
+
+def truncate_time(value: Union[date, datetime]) -> datetime:
+	if isinstance(value, datetime):
+		return value.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
+	else:
+		return datetime(year=value.year, month=value.month, day=value.day) \
+			.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
 
 
 def try_to_format_time(might_be_time: str, time_format: str) -> Tuple[bool, Optional[time]]:
@@ -87,6 +99,18 @@ def is_date(value: Optional[str], formats: List[str]) -> Tuple[bool, Optional[da
 		if parsed:
 			return parsed, date_value
 	return False, None
+
+
+def is_datetime(value: Optional[str], formats: List[str]) -> Tuple[bool, Optional[datetime]]:
+	parsed, date_value = is_date(value, formats)
+	if not parsed:
+		return False, None
+	elif isinstance(date_value, datetime):
+		return True, date_value
+	else:
+		return True, datetime(
+			year=date_value.year, month=date_value.month, day=date_value.day,
+			hour=0, minute=0, second=0, microsecond=0)
 
 
 def try_to_date(value: Any, formats: List[str], allow_timestamp: bool = False) -> Optional[date]:
