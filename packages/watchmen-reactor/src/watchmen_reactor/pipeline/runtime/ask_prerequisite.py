@@ -3,6 +3,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from datetime import date, datetime, time
 from decimal import Decimal
+from re import findall
 from typing import Any, Callable, List, Optional, Tuple, Union
 
 from watchmen_auth import PrincipalService
@@ -401,14 +402,76 @@ class ParsedTopicFactorParameter(ParsedParameter):
 		return self.askValue(variables, principal_service)
 
 
+# noinspection PyUnusedLocal
+def always_none(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+	return None
+
+
+def create_static_str(value: str) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	# noinspection PyUnusedLocal
+	def get_static_str(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+		return value
+
+	return get_static_str
+
+
+def run_constant_segment(
+		segment: Tuple[str, str], variables: PipelineVariables, principal_service: PrincipalService
+) -> Any:
+	prefix, variable_name = segment
+
+
+def create_ask_constant_value(segments: List[Tuple[str, str]]) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	def run_constant_segments(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+		if len(segments) > 1:
+			# multiple segments, always do string concatenation
+			values = ArrayHelper(segments) \
+				.map(lambda x: run_constant_segment(x, variables, principal_service)) \
+				.map(lambda x: x is not None) \
+				.map(lambda x: x if isinstance(x, str) else str(x)) \
+				.to_list()
+			return ''.join(values)
+		else:
+			return run_constant_segment(segments[0], variables, principal_service)
+
+	return run_constant_segments
+
+
 class ParsedConstantParameter(ParsedParameter):
+	askValue: Callable[[PipelineVariables, PrincipalService], Any] = None
+
 	def parse(self, parameter: ConstantParameter, principal_service: PrincipalService) -> None:
-		# TODO
-		pass
+		value = parameter.value
+		if value is None:
+			self.askValue = always_none
+		elif len(value) == 0:
+			self.askValue = create_static_str('')
+		elif is_blank(value):
+			self.askValue = create_static_str(value)
+		elif '{' not in value or '}' not in value:
+			self.askValue = create_static_str(value)
+		else:
+			# parsed result is:
+			# for empty string, a list contains one tuple: [('', '')]
+			# for no variable string, a list contains 2 tuples: [(value, ''), ('', '')]
+			# found, a list contains x tuples: [(first, first_variable), (second, second_variable), ..., ('', '')]
+			parsed = findall("([^{]*({[^}]+})?)", value)
+			if parsed[0][0] == '':
+				# no variable required
+				self.askValue = create_static_str(value)
+			else:
+				def beautify(a_tuple: Tuple[str, str]) -> Tuple[str, str]:
+					if a_tuple[1] == '':
+						# no variable in it
+						return a_tuple
+					else:
+						# remove variable from first, remove braces from second
+						return a_tuple[0][: (0 - len(a_tuple[1]))], a_tuple[1][1:-1]
+
+				self.askValue = create_ask_constant_value(ArrayHelper(parsed[:-1]).map(lambda x: beautify(x)).to_list())
 
 	def value(self, variables: PipelineVariables, principal_service: PrincipalService) -> Any:
-		# TODO
-		pass
+		return self.askValue(variables, principal_service)
 
 
 def reducer_add(one: Decimal, another: Decimal) -> Decimal:
