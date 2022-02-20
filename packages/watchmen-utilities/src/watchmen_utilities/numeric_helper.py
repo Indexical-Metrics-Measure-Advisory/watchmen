@@ -2,7 +2,7 @@ from decimal import Decimal
 from typing import Any, Optional, Tuple
 
 
-def is_numeric(value: Optional[str]) -> Tuple[bool, Optional[Decimal]]:
+def is_decimal(value: Optional[str]) -> Tuple[bool, Optional[Decimal]]:
 	"""
 	none is not a numeric value, otherwise try to parse it by float function
 	"""
@@ -26,7 +26,7 @@ def try_to_decimal(value: Any) -> Optional[Decimal]:
 	elif isinstance(value, Decimal):
 		return value
 	elif isinstance(value, str):
-		parsed, decimal_value = is_numeric(value)
+		parsed, decimal_value = is_decimal(value)
 		if parsed:
 			return decimal_value
 	return None
