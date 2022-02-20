@@ -7,21 +7,19 @@ from re import findall
 from typing import Any, Callable, List, Optional, Tuple, Union
 
 from watchmen_auth import PrincipalService
+from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import Conditional, Factor, Topic
 from watchmen_model.common import ComputedParameter, ConstantParameter, Parameter, ParameterComputeType, \
 	ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, \
-	TopicFactorParameter
+	TopicFactorParameter, VariablePredefineFunctions
 from watchmen_reactor.common import ask_all_date_formats, ask_time_formats, ReactorException
 from watchmen_reactor.meta import TopicService
 from watchmen_utilities import ArrayHelper, get_day_of_month, get_day_of_week, get_half_year, get_month, get_quarter, \
 	get_week_of_month, get_week_of_year, get_year, greater_or_equals_date, greater_or_equals_decimal, \
-	greater_or_equals_time, is_blank, \
-	is_date_or_time_instance, \
-	is_empty, is_not_empty, is_numeric_instance, less_or_equals_date, less_or_equals_decimal, less_or_equals_time, \
-	try_to_date, \
-	try_to_decimal, value_equals, \
+	greater_or_equals_time, is_blank, is_date_or_time_instance, is_empty, is_not_empty, is_numeric_instance, \
+	less_or_equals_date, less_or_equals_decimal, less_or_equals_time, try_to_date, try_to_decimal, value_equals, \
 	value_not_equals
-from .utils import get_value_from_pipeline_variables
+from .utils import get_value_from
 from .variables import PipelineVariables
 
 
@@ -363,7 +361,8 @@ def create_value_getter_from_current_data(name: str) -> Callable[[PipelineVariab
 def create_value_recursive_getter_from_current_data(
 		name: str, names: List[str]
 ) -> Callable[[PipelineVariables, PrincipalService], Any]:
-	return lambda variables, principal_service: get_value_from_pipeline_variables(variables, name, names)
+	return lambda variables, principal_service: \
+		get_value_from(name, names, lambda x: variables.find_from_current_data(x))
 
 
 class ParsedTopicFactorParameter(ParsedParameter):
@@ -415,26 +414,108 @@ def create_static_str(value: str) -> Callable[[PipelineVariables, PrincipalServi
 	return get_static_str
 
 
-def run_constant_segment(
-		segment: Tuple[str, str], variables: PipelineVariables, principal_service: PrincipalService
-) -> Any:
+def create_snowflake_generator(prefix: str) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	# noinspection PyUnusedLocal
+	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+		value = ask_snowflake_generator().next_id()
+		return value if is_blank(prefix) else f'{prefix}{value}'
+
+	return action
+
+
+def create_previous_trigger_data(prefix: str) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	# noinspection PyUnusedLocal
+	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+		previous_data = variables.get_previous_trigger_data()
+		return previous_data if is_blank(prefix) else f'{prefix}{previous_data}'
+
+	return action
+
+
+def create_from_previous_trigger_data(prefix, name: str) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	names = name.strip().split('.')
+
+	# noinspection PyUnusedLocal
+	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+		previous_data = variables.get_previous_trigger_data()
+		value = get_value_from(name, names, lambda x: previous_data.get(x))
+		return value if is_blank(prefix) else f'{prefix}{value}'
+
+	return action
+
+
+def create_from_variables(prefix, name: str) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	names = name.strip().split('.')
+
+	# noinspection PyUnusedLocal
+	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+		def get_value(a_name: str) -> Any:
+			if variables.has(a_name):
+				return variables.find(a_name)
+			else:
+				return variables.find_from_current_data(a_name)
+
+		value = get_value_from(name, names, get_value)
+		return value if is_blank(prefix) else f'{prefix}{value}'
+
+	return action
+
+
+def create_run_constant_segment(segment: Tuple[str, str]) -> Callable[[PipelineVariables, PrincipalService], Any]:
 	prefix, variable_name = segment
+	if variable_name == VariablePredefineFunctions.NEXT_SEQ.value:
+		return create_snowflake_generator(prefix)
+	elif variable_name.startswith(VariablePredefineFunctions.YEAR_DIFF.value):
+		parsed = findall(f'^({VariablePredefineFunctions.YEAR_DIFF.value})\\s*\\((.+),(.+)\\)$', variable_name)
+		if len(parsed) != 1:
+			raise ReactorException(f'Constant[{variable_name}] is not supported.')
+		late_one = parsed[0][1]
+		early_one = parsed[0][2]
+
+	elif variable_name.startswith(VariablePredefineFunctions.MONTH_DIFF.value):
+		parsed = findall(f'^({VariablePredefineFunctions.MONTH_DIFF.value})\\s*\\((.+),(.+)\\)$', variable_name)
+		if len(parsed) != 1:
+			raise ReactorException(f'Constant[{variable_name}] is not supported.')
+		late_one = parsed[0][1]
+		early_one = parsed[0][2]
+
+	elif variable_name.startswith(VariablePredefineFunctions.DAY_DIFF.value):
+		parsed = findall(f'^({VariablePredefineFunctions.DAY_DIFF.value})\\s*\\((.+),(.+)\\)$', variable_name)
+		if len(parsed) != 1:
+			raise ReactorException(f'Constant[{variable_name}] is not supported.')
+		late_one = parsed[0][1]
+		early_one = parsed[0][2]
+
+	elif variable_name.startswith(VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA.value):
+		if variable_name == VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA.value:
+			return create_previous_trigger_data(prefix)
+		length = len(VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA.value)
+		if len(variable_name) < length + 2 or variable_name[length:length + 1] != '.':
+			raise ReactorException(f'Constant[{variable_name}] is not supported.')
+		return create_from_previous_trigger_data(prefix, variable_name[length + 1:])
+	else:
+		return create_from_variables(prefix, variable_name)
+
+
+def create_run_constant_segments(
+		functions: List[Callable[[PipelineVariables, PrincipalService], Any]]
+) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+		values = ArrayHelper(functions).map(lambda x: x(variables, principal_service)) \
+			.map(lambda x: x is not None) \
+			.map(lambda x: x if isinstance(x, str) else str(x)) \
+			.to_list()
+		return ''.join(values)
+
+	return action
 
 
 def create_ask_constant_value(segments: List[Tuple[str, str]]) -> Callable[[PipelineVariables, PrincipalService], Any]:
-	def run_constant_segments(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
-		if len(segments) > 1:
-			# multiple segments, always do string concatenation
-			values = ArrayHelper(segments) \
-				.map(lambda x: run_constant_segment(x, variables, principal_service)) \
-				.map(lambda x: x is not None) \
-				.map(lambda x: x if isinstance(x, str) else str(x)) \
-				.to_list()
-			return ''.join(values)
-		else:
-			return run_constant_segment(segments[0], variables, principal_service)
-
-	return run_constant_segments
+	if len(segments) == 1:
+		return create_run_constant_segment(segments[0])
+	else:
+		return create_run_constant_segments(
+			ArrayHelper(segments).map(lambda x: create_run_constant_segment(x)).to_list())
 
 
 class ParsedConstantParameter(ParsedParameter):

@@ -5,7 +5,7 @@ from .pagination import DataPage, Pageable, PageDataCell, PageDataRow, PageDataS
 from .parameter_and_condition import ComputedParameter, ConstantParameter, construct_parameter, \
 	construct_parameter_condition, construct_parameter_conditions, construct_parameter_joint, Parameter, \
 	ParameterComputeType, ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, \
-	ParameterJointType, ParameterKind, TopicFactorParameter
+	ParameterJointType, ParameterKind, TopicFactorParameter, VariablePredefineFunctions
 from .storable import Auditable, LastVisit, OptimisticLock, Storable
 from .tuple import TenantBasedTuple, Tuple, UserBasedTuple
 from .tuple_ids import BucketId, ConnectedSpaceId, DashboardId, DataSourceId, EnumId, EnumItemId, ExternalWriterId, \

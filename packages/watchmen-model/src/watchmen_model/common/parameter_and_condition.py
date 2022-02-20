@@ -36,6 +36,18 @@ class TopicFactorParameter(Parameter):
 	factorId: FactorId = None
 
 
+class VariablePredefineFunctions(str, Enum):
+	NEXT_SEQ = '&nextSeq',
+	COUNT = '&count',
+	LENGTH = '&length',
+	SUM = '&sum',
+	FROM_PREVIOUS_TRIGGER_DATA = '&old',
+
+	DAY_DIFF = '&dayDiff',
+	MONTH_DIFF = '&monthDiff',
+	YEAR_DIFF = '&yearDiff'
+
+
 class ConstantParameter(Parameter):
 	kind: ParameterKind.CONSTANT = ParameterKind.CONSTANT
 	value: str = None

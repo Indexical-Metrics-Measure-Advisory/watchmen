@@ -14,12 +14,17 @@ class PipelineVariables:
 	def put(self, name: str, value: Any):
 		self.variables[name] = value
 
+	def has(self, name: str) -> bool:
+		return name in self.variables
+
 	def find(self, name: str) -> Optional[Any]:
-		# TODO find variables
 		return self.variables.get(name)
 
 	def find_from_current_data(self, name: str) -> Optional[Any]:
 		return self.current_data.get(name)
+
+	def get_previous_trigger_data(self) -> Optional[Dict[str, Any]]:
+		return self.previous_data
 
 	def clone(self) -> PipelineVariables:
 		cloned = PipelineVariables(self.previous_data, self.current_data)
