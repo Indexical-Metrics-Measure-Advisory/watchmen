@@ -1,11 +1,12 @@
 from typing import Any, Dict
 from unittest import TestCase
 
-from watchmen_reactor.pipeline.runtime import get_value_from_pipeline_variables, PipelineVariables
+from watchmen_reactor.pipeline.runtime import get_value_from, PipelineVariables
 
 
 def value(variables: Dict[str, Any], name: str) -> Any:
-	return get_value_from_pipeline_variables(PipelineVariables(None, variables), name, name.strip().split('.'))
+	pv = PipelineVariables(None, variables)
+	return get_value_from(name, name.strip().split('.'), lambda x: pv.find_from_current_data(x))
 
 
 class GetValueFromDict(TestCase):
