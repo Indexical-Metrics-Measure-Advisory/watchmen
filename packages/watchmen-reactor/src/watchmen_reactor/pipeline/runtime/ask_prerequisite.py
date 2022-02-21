@@ -16,9 +16,11 @@ from watchmen_reactor.common import ask_all_date_formats, ask_time_formats, Reac
 from watchmen_reactor.meta import TopicService
 from watchmen_utilities import ArrayHelper, get_day_of_month, get_day_of_week, get_half_year, get_month, get_quarter, \
 	get_week_of_month, get_week_of_year, get_year, greater_or_equals_date, greater_or_equals_decimal, \
-	greater_or_equals_time, is_blank, is_date_or_time_instance, is_empty, is_not_empty, is_numeric_instance, \
-	less_or_equals_date, less_or_equals_decimal, less_or_equals_time, try_to_date, try_to_decimal, value_equals, \
-	value_not_equals
+	greater_or_equals_time, is_blank, is_date, is_date_or_time_instance, is_empty, is_not_empty, is_numeric_instance, \
+	less_or_equals_date, less_or_equals_decimal, less_or_equals_time, month_diff, truncate_time, try_to_date, \
+	try_to_decimal, \
+	value_equals, \
+	value_not_equals, year_diff
 from .utils import get_value_from
 from .variables import PipelineVariables
 
@@ -444,19 +446,86 @@ def create_from_previous_trigger_data(prefix, name: str) -> Callable[[PipelineVa
 	return action
 
 
-def create_from_variables(prefix, name: str) -> Callable[[PipelineVariables, PrincipalService], Any]:
+def create_get_value_from_variables(variables: PipelineVariables) -> Callable[[str], Any]:
+	"""
+	recursive is not supported
+	"""
+
+	def get_value(name: str) -> Any:
+		if variables.has(name):
+			return variables.find(name)
+		else:
+			return variables.find_from_current_data(name)
+
+	return get_value
+
+
+def create_get_from_variables_with_prefix(prefix, name: str) -> Callable[[PipelineVariables, PrincipalService], Any]:
 	names = name.strip().split('.')
 
 	# noinspection PyUnusedLocal
 	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
-		def get_value(a_name: str) -> Any:
-			if variables.has(a_name):
-				return variables.find(a_name)
-			else:
-				return variables.find_from_current_data(a_name)
-
-		value = get_value_from(name, names, get_value)
+		value = get_value_from(name, names, create_get_value_from_variables(variables))
 		return value if is_blank(prefix) else f'{prefix}{value}'
+
+	return action
+
+
+# noinspection PyUnusedLocal
+def get_date_from_variables(
+		variables: PipelineVariables, principal_service: PrincipalService, variable_name: str
+) -> Tuple[bool, Any, date]:
+	value = get_value_from(
+		variable_name, variable_name.strip().split('.'), create_get_value_from_variables(variables))
+	parsed, parsed_date = is_date(value, ask_all_date_formats())
+	return parsed, value, parsed_date
+
+
+def create_date_diff(
+		variable_name: str, function: VariablePredefineFunctions
+) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	parsed = findall(f'^({function.value})\\s*\\((.+),(.+)\\)$', variable_name)
+	if len(parsed) != 1:
+		raise ReactorException(f'Constant[{variable_name}] is not supported.')
+	end_variable_name = parsed[0][1]
+	start_variable_name = parsed[0][2]
+	if is_blank(end_variable_name) or is_blank(start_variable_name):
+		raise ReactorException(f'Constant[{variable_name}] is not supported.')
+	end_parsed, end_date = is_date(end_variable_name, ask_all_date_formats())
+	start_parsed, start_date = is_date(start_variable_name, ask_all_date_formats())
+	if end_parsed and start_parsed:
+		# noinspection PyUnusedLocal
+		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+			if function == VariablePredefineFunctions.YEAR_DIFF:
+				return year_diff(end_date, start_date)
+			elif function == VariablePredefineFunctions.MONTH_DIFF:
+				return month_diff(end_date, start_date)
+			elif function == VariablePredefineFunctions.DAY_DIFF:
+				return (truncate_time(end_date) - truncate_time(start_date)).days
+			else:
+				raise ReactorException(f'Constant[{variable_name}] is not supported.')
+	else:
+		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+			if not end_parsed:
+				e_parsed, e_value, e_date = get_date_from_variables(variables, principal_service, end_variable_name)
+				if not e_parsed:
+					raise ReactorException(f'Value[{e_value}] cannot be parsed to date or datetime.')
+			else:
+				e_date = end_date
+			if not start_parsed:
+				s_parsed, s_value, s_date = get_date_from_variables(variables, principal_service, start_variable_name)
+				if not s_parsed:
+					raise ReactorException(f'Value[{s_value}] cannot be parsed to date or datetime.')
+			else:
+				s_date = start_date
+			if function == VariablePredefineFunctions.YEAR_DIFF:
+				return year_diff(e_date, s_date)
+			elif function == VariablePredefineFunctions.MONTH_DIFF:
+				return month_diff(e_date, s_date)
+			elif function == VariablePredefineFunctions.DAY_DIFF:
+				return (truncate_time(e_date) - truncate_time(s_date)).days
+			else:
+				raise ReactorException(f'Constant[{variable_name}] is not supported.')
 
 	return action
 
@@ -466,26 +535,11 @@ def create_run_constant_segment(segment: Tuple[str, str]) -> Callable[[PipelineV
 	if variable_name == VariablePredefineFunctions.NEXT_SEQ.value:
 		return create_snowflake_generator(prefix)
 	elif variable_name.startswith(VariablePredefineFunctions.YEAR_DIFF.value):
-		parsed = findall(f'^({VariablePredefineFunctions.YEAR_DIFF.value})\\s*\\((.+),(.+)\\)$', variable_name)
-		if len(parsed) != 1:
-			raise ReactorException(f'Constant[{variable_name}] is not supported.')
-		late_one = parsed[0][1]
-		early_one = parsed[0][2]
-
+		return create_date_diff(variable_name, VariablePredefineFunctions.YEAR_DIFF)
 	elif variable_name.startswith(VariablePredefineFunctions.MONTH_DIFF.value):
-		parsed = findall(f'^({VariablePredefineFunctions.MONTH_DIFF.value})\\s*\\((.+),(.+)\\)$', variable_name)
-		if len(parsed) != 1:
-			raise ReactorException(f'Constant[{variable_name}] is not supported.')
-		late_one = parsed[0][1]
-		early_one = parsed[0][2]
-
+		return create_date_diff(variable_name, VariablePredefineFunctions.MONTH_DIFF)
 	elif variable_name.startswith(VariablePredefineFunctions.DAY_DIFF.value):
-		parsed = findall(f'^({VariablePredefineFunctions.DAY_DIFF.value})\\s*\\((.+),(.+)\\)$', variable_name)
-		if len(parsed) != 1:
-			raise ReactorException(f'Constant[{variable_name}] is not supported.')
-		late_one = parsed[0][1]
-		early_one = parsed[0][2]
-
+		return create_date_diff(variable_name, VariablePredefineFunctions.DAY_DIFF)
 	elif variable_name.startswith(VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA.value):
 		if variable_name == VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA.value:
 			return create_previous_trigger_data(prefix)
@@ -494,7 +548,7 @@ def create_run_constant_segment(segment: Tuple[str, str]) -> Callable[[PipelineV
 			raise ReactorException(f'Constant[{variable_name}] is not supported.')
 		return create_from_previous_trigger_data(prefix, variable_name[length + 1:])
 	else:
-		return create_from_variables(prefix, variable_name)
+		return create_get_from_variables_with_prefix(prefix, variable_name)
 
 
 def create_run_constant_segments(
