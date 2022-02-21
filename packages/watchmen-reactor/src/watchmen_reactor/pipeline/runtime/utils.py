@@ -1,9 +1,13 @@
+from __future__ import annotations
+
 from decimal import Decimal
 from typing import Any, Callable, List
 
+from watchmen_auth import PrincipalService
 from watchmen_model.common import VariablePredefineFunctions
 from watchmen_reactor.common import ReactorException
 from watchmen_utilities import ArrayHelper, try_to_decimal
+from .variables import PipelineVariables
 
 
 def get_value_from(name: str, names: List[str], get_first: Callable[[str], Any]) -> Any:
@@ -62,3 +66,8 @@ def get_value_from(name: str, names: List[str], get_first: Callable[[str], Any])
 		current_index = current_index + 1
 	# reaches target
 	return data
+
+
+# noinspection PyUnusedLocal
+def always_none(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+	return None
