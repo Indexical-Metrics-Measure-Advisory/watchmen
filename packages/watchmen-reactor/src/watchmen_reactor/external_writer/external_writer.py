@@ -9,6 +9,8 @@ logger = getLogger(__name__)
 
 
 class ExternalWriterParams(DataModel):
+	pat: Optional[str] = None
+	url: Optional[str] = None
 	event_code: Optional[str] = None
 	current_data: Optional[Dict[str, Any]] = None
 	previous_data: Optional[Dict[str, Any]] = None
@@ -16,19 +18,21 @@ class ExternalWriterParams(DataModel):
 
 
 class ExternalWriter:
-	@abstractmethod
+	def __init__(self, code: str):
+		self.code = code
+
 	def get_code(self) -> str:
 		"""
 		code should be same as configured
 		"""
-		pass
+		return self.code
 
 	@abstractmethod
 	def run(self, params: ExternalWriterParams) -> bool:
 		pass
 
 
-CreateExternalWriter = Callable[[Dict[str, Any]], ExternalWriter]
+CreateExternalWriter = Callable[[], ExternalWriter]
 
 
 class ExternalWriterRegistry:
@@ -59,7 +63,3 @@ def register_external_writer_creator(code: str, create_writer: CreateExternalWri
 
 def ask_external_writer_creator(code: str) -> CreateExternalWriter:
 	return external_writer_registry.ask_writer(code)
-
-
-def ask_external_writer(code: str, params: Dict[str, Any]) -> ExternalWriter:
-	return external_writer_registry.ask_writer(code)(params)
