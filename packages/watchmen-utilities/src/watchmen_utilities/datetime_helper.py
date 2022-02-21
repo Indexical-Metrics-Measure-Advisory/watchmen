@@ -189,10 +189,11 @@ def try_to_format_date(might_be_date: str, date_format: str) -> Tuple[bool, Opti
 		return False, None
 
 
-def is_date(value: Optional[str], formats: List[str]) -> Tuple[bool, Optional[date]]:
+def is_date_plus_format(value: Optional[str], formats: List[str]) -> Tuple[bool, Optional[date], Optional[str]]:
 	"""
 	none is not a date value, otherwise remove non-number characters and try to parse by given formats.
-	digits after removing must match digits of format
+	digits after removing must match digits of format.
+	return format itself when parsed
 	"""
 	tidy_value = sub(r'\D', '', value)
 	count = len(tidy_value)
@@ -200,8 +201,13 @@ def is_date(value: Optional[str], formats: List[str]) -> Tuple[bool, Optional[da
 	for suitable_format in suitable_formats:
 		parsed, date_value = try_to_format_date(tidy_value, suitable_format)
 		if parsed:
-			return parsed, date_value
-	return False, None
+			return parsed, date_value, suitable_format
+	return False, None, None
+
+
+def is_date(value: Optional[str], formats: List[str]) -> Tuple[bool, Optional[date]]:
+	parsed, date_value, _ = is_date_plus_format(value, formats)
+	return parsed, date_value
 
 
 def is_datetime(value: Optional[str], formats: List[str]) -> Tuple[bool, Optional[datetime]]:

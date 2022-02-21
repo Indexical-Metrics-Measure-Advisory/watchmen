@@ -3,7 +3,7 @@ from typing import Any, List, Union
 
 from watchmen_model.admin import FactorEncryptMethod
 from watchmen_reactor.common import ReactorException
-from watchmen_utilities import is_date
+from watchmen_utilities import is_date_plus_format
 from .encryptor import Encryptor
 
 
@@ -46,11 +46,28 @@ class DateMasker(Encryptor):
 		if not isinstance(value, str):
 			raise ReactorException(f'Given value[{value}] is not a string, cannot be masked.')
 
-		parsed, date_value = is_date(value, self.formats)
+		parsed, date_value, date_format = is_date_plus_format(value, self.formats)
 		if not parsed:
 			raise ReactorException(
 				f'Given value[{value}] cannot be parsed to date or datetime by formats[{self.formats}].')
+		# call myself to encrypt date
 		masked_date = self.do_encrypt(date_value)
+		# format to string again, now only decimal included
+		formatted_value = masked_date.strftime(date_format)
+		# test len, return directly when length is same
+		if len(formatted_value) == len(value):
+			return formatted_value
+
+		# gather decimal character from formatted, other character from original
+		final_value = []
+		formatted_value_index = 0
+		for ch in value:
+			if not ch.isdecimal():
+				final_value.append(ch)
+			else:
+				final_value.append(formatted_value[formatted_value_index])
+				formatted_value_index = formatted_value_index + 1
+		return ''.join(final_value)
 
 	def do_decrypt(self, value: str) -> str:
 		# center mask cannot be decrypted
