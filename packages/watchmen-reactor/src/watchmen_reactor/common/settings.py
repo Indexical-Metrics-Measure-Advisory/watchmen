@@ -1,9 +1,9 @@
-import logging
+from logging import getLogger
 from typing import List, Set
 
 from pydantic import BaseSettings
 
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__)
 
 
 class ReactorSettings(BaseSettings):

@@ -1,11 +1,11 @@
-import logging
+from logging import getLogger
 
 from pydantic import BaseSettings
 
 from watchmen_utilities import is_blank
 from .connectors import KafkaSettings, RabbitmqSettings
 
-logger = logging.getLogger(__name__)
+logger = getLogger(__name__)
 
 
 class ReactorSurfaceSettings(BaseSettings):
