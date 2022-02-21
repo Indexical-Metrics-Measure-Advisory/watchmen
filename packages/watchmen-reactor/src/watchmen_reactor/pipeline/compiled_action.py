@@ -8,14 +8,14 @@ from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import AlarmAction, AlarmActionSeverity, CopyToMemoryAction, DeleteTopicAction, \
 	DeleteTopicActionType, Pipeline, PipelineAction, PipelineStage, PipelineUnit, ReadTopicAction, \
 	ReadTopicActionType, SystemActionType, WriteToExternalAction, WriteTopicAction, WriteTopicActionType
+from watchmen_model.common import ConstantParameter, ParameterKind
 from watchmen_model.reactor import MonitorAlarmAction, MonitorCopyToMemoryAction, MonitorDeleteAction, \
 	MonitorLogAction, MonitorLogStatus, MonitorLogUnit, MonitorReadAction, MonitorWriteAction, \
 	MonitorWriteToExternalAction
 from watchmen_reactor.common import ReactorException
 from watchmen_utilities import ArrayHelper, is_blank
-from .runtime import ConstantValue, CreateQueuePipeline, now, parse_action_defined_as, parse_constant, \
-	parse_parameter, parse_prerequisite, parse_prerequisite_defined_as, ParsedParameter, PipelineVariables, \
-	PrerequisiteDefinedAs, PrerequisiteTest, spent_ms
+from .runtime import CreateQueuePipeline, now, parse_action_defined_as, parse_parameter, parse_prerequisite, \
+	parse_prerequisite_defined_as, ParsedParameter, PipelineVariables, PrerequisiteDefinedAs, PrerequisiteTest, spent_ms
 
 logger = getLogger(__name__)
 
@@ -93,13 +93,17 @@ class CompiledAlarmAction(CompiledAction):
 	prerequisiteDefinedAs: PrerequisiteDefinedAs
 	prerequisiteTest: PrerequisiteTest
 	severity: AlarmActionSeverity = AlarmActionSeverity.MEDIUM
-	message: ConstantValue = None
+	parsedMessage: Optional[ParsedParameter] = None
 
 	def parse_action(self, action: AlarmAction, principal_service: PrincipalService) -> None:
 		self.prerequisiteDefinedAs = parse_prerequisite_defined_as(action, principal_service)
 		self.prerequisiteTest = parse_prerequisite(action, principal_service)
 		self.severity = AlarmActionSeverity.MEDIUM if action.severity is None else action.severity
-		self.message = parse_constant(action.message, principal_service)
+		# construct a constant parameter
+		self.parsedMessage = parse_parameter(ConstantParameter(
+			kind=ParameterKind.CONSTANT,
+			value=action.message
+		), principal_service)
 
 	def do_run(
 			self, variables: PipelineVariables,
@@ -117,7 +121,7 @@ class CompiledAlarmAction(CompiledAction):
 
 				# default log on error label
 				def work() -> None:
-					value = self.message(variables)
+					value = self.parsedMessage.value(variables, principal_service)
 					action_monitor_log.touched = value
 					logger.error(f'[PIPELINE] [ALARM] [{self.severity.upper()}] {value}')
 
@@ -147,10 +151,12 @@ class CompiledCopyToMemoryAction(CompiledAction):
 			self, variables: PipelineVariables,
 			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorCopyToMemoryAction,
 			principal_service: PrincipalService) -> bool:
-		value = self.parsedSource.value(variables, principal_service)
-		action_monitor_log.touched = value
-		variables.put(self.variableName, value)
-		return True
+		def work() -> None:
+			value = self.parsedSource.value(variables, principal_service)
+			action_monitor_log.touched = value
+			variables.put(self.variableName, value)
+
+		return self.safe_run(action_monitor_log, work)
 
 	def create_action_log(self, common: Dict[str, Any]) -> MonitorCopyToMemoryAction:
 		return MonitorCopyToMemoryAction(**common, value=None)
