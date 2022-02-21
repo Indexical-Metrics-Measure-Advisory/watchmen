@@ -3,7 +3,7 @@ from typing import Dict, Optional, Union
 
 from watchmen_model.admin import FactorEncryptMethod
 from watchmen_reactor.common import ask_all_date_formats, ask_encrypt_aes_params, ReactorException
-from watchmen_reactor.topic_schema.encryption import Encryptor
+from watchmen_reactor.encryption import Encryptor
 from .aes_encryptor import AESEncryptor
 from .center_masker import CenterMasker
 from .date_masker import DateMasker
