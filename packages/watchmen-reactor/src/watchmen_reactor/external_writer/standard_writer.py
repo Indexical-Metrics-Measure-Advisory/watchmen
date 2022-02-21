@@ -34,6 +34,7 @@ class StandardExternalWriter(ExternalWriter):
 			headers['Authorization'] = f'PAT {params.pat.strip()}'
 
 		# lazy load
+		# noinspection PyPackageRequirements
 		from requests import post
 		response = post(
 			params.url,

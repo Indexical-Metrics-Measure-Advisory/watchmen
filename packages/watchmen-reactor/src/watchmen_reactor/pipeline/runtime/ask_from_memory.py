@@ -801,8 +801,8 @@ class ParsedComputedParameter(ParsedParameter):
 				raise ReactorException(f'Multiple anyway routes declared in case then computation[{parameter.dict()}].')
 			anyway = anyways[0] if len(anyways) == 1 else None
 			self.askValue = create_case_then(
-				ArrayHelper(cases).filter(lambda x: x.conditional) \
-					.map(lambda x: parse_conditional_parameter(x, principal_service)).to_list(),
+				ArrayHelper(cases).filter(lambda x: x.conditional).map(
+					lambda x: parse_conditional_parameter(x, principal_service)).to_list(),
 				parse_parameter(anyway, principal_service) if anyway is not None else None
 			)
 		else:

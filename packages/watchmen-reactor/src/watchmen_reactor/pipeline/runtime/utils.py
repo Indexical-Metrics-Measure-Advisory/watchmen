@@ -42,7 +42,7 @@ def get_value_from(name: str, names: List[str], get_first: Callable[[str], Any])
 					else:
 						return decimal_value
 
-				return ArrayHelper(data).reduce(lambda sum, value: sum + to_decimal(value), Decimal(0))
+				return ArrayHelper(data).reduce(lambda sum_value, value: sum_value + to_decimal(value), Decimal(0))
 			else:
 				raise ReactorException(f'Cannot retrieve[key={name}, current={current_name}] from [{data}].')
 		elif isinstance(data, dict):
