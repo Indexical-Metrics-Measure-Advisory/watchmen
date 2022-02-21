@@ -5,12 +5,6 @@ from watchmen_reactor.common import ReactorException
 from .encryptor import Encryptor
 
 
-# elif method == FactorEncryptMethod.MASK_LAST_3:
-# elif method == FactorEncryptMethod.MASK_LAST_6:
-# elif method == FactorEncryptMethod.MASK_DAY:
-# elif method == FactorEncryptMethod.MASK_MONTH:
-# elif method == FactorEncryptMethod.MASK_MONTH_DAY:
-
 class CenterMasker(Encryptor):
 	def __init__(self, digits: int):
 		self.digits = digits
