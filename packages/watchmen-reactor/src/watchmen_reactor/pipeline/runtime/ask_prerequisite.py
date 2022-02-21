@@ -21,7 +21,7 @@ from watchmen_utilities import ArrayHelper, get_day_of_month, get_day_of_week, g
 	try_to_decimal, \
 	value_equals, \
 	value_not_equals, year_diff
-from .utils import get_value_from
+from .utils import always_none, get_value_from
 from .variables import PipelineVariables
 
 
@@ -401,11 +401,6 @@ class ParsedTopicFactorParameter(ParsedParameter):
 
 	def value(self, variables: PipelineVariables, principal_service: PrincipalService) -> Any:
 		return self.askValue(variables, principal_service)
-
-
-# noinspection PyUnusedLocal
-def always_none(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
-	return None
 
 
 def create_static_str(value: str) -> Callable[[PipelineVariables, PrincipalService], Any]:

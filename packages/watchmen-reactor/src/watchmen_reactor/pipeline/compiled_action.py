@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from logging import getLogger
 from traceback import format_exc
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_snowflake_generator
@@ -12,10 +12,10 @@ from watchmen_model.reactor import MonitorAlarmAction, MonitorCopyToMemoryAction
 	MonitorLogAction, MonitorLogStatus, MonitorLogUnit, MonitorReadAction, MonitorWriteAction, \
 	MonitorWriteToExternalAction
 from watchmen_reactor.common import ReactorException
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, is_blank
 from .runtime import ConstantValue, CreateQueuePipeline, now, parse_action_defined_as, parse_constant, \
-	parse_prerequisite, parse_prerequisite_defined_as, PipelineVariables, PrerequisiteDefinedAs, PrerequisiteTest, \
-	spent_ms
+	parse_parameter, parse_prerequisite, parse_prerequisite_defined_as, ParsedParameter, PipelineVariables, \
+	PrerequisiteDefinedAs, PrerequisiteTest, spent_ms
 
 logger = getLogger(__name__)
 
@@ -134,16 +134,23 @@ class CompiledAlarmAction(CompiledAction):
 
 
 class CompiledCopyToMemoryAction(CompiledAction):
+	variableName: Optional[str] = None
+	parsedSource: Optional[ParsedParameter] = None
+
 	def parse_action(self, action: CopyToMemoryAction, principal_service: PrincipalService) -> None:
-		# TODO
-		pass
+		if is_blank(action.variableName):
+			raise ReactorException(f'Variable not declared in copy to variable action.')
+		self.variableName = action.variableName
+		self.parsedSource = parse_parameter(action.source, principal_service)
 
 	def do_run(
 			self, variables: PipelineVariables,
-			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorLogAction,
+			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorCopyToMemoryAction,
 			principal_service: PrincipalService) -> bool:
-		# TODO
-		pass
+		value = self.parsedSource.value(variables, principal_service)
+		action_monitor_log.touched = value
+		variables.put(self.variableName, value)
+		return True
 
 	def create_action_log(self, common: Dict[str, Any]) -> MonitorCopyToMemoryAction:
 		return MonitorCopyToMemoryAction(**common, value=None)
