@@ -5,7 +5,7 @@ from requests import post
 from watchmen_model.admin import PipelineTriggerType
 from watchmen_reactor.common import ReactorException
 from watchmen_utilities import is_not_blank, serialize_to_json
-from .external_writer import ExternalWriter, ExternalWriterParams
+from .external_writer import CreateExternalWriter, ExternalWriter, ExternalWriterParams
 
 log = logging.getLogger("app." + __name__)
 
@@ -49,3 +49,11 @@ class StandardExternalWriter(ExternalWriter):
 	def run(self, params: ExternalWriterParams) -> bool:
 		self.do_run(params)
 		return True
+
+
+def create_standard_writer(code: str) -> StandardExternalWriter:
+	return StandardExternalWriter(code)
+
+
+def register_standard_writer() -> CreateExternalWriter:
+	return create_standard_writer

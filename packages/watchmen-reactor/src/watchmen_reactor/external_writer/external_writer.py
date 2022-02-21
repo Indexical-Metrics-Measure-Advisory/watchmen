@@ -44,6 +44,9 @@ class ExternalWriterRegistry:
 		logger.warning(f'External writer[{code}] is replaced.')
 		return original
 
+	def is_registered(self, code) -> bool:
+		return code in self.creators
+
 	def ask_writer(self, code: str) -> CreateExternalWriter:
 		create = self.creators.get(code)
 		if create is None:
@@ -59,6 +62,10 @@ def register_external_writer_creator(code: str, create_writer: CreateExternalWri
 	register writer on startup
 	"""
 	external_writer_registry.register(code, create_writer)
+
+
+def is_external_writer_creator_registered(code: str) -> bool:
+	return external_writer_registry.is_registered(code)
 
 
 def ask_external_writer_creator(code: str) -> CreateExternalWriter:
