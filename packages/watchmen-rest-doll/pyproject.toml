@@ -18,9 +18,6 @@ watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, o
 watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
 watchmen-storage-mongodb = { path = "../watchmen-storage-mongodb", develop = true, optional = true }
 watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, optional = true }
-kafka-python = { version = "^2.0.2", optional = true }
-aiokafka = { version = "^0.7.2", optional = true }
-aio-pika = { version = "^6.8.2", optional = true }
 
 [tool.poetry.dev-dependencies]
 
