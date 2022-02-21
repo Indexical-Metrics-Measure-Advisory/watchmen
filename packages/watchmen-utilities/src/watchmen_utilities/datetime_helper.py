@@ -1,4 +1,4 @@
-from datetime import date, datetime, time
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal
 from enum import Enum
 from json import JSONEncoder
@@ -31,6 +31,96 @@ def truncate_time(value: Union[date, datetime]) -> datetime:
 	else:
 		return datetime(year=value.year, month=value.month, day=value.day) \
 			.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
+
+
+def last_day_of_month(a_date: date) -> int:
+	return ((a_date.replace(day=1) + timedelta(days=31)).replace(day=1) - timedelta(days=1)).day
+
+
+def year_diff(end_date: date, start_date: date) -> int:
+	end_year = end_date.year
+	end_month = end_date.month
+	end_day = end_date.day
+	start_year = start_date.year
+	start_month = start_date.month
+	start_day = start_date.day
+	if end_year == start_year:
+		# same year, always return 0
+		return 0
+	elif end_year > start_year:
+		if end_month == start_month:
+			if end_day >= start_day:
+				return end_year - start_year
+			else:
+				return end_year - start_year - 1
+		elif end_month > start_month:
+			return end_year - start_year
+		else:
+			return end_year - start_year - 1
+	else:
+		if end_month == start_month:
+			if end_day > start_day:
+				return end_year - start_year + 1
+			else:
+				return end_year - start_year
+		elif end_month > start_month:
+			return end_year - start_year + 1
+		else:
+			return end_year - start_year
+
+
+def month_diff(end_date: date, start_date: date) -> int:
+	end_year = end_date.year
+	end_month = end_date.month
+	end_day = end_date.day
+	start_year = start_date.year
+	start_month = start_date.month
+	start_day = start_date.day
+	if end_year == start_year:
+		if end_month == start_month:
+			# same year, same month, always return 0
+			return 0
+		if end_month > start_month:
+			if end_day >= start_day:
+				return end_month - start_month
+			else:
+				last_day_of_end_month = last_day_of_month(end_date)
+				if last_day_of_end_month == end_day and start_day >= last_day_of_end_month:
+					# it is last day of end month
+					return end_month - start_month
+				else:
+					return end_month - start_month - 1
+		else:
+			# end date is before start date
+			if end_day > start_day:
+				last_day_of_start_month = last_day_of_month(start_date)
+				if last_day_of_start_month == start_day and end_day >= start_day:
+					# it is last day of start month
+					return end_month - start_month
+				else:
+					return end_month - start_month + 1
+			else:
+				return end_month - start_month
+	elif end_year > start_year:
+		if end_day >= start_day:
+			return (end_year - start_year) * 12 + end_month - start_month
+		else:
+			last_day_of_end_month = last_day_of_month(end_date)
+			if last_day_of_end_month == end_day and start_day >= last_day_of_end_month:
+				return (end_year - start_year) * 12 + end_month - start_month
+			else:
+				return (end_year - start_year) * 12 + end_month - start_month + 1
+	else:
+		# end year is before start year
+		if end_day > start_day:
+			last_day_of_start_month = last_day_of_month(start_date)
+			if last_day_of_start_month == start_day and end_day >= start_day:
+				# it is last day of start month
+				return (end_year - start_year + 1) * 12 + 12 - end_month + start_month
+			else:
+				return (end_year - start_year + 1) * 12 + 12 - end_month + start_month - 1
+		else:
+			return (end_year - start_year + 1) * 12 + 12 - end_month + start_month
 
 
 def try_to_format_time(might_be_time: str, time_format: str) -> Tuple[bool, Optional[time]]:
