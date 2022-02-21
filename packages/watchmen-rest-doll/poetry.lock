@@ -114,7 +114,7 @@ gmpy2 = ["gmpy2"]
 
 [[package]]
 name = "fastapi"
-version = "0.73.0"
+version = "0.74.0"
 description = "FastAPI framework, high performance, easy to learn, fast to code, ready for production"
 category = "main"
 optional = false
@@ -493,7 +493,6 @@ python-versions = "^3.9"
 develop = true
 
 [package.dependencies]
-fastapi = "^0.73.0"
 watchmen-reactor = {path = "../watchmen-reactor", develop = true}
 watchmen-rest = {path = "../watchmen-rest", develop = true}
 
@@ -503,7 +502,7 @@ oracle = ["watchmen-storage-oracle @ ../watchmen-storage-oracle"]
 mongodb = ["watchmen-storage-mongodb @ ../watchmen-storage-mongodb"]
 mssql = ["watchmen-storage-mssql @ ../watchmen-storage-mssql"]
 kafka = ["kafka-python (>=2.0.2,<3.0.0)", "aiokafka (>=0.7.2,<0.8.0)"]
-rabbitmq = ["aio-pika (>=6.8.2,<7.0.0)"]
+rabbitmq = ["aio-pika (>=7.0.1,<8.0.0)"]
 
 [package.source]
 type = "directory"
@@ -519,12 +518,12 @@ python-versions = "^3.9"
 develop = true
 
 [package.dependencies]
-fastapi = "^0.73.0"
+fastapi = "^0.74.0"
 jose = "^1.0.0"
 jsonschema = "^4.4.0"
 python-dotenv = "^0.19.2"
 python-jose = "^3.3.0"
-uvicorn = "^0.17.4"
+uvicorn = "^0.17.5"
 watchmen-auth = {path = "../watchmen-auth", develop = true}
 watchmen-storage = {path = "../watchmen-storage", develop = true}
 
@@ -741,8 +740,8 @@ ecdsa = [
     {file = "ecdsa-0.17.0.tar.gz", hash = "sha256:b9f500bb439e4153d0330610f5d26baaf18d17b8ced1bc54410d189385ea68aa"},
 ]
 fastapi = [
-    {file = "fastapi-0.73.0-py3-none-any.whl", hash = "sha256:f0a618aff5f6942862f2d3f20f39b1c037e33314d1b8207fd1c3a2cca76dfd8c"},
-    {file = "fastapi-0.73.0.tar.gz", hash = "sha256:dcfee92a7f9a72b5d4b7ca364bd2b009f8fc10d95ed5769be20e94f39f7e5a15"},
+    {file = "fastapi-0.74.0-py3-none-any.whl", hash = "sha256:e21d7d0d587c8c2014e8ff61be2626f999cfb8c3cb42f034df9f8589bcb893e1"},
+    {file = "fastapi-0.74.0.tar.gz", hash = "sha256:5363a2cd983aa700e5a6c25d63d1b84aee0d4c94358247b4a1a947e39f654ffe"},
 ]
 greenlet = [
     {file = "greenlet-1.1.2-cp27-cp27m-macosx_10_14_x86_64.whl", hash = "sha256:58df5c2a0e293bf665a51f8a100d3e9956febfbf1d9aaf8c0677cf70218910c6"},

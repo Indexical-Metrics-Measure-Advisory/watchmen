@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
 from watchmen_model.admin import Factor, FactorEncryptMethod, Topic
+from watchmen_reactor.topic_schema.encryption import ask_encryptor
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 
 """
@@ -90,7 +91,10 @@ def parse_encrypt_factors(topic: Topic) -> List[EncryptFactorGroup]:
 
 
 def encrypt(value: Any, method: FactorEncryptMethod) -> Any:
-	# TODO do encryption,
+	# do encryption
 	# check it is encrypted or not first
 	# data read from topic, and write again, might be encrypted already
-	return value
+	if method == FactorEncryptMethod.NONE:
+		return value
+	else:
+		return ask_encryptor(method).encrypt(value)
