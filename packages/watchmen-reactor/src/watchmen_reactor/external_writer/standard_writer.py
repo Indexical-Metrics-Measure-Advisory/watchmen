@@ -1,7 +1,5 @@
 from logging import getLogger
 
-from requests import post
-
 from watchmen_model.admin import PipelineTriggerType
 from watchmen_reactor.common import ReactorException
 from watchmen_utilities import is_not_blank, serialize_to_json
@@ -35,6 +33,8 @@ class StandardExternalWriter(ExternalWriter):
 		if is_not_blank(params.pat):
 			headers['Authorization'] = f'PAT {params.pat.strip()}'
 
+		# lazy load
+		from requests import post
 		response = post(
 			params.url,
 			timeout=2,
