@@ -11,12 +11,12 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.9"
 cacheout = "^0.13.1"
+requests = "^2.27.1"
 watchmen-meta = { path = "../watchmen-meta", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
 watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
 watchmen-storage-mongodb = { path = "../watchmen-storage-mongodb", develop = true, optional = true }
 watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, optional = true }
-requests = "^2.27.1"
 
 [tool.poetry.dev-dependencies]
 

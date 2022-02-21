@@ -1,4 +1,4 @@
-import logging
+from logging import getLogger
 
 from requests import post
 
@@ -7,7 +7,7 @@ from watchmen_reactor.common import ReactorException
 from watchmen_utilities import is_not_blank, serialize_to_json
 from .external_writer import CreateExternalWriter, ExternalWriter, ExternalWriterParams
 
-log = logging.getLogger("app." + __name__)
+logger = getLogger(__name__)
 
 
 class StandardExternalWriter(ExternalWriter):
@@ -42,9 +42,9 @@ class StandardExternalWriter(ExternalWriter):
 			headers=headers
 		)
 		if response.status_code == 200:
-			logging.info(response.json())
+			logger.info(response.json())
 		else:
-			logging.error(response.text)
+			logger.error(response.text)
 
 	def run(self, params: ExternalWriterParams) -> bool:
 		self.do_run(params)
