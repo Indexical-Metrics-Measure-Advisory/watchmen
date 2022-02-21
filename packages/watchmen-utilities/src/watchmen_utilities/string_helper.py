@@ -1,7 +1,8 @@
-from typing import Optional
+from decimal import Decimal
+from typing import Optional, Union
 
 
-def is_blank(text: Optional[str]) -> bool:
+def is_blank(text: Optional[Union[str, int, float, Decimal]]) -> bool:
 	if text is None:
 		return True
 	if len(text) == 0:

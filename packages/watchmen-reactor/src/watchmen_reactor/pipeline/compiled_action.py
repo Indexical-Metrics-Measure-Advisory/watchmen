@@ -16,8 +16,14 @@ from watchmen_reactor.common import ReactorException
 from watchmen_utilities import ArrayHelper, is_blank
 from .runtime import CreateQueuePipeline, now, parse_action_defined_as, parse_parameter, parse_prerequisite, \
 	parse_prerequisite_defined_as, ParsedParameter, PipelineVariables, PrerequisiteDefinedAs, PrerequisiteTest, spent_ms
+from ..external_writer import ask_external_writer_creator, CreateExternalWriter, ExternalWriterParams
+from ..meta.external_writer_service import ExternalWriterService
 
 logger = getLogger(__name__)
+
+
+def get_external_writer_service(principal_service: PrincipalService) -> ExternalWriterService:
+	return ExternalWriterService(principal_service)
 
 
 class CompiledAction:
@@ -162,17 +168,46 @@ class CompiledCopyToMemoryAction(CompiledAction):
 		return MonitorCopyToMemoryAction(**common, value=None)
 
 
+def create_external_write(
+		create: CreateExternalWriter, event_code: Optional[str], params: Dict[str, Any]
+) -> Callable[[PipelineVariables, PrincipalService], None]:
+	def write(variables: PipelineVariables, principal_service: PrincipalService) -> None:
+		cloned = variables.clone_all()
+		create(params).run(ExternalWriterParams(
+			event_code=event_code,
+			current_data=cloned.current_data,
+			previous_data=cloned.previous_data,
+			variables=cloned.variables
+		))
+
+	return write
+
+
 class CompiledWriteToExternalAction(CompiledAction):
+	eventCode: Optional[str] = None
+	write: Optional[Callable[[PipelineVariables, PrincipalService], None]] = None
+
 	def parse_action(self, action: WriteToExternalAction, principal_service: PrincipalService) -> None:
-		# TODO
-		pass
+		writer_id = action.externalWriterId
+		if is_blank(writer_id):
+			raise ReactorException(f'External writer not declared.')
+		external_writer = get_external_writer_service(principal_service).find_by_id(writer_id)
+		if external_writer is None:
+			raise ReactorException(f'External writer[id={writer_id}] definition not found.')
+		code = external_writer.code
+		create = ask_external_writer_creator(code)
+		if create is None:
+			raise ReactorException(f'Cannot find external writer[code={code}] creator.')
+		self.write = create_external_write(create, action.eventCode, {
+			'pat': external_writer.pat,
+			'url': external_writer.url
+		})
 
 	def do_run(
 			self, variables: PipelineVariables,
-			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorLogAction,
+			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorWriteToExternalAction,
 			principal_service: PrincipalService) -> bool:
-		# TODO
-		pass
+		return self.safe_run(action_monitor_log, lambda: self.write(variables, principal_service))
 
 	def create_action_log(self, common: Dict[str, Any]) -> MonitorWriteToExternalAction:
 		return MonitorWriteToExternalAction(**common, value=None)

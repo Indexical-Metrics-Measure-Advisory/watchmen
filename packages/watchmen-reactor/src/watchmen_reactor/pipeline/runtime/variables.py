@@ -30,3 +30,8 @@ class PipelineVariables:
 		cloned = PipelineVariables(self.previous_data, self.current_data)
 		cloned.variables = deepcopy(self.variables)
 		return cloned
+
+	def clone_all(self) -> PipelineVariables:
+		cloned = PipelineVariables(deepcopy(self.previous_data), deepcopy(self.current_data))
+		cloned.variables = deepcopy(self.variables)
+		return cloned

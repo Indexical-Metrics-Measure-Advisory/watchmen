@@ -3,16 +3,16 @@ from typing import Any, Callable, Hashable, List, Optional, Union
 from cacheout import Cache
 
 from watchmen_model.admin import Pipeline, Topic
-from watchmen_model.common import DataSourceId, PipelineId, TenantId, TopicId
-from watchmen_model.system import DataSource, Tenant
+from watchmen_model.common import DataSourceId, ExternalWriterId, PipelineId, TenantId, TopicId
+from watchmen_model.system import DataSource, ExternalWriter, Tenant
 from watchmen_reactor.common import ask_cache_enabled
 from watchmen_reactor.storage import TopicDataEntityHelper
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_storage import TopicDataStorageSPI
 from watchmen_utilities import ArrayHelper
 from .cache_manager import get_compiled_pipeline_by_id_cache, get_data_source_by_id_cache, \
-	get_data_storage_builder_by_id_cache, get_pipeline_by_id_cache, get_pipeline_by_topic_id_cache, \
-	get_tenant_by_id_cache, get_topic_by_id_cache, get_topic_by_tenant_and_name_cache, \
+	get_data_storage_builder_by_id_cache, get_external_writer_by_id_cache, get_pipeline_by_id_cache, \
+	get_pipeline_by_topic_id_cache, get_tenant_by_id_cache, get_topic_by_id_cache, get_topic_by_tenant_and_name_cache, \
 	get_topic_entity_helper_by_id_cache, get_topic_schema_by_id_cache
 from ..pipeline_schema import CompiledPipeline
 
@@ -227,6 +227,31 @@ data_source_cache = DataSourceCache()
 
 
 # noinspection DuplicatedCode
+class ExternalWriterCache:
+	"""
+	external writer cache will not impact other caches
+	"""
+
+	def __init__(self):
+		self.by_id_cache = InternalCache(cache=get_external_writer_by_id_cache)
+
+	def put(self, external_writer: ExternalWriter) -> Optional[ExternalWriter]:
+		return self.by_id_cache.put(external_writer.writerId, external_writer)
+
+	def get(self, external_writer_id: ExternalWriterId) -> Optional[ExternalWriter]:
+		return self.by_id_cache.get(external_writer_id)
+
+	def remove(self, external_writer_id: ExternalWriterId) -> Optional[ExternalWriter]:
+		return self.by_id_cache.remove(external_writer_id)
+
+	def clear(self) -> None:
+		self.by_id_cache.clear()
+
+
+external_writer_cache = ExternalWriterCache()
+
+
+# noinspection DuplicatedCode
 class TenantCache:
 	"""
 	tenant cache will not impact other caches
@@ -269,6 +294,10 @@ class CacheService:
 		return data_source_cache
 
 	@staticmethod
+	def external_writer() -> ExternalWriterCache:
+		return external_writer_cache
+
+	@staticmethod
 	def tenant() -> TenantCache:
 		return tenant_cache
 
@@ -278,6 +307,7 @@ class CacheService:
 		CacheService.topic().clear()
 		CacheService.pipelines_by_topic().clear()
 		CacheService.data_source().clear()
+		CacheService.external_writer().clear()
 		CacheService.tenant().clear()
 
 # TODO cache refresher, with heart beat
