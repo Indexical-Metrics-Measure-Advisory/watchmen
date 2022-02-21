@@ -128,6 +128,8 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 		# log spent in milliseconds
 		monitor_log.spentInMills = spent_ms(monitor_log.startTime)
 
+		# TODO trigger log pipeline by monitor log
+
 		# return created pipelines
 		return created_pipeline_contexts.to_list()
 
