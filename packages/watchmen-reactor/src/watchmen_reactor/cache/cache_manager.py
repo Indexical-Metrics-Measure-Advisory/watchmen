@@ -40,6 +40,10 @@ class DataStorageBuilderByIdCache(Cache):
 	pass
 
 
+class ExternalWriterByIdCache(Cache):
+	pass
+
+
 class TenantByIdCache(Cache):
 	pass
 
@@ -55,6 +59,7 @@ cache_set.setup({
 	'PIPELINE_BY_TOPIC_ID': {'cache_class': PipelineByTopicIdCache, 'maxsize': 512},
 	'DATA_SOURCE_BY_ID': {'cache_class': DataSourceByIdCache, 'maxsize': 64},
 	'DATA_STORAGE_BUILDER_BY_ID': {'cache_class': DataStorageBuilderByIdCache, 'maxsize': 64},
+	'EXTERNAL_WRITER_BY_ID': {'cache_class': ExternalWriterByIdCache, 'maxsize': 16},
 	'TENANT_BY_ID': {'cache_class': TenantByIdCache, 'maxsize': 32}
 })
 
@@ -67,6 +72,7 @@ compiled_pipeline_cache_by_id = cache_set['COMPILED_PIPELINE_BY_ID']
 pipeline_cache_by_topic_id = cache_set['PIPELINE_BY_TOPIC_ID']
 data_source_cache_by_id = cache_set['DATA_SOURCE_BY_ID']
 data_storage_builder_cache_by_id = cache_set['DATA_STORAGE_BUILDER_BY_ID']
+external_writer_cache_by_id = cache_set['EXTERNAL_WRITER_BY_ID']
 tenant_cache_by_id = cache_set['TENANT_BY_ID']
 
 
@@ -104,6 +110,10 @@ def get_data_source_by_id_cache() -> DataSourceByIdCache:
 
 def get_data_storage_builder_by_id_cache() -> DataStorageBuilderByIdCache:
 	return data_storage_builder_cache_by_id
+
+
+def get_external_writer_by_id_cache() -> ExternalWriterByIdCache:
+	return external_writer_cache_by_id
 
 
 def get_tenant_by_id_cache() -> TenantByIdCache:
