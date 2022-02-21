@@ -15,6 +15,7 @@ CREATE TABLE external_writers
     INDEX (writer_code),
     INDEX (type),
     INDEX (tenant_id),
+    UNIQUE INDEX (writer_code, tenant_id),
     INDEX (created_at),
     INDEX (created_by),
     INDEX (last_modified_at),

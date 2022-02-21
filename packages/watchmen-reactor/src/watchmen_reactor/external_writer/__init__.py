@@ -1,2 +1,5 @@
-from .external_writer import ask_external_writer_creator, CreateExternalWriter, ExternalWriter, \
-	ExternalWriterParams, register_external_writer_creator
+from .elastic_search_writer import create_elastic_search_writer, ElasticSearchExternalWriter, \
+	register_elastic_search_writer
+from .external_writer import ask_external_writer_creator, CreateExternalWriter, ExternalWriter, ExternalWriterParams, \
+	is_external_writer_creator_registered, register_external_writer_creator
+from .standard_writer import create_standard_writer, register_standard_writer, StandardExternalWriter
