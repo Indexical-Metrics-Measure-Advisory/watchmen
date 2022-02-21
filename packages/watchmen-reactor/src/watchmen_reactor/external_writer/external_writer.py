@@ -41,7 +41,10 @@ class ExternalWriterRegistry:
 	def register(self, code: str, create_writer: CreateExternalWriter) -> Optional[CreateExternalWriter]:
 		original = self.creators.get(code)
 		self.creators[code] = create_writer
-		logger.warning(f'External writer[{code}] is replaced.')
+		if original is not None:
+			logger.warning(f'External writer[{code}] is replaced.')
+		else:
+			logger.info(f'External writer[{code}] is registered.')
 		return original
 
 	def is_registered(self, code: str) -> bool:
