@@ -169,11 +169,14 @@ class CompiledCopyToMemoryAction(CompiledAction):
 
 
 def create_external_write(
-		create: CreateExternalWriter, event_code: Optional[str], params: Dict[str, Any]
+		create: CreateExternalWriter, event_code: Optional[str], pat: Optional[str], url: Optional[str]
 ) -> Callable[[PipelineVariables, PrincipalService], None]:
+	# noinspection PyUnusedLocal
 	def write(variables: PipelineVariables, principal_service: PrincipalService) -> None:
 		cloned = variables.clone_all()
-		create(params).run(ExternalWriterParams(
+		create().run(ExternalWriterParams(
+			pat=pat,
+			url=url,
 			event_code=event_code,
 			current_data=cloned.current_data,
 			previous_data=cloned.previous_data,
@@ -198,10 +201,7 @@ class CompiledWriteToExternalAction(CompiledAction):
 		create = ask_external_writer_creator(code)
 		if create is None:
 			raise ReactorException(f'Cannot find external writer[code={code}] creator.')
-		self.write = create_external_write(create, action.eventCode, {
-			'pat': external_writer.pat,
-			'url': external_writer.url
-		})
+		self.write = create_external_write(create, action.eventCode, external_writer.pat, external_writer.url)
 
 	def do_run(
 			self, variables: PipelineVariables,
