@@ -215,14 +215,14 @@ class CompiledWriteToExternalAction(CompiledAction):
 
 class CompiledReadTopicAction(CompiledAction):
 	def parse_action(self, action: ReadTopicAction, principal_service: PrincipalService) -> None:
-		# TODO
+		# TODO parse read topic action
 		pass
 
 	def do_run(
 			self, variables: PipelineVariables,
 			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorLogAction,
 			principal_service: PrincipalService) -> bool:
-		# TODO
+		# TODO run read topic action
 		pass
 
 	def create_action_log(self, common: Dict[str, Any]) -> MonitorReadAction:
@@ -251,14 +251,14 @@ class CompiledExistsAction(CompiledReadTopicAction):
 
 class CompiledWriteTopicAction(CompiledAction):
 	def parse_action(self, action: WriteTopicAction, principal_service: PrincipalService) -> None:
-		# TODO
+		# TODO parse write topic action
 		pass
 
 	def do_run(
 			self, variables: PipelineVariables,
 			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorLogAction,
 			principal_service: PrincipalService) -> bool:
-		# TODO
+		# TODO run write topic action
 		pass
 
 	def create_action_log(self, common: Dict[str, Any]) -> MonitorWriteAction:
@@ -283,14 +283,14 @@ class CompiledWriteFactorAction(CompiledWriteTopicAction):
 
 class CompiledDeleteTopicAction(CompiledAction):
 	def parse_action(self, action: DeleteTopicAction, principal_service: PrincipalService) -> None:
-		# TODO
+		# TODO parse delete topic action
 		pass
 
 	def do_run(
 			self, variables: PipelineVariables,
 			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorLogAction,
 			principal_service: PrincipalService) -> bool:
-		# TODO
+		# TODO run delete topic action
 		pass
 
 	def create_action_log(self, common: Dict[str, Any]) -> MonitorDeleteAction:
