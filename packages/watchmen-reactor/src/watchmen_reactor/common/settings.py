@@ -9,6 +9,8 @@ logger = logging.getLogger(__name__)
 class ReactorSettings(BaseSettings):
 	REACTOR_STORAGE_ECHO: bool = False
 	REACTOR_PARALLEL_ACTION_IN_LOOP_UNIT: bool = False
+	REACTOR_STANDARD_EXTERNAL_WRITER: bool = True
+	REACTOR_ELASTIC_SEARCH_EXTERNAL_WRITER: bool = False
 	REACTOR_DATETIME_FORMATS: Set[str] = [
 		'%Y%m%d%H%M%S', '%d%m%Y%H%M%S', '%m%d%Y%H%M%S',  # 14 digits,
 		'%Y%m%d%H%M', '%d%m%Y%H%M', '%m%d%Y%H%M'  # 12 digits
@@ -42,6 +44,14 @@ def ask_storage_echo_enabled() -> bool:
 
 def ask_parallel_actions_in_loop_unit() -> bool:
 	return settings.REACTOR_PARALLEL_ACTION_IN_LOOP_UNIT
+
+
+def ask_standard_external_writer_enabled() -> bool:
+	return settings.REACTOR_STANDARD_EXTERNAL_WRITER
+
+
+def ask_elastic_search_external_writer_enabled() -> bool:
+	return settings.REACTOR_ELASTIC_SEARCH_EXTERNAL_WRITER
 
 
 def ask_datetime_formats() -> List[str]:

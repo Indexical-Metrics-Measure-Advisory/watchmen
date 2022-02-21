@@ -183,10 +183,10 @@ watchmen-auth = {path = "../watchmen-auth", develop = true}
 watchmen-storage = {path = "../watchmen-storage", develop = true}
 
 [package.extras]
-mysql = ["watchmen-storage-mysql"]
-oracle = ["watchmen-storage-oracle"]
-mongodb = ["watchmen-storage-mongodb"]
-mssql = ["watchmen-storage-mssql"]
+mysql = ["watchmen-storage-mysql @ ../watchmen-storage-mysql"]
+oracle = ["watchmen-storage-oracle @ ../watchmen-storage-oracle"]
+mongodb = ["watchmen-storage-mongodb @ ../watchmen-storage-mongodb"]
+mssql = ["watchmen-storage-mssql @ ../watchmen-storage-mssql"]
 
 [package.source]
 type = "directory"

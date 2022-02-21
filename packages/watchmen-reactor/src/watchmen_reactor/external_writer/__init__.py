@@ -2,4 +2,5 @@ from .elastic_search_writer import create_elastic_search_writer, ElasticSearchEx
 	register_elastic_search_writer
 from .external_writer import ask_external_writer_creator, CreateExternalWriter, ExternalWriter, ExternalWriterParams, \
 	is_external_writer_creator_registered, register_external_writer_creator
+from .external_writer_registry import find_external_writer_create
 from .standard_writer import create_standard_writer, register_standard_writer, StandardExternalWriter
