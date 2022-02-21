@@ -51,6 +51,12 @@ def year_diff(end_date: date, start_date: date) -> int:
 		if end_month == start_month:
 			if end_day >= start_day:
 				return end_year - start_year
+			elif end_month == 2:
+				last_day_of_end_month = last_day_of_month(end_date)
+				if end_day == last_day_of_end_month and start_day >= end_day:
+					return end_year - start_year
+				else:
+					return end_year - start_year - 1
 			else:
 				return end_year - start_year - 1
 		elif end_month > start_month:
@@ -60,7 +66,14 @@ def year_diff(end_date: date, start_date: date) -> int:
 	else:
 		if end_month == start_month:
 			if end_day > start_day:
-				return end_year - start_year + 1
+				if end_month == 2:
+					last_day_of_start_month = last_day_of_month(start_date)
+					if start_day == last_day_of_start_month:
+						return end_year - start_year
+					else:
+						return end_year - start_year + 1
+				else:
+					return end_year - start_year + 1
 			else:
 				return end_year - start_year
 		elif end_month > start_month:
@@ -85,7 +98,7 @@ def month_diff(end_date: date, start_date: date) -> int:
 				return end_month - start_month
 			else:
 				last_day_of_end_month = last_day_of_month(end_date)
-				if last_day_of_end_month == end_day and start_day >= last_day_of_end_month:
+				if last_day_of_end_month == end_day and start_day >= end_day:
 					# it is last day of end month
 					return end_month - start_month
 				else:
@@ -106,7 +119,7 @@ def month_diff(end_date: date, start_date: date) -> int:
 			return (end_year - start_year) * 12 + end_month - start_month
 		else:
 			last_day_of_end_month = last_day_of_month(end_date)
-			if last_day_of_end_month == end_day and start_day >= last_day_of_end_month:
+			if last_day_of_end_month == end_day and start_day >= end_day:
 				return (end_year - start_year) * 12 + end_month - start_month
 			else:
 				return (end_year - start_year) * 12 + end_month - start_month + 1
