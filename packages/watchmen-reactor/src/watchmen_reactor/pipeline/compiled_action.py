@@ -388,15 +388,30 @@ class CompiledInsertRowAction(CompiledWriteTopicAction):
 
 
 class CompiledInsertOrMergeRowAction(CompiledWriteTopicAction):
-	pass
+	def do_run(
+			self, variables: PipelineVariables, new_pipeline: CreateQueuePipeline,
+			action_monitor_log: MonitorLogAction, storages: TopicStorages,
+			principal_service: PrincipalService) -> bool:
+		# TODO insert or merge row
+		pass
 
 
 class CompiledMergeRowAction(CompiledWriteTopicAction):
-	pass
+	def do_run(
+			self, variables: PipelineVariables, new_pipeline: CreateQueuePipeline,
+			action_monitor_log: MonitorLogAction, storages: TopicStorages,
+			principal_service: PrincipalService) -> bool:
+		# TODO merge row
+		pass
 
 
 class CompiledWriteFactorAction(CompiledWriteTopicAction):
-	pass
+	def do_run(
+			self, variables: PipelineVariables, new_pipeline: CreateQueuePipeline,
+			action_monitor_log: MonitorLogAction, storages: TopicStorages,
+			principal_service: PrincipalService) -> bool:
+		# TODO write factor
+		pass
 
 
 # noinspection PyAbstractClass
