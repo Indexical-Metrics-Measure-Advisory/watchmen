@@ -1028,7 +1028,7 @@
           "name": "TOPIC",
           "item": [
             {
-              "name": "New Request",
+              "name": "TOPIC CREATE",
               "id": "b0e6c944-5007-4424-b3bc-1449c7d39b6b",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
