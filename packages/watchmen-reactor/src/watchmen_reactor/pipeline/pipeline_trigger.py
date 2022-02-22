@@ -30,11 +30,11 @@ class PipelineTrigger:
 			principal_service: PrincipalService,
 			asynchronized: bool = False):
 		self.storages = RuntimeTopicStorages(principal_service)
-		self.trigger_topic_schema = trigger_topic_schema
-		self.trigger_type = trigger_type
-		self.trigger_data = trigger_data
-		self.trace_id = trace_id
-		self.principal_service = principal_service
+		self.triggerTopicSchema = trigger_topic_schema
+		self.triggerType = trigger_type
+		self.triggerData = trigger_data
+		self.traceId = trace_id
+		self.principalService = principal_service
 		self.asynchronized = asynchronized
 
 	def ask_topic_data_service(self, schema: TopicSchema) -> TopicDataService:
@@ -45,25 +45,25 @@ class PipelineTrigger:
 		storage = self.storages.ask_topic_storage(schema)
 		storage.register_topic(schema.get_topic())
 		if is_raw_topic(schema.get_topic()):
-			return RawTopicDataService(schema, data_entity_helper, storage, self.principal_service)
+			return RawTopicDataService(schema, data_entity_helper, storage, self.principalService)
 		else:
-			return RegularTopicDataService(schema, data_entity_helper, storage, self.principal_service)
+			return RegularTopicDataService(schema, data_entity_helper, storage, self.principalService)
 
 	def prepare_trigger_data(self):
-		self.trigger_topic_schema.prepare_data(self.trigger_data)
+		self.triggerTopicSchema.prepare_data(self.triggerData)
 
 	def save_trigger_data(self) -> TopicTrigger:
-		data_service = self.ask_topic_data_service(self.trigger_topic_schema)
-		if self.trigger_type == PipelineTriggerType.INSERT:
-			return data_service.trigger_by_insert(self.trigger_data)
-		elif self.trigger_type == PipelineTriggerType.INSERT_OR_MERGE:
-			return data_service.trigger_by_insert_or_merge(self.trigger_data)
-		elif self.trigger_type == PipelineTriggerType.MERGE:
-			return data_service.trigger_by_merge(self.trigger_data)
-		elif self.trigger_type == PipelineTriggerType.DELETE:
-			return data_service.trigger_by_delete(self.trigger_data)
+		data_service = self.ask_topic_data_service(self.triggerTopicSchema)
+		if self.triggerType == PipelineTriggerType.INSERT:
+			return data_service.trigger_by_insert(self.triggerData)
+		elif self.triggerType == PipelineTriggerType.INSERT_OR_MERGE:
+			return data_service.trigger_by_insert_or_merge(self.triggerData)
+		elif self.triggerType == PipelineTriggerType.MERGE:
+			return data_service.trigger_by_merge(self.triggerData)
+		elif self.triggerType == PipelineTriggerType.DELETE:
+			return data_service.trigger_by_delete(self.triggerData)
 		else:
-			raise ReactorException(f'Trigger type[{self.trigger_type}] is not supported.')
+			raise ReactorException(f'Trigger type[{self.triggerType}] is not supported.')
 
 	# noinspection PyMethodMayBeStatic
 	def should_run(self, trigger_type: PipelineTriggerType, pipeline: Pipeline) -> bool:
@@ -85,9 +85,9 @@ class PipelineTrigger:
 		"""
 		data of trigger must be prepared already
 		"""
-		schema = self.trigger_topic_schema
+		schema = self.triggerTopicSchema
 		topic = schema.get_topic()
-		pipelines = get_pipeline_service(self.principal_service).find_by_topic_id(topic.topicId)
+		pipelines = get_pipeline_service(self.principalService).find_by_topic_id(topic.topicId)
 		if len(pipelines) == 0:
 			logger.warning(f'No pipeline needs to be triggered by topic[id={topic.topicId}, name={topic.name}].')
 			return
@@ -100,11 +100,11 @@ class PipelineTrigger:
 		def construct_queued_pipeline(pipeline: Pipeline) -> RuntimePipelineContext:
 			return RuntimePipelineContext(
 				pipeline=pipeline,
-				trigger_topic_schema=self.trigger_topic_schema,
+				trigger_topic_schema=self.triggerTopicSchema,
 				previous_data=trigger.previous,
 				current_data=trigger.current,
-				principal_service=self.principal_service,
-				trace_id=self.trace_id
+				principal_service=self.principalService,
+				trace_id=self.traceId
 			)
 
 		PipelinesDispatcher(

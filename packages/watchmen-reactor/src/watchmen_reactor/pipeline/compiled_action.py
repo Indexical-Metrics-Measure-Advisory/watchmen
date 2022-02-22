@@ -1,25 +1,25 @@
 from abc import abstractmethod
 from logging import getLogger
 from traceback import format_exc
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import AlarmAction, AlarmActionSeverity, CopyToMemoryAction, DeleteTopicAction, \
-	DeleteTopicActionType, Pipeline, PipelineAction, PipelineStage, PipelineUnit, ReadTopicAction, \
-	ReadTopicActionType, SystemActionType, Topic, WriteToExternalAction, WriteTopicAction, WriteTopicActionType
+	DeleteTopicActionType, FromTopic, Pipeline, PipelineAction, PipelineStage, PipelineUnit, ReadTopicAction, \
+	ReadTopicActionType, SystemActionType, Topic, ToTopic, WriteToExternalAction, WriteTopicAction, WriteTopicActionType
 from watchmen_model.common import ConstantParameter, ParameterKind
 from watchmen_model.reactor import MonitorAlarmAction, MonitorCopyToMemoryAction, MonitorDeleteAction, \
 	MonitorLogAction, MonitorLogStatus, MonitorLogUnit, MonitorReadAction, MonitorWriteAction, \
 	MonitorWriteToExternalAction
 from watchmen_reactor.common import ReactorException
+from watchmen_reactor.external_writer import ask_external_writer_creator, CreateExternalWriter, ExternalWriterParams
+from watchmen_reactor.meta import ExternalWriterService, TopicService
+from watchmen_reactor.pipeline_schema import TopicStorages
 from watchmen_utilities import ArrayHelper, is_blank
 from .runtime import CreateQueuePipeline, now, parse_action_defined_as, parse_parameter, parse_prerequisite, \
 	parse_prerequisite_defined_as, ParsedParameter, PipelineVariables, PrerequisiteDefinedAs, PrerequisiteTest, spent_ms
-from ..external_writer import ask_external_writer_creator, CreateExternalWriter, ExternalWriterParams
-from ..meta import TopicService
-from ..meta.external_writer_service import ExternalWriterService
-from ..pipeline_schema import TopicStorages
+from ..topic_schema import TopicSchema
 
 logger = getLogger(__name__)
 
@@ -30,6 +30,20 @@ def get_topic_service(principal_service: PrincipalService) -> TopicService:
 
 def get_external_writer_service(principal_service: PrincipalService) -> ExternalWriterService:
 	return ExternalWriterService(principal_service)
+
+
+def find_topic_schema_for_action(action: Union[ToTopic, FromTopic], principal_service: PrincipalService) -> TopicSchema:
+	topic_id = action.topicId
+	if is_blank(topic_id):
+		raise ReactorException(f'Topic not declared in delete action[{action.dict()}].')
+	topic_service = get_topic_service(principal_service)
+	topic: Optional[Topic] = topic_service.find_by_id(topic_id)
+	if topic is None:
+		raise ReactorException(f'Topic[id={topic_id}] not found.')
+	schema = topic_service.find_schema_by_name(topic.name, principal_service.get_tenant_id())
+	if schema is None:
+		raise ReactorException(f'Topic schema[id={topic_id}] not found.')
+	return schema
 
 
 class CompiledAction:
@@ -204,7 +218,7 @@ class CompiledWriteToExternalAction(CompiledAction):
 			raise ReactorException(f'External writer not declared.')
 		external_writer = get_external_writer_service(principal_service).find_by_id(writer_id)
 		if external_writer is None:
-			raise ReactorException(f'External writer[id={writer_id}] definition not found.')
+			raise ReactorException(f'External writer[id={writer_id}] not found.')
 		code = external_writer.code
 		create = ask_external_writer_creator(code)
 		if create is None:
@@ -290,12 +304,10 @@ class CompiledWriteFactorAction(CompiledWriteTopicAction):
 
 
 class CompiledDeleteTopicAction(CompiledAction):
+	topicSchema: Optional[TopicSchema] = None
+
 	def parse_action(self, action: DeleteTopicAction, principal_service: PrincipalService) -> None:
-		topic_id = action.topicId
-		if is_blank(topic_id):
-			raise ReactorException(f'Topic not declared in delete action[{action.dict()}].')
-		topic_service = get_topic_service(principal_service)
-		topic: Optional[Topic] = topic_service.find_by_id(topic_id)
+		self.topicSchema = find_topic_schema_for_action(action, principal_service)
 
 	def do_run(
 			self, variables: PipelineVariables,
