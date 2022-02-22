@@ -11,8 +11,8 @@ logger = getLogger(__name__)
 class StandardExternalWriter(ExternalWriter):
 	# noinspection PyMethodMayBeStatic
 	async def do_run(self, params: ExternalWriterParams) -> None:
-		previous_data = params.previous_data
-		current_data = params.current_data
+		previous_data = params.previousData
+		current_data = params.currentData
 		if previous_data is None and current_data is not None:
 			trigger_type = PipelineTriggerType.INSERT.value
 		elif previous_data is not None and current_data is not None:
@@ -23,10 +23,10 @@ class StandardExternalWriter(ExternalWriter):
 			raise ReactorException(
 				f'Fire standard external writer when previous and current are none is not supported.')
 		payload = {
-			'code': params.event_code,
-			'current_data': current_data,
-			'previous_data': previous_data,
-			'trigger_type': trigger_type
+			'code': params.eventCode,
+			'currentData': current_data,
+			'previousData': previous_data,
+			'triggerType': trigger_type
 		}
 
 		headers = {'Content-Type': 'application/json'}
@@ -37,7 +37,7 @@ class StandardExternalWriter(ExternalWriter):
 		# noinspection PyPackageRequirements
 		from requests import post
 		response = post(
-			params.url,
+			url=params.url,
 			timeout=2,
 			data=serialize_to_json(payload),
 			headers=headers

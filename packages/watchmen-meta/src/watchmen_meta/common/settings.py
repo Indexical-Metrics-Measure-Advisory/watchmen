@@ -49,7 +49,7 @@ def build_mysql_storage() -> Callable[[], TransactionalStorageSPI]:
 
 
 class MetaStorageHolder:
-	meta_storage: Optional[Callable[[], TransactionalStorageSPI]] = None
+	metaStorage: Optional[Callable[[], TransactionalStorageSPI]] = None
 
 
 meta_storage_holder = MetaStorageHolder()
@@ -68,13 +68,13 @@ def ask_meta_storage() -> TransactionalStorageSPI:
 	"""
 	build a new meta storage instance
 	"""
-	if meta_storage_holder.meta_storage is None:
-		meta_storage_holder.meta_storage = build_meta_storage()
-	return meta_storage_holder.meta_storage()
+	if meta_storage_holder.metaStorage is None:
+		meta_storage_holder.metaStorage = build_meta_storage()
+	return meta_storage_holder.metaStorage()
 
 
 class SnowflakeGeneratorHolder:
-	snowflake_generator: Optional[SnowflakeGenerator] = None
+	snowflakeGenerator: Optional[SnowflakeGenerator] = None
 
 
 snowflake_generator_holder = SnowflakeGeneratorHolder()
@@ -111,6 +111,6 @@ def build_snowflake_generator(storage: TransactionalStorageSPI) -> SnowflakeGene
 
 
 def ask_snowflake_generator() -> SnowflakeGenerator:
-	if snowflake_generator_holder.snowflake_generator is None:
-		snowflake_generator_holder.snowflake_generator = build_snowflake_generator(ask_meta_storage())
-	return snowflake_generator_holder.snowflake_generator
+	if snowflake_generator_holder.snowflakeGenerator is None:
+		snowflake_generator_holder.snowflakeGenerator = build_snowflake_generator(ask_meta_storage())
+	return snowflake_generator_holder.snowflakeGenerator

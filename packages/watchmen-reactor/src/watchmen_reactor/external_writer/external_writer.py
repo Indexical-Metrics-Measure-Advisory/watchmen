@@ -11,9 +11,9 @@ logger = getLogger(__name__)
 class ExternalWriterParams(DataModel):
 	pat: Optional[str] = None
 	url: Optional[str] = None
-	event_code: Optional[str] = None
-	current_data: Optional[Dict[str, Any]] = None
-	previous_data: Optional[Dict[str, Any]] = None
+	eventCode: Optional[str] = None
+	currentData: Optional[Dict[str, Any]] = None
+	previousData: Optional[Dict[str, Any]] = None
 	variables: Optional[Dict[str, Any]] = None
 
 

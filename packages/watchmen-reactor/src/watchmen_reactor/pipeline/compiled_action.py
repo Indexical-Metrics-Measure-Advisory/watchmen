@@ -206,9 +206,9 @@ def create_external_write(
 		create().run(ExternalWriterParams(
 			pat=pat,
 			url=url,
-			event_code=event_code,
-			current_data=cloned.currentData,
-			previous_data=cloned.previousData,
+			eventCode=event_code,
+			currentData=cloned.currentData,
+			previousData=cloned.previousData,
 			variables=cloned.variables
 		))
 

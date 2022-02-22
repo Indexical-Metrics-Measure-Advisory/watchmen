@@ -12,23 +12,23 @@ from .util import raise_401, raise_403
 
 # singleton
 class AuthenticationManagerWrapper:
-	authentication_manager: Optional[AuthenticationManager] = None
+	authenticationManager: Optional[AuthenticationManager] = None
 
 
 WRAPPER = AuthenticationManagerWrapper()
 
 
 def register_authentication_manager(authentication_manager: AuthenticationManager) -> None:
-	WRAPPER.authentication_manager = authentication_manager
+	WRAPPER.authenticationManager = authentication_manager
 
 
 def retrieve_authentication_manager() -> Optional[AuthenticationManager]:
-	return WRAPPER.authentication_manager
+	return WRAPPER.authenticationManager
 
 
 def get_principal_by_jwt(token: str, roles: List[UserRole]) -> PrincipalService:
 	try:
-		return by_jwt(WRAPPER.authentication_manager, token, roles)
+		return by_jwt(WRAPPER.authenticationManager, token, roles)
 	except AuthFailOn401:
 		raise_401('Unauthorized visit.')
 	except AuthFailOn403:
@@ -37,7 +37,7 @@ def get_principal_by_jwt(token: str, roles: List[UserRole]) -> PrincipalService:
 
 def get_principal_by_pat(token: str, roles: List[UserRole]) -> PrincipalService:
 	try:
-		return by_pat(WRAPPER.authentication_manager, token, roles)
+		return by_pat(WRAPPER.authenticationManager, token, roles)
 	except AuthFailOn401:
 		raise_401('Unauthorized visit.')
 	except AuthFailOn403:
@@ -45,20 +45,20 @@ def get_principal_by_pat(token: str, roles: List[UserRole]) -> PrincipalService:
 
 
 def get_super_admin_principal(request: Request) -> PrincipalService:
-	return get_super_admin_principal_by(WRAPPER.authentication_manager)(request)
+	return get_super_admin_principal_by(WRAPPER.authenticationManager)(request)
 
 
 def get_any_admin_principal(request: Request) -> PrincipalService:
-	return get_any_admin_principal_by(WRAPPER.authentication_manager)(request)
+	return get_any_admin_principal_by(WRAPPER.authenticationManager)(request)
 
 
 def get_admin_principal(request: Request) -> PrincipalService:
-	return get_admin_principal_by(WRAPPER.authentication_manager)(request)
+	return get_admin_principal_by(WRAPPER.authenticationManager)(request)
 
 
 def get_console_principal(request: Request) -> PrincipalService:
-	return get_console_principal_by(WRAPPER.authentication_manager)(request)
+	return get_console_principal_by(WRAPPER.authenticationManager)(request)
 
 
 def get_any_principal(request: Request) -> PrincipalService:
-	return get_any_principal_by(WRAPPER.authentication_manager)(request)
+	return get_any_principal_by(WRAPPER.authenticationManager)(request)

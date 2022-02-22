@@ -26,9 +26,7 @@ class UserBasedTupleService(EntityService):
 	def __init__(
 			self,
 			storage: TransactionalStorageSPI,
-			snowflake_generator: SnowflakeGenerator,
-			principal_service: PrincipalService,
-
+			snowflake_generator: SnowflakeGenerator, principal_service: PrincipalService
 	):
 		super().__init__(storage)
 		self.with_snowflake_generator(snowflake_generator)
