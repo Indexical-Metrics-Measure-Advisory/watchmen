@@ -11,6 +11,7 @@ from watchmen_utilities import ArrayHelper, is_not_blank
 from .compiled_action import compile_actions, CompiledAction
 from .runtime import CreateQueuePipeline, now, parse_prerequisite, parse_prerequisite_defined_as, PipelineVariables, \
 	spent_ms
+from ..pipeline_schema import TopicStorages
 
 logger = getLogger(__name__)
 
@@ -31,27 +32,31 @@ class CompiledUnit:
 	def run(
 			self, variables: PipelineVariables,
 			new_pipeline: CreateQueuePipeline, stage_monitor_log: MonitorLogStage,
-			principal_service: PrincipalService) -> bool:
+			storages: TopicStorages, principal_service: PrincipalService) -> bool:
 		"""
 		returns True means continue, False means something wrong occurred, break the following
 		"""
 		loop_variable_name = self.loopVariableName
 		if self.hasLoop:
+			# note variables CANNOT be passed from inside of loop, which means even variables are changed in loop,
+			# the next loop will not be impacted, and also will not impact steps followed
+			def clone_variables(replaced: Any) -> PipelineVariables:
+				cloned = variables.clone()
+				cloned.put(loop_variable_name, deepcopy(replaced))
+				return cloned
+
 			loop_variable_value = variables.find(loop_variable_name)
 			if loop_variable_value is None:
 				# no value or it is none, run once
-				return self.do_run(variables, new_pipeline, stage_monitor_log, principal_service)
+				return self.do_run(
+					variables=clone_variables(variables), new_pipeline=new_pipeline,
+					stage_monitor_log=stage_monitor_log, storages=storages, principal_service=principal_service)
 			elif isinstance(loop_variable_value, list):
 				# a list, run for each element
-				# note variables CANNOT be passed from inside of loop, which means even variables are changed in loop,
-				# the next loop will not be impacted, and also will not impact steps followed
-				def clone_variables(replaced: Any) -> PipelineVariables:
-					cloned = variables.clone()
-					cloned.put(loop_variable_name, deepcopy(replaced))
-					return cloned
-
 				def run_element_in_loop(replaced: Any) -> bool:
-					return self.do_run(clone_variables(replaced), new_pipeline, stage_monitor_log, principal_service)
+					return self.do_run(
+						variables=clone_variables(replaced), new_pipeline=new_pipeline,
+						stage_monitor_log=stage_monitor_log, storages=storages, principal_service=principal_service)
 
 				if ask_parallel_actions_in_loop_unit():
 					# TODO parallel version, now use sequential version
@@ -61,15 +66,20 @@ class CompiledUnit:
 					return ArrayHelper(loop_variable_value).every(run_element_in_loop)
 			else:
 				# not a list, run once
-				return self.do_run(variables, new_pipeline, stage_monitor_log, principal_service)
+				return self.do_run(
+					variables=clone_variables(variables), new_pipeline=new_pipeline,
+					stage_monitor_log=stage_monitor_log,
+					storages=storages, principal_service=principal_service)
 		else:
 			# no loop declared
-			return self.do_run(variables, new_pipeline, stage_monitor_log, principal_service)
+			return self.do_run(
+				variables=variables, new_pipeline=new_pipeline, stage_monitor_log=stage_monitor_log,
+				storages=storages, principal_service=principal_service)
 
 	def do_run(
 			self, variables: PipelineVariables,
 			new_pipeline: CreateQueuePipeline, stage_monitor_log: MonitorLogStage,
-			principal_service: PrincipalService) -> bool:
+			storages: TopicStorages, principal_service: PrincipalService) -> bool:
 		loop_variable_name = self.loopVariableName
 		if self.hasLoop:
 			loop_variable_value = variables.find(loop_variable_name)
@@ -95,7 +105,9 @@ class CompiledUnit:
 
 				def run(should_run, action: CompiledAction) -> bool:
 					return self.run_action(
-						should_run, action, variables, new_pipeline, unit_monitor_log, principal_service)
+						should_run=should_run, action=action, variables=variables,
+						new_pipeline=new_pipeline, unit_monitor_log=unit_monitor_log,
+						storages=storages, principal_service=principal_service)
 
 				all_run = ArrayHelper(self.actions).reduce(lambda should_run, x: run(should_run, x), True)
 				if all_run:
@@ -118,12 +130,14 @@ class CompiledUnit:
 			self, should_run: bool,
 			action: CompiledAction, variables: PipelineVariables,
 			new_pipeline: CreateQueuePipeline, unit_monitor_log: MonitorLogUnit,
-			principal_service: PrincipalService
+			storages: TopicStorages, principal_service: PrincipalService
 	) -> bool:
 		if not should_run:
 			return False
 		else:
-			return action.run(variables, new_pipeline, unit_monitor_log, principal_service)
+			return action.run(
+				variables=variables, new_pipeline=new_pipeline, unit_monitor_log=unit_monitor_log,
+				storages=storages, principal_service=principal_service)
 
 
 def compile_units(pipeline: Pipeline, stage: PipelineStage, principal_service: PrincipalService) -> List[CompiledUnit]:
