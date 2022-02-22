@@ -24,6 +24,8 @@ class ReactorSettings(BaseSettings):
 		'%H%M%S',  # 6 digits
 		'%H%M'  # 4 digits
 	]  # all digits, other characters are prohibitive
+	REACTOR_PIPELINE_UPDATE_RETRY: bool = True  # enable pipeline update retry if it is failed on optimistic lock
+	REACTOR_PIPELINE_UPDATE_RETRY_TIMES: int = 3  # optimistic lock retry times
 	REACTOR_CACHE: bool = True  # enable reactor cache, keep it enabled in production
 	REACTOR_CACHE_HEART_BEAT: bool = True  # enable reactor cache heart beat
 	REACTOR_CACHE_HEART_BEAT_INTERVAL: int = 60  # reactor cache heart beat interval, in seconds
@@ -77,6 +79,14 @@ def ask_all_date_formats() -> List[str]:
 
 def ask_time_formats() -> List[str]:
 	return list(settings.REACTOR_TIME_FORMATS)
+
+
+def ask_pipeline_update_retry() -> bool:
+	return settings.REACTOR_PIPELINE_UPDATE_RETRY
+
+
+def ask_pipeline_update_retry_times() -> int:
+	return settings.REACTOR_PIPELINE_UPDATE_RETRY_TIMES
 
 
 def ask_cache_enabled() -> bool:
