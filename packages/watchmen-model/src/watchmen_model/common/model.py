@@ -1,4 +1,5 @@
-from typing import Any
+from copy import deepcopy
+from typing import Any, Dict
 
 
 class DataModel:
@@ -12,6 +13,9 @@ class DataModel:
 	def __getattr__(self, name) -> Any:
 		# to avoid property not found
 		return self.__dict__.get(name)
+
+	def to_dict(self) -> Dict[str, Any]:
+		return deepcopy(self.__dict__)
 
 
 class SettingsModel(DataModel):

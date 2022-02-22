@@ -1,9 +1,9 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from watchmen_model.admin import Factor
 from watchmen_model.reactor import TopicDataColumnNames
 from watchmen_reactor.topic_schema import TopicSchema
-from watchmen_storage import EntityRow, EntityShaper
+from watchmen_storage import EntityCriteriaExpression, EntityRow, EntityShaper
 from watchmen_utilities import ArrayHelper
 from .data_entity_helper import TopicDataEntityHelper
 from .data_service import TopicDataService
@@ -37,11 +37,17 @@ class RawTopicDataEntityHelper(TopicDataEntityHelper):
 	def create_entity_shaper(self, schema: TopicSchema) -> EntityShaper:
 		return RawTopicShaper(schema)
 
+	def is_versioned(self) -> bool:
+		return False
+
 	def find_version(self, data: Dict[str, Any]) -> int:
 		"""
 		always return -1
 		"""
 		return -1
+
+	def build_version_criteria(self, data: Dict[str, Any]) -> Optional[EntityCriteriaExpression]:
+		return None
 
 	def assign_version(self, data: Dict[str, Any], version: int) -> None:
 		"""
