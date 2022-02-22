@@ -454,7 +454,7 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdating):
 					data[0], variables, new_pipeline, action_monitor_log, principal_service, topic_data_service)
 				if updated_count == 0:
 					if ask_pipeline_update_retry() and times < ask_pipeline_update_retry_times():
-						# try update on [0, 1, 2] when retry times is 3
+						# example: try update on [0, 1, 2] when retry times is 3
 						work(times + 1)
 					else:
 						raise ReactorException(
