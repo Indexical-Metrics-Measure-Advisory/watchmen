@@ -6,6 +6,7 @@ from watchmen_model.admin import Pipeline, Topic
 from watchmen_model.common import DataSourceId, ExternalWriterId, PipelineId, TenantId, TopicId
 from watchmen_model.system import DataSource, ExternalWriter, Tenant
 from watchmen_reactor.common import ask_cache_enabled
+from watchmen_reactor.pipeline_schema import CompiledPipeline
 from watchmen_reactor.storage import TopicDataEntityHelper
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_storage import TopicDataStorageSPI
@@ -14,7 +15,6 @@ from .cache_manager import get_compiled_pipeline_by_id_cache, get_data_source_by
 	get_data_storage_builder_by_id_cache, get_external_writer_by_id_cache, get_pipeline_by_id_cache, \
 	get_pipeline_by_topic_id_cache, get_tenant_by_id_cache, get_topic_by_id_cache, get_topic_by_tenant_and_name_cache, \
 	get_topic_entity_helper_by_id_cache, get_topic_schema_by_id_cache
-from ..pipeline_schema import CompiledPipeline
 
 
 class InternalCache:
