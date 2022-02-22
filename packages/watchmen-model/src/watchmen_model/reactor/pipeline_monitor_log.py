@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import Any, List, Optional, TypeVar, Union
+from typing import Any, Dict, List, Optional, TypeVar, Union
 
 from pydantic import BaseModel
 
@@ -40,7 +40,7 @@ class MonitorLogAction(StandardMonitorLog):
 	updateCount: int = 0
 	deleteCount: int = 0
 	definedAs: Optional[Any] = None  # definition of action
-	touched: Optional[Any] = None  # touched value
+	touched: Optional[List[Dict[str, Any]]] = None  # touched value, always be a list
 
 
 class MonitorLogFindByAction(MonitorLogAction):
