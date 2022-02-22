@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from datetime import datetime
 from logging import getLogger
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_snowflake_generator
@@ -9,7 +9,7 @@ from watchmen_model.admin import PipelineTriggerType, Topic
 from watchmen_model.common import DataModel
 from watchmen_reactor.common import ReactorException
 from watchmen_reactor.topic_schema import TopicSchema
-from watchmen_storage import SnowflakeGenerator, TopicDataStorageSPI
+from watchmen_storage import EntityCriteria, SnowflakeGenerator, TopicDataStorageSPI
 from watchmen_utilities import get_current_time_in_seconds
 from .data_entity_helper import TopicDataEntityHelper
 
@@ -183,3 +183,25 @@ class TopicDataService:
 			self.raise_exception(f'Failed to delete data[id={id_}] on {self.raise_on_topic()}.', e)
 		finally:
 			storage.close()
+
+	def find(self, criteria: EntityCriteria) -> List[Dict[str, Any]]:
+		data_entity_helper = self.get_data_entity_helper()
+		storage = self.get_storage()
+		storage.connect()
+		return storage.find(data_entity_helper.get_entity_finder(criteria))
+
+	def delete_by_id_and_version(self, data: Dict[str, Any]) -> int:
+		data_entity_helper = self.get_data_entity_helper()
+		storage = self.get_storage()
+		storage.connect()
+		criteria: EntityCriteria = []
+		by_id = data_entity_helper.build_id_criteria(data)
+		if by_id is None:
+			raise ReactorException(f'Id not found from given data[{data}].')
+
+		if data_entity_helper.is_versioned():
+			by_version = data_entity_helper.build_version_criteria(data)
+			if by_version is None:
+				raise ReactorException(f'Version not found from given data[{data}].')
+			criteria.append(by_version)
+		return storage.delete(data_entity_helper.get_entity_deleter(criteria))

@@ -1,9 +1,9 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from watchmen_model.admin import Factor, is_aggregation_topic
 from watchmen_model.reactor import TopicDataColumnNames
 from watchmen_reactor.topic_schema import TopicSchema
-from watchmen_storage import EntityRow, EntityShaper
+from watchmen_storage import EntityCriteriaExpression, EntityRow, EntityShaper
 from watchmen_utilities import ArrayHelper
 from .data_entity_helper import TopicDataEntityHelper
 from .data_service import TopicDataService
@@ -41,11 +41,20 @@ class RegularTopicDataEntityHelper(TopicDataEntityHelper):
 	def create_entity_shaper(self, schema: TopicSchema) -> EntityShaper:
 		return RegularTopicShaper(schema)
 
+	def is_versioned(self) -> bool:
+		return True
+
 	def find_version(self, data: Dict[str, Any]) -> int:
 		if is_aggregation_topic(self.get_schema().get_topic()):
 			return data.get(TopicDataColumnNames.VERSION.value)
 		else:
 			return -1
+
+	def build_version_criteria(self, data: Dict[str, Any]) -> Optional[EntityCriteriaExpression]:
+		return EntityCriteriaExpression(
+			name=TopicDataColumnNames.VERSION.value,
+			value=self.find_version(data)
+		)
 
 	def assign_version(self, data: Dict[str, Any], version: int):
 		if is_aggregation_topic(self.get_schema().get_topic()):

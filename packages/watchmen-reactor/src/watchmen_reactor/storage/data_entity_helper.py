@@ -7,7 +7,8 @@ from watchmen_model.admin import Topic
 from watchmen_model.common import TenantId
 from watchmen_model.reactor import TopicDataColumnNames
 from watchmen_reactor.topic_schema import TopicSchema
-from watchmen_storage import EntityCriteria, EntityFinder, EntityHelper, EntityIdHelper, EntityShaper, \
+from watchmen_storage import EntityCriteria, EntityCriteriaExpression, EntityDeleter, EntityFinder, EntityHelper, \
+	EntityIdHelper, EntityShaper, \
 	EntitySort, EntityUpdate, EntityUpdater, SnowflakeGenerator
 
 
@@ -60,6 +61,14 @@ class TopicDataEntityHelper:
 			update=update
 		)
 
+	def get_entity_deleter(self, criteria: EntityCriteria) -> EntityDeleter:
+		entity_helper = self.get_entity_helper()
+		return EntityDeleter(
+			name=entity_helper.name,
+			shaper=entity_helper.shaper,
+			criteria=criteria
+		)
+
 	# noinspection PyMethodMayBeStatic
 	def find_data_id(self, data: Dict[str, Any]) -> Tuple[bool, Optional[int]]:
 		"""
@@ -68,21 +77,52 @@ class TopicDataEntityHelper:
 		id_ = data.get(TopicDataColumnNames.ID.value)
 		return id_ is not None, id_
 
-	# noinspection PyMethodMayBeStatic
-	def find_insert_time(self, data: Dict[str, Any]) -> Optional[datetime]:
-		return data.get(TopicDataColumnNames.INSERT_TIME.value)
-
-	@abstractmethod
-	def find_version(self, data: Dict[str, Any]) -> int:
-		pass
+	def build_id_criteria(self, data: Dict[str, Any]) -> Optional[EntityCriteriaExpression]:
+		"""
+		return none when id not found
+		"""
+		has_id, id_ = self.find_data_id(data)
+		if not has_id:
+			return None
+		else:
+			return EntityCriteriaExpression(
+				name=TopicDataColumnNames.ID.value,
+				value=id_
+			)
 
 	# noinspection PyMethodMayBeStatic
 	def assign_id_column(self, data: Dict[str, Any], id_value: int) -> None:
 		data[TopicDataColumnNames.ID.value] = id_value
 
+	@abstractmethod
+	def is_versioned(self) -> bool:
+		pass
+
+	@abstractmethod
+	def find_version(self, data: Dict[str, Any]) -> int:
+		pass
+
+	@abstractmethod
+	def build_version_criteria(self, data: Dict[str, Any]) -> Optional[EntityCriteriaExpression]:
+		"""
+		return none when topic is not versioned or version not found
+		"""
+		pass
+
+	@abstractmethod
+	def assign_version(self, data: Dict[str, Any], version: int) -> None:
+		"""
+		default ignore version assignment
+		"""
+		pass
+
 	# noinspection PyMethodMayBeStatic
 	def assign_tenant_id(self, data: Dict[str, Any], tenant_id: TenantId) -> None:
 		data[TopicDataColumnNames.TENANT_ID.value] = tenant_id
+
+	# noinspection PyMethodMayBeStatic
+	def find_insert_time(self, data: Dict[str, Any]) -> Optional[datetime]:
+		return data.get(TopicDataColumnNames.INSERT_TIME.value)
 
 	# noinspection PyMethodMayBeStatic
 	def assign_insert_time(self, data: Dict[str, Any], insert_time: datetime) -> None:
@@ -91,13 +131,6 @@ class TopicDataEntityHelper:
 	# noinspection PyMethodMayBeStatic
 	def assign_update_time(self, data: Dict[str, Any], update_time: datetime) -> None:
 		data[TopicDataColumnNames.UPDATE_TIME.value] = update_time
-
-	@abstractmethod
-	def assign_version(self, data: Dict[str, Any], version: int) -> None:
-		"""
-		default ignore version assignment
-		"""
-		pass
 
 	def assign_fix_columns_on_create(
 			self, data: Dict[str, Any],

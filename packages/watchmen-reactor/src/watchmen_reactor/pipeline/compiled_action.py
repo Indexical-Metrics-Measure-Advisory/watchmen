@@ -6,7 +6,8 @@ from typing import Any, Callable, Dict, List, Optional, Union
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import AlarmAction, AlarmActionSeverity, CopyToMemoryAction, DeleteTopicAction, \
-	DeleteTopicActionType, FromTopic, Pipeline, PipelineAction, PipelineStage, PipelineUnit, ReadTopicAction, \
+	DeleteTopicActionType, FromTopic, is_raw_topic, Pipeline, PipelineAction, PipelineStage, PipelineUnit, \
+	ReadTopicAction, \
 	ReadTopicActionType, SystemActionType, Topic, ToTopic, WriteToExternalAction, WriteTopicAction, WriteTopicActionType
 from watchmen_model.common import ConstantParameter, ParameterKind
 from watchmen_model.reactor import MonitorAlarmAction, MonitorCopyToMemoryAction, MonitorDeleteAction, \
@@ -16,12 +17,16 @@ from watchmen_reactor.common import ReactorException
 from watchmen_reactor.external_writer import ask_external_writer_creator, CreateExternalWriter, ExternalWriterParams
 from watchmen_reactor.meta import ExternalWriterService, TopicService
 from watchmen_reactor.pipeline_schema import TopicStorages
+from watchmen_reactor.storage import RawTopicDataEntityHelper, RawTopicDataService, RegularTopicDataEntityHelper, \
+	RegularTopicDataService, \
+	TopicDataEntityHelper, \
+	TopicDataService
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_utilities import ArrayHelper, is_blank
 from .runtime import CreateQueuePipeline, now, parse_action_defined_as, parse_condition_in_storage, \
 	parse_parameter_in_memory, parse_prerequisite_defined_as, parse_prerequisite_in_memory, ParsedMemoryParameter, \
-	ParsedStorageCondition, PipelineVariables, \
-	PrerequisiteDefinedAs, PrerequisiteTest, spent_ms
+	ParsedStorageCondition, PipelineVariables, PrerequisiteDefinedAs, PrerequisiteTest, spent_ms
+from ..cache import CacheService
 
 logger = getLogger(__name__)
 
@@ -237,7 +242,38 @@ class CompiledWriteToExternalAction(CompiledAction):
 		return MonitorWriteToExternalAction(**common, value=None)
 
 
-class CompiledReadTopicAction(CompiledAction):
+# noinspection PyAbstractClass
+class CompiledStorageAction(CompiledAction):
+	# noinspection PyMethodMayBeStatic,DuplicatedCode
+	def ask_topic_data_entity_helper(self, schema: TopicSchema) -> TopicDataEntityHelper:
+		"""
+		ask topic data entity helper, from cache first
+		"""
+		data_entity_helper = CacheService.topic().get_entity_helper(schema.get_topic().topicId)
+		if data_entity_helper is None:
+			if is_raw_topic(schema.get_topic()):
+				data_entity_helper = RawTopicDataEntityHelper(schema)
+			else:
+				data_entity_helper = RegularTopicDataEntityHelper(schema)
+			CacheService.topic().put_entity_helper(data_entity_helper)
+		return data_entity_helper
+
+	def ask_topic_data_service(
+			self, schema: TopicSchema, storages: TopicStorages,
+			principal_service: PrincipalService) -> TopicDataService:
+		"""
+		ask topic data service
+		"""
+		data_entity_helper = self.ask_topic_data_entity_helper(schema)
+		storage = storages.ask_topic_storage(schema)
+		storage.register_topic(schema.get_topic())
+		if is_raw_topic(schema.get_topic()):
+			return RawTopicDataService(schema, data_entity_helper, storage, principal_service)
+		else:
+			return RegularTopicDataService(schema, data_entity_helper, storage, principal_service)
+
+
+class CompiledReadTopicAction(CompiledStorageAction):
 	def parse_action(self, action: ReadTopicAction, principal_service: PrincipalService) -> None:
 		# TODO parse read topic action
 		pass
@@ -273,7 +309,7 @@ class CompiledExistsAction(CompiledReadTopicAction):
 	pass
 
 
-class CompiledWriteTopicAction(CompiledAction):
+class CompiledWriteTopicAction(CompiledStorageAction):
 	def parse_action(self, action: WriteTopicAction, principal_service: PrincipalService) -> None:
 		# TODO parse write topic action
 		pass
@@ -305,7 +341,8 @@ class CompiledWriteFactorAction(CompiledWriteTopicAction):
 	pass
 
 
-class CompiledDeleteTopicAction(CompiledAction):
+# noinspection PyAbstractClass
+class CompiledDeleteTopicAction(CompiledStorageAction):
 	topicSchema: Optional[TopicSchema] = None
 	parsedFindBy: Optional[ParsedStorageCondition] = None
 
@@ -313,23 +350,52 @@ class CompiledDeleteTopicAction(CompiledAction):
 		self.topicSchema = find_topic_schema_for_action(action, principal_service)
 		self.parsedFindBy = parse_condition_in_storage(action.by, principal_service)
 
-	def do_run(
-			self, variables: PipelineVariables,
-			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorLogAction,
-			storages: TopicStorages, principal_service: PrincipalService) -> bool:
-		# TODO run delete topic action
-		pass
-
 	def create_action_log(self, common: Dict[str, Any]) -> MonitorDeleteAction:
 		return MonitorDeleteAction(**common, by=None, value=None)
 
 
 class CompiledDeleteRowAction(CompiledDeleteTopicAction):
-	pass
+	def do_run(
+			self, variables: PipelineVariables, new_pipeline: CreateQueuePipeline,
+			action_monitor_log: MonitorDeleteAction, storages: TopicStorages,
+			principal_service: PrincipalService) -> bool:
+		def work() -> None:
+			topic_data_service = self.ask_topic_data_service(
+				schema=self.topicSchema, storages=storages, principal_service=principal_service)
+			statement = self.parsedFindBy.run(variables, principal_service)
+			action_monitor_log.findBy = statement.to_dict()
+			data = topic_data_service.find(criteria=[statement])
+			count = len(data)
+			if count == 0:
+				raise ReactorException('Data not found before do deletion.')
+			elif count != 1:
+				raise ReactorException(f'Too many data found, expect one but {count} found.')
+			else:
+				delete_count = topic_data_service.delete_by_id_and_version(data[0])
+				if delete_count == 0:
+					raise ReactorException('Data not found on do deletion.')
+			action_monitor_log.deleteCount = 1
+			action_monitor_log.touched = data
+
+		return self.safe_run(action_monitor_log, work)
 
 
 class CompiledDeleteRowsAction(CompiledDeleteTopicAction):
-	pass
+	def do_run(
+			self, variables: PipelineVariables, new_pipeline: CreateQueuePipeline,
+			action_monitor_log: MonitorDeleteAction, storages: TopicStorages,
+			principal_service: PrincipalService) -> bool:
+		def work() -> None:
+			topic_data_service = self.ask_topic_data_service(
+				schema=self.topicSchema, storages=storages, principal_service=principal_service)
+			statement = self.parsedFindBy.run(variables, principal_service)
+			action_monitor_log.findBy = statement.to_dict()
+			# bulk delete
+			data = topic_data_service.delete_and_pull(criteria=[statement])
+			action_monitor_log.deleteCount = len(data)
+			action_monitor_log.touched = data
+
+		return self.safe_run(action_monitor_log, work)
 
 
 def compile_action(
