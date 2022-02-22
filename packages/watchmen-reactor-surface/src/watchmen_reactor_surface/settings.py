@@ -45,7 +45,7 @@ def ask_kafka_connector_settings() -> KafkaSettings:
 	else:
 		topics = topics.split(',')
 	return KafkaSettings(
-		bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVER,
+		bootstrapServers=settings.KAFKA_BOOTSTRAP_SERVER,
 		topics=topics
 	)
 
@@ -58,10 +58,10 @@ def ask_rabbitmq_connector_settings() -> RabbitmqSettings:
 	return RabbitmqSettings(
 		host=settings.RABBITMQ_HOST,
 		port=settings.RABBITMQ_PORT,
-		virtual_host=settings.RABBITMQ_VIRTUALHOST,
+		virtualHost=settings.RABBITMQ_VIRTUALHOST,
 		username=settings.RABBITMQ_USERNAME,
 		password=settings.RABBITMQ_PASSWORD,
 		queue=settings.RABBITMQ_QUEUE,
 		durable=settings.RABBITMQ_DURABLE,
-		auto_delete=settings.RABBITMQ_AUTO_DELETE
+		autoDelete=settings.RABBITMQ_AUTO_DELETE
 	)

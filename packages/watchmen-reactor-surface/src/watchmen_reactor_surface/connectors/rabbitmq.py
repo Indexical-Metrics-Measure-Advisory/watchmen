@@ -12,12 +12,12 @@ log = getLogger(__name__)
 class RabbitmqSettings(SettingsModel):
 	host: str
 	port: int
-	virtual_host: str
+	virtualHost: str
 	username: str
 	password: str
 	queue: str
 	durable: bool
-	auto_delete: bool
+	autoDelete: bool
 
 
 async def consume(loop, settings: RabbitmqSettings):
@@ -26,7 +26,7 @@ async def consume(loop, settings: RabbitmqSettings):
 		host=settings.host,
 		port=settings.port,
 		loop=loop,
-		virtualhost=settings.virtual_host,
+		virtualhost=settings.virtualHost,
 		login=settings.username,
 		password=settings.password
 	)
@@ -39,7 +39,7 @@ async def consume(loop, settings: RabbitmqSettings):
 		queue = await channel.declare_queue(
 			queue_name,
 			durable=settings.durable,
-			auto_delete=settings.auto_delete
+			auto_delete=settings.autoDelete
 		)
 		exchange = await channel.declare_exchange(name=queue_name, type=ExchangeType.DIRECT, auto_delete=True)
 

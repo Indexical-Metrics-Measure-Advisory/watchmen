@@ -11,7 +11,7 @@ logger = getLogger(__name__)
 
 
 class KafkaSettings(SettingsModel):
-	bootstrap_servers: str = None
+	bootstrapServers: str = None
 	topics: List[str] = []
 
 
@@ -20,7 +20,7 @@ async def consume(loop, settings: KafkaSettings):
 	from aiokafka import AIOKafkaConsumer
 	# noinspection PyTypeChecker
 	consumer = AIOKafkaConsumer(
-		settings.topics, loop=loop, bootstrap_servers=settings.bootstrap_servers,
+		settings.topics, loop=loop, bootstrap_servers=settings.bootstrapServers,
 		value_deserializer=lambda m: loads(m.decode('utf-8')))
 
 	await consumer.start()
