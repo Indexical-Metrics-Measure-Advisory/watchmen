@@ -189,7 +189,6 @@ class TopicDataService:
 		storage = self.get_storage()
 		try:
 			storage.connect()
-			# TODO exists in storage
 			return storage.exists(data_entity_helper.get_entity_finder(criteria))
 		finally:
 			storage.close()

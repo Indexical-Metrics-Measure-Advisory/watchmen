@@ -123,6 +123,10 @@ class StorageSPI(ABC):
 	def page(self, pager: EntityPager) -> DataPage:
 		pass
 
+	@abstractmethod
+	def exists(self, finder: EntityFinder) -> bool:
+		pass
+
 
 class TransactionalStorageSPI(StorageSPI):
 	"""

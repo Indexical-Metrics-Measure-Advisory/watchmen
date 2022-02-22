@@ -274,6 +274,14 @@ class StorageMySQL(TransactionalStorageSPI):
 			pageCount=max_page_number
 		)
 
+	def exists(self, finder: EntityFinder) -> bool:
+		table = self.find_table(finder.name)
+		statement = select(text('1')).select_from(table)
+		statement = build_criteria_for_statement(table, statement, finder.criteria)
+		statement = statement.offset(0).limit(1)
+		results = self.connection.execute(statement).mappings().all()
+		return len(results) != 0
+
 
 class TopicDataStorageMySQL(StorageMySQL, TopicDataStorageSPI):
 	def register_topic(self, topic: Topic) -> None:
