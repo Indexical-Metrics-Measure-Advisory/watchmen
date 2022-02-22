@@ -187,13 +187,18 @@ class TopicDataService:
 	def find(self, criteria: EntityCriteria) -> List[Dict[str, Any]]:
 		data_entity_helper = self.get_data_entity_helper()
 		storage = self.get_storage()
-		storage.connect()
-		return storage.find(data_entity_helper.get_entity_finder(criteria))
+		try:
+			storage.connect()
+			return storage.find(data_entity_helper.get_entity_finder(criteria))
+		finally:
+			storage.close()
 
 	def delete_by_id_and_version(self, data: Dict[str, Any]) -> int:
+		"""
+		for raw, since there is no version column, will be ignored.
+		otherwise, id and version are mandatory
+		"""
 		data_entity_helper = self.get_data_entity_helper()
-		storage = self.get_storage()
-		storage.connect()
 		criteria: EntityCriteria = []
 		by_id = data_entity_helper.build_id_criteria(data)
 		if by_id is None:
@@ -204,4 +209,9 @@ class TopicDataService:
 			if by_version is None:
 				raise ReactorException(f'Version not found from given data[{data}].')
 			criteria.append(by_version)
-		return storage.delete(data_entity_helper.get_entity_deleter(criteria))
+		storage = self.get_storage()
+		try:
+			storage.connect()
+			return storage.delete(data_entity_helper.get_entity_deleter(criteria))
+		finally:
+			storage.close()
