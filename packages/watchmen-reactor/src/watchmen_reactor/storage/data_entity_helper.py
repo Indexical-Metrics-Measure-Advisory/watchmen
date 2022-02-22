@@ -19,8 +19,8 @@ class TopicDataEntityHelper:
 	def __init__(self, schema: TopicSchema):
 		self.schema = schema
 		self.shaper = self.create_entity_shaper(schema)
-		self.entity_helper = EntityHelper(name=self.schema.get_topic().topicId, shaper=self.shaper)
-		self.entity_id_helper = EntityIdHelper(
+		self.entityHelper = EntityHelper(name=self.schema.get_topic().topicId, shaper=self.shaper)
+		self.entityIdHelper = EntityIdHelper(
 			name=self.schema.get_topic().topicId,
 			shaper=self.shaper,
 			idColumnName=TopicDataColumnNames.ID.value
@@ -37,10 +37,10 @@ class TopicDataEntityHelper:
 		pass
 
 	def get_entity_helper(self) -> EntityHelper:
-		return self.entity_helper
+		return self.entityHelper
 
 	def get_entity_id_helper(self) -> EntityIdHelper:
-		return self.entity_id_helper
+		return self.entityIdHelper
 
 	def get_entity_finder(self, criteria: EntityCriteria, sort: Optional[EntitySort] = None) -> EntityFinder:
 		entity_helper = self.get_entity_helper()

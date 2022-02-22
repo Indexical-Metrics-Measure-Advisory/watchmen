@@ -8,8 +8,8 @@ class PipelineVariables:
 	variables: Dict[str, Any] = {}
 
 	def __init__(self, previous_data: Optional[Dict[str, Any]], current_data: Optional[Dict[str, Any]]):
-		self.previous_data = previous_data
-		self.current_data = current_data
+		self.previousData = previous_data
+		self.currentData = current_data
 
 	def put(self, name: str, value: Any):
 		self.variables[name] = value
@@ -21,17 +21,17 @@ class PipelineVariables:
 		return self.variables.get(name)
 
 	def find_from_current_data(self, name: str) -> Optional[Any]:
-		return self.current_data.get(name)
+		return self.currentData.get(name)
 
 	def get_previous_trigger_data(self) -> Optional[Dict[str, Any]]:
-		return self.previous_data
+		return self.previousData
 
 	def clone(self) -> PipelineVariables:
-		cloned = PipelineVariables(self.previous_data, self.current_data)
+		cloned = PipelineVariables(self.previousData, self.currentData)
 		cloned.variables = deepcopy(self.variables)
 		return cloned
 
 	def clone_all(self) -> PipelineVariables:
-		cloned = PipelineVariables(deepcopy(self.previous_data), deepcopy(self.current_data))
+		cloned = PipelineVariables(deepcopy(self.previousData), deepcopy(self.currentData))
 		cloned.variables = deepcopy(self.variables)
 		return cloned

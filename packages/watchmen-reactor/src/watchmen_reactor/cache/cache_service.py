@@ -52,44 +52,44 @@ class InternalCache:
 
 class PipelineByTopicCache:
 	def __init__(self):
-		self.by_topic_id_cache = InternalCache(cache=get_pipeline_by_topic_id_cache)
+		self.byTopicIdCache = InternalCache(cache=get_pipeline_by_topic_id_cache)
 
 	def get(self, topic_id: TopicId) -> Optional[List[PipelineId]]:
 		"""
 		none means not initialized. empty list means no pipeline.
 		"""
-		return self.by_topic_id_cache.get(topic_id)
+		return self.byTopicIdCache.get(topic_id)
 
 	def declare_no_pipelines(self, topic_id: TopicId) -> None:
-		self.by_topic_id_cache.put(topic_id, [])
+		self.byTopicIdCache.put(topic_id, [])
 
 	def append_one(self, topic_id: TopicId, pipeline_id: PipelineId) -> None:
 		"""
 		append given pipeline id into by topic id cache
 		"""
-		pipeline_ids: Optional[List[PipelineId]] = self.by_topic_id_cache.get(topic_id)
+		pipeline_ids: Optional[List[PipelineId]] = self.byTopicIdCache.get(topic_id)
 		if pipeline_ids is None:
-			self.by_topic_id_cache.put(topic_id, [pipeline_id])
+			self.byTopicIdCache.put(topic_id, [pipeline_id])
 		elif pipeline_id not in pipeline_ids:
-			self.by_topic_id_cache.put(topic_id, ArrayHelper(pipeline_ids).grab(pipeline_id).to_list())
+			self.byTopicIdCache.put(topic_id, ArrayHelper(pipeline_ids).grab(pipeline_id).to_list())
 
 	def remove_one(self, topic_id: TopicId, pipeline_id: PipelineId) -> None:
 		"""
 		remove given pipeline id from by topic id cache
 		"""
-		pipeline_ids: Optional[List[PipelineId]] = self.by_topic_id_cache.get(topic_id)
+		pipeline_ids: Optional[List[PipelineId]] = self.byTopicIdCache.get(topic_id)
 		if pipeline_ids is not None:
 			remains = ArrayHelper(pipeline_ids).filter(lambda x: x != pipeline_id).to_list()
 			if len(remains) == 0:
-				self.by_topic_id_cache.remove(topic_id)
+				self.byTopicIdCache.remove(topic_id)
 			else:
-				self.by_topic_id_cache.put(topic_id, remains)
+				self.byTopicIdCache.put(topic_id, remains)
 
 	def remove(self, topic_id: TopicId) -> None:
-		self.by_topic_id_cache.remove(topic_id)
+		self.byTopicIdCache.remove(topic_id)
 
 	def clear(self):
-		self.by_topic_id_cache.clear()
+		self.byTopicIdCache.clear()
 
 
 pipeline_by_topic_cache = PipelineByTopicCache()
@@ -97,13 +97,13 @@ pipeline_by_topic_cache = PipelineByTopicCache()
 
 class PipelineCache:
 	def __init__(self):
-		self.by_id_cache = InternalCache(cache=get_pipeline_by_id_cache)
-		self.compiled_by_id_cache = InternalCache(cache=get_compiled_pipeline_by_id_cache)
+		self.byIdCache = InternalCache(cache=get_pipeline_by_id_cache)
+		self.compiledByIdCache = InternalCache(cache=get_compiled_pipeline_by_id_cache)
 
 	def put(self, pipeline: Pipeline) -> Optional[Pipeline]:
 		# remove compiled
-		self.compiled_by_id_cache.remove(pipeline.pipelineId)
-		existing: Optional[Pipeline] = self.by_id_cache.put(pipeline.pipelineId, pipeline)
+		self.compiledByIdCache.remove(pipeline.pipelineId)
+		existing: Optional[Pipeline] = self.byIdCache.put(pipeline.pipelineId, pipeline)
 		if existing is not None:
 			if existing.topicId != pipeline.topicId:
 				# trigger topic changed
@@ -115,25 +115,25 @@ class PipelineCache:
 		return existing
 
 	def put_compiled(self, pipeline_id: PipelineId, compiled: CompiledPipeline) -> Optional[CompiledPipeline]:
-		return self.compiled_by_id_cache.put(pipeline_id, compiled)
+		return self.compiledByIdCache.put(pipeline_id, compiled)
 
 	def get(self, pipeline_id: PipelineId) -> Optional[Pipeline]:
-		return self.by_id_cache.get(pipeline_id)
+		return self.byIdCache.get(pipeline_id)
 
 	def get_compiled(self, pipeline_id: PipelineId) -> Optional[CompiledPipeline]:
-		return self.compiled_by_id_cache.get(pipeline_id)
+		return self.compiledByIdCache.get(pipeline_id)
 
 	def remove(self, pipeline_id: PipelineId) -> Optional[Pipeline]:
-		existing: Optional[Pipeline] = self.by_id_cache.remove(pipeline_id)
+		existing: Optional[Pipeline] = self.byIdCache.remove(pipeline_id)
 		if existing is not None:
 			pipeline_by_topic_cache.remove_one(existing.topicId, existing.pipelineId)
 		return existing
 
 	def remove_compiled(self, pipeline_id: PipelineId) -> Optional[CompiledPipeline]:
-		return self.compiled_by_id_cache.remove(pipeline_id)
+		return self.compiledByIdCache.remove(pipeline_id)
 
 	def clear(self) -> None:
-		self.by_id_cache.clear()
+		self.byIdCache.clear()
 		pipeline_by_topic_cache.clear()
 
 
@@ -142,50 +142,50 @@ pipeline_cache = PipelineCache()
 
 class TopicCache:
 	def __init__(self):
-		self.by_id_cache = InternalCache(cache=get_topic_by_id_cache)
-		self.by_tenant_and_name_cache = InternalCache(cache=get_topic_by_tenant_and_name_cache)
-		self.schema_by_id_cache = InternalCache(cache=get_topic_schema_by_id_cache)
-		self.entity_helper_by_id_cache = InternalCache(cache=get_topic_entity_helper_by_id_cache)
+		self.byIdCache = InternalCache(cache=get_topic_by_id_cache)
+		self.byTenantAndNameCache = InternalCache(cache=get_topic_by_tenant_and_name_cache)
+		self.schemaByIdCache = InternalCache(cache=get_topic_schema_by_id_cache)
+		self.entityHelperByIdCache = InternalCache(cache=get_topic_entity_helper_by_id_cache)
 
 	# noinspection PyMethodMayBeStatic
 	def to_tenant_and_name_key(self, name: str, tenant_id: TenantId) -> str:
 		return f'{tenant_id}-{name}'
 
 	def put(self, topic: Topic) -> Optional[Topic]:
-		existing_topic = self.by_id_cache.put(topic.topicId, topic)
-		self.by_tenant_and_name_cache.put(
+		existing_topic = self.byIdCache.put(topic.topicId, topic)
+		self.byTenantAndNameCache.put(
 			self.to_tenant_and_name_key(topic.name, topic.tenantId), topic)
-		self.schema_by_id_cache.put(topic.topicId, TopicSchema(topic))
+		self.schemaByIdCache.put(topic.topicId, TopicSchema(topic))
 		return existing_topic
 
 	def put_entity_helper(self, entity_helper: TopicDataEntityHelper) -> Optional[TopicDataEntityHelper]:
-		return self.entity_helper_by_id_cache.put(entity_helper.get_topic().topicId, entity_helper)
+		return self.entityHelperByIdCache.put(entity_helper.get_topic().topicId, entity_helper)
 
 	def get(self, topic_id: TopicId) -> Optional[Topic]:
-		return self.by_id_cache.get(topic_id)
+		return self.byIdCache.get(topic_id)
 
 	def get_schema(self, topic_id: TopicId) -> Optional[TopicSchema]:
-		return self.schema_by_id_cache.get(topic_id)
+		return self.schemaByIdCache.get(topic_id)
 
 	def get_entity_helper(self, topic_id: TopicId) -> Optional[TopicDataEntityHelper]:
-		return self.entity_helper_by_id_cache.get(topic_id)
+		return self.entityHelperByIdCache.get(topic_id)
 
 	def get_by_name(self, name: str, tenant_id: TenantId) -> Optional[Topic]:
-		return self.by_tenant_and_name_cache.get(self.to_tenant_and_name_key(name, tenant_id))
+		return self.byTenantAndNameCache.get(self.to_tenant_and_name_key(name, tenant_id))
 
 	def remove(self, topic_id: TopicId) -> Optional[Topic]:
-		existing: Optional[Topic] = self.by_id_cache.remove(topic_id)
+		existing: Optional[Topic] = self.byIdCache.remove(topic_id)
 		if existing is not None:
 			pipeline_by_topic_cache.remove(topic_id)
-			self.by_tenant_and_name_cache.remove(self.to_tenant_and_name_key(existing.name, existing.tenantId))
-		self.schema_by_id_cache.remove(topic_id)
-		self.entity_helper_by_id_cache.remove(topic_id)
+			self.byTenantAndNameCache.remove(self.to_tenant_and_name_key(existing.name, existing.tenantId))
+		self.schemaByIdCache.remove(topic_id)
+		self.entityHelperByIdCache.remove(topic_id)
 		return existing
 
 	def clear(self) -> None:
-		self.by_id_cache.clear()
-		self.by_tenant_and_name_cache.clear()
-		self.schema_by_id_cache.clear()
+		self.byIdCache.clear()
+		self.byTenantAndNameCache.clear()
+		self.schemaByIdCache.clear()
 		pipeline_by_topic_cache.clear()
 
 
@@ -196,30 +196,30 @@ class DataSourceCache:
 	"""
 
 	def __init__(self):
-		self.by_id_cache = InternalCache(cache=get_data_source_by_id_cache)
-		self.builder_by_id_cache = InternalCache(cache=get_data_storage_builder_by_id_cache)
+		self.byIdCache = InternalCache(cache=get_data_source_by_id_cache)
+		self.builderByIdCache = InternalCache(cache=get_data_storage_builder_by_id_cache)
 
 	def put(self, data_source: DataSource) -> Optional[DataSource]:
-		return self.by_id_cache.put(data_source.dataSourceId, data_source)
+		return self.byIdCache.put(data_source.dataSourceId, data_source)
 
 	def put_builder(
 			self, data_source_id: DataSourceId, builder: Callable[[], TopicDataStorageSPI]
 	) -> Optional[Callable[[], TopicDataStorageSPI]]:
-		return self.builder_by_id_cache.put(data_source_id, builder)
+		return self.builderByIdCache.put(data_source_id, builder)
 
 	def get(self, data_source_id: DataSourceId) -> Optional[DataSource]:
-		return self.by_id_cache.get(data_source_id)
+		return self.byIdCache.get(data_source_id)
 
 	def get_builder(self, data_source_id: DataSourceId) -> Optional[Callable[[], TopicDataStorageSPI]]:
-		return self.builder_by_id_cache.get(data_source_id)
+		return self.builderByIdCache.get(data_source_id)
 
 	def remove(self, data_source_id: DataSourceId) -> Optional[DataSource]:
-		data_source = self.by_id_cache.remove(data_source_id)
-		self.builder_by_id_cache.remove(data_source_id)
+		data_source = self.byIdCache.remove(data_source_id)
+		self.builderByIdCache.remove(data_source_id)
 		return data_source
 
 	def clear(self) -> None:
-		self.by_id_cache.clear()
+		self.byIdCache.clear()
 
 
 topic_cache = TopicCache()
@@ -233,19 +233,19 @@ class ExternalWriterCache:
 	"""
 
 	def __init__(self):
-		self.by_id_cache = InternalCache(cache=get_external_writer_by_id_cache)
+		self.byIdCache = InternalCache(cache=get_external_writer_by_id_cache)
 
 	def put(self, external_writer: ExternalWriter) -> Optional[ExternalWriter]:
-		return self.by_id_cache.put(external_writer.writerId, external_writer)
+		return self.byIdCache.put(external_writer.writerId, external_writer)
 
 	def get(self, external_writer_id: ExternalWriterId) -> Optional[ExternalWriter]:
-		return self.by_id_cache.get(external_writer_id)
+		return self.byIdCache.get(external_writer_id)
 
 	def remove(self, external_writer_id: ExternalWriterId) -> Optional[ExternalWriter]:
-		return self.by_id_cache.remove(external_writer_id)
+		return self.byIdCache.remove(external_writer_id)
 
 	def clear(self) -> None:
-		self.by_id_cache.clear()
+		self.byIdCache.clear()
 
 
 external_writer_cache = ExternalWriterCache()
@@ -258,19 +258,19 @@ class TenantCache:
 	"""
 
 	def __init__(self):
-		self.by_id_cache = InternalCache(cache=get_tenant_by_id_cache)
+		self.byIdCache = InternalCache(cache=get_tenant_by_id_cache)
 
 	def put(self, tenant: Tenant) -> Optional[Tenant]:
-		return self.by_id_cache.put(tenant.tenantId, tenant)
+		return self.byIdCache.put(tenant.tenantId, tenant)
 
 	def get(self, tenant_id: TenantId) -> Optional[Tenant]:
-		return self.by_id_cache.get(tenant_id)
+		return self.byIdCache.get(tenant_id)
 
 	def remove(self, tenant_id: TenantId) -> Optional[Tenant]:
-		return self.by_id_cache.remove(tenant_id)
+		return self.byIdCache.remove(tenant_id)
 
 	def clear(self) -> None:
-		self.by_id_cache.clear()
+		self.byIdCache.clear()
 
 
 tenant_cache = TenantCache()

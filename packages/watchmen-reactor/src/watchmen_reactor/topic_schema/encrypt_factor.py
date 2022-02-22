@@ -39,8 +39,8 @@ now, loop by groups, there is no duplicated visit anymore.
 class EncryptFactor:
 	def __init__(self, factor: Factor):
 		self.factor = factor
-		self.factor_name = '' if is_blank(factor.name) else factor.name.strip()
-		self.names = self.factor_name.split('.')
+		self.factorName = '' if is_blank(factor.name) else factor.name.strip()
+		self.names = self.factorName.split('.')
 
 	def pop_first_name(self):
 		self.names = self.names[1:]
@@ -83,7 +83,7 @@ def parse_encrypt_factors(topic: Topic) -> List[EncryptFactorGroup]:
 	groups = ArrayHelper(topic.factors) \
 		.filter(lambda x: x.encrypt is not None and x.encrypt != FactorEncryptMethod.NONE) \
 		.map(lambda x: EncryptFactor(x)) \
-		.filter(lambda x: is_not_blank(x.factor_name)) \
+		.filter(lambda x: is_not_blank(x.factorName)) \
 		.group_by(lambda x: x.names[0])
 
 	return ArrayHelper(list(groups.items())) \

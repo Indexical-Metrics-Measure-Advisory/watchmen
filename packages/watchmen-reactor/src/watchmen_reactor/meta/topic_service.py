@@ -12,17 +12,17 @@ from watchmen_reactor.topic_schema import TopicSchema
 
 class TopicService:
 	def __init__(self, principal_service: PrincipalService):
-		self.principal_service = principal_service
+		self.principalService = principal_service
 
 	def find_by_id(self, topic_id: TopicId) -> Optional[Topic]:
 		topic = CacheService.topic().get(topic_id)
 		if topic is not None:
-			if topic.tenantId != self.principal_service.get_tenant_id():
+			if topic.tenantId != self.principalService.get_tenant_id():
 				raise ReactorException(
-					f'Topic[id={topic_id}] not belongs to current tenant[id={self.principal_service.get_tenant_id()}].')
+					f'Topic[id={topic_id}] not belongs to current tenant[id={self.principalService.get_tenant_id()}].')
 			return topic
 
-		storage_service = TopicStorageService(ask_meta_storage(), ask_snowflake_generator(), self.principal_service)
+		storage_service = TopicStorageService(ask_meta_storage(), ask_snowflake_generator(), self.principalService)
 		storage_service.begin_transaction()
 		try:
 			# noinspection PyTypeChecker
@@ -36,8 +36,8 @@ class TopicService:
 			storage_service.close_transaction()
 
 	def find_schema_by_name(self, name: str, tenant_id: TenantId) -> Optional[TopicSchema]:
-		if self.principal_service.is_tenant_admin():
-			if self.principal_service.get_tenant_id() != tenant_id:
+		if self.principalService.is_tenant_admin():
+			if self.principalService.get_tenant_id() != tenant_id:
 				raise Exception('Forbidden')
 
 		schema = None
@@ -47,7 +47,7 @@ class TopicService:
 		if schema is not None:
 			return schema
 
-		storage_service = TopicStorageService(ask_meta_storage(), ask_snowflake_generator(), self.principal_service)
+		storage_service = TopicStorageService(ask_meta_storage(), ask_snowflake_generator(), self.principalService)
 		storage_service.begin_transaction()
 		try:
 			# noinspection PyTypeChecker

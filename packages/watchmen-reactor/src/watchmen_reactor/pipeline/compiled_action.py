@@ -200,8 +200,8 @@ def create_external_write(
 			pat=pat,
 			url=url,
 			event_code=event_code,
-			current_data=cloned.current_data,
-			previous_data=cloned.previous_data,
+			current_data=cloned.currentData,
+			previous_data=cloned.previousData,
 			variables=cloned.variables
 		))
 

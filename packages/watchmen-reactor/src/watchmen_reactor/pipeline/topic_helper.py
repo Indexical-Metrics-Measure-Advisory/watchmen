@@ -37,7 +37,7 @@ class RuntimeTopicStorages(TopicStorages):
 
 	def __init__(self, principal_service: PrincipalService):
 		self.storages = {}
-		self.principal_service = principal_service
+		self.principalService = principal_service
 
 	def ask_topic_storage(self, schema: TopicSchema) -> TopicDataStorageSPI:
 		topic = schema.get_topic()
@@ -54,7 +54,7 @@ class RuntimeTopicStorages(TopicStorages):
 			self.storages[data_source_id] = storage
 			return storage
 
-		data_source = get_data_source_service(self.principal_service).find_by_id(data_source_id)
+		data_source = get_data_source_service(self.principalService).find_by_id(data_source_id)
 		if data_source is None:
 			raise ReactorException(
 				f'Data source not declared for topic'

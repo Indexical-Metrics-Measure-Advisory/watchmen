@@ -19,20 +19,20 @@ def register_external_writer(external_writer: ExternalWriter) -> None:
 
 class ExternalWriterService:
 	def __init__(self, principal_service: PrincipalService):
-		self.principal_service = principal_service
+		self.principalService = principal_service
 
 	def find_by_id(self, writer_id: ExternalWriterId) -> Optional[ExternalWriter]:
 		external_writer = CacheService.external_writer().get(writer_id)
 		if external_writer is not None:
-			if external_writer.tenantId != self.principal_service.get_tenant_id():
+			if external_writer.tenantId != self.principalService.get_tenant_id():
 				raise ReactorException(
 					f'External writer[id={writer_id}] not belongs to '
-					f'current tenant[id={self.principal_service.get_tenant_id()}].')
+					f'current tenant[id={self.principalService.get_tenant_id()}].')
 			register_external_writer(external_writer)
 			return external_writer
 
 		storage_service = ExternalWriterStorageService(
-			ask_meta_storage(), ask_snowflake_generator(), self.principal_service)
+			ask_meta_storage(), ask_snowflake_generator(), self.principalService)
 		storage_service.begin_transaction()
 		try:
 			# noinspection PyTypeChecker

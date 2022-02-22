@@ -7,8 +7,8 @@ from watchmen_utilities import ArrayHelper, is_blank
 class FlattenFactor:
 	def __init__(self, factor: Factor):
 		self.factor = factor
-		self.factor_name = '' if is_blank(factor.name) else factor.name.strip()
-		self.names = self.factor_name.split('.')
+		self.factorName = '' if is_blank(factor.name) else factor.name.strip()
+		self.names = self.factorName.split('.')
 
 	def get_factor(self):
 		return self.factor
@@ -23,12 +23,12 @@ class FlattenFactor:
 			value = data.get(name)
 			if value is None:
 				# break and set to root
-				root[self.factor_name] = None
+				root[self.factorName] = None
 				return None
 			else:
 				data = value
 		# set to root
-		root[self.factor_name] = value
+		root[self.factorName] = value
 		return value
 
 

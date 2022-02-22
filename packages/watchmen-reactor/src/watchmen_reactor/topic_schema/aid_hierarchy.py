@@ -10,7 +10,7 @@ AID_ROOT = 'aid_root'
 class Ancestor:
 	def __init__(self, name: str, aid_id: int):
 		self.name = name
-		self.aid_id = aid_id
+		self.aidId = aid_id
 
 
 # noinspection GrazieInspection
@@ -41,7 +41,7 @@ def apply_ancestor_aid_id(
 		name = f'aid_{ancestor.name}'
 		if name in used_ancestor_keys:
 			name = f'aid_{ancestor.name}_{my_hierarchy_number - used_count}'
-	data[name] = ancestor.aid_id
+	data[name] = ancestor.aidId
 	used_ancestor_keys[name] = True
 
 
