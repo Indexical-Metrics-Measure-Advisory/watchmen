@@ -122,6 +122,7 @@ class ParsedStorageExpression(ParsedStorageCondition):
 		pass
 
 
+# TODO need condition from topic schema
 def parse_condition_for_storage(
 		condition: Optional[ParameterCondition], principal_service: PrincipalService) -> ParsedStorageCondition:
 	if condition is None:
