@@ -16,10 +16,12 @@ from watchmen_reactor.common import ReactorException
 from watchmen_reactor.external_writer import ask_external_writer_creator, CreateExternalWriter, ExternalWriterParams
 from watchmen_reactor.meta import ExternalWriterService, TopicService
 from watchmen_reactor.pipeline_schema import TopicStorages
+from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_utilities import ArrayHelper, is_blank
-from .runtime import CreateQueuePipeline, now, parse_action_defined_as, parse_parameter, parse_prerequisite, \
-	parse_prerequisite_defined_as, ParsedParameter, PipelineVariables, PrerequisiteDefinedAs, PrerequisiteTest, spent_ms
-from ..topic_schema import TopicSchema
+from .runtime import CreateQueuePipeline, now, parse_action_defined_as, parse_condition_in_storage, \
+	parse_parameter_in_memory, parse_prerequisite_defined_as, parse_prerequisite_in_memory, ParsedMemoryParameter, \
+	ParsedStorageCondition, PipelineVariables, \
+	PrerequisiteDefinedAs, PrerequisiteTest, spent_ms
 
 logger = getLogger(__name__)
 
@@ -121,14 +123,14 @@ class CompiledAlarmAction(CompiledAction):
 	prerequisiteDefinedAs: PrerequisiteDefinedAs
 	prerequisiteTest: PrerequisiteTest
 	severity: AlarmActionSeverity = AlarmActionSeverity.MEDIUM
-	parsedMessage: Optional[ParsedParameter] = None
+	parsedMessage: Optional[ParsedMemoryParameter] = None
 
 	def parse_action(self, action: AlarmAction, principal_service: PrincipalService) -> None:
 		self.prerequisiteDefinedAs = parse_prerequisite_defined_as(action, principal_service)
-		self.prerequisiteTest = parse_prerequisite(action, principal_service)
+		self.prerequisiteTest = parse_prerequisite_in_memory(action, principal_service)
 		self.severity = AlarmActionSeverity.MEDIUM if action.severity is None else action.severity
 		# construct a constant parameter
-		self.parsedMessage = parse_parameter(ConstantParameter(
+		self.parsedMessage = parse_parameter_in_memory(ConstantParameter(
 			kind=ParameterKind.CONSTANT,
 			value=action.message
 		), principal_service)
@@ -167,13 +169,13 @@ class CompiledAlarmAction(CompiledAction):
 
 class CompiledCopyToMemoryAction(CompiledAction):
 	variableName: Optional[str] = None
-	parsedSource: Optional[ParsedParameter] = None
+	parsedSource: Optional[ParsedMemoryParameter] = None
 
 	def parse_action(self, action: CopyToMemoryAction, principal_service: PrincipalService) -> None:
 		if is_blank(action.variableName):
 			raise ReactorException(f'Variable not declared in copy to variable action.')
 		self.variableName = action.variableName
-		self.parsedSource = parse_parameter(action.source, principal_service)
+		self.parsedSource = parse_parameter_in_memory(action.source, principal_service)
 
 	def do_run(
 			self, variables: PipelineVariables,
@@ -305,9 +307,11 @@ class CompiledWriteFactorAction(CompiledWriteTopicAction):
 
 class CompiledDeleteTopicAction(CompiledAction):
 	topicSchema: Optional[TopicSchema] = None
+	parsedFindBy: Optional[ParsedStorageCondition] = None
 
 	def parse_action(self, action: DeleteTopicAction, principal_service: PrincipalService) -> None:
 		self.topicSchema = find_topic_schema_for_action(action, principal_service)
+		self.parsedFindBy = parse_condition_in_storage(action.by, principal_service)
 
 	def do_run(
 			self, variables: PipelineVariables,

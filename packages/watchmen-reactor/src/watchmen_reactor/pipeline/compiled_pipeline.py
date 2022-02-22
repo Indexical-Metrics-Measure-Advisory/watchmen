@@ -17,7 +17,7 @@ from watchmen_reactor.storage import TopicTrigger
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_utilities import ArrayHelper, is_blank
 from .compiled_stage import compile_stages, CompiledStage
-from .runtime import now, parse_prerequisite, parse_prerequisite_defined_as, PipelineVariables, spent_ms
+from .runtime import now, parse_prerequisite_in_memory, parse_prerequisite_defined_as, PipelineVariables, spent_ms
 
 logger = getLogger(__name__)
 
@@ -70,7 +70,7 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 		"""
 		self.pipeline = pipeline
 		self.prerequisiteDefinedAs = parse_prerequisite_defined_as(pipeline, principal_service)
-		self.prerequisiteTest = parse_prerequisite(pipeline, principal_service)
+		self.prerequisiteTest = parse_prerequisite_in_memory(pipeline, principal_service)
 		self.stages = compile_stages(pipeline, principal_service)
 
 	def get_pipeline(self):

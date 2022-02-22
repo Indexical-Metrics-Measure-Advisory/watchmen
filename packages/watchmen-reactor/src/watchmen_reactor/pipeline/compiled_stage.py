@@ -7,7 +7,7 @@ from watchmen_model.admin import Pipeline, PipelineStage
 from watchmen_model.reactor import MonitorLogStage, MonitorLogStatus, PipelineMonitorLog
 from watchmen_utilities import ArrayHelper
 from .compiled_unit import compile_units, CompiledUnit
-from .runtime import CreateQueuePipeline, now, parse_prerequisite, parse_prerequisite_defined_as, PipelineVariables, \
+from .runtime import CreateQueuePipeline, now, parse_prerequisite_in_memory, parse_prerequisite_defined_as, PipelineVariables, \
 	spent_ms
 from ..pipeline_schema import TopicStorages
 
@@ -19,7 +19,7 @@ class CompiledStage:
 		self.pipeline = pipeline
 		self.stage = stage
 		self.prerequisiteDefinedAs = parse_prerequisite_defined_as(stage, principal_service)
-		self.prerequisiteTest = parse_prerequisite(stage, principal_service)
+		self.prerequisiteTest = parse_prerequisite_in_memory(stage, principal_service)
 		self.units = compile_units(pipeline, stage, principal_service)
 
 	def run(
