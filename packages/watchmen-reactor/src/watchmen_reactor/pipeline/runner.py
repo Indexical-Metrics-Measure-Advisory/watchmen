@@ -10,7 +10,7 @@ def get_topic_service(principal_service: PrincipalService) -> TopicService:
 	return TopicService(principal_service)
 
 
-def find_topic(name: str, principal_service: PrincipalService) -> TopicSchema:
+def find_topic_schema(name: str, principal_service: PrincipalService) -> TopicSchema:
 	schema = get_topic_service(principal_service).find_schema_by_name(name, principal_service.get_tenant_id())
 	if schema is None:
 		raise ReactorException(f'Topic schema[name={name}, tenant={principal_service.get_tenant_id()}] not found.')
@@ -24,7 +24,7 @@ async def invoke(
 	if trigger_data.data is None:
 		raise ReactorException(f'Trigger data is null.')
 
-	schema = find_topic(trigger_data.code, principal_service)
+	schema = find_topic_schema(trigger_data.code, principal_service)
 	return await PipelineTrigger(
 		trigger_topic_schema=schema,
 		trigger_type=trigger_data.triggerType,
