@@ -212,22 +212,47 @@ class TopicDataService:
 		finally:
 			storage.close()
 
+	def build_version_criteria(self, data: Dict[str, Any]) -> EntityCriteria:
+		data_entity_helper = self.get_data_entity_helper()
+		criteria: EntityCriteria = []
+		by_id = data_entity_helper.build_id_criteria(data)
+		if by_id is None:
+			raise ReactorException(f'Id not found from given data[{data}].')
+		if data_entity_helper.is_versioned():
+			by_version = data_entity_helper.build_version_criteria(data)
+			if by_version is None:
+				raise ReactorException(f'Version not found from given data[{data}].')
+			criteria.append(by_version)
+		return criteria
+
+	def update_by_id_and_version(self, data: Dict[str, Any]) -> Tuple[int, EntityCriteria]:
+		"""
+		version + 1, assign audit columns.
+		rollback version when update nothing
+		"""
+		data_entity_helper = self.get_data_entity_helper()
+		criteria = self.build_version_criteria(data)
+		current_version = data_entity_helper.find_version(data)
+		# increase version
+		data_entity_helper.assign_version(data, current_version + 1)
+		storage = self.get_storage()
+		try:
+			storage.connect()
+			updated_count = storage.update_only(data_entity_helper.get_entity_updater(criteria, data))
+			if updated_count == 0:
+				# rollback version
+				data_entity_helper.assign_version(data, current_version)
+			return updated_count, criteria
+		finally:
+			storage.close()
+
 	def delete_by_id_and_version(self, data: Dict[str, Any]) -> Tuple[int, EntityCriteria]:
 		"""
 		for raw, since there is no version column, will be ignored.
 		otherwise, id and version are mandatory
 		"""
 		data_entity_helper = self.get_data_entity_helper()
-		criteria: EntityCriteria = []
-		by_id = data_entity_helper.build_id_criteria(data)
-		if by_id is None:
-			raise ReactorException(f'Id not found from given data[{data}].')
-
-		if data_entity_helper.is_versioned():
-			by_version = data_entity_helper.build_version_criteria(data)
-			if by_version is None:
-				raise ReactorException(f'Version not found from given data[{data}].')
-			criteria.append(by_version)
+		criteria = self.build_version_criteria(data)
 		storage = self.get_storage()
 		try:
 			storage.connect()
