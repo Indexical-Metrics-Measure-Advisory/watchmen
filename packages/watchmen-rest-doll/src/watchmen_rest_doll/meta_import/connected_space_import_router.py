@@ -24,8 +24,8 @@ def get_connected_space_service(principal_service: PrincipalService) -> Connecte
 
 def get_space_service(connected_space_service: ConnectedSpaceService) -> SpaceService:
 	return SpaceService(
-		connected_space_service.storage, connected_space_service.snowflake_generator,
-		connected_space_service.principal_service)
+		connected_space_service.storage, connected_space_service.snowflakeGenerator,
+		connected_space_service.principalService)
 
 
 def ask_save_connected_space_action(

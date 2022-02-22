@@ -24,7 +24,7 @@ def get_pipeline_service(principal_service: PrincipalService) -> PipelineService
 
 
 def get_pipeline_index_service(pipeline_service: PipelineService) -> PipelineIndexService:
-	return PipelineIndexService(pipeline_service.storage, pipeline_service.snowflake_generator)
+	return PipelineIndexService(pipeline_service.storage, pipeline_service.snowflakeGenerator)
 
 
 @router.get('/pipeline', tags=[UserRole.ADMIN], response_model=Pipeline)

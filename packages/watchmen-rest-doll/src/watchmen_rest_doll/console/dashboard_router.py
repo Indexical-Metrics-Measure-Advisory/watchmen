@@ -30,21 +30,21 @@ def get_dashboard_service(principal_service: PrincipalService) -> DashboardServi
 
 def get_report_service(dashboard_service: DashboardService) -> ReportService:
 	return ReportService(
-		dashboard_service.storage, dashboard_service.snowflake_generator, dashboard_service.principal_service)
+		dashboard_service.storage, dashboard_service.snowflakeGenerator, dashboard_service.principalService)
 
 
 def get_subject_service(dashboard_service: DashboardService) -> SubjectService:
 	return SubjectService(
-		dashboard_service.storage, dashboard_service.snowflake_generator, dashboard_service.principal_service)
+		dashboard_service.storage, dashboard_service.snowflakeGenerator, dashboard_service.principalService)
 
 
 def get_connected_space_service(dashboard_service: DashboardService) -> ConnectedSpaceService:
 	return ConnectedSpaceService(
-		dashboard_service.storage, dashboard_service.snowflake_generator, dashboard_service.principal_service)
+		dashboard_service.storage, dashboard_service.snowflakeGenerator, dashboard_service.principalService)
 
 
 def get_last_snapshot_service(dashboard_service: DashboardService) -> LastSnapshotService:
-	return LastSnapshotService(dashboard_service.storage, dashboard_service.principal_service)
+	return LastSnapshotService(dashboard_service.storage, dashboard_service.principalService)
 
 
 @router.get('/dashboard/list', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Dashboard])

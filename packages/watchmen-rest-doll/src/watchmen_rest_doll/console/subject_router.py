@@ -24,12 +24,12 @@ def get_subject_service(principal_service: PrincipalService) -> SubjectService:
 
 def get_connected_space_service(subject_service: SubjectService) -> ConnectedSpaceService:
 	return ConnectedSpaceService(
-		subject_service.storage, subject_service.snowflake_generator, subject_service.principal_service)
+		subject_service.storage, subject_service.snowflakeGenerator, subject_service.principalService)
 
 
 def get_report_service(subject_service: SubjectService) -> ReportService:
 	return ReportService(
-		subject_service.storage, subject_service.snowflake_generator, subject_service.principal_service)
+		subject_service.storage, subject_service.snowflakeGenerator, subject_service.principalService)
 
 
 def ask_save_subject_action(
