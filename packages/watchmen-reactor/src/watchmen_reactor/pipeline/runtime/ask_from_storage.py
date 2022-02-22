@@ -173,6 +173,7 @@ class ParsedStorageMapping:
 			lambda x: ParsedStorageMappingFactor(schema, x, principal_service)).to_list()
 
 	def run(self, variables: PipelineVariables, principal_service: PrincipalService) -> Dict[str, Any]:
+		# TODO need original value when there are aggregation existing
 		return ArrayHelper(self.parsedMappingFactors).reduce(
 			lambda data, x: self.run_factor(data, x, variables, principal_service), {})
 
