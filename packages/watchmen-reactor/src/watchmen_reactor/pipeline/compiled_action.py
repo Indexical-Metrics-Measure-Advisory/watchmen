@@ -7,31 +7,27 @@ from typing import Any, Callable, Dict, List, Optional, Union
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import AlarmAction, AlarmActionSeverity, CopyToMemoryAction, DeleteTopicAction, \
-	DeleteTopicActionType, FindBy, FromTopic, is_raw_topic, MappingFactor, MappingRow, Pipeline, PipelineAction, \
-	PipelineStage, \
-	PipelineTriggerType, PipelineUnit, \
-	ReadTopicAction, \
-	ReadTopicActionType, SystemActionType, Topic, ToTopic, WriteFactorAction, WriteToExternalAction, WriteTopicAction, \
-	WriteTopicActionType
+	DeleteTopicActionType, Factor, FindBy, FromFactor, FromTopic, is_raw_topic, MappingFactor, MappingRow, Pipeline, \
+	PipelineAction, \
+	PipelineStage, PipelineTriggerType, PipelineUnit, ReadTopicAction, ReadTopicActionType, SystemActionType, Topic, \
+	ToTopic, WriteFactorAction, WriteToExternalAction, WriteTopicAction, WriteTopicActionType
 from watchmen_model.common import ConstantParameter, ParameterKind
 from watchmen_model.reactor import MonitorAlarmAction, MonitorCopyToMemoryAction, MonitorDeleteAction, \
 	MonitorLogAction, MonitorLogStatus, MonitorLogUnit, MonitorReadAction, MonitorWriteAction, \
 	MonitorWriteToExternalAction
+from watchmen_reactor.cache import CacheService
 from watchmen_reactor.common import ask_pipeline_update_retry, ask_pipeline_update_retry_times, ReactorException
 from watchmen_reactor.external_writer import ask_external_writer_creator, CreateExternalWriter, ExternalWriterParams
 from watchmen_reactor.meta import ExternalWriterService, TopicService
 from watchmen_reactor.pipeline_schema import TopicStorages
 from watchmen_reactor.storage import RawTopicDataEntityHelper, RawTopicDataService, RegularTopicDataEntityHelper, \
-	RegularTopicDataService, \
-	TopicDataEntityHelper, \
-	TopicDataService, TopicTrigger
+	RegularTopicDataService, TopicDataEntityHelper, TopicDataService, TopicTrigger
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_utilities import ArrayHelper, is_blank
 from .runtime import CreateQueuePipeline, now, parse_action_defined_as, parse_condition_for_storage, \
 	parse_mapping_for_storage, parse_parameter_in_memory, parse_prerequisite_defined_as, parse_prerequisite_in_memory, \
-	ParsedMemoryParameter, \
-	ParsedStorageCondition, ParsedStorageMapping, PipelineVariables, PrerequisiteDefinedAs, PrerequisiteTest, spent_ms
-from ..cache import CacheService
+	ParsedMemoryParameter, ParsedStorageCondition, ParsedStorageMapping, PipelineVariables, PrerequisiteDefinedAs, \
+	PrerequisiteTest, spent_ms
 
 logger = getLogger(__name__)
 
@@ -307,42 +303,118 @@ class CompiledStorageAction(CompiledAction):
 			return RegularTopicDataService(schema, data_entity_helper, storage, principal_service)
 
 
+# noinspection PyAbstractClass
 class CompiledReadTopicAction(CompiledStorageAction):
-	def parse_action(self, action: ReadTopicAction, principal_service: PrincipalService) -> None:
-		# TODO parse read topic action
-		pass
+	variableName: Optional[str] = None
+	factor: Optional[Factor] = None
 
-	def do_run(
-			self, variables: PipelineVariables,
-			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorLogAction,
-			storages: TopicStorages, principal_service: PrincipalService) -> bool:
-		# TODO run read topic action
-		pass
+	def parse_action(self, action: ReadTopicAction, principal_service: PrincipalService) -> None:
+		if is_blank(action.variableName):
+			raise ReactorException(f'Variable not declared in read action.')
+		self.variableName = action.variableName
+		self.parse_topic_schema(action, principal_service)
+		self.parse_find_by(action, principal_service)
+		if isinstance(action, FromFactor):
+			factor_id = action.factor_id
+			if is_blank(factor_id):
+				raise ReactorException(f'Factor not declared in read factor(s) action.')
+			topic = self.schema.get_topic()
+			factor = ArrayHelper(topic.factors).find(lambda x: x.factorId == factor_id)
+			if factor is None:
+				raise ReactorException(
+					f'Factor[id={factor_id}] in topic[id={topic.topicId}, name={topic.name}] not found.')
+			self.factor = factor
 
 	def create_action_log(self, common: Dict[str, Any]) -> MonitorReadAction:
 		return MonitorReadAction(**common, by=None, value=None)
 
 
 class CompiledReadRowAction(CompiledReadTopicAction):
-	pass
+	def do_run(
+			self, variables: PipelineVariables,
+			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorReadAction,
+			storages: TopicStorages, principal_service: PrincipalService) -> bool:
+		def work() -> None:
+			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
+			statement = self.parsedFindBy.run(variables, principal_service)
+			action_monitor_log.findBy = statement.to_dict()
+			data = topic_data_service.find(criteria=[statement])
+			count = len(data)
+			if count == 0:
+				raise ReactorException(f'Data not found, {self.on_topic_message()}, by [{[statement]}].')
+			elif count > 1:
+				raise ReactorException(
+					f'Too many data[count={count}] found, {self.on_topic_message()}, by [{[statement]}].')
+			else:
+				variables.put(self.variableName, data[0])
+				action_monitor_log.touched = data
+
+		return self.safe_run(action_monitor_log, work)
 
 
 class CompiledReadRowsAction(CompiledReadTopicAction):
-	pass
+	def do_run(
+			self, variables: PipelineVariables,
+			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorReadAction,
+			storages: TopicStorages, principal_service: PrincipalService) -> bool:
+		def work() -> None:
+			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
+			statement = self.parsedFindBy.run(variables, principal_service)
+			action_monitor_log.findBy = statement.to_dict()
+			data = topic_data_service.find(criteria=[statement])
+			variables.put(self.variableName, data)
+			action_monitor_log.touched = data
+
+		return self.safe_run(action_monitor_log, work)
 
 
 class CompiledReadFactorAction(CompiledReadTopicAction):
-	pass
+	def do_run(
+			self, variables: PipelineVariables,
+			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorReadAction,
+			storages: TopicStorages, principal_service: PrincipalService) -> bool:
+		def work() -> None:
+			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
+			statement = self.parsedFindBy.run(variables, principal_service)
+			action_monitor_log.findBy = statement.to_dict()
+			# TODO read factor
+			data = topic_data_service.find(criteria=[statement])
+
+		return self.safe_run(action_monitor_log, work)
 
 
 class CompiledReadFactorsAction(CompiledReadTopicAction):
-	pass
+	def do_run(
+			self, variables: PipelineVariables,
+			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorReadAction,
+			storages: TopicStorages, principal_service: PrincipalService) -> bool:
+		def work() -> None:
+			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
+			statement = self.parsedFindBy.run(variables, principal_service)
+			action_monitor_log.findBy = statement.to_dict()
+			# TODO read factors
+			data = topic_data_service.find(criteria=[statement])
+
+		return self.safe_run(action_monitor_log, work)
 
 
 class CompiledExistsAction(CompiledReadTopicAction):
-	pass
+	def do_run(
+			self, variables: PipelineVariables,
+			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorReadAction,
+			storages: TopicStorages, principal_service: PrincipalService) -> bool:
+		def work() -> None:
+			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
+			statement = self.parsedFindBy.run(variables, principal_service)
+			action_monitor_log.findBy = statement.to_dict()
+			# TODO existing query
+			existing = topic_data_service.exists(criteria=[statement])
+			variables.put(self.variableName, existing)
+
+		return self.safe_run(action_monitor_log, work)
 
 
+# noinspection PyAbstractClass
 class CompiledWriteTopicAction(CompiledStorageAction):
 	def parse_action(self, action: WriteTopicAction, principal_service: PrincipalService) -> None:
 		self.parse_topic_schema(action, principal_service)
@@ -387,7 +459,7 @@ class CompiledInsertion(CompiledWriteTopicAction):
 
 
 # noinspection PyAbstractClass
-class CompiledUpdating(CompiledWriteTopicAction):
+class CompiledUpdate(CompiledWriteTopicAction):
 	# noinspection PyMethodMayBeStatic
 	def merge_into(self, original: Dict[str, Any], updated: Dict[str, Any]) -> Dict[str, Any]:
 		cloned = deepcopy(original)
@@ -416,7 +488,7 @@ class CompiledUpdating(CompiledWriteTopicAction):
 				internalDataId=id_
 			))
 			action_monitor_log.updateCount = 1
-			action_monitor_log.touched = updated_data
+			action_monitor_log.touched = [updated_data]
 			return 1
 
 
@@ -432,11 +504,12 @@ class CompiledInsertRowAction(CompiledInsertion):
 		return self.safe_run(action_monitor_log, work)
 
 
-class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdating):
-	def do_run(
+class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
+	def do_insert_or_merge(
 			self, variables: PipelineVariables, new_pipeline: CreateQueuePipeline,
 			action_monitor_log: MonitorWriteAction, storages: TopicStorages,
-			principal_service: PrincipalService) -> bool:
+			principal_service: PrincipalService,
+			allow_insert: bool) -> bool:
 		def work(times: int) -> None:
 			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
 			statement = self.parsedFindBy.run(variables, principal_service)
@@ -444,10 +517,15 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdating):
 			data = topic_data_service.find(criteria=[statement])
 			count = len(data)
 			if count == 0:
-				# data not found, do insertion
-				self.do_insert(variables, new_pipeline, action_monitor_log, principal_service, topic_data_service)
+				if allow_insert:
+					# data not found, do insertion
+					self.do_insert(variables, new_pipeline, action_monitor_log, principal_service, topic_data_service)
+				else:
+					# insertion is not allowed
+					raise ReactorException(f'Data not found, {self.on_topic_message()}, by [{[statement]}].')
 			elif count != 1:
-				raise ReactorException(f'Too many data found, expect one but {count} found.')
+				raise ReactorException(
+					f'Too many data[count={count}] found, {self.on_topic_message()}, by [{[statement]}].')
 			else:
 				# found one matched, do update
 				updated_count = self.do_update(
@@ -466,23 +544,27 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdating):
 
 		return self.safe_run(action_monitor_log, create_worker())
 
-
-class CompiledMergeRowAction(CompiledWriteTopicAction):
 	def do_run(
 			self, variables: PipelineVariables, new_pipeline: CreateQueuePipeline,
-			action_monitor_log: MonitorLogAction, storages: TopicStorages,
+			action_monitor_log: MonitorWriteAction, storages: TopicStorages,
 			principal_service: PrincipalService) -> bool:
-		# TODO merge row
-		pass
+		return self.do_insert_or_merge(variables, new_pipeline, action_monitor_log, storages, principal_service, True)
 
 
-class CompiledWriteFactorAction(CompiledWriteTopicAction):
+class CompiledMergeRowAction(CompiledInsertOrMergeRowAction):
 	def do_run(
 			self, variables: PipelineVariables, new_pipeline: CreateQueuePipeline,
-			action_monitor_log: MonitorLogAction, storages: TopicStorages,
+			action_monitor_log: MonitorWriteAction, storages: TopicStorages,
 			principal_service: PrincipalService) -> bool:
-		# TODO write factor
-		pass
+		return self.do_insert_or_merge(variables, new_pipeline, action_monitor_log, storages, principal_service, False)
+
+
+class CompiledWriteFactorAction(CompiledInsertOrMergeRowAction):
+	def do_run(
+			self, variables: PipelineVariables, new_pipeline: CreateQueuePipeline,
+			action_monitor_log: MonitorWriteAction, storages: TopicStorages,
+			principal_service: PrincipalService) -> bool:
+		return self.do_insert_or_merge(variables, new_pipeline, action_monitor_log, storages, principal_service, False)
 
 
 # noinspection PyAbstractClass
@@ -507,9 +589,11 @@ class CompiledDeleteRowAction(CompiledDeleteTopicAction):
 			data = topic_data_service.find(criteria=[statement])
 			count = len(data)
 			if count == 0:
-				raise ReactorException('Data not found before do deletion.')
+				raise ReactorException(
+					f'Data not found before do deletion, {self.on_topic_message()}, by [{[statement]}].')
 			elif count != 1:
-				raise ReactorException(f'Too many data found, expect one but {count} found.')
+				raise ReactorException(
+					f'Too many data[count={count}] found, {self.on_topic_message()}, by [{[statement]}].')
 			else:
 				deleted_count, criteria = topic_data_service.delete_by_id_and_version(data[0])
 				if deleted_count == 0:
