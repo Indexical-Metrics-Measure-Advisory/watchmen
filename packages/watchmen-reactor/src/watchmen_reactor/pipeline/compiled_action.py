@@ -7,7 +7,7 @@ from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import AlarmAction, AlarmActionSeverity, CopyToMemoryAction, DeleteTopicAction, \
 	DeleteTopicActionType, Pipeline, PipelineAction, PipelineStage, PipelineUnit, ReadTopicAction, \
-	ReadTopicActionType, SystemActionType, WriteToExternalAction, WriteTopicAction, WriteTopicActionType
+	ReadTopicActionType, SystemActionType, Topic, WriteToExternalAction, WriteTopicAction, WriteTopicActionType
 from watchmen_model.common import ConstantParameter, ParameterKind
 from watchmen_model.reactor import MonitorAlarmAction, MonitorCopyToMemoryAction, MonitorDeleteAction, \
 	MonitorLogAction, MonitorLogStatus, MonitorLogUnit, MonitorReadAction, MonitorWriteAction, \
@@ -17,10 +17,15 @@ from watchmen_utilities import ArrayHelper, is_blank
 from .runtime import CreateQueuePipeline, now, parse_action_defined_as, parse_parameter, parse_prerequisite, \
 	parse_prerequisite_defined_as, ParsedParameter, PipelineVariables, PrerequisiteDefinedAs, PrerequisiteTest, spent_ms
 from ..external_writer import ask_external_writer_creator, CreateExternalWriter, ExternalWriterParams
+from ..meta import TopicService
 from ..meta.external_writer_service import ExternalWriterService
 from ..pipeline_schema import TopicStorages
 
 logger = getLogger(__name__)
+
+
+def get_topic_service(principal_service: PrincipalService) -> TopicService:
+	return TopicService(principal_service)
 
 
 def get_external_writer_service(principal_service: PrincipalService) -> ExternalWriterService:
@@ -286,8 +291,11 @@ class CompiledWriteFactorAction(CompiledWriteTopicAction):
 
 class CompiledDeleteTopicAction(CompiledAction):
 	def parse_action(self, action: DeleteTopicAction, principal_service: PrincipalService) -> None:
-		# TODO parse delete topic action
-		pass
+		topic_id = action.topicId
+		if is_blank(topic_id):
+			raise ReactorException(f'Topic not declared in delete action[{action.dict()}].')
+		topic_service = get_topic_service(principal_service)
+		topic: Optional[Topic] = topic_service.find_by_id(topic_id)
 
 	def do_run(
 			self, variables: PipelineVariables,

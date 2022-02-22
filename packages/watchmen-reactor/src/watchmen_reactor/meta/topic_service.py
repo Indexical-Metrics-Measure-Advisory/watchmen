@@ -6,6 +6,7 @@ from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import Topic
 from watchmen_model.common import TenantId, TopicId
 from watchmen_reactor.cache import CacheService
+from watchmen_reactor.common import ReactorException
 from watchmen_reactor.topic_schema import TopicSchema
 
 
@@ -16,6 +17,9 @@ class TopicService:
 	def find_by_id(self, topic_id: TopicId) -> Optional[Topic]:
 		topic = CacheService.topic().get(topic_id)
 		if topic is not None:
+			if topic.tenantId != self.principal_service.get_tenant_id():
+				raise ReactorException(
+					f'Topic[id={topic_id}] not belongs to current tenant[id={self.principal_service.get_tenant_id()}].')
 			return topic
 
 		storage_service = TopicStorageService(ask_meta_storage(), ask_snowflake_generator(), self.principal_service)
