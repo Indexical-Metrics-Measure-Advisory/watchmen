@@ -1,4 +1,5 @@
 from abc import abstractmethod
+from copy import deepcopy
 from logging import getLogger
 from traceback import format_exc
 from typing import Any, Callable, Dict, List, Optional, Union
@@ -363,37 +364,105 @@ class CompiledWriteTopicAction(CompiledStorageAction):
 		return MonitorWriteAction(**common, by=None, value=None)
 
 
-class CompiledInsertRowAction(CompiledWriteTopicAction):
+# noinspection PyAbstractClass
+class CompiledInsertion(CompiledWriteTopicAction):
+	def do_insert(
+			self, variables: PipelineVariables, new_pipeline: CreateQueuePipeline,
+			action_monitor_log: MonitorWriteAction,
+			principal_service: PrincipalService, topic_data_service: TopicDataService) -> None:
+		data = self.parsedMapping.run(variables, principal_service)
+		self.schema.initialize_default_values(data)
+		self.schema.encrypt(data)
+		data = topic_data_service.insert(data)
+		action_monitor_log.insertCount = 1
+		action_monitor_log.touched = [data]
+		# new pipeline
+		has_id, id_ = topic_data_service.get_data_entity_helper().find_data_id(data)
+		new_pipeline(self.schema, TopicTrigger(
+			previous=None,
+			current=data,
+			triggerType=PipelineTriggerType.INSERT,
+			internalDataId=id_
+		))
+
+
+# noinspection PyAbstractClass
+class CompiledUpdating(CompiledWriteTopicAction):
+	# noinspection PyMethodMayBeStatic
+	def merge_into(self, original: Dict[str, Any], updated: Dict[str, Any]) -> Dict[str, Any]:
+		cloned = deepcopy(original)
+		for key, value in updated.items():
+			cloned[key] = value
+		return cloned
+
+	def do_update(
+			self, original_data: Dict[str, Any], variables: PipelineVariables, new_pipeline: CreateQueuePipeline,
+			action_monitor_log: MonitorWriteAction,
+			principal_service: PrincipalService, topic_data_service: TopicDataService) -> int:
+		updated_data = self.parsedMapping.run(variables, principal_service)
+		updated_data = self.merge_into(original_data, updated_data)
+		self.schema.initialize_default_values(updated_data)
+		self.schema.encrypt(updated_data)
+		updated_count, criteria = topic_data_service.update_by_id_and_version(updated_data)
+		if updated_count == 0:
+			return 0
+		else:
+			# new pipeline
+			has_id, id_ = topic_data_service.get_data_entity_helper().find_data_id(updated_data)
+			new_pipeline(self.schema, TopicTrigger(
+				previous=original_data,
+				current=updated_data,
+				triggerType=PipelineTriggerType.MERGE,
+				internalDataId=id_
+			))
+			action_monitor_log.updateCount = 1
+			action_monitor_log.touched = updated_data
+			return 1
+
+
+class CompiledInsertRowAction(CompiledInsertion):
 	def do_run(
 			self, variables: PipelineVariables, new_pipeline: CreateQueuePipeline,
 			action_monitor_log: MonitorWriteAction, storages: TopicStorages,
 			principal_service: PrincipalService) -> bool:
 		def work() -> None:
 			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
-			data = self.parsedMapping.run(variables, principal_service)
-			self.schema.encrypt(data)
-			data = topic_data_service.insert(data)
-			action_monitor_log.insertCount = 1
-			action_monitor_log.touched = [data]
-			# new pipeline
-			has_id, id_ = topic_data_service.get_data_entity_helper().find_data_id(data)
-			new_pipeline(self.schema, TopicTrigger(
-				previous=None,
-				current=data,
-				triggerType=PipelineTriggerType.INSERT,
-				internalDataId=id_
-			))
+			self.do_insert(variables, new_pipeline, action_monitor_log, principal_service, topic_data_service)
 
 		return self.safe_run(action_monitor_log, work)
 
 
-class CompiledInsertOrMergeRowAction(CompiledWriteTopicAction):
+class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdating):
 	def do_run(
 			self, variables: PipelineVariables, new_pipeline: CreateQueuePipeline,
-			action_monitor_log: MonitorLogAction, storages: TopicStorages,
+			action_monitor_log: MonitorWriteAction, storages: TopicStorages,
 			principal_service: PrincipalService) -> bool:
-		# TODO insert or merge row
-		pass
+		def work(times: int) -> None:
+			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
+			statement = self.parsedFindBy.run(variables, principal_service)
+			action_monitor_log.findBy = statement.to_dict()
+			data = topic_data_service.find(criteria=[statement])
+			count = len(data)
+			if count == 0:
+				# data not found, do insertion
+				self.do_insert(variables, new_pipeline, action_monitor_log, principal_service, topic_data_service)
+			elif count != 1:
+				raise ReactorException(f'Too many data found, expect one but {count} found.')
+			else:
+				# found one matched, do update
+				updated_count = self.do_update(
+					data[0], variables, new_pipeline, action_monitor_log, principal_service, topic_data_service)
+				if updated_count == 0:
+					if times < 3:
+						work(times + 1)
+					else:
+						raise ReactorException(
+							f'Data not found on do update, {self.on_topic_message()}, by [{[statement]}].')
+
+		def create_worker(times: int) -> Callable[[], None]:
+			return lambda: work(times)
+
+		return self.safe_run(action_monitor_log, create_worker(1))
 
 
 class CompiledMergeRowAction(CompiledWriteTopicAction):
@@ -430,8 +499,7 @@ class CompiledDeleteRowAction(CompiledDeleteTopicAction):
 			action_monitor_log: MonitorDeleteAction, storages: TopicStorages,
 			principal_service: PrincipalService) -> bool:
 		def work() -> None:
-			topic_data_service = self.ask_topic_data_service(
-				schema=self.schema, storages=storages, principal_service=principal_service)
+			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
 			statement = self.parsedFindBy.run(variables, principal_service)
 			action_monitor_log.findBy = statement.to_dict()
 			data = topic_data_service.find(criteria=[statement])
@@ -441,10 +509,10 @@ class CompiledDeleteRowAction(CompiledDeleteTopicAction):
 			elif count != 1:
 				raise ReactorException(f'Too many data found, expect one but {count} found.')
 			else:
-				delete_count, criteria = topic_data_service.delete_by_id_and_version(data[0])
-				if delete_count == 0:
+				deleted_count, criteria = topic_data_service.delete_by_id_and_version(data[0])
+				if deleted_count == 0:
 					raise ReactorException(
-						f'Data not found on do deletion, {self.on_topic_message()}, by [{criteria}].')
+						f'Data not found on do deletion, {self.on_topic_message()}, by [{[statement]}].')
 				else:
 					# new pipeline
 					has_id, id_ = topic_data_service.get_data_entity_helper().find_data_id(data[0])
@@ -466,8 +534,7 @@ class CompiledDeleteRowsAction(CompiledDeleteTopicAction):
 			action_monitor_log: MonitorDeleteAction, storages: TopicStorages,
 			principal_service: PrincipalService) -> bool:
 		def work() -> None:
-			topic_data_service = self.ask_topic_data_service(
-				schema=self.schema, storages=storages, principal_service=principal_service)
+			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
 			statement = self.parsedFindBy.run(variables, principal_service)
 			action_monitor_log.findBy = statement.to_dict()
 			data = topic_data_service.find(criteria=[statement])
@@ -475,10 +542,10 @@ class CompiledDeleteRowsAction(CompiledDeleteTopicAction):
 			# no transaction here, stop on first count mismatched or exception raised
 			try:
 				for row in data:
-					delete_count, criteria = topic_data_service.delete_by_id_and_version(row)
-					if delete_count == 0:
+					deleted_count, criteria = topic_data_service.delete_by_id_and_version(row)
+					if deleted_count == 0:
 						raise ReactorException(
-							f'Data not found on do deletion, {self.on_topic_message()}, by [{criteria}], '
+							f'Data not found on do deletion, {self.on_topic_message()}, by [{[statement]}], '
 							f'Bulk deletion stopped.')
 					else:
 						touched.append(row)
