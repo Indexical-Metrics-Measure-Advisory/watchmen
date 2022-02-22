@@ -9,7 +9,7 @@ from watchmen_model.admin import PipelineTriggerType, Topic
 from watchmen_model.common import DataModel
 from watchmen_reactor.common import ReactorException
 from watchmen_reactor.topic_schema import TopicSchema
-from watchmen_storage import EntityCriteria, SnowflakeGenerator, TopicDataStorageSPI
+from watchmen_storage import EntityColumnName, EntityCriteria, SnowflakeGenerator, TopicDataStorageSPI
 from watchmen_utilities import get_current_time_in_seconds
 from .data_entity_helper import TopicDataEntityHelper
 
@@ -190,6 +190,16 @@ class TopicDataService:
 		try:
 			storage.connect()
 			return storage.find(data_entity_helper.get_entity_finder(criteria))
+		finally:
+			storage.close()
+
+	def find_distinct_values(
+			self, criteria: EntityCriteria, column_names: List[EntityColumnName]) -> List[Dict[str, Any]]:
+		data_entity_helper = self.get_data_entity_helper()
+		storage = self.get_storage()
+		try:
+			storage.connect()
+			return storage.find_distinct_values(data_entity_helper.get_distinct_values_finder(criteria, column_names))
 		finally:
 			storage.close()
 

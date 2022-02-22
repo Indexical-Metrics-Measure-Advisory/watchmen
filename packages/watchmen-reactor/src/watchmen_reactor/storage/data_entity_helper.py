@@ -1,13 +1,15 @@
 from abc import abstractmethod
 from datetime import datetime
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from watchmen_auth import PrincipalService
 from watchmen_model.admin import Topic
 from watchmen_model.common import TenantId
 from watchmen_model.reactor import TopicDataColumnNames
 from watchmen_reactor.topic_schema import TopicSchema
-from watchmen_storage import EntityCriteria, EntityCriteriaExpression, EntityDeleter, EntityFinder, EntityHelper, \
+from watchmen_storage import EntityColumnName, EntityCriteria, EntityCriteriaExpression, EntityDeleter, \
+	EntityDistinctValuesFinder, \
+	EntityFinder, EntityHelper, \
 	EntityIdHelper, EntityShaper, \
 	EntitySort, EntityUpdate, EntityUpdater, SnowflakeGenerator
 
@@ -50,6 +52,19 @@ class TopicDataEntityHelper:
 			shaper=entity_helper.shaper,
 			criteria=criteria,
 			sort=sort
+		)
+
+	def get_distinct_values_finder(
+			self,
+			criteria: EntityCriteria, column_names: List[EntityColumnName],
+			sort: Optional[EntitySort] = None) -> EntityDistinctValuesFinder:
+		entity_helper = self.get_entity_helper()
+		return EntityDistinctValuesFinder(
+			name=entity_helper.name,
+			shaper=entity_helper.shaper,
+			criteria=criteria,
+			sort=sort,
+			distinctColumnNames=column_names
 		)
 
 	def get_entity_updater(self, criteria: EntityCriteria, update: EntityUpdate) -> EntityUpdater:

@@ -392,8 +392,10 @@ class CompiledReadFactorsAction(CompiledReadTopicAction):
 			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
 			statement = self.parsedFindBy.run(variables, principal_service)
 			action_monitor_log.findBy = statement.to_dict()
-			# TODO read factors
-			data = topic_data_service.find(criteria=[statement])
+			data = topic_data_service.find_distinct_values(criteria=[statement], column_names=[])
+			factor_values = ArrayHelper(data).map(lambda x: x[0]).to_list()
+			variables.put(self.variableName, factor_values)
+			action_monitor_log.touched = factor_values
 
 		return self.safe_run(action_monitor_log, work)
 

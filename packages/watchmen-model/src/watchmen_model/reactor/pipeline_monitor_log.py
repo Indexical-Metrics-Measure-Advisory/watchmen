@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 from enum import Enum
 from typing import Any, Dict, List, Optional, TypeVar, Union
 
@@ -40,7 +41,16 @@ class MonitorLogAction(StandardMonitorLog):
 	updateCount: int = 0
 	deleteCount: int = 0
 	definedAs: Optional[Any] = None  # definition of action
-	touched: Optional[List[Dict[str, Any]]] = None  # touched value, always be a list
+	"""
+	touched value, 
+	for deletion, update and insert, always be list of dict
+	for read-exists, bool,
+	for read-factor, no arithmetic, Any, depends on factor type
+	for read-factor, arithmetic, Decimal
+	for read-row, dict
+	for read-rows, list of dict
+	"""
+	touched: Optional[Union[List[Union[Dict[str, Any], Any]], bool, Any, Decimal, Dict[str, Any]]] = None
 
 
 class MonitorLogFindByAction(MonitorLogAction):
