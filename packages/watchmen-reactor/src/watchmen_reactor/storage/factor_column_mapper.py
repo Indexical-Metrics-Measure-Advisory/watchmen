@@ -9,10 +9,10 @@ from watchmen_utilities import ArrayHelper, is_blank
 class TopicFactorColumnMapper:
 	def __init__(self, schema: TopicSchema):
 		self.factors = self.get_factors(schema)
-		self.factor_to_column = self.create_factor_to_column_dict(self.factors)
-		self.factor_names = list(self.factor_to_column.keys())
-		self.column_to_factor = dict((v, k) for k, v in self.factor_to_column.items())
-		self.column_names = list(self.column_to_factor.keys())
+		self.factor2Column = self.create_factor_to_column_dict(self.factors)
+		self.factorNames = list(self.factor2Column.keys())
+		self.column2Factor = dict((v, k) for k, v in self.factor2Column.items())
+		self.columnNames = list(self.column2Factor.keys())
 
 	@abstractmethod
 	def get_factors(self, schema: TopicSchema) -> List[Factor]:
@@ -35,13 +35,13 @@ class TopicFactorColumnMapper:
 		return ArrayHelper(factors).reduce(put_into_map, {})
 
 	def get_column_name(self, factor_name: str):
-		return self.factor_to_column.get(factor_name)
+		return self.factor2Column.get(factor_name)
 
 	def get_column_names(self) -> List[str]:
-		return self.column_names
+		return self.columnNames
 
 	def get_factor_name(self, column_name: str):
-		return self.column_to_factor.get(column_name)
+		return self.column2Factor.get(column_name)
 
 	def get_factor_names(self) -> List[str]:
-		return self.factor_names
+		return self.factorNames

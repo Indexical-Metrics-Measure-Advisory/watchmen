@@ -163,33 +163,33 @@ class RuntimePipelineContext(PipelineContext):
 			principal_service: PrincipalService, trace_id: PipelineTriggerTraceId
 	):
 		self.pipeline = pipeline
-		self.trigger_topic_schema = trigger_topic_schema
-		self.previous_data = previous_data
-		self.current_data = current_data
-		self.principal_service = principal_service
-		self.trace_id = trace_id
+		self.triggerTopicSchema = trigger_topic_schema
+		self.previousData = previous_data
+		self.currentData = current_data
+		self.principalService = principal_service
+		self.traceId = trace_id
 
 	def start(self, storages: TopicStorages) -> List[PipelineContext]:
 		compiled_pipeline = self.build_compiled_pipeline()
 		return compiled_pipeline.run(
-			previous_data=self.previous_data,
-			current_data=self.current_data,
-			principal_service=self.principal_service,
-			trace_id=self.trace_id,
+			previous_data=self.previousData,
+			current_data=self.currentData,
+			principal_service=self.principalService,
+			trace_id=self.traceId,
 			storages=storages
 		)
 
 	def build_compiled_pipeline(self) -> CompiledPipeline:
 		compiled = CacheService.pipeline().get_compiled(self.pipeline.pipelineId)
 		if compiled is None:
-			compiled = RuntimeCompiledPipeline(self.pipeline, self.principal_service)
+			compiled = RuntimeCompiledPipeline(self.pipeline, self.principalService)
 			CacheService.pipeline().put_compiled(self.pipeline.pipelineId, compiled)
 			return compiled
 
 		if id(compiled.get_pipeline()) != id(self.pipeline):
 			# not same pipeline, abandon compiled cache
 			CacheService.pipeline().remove_compiled(self.pipeline.pipelineId)
-			compiled = RuntimeCompiledPipeline(self.pipeline, self.principal_service)
+			compiled = RuntimeCompiledPipeline(self.pipeline, self.principalService)
 			CacheService.pipeline().put_compiled(self.pipeline.pipelineId, compiled)
 			return compiled
 

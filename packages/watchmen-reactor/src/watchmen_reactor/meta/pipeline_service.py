@@ -12,18 +12,18 @@ from watchmen_utilities import ArrayHelper
 
 class PipelineService:
 	def __init__(self, principal_service: PrincipalService):
-		self.principal_service = principal_service
+		self.principalService = principal_service
 
 	def find_by_id(self, pipeline_id: PipelineId) -> Optional[Pipeline]:
 		pipeline = CacheService.pipeline().get(pipeline_id)
 		if pipeline is not None:
-			if pipeline.tenantId != self.principal_service.get_tenant_id():
+			if pipeline.tenantId != self.principalService.get_tenant_id():
 				raise ReactorException(
 					f'Pipeline[id={pipeline_id}] not belongs to '
-					f'current tenant[id={self.principal_service.get_tenant_id()}].')
+					f'current tenant[id={self.principalService.get_tenant_id()}].')
 			return pipeline
 
-		storage_service = PipelineStorageService(ask_meta_storage(), ask_snowflake_generator(), self.principal_service)
+		storage_service = PipelineStorageService(ask_meta_storage(), ask_snowflake_generator(), self.principalService)
 		storage_service.begin_transaction()
 		try:
 			# noinspection PyTypeChecker
@@ -47,12 +47,12 @@ class PipelineService:
 				raise Exception(f'Except pipelines[{pipeline_ids}], but get[{loaded}] only.')
 			return pipelines
 
-		storage_service = PipelineStorageService(ask_meta_storage(), ask_snowflake_generator(), self.principal_service)
+		storage_service = PipelineStorageService(ask_meta_storage(), ask_snowflake_generator(), self.principalService)
 		storage_service.begin_transaction()
 		try:
 			# noinspection PyTypeChecker
 			pipelines: List[Pipeline] = storage_service.find_by_topic_id(
-				topic_id, self.principal_service.get_tenant_id())
+				topic_id, self.principalService.get_tenant_id())
 			if len(pipelines) == 0:
 				CacheService.pipelines_by_topic().declare_no_pipelines(topic_id)
 				return pipelines

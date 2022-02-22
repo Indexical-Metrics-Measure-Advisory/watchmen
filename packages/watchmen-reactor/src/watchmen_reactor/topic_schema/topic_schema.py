@@ -13,17 +13,17 @@ from .flatten_factor import FlattenFactor, parse_flatten_factors
 class TopicSchema:
 	def __init__(self, topic: Topic):
 		self.topic = topic
-		self.flatten_factors = parse_flatten_factors(self.topic)
-		self.encrypt_factor_groups = parse_encrypt_factors(self.topic)
+		self.flattenFactors = parse_flatten_factors(self.topic)
+		self.encryptFactorGroups = parse_encrypt_factors(self.topic)
 
 	def get_topic(self) -> Topic:
 		return self.topic
 
 	def get_flatten_factors(self) -> List[FlattenFactor]:
-		return self.flatten_factors
+		return self.flattenFactors
 
 	def get_encrypt_factor_groups(self) -> List[EncryptFactorGroup]:
-		return self.encrypt_factor_groups
+		return self.encryptFactorGroups
 
 	def flatten(self, data: Dict[str, Any]) -> Dict[str, Any]:
 		"""
@@ -31,14 +31,14 @@ class TopicSchema:
 		"""
 		if not is_raw_topic(self.get_topic()):
 			return data
-		ArrayHelper(self.flatten_factors).each(lambda x: x.flatten(data))
+		ArrayHelper(self.flattenFactors).each(lambda x: x.flatten(data))
 		return data
 
 	def encrypt(self, data: Dict[str, Any]) -> Dict[str, Any]:
 		"""
 		given data might be changed, and returns exactly the given one
 		"""
-		ArrayHelper(self.encrypt_factor_groups).each(lambda x: x.encrypt(data))
+		ArrayHelper(self.encryptFactorGroups).each(lambda x: x.encrypt(data))
 		return data
 
 	def aid_hierarchy(self, data: Dict[str, Any]) -> Dict[str, Any]:

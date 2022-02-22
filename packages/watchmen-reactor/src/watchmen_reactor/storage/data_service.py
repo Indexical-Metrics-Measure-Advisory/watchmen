@@ -28,10 +28,10 @@ class TopicDataService:
 			self, schema: TopicSchema, topic_data_entity_helper: TopicDataEntityHelper,
 			storage: TopicDataStorageSPI, principal_service: PrincipalService):
 		self.schema = schema
-		self.data_entity_helper = topic_data_entity_helper
+		self.dataEntityHelper = topic_data_entity_helper
 		self.storage = storage
-		self.principal_service = principal_service
-		self.snowflake_generator = ask_snowflake_generator()
+		self.principalService = principal_service
+		self.snowflakeGenerator = ask_snowflake_generator()
 
 	def get_schema(self) -> TopicSchema:
 		return self.schema
@@ -43,10 +43,10 @@ class TopicDataService:
 		return self.storage
 
 	def get_snowflake_generator(self) -> SnowflakeGenerator:
-		return self.snowflake_generator
+		return self.snowflakeGenerator
 
 	def get_principal_service(self) -> PrincipalService:
-		return self.principal_service
+		return self.principalService
 
 	# noinspection PyMethodMayBeStatic
 	def now(self) -> datetime:
@@ -56,7 +56,7 @@ class TopicDataService:
 		return get_current_time_in_seconds()
 
 	def get_data_entity_helper(self) -> TopicDataEntityHelper:
-		return self.data_entity_helper
+		return self.dataEntityHelper
 
 	def has_id(self, data: [str, Any]) -> bool:
 		has_id, _ = self.get_data_entity_helper().find_data_id(data)

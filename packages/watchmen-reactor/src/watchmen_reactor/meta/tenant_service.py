@@ -10,14 +10,14 @@ from watchmen_reactor.cache import CacheService
 
 class TenantService:
 	def __init__(self, principal_service: PrincipalService):
-		self.principal_service = principal_service
+		self.principalService = principal_service
 
 	def find_by_id(self, tenant_id: TenantId) -> Optional[Tenant]:
 		tenant = CacheService.tenant().get(tenant_id)
 		if tenant is not None:
 			return tenant
 
-		storage_service = TenantStorageService(ask_meta_storage(), ask_snowflake_generator(), self.principal_service)
+		storage_service = TenantStorageService(ask_meta_storage(), ask_snowflake_generator(), self.principalService)
 		storage_service.begin_transaction()
 		try:
 			# noinspection PyTypeChecker
