@@ -3,22 +3,22 @@ from watchmen_model.common import TenantId, UserId
 
 
 class PrincipalService:
-	tenant_id: TenantId
-	user_id: UserId
+	tenantId: TenantId
+	userId: UserId
 	name: str
 	role: UserRole
 
 	def __init__(self, user: User):
-		self.tenant_id = user.tenantId
-		self.user_id = user.userId
+		self.tenantId = user.tenantId
+		self.userId = user.userId
 		self.name = user.name
 		self.role = user.role
 
 	def get_tenant_id(self) -> TenantId:
-		return self.tenant_id
+		return self.tenantId
 
 	def get_user_id(self) -> UserId:
-		return self.user_id
+		return self.userId
 
 	def get_user_name(self) -> str:
 		return self.name

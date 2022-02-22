@@ -99,7 +99,7 @@ class PipelineService(TupleService):
 		update name will not increase optimistic lock version
 		"""
 		last_modified_at = self.now()
-		last_modified_by = self.principal_service.get_user_id()
+		last_modified_by = self.principalService.get_user_id()
 		updated_count = self.storage.update_only(self.get_entity_updater(
 			criteria=[
 				EntityCriteriaExpression(name=self.get_storable_id_column_name(), value=pipeline_id),
@@ -121,7 +121,7 @@ class PipelineService(TupleService):
 		update enablement will not increase optimistic lock version
 		"""
 		last_modified_at = self.now()
-		last_modified_by = self.principal_service.get_user_id()
+		last_modified_by = self.principalService.get_user_id()
 		updated_count = self.storage.update_only(self.get_entity_updater(
 			criteria=[
 				EntityCriteriaExpression(name=self.get_storable_id_column_name(), value=pipeline_id),

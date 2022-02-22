@@ -18,13 +18,13 @@ def equals(a: Any, b: Any) -> bool:
 class ArrayHelper:
 	def __init__(self, a_list: Optional[list]):
 		if a_list is None:
-			self.a_list = []
+			self.aList = []
 		else:
-			self.a_list = a_list
+			self.aList = a_list
 
 	def flatten(self, level: int = 1) -> ArrayHelper:
 		new_list: list = []
-		for an_element in self.a_list:
+		for an_element in self.aList:
 			if isinstance(an_element, list):
 				for a_sub_element in an_element:
 					new_list.append(a_sub_element)
@@ -38,24 +38,24 @@ class ArrayHelper:
 			return ArrayHelper(new_list).flatten(level)
 
 	def to_list(self):
-		return self.a_list
+		return self.aList
 
 	def to_map(self, as_key: ArrayTransform, as_value: ArrayTransform = lambda x: x) -> dict[Any, Any]:
 		a_dict = {}
-		for an_element in self.a_list:
+		for an_element in self.aList:
 			key = as_key(an_element)
 			value = as_value(an_element)
 			a_dict[key] = value
 		return a_dict
 
 	def copy(self) -> ArrayHelper:
-		return ArrayHelper(list(self.a_list))
+		return ArrayHelper(list(self.aList))
 
 	def each(self, func: ArrayAction) -> ArrayHelper:
 		"""
 		apply given function to each element, and return myself
 		"""
-		for an_element in self.a_list:
+		for an_element in self.aList:
 			func(an_element)
 		return self
 
@@ -63,7 +63,7 @@ class ArrayHelper:
 		"""
 		apply given function to each element, and return myself
 		"""
-		for index, an_element in enumerate(self.a_list):
+		for index, an_element in enumerate(self.aList):
 			func(an_element, index)
 		return self
 
@@ -71,7 +71,7 @@ class ArrayHelper:
 		"""
 		find element which satisfies the given predicate function, returns None when not found
 		"""
-		for an_element in self.a_list:
+		for an_element in self.aList:
 			if func(an_element):
 				return an_element
 		return None
@@ -81,7 +81,7 @@ class ArrayHelper:
 		pick elements which satisfies the given predicate function
 		"""
 		new_list: list = []
-		for an_element in self.a_list:
+		for an_element in self.aList:
 			if func(an_element):
 				new_list.append(an_element)
 		return ArrayHelper(new_list)
@@ -90,7 +90,7 @@ class ArrayHelper:
 		"""
 		return true when at least one element satisfies the given predicate function
 		"""
-		for an_element in self.a_list:
+		for an_element in self.aList:
 			if func(an_element):
 				return True
 		return False
@@ -99,7 +99,7 @@ class ArrayHelper:
 		"""
 		return true when every element satisfies the given predicate function
 		"""
-		for an_element in self.a_list:
+		for an_element in self.aList:
 			if not func(an_element):
 				return False
 		return True
@@ -109,19 +109,19 @@ class ArrayHelper:
 		transform each element by given transform function
 		"""
 		new_list: list = []
-		for an_element in self.a_list:
+		for an_element in self.aList:
 			new_list.append(func(an_element))
 		return ArrayHelper(new_list)
 
 	def reduce(self, func: ArrayReduce, accumulator: Optional[Any]) -> Any:
-		if len(self.a_list) == 0:
+		if len(self.aList) == 0:
 			return accumulator
 
 		if accumulator is None:
-			accumulator = self.a_list[0]
-			rest = self.a_list[1:]
+			accumulator = self.aList[0]
+			rest = self.aList[1:]
 		else:
-			rest = self.a_list
+			rest = self.aList
 		for an_element in rest:
 			accumulator = func(accumulator, an_element)
 		return accumulator
@@ -132,10 +132,10 @@ class ArrayHelper:
 		remove elements duplicated which satisfies given compare function
 		"""
 		if func is None:
-			return ArrayHelper(list(set(self.a_list)))
+			return ArrayHelper(list(set(self.aList)))
 
 		new_list: list = []
-		for an_element in self.a_list:
+		for an_element in self.aList:
 			found: bool = False
 			for an_existing_element in new_list:
 				if func(an_element, an_existing_element):
@@ -154,7 +154,7 @@ class ArrayHelper:
 
 		# noinspection DuplicatedCode
 		new_list: list = []
-		for an_element in self.a_list:
+		for an_element in self.aList:
 			found: bool = False
 			for an_another_element in another_list:
 				if func(an_element, an_another_element):
@@ -171,7 +171,7 @@ class ArrayHelper:
 		"""
 		first one of array which match the found function after transform_to function
 		"""
-		for an_element in self.a_list:
+		for an_element in self.aList:
 			found, value = find(an_element)
 			if found:
 				return value
@@ -179,12 +179,12 @@ class ArrayHelper:
 
 	def grab(self, *elements: Any) -> ArrayHelper:
 		for an_element in elements:
-			self.a_list.append(an_element)
+			self.aList.append(an_element)
 		return self
 
 	def group_by(self, group: ArrayTransform) -> dict[Any, List[Any]]:
 		a_dict = {}
-		for an_element in self.a_list:
+		for an_element in self.aList:
 			key = group(an_element)
 			existing: list = a_dict.get(key)
 			if existing is not None:
@@ -194,4 +194,4 @@ class ArrayHelper:
 		return a_dict
 
 	def size(self) -> int:
-		return len(self.a_list)
+		return len(self.aList)

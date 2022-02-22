@@ -60,34 +60,34 @@ class SnowflakeGenerator:
 				f'Worker id invalid, it must be between [0, {MAX_WORKER_ID}] and passed by [{worker_id}] .')
 
 		# initialize
-		self.data_center_id = data_center_id
-		self.worker_id = worker_id
+		self.dataCenterId = data_center_id
+		self.workerId = worker_id
 		self.sequence = 0
-		self.last_timestamp = -1
+		self.lastTimestamp = -1
 
 	def next_id(self) -> int:
 		timestamp = generate_timestamp()
 
-		if timestamp < self.last_timestamp:
+		if timestamp < self.lastTimestamp:
 			# incorrect timestamp
 			# raise InvalidSystemClockException
 			# use current time stamp
-			timestamp = self.last_timestamp
+			timestamp = self.lastTimestamp
 
-		if timestamp == self.last_timestamp:
+		if timestamp == self.lastTimestamp:
 			# exactly in same timestamp, increase sequence
 			# and increase timestamp when sequence reaches the max value
 			self.sequence = (self.sequence + 1) & MAX_SEQUENCE
 			if self.sequence == 0:
-				timestamp = acquire_next_millisecond(self.last_timestamp)
-				self.last_timestamp = timestamp
+				timestamp = acquire_next_millisecond(self.lastTimestamp)
+				self.lastTimestamp = timestamp
 		else:
 			# already beyonds in-memory timestamp, reset in-memory
 			self.sequence = 0
-			self.last_timestamp = timestamp
+			self.lastTimestamp = timestamp
 
 		return \
 			((timestamp - TWEPOCH) << TIMESTAMP_LEFT_SHIFT) | \
-			(self.data_center_id << DATACENTER_ID_SHIFT) | \
-			(self.worker_id << WORKER_ID_SHIFT) | \
+			(self.dataCenterId << DATACENTER_ID_SHIFT) | \
+			(self.workerId << WORKER_ID_SHIFT) | \
 			self.sequence

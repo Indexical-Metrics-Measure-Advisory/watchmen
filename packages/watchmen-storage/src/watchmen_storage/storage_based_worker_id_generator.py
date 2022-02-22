@@ -101,7 +101,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 							name=SNOWFLAKE_WORKER_ID_TABLE,
 							shaper=COMPETITIVE_WORKER_SHAPER,
 							criteria=[
-								EntityCriteriaExpression(name='data_center_id', value=self.data_center_id),
+								EntityCriteriaExpression(name='data_center_id', value=self.dataCenterId),
 								EntityCriteriaExpression(name='worker_id', value=worker.workerId),
 								EntityCriteriaExpression(
 									name='last_beat_at',
@@ -150,7 +150,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 					shaper=COMPETITIVE_WORKER_SHAPER,
 					# workers last beat at in 1 day, means still alive
 					criteria=[
-						EntityCriteriaExpression(name='data_center_id', value=self.data_center_id),
+						EntityCriteriaExpression(name='data_center_id', value=self.dataCenterId),
 						EntityCriteriaExpression(
 							name='last_beat_at',
 							operator=EntityCriteriaOperator.GREATER_THAN,
@@ -172,7 +172,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 					name=SNOWFLAKE_WORKER_ID_TABLE,
 					shaper=COMPETITIVE_WORKER_SHAPER,
 					criteria=[
-						EntityCriteriaExpression(name='data_center_id', value=self.data_center_id),
+						EntityCriteriaExpression(name='data_center_id', value=self.dataCenterId),
 						EntityCriteriaExpression(name='worker_id', value=worker.workerId)
 					],
 					update={'last_beat_at': get_current_time_in_seconds()}

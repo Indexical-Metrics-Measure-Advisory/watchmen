@@ -7,17 +7,17 @@ from .storage_msyql import StorageMySQL, TopicDataStorageMySQL
 
 # noinspection PyRedeclaration
 class Configuration:
-	data_source: DataSource = DataSource(dataSourceType=DataSourceType.MYSQL)
+	dataSource: DataSource = DataSource(dataSourceType=DataSourceType.MYSQL)
 	params: MySQLDataSourceParams = MySQLDataSourceParams()
 
 	def host(self, host: str, port: int = 3306) -> Configuration:
-		self.data_source.host = host
-		self.data_source.port = str(port)
+		self.dataSource.host = host
+		self.dataSource.port = str(port)
 		return self
 
 	def account(self, username: str, password: str) -> Configuration:
-		self.data_source.username = username
-		self.data_source.password = password
+		self.dataSource.username = username
+		self.dataSource.password = password
 		return self
 
 	def url(self, url: str) -> Configuration:
@@ -26,11 +26,11 @@ class Configuration:
 		1. mysql://username:password@host:port/schema?charset=utf8
 		2. mysql+pymysql://username:password@host:port/schema?charset=utf8
 		"""
-		self.data_source.url = url
+		self.dataSource.url = url
 		return self
 
 	def schema(self, schema: str) -> Configuration:
-		self.data_source.name = schema
+		self.dataSource.name = schema
 		return self
 
 	def echo(self, enabled: bool = False) -> Configuration:
@@ -38,10 +38,10 @@ class Configuration:
 		return self
 
 	def build(self) -> StorageMySQL:
-		return StorageMySQLConfiguration(self.data_source, self.params).create_storage()
+		return StorageMySQLConfiguration(self.dataSource, self.params).create_storage()
 
 	def build_topic_data(self) -> StorageMySQL:
-		return StorageMySQLConfiguration(self.data_source, self.params).create_topic_data_storage()
+		return StorageMySQLConfiguration(self.dataSource, self.params).create_topic_data_storage()
 
 
 class StorageMySQLConfiguration:

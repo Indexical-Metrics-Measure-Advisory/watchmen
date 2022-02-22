@@ -6,7 +6,7 @@ from .storage_spi import StorageSPI, TopicDataStorageSPI
 
 class DataSourceHelper:
 	def __init__(self, data_source: DataSource):
-		self.data_source = data_source
+		self.dataSource = data_source
 
 	@abstractmethod
 	def acquire_storage(self) -> StorageSPI:

@@ -32,7 +32,7 @@ def validate_jwt(token, secret_key: str, algorithm: str):
 
 class JWTAuthenticationProvider(AuthenticationProvider):
 	def __init__(self, secret_key: str, algorithm: str, find_user_by_name: Callable[[str], Optional[User]]):
-		self.secret_key = secret_key
+		self.secretKey = secret_key
 		self.algorithm = algorithm
 		self.find_user_by_name = find_user_by_name
 
@@ -42,7 +42,7 @@ class JWTAuthenticationProvider(AuthenticationProvider):
 	def authenticate(self, details: dict) -> Optional[User]:
 		try:
 			token = details['token']
-			payload = validate_jwt(token, self.secret_key, self.algorithm)
+			payload = validate_jwt(token, self.secretKey, self.algorithm)
 			username = payload['sub']
 			user = self.find_user_by_name(username)
 			if user is None:

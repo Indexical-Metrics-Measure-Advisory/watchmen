@@ -39,10 +39,10 @@ TOPIC_ENTITY_SHAPER = TopicShaper()
 
 class FactorService:
 	def __init__(self, snowflake_generator: SnowflakeGenerator):
-		self.snowflake_generator = snowflake_generator
+		self.snowflakeGenerator = snowflake_generator
 
 	def generate_factor_id(self) -> FactorId:
-		return str(self.snowflake_generator.next_id())
+		return str(self.snowflakeGenerator.next_id())
 
 	# noinspection PyMethodMayBeStatic
 	def redress_factor_id(self, factor: Factor) -> Factor:

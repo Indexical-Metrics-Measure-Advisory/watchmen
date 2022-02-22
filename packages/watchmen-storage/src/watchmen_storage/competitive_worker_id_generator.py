@@ -73,7 +73,7 @@ CompetitiveWorkerShutdownListener = Callable[
 
 class CompetitiveWorkerIdGenerator:
 	worker: CompetitiveWorker = None
-	first_declare_times: int = 0
+	firstDeclareTimes: int = 0
 
 	def __init__(
 			self,
@@ -83,10 +83,10 @@ class CompetitiveWorkerIdGenerator:
 			shutdown_listener: CompetitiveWorkerShutdownListener = None
 	):
 		# will not check sanity of data center id here
-		self.data_center_id = data_center_id
-		self.heart_beat_interval = heart_beat_interval
-		self.worker_creation_retry_times = worker_creation_retry_times
-		self.handle_shutdown = shutdown_listener
+		self.dataCenterId = data_center_id
+		self.heartBeatInterval = heart_beat_interval
+		self.workerCreationRetryTimes = worker_creation_retry_times
+		self.handleShutdown = shutdown_listener
 		self.try_create_worker()
 
 	@abstractmethod
@@ -99,22 +99,22 @@ class CompetitiveWorkerIdGenerator:
 	def create_worker(self):
 		# create a worker
 		try:
-			self.first_declare_times += 1
-			worker = CompetitiveWorker(dataCenterId=self.data_center_id, workerId=self.create_worker_id())
+			self.firstDeclareTimes += 1
+			worker = CompetitiveWorker(dataCenterId=self.dataCenterId, workerId=self.create_worker_id())
 			self.first_declare_myself(worker)
 			return worker
 		except WorkerFirstDeclarationException:
-			if self.first_declare_times <= self.worker_creation_retry_times:
+			if self.firstDeclareTimes <= self.workerCreationRetryTimes:
 				return self.create_worker()
 			else:
 				raise WorkerCreationException(
-					f'Failed to create worker[dataCenterId={self.data_center_id}], '
-					f'reaches maximum retry times[{self.worker_creation_retry_times}]')
+					f'Failed to create worker[dataCenterId={self.dataCenterId}], '
+					f'reaches maximum retry times[{self.workerCreationRetryTimes}]')
 
 	def try_create_worker(self):
-		self.first_declare_times = 0
+		self.firstDeclareTimes = 0
 		self.worker = self.create_worker()
-		del self.first_declare_times
+		del self.firstDeclareTimes
 		# start heart beat
 		Thread(target=CompetitiveWorkerIdGenerator.heart_beat, args=(self,), daemon=True).start()
 
@@ -151,17 +151,17 @@ class CompetitiveWorkerIdGenerator:
 		try:
 			while True:
 				self.declare_myself(self.worker)
-				sleep(self.heart_beat_interval)
+				sleep(self.heartBeatInterval)
 		except Exception as e:
 			getLogger(__name__).error(e, exc_info=True, stack_info=True)
-			self.handle_shutdown(
+			self.handleShutdown(
 				CompetitiveWorkerShutdownSignal.EXCEPTION_RAISED,
 				self.worker.dataCenterId, self.worker.workerId,
 				self.try_create_worker
 			)
 		else:
 			# heart beat stopped with no exception, release signal
-			self.handle_shutdown(
+			self.handleShutdown(
 				CompetitiveWorkerShutdownSignal.EXIT,
 				self.worker.dataCenterId, self.worker.workerId,
 				self.try_create_worker
