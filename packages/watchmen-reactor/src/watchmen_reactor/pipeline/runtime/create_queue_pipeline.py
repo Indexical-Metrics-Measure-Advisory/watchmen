@@ -1,7 +1,6 @@
 from typing import Callable
 
-from watchmen_model.admin import Pipeline
-from watchmen_reactor.pipeline_schema import PipelineContext
 from watchmen_reactor.storage import TopicTrigger
+from watchmen_reactor.topic_schema import TopicSchema
 
-CreateQueuePipeline = Callable[[Pipeline, TopicTrigger], PipelineContext]
+CreateQueuePipeline = Callable[[TopicSchema, TopicTrigger], None]
