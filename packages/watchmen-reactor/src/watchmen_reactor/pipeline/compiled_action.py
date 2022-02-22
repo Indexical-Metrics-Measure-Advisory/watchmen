@@ -361,8 +361,18 @@ class CompiledReadFactorAction(CompiledReadTopicFactorAction):
 			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
 			statement = self.parsedFindBy.run(variables, principal_service)
 			action_monitor_log.findBy = statement.to_dict()
-			# TODO read factor, with arithmetic
-			data = topic_data_service.find(criteria=[statement])
+			# TODO read factor, with arithmetic.
+			#  the problem is how to deserialize the column name,
+			#  or simply create another function to load this?
+			data = topic_data_service.find_distinct_values(criteria=[statement], column_names=[])
+			if len(data) == 0:
+				variables.put(self.variableName, 0)
+				action_monitor_log.touched = 0
+			else:
+				value = data[0].popitem()[1]
+				value = 0 if value is None else value
+				variables.put(self.variableName, value)
+				action_monitor_log.touched = value
 
 		return self.safe_run(action_monitor_log, work)
 
@@ -376,9 +386,9 @@ class CompiledReadFactorsAction(CompiledReadTopicFactorAction):
 			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
 			statement = self.parsedFindBy.run(variables, principal_service)
 			action_monitor_log.findBy = statement.to_dict()
-			# TODO columns for storage
-			data = topic_data_service.find_distinct_values(criteria=[statement], column_names=[])
-			factor_values = ArrayHelper(data).map(lambda x: x[0]).to_list()
+			column_name = topic_data_service.get_data_entity_helper().get_column_name(self.factor.name)
+			data = topic_data_service.find_distinct_values(criteria=[statement], column_names=[column_name])
+			factor_values = ArrayHelper(data).map(lambda x: x.get(self.factor.name)).to_list()
 			variables.put(self.variableName, factor_values)
 			action_monitor_log.touched = factor_values
 
