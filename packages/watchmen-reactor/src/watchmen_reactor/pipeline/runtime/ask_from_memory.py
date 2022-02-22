@@ -34,7 +34,7 @@ def always_true(variables: PipelineVariables) -> bool:
 	return True
 
 
-class ParsedCondition:
+class ParsedMemoryCondition:
 	def __init__(self, condition: ParameterCondition, principal_service: PrincipalService):
 		self.condition = condition
 		self.parse(condition, principal_service)
@@ -48,7 +48,7 @@ class ParsedCondition:
 		pass
 
 
-class ParsedParameter:
+class ParsedMemoryParameter:
 	def __init__(self, parameter: Optional[Parameter], principal_service: PrincipalService):
 		self.parameter = parameter
 		self.parse(parameter, principal_service)
@@ -62,7 +62,7 @@ class ParsedParameter:
 		pass
 
 
-class NoopParameter(ParsedParameter):
+class NoopMemoryParameter(ParsedMemoryParameter):
 	def parse(self, parameter: Parameter, principal_service: PrincipalService) -> None:
 		"""
 		do nothing
@@ -76,39 +76,41 @@ class NoopParameter(ParsedParameter):
 		return None
 
 
-def parse_condition(condition: Optional[ParameterCondition], principal_service: PrincipalService) -> ParsedCondition:
+def parse_condition_in_memory(
+		condition: Optional[ParameterCondition], principal_service: PrincipalService) -> ParsedMemoryCondition:
 	if condition is None:
 		raise ReactorException('Condition cannot be null.')
 	if isinstance(condition, ParameterJoint):
-		return ParsedJoint(condition, principal_service)
+		return ParsedMemoryJoint(condition, principal_service)
 	elif isinstance(condition, ParameterExpression):
-		return ParsedExpression(condition, principal_service)
+		return ParsedMemoryExpression(condition, principal_service)
 	else:
 		raise ReactorException(f'Condition[{condition.dict()}] is not supported.')
 
 
-def parse_parameter(parameter: Optional[Parameter], principal_service: PrincipalService) -> ParsedParameter:
+def parse_parameter_in_memory(
+		parameter: Optional[Parameter], principal_service: PrincipalService) -> ParsedMemoryParameter:
 	if parameter is None:
-		return NoopParameter(None, principal_service)
+		return NoopMemoryParameter(None, principal_service)
 	elif isinstance(parameter, TopicFactorParameter):
-		return ParsedTopicFactorParameter(parameter, principal_service)
+		return ParsedMemoryTopicFactorParameter(parameter, principal_service)
 	elif isinstance(parameter, ConstantParameter):
-		return ParsedConstantParameter(parameter, principal_service)
+		return ParsedMemoryConstantParameter(parameter, principal_service)
 	elif isinstance(parameter, ComputedParameter):
-		return ParsedComputedParameter(parameter, principal_service)
+		return ParsedMemoryComputedParameter(parameter, principal_service)
 	else:
 		raise ReactorException(f'Parameter[{parameter.dict()}] is not supported.')
 
 
-class ParsedJoint(ParsedCondition):
+class ParsedMemoryJoint(ParsedMemoryCondition):
 	jointType: ParameterJointType = ParameterJointType.AND
-	filters: List[ParsedCondition] = []
+	filters: List[ParsedMemoryCondition] = []
 
 	def parse(self, condition: ParameterJoint, principal_service: PrincipalService) -> None:
 		self.jointType = ParameterJointType.OR \
 			if condition.jointType == ParameterJointType.OR else ParameterJointType.AND
 		self.filters = ArrayHelper(condition.filters) \
-			.map(lambda x: parse_condition(x, principal_service)).to_list()
+			.map(lambda x: parse_condition_in_memory(x, principal_service)).to_list()
 
 	def run(self, variables: PipelineVariables, principal_service: PrincipalService) -> bool:
 		if self.jointType == ParameterJointType.OR:
@@ -118,15 +120,15 @@ class ParsedJoint(ParsedCondition):
 			return ArrayHelper(self.filters).every(lambda x: x.run(variables, principal_service))
 
 
-class ParsedExpression(ParsedCondition):
-	left: Optional[ParsedParameter] = None
+class ParsedMemoryExpression(ParsedMemoryCondition):
+	left: Optional[ParsedMemoryParameter] = None
 	operator: Optional[ParameterExpressionOperator] = None
-	right: Optional[ParsedParameter] = None
+	right: Optional[ParsedMemoryParameter] = None
 
 	def parse(self, condition: ParameterExpression, principal_service: PrincipalService) -> None:
-		self.left = parse_parameter(condition.left, principal_service)
+		self.left = parse_parameter_in_memory(condition.left, principal_service)
 		self.operator = condition.operator
-		self.right = parse_parameter(condition.right, principal_service)
+		self.right = parse_parameter_in_memory(condition.right, principal_service)
 
 	def raise_cannot_compare(self, one: Any, another: Any) -> None:
 		raise ReactorException(
@@ -367,7 +369,7 @@ def create_value_recursive_getter_from_current_data(
 		get_value_from(name, names, lambda x: variables.find_from_current_data(x))
 
 
-class ParsedTopicFactorParameter(ParsedParameter):
+class ParsedMemoryTopicFactorParameter(ParsedMemoryParameter):
 	topic: Topic = None
 	factor: Factor = None
 	askValue: Callable[[PipelineVariables, PrincipalService], Any] = None
@@ -567,7 +569,7 @@ def create_ask_constant_value(segments: List[Tuple[str, str]]) -> Callable[[Pipe
 			ArrayHelper(segments).map(lambda x: create_run_constant_segment(x)).to_list())
 
 
-class ParsedConstantParameter(ParsedParameter):
+class ParsedMemoryConstantParameter(ParsedMemoryParameter):
 	askValue: Callable[[PipelineVariables, PrincipalService], Any] = None
 
 	def parse(self, parameter: ConstantParameter, principal_service: PrincipalService) -> None:
@@ -630,7 +632,7 @@ def parse_to_decimal(value: Any, fallback_value: Callable[[], Optional[Decimal]]
 
 
 def create_numeric_reducer(
-		parameters: List[ParsedParameter], reduce_func: Callable[[Decimal, Decimal], Decimal], numeric_name: str,
+		parameters: List[ParsedMemoryParameter], reduce_func: Callable[[Decimal, Decimal], Decimal], numeric_name: str,
 		fallback_first: Callable[[], Optional[Decimal]] = lambda x: None,
 		fallback_rest: Callable[[], Optional[Decimal]] = lambda x: None
 ) -> Callable[[PipelineVariables, PrincipalService], Any]:
@@ -656,7 +658,7 @@ def create_numeric_reducer(
 
 
 def create_datetime_func(
-		parameter: ParsedParameter, func: Callable[[datetime], int]
+		parameter: ParsedMemoryParameter, func: Callable[[datetime], int]
 ) -> Callable[[PipelineVariables, PrincipalService], Any]:
 	def get_part_of_datetime(variables: PipelineVariables, principal_service: PrincipalService) -> Optional[int]:
 		value = parameter.value(variables, principal_service)
@@ -673,10 +675,10 @@ def create_datetime_func(
 
 
 def create_case_then(
-		cases: List[Tuple[PrerequisiteTest, ParsedParameter]], anyway: Optional[ParsedParameter]
+		cases: List[Tuple[PrerequisiteTest, ParsedMemoryParameter]], anyway: Optional[ParsedMemoryParameter]
 ) -> Callable[[PipelineVariables, PrincipalService], Any]:
 	def run_case_then(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
-		found: Optional[Tuple[PrerequisiteTest, ParsedParameter]] = \
+		found: Optional[Tuple[PrerequisiteTest, ParsedMemoryParameter]] = \
 			ArrayHelper(cases).find(lambda x: x[0](variables, principal_service))
 		if found is not None:
 			# find a route
@@ -691,12 +693,12 @@ def create_case_then(
 	return run_case_then
 
 
-def parse_conditional_parameter(
+def parse_conditional_parameter_in_memory(
 		parameter: Parameter, principal_service: PrincipalService
-) -> Tuple[PrerequisiteTest, ParsedParameter]:
+) -> Tuple[PrerequisiteTest, ParsedMemoryParameter]:
 	return \
-		parse_prerequisite(parameter, principal_service), \
-		parse_parameter(parameter, principal_service)
+		parse_prerequisite_in_memory(parameter, principal_service), \
+		parse_parameter_in_memory(parameter, principal_service)
 
 
 def assert_parameter_count(
@@ -719,7 +721,7 @@ def assert_parameter_count(
 				f'None parameter is not allowed on computation[{func_name}], current is [{parameters}].')
 
 
-class ParsedComputedParameter(ParsedParameter):
+class ParsedMemoryComputedParameter(ParsedMemoryParameter):
 	askValue: Callable[[PipelineVariables, PrincipalService], Any] = None
 
 	def parse(self, parameter: ComputedParameter, principal_service: PrincipalService) -> None:
@@ -731,66 +733,71 @@ class ParsedComputedParameter(ParsedParameter):
 			assert_parameter_count('add', parameter.parameters, 2)
 			# treat none value as 0
 			self.askValue = create_numeric_reducer(
-				ArrayHelper(parameter.parameters).map(lambda x: parse_parameter(x, principal_service)).to_list(),
+				ArrayHelper(parameter.parameters).map(
+					lambda x: parse_parameter_in_memory(x, principal_service)).to_list(),
 				reducer_add, 'Add', lambda: Decimal(0), lambda: Decimal(0)
 			)
 		elif compute_type == ParameterComputeType.SUBTRACT:
 			assert_parameter_count('subtract', parameter.parameters, 2)
 			# treat none value as 0
 			self.askValue = create_numeric_reducer(
-				ArrayHelper(parameter.parameters).map(lambda x: parse_parameter(x, principal_service)).to_list(),
+				ArrayHelper(parameter.parameters).map(
+					lambda x: parse_parameter_in_memory(x, principal_service)).to_list(),
 				reducer_subtract, 'Subtract', lambda: Decimal(0), lambda: Decimal(0)
 			)
 		elif compute_type == ParameterComputeType.MULTIPLY:
 			assert_parameter_count('multiply', parameter.parameters, 2)
 			self.askValue = create_numeric_reducer(
-				ArrayHelper(parameter.parameters).map(lambda x: parse_parameter(x, principal_service)).to_list(),
+				ArrayHelper(parameter.parameters).map(
+					lambda x: parse_parameter_in_memory(x, principal_service)).to_list(),
 				reducer_multiply, 'Multiply'
 			)
 		elif compute_type == ParameterComputeType.DIVIDE:
 			assert_parameter_count('divide', parameter.parameters, 2)
 			self.askValue = create_numeric_reducer(
-				ArrayHelper(parameter.parameters).map(lambda x: parse_parameter(x, principal_service)).to_list(),
+				ArrayHelper(parameter.parameters).map(
+					lambda x: parse_parameter_in_memory(x, principal_service)).to_list(),
 				reducer_divide, 'Divide'
 			)
 		elif compute_type == ParameterComputeType.MODULUS:
 			assert_parameter_count('modulus', parameter.parameters, 2)
 			self.askValue = create_numeric_reducer(
-				ArrayHelper(parameter.parameters).map(lambda x: parse_parameter(x, principal_service)).to_list(),
+				ArrayHelper(parameter.parameters).map(
+					lambda x: parse_parameter_in_memory(x, principal_service)).to_list(),
 				reducer_modulus, 'Modulus'
 			)
 		elif compute_type == ParameterComputeType.YEAR_OF:
 			assert_parameter_count('year-of', parameter.parameters, 1, 1)
 			self.askValue = create_datetime_func(
-				parse_parameter(parameter.parameters[0], principal_service), get_year)
+				parse_parameter_in_memory(parameter.parameters[0], principal_service), get_year)
 		elif compute_type == ParameterComputeType.HALF_YEAR_OF:
 			assert_parameter_count('half-year-of', parameter.parameters, 1, 1)
 			self.askValue = create_datetime_func(
-				parse_parameter(parameter.parameters[0], principal_service), get_half_year)
+				parse_parameter_in_memory(parameter.parameters[0], principal_service), get_half_year)
 		elif compute_type == ParameterComputeType.QUARTER_OF:
 			assert_parameter_count('quarter-of', parameter.parameters, 1, 1)
 			self.askValue = create_datetime_func(
-				parse_parameter(parameter.parameters[0], principal_service), get_quarter)
+				parse_parameter_in_memory(parameter.parameters[0], principal_service), get_quarter)
 		elif compute_type == ParameterComputeType.MONTH_OF:
 			assert_parameter_count('month-of', parameter.parameters, 1, 1)
 			self.askValue = create_datetime_func(
-				parse_parameter(parameter.parameters[0], principal_service), get_month)
+				parse_parameter_in_memory(parameter.parameters[0], principal_service), get_month)
 		elif compute_type == ParameterComputeType.WEEK_OF_YEAR:
 			assert_parameter_count('week-of-year', parameter.parameters, 1, 1)
 			self.askValue = create_datetime_func(
-				parse_parameter(parameter.parameters[0], principal_service), get_week_of_year)
+				parse_parameter_in_memory(parameter.parameters[0], principal_service), get_week_of_year)
 		elif compute_type == ParameterComputeType.WEEK_OF_MONTH:
 			assert_parameter_count('week-of-month', parameter.parameters, 1, 1)
 			self.askValue = create_datetime_func(
-				parse_parameter(parameter.parameters[0], principal_service), get_week_of_month)
+				parse_parameter_in_memory(parameter.parameters[0], principal_service), get_week_of_month)
 		elif compute_type == ParameterComputeType.DAY_OF_MONTH:
 			assert_parameter_count('day-of-month', parameter.parameters, 1, 1)
 			self.askValue = create_datetime_func(
-				parse_parameter(parameter.parameters[0], principal_service), get_day_of_month)
+				parse_parameter_in_memory(parameter.parameters[0], principal_service), get_day_of_month)
 		elif compute_type == ParameterComputeType.DAY_OF_WEEK:
 			assert_parameter_count('day-of-week', parameter.parameters, 1, 1)
 			self.askValue = create_datetime_func(
-				parse_parameter(parameter.parameters[0], principal_service), get_day_of_week)
+				parse_parameter_in_memory(parameter.parameters[0], principal_service), get_day_of_week)
 		elif compute_type == ParameterComputeType.CASE_THEN:
 			assert_parameter_count('case-then', parameter.parameters, 1)
 			cases = parameter.parameters
@@ -802,8 +809,8 @@ class ParsedComputedParameter(ParsedParameter):
 			anyway = anyways[0] if len(anyways) == 1 else None
 			self.askValue = create_case_then(
 				ArrayHelper(cases).filter(lambda x: x.conditional).map(
-					lambda x: parse_conditional_parameter(x, principal_service)).to_list(),
-				parse_parameter(anyway, principal_service) if anyway is not None else None
+					lambda x: parse_conditional_parameter_in_memory(x, principal_service)).to_list(),
+				parse_parameter_in_memory(anyway, principal_service) if anyway is not None else None
 			)
 		else:
 			raise ReactorException(f'Compute type[{compute_type}] is not supported.')
@@ -813,7 +820,7 @@ class ParsedComputedParameter(ParsedParameter):
 
 
 def ask_condition(
-		condition: ParsedCondition, variables: PipelineVariables,
+		condition: ParsedMemoryCondition, variables: PipelineVariables,
 		principal_service: PrincipalService) -> bool:
 	return condition.run(variables, principal_service)
 
@@ -821,14 +828,14 @@ def ask_condition(
 PrerequisiteTest = Callable[[PipelineVariables, PrincipalService], bool]
 
 
-def create_ask_prerequisite(condition: ParsedCondition) -> PrerequisiteTest:
+def create_ask_prerequisite(condition: ParsedMemoryCondition) -> PrerequisiteTest:
 	def ask(variables: PipelineVariables, principal_service: PrincipalService) -> bool:
 		return ask_condition(condition, variables, principal_service)
 
 	return ask
 
 
-def parse_prerequisite(
+def parse_prerequisite_in_memory(
 		conditional: Union[Conditional, Parameter], principal_service: PrincipalService) -> PrerequisiteTest:
 	if conditional.conditional is None or not conditional.conditional:
 		# no condition is needed
@@ -843,7 +850,7 @@ def parse_prerequisite(
 	if filters is None or len(filters) == 0:
 		# no filters defined
 		return always_true
-	condition = ParsedCondition(joint, principal_service)
+	condition = ParsedMemoryCondition(joint, principal_service)
 
 	return create_ask_prerequisite(condition)
 
