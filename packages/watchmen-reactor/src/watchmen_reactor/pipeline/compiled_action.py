@@ -406,15 +406,20 @@ class CompiledDeleteRowsAction(CompiledDeleteTopicAction):
 			action_monitor_log.findBy = statement.to_dict()
 			data = topic_data_service.find(criteria=[statement])
 			touched = []
-			for row in data:
-				delete_count, criteria = topic_data_service.delete_by_id_and_version(row)
-				if delete_count == 0:
-					raise ReactorException(
-						f'Data not found on do deletion, {self.on_topic_message()}, by [{criteria}].')
-				else:
-					touched.append(row)
-			action_monitor_log.deleteCount = len(touched)
-			action_monitor_log.touched = touched
+			# no transaction here, stop on first count mismatched or exception raised
+			try:
+				for row in data:
+					delete_count, criteria = topic_data_service.delete_by_id_and_version(row)
+					if delete_count == 0:
+						raise ReactorException(
+							f'Data not found on do deletion, {self.on_topic_message()}, by [{criteria}], '
+							f'Bulk deletion stopped.')
+					else:
+						touched.append(row)
+			finally:
+				# log done information
+				action_monitor_log.deleteCount = len(touched)
+				action_monitor_log.touched = touched
 
 		return self.safe_run(action_monitor_log, work)
 
