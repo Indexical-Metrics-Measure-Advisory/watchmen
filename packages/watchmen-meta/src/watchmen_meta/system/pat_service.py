@@ -62,7 +62,7 @@ class PatService(StorageService):
 		return EntityHelper(name=self.get_entity_name(), shaper=self.get_entity_shaper())
 
 	def generate_pat_id(self) -> PatId:
-		return str(self.snowflake_generator.next_id())
+		return str(self.snowflakeGenerator.next_id())
 
 	# noinspection PyMethodMayBeStatic
 	def get_pat_id_column_name(self) -> str:

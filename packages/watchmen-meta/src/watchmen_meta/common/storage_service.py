@@ -21,18 +21,18 @@ class TupleNotFoundException(Exception):
 
 class StorageService(ABC):
 	storage: TransactionalStorageSPI
-	principal_service: Optional[PrincipalService] = None
-	snowflake_generator: Optional[SnowflakeGenerator] = None
+	principalService: Optional[PrincipalService] = None
+	snowflakeGenerator: Optional[SnowflakeGenerator] = None
 
 	def __init__(self, storage: TransactionalStorageSPI):
 		self.storage = storage
 
 	def with_principal_service(self, principal_service: PrincipalService) -> StorageService:
-		self.principal_service = principal_service
+		self.principalService = principal_service
 		return self
 
 	def with_snowflake_generator(self, snowflake_generator: SnowflakeGenerator) -> StorageService:
-		self.snowflake_generator = snowflake_generator
+		self.snowflakeGenerator = snowflake_generator
 		return self
 
 	def begin_transaction(self):
@@ -61,9 +61,9 @@ class StorageService(ABC):
 		if isinstance(storable, Auditable):
 			now = self.now()
 			storable.createdAt = now
-			storable.createdBy = self.principal_service.get_user_id()
+			storable.createdBy = self.principalService.get_user_id()
 			storable.lastModifiedAt = now
-			storable.lastModifiedBy = self.principal_service.get_user_id()
+			storable.lastModifiedBy = self.principalService.get_user_id()
 
 	# noinspection PyMethodMayBeStatic
 	def try_to_prepare_optimistic_lock_on_create(self, storable: Storable) -> None:
@@ -79,7 +79,7 @@ class StorageService(ABC):
 		"""
 		if isinstance(storable, Auditable):
 			storable.lastModifiedAt = self.now()
-			storable.lastModifiedBy = self.principal_service.get_user_id()
+			storable.lastModifiedBy = self.principalService.get_user_id()
 
 	# noinspection PyMethodMayBeStatic
 	def try_to_prepare_optimistic_lock_on_update(self, storable: Storable) -> Tuple[bool, int]:
@@ -134,7 +134,7 @@ class IdentifiedStorableService(StorageService):
 			return False
 
 	def generate_storable_id(self) -> StorableId:
-		return str(self.snowflake_generator.next_id())
+		return str(self.snowflakeGenerator.next_id())
 
 	def redress_storable_id(self, storable: Storable) -> Storable:
 		"""

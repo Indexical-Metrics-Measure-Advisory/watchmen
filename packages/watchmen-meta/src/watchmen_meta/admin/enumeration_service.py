@@ -105,7 +105,7 @@ class EnumItemService:
 
 	def __init__(self, storage: TransactionalStorageSPI, snowflake_generator: SnowflakeGenerator):
 		self.storage = storage
-		self.snowflake_generator = snowflake_generator
+		self.snowflakeGenerator = snowflake_generator
 
 	# noinspection PyMethodMayBeStatic
 	def get_entity_name(self) -> str:
@@ -134,7 +134,7 @@ class EnumItemService:
 		)
 
 	def generate_item_id(self) -> EnumItemId:
-		return str(self.snowflake_generator.next_id())
+		return str(self.snowflakeGenerator.next_id())
 
 	def redress_item_id(self, enum_item: EnumItem) -> EnumItem:
 		"""

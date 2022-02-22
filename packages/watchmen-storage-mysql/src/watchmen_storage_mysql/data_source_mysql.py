@@ -33,7 +33,7 @@ class MySQLDataSourceHelper(DataSourceHelper):
 		self.engine = self.acquire_engine(params)
 
 	def acquire_engine(self, params: MySQLDataSourceParams) -> Engine:
-		data_source = self.data_source
+		data_source = self.dataSource
 		url = redress_url(data_source.url)
 		if len(url) != 0:
 			return MySQLDataSourceHelper.acquire_engine_by_url(url, params)
