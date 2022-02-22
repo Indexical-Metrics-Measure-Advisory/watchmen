@@ -34,6 +34,14 @@ class TopicSchema:
 		ArrayHelper(self.flattenFactors).each(lambda x: x.flatten(data))
 		return data
 
+	# noinspection PyMethodMayBeStatic
+	def default_values(self, data: Dict[str, Any]) -> Dict[str, Any]:
+		"""
+		given data might be changed, and returns exactly the given one
+		"""
+		# TODO set default values
+		return data
+
 	def encrypt(self, data: Dict[str, Any]) -> Dict[str, Any]:
 		"""
 		given data might be changed, and returns exactly the given one
@@ -55,6 +63,7 @@ class TopicSchema:
 		"""
 		given data might be changed, and returns exactly the given one
 		"""
+		data = self.default_values(data)
 		data = self.encrypt(data)
 		data = self.aid_hierarchy(data)
 		data = self.flatten(data)

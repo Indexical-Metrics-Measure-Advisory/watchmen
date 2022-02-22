@@ -193,6 +193,25 @@ class TopicDataService:
 		finally:
 			storage.close()
 
+	def insert(self, data: Dict[str, Any]) -> Dict[str, Any]:
+		"""
+		assign id and version, audit columns
+		"""
+		data_entity_helper = self.get_data_entity_helper()
+		data_entity_helper.assign_id_column(data, self.get_snowflake_generator().next_id())
+		data_entity_helper.assign_version(data, 1)
+		now = get_current_time_in_seconds()
+		data_entity_helper.assign_tenant_id(data, self.get_principal_service().get_tenant_id())
+		data_entity_helper.assign_insert_time(data, now)
+		data_entity_helper.assign_update_time(data, now)
+		storage = self.get_storage()
+		try:
+			storage.connect()
+			storage.insert_one(data, data_entity_helper.get_entity_helper())
+			return data
+		finally:
+			storage.close()
+
 	def delete_by_id_and_version(self, data: Dict[str, Any]) -> Tuple[int, EntityCriteria]:
 		"""
 		for raw, since there is no version column, will be ignored.
