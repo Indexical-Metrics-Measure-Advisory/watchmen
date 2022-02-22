@@ -10,6 +10,7 @@ from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import Pipeline, PipelineTriggerType
 from watchmen_model.reactor import MonitorLogStatus, PipelineMonitorLog, PipelineTriggerTraceId
 from watchmen_reactor.cache import CacheService
+from watchmen_reactor.common import ReactorException
 from watchmen_reactor.meta import PipelineService, TopicService
 from watchmen_reactor.pipeline_schema import CompiledPipeline, PipelineContext, TopicStorages
 from watchmen_reactor.storage import TopicTrigger
@@ -17,7 +18,6 @@ from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_utilities import ArrayHelper
 from .compiled_stage import compile_stages, CompiledStage
 from .runtime import now, parse_prerequisite_defined_as, parse_prerequisite_in_memory, PipelineVariables, spent_ms
-from ..common import ReactorException
 
 logger = getLogger(__name__)
 
