@@ -42,7 +42,7 @@ class RegularTopicDataEntityHelper(TopicDataEntityHelper):
 		return RegularTopicShaper(schema)
 
 	def is_versioned(self) -> bool:
-		return True
+		return is_aggregation_topic(self.get_schema().get_topic())
 
 	def find_version(self, data: Dict[str, Any]) -> int:
 		if is_aggregation_topic(self.get_schema().get_topic()):

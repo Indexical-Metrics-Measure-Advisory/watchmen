@@ -42,6 +42,12 @@ class TopicDataEntityHelper:
 	def get_entity_helper(self) -> EntityHelper:
 		return self.entityHelper
 
+	def serialize_to_storage(self, data: Dict[str, Any]) -> Dict[str, Any]:
+		return self.get_entity_helper().shaper.serialize(data)
+
+	def deserialize_to_memory(self, data: Dict[str, Any]) -> Dict[str, Any]:
+		return self.get_entity_helper().shaper.deserialize(data)
+
 	def get_entity_id_helper(self) -> EntityIdHelper:
 		return self.entityIdHelper
 

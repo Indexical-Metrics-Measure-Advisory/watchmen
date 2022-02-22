@@ -377,7 +377,7 @@ class CompiledReadFactorAction(CompiledReadTopicAction):
 			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
 			statement = self.parsedFindBy.run(variables, principal_service)
 			action_monitor_log.findBy = statement.to_dict()
-			# TODO read factor
+			# TODO read factor, with arithmetic
 			data = topic_data_service.find(criteria=[statement])
 
 		return self.safe_run(action_monitor_log, work)
@@ -409,7 +409,6 @@ class CompiledExistsAction(CompiledReadTopicAction):
 			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
 			statement = self.parsedFindBy.run(variables, principal_service)
 			action_monitor_log.findBy = statement.to_dict()
-			# TODO existing query
 			existing = topic_data_service.exists(criteria=[statement])
 			variables.put(self.variableName, existing)
 
