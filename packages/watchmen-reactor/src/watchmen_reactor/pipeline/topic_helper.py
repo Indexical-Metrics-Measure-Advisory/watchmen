@@ -57,7 +57,7 @@ class RuntimeTopicStorages(TopicStorages):
 		data_source = get_data_source_service(self.principal_service).find_by_id(data_source_id)
 		if data_source is None:
 			raise ReactorException(
-				f'Data source definition not found for topic'
+				f'Data source not declared for topic'
 				f'[id={topic.topicId}, name={topic.name}, dataSourceId={data_source_id}]')
 
 		build = build_topic_data_storage(data_source)

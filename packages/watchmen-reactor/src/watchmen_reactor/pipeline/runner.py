@@ -13,7 +13,7 @@ def get_topic_service(principal_service: PrincipalService) -> TopicService:
 def find_topic(name: str, principal_service: PrincipalService) -> TopicSchema:
 	schema = get_topic_service(principal_service).find_schema_by_name(name, principal_service.get_tenant_id())
 	if schema is None:
-		raise ReactorException(f'Schema of topic[name={name}, tenant={principal_service.get_tenant_id()}] not found.')
+		raise ReactorException(f'Topic schema[name={name}, tenant={principal_service.get_tenant_id()}] not found.')
 	return schema
 
 
