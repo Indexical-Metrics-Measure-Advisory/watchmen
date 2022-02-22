@@ -23,11 +23,11 @@ def get_topic_service(principal_service: PrincipalService) -> TopicService:
 
 
 def get_factor_service(topic_service: TopicService) -> FactorService:
-	return FactorService(topic_service.snowflake_generator)
+	return FactorService(topic_service.snowflakeGenerator)
 
 
 def get_topic_index_service(topic_service: TopicService) -> TopicIndexService:
-	return TopicIndexService(topic_service.storage, topic_service.snowflake_generator)
+	return TopicIndexService(topic_service.storage, topic_service.snowflakeGenerator)
 
 
 @router.get('/topic', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=Topic)

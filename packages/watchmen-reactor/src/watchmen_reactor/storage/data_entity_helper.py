@@ -8,10 +8,9 @@ from watchmen_model.common import TenantId
 from watchmen_model.reactor import TopicDataColumnNames
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_storage import EntityColumnName, EntityCriteria, EntityCriteriaExpression, EntityDeleter, \
-	EntityDistinctValuesFinder, \
-	EntityFinder, EntityHelper, \
-	EntityIdHelper, EntityShaper, \
-	EntitySort, EntityUpdate, EntityUpdater, SnowflakeGenerator
+	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityIdHelper, EntitySort, EntityUpdate, EntityUpdater, \
+	SnowflakeGenerator
+from .shaper import TopicShaper
 
 
 class TopicDataEntityHelper:
@@ -36,8 +35,17 @@ class TopicDataEntityHelper:
 		return self.schema.get_topic()
 
 	@abstractmethod
-	def create_entity_shaper(self, schema: TopicSchema) -> EntityShaper:
+	def create_entity_shaper(self, schema: TopicSchema) -> TopicShaper:
 		pass
+
+	def get_entity_shaper(self) -> TopicShaper:
+		return self.shaper
+
+	def get_column_name(self, factor_name: str) -> Optional[str]:
+		return self.shaper.get_mapper().get_column_name(factor_name)
+
+	def get_factor_name(self, column_name: str) -> Optional[str]:
+		return self.shaper.get_mapper().get_factor_name(column_name)
 
 	def get_entity_helper(self) -> EntityHelper:
 		return self.entityHelper

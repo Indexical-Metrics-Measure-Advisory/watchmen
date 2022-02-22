@@ -21,11 +21,11 @@ def get_enum_service(principal_service: PrincipalService) -> EnumService:
 
 
 def get_enum_item_service(enum_service: EnumService) -> EnumItemService:
-	return EnumItemService(enum_service.storage, enum_service.snowflake_generator)
+	return EnumItemService(enum_service.storage, enum_service.snowflakeGenerator)
 
 
 def get_topic_service(enum_service: EnumService) -> TopicService:
-	return TopicService(enum_service.storage, enum_service.snowflake_generator, enum_service.principal_service)
+	return TopicService(enum_service.storage, enum_service.snowflakeGenerator, enum_service.principalService)
 
 
 @router.get('/enum', tags=[UserRole.ADMIN], response_model=Enum)

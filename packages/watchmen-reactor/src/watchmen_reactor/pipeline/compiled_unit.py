@@ -7,11 +7,11 @@ from watchmen_auth import PrincipalService
 from watchmen_model.admin import Pipeline, PipelineStage, PipelineUnit
 from watchmen_model.reactor import MonitorLogStage, MonitorLogStatus, MonitorLogUnit
 from watchmen_reactor.common import ask_parallel_actions_in_loop_unit
+from watchmen_reactor.pipeline_schema import TopicStorages
 from watchmen_utilities import ArrayHelper, is_not_blank
 from .compiled_action import compile_actions, CompiledAction
-from .runtime import CreateQueuePipeline, now, parse_prerequisite_in_memory, parse_prerequisite_defined_as, PipelineVariables, \
-	spent_ms
-from ..pipeline_schema import TopicStorages
+from .runtime import CreateQueuePipeline, now, parse_prerequisite_defined_as, parse_prerequisite_in_memory, \
+	PipelineVariables, spent_ms
 
 logger = getLogger(__name__)
 

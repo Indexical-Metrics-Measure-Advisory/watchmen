@@ -23,7 +23,7 @@ def get_report_service(principal_service: PrincipalService) -> ReportService:
 
 
 def get_subject_service(report_service: ReportService) -> SubjectService:
-	return SubjectService(report_service.storage, report_service.snowflake_generator, report_service.principal_service)
+	return SubjectService(report_service.storage, report_service.snowflakeGenerator, report_service.principalService)
 
 
 def ask_save_report_action(

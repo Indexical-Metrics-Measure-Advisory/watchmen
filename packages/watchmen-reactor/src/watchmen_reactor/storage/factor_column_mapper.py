@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from watchmen_model.admin import Factor
 from watchmen_reactor.topic_schema import TopicSchema
@@ -34,13 +34,13 @@ class TopicFactorColumnMapper:
 
 		return ArrayHelper(factors).reduce(put_into_map, {})
 
-	def get_column_name(self, factor_name: str):
+	def get_column_name(self, factor_name: str) -> Optional[str]:
 		return self.factor2Column.get(factor_name)
 
 	def get_column_names(self) -> List[str]:
 		return self.columnNames
 
-	def get_factor_name(self, column_name: str):
+	def get_factor_name(self, column_name: str) -> Optional[str]:
 		return self.column2Factor.get(column_name)
 
 	def get_factor_names(self) -> List[str]:

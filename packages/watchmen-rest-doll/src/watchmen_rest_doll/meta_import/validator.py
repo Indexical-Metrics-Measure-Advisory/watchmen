@@ -12,11 +12,11 @@ from watchmen_utilities import ArrayHelper, is_blank
 
 
 def get_user_service(storage_service: StorageService) -> UserService:
-	return UserService(storage_service.storage, storage_service.snowflake_generator, storage_service.principal_service)
+	return UserService(storage_service.storage, storage_service.snowflakeGenerator, storage_service.principalService)
 
 
 def get_tenant_service(user_service: UserService) -> TenantService:
-	return TenantService(user_service.storage, user_service.snowflake_generator, user_service.principal_service)
+	return TenantService(user_service.storage, user_service.snowflakeGenerator, user_service.principalService)
 
 
 def validate_tenant(

@@ -21,11 +21,11 @@ def get_space_service(principal_service: PrincipalService) -> SpaceService:
 
 
 def get_user_group_service(space_service: SpaceService) -> UserGroupService:
-	return UserGroupService(space_service.storage, space_service.snowflake_generator, space_service.principal_service)
+	return UserGroupService(space_service.storage, space_service.snowflakeGenerator, space_service.principalService)
 
 
 def get_topic_service(space_service: SpaceService) -> TopicService:
-	return TopicService(space_service.storage, space_service.snowflake_generator, space_service.principal_service)
+	return TopicService(space_service.storage, space_service.snowflakeGenerator, space_service.principalService)
 
 
 @router.get('/space', tags=[UserRole.ADMIN], response_model=Space)

@@ -22,7 +22,7 @@ def get_user_service(principal_service: PrincipalService) -> UserService:
 
 
 def get_user_group_service(user_service: UserService) -> UserGroupService:
-	return UserGroupService(user_service.storage, user_service.snowflake_generator, user_service.principal_service)
+	return UserGroupService(user_service.storage, user_service.snowflakeGenerator, user_service.principalService)
 
 
 def clear_pwd(user: User):

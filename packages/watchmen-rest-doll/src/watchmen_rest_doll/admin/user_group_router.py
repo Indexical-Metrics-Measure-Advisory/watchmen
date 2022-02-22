@@ -22,12 +22,12 @@ def get_user_group_service(principal_service: PrincipalService) -> UserGroupServ
 
 def get_user_service(user_group_service: UserGroupService) -> UserService:
 	return UserService(
-		user_group_service.storage, user_group_service.snowflake_generator, user_group_service.principal_service)
+		user_group_service.storage, user_group_service.snowflakeGenerator, user_group_service.principalService)
 
 
 def get_space_service(user_group_service: UserGroupService) -> SpaceService:
 	return SpaceService(
-		user_group_service.storage, user_group_service.snowflake_generator, user_group_service.principal_service)
+		user_group_service.storage, user_group_service.snowflakeGenerator, user_group_service.principalService)
 
 
 @router.get('/user_group', tags=[UserRole.ADMIN], response_model=UserGroup)

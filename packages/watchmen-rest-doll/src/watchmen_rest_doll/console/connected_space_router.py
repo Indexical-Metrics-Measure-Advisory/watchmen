@@ -26,26 +26,26 @@ def get_connected_space_service(principal_service: PrincipalService) -> Connecte
 
 def get_space_service(connected_space_service: ConnectedSpaceService) -> SpaceService:
 	return SpaceService(
-		connected_space_service.storage, connected_space_service.snowflake_generator,
-		connected_space_service.principal_service)
+		connected_space_service.storage, connected_space_service.snowflakeGenerator,
+		connected_space_service.principalService)
 
 
 def get_subject_service(connected_space_service: ConnectedSpaceService) -> SubjectService:
 	return SubjectService(
-		connected_space_service.storage, connected_space_service.snowflake_generator,
-		connected_space_service.principal_service)
+		connected_space_service.storage, connected_space_service.snowflakeGenerator,
+		connected_space_service.principalService)
 
 
 def get_report_service(connected_space_service: ConnectedSpaceService) -> ReportService:
 	return ReportService(
-		connected_space_service.storage, connected_space_service.snowflake_generator,
-		connected_space_service.principal_service)
+		connected_space_service.storage, connected_space_service.snowflakeGenerator,
+		connected_space_service.principalService)
 
 
 def get_user_service(connected_space_service: ConnectedSpaceService) -> UserService:
 	return UserService(
-		connected_space_service.storage, connected_space_service.snowflake_generator,
-		connected_space_service.principal_service)
+		connected_space_service.storage, connected_space_service.snowflakeGenerator,
+		connected_space_service.principalService)
 
 
 def parse_template_ids(template_ids: Optional[str]) -> List[ConnectedSpaceId]:

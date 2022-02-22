@@ -85,27 +85,27 @@ def get_user_service(principal_service: PrincipalService) -> UserService:
 
 
 def get_topic_service(user_service: UserService) -> TopicService:
-	return TopicService(user_service.storage, user_service.snowflake_generator, user_service.principal_service)
+	return TopicService(user_service.storage, user_service.snowflakeGenerator, user_service.principalService)
 
 
 def get_pipeline_service(user_service: UserService) -> PipelineService:
-	return PipelineService(user_service.storage, user_service.snowflake_generator, user_service.principal_service)
+	return PipelineService(user_service.storage, user_service.snowflakeGenerator, user_service.principalService)
 
 
 def get_space_service(user_service: UserService) -> SpaceService:
-	return SpaceService(user_service.storage, user_service.snowflake_generator, user_service.principal_service)
+	return SpaceService(user_service.storage, user_service.snowflakeGenerator, user_service.principalService)
 
 
 def get_connected_space_service(user_service: UserService) -> ConnectedSpaceService:
-	return ConnectedSpaceService(user_service.storage, user_service.snowflake_generator, user_service.principal_service)
+	return ConnectedSpaceService(user_service.storage, user_service.snowflakeGenerator, user_service.principalService)
 
 
 def get_subject_service(user_service: UserService) -> SubjectService:
-	return SubjectService(user_service.storage, user_service.snowflake_generator, user_service.principal_service)
+	return SubjectService(user_service.storage, user_service.snowflakeGenerator, user_service.principalService)
 
 
 def get_report_service(user_service: UserService) -> ReportService:
-	return ReportService(user_service.storage, user_service.snowflake_generator, user_service.principal_service)
+	return ReportService(user_service.storage, user_service.snowflakeGenerator, user_service.principalService)
 
 
 def same_tenant_validate(tenant_id: Optional[TenantId], a_tuple: TenantBasedTuple) -> TenantId:
@@ -152,7 +152,7 @@ def validate_tenant_id_when_super_admin(
 	if found_tenant_id == principal_service.get_tenant_id():
 		raise_400('Incorrect tenant id.')
 	tenant_service = TenantService(
-		user_service.storage, user_service.snowflake_generator, user_service.principal_service)
+		user_service.storage, user_service.snowflakeGenerator, user_service.principalService)
 	tenant: Optional[Tenant] = tenant_service.find_by_id(found_tenant_id)
 	if tenant is None:
 		raise_400('Incorrect tenant id.')
@@ -426,7 +426,7 @@ def fill_topic_ids(
 	topic_id_map: Dict[TopicId, TopicId] = {}
 	factor_id_map: Dict[FactorId, FactorId] = {}
 
-	factor_service: FactorService(topic_service.snowflake_generator)
+	factor_service: FactorService(topic_service.snowflakeGenerator)
 
 	def fill_factor_id(factor: Factor) -> None:
 		old_factor_id = factor.factorId

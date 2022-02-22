@@ -7,27 +7,26 @@ from typing import Any, Callable, Dict, List, Optional, Union
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import AlarmAction, AlarmActionSeverity, CopyToMemoryAction, DeleteTopicAction, \
-	DeleteTopicActionType, Factor, FindBy, FromFactor, FromTopic, is_raw_topic, MappingFactor, MappingRow, Pipeline, \
-	PipelineAction, \
-	PipelineStage, PipelineTriggerType, PipelineUnit, ReadTopicAction, ReadTopicActionType, SystemActionType, Topic, \
-	ToTopic, WriteFactorAction, WriteToExternalAction, WriteTopicAction, WriteTopicActionType
+	DeleteTopicActionType, Factor, FindBy, FromTopic, is_raw_topic, MappingFactor, MappingRow, Pipeline, \
+	PipelineAction, PipelineStage, PipelineTriggerType, PipelineUnit, ReadFactorAction, ReadFactorsAction, \
+	ReadTopicAction, ReadTopicActionType, SystemActionType, Topic, ToTopic, WriteFactorAction, WriteToExternalAction, \
+	WriteTopicAction, WriteTopicActionType
 from watchmen_model.common import ConstantParameter, ParameterKind
 from watchmen_model.reactor import MonitorAlarmAction, MonitorCopyToMemoryAction, MonitorDeleteAction, \
 	MonitorLogAction, MonitorLogStatus, MonitorLogUnit, MonitorReadAction, MonitorWriteAction, \
 	MonitorWriteToExternalAction
-from watchmen_reactor.cache import CacheService
 from watchmen_reactor.common import ask_pipeline_update_retry, ask_pipeline_update_retry_times, ReactorException
 from watchmen_reactor.external_writer import ask_external_writer_creator, CreateExternalWriter, ExternalWriterParams
 from watchmen_reactor.meta import ExternalWriterService, TopicService
 from watchmen_reactor.pipeline_schema import TopicStorages
-from watchmen_reactor.storage import RawTopicDataEntityHelper, RawTopicDataService, RegularTopicDataEntityHelper, \
-	RegularTopicDataService, TopicDataEntityHelper, TopicDataService, TopicTrigger
+from watchmen_reactor.storage import RawTopicDataService, RegularTopicDataService, TopicDataService, TopicTrigger
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_utilities import ArrayHelper, is_blank
 from .runtime import CreateQueuePipeline, now, parse_action_defined_as, parse_condition_for_storage, \
 	parse_mapping_for_storage, parse_parameter_in_memory, parse_prerequisite_defined_as, parse_prerequisite_in_memory, \
 	ParsedMemoryParameter, ParsedStorageCondition, ParsedStorageMapping, PipelineVariables, PrerequisiteDefinedAs, \
 	PrerequisiteTest, spent_ms
+from .topic_helper import ask_topic_data_entity_helper
 
 logger = getLogger(__name__)
 
@@ -246,26 +245,9 @@ class CompiledWriteToExternalAction(CompiledAction):
 # noinspection PyAbstractClass
 class CompiledStorageAction(CompiledAction):
 	schema: Optional[TopicSchema] = None
-	parsedFindBy: Optional[ParsedStorageCondition] = None
-	parsedMapping: Optional[ParsedStorageMapping] = None
 
 	def parse_topic_schema(self, action: Union[ToTopic, FromTopic], principal_service: PrincipalService) -> None:
 		self.schema = find_topic_schema_for_action(action, principal_service)
-
-	def parse_find_by(self, action: FindBy, principal_service: PrincipalService) -> None:
-		self.parsedFindBy = parse_condition_for_storage(action.by, principal_service)
-
-	def parse_mapping_factors(
-			self, action: Union[ToTopic, FromTopic], factors: Optional[List[MappingFactor]],
-			principal_service: PrincipalService) -> None:
-		if self.schema is None:
-			self.parse_topic_schema(action, principal_service)
-		self.parsedMapping = parse_mapping_for_storage(self.schema, factors, principal_service)
-
-	def parse_mapping_row(self, action: MappingRow, principal_service: PrincipalService) -> None:
-		if not isinstance(action, ToTopic) and not isinstance(action, FromTopic):
-			raise ReactorException(f'Topic not declared in action[{action.dict()}].')
-		self.parse_mapping_factors(action, action.factors, principal_service)
 
 	def get_topic(self) -> Optional[Topic]:
 		return self.schema.get_topic() if self.schema is not None else None
@@ -274,27 +256,14 @@ class CompiledStorageAction(CompiledAction):
 		topic = self.get_topic()
 		return f'on topic[id={topic.topicId}, name={topic.name}]' if topic is not None else ''
 
-	# noinspection PyMethodMayBeStatic,DuplicatedCode
-	def ask_topic_data_entity_helper(self, schema: TopicSchema) -> TopicDataEntityHelper:
-		"""
-		ask topic data entity helper, from cache first
-		"""
-		data_entity_helper = CacheService.topic().get_entity_helper(schema.get_topic().topicId)
-		if data_entity_helper is None:
-			if is_raw_topic(schema.get_topic()):
-				data_entity_helper = RawTopicDataEntityHelper(schema)
-			else:
-				data_entity_helper = RegularTopicDataEntityHelper(schema)
-			CacheService.topic().put_entity_helper(data_entity_helper)
-		return data_entity_helper
-
+	# noinspection PyMethodMayBeStatic
 	def ask_topic_data_service(
 			self, schema: TopicSchema, storages: TopicStorages,
 			principal_service: PrincipalService) -> TopicDataService:
 		"""
 		ask topic data service
 		"""
-		data_entity_helper = self.ask_topic_data_entity_helper(schema)
+		data_entity_helper = ask_topic_data_entity_helper(schema)
 		storage = storages.ask_topic_storage(schema)
 		storage.register_topic(schema.get_topic())
 		if is_raw_topic(schema.get_topic()):
@@ -304,9 +273,16 @@ class CompiledStorageAction(CompiledAction):
 
 
 # noinspection PyAbstractClass
-class CompiledReadTopicAction(CompiledStorageAction):
+class CompiledFindByAction(CompiledStorageAction):
+	parsedFindBy: Optional[ParsedStorageCondition] = None
+
+	def parse_find_by(self, action: FindBy, principal_service: PrincipalService) -> None:
+		self.parsedFindBy = parse_condition_for_storage(action.by, principal_service)
+
+
+# noinspection PyAbstractClass
+class CompiledReadTopicAction(CompiledFindByAction):
 	variableName: Optional[str] = None
-	factor: Optional[Factor] = None
 
 	def parse_action(self, action: ReadTopicAction, principal_service: PrincipalService) -> None:
 		if is_blank(action.variableName):
@@ -314,16 +290,6 @@ class CompiledReadTopicAction(CompiledStorageAction):
 		self.variableName = action.variableName
 		self.parse_topic_schema(action, principal_service)
 		self.parse_find_by(action, principal_service)
-		if isinstance(action, FromFactor):
-			factor_id = action.factor_id
-			if is_blank(factor_id):
-				raise ReactorException(f'Factor not declared in read factor(s) action.')
-			topic = self.schema.get_topic()
-			factor = ArrayHelper(topic.factors).find(lambda x: x.factorId == factor_id)
-			if factor is None:
-				raise ReactorException(
-					f'Factor[id={factor_id}] in topic[id={topic.topicId}, name={topic.name}] not found.')
-			self.factor = factor
 
 	def create_action_log(self, common: Dict[str, Any]) -> MonitorReadAction:
 		return MonitorReadAction(**common, by=None, value=None)
@@ -368,7 +334,25 @@ class CompiledReadRowsAction(CompiledReadTopicAction):
 		return self.safe_run(action_monitor_log, work)
 
 
-class CompiledReadFactorAction(CompiledReadTopicAction):
+# noinspection PyAbstractClass
+class CompiledReadTopicFactorAction(CompiledReadTopicAction):
+	factor: Optional[Factor] = None
+
+	def parse_action(
+			self, action: Union[ReadFactorAction, ReadFactorsAction], principal_service: PrincipalService) -> None:
+		super().parse_action(action, principal_service)
+		factor_id = action.factor_id
+		if is_blank(factor_id):
+			raise ReactorException(f'Factor not declared in read factor(s) action.')
+		topic = self.schema.get_topic()
+		factor = ArrayHelper(topic.factors).find(lambda x: x.factorId == factor_id)
+		if factor is None:
+			raise ReactorException(
+				f'Factor[id={factor_id}] in topic[id={topic.topicId}, name={topic.name}] not found.')
+		self.factor = factor
+
+
+class CompiledReadFactorAction(CompiledReadTopicFactorAction):
 	def do_run(
 			self, variables: PipelineVariables,
 			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorReadAction,
@@ -383,7 +367,7 @@ class CompiledReadFactorAction(CompiledReadTopicAction):
 		return self.safe_run(action_monitor_log, work)
 
 
-class CompiledReadFactorsAction(CompiledReadTopicAction):
+class CompiledReadFactorsAction(CompiledReadTopicFactorAction):
 	def do_run(
 			self, variables: PipelineVariables,
 			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorReadAction,
@@ -392,6 +376,7 @@ class CompiledReadFactorsAction(CompiledReadTopicAction):
 			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
 			statement = self.parsedFindBy.run(variables, principal_service)
 			action_monitor_log.findBy = statement.to_dict()
+			# TODO columns for storage
 			data = topic_data_service.find_distinct_values(criteria=[statement], column_names=[])
 			factor_values = ArrayHelper(data).map(lambda x: x[0]).to_list()
 			variables.put(self.variableName, factor_values)
@@ -416,7 +401,21 @@ class CompiledExistsAction(CompiledReadTopicAction):
 
 
 # noinspection PyAbstractClass
-class CompiledWriteTopicAction(CompiledStorageAction):
+class CompiledWriteTopicAction(CompiledFindByAction):
+	parsedMapping: Optional[ParsedStorageMapping] = None
+
+	def parse_mapping_factors(
+			self, action: Union[ToTopic, FromTopic], factors: Optional[List[MappingFactor]],
+			principal_service: PrincipalService) -> None:
+		if self.schema is None:
+			self.parse_topic_schema(action, principal_service)
+		self.parsedMapping = parse_mapping_for_storage(self.schema, factors, principal_service)
+
+	def parse_mapping_row(self, action: MappingRow, principal_service: PrincipalService) -> None:
+		if not isinstance(action, ToTopic) and not isinstance(action, FromTopic):
+			raise ReactorException(f'Topic not declared in action[{action.dict()}].')
+		self.parse_mapping_factors(action, action.factors, principal_service)
+
 	def parse_action(self, action: WriteTopicAction, principal_service: PrincipalService) -> None:
 		self.parse_topic_schema(action, principal_service)
 		if isinstance(action, FindBy):
@@ -569,7 +568,7 @@ class CompiledWriteFactorAction(CompiledInsertOrMergeRowAction):
 
 
 # noinspection PyAbstractClass
-class CompiledDeleteTopicAction(CompiledStorageAction):
+class CompiledDeleteTopicAction(CompiledFindByAction):
 	def parse_action(self, action: DeleteTopicAction, principal_service: PrincipalService) -> None:
 		self.parse_topic_schema(action, principal_service)
 		self.parse_find_by(action, principal_service)
