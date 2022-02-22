@@ -24,6 +24,10 @@ class ExternalWriterService:
 	def find_by_id(self, writer_id: ExternalWriterId) -> Optional[ExternalWriter]:
 		external_writer = CacheService.external_writer().get(writer_id)
 		if external_writer is not None:
+			if external_writer.tenantId != self.principal_service.get_tenant_id():
+				raise ReactorException(
+					f'External writer[id={writer_id}] not belongs to '
+					f'current tenant[id={self.principal_service.get_tenant_id()}].')
 			register_external_writer(external_writer)
 			return external_writer
 

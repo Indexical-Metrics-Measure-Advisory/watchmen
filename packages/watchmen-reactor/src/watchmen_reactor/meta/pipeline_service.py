@@ -6,6 +6,7 @@ from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import Pipeline
 from watchmen_model.common import PipelineId, TopicId
 from watchmen_reactor.cache import CacheService
+from watchmen_reactor.common import ReactorException
 from watchmen_utilities import ArrayHelper
 
 
@@ -16,6 +17,10 @@ class PipelineService:
 	def find_by_id(self, pipeline_id: PipelineId) -> Optional[Pipeline]:
 		pipeline = CacheService.pipeline().get(pipeline_id)
 		if pipeline is not None:
+			if pipeline.tenantId != self.principal_service.get_tenant_id():
+				raise ReactorException(
+					f'Pipeline[id={pipeline_id}] not belongs to '
+					f'current tenant[id={self.principal_service.get_tenant_id()}].')
 			return pipeline
 
 		storage_service = PipelineStorageService(ask_meta_storage(), ask_snowflake_generator(), self.principal_service)
