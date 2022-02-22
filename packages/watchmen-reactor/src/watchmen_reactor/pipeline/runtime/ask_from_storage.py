@@ -9,7 +9,8 @@ from watchmen_reactor.common import ReactorException
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_storage import EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, \
 	EntityCriteriaStatement
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, is_blank
+from . import parse_parameter_in_memory
 from .variables import PipelineVariables
 
 
@@ -138,17 +139,25 @@ class ParsedStorageMappingFactor:
 		self.mappingFactor = mapping_factor
 		self.arithmetic = AggregateArithmetic.NONE if mapping_factor.arithmetic is None else mapping_factor.arithmetic
 		factor_id = mapping_factor.factorId
+		if is_blank(factor_id):
+			raise ReactorException('Factor not declared on mapping.')
 		topic = schema.get_topic()
 		factor: Optional[Factor] = ArrayHelper(topic.factors).find(lambda x: x.factorId == factor_id)
 		if factor is None:
 			raise ReactorException(
 				f'Factor[id={factor_id}] in topic[id={topic.topicId}, name={topic.name}] not found.')
 		self.factor = factor
-		self.parameter = parse_parameter_for_storage(factor.source, [topic], principal_service)
+		self.columnName = factor.name.strip().lower()
+		if mapping_factor.source is None:
+			raise ReactorException('Source of mapping factor not declared.')
+		# parameter in mapping factor always retrieve value from variables
+		self.parsedParameter = parse_parameter_in_memory(mapping_factor.source, principal_service)
 
 	def run(self, variables: PipelineVariables, principal_service: PrincipalService) -> Tuple[str, Any]:
-		# TODO run mapping factor
-		pass
+		value = self.parsedParameter.value(variables, principal_service)
+		# TODO parse factor value to applicable type
+		name = self.columnName
+		return name, value
 
 
 class ParsedStorageMapping:

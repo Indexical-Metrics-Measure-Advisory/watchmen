@@ -371,6 +371,7 @@ class CompiledInsertRowAction(CompiledWriteTopicAction):
 		def work() -> None:
 			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
 			data = self.parsedMapping.run(variables, principal_service)
+			self.schema.encrypt(data)
 			data = topic_data_service.insert(data)
 			action_monitor_log.insertCount = 1
 			action_monitor_log.touched = [data]
@@ -382,8 +383,6 @@ class CompiledInsertRowAction(CompiledWriteTopicAction):
 				triggerType=PipelineTriggerType.INSERT,
 				internalDataId=id_
 			))
-
-		# TODO new pipeline
 
 		return self.safe_run(action_monitor_log, work)
 
