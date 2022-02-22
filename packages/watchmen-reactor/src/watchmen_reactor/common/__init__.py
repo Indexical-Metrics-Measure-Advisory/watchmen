@@ -1,5 +1,5 @@
 from .exception import ReactorException
 from .settings import ask_all_date_formats, ask_cache_enabled, ask_cache_heart_beat_enabled, \
 	ask_cache_heart_beat_interval, ask_date_formats, ask_datetime_formats, ask_elastic_search_external_writer_enabled, \
-	ask_encrypt_aes_params, ask_parallel_actions_in_loop_unit, ask_standard_external_writer_enabled, \
-	ask_storage_echo_enabled, ask_time_formats
+	ask_encrypt_aes_params, ask_parallel_actions_in_loop_unit, ask_pipeline_update_retry, \
+	ask_pipeline_update_retry_times, ask_standard_external_writer_enabled, ask_storage_echo_enabled, ask_time_formats
