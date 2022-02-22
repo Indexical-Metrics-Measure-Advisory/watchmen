@@ -33,7 +33,7 @@
                   }
                 }
               ],
-              "_postman_id": "c793d438-0f8c-4568-a6dc-e446d7705f1f",
+              "id": "c793d438-0f8c-4568-a6dc-e446d7705f1f",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -53,10 +53,7 @@
                       "value": "change-me",
                       "type": "text"
                     }
-                  ],
-                  "options": {
-                    "urlencoded": {}
-                  }
+                  ]
                 },
                 "url": "{{URL_PREFIX}}/login"
               },
@@ -64,7 +61,7 @@
             },
             {
               "name": "VALIDATE ACCESS TOKEN - SUPER ADMIN",
-              "_postman_id": "0def2ec7-1e1a-4050-954c-31c81b6f68c8",
+              "id": "0def2ec7-1e1a-4050-954c-31c81b6f68c8",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -93,7 +90,7 @@
             },
             {
               "name": "TEST ACCESS TOKEN - SUPER ADMIN",
-              "_postman_id": "32302dba-850b-4097-be13-5a0fef3f20ee",
+              "id": "32302dba-850b-4097-be13-5a0fef3f20ee",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -111,15 +108,14 @@
               "response": []
             }
           ],
-          "_postman_id": "1382ab45-3f9c-43c6-8911-a80066686b3e",
-          "_postman_isSubFolder": true
+          "id": "1382ab45-3f9c-43c6-8911-a80066686b3e"
         },
         {
           "name": "TENANT",
           "item": [
             {
               "name": "TENANT - LOAD 1",
-              "_postman_id": "a7ae9e14-0d6b-4dea-8170-1c14c7b0767a",
+              "id": "a7ae9e14-0d6b-4dea-8170-1c14c7b0767a",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -178,7 +174,7 @@
                   }
                 }
               ],
-              "_postman_id": "1ad9a344-e27f-42dd-867a-846f37be3f6b",
+              "id": "1ad9a344-e27f-42dd-867a-846f37be3f6b",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -234,7 +230,7 @@
                   }
                 }
               ],
-              "_postman_id": "6a774ba4-f572-4546-8e71-a02feacbe4fe",
+              "id": "6a774ba4-f572-4546-8e71-a02feacbe4fe",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -299,7 +295,7 @@
                   }
                 }
               ],
-              "_postman_id": "c72da620-f96b-4c54-88bf-0b17edda7708",
+              "id": "c72da620-f96b-4c54-88bf-0b17edda7708",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -327,7 +323,7 @@
             },
             {
               "name": "TENANT DELETE CREATED",
-              "_postman_id": "92f56950-5a06-4fc3-b7e9-4af7b63783a2",
+              "id": "92f56950-5a06-4fc3-b7e9-4af7b63783a2",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -380,7 +376,7 @@
                   }
                 }
               ],
-              "_postman_id": "9ded9b18-76f7-4327-9509-f25a4e79df4f",
+              "id": "9ded9b18-76f7-4327-9509-f25a4e79df4f",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -422,8 +418,7 @@
               "response": []
             }
           ],
-          "_postman_id": "98bfa752-aba1-45df-80b5-5fbb641939de",
-          "_postman_isSubFolder": true
+          "id": "98bfa752-aba1-45df-80b5-5fbb641939de"
         },
         {
           "name": "DATASOURCE",
@@ -453,7 +448,7 @@
                   }
                 }
               ],
-              "_postman_id": "849bcbbb-b5fd-47e8-b673-0740f5b6e675",
+              "id": "849bcbbb-b5fd-47e8-b673-0740f5b6e675",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -502,7 +497,7 @@
                   }
                 }
               ],
-              "_postman_id": "be67bf15-89c3-48bc-9f9f-82beef0d6f4c",
+              "id": "be67bf15-89c3-48bc-9f9f-82beef0d6f4c",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -534,8 +529,7 @@
               "response": []
             }
           ],
-          "_postman_id": "9e542866-d6d4-49ae-a125-32810f193d45",
-          "_postman_isSubFolder": true
+          "id": "9e542866-d6d4-49ae-a125-32810f193d45"
         },
         {
           "name": "EXTERNAL WRITER",
@@ -565,7 +559,7 @@
                   }
                 }
               ],
-              "_postman_id": "ef16e995-71c9-4d1e-8d76-b692c5d06745",
+              "id": "ef16e995-71c9-4d1e-8d76-b692c5d06745",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -614,7 +608,7 @@
                   }
                 }
               ],
-              "_postman_id": "1a75b5bb-f25a-4c41-93bc-e25c4e8b3f11",
+              "id": "1a75b5bb-f25a-4c41-93bc-e25c4e8b3f11",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -646,21 +640,19 @@
               "response": []
             }
           ],
-          "_postman_id": "17c471ba-9990-4f45-9079-6db6dec5ec67",
-          "_postman_isSubFolder": true
+          "id": "17c471ba-9990-4f45-9079-6db6dec5ec67"
         },
         {
           "name": "PAT",
           "item": [],
-          "_postman_id": "81a9ceae-4e7d-49a9-80a3-20b14e6fb947",
-          "_postman_isSubFolder": true
+          "id": "81a9ceae-4e7d-49a9-80a3-20b14e6fb947"
         },
         {
           "name": "CACHE",
           "item": [
             {
               "name": "CLEAR ALL CACHE",
-              "_postman_id": "7b72bcc3-c43c-450d-b310-859befe8f2fa",
+              "id": "7b72bcc3-c43c-450d-b310-859befe8f2fa",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -678,11 +670,10 @@
               "response": []
             }
           ],
-          "_postman_id": "e6777f71-4736-4cc4-b57f-fbb98f51fa26",
-          "_postman_isSubFolder": true
+          "id": "e6777f71-4736-4cc4-b57f-fbb98f51fa26"
         }
       ],
-      "_postman_id": "13f7d30b-1bc5-4cd0-9a31-96cb02ed7c27"
+      "id": "13f7d30b-1bc5-4cd0-9a31-96cb02ed7c27"
     },
     {
       "name": "ADMIN",
@@ -712,7 +703,7 @@
                   }
                 }
               ],
-              "_postman_id": "31b79fac-116a-442e-8a26-bd8bab25bb60",
+              "id": "31b79fac-116a-442e-8a26-bd8bab25bb60",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -732,37 +723,31 @@
                       "value": "1234abcd",
                       "type": "text"
                     }
-                  ],
-                  "options": {
-                    "urlencoded": {}
-                  }
+                  ]
                 },
                 "url": "{{URL_PREFIX}}/login"
               },
               "response": []
             }
           ],
-          "_postman_id": "5f61e34f-fab9-435f-982d-50c88922ee67",
-          "_postman_isSubFolder": true
+          "id": "5f61e34f-fab9-435f-982d-50c88922ee67"
         },
         {
           "name": "FAVORITE",
           "item": [],
-          "_postman_id": "9f1d8885-fa09-4bf1-b623-91d2e9c3f951",
-          "_postman_isSubFolder": true
+          "id": "9f1d8885-fa09-4bf1-b623-91d2e9c3f951"
         },
         {
           "name": "LAST SNAPSHOT",
           "item": [],
-          "_postman_id": "deeee44b-b4bd-4f34-993e-0e57975583e2",
-          "_postman_isSubFolder": true
+          "id": "deeee44b-b4bd-4f34-993e-0e57975583e2"
         },
         {
           "name": "USER",
           "item": [
             {
               "name": "USER LOAD 2",
-              "_postman_id": "df2c60c7-092d-4e46-9b1f-5888237ef070",
+              "id": "df2c60c7-092d-4e46-9b1f-5888237ef070",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -822,7 +807,7 @@
                   }
                 }
               ],
-              "_postman_id": "2ed1b18e-efd7-467f-9df3-f30af6c174db",
+              "id": "2ed1b18e-efd7-467f-9df3-f30af6c174db",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -849,8 +834,7 @@
               "response": []
             }
           ],
-          "_postman_id": "2447d2f8-9676-485c-9344-0192d5fac66f",
-          "_postman_isSubFolder": true
+          "id": "2447d2f8-9676-485c-9344-0192d5fac66f"
         },
         {
           "name": "USER GROUP",
@@ -884,7 +868,7 @@
                   }
                 }
               ],
-              "_postman_id": "a5b1a6b5-0bf6-434a-aef6-4c96f65a45cc",
+              "id": "a5b1a6b5-0bf6-434a-aef6-4c96f65a45cc",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -912,7 +896,7 @@
             },
             {
               "name": "USER GROUP UPDATE",
-              "_postman_id": "f077217c-4177-4989-b053-59d119364166",
+              "id": "f077217c-4177-4989-b053-59d119364166",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -939,8 +923,7 @@
               "response": []
             }
           ],
-          "_postman_id": "695159a0-1c4b-4844-9998-31d00d55a92b",
-          "_postman_isSubFolder": true
+          "id": "695159a0-1c4b-4844-9998-31d00d55a92b"
         },
         {
           "name": "SPACE",
@@ -974,7 +957,7 @@
                   }
                 }
               ],
-              "_postman_id": "43f3336a-fe2c-433b-9f12-9b9c518b57a6",
+              "id": "43f3336a-fe2c-433b-9f12-9b9c518b57a6",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -1002,7 +985,7 @@
             },
             {
               "name": "SPACE LOAD",
-              "_postman_id": "34629a47-398a-483d-9008-050339be27fe",
+              "id": "34629a47-398a-483d-9008-050339be27fe",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -1034,20 +1017,31 @@
               "response": []
             }
           ],
-          "_postman_id": "1ef7cc43-850d-4db9-a66c-4216a70d114e",
-          "_postman_isSubFolder": true
+          "id": "1ef7cc43-850d-4db9-a66c-4216a70d114e"
         },
         {
           "name": "ENUMERATION",
           "item": [],
-          "_postman_id": "03745d16-5763-4e02-8bfc-0c28721f3e80",
-          "_postman_isSubFolder": true
+          "id": "03745d16-5763-4e02-8bfc-0c28721f3e80"
         },
         {
           "name": "TOPIC",
-          "item": [],
-          "_postman_id": "792d1f3c-b699-4d36-bf61-bbdb60a25982",
-          "_postman_isSubFolder": true
+          "item": [
+            {
+              "name": "TOPIC CREATE",
+              "id": "b0e6c944-5007-4424-b3bc-1449c7d39b6b",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": null
+              },
+              "response": []
+            }
+          ],
+          "id": "792d1f3c-b699-4d36-bf61-bbdb60a25982"
         },
         {
           "name": "PIPELINE",
@@ -1081,7 +1075,7 @@
                   }
                 }
               ],
-              "_postman_id": "cfd94970-db70-4c99-a0da-8a4d80f894cd",
+              "id": "cfd94970-db70-4c99-a0da-8a4d80f894cd",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -1109,7 +1103,7 @@
             },
             {
               "name": "PIPELINE LOAD",
-              "_postman_id": "3d88d558-5b26-452f-b5b0-57b35923acd4",
+              "id": "3d88d558-5b26-452f-b5b0-57b35923acd4",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -1142,17 +1136,15 @@
               "response": []
             }
           ],
-          "_postman_id": "13156c3c-75f0-4ae4-b8b6-aa856055618a",
-          "_postman_isSubFolder": true
+          "id": "13156c3c-75f0-4ae4-b8b6-aa856055618a"
         },
         {
           "name": "PIPELINE GRAPHIC",
           "item": [],
-          "_postman_id": "7dc3f01a-b535-4225-ae5a-74f0df01d407",
-          "_postman_isSubFolder": true
+          "id": "7dc3f01a-b535-4225-ae5a-74f0df01d407"
         }
       ],
-      "_postman_id": "22d9b007-f6be-4ee5-b4f3-89374c0d3578"
+      "id": "22d9b007-f6be-4ee5-b4f3-89374c0d3578"
     },
     {
       "name": "REACTOR",
@@ -1182,7 +1174,7 @@
                   }
                 }
               ],
-              "_postman_id": "0815a1f1-7240-4e21-91ed-a45b771f2189",
+              "id": "0815a1f1-7240-4e21-91ed-a45b771f2189",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -1202,10 +1194,7 @@
                       "value": "change-me",
                       "type": "text"
                     }
-                  ],
-                  "options": {
-                    "urlencoded": {}
-                  }
+                  ]
                 },
                 "url": "{{URL_PREFIX}}/login"
               },
@@ -1230,7 +1219,7 @@
                   }
                 }
               ],
-              "_postman_id": "c01dbb4c-7635-43e2-b9dd-0a8aab3382ec",
+              "id": "c01dbb4c-7635-43e2-b9dd-0a8aab3382ec",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -1278,7 +1267,7 @@
                   }
                 }
               ],
-              "_postman_id": "bc7cda35-dad5-4edc-830f-9ecae12b96d4",
+              "id": "bc7cda35-dad5-4edc-830f-9ecae12b96d4",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -1298,10 +1287,7 @@
                       "value": "1234abcd",
                       "type": "text"
                     }
-                  ],
-                  "options": {
-                    "urlencoded": {}
-                  }
+                  ]
                 },
                 "url": "{{URL_PREFIX}}/login"
               },
@@ -1309,7 +1295,7 @@
             },
             {
               "name": "CREATE TOPIC",
-              "_postman_id": "f0930857-d18f-44b8-8d58-3589083e8208",
+              "id": "f0930857-d18f-44b8-8d58-3589083e8208",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -1354,7 +1340,7 @@
                   }
                 }
               ],
-              "_postman_id": "e3c98e82-2f1b-48ee-adb2-c87adf7626bc",
+              "id": "e3c98e82-2f1b-48ee-adb2-c87adf7626bc",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -1382,7 +1368,7 @@
             },
             {
               "name": "UPDATE RAW",
-              "_postman_id": "4f090d72-9db9-45ab-afb6-46d494a434d4",
+              "id": "4f090d72-9db9-45ab-afb6-46d494a434d4",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -1409,11 +1395,10 @@
               "response": []
             }
           ],
-          "_postman_id": "f69ec778-cfd0-4bfc-a55d-34f9202dd099",
-          "_postman_isSubFolder": true
+          "id": "f69ec778-cfd0-4bfc-a55d-34f9202dd099"
         }
       ],
-      "_postman_id": "b4f1a636-e9ca-4463-a51c-53c4e2be3949"
+      "id": "b4f1a636-e9ca-4463-a51c-53c4e2be3949"
     }
   ]
 }
