@@ -9,6 +9,7 @@ from watchmen_utilities import ArrayHelper
 from .compiled_unit import compile_units, CompiledUnit
 from .runtime import CreateQueuePipeline, now, parse_prerequisite, parse_prerequisite_defined_as, PipelineVariables, \
 	spent_ms
+from ..pipeline_schema import TopicStorages
 
 logger = getLogger(__name__)
 
@@ -24,7 +25,7 @@ class CompiledStage:
 	def run(
 			self, variables: PipelineVariables,
 			new_pipeline: CreateQueuePipeline, monitor_log: PipelineMonitorLog,
-			principal_service: PrincipalService) -> bool:
+			storages: TopicStorages, principal_service: PrincipalService) -> bool:
 		stage_monitor_log = MonitorLogStage(
 			stageId=self.stage.stageId, name=self.stage.name,
 			status=MonitorLogStatus.DONE, startTime=now(), spentInMills=0, error=None,
@@ -45,7 +46,9 @@ class CompiledStage:
 
 				def run(should_run: bool, unit: CompiledUnit) -> bool:
 					return self.run_unit(
-						should_run, unit, variables, new_pipeline, stage_monitor_log, principal_service)
+						should_run=should_run, unit=unit, variables=variables, new_pipeline=new_pipeline,
+						stage_monitor_log=stage_monitor_log,
+						storages=storages, principal_service=principal_service)
 
 				all_run = ArrayHelper(self.units).reduce(lambda should_run, x: run(should_run, x), True)
 				if all_run:
@@ -67,12 +70,14 @@ class CompiledStage:
 			self, should_run: bool,
 			unit: CompiledUnit, variables: PipelineVariables,
 			new_pipeline: CreateQueuePipeline, stage_monitor_log: MonitorLogStage,
-			principal_service: PrincipalService
+			storages: TopicStorages, principal_service: PrincipalService
 	) -> bool:
 		if not should_run:
 			return False
 		else:
-			return unit.run(variables, new_pipeline, stage_monitor_log, principal_service)
+			return unit.run(
+				variables=variables, new_pipeline=new_pipeline, stage_monitor_log=stage_monitor_log,
+				storages=storages, principal_service=principal_service)
 
 
 def compile_stages(pipeline: Pipeline, principal_service: PrincipalService) -> List[CompiledStage]:

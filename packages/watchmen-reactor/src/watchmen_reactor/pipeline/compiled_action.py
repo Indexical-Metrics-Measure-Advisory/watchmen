@@ -18,6 +18,7 @@ from .runtime import CreateQueuePipeline, now, parse_action_defined_as, parse_pa
 	parse_prerequisite_defined_as, ParsedParameter, PipelineVariables, PrerequisiteDefinedAs, PrerequisiteTest, spent_ms
 from ..external_writer import ask_external_writer_creator, CreateExternalWriter, ExternalWriterParams
 from ..meta.external_writer_service import ExternalWriterService
+from ..pipeline_schema import TopicStorages
 
 logger = getLogger(__name__)
 
@@ -44,13 +45,15 @@ class CompiledAction:
 	def run(
 			self, variables: PipelineVariables,
 			new_pipeline: CreateQueuePipeline, unit_monitor_log: MonitorLogUnit,
-			principal_service: PrincipalService) -> bool:
+			storages: TopicStorages, principal_service: PrincipalService) -> bool:
 		"""
 		returns True means continue, False means something wrong occurred, break the following
 		"""
 		action_monitor_log = self.create_action_log(self.create_common_action_log())
 		unit_monitor_log.actions.append(action_monitor_log)
-		return self.do_run(variables, new_pipeline, action_monitor_log, principal_service)
+		return self.do_run(
+			variables=variables, new_pipeline=new_pipeline, action_monitor_log=action_monitor_log,
+			storages=storages, principal_service=principal_service)
 
 	# noinspection PyMethodMayBeStatic
 	def safe_run(self, action_monitor_log: MonitorLogAction, work: Callable[[], None]) -> bool:
@@ -74,7 +77,7 @@ class CompiledAction:
 	def do_run(
 			self, variables: PipelineVariables,
 			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorLogAction,
-			principal_service: PrincipalService) -> bool:
+			storages: TopicStorages, principal_service: PrincipalService) -> bool:
 		"""
 		returns True means continue, False means something wrong occurred, break the following
 		"""
@@ -114,7 +117,7 @@ class CompiledAlarmAction(CompiledAction):
 	def do_run(
 			self, variables: PipelineVariables,
 			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorLogAction,
-			principal_service: PrincipalService) -> bool:
+			storages: TopicStorages, principal_service: PrincipalService) -> bool:
 		try:
 			prerequisite = self.prerequisiteTest(variables, principal_service)
 			if not prerequisite:
@@ -156,7 +159,7 @@ class CompiledCopyToMemoryAction(CompiledAction):
 	def do_run(
 			self, variables: PipelineVariables,
 			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorCopyToMemoryAction,
-			principal_service: PrincipalService) -> bool:
+			storages: TopicStorages, principal_service: PrincipalService) -> bool:
 		def work() -> None:
 			value = self.parsedSource.value(variables, principal_service)
 			action_monitor_log.touched = value
@@ -206,7 +209,7 @@ class CompiledWriteToExternalAction(CompiledAction):
 	def do_run(
 			self, variables: PipelineVariables,
 			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorWriteToExternalAction,
-			principal_service: PrincipalService) -> bool:
+			storages: TopicStorages, principal_service: PrincipalService) -> bool:
 		return self.safe_run(action_monitor_log, lambda: self.write(variables, principal_service))
 
 	def create_action_log(self, common: Dict[str, Any]) -> MonitorWriteToExternalAction:
@@ -221,7 +224,7 @@ class CompiledReadTopicAction(CompiledAction):
 	def do_run(
 			self, variables: PipelineVariables,
 			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorLogAction,
-			principal_service: PrincipalService) -> bool:
+			storages: TopicStorages, principal_service: PrincipalService) -> bool:
 		# TODO run read topic action
 		pass
 
@@ -257,7 +260,7 @@ class CompiledWriteTopicAction(CompiledAction):
 	def do_run(
 			self, variables: PipelineVariables,
 			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorLogAction,
-			principal_service: PrincipalService) -> bool:
+			storages: TopicStorages, principal_service: PrincipalService) -> bool:
 		# TODO run write topic action
 		pass
 
@@ -289,7 +292,7 @@ class CompiledDeleteTopicAction(CompiledAction):
 	def do_run(
 			self, variables: PipelineVariables,
 			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorLogAction,
-			principal_service: PrincipalService) -> bool:
+			storages: TopicStorages, principal_service: PrincipalService) -> bool:
 		# TODO run delete topic action
 		pass
 

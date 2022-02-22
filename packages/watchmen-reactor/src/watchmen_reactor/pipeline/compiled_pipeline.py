@@ -111,8 +111,9 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 
 				def run(should_run: bool, stage: CompiledStage) -> bool:
 					return self.run_stage(
-						should_run, stage, variables,
-						created_pipeline_contexts, monitor_log, principal_service)
+						should_run=should_run, stage=stage, variables=variables,
+						created_pipeline_contexts=created_pipeline_contexts, monitor_log=monitor_log,
+						storages=storages, principal_service=principal_service)
 
 				all_run = ArrayHelper(self.stages).reduce(lambda should_run, x: run(should_run, x), True)
 				if all_run:
@@ -138,18 +139,19 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 			self, should_run: bool,
 			stage: CompiledStage, variables: PipelineVariables,
 			created_pipeline_contexts: CreatedPipelineContexts, monitor_log: PipelineMonitorLog,
-			principal_service: PrincipalService) -> bool:
+			storages: TopicStorages, principal_service: PrincipalService) -> bool:
 		if not should_run:
 			# ignored
 			return False
 		else:
 			def new_pipeline(pipeline: Pipeline, trigger: TopicTrigger) -> PipelineContext:
 				return created_pipeline_contexts.append(
-					pipeline=pipeline, trigger=trigger,
-					trace_id=monitor_log.trace_id,
+					pipeline=pipeline, trigger=trigger, trace_id=monitor_log.trace_id,
 					principal_service=principal_service)
 
-			return stage.run(variables, new_pipeline, monitor_log, principal_service)
+			return stage.run(
+				variables=variables, new_pipeline=new_pipeline, monitor_log=monitor_log,
+				storages=storages, principal_service=principal_service)
 
 
 class RuntimePipelineContext(PipelineContext):
