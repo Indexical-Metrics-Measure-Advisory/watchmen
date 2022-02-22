@@ -65,7 +65,7 @@ class PipelineTrigger:
 		else:
 			raise ReactorException(f'Trigger type[{self.triggerType}] is not supported.')
 
-	# noinspection PyMethodMayBeStatic
+	# noinspection PyMethodMayBeStatic,DuplicatedCode
 	def should_run(self, trigger_type: PipelineTriggerType, pipeline: Pipeline) -> bool:
 		if not pipeline.enabled:
 			return False

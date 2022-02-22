@@ -7,17 +7,17 @@ from typing import Any, Dict, List, Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_snowflake_generator
-from watchmen_model.admin import Pipeline, Topic
+from watchmen_model.admin import Pipeline, PipelineTriggerType
 from watchmen_model.reactor import MonitorLogStatus, PipelineMonitorLog, PipelineTriggerTraceId
 from watchmen_reactor.cache import CacheService
-from watchmen_reactor.common import ReactorException
-from watchmen_reactor.meta import TopicService
+from watchmen_reactor.meta import PipelineService, TopicService
 from watchmen_reactor.pipeline_schema import CompiledPipeline, PipelineContext, TopicStorages
 from watchmen_reactor.storage import TopicTrigger
 from watchmen_reactor.topic_schema import TopicSchema
-from watchmen_utilities import ArrayHelper, is_blank
+from watchmen_utilities import ArrayHelper
 from .compiled_stage import compile_stages, CompiledStage
-from .runtime import now, parse_prerequisite_in_memory, parse_prerequisite_defined_as, PipelineVariables, spent_ms
+from .runtime import now, parse_prerequisite_defined_as, parse_prerequisite_in_memory, PipelineVariables, spent_ms
+from ..common import ReactorException
 
 logger = getLogger(__name__)
 
@@ -26,36 +26,54 @@ def get_topic_service(principal_service: PrincipalService) -> TopicService:
 	return TopicService(principal_service)
 
 
+def get_pipeline_service(principal_service: PrincipalService) -> PipelineService:
+	return PipelineService(principal_service)
+
+
 class CreatedPipelineContexts:
 	contexts: List[PipelineContext] = []
 
+	# noinspection PyMethodMayBeStatic,DuplicatedCode
+	def should_run(self, trigger_type: PipelineTriggerType, pipeline: Pipeline) -> bool:
+		if not pipeline.enabled:
+			return False
+
+		if trigger_type == PipelineTriggerType.DELETE:
+			return pipeline.type == PipelineTriggerType.DELETE
+		elif trigger_type == PipelineTriggerType.INSERT:
+			return pipeline.type == PipelineTriggerType.INSERT or pipeline.type == PipelineTriggerType.INSERT_OR_MERGE
+		elif trigger_type == PipelineTriggerType.MERGE:
+			return pipeline.type == PipelineTriggerType.MERGE or pipeline.type == PipelineTriggerType.INSERT_OR_MERGE
+		elif trigger_type == PipelineTriggerType.INSERT_OR_MERGE:
+			return pipeline.type == PipelineTriggerType.INSERT_OR_MERGE
+		else:
+			raise ReactorException(f'Pipeline trigger type[{trigger_type}] is not supported.')
+
 	def append(
 			self,
-			pipeline: Pipeline, trigger: TopicTrigger, trace_id: PipelineTriggerTraceId,
+			schema: TopicSchema, trigger: TopicTrigger, trace_id: PipelineTriggerTraceId,
 			principal_service: PrincipalService
-	) -> PipelineContext:
-		topic_id = pipeline.topicId
-		if is_blank(topic_id):
-			raise ReactorException(
-				f'Topic is unspecified for pipeline[id={pipeline.pipelineId}, name={pipeline.name}].')
-		topic_service = get_topic_service(principal_service)
-		topic: Optional[Topic] = topic_service.find_by_id(topic_id)
-		if topic is None:
-			raise ReactorException(f'Topic[id={topic_id}] not found.')
-		schema: Optional[TopicSchema] = topic_service.find_schema_by_name(topic.name, principal_service.get_tenant_id())
-		if schema is None:
-			raise ReactorException(f'Topic schema[id={topic_id}, name={topic.name}] not found.')
+	) -> List[PipelineContext]:
+		topic = schema.get_topic()
+		pipelines = get_pipeline_service(principal_service).find_by_topic_id(topic.topicId)
+		if len(pipelines) == 0:
+			logger.warning(f'No pipeline needs to be triggered by topic[id={topic.topicId}, name={topic.name}].')
+			return []
 
-		context = RuntimePipelineContext(
-			pipeline=pipeline,
+		pipelines = ArrayHelper(pipelines) \
+			.filter(lambda x: self.should_run(trigger.triggerType, x)).to_list()
+		if len(pipelines) == 0:
+			logger.warning(f'No pipeline needs to be triggered by topic[id={topic.topicId}, name={topic.name}].')
+			return []
+
+		return ArrayHelper(pipelines).map(lambda x: RuntimePipelineContext(
+			pipeline=x,
 			trigger_topic_schema=schema,
 			previous_data=trigger.previous,
 			current_data=trigger.current,
 			principal_service=principal_service,
 			trace_id=trace_id
-		)
-		self.contexts.append(context)
-		return context
+		)).each(lambda x: self.contexts.append(x)).to_list()
 
 	def to_list(self):
 		return self.contexts
@@ -144,9 +162,9 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 			# ignored
 			return False
 		else:
-			def new_pipeline(pipeline: Pipeline, trigger: TopicTrigger) -> PipelineContext:
-				return created_pipeline_contexts.append(
-					pipeline=pipeline, trigger=trigger, trace_id=monitor_log.trace_id,
+			def new_pipeline(schema: TopicSchema, trigger: TopicTrigger) -> None:
+				created_pipeline_contexts.append(
+					schema=schema, trigger=trigger, trace_id=monitor_log.trace_id,
 					principal_service=principal_service)
 
 			return stage.run(

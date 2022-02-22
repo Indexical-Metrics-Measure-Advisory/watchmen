@@ -6,9 +6,12 @@ from typing import Any, Callable, Dict, List, Optional, Union
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import AlarmAction, AlarmActionSeverity, CopyToMemoryAction, DeleteTopicAction, \
-	DeleteTopicActionType, FindBy, FromTopic, is_raw_topic, Pipeline, PipelineAction, PipelineStage, PipelineUnit, \
+	DeleteTopicActionType, FindBy, FromTopic, is_raw_topic, MappingFactor, MappingRow, Pipeline, PipelineAction, \
+	PipelineStage, \
+	PipelineTriggerType, PipelineUnit, \
 	ReadTopicAction, \
-	ReadTopicActionType, SystemActionType, Topic, ToTopic, WriteToExternalAction, WriteTopicAction, WriteTopicActionType
+	ReadTopicActionType, SystemActionType, Topic, ToTopic, WriteFactorAction, WriteToExternalAction, WriteTopicAction, \
+	WriteTopicActionType
 from watchmen_model.common import ConstantParameter, ParameterKind
 from watchmen_model.reactor import MonitorAlarmAction, MonitorCopyToMemoryAction, MonitorDeleteAction, \
 	MonitorLogAction, MonitorLogStatus, MonitorLogUnit, MonitorReadAction, MonitorWriteAction, \
@@ -20,12 +23,13 @@ from watchmen_reactor.pipeline_schema import TopicStorages
 from watchmen_reactor.storage import RawTopicDataEntityHelper, RawTopicDataService, RegularTopicDataEntityHelper, \
 	RegularTopicDataService, \
 	TopicDataEntityHelper, \
-	TopicDataService
+	TopicDataService, TopicTrigger
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_utilities import ArrayHelper, is_blank
-from .runtime import CreateQueuePipeline, now, parse_action_defined_as, parse_condition_in_storage, \
-	parse_parameter_in_memory, parse_prerequisite_defined_as, parse_prerequisite_in_memory, ParsedMemoryParameter, \
-	ParsedStorageCondition, PipelineVariables, PrerequisiteDefinedAs, PrerequisiteTest, spent_ms
+from .runtime import CreateQueuePipeline, now, parse_action_defined_as, parse_condition_for_storage, \
+	parse_mapping_for_storage, parse_parameter_in_memory, parse_prerequisite_defined_as, parse_prerequisite_in_memory, \
+	ParsedMemoryParameter, \
+	ParsedStorageCondition, ParsedStorageMapping, PipelineVariables, PrerequisiteDefinedAs, PrerequisiteTest, spent_ms
 from ..cache import CacheService
 
 logger = getLogger(__name__)
@@ -244,17 +248,30 @@ class CompiledWriteToExternalAction(CompiledAction):
 
 # noinspection PyAbstractClass
 class CompiledStorageAction(CompiledAction):
-	topicSchema: Optional[TopicSchema] = None
+	schema: Optional[TopicSchema] = None
 	parsedFindBy: Optional[ParsedStorageCondition] = None
+	parsedMapping: Optional[ParsedStorageMapping] = None
 
 	def parse_topic_schema(self, action: Union[ToTopic, FromTopic], principal_service: PrincipalService) -> None:
-		self.topicSchema = find_topic_schema_for_action(action, principal_service)
+		self.schema = find_topic_schema_for_action(action, principal_service)
 
 	def parse_find_by(self, action: FindBy, principal_service: PrincipalService) -> None:
-		self.parsedFindBy = parse_condition_in_storage(action.by, principal_service)
+		self.parsedFindBy = parse_condition_for_storage(action.by, principal_service)
+
+	def parse_mapping_factors(
+			self, action: Union[ToTopic, FromTopic], factors: Optional[List[MappingFactor]],
+			principal_service: PrincipalService) -> None:
+		if self.schema is None:
+			self.parse_topic_schema(action, principal_service)
+		self.parsedMapping = parse_mapping_for_storage(self.schema, factors, principal_service)
+
+	def parse_mapping_row(self, action: MappingRow, principal_service: PrincipalService) -> None:
+		if not isinstance(action, ToTopic) and not isinstance(action, FromTopic):
+			raise ReactorException(f'Topic not declared in action[{action.dict()}].')
+		self.parse_mapping_factors(action, action.factors, principal_service)
 
 	def get_topic(self) -> Optional[Topic]:
-		return self.topicSchema.get_topic() if self.topicSchema is not None else None
+		return self.schema.get_topic() if self.schema is not None else None
 
 	def on_topic_message(self) -> str:
 		topic = self.get_topic()
@@ -327,22 +344,48 @@ class CompiledExistsAction(CompiledReadTopicAction):
 
 class CompiledWriteTopicAction(CompiledStorageAction):
 	def parse_action(self, action: WriteTopicAction, principal_service: PrincipalService) -> None:
-		# TODO parse write topic action
-		pass
-
-	def do_run(
-			self, variables: PipelineVariables,
-			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorLogAction,
-			storages: TopicStorages, principal_service: PrincipalService) -> bool:
-		# TODO run write topic action
-		pass
+		self.parse_topic_schema(action, principal_service)
+		if isinstance(action, FindBy):
+			# insert row action has no find by
+			self.parse_find_by(action, principal_service)
+		if isinstance(action, MappingRow):
+			self.parse_mapping_row(action, principal_service)
+		if isinstance(action, WriteFactorAction):
+			# make it as single factor mapping
+			mapping_factors = [MappingFactor(
+				arithmetic=action.arithmetic,
+				factorId=action.factorId,
+				source=action.source
+			)]
+			self.parse_mapping_factors(action, mapping_factors, principal_service)
 
 	def create_action_log(self, common: Dict[str, Any]) -> MonitorWriteAction:
 		return MonitorWriteAction(**common, by=None, value=None)
 
 
 class CompiledInsertRowAction(CompiledWriteTopicAction):
-	pass
+	def do_run(
+			self, variables: PipelineVariables, new_pipeline: CreateQueuePipeline,
+			action_monitor_log: MonitorWriteAction, storages: TopicStorages,
+			principal_service: PrincipalService) -> bool:
+		def work() -> None:
+			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
+			data = self.parsedMapping.run(variables, principal_service)
+			data = topic_data_service.insert(data)
+			action_monitor_log.insertCount = 1
+			action_monitor_log.touched = [data]
+			# new pipeline
+			has_id, id_ = topic_data_service.get_data_entity_helper().find_data_id(data)
+			new_pipeline(self.schema, TopicTrigger(
+				previous=None,
+				current=data,
+				triggerType=PipelineTriggerType.INSERT,
+				internalDataId=id_
+			))
+
+		# TODO new pipeline
+
+		return self.safe_run(action_monitor_log, work)
 
 
 class CompiledInsertOrMergeRowAction(CompiledWriteTopicAction):
@@ -374,7 +417,7 @@ class CompiledDeleteRowAction(CompiledDeleteTopicAction):
 			principal_service: PrincipalService) -> bool:
 		def work() -> None:
 			topic_data_service = self.ask_topic_data_service(
-				schema=self.topicSchema, storages=storages, principal_service=principal_service)
+				schema=self.schema, storages=storages, principal_service=principal_service)
 			statement = self.parsedFindBy.run(variables, principal_service)
 			action_monitor_log.findBy = statement.to_dict()
 			data = topic_data_service.find(criteria=[statement])
@@ -388,6 +431,15 @@ class CompiledDeleteRowAction(CompiledDeleteTopicAction):
 				if delete_count == 0:
 					raise ReactorException(
 						f'Data not found on do deletion, {self.on_topic_message()}, by [{criteria}].')
+				else:
+					# new pipeline
+					has_id, id_ = topic_data_service.get_data_entity_helper().find_data_id(data[0])
+					new_pipeline(self.schema, TopicTrigger(
+						previous=data[0],
+						current=None,
+						triggerType=PipelineTriggerType.DELETE,
+						internalDataId=id_
+					))
 			action_monitor_log.deleteCount = 1
 			action_monitor_log.touched = data
 
@@ -401,7 +453,7 @@ class CompiledDeleteRowsAction(CompiledDeleteTopicAction):
 			principal_service: PrincipalService) -> bool:
 		def work() -> None:
 			topic_data_service = self.ask_topic_data_service(
-				schema=self.topicSchema, storages=storages, principal_service=principal_service)
+				schema=self.schema, storages=storages, principal_service=principal_service)
 			statement = self.parsedFindBy.run(variables, principal_service)
 			action_monitor_log.findBy = statement.to_dict()
 			data = topic_data_service.find(criteria=[statement])
@@ -416,6 +468,14 @@ class CompiledDeleteRowsAction(CompiledDeleteTopicAction):
 							f'Bulk deletion stopped.')
 					else:
 						touched.append(row)
+						# new pipeline
+						has_id, id_ = topic_data_service.get_data_entity_helper().find_data_id(data[0])
+						new_pipeline(self.schema, TopicTrigger(
+							previous=data[0],
+							current=None,
+							triggerType=PipelineTriggerType.DELETE,
+							internalDataId=id_
+						))
 			finally:
 				# log done information
 				action_monitor_log.deleteCount = len(touched)
