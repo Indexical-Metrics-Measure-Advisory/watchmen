@@ -184,6 +184,16 @@ class TopicDataService:
 		finally:
 			storage.close()
 
+	def exists(self, criteria: EntityCriteria) -> bool:
+		data_entity_helper = self.get_data_entity_helper()
+		storage = self.get_storage()
+		try:
+			storage.connect()
+			# TODO exists in storage
+			return storage.exists(data_entity_helper.get_entity_finder(criteria))
+		finally:
+			storage.close()
+
 	def find(self, criteria: EntityCriteria) -> List[Dict[str, Any]]:
 		data_entity_helper = self.get_data_entity_helper()
 		storage = self.get_storage()
@@ -222,7 +232,7 @@ class TopicDataService:
 		finally:
 			storage.close()
 
-	def build_version_criteria(self, data: Dict[str, Any]) -> EntityCriteria:
+	def build_id_version_criteria(self, data: Dict[str, Any]) -> EntityCriteria:
 		data_entity_helper = self.get_data_entity_helper()
 		criteria: EntityCriteria = []
 		by_id = data_entity_helper.build_id_criteria(data)
@@ -239,16 +249,18 @@ class TopicDataService:
 		"""
 		version + 1, assign audit columns.
 		rollback version when update nothing
+		given data must contain all columns
 		"""
 		data_entity_helper = self.get_data_entity_helper()
-		criteria = self.build_version_criteria(data)
+		criteria = self.build_id_version_criteria(data)
 		current_version = data_entity_helper.find_version(data)
 		# increase version
 		data_entity_helper.assign_version(data, current_version + 1)
 		storage = self.get_storage()
 		try:
 			storage.connect()
-			updated_count = storage.update_only(data_entity_helper.get_entity_updater(criteria, data))
+			updated_count = storage.update_only(
+				data_entity_helper.get_entity_updater(criteria, data_entity_helper.serialize_to_storage(data)))
 			if updated_count == 0:
 				# rollback version
 				data_entity_helper.assign_version(data, current_version)
@@ -262,7 +274,7 @@ class TopicDataService:
 		otherwise, id and version are mandatory
 		"""
 		data_entity_helper = self.get_data_entity_helper()
-		criteria = self.build_version_criteria(data)
+		criteria = self.build_id_version_criteria(data)
 		storage = self.get_storage()
 		try:
 			storage.connect()

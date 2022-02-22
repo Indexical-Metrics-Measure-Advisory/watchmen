@@ -20,6 +20,9 @@ logger = getLogger(__name__)
 
 
 class StorageMySQL(TransactionalStorageSPI):
+	"""
+	name in update, criteria, sort must be serialized to column name, otherwise behavior cannot be predicated
+	"""
 	connection: Connection = None
 
 	def __init__(self, engine: Engine):
