@@ -6,7 +6,7 @@ from typing import Any, Callable, Dict, List, Optional, Union
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import AlarmAction, AlarmActionSeverity, CopyToMemoryAction, DeleteTopicAction, \
-	DeleteTopicActionType, FromTopic, is_raw_topic, Pipeline, PipelineAction, PipelineStage, PipelineUnit, \
+	DeleteTopicActionType, FindBy, FromTopic, is_raw_topic, Pipeline, PipelineAction, PipelineStage, PipelineUnit, \
 	ReadTopicAction, \
 	ReadTopicActionType, SystemActionType, Topic, ToTopic, WriteToExternalAction, WriteTopicAction, WriteTopicActionType
 from watchmen_model.common import ConstantParameter, ParameterKind
@@ -244,6 +244,22 @@ class CompiledWriteToExternalAction(CompiledAction):
 
 # noinspection PyAbstractClass
 class CompiledStorageAction(CompiledAction):
+	topicSchema: Optional[TopicSchema] = None
+	parsedFindBy: Optional[ParsedStorageCondition] = None
+
+	def parse_topic_schema(self, action: Union[ToTopic, FromTopic], principal_service: PrincipalService) -> None:
+		self.topicSchema = find_topic_schema_for_action(action, principal_service)
+
+	def parse_find_by(self, action: FindBy, principal_service: PrincipalService) -> None:
+		self.parsedFindBy = parse_condition_in_storage(action.by, principal_service)
+
+	def get_topic(self) -> Optional[Topic]:
+		return self.topicSchema.get_topic() if self.topicSchema is not None else None
+
+	def on_topic_message(self) -> str:
+		topic = self.get_topic()
+		return f'on topic[id={topic.topicId}, name={topic.name}]' if topic is not None else ''
+
 	# noinspection PyMethodMayBeStatic,DuplicatedCode
 	def ask_topic_data_entity_helper(self, schema: TopicSchema) -> TopicDataEntityHelper:
 		"""
@@ -343,12 +359,9 @@ class CompiledWriteFactorAction(CompiledWriteTopicAction):
 
 # noinspection PyAbstractClass
 class CompiledDeleteTopicAction(CompiledStorageAction):
-	topicSchema: Optional[TopicSchema] = None
-	parsedFindBy: Optional[ParsedStorageCondition] = None
-
 	def parse_action(self, action: DeleteTopicAction, principal_service: PrincipalService) -> None:
-		self.topicSchema = find_topic_schema_for_action(action, principal_service)
-		self.parsedFindBy = parse_condition_in_storage(action.by, principal_service)
+		self.parse_topic_schema(action, principal_service)
+		self.parse_find_by(action, principal_service)
 
 	def create_action_log(self, common: Dict[str, Any]) -> MonitorDeleteAction:
 		return MonitorDeleteAction(**common, by=None, value=None)
@@ -371,9 +384,10 @@ class CompiledDeleteRowAction(CompiledDeleteTopicAction):
 			elif count != 1:
 				raise ReactorException(f'Too many data found, expect one but {count} found.')
 			else:
-				delete_count = topic_data_service.delete_by_id_and_version(data[0])
+				delete_count, criteria = topic_data_service.delete_by_id_and_version(data[0])
 				if delete_count == 0:
-					raise ReactorException('Data not found on do deletion.')
+					raise ReactorException(
+						f'Data not found on do deletion, {self.on_topic_message()}, by [{criteria}].')
 			action_monitor_log.deleteCount = 1
 			action_monitor_log.touched = data
 
@@ -390,10 +404,17 @@ class CompiledDeleteRowsAction(CompiledDeleteTopicAction):
 				schema=self.topicSchema, storages=storages, principal_service=principal_service)
 			statement = self.parsedFindBy.run(variables, principal_service)
 			action_monitor_log.findBy = statement.to_dict()
-			# bulk delete
-			data = topic_data_service.delete_and_pull(criteria=[statement])
-			action_monitor_log.deleteCount = len(data)
-			action_monitor_log.touched = data
+			data = topic_data_service.find(criteria=[statement])
+			touched = []
+			for row in data:
+				delete_count, criteria = topic_data_service.delete_by_id_and_version(row)
+				if delete_count == 0:
+					raise ReactorException(
+						f'Data not found on do deletion, {self.on_topic_message()}, by [{criteria}].')
+				else:
+					touched.append(row)
+			action_monitor_log.deleteCount = len(touched)
+			action_monitor_log.touched = touched
 
 		return self.safe_run(action_monitor_log, work)
 

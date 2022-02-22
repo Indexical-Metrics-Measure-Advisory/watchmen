@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from datetime import datetime
 from logging import getLogger
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_snowflake_generator
@@ -193,7 +193,7 @@ class TopicDataService:
 		finally:
 			storage.close()
 
-	def delete_by_id_and_version(self, data: Dict[str, Any]) -> int:
+	def delete_by_id_and_version(self, data: Dict[str, Any]) -> Tuple[int, EntityCriteria]:
 		"""
 		for raw, since there is no version column, will be ignored.
 		otherwise, id and version are mandatory
@@ -212,6 +212,6 @@ class TopicDataService:
 		storage = self.get_storage()
 		try:
 			storage.connect()
-			return storage.delete(data_entity_helper.get_entity_deleter(criteria))
+			return storage.delete(data_entity_helper.get_entity_deleter(criteria)), criteria
 		finally:
 			storage.close()
