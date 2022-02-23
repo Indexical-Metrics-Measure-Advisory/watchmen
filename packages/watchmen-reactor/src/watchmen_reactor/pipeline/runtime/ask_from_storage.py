@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from datetime import date
+from decimal import Decimal
 from re import findall
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
@@ -10,12 +11,13 @@ from watchmen_model.admin import AggregateArithmetic, Factor, is_raw_topic, Mapp
 from watchmen_model.common import ComputedParameter, ConstantParameter, FactorId, Parameter, ParameterComputeType, \
 	ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, \
 	ParameterKind, TopicFactorParameter, TopicId, VariablePredefineFunctions
+from watchmen_model.reactor import TopicDataColumnNames
 from watchmen_reactor.common import ReactorException
 from watchmen_reactor.meta import TopicService
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_storage import ComputedLiteral, ComputedLiteralOperator, EntityCriteriaExpression, EntityCriteriaJoint, \
 	EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, FullQualifiedLiteral, Literal
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_decimal
 from .ask_from_memory import assert_parameter_count, create_ask_factor_value, parse_parameter_in_memory
 from .topic_utils import ask_topic_data_entity_helper
 from .utils import always_none, compute_date_diff, create_from_previous_trigger_data, \
@@ -610,17 +612,109 @@ class ParsedStorageMappingFactor:
 			raise ReactorException(
 				f'Factor[id={factor_id}] in topic[id={topic.topicId}, name={topic.name}] not found.')
 		self.factor = factor
-		self.columnName = factor.name.strip().lower()
 		if mapping_factor.source is None:
 			raise ReactorException('Source of mapping factor not declared.')
 		# parameter in mapping factor always retrieve value from variables
 		self.parsedParameter = parse_parameter_in_memory(mapping_factor.source, principal_service)
 
-	def run(self, variables: PipelineVariables, principal_service: PrincipalService) -> Tuple[str, Any]:
+	# noinspection PyMethodMayBeStatic
+	def get_aggregate_assist_column(self, data: Dict[str, Any], return_default: bool):
+		value = data.get(TopicDataColumnNames.AGGREGATE_ASSIST.value)
+		return {} if return_default and value is None else value
+
+	# noinspection PyMethodMayBeStatic
+	def set_aggregate_assist_column(self, data: Dict[str, Any], assist: Dict[str, Decimal]) -> None:
+		data[TopicDataColumnNames.AGGREGATE_ASSIST.value] = assist
+
+	def set_aggregate_assist_avg_count(self, data: Dict[str, Any], value: int) -> None:
+		assist = self.get_aggregate_assist_column(data, True)
+		assist[f'{self.factor.name}.avg_count'] = value
+		self.set_aggregate_assist_column(data, assist)
+
+	def get_aggregate_assist_avg_count(self, data: Dict[str, Any]) -> int:
+		assist = self.get_aggregate_assist_column(data, True)
+		value = assist.get(f'{self.factor.name}.avg_count')
+		parsed, decimal_value = is_decimal(value)
+		return decimal_value if parsed else 0
+
+	def get_original_value(self, original_data: Optional[Dict[str, Any]]) -> int:
+		"""
+		return 0 when not found or cannot be parsed to decimal
+		"""
+		value = original_data.get(self.factor.name)
+		parsed, decimal_value = is_decimal(value)
+		if parsed:
+			return int(decimal_value)
+		else:
+			return 0
+
+	def compute_current_value(self, variables: PipelineVariables, principal_service: PrincipalService) -> Decimal:
 		value = self.parsedParameter.value(variables, principal_service)
-		# TODO parse factor value to applicable type
-		name = self.columnName
-		return name, value
+		parsed, decimal_value = is_decimal(value)
+		decimal_value = 0 if not parsed else decimal_value
+		return decimal_value
+
+	def compute_previous_and_current_value(
+			self, variables: PipelineVariables, principal_service: PrincipalService) -> Tuple[Decimal, Decimal]:
+		previous_value = self.parsedParameter.value(variables.backward_to_previous(), principal_service)
+		parsed, previous_decimal_value = is_decimal(previous_value)
+		previous_decimal_value = 0 if not parsed else previous_decimal_value
+		return previous_decimal_value, self.compute_current_value(variables, principal_service)
+
+	def run(
+			self, data: Dict[str, Any], original_data: Optional[Dict[str, Any]], variables: PipelineVariables,
+			principal_service: PrincipalService
+	) -> Tuple[str, Any]:
+		if self.arithmetic == AggregateArithmetic.SUM:
+			if original_data is None:
+				# the very first time to insert this, simply set as value
+				value = self.parsedParameter.value(variables, principal_service)
+			elif not variables.has_previous_trigger_data():
+				# it used to be triggered, find previous value, subtract it and add current value
+				previous_value, current_value = self.compute_previous_and_current_value(variables, principal_service)
+				value = self.get_original_value(original_data) - previous_value + current_value
+			else:
+				# data is triggered at first time, find original value, add current value
+				current_value = self.compute_current_value(variables, principal_service)
+				original_value = self.get_original_value(original_data)
+				value = current_value + original_value
+		elif self.arithmetic == AggregateArithmetic.AVG:
+			if original_data is None:
+				# the very first time to insert this, simply set as value
+				value = self.parsedParameter.value(variables, principal_service)
+				self.set_aggregate_assist_avg_count(data, 1)
+			elif not variables.has_previous_trigger_data():
+				# it used to be triggered, find previous value and avg count in original data, to compute the new avg
+				previous_value, current_value = self.compute_previous_and_current_value(variables, principal_service)
+				count = self.get_aggregate_assist_avg_count(original_data)
+				count = 1 if count == 0 else count
+				original_value = self.get_original_value(original_data)
+				value = (original_value * count + current_value - previous_value) / count
+				self.set_aggregate_assist_avg_count(data, count)
+			else:
+				# data is triggered at first time, find original value, add current value
+				current_value = self.compute_current_value(variables, principal_service)
+				count = self.get_aggregate_assist_avg_count(original_data)
+				count = 1 if count == 0 else count
+				original_value = self.get_original_value(original_data)
+				value = (original_value * count + current_value) / (count + 1)
+				self.set_aggregate_assist_avg_count(data, count + 1)
+		elif self.arithmetic == AggregateArithmetic.COUNT:
+			if original_data is None:
+				# the very first time to insert this, count always be 1
+				value = 1
+			elif not variables.has_previous_trigger_data():
+				# it used to be triggered, ignored
+				value = self.get_original_value(original_data)
+				# but when there is some incorrect value already saved, correct it to 1
+				value = 1 if value == 0 else value
+			else:
+				# data is triggered at first time, count + 1
+				value = self.get_original_value(original_data) + 1
+		else:
+			# TODO parse factor value to applicable type
+			value = self.parsedParameter.value(variables, principal_service)
+		return self.factor.name, value
 
 
 class ParsedStorageMapping:
@@ -635,17 +729,20 @@ class ParsedStorageMapping:
 		self.parsedMappingFactors = ArrayHelper(mapping).map(
 			lambda x: ParsedStorageMappingFactor(schema, x, principal_service)).to_list()
 
-	def run(self, variables: PipelineVariables, principal_service: PrincipalService) -> Dict[str, Any]:
-		# TODO need original value when there are aggregation existing
+	def run(
+			self,
+			original_data: Optional[Dict[str, Any]], variables: PipelineVariables,
+			principal_service: PrincipalService
+	) -> Dict[str, Any]:
 		return ArrayHelper(self.parsedMappingFactors).reduce(
-			lambda data, x: self.run_factor(data, x, variables, principal_service), {})
+			lambda data, x: self.run_factor(data, x, original_data, variables, principal_service), {})
 
 	# noinspection PyMethodMayBeStatic
 	def run_factor(
 			self, data: Dict[str, Any], parsed_factor: ParsedStorageMappingFactor,
-			variables: PipelineVariables, principal_service: PrincipalService) -> Dict[str, Any]:
-		key, value = parsed_factor.run(variables, principal_service)
-		data[key] = value
+			original_data: Optional[Dict[str, Any]], variables: PipelineVariables,
+			principal_service: PrincipalService) -> Dict[str, Any]:
+		parsed_factor.run(data, original_data, variables, principal_service)
 		return data
 
 

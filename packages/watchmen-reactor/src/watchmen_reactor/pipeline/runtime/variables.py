@@ -23,6 +23,9 @@ class PipelineVariables:
 	def find_from_current_data(self, name: str) -> Optional[Any]:
 		return self.currentData.get(name)
 
+	def has_previous_trigger_data(self) -> bool:
+		return self.previousData is not None
+
 	def get_previous_trigger_data(self) -> Optional[Dict[str, Any]]:
 		return self.previousData
 
@@ -35,3 +38,11 @@ class PipelineVariables:
 		cloned = PipelineVariables(deepcopy(self.previousData), deepcopy(self.currentData))
 		cloned.variables = deepcopy(self.variables)
 		return cloned
+
+	def backward_to_previous(self):
+		"""
+		not cloned, assume it will not be changed
+		"""
+		backed = PipelineVariables(None, self.previousData)
+		backed.variables = self.variables
+		return backed
