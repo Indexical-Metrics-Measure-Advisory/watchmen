@@ -7,19 +7,21 @@ from re import findall
 from typing import Any, Callable, List, Optional, Tuple, Union
 
 from watchmen_auth import PrincipalService
-from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import Conditional, Factor, Topic
 from watchmen_model.common import ComputedParameter, ConstantParameter, Parameter, ParameterComputeType, \
 	ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, \
 	TopicFactorParameter, VariablePredefineFunctions
 from watchmen_reactor.common import ask_all_date_formats, ask_time_formats, ReactorException
 from watchmen_reactor.meta import TopicService
-from watchmen_utilities import ArrayHelper, get_day_of_month, get_day_of_week, get_half_year, get_month, get_quarter, \
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, get_day_of_month, get_day_of_week, \
+	get_half_year, get_month, get_quarter, \
 	get_week_of_month, get_week_of_year, get_year, greater_or_equals_date, greater_or_equals_decimal, \
-	greater_or_equals_time, is_blank, is_date, is_date_or_time_instance, is_empty, is_not_empty, is_numeric_instance, \
+	greater_or_equals_time, is_blank, is_date_or_time_instance, is_empty, is_not_empty, is_numeric_instance, \
 	less_or_equals_date, less_or_equals_decimal, less_or_equals_time, month_diff, truncate_time, try_to_date, \
 	try_to_decimal, value_equals, value_not_equals, year_diff
-from .utils import always_none, get_value_from
+from .utils import always_none, create_from_previous_trigger_data, create_get_from_variables_with_prefix, \
+	create_previous_trigger_data, create_snowflake_generator, create_static_str, get_date_from_variables, \
+	get_value_from, test_date
 from .variables import PipelineVariables
 
 
@@ -407,81 +409,9 @@ class ParsedMemoryTopicFactorParameter(ParsedMemoryParameter):
 		return self.askValue(variables, principal_service)
 
 
-def create_static_str(value: str) -> Callable[[PipelineVariables, PrincipalService], Any]:
-	# noinspection PyUnusedLocal
-	def get_static_str(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
-		return value
-
-	return get_static_str
-
-
-def create_snowflake_generator(prefix: str) -> Callable[[PipelineVariables, PrincipalService], Any]:
-	# noinspection PyUnusedLocal
-	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
-		value = ask_snowflake_generator().next_id()
-		return value if is_blank(prefix) else f'{prefix}{value}'
-
-	return action
-
-
-def create_previous_trigger_data(prefix: str) -> Callable[[PipelineVariables, PrincipalService], Any]:
-	# noinspection PyUnusedLocal
-	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
-		previous_data = variables.get_previous_trigger_data()
-		return previous_data if is_blank(prefix) else f'{prefix}{previous_data}'
-
-	return action
-
-
-def create_from_previous_trigger_data(prefix, name: str) -> Callable[[PipelineVariables, PrincipalService], Any]:
-	names = name.strip().split('.')
-
-	# noinspection PyUnusedLocal
-	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
-		previous_data = variables.get_previous_trigger_data()
-		value = get_value_from(name, names, lambda x: previous_data.get(x))
-		return value if is_blank(prefix) else f'{prefix}{value}'
-
-	return action
-
-
-def create_get_value_from_variables(variables: PipelineVariables) -> Callable[[str], Any]:
-	"""
-	recursive is not supported
-	"""
-
-	def get_value(name: str) -> Any:
-		if variables.has(name):
-			return variables.find(name)
-		else:
-			return variables.find_from_current_data(name)
-
-	return get_value
-
-
-def create_get_from_variables_with_prefix(prefix, name: str) -> Callable[[PipelineVariables, PrincipalService], Any]:
-	names = name.strip().split('.')
-
-	# noinspection PyUnusedLocal
-	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
-		value = get_value_from(name, names, create_get_value_from_variables(variables))
-		return value if is_blank(prefix) else f'{prefix}{value}'
-
-	return action
-
-
-# noinspection PyUnusedLocal
-def get_date_from_variables(
-		variables: PipelineVariables, principal_service: PrincipalService, variable_name: str
-) -> Tuple[bool, Any, date]:
-	value = get_value_from(
-		variable_name, variable_name.strip().split('.'), create_get_value_from_variables(variables))
-	parsed, parsed_date = is_date(value, ask_all_date_formats())
-	return parsed, value, parsed_date
-
-
+# noinspection DuplicatedCode
 def create_date_diff(
-		variable_name: str, function: VariablePredefineFunctions
+		prefix: str, variable_name: str, function: VariablePredefineFunctions
 ) -> Callable[[PipelineVariables, PrincipalService], Any]:
 	parsed = findall(f'^({function.value})\\s*\\((.+),(.+)\\)$', variable_name)
 	if len(parsed) != 1:
@@ -490,8 +420,8 @@ def create_date_diff(
 	start_variable_name = parsed[0][2]
 	if is_blank(end_variable_name) or is_blank(start_variable_name):
 		raise ReactorException(f'Constant[{variable_name}] is not supported.')
-	end_parsed, end_date = is_date(end_variable_name, ask_all_date_formats())
-	start_parsed, start_date = is_date(start_variable_name, ask_all_date_formats())
+	end_parsed, end_date = test_date(end_variable_name)
+	start_parsed, start_date = test_date(start_variable_name)
 	if end_parsed and start_parsed:
 		# noinspection PyUnusedLocal
 		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
@@ -504,6 +434,7 @@ def create_date_diff(
 			else:
 				raise ReactorException(f'Constant[{variable_name}] is not supported.')
 	else:
+		# noinspection DuplicatedCode
 		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
 			if not end_parsed:
 				e_parsed, e_value, e_date = get_date_from_variables(variables, principal_service, end_variable_name)
@@ -526,22 +457,35 @@ def create_date_diff(
 			else:
 				raise ReactorException(f'Constant[{variable_name}] is not supported.')
 
-	return action
+	def run(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+		value = action(variables, principal_service)
+		if is_blank(prefix):
+			return value
+		else:
+			return f'{prefix}{value}'
+
+	return run
 
 
+# noinspection DuplicatedCode
 def create_run_constant_segment(segment: Tuple[str, str]) -> Callable[[PipelineVariables, PrincipalService], Any]:
 	prefix, variable_name = segment
 	if variable_name == VariablePredefineFunctions.NEXT_SEQ.value:
 		return create_snowflake_generator(prefix)
+	elif variable_name == VariablePredefineFunctions.NOW.value:
+		return lambda variables, principal_service: get_current_time_in_seconds()
 	elif variable_name.startswith(VariablePredefineFunctions.YEAR_DIFF.value):
-		return create_date_diff(variable_name, VariablePredefineFunctions.YEAR_DIFF)
+		return create_date_diff(prefix, variable_name, VariablePredefineFunctions.YEAR_DIFF)
 	elif variable_name.startswith(VariablePredefineFunctions.MONTH_DIFF.value):
-		return create_date_diff(variable_name, VariablePredefineFunctions.MONTH_DIFF)
+		return create_date_diff(prefix, variable_name, VariablePredefineFunctions.MONTH_DIFF)
 	elif variable_name.startswith(VariablePredefineFunctions.DAY_DIFF.value):
-		return create_date_diff(variable_name, VariablePredefineFunctions.DAY_DIFF)
+		return create_date_diff(prefix, variable_name, VariablePredefineFunctions.DAY_DIFF)
 	elif variable_name.startswith(VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA.value):
 		if variable_name == VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA.value:
-			return create_previous_trigger_data(prefix)
+			if is_blank(prefix):
+				return create_previous_trigger_data()
+			else:
+				raise ReactorException(f'Previous trigger data is a dict, cannot prefix by a string[{prefix}].')
 		length = len(VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA.value)
 		if len(variable_name) < length + 2 or variable_name[length:length + 1] != '.':
 			raise ReactorException(f'Constant[{variable_name}] is not supported.')
@@ -574,12 +518,13 @@ def create_ask_constant_value(segments: List[Tuple[str, str]]) -> Callable[[Pipe
 class ParsedMemoryConstantParameter(ParsedMemoryParameter):
 	askValue: Callable[[PipelineVariables, PrincipalService], Any] = None
 
+	# noinspection DuplicatedCode
 	def parse(self, parameter: ConstantParameter, principal_service: PrincipalService) -> None:
 		value = parameter.value
 		if value is None:
 			self.askValue = always_none
 		elif len(value) == 0:
-			self.askValue = create_static_str('')
+			self.askValue = always_none
 		elif is_blank(value):
 			self.askValue = create_static_str(value)
 		elif '{' not in value or '}' not in value:

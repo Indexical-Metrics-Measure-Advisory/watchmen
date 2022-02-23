@@ -46,6 +46,7 @@ class VariablePredefineFunctions(str, Enum):
 	DAY_DIFF = '&dayDiff',
 	MONTH_DIFF = '&monthDiff',
 	YEAR_DIFF = '&yearDiff'
+	NOW = '&now'
 
 
 class ConstantParameter(Parameter):

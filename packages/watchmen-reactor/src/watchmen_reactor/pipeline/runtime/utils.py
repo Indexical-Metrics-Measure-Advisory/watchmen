@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+from datetime import date
 from decimal import Decimal
-from typing import Any, Callable, List
+from typing import Any, Callable, List, Optional, Tuple
 
 from watchmen_auth import PrincipalService
+from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.common import VariablePredefineFunctions
-from watchmen_reactor.common import ReactorException
-from watchmen_utilities import ArrayHelper, try_to_decimal
+from watchmen_reactor.common import ask_all_date_formats, ReactorException
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_date, try_to_decimal
 from .variables import PipelineVariables
 
 
@@ -71,3 +73,81 @@ def get_value_from(name: str, names: List[str], get_first: Callable[[str], Any])
 # noinspection PyUnusedLocal
 def always_none(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
 	return None
+
+
+def create_static_str(value: str) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	# noinspection PyUnusedLocal
+	def get_static_str(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+		return value
+
+	return get_static_str
+
+
+def create_snowflake_generator(prefix: str) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	# noinspection PyUnusedLocal
+	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+		value = ask_snowflake_generator().next_id()
+		return value if is_blank(prefix) else f'{prefix}{value}'
+
+	return action
+
+
+def create_previous_trigger_data() -> Callable[[PipelineVariables, PrincipalService], Any]:
+	# noinspection PyUnusedLocal
+	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+		return variables.get_previous_trigger_data()
+
+	return action
+
+
+def create_from_previous_trigger_data(prefix, name: str) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	names = name.strip().split('.')
+
+	# noinspection PyUnusedLocal
+	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+		previous_data = variables.get_previous_trigger_data()
+		value = get_value_from(name, names, lambda x: previous_data.get(x))
+		return value if is_blank(prefix) else f'{prefix}{value}'
+
+	return action
+
+
+def create_get_value_from_variables(variables: PipelineVariables) -> Callable[[str], Any]:
+	"""
+	recursive is not supported
+	"""
+
+	def get_value(name: str) -> Any:
+		if variables.has(name):
+			return variables.find(name)
+		else:
+			return variables.find_from_current_data(name)
+
+	return get_value
+
+
+def create_get_from_variables_with_prefix(prefix, name: str) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	names = name.strip().split('.')
+
+	# noinspection PyUnusedLocal
+	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+		value = get_value_from(name, names, create_get_value_from_variables(variables))
+		return value if is_blank(prefix) else f'{prefix}{value}'
+
+	return action
+
+
+def test_date(variable_name: str) -> Tuple[bool, Optional[date]]:
+	if variable_name == VariablePredefineFunctions.NOW:
+		return True, get_current_time_in_seconds()
+	else:
+		return is_date(variable_name, ask_all_date_formats())
+
+
+# noinspection PyUnusedLocal
+def get_date_from_variables(
+		variables: PipelineVariables, principal_service: PrincipalService, variable_name: str
+) -> Tuple[bool, Any, date]:
+	value = get_value_from(variable_name, variable_name.strip().split('.'), create_get_value_from_variables(variables))
+	parsed, parsed_date = is_date(value, ask_all_date_formats())
+	return parsed, value, parsed_date

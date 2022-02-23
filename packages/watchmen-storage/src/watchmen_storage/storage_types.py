@@ -96,7 +96,12 @@ class ComputedLiteralOperator(str, Enum):
 	WEEK_OF_MONTH = 'week-of-month',
 	DAY_OF_MONTH = 'day-of-month',
 	DAY_OF_WEEK = 'day-of-week',
-	CASE_THEN = 'case-then'
+	CASE_THEN = 'case-then',
+
+	CONCAT = 'concat',
+	YEAR_DIFF = 'year-diff',
+	MONTH_DIFF = 'month-diff',
+	DAY_DIFF = 'day-diff'
 
 
 class ComputedLiteral(DataModel):
