@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 from abc import abstractmethod
 from enum import Enum
-from typing import Any, Dict, List, Optional, TypeVar, Union
+from typing import Any, Dict, List, Optional, Tuple, TypeVar, Union
 
 from watchmen_model.common import DataModel, Pageable, Storable
 
@@ -80,10 +82,40 @@ class EntityCriteriaOperator(str, Enum):
 	NOT_LIKE = 'not-like'
 
 
+class ComputedLiteralOperator(str, Enum):
+	ADD = 'add',
+	SUBTRACT = 'subtract',
+	MULTIPLY = 'multiply',
+	DIVIDE = 'divide',
+	MODULUS = 'modulus',
+	YEAR_OF = 'year-of',
+	HALF_YEAR_OF = 'half-year-of',
+	QUARTER_OF = 'quarter-of',
+	MONTH_OF = 'month-of',
+	WEEK_OF_YEAR = 'week-of-year',
+	WEEK_OF_MONTH = 'week-of-month',
+	DAY_OF_MONTH = 'day-of-month',
+	DAY_OF_WEEK = 'day-of-week',
+	CASE_THEN = 'case-then'
+
+
+class ComputedLiteral(DataModel):
+	operator: ComputedLiteralOperator
+	elements: List[Literal, Tuple[EntityCriteriaStatement, Literal]]
+
+
+class FullQualifiedLiteral(DataModel):
+	entityName: EntityName
+	columnName: EntityColumnName
+
+
+Literal = Union[EntityColumnName, EntityColumnValue, ComputedLiteral, FullQualifiedLiteral]
+
+
 class EntityCriteriaExpression(EntityCriteriaStatement):
-	left: EntityColumnName
+	left: Literal
 	operator: EntityCriteriaOperator = EntityCriteriaOperator.EQUALS
-	right: Optional[EntityColumnValue] = None
+	right: Optional[Literal] = None
 
 
 class EntityCriteriaJointConjunction(str, Enum):
@@ -114,7 +146,7 @@ class EntityDistinctValuesFinder(EntityFinder):
 
 
 class EntityStraightColumn(DataModel):
-	name: EntityColumnName  # original name
+	columnName: EntityColumnName  # original name
 	alias: Optional[EntityColumnName]  # alias name
 
 

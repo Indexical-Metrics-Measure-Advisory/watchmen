@@ -25,7 +25,7 @@ class TopicTrigger(DataModel):
 
 
 class TopicStructureService:
-	def __int__(self, schema: TopicSchema, data_entity_helper: TopicDataEntityHelper):
+	def __init__(self, schema: TopicSchema, data_entity_helper: TopicDataEntityHelper):
 		self.schema = schema
 		self.dataEntityHelper = data_entity_helper
 
@@ -48,14 +48,6 @@ class TopicStructureService:
 	def has_id(self, data: [str, Any]) -> bool:
 		has_id, _ = self.get_data_entity_helper().find_data_id(data)
 		return has_id
-
-	@abstractmethod
-	def try_to_wrap_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
-		pass
-
-	@abstractmethod
-	def try_to_unwrap_topic_data(self, topic_data: Dict[str, Any]) -> Dict[str, Any]:
-		pass
 
 	def raise_on_topic(self) -> str:
 		topic = self.get_schema().get_topic()
@@ -81,13 +73,11 @@ class TopicStructureService:
 		return criteria
 
 
-# noinspection PyAbstractClass
 class TopicDataService(TopicStructureService):
 	def __init__(
-			self, schema: TopicSchema, data_entity_helper: TopicDataEntityHelper,
-			storage: TopicDataStorageSPI, principal_service: PrincipalService):
-		self.schema = schema
-		self.dataEntityHelper = data_entity_helper
+			self, schema: TopicSchema, data_entity_helper: TopicDataEntityHelper, storage: TopicDataStorageSPI,
+			principal_service: PrincipalService):
+		super().__init__(schema, data_entity_helper)
 		self.storage = storage
 		self.principalService = principal_service
 		self.snowflakeGenerator = ask_snowflake_generator()
@@ -100,6 +90,14 @@ class TopicDataService(TopicStructureService):
 
 	def get_principal_service(self) -> PrincipalService:
 		return self.principalService
+
+	@abstractmethod
+	def try_to_wrap_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
+		pass
+
+	@abstractmethod
+	def try_to_unwrap_topic_data(self, topic_data: Dict[str, Any]) -> Dict[str, Any]:
+		pass
 
 	def trigger_by_insert(self, data: Dict[str, Any]) -> TopicTrigger:
 		"""

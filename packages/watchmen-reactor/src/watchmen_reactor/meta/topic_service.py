@@ -36,7 +36,7 @@ class TopicService:
 			storage_service.close_transaction()
 
 	def find_schema_by_name(self, name: str, tenant_id: TenantId) -> Optional[TopicSchema]:
-		if self.principalService.is_tenant_admin():
+		if not self.principalService.is_super_admin():
 			if self.principalService.get_tenant_id() != tenant_id:
 				raise Exception('Forbidden')
 

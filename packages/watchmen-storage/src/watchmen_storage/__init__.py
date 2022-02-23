@@ -10,9 +10,10 @@ from .storage_exception import EntityNotFoundException, InsertConflictException,
 	OptimisticLockException, TooManyEntitiesFoundException, UnexpectedStorageException, UnsupportedCriteriaException, \
 	UnsupportedSortMethodException, UnsupportedStraightColumnException
 from .storage_spi import StorageSPI, TopicDataStorageSPI, TransactionalStorageSPI
-from .storage_types import Entity, EntityColumnAggregateArithmetic, EntityColumnName, EntityColumnValue, \
-	EntityCriteria, EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, \
-	EntityCriteriaOperator, EntityCriteriaStatement, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, \
-	EntityHelper, EntityId, EntityIdHelper, EntityList, EntityName, EntityPager, EntityRow, EntityShaper, EntitySort, \
-	EntitySortColumn, EntitySortMethod, EntityStraightAggregateColumn, EntityStraightColumn, EntityStraightTextColumn, \
-	EntityStraightValuesFinder, EntityUpdate, EntityUpdater
+from .storage_types import ComputedLiteral, ComputedLiteralOperator, Entity, \
+	EntityColumnAggregateArithmetic, EntityColumnName, EntityColumnValue, EntityCriteria, EntityCriteriaExpression, \
+	Literal, EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, \
+	EntityCriteriaStatement, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
+	EntityIdHelper, EntityList, EntityName, EntityPager, EntityRow, EntityShaper, EntitySort, EntitySortColumn, \
+	EntitySortMethod, EntityStraightAggregateColumn, EntityStraightColumn, EntityStraightTextColumn, \
+	EntityStraightValuesFinder, EntityUpdate, EntityUpdater, FullQualifiedLiteral

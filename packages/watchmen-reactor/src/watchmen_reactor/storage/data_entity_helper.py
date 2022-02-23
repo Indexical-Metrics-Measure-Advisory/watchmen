@@ -34,6 +34,9 @@ class TopicDataEntityHelper:
 	def get_topic(self) -> Topic:
 		return self.schema.get_topic()
 
+	def get_entity_name(self) -> str:
+		return self.get_entity_helper().name
+
 	@abstractmethod
 	def create_entity_shaper(self, schema: TopicSchema) -> TopicShaper:
 		pass
