@@ -83,7 +83,7 @@ class TopicDataEntityHelper:
 
 	def get_straight_values_finder(
 			self,
-			criteria: EntityCriteria, column_names: List[EntityStraightColumn],
+			criteria: EntityCriteria, columns: List[EntityStraightColumn],
 			sort: Optional[EntitySort] = None) -> EntityStraightValuesFinder:
 		entity_helper = self.get_entity_helper()
 		return EntityStraightValuesFinder(
@@ -91,7 +91,7 @@ class TopicDataEntityHelper:
 			shaper=entity_helper.shaper,
 			criteria=criteria,
 			sort=sort,
-			straightColumns=column_names
+			straightColumns=columns
 		)
 
 	def get_entity_updater(self, criteria: EntityCriteria, update: EntityUpdate) -> EntityUpdater:

@@ -243,14 +243,16 @@ class StorageMySQL(TransactionalStorageSPI):
 		if isinstance(straight_column, EntityStraightTextColumn):
 			return text(straight_column.text).label(self.get_alias_from_straight_column(straight_column))
 		elif isinstance(straight_column, EntityStraightAggregateColumn):
-			if straight_column.aggregation == EntityColumnAggregateArithmetic.SUM:
+			if straight_column.arithmetic == EntityColumnAggregateArithmetic.SUM:
 				return func.sum(straight_column.name).label(self.get_alias_from_straight_column(straight_column))
-			elif straight_column.aggregation == EntityColumnAggregateArithmetic.AVG:
+			elif straight_column.arithmetic == EntityColumnAggregateArithmetic.AVG:
 				return func.avg(straight_column.name).label(self.get_alias_from_straight_column(straight_column))
-			elif straight_column.aggregation == EntityColumnAggregateArithmetic.MAX:
+			elif straight_column.arithmetic == EntityColumnAggregateArithmetic.MAX:
 				return func.max(straight_column.name).label(self.get_alias_from_straight_column(straight_column))
-			elif straight_column.aggregation == EntityColumnAggregateArithmetic.MIN:
+			elif straight_column.arithmetic == EntityColumnAggregateArithmetic.MIN:
 				return func.min(straight_column.name).label(self.get_alias_from_straight_column(straight_column))
+		elif isinstance(straight_column, EntityStraightColumn):
+			return text(straight_column.name).label(self.get_alias_from_straight_column(straight_column))
 
 		raise UnsupportedStraightColumnException(f'Straight column[{straight_column.to_dict()}] is not supported.')
 

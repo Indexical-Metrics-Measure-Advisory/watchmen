@@ -9,7 +9,8 @@ from watchmen_model.admin import PipelineTriggerType, Topic
 from watchmen_model.common import DataModel
 from watchmen_reactor.common import ReactorException
 from watchmen_reactor.topic_schema import TopicSchema
-from watchmen_storage import EntityColumnName, EntityCriteria, SnowflakeGenerator, TopicDataStorageSPI
+from watchmen_storage import EntityColumnName, EntityCriteria, EntityStraightColumn, SnowflakeGenerator, \
+	TopicDataStorageSPI
 from watchmen_utilities import get_current_time_in_seconds
 from .data_entity_helper import TopicDataEntityHelper
 
@@ -213,12 +214,12 @@ class TopicDataService:
 			storage.close()
 
 	def find_straight_values(
-			self, criteria: EntityCriteria, column_names: List[EntityColumnName]) -> List[Dict[str, Any]]:
+			self, criteria: EntityCriteria, columns: List[EntityStraightColumn]) -> List[Dict[str, Any]]:
 		data_entity_helper = self.get_data_entity_helper()
 		storage = self.get_storage()
 		try:
 			storage.connect()
-			return storage.find_straight_values(data_entity_helper.get_straight_values_finder(criteria, column_names))
+			return storage.find_straight_values(data_entity_helper.get_straight_values_finder(criteria, columns))
 		finally:
 			storage.close()
 
