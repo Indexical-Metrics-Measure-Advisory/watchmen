@@ -1,27 +1,69 @@
 from abc import abstractmethod
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from watchmen_auth import PrincipalService
-from watchmen_model.admin import AggregateArithmetic, Factor, MappingFactor, Topic
-from watchmen_model.common import ComputedParameter, ConstantParameter, Parameter, ParameterCondition, \
-	ParameterExpression, ParameterJoint, ParameterJointType, TopicFactorParameter
+from watchmen_model.admin import AggregateArithmetic, Factor, is_raw_topic, MappingFactor, Topic
+from watchmen_model.common import ComputedParameter, ConstantParameter, FactorId, Parameter, ParameterCondition, \
+	ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, TopicFactorParameter, TopicId
 from watchmen_reactor.common import ReactorException
+from watchmen_reactor.meta import TopicService
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_storage import EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, \
-	EntityCriteriaStatement
+	EntityCriteriaOperator, EntityCriteriaStatement
 from watchmen_utilities import ArrayHelper, is_blank
-from . import parse_parameter_in_memory
+from .ask_from_memory import create_ask_factor_value, parse_parameter_in_memory
 from .variables import PipelineVariables
+
+
+def get_topic_service(principal_service: PrincipalService) -> TopicService:
+	return TopicService(principal_service)
 
 
 class ParsedStorageParameter:
 	def __init__(
-			self, parameter: Parameter, available_topics: List[Topic], principal_service: PrincipalService):
+			self, parameter: Parameter, available_schemas: List[TopicSchema],
+			principal_service: PrincipalService, allow_in_memory_variables: bool):
 		self.parameter = parameter
-		self.parse(parameter, available_topics, principal_service)
+		self.parse(parameter, available_schemas, principal_service, allow_in_memory_variables)
+
+	# noinspection PyMethodMayBeStatic
+	def find_topic(
+			self, topic_id: Optional[TopicId], available_schemas: List[TopicSchema],
+			principal_service: PrincipalService, allow_in_memory_variables: bool) -> Tuple[Topic, bool]:
+		"""
+		find topic even it is not found in available list when in-memory variables is allowed.
+		for the secondary one of return tuple, true when it is found in given available list,
+		otherwise is false, means it can be find in definitions
+		"""
+		if is_blank(topic_id):
+			raise ReactorException(f'Topic not declared.')
+		topic = ArrayHelper(available_schemas).map(lambda x: x.get_topic()).find(lambda x: x.topicId == topic_id)
+		if topic is None:
+			if not allow_in_memory_variables:
+				raise ReactorException(f'Topic[id={topic_id}] not found.')
+			else:
+				topic_service = get_topic_service(principal_service)
+				topic: Optional[Topic] = topic_service.find_by_id(topic_id)
+				if topic is None:
+					raise ReactorException(f'Topic[id={topic_id}] not found.')
+				else:
+					return topic, False
+		else:
+			return topic, True
+
+	# noinspection PyMethodMayBeStatic
+	def find_factor(self, factor_id: Optional[FactorId], topic: Topic) -> Factor:
+		if is_blank(factor_id):
+			raise ReactorException(f'Factor not declared.')
+		factor: Optional[Factor] = ArrayHelper(topic.factors).find(lambda x: x.factorId == factor_id)
+		if factor is None:
+			raise ReactorException(f'Factor[id={factor_id}] in topic[id={topic.topicId}, name={topic.name}] not found.')
+		return factor
 
 	@abstractmethod
-	def parse(self, parameter: Parameter, available_topics: List[Topic], principal_service: PrincipalService) -> None:
+	def parse(
+			self, parameter: Parameter, available_schemas: List[TopicSchema],
+			principal_service: PrincipalService, allow_in_memory_variables: bool) -> None:
 		pass
 
 	@abstractmethod
@@ -30,9 +72,33 @@ class ParsedStorageParameter:
 
 
 class ParsedStorageTopicFactorParameter(ParsedStorageParameter):
-	def parse(self, parameter: Parameter, available_topics: List[Topic], principal_service: PrincipalService) -> None:
-		# TODO parse storage topic factor parameter
-		pass
+	topic: Topic = None
+	topicFromVariables: bool = False
+	factor: Factor = None
+	askValue: Callable[[PipelineVariables, PrincipalService], Any] = None
+
+	def parse(
+			self, parameter: Parameter, available_schemas: List[TopicSchema],
+			principal_service: PrincipalService, allow_in_memory_variables: bool) -> None:
+		topic, from_variables = self.find_topic(
+			parameter.topic_id, available_schemas, principal_service, allow_in_memory_variables)
+		self.topic = topic
+		self.topicFromVariables = from_variables
+		factor = self.find_factor(parameter.factor_id, topic)
+		self.factor = factor
+		if not from_variables and is_raw_topic(topic) and not factor.flatten:
+			raise ReactorException(
+				f'Factor[id={factor.factorId}, name={factor.name}] '
+				f'on topic[id={topic.topicId}, name={topic.name}] is not flatten, '
+				f'cannot be used on storage directly.')
+
+		if from_variables:
+			# get value from memory
+			self.askValue = create_ask_factor_value(topic, factor)
+		else:
+			self.askValue = create_ask_factor_statement(topic, factor)
+
+	# build for storage
 
 	def run(self, variables: PipelineVariables, principal_service: PrincipalService) -> Any:
 		# TODO run storage topic factor parameter
@@ -40,7 +106,9 @@ class ParsedStorageTopicFactorParameter(ParsedStorageParameter):
 
 
 class ParsedStorageConstantParameter(ParsedStorageParameter):
-	def parse(self, parameter: Parameter, available_topics: List[Topic], principal_service: PrincipalService) -> None:
+	def parse(
+			self, parameter: Parameter, available_schemas: List[TopicSchema],
+			principal_service: PrincipalService, allow_in_memory_variables: bool) -> None:
 		# TODO parse storage constant parameter
 		pass
 
@@ -50,7 +118,9 @@ class ParsedStorageConstantParameter(ParsedStorageParameter):
 
 
 class ParsedStorageComputedParameter(ParsedStorageParameter):
-	def parse(self, parameter: Parameter, available_topics: List[Topic], principal_service: PrincipalService) -> None:
+	def parse(
+			self, parameter: Parameter, available_schemas: List[TopicSchema],
+			principal_service: PrincipalService, allow_in_memory_variables: bool) -> None:
 		# TODO parse storage computed parameter
 		pass
 
@@ -60,27 +130,33 @@ class ParsedStorageComputedParameter(ParsedStorageParameter):
 
 
 def parse_parameter_for_storage(
-		parameter: Optional[Parameter], available_topics: List[Topic], principal_service: PrincipalService
+		parameter: Optional[Parameter], available_topics: List[TopicSchema],
+		principal_service: PrincipalService, allow_in_memory_variables: bool
 ) -> ParsedStorageParameter:
 	if parameter is None:
 		raise ReactorException('Parameter cannot be none.')
 	elif isinstance(parameter, TopicFactorParameter):
-		return ParsedStorageTopicFactorParameter(parameter, available_topics, principal_service)
+		return ParsedStorageTopicFactorParameter(parameter, available_topics, principal_service,
+		                                         allow_in_memory_variables)
 	elif isinstance(parameter, ConstantParameter):
-		return ParsedStorageConstantParameter(parameter, available_topics, principal_service)
+		return ParsedStorageConstantParameter(parameter, available_topics, principal_service, allow_in_memory_variables)
 	elif isinstance(parameter, ComputedParameter):
-		return ParsedStorageComputedParameter(parameter, available_topics, principal_service)
+		return ParsedStorageComputedParameter(parameter, available_topics, principal_service, allow_in_memory_variables)
 	else:
 		raise ReactorException(f'Parameter[{parameter.dict()}] is not supported.')
 
 
 class ParsedStorageCondition:
-	def __init__(self, schema: TopicSchema, condition: ParameterCondition, principal_service: PrincipalService):
+	def __init__(
+			self, schema: TopicSchema, condition: ParameterCondition,
+			principal_service: PrincipalService, allow_in_memory_variables: bool):
 		self.condition = condition
-		self.parse(schema, condition, principal_service)
+		self.parse(schema, condition, principal_service, allow_in_memory_variables)
 
 	@abstractmethod
-	def parse(self, schema: TopicSchema, condition: ParameterCondition, principal_service: PrincipalService) -> None:
+	def parse(
+			self, schema: TopicSchema, condition: ParameterCondition,
+			principal_service: PrincipalService, allow_in_memory_variables: bool) -> None:
 		pass
 
 	@abstractmethod
@@ -92,11 +168,14 @@ class ParsedStorageJoint(ParsedStorageCondition):
 	jointType: ParameterJointType = ParameterJointType.AND
 	filters: List[ParsedStorageCondition] = []
 
-	def parse(self, schema: TopicSchema, condition: ParameterJoint, principal_service: PrincipalService) -> None:
+	def parse(
+			self, schema: TopicSchema, condition: ParameterJoint,
+			principal_service: PrincipalService, allow_in_memory_variables: bool) -> None:
 		self.jointType = ParameterJointType.OR \
 			if condition.jointType == ParameterJointType.OR else ParameterJointType.AND
 		self.filters = ArrayHelper(condition.filters) \
-			.map(lambda x: parse_condition_for_storage(schema, x, principal_service)).to_list()
+			.map(lambda x: parse_condition_for_storage(schema, x, principal_service, allow_in_memory_variables)) \
+			.to_list()
 
 	def run(self, variables: PipelineVariables, principal_service: PrincipalService) -> EntityCriteriaJoint:
 		if self.jointType == ParameterJointType.OR:
@@ -113,25 +192,89 @@ class ParsedStorageJoint(ParsedStorageCondition):
 
 
 class ParsedStorageExpression(ParsedStorageCondition):
-	def parse(self, schema: TopicSchema, condition: ParameterCondition, principal_service: PrincipalService) -> None:
-		# TODO parse storage expression
-		pass
+	left: Optional[ParsedStorageParameter] = None
+	operator: Optional[ParameterExpressionOperator] = None
+	right: Optional[ParsedStorageParameter] = None
+
+	def parse(
+			self, schema: TopicSchema, condition: ParameterCondition,
+			principal_service: PrincipalService, allow_in_memory_variables: bool) -> None:
+		self.left = parse_parameter_for_storage(condition.left, [schema], principal_service, allow_in_memory_variables)
+		self.operator = condition.operator
+		self.right = parse_parameter_for_storage(
+			condition.right, [schema], principal_service, allow_in_memory_variables)
 
 	def run(self, variables: PipelineVariables, principal_service: PrincipalService) -> EntityCriteriaExpression:
-		# TODO build storage expression
-		pass
+		left_value = self.left.run(variables, principal_service)
+		if self.operator == ParameterExpressionOperator.EMPTY:
+			return EntityCriteriaExpression(left=left_value, operator=EntityCriteriaOperator.IS_EMPTY)
+		elif self.operator == ParameterExpressionOperator.NOT_EMPTY:
+			return EntityCriteriaExpression(left=left_value, operator=EntityCriteriaOperator.IS_NOT_EMPTY)
+
+		right_value = self.right.run(variables, principal_service)
+		if self.operator == ParameterExpressionOperator.EQUALS:
+			return EntityCriteriaExpression(
+				left=left_value,
+				operator=EntityCriteriaOperator.EQUALS,
+				right=right_value
+			)
+		elif self.operator == ParameterExpressionOperator.NOT_EQUALS:
+			return EntityCriteriaExpression(
+				left=left_value,
+				operator=EntityCriteriaOperator.NOT_EQUALS,
+				right=right_value
+			)
+		elif self.operator == ParameterExpressionOperator.LESS:
+			return EntityCriteriaExpression(
+				left=left_value,
+				operator=EntityCriteriaOperator.LESS_THAN,
+				right=right_value
+			)
+		elif self.operator == ParameterExpressionOperator.LESS_EQUALS:
+			return EntityCriteriaExpression(
+				left=left_value,
+				operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
+				right=right_value
+			)
+		elif self.operator == ParameterExpressionOperator.MORE:
+			return EntityCriteriaExpression(
+				left=left_value,
+				operator=EntityCriteriaOperator.GREATER_THAN,
+				right=right_value
+			)
+		elif self.operator == ParameterExpressionOperator.MORE_EQUALS:
+			return EntityCriteriaExpression(
+				left=left_value,
+				operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
+				right=right_value
+			)
+		elif self.operator == ParameterExpressionOperator.IN:
+			return EntityCriteriaExpression(
+				left=left_value,
+				operator=EntityCriteriaOperator.IN,
+				right=right_value
+			)
+		elif self.operator == ParameterExpressionOperator.NOT_IN:
+			return EntityCriteriaExpression(
+				left=left_value,
+				operator=EntityCriteriaOperator.NOT_IN,
+				right=right_value
+			)
+		else:
+			raise ReactorException(
+				f'Operator[{self.operator}] is not supported, found from expression[{self.condition.dict()}].')
 
 
-# TODO need condition from topic schema
 def parse_condition_for_storage(
 		schema: TopicSchema,
-		condition: Optional[ParameterCondition], principal_service: PrincipalService) -> ParsedStorageCondition:
+		condition: Optional[ParameterCondition], principal_service: PrincipalService,
+		allow_in_memory_variables: bool) -> ParsedStorageCondition:
 	if condition is None:
 		raise ReactorException('Condition cannot be none.')
 	if isinstance(condition, ParameterJoint):
-		return ParsedStorageJoint(schema, condition, principal_service)
+		return ParsedStorageJoint(schema, condition, principal_service, allow_in_memory_variables)
 	elif isinstance(condition, ParameterExpression):
-		return ParsedStorageExpression(schema, condition, principal_service)
+		return ParsedStorageExpression(schema, condition, principal_service, allow_in_memory_variables)
 	else:
 		raise ReactorException(f'Condition[{condition.dict()}] is not supported.')
 

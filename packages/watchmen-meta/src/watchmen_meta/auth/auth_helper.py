@@ -29,7 +29,7 @@ def find_user_by_name(storage: TransactionalStorageSPI, username: str, clear_pwd
 			name=USER_ENTITY_NAME,
 			shaper=USER_ENTITY_SHAPER,
 			criteria=[
-				EntityCriteriaExpression(name='name', value=username)
+				EntityCriteriaExpression(left='name', right=username)
 			]
 		))
 		return redress_user(user, clear_pwd)
@@ -54,7 +54,7 @@ def find_pat_by_token(storage: TransactionalStorageSPI, pat_token: str) -> Optio
 		name=PAT_ENTITY_NAME,
 		shaper=PAT_ENTITY_SHAPER,
 		criteria=[
-			EntityCriteriaExpression(name='token', value=pat_token)
+			EntityCriteriaExpression(left='token', right=pat_token)
 		]
 	))
 	if pat is None:

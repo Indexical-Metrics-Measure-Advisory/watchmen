@@ -18,9 +18,7 @@ from watchmen_utilities import ArrayHelper, get_day_of_month, get_day_of_week, g
 	get_week_of_month, get_week_of_year, get_year, greater_or_equals_date, greater_or_equals_decimal, \
 	greater_or_equals_time, is_blank, is_date, is_date_or_time_instance, is_empty, is_not_empty, is_numeric_instance, \
 	less_or_equals_date, less_or_equals_decimal, less_or_equals_time, month_diff, truncate_time, try_to_date, \
-	try_to_decimal, \
-	value_equals, \
-	value_not_equals, year_diff
+	try_to_decimal, value_equals, value_not_equals, year_diff
 from .utils import always_none, get_value_from
 from .variables import PipelineVariables
 
@@ -369,6 +367,19 @@ def create_value_recursive_getter_from_current_data(
 		get_value_from(name, names, lambda x: variables.find_from_current_data(x))
 
 
+def create_ask_factor_value(topic: Topic, factor: Factor) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	name = factor.name
+	if is_blank(name):
+		raise ReactorException(f'Name of factor[id={factor.factorId}, topicId={topic.topicId}] not declared.')
+	names = name.strip().split('.')
+
+	# topic factor parameter always retrieve data from current trigger data
+	if len(names) == 1:
+		return create_value_getter_from_current_data(names[0])
+	else:
+		return create_value_recursive_getter_from_current_data(name, names)
+
+
 class ParsedMemoryTopicFactorParameter(ParsedMemoryParameter):
 	topic: Topic = None
 	factor: Factor = None
@@ -390,17 +401,8 @@ class ParsedMemoryTopicFactorParameter(ParsedMemoryParameter):
 			raise ReactorException(
 				f'Factor[id={parameter.factorId}] in topic[id={topic.topicId}, name={topic.name}] not found.')
 		self.factor = factor
-		name = factor.name
-		if is_blank(name):
-			raise ReactorException(f'Name of factor[id={factor.factorId}, topicId={topic.topicId}] not declared.')
-		names = name.strip().split('.')
-
-		# topic factor parameter always retrieve data from current trigger data
-		if len(names) == 1:
-			self.askValue = create_value_getter_from_current_data(names[0])
-		else:
-			self.askValue = create_value_recursive_getter_from_current_data(name, names)
-
+		self.askValue = create_ask_factor_value(topic, factor)
+		
 	def value(self, variables: PipelineVariables, principal_service: PrincipalService) -> Any:
 		return self.askValue(variables, principal_service)
 

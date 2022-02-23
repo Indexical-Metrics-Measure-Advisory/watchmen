@@ -73,7 +73,7 @@ class SubjectService(UserBasedTupleService):
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(
 			criteria=[
-				EntityCriteriaExpression(name='connect_id', value=connect_id)
+				EntityCriteriaExpression(left='connect_id', right=connect_id)
 			]
 		))
 
@@ -86,9 +86,9 @@ class SubjectService(UserBasedTupleService):
 		last_modified_by = self.principalService.get_user_id()
 		updated_count = self.storage.update_only(self.get_entity_updater(
 			criteria=[
-				EntityCriteriaExpression(name=self.get_storable_id_column_name(), value=subject_id),
-				EntityCriteriaExpression(name='user_id', value=user_id),
-				EntityCriteriaExpression(name='tenant_id', value=tenant_id)
+				EntityCriteriaExpression(left=self.get_storable_id_column_name(), right=subject_id),
+				EntityCriteriaExpression(left='user_id', right=user_id),
+				EntityCriteriaExpression(left='tenant_id', right=tenant_id)
 			],
 			update={
 				'name': name,
@@ -103,7 +103,7 @@ class SubjectService(UserBasedTupleService):
 	def update_last_visit_time(self, subject_id: SubjectId) -> datetime:
 		now = self.now()
 		self.storage.update(self.get_entity_updater(
-			criteria=[EntityCriteriaExpression(name=self.get_storable_id_column_name(), value=subject_id)],
+			criteria=[EntityCriteriaExpression(left=self.get_storable_id_column_name(), right=subject_id)],
 			update={'last_visit_time': now}
 		))
 		return now
@@ -112,6 +112,6 @@ class SubjectService(UserBasedTupleService):
 		# noinspection PyTypeChecker
 		return self.storage.delete_and_pull(self.get_entity_deleter(
 			criteria=[
-				EntityCriteriaExpression(name='connect_id', value=connect_id)
+				EntityCriteriaExpression(left='connect_id', right=connect_id)
 			]
 		))

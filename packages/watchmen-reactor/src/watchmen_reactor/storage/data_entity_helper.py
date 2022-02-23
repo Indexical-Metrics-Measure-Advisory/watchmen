@@ -127,10 +127,7 @@ class TopicDataEntityHelper:
 		if not has_id:
 			return None
 		else:
-			return EntityCriteriaExpression(
-				name=TopicDataColumnNames.ID.value,
-				value=id_
-			)
+			return EntityCriteriaExpression(left=TopicDataColumnNames.ID.value, right=id_)
 
 	# noinspection PyMethodMayBeStatic
 	def assign_id_column(self, data: Dict[str, Any], id_value: int) -> None:

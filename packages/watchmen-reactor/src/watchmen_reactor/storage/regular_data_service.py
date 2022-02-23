@@ -51,10 +51,7 @@ class RegularTopicDataEntityHelper(TopicDataEntityHelper):
 			return -1
 
 	def build_version_criteria(self, data: Dict[str, Any]) -> Optional[EntityCriteriaExpression]:
-		return EntityCriteriaExpression(
-			name=TopicDataColumnNames.VERSION.value,
-			value=self.find_version(data)
-		)
+		return EntityCriteriaExpression(left=TopicDataColumnNames.VERSION.value, right=self.find_version(data))
 
 	def assign_version(self, data: Dict[str, Any], version: int):
 		if is_aggregation_topic(self.get_schema().get_topic()):

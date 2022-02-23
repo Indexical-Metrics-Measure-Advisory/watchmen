@@ -98,8 +98,8 @@ class TupleService(EntityService):
 			updated_count = self.storage.update_only(self.get_entity_updater(
 				criteria=[
 					EntityCriteriaExpression(
-						name=self.get_storable_id_column_name(), value=self.get_storable_id(a_tuple)),
-					EntityCriteriaExpression(name=self.get_optimistic_column_name(), value=version)
+						left=self.get_storable_id_column_name(), right=self.get_storable_id(a_tuple)),
+					EntityCriteriaExpression(left=self.get_optimistic_column_name(), right=version)
 				],
 				# to avoid update created columns in update
 				update=self.try_to_ignore_created_columns(
@@ -112,7 +112,7 @@ class TupleService(EntityService):
 			updated_count = self.storage.update_only(self.get_entity_updater(
 				criteria=[
 					EntityCriteriaExpression(
-						name=self.get_storable_id_column_name(), value=self.get_storable_id(a_tuple))
+						left=self.get_storable_id_column_name(), right=self.get_storable_id(a_tuple))
 				],
 				# to avoid update created columns in update
 				update=self.try_to_ignore_created_columns(

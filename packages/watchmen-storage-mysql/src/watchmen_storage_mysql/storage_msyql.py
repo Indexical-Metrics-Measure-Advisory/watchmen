@@ -87,7 +87,7 @@ class StorageMySQL(TransactionalStorageSPI):
 			name=helper.name,
 			shaper=helper.shaper,
 			criteria=[
-				EntityCriteriaExpression(name=helper.idColumnName, value=entity_id)
+				EntityCriteriaExpression(left=helper.idColumnName, right=entity_id)
 			],
 			update=row
 		))
@@ -141,7 +141,7 @@ class StorageMySQL(TransactionalStorageSPI):
 		table = self.find_table(helper.name)
 		statement = delete(table)
 		statement = build_criteria_for_statement(table, statement, [
-			EntityCriteriaExpression(name=helper.idColumnName, value=entity_id)
+			EntityCriteriaExpression(left=helper.idColumnName, right=entity_id)
 		])
 		result = self.connection.execute(statement)
 		return result.rowcount
@@ -203,7 +203,7 @@ class StorageMySQL(TransactionalStorageSPI):
 			name=helper.name,
 			shaper=helper.shaper,
 			criteria=[
-				EntityCriteriaExpression(name=helper.idColumnName, value=entity_id)
+				EntityCriteriaExpression(left=helper.idColumnName, right=entity_id)
 			]
 		))
 

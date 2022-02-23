@@ -50,7 +50,7 @@ class UserBasedTupleService(EntityService):
 	def find_by_id(self, tuple_id: TupleId) -> Optional[UserBasedTuple]:
 		return self.storage.find_one(self.get_entity_finder(
 			criteria=[
-				EntityCriteriaExpression(name=self.get_storable_id_column_name(), value=tuple_id),
+				EntityCriteriaExpression(left=self.get_storable_id_column_name(), right=tuple_id),
 			]
 		))
 
@@ -58,15 +58,15 @@ class UserBasedTupleService(EntityService):
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(
 			criteria=[
-				EntityCriteriaExpression(name='user_id', value=user_id),
-				EntityCriteriaExpression(name='tenant_id', value=tenant_id)
+				EntityCriteriaExpression(left='user_id', right=user_id),
+				EntityCriteriaExpression(left='tenant_id', right=tenant_id)
 			]
 		))
 
 	def find_tenant_and_user(self, tuple_id: TupleId) -> Optional[Tuple[TenantId, UserId]]:
 		finder = self.get_entity_finder_for_columns(
 			criteria=[
-				EntityCriteriaExpression(name=self.get_storable_id_column_name(), value=tuple_id),
+				EntityCriteriaExpression(left=self.get_storable_id_column_name(), right=tuple_id),
 			],
 			distinctColumnNames=['tenant_id', 'user_id']
 		)

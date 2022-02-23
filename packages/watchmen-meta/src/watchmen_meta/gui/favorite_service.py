@@ -66,8 +66,8 @@ class FavoriteService(StorageService):
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),
 			criteria=[
-				EntityCriteriaExpression(name='user_id', value=favorite.userId),
-				EntityCriteriaExpression(name='tenant_id', value=favorite.tenantId)
+				EntityCriteriaExpression(left='user_id', right=favorite.userId),
+				EntityCriteriaExpression(left='tenant_id', right=favorite.tenantId)
 			],
 			update={
 				'connected_space_ids': favorite.connectedSpaceIds,
@@ -82,8 +82,8 @@ class FavoriteService(StorageService):
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),
 			criteria=[
-				EntityCriteriaExpression(name='user_id', value=user_id),
-				EntityCriteriaExpression(name='tenant_id', value=tenant_id)
+				EntityCriteriaExpression(left='user_id', right=user_id),
+				EntityCriteriaExpression(left='tenant_id', right=tenant_id)
 			]
 		))
 

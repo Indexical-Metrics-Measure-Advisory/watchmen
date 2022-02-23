@@ -91,7 +91,7 @@ class ReportService(UserBasedTupleService):
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(
 			criteria=[
-				EntityCriteriaExpression(name='connect_id', value=connect_id)
+				EntityCriteriaExpression(left='connect_id', right=connect_id)
 			]
 		))
 
@@ -99,18 +99,18 @@ class ReportService(UserBasedTupleService):
 	def find_page_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
 		criteria = []
 		if text is not None and len(text.strip()) != 0:
-			criteria.append(EntityCriteriaExpression(name='name', operator=EntityCriteriaOperator.LIKE, value=text))
+			criteria.append(EntityCriteriaExpression(left='name', operator=EntityCriteriaOperator.LIKE, right=text))
 			criteria.append(
-				EntityCriteriaExpression(name='description', operator=EntityCriteriaOperator.LIKE, value=text))
+				EntityCriteriaExpression(left='description', operator=EntityCriteriaOperator.LIKE, right=text))
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
-			criteria.append(EntityCriteriaExpression(name='tenant_id', value=tenant_id))
+			criteria.append(EntityCriteriaExpression(left='tenant_id', right=tenant_id))
 		return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))
 
 	def delete_by_connect_id(self, connect_id: ConnectedSpaceId) -> List[Report]:
 		# noinspection PyTypeChecker
 		return self.storage.delete_and_pull(self.get_entity_deleter(
 			criteria=[
-				EntityCriteriaExpression(name='connect_id', value=connect_id)
+				EntityCriteriaExpression(left='connect_id', right=connect_id)
 			]
 		))
 
@@ -118,14 +118,14 @@ class ReportService(UserBasedTupleService):
 		# noinspection PyTypeChecker
 		return self.storage.delete_and_pull(self.get_entity_deleter(
 			criteria=[
-				EntityCriteriaExpression(name='subject_id', value=subject_id)
+				EntityCriteriaExpression(left='subject_id', right=subject_id)
 			]
 		))
 
 	def update_last_visit_time(self, report_id: ReportId) -> datetime:
 		now = self.now()
 		self.storage.update(self.get_entity_updater(
-			criteria=[EntityCriteriaExpression(name=self.get_storable_id_column_name(), value=report_id)],
+			criteria=[EntityCriteriaExpression(left=self.get_storable_id_column_name(), right=report_id)],
 			update={'last_visit_time': now}
 		))
 		return now
