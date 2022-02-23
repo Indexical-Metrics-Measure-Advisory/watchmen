@@ -485,7 +485,7 @@ class CompiledInsertion(CompiledWriteTopicAction):
 			self, variables: PipelineVariables, new_pipeline: CreateQueuePipeline,
 			action_monitor_log: MonitorWriteAction,
 			principal_service: PrincipalService, topic_data_service: TopicDataService) -> None:
-		data = self.parsedMapping.run(variables, principal_service)
+		data = self.parsedMapping.run(None, variables, principal_service)
 		self.schema.initialize_default_values(data)
 		self.schema.encrypt(data)
 		data = topic_data_service.insert(data)
@@ -514,7 +514,7 @@ class CompiledUpdate(CompiledWriteTopicAction):
 			self, original_data: Dict[str, Any], variables: PipelineVariables, new_pipeline: CreateQueuePipeline,
 			action_monitor_log: MonitorWriteAction,
 			principal_service: PrincipalService, topic_data_service: TopicDataService) -> int:
-		updated_data = self.parsedMapping.run(variables, principal_service)
+		updated_data = self.parsedMapping.run(original_data, variables, principal_service)
 		updated_data = self.merge_into(original_data, updated_data)
 		self.schema.initialize_default_values(updated_data)
 		self.schema.encrypt(updated_data)
@@ -578,6 +578,7 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 						# example: try update on [0, 1, 2] when retry times is 3
 						work(times + 1)
 					else:
+						# TODO force lock and update, the final try after all retries by optimistic lock are failed
 						raise ReactorException(
 							f'Data not found on do update, {self.on_topic_message()}, by [{[statement]}].')
 
