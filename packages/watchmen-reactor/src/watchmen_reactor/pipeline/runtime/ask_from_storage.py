@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from datetime import date
 from re import findall
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
@@ -8,17 +9,18 @@ from watchmen_auth import PrincipalService
 from watchmen_model.admin import AggregateArithmetic, Factor, is_raw_topic, MappingFactor, Topic
 from watchmen_model.common import ComputedParameter, ConstantParameter, FactorId, Parameter, ParameterComputeType, \
 	ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, \
-	TopicFactorParameter, TopicId, VariablePredefineFunctions
+	ParameterKind, TopicFactorParameter, TopicId, VariablePredefineFunctions
 from watchmen_reactor.common import ReactorException
 from watchmen_reactor.meta import TopicService
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_storage import ComputedLiteral, ComputedLiteralOperator, EntityCriteriaExpression, EntityCriteriaJoint, \
 	EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, FullQualifiedLiteral, Literal
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, month_diff, truncate_time, year_diff
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank
 from .ask_from_memory import assert_parameter_count, create_ask_factor_value, parse_parameter_in_memory
 from .topic_utils import ask_topic_data_entity_helper
-from .utils import always_none, create_from_previous_trigger_data, create_get_from_variables_with_prefix, \
-	create_snowflake_generator, create_static_str, get_date_from_variables, test_date
+from .utils import always_none, compute_date_diff, create_from_previous_trigger_data, \
+	create_get_from_variables_with_prefix, create_snowflake_generator, create_static_str, get_date_from_variables, \
+	test_date
 from .variables import PipelineVariables
 
 
@@ -135,13 +137,14 @@ class ParsedStorageTopicFactorParameter(ParsedStorageParameter):
 
 # noinspection DuplicatedCode
 def create_date_diff(
-		prefix: str, variable_name: str, function: VariablePredefineFunctions, allow_in_memory_variables: bool
+		prefix: str, variable_name: str, function: VariablePredefineFunctions,
+		available_schemas: List[TopicSchema], allow_in_memory_variables: bool
 ) -> Callable[[PipelineVariables, PrincipalService], Any]:
-	parsed = findall(f'^({function.value})\\s*\\((.+),(.+)\\)$', variable_name)
-	if len(parsed) != 1:
+	parsed_params = findall(f'^({function.value})\\s*\\((.+),(.+)\\)$', variable_name)
+	if len(parsed_params) != 1:
 		raise ReactorException(f'Constant[{variable_name}] is not supported.')
-	end_variable_name = parsed[0][1]
-	start_variable_name = parsed[0][2]
+	end_variable_name = parsed_params[0][1]
+	start_variable_name = parsed_params[0][2]
 	if is_blank(end_variable_name) or is_blank(start_variable_name):
 		raise ReactorException(f'Constant[{variable_name}] is not supported.')
 	end_parsed, end_date = test_date(end_variable_name)
@@ -149,48 +152,76 @@ def create_date_diff(
 	if end_parsed and start_parsed:
 		# noinspection PyUnusedLocal,DuplicatedCode
 		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
-			if function == VariablePredefineFunctions.YEAR_DIFF:
-				diff = year_diff(end_date, start_date)
-			elif function == VariablePredefineFunctions.MONTH_DIFF:
-				diff = month_diff(end_date, start_date)
-			elif function == VariablePredefineFunctions.DAY_DIFF:
-				diff = (truncate_time(end_date) - truncate_time(start_date)).days
-			else:
-				raise ReactorException(f'Constant[{variable_name}] is not supported.')
+			diff = compute_date_diff(function, end_date, start_date, variable_name)
 			return diff if is_blank(prefix) else f'{prefix}{diff}'
 
 		return action
 	else:
-		# noinspection DuplicatedCode
+		def parse_date(
+				name: str, variables: PipelineVariables, principal_service: PrincipalService
+		) -> Tuple[bool, Union[date, ParsedStorageParameter]]:
+			if name.startswith('&'):
+				if allow_in_memory_variables:
+					# in pipeline find by, factor name, factor must find in given available schemas (actually, only one)
+					if len(available_schemas) == 0:
+						raise ReactorException(
+							f'Variable name[{name}] is not supported, since no available topic given.')
+					topic = available_schemas[0].get_topic()
+					factor_name = name[1:]
+				else:
+					# in console, topic.factor, topic must in given available schemas
+					if '.' not in name:
+						raise ReactorException(f'Variable name[{name}] is not supported.')
+					names = name.split('.')
+					if len(names) != 2:
+						raise ReactorException(f'Variable name[{name}] is not supported.')
+					topic_name = names[0]
+					factor_name = names[1]
+					topic = ArrayHelper(available_schemas).map(lambda x: x.get_topic()).find(
+						lambda x: x.name == topic_name)
+					if topic is None:
+						raise ReactorException(f'Topic[{topic_name}] not found in given available topics.')
+				factor: Optional[Factor] = ArrayHelper(available_schemas[0].get_topic().factors) \
+					.find(lambda x: x.name == factor_name)
+				if factor is None:
+					raise ReactorException(
+						f'Factor[{factor_name}] in topic[id={topic.topicId}, name={topic.name}] not found.')
+				return True, ParsedStorageTopicFactorParameter(
+					TopicFactorParameter(kind=ParameterKind.TOPIC, topicId=topic.topicId, factorId=factor.factorId),
+					available_schemas, principal_service, allow_in_memory_variables)
+			elif allow_in_memory_variables:
+				parsed, value, parsed_date = get_date_from_variables(variables, principal_service, name)
+				if not parsed:
+					raise ReactorException(f'Value[{value}] cannot be parsed to date or datetime.')
+				return True, parsed_date
+			else:
+				raise ReactorException(f'Variable name[{name}] is not supported.')
+
 		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
-			if not end_parsed:
-				e_parsed, e_value, e_date = get_date_from_variables(variables, principal_service, end_variable_name)
-				if not e_parsed:
-					raise ReactorException(f'Value[{e_value}] cannot be parsed to date or datetime.')
+			e_parsed, e_date = True, end_date if end_parsed \
+				else parse_date(end_variable_name, variables, principal_service)
+			s_parsed, s_date = True, start_date if start_parsed \
+				else parse_date(start_variable_name, variables, principal_service)
+			if e_parsed and s_parsed:
+				diff = compute_date_diff(function, e_date, s_date, variable_name)
+				return diff if is_blank(prefix) else f'{prefix}{diff}'
 			else:
-				e_date = end_date
-			if not start_parsed:
-				s_parsed, s_value, s_date = get_date_from_variables(variables, principal_service, start_variable_name)
-				if not s_parsed:
-					raise ReactorException(f'Value[{s_value}] cannot be parsed to date or datetime.')
-			else:
-				s_date = start_date
-			if function == VariablePredefineFunctions.YEAR_DIFF:
-				diff = year_diff(e_date, s_date)
-			elif function == VariablePredefineFunctions.MONTH_DIFF:
-				diff = month_diff(e_date, s_date)
-			elif function == VariablePredefineFunctions.DAY_DIFF:
-				diff = (truncate_time(e_date) - truncate_time(s_date)).days
-			else:
-				raise ReactorException(f'Constant[{variable_name}] is not supported.')
-			return diff if is_blank(prefix) else f'{prefix}{diff}'
+				if function == VariablePredefineFunctions.YEAR_DIFF:
+					operator = ComputedLiteralOperator.YEAR_DIFF
+				elif function == VariablePredefineFunctions.MONTH_DIFF:
+					operator = ComputedLiteralOperator.MONTH_DIFF
+				elif function == VariablePredefineFunctions.DAY_DIFF:
+					operator = ComputedLiteralOperator.DAY_DIFF
+				else:
+					raise ReactorException(f'Variable name[{variable_name}] is not supported.')
+				return create_ask_value_for_computed(operator, [e_date, s_date])
 
 		return action
 
 
 # noinspection DuplicatedCode
 def create_run_constant_segment(
-		segment: Tuple[str, str], allow_in_memory_variables: bool
+		segment: Tuple[str, str], available_schemas: List[TopicSchema], allow_in_memory_variables: bool
 ) -> Callable[[PipelineVariables, PrincipalService], Any]:
 	prefix, variable_name = segment
 	if variable_name == VariablePredefineFunctions.NEXT_SEQ.value:
@@ -198,11 +229,14 @@ def create_run_constant_segment(
 	elif variable_name == VariablePredefineFunctions.NOW.value:
 		return lambda variables, principal_service: get_current_time_in_seconds()
 	elif variable_name.startswith(VariablePredefineFunctions.YEAR_DIFF.value):
-		return create_date_diff(prefix, variable_name, VariablePredefineFunctions.YEAR_DIFF, allow_in_memory_variables)
+		return create_date_diff(
+			prefix, variable_name, VariablePredefineFunctions.YEAR_DIFF, available_schemas, allow_in_memory_variables)
 	elif variable_name.startswith(VariablePredefineFunctions.MONTH_DIFF.value):
-		return create_date_diff(prefix, variable_name, VariablePredefineFunctions.MONTH_DIFF, allow_in_memory_variables)
+		return create_date_diff(
+			prefix, variable_name, VariablePredefineFunctions.MONTH_DIFF, available_schemas, allow_in_memory_variables)
 	elif variable_name.startswith(VariablePredefineFunctions.DAY_DIFF.value):
-		return create_date_diff(prefix, variable_name, VariablePredefineFunctions.DAY_DIFF, allow_in_memory_variables)
+		return create_date_diff(
+			prefix, variable_name, VariablePredefineFunctions.DAY_DIFF, available_schemas, allow_in_memory_variables)
 
 	if allow_in_memory_variables:
 		if variable_name.startswith(VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA.value):
@@ -222,14 +256,15 @@ def create_run_constant_segment(
 
 
 def create_ask_constant_value(
-		segments: List[Tuple[str, str]], allow_in_memory_variables: bool
+		segments: List[Tuple[str, str]], available_schemas: List[TopicSchema], allow_in_memory_variables: bool
 ) -> Callable[[PipelineVariables, PrincipalService], Any]:
 	if len(segments) == 1:
-		return create_run_constant_segment(segments[0], allow_in_memory_variables)
+		return create_run_constant_segment(segments[0], available_schemas, allow_in_memory_variables)
 	else:
 		return create_ask_value_for_computed(
 			ComputedLiteralOperator.CONCAT,
-			ArrayHelper(segments).map(lambda x: create_run_constant_segment(x, allow_in_memory_variables)).to_list())
+			ArrayHelper(segments) \
+				.map(lambda x: create_run_constant_segment(x, available_schemas, allow_in_memory_variables)).to_list())
 
 
 class ParsedStorageConstantParameter(ParsedStorageParameter):
@@ -267,7 +302,8 @@ class ParsedStorageConstantParameter(ParsedStorageParameter):
 						return a_tuple[0][: (0 - len(a_tuple[1]))], a_tuple[1][1:-1]
 
 				self.askValue = create_ask_constant_value(
-					ArrayHelper(parsed[:-1]).map(lambda x: beautify(x)).to_list(), allow_in_memory_variables)
+					ArrayHelper(parsed[:-1]).map(lambda x: beautify(x)).to_list(), available_schemas,
+					allow_in_memory_variables)
 
 	def run(self, variables: PipelineVariables, principal_service: PrincipalService) -> Any:
 		return self.askValue(variables, principal_service)
@@ -275,11 +311,11 @@ class ParsedStorageConstantParameter(ParsedStorageParameter):
 
 def create_ask_value_for_computed(
 		operator: ComputedLiteralOperator,
-		elements: List[ParsedStorageParameter, Tuple[ParsedStorageCondition, ParsedStorageParameter]]
+		elements: List[Union[ParsedStorageParameter, Tuple[ParsedStorageCondition, ParsedStorageParameter], Any]]
 ) -> Callable[[PipelineVariables, PrincipalService], Any]:
 	def compute(variables: PipelineVariables, principal_service: PrincipalService) -> Literal:
 		def transform(
-				element: Union[ParsedStorageParameter, Tuple[ParsedStorageCondition, ParsedStorageParameter]]
+				element: Union[ParsedStorageParameter, Tuple[ParsedStorageCondition, ParsedStorageParameter], Any]
 		) -> Union[Literal, Union[EntityCriteriaStatement, Literal]]:
 			if isinstance(element, ParsedStorageParameter):
 				return element.run(variables, principal_service)
@@ -288,7 +324,7 @@ def create_ask_value_for_computed(
 				parameter: ParsedStorageParameter = element[1]
 				return condition.run(variables, principal_service), parameter.run(variables, principal_service)
 			else:
-				raise ReactorException(f'Element of computation parameter[{element}] is not supported.')
+				return element
 
 		return ComputedLiteral(operator=operator, elements=ArrayHelper(elements).map(transform).to_list())
 
