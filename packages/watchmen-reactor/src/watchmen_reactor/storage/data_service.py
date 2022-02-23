@@ -212,6 +212,16 @@ class TopicDataService:
 		finally:
 			storage.close()
 
+	def find_straight_values(
+			self, criteria: EntityCriteria, column_names: List[EntityColumnName]) -> List[Dict[str, Any]]:
+		data_entity_helper = self.get_data_entity_helper()
+		storage = self.get_storage()
+		try:
+			storage.connect()
+			return storage.find_straight_values(data_entity_helper.get_straight_values_finder(criteria, column_names))
+		finally:
+			storage.close()
+
 	def insert(self, data: Dict[str, Any]) -> Dict[str, Any]:
 		"""
 		assign id and version, audit columns

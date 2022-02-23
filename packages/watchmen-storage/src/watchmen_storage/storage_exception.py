@@ -15,11 +15,7 @@ class UnsupportedCriteriaException(UnexpectedStorageException):
 	pass
 
 
-class UnsupportedCriteriaJointConjunctionException(UnexpectedStorageException):
-	pass
-
-
-class UnsupportedCriteriaExpressionOperatorException(UnexpectedStorageException):
+class UnsupportedStraightColumnException(UnexpectedStorageException):
 	pass
 
 

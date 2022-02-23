@@ -364,7 +364,7 @@ class CompiledReadFactorAction(CompiledReadTopicFactorAction):
 			# TODO read factor, with arithmetic.
 			#  the problem is how to deserialize the column name,
 			#  or simply create another function to load this?
-			data = topic_data_service.find_distinct_values(criteria=[statement], column_names=[])
+			data = topic_data_service.find_straight_values(criteria=[statement], column_names=[])
 			if len(data) == 0:
 				variables.put(self.variableName, 0)
 				action_monitor_log.touched = 0

@@ -113,6 +113,33 @@ class EntityDistinctValuesFinder(EntityFinder):
 	distinctColumnNames: List[EntityColumnName] = None
 
 
+class EntityStraightColumn(DataModel):
+	name: EntityColumnName  # original name
+	alias: Optional[EntityColumnName]  # alias name
+
+
+class EntityStraightTextColumn(EntityStraightColumn):
+	"""
+	a text based straight column, text will be parsed, passed to, computed by storage and finally returns by given name
+	"""
+	text: str
+
+
+class EntityColumnAggregateArithmetic(str, Enum):
+	SUM = 'sum',
+	AVG = 'avg',
+	MAX = 'max',
+	MIN = 'min'
+
+
+class EntityStraightAggregateColumn(EntityStraightColumn):
+	aggregation: EntityColumnAggregateArithmetic
+
+
+class EntityStraightValuesFinder(EntityFinder):
+	straightColumns: List[EntityStraightColumn] = None
+
+
 class EntityPager(EntityFinder):
 	pageable: Pageable
 
