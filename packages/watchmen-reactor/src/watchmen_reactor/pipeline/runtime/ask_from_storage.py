@@ -263,8 +263,8 @@ def create_ask_constant_value(
 	else:
 		return create_ask_value_for_computed(
 			ComputedLiteralOperator.CONCAT,
-			ArrayHelper(segments) \
-				.map(lambda x: create_run_constant_segment(x, available_schemas, allow_in_memory_variables)).to_list())
+			ArrayHelper(segments).map(
+				lambda x: create_run_constant_segment(x, available_schemas, allow_in_memory_variables)).to_list())
 
 
 class ParsedStorageConstantParameter(ParsedStorageParameter):
