@@ -1,16 +1,18 @@
 from logging import getLogger
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from sqlalchemy import delete, func, insert, select, Table, text, update
 from sqlalchemy.engine import Connection, Engine
 
 from watchmen_model.admin import Topic
 from watchmen_model.common import DataPage
-from watchmen_storage import Entity, EntityCriteriaExpression, EntityDeleter, EntityDistinctValuesFinder, \
-	EntityFinder, EntityHelper, EntityId, EntityIdHelper, EntityList, EntityNotFoundException, EntityPager, \
-	EntityUpdater, TooManyEntitiesFoundException, TransactionalStorageSPI, UnexpectedStorageException
+from watchmen_storage import Entity, EntityColumnAggregateArithmetic, EntityCriteriaExpression, EntityDeleter, \
+	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, EntityIdHelper, EntityList, \
+	EntityNotFoundException, EntityPager, EntityStraightAggregateColumn, EntityStraightColumn, EntityStraightTextColumn, \
+	EntityStraightValuesFinder, EntityUpdater, TooManyEntitiesFoundException, TransactionalStorageSPI, \
+	UnexpectedStorageException, UnsupportedStraightColumnException
 from watchmen_storage.storage_spi import TopicDataStorageSPI
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, is_blank
 from .sort_build import build_sort_for_statement
 from .table_defs_mysql import find_table, register_table
 from .types import SQLAlchemyStatement
@@ -231,6 +233,36 @@ class StorageMySQL(TransactionalStorageSPI):
 		table = self.find_table(finder.name)
 		statement = select(*ArrayHelper(finder.distinctColumnNames).map(text).to_list()).select_from(table)
 		return self.find_on_statement_by_finder(table, statement, finder)
+
+	# noinspection PyMethodMayBeStatic
+	def get_alias_from_straight_column(self, straight_column: EntityStraightColumn) -> Any:
+		return straight_column.name if is_blank(straight_column.alias) else straight_column.alias
+
+	# noinspection PyMethodMayBeStatic
+	def translate_straight_column_name(self, straight_column: EntityStraightColumn) -> Any:
+		if isinstance(straight_column, EntityStraightTextColumn):
+			return text(straight_column.text).label(self.get_alias_from_straight_column(straight_column))
+		elif isinstance(straight_column, EntityStraightAggregateColumn):
+			if straight_column.aggregation == EntityColumnAggregateArithmetic.SUM:
+				return func.sum(straight_column.name).label(self.get_alias_from_straight_column(straight_column))
+			elif straight_column.aggregation == EntityColumnAggregateArithmetic.AVG:
+				return func.avg(straight_column.name).label(self.get_alias_from_straight_column(straight_column))
+			elif straight_column.aggregation == EntityColumnAggregateArithmetic.MAX:
+				return func.max(straight_column.name).label(self.get_alias_from_straight_column(straight_column))
+			elif straight_column.aggregation == EntityColumnAggregateArithmetic.MIN:
+				return func.min(straight_column.name).label(self.get_alias_from_straight_column(straight_column))
+
+		raise UnsupportedStraightColumnException(f'Straight column[{straight_column.to_dict()}] is not supported.')
+
+	def find_straight_values(self, finder: EntityStraightValuesFinder) -> EntityList:
+		table = self.find_table(finder.name)
+		statement = select(
+			*ArrayHelper(finder.straightColumns).map(self.translate_straight_column_name).to_list()) \
+			.select_from(table)
+		statement = build_criteria_for_statement(table, statement, finder.criteria)
+		statement = build_sort_for_statement(statement, finder.sort)
+		results = self.connection.execute(statement).mappings().all()
+		return ArrayHelper(results).map(lambda x: dict(x)).to_list()
 
 	def find_all(self, helper: EntityHelper) -> EntityList:
 		return self.find(EntityFinder(name=helper.name, shaper=helper.shaper))

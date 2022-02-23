@@ -8,10 +8,11 @@ from .storage_based_worker_id_generator import COMPETITIVE_WORKER_SHAPER, Compet
 	SNOWFLAKE_WORKER_ID_TABLE, StorageBasedWorkerIdGenerator
 from .storage_exception import EntityNotFoundException, InsertConflictException, NoCriteriaForUpdateException, \
 	OptimisticLockException, TooManyEntitiesFoundException, UnexpectedStorageException, UnsupportedCriteriaException, \
-	UnsupportedCriteriaExpressionOperatorException, UnsupportedCriteriaJointConjunctionException, \
-	UnsupportedSortMethodException
+	UnsupportedSortMethodException, UnsupportedStraightColumnException
 from .storage_spi import StorageSPI, TopicDataStorageSPI, TransactionalStorageSPI
-from .storage_types import Entity, EntityColumnName, EntityColumnValue, EntityCriteria, EntityCriteriaExpression, \
-	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, EntityDeleter, \
-	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, EntityIdHelper, EntityList, EntityName, \
-	EntityPager, EntityRow, EntityShaper, EntitySort, EntitySortColumn, EntitySortMethod, EntityUpdate, EntityUpdater
+from .storage_types import Entity, EntityColumnAggregateArithmetic, EntityColumnName, EntityColumnValue, \
+	EntityCriteria, EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, \
+	EntityCriteriaOperator, EntityCriteriaStatement, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, \
+	EntityHelper, EntityId, EntityIdHelper, EntityList, EntityName, EntityPager, EntityRow, EntityShaper, EntitySort, \
+	EntitySortColumn, EntitySortMethod, EntityStraightAggregateColumn, EntityStraightColumn, EntityStraightTextColumn, \
+	EntityStraightValuesFinder, EntityUpdate, EntityUpdater

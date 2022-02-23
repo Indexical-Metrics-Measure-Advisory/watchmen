@@ -8,8 +8,8 @@ from watchmen_model.common import TenantId
 from watchmen_model.reactor import TopicDataColumnNames
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_storage import EntityColumnName, EntityCriteria, EntityCriteriaExpression, EntityDeleter, \
-	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityIdHelper, EntitySort, EntityUpdate, EntityUpdater, \
-	SnowflakeGenerator
+	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityIdHelper, EntitySort, EntityStraightColumn, \
+	EntityStraightValuesFinder, EntityUpdate, EntityUpdater, SnowflakeGenerator
 from .shaper import TopicShaper
 
 
@@ -79,6 +79,19 @@ class TopicDataEntityHelper:
 			criteria=criteria,
 			sort=sort,
 			distinctColumnNames=column_names
+		)
+
+	def get_straight_values_finder(
+			self,
+			criteria: EntityCriteria, column_names: List[EntityStraightColumn],
+			sort: Optional[EntitySort] = None) -> EntityStraightValuesFinder:
+		entity_helper = self.get_entity_helper()
+		return EntityStraightValuesFinder(
+			name=entity_helper.name,
+			shaper=entity_helper.shaper,
+			criteria=criteria,
+			sort=sort,
+			straightColumns=column_names
 		)
 
 	def get_entity_updater(self, criteria: EntityCriteria, update: EntityUpdate) -> EntityUpdater:

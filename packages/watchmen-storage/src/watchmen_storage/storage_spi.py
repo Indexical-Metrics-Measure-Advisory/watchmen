@@ -4,7 +4,7 @@ from typing import List, Optional
 from watchmen_model.admin import Topic
 from watchmen_model.common import DataPage
 from .storage_types import Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
-	EntityIdHelper, EntityList, EntityPager, EntityUpdater
+	EntityIdHelper, EntityList, EntityPager, EntityStraightValuesFinder, EntityUpdater
 
 
 class StorageSPI(ABC):
@@ -113,6 +113,10 @@ class StorageSPI(ABC):
 		"""
 		filled values with given distinct columns event returns an entity list
 		"""
+		pass
+
+	@abstractmethod
+	def find_straight_values(self, finder: EntityStraightValuesFinder) -> EntityList:
 		pass
 
 	@abstractmethod

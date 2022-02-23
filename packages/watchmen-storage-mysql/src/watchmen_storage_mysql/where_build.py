@@ -2,8 +2,7 @@ from sqlalchemy import and_, or_, Table
 
 from watchmen_storage import EntityCriteria, EntityCriteriaExpression, EntityCriteriaJoint, \
 	EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, NoCriteriaForUpdateException, \
-	UnsupportedCriteriaException, UnsupportedCriteriaExpressionOperatorException, \
-	UnsupportedCriteriaJointConjunctionException
+	UnsupportedCriteriaException
 from watchmen_utilities import ArrayHelper
 from .types import SQLAlchemyStatement
 
@@ -37,7 +36,7 @@ def build_criteria_expression(table: Table, expression: EntityCriteriaExpression
 	elif op == EntityCriteriaOperator.NOT_LIKE:
 		return column.not_ilike(f'%{expression.value}%')
 	else:
-		raise UnsupportedCriteriaExpressionOperatorException(f'Unsupported criteria expression operator[{op}].')
+		raise UnsupportedCriteriaException(f'Unsupported criteria expression operator[{op}].')
 
 
 def build_criteria_joint(table: Table, joint: EntityCriteriaJoint):
@@ -47,8 +46,7 @@ def build_criteria_joint(table: Table, joint: EntityCriteriaJoint):
 	elif conjunction == EntityCriteriaJointConjunction.OR:
 		return or_(*ArrayHelper(joint.children).map(lambda x: build_criteria_statement(table, x)).to_list())
 	else:
-		raise UnsupportedCriteriaJointConjunctionException(
-			f'Unsupported criteria joint conjunction[{conjunction}].')
+		raise UnsupportedCriteriaException(f'Unsupported criteria joint conjunction[{conjunction}].')
 
 
 def build_criteria_statement(table: Table, statement: EntityCriteriaStatement):
