@@ -85,9 +85,9 @@ class PatService(StorageService):
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),
 			criteria=[
-				EntityCriteriaExpression(name=self.get_pat_id_column_name(), value=pat_id),
-				EntityCriteriaExpression(name='user_id', value=user_id),
-				EntityCriteriaExpression(name='tenant_id', value=tenant_id)
+				EntityCriteriaExpression(left=self.get_pat_id_column_name(), right=pat_id),
+				EntityCriteriaExpression(left='user_id', right=user_id),
+				EntityCriteriaExpression(left='tenant_id', right=tenant_id)
 			]
 		))
 		if pat is None:
@@ -100,8 +100,8 @@ class PatService(StorageService):
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),
 			criteria=[
-				EntityCriteriaExpression(name='user_id', value=user_id),
-				EntityCriteriaExpression(name='tenant_id', value=tenant_id)
+				EntityCriteriaExpression(left='user_id', right=user_id),
+				EntityCriteriaExpression(left='tenant_id', right=tenant_id)
 			]
 		))
 

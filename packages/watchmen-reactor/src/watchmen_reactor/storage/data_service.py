@@ -24,30 +24,16 @@ class TopicTrigger(DataModel):
 	internalDataId: int = -1
 
 
-class TopicDataService:
-	def __init__(
-			self, schema: TopicSchema, topic_data_entity_helper: TopicDataEntityHelper,
-			storage: TopicDataStorageSPI, principal_service: PrincipalService):
+class TopicStructureService:
+	def __int__(self, schema: TopicSchema, data_entity_helper: TopicDataEntityHelper):
 		self.schema = schema
-		self.dataEntityHelper = topic_data_entity_helper
-		self.storage = storage
-		self.principalService = principal_service
-		self.snowflakeGenerator = ask_snowflake_generator()
+		self.dataEntityHelper = data_entity_helper
 
 	def get_schema(self) -> TopicSchema:
 		return self.schema
 
 	def get_topic(self) -> Topic:
 		return self.get_schema().get_topic()
-
-	def get_storage(self) -> TopicDataStorageSPI:
-		return self.storage
-
-	def get_snowflake_generator(self) -> SnowflakeGenerator:
-		return self.snowflakeGenerator
-
-	def get_principal_service(self) -> PrincipalService:
-		return self.principalService
 
 	# noinspection PyMethodMayBeStatic
 	def now(self) -> datetime:
@@ -80,6 +66,40 @@ class TopicDataService:
 		# if e is not None:
 		# 	logger.error(e, exc_info=True, stack_info=True)
 		raise ReactorException(message)
+
+	def build_id_version_criteria(self, data: Dict[str, Any]) -> EntityCriteria:
+		data_entity_helper = self.get_data_entity_helper()
+		criteria: EntityCriteria = []
+		by_id = data_entity_helper.build_id_criteria(data)
+		if by_id is None:
+			raise ReactorException(f'Id not found from given data[{data}].')
+		if data_entity_helper.is_versioned():
+			by_version = data_entity_helper.build_version_criteria(data)
+			if by_version is None:
+				raise ReactorException(f'Version not found from given data[{data}].')
+			criteria.append(by_version)
+		return criteria
+
+
+# noinspection PyAbstractClass
+class TopicDataService(TopicStructureService):
+	def __init__(
+			self, schema: TopicSchema, data_entity_helper: TopicDataEntityHelper,
+			storage: TopicDataStorageSPI, principal_service: PrincipalService):
+		self.schema = schema
+		self.dataEntityHelper = data_entity_helper
+		self.storage = storage
+		self.principalService = principal_service
+		self.snowflakeGenerator = ask_snowflake_generator()
+
+	def get_storage(self) -> TopicDataStorageSPI:
+		return self.storage
+
+	def get_snowflake_generator(self) -> SnowflakeGenerator:
+		return self.snowflakeGenerator
+
+	def get_principal_service(self) -> PrincipalService:
+		return self.principalService
 
 	def trigger_by_insert(self, data: Dict[str, Any]) -> TopicTrigger:
 		"""
@@ -241,19 +261,6 @@ class TopicDataService:
 			return data
 		finally:
 			storage.close()
-
-	def build_id_version_criteria(self, data: Dict[str, Any]) -> EntityCriteria:
-		data_entity_helper = self.get_data_entity_helper()
-		criteria: EntityCriteria = []
-		by_id = data_entity_helper.build_id_criteria(data)
-		if by_id is None:
-			raise ReactorException(f'Id not found from given data[{data}].')
-		if data_entity_helper.is_versioned():
-			by_version = data_entity_helper.build_version_criteria(data)
-			if by_version is None:
-				raise ReactorException(f'Version not found from given data[{data}].')
-			criteria.append(by_version)
-		return criteria
 
 	def update_by_id_and_version(self, data: Dict[str, Any]) -> Tuple[int, EntityCriteria]:
 		"""

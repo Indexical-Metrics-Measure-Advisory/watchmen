@@ -70,8 +70,8 @@ class LastSnapshotService(StorageService):
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),
 			criteria=[
-				EntityCriteriaExpression(name='user_id', value=last_snapshot.userId),
-				EntityCriteriaExpression(name='tenant_id', value=last_snapshot.tenantId)
+				EntityCriteriaExpression(left='user_id', right=last_snapshot.userId),
+				EntityCriteriaExpression(left='tenant_id', right=last_snapshot.tenantId)
 			],
 			update={
 				'language': last_snapshot.language,
@@ -88,8 +88,8 @@ class LastSnapshotService(StorageService):
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),
 			criteria=[
-				EntityCriteriaExpression(name='user_id', value=user_id),
-				EntityCriteriaExpression(name='tenant_id', value=tenant_id)
+				EntityCriteriaExpression(left='user_id', right=user_id),
+				EntityCriteriaExpression(left='tenant_id', right=tenant_id)
 			]
 		))
 

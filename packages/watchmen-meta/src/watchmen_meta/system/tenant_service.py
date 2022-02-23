@@ -45,5 +45,5 @@ class TenantService(TupleService):
 	def find_by_text(self, text: Optional[str], pageable: Pageable) -> DataPage:
 		criteria = []
 		if text is not None and len(text.strip()) != 0:
-			criteria.append(EntityCriteriaExpression(name='name', operator=EntityCriteriaOperator.LIKE, value=text))
+			criteria.append(EntityCriteriaExpression(left='name', operator=EntityCriteriaOperator.LIKE, right=text))
 		return self.storage.page(self.get_entity_pager(criteria, pageable))

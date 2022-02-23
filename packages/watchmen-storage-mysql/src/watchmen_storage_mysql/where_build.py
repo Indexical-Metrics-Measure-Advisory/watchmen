@@ -9,32 +9,32 @@ from .types import SQLAlchemyStatement
 
 def build_criteria_expression(table: Table, expression: EntityCriteriaExpression):
 	# noinspection PyPropertyAccess
-	column = table.c[expression.name]
+	column = table.c[expression.left]
 	op = expression.operator
 	if op == EntityCriteriaOperator.IS_EMPTY:
 		return column.is_(None)
 	elif op == EntityCriteriaOperator.IS_NOT_EMPTY:
 		return column.is_not(None)
 	elif op == EntityCriteriaOperator.EQUALS:
-		return column == expression.value
+		return column == expression.right
 	elif op == EntityCriteriaOperator.NOT_EQUALS:
-		return column != expression.value
+		return column != expression.right
 	elif op == EntityCriteriaOperator.LESS_THAN:
-		return column < expression.value
+		return column < expression.right
 	elif op == EntityCriteriaOperator.LESS_THAN_OR_EQUALS:
-		return column <= expression.value
+		return column <= expression.right
 	elif op == EntityCriteriaOperator.GREATER_THAN:
-		return column > expression.value
+		return column > expression.right
 	elif op == EntityCriteriaOperator.GREATER_THAN_OR_EQUALS:
-		return column >= expression.value
+		return column >= expression.right
 	elif op == EntityCriteriaOperator.IN:
-		return column.in_(expression.value)
+		return column.in_(expression.right)
 	elif op == EntityCriteriaOperator.NOT_IN:
-		return column.not_in(expression.value)
+		return column.not_in(expression.right)
 	elif op == EntityCriteriaOperator.LIKE:
-		return column.ilike(f'%{expression.value}%')
+		return column.ilike(f'%{expression.right}%')
 	elif op == EntityCriteriaOperator.NOT_LIKE:
-		return column.not_ilike(f'%{expression.value}%')
+		return column.not_ilike(f'%{expression.right}%')
 	else:
 		raise UnsupportedCriteriaException(f'Unsupported criteria expression operator[{op}].')
 

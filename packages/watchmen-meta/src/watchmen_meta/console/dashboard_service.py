@@ -68,9 +68,9 @@ class DashboardService(UserBasedTupleService):
 		last_modified_by = self.principalService.get_user_id()
 		updated_count = self.storage.update_only(self.get_entity_updater(
 			criteria=[
-				EntityCriteriaExpression(name=self.get_storable_id_column_name(), value=dashboard_id),
-				EntityCriteriaExpression(name='user_id', value=user_id),
-				EntityCriteriaExpression(name='tenant_id', value=tenant_id)
+				EntityCriteriaExpression(left=self.get_storable_id_column_name(), right=dashboard_id),
+				EntityCriteriaExpression(left='user_id', right=user_id),
+				EntityCriteriaExpression(left='tenant_id', right=tenant_id)
 			],
 			update={
 				'name': name,

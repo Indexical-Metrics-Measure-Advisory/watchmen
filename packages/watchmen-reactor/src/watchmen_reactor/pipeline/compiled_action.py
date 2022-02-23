@@ -281,7 +281,7 @@ class CompiledFindByAction(CompiledStorageAction):
 	def parse_find_by(self, action: FindBy, principal_service: PrincipalService) -> None:
 		if self.schema is None and isinstance(action, (FromTopic, ToTopic)):
 			self.parse_topic_schema(action, principal_service)
-		self.parsedFindBy = parse_condition_for_storage(self.schema, action.by, principal_service)
+		self.parsedFindBy = parse_condition_for_storage(self.schema, action.by, principal_service, True)
 
 
 # noinspection PyAbstractClass

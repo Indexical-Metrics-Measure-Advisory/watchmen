@@ -63,12 +63,12 @@ class ConnectedSpaceService(UserBasedTupleService):
 	) -> List[ConnectedSpace]:
 		criteria = [
 			EntityCriteriaExpression(
-				name=self.get_storable_id_column_name(), operator=EntityCriteriaOperator.IN, value=connect_ids),
-			EntityCriteriaExpression(name='is_template', value=True),
-			EntityCriteriaExpression(name='tenant_id', value=tenant_id)
+				left=self.get_storable_id_column_name(), operator=EntityCriteriaOperator.IN, right=connect_ids),
+			EntityCriteriaExpression(left='is_template', right=True),
+			EntityCriteriaExpression(left='tenant_id', right=tenant_id)
 		]
 		if space_id is not None and len(space_id.strip()) != 0:
-			criteria.append(EntityCriteriaExpression(name='space_id', value=space_id))
+			criteria.append(EntityCriteriaExpression(left='space_id', right=space_id))
 
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(criteria=criteria))
@@ -77,9 +77,9 @@ class ConnectedSpaceService(UserBasedTupleService):
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(
 			criteria=[
-				EntityCriteriaExpression(name='space_id', value=space_id),
-				EntityCriteriaExpression(name='tenant_id', value=tenant_id),
-				EntityCriteriaExpression(name='is_template', value=True),
+				EntityCriteriaExpression(left='space_id', right=space_id),
+				EntityCriteriaExpression(left='tenant_id', right=tenant_id),
+				EntityCriteriaExpression(left='is_template', right=True),
 			]
 		))
 
@@ -87,8 +87,8 @@ class ConnectedSpaceService(UserBasedTupleService):
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(
 			criteria=[
-				EntityCriteriaExpression(name='tenant_id', value=tenant_id),
-				EntityCriteriaExpression(name='is_template', value=True),
+				EntityCriteriaExpression(left='tenant_id', right=tenant_id),
+				EntityCriteriaExpression(left='is_template', right=True),
 			]
 		))
 
@@ -101,9 +101,9 @@ class ConnectedSpaceService(UserBasedTupleService):
 		last_modified_by = self.principalService.get_user_id()
 		updated_count = self.storage.update_only(self.get_entity_updater(
 			criteria=[
-				EntityCriteriaExpression(name=self.get_storable_id_column_name(), value=connect_id),
-				EntityCriteriaExpression(name='user_id', value=user_id),
-				EntityCriteriaExpression(name='tenant_id', value=tenant_id)
+				EntityCriteriaExpression(left=self.get_storable_id_column_name(), right=connect_id),
+				EntityCriteriaExpression(left='user_id', right=user_id),
+				EntityCriteriaExpression(left='tenant_id', right=tenant_id)
 			],
 			update={
 				'name': name,
@@ -118,7 +118,7 @@ class ConnectedSpaceService(UserBasedTupleService):
 	def update_last_visit_time(self, connect_id: ConnectedSpaceId) -> datetime:
 		now = self.now()
 		self.storage.update(self.get_entity_updater(
-			criteria=[EntityCriteriaExpression(name=self.get_storable_id_column_name(), value=connect_id)],
+			criteria=[EntityCriteriaExpression(left=self.get_storable_id_column_name(), right=connect_id)],
 			update={'last_visit_time': now}
 		))
 		return now

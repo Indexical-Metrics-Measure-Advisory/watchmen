@@ -70,7 +70,7 @@ class PipelineService(TupleService):
 	def find_tenant_id(self, pipeline_id: PipelineId) -> Optional[TenantId]:
 		finder = self.get_entity_finder_for_columns(
 			criteria=[
-				EntityCriteriaExpression(name=self.get_storable_id_column_name(), value=pipeline_id),
+				EntityCriteriaExpression(left=self.get_storable_id_column_name(), right=pipeline_id),
 			],
 			distinctColumnNames=['tenant_id']
 		)
@@ -86,8 +86,8 @@ class PipelineService(TupleService):
 	def find_by_topic_id(self, topic_id: TopicId, tenant_id: TenantId) -> List[Pipeline]:
 		finder = self.get_entity_finder_for_columns(
 			criteria=[
-				EntityCriteriaExpression(name='topic_id', value=topic_id),
-				EntityCriteriaExpression(name='tenant_id', value=tenant_id),
+				EntityCriteriaExpression(left='topic_id', right=topic_id),
+				EntityCriteriaExpression(left='tenant_id', right=tenant_id),
 			],
 			distinctColumnNames=['tenant_id']
 		)
@@ -102,8 +102,8 @@ class PipelineService(TupleService):
 		last_modified_by = self.principalService.get_user_id()
 		updated_count = self.storage.update_only(self.get_entity_updater(
 			criteria=[
-				EntityCriteriaExpression(name=self.get_storable_id_column_name(), value=pipeline_id),
-				EntityCriteriaExpression(name='tenant_id', value=tenant_id)
+				EntityCriteriaExpression(left=self.get_storable_id_column_name(), right=pipeline_id),
+				EntityCriteriaExpression(left='tenant_id', right=tenant_id)
 			],
 			update={
 				'name': name,
@@ -124,8 +124,8 @@ class PipelineService(TupleService):
 		last_modified_by = self.principalService.get_user_id()
 		updated_count = self.storage.update_only(self.get_entity_updater(
 			criteria=[
-				EntityCriteriaExpression(name=self.get_storable_id_column_name(), value=pipeline_id),
-				EntityCriteriaExpression(name='tenant_id', value=tenant_id)
+				EntityCriteriaExpression(left=self.get_storable_id_column_name(), right=pipeline_id),
+				EntityCriteriaExpression(left='tenant_id', right=tenant_id)
 			],
 			update={
 				'enabled': enabled,
@@ -141,6 +141,6 @@ class PipelineService(TupleService):
 	def find_all(self, tenant_id: Optional[TenantId]) -> List[Pipeline]:
 		criteria = []
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
-			criteria.append(EntityCriteriaExpression(name='tenant_id', value=tenant_id))
+			criteria.append(EntityCriteriaExpression(left='tenant_id', right=tenant_id))
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(criteria))

@@ -81,9 +81,9 @@ class EntityCriteriaOperator(str, Enum):
 
 
 class EntityCriteriaExpression(EntityCriteriaStatement):
-	name: EntityColumnName
+	left: EntityColumnName
 	operator: EntityCriteriaOperator = EntityCriteriaOperator.EQUALS
-	value: Optional[EntityColumnValue] = None
+	right: Optional[EntityColumnValue] = None
 
 
 class EntityCriteriaJointConjunction(str, Enum):
