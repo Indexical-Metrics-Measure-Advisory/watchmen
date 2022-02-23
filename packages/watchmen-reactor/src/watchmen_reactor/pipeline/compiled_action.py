@@ -6,7 +6,8 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_snowflake_generator
-from watchmen_model.admin import AlarmAction, AlarmActionSeverity, CopyToMemoryAction, DeleteTopicAction, \
+from watchmen_model.admin import AggregateArithmetic, AlarmAction, AlarmActionSeverity, CopyToMemoryAction, \
+	DeleteTopicAction, \
 	DeleteTopicActionType, Factor, FindBy, FromTopic, is_raw_topic, MappingFactor, MappingRow, Pipeline, \
 	PipelineAction, PipelineStage, PipelineTriggerType, PipelineUnit, ReadFactorAction, ReadFactorsAction, \
 	ReadTopicAction, ReadTopicActionType, SystemActionType, Topic, ToTopic, WriteFactorAction, WriteToExternalAction, \
@@ -21,6 +22,7 @@ from watchmen_reactor.meta import ExternalWriterService, TopicService
 from watchmen_reactor.pipeline_schema import TopicStorages
 from watchmen_reactor.storage import RawTopicDataService, RegularTopicDataService, TopicDataService, TopicTrigger
 from watchmen_reactor.topic_schema import TopicSchema
+from watchmen_storage import EntityColumnAggregateArithmetic, EntityStraightAggregateColumn, EntityStraightColumn
 from watchmen_utilities import ArrayHelper, is_blank
 from .runtime import CreateQueuePipeline, now, parse_action_defined_as, parse_condition_for_storage, \
 	parse_mapping_for_storage, parse_parameter_in_memory, parse_prerequisite_defined_as, parse_prerequisite_in_memory, \
@@ -353,6 +355,39 @@ class CompiledReadTopicFactorAction(CompiledReadTopicAction):
 
 
 class CompiledReadFactorAction(CompiledReadTopicFactorAction):
+	aggregateArithmetic: Optional[AggregateArithmetic] = None
+
+	def parse_action(
+			self, action: ReadFactorAction, principal_service: PrincipalService) -> None:
+		super().parse_action(action, principal_service)
+		self.aggregateArithmetic = AggregateArithmetic.NONE if action.arithmetic is None else action.arithmetic
+
+	def build_straight_column(self, topic_data_service: TopicDataService) -> EntityStraightColumn:
+		factor_name = self.factor.name
+		column_name = topic_data_service.get_data_entity_helper().get_column_name(self.factor.name)
+		if self.aggregateArithmetic == AggregateArithmetic.NONE:
+			return EntityStraightColumn(name=column_name, alias=factor_name)
+		elif self.aggregateArithmetic == AggregateArithmetic.COUNT:
+			return EntityStraightAggregateColumn(
+				name=column_name,
+				alias=factor_name,
+				arithmetic=EntityColumnAggregateArithmetic.COUNT
+			)
+		elif self.aggregateArithmetic == AggregateArithmetic.SUM:
+			return EntityStraightAggregateColumn(
+				name=column_name,
+				alias=factor_name,
+				arithmetic=EntityColumnAggregateArithmetic.SUM
+			)
+		elif self.aggregateArithmetic == AggregateArithmetic.AVG:
+			return EntityStraightAggregateColumn(
+				name=column_name,
+				alias=factor_name,
+				arithmetic=EntityColumnAggregateArithmetic.AVG
+			)
+		else:
+			raise ReactorException(f'Aggregate arithmetic[{self.aggregateArithmetic}] is not supported.')
+
 	def do_run(
 			self, variables: PipelineVariables,
 			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorReadAction,
@@ -361,10 +396,8 @@ class CompiledReadFactorAction(CompiledReadTopicFactorAction):
 			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
 			statement = self.parsedFindBy.run(variables, principal_service)
 			action_monitor_log.findBy = statement.to_dict()
-			# TODO read factor, with arithmetic.
-			#  the problem is how to deserialize the column name,
-			#  or simply create another function to load this?
-			data = topic_data_service.find_straight_values(criteria=[statement], column_names=[])
+			data = topic_data_service.find_straight_values(
+				criteria=[statement], columns=[self.build_straight_column(topic_data_service)])
 			if len(data) == 0:
 				variables.put(self.variableName, 0)
 				action_monitor_log.touched = 0

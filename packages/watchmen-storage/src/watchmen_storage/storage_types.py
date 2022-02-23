@@ -126,6 +126,7 @@ class EntityStraightTextColumn(EntityStraightColumn):
 
 
 class EntityColumnAggregateArithmetic(str, Enum):
+	COUNT = 'count',
 	SUM = 'sum',
 	AVG = 'avg',
 	MAX = 'max',
@@ -133,7 +134,7 @@ class EntityColumnAggregateArithmetic(str, Enum):
 
 
 class EntityStraightAggregateColumn(EntityStraightColumn):
-	aggregation: EntityColumnAggregateArithmetic
+	arithmetic: EntityColumnAggregateArithmetic
 
 
 class EntityStraightValuesFinder(EntityFinder):
