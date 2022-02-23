@@ -75,12 +75,12 @@ def parse_parameter_for_storage(
 
 
 class ParsedStorageCondition:
-	def __init__(self, condition: ParameterCondition, principal_service: PrincipalService):
+	def __init__(self, schema: TopicSchema, condition: ParameterCondition, principal_service: PrincipalService):
 		self.condition = condition
-		self.parse(condition, principal_service)
+		self.parse(schema, condition, principal_service)
 
 	@abstractmethod
-	def parse(self, condition: ParameterCondition, principal_service: PrincipalService) -> None:
+	def parse(self, schema: TopicSchema, condition: ParameterCondition, principal_service: PrincipalService) -> None:
 		pass
 
 	@abstractmethod
@@ -92,11 +92,11 @@ class ParsedStorageJoint(ParsedStorageCondition):
 	jointType: ParameterJointType = ParameterJointType.AND
 	filters: List[ParsedStorageCondition] = []
 
-	def parse(self, condition: ParameterJoint, principal_service: PrincipalService) -> None:
+	def parse(self, schema: TopicSchema, condition: ParameterJoint, principal_service: PrincipalService) -> None:
 		self.jointType = ParameterJointType.OR \
 			if condition.jointType == ParameterJointType.OR else ParameterJointType.AND
 		self.filters = ArrayHelper(condition.filters) \
-			.map(lambda x: parse_condition_for_storage(x, principal_service)).to_list()
+			.map(lambda x: parse_condition_for_storage(schema, x, principal_service)).to_list()
 
 	def run(self, variables: PipelineVariables, principal_service: PrincipalService) -> EntityCriteriaJoint:
 		if self.jointType == ParameterJointType.OR:
@@ -113,7 +113,7 @@ class ParsedStorageJoint(ParsedStorageCondition):
 
 
 class ParsedStorageExpression(ParsedStorageCondition):
-	def parse(self, condition: ParameterCondition, principal_service: PrincipalService) -> None:
+	def parse(self, schema: TopicSchema, condition: ParameterCondition, principal_service: PrincipalService) -> None:
 		# TODO parse storage expression
 		pass
 
@@ -124,13 +124,14 @@ class ParsedStorageExpression(ParsedStorageCondition):
 
 # TODO need condition from topic schema
 def parse_condition_for_storage(
+		schema: TopicSchema,
 		condition: Optional[ParameterCondition], principal_service: PrincipalService) -> ParsedStorageCondition:
 	if condition is None:
 		raise ReactorException('Condition cannot be none.')
 	if isinstance(condition, ParameterJoint):
-		return ParsedStorageJoint(condition, principal_service)
+		return ParsedStorageJoint(schema, condition, principal_service)
 	elif isinstance(condition, ParameterExpression):
-		return ParsedStorageExpression(condition, principal_service)
+		return ParsedStorageExpression(schema, condition, principal_service)
 	else:
 		raise ReactorException(f'Condition[{condition.dict()}] is not supported.')
 
