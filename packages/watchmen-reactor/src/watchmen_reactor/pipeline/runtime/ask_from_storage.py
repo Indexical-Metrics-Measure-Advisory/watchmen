@@ -42,7 +42,7 @@ class ParsedStorageParameter:
 		"""
 		find topic even it is not found in available list when in-memory variables is allowed.
 		for the secondary one of return tuple, true when it is found in given available list,
-		otherwise is false, means it can be find in definitions
+		otherwise is false, which means it can be find in definitions
 		"""
 		if is_blank(topic_id):
 			raise ReactorException(f'Topic not declared.')
@@ -51,6 +51,7 @@ class ParsedStorageParameter:
 			if not allow_in_memory_variables:
 				raise ReactorException(f'Topic[id={topic_id}] not found.')
 			else:
+				# in pipeline, it might be from trigger data
 				topic_service = get_topic_service(principal_service)
 				topic: Optional[Topic] = topic_service.find_by_id(topic_id)
 				if topic is None:
@@ -108,20 +109,21 @@ class ParsedStorageTopicFactorParameter(ParsedStorageParameter):
 	def parse(
 			self, parameter: TopicFactorParameter, available_schemas: List[TopicSchema],
 			principal_service: PrincipalService, allow_in_memory_variables: bool) -> None:
-		schema, from_variables = self.find_topic(
+		# found in given schemas, means it is not from variables
+		schema, found_in_given_available_schemas = self.find_topic(
 			parameter.topic_id, available_schemas, principal_service, allow_in_memory_variables)
 		topic = schema.get_topic()
 		self.topic = topic
-		self.topicFromVariables = from_variables
+		self.topicFromVariables = not found_in_given_available_schemas
 		factor = self.find_factor(parameter.factor_id, topic)
 		self.factor = factor
-		if not from_variables and is_raw_topic(topic) and not factor.flatten:
+		if found_in_given_available_schemas and is_raw_topic(topic) and not factor.flatten:
 			raise ReactorException(
 				f'Factor[id={factor.factorId}, name={factor.name}] '
 				f'on topic[id={topic.topicId}, name={topic.name}] is not flatten, '
 				f'cannot be used on storage directly.')
 
-		if from_variables:
+		if not found_in_given_available_schemas:
 			# get value from memory
 			self.askValue = create_ask_factor_value(topic, factor)
 		else:
