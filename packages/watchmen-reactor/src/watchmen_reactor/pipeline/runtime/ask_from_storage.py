@@ -1,21 +1,24 @@
 from __future__ import annotations
 
 from abc import abstractmethod
+from re import findall
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from watchmen_auth import PrincipalService
 from watchmen_model.admin import AggregateArithmetic, Factor, is_raw_topic, MappingFactor, Topic
 from watchmen_model.common import ComputedParameter, ConstantParameter, FactorId, Parameter, ParameterComputeType, \
 	ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, \
-	TopicFactorParameter, TopicId
+	TopicFactorParameter, TopicId, VariablePredefineFunctions
 from watchmen_reactor.common import ReactorException
 from watchmen_reactor.meta import TopicService
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_storage import ComputedLiteral, ComputedLiteralOperator, EntityCriteriaExpression, EntityCriteriaJoint, \
 	EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, FullQualifiedLiteral, Literal
-from watchmen_utilities import ArrayHelper, is_blank
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, month_diff, truncate_time, year_diff
 from .ask_from_memory import assert_parameter_count, create_ask_factor_value, parse_parameter_in_memory
 from .topic_utils import ask_topic_data_entity_helper
+from .utils import always_none, create_from_previous_trigger_data, create_get_from_variables_with_prefix, \
+	create_snowflake_generator, create_static_str, get_date_from_variables, test_date
 from .variables import PipelineVariables
 
 
@@ -130,16 +133,144 @@ class ParsedStorageTopicFactorParameter(ParsedStorageParameter):
 		return self.askValue(variables, principal_service)
 
 
+# noinspection DuplicatedCode
+def create_date_diff(
+		prefix: str, variable_name: str, function: VariablePredefineFunctions, allow_in_memory_variables: bool
+) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	parsed = findall(f'^({function.value})\\s*\\((.+),(.+)\\)$', variable_name)
+	if len(parsed) != 1:
+		raise ReactorException(f'Constant[{variable_name}] is not supported.')
+	end_variable_name = parsed[0][1]
+	start_variable_name = parsed[0][2]
+	if is_blank(end_variable_name) or is_blank(start_variable_name):
+		raise ReactorException(f'Constant[{variable_name}] is not supported.')
+	end_parsed, end_date = test_date(end_variable_name)
+	start_parsed, start_date = test_date(start_variable_name)
+	if end_parsed and start_parsed:
+		# noinspection PyUnusedLocal,DuplicatedCode
+		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+			if function == VariablePredefineFunctions.YEAR_DIFF:
+				diff = year_diff(end_date, start_date)
+			elif function == VariablePredefineFunctions.MONTH_DIFF:
+				diff = month_diff(end_date, start_date)
+			elif function == VariablePredefineFunctions.DAY_DIFF:
+				diff = (truncate_time(end_date) - truncate_time(start_date)).days
+			else:
+				raise ReactorException(f'Constant[{variable_name}] is not supported.')
+			return diff if is_blank(prefix) else f'{prefix}{diff}'
+
+		return action
+	else:
+		# noinspection DuplicatedCode
+		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+			if not end_parsed:
+				e_parsed, e_value, e_date = get_date_from_variables(variables, principal_service, end_variable_name)
+				if not e_parsed:
+					raise ReactorException(f'Value[{e_value}] cannot be parsed to date or datetime.')
+			else:
+				e_date = end_date
+			if not start_parsed:
+				s_parsed, s_value, s_date = get_date_from_variables(variables, principal_service, start_variable_name)
+				if not s_parsed:
+					raise ReactorException(f'Value[{s_value}] cannot be parsed to date or datetime.')
+			else:
+				s_date = start_date
+			if function == VariablePredefineFunctions.YEAR_DIFF:
+				diff = year_diff(e_date, s_date)
+			elif function == VariablePredefineFunctions.MONTH_DIFF:
+				diff = month_diff(e_date, s_date)
+			elif function == VariablePredefineFunctions.DAY_DIFF:
+				diff = (truncate_time(e_date) - truncate_time(s_date)).days
+			else:
+				raise ReactorException(f'Constant[{variable_name}] is not supported.')
+			return diff if is_blank(prefix) else f'{prefix}{diff}'
+
+		return action
+
+
+# noinspection DuplicatedCode
+def create_run_constant_segment(
+		segment: Tuple[str, str], allow_in_memory_variables: bool
+) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	prefix, variable_name = segment
+	if variable_name == VariablePredefineFunctions.NEXT_SEQ.value:
+		return create_snowflake_generator(prefix)
+	elif variable_name == VariablePredefineFunctions.NOW.value:
+		return lambda variables, principal_service: get_current_time_in_seconds()
+	elif variable_name.startswith(VariablePredefineFunctions.YEAR_DIFF.value):
+		return create_date_diff(prefix, variable_name, VariablePredefineFunctions.YEAR_DIFF, allow_in_memory_variables)
+	elif variable_name.startswith(VariablePredefineFunctions.MONTH_DIFF.value):
+		return create_date_diff(prefix, variable_name, VariablePredefineFunctions.MONTH_DIFF, allow_in_memory_variables)
+	elif variable_name.startswith(VariablePredefineFunctions.DAY_DIFF.value):
+		return create_date_diff(prefix, variable_name, VariablePredefineFunctions.DAY_DIFF, allow_in_memory_variables)
+
+	if allow_in_memory_variables:
+		if variable_name.startswith(VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA.value):
+			if variable_name == VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA.value:
+				raise ReactorException(
+					f'Previous trigger data is a dict, cannot be used for storage. '
+					f'Current constant segment is [{prefix}{{{variable_name}}}].')
+			length = len(VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA.value)
+			if len(variable_name) < length + 2 or variable_name[length:length + 1] != '.':
+				raise ReactorException(f'Constant[{variable_name}] is not supported.')
+			return create_from_previous_trigger_data(prefix, variable_name[length + 1:])
+		else:
+			return create_get_from_variables_with_prefix(prefix, variable_name)
+	else:
+		# recover to original string
+		return create_static_str(f'{prefix}{{{variable_name}}}')
+
+
+def create_ask_constant_value(
+		segments: List[Tuple[str, str]], allow_in_memory_variables: bool
+) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	if len(segments) == 1:
+		return create_run_constant_segment(segments[0], allow_in_memory_variables)
+	else:
+		return create_ask_value_for_computed(
+			ComputedLiteralOperator.CONCAT,
+			ArrayHelper(segments).map(lambda x: create_run_constant_segment(x, allow_in_memory_variables)).to_list())
+
+
 class ParsedStorageConstantParameter(ParsedStorageParameter):
+	askValue: Callable[[PipelineVariables, PrincipalService], Any] = None
+
+	# noinspection DuplicatedCode
 	def parse(
 			self, parameter: ConstantParameter, available_schemas: List[TopicSchema],
 			principal_service: PrincipalService, allow_in_memory_variables: bool) -> None:
-		# TODO parse storage constant parameter
-		pass
+		value = parameter.value
+		if value is None:
+			self.askValue = always_none
+		elif len(value) == 0:
+			self.askValue = always_none
+		elif is_blank(value):
+			self.askValue = create_static_str(value)
+		elif '{' not in value or '}' not in value:
+			self.askValue = create_static_str(value)
+		else:
+			# parsed result is:
+			# for empty string, a list contains one tuple: [('', '')]
+			# for no variable string, a list contains 2 tuples: [(value, ''), ('', '')]
+			# found, a list contains x tuples: [(first, first_variable), (second, second_variable), ..., ('', '')]
+			parsed = findall("([^{]*({[^}]+})?)", value)
+			if parsed[0][0] == '':
+				# no variable required
+				self.askValue = create_static_str(value)
+			else:
+				def beautify(a_tuple: Tuple[str, str]) -> Tuple[str, str]:
+					if a_tuple[1] == '':
+						# no variable in it
+						return a_tuple
+					else:
+						# remove variable from first, remove braces from second
+						return a_tuple[0][: (0 - len(a_tuple[1]))], a_tuple[1][1:-1]
+
+				self.askValue = create_ask_constant_value(
+					ArrayHelper(parsed[:-1]).map(lambda x: beautify(x)).to_list(), allow_in_memory_variables)
 
 	def run(self, variables: PipelineVariables, principal_service: PrincipalService) -> Any:
-		# TODO run storage topic factor parameter
-		pass
+		return self.askValue(variables, principal_service)
 
 
 def create_ask_value_for_computed(
