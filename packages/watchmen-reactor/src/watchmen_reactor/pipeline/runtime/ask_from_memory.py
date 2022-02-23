@@ -17,9 +17,10 @@ from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, get_day
 	get_half_year, get_month, get_quarter, \
 	get_week_of_month, get_week_of_year, get_year, greater_or_equals_date, greater_or_equals_decimal, \
 	greater_or_equals_time, is_blank, is_date_or_time_instance, is_empty, is_not_empty, is_numeric_instance, \
-	less_or_equals_date, less_or_equals_decimal, less_or_equals_time, month_diff, truncate_time, try_to_date, \
-	try_to_decimal, value_equals, value_not_equals, year_diff
-from .utils import always_none, create_from_previous_trigger_data, create_get_from_variables_with_prefix, \
+	less_or_equals_date, less_or_equals_decimal, less_or_equals_time, try_to_date, \
+	try_to_decimal, value_equals, value_not_equals
+from .utils import always_none, compute_date_diff, create_from_previous_trigger_data, \
+	create_get_from_variables_with_prefix, \
 	create_previous_trigger_data, create_snowflake_generator, create_static_str, get_date_from_variables, \
 	get_value_from, test_date
 from .variables import PipelineVariables
@@ -425,14 +426,7 @@ def create_date_diff(
 	if end_parsed and start_parsed:
 		# noinspection PyUnusedLocal
 		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
-			if function == VariablePredefineFunctions.YEAR_DIFF:
-				return year_diff(end_date, start_date)
-			elif function == VariablePredefineFunctions.MONTH_DIFF:
-				return month_diff(end_date, start_date)
-			elif function == VariablePredefineFunctions.DAY_DIFF:
-				return (truncate_time(end_date) - truncate_time(start_date)).days
-			else:
-				raise ReactorException(f'Constant[{variable_name}] is not supported.')
+			return compute_date_diff(function, end_date, start_date, variable_name)
 	else:
 		# noinspection DuplicatedCode
 		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
@@ -448,21 +442,11 @@ def create_date_diff(
 					raise ReactorException(f'Value[{s_value}] cannot be parsed to date or datetime.')
 			else:
 				s_date = start_date
-			if function == VariablePredefineFunctions.YEAR_DIFF:
-				return year_diff(e_date, s_date)
-			elif function == VariablePredefineFunctions.MONTH_DIFF:
-				return month_diff(e_date, s_date)
-			elif function == VariablePredefineFunctions.DAY_DIFF:
-				return (truncate_time(e_date) - truncate_time(s_date)).days
-			else:
-				raise ReactorException(f'Constant[{variable_name}] is not supported.')
+			return compute_date_diff(function, e_date, s_date, variable_name)
 
 	def run(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
 		value = action(variables, principal_service)
-		if is_blank(prefix):
-			return value
-		else:
-			return f'{prefix}{value}'
+		return value if is_blank(prefix) else f'{prefix}{value}'
 
 	return run
 

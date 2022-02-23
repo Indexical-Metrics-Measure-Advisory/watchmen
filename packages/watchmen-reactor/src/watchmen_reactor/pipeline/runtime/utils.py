@@ -8,7 +8,9 @@ from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.common import VariablePredefineFunctions
 from watchmen_reactor.common import ask_all_date_formats, ReactorException
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_date, try_to_decimal
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_date, month_diff, truncate_time, \
+	try_to_decimal, \
+	year_diff
 from .variables import PipelineVariables
 
 
@@ -151,3 +153,16 @@ def get_date_from_variables(
 	value = get_value_from(variable_name, variable_name.strip().split('.'), create_get_value_from_variables(variables))
 	parsed, parsed_date = is_date(value, ask_all_date_formats())
 	return parsed, value, parsed_date
+
+
+def compute_date_diff(
+		function: VariablePredefineFunctions, end_date: date, start_date: date, variable_name: str
+) -> int:
+	if function == VariablePredefineFunctions.YEAR_DIFF:
+		return year_diff(end_date, start_date)
+	elif function == VariablePredefineFunctions.MONTH_DIFF:
+		return month_diff(end_date, start_date)
+	elif function == VariablePredefineFunctions.DAY_DIFF:
+		return (truncate_time(end_date) - truncate_time(start_date)).days
+	else:
+		raise ReactorException(f'Constant[{variable_name}] is not supported.')
