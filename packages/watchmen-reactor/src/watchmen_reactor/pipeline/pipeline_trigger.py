@@ -12,7 +12,8 @@ from watchmen_reactor.storage import RawTopicDataService, RegularTopicDataServic
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_utilities import ArrayHelper
 from .compiled_pipeline import RuntimePipelineContext
-from .topic_helper import ask_topic_data_entity_helper, RuntimeTopicStorages
+from .runtime import ask_topic_data_entity_helper
+from .topic_helper import RuntimeTopicStorages
 
 logger = getLogger(__name__)
 

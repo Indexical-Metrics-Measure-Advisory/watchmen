@@ -8,6 +8,7 @@ from .types import SQLAlchemyStatement
 
 
 def build_criteria_expression(table: Table, expression: EntityCriteriaExpression):
+	# TODO current supports (name op value), others need to be supported
 	# noinspection PyPropertyAccess
 	column = table.c[expression.left]
 	op = expression.operator

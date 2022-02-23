@@ -7,9 +7,8 @@ from typing import Any, Callable, Dict, List, Optional, Union
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import AggregateArithmetic, AlarmAction, AlarmActionSeverity, CopyToMemoryAction, \
-	DeleteTopicAction, \
-	DeleteTopicActionType, Factor, FindBy, FromTopic, is_raw_topic, MappingFactor, MappingRow, Pipeline, \
-	PipelineAction, PipelineStage, PipelineTriggerType, PipelineUnit, ReadFactorAction, ReadFactorsAction, \
+	DeleteTopicAction, DeleteTopicActionType, Factor, FindBy, FromTopic, is_raw_topic, MappingFactor, MappingRow, \
+	Pipeline, PipelineAction, PipelineStage, PipelineTriggerType, PipelineUnit, ReadFactorAction, ReadFactorsAction, \
 	ReadTopicAction, ReadTopicActionType, SystemActionType, Topic, ToTopic, WriteFactorAction, WriteToExternalAction, \
 	WriteTopicAction, WriteTopicActionType
 from watchmen_model.common import ConstantParameter, ParameterKind
@@ -24,11 +23,10 @@ from watchmen_reactor.storage import RawTopicDataService, RegularTopicDataServic
 from watchmen_reactor.topic_schema import TopicSchema
 from watchmen_storage import EntityColumnAggregateArithmetic, EntityStraightAggregateColumn, EntityStraightColumn
 from watchmen_utilities import ArrayHelper, is_blank
-from .runtime import CreateQueuePipeline, now, parse_action_defined_as, parse_condition_for_storage, \
-	parse_mapping_for_storage, parse_parameter_in_memory, parse_prerequisite_defined_as, parse_prerequisite_in_memory, \
-	ParsedMemoryParameter, ParsedStorageCondition, ParsedStorageMapping, PipelineVariables, PrerequisiteDefinedAs, \
-	PrerequisiteTest, spent_ms
-from .topic_helper import ask_topic_data_entity_helper
+from .runtime import ask_topic_data_entity_helper, CreateQueuePipeline, now, parse_action_defined_as, \
+	parse_condition_for_storage, parse_mapping_for_storage, parse_parameter_in_memory, parse_prerequisite_defined_as, \
+	parse_prerequisite_in_memory, ParsedMemoryParameter, ParsedStorageCondition, ParsedStorageMapping, \
+	PipelineVariables, PrerequisiteDefinedAs, PrerequisiteTest, spent_ms
 
 logger = getLogger(__name__)
 
@@ -281,7 +279,7 @@ class CompiledFindByAction(CompiledStorageAction):
 	def parse_find_by(self, action: FindBy, principal_service: PrincipalService) -> None:
 		if self.schema is None and isinstance(action, (FromTopic, ToTopic)):
 			self.parse_topic_schema(action, principal_service)
-		self.parsedFindBy = parse_condition_for_storage(self.schema, action.by, principal_service, True)
+		self.parsedFindBy = parse_condition_for_storage(action.by, [self.schema], principal_service, True)
 
 
 # noinspection PyAbstractClass
@@ -368,22 +366,22 @@ class CompiledReadFactorAction(CompiledReadTopicFactorAction):
 		factor_name = self.factor.name
 		column_name = topic_data_service.get_data_entity_helper().get_column_name(self.factor.name)
 		if self.aggregateArithmetic == AggregateArithmetic.NONE:
-			return EntityStraightColumn(name=column_name, alias=factor_name)
+			return EntityStraightColumn(columnName=column_name, alias=factor_name)
 		elif self.aggregateArithmetic == AggregateArithmetic.COUNT:
 			return EntityStraightAggregateColumn(
-				name=column_name,
+				columnName=column_name,
 				alias=factor_name,
 				arithmetic=EntityColumnAggregateArithmetic.COUNT
 			)
 		elif self.aggregateArithmetic == AggregateArithmetic.SUM:
 			return EntityStraightAggregateColumn(
-				name=column_name,
+				columnName=column_name,
 				alias=factor_name,
 				arithmetic=EntityColumnAggregateArithmetic.SUM
 			)
 		elif self.aggregateArithmetic == AggregateArithmetic.AVG:
 			return EntityStraightAggregateColumn(
-				name=column_name,
+				columnName=column_name,
 				alias=factor_name,
 				arithmetic=EntityColumnAggregateArithmetic.AVG
 			)

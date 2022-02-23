@@ -236,7 +236,7 @@ class StorageMySQL(TransactionalStorageSPI):
 
 	# noinspection PyMethodMayBeStatic
 	def get_alias_from_straight_column(self, straight_column: EntityStraightColumn) -> Any:
-		return straight_column.name if is_blank(straight_column.alias) else straight_column.alias
+		return straight_column.columnName if is_blank(straight_column.alias) else straight_column.alias
 
 	# noinspection PyMethodMayBeStatic
 	def translate_straight_column_name(self, straight_column: EntityStraightColumn) -> Any:
@@ -244,15 +244,15 @@ class StorageMySQL(TransactionalStorageSPI):
 			return text(straight_column.text).label(self.get_alias_from_straight_column(straight_column))
 		elif isinstance(straight_column, EntityStraightAggregateColumn):
 			if straight_column.arithmetic == EntityColumnAggregateArithmetic.SUM:
-				return func.sum(straight_column.name).label(self.get_alias_from_straight_column(straight_column))
+				return func.sum(straight_column.columnName).label(self.get_alias_from_straight_column(straight_column))
 			elif straight_column.arithmetic == EntityColumnAggregateArithmetic.AVG:
-				return func.avg(straight_column.name).label(self.get_alias_from_straight_column(straight_column))
+				return func.avg(straight_column.columnName).label(self.get_alias_from_straight_column(straight_column))
 			elif straight_column.arithmetic == EntityColumnAggregateArithmetic.MAX:
-				return func.max(straight_column.name).label(self.get_alias_from_straight_column(straight_column))
+				return func.max(straight_column.columnName).label(self.get_alias_from_straight_column(straight_column))
 			elif straight_column.arithmetic == EntityColumnAggregateArithmetic.MIN:
-				return func.min(straight_column.name).label(self.get_alias_from_straight_column(straight_column))
+				return func.min(straight_column.columnName).label(self.get_alias_from_straight_column(straight_column))
 		elif isinstance(straight_column, EntityStraightColumn):
-			return text(straight_column.name).label(self.get_alias_from_straight_column(straight_column))
+			return text(straight_column.columnName).label(self.get_alias_from_straight_column(straight_column))
 
 		raise UnsupportedStraightColumnException(f'Straight column[{straight_column.to_dict()}] is not supported.')
 

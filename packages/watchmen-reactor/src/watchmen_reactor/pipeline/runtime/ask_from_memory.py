@@ -402,7 +402,7 @@ class ParsedMemoryTopicFactorParameter(ParsedMemoryParameter):
 				f'Factor[id={parameter.factorId}] in topic[id={topic.topicId}, name={topic.name}] not found.')
 		self.factor = factor
 		self.askValue = create_ask_factor_value(topic, factor)
-		
+
 	def value(self, variables: PipelineVariables, principal_service: PrincipalService) -> Any:
 		return self.askValue(variables, principal_service)
 
@@ -731,76 +731,57 @@ class ParsedMemoryComputedParameter(ParsedMemoryParameter):
 		if is_blank(compute_type) or compute_type == ParameterComputeType.NONE:
 			raise ReactorException(f'Compute type not declared.')
 
+		def parse_parameter(param: Parameter) -> ParsedMemoryParameter:
+			return parse_parameter_in_memory(param, principal_service)
+
+		def parse_sub_parameters(param: ComputedParameter) -> List[ParsedMemoryParameter]:
+			return ArrayHelper(param.parameters).map(parse_parameter).to_list()
+
 		if compute_type == ParameterComputeType.ADD:
 			assert_parameter_count('add', parameter.parameters, 2)
 			# treat none value as 0
 			self.askValue = create_numeric_reducer(
-				ArrayHelper(parameter.parameters).map(
-					lambda x: parse_parameter_in_memory(x, principal_service)).to_list(),
-				reducer_add, 'Add', lambda: Decimal(0), lambda: Decimal(0)
-			)
+				parse_sub_parameters(parameter), reducer_add, 'Add', lambda: Decimal(0), lambda: Decimal(0))
 		elif compute_type == ParameterComputeType.SUBTRACT:
 			assert_parameter_count('subtract', parameter.parameters, 2)
 			# treat none value as 0
 			self.askValue = create_numeric_reducer(
-				ArrayHelper(parameter.parameters).map(
-					lambda x: parse_parameter_in_memory(x, principal_service)).to_list(),
-				reducer_subtract, 'Subtract', lambda: Decimal(0), lambda: Decimal(0)
-			)
+				parse_sub_parameters(parameter), reducer_subtract, 'Subtract', lambda: Decimal(0), lambda: Decimal(0))
 		elif compute_type == ParameterComputeType.MULTIPLY:
 			assert_parameter_count('multiply', parameter.parameters, 2)
-			self.askValue = create_numeric_reducer(
-				ArrayHelper(parameter.parameters).map(
-					lambda x: parse_parameter_in_memory(x, principal_service)).to_list(),
-				reducer_multiply, 'Multiply'
-			)
+			self.askValue = create_numeric_reducer(parse_sub_parameters(parameter), reducer_multiply, 'Multiply')
 		elif compute_type == ParameterComputeType.DIVIDE:
 			assert_parameter_count('divide', parameter.parameters, 2)
-			self.askValue = create_numeric_reducer(
-				ArrayHelper(parameter.parameters).map(
-					lambda x: parse_parameter_in_memory(x, principal_service)).to_list(),
-				reducer_divide, 'Divide'
-			)
+			self.askValue = create_numeric_reducer(parse_sub_parameters(parameter), reducer_divide, 'Divide')
 		elif compute_type == ParameterComputeType.MODULUS:
 			assert_parameter_count('modulus', parameter.parameters, 2)
-			self.askValue = create_numeric_reducer(
-				ArrayHelper(parameter.parameters).map(
-					lambda x: parse_parameter_in_memory(x, principal_service)).to_list(),
-				reducer_modulus, 'Modulus'
-			)
+			self.askValue = create_numeric_reducer(parse_sub_parameters(parameter), reducer_modulus, 'Modulus')
 		elif compute_type == ParameterComputeType.YEAR_OF:
 			assert_parameter_count('year-of', parameter.parameters, 1, 1)
-			self.askValue = create_datetime_func(
-				parse_parameter_in_memory(parameter.parameters[0], principal_service), get_year)
+			self.askValue = create_datetime_func(parse_parameter(parameter.parameters[0]), get_year)
 		elif compute_type == ParameterComputeType.HALF_YEAR_OF:
 			assert_parameter_count('half-year-of', parameter.parameters, 1, 1)
-			self.askValue = create_datetime_func(
-				parse_parameter_in_memory(parameter.parameters[0], principal_service), get_half_year)
+			self.askValue = create_datetime_func(parse_parameter(parameter.parameters[0]), get_half_year)
 		elif compute_type == ParameterComputeType.QUARTER_OF:
 			assert_parameter_count('quarter-of', parameter.parameters, 1, 1)
-			self.askValue = create_datetime_func(
-				parse_parameter_in_memory(parameter.parameters[0], principal_service), get_quarter)
+			self.askValue = create_datetime_func(parse_parameter(parameter.parameters[0]), get_quarter)
 		elif compute_type == ParameterComputeType.MONTH_OF:
 			assert_parameter_count('month-of', parameter.parameters, 1, 1)
-			self.askValue = create_datetime_func(
-				parse_parameter_in_memory(parameter.parameters[0], principal_service), get_month)
+			self.askValue = create_datetime_func(parse_parameter(parameter.parameters[0]), get_month)
 		elif compute_type == ParameterComputeType.WEEK_OF_YEAR:
 			assert_parameter_count('week-of-year', parameter.parameters, 1, 1)
-			self.askValue = create_datetime_func(
-				parse_parameter_in_memory(parameter.parameters[0], principal_service), get_week_of_year)
+			self.askValue = create_datetime_func(parse_parameter(parameter.parameters[0]), get_week_of_year)
 		elif compute_type == ParameterComputeType.WEEK_OF_MONTH:
 			assert_parameter_count('week-of-month', parameter.parameters, 1, 1)
-			self.askValue = create_datetime_func(
-				parse_parameter_in_memory(parameter.parameters[0], principal_service), get_week_of_month)
+			self.askValue = create_datetime_func(parse_parameter(parameter.parameters[0]), get_week_of_month)
 		elif compute_type == ParameterComputeType.DAY_OF_MONTH:
 			assert_parameter_count('day-of-month', parameter.parameters, 1, 1)
-			self.askValue = create_datetime_func(
-				parse_parameter_in_memory(parameter.parameters[0], principal_service), get_day_of_month)
+			self.askValue = create_datetime_func(parse_parameter(parameter.parameters[0]), get_day_of_month)
 		elif compute_type == ParameterComputeType.DAY_OF_WEEK:
 			assert_parameter_count('day-of-week', parameter.parameters, 1, 1)
-			self.askValue = create_datetime_func(
-				parse_parameter_in_memory(parameter.parameters[0], principal_service), get_day_of_week)
+			self.askValue = create_datetime_func(parse_parameter(parameter.parameters[0]), get_day_of_week)
 		elif compute_type == ParameterComputeType.CASE_THEN:
+			# noinspection DuplicatedCode
 			assert_parameter_count('case-then', parameter.parameters, 1)
 			cases = parameter.parameters
 			if cases is None or len(cases) == 0:
@@ -808,12 +789,18 @@ class ParsedMemoryComputedParameter(ParsedMemoryParameter):
 			anyways = ArrayHelper(cases).filter(lambda x: not x.conditional).to_list()
 			if len(anyways) > 1:
 				raise ReactorException(f'Multiple anyway routes declared in case then computation[{parameter.dict()}].')
+
+			def parse_route(param: Parameter) -> Tuple[PrerequisiteTest, ParsedMemoryParameter]:
+				return parse_conditional_parameter_in_memory(param, principal_service)
+
+			# noinspection DuplicatedCode
+			routes = ArrayHelper(cases).filter(lambda x: x.conditional).map(parse_route).to_list()
 			anyway = anyways[0] if len(anyways) == 1 else None
-			self.askValue = create_case_then(
-				ArrayHelper(cases).filter(lambda x: x.conditional).map(
-					lambda x: parse_conditional_parameter_in_memory(x, principal_service)).to_list(),
-				parse_parameter_in_memory(anyway, principal_service) if anyway is not None else None
-			)
+			if anyway is not None:
+				anyway_route = parse_parameter(anyway)
+			else:
+				anyway_route = None
+			self.askValue = create_case_then(routes, anyway_route)
 		else:
 			raise ReactorException(f'Compute type[{compute_type}] is not supported.')
 

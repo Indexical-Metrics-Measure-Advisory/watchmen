@@ -5,5 +5,6 @@ from .ask_from_storage import parse_condition_for_storage, parse_mapping_for_sto
 	ParsedStorageMapping
 from .create_queue_pipeline import CreateQueuePipeline
 from .time_utils import now, spent_ms
+from .topic_utils import ask_topic_data_entity_helper
 from .utils import always_none, get_value_from
 from .variables import PipelineVariables
