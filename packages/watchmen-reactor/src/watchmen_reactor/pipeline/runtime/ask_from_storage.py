@@ -509,12 +509,14 @@ class ParsedStorageExpression(ParsedStorageCondition):
 	right: Optional[ParsedStorageParameter] = None
 
 	def parse(
-			self, schema: TopicSchema, condition: ParameterCondition,
+			self, condition: ParameterCondition, available_schemas: List[TopicSchema],
 			principal_service: PrincipalService, allow_in_memory_variables: bool) -> None:
-		self.left = parse_parameter_for_storage(condition.left, [schema], principal_service, allow_in_memory_variables)
+		self.left = parse_parameter_for_storage(
+			condition.left, available_schemas, principal_service, allow_in_memory_variables)
 		self.operator = condition.operator
-		self.right = parse_parameter_for_storage(
-			condition.right, [schema], principal_service, allow_in_memory_variables)
+		if self.operator != ParameterExpressionOperator.EMPTY and self.operator != ParameterExpressionOperator.NOT_EMPTY:
+			self.right = parse_parameter_for_storage(
+				condition.right, available_schemas, principal_service, allow_in_memory_variables)
 
 	def run(self, variables: PipelineVariables, principal_service: PrincipalService) -> EntityCriteriaExpression:
 		left_value = self.left.run(variables, principal_service)
