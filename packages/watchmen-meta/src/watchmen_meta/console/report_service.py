@@ -5,7 +5,8 @@ from watchmen_meta.common import AuditableShaper, LastVisitShaper, UserBasedTupl
 from watchmen_model.chart import Chart
 from watchmen_model.common import ConnectedSpaceId, DataPage, Pageable, ReportId, SubjectId, TenantId
 from watchmen_model.console import Report
-from watchmen_storage import EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, EntityShaper
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, \
+	EntityShaper
 
 
 class ReportShaper(EntityShaper):
@@ -91,7 +92,7 @@ class ReportService(UserBasedTupleService):
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(
 			criteria=[
-				EntityCriteriaExpression(left='connect_id', right=connect_id)
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='connect_id'), right=connect_id)
 			]
 		))
 
@@ -99,18 +100,19 @@ class ReportService(UserBasedTupleService):
 	def find_page_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
 		criteria = []
 		if text is not None and len(text.strip()) != 0:
-			criteria.append(EntityCriteriaExpression(left='name', operator=EntityCriteriaOperator.LIKE, right=text))
-			criteria.append(
-				EntityCriteriaExpression(left='description', operator=EntityCriteriaOperator.LIKE, right=text))
+			criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='name'), operator=EntityCriteriaOperator.LIKE, right=text))
+			criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='description'), operator=EntityCriteriaOperator.LIKE, right=text))
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
-			criteria.append(EntityCriteriaExpression(left='tenant_id', right=tenant_id))
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))
 
 	def delete_by_connect_id(self, connect_id: ConnectedSpaceId) -> List[Report]:
 		# noinspection PyTypeChecker
 		return self.storage.delete_and_pull(self.get_entity_deleter(
 			criteria=[
-				EntityCriteriaExpression(left='connect_id', right=connect_id)
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='connect_id'), right=connect_id)
 			]
 		))
 
@@ -118,14 +120,15 @@ class ReportService(UserBasedTupleService):
 		# noinspection PyTypeChecker
 		return self.storage.delete_and_pull(self.get_entity_deleter(
 			criteria=[
-				EntityCriteriaExpression(left='subject_id', right=subject_id)
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='subject_id'), right=subject_id)
 			]
 		))
 
 	def update_last_visit_time(self, report_id: ReportId) -> datetime:
 		now = self.now()
 		self.storage.update(self.get_entity_updater(
-			criteria=[EntityCriteriaExpression(left=self.get_storable_id_column_name(), right=report_id)],
+			criteria=[EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName=self.get_storable_id_column_name()), right=report_id)],
 			update={'last_visit_time': now}
 		))
 		return now

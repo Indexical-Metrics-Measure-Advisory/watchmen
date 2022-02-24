@@ -15,8 +15,8 @@ from watchmen_model.reactor import TopicDataColumnNames
 from watchmen_reactor.common import ReactorException
 from watchmen_reactor.meta import TopicService
 from watchmen_reactor.topic_schema import TopicSchema
-from watchmen_storage import ComputedLiteral, ComputedLiteralOperator, EntityCriteriaExpression, EntityCriteriaJoint, \
-	EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, FullQualifiedLiteral, Literal
+from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteriaExpression, \
+	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, Literal
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_decimal
 from .ask_from_memory import assert_parameter_count, create_ask_factor_value, parse_parameter_in_memory
 from .topic_utils import ask_topic_data_entity_helper
@@ -89,10 +89,10 @@ class ParsedStorageParameter:
 
 
 def create_ask_factor_statement(
-		schema: TopicSchema, factor: Factor) -> Callable[[PipelineVariables, PrincipalService], FullQualifiedLiteral]:
+		schema: TopicSchema, factor: Factor) -> Callable[[PipelineVariables, PrincipalService], ColumnNameLiteral]:
 	data_entity_helper = ask_topic_data_entity_helper(schema)
 
-	return lambda variables, principal_service: FullQualifiedLiteral(
+	return lambda variables, principal_service: ColumnNameLiteral(
 		entityName=data_entity_helper.get_entity_name(),
 		columnName=data_entity_helper.get_column_name(factor.name)
 	)
@@ -105,7 +105,7 @@ class ParsedStorageTopicFactorParameter(ParsedStorageParameter):
 	# in-memory value or a literal
 	askValue: Union[
 		Callable[[PipelineVariables, PrincipalService], Any],
-		Callable[[PipelineVariables, PrincipalService], FullQualifiedLiteral]
+		Callable[[PipelineVariables, PrincipalService], ColumnNameLiteral]
 	] = None
 
 	def parse(
@@ -135,7 +135,7 @@ class ParsedStorageTopicFactorParameter(ParsedStorageParameter):
 
 	def run(
 			self,
-			variables: PipelineVariables, principal_service: PrincipalService) -> Union[Any, FullQualifiedLiteral]:
+			variables: PipelineVariables, principal_service: PrincipalService) -> Union[Any, ColumnNameLiteral]:
 		return self.askValue(variables, principal_service)
 
 
@@ -528,52 +528,28 @@ class ParsedStorageExpression(ParsedStorageCondition):
 		right_value = self.right.run(variables, principal_service)
 		if self.operator == ParameterExpressionOperator.EQUALS:
 			return EntityCriteriaExpression(
-				left=left_value,
-				operator=EntityCriteriaOperator.EQUALS,
-				right=right_value
-			)
+				left=left_value, operator=EntityCriteriaOperator.EQUALS, right=right_value)
 		elif self.operator == ParameterExpressionOperator.NOT_EQUALS:
 			return EntityCriteriaExpression(
-				left=left_value,
-				operator=EntityCriteriaOperator.NOT_EQUALS,
-				right=right_value
-			)
+				left=left_value, operator=EntityCriteriaOperator.NOT_EQUALS, right=right_value)
 		elif self.operator == ParameterExpressionOperator.LESS:
 			return EntityCriteriaExpression(
-				left=left_value,
-				operator=EntityCriteriaOperator.LESS_THAN,
-				right=right_value
-			)
+				left=left_value, operator=EntityCriteriaOperator.LESS_THAN, right=right_value)
 		elif self.operator == ParameterExpressionOperator.LESS_EQUALS:
 			return EntityCriteriaExpression(
-				left=left_value,
-				operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
-				right=right_value
-			)
+				left=left_value, operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS, right=right_value)
 		elif self.operator == ParameterExpressionOperator.MORE:
 			return EntityCriteriaExpression(
-				left=left_value,
-				operator=EntityCriteriaOperator.GREATER_THAN,
-				right=right_value
-			)
+				left=left_value, operator=EntityCriteriaOperator.GREATER_THAN, right=right_value)
 		elif self.operator == ParameterExpressionOperator.MORE_EQUALS:
 			return EntityCriteriaExpression(
-				left=left_value,
-				operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
-				right=right_value
-			)
+				left=left_value, operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS, right=right_value)
 		elif self.operator == ParameterExpressionOperator.IN:
 			return EntityCriteriaExpression(
-				left=left_value,
-				operator=EntityCriteriaOperator.IN,
-				right=right_value
-			)
+				left=left_value, operator=EntityCriteriaOperator.IN, right=right_value)
 		elif self.operator == ParameterExpressionOperator.NOT_IN:
 			return EntityCriteriaExpression(
-				left=left_value,
-				operator=EntityCriteriaOperator.NOT_IN,
-				right=right_value
-			)
+				left=left_value, operator=EntityCriteriaOperator.NOT_IN, right=right_value)
 		else:
 			raise ReactorException(
 				f'Operator[{self.operator}] is not supported, found from expression[{self.condition.dict()}].')

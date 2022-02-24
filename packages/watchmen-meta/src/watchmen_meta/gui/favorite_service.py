@@ -4,8 +4,8 @@ from watchmen_auth import PrincipalService
 from watchmen_meta.common import LastVisitShaper, StorageService, UserBasedTupleShaper
 from watchmen_model.common import TenantId, UserId
 from watchmen_model.gui import Favorite
-from watchmen_storage import EntityCriteriaExpression, EntityFinder, EntityHelper, EntityIdHelper, EntityRow, \
-	EntityShaper, EntityUpdater, TransactionalStorageSPI
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityFinder, EntityHelper, EntityIdHelper, \
+	EntityRow, EntityShaper, EntityUpdater, TransactionalStorageSPI
 
 
 class FavoriteShaper(EntityShaper):
@@ -66,8 +66,8 @@ class FavoriteService(StorageService):
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),
 			criteria=[
-				EntityCriteriaExpression(left='user_id', right=favorite.userId),
-				EntityCriteriaExpression(left='tenant_id', right=favorite.tenantId)
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='user_id'), right=favorite.userId),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=favorite.tenantId)
 			],
 			update={
 				'connected_space_ids': favorite.connectedSpaceIds,
@@ -82,8 +82,8 @@ class FavoriteService(StorageService):
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),
 			criteria=[
-				EntityCriteriaExpression(left='user_id', right=user_id),
-				EntityCriteriaExpression(left='tenant_id', right=tenant_id)
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='user_id'), right=user_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
 			]
 		))
 

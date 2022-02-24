@@ -3,7 +3,8 @@ from typing import Optional
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_model.common import DataPage, Pageable, TenantId
 from watchmen_model.system import Tenant
-from watchmen_storage import EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, EntityShaper
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, \
+	EntityShaper
 
 
 class TenantShaper(EntityShaper):
@@ -45,5 +46,6 @@ class TenantService(TupleService):
 	def find_by_text(self, text: Optional[str], pageable: Pageable) -> DataPage:
 		criteria = []
 		if text is not None and len(text.strip()) != 0:
-			criteria.append(EntityCriteriaExpression(left='name', operator=EntityCriteriaOperator.LIKE, right=text))
+			criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='name'), operator=EntityCriteriaOperator.LIKE, right=text))
 		return self.storage.page(self.get_entity_pager(criteria, pageable))

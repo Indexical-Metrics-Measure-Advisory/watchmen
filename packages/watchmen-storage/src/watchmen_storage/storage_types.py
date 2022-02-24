@@ -109,12 +109,12 @@ class ComputedLiteral(DataModel):
 	elements: List[Literal, Tuple[EntityCriteriaStatement, Literal]]
 
 
-class FullQualifiedLiteral(DataModel):
-	entityName: EntityName
+class ColumnNameLiteral(DataModel):
+	entityName: Optional[EntityName]
 	columnName: EntityColumnName
 
 
-Literal = Union[EntityColumnName, EntityColumnValue, ComputedLiteral, FullQualifiedLiteral]
+Literal = Union[EntityColumnValue, ComputedLiteral, ColumnNameLiteral]
 
 
 class EntityCriteriaExpression(EntityCriteriaStatement):

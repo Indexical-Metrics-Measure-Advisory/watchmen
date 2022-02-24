@@ -2,8 +2,8 @@ from typing import Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_model.common import Auditable, OptimisticLock, TenantBasedTuple, Tuple
-from watchmen_storage import EntityCriteriaExpression, EntityRow, OptimisticLockException, SnowflakeGenerator, \
-	TransactionalStorageSPI
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityRow, OptimisticLockException, \
+	SnowflakeGenerator, TransactionalStorageSPI
 from .storage_service import EntityService, TupleId, TupleNotFoundException
 
 
@@ -98,8 +98,10 @@ class TupleService(EntityService):
 			updated_count = self.storage.update_only(self.get_entity_updater(
 				criteria=[
 					EntityCriteriaExpression(
-						left=self.get_storable_id_column_name(), right=self.get_storable_id(a_tuple)),
-					EntityCriteriaExpression(left=self.get_optimistic_column_name(), right=version)
+						left=ColumnNameLiteral(columnName=self.get_storable_id_column_name()),
+						right=self.get_storable_id(a_tuple)),
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(columnName=self.get_optimistic_column_name()), right=version)
 				],
 				# to avoid update created columns in update
 				update=self.try_to_ignore_created_columns(
@@ -112,7 +114,8 @@ class TupleService(EntityService):
 			updated_count = self.storage.update_only(self.get_entity_updater(
 				criteria=[
 					EntityCriteriaExpression(
-						left=self.get_storable_id_column_name(), right=self.get_storable_id(a_tuple))
+						left=ColumnNameLiteral(columnName=self.get_storable_id_column_name()),
+						right=self.get_storable_id(a_tuple))
 				],
 				# to avoid update created columns in update
 				update=self.try_to_ignore_created_columns(

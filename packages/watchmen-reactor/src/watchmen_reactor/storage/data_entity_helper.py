@@ -7,9 +7,9 @@ from watchmen_model.admin import Topic
 from watchmen_model.common import TenantId
 from watchmen_model.reactor import TopicDataColumnNames
 from watchmen_reactor.topic_schema import TopicSchema
-from watchmen_storage import EntityColumnName, EntityCriteria, EntityCriteriaExpression, EntityDeleter, \
-	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityIdHelper, EntitySort, EntityStraightColumn, \
-	EntityStraightValuesFinder, EntityUpdate, EntityUpdater, SnowflakeGenerator
+from watchmen_storage import ColumnNameLiteral, EntityColumnName, EntityCriteria, EntityCriteriaExpression, \
+	EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityIdHelper, EntitySort, \
+	EntityStraightColumn, EntityStraightValuesFinder, EntityUpdate, EntityUpdater, SnowflakeGenerator
 from .shaper import TopicShaper
 
 
@@ -130,7 +130,7 @@ class TopicDataEntityHelper:
 		if not has_id:
 			return None
 		else:
-			return EntityCriteriaExpression(left=TopicDataColumnNames.ID.value, right=id_)
+			return EntityCriteriaExpression(left=ColumnNameLiteral(columnName=TopicDataColumnNames.ID.value), right=id_)
 
 	# noinspection PyMethodMayBeStatic
 	def assign_id_column(self, data: Dict[str, Any], id_value: int) -> None:

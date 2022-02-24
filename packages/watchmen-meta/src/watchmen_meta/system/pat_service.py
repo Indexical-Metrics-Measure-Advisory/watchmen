@@ -4,8 +4,8 @@ from watchmen_auth import PrincipalService
 from watchmen_meta.common import StorageService
 from watchmen_model.common import PatId, TenantId, UserId
 from watchmen_model.system import PersonalAccessToken
-from watchmen_storage import EntityCriteriaExpression, EntityFinder, EntityHelper, EntityIdHelper, EntityRow, \
-	EntityShaper, SnowflakeGenerator, TransactionalStorageSPI
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityFinder, EntityHelper, EntityIdHelper, \
+	EntityRow, EntityShaper, SnowflakeGenerator, TransactionalStorageSPI
 from watchmen_utilities import get_current_time_in_seconds
 
 
@@ -85,9 +85,10 @@ class PatService(StorageService):
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),
 			criteria=[
-				EntityCriteriaExpression(left=self.get_pat_id_column_name(), right=pat_id),
-				EntityCriteriaExpression(left='user_id', right=user_id),
-				EntityCriteriaExpression(left='tenant_id', right=tenant_id)
+				EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName=self.get_pat_id_column_name()), right=pat_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='user_id'), right=user_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
 			]
 		))
 		if pat is None:
@@ -100,8 +101,8 @@ class PatService(StorageService):
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),
 			criteria=[
-				EntityCriteriaExpression(left='user_id', right=user_id),
-				EntityCriteriaExpression(left='tenant_id', right=tenant_id)
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='user_id'), right=user_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
 			]
 		))
 

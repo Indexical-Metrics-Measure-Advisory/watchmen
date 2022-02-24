@@ -5,7 +5,7 @@ from watchmen_meta.common import AuditableShaper, LastVisitShaper, TupleNotFound
 	UserBasedTupleService, UserBasedTupleShaper
 from watchmen_model.common import ConnectedSpaceId, SubjectId, TenantId, UserId
 from watchmen_model.console import Subject, SubjectDataset
-from watchmen_storage import EntityCriteriaExpression, EntityRow, EntityShaper
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityRow, EntityShaper
 
 
 class SubjectShaper(EntityShaper):
@@ -73,7 +73,7 @@ class SubjectService(UserBasedTupleService):
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(
 			criteria=[
-				EntityCriteriaExpression(left='connect_id', right=connect_id)
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='connect_id'), right=connect_id)
 			]
 		))
 
@@ -86,9 +86,10 @@ class SubjectService(UserBasedTupleService):
 		last_modified_by = self.principalService.get_user_id()
 		updated_count = self.storage.update_only(self.get_entity_updater(
 			criteria=[
-				EntityCriteriaExpression(left=self.get_storable_id_column_name(), right=subject_id),
-				EntityCriteriaExpression(left='user_id', right=user_id),
-				EntityCriteriaExpression(left='tenant_id', right=tenant_id)
+				EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName=self.get_storable_id_column_name()), right=subject_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='user_id'), right=user_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
 			],
 			update={
 				'name': name,
@@ -103,7 +104,8 @@ class SubjectService(UserBasedTupleService):
 	def update_last_visit_time(self, subject_id: SubjectId) -> datetime:
 		now = self.now()
 		self.storage.update(self.get_entity_updater(
-			criteria=[EntityCriteriaExpression(left=self.get_storable_id_column_name(), right=subject_id)],
+			criteria=[EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName=self.get_storable_id_column_name()), right=subject_id)],
 			update={'last_visit_time': now}
 		))
 		return now
@@ -112,6 +114,6 @@ class SubjectService(UserBasedTupleService):
 		# noinspection PyTypeChecker
 		return self.storage.delete_and_pull(self.get_entity_deleter(
 			criteria=[
-				EntityCriteriaExpression(left='connect_id', right=connect_id)
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='connect_id'), right=connect_id)
 			]
 		))
