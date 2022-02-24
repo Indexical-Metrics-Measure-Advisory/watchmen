@@ -20,7 +20,7 @@ from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteral
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_decimal
 from .ask_from_memory import assert_parameter_count, create_ask_factor_value, parse_parameter_in_memory
 from .topic_utils import ask_topic_data_entity_helper
-from .utils import always_none, compute_date_diff, create_from_previous_trigger_data, \
+from .utils import always_none, cast_value_for_factor, compute_date_diff, create_from_previous_trigger_data, \
 	create_get_from_variables_with_prefix, create_snowflake_generator, create_static_str, get_date_from_variables, \
 	test_date
 from .variables import PipelineVariables
@@ -690,8 +690,10 @@ class ParsedStorageMappingFactor:
 				# data is triggered at first time, count + 1
 				value = self.get_original_value(original_data) + 1
 		else:
-			# TODO parse factor value to applicable type
 			value = self.parsedParameter.value(variables, principal_service)
+			# value for mapping is computed in memory
+			# parse factor value to applicable type
+			value = cast_value_for_factor(value, self.factor) if value is not None else None
 		return self.factor.name, value
 
 
