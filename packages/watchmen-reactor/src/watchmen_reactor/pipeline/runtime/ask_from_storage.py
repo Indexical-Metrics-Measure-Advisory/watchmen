@@ -493,13 +493,13 @@ class ParsedStorageJoint(ParsedStorageCondition):
 		if self.jointType == ParameterJointType.OR:
 			return EntityCriteriaJoint(
 				conjunction=EntityCriteriaJointConjunction.OR,
-				filters=ArrayHelper(self.filters).map(lambda x: x.run(variables, principal_service)).to_list()
+				children=ArrayHelper(self.filters).map(lambda x: x.run(variables, principal_service)).to_list()
 			)
 		else:
 			# and or not given
 			return EntityCriteriaJoint(
 				conjunction=EntityCriteriaJointConjunction.AND,
-				filters=ArrayHelper(self.filters).map(lambda x: x.run(variables, principal_service)).to_list()
+				children=ArrayHelper(self.filters).map(lambda x: x.run(variables, principal_service)).to_list()
 			)
 
 
@@ -580,7 +580,7 @@ class ParsedStorageExpression(ParsedStorageCondition):
 
 
 def parse_condition_for_storage(
-		condition: Union[Optional[ParameterCondition], Parameter], available_schemas: List[TopicSchema],
+		condition: Optional[ParameterCondition], available_schemas: List[TopicSchema],
 		principal_service: PrincipalService, allow_in_memory_variables: bool) -> ParsedStorageCondition:
 	if condition is None:
 		raise ReactorException('Condition cannot be none.')
@@ -597,7 +597,7 @@ def parse_conditional_parameter_for_storage(
 		principal_service: PrincipalService, allow_in_memory_variables: bool
 ) -> Tuple[ParsedStorageCondition, ParsedStorageParameter]:
 	return \
-		parse_condition_for_storage(parameter, available_schemas, principal_service, allow_in_memory_variables), \
+		parse_condition_for_storage(parameter.on, available_schemas, principal_service, allow_in_memory_variables), \
 		parse_parameter_for_storage(parameter, available_schemas, principal_service, allow_in_memory_variables)
 
 
