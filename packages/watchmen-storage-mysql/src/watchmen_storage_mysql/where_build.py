@@ -13,9 +13,9 @@ def build_criteria_expression(table: Table, expression: EntityCriteriaExpression
 	column = table.c[expression.left]
 	op = expression.operator
 	if op == EntityCriteriaOperator.IS_EMPTY:
-		return column.is_(None)
+		return or_(column.is_(None), column == '')
 	elif op == EntityCriteriaOperator.IS_NOT_EMPTY:
-		return column.is_not(None)
+		return and_(column.is_not(None), column != '')
 	elif op == EntityCriteriaOperator.EQUALS:
 		return column == expression.right
 	elif op == EntityCriteriaOperator.NOT_EQUALS:
@@ -70,9 +70,7 @@ def build_criteria(table: Table, criteria: EntityCriteria):
 
 
 def build_criteria_for_statement(
-		table: Table,
-		statement: SQLAlchemyStatement,
-		criteria: EntityCriteria,
+		table: Table, statement: SQLAlchemyStatement, criteria: EntityCriteria,
 		raise_exception_on_missed: bool = False
 ) -> SQLAlchemyStatement:
 	where = build_criteria(table, criteria)
