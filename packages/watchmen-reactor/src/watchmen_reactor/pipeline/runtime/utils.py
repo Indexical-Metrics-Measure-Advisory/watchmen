@@ -8,11 +8,9 @@ from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import Factor, FactorType
 from watchmen_model.common import VariablePredefineFunctions
-from watchmen_reactor.common import ask_all_date_formats, ask_time_formats, ReactorException
+from watchmen_reactor.common import ask_all_date_formats, ask_full_datetime_formats, ask_time_formats, ReactorException
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_date, is_decimal, is_time, \
-	month_diff, \
-	truncate_time, \
-	try_to_decimal, year_diff
+	month_diff, truncate_time, try_to_decimal, year_diff
 from .variables import PipelineVariables
 
 
@@ -169,6 +167,9 @@ def compute_date_diff(
 
 
 def cast_value_for_factor(value: Any, factor: Factor) -> Any:
+	if value is None:
+		return None
+
 	factor_type = factor.type
 	if factor_type in [
 		FactorType.SEQUENCE, FactorType.NUMBER, FactorType.UNSIGNED, FactorType.FLOOR, FactorType.RESIDENTIAL_AREA,
@@ -215,6 +216,14 @@ def cast_value_for_factor(value: Any, factor: Factor) -> Any:
 			raise ReactorException(
 				f'Value[{value}, type={type(value)}] is incompatible with '
 				f'factor[name={factor.name}, type={factor_type}].')
+	elif factor_type == FactorType.FULL_DATETIME:
+		parsed, date_value = is_date(value, ask_full_datetime_formats())
+		if parsed:
+			return date_value
+		else:
+			raise ReactorException(
+				f'Value[{value}, type={type(value)}] is incompatible with '
+				f'factor[name={factor.name}, type={factor_type}].')
 	elif factor_type == FactorType.DATETIME:
 		parsed, date_value = is_date(value, ask_all_date_formats())
 		if parsed:
@@ -244,26 +253,35 @@ def cast_value_for_factor(value: Any, factor: Factor) -> Any:
 			raise ReactorException(
 				f'Value[{value}, type={type(value)}] is incompatible with '
 				f'factor[name={factor.name}, type={factor_type}].')
+	elif factor_type in [
+		FactorType.YEAR, FactorType.HALF_YEAR, FactorType.QUARTER,
+		FactorType.MONTH, FactorType.HALF_MONTH, FactorType.TEN_DAYS,
+		FactorType.WEEK_OF_YEAR, FactorType.WEEK_OF_MONTH, FactorType.HALF_WEEK,
+		FactorType.DAY_OF_MONTH, FactorType.DAY_OF_WEEK, FactorType.DAY_KIND,
+		FactorType.HOUR, FactorType.HOUR_KIND,
+		FactorType.MINUTE, FactorType.SECOND, FactorType.MILLISECOND,
+		FactorType.AM_PM
+	]:
+		# TODO strictly validation is needed or not?
+		parsed, decimal_value = is_decimal(value)
+		if parsed:
+			return decimal_value
+		else:
+			raise ReactorException(
+				f'Value[{value}] is incompatible with factor[name={factor.name}, type={factor_type}].')
+	elif factor_type == FactorType.BOOLEAN:
+		if isinstance(value, bool):
+			return value
+		elif isinstance(value, (int, float, Decimal)):
+			return value != 0
+		elif isinstance(value, str):
+			v = value.strip().lower()
+			if v == 't' or v == 'y' or v == 'yes' or v == 'true':
+				return True
+			elif v == 'f' or v == 'n' or v == 'no' or v == 'false':
+				return False
+		raise ReactorException(
+			f'Value[{value}, type={type(value)}] is incompatible with '
+			f'factor[name={factor.name}, type={factor_type}].')
 	else:
 		raise ReactorException(f'Factor type[{factor_type}] is not supported.')
-
-# elif factor_type == FactorType.FULL_DATETIME:
-# elif factor_type == FactorType.YEAR:
-# elif factor_type == FactorType.HALF_YEAR:
-# elif factor_type == FactorType.QUARTER:
-# elif factor_type == FactorType.MONTH:
-# elif factor_type == FactorType.HALF_MONTH:
-# elif factor_type == FactorType.TEN_DAYS:
-# elif factor_type == FactorType.WEEK_OF_YEAR:
-# elif factor_type == FactorType.WEEK_OF_MONTH:
-# elif factor_type == FactorType.HALF_WEEK:
-# elif factor_type == FactorType.DAY_OF_MONTH:
-# elif factor_type == FactorType.DAY_OF_WEEK:
-# elif factor_type == FactorType.DAY_KIND:
-# elif factor_type == FactorType.HOUR:
-# elif factor_type == FactorType.HOUR_KIND:
-# elif factor_type == FactorType.MINUTE:
-# elif factor_type == FactorType.SECOND:
-# elif factor_type == FactorType.MILLISECOND:
-# elif factor_type == FactorType.AM_PM:
-# elif factor_type == FactorType.BOOLEAN:
