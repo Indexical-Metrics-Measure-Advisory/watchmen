@@ -7,8 +7,8 @@ from .snowflake_worker_id_generator import immutable_worker_id, WorkerIdGenerato
 from .storage_based_worker_id_generator import COMPETITIVE_WORKER_SHAPER, CompetitiveWorkerShaper, \
 	SNOWFLAKE_WORKER_ID_TABLE, StorageBasedWorkerIdGenerator
 from .storage_exception import EntityNotFoundException, InsertConflictException, NoCriteriaForUpdateException, \
-	OptimisticLockException, TooManyEntitiesFoundException, UnexpectedStorageException, UnsupportedCriteriaException, \
-	UnsupportedSortMethodException, UnsupportedStraightColumnException
+	OptimisticLockException, TooManyEntitiesFoundException, UnexpectedStorageException, UnsupportedComputationException, \
+	UnsupportedCriteriaException, UnsupportedSortMethodException, UnsupportedStraightColumnException
 from .storage_spi import StorageSPI, TopicDataStorageSPI, TransactionalStorageSPI
 from .storage_types import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, Entity, \
 	EntityColumnAggregateArithmetic, EntityColumnName, EntityColumnValue, EntityCriteria, EntityCriteriaExpression, \

@@ -15,6 +15,10 @@ class UnsupportedCriteriaException(UnexpectedStorageException):
 	pass
 
 
+class UnsupportedComputationException(UnexpectedStorageException):
+	pass
+
+
 class UnsupportedStraightColumnException(UnexpectedStorageException):
 	pass
 
