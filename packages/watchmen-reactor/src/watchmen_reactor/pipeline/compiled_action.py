@@ -15,7 +15,8 @@ from watchmen_model.common import ConstantParameter, ParameterKind
 from watchmen_model.reactor import MonitorAlarmAction, MonitorCopyToMemoryAction, MonitorDeleteAction, \
 	MonitorLogAction, MonitorLogStatus, MonitorLogUnit, MonitorReadAction, MonitorWriteAction, \
 	MonitorWriteToExternalAction
-from watchmen_reactor.common import ask_pipeline_update_retry, ask_pipeline_update_retry_times, ReactorException
+from watchmen_reactor.common import ask_pipeline_update_retry, ask_pipeline_update_retry_force, \
+	ask_pipeline_update_retry_times, ReactorException
 from watchmen_reactor.external_writer import ask_external_writer_creator, CreateExternalWriter, ExternalWriterParams
 from watchmen_reactor.meta import ExternalWriterService, TopicService
 from watchmen_reactor.pipeline_schema import TopicStorages
@@ -577,8 +578,10 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 					if ask_pipeline_update_retry() and times < ask_pipeline_update_retry_times():
 						# example: try update on [0, 1, 2] when retry times is 3
 						work(times + 1)
-					else:
+					elif ask_pipeline_update_retry_force():
 						# TODO force lock and update, the final try after all retries by optimistic lock are failed
+						raise ReactorException('Not implemented yet.')
+					else:
 						raise ReactorException(
 							f'Data not found on do update, {self.on_topic_message()}, by [{[statement]}].')
 
