@@ -575,10 +575,13 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 				updated_count = self.do_update(
 					data[0], variables, new_pipeline, action_monitor_log, principal_service, topic_data_service)
 				if updated_count == 0:
-					if ask_pipeline_update_retry() and times < ask_pipeline_update_retry_times():
+					if not topic_data_service.get_data_entity_helper().is_versioned():
+						raise ReactorException(
+							f'Data not found on do update, {self.on_topic_message()}, by [{[statement]}].')
+					elif ask_pipeline_update_retry() and times < ask_pipeline_update_retry_times():
 						# example: try update on [0, 1, 2] when retry times is 3
 						work(times + 1)
-					elif ask_pipeline_update_retry_force():
+					elif ask_pipeline_update_retry() and ask_pipeline_update_retry_force():
 						# TODO force lock and update, the final try after all retries by optimistic lock are failed
 						raise ReactorException('Not implemented yet.')
 					else:
