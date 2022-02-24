@@ -3,6 +3,8 @@ from typing import List, Set, Tuple
 
 from pydantic import BaseSettings
 
+from watchmen_utilities import ArrayHelper
+
 logger = getLogger(__name__)
 
 
@@ -13,6 +15,9 @@ class ReactorSettings(BaseSettings):
 	REACTOR_ELASTIC_SEARCH_EXTERNAL_WRITER: bool = False
 	REACTOR_ENCRYPT_AES_KEY: str = 'hWmZq4t7w9z$C&F)J@NcRfUjXn2r5u8x'
 	REACTOR_ENCRYPT_AES_IV: str = 'J@NcRfUjXn2r5u8x'
+	REACTOR_FULL_DATETIME_FORMATS: Set[str] = [
+		'%Y%m%d%H%M%S%f', '%d%m%Y%H%M%S%f', '%m%d%Y%H%M%S%f',  # 14 or more digits,
+	]
 	REACTOR_DATETIME_FORMATS: Set[str] = [
 		'%Y%m%d%H%M%S', '%d%m%Y%H%M%S', '%m%d%Y%H%M%S',  # 14 digits,
 		'%Y%m%d%H%M', '%d%m%Y%H%M', '%m%d%Y%H%M'  # 12 digits
@@ -65,6 +70,10 @@ def ask_encrypt_aes_params() -> Tuple[str, str]:
 	return settings.REACTOR_ENCRYPT_AES_KEY, settings.REACTOR_ENCRYPT_AES_IV
 
 
+def ask_full_datetime_formats() -> List[str]:
+	return list(settings.REACTOR_FULL_DATETIME_FORMATS)
+
+
 def ask_datetime_formats() -> List[str]:
 	return list(settings.REACTOR_DATETIME_FORMATS)
 
@@ -74,7 +83,10 @@ def ask_date_formats() -> List[str]:
 
 
 def ask_all_date_formats() -> List[str]:
-	return list(settings.REACTOR_DATETIME_FORMATS.union(settings.REACTOR_DATE_FORMATS))
+	return ArrayHelper(list(settings.REACTOR_FULL_DATETIME_FORMATS)) \
+		.grab(*settings.REACTOR_DATETIME_FORMATS) \
+		.grab(*settings.REACTOR_DATE_FORMATS) \
+		.to_list()
 
 
 def ask_time_formats() -> List[str]:
