@@ -5,7 +5,8 @@ from watchmen_meta.admin.user_service import USER_ENTITY_NAME, USER_ENTITY_SHAPE
 from watchmen_meta.system.pat_service import PAT_ENTITY_NAME, PAT_ENTITY_SHAPER
 from watchmen_model.admin import User
 from watchmen_model.system import PersonalAccessToken
-from watchmen_storage import EntityCriteriaExpression, EntityFinder, EntityIdHelper, TransactionalStorageSPI
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityFinder, EntityIdHelper, \
+	TransactionalStorageSPI
 
 
 def redress_user(user: Optional[User], clear_pwd: bool) -> Optional[User]:
@@ -29,7 +30,7 @@ def find_user_by_name(storage: TransactionalStorageSPI, username: str, clear_pwd
 			name=USER_ENTITY_NAME,
 			shaper=USER_ENTITY_SHAPER,
 			criteria=[
-				EntityCriteriaExpression(left='name', right=username)
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='name'), right=username)
 			]
 		))
 		return redress_user(user, clear_pwd)
@@ -54,7 +55,7 @@ def find_pat_by_token(storage: TransactionalStorageSPI, pat_token: str) -> Optio
 		name=PAT_ENTITY_NAME,
 		shaper=PAT_ENTITY_SHAPER,
 		criteria=[
-			EntityCriteriaExpression(left='token', right=pat_token)
+			EntityCriteriaExpression(left=ColumnNameLiteral(columnName='token'), right=pat_token)
 		]
 	))
 	if pat is None:

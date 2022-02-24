@@ -3,7 +3,7 @@ from typing import List, Optional
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_model.admin import User, UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId, UserId
-from watchmen_storage import EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, \
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, \
 	EntityShaper
 
 
@@ -58,13 +58,16 @@ class UserService(TupleService):
 		# always ignore super admin
 		criteria = [
 			EntityCriteriaExpression(
-				left='role', operator=EntityCriteriaOperator.NOT_EQUALS, right=UserRole.SUPER_ADMIN)
+				left=ColumnNameLiteral(columnName='role'), operator=EntityCriteriaOperator.NOT_EQUALS,
+				right=UserRole.SUPER_ADMIN)
 		]
 		if text is not None and len(text.strip()) != 0:
-			criteria.append(EntityCriteriaExpression(left='name', operator=EntityCriteriaOperator.LIKE, right=text))
-			criteria.append(EntityCriteriaExpression(left='nickname', operator=EntityCriteriaOperator.LIKE, right=text))
+			criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='name'), operator=EntityCriteriaOperator.LIKE, right=text))
+			criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='nickname'), operator=EntityCriteriaOperator.LIKE, right=text))
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
-			criteria.append(EntityCriteriaExpression(left='tenant_id', right=tenant_id))
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))
 
 	# noinspection DuplicatedCode
@@ -72,12 +75,14 @@ class UserService(TupleService):
 		# always ignore super admin
 		criteria = [
 			EntityCriteriaExpression(
-				left='role', operator=EntityCriteriaOperator.NOT_EQUALS, right=UserRole.SUPER_ADMIN)
+				left=ColumnNameLiteral(columnName='role'), operator=EntityCriteriaOperator.NOT_EQUALS,
+				right=UserRole.SUPER_ADMIN)
 		]
 		if text is not None and len(text.strip()) != 0:
-			criteria.append(EntityCriteriaExpression(left='name', operator=EntityCriteriaOperator.LIKE, right=text))
+			criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='name'), operator=EntityCriteriaOperator.LIKE, right=text))
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
-			criteria.append(EntityCriteriaExpression(left='tenant_id', right=tenant_id))
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(criteria=criteria))
 
@@ -85,18 +90,20 @@ class UserService(TupleService):
 		# always ignore super admin
 		criteria = [
 			EntityCriteriaExpression(
-				left='role', operator=EntityCriteriaOperator.NOT_EQUALS, right=UserRole.SUPER_ADMIN),
-			EntityCriteriaExpression(left='user_id', operator=EntityCriteriaOperator.IN, right=user_ids)
+				left=ColumnNameLiteral(columnName='role'), operator=EntityCriteriaOperator.NOT_EQUALS,
+				right=UserRole.SUPER_ADMIN),
+			EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='user_id'), operator=EntityCriteriaOperator.IN, right=user_ids)
 		]
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
-			criteria.append(EntityCriteriaExpression(left='tenant_id', right=tenant_id))
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(criteria))
 
 	def find_admin(self, tenant_id: TenantId) -> Optional[User]:
 		criteria = [
-			EntityCriteriaExpression(left='role', right=UserRole.ADMIN),
-			EntityCriteriaExpression(left='tenant_id', right=tenant_id)
+			EntityCriteriaExpression(left=ColumnNameLiteral(columnName='role'), right=UserRole.ADMIN),
+			EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
 		]
 		# noinspection PyTypeChecker
 		admins: List[User] = self.storage.find(self.get_entity_finder(criteria=criteria))

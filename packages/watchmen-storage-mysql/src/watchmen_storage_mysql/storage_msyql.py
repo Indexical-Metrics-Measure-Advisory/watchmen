@@ -6,11 +6,11 @@ from sqlalchemy.engine import Connection, Engine
 
 from watchmen_model.admin import Topic
 from watchmen_model.common import DataPage
-from watchmen_storage import Entity, EntityColumnAggregateArithmetic, EntityCriteriaExpression, EntityDeleter, \
-	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, EntityIdHelper, EntityList, \
-	EntityNotFoundException, EntityPager, EntityStraightAggregateColumn, EntityStraightColumn, EntityStraightTextColumn, \
-	EntityStraightValuesFinder, EntityUpdater, TooManyEntitiesFoundException, TransactionalStorageSPI, \
-	UnexpectedStorageException, UnsupportedStraightColumnException
+from watchmen_storage import ColumnNameLiteral, Entity, EntityColumnAggregateArithmetic, EntityCriteriaExpression, \
+	EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, EntityIdHelper, EntityList, \
+	EntityNotFoundException, EntityPager, EntityStraightAggregateColumn, EntityStraightColumn, \
+	EntityStraightTextColumn, EntityStraightValuesFinder, EntityUpdater, TooManyEntitiesFoundException, \
+	TransactionalStorageSPI, UnexpectedStorageException, UnsupportedStraightColumnException
 from watchmen_storage.storage_spi import TopicDataStorageSPI
 from watchmen_utilities import ArrayHelper, is_blank
 from .sort_build import build_sort_for_statement
@@ -87,7 +87,7 @@ class StorageMySQL(TransactionalStorageSPI):
 			name=helper.name,
 			shaper=helper.shaper,
 			criteria=[
-				EntityCriteriaExpression(left=helper.idColumnName, right=entity_id)
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName=helper.idColumnName), right=entity_id)
 			],
 			update=row
 		))
@@ -141,7 +141,7 @@ class StorageMySQL(TransactionalStorageSPI):
 		table = self.find_table(helper.name)
 		statement = delete(table)
 		statement = build_criteria_for_statement(table, statement, [
-			EntityCriteriaExpression(left=helper.idColumnName, right=entity_id)
+			EntityCriteriaExpression(left=ColumnNameLiteral(columnName=helper.idColumnName), right=entity_id)
 		])
 		result = self.connection.execute(statement)
 		return result.rowcount
@@ -203,7 +203,7 @@ class StorageMySQL(TransactionalStorageSPI):
 			name=helper.name,
 			shaper=helper.shaper,
 			criteria=[
-				EntityCriteriaExpression(left=helper.idColumnName, right=entity_id)
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName=helper.idColumnName), right=entity_id)
 			]
 		))
 

@@ -2,8 +2,8 @@ from typing import List, Optional, Tuple
 
 from watchmen_auth import PrincipalService
 from watchmen_model.common import TenantId, UserBasedTuple, UserId
-from watchmen_storage import EntityCriteriaExpression, EntityRow, \
-	SnowflakeGenerator, TooManyEntitiesFoundException, TransactionalStorageSPI
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityRow, SnowflakeGenerator, \
+	TooManyEntitiesFoundException, TransactionalStorageSPI
 from .storage_service import EntityService, TupleId, TupleNotFoundException
 
 
@@ -50,7 +50,8 @@ class UserBasedTupleService(EntityService):
 	def find_by_id(self, tuple_id: TupleId) -> Optional[UserBasedTuple]:
 		return self.storage.find_one(self.get_entity_finder(
 			criteria=[
-				EntityCriteriaExpression(left=self.get_storable_id_column_name(), right=tuple_id),
+				EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName=self.get_storable_id_column_name()), right=tuple_id),
 			]
 		))
 
@@ -58,15 +59,16 @@ class UserBasedTupleService(EntityService):
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(
 			criteria=[
-				EntityCriteriaExpression(left='user_id', right=user_id),
-				EntityCriteriaExpression(left='tenant_id', right=tenant_id)
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='user_id'), right=user_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
 			]
 		))
 
 	def find_tenant_and_user(self, tuple_id: TupleId) -> Optional[Tuple[TenantId, UserId]]:
 		finder = self.get_entity_finder_for_columns(
 			criteria=[
-				EntityCriteriaExpression(left=self.get_storable_id_column_name(), right=tuple_id),
+				EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName=self.get_storable_id_column_name()), right=tuple_id),
 			],
 			distinctColumnNames=['tenant_id', 'user_id']
 		)

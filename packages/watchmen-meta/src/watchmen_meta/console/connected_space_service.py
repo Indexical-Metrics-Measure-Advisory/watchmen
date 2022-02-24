@@ -5,7 +5,8 @@ from watchmen_meta.common import AuditableShaper, LastVisitShaper, TupleNotFound
 	UserBasedTupleService, UserBasedTupleShaper
 from watchmen_model.common import ConnectedSpaceId, SpaceId, TenantId, UserId
 from watchmen_model.console import ConnectedSpace
-from watchmen_storage import EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, EntityShaper
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, \
+	EntityShaper
 
 
 class ConnectedSpaceShaper(EntityShaper):
@@ -63,12 +64,13 @@ class ConnectedSpaceService(UserBasedTupleService):
 	) -> List[ConnectedSpace]:
 		criteria = [
 			EntityCriteriaExpression(
-				left=self.get_storable_id_column_name(), operator=EntityCriteriaOperator.IN, right=connect_ids),
-			EntityCriteriaExpression(left='is_template', right=True),
-			EntityCriteriaExpression(left='tenant_id', right=tenant_id)
+				left=ColumnNameLiteral(columnName=self.get_storable_id_column_name()),
+				operator=EntityCriteriaOperator.IN, right=connect_ids),
+			EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_template'), right=True),
+			EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
 		]
 		if space_id is not None and len(space_id.strip()) != 0:
-			criteria.append(EntityCriteriaExpression(left='space_id', right=space_id))
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='space_id'), right=space_id))
 
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(criteria=criteria))
@@ -77,9 +79,9 @@ class ConnectedSpaceService(UserBasedTupleService):
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(
 			criteria=[
-				EntityCriteriaExpression(left='space_id', right=space_id),
-				EntityCriteriaExpression(left='tenant_id', right=tenant_id),
-				EntityCriteriaExpression(left='is_template', right=True),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='space_id'), right=space_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_template'), right=True),
 			]
 		))
 
@@ -87,8 +89,8 @@ class ConnectedSpaceService(UserBasedTupleService):
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(
 			criteria=[
-				EntityCriteriaExpression(left='tenant_id', right=tenant_id),
-				EntityCriteriaExpression(left='is_template', right=True),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_template'), right=True),
 			]
 		))
 
@@ -101,9 +103,10 @@ class ConnectedSpaceService(UserBasedTupleService):
 		last_modified_by = self.principalService.get_user_id()
 		updated_count = self.storage.update_only(self.get_entity_updater(
 			criteria=[
-				EntityCriteriaExpression(left=self.get_storable_id_column_name(), right=connect_id),
-				EntityCriteriaExpression(left='user_id', right=user_id),
-				EntityCriteriaExpression(left='tenant_id', right=tenant_id)
+				EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName=self.get_storable_id_column_name()), right=connect_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='user_id'), right=user_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
 			],
 			update={
 				'name': name,
@@ -118,7 +121,10 @@ class ConnectedSpaceService(UserBasedTupleService):
 	def update_last_visit_time(self, connect_id: ConnectedSpaceId) -> datetime:
 		now = self.now()
 		self.storage.update(self.get_entity_updater(
-			criteria=[EntityCriteriaExpression(left=self.get_storable_id_column_name(), right=connect_id)],
+			criteria=[
+				EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName=self.get_storable_id_column_name()), right=connect_id)
+			],
 			update={'last_visit_time': now}
 		))
 		return now

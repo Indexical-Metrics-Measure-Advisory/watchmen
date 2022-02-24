@@ -3,12 +3,8 @@ from typing import List, Optional
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_model.admin import Enum, EnumItem
 from watchmen_model.common import DataPage, EnumId, EnumItemId, Pageable, TenantId
-from watchmen_storage import EntityCriteria, EntityCriteriaExpression, EntityCriteriaOperator, EntityDeleter, \
-	EntityFinder, EntityHelper, \
-	EntityRow, \
-	EntityShaper, \
-	EntitySort, \
-	SnowflakeGenerator, \
+from watchmen_storage import ColumnNameLiteral, EntityCriteria, EntityCriteriaExpression, EntityCriteriaOperator, \
+	EntityDeleter, EntityFinder, EntityHelper, EntityRow, EntityShaper, EntitySort, SnowflakeGenerator, \
 	TransactionalStorageSPI
 
 
@@ -56,17 +52,18 @@ class EnumService(TupleService):
 	def find_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
 		criteria = []
 		if text is not None and len(text.strip()) != 0:
-			criteria.append(EntityCriteriaExpression(left='name', operator=EntityCriteriaOperator.LIKE, right=text))
-			criteria.append(
-				EntityCriteriaExpression(left='description', operator=EntityCriteriaOperator.LIKE, right=text))
+			criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='name'), operator=EntityCriteriaOperator.LIKE, right=text))
+			criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='description'), operator=EntityCriteriaOperator.LIKE, right=text))
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
-			criteria.append(EntityCriteriaExpression(left='tenant_id', right=tenant_id))
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		return self.storage.page(self.get_entity_pager(criteria, pageable))
 
 	def find_all(self, tenant_id: Optional[TenantId]) -> List[Enum]:
 		criteria = []
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
-			criteria.append(EntityCriteriaExpression(left='tenant_id', right=tenant_id))
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(criteria))
 
@@ -151,10 +148,10 @@ class EnumItemService:
 	def find_by_enum_id(self, enum_id: EnumId) -> List[EnumItem]:
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder([
-			EntityCriteriaExpression(left='enum_id', right=enum_id)
+			EntityCriteriaExpression(left=ColumnNameLiteral(columnName='enum_id'), right=enum_id)
 		]))
 
 	def delete_by_enum_id(self, enum_id: EnumId) -> None:
 		self.storage.delete(self.get_entity_deleter([
-			EntityCriteriaExpression(left='enum_id', right=enum_id)
+			EntityCriteriaExpression(left=ColumnNameLiteral(columnName='enum_id'), right=enum_id)
 		]))

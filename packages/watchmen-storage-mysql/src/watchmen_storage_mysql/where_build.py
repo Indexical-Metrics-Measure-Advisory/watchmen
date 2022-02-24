@@ -1,41 +1,53 @@
 from sqlalchemy import and_, or_, Table
 
-from watchmen_storage import EntityCriteria, EntityCriteriaExpression, EntityCriteriaJoint, \
-	EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, NoCriteriaForUpdateException, \
-	UnsupportedCriteriaException
+from watchmen_storage import ColumnNameLiteral, ComputedLiteral, EntityCriteria, EntityCriteriaExpression, \
+	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, Literal, \
+	NoCriteriaForUpdateException, UnsupportedCriteriaException
 from watchmen_utilities import ArrayHelper
 from .types import SQLAlchemyStatement
 
 
+def build_literal(literal: Literal, table: Table):
+	if isinstance(literal, ColumnNameLiteral):
+		return table.c[literal.columnName]
+	elif isinstance(literal, ComputedLiteral):
+		# TODO build compute literal
+		raise
+	else:
+		# a value, return itself
+		return literal
+
+
 def build_criteria_expression(table: Table, expression: EntityCriteriaExpression):
 	# TODO current supports (name op value), others need to be supported
-	# noinspection PyPropertyAccess
-	column = table.c[expression.left]
+	built_left = build_literal(expression.left, table)
 	op = expression.operator
 	if op == EntityCriteriaOperator.IS_EMPTY:
-		return or_(column.is_(None), column == '')
+		return or_(built_left.is_(None), built_left == '')
 	elif op == EntityCriteriaOperator.IS_NOT_EMPTY:
-		return and_(column.is_not(None), column != '')
-	elif op == EntityCriteriaOperator.EQUALS:
-		return column == expression.right
+		return and_(built_left.is_not(None), built_left != '')
+
+	built_right = build_literal(expression.right, table)
+	if op == EntityCriteriaOperator.EQUALS:
+		return built_left == built_right
 	elif op == EntityCriteriaOperator.NOT_EQUALS:
-		return column != expression.right
+		return built_left != built_right
 	elif op == EntityCriteriaOperator.LESS_THAN:
-		return column < expression.right
+		return built_left < built_right
 	elif op == EntityCriteriaOperator.LESS_THAN_OR_EQUALS:
-		return column <= expression.right
+		return built_left <= built_right
 	elif op == EntityCriteriaOperator.GREATER_THAN:
-		return column > expression.right
+		return built_left > built_right
 	elif op == EntityCriteriaOperator.GREATER_THAN_OR_EQUALS:
-		return column >= expression.right
+		return built_left >= built_right
 	elif op == EntityCriteriaOperator.IN:
-		return column.in_(expression.right)
+		return built_left.in_(built_right)
 	elif op == EntityCriteriaOperator.NOT_IN:
-		return column.not_in(expression.right)
+		return built_left.not_in(built_right)
 	elif op == EntityCriteriaOperator.LIKE:
-		return column.ilike(f'%{expression.right}%')
+		return built_left.ilike(f'%{built_right}%')
 	elif op == EntityCriteriaOperator.NOT_LIKE:
-		return column.not_ilike(f'%{expression.right}%')
+		return built_left.not_ilike(f'%{built_right}%')
 	else:
 		raise UnsupportedCriteriaException(f'Unsupported criteria expression operator[{op}].')
 

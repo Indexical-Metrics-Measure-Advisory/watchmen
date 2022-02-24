@@ -4,8 +4,8 @@ from watchmen_auth import PrincipalService
 from watchmen_meta.common import LastVisitShaper, StorageService, UserBasedTupleShaper
 from watchmen_model.common import TenantId, UserId
 from watchmen_model.gui import LastSnapshot
-from watchmen_storage import EntityCriteriaExpression, EntityFinder, EntityHelper, EntityIdHelper, EntityRow, \
-	EntityShaper, EntityUpdater, TransactionalStorageSPI
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityFinder, EntityHelper, EntityIdHelper, \
+	EntityRow, EntityShaper, EntityUpdater, TransactionalStorageSPI
 
 
 class LastSnapshotShaper(EntityShaper):
@@ -70,8 +70,8 @@ class LastSnapshotService(StorageService):
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),
 			criteria=[
-				EntityCriteriaExpression(left='user_id', right=last_snapshot.userId),
-				EntityCriteriaExpression(left='tenant_id', right=last_snapshot.tenantId)
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='user_id'), right=last_snapshot.userId),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=last_snapshot.tenantId)
 			],
 			update={
 				'language': last_snapshot.language,
@@ -88,8 +88,8 @@ class LastSnapshotService(StorageService):
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),
 			criteria=[
-				EntityCriteriaExpression(left='user_id', right=user_id),
-				EntityCriteriaExpression(left='tenant_id', right=tenant_id)
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='user_id'), right=user_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
 			]
 		))
 
