@@ -8,8 +8,7 @@ from watchmen_model.common import ComputedParameter, ConstantParameter, Paramete
 from watchmen_reactor.pipeline.runtime import parse_condition_for_storage, PipelineVariables
 from watchmen_reactor.pipeline.runtime.ask_from_storage import ParsedStorageJoint
 from watchmen_storage import ComputedLiteral, ComputedLiteralOperator, EntityCriteriaExpression, EntityCriteriaJoint, \
-	EntityCriteriaJointConjunction, \
-	EntityCriteriaOperator
+	EntityCriteriaJointConjunction, EntityCriteriaOperator
 
 
 def create_fake_principal_service() -> PrincipalService:
@@ -129,5 +128,4 @@ class AskFromStorage(TestCase):
 		self.assertEqual(exp3.operator, EntityCriteriaOperator.NOT_EQUALS)
 		self.assertEqual(exp3.right, 201)
 		self.assertIsInstance(exp3.right, Decimal)
-		# expression 4
-
+	# expression 4
