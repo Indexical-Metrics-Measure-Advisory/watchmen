@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import Tuple
 from unittest import TestCase
 
 from watchmen_auth import PrincipalService
@@ -128,4 +129,26 @@ class AskFromStorage(TestCase):
 		self.assertEqual(exp3.operator, EntityCriteriaOperator.NOT_EQUALS)
 		self.assertEqual(exp3.right, 201)
 		self.assertIsInstance(exp3.right, Decimal)
-	# expression 4
+		# expression 4
+		exp4: EntityCriteriaExpression = result.children[4]
+		self.assertIsInstance(exp4, EntityCriteriaExpression)
+		self.assertEqual(exp4.left, '10')
+		self.assertEqual(exp4.operator, EntityCriteriaOperator.LESS_THAN_OR_EQUALS)
+		exp4_right: ComputedLiteral = exp4.right
+		self.assertIsInstance(exp4_right, ComputedLiteral)
+		self.assertEqual(exp4_right.operator, ComputedLiteralOperator.CASE_THEN)
+		self.assertIsInstance(exp4_right.elements[0], Tuple)
+		exp4_right_case_1_condition: EntityCriteriaJoint = exp4_right.elements[0][0]
+		self.assertIsInstance(exp4_right_case_1_condition, EntityCriteriaJoint)
+		self.assertEqual(exp4_right_case_1_condition.conjunction, EntityCriteriaJointConjunction.AND)
+		self.assertEqual(len(exp4_right_case_1_condition.children), 1)
+		exp4_right_case_1_condition_exp: EntityCriteriaExpression = exp4_right_case_1_condition.children[0]
+		self.assertIsInstance(exp4_right_case_1_condition_exp, EntityCriteriaExpression)
+		self.assertEqual(exp4_right_case_1_condition_exp.left, 'customer-11')
+		self.assertEqual(exp4_right_case_1_condition_exp.operator, EntityCriteriaOperator.IS_NOT_EMPTY)
+		exp4_right_case_1_value = exp4_right.elements[0][1]
+		self.assertEqual(exp4_right_case_1_value, 11)
+		self.assertIsInstance(exp4_right_case_1_value, int)
+		exp4_right_anyway = exp4_right.elements[1]
+		self.assertEqual(exp4_right_anyway, 10)
+		self.assertIsInstance(exp4_right_anyway, int)
