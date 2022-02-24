@@ -54,9 +54,7 @@ def get_value_from(name: str, names: List[str], get_first: Callable[[str], Any])
 		elif isinstance(data, dict):
 			data = data.get(current_name)
 		elif isinstance(data, list):
-			data = ArrayHelper(data) \
-				.map(lambda x: x.get(current_name)) \
-				.flatten().to_list()
+			data = ArrayHelper(data).map(lambda x: x.get(current_name)).flatten().to_list()
 		else:
 			# cannot retrieve value from plain type variable
 			raise ReactorException(f'Cannot retrieve[key={name}, current={current_name}] from [{data}].')
