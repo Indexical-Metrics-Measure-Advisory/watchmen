@@ -3,12 +3,12 @@ from typing import List, Optional
 from fastapi import APIRouter, Body, Depends
 
 from watchmen_auth import PrincipalService
+from watchmen_data_kernel.cache import CacheService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.system import DataSourceService
 from watchmen_model.admin import UserRole
 from watchmen_model.common import DataPage, DataSourceId, Pageable
 from watchmen_model.system import DataSource
-from watchmen_data_kernel.cache import CacheService
 from watchmen_rest import get_any_admin_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled

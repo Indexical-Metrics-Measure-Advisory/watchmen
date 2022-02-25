@@ -1,7 +1,7 @@
 from typing import Any, Union
 
-from watchmen_model.admin import FactorEncryptMethod
 from watchmen_data_kernel.common import DataKernelException
+from watchmen_model.admin import FactorEncryptMethod
 from .encryptor import Encryptor
 
 

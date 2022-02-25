@@ -1,6 +1,6 @@
 from watchmen_data_kernel.external_writer import CreateExternalWriterBuilder
-from watchmen_pipeline_kernel.common import ask_elastic_search_external_writer_enabled, ask_standard_external_writer_enabled, \
-	PipelineKernelException
+from watchmen_pipeline_kernel.common import ask_elastic_search_external_writer_enabled, \
+	ask_standard_external_writer_enabled, PipelineKernelException
 
 
 def find_standard() -> CreateExternalWriterBuilder:

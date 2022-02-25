@@ -3,8 +3,8 @@ from typing import Any, List, Tuple, Union
 
 from math import ceil, floor
 
-from watchmen_model.admin import FactorEncryptMethod
 from watchmen_data_kernel.common import DataKernelException
+from watchmen_model.admin import FactorEncryptMethod
 from watchmen_utilities import ArrayHelper
 from .encryptor import Encryptor
 
