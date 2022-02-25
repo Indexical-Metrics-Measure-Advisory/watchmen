@@ -23,6 +23,8 @@ class PipelineSurfaceSettings(BaseSettings):
 	KAFKA_BOOTSTRAP_SERVER: str = 'localhost:9092'
 	KAFKA_TOPICS: str = ''
 
+	TRUNCATE_TOPIC_DATA: bool = False
+
 	class Config:
 		env_file = '.env'
 		env_file_encoding = 'utf-8'
@@ -65,3 +67,7 @@ def ask_rabbitmq_connector_settings() -> RabbitmqSettings:
 		durable=settings.RABBITMQ_DURABLE,
 		autoDelete=settings.RABBITMQ_AUTO_DELETE
 	)
+
+
+def ask_truncate_topic_data() -> bool:
+	return settings.TRUNCATE_TOPIC_DATA
