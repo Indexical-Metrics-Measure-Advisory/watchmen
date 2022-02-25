@@ -45,12 +45,7 @@ class AuthenticationManager:
 			.filter(lambda x: x.accept(auth_type)) \
 			.first(lambda x: authenticate_by(x))
 
-	def authenticate_by_jwt(self, token: str) -> Optional[User]:
+	def authenticate(self, token: str, auth_type: AuthenticationType) -> Optional[User]:
 		details = {'token': token}
-		user = self.authenticate_details(details, AuthenticationType.JWT)
-		return user
-
-	def authenticate_by_pat(self, token: str) -> Optional[User]:
-		details = {'token': token}
-		user = self.authenticate_details(details, AuthenticationType.PAT)
+		user = self.authenticate_details(details, auth_type)
 		return user

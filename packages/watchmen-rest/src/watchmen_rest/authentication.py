@@ -8,7 +8,7 @@ from jsonschema.exceptions import ValidationError
 from starlette.requests import Request
 
 from watchmen_auth import AuthenticationManager, AuthenticationProvider, AuthenticationType, AuthFailOn401, \
-	AuthFailOn403, authorize, authorize_jwt, authorize_pat, PrincipalService
+	AuthFailOn403, authorize, authorize_token, PrincipalService
 from watchmen_model.admin import User, UserRole
 from watchmen_utilities import ArrayHelper
 from .settings import RestSettings
@@ -106,12 +106,12 @@ def parse_token(request: Request) -> Tuple[str, str]:
 
 def get_principal_by_jwt(
 		authentication_manager: AuthenticationManager, token: str, roles: List[UserRole]) -> PrincipalService:
-	return authorize_jwt(authentication_manager, token, roles)
+	return authorize_token(authentication_manager, token, AuthenticationType.JWT, roles)
 
 
 def get_principal_by_pat(
 		authentication_manager: AuthenticationManager, token: str, roles: List[UserRole]) -> PrincipalService:
-	return authorize_pat(authentication_manager, token, roles)
+	return authorize_token(authentication_manager, token, AuthenticationType.PAT, roles)
 
 
 def get_principal_by(
