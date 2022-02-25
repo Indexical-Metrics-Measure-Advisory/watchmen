@@ -1,4 +1,4 @@
-from watchmen_reactor_surface import get_surface_routers as get_reactor_routers
+from watchmen_pipeline_surface import get_pipeline_surface_routers
 from watchmen_rest.system import health_router
 from watchmen_utilities import ArrayHelper
 from .admin import enumeration_router, pipeline_graphic_router, pipeline_router, space_router, topic_router, \
@@ -45,4 +45,4 @@ ArrayHelper([
 	mix_import_router.router
 ]).each(lambda x: app.include_router(x))
 
-ArrayHelper(get_reactor_routers()).each(lambda x: app.include_router(x))
+ArrayHelper(get_pipeline_surface_routers()).each(lambda x: app.include_router(x))

@@ -14,7 +14,7 @@ from watchmen_model.admin import AggregateArithmetic, Factor, is_raw_topic, Mapp
 from watchmen_model.common import ComputedParameter, ConstantParameter, FactorId, Parameter, ParameterComputeType, \
 	ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, \
 	ParameterKind, TopicFactorParameter, TopicId, VariablePredefineFunctions
-from watchmen_model.reactor import TopicDataColumnNames
+from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteriaExpression, \
 	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, Literal
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_decimal

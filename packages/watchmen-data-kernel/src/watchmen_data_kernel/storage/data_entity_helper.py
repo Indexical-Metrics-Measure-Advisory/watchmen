@@ -6,7 +6,7 @@ from watchmen_auth import PrincipalService
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.admin import Topic
 from watchmen_model.common import TenantId
-from watchmen_model.reactor import TopicDataColumnNames
+from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import ColumnNameLiteral, EntityColumnName, EntityCriteria, EntityCriteriaExpression, \
 	EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityIdHelper, EntitySort, \
 	EntityStraightColumn, EntityStraightValuesFinder, EntityUpdate, EntityUpdater, SnowflakeGenerator

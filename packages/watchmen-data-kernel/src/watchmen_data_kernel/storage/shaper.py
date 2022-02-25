@@ -2,7 +2,7 @@ from abc import abstractmethod
 from typing import Any, Dict
 
 from watchmen_data_kernel.topic_schema import TopicSchema
-from watchmen_model.reactor import TopicDataColumnNames
+from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import EntityRow, EntityShaper
 from .factor_column_mapper import TopicFactorColumnMapper
 

@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from watchmen_meta.auth import build_find_user_by_name, build_find_user_by_pat
 from watchmen_meta.common import ask_meta_storage
 from watchmen_model.admin import User
-from watchmen_reactor_surface import surface as reactor_surface
+from watchmen_pipeline_surface import pipeline_surface
 from watchmen_rest import RestApp
 from .settings import DollSettings
 
@@ -37,11 +37,11 @@ class DollApp(RestApp):
 		pass
 
 	# noinspection PyMethodMayBeStatic
-	def init_reactor(self) -> None:
-		reactor_surface.init_connectors()
+	def init_pipeline_surface(self) -> None:
+		pipeline_surface.init_connectors()
 
 	def on_startup(self, app: FastAPI) -> None:
-		self.init_reactor()
+		self.init_pipeline_surface()
 
 
 doll = DollApp(DollSettings())
