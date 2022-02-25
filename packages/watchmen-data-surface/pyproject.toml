@@ -1,20 +1,17 @@
 [tool.poetry]
-name = "watchmen-rest-doll"
+name = "watchmen-data-surface"
 version = "16.0.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
 packages = [
-    { include = "watchmen_rest_doll", from = "src" }
+    { include = "watchmen_data_surface", from = "src" }
 ]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-passlib = "^1.7.4"
-bcrypt = "^3.2.0"
-python-multipart = "^0.0.5"
-watchmen-data-surface = { path = "../watchmen-data-surface", develop = true }
-watchmen-pipeline-surface = { path = "../watchmen-pipeline-surface", develop = true }
+watchmen-data-kernel = { path = "../watchmen-data-kernel", develop = true }
+watchmen-rest = { path = "../watchmen-rest", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
 watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
 watchmen-storage-mongodb = { path = "../watchmen-storage-mongodb", develop = true, optional = true }
@@ -27,9 +24,6 @@ mysql = ["watchmen-storage-mysql"]
 oracle = ["watchmen-storage-oracle"]
 mongodb = ["watchmen-storage-mongodb"]
 mssql = ["watchmen-storage-mssql"]
-kafka = ["kafka-python", "aiokafka"]
-rabbit = ["aio-pika"]
-prometheus = ["starlette-prometheus"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

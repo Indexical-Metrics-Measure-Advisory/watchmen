@@ -1,3 +1,3 @@
-# Watchmen Utilities
+# Watchmen Data Kernel
 
-Utilities of _**Watchmen**_.
+Data kernel of _**Watchmen**_.

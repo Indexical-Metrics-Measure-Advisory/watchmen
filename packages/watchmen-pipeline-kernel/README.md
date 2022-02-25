@@ -1,3 +1,3 @@
-# Watchmen Reactor
+# Watchmen Pipeline Kernel
 
-Reactor of _**Watchmen**_.
+Pipeline kernel of _**Watchmen**_.
