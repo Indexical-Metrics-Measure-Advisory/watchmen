@@ -6,7 +6,8 @@ from typing import Any, Dict, List, Optional
 from watchmen_auth import PrincipalService
 from watchmen_model.admin import Pipeline
 from watchmen_model.reactor import PipelineTriggerTraceId
-from watchmen_reactor.pipeline_schema_interface import PipelineContext, TopicStorages
+from .pipeline_context import PipelineContext
+from .topic_storages import TopicStorages
 
 
 class CompiledPipeline:

@@ -5,8 +5,8 @@ from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.admin import Pipeline
 from watchmen_model.reactor import PipelineTriggerTraceId
 from watchmen_reactor.cache import CacheService
-from watchmen_reactor.pipeline_schema.compiled_pipeline import RuntimeCompiledPipeline
 from watchmen_reactor.pipeline_schema_interface import CompiledPipeline, PipelineContext, TopicStorages
+from .compiled_pipeline import RuntimeCompiledPipeline
 
 
 class RuntimePipelineContext(PipelineContext):
