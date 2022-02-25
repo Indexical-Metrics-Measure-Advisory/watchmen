@@ -1,4 +1,5 @@
 from logging import getLogger
+
 from pydantic import BaseSettings
 
 from watchmen_utilities import is_blank

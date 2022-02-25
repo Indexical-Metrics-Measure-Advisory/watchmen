@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from watchmen_model.admin import Factor, FactorEncryptMethod, Topic
 from watchmen_data_kernel.encryption import ask_encryptor
+from watchmen_model.admin import Factor, FactorEncryptMethod, Topic
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 
 """

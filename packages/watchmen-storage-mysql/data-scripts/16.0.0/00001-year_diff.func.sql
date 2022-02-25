@@ -18,45 +18,45 @@ BEGIN
     DECLARE start_last_day_of_month INT DEFAULT DAY(LAST_DAY(start_date));
 
     IF end_year = start_year THEN
-		# same year, always return 0
-		RETURN 0;
-	ELSEIF end_year > start_year THEN
-		IF end_month = start_month THEN
-			IF end_day >= start_day THEN
-				RETURN end_year - start_year;
-			ELSEIF end_month = 2 THEN
-				IF end_day = end_last_day_of_month AND start_day >= end_day THEN
-					RETURN end_year - start_year;
-				ELSE
-					RETURN end_year - start_year - 1;
-				END IF;
-			ELSE
-				RETURN end_year - start_year - 1;
-			END IF;
-		ELSEIF end_month > start_month THEN
-			RETURN end_year - start_year;
-		ELSE
-			RETURN end_year - start_year - 1;
-		END IF;
-	ELSE
-		IF end_month = start_month THEN
-			IF end_day > start_day THEN
-				IF end_month = 2 THEN
-					IF start_day = start_last_day_of_month THEN
-						RETURN end_year - start_year;
-					ELSE
-						RETURN end_year - start_year + 1;
-					END IF;
-				ELSE
-					RETURN end_year - start_year + 1;
-				END IF;
-		    ELSE
-				RETURN end_year - start_year;
-			END IF;
-		ELSEIF end_month > start_month THEN
-			RETURN end_year - start_year + 1;
-		ELSE
-			RETURN end_year - start_year;
-		END IF;
-	END IF;
+        # same year, always return 0
+        RETURN 0;
+    ELSEIF end_year > start_year THEN
+        IF end_month = start_month THEN
+            IF end_day >= start_day THEN
+                RETURN end_year - start_year;
+            ELSEIF end_month = 2 THEN
+                IF end_day = end_last_day_of_month AND start_day >= end_day THEN
+                    RETURN end_year - start_year;
+                ELSE
+                    RETURN end_year - start_year - 1;
+                END IF;
+            ELSE
+                RETURN end_year - start_year - 1;
+            END IF;
+        ELSEIF end_month > start_month THEN
+            RETURN end_year - start_year;
+        ELSE
+            RETURN end_year - start_year - 1;
+        END IF;
+    ELSE
+        IF end_month = start_month THEN
+            IF end_day > start_day THEN
+                IF end_month = 2 THEN
+                    IF start_day = start_last_day_of_month THEN
+                        RETURN end_year - start_year;
+                    ELSE
+                        RETURN end_year - start_year + 1;
+                    END IF;
+                ELSE
+                    RETURN end_year - start_year + 1;
+                END IF;
+            ELSE
+                RETURN end_year - start_year;
+            END IF;
+        ELSEIF end_month > start_month THEN
+            RETURN end_year - start_year + 1;
+        ELSE
+            RETURN end_year - start_year;
+        END IF;
+    END IF;
 END|

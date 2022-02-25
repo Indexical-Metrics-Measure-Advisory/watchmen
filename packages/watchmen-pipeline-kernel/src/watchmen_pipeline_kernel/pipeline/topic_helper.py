@@ -27,7 +27,8 @@ class RuntimeTopicStorages(TopicStorages):
 		topic = schema.get_topic()
 		data_source_id = topic.dataSourceId
 		if is_blank(data_source_id):
-			raise PipelineKernelException(f'Data source is not defined for topic[id={topic.topicId}, name={topic.name}]')
+			raise PipelineKernelException(
+				f'Data source is not defined for topic[id={topic.topicId}, name={topic.name}]')
 		storage = self.storages.get(data_source_id)
 		if storage is not None:
 			return storage
