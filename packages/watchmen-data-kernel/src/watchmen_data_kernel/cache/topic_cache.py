@@ -7,6 +7,7 @@ from watchmen_model.common import TenantId, TopicId
 from .cache_manager import get_topic_by_id_cache, get_topic_by_tenant_and_name_cache, \
 	get_topic_entity_helper_by_id_cache, get_topic_schema_by_id_cache
 from .internal_cache import InternalCache
+from .pipeline_by_topic_cache import pipeline_by_topic_cache
 
 
 class TopicCache:
