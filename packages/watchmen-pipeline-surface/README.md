@@ -1,3 +1,3 @@
-# Watchmen Reactor Surface
+# Watchmen Pipeline Surface
 
-Reactor surface of _**Watchmen**_, provides REST routers, but has no starter.
+Pipeline surface of _**Watchmen**_, provides REST routers, but has no starter.
