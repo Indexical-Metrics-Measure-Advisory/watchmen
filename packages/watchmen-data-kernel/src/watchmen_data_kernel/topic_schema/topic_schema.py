@@ -6,6 +6,7 @@ from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import is_raw_topic, Topic
 from watchmen_utilities import ArrayHelper
 from .aid_hierarchy import aid
+from .default_value_factor import DefaultValueFactorGroup, parse_default_value_factors
 from .encrypt_factor import EncryptFactorGroup, parse_encrypt_factors
 from .flatten_factor import FlattenFactor, parse_flatten_factors
 
@@ -15,6 +16,7 @@ class TopicSchema:
 		self.topic = topic
 		self.flattenFactors = parse_flatten_factors(self.topic)
 		self.encryptFactorGroups = parse_encrypt_factors(self.topic)
+		self.defaultValueFactorGroups = parse_default_value_factors(self.topic)
 
 	def get_topic(self) -> Topic:
 		return self.topic
@@ -25,6 +27,9 @@ class TopicSchema:
 	def get_encrypt_factor_groups(self) -> List[EncryptFactorGroup]:
 		return self.encryptFactorGroups
 
+	def get_default_value_groups(self) -> List[DefaultValueFactorGroup]:
+		return self.defaultValueFactorGroups
+
 	def flatten(self, data: Dict[str, Any]) -> Dict[str, Any]:
 		"""
 		given data might be changed, and returns exactly the given one
@@ -34,12 +39,11 @@ class TopicSchema:
 		ArrayHelper(self.flattenFactors).each(lambda x: x.flatten(data))
 		return data
 
-	# noinspection PyMethodMayBeStatic
 	def initialize_default_values(self, data: Dict[str, Any]) -> Dict[str, Any]:
 		"""
 		given data might be changed, and returns exactly the given one
 		"""
-		# TODO set default values
+		ArrayHelper(self.defaultValueFactorGroups).each(lambda x: x.set_default_value(data))
 		return data
 
 	def encrypt(self, data: Dict[str, Any]) -> Dict[str, Any]:

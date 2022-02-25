@@ -26,6 +26,7 @@ class KernelSettings(BaseSettings):
 	]  # all digits, other characters are prohibitive
 	ENCRYPT_AES_KEY: str = 'hWmZq4t7w9z$C&F)J@NcRfUjXn2r5u8x'
 	ENCRYPT_AES_IV: str = 'J@NcRfUjXn2r5u8x'
+	KEEP_RAW_DATA_AS_IS: bool = True  # default value settings will be ignored on the raw topic
 	KERNEL_CACHE: bool = True  # enable kernel cache, keep it enabled in production
 	KERNEL_CACHE_HEART_BEAT: bool = True  # enable kernel cache heart beat
 	KERNEL_CACHE_HEART_BEAT_INTERVAL: int = 60  # kernel cache heart beat interval, in seconds
@@ -74,6 +75,10 @@ def ask_encrypt_aes_params() -> Tuple[str, str]:
 	key, iv
 	"""
 	return settings.ENCRYPT_AES_KEY, settings.ENCRYPT_AES_IV
+
+
+def ask_keep_raw_data_as_is() -> bool:
+	return settings.KEEP_RAW_DATA_AS_IS
 
 
 def ask_cache_enabled() -> bool:
