@@ -48,7 +48,9 @@ async def consume(loop, settings: RabbitmqSettings):
 		async with queue.iterator() as queue_iter:
 			try:
 				async for message in queue_iter:
+					# noinspection PyUnresolvedReferences
 					async with message.process():
+						# noinspection PyUnresolvedReferences
 						payload = loads(message.body)
 						trigger_data = PipelineTriggerDataWithPAT.parse_obj(payload)
 						await handle_trigger_data(trigger_data)
