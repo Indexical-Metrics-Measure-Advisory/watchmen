@@ -1,7 +1,7 @@
 from typing import Any, Dict
 from unittest import TestCase
 
-from watchmen_reactor.pipeline.runtime import get_value_from, PipelineVariables
+from watchmen_data_kernel.storage_bridge import get_value_from, PipelineVariables
 
 
 def value(variables: Dict[str, Any], name: str) -> Any:

@@ -1,9 +1,9 @@
 from logging import getLogger
 
+from watchmen_data_kernel.external_writer import BuildExternalWriter, ExternalWriter, ExternalWriterParams
 from watchmen_model.admin import PipelineTriggerType
 from watchmen_reactor.common import ReactorException
 from watchmen_utilities import is_not_blank, serialize_to_json
-from .external_writer import CreateExternalWriter, ExternalWriter, ExternalWriterParams
 
 logger = getLogger(__name__)
 
@@ -56,5 +56,5 @@ def create_standard_writer(code: str) -> StandardExternalWriter:
 	return StandardExternalWriter(code)
 
 
-def register_standard_writer() -> CreateExternalWriter:
+def register_standard_writer() -> BuildExternalWriter:
 	return create_standard_writer

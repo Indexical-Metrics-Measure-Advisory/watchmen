@@ -10,9 +10,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
-cacheout = "^0.13.1"
-pycryptodome = "^3.14.1"
-watchmen-meta = { path = "../watchmen-meta", develop = true }
+watchmen-data-kernel = { path = "../watchmen-data-kernel", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
 watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
 watchmen-storage-mongodb = { path = "../watchmen-storage-mongodb", develop = true, optional = true }

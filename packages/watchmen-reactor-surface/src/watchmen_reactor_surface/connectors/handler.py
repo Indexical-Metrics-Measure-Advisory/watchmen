@@ -1,11 +1,11 @@
 from typing import Optional
 
 from watchmen_auth import PrincipalService
+from watchmen_data_kernel.meta import TenantService
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import User, UserRole
 from watchmen_model.reactor import PipelineTriggerDataWithPAT, PipelineTriggerTraceId
 from watchmen_model.system import Tenant
-from watchmen_reactor.meta import TenantService
 from watchmen_reactor.pipeline import try_to_invoke_pipelines
 from watchmen_rest import get_principal_by_pat, retrieve_authentication_manager
 from watchmen_utilities import is_blank, is_not_blank

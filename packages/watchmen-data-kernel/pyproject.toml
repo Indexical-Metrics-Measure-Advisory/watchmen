@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "watchmen-utilities"
+version = "16.0.0"
+description = ""
+authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
+license = "MIT"
+packages = [
+    { include = "watchmen_data_kernel", from = "src" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+cacheout = "^0.13.1"
+pycryptodome = "^3.14.1"
+watchmen-meta = { path = "../watchmen-meta", develop = true }
+watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
+watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
+watchmen-storage-mongodb = { path = "../watchmen-storage-mongodb", develop = true, optional = true }
+watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, optional = true }
+pydantic = "^1.9.0"
+
+[tool.poetry.dev-dependencies]
+
+[tool.poetry.extras]
+mysql = ["watchmen-storage-mysql"]
+oracle = ["watchmen-storage-oracle"]
+mongodb = ["watchmen-storage-mongodb"]
+mssql = ["watchmen-storage-mssql"]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

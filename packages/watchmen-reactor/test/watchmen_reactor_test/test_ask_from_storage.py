@@ -3,11 +3,11 @@ from typing import Tuple
 from unittest import TestCase
 
 from watchmen_auth import PrincipalService
+from watchmen_data_kernel.storage_bridge import parse_condition_for_storage, PipelineVariables
+from watchmen_data_kernel.storage_bridge.ask_from_storage import ParsedStorageJoint
 from watchmen_model.admin import User, UserRole
 from watchmen_model.common import ComputedParameter, ConstantParameter, ParameterComputeType, ParameterExpression, \
 	ParameterExpressionOperator, ParameterJoint, ParameterJointType
-from watchmen_reactor.pipeline.runtime import parse_condition_for_storage, PipelineVariables
-from watchmen_reactor.pipeline.runtime.ask_from_storage import ParsedStorageJoint
 from watchmen_storage import ComputedLiteral, ComputedLiteralOperator, EntityCriteriaExpression, EntityCriteriaJoint, \
 	EntityCriteriaJointConjunction, EntityCriteriaOperator
 

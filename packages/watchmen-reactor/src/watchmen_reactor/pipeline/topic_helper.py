@@ -1,13 +1,13 @@
 from typing import Dict
 
 from watchmen_auth import PrincipalService
+from watchmen_data_kernel.cache import CacheService
+from watchmen_data_kernel.meta import DataSourceService
+from watchmen_data_kernel.storage import build_topic_data_storage
+from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.common import DataSourceId
-from watchmen_reactor.cache import CacheService
 from watchmen_reactor.common import ReactorException
-from watchmen_reactor.meta import DataSourceService
-from watchmen_reactor.pipeline_schema import TopicStorages
-from watchmen_reactor.storage import build_topic_data_storage
-from watchmen_reactor.topic_schema import TopicSchema
+from watchmen_reactor.pipeline_schema_interface import TopicStorages
 from watchmen_storage import TopicDataStorageSPI
 from watchmen_utilities import is_blank
 
