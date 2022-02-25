@@ -40,13 +40,13 @@ class DefaultValueFactorGroup:
 		self.groups = ArrayHelper(list(groups.items())) \
 			.map(lambda x: DefaultValueFactorGroup(name=x[0], factors=x[1])).to_list()
 
-	def encrypt(self, data: Dict[str, Any]) -> None:
+	def set_default_value(self, data: Dict[str, Any]) -> None:
 		value = data.get(self.name)
 		if isinstance(value, dict):
-			ArrayHelper(self.groups).each(lambda x: x.encrypt(value))
+			ArrayHelper(self.groups).each(lambda x: x.set_default_value(value))
 		elif isinstance(value, list):
 			def each(item):
-				ArrayHelper(self.groups).each(lambda x: x.encrypt(item))
+				ArrayHelper(self.groups).each(lambda x: x.set_default_value(item))
 
 			ArrayHelper(value).each(lambda x: each(x))
 		elif value is None and len(self.factors) == 1:
