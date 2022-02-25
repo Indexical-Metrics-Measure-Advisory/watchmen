@@ -18,5 +18,5 @@ def build_topic_data_storage(data_source: DataSource) -> Callable[[], TopicDataS
 	# TODO build oracle storage, mssql storage, mongodb storage
 
 	raise DataKernelException(
-		f'Reactor storage[id={data_source.dataSourceId}, name={data_source.name} type={data_source.dataSourceType}] '
+		f'Topic data storage[id={data_source.dataSourceId}, name={data_source.name} type={data_source.dataSourceType}] '
 		f'is not supported yet.')

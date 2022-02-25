@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Optional
 
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.admin import Factor
-from watchmen_model.reactor import TopicDataColumnNames
+from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import EntityCriteriaExpression, EntityRow, EntityShaper
 from watchmen_utilities import ArrayHelper
 from .data_entity_helper import TopicDataEntityHelper

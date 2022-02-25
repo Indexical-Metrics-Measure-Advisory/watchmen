@@ -26,9 +26,9 @@ class KernelSettings(BaseSettings):
 	]  # all digits, other characters are prohibitive
 	ENCRYPT_AES_KEY: str = 'hWmZq4t7w9z$C&F)J@NcRfUjXn2r5u8x'
 	ENCRYPT_AES_IV: str = 'J@NcRfUjXn2r5u8x'
-	KERNEL_CACHE: bool = True  # enable reactor cache, keep it enabled in production
-	KERNEL_CACHE_HEART_BEAT: bool = True  # enable reactor cache heart beat
-	KERNEL_CACHE_HEART_BEAT_INTERVAL: int = 60  # reactor cache heart beat interval, in seconds
+	KERNEL_CACHE: bool = True  # enable kernel cache, keep it enabled in production
+	KERNEL_CACHE_HEART_BEAT: bool = True  # enable kernel cache heart beat
+	KERNEL_CACHE_HEART_BEAT_INTERVAL: int = 60  # kernel cache heart beat interval, in seconds
 	PRESTO: bool = True  # presto
 
 	class Config:
@@ -39,7 +39,7 @@ class KernelSettings(BaseSettings):
 
 
 settings = KernelSettings()
-logger.info(f'Reactor settings[{settings.dict()}].')
+logger.info(f'Data kernel settings[{settings.dict()}].')
 
 
 def ask_storage_echo_enabled() -> bool:
