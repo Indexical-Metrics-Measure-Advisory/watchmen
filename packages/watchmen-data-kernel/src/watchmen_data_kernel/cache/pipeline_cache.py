@@ -18,6 +18,10 @@ class PipelineCacheListener:
 	def on_pipeline_removed(self, pipeline: Pipeline) -> None:
 		pass
 
+	@abstractmethod
+	def on_cache_cleared(self) -> None:
+		pass
+
 
 class PipelineCache:
 	listeners: List[PipelineCacheListener] = []
@@ -63,11 +67,12 @@ class PipelineCache:
 		return existing
 
 	def clear(self) -> None:
-		pipelines = self.byIdCache.values()
 		self.byIdCache.clear()
-		for pipeline in pipelines:
-			self.fire_pipeline_removed(pipeline)
+		self.fire_cache_cleared()
 		pipeline_by_topic_cache.clear()
+
+	def fire_cache_cleared(self):
+		ArrayHelper(self.listeners).each(lambda x: x.on_cache_cleared())
 
 
 pipeline_cache = PipelineCache()

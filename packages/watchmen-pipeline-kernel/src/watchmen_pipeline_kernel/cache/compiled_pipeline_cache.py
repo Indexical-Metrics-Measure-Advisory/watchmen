@@ -41,6 +41,9 @@ class CompilePipelineCache(PipelineCacheListener):
 	def on_pipeline_removed(self, pipeline: Pipeline) -> None:
 		self.compiledByIdCache.remove(pipeline.pipelineId)
 
+	def on_cache_cleared(self) -> None:
+		self.clear()
+
 	def clear(self):
 		self.compiledByIdCache.clear()
 
