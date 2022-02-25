@@ -3,7 +3,7 @@ from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
 from watchmen_model.admin import UserRole
-from watchmen_reactor.cache import CacheService
+from watchmen_data_kernel.cache import CacheService
 from watchmen_rest import get_super_admin_principal
 
 router = APIRouter()

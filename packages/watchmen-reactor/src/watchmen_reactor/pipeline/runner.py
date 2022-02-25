@@ -1,8 +1,8 @@
 from watchmen_auth import PrincipalService
-from watchmen_model.reactor import PipelineTriggerData, PipelineTriggerTraceId
 from watchmen_reactor.common import ReactorException
-from watchmen_reactor.meta import TopicService
-from watchmen_reactor.topic_schema import TopicSchema
+from watchmen_data_kernel.meta import TopicService
+from watchmen_data_kernel.topic_schema import TopicSchema
+from watchmen_model.reactor import PipelineTriggerData, PipelineTriggerTraceId
 from .pipeline_trigger import PipelineTrigger
 
 
