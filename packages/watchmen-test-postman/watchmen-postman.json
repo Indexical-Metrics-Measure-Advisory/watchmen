@@ -1064,7 +1064,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "TOPIC DELETE",
               "id": "70319304-2cdb-4f52-adef-306fbac9a355",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
