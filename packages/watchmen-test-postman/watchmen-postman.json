@@ -1076,9 +1076,9 @@
                       "    const user_id = pm.environment.get(\"USER_ID\");",
                       "    pm.expect(data.userId).to.equal(user_id);",
                       "    pm.environment.unset(\"USER_ID\");",
-                      "    pm.environment.set('USER_CREATED_AT', data.createdAt);",
-                      "    pm.environment.set('USER_CREATED_BY', data.createdBy);",
-                      "    pm.environment.set('USER_VERSION', data.version);",
+                      "    pm.environment.unset('USER_CREATED_AT');",
+                      "    pm.environment.unset('USER_CREATED_BY');",
+                      "    pm.environment.unset('USER_VERSION');",
                       "});"
                     ],
                     "type": "text/javascript"
