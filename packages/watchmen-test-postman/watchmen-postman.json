@@ -2707,7 +2707,7 @@
           "response": []
         },
         {
-          "name": "New Request",
+          "name": "REPORT IMPORT",
           "id": "6268a82e-4acd-4029-a173-52ad4d9793ab",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
