@@ -1641,13 +1641,55 @@
             },
             {
               "name": "PIPELINE ENABLED",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "2b44b146-65f5-4a22-a031-4fc214557c6d",
+                    "exec": [
+                      "pm.test(\"Enabled Pipeline\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "38682c4d-2d86-4178-acd7-42ad292f600c",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/pipeline/enabled?pipeline_id={{PIPELINE_ID}}&enabled=1",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "pipeline",
+                    "enabled"
+                  ],
+                  "query": [
+                    {
+                      "key": "pipeline_id",
+                      "value": "{{PIPELINE_ID}}",
+                      "type": "text"
+                    },
+                    {
+                      "key": "enabled",
+                      "value": "1",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
