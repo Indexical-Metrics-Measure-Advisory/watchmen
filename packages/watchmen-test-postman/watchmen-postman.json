@@ -1311,7 +1311,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{URL_PREFIX}}/topic/list/name?query_name&exclude_types=",
+                  "raw": "{{URL_PREFIX}}/topic/list/name?query_name=&exclude_types=",
                   "host": [
                     "{{URL_PREFIX}}"
                   ],
@@ -1323,7 +1323,7 @@
                   "query": [
                     {
                       "key": "query_name",
-                      "value": null
+                      "value": ""
                     },
                     {
                       "key": "exclude_types",
