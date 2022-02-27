@@ -1064,6 +1064,20 @@
             },
             {
               "name": "USER DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "416ccc0c-ad5a-49ba-9b22-a677dfa3054d",
+                    "exec": [
+                      "pm.test(\"Delete User By Id\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "c153f0e9-68d3-4471-bc45-5b5bc86d4f62",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
