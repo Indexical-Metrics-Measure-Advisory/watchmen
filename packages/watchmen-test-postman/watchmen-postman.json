@@ -1070,9 +1070,19 @@
               "name": "TOPIC CREATE",
               "event": [
                 {
+                  "listen": "prerequest",
+                  "script": {
+                    "id": "60de42a1-1f23-421c-a554-9324dccb4790",
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
                   "listen": "test",
                   "script": {
-                    "id": "9fcb8f91-01b1-4a12-b65b-61746f49c4f5",
+                    "id": "8226aa93-491c-48b5-8891-14e831b29b97",
                     "exec": [
                       "pm.test('Create Topic', () => {",
                       "    pm.response.to.have.status(200);",
@@ -1095,16 +1105,6 @@
                       "    pm.expect(data.lastModifiedBy).to.not.be.null;",
                       "    pm.expect(data.version).to.eql(1);",
                       "})"
-                    ],
-                    "type": "text/javascript"
-                  }
-                },
-                {
-                  "listen": "prerequest",
-                  "script": {
-                    "id": "a41e80d1-bbe5-4de2-bc10-d5c285acbd34",
-                    "exec": [
-                      "pm.environment.set(\"DATA_SOURCE_ID\", \"947610520557792256\");"
                     ],
                     "type": "text/javascript"
                   }
