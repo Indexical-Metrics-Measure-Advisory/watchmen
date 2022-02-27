@@ -2549,7 +2549,7 @@
           "name": "PIPELINE GRAPHIC",
           "item": [
             {
-              "name": "/pipeline/graphics",
+              "name": "PIPELINE GRAPHICS CREATE",
               "id": "c7fd000e-3685-4ac9-a42d-1d6aedbfe9a8",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
