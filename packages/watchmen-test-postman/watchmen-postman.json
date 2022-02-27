@@ -1656,13 +1656,46 @@
             },
             {
               "name": "SPACE FIND BY IDS",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "6b134668-9841-4643-8664-b1665ea5c3e6",
+                    "exec": [
+                      "pm.test(\"Find Spaces By Ids\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json()[0];",
+                      "    const space_id = pm.environment.get(\"SPACE_ID\");",
+                      "    pm.expect(data.spaceId).to.equal(space_id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "522c5c47-ee68-4126-b6aa-000f4c1ffbc5",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "[\n    {{SPACE_ID}}\n]",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/space/ids"
               },
               "response": []
             }
