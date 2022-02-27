@@ -2549,7 +2549,7 @@
           "name": "PIPELINE GRAPHIC",
           "item": [
             {
-              "name": "New Request",
+              "name": "/pipeline/graphics",
               "id": "c7fd000e-3685-4ac9-a42d-1d6aedbfe9a8",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
