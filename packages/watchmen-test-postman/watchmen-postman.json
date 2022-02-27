@@ -2719,7 +2719,7 @@
           "response": []
         },
         {
-          "name": "New Request",
+          "name": "DASHBOARD IMPORT",
           "id": "413de7d1-13ff-4ada-8b99-c89711a253a3",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
