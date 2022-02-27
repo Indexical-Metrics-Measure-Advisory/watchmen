@@ -2764,7 +2764,8 @@
           },
           "request": {
             "method": "POST",
-            "header": []
+            "header": [],
+            "url": "{{URL_PREFIX}}/import"
           },
           "response": []
         }
