@@ -1072,6 +1072,13 @@
                     "exec": [
                       "pm.test(\"Delete User By Id\", () => {",
                       "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    const user_id = pm.environment.get(\"USER_ID\");",
+                      "    pm.expect(data.userId).to.equal(user_id);",
+                      "    pm.environment.unset(\"USER_ID\");",
+                      "    pm.environment.set('USER_CREATED_AT', data.createdAt);",
+                      "    pm.environment.set('USER_CREATED_BY', data.createdBy);",
+                      "    pm.environment.set('USER_VERSION', data.version);",
                       "});"
                     ],
                     "type": "text/javascript"
