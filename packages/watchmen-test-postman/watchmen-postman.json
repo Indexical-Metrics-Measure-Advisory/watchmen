@@ -1712,7 +1712,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "SPACE DELETE",
               "id": "42d32e24-07f9-44dc-9282-e7c8e9d873b0",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
