@@ -1246,16 +1246,12 @@
                   "script": {
                     "id": "03eb6766-6348-4474-b831-db6d7841c9b9",
                     "exec": [
-                      "pm.test(\"Status code is 200\", () => {",
+                      "pm.test(\"Update Topic\", () => {",
                       "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "pm.test(\"Check the topic name\", () => {",
                       "    const data = pm.response.json();",
                       "    pm.expect(data.name).to.equal('Test_Distinct_Topic_2');",
                       "    pm.environment.set(\"TOPIC_NAME\", \"Test_Distinct_Topic_2\");",
-                      "});",
-                      ""
+                      "})"
                     ],
                     "type": "text/javascript"
                   }
