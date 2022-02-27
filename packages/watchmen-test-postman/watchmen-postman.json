@@ -1623,13 +1623,34 @@
             },
             {
               "name": "SPACE AVALIABLE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "4cbf8639-6418-477f-a14f-3cde65c0f5ae",
+                    "exec": [
+                      "pm.test(\"Available Spaces\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "544d7ce0-6904-4cb5-9e97-3fadb7c861cf",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": "/space/available"
               },
               "response": []
             }
