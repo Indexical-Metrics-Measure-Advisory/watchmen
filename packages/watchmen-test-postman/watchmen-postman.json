@@ -1508,7 +1508,15 @@
                   "script": {
                     "id": "87459cf4-6923-4dae-a14b-bf1cdada80db",
                     "exec": [
-                      ""
+                      "pm.test('List Topics All', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json()[0];",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "})"
                     ],
                     "type": "text/javascript"
                   }
