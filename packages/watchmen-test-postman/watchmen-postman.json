@@ -1772,6 +1772,24 @@
             },
             {
               "name": "PIPELINE LOAD",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "d1a73ceb-cb78-4b0e-b03e-e7de007f4e9b",
+                    "exec": [
+                      "pm.test(\"Load Pipeline By Id\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    const pipeline_id =pm.environment.get(\"PIPELINE_ID\");",
+                      "    pm.expect(data.pipelineId).to.equal(pipeline_id);",
+                      "});",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "3d88d558-5b26-452f-b5b0-57b35923acd4",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
@@ -1796,8 +1814,7 @@
                   "query": [
                     {
                       "key": "pipeline_id",
-                      "value": "{{PIPELINE_ID}}",
-                      "type": "text"
+                      "value": "{{PIPELINE_ID}}"
                     }
                   ]
                 }
