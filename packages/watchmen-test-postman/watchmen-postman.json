@@ -656,7 +656,20 @@
         },
         {
           "name": "PAT",
-          "item": [],
+          "item": [
+            {
+              "name": "New Request",
+              "id": "1dbbd4d8-d3a2-4925-b9d8-9deb4b2a6d7c",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            }
+          ],
           "id": "81a9ceae-4e7d-49a9-80a3-20b14e6fb947"
         },
         {
