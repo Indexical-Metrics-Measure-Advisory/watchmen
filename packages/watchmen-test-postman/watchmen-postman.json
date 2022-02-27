@@ -873,7 +873,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "USER FIND PAGE",
               "id": "7625489a-d93d-448e-8f59-acf0bdce673c",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
