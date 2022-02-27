@@ -1195,11 +1195,8 @@
                   "script": {
                     "id": "9ae74a18-af9e-4e4a-8cc1-b108800b0baf",
                     "exec": [
-                      "pm.test(\"Status code is 200\", () => {",
+                      "pm.test(\"Load Topic Batched\", () => {",
                       "    pm.response.to.have.status(200);",
-                      "});",
-                      "",
-                      "pm.test(\"Check the topic id\", () => {",
                       "    const data = pm.response.json()[0];",
                       "    const topic_id = pm.environment.get(\"TOPIC_ID\");",
                       "    pm.expect(data.topicId).to.equal(topic_id);",
