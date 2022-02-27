@@ -1067,6 +1067,7 @@
                       "    pm.expect(data.lastModifiedAt).to.not.be.null;",
                       "    pm.expect(data.lastModifiedBy).to.not.be.null;",
                       "    pm.expect(data.version).to.eql(1);",
+                      "    pm.environment.set(\"TOPIC_ID\", data.topicId);",
                       "})"
                     ],
                     "type": "text/javascript"
