@@ -1535,7 +1535,7 @@
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
+                "method": "POST",
                 "header": [],
                 "body": {
                   "mode": "raw",
@@ -1547,12 +1547,18 @@
                   }
                 },
                 "url": {
-                  "raw": "?query_name=Test-Space",
+                  "raw": "{{URL_PREFIX}}/space/name?query_name=Test-Space",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "space",
+                    "name"
+                  ],
                   "query": [
                     {
                       "key": "query_name",
-                      "value": "Test-Space",
-                      "type": "text"
+                      "value": "Test-Space"
                     }
                   ]
                 }
