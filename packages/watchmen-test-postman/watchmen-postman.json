@@ -885,7 +885,7 @@
                       "    const data = pm.response.json();",
                       "    pm.expect(data.pageNumber).to.not.be.null;",
                       "    pm.expect(data.pageSize).to.not.be.null;",
-                      "    pm.expect(data.itemCount).to.not.be.null;",
+                      "    pm.expect(data.itemCount).to.equal(2);",
                       "    pm.expect(data.pageCount).to.not.be.null;",
                       "});"
                     ],
@@ -927,8 +927,7 @@
                   "query": [
                     {
                       "key": "query_name",
-                      "value": null,
-                      "type": "text"
+                      "value": null
                     }
                   ]
                 }
