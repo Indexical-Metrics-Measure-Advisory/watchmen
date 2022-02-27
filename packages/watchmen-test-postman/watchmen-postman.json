@@ -1053,6 +1053,7 @@
                       "    pm.response.to.have.status(200);",
                       "    const data = pm.response.json();",
                       "    pm.expect(data.topicId).to.not.be.null;",
+                      "    pm.environment.set(\"TOPIC_ID\", data.topicId);",
                       "    pm.expect(data.name).to.equal(\"Test_Distinct_Topic\");",
                       "    var factor_schema = [{",
                       "        \"items\": {",
@@ -1067,7 +1068,6 @@
                       "    pm.expect(data.lastModifiedAt).to.not.be.null;",
                       "    pm.expect(data.lastModifiedBy).to.not.be.null;",
                       "    pm.expect(data.version).to.eql(1);",
-                      "    pm.environment.set(\"TOPIC_ID\", data.topicId);",
                       "})"
                     ],
                     "type": "text/javascript"
