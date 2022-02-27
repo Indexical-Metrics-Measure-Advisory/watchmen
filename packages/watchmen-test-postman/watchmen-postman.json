@@ -2668,7 +2668,7 @@
           "request": {
             "method": "POST",
             "header": [],
-            "url": "{{URL_PREFIX}}/user/import"
+            "url": "{{URL_PREFIX}}/topic/import"
           },
           "response": []
         },
