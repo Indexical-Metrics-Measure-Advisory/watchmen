@@ -1710,6 +1710,18 @@
                 "header": []
               },
               "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "42d32e24-07f9-44dc-9282-e7c8e9d873b0",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
             }
           ],
           "id": "1ef7cc43-850d-4db9-a66c-4216a70d114e"
