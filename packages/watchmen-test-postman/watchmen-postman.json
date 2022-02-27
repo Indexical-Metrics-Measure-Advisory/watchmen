@@ -1698,6 +1698,18 @@
                 "url": "{{URL_PREFIX}}/space/ids"
               },
               "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "816b4be5-7a8a-4953-9fe3-15461cca46e8",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
             }
           ],
           "id": "1ef7cc43-850d-4db9-a66c-4216a70d114e"
