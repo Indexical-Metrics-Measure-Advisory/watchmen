@@ -1217,6 +1217,8 @@
                       "    const topic_name = pm.environment.get(\"TOPIC_NAME\");",
                       "    pm.expect(data.topicId).to.equal(topic_id);",
                       "    pm.expect(data.name).to.equal(topic_name);",
+                      "    pm.environment.unset(\"TOPIC_ID\");",
+                      "    pm.environment.unset(\"TOPIC_NAME\");",
                       "})",
                       ""
                     ],
@@ -1228,7 +1230,7 @@
                   "script": {
                     "id": "9c41674f-7f67-42c8-bbc0-1d2f6ef023f1",
                     "exec": [
-                      "postman.setNextRequest('LOGIN - SUPER ADMIN')"
+                      ""
                     ],
                     "type": "text/javascript"
                   }
