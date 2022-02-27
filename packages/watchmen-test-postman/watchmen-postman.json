@@ -945,7 +945,7 @@
                       "pm.test(\"List Users By Name\", () => {",
                       "    pm.response.to.have.status(200);",
                       "    const data = pm.response.json()",
-                      "    var schema = [{",
+                      "    var schema = {",
                       "        \"items\": {",
                       "            \"userId\": \"string\",",
                       "            \"name\": \"string\",",
@@ -960,7 +960,7 @@
                       "            \"version\": \"number\",",
                       "            \"tenantId\": \"string\"",
                       "        }",
-                      "    }];",
+                      "    };",
                       "    pm.expect(tv4.validate(data, schema)).to.be.true;",
                       "});"
                     ],
