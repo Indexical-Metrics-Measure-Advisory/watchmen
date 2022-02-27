@@ -2547,7 +2547,20 @@
         },
         {
           "name": "PIPELINE GRAPHIC",
-          "item": [],
+          "item": [
+            {
+              "name": "New Request",
+              "id": "c7fd000e-3685-4ac9-a42d-1d6aedbfe9a8",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            }
+          ],
           "id": "7dc3f01a-b535-4225-ae5a-74f0df01d407"
         }
       ],
