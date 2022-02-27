@@ -1268,7 +1268,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "USER GROUP LIST BY NAME",
               "id": "56d77d7d-747b-414b-807d-232a26db6632",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
