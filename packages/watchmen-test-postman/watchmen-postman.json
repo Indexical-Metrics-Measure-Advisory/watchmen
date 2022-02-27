@@ -1206,7 +1206,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "USER GROPU LOAD BY ID",
               "id": "988d6f91-536d-4312-9931-bdc64ee8b2fe",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
