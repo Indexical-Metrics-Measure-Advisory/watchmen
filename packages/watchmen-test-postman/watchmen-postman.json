@@ -1694,14 +1694,35 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "PIPELINE LIST ALL",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "b5ed5e94-1613-4783-850c-505ffd6052d0",
+                    "exec": [
+                      "pm.test(\"List Pipelines\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "c03bfa4b-8de1-41d5-8a42-4269b8edaf2f",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": "{{URL_PREFIX}}/pipeline/all"
               },
               "response": []
             }
