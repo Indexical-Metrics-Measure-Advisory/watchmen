@@ -1335,6 +1335,18 @@
               "response": []
             },
             {
+              "name": "TOPIC LIST ALL",
+              "id": "50686046-117f-4775-bfaa-d9208c016703",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
               "name": "TOPIC UPDATE",
               "event": [
                 {
@@ -1441,18 +1453,6 @@
                     }
                   ]
                 }
-              },
-              "response": []
-            },
-            {
-              "name": "TOPIC LIST ALL",
-              "id": "50686046-117f-4775-bfaa-d9208c016703",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
               },
               "response": []
             }
