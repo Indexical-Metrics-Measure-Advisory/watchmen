@@ -1426,6 +1426,18 @@
             },
             {
               "name": "TOPIC LIST BY NAME",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "87459cf4-6923-4dae-a14b-bf1cdada80db",
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "7cabc20c-b317-4986-97d4-b80775b023a5",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
@@ -1440,7 +1452,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{URL_PREFIX}}/topic/list/name?query_name=&exclude_types=",
+                  "raw": "{{URL_PREFIX}}/topic/list/name?query_name=test&exclude_types=",
                   "host": [
                     "{{URL_PREFIX}}"
                   ],
@@ -1452,7 +1464,7 @@
                   "query": [
                     {
                       "key": "query_name",
-                      "value": ""
+                      "value": "test"
                     },
                     {
                       "key": "exclude_types",
