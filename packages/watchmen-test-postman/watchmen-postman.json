@@ -734,7 +734,20 @@
         },
         {
           "name": "FAVORITE",
-          "item": [],
+          "item": [
+            {
+              "name": "New Request",
+              "id": "b5c6edb2-0164-4234-9067-b2fb210b6e9b",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            }
+          ],
           "id": "9f1d8885-fa09-4bf1-b623-91d2e9c3f951"
         },
         {
