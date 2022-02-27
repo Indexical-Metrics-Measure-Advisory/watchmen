@@ -1163,6 +1163,25 @@
             },
             {
               "name": "TOPIC UPDATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "03eb6766-6348-4474-b831-db6d7841c9b9",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Check the topic name\", () => {",
+                      "    const data = pm.response.json()[0];",
+                      "    pm.expect(data.name).to.equal('Test_Distinct_Topic_2');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "bc6f5ea3-9d25-4c82-b54a-384f6b0092ed",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
