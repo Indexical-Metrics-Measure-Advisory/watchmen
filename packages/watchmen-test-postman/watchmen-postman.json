@@ -2645,6 +2645,18 @@
             "url": "{{URL_PREFIX}}/user/import"
           },
           "response": []
+        },
+        {
+          "name": "New Request",
+          "id": "e4cdba9d-4675-4638-a663-aaf4038437b5",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
         }
       ],
       "id": "075340f7-37d1-4e97-95a4-0e6fd4bb0d58"
