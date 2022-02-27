@@ -1217,8 +1217,25 @@
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/user_group/name?query_name",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "user_group",
+                    "name"
+                  ],
+                  "query": [
+                    {
+                      "key": "query_name",
+                      "value": null,
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             },
