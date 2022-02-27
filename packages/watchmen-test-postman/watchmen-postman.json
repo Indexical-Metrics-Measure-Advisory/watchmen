@@ -1310,9 +1310,24 @@
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
                 "header": [],
-                "url": "/user_group/ids"
+                "body": {
+                  "mode": "raw",
+                  "raw": "[\n    {{USER_GROUP_ID}}\n]",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/user_group/ids"
               },
               "response": []
             },
