@@ -736,7 +736,7 @@
           "name": "FAVORITE",
           "item": [
             {
-              "name": "New Request",
+              "name": "FAVORITE CREATE",
               "id": "b5c6edb2-0164-4234-9067-b2fb210b6e9b",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
