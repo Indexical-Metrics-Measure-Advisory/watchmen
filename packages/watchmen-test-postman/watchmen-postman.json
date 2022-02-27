@@ -2695,7 +2695,7 @@
           "response": []
         },
         {
-          "name": "New Request",
+          "name": "PIPELINE IMPORT",
           "id": "00374e41-a384-408f-ad41-e3cea3de9fb5",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
