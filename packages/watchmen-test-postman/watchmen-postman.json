@@ -785,39 +785,6 @@
           "name": "USER",
           "item": [
             {
-              "name": "USER LOAD 2",
-              "id": "df2c60c7-092d-4e46-9b1f-5888237ef070",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": {
-                    "token": "{{JWT_TOKEN}}"
-                  }
-                },
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{URL_PREFIX}}/user?user_id=2",
-                  "host": [
-                    "{{URL_PREFIX}}"
-                  ],
-                  "path": [
-                    "user"
-                  ],
-                  "query": [
-                    {
-                      "key": "user_id",
-                      "value": "2"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
               "name": "USER CREATE",
               "event": [
                 {
@@ -869,6 +836,39 @@
                   }
                 },
                 "url": "{{URL_PREFIX}}/user"
+              },
+              "response": []
+            },
+            {
+              "name": "USER LOAD 2",
+              "id": "df2c60c7-092d-4e46-9b1f-5888237ef070",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/user?user_id=2",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "user"
+                  ],
+                  "query": [
+                    {
+                      "key": "user_id",
+                      "value": "2"
+                    }
+                  ]
+                }
               },
               "response": []
             }
