@@ -2647,7 +2647,7 @@
           "response": []
         },
         {
-          "name": "New Request",
+          "name": "USER GROUP IMPORT",
           "id": "e4cdba9d-4675-4638-a663-aaf4038437b5",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
