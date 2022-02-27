@@ -1700,13 +1700,28 @@
             },
             {
               "name": "SPACE EXPORT",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "1c070cf1-21f8-4aa9-924e-f3c036263e7b",
+                    "exec": [
+                      "pm.test(\"Export Spaces\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "816b4be5-7a8a-4953-9fe3-15461cca46e8",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": "{{URL_PREFIX}}/space/export"
               },
               "response": []
             },
