@@ -841,6 +841,28 @@
             },
             {
               "name": "USER LOAD 2",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "91b4e1ad-d34a-40f9-8226-ebe34e7b50d3",
+                    "exec": [
+                      "pm.test(\"Find Users Pageable\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.name).to.equal(\"imma-admin\");",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.not.be.null;",
+                      "    pm.expect(data.tenantId).to.not.be.null;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "df2c60c7-092d-4e46-9b1f-5888237ef070",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
