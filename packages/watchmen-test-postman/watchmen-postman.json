@@ -1002,7 +1002,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "USER FIND BY IDS",
               "id": "6b12bc4d-a2e6-4201-8130-8a7b0285e639",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
