@@ -1361,6 +1361,29 @@
             },
             {
               "name": "USER GROUP DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "fa486d0e-de57-4c26-ac0f-38ec54d9cc23",
+                    "exec": [
+                      "pm.test('Delete User Group', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    const uer_group_id = pm.environment.get(\"USER_GROUP_ID\");",
+                      "    const topic_name = pm.environment.get(\"TOPIC_NAME\");",
+                      "    pm.expect(data.userGroupId).to.equal(uer_group_id);",
+                      "    pm.environment.unset('USER_GROUP_ID');",
+                      "    pm.environment.unset('USER_GROUP_CREATED_AT');",
+                      "    pm.environment.unset('USER_GROUP_CREATED_BY');",
+                      "    pm.environment.unset('USER_GROUP_VERSION');",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "4d59b8b2-e54a-481a-a308-8926a123e713",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
@@ -1385,8 +1408,7 @@
                   "query": [
                     {
                       "key": "user_group_id",
-                      "value": "{{USER_GROUP_ID}}",
-                      "type": "text"
+                      "value": "{{USER_GROUP_ID}}"
                     }
                   ]
                 }
