@@ -1043,13 +1043,58 @@
           "item": [
             {
               "name": "TOPIC CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "9fcb8f91-01b1-4a12-b65b-61746f49c4f5",
+                    "exec": [
+                      "pm.test('Create Topic', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.topicId).to.not.be.null;",
+                      "    pm.expect(data.name).to.equal(\"Test_Distinct_Topic\");",
+                      "    var factor_schema = [{",
+                      "        \"items\": {",
+                      "            \"factorId\": \"string\",",
+                      "            \"type\": \"string\",",
+                      "            \"name\": \"string\"",
+                      "        }",
+                      "    }];",
+                      "    pm.expect(tv4.validate(data.factors, factor_schema)).to.be.true;",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(2);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "b0e6c944-5007-4424-b3bc-1449c7d39b6b",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "POST",
                 "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Test_Distinct_Topic\",\n    \"type\": \"distinct\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"text\", \"name\": \"propB\"}\n    ],\n    \"description\": \"Test Distict Topic\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
                 "url": "{{URL_PREFIX}}/topic"
               },
               "response": []
