@@ -1135,9 +1135,10 @@
                       "pm.test('Delete Topic', () => {",
                       "    pm.response.to.have.status(200);",
                       "    const data = pm.response.json();",
-                      "    const topic_id = pm.environment.get(\"variable_key\");",
+                      "    const topic_id = pm.environment.get(\"TOPIC_ID\");",
                       "    pm.expect(data.topicId).to.equal(topic_id);",
-                      "})"
+                      "})",
+                      ""
                     ],
                     "type": "text/javascript"
                   }
