@@ -1366,8 +1366,30 @@
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/user_group?user_group_id={{USER_GROUP_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "user_group"
+                  ],
+                  "query": [
+                    {
+                      "key": "user_group_id",
+                      "value": "{{USER_GROUP_ID}}",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
