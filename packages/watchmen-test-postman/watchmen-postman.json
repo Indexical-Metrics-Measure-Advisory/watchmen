@@ -1573,13 +1573,51 @@
             },
             {
               "name": "SPACE FIND BY NAME",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "10fb8fa1-5152-4d37-a40e-3f95748d3d2d",
+                    "exec": [
+                      "pm.test(\"Find Space By Name\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "870c0082-46c9-49cd-9257-4d612845c262",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/space/list/name?query_name=",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "space",
+                    "list",
+                    "name"
+                  ],
+                  "query": [
+                    {
+                      "key": "query_name",
+                      "value": "",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
