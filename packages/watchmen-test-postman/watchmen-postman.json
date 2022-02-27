@@ -1066,7 +1066,7 @@
                       "    pm.expect(data.createdBy).to.not.be.null;",
                       "    pm.expect(data.lastModifiedAt).to.not.be.null;",
                       "    pm.expect(data.lastModifiedBy).to.not.be.null;",
-                      "    pm.expect(data.version).to.eql(2);",
+                      "    pm.expect(data.version).to.eql(1);",
                       "})"
                     ],
                     "type": "text/javascript"
