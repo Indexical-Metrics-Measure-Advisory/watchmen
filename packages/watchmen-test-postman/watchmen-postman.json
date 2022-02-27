@@ -1729,13 +1729,54 @@
             },
             {
               "name": "PIPELINE DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "058611fd-7b86-40be-b8b8-b85e9afcb382",
+                    "exec": [
+                      "pm.test('Delete Pipeline', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    const pipeline_id = pm.environment.get(\"PIPELINE_ID\");",
+                      "    pm.expect(data.pipelineId).to.equal(pipeline_id);",
+                      "    pm.environment.unset(\"PIPELINE_ID\");",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "df52465a-4fa7-457a-a968-aacf4f25eb52",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "pipeline"
+                  ],
+                  "query": [
+                    {
+                      "key": "pipeline_id",
+                      "value": "{{PIPELINE_ID}}",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
