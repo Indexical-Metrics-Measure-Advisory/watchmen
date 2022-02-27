@@ -1003,6 +1003,20 @@
             },
             {
               "name": "USER FIND BY IDS",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "6c5a4659-45ef-40a6-8dcb-2a9da634d951",
+                    "exec": [
+                      "pm.test(\"Find Users By Ids\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "6b12bc4d-a2e6-4201-8130-8a7b0285e639",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
@@ -1016,6 +1030,15 @@
                 },
                 "method": "POST",
                 "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "[\n   \"2\",\n   \"3\"\n]",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
                 "url": "{{URL_PREFIX}}/user/ids"
               },
               "response": []
