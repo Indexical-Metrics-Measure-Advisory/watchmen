@@ -1406,7 +1406,7 @@
               "response": []
             },
             {
-              "name": "TOPIC LIST NAME",
+              "name": "TOPIC LIST BY NAME",
               "id": "7cabc20c-b317-4986-97d4-b80775b023a5",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
