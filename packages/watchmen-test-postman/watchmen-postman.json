@@ -1759,8 +1759,7 @@
                   "query": [
                     {
                       "key": "space_id",
-                      "value": "{{SPACE_ID}}",
-                      "type": "text"
+                      "value": "{{SPACE_ID}}"
                     }
                   ]
                 }
