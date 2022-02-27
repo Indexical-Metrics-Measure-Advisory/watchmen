@@ -1280,7 +1280,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "USER GROUP FIND BY IDS",
               "id": "369a4f11-6ac3-4c2c-8278-d74df9efda41",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
