@@ -1291,13 +1291,28 @@
             },
             {
               "name": "USER GROUP FIND BY IDS",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "acf9892b-9b27-46d1-ad00-150cf6668db5",
+                    "exec": [
+                      "pm.test(\"Find User Group By Ids\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "369a4f11-6ac3-4c2c-8278-d74df9efda41",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": "/user_group/ids"
               },
               "response": []
             },
