@@ -2671,6 +2671,18 @@
           "response": []
         },
         {
+          "name": "PIPELINE IMPORT",
+          "id": "00374e41-a384-408f-ad41-e3cea3de9fb5",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
           "name": "SUBJECT IMPORT",
           "id": "4bc14450-0889-41a6-a42d-36b4d231f181",
           "protocolProfileBehavior": {
@@ -2685,18 +2697,6 @@
         {
           "name": "SPACE IMPORT",
           "id": "834a67d8-2575-4d0e-8618-71ea490d9804",
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          },
-          "request": {
-            "method": "GET",
-            "header": []
-          },
-          "response": []
-        },
-        {
-          "name": "PIPELINE IMPORT",
-          "id": "00374e41-a384-408f-ad41-e3cea3de9fb5",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
