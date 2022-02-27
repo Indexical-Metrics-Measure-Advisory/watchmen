@@ -1360,7 +1360,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "USER GROUP DELETE",
               "id": "4d59b8b2-e54a-481a-a308-8926a123e713",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
