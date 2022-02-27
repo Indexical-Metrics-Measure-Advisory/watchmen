@@ -2692,8 +2692,9 @@
             "disableBodyPruning": true
           },
           "request": {
-            "method": "GET",
-            "header": []
+            "method": "POST",
+            "header": [],
+            "url": "{{URL_PREFIX}}/space/import"
           },
           "response": []
         },
