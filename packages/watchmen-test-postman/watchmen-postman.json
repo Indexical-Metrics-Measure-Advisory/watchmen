@@ -1138,13 +1138,55 @@
             },
             {
               "name": "TOPIC LOAD BY ID",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "bab876d8-3452-4edd-a27b-b1c908ffb2fe",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Check the topic id\", () => {",
+                      "    const data = pm.response.json();",
+                      "    const topic_id =pm.environment.get(\"TOPIC_ID\");",
+                      "    pm.expect(data.topicId).to.equal(topic_id});",
+                      "});",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "f5538596-beeb-461d-9ebe-e98e6ba17da2",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/topic?topic_id={{TOPIC_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "topic"
+                  ],
+                  "query": [
+                    {
+                      "key": "topic_id",
+                      "value": "{{TOPIC_ID}}"
+                    }
+                  ]
+                }
               },
               "response": []
             },
