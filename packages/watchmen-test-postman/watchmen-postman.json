@@ -1588,7 +1588,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "PIPELINE RENAME",
               "id": "6b8085ff-1af2-4483-9398-86514690f860",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
