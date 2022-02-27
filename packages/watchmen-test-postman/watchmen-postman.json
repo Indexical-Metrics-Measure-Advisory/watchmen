@@ -2743,7 +2743,7 @@
           "response": []
         },
         {
-          "name": "New Request",
+          "name": "MIX IMPORT",
           "id": "71ab2c5d-01cf-4ca4-a087-cba08b276e17",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
