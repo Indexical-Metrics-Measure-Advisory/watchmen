@@ -1600,7 +1600,7 @@
               "response": []
             },
             {
-              "name": "PIPELINE ENABLE",
+              "name": "PIPELINE ENABLED",
               "id": "38682c4d-2d86-4178-acd7-42ad292f600c",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
