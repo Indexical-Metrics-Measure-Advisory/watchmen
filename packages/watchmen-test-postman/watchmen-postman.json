@@ -1445,7 +1445,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "TOPIC LIST ALL",
               "id": "50686046-117f-4775-bfaa-d9208c016703",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
