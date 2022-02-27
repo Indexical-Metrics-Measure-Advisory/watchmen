@@ -1239,7 +1239,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "USER GROUP FIND PAGE",
               "id": "71965ab2-c02f-48fc-ba09-3ca8e7de2b45",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
