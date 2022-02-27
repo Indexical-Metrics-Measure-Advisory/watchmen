@@ -1137,6 +1137,18 @@
               "response": []
             },
             {
+              "name": "TOPIC LOAD BY ID",
+              "id": "f5538596-beeb-461d-9ebe-e98e6ba17da2",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
               "name": "TOPIC LOAD BATCHED",
               "event": [
                 {
@@ -1295,18 +1307,6 @@
                     }
                   ]
                 }
-              },
-              "response": []
-            },
-            {
-              "name": "TOPIC LOAD BY ID",
-              "id": "f5538596-beeb-461d-9ebe-e98e6ba17da2",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
               },
               "response": []
             }
