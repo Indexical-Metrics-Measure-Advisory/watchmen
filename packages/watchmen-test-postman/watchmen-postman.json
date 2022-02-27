@@ -1296,6 +1296,18 @@
               "response": []
             },
             {
+              "name": "TOPIC LIST BY NAME",
+              "id": "7cabc20c-b317-4986-97d4-b80775b023a5",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
               "name": "TOPIC UPDATE",
               "event": [
                 {
@@ -1402,18 +1414,6 @@
                     }
                   ]
                 }
-              },
-              "response": []
-            },
-            {
-              "name": "TOPIC LIST BY NAME",
-              "id": "7cabc20c-b317-4986-97d4-b80775b023a5",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
               },
               "response": []
             }
