@@ -880,7 +880,8 @@
               },
               "request": {
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": "/user/name"
               },
               "response": []
             }
