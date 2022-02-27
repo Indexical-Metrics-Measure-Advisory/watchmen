@@ -2614,7 +2614,7 @@
       "name": "IMPORT",
       "item": [
         {
-          "name": "New Request",
+          "name": "USER IMPORT",
           "id": "8a06a871-2ef0-40bf-9a39-8bb3d46dc24c",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
