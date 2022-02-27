@@ -1222,6 +1222,16 @@
                     ],
                     "type": "text/javascript"
                   }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "id": "9c41674f-7f67-42c8-bbc0-1d2f6ef023f1",
+                    "exec": [
+                      "postman.setNextRequest('LOGIN - SUPER ADMIN')"
+                    ],
+                    "type": "text/javascript"
+                  }
                 }
               ],
               "id": "70319304-2cdb-4f52-adef-306fbac9a355",
