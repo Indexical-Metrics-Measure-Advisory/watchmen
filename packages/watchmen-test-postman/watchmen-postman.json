@@ -958,7 +958,7 @@
                       "            \"lastModifiedAt\": \"string\",",
                       "            \"lastModifiedBy\": \"string\",",
                       "            \"version\": \"number\",",
-                      "            \"tenantId\": \"string\"",
+                      "            \"tenantIdsssss\": \"string\"",
                       "        }",
                       "    }];",
                       "    pm.expect(tv4.validate(data, schema)).to.be.true;",
