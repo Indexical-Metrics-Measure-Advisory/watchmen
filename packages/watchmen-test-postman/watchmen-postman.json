@@ -1233,6 +1233,18 @@
               "response": []
             },
             {
+              "name": "TOPIC FIND PAGE",
+              "id": "0bd8659b-f60c-4e3c-8e5e-707eef65a429",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
               "name": "TOPIC UPDATE",
               "event": [
                 {
@@ -1339,18 +1351,6 @@
                     }
                   ]
                 }
-              },
-              "response": []
-            },
-            {
-              "name": "TOPIC FIND PAGE",
-              "id": "0bd8659b-f60c-4e3c-8e5e-707eef65a429",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
               },
               "response": []
             }
