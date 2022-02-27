@@ -1358,6 +1358,18 @@
                 "url": "{{URL_PREFIX}}/user_group"
               },
               "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "4d59b8b2-e54a-481a-a308-8926a123e713",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
             }
           ],
           "id": "695159a0-1c4b-4844-9998-31d00d55a92b"
