@@ -1169,7 +1169,16 @@
               },
               "request": {
                 "method": "GET",
-                "header": []
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"topicId\": {{TOPIC_ID}}\n    \"name\": \"Test_Distinct_Topic_2\",\n    \"type\": \"distinct\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\", \"label\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"text\", \"name\": \"propB\"}\n    ],\n    \"description\": \"Test Distict Topic\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
               },
               "response": []
             },
