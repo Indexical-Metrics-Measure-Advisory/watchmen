@@ -1302,8 +1302,35 @@
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/topic/list/name?query_name&exclude_types=",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "topic",
+                    "list",
+                    "name"
+                  ],
+                  "query": [
+                    {
+                      "key": "query_name",
+                      "value": null
+                    },
+                    {
+                      "key": "exclude_types",
+                      "value": ""
+                    }
+                  ]
+                }
               },
               "response": []
             },
