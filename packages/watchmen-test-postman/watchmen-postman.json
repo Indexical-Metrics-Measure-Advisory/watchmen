@@ -2554,6 +2554,11 @@
       "id": "22d9b007-f6be-4ee5-b4f3-89374c0d3578"
     },
     {
+      "name": "Console",
+      "item": [],
+      "id": "2b46a424-766d-43c9-a923-4747070a27df"
+    },
+    {
       "name": "REACTOR",
       "item": [
         {
@@ -2806,11 +2811,6 @@
         }
       ],
       "id": "b4f1a636-e9ca-4463-a51c-53c4e2be3949"
-    },
-    {
-      "name": "Console",
-      "item": [],
-      "id": "2b46a424-766d-43c9-a923-4747070a27df"
     },
     {
       "name": "New Request",
