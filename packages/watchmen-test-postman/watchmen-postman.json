@@ -874,14 +874,64 @@
             },
             {
               "name": "USER FIND PAGE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "0e5d3a5e-f18f-47d5-8861-a9fe581519c6",
+                    "exec": [
+                      "pm.test(\"Find Users Pageable\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.pageNumber).to.not.be.null;",
+                      "    pm.expect(data.pageSize).to.not.be.null;",
+                      "    pm.expect(data.itemCount).to.not.be.null;",
+                      "    pm.expect(data.pageCount).to.not.be.null;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "7625489a-d93d-448e-8f59-acf0bdce673c",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
                 "header": [],
-                "url": "/user/name"
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"pageNumber\": 1,\n    \"pageSize\": 10\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL_PREFIX}}/user/name?query_name",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "user",
+                    "name"
+                  ],
+                  "query": [
+                    {
+                      "key": "query_name",
+                      "value": null,
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
