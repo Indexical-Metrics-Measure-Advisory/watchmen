@@ -1176,7 +1176,8 @@
                       "pm.test(\"Check the topic name\", () => {",
                       "    const data = pm.response.json()[0];",
                       "    pm.expect(data.name).to.equal('Test_Distinct_Topic_2');",
-                      "});"
+                      "});",
+                      ""
                     ],
                     "type": "text/javascript"
                   }
