@@ -2615,6 +2615,20 @@
       "item": [
         {
           "name": "USER IMPORT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "9d0791bd-626d-4d6b-880f-33a00805371a",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "id": "8a06a871-2ef0-40bf-9a39-8bb3d46dc24c",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
