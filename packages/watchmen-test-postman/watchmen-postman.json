@@ -1050,6 +1050,7 @@
                     "id": "9fcb8f91-01b1-4a12-b65b-61746f49c4f5",
                     "exec": [
                       "pm.test('Create Topic', () => {",
+                      "    pm.response.to.have.status(200);",
                       "    const data = pm.response.json();",
                       "    pm.expect(data.topicId).to.not.be.null;",
                       "    pm.expect(data.name).to.equal(\"Test_Distinct_Topic\");",
@@ -1067,6 +1068,9 @@
                       "    pm.expect(data.lastModifiedBy).to.not.be.null;",
                       "    pm.expect(data.version).to.eql(2);",
                       "})",
+                      "",
+                      "",
+                      "});",
                       ""
                     ],
                     "type": "text/javascript"
