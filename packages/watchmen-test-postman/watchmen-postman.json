@@ -667,7 +667,21 @@
                 "method": "GET",
                 "header": []
               },
-              "response": []
+              "response": [
+                {
+                  "id": "300f6c82-e8eb-4d6f-9149-25d5add67f9c",
+                  "name": "PAT CREATE",
+                  "originalRequest": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "_postman_previewlanguage": null,
+                  "header": null,
+                  "cookie": [],
+                  "responseTime": null,
+                  "body": null
+                }
+              ]
             }
           ],
           "id": "81a9ceae-4e7d-49a9-80a3-20b14e6fb947"
