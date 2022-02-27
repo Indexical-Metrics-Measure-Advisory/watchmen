@@ -2659,7 +2659,7 @@
           "response": []
         },
         {
-          "name": "New Request",
+          "name": "TOPIC IMPORT",
           "id": "33d79b47-2fa7-4fc7-b15f-542342e523bc",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
