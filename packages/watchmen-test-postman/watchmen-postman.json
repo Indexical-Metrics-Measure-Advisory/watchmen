@@ -1713,13 +1713,57 @@
             },
             {
               "name": "SPACE DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "b484b3fe-e113-4b04-86d6-6a31d83731b4",
+                    "exec": [
+                      "pm.test('Delete User Group', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    const space_id = pm.environment.get(\"SPACE_ID\");",
+                      "    pm.expect(data.spaceId).to.equal(space_id);",
+                      "    pm.environment.unset('SPACE_ID');",
+                      "    pm.environment.unset('SPACE_CREATED_AT');",
+                      "    pm.environment.unset('SPACE_CREATED_BY');",
+                      "    pm.environment.unset('SPACE_VERSION');",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "42d32e24-07f9-44dc-9282-e7c8e9d873b0",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/space?space_id={{SPACE_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "space"
+                  ],
+                  "query": [
+                    {
+                      "key": "space_id",
+                      "value": "{{SPACE_ID}}",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
