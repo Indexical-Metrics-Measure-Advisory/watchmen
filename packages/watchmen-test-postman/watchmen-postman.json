@@ -529,7 +529,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "DATASOURCE_DELETE",
               "id": "86fc9c0c-b12e-4c3e-86de-bd8cc5d79269",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
