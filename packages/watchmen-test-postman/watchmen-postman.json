@@ -1241,13 +1241,51 @@
             },
             {
               "name": "USER GROUP LIST BY NAME",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "4047cae9-017a-45e1-a2cb-08b5307b4af5",
+                    "exec": [
+                      "pm.test(\"List User Group By Name\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "56d77d7d-747b-414b-807d-232a26db6632",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/user_group/list/name?query_name=Test-Group",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "user_group",
+                    "list",
+                    "name"
+                  ],
+                  "query": [
+                    {
+                      "key": "query_name",
+                      "value": "Test-Group",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             },
