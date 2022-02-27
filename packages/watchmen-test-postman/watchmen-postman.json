@@ -961,7 +961,7 @@
                       "            \"tenantId\": \"string\"",
                       "        }",
                       "    }];",
-                      "    pm.expect(tv4.validate(data1, schema)).to.be.true;",
+                      "    pm.expect(tv4.validate(data, schema)).to.be.true;",
                       "});"
                     ],
                     "type": "text/javascript"
@@ -994,8 +994,7 @@
                   "query": [
                     {
                       "key": "query_name",
-                      "value": null,
-                      "type": "text"
+                      "value": null
                     }
                   ]
                 }
