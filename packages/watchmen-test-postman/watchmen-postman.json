@@ -1557,11 +1557,11 @@
                 {
                   "listen": "test",
                   "script": {
-                    "id": "b7b40f04-57ab-422d-ad65-ddb85a6f4549",
+                    "id": "e1d60af2-e28a-4b0e-9ebb-888eb00c55b5",
                     "exec": [
                       "pm.test('List Topics All', () => {",
                       "    pm.response.to.have.status(200);",
-                      "    const data = pm.response.json();",
+                      "    const data = pm.response.json()[0];",
                       "    pm.expect(data.createdAt).to.not.be.null;",
                       "    pm.expect(data.createdBy).to.not.be.null;",
                       "    pm.expect(data.lastModifiedAt).to.not.be.null;",
