@@ -1131,7 +1131,7 @@
                   "script": {
                     "id": "a70f62e6-fb77-4867-b79e-a11b6cbd11a8",
                     "exec": [
-                      "pm.test('Create Topic', () => {",
+                      "pm.test('Delete Topic', () => {",
                       "    pm.response.to.have.status(200);",
                       "    const data = pm.response.json();",
                       "    const topic_id = pm.environment.get(\"variable_key\");",
