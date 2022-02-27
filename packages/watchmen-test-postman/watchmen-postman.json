@@ -535,8 +535,23 @@
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/datasource?DataSourceId={{DATA_SOURCE_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "datasource"
+                  ],
+                  "query": [
+                    {
+                      "key": "DataSourceId",
+                      "value": "{{DATA_SOURCE_ID}}"
+                    }
+                  ]
+                }
               },
               "response": []
             }
