@@ -1136,7 +1136,9 @@
                       "    pm.response.to.have.status(200);",
                       "    const data = pm.response.json();",
                       "    const topic_id = pm.environment.get(\"TOPIC_ID\");",
+                      "    const topic_name = pm.environment.get(\"TOPIC_NAME\");",
                       "    pm.expect(data.topicId).to.equal(topic_id);",
+                      "    pm.expect(data.name).to.equal(topic_name);",
                       "})",
                       ""
                     ],
