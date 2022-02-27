@@ -1103,13 +1103,48 @@
             },
             {
               "name": "TOPIC LOAD",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "9ae74a18-af9e-4e4a-8cc1-b108800b0baf",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "",
+                      "pm.test(\"Check the topic id\", () => {",
+                      "    var data = pm.response.json();",
+                      "    const topic_id = pm.environment.get(\"TOPIC_ID\");",
+                      "    pm.expect(data.topicId).to.equal(topic_id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "64c3b94e-8912-4a1d-a494-1a3943adcf53",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "POST",
                 "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "[\n    {{TOPIC_ID}}\n]",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
                 "url": "{{URL_PREFIX}}/topic/ids"
               },
               "response": []
