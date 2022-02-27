@@ -2695,6 +2695,18 @@
           "response": []
         },
         {
+          "name": "CONNECTED SPACE IMPORT",
+          "id": "9b9dc48b-6b02-4363-a1e7-3841d2a621da",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        },
+        {
           "name": "SUBJECT IMPORT",
           "id": "4bc14450-0889-41a6-a42d-36b4d231f181",
           "protocolProfileBehavior": {
@@ -2721,18 +2733,6 @@
         {
           "name": "DASHBOARD IMPORT",
           "id": "413de7d1-13ff-4ada-8b99-c89711a253a3",
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          },
-          "request": {
-            "method": "GET",
-            "header": []
-          },
-          "response": []
-        },
-        {
-          "name": "CONNECTED SPACE IMPORT",
-          "id": "9b9dc48b-6b02-4363-a1e7-3841d2a621da",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
