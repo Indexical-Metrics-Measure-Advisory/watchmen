@@ -1589,13 +1589,55 @@
             },
             {
               "name": "PIPELINE RENAME",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "51a479cd-6531-4c21-8219-ea1fba68348e",
+                    "exec": [
+                      "pm.test(\"Load Pipeline By Id\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "6b8085ff-1af2-4483-9398-86514690f860",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/pipeline/rename?pipeline_id={{PIPELINE_ID}}&name=test2",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "pipeline",
+                    "rename"
+                  ],
+                  "query": [
+                    {
+                      "key": "pipeline_id",
+                      "value": "{{PIPELINE_ID}}",
+                      "type": "text"
+                    },
+                    {
+                      "key": "name",
+                      "value": "test2",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             },
