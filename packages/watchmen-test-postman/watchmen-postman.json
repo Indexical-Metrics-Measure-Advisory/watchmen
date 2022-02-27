@@ -1166,7 +1166,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"name\": \"Test-Group\",\n    \"description\": \"A description\",\n    \"userIds\": [\"{{USER_ID}}\", \"2\"]\n    \"spaceIds\": [\"{{SPACE_ID}}\"]\n}",
+                  "raw": "{\n    \"name\": \"Test-Group\",\n    \"description\": \"A description\",\n    \"userIds\": [\"{{USER_ID}}\", \"2\"],\n    \"spaceIds\": [\"{{SPACE_ID}}\"]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
