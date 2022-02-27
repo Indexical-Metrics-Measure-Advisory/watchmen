@@ -1371,7 +1371,6 @@
                       "    pm.response.to.have.status(200);",
                       "    const data = pm.response.json();",
                       "    const uer_group_id = pm.environment.get(\"USER_GROUP_ID\");",
-                      "    const topic_name = pm.environment.get(\"TOPIC_NAME\");",
                       "    pm.expect(data.userGroupId).to.equal(uer_group_id);",
                       "    pm.environment.unset('USER_GROUP_ID');",
                       "    pm.environment.unset('USER_GROUP_CREATED_AT');",
