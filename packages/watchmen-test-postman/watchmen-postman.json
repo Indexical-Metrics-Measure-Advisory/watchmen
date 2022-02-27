@@ -1178,6 +1178,18 @@
               "response": []
             },
             {
+              "name": "USER GROPU LOAD BY ID",
+              "id": "988d6f91-536d-4312-9931-bdc64ee8b2fe",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
               "name": "USER GROUP UPDATE",
               "id": "f077217c-4177-4989-b053-59d119364166",
               "protocolProfileBehavior": {
@@ -1202,18 +1214,6 @@
                   }
                 },
                 "url": "{{URL_PREFIX}}/user_group"
-              },
-              "response": []
-            },
-            {
-              "name": "USER GROPU LOAD BY ID",
-              "id": "988d6f91-536d-4312-9931-bdc64ee8b2fe",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
               },
               "response": []
             }
