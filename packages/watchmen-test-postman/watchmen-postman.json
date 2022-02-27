@@ -1124,6 +1124,18 @@
               "response": []
             },
             {
+              "name": "New Request",
+              "id": "18e25856-4b55-485b-9e13-eaec159c992e",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
               "name": "TOPIC DELETE",
               "event": [
                 {
@@ -1184,18 +1196,6 @@
                     }
                   ]
                 }
-              },
-              "response": []
-            },
-            {
-              "name": "New Request",
-              "id": "18e25856-4b55-485b-9e13-eaec159c992e",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
               },
               "response": []
             }
