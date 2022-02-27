@@ -1085,6 +1085,16 @@
                     ],
                     "type": "text/javascript"
                   }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "id": "a41e80d1-bbe5-4de2-bc10-d5c285acbd34",
+                    "exec": [
+                      "pm.environment.set(\"DATA_SOURCE_ID\", \"947610520557792256\");"
+                    ],
+                    "type": "text/javascript"
+                  }
                 }
               ],
               "id": "b0e6c944-5007-4424-b3bc-1449c7d39b6b",
