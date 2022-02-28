@@ -2914,6 +2914,18 @@
                 "url": "{{URL_PREFIX}}/connected_space/list"
               },
               "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "8ae6179c-eb62-40fb-a8d8-445d5241def4",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
             }
           ],
           "id": "331d37bd-f18d-432e-97a7-13241c36438c"
