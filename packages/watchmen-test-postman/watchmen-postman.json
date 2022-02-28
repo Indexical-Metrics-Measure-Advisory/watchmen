@@ -2965,6 +2965,18 @@
               "response": []
             },
             {
+              "name": "CONNECTED  SPACE TEMPLATE LIST",
+              "id": "8b0f58a5-ddcb-472e-966b-72033b8dec19",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
               "name": "CONNECTED SPACE DELETE",
               "event": [
                 {
@@ -3010,18 +3022,6 @@
                     }
                   ]
                 }
-              },
-              "response": []
-            },
-            {
-              "name": "CONNECTED  SPACE TEMPLATE LIST",
-              "id": "8b0f58a5-ddcb-472e-966b-72033b8dec19",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
               },
               "response": []
             }
