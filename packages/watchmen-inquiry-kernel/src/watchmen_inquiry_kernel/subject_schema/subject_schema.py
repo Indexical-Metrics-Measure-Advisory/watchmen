@@ -3,11 +3,15 @@ from typing import Dict, List, Optional
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.meta import TopicService
 from watchmen_data_kernel.topic_schema import TopicSchema
+from watchmen_data_kernel.utils import parse_variable
 from watchmen_inquiry_kernel.common import InquiryKernelException
 from watchmen_model.admin import Topic
-from watchmen_model.common import Parameter, ParameterCondition, ParameterExpression, ParameterExpressionOperator, \
+from watchmen_model.common import ComputedParameter, ConstantParameter, Parameter, ParameterComputeType, \
+	ParameterCondition, \
+	ParameterExpression, \
+	ParameterExpressionOperator, \
 	ParameterJoint, \
-	TopicId
+	TopicFactorParameter, TopicId
 from watchmen_model.console import Subject, SubjectDatasetColumn, SubjectDatasetJoin
 from watchmen_utilities import ArrayHelper, is_blank
 
@@ -52,9 +56,68 @@ def find_topic_schemas_by_joins(
 	return ArrayHelper(joins).reduce(find_topic_by_join, [])
 
 
-def find_topic_schemas_by_parameter(parameter: Parameter, principal_service: PrincipalService) -> List[TopicSchema]:
-	# TODO
-	pass
+def find_topic_schema_by_topic_factor_parameter(
+		parameter: TopicFactorParameter, principal_service: PrincipalService) -> List[TopicSchema]:
+	topic_id = parameter.topicId
+	if is_blank(topic_id):
+		raise InquiryKernelException('Topic not declared.')
+	topic_service = get_topic_service(principal_service)
+	topic: Optional[Topic] = topic_service.find_by_id(topic_id)
+	if topic is None:
+		raise InquiryKernelException(f'Topic[id={topic_id}] not found.')
+	schema = topic_service.find_schema_by_name(topic.name, topic.tenantId)
+	if schema is None:
+		raise InquiryKernelException(f'Topic schema[id={topic_id}] not found.')
+	return [schema]
+
+
+def find_topic_schema_by_constant_parameter(
+		parameter: ConstantParameter, principal_service: PrincipalService) -> List[TopicSchema]:
+	value = parameter.value
+	if is_blank(value):
+		return []
+	if '{' not in value:
+		return []
+
+	variables = parse_variable(value)
+	# if variable_name.startswith(VariablePredefineFunctions.YEAR_DIFF.value):
+	# 	return create_date_diff(prefix, variable_name, VariablePredefineFunctions.YEAR_DIFF)
+	# elif variable_name.startswith(VariablePredefineFunctions.MONTH_DIFF.value):
+	# 	return create_date_diff(prefix, variable_name, VariablePredefineFunctions.MONTH_DIFF)
+	# elif variable_name.startswith(VariablePredefineFunctions.DAY_DIFF.value):
+	# 	return create_date_diff(prefix, variable_name, VariablePredefineFunctions.DAY_DIFF)
+	# parsed_params = parse_function_in_variable(variable_name, function.value, 2)
+
+
+def find_topic_schema_by_computed_parameter(
+		parameter: ComputedParameter, principal_service: PrincipalService) -> List[TopicSchema]:
+	if parameter.parameters is None or len(parameter.parameters) == 0:
+		raise InquiryKernelException(f'At least 1 parameter on computation.')
+
+	compute_type = parameter.type
+	condition_schemas = []
+	if compute_type == ParameterComputeType.CASE_THEN:
+		if parameter.conditional and parameter.on is not None:
+			condition_schemas = find_topic_schemas_by_joint(parameter.on, principal_service)
+
+	def find_each(schemas: List[TopicSchema], sub: Parameter) -> List[TopicSchema]:
+		return ArrayHelper(schemas).grab(*find_topic_schemas_by_parameter(sub, principal_service)).to_list()
+
+	return ArrayHelper(parameter.parameters).reduce(find_each, condition_schemas)
+
+
+def find_topic_schemas_by_parameter(
+		parameter: Optional[Parameter], principal_service: PrincipalService) -> List[TopicSchema]:
+	if parameter is None:
+		raise InquiryKernelException('Parameter cannot be none.')
+	if isinstance(parameter, TopicFactorParameter):
+		return find_topic_schema_by_topic_factor_parameter(parameter, principal_service)
+	elif isinstance(parameter, ConstantParameter):
+		return find_topic_schema_by_constant_parameter(parameter, principal_service)
+	elif isinstance(parameter, ComputedParameter):
+		return find_topic_schema_by_computed_parameter(parameter, principal_service)
+	else:
+		raise InquiryKernelException(f'Parameter[{parameter.dict()}] is not supported.')
 
 
 def find_topic_schemas_by_columns(
