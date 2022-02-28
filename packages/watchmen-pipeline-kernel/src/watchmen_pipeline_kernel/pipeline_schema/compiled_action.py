@@ -7,15 +7,15 @@ from typing import Any, Callable, Dict, List, Optional, Union
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.external_writer import ask_external_writer_creator, BuildExternalWriter, ExternalWriterParams
 from watchmen_data_kernel.meta import ExternalWriterService, TopicService
-from watchmen_data_kernel.storage import RawTopicDataService, RegularTopicDataService, TopicDataService, TopicTrigger
-from watchmen_data_kernel.storage_bridge import ask_topic_data_entity_helper, now, \
-	parse_action_defined_as, parse_condition_for_storage, parse_mapping_for_storage, parse_parameter_in_memory, \
-	parse_prerequisite_defined_as, parse_prerequisite_in_memory, ParsedMemoryParameter, ParsedStorageCondition, \
-	ParsedStorageMapping, PipelineVariables, PrerequisiteDefinedAs, PrerequisiteTest, spent_ms
+from watchmen_data_kernel.storage import ask_topic_data_service, TopicDataService, TopicTrigger
+from watchmen_data_kernel.storage_bridge import now, parse_action_defined_as, parse_condition_for_storage, \
+	parse_mapping_for_storage, parse_parameter_in_memory, parse_prerequisite_defined_as, parse_prerequisite_in_memory, \
+	ParsedMemoryParameter, ParsedStorageCondition, ParsedStorageMapping, PipelineVariables, PrerequisiteDefinedAs, \
+	PrerequisiteTest, spent_ms
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import AggregateArithmetic, AlarmAction, AlarmActionSeverity, CopyToMemoryAction, \
-	DeleteTopicAction, DeleteTopicActionType, Factor, FindBy, FromTopic, is_raw_topic, MappingFactor, MappingRow, \
+	DeleteTopicAction, DeleteTopicActionType, Factor, FindBy, FromTopic, MappingFactor, MappingRow, \
 	Pipeline, PipelineAction, PipelineStage, PipelineTriggerType, PipelineUnit, ReadFactorAction, ReadFactorsAction, \
 	ReadTopicAction, ReadTopicActionType, SystemActionType, Topic, ToTopic, WriteFactorAction, WriteToExternalAction, \
 	WriteTopicAction, WriteTopicActionType
@@ -264,13 +264,8 @@ class CompiledStorageAction(CompiledAction):
 		"""
 		ask topic data service
 		"""
-		data_entity_helper = ask_topic_data_entity_helper(schema)
 		storage = storages.ask_topic_storage(schema)
-		storage.register_topic(schema.get_topic())
-		if is_raw_topic(schema.get_topic()):
-			return RawTopicDataService(schema, data_entity_helper, storage, principal_service)
-		else:
-			return RegularTopicDataService(schema, data_entity_helper, storage, principal_service)
+		return ask_topic_data_service(schema, storage, principal_service)
 
 
 # noinspection PyAbstractClass

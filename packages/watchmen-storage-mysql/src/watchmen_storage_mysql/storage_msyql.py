@@ -320,3 +320,6 @@ class StorageMySQL(TransactionalStorageSPI):
 class TopicDataStorageMySQL(StorageMySQL, TopicDataStorageSPI):
 	def register_topic(self, topic: Topic) -> None:
 		register_table(topic)
+
+	def truncate(self, helper: EntityHelper) -> None:
+		self.connection.execute(text(f'TRUNCATE TABLE {helper.name}'))
