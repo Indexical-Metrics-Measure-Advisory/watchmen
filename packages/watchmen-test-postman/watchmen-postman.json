@@ -3205,13 +3205,14 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\r\n  \"connectid\": \"933359482850496512\",\r\n  \"userid\": \"936980978755295232\",\r\n  \"topics\": [\r\n    {\r\n      \"rect\": {\r\n        \"name\": {\r\n          \"x\": 83.81944274902344,\r\n          \"y\": 23.977777671813964\r\n        },\r\n        \"frame\": {\r\n          \"x\": 0,\r\n          \"y\": 0,\r\n          \"width\": 167.63888549804688,\r\n          \"height\": 35.55555534362793\r\n        },\r\n        \"coordinate\": {\r\n          \"x\": 32,\r\n          \"y\": 32\r\n        }\r\n      },\r\n      \"topicId\": \"933359482603032576\"\r\n    }\r\n  ],\r\n  \"subjects\": [\r\n    {\r\n      \"rect\": {\r\n        \"name\": {\r\n          \"x\": 75,\r\n          \"y\": 23.977777671813964\r\n        },\r\n        \"frame\": {\r\n          \"x\": 0,\r\n          \"y\": 0,\r\n          \"width\": 150,\r\n          \"height\": 35.55555534362793\r\n        },\r\n        \"coordinate\": {\r\n          \"x\": 423.71429443359375,\r\n          \"y\": 32\r\n        }\r\n      },\r\n      \"subjectId\": \"933359483232178176\"\r\n    }\r\n  ],\r\n  \"createtime\": \"\",\r\n  \"lastmodified\": \"'2022-02-10 18:05:08\",\r\n  \"tenantid\": \"936980817043904512\"\r\n}",
+                  "raw": "{\r\n  \"connectid\": \"{{CONNECT_ID}}\",\r\n  \"userid\": \"{{USER_ID}}\",\r\n  \"topics\": [\r\n    {\r\n      \"rect\": {\r\n        \"name\": {\r\n          \"x\": 83.81944274902344,\r\n          \"y\": 23.977777671813964\r\n        },\r\n        \"frame\": {\r\n          \"x\": 0,\r\n          \"y\": 0,\r\n          \"width\": 167.63888549804688,\r\n          \"height\": 35.55555534362793\r\n        },\r\n        \"coordinate\": {\r\n          \"x\": 32,\r\n          \"y\": 32\r\n        }\r\n      },\r\n      \"topicId\": \"933359482603032576\"\r\n    }\r\n  ],\r\n  \"subjects\": [\r\n    {\r\n      \"rect\": {\r\n        \"name\": {\r\n          \"x\": 75,\r\n          \"y\": 23.977777671813964\r\n        },\r\n        \"frame\": {\r\n          \"x\": 0,\r\n          \"y\": 0,\r\n          \"width\": 150,\r\n          \"height\": 35.55555534362793\r\n        },\r\n        \"coordinate\": {\r\n          \"x\": 423.71429443359375,\r\n          \"y\": 32\r\n        }\r\n      },\r\n      \"subjectId\": \"933359483232178176\"\r\n    }\r\n  ],\r\n  \"createtime\": \"\",\r\n  \"lastmodified\": \"'2022-02-10 18:05:08\",\r\n  \"tenantid\": \"936980817043904512\"\r\n}",
                   "options": {
                     "raw": {
                       "language": "json"
                     }
                   }
-                }
+                },
+                "url": "/connected_space/graphics"
               },
               "response": []
             }
