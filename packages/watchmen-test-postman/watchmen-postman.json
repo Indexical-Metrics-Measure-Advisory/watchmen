@@ -3269,7 +3269,7 @@
                     }
                   }
                 },
-                "url": "/connected_space/graphics"
+                "url": "{{URL_PREFIX}}/connected_space/graphics"
               },
               "response": []
             }
