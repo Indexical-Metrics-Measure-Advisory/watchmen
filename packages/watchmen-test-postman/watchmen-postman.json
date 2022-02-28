@@ -2945,13 +2945,45 @@
             },
             {
               "name": "REPORT DELETE BY SUPER ADMIN",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "86ea25d0-93ed-4fd4-8581-4e5f97d634ee",
+                    "exec": [
+                      "pm.test('Delete Report By Super Admin', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.environment.unset(\"REPORT_ID\");",
+                      "    pm.environment.unset(\"REPORT_NAME\");",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "63b1e88e-5a5e-42af-a5e9-56f9e6ade108",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/report?report_id=948063984241076224",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "report"
+                  ],
+                  "query": [
+                    {
+                      "key": "report_id",
+                      "value": "948063984241076224",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
