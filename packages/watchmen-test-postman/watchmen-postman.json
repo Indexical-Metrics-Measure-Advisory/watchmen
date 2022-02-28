@@ -2764,7 +2764,7 @@
           "name": "REPORT",
           "item": [
             {
-              "name": "New Request",
+              "name": "REPORT CREATE",
               "id": "3a011c6d-13af-4df5-843e-69cf12ae0b76",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
