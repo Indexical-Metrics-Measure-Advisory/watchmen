@@ -2782,7 +2782,7 @@
           "name": "DASHBOARD",
           "item": [
             {
-              "name": "New Request",
+              "name": "DASHBOARD CREATE",
               "id": "b19d3f2d-3a6b-4af6-8337-f85ba4e33de6",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
