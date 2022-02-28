@@ -2867,7 +2867,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "REPORT FIND PAGE",
               "id": "92de4282-e744-44b0-9969-d945ff3d6c02",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
