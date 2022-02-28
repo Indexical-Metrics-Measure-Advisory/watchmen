@@ -3308,13 +3308,34 @@
             },
             {
               "name": "CONNECTED SPACE GRAPHICS DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "e1e82b28-783d-4eda-9227-2da598766a64",
+                    "exec": [
+                      "pm.test('Delete Connected Space Graphic', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "28831a72-3eb9-4422-8a7e-d90599133ddb",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": "{{URL_PREFIX}}/connected_space/graphics"
               },
               "response": []
             }
