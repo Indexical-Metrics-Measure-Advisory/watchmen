@@ -3068,7 +3068,7 @@
                 "method": "DELETE",
                 "header": [],
                 "url": {
-                  "raw": "{{URL_PREFIX}}/connected_space?connect_id",
+                  "raw": "{{URL_PREFIX}}/connected_space?connect_id={{CONNECTED_SPACE_ID}}",
                   "host": [
                     "{{URL_PREFIX}}"
                   ],
@@ -3078,8 +3078,7 @@
                   "query": [
                     {
                       "key": "connect_id",
-                      "value": null,
-                      "type": "text"
+                      "value": "{{CONNECTED_SPACE_ID}}"
                     }
                   ]
                 }
