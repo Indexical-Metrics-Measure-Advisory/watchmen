@@ -3119,6 +3119,18 @@
                 "url": "{{URL_PREFIX}}/dashboard/admin"
               },
               "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "52d87102-c582-4bca-8138-aeb1067a7aff",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
             }
           ],
           "id": "8c21efbb-a620-42e3-8aac-5b88c531ead0"
