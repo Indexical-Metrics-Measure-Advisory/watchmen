@@ -3193,7 +3193,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "DASHBOARD DELETE",
               "id": "11079793-137c-445a-9870-56456c9800da",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
