@@ -1481,6 +1481,7 @@
                       "    pm.expect(data.lastModifiedBy).to.not.be.null;",
                       "    pm.expect(data.version).to.eql(1);",
                       "    pm.environment.set('SPACE_ID', data.spaceId);",
+                      "    pm.environment.set('SPACE_NAME', data.name);",
                       "    pm.environment.set('SPACE_CREATED_AT', data.createdAt);",
                       "    pm.environment.set('SPACE_CREATED_BY', data.createdBy);",
                       "    pm.environment.set('SPACE_VERSION', data.version);",
