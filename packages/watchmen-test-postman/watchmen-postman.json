@@ -2893,6 +2893,20 @@
             },
             {
               "name": "REPORT FIND PAGE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "fc88be5b-9bd2-4a67-9671-4556257447ef",
+                    "exec": [
+                      "pm.test('Find Report Pageable', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "92de4282-e744-44b0-9969-d945ff3d6c02",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
