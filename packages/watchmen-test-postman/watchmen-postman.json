@@ -3233,6 +3233,33 @@
           "item": [
             {
               "name": "SPACE GRAPHIC CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "72eeaad3-2d80-4bf5-a162-43bfe40b29d3",
+                    "exec": [
+                      "pm.test('Create Connected Space Graphic', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.spaceId).to.not.be.null;",
+                      "    pm.expect(data.name).to.eql('Test-Space')",
+                      "    pm.expect(data.tenantId).to.not.be.null;",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.environment.set('CONNECT_ID', data.connectId);",
+                      "    pm.environment.set('CONNECTED_SPACE_ID', data.spaceId);",
+                      "    pm.environment.set('CONNECTED_SPACE_NAME', data.name);",
+                      "    pm.environment.set('CONNECTED_SPACE_CREATED_AT', data.createdAt);",
+                      "    pm.environment.set('CONNECTED_SPACE_CREATED_BY', data.createdBy);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "5e005d9b-5807-486c-9194-81c751523cda",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
