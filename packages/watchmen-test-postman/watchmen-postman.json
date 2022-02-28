@@ -1185,6 +1185,29 @@
             },
             {
               "name": "USER GROPU LOAD BY ID",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "5ee25c5f-4b47-4a3b-b3e2-39373a3a87dc",
+                    "exec": [
+                      "pm.test('Load User Group By Id', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.userGroupId).to.not.be.null;",
+                      "    pm.expect(data.name).to.eql('Test-Group')",
+                      "    pm.expect(data.tenantId).to.not.be.null;",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "988d6f91-536d-4312-9931-bdc64ee8b2fe",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
