@@ -184,7 +184,7 @@ async def find_topics_by_ids(
 	return trans_readonly(topic_service, action)
 
 
-@router.post("/topic/all", tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Topic])
+@router.get("/topic/all", tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Topic])
 async def find_all_topics(principal_service: PrincipalService = Depends(get_console_principal)) -> List[Topic]:
 	tenant_id = principal_service.get_tenant_id()
 

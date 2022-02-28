@@ -11,7 +11,7 @@ from watchmen_rest import get_admin_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly, validate_tenant_id
-from watchmen_utilities import ArrayHelper, is_blank
+from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 
 router = APIRouter()
 
@@ -105,29 +105,43 @@ def remove_user_group_id(x: Union[User, Space], user_group_id: UserGroupId) -> U
 
 
 # noinspection DuplicatedCode
-def remove_user_group(
+def remove_user_group_from_holders(
 		service: Union[UserService, SpaceService],
-		user_group_id: UserId, user_or_space_ids: Union[List[UserId], List[SpaceId]],
+		user_group_id: UserGroupId, holder_ids: Union[List[UserId], List[SpaceId]],
 		tenant_id: TenantId,
 		where: str
 ) -> None:
-	if user_or_space_ids is None:
+	if holder_ids is None:
 		return
 
-	given_count = len(user_or_space_ids)
+	given_count = len(holder_ids)
 	if given_count == 0:
 		# do nothing
 		return
 
-	users = service.find_by_ids(user_or_space_ids, tenant_id)
-	found_count = len(users)
+	holders = service.find_by_ids(holder_ids, tenant_id)
+	found_count = len(holders)
 	if given_count != found_count:
 		raise_400(f'{where} ids do not match.')
 
-	ArrayHelper(users) \
+	ArrayHelper(holders) \
 		.filter(lambda x: has_user_group_id(x, user_group_id)) \
 		.map(lambda x: remove_user_group_id(x, user_group_id)) \
 		.each(lambda x: update_user_or_space(service, x))
+
+
+def remove_user_group_from_users(
+		user_group_service: UserGroupService, user_group_id: UserGroupId, user_ids: List[UserId], tenant_id: TenantId
+) -> None:
+	remove_user_group_from_holders(
+		get_user_service(user_group_service), user_group_id, user_ids, tenant_id, 'User')
+
+
+def remove_user_group_from_spaces(
+		user_group_service: UserGroupService, user_group_id: UserGroupId, space_ids: List[SpaceId], tenant_id: TenantId
+) -> None:
+	remove_user_group_from_holders(
+		get_user_service(user_group_service), user_group_id, space_ids, tenant_id, 'Space')
 
 
 # noinspection PyUnusedLocal
@@ -164,17 +178,15 @@ def ask_save_user_group_action(
 			user_group: UserGroup = user_group_service.update(user_group)
 			# remove user group from users, in case users are removed
 			removed_user_ids = ArrayHelper(existing_user_group.userIds).difference(user_ids).to_list()
-			remove_user_group(
-				get_user_service(user_group_service),
-				user_group.userGroupId, removed_user_ids, user_group.tenantId, 'User')
+			remove_user_group_from_users(
+				user_group_service, user_group.userGroupId, removed_user_ids, user_group.tenantId)
 			# synchronize user group to user
 			sync_group(
 				get_user_service(user_group_service), user_group.userGroupId, user_ids, user_group.tenantId, 'User')
 			# remove user group from spaces, in case spaces are removed
 			removed_space_ids = ArrayHelper(existing_user_group.spaceIds).difference(space_ids).to_list()
-			remove_user_group(
-				get_space_service(user_group_service),
-				user_group.userGroupId, removed_space_ids, user_group.tenantId, 'Space')
+			remove_user_group_from_spaces(
+				user_group_service, user_group.userGroupId, removed_space_ids, user_group.tenantId)
 			# synchronize user group to space
 			sync_group(
 				get_space_service(user_group_service), user_group.userGroupId, space_ids, user_group.tenantId,
@@ -269,6 +281,18 @@ async def delete_user_group_by_id_by_super_admin(
 		user_group: UserGroup = user_group_service.delete(user_group_id)
 		if user_group is None:
 			raise_404()
+		space_ids = user_group.spaceIds
+		if space_ids is not None and len(space_ids) != 0:
+			space_ids = ArrayHelper(space_ids).filter(lambda x: is_not_blank(x)).to_list()
+			if len(space_ids) != 0:
+				remove_user_group_from_spaces(
+					user_group_service, user_group.userGroupId, space_ids, user_group.tenantId)
+		user_ids = user_group.userIds
+		if user_ids is not None and len(user_ids) != 0:
+			user_ids = ArrayHelper(user_ids).filter(lambda x: is_not_blank(x)).to_list()
+			if len(user_ids) != 0:
+				remove_user_group_from_users(
+					user_group_service, user_group.userGroupId, user_ids, user_group.tenantId)
 		return user_group
 
 	return trans(user_group_service, action)

@@ -3,7 +3,8 @@ from typing import List, Optional
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_model.admin import Enum, EnumItem
 from watchmen_model.common import DataPage, EnumId, EnumItemId, Pageable, TenantId
-from watchmen_storage import ColumnNameLiteral, EntityCriteria, EntityCriteriaExpression, EntityCriteriaOperator, \
+from watchmen_storage import ColumnNameLiteral, EntityCriteria, EntityCriteriaExpression, EntityCriteriaJoint, \
+	EntityCriteriaJointConjunction, EntityCriteriaOperator, \
 	EntityDeleter, EntityFinder, EntityHelper, EntityRow, EntityShaper, EntitySort, SnowflakeGenerator, \
 	TransactionalStorageSPI
 
@@ -52,10 +53,16 @@ class EnumService(TupleService):
 	def find_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
 		criteria = []
 		if text is not None and len(text.strip()) != 0:
-			criteria.append(EntityCriteriaExpression(
-				left=ColumnNameLiteral(columnName='name'), operator=EntityCriteriaOperator.LIKE, right=text))
-			criteria.append(EntityCriteriaExpression(
-				left=ColumnNameLiteral(columnName='description'), operator=EntityCriteriaOperator.LIKE, right=text))
+			criteria.append(EntityCriteriaJoint(
+				conjunction=EntityCriteriaJointConjunction.OR,
+				children=[
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(columnName='name'), operator=EntityCriteriaOperator.LIKE, right=text),
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(columnName='description'), operator=EntityCriteriaOperator.LIKE,
+						right=text)
+				]
+			))
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		return self.storage.page(self.get_entity_pager(criteria, pageable))
