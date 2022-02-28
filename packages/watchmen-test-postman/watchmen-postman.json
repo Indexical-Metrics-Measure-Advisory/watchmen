@@ -2683,6 +2683,20 @@
             },
             {
               "name": "SUBJECT RENAME",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "bb9c0a7e-4ec9-4bff-8919-027220fa61bb",
+                    "exec": [
+                      "pm.test('Rename Subject', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "ec07ad7a-87a8-4677-ac06-2bcaff582d0e",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
@@ -2712,8 +2726,7 @@
                     },
                     {
                       "key": "name",
-                      "value": "Test_Subject2",
-                      "type": "text"
+                      "value": "Test_Subject2"
                     }
                   ]
                 }
