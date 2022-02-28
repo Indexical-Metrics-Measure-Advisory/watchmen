@@ -2920,7 +2920,7 @@
                   "script": {
                     "id": "960b9e42-0588-4b60-a722-ea972aa2c655",
                     "exec": [
-                      "pm.test(\"Load Pipeline By Id\", () => {",
+                      "pm.test(\"Rename Connected Space\", () => {",
                       "    pm.response.to.have.status(200);",
                       "});"
                     ],
