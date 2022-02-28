@@ -3,12 +3,12 @@ from __future__ import annotations
 from abc import abstractmethod
 from datetime import date, datetime, time
 from decimal import Decimal
-from re import findall
 from typing import Any, Callable, List, Optional, Tuple, Union
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_all_date_formats, ask_time_formats, DataKernelException
 from watchmen_data_kernel.meta import TopicService
+from watchmen_data_kernel.utils import MightAVariable, parse_function_in_variable, parse_variable
 from watchmen_model.admin import Conditional, Factor, Topic
 from watchmen_model.common import ComputedParameter, ConstantParameter, Parameter, ParameterComputeType, \
 	ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, \
@@ -412,13 +412,9 @@ class ParsedMemoryTopicFactorParameter(ParsedMemoryParameter):
 def create_date_diff(
 		prefix: str, variable_name: str, function: VariablePredefineFunctions
 ) -> Callable[[PipelineVariables, PrincipalService], Any]:
-	parsed = findall(f'^({function.value})\\s*\\((.+),(.+)\\)$', variable_name)
-	if len(parsed) != 1:
-		raise DataKernelException(f'Constant[{variable_name}] is not supported.')
-	end_variable_name = parsed[0][1]
-	start_variable_name = parsed[0][2]
-	if is_blank(end_variable_name) or is_blank(start_variable_name):
-		raise DataKernelException(f'Constant[{variable_name}] is not supported.')
+	parsed_params = parse_function_in_variable(variable_name, function.value, 2)
+	end_variable_name = parsed_params[0]
+	start_variable_name = parsed_params[1]
 	end_parsed, end_date = test_date(end_variable_name)
 	start_parsed, start_date = test_date(start_variable_name)
 	if end_parsed and start_parsed:
@@ -450,8 +446,9 @@ def create_date_diff(
 
 
 # noinspection DuplicatedCode
-def create_run_constant_segment(segment: Tuple[str, str]) -> Callable[[PipelineVariables, PrincipalService], Any]:
-	prefix, variable_name = segment
+def create_run_constant_segment(variable: MightAVariable) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	prefix = variable.text
+	variable_name = variable.variable
 	if variable_name == VariablePredefineFunctions.NEXT_SEQ.value:
 		return create_snowflake_generator(prefix)
 	elif variable_name == VariablePredefineFunctions.NOW.value:
@@ -489,12 +486,15 @@ def create_run_constant_segments(
 	return action
 
 
-def create_ask_constant_value(segments: List[Tuple[str, str]]) -> Callable[[PipelineVariables, PrincipalService], Any]:
-	if len(segments) == 1:
-		return create_run_constant_segment(segments[0])
+def create_ask_constant_value(variables: List[MightAVariable]) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	if len(variables) == 1:
+		if variables[0].has_variable():
+			return create_run_constant_segment(variables[0])
+		else:
+			return create_static_str(variables[0].text)
 	else:
 		return create_run_constant_segments(
-			ArrayHelper(segments).map(lambda x: create_run_constant_segment(x)).to_list())
+			ArrayHelper(variables).map(lambda x: create_run_constant_segment(x)).to_list())
 
 
 class ParsedMemoryConstantParameter(ParsedMemoryParameter):
@@ -512,24 +512,8 @@ class ParsedMemoryConstantParameter(ParsedMemoryParameter):
 		elif '{' not in value or '}' not in value:
 			self.askValue = create_static_str(value)
 		else:
-			# parsed result is:
-			# for empty string, a list contains one tuple: [('', '')]
-			# for no variable string, a list contains 2 tuples: [(value, ''), ('', '')]
-			# found, a list contains x tuples: [(first, first_variable), (second, second_variable), ..., ('', '')]
-			parsed = findall("([^{]*({[^}]+})?)", value)
-			if parsed[0][0] == '':
-				# no variable required
-				self.askValue = create_static_str(value)
-			else:
-				def beautify(a_tuple: Tuple[str, str]) -> Tuple[str, str]:
-					if a_tuple[1] == '':
-						# no variable in it
-						return a_tuple
-					else:
-						# remove variable from first, remove braces from second
-						return a_tuple[0][: (0 - len(a_tuple[1]))], a_tuple[1][1:-1]
-
-				self.askValue = create_ask_constant_value(ArrayHelper(parsed[:-1]).map(lambda x: beautify(x)).to_list())
+			_, variables = parse_variable(value)
+			self.askValue = create_ask_constant_value(variables)
 
 	def value(self, variables: PipelineVariables, principal_service: PrincipalService) -> Any:
 		return self.askValue(variables, principal_service)
