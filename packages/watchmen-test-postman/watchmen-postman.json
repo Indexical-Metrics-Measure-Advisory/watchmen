@@ -2910,7 +2910,7 @@
               "response": []
             },
             {
-              "name": "/report/delete",
+              "name": "REPORT DELETE",
               "id": "30c4b99c-702b-47e7-9ce8-7ead62bf5a98",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
