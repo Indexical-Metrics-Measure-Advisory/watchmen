@@ -2986,6 +2986,11 @@
                     "exec": [
                       "pm.test(\"Delete Connected Space\", () => {",
                       "    pm.response.to.have.status(200);",
+                      "    pm.environment.unset('CONNECT_ID');",
+                      "    pm.environment.unset('CONNECTED_SPACE_ID');",
+                      "    pm.environment.unset('CONNECTED_SPACE_NAME');",
+                      "    pm.environment.unset('CONNECTED_SPACE_CREATED_AT');",
+                      "    pm.environment.unset('CONNECTED_SPACE_CREATED_BY');",
                       "});"
                     ],
                     "type": "text/javascript"
@@ -3017,8 +3022,7 @@
                   "query": [
                     {
                       "key": "connect_id",
-                      "value": "{{CONNECT_ID}}",
-                      "type": "text"
+                      "value": "{{CONNECT_ID}}"
                     }
                   ]
                 }
