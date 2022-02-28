@@ -2836,7 +2836,7 @@
                 },
                 "method": "GET",
                 "header": [],
-                "url": "/connected_space/list"
+                "url": "{{URL_PREFIX}}/connected_space/list"
               },
               "response": []
             }
