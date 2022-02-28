@@ -339,6 +339,7 @@ class TopicDataStorageMySQL(StorageMySQL, TopicDataStorageSPI):
 
 	def truncate(self, helper: EntityHelper) -> None:
 		table = self.find_table(helper.name)
+		# noinspection SqlResolve
 		self.connection.execute(text(f'TRUNCATE TABLE {table.name}'))
 
 	def build_join(self, join: FreeJoin, joins: Dict[str, Any]) -> Any:

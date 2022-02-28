@@ -264,7 +264,7 @@ async def find_available_spaces(principal_service: PrincipalService = Depends(ge
 					distinct_space_ids.append(space_id)
 			return distinct_space_ids
 
-		space_ids = ArrayHelper(user_groups).reduce(lambda space_ids, user_group: gather_space_ids, [])
+		space_ids = ArrayHelper(user_groups).reduce(gather_space_ids, [])
 		return space_service.find_by_ids(space_ids, tenant_id)
 
 	return trans_readonly(space_service, action)
