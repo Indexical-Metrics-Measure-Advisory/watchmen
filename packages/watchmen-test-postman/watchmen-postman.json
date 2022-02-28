@@ -2914,13 +2914,57 @@
             },
             {
               "name": "CONNECTED SPACE RENAME",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "960b9e42-0588-4b60-a722-ea972aa2c655",
+                    "exec": [
+                      "pm.test(\"Load Pipeline By Id\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.name).to.eql('Test-Space2')",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "8ae6179c-eb62-40fb-a8d8-445d5241def4",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/connected_space/rename?connect_id={{CONNECT_ID}}&name=Test-Space2",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "connected_space",
+                    "rename"
+                  ],
+                  "query": [
+                    {
+                      "key": "connect_id",
+                      "value": "{{CONNECT_ID}}",
+                      "type": "text"
+                    },
+                    {
+                      "key": "name",
+                      "value": "Test-Space2",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
