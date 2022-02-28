@@ -5,7 +5,7 @@ from watchmen_data_kernel.meta import DataSourceService
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_storage import TopicDataStorageSPI
 from watchmen_utilities import is_blank
-from .topic_storage import build_topic_data_storage
+from watchmen_data_kernel.storage.topic_storage import build_topic_data_storage
 
 
 def get_data_source_service(principal_service: PrincipalService) -> DataSourceService:

@@ -4,7 +4,8 @@ from typing import Any, Dict
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.meta import PipelineService
-from watchmen_data_kernel.storage import ask_topic_data_service, TopicDataService, TopicTrigger
+from watchmen_data_kernel.service import ask_topic_data_service
+from watchmen_data_kernel.storage import TopicDataService, TopicTrigger
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.admin import Pipeline, PipelineTriggerType
 from watchmen_model.pipeline_kernel import PipelineTriggerTraceId

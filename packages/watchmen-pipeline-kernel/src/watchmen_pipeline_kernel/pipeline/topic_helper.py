@@ -2,7 +2,7 @@ from typing import Dict
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.meta import DataSourceService
-from watchmen_data_kernel.storage import ask_topic_storage
+from watchmen_data_kernel.service import ask_topic_storage
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.common import DataSourceId
 from watchmen_pipeline_kernel.common import PipelineKernelException

@@ -7,7 +7,8 @@ from typing import Any, Callable, Dict, List, Optional, Union
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.external_writer import ask_external_writer_creator, BuildExternalWriter, ExternalWriterParams
 from watchmen_data_kernel.meta import ExternalWriterService, TopicService
-from watchmen_data_kernel.storage import ask_topic_data_service, TopicDataService, TopicTrigger
+from watchmen_data_kernel.service import ask_topic_data_service
+from watchmen_data_kernel.storage import TopicDataService, TopicTrigger
 from watchmen_data_kernel.storage_bridge import now, parse_action_defined_as, parse_condition_for_storage, \
 	parse_mapping_for_storage, parse_parameter_in_memory, parse_prerequisite_defined_as, parse_prerequisite_in_memory, \
 	ParsedMemoryParameter, ParsedStorageCondition, ParsedStorageMapping, PipelineVariables, PrerequisiteDefinedAs, \

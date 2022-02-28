@@ -4,5 +4,6 @@ from .ask_from_memory import parse_parameter_in_memory, parse_prerequisite_defin
 from .ask_from_storage import parse_condition_for_storage, parse_mapping_for_storage, ParsedStorageCondition, \
 	ParsedStorageMapping
 from .time_utils import now, spent_ms
+from .topic_utils import ask_topic_data_entity_helper
 from .utils import always_none, get_value_from
 from .variables import PipelineVariables
