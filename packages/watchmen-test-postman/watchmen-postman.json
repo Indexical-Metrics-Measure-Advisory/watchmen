@@ -2916,7 +2916,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "CONNECTED SPACE RENAME",
               "id": "8ae6179c-eb62-40fb-a8d8-445d5241def4",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
