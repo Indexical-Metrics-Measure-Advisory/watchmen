@@ -3128,7 +3128,29 @@
               },
               "request": {
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/dashboard/shared?dashboard_id={{DASHBOARD_ID}}&token={{JWT_TOKEN}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "dashboard",
+                    "shared"
+                  ],
+                  "query": [
+                    {
+                      "key": "dashboard_id",
+                      "value": "{{DASHBOARD_ID}}",
+                      "type": "text"
+                    },
+                    {
+                      "key": "token",
+                      "value": "{{JWT_TOKEN}}",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
