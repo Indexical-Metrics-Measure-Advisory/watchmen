@@ -3272,6 +3272,18 @@
                 "url": "{{URL_PREFIX}}/connected_space/graphics"
               },
               "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "9fe9a0f4-4b19-4649-98c5-6994b5ea136b",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
             }
           ],
           "id": "cfe9cf47-e61c-4000-aaf7-5873c6c7338b"
