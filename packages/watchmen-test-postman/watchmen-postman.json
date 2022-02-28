@@ -2586,7 +2586,7 @@
           "name": "SUBJECT",
           "item": [
             {
-              "name": "New Request",
+              "name": "SUBJECT CREATE",
               "id": "7dc8c5ba-a1d8-41b1-bfd7-02f9e071f9b4",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
