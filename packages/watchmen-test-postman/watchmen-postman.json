@@ -2916,8 +2916,30 @@
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/report/delete?report_id=948063984241076224",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "report",
+                    "delete"
+                  ],
+                  "query": [
+                    {
+                      "key": "report_id",
+                      "value": "948063984241076224"
+                    }
+                  ]
+                }
               },
               "response": []
             }
