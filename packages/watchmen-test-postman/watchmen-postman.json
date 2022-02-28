@@ -3170,7 +3170,10 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "/dashboard/rename?dashboard_id={{DASHBOARD_ID}}&name=Test_Dashboard2",
+                  "raw": "{{URL_PREFIX}}/dashboard/rename?dashboard_id={{DASHBOARD_ID}}&name=Test_Dashboard2",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
                   "path": [
                     "dashboard",
                     "rename"
@@ -3178,13 +3181,11 @@
                   "query": [
                     {
                       "key": "dashboard_id",
-                      "value": "{{DASHBOARD_ID}}",
-                      "type": "text"
+                      "value": "{{DASHBOARD_ID}}"
                     },
                     {
                       "key": "name",
-                      "value": "Test_Dashboard2",
-                      "type": "text"
+                      "value": "Test_Dashboard2"
                     }
                   ]
                 }
