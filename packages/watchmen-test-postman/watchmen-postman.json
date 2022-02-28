@@ -3243,7 +3243,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "DASHBOARD DELETE BY SUPER ADMIN",
               "id": "174a12e9-ad78-4a0b-8247-74e87d42e975",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
