@@ -2944,7 +2944,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "REPORT DELETE BY SUPER ADMIN",
               "id": "63b1e88e-5a5e-42af-a5e9-56f9e6ade108",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
