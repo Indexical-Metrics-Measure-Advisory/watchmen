@@ -248,11 +248,14 @@ class SubjectSchema:
 			data_sources[data_source_id] = True
 		self.fromOneDataSource = len(data_sources) == 1
 
-	def get_subject(self):
+	def get_subject(self) -> Subject:
 		return self.subject
 
-	def from_one_data_source(self):
+	def from_one_data_source(self) -> bool:
 		return self.fromOneDataSource
 
-	def get_primary_topic_schema(self):
+	def get_primary_topic_schema(self) -> TopicSchema:
 		return self.available_schemas[0]
+
+	def get_available_schemas(self) -> List[TopicSchema]:
+		return self.available_schemas
