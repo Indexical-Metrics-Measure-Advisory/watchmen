@@ -3031,18 +3031,6 @@
         }
       ],
       "id": "b4f1a636-e9ca-4463-a51c-53c4e2be3949"
-    },
-    {
-      "name": "New Request",
-      "id": "c3caa542-4821-4786-867f-c314a84c099f",
-      "protocolProfileBehavior": {
-        "disableBodyPruning": true
-      },
-      "request": {
-        "method": "GET",
-        "header": []
-      },
-      "response": []
     }
   ]
 }
