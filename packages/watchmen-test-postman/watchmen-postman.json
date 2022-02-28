@@ -2584,7 +2584,20 @@
       "item": [
         {
           "name": "SUBJECT",
-          "item": [],
+          "item": [
+            {
+              "name": "New Request",
+              "id": "7dc8c5ba-a1d8-41b1-bfd7-02f9e071f9b4",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            }
+          ],
           "id": "56b09cda-c4e8-4471-8008-3ba794718bf2"
         },
         {
