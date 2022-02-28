@@ -3121,7 +3121,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "DASHBOARD SHARE",
               "id": "52d87102-c582-4bca-8138-aeb1067a7aff",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
