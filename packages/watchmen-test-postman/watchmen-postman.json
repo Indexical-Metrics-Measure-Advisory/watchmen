@@ -3069,7 +3069,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "DASHBOARD LIST",
               "id": "fc30d542-af31-4754-8a62-1d3b12208f0d",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
