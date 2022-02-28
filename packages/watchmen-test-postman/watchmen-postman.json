@@ -3244,6 +3244,22 @@
             },
             {
               "name": "DASHBOARD DELETE BY SUPER ADMIN",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "09b5f239-81b6-498a-b34e-51e55a44b826",
+                    "exec": [
+                      "pm.test('Delete Dashboard By Super Admin', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.environment.unset(\"DASHBOARD_ID\");",
+                      "    pm.environment.unset(\"DASHBOARD_NAME\");",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "174a12e9-ad78-4a0b-8247-74e87d42e975",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
