@@ -2664,8 +2664,30 @@
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/subject?subject_id={{SUBJECT_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "subject"
+                  ],
+                  "query": [
+                    {
+                      "key": "subject_id",
+                      "value": "{{SUBJECT_ID}}",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
