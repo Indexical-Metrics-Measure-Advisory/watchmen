@@ -7,9 +7,8 @@ from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import DataKernelException
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_meta.common import ask_snowflake_generator
-from watchmen_model.admin import is_raw_topic, PipelineTriggerType, Topic
+from watchmen_model.admin import PipelineTriggerType, Topic
 from watchmen_model.common import DataModel, DataPage, Pageable
-from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import EntityColumnName, EntityCriteria, EntityStraightColumn, SnowflakeGenerator, \
 	TopicDataStorageSPI
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
