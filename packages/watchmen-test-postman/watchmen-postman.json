@@ -3025,24 +3025,48 @@
                 "url": "{{URL_PREFIX}}/pipeline/data"
               },
               "response": []
+            },
+            {
+              "name": "TRUNCATE TOPIC",
+              "id": "fef14d48-d94f-481c-8878-b617353f8ae1",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{ADMIN_JWT_TOKEN}}"
+                  }
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name=test_topic",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "topic",
+                    "data",
+                    "truncate"
+                  ],
+                  "query": [
+                    {
+                      "key": "topic_name",
+                      "value": "test_topic",
+                      "type": "text"
+                    }
+                  ]
+                }
+              },
+              "response": []
             }
           ],
           "id": "f69ec778-cfd0-4bfc-a55d-34f9202dd099"
         }
       ],
       "id": "b4f1a636-e9ca-4463-a51c-53c4e2be3949"
-    },
-    {
-      "name": "New Request",
-      "id": "c3caa542-4821-4786-867f-c314a84c099f",
-      "protocolProfileBehavior": {
-        "disableBodyPruning": true
-      },
-      "request": {
-        "method": "GET",
-        "header": []
-      },
-      "response": []
     }
   ]
 }
