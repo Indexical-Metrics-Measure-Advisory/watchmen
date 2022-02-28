@@ -2785,6 +2785,22 @@
             },
             {
               "name": "SUBJECT DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "10709b52-e61d-4c75-b565-28e799fc7a45",
+                    "exec": [
+                      "pm.test('Delete Subject By Super Admin', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.environment.unset(\"SUBJECT_ID\");",
+                      "    pm.environment.unset(\"SUBJECT_NAME\");",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "d295c9ff-d0c9-4761-9730-76d0149b9887",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
@@ -2809,8 +2825,7 @@
                   "query": [
                     {
                       "key": "subject_id",
-                      "value": "{{SUBJECT_ID}}",
-                      "type": "text"
+                      "value": "{{SUBJECT_ID}}"
                     }
                   ]
                 }
