@@ -3072,11 +3072,11 @@
                     "exec": [
                       "pm.test(\"Delete Connected Space By Super Admin\", () => {",
                       "    pm.response.to.have.status(200);",
-                      "    pm.environment.set('CONNECT_ID', data.connectId);",
-                      "    pm.environment.set('CONNECTED_SPACE_ID', data.spaceId);",
-                      "    pm.environment.set('CONNECTED_SPACE_NAME', data.name);",
-                      "    pm.environment.set('CONNECTED_SPACE_CREATED_AT', data.createdAt);",
-                      "    pm.environment.set('CONNECTED_SPACE_CREATED_BY', data.createdBy);",
+                      "    pm.environment.unset('CONNECT_ID');",
+                      "    pm.environment.unset('CONNECTED_SPACE_ID');",
+                      "    pm.environment.unset('CONNECTED_SPACE_NAME');",
+                      "    pm.environment.unset('CONNECTED_SPACE_CREATED_AT');",
+                      "    pm.environment.unset('CONNECTED_SPACE_CREATED_BY');",
                       "});"
                     ],
                     "type": "text/javascript"
