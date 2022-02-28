@@ -2629,7 +2629,10 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "/subject/rename?subject_id={{SUBJECT_ID}}",
+                  "raw": "{{URL_PREFIX}}/subject/rename?subject_id={{SUBJECT_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
                   "path": [
                     "subject",
                     "rename"
@@ -2637,8 +2640,7 @@
                   "query": [
                     {
                       "key": "subject_id",
-                      "value": "{{SUBJECT_ID}}",
-                      "type": "text"
+                      "value": "{{SUBJECT_ID}}"
                     }
                   ]
                 }
