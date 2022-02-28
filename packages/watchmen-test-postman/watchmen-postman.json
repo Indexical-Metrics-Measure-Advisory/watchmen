@@ -3281,7 +3281,8 @@
               },
               "request": {
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": "/connected_space/graphics"
               },
               "response": []
             }
