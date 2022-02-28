@@ -3194,13 +3194,51 @@
             },
             {
               "name": "DASHBOARD DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "f2ffa456-8169-4858-a4f0-c834b1f9ceb4",
+                    "exec": [
+                      "pm.test('Delete Dashboard', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.environment.unset(\"DASHBOARD_ID\");",
+                      "    pm.environment.unset(\"DASHBOARD_NAME\");",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "11079793-137c-445a-9870-56456c9800da",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/dashboard/delete?dashboard_id={{DASHBOARD_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "dashboard",
+                    "delete"
+                  ],
+                  "query": [
+                    {
+                      "key": "dashboard_id",
+                      "value": "{{DASHBOARD_ID}}"
+                    }
+                  ]
+                }
               },
               "response": []
             }
