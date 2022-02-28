@@ -1678,7 +1678,7 @@
                 },
                 "method": "GET",
                 "header": [],
-                "url": "/space/available"
+                "url": "{{URL_PREFIX}}/space/available"
               },
               "response": []
             },
