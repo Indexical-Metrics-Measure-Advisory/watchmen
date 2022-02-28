@@ -3275,6 +3275,20 @@
             },
             {
               "name": "CONNECTED SPACE GRAPHICS LIST",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "398b337a-ab5f-4136-84de-01dc0984d23b",
+                    "exec": [
+                      "pm.test('List Connected Space Graphic', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "9fe9a0f4-4b19-4649-98c5-6994b5ea136b",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
