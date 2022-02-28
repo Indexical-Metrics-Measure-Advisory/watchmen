@@ -2926,7 +2926,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{URL_PREFIX}}/connected_space/connect?space_id={{SPACE_ID}}&name={{SPACE_NAME}}&template_ids={{SPACE_ID}}",
+                  "raw": "{{URL_PREFIX}}/connected_space/connect?space_id={{SPACE_ID}}&name={{SPACE_NAME}}&template_ids=",
                   "host": [
                     "{{URL_PREFIX}}"
                   ],
@@ -2945,7 +2945,7 @@
                     },
                     {
                       "key": "template_ids",
-                      "value": "{{SPACE_ID}}"
+                      "value": ""
                     }
                   ]
                 }
