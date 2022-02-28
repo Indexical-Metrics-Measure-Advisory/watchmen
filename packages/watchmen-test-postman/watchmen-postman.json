@@ -2822,7 +2822,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "CONNECTED SPACE LIST",
               "id": "d2204740-fdce-4ab4-9b62-ba6d54e722be",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
