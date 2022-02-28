@@ -2790,7 +2790,20 @@
         },
         {
           "name": "CONNECTED SPACE GRAPHIC",
-          "item": [],
+          "item": [
+            {
+              "name": "New Request",
+              "id": "5e005d9b-5807-486c-9194-81c751523cda",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            }
+          ],
           "id": "cfe9cf47-e61c-4000-aaf7-5873c6c7338b"
         }
       ],
