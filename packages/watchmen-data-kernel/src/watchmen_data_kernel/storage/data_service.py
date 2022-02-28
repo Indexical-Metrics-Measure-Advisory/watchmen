@@ -301,8 +301,10 @@ class TopicDataService(TopicStructureService):
 		"""
 		truncate data
 		"""
+		data_entity_helper = self.get_data_entity_helper()
 		storage = self.get_storage()
 		try:
 			storage.connect()
+			storage.truncate(data_entity_helper.get_entity_helper())
 		finally:
 			storage.close()
