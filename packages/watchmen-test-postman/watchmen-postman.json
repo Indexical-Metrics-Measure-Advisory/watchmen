@@ -3040,13 +3040,49 @@
             },
             {
               "name": "CONNECTED SPACE DELETE BY SUPER ADMIN",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "e401f2ee-f863-43ed-9ace-fa6b8b273694",
+                    "exec": [
+                      "pm.test(\"Delete Connected Space By Super Admin\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "4fdce01b-d9c5-4a49-81d0-9b8f1edfc808",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "DELETE",
-                "header": []
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/connected_space?connect_id",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "connected_space"
+                  ],
+                  "query": [
+                    {
+                      "key": "connect_id",
+                      "value": null,
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
