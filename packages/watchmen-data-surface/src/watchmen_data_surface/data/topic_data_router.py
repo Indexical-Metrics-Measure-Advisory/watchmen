@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.meta import TopicService
-from watchmen_data_kernel.storage import ask_topic_storage
+from watchmen_data_kernel.service import ask_topic_data_service, ask_topic_storage
 from watchmen_data_surface.settings import ask_truncate_topic_data
 from watchmen_model.admin import UserRole
 from watchmen_rest import get_any_admin_principal
@@ -36,4 +36,5 @@ async def trigger_pipeline(
 		raise_404('Topic not found.')
 
 	storage = ask_topic_storage(schema, principal_service)
-	storage.truncate()
+	service = ask_topic_data_service(schema, storage, principal_service)
+	service.truncate()
