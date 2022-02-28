@@ -3040,13 +3040,50 @@
             },
             {
               "name": "CONNECTED  SPACE TEMPLATE LIST",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "c4c74dad-bf24-48e2-b8fe-02a0d3756bcd",
+                    "exec": [
+                      "pm.test(\"List Connected Space Template\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "8b0f58a5-ddcb-472e-966b-72033b8dec19",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/connected_space/template/list?space_id={{SPACE_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "connected_space",
+                    "template",
+                    "list"
+                  ],
+                  "query": [
+                    {
+                      "key": "space_id",
+                      "value": "{{SPACE_ID}}"
+                    }
+                  ]
+                }
               },
               "response": []
             },
