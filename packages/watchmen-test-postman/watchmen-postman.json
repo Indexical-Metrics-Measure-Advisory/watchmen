@@ -2735,6 +2735,22 @@
             },
             {
               "name": "SUBJECT DELETE BY ID",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "2324c9dc-b132-4712-b069-d278dfc70aa1",
+                    "exec": [
+                      "pm.test('Delete Subject By Id', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.environment.unset(\"SUBJECT_ID\");",
+                      "    pm.environment.unset(\"SUBJECT_NAME\");",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "6211c016-097c-47fb-967e-1f8b70d2682f",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
