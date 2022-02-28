@@ -2636,7 +2636,7 @@
                   "script": {
                     "id": "ff942554-f42b-4057-a480-39a446e5ac8c",
                     "exec": [
-                      "pm.test('Create Topic', () => {",
+                      "pm.test('Create Subject', () => {",
                       "    pm.response.to.have.status(200);",
                       "    const data = pm.response.json();",
                       "    pm.expect(data.subjectId).to.not.be.null;",
