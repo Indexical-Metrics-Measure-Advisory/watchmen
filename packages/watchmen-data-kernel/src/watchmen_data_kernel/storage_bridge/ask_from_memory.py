@@ -78,7 +78,7 @@ class NoopMemoryParameter(ParsedMemoryParameter):
 def parse_condition_in_memory(
 		condition: Optional[ParameterCondition], principal_service: PrincipalService) -> ParsedMemoryCondition:
 	if condition is None:
-		raise DataKernelException('Condition cannot be null.')
+		raise DataKernelException('Condition cannot be none.')
 	if isinstance(condition, ParameterJoint):
 		return ParsedMemoryJoint(condition, principal_service)
 	elif isinstance(condition, ParameterExpression):

@@ -52,7 +52,7 @@ class SnowflakeGenerator:
 				f'Data center id invalid, it must be between [0, {MAX_DATACENTER_ID}] and passed by [{data_center_id}] .')
 
 		# compute worker id
-		assert generate_worker_id is not None, 'Worker id generator cannot be null.'
+		assert generate_worker_id is not None, 'Worker id generator cannot be none.'
 		worker_id = generate_worker_id()
 		# sanity check
 		if worker_id > MAX_WORKER_ID or worker_id < 0:

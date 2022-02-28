@@ -42,10 +42,13 @@ def get_topic_schema(
 
 @router.post('/topic/data', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=DataPage)
 async def fetch_topic_data(
-		topic_name: str, tenant_id: Optional[TenantId] = None,
+		topic_name: Optional[str], tenant_id: Optional[TenantId] = None,
 		pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> DataPage:
+	if is_blank(topic_name):
+		raise_400('Topic name is required.')
+
 	schema = get_topic_schema(topic_name, tenant_id, principal_service)
 	storage = ask_topic_storage(schema, principal_service)
 	service = ask_topic_data_service(schema, storage, principal_service)
@@ -54,9 +57,12 @@ async def fetch_topic_data(
 
 @router.delete('/topic/data/truncate', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN])
 async def truncate_topic_data(
-		topic_name: str, tenant_id: Optional[TenantId] = None,
+		topic_name: Optional[str], tenant_id: Optional[TenantId] = None,
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> None:
+	if is_blank(topic_name):
+		raise_400('Topic name is required.')
+
 	schema = get_topic_schema(topic_name, tenant_id, principal_service)
 	storage = ask_topic_storage(schema, principal_service)
 	service = ask_topic_data_service(schema, storage, principal_service)

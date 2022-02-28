@@ -1,0 +1,2 @@
+class InquiryKernelException(Exception):
+	pass
