@@ -2886,7 +2886,7 @@
                   "script": {
                     "id": "ea450bac-d608-4d7b-87d0-d8bb72ab2cb1",
                     "exec": [
-                      "pm.test(\"Load Pipeline By Id\", () => {",
+                      "pm.test(\"List Connected Space\", () => {",
                       "    pm.response.to.have.status(200);",
                       "});",
                       ""
@@ -2920,7 +2920,7 @@
                   "script": {
                     "id": "960b9e42-0588-4b60-a722-ea972aa2c655",
                     "exec": [
-                      "pm.test(\"Load Pipeline By Id\", () => {",
+                      "pm.test(\"Rename Connected Space\", () => {",
                       "    pm.response.to.have.status(200);",
                       "});"
                     ],
@@ -2966,6 +2966,20 @@
             },
             {
               "name": "CONNECTED SPACE DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "8466eba2-6e8b-45fa-8a5a-52072cb433fb",
+                    "exec": [
+                      "pm.test(\"Delete Connected Space\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "502ca589-21ab-4fe9-971a-b6ff8d231f6c",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
@@ -2979,7 +2993,23 @@
                 },
                 "method": "GET",
                 "header": [],
-                "url": "{{URL_PREFIX}}/connected_space/delete"
+                "url": {
+                  "raw": "{{URL_PREFIX}}/connected_space/delete?connect_id={{CONNECT_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "connected_space",
+                    "delete"
+                  ],
+                  "query": [
+                    {
+                      "key": "connect_id",
+                      "value": "{{CONNECT_ID}}",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
