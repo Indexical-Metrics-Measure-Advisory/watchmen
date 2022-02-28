@@ -527,6 +527,33 @@
                 }
               },
               "response": []
+            },
+            {
+              "name": "DATASOURCE_DELETE",
+              "id": "86fc9c0c-b12e-4c3e-86de-bd8cc5d79269",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/datasource?DataSourceId={{DATA_SOURCE_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "datasource"
+                  ],
+                  "query": [
+                    {
+                      "key": "DataSourceId",
+                      "value": "{{DATA_SOURCE_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
             }
           ],
           "id": "9e542866-d6d4-49ae-a125-32810f193d45"
@@ -644,7 +671,20 @@
         },
         {
           "name": "PAT",
-          "item": [],
+          "item": [
+            {
+              "name": "PAT CREATE",
+              "id": "1dbbd4d8-d3a2-4925-b9d8-9deb4b2a6d7c",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            }
+          ],
           "id": "81a9ceae-4e7d-49a9-80a3-20b14e6fb947"
         },
         {
@@ -734,20 +774,10 @@
         },
         {
           "name": "FAVORITE",
-          "item": [],
-          "id": "9f1d8885-fa09-4bf1-b623-91d2e9c3f951"
-        },
-        {
-          "name": "LAST SNAPSHOT",
-          "item": [],
-          "id": "deeee44b-b4bd-4f34-993e-0e57975583e2"
-        },
-        {
-          "name": "USER",
           "item": [
             {
-              "name": "USER LOAD 2",
-              "id": "df2c60c7-092d-4e46-9b1f-5888237ef070",
+              "name": "FAVORITE CREATE",
+              "id": "b5c6edb2-0164-4234-9067-b2fb210b6e9b",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
@@ -758,26 +788,23 @@
                     "token": "{{JWT_TOKEN}}"
                   }
                 },
-                "method": "GET",
+                "method": "POST",
                 "header": [],
-                "url": {
-                  "raw": "{{URL_PREFIX}}/user?user_id=2",
-                  "host": [
-                    "{{URL_PREFIX}}"
-                  ],
-                  "path": [
-                    "user"
-                  ],
-                  "query": [
-                    {
-                      "key": "user_id",
-                      "value": "2"
-                    }
-                  ]
-                }
+                "url": "{{URL_PREFIX}}/favorite"
               },
               "response": []
-            },
+            }
+          ],
+          "id": "9f1d8885-fa09-4bf1-b623-91d2e9c3f951"
+        },
+        {
+          "name": "LAST SNAPSHOT",
+          "item": [],
+          "id": "deeee44b-b4bd-4f34-993e-0e57975583e2"
+        },
+        {
+          "name": "USER",
+          "item": [
             {
               "name": "USER CREATE",
               "event": [
@@ -832,6 +859,268 @@
                 "url": "{{URL_PREFIX}}/user"
               },
               "response": []
+            },
+            {
+              "name": "USER LOAD 2",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "91b4e1ad-d34a-40f9-8226-ebe34e7b50d3",
+                    "exec": [
+                      "pm.test(\"Find Users Pageable\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.name).to.equal(\"imma-admin\");",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.not.be.null;",
+                      "    pm.expect(data.tenantId).to.not.be.null;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "df2c60c7-092d-4e46-9b1f-5888237ef070",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/user?user_id=2",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "user"
+                  ],
+                  "query": [
+                    {
+                      "key": "user_id",
+                      "value": "2"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "USER FIND PAGE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "0e5d3a5e-f18f-47d5-8861-a9fe581519c6",
+                    "exec": [
+                      "pm.test(\"Find Users Pageable\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.pageNumber).to.not.be.null;",
+                      "    pm.expect(data.pageSize).to.not.be.null;",
+                      "    pm.expect(data.itemCount).to.equal(2);",
+                      "    pm.expect(data.pageCount).to.not.be.null;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "7625489a-d93d-448e-8f59-acf0bdce673c",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"pageNumber\": 1,\n    \"pageSize\": 10\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL_PREFIX}}/user/name?query_name",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "user",
+                    "name"
+                  ],
+                  "query": [
+                    {
+                      "key": "query_name",
+                      "value": null
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "USER LIST ALL BY NAME",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "ee282e91-f7c0-45d9-b903-766f5535fada",
+                    "exec": [
+                      "pm.test(\"List Users By Name\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "72b68598-7a2a-4518-b1b3-91b948182f90",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/user/list/name?query_name",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "user",
+                    "list",
+                    "name"
+                  ],
+                  "query": [
+                    {
+                      "key": "query_name",
+                      "value": null
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "USER FIND BY IDS",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "6c5a4659-45ef-40a6-8dcb-2a9da634d951",
+                    "exec": [
+                      "pm.test(\"Find Users By Ids\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "6b12bc4d-a2e6-4201-8130-8a7b0285e639",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "[\n   \"2\",\n   \"3\"\n]",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/user/ids"
+              },
+              "response": []
+            },
+            {
+              "name": "USER DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "416ccc0c-ad5a-49ba-9b22-a677dfa3054d",
+                    "exec": [
+                      "pm.test(\"Delete User By Id\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    const user_id = pm.environment.get(\"USER_ID\");",
+                      "    pm.expect(data.userId).to.equal(user_id);",
+                      "    pm.environment.unset(\"USER_ID\");",
+                      "    pm.environment.unset('USER_CREATED_AT');",
+                      "    pm.environment.unset('USER_CREATED_BY');",
+                      "    pm.environment.unset('USER_VERSION');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "c153f0e9-68d3-4471-bc45-5b5bc86d4f62",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/user?user_id={{USER_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "user"
+                  ],
+                  "query": [
+                    {
+                      "key": "user_id",
+                      "value": "{{USER_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
             }
           ],
           "id": "2447d2f8-9676-485c-9344-0192d5fac66f"
@@ -883,7 +1172,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"name\": \"Test-Group\",\n    \"description\": \"A description\",\n    \"userIds\": [\"{{USER_ID}}\", \"2\"]\n}",
+                  "raw": "{\n    \"name\": \"Test-Group\",\n    \"description\": \"A description\",\n    \"userIds\": [\"{{USER_ID}}\", \"2\"],\n    \"spaceIds\": [\"{{SPACE_ID}}\"]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -891,6 +1180,160 @@
                   }
                 },
                 "url": "{{URL_PREFIX}}/user_group"
+              },
+              "response": []
+            },
+            {
+              "name": "USER GROPU LOAD BY ID",
+              "id": "988d6f91-536d-4312-9931-bdc64ee8b2fe",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/user_group?user_group_id={{USER_GROUP_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "user_group"
+                  ],
+                  "query": [
+                    {
+                      "key": "user_group_id",
+                      "value": "{{USER_GROUP_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "USER GROUP FIND PAGE",
+              "id": "71965ab2-c02f-48fc-ba09-3ca8e7de2b45",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/user_group/name?query_name",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "user_group",
+                    "name"
+                  ],
+                  "query": [
+                    {
+                      "key": "query_name",
+                      "value": null,
+                      "type": "text"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "USER GROUP LIST BY NAME",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "4047cae9-017a-45e1-a2cb-08b5307b4af5",
+                    "exec": [
+                      "pm.test(\"List User Group By Name\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "56d77d7d-747b-414b-807d-232a26db6632",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/user_group/list/name?query_name=Test-Group",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "user_group",
+                    "list",
+                    "name"
+                  ],
+                  "query": [
+                    {
+                      "key": "query_name",
+                      "value": "Test-Group",
+                      "type": "text"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "USER GROUP FIND BY IDS",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "acf9892b-9b27-46d1-ad00-150cf6668db5",
+                    "exec": [
+                      "pm.test(\"Find User Group By Ids\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "369a4f11-6ac3-4c2c-8278-d74df9efda41",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "[\n    {{USER_GROUP_ID}}\n]",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/user_group/ids"
               },
               "response": []
             },
@@ -919,6 +1362,61 @@
                   }
                 },
                 "url": "{{URL_PREFIX}}/user_group"
+              },
+              "response": []
+            },
+            {
+              "name": "USER GROUP DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "fa486d0e-de57-4c26-ac0f-38ec54d9cc23",
+                    "exec": [
+                      "pm.test('Delete User Group', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    const uer_group_id = pm.environment.get(\"USER_GROUP_ID\");",
+                      "    pm.expect(data.userGroupId).to.equal(uer_group_id);",
+                      "    pm.environment.unset('USER_GROUP_ID');",
+                      "    pm.environment.unset('USER_GROUP_CREATED_AT');",
+                      "    pm.environment.unset('USER_GROUP_CREATED_BY');",
+                      "    pm.environment.unset('USER_GROUP_VERSION');",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "4d59b8b2-e54a-481a-a308-8926a123e713",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/user_group?user_group_id={{USER_GROUP_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "user_group"
+                  ],
+                  "query": [
+                    {
+                      "key": "user_group_id",
+                      "value": "{{USER_GROUP_ID}}"
+                    }
+                  ]
+                }
               },
               "response": []
             }
@@ -1015,6 +1513,278 @@
                 }
               },
               "response": []
+            },
+            {
+              "name": "SPACE FIND PAGE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "9beaf561-6d88-48f4-8b71-1d1d54f94141",
+                    "exec": [
+                      "pm.test(\"Find Space Pageable\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.pageNumber).to.not.be.null;",
+                      "    pm.expect(data.pageSize).to.not.be.null;",
+                      "    pm.expect(data.itemCount).to.not.be.null;",
+                      "    pm.expect(data.pageCount).to.not.be.null;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "112401ee-8953-442b-a1d9-e9a7b865e5f4",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"pageNumber\": 1,\n    \"pageSize\": 10\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL_PREFIX}}/space/name?query_name=Test-Space",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "space",
+                    "name"
+                  ],
+                  "query": [
+                    {
+                      "key": "query_name",
+                      "value": "Test-Space"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "SPACE FIND BY NAME",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "10fb8fa1-5152-4d37-a40e-3f95748d3d2d",
+                    "exec": [
+                      "pm.test(\"Find Space By Name\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "870c0082-46c9-49cd-9257-4d612845c262",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/space/list/name?query_name=",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "space",
+                    "list",
+                    "name"
+                  ],
+                  "query": [
+                    {
+                      "key": "query_name",
+                      "value": "",
+                      "type": "text"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "SPACE AVALIABLE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "4cbf8639-6418-477f-a14f-3cde65c0f5ae",
+                    "exec": [
+                      "pm.test(\"Available Spaces\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "544d7ce0-6904-4cb5-9e97-3fadb7c861cf",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": "/space/available"
+              },
+              "response": []
+            },
+            {
+              "name": "SPACE FIND BY IDS",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "6b134668-9841-4643-8664-b1665ea5c3e6",
+                    "exec": [
+                      "pm.test(\"Find Spaces By Ids\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json()[0];",
+                      "    const space_id = pm.environment.get(\"SPACE_ID\");",
+                      "    pm.expect(data.spaceId).to.equal(space_id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "522c5c47-ee68-4126-b6aa-000f4c1ffbc5",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "[\n    {{SPACE_ID}}\n]",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/space/ids"
+              },
+              "response": []
+            },
+            {
+              "name": "SPACE EXPORT",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "1c070cf1-21f8-4aa9-924e-f3c036263e7b",
+                    "exec": [
+                      "pm.test(\"Export Spaces\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "816b4be5-7a8a-4953-9fe3-15461cca46e8",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{URL_PREFIX}}/space/export"
+              },
+              "response": []
+            },
+            {
+              "name": "SPACE DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "b484b3fe-e113-4b04-86d6-6a31d83731b4",
+                    "exec": [
+                      "pm.test('Delete User Group', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    const space_id = pm.environment.get(\"SPACE_ID\");",
+                      "    pm.expect(data.spaceId).to.equal(space_id);",
+                      "    pm.environment.unset('SPACE_ID');",
+                      "    pm.environment.unset('SPACE_CREATED_AT');",
+                      "    pm.environment.unset('SPACE_CREATED_BY');",
+                      "    pm.environment.unset('SPACE_VERSION');",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "42d32e24-07f9-44dc-9282-e7c8e9d873b0",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/space?space_id={{SPACE_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "space"
+                  ],
+                  "query": [
+                    {
+                      "key": "space_id",
+                      "value": "{{SPACE_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
             }
           ],
           "id": "1ef7cc43-850d-4db9-a66c-4216a70d114e"
@@ -1029,14 +1799,447 @@
           "item": [
             {
               "name": "TOPIC CREATE",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "id": "60de42a1-1f23-421c-a554-9324dccb4790",
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "8226aa93-491c-48b5-8891-14e831b29b97",
+                    "exec": [
+                      "pm.test('Create Topic', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.topicId).to.not.be.null;",
+                      "    pm.environment.set(\"TOPIC_ID\", data.topicId);",
+                      "    pm.environment.set(\"TOPIC_NAME\", data.name);",
+                      "    pm.expect(data.name).to.equal(\"Test_Distinct_Topic\");",
+                      "    var factor_schema = [{",
+                      "        \"items\": {",
+                      "            \"factorId\": \"string\",",
+                      "            \"type\": \"string\",",
+                      "            \"name\": \"string\"",
+                      "        }",
+                      "    }];",
+                      "    pm.expect(tv4.validate(data.factors, factor_schema)).to.be.true;",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "b0e6c944-5007-4424-b3bc-1449c7d39b6b",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Test_Distinct_Topic\",\n    \"type\": \"distinct\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\", \"label\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"text\", \"name\": \"propB\"}\n    ],\n    \"description\": \"Test Distict Topic\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/topic"
+              },
+              "response": []
+            },
+            {
+              "name": "TOPIC LOAD BY ID",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "bab876d8-3452-4edd-a27b-b1c908ffb2fe",
+                    "exec": [
+                      "pm.test(\"Load Topic By Id\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    const topic_id =pm.environment.get(\"TOPIC_ID\");",
+                      "    pm.expect(data.topicId).to.equal(topic_id);",
+                      "});",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "f5538596-beeb-461d-9ebe-e98e6ba17da2",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
                 "header": [],
-                "url": null
+                "url": {
+                  "raw": "{{URL_PREFIX}}/topic?topic_id={{TOPIC_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "topic"
+                  ],
+                  "query": [
+                    {
+                      "key": "topic_id",
+                      "value": "{{TOPIC_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "TOPIC LOAD BATCHED",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "9ae74a18-af9e-4e4a-8cc1-b108800b0baf",
+                    "exec": [
+                      "pm.test(\"Load Topic Batched\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json()[0];",
+                      "    const topic_id = pm.environment.get(\"TOPIC_ID\");",
+                      "    pm.expect(data.topicId).to.equal(topic_id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "64c3b94e-8912-4a1d-a494-1a3943adcf53",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "[\n    {{TOPIC_ID}}\n]",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/topic/ids"
+              },
+              "response": []
+            },
+            {
+              "name": "TOPIC FIND PAGE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "b3618909-5caf-4138-a5e4-b515da8cb79b",
+                    "exec": [
+                      "pm.test(\"Find Topics Pageable\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.pageNumber).to.not.be.null;",
+                      "    pm.expect(data.pageSize).to.not.be.null;",
+                      "    pm.expect(data.itemCount).to.not.be.null;",
+                      "    pm.expect(data.pageCount).to.not.be.null;",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "0bd8659b-f60c-4e3c-8e5e-707eef65a429",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"pageNumber\": 1,\n    \"pageSize\": 10\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL_PREFIX}}/topic/name?query_name",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "topic",
+                    "name"
+                  ],
+                  "query": [
+                    {
+                      "key": "query_name",
+                      "value": null,
+                      "type": "text"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "TOPIC LIST BY NAME",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "87459cf4-6923-4dae-a14b-bf1cdada80db",
+                    "exec": [
+                      "pm.test('List Topics All', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json()[0];",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "7cabc20c-b317-4986-97d4-b80775b023a5",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/topic/list/name?query_name=test&exclude_types=",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "topic",
+                    "list",
+                    "name"
+                  ],
+                  "query": [
+                    {
+                      "key": "query_name",
+                      "value": "test"
+                    },
+                    {
+                      "key": "exclude_types",
+                      "value": ""
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "TOPIC LIST ALL",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "e1d60af2-e28a-4b0e-9ebb-888eb00c55b5",
+                    "exec": [
+                      "pm.test('List Topics All', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json()[0];",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "50686046-117f-4775-bfaa-d9208c016703",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/topic/all"
+              },
+              "response": []
+            },
+            {
+              "name": "TOPIC UPDATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "03eb6766-6348-4474-b831-db6d7841c9b9",
+                    "exec": [
+                      "pm.test(\"Update Topic\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.name).to.equal('Test_Distinct_Topic_2');",
+                      "    pm.environment.set(\"TOPIC_NAME\", \"Test_Distinct_Topic_2\");",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "bc6f5ea3-9d25-4c82-b54a-384f6b0092ed",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"topicId\": \"{{TOPIC_ID}}\",\n    \"name\": \"Test_Distinct_Topic_2\",\n    \"type\": \"distinct\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"text\", \"name\": \"propB\"}\n    ],\n    \"description\": \"Test Distict Topic\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/topic"
+              },
+              "response": []
+            },
+            {
+              "name": "TOPIC DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "a70f62e6-fb77-4867-b79e-a11b6cbd11a8",
+                    "exec": [
+                      "pm.test('Delete Topic', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    const topic_id = pm.environment.get(\"TOPIC_ID\");",
+                      "    const topic_name = pm.environment.get(\"TOPIC_NAME\");",
+                      "    pm.expect(data.topicId).to.equal(topic_id);",
+                      "    pm.expect(data.name).to.equal(topic_name);",
+                      "    pm.environment.unset(\"TOPIC_ID\");",
+                      "    pm.environment.unset(\"TOPIC_NAME\");",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "id": "9c41674f-7f67-42c8-bbc0-1d2f6ef023f1",
+                    "exec": [
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "70319304-2cdb-4f52-adef-306fbac9a355",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/topic?topic_id={{TOPIC_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "topic"
+                  ],
+                  "query": [
+                    {
+                      "key": "topic_id",
+                      "value": "{{TOPIC_ID}}"
+                    }
+                  ]
+                }
               },
               "response": []
             }
@@ -1103,6 +2306,24 @@
             },
             {
               "name": "PIPELINE LOAD",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "d1a73ceb-cb78-4b0e-b03e-e7de007f4e9b",
+                    "exec": [
+                      "pm.test(\"Load Pipeline By Id\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    const pipeline_id =pm.environment.get(\"PIPELINE_ID\");",
+                      "    pm.expect(data.pipelineId).to.equal(pipeline_id);",
+                      "});",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "3d88d558-5b26-452f-b5b0-57b35923acd4",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
@@ -1115,6 +2336,198 @@
                   }
                 },
                 "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "pipeline"
+                  ],
+                  "query": [
+                    {
+                      "key": "pipeline_id",
+                      "value": "{{PIPELINE_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "PIPELINE RENAME",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "51a479cd-6531-4c21-8219-ea1fba68348e",
+                    "exec": [
+                      "pm.test(\"Rename Pipeline\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "6b8085ff-1af2-4483-9398-86514690f860",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/pipeline/rename?pipeline_id={{PIPELINE_ID}}&name=test2",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "pipeline",
+                    "rename"
+                  ],
+                  "query": [
+                    {
+                      "key": "pipeline_id",
+                      "value": "{{PIPELINE_ID}}"
+                    },
+                    {
+                      "key": "name",
+                      "value": "test2"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "PIPELINE ENABLED",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "2b44b146-65f5-4a22-a031-4fc214557c6d",
+                    "exec": [
+                      "pm.test(\"Enabled Pipeline\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "38682c4d-2d86-4178-acd7-42ad292f600c",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/pipeline/enabled?pipeline_id={{PIPELINE_ID}}&enabled=1",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "pipeline",
+                    "enabled"
+                  ],
+                  "query": [
+                    {
+                      "key": "pipeline_id",
+                      "value": "{{PIPELINE_ID}}",
+                      "type": "text"
+                    },
+                    {
+                      "key": "enabled",
+                      "value": "1",
+                      "type": "text"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "PIPELINE LIST ALL",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "b5ed5e94-1613-4783-850c-505ffd6052d0",
+                    "exec": [
+                      "pm.test(\"List Pipelines\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "c03bfa4b-8de1-41d5-8a42-4269b8edaf2f",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": "{{URL_PREFIX}}/pipeline/all"
+              },
+              "response": []
+            },
+            {
+              "name": "PIPELINE DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "058611fd-7b86-40be-b8b8-b85e9afcb382",
+                    "exec": [
+                      "pm.test('Delete Pipeline', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    const pipeline_id = pm.environment.get(\"PIPELINE_ID\");",
+                      "    pm.expect(data.pipelineId).to.equal(pipeline_id);",
+                      "    pm.environment.unset(\"PIPELINE_ID\");",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "df52465a-4fa7-457a-a968-aacf4f25eb52",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "DELETE",
                 "header": [],
                 "url": {
                   "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
@@ -1140,11 +2553,230 @@
         },
         {
           "name": "PIPELINE GRAPHIC",
-          "item": [],
+          "item": [
+            {
+              "name": "PIPELINE GRAPHICS CREATE",
+              "id": "c7fd000e-3685-4ac9-a42d-1d6aedbfe9a8",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "url": "{{URL_PREFIX}}/pipeline/graphics"
+              },
+              "response": []
+            }
+          ],
           "id": "7dc3f01a-b535-4225-ae5a-74f0df01d407"
         }
       ],
       "id": "22d9b007-f6be-4ee5-b4f3-89374c0d3578"
+    },
+    {
+      "name": "CONSOLE",
+      "item": [
+        {
+          "name": "SUBJECT",
+          "item": [],
+          "id": "56b09cda-c4e8-4471-8008-3ba794718bf2"
+        },
+        {
+          "name": "REPORT",
+          "item": [],
+          "id": "738f1fa8-b2bf-4175-92d5-48f1c0e01316"
+        },
+        {
+          "name": "DASHBOARD",
+          "item": [],
+          "id": "8c21efbb-a620-42e3-8aac-5b88c531ead0"
+        },
+        {
+          "name": "CONNECTED SPACE",
+          "item": [],
+          "id": "331d37bd-f18d-432e-97a7-13241c36438c"
+        },
+        {
+          "name": "CONNECTED SPACE GRAPHIC",
+          "item": [],
+          "id": "cfe9cf47-e61c-4000-aaf7-5873c6c7338b"
+        }
+      ],
+      "id": "2b46a424-766d-43c9-a923-4747070a27df"
+    },
+    {
+      "name": "IMPORT",
+      "item": [
+        {
+          "name": "USER IMPORT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "9d0791bd-626d-4d6b-880f-33a00805371a",
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "id": "8a06a871-2ef0-40bf-9a39-8bb3d46dc24c",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{JWT_TOKEN}}"
+              }
+            },
+            "method": "POST",
+            "header": [],
+            "url": "{{URL_PREFIX}}/user/import"
+          },
+          "response": []
+        },
+        {
+          "name": "USER GROUP IMPORT",
+          "id": "e4cdba9d-4675-4638-a663-aaf4038437b5",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{URL_PREFIX}}/user_group/import"
+          },
+          "response": []
+        },
+        {
+          "name": "TOPIC IMPORT",
+          "id": "33d79b47-2fa7-4fc7-b15f-542342e523bc",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{URL_PREFIX}}/topic/import"
+          },
+          "response": []
+        },
+        {
+          "name": "PIPELINE IMPORT",
+          "id": "00374e41-a384-408f-ad41-e3cea3de9fb5",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{URL_PREFIX}}/pipeline/import"
+          },
+          "response": []
+        },
+        {
+          "name": "SPACE IMPORT",
+          "id": "834a67d8-2575-4d0e-8618-71ea490d9804",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{URL_PREFIX}}/space/import"
+          },
+          "response": []
+        },
+        {
+          "name": "CONNECTED SPACE IMPORT",
+          "id": "9b9dc48b-6b02-4363-a1e7-3841d2a621da",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{URL_PREFIX}}/connected_space/import"
+          },
+          "response": []
+        },
+        {
+          "name": "SUBJECT IMPORT",
+          "id": "4bc14450-0889-41a6-a42d-36b4d231f181",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{URL_PREFIX}}/subject/import"
+          },
+          "response": []
+        },
+        {
+          "name": "REPORT IMPORT",
+          "id": "6268a82e-4acd-4029-a173-52ad4d9793ab",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{JWT_TOKEN}}"
+              }
+            },
+            "method": "POST",
+            "header": [],
+            "url": "{{URL_PREFIX}}/report/import"
+          },
+          "response": []
+        },
+        {
+          "name": "DASHBOARD IMPORT",
+          "id": "413de7d1-13ff-4ada-8b99-c89711a253a3",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{URL_PREFIX}}/dashboard/import"
+          },
+          "response": []
+        },
+        {
+          "name": "MIX IMPORT",
+          "id": "71ab2c5d-01cf-4ca4-a087-cba08b276e17",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{JWT_TOKEN}}"
+              }
+            },
+            "method": "POST",
+            "header": [],
+            "url": "{{URL_PREFIX}}/import"
+          },
+          "response": []
+        }
+      ],
+      "id": "075340f7-37d1-4e97-95a4-0e6fd4bb0d58"
     },
     {
       "name": "REACTOR",
@@ -1399,6 +3031,18 @@
         }
       ],
       "id": "b4f1a636-e9ca-4463-a51c-53c4e2be3949"
+    },
+    {
+      "name": "New Request",
+      "id": "c3caa542-4821-4786-867f-c314a84c099f",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
     }
   ]
 }
