@@ -2697,7 +2697,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{URL_PREFIX}}/subject/rename?subject_id={{SUBJECT_ID}}",
+                  "raw": "{{URL_PREFIX}}/subject/rename?subject_id={{SUBJECT_ID}}&name=Test_Subject2",
                   "host": [
                     "{{URL_PREFIX}}"
                   ],
@@ -2709,6 +2709,11 @@
                     {
                       "key": "subject_id",
                       "value": "{{SUBJECT_ID}}"
+                    },
+                    {
+                      "key": "name",
+                      "value": "Test_Subject2",
+                      "type": "text"
                     }
                   ]
                 }
