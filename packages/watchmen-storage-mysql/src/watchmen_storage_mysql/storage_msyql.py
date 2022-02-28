@@ -322,4 +322,5 @@ class TopicDataStorageMySQL(StorageMySQL, TopicDataStorageSPI):
 		register_table(topic)
 
 	def truncate(self, helper: EntityHelper) -> None:
-		self.connection.execute(text(f'TRUNCATE TABLE {helper.name}'))
+		table = self.find_table(helper.name)
+		self.connection.execute(text(f'TRUNCATE TABLE {table.name}'))

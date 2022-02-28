@@ -6,7 +6,7 @@ logger = getLogger(__name__)
 
 
 class DataSurfaceSettings(BaseSettings):
-	TRUNCATE_TOPIC_DATA: bool = False
+	TRUNCATE_TOPIC_DATA: bool = True
 
 	class Config:
 		env_file = '.env'
