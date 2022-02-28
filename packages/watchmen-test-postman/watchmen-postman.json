@@ -2780,7 +2780,20 @@
         },
         {
           "name": "DASHBOARD",
-          "item": [],
+          "item": [
+            {
+              "name": "New Request",
+              "id": "b19d3f2d-3a6b-4af6-8337-f85ba4e33de6",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            }
+          ],
           "id": "8c21efbb-a620-42e3-8aac-5b88c531ead0"
         },
         {
