@@ -2886,7 +2886,7 @@
                   "script": {
                     "id": "ea450bac-d608-4d7b-87d0-d8bb72ab2cb1",
                     "exec": [
-                      "pm.test(\"Load Pipeline By Id\", () => {",
+                      "pm.test(\"List Connected Space\", () => {",
                       "    pm.response.to.have.status(200);",
                       "});",
                       ""
@@ -2971,8 +2971,15 @@
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": "{{URL_PREFIX}}/connected_space/delete"
               },
               "response": []
             }
