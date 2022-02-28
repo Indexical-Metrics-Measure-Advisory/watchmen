@@ -7,11 +7,12 @@ from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import DataKernelException
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_meta.common import ask_snowflake_generator
-from watchmen_model.admin import PipelineTriggerType, Topic
-from watchmen_model.common import DataModel
+from watchmen_model.admin import is_raw_topic, PipelineTriggerType, Topic
+from watchmen_model.common import DataModel, DataPage, Pageable
+from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import EntityColumnName, EntityCriteria, EntityStraightColumn, SnowflakeGenerator, \
 	TopicDataStorageSPI
-from watchmen_utilities import get_current_time_in_seconds
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
 from .data_entity_helper import TopicDataEntityHelper
 
 logger = getLogger(__name__)
@@ -92,11 +93,11 @@ class TopicDataService(TopicStructureService):
 		return self.principalService
 
 	@abstractmethod
-	def try_to_wrap_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
+	def try_to_wrap_to_topic_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
 		pass
 
 	@abstractmethod
-	def try_to_unwrap_topic_data(self, topic_data: Dict[str, Any]) -> Dict[str, Any]:
+	def try_to_unwrap_from_topic_data(self, topic_data: Dict[str, Any]) -> Dict[str, Any]:
 		pass
 
 	def trigger_by_insert(self, data: Dict[str, Any]) -> TopicTrigger:
@@ -106,7 +107,7 @@ class TopicDataService(TopicStructureService):
 		data_entity_helper = self.get_data_entity_helper()
 		storage = self.get_storage()
 		try:
-			topic_data = self.try_to_wrap_data(data)
+			topic_data = self.try_to_wrap_to_topic_data(data)
 			data_entity_helper.assign_fix_columns_on_create(
 				data=topic_data,
 				snowflake_generator=self.get_snowflake_generator(), principal_service=self.get_principal_service(),
@@ -148,7 +149,7 @@ class TopicDataService(TopicStructureService):
 			self.raise_exception(f'Id not found from data[{data}] on merge into {self.raise_on_topic()}.')
 		try:
 			previous_topic_data = self.find_previous_data_by_id(id_, True)
-			topic_data = self.try_to_wrap_data(data)
+			topic_data = self.try_to_wrap_to_topic_data(data)
 			data_entity_helper.assign_id_column(topic_data, id_)
 			# copy insert time from previous
 			insert_time = data_entity_helper.find_insert_time(previous_topic_data)
@@ -162,7 +163,7 @@ class TopicDataService(TopicStructureService):
 				raise DataKernelException(
 					f'Data not found by data[{data}] on merge into topic[id={topic.topicId}, name={topic.name}].')
 			return TopicTrigger(
-				previous=self.try_to_unwrap_topic_data(previous_topic_data),
+				previous=self.try_to_unwrap_from_topic_data(previous_topic_data),
 				current=data,
 				triggerType=PipelineTriggerType.MERGE,
 				internalDataId=id_
@@ -193,7 +194,7 @@ class TopicDataService(TopicStructureService):
 			if deleted_count == 0:
 				self.raise_exception(f'Data not found by data[{data}] on delete from {self.raise_on_topic()}.')
 			return TopicTrigger(
-				previous=self.try_to_unwrap_topic_data(previous_topic_data),
+				previous=self.try_to_unwrap_from_topic_data(previous_topic_data),
 				current=None,
 				triggerType=PipelineTriggerType.DELETE,
 				internalDataId=id_
@@ -296,6 +297,21 @@ class TopicDataService(TopicStructureService):
 			return storage.delete(data_entity_helper.get_entity_deleter(criteria)), criteria
 		finally:
 			storage.close()
+
+	def page(self, pageable: Pageable) -> DataPage:
+		data_entity_helper = self.get_data_entity_helper()
+		storage = self.get_storage()
+		try:
+			storage.connect()
+			return self.storage.page(data_entity_helper.get_entity_pager([], pageable))
+		finally:
+			storage.close()
+
+	def page_and_unwrap(self, pageable: Pageable) -> DataPage:
+		page = self.page(pageable)
+		if page.data is not None and len(page.data) != 0:
+			page.data = ArrayHelper(page.data).map(lambda x: self.try_to_unwrap_from_topic_data(x)).to_list()
+		return page
 
 	def truncate(self) -> None:
 		"""

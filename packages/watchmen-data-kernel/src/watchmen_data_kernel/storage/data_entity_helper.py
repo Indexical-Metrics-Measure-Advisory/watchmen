@@ -5,10 +5,10 @@ from typing import Any, Dict, List, Optional, Tuple
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.admin import Topic
-from watchmen_model.common import TenantId
+from watchmen_model.common import Pageable, TenantId
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import ColumnNameLiteral, EntityColumnName, EntityCriteria, EntityCriteriaExpression, \
-	EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityIdHelper, EntitySort, \
+	EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityIdHelper, EntityPager, EntitySort, \
 	EntityStraightColumn, EntityStraightValuesFinder, EntityUpdate, EntityUpdater, SnowflakeGenerator
 from .shaper import TopicShaper
 
@@ -69,6 +69,17 @@ class TopicDataEntityHelper:
 			shaper=entity_helper.shaper,
 			criteria=criteria,
 			sort=sort
+		)
+
+	def get_entity_pager(
+			self, criteria: EntityCriteria, pageable: Pageable, sort: Optional[EntitySort] = None) -> EntityPager:
+		entity_helper = self.get_entity_helper()
+		return EntityPager(
+			name=entity_helper.name,
+			shaper=entity_helper.shaper,
+			criteria=criteria,
+			sort=sort,
+			pageable=pageable
 		)
 
 	def get_distinct_values_finder(

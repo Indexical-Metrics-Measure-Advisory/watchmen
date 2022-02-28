@@ -60,8 +60,8 @@ class RegularTopicDataEntityHelper(TopicDataEntityHelper):
 
 
 class RegularTopicDataService(TopicDataService):
-	def try_to_wrap_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
+	def try_to_wrap_to_topic_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
 		return data
 
-	def try_to_unwrap_topic_data(self, topic_data: Dict[str, Any]) -> Dict[str, Any]:
+	def try_to_unwrap_from_topic_data(self, topic_data: Dict[str, Any]) -> Dict[str, Any]:
 		return topic_data
