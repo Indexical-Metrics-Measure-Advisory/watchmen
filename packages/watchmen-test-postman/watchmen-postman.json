@@ -2886,7 +2886,7 @@
                   "script": {
                     "id": "ea450bac-d608-4d7b-87d0-d8bb72ab2cb1",
                     "exec": [
-                      "pm.test(\"List Connected Space\", () => {",
+                      "pm.test(\"Load Pipeline By Id\", () => {",
                       "    pm.response.to.have.status(200);",
                       "});",
                       ""
@@ -2920,7 +2920,7 @@
                   "script": {
                     "id": "960b9e42-0588-4b60-a722-ea972aa2c655",
                     "exec": [
-                      "pm.test(\"Rename Connected Space\", () => {",
+                      "pm.test(\"Load Pipeline By Id\", () => {",
                       "    pm.response.to.have.status(200);",
                       "});"
                     ],
