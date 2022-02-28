@@ -156,6 +156,6 @@ def build_criteria_for_statement(
 	if where is not None:
 		return statement.where(where)
 	elif raise_exception_on_missed:
-		raise NoCriteriaForUpdateException(f'No criteria found for update[{criteria}].')
+		raise NoCriteriaForUpdateException(f'No criteria found from update[{criteria}].')
 	else:
 		return statement

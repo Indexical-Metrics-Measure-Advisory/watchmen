@@ -23,6 +23,10 @@ class UnsupportedStraightColumnException(UnexpectedStorageException):
 	pass
 
 
+class NoFreeJoinException(UnexpectedStorageException):
+	pass
+
+
 class NoCriteriaForUpdateException(UnexpectedStorageException):
 	pass
 
