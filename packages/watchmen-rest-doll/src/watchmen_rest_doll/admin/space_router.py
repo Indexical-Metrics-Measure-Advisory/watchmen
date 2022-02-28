@@ -236,7 +236,7 @@ async def find_spaces_by_name(
 	return trans_readonly(space_service, action)
 
 
-@router.get("/space/available", tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Space])
+@router.get('/space/available', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Space])
 async def find_available_spaces(principal_service: PrincipalService = Depends(get_console_principal)) -> List[Space]:
 	space_service = get_space_service(principal_service)
 
@@ -286,7 +286,7 @@ async def find_spaces_by_ids(
 	return trans_readonly(space_service, action)
 
 
-@router.get("/space/export", tags=[UserRole.ADMIN], response_model=List[Space])
+@router.get('/space/export', tags=[UserRole.ADMIN], response_model=List[Space])
 async def find_spaces_for_export(principal_service: PrincipalService = Depends(get_admin_principal)):
 	space_service = get_space_service(principal_service)
 

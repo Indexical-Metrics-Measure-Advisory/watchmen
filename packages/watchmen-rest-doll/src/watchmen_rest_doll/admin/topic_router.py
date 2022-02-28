@@ -95,7 +95,7 @@ def ask_save_topic_action(topic_service: TopicService, principal_service: Princi
 	return action
 
 
-@router.post("/topic", tags=[UserRole.ADMIN], response_model=Topic)
+@router.post('/topic', tags=[UserRole.ADMIN], response_model=Topic)
 async def save_topic(
 		topic: Topic, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> Topic:
@@ -109,7 +109,7 @@ class QueryTopicDataPage(DataPage):
 	data: List[Topic]
 
 
-@router.post("/topic/name", tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=QueryTopicDataPage)
+@router.post('/topic/name', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=QueryTopicDataPage)
 async def find_topics_page_by_name(
 		query_name: Optional[str], pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_console_principal)
@@ -148,7 +148,7 @@ def to_exclude_types(exclude_types: Optional[str]) -> List[TopicType]:
 			.to_list()
 
 
-@router.get("/topic/list/name", tags=[UserRole.ADMIN], response_model=List[Topic])
+@router.get('/topic/list/name', tags=[UserRole.ADMIN], response_model=List[Topic])
 async def find_topics_by_name(
 		query_name: Optional[str], exclude_types: Optional[str],
 		principal_service: PrincipalService = Depends(get_console_principal)
@@ -167,7 +167,7 @@ async def find_topics_by_name(
 	return trans_readonly(topic_service, action)
 
 
-@router.post("/topic/ids", tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Topic])
+@router.post('/topic/ids', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Topic])
 async def find_topics_by_ids(
 		topic_ids: List[TopicId],
 		principal_service: PrincipalService = Depends(get_console_principal)
@@ -184,7 +184,7 @@ async def find_topics_by_ids(
 	return trans_readonly(topic_service, action)
 
 
-@router.get("/topic/all", tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Topic])
+@router.get('/topic/all', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Topic])
 async def find_all_topics(principal_service: PrincipalService = Depends(get_console_principal)) -> List[Topic]:
 	tenant_id = principal_service.get_tenant_id()
 

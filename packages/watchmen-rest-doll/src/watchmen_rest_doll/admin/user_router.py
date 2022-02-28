@@ -247,10 +247,6 @@ async def find_users_by_name(
 	return trans_readonly(user_service, action)
 
 
-# @router.get("/query/user/group", tags=["admin"], response_model=List[User])
-# async def query_user_list_for_user_group(query_name, current_user: User = Depends(deps.get_current_user)):
-#     return load_user_list_by_name(query_name, current_user)
-
 @router.post('/user/ids', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=List[User])
 async def find_users_by_ids(
 		user_ids: List[UserId], principal_service: PrincipalService = Depends(get_any_admin_principal)
