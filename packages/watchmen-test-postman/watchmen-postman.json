@@ -2646,7 +2646,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "SUBJECT DELETE BY ID",
               "id": "6211c016-097c-47fb-967e-1f8b70d2682f",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
