@@ -3,15 +3,12 @@ from typing import Dict, List, Optional
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.meta import TopicService
 from watchmen_data_kernel.topic_schema import TopicSchema
-from watchmen_data_kernel.utils import parse_variable
+from watchmen_data_kernel.utils import MightAVariable, parse_function_in_variable, parse_variable
 from watchmen_inquiry_kernel.common import InquiryKernelException
 from watchmen_model.admin import Topic
 from watchmen_model.common import ComputedParameter, ConstantParameter, Parameter, ParameterComputeType, \
-	ParameterCondition, \
-	ParameterExpression, \
-	ParameterExpressionOperator, \
-	ParameterJoint, \
-	TopicFactorParameter, TopicId
+	ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, TopicFactorParameter, \
+	TopicId, VariablePredefineFunctions
 from watchmen_model.console import Subject, SubjectDatasetColumn, SubjectDatasetJoin
 from watchmen_utilities import ArrayHelper, is_blank
 
@@ -56,7 +53,7 @@ def find_topic_schemas_by_joins(
 	return ArrayHelper(joins).reduce(find_topic_by_join, [])
 
 
-def find_topic_schema_by_topic_factor_parameter(
+def find_topic_schemas_by_topic_factor_parameter(
 		parameter: TopicFactorParameter, principal_service: PrincipalService) -> List[TopicSchema]:
 	topic_id = parameter.topicId
 	if is_blank(topic_id):
@@ -71,7 +68,7 @@ def find_topic_schema_by_topic_factor_parameter(
 	return [schema]
 
 
-def find_topic_schema_by_constant_parameter(
+def find_topic_schemas_by_constant_parameter(
 		parameter: ConstantParameter, principal_service: PrincipalService) -> List[TopicSchema]:
 	value = parameter.value
 	if is_blank(value):
@@ -79,17 +76,48 @@ def find_topic_schema_by_constant_parameter(
 	if '{' not in value:
 		return []
 
-	variables = parse_variable(value)
-	# if variable_name.startswith(VariablePredefineFunctions.YEAR_DIFF.value):
-	# 	return create_date_diff(prefix, variable_name, VariablePredefineFunctions.YEAR_DIFF)
-	# elif variable_name.startswith(VariablePredefineFunctions.MONTH_DIFF.value):
-	# 	return create_date_diff(prefix, variable_name, VariablePredefineFunctions.MONTH_DIFF)
-	# elif variable_name.startswith(VariablePredefineFunctions.DAY_DIFF.value):
-	# 	return create_date_diff(prefix, variable_name, VariablePredefineFunctions.DAY_DIFF)
-	# parsed_params = parse_function_in_variable(variable_name, function.value, 2)
+	_, variables = parse_variable(value)
+
+	topic_service = get_topic_service(principal_service)
+
+	def find_topic_schemas_by_function_parameter(parameter_name: str) -> Optional[TopicSchema]:
+		if not parameter_name.startswith('&'):
+			return None
+
+		names = parameter_name[1:].split('.')
+		if len(names) != 2:
+			raise InquiryKernelException(f'Variable name[{parameter_name}] is not supported.')
+		topic_name = names[0]
+		schema: Optional[TopicSchema] = topic_service.find_schema_by_name(topic_name, principal_service.get_tenant_id())
+		if schema is None:
+			raise InquiryKernelException(f'Topic[name={topic_name}] not found.')
+		return schema
+
+	def find_topic_schemas_by_variable(variable: MightAVariable) -> List[TopicSchema]:
+		if not variable.has_variable():
+			return []
+		variable_name = variable.variable
+		if variable_name.startswith(VariablePredefineFunctions.YEAR_DIFF.value):
+			parsed_params = parse_function_in_variable(variable_name, VariablePredefineFunctions.YEAR_DIFF.value, 2)
+		elif variable_name.startswith(VariablePredefineFunctions.MONTH_DIFF.value):
+			parsed_params = parse_function_in_variable(variable_name, VariablePredefineFunctions.MONTH_DIFF.value, 2)
+		elif variable_name.startswith(VariablePredefineFunctions.DAY_DIFF.value):
+			parsed_params = parse_function_in_variable(variable_name, VariablePredefineFunctions.DAY_DIFF.value, 2)
+		else:
+			return []
+
+		return ArrayHelper(parsed_params) \
+			.map(lambda x: find_topic_schemas_by_function_parameter(x)) \
+			.filter(lambda x: x is not None) \
+			.to_list()
+
+	def find_each(schemas: List[TopicSchema], variable: MightAVariable) -> List[TopicSchema]:
+		return ArrayHelper(schemas).grab(*find_topic_schemas_by_variable(variable)).to_list()
+
+	return ArrayHelper(variables).reduce(find_each, [])
 
 
-def find_topic_schema_by_computed_parameter(
+def find_topic_schemas_by_computed_parameter(
 		parameter: ComputedParameter, principal_service: PrincipalService) -> List[TopicSchema]:
 	if parameter.parameters is None or len(parameter.parameters) == 0:
 		raise InquiryKernelException(f'At least 1 parameter on computation.')
@@ -111,11 +139,11 @@ def find_topic_schemas_by_parameter(
 	if parameter is None:
 		raise InquiryKernelException('Parameter cannot be none.')
 	if isinstance(parameter, TopicFactorParameter):
-		return find_topic_schema_by_topic_factor_parameter(parameter, principal_service)
+		return find_topic_schemas_by_topic_factor_parameter(parameter, principal_service)
 	elif isinstance(parameter, ConstantParameter):
-		return find_topic_schema_by_constant_parameter(parameter, principal_service)
+		return find_topic_schemas_by_constant_parameter(parameter, principal_service)
 	elif isinstance(parameter, ComputedParameter):
-		return find_topic_schema_by_computed_parameter(parameter, principal_service)
+		return find_topic_schemas_by_computed_parameter(parameter, principal_service)
 	else:
 		raise InquiryKernelException(f'Parameter[{parameter.dict()}] is not supported.')
 

@@ -173,7 +173,7 @@ def create_date_diff(
 					# in console, topic.factor, topic must in given available schemas
 					if '.' not in name:
 						raise DataKernelException(f'Variable name[{name}] is not supported.')
-					names = name.split('.')
+					names = name[1:].split('.')
 					if len(names) != 2:
 						raise DataKernelException(f'Variable name[{name}] is not supported.')
 					topic_name = names[0]
