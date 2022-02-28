@@ -1185,6 +1185,29 @@
             },
             {
               "name": "USER GROPU LOAD BY ID",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "5ee25c5f-4b47-4a3b-b3e2-39373a3a87dc",
+                    "exec": [
+                      "pm.test('Load User Group By Id', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.userGroupId).to.not.be.null;",
+                      "    pm.expect(data.name).to.eql('Test-Group')",
+                      "    pm.expect(data.tenantId).to.not.be.null;",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "988d6f91-536d-4312-9931-bdc64ee8b2fe",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
@@ -1218,6 +1241,20 @@
             },
             {
               "name": "USER GROUP FIND PAGE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "25f91009-411c-4271-9cd8-5188afe26270",
+                    "exec": [
+                      "pm.test(\"Find User Group Pageable\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "71965ab2-c02f-48fc-ba09-3ca8e7de2b45",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
@@ -1237,8 +1274,7 @@
                   "query": [
                     {
                       "key": "query_name",
-                      "value": null,
-                      "type": "text"
+                      "value": null
                     }
                   ]
                 }
@@ -1655,7 +1691,7 @@
                 },
                 "method": "GET",
                 "header": [],
-                "url": "/space/available"
+                "url": "{{URL_PREFIX}}/space/available"
               },
               "response": []
             },
@@ -1725,6 +1761,12 @@
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
                 "header": [],
                 "url": "{{URL_PREFIX}}/space/export"
@@ -2584,7 +2626,138 @@
       "item": [
         {
           "name": "SUBJECT",
-          "item": [],
+          "item": [
+            {
+              "name": "SUBJECT CREATE",
+              "id": "7dc8c5ba-a1d8-41b1-bfd7-02f9e071f9b4",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/subject"
+              },
+              "response": []
+            },
+            {
+              "name": "SUBJECT RENAME",
+              "id": "ec07ad7a-87a8-4677-ac06-2bcaff582d0e",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/subject/rename?subject_id={{SUBJECT_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "subject",
+                    "rename"
+                  ],
+                  "query": [
+                    {
+                      "key": "subject_id",
+                      "value": "{{SUBJECT_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "SUBJECT DELETE BY ID",
+              "id": "6211c016-097c-47fb-967e-1f8b70d2682f",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/subject/delete?subject_id={{SUBJECT_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "subject",
+                    "delete"
+                  ],
+                  "query": [
+                    {
+                      "key": "subject_id",
+                      "value": "{{SUBJECT_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "SUBJECT DELETE",
+              "id": "d295c9ff-d0c9-4761-9730-76d0149b9887",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/subject?subject_id={{SUBJECT_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "subject"
+                  ],
+                  "query": [
+                    {
+                      "key": "subject_id",
+                      "value": "{{SUBJECT_ID}}",
+                      "type": "text"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ],
           "id": "56b09cda-c4e8-4471-8008-3ba794718bf2"
         },
         {
