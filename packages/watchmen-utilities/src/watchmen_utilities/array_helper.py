@@ -5,6 +5,7 @@ from typing import Any, Callable, List, Optional, Tuple
 ArrayPredicate = Callable[[Any], bool]
 ArrayFind = Callable[[Any], Tuple[bool, Any]]
 ArrayTransform = Callable[[Any], Any]
+ArrayWithIndexTransform = Callable[[Any, int], Any]
 ArrayAction = Callable[[Any], None]
 ArrayWithIndexAction = Callable[[Any, int], None]
 ArrayCompare = Callable[[Any, Any], bool]
@@ -111,6 +112,15 @@ class ArrayHelper:
 		new_list: list = []
 		for an_element in self.aList:
 			new_list.append(func(an_element))
+		return ArrayHelper(new_list)
+
+	def map_with_index(self, func: ArrayWithIndexTransform) -> ArrayHelper:
+		"""
+		transform each element by given transform function
+		"""
+		new_list: list = []
+		for index, an_element in enumerate(self.aList):
+			new_list.append(func(an_element, index))
 		return ArrayHelper(new_list)
 
 	def reduce(self, func: ArrayReduce, accumulator: Optional[Any]) -> Any:
