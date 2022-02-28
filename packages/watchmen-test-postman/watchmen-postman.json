@@ -2829,7 +2829,8 @@
               },
               "request": {
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": "/connected_space/list"
               },
               "response": []
             }
