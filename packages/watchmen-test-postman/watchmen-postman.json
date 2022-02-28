@@ -3265,8 +3265,30 @@
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/dashboard?dashboard_id={{DASHBOARD_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "dashboard"
+                  ],
+                  "query": [
+                    {
+                      "key": "dashboard_id",
+                      "value": "{{DASHBOARD_ID}}",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
