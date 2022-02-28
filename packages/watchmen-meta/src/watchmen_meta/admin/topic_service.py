@@ -3,7 +3,8 @@ from typing import List, Optional
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_model.admin import Factor, Topic, TopicType
 from watchmen_model.common import DataPage, FactorId, Pageable, TenantId, TopicId
-from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, \
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaJoint, \
+	EntityCriteriaJointConjunction, EntityCriteriaOperator, \
 	EntityDistinctValuesFinder, EntityRow, EntityShaper, SnowflakeGenerator
 from watchmen_utilities import ArrayHelper
 
@@ -91,10 +92,16 @@ class TopicService(TupleService):
 	def find_page_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
 		criteria = []
 		if text is not None and len(text.strip()) != 0:
-			criteria.append(EntityCriteriaExpression(
-				left=ColumnNameLiteral(columnName='name'), operator=EntityCriteriaOperator.LIKE, right=text))
-			criteria.append(EntityCriteriaExpression(
-				left=ColumnNameLiteral(columnName='description'), operator=EntityCriteriaOperator.LIKE, right=text))
+			criteria.append(EntityCriteriaJoint(
+				conjunction=EntityCriteriaJointConjunction.OR,
+				children=[
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(columnName='name'), operator=EntityCriteriaOperator.LIKE, right=text),
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(columnName='description'), operator=EntityCriteriaOperator.LIKE,
+						right=text)
+				]
+			))
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))

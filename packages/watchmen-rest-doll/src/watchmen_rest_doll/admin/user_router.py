@@ -115,9 +115,7 @@ def remove_user_id_from_user_group(user_group: UserGroup, user_id: UserId) -> Us
 
 # noinspection DuplicatedCode
 def remove_user_from_groups(
-		user_service: UserService,
-		user_id: UserId, user_group_ids: List[UserGroupId],
-		tenant_id: TenantId
+		user_service: UserService, user_id: UserId, user_group_ids: List[UserGroupId], tenant_id: TenantId
 ) -> None:
 	if user_group_ids is None:
 		return
@@ -291,6 +289,10 @@ async def delete_user_by_id_by_super_admin(
 		user: User = user_service.delete(user_id)
 		if user is None:
 			raise_404()
+		user_group_ids = user.groupIds
+		if user_group_ids is not None and len(user_group_ids) != 0:
+			user_group_ids = ArrayHelper(user_group_ids).filter(lambda x: is_not_blank(x)).to_list()
+			remove_user_from_groups(user_service, user.userId, user_group_ids, user.tenantId)
 		return user
 
 	return trans(user_service, action)

@@ -3,21 +3,26 @@ from typing import Callable, List, Optional
 from fastapi import APIRouter, Body, Depends
 
 from watchmen_auth import PrincipalService
-from watchmen_meta.admin import SpaceService, TopicService, UserGroupService
+from watchmen_meta.admin import SpaceService, TopicService, UserGroupService, UserService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
-from watchmen_model.admin import Space, UserGroup, UserRole
+from watchmen_model.admin import Space, User, UserGroup, UserRole
 from watchmen_model.common import DataPage, Pageable, SpaceId, TenantId, TopicId, UserGroupId
 from watchmen_rest import get_admin_principal, get_console_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly, validate_tenant_id
-from watchmen_utilities import ArrayHelper, is_blank
+from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 
 router = APIRouter()
 
 
 def get_space_service(principal_service: PrincipalService) -> SpaceService:
 	return SpaceService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
+def get_user_service(space_service: SpaceService) -> UserService:
+	return UserService(
+		space_service.storage, space_service.snowflakeGenerator, space_service.principalService)
 
 
 def get_user_group_service(space_service: SpaceService) -> UserGroupService:
@@ -237,8 +242,30 @@ async def find_available_spaces(principal_service: PrincipalService = Depends(ge
 
 	def action() -> List[Space]:
 		tenant_id: TenantId = principal_service.get_tenant_id()
+		user_id = principal_service.get_user_id()
 		# noinspection PyTypeChecker
-		return space_service.find_all(tenant_id)
+		user: User = get_user_service(space_service).find_by_id(user_id)
+		user_group_ids = user.groupIds
+		if user_group_ids is None or len(user_group_ids) == 0:
+			return []
+		user_group_ids = ArrayHelper(user_group_ids).filter(lambda x: is_not_blank(x)).to_list()
+		if len(user_group_ids) == 0:
+			return []
+		user_group_service = get_user_group_service(space_service)
+		user_groups = user_group_service.find_by_ids(user_group_ids, tenant_id)
+
+		def gather_space_ids(distinct_space_ids: List[SpaceId], user_group: UserGroup) -> List[SpaceId]:
+			given_space_ids = user_group.spaceIds
+			if given_space_ids is None or len(given_space_ids) == 0:
+				return distinct_space_ids
+			given_space_ids = ArrayHelper(given_space_ids).filter(lambda x: is_not_blank(x)).to_list()
+			for space_id in given_space_ids:
+				if space_id not in distinct_space_ids:
+					distinct_space_ids.append(space_id)
+			return distinct_space_ids
+
+		space_ids = ArrayHelper(user_groups).reduce(lambda space_ids, user_group: gather_space_ids, [])
+		return space_service.find_by_ids(space_ids, tenant_id)
 
 	return trans_readonly(space_service, action)
 
@@ -288,6 +315,10 @@ async def delete_space_by_id_by_super_admin(
 		space: Space = space_service.delete(space_id)
 		if space is None:
 			raise_404()
+		user_group_ids = space.groupIds
+		if user_group_ids is not None and len(user_group_ids) != 0:
+			user_group_ids = ArrayHelper(user_group_ids).filter(lambda x: is_not_blank(x)).to_list()
+			remove_space_from_groups(space_service, space.spaceId, user_group_ids, space.tenantId)
 		return space
 
 	return trans(space_service, action)

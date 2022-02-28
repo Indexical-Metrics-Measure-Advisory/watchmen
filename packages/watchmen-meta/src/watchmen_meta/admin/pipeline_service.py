@@ -76,12 +76,13 @@ class PipelineService(TupleService):
 			],
 			distinctColumnNames=['tenant_id']
 		)
-		rows = self.storage.find_distinct_values(finder)
+		# noinspection PyTypeChecker
+		rows: List[Pipeline] = self.storage.find_distinct_values(finder)
 		count = len(rows)
 		if count == 0:
 			return None
 		elif count == 1:
-			return rows[0].get('tenant_id')
+			return rows[0].tenandId
 		else:
 			raise TooManyEntitiesFoundException(f'Too many entities found by finder[{finder}].')
 
