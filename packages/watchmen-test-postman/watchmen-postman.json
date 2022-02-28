@@ -2811,13 +2811,73 @@
           "item": [
             {
               "name": "CONNECTED SPACE CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "964f1734-0f25-480d-84c9-5b509cd29ca1",
+                    "exec": [
+                      "pm.test('Create Connected Space', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.spaceId).to.not.be.null;",
+                      "    pm.expect(data.name).to.eql('Test-Space')",
+                      "    pm.expect(data.tenantId).to.not.be.null;",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.environment.set('CONNECT_ID', data.spaceId);",
+                      "    pm.environment.set('CONNECTED_SPACE_ID', data.spaceId);",
+                      "    pm.environment.set('CONNECTED_SPACE_NAME', data.name);",
+                      "    pm.environment.set('CONNECTED_SPACE_CREATED_AT', data.createdAt);",
+                      "    pm.environment.set('CONNECTED_SPACE_CREATED_BY', data.createdBy);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "1ded2608-b13a-4734-b5c1-ac38dbe15f70",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/connected_space/connect?space_id={{SPACE_ID}}&name={{SPACE_NAME}}&template_ids",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "connected_space",
+                    "connect"
+                  ],
+                  "query": [
+                    {
+                      "key": "space_id",
+                      "value": "{{SPACE_ID}}",
+                      "type": "text"
+                    },
+                    {
+                      "key": "name",
+                      "value": "{{SPACE_NAME}}",
+                      "type": "text"
+                    },
+                    {
+                      "key": "template_ids",
+                      "value": null,
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             },
