@@ -2821,7 +2821,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "CONNECTED SPACE",
               "id": "57d1e87b-26c7-4722-b64f-beb2ce120053",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
