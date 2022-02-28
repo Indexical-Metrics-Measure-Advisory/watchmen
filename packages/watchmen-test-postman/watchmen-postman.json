@@ -3045,8 +3045,7 @@
               },
               "request": {
                 "method": "GET",
-                "header": [],
-                "url": "/connected_space/export"
+                "header": []
               },
               "response": []
             }
