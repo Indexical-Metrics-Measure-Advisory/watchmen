@@ -3082,13 +3082,34 @@
             },
             {
               "name": "ADMIN DASHBOARD LOAD",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "79d65681-9d9c-43ec-afc2-7f764c95574b",
+                    "exec": [
+                      "pm.test('Load Admin Dashboard', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "541b6263-4a52-4caf-9e80-673f83e9d9cb",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": "{{URL_PREFIX}}/dashboard/admin"
               },
               "response": []
             }
