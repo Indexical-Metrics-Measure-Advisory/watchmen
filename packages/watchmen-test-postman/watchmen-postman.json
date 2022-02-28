@@ -1241,6 +1241,20 @@
             },
             {
               "name": "USER GROUP FIND PAGE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "25f91009-411c-4271-9cd8-5188afe26270",
+                    "exec": [
+                      "pm.test(\"Find User Group Pageable\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "71965ab2-c02f-48fc-ba09-3ca8e7de2b45",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
@@ -1260,8 +1274,7 @@
                   "query": [
                     {
                       "key": "query_name",
-                      "value": null,
-                      "type": "text"
+                      "value": null
                     }
                   ]
                 }
