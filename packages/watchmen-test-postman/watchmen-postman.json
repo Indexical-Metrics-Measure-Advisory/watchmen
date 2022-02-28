@@ -2792,7 +2792,7 @@
           "name": "CONNECTED SPACE GRAPHIC",
           "item": [
             {
-              "name": "New Request",
+              "name": "SPACE GRAPHIC CREATE",
               "id": "5e005d9b-5807-486c-9194-81c751523cda",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
