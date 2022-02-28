@@ -3033,8 +3033,32 @@
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{ADMIN_JWT_TOKEN}}"
+                  }
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name=test_topic",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "topic",
+                    "data",
+                    "truncate"
+                  ],
+                  "query": [
+                    {
+                      "key": "topic_name",
+                      "value": "test_topic",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
