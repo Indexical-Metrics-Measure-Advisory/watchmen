@@ -1,12 +1,14 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Body, Depends
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.meta import TopicService
 from watchmen_data_kernel.service import ask_topic_data_service, ask_topic_storage
+from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_data_surface.settings import ask_truncate_topic_data
 from watchmen_model.admin import UserRole
+from watchmen_model.common import DataPage, Pageable, TenantId
 from watchmen_rest import get_any_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_utilities import is_blank, is_not_blank
@@ -18,11 +20,8 @@ def get_topic_service(principal_service: PrincipalService) -> TopicService:
 	return TopicService(principal_service)
 
 
-@router.delete('/topic/data/truncate', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN])
-async def trigger_pipeline(
-		topic_name: str, tenant_id: Optional[str] = None,
-		principal_service: PrincipalService = Depends(get_any_admin_principal)
-) -> None:
+def get_topic_schema(
+		topic_name: str, tenant_id: Optional[TenantId], principal_service: PrincipalService) -> TopicSchema:
 	if not ask_truncate_topic_data():
 		raise_404('Not Found')
 
@@ -38,7 +37,27 @@ async def trigger_pipeline(
 	schema = get_topic_service(principal_service).find_schema_by_name(topic_name, tenant_id)
 	if schema is None:
 		raise_404('Topic not found.')
+	return schema
 
+
+@router.post('/topic/data', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=DataPage)
+async def fetch_topic_data(
+		topic_name: str, tenant_id: Optional[TenantId] = None,
+		pageable: Pageable = Body(...),
+		principal_service: PrincipalService = Depends(get_any_admin_principal)
+) -> DataPage:
+	schema = get_topic_schema(topic_name, tenant_id, principal_service)
+	storage = ask_topic_storage(schema, principal_service)
+	service = ask_topic_data_service(schema, storage, principal_service)
+	return service.page_and_unwrap(pageable)
+
+
+@router.delete('/topic/data/truncate', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN])
+async def truncate_topic_data(
+		topic_name: str, tenant_id: Optional[TenantId] = None,
+		principal_service: PrincipalService = Depends(get_any_admin_principal)
+) -> None:
+	schema = get_topic_schema(topic_name, tenant_id, principal_service)
 	storage = ask_topic_storage(schema, principal_service)
 	service = ask_topic_data_service(schema, storage, principal_service)
 	service.truncate()

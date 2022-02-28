@@ -57,7 +57,7 @@ class RawTopicDataEntityHelper(TopicDataEntityHelper):
 
 
 class RawTopicDataService(TopicDataService):
-	def try_to_wrap_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
+	def try_to_wrap_to_topic_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
 		if TopicDataColumnNames.ID.value in data:
 			del data[TopicDataColumnNames.ID.value]
 		if TopicDataColumnNames.TENANT_ID.value in data:
@@ -70,5 +70,23 @@ class RawTopicDataService(TopicDataService):
 			TopicDataColumnNames.RAW_TOPIC_DATA.value: data
 		}
 
-	def try_to_unwrap_topic_data(self, topic_data: Dict[str, Any]) -> Dict[str, Any]:
-		return topic_data.get(TopicDataColumnNames.RAW_TOPIC_DATA.value)
+	def try_to_unwrap_from_topic_data(self, topic_data: Dict[str, Any]) -> Dict[str, Any]:
+		unwrapped_data = {}
+
+		# remove flatten factors
+		reserved_keys = [
+			TopicDataColumnNames.ID.value,
+			TopicDataColumnNames.TENANT_ID.value,
+			TopicDataColumnNames.INSERT_TIME.value,
+			TopicDataColumnNames.UPDATE_TIME.value
+		]
+		for key, value in topic_data:
+			if key in reserved_keys:
+				unwrapped_data[key] = value
+
+		if TopicDataColumnNames.RAW_TOPIC_DATA.value in topic_data:
+			pure_data = topic_data.get(TopicDataColumnNames.RAW_TOPIC_DATA.value)
+			if pure_data is not None:
+				for key, value in pure_data.items():
+					unwrapped_data[key] = value
+		return unwrapped_data
