@@ -3081,7 +3081,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "ADMIN DASHBOARD LOAD",
               "id": "541b6263-4a52-4caf-9e80-673f83e9d9cb",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
