@@ -296,3 +296,13 @@ class TopicDataService(TopicStructureService):
 			return storage.delete(data_entity_helper.get_entity_deleter(criteria)), criteria
 		finally:
 			storage.close()
+
+	def truncate(self) -> None:
+		"""
+		truncate data
+		"""
+		storage = self.get_storage()
+		try:
+			storage.connect()
+		finally:
+			storage.close()
