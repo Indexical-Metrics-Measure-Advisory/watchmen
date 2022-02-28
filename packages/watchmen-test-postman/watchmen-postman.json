@@ -3335,7 +3335,23 @@
                 },
                 "method": "DELETE",
                 "header": [],
-                "url": "{{URL_PREFIX}}/connected_space/graphics"
+                "url": {
+                  "raw": "{{URL_PREFIX}}/connected_space/graphics?connect_id={{CONNECT_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "connected_space",
+                    "graphics"
+                  ],
+                  "query": [
+                    {
+                      "key": "connect_id",
+                      "value": "{{CONNECT_ID}}",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
