@@ -3031,14 +3031,34 @@
             },
             {
               "name": "CONNECTED SPACE EXPORT",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "b2d8ba73-9b50-4db1-8866-a3bcb131feb1",
+                    "exec": [
+                      "pm.test(\"Export Template Connected Space\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "b303d824-9c21-4c3b-aec8-0434c00c9f72",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
                 "header": [],
-                "url": "/connected_space/export"
+                "url": "{{URL_PREFIX}}/connected_space/export"
               },
               "response": []
             },
