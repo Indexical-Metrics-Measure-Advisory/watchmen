@@ -3155,7 +3155,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "DASHBOARD RENAME",
               "id": "4df34ae6-9f55-478d-9cc4-68a474a297ba",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
