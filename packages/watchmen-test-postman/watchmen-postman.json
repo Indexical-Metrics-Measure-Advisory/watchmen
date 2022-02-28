@@ -2922,8 +2922,6 @@
                     "exec": [
                       "pm.test(\"Load Pipeline By Id\", () => {",
                       "    pm.response.to.have.status(200);",
-                      "    const data = pm.response.json();",
-                      "    pm.expect(data.name).to.eql('Test-Space2')",
                       "});"
                     ],
                     "type": "text/javascript"
@@ -2955,13 +2953,11 @@
                   "query": [
                     {
                       "key": "connect_id",
-                      "value": "{{CONNECT_ID}}",
-                      "type": "text"
+                      "value": "{{CONNECT_ID}}"
                     },
                     {
                       "key": "name",
-                      "value": "Test-Space2",
-                      "type": "text"
+                      "value": "Test-Space2"
                     }
                   ]
                 }
