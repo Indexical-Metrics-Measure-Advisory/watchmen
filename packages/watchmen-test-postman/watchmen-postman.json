@@ -2639,9 +2639,7 @@
                       "pm.test('Create Topic', () => {",
                       "    pm.response.to.have.status(200);",
                       "    const data = pm.response.json();",
-                      "    pm.expect(data.topicId).to.not.be.null;",
-                      "    pm.environment.set(\"TOPIC_ID\", data.topicId);",
-                      "    pm.environment.set(\"TOPIC_NAME\", data.name);",
+                      "    pm.expect(data.subjectId).to.not.be.null;",
                       "    pm.expect(data.name).to.equal(\"Test_Subject\");",
                       "    pm.expect(data.userId).to.not.be.null;",
                       "    pm.expect(data.tenantId).to.not.be.null;",
@@ -2649,7 +2647,8 @@
                       "    pm.expect(data.createdBy).to.not.be.null;",
                       "    pm.expect(data.lastModifiedAt).to.not.be.null;",
                       "    pm.expect(data.lastModifiedBy).to.not.be.null;",
-                      "    pm.expect(data.version).to.eql(1);",
+                      "    pm.environment.set(\"SUBJECT_ID\", data.subjectId);",
+                      "    pm.environment.set(\"SUBJECT_NAME\", data.name);",
                       "})"
                     ],
                     "type": "text/javascript"
