@@ -1,2 +1,2 @@
 from .exception import InquiryKernelException
-from .settings import ask_storage_directly
+from .settings import ask_use_storage_directly

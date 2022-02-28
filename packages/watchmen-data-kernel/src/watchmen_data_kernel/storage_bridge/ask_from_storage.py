@@ -94,7 +94,7 @@ def create_ask_factor_statement(
 	data_entity_helper = ask_topic_data_entity_helper(schema)
 
 	return lambda variables, principal_service: ColumnNameLiteral(
-		entityName=data_entity_helper.get_entity_name(),
+		entityName=schema.get_topic().name,
 		columnName=data_entity_helper.get_column_name(factor.name)
 	)
 

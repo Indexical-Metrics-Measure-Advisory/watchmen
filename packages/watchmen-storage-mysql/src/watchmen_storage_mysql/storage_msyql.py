@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy import delete, func, insert, select, Table, text, update
 from sqlalchemy.engine import Connection, Engine
@@ -118,7 +118,7 @@ class StorageMySQL(TransactionalStorageSPI):
 	def update(self, updater: EntityUpdater) -> int:
 		table = self.find_table(updater.name)
 		statement = update(table).values(updater.update)
-		statement = build_criteria_for_statement(table, statement, updater.criteria, True)
+		statement = build_criteria_for_statement([table], statement, updater.criteria, True)
 		result = self.connection.execute(statement)
 		return result.rowcount
 
@@ -141,7 +141,7 @@ class StorageMySQL(TransactionalStorageSPI):
 	def delete_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> int:
 		table = self.find_table(helper.name)
 		statement = delete(table)
-		statement = build_criteria_for_statement(table, statement, [
+		statement = build_criteria_for_statement([table], statement, [
 			EntityCriteriaExpression(left=ColumnNameLiteral(columnName=helper.idColumnName), right=entity_id)
 		])
 		result = self.connection.execute(statement)
@@ -180,7 +180,7 @@ class StorageMySQL(TransactionalStorageSPI):
 	def delete(self, deleter: EntityDeleter) -> int:
 		table = self.find_table(deleter.name)
 		statement = delete(table)
-		statement = build_criteria_for_statement(table, statement, deleter.criteria)
+		statement = build_criteria_for_statement([table], statement, deleter.criteria)
 		result = self.connection.execute(statement)
 		return result.rowcount
 
@@ -220,7 +220,7 @@ class StorageMySQL(TransactionalStorageSPI):
 	def find_on_statement_by_finder(
 			self, table: Table, statement: SQLAlchemyStatement, finder: EntityFinder
 	) -> EntityList:
-		statement = build_criteria_for_statement(table, statement, finder.criteria)
+		statement = build_criteria_for_statement([table], statement, finder.criteria)
 		statement = build_sort_for_statement(statement, finder.sort)
 		results = self.connection.execute(statement).mappings().all()
 		return ArrayHelper(results).map(lambda x: dict(x)).map(finder.shaper.deserialize).to_list()
@@ -262,7 +262,7 @@ class StorageMySQL(TransactionalStorageSPI):
 		statement = select(
 			*ArrayHelper(finder.straightColumns).map(self.translate_straight_column_name).to_list()) \
 			.select_from(table)
-		statement = build_criteria_for_statement(table, statement, finder.criteria)
+		statement = build_criteria_for_statement([table], statement, finder.criteria)
 		statement = build_sort_for_statement(statement, finder.sort)
 		results = self.connection.execute(statement).mappings().all()
 		return ArrayHelper(results).map(lambda x: dict(x)).to_list()
@@ -273,7 +273,7 @@ class StorageMySQL(TransactionalStorageSPI):
 	def page(self, pager: EntityPager) -> DataPage:
 		table = self.find_table(pager.name)
 		statement = select(func.count()).select_from(table)
-		statement = build_criteria_for_statement(table, statement, pager.criteria)
+		statement = build_criteria_for_statement([table], statement, pager.criteria)
 		count = self.connection.execute(statement).scalar()
 
 		if count == 0:
@@ -295,7 +295,7 @@ class StorageMySQL(TransactionalStorageSPI):
 			page_number = max_page_number
 
 		statement = select(table)
-		statement = build_criteria_for_statement(table, statement, pager.criteria)
+		statement = build_criteria_for_statement([table], statement, pager.criteria)
 		statement = build_sort_for_statement(statement, pager.sort)
 		offset = page_size * (page_number - 1)
 		statement = statement.offset(offset).limit(page_size)
@@ -312,7 +312,7 @@ class StorageMySQL(TransactionalStorageSPI):
 	def exists(self, finder: EntityFinder) -> bool:
 		table = self.find_table(finder.name)
 		statement = select(text('1')).select_from(table)
-		statement = build_criteria_for_statement(table, statement, finder.criteria)
+		statement = build_criteria_for_statement([table], statement, finder.criteria)
 		statement = statement.offset(0).limit(1)
 		results = self.connection.execute(statement).mappings().all()
 		return len(results) != 0
@@ -336,52 +336,52 @@ class TopicDataStorageMySQL(StorageMySQL, TopicDataStorageSPI):
 			on = build_literal(primary_table, join.primary) == build_literal(secondary_table, join.secondary)
 			built.join(self.find_table(secondary_entity_name), on)
 
-	def build_free_joins(self, table_joins: Optional[List[FreeJoin]]) -> Any:
+	def build_free_joins(self, table_joins: Optional[List[FreeJoin]]) -> Tuple[Any, List[Table]]:
 		if table_joins is None or len(table_joins) == 0:
 			raise NoFreeJoinException('No join found.')
 		if len(table_joins) == 1:
 			# single topic
 			entity_name = table_joins[0].primary.entityName
 			table = self.find_table(entity_name)
-			return table
+			return table, [table]
 		else:
 			# multiple tables
-			return None
+			return None, []
 
 	def free_page(self, pager: FreePager) -> DataPage:
-		pass
-	# statement = select(func.count()).select_from(self.build_free_joins(pager.joins))
-	#
-	# statement = build_criteria_for_statement(table, statement, pager.criteria)
-	# count = self.connection.execute(statement).scalar()
-	#
-	# if count == 0:
-	# 	return DataPage(
-	# 		data=[],
-	# 		pageNumber=1,
-	# 		pageSize=pager.pageable.pageSize,
-	# 		itemCount=0,
-	# 		pageCount=0
-	# 	)
-	#
-	# page_size = pager.pageable.pageSize
-	# page_number = pager.pageable.pageNumber
-	# pages = count / page_size
-	# max_page_number = int(pages)
-	# if pages > max_page_number:
-	# 	max_page_number += 1
-	# if page_number > max_page_number:
-	# 	page_number = max_page_number
-	#
-	# statement = select(table)
-	# statement = build_criteria_for_statement(table, statement, pager.criteria)
-	# offset = page_size * (page_number - 1)
-	# statement = statement.offset(offset).limit(page_size)
-	# results = self.connection.execute(statement).mappings().all()
-	# return DataPage(
-	# 	data=results,
-	# 	pageNumber=page_number,
-	# 	pageSize=page_size,
-	# 	itemCount=count,
-	# 	pageCount=max_page_number
-	# )
+		select_from, tables = self.build_free_joins(pager.joins)
+
+		statement = select(func.count()).select_from(select_from)
+		statement = build_criteria_for_statement(tables, statement, pager.criteria)
+		count = self.connection.execute(statement).scalar()
+
+		if count == 0:
+			return DataPage(
+				data=[],
+				pageNumber=1,
+				pageSize=pager.pageable.pageSize,
+				itemCount=0,
+				pageCount=0
+			)
+
+		page_size = pager.pageable.pageSize
+		page_number = pager.pageable.pageNumber
+		pages = count / page_size
+		max_page_number = int(pages)
+		if pages > max_page_number:
+			max_page_number += 1
+		if page_number > max_page_number:
+			page_number = max_page_number
+
+		statement = select(self.build_free_columns(pager.columns, tables)).select_from(select_from)
+		statement = build_criteria_for_statement(tables, statement, pager.criteria)
+		offset = page_size * (page_number - 1)
+		statement = statement.offset(offset).limit(page_size)
+		results = self.connection.execute(statement).mappings().all()
+		return DataPage(
+			data=results,
+			pageNumber=page_number,
+			pageSize=page_size,
+			itemCount=count,
+			pageCount=max_page_number
+		)

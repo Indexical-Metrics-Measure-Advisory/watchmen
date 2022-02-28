@@ -19,3 +19,4 @@ from .storage_types import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOp
 	EntityName, EntityPager, EntityRow, EntityShaper, EntitySort, EntitySortColumn, EntitySortMethod, \
 	EntityStraightAggregateColumn, EntityStraightColumn, EntityStraightTextColumn, EntityStraightValuesFinder, \
 	EntityUpdate, EntityUpdater, Literal
+from .topic_utils import as_table_name
