@@ -2827,7 +2827,7 @@
                       "    pm.expect(data.createdBy).to.not.be.null;",
                       "    pm.expect(data.lastModifiedAt).to.not.be.null;",
                       "    pm.expect(data.lastModifiedBy).to.not.be.null;",
-                      "    pm.environment.set('CONNECT_ID', data.spaceId);",
+                      "    pm.environment.set('CONNECT_ID', data.connectId);",
                       "    pm.environment.set('CONNECTED_SPACE_ID', data.spaceId);",
                       "    pm.environment.set('CONNECTED_SPACE_NAME', data.name);",
                       "    pm.environment.set('CONNECTED_SPACE_CREATED_AT', data.createdAt);",
@@ -2863,18 +2863,15 @@
                   "query": [
                     {
                       "key": "space_id",
-                      "value": "{{SPACE_ID}}",
-                      "type": "text"
+                      "value": "{{SPACE_ID}}"
                     },
                     {
                       "key": "name",
-                      "value": "{{SPACE_NAME}}",
-                      "type": "text"
+                      "value": "{{SPACE_NAME}}"
                     },
                     {
                       "key": "template_ids",
-                      "value": null,
-                      "type": "text"
+                      "value": null
                     }
                   ]
                 }
