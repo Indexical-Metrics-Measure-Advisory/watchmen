@@ -3038,14 +3038,15 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "CONNECTED SPACE EXPORT",
               "id": "b303d824-9c21-4c3b-aec8-0434c00c9f72",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": "/connected_space/export"
               },
               "response": []
             }
