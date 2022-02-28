@@ -2883,6 +2883,21 @@
             },
             {
               "name": "CONNECTED SPACE LIST",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "ea450bac-d608-4d7b-87d0-d8bb72ab2cb1",
+                    "exec": [
+                      "pm.test(\"Load Pipeline By Id\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "d2204740-fdce-4ab4-9b62-ba6d54e722be",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
