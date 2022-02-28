@@ -2985,7 +2985,7 @@
                 "method": "DELETE",
                 "header": [],
                 "url": {
-                  "raw": "{{URL_PREFIX}}/report?report_id=948063984241076224",
+                  "raw": "{{URL_PREFIX}}/report?report_id={{REPORT_ID}}",
                   "host": [
                     "{{URL_PREFIX}}"
                   ],
@@ -2995,8 +2995,7 @@
                   "query": [
                     {
                       "key": "report_id",
-                      "value": "948063984241076224",
-                      "type": "text"
+                      "value": "{{REPORT_ID}}"
                     }
                   ]
                 }
