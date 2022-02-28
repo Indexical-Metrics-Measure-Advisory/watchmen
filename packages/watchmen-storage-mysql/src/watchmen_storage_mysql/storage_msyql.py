@@ -9,7 +9,7 @@ from watchmen_model.common import DataPage
 from watchmen_storage import ColumnNameLiteral, Entity, EntityColumnAggregateArithmetic, EntityCriteriaExpression, \
 	EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, EntityIdHelper, EntityList, \
 	EntityNotFoundException, EntityPager, EntityStraightAggregateColumn, EntityStraightColumn, \
-	EntityStraightTextColumn, EntityStraightValuesFinder, EntityUpdater, FreeJoin, FreePager, \
+	EntityStraightTextColumn, EntityStraightValuesFinder, EntityUpdater, FreeColumn, FreeJoin, FreePager, \
 	NoFreeJoinException, TooManyEntitiesFoundException, TransactionalStorageSPI, UnexpectedStorageException, \
 	UnsupportedStraightColumnException
 from watchmen_storage.storage_spi import TopicDataStorageSPI
@@ -270,29 +270,44 @@ class StorageMySQL(TransactionalStorageSPI):
 	def find_all(self, helper: EntityHelper) -> EntityList:
 		return self.find(EntityFinder(name=helper.name, shaper=helper.shaper))
 
-	def page(self, pager: EntityPager) -> DataPage:
-		table = self.find_table(pager.name)
-		statement = select(func.count()).select_from(table)
-		statement = build_criteria_for_statement([table], statement, pager.criteria)
+	def execute_page_count(self, statement: SQLAlchemyStatement, page_size: int) -> Tuple[int, Optional[DataPage]]:
 		count = self.connection.execute(statement).scalar()
 
 		if count == 0:
-			return DataPage(
+			return 0, DataPage(
 				data=[],
 				pageNumber=1,
-				pageSize=pager.pageable.pageSize,
+				pageSize=page_size,
 				itemCount=0,
 				pageCount=0
 			)
+		else:
+			return count, None
 
-		page_size = pager.pageable.pageSize
-		page_number = pager.pageable.pageNumber
+	# noinspection PyMethodMayBeStatic
+	def compute_page(self, count: int, page_size: int, page_number: int) -> Tuple[int, int]:
+		"""
+		first: page number; second: max page number
+		"""
 		pages = count / page_size
 		max_page_number = int(pages)
 		if pages > max_page_number:
 			max_page_number += 1
 		if page_number > max_page_number:
 			page_number = max_page_number
+		return page_number, max_page_number
+
+	def page(self, pager: EntityPager) -> DataPage:
+		page_size = pager.pageable.pageSize
+
+		table = self.find_table(pager.name)
+		statement = select(func.count()).select_from(table)
+		statement = build_criteria_for_statement([table], statement, pager.criteria)
+		count, empty_page = self.execute_page_count(statement, page_size)
+		if count == 0:
+			return empty_page
+
+		page_number, max_page_number = self.compute_page(count, page_size, pager.pageable.pageNumber)
 
 		statement = select(table)
 		statement = build_criteria_for_statement([table], statement, pager.criteria)
@@ -345,33 +360,26 @@ class TopicDataStorageMySQL(StorageMySQL, TopicDataStorageSPI):
 			table = self.find_table(entity_name)
 			return table, [table]
 		else:
-			# multiple tables
+			# TODO multiple tables
 			return None, []
 
+	# noinspection PyMethodMayBeStatic
+	def build_free_columns(self, table_columns: Optional[List[FreeColumn]], tables: List[Table]) -> List[Any]:
+		return ArrayHelper(table_columns) \
+			.map_with_index(lambda x, index: build_literal(tables, x).label(f'column_{index + 1}')) \
+			.to_list()
+
 	def free_page(self, pager: FreePager) -> DataPage:
+		page_size = pager.pageable.pageSize
 		select_from, tables = self.build_free_joins(pager.joins)
 
 		statement = select(func.count()).select_from(select_from)
 		statement = build_criteria_for_statement(tables, statement, pager.criteria)
-		count = self.connection.execute(statement).scalar()
-
+		count, empty_page = self.execute_page_count(statement, page_size)
 		if count == 0:
-			return DataPage(
-				data=[],
-				pageNumber=1,
-				pageSize=pager.pageable.pageSize,
-				itemCount=0,
-				pageCount=0
-			)
+			return empty_page
 
-		page_size = pager.pageable.pageSize
-		page_number = pager.pageable.pageNumber
-		pages = count / page_size
-		max_page_number = int(pages)
-		if pages > max_page_number:
-			max_page_number += 1
-		if page_number > max_page_number:
-			page_number = max_page_number
+		page_number, max_page_number = self.compute_page(count, page_size, pager.pageable.pageNumber)
 
 		statement = select(self.build_free_columns(pager.columns, tables)).select_from(select_from)
 		statement = build_criteria_for_statement(tables, statement, pager.criteria)

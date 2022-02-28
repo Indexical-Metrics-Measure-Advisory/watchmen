@@ -1,12 +1,12 @@
 from enum import Enum
-from typing import List, Optional, Union
+from typing import List, Optional
 
 from watchmen_model.common import DataModel, Pageable
-from .storage_types import ColumnNameLiteral, ComputedLiteral, EntityColumnValue, EntityCriteria
+from .storage_types import ColumnNameLiteral, EntityCriteria, Literal
 
 
 class FreeColumn(DataModel):
-	literal: Union[EntityColumnValue, ComputedLiteral, ColumnNameLiteral]
+	literal: Literal
 	alias: str
 
 
