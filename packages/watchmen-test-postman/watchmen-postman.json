@@ -3026,18 +3026,6 @@
               "response": []
             },
             {
-              "name": "CONNECTED SPACE DELETE BY SUPER ADMIN",
-              "id": "4fdce01b-d9c5-4a49-81d0-9b8f1edfc808",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "DELETE",
-                "header": []
-              },
-              "response": []
-            },
-            {
               "name": "CONNECTED SPACE EXPORT",
               "id": "b303d824-9c21-4c3b-aec8-0434c00c9f72",
               "protocolProfileBehavior": {
@@ -3045,6 +3033,19 @@
               },
               "request": {
                 "method": "GET",
+                "header": [],
+                "url": "/connected_space/export"
+              },
+              "response": []
+            },
+            {
+              "name": "CONNECTED SPACE DELETE BY SUPER ADMIN",
+              "id": "4fdce01b-d9c5-4a49-81d0-9b8f1edfc808",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "DELETE",
                 "header": []
               },
               "response": []
