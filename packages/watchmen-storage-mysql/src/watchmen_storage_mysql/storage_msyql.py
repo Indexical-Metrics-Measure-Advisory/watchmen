@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 from sqlalchemy import delete, func, insert, select, Table, text, update
 from sqlalchemy.engine import Connection, Engine
@@ -9,14 +9,15 @@ from watchmen_model.common import DataPage
 from watchmen_storage import ColumnNameLiteral, Entity, EntityColumnAggregateArithmetic, EntityCriteriaExpression, \
 	EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, EntityIdHelper, EntityList, \
 	EntityNotFoundException, EntityPager, EntityStraightAggregateColumn, EntityStraightColumn, \
-	EntityStraightTextColumn, EntityStraightValuesFinder, EntityUpdater, TooManyEntitiesFoundException, \
-	TransactionalStorageSPI, UnexpectedStorageException, UnsupportedStraightColumnException
+	EntityStraightTextColumn, EntityStraightValuesFinder, EntityUpdater, FreeJoin, FreePager, \
+	NoFreeJoinException, TooManyEntitiesFoundException, TransactionalStorageSPI, UnexpectedStorageException, \
+	UnsupportedStraightColumnException
 from watchmen_storage.storage_spi import TopicDataStorageSPI
 from watchmen_utilities import ArrayHelper, is_blank
 from .sort_build import build_sort_for_statement
 from .table_defs_mysql import find_table, register_table
 from .types import SQLAlchemyStatement
-from .where_build import build_criteria_for_statement
+from .where_build import build_criteria_for_statement, build_literal
 
 logger = getLogger(__name__)
 
@@ -324,3 +325,63 @@ class TopicDataStorageMySQL(StorageMySQL, TopicDataStorageSPI):
 	def truncate(self, helper: EntityHelper) -> None:
 		table = self.find_table(helper.name)
 		self.connection.execute(text(f'TRUNCATE TABLE {table.name}'))
+
+	def build_join(self, join: FreeJoin, joins: Dict[str, Any]) -> Any:
+		primary_entity_name = join.primary.entityName
+		primary_table = self.find_table(primary_entity_name)
+		secondary_entity_name = join.secondary.entityName
+		secondary_table = self.find_table(secondary_entity_name)
+		if primary_entity_name in joins:
+			built = joins[primary_entity_name]
+			on = build_literal(primary_table, join.primary) == build_literal(secondary_table, join.secondary)
+			built.join(self.find_table(secondary_entity_name), on)
+
+	def build_free_joins(self, table_joins: Optional[List[FreeJoin]]) -> Any:
+		if table_joins is None or len(table_joins) == 0:
+			raise NoFreeJoinException('No join found.')
+		if len(table_joins) == 1:
+			# single topic
+			entity_name = table_joins[0].primary.entityName
+			table = self.find_table(entity_name)
+			return table
+		else:
+			# multiple tables
+			return None
+
+	def free_page(self, pager: FreePager) -> DataPage:
+		pass
+	# statement = select(func.count()).select_from(self.build_free_joins(pager.joins))
+	#
+	# statement = build_criteria_for_statement(table, statement, pager.criteria)
+	# count = self.connection.execute(statement).scalar()
+	#
+	# if count == 0:
+	# 	return DataPage(
+	# 		data=[],
+	# 		pageNumber=1,
+	# 		pageSize=pager.pageable.pageSize,
+	# 		itemCount=0,
+	# 		pageCount=0
+	# 	)
+	#
+	# page_size = pager.pageable.pageSize
+	# page_number = pager.pageable.pageNumber
+	# pages = count / page_size
+	# max_page_number = int(pages)
+	# if pages > max_page_number:
+	# 	max_page_number += 1
+	# if page_number > max_page_number:
+	# 	page_number = max_page_number
+	#
+	# statement = select(table)
+	# statement = build_criteria_for_statement(table, statement, pager.criteria)
+	# offset = page_size * (page_number - 1)
+	# statement = statement.offset(offset).limit(page_size)
+	# results = self.connection.execute(statement).mappings().all()
+	# return DataPage(
+	# 	data=results,
+	# 	pageNumber=page_number,
+	# 	pageSize=page_size,
+	# 	itemCount=count,
+	# 	pageCount=max_page_number
+	# )

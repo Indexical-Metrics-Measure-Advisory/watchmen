@@ -6,7 +6,7 @@ from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_data_kernel.utils import MightAVariable, parse_function_in_variable, parse_variable
 from watchmen_inquiry_kernel.common import InquiryKernelException
 from watchmen_model.admin import Topic
-from watchmen_model.common import ComputedParameter, ConstantParameter, Parameter, ParameterComputeType, \
+from watchmen_model.common import ComputedParameter, ConstantParameter, DataSourceId, Parameter, ParameterComputeType, \
 	ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, TopicFactorParameter, \
 	TopicId, VariablePredefineFunctions
 from watchmen_model.console import Subject, SubjectDatasetColumn, SubjectDatasetJoin
@@ -238,9 +238,21 @@ class SubjectSchema:
 			available_schemas = find_topic_schemas(columns, dataset.filters, principal_service)
 		else:
 			available_schemas = find_topic_schemas_by_joins(joins, principal_service)
-			if len(available_schemas) == 0:
-				raise InquiryKernelException(f'No topic found from given subject[id={subject.subjectId}].')
+		if len(available_schemas) == 0:
+			raise InquiryKernelException(f'No topic found from given subject[id={subject.subjectId}].')
 		self.available_schemas = available_schemas
+
+		data_sources: Dict[DataSourceId, bool] = {}
+		for available_schema in available_schemas:
+			data_source_id = available_schema.get_topic().dataSourceId
+			data_sources[data_source_id] = True
+		self.fromOneDataSource = len(data_sources) == 1
 
 	def get_subject(self):
 		return self.subject
+
+	def from_one_data_source(self):
+		return self.fromOneDataSource
+
+	def get_primary_topic_schema(self):
+		return self.available_schemas[0]
