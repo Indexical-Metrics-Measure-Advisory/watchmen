@@ -23,7 +23,7 @@ def get_subject_data_service(subject: Subject, principal_service: PrincipalServi
 	return SubjectDataService(subject, principal_service)
 
 
-@router.post("/subject/data", tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=DataPage)
+@router.post('/subject/data', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=DataPage)
 async def fetch_subject_data(
 		subject_id: Optional[SubjectId], pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_console_principal)) -> DataPage:

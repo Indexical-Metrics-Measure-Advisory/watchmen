@@ -55,7 +55,7 @@ async def login_by_user_pwd(form_data: OAuth2PasswordRequestForm = Depends()) ->
 	)
 
 
-@router.get("/token/validate/jwt", response_model=User, tags=["authenticate"])
+@router.get('/token/validate/jwt', response_model=User, tags=["authenticate"])
 async def validate_jwt_token(token: str) -> User:
 	"""
 	Validate given token, returns user of this token when validated
@@ -63,7 +63,7 @@ async def validate_jwt_token(token: str) -> User:
 	return retrieve_authentication_manager().authenticate(token, AuthenticationType.JWT)
 
 
-@router.get("/token/exchange-user", response_model=User, tags=["authenticate"])
+@router.get('/token/exchange-user', response_model=User, tags=["authenticate"])
 async def exchange_user(principal_service: PrincipalService = Depends(get_any_principal)) -> Optional[User]:
 	"""
 	returns current principal

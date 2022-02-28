@@ -68,7 +68,7 @@ def create_enum_item(enum_item_service: EnumItemService, enum_item: EnumItem, an
 	enum_item_service.create(enum_item)
 
 
-@router.post("/enum", tags=[UserRole.ADMIN], response_model=Enum)
+@router.post('/enum', tags=[UserRole.ADMIN], response_model=Enum)
 async def save_enum(
 		an_enum: Enum, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> Enum:
@@ -155,7 +155,7 @@ async def find_enums_by_topic(
 	return trans_readonly(enum_service, action)
 
 
-@router.get("/enum/all", tags=[UserRole.ADMIN], response_model=List[Enum])
+@router.get('/enum/all', tags=[UserRole.ADMIN], response_model=List[Enum])
 async def find_all_enums(principal_service: PrincipalService = Depends(get_console_principal)) -> List[Enum]:
 	"""
 	no enumeration items included, only enumeration itself
