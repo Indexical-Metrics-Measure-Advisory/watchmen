@@ -4,10 +4,9 @@ from typing import Any, Dict
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.meta import PipelineService
-from watchmen_data_kernel.storage import RawTopicDataService, RegularTopicDataService, TopicDataService, TopicTrigger
-from watchmen_data_kernel.storage_bridge import ask_topic_data_entity_helper
+from watchmen_data_kernel.storage import ask_topic_data_service, TopicDataService, TopicTrigger
 from watchmen_data_kernel.topic_schema import TopicSchema
-from watchmen_model.admin import is_raw_topic, Pipeline, PipelineTriggerType
+from watchmen_model.admin import Pipeline, PipelineTriggerType
 from watchmen_model.pipeline_kernel import PipelineTriggerTraceId
 from watchmen_pipeline_kernel.common import PipelineKernelException
 from watchmen_pipeline_kernel.pipeline_schema import RuntimePipelineContext
@@ -42,13 +41,8 @@ class PipelineTrigger:
 		"""
 		ask topic data service
 		"""
-		data_entity_helper = ask_topic_data_entity_helper(schema)
 		storage = self.storages.ask_topic_storage(schema)
-		storage.register_topic(schema.get_topic())
-		if is_raw_topic(schema.get_topic()):
-			return RawTopicDataService(schema, data_entity_helper, storage, self.principalService)
-		else:
-			return RegularTopicDataService(schema, data_entity_helper, storage, self.principalService)
+		return ask_topic_data_service(schema, storage, self.principalService)
 
 	def prepare_trigger_data(self):
 		self.triggerTopicSchema.prepare_data(self.triggerData)

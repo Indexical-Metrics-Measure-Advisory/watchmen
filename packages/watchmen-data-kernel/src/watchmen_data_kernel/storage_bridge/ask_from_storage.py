@@ -9,6 +9,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import DataKernelException
 from watchmen_data_kernel.meta import TopicService
+from watchmen_data_kernel.storage import ask_topic_data_entity_helper
 from watchmen_data_kernel.topic_schema import cast_value_for_factor, TopicSchema
 from watchmen_model.admin import AggregateArithmetic, Factor, is_raw_topic, MappingFactor, Topic
 from watchmen_model.common import ComputedParameter, ConstantParameter, FactorId, Parameter, ParameterComputeType, \
@@ -19,7 +20,6 @@ from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteral
 	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, Literal
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_decimal
 from .ask_from_memory import assert_parameter_count, create_ask_factor_value, parse_parameter_in_memory
-from .topic_utils import ask_topic_data_entity_helper
 from .utils import always_none, compute_date_diff, create_from_previous_trigger_data, \
 	create_get_from_variables_with_prefix, create_snowflake_generator, create_static_str, get_date_from_variables, \
 	test_date

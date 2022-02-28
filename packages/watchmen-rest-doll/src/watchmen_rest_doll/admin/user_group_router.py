@@ -235,10 +235,6 @@ async def find_user_groups_by_name(
 	return trans_readonly(user_group_service, action)
 
 
-# @router.get("/query/user_group/space", tags=["admin"], response_model=List[UserGroup])
-# async def query_group_list_for_space(query_name: str, current_user: User = Depends(deps.get_current_user)):
-#     return load_group_list_by_name(query_name, current_user)
-
 @router.post('/user_group/ids', tags=[UserRole.ADMIN], response_model=List[UserGroup])
 async def find_user_groups_by_ids(
 		user_group_ids: List[UserGroupId], principal_service: PrincipalService = Depends(get_admin_principal)
