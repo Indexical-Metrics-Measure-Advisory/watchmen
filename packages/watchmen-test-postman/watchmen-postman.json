@@ -3161,8 +3161,33 @@
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": {
+                  "raw": "/dashboard/rename?dashboard_id={{DASHBOARD_ID}}&name=Test_Dashboard2",
+                  "path": [
+                    "dashboard",
+                    "rename"
+                  ],
+                  "query": [
+                    {
+                      "key": "dashboard_id",
+                      "value": "{{DASHBOARD_ID}}",
+                      "type": "text"
+                    },
+                    {
+                      "key": "name",
+                      "value": "Test_Dashboard2",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
