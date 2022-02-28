@@ -2630,6 +2630,32 @@
           "item": [
             {
               "name": "SUBJECT CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "ff942554-f42b-4057-a480-39a446e5ac8c",
+                    "exec": [
+                      "pm.test('Create Topic', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.topicId).to.not.be.null;",
+                      "    pm.environment.set(\"TOPIC_ID\", data.topicId);",
+                      "    pm.environment.set(\"TOPIC_NAME\", data.name);",
+                      "    pm.expect(data.name).to.equal(\"Test_Subject\");",
+                      "    pm.expect(data.userId).to.not.be.null;",
+                      "    pm.expect(data.tenantId).to.not.be.null;",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "7dc8c5ba-a1d8-41b1-bfd7-02f9e071f9b4",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
@@ -2645,7 +2671,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\r\n  \"name\": \"Test_Subject\",\r\n  \"connectId\": {{CONNECT_ID}},\r\n  \"reports\": [\r\n    \"1\",\r\n    \"2\"\r\n  ],\r\n  \"dataset\": {\r\n    \"joins\": [],\r\n    \"columns\": [\r\n      {\r\n        \"alias\": \"alias_a\",\r\n        \"columnId\": \"f-1\",\r\n        \"parameter\": {\r\n          \"on\": null,\r\n          \"kind\": \"topic\",\r\n          \"type\": null,\r\n          \"value\": null,\r\n          \"topicId\": \"1\",\r\n          \"factorId\": \"1\",\r\n          \"parameters\": [],\r\n          \"conditional\": false\r\n        }\r\n      },\r\n      {\r\n        \"alias\": \"alias_b\",\r\n        \"columnId\": \"f-2\",\r\n        \"parameter\": {\r\n          \"on\": null,\r\n          \"kind\": \"computed\",\r\n          \"type\": \"month-of\",\r\n          \"value\": null,\r\n          \"topicId\": null,\r\n          \"factorId\": null,\r\n          \"parameters\": [\r\n            {\r\n              \"on\": null,\r\n              \"kind\": \"topic\",\r\n              \"type\": null,\r\n              \"value\": null,\r\n              \"topicId\": \"1\",\r\n              \"factorId\": \"2\",\r\n              \"parameters\": [],\r\n              \"conditional\": false\r\n            }\r\n          ],\r\n          \"conditional\": false\r\n        }\r\n      }\r\n    ],\r\n    \"filters\": {\r\n      \"left\": null,\r\n      \"right\": null,\r\n      \"filters\": [\r\n        {\r\n          \"left\": {\r\n            \"on\": null,\r\n            \"kind\": \"topic\",\r\n            \"type\": null,\r\n            \"value\": null,\r\n            \"topicId\": \"1\",\r\n            \"factorId\": \"2\",\r\n            \"parameters\": [],\r\n            \"conditional\": false\r\n          },\r\n          \"right\": {\r\n            \"on\": null,\r\n            \"kind\": \"constant\",\r\n            \"type\": null,\r\n            \"value\": \"2021-01-01\",\r\n            \"topicId\": null,\r\n            \"factorId\": null,\r\n            \"parameters\": [],\r\n            \"conditional\": false\r\n          },\r\n          \"filters\": [],\r\n          \"operator\": \"more\",\r\n          \"jointType\": null\r\n        }\r\n      ],\r\n      \"operator\": null,\r\n      \"jointType\": \"and\"\r\n    }\r\n  }\r\n}",
+                  "raw": "{\r\n  \"name\": \"Test_Subject\",\r\n  \"connectId\": \"{{CONNECT_ID}}\",\r\n  \"reports\": [\r\n    \"1\",\r\n    \"2\"\r\n  ],\r\n  \"dataset\": {\r\n    \"joins\": [],\r\n    \"columns\": [\r\n      {\r\n        \"alias\": \"alias_a\",\r\n        \"columnId\": \"f-1\",\r\n        \"parameter\": {\r\n          \"on\": null,\r\n          \"kind\": \"topic\",\r\n          \"type\": null,\r\n          \"value\": null,\r\n          \"topicId\": \"1\",\r\n          \"factorId\": \"1\",\r\n          \"parameters\": [],\r\n          \"conditional\": false\r\n        }\r\n      },\r\n      {\r\n        \"alias\": \"alias_b\",\r\n        \"columnId\": \"f-2\",\r\n        \"parameter\": {\r\n          \"on\": null,\r\n          \"kind\": \"computed\",\r\n          \"type\": \"month-of\",\r\n          \"value\": null,\r\n          \"topicId\": null,\r\n          \"factorId\": null,\r\n          \"parameters\": [\r\n            {\r\n              \"on\": null,\r\n              \"kind\": \"topic\",\r\n              \"type\": null,\r\n              \"value\": null,\r\n              \"topicId\": \"1\",\r\n              \"factorId\": \"2\",\r\n              \"parameters\": [],\r\n              \"conditional\": false\r\n            }\r\n          ],\r\n          \"conditional\": false\r\n        }\r\n      }\r\n    ],\r\n    \"filters\": {\r\n      \"left\": null,\r\n      \"right\": null,\r\n      \"filters\": [\r\n        {\r\n          \"left\": {\r\n            \"on\": null,\r\n            \"kind\": \"topic\",\r\n            \"type\": null,\r\n            \"value\": null,\r\n            \"topicId\": \"1\",\r\n            \"factorId\": \"2\",\r\n            \"parameters\": [],\r\n            \"conditional\": false\r\n          },\r\n          \"right\": {\r\n            \"on\": null,\r\n            \"kind\": \"constant\",\r\n            \"type\": null,\r\n            \"value\": \"2021-01-01\",\r\n            \"topicId\": null,\r\n            \"factorId\": null,\r\n            \"parameters\": [],\r\n            \"conditional\": false\r\n          },\r\n          \"filters\": [],\r\n          \"operator\": \"more\",\r\n          \"jointType\": null\r\n        }\r\n      ],\r\n      \"operator\": null,\r\n      \"jointType\": \"and\"\r\n    }\r\n  }\r\n}",
                   "options": {
                     "raw": {
                       "language": "json"
