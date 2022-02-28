@@ -2857,8 +2857,8 @@
                       "    pm.expect(data.createdBy).to.not.be.null;",
                       "    pm.expect(data.lastModifiedAt).to.not.be.null;",
                       "    pm.expect(data.lastModifiedBy).to.not.be.null;",
-                      "    pm.environment.set(\"SUBJECT_ID\", data.subjectId);",
-                      "    pm.environment.set(\"SUBJECT_NAME\", data.name);",
+                      "    pm.environment.set(\"REPORT_ID\", data.reportId);",
+                      "    pm.environment.set(\"REPORT_NAME\", data.name);",
                       "})"
                     ],
                     "type": "text/javascript"
