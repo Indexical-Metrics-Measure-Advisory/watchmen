@@ -2682,8 +2682,32 @@
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/pipeline/graphics/delete?pipeline_graph_id={{PIPELINE_GRAPH_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "pipeline",
+                    "graphics",
+                    "delete"
+                  ],
+                  "query": [
+                    {
+                      "key": "pipeline_graph_id",
+                      "value": "{{PIPELINE_GRAPH_ID}}",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
