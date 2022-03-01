@@ -2685,6 +2685,7 @@
                     "exec": [
                       "pm.test(\"Delete Pipeline Graphics\", () => {",
                       "    pm.response.to.have.status(200);",
+                      "    pm.environment.unset(\"PIPELINE_GRAPH_ID\")",
                       "});"
                     ],
                     "type": "text/javascript"
