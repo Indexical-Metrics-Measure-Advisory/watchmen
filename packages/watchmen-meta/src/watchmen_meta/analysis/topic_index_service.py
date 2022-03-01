@@ -27,7 +27,6 @@ class FactorIndexShaper(EntityShaper):
 		}
 
 	def deserialize(self, row: EntityRow) -> FactorIndex:
-		# noinspection PyTypeChecker
 		return FactorIndex(
 			factorIndexId=row.get('factor_index_id'),
 			factorId=row.get('factor_id'),
