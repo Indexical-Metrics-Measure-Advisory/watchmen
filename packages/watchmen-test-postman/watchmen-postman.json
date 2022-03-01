@@ -4086,6 +4086,20 @@
         },
         {
           "name": "PIPELINE IMPORT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "b709b229-6dee-44b0-a6be-fe801b36c3bd",
+                "exec": [
+                  "pm.test(\"Import Pipeline\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "id": "00374e41-a384-408f-ad41-e3cea3de9fb5",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
