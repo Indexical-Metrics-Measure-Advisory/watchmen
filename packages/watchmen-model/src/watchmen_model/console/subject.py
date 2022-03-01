@@ -99,7 +99,7 @@ class Subject(UserBasedTuple, Auditable, LastVisit, BaseModel):
 	subjectId: SubjectId = None
 	name: str = None
 	connectId: ConnectedSpaceId = None
-	autoRefreshInterval: int = 0
+	autoRefreshInterval: Optional[int] = 0
 	dataset: SubjectDataset = None
 
 	def __setattr__(self, name, value):

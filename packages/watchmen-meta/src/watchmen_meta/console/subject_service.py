@@ -24,7 +24,7 @@ class SubjectShaper(EntityShaper):
 			'name': subject.name,
 			'connect_id': subject.connectId,
 			'auto_refresh_interval': subject.autoRefreshInterval,
-			'dataset': SubjectDataset.serialize_dataset(subject.dataset)
+			'dataset': SubjectShaper.serialize_dataset(subject.dataset)
 		}
 		row = AuditableShaper.serialize(subject, row)
 		row = UserBasedTupleShaper.serialize(subject, row)
