@@ -5,7 +5,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
-from watchmen_auth import AuthenticationType, PrincipalService
+from watchmen_auth import AuthenticationScheme, PrincipalService
 from watchmen_meta.admin import UserService
 from watchmen_meta.auth import build_find_user_by_name
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
@@ -60,7 +60,7 @@ async def validate_jwt_token(token: str) -> User:
 	"""
 	Validate given token, returns user of this token when validated
 	"""
-	return retrieve_authentication_manager().authenticate(token, AuthenticationType.JWT)
+	return retrieve_authentication_manager().authenticate(AuthenticationScheme.JWT.value, token)
 
 
 @router.get('/token/exchange-user', response_model=User, tags=["authenticate"])

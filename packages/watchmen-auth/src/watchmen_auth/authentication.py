@@ -11,8 +11,8 @@ from watchmen_utilities import ArrayHelper
 logger = getLogger(__name__)
 
 
-class AuthenticationType(str, Enum):
-	JWT = 'jwt',
+class AuthenticationScheme(str, Enum):
+	JWT = 'Bearer',
 	PAT = 'pat'
 
 

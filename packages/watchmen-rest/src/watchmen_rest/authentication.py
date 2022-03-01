@@ -7,7 +7,7 @@ from jose.jwt import decode, encode
 from jsonschema.exceptions import ValidationError
 from starlette.requests import Request
 
-from watchmen_auth import AuthenticationDetails, AuthenticationManager, AuthenticationProvider, AuthenticationType, \
+from watchmen_auth import AuthenticationDetails, AuthenticationManager, AuthenticationProvider, AuthenticationScheme, \
 	AuthFailOn401, \
 	AuthFailOn403, authorize, authorize_token, PrincipalService
 from watchmen_model.admin import User, UserRole
@@ -38,7 +38,7 @@ class JWTAuthenticationProvider(AuthenticationProvider):
 		self.find_user_by_name = find_user_by_name
 
 	def accept(self, details: AuthenticationDetails) -> bool:
-		return details.scheme == 'Bearer'
+		return details.scheme == AuthenticationScheme.JWT.value
 
 	def authenticate(self, details: AuthenticationDetails) -> Optional[User]:
 		try:
@@ -59,7 +59,7 @@ class PATAuthenticationProvider(AuthenticationProvider):
 		self.find_user_by_pat = find_user_by_pat
 
 	def accept(self, details: AuthenticationDetails) -> bool:
-		return details.scheme == 'pat'
+		return details.scheme == AuthenticationScheme.PAT.value
 
 	def authenticate(self, details: AuthenticationDetails) -> Optional[User]:
 		token = details.token
@@ -103,12 +103,12 @@ def parse_token(request: Request) -> Tuple[str, str]:
 
 def get_principal_by_jwt(
 		authentication_manager: AuthenticationManager, token: str, roles: List[UserRole]) -> PrincipalService:
-	return authorize_token(authentication_manager, token, AuthenticationType.JWT, roles)
+	return authorize_token(authentication_manager, AuthenticationScheme.JWT.value, token, roles)
 
 
 def get_principal_by_pat(
 		authentication_manager: AuthenticationManager, token: str, roles: List[UserRole]) -> PrincipalService:
-	return authorize_token(authentication_manager, token, AuthenticationType.PAT, roles)
+	return authorize_token(authentication_manager, AuthenticationScheme.PAT.value, token, roles)
 
 
 def get_principal_by(
