@@ -2607,6 +2607,9 @@
                     "exec": [
                       "pm.test(\"Create Pipeline Graphics\", () => {",
                       "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.pipelineGraphId).to.is.not.null",
+                      "    pm.environment.set(\"variable_key\", \"variable_value\");",
                       "});"
                     ],
                     "type": "text/javascript"
