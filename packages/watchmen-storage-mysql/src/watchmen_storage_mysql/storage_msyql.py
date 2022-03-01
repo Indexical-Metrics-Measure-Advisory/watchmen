@@ -373,34 +373,31 @@ class TopicDataStorageMySQL(StorageMySQL, TopicDataStorageSPI):
 
 		for primary_entity_name, joins_by_primary in groups_by_primary.items():
 			primary_table = self.find_table(primary_entity_name)
-			if len(joins_by_primary) == 0:
-				primary_column = primary_table.c[joins_by_primary[0].primary.columnName]
+			if len(joins_by_primary) == 1:
 				secondary_entity_name = joins_by_primary[0].secondary.entityName
 				secondary_table = self.find_table(secondary_entity_name)
-				secondary_column = secondary_table.c[joins_by_primary[0].secondary.columnName]
+				on = self.build_single_on(joins_by_primary[0], primary_table, secondary_table)
 				outer_join = joins_by_primary[0].type == FreeJoinType.LEFT
 				if built is None:
-					built = primary_table.join(secondary_table, primary_column == secondary_column, outer_join)
+					built = primary_table.join(secondary_table, on, outer_join)
 				else:
-					built = built.join(secondary_table, primary_column == secondary_column, outer_join)
+					built = built.join(secondary_table, on, outer_join)
 			else:
 				groups_by_secondary: Dict[TopicId, List[FreeJoin]] = ArrayHelper(joins_by_primary) \
 					.group_by(lambda x: x.secondary.entityName)
 				for secondary_entity_name, joins_by_secondary in groups_by_secondary:
 					outer_join = ArrayHelper(joins_by_primary).every(lambda x: x.type == FreeJoinType.LEFT)
 					secondary_table = self.find_table(secondary_entity_name)
-					if len(joins_by_secondary) == 0:
-						primary_column = primary_table.c[joins_by_secondary[0].primary.columnName]
-						secondary_column = secondary_table.c[joins_by_secondary[0].secondary.columnName]
-						if built is None:
-							built = primary_table.join(secondary_table, primary_column == secondary_column, outer_join)
-						else:
-							built = built.join(secondary_table, primary_column == secondary_column, outer_join)
+					if len(joins_by_secondary) == 1:
+						on = self.build_single_on(joins_by_secondary[0], primary_table, secondary_table)
 					else:
-						on = and_(*ArrayHelper(joins_by_secondary) \
-						          .map(lambda x: primary_table.c[x.primary.columnName] == secondary_table.c[
-							x.secondary.columnName]) \
-						          .to_list())
+						on = and_(
+							*ArrayHelper(joins_by_secondary).map(
+								lambda x: self.build_single_on(x, primary_table, secondary_table)).to_list())
+					if built is None:
+						built = primary_table.join(secondary_table, on, outer_join)
+					else:
+						built = built.join(secondary_table, on, outer_join)
 
 		return built, tables
 

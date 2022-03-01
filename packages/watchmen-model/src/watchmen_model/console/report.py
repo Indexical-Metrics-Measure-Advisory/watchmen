@@ -7,6 +7,7 @@ from watchmen_model.chart import BarChart, Chart, ChartType, CountChart, Customi
 	MapChart, NightingaleChart, PieChart, ScatterChart, SunburstChart, TreeChart, TreemapChart
 from watchmen_model.common import Auditable, ConnectedSpaceId, construct_parameter_joint, DataModel, DataResultSet, \
 	GraphicRect, LastVisit, ParameterJoint, ReportFunnelId, ReportId, SubjectDatasetColumnId, SubjectId, UserBasedTuple
+from watchmen_utilities import ArrayHelper
 
 
 class ReportIndicatorArithmetic(str, Enum):
@@ -92,6 +93,60 @@ def construct_chart(chart: Optional[Union[dict, Chart]]) -> Optional[Chart]:
 			raise Exception(f'Chart type[{chart_type}] cannot be recognized.')
 
 
+def construct_rect(rect: Optional[Union[dict, GraphicRect]]) -> Optional[GraphicRect]:
+	if rect is None:
+		return None
+	elif isinstance(rect, GraphicRect):
+		return rect
+	else:
+		return GraphicRect(**rect)
+
+
+def construct_funnel(funnel: Optional[Union[dict, ReportFunnel]]) -> Optional[ReportFunnel]:
+	if funnel is None:
+		return None
+	elif isinstance(funnel, ReportFunnel):
+		return funnel
+	else:
+		return ReportFunnel(**funnel)
+
+
+def construct_funnels(funnels: List[Union[dict, ReportFunnel]]) -> List[ReportFunnel]:
+	if funnels is None:
+		return []
+	return ArrayHelper(funnels).map(lambda x: construct_funnel(x)).to_list()
+
+
+def construct_indicator(indicator: Optional[Union[dict, ReportIndicator]]) -> Optional[ReportIndicator]:
+	if indicator is None:
+		return None
+	elif isinstance(indicator, ReportIndicator):
+		return indicator
+	else:
+		return ReportIndicator(**indicator)
+
+
+def construct_indicators(indicators: List[Union[dict, ReportIndicator]]) -> List[ReportIndicator]:
+	if indicators is None:
+		return []
+	return ArrayHelper(indicators).map(lambda x: construct_indicator(x)).to_list()
+
+
+def construct_dimension(dimension: Optional[Union[dict, ReportDimension]]) -> Optional[ReportDimension]:
+	if dimension is None:
+		return None
+	elif isinstance(dimension, ReportDimension):
+		return dimension
+	else:
+		return ReportDimension(**dimension)
+
+
+def construct_dimensions(dimensions: List[Union[dict, ReportDimension]]) -> List[ReportDimension]:
+	if dimensions is None:
+		return []
+	return ArrayHelper(dimensions).map(lambda x: construct_dimension(x)).to_list()
+
+
 # noinspection PyRedundantParentheses
 class AvoidFastApiError:
 	filters: ParameterJoint = None
@@ -118,5 +173,13 @@ class Report(UserBasedTuple, Auditable, LastVisit, AvoidFastApiError, BaseModel)
 			super().__setattr__(name, construct_parameter_joint(value))
 		elif name == 'chart':
 			super().__setattr__(name, construct_chart(value))
+		elif name == 'rect':
+			super().__setattr__(name, construct_rect(value))
+		elif name == 'funnels':
+			super().__setattr__(name, construct_funnels(value))
+		elif name == 'indicators':
+			super().__setattr__(name, construct_indicators(value))
+		elif name == 'dimensions':
+			super().__setattr__(name, construct_dimensions(value))
 		else:
 			super().__setattr__(name, value)
