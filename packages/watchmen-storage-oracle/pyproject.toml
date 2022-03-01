@@ -10,8 +10,9 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
-watchmen-storage = { path = "../watchmen-storage", develop = true }
 SQLAlchemy = "^1.4.31"
+cx-Oracle = "^8.3.0"
+watchmen-storage = { path = "../watchmen-storage", develop = true }
 
 [tool.poetry.dev-dependencies]
 
