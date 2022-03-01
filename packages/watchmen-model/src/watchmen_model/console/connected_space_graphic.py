@@ -29,6 +29,7 @@ class SubjectGraphic(DataModel, BaseModel):
 			super().__setattr__(name, value)
 
 
+# noinspection DuplicatedCode
 def construct_topic(topic: Optional[Union[dict, TopicGraphic]]) -> Optional[TopicGraphic]:
 	if topic is None:
 		return None
