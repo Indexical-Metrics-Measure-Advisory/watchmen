@@ -4323,6 +4323,15 @@
             },
             "method": "POST",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n    \n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": "{{URL_PREFIX}}/dashboard/import"
           },
           "response": []
