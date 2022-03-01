@@ -2609,7 +2609,7 @@
                       "    pm.response.to.have.status(200);",
                       "    const data = pm.response.json();",
                       "    pm.expect(data.pipelineGraphId).to.is.not.null",
-                      "    pm.environment.set(\"variable_key\", \"variable_value\");",
+                      "    pm.environment.set(\"PIPELINE_GRAPH_ID\", data.pipelineGraphId);",
                       "});"
                     ],
                     "type": "text/javascript"
