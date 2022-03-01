@@ -3088,7 +3088,7 @@
                   }
                 },
                 "url": {
-                  "raw": "{{URL_PREFIX}}/report/name?query_name=Test_Report",
+                  "raw": "{{URL_PREFIX}}/report/name?query_name={{REPORT_NAME}}",
                   "host": [
                     "{{URL_PREFIX}}"
                   ],
@@ -3099,7 +3099,7 @@
                   "query": [
                     {
                       "key": "query_name",
-                      "value": "Test_Report"
+                      "value": "{{REPORT_NAME}}"
                     }
                   ]
                 }
