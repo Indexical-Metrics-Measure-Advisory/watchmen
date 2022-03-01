@@ -4212,11 +4212,31 @@
         },
         {
           "name": "SUBJECT IMPORT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "f5a77fa3-18f5-4563-8137-222e37039cc9",
+                "exec": [
+                  "pm.test(\"Import Subject\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "id": "4bc14450-0889-41a6-a42d-36b4d231f181",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{JWT_TOKEN}}"
+              }
+            },
             "method": "POST",
             "header": [],
             "url": "{{URL_PREFIX}}/subject/import"
