@@ -114,11 +114,11 @@ class ParsedStorageTopicFactorParameter(ParsedStorageParameter):
 			principal_service: PrincipalService, allow_in_memory_variables: bool) -> None:
 		# found in given schemas, means it is not from variables
 		schema, found_in_given_available_schemas = self.find_topic(
-			parameter.topic_id, available_schemas, principal_service, allow_in_memory_variables)
+			parameter.topicId, available_schemas, principal_service, allow_in_memory_variables)
 		topic = schema.get_topic()
 		self.topic = topic
 		self.topicFromVariables = not found_in_given_available_schemas
-		factor = self.find_factor(parameter.factor_id, topic)
+		factor = self.find_factor(parameter.factorId, topic)
 		self.factor = factor
 		if found_in_given_available_schemas and is_raw_topic(topic) and not factor.flatten:
 			raise DataKernelException(

@@ -1,13 +1,13 @@
 [[package]]
 name = "aio-pika"
-version = "7.0.1"
+version = "7.1.0"
 description = "Wrapper for the aiormq for asyncio and humans."
 category = "main"
 optional = true
 python-versions = ">3.6, <4"
 
 [package.dependencies]
-aiormq = ">=6.2.2,<6.3.0"
+aiormq = ">=6.2.3,<6.3.0"
 yarl = "*"
 
 [package.extras]
@@ -29,7 +29,7 @@ snappy = ["python-snappy (>=0.5)"]
 
 [[package]]
 name = "aiormq"
-version = "6.2.2"
+version = "6.2.3"
 description = "Pure python AMQP asynchronous client library"
 category = "main"
 optional = true
@@ -677,11 +677,12 @@ rabbitmq = ["aio-pika"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "456f55436f36f8e2a966fc948e189951ae375d186ca911d1e77b1dd6403727fb"
+content-hash = "1d039f8ee99fcf5f8327bae9bfb3fa5decb5af9888411a262e459fb0fb31b8ac"
 
 [metadata.files]
 aio-pika = [
-    {file = "aio_pika-7.0.1-py3-none-any.whl", hash = "sha256:c0d58a47eaf58fcb60c3fba398d20f466c38786c0b6889ff286ee5cd1edc522c"},
+    {file = "aio-pika-7.1.0.tar.gz", hash = "sha256:dec14ddb7e22d04ddc46f656899f7f3a592431cb618719aa7e03dfe85311be17"},
+    {file = "aio_pika-7.1.0-py3-none-any.whl", hash = "sha256:f7803c6b5ced5fe8b4c2119065c213283e3bccb035c13d88b0c256bbc3fe6cb6"},
 ]
 aiokafka = [
     {file = "aiokafka-0.7.2-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:b19f077e12fe23e359f7a7dca9baf8532c63f4c8149703ce4c56de372d17e26c"},
@@ -707,8 +708,8 @@ aiokafka = [
     {file = "aiokafka-0.7.2.tar.gz", hash = "sha256:a8fc41d18731d8879483aecb93ae7ebf5457f63daf4c8923ddc046792c2c3096"},
 ]
 aiormq = [
-    {file = "aiormq-6.2.2-py3-none-any.whl", hash = "sha256:4b80bdf5031d167237b0a0c2fb1788ce6113fab23771e47086aa090c03d7c99f"},
-    {file = "aiormq-6.2.2.tar.gz", hash = "sha256:c1a5744af35b277764e72bfbb4dc15372533f03bd435f5331d47b79fd45148cc"},
+    {file = "aiormq-6.2.3-py3-none-any.whl", hash = "sha256:95f0da57edd55f214a2e6c5b7ac98fa58a7c33911acd0d3315e86926b2dd2605"},
+    {file = "aiormq-6.2.3.tar.gz", hash = "sha256:db6c1e6e384f1d4dafe19f8df70c6dfc994932b40f4e542690016023ff8e952b"},
 ]
 anyio = [
     {file = "anyio-3.5.0-py3-none-any.whl", hash = "sha256:b5fa16c5ff93fa1046f2eeb5bbff2dad4d3514d6cda61d02816dba34fa8c3c2e"},
