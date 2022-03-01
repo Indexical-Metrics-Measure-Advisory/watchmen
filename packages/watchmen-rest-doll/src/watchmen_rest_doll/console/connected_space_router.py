@@ -372,10 +372,6 @@ async def delete_connected_space_by_id_by_super_admin(
 		existing_connected_space: Optional[ConnectedSpace] = connected_space_service.find_by_id(connect_id)
 		if existing_connected_space is None:
 			raise_404()
-		if existing_connected_space.tenantId != principal_service.get_tenant_id():
-			raise_403()
-		if not principal_service.is_tenant_admin() and existing_connected_space.userId != principal_service.get_user_id():
-			raise_403()
 		# noinspection PyTypeChecker
 		connected_space: ConnectedSpace = connected_space_service.delete(connect_id)
 		subject_service: SubjectService = get_subject_service(connected_space_service)

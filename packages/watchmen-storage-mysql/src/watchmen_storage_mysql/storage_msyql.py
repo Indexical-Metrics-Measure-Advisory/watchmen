@@ -5,11 +5,11 @@ from sqlalchemy import delete, func, insert, select, Table, text, update
 from sqlalchemy.engine import Connection, Engine
 
 from watchmen_model.admin import Topic
-from watchmen_model.common import DataPage
+from watchmen_model.common import DataPage, TopicId
 from watchmen_storage import ColumnNameLiteral, Entity, EntityColumnAggregateArithmetic, EntityCriteriaExpression, \
 	EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, EntityIdHelper, EntityList, \
 	EntityNotFoundException, EntityPager, EntityStraightAggregateColumn, EntityStraightColumn, \
-	EntityStraightTextColumn, EntityStraightValuesFinder, EntityUpdater, FreeColumn, FreeJoin, FreePager, \
+	EntityStraightTextColumn, EntityStraightValuesFinder, EntityUpdater, FreeColumn, FreeJoin, FreeJoinType, FreePager, \
 	NoFreeJoinException, TooManyEntitiesFoundException, TransactionalStorageSPI, UnexpectedStorageException, \
 	UnsupportedStraightColumnException
 from watchmen_storage.storage_spi import TopicDataStorageSPI
@@ -352,6 +352,32 @@ class TopicDataStorageMySQL(StorageMySQL, TopicDataStorageSPI):
 			on = build_literal(primary_table, join.primary) == build_literal(secondary_table, join.secondary)
 			built.join(self.find_table(secondary_entity_name), on)
 
+	def build_free_joins_on_multiple(self, table_joins: Optional[List[FreeJoin]]) -> Tuple[Any, List[Table]]:
+		def try_to_be_left_join(free_join: FreeJoin) -> FreeJoin:
+			if free_join.type == FreeJoinType.RIGHT:
+				return FreeJoin(primary=free_join.secondary, secondary=free_join.primary, type=FreeJoinType.LEFT)
+			else:
+				return free_join
+
+		join_map: Dict[TopicId, Any] = {}
+		table_joins: List[FreeJoin] = ArrayHelper(table_joins).map(try_to_be_left_join).to_list()
+		for table_join in table_joins:
+			primary_entity_name = table_join.primary.entityName
+			primary_table = self.find_table(primary_entity_name)
+			primary_column = primary_table.c[table_join.primary.columnName]
+			secondary_entity_name = table_join.secondary.entityName
+			secondary_table = self.find_table(secondary_entity_name)
+			secondary_column = secondary_table.c[table_join.secondary.columnName]
+			if primary_entity_name not in join_map:
+				join = primary_table.join(secondary_table, primary_column == secondary_column)
+			else:
+				existing_join = join_map[primary_entity_name]
+				join = existing_join.join(secondary_table, primary_column == secondary_column)
+			join_map[primary_entity_name] = join
+			join_map[secondary_entity_name] = join
+
+		return None, []
+
 	def build_free_joins(self, table_joins: Optional[List[FreeJoin]]) -> Tuple[Any, List[Table]]:
 		if table_joins is None or len(table_joins) == 0:
 			raise NoFreeJoinException('No join found.')
@@ -361,8 +387,7 @@ class TopicDataStorageMySQL(StorageMySQL, TopicDataStorageSPI):
 			table = self.find_table(entity_name)
 			return table, [table]
 		else:
-			# TODO multiple tables
-			return None, []
+			return self.build_free_joins_on_multiple(table_joins)
 
 	# noinspection PyMethodMayBeStatic
 	def build_free_columns(self, table_columns: Optional[List[FreeColumn]], tables: List[Table]) -> List[Any]:
