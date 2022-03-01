@@ -1184,7 +1184,7 @@
               "response": []
             },
             {
-              "name": "USER GROPU LOAD BY ID",
+              "name": "USER GROUP LOAD BY ID",
               "event": [
                 {
                   "listen": "test",
