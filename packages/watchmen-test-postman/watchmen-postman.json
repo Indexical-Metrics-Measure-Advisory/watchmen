@@ -4002,6 +4002,20 @@
         },
         {
           "name": "USER GROUP IMPORT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "c6a625b6-1825-4ad3-aa3b-390101df12e8",
+                "exec": [
+                  "pm.test(\"Import User Group\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "id": "e4cdba9d-4675-4638-a663-aaf4038437b5",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
@@ -4017,7 +4031,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"name\": \"Test-Group\",\n    \"description\": \"A description\",\n    \"userIds\": [\"{{USER_ID}}\", \"2\"],\n    \"spaceIds\": [\"{{SPACE_ID}}\"]\n}",
+              "raw": "[{\n    \"name\": \"Test-Group1\",\n    \"description\": \"A description\",\n    \"userIds\": [\"{{USER_ID}}\", \"2\"],\n    \"spaceIds\": [\"{{SPACE_ID}}\"]\n},\n{\n    \"name\": \"Test-Group2\",\n    \"description\": \"A description\",\n    \"userIds\": [\"{{USER_ID}}\", \"2\"],\n    \"spaceIds\": [\"{{SPACE_ID}}\"]\n}]",
               "options": {
                 "raw": {
                   "language": "json"
