@@ -2735,6 +2735,7 @@
                     "exec": [
                       "pm.test(\"Delete Pipeline Graphics By Super Admin\", () => {",
                       "    pm.response.to.have.status(200);",
+                      "    pm.environment.unset(\"PIPELINE_GRAPH_ID\")",
                       "});"
                     ],
                     "type": "text/javascript"
@@ -2766,8 +2767,7 @@
                   "query": [
                     {
                       "key": "pipeline_graphic_id",
-                      "value": "{{PIPELINE_GRAPH_ID}}",
-                      "type": "text"
+                      "value": "{{PIPELINE_GRAPH_ID}}"
                     }
                   ]
                 }
