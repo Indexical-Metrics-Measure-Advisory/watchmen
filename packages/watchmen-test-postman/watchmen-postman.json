@@ -3673,7 +3673,7 @@
                 {
                   "listen": "test",
                   "script": {
-                    "id": "72eeaad3-2d80-4bf5-a162-43bfe40b29d3",
+                    "id": "5803db80-93a8-4774-9bec-e33198aa88a0",
                     "exec": [
                       "pm.test('Create Connected Space Graphic', () => {",
                       "    pm.response.to.have.status(200);",
