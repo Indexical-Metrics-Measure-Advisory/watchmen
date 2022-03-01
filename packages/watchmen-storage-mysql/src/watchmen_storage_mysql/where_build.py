@@ -21,7 +21,7 @@ def build_literal(tables: List[Table], literal: Literal):
 				return tables[0].c[literal.columnName]
 		else:
 			table_name = as_table_name(literal.entityName)
-			table = ArrayHelper(tables).find(lambda x: table.name == table_name)
+			table = ArrayHelper(tables).find(lambda x: x.name == table_name)
 			if table is None:
 				raise UnexpectedStorageException(f'Entity[{literal.entityName}] not found.')
 			return table.c[literal.columnName]

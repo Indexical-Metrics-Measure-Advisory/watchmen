@@ -13,8 +13,8 @@ from watchmen_meta.console import ConnectedSpaceService
 from watchmen_model.admin import Factor, Space
 from watchmen_model.admin.space import SpaceFilter
 from watchmen_model.common import DataPage, FactorId, Pageable, TopicId
-from watchmen_model.console import ConnectedSpace, SubjectDatasetJoin, SubjectJoinType
-from watchmen_storage import ColumnNameLiteral, EntityCriteriaJoint, EntityCriteriaJointConjunction, FreeJoin, \
+from watchmen_model.console import ConnectedSpace, SubjectDatasetColumn, SubjectDatasetJoin, SubjectJoinType
+from watchmen_storage import ColumnNameLiteral, FreeColumn, FreeJoin, \
 	FreeJoinType, FreePager
 from watchmen_utilities import ArrayHelper, is_blank
 
@@ -94,18 +94,6 @@ class SubjectStorage:
 		dataset = subject.dataset
 		available_schemas = self.schema.get_available_schemas()
 
-		columns = ArrayHelper(dataset.columns) \
-			.map(lambda x: parse_parameter_for_storage(x.parameter, available_schemas, self.principalService, False)) \
-			.to_list()
-		if dataset.joins is None or len(dataset.joins) == 0:
-			# no joins declared, use first one (the only one) from available schemas
-			joins = [FreeJoin(
-				# column name is ignored, because there is no join
-				primary=ColumnNameLiteral(entityName=available_schemas[0].get_topic().topicId)
-			)]
-		else:
-			joins = ArrayHelper(dataset.joins).map(lambda x: self.build_join(x, available_schemas)).to_list()
-
 		connect_id = subject.connectId
 		connected_space_service = get_connected_space_service(self.principalService)
 		connected_space_service.begin_transaction()
@@ -125,7 +113,10 @@ class SubjectStorage:
 		finally:
 			connected_space_service.close_transaction()
 
-		criteria = parse_condition_for_storage(dataset.filters, available_schemas, self.principalService, False)
+		if dataset.filters is not None:
+			criteria = [parse_condition_for_storage(dataset.filters, available_schemas, self.principalService, False)]
+		else:
+			criteria = []
 
 		def should_use(space_filter: Optional[SpaceFilter]) -> bool:
 			if space_filter is None:
@@ -135,23 +126,49 @@ class SubjectStorage:
 
 			return ArrayHelper(available_schemas).some(lambda x: x.get_topic().topicId == space_filter.topicId)
 
+		empty_variables = ask_empty_variables()
+
 		criteria_from_space = ArrayHelper(space.filters) \
 			.filter(lambda x: should_use(x)) \
 			.map(lambda x: parse_condition_for_storage(x.joint, available_schemas, self.principalService, False)) \
 			.to_list()
 		if len(criteria_from_space) != 0:
-			criteria = EntityCriteriaJoint(
-				conjunction=EntityCriteriaJointConjunction.AND,
-				children=ArrayHelper(criteria_from_space).grab(criteria).to_list()
-			)
+			criteria = ArrayHelper(criteria_from_space).grab(*criteria) \
+				.map(lambda x: x.run(empty_variables, self.principalService)).to_list()
+		elif len(criteria) == 0:
+			criteria = []
+		else:
+			criteria = ArrayHelper(criteria) \
+				.map(lambda x: x.run(empty_variables, self.principalService)).to_list()
+
+		def to_free_column(column: SubjectDatasetColumn) -> FreeColumn:
+			literal = parse_parameter_for_storage(column.parameter, available_schemas, self.principalService, False) \
+				.run(empty_variables, self.principalService)
+			return FreeColumn(literal=literal, alias=column.alias)
+
+		columns = ArrayHelper(dataset.columns).map(to_free_column).to_list()
+		if dataset.joins is None or len(dataset.joins) == 0:
+			# no joins declared, use first one (the only one) from available schemas
+			joins = [FreeJoin(
+				# column name is ignored, because there is no join
+				primary=ColumnNameLiteral(entityName=available_schemas[0].get_topic().topicId)
+			)]
+		else:
+			joins = ArrayHelper(dataset.joins).map(lambda x: self.build_join(x, available_schemas)).to_list()
 
 		storage = ask_topic_storage(self.schema.get_primary_topic_schema(), self.principalService)
-		return storage.free_page(FreePager(
-			columns=columns,
-			joins=joins,
-			criteria=[criteria.run(ask_empty_variables(), self.principalService)],
-			pageable=pageable
-		))
+		# register topic, in case of it is not registered yet
+		ArrayHelper(available_schemas).each(lambda x: storage.register_topic(x.get_topic()))
+		try:
+			storage.connect()
+			return storage.free_page(FreePager(
+				columns=columns,
+				joins=joins,
+				criteria=criteria,
+				pageable=pageable
+			))
+		finally:
+			storage.close()
 
 	def page(self, pageable: Pageable) -> DataPage:
 		if self.schema.from_one_data_source() and ask_use_storage_directly():
