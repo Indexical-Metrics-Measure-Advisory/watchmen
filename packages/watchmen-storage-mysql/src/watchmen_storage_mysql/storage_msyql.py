@@ -367,37 +367,29 @@ class TopicDataStorageMySQL(StorageMySQL, TopicDataStorageSPI):
 
 		tables: List[Table] = []
 		built = None
+
 		groups_by_primary: Dict[TopicId, List[FreeJoin]] = ArrayHelper(table_joins) \
 			.map(try_to_be_left_join) \
 			.group_by(lambda x: x.primary.entityName)
-
 		for primary_entity_name, joins_by_primary in groups_by_primary.items():
 			primary_table = self.find_table(primary_entity_name)
-			if len(joins_by_primary) == 1:
-				secondary_entity_name = joins_by_primary[0].secondary.entityName
+			if primary_table not in tables:
+				tables.append(primary_table)
+
+			groups_by_secondary: Dict[TopicId, List[FreeJoin]] = ArrayHelper(joins_by_primary) \
+				.group_by(lambda x: x.secondary.entityName)
+			for secondary_entity_name, joins_by_secondary in groups_by_secondary:
+				outer_join = ArrayHelper(joins_by_primary).every(lambda x: x.type == FreeJoinType.LEFT)
 				secondary_table = self.find_table(secondary_entity_name)
-				on = self.build_single_on(joins_by_primary[0], primary_table, secondary_table)
-				outer_join = joins_by_primary[0].type == FreeJoinType.LEFT
+				if secondary_table not in tables:
+					tables.append(secondary_table)
+				on = and_(
+					*ArrayHelper(joins_by_secondary).map(
+						lambda x: self.build_single_on(x, primary_table, secondary_table)).to_list())
 				if built is None:
 					built = primary_table.join(secondary_table, on, outer_join)
 				else:
 					built = built.join(secondary_table, on, outer_join)
-			else:
-				groups_by_secondary: Dict[TopicId, List[FreeJoin]] = ArrayHelper(joins_by_primary) \
-					.group_by(lambda x: x.secondary.entityName)
-				for secondary_entity_name, joins_by_secondary in groups_by_secondary:
-					outer_join = ArrayHelper(joins_by_primary).every(lambda x: x.type == FreeJoinType.LEFT)
-					secondary_table = self.find_table(secondary_entity_name)
-					if len(joins_by_secondary) == 1:
-						on = self.build_single_on(joins_by_secondary[0], primary_table, secondary_table)
-					else:
-						on = and_(
-							*ArrayHelper(joins_by_secondary).map(
-								lambda x: self.build_single_on(x, primary_table, secondary_table)).to_list())
-					if built is None:
-						built = primary_table.join(secondary_table, on, outer_join)
-					else:
-						built = built.join(secondary_table, on, outer_join)
 
 		return built, tables
 
