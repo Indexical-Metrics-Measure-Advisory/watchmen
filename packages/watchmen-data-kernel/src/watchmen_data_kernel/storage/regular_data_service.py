@@ -13,7 +13,7 @@ from .shaper import TopicShaper
 
 class RegularTopicFactorColumnMapper(TopicFactorColumnMapper):
 	def get_factors(self, schema: TopicSchema) -> List[Factor]:
-		return ArrayHelper(schema.get_topic().factors).map(lambda x: x.get_factor()).to_list()
+		return ArrayHelper(schema.get_topic().factors).to_list()
 
 
 class RegularTopicShaper(TopicShaper):

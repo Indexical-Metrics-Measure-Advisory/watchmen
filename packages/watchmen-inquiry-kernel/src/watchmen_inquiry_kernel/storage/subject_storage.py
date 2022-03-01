@@ -27,8 +27,10 @@ def get_connected_space_service(principal_service: PrincipalService) -> Connecte
 	return ConnectedSpaceService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-def get_space_service(principal_service: PrincipalService) -> SpaceService:
-	return SpaceService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+def get_space_service(connected_space_service: ConnectedSpaceService) -> SpaceService:
+	return SpaceService(
+		connected_space_service.storage, connected_space_service.snowflakeGenerator,
+		connected_space_service.principalService)
 
 
 class SubjectStorage:
@@ -87,14 +89,13 @@ class SubjectStorage:
 		)
 
 	def page_by_storage_directly(self, pageable: Pageable) -> DataPage:
-		storage = ask_topic_storage(self.schema.get_primary_topic_schema(), self.principalService)
 		# build pager
 		subject = self.schema.get_subject()
 		dataset = subject.dataset
 		available_schemas = self.schema.get_available_schemas()
 
 		columns = ArrayHelper(dataset.columns) \
-			.map(lambda x: parse_parameter_for_storage(x, available_schemas, self.principalService, False)) \
+			.map(lambda x: parse_parameter_for_storage(x.parameter, available_schemas, self.principalService, False)) \
 			.to_list()
 		if dataset.joins is None or len(dataset.joins) == 0:
 			# no joins declared, use first one (the only one) from available schemas
@@ -107,18 +108,22 @@ class SubjectStorage:
 
 		connect_id = subject.connectId
 		connected_space_service = get_connected_space_service(self.principalService)
-		# noinspection PyTypeChecker
-		connected_space: Optional[ConnectedSpace] = connected_space_service.find_by_id(connect_id)
-		if connected_space is None:
-			raise InquiryKernelException(f'Connected space[id={connect_id}] not found.')
-		elif connected_space.tenantId != self.principalService.get_tenant_id():
-			raise InquiryKernelException(f'Tenant of connected space cannot match subject\'s.')
-		space_id = connected_space.spaceId
-		space: Optional[Space] = get_space_service(self.principalService).find_by_id(space_id)
-		if space is None:
-			raise InquiryKernelException(f'Space[id={space_id}] not found.')
-		elif space.tenantId != self.principalService.get_tenant_id():
-			raise InquiryKernelException(f'Tenant of space cannot match subject\'s.')
+		connected_space_service.begin_transaction()
+		try:
+			# noinspection PyTypeChecker
+			connected_space: Optional[ConnectedSpace] = connected_space_service.find_by_id(connect_id)
+			if connected_space is None:
+				raise InquiryKernelException(f'Connected space[id={connect_id}] not found.')
+			elif connected_space.tenantId != self.principalService.get_tenant_id():
+				raise InquiryKernelException(f'Tenant of connected space cannot match subject\'s.')
+			space_id = connected_space.spaceId
+			space: Optional[Space] = get_space_service(connected_space_service).find_by_id(space_id)
+			if space is None:
+				raise InquiryKernelException(f'Space[id={space_id}] not found.')
+			elif space.tenantId != self.principalService.get_tenant_id():
+				raise InquiryKernelException(f'Tenant of space cannot match subject\'s.')
+		finally:
+			connected_space_service.close_transaction()
 
 		criteria = parse_condition_for_storage(dataset.filters, available_schemas, self.principalService, False)
 
@@ -140,6 +145,7 @@ class SubjectStorage:
 				children=ArrayHelper(criteria_from_space).grab(criteria).to_list()
 			)
 
+		storage = ask_topic_storage(self.schema.get_primary_topic_schema(), self.principalService)
 		return storage.free_page(FreePager(
 			columns=columns,
 			joins=joins,
