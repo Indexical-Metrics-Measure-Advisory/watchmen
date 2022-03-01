@@ -2677,6 +2677,20 @@
             },
             {
               "name": "PIPELINE GRAPHICS DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "7173a03b-6385-4180-9bbd-8f59eec5c596",
+                    "exec": [
+                      "pm.test(\"Delete Pipeline Graphics\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "6d447079-bc6f-4d1e-ac98-f8a9b8474021",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
@@ -2703,8 +2717,7 @@
                   "query": [
                     {
                       "key": "pipeline_graph_id",
-                      "value": "{{PIPELINE_GRAPH_ID}}",
-                      "type": "text"
+                      "value": "{{PIPELINE_GRAPH_ID}}"
                     }
                   ]
                 }
