@@ -4031,7 +4031,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "[{\n    \"name\": \"Test-Group1\",\n    \"description\": \"A description\",\n    \"userIds\": [\"{{USER_ID}}\", \"2\"],\n    \"spaceIds\": [\"{{SPACE_ID}}\"]\n},\n{\n    \"name\": \"Test-Group2\",\n    \"description\": \"A description\",\n    \"userIds\": [\"{{USER_ID}}\", \"2\"],\n    \"spaceIds\": [\"{{SPACE_ID}}\"]\n}]",
+              "raw": "[\n    {\n        \"name\": \"Test-Group1\",\n        \"description\": \"A description\",\n        \"userIds\": [\n            \"{{USER_ID}}\",\n            \"2\"\n        ],\n        \"spaceIds\": [\n            \"{{SPACE_ID}}\"\n        ]\n    },\n    {\n        \"name\": \"Test-Group2\",\n        \"description\": \"A description\",\n        \"userIds\": [\n            \"{{USER_ID}}\",\n            \"2\"\n        ],\n        \"spaceIds\": [\n            \"{{SPACE_ID}}\"\n        ]\n    }\n]",
               "options": {
                 "raw": {
                   "language": "json"
