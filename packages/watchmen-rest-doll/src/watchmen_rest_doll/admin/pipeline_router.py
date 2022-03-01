@@ -12,7 +12,7 @@ from watchmen_model.admin import Pipeline, PipelineAction, PipelineStage, Pipeli
 from watchmen_model.common import PipelineId, TenantId
 from watchmen_rest import get_admin_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
-from watchmen_rest_doll.doll import ask_engine_index_enabled, ask_tuple_delete_enabled
+from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly, validate_tenant_id
 from watchmen_utilities import ArrayHelper, is_blank
 
@@ -72,8 +72,6 @@ def redress_ids(pipeline: Pipeline, pipeline_service: PipelineService) -> None:
 
 
 def build_pipeline_index(pipeline: Pipeline, pipeline_service: PipelineService) -> None:
-	if not ask_engine_index_enabled():
-		return
 	get_pipeline_index_service(pipeline_service).build_index(pipeline)
 
 
@@ -199,8 +197,6 @@ async def find_all_pipelines(principal_service: PrincipalService = Depends(get_a
 
 
 def remove_pipeline_index(pipeline_id: PipelineId, pipeline_service: PipelineService) -> None:
-	if not ask_engine_index_enabled():
-		return
 	get_pipeline_index_service(pipeline_service).remove_index(pipeline_id)
 
 
