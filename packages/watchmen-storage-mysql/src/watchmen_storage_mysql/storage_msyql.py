@@ -1,7 +1,7 @@
 from logging import getLogger
 from typing import Any, Dict, List, Optional, Tuple
 
-from sqlalchemy import delete, func, insert, select, Table, text, update
+from sqlalchemy import and_, delete, func, insert, select, Table, text, update
 from sqlalchemy.engine import Connection, Engine
 
 from watchmen_model.admin import Topic
@@ -9,9 +9,9 @@ from watchmen_model.common import DataPage, TopicId
 from watchmen_storage import ColumnNameLiteral, Entity, EntityColumnAggregateArithmetic, EntityCriteriaExpression, \
 	EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, EntityIdHelper, EntityList, \
 	EntityNotFoundException, EntityPager, EntityStraightAggregateColumn, EntityStraightColumn, \
-	EntityStraightTextColumn, EntityStraightValuesFinder, EntityUpdater, FreeColumn, FreeJoin, FreeJoinType, FreePager, \
-	NoFreeJoinException, TooManyEntitiesFoundException, TransactionalStorageSPI, UnexpectedStorageException, \
-	UnsupportedStraightColumnException
+	EntityStraightTextColumn, EntityStraightValuesFinder, EntityUpdater, FreeColumn, FreeJoin, FreeJoinType, \
+	FreePager, NoFreeJoinException, TooManyEntitiesFoundException, TransactionalStorageSPI, \
+	UnexpectedStorageException, UnsupportedStraightColumnException
 from watchmen_storage.storage_spi import TopicDataStorageSPI
 from watchmen_utilities import ArrayHelper, is_blank
 from .sort_build import build_sort_for_statement
@@ -352,6 +352,12 @@ class TopicDataStorageMySQL(StorageMySQL, TopicDataStorageSPI):
 			on = build_literal(primary_table, join.primary) == build_literal(secondary_table, join.secondary)
 			built.join(self.find_table(secondary_entity_name), on)
 
+	# noinspection PyMethodMayBeStatic
+	def build_single_on(self, join: FreeJoin, primary_table: Table, secondary_table: Table) -> Any:
+		primary_column = primary_table.c[join.primary.columnName]
+		secondary_column = secondary_table.c[join.primary.columnName]
+		return primary_column == secondary_column
+
 	def build_free_joins_on_multiple(self, table_joins: Optional[List[FreeJoin]]) -> Tuple[Any, List[Table]]:
 		def try_to_be_left_join(free_join: FreeJoin) -> FreeJoin:
 			if free_join.type == FreeJoinType.RIGHT:
@@ -359,24 +365,44 @@ class TopicDataStorageMySQL(StorageMySQL, TopicDataStorageSPI):
 			else:
 				return free_join
 
-		join_map: Dict[TopicId, Any] = {}
-		table_joins: List[FreeJoin] = ArrayHelper(table_joins).map(try_to_be_left_join).to_list()
-		for table_join in table_joins:
-			primary_entity_name = table_join.primary.entityName
-			primary_table = self.find_table(primary_entity_name)
-			primary_column = primary_table.c[table_join.primary.columnName]
-			secondary_entity_name = table_join.secondary.entityName
-			secondary_table = self.find_table(secondary_entity_name)
-			secondary_column = secondary_table.c[table_join.secondary.columnName]
-			if primary_entity_name not in join_map:
-				join = primary_table.join(secondary_table, primary_column == secondary_column)
-			else:
-				existing_join = join_map[primary_entity_name]
-				join = existing_join.join(secondary_table, primary_column == secondary_column)
-			join_map[primary_entity_name] = join
-			join_map[secondary_entity_name] = join
+		tables: List[Table] = []
+		built = None
+		groups_by_primary: Dict[TopicId, List[FreeJoin]] = ArrayHelper(table_joins) \
+			.map(try_to_be_left_join) \
+			.group_by(lambda x: x.primary.entityName)
 
-		return None, []
+		for primary_entity_name, joins_by_primary in groups_by_primary.items():
+			primary_table = self.find_table(primary_entity_name)
+			if len(joins_by_primary) == 0:
+				primary_column = primary_table.c[joins_by_primary[0].primary.columnName]
+				secondary_entity_name = joins_by_primary[0].secondary.entityName
+				secondary_table = self.find_table(secondary_entity_name)
+				secondary_column = secondary_table.c[joins_by_primary[0].secondary.columnName]
+				outer_join = joins_by_primary[0].type == FreeJoinType.LEFT
+				if built is None:
+					built = primary_table.join(secondary_table, primary_column == secondary_column, outer_join)
+				else:
+					built = built.join(secondary_table, primary_column == secondary_column, outer_join)
+			else:
+				groups_by_secondary: Dict[TopicId, List[FreeJoin]] = ArrayHelper(joins_by_primary) \
+					.group_by(lambda x: x.secondary.entityName)
+				for secondary_entity_name, joins_by_secondary in groups_by_secondary:
+					outer_join = ArrayHelper(joins_by_primary).every(lambda x: x.type == FreeJoinType.LEFT)
+					secondary_table = self.find_table(secondary_entity_name)
+					if len(joins_by_secondary) == 0:
+						primary_column = primary_table.c[joins_by_secondary[0].primary.columnName]
+						secondary_column = secondary_table.c[joins_by_secondary[0].secondary.columnName]
+						if built is None:
+							built = primary_table.join(secondary_table, primary_column == secondary_column, outer_join)
+						else:
+							built = built.join(secondary_table, primary_column == secondary_column, outer_join)
+					else:
+						on = and_(*ArrayHelper(joins_by_secondary) \
+						          .map(lambda x: primary_table.c[x.primary.columnName] == secondary_table.c[
+							x.secondary.columnName]) \
+						          .to_list())
+
+		return built, tables
 
 	def build_free_joins(self, table_joins: Optional[List[FreeJoin]]) -> Tuple[Any, List[Table]]:
 		if table_joins is None or len(table_joins) == 0:

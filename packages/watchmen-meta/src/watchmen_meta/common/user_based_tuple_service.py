@@ -72,12 +72,13 @@ class UserBasedTupleService(EntityService):
 			],
 			distinctColumnNames=['tenant_id', 'user_id']
 		)
-		rows = self.storage.find_distinct_values(finder)
+		# noinspection PyTypeChecker
+		rows: List[UserBasedTuple] = self.storage.find_distinct_values(finder)
 		count = len(rows)
 		if count == 0:
 			return None
 		elif count == 1:
-			return rows[0].get('tenant_id'), rows[0].get('user_id')
+			return rows[0].tenantId, rows[0].userId
 		else:
 			raise TooManyEntitiesFoundException(f'Too many entities found by finder[{finder}].')
 
