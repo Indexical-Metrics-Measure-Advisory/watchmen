@@ -30,9 +30,6 @@ class DollApp(RestApp):
 	def is_tuple_delete_enabled(self) -> bool:
 		return self.get_settings().TUPLE_DELETABLE
 
-	def is_engine_index_enabled(self) -> bool:
-		return self.get_settings().ENGINE_INDEX
-
 	def post_construct(self, app: FastAPI) -> None:
 		pass
 
@@ -57,7 +54,3 @@ def ask_access_token_expires_in() -> int:
 
 def ask_tuple_delete_enabled() -> bool:
 	return doll.is_tuple_delete_enabled()
-
-
-def ask_engine_index_enabled() -> bool:
-	return doll.is_engine_index_enabled()

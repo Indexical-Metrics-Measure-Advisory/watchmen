@@ -27,6 +27,8 @@ class MetaSettings(BaseSettings):
 	SNOWFLAKE_COMPETITIVE_WORKER_CREATION_RETRY_TIMES: int = 3  # competitive worker creation max retry times
 	SNOWFLAKE_COMPETITIVE_WORKER_RESTART_ON_SHOWDOWN: bool = False  # competitive worker restart automatically on shutdown
 
+	ENGINE_INDEX: bool = True
+
 	class Config:
 		env_file = '.env'
 		env_file_encoding = 'utf-8'
@@ -114,3 +116,7 @@ def ask_snowflake_generator() -> SnowflakeGenerator:
 	if snowflake_generator_holder.snowflakeGenerator is None:
 		snowflake_generator_holder.snowflakeGenerator = build_snowflake_generator(ask_meta_storage())
 	return snowflake_generator_holder.snowflakeGenerator
+
+
+def ask_engine_index_enabled() -> bool:
+	return settings.ENGINE_INDEX
