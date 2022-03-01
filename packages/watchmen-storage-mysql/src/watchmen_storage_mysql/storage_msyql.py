@@ -408,7 +408,7 @@ class TopicDataStorageMySQL(StorageMySQL, TopicDataStorageSPI):
 	# noinspection PyMethodMayBeStatic
 	def build_free_columns(self, table_columns: Optional[List[FreeColumn]], tables: List[Table]) -> List[Any]:
 		return ArrayHelper(table_columns) \
-			.map_with_index(lambda x, index: build_literal(tables, x).label(f'column_{index + 1}')) \
+			.map_with_index(lambda x, index: build_literal(tables, x.literal).label(f'column_{index + 1}')) \
 			.to_list()
 
 	def free_page(self, pager: FreePager) -> DataPage:
