@@ -2641,6 +2641,20 @@
             },
             {
               "name": "PIPELINE GRAPHICS LIST",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "5cdb4da3-483a-44b3-b735-c70e08692e0f",
+                    "exec": [
+                      "pm.test(\"List Pipeline Graphics\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "5a192cde-f07f-4070-8d90-89a1ec513c5c",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
