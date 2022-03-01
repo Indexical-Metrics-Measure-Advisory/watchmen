@@ -66,6 +66,9 @@ class PipelineCache:
 			pipeline_by_topic_cache.remove_one(existing.topicId, existing.pipelineId)
 		return existing
 
+	def all(self) -> List[Pipeline]:
+		return list(self.byIdCache.values())
+
 	def clear(self) -> None:
 		self.byIdCache.clear()
 		self.fire_cache_cleared()

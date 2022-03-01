@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from watchmen_model.common import ExternalWriterId
 from watchmen_model.system import ExternalWriter
@@ -23,6 +23,9 @@ class ExternalWriterCache:
 
 	def remove(self, external_writer_id: ExternalWriterId) -> Optional[ExternalWriter]:
 		return self.byIdCache.remove(external_writer_id)
+
+	def all(self) -> List[ExternalWriter]:
+		return list(self.byIdCache.values())
 
 	def clear(self) -> None:
 		self.byIdCache.clear()

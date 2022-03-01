@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from watchmen_model.common import TenantId
 from watchmen_model.system import Tenant
@@ -23,6 +23,9 @@ class TenantCache:
 
 	def remove(self, tenant_id: TenantId) -> Optional[Tenant]:
 		return self.byIdCache.remove(tenant_id)
+
+	def all(self) -> List[Tenant]:
+		return list(self.byIdCache.values())
 
 	def clear(self) -> None:
 		self.byIdCache.clear()

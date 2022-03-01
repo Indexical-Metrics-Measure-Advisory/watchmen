@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from watchmen_data_kernel.storage import TopicDataEntityHelper
 from watchmen_data_kernel.topic_schema import TopicSchema
@@ -51,6 +51,9 @@ class TopicCache:
 		self.schemaByIdCache.remove(topic_id)
 		self.entityHelperByIdCache.remove(topic_id)
 		return existing
+
+	def all(self) -> List[Topic]:
+		return list(self.byIdCache.values())
 
 	def clear(self) -> None:
 		self.byIdCache.clear()
