@@ -8,7 +8,8 @@ from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.console import ConnectedSpaceService
 from watchmen_meta.system import DataSourceService
 from watchmen_model.admin import Factor, FactorType, Space, Topic, TopicKind, TopicType, User, UserRole
-from watchmen_model.common import Pageable, ParameterKind, TopicFactorParameter
+from watchmen_model.common import ComputedParameter, ConstantParameter, Pageable, ParameterComputeType, ParameterKind, \
+	TopicFactorParameter
 from watchmen_model.console import ConnectedSpace, Subject, SubjectDataset, SubjectDatasetColumn
 from watchmen_model.system import DataSource, DataSourceType
 
@@ -81,9 +82,28 @@ class TestSubject(TestCase):
 			dataset=SubjectDataset(
 				columns=[
 					SubjectDatasetColumn(
+						columnId='1',
+						parameter=ComputedParameter(
+							kind=ParameterKind.COMPUTED, type=ParameterComputeType.ADD,
+							parameters=[
+								TopicFactorParameter(kind=ParameterKind.TOPIC, topicId='1', factorId='1'),
+								ConstantParameter(kind=ParameterKind.CONSTANT, value='2')
+							]
+						),
+						alias='Column1'
+					),
+					SubjectDatasetColumn(
 						columnId='2',
 						parameter=TopicFactorParameter(kind=ParameterKind.TOPIC, topicId='1', factorId='1'),
-						alias='Column2')
+						alias='Column2'),
+					SubjectDatasetColumn(
+						columnId='3',
+						parameter=ConstantParameter(kind=ParameterKind.CONSTANT, value='{&now}'),
+						alias='Column3'),
+					SubjectDatasetColumn(
+						columnId='4',
+						parameter=ConstantParameter(kind=ParameterKind.CONSTANT, value='HELLO WORLD!'),
+						alias='Column4'),
 				]
 			),
 			connectId='1',
