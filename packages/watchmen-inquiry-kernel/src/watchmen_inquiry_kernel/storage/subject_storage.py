@@ -8,15 +8,28 @@ from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_inquiry_kernel.common import InquiryKernelException
 from watchmen_inquiry_kernel.common.settings import ask_use_storage_directly
 from watchmen_inquiry_kernel.subject_schema import SubjectSchema
-from watchmen_model.admin import Factor
+from watchmen_meta.admin import SpaceService
+from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
+from watchmen_meta.console import ConnectedSpaceService
+from watchmen_model.admin import Factor, Space
+from watchmen_model.admin.space import SpaceFilter
 from watchmen_model.common import DataPage, FactorId, Pageable, TopicId
-from watchmen_model.console import SubjectDatasetJoin, SubjectJoinType
-from watchmen_storage import ColumnNameLiteral, FreeJoin, FreeJoinType, FreePager
+from watchmen_model.console import ConnectedSpace, SubjectDatasetJoin, SubjectJoinType
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaJoint, EntityCriteriaJointConjunction, FreeJoin, \
+	FreeJoinType, FreePager
 from watchmen_utilities import ArrayHelper, is_blank
 
 
 def ask_empty_variables() -> PipelineVariables:
 	return PipelineVariables(None, None)
+
+
+def get_connected_space_service(principal_service: PrincipalService) -> ConnectedSpaceService:
+	return ConnectedSpaceService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
+def get_space_service(principal_service: PrincipalService) -> SpaceService:
+	return SpaceService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
 class SubjectStorage:
@@ -93,7 +106,40 @@ class SubjectStorage:
 		else:
 			joins = ArrayHelper(dataset.joins).map(lambda x: self.build_join(x, available_schemas)).to_list()
 
+		connect_id = subject.connectId
+		connected_space_service = get_connected_space_service(self.principalService)
+		# noinspection PyTypeChecker
+		connected_space: Optional[ConnectedSpace] = connected_space_service.find_by_id(connect_id)
+		if connected_space is None:
+			raise InquiryKernelException(f'Connected space[id={connect_id}] not found.')
+		elif connected_space.tenantId != self.principalService.get_tenant_id():
+			raise InquiryKernelException(f'Tenant of connected space cannot match subject\'s.')
+		space_id = connected_space.spaceId
+		space: Optional[Space] = get_space_service(self.principalService).find_by_id(space_id)
+		if space is None:
+			raise InquiryKernelException(f'Space[id={space_id}] not found.')
+		elif space.tenantId != self.principalService.get_tenant_id():
+			raise InquiryKernelException(f'Tenant of space cannot match subject\'s.')
+
 		criteria = parse_condition_for_storage(dataset.filters, available_schemas, self.principalService, False)
+
+		def should_use(space_filter: Optional[SpaceFilter]) -> bool:
+			if space_filter is None:
+				return False
+			if not space_filter.enabled or is_blank(space_filter.topicId) or space_filter.joint is None:
+				return False
+
+			return ArrayHelper(available_schemas).some(lambda x: x.get_topic().topicId == space_filter.topicId)
+
+		criteria_from_space = ArrayHelper(space.filters) \
+			.filter(lambda x: should_use(x)) \
+			.map(lambda x: parse_condition_for_storage(x.joint, available_schemas, self.principalService, False)) \
+			.to_list()
+		if len(criteria_from_space) != 0:
+			criteria = EntityCriteriaJoint(
+				conjunction=EntityCriteriaJointConjunction.AND,
+				children=ArrayHelper(criteria_from_space).grab(criteria).to_list()
+			)
 
 		return storage.free_page(FreePager(
 			columns=columns,

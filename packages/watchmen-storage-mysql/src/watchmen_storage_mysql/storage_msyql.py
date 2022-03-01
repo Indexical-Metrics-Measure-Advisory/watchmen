@@ -379,7 +379,8 @@ class TopicDataStorageMySQL(StorageMySQL, TopicDataStorageSPI):
 			groups_by_secondary: Dict[TopicId, List[FreeJoin]] = ArrayHelper(joins_by_primary) \
 				.group_by(lambda x: x.secondary.entityName)
 			for secondary_entity_name, joins_by_secondary in groups_by_secondary:
-				outer_join = ArrayHelper(joins_by_primary).every(lambda x: x.type == FreeJoinType.LEFT)
+				# every join is left join, otherwise reduce to inner join
+				outer_join = ArrayHelper(joins_by_secondary).every(lambda x: x.type == FreeJoinType.LEFT)
 				secondary_table = self.find_table(secondary_entity_name)
 				if secondary_table not in tables:
 					tables.append(secondary_table)
