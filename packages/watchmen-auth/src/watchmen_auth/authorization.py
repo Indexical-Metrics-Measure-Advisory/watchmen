@@ -1,7 +1,7 @@
 from typing import List, Optional
 
 from watchmen_model.admin import User, UserRole
-from .authentication import AuthenticationManager, AuthenticationType
+from .authentication import AuthenticationManager
 
 
 class AuthFailOn401(Exception):
@@ -42,5 +42,5 @@ class Authorization:
 
 		return user
 
-	def authorize_token(self, token: str, auth_type: AuthenticationType) -> User:
-		return self.authorize(self.authenticator.authenticate(token, auth_type))
+	def authorize_token(self, scheme: str, token: str) -> User:
+		return self.authorize(self.authenticator.authenticate(scheme, token))

@@ -7,7 +7,8 @@ from jose.jwt import decode, encode
 from jsonschema.exceptions import ValidationError
 from starlette.requests import Request
 
-from watchmen_auth import AuthenticationManager, AuthenticationProvider, AuthenticationType, AuthFailOn401, \
+from watchmen_auth import AuthenticationDetails, AuthenticationManager, AuthenticationProvider, AuthenticationType, \
+	AuthFailOn401, \
 	AuthFailOn403, authorize, authorize_token, PrincipalService
 from watchmen_model.admin import User, UserRole
 from watchmen_utilities import ArrayHelper
@@ -36,20 +37,18 @@ class JWTAuthenticationProvider(AuthenticationProvider):
 		self.algorithm = algorithm
 		self.find_user_by_name = find_user_by_name
 
-	def accept(self, auth_type: AuthenticationType) -> bool:
-		return auth_type == AuthenticationType.JWT
+	def accept(self, details: AuthenticationDetails) -> bool:
+		return details.scheme == 'Bearer'
 
-	def authenticate(self, details: dict) -> Optional[User]:
+	def authenticate(self, details: AuthenticationDetails) -> Optional[User]:
 		try:
-			token = details['token']
+			token = details.token
 			payload = validate_jwt(token, self.secretKey, self.algorithm)
 			username = payload['sub']
-			user = self.find_user_by_name(username)
-			if user is None:
-				raise AuthFailOn401('Unauthorized visit.')
-			return user
+			return self.find_user_by_name(username)
 		except AuthFailOn401 as e:
-			raise e
+			logger.error(e, exc_info=True, stack_info=True)
+			return None
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
 			raise AuthFailOn401('Unauthorized visit.')
@@ -59,18 +58,16 @@ class PATAuthenticationProvider(AuthenticationProvider):
 	def __init__(self, find_user_by_pat: Callable[[str], Optional[User]]):
 		self.find_user_by_pat = find_user_by_pat
 
-	def accept(self, auth_type: AuthenticationType) -> bool:
-		return auth_type == AuthenticationType.PAT
+	def accept(self, details: AuthenticationDetails) -> bool:
+		return details.scheme == 'pat'
 
-	def authenticate(self, details: dict) -> Optional[User]:
-		token = details['token']
+	def authenticate(self, details: AuthenticationDetails) -> Optional[User]:
+		token = details.token
 		try:
-			user = self.find_user_by_pat(token)
-			if user is None:
-				raise AuthFailOn401('Unauthorized visit.')
-			return user
+			return self.find_user_by_pat(token)
 		except AuthFailOn401 as e:
-			raise e
+			logger.error(e, exc_info=True, stack_info=True)
+			return None
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
 			raise AuthFailOn401('Unauthorized visit.')
