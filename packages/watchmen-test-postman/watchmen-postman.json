@@ -4296,6 +4296,20 @@
         },
         {
           "name": "DASHBOARD IMPORT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "13f5deee-7c53-4171-9d8f-4370d8813ac8",
+                "exec": [
+                  "pm.test(\"Import Dashboard\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "id": "413de7d1-13ff-4ada-8b99-c89711a253a3",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
