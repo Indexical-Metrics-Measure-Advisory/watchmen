@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable, List, Optional
 
 from watchmen_model.common import DataSourceId
 from watchmen_model.system import DataSource
@@ -34,6 +34,9 @@ class DataSourceCache:
 		data_source = self.byIdCache.remove(data_source_id)
 		self.builderByIdCache.remove(data_source_id)
 		return data_source
+
+	def all(self) -> List[DataSource]:
+		return list(self.byIdCache.values())
 
 	def clear(self) -> None:
 		self.byIdCache.clear()

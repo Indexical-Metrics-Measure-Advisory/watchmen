@@ -3,6 +3,9 @@ from typing import Callable, Optional
 
 from pydantic import BaseSettings
 
+from watchmen_auth import PrincipalService
+from watchmen_model.admin import User, UserRole
+from watchmen_model.common import TenantId, UserId
 from watchmen_model.system import DataSourceType
 from watchmen_storage import competitive_worker_id, CompetitiveWorkerRestarter, CompetitiveWorkerShutdownSignal, \
 	immutable_worker_id, SnowflakeGenerator, StorageBasedWorkerIdGenerator, TransactionalStorageSPI
@@ -12,6 +15,11 @@ logger = getLogger(__name__)
 
 
 class MetaSettings(BaseSettings):
+	SUPER_ADMIN_TENANT_ID: TenantId = '1'
+	SUPER_ADMIN_USER_ID: UserId = '1'
+	SUPER_ADMIN_USER_NAME: str = 'imma-super'
+	SUPER_ADMIN_USER_NICKNAME: str = 'IMMA Super'
+
 	META_STORAGE_TYPE: str = DataSourceType.MYSQL
 	META_STORAGE_USER_NAME: str = 'watchmen'
 	META_STORAGE_PASSWORD: str = 'watchmen'
@@ -38,6 +46,18 @@ class MetaSettings(BaseSettings):
 
 settings = MetaSettings()
 logger.info(f'Meta settings[{settings.dict()}].')
+
+
+def ask_super_admin() -> PrincipalService:
+	return PrincipalService(User(
+		userId=settings.SUPER_ADMIN_USER_ID,
+		name=settings.SUPER_ADMIN_USER_NAME,
+		nickname=settings.SUPER_ADMIN_USER_NICKNAME,
+		isActive=True,
+		groupIds=[],
+		tenantId=settings.SUPER_ADMIN_TENANT_ID,
+		role=UserRole.SUPER_ADMIN
+	))
 
 
 def build_mysql_storage() -> Callable[[], TransactionalStorageSPI]:
@@ -89,7 +109,8 @@ def build_snowflake_generator(storage: TransactionalStorageSPI) -> SnowflakeGene
 				signal: CompetitiveWorkerShutdownSignal,
 				data_center_id: int, worker_id: int,
 				restart: CompetitiveWorkerRestarter) -> None:
-			logger.warning(f'Worker[dataCenterId={data_center_id}, workerId={worker_id}] shutdown on signal[{signal}].')
+			logger.warning(
+				f'Worker[dataCenterId={data_center_id}, workerId={worker_id}] shutdown on signal[{signal}].')
 			if settings.SNOWFLAKE_COMPETITIVE_WORKER_RESTART_ON_SHOWDOWN:
 				if signal == CompetitiveWorkerShutdownSignal.EXCEPTION_RAISED:
 					restart()
