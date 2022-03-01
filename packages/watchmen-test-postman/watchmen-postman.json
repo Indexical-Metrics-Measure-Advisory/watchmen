@@ -2599,6 +2599,20 @@
           "item": [
             {
               "name": "PIPELINE GRAPHICS CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "7469bc01-91b4-444d-b6ad-ed6a59fe2e0f",
+                    "exec": [
+                      "pm.test(\"Create Pipeline Graphics\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "c7fd000e-3685-4ac9-a42d-1d6aedbfe9a8",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
