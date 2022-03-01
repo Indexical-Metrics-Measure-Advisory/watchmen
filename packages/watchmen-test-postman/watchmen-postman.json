@@ -4031,7 +4031,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "[\n    {\n        \"name\": \"Test-Group1\",\n        \"description\": \"A description\",\n        \"userIds\": [\n            \"{{USER_ID}}\",\n            \"2\"\n        ],\n        \"spaceIds\": [\n            \"{{SPACE_ID}}\"\n        ]\n    },\n    {\n        \"name\": \"Test-Group2\",\n        \"description\": \"A description\",\n        \"userIds\": [\n            \"{{USER_ID}}\",\n            \"2\"\n        ],\n        \"spaceIds\": [\n            \"{{SPACE_ID}}\"\n        ]\n    }\n]",
+              "raw": "[\n    {\n        \"userGroupId\": \"948380169863815168\",\n        \"name\": \"Test-Group1\",\n        \"description\": \"A description\",\n        \"userIds\": [\n            \"{{USER_ID}}\",\n            \"2\"\n        ],\n        \"spaceIds\": [\n            \"{{SPACE_ID}}\"\n        ]\n    },\n    {\n        \"userGroupId\": \"948380169960284160\",\n        \"name\": \"Test-Group2\",\n        \"description\": \"A description\",\n        \"userIds\": [\n            \"{{USER_ID}}\",\n            \"2\"\n        ],\n        \"spaceIds\": [\n            \"{{SPACE_ID}}\"\n        ]\n    }\n]",
               "options": {
                 "raw": {
                   "language": "json"
