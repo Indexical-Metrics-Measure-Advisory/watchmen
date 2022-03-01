@@ -3077,13 +3077,34 @@
             },
             {
               "name": "DASHBOARD LIST",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "37f0a675-9001-4f4a-b627-322c8c3f5136",
+                    "exec": [
+                      "pm.test('List Dashboard', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "fc30d542-af31-4754-8a62-1d3b12208f0d",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": "{{URL_PREFIX}}/dashboard/list"
               },
               "response": []
             },
