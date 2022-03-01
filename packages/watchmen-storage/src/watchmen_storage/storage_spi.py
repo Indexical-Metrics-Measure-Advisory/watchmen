@@ -112,7 +112,8 @@ class StorageSPI(ABC):
 	@abstractmethod
 	def find_distinct_values(self, finder: EntityDistinctValuesFinder) -> EntityList:
 		"""
-		filled values with given distinct columns event returns an entity list
+		filled values with given distinct columns event returns an entity list.
+		entity is deserialized by shaper
 		"""
 		pass
 

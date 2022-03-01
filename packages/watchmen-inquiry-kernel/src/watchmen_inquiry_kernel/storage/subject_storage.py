@@ -3,8 +3,7 @@ from typing import List, Optional
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.service import ask_topic_storage
 from watchmen_data_kernel.storage_bridge import ask_topic_data_entity_helper, parse_condition_for_storage, \
-	parse_parameter_for_storage, \
-	PipelineVariables
+	parse_parameter_for_storage, PipelineVariables
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_inquiry_kernel.common import InquiryKernelException
 from watchmen_inquiry_kernel.common.settings import ask_use_storage_directly

@@ -77,7 +77,7 @@ class TopicService(TupleService):
 		find topic ids by given ids, returned list might be less than given
 		"""
 		# noinspection PyTypeChecker
-		return self.storage.find_distinct_values(EntityDistinctValuesFinder(
+		topics: List[Topic] = self.storage.find_distinct_values(EntityDistinctValuesFinder(
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),
 			criteria=[
@@ -87,6 +87,7 @@ class TopicService(TupleService):
 			],
 			distinctColumnNames=['topic_id']
 		))
+		return ArrayHelper(topics).map(lambda x: x.topicId).to_list()
 
 	# noinspection DuplicatedCode
 	def find_page_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
