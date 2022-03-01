@@ -1,19 +1,33 @@
 from datetime import datetime
+from typing import Optional, Union
 
 from watchmen_meta.common import AuditableShaper, LastVisitShaper, TupleNotFoundException, \
 	UserBasedTupleService, UserBasedTupleShaper
 from watchmen_model.common import DashboardId, TenantId, UserId
-from watchmen_model.console import Dashboard
+from watchmen_model.console import Dashboard, DashboardParagraph, DashboardReport
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityRow, EntityShaper
+from watchmen_utilities import ArrayHelper
 
 
 class DashboardShaper(EntityShaper):
+	# noinspection PyMethodMayBeStatic
+	def serialize_to_dict(
+			self,
+			data: Optional[Union[dict, DashboardReport, DashboardParagraph]]
+	) -> Optional[dict]:
+		if data is None:
+			return None
+		elif isinstance(data, dict):
+			return data
+		else:
+			return data.dict()
+
 	def serialize(self, dashboard: Dashboard) -> EntityRow:
 		row = {
 			'dashboard_id': dashboard.dashboardId,
 			'name': dashboard.name,
-			'reports': dashboard.reports,
-			'paragraphs': dashboard.paragraphs,
+			'reports': ArrayHelper(dashboard.reports).map(lambda x: self.serialize_to_dict(x)).to_list(),
+			'paragraphs': ArrayHelper(dashboard.paragraphs).map(lambda x: self.serialize_to_dict(x)).to_list(),
 			'auto_refresh_interval': dashboard.autoRefreshInterval
 		}
 		row = AuditableShaper.serialize(dashboard, row)

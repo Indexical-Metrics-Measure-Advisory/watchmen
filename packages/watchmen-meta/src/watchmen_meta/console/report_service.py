@@ -3,23 +3,28 @@ from typing import List, Optional, Union
 
 from watchmen_meta.common import AuditableShaper, LastVisitShaper, UserBasedTupleService, UserBasedTupleShaper
 from watchmen_model.chart import Chart
-from watchmen_model.common import ConnectedSpaceId, DataPage, Pageable, ReportId, SubjectId, TenantId
-from watchmen_model.console import Report
+from watchmen_model.common import ConnectedSpaceId, DataPage, GraphicRect, Pageable, ParameterJoint, ReportId, \
+	SubjectId, TenantId
+from watchmen_model.console import Report, ReportDimension, ReportFunnel, ReportIndicator
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaJoint, \
-	EntityCriteriaJointConjunction, EntityCriteriaOperator, \
-	EntityRow, \
-	EntityShaper
+	EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityRow, EntityShaper
+from watchmen_utilities import ArrayHelper
 
 
 class ReportShaper(EntityShaper):
-	@staticmethod
-	def serialize_chart(chart: Optional[Union[dict, Chart]]) -> Optional[dict]:
-		if chart is None:
+	# noinspection PyMethodMayBeStatic
+	def serialize_to_dict(
+			self,
+			data: Optional[Union[
+				dict, Chart, GraphicRect, ReportFunnel, ReportIndicator, ReportDimension, ParameterJoint
+			]]
+	) -> Optional[dict]:
+		if data is None:
 			return None
-		elif isinstance(chart, dict):
-			return chart
+		elif isinstance(data, dict):
+			return data
 		else:
-			return chart.dict()
+			return data.dict()
 
 	def serialize(self, report: Report) -> EntityRow:
 		row = {
@@ -27,13 +32,13 @@ class ReportShaper(EntityShaper):
 			'name': report.name,
 			'subject_id': report.subjectId,
 			'connect_id': report.connectId,
-			'filters': report.filters,
-			'funnels': report.funnels,
-			'indicators': report.indicators,
-			'dimensions': report.dimensions,
+			'filters': self.serialize_to_dict(report.filters),
+			'funnels': ArrayHelper(report.funnels).map(lambda x: self.serialize_to_dict(x)).to_list(),
+			'indicators': ArrayHelper(report.indicators).map(lambda x: self.serialize_to_dict(x)).to_list(),
+			'dimensions': ArrayHelper(report.dimensions).map(lambda x: self.serialize_to_dict(x)).to_list(),
 			'description': report.description,
-			'rect': report.rect,
-			'chart': ReportShaper.serialize_chart(report.chart),
+			'rect': self.serialize_to_dict(report.rect),
+			'chart': self.serialize_to_dict(report.chart),
 			'simulating': report.simulating,
 			'simulate_data': report.simulateData,
 			'simulate_thumbnail': report.simulateThumbnail
