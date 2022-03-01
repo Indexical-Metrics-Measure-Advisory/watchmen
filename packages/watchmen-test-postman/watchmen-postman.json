@@ -4338,6 +4338,20 @@
         },
         {
           "name": "MIX IMPORT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "6dcb63f8-ae0a-4866-9f67-4373513b2d4c",
+                "exec": [
+                  "pm.test(\"Import Mix\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "id": "71ab2c5d-01cf-4ca4-a087-cba08b276e17",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
