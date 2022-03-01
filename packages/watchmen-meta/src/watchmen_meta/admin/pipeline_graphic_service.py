@@ -1,16 +1,31 @@
+from typing import Optional, Union
+
 from watchmen_meta.common import UserBasedTupleService, UserBasedTupleShaper
-from watchmen_model.admin import PipelineGraphic
+from watchmen_model.admin import PipelineGraphic, TopicGraphic
 from watchmen_model.common import PipelineGraphicId
 from watchmen_storage import EntityRow, \
 	EntityShaper
+from watchmen_utilities import ArrayHelper
 
 
 class PipelineGraphicShaper(EntityShaper):
+	# noinspection PyMethodMayBeStatic
+	def serialize_to_dict(
+			self,
+			data: Optional[Union[dict, TopicGraphic]]
+	) -> Optional[dict]:
+		if data is None:
+			return None
+		elif isinstance(data, dict):
+			return data
+		else:
+			return data.dict()
+
 	def serialize(self, pipeline_graphic: PipelineGraphic) -> EntityRow:
 		row = {
 			'pipeline_graphic_id': pipeline_graphic.pipelineGraphId,
 			'name': pipeline_graphic.name,
-			'topics': pipeline_graphic.topics
+			'topics': ArrayHelper(pipeline_graphic.topics).map(lambda x: self.serialize_to_dict(x)).to_list()
 		}
 		row = UserBasedTupleShaper.serialize(pipeline_graphic, row)
 		return row

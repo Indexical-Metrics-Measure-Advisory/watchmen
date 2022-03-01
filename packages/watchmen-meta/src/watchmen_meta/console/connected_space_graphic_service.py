@@ -1,15 +1,29 @@
+from typing import Optional, Union
+
 from watchmen_meta.common import UserBasedTupleService, UserBasedTupleShaper
 from watchmen_model.common import ConnectedSpaceId
-from watchmen_model.console import ConnectedSpaceGraphic
+from watchmen_model.console import ConnectedSpaceGraphic, SubjectGraphic, TopicGraphic
 from watchmen_storage import EntityRow, EntityShaper
+from watchmen_utilities import ArrayHelper
 
 
 class ConnectedSpaceGraphicShaper(EntityShaper):
+	# noinspection PyMethodMayBeStatic
+	def serialize_to_dict(
+			self, data: Optional[Union[dict, TopicGraphic, SubjectGraphic]]
+	) -> Optional[dict]:
+		if data is None:
+			return None
+		elif isinstance(data, dict):
+			return data
+		else:
+			return data.dict()
+
 	def serialize(self, connected_space_graphic: ConnectedSpaceGraphic) -> EntityRow:
 		row = {
 			'connect_id': connected_space_graphic.connectId,
-			'topics': connected_space_graphic.topics,
-			'subjects': connected_space_graphic.subjects
+			'topics': ArrayHelper(connected_space_graphic.topics).map(lambda x: self.serialize_to_dict(x)).to_list(),
+			'subjects': ArrayHelper(connected_space_graphic.subjects).map(lambda x: self.serialize_to_dict(x)).to_list()
 		}
 		row = UserBasedTupleShaper.serialize(connected_space_graphic, row)
 		return row
