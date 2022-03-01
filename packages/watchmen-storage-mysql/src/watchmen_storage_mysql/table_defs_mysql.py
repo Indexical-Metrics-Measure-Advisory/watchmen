@@ -163,6 +163,17 @@ table_last_snapshot = Table(
 	create_bool('favorite_pin'),
 	create_tenant_id(), create_user_id(primary_key=True), create_last_visit_time()
 )
+# analysis, index
+table_factor_index = Table(
+	'factor_index', meta_data,
+	create_pk('factor_index_id'),
+	create_tuple_id_column('factor_id'), create_str('factor_type', 50), create_str('factor_name', 45),
+	create_str('factor_label', 100), create_str('factor_description', 100),
+	create_tuple_id_column('topic_id'), create_str('topic_name', 25),
+	create_tenant_id(),
+	create_datetime('created_at', False),
+	create_datetime('last_modified_at', False)
+)
 
 tables: Dict[str, Table] = {
 	# snowflake workers
@@ -189,7 +200,9 @@ tables: Dict[str, Table] = {
 	'dashboards': table_dashboards,
 	# gui
 	'favorites': table_favorites,
-	'last_snapshots': table_last_snapshot
+	'last_snapshots': table_last_snapshot,
+	# analysis index
+	'factor_index': table_factor_index
 }
 
 topic_tables: Dict[TopicId, Tuple[Table, datetime]] = {}
