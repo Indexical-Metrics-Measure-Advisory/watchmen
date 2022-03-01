@@ -4128,11 +4128,31 @@
         },
         {
           "name": "SPACE IMPORT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "c0d02bcf-8cf9-4977-9b66-19b3a6c9a817",
+                "exec": [
+                  "pm.test(\"Import Space\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "id": "834a67d8-2575-4d0e-8618-71ea490d9804",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{JWT_TOKEN}}"
+              }
+            },
             "method": "POST",
             "header": [],
             "url": "{{URL_PREFIX}}/space/import"
