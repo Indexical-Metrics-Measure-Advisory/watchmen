@@ -4199,7 +4199,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "[\n    {\n    \"spaceId\": \"{{SPACE_ID}}\",\n    \"name\": \"Import-Connected-Space1\",\n    \"isTemplate\": false,\n    \"connectId\": \"948390386898952192\",\n    \"userId\": \"2\",\n    \"tenantId\": \"1\",\n    \"subjects\": []\n},\n{\n    \"spaceId\": \"{{SPACE_ID}}\",\n    \"name\": \"Import-Connected-Space2\",\n    \"isTemplate\": false,\n    \"connectId\": \"948390386898952192\",\n    \"subjects\": []\n}\n]",
+              "raw": "[\n    {\n    \"spaceId\": \"{{SPACE_ID}}\",\n    \"name\": \"Import-Connected-Space1\",\n    \"isTemplate\": false,\n    \"connectId\": \"948390386898952192\",\n    \"subjects\": []\n},\n{\n    \"spaceId\": \"{{SPACE_ID}}\",\n    \"name\": \"Import-Connected-Space2\",\n    \"isTemplate\": false,\n    \"connectId\": \"948390386898952192\",\n    \"subjects\": []\n}\n]",
               "options": {
                 "raw": {
                   "language": "json"
