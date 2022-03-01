@@ -2617,7 +2617,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "PIPELINE GRAPHICS LIST",
               "id": "5a192cde-f07f-4070-8d90-89a1ec513c5c",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
