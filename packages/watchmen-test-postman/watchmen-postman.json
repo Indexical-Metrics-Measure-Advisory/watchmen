@@ -3989,7 +3989,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "[\n    {\n        \"userId\": \"948373839484674048\",\n        \"name\": \"Import-User1\",\n        \"nickName\": \"Import-User-Nickname1\",\n        \"password\": \"abcd1234\",\n        \"isActive\": true,\n        \"groupIds\": [],\n        \"role\": \"console\"\n    },\n    {\n        \"userId\": \"948373840185122816\",\n        \"name\": \"Import-User2\",\n        \"nickName\": \"Import-User-Nickname2\",\n        \"password\": \"abcd1234\",\n        \"isActive\": true,\n        \"groupIds\": [],\n        \"role\": \"console\"\n    }\n]",
+              "raw": "[\n    {\n        \"userId\": \"f-1\",\n        \"name\": \"Import-User1\",\n        \"nickName\": \"Import-User-Nickname1\",\n        \"password\": \"abcd1234\",\n        \"isActive\": true,\n        \"groupIds\": [],\n        \"role\": \"console\"\n    },\n    {\n        \"userId\": \"f-2\",\n        \"name\": \"Import-User2\",\n        \"nickName\": \"Import-User-Nickname2\",\n        \"password\": \"abcd1234\",\n        \"isActive\": true,\n        \"groupIds\": [],\n        \"role\": \"console\"\n    }\n]",
               "options": {
                 "raw": {
                   "language": "json"
