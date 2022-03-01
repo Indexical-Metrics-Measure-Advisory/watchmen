@@ -428,6 +428,14 @@ class TopicDataStorageMySQL(StorageMySQL, TopicDataStorageSPI):
 		offset = page_size * (page_number - 1)
 		statement = statement.offset(offset).limit(page_size)
 		results = self.connection.execute(statement).mappings().all()
+
+		def deserialize(row: Dict[str, Any]) -> Dict[str, Any]:
+			data: Dict[str, Any] = {}
+			for index, column in enumerate(pager.columns):
+				data[column.alias] = row.get(f'column_{index + 1}')
+			return data
+
+		results = ArrayHelper(results).map(deserialize).to_list()
 		return DataPage(
 			data=results,
 			pageNumber=page_number,
