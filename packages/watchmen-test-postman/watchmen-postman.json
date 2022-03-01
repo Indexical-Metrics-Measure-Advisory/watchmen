@@ -2615,6 +2615,18 @@
                 "url": "{{URL_PREFIX}}/pipeline/graphics"
               },
               "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "5a192cde-f07f-4070-8d90-89a1ec513c5c",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
             }
           ],
           "id": "7dc3f01a-b535-4225-ae5a-74f0df01d407"
