@@ -8,6 +8,7 @@ from watchmen_model.chart import BarChart, Chart, ChartType, CountChart, Customi
 from watchmen_model.common import Auditable, ConnectedSpaceId, construct_parameter_joint, DataModel, DataResultSet, \
 	GraphicRect, LastVisit, ParameterJoint, ReportFunnelId, ReportId, SubjectDatasetColumnId, SubjectId, UserBasedTuple
 from watchmen_utilities import ArrayHelper
+from .utils import construct_rect
 
 
 class ReportIndicatorArithmetic(str, Enum):
@@ -91,15 +92,6 @@ def construct_chart(chart: Optional[Union[dict, Chart]]) -> Optional[Chart]:
 			return CustomizedChart(**chart)
 		else:
 			raise Exception(f'Chart type[{chart_type}] cannot be recognized.')
-
-
-def construct_rect(rect: Optional[Union[dict, GraphicRect]]) -> Optional[GraphicRect]:
-	if rect is None:
-		return None
-	elif isinstance(rect, GraphicRect):
-		return rect
-	else:
-		return GraphicRect(**rect)
 
 
 def construct_funnel(funnel: Optional[Union[dict, ReportFunnel]]) -> Optional[ReportFunnel]:

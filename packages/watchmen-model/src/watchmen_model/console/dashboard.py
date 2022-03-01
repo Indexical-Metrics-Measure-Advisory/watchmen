@@ -4,7 +4,8 @@ from pydantic import BaseModel
 
 from watchmen_model.common import Auditable, DashboardId, DataModel, GraphicRect, LastVisit, ReportId, UserBasedTuple
 from watchmen_utilities import ArrayHelper
-from .report import construct_funnels, construct_rect, ReportFunnel
+from .report import construct_funnels, ReportFunnel
+from .utils import construct_rect
 
 
 class DashboardReport(DataModel, BaseModel):
