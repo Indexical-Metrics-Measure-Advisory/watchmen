@@ -174,6 +174,20 @@ table_factor_index = Table(
 	create_datetime('created_at', False),
 	create_datetime('last_modified_at', False)
 )
+table_pipeline_index = Table(
+	'pipeline_index', meta_data,
+	create_pk('pipeline_index_id'),
+	create_tuple_id_column('pipeline_id'), create_str('pipeline_name', 45, False),
+	create_tuple_id_column('stage_id'), create_str('stage_name', 100, False),
+	create_tuple_id_column('unit_id'), create_str('unit_name', 100, False),
+	create_tuple_id_column('action_id'),
+	create_tuple_id_column('mapping_to_topic_id'), create_tuple_id_column('mapping_to_factor_id'),
+	create_tuple_id_column('source_from_topic_id'), create_tuple_id_column('source_from_factor_id'),
+	create_str('ref_type', 20),
+	create_tenant_id(),
+	create_datetime('created_at', False),
+	create_datetime('last_modified_at', False)
+)
 
 tables: Dict[str, Table] = {
 	# snowflake workers
@@ -202,7 +216,8 @@ tables: Dict[str, Table] = {
 	'favorites': table_favorites,
 	'last_snapshots': table_last_snapshot,
 	# analysis index
-	'factor_index': table_factor_index
+	'factor_index': table_factor_index,
+	'pipeline_index': table_pipeline_index
 }
 
 topic_tables: Dict[TopicId, Tuple[Table, datetime]] = {}

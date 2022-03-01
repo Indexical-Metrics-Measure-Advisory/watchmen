@@ -439,6 +439,7 @@ class PieLabelAlignTo(str, Enum):
 	EDGE = 'edge'
 
 
+# noinspection DuplicatedCode
 class PieChartSettingsLabel(EChartsBorderHolder, EChartsFontHolder, EChartsAlignmentHolder, BaseModel):
 	show: bool = None
 	backgroundColor: ChartColor = None
