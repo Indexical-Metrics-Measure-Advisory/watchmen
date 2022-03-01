@@ -4,31 +4,7 @@ from pydantic import BaseModel
 
 from watchmen_model.common import Auditable, DashboardId, DataModel, GraphicRect, LastVisit, ReportId, UserBasedTuple
 from watchmen_utilities import ArrayHelper
-from .report import ReportFunnel
-
-
-def construct_funnel(funnel: Optional[Union[dict, ReportFunnel]]) -> Optional[ReportFunnel]:
-	if funnel is None:
-		return None
-	elif isinstance(funnel, ReportFunnel):
-		return funnel
-	else:
-		return ReportFunnel(**funnel)
-
-
-def construct_funnels(funnels: List[Union[dict, ReportFunnel]]) -> List[ReportFunnel]:
-	if funnels is None:
-		return []
-	return ArrayHelper(funnels).map(lambda x: construct_funnel(x)).to_list()
-
-
-def construct_rect(rect: Optional[Union[dict, GraphicRect]]) -> Optional[GraphicRect]:
-	if rect is None:
-		return None
-	elif isinstance(rect, GraphicRect):
-		return rect
-	else:
-		return GraphicRect(**rect)
+from .report import construct_funnels, construct_rect, ReportFunnel
 
 
 class DashboardReport(DataModel, BaseModel):

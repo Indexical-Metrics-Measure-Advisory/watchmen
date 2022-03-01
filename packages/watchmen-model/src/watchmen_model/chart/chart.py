@@ -17,9 +17,13 @@ class Chart(DataModel, BaseModel):
 		if name == 'settings':
 			if self.type is not None:
 				super().__setattr__(name, construct_settings(value, self.type))
+			else:
+				super().__setattr__(name, value)
 		elif name == 'type':
 			if self.settings is not None:
 				super().__setattr__(name, construct_settings(self.settings, value))
+			else:
+				super().__setattr__(name, value)
 		else:
 			super().__setattr__(name, value)
 
