@@ -4254,6 +4254,20 @@
         },
         {
           "name": "REPORT IMPORT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "44565e76-843a-447c-8600-e8dc417fce54",
+                "exec": [
+                  "pm.test(\"Import Report\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "id": "6268a82e-4acd-4029-a173-52ad4d9793ab",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
