@@ -4365,6 +4365,15 @@
             },
             "method": "POST",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"topics\": [\n        {\n            \"topicId\": \"f-1\",\n            \"name\": \"Import_Distinct_Topic1\",\n            \"description\": \"Test Distinct Topic\",\n            \"type\": \"distinct\",\n            \"kind\": \"business\",\n            \"dataSourceId\": \"948380846342135808\",\n            \"factors\": [\n                {\n                    \"factorId\": \"1\",\n                    \"type\": \"text\",\n                    \"name\": \"propA\",\n                    \"label\": \"propA\"\n                },\n                {\n                    \"factorId\": \"2\",\n                    \"type\": \"text\",\n                    \"name\": \"propB\"\n                }\n            ]\n        }\n    ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": "{{URL_PREFIX}}/import"
           },
           "response": []
