@@ -16,13 +16,19 @@ class AuthenticationType(str, Enum):
 	PAT = 'pat'
 
 
+class AuthenticationDetails:
+	def __init__(self, scheme: str, token: str):
+		self.scheme = scheme
+		self.token = token
+
+
 class AuthenticationProvider:
 	@abstractmethod
-	def accept(self, auth_type: AuthenticationType) -> bool:
+	def accept(self, details: AuthenticationDetails) -> bool:
 		pass
 
 	@abstractmethod
-	def authenticate(self, details: dict) -> Optional[User]:
+	def authenticate(self, details: AuthenticationDetails) -> Optional[User]:
 		pass
 
 
@@ -36,16 +42,16 @@ class AuthenticationManager:
 		self.providers.append(provider)
 		return self
 
-	def authenticate_details(self, details: dict, auth_type: AuthenticationType) -> Optional[User]:
+	def authenticate_details(self, details: AuthenticationDetails) -> Optional[User]:
 		def authenticate_by(provider: AuthenticationProvider) -> Tuple[bool, Optional[User]]:
 			user = provider.authenticate(details)
 			return (True, user) if user is not None else (False, None)
 
 		return ArrayHelper(self.get_providers()) \
-			.filter(lambda x: x.accept(auth_type)) \
+			.filter(lambda x: x.accept(details)) \
 			.first(lambda x: authenticate_by(x))
 
-	def authenticate(self, token: str, auth_type: AuthenticationType) -> Optional[User]:
-		details = {'token': token}
-		user = self.authenticate_details(details, auth_type)
+	def authenticate(self, scheme: str, token: str) -> Optional[User]:
+		details = AuthenticationDetails(scheme=scheme, token=token)
+		user = self.authenticate_details(details)
 		return user
