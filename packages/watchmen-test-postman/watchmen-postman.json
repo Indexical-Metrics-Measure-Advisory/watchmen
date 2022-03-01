@@ -1664,7 +1664,7 @@
               "response": []
             },
             {
-              "name": "SPACE AVALIABLE",
+              "name": "SPACE AVAILABLE",
               "event": [
                 {
                   "listen": "test",
