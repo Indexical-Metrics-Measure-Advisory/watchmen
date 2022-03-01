@@ -2676,7 +2676,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "PIPELINE GRAPHICS DELETE",
               "id": "6d447079-bc6f-4d1e-ac98-f8a9b8474021",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
