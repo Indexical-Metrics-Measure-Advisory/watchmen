@@ -4170,6 +4170,20 @@
         },
         {
           "name": "CONNECTED SPACE IMPORT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "57ff66ea-2fff-4aff-b672-3f714222e65d",
+                "exec": [
+                  "pm.test(\"Import Connected Space\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "id": "9b9dc48b-6b02-4363-a1e7-3841d2a621da",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
