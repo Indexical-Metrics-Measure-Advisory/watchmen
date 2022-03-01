@@ -4281,6 +4281,15 @@
             },
             "method": "POST",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n    {\n        \"name\": \"Import_Report1\",\n        \"subjectId\": \"{{SUBJECT_ID}}\",\n        \"connectId\": \"{{CONNECT_ID}}\",\n        \"filters\": {},\n        \"funnels\": [],\n        \"indicators\": [],\n        \"dimensions\": [],\n        \"description\": \"test report\",\n        \"rect\": {\n            \"x\": 0,\n            \"y\": 0,\n            \"width\": 167.63888549804688,\n            \"height\": 35.55555534362793\n        },\n        \"chart\": {\n            \"type\": \"count\",\n            \"settings\": {\n                \"border\": null,\n                \"backgroundColor\": null,\n                \"colorSeries\": \"regular\"\n            }\n        },\n        \"simulating\": 0,\n        \"simulateData\": [],\n        \"simulateThumbnail\": \"test\"\n    },\n    {\n        \"name\": \"Import_Report2\",\n        \"subjectId\": \"{{SUBJECT_ID}}\",\n        \"connectId\": \"{{CONNECT_ID}}\",\n        \"filters\": {},\n        \"funnels\": [],\n        \"indicators\": [],\n        \"dimensions\": [],\n        \"description\": \"test report\",\n        \"rect\": {\n            \"x\": 0,\n            \"y\": 0,\n            \"width\": 167.63888549804688,\n            \"height\": 35.55555534362793\n        },\n        \"chart\": {\n            \"type\": \"count\",\n            \"settings\": {\n                \"border\": null,\n                \"backgroundColor\": null,\n                \"colorSeries\": \"regular\"\n            }\n        },\n        \"simulating\": 0,\n        \"simulateData\": [],\n        \"simulateThumbnail\": \"test\"\n    }\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": "{{URL_PREFIX}}/report/import"
           },
           "response": []
