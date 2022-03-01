@@ -4044,6 +4044,20 @@
         },
         {
           "name": "TOPIC IMPORT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "b4548c7d-bb0f-45fb-9e07-6de33eaaa107",
+                "exec": [
+                  "pm.test(\"Import Topic\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "id": "33d79b47-2fa7-4fc7-b15f-542342e523bc",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
