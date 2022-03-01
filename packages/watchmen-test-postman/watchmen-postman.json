@@ -3987,6 +3987,15 @@
             },
             "method": "POST",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n    {\n        \"name\": \"Import-User1\",\n        \"nickName\": \"Import-User-Nickname1\",\n        \"password\": \"abcd1234\",\n        \"isActive\": true,\n        \"groupIds\": [],\n        \"role\": \"console\"\n    },\n    {\n        \"name\": \"Import-User2\",\n        \"nickName\": \"Import-User-Nickname2\",\n        \"password\": \"abcd1234\",\n        \"isActive\": true,\n        \"groupIds\": [],\n        \"role\": \"console\"\n    }\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": "{{URL_PREFIX}}/user/import"
           },
           "response": []
