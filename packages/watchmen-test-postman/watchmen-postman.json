@@ -2726,13 +2726,50 @@
             },
             {
               "name": "PIPELINE GRAPHICS DELETE BY SUPER ADMIN",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "579273c3-15ab-4e40-998d-9d33335ddb71",
+                    "exec": [
+                      "pm.test(\"Delete Pipeline Graphics By Super Admin\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "9be9ef09-4381-4951-b9b4-22062c747413",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/pipeline/graphics?pipeline_graphic_id={{PIPELINE_GRAPH_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "pipeline",
+                    "graphics"
+                  ],
+                  "query": [
+                    {
+                      "key": "pipeline_graphic_id",
+                      "value": "{{PIPELINE_GRAPH_ID}}",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
