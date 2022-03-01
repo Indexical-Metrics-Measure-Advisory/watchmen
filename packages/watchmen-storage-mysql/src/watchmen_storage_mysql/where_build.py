@@ -1,3 +1,4 @@
+from datetime import date, datetime, time
 from typing import List, Tuple
 
 from sqlalchemy import and_, case, func, or_, Table
@@ -94,6 +95,12 @@ def build_literal(tables: List[Table], literal: Literal):
 			return func.datediff(build_literal(tables, literal.elements[0]), build_literal(tables, literal.elements[1]))
 		else:
 			raise UnsupportedComputationException(f'Unsupported computation operator[{operator}].')
+	elif isinstance(literal, datetime):
+		return func.str_to_date(literal.strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%i:%s')
+	elif isinstance(literal, date):
+		return func.str_to_date(literal.strftime('%Y-%m-%d'), '%Y-%m-%d')
+	elif isinstance(literal, time):
+		return func.str_to_date(literal.strftime('%H:%M:%S'), '%H:%i:%s')
 	else:
 		# a value, return itself
 		return literal

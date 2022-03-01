@@ -3,6 +3,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy import and_, delete, func, insert, select, Table, text, update
 from sqlalchemy.engine import Connection, Engine
+from sqlalchemy.sql import label
 
 from watchmen_model.admin import Topic
 from watchmen_model.common import DataPage, TopicId
@@ -406,9 +407,18 @@ class TopicDataStorageMySQL(StorageMySQL, TopicDataStorageSPI):
 			return self.build_free_joins_on_multiple(table_joins)
 
 	# noinspection PyMethodMayBeStatic
+	def build_free_column(self, table_column: FreeColumn, index: int, tables: List[Table]) -> List[Any]:
+		built = build_literal(tables, table_column.literal)
+		if id(built) == id(table_column.literal):
+			# value won't change after build to literal
+			return label(f'column_{index + 1}', built)
+		else:
+			return built.label(f'column_{index + 1}')
+
+	# noinspection PyMethodMayBeStatic
 	def build_free_columns(self, table_columns: Optional[List[FreeColumn]], tables: List[Table]) -> List[Any]:
 		return ArrayHelper(table_columns) \
-			.map_with_index(lambda x, index: build_literal(tables, x.literal).label(f'column_{index + 1}')) \
+			.map_with_index(lambda x, index: self.build_free_column(x, index, tables)) \
 			.to_list()
 
 	def free_page(self, pager: FreePager) -> DataPage:
