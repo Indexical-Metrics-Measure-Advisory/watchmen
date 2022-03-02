@@ -426,11 +426,11 @@ def fill_topic_ids(
 	topic_id_map: Dict[TopicId, TopicId] = {}
 	factor_id_map: Dict[FactorId, FactorId] = {}
 
-	factor_service: FactorService(topic_service.snowflakeGenerator)
+	factor_service = FactorService(topic_service.snowflakeGenerator)
 
 	def fill_factor_id(factor: Factor) -> None:
 		old_factor_id = factor.factorId
-		factor_service.redress_storable_id(factor)
+		factor_service.redress_factor_id(factor)
 		factor_id_map[old_factor_id] = factor.factorId
 
 	def fill_topic_id(topic: Topic) -> None:
@@ -608,7 +608,7 @@ def force_new_import(request: MixImportDataRequest, user_service: UserService) -
 	subjects = ArrayHelper(request.connectedSpaces).map(lambda x: x.subjects).flatten().to_list()
 	subject_service = get_subject_service(user_service)
 	subject_id_map = fill_subject_ids(subjects, subject_service, connected_space_id_map, topic_id_map, factor_id_map)
-	subject_results = subjects.map(lambda x: subject_service.create(x)) \
+	subject_results = ArrayHelper(subjects).map(lambda x: subject_service.create(x)) \
 		.map(lambda x: SubjectImportDataResult(subjectId=x.subjectId, name=x.name, passed=True)).to_list()
 
 	reports = ArrayHelper(subjects).map(lambda x: x.reports).flatten().to_list()
