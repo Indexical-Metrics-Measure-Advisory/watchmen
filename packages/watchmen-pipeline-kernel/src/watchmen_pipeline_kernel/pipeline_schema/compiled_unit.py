@@ -11,7 +11,9 @@ from watchmen_model.pipeline_kernel import MonitorLogStage, MonitorLogStatus, Mo
 from watchmen_pipeline_kernel.common import ask_parallel_actions_in_loop_unit
 from watchmen_pipeline_kernel.pipeline_schema_interface import CreateQueuePipeline, TopicStorages
 from watchmen_utilities import ArrayHelper, is_not_blank
+
 from .compiled_action import compile_actions, CompiledAction
+from .distributed_compiled_unit import DistributedUnitLoop
 
 logger = getLogger(__name__)
 
@@ -53,15 +55,22 @@ class CompiledUnit:
 					stage_monitor_log=stage_monitor_log, storages=storages, principal_service=principal_service)
 			elif isinstance(loop_variable_value, list):
 				# a list, run for each element
-				def run_element_in_loop(replaced: Any) -> bool:
-					return self.do_run(
-						variables=clone_variables(replaced), new_pipeline=new_pipeline,
-						stage_monitor_log=stage_monitor_log, storages=storages, principal_service=principal_service)
 
 				if ask_parallel_actions_in_loop_unit():
-					# TODO parallel version, now use sequential version
-					return ArrayHelper(loop_variable_value).every(run_element_in_loop)
+					# parallel version, now use sequential version
+					result = DistributedUnitLoop().with_unit(self.pipeline, self.stage, self.unit) \
+						.with_principal_service(principal_service) \
+						.with_pipeline_variables(variables) \
+						.with_loop_variable_values(loop_variable_value) \
+						.distribute()
+
+					return result.success
 				else:
+					def run_element_in_loop(replaced: Any) -> bool:
+						return self.do_run(
+							variables=clone_variables(replaced), new_pipeline=new_pipeline,
+							stage_monitor_log=stage_monitor_log, storages=storages, principal_service=principal_service)
+
 					# sequential version
 					return ArrayHelper(loop_variable_value).every(run_element_in_loop)
 			else:
@@ -89,9 +98,9 @@ class CompiledUnit:
 			unitId=self.unit.unitId, name=self.unit.name,
 			status=MonitorLogStatus.DONE, startTime=now(), spentInMills=0, error=None,
 			loopVariableName=self.loopVariableName, loopVariableValue=loop_variable_value,
-			units=[]
+			actions=[]
 		)
-		stage_monitor_log.stages.append(unit_monitor_log)
+		stage_monitor_log.units.append(unit_monitor_log)
 
 		try:
 			# test prerequisite
