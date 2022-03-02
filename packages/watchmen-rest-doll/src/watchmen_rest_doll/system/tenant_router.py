@@ -4,16 +4,16 @@ from fastapi import APIRouter, Body, Depends
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
-from watchmen_meta.admin import TopicService
+from watchmen_meta.admin import PipelineService, TopicService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.system import TenantService
 from watchmen_model.admin import UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId
-from watchmen_model.pipeline_kernel import ask_pipeline_monitor_topics
+from watchmen_model.pipeline_kernel import ask_pipeline_monitor_pipelines, ask_pipeline_monitor_topics
 from watchmen_model.system import Tenant
 from watchmen_rest import get_any_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
-from watchmen_rest_doll.admin import ask_save_topic_action
+from watchmen_rest_doll.admin import ask_save_pipeline_action, ask_save_topic_action
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled, create_pipeline_monitor_topics_on_tenant_create
 from watchmen_rest_doll.util import trans, trans_readonly
 from watchmen_utilities import is_blank
@@ -27,6 +27,10 @@ def get_tenant_service(principal_service: PrincipalService) -> TenantService:
 
 def get_topic_service(tenant_service: TenantService) -> TopicService:
 	return TopicService(tenant_service.storage, tenant_service.snowflakeGenerator, tenant_service.principalService)
+
+
+def get_pipeline_service(tenant_service: TenantService) -> PipelineService:
+	return PipelineService(tenant_service.storage, tenant_service.snowflakeGenerator, tenant_service.principalService)
 
 
 @router.get('/tenant', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=Tenant)
@@ -71,6 +75,13 @@ async def save_tenant(
 				for topic in topics:
 					topic.tenantId = a_tenant.tenantId
 					topic_create(topic)
+				pipelines = ask_pipeline_monitor_pipelines(topics)
+				pipeline_service = get_pipeline_service(tenant_service)
+				pipeline_create = ask_save_pipeline_action(pipeline_service, principal_service)
+				# noinspection PyTypeChecker
+				for pipeline in pipelines:
+					pipeline.tenantId = a_tenant.tenantId
+					pipeline_create(pipeline)
 		else:
 			# noinspection PyTypeChecker
 			a_tenant: Tenant = tenant_service.update(a_tenant)

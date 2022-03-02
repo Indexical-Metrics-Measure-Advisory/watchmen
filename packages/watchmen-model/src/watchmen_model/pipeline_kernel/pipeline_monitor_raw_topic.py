@@ -1,6 +1,6 @@
 from typing import List
 
-from watchmen_model.admin import Factor, FactorType, Topic, TopicKind, TopicType
+from watchmen_model.admin import Factor, FactorType, Pipeline, Topic, TopicKind, TopicType
 
 
 def ask_pipeline_monitor_topics() -> List[Topic]:
@@ -60,3 +60,8 @@ def ask_pipeline_monitor_topics() -> List[Topic]:
 			description='Pipeline monitor log raw topic.'
 		)
 	]
+
+
+# noinspection PyUnusedLocal
+def ask_pipeline_monitor_pipelines(topics: List[Topic]) -> List[Pipeline]:
+	return []
