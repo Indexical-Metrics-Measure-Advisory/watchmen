@@ -1899,7 +1899,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"name\": \"Test_Distinct_Topic\",\n    \"type\": \"distinct\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\", \"label\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"text\", \"name\": \"propB\"}\n    ],\n    \"description\": \"Test Distinct Topic\"\n}",
+                  "raw": "{\n    \"name\": \"Test_Distinct_Topic3\",\n    \"type\": \"distinct\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\n            \"factorId\": \"1\",\n            \"type\": \"text\",\n            \"name\": \"propA\",\n            \"label\": \"propA\"\n        },\n        {\n            \"factorId\": \"2\",\n            \"type\": \"text\",\n            \"name\": \"propB\"\n        }\n    ],\n    \"description\": \"Test Distinct Topic\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -2599,6 +2599,23 @@
           "item": [
             {
               "name": "PIPELINE GRAPHICS CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "7469bc01-91b4-444d-b6ad-ed6a59fe2e0f",
+                    "exec": [
+                      "pm.test(\"Create Pipeline Graphics\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.pipelineGraphId).to.is.not.null",
+                      "    pm.environment.set(\"PIPELINE_GRAPH_ID\", data.pipelineGraphId);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "c7fd000e-3685-4ac9-a42d-1d6aedbfe9a8",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
@@ -2612,7 +2629,148 @@
                 },
                 "method": "POST",
                 "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Test_Pipeline_Graphics\",\n    \"topics\": [\n        {\n            \"topicId\": 1,\n            \"rect\": {\n                \"coordinate\": {\n                    \"x\": 1,\n                    \"y\": 1\n                },\n                \"frame\": {\n                    \"x\": 1,\n                    \"y\": 1,\n                    \"width\": 10,\n                    \"height\": 10\n                },\n                \"name\": {\n                    \"x\": 2,\n                    \"y\": 2\n                }\n            }\n        }\n    ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
                 "url": "{{URL_PREFIX}}/pipeline/graphics"
+              },
+              "response": []
+            },
+            {
+              "name": "PIPELINE GRAPHICS LIST",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "5cdb4da3-483a-44b3-b735-c70e08692e0f",
+                    "exec": [
+                      "pm.test(\"List Pipeline Graphics\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "5a192cde-f07f-4070-8d90-89a1ec513c5c",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": "{{URL_PREFIX}}/pipeline/graphics"
+              },
+              "response": []
+            },
+            {
+              "name": "PIPELINE GRAPHICS DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "7173a03b-6385-4180-9bbd-8f59eec5c596",
+                    "exec": [
+                      "pm.test(\"Delete Pipeline Graphics\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.environment.unset(\"PIPELINE_GRAPH_ID\")",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "6d447079-bc6f-4d1e-ac98-f8a9b8474021",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/pipeline/graphics/delete?pipeline_graph_id={{PIPELINE_GRAPH_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "pipeline",
+                    "graphics",
+                    "delete"
+                  ],
+                  "query": [
+                    {
+                      "key": "pipeline_graph_id",
+                      "value": "{{PIPELINE_GRAPH_ID}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "PIPELINE GRAPHICS DELETE BY SUPER ADMIN",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "579273c3-15ab-4e40-998d-9d33335ddb71",
+                    "exec": [
+                      "pm.test(\"Delete Pipeline Graphics By Super Admin\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.environment.unset(\"PIPELINE_GRAPH_ID\")",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "9be9ef09-4381-4951-b9b4-22062c747413",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/pipeline/graphics?pipeline_graphic_id={{PIPELINE_GRAPH_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "pipeline",
+                    "graphics"
+                  ],
+                  "query": [
+                    {
+                      "key": "pipeline_graphic_id",
+                      "value": "{{PIPELINE_GRAPH_ID}}"
+                    }
+                  ]
+                }
               },
               "response": []
             }
@@ -2930,7 +3088,7 @@
                   }
                 },
                 "url": {
-                  "raw": "{{URL_PREFIX}}/report/name?query_name=Test_Report",
+                  "raw": "{{URL_PREFIX}}/report/name?query_name={{REPORT_NAME}}",
                   "host": [
                     "{{URL_PREFIX}}"
                   ],
@@ -2941,7 +3099,7 @@
                   "query": [
                     {
                       "key": "query_name",
-                      "value": "Test_Report"
+                      "value": "{{REPORT_NAME}}"
                     }
                   ]
                 }
@@ -3829,90 +3987,287 @@
             },
             "method": "POST",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n    {\n        \"userId\": \"f-1\",\n        \"name\": \"Import-User1\",\n        \"nickName\": \"Import-User-Nickname1\",\n        \"password\": \"abcd1234\",\n        \"isActive\": true,\n        \"groupIds\": [],\n        \"role\": \"console\"\n    },\n    {\n        \"userId\": \"f-2\",\n        \"name\": \"Import-User2\",\n        \"nickName\": \"Import-User-Nickname2\",\n        \"password\": \"abcd1234\",\n        \"isActive\": true,\n        \"groupIds\": [],\n        \"role\": \"console\"\n    }\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": "{{URL_PREFIX}}/user/import"
           },
           "response": []
         },
         {
           "name": "USER GROUP IMPORT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "c6a625b6-1825-4ad3-aa3b-390101df12e8",
+                "exec": [
+                  "pm.test(\"Import User Group\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "id": "e4cdba9d-4675-4638-a663-aaf4038437b5",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{JWT_TOKEN}}"
+              }
+            },
             "method": "POST",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n    {\n        \"userGroupId\": \"f-1\",\n        \"name\": \"Import-Group1\",\n        \"description\": \"A description\",\n        \"userIds\": [\n            \"{{USER_ID}}\",\n            \"2\"\n        ],\n        \"spaceIds\": [\n            \"{{SPACE_ID}}\"\n        ]\n    },\n    {\n        \"userGroupId\": \"f-2\",\n        \"name\": \"Import-Group2\",\n        \"description\": \"A description\",\n        \"userIds\": [\n            \"{{USER_ID}}\",\n            \"2\"\n        ],\n        \"spaceIds\": [\n            \"{{SPACE_ID}}\"\n        ]\n    }\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": "{{URL_PREFIX}}/user_group/import"
           },
           "response": []
         },
         {
           "name": "TOPIC IMPORT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "b4548c7d-bb0f-45fb-9e07-6de33eaaa107",
+                "exec": [
+                  "pm.test(\"Import Topic\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "id": "33d79b47-2fa7-4fc7-b15f-542342e523bc",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{JWT_TOKEN}}"
+              }
+            },
             "method": "POST",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n    {\n        \"topicId\": \"f-1\",\n        \"name\": \"Import_Distinct_Topic1\",\n        \"description\": \"Test Distinct Topic\",\n        \"type\": \"distinct\",\n        \"kind\": \"business\",\n        \"dataSourceId\": \"948380846342135808\",\n        \"factors\": [\n            {\n                \"factorId\": \"1\",\n                \"type\": \"text\",\n                \"name\": \"propA\",\n                \"label\": \"propA\"\n            },\n            {\n                \"factorId\": \"2\",\n                \"type\": \"text\",\n                \"name\": \"propB\"\n            }\n        ]\n    },\n    {\n        \"topicId\": \"f-2\",\n        \"name\": \"Import_Distinct_Topic2\",\n        \"description\": \"Test Distinct Topic\",\n        \"type\": \"distinct\",\n        \"kind\": \"business\",\n        \"dataSourceId\": \"948380846342135808\",\n        \"factors\": [\n            {\n                \"factorId\": \"1\",\n                \"type\": \"text\",\n                \"name\": \"propA\",\n                \"label\": \"propA\"\n            },\n            {\n                \"factorId\": \"2\",\n                \"type\": \"text\",\n                \"name\": \"propB\"\n            }\n        ]\n    }\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": "{{URL_PREFIX}}/topic/import"
           },
           "response": []
         },
         {
           "name": "PIPELINE IMPORT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "b709b229-6dee-44b0-a6be-fe801b36c3bd",
+                "exec": [
+                  "pm.test(\"Import Pipeline\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "id": "00374e41-a384-408f-ad41-e3cea3de9fb5",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{JWT_TOKEN}}"
+              }
+            },
             "method": "POST",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n    {\n        \"pipelineId\": \"f-1\",\n        \"topicId\": \"1\",\n        \"name\": \"Import-Pipeline1\",\n        \"type\": \"insert-or-merge\",\n        \"stages\": [\n            {\n                \"stageId\": \"f-1\",\n                \"name\": \"Stage 1\",\n                \"units\": [\n                    {\n                        \"unitId\": \"f-2\",\n                        \"name\": \"Unit 1.1\",\n                        \"do\": [\n                            {\n                                \"actionId\": \"f-3\",\n                                \"type\": \"alarm\",\n                                \"severity\": \"high\",\n                                \"message\": \"Hello world!\"\n                            }\n                        ]\n                    }\n                ]\n            }\n        ],\n        \"enabled\": true,\n        \"validated\": true\n    },\n     {\n        \"pipelineId\": \"f-2\",\n        \"topicId\": \"1\",\n        \"name\": \"Import-Pipeline2\",\n        \"type\": \"insert-or-merge\",\n        \"stages\": [\n            {\n                \"stageId\": \"f-1\",\n                \"name\": \"Stage 1\",\n                \"units\": [\n                    {\n                        \"unitId\": \"f-2\",\n                        \"name\": \"Unit 1.1\",\n                        \"do\": [\n                            {\n                                \"actionId\": \"f-3\",\n                                \"type\": \"alarm\",\n                                \"severity\": \"high\",\n                                \"message\": \"Hello world!\"\n                            }\n                        ]\n                    }\n                ]\n            }\n        ],\n        \"enabled\": true,\n        \"validated\": true\n    }\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": "{{URL_PREFIX}}/pipeline/import"
           },
           "response": []
         },
         {
           "name": "SPACE IMPORT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "c0d02bcf-8cf9-4977-9b66-19b3a6c9a817",
+                "exec": [
+                  "pm.test(\"Import Space\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "id": "834a67d8-2575-4d0e-8618-71ea490d9804",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{JWT_TOKEN}}"
+              }
+            },
             "method": "POST",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n    {\n        \"spaceId\": \"f-1\",\n        \"name\": \"Import-Space1\",\n        \"description\": \"A description\",\n        \"topicIds\": [],\n        \"groupIds\": [],\n        \"filters\": [\n            {\n                \"topicId\": \"1\",\n                \"enabled\": true,\n                \"joint\": {\n                    \"jointType\": \"and\",\n                    \"filters\": [\n                        {\n                            \"left\": {\n                                \"kind\": \"topic\",\n                                \"topicId\": \"1\",\n                                \"factorId\": \"1\"\n                            },\n                            \"operator\": \"empty\"\n                        },\n                        {\n                            \"jointType\": \"or\",\n                            \"filters\": [\n                                {\n                                    \"left\": {\n                                        \"kind\": \"constant\",\n                                        \"value\": \"2\"\n                                    },\n                                    \"operator\": \"not-equals\",\n                                    \"right\": {\n                                        \"kind\": \"computed\",\n                                        \"type\": \"add\",\n                                        \"parameters\": [\n                                            {\n                                                \"kind\": \"constant\",\n                                                \"value\": \"3\"\n                                            },\n                                            {\n                                                \"kind\": \"constant\",\n                                                \"value\": \"4\"\n                                            }\n                                        ]\n                                    }\n                                }\n                            ]\n                        }\n                    ]\n                }\n            }\n        ]\n    },\n    {\n        \"spaceId\": \"f-2\",\n        \"name\": \"Import-Space2\",\n        \"description\": \"A description\",\n        \"topicIds\": [],\n        \"groupIds\": [],\n        \"filters\": [\n            {\n                \"topicId\": \"1\",\n                \"enabled\": true,\n                \"joint\": {\n                    \"jointType\": \"and\",\n                    \"filters\": [\n                        {\n                            \"left\": {\n                                \"kind\": \"topic\",\n                                \"topicId\": \"1\",\n                                \"factorId\": \"1\"\n                            },\n                            \"operator\": \"empty\"\n                        },\n                        {\n                            \"jointType\": \"or\",\n                            \"filters\": [\n                                {\n                                    \"left\": {\n                                        \"kind\": \"constant\",\n                                        \"value\": \"2\"\n                                    },\n                                    \"operator\": \"not-equals\",\n                                    \"right\": {\n                                        \"kind\": \"computed\",\n                                        \"type\": \"add\",\n                                        \"parameters\": [\n                                            {\n                                                \"kind\": \"constant\",\n                                                \"value\": \"3\"\n                                            },\n                                            {\n                                                \"kind\": \"constant\",\n                                                \"value\": \"4\"\n                                            }\n                                        ]\n                                    }\n                                }\n                            ]\n                        }\n                    ]\n                }\n            }\n        ]\n    }\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": "{{URL_PREFIX}}/space/import"
           },
           "response": []
         },
         {
           "name": "CONNECTED SPACE IMPORT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "57ff66ea-2fff-4aff-b672-3f714222e65d",
+                "exec": [
+                  "pm.test(\"Import Connected Space\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "id": "9b9dc48b-6b02-4363-a1e7-3841d2a621da",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{JWT_TOKEN}}"
+              }
+            },
             "method": "POST",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n    {\n        \"connectId\": \"f-1\",\n        \"spaceId\": \"{{SPACE_ID}}\",\n        \"name\": \"Import-Connected-Space1\",\n        \"isTemplate\": false,\n        \"subjects\": []\n    },\n    {\n        \"connectId\": \"f-2\",\n        \"spaceId\": \"{{SPACE_ID}}\",\n        \"name\": \"Import-Connected-Space2\",\n        \"isTemplate\": false,\n        \"subjects\": []\n    }\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": "{{URL_PREFIX}}/connected_space/import"
           },
           "response": []
         },
         {
           "name": "SUBJECT IMPORT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "f5a77fa3-18f5-4563-8137-222e37039cc9",
+                "exec": [
+                  "pm.test(\"Import Subject\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "id": "4bc14450-0889-41a6-a42d-36b4d231f181",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{JWT_TOKEN}}"
+              }
+            },
             "method": "POST",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n    {\n        \"name\": \"Imoprt_Subject1\",\n        \"connectId\": \"{{CONNECT_ID}}\",\n        \"reports\": [\n            \"1\",\n            \"2\"\n        ],\n        \"dataset\": {\n            \"joins\": [],\n            \"columns\": [\n                {\n                    \"alias\": \"alias_a\",\n                    \"columnId\": \"f-1\",\n                    \"parameter\": {\n                        \"on\": null,\n                        \"kind\": \"topic\",\n                        \"type\": null,\n                        \"value\": null,\n                        \"topicId\": \"1\",\n                        \"factorId\": \"1\",\n                        \"parameters\": [],\n                        \"conditional\": false\n                    }\n                },\n                {\n                    \"alias\": \"alias_b\",\n                    \"columnId\": \"f-2\",\n                    \"parameter\": {\n                        \"on\": null,\n                        \"kind\": \"computed\",\n                        \"type\": \"month-of\",\n                        \"value\": null,\n                        \"topicId\": null,\n                        \"factorId\": null,\n                        \"parameters\": [\n                            {\n                                \"on\": null,\n                                \"kind\": \"topic\",\n                                \"type\": null,\n                                \"value\": null,\n                                \"topicId\": \"1\",\n                                \"factorId\": \"2\",\n                                \"parameters\": [],\n                                \"conditional\": false\n                            }\n                        ],\n                        \"conditional\": false\n                    }\n                }\n            ],\n            \"filters\": {\n                \"left\": null,\n                \"right\": null,\n                \"filters\": [\n                    {\n                        \"left\": {\n                            \"on\": null,\n                            \"kind\": \"topic\",\n                            \"type\": null,\n                            \"value\": null,\n                            \"topicId\": \"1\",\n                            \"factorId\": \"2\",\n                            \"parameters\": [],\n                            \"conditional\": false\n                        },\n                        \"right\": {\n                            \"on\": null,\n                            \"kind\": \"constant\",\n                            \"type\": null,\n                            \"value\": \"2021-01-01\",\n                            \"topicId\": null,\n                            \"factorId\": null,\n                            \"parameters\": [],\n                            \"conditional\": false\n                        },\n                        \"filters\": [],\n                        \"operator\": \"more\",\n                        \"jointType\": null\n                    }\n                ],\n                \"operator\": null,\n                \"jointType\": \"and\"\n            }\n        }\n    },\n    {\n        \"name\": \"Import_Subject2\",\n        \"connectId\": \"{{CONNECT_ID}}\",\n        \"reports\": [\n            \"1\",\n            \"2\"\n        ],\n        \"dataset\": {\n            \"joins\": [],\n            \"columns\": [\n                {\n                    \"alias\": \"alias_a\",\n                    \"columnId\": \"f-1\",\n                    \"parameter\": {\n                        \"on\": null,\n                        \"kind\": \"topic\",\n                        \"type\": null,\n                        \"value\": null,\n                        \"topicId\": \"1\",\n                        \"factorId\": \"1\",\n                        \"parameters\": [],\n                        \"conditional\": false\n                    }\n                },\n                {\n                    \"alias\": \"alias_b\",\n                    \"columnId\": \"f-2\",\n                    \"parameter\": {\n                        \"on\": null,\n                        \"kind\": \"computed\",\n                        \"type\": \"month-of\",\n                        \"value\": null,\n                        \"topicId\": null,\n                        \"factorId\": null,\n                        \"parameters\": [\n                            {\n                                \"on\": null,\n                                \"kind\": \"topic\",\n                                \"type\": null,\n                                \"value\": null,\n                                \"topicId\": \"1\",\n                                \"factorId\": \"2\",\n                                \"parameters\": [],\n                                \"conditional\": false\n                            }\n                        ],\n                        \"conditional\": false\n                    }\n                }\n            ],\n            \"filters\": {\n                \"left\": null,\n                \"right\": null,\n                \"filters\": [\n                    {\n                        \"left\": {\n                            \"on\": null,\n                            \"kind\": \"topic\",\n                            \"type\": null,\n                            \"value\": null,\n                            \"topicId\": \"1\",\n                            \"factorId\": \"2\",\n                            \"parameters\": [],\n                            \"conditional\": false\n                        },\n                        \"right\": {\n                            \"on\": null,\n                            \"kind\": \"constant\",\n                            \"type\": null,\n                            \"value\": \"2021-01-01\",\n                            \"topicId\": null,\n                            \"factorId\": null,\n                            \"parameters\": [],\n                            \"conditional\": false\n                        },\n                        \"filters\": [],\n                        \"operator\": \"more\",\n                        \"jointType\": null\n                    }\n                ],\n                \"operator\": null,\n                \"jointType\": \"and\"\n            }\n        }\n    }\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": "{{URL_PREFIX}}/subject/import"
           },
           "response": []
         },
         {
           "name": "REPORT IMPORT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "44565e76-843a-447c-8600-e8dc417fce54",
+                "exec": [
+                  "pm.test(\"Import Report\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "id": "6268a82e-4acd-4029-a173-52ad4d9793ab",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
@@ -3926,25 +4281,77 @@
             },
             "method": "POST",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n    {\n        \"name\": \"Import_Report1\",\n        \"subjectId\": \"{{SUBJECT_ID}}\",\n        \"connectId\": \"{{CONNECT_ID}}\",\n        \"filters\": {},\n        \"funnels\": [],\n        \"indicators\": [],\n        \"dimensions\": [],\n        \"description\": \"test report\",\n        \"rect\": {\n            \"x\": 0,\n            \"y\": 0,\n            \"width\": 167.63888549804688,\n            \"height\": 35.55555534362793\n        },\n        \"chart\": {\n            \"type\": \"count\",\n            \"settings\": {\n                \"border\": null,\n                \"backgroundColor\": null,\n                \"colorSeries\": \"regular\"\n            }\n        },\n        \"simulating\": 0,\n        \"simulateData\": [],\n        \"simulateThumbnail\": \"test\"\n    },\n    {\n        \"name\": \"Import_Report2\",\n        \"subjectId\": \"{{SUBJECT_ID}}\",\n        \"connectId\": \"{{CONNECT_ID}}\",\n        \"filters\": {},\n        \"funnels\": [],\n        \"indicators\": [],\n        \"dimensions\": [],\n        \"description\": \"test report\",\n        \"rect\": {\n            \"x\": 0,\n            \"y\": 0,\n            \"width\": 167.63888549804688,\n            \"height\": 35.55555534362793\n        },\n        \"chart\": {\n            \"type\": \"count\",\n            \"settings\": {\n                \"border\": null,\n                \"backgroundColor\": null,\n                \"colorSeries\": \"regular\"\n            }\n        },\n        \"simulating\": 0,\n        \"simulateData\": [],\n        \"simulateThumbnail\": \"test\"\n    }\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": "{{URL_PREFIX}}/report/import"
           },
           "response": []
         },
         {
           "name": "DASHBOARD IMPORT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "13f5deee-7c53-4171-9d8f-4370d8813ac8",
+                "exec": [
+                  "pm.test(\"Import Dashboard\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "id": "413de7d1-13ff-4ada-8b99-c89711a253a3",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
           },
           "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": {
+                "token": "{{JWT_TOKEN}}"
+              }
+            },
             "method": "POST",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "[\n    {\n        \"name\": \"Import_Dashboard1\",\n        \"reports\": [\n            {\n                \"rect\": {\n                    \"x\": 29,\n                    \"y\": 28,\n                    \"width\": 751,\n                    \"height\": 640\n                },\n                \"reportId\": \"{{REPORT_ID}}\"\n            },\n            {\n                \"rect\": {\n                    \"x\": 799,\n                    \"y\": 10,\n                    \"width\": 781,\n                    \"height\": 335\n                },\n                \"reportId\": \"{{REPORT_ID}}\"\n            },\n            {\n                \"rect\": {\n                    \"x\": 876,\n                    \"y\": 312,\n                    \"width\": 497,\n                    \"height\": 394\n                },\n                \"reportId\": \"{{REPORT_ID}}\"\n            }\n        ]\n    },\n    {\n        \"name\": \"Import_Dashboard2\",\n        \"reports\": [\n            {\n                \"rect\": {\n                    \"x\": 29,\n                    \"y\": 28,\n                    \"width\": 751,\n                    \"height\": 640\n                },\n                \"reportId\": \"{{REPORT_ID}}\"\n            },\n            {\n                \"rect\": {\n                    \"x\": 799,\n                    \"y\": 10,\n                    \"width\": 781,\n                    \"height\": 335\n                },\n                \"reportId\": \"{{REPORT_ID}}\"\n            },\n            {\n                \"rect\": {\n                    \"x\": 876,\n                    \"y\": 312,\n                    \"width\": 497,\n                    \"height\": 394\n                },\n                \"reportId\": \"{{REPORT_ID}}\"\n            }\n        ]\n    }\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": "{{URL_PREFIX}}/dashboard/import"
           },
           "response": []
         },
         {
           "name": "MIX IMPORT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "6dcb63f8-ae0a-4866-9f67-4373513b2d4c",
+                "exec": [
+                  "pm.test(\"Import Mix\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "id": "71ab2c5d-01cf-4ca4-a087-cba08b276e17",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
@@ -3958,6 +4365,15 @@
             },
             "method": "POST",
             "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"topics\": [\n        {\n            \"topicId\": \"f-1\",\n            \"name\": \"Mix_Distinct_Topic2\",\n            \"description\": \"Test Distinct Topic\",\n            \"type\": \"distinct\",\n            \"kind\": \"business\",\n            \"dataSourceId\": \"948380846342135808\",\n            \"factors\": [\n                {\n                    \"factorId\": \"1\",\n                    \"type\": \"text\",\n                    \"name\": \"propA\",\n                    \"label\": \"propA\"\n                },\n                {\n                    \"factorId\": \"2\",\n                    \"type\": \"text\",\n                    \"name\": \"propB\"\n                }\n            ]\n        }\n    ],\n    \"pipelines\": [],\n    \"spaces\": [],\n    \"connectedSpaces\": [],\n    \"importType\": \"force-new\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
             "url": "{{URL_PREFIX}}/import"
           },
           "response": []
