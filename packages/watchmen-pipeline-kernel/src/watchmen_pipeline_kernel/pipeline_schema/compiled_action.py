@@ -663,7 +663,7 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 						# then random the interval might be helpful to distribute the writing evenly.
 						interval = ask_pipeline_update_retry_interval()
 						interval = interval + randrange(1, 20)
-						sleep(interval)
+						sleep(interval / 1000)
 						# example: try update on [0, 1, 2] when retry times is 3
 						work(times + 1)
 					elif ask_pipeline_update_retry() and ask_pipeline_update_retry_force():
