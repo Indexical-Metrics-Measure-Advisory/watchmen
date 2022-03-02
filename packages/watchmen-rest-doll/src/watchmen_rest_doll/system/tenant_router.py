@@ -4,14 +4,17 @@ from fastapi import APIRouter, Body, Depends
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
+from watchmen_meta.admin import TopicService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.system import TenantService
 from watchmen_model.admin import UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId
+from watchmen_model.pipeline_kernel import ask_pipeline_monitor_topics
 from watchmen_model.system import Tenant
 from watchmen_rest import get_any_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
-from watchmen_rest_doll.doll import ask_tuple_delete_enabled
+from watchmen_rest_doll.admin import ask_save_topic_action
+from watchmen_rest_doll.doll import ask_tuple_delete_enabled, create_pipeline_monitor_topics_on_tenant_create
 from watchmen_rest_doll.util import trans, trans_readonly
 from watchmen_utilities import is_blank
 
@@ -20,6 +23,10 @@ router = APIRouter()
 
 def get_tenant_service(principal_service: PrincipalService) -> TenantService:
 	return TenantService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
+def get_topic_service(tenant_service: TenantService) -> TopicService:
+	return TopicService(tenant_service.storage, tenant_service.snowflakeGenerator, tenant_service.principalService)
 
 
 @router.get('/tenant', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=Tenant)
@@ -51,12 +58,19 @@ async def save_tenant(
 ) -> Tenant:
 	tenant_service = get_tenant_service(principal_service)
 
-	# noinspection DuplicatedCode
 	def action(a_tenant: Tenant) -> Tenant:
 		if tenant_service.is_storable_id_faked(a_tenant.tenantId):
 			tenant_service.redress_storable_id(a_tenant)
 			# noinspection PyTypeChecker
 			a_tenant: Tenant = tenant_service.create(a_tenant)
+			if create_pipeline_monitor_topics_on_tenant_create():
+				topics = ask_pipeline_monitor_topics()
+				topic_service = get_topic_service(tenant_service)
+				topic_create = ask_save_topic_action(topic_service, principal_service)
+				# noinspection PyTypeChecker
+				for topic in topics:
+					topic.tenantId = a_tenant.tenantId
+					topic_create(topic)
 		else:
 			# noinspection PyTypeChecker
 			a_tenant: Tenant = tenant_service.update(a_tenant)
