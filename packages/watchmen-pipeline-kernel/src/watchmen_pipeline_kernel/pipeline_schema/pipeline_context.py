@@ -1,9 +1,9 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.admin import Pipeline
-from watchmen_model.pipeline_kernel import PipelineTriggerTraceId
+from watchmen_model.pipeline_kernel import PipelineMonitorLog, PipelineTriggerTraceId
 from watchmen_pipeline_kernel.cache import CacheService
 from watchmen_pipeline_kernel.pipeline_schema_interface import CompiledPipeline, PipelineContext, TopicStorages
 from .compiled_pipeline import RuntimeCompiledPipeline
@@ -24,14 +24,18 @@ class RuntimePipelineContext(PipelineContext):
 		self.principalService = principal_service
 		self.traceId = trace_id
 
-	def start(self, storages: TopicStorages) -> List[PipelineContext]:
+	def start(
+			self, storages: TopicStorages,
+			handle_monitor_log: Callable[[PipelineMonitorLog, bool], None]
+	) -> List[PipelineContext]:
 		compiled_pipeline = self.build_compiled_pipeline()
 		return compiled_pipeline.run(
 			previous_data=self.previousData,
 			current_data=self.currentData,
 			principal_service=self.principalService,
 			trace_id=self.traceId,
-			storages=storages
+			storages=storages,
+			handle_monitor_log=handle_monitor_log
 		)
 
 	def build_compiled_pipeline(self) -> CompiledPipeline:

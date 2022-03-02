@@ -1,1 +1,1 @@
-from .runner import try_to_invoke_pipelines, try_to_invoke_pipelines_async
+from .pipeline_invoker import try_to_invoke_pipelines, try_to_invoke_pipelines_async
