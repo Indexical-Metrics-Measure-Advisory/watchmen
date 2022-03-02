@@ -655,7 +655,7 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 						raise PipelineKernelException(
 							f'Data not found on do update, {self.on_topic_message()}, by [{[statement]}].')
 					elif ask_pipeline_update_retry() and times < ask_pipeline_update_retry_times():
-						# retry interval is base on given settings and random plus 1 - 20 ms
+						# retry interval is based on given settings and random plus 1 - 20 ms
 						# since there are 2 situations will lead update nothing
 						# 1. data is deleted, then in next round, will do insertion
 						# 2. data is updated by another thread, process or node, typically it is caused by version increment.
