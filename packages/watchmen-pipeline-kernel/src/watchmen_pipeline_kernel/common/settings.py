@@ -1,4 +1,5 @@
 from logging import getLogger
+from typing import Optional
 
 from pydantic import BaseSettings
 
@@ -6,11 +7,15 @@ logger = getLogger(__name__)
 
 
 class PipelineKernelSettings(BaseSettings):
-	PIPELINE_PARALLEL_ACTION_IN_LOOP_UNIT: bool = False
+	PIPELINE_PARALLEL_ACTIONS_IN_LOOP_UNIT: bool = False
+	PIPELINE_PARALLEL_ACTIONS_COUNT: int = 8
+	PIPELINE_PARALLEL_ACTIONS_DASK_TEMP_DIR: Optional[str] = None
+	PIPELINE_PARALLEL_ACTIONS_DASK_USE_PROCESS: bool = True
 	PIPELINE_STANDARD_EXTERNAL_WRITER: bool = True
 	PIPELINE_ELASTIC_SEARCH_EXTERNAL_WRITER: bool = False
 	PIPELINE_UPDATE_RETRY: bool = True  # enable pipeline update retry if it is failed on optimistic lock
 	PIPELINE_UPDATE_RETRY_TIMES: int = 3  # optimistic lock retry times
+	PIPELINE_UPDATE_RETRY_INTERVAL: int = 10  # retry interval in milliseconds
 	PIPELINE_UPDATE_RETRY_FORCE: bool = True  # enable force retry after all retries failed
 
 	class Config:
@@ -25,7 +30,19 @@ logger.info(f'Pipeline kernel settings[{settings.dict()}].')
 
 
 def ask_parallel_actions_in_loop_unit() -> bool:
-	return settings.PIPELINE_PARALLEL_ACTION_IN_LOOP_UNIT
+	return settings.PIPELINE_PARALLEL_ACTIONS_IN_LOOP_UNIT
+
+
+def ask_parallel_actions_count() -> int:
+	return settings.PIPELINE_PARALLEL_ACTIONS_COUNT
+
+
+def ask_parallel_actions_dask_temp() -> Optional[str]:
+	return settings.PIPELINE_PARALLEL_ACTIONS_DASK_TEMP_DIR
+
+
+def ask_parallel_actions_dask_use_process() -> bool:
+	return settings.PIPELINE_PARALLEL_ACTIONS_DASK_USE_PROCESS
 
 
 def ask_standard_external_writer_enabled() -> bool:
@@ -42,6 +59,10 @@ def ask_pipeline_update_retry() -> bool:
 
 def ask_pipeline_update_retry_times() -> int:
 	return settings.PIPELINE_UPDATE_RETRY_TIMES
+
+
+def ask_pipeline_update_retry_interval() -> int:
+	return settings.PIPELINE_UPDATE_RETRY_INTERVAL
 
 
 def ask_pipeline_update_retry_force() -> bool:
