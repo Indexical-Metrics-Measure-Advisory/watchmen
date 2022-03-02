@@ -27,7 +27,8 @@ from watchmen_model.pipeline_kernel import MonitorAlarmAction, MonitorCopyToMemo
 from watchmen_pipeline_kernel.common import ask_pipeline_update_retry, ask_pipeline_update_retry_force, \
 	ask_pipeline_update_retry_times, PipelineKernelException
 from watchmen_pipeline_kernel.pipeline_schema_interface import CreateQueuePipeline, TopicStorages
-from watchmen_storage import EntityColumnAggregateArithmetic, EntityStraightAggregateColumn, EntityStraightColumn
+from watchmen_storage import EntityColumnAggregateArithmetic, EntityCriteria, EntityStraightAggregateColumn, \
+	EntityStraightColumn
 from watchmen_utilities import ArrayHelper, is_blank
 
 logger = getLogger(__name__)
@@ -507,15 +508,21 @@ class CompiledUpdate(CompiledWriteTopicAction):
 			cloned[key] = value
 		return cloned
 
-	def do_update(
-			self, original_data: Dict[str, Any], variables: PipelineVariables, new_pipeline: CreateQueuePipeline,
-			action_monitor_log: MonitorWriteAction,
-			principal_service: PrincipalService, topic_data_service: TopicDataService) -> int:
+	def redress_update_data(
+			self, original_data: Dict[str, Any], variables: PipelineVariables,
+			principal_service: PrincipalService) -> Dict[str, Any]:
 		updated_data = self.parsedMapping.run(original_data, variables, principal_service)
 		updated_data = self.merge_into(original_data, updated_data)
 		self.schema.initialize_default_values(updated_data)
 		self.schema.encrypt(updated_data)
-		updated_count, criteria = topic_data_service.update_by_id_and_version(updated_data)
+		return updated_data
+
+	# noinspection PyUnusedLocal
+	def post_update(
+			self, topic_data_service: TopicDataService, new_pipeline: CreateQueuePipeline,
+			original_data: Dict[str, Any], updated_data: Dict[str, Any],
+			action_monitor_log: MonitorWriteAction,
+			updated_count: int, criteria: EntityCriteria) -> int:
 		if updated_count == 0:
 			return 0
 		else:
@@ -530,6 +537,24 @@ class CompiledUpdate(CompiledWriteTopicAction):
 			action_monitor_log.updateCount = 1
 			action_monitor_log.touched = {'data': updated_data}
 			return 1
+
+	def do_update(
+			self, original_data: Dict[str, Any], variables: PipelineVariables, new_pipeline: CreateQueuePipeline,
+			action_monitor_log: MonitorWriteAction,
+			principal_service: PrincipalService, topic_data_service: TopicDataService) -> int:
+		updated_data = self.redress_update_data(original_data, variables, principal_service)
+		updated_count, criteria = topic_data_service.update_by_id_and_version(updated_data)
+		return self.post_update(
+			topic_data_service, new_pipeline, original_data, updated_data, action_monitor_log, updated_count, criteria)
+
+	def do_update_with_lock(
+			self, original_data: Dict[str, Any], variables: PipelineVariables, new_pipeline: CreateQueuePipeline,
+			action_monitor_log: MonitorWriteAction,
+			principal_service: PrincipalService, topic_data_service: TopicDataService) -> int:
+		updated_data = self.redress_update_data(original_data, variables, principal_service)
+		updated_count, criteria = topic_data_service.update_with_lock_by_id(updated_data)
+		return self.post_update(
+			topic_data_service, new_pipeline, original_data, updated_data, action_monitor_log, updated_count, criteria)
 
 
 class CompiledInsertRowAction(CompiledInsertion):
@@ -550,6 +575,52 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 			action_monitor_log: MonitorWriteAction, storages: TopicStorages,
 			principal_service: PrincipalService,
 			allow_insert: bool) -> bool:
+		def last_try() -> None:
+			# force lock and update, the final try after all retries by optimistic lock are failed
+			# raise PipelineKernelException('Not implemented yet.')
+			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
+			statement = self.parsedFindBy.run(variables, principal_service)
+			action_monitor_log.findBy = statement.to_dict()
+			# use transaction here
+			topic_data_service.get_storage().begin()
+			data = topic_data_service.find(criteria=[statement])
+			count = len(data)
+			if count == 0:
+				if allow_insert:
+					# data not found, do insertion
+					self.do_insert(
+						variables, new_pipeline, action_monitor_log, principal_service, topic_data_service)
+				else:
+					# insertion is not allowed
+					raise PipelineKernelException(f'Data not found, {self.on_topic_message()}, by [{[statement]}].')
+			elif count != 1:
+				raise PipelineKernelException(
+					f'Too many data[count={count}] found, {self.on_topic_message()}, by [{[statement]}].')
+			else:
+				# use id and version to lock data again
+				# in some RDS, for update lock must through id criteria, otherwise leads TM lock.
+				# here must a TX lock for performance consideration.
+				topic_data_service.get_storage().begin()
+				try:
+					# data was loaded from storage, of course it has an id
+					_, data_id = topic_data_service.get_data_entity_helper().find_data_id(data[0])
+					locked_data = topic_data_service.find_and_lock_by_id(data_id)
+					if locked_data is None:
+						raise PipelineKernelException(
+							f'Data not found on doing "for update" lock when last try to update, '
+							f'{self.on_topic_message()}, by [{[statement]}].')
+					# found one matched, do update
+					updated_count = self.do_update_with_lock(
+						data[0], variables, new_pipeline, action_monitor_log, principal_service, topic_data_service)
+					if updated_count == 0:
+						raise PipelineKernelException(
+							f'Data not found on doing last try to update, '
+							f'{self.on_topic_message()}, by [{[statement]}].')
+					topic_data_service.get_storage().commit_and_close()
+				except Exception as e:
+					topic_data_service.get_storage().rollback_and_close()
+					raise e
+
 		def work(times: int) -> None:
 			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
 			statement = self.parsedFindBy.run(variables, principal_service)
@@ -578,8 +649,7 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 						# example: try update on [0, 1, 2] when retry times is 3
 						work(times + 1)
 					elif ask_pipeline_update_retry() and ask_pipeline_update_retry_force():
-						# TODO force lock and update, the final try after all retries by optimistic lock are failed
-						raise PipelineKernelException('Not implemented yet.')
+						last_try()
 					else:
 						raise PipelineKernelException(
 							f'Data not found on do update, {self.on_topic_message()}, by [{[statement]}].')
