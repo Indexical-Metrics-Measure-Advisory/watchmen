@@ -1,6 +1,6 @@
 from asyncio import ensure_future
 from logging import getLogger
-from typing import Any, Dict
+from typing import Any, Callable, Dict
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.meta import PipelineService
@@ -8,7 +8,7 @@ from watchmen_data_kernel.service import ask_topic_data_service
 from watchmen_data_kernel.storage import TopicDataService, TopicTrigger
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.admin import Pipeline, PipelineTriggerType
-from watchmen_model.pipeline_kernel import PipelineTriggerTraceId
+from watchmen_model.pipeline_kernel import PipelineMonitorLog, PipelineTriggerTraceId
 from watchmen_pipeline_kernel.common import PipelineKernelException
 from watchmen_pipeline_kernel.pipeline_schema import RuntimePipelineContext
 from watchmen_utilities import ArrayHelper
@@ -29,7 +29,8 @@ class PipelineTrigger:
 			self, trigger_topic_schema: TopicSchema, trigger_type: PipelineTriggerType,
 			trigger_data: Dict[str, Any], trace_id: PipelineTriggerTraceId,
 			principal_service: PrincipalService,
-			asynchronized: bool = False):
+			asynchronized: bool,
+			handle_monitor_log: Callable[[PipelineMonitorLog, bool], None]):
 		self.storages = RuntimeTopicStorages(principal_service)
 		self.triggerTopicSchema = trigger_topic_schema
 		self.triggerType = trigger_type
@@ -37,6 +38,7 @@ class PipelineTrigger:
 		self.traceId = trace_id
 		self.principalService = principal_service
 		self.asynchronized = asynchronized
+		self.handle_monitor_log = handle_monitor_log
 
 	def ask_topic_data_service(self, schema: TopicSchema) -> TopicDataService:
 		"""
@@ -106,7 +108,7 @@ class PipelineTrigger:
 		PipelinesDispatcher(
 			contexts=ArrayHelper(pipelines).map(lambda x: construct_queued_pipeline(x)).to_list(),
 			storages=self.storages,
-		).start()
+		).start(self.handle_monitor_log)
 
 	async def invoke(self) -> int:
 		"""
