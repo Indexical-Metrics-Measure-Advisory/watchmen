@@ -14,6 +14,11 @@ from watchmen_model.console import ConnectedSpace, Subject, SubjectDataset, Subj
 from watchmen_model.system import DataSource, DataSourceType
 
 
+# TRUNCATE TABLE data_sources
+# TRUNCATE TABLE topics
+# TRUNCATE TABLE connected_spaces
+# TRUNCATE TABLE spaces
+
 def create_fake_principal_service() -> PrincipalService:
 	return PrincipalService(User(userId='1', tenantId='1', name='imma-admin', role=UserRole.ADMIN))
 
@@ -104,6 +109,17 @@ class TestSubject(TestCase):
 						columnId='4',
 						parameter=ConstantParameter(kind=ParameterKind.CONSTANT, value='HELLO WORLD!'),
 						alias='Column4'),
+					SubjectDatasetColumn(
+						columnId='5',
+						parameter=ComputedParameter(
+							kind=ParameterKind.COMPUTED, type=ParameterComputeType.ADD,
+							parameters=[
+								ConstantParameter(kind=ParameterKind.CONSTANT, value='201'),
+								ConstantParameter(kind=ParameterKind.CONSTANT, value='102')
+							]
+						),
+						alias='Column5'
+					)
 				]
 			),
 			connectId='1',
