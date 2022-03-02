@@ -58,13 +58,11 @@ class CompiledUnit:
 
 				if ask_parallel_actions_in_loop_unit():
 					# parallel version, now use sequential version
-					result = DistributedUnitLoop().with_unit(self.pipeline, self.stage, self.unit) \
+					return DistributedUnitLoop().with_unit(self.pipeline, self.stage, self.unit) \
 						.with_principal_service(principal_service) \
 						.with_pipeline_variables(variables) \
 						.with_loop_variable_values(loop_variable_value) \
-						.distribute()
-
-					return result.success
+						.distribute(stage_monitor_log, new_pipeline)
 				else:
 					def run_element_in_loop(replaced: Any) -> bool:
 						return self.do_run(
