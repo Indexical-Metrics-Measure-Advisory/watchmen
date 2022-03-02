@@ -102,6 +102,10 @@ class StorageSPI(ABC):
 		pass
 
 	@abstractmethod
+	def find_and_lock_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
+		pass
+
+	@abstractmethod
 	def find_one(self, finder: EntityFinder) -> Optional[Entity]:
 		pass
 

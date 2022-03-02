@@ -59,12 +59,21 @@ class TopicStructureService:
 		# 	logger.error(e, exc_info=True, stack_info=True)
 		raise DataKernelException(message)
 
-	def build_id_version_criteria(self, data: Dict[str, Any]) -> EntityCriteria:
+	def build_id_criteria(self, data: Dict[str, Any]) -> EntityCriteria:
 		data_entity_helper = self.get_data_entity_helper()
 		criteria: EntityCriteria = []
+
 		by_id = data_entity_helper.build_id_criteria(data)
 		if by_id is None:
 			raise DataKernelException(f'Id not found from given data[{data}].')
+		criteria.append(by_id)
+
+		return criteria
+
+	def build_id_version_criteria(self, data: Dict[str, Any]) -> EntityCriteria:
+		data_entity_helper = self.get_data_entity_helper()
+		criteria: EntityCriteria = self.build_id_criteria(data)
+
 		if data_entity_helper.is_versioned():
 			by_version = data_entity_helper.build_version_criteria(data)
 			if by_version is None:
@@ -221,6 +230,14 @@ class TopicDataService(TopicStructureService):
 		finally:
 			storage.close()
 
+	def find_and_lock_by_id(self, data_id: int) -> Optional[Dict[str, Any]]:
+		"""
+		no storage connect and close, it must be done outside
+		will find id criteria from given data
+		"""
+		data_entity_helper = self.get_data_entity_helper()
+		return self.get_storage().find_and_lock_by_id(data_id, data_entity_helper.get_entity_id_helper())
+
 	def find_distinct_values(
 			self, criteria: EntityCriteria, column_names: List[EntityColumnName]) -> List[Dict[str, Any]]:
 		data_entity_helper = self.get_data_entity_helper()
@@ -282,6 +299,23 @@ class TopicDataService(TopicStructureService):
 			return updated_count, criteria
 		finally:
 			storage.close()
+
+	def update_with_lock_by_id(self, data: Dict[str, Any]) -> Tuple[int, EntityCriteria]:
+		"""
+		no storage connect and close, it must be done outside
+		"""
+		data_entity_helper = self.get_data_entity_helper()
+		current_version = data_entity_helper.find_version(data)
+		# increase version
+		data_entity_helper.assign_version(data, current_version + 1)
+		criteria = self.build_id_criteria(data)
+
+		updated_count = self.get_storage().update_only(
+			data_entity_helper.get_entity_updater(criteria, data_entity_helper.serialize_to_storage(data)))
+		if updated_count == 0:
+			# rollback version
+			data_entity_helper.assign_version(data, current_version)
+		return updated_count, criteria
 
 	def delete_by_id_and_version(self, data: Dict[str, Any]) -> Tuple[int, EntityCriteria]:
 		"""
