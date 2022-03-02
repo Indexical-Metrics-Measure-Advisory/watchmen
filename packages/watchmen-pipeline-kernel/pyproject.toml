@@ -10,6 +10,8 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
+dask = "^2022.2.1"
+distributed = "^2022.2.1"
 watchmen-data-kernel = { path = "../watchmen-data-kernel", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
 watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
@@ -26,6 +28,7 @@ mongodb = ["watchmen-storage-mongodb"]
 mssql = ["watchmen-storage-mssql"]
 standard_ext_writer = ["requests"]
 es_ext_writer = []
+parallel_action_dask=["dask", "distributed"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

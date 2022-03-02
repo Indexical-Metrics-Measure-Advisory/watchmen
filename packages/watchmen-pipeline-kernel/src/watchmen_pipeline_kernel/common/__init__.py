@@ -1,4 +1,5 @@
 from .exception import PipelineKernelException
-from .settings import ask_elastic_search_external_writer_enabled, ask_parallel_actions_in_loop_unit, \
-	ask_pipeline_update_retry, ask_pipeline_update_retry_force, ask_pipeline_update_retry_times, \
-	ask_standard_external_writer_enabled
+from .settings import ask_elastic_search_external_writer_enabled, ask_parallel_actions_count, \
+	ask_parallel_actions_dask_temp, ask_parallel_actions_dask_use_process, ask_parallel_actions_in_loop_unit, \
+	ask_pipeline_update_retry, ask_pipeline_update_retry_force, ask_pipeline_update_retry_interval, \
+	ask_pipeline_update_retry_times, ask_standard_external_writer_enabled

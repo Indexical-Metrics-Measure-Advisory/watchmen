@@ -1,8 +1,11 @@
 from abc import abstractmethod
 from copy import deepcopy
 from logging import getLogger
+from random import randrange
 from traceback import format_exc
 from typing import Any, Callable, Dict, List, Optional, Union
+
+from time import sleep
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.external_writer import ask_external_writer_creator, BuildExternalWriter, ExternalWriterParams
@@ -25,7 +28,7 @@ from watchmen_model.pipeline_kernel import MonitorAlarmAction, MonitorCopyToMemo
 	MonitorLogAction, MonitorLogStatus, MonitorLogUnit, MonitorReadAction, MonitorWriteAction, \
 	MonitorWriteToExternalAction
 from watchmen_pipeline_kernel.common import ask_pipeline_update_retry, ask_pipeline_update_retry_force, \
-	ask_pipeline_update_retry_times, PipelineKernelException
+	ask_pipeline_update_retry_interval, ask_pipeline_update_retry_times, PipelineKernelException
 from watchmen_pipeline_kernel.pipeline_schema_interface import CreateQueuePipeline, TopicStorages
 from watchmen_storage import EntityColumnAggregateArithmetic, EntityCriteria, EntityStraightAggregateColumn, \
 	EntityStraightColumn
@@ -652,6 +655,15 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 						raise PipelineKernelException(
 							f'Data not found on do update, {self.on_topic_message()}, by [{[statement]}].')
 					elif ask_pipeline_update_retry() and times < ask_pipeline_update_retry_times():
+						# retry interval is base on given settings and random plus 1 - 20 ms
+						# since there are 2 situations will lead update nothing
+						# 1. data is deleted, then in next round, will do insertion
+						# 2. data is updated by another thread, process or node, typically it is caused by version increment.
+						# for case #2, most of all are led by to aggregate data by a data list.
+						# then random the interval might be helpful to distribute the writing evenly.
+						interval = ask_pipeline_update_retry_interval()
+						interval = interval + randrange(1, 20)
+						sleep(interval)
 						# example: try update on [0, 1, 2] when retry times is 3
 						work(times + 1)
 					elif ask_pipeline_update_retry() and ask_pipeline_update_retry_force():
