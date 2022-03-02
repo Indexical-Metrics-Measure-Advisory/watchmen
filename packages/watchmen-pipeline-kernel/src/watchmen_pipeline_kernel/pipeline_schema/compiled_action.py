@@ -159,7 +159,7 @@ class CompiledAlarmAction(CompiledAction):
 				# default log on error label
 				def work() -> None:
 					value = self.parsedMessage.value(variables, principal_service)
-					action_monitor_log.touched = value
+					action_monitor_log.touched = {'data': value}
 					logger.error(f'[PIPELINE] [ALARM] [{self.severity.upper()}] {value}')
 
 				return self.safe_run(action_monitor_log, work)
@@ -190,7 +190,7 @@ class CompiledCopyToMemoryAction(CompiledAction):
 			storages: TopicStorages, principal_service: PrincipalService) -> bool:
 		def work() -> None:
 			value = self.parsedSource.value(variables, principal_service)
-			action_monitor_log.touched = value
+			action_monitor_log.touched = {'data': value}
 			variables.put(self.variableName, value)
 
 		return self.safe_run(action_monitor_log, work)
@@ -312,7 +312,7 @@ class CompiledReadRowAction(CompiledReadTopicAction):
 					f'Too many data[count={count}] found, {self.on_topic_message()}, by [{[statement]}].')
 			else:
 				variables.put(self.variableName, data[0])
-				action_monitor_log.touched = data
+				action_monitor_log.touched = {'data': data}
 
 		return self.safe_run(action_monitor_log, work)
 
@@ -328,7 +328,7 @@ class CompiledReadRowsAction(CompiledReadTopicAction):
 			action_monitor_log.findBy = statement.to_dict()
 			data = topic_data_service.find(criteria=[statement])
 			variables.put(self.variableName, data)
-			action_monitor_log.touched = data
+			action_monitor_log.touched = {'data': data}
 
 		return self.safe_run(action_monitor_log, work)
 
@@ -397,12 +397,12 @@ class CompiledReadFactorAction(CompiledReadTopicFactorAction):
 				criteria=[statement], columns=[self.build_straight_column(topic_data_service)])
 			if len(data) == 0:
 				variables.put(self.variableName, 0)
-				action_monitor_log.touched = 0
+				action_monitor_log.touched = {'data': 0}
 			else:
 				value = data[0].popitem()[1]
 				value = 0 if value is None else value
 				variables.put(self.variableName, value)
-				action_monitor_log.touched = value
+				action_monitor_log.touched = {'data': value}
 
 		return self.safe_run(action_monitor_log, work)
 
@@ -420,7 +420,7 @@ class CompiledReadFactorsAction(CompiledReadTopicFactorAction):
 			data = topic_data_service.find_distinct_values(criteria=[statement], column_names=[column_name])
 			factor_values = ArrayHelper(data).map(lambda x: x.get(self.factor.name)).to_list()
 			variables.put(self.variableName, factor_values)
-			action_monitor_log.touched = factor_values
+			action_monitor_log.touched = {'data': factor_values}
 
 		return self.safe_run(action_monitor_log, work)
 
@@ -487,7 +487,7 @@ class CompiledInsertion(CompiledWriteTopicAction):
 		self.schema.encrypt(data)
 		data = topic_data_service.insert(data)
 		action_monitor_log.insertCount = 1
-		action_monitor_log.touched = [data]
+		action_monitor_log.touched = {'data': data}
 		# new pipeline
 		has_id, id_ = topic_data_service.get_data_entity_helper().find_data_id(data)
 		new_pipeline(self.schema, TopicTrigger(
@@ -528,7 +528,7 @@ class CompiledUpdate(CompiledWriteTopicAction):
 				internalDataId=id_
 			))
 			action_monitor_log.updateCount = 1
-			action_monitor_log.touched = [updated_data]
+			action_monitor_log.touched = {'data': updated_data}
 			return 1
 
 
@@ -655,7 +655,7 @@ class CompiledDeleteRowAction(CompiledDeleteTopicAction):
 						internalDataId=id_
 					))
 			action_monitor_log.deleteCount = 1
-			action_monitor_log.touched = data
+			action_monitor_log.touched = {'data': data}
 
 		return self.safe_run(action_monitor_log, work)
 
@@ -692,7 +692,7 @@ class CompiledDeleteRowsAction(CompiledDeleteTopicAction):
 			finally:
 				# log done information
 				action_monitor_log.deleteCount = len(touched)
-				action_monitor_log.touched = touched
+				action_monitor_log.touched = {'data': touched}
 
 		return self.safe_run(action_monitor_log, work)
 
