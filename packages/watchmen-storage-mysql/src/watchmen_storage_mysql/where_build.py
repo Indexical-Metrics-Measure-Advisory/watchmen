@@ -1,17 +1,24 @@
 from datetime import date, datetime, time
-from typing import List, Tuple
+from typing import Any, Callable, List, Tuple
 
-from sqlalchemy import and_, case, func, or_, Table
+from sqlalchemy import and_, case, func, or_, Table, text
 
-from watchmen_storage import as_table_name, ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, \
-	EntityCriteria, EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, \
-	EntityCriteriaOperator, EntityCriteriaStatement, Literal, NoCriteriaForUpdateException, \
-	UnexpectedStorageException, UnsupportedComputationException, UnsupportedCriteriaException
+from watchmen_storage import as_table_name, ask_decimal_fraction_digits, ask_decimal_integral_digits, \
+	ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteria, EntityCriteriaExpression, \
+	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, Literal, \
+	NoCriteriaForUpdateException, UnexpectedStorageException, UnsupportedComputationException, \
+	UnsupportedCriteriaException
 from watchmen_utilities import ArrayHelper, DateTimeConstants, is_blank
 from .types import SQLAlchemyStatement
 
 
-def build_literal(tables: List[Table], literal: Literal):
+def to_decimal(value: Any) -> Any:
+	decimal_integral_digits = ask_decimal_integral_digits()
+	decimal_fraction_digits = ask_decimal_fraction_digits()
+	return func.convert(value, text(f'DECIMAL({decimal_integral_digits}, {decimal_fraction_digits})'))
+
+
+def build_literal(tables: List[Table], literal: Literal, build_plain_value: Callable[[Any], Any] = None):
 	if isinstance(literal, ColumnNameLiteral):
 		if is_blank(literal.entityName):
 			# table name is not given
@@ -30,23 +37,23 @@ def build_literal(tables: List[Table], literal: Literal):
 		operator = literal.operator
 		if operator == ComputedLiteralOperator.ADD:
 			return ArrayHelper(literal.elements) \
-				.map(lambda x: build_literal(tables, x)) \
+				.map(lambda x: build_literal(tables, x, to_decimal)) \
 				.reduce(lambda prev, current: prev + current, None)
 		elif operator == ComputedLiteralOperator.SUBTRACT:
 			return ArrayHelper(literal.elements) \
-				.map(lambda x: build_literal(tables, x)) \
+				.map(lambda x: build_literal(tables, x, to_decimal)) \
 				.reduce(lambda prev, current: prev - current, None)
 		elif operator == ComputedLiteralOperator.MULTIPLY:
 			return ArrayHelper(literal.elements) \
-				.map(lambda x: build_literal(tables, x)) \
+				.map(lambda x: build_literal(tables, x, to_decimal)) \
 				.reduce(lambda prev, current: prev * current, None)
 		elif operator == ComputedLiteralOperator.DIVIDE:
 			return ArrayHelper(literal.elements) \
-				.map(lambda x: build_literal(tables, x)) \
+				.map(lambda x: build_literal(tables, x, to_decimal)) \
 				.reduce(lambda prev, current: prev / current, None)
 		elif operator == ComputedLiteralOperator.MODULUS:
 			return ArrayHelper(literal.elements) \
-				.map(lambda x: build_literal(tables, x)) \
+				.map(lambda x: build_literal(tables, x, to_decimal)) \
 				.reduce(lambda prev, current: prev % current, None)
 		elif operator == ComputedLiteralOperator.YEAR_OF:
 			return func.year(build_literal(tables, literal.elements[0]))
@@ -101,6 +108,8 @@ def build_literal(tables: List[Table], literal: Literal):
 		return func.str_to_date(literal.strftime('%Y-%m-%d'), '%Y-%m-%d')
 	elif isinstance(literal, time):
 		return func.str_to_date(literal.strftime('%H:%M:%S'), '%H:%i:%s')
+	elif build_plain_value is not None:
+		return build_plain_value(literal)
 	else:
 		# a value, return itself
 		return literal
