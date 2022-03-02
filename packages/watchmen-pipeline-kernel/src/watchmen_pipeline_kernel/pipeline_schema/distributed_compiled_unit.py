@@ -85,6 +85,7 @@ def handle_loop_item_result(
 	return result.success
 
 
+# noinspection PyUnusedLocal
 def distribute_unit_loop(distribution: DistributedUnitLoop) -> DistributedUnitLoopResult:
-	# TODO
+	# TODO distribute by dask
 	raise PipelineKernelException('Not implemented yet.')
