@@ -74,11 +74,9 @@ class StorageMySQL(TransactionalStorageSPI):
 	def insert_one(self, one: Entity, helper: EntityHelper) -> None:
 		table = self.find_table(helper.name)
 		row = helper.shaper.serialize(one)
-		# TODO InsertConflictException should be determined
 		self.connection.execute(insert(table).values(row))
 
 	def insert_all(self, data: List[Entity], helper: EntityHelper) -> None:
-		# TODO batch insert?
 		ArrayHelper(data).each(lambda row: self.insert_one(row, helper))
 
 	def update_one(self, one: Entity, helper: EntityIdHelper) -> int:
