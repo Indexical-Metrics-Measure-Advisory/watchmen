@@ -171,8 +171,13 @@ class SubjectStorage:
 			storage.close()
 
 	def page(self, pageable: Pageable) -> DataPage:
-		if self.schema.from_one_data_source() and ask_use_storage_directly():
-			return self.page_by_storage_directly(pageable)
-		else:
+		if not ask_use_storage_directly():
 			# TODO use presto
 			return self.page_by_storage_directly(pageable)
+
+		if self.schema.from_one_data_source():
+			return self.page_by_storage_directly(pageable)
+		else:
+			raise InquiryKernelException(
+				'Cannot perform inquiry on storage native when there are multiple data sources, '
+				'ask your administrator to turn on presto/trino engine.')

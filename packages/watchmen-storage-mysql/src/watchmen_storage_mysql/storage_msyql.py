@@ -365,33 +365,47 @@ class TopicDataStorageMySQL(StorageMySQL, TopicDataStorageSPI):
 				return free_join
 
 		tables: List[Table] = []
-		built = None
+
+		def try_to_join(groups: Dict[TopicId, List[FreeJoin]], built=None) -> Any:
+			pending_groups: Dict[TopicId, List[FreeJoin]] = {}
+			for primary_entity_name, joins_by_primary in groups.items():
+				primary_table = self.find_table(primary_entity_name)
+				if built is not None and primary_table not in tables:
+					# primary table not used, pending to next round
+					pending_groups[primary_entity_name] = joins_by_primary
+				else:
+					groups_by_secondary: Dict[TopicId, List[FreeJoin]] = ArrayHelper(joins_by_primary) \
+						.group_by(lambda x: x.secondary.entityName)
+					for secondary_entity_name, joins_by_secondary in groups_by_secondary:
+						# every join is left join, otherwise reduce to inner join
+						outer_join = ArrayHelper(joins_by_secondary).every(lambda x: x.type == FreeJoinType.LEFT)
+						secondary_table = self.find_table(secondary_entity_name)
+						on = and_(
+							*ArrayHelper(joins_by_secondary).map(
+								lambda x: self.build_single_on(x, primary_table, secondary_table)).to_list())
+						if built is None:
+							built = primary_table.join(secondary_table, on, outer_join)
+						else:
+							built = built.join(secondary_table, on, outer_join)
+						# append into used
+						if secondary_table not in tables:
+							tables.append(secondary_table)
+					# append into used
+					if primary_table not in tables:
+						tables.append(primary_table)
+			if len(pending_groups) == 0:
+				# all groups consumed
+				return built
+			if len(pending_groups) == len(groups):
+				# no groups can be consumed on this round
+				raise UnexpectedStorageException('Cannot join tables by given declaration.')
+			# at least one group consumed, do next round
+			return try_to_join(pending_groups, built)
 
 		groups_by_primary: Dict[TopicId, List[FreeJoin]] = ArrayHelper(table_joins) \
 			.map(try_to_be_left_join) \
 			.group_by(lambda x: x.primary.entityName)
-		for primary_entity_name, joins_by_primary in groups_by_primary.items():
-			primary_table = self.find_table(primary_entity_name)
-			if primary_table not in tables:
-				tables.append(primary_table)
-
-			groups_by_secondary: Dict[TopicId, List[FreeJoin]] = ArrayHelper(joins_by_primary) \
-				.group_by(lambda x: x.secondary.entityName)
-			for secondary_entity_name, joins_by_secondary in groups_by_secondary:
-				# every join is left join, otherwise reduce to inner join
-				outer_join = ArrayHelper(joins_by_secondary).every(lambda x: x.type == FreeJoinType.LEFT)
-				secondary_table = self.find_table(secondary_entity_name)
-				if secondary_table not in tables:
-					tables.append(secondary_table)
-				on = and_(
-					*ArrayHelper(joins_by_secondary).map(
-						lambda x: self.build_single_on(x, primary_table, secondary_table)).to_list())
-				if built is None:
-					built = primary_table.join(secondary_table, on, outer_join)
-				else:
-					built = built.join(secondary_table, on, outer_join)
-
-		return built, tables
+		return try_to_join(groups_by_primary), tables
 
 	def build_free_joins(self, table_joins: Optional[List[FreeJoin]]) -> Tuple[Any, List[Table]]:
 		if table_joins is None or len(table_joins) == 0:
