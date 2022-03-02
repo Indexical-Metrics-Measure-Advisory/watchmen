@@ -9,6 +9,7 @@ from watchmen_model.admin import Pipeline, PipelineStage
 from watchmen_model.pipeline_kernel import MonitorLogStage, MonitorLogStatus, PipelineMonitorLog
 from watchmen_pipeline_kernel.pipeline_schema_interface import CreateQueuePipeline, TopicStorages
 from watchmen_utilities import ArrayHelper
+
 from .compiled_unit import compile_units, CompiledUnit
 
 logger = getLogger(__name__)
@@ -61,7 +62,7 @@ class CompiledStage:
 			stage_monitor_log.error = format_exc()
 			all_run = False
 
-		stage_monitor_log.completeTime = spent_ms(stage_monitor_log.startTime)
+		stage_monitor_log.spentInMills = spent_ms(stage_monitor_log.startTime)
 
 		return all_run
 

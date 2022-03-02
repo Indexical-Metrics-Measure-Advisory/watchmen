@@ -6,7 +6,6 @@ from traceback import format_exc
 from typing import Any, Callable, Dict, List, Optional, Union
 
 from time import sleep
-
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.external_writer import ask_external_writer_creator, BuildExternalWriter, ExternalWriterParams
 from watchmen_data_kernel.meta import ExternalWriterService, TopicService
@@ -45,6 +44,7 @@ def get_external_writer_service(principal_service: PrincipalService) -> External
 	return ExternalWriterService(principal_service)
 
 
+# noinspection DuplicatedCode
 def find_topic_schema_for_action(action: Union[ToTopic, FromTopic], principal_service: PrincipalService) -> TopicSchema:
 	topic_id = action.topicId
 	if is_blank(topic_id):
