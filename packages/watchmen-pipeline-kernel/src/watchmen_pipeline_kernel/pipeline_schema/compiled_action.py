@@ -577,7 +577,8 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 			allow_insert: bool) -> bool:
 		def last_try() -> None:
 			# force lock and update, the final try after all retries by optimistic lock are failed
-			# raise PipelineKernelException('Not implemented yet.')
+			# still use the regular process
+			# find data by given findBy, do insertion when data not found and insertion is allowed, blablabla...
 			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
 			statement = self.parsedFindBy.run(variables, principal_service)
 			action_monitor_log.findBy = statement.to_dict()
@@ -597,9 +598,14 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 				raise PipelineKernelException(
 					f'Too many data[count={count}] found, {self.on_topic_message()}, by [{[statement]}].')
 			else:
-				# use id and version to lock data again
-				# in some RDS, for update lock must through id criteria, otherwise leads TM lock.
-				# here must a TX lock for performance consideration.
+				# after several times failures, it is the last try.
+				# do lock loaded data by id, then it cannot be updated by any other threads, processes or nodes.
+				# Of consideration of performance, we do need a TX lock here,
+				# but in some RDS(eg. MySQL), for update lock must through id criteria, otherwise leads TM lock.
+				# still, data might be deleted before it is locked, raise exception on this situation.
+				# or, lock it successfully, do update and commit transaction.
+				# when data row was locked, update requests from any other threads, processes or nodes
+				# are waiting for the transaction commit or rollback.
 				topic_data_service.get_storage().begin()
 				try:
 					# data was loaded from storage, of course it has an id
