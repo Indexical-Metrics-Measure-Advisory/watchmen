@@ -67,3 +67,19 @@ async def truncate_topic_data(
 	storage = ask_topic_storage(schema, principal_service)
 	service = ask_topic_data_service(schema, storage, principal_service)
 	service.truncate()
+
+# TODO data patch
+# @router.post("/data/patch", tags=["patch"])
+# async def patch_topic_instance(topic_name, instance_id=None, instance=Body(...),
+#                                current_user: User = Depends(deps.get_current_user)):
+#     topic = get_topic_by_name(topic_name,current_user)
+#     if instance_id is None:
+#         add_audit_columns(instance,INSERT)
+#         return save_topic_instance(topic, instance, current_user)
+#     else:
+#         result = find_topic_data_by_id_and_topic_name(topic, instance_id)
+#         if result is not None:
+#             add_audit_columns(instance, UPDATE)
+#             return update_topic_instance(topic, instance, instance_id)
+#         else:
+#             raise Exception("instance ID {0} could not find any data for update".format(instance_id))
