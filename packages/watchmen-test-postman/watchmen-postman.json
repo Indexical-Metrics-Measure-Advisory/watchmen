@@ -4690,7 +4690,8 @@
                         "exec": [
                           "pm.test(\"Super Admin Login Access Token\", function () {",
                           "    pm.response.to.have.status(200);",
-                          "     pm.environment.set('SUPER_ADMIN_JWT_TOKEN', data.accessToken)",
+                          "    var data = pm.response.json();",
+                          "    pm.environment.set('SUPER_ADMIN_JWT_TOKEN', data.accessToken)",
                           "})",
                           ""
                         ],
