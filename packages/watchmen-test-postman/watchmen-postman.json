@@ -4691,21 +4691,21 @@
                     "header": []
                   },
                   "response": []
+                },
+                {
+                  "name": "CREATE TOPIC",
+                  "id": "011a69b2-10f2-4b2d-a818-e73c6544ada3",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
                 }
               ],
               "id": "a9bfad4a-c128-48a2-b2da-6d2bd8b533df"
-            },
-            {
-              "name": "CREATE TOPIC",
-              "id": "011a69b2-10f2-4b2d-a818-e73c6544ada3",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
-              },
-              "response": []
             },
             {
               "name": "CREATE PIPELINE",
