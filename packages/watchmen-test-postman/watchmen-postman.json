@@ -4710,7 +4710,7 @@
                   "response": []
                 },
                 {
-                  "name": "CREATE PIPELINE",
+                  "name": "CREATE PIPELINE FOR ALARM",
                   "id": "00f3ae58-5870-4f04-a80c-d79f9ce00401",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
