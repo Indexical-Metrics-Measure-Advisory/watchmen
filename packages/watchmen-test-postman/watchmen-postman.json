@@ -4752,14 +4752,14 @@
                     "auth": {
                       "type": "bearer",
                       "bearer": {
-                        "token": "{{JWT_TOKEN}}"
+                        "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
                       }
                     },
                     "method": "POST",
                     "header": [],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n    \"dataSourceCode\": \"TEST-DATASOURCE\",\n    \"dataSourceType\": \"mysql\",\n    \"host\": \"localhost\",\n    \"port\": \"3309\",\n    \"username\": \"admin\",\n    \"password\": \"adminpwd\",\n    \"name\": \"new_watchmen\",\n    \"tenantId\": \"1\"\n}",
+                      "raw": "{\n    \"dataSourceCode\": \"Test-Datasource\",\n    \"dataSourceType\": \"mysql\",\n    \"host\": \"localhost\",\n    \"port\": \"3309\",\n    \"username\": \"admin\",\n    \"password\": \"admin\",\n    \"name\": \"new_watchmen\",\n    \"tenantId\": \"1\"\n}",
                       "options": {
                         "raw": {
                           "language": "json"
@@ -4826,7 +4826,7 @@
                           "pm.test(\"Create Raw Topic\", () => {",
                           "    pm.response.to.have.status(200);",
                           "    var data = pm.response.json();",
-                          "    pm.environment.set('RAW_TOPIC_ID', data.accessToken)",
+                          "    pm.environment.set('RAW_TOPIC_ID', data.topicId)",
                           "});"
                         ],
                         "type": "text/javascript"
@@ -4848,7 +4848,7 @@
                     "header": [],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n    \"name\": \"Test_Raw_Topic2\",\n    \"type\": \"raw\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propC\"},\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propD\"},\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propE\"}\n    ],\n    \"description\": \"Test Raw Topic\"\n}",
+                      "raw": "{\n    \"name\": \"Test_Raw_Topic\",\n    \"type\": \"raw\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propC\"},\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propD\"},\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propE\"}\n    ],\n    \"description\": \"Test Raw Topic\"\n}",
                       "options": {
                         "raw": {
                           "language": "json"
@@ -4861,22 +4861,45 @@
                 },
                 {
                   "name": "CREATE TOPIC",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "8009976d-cfbf-47f3-9d2f-6e34143eb79d",
+                        "exec": [
+                          "pm.test(\"Create Distinct Topic\", () => {",
+                          "    pm.response.to.have.status(200);",
+                          "    var data = pm.response.json();",
+                          "    pm.environment.set('TOPIC_ID', data.accessToken)",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "011a69b2-10f2-4b2d-a818-e73c6544ada3",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
                   "request": {
-                    "method": "GET",
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "POST",
                     "header": [],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n    \"name\": \"Test_Distinct_Topic\",\n    \"type\": \"distinct\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{SIMPLE_DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propC\"},\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propD\"},\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propE\"}\n    ],\n    \"description\": \"Test Distinct Topic\"\n}",
+                      "raw": "{\n    \"name\": \"Test_Distinct_Topic\",\n    \"type\": \"distinct\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propC\"},\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propD\"},\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propE\"}\n    ],\n    \"description\": \"Test Distinct Topic\"\n}",
                       "options": {
                         "raw": {
                           "language": "json"
                         }
                       }
-                    }
+                    },
+                    "url": "{{URL_PREFIX}}/topic"
                   },
                   "response": []
                 }
@@ -4888,12 +4911,32 @@
               "item": [
                 {
                   "name": "CREATE PIPELINE FOR ALARM",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "70148732-faf0-4dfc-b52c-9e8077289f9c",
+                        "exec": [
+                          "pm.test(\"Create Pipeline For Alarm\", () => {",
+                          "    pm.response.to.have.status(200);",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "00f3ae58-5870-4f04-a80c-d79f9ce00401",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
                   "request": {
-                    "method": "GET",
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "POST",
                     "header": [],
                     "body": {
                       "mode": "raw",
@@ -4903,29 +4946,50 @@
                           "language": "json"
                         }
                       }
-                    }
+                    },
+                    "url": "{{URL_PREFIX}}/pipeline"
                   },
                   "response": []
                 },
                 {
                   "name": "INSERT RAW",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "0fc2fef1-38a5-4076-8c02-7086cf4d5b7c",
+                        "exec": [
+                          "pm.test(\"Create Pipeline For Alarm\", () => {",
+                          "    pm.response.to.have.status(200);",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "bee8978b-94d3-46fb-841f-ff76a61c617f",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
                   "request": {
-                    "method": "GET",
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "POST",
                     "header": [],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n    \"code\": \"topic_test_raw_topic\",\n    \"data\": {\n        \"propA\": \"text\",\n        \"propB\": 100,\n        \"propC\": true,\n        \"propD\": \"2022-03-22\",\n        \"propE\": \"2022-03-22 22:39:45\"\n    }\n}",
+                      "raw": "{\n    \"code\": \"Test_Raw_Topic4\",\n    \"data\": {\n        \"propA\": \"text\",\n        \"propB\": 100,\n        \"propC\": true,\n        \"propD\": \"2022-03-22\",\n        \"propE\": \"2022-03-22 22:39:45\"\n    }\n}",
                       "options": {
                         "raw": {
                           "language": "json"
                         }
                       }
                     },
-                    "url": "/pipeline/data"
+                    "url": "{{URL_PREFIX}}/pipeline/data"
                   },
                   "response": []
                 },
@@ -4955,11 +5019,6 @@
                 }
               ],
               "id": "a9bfad4a-c128-48a2-b2da-6d2bd8b533df"
-            },
-            {
-              "name": "POST-SCRIPT",
-              "item": [],
-              "id": "b3dbaf01-4a0a-48dd-9f68-e41c9a484d20"
             }
           ],
           "id": "e913262a-d074-4454-a78f-f0ad5bbb8616"
