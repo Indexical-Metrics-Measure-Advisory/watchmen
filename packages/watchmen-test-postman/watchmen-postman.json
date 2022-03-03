@@ -4923,11 +4923,31 @@
                 },
                 {
                   "name": "INSERT RAW",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "0fc2fef1-38a5-4076-8c02-7086cf4d5b7c",
+                        "exec": [
+                          "pm.test(\"Create Pipeline For Alarm\", () => {",
+                          "    pm.response.to.have.status(200);",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "bee8978b-94d3-46fb-841f-ff76a61c617f",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
                   "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
                     "method": "GET",
                     "header": [],
                     "body": {
