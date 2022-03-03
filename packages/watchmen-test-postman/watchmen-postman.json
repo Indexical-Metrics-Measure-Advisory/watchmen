@@ -4694,22 +4694,46 @@
                 },
                 {
                   "name": "CREATE DATASOURCE",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "156de6c9-1447-4e84-8dfd-2472d1272e78",
+                        "exec": [
+                          "pm.test('Datasource created', () => {",
+                          "    const data = pm.response.json();",
+                          "    pm.expect(data.dataSourceId).to.not.be.null;",
+                          "    pm.environment.set('DATA_SOURCE_ID', data.dataSourceId)",
+                          "})",
+                          ""
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "e2d8fb35-7c97-402c-a2e2-7b3ed682d1ea",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
                   "request": {
-                    "method": "GET",
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "POST",
                     "header": [],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n    \"dataSourceCode\": \"TEST-DATASOURCE\",\n    \"dataSourceType\": \"mysql\",\n    \"host\": \"localhost\",\n    \"port\": \"3306\",\n    \"username\": \"watchmen\",\n    \"password\": \"watchmen\",\n    \"name\": \"watchmen\",\n    \"tenantId\": \"1\"\n}",
+                      "raw": "{\n    \"dataSourceCode\": \"TEST-DATASOURCE\",\n    \"dataSourceType\": \"mysql\",\n    \"host\": \"localhost\",\n    \"port\": \"3309\",\n    \"username\": \"admin\",\n    \"password\": \"adminpwd\",\n    \"name\": \"new_watchmen\",\n    \"tenantId\": \"1\"\n}",
                       "options": {
                         "raw": {
                           "language": "json"
                         }
                       }
-                    }
+                    },
+                    "url": "{{URL_PREFIX}}/datasource"
                   },
                   "response": []
                 },
