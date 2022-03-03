@@ -4,7 +4,7 @@ from typing import Dict, List
 from watchmen_meta.common import ask_engine_index_enabled, StorageService
 from watchmen_model.admin import Factor, Topic
 from watchmen_model.analysis import FactorIndex
-from watchmen_model.common import FactorId, TopicId
+from watchmen_model.common import FactorId, TenantId, TopicId
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, EntityDeleter, \
 	EntityFinder, EntityIdHelper, EntityRow, EntityShaper, SnowflakeGenerator, TransactionalStorageSPI
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
@@ -120,4 +120,14 @@ class TopicIndexService(StorageService):
 			name=FACTOR_INDEX_ENTITY_NAME,
 			shaper=FACTOR_INDEX_ENTITY_SHAPER,
 			criteria=[EntityCriteriaExpression(left=ColumnNameLiteral(columnName='topic_id'), right=topic_id)]
+		))
+
+	def find(self, name: str, tenant_id: TenantId) -> List[FactorIndex]:
+		if not ask_engine_index_enabled():
+			return []
+		# noinspection PyTypeChecker
+		return self.storage.find(EntityFinder(
+			name=FACTOR_INDEX_ENTITY_NAME,
+			shaper=FACTOR_INDEX_ENTITY_SHAPER,
+			criteria=[]
 		))
