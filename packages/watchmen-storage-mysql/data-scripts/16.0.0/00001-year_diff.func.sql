@@ -1,9 +1,8 @@
 # https://dev.mysql.com/doc/refman/5.7/en/stored-programs-logging.html
 # set global log_bin_trust_function_creators=1;
-
-DELIMITER |
 DROP FUNCTION IF EXISTS YEARDIFF;
 
+DELIMITER |
 CREATE FUNCTION YEARDIFF(end_date DATE, start_date DATE)
     RETURNS INT
     DETERMINISTIC READS SQL DATA
@@ -60,3 +59,4 @@ BEGIN
         END IF;
     END IF;
 END|
+DELIMITER ;

@@ -135,13 +135,13 @@ def cache_heart_beat():
 	interval = ask_cache_heart_beat_interval()
 	try:
 		while True:
+			sleep(interval)
 			# cache heart beat
 			heart_beat_on_tenants()
 			heart_beat_on_data_sources()
 			heart_beat_on_external_writers()
 			heart_beat_on_pipelines()
 			heart_beat_on_topics()
-			sleep(interval)
 	except Exception as e:
 		logger.error(e, exc_info=True, stack_info=True)
 	finally:
