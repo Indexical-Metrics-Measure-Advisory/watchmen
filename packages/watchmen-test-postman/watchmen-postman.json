@@ -4747,7 +4747,7 @@
                   "response": []
                 },
                 {
-                  "name": "New Request",
+                  "name": "LOGIN - ADMIN",
                   "id": "9fa606df-1b36-448b-8ac1-95e2a0af5dd9",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
