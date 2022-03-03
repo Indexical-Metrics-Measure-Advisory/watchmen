@@ -4687,6 +4687,20 @@
               "item": [
                 {
                   "name": "CREATE RAW TOPIC",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "dbaf1799-86a1-42ff-b644-d4c99eba4557",
+                        "exec": [
+                          "pm.test(\"Create Raw Topic\", () => {",
+                          "    pm.response.to.have.status(200);",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "f9151dc9-399e-4e87-b2e6-9b6696ec4e1a",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
