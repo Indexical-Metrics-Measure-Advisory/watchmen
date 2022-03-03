@@ -483,11 +483,10 @@ def build_columns(topic: Topic) -> str:
 		else:
 			return '\n'.join(flatten_factors) + '\n\tdata_ JSON,'
 	else:
-		factors = ArrayHelper(topic.factors) \
+		return ArrayHelper(topic.factors) \
 			.filter(lambda x: '.' not in x.name) \
 			.map(lambda x: f'\t{ask_column_name(x)} {ask_column_type(x)},') \
-			.to_list()
-		return '\n'.join(factors)
+			.join('\n')
 
 
 def build_aggregate_assist_column(topic: Topic) -> str:
