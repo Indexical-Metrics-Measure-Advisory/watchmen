@@ -4679,20 +4679,21 @@
           "item": [
             {
               "name": "ACTION ALARM",
-              "item": [],
+              "item": [
+                {
+                  "name": "CREATE RAW TOPIC",
+                  "id": "f9151dc9-399e-4e87-b2e6-9b6696ec4e1a",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
+                }
+              ],
               "id": "a9bfad4a-c128-48a2-b2da-6d2bd8b533df"
-            },
-            {
-              "name": "CREATE RAW TOPIC",
-              "id": "f9151dc9-399e-4e87-b2e6-9b6696ec4e1a",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
-              },
-              "response": []
             },
             {
               "name": "CREATE TOPIC",
