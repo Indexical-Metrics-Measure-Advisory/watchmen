@@ -625,13 +625,12 @@ mongodb = ["watchmen-storage-mongodb"]
 mssql = ["watchmen-storage-mssql"]
 mysql = ["watchmen-storage-mysql"]
 oracle = ["watchmen-storage-oracle"]
-parallel_action_dask = ["dask", "distributed"]
 standard_ext_writer = ["requests"]
 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "f0ccaabae7874add8b112e4f16e378dba23222729504f8693f5883dc5d4a109f"
+content-hash = "dc47d05cb9fb762bc98ec644881dc33b26446c760b5e00d0cebdfd64740bcc4e"
 
 [metadata.files]
 cacheout = [

@@ -23,6 +23,9 @@ class PrincipalService:
 	def get_user_name(self) -> str:
 		return self.name
 
+	def get_user_role(self) -> UserRole:
+		return self.role
+
 	def is_admin(self) -> bool:
 		return self.role == UserRole.ADMIN or self.role == UserRole.SUPER_ADMIN
 
