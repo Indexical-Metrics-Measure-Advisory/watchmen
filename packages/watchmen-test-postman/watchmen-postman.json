@@ -4700,7 +4700,16 @@
                   },
                   "request": {
                     "method": "GET",
-                    "header": []
+                    "header": [],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n    \"dataSourceCode\": \"TEST-DATASOURCE\",\n    \"dataSourceType\": \"mysql\",\n    \"host\": \"localhost\",\n    \"port\": \"3306\",\n    \"username\": \"watchmen\",\n    \"password\": \"watchmen\",\n    \"name\": \"watchmen\",\n    \"tenantId\": \"1\"\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    }
                   },
                   "response": []
                 },
