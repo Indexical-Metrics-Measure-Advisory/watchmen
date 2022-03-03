@@ -205,7 +205,7 @@ def is_date_plus_format(value: Optional[str], formats: List[str]) -> Tuple[bool,
 	"""
 	tidy_value = sub(r'\D', '', value)
 	count = len(tidy_value)
-	# TODO format cannot use length to match
+	# format cannot use length to match
 	suitable_formats = ArrayHelper(formats).filter(lambda x: is_suitable_format(count, x)).to_list()
 	for suitable_format in suitable_formats:
 		parsed, date_value = try_to_format_date(tidy_value, suitable_format)
