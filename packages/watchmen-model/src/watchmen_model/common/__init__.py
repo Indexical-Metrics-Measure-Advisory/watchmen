@@ -1,4 +1,4 @@
-from .data_result_set import DataResultSet, DataResultSetCell, DataResultSetRow
+from .data_result_set import DataResult, DataResultSet, DataResultSetCell, DataResultSetRow
 from .graphic import GraphicPosition, GraphicRect, GraphicSize
 from .model import DataModel, SettingsModel
 from .pagination import DataPage, Pageable, PageDataCell, PageDataRow, PageDataSet
