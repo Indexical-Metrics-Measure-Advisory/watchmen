@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import Callable, Tuple, TypeVar, Union
+from typing import Callable, Tuple, TypeVar
 
 from fastapi import HTTPException
 
