@@ -4693,7 +4693,7 @@
                   "response": []
                 },
                 {
-                  "name": "New Request",
+                  "name": "CREATE DATASOURCE",
                   "id": "e2d8fb35-7c97-402c-a2e2-7b3ed682d1ea",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
