@@ -4858,13 +4858,7 @@
                     "url": "{{URL_PREFIX}}/topic"
                   },
                   "response": []
-                }
-              ],
-              "id": "79b24909-0895-47e2-8733-6c9275f5140b"
-            },
-            {
-              "name": "ACTION ALARM",
-              "item": [
+                },
                 {
                   "name": "CREATE TOPIC",
                   "id": "011a69b2-10f2-4b2d-a818-e73c6544ada3",
@@ -4885,7 +4879,13 @@
                     }
                   },
                   "response": []
-                },
+                }
+              ],
+              "id": "79b24909-0895-47e2-8733-6c9275f5140b"
+            },
+            {
+              "name": "ACTION ALARM",
+              "item": [
                 {
                   "name": "CREATE PIPELINE FOR ALARM",
                   "id": "00f3ae58-5870-4f04-a80c-d79f9ce00401",
