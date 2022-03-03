@@ -523,6 +523,69 @@ def build_indexes(topic: Topic) -> str:
 		return ArrayHelper(list(index_groups.values())).map(lambda x: build_index(x)).join('\n')
 
 
+# noinspection SqlResolve
+def build_columns_script(topic: Topic, original_topic: Topic) -> List[str]:
+	entity_name = as_table_name(topic)
+	original_factors: Dict[str, Factor] = ArrayHelper(original_topic.factors) \
+		.to_map(lambda x: x.name.strip().lower(), lambda x: x)
+
+	# noinspection SqlResolve
+	def build_column_script(factor: Tuple[Factor, bool]) -> str:
+		if factor[1]:
+			# do alter column
+			return f'ALTER TABLE {entity_name} MODIFY COLUMN {ask_column_name(factor[0])} {ask_column_type(factor[0])}'
+		else:
+			return f'ALTER TABLE {entity_name} ADD COLUMN {ask_column_name(factor[0])} {ask_column_type(factor[0])}'
+
+	if is_raw_topic(topic):
+		factors = ArrayHelper(topic.factors) \
+			.filter(lambda x: x.flatten) \
+			.map(lambda x: f'\t{ask_column_name(x)} {ask_column_type(x)},') \
+			.to_list()
+	else:
+		factors = topic.factors
+
+	columns = ArrayHelper(factors) \
+		.map(lambda x: (x, x.name.strip().lower() in original_factors)) \
+		.map(build_column_script) \
+		.to_list()
+
+	if is_raw_topic(topic) and not is_raw_topic(original_topic):
+		columns.append(f'ALTER TABLE {entity_name} ADD COLUMN data_ JSON')
+
+	if is_aggregation_topic(topic) and not is_aggregation_topic(original_topic):
+		columns.append(f'ALTER TABLE {entity_name} ADD COLUMN aggregate_assist_ JSON')
+		columns.append(f'ALTER TABLE {entity_name} ADD COLUMN version_ INT')
+
+	return columns
+
+
+def build_unique_indexes_script(topic: Topic) -> List[str]:
+	index_groups: Dict[str, List[Factor]] = ArrayHelper(topic.factors) \
+		.filter(lambda x: is_not_blank(x.indexGroup) and x.indexGroup.startswith('u-')) \
+		.group_by(lambda x: x.indexGroup)
+
+	def build_unique_index(factors: List[Factor]) -> str:
+		return \
+			f'ALTER TABLE {as_table_name(topic)} ADD UNIQUE INDEX ' \
+			f'({ArrayHelper(factors).map(lambda x: ask_column_name(x)).join(",")})'
+
+	return ArrayHelper(list(index_groups.values())).map(lambda x: build_unique_index(x)).to_list()
+
+
+def build_indexes_script(topic: Topic) -> List[str]:
+	index_groups: Dict[str, List[Factor]] = ArrayHelper(topic.factors) \
+		.filter(lambda x: is_not_blank(x.indexGroup) and x.indexGroup.startswith('i-')) \
+		.group_by(lambda x: x.indexGroup)
+
+	def build_index(factors: List[Factor]) -> str:
+		return \
+			f'ALTER TABLE {as_table_name(topic)} ADD INDEX ' \
+			f'({ArrayHelper(factors).map(lambda x: ask_column_name(x)).join(",")})'
+
+	return ArrayHelper(list(index_groups.values())).map(lambda x: build_index(x)).to_list()
+
+
 class TopicDataStorageMySQL(StorageMySQL, TopicDataStorageSPI):
 	def register_topic(self, topic: Topic) -> None:
 		register_table(topic)
@@ -532,10 +595,13 @@ class TopicDataStorageMySQL(StorageMySQL, TopicDataStorageSPI):
 		try:
 			self.connect()
 			entity_name = as_table_name(topic)
+			# noinspection SqlType
 			script = f'''
 CREATE TABLE {entity_name} (
 \tid_ BIGINT,
 {build_columns(topic)}
+{build_aggregate_assist_column(topic)}
+{build_version_column(topic)}
 \ttenant_id_ VARCHAR(50),
 \tinsert_time_ DATETIME,
 \tupdate_time_ DATETIME,
@@ -553,7 +619,53 @@ CREATE TABLE {entity_name} (
 			self.close()
 
 	def update_topic_entity(self, topic: Topic, original_topic: Topic) -> None:
-		pass
+		"""
+		1. drop no column,\n
+		2. factor indexes from original topic are dropped,\n
+		3. factor indexes from topic are created,\n
+		4. compatible column type changes are applied,\n
+		5. any exception is ignored.
+		"""
+		try:
+			self.connect()
+			entity_name = as_table_name(topic)
+			self.connection.execute(text(f"CALL DROP_INDEXES_ON_TOPIC_CHANGED('{entity_name}')"))
+			# try to change column anyway, ignore when failed
+			for column_script in build_columns_script(topic, original_topic):
+				try:
+					self.connection.execute(text(column_script))
+				except Exception as e:
+					logger.error(e, exc_info=True, stack_info=True)
+			# try to add index
+			for unique_index_script in build_unique_indexes_script(topic):
+				try:
+					self.connection.execute(text(unique_index_script))
+				except Exception as e:
+					logger.error(e, exc_info=True, stack_info=True)
+			for index_script in build_indexes_script(topic):
+				try:
+					self.connection.execute(text(index_script))
+				except Exception as e:
+					logger.error(e, exc_info=True, stack_info=True)
+			try:
+				# noinspection SqlResolve
+				self.connection.execute(text(f'ALTER TABLE {as_table_name(topic)} ADD INDEX (tenant_id_)'))
+			except Exception as e:
+				logger.error(e, exc_info=True, stack_info=True)
+			try:
+				# noinspection SqlResolve
+				self.connection.execute(text(f'ALTER TABLE {as_table_name(topic)} ADD INDEX (insert_time_)'))
+			except Exception as e:
+				logger.error(e, exc_info=True, stack_info=True)
+			try:
+				# noinspection SqlResolve
+				self.connection.execute(text(f'ALTER TABLE {as_table_name(topic)} ADD INDEX (update_time_)'))
+			except Exception as e:
+				logger.error(e, exc_info=True, stack_info=True)
+		except Exception as e:
+			logger.error(e, exc_info=True, stack_info=True)
+		finally:
+			self.close()
 
 	def drop_topic_entity(self, topic_name: str) -> None:
 		entity_name = as_table_name(topic_name)

@@ -2,7 +2,8 @@ from unittest import TestCase
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
-from watchmen_data_kernel.service.topic_structure_helper import create_topic_structure, drop_topic_structure
+from watchmen_data_kernel.service.topic_structure_helper import create_topic_structure, drop_topic_structure, \
+	update_topic_structure
 from watchmen_model.admin import Factor, FactorType, Topic, TopicKind, TopicType, User, UserRole
 from watchmen_model.system import DataSource, DataSourceType
 
@@ -28,10 +29,26 @@ def prepare_topic():
 		tenantId='1')
 
 
+def prepare_new_topic():
+	return Topic(
+		topicId='1', name='topic_x', type=TopicType.DISTINCT, kind=TopicKind.BUSINESS,
+		factors=[
+			Factor(factorId='1', name='topic1_id', type=FactorType.SEQUENCE),
+			Factor(factorId='2', name='topic1_text', type=FactorType.TEXT, precision='64', indexGroup='u-1'),
+			Factor(factorId='2', name='topic1_text2', type=FactorType.TEXT, precision='32', indexGroup='u-1')
+		],
+		dataSourceId='1',
+		tenantId='1')
+
+
 class TopicTable(TestCase):
 	# noinspection PyMethodMayBeStatic
 	def test_create_topic(self):
 		create_topic_structure(prepare_topic(), create_fake_principal_service())
+
+	# noinspection PyMethodMayBeStatic
+	def test_update_topic(self):
+		update_topic_structure(prepare_new_topic(), prepare_topic(), create_fake_principal_service())
 
 	# noinspection PyMethodMayBeStatic
 	def test_drop_topic(self):
