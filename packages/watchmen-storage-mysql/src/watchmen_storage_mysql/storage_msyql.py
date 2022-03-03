@@ -8,15 +8,14 @@ from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.sql import Join, label
 from sqlalchemy.sql.elements import Label
 
-from watchmen_model.admin import Topic
+from watchmen_model.admin import Factor, FactorType, is_aggregation_topic, is_raw_topic, Topic
 from watchmen_model.common import DataPage, TopicId
-from watchmen_storage import ColumnNameLiteral, Entity, EntityColumnAggregateArithmetic, EntityCriteriaExpression, \
-	EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, EntityIdHelper, EntityList, \
-	EntityNotFoundException, EntityPager, EntityStraightAggregateColumn, EntityStraightColumn, \
-	EntityStraightTextColumn, EntityStraightValuesFinder, EntityUpdater, FreeColumn, FreeJoin, FreeJoinType, \
-	FreePager, NoFreeJoinException, TooManyEntitiesFoundException, TransactionalStorageSPI, \
-	UnexpectedStorageException, UnsupportedStraightColumnException
-from watchmen_storage.storage_spi import TopicDataStorageSPI
+from watchmen_storage import as_table_name, ColumnNameLiteral, Entity, EntityColumnAggregateArithmetic, \
+	EntityCriteriaExpression, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
+	EntityIdHelper, EntityList, EntityNotFoundException, EntityPager, EntityStraightAggregateColumn, \
+	EntityStraightColumn, EntityStraightTextColumn, EntityStraightValuesFinder, EntityUpdater, FreeColumn, FreeJoin, \
+	FreeJoinType, FreePager, NoFreeJoinException, TooManyEntitiesFoundException, TopicDataStorageSPI, \
+	TransactionalStorageSPI, UnexpectedStorageException, UnsupportedStraightColumnException
 from watchmen_utilities import ArrayHelper, is_blank
 from .sort_build import build_sort_for_statement
 from .table_defs_mysql import find_table, register_table
@@ -349,9 +348,150 @@ class StorageMySQL(TransactionalStorageSPI):
 		return len(results) != 0
 
 
+def as_column_name(factor: Factor) -> str:
+	return factor.name.strip().replace('.', '_').replace('-', '_').replace(' ', '_')
+
+
+FactorTypeMap: Dict[FactorType, str] = {
+	FactorType.SEQUENCE: 'BIGINT',
+
+	FactorType.NUMBER: 'DECIMAL(32,6)',
+	FactorType.UNSIGNED: 'DECIMAL(32,6)',
+
+	FactorType.TEXT: 'VARCHAR(255)',
+
+	# address
+	FactorType.ADDRESS: 'TEXT',
+	FactorType.CONTINENT: 'VARCHAR(10)',
+	FactorType.REGION: 'VARCHAR(10)',
+	FactorType.COUNTRY: 'VARCHAR(10)',
+	FactorType.PROVINCE: 'VARCHAR(10)',
+	FactorType.CITY: 'VARCHAR(10)',
+	FactorType.DISTRICT: 'VARCHAR(255)',
+	FactorType.ROAD: 'VARCHAR(255)',
+	FactorType.COMMUNITY: 'VARCHAR(100)',
+	FactorType.FLOOR: 'SMALLINT',
+	FactorType.RESIDENCE_TYPE: 'VARCHAR(10)',
+	FactorType.RESIDENTIAL_AREA: 'DECIMAL(10,2)',
+
+	# contact electronic
+	FactorType.EMAIL: 'VARCHAR(100)',
+	FactorType.PHONE: 'VARCHAR(50)',
+	FactorType.MOBILE: 'VARCHAR(50)',
+	FactorType.FAX: 'VARCHAR(50)',
+
+	# date time related
+	FactorType.DATETIME: 'DATETIME',
+	FactorType.FULL_DATETIME: 'DATETIME',
+	FactorType.DATE: 'DATE',
+	FactorType.TIME: 'TIME',
+	FactorType.YEAR: 'SMALLINT',
+	FactorType.HALF_YEAR: 'TINYINT',
+	FactorType.QUARTER: 'TINYINT',
+	FactorType.MONTH: 'TINYINT',
+	FactorType.HALF_MONTH: 'TINYINT',
+	FactorType.TEN_DAYS: 'TINYINT',
+	FactorType.WEEK_OF_YEAR: 'TINYINT',
+	FactorType.WEEK_OF_MONTH: 'TINYINT',
+	FactorType.HALF_WEEK: 'TINYINT',
+	FactorType.DAY_OF_MONTH: 'TINYINT',
+	FactorType.DAY_OF_WEEK: 'TINYINT',
+	FactorType.DAY_KIND: 'TINYINT',
+	FactorType.HOUR: 'TINYINT',
+	FactorType.HOUR_KIND: 'TINYINT',
+	FactorType.MINUTE: 'TINYINT',
+	FactorType.SECOND: 'TINYINT',
+	FactorType.MILLISECOND: 'TINYINT',
+	FactorType.AM_PM: 'TINYINT',
+
+	# individual
+	FactorType.GENDER: 'VARCHAR(10)',
+	FactorType.OCCUPATION: 'VARCHAR(10)',
+	FactorType.DATE_OF_BIRTH: 'DATE',
+	FactorType.AGE: 'SMALLINT',
+	FactorType.ID_NO: 'VARCHAR(50)',
+	FactorType.RELIGION: 'VARCHAR(10)',
+	FactorType.NATIONALITY: 'VARCHAR(10)',
+
+	# organization
+	FactorType.BIZ_TRADE: 'VARCHAR(10)',
+	FactorType.BIZ_SCALE: 'INT',
+
+	FactorType.BOOLEAN: 'TINYINT',
+
+	FactorType.ENUM: 'VARCHAR(20)',
+
+	FactorType.OBJECT: 'JSON',
+	FactorType.ARRAY: 'JSON'
+}
+
+
+def build_columns(topic: Topic) -> str:
+	if is_raw_topic(topic):
+		flatten_factors = ArrayHelper(topic.factors) \
+			.filter(lambda x: x.flatten) \
+			.map(lambda x: f'\t{as_column_name(x)} {FactorTypeMap.get(x.type)},') \
+			.to_list()
+		if len(flatten_factors) == 0:
+			return '\tdata_ JSON,'
+		else:
+			return '\n'.join(flatten_factors) + '\n\tdata_ JSON,'
+	else:
+		factors = ArrayHelper(topic.factors) \
+			.filter(lambda x: '.' not in x.name) \
+			.map(lambda x: f'\t{as_column_name(x)} {FactorTypeMap.get(x.type)},') \
+			.to_list()
+		return '\n'.join(factors) + ','
+
+
+def build_aggregate_assist_column(topic: Topic) -> str:
+	return f'\taggregate_assist_ JSON,' if is_aggregation_topic(topic) else ''
+
+
+def build_version_column(topic: Topic) -> str:
+	return f'\tversion_ INT,' if is_aggregation_topic(topic) else ''
+
+
 class TopicDataStorageMySQL(StorageMySQL, TopicDataStorageSPI):
 	def register_topic(self, topic: Topic) -> None:
 		register_table(topic)
+
+	# noinspection SqlResolve
+	def create_topic_entity(self, topic: Topic) -> None:
+		try:
+			self.connect()
+			entity_name = as_table_name(topic)
+			script = f'''
+CREATE TABLE {entity_name} (
+\tid_ BIGINT,
+{build_columns(topic)}
+\ttenant_id_ VARCHAR(50),
+\tinsert_time_ DATETIME,
+\tupdate_time_ DATETIME,
+\tINDEX (tenant_id_),
+\tINDEX (insert_time_),
+\tINDEX (update_time_),
+\tPRIMARY KEY (id_)
+			)'''
+			self.connection.execute(text(script))
+		except Exception as e:
+			logger.error(e, exc_info=True, stack_info=True)
+		finally:
+			self.close()
+
+	def update_topic_entity(self, topic: Topic, original_topic: Topic) -> None:
+		pass
+
+	def drop_topic_entity(self, topic_name: str) -> None:
+		entity_name = as_table_name(topic_name)
+		try:
+			self.connect()
+			# noinspection SqlResolve
+			self.connection.execute(text(f'DROP TABLE {entity_name}'))
+		except Exception as e:
+			logger.error(e, exc_info=True, stack_info=True)
+		finally:
+			self.close()
 
 	def truncate(self, helper: EntityHelper) -> None:
 		table = self.find_table(helper.name)

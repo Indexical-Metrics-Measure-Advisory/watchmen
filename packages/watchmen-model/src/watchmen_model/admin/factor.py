@@ -127,3 +127,4 @@ class Factor(Storable, BaseModel):
 	flatten: bool = False
 	indexGroup: FactorIndexGroup = None
 	encrypt: FactorEncryptMethod = None
+	precision: str = None

@@ -188,6 +188,18 @@ class TopicDataStorageSPI(TransactionalStorageSPI):
 		pass
 
 	@abstractmethod
+	def create_topic_entity(self, topic: Topic) -> None:
+		pass
+
+	@abstractmethod
+	def update_topic_entity(self, topic: Topic, original_topic: Topic) -> None:
+		pass
+
+	@abstractmethod
+	def drop_topic_entity(self, topic_name: str) -> None:
+		pass
+
+	@abstractmethod
 	def truncate(self, helper: EntityHelper) -> None:
 		pass
 

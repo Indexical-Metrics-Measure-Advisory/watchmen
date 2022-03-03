@@ -85,6 +85,7 @@ def ask_encrypt_aes_params() -> Tuple[str, str]:
 	return settings.ENCRYPT_AES_KEY, settings.ENCRYPT_AES_IV
 
 
+# noinspection DuplicatedCode
 def ask_ignore_default_on_raw() -> bool:
 	return settings.IGNORE_DEFAULT_ON_RAW
 
