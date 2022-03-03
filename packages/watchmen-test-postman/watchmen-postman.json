@@ -4904,7 +4904,7 @@
                   "response": []
                 },
                 {
-                  "name": "CREATE MONITOR",
+                  "name": "CREATE PIPELINE MONITOR LOG TOPIC",
                   "id": "82380880-6a74-4de4-945c-a1dd358b2833",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
