@@ -54,7 +54,7 @@ async def fetch_report_data_temporary(
 	pass
 
 
-@router.post('/subject/data/criteria', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=DataResult)
+@router.post('/subject/data/criteria', tags=[UserRole.ADMIN], response_model=DataResult)
 async def query_dataset(
 		query: SubjectDatasetCriteria,
 		principal_service: PrincipalService = Depends(get_console_principal)) -> DataResult:
