@@ -15,8 +15,8 @@ from watchmen_model.common import ComputedParameter, ConstantParameter, Paramete
 	TopicFactorParameter, VariablePredefineFunctions
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, get_day_of_month, get_day_of_week, \
 	get_half_year, get_month, get_quarter, get_week_of_month, get_week_of_year, get_year, greater_or_equals_date, \
-	greater_or_equals_decimal, greater_or_equals_time, is_blank, is_date_or_time_instance, is_empty, is_not_empty, \
-	is_numeric_instance, less_or_equals_date, less_or_equals_decimal, less_or_equals_time, try_to_date, \
+	greater_or_equals_decimal, greater_or_equals_time, is_blank, is_date, is_date_or_time_instance, is_empty, \
+	is_not_empty, is_numeric_instance, less_or_equals_date, less_or_equals_decimal, less_or_equals_time, \
 	try_to_decimal, value_equals, value_not_equals
 from .utils import always_none, compute_date_diff, create_from_previous_trigger_data, \
 	create_get_from_variables_with_prefix, create_previous_trigger_data, create_snowflake_generator, \
@@ -572,13 +572,13 @@ def create_numeric_reducer(
 
 
 def create_datetime_func(
-		parameter: ParsedMemoryParameter, func: Callable[[datetime], int]
+		parameter: ParsedMemoryParameter, func: Callable[[date], int]
 ) -> Callable[[PipelineVariables, PrincipalService], Any]:
 	def get_part_of_datetime(variables: PipelineVariables, principal_service: PrincipalService) -> Optional[int]:
 		value = parameter.value(variables, principal_service)
 		if value is None:
 			return None
-		parsed, dt_value = try_to_date(value, ask_all_date_formats())
+		parsed, dt_value = is_date(value, ask_all_date_formats())
 		if not parsed:
 			raise DataKernelException(f'Cannot parse value[{value}] to datetime.')
 		if dt_value is None:
