@@ -4678,8 +4678,20 @@
           "name": "ACTION",
           "item": [
             {
-              "name": "New Request",
+              "name": "CREATE RAW TOPIC",
               "id": "f9151dc9-399e-4e87-b2e6-9b6696ec4e1a",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "011a69b2-10f2-4b2d-a818-e73c6544ada3",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
