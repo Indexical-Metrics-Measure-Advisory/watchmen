@@ -4700,6 +4700,30 @@
                 "header": []
               },
               "response": []
+            },
+            {
+              "name": "CREATE PIPELINE",
+              "id": "00f3ae58-5870-4f04-a80c-d79f9ce00401",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "bee8978b-94d3-46fb-841f-ff76a61c617f",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
             }
           ],
           "id": "e913262a-d074-4454-a78f-f0ad5bbb8616"
