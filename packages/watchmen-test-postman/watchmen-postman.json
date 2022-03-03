@@ -4912,7 +4912,8 @@
                           "pm.test(\"Create Distinct Topic\", () => {",
                           "    pm.response.to.have.status(200);",
                           "    var data = pm.response.json();",
-                          "    pm.environment.set('TOPIC_ID', data.accessToken)",
+                          "    pm.environment.set('TOPIC_ID', data.topicId)",
+                          "    pm.environment.set('TOPIC_NAME', data.name)",
                           "});"
                         ],
                         "type": "text/javascript"
