@@ -4817,7 +4817,7 @@
                   "response": []
                 },
                 {
-                  "name": "DELETE TOPIC",
+                  "name": "TRUCATE TOPIC",
                   "id": "f294c84d-a862-417c-a972-3d3a9bbd80f9",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
