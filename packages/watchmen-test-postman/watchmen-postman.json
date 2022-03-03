@@ -4678,8 +4678,33 @@
           "name": "ACTION",
           "item": [
             {
-              "name": "PREPARE",
-              "item": [],
+              "name": "PRE-SCRIPT",
+              "item": [
+                {
+                  "name": "LOGIN - SUPER ADMIN",
+                  "id": "7220c996-38c5-4ac6-b6c6-f15cbf2f3e8f",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
+                },
+                {
+                  "name": "CREATE DATASOURCE",
+                  "id": "e2d8fb35-7c97-402c-a2e2-7b3ed682d1ea",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
+                }
+              ],
               "id": "79b24909-0895-47e2-8733-6c9275f5140b"
             },
             {
@@ -4716,7 +4741,7 @@
                     "header": [],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n    \"name\": \"Test_Raw_Topic\",\n    \"type\": \"raw\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{SIMPLE_DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propB\"},\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propC\"},\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propD\"}\n    ],\n    \"description\": \"Test Raw Topic\"\n}",
+                      "raw": "{\n    \"name\": \"Test_Raw_Topic\",\n    \"type\": \"raw\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{SIMPLE_DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propC\"},\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propD\"},\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propE\"}\n    ],\n    \"description\": \"Test Raw Topic\"\n}",
                       "options": {
                         "raw": {
                           "language": "json"
@@ -4738,7 +4763,7 @@
                     "header": [],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n    \"name\": \"Test_Distinct_Topic\",\n    \"type\": \"distinct\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{SIMPLE_DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propB\"},\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propC\"},\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propD\"}\n    ],\n    \"description\": \"Test Distinct Topic\"\n}",
+                      "raw": "{\n    \"name\": \"Test_Distinct_Topic\",\n    \"type\": \"distinct\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{SIMPLE_DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propC\"},\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propD\"},\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propE\"}\n    ],\n    \"description\": \"Test Distinct Topic\"\n}",
                       "options": {
                         "raw": {
                           "language": "json"
@@ -4777,7 +4802,17 @@
                   },
                   "request": {
                     "method": "GET",
-                    "header": []
+                    "header": [],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n    \"code\": \"topic_test_raw_topic\",\n    \"data\": {\n        \"propA\": \"text\",\n        \"propB\": 100,\n        \"propC\": true,\n        \"propD\": \"2022-03-22\",\n        \"propE\": \"2022-03-22 22:39:45\"\n    }\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": "/pipeline/data"
                   },
                   "response": []
                 },
@@ -4807,6 +4842,11 @@
                 }
               ],
               "id": "a9bfad4a-c128-48a2-b2da-6d2bd8b533df"
+            },
+            {
+              "name": "POST-SCRIPT",
+              "item": [],
+              "id": "b3dbaf01-4a0a-48dd-9f68-e41c9a484d20"
             }
           ],
           "id": "e913262a-d074-4454-a78f-f0ad5bbb8616"
