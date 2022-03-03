@@ -4703,33 +4703,33 @@
                     "header": []
                   },
                   "response": []
+                },
+                {
+                  "name": "CREATE PIPELINE",
+                  "id": "00f3ae58-5870-4f04-a80c-d79f9ce00401",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
+                },
+                {
+                  "name": "INSERT RAW",
+                  "id": "bee8978b-94d3-46fb-841f-ff76a61c617f",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
                 }
               ],
               "id": "a9bfad4a-c128-48a2-b2da-6d2bd8b533df"
-            },
-            {
-              "name": "CREATE PIPELINE",
-              "id": "00f3ae58-5870-4f04-a80c-d79f9ce00401",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
-              },
-              "response": []
-            },
-            {
-              "name": "INSERT RAW",
-              "id": "bee8978b-94d3-46fb-841f-ff76a61c617f",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
-              },
-              "response": []
             },
             {
               "name": "DELETE TOPIC",
