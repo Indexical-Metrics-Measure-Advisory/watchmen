@@ -203,5 +203,8 @@ class ArrayHelper:
 				a_dict[key] = [an_element]
 		return a_dict
 
+	def join(self, separator: str) -> str:
+		return separator.join(self.aList)
+
 	def size(self) -> int:
 		return len(self.aList)

@@ -17,11 +17,12 @@ def prepare_topic():
 		host='localhost', port='3306', username='watchmen', password='watchmen', name='watchmen',
 		tenantId='1')
 	CacheService.data_source().put(data_source)
-	
+
 	return Topic(
 		topicId='1', name='topic_x', type=TopicType.DISTINCT, kind=TopicKind.BUSINESS,
 		factors=[
-			Factor(factorId='1', name='topic1_id', type=FactorType.SEQUENCE)
+			Factor(factorId='1', name='topic1_id', type=FactorType.SEQUENCE, indexGroup='u-1'),
+			Factor(factorId='2', name='topic1_text', type=FactorType.TEXT, precision='64', indexGroup='u-1')
 		],
 		dataSourceId=data_source.dataSourceId,
 		tenantId='1')

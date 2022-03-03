@@ -1,7 +1,7 @@
 from datetime import date, time
 from decimal import Decimal
 from logging import getLogger
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from sqlalchemy import and_, delete, func, insert, select, Table, text, update
 from sqlalchemy.engine import Connection, Engine
@@ -16,7 +16,7 @@ from watchmen_storage import as_table_name, ColumnNameLiteral, Entity, EntityCol
 	EntityStraightColumn, EntityStraightTextColumn, EntityStraightValuesFinder, EntityUpdater, FreeColumn, FreeJoin, \
 	FreeJoinType, FreePager, NoFreeJoinException, TooManyEntitiesFoundException, TopicDataStorageSPI, \
 	TransactionalStorageSPI, UnexpectedStorageException, UnsupportedStraightColumnException
-from watchmen_utilities import ArrayHelper, is_blank
+from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 from .sort_build import build_sort_for_statement
 from .table_defs_mysql import find_table, register_table
 from .types import SQLAlchemyStatement
@@ -348,37 +348,73 @@ class StorageMySQL(TransactionalStorageSPI):
 		return len(results) != 0
 
 
-def as_column_name(factor: Factor) -> str:
+def ask_column_name(factor: Factor) -> str:
 	return factor.name.strip().replace('.', '_').replace('-', '_').replace(' ', '_')
 
 
-FactorTypeMap: Dict[FactorType, str] = {
+def varchar_column(precision: str) -> str:
+	return f'VARCHAR({precision})'
+
+
+def varchar_10(precision: Optional[str] = '10') -> str:
+	return varchar_column('10' if is_blank(precision) else precision)
+
+
+def varchar_20(precision: Optional[str] = '20') -> str:
+	return varchar_column('20' if is_blank(precision) else precision)
+
+
+def varchar_50(precision: Optional[str] = '50') -> str:
+	return varchar_column('50' if is_blank(precision) else precision)
+
+
+def varchar_100(precision: Optional[str] = '100') -> str:
+	return varchar_column('100' if is_blank(precision) else precision)
+
+
+def varchar_255(precision: Optional[str] = '255') -> str:
+	return varchar_column('255' if is_blank(precision) else precision)
+
+
+def decimal_column(precision: str) -> str:
+	return f'DECIMAL({precision})'
+
+
+def decimal_10_2(precision: Optional[str] = '10,2') -> str:
+	return decimal_column('10,2' if is_blank(precision) else precision)
+
+
+def decimal_32_6(precision: Optional[str] = '32,6') -> str:
+	return decimal_column('32,6' if is_blank(precision) else precision)
+
+
+FactorTypeMap: Dict[FactorType, Union[str, Callable[[Optional[str]], str]]] = {
 	FactorType.SEQUENCE: 'BIGINT',
 
-	FactorType.NUMBER: 'DECIMAL(32,6)',
-	FactorType.UNSIGNED: 'DECIMAL(32,6)',
+	FactorType.NUMBER: decimal_32_6,
+	FactorType.UNSIGNED: decimal_32_6,
 
-	FactorType.TEXT: 'VARCHAR(255)',
+	FactorType.TEXT: varchar_255,
 
 	# address
 	FactorType.ADDRESS: 'TEXT',
-	FactorType.CONTINENT: 'VARCHAR(10)',
-	FactorType.REGION: 'VARCHAR(10)',
-	FactorType.COUNTRY: 'VARCHAR(10)',
-	FactorType.PROVINCE: 'VARCHAR(10)',
-	FactorType.CITY: 'VARCHAR(10)',
-	FactorType.DISTRICT: 'VARCHAR(255)',
-	FactorType.ROAD: 'VARCHAR(255)',
-	FactorType.COMMUNITY: 'VARCHAR(100)',
+	FactorType.CONTINENT: varchar_10,
+	FactorType.REGION: varchar_10,
+	FactorType.COUNTRY: varchar_10,
+	FactorType.PROVINCE: varchar_10,
+	FactorType.CITY: varchar_10,
+	FactorType.DISTRICT: varchar_255,
+	FactorType.ROAD: varchar_255,
+	FactorType.COMMUNITY: varchar_100,
 	FactorType.FLOOR: 'SMALLINT',
-	FactorType.RESIDENCE_TYPE: 'VARCHAR(10)',
-	FactorType.RESIDENTIAL_AREA: 'DECIMAL(10,2)',
+	FactorType.RESIDENCE_TYPE: varchar_10,
+	FactorType.RESIDENTIAL_AREA: decimal_10_2,
 
 	# contact electronic
-	FactorType.EMAIL: 'VARCHAR(100)',
-	FactorType.PHONE: 'VARCHAR(50)',
-	FactorType.MOBILE: 'VARCHAR(50)',
-	FactorType.FAX: 'VARCHAR(50)',
+	FactorType.EMAIL: varchar_100,
+	FactorType.PHONE: varchar_50,
+	FactorType.MOBILE: varchar_50,
+	FactorType.FAX: varchar_50,
 
 	# date time related
 	FactorType.DATETIME: 'DATETIME',
@@ -405,32 +441,42 @@ FactorTypeMap: Dict[FactorType, str] = {
 	FactorType.AM_PM: 'TINYINT',
 
 	# individual
-	FactorType.GENDER: 'VARCHAR(10)',
-	FactorType.OCCUPATION: 'VARCHAR(10)',
+	FactorType.GENDER: varchar_10,
+	FactorType.OCCUPATION: varchar_10,
 	FactorType.DATE_OF_BIRTH: 'DATE',
 	FactorType.AGE: 'SMALLINT',
-	FactorType.ID_NO: 'VARCHAR(50)',
-	FactorType.RELIGION: 'VARCHAR(10)',
-	FactorType.NATIONALITY: 'VARCHAR(10)',
+	FactorType.ID_NO: varchar_50,
+	FactorType.RELIGION: varchar_10,
+	FactorType.NATIONALITY: varchar_10,
 
 	# organization
-	FactorType.BIZ_TRADE: 'VARCHAR(10)',
+	FactorType.BIZ_TRADE: varchar_10,
 	FactorType.BIZ_SCALE: 'INT',
 
 	FactorType.BOOLEAN: 'TINYINT',
 
-	FactorType.ENUM: 'VARCHAR(20)',
+	FactorType.ENUM: varchar_20,
 
 	FactorType.OBJECT: 'JSON',
 	FactorType.ARRAY: 'JSON'
 }
 
 
+def ask_column_type(factor: Factor) -> str:
+	column_type = FactorTypeMap.get(factor.type)
+	if isinstance(column_type, str):
+		return column_type
+	elif is_blank(factor.precision):
+		return column_type()
+	else:
+		return column_type(factor.precision.strip())
+
+
 def build_columns(topic: Topic) -> str:
 	if is_raw_topic(topic):
 		flatten_factors = ArrayHelper(topic.factors) \
 			.filter(lambda x: x.flatten) \
-			.map(lambda x: f'\t{as_column_name(x)} {FactorTypeMap.get(x.type)},') \
+			.map(lambda x: f'\t{ask_column_name(x)} {ask_column_type(x)},') \
 			.to_list()
 		if len(flatten_factors) == 0:
 			return '\tdata_ JSON,'
@@ -439,7 +485,7 @@ def build_columns(topic: Topic) -> str:
 	else:
 		factors = ArrayHelper(topic.factors) \
 			.filter(lambda x: '.' not in x.name) \
-			.map(lambda x: f'\t{as_column_name(x)} {FactorTypeMap.get(x.type)},') \
+			.map(lambda x: f'\t{ask_column_name(x)} {ask_column_type(x)},') \
 			.to_list()
 		return '\n'.join(factors)
 
@@ -450,6 +496,32 @@ def build_aggregate_assist_column(topic: Topic) -> str:
 
 def build_version_column(topic: Topic) -> str:
 	return f'\tversion_ INT,' if is_aggregation_topic(topic) else ''
+
+
+def build_unique_indexes(topic: Topic) -> str:
+	index_groups: Dict[str, List[Factor]] = ArrayHelper(topic.factors) \
+		.filter(lambda x: is_not_blank(x.indexGroup) and x.indexGroup.startswith('u-')) \
+		.group_by(lambda x: x.indexGroup)
+	if len(index_groups) == 0:
+		return ''
+	else:
+		def build_unique_index(factors: List[Factor]) -> str:
+			return f'\tUNIQUE INDEX ({ArrayHelper(factors).map(lambda x: ask_column_name(x)).join(",")}),'
+
+		return ArrayHelper(list(index_groups.values())).map(lambda x: build_unique_index(x)).join('\n')
+
+
+def build_indexes(topic: Topic) -> str:
+	index_groups: Dict[str, List[Factor]] = ArrayHelper(topic.factors) \
+		.filter(lambda x: is_not_blank(x.indexGroup) and x.indexGroup.startswith('i-')) \
+		.group_by(lambda x: x.indexGroup)
+	if len(index_groups) == 0:
+		return ''
+	else:
+		def build_index(factors: List[Factor]) -> str:
+			return f'\tINDEX ({ArrayHelper(factors).map(lambda x: ask_column_name(x)).join(",")}),'
+
+		return ArrayHelper(list(index_groups.values())).map(lambda x: build_index(x)).join('\n')
 
 
 class TopicDataStorageMySQL(StorageMySQL, TopicDataStorageSPI):
@@ -468,6 +540,8 @@ CREATE TABLE {entity_name} (
 \ttenant_id_ VARCHAR(50),
 \tinsert_time_ DATETIME,
 \tupdate_time_ DATETIME,
+{build_unique_indexes(topic)}
+{build_indexes(topic)}
 \tINDEX (tenant_id_),
 \tINDEX (insert_time_),
 \tINDEX (update_time_),
