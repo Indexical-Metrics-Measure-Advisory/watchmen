@@ -4978,7 +4978,7 @@
                         "token": "{{JWT_TOKEN}}"
                       }
                     },
-                    "method": "GET",
+                    "method": "POST",
                     "header": [],
                     "body": {
                       "mode": "raw",
@@ -4989,7 +4989,7 @@
                         }
                       }
                     },
-                    "url": "/pipeline/data"
+                    "url": "{{URL_PREFIX}}/pipeline/data"
                   },
                   "response": []
                 },
