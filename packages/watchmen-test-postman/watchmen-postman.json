@@ -4904,7 +4904,7 @@
                   "response": []
                 },
                 {
-                  "name": "New Request",
+                  "name": "CREATE MONITOR",
                   "id": "82380880-6a74-4de4-945c-a1dd358b2833",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
