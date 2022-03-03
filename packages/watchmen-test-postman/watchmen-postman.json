@@ -4727,33 +4727,33 @@
                     "header": []
                   },
                   "response": []
+                },
+                {
+                  "name": "DELETE TOPIC",
+                  "id": "f294c84d-a862-417c-a972-3d3a9bbd80f9",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
+                },
+                {
+                  "name": "DELETE RAW TOPIC",
+                  "id": "6d05952d-22f4-427c-8df3-7e0df2ef7d47",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
                 }
               ],
               "id": "a9bfad4a-c128-48a2-b2da-6d2bd8b533df"
-            },
-            {
-              "name": "DELETE TOPIC",
-              "id": "f294c84d-a862-417c-a972-3d3a9bbd80f9",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
-              },
-              "response": []
-            },
-            {
-              "name": "DELETE RAW TOPIC",
-              "id": "6d05952d-22f4-427c-8df3-7e0df2ef7d47",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
-              },
-              "response": []
             }
           ],
           "id": "e913262a-d074-4454-a78f-f0ad5bbb8616"
