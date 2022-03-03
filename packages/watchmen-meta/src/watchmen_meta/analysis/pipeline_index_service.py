@@ -59,9 +59,12 @@ class PipelineIndexService(StorageService):
 		super().__init__(storage)
 		self.with_snowflake_generator(snowflake_generator)
 
+	# noinspection PyMethodMayBeStatic,PyUnusedLocal
 	def build_index(self, pipeline: Pipeline) -> None:
+		if not ask_engine_index_enabled():
+			return
 		# TODO build pipeline index
-		pass
+		return
 
 	def update_index_on_name_changed(self, pipeline: Pipeline) -> None:
 		pass

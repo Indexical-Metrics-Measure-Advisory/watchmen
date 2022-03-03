@@ -23,6 +23,10 @@ def raise_403() -> None:
 
 
 def raise_404(detail: Any = 'Data not found.') -> None:
+	"""
+
+	:rtype: object
+	"""
 	raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=detail)
 
 
