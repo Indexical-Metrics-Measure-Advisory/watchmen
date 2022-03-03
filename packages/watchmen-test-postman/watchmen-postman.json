@@ -4700,16 +4700,31 @@
                   },
                   "request": {
                     "method": "GET",
+                    "header": [],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n    \"dataSourceCode\": \"TEST-DATASOURCE\",\n    \"dataSourceType\": \"mysql\",\n    \"host\": \"localhost\",\n    \"port\": \"3306\",\n    \"username\": \"watchmen\",\n    \"password\": \"watchmen\",\n    \"name\": \"watchmen\",\n    \"tenantId\": \"1\"\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "LOGIN - ADMIN",
+                  "id": "9fa606df-1b36-448b-8ac1-95e2a0af5dd9",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
                     "header": []
                   },
                   "response": []
-                }
-              ],
-              "id": "79b24909-0895-47e2-8733-6c9275f5140b"
-            },
-            {
-              "name": "ACTION ALARM",
-              "item": [
+                },
                 {
                   "name": "CREATE RAW TOPIC",
                   "event": [
@@ -4751,7 +4766,13 @@
                     "url": "{{URL_PREFIX}}/topic"
                   },
                   "response": []
-                },
+                }
+              ],
+              "id": "79b24909-0895-47e2-8733-6c9275f5140b"
+            },
+            {
+              "name": "ACTION ALARM",
+              "item": [
                 {
                   "name": "CREATE TOPIC",
                   "id": "011a69b2-10f2-4b2d-a818-e73c6544ada3",
@@ -4817,7 +4838,7 @@
                   "response": []
                 },
                 {
-                  "name": "DELETE TOPIC",
+                  "name": "TRUCATE TOPIC",
                   "id": "f294c84d-a862-417c-a972-3d3a9bbd80f9",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
@@ -4829,7 +4850,7 @@
                   "response": []
                 },
                 {
-                  "name": "DELETE RAW TOPIC",
+                  "name": "TRUCATE RAW TOPIC",
                   "id": "6d05952d-22f4-427c-8df3-7e0df2ef7d47",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
