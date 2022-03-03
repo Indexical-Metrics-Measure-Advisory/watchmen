@@ -4838,6 +4838,15 @@
                   "request": {
                     "method": "POST",
                     "header": [],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n    \"name\": \"raw_pipeline_monitor_log\",\n    \"type\": \"raw\",\n    \"kind\": \"system\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [],\n    \"description\": \"Pipeline Monitor Log Raw Topic\"\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
                     "url": "{{URL_PREFIX}}/topic"
                   },
                   "response": []
