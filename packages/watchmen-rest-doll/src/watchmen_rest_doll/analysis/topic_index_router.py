@@ -8,11 +8,11 @@ from watchmen_meta.admin import TopicService
 from watchmen_meta.analysis import TopicIndexService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import Topic, UserRole
-from watchmen_model.common import TopicId
+from watchmen_model.common import TenantId, TopicId
 from watchmen_rest import get_any_admin_principal
 from watchmen_rest.util import raise_400, raise_404
 from watchmen_rest_doll.util import trans, trans_readonly
-from watchmen_utilities import is_blank
+from watchmen_utilities import is_blank, is_not_blank
 
 router = APIRouter()
 
@@ -51,34 +51,33 @@ async def build_topic_index(
 
 @router.get('/topic/index/name', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=List[Topic])
 async def fetch_topic_by_name(
-		query_name: Optional[str] = None, principal_service: PrincipalService = Depends(get_any_admin_principal)
+		query_name: Optional[str] = None, tenant_id: Optional[TenantId] = None,
+		principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> List[Topic]:
 	if is_blank(query_name):
 		raise_400('Name criteria is required.')
+
+	if principal_service.is_tenant_admin():
+		if is_not_blank(tenant_id) and tenant_id != principal_service.get_tenant_id():
+			raise_400('Tenant id is incorrect.')
+		else:
+			tenant_id = principal_service.get_tenant_id()
+
+	if principal_service.is_super_admin() and is_blank(tenant_id):
+		raise_400('Tenant id is required.')
 
 	topic_service = get_topic_service(principal_service)
 
 	def action() -> List[Topic]:
 		topic_index_service = get_topic_index_service(topic_service)
-		return topic_index_service.find(query_name)
+		factor_index_list = topic_index_service.find(query_name, tenant_id)
+		if len(factor_index_list) == 0:
+			return []
+
+		topic_ids: List[TopicId] = []
+		for factor_index in factor_index_list:
+			if factor_index.topicId not in topic_ids:
+				topic_ids.append(factor_index.topicId)
+		return topic_service.find_by_ids(topic_ids, tenant_id)
 
 	return trans_readonly(topic_service, action)
-# @router.get("/query/topic/factor/index", tags=["index"], response_model=List[Topic])
-# async def load_topic_by_factor_index(query_name: str, current_user: User = Depends(deps.get_current_user)):
-#     factor_index_list = factor_index_storage.load_factor_index_by_factor_name(query_name, current_user.tenantId)
-#     topic_factor_index_list = factor_index_storage.load_factor_index_by_topic_name(query_name, current_user.tenantId)
-#     all_list = factor_index_list + topic_factor_index_list
-#     topic_id_list = []
-#
-#     # print(all_list)
-#     for factor_index in all_list:
-#         if factor_index.topicId not in topic_id_list:
-#             topic_id_list.append(factor_index.topicId)
-#     #
-#     # print(topic_id_list)
-#     if topic_id_list:
-#         result = get_topic_list_by_ids(topic_id_list, current_user)
-#         print(result)
-#         return result
-#     else:
-#         return []
