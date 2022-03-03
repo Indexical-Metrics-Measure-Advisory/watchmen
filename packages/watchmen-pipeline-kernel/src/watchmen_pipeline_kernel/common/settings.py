@@ -41,6 +41,7 @@ def ask_parallel_actions_dask_temp_dir() -> Optional[str]:
 	return settings.PIPELINE_PARALLEL_ACTIONS_DASK_TEMP_DIR
 
 
+# noinspection DuplicatedCode
 def ask_parallel_actions_dask_use_process() -> bool:
 	return settings.PIPELINE_PARALLEL_ACTIONS_DASK_USE_PROCESS
 

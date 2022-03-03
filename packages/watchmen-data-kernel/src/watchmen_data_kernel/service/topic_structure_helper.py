@@ -23,17 +23,24 @@ def create_topic_structure(topic: Topic, principal_service: PrincipalService) ->
 	if not can_do_next(topic):
 		return
 
+	storage = ask_topic_storage(topic, principal_service)
+	storage.create_topic_entity(topic)
+
 
 def drop_topic_structure(topic: Topic, principal_service: PrincipalService) -> None:
 	if not can_do_next(topic):
 		return
 
 	storage = ask_topic_storage(topic, principal_service)
+	storage.drop_topic_entity(beautify_name(topic))
 
 
 def update_topic_structure(topic: Topic, original_topic: Topic, principal_service: PrincipalService) -> None:
 	if not can_do_next(topic):
 		return
+
+	storage = ask_topic_storage(topic, principal_service)
+	storage.update_topic_entity(topic, original_topic)
 
 
 def should_replace(topic: Topic, original_topic: Topic) -> bool:
