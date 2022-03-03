@@ -4826,7 +4826,7 @@
                           "pm.test(\"Create Raw Topic\", () => {",
                           "    pm.response.to.have.status(200);",
                           "    var data = pm.response.json();",
-                          "    pm.environment.set('RAW_TOPIC_ID', data.accessToken)",
+                          "    pm.environment.set('RAW_TOPIC_ID', data.topicId)",
                           "});"
                         ],
                         "type": "text/javascript"
