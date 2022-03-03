@@ -4693,6 +4693,18 @@
                   "response": []
                 },
                 {
+                  "name": "CREATE DATASOURCE",
+                  "id": "e2d8fb35-7c97-402c-a2e2-7b3ed682d1ea",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
+                },
+                {
                   "name": "CREATE RAW TOPIC",
                   "event": [
                     {
@@ -4735,8 +4747,8 @@
                   "response": []
                 },
                 {
-                  "name": "CREATE DATASOURCE",
-                  "id": "e2d8fb35-7c97-402c-a2e2-7b3ed682d1ea",
+                  "name": "New Request",
+                  "id": "9fa606df-1b36-448b-8ac1-95e2a0af5dd9",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
