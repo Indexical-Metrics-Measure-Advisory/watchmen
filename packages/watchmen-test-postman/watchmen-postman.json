@@ -4676,7 +4676,20 @@
       "item": [
         {
           "name": "ACTION",
-          "item": [],
+          "item": [
+            {
+              "name": "New Request",
+              "id": "f9151dc9-399e-4e87-b2e6-9b6696ec4e1a",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            }
+          ],
           "id": "e913262a-d074-4454-a78f-f0ad5bbb8616"
         }
       ],
