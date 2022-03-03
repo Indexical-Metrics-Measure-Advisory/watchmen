@@ -16,11 +16,8 @@ def prepare_topic():
 		dataSourceId='1', dataSourceCode='ds1', dataSourceType=DataSourceType.MYSQL,
 		host='localhost', port='3306', username='watchmen', password='watchmen', name='watchmen',
 		tenantId='1')
-	# data_source_service = get_data_source_service(create_fake_principal_service())
-	# data_source_service.begin_transaction()
-	# data_source_service.create(data_source)
-	# data_source_service.commit_transaction()
 	CacheService.data_source().put(data_source)
+	
 	return Topic(
 		topicId='1', name='topic_x', type=TopicType.DISTINCT, kind=TopicKind.BUSINESS,
 		factors=[
