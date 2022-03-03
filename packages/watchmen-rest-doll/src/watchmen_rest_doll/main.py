@@ -5,6 +5,7 @@ from watchmen_rest.system import health_router
 from watchmen_utilities import ArrayHelper
 from .admin import enumeration_router, pipeline_graphic_router, pipeline_router, space_router, topic_router, \
 	user_group_router, user_router
+from .analysis import pipeline_index_router, topic_index_router
 from .auth import authenticate_router
 from .console import connected_space_graphic_router, connected_space_router, dashboard_router, report_router, \
 	subject_router
@@ -44,7 +45,9 @@ ArrayHelper([
 	space_import_router.router, topic_import_router.router, pipeline_import_router.router,
 	connected_space_import_router.router, subject_import_router.router, report_import_router.router,
 	dashboard_import_router.router,
-	mix_import_router.router
+	mix_import_router.router,
+	# analysis
+	topic_index_router.router, pipeline_index_router.router
 ]).each(lambda x: app.include_router(x))
 
 ArrayHelper(get_data_surface_routers()).each(lambda x: app.include_router(x))

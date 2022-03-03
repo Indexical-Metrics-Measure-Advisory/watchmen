@@ -19,7 +19,7 @@ class PipelineMonitorLogDataPage(DataPage):
 
 
 @router.post('/pipeline/log', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=PipelineMonitorLogDataPage)
-async def trigger_pipeline(
+async def fetch_pipeline_logs(
 		criteria: PipelineMonitorLogCriteria, principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> PipelineMonitorLogDataPage:
 	if principal_service.is_super_admin():
