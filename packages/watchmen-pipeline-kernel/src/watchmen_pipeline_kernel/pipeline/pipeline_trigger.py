@@ -11,9 +11,9 @@ from watchmen_model.admin import Pipeline, PipelineTriggerType
 from watchmen_model.pipeline_kernel import PipelineMonitorLog, PipelineTriggerTraceId
 from watchmen_pipeline_kernel.common import PipelineKernelException
 from watchmen_pipeline_kernel.pipeline_schema import RuntimePipelineContext
+from watchmen_pipeline_kernel.topic import RuntimeTopicStorages
 from watchmen_utilities import ArrayHelper
 from .pipelines_dispatcher import PipelinesDispatcher
-from .topic_helper import RuntimeTopicStorages
 
 logger = getLogger(__name__)
 
