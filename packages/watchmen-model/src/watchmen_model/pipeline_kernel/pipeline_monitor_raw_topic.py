@@ -4,6 +4,7 @@ from watchmen_model.admin import Factor, FactorType, Pipeline, Topic, TopicKind,
 
 
 def ask_pipeline_monitor_topics() -> List[Topic]:
+	# TODO define all pipeline monitor topics
 	return [
 		Topic(
 			name='raw_pipeline_monitor_log',
@@ -64,4 +65,5 @@ def ask_pipeline_monitor_topics() -> List[Topic]:
 
 # noinspection PyUnusedLocal
 def ask_pipeline_monitor_pipelines(topics: List[Topic]) -> List[Pipeline]:
+	# TODO define all pipeline monitor pipelines
 	return []

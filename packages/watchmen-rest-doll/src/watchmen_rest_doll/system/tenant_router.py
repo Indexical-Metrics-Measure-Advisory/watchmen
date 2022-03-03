@@ -74,6 +74,7 @@ async def save_tenant(
 				# noinspection PyTypeChecker
 				for topic in topics:
 					topic.tenantId = a_tenant.tenantId
+					# tail is ignored, since there is no data source assigned
 					topic_create(topic)
 				pipelines = ask_pipeline_monitor_pipelines(topics)
 				pipeline_service = get_pipeline_service(tenant_service)

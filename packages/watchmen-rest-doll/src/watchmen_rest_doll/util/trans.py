@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import Callable, TypeVar
+from typing import Callable, Tuple, TypeVar, Union
 
 from fastapi import HTTPException
 
@@ -15,6 +15,23 @@ def trans(storage_service: StorageService, action: Callable[[], TransReturned]) 
 	try:
 		returned = action()
 		storage_service.commit_transaction()
+		return returned
+	except HTTPException as e:
+		storage_service.rollback_transaction()
+		raise e
+	except Exception as e:
+		storage_service.rollback_transaction()
+		raise_500(e)
+
+
+def trans_with_tail(
+		storage_service: StorageService,
+		action: Callable[[], Tuple[TransReturned, Callable[[], None]]]) -> TransReturned:
+	storage_service.begin_transaction()
+	try:
+		returned, tail = action()
+		storage_service.commit_transaction()
+		tail()
 		return returned
 	except HTTPException as e:
 		storage_service.rollback_transaction()

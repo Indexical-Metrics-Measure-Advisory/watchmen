@@ -1,9 +1,10 @@
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Tuple
 
 from fastapi import APIRouter, Body, Depends
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
+from watchmen_data_kernel.topic_assist import sync_topic_structure_storage
 from watchmen_meta.admin import FactorService, TopicService
 from watchmen_meta.analysis import TopicIndexService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
@@ -12,7 +13,7 @@ from watchmen_model.common import DataPage, Pageable, TenantId, TopicId
 from watchmen_rest import get_admin_principal, get_console_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
-from watchmen_rest_doll.util import trans, trans_readonly, validate_tenant_id
+from watchmen_rest_doll.util import trans, trans_readonly, trans_with_tail, validate_tenant_id
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 
 router = APIRouter()
@@ -67,14 +68,24 @@ def post_save_topic(topic: Topic, topic_service: TopicService) -> None:
 	CacheService.topic().put(topic)
 
 
+def sync_topic_structure(topic: Topic, original_topic: Optional[Topic]) -> Callable[[], None]:
+	def tail() -> None:
+		sync_topic_structure_storage(topic, original_topic)
+
+	return tail
+
+
 # noinspection PyUnusedLocal
-def ask_save_topic_action(topic_service: TopicService, principal_service: PrincipalService) -> Callable[[Topic], Topic]:
-	def action(topic: Topic) -> Topic:
+def ask_save_topic_action(
+		topic_service: TopicService, principal_service: PrincipalService
+) -> Callable[[Topic], Tuple[Topic, Callable[[], None]]]:
+	def action(topic: Topic) -> Tuple[Topic, Callable[[], None]]:
 		if topic_service.is_storable_id_faked(topic.topicId):
 			topic_service.redress_storable_id(topic)
 			redress_factor_ids(topic, topic_service)
 			# noinspection PyTypeChecker
 			topic: Topic = topic_service.create(topic)
+			tail = sync_topic_structure(topic, None)
 		else:
 			# noinspection PyTypeChecker
 			existing_topic: Optional[Topic] = topic_service.find_by_id(topic.topicId)
@@ -85,10 +96,11 @@ def ask_save_topic_action(topic_service: TopicService, principal_service: Princi
 			redress_factor_ids(topic, topic_service)
 			# noinspection PyTypeChecker
 			topic: Topic = topic_service.update(topic)
+			tail = sync_topic_structure(topic, existing_topic)
 
 		post_save_topic(topic, topic_service)
 
-		return topic
+		return topic, tail
 
 	return action
 
@@ -100,7 +112,7 @@ async def save_topic(
 	validate_tenant_id(topic, principal_service)
 	topic_service = get_topic_service(principal_service)
 	action = ask_save_topic_action(topic_service, principal_service)
-	return trans(topic_service, lambda: action(topic))
+	return trans_with_tail(topic_service, lambda: action(topic))
 
 
 class QueryTopicDataPage(DataPage):
