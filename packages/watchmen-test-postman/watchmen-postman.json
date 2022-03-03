@@ -4823,7 +4823,7 @@
                       "script": {
                         "id": "e391d1c9-f2a6-4ed5-99ce-de6a55333321",
                         "exec": [
-                          "pm.test(\"Create Raw Topic\", () => {",
+                          "pm.test(\"Create Pipeline Monitor Log Topic\", () => {",
                           "    pm.response.to.have.status(200);",
                           "});"
                         ],
