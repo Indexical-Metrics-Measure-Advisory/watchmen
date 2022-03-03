@@ -4,7 +4,7 @@ from fastapi import APIRouter, Body, Depends
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
-from watchmen_data_kernel.topic_assist import sync_topic_structure_storage
+from watchmen_data_kernel.service import sync_topic_structure_storage
 from watchmen_meta.admin import FactorService, TopicService
 from watchmen_meta.analysis import TopicIndexService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
@@ -68,9 +68,10 @@ def post_save_topic(topic: Topic, topic_service: TopicService) -> None:
 	CacheService.topic().put(topic)
 
 
-def sync_topic_structure(topic: Topic, original_topic: Optional[Topic]) -> Callable[[], None]:
+def sync_topic_structure(
+		topic: Topic, original_topic: Optional[Topic], principal_service: PrincipalService) -> Callable[[], None]:
 	def tail() -> None:
-		sync_topic_structure_storage(topic, original_topic)
+		sync_topic_structure_storage(topic, original_topic, principal_service)
 
 	return tail
 
@@ -85,7 +86,7 @@ def ask_save_topic_action(
 			redress_factor_ids(topic, topic_service)
 			# noinspection PyTypeChecker
 			topic: Topic = topic_service.create(topic)
-			tail = sync_topic_structure(topic, None)
+			tail = sync_topic_structure(topic, None, principal_service)
 		else:
 			# noinspection PyTypeChecker
 			existing_topic: Optional[Topic] = topic_service.find_by_id(topic.topicId)
@@ -96,7 +97,7 @@ def ask_save_topic_action(
 			redress_factor_ids(topic, topic_service)
 			# noinspection PyTypeChecker
 			topic: Topic = topic_service.update(topic)
-			tail = sync_topic_structure(topic, existing_topic)
+			tail = sync_topic_structure(topic, existing_topic, principal_service)
 
 		post_save_topic(topic, topic_service)
 

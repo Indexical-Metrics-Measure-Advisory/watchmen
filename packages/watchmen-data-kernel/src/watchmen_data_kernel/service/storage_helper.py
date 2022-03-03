@@ -1,19 +1,23 @@
+from typing import Union
+
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
 from watchmen_data_kernel.common import DataKernelException
 from watchmen_data_kernel.meta import DataSourceService
+from watchmen_data_kernel.storage.topic_storage import build_topic_data_storage
 from watchmen_data_kernel.topic_schema import TopicSchema
+from watchmen_model.admin import Topic
 from watchmen_storage import TopicDataStorageSPI
 from watchmen_utilities import is_blank
-from watchmen_data_kernel.storage.topic_storage import build_topic_data_storage
 
 
 def get_data_source_service(principal_service: PrincipalService) -> DataSourceService:
 	return DataSourceService(principal_service)
 
 
-def ask_topic_storage(schema: TopicSchema, principal_service: PrincipalService) -> TopicDataStorageSPI:
-	topic = schema.get_topic()
+def ask_topic_storage(
+		topic_or_schema: Union[Topic, TopicSchema], principal_service: PrincipalService) -> TopicDataStorageSPI:
+	topic = topic_or_schema if isinstance(topic_or_schema, Topic) else topic_or_schema.get_topic()
 	data_source_id = topic.dataSourceId
 	if is_blank(data_source_id):
 		raise DataKernelException(

@@ -1,1 +1,0 @@
-from .topic_assist import sync_topic_structure_storage
