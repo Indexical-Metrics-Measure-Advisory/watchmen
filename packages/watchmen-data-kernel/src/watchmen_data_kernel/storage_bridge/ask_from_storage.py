@@ -6,7 +6,7 @@ from decimal import Decimal
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from watchmen_auth import PrincipalService
-from watchmen_data_kernel.common import DataKernelException
+from watchmen_data_kernel.common import ask_all_date_formats, DataKernelException
 from watchmen_data_kernel.meta import TopicService
 from watchmen_data_kernel.topic_schema import cast_value_for_factor, TopicSchema
 from watchmen_data_kernel.utils import MightAVariable, parse_function_in_variable, parse_variable
@@ -17,7 +17,7 @@ from watchmen_model.common import ComputedParameter, ConstantParameter, FactorId
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteriaExpression, \
 	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, Literal
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_decimal
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_decimal, try_to_date
 from .ask_from_memory import assert_parameter_count, create_ask_factor_value, parse_parameter_in_memory
 from .topic_utils import ask_topic_data_entity_helper
 from .utils import always_none, compute_date_diff, create_from_previous_trigger_data, \
@@ -131,8 +131,6 @@ class ParsedStorageTopicFactorParameter(ParsedStorageParameter):
 			self.askValue = create_ask_factor_value(topic, factor)
 		else:
 			self.askValue = create_ask_factor_statement(schema, factor)
-
-	# build for storage
 
 	def run(
 			self,
@@ -296,6 +294,32 @@ class ParsedStorageConstantParameter(ParsedStorageParameter):
 		return self.askValue(variables, principal_service)
 
 
+class TypedParsedStorageConstantParameter(ParsedStorageConstantParameter):
+	def __init__(
+			self,
+			parameter: ParsedStorageConstantParameter,
+			available_schemas: List[TopicSchema],
+			principal_service: PrincipalService, allow_in_memory_variables: bool,
+			try_to_type: Callable[[Any], Any]):
+		# simply pass to super constructor
+		super().__init__(parameter.parameter, available_schemas, principal_service, allow_in_memory_variables)
+		self.parsedParameter = parameter
+		if try_to_type is None:
+			raise DataKernelException('Type cast function cannot be none.')
+		self.tryToType = try_to_type
+
+	def parse(
+			self,
+			parameter: ConstantParameter, available_schemas: List[TopicSchema],
+			principal_service: PrincipalService, allow_in_memory_variables: bool) -> None:
+		# ignore
+		pass
+
+	def run(self, variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+		value = self.parsedParameter.run(variables, principal_service)
+		return self.tryToType(value)
+
+
 def create_ask_value_for_computed(
 		operator: ComputedLiteralOperator,
 		elements: List[Union[ParsedStorageParameter, Tuple[ParsedStorageCondition, ParsedStorageParameter], Any]]
@@ -332,6 +356,24 @@ class ParsedStorageComputedParameter(ParsedStorageParameter):
 			return parse_parameter_for_storage(
 				param, available_schemas, principal_service, allow_in_memory_variables)
 
+		def try_to_date_type(value: Any) -> Any:
+			if value is None:
+				return None
+			if isinstance(value, (date, str)):
+				parsed, dt_value = try_to_date(value, ask_all_date_formats())
+				return dt_value if parsed else value
+			else:
+				return value
+
+		def parse_typed_parameter(param: Parameter, try_to_type: Callable[[Any], Any]) -> ParsedStorageParameter:
+			parsed = parse_parameter_for_storage(
+				param, available_schemas, principal_service, allow_in_memory_variables)
+			if isinstance(parsed, ParsedStorageConstantParameter):
+				return TypedParsedStorageConstantParameter(
+					parsed, available_schemas, principal_service, allow_in_memory_variables, try_to_type)
+			else:
+				return parsed
+
 		def parse_sub_parameters(param: ComputedParameter) -> List[ParsedStorageParameter]:
 			return ArrayHelper(param.parameters).map(parse_parameter).to_list()
 
@@ -359,35 +401,39 @@ class ParsedStorageComputedParameter(ParsedStorageParameter):
 		elif compute_type == ParameterComputeType.YEAR_OF:
 			assert_parameter_count('year-of', parameter.parameters, 1, 1)
 			self.askValue = create_ask_value_for_computed(
-				ComputedLiteralOperator.YEAR_OF, [parse_parameter(parameter.parameters[0])])
+				ComputedLiteralOperator.YEAR_OF, [parse_typed_parameter(parameter.parameters[0], try_to_date_type)])
 		elif compute_type == ParameterComputeType.HALF_YEAR_OF:
 			assert_parameter_count('half-year-of', parameter.parameters, 1, 1)
 			self.askValue = create_ask_value_for_computed(
-				ComputedLiteralOperator.HALF_YEAR_OF, [parse_parameter(parameter.parameters[0])])
+				ComputedLiteralOperator.HALF_YEAR_OF,
+				[parse_typed_parameter(parameter.parameters[0], try_to_date_type)])
 		elif compute_type == ParameterComputeType.QUARTER_OF:
 			assert_parameter_count('quarter-of', parameter.parameters, 1, 1)
 			self.askValue = create_ask_value_for_computed(
-				ComputedLiteralOperator.QUARTER_OF, [parse_parameter(parameter.parameters[0])])
+				ComputedLiteralOperator.QUARTER_OF, [parse_typed_parameter(parameter.parameters[0], try_to_date_type)])
 		elif compute_type == ParameterComputeType.MONTH_OF:
 			assert_parameter_count('month-of', parameter.parameters, 1, 1)
 			self.askValue = create_ask_value_for_computed(
-				ComputedLiteralOperator.MONTH_OF, [parse_parameter(parameter.parameters[0])])
+				ComputedLiteralOperator.MONTH_OF, [parse_typed_parameter(parameter.parameters[0], try_to_date_type)])
 		elif compute_type == ParameterComputeType.WEEK_OF_YEAR:
 			assert_parameter_count('week-of-year', parameter.parameters, 1, 1)
 			self.askValue = create_ask_value_for_computed(
-				ComputedLiteralOperator.WEEK_OF_YEAR, [parse_parameter(parameter.parameters[0])])
+				ComputedLiteralOperator.WEEK_OF_YEAR,
+				[parse_typed_parameter(parameter.parameters[0], try_to_date_type)])
 		elif compute_type == ParameterComputeType.WEEK_OF_MONTH:
 			assert_parameter_count('week-of-month', parameter.parameters, 1, 1)
 			self.askValue = create_ask_value_for_computed(
-				ComputedLiteralOperator.WEEK_OF_MONTH, [parse_parameter(parameter.parameters[0])])
+				ComputedLiteralOperator.WEEK_OF_MONTH,
+				[parse_typed_parameter(parameter.parameters[0], try_to_date_type)])
 		elif compute_type == ParameterComputeType.DAY_OF_MONTH:
 			assert_parameter_count('day-of-month', parameter.parameters, 1, 1)
 			self.askValue = create_ask_value_for_computed(
-				ComputedLiteralOperator.DAY_OF_MONTH, [parse_parameter(parameter.parameters[0])])
+				ComputedLiteralOperator.DAY_OF_MONTH,
+				[parse_typed_parameter(parameter.parameters[0], try_to_date_type)])
 		elif compute_type == ParameterComputeType.DAY_OF_WEEK:
 			assert_parameter_count('day-of-week', parameter.parameters, 1, 1)
 			self.askValue = create_ask_value_for_computed(
-				ComputedLiteralOperator.DAY_OF_WEEK, [parse_parameter(parameter.parameters[0])])
+				ComputedLiteralOperator.DAY_OF_WEEK, [parse_typed_parameter(parameter.parameters[0], try_to_date_type)])
 		elif compute_type == ParameterComputeType.CASE_THEN:
 			# noinspection DuplicatedCode
 			assert_parameter_count('case-then', parameter.parameters, 1)
