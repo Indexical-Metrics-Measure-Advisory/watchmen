@@ -69,7 +69,7 @@ async def truncate_topic_data(
 	service.truncate()
 
 # TODO data patch
-# @router.post("/data/patch", tags=["patch"])
+# @router.patch("/topic/data/patch", tags=["patch"])
 # async def patch_topic_instance(topic_name, instance_id=None, instance=Body(...),
 #                                current_user: User = Depends(deps.get_current_user)):
 #     topic = get_topic_by_name(topic_name,current_user)

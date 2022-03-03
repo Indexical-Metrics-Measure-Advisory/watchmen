@@ -3,7 +3,7 @@ from fastapi import APIRouter
 router = APIRouter()
 
 # TODO data rerun
-# @router.post("/data/rerun", tags=["patch"])
+# @router.post("/topic/data/rerun", tags=["patch"])
 # async def rerun_pipeline(topic_name, instance_id, pipeline_id=None,
 #                          current_user: User = Depends(deps.get_current_user)):
 #     topic = get_topic(topic_name)

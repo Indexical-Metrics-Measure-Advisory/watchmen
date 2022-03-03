@@ -3,9 +3,11 @@ from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
-from watchmen_model.common import Auditable, ConnectedSpaceId, construct_parameter, construct_parameter_joint, \
-	DataModel, FactorId, \
-	LastVisit, Parameter, ParameterJoint, SubjectDatasetColumnId, SubjectId, TopicId, UserBasedTuple
+from watchmen_model.common import Auditable, ConnectedSpaceId, construct_parameter, construct_parameter_conditions, \
+	construct_parameter_joint, \
+	DataModel, FactorId, LastVisit, Parameter, ParameterCondition, ParameterJoint, SubjectDatasetColumnId, SubjectId, \
+	TopicId, \
+	UserBasedTuple
 from watchmen_utilities import ArrayHelper
 
 
@@ -105,5 +107,43 @@ class Subject(UserBasedTuple, Auditable, LastVisit, BaseModel):
 	def __setattr__(self, name, value):
 		if name == 'dataset':
 			super().__setattr__(name, construct_dataset(value))
+		else:
+			super().__setattr__(name, value)
+
+
+class SubjectDatasetCriteriaIndicator(BaseModel):
+	name: str = None
+	arithmetic: str = None
+	alias: str = None
+
+
+def construct_criteria_indicator(
+		indicator: Optional[Union[dict, SubjectDatasetCriteriaIndicator]]) -> Optional[SubjectDatasetCriteriaIndicator]:
+	if indicator is None:
+		return None
+	elif isinstance(indicator, SubjectDatasetCriteriaIndicator):
+		return indicator
+	else:
+		return SubjectDatasetCriteriaIndicator(**indicator)
+
+
+def construct_criteria_indicators(indicators: Optional[list]) -> Optional[List[SubjectDatasetCriteriaIndicator]]:
+	if indicators is None:
+		return None
+	return ArrayHelper(indicators).map(lambda x: construct_criteria_indicator(x)).to_list()
+
+
+class SubjectDatasetCriteria(BaseModel):
+	# use one of subject id or name
+	subjectId: Optional[SubjectId]
+	subjectName: Optional[str]
+	indicators: List[SubjectDatasetCriteriaIndicator]
+	conditions: List[ParameterCondition]
+
+	def __setattr__(self, name, value):
+		if name == 'indicators':
+			super().__setattr__(name, construct_criteria_indicators(value))
+		elif name == 'conditions':
+			super().__setattr__(name, construct_parameter_conditions(value))
 		else:
 			super().__setattr__(name, value)

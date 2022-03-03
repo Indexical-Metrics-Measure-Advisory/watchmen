@@ -8,6 +8,7 @@ from watchmen_inquiry_kernel.storage import SubjectDataService
 from watchmen_model.admin import UserRole
 from watchmen_model.common import DataPage, DataResult, Pageable, ReportId, SubjectId
 from watchmen_model.console import Report, Subject
+from watchmen_model.console.subject import SubjectDatasetCriteria
 from watchmen_rest import get_console_principal
 from watchmen_rest.util import raise_400
 from watchmen_utilities import is_blank
@@ -50,4 +51,15 @@ async def fetch_report_data_temporary(
 		report: Report,
 		principal_service: PrincipalService = Depends(get_console_principal)) -> DataResult:
 	# TODO fetch report data temporary
+	pass
+
+
+@router.post('/subject/data/criteria', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=DataResult)
+async def query_dataset(
+		query: SubjectDatasetCriteria,
+		principal_service: PrincipalService = Depends(get_console_principal)) -> DataResult:
+	# console_subject = load_console_subject_by_name(query.subject_name, current_user)
+	# data = build_query_for_consume(console_subject, query.indicators, query.where, current_user)
+	# return {"data": data}
+	# TODO fetch dataset
 	pass
