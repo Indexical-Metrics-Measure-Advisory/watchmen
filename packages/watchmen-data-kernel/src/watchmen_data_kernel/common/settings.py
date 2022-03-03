@@ -10,6 +10,7 @@ logger = getLogger(__name__)
 
 class KernelSettings(BaseSettings):
 	STORAGE_ECHO: bool = False
+
 	FULL_DATETIME_FORMATS: Set[str] = [
 		'%Y%m%d%H%M%S%f', '%d%m%Y%H%M%S%f', '%m%d%Y%H%M%S%f',  # 14 or more digits,
 	]
@@ -24,12 +25,19 @@ class KernelSettings(BaseSettings):
 		'%H%M%S',  # 6 digits
 		'%H%M'  # 4 digits
 	]  # all digits, other characters are prohibitive
-	ENCRYPT_AES_KEY: str = 'hWmZq4t7w9z$C&F)J@NcRfUjXn2r5u8x'
-	ENCRYPT_AES_IV: str = 'J@NcRfUjXn2r5u8x'
-	KEEP_RAW_DATA_AS_IS: bool = True  # default value settings will be ignored on the raw topic
+
+	ENCRYPT_AES_KEY: str = 'hWmZq4t7w9z$C&F)J@NcRfUjXn2r5u8x'  # AES key of factor encryption
+	ENCRYPT_AES_IV: str = 'J@NcRfUjXn2r5u8x'  # AES iv of factor encryption
+
+	IGNORE_DEFAULT_ON_RAW: bool = True  # default value settings will be ignored on the raw topic
+
 	KERNEL_CACHE: bool = True  # enable kernel cache, keep it enabled in production
 	KERNEL_CACHE_HEART_BEAT: bool = True  # enable kernel cache heart beat
 	KERNEL_CACHE_HEART_BEAT_INTERVAL: int = 60  # kernel cache heart beat interval, in seconds
+
+	SYNC_TOPIC_TO_STORAGE: bool = False  # sync topic change to storage entity
+	REPLACE_TOPIC_TO_STORAGE: bool = False  # force replace existing topic entity (drop and recreate)
+
 	PRESTO: bool = True  # presto
 
 	class Config:
@@ -77,8 +85,8 @@ def ask_encrypt_aes_params() -> Tuple[str, str]:
 	return settings.ENCRYPT_AES_KEY, settings.ENCRYPT_AES_IV
 
 
-def ask_keep_raw_data_as_is() -> bool:
-	return settings.KEEP_RAW_DATA_AS_IS
+def ask_ignore_default_on_raw() -> bool:
+	return settings.IGNORE_DEFAULT_ON_RAW
 
 
 def ask_cache_enabled() -> bool:
@@ -91,6 +99,14 @@ def ask_cache_heart_beat_enabled() -> bool:
 
 def ask_cache_heart_beat_interval() -> int:
 	return settings.KERNEL_CACHE_HEART_BEAT_INTERVAL
+
+
+def ask_sync_topic_to_storage() -> bool:
+	return settings.SYNC_TOPIC_TO_STORAGE
+
+
+def ask_replace_topic_to_storage() -> bool:
+	return settings.REPLACE_TOPIC_TO_STORAGE
 
 
 def ask_presto_enabled() -> bool:
