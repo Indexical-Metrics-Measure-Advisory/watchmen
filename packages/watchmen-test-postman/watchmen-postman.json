@@ -4690,7 +4690,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "CREATE TOPIC",
               "id": "011a69b2-10f2-4b2d-a818-e73c6544ada3",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
