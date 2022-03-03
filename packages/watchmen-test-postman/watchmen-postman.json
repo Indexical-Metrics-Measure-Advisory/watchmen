@@ -4752,14 +4752,14 @@
                     "auth": {
                       "type": "bearer",
                       "bearer": {
-                        "token": "{{JWT_TOKEN}}"
+                        "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
                       }
                     },
                     "method": "POST",
                     "header": [],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n    \"dataSourceCode\": \"TEST-DATASOURCE\",\n    \"dataSourceType\": \"mysql\",\n    \"host\": \"localhost\",\n    \"port\": \"3309\",\n    \"username\": \"admin\",\n    \"password\": \"adminpwd\",\n    \"name\": \"new_watchmen\",\n    \"tenantId\": \"1\"\n}",
+                      "raw": "{\n    \"dataSourceCode\": \"TEST-DATASOURCE\",\n    \"dataSourceType\": \"mysql\",\n    \"host\": \"localhost\",\n    \"port\": \"3309\",\n    \"username\": \"admin\",\n    \"password\": \"admin\",\n    \"name\": \"new_watchmen\",\n    \"tenantId\": \"1\"\n}",
                       "options": {
                         "raw": {
                           "language": "json"
