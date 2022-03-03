@@ -204,7 +204,11 @@ class ArrayHelper:
 		return a_dict
 
 	def join(self, separator: str) -> str:
-		return separator.join(self.aList)
+		new_list: list = []
+		for an_element in self.aList:
+			if an_element is not None:
+				new_list.append(str(an_element))
+		return separator.join(new_list)
 
 	def size(self) -> int:
 		return len(self.aList)

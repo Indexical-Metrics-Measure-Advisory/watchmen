@@ -477,11 +477,7 @@ def create_run_constant_segments(
 		functions: List[Callable[[PipelineVariables, PrincipalService], Any]]
 ) -> Callable[[PipelineVariables, PrincipalService], Any]:
 	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
-		values = ArrayHelper(functions).map(lambda x: x(variables, principal_service)) \
-			.map(lambda x: x is not None) \
-			.map(lambda x: x if isinstance(x, str) else str(x)) \
-			.to_list()
-		return ''.join(values)
+		return ArrayHelper(functions).map(lambda x: x(variables, principal_service)).join('')
 
 	return action
 
