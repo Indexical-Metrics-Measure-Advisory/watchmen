@@ -4693,24 +4693,6 @@
                   "response": []
                 },
                 {
-                  "name": "CREATE DATASOURCE",
-                  "id": "e2d8fb35-7c97-402c-a2e2-7b3ed682d1ea",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "method": "GET",
-                    "header": []
-                  },
-                  "response": []
-                }
-              ],
-              "id": "79b24909-0895-47e2-8733-6c9275f5140b"
-            },
-            {
-              "name": "ACTION ALARM",
-              "item": [
-                {
                   "name": "CREATE RAW TOPIC",
                   "event": [
                     {
@@ -4752,6 +4734,24 @@
                   },
                   "response": []
                 },
+                {
+                  "name": "CREATE DATASOURCE",
+                  "id": "e2d8fb35-7c97-402c-a2e2-7b3ed682d1ea",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
+                }
+              ],
+              "id": "79b24909-0895-47e2-8733-6c9275f5140b"
+            },
+            {
+              "name": "ACTION ALARM",
+              "item": [
                 {
                   "name": "CREATE TOPIC",
                   "id": "011a69b2-10f2-4b2d-a818-e73c6544ada3",
