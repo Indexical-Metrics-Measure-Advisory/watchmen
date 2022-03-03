@@ -5,8 +5,9 @@ from watchmen_meta.common import ask_engine_index_enabled, StorageService
 from watchmen_model.admin import Factor, Topic
 from watchmen_model.analysis import FactorIndex
 from watchmen_model.common import FactorId, TenantId, TopicId
-from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, EntityDeleter, \
-	EntityFinder, EntityIdHelper, EntityRow, EntityShaper, SnowflakeGenerator, TransactionalStorageSPI
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaJoint, \
+	EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityDeleter, EntityFinder, EntityIdHelper, EntityRow, \
+	EntityShaper, SnowflakeGenerator, TransactionalStorageSPI
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
 
 
@@ -129,5 +130,20 @@ class TopicIndexService(StorageService):
 		return self.storage.find(EntityFinder(
 			name=FACTOR_INDEX_ENTITY_NAME,
 			shaper=FACTOR_INDEX_ENTITY_SHAPER,
-			criteria=[]
+			criteria=[
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id),
+				EntityCriteriaJoint(
+					conjunction=EntityCriteriaJointConjunction.AND,
+					children=[
+						EntityCriteriaExpression(
+							left=ColumnNameLiteral(columnName='factor_name'),
+							operator=EntityCriteriaOperator.LIKE,
+							right=name),
+						EntityCriteriaExpression(
+							left=ColumnNameLiteral(columnName='topic_name'),
+							operator=EntityCriteriaOperator.LIKE,
+							right=name)
+					]
+				)
+			]
 		))
