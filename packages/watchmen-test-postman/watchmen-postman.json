@@ -4678,6 +4678,11 @@
           "name": "ACTION",
           "item": [
             {
+              "name": "New Folder",
+              "item": [],
+              "id": "a9bfad4a-c128-48a2-b2da-6d2bd8b533df"
+            },
+            {
               "name": "CREATE RAW TOPIC",
               "id": "f9151dc9-399e-4e87-b2e6-9b6696ec4e1a",
               "protocolProfileBehavior": {
