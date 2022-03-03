@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from watchmen_utilities import ArrayHelper
 from .model import DataModel
-from .tuple_ids import TopicId
+from .tuple_ids import FactorId, TopicId
 
 
 class ParameterKind(str, Enum):
