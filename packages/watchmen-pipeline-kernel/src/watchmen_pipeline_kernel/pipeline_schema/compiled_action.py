@@ -6,6 +6,7 @@ from traceback import format_exc
 from typing import Any, Callable, Dict, List, Optional, Union
 
 from time import sleep
+
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.external_writer import ask_external_writer_creator, BuildExternalWriter, ExternalWriterParams
 from watchmen_data_kernel.meta import ExternalWriterService, TopicService

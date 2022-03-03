@@ -9,7 +9,6 @@ from watchmen_model.admin import Pipeline, PipelineStage
 from watchmen_model.pipeline_kernel import MonitorLogStage, MonitorLogStatus, PipelineMonitorLog
 from watchmen_pipeline_kernel.pipeline_schema_interface import CreateQueuePipeline, TopicStorages
 from watchmen_utilities import ArrayHelper
-
 from .compiled_unit import compile_units, CompiledUnit
 
 logger = getLogger(__name__)
