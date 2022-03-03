@@ -4,7 +4,7 @@ from watchmen_data_kernel.meta import TopicService
 from watchmen_data_kernel.service import ask_topic_data_service
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.common import DataPage, Pageable
-from watchmen_model.pipeline_kernel import PipelineMonitorLogCriteria, TopicDataColumnNames
+from watchmen_model.pipeline_kernel import PipelineMonitorLog, PipelineMonitorLogCriteria, TopicDataColumnNames
 from watchmen_pipeline_kernel.common import PipelineKernelException
 from watchmen_pipeline_kernel.topic import RuntimeTopicStorages
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator
@@ -70,5 +70,7 @@ class PipelineMonitorLogDataService:
 		))
 
 		page.data = ArrayHelper(page.data).map(lambda x: x.get(TopicDataColumnNames.RAW_TOPIC_DATA.value)) \
-			.filter(lambda x: x is not None).to_list()
+			.filter(lambda x: x is not None) \
+			.map(lambda x: PipelineMonitorLog(**x)) \
+			.to_list()
 		return page
