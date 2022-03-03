@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
+from watchmen_data_kernel.common import ask_ignore_default_on_raw
 from watchmen_model.admin import Factor, Topic
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 from .utils import cast_value_for_factor
@@ -54,6 +55,9 @@ class DefaultValueFactorGroup:
 
 
 def parse_default_value_factors(topic: Topic) -> List[DefaultValueFactorGroup]:
+	if ask_ignore_default_on_raw():
+		return []
+
 	groups = ArrayHelper(topic.factors) \
 		.filter(lambda x: x.defaultValue is not None) \
 		.map(lambda x: EncryptFactor(x)) \
