@@ -441,7 +441,7 @@ def build_columns(topic: Topic) -> str:
 			.filter(lambda x: '.' not in x.name) \
 			.map(lambda x: f'\t{as_column_name(x)} {FactorTypeMap.get(x.type)},') \
 			.to_list()
-		return '\n'.join(factors) + ','
+		return '\n'.join(factors)
 
 
 def build_aggregate_assist_column(topic: Topic) -> str:

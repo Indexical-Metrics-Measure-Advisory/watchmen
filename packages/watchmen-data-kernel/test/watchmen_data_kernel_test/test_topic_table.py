@@ -1,0 +1,35 @@
+from unittest import TestCase
+
+from watchmen_auth import PrincipalService
+from watchmen_data_kernel.cache import CacheService
+from watchmen_data_kernel.service.topic_structure_helper import create_topic_structure
+from watchmen_model.admin import Factor, FactorType, Topic, TopicKind, TopicType, User, UserRole
+from watchmen_model.system import DataSource, DataSourceType
+
+
+def create_fake_principal_service() -> PrincipalService:
+	return PrincipalService(User(userId='1', tenantId='1', name='imma-admin', role=UserRole.ADMIN))
+
+
+class TopicTable(TestCase):
+	# noinspection PyMethodMayBeStatic
+	def test_create_topic(self):
+		principal_service = create_fake_principal_service()
+		data_source = DataSource(
+			dataSourceId='1', dataSourceCode='ds1', dataSourceType=DataSourceType.MYSQL,
+			host='localhost', port='3306', username='watchmen', password='watchmen', name='watchmen',
+			tenantId='1')
+		# data_source_service = get_data_source_service(create_fake_principal_service())
+		# data_source_service.begin_transaction()
+		# data_source_service.create(data_source)
+		# data_source_service.commit_transaction()
+		CacheService.data_source().put(data_source)
+
+		topic1 = Topic(
+			topicId='1', name='topic_x', type=TopicType.DISTINCT, kind=TopicKind.BUSINESS,
+			factors=[
+				Factor(factorId='1', name='topic1_id', type=FactorType.SEQUENCE)
+			],
+			dataSourceId=data_source.dataSourceId,
+			tenantId='1')
+		create_topic_structure(topic1, principal_service)
