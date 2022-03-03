@@ -4997,13 +4997,43 @@
                 },
                 {
                   "name": "CREATE PIPELINE FOR INSERT-OR-MERGE",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "4ed2bee7-7144-4078-879e-e069bfe3a9c2",
+                        "exec": [
+                          "pm.test(\"Create Pipeline For Insert Or Merge\", () => {",
+                          "    pm.response.to.have.status(200);",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "ac159711-dc02-463a-8239-a5219ffdc95f",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
                   "request": {
-                    "method": "GET",
-                    "header": []
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "POST",
+                    "header": [],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n    \"topicId\": \"{{RAW_TOPIC_ID}}\",\n    \"name\": \"Test-Pipeline-For-Insert-Or-Merge\",\n    \"type\": \"insert-or-merge\",\n    \"stages\": [\n        {\n            \"stageId\": \"f-1\",\n            \"name\": \"Stage 1\",\n            \"units\": [\n                {\n                    \"unitId\": \"f-2\",\n                    \"name\": \"Unit 1.1\",\n                    \"do\": [\n                        {\n                            \"actionId\": \"f-3\",\n                            \"type\": \"insert-or-merge\",\n                            \"severity\": \"high\",\n                            \"message\": \"Hello world!\"\n                        }\n                    ]\n                }\n            ]\n        }\n    ],\n    \"enabled\": true,\n    \"validated\": true\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": "{{URL_PREFIX}}/pipeline"
                   },
                   "response": []
                 },
