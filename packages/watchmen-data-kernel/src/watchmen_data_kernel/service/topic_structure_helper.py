@@ -43,24 +43,6 @@ def update_topic_structure(topic: Topic, original_topic: Topic, principal_servic
 	storage.update_topic_entity(topic, original_topic)
 
 
-def should_replace(topic: Topic, original_topic: Topic) -> bool:
-	if ask_replace_topic_to_storage():
-		return True
-	elif topic.dataSourceId != original_topic.dataSourceId:
-		return True
-	elif is_blank(original_topic.dataSourceId):
-		return True
-
-	name = beautify_name(topic)
-	original_name = beautify_name(original_topic)
-	if name != original_name:
-		return True
-	elif is_blank(original_name):
-		return True
-
-	return False
-
-
 def sync_topic_structure_storage(
 		topic: Topic, original_topic: Optional[Topic], principal_service: PrincipalService) -> None:
 	if not ask_sync_topic_to_storage():
@@ -68,8 +50,22 @@ def sync_topic_structure_storage(
 
 	if original_topic is None:
 		create_topic_structure(topic, principal_service)
-	elif should_replace(topic, original_topic):
+	elif ask_replace_topic_to_storage():
 		drop_topic_structure(original_topic, principal_service)
 		create_topic_structure(topic, principal_service)
+	elif topic.dataSourceId != original_topic.dataSourceId:
+		# not in same data source, leave original as is
+		create_topic_structure(topic, principal_service)
+	elif is_blank(original_topic.dataSourceId):
+		# no data source declared in original, typically no storage entity existing
+		# simply do create for new one
+		create_topic_structure(topic, principal_service)
+
+	name = beautify_name(topic)
+	original_name = beautify_name(original_topic)
+	if name != original_name:
+		# name changed, leave original as is
+		create_topic_structure(topic, principal_service)
 	else:
+		# with same name, same data source, update it
 		update_topic_structure(topic, original_topic, principal_service)
