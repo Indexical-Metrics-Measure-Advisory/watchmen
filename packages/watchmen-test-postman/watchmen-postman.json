@@ -4888,12 +4888,26 @@
               "item": [
                 {
                   "name": "CREATE PIPELINE FOR ALARM",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "70148732-faf0-4dfc-b52c-9e8077289f9c",
+                        "exec": [
+                          "pm.test(\"Create Pipeline For Alarm\", () => {",
+                          "    pm.response.to.have.status(200);",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "00f3ae58-5870-4f04-a80c-d79f9ce00401",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
                   "request": {
-                    "method": "GET",
+                    "method": "POST",
                     "header": [],
                     "body": {
                       "mode": "raw",
