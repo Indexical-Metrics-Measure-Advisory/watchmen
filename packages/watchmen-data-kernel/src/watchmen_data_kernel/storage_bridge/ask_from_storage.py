@@ -17,7 +17,7 @@ from watchmen_model.common import ComputedParameter, ConstantParameter, FactorId
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteriaExpression, \
 	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, Literal
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_decimal, try_to_date
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_date, is_decimal
 from .ask_from_memory import assert_parameter_count, create_ask_factor_value, parse_parameter_in_memory
 from .topic_utils import ask_topic_data_entity_helper
 from .utils import always_none, compute_date_diff, create_from_previous_trigger_data, \
@@ -360,7 +360,7 @@ class ParsedStorageComputedParameter(ParsedStorageParameter):
 			if value is None:
 				return None
 			if isinstance(value, (date, str)):
-				parsed, dt_value = try_to_date(value, ask_all_date_formats())
+				parsed, dt_value = is_date(value, ask_all_date_formats())
 				return dt_value if parsed else value
 			else:
 				return value

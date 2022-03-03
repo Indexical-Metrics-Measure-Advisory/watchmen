@@ -119,6 +119,16 @@ class TestSubject(TestCase):
 							]
 						),
 						alias='Column5'
+					),
+					SubjectDatasetColumn(
+						columnId='6',
+						parameter=ComputedParameter(
+							kind=ParameterKind.COMPUTED, type=ParameterComputeType.YEAR_OF,
+							parameters=[
+								ConstantParameter(kind=ParameterKind.CONSTANT, value='2022/03/03'),
+							]
+						),
+						alias='Column6'
 					)
 				]
 			),
