@@ -4682,46 +4682,136 @@
               "item": [
                 {
                   "name": "LOGIN - SUPER ADMIN",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "82b406f5-4460-4a17-b6e4-b44a8b8dc91c",
+                        "exec": [
+                          "pm.test(\"Super Admin Login Access Token\", function () {",
+                          "    pm.response.to.have.status(200);",
+                          "    var data = pm.response.json();",
+                          "    pm.environment.set('SUPER_ADMIN_JWT_TOKEN', data.accessToken)",
+                          "})",
+                          ""
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "7220c996-38c5-4ac6-b6c6-f15cbf2f3e8f",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
                   "request": {
-                    "method": "GET",
-                    "header": []
+                    "method": "POST",
+                    "header": [],
+                    "body": {
+                      "mode": "urlencoded",
+                      "urlencoded": [
+                        {
+                          "key": "username",
+                          "value": "imma-super",
+                          "type": "text"
+                        },
+                        {
+                          "key": "password",
+                          "value": "change-me",
+                          "type": "text"
+                        }
+                      ]
+                    },
+                    "url": "{{URL_PREFIX}}/login"
                   },
                   "response": []
                 },
                 {
                   "name": "CREATE DATASOURCE",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "156de6c9-1447-4e84-8dfd-2472d1272e78",
+                        "exec": [
+                          "pm.test('Datasource created', () => {",
+                          "    const data = pm.response.json();",
+                          "    pm.expect(data.dataSourceId).to.not.be.null;",
+                          "    pm.environment.set('DATA_SOURCE_ID', data.dataSourceId)",
+                          "})",
+                          ""
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "e2d8fb35-7c97-402c-a2e2-7b3ed682d1ea",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
                   "request": {
-                    "method": "GET",
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "POST",
                     "header": [],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n    \"dataSourceCode\": \"TEST-DATASOURCE\",\n    \"dataSourceType\": \"mysql\",\n    \"host\": \"localhost\",\n    \"port\": \"3306\",\n    \"username\": \"watchmen\",\n    \"password\": \"watchmen\",\n    \"name\": \"watchmen\",\n    \"tenantId\": \"1\"\n}",
+                      "raw": "{\n    \"dataSourceCode\": \"TEST-DATASOURCE\",\n    \"dataSourceType\": \"mysql\",\n    \"host\": \"localhost\",\n    \"port\": \"3309\",\n    \"username\": \"admin\",\n    \"password\": \"adminpwd\",\n    \"name\": \"new_watchmen\",\n    \"tenantId\": \"1\"\n}",
                       "options": {
                         "raw": {
                           "language": "json"
                         }
                       }
-                    }
+                    },
+                    "url": "{{URL_PREFIX}}/datasource"
                   },
                   "response": []
                 },
                 {
                   "name": "LOGIN - ADMIN",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "9bd95beb-abea-4175-ab8a-10451188246d",
+                        "exec": [
+                          "pm.test(\"Admin Login Access Token\", function () {",
+                          "    pm.response.to.have.status(200);",
+                          "    var data = pm.response.json();",
+                          "    pm.environment.set('JWT_TOKEN', data.accessToken)",
+                          "})",
+                          ""
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "9fa606df-1b36-448b-8ac1-95e2a0af5dd9",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
                   "request": {
-                    "method": "GET",
-                    "header": []
+                    "method": "POST",
+                    "header": [],
+                    "body": {
+                      "mode": "urlencoded",
+                      "urlencoded": [
+                        {
+                          "key": "username",
+                          "value": "imma-admin",
+                          "type": "text"
+                        },
+                        {
+                          "key": "password",
+                          "value": "1234abcd",
+                          "type": "text"
+                        }
+                      ]
+                    },
+                    "url": "{{URL_PREFIX}}/login"
                   },
                   "response": []
                 },
@@ -4735,6 +4825,8 @@
                         "exec": [
                           "pm.test(\"Create Raw Topic\", () => {",
                           "    pm.response.to.have.status(200);",
+                          "    var data = pm.response.json();",
+                          "    pm.environment.set('RAW_TOPIC_ID', data.accessToken)",
                           "});"
                         ],
                         "type": "text/javascript"
@@ -4756,7 +4848,7 @@
                     "header": [],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n    \"name\": \"Test_Raw_Topic\",\n    \"type\": \"raw\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{SIMPLE_DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propC\"},\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propD\"},\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propE\"}\n    ],\n    \"description\": \"Test Raw Topic\"\n}",
+                      "raw": "{\n    \"name\": \"Test_Raw_Topic\",\n    \"type\": \"raw\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propC\"},\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propD\"},\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propE\"}\n    ],\n    \"description\": \"Test Raw Topic\"\n}",
                       "options": {
                         "raw": {
                           "language": "json"
@@ -4766,13 +4858,7 @@
                     "url": "{{URL_PREFIX}}/topic"
                   },
                   "response": []
-                }
-              ],
-              "id": "79b24909-0895-47e2-8733-6c9275f5140b"
-            },
-            {
-              "name": "ACTION ALARM",
-              "item": [
+                },
                 {
                   "name": "CREATE TOPIC",
                   "id": "011a69b2-10f2-4b2d-a818-e73c6544ada3",
@@ -4793,7 +4879,13 @@
                     }
                   },
                   "response": []
-                },
+                }
+              ],
+              "id": "79b24909-0895-47e2-8733-6c9275f5140b"
+            },
+            {
+              "name": "ACTION ALARM",
+              "item": [
                 {
                   "name": "CREATE PIPELINE FOR ALARM",
                   "id": "00f3ae58-5870-4f04-a80c-d79f9ce00401",
