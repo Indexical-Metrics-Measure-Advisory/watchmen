@@ -1,2 +1,3 @@
 from .service_helper import ask_topic_data_service
 from .storage_helper import ask_topic_storage
+from .topic_structure_helper import sync_topic_structure_storage
