@@ -189,6 +189,14 @@ def try_to_format_date(might_be_date: str, date_format: str) -> Tuple[bool, Opti
 		return False, None
 
 
+def is_suitable_format(value_length: int, a_format: str) -> bool:
+	plus_year = '%Y' in a_format
+	if value_length > 14:
+		return '%f' in a_format
+	else:
+		return value_length == len(a_format) + (2 if plus_year else 0)
+
+
 def is_date_plus_format(value: Optional[str], formats: List[str]) -> Tuple[bool, Optional[date], Optional[str]]:
 	"""
 	none is not a date value, otherwise remove non-number characters and try to parse by given formats.
@@ -198,7 +206,7 @@ def is_date_plus_format(value: Optional[str], formats: List[str]) -> Tuple[bool,
 	tidy_value = sub(r'\D', '', value)
 	count = len(tidy_value)
 	# TODO format cannot use length to match
-	suitable_formats = ArrayHelper(formats).filter(lambda x: len(x) == count).to_list()
+	suitable_formats = ArrayHelper(formats).filter(lambda x: is_suitable_format(count, x)).to_list()
 	for suitable_format in suitable_formats:
 		parsed, date_value = try_to_format_date(tidy_value, suitable_format)
 		if parsed:
