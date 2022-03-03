@@ -37,7 +37,7 @@ def ask_parallel_actions_count() -> int:
 	return settings.PIPELINE_PARALLEL_ACTIONS_COUNT
 
 
-def ask_parallel_actions_dask_temp() -> Optional[str]:
+def ask_parallel_actions_dask_temp_dir() -> Optional[str]:
 	return settings.PIPELINE_PARALLEL_ACTIONS_DASK_TEMP_DIR
 
 
