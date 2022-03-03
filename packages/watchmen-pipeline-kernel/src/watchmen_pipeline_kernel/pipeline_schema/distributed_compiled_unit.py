@@ -17,8 +17,8 @@ from watchmen_model.common import DataModel, TopicId
 from watchmen_model.pipeline_kernel import MonitorLogStage, MonitorLogUnit
 from watchmen_pipeline_kernel.common import ask_parallel_actions_count, ask_parallel_actions_dask_temp_dir, \
 	ask_parallel_actions_dask_use_process, PipelineKernelException
-from watchmen_pipeline_kernel.pipeline.topic_helper import RuntimeTopicStorages
 from watchmen_pipeline_kernel.pipeline_schema_interface import CreateQueuePipeline
+from watchmen_pipeline_kernel.topic import RuntimeTopicStorages
 from watchmen_utilities import ArrayHelper
 from .compiled_single_unit import CompiledSingleUnit
 
@@ -137,15 +137,6 @@ def to_dask_args(loop: DistributedUnitLoop, variableValue: Any) -> List[Any]:
 		cloned
 	]
 
-
-# client = DaskClient().get_dask_client()
-# for value in unit_context.stageContext.pipelineContext.variables[loop_variable_name]:
-# 	futures.append(
-# 		client.submit(run_actions, unit_context, loop_variable_name, value, False, False, pure=False))
-# for future in as_completed(futures):
-# 	result, trigger_pipeline_data_list = future.result()
-# 	results.extend(result)
-# 	triggers.extend(trigger_pipeline_data_list)
 
 def distribute_single_unit(
 		pipeline: Pipeline, stage: PipelineStage, unit: PipelineUnit,

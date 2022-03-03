@@ -3,7 +3,7 @@ from typing import Callable, List, Optional
 from watchmen_model.pipeline_kernel import PipelineMonitorLog
 from watchmen_pipeline_kernel.common import PipelineKernelException
 from watchmen_pipeline_kernel.pipeline_schema import RuntimePipelineContext
-from .topic_helper import RuntimeTopicStorages
+from watchmen_pipeline_kernel.topic import RuntimeTopicStorages
 
 
 class PipelinesDispatcher:

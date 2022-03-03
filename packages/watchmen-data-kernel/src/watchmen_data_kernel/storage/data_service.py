@@ -9,7 +9,7 @@ from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import PipelineTriggerType, Topic
 from watchmen_model.common import DataModel, DataPage, Pageable
-from watchmen_storage import EntityColumnName, EntityCriteria, EntityStraightColumn, SnowflakeGenerator, \
+from watchmen_storage import EntityColumnName, EntityCriteria, EntityPager, EntityStraightColumn, SnowflakeGenerator, \
 	TopicDataStorageSPI
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
 from .data_entity_helper import TopicDataEntityHelper
@@ -331,17 +331,17 @@ class TopicDataService(TopicStructureService):
 		finally:
 			storage.close()
 
-	def page(self, pageable: Pageable) -> DataPage:
-		data_entity_helper = self.get_data_entity_helper()
+	def page(self, pager: EntityPager) -> DataPage:
 		storage = self.get_storage()
 		try:
 			storage.connect()
-			return self.storage.page(data_entity_helper.get_entity_pager([], pageable))
+			return self.storage.page(pager)
 		finally:
 			storage.close()
 
-	def page_and_unwrap(self, pageable: Pageable) -> DataPage:
-		page = self.page(pageable)
+	def page_and_unwrap(self, page: Pageable) -> DataPage:
+		data_entity_helper = self.get_data_entity_helper()
+		page = self.page(data_entity_helper.get_entity_pager([], page))
 		if page.data is not None and len(page.data) != 0:
 			page.data = ArrayHelper(page.data).map(lambda x: self.try_to_unwrap_from_topic_data(x)).to_list()
 		return page

@@ -7,7 +7,8 @@ from pydantic import BaseModel
 
 from watchmen_model.admin import DeleteTopicActionType, PipelineActionType, ReadTopicActionType, SystemActionType, \
 	WriteTopicActionType
-from watchmen_model.common import DataModel, PipelineActionId, PipelineId, PipelineStageId, PipelineUnitId, TopicId
+from watchmen_model.common import DataModel, Pageable, PipelineActionId, PipelineId, PipelineStageId, PipelineUnitId, \
+	TenantId, TopicId
 from watchmen_utilities import ArrayHelper
 from .pipeline_trigger_data import PipelineTriggerTraceId
 
@@ -209,3 +210,13 @@ class PipelineMonitorLog(ConditionalMonitorLog):
 			super().__setattr__(name, construct_stages(value))
 		else:
 			super().__setattr__(name, value)
+
+
+class PipelineMonitorLogCriteria(Pageable):
+	topicId: TopicId = None
+	pipelineId: PipelineId = None
+	startDate: str = None
+	endDate: str = None
+	status: MonitorLogStatus = None
+	traceId: PipelineTriggerTraceId = None
+	tenantId: TenantId = None
