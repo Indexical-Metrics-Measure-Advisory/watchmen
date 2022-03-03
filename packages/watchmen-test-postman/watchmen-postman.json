@@ -4702,32 +4702,8 @@
               "response": []
             },
             {
-              "name": "CREATE PIPELINE",
-              "id": "00f3ae58-5870-4f04-a80c-d79f9ce00401",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
-              },
-              "response": []
-            },
-            {
-              "name": "INSERT RAW",
-              "id": "bee8978b-94d3-46fb-841f-ff76a61c617f",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
-              },
-              "response": []
-            },
-            {
               "name": "New Request",
-              "id": "f294c84d-a862-417c-a972-3d3a9bbd80f9",
+              "id": "00f3ae58-5870-4f04-a80c-d79f9ce00401",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
