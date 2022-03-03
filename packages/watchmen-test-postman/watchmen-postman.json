@@ -4817,13 +4817,28 @@
                 },
                 {
                   "name": "CREATE PIPELINE MONITOR LOG TOPIC",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "e391d1c9-f2a6-4ed5-99ce-de6a55333321",
+                        "exec": [
+                          "pm.test(\"Create Raw Topic\", () => {",
+                          "    pm.response.to.have.status(200);",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "82380880-6a74-4de4-945c-a1dd358b2833",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
                   "request": {
-                    "method": "GET",
-                    "header": []
+                    "method": "POST",
+                    "header": [],
+                    "url": "{{URL_PREFIX}}/topic"
                   },
                   "response": []
                 },
