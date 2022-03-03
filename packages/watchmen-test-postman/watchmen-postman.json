@@ -4679,7 +4679,20 @@
           "item": [
             {
               "name": "PREPARE",
-              "item": [],
+              "item": [
+                {
+                  "name": "New Request",
+                  "id": "7220c996-38c5-4ac6-b6c6-f15cbf2f3e8f",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
+                }
+              ],
               "id": "79b24909-0895-47e2-8733-6c9275f5140b"
             },
             {
