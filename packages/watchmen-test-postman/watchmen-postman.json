@@ -4681,7 +4681,7 @@
               "name": "PRE-SCRIPT",
               "item": [
                 {
-                  "name": "LOGIN-",
+                  "name": "LOGIN - SUPER ADMIN",
                   "id": "7220c996-38c5-4ac6-b6c6-f15cbf2f3e8f",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
