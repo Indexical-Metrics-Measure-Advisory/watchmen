@@ -5151,7 +5151,7 @@
                       "response": []
                     },
                     {
-                      "name": "New Request",
+                      "name": "LOGIN - SUPER ADMIN",
                       "id": "a3bfa0e9-97b7-48a0-a6b8-6bf2040edef7",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
