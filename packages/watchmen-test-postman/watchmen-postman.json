@@ -5230,7 +5230,7 @@
                       "response": []
                     },
                     {
-                      "name": "New Request",
+                      "name": "UPDATE TOPIC",
                       "id": "e191dd45-1068-47d2-9bc6-3e4a982882b1",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
