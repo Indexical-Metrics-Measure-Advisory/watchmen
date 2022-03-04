@@ -4957,7 +4957,7 @@
                   "name": "ALARM",
                   "item": [
                     {
-                      "name": "CREATE PIPELINE FOR ALARM",
+                      "name": "ALARM",
                       "event": [
                         {
                           "listen": "test",
