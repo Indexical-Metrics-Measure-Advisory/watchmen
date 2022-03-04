@@ -4772,7 +4772,7 @@
                     "header": [],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n    \"dataSourceCode\": \"Test-Datasource\",\n    \"dataSourceType\": \"mysql\",\n    \"host\": \"localhost\",\n    \"port\": \"3306\",\n    \"username\": \"watchmen\",\n    \"password\": \"watchmen\",\n    \"name\": \"watchmen\",\n    \"tenantId\": \"1\"\n}",
+                      "raw": "{\n    \"dataSourceCode\": \"Test-Datasource\",\n    \"dataSourceType\": \"mysql\",\n    \"host\": \"localhost\",\n    \"port\": \"{{DATABASE_PORT}}\",\n    \"username\": \"{{DATABASE_USERNAME}}\",\n    \"password\": \"{{DATABASE_PASSOWRD}}\",\n    \"name\": \"{{DATABASE_SCHEMA}}\",\n    \"tenantId\": \"1\"\n}",
                       "options": {
                         "raw": {
                           "language": "json"
