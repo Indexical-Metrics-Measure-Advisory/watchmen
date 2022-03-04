@@ -51,6 +51,6 @@ def create_monitor_log_pipeline_invoker(
 			if asynchronized:
 				ensure_future(trigger.invoke())
 			else:
-				trigger.invoke()
+				await trigger.invoke()
 
 	return handle_monitor_log
