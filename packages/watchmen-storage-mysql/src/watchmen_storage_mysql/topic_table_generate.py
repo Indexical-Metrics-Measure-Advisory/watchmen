@@ -11,7 +11,7 @@ from .table_defs_helper import create_bool, create_datetime, create_int, create_
 
 
 def create_column(factor: Factor) -> Column:
-	factor_name = '' if is_blank(factor.name) else factor.name.strip()
+	factor_name = '' if is_blank(factor.name) else factor.name.strip().lower()
 	factor_type = factor.type
 	if factor_type == FactorType.SEQUENCE:
 		return Column(factor_name, Integer, nullable=True)
