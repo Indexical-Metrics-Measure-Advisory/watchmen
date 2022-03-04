@@ -5285,19 +5285,8 @@
               "id": "f81b5a4f-15e8-4700-ab8f-7610b1b8d020"
             },
             {
-              "name": "WRITE - TOPIC - ACTION",
-              "item": [
-                {
-                  "name": "MERGE - ROW",
-                  "item": [],
-                  "id": "0a06de62-86db-4491-87b5-ab63bc4bf308"
-                },
-                {
-                  "name": "INSERT - ROW",
-                  "item": [],
-                  "id": "ec177838-0bc9-422e-bd51-fcfbf09d24b8"
-                }
-              ],
+              "name": "New Folder",
+              "item": [],
               "id": "2a3ab96c-edbf-4460-818b-9430b336e307"
             }
           ],
