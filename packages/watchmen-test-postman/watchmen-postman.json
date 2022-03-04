@@ -5252,11 +5252,33 @@
                     },
                     {
                       "name": "COPY TO MEMORY",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "b95c2bb4-97d2-47be-aff0-1896450a5c09",
+                            "exec": [
+                              "pm.test(\"COPY TO MEMORY\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "    const data = pm.response.json()",
+                              "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId)",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "5f3dda18-d961-43da-a669-76ac5b155af0",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
                       },
                       "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
                         "method": "POST",
                         "header": [],
                         "body": {
@@ -5267,7 +5289,8 @@
                               "language": "json"
                             }
                           }
-                        }
+                        },
+                        "url": "{{URL_PREFIX}}/pipeline"
                       },
                       "response": []
                     },
