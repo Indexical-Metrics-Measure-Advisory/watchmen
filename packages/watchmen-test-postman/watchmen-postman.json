@@ -5154,6 +5154,18 @@
                     "url": "{{URL_PREFIX}}/pipeline"
                   },
                   "response": []
+                },
+                {
+                  "name": "New Request",
+                  "id": "ecf340c8-55b9-4860-938e-a3394d1e03cf",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
                 }
               ],
               "id": "f81b5a4f-15e8-4700-ab8f-7610b1b8d020"
