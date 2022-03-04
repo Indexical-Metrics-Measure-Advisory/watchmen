@@ -1,4 +1,4 @@
-from asyncio import ensure_future
+from asyncio import ensure_future, run, wait
 from logging import getLogger
 from typing import Callable
 
@@ -51,6 +51,6 @@ def create_monitor_log_pipeline_invoker(
 			if asynchronized:
 				ensure_future(trigger.invoke())
 			else:
-				await trigger.invoke()
+				run(trigger.invoke())
 
 	return handle_monitor_log
