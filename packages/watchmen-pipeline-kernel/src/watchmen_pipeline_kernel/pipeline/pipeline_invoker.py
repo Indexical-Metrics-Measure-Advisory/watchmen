@@ -1,14 +1,14 @@
-from asyncio import ensure_future
-from typing import Callable, Optional
+from typing import Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.meta import TenantService, TopicService
 from watchmen_data_kernel.topic_schema import TopicSchema
-from watchmen_model.admin import PipelineTriggerType, User, UserRole
-from watchmen_model.pipeline_kernel import PipelineMonitorLog, PipelineTriggerData, PipelineTriggerTraceId
+from watchmen_model.admin import User, UserRole
+from watchmen_model.pipeline_kernel import PipelineTriggerData, PipelineTriggerTraceId
 from watchmen_model.system import Tenant
 from watchmen_pipeline_kernel.common import PipelineKernelException
 from watchmen_utilities import is_blank, is_not_blank
+from .monitor_log_invoker import create_monitor_log_pipeline_invoker
 from .pipeline_trigger import PipelineTrigger
 
 
@@ -61,24 +61,6 @@ async def invoke(
 		asynchronized=asynchronized,
 		handle_monitor_log=create_monitor_log_pipeline_invoker(trace_id, principal_service)
 	).invoke()
-
-
-def create_monitor_log_pipeline_invoker(
-		trace_id: PipelineTriggerTraceId, principal_service: PrincipalService
-) -> Callable[[PipelineMonitorLog, bool], None]:
-	def handle_monitor_log(monitor_log: PipelineMonitorLog, asynchronized: bool) -> None:
-		schema = find_topic_schema('raw_pipeline_monitor_log', principal_service)
-		ensure_future(PipelineTrigger(
-			trigger_topic_schema=schema,
-			trigger_type=PipelineTriggerType.INSERT,
-			trigger_data=monitor_log.dict(),
-			trace_id=trace_id,
-			principal_service=principal_service,
-			asynchronized=asynchronized,
-			handle_monitor_log=handle_monitor_log
-		).invoke())
-
-	return handle_monitor_log
 
 
 async def try_to_invoke_pipelines(

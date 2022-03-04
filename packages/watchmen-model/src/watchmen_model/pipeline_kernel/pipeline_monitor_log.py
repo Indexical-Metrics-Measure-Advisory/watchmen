@@ -201,6 +201,7 @@ class PipelineMonitorLog(ConditionalMonitorLog):
 	traceId: PipelineTriggerTraceId
 	pipelineId: PipelineId
 	topicId: TopicId
+	dataId: int
 	oldValue: Any
 	newValue: Any
 	stages: List[MonitorLogStage]
