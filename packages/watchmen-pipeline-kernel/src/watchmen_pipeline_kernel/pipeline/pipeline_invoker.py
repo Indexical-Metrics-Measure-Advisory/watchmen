@@ -1,3 +1,4 @@
+from asyncio import ensure_future
 from typing import Callable, Optional
 
 from watchmen_auth import PrincipalService
@@ -67,7 +68,7 @@ def create_monitor_log_pipeline_invoker(
 ) -> Callable[[PipelineMonitorLog, bool], None]:
 	def handle_monitor_log(monitor_log: PipelineMonitorLog, asynchronized: bool) -> None:
 		schema = find_topic_schema('raw_pipeline_monitor_log', principal_service)
-		PipelineTrigger(
+		ensure_future(PipelineTrigger(
 			trigger_topic_schema=schema,
 			trigger_type=PipelineTriggerType.INSERT,
 			trigger_data=monitor_log.dict(),
@@ -75,7 +76,7 @@ def create_monitor_log_pipeline_invoker(
 			principal_service=principal_service,
 			asynchronized=asynchronized,
 			handle_monitor_log=handle_monitor_log
-		).invoke()
+		).invoke())
 
 	return handle_monitor_log
 
