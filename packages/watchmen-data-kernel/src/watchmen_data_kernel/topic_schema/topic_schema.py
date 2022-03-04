@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from watchmen_meta.common import ask_snowflake_generator
-from watchmen_model.admin import is_raw_topic, Topic
+from watchmen_model.admin import is_raw_topic, Topic, TopicKind
 from watchmen_utilities import ArrayHelper
 from .aid_hierarchy import aid
 from .default_value_factor import DefaultValueFactorGroup, parse_default_value_factors
@@ -39,28 +39,44 @@ class TopicSchema:
 		ArrayHelper(self.flattenFactors).each(lambda x: x.flatten(data))
 		return data
 
+	def should_initialize_default_values(self) -> bool:
+		return self.get_topic().name not in ['raw_pipeline_monitor_log']
+
 	def initialize_default_values(self, data: Dict[str, Any]) -> Dict[str, Any]:
 		"""
 		given data might be changed, and returns exactly the given one
 		"""
-		ArrayHelper(self.defaultValueFactorGroups).each(lambda x: x.set_default_value(data))
+		if self.should_initialize_default_values():
+			ArrayHelper(self.defaultValueFactorGroups).each(lambda x: x.set_default_value(data))
 		return data
+
+	def should_encrypt(self) -> bool:
+		return self.get_topic().kind != TopicKind.SYSTEM
 
 	def encrypt(self, data: Dict[str, Any]) -> Dict[str, Any]:
 		"""
 		given data might be changed, and returns exactly the given one
 		"""
-		ArrayHelper(self.encryptFactorGroups).each(lambda x: x.encrypt(data))
+		if self.should_encrypt():
+			ArrayHelper(self.encryptFactorGroups).each(lambda x: x.encrypt(data))
 		return data
+
+	def should_aid_hierarchy(self) -> bool:
+		topic = self.get_topic()
+		if not is_raw_topic(topic):
+			return False
+
+		if topic.name in ['raw_pipeline_monitor_log']:
+			return False
+
+		return True
 
 	def aid_hierarchy(self, data: Dict[str, Any]) -> Dict[str, Any]:
 		"""
 		given data might be changed, and returns exactly the given one
 		"""
-		if not is_raw_topic(self.get_topic()):
-			return data
-
-		aid(data, [], ask_snowflake_generator())
+		if self.should_aid_hierarchy():
+			aid(data, [], ask_snowflake_generator())
 		return data
 
 	def prepare_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
