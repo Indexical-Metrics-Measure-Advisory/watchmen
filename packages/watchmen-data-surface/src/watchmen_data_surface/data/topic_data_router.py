@@ -104,6 +104,9 @@ async def patch_topic_data(
 		tenant_id: Optional[TenantId] = None, data=Body(...),
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> None:
+	"""
+	data patch will not trigger any pipeline
+	"""
 	if is_blank(topic_name):
 		raise_400('Topic name is required.')
 	if patch_type is None:
