@@ -4750,7 +4750,7 @@
                         "exec": [
                           "pm.environment.set('DATABASE_PORT', 3309)",
                           "pm.environment.set('DATABASE_USERNAME', \"admin\")",
-                          "pm.environment.set('DATABASE_PASSWORD', \"admin\")",
+                          "pm.environment.set('DATABASE_PASSWORD', \"adminpwd\")",
                           "pm.environment.set('DATABASE_SCHEMA', \"new_watchmen\")"
                         ],
                         "type": "text/javascript"
