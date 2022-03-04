@@ -4951,141 +4951,6 @@
               "id": "79b24909-0895-47e2-8733-6c9275f5140b"
             },
             {
-              "name": "READ - ROW",
-              "item": [],
-              "id": "b6234c0d-85ba-4ba8-93b4-2aa0a1158fcc"
-            },
-            {
-              "name": "READ - FACTOR",
-              "item": [],
-              "id": "931e3229-7e86-4a11-96a2-7ddd84aca9f0"
-            },
-            {
-              "name": "EXISTS",
-              "item": [],
-              "id": "50d46d81-4a5f-4477-bf38-044eb2da2115"
-            },
-            {
-              "name": "READ - ROWS",
-              "item": [],
-              "id": "89572f62-7c88-48f3-828e-060cf8855a2e"
-            },
-            {
-              "name": "READ - FACTORS",
-              "item": [],
-              "id": "e5a31610-54da-4044-8d48-ea1c74343614"
-            },
-            {
-              "name": "INSERT - OR -  MERGE",
-              "item": [
-                {
-                  "name": "CREATE PIPELINE FOR INSERT-OR-MERGE",
-                  "event": [
-                    {
-                      "listen": "test",
-                      "script": {
-                        "id": "4ed2bee7-7144-4078-879e-e069bfe3a9c2",
-                        "exec": [
-                          "pm.test(\"Create Pipeline For Insert Or Merge\", () => {",
-                          "    pm.response.to.have.status(200);",
-                          "});"
-                        ],
-                        "type": "text/javascript"
-                      }
-                    }
-                  ],
-                  "id": "ac159711-dc02-463a-8239-a5219ffdc95f",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": {
-                        "token": "{{JWT_TOKEN}}"
-                      }
-                    },
-                    "method": "POST",
-                    "header": [],
-                    "body": {
-                      "mode": "raw",
-                      "raw": "{\n    \"topicId\": \"{{RAW_TOPIC_ID}}\",\n    \"name\": \"Test-Pipeline-For-Insert-Or-Merge\",\n    \"type\": \"insert-or-merge\",\n    \"stages\": [\n        {\n            \"stageId\": \"f-1\",\n            \"name\": \"Stage 1\",\n            \"units\": [\n                {\n                    \"unitId\": \"f-2\",\n                    \"name\": \"Unit 1.1\",\n                    \"do\": [\n                        {\n                            \"actionId\": \"f-3\",\n                            \"type\": \"insert-or-merge-row\",\n                            \"topicId\": \"{{TOPIC_ID}}\",\n                            \"mapping\": [\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"1\"\n                                    },\n                                    \"factorId\": \"1\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"2\"\n                                    },\n                                    \"factorId\": \"2\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"3\"\n                                    },\n                                    \"factorId\": \"3\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"4\"\n                                    },\n                                    \"factorId\": \"4\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"5\"\n                                    },\n                                    \"factorId\": \"5\"\n                                }\n                            ],\n                            \"by\": {\n                                \"jointType\": \"and\",\n                                \"filters\": [\n                                    {\n                                        \"left\": {\n                                            \"kind\": \"topic\",\n                                            \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                            \"factorId\": \"2\"\n                                        },\n                                        \"operator\": \"equals\",\n                                        \"right\": {\n                                            \"kind\": \"topic\",\n                                            \"topicId\": \"{{TOPIC_ID}}\",\n                                            \"factorId\": \"2\"\n                                        }\n                                    }\n                                ]\n                            },\n                            \"severity\": \"high\",\n                            \"message\": \"Hello world!\"\n                        }\n                    ]\n                }\n            ]\n        }\n    ],\n    \"enabled\": true,\n    \"validated\": true\n}",
-                      "options": {
-                        "raw": {
-                          "language": "json"
-                        }
-                      }
-                    },
-                    "url": "{{URL_PREFIX}}/pipeline"
-                  },
-                  "response": []
-                },
-                {
-                  "name": "INSERT RAW",
-                  "event": [
-                    {
-                      "listen": "test",
-                      "script": {
-                        "id": "c9e2726d-6c59-4f4d-965f-146d3332afde",
-                        "exec": [
-                          "pm.test(\"Response time is less than 200ms\", function () {\r",
-                          "    pm.expect(pm.response.responseTime).to.be.below(200);\r",
-                          "});"
-                        ],
-                        "type": "text/javascript"
-                      }
-                    }
-                  ],
-                  "id": "ecf340c8-55b9-4860-938e-a3394d1e03cf",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "method": "GET",
-                    "header": []
-                  },
-                  "response": []
-                },
-                {
-                  "name": "TRUCATE TOPIC",
-                  "id": "10c3f198-d8d6-44fe-a475-4ff28d0223af",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "method": "GET",
-                    "header": []
-                  },
-                  "response": []
-                },
-                {
-                  "name": "TRUCATE RAW TOPIC",
-                  "id": "2163ad3b-2ad5-419b-8181-49b1d6cbd595",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "method": "GET",
-                    "header": []
-                  },
-                  "response": []
-                },
-                {
-                  "name": "DELETE PIPELINE",
-                  "id": "4cbbb2d5-a96c-408f-9701-b7b340301a27",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "method": "GET",
-                    "header": []
-                  },
-                  "response": []
-                }
-              ],
-              "id": "f81b5a4f-15e8-4700-ab8f-7610b1b8d020"
-            },
-            {
               "name": "SYSTEM - ACTION",
               "item": [
                 {
@@ -5272,6 +5137,141 @@
                 }
               ],
               "id": "d88c8027-9c02-40f1-81a2-f9c90c171012"
+            },
+            {
+              "name": "READ - ROW",
+              "item": [],
+              "id": "b6234c0d-85ba-4ba8-93b4-2aa0a1158fcc"
+            },
+            {
+              "name": "READ - FACTOR",
+              "item": [],
+              "id": "931e3229-7e86-4a11-96a2-7ddd84aca9f0"
+            },
+            {
+              "name": "EXISTS",
+              "item": [],
+              "id": "50d46d81-4a5f-4477-bf38-044eb2da2115"
+            },
+            {
+              "name": "READ - ROWS",
+              "item": [],
+              "id": "89572f62-7c88-48f3-828e-060cf8855a2e"
+            },
+            {
+              "name": "READ - FACTORS",
+              "item": [],
+              "id": "e5a31610-54da-4044-8d48-ea1c74343614"
+            },
+            {
+              "name": "INSERT - OR -  MERGE",
+              "item": [
+                {
+                  "name": "CREATE PIPELINE FOR INSERT-OR-MERGE",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "4ed2bee7-7144-4078-879e-e069bfe3a9c2",
+                        "exec": [
+                          "pm.test(\"Create Pipeline For Insert Or Merge\", () => {",
+                          "    pm.response.to.have.status(200);",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
+                  "id": "ac159711-dc02-463a-8239-a5219ffdc95f",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "POST",
+                    "header": [],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n    \"topicId\": \"{{RAW_TOPIC_ID}}\",\n    \"name\": \"Test-Pipeline-For-Insert-Or-Merge\",\n    \"type\": \"insert-or-merge\",\n    \"stages\": [\n        {\n            \"stageId\": \"f-1\",\n            \"name\": \"Stage 1\",\n            \"units\": [\n                {\n                    \"unitId\": \"f-2\",\n                    \"name\": \"Unit 1.1\",\n                    \"do\": [\n                        {\n                            \"actionId\": \"f-3\",\n                            \"type\": \"insert-or-merge-row\",\n                            \"topicId\": \"{{TOPIC_ID}}\",\n                            \"mapping\": [\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"1\"\n                                    },\n                                    \"factorId\": \"1\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"2\"\n                                    },\n                                    \"factorId\": \"2\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"3\"\n                                    },\n                                    \"factorId\": \"3\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"4\"\n                                    },\n                                    \"factorId\": \"4\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"5\"\n                                    },\n                                    \"factorId\": \"5\"\n                                }\n                            ],\n                            \"by\": {\n                                \"jointType\": \"and\",\n                                \"filters\": [\n                                    {\n                                        \"left\": {\n                                            \"kind\": \"topic\",\n                                            \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                            \"factorId\": \"2\"\n                                        },\n                                        \"operator\": \"equals\",\n                                        \"right\": {\n                                            \"kind\": \"topic\",\n                                            \"topicId\": \"{{TOPIC_ID}}\",\n                                            \"factorId\": \"2\"\n                                        }\n                                    }\n                                ]\n                            },\n                            \"severity\": \"high\",\n                            \"message\": \"Hello world!\"\n                        }\n                    ]\n                }\n            ]\n        }\n    ],\n    \"enabled\": true,\n    \"validated\": true\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": "{{URL_PREFIX}}/pipeline"
+                  },
+                  "response": []
+                },
+                {
+                  "name": "INSERT RAW",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "c9e2726d-6c59-4f4d-965f-146d3332afde",
+                        "exec": [
+                          "pm.test(\"Response time is less than 200ms\", function () {\r",
+                          "    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
+                  "id": "ecf340c8-55b9-4860-938e-a3394d1e03cf",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
+                },
+                {
+                  "name": "TRUCATE TOPIC",
+                  "id": "10c3f198-d8d6-44fe-a475-4ff28d0223af",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
+                },
+                {
+                  "name": "TRUCATE RAW TOPIC",
+                  "id": "2163ad3b-2ad5-419b-8181-49b1d6cbd595",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
+                },
+                {
+                  "name": "DELETE PIPELINE",
+                  "id": "4cbbb2d5-a96c-408f-9701-b7b340301a27",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
+                }
+              ],
+              "id": "f81b5a4f-15e8-4700-ab8f-7610b1b8d020"
             },
             {
               "name": "READ - TOPIC - ACTION",
