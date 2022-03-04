@@ -5138,6 +5138,16 @@
               "id": "b6234c0d-85ba-4ba8-93b4-2aa0a1158fcc"
             },
             {
+              "name": "READ - FACTOR",
+              "item": [],
+              "id": "931e3229-7e86-4a11-96a2-7ddd84aca9f0"
+            },
+            {
+              "name": "EXISTS",
+              "item": [],
+              "id": "50d46d81-4a5f-4477-bf38-044eb2da2115"
+            },
+            {
               "name": "INSERT - OR -  MERGE",
               "item": [
                 {
@@ -5246,16 +5256,6 @@
                 }
               ],
               "id": "f81b5a4f-15e8-4700-ab8f-7610b1b8d020"
-            },
-            {
-              "name": "READ - FACTOR",
-              "item": [],
-              "id": "931e3229-7e86-4a11-96a2-7ddd84aca9f0"
-            },
-            {
-              "name": "EXISTS",
-              "item": [],
-              "id": "50d46d81-4a5f-4477-bf38-044eb2da2115"
             }
           ],
           "id": "e913262a-d074-4454-a78f-f0ad5bbb8616"
