@@ -4951,7 +4951,7 @@
               "id": "79b24909-0895-47e2-8733-6c9275f5140b"
             },
             {
-              "name": "ACTION ALARM",
+              "name": "ALARM",
               "item": [
                 {
                   "name": "CREATE PIPELINE FOR ALARM",
