@@ -29,8 +29,8 @@ class DataModelTest(TestCase):
 				jointType=ParameterJointType.AND,
 				filters=[
 					# 0
-					ParameterExpression(left=ConstantParameter(value='abc'),
-					                    operator=ParameterExpressionOperator.EMPTY),
+					ParameterExpression(
+						left=ConstantParameter(value='abc'), operator=ParameterExpressionOperator.EMPTY),
 					# 1
 					ParameterExpression(
 						left=ConstantParameter(value='2022/01'), operator=ParameterExpressionOperator.NOT_EMPTY),

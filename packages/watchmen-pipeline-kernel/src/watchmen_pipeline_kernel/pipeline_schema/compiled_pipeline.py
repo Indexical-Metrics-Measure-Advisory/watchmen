@@ -14,7 +14,7 @@ from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import Pipeline, PipelineTriggerType, TopicKind
 from watchmen_model.pipeline_kernel import MonitorLogStatus, PipelineMonitorLog, PipelineTriggerTraceId
-from watchmen_pipeline_kernel.common import PipelineKernelException
+from watchmen_pipeline_kernel.common import ask_async_handle_monitor_log, PipelineKernelException
 from watchmen_pipeline_kernel.pipeline_schema_interface import CompiledPipeline, PipelineContext, TopicStorages
 from watchmen_utilities import ArrayHelper
 from .compiled_stage import compile_stages, CompiledStage
@@ -99,15 +99,8 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 		# log spent in milliseconds
 		monitor_log.spentInMills = spent_ms(monitor_log.startTime)
 
-		# trigger pipeline or log by monitor log
-		topic_id = self.pipeline.topicId
-		topic_service = get_topic_service(principal_service)
-		topic = topic_service.find_by_id(topic_id)
-		if topic is None or topic.kind == TopicKind.SYSTEM:
-			# will not trigger monitor log pipelines again
-			logger.info(monitor_log)
-		else:
-			handle_monitor_log(monitor_log, False)
+		# trigger log pipeline
+		handle_monitor_log(monitor_log, ask_async_handle_monitor_log())
 
 		# return created pipelines
 		return created_pipeline_contexts.to_list()

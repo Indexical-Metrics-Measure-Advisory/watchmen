@@ -17,6 +17,7 @@ class PipelineKernelSettings(BaseSettings):
 	PIPELINE_UPDATE_RETRY_TIMES: int = 3  # optimistic lock retry times
 	PIPELINE_UPDATE_RETRY_INTERVAL: int = 10  # retry interval in milliseconds
 	PIPELINE_UPDATE_RETRY_FORCE: bool = True  # enable force retry after all retries failed
+	PIPELINE_ASYNC_HANDLE_MONITOR_LOG: bool = True  # handle monitor log (might with pipelines) asynchronized
 
 	class Config:
 		env_file = '.env'
@@ -68,3 +69,7 @@ def ask_pipeline_update_retry_interval() -> int:
 
 def ask_pipeline_update_retry_force() -> bool:
 	return settings.PIPELINE_UPDATE_RETRY_FORCE
+
+
+def ask_async_handle_monitor_log() -> bool:
+	return settings.PIPELINE_ASYNC_HANDLE_MONITOR_LOG
