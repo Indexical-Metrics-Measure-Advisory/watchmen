@@ -5197,12 +5197,32 @@
                   "item": [
                     {
                       "name": "UPDATE TOPIC",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "032393ed-0879-4829-8b4d-5fc11275432b",
+                            "exec": [
+                              "pm.test(\"Update Topic\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "e191dd45-1068-47d2-9bc6-3e4a982882b1",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
                       },
                       "request": {
-                        "method": "GET",
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "POST",
                         "header": [],
                         "body": {
                           "mode": "raw",
@@ -5212,7 +5232,8 @@
                               "language": "json"
                             }
                           }
-                        }
+                        },
+                        "url": "{{URL_PREFIX}}/topic"
                       },
                       "response": []
                     },
