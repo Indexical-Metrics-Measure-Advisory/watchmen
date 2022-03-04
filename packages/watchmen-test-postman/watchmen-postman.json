@@ -5169,6 +5169,20 @@
                 },
                 {
                   "name": "INSERT RAW",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "c9e2726d-6c59-4f4d-965f-146d3332afde",
+                        "exec": [
+                          "pm.test(\"Response time is less than 200ms\", function () {\r",
+                          "    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "ecf340c8-55b9-4860-938e-a3394d1e03cf",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
