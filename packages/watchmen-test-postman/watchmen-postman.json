@@ -2222,6 +2222,18 @@
               "response": []
             },
             {
+              "name": "TOPIC UPDATE WITH CHANGE TABLE",
+              "id": "e18f07f9-60b4-4995-972b-8ba7ecfbed2e",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
               "name": "TOPIC DELETE",
               "event": [
                 {
@@ -2283,18 +2295,6 @@
                     }
                   ]
                 }
-              },
-              "response": []
-            },
-            {
-              "name": "TOPIC UPDATE WITH CHANGE TABLE",
-              "id": "e18f07f9-60b4-4995-972b-8ba7ecfbed2e",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
               },
               "response": []
             }
