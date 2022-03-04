@@ -4951,11 +4951,6 @@
               "id": "79b24909-0895-47e2-8733-6c9275f5140b"
             },
             {
-              "name": "COPY - TO - MEMORY",
-              "item": [],
-              "id": "9454a669-9f70-45ac-90f1-d21e23e52480"
-            },
-            {
               "name": "WRITE - TO - EXTERNAL",
               "item": [],
               "id": "be0d8b5b-52f8-4b85-8e25-01fc78e5622e"
@@ -5269,6 +5264,11 @@
                     }
                   ],
                   "id": "a9bfad4a-c128-48a2-b2da-6d2bd8b533df"
+                },
+                {
+                  "name": "COPY - TO - MEMORY",
+                  "item": [],
+                  "id": "9454a669-9f70-45ac-90f1-d21e23e52480"
                 }
               ],
               "id": "d88c8027-9c02-40f1-81a2-f9c90c171012"
