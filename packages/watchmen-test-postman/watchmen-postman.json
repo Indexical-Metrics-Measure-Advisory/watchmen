@@ -5129,7 +5129,7 @@
                   "name": "COPY - TO - MEMORY",
                   "item": [
                     {
-                      "name": "New Request",
+                      "name": "COPY TO MEMORY",
                       "id": "5f3dda18-d961-43da-a669-76ac5b155af0",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
