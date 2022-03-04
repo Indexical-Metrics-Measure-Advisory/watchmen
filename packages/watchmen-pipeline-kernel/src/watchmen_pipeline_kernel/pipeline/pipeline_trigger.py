@@ -1,6 +1,6 @@
 from asyncio import ensure_future
 from logging import getLogger
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.meta import PipelineService
@@ -8,11 +8,12 @@ from watchmen_data_kernel.service import ask_topic_data_service
 from watchmen_data_kernel.storage import TopicDataService, TopicTrigger
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.admin import Pipeline, PipelineTriggerType
+from watchmen_model.common import PipelineId
 from watchmen_model.pipeline_kernel import PipelineMonitorLog, PipelineTriggerTraceId
 from watchmen_pipeline_kernel.common import PipelineKernelException
 from watchmen_pipeline_kernel.pipeline_schema import RuntimePipelineContext
 from watchmen_pipeline_kernel.topic import RuntimeTopicStorages
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, is_not_blank
 from .pipelines_dispatcher import PipelinesDispatcher
 
 logger = getLogger(__name__)
@@ -79,20 +80,35 @@ class PipelineTrigger:
 		else:
 			raise PipelineKernelException(f'Pipeline trigger type[{trigger_type}] is not supported.')
 
-	async def start(self, trigger: TopicTrigger) -> None:
+	async def start(self, trigger: TopicTrigger, pipeline_id: Optional[PipelineId] = None) -> None:
 		"""
 		data of trigger must be prepared already
 		"""
 		schema = self.triggerTopicSchema
 		topic = schema.get_topic()
-		pipelines = get_pipeline_service(self.principalService).find_by_topic_id(topic.topicId)
+		if is_not_blank(pipeline_id):
+			pipeline = get_pipeline_service(self.principalService).find_by_id(pipeline_id)
+			if pipeline is None:
+				raise PipelineKernelException(f'Given pipeline[id={pipeline_id}] not found.')
+			else:
+				pipelines = [pipeline]
+		else:
+			pipelines = get_pipeline_service(self.principalService).find_by_topic_id(topic.topicId)
 		if len(pipelines) == 0:
-			logger.warning(f'No pipeline needs to be triggered by topic[id={topic.topicId}, name={topic.name}].')
+			if is_not_blank(pipeline_id):
+				raise PipelineKernelException(f'Given pipeline[id={pipeline_id}] not found.')
+			else:
+				logger.warning(f'No pipeline needs to be triggered by topic[id={topic.topicId}, name={topic.name}].')
 			return
+
 		pipelines = ArrayHelper(pipelines) \
 			.filter(lambda x: self.should_run(trigger.triggerType, x)).to_list()
 		if len(pipelines) == 0:
-			logger.warning(f'No pipeline needs to be triggered by topic[id={topic.topicId}, name={topic.name}].')
+			if is_not_blank(pipeline_id):
+				raise PipelineKernelException(
+					f'Given pipeline[id={pipeline_id}] does not match trigger type[{trigger.triggerType}].')
+			else:
+				logger.warning(f'No pipeline needs to be triggered by topic[id={topic.topicId}, name={topic.name}].')
 			return
 
 		def construct_queued_pipeline(pipeline: Pipeline) -> RuntimePipelineContext:

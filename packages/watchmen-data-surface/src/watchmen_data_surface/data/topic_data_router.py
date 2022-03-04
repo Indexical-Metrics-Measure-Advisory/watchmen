@@ -23,6 +23,7 @@ def get_topic_service(principal_service: PrincipalService) -> TopicService:
 	return TopicService(principal_service)
 
 
+# noinspection DuplicatedCode
 def get_topic_schema(
 		topic_name: str, tenant_id: Optional[TenantId], principal_service: PrincipalService) -> TopicSchema:
 	schema = get_topic_service(principal_service).find_schema_by_name(topic_name, tenant_id)
@@ -31,7 +32,6 @@ def get_topic_schema(
 	return schema
 
 
-# noinspection DuplicatedCode
 def validate_tenant_id(tenant_id: Optional[TenantId], principal_service: PrincipalService) -> TenantId:
 	if principal_service.is_tenant_admin():
 		if is_not_blank(tenant_id) and tenant_id != principal_service.get_tenant_id():
