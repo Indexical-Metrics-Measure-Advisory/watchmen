@@ -5696,13 +5696,50 @@
                 },
                 {
                   "name": "TRUCATE RAW TOPIC",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "5edcf26f-153c-4d56-854b-6ebfddbd741b",
+                        "exec": [
+                          "pm.test(\"Trucate Raw Topic\", () => {",
+                          "    pm.response.to.have.status(200);",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "2163ad3b-2ad5-419b-8181-49b1d6cbd595",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
                   "request": {
-                    "method": "GET",
-                    "header": []
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "DELETE",
+                    "header": [],
+                    "url": {
+                      "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{RAW_TOPIC_NAME}}",
+                      "host": [
+                        "{{URL_PREFIX}}"
+                      ],
+                      "path": [
+                        "topic",
+                        "data",
+                        "truncate"
+                      ],
+                      "query": [
+                        {
+                          "key": "topic_name",
+                          "value": "{{RAW_TOPIC_NAME}}"
+                        }
+                      ]
+                    }
                   },
                   "response": []
                 },
