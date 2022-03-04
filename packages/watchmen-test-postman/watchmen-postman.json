@@ -2210,7 +2210,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"topicId\": \"{{TOPIC_ID}}\",\n    \"name\": \"Test_Distinct_Topic_2\",\n    \"type\": \"distinct\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"text\", \"name\": \"propB\"}\n    ],\n    \"description\": \"Test Distinct Topic\"\n}",
+                  "raw": "{\n    \"topicId\": \"{{TOPIC_ID}}\",\n    \"name\": \"Test_Distinct_Topic_2\",\n    \"type\": \"distinct\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"text\", \"name\": \"propB\"},\n        {\"factorId\": \"3\", \"type\": \"text\", \"name\": \"propC\"}\n    ],\n    \"description\": \"Test Distinct Topic\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
