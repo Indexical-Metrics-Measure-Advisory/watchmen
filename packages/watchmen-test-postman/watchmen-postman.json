@@ -5135,7 +5135,7 @@
                         "disableBodyPruning": true
                       },
                       "request": {
-                        "method": "GET",
+                        "method": "POST",
                         "header": []
                       },
                       "response": []
