@@ -4951,186 +4951,197 @@
               "id": "79b24909-0895-47e2-8733-6c9275f5140b"
             },
             {
-              "name": "ALARM",
+              "name": "SYSTEM - ACTION",
               "item": [
                 {
-                  "name": "CREATE PIPELINE FOR ALARM",
-                  "event": [
+                  "name": "ALARM",
+                  "item": [
                     {
-                      "listen": "test",
-                      "script": {
-                        "id": "70148732-faf0-4dfc-b52c-9e8077289f9c",
-                        "exec": [
-                          "pm.test(\"Create Pipeline For Alarm\", () => {",
-                          "    pm.response.to.have.status(200);",
-                          "});"
-                        ],
-                        "type": "text/javascript"
-                      }
+                      "name": "CREATE PIPELINE FOR ALARM",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "70148732-faf0-4dfc-b52c-9e8077289f9c",
+                            "exec": [
+                              "pm.test(\"Create Pipeline For Alarm\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
+                      "id": "00f3ae58-5870-4f04-a80c-d79f9ce00401",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n    \"topicId\": \"{{RAW_TOPIC_ID}}\",\n    \"name\": \"Test-Pipeline-For-Alarm\",\n    \"type\": \"insert-or-merge\",\n    \"stages\": [\n        {\n            \"stageId\": \"f-1\",\n            \"name\": \"Stage 1\",\n            \"units\": [\n                {\n                    \"unitId\": \"f-2\",\n                    \"name\": \"Unit 1.1\",\n                    \"do\": [\n                        {\n                            \"actionId\": \"f-3\",\n                            \"type\": \"alarm\",\n                            \"severity\": \"high\",\n                            \"message\": \"Hello world!\"\n                        }\n                    ]\n                }\n            ]\n        }\n    ],\n    \"enabled\": true,\n    \"validated\": true\n}",
+                          "options": {
+                            "raw": {
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": "{{URL_PREFIX}}/pipeline"
+                      },
+                      "response": []
+                    },
+                    {
+                      "name": "INSERT RAW",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "0fc2fef1-38a5-4076-8c02-7086cf4d5b7c",
+                            "exec": [
+                              "pm.test(\"Create Pipeline For Alarm\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
+                      "id": "bee8978b-94d3-46fb-841f-ff76a61c617f",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n    \"code\": \"Test_Raw_Topic\",\n    \"data\": {\n        \"propA\": \"text\",\n        \"propB\": 100,\n        \"propC\": true,\n        \"propD\": \"2022-03-22\",\n        \"propE\": \"2022-03-22 22:39:45\"\n    }\n}",
+                          "options": {
+                            "raw": {
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": "{{URL_PREFIX}}/pipeline/data"
+                      },
+                      "response": []
+                    },
+                    {
+                      "name": "TRUCATE TOPIC",
+                      "id": "f294c84d-a862-417c-a972-3d3a9bbd80f9",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                          "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{TOPIC_NAME}}",
+                          "host": [
+                            "{{URL_PREFIX}}"
+                          ],
+                          "path": [
+                            "topic",
+                            "data",
+                            "truncate"
+                          ],
+                          "query": [
+                            {
+                              "key": "topic_name",
+                              "value": "{{TOPIC_NAME}}"
+                            }
+                          ]
+                        }
+                      },
+                      "response": []
+                    },
+                    {
+                      "name": "TRUCATE RAW TOPIC",
+                      "id": "6d05952d-22f4-427c-8df3-7e0df2ef7d47",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                          "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{RAW_TOPIC_NAME}}",
+                          "host": [
+                            "{{URL_PREFIX}}"
+                          ],
+                          "path": [
+                            "topic",
+                            "data",
+                            "truncate"
+                          ],
+                          "query": [
+                            {
+                              "key": "topic_name",
+                              "value": "{{RAW_TOPIC_NAME}}"
+                            }
+                          ]
+                        }
+                      },
+                      "response": []
+                    },
+                    {
+                      "name": "DELETE PIPELINE",
+                      "id": "7dd13b4a-8205-4866-8c25-285588c8e628",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "DELETE",
+                        "header": []
+                      },
+                      "response": []
                     }
                   ],
-                  "id": "00f3ae58-5870-4f04-a80c-d79f9ce00401",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": {
-                        "token": "{{JWT_TOKEN}}"
-                      }
-                    },
-                    "method": "POST",
-                    "header": [],
-                    "body": {
-                      "mode": "raw",
-                      "raw": "{\n    \"topicId\": \"{{RAW_TOPIC_ID}}\",\n    \"name\": \"Test-Pipeline-For-Alarm\",\n    \"type\": \"insert-or-merge\",\n    \"stages\": [\n        {\n            \"stageId\": \"f-1\",\n            \"name\": \"Stage 1\",\n            \"units\": [\n                {\n                    \"unitId\": \"f-2\",\n                    \"name\": \"Unit 1.1\",\n                    \"do\": [\n                        {\n                            \"actionId\": \"f-3\",\n                            \"type\": \"alarm\",\n                            \"severity\": \"high\",\n                            \"message\": \"Hello world!\"\n                        }\n                    ]\n                }\n            ]\n        }\n    ],\n    \"enabled\": true,\n    \"validated\": true\n}",
-                      "options": {
-                        "raw": {
-                          "language": "json"
-                        }
-                      }
-                    },
-                    "url": "{{URL_PREFIX}}/pipeline"
-                  },
-                  "response": []
+                  "id": "a9bfad4a-c128-48a2-b2da-6d2bd8b533df"
                 },
                 {
-                  "name": "INSERT RAW",
-                  "event": [
-                    {
-                      "listen": "test",
-                      "script": {
-                        "id": "0fc2fef1-38a5-4076-8c02-7086cf4d5b7c",
-                        "exec": [
-                          "pm.test(\"Create Pipeline For Alarm\", () => {",
-                          "    pm.response.to.have.status(200);",
-                          "});"
-                        ],
-                        "type": "text/javascript"
-                      }
-                    }
-                  ],
-                  "id": "bee8978b-94d3-46fb-841f-ff76a61c617f",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": {
-                        "token": "{{JWT_TOKEN}}"
-                      }
-                    },
-                    "method": "POST",
-                    "header": [],
-                    "body": {
-                      "mode": "raw",
-                      "raw": "{\n    \"code\": \"Test_Raw_Topic\",\n    \"data\": {\n        \"propA\": \"text\",\n        \"propB\": 100,\n        \"propC\": true,\n        \"propD\": \"2022-03-22\",\n        \"propE\": \"2022-03-22 22:39:45\"\n    }\n}",
-                      "options": {
-                        "raw": {
-                          "language": "json"
-                        }
-                      }
-                    },
-                    "url": "{{URL_PREFIX}}/pipeline/data"
-                  },
-                  "response": []
+                  "name": "COPY - TO - MEMORY",
+                  "item": [],
+                  "id": "9454a669-9f70-45ac-90f1-d21e23e52480"
                 },
                 {
-                  "name": "TRUCATE TOPIC",
-                  "id": "f294c84d-a862-417c-a972-3d3a9bbd80f9",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": {
-                        "token": "{{JWT_TOKEN}}"
-                      }
-                    },
-                    "method": "DELETE",
-                    "header": [],
-                    "url": {
-                      "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{TOPIC_NAME}}",
-                      "host": [
-                        "{{URL_PREFIX}}"
-                      ],
-                      "path": [
-                        "topic",
-                        "data",
-                        "truncate"
-                      ],
-                      "query": [
-                        {
-                          "key": "topic_name",
-                          "value": "{{TOPIC_NAME}}"
-                        }
-                      ]
-                    }
-                  },
-                  "response": []
-                },
-                {
-                  "name": "TRUCATE RAW TOPIC",
-                  "id": "6d05952d-22f4-427c-8df3-7e0df2ef7d47",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": {
-                        "token": "{{JWT_TOKEN}}"
-                      }
-                    },
-                    "method": "DELETE",
-                    "header": [],
-                    "url": {
-                      "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{RAW_TOPIC_NAME}}",
-                      "host": [
-                        "{{URL_PREFIX}}"
-                      ],
-                      "path": [
-                        "topic",
-                        "data",
-                        "truncate"
-                      ],
-                      "query": [
-                        {
-                          "key": "topic_name",
-                          "value": "{{RAW_TOPIC_NAME}}"
-                        }
-                      ]
-                    }
-                  },
-                  "response": []
-                },
-                {
-                  "name": "DELETE PIPELINE",
-                  "id": "7dd13b4a-8205-4866-8c25-285588c8e628",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "method": "DELETE",
-                    "header": []
-                  },
-                  "response": []
+                  "name": "WRITE - TO - EXTERNAL",
+                  "item": [],
+                  "id": "be0d8b5b-52f8-4b85-8e25-01fc78e5622e"
                 }
               ],
-              "id": "a9bfad4a-c128-48a2-b2da-6d2bd8b533df"
+              "id": "d88c8027-9c02-40f1-81a2-f9c90c171012"
             },
             {
-              "name": "COPY - TO - MEMORY",
+              "name": "READ - TOPIC - ACTION",
               "item": [],
-              "id": "9454a669-9f70-45ac-90f1-d21e23e52480"
-            },
-            {
-              "name": "WRITE - TO - EXTERNAL",
-              "item": [],
-              "id": "be0d8b5b-52f8-4b85-8e25-01fc78e5622e"
+              "id": "78fff255-c034-448d-b7f1-62b379cf3c24"
             },
             {
               "name": "READ - ROW",
