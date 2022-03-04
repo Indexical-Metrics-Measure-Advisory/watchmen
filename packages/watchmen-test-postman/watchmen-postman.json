@@ -4742,6 +4742,19 @@
                         ],
                         "type": "text/javascript"
                       }
+                    },
+                    {
+                      "listen": "prerequest",
+                      "script": {
+                        "id": "e253d0a1-8059-4b6f-af53-3110f6da4bf7",
+                        "exec": [
+                          "pm.environment.set('DATABASE_PORT', 3309)",
+                          "pm.environment.set('DATABASE_USERNAME', \"admin\")",
+                          "pm.environment.set('DATABASE_PASSWORD', \"admin\")",
+                          "pm.environment.set('DATABASE_SCHEMA', \"new_watchmen\")"
+                        ],
+                        "type": "text/javascript"
+                      }
                     }
                   ],
                   "id": "e2d8fb35-7c97-402c-a2e2-7b3ed682d1ea",
