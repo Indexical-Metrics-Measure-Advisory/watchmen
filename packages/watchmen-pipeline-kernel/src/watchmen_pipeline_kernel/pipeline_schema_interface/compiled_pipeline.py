@@ -18,7 +18,7 @@ class CompiledPipeline:
 	def run(
 			self,
 			previous_data: Optional[Dict[str, Any]], current_data: Optional[Dict[str, Any]],
-			principal_service: PrincipalService, trace_id: PipelineTriggerTraceId,
+			principal_service: PrincipalService, trace_id: PipelineTriggerTraceId, data_id: int,
 			storages: TopicStorages,
 			handle_monitor_log: Callable[[PipelineMonitorLog, bool], None]
 	) -> List[PipelineContext]:

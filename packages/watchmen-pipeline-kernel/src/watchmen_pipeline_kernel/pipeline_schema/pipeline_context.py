@@ -15,7 +15,7 @@ class RuntimePipelineContext(PipelineContext):
 			pipeline: Pipeline,
 			trigger_topic_schema: TopicSchema,
 			previous_data: Optional[Dict[str, Any]], current_data: Optional[Dict[str, Any]],
-			principal_service: PrincipalService, trace_id: PipelineTriggerTraceId
+			principal_service: PrincipalService, trace_id: PipelineTriggerTraceId, data_id: int
 	):
 		self.pipeline = pipeline
 		self.triggerTopicSchema = trigger_topic_schema
@@ -23,6 +23,7 @@ class RuntimePipelineContext(PipelineContext):
 		self.currentData = current_data
 		self.principalService = principal_service
 		self.traceId = trace_id
+		self.data_id = data_id
 
 	def start(
 			self, storages: TopicStorages,
@@ -34,6 +35,7 @@ class RuntimePipelineContext(PipelineContext):
 			current_data=self.currentData,
 			principal_service=self.principalService,
 			trace_id=self.traceId,
+			data_id=self.data_id,
 			storages=storages,
 			handle_monitor_log=handle_monitor_log
 		)

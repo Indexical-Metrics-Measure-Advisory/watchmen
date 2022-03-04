@@ -9,6 +9,7 @@ from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import PipelineTriggerType, Topic
 from watchmen_model.common import DataModel, DataPage, Pageable
+from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import EntityColumnName, EntityCriteria, EntityPager, EntityStraightColumn, SnowflakeGenerator, \
 	TopicDataStorageSPI
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
@@ -100,8 +101,26 @@ class TopicDataService(TopicStructureService):
 	def get_principal_service(self) -> PrincipalService:
 		return self.principalService
 
+	# noinspection PyMethodMayBeStatic
+	def delete_reversed_columns(self, data: Dict[str, Any]):
+		if TopicDataColumnNames.ID.value in data:
+			del data[TopicDataColumnNames.ID.value]
+		if TopicDataColumnNames.AGGREGATE_ASSIST.value in data:
+			del data[TopicDataColumnNames.AGGREGATE_ASSIST.value]
+		if TopicDataColumnNames.VERSION.value in data:
+			del data[TopicDataColumnNames.VERSION.value]
+		if TopicDataColumnNames.TENANT_ID.value in data:
+			del data[TopicDataColumnNames.TENANT_ID.value]
+		if TopicDataColumnNames.INSERT_TIME.value in data:
+			del data[TopicDataColumnNames.INSERT_TIME.value]
+		if TopicDataColumnNames.UPDATE_TIME.value in data:
+			del data[TopicDataColumnNames.UPDATE_TIME.value]
+
 	@abstractmethod
 	def try_to_wrap_to_topic_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
+		"""
+		delete reserved columns and wrap data_ when it is raw
+		"""
 		pass
 
 	@abstractmethod

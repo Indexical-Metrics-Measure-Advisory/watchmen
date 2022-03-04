@@ -12,9 +12,10 @@ from watchmen_data_surface.settings import ask_truncate_topic_data
 from watchmen_model.admin import PipelineTriggerType, User, UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId
 from watchmen_rest import get_any_admin_principal
-from watchmen_rest.util import raise_400, raise_403, raise_404
+from watchmen_rest.util import raise_400, raise_404
 from watchmen_utilities import is_blank, is_not_blank
 
+# noinspection DuplicatedCode
 router = APIRouter()
 
 
@@ -24,24 +25,13 @@ def get_topic_service(principal_service: PrincipalService) -> TopicService:
 
 def get_topic_schema(
 		topic_name: str, tenant_id: Optional[TenantId], principal_service: PrincipalService) -> TopicSchema:
-	if not ask_truncate_topic_data():
-		raise_404('Not Found')
-
-	if principal_service.is_super_admin() and is_blank(tenant_id):
-		raise_400('Tenant id is required.')
-	if principal_service.is_tenant_admin():
-		if is_not_blank(tenant_id) and tenant_id != principal_service.get_tenant_id():
-			raise_403()
-		tenant_id = principal_service.get_tenant_id()
-	if is_blank(topic_name):
-		raise_400('Topic name is required.')
-
 	schema = get_topic_service(principal_service).find_schema_by_name(topic_name, tenant_id)
 	if schema is None:
 		raise_404('Topic not found.')
 	return schema
 
 
+# noinspection DuplicatedCode
 def validate_tenant_id(tenant_id: Optional[TenantId], principal_service: PrincipalService) -> TenantId:
 	if principal_service.is_tenant_admin():
 		if is_not_blank(tenant_id) and tenant_id != principal_service.get_tenant_id():
@@ -87,6 +77,8 @@ async def truncate_topic_data(
 		topic_name: Optional[str], tenant_id: Optional[TenantId] = None,
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> None:
+	if not ask_truncate_topic_data():
+		raise_404('Not Found')
 	if is_blank(topic_name):
 		raise_400('Topic name is required.')
 	tenant_id = validate_tenant_id(tenant_id, principal_service)

@@ -58,17 +58,8 @@ class RawTopicDataEntityHelper(TopicDataEntityHelper):
 
 class RawTopicDataService(TopicDataService):
 	def try_to_wrap_to_topic_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
-		if TopicDataColumnNames.ID.value in data:
-			del data[TopicDataColumnNames.ID.value]
-		if TopicDataColumnNames.TENANT_ID.value in data:
-			del data[TopicDataColumnNames.TENANT_ID.value]
-		if TopicDataColumnNames.INSERT_TIME.value in data:
-			del data[TopicDataColumnNames.INSERT_TIME.value]
-		if TopicDataColumnNames.UPDATE_TIME.value in data:
-			del data[TopicDataColumnNames.UPDATE_TIME.value]
-		return {
-			TopicDataColumnNames.RAW_TOPIC_DATA.value: data
-		}
+		self.delete_reversed_columns(data)
+		return {TopicDataColumnNames.RAW_TOPIC_DATA.value: data}
 
 	def try_to_unwrap_from_topic_data(self, topic_data: Dict[str, Any]) -> Dict[str, Any]:
 		unwrapped_data = {}

@@ -48,7 +48,7 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 	def run(
 			self,
 			previous_data: Optional[Dict[str, Any]], current_data: Optional[Dict[str, Any]],
-			principal_service: PrincipalService, trace_id: PipelineTriggerTraceId,
+			principal_service: PrincipalService, trace_id: PipelineTriggerTraceId, data_id: int,
 			storages: TopicStorages,
 			handle_monitor_log: Callable[[PipelineMonitorLog, bool], None]
 	) -> List[PipelineContext]:
@@ -59,7 +59,7 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 		monitor_log = PipelineMonitorLog(
 			# create uid of pipeline monitor log
 			uid=str(ask_snowflake_generator().next_id()),
-			traceId=trace_id,
+			traceId=trace_id, data_id=data_id,
 			pipelineId=self.pipeline.pipelineId, topicId=self.pipeline.topicId,
 			status=MonitorLogStatus.DONE, startTime=now(), spentInMills=0, error=None,
 			oldValue=deepcopy(previous_data) if previous_data is not None else None,
@@ -176,7 +176,8 @@ class QueuedPipelineContexts:
 			previous_data=trigger.previous,
 			current_data=trigger.current,
 			principal_service=principal_service,
-			trace_id=trace_id
+			trace_id=trace_id,
+			data_id=trigger.internalDataId
 		)).each(lambda x: self.contexts.append(x)).to_list()
 
 	def to_list(self):

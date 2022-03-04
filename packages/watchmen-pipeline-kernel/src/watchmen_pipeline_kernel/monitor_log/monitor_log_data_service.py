@@ -1,13 +1,16 @@
+from typing import Optional
+
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_datetime_formats
 from watchmen_data_kernel.meta import TopicService
 from watchmen_data_kernel.service import ask_topic_data_service
 from watchmen_data_kernel.topic_schema import TopicSchema
-from watchmen_model.common import DataPage, Pageable
+from watchmen_model.common import DataPage, Pageable, TenantId, TopicId
 from watchmen_model.pipeline_kernel import PipelineMonitorLog, PipelineMonitorLogCriteria, TopicDataColumnNames
 from watchmen_pipeline_kernel.common import PipelineKernelException
 from watchmen_pipeline_kernel.topic import RuntimeTopicStorages
-from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, EntitySortColumn, \
+	EntitySortMethod
 from watchmen_utilities import ArrayHelper, is_date, is_not_blank
 
 
@@ -27,10 +30,37 @@ class PipelineMonitorLogDataService:
 	def __init__(self, principal_service: PrincipalService):
 		self.principalService = principal_service
 
+	def get_topic_schema(self):
+		return find_topic_schema('raw_pipeline_monitor_log', self.principalService)
+
+	def ask_storages(self):
+		return RuntimeTopicStorages(self.principalService)
+
+	def find_last(self, data_id: int, topic_id: TopicId, tenant_id: TenantId) -> Optional[PipelineMonitorLog]:
+		schema = self.get_topic_schema()
+		storage = self.ask_storages().ask_topic_storage(schema)
+		data_service = ask_topic_data_service(schema, storage, self.principalService)
+		page = data_service.page(data_service.get_data_entity_helper().get_entity_pager(
+			criteria=[
+				EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName=TopicDataColumnNames.TENANT_ID.value), right=tenant_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='topicid'), right=topic_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='dataid'), right=data_id)
+			],
+			sort=[EntitySortColumn(
+				name=TopicDataColumnNames.INSERT_TIME.value,
+				method=EntitySortMethod.DESC,
+			)],
+			pageable=Pageable(pageNumber=1, pageSize=1)
+		))
+		if page.itemCount == 0:
+			return None
+		else:
+			return PipelineMonitorLog(**page.data[0])
+
 	def page(self, criteria: PipelineMonitorLogCriteria) -> DataPage:
-		schema = find_topic_schema('raw_pipeline_monitor_log', self.principalService)
-		storages = RuntimeTopicStorages(self.principalService)
-		storage = storages.ask_topic_storage(schema)
+		schema = self.get_topic_schema()
+		storage = self.ask_storages().ask_topic_storage(schema)
 		data_service = ask_topic_data_service(schema, storage, self.principalService)
 
 		entity_criteria = [

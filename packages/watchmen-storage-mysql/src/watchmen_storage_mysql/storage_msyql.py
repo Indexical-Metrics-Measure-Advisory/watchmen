@@ -565,6 +565,7 @@ def build_unique_indexes_script(topic: Topic) -> List[str]:
 		.filter(lambda x: is_not_blank(x.indexGroup) and x.indexGroup.startswith('u-')) \
 		.group_by(lambda x: x.indexGroup)
 
+	# noinspection SqlResolve
 	def build_unique_index(factors: List[Factor]) -> str:
 		return \
 			f'ALTER TABLE {as_table_name(topic)} ADD UNIQUE INDEX ' \
@@ -578,6 +579,7 @@ def build_indexes_script(topic: Topic) -> List[str]:
 		.filter(lambda x: is_not_blank(x.indexGroup) and x.indexGroup.startswith('i-')) \
 		.group_by(lambda x: x.indexGroup)
 
+	# noinspection SqlResolve
 	def build_index(factors: List[Factor]) -> str:
 		return \
 			f'ALTER TABLE {as_table_name(topic)} ADD INDEX ' \

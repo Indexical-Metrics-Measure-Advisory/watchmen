@@ -61,6 +61,7 @@ class RegularTopicDataEntityHelper(TopicDataEntityHelper):
 
 class RegularTopicDataService(TopicDataService):
 	def try_to_wrap_to_topic_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
+		self.delete_reversed_columns(data)
 		return data
 
 	def try_to_unwrap_from_topic_data(self, topic_data: Dict[str, Any]) -> Dict[str, Any]:

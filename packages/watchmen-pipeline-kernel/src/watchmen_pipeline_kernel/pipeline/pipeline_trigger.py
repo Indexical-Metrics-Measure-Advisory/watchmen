@@ -102,7 +102,8 @@ class PipelineTrigger:
 				previous_data=trigger.previous,
 				current_data=trigger.current,
 				principal_service=self.principalService,
-				trace_id=self.traceId
+				trace_id=self.traceId,
+				data_id=trigger.internalDataId
 			)
 
 		PipelinesDispatcher(

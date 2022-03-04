@@ -56,7 +56,8 @@ def ask_pipeline_monitor_topics() -> List[Topic]:
 				Factor(factorId='rpml-f-43', name='stages.units.actions.status', type=FactorType.TEXT),
 				Factor(factorId='rpml-f-44', name='stages.units.actions.startTime', type=FactorType.FULL_DATETIME),
 				Factor(factorId='rpml-f-45', name='stages.units.actions.spentInMills', type=FactorType.UNSIGNED),
-				Factor(factorId='rpml-f-46', name='stages.units.actions.error', type=FactorType.TEXT)
+				Factor(factorId='rpml-f-46', name='stages.units.actions.error', type=FactorType.TEXT),
+				Factor(factorId='rpml-f-47', name='dataId', type=FactorType.TEXT, flatten=True),
 			],
 			description='Pipeline monitor log raw topic.'
 		)
