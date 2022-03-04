@@ -8,7 +8,8 @@ from watchmen_data_kernel.storage_bridge.ask_from_storage import ParsedStorageJo
 from watchmen_model.admin import User, UserRole
 from watchmen_model.common import ComputedParameter, ConstantParameter, ParameterComputeType, ParameterExpression, \
 	ParameterExpressionOperator, ParameterJoint, ParameterJointType
-from watchmen_storage import ComputedLiteral, ComputedLiteralOperator, EntityCriteriaExpression, EntityCriteriaJoint, \
+from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteriaExpression, \
+	EntityCriteriaJoint, \
 	EntityCriteriaJointConjunction, EntityCriteriaOperator
 
 
@@ -152,3 +153,9 @@ class AskFromStorage(TestCase):
 		exp4_right_anyway = exp4_right.elements[1]
 		self.assertEqual(exp4_right_anyway, 10)
 		self.assertIsInstance(exp4_right_anyway, int)
+
+	# noinspection PyMethodMayBeStatic
+	def test_criteria_to_dict(self):
+		exp = EntityCriteriaExpression(left=ColumnNameLiteral(entityName='x', columnName='y'), right='1')
+		exp.to_dict()
+		print(exp)
