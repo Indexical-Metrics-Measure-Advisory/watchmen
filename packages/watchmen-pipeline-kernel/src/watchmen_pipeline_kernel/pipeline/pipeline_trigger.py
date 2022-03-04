@@ -111,9 +111,9 @@ class PipelineTrigger:
 				logger.warning(f'No pipeline needs to be triggered by topic[id={topic.topicId}, name={topic.name}].')
 			return
 
-		def construct_queued_pipeline(pipeline: Pipeline) -> RuntimePipelineContext:
+		def construct_queued_pipeline(a_pipeline: Pipeline) -> RuntimePipelineContext:
 			return RuntimePipelineContext(
-				pipeline=pipeline,
+				pipeline=a_pipeline,
 				trigger_topic_schema=self.triggerTopicSchema,
 				previous_data=trigger.previous,
 				current_data=trigger.current,

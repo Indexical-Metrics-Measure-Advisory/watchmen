@@ -22,7 +22,7 @@ def copy_x(x: Any) -> Any:
 	elif isinstance(x, DataModel):
 		return x.to_dict()
 	else:
-		raise f'X[x] cannot be copied.'
+		raise ValueError(f'X[x] cannot be copied.')
 
 
 def copy_tuple(a_tuple: tuple) -> tuple:

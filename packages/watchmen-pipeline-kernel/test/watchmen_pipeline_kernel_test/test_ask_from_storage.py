@@ -2,12 +2,15 @@ from decimal import Decimal
 from typing import Tuple
 from unittest import TestCase
 
+from pydantic import BaseModel
+
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.storage_bridge import parse_condition_for_storage, PipelineVariables
 from watchmen_data_kernel.storage_bridge.ask_from_storage import ParsedStorageJoint
 from watchmen_model.admin import User, UserRole
 from watchmen_model.common import ComputedParameter, ConstantParameter, ParameterComputeType, ParameterExpression, \
 	ParameterExpressionOperator, ParameterJoint, ParameterJointType
+from watchmen_model.pipeline_kernel import PipelineMonitorLog
 from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteriaExpression, \
 	EntityCriteriaJoint, \
 	EntityCriteriaJointConjunction, EntityCriteriaOperator
@@ -159,3 +162,17 @@ class AskFromStorage(TestCase):
 		exp = EntityCriteriaExpression(left=ColumnNameLiteral(entityName='x', columnName='y'), right='1')
 		exp_dict = exp.to_dict()
 		print(exp_dict)
+
+		class X(BaseModel):
+			exp: EntityCriteriaExpression
+
+			class Config:
+				arbitrary_types_allowed = True
+
+		x = X(exp=exp)
+		x_dict = x.dict()
+		print(x_dict)
+
+		log = PipelineMonitorLog(prerequisiteDefinedAs=exp)
+		log_dict = log.dict()
+		print(log_dict)

@@ -149,7 +149,7 @@ class CompiledAlarmAction(CompiledAction):
 
 	def do_run(
 			self, variables: PipelineVariables,
-			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorLogAction,
+			new_pipeline: CreateQueuePipeline, action_monitor_log: MonitorAlarmAction,
 			storages: TopicStorages, principal_service: PrincipalService) -> bool:
 		try:
 			prerequisite = self.prerequisiteTest(variables, principal_service)
