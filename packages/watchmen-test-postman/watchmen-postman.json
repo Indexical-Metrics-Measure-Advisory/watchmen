@@ -2223,6 +2223,20 @@
             },
             {
               "name": "TOPIC UPDATE WITH CHANGE TABLE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "b94de399-803d-421b-99b8-ac292646ffdf",
+                    "exec": [
+                      "pm.test(\"Update Topic With Change Table\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "e18f07f9-60b4-4995-972b-8ba7ecfbed2e",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
