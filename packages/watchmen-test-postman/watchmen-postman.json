@@ -5647,13 +5647,50 @@
                 },
                 {
                   "name": "TRUCATE TOPIC",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "f6a713e0-dfad-4a42-a18e-313cfd4bf30d",
+                        "exec": [
+                          "pm.test(\"Trucate Topic\", () => {",
+                          "    pm.response.to.have.status(200);",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "10c3f198-d8d6-44fe-a475-4ff28d0223af",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
                   "request": {
-                    "method": "GET",
-                    "header": []
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "DELETE",
+                    "header": [],
+                    "url": {
+                      "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{TOPIC_NAME}}",
+                      "host": [
+                        "{{URL_PREFIX}}"
+                      ],
+                      "path": [
+                        "topic",
+                        "data",
+                        "truncate"
+                      ],
+                      "query": [
+                        {
+                          "key": "topic_name",
+                          "value": "{{TOPIC_NAME}}"
+                        }
+                      ]
+                    }
                   },
                   "response": []
                 },
