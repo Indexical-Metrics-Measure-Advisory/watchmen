@@ -157,5 +157,5 @@ class AskFromStorage(TestCase):
 	# noinspection PyMethodMayBeStatic
 	def test_criteria_to_dict(self):
 		exp = EntityCriteriaExpression(left=ColumnNameLiteral(entityName='x', columnName='y'), right='1')
-		exp.to_dict()
-		print(exp)
+		exp_dict = exp.to_dict()
+		print(exp_dict)
