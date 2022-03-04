@@ -752,7 +752,8 @@ class ParsedStorageMapping:
 			self, data: Dict[str, Any], parsed_factor: ParsedStorageMappingFactor,
 			original_data: Optional[Dict[str, Any]], variables: PipelineVariables,
 			principal_service: PrincipalService) -> Dict[str, Any]:
-		parsed_factor.run(data, original_data, variables, principal_service)
+		factor_name, value = parsed_factor.run(data, original_data, variables, principal_service)
+		data[factor_name] = value
 		return data
 
 
