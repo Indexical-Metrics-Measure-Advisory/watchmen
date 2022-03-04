@@ -5142,13 +5142,44 @@
                     },
                     {
                       "name": "DELETE PIPELINE",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "db443fc8-7c12-403a-a328-ca30b1343cec",
+                            "exec": [
+                              "pm.test('Delete Pipeline', () => {",
+                              "    pm.response.to.have.status(200);",
+                              "    pm.environment.unset(\"PIPELINE_ID\");",
+                              "})",
+                              ""
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "7dd13b4a-8205-4866-8c25-285588c8e628",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
                       },
                       "request": {
                         "method": "DELETE",
-                        "header": []
+                        "header": [],
+                        "url": {
+                          "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
+                          "host": [
+                            "{{URL_PREFIX}}"
+                          ],
+                          "path": [
+                            "pipeline"
+                          ],
+                          "query": [
+                            {
+                              "key": "pipeline_id",
+                              "value": "{{PIPELINE_ID}}"
+                            }
+                          ]
+                        }
                       },
                       "response": []
                     }
