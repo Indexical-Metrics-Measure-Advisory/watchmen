@@ -2,7 +2,7 @@ from datetime import datetime
 
 
 def now() -> datetime:
-	return datetime.now()
+	return datetime.now().replace(tzinfo=None)
 
 
 def spent_ms(start: datetime, end: datetime = now()) -> int:
