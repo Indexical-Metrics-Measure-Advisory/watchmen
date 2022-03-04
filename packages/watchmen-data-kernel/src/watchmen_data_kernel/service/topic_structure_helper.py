@@ -60,10 +60,7 @@ def sync_topic_structure_storage(
 		# no data source declared in original, typically no storage entity existing
 		# simply do create for new one
 		create_topic_structure(topic, principal_service)
-
-	name = beautify_name(topic)
-	original_name = beautify_name(original_topic)
-	if name != original_name:
+	elif beautify_name(topic) != beautify_name(original_topic):
 		# name changed, leave original as is
 		create_topic_structure(topic, principal_service)
 	else:

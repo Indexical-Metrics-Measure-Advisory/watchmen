@@ -29,7 +29,7 @@ def get_topic_service(principal_service: PrincipalService) -> TopicService:
 
 
 # noinspection PyUnusedLocal
-def always_true(variables: PipelineVariables) -> bool:
+def always_true(variables: PipelineVariables, principal_service: PrincipalService) -> bool:
 	return True
 
 
