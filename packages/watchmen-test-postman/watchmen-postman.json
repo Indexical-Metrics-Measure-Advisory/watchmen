@@ -5196,6 +5196,18 @@
                   "name": "COPY - TO - MEMORY",
                   "item": [
                     {
+                      "name": "UPDATE TOPIC",
+                      "id": "e191dd45-1068-47d2-9bc6-3e4a982882b1",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
+                    },
+                    {
                       "name": "COPY TO MEMORY",
                       "id": "5f3dda18-d961-43da-a669-76ac5b155af0",
                       "protocolProfileBehavior": {
@@ -5226,18 +5238,6 @@
                           }
                         },
                         "url": "{{URL_PREFIX}}/pipeline/data"
-                      },
-                      "response": []
-                    },
-                    {
-                      "name": "UPDATE TOPIC",
-                      "id": "e191dd45-1068-47d2-9bc6-3e4a982882b1",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "method": "GET",
-                        "header": []
                       },
                       "response": []
                     }
