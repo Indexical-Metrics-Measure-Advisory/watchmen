@@ -4966,7 +4966,7 @@
                             "exec": [
                               "pm.test(\"Create Pipeline For Alarm\", () => {",
                               "    pm.response.to.have.status(200);",
-                              "    const data = pm.response.body.json();",
+                              "    const data = pm.response.json();",
                               "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId);",
                               "});"
                             ],
