@@ -5291,16 +5291,6 @@
                   "name": "MERGE - ROW",
                   "item": [],
                   "id": "0a06de62-86db-4491-87b5-ab63bc4bf308"
-                },
-                {
-                  "name": "INSERT - ROW",
-                  "item": [],
-                  "id": "ec177838-0bc9-422e-bd51-fcfbf09d24b8"
-                },
-                {
-                  "name": "WRITE - FACTOR",
-                  "item": [],
-                  "id": "372da162-d10a-45ea-b796-1d8fc2a88b95"
                 }
               ],
               "id": "2a3ab96c-edbf-4460-818b-9430b336e307"
