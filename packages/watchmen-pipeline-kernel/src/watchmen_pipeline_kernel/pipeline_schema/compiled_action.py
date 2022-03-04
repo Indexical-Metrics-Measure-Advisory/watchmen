@@ -459,7 +459,7 @@ class CompiledWriteTopicAction(CompiledFindByAction):
 	def parse_mapping_row(self, action: MappingRow, principal_service: PrincipalService) -> None:
 		if not isinstance(action, ToTopic) and not isinstance(action, FromTopic):
 			raise PipelineKernelException(f'Topic not declared in action[{action.dict()}].')
-		self.parse_mapping_factors(action, action.factors, principal_service)
+		self.parse_mapping_factors(action, action.mapping, principal_service)
 
 	def parse_action(self, action: WriteTopicAction, principal_service: PrincipalService) -> None:
 		self.parse_topic_schema(action, principal_service)

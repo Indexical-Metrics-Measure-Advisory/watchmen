@@ -349,7 +349,7 @@ class StorageMySQL(TransactionalStorageSPI):
 
 
 def ask_column_name(factor: Factor) -> str:
-	return factor.name.strip().replace('.', '_').replace('-', '_').replace(' ', '_')
+	return factor.name.strip().lower().replace('.', '_').replace('-', '_').replace(' ', '_')
 
 
 def varchar_column(precision: str) -> str:

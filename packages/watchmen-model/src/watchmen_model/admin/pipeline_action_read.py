@@ -1,9 +1,16 @@
+from watchmen_model.common import construct_parameter_joint
 from .pipeline_action import AggregateArithmeticHolder, FindBy, FromFactor, FromTopic, \
 	MemoryWriter, ReadTopicActionType
 
 
 class ReadTopicAction(FromTopic, MemoryWriter, FindBy):
 	type: ReadTopicActionType
+
+	def __setattr__(self, name, value):
+		if name == 'by':
+			super().__setattr__(name, construct_parameter_joint(value))
+		else:
+			super().__setattr__(name, value)
 
 
 class ReadRowAction(ReadTopicAction):
