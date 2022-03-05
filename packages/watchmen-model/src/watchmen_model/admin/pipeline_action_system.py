@@ -1,6 +1,6 @@
 from enum import Enum
 
-from watchmen_model.common import construct_parameter_joint, ExternalWriterId, Parameter, construct_parameter
+from watchmen_model.common import construct_parameter, construct_parameter_joint, ExternalWriterId, Parameter
 from .conditional import Conditional
 from .pipeline_action import MemoryWriter, PipelineAction, SystemActionType
 
@@ -32,9 +32,7 @@ class CopyToMemoryAction(MemoryWriter):
 	source: Parameter = None
 
 	def __setattr__(self, name, value):
-		if name == 'on':
-			super().__setattr__(name, construct_parameter_joint(value))
-		elif name == 'source':
+		if name == 'source':
 			super().__setattr__(name, construct_parameter(value))
 		else:
 			super().__setattr__(name, value)
