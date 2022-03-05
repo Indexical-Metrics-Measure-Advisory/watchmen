@@ -5563,6 +5563,22 @@
                     },
                     {
                       "name": "WRITE TO EXTERNAL",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "3890ccd9-1b11-4c23-8f17-b78570b1e062",
+                            "exec": [
+                              "pm.test(\"Write TO External\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "    const data = pm.response.json()",
+                              "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId)",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "089c12d9-a6b3-4bf8-85c1-e8b84d0d15db",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
