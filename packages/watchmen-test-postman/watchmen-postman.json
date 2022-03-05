@@ -5338,6 +5338,20 @@
                     },
                     {
                       "name": "INSERT RAW",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "5e032c13-cd3a-4399-99fc-fe921a511c6d",
+                            "exec": [
+                              "pm.test(\"Inert Raw\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "7c308eca-2ce0-4ef8-9d02-3633358a8504",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
