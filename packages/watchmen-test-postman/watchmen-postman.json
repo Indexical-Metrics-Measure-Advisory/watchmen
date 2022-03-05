@@ -5543,6 +5543,7 @@
                               "    pm.response.to.have.status(200);",
                               "    const data = pm.response.json();",
                               "    pm.environment.set('EXTERNAL_WRITER_ID', data.writerId);",
+                              "    pm.environment.set('EXTERNAL_WRITER_CODE', data.writerCode);",
                               "})",
                               ""
                             ],
