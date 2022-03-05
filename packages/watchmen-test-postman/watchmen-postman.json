@@ -5532,6 +5532,15 @@
                         },
                         "method": "POST",
                         "header": [],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n    \"writerCode\": \"Test-External-Writer\",\n    \"type\": \"standard-writer\",\n    \"pat\": \"a-pat\",\n    \"url\": \"mysql://watchmen:watchmen@127.0.0.1:3306/watchmen?charset=utf8\",\n    \"tenantId\": \"1\"\n}",
+                          "options": {
+                            "raw": {
+                              "language": "json"
+                            }
+                          }
+                        },
                         "url": "{{URL_PREFIX}}/external_writer"
                       },
                       "response": []
