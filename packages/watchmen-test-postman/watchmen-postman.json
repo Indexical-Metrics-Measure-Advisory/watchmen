@@ -5526,6 +5526,7 @@
                             "id": "1565a58e-60ee-4c92-815b-441aafad021a",
                             "exec": [
                               "pm.test('Create ExternalWriter', () => {",
+                              "    pm.response.to.have.status(200);",
                               "    const data = pm.response.json();",
                               "    pm.environment.set('EXTERNAL_WRITER_ID', data.writerId);",
                               "})",
