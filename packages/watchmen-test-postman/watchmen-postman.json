@@ -5588,7 +5588,7 @@
                       "response": []
                     },
                     {
-                      "name": "New Request",
+                      "name": "EXTERNAL WRITER CREATE",
                       "id": "a4bee3d2-98a3-430a-be27-cc8031146641",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
