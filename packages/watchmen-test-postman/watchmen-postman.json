@@ -5655,7 +5655,7 @@
                         "disableBodyPruning": true
                       },
                       "request": {
-                        "method": "POST",
+                        "method": "DELETE",
                         "header": []
                       },
                       "response": []
