@@ -5679,7 +5679,7 @@
                         "disableBodyPruning": true
                       },
                       "request": {
-                        "method": "GET",
+                        "method": "DELETE",
                         "header": []
                       },
                       "response": []
