@@ -5096,6 +5096,55 @@
                         "url": "{{URL_PREFIX}}/pipeline/data"
                       },
                       "response": []
+                    },
+                    {
+                      "name": "TRUCATE TOPIC",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "ad554e1a-5f9d-4833-9611-ea342fe4c53e",
+                            "exec": [
+                              "pm.test(\"Trucate Topic\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
+                      "id": "f294c84d-a862-417c-a972-3d3a9bbd80f9",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                          "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{TOPIC_NAME}}",
+                          "host": [
+                            "{{URL_PREFIX}}"
+                          ],
+                          "path": [
+                            "topic",
+                            "data",
+                            "truncate"
+                          ],
+                          "query": [
+                            {
+                              "key": "topic_name",
+                              "value": "{{TOPIC_NAME}}"
+                            }
+                          ]
+                        }
+                      },
+                      "response": []
                     }
                   ],
                   "id": "a9bfad4a-c128-48a2-b2da-6d2bd8b533df"
@@ -5672,55 +5721,6 @@
             {
               "name": "POST - SCRIPT",
               "item": [
-                {
-                  "name": "TRUCATE TOPIC",
-                  "event": [
-                    {
-                      "listen": "test",
-                      "script": {
-                        "id": "ad554e1a-5f9d-4833-9611-ea342fe4c53e",
-                        "exec": [
-                          "pm.test(\"Trucate Topic\", () => {",
-                          "    pm.response.to.have.status(200);",
-                          "});"
-                        ],
-                        "type": "text/javascript"
-                      }
-                    }
-                  ],
-                  "id": "f294c84d-a862-417c-a972-3d3a9bbd80f9",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": {
-                        "token": "{{JWT_TOKEN}}"
-                      }
-                    },
-                    "method": "DELETE",
-                    "header": [],
-                    "url": {
-                      "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{TOPIC_NAME}}",
-                      "host": [
-                        "{{URL_PREFIX}}"
-                      ],
-                      "path": [
-                        "topic",
-                        "data",
-                        "truncate"
-                      ],
-                      "query": [
-                        {
-                          "key": "topic_name",
-                          "value": "{{TOPIC_NAME}}"
-                        }
-                      ]
-                    }
-                  },
-                  "response": []
-                },
                 {
                   "name": "TRUCATE RAW TOPIC",
                   "event": [
