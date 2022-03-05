@@ -5518,7 +5518,7 @@
                   "name": "WRITE - TO - EXTERNAL",
                   "item": [
                     {
-                      "name": "WRITE - TO - EXTERNAL",
+                      "name": "WRITE TO EXTERNAL",
                       "id": "089c12d9-a6b3-4bf8-85c1-e8b84d0d15db",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
