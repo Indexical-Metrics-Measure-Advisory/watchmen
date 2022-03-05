@@ -5833,18 +5833,6 @@
                   "name": "EXISTS",
                   "item": [],
                   "id": "50d46d81-4a5f-4477-bf38-044eb2da2115"
-                },
-                {
-                  "name": "New Request",
-                  "id": "c7f42823-c205-4e52-80f9-ab2379e1cf61",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "method": "GET",
-                    "header": []
-                  },
-                  "response": []
                 }
               ],
               "id": "78fff255-c034-448d-b7f1-62b379cf3c24"
