@@ -5519,6 +5519,22 @@
                   "item": [
                     {
                       "name": "EXTERNAL WRITER CREATE",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "1565a58e-60ee-4c92-815b-441aafad021a",
+                            "exec": [
+                              "pm.test('Create ExternalWriter', () => {",
+                              "    const data = pm.response.json();",
+                              "    pm.environment.set('EXTERNAL_WRITER_ID', data.writerId);",
+                              "})",
+                              ""
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "a4bee3d2-98a3-430a-be27-cc8031146641",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
