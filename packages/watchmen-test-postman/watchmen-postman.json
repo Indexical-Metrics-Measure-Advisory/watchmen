@@ -5063,7 +5063,7 @@
                           "script": {
                             "id": "0fc2fef1-38a5-4076-8c02-7086cf4d5b7c",
                             "exec": [
-                              "pm.test(\"Create Pipeline For Alarm\", () => {",
+                              "pm.test(\"Inert Raw\", () => {",
                               "    pm.response.to.have.status(200);",
                               "});"
                             ],
