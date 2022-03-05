@@ -5516,7 +5516,20 @@
                 },
                 {
                   "name": "WRITE - TO - EXTERNAL",
-                  "item": [],
+                  "item": [
+                    {
+                      "name": "New Request",
+                      "id": "089c12d9-a6b3-4bf8-85c1-e8b84d0d15db",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
+                    }
+                  ],
                   "id": "be0d8b5b-52f8-4b85-8e25-01fc78e5622e"
                 }
               ],
