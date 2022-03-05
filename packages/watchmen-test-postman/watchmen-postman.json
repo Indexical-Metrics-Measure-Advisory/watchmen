@@ -5096,55 +5096,6 @@
                         "url": "{{URL_PREFIX}}/pipeline/data"
                       },
                       "response": []
-                    },
-                    {
-                      "name": "DELETE PIPELINE",
-                      "event": [
-                        {
-                          "listen": "test",
-                          "script": {
-                            "id": "db443fc8-7c12-403a-a328-ca30b1343cec",
-                            "exec": [
-                              "pm.test('Delete Pipeline', () => {",
-                              "    pm.response.to.have.status(200);",
-                              "    pm.environment.unset(\"PIPELINE_ID\");",
-                              "})",
-                              ""
-                            ],
-                            "type": "text/javascript"
-                          }
-                        }
-                      ],
-                      "id": "7dd13b4a-8205-4866-8c25-285588c8e628",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "auth": {
-                          "type": "bearer",
-                          "bearer": {
-                            "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
-                          }
-                        },
-                        "method": "DELETE",
-                        "header": [],
-                        "url": {
-                          "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
-                          "host": [
-                            "{{URL_PREFIX}}"
-                          ],
-                          "path": [
-                            "pipeline"
-                          ],
-                          "query": [
-                            {
-                              "key": "pipeline_id",
-                              "value": "{{PIPELINE_ID}}"
-                            }
-                          ]
-                        }
-                      },
-                      "response": []
                     }
                   ],
                   "id": "a9bfad4a-c128-48a2-b2da-6d2bd8b533df"
@@ -5813,6 +5764,55 @@
                         {
                           "key": "topic_name",
                           "value": "{{RAW_TOPIC_NAME}}"
+                        }
+                      ]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "DELETE PIPELINE",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "db443fc8-7c12-403a-a328-ca30b1343cec",
+                        "exec": [
+                          "pm.test('Delete Pipeline', () => {",
+                          "    pm.response.to.have.status(200);",
+                          "    pm.environment.unset(\"PIPELINE_ID\");",
+                          "})",
+                          ""
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
+                  "id": "7dd13b4a-8205-4866-8c25-285588c8e628",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "DELETE",
+                    "header": [],
+                    "url": {
+                      "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
+                      "host": [
+                        "{{URL_PREFIX}}"
+                      ],
+                      "path": [
+                        "pipeline"
+                      ],
+                      "query": [
+                        {
+                          "key": "pipeline_id",
+                          "value": "{{PIPELINE_ID}}"
                         }
                       ]
                     }
