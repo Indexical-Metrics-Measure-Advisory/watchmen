@@ -5518,6 +5518,18 @@
                   "name": "WRITE - TO - EXTERNAL",
                   "item": [
                     {
+                      "name": "EXTERNAL WRITER CREATE",
+                      "id": "a4bee3d2-98a3-430a-be27-cc8031146641",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
+                    },
+                    {
                       "name": "WRITE TO EXTERNAL",
                       "id": "089c12d9-a6b3-4bf8-85c1-e8b84d0d15db",
                       "protocolProfileBehavior": {
@@ -5584,18 +5596,6 @@
                           }
                         },
                         "url": "{{URL_PREFIX}}/pipeline/data"
-                      },
-                      "response": []
-                    },
-                    {
-                      "name": "EXTERNAL WRITER CREATE",
-                      "id": "a4bee3d2-98a3-430a-be27-cc8031146641",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "method": "GET",
-                        "header": []
                       },
                       "response": []
                     }
