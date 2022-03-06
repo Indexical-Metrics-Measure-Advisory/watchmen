@@ -5926,8 +5926,9 @@
                         "disableBodyPruning": true
                       },
                       "request": {
-                        "method": "GET",
-                        "header": []
+                        "method": "POST",
+                        "header": [],
+                        "url": "{{URL_PREFIX}}/pipeline"
                       },
                       "response": []
                     }
