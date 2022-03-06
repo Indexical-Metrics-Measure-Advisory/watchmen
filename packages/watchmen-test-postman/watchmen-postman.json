@@ -6238,6 +6238,58 @@
                   "name": "READ - FACTOR",
                   "item": [
                     {
+                      "name": "PATCH TOPIC",
+                      "id": "f56116a5-54ad-4ff6-b218-7359092c74a6",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "PATCH",
+                        "header": [],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n    \"propA\": \"text\",\n    \"propB\": 100,\n    \"propC\": true,\n    \"propD\": \"2022-03-22\",\n    \"propE\": \"2022-03-22 22:39:45\"\n}",
+                          "options": {
+                            "raw": {
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{URL_PREFIX}}/topic/data/patch?topic_name={{TOPIC_NAME}}&patch_type=insert&tenant_id=1",
+                          "host": [
+                            "{{URL_PREFIX}}"
+                          ],
+                          "path": [
+                            "topic",
+                            "data",
+                            "patch"
+                          ],
+                          "query": [
+                            {
+                              "key": "topic_name",
+                              "value": "{{TOPIC_NAME}}"
+                            },
+                            {
+                              "key": "patch_type",
+                              "value": "insert"
+                            },
+                            {
+                              "key": "tenant_id",
+                              "value": "1"
+                            }
+                          ]
+                        }
+                      },
+                      "response": []
+                    },
+                    {
                       "name": "READ FACTOR",
                       "event": [
                         {
@@ -6305,58 +6357,6 @@
                           }
                         },
                         "url": "{{URL_PREFIX}}/pipeline/data"
-                      },
-                      "response": []
-                    },
-                    {
-                      "name": "PATCH TOPIC",
-                      "id": "f56116a5-54ad-4ff6-b218-7359092c74a6",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "auth": {
-                          "type": "bearer",
-                          "bearer": {
-                            "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
-                          }
-                        },
-                        "method": "PATCH",
-                        "header": [],
-                        "body": {
-                          "mode": "raw",
-                          "raw": "{\n    \"propA\": \"text\",\n    \"propB\": 100,\n    \"propC\": true,\n    \"propD\": \"2022-03-22\",\n    \"propE\": \"2022-03-22 22:39:45\"\n}",
-                          "options": {
-                            "raw": {
-                              "language": "json"
-                            }
-                          }
-                        },
-                        "url": {
-                          "raw": "{{URL_PREFIX}}/topic/data/patch?topic_name={{TOPIC_NAME}}&patch_type=insert&tenant_id=1",
-                          "host": [
-                            "{{URL_PREFIX}}"
-                          ],
-                          "path": [
-                            "topic",
-                            "data",
-                            "patch"
-                          ],
-                          "query": [
-                            {
-                              "key": "topic_name",
-                              "value": "{{TOPIC_NAME}}"
-                            },
-                            {
-                              "key": "patch_type",
-                              "value": "insert"
-                            },
-                            {
-                              "key": "tenant_id",
-                              "value": "1"
-                            }
-                          ]
-                        }
                       },
                       "response": []
                     }
