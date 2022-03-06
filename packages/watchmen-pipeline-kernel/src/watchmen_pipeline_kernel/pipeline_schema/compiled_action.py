@@ -347,7 +347,7 @@ class CompiledReadTopicFactorAction(CompiledReadTopicAction):
 	def parse_action(
 			self, action: Union[ReadFactorAction, ReadFactorsAction], principal_service: PrincipalService) -> None:
 		super().parse_action(action, principal_service)
-		factor_id = action.factor_id
+		factor_id = action.factorId
 		if is_blank(factor_id):
 			raise PipelineKernelException(f'Factor not declared in read factor(s) action.')
 		topic = self.schema.get_topic()
