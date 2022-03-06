@@ -41,7 +41,7 @@ class CompiledUnit(CompiledSingleUnit):
 			if loop_variable_value is None:
 				# no value or it is none, run once
 				return self.do_run(
-					variables=clone_variables(variables), new_pipeline=new_pipeline,
+					variables=clone_variables(loop_variable_value), new_pipeline=new_pipeline,
 					stage_monitor_log=stage_monitor_log, storages=storages, principal_service=principal_service)
 			elif isinstance(loop_variable_value, list):
 				# a list, run for each element
@@ -64,7 +64,7 @@ class CompiledUnit(CompiledSingleUnit):
 			else:
 				# not a list, run once
 				return self.do_run(
-					variables=clone_variables(variables), new_pipeline=new_pipeline,
+					variables=clone_variables(loop_variable_value), new_pipeline=new_pipeline,
 					stage_monitor_log=stage_monitor_log,
 					storages=storages, principal_service=principal_service)
 		else:

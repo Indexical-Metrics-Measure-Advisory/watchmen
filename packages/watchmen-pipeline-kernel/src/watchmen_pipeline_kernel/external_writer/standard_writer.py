@@ -10,7 +10,7 @@ logger = getLogger(__name__)
 
 class StandardExternalWriter(ExternalWriter):
 	# noinspection PyMethodMayBeStatic
-	async def do_run(self, params: ExternalWriterParams) -> None:
+	def do_run(self, params: ExternalWriterParams) -> None:
 		previous_data = params.previousData
 		current_data = params.currentData
 		if previous_data is None and current_data is not None:
