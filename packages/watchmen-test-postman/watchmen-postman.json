@@ -6961,6 +6961,18 @@
                     }
                   },
                   "response": []
+                },
+                {
+                  "name": "New Request",
+                  "id": "76f928f3-eb3e-4925-a88a-2b20d9fbceee",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
                 }
               ],
               "id": "89572f62-7c88-48f3-828e-060cf8855a2e"
