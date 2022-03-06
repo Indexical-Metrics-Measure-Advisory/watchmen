@@ -5832,6 +5832,9 @@
                             "exec": [
                               "pm.test(\"Create Read Topic\", () => {",
                               "    pm.response.to.have.status(200);",
+                              "    var data = pm.response.json();",
+                              "    pm.environment.set('READ_TOPIC_ID', data.topicId)",
+                              "    pm.environment.set('READ_TOPIC_NAME', data.name)",
                               "});"
                             ],
                             "type": "text/javascript"
