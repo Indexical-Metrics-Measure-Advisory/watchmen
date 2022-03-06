@@ -1,10 +1,4 @@
-from watchmen_data_kernel.external_writer import register_external_writer_create
-from watchmen_model.system import ExternalWriterType
 from .elastic_search_writer import create_elastic_search_writer, ElasticSearchExternalWriter, \
 	register_elastic_search_writer
-from .prebuilt_writers import find_elastic_search, find_standard
+from .prebuilt_writers import init_elastic_search_external_writer, init_standard_external_writer
 from .standard_writer import create_standard_writer, register_standard_writer, StandardExternalWriter
-
-# register default
-register_external_writer_create(ExternalWriterType.STANDARD_WRITER, find_standard())
-register_external_writer_create(ExternalWriterType.ELASTIC_SEARCH_WRITER, find_elastic_search())
