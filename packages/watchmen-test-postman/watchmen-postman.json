@@ -6898,6 +6898,18 @@
                     "url": "{{URL_PREFIX}}/pipeline"
                   },
                   "response": []
+                },
+                {
+                  "name": "New Request",
+                  "id": "cbc5a211-b892-4f72-a2ec-59996f34c31b",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
                 }
               ],
               "id": "89572f62-7c88-48f3-828e-060cf8855a2e"
