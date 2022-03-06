@@ -7035,7 +7035,20 @@
             },
             {
               "name": "READ - FACTORS",
-              "item": [],
+              "item": [
+                {
+                  "name": "New Request",
+                  "id": "6efda758-1452-435e-9ee7-0c6f1cb54133",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
+                }
+              ],
               "id": "e5a31610-54da-4044-8d48-ea1c74343614"
             },
             {
