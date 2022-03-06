@@ -6589,6 +6589,21 @@
                   "item": [
                     {
                       "name": "WRITE FACTOR",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "ede95c3e-c1ec-4786-bf40-a6ca4e384530",
+                            "exec": [
+                              "pm.test(\"Write Factor\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId)",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "58ead5ac-6ce8-4c60-a8f6-c2eaa30b9754",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
