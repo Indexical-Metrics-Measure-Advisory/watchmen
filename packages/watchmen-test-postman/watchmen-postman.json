@@ -6355,6 +6355,18 @@
                         "header": []
                       },
                       "response": []
+                    },
+                    {
+                      "name": "New Request",
+                      "id": "062b7446-2ceb-4892-9d75-bc148d5d85b2",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
                     }
                   ],
                   "id": "50d46d81-4a5f-4477-bf38-044eb2da2115"
@@ -6594,6 +6606,18 @@
                   },
                   "request": {
                     "method": "DELETE",
+                    "header": []
+                  },
+                  "response": []
+                },
+                {
+                  "name": "New Request",
+                  "id": "062b7446-2ceb-4892-9d75-bc148d5d85b2",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
                     "header": []
                   },
                   "response": []
