@@ -6333,7 +6333,7 @@
                       "response": []
                     },
                     {
-                      "name": "New Request",
+                      "name": "TRUCATE TOPIC",
                       "id": "ce81ee97-12ec-4bce-a39c-a6ac4a5c4497",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
@@ -6563,7 +6563,7 @@
                   "response": []
                 },
                 {
-                  "name": "New Request",
+                  "name": "TRUCATE TOPIC",
                   "id": "ce81ee97-12ec-4bce-a39c-a6ac4a5c4497",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
