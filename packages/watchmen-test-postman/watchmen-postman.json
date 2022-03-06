@@ -5964,7 +5964,7 @@
                         "header": [],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\n    \"propA\": \"text2\",\n    \"propB\": 100,\n    \"propC\": false,\n    \"propD\": \"2022-03-23\",\n    \"propE\": \"2022-03-23 22:39:45\"\n}",
+                          "raw": "{\n    \"propA\": \"text2\",\n    \"propB\": 200,\n    \"propC\": false,\n    \"propD\": \"2022-03-23\",\n    \"propE\": \"2022-03-23 22:39:45\"\n}",
                           "options": {
                             "raw": {
                               "language": "json"
