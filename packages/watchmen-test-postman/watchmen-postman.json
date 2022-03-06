@@ -6855,7 +6855,7 @@
               "name": "READ - ROWS",
               "item": [
                 {
-                  "name": "New Request",
+                  "name": "READ ROWS",
                   "id": "fcf9c88a-5a1a-4d24-b29e-1b37045eb257",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
