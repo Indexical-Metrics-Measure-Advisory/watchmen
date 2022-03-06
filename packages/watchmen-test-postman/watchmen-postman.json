@@ -6857,12 +6857,34 @@
               "item": [
                 {
                   "name": "READ ROWS",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "ef6559bb-2f9d-4a00-8d91-9d59eb1b15cc",
+                        "exec": [
+                          "pm.test(\"Read Row\", () => {",
+                          "    pm.response.to.have.status(200);",
+                          "    const data = pm.response.json();",
+                          "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId);",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "fcf9c88a-5a1a-4d24-b29e-1b37045eb257",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
                   "request": {
-                    "method": "GET",
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "POST",
                     "header": [],
                     "body": {
                       "mode": "raw",
@@ -6872,7 +6894,8 @@
                           "language": "json"
                         }
                       }
-                    }
+                    },
+                    "url": "{{URL_PREFIX}}/pipeline"
                   },
                   "response": []
                 }
