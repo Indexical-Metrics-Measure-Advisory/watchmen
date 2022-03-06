@@ -6236,7 +6236,20 @@
                 },
                 {
                   "name": "READ - FACTOR",
-                  "item": [],
+                  "item": [
+                    {
+                      "name": "New Request",
+                      "id": "a58bbc54-8738-4aac-920c-76e4608416ec",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
+                    }
+                  ],
                   "id": "931e3229-7e86-4a11-96a2-7ddd84aca9f0"
                 },
                 {
