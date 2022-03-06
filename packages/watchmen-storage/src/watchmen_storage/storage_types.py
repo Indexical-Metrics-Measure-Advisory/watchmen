@@ -155,13 +155,6 @@ class EntityStraightColumn(DataModel):
 	alias: Optional[EntityColumnName]  # alias name
 
 
-class EntityStraightTextColumn(EntityStraightColumn):
-	"""
-	a text based straight column, text will be parsed, passed to, computed by storage and finally returns by given name
-	"""
-	text: str
-
-
 class EntityColumnAggregateArithmetic(str, Enum):
 	COUNT = 'count',
 	SUM = 'sum',

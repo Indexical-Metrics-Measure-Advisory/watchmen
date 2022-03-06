@@ -12,7 +12,7 @@ from watchmen_data_kernel.storage_bridge import now, parse_prerequisite_defined_
 	PipelineVariables, spent_ms
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_meta.common import ask_snowflake_generator
-from watchmen_model.admin import Pipeline, PipelineTriggerType, TopicKind
+from watchmen_model.admin import Pipeline, PipelineTriggerType
 from watchmen_model.pipeline_kernel import MonitorLogStatus, PipelineMonitorLog, PipelineTriggerTraceId
 from watchmen_pipeline_kernel.common import ask_async_handle_monitor_log, PipelineKernelException
 from watchmen_pipeline_kernel.pipeline_schema_interface import CompiledPipeline, PipelineContext, TopicStorages
