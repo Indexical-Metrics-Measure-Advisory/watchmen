@@ -6308,11 +6308,32 @@
                   "item": [
                     {
                       "name": "EXISTS",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "94a5c974-08c5-4ff6-831a-a829cd110206",
+                            "exec": [
+                              "pm.test(\"Exists\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId)",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "d3f5fd17-825c-44b4-ada7-e88526d4021e",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
                       },
                       "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                          }
+                        },
                         "method": "POST",
                         "header": [],
                         "body": {
@@ -6571,11 +6592,32 @@
               "item": [
                 {
                   "name": "EXISTS",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "94a5c974-08c5-4ff6-831a-a829cd110206",
+                        "exec": [
+                          "pm.test(\"Exists\", () => {",
+                          "    pm.response.to.have.status(200);",
+                          "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId)",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "d3f5fd17-825c-44b4-ada7-e88526d4021e",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
                   "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                      }
+                    },
                     "method": "POST",
                     "header": [],
                     "body": {
