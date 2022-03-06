@@ -6347,6 +6347,8 @@
                         "exec": [
                           "pm.test(\"Create Pipeline For Insert Or Merge\", () => {",
                           "    pm.response.to.have.status(200);",
+                          "    const data = pm.response.json();",
+                          "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId);",
                           "});"
                         ],
                         "type": "text/javascript"
