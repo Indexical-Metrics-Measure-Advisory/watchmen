@@ -5880,7 +5880,7 @@
                             "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
                           }
                         },
-                        "method": "POST",
+                        "method": "PATCH",
                         "header": [],
                         "body": {
                           "mode": "raw",
@@ -5892,7 +5892,7 @@
                           }
                         },
                         "url": {
-                          "raw": "{{URL_PREFIX}}/topic/data/patch?topic_name&patch_type&tenant_id",
+                          "raw": "{{URL_PREFIX}}/topic/data/patch?topic_name={{READ_TOPIC_NAME}}&patch_type=insert&tenant_id=1",
                           "host": [
                             "{{URL_PREFIX}}"
                           ],
@@ -5904,18 +5904,15 @@
                           "query": [
                             {
                               "key": "topic_name",
-                              "value": null,
-                              "type": "text"
+                              "value": "{{READ_TOPIC_NAME}}"
                             },
                             {
                               "key": "patch_type",
-                              "value": null,
-                              "type": "text"
+                              "value": "insert"
                             },
                             {
                               "key": "tenant_id",
-                              "value": null,
-                              "type": "text"
+                              "value": "1"
                             }
                           ]
                         }
