@@ -7081,7 +7081,7 @@
                   "response": []
                 },
                 {
-                  "name": "New Request",
+                  "name": "INSERT ROW",
                   "id": "330e9450-0418-4f22-9cd2-945b014a6c31",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
