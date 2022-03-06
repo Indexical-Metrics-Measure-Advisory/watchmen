@@ -1,4 +1,4 @@
 from .elastic_search_writer import create_elastic_search_writer, ElasticSearchExternalWriter, \
 	register_elastic_search_writer
-from .prebuilt_writers import init_elastic_search_external_writer, init_standard_external_writer
+from .prebuilt_writers import register_elastic_search_external_writer, register_standard_external_writer
 from .standard_writer import create_standard_writer, register_standard_writer, StandardExternalWriter
