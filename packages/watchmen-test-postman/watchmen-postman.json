@@ -7037,7 +7037,7 @@
               "name": "READ - FACTORS",
               "item": [
                 {
-                  "name": "New Request",
+                  "name": "READ FACTORS",
                   "id": "6efda758-1452-435e-9ee7-0c6f1cb54133",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
