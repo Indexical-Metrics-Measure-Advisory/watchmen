@@ -5934,6 +5934,18 @@
                       "response": []
                     },
                     {
+                      "name": "PATCH READ TOPIC2",
+                      "id": "a0e5ef41-1f44-4728-b0bc-bd395aec228b",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
+                    },
+                    {
                       "name": "READ ROW",
                       "event": [
                         {
@@ -6000,18 +6012,6 @@
                           }
                         },
                         "url": "{{URL_PREFIX}}/pipeline/data"
-                      },
-                      "response": []
-                    },
-                    {
-                      "name": "PATCH READ TOPIC2",
-                      "id": "a0e5ef41-1f44-4728-b0bc-bd395aec228b",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "method": "GET",
-                        "header": []
                       },
                       "response": []
                     }
