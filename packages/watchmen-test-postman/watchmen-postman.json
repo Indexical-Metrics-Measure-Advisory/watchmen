@@ -6266,7 +6266,7 @@
                       "response": []
                     },
                     {
-                      "name": "New Request",
+                      "name": "INSERT ROW",
                       "id": "59346b98-ec62-4481-b2e0-398fa6d65321",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
