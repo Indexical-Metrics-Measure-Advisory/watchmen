@@ -5823,72 +5823,6 @@
                   "name": "READ - ROW",
                   "item": [
                     {
-                      "name": "PATCH READ TOPIC2",
-                      "event": [
-                        {
-                          "listen": "test",
-                          "script": {
-                            "id": "a2885187-2dc4-4a7c-a84b-7435b17fa22e",
-                            "exec": [
-                              "pm.test(\"Patch Read Topic2\", () => {",
-                              "    pm.response.to.have.status(200);",
-                              "});"
-                            ],
-                            "type": "text/javascript"
-                          }
-                        }
-                      ],
-                      "id": "a0e5ef41-1f44-4728-b0bc-bd395aec228b",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "auth": {
-                          "type": "bearer",
-                          "bearer": {
-                            "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
-                          }
-                        },
-                        "method": "PATCH",
-                        "header": [],
-                        "body": {
-                          "mode": "raw",
-                          "raw": "{\n    \"propA\": \"text2\",\n    \"propB\": 200,\n    \"propC\": false,\n    \"propD\": \"2022-03-22\",\n    \"propE\": \"2022-03-22 22:39:45\"\n}",
-                          "options": {
-                            "raw": {
-                              "language": "json"
-                            }
-                          }
-                        },
-                        "url": {
-                          "raw": "{{URL_PREFIX}}/topic/data/patch?topic_name={{READ_TOPIC_NAME}}&patch_type=insert&tenant_id=1",
-                          "host": [
-                            "{{URL_PREFIX}}"
-                          ],
-                          "path": [
-                            "topic",
-                            "data",
-                            "patch"
-                          ],
-                          "query": [
-                            {
-                              "key": "topic_name",
-                              "value": "{{READ_TOPIC_NAME}}"
-                            },
-                            {
-                              "key": "patch_type",
-                              "value": "insert"
-                            },
-                            {
-                              "key": "tenant_id",
-                              "value": "1"
-                            }
-                          ]
-                        }
-                      },
-                      "response": []
-                    },
-                    {
                       "name": "READ ROW",
                       "event": [
                         {
@@ -6481,6 +6415,72 @@
                         "body": {
                           "mode": "raw",
                           "raw": "{\n    \"propA\": \"text1\",\n    \"propB\": 100,\n    \"propC\": true,\n    \"propD\": \"2022-03-22\",\n    \"propE\": \"2022-03-22 22:39:45\"\n}",
+                          "options": {
+                            "raw": {
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{URL_PREFIX}}/topic/data/patch?topic_name={{READ_TOPIC_NAME}}&patch_type=insert&tenant_id=1",
+                          "host": [
+                            "{{URL_PREFIX}}"
+                          ],
+                          "path": [
+                            "topic",
+                            "data",
+                            "patch"
+                          ],
+                          "query": [
+                            {
+                              "key": "topic_name",
+                              "value": "{{READ_TOPIC_NAME}}"
+                            },
+                            {
+                              "key": "patch_type",
+                              "value": "insert"
+                            },
+                            {
+                              "key": "tenant_id",
+                              "value": "1"
+                            }
+                          ]
+                        }
+                      },
+                      "response": []
+                    },
+                    {
+                      "name": "PATCH READ TOPIC2",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "a2885187-2dc4-4a7c-a84b-7435b17fa22e",
+                            "exec": [
+                              "pm.test(\"Patch Read Topic2\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
+                      "id": "a0e5ef41-1f44-4728-b0bc-bd395aec228b",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "PATCH",
+                        "header": [],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n    \"propA\": \"text2\",\n    \"propB\": 200,\n    \"propC\": false,\n    \"propD\": \"2022-03-22\",\n    \"propE\": \"2022-03-22 22:39:45\"\n}",
                           "options": {
                             "raw": {
                               "language": "json"
