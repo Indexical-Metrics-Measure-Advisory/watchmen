@@ -6331,6 +6331,18 @@
                         "url": "{{URL_PREFIX}}/pipeline/data"
                       },
                       "response": []
+                    },
+                    {
+                      "name": "New Request",
+                      "id": "ce81ee97-12ec-4bce-a39c-a6ac4a5c4497",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
                     }
                   ],
                   "id": "50d46d81-4a5f-4477-bf38-044eb2da2115"
@@ -6547,6 +6559,18 @@
                     "method": "POST",
                     "header": [],
                     "url": "{{URL_PREFIX}}/pipeline/data"
+                  },
+                  "response": []
+                },
+                {
+                  "name": "New Request",
+                  "id": "ce81ee97-12ec-4bce-a39c-a6ac4a5c4497",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
                   },
                   "response": []
                 }
