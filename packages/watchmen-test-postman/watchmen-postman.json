@@ -5832,6 +5832,7 @@
                             "exec": [
                               "pm.test(\"Read Row\", () => {",
                               "    pm.response.to.have.status(200);",
+                              "    const data = pm.response.json();",
                               "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId)",
                               "});"
                             ],
