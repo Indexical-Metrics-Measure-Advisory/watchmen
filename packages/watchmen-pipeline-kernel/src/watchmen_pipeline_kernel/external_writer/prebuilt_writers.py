@@ -1,19 +1,20 @@
-from watchmen_data_kernel.external_writer import CreateExternalWriterBuilder
-from watchmen_pipeline_kernel.common import ask_elastic_search_external_writer_enabled, \
-	ask_standard_external_writer_enabled, PipelineKernelException
+from watchmen_data_kernel.external_writer import CreateExternalWriterBuilder, register_external_writer_create
+from watchmen_model.system import ExternalWriterType
 
 
 def find_standard() -> CreateExternalWriterBuilder:
-	if ask_standard_external_writer_enabled():
-		from .standard_writer import register_standard_writer
-		return register_standard_writer
-	else:
-		raise PipelineKernelException(f'Standard external writer is turned off now.')
+	from .standard_writer import register_standard_writer
+	return register_standard_writer
+
+
+def init_standard_external_writer() -> None:
+	register_external_writer_create(ExternalWriterType.STANDARD_WRITER, find_standard())
 
 
 def find_elastic_search() -> CreateExternalWriterBuilder:
-	if ask_elastic_search_external_writer_enabled():
-		from .elastic_search_writer import register_elastic_search_writer
-		return register_elastic_search_writer
-	else:
-		raise PipelineKernelException(f'Elastic search external writer is turned off now.')
+	from .elastic_search_writer import register_elastic_search_writer
+	return register_elastic_search_writer
+
+
+def init_elastic_search_external_writer() -> None:
+	register_external_writer_create(ExternalWriterType.ELASTIC_SEARCH_WRITER, find_elastic_search())
