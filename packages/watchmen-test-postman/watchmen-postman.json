@@ -6484,7 +6484,7 @@
                   "name": "EXISTS",
                   "item": [
                     {
-                      "name": "New Request",
+                      "name": "EXISTS",
                       "id": "d3f5fd17-825c-44b4-ada7-e88526d4021e",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
@@ -6505,7 +6505,7 @@
               "name": "EXISTS",
               "item": [
                 {
-                  "name": "New Request",
+                  "name": "EXISTS",
                   "id": "d3f5fd17-825c-44b4-ada7-e88526d4021e",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
