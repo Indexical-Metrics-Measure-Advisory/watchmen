@@ -6004,7 +6004,7 @@
                       "response": []
                     },
                     {
-                      "name": "New Request",
+                      "name": "PATCH READ TOPIC2",
                       "id": "a0e5ef41-1f44-4728-b0bc-bd395aec228b",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
