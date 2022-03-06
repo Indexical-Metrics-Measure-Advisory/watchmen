@@ -6043,6 +6043,20 @@
                     },
                     {
                       "name": "INSERT ROW",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "4891fc44-73ea-4311-9885-8554a19bd9db",
+                            "exec": [
+                              "pm.test(\"Inert Raw\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "e6c5a5c4-038a-4432-87ea-d51518922b67",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
@@ -6058,7 +6072,7 @@
                         "header": [],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\n    \"code\": \"Test_Raw_Topic\",\n    \"data\": {\n        \"propA\": \"text\",\n        \"propB\": 100,\n        \"propC\": true,\n        \"propD\": \"2022-03-22\",\n        \"propE\": \"2022-03-22 22:39:45\"\n    }\n}",
+                          "raw": "{\n    \"code\": \"Test_Raw_Topic\",\n    \"data\": {\n        \"propA\": \"text3\",\n        \"propB\": 100,\n        \"propC\": true,\n        \"propD\": \"2022-03-22\",\n        \"propE\": \"2022-03-22 22:39:45\"\n    }\n}",
                           "options": {
                             "raw": {
                               "language": "json"
