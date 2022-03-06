@@ -5935,6 +5935,20 @@
                     },
                     {
                       "name": "READ ROW",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "469c904d-a85c-428d-bf4f-d6ce20094bee",
+                            "exec": [
+                              "pm.test(\"Read Row\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "ae94ca80-429b-42b9-8d5d-abbc2f1779ef",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
