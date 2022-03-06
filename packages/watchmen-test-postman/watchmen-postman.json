@@ -7038,6 +7038,22 @@
               "item": [
                 {
                   "name": "READ FACTORS",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "9a482bdd-bb0d-4823-a1a2-4d50ec8f6f67",
+                        "exec": [
+                          "pm.test(\"Read Row\", () => {",
+                          "    pm.response.to.have.status(200);",
+                          "    const data = pm.response.json();",
+                          "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId);",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "6efda758-1452-435e-9ee7-0c6f1cb54133",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
