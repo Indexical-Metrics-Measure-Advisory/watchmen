@@ -6663,18 +6663,6 @@
                         }
                       },
                       "response": []
-                    },
-                    {
-                      "name": "PATCH READ",
-                      "id": "9568a1b4-06fe-4bc4-8213-a7c78012bac3",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "method": "GET",
-                        "header": []
-                      },
-                      "response": []
                     }
                   ],
                   "id": "bbe4c170-2521-4dba-b095-4407c1e6e609"
