@@ -61,7 +61,16 @@ def cast_value_for_factor(value: Any, factor: Factor) -> Any:
 				f'Value[{value}, type={type(value)}] is incompatible with '
 				f'factor[name={factor.name}, type={factor_type}].')
 	elif factor_type == FactorType.FULL_DATETIME:
-		parsed, date_value = is_date(value, ask_full_datetime_formats())
+		if isinstance(value, datetime):
+			return value
+		if isinstance(value, date):
+			return datetime(year=value.year, month=value.month, day=value.day)
+		if isinstance(value, time):
+			raise DataKernelException(
+				f'Value[{value}, type={type(value)}] is incompatible with '
+				f'factor[name={factor.name}, type={factor_type}].')
+
+		parsed, date_value = is_date(str(value), ask_full_datetime_formats())
 		if parsed:
 			return date_value
 		else:
@@ -69,7 +78,16 @@ def cast_value_for_factor(value: Any, factor: Factor) -> Any:
 				f'Value[{value}, type={type(value)}] is incompatible with '
 				f'factor[name={factor.name}, type={factor_type}].')
 	elif factor_type == FactorType.DATETIME:
-		parsed, date_value = is_date(value, ask_all_date_formats())
+		if isinstance(value, datetime):
+			return value
+		if isinstance(value, date):
+			return datetime(year=value.year, month=value.month, day=value.day)
+		if isinstance(value, time):
+			raise DataKernelException(
+				f'Value[{value}, type={type(value)}] is incompatible with '
+				f'factor[name={factor.name}, type={factor_type}].')
+
+		parsed, date_value = is_date(str(value), ask_all_date_formats())
 		if parsed:
 			return date_value
 		else:
@@ -79,6 +97,15 @@ def cast_value_for_factor(value: Any, factor: Factor) -> Any:
 	elif factor_type in [
 		FactorType.DATE, FactorType.DATE_OF_BIRTH
 	]:
+		if isinstance(value, datetime):
+			return value.date()
+		if isinstance(value, date):
+			return value
+		if isinstance(value, time):
+			raise DataKernelException(
+				f'Value[{value}, type={type(value)}] is incompatible with '
+				f'factor[name={factor.name}, type={factor_type}].')
+
 		parsed, date_value = is_date(value, ask_all_date_formats())
 		if parsed:
 			if isinstance(date_value, datetime):
@@ -90,6 +117,15 @@ def cast_value_for_factor(value: Any, factor: Factor) -> Any:
 				f'Value[{value}, type={type(value)}] is incompatible with '
 				f'factor[name={factor.name}, type={factor_type}].')
 	elif factor_type == FactorType.TIME:
+		if isinstance(value, datetime):
+			return value.time()
+		if isinstance(value, date):
+			raise DataKernelException(
+				f'Value[{value}, type={type(value)}] is incompatible with '
+				f'factor[name={factor.name}, type={factor_type}].')
+		if isinstance(value, time):
+			return value
+
 		parsed, time_value = is_time(value, ask_time_formats())
 		if parsed:
 			return time_value

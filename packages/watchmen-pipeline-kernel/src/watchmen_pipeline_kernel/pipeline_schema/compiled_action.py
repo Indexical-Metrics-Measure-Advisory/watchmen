@@ -233,7 +233,7 @@ class CompiledWriteToExternalAction(CompiledAction):
 		external_writer = get_external_writer_service(principal_service).find_by_id(writer_id)
 		if external_writer is None:
 			raise PipelineKernelException(f'External writer[id={writer_id}] not found.')
-		code = external_writer.code
+		code = external_writer.writerCode
 		create = ask_external_writer_creator(code)
 		if create is None:
 			raise PipelineKernelException(f'Cannot find external writer[code={code}] creator.')
