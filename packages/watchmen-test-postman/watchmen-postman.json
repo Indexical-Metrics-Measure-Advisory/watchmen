@@ -6316,7 +6316,8 @@
                             "exec": [
                               "pm.test(\"Exists\", () => {",
                               "    pm.response.to.have.status(200);",
-                              "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId)",
+                              "    const data = pm.response.json();",
+                              "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId);",
                               "});"
                             ],
                             "type": "text/javascript"
@@ -6682,7 +6683,8 @@
                         "exec": [
                           "pm.test(\"Exists\", () => {",
                           "    pm.response.to.have.status(200);",
-                          "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId)",
+                          "    const data = pm.response.json();",
+                          "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId);",
                           "});"
                         ],
                         "type": "text/javascript"
