@@ -6853,7 +6853,20 @@
             },
             {
               "name": "READ - ROWS",
-              "item": [],
+              "item": [
+                {
+                  "name": "New Request",
+                  "id": "fcf9c88a-5a1a-4d24-b29e-1b37045eb257",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
+                }
+              ],
               "id": "89572f62-7c88-48f3-828e-060cf8855a2e"
             },
             {
