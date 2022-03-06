@@ -6085,6 +6085,20 @@
                     },
                     {
                       "name": "TRUCATE TOPIC",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "5128efba-3f74-4795-9e1d-a90f3ac64696",
+                            "exec": [
+                              "pm.test(\"Trucate Topic\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "ffccd255-20d5-4bf1-b29b-59abf26a9330",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
