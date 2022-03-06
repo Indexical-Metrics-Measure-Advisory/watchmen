@@ -5935,6 +5935,20 @@
                     },
                     {
                       "name": "PATCH READ TOPIC2",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "a2885187-2dc4-4a7c-a84b-7435b17fa22e",
+                            "exec": [
+                              "pm.test(\"Patch Read Topic2\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "a0e5ef41-1f44-4728-b0bc-bd395aec228b",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
