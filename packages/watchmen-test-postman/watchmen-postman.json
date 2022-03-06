@@ -6363,7 +6363,7 @@
                         "disableBodyPruning": true
                       },
                       "request": {
-                        "method": "GET",
+                        "method": "DELETE",
                         "header": []
                       },
                       "response": []
@@ -6617,7 +6617,7 @@
                     "disableBodyPruning": true
                   },
                   "request": {
-                    "method": "GET",
+                    "method": "DELETE",
                     "header": []
                   },
                   "response": []
