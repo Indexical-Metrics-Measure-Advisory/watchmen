@@ -7,7 +7,7 @@ def find_standard() -> CreateExternalWriterBuilder:
 	return register_standard_writer
 
 
-def init_standard_external_writer() -> None:
+def register_standard_external_writer() -> None:
 	register_external_writer_create(ExternalWriterType.STANDARD_WRITER, find_standard())
 
 
@@ -16,5 +16,5 @@ def find_elastic_search() -> CreateExternalWriterBuilder:
 	return register_elastic_search_writer
 
 
-def init_elastic_search_external_writer() -> None:
+def register_elastic_search_external_writer() -> None:
 	register_external_writer_create(ExternalWriterType.ELASTIC_SEARCH_WRITER, find_elastic_search())
