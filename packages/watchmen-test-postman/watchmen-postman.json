@@ -6573,7 +6573,7 @@
                   "name": "WRITE - FACTOR",
                   "item": [
                     {
-                      "name": "New Request",
+                      "name": "WRITE FACTOR",
                       "id": "58ead5ac-6ce8-4c60-a8f6-c2eaa30b9754",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
