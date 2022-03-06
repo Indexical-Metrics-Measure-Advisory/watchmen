@@ -5898,7 +5898,7 @@
                         "header": [],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\n    \"propA\": \"text\",\n    \"propB\": 100,\n    \"propC\": true,\n    \"propD\": \"2022-03-22\",\n    \"propE\": \"2022-03-22 22:39:45\"\n}",
+                          "raw": "{\n    \"propA\": \"text1\",\n    \"propB\": 100,\n    \"propC\": true,\n    \"propD\": \"2022-03-22\",\n    \"propE\": \"2022-03-22 22:39:45\"\n}",
                           "options": {
                             "raw": {
                               "language": "json"
@@ -6236,7 +6236,64 @@
                 },
                 {
                   "name": "READ - FACTOR",
-                  "item": [],
+                  "item": [
+                    {
+                      "name": "READ FACTOR",
+                      "id": "a58bbc54-8738-4aac-920c-76e4608416ec",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n    \"topicId\": \"{{RAW_TOPIC_ID}}\",\n    \"name\": \"Test Read Row\",\n    \"type\": \"insert-or-merge\",\n    \"stages\": [\n        {\n            \"stageId\": \"f-1\",\n            \"name\": \"Stage 1\",\n            \"units\": [\n                {\n                    \"unitId\": \"f-2\",\n                    \"name\": \"Unit 1.1\",\n                    \"do\": [\n                        {\n                            \"actionId\": \"f-3\",\n                            \"type\": \"read-factor\",\n                            \"topicId\": \"{{READ_TOPIC_ID}}\",\n                            \"factorId\": \"4\",\n                            \"variableName\": \"loop_list\",\n                            \"by\": {\n                                \"jointType\": \"and\",\n                                \"filters\": [\n                                    {\n                                        \"left\": {\n                                            \"kind\": \"topic\",\n                                            \"topicId\": \"{{READ_TOPIC_ID}}\",\n                                            \"factorId\": \"3\"\n                                        },\n                                        \"operator\": \"equals\",\n                                        \"right\": {\n                                            \"kind\": \"constant\",\n                                            \"value\": \"1\"\n                                        }\n                                    }\n                                ]\n                            }\n                        }\n                    ]\n                }\n            ]\n        }\n    ],\n    \"enabled\": true,\n    \"validated\": true\n}",
+                          "options": {
+                            "raw": {
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": "{{URL_PREFIX}}/pipeline"
+                      },
+                      "response": []
+                    },
+                    {
+                      "name": "INSERT ROW",
+                      "id": "59346b98-ec62-4481-b2e0-398fa6d65321",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n    \"code\": \"Test_Raw_Topic\",\n    \"data\": {\n        \"propA\": \"text\",\n        \"propB\": 100,\n        \"propC\": true,\n        \"propD\": \"2022-03-22\",\n        \"propE\": \"2022-03-22 22:39:45\"\n    }\n}",
+                          "options": {
+                            "raw": {
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": "{{URL_PREFIX}}/pipeline/data"
+                      },
+                      "response": []
+                    }
+                  ],
                   "id": "931e3229-7e86-4a11-96a2-7ddd84aca9f0"
                 },
                 {
