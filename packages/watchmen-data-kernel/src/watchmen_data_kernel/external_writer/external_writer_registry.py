@@ -32,7 +32,7 @@ class ExternalWriter:
 		pass
 
 
-BuildExternalWriter = Callable[[], ExternalWriter]
+BuildExternalWriter = Callable[[str], ExternalWriter]
 
 
 class ExternalWriterRegistry:

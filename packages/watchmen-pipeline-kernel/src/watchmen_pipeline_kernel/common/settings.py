@@ -3,9 +3,6 @@ from typing import Optional
 
 from pydantic import BaseSettings
 
-from watchmen_pipeline_kernel.external_writer import register_elastic_search_external_writer, \
-	register_standard_external_writer
-
 logger = getLogger(__name__)
 
 
@@ -50,6 +47,14 @@ def ask_parallel_actions_dask_use_process() -> bool:
 	return settings.PIPELINE_PARALLEL_ACTIONS_DASK_USE_PROCESS
 
 
+def ask_standard_external_writer_enabled() -> bool:
+	return settings.PIPELINE_STANDARD_EXTERNAL_WRITER
+
+
+def ask_elastic_search_writer_enabled() -> bool:
+	return settings.PIPELINE_ELASTIC_SEARCH_EXTERNAL_WRITER
+
+
 def ask_pipeline_update_retry() -> bool:
 	return settings.PIPELINE_UPDATE_RETRY
 
@@ -68,17 +73,3 @@ def ask_pipeline_update_retry_force() -> bool:
 
 def ask_async_handle_monitor_log() -> bool:
 	return settings.PIPELINE_ASYNC_HANDLE_MONITOR_LOG
-
-
-def init_standard_external_writer() -> None:
-	if settings.PIPELINE_STANDARD_EXTERNAL_WRITER:
-		register_standard_external_writer()
-
-
-def init_elastic_search_external_writer() -> None:
-	if settings.PIPELINE_ELASTIC_SEARCH_EXTERNAL_WRITER:
-		register_elastic_search_external_writer()
-
-
-init_standard_external_writer()
-init_elastic_search_external_writer()
