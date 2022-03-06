@@ -6497,7 +6497,7 @@
                       "response": []
                     },
                     {
-                      "name": "New Request",
+                      "name": "INSERT RAW",
                       "id": "2b793014-af40-4cb9-8814-26f423bc0015",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
@@ -6531,7 +6531,7 @@
                   "response": []
                 },
                 {
-                  "name": "New Request",
+                  "name": "INSERT RAW",
                   "id": "2b793014-af40-4cb9-8814-26f423bc0015",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
