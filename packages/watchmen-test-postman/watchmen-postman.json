@@ -5821,7 +5821,20 @@
               "item": [
                 {
                   "name": "READ - ROW",
-                  "item": [],
+                  "item": [
+                    {
+                      "name": "New Request",
+                      "id": "a4050c62-de28-4eb4-83b1-54423586710a",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
+                    }
+                  ],
                   "id": "b6234c0d-85ba-4ba8-93b4-2aa0a1158fcc"
                 },
                 {
