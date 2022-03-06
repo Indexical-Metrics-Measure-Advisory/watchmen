@@ -6482,7 +6482,20 @@
                 },
                 {
                   "name": "EXISTS",
-                  "item": [],
+                  "item": [
+                    {
+                      "name": "New Request",
+                      "id": "d3f5fd17-825c-44b4-ada7-e88526d4021e",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
+                    }
+                  ],
                   "id": "50d46d81-4a5f-4477-bf38-044eb2da2115"
                 }
               ],
@@ -6490,7 +6503,20 @@
             },
             {
               "name": "EXISTS",
-              "item": [],
+              "item": [
+                {
+                  "name": "New Request",
+                  "id": "d3f5fd17-825c-44b4-ada7-e88526d4021e",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
+                }
+              ],
               "id": "50d46d81-4a5f-4477-bf38-044eb2da2115"
             },
             {
