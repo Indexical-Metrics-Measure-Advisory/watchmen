@@ -5823,7 +5823,7 @@
                   "name": "READ - ROW",
                   "item": [
                     {
-                      "name": "New Request",
+                      "name": "CREATE READ TOPIC",
                       "id": "a4050c62-de28-4eb4-83b1-54423586710a",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
