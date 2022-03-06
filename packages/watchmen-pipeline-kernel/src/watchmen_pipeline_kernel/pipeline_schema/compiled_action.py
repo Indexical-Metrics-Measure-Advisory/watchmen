@@ -8,7 +8,8 @@ from typing import Any, Callable, Dict, List, Optional, Union
 from time import sleep
 
 from watchmen_auth import PrincipalService
-from watchmen_data_kernel.external_writer import ask_external_writer_creator, BuildExternalWriter, ExternalWriterParams
+from watchmen_data_kernel.external_writer import ask_external_writer_creator, ExternalWriter, \
+	ExternalWriterParams
 from watchmen_data_kernel.meta import ExternalWriterService, TopicService
 from watchmen_data_kernel.service import ask_topic_data_service
 from watchmen_data_kernel.storage import TopicDataService, TopicTrigger
@@ -205,7 +206,7 @@ class CompiledCopyToMemoryAction(CompiledAction):
 
 
 def build_external_write(
-		build: BuildExternalWriter, event_code: Optional[str], pat: Optional[str], url: Optional[str]
+		build: Callable[[], ExternalWriter], event_code: Optional[str], pat: Optional[str], url: Optional[str]
 ) -> Callable[[PipelineVariables, PrincipalService], None]:
 	# noinspection PyUnusedLocal
 	def write(variables: PipelineVariables, principal_service: PrincipalService) -> None:
@@ -237,7 +238,8 @@ class CompiledWriteToExternalAction(CompiledAction):
 		create = ask_external_writer_creator(code)
 		if create is None:
 			raise PipelineKernelException(f'Cannot find external writer[code={code}] creator.')
-		self.write = build_external_write(create, action.eventCode, external_writer.pat, external_writer.url)
+		self.write = build_external_write(
+			lambda: create(code), action.eventCode, external_writer.pat, external_writer.url)
 
 	def do_run(
 			self, variables: PipelineVariables,
