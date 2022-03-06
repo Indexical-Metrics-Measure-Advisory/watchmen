@@ -6239,6 +6239,20 @@
                   "item": [
                     {
                       "name": "PATCH TOPIC",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "fc483b20-0b04-44c2-9738-609d2d100c18",
+                            "exec": [
+                              "pm.test(\"Patch Topic\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "f56116a5-54ad-4ff6-b218-7359092c74a6",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
