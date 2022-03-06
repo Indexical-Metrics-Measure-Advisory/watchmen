@@ -6084,14 +6084,31 @@
                       "response": []
                     },
                     {
-                      "name": "New Request",
+                      "name": "TRUCATE TOPIC",
                       "id": "ffccd255-20d5-4bf1-b29b-59abf26a9330",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
                       },
                       "request": {
-                        "method": "GET",
-                        "header": []
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                          "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{TOPIC_NAME}}",
+                          "host": [
+                            "{{URL_PREFIX}}"
+                          ],
+                          "path": [
+                            "topic",
+                            "data",
+                            "truncate"
+                          ],
+                          "query": [
+                            {
+                              "key": "topic_name",
+                              "value": "{{TOPIC_NAME}}"
+                            }
+                          ]
+                        }
                       },
                       "response": []
                     }
