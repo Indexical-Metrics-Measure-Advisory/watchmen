@@ -61,6 +61,7 @@ def cast_value_for_factor(value: Any, factor: Factor) -> Any:
 				f'Value[{value}, type={type(value)}] is incompatible with '
 				f'factor[name={factor.name}, type={factor_type}].')
 	elif factor_type == FactorType.FULL_DATETIME:
+		# noinspection DuplicatedCode
 		if isinstance(value, datetime):
 			return value
 		if isinstance(value, date):
@@ -78,6 +79,7 @@ def cast_value_for_factor(value: Any, factor: Factor) -> Any:
 				f'Value[{value}, type={type(value)}] is incompatible with '
 				f'factor[name={factor.name}, type={factor_type}].')
 	elif factor_type == FactorType.DATETIME:
+		# noinspection DuplicatedCode
 		if isinstance(value, datetime):
 			return value
 		if isinstance(value, date):

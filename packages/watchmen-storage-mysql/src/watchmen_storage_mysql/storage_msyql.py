@@ -6,16 +6,16 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from sqlalchemy import and_, delete, func, insert, select, Table, text, update
 from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.sql import Join, label
-from sqlalchemy.sql.elements import Label
+from sqlalchemy.sql.elements import Label, literal_column
 
 from watchmen_model.admin import Factor, FactorType, is_aggregation_topic, is_raw_topic, Topic
 from watchmen_model.common import DataPage, TopicId
 from watchmen_storage import as_table_name, ColumnNameLiteral, Entity, EntityColumnAggregateArithmetic, \
 	EntityCriteriaExpression, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
 	EntityIdHelper, EntityList, EntityNotFoundException, EntityPager, EntityStraightAggregateColumn, \
-	EntityStraightColumn, EntityStraightTextColumn, EntityStraightValuesFinder, EntityUpdater, FreeColumn, FreeJoin, \
-	FreeJoinType, FreePager, NoFreeJoinException, TooManyEntitiesFoundException, TopicDataStorageSPI, \
-	TransactionalStorageSPI, UnexpectedStorageException, UnsupportedStraightColumnException
+	EntityStraightColumn, EntityStraightValuesFinder, EntityUpdater, FreeColumn, FreeJoin, FreeJoinType, FreePager, \
+	NoFreeJoinException, TooManyEntitiesFoundException, TopicDataStorageSPI, TransactionalStorageSPI, \
+	UnexpectedStorageException, UnsupportedStraightColumnException
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 from .sort_build import build_sort_for_statement
 from .table_defs_mysql import find_table, register_table
@@ -256,9 +256,7 @@ class StorageMySQL(TransactionalStorageSPI):
 
 	# noinspection PyMethodMayBeStatic
 	def translate_straight_column_name(self, straight_column: EntityStraightColumn) -> Any:
-		if isinstance(straight_column, EntityStraightTextColumn):
-			return text(straight_column.text).label(self.get_alias_from_straight_column(straight_column))
-		elif isinstance(straight_column, EntityStraightAggregateColumn):
+		if isinstance(straight_column, EntityStraightAggregateColumn):
 			if straight_column.arithmetic == EntityColumnAggregateArithmetic.SUM:
 				return func.sum(straight_column.columnName).label(self.get_alias_from_straight_column(straight_column))
 			elif straight_column.arithmetic == EntityColumnAggregateArithmetic.AVG:
@@ -268,7 +266,8 @@ class StorageMySQL(TransactionalStorageSPI):
 			elif straight_column.arithmetic == EntityColumnAggregateArithmetic.MIN:
 				return func.min(straight_column.columnName).label(self.get_alias_from_straight_column(straight_column))
 		elif isinstance(straight_column, EntityStraightColumn):
-			return text(straight_column.columnName).label(self.get_alias_from_straight_column(straight_column))
+			return literal_column(straight_column.columnName).label(
+				self.get_alias_from_straight_column(straight_column))
 
 		raise UnsupportedStraightColumnException(f'Straight column[{straight_column.to_dict()}] is not supported.')
 

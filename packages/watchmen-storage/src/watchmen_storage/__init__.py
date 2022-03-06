@@ -18,6 +18,6 @@ from .storage_types import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOp
 	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, \
 	EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, EntityIdHelper, EntityList, \
 	EntityName, EntityPager, EntityRow, EntityShaper, EntitySort, EntitySortColumn, EntitySortMethod, \
-	EntityStraightAggregateColumn, EntityStraightColumn, EntityStraightTextColumn, EntityStraightValuesFinder, \
-	EntityUpdate, EntityUpdater, Literal
+	EntityStraightAggregateColumn, EntityStraightColumn, EntityStraightValuesFinder, EntityUpdate, EntityUpdater, \
+	Literal
 from .topic_utils import as_table_name

@@ -1,4 +1,4 @@
-from asyncio import ensure_future, run, wait
+from asyncio import ensure_future, run
 from logging import getLogger
 from typing import Callable
 
