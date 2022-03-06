@@ -6907,7 +6907,8 @@
                   },
                   "request": {
                     "method": "POST",
-                    "header": []
+                    "header": [],
+                    "url": "{{URL_PREFIX}}/pipeline/data"
                   },
                   "response": []
                 }
