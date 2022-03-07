@@ -1,13 +1,13 @@
 from datetime import date, datetime
 from typing import TypeVar
 
-from watchmen_model.common import DataModel, Storable, TenantId, TopicId, UserId
+from watchmen_model.common import Storable, TenantId, TopicId, UserId
 from .monitor_rule import MonitorRuleStatisticalInterval
 
 MonitorJobLockId = TypeVar('MonitorJobLockId', bound=str)
 
 
-class MonitorJobLock(DataModel, Storable):
+class MonitorJobLock(Storable):
 	lockId: MonitorJobLockId = None
 	tenantId: TenantId = None
 	topicId: TopicId = None

@@ -9,8 +9,7 @@ from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.dqc import MonitorRuleLog, MonitorRuleLogCriteria
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import ColumnNameLiteral, EntityColumnAggregateArithmetic, EntityCriteriaExpression, \
-	EntityCriteriaOperator, \
-	EntityStraightAggregateColumn, EntityStraightColumn
+	EntityCriteriaOperator, EntityStraightAggregateColumn, EntityStraightColumn
 from watchmen_utilities import ArrayHelper, is_date, is_not_blank
 
 
