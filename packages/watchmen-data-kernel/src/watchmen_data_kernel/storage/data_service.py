@@ -240,6 +240,15 @@ class TopicDataService(TopicStructureService):
 		finally:
 			storage.close()
 
+	def count(self) -> int:
+		data_entity_helper = self.get_data_entity_helper()
+		storage = self.get_storage()
+		try:
+			storage.connect()
+			return storage.count(data_entity_helper.get_entity_helper())
+		finally:
+			storage.close()
+
 	def find(self, criteria: EntityCriteria) -> List[Dict[str, Any]]:
 		data_entity_helper = self.get_data_entity_helper()
 		storage = self.get_storage()

@@ -365,6 +365,12 @@ class StorageMySQL(TransactionalStorageSPI):
 		results = self.connection.execute(statement).mappings().all()
 		return len(results) != 0
 
+	def count(self, helper: EntityHelper) -> int:
+		table = self.find_table(helper.name)
+		statement = select(func.count()).select_from(table)
+		count, _ = self.execute_page_count(statement, 1)
+		return count
+
 
 def ask_column_name(factor: Factor) -> str:
 	return factor.name.strip().lower().replace('.', '_').replace('-', '_').replace(' ', '_')

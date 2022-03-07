@@ -12,7 +12,7 @@ class DqcSettings(BaseSettings):
 	MONITOR_JOB_DAILY_DAY_OF_WEEK: str = "mon-sun"
 	MONITOR_JOB_DAILY_HOURS: int = 0
 	MONITOR_JOB_DAILY_MINUTES: int = 1
-	MONITOR_JOB_WEEKLY_DAY_OF_WEEK: str = "mon"  # one of mon - sun
+	MONITOR_JOB_WEEKLY_DAY_OF_WEEK: str = "sun"  # week starts from sunday
 	MONITOR_JOB_WEEKLY_HOURS: int = 0
 	MONITOR_JOB_WEEKLY_MINUTES: int = 1
 	MONITOR_JOB_MONTHLY_DAY: str = "1"

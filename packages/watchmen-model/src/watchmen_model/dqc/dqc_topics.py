@@ -26,6 +26,7 @@ def ask_dqc_topics() -> List[Topic]:
 					factorId='dra-f-5', name='factorName', type=FactorType.TEXT),
 				Factor(factorId='dra-f-6', name='result', type=FactorType.BOOLEAN),
 				Factor(factorId='dra-f-7', name='severity', type=FactorType.TEXT),
+				Factor(factorId='dra-f-8', name='processDate', type=FactorType.DATE)
 			],
 			description='Topic data monitor by rules, raw topic.'
 		),

@@ -1,11 +1,13 @@
 from datetime import date, datetime, timedelta
 from logging import getLogger
-from typing import List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.meta import TenantService, TopicService
+from watchmen_data_kernel.service import ask_topic_data_service, ask_topic_storage
+from watchmen_data_kernel.storage import TopicDataService
 from watchmen_dqc.admin import MonitorRuleService
 from watchmen_dqc.common import ask_daily_monitor_job_trigger_time, ask_monitor_job_trigger, \
 	ask_monitor_jobs_enabled, ask_monthly_monitor_job_trigger_time, ask_weekly_monitor_job_trigger_time
@@ -18,6 +20,7 @@ from watchmen_model.dqc import MonitorJobLock, MonitorRule, MonitorRuleCode, Mon
 from watchmen_model.dqc.monitor_job_lock import MonitorJobLockStatus
 from watchmen_model.system import Tenant
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
+from .rule import rows_not_exists
 
 logger = getLogger(__name__)
 
@@ -55,18 +58,8 @@ def should_run_rule(rule: MonitorRule, frequency: Optional[MonitorRuleStatistica
 	return True
 
 
-def find_two_topic_rules(rules: List[MonitorRule]) -> List[MonitorRule]:
-	return ArrayHelper(rules).filter(lambda x: x.code in TWO_TOPIC_RULES).to_list()
-
-
-def find_topic_rules(rules: List[MonitorRule]) -> List[MonitorRule]:
-	return ArrayHelper(rules).filter(lambda x: x.code in TOPIC_LEVEL_RULES).to_list()
-
-
-def find_factor_rules(rules: List[MonitorRule]) -> List[MonitorRule]:
-	return ArrayHelper(rules) \
-		.filter(lambda x: x.code not in TWO_TOPIC_RULES and x.code not in TOPIC_LEVEL_RULES) \
-		.to_list()
+def find_rows_not_exists(rules: List[MonitorRule]) -> Optional[MonitorRule]:
+	return ArrayHelper(rules).find(lambda x: x.code == MonitorRuleCode.ROWS_NOT_EXISTS)
 
 
 class MonitorRulesRunner:
@@ -80,9 +73,37 @@ class MonitorRulesRunner:
 		rules = rule_service.find_by_grade_or_topic_id(None, topic_id, self.principalService.get_tenant_id())
 		rules = ArrayHelper(rules) \
 			.filter(lambda x: should_run_rule(x, frequency)) \
+			.filter(lambda x: x.params.topicId is None) \
 			.to_list()
-		# TODO run monitor rules
-		pass
+		rules_by_topic: Dict[TopicId, List[MonitorRule]] = ArrayHelper(rules).group_by(lambda x: x.params.topicId)
+		ArrayHelper(list(rules_by_topic.keys())).each(lambda x: self.run_on_topic(x, process_date, rules_by_topic[x]))
+
+	def get_topic_data_service(self, topic_id: TopicId, rules_count: int) -> Tuple[bool, Optional[TopicDataService]]:
+		topic_service = get_topic_service(self.principalService)
+		topic = topic_service.find_by_id(topic_id)
+		if topic is None:
+			# ignore and log
+			logger.error(f'Topic[id={topic_id}] not found, ignored {rules_count} monitor rule(s).')
+			return False, None
+		schema = topic_service.find_schema_by_name(topic.name, self.principalService.get_tenant_id())
+		if schema is None:
+			# ignore and log
+			logger.error(f'Topic[name={topic.name}] not found, ignored {rules_count} monitor rule(s).')
+			return False, None
+		storage = ask_topic_storage(schema, self.principalService)
+		data_service = ask_topic_data_service(schema, storage, self.principalService)
+		return True, data_service
+
+	def run_on_topic(self, topic_id: TopicId, process_date: date, rules: List[MonitorRule]) -> None:
+		success, data_service = self.get_topic_data_service(topic_id, len(rules))
+		if not success:
+			return
+
+		count = rows_not_exists(data_service)
+		rows_not_exists_rule = find_rows_not_exists(rules)
+		if rows_not_exists_rule is not None and count == 0:
+			# TODO rule matched, trigger a pipeline
+			pass
 
 
 def get_tenant_service(principal_service: PrincipalService) -> TenantService:
