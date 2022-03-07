@@ -1,5 +1,13 @@
+from typing import Optional
+
 from watchmen_data_kernel.storage import TopicDataService
+from watchmen_model.dqc import MonitorRule
 
 
-def rows_not_exists(data_service: TopicDataService) -> int:
-	return data_service.count()
+def rows_not_exists(data_service: TopicDataService, rule: Optional[MonitorRule]) -> int:
+	count = data_service.count()
+	if rule is not None and count == 0:
+		# TODO rule matched, trigger a pipeline
+		pass
+
+	return count
