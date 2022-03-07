@@ -1,2 +1,2 @@
 from .data_frame import build_data_frame, convert_data_frame_type
-from .fake_principal_service import fake_super_admin
+from .fake_principal_service import fake_super_admin, fake_tenant_admin

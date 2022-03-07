@@ -6,7 +6,7 @@ from watchmen_model.common import DataPage, FactorId, Pageable, TenantId, TopicI
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaJoint, \
 	EntityCriteriaJointConjunction, EntityCriteriaOperator, \
 	EntityDistinctValuesFinder, EntityRow, EntityShaper, SnowflakeGenerator
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, is_not_blank
 
 
 class TopicShaper(EntityShaper):
@@ -145,7 +145,7 @@ class TopicService(TupleService):
 
 	def find_all(self, tenant_id: Optional[TenantId]) -> List[Topic]:
 		criteria = []
-		if tenant_id is not None and len(tenant_id.strip()) != 0:
+		if is_not_blank(tenant_id):
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(criteria))
