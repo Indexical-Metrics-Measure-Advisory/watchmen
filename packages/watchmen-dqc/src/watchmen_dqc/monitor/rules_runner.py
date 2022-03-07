@@ -63,7 +63,7 @@ class MonitorRulesRunner:
 		rules = rule_service.find_by_grade_or_topic_id(None, topic_id, self.principalService.get_tenant_id())
 		rules = ArrayHelper(rules) \
 			.filter(lambda x: should_run_rule(x, frequency)) \
-			.filter(lambda x: x.params.topicId is None) \
+			.filter(lambda x: x.params.topicId is not None) \
 			.to_list()
 		rules_by_topic: Dict[TopicId, List[MonitorRule]] = ArrayHelper(rules).group_by(lambda x: x.params.topicId)
 		ArrayHelper(list(rules_by_topic.keys())).each(lambda x: self.run_on_topic(x, process_date, rules_by_topic[x]))
