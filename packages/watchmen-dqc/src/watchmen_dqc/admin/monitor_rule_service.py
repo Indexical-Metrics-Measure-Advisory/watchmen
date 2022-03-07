@@ -3,7 +3,7 @@ from typing import List, Optional
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_model.common import TenantId, TopicId
 from watchmen_model.dqc import MonitorRule, MonitorRuleGrade, MonitorRuleId
-from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityName, EntityRow, \
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, EntityName, EntityRow, \
 	EntityShaper
 from watchmen_utilities import is_not_blank
 
@@ -71,3 +71,14 @@ class MonitorRuleService(TupleService):
 				left=ColumnNameLiteral(columnName='topic_id'), right=topic_id))
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(criteria=criteria))
+
+	def delete_by_ids(self, rule_ids: List[MonitorRuleId], tenant_id: TenantId) -> List[MonitorRule]:
+		criteria = [
+			EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id),
+			EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='rule_id'), operator=EntityCriteriaOperator.IN,
+				right=rule_ids)
+		]
+
+		# noinspection PyTypeChecker
+		return self.storage.delete_and_pull(self.get_entity_deleter(criteria=criteria))
