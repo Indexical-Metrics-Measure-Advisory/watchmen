@@ -1,6 +1,7 @@
 from .catalog import Catalog, CatalogCriteria, CatalogId
+from .dqc_pipelines import ask_dqc_pipelines
+from .dqc_topics import ask_dqc_topics
 from .monitor_data import MonitorRuleLog, MonitorRuleLogCriteria
 from .monitor_rule import MonitorRule, MonitorRuleCode, MonitorRuleCompareOperator, MonitorRuleGrade, MonitorRuleId, \
 	MonitorRuleParameters, MonitorRuleSeverity, MonitorRuleStatisticalInterval
-from .dqc_pipelines import ask_dqc_pipelines
-from .dqc_topics import ask_dqc_topics
+from .topic_profile import TopicProfile
