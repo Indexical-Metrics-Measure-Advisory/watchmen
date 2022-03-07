@@ -6,6 +6,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.meta import TenantService, TopicService
+from watchmen_dqc.admin import MonitorRuleService
 from watchmen_dqc.common import ask_daily_monitor_job_trigger_time, ask_monitor_job_trigger, \
 	ask_monitor_jobs_enabled, ask_monthly_monitor_job_trigger_time, ask_weekly_monitor_job_trigger_time
 from watchmen_dqc.util import fake_super_admin, fake_tenant_admin
@@ -20,6 +21,10 @@ from watchmen_utilities import get_current_time_in_seconds
 logger = getLogger(__name__)
 
 
+def get_rule_service(principal_service: PrincipalService) -> MonitorRuleService:
+	return MonitorRuleService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
 class MonitorRulesRunner:
 	def __init__(self, principal_service: PrincipalService):
 		self.principalService = principal_service
@@ -27,8 +32,8 @@ class MonitorRulesRunner:
 	def run(
 			self, process_date: date, topic_id: Optional[TopicId] = None,
 			frequency: Optional[MonitorRuleStatisticalInterval] = None) -> None:
-		# TODO
-		pass
+		rule_service = get_rule_service(self.principalService)
+		rule_service.find_by_grade_or_topic_id(None, topic_id, self.principalService.get_tenant_id())
 
 
 def get_tenant_service(principal_service: PrincipalService) -> TenantService:
