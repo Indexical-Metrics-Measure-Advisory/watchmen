@@ -92,9 +92,9 @@ class MonitorRulesRunner:
 		rows_not_exists_rule = find_rule(rules, MonitorRuleCode.ROWS_NOT_EXISTS)
 		count = rows_not_exists(data_service, rows_not_exists_rule)
 		if count == 0:
-			self.run_rows_count_mismatch_with_another(rules, data_service, count)
+			self.run_rows_count_mismatch_with_another(rules, data_service, 0)
 		else:
-			self.run_all_rules(rules, data_service, count)
+			self.run_all_rules(rules, data_service)
 
 	# noinspection PyMethodMayBeStatic
 	def run_rows_count_mismatch_with_another(
@@ -105,8 +105,8 @@ class MonitorRulesRunner:
 		rows_count_mismatch_with_another(data_service, rule, count)
 
 	def run_all_rules(
-			self, rules: List[MonitorRule], data_service: TopicDataService, count: Optional[int] = None) -> None:
-		self.run_rows_count_mismatch_with_another(rules, data_service, None)
+			self, rules: List[MonitorRule], data_service: TopicDataService) -> None:
+		self.run_rows_count_mismatch_with_another(rules, data_service)
 
 
 def get_tenant_service(principal_service: PrincipalService) -> TenantService:
