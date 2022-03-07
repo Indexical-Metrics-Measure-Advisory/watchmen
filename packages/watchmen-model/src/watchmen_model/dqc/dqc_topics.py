@@ -3,8 +3,8 @@ from typing import List
 from watchmen_model.admin import Factor, FactorType, Topic, TopicKind, TopicType
 
 
-def ask_topic_monitor_rule_topics() -> List[Topic]:
-	# TODO define all topic monitor rule topics
+def ask_dqc_topics() -> List[Topic]:
+	# TODO define all dqc topics
 	return [
 		Topic(
 			name='dqc_rule_aggregate',
