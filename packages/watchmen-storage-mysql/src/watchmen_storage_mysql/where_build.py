@@ -26,6 +26,7 @@ def build_literal(tables: List[Table], literal: Literal, build_plain_value: Call
 				raise UnexpectedStorageException(
 					'Available table must be unique when entity name is missed in column name literal.')
 			else:
+				# noinspection PyPropertyAccess
 				return tables[0].c[literal.columnName]
 		else:
 			table_name = as_table_name(literal.entityName)
@@ -82,7 +83,7 @@ def build_literal(tables: List[Table], literal: Literal, build_plain_value: Call
 			cases = ArrayHelper(elements).filter(lambda x: isinstance(x, Tuple)) \
 				.map(lambda x: (build_criteria_statement(tables, x[0]), build_literal(tables, x[1]))) \
 				.to_list()
-			anyway = ArrayHelper(elements).find(lambda x: isinstance(x, Literal))
+			anyway = ArrayHelper(elements).find(lambda x: not isinstance(x, Tuple))
 			if anyway is None:
 				return case(*cases)
 			else:
