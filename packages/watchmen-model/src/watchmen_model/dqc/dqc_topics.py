@@ -14,6 +14,7 @@ def ask_dqc_topics() -> List[Topic]:
 				Factor(factorId='dra-f-1', name='ruleCode', type=FactorType.TEXT),
 				Factor(factorId='dra-f-2', name='topicId', type=FactorType.TEXT),
 				Factor(factorId='dra-f-3', name='factorId', type=FactorType.TEXT),
+				Factor(factorId='dra-f-4', name='count', type=FactorType.UNSIGNED, precision='10')
 			],
 			description='Topic data monitor by rule aggregation topic.'
 		)
