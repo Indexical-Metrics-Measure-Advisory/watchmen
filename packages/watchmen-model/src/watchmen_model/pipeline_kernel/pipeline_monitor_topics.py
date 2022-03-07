@@ -1,6 +1,6 @@
 from typing import List
 
-from watchmen_model.admin import Factor, FactorType, Topic, TopicKind, TopicType
+from watchmen_model.admin import Factor, FactorIndexGroup, FactorType, Topic, TopicKind, TopicType
 
 
 def ask_pipeline_monitor_topics() -> List[Topic]:
@@ -12,9 +12,15 @@ def ask_pipeline_monitor_topics() -> List[Topic]:
 			type=TopicType.RAW,
 			factors=[
 				Factor(factorId='rpml-f-1', name='uid', type=FactorType.TEXT),
-				Factor(factorId='rpml-f-2', name='traceId', type=FactorType.TEXT, flatten=True),
-				Factor(factorId='rpml-f-3', name='pipelineId', type=FactorType.TEXT, flatten=True),
-				Factor(factorId='rpml-f-4', name='topicId', type=FactorType.TEXT, flatten=True),
+				Factor(
+					factorId='rpml-f-2', name='traceId', type=FactorType.TEXT,
+					flatten=True, indexGroup=FactorIndexGroup.INDEX_1),
+				Factor(
+					factorId='rpml-f-3', name='pipelineId', type=FactorType.TEXT,
+					flatten=True, indexGroup=FactorIndexGroup.INDEX_2),
+				Factor(
+					factorId='rpml-f-4', name='topicId', type=FactorType.TEXT,
+					flatten=True, indexGroup=FactorIndexGroup.INDEX_3),
 				Factor(factorId='rpml-f-5', name='prerequisite', type=FactorType.BOOLEAN),
 				Factor(factorId='rpml-f-6', name='prerequisiteDefinedAs', type=FactorType.OBJECT),
 				Factor(factorId='rpml-f-7', name='status', type=FactorType.TEXT, flatten=True),
@@ -57,7 +63,9 @@ def ask_pipeline_monitor_topics() -> List[Topic]:
 				Factor(factorId='rpml-f-44', name='stages.units.actions.startTime', type=FactorType.FULL_DATETIME),
 				Factor(factorId='rpml-f-45', name='stages.units.actions.spentInMills', type=FactorType.UNSIGNED),
 				Factor(factorId='rpml-f-46', name='stages.units.actions.error', type=FactorType.TEXT),
-				Factor(factorId='rpml-f-47', name='dataId', type=FactorType.TEXT, flatten=True),
+				Factor(
+					factorId='rpml-f-47', name='dataId', type=FactorType.TEXT,
+					flatten=True, indexGroup=FactorIndexGroup.INDEX_4),
 			],
 			description='Pipeline monitor log raw topic.'
 		)

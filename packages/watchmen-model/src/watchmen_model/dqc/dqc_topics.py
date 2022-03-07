@@ -1,6 +1,6 @@
 from typing import List
 
-from watchmen_model.admin import Factor, FactorType, Topic, TopicKind, TopicType
+from watchmen_model.admin import Factor, FactorIndexGroup, FactorType, Topic, TopicKind, TopicType
 
 
 def ask_dqc_topics() -> List[Topic]:
@@ -11,9 +11,9 @@ def ask_dqc_topics() -> List[Topic]:
 			kind=TopicKind.SYSTEM,
 			type=TopicType.AGGREGATE,
 			factors=[
-				Factor(factorId='dra-f-1', name='ruleCode', type=FactorType.TEXT),
-				Factor(factorId='dra-f-2', name='topicId', type=FactorType.TEXT),
-				Factor(factorId='dra-f-3', name='factorId', type=FactorType.TEXT),
+				Factor(factorId='dra-f-1', name='ruleCode', type=FactorType.TEXT, indexGroup=FactorIndexGroup.INDEX_1),
+				Factor(factorId='dra-f-2', name='topicId', type=FactorType.TEXT, indexGroup=FactorIndexGroup.INDEX_2),
+				Factor(factorId='dra-f-3', name='factorId', type=FactorType.TEXT, indexGroup=FactorIndexGroup.INDEX_3),
 				Factor(factorId='dra-f-4', name='count', type=FactorType.UNSIGNED, precision='10')
 			],
 			description='Topic data monitor by rule aggregation topic.'

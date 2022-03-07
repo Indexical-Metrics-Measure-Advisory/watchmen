@@ -1,0 +1,2 @@
+class DqcException(Exception):
+	pass
