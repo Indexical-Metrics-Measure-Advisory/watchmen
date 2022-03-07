@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_model.common import DataPage, Pageable, TenantId
@@ -49,3 +49,7 @@ class TenantService(TupleService):
 			criteria.append(EntityCriteriaExpression(
 				left=ColumnNameLiteral(columnName='name'), operator=EntityCriteriaOperator.LIKE, right=text))
 		return self.storage.page(self.get_entity_pager(criteria, pageable))
+
+	def find_all(self) -> List[Tenant]:
+		# noinspection PyTypeChecker
+		return self.storage.find_all(self.get_entity_helper())

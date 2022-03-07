@@ -1,7 +1,8 @@
-from typing import Callable, Optional, Tuple
+from typing import Callable, Optional
 
 from fastapi import FastAPI
 
+from watchmen_dqc.boot import init_monitor_jobs
 from watchmen_meta.auth import build_find_user_by_name, build_find_user_by_pat
 from watchmen_meta.common import ask_meta_storage
 from watchmen_model.admin import User
@@ -26,26 +27,11 @@ class DqcApp(RestApp):
 		"""
 		return build_find_user_by_pat(ask_meta_storage())
 
-	def is_tuple_delete_enabled(self) -> bool:
-		return self.get_settings().TUPLE_DELETABLE
-
 	def post_construct(self, app: FastAPI) -> None:
-		pass
+		init_monitor_jobs()
 
 	def on_startup(self, app: FastAPI) -> None:
 		pass
 
 
 dqc = DqcApp(DqcSettings())
-
-
-def ask_jwt_params() -> Tuple[str, str]:
-	return dqc.get_jwt_params()
-
-
-def ask_access_token_expires_in() -> int:
-	return dqc.get_access_token_expires_in()
-
-
-def ask_tuple_delete_enabled() -> bool:
-	return dqc.is_tuple_delete_enabled()
