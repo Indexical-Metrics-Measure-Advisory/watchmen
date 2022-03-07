@@ -4,7 +4,7 @@ from typing import Optional, TypeVar, Union
 
 from pydantic import BaseModel
 
-from watchmen_model.common import DataModel, FactorId, TenantId, TopicId
+from watchmen_model.common import DataModel, FactorId, TenantBasedTuple, TopicId
 
 MonitorRuleId = TypeVar('MonitorRuleId', bound=str)
 
@@ -101,14 +101,13 @@ def construct_params(params: Optional[Union[dict, MonitorRuleParameters]]) -> Op
 		return MonitorRuleParameters(**params)
 
 
-class MonitorRule(DataModel, BaseModel):
+class MonitorRule(TenantBasedTuple, BaseModel):
 	ruleId: MonitorRuleId = None
 	code: MonitorRuleCode = None
 	grade: MonitorRuleGrade = None
 	severity: MonitorRuleSeverity = None
-	enabled: bool = False
-	tenantId: TenantId = None
 	params: MonitorRuleParameters = None
+	enabled: bool = False
 
 	def __setattr__(self, name, value):
 		if name == 'params':
