@@ -5,6 +5,7 @@ CREATE TABLE monitor_job_locks
     topic_id     VARCHAR(50) NOT NULL,
     frequency    VARCHAR(20) NOT NULL,
     process_date DATE,
+    status       VARCHAR(20) NOT NULL,
     user_id      VARCHAR(50) NOT NULL,
     created_at   DATETIME    NOT NULL,
     PRIMARY KEY (lock_id),
@@ -13,5 +14,6 @@ CREATE TABLE monitor_job_locks
     INDEX (topic_id),
     INDEX (frequency),
     INDEX (process_date),
+    INDEX (status),
     INDEX (created_at)
 );

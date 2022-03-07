@@ -79,7 +79,7 @@ class MonitorRuleCompareOperator(str, Enum):
 
 
 class MonitorRuleParameters(DataModel, BaseModel):
-	statisticalInterval: MonitorRuleStatisticalInterval
+	statisticalInterval: MonitorRuleStatisticalInterval = None
 	coverageRate: Decimal = None
 	aggregation: Decimal = None
 	quantile: Decimal = None
