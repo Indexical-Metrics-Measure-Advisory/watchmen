@@ -99,7 +99,7 @@ export const RuleDefs: Record<MonitorRuleCode, MonitorRuleDef> = [
 		code: MonitorRuleCode.FACTOR_USE_CAST,
 		severity: MonitorRuleSeverity.TRACE,
 		name: 'Value type casted',
-		enabled: true
+		enabled: false
 	},
 	{
 		code: MonitorRuleCode.FACTOR_COMMON_VALUE_OVER_COVERAGE,
