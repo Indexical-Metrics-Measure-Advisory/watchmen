@@ -137,6 +137,10 @@ class StorageSPI(ABC):
 	def exists(self, finder: EntityFinder) -> bool:
 		pass
 
+	@abstractmethod
+	def count(self, helper: EntityHelper) -> int:
+		pass
+
 
 class TransactionalStorageSPI(StorageSPI):
 	"""
