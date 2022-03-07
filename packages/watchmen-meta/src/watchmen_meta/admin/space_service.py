@@ -6,7 +6,7 @@ from watchmen_model.admin.space import SpaceFilter
 from watchmen_model.common import DataPage, Pageable, SpaceId, TenantId
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaJoint, \
 	EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityRow, EntityShaper
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, is_not_blank
 
 
 class SpaceShaper(EntityShaper):
@@ -87,9 +87,9 @@ class SpaceService(TupleService):
 	# noinspection DuplicatedCode
 	def find_by_name(self, text: Optional[str], tenant_id: Optional[TenantId]) -> List[Space]:
 		criteria = []
-		if text is not None and len(text.strip()) != 0:
+		if is_not_blank(text):
 			criteria.append(EntityCriteriaExpression(
-				left=ColumnNameLiteral(columnName='name'), operator=EntityCriteriaOperator.LIKE, right=text))
+				left=ColumnNameLiteral(columnName='name'), operator=EntityCriteriaOperator.LIKE, right=text.strip()))
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		# noinspection PyTypeChecker

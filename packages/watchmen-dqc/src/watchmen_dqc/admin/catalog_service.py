@@ -1,6 +1,11 @@
+from typing import List
+
 from watchmen_meta.common import TupleService, TupleShaper
-from watchmen_model.dqc import Catalog, CatalogId
-from watchmen_storage import EntityRow, EntityShaper
+from watchmen_model.common import TenantId
+from watchmen_model.dqc import Catalog, CatalogCriteria, CatalogId
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, \
+	EntityShaper
+from watchmen_utilities import is_not_blank
 
 
 class CatalogShaper(EntityShaper):
@@ -49,49 +54,24 @@ class CatalogService(TupleService):
 	def get_storable_id_column_name(self) -> str:
 		return 'catalog_id'
 
-# # noinspection DuplicatedCode
-# def find_page_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
-# 	criteria = []
-# 	if text is not None and len(text.strip()) != 0:
-# 		criteria.append(EntityCriteriaJoint(
-# 			conjunction=EntityCriteriaJointConjunction.OR,
-# 			children=[
-# 				EntityCriteriaExpression(
-# 					left=ColumnNameLiteral(columnName='name'), operator=EntityCriteriaOperator.LIKE, right=text),
-# 				EntityCriteriaExpression(
-# 					left=ColumnNameLiteral(columnName='description'), operator=EntityCriteriaOperator.LIKE,
-# 					right=text)
-# 			]
-# 		))
-# 	if tenant_id is not None and len(tenant_id.strip()) != 0:
-# 		criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
-# 	return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))
-#
-# # noinspection DuplicatedCode
-# def find_by_name(self, text: Optional[str], tenant_id: Optional[TenantId]) -> List[Catalog]:
-# 	criteria = []
-# 	if text is not None and len(text.strip()) != 0:
-# 		criteria.append(EntityCriteriaExpression(
-# 			left=ColumnNameLiteral(columnName='name'), operator=EntityCriteriaOperator.LIKE, right=text))
-# 	if tenant_id is not None and len(tenant_id.strip()) != 0:
-# 		criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
-# 	# noinspection PyTypeChecker
-# 	return self.storage.find(self.get_entity_finder(criteria=criteria))
-#
-# def find_by_ids(self, space_ids: List[CatalogId], tenant_id: Optional[TenantId]) -> List[Catalog]:
-# 	criteria = [
-# 		EntityCriteriaExpression(
-# 			left=ColumnNameLiteral(columnName='space_id'), operator=EntityCriteriaOperator.IN, right=space_ids)
-# 	]
-# 	if tenant_id is not None and len(tenant_id.strip()) != 0:
-# 		criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
-# 	# noinspection PyTypeChecker
-# 	return self.storage.find(self.get_entity_finder(criteria))
-#
-# # noinspection DuplicatedCode
-# def find_all(self, tenant_id: Optional[TenantId]) -> List[Catalog]:
-# 	criteria = []
-# 	if tenant_id is not None and len(tenant_id.strip()) != 0:
-# 		criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
-# 	# noinspection PyTypeChecker
-# 	return self.storage.find(self.get_entity_finder(criteria=criteria))
+	def find_by_criteria(self, criteria: CatalogCriteria, tenant_id: TenantId) -> List[Catalog]:
+		storage_criteria = []
+		if tenant_id is not None and len(tenant_id.strip()) != 0:
+			storage_criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		if is_not_blank(criteria.name):
+			storage_criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='name'), operator=EntityCriteriaOperator.LIKE,
+				right=criteria.name.strip()))
+		if is_not_blank(criteria.techOwnerId):
+			storage_criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='tech_owner_id'), right=criteria.techOwnerId))
+		if is_not_blank(criteria.bizOwnerId):
+			storage_criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='biz_owner_id'), right=criteria.bizOwnerId))
+		if is_not_blank(criteria.topicId):
+			storage_criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='topic_ids'), operator=EntityCriteriaOperator.LIKE,
+				right=criteria.topicId))
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria=criteria))

@@ -134,6 +134,7 @@ def remove_space_from_groups(
 		.each(lambda x: update_user_group(user_group_service, x))
 
 
+# noinspection DuplicatedCode
 def validate_topics(space_service: SpaceService, topic_ids: List[TopicId], tenant_id: TenantId) -> None:
 	if topic_ids is None:
 		return

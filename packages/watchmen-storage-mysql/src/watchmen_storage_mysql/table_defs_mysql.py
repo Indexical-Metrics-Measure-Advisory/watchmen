@@ -188,6 +188,14 @@ table_pipeline_index = Table(
 	create_datetime('created_at', False),
 	create_datetime('last_modified_at', False)
 )
+# dqc
+table_catalogs = Table(
+	'catalogs', meta_data,
+	create_pk('catalog_id'), create_str('name', 45, False),
+	create_json('topic_ids'), create_tuple_id_column('tech_owner_id'), create_tuple_id_column('biz_owner_id'),
+	create_json('tags'), create_description(),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
 
 tables: Dict[str, Table] = {
 	# snowflake workers
@@ -217,7 +225,9 @@ tables: Dict[str, Table] = {
 	'last_snapshots': table_last_snapshot,
 	# analysis index
 	'factor_index': table_factor_index,
-	'pipeline_index': table_pipeline_index
+	'pipeline_index': table_pipeline_index,
+	# dqc
+	'catalogs': table_catalogs
 }
 
 topic_tables: Dict[TopicId, Tuple[Table, datetime]] = {}

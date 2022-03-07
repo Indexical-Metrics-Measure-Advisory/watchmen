@@ -1,1 +1,1 @@
-from .catalog import Catalog, CatalogId
+from .catalog import Catalog, CatalogCriteria, CatalogId
