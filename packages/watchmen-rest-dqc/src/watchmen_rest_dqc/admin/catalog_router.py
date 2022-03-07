@@ -98,7 +98,7 @@ async def save_catalog(
 	return trans(catalog_service, lambda: action(catalog))
 
 
-@router.post('/dqc/catalog', tags=[UserRole.ADMIN], response_model=List[Catalog])
+@router.post('/dqc/catalog/criteria', tags=[UserRole.ADMIN], response_model=List[Catalog])
 async def query_catalog(
 		criteria: CatalogCriteria, principal_service: PrincipalService = Depends(get_admin_principal)) -> List[Catalog]:
 	catalog_service = get_catalog_service(principal_service)
