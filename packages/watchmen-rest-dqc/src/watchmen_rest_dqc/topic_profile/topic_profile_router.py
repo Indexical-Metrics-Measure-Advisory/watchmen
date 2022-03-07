@@ -1,16 +1,16 @@
 from typing import Optional
 
 from fastapi import APIRouter, Depends
+
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_all_date_formats
 from watchmen_dqc.topic_profile import TopicProfileService
 from watchmen_model.admin import UserRole
 from watchmen_model.common import TopicId
 from watchmen_model.dqc import TopicProfile
-from watchmen_utilities import get_current_time_in_seconds, is_blank, is_date
-
 from watchmen_rest import get_admin_principal
 from watchmen_rest.util import raise_400
+from watchmen_utilities import get_current_time_in_seconds, is_blank, is_date
 
 router = APIRouter()
 
