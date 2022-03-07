@@ -14,6 +14,7 @@ class MonitorJobLockShaper(EntityShaper):
 			'topic_id': lock.topicId,
 			'frequency': lock.frequency,
 			'process_date': lock.processDate,
+			'status': lock.status,
 			'user_id': lock.userId,
 			'created_at': lock.createdAt
 		}
@@ -25,6 +26,7 @@ class MonitorJobLockShaper(EntityShaper):
 			topicId=row.get('topic_id'),
 			frequency=row.get('frequency'),
 			processDate=row.get('process_date'),
+			status=row.get('status'),
 			userId=row.get('user_id'),
 			createdAt=row.get('created_at')
 		)

@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from logging import getLogger
 from typing import List, Optional
 
@@ -15,8 +15,9 @@ from watchmen_meta.dqc import MonitorJobLockService
 from watchmen_model.admin import Topic
 from watchmen_model.common import TenantId, TopicId
 from watchmen_model.dqc import MonitorJobLock, MonitorRuleStatisticalInterval
+from watchmen_model.dqc.monitor_job_lock import MonitorJobLockStatus
 from watchmen_model.system import Tenant
-from watchmen_utilities import get_current_time_in_seconds
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
 
 logger = getLogger(__name__)
 
@@ -33,7 +34,9 @@ class MonitorRulesRunner:
 			self, process_date: date, topic_id: Optional[TopicId] = None,
 			frequency: Optional[MonitorRuleStatisticalInterval] = None) -> None:
 		rule_service = get_rule_service(self.principalService)
-		rule_service.find_by_grade_or_topic_id(None, topic_id, self.principalService.get_tenant_id())
+		rules = rule_service.find_by_grade_or_topic_id(None, topic_id, self.principalService.get_tenant_id())
+		rules = ArrayHelper(rules).filter(lambda x: x.enabled and x.params.statisticalInterval == frequency).to_list()
+		# TODO run monitor rules
 
 
 def get_tenant_service(principal_service: PrincipalService) -> TenantService:
@@ -61,6 +64,9 @@ def try_to_lock_topic_for_monitor(
 		topic: Topic, frequency: MonitorRuleStatisticalInterval, process_date: date,
 		principal_service: PrincipalService
 ) -> bool:
+	if isinstance(process_date, datetime):
+		process_date = process_date.date()
+
 	lock_service = get_lock_service(principal_service)
 	lock_service.begin_transaction()
 	try:
@@ -70,6 +76,7 @@ def try_to_lock_topic_for_monitor(
 			topicId=topic.topicId,
 			frequency=frequency,
 			processDate=process_date,
+			status=MonitorJobLockStatus.READY,
 			userId=principal_service.get_user_id(),
 		)
 		lock_service.create(lock)
