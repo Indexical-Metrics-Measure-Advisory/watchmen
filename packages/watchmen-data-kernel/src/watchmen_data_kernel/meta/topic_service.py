@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
@@ -6,8 +6,9 @@ from watchmen_data_kernel.common import DataKernelException
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_meta.admin import TopicService as TopicStorageService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
-from watchmen_model.admin import Topic
+from watchmen_model.admin import Topic, TopicKind
 from watchmen_model.common import TenantId, TopicId
+from watchmen_utilities import ArrayHelper
 
 
 class TopicService:
@@ -57,5 +58,16 @@ class TopicService:
 
 			CacheService.topic().put(topic)
 			return CacheService.topic().get_schema(topic.topicId)
+		finally:
+			storage_service.close_transaction()
+
+	def find_should_monitored(self, tenant_id: TenantId) -> List[Topic]:
+		storage_service = TopicStorageService(ask_meta_storage(), ask_snowflake_generator(), self.principalService)
+		storage_service.begin_transaction()
+		try:
+			# noinspection PyTypeChecker
+			topics = storage_service.find_all(tenant_id)
+			# only business topics need to be monitored
+			return ArrayHelper(topics).filter(lambda x: x.kind == TopicKind.BUSINESS).to_list()
 		finally:
 			storage_service.close_transaction()
