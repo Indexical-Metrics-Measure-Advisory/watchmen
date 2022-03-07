@@ -11,8 +11,6 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
-passlib = "^1.7.4"
-bcrypt = "^3.2.0"
 watchmen-dqc = { path = "../watchmen-dqc", develop = true }
 watchmen-rest = { path = "../watchmen-rest", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
