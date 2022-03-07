@@ -12,6 +12,7 @@ packages = [
 python = "^3.9"
 pandas = "^1.4.1"
 pandas-profiling = "^3.1.0"
+APScheduler = "^3.9.1"
 watchmen-meta = { path = "../watchmen-meta", develop = true }
 watchmen-data-kernel = { path = "../watchmen-data-kernel", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }

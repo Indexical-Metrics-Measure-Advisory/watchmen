@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
@@ -27,5 +27,14 @@ class TenantService:
 
 			CacheService.tenant().put(tenant)
 			return tenant
+		finally:
+			storage_service.close_transaction()
+
+	def find_all(self) -> List[Tenant]:
+		storage_service = TenantStorageService(ask_meta_storage(), ask_snowflake_generator(), self.principalService)
+		storage_service.begin_transaction()
+		try:
+			# noinspection PyTypeChecker
+			return storage_service.find_all()
 		finally:
 			storage_service.close_transaction()
