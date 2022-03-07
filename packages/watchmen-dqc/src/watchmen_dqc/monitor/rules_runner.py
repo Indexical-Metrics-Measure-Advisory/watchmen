@@ -14,7 +14,7 @@ from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.dqc import MonitorJobLockService
 from watchmen_model.admin import Topic
 from watchmen_model.common import TenantId, TopicId
-from watchmen_model.dqc import MonitorJobLock, MonitorRuleStatisticalInterval
+from watchmen_model.dqc import MonitorJobLock, MonitorRule, MonitorRuleCode, MonitorRuleStatisticalInterval
 from watchmen_model.dqc.monitor_job_lock import MonitorJobLockStatus
 from watchmen_model.system import Tenant
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
@@ -26,6 +26,24 @@ def get_rule_service(principal_service: PrincipalService) -> MonitorRuleService:
 	return MonitorRuleService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
+DISABLED_RULES = [
+	MonitorRuleCode.RAW_MISMATCH_STRUCTURE,
+	MonitorRuleCode.FACTOR_USE_CAST,
+	MonitorRuleCode.FACTOR_BREAKS_MONOTONE_INCREASING,
+	MonitorRuleCode.FACTOR_BREAKS_MONOTONE_DECREASING
+]
+
+
+def should_run_rule(rule: MonitorRule, frequency: Optional[MonitorRuleStatisticalInterval]) -> bool:
+	if not rule.enabled:
+		return False
+	if frequency is not None and rule.params.statisticalInterval != frequency:
+		return False
+	if rule.code in DISABLED_RULES:
+		return False
+	return True
+
+
 class MonitorRulesRunner:
 	def __init__(self, principal_service: PrincipalService):
 		self.principalService = principal_service
@@ -35,8 +53,11 @@ class MonitorRulesRunner:
 			frequency: Optional[MonitorRuleStatisticalInterval] = None) -> None:
 		rule_service = get_rule_service(self.principalService)
 		rules = rule_service.find_by_grade_or_topic_id(None, topic_id, self.principalService.get_tenant_id())
-		rules = ArrayHelper(rules).filter(lambda x: x.enabled and x.params.statisticalInterval == frequency).to_list()
+		rules = ArrayHelper(rules) \
+			.filter(lambda x: should_run_rule(x, frequency)) \
+			.to_list()
 		# TODO run monitor rules
+		pass
 
 
 def get_tenant_service(principal_service: PrincipalService) -> TenantService:
