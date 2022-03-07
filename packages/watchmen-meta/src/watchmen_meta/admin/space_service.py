@@ -5,9 +5,7 @@ from watchmen_model.admin import Space
 from watchmen_model.admin.space import SpaceFilter
 from watchmen_model.common import DataPage, Pageable, SpaceId, TenantId
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaJoint, \
-	EntityCriteriaJointConjunction, EntityCriteriaOperator, \
-	EntityRow, \
-	EntityShaper
+	EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityRow, EntityShaper
 from watchmen_utilities import ArrayHelper
 
 
