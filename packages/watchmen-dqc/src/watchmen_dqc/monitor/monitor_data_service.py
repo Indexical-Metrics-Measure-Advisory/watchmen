@@ -1,0 +1,86 @@
+from datetime import datetime
+from typing import List
+
+from watchmen_auth import PrincipalService
+from watchmen_data_kernel.common import ask_datetime_formats, DataKernelException
+from watchmen_data_kernel.meta import TopicService
+from watchmen_data_kernel.service import ask_topic_data_service, ask_topic_storage
+from watchmen_data_kernel.topic_schema import TopicSchema
+from watchmen_model.dqc import MonitorRuleLog, MonitorRuleLogCriteria
+from watchmen_model.pipeline_kernel import TopicDataColumnNames
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator
+from watchmen_utilities import is_date, is_not_blank
+
+
+def get_topic_service(principal_service: PrincipalService) -> TopicService:
+	return TopicService(principal_service)
+
+
+def get_topic_schema(
+		topic_name: str, principal_service: PrincipalService) -> TopicSchema:
+	schema = get_topic_service(principal_service).find_schema_by_name(topic_name, principal_service.get_tenant_id())
+	if schema is None:
+		raise DataKernelException(f'Topic[name={topic_name}] not found.')
+	return schema
+
+
+class MonitorDataService:
+	def __init__(self, principal_service: PrincipalService):
+		self.principalService = principal_service
+
+	def find(self, criteria: MonitorRuleLogCriteria) -> List[MonitorRuleLog]:
+		schema = get_topic_schema('dqc_rule_aggregate', self.principalService)
+		storage = ask_topic_storage(schema, self.principalService)
+		service = ask_topic_data_service(schema, storage, self.principalService)
+		storage_criteria = [
+			EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName=TopicDataColumnNames.TENANT_ID.value),
+				right=self.principalService.get_tenant_id())
+		]
+		if is_not_blank(criteria.ruleCode):
+			storage_criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='rulecode'), right=criteria.ruleCode.value))
+		if is_not_blank(criteria.topicId):
+			storage_criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='topicid'), right=criteria.topicId))
+		if is_not_blank(criteria.factorId):
+			storage_criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='factorid'), right=criteria.factorId))
+
+		if is_not_blank(criteria.startDate):
+			parsed, start_date = is_date(criteria.startDate, ask_datetime_formats())
+			if parsed:
+				if isinstance(start_date, datetime):
+					start_date = start_date.replace(microsecond=0, tzinfo=None)
+				else:
+					start_date = datetime(
+						year=start_date.year, month=start_date.month, day=start_date.day,
+						hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
+			storage_criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName=TopicDataColumnNames.UPDATE_TIME.value),
+				operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
+				right=start_date
+			))
+		else:
+			raise DataKernelException(f'Cannot parse given start date[{criteria.startDate}].')
+
+		if is_not_blank(criteria.endDate):
+			parsed, end_date = is_date(criteria.endDate, ask_datetime_formats())
+			if parsed:
+				if isinstance(end_date, datetime):
+					end_date = end_date.replace(microsecond=0, tzinfo=None)
+				else:
+					end_date = datetime(
+						year=end_date.year, month=end_date.month, day=end_date.day,
+						hour=23, minute=59, second=59, microsecond=999999, tzinfo=None)
+			storage_criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName=TopicDataColumnNames.UPDATE_TIME.value),
+				operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
+				right=end_date
+			))
+		else:
+			raise DataKernelException(f'Cannot parse given end date[{criteria.startDate}].')
+
+		data = service.find(criteria=storage_criteria)
+
+		return []
