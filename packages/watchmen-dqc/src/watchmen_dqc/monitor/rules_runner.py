@@ -20,12 +20,13 @@ from watchmen_utilities import get_current_time_in_seconds
 logger = getLogger(__name__)
 
 
-class PeriodicRulesRunner:
-	def __init__(self, frequency: MonitorRuleStatisticalInterval, principal_service: PrincipalService):
-		self.frequency = frequency
+class MonitorRulesRunner:
+	def __init__(self, principal_service: PrincipalService):
 		self.principalService = principal_service
 
-	def run(self, topic_id: Optional[TopicId] = None) -> None:
+	def run(
+			self, process_date: date, topic_id: Optional[TopicId] = None,
+			frequency: Optional[MonitorRuleStatisticalInterval] = None) -> None:
 		# TODO
 		pass
 
@@ -83,16 +84,19 @@ def run_monitor_rules(
 		for topic in topics:
 			principal_service = fake_tenant_admin(tenant.tenantId)
 			if try_to_lock_topic_for_monitor(topic, frequency, process_date, principal_service):
-				PeriodicRulesRunner(frequency, principal_service).run(topic.topicId)
+				MonitorRulesRunner(principal_service).run(process_date, frequency, topic.topicId)
+
+
+def to_previous_month(process_date: date) -> date:
+	# get last day of previous month
+	process_date = process_date.replace(day=1) - timedelta(days=1)
+	# set to first day of previous month
+	return process_date.replace(day=1)
 
 
 def create_monthly_runner(scheduler: AsyncIOScheduler) -> None:
 	def run() -> None:
-		process_date = get_current_time_in_seconds()
-		# get last day of previous month
-		process_date = process_date.replace(day=1) - timedelta(days=1)
-		# set to first day of previous month
-		process_date = process_date.replace(day=1).date()
+		process_date = to_previous_month(get_current_time_in_seconds())
 		run_monitor_rules(process_date, MonitorRuleStatisticalInterval.MONTHLY)
 
 	trigger = ask_monitor_job_trigger()
@@ -100,14 +104,16 @@ def create_monthly_runner(scheduler: AsyncIOScheduler) -> None:
 	scheduler.add_job(run, trigger, day=day, hour=hour, minute=minute)
 
 
+def to_previous_week(process_date: date) -> date:
+	# iso weekday: Monday is 1 and Sunday is 7
+	weekday = process_date.isoweekday()
+	# get last sunday
+	return process_date - timedelta(days=weekday % 7 + 7)
+
+
 def create_weekly_runner(scheduler: AsyncIOScheduler) -> None:
 	def run() -> None:
-		process_date = get_current_time_in_seconds()
-		# iso weekday: Monday is 1 and Sunday is 7
-		weekday = process_date.isoweekday()
-		# get last sunday
-		process_date = process_date - timedelta(days=weekday % 7 + 7)
-		process_date = process_date.date()
+		process_date = to_previous_week(get_current_time_in_seconds())
 		run_monitor_rules(process_date, MonitorRuleStatisticalInterval.WEEKLY)
 
 	trigger = ask_monitor_job_trigger()
@@ -115,12 +121,14 @@ def create_weekly_runner(scheduler: AsyncIOScheduler) -> None:
 	scheduler.add_job(run, trigger, day_of_week=day_of_week, hour=hour, minute=minute)
 
 
+def to_yesterday(process_date: date) -> date:
+	# get yesterday
+	return process_date - timedelta(days=1)
+
+
 def create_daily_runner(scheduler: AsyncIOScheduler) -> None:
 	def run() -> None:
-		process_date = get_current_time_in_seconds()
-		# get yesterday
-		process_date = process_date - timedelta(days=1)
-		process_date = process_date.date()
+		process_date = to_yesterday(get_current_time_in_seconds())
 		run_monitor_rules(process_date, MonitorRuleStatisticalInterval.DAILY)
 
 	trigger = ask_monitor_job_trigger()
