@@ -27,10 +27,21 @@ def get_rule_service(principal_service: PrincipalService) -> MonitorRuleService:
 
 
 DISABLED_RULES = [
-	MonitorRuleCode.RAW_MISMATCH_STRUCTURE,
-	MonitorRuleCode.FACTOR_USE_CAST,
-	MonitorRuleCode.FACTOR_BREAKS_MONOTONE_INCREASING,
-	MonitorRuleCode.FACTOR_BREAKS_MONOTONE_DECREASING
+	MonitorRuleCode.RAW_MISMATCH_STRUCTURE,  # ignored now
+	MonitorRuleCode.FACTOR_MISMATCH_DATE_TYPE,  # should be detected on pipeline run
+	MonitorRuleCode.FACTOR_USE_CAST,  # should be detected on pipeline run
+	MonitorRuleCode.FACTOR_BREAKS_MONOTONE_INCREASING,  # ignored now
+	MonitorRuleCode.FACTOR_BREAKS_MONOTONE_DECREASING  # ignored now
+]
+
+TWO_TOPIC_RULES = [
+	MonitorRuleCode.ROWS_COUNT_MISMATCH_AND_ANOTHER,
+	MonitorRuleCode.FACTOR_AND_ANOTHER
+]
+
+TOPIC_LEVEL_RULES = [
+	MonitorRuleCode.ROWS_NOT_EXISTS,
+	MonitorRuleCode.ROWS_NO_CHANGE
 ]
 
 
@@ -42,6 +53,20 @@ def should_run_rule(rule: MonitorRule, frequency: Optional[MonitorRuleStatistica
 	if rule.code in DISABLED_RULES:
 		return False
 	return True
+
+
+def find_two_topic_rules(rules: List[MonitorRule]) -> List[MonitorRule]:
+	return ArrayHelper(rules).filter(lambda x: x.code in TWO_TOPIC_RULES).to_list()
+
+
+def find_topic_rules(rules: List[MonitorRule]) -> List[MonitorRule]:
+	return ArrayHelper(rules).filter(lambda x: x.code in TOPIC_LEVEL_RULES).to_list()
+
+
+def find_factor_rules(rules: List[MonitorRule]) -> List[MonitorRule]:
+	return ArrayHelper(rules) \
+		.filter(lambda x: x.code not in TWO_TOPIC_RULES and x.code not in TOPIC_LEVEL_RULES) \
+		.to_list()
 
 
 class MonitorRulesRunner:
