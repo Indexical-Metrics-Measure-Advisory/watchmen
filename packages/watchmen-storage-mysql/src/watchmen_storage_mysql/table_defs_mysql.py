@@ -196,6 +196,14 @@ table_catalogs = Table(
 	create_json('tags'), create_description(),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
+table_monitor_rules = Table(
+	'monitor_rules', meta_data,
+	create_pk('rule_id'), create_str('code', 45, False),
+	create_str('grade', 20, False), create_str('severity', 20, False),
+	create_tuple_id_column('topic_id'), create_tuple_id_column('factor_id'),
+	create_json('params'), create_bool('enabled'),
+	create_tenant_id(), *create_tuple_audit_columns()
+)
 
 tables: Dict[str, Table] = {
 	# snowflake workers
@@ -227,7 +235,8 @@ tables: Dict[str, Table] = {
 	'factor_index': table_factor_index,
 	'pipeline_index': table_pipeline_index,
 	# dqc
-	'catalogs': table_catalogs
+	'catalogs': table_catalogs,
+	'monitor_rules': table_monitor_rules
 }
 
 topic_tables: Dict[TopicId, Tuple[Table, datetime]] = {}
