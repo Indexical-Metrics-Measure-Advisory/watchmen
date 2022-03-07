@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import Any, Dict, List
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_datetime_formats, DataKernelException
@@ -8,8 +8,10 @@ from watchmen_data_kernel.service import ask_topic_data_service, ask_topic_stora
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.dqc import MonitorRuleLog, MonitorRuleLogCriteria
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
-from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator
-from watchmen_utilities import is_date, is_not_blank
+from watchmen_storage import ColumnNameLiteral, EntityColumnAggregateArithmetic, EntityCriteriaExpression, \
+	EntityCriteriaOperator, \
+	EntityStraightAggregateColumn, EntityStraightColumn
+from watchmen_utilities import ArrayHelper, is_date, is_not_blank
 
 
 def get_topic_service(principal_service: PrincipalService) -> TopicService:
@@ -81,6 +83,30 @@ class MonitorDataService:
 		else:
 			raise DataKernelException(f'Cannot parse given end date[{criteria.startDate}].')
 
-		data = service.find(criteria=storage_criteria)
+		columns = [
+			EntityStraightColumn(columnName='rulecode'),
+			EntityStraightAggregateColumn(
+				columnName=TopicDataColumnNames.ID.value, alias='occurredtimes',
+				arithmetic=EntityColumnAggregateArithmetic.COUNT),
+			EntityStraightAggregateColumn(
+				columnName=TopicDataColumnNames.UPDATE_TIME.value, alias='lastoccurred',
+				arithmetic=EntityColumnAggregateArithmetic.MAX),
+		]
+		if is_not_blank(criteria.topicId):
+			columns.append(EntityStraightColumn(columnName='topicid'))
+			columns.append(EntityStraightColumn(columnName='factorid'))
+		elif is_not_blank(criteria.ruleCode):
+			columns.append(EntityStraightColumn(columnName='topicid'))
 
-		return []
+		data = service.find_straight_values(criteria=storage_criteria, columns=columns)
+
+		def to_log(row: Dict[str, Any]) -> MonitorRuleLog:
+			return MonitorRuleLog(
+				ruleCode=row.get('rulecode'),
+				topicId=row.get('topicid'),
+				factorId=row.get('factorid'),
+				count=row.get('occurredtimes'),
+				lastOccurredTime=row.get('lastoccurred')
+			)
+
+		return ArrayHelper(data).map(lambda x: to_log(x)).to_list()

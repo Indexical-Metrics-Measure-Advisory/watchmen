@@ -266,10 +266,28 @@ class StorageMySQL(TransactionalStorageSPI):
 			elif straight_column.arithmetic == EntityColumnAggregateArithmetic.MIN:
 				return func.min(straight_column.columnName).label(self.get_alias_from_straight_column(straight_column))
 		elif isinstance(straight_column, EntityStraightColumn):
-			return literal_column(straight_column.columnName).label(
-				self.get_alias_from_straight_column(straight_column))
+			return literal_column(straight_column.columnName) \
+				.label(self.get_alias_from_straight_column(straight_column))
 
 		raise UnsupportedStraightColumnException(f'Straight column[{straight_column.to_dict()}] is not supported.')
+
+	def translate_straight_group_bys(
+			self, statement: SQLAlchemyStatement, straight_columns: List[EntityStraightColumn]) -> SQLAlchemyStatement:
+		group_columns = ArrayHelper(straight_columns) \
+			.filter(lambda x: isinstance(x, EntityStraightAggregateColumn)).to_list()
+		if len(group_columns) == 0:
+			# no grouped columns
+			return statement
+		# find columns rather than grouped
+		non_group_columns = ArrayHelper(straight_columns) \
+			.filter(lambda x: not isinstance(x, EntityStraightAggregateColumn)).to_list()
+		if len(non_group_columns) == 0:
+			# all columns are grouped
+			return statement
+
+		# use alias name to build group by statement
+		return statement.group_by(
+			*ArrayHelper(non_group_columns).map(lambda x: self.get_alias_from_straight_column(x)).to_list())
 
 	def find_straight_values(self, finder: EntityStraightValuesFinder) -> EntityList:
 		table = self.find_table(finder.name)
@@ -277,6 +295,7 @@ class StorageMySQL(TransactionalStorageSPI):
 			*ArrayHelper(finder.straightColumns).map(self.translate_straight_column_name).to_list()) \
 			.select_from(table)
 		statement = build_criteria_for_statement([table], statement, finder.criteria)
+		statement = self.translate_straight_group_bys(statement, finder.straightColumns)
 		statement = build_sort_for_statement(statement, finder.sort)
 		results = self.connection.execute(statement).mappings().all()
 		return ArrayHelper(results).map(lambda x: dict(x)).to_list()
