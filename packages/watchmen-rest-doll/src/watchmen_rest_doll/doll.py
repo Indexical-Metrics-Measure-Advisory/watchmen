@@ -33,6 +33,9 @@ class DollApp(RestApp):
 	def create_pipeline_monitor_topics_on_tenant_create(self) -> bool:
 		return self.get_settings().CREATE_PIPELINE_MONITOR_TOPICS_ON_TENANT_CREATE
 
+	def create_dqc_topics_on_tenant_create(self) -> bool:
+		return self.get_settings().CREATE_DQC_TOPICS_ON_TENANT_CREATE
+
 	def post_construct(self, app: FastAPI) -> None:
 		pass
 
@@ -61,3 +64,7 @@ def ask_tuple_delete_enabled() -> bool:
 
 def create_pipeline_monitor_topics_on_tenant_create() -> bool:
 	return doll.create_pipeline_monitor_topics_on_tenant_create()
+
+
+def create_dqc_topics_on_tenant_create() -> bool:
+	return doll.create_dqc_topics_on_tenant_create()
