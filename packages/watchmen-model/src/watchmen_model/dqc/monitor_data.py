@@ -4,7 +4,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 from watchmen_model.common import DataModel, FactorId, TopicId
-from watchmen_model.dqc import MonitorRuleCode
+from .monitor_rule import MonitorRuleCode
 
 
 class MonitorRuleLog(DataModel, BaseModel):
