@@ -15,9 +15,10 @@ class MonitorRuleShaper(EntityShaper):
 			'code': monitor_rule.code,
 			'grade': monitor_rule.grade,
 			'severity': monitor_rule.severity,
+			'topic_id': monitor_rule.params.topicId if monitor_rule.params is not None else None,
+			'factor_id': monitor_rule.params.factorId if monitor_rule.params is not None else None,
 			'params': monitor_rule.params,
-			'enabled': monitor_rule.enabled,
-			'tenant_id': monitor_rule.tenantId
+			'enabled': monitor_rule.enabled
 		})
 
 	def deserialize(self, row: EntityRow) -> MonitorRule:
@@ -28,8 +29,7 @@ class MonitorRuleShaper(EntityShaper):
 			grade=row.get('grade'),
 			severity=row.get('severity'),
 			params=row.get('params'),
-			enabled=row.get('enabled'),
-			tenantId=row.get('tenant_id')
+			enabled=row.get('enabled')
 		))
 
 
