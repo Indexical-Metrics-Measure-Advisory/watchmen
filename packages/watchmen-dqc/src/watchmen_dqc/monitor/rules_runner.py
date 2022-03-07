@@ -20,7 +20,7 @@ from watchmen_model.dqc import MonitorJobLock, MonitorRule, MonitorRuleCode, Mon
 from watchmen_model.dqc.monitor_job_lock import MonitorJobLockStatus
 from watchmen_model.system import Tenant
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
-from .rule import rows_not_exists
+from .rule import rows_count_mismatch_with_another, rows_not_exists
 
 logger = getLogger(__name__)
 
@@ -37,16 +37,6 @@ DISABLED_RULES = [
 	MonitorRuleCode.FACTOR_BREAKS_MONOTONE_DECREASING  # ignored now
 ]
 
-TWO_TOPIC_RULES = [
-	MonitorRuleCode.ROWS_COUNT_MISMATCH_AND_ANOTHER,
-	MonitorRuleCode.FACTOR_AND_ANOTHER
-]
-
-TOPIC_LEVEL_RULES = [
-	MonitorRuleCode.ROWS_NOT_EXISTS,
-	MonitorRuleCode.ROWS_NO_CHANGE
-]
-
 
 def should_run_rule(rule: MonitorRule, frequency: Optional[MonitorRuleStatisticalInterval]) -> bool:
 	if not rule.enabled:
@@ -58,8 +48,8 @@ def should_run_rule(rule: MonitorRule, frequency: Optional[MonitorRuleStatistica
 	return True
 
 
-def find_rows_not_exists(rules: List[MonitorRule]) -> Optional[MonitorRule]:
-	return ArrayHelper(rules).find(lambda x: x.code == MonitorRuleCode.ROWS_NOT_EXISTS)
+def find_rule(rules: List[MonitorRule], code: MonitorRuleCode) -> Optional[MonitorRule]:
+	return ArrayHelper(rules).find(lambda x: x.code == code)
 
 
 class MonitorRulesRunner:
@@ -99,11 +89,24 @@ class MonitorRulesRunner:
 		if not success:
 			return
 
-		count = rows_not_exists(data_service)
-		rows_not_exists_rule = find_rows_not_exists(rules)
-		if rows_not_exists_rule is not None and count == 0:
-			# TODO rule matched, trigger a pipeline
-			pass
+		rows_not_exists_rule = find_rule(rules, MonitorRuleCode.ROWS_NOT_EXISTS)
+		count = rows_not_exists(data_service, rows_not_exists_rule)
+		if count == 0:
+			self.run_rows_count_mismatch_with_another(rules, data_service, count)
+		else:
+			self.run_all_rules(rules, data_service, count)
+
+	# noinspection PyMethodMayBeStatic
+	def run_rows_count_mismatch_with_another(
+			self, rules: List[MonitorRule], data_service: TopicDataService, count: Optional[int] = None) -> None:
+		rule = find_rule(rules, MonitorRuleCode.ROWS_COUNT_MISMATCH_AND_ANOTHER)
+		if rule is None:
+			return
+		rows_count_mismatch_with_another(data_service, rule, count)
+
+	def run_all_rules(
+			self, rules: List[MonitorRule], data_service: TopicDataService, count: Optional[int] = None) -> None:
+		self.run_rows_count_mismatch_with_another(rules, data_service, None)
 
 
 def get_tenant_service(principal_service: PrincipalService) -> TenantService:
