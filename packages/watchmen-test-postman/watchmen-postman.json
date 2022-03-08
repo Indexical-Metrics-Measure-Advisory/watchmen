@@ -8378,13 +8378,44 @@
                   "item": [
                     {
                       "name": "DETELE ROW",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "0c8bd1dc-3bb5-4ed4-ac3b-9fe94cc4d464",
+                            "exec": [
+                              "pm.test(\"Detele Row\", () => {\r",
+                              "    pm.response.to.have.status(200);\r",
+                              "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId)\r",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "b59eeb57-e175-4086-a0af-3ad9317afc3e",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
                       },
                       "request": {
-                        "method": "GET",
-                        "header": []
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "",
+                          "options": {
+                            "raw": {
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": "{{URL_PREFIX}}/pipeline"
                       },
                       "response": []
                     },
