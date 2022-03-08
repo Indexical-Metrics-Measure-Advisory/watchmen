@@ -7423,7 +7423,7 @@
                   "response": []
                 },
                 {
-                  "name": "TRUCATE RAW TOPIC",
+                  "name": "TRUNCATE RAW TOPIC",
                   "event": [
                     {
                       "listen": "test",
