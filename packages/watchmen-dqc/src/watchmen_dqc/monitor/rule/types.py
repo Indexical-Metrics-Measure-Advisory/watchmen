@@ -1,8 +1,9 @@
 from datetime import datetime
 from enum import Enum
-from typing import Callable, Tuple
+from typing import Any, Callable, List, Tuple
 
 from watchmen_data_kernel.storage import TopicDataService
+from watchmen_model.admin import Factor
 from watchmen_model.dqc import MonitorRule
 
 
@@ -13,3 +14,11 @@ class RuleResult(str, Enum):
 
 
 RuleHandler = Callable[[TopicDataService, MonitorRule, Tuple[datetime, datetime], int, int], RuleResult]
+DistinctDataRuleHandler = Callable[
+	[TopicDataService, Factor, List[Tuple[Any, int]], MonitorRule, Tuple[datetime, datetime], int, int],
+	RuleResult
+]
+AllDataRuleHandler = Callable[
+	[List[Any], MonitorRule, Tuple[datetime, datetime], int, int],
+	RuleResult
+]

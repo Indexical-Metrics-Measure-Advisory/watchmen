@@ -1,35 +1,28 @@
 from datetime import datetime
 from logging import getLogger
 from re import search
-from typing import Any, Tuple
+from typing import Any, List, Tuple
 
 from watchmen_data_kernel.storage import TopicDataService
+from watchmen_model.admin import Factor
 from watchmen_model.dqc import MonitorRule
-from watchmen_utilities import ArrayHelper, is_blank
-from .data_service_utils import build_date_range_criteria, find_factor
+from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 from .types import RuleResult
 
 logger = getLogger(__name__)
 
 
+# noinspection PyUnusedLocal
 def factor_use_regexp(
-		data_service: TopicDataService, rule: MonitorRule,
+		data_service: TopicDataService, factor: Factor,
+		data: List[Tuple[Any, int]], rule: MonitorRule,
 		date_range: Tuple[datetime, datetime],
 		should_match: bool
 ) -> RuleResult:
-	found, factor = find_factor(data_service, rule.factorId, rule)
-	if not found:
-		return RuleResult.IGNORED
 	pattern = rule.params.regexp
 	if is_blank(pattern):
 		logger.error(f'Regexp not declared on rule[{rule.dict()}].')
 		return RuleResult.IGNORED
-
-	rows = data_service.find_distinct_values(
-		criteria=build_date_range_criteria(date_range),
-		column_names=[data_service.get_data_entity_helper().get_column_name(factor.name)],
-		distinct_value_on_single_column=True
-	)
 
 	def matched(value: Any) -> bool:
 		if value is None:
@@ -42,8 +35,9 @@ def factor_use_regexp(
 		else:
 			return not should_match
 
-	mismatched = ArrayHelper(rows) \
-		.map(lambda row: row.get(factor.name)) \
+	mismatched = ArrayHelper(data) \
+		.map(lambda row: row[0]) \
+		.filter(lambda value: is_not_blank(value)) \
 		.some(lambda x: matched(x))
 
 	return RuleResult.FAILED if mismatched else RuleResult.SUCCESS
