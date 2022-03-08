@@ -7185,6 +7185,10 @@
                     "disableBodyPruning": true
                   },
                   "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {}
+                    },
                     "method": "DELETE",
                     "header": [],
                     "url": {
