@@ -8262,7 +8262,13 @@
             },
             {
               "name": "DELETE  - TOPIC - ACTION",
-              "item": [],
+              "item": [
+                {
+                  "name": "New Folder",
+                  "item": [],
+                  "id": "393851bd-30e4-477c-bddd-07c6016e066e"
+                }
+              ],
               "id": "fec06304-21eb-4f58-961c-9073f66be5f5"
             }
           ],
