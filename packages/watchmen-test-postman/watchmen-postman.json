@@ -8408,7 +8408,7 @@
                         "header": [],
                         "body": {
                           "mode": "raw",
-                          "raw": "",
+                          "raw": "{\r\n    \"topicId\": \"{{RAW_TOPIC_ID}}\",\r\n    \"name\": \"Detele\",\r\n    \"type\": \"insert-or-merge\",\r\n    \"stages\": [\r\n        {\r\n            \"stageId\": \"f-1\",\r\n            \"name\": \"Stage 1\",\r\n            \"units\": [\r\n                {\r\n                    \"unitId\": \"f-2\",\r\n                    \"name\": \"Unit 1.1\",\r\n                    \"do\": [\r\n                        {\r\n                            \"actionId\": \"f-3\",\r\n                            \"type\": \"alarm\",\r\n                            \"severity\": \"high\",\r\n                            \"message\": \"Hello world!\"\r\n                        }\r\n                    ]\r\n                }\r\n            ]\r\n        }\r\n    ],\r\n    \"enabled\": true,\r\n    \"validated\": true\r\n}",
                           "options": {
                             "raw": {
                               "language": "json"
