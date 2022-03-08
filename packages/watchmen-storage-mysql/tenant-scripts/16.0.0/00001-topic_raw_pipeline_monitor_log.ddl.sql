@@ -1,3 +1,4 @@
+# noinspection SpellCheckingInspectionForFile
 CREATE TABLE topic_raw_pipeline_monitor_log
 (
     id_          BIGINT,

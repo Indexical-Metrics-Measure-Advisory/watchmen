@@ -39,12 +39,15 @@ class MonitorDataService:
 				right=self.principalService.get_tenant_id())
 		]
 		if is_not_blank(criteria.ruleCode):
+			# noinspection SpellCheckingInspection
 			storage_criteria.append(EntityCriteriaExpression(
 				left=ColumnNameLiteral(columnName='rulecode'), right=criteria.ruleCode.value))
 		if is_not_blank(criteria.topicId):
+			# noinspection SpellCheckingInspection
 			storage_criteria.append(EntityCriteriaExpression(
 				left=ColumnNameLiteral(columnName='topicid'), right=criteria.topicId))
 		if is_not_blank(criteria.factorId):
+			# noinspection SpellCheckingInspection
 			storage_criteria.append(EntityCriteriaExpression(
 				left=ColumnNameLiteral(columnName='factorid'), right=criteria.factorId))
 
@@ -82,6 +85,7 @@ class MonitorDataService:
 		else:
 			raise DataKernelException(f'Cannot parse given end date[{criteria.startDate}].')
 
+		# noinspection SpellCheckingInspection
 		columns = [
 			EntityStraightColumn(columnName='rulecode'),
 			EntityStraightAggregateColumn(
@@ -92,14 +96,18 @@ class MonitorDataService:
 				arithmetic=EntityColumnAggregateArithmetic.MAX),
 		]
 		if is_not_blank(criteria.topicId):
+			# noinspection SpellCheckingInspection
 			columns.append(EntityStraightColumn(columnName='topicid'))
+			# noinspection SpellCheckingInspection
 			columns.append(EntityStraightColumn(columnName='factorid'))
 		elif is_not_blank(criteria.ruleCode):
+			# noinspection SpellCheckingInspection
 			columns.append(EntityStraightColumn(columnName='topicid'))
 
 		data = service.find_straight_values(criteria=storage_criteria, columns=columns)
 
 		def to_log(row: Dict[str, Any]) -> MonitorRuleLog:
+			# noinspection SpellCheckingInspection
 			return MonitorRuleLog(
 				ruleCode=row.get('rulecode'),
 				topicId=row.get('topicid'),

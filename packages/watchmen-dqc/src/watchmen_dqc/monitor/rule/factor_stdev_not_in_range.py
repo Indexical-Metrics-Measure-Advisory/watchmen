@@ -9,7 +9,7 @@ from .types import RuleResult
 from .value_range import in_range
 
 
-# noinspection PyUnusedLocal
+# noinspection PyUnusedLocal,SpellCheckingInspection
 def factor_stdev_not_in_range(
 		data_service: TopicDataService, factor: Factor,
 		data: List[List[Any]], rule: MonitorRule,

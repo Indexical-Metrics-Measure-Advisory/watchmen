@@ -37,6 +37,7 @@ class MonitorRuleCode(str, Enum):
 	FACTOR_AVG_NOT_IN_RANGE = 'factor-avg-not-in-range',
 	FACTOR_MEDIAN_NOT_IN_RANGE = 'factor-median-not-in-range',
 	FACTOR_QUANTILE_NOT_IN_RANGE = 'factor-quantile-not-in-range',
+	# noinspection SpellCheckingInspection
 	FACTOR_STDEV_NOT_IN_RANGE = 'factor-stdev-not-in-range',
 	FACTOR_COMMON_VALUE_NOT_IN_RANGE = 'factor-common-value-not-in-range',
 

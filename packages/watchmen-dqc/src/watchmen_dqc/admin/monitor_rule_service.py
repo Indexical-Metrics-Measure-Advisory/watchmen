@@ -3,8 +3,8 @@ from typing import List, Optional
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_model.common import TenantId, TopicId
 from watchmen_model.dqc import MonitorRule, MonitorRuleGrade, MonitorRuleId
-from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, EntityName, EntityRow, \
-	EntityShaper
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, EntityName, \
+	EntityRow, EntityShaper
 from watchmen_utilities import is_not_blank
 
 

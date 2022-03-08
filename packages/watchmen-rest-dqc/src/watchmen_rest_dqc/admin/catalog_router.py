@@ -10,8 +10,8 @@ from watchmen_model.admin import UserRole
 from watchmen_model.common import TenantId, TopicId
 from watchmen_model.dqc import Catalog, CatalogCriteria, CatalogId
 from watchmen_rest import get_admin_principal, get_any_admin_principal
-from watchmen_rest.util import raise_400, raise_403, raise_404
-from watchmen_rest_dqc.util import trans, trans_readonly, validate_tenant_id
+from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
+from watchmen_rest_dqc.util import trans, trans_readonly
 from watchmen_utilities import ArrayHelper, is_blank
 
 router = APIRouter()
