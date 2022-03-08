@@ -7381,7 +7381,7 @@
                       "script": {
                         "id": "f6a713e0-dfad-4a42-a18e-313cfd4bf30d",
                         "exec": [
-                          "pm.test(\"Trucate Topic\", () => {",
+                          "pm.test(\"Truncate Topic\", () => {",
                           "    pm.response.to.have.status(200);",
                           "});"
                         ],
@@ -7430,7 +7430,7 @@
                       "script": {
                         "id": "5edcf26f-153c-4d56-854b-6ebfddbd741b",
                         "exec": [
-                          "pm.test(\"Trucate Raw Topic\", () => {",
+                          "pm.test(\"Truncate Raw Topic\", () => {",
                           "    pm.response.to.have.status(200);",
                           "});"
                         ],
