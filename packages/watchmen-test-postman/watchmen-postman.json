@@ -7636,7 +7636,7 @@
                         "header": [],
                         "body": {
                           "mode": "raw",
-                          "raw": "",
+                          "raw": "{\r\n    \"code\": \"Test_Raw_Topic\",\r\n    \"data\": {\r\n        \"propA\": \"text2\",\r\n        \"propB\": 200,\r\n        \"propC\": false,\r\n        \"propD\": \"2022-04-22\",\r\n        \"propE\": \"2022-04-22 22:39:45\"\r\n    }\r\n}",
                           "options": {
                             "raw": {
                               "language": "json"
