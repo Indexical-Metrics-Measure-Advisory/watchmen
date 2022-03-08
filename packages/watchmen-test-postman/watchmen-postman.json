@@ -8268,58 +8268,6 @@
                   "item": [
                     {
                       "name": "PATCH TOPIC",
-                      "id": "839d6280-6575-4059-b632-684dc6d79c33",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "auth": {
-                          "type": "bearer",
-                          "bearer": {
-                            "token": "{{JWT_TOKEN}}"
-                          }
-                        },
-                        "method": "PATCH",
-                        "header": [],
-                        "body": {
-                          "mode": "raw",
-                          "raw": "{\r\n    \"propA\": \"text1\",\r\n    \"propB\": 100,\r\n    \"propC\": true,\r\n    \"propD\": \"2022-03-01\",\r\n    \"propE\": \"2022-03-01 22:22:22\"\r\n}",
-                          "options": {
-                            "raw": {
-                              "language": "json"
-                            }
-                          }
-                        },
-                        "url": {
-                          "raw": "{{URL_PREFIX}}/topic/data/patch?topic_name={{TOPIC_NAME}}&patch_type=insert&tenant_id=1",
-                          "host": [
-                            "{{URL_PREFIX}}"
-                          ],
-                          "path": [
-                            "topic",
-                            "data",
-                            "patch"
-                          ],
-                          "query": [
-                            {
-                              "key": "topic_name",
-                              "value": "{{TOPIC_NAME}}"
-                            },
-                            {
-                              "key": "patch_type",
-                              "value": "insert"
-                            },
-                            {
-                              "key": "tenant_id",
-                              "value": "1"
-                            }
-                          ]
-                        }
-                      },
-                      "response": []
-                    },
-                    {
-                      "name": "PATCH TOPIC",
                       "id": "a92493c4-1972-4ccf-9f9c-d2d0422eba30",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
@@ -8376,6 +8324,58 @@
                 {
                   "name": "DELETE ROW",
                   "item": [
+                    {
+                      "name": "PATCH TOPIC",
+                      "id": "839d6280-6575-4059-b632-684dc6d79c33",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "PATCH",
+                        "header": [],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\r\n    \"propA\": \"text1\",\r\n    \"propB\": 100,\r\n    \"propC\": true,\r\n    \"propD\": \"2022-03-01\",\r\n    \"propE\": \"2022-03-01 22:22:22\"\r\n}",
+                          "options": {
+                            "raw": {
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{URL_PREFIX}}/topic/data/patch?topic_name={{TOPIC_NAME}}&patch_type=insert&tenant_id=1",
+                          "host": [
+                            "{{URL_PREFIX}}"
+                          ],
+                          "path": [
+                            "topic",
+                            "data",
+                            "patch"
+                          ],
+                          "query": [
+                            {
+                              "key": "topic_name",
+                              "value": "{{TOPIC_NAME}}"
+                            },
+                            {
+                              "key": "patch_type",
+                              "value": "insert"
+                            },
+                            {
+                              "key": "tenant_id",
+                              "value": "1"
+                            }
+                          ]
+                        }
+                      },
+                      "response": []
+                    },
                     {
                       "name": "DELETE ROW",
                       "event": [
