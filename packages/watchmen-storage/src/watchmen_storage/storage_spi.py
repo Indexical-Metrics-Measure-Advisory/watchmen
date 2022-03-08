@@ -116,13 +116,18 @@ class StorageSPI(ABC):
 	@abstractmethod
 	def find_distinct_values(self, finder: EntityDistinctValuesFinder) -> EntityList:
 		"""
-		filled values with given distinct columns event returns an entity list.
+		filled values with given distinct columns, returns an entity list.
 		entity is deserialized by shaper
 		"""
 		pass
 
 	@abstractmethod
 	def find_straight_values(self, finder: EntityStraightValuesFinder) -> EntityList:
+		"""
+		fill values with given straight columns, returns an entity list
+		entity will not be deserialized by shaper.
+		And when there is aggregated columns, other columns will be used in group by
+		"""
 		pass
 
 	@abstractmethod

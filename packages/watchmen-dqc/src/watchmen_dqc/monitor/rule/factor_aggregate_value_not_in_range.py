@@ -21,8 +21,7 @@ def factor_aggregate_value_not_in_range(
 
 	column_name = data_service.get_data_entity_helper().get_column_name(factor.name)
 	data = data_service.find_straight_values(
-		columns=[EntityStraightAggregateColumn(
-			arithmetic=arithmetic, columnName=column_name)],
+		columns=[EntityStraightAggregateColumn(arithmetic=arithmetic, columnName=column_name)],
 		criteria=build_date_range_criteria(date_range))
 	if len(data) == 0:
 		# no data found
