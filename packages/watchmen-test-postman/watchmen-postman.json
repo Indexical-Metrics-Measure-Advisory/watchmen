@@ -7187,7 +7187,9 @@
                   "request": {
                     "auth": {
                       "type": "bearer",
-                      "bearer": {}
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
                     },
                     "method": "DELETE",
                     "header": [],
