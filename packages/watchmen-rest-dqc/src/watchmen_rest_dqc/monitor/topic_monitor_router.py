@@ -6,7 +6,8 @@ from starlette.responses import Response
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_all_date_formats
 from watchmen_data_kernel.meta import TenantService, TopicService
-from watchmen_dqc.monitor import MonitorDataService, MonitorRulesRunner, to_previous_month, to_previous_week, \
+from watchmen_dqc.monitor import MonitorDataService, SelfCleaningMonitorRulesRunner, \
+	to_previous_month, to_previous_week, \
 	to_yesterday
 from watchmen_model.admin import User, UserRole
 from watchmen_model.common import TenantId
@@ -98,18 +99,21 @@ def run_topics_rules(
 		# otherwise, run the given month
 		if process_date.year == now.year and process_date.month == now.month:
 			process_date = to_previous_month(process_date)
-		MonitorRulesRunner(principal_service).run(process_date, MonitorRuleStatisticalInterval.MONTHLY, topic_id)
+		SelfCleaningMonitorRulesRunner(principal_service) \
+			.run(process_date, MonitorRuleStatisticalInterval.MONTHLY, topic_id)
 	elif frequency == MonitorRuleStatisticalInterval.WEEKLY:
 		# given process date is in this week, run previous week
 		# otherwise, run the given week
 		if process_date.year == now.year and int(process_date.strftime('%U')) == int(now.strftime('%U')):
 			process_date = to_previous_week(process_date)
-		MonitorRulesRunner(principal_service).run(process_date, MonitorRuleStatisticalInterval.WEEKLY, topic_id)
+		SelfCleaningMonitorRulesRunner(principal_service) \
+			.run(process_date, MonitorRuleStatisticalInterval.WEEKLY, topic_id)
 	elif frequency == MonitorRuleStatisticalInterval.DAILY:
 		# given process date is today, run yesterday
 		# otherwise, run the given day
 		if process_date.year == now.year and process_date.month == now.month and process_date.day == now.day:
 			process_date = to_yesterday(process_date)
-		MonitorRulesRunner(principal_service).run(process_date, MonitorRuleStatisticalInterval.DAILY, topic_id)
+		SelfCleaningMonitorRulesRunner(principal_service) \
+			.run(process_date, MonitorRuleStatisticalInterval.DAILY, topic_id)
 	else:
 		raise_400(f'Given frequency[{frequency}] is not supported.')

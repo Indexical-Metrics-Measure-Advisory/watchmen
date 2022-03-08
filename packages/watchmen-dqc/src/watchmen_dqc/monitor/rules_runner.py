@@ -20,7 +20,8 @@ from watchmen_model.dqc import MonitorJobLock, MonitorRule, MonitorRuleCode, Mon
 from watchmen_model.dqc.monitor_job_lock import MonitorJobLockStatus
 from watchmen_model.system import Tenant
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
-from .rule import compute_date_range, disabled_rules, rows_count_mismatch_with_another, rows_not_exists, run_all_rules
+from .rule import compute_date_range, disabled_rules, enum_service, rows_count_mismatch_with_another, rows_not_exists, \
+	run_all_rules
 
 logger = getLogger(__name__)
 
@@ -115,6 +116,15 @@ class MonitorRulesRunner:
 		run_all_rules(data_service, rules, date_range, count_in_range)
 
 
+class SelfCleaningMonitorRulesRunner(MonitorRulesRunner):
+	def run(
+			self, process_date: date, topic_id: Optional[TopicId] = None,
+			frequency: Optional[MonitorRuleStatisticalInterval] = None) -> None:
+		super().run(process_date, topic_id, frequency)
+		# clear enumeration cache
+		enum_service.clear()
+
+
 def get_tenant_service(principal_service: PrincipalService) -> TenantService:
 	return TenantService(principal_service)
 
@@ -173,6 +183,8 @@ def run_monitor_rules(
 			principal_service = fake_tenant_admin(tenant.tenantId)
 			if try_to_lock_topic_for_monitor(topic, frequency, process_date, principal_service):
 				MonitorRulesRunner(principal_service).run(process_date, frequency, topic.topicId)
+	# clear enumeration cache
+	enum_service.clear()
 
 
 def to_previous_month(process_date: date) -> date:
