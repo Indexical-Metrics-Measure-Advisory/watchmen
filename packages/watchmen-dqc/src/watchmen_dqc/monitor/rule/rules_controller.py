@@ -32,15 +32,14 @@
 # # for 2 factors
 # FACTOR_AND_ANOTHER = 'factor-and-another'
 from datetime import datetime
-from typing import List, Tuple
+from typing import Callable, Dict, List, Tuple
 
 from watchmen_data_kernel.storage import TopicDataService
-from watchmen_model.dqc import MonitorRule
-from watchmen_utilities import ArrayHelper
+from watchmen_model.dqc import MonitorRule, MonitorRuleCode
+from .disabled_rules import disabled_rules
 
-RULES = [
-
-]
+RuleHandler = Callable[[TopicDataService, MonitorRule, Tuple[datetime, datetime], int], None]
+rules_map: Dict[MonitorRuleCode, Callable] = {}
 
 
 def run_all_rules(
@@ -50,4 +49,12 @@ def run_all_rules(
 	run all rules except disabled ones, rows_not_exists, rows_count_mismatch_and_another.
 	make sure pass-in rules are in same frequency, will not check them inside.
 	"""
-	ArrayHelper(RULES).each(lambda x: x(data_service, rules, date_range, changed_count_in_range))
+	for rule in rules:
+		rule_code = rule.code
+		if rule_code in disabled_rules:
+			continue
+		elif rule_code == MonitorRuleCode.ROWS_NOT_EXISTS:
+			continue
+		elif rule_code == MonitorRuleCode.ROWS_COUNT_MISMATCH_AND_ANOTHER:
+			continue
+		rules_map[rule_code](data_service, rule, date_range, changed_count_in_range)

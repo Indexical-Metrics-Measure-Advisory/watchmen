@@ -20,7 +20,7 @@ from watchmen_model.dqc import MonitorJobLock, MonitorRule, MonitorRuleCode, Mon
 from watchmen_model.dqc.monitor_job_lock import MonitorJobLockStatus
 from watchmen_model.system import Tenant
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
-from .rule import compute_date_range, rows_count_mismatch_with_another, rows_not_exists, run_all_rules
+from .rule import compute_date_range, disabled_rules, rows_count_mismatch_with_another, rows_not_exists, run_all_rules
 
 logger = getLogger(__name__)
 
@@ -29,21 +29,12 @@ def get_rule_service(principal_service: PrincipalService) -> MonitorRuleService:
 	return MonitorRuleService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-DISABLED_RULES = [
-	MonitorRuleCode.RAW_MISMATCH_STRUCTURE,  # ignored now
-	MonitorRuleCode.FACTOR_MISMATCH_DATE_TYPE,  # should be detected on pipeline run
-	MonitorRuleCode.FACTOR_USE_CAST,  # should be detected on pipeline run
-	MonitorRuleCode.FACTOR_BREAKS_MONOTONE_INCREASING,  # ignored now
-	MonitorRuleCode.FACTOR_BREAKS_MONOTONE_DECREASING  # ignored now
-]
-
-
 def should_run_rule(rule: MonitorRule, frequency: Optional[MonitorRuleStatisticalInterval]) -> bool:
 	if not rule.enabled:
 		return False
 	if frequency is not None and rule.params.statisticalInterval != frequency:
 		return False
-	if rule.code in DISABLED_RULES:
+	if rule.code in disabled_rules:
 		return False
 	return True
 
