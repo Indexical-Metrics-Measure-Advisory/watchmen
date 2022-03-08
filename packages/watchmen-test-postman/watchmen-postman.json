@@ -7138,6 +7138,20 @@
                 },
                 {
                   "name": "INSERT ROW",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "8103a4ca-aff4-4aed-b1bc-8a4ce6e29a6d",
+                        "exec": [
+                          "pm.test(\"Inert Raw\", () => {\r",
+                          "    pm.response.to.have.status(200);\r",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "330e9450-0418-4f22-9cd2-945b014a6c31",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
