@@ -7247,6 +7247,18 @@
                     }
                   },
                   "response": []
+                },
+                {
+                  "name": "New Request",
+                  "id": "c7bdee35-17bd-4e37-bfe8-c3b21a2f18ba",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
                 }
               ],
               "id": "e5a31610-54da-4044-8d48-ea1c74343614"
