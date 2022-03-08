@@ -101,6 +101,8 @@ def build_literal(tables: List[Table], literal: Literal, build_plain_value: Call
 				build_literal(tables, literal.elements[0]), build_literal(tables, literal.elements[1]))
 		elif operator == ComputedLiteralOperator.DAY_DIFF:
 			return func.datediff(build_literal(tables, literal.elements[0]), build_literal(tables, literal.elements[1]))
+		elif operator == ComputedLiteralOperator.CHAR_LENGTH:
+			return func.char_length(build_literal(tables, literal.elements[0]))
 		else:
 			raise UnsupportedComputationException(f'Unsupported computation operator[{operator}].')
 	elif isinstance(literal, datetime):
@@ -123,6 +125,10 @@ def build_criteria_expression(tables: List[Table], expression: EntityCriteriaExp
 		return or_(built_left.is_(None), built_left == '')
 	elif op == EntityCriteriaOperator.IS_NOT_EMPTY:
 		return and_(built_left.is_not(None), built_left != '')
+	elif op == EntityCriteriaOperator.IS_BLANK:
+		return func.trim(built_left) == ''
+	elif op == EntityCriteriaOperator.IS_NOT_BLANK:
+		return func.trim(built_left) != ''
 
 	built_right = build_literal(tables, expression.right)
 	if op == EntityCriteriaOperator.EQUALS:

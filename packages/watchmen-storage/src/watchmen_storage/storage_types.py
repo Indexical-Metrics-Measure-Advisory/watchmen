@@ -70,6 +70,8 @@ class EntityCriteriaStatement(DataModel):
 class EntityCriteriaOperator(str, Enum):
 	IS_EMPTY = 'is-empty',
 	IS_NOT_EMPTY = 'is-not-empty',
+	IS_BLANK = 'is-blank',
+	IS_NOT_BLANK = 'is-not-blank',
 	EQUALS = 'equals',
 	NOT_EQUALS = 'not-equals',
 	LESS_THAN = 'less-than',
@@ -101,7 +103,9 @@ class ComputedLiteralOperator(str, Enum):
 	CONCAT = 'concat',
 	YEAR_DIFF = 'year-diff',
 	MONTH_DIFF = 'month-diff',
-	DAY_DIFF = 'day-diff'
+	DAY_DIFF = 'day-diff',
+
+	CHAR_LENGTH = 'char-length'
 
 
 class ComputedLiteral(DataModel):
