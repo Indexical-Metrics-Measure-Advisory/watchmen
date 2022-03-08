@@ -7536,13 +7536,45 @@
                   "item": [
                     {
                       "name": "INSERT ROW",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "015afde6-4be9-43a8-8372-3d8faf527e0b",
+                            "exec": [
+                              "pm.test(\"Insert Row\", () => {\r",
+                              "    pm.response.to.have.status(200);\r",
+                              "    const data = pm.response.json();\r",
+                              "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId);\r",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "07228eaa-1803-4f65-895f-3bd1bac5e5ff",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
                       },
                       "request": {
-                        "method": "GET",
-                        "header": []
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\r\n    \"topicId\": \"{{RAW_TOPIC_ID}}\",\r\n    \"name\": \"Test Read Row\",\r\n    \"type\": \"insert-or-merge\",\r\n    \"stages\": [\r\n        {\r\n            \"stageId\": \"f-1\",\r\n            \"name\": \"Stage 1\",\r\n            \"units\": [\r\n                {\r\n                    \"unitId\": \"f-2\",\r\n                    \"name\": \"Unit 1.1\",\r\n                    \"do\": [\r\n                        {\r\n                            \"actionId\": \"f-3\",\r\n                            \"type\": \"read-row\",\r\n                            \"topicId\": \"{{READ_TOPIC_ID}}\",\r\n                            \"variableName\": \"loop_list\",\r\n                            \"by\": {\r\n                                \"jointType\": \"and\",\r\n                                \"filters\": [\r\n                                    {\r\n                                        \"left\": {\r\n                                            \"kind\": \"topic\",\r\n                                            \"topicId\": \"{{READ_TOPIC_ID}}\",\r\n                                            \"factorId\": \"1\"\r\n                                        },\r\n                                        \"operator\": \"equals\",\r\n                                        \"right\": {\r\n                                            \"kind\": \"constant\",\r\n                                            \"value\": \"text1\"\r\n                                        }\r\n                                    }\r\n                                ]\r\n                            }\r\n                        }\r\n                    ]\r\n                },\r\n                {\r\n                    \"unitId\": \"f-2\",\r\n                    \"name\": \"Unit 1.2\",\r\n                    \"loopVariableName\": \"loop_list\",\r\n                    \"do\": [\r\n                        {\r\n                            \"actionId\": \"fa-1\",\r\n                            \"type\": \"insert-row\",\r\n                            \"topicId\": \"{{TOPIC_ID}}\",\r\n                            \"mapping\": [\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"constant\",\r\n                                        \"value\": \"{loop_list.propA}\"\r\n                                    },\r\n                                    \"factorId\": \"1\"\r\n                                },\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"constant\",\r\n                                        \"value\": \"{loop_list.propB}\"\r\n                                    },\r\n                                    \"factorId\": \"2\"\r\n                                },\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"constant\",\r\n                                        \"value\": \"{loop_list.propC}\"\r\n                                    },\r\n                                    \"factorId\": \"3\"\r\n                                },\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"constant\",\r\n                                        \"value\": \"{loop_list.propD}\"\r\n                                    },\r\n                                    \"factorId\": \"4\"\r\n                                },\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"constant\",\r\n                                        \"value\": \"{loop_list.propE}\"\r\n                                    },\r\n                                    \"factorId\": \"5\"\r\n                                }\r\n                            ]\r\n                        }\r\n                    ]\r\n                }\r\n            ]\r\n        }\r\n    ],\r\n    \"enabled\": true,\r\n    \"validated\": true\r\n}",
+                          "options": {
+                            "raw": {
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": "{{URL_PREFIX}}/pipeline"
                       },
                       "response": []
                     }
