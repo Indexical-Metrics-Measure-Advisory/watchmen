@@ -8538,7 +8538,16 @@
                       },
                       "request": {
                         "method": "GET",
-                        "header": []
+                        "header": [],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\r\n    \"propA\": \"text2\",\r\n    \"propB\": 100,\r\n    \"propC\": true,\r\n    \"propD\": \"2022-03-01\",\r\n    \"propE\": \"2022-03-01 22:22:22\"\r\n}",
+                          "options": {
+                            "raw": {
+                              "language": "json"
+                            }
+                          }
+                        }
                       },
                       "response": []
                     }
