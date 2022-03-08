@@ -33,6 +33,6 @@ def factor_mismatch_enum(
 	)
 	mismatched = ArrayHelper(rows) \
 		.map(lambda row: row.get(factor.name)) \
-		.some(lambda x: enum_service.exists(enum_id, x))
+		.some(lambda x: not enum_service.exists(enum_id, x))
 
 	return RuleResult.FAILED if mismatched else RuleResult.SUCCESS
