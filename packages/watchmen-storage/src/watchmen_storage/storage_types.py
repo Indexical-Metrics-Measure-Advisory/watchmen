@@ -148,6 +148,7 @@ class EntityFinder(EntityHelper):
 
 class EntityDistinctValuesFinder(EntityFinder):
 	distinctColumnNames: List[EntityColumnName] = None
+	distinctValueOnSingleColumn: bool = False  # distinct value when it is True and only one column assigned
 
 
 class EntityStraightColumn(DataModel):

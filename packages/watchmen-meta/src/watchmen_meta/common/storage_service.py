@@ -194,7 +194,8 @@ class EntityService(IdentifiedStorableService):
 			shaper=self.get_entity_shaper(),
 			criteria=criteria,
 			sort=sort,
-			distinctColumnNames=distinctColumnNames
+			distinctColumnNames=distinctColumnNames,
+			distinctValueOnSingleColumn=False
 		)
 
 	def get_entity_pager(

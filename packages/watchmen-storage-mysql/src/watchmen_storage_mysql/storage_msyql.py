@@ -3,7 +3,7 @@ from decimal import Decimal
 from logging import getLogger
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from sqlalchemy import and_, delete, func, insert, select, Table, text, update
+from sqlalchemy import and_, delete, distinct, func, insert, select, Table, text, update
 from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.sql import Join, label
 from sqlalchemy.sql.elements import Label, literal_column
@@ -247,7 +247,10 @@ class StorageMySQL(TransactionalStorageSPI):
 
 	def find_distinct_values(self, finder: EntityDistinctValuesFinder) -> EntityList:
 		table = self.find_table(finder.name)
-		statement = select(*ArrayHelper(finder.distinctColumnNames).map(text).to_list()).select_from(table)
+		if len(finder.distinctColumnNames) != 1 or not finder.distinctValueOnSingleColumn:
+			statement = select(*ArrayHelper(finder.distinctColumnNames).map(text).to_list()).select_from(table)
+		else:
+			statement = select(distinct(finder.distinctColumnNames[0])).select_from(table)
 		return self.find_on_statement_by_finder(table, statement, finder)
 
 	# noinspection PyMethodMayBeStatic
