@@ -8264,11 +8264,11 @@
               "name": "DELETE  - TOPIC - ACTION",
               "item": [
                 {
-                  "name": "PRE - SCRIPT",
+                  "name": "DELETE ROW",
                   "item": [
                     {
                       "name": "PATCH TOPIC",
-                      "id": "a92493c4-1972-4ccf-9f9c-d2d0422eba30",
+                      "id": "839d6280-6575-4059-b632-684dc6d79c33",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
                       },
@@ -8283,7 +8283,7 @@
                         "header": [],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\r\n    \"propA\": \"text2\",\r\n    \"propB\": 100,\r\n    \"propC\": true,\r\n    \"propD\": \"2022-03-01\",\r\n    \"propE\": \"2022-03-01 22:22:22\"\r\n}",
+                          "raw": "{\r\n    \"propA\": \"text1\",\r\n    \"propB\": 100,\r\n    \"propC\": true,\r\n    \"propD\": \"2022-03-01\",\r\n    \"propE\": \"2022-03-01 22:22:22\"\r\n}",
                           "options": {
                             "raw": {
                               "language": "json"
@@ -8317,16 +8317,10 @@
                         }
                       },
                       "response": []
-                    }
-                  ],
-                  "id": "c59d0299-e6d4-4e62-a276-d4c249161102"
-                },
-                {
-                  "name": "DELETE ROW",
-                  "item": [
+                    },
                     {
                       "name": "PATCH TOPIC",
-                      "id": "839d6280-6575-4059-b632-684dc6d79c33",
+                      "id": "a92493c4-1972-4ccf-9f9c-d2d0422eba30",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
                       },
@@ -8341,7 +8335,7 @@
                         "header": [],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\r\n    \"propA\": \"text1\",\r\n    \"propB\": 100,\r\n    \"propC\": true,\r\n    \"propD\": \"2022-03-01\",\r\n    \"propE\": \"2022-03-01 22:22:22\"\r\n}",
+                          "raw": "{\r\n    \"propA\": \"text2\",\r\n    \"propB\": 100,\r\n    \"propC\": true,\r\n    \"propD\": \"2022-03-01\",\r\n    \"propE\": \"2022-03-01 22:22:22\"\r\n}",
                           "options": {
                             "raw": {
                               "language": "json"
