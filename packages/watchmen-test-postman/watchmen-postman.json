@@ -8223,7 +8223,7 @@
               "name": "POST - SCRIPT",
               "item": [
                 {
-                  "name": "TRUCATE TOPIC",
+                  "name": "TRUCATE  READ TOPIC",
                   "id": "d803f383-e22e-4784-b5cc-eb8db1954b9c",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
