@@ -8267,7 +8267,7 @@
                   "name": "PRE - SCRIPT",
                   "item": [
                     {
-                      "name": "New Request",
+                      "name": "PATCH TOPIC",
                       "id": "839d6280-6575-4059-b632-684dc6d79c33",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
