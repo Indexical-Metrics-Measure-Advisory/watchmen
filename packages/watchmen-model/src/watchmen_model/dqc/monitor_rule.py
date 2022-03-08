@@ -1,4 +1,3 @@
-from decimal import Decimal
 from enum import Enum
 from typing import Optional, TypeVar, Union
 
@@ -80,12 +79,12 @@ class MonitorRuleCompareOperator(str, Enum):
 
 class MonitorRuleParameters(DataModel, BaseModel):
 	statisticalInterval: MonitorRuleStatisticalInterval = None
-	coverageRate: Decimal = None
-	aggregation: Decimal = None
-	quantile: Decimal = None
-	length: Decimal = None
-	max: Decimal = None
-	min: Decimal = None
+	coverageRate: int = None
+	aggregation: int = None
+	quantile: int = None
+	length: int = None
+	max: int = None
+	min: int = None
 	regexp: str = None
 	compareOperator: MonitorRuleCompareOperator = None
 	topicId: Optional[TopicId] = None

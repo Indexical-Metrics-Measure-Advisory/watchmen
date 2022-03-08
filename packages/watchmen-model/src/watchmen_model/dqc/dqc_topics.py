@@ -12,7 +12,7 @@ class MonitorRuleDetected(DataModel):
 	topicName: str
 	factorId: Optional[FactorId] = None
 	factorName: Optional[str]
-	result: bool
+	detected: bool  # issue detected
 	severity: MonitorRuleSeverity
 	processDate: date
 
@@ -38,7 +38,7 @@ def ask_dqc_topics() -> List[Topic]:
 					flatten=True, indexGroup=FactorIndexGroup.INDEX_3, precision='50'),
 				Factor(
 					factorId='dra-f-5', name='factorName', type=FactorType.TEXT),
-				Factor(factorId='dra-f-6', name='result', type=FactorType.BOOLEAN),
+				Factor(factorId='dra-f-6', name='detected', type=FactorType.BOOLEAN),
 				Factor(factorId='dra-f-7', name='severity', type=FactorType.TEXT),
 				# the start day of date range
 				# sunday of weekly; 1st of monthly.

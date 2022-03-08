@@ -15,7 +15,8 @@ logger = getLogger(__name__)
 # noinspection PyUnusedLocal
 def factor_mismatch_enum(
 		data_service: TopicDataService, rule: MonitorRule,
-		date_range: Tuple[datetime, datetime], changed_count_in_range: int
+		date_range: Tuple[datetime, datetime],
+		changed_rows_count_in_range: int, total_rows_count: int
 ) -> RuleResult:
 	found, factor = find_factor(data_service, rule.factorId, rule)
 	if not found:

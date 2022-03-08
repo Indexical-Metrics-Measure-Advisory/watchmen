@@ -13,7 +13,7 @@ logger = getLogger(__name__)
 
 def do_it(
 		data_service: TopicDataService, rule: Optional[MonitorRule],
-		date_range: Tuple[datetime, datetime], count_of_current_topic: int) -> None:
+		date_range: Tuple[datetime, datetime], changed_row_count: int) -> None:
 	if rule is None:
 		return
 	# get count of changed rows of another topic
@@ -23,23 +23,26 @@ def do_it(
 		return
 
 	another_data_service = exchange_topic_data_service(data_service, another_topic_id)
-	another_count = another_data_service.count_changed_on_time_range(date_range[0], date_range[1])
+	changed_row_count_of_another = another_data_service.count_changed_on_time_range(date_range[0], date_range[1])
 
-	trigger(rule, count_of_current_topic == another_count, date_range[0], data_service.get_principal_service())
+	trigger(
+		rule, changed_row_count != changed_row_count_of_another, date_range[0], data_service.get_principal_service())
 
 
 def rows_count_mismatch_with_another(
 		data_service: TopicDataService, rule: Optional[MonitorRule],
 		date_range: Tuple[datetime, datetime],
-		count: Optional[int] = None) -> int:
+		has_data: bool) -> int:
 	"""
 	if given count is not none, which means already find the count somewhere, simply use this count as current.
 	anyway, returns the current count
 	"""
-	if count is None:
+	if has_data:
 		# get count of changed rows of current topic
-		count = data_service.count_changed_on_time_range(date_range[0], date_range[1])
+		changed_row_count = data_service.count_changed_on_time_range(date_range[0], date_range[1])
+	else:
+		changed_row_count = 0
 
-	do_it(data_service, rule, date_range, count)
+	do_it(data_service, rule, date_range, changed_row_count)
 
-	return count
+	return changed_row_count
