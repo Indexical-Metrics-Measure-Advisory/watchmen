@@ -55,7 +55,7 @@ def trigger_pipeline(detected: MonitorRuleDetected, principal_service: Principal
 def trigger(rule: MonitorRule, result: bool, start_date_of_range: date, principal_service: PrincipalService) -> None:
 	topic_id = rule.topicId
 	topic = get_topic_service(principal_service).find_by_id(topic_id)
-	factor_id = rule.params.factorId
+	factor_id = rule.factorId
 	factor_name: Optional[str] = None
 	if is_not_blank(factor_id):
 		factor = ArrayHelper(topic.factors).find(lambda x: x.factorId == factor_id)

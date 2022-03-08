@@ -337,8 +337,11 @@ class TopicDataService(TopicStructureService):
 		data_entity_helper = self.get_data_entity_helper()
 		criteria = self.build_id_version_criteria(data)
 		current_version = data_entity_helper.find_version(data)
+		current_update_time = data_entity_helper.find_update_time(data)
 		# increase version
 		data_entity_helper.assign_version(data, current_version + 1)
+		# set update time
+		data_entity_helper.assign_update_time(data, get_current_time_in_seconds())
 		storage = self.get_storage()
 		try:
 			storage.connect()
@@ -347,6 +350,8 @@ class TopicDataService(TopicStructureService):
 			if updated_count == 0:
 				# rollback version
 				data_entity_helper.assign_version(data, current_version)
+				# rollback update time
+				data_entity_helper.assign_update_time(data, current_update_time)
 			return updated_count, criteria
 		finally:
 			storage.close()
@@ -357,8 +362,10 @@ class TopicDataService(TopicStructureService):
 		"""
 		data_entity_helper = self.get_data_entity_helper()
 		current_version = data_entity_helper.find_version(data)
+		current_update_time = data_entity_helper.find_update_time(data)
 		# increase version
 		data_entity_helper.assign_version(data, current_version + 1)
+		data_entity_helper.assign_update_time(data, get_current_time_in_seconds())
 		criteria = self.build_id_criteria(data)
 
 		updated_count = self.get_storage().update_only(
@@ -366,6 +373,7 @@ class TopicDataService(TopicStructureService):
 		if updated_count == 0:
 			# rollback version
 			data_entity_helper.assign_version(data, current_version)
+			data_entity_helper.assign_update_time(data, current_update_time)
 		return updated_count, criteria
 
 	def delete_by_id_and_version(self, data: Dict[str, Any]) -> Tuple[int, EntityCriteria]:
