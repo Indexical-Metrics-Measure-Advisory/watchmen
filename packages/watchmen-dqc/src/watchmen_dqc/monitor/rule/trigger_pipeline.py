@@ -7,13 +7,13 @@ from watchmen_auth import PrincipalService
 from watchmen_data_kernel.meta import TopicService
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_dqc.common import ask_monitor_result_pipeline_async, DqcException
-from watchmen_dqc.monitor.rule.types import RuleResult
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import PipelineTriggerType
 from watchmen_model.dqc import MonitorRule, MonitorRuleDetected
 from watchmen_model.pipeline_kernel import PipelineMonitorLog, PipelineTriggerTraceId
 from watchmen_pipeline_kernel.pipeline import PipelineTrigger
 from watchmen_utilities import ArrayHelper, is_not_blank
+from .types import RuleResult
 
 logger = getLogger(__name__)
 
