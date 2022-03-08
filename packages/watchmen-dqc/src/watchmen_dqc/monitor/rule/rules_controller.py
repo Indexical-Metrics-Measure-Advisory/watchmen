@@ -31,6 +31,7 @@ from .factor_is_empty import factor_is_empty
 from .factor_mismatch_enum import factor_mismatch_enum
 from .factor_mismatch_type import factor_mismatch_type
 from .factor_string_length_mismatch import factor_string_length_mismatch
+from .factor_string_length_not_in_range import factor_string_length_not_in_range
 from .rows_no_change import rows_no_change
 from .trigger_pipeline import trigger
 from .types import RuleHandler, RuleResult
@@ -41,7 +42,8 @@ rules_map: Dict[MonitorRuleCode, RuleHandler] = {
 	MonitorRuleCode.FACTOR_MISMATCH_TYPE: factor_mismatch_type,
 	MonitorRuleCode.FACTOR_IS_EMPTY: factor_is_empty,
 	MonitorRuleCode.FACTOR_IS_BLANK: factor_is_blank,
-	MonitorRuleCode.FACTOR_STRING_LENGTH_MISMATCH: factor_string_length_mismatch
+	MonitorRuleCode.FACTOR_STRING_LENGTH_MISMATCH: factor_string_length_mismatch,
+	MonitorRuleCode.FACTOR_STRING_LENGTH_NOT_IN_RANGE: factor_string_length_not_in_range
 }
 
 
