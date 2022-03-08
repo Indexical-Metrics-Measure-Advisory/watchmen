@@ -5671,7 +5671,7 @@
                           "script": {
                             "id": "2b68c4ea-78a9-4863-a796-2c37de783700",
                             "exec": [
-                              "pm.test(\"Trucate Topic\", () => {",
+                              "pm.test(\"Truncate Topic\", () => {",
                               "    pm.response.to.have.status(200);",
                               "});"
                             ],
