@@ -6550,6 +6550,20 @@
                     },
                     {
                       "name": "INSERT RAW",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "5b66aabd-1b5f-4a7d-bde3-e19df6296246",
+                            "exec": [
+                              "pm.test(\"Inert Raw\", () => {\r",
+                              "    pm.response.to.have.status(200);\r",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "2b793014-af40-4cb9-8814-26f423bc0015",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
@@ -6734,6 +6748,20 @@
                 },
                 {
                   "name": "INSERT RAW",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "5b66aabd-1b5f-4a7d-bde3-e19df6296246",
+                        "exec": [
+                          "pm.test(\"Inert Raw\", () => {\r",
+                          "    pm.response.to.have.status(200);\r",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "2b793014-af40-4cb9-8814-26f423bc0015",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
