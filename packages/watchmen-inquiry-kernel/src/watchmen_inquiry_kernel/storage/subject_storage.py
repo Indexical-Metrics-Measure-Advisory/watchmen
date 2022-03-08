@@ -1,6 +1,7 @@
 from typing import List, Optional
 
 from watchmen_auth import PrincipalService
+from watchmen_data_kernel.common.settings import ask_presto_enabled
 from watchmen_data_kernel.service import ask_topic_storage
 from watchmen_data_kernel.storage_bridge import ask_topic_data_entity_helper, parse_condition_for_storage, \
 	parse_parameter_for_storage, PipelineVariables
@@ -177,7 +178,10 @@ class SubjectStorage:
 
 		if self.schema.from_one_data_source():
 			return self.page_by_storage_directly(pageable)
-		else:
+		elif not ask_presto_enabled():
 			raise InquiryKernelException(
 				'Cannot perform inquiry on storage native when there are multiple data sources, '
 				'ask your administrator to turn on presto/trino engine.')
+		else:
+			# TODO use presto
+			return self.page_by_storage_directly(pageable)
