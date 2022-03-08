@@ -5379,14 +5379,14 @@
                       "response": []
                     },
                     {
-                      "name": "TRUCATE TOPIC",
+                      "name": "TRUNCATE TOPIC",
                       "event": [
                         {
                           "listen": "test",
                           "script": {
                             "id": "f4c0181d-7398-4a26-9898-bdd402750c05",
                             "exec": [
-                              "pm.test(\"Trucate Topic\", () => {",
+                              "pm.test(\"Truncate Topic\", () => {",
                               "    pm.response.to.have.status(200);",
                               "});"
                             ],
