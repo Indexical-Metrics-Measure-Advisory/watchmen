@@ -11,7 +11,7 @@ from watchmen_data_kernel.meta import TopicService
 from watchmen_data_kernel.service import ask_topic_data_service, ask_topic_storage
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_dqc.common import DqcException
-from watchmen_dqc.util import build_data_frame, convert_data_frame_type
+from watchmen_dqc.util import build_data_frame, convert_data_frame_type_by_topic
 from watchmen_model.admin import is_raw_topic
 from watchmen_model.common import TopicId
 from watchmen_model.dqc import TopicProfile
@@ -74,8 +74,8 @@ class TopicProfileService:
 		def row_to_list(row: Dict[str, Any]) -> List[Any]:
 			return ArrayHelper(columns).map(lambda x: row.get(x)).to_list()
 
-		data_frame = build_data_frame(ArrayHelper(data).map(row_to_list), columns)
-		data_frame = convert_data_frame_type(data_frame, schema.get_topic())
+		data_frame = build_data_frame(ArrayHelper(data).map(row_to_list).to_list(), columns)
+		data_frame = convert_data_frame_type_by_topic(data_frame, schema.get_topic())
 
 		if data_frame.empty or len(data_frame.index) == 1:
 			return None
