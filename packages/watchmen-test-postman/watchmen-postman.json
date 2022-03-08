@@ -8095,7 +8095,7 @@
                       "response": []
                     },
                     {
-                      "name": "TRUCATE TOPIC",
+                      "name": "TRUNCATE TOPIC",
                       "id": "e91723c5-24a0-4456-8ab0-d32b95aa5aaf",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
