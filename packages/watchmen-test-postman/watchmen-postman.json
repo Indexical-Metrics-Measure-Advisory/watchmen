@@ -8516,7 +8516,7 @@
                             "token": "{{JWT_TOKEN}}"
                           }
                         },
-                        "method": "POST",
+                        "method": "PATCH",
                         "header": [],
                         "body": {
                           "mode": "raw",
