@@ -3,16 +3,15 @@ from typing import Tuple
 
 from watchmen_data_kernel.storage import TopicDataService
 from watchmen_model.dqc import MonitorRule
+from watchmen_storage import EntityColumnAggregateArithmetic
+from .factor_aggregate_value_not_in_range import factor_aggregate_value_not_in_range
 from .types import RuleResult
 
 
 # noinspection PyUnusedLocal
-def rows_no_change(
+def factor_max_not_in_range(
 		data_service: TopicDataService, rule: MonitorRule,
 		date_range: Tuple[datetime, datetime],
 		changed_rows_count_in_range: int, total_rows_count: int
 ) -> RuleResult:
-	if total_rows_count == 0:
-		return RuleResult.SUCCESS
-	rate = changed_rows_count_in_range / total_rows_count * 100
-	return RuleResult.SUCCESS if rate <= rule.params.coverageRate else RuleResult.FAILED
+	return factor_aggregate_value_not_in_range(data_service, rule, date_range, EntityColumnAggregateArithmetic.MAX)
