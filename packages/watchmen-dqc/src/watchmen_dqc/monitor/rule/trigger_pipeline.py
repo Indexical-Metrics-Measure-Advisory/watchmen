@@ -35,10 +35,11 @@ def trigger_pipeline(detected: MonitorRuleDetected, principal_service: Principal
 	trace_id: PipelineTriggerTraceId = str(ask_snowflake_generator().next_id())
 	asynchronized = ask_monitor_result_pipeline_async()
 
-	def handle_monitor_log(monitor_log: PipelineMonitorLog, asynchronized: bool) -> None:
+	# noinspection PyUnusedLocal
+	def handle_monitor_log(monitor_log: PipelineMonitorLog, is_asynchronized: bool) -> None:
 		logger.info(monitor_log)
 
-	trigger = PipelineTrigger(
+	pipeline_trigger = PipelineTrigger(
 		trigger_topic_schema=schema,
 		trigger_type=PipelineTriggerType.INSERT,
 		trigger_data=detected.to_dict(),
@@ -48,9 +49,9 @@ def trigger_pipeline(detected: MonitorRuleDetected, principal_service: Principal
 		handle_monitor_log=handle_monitor_log
 	)
 	if asynchronized:
-		ensure_future(trigger.invoke())
+		ensure_future(pipeline_trigger.invoke())
 	else:
-		run(trigger.invoke())
+		run(pipeline_trigger.invoke())
 
 
 def trigger(

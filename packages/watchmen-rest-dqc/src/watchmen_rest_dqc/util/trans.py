@@ -10,6 +10,7 @@ logger = getLogger(__name__)
 TransReturned = TypeVar('TransReturned')
 
 
+# noinspection DuplicatedCode
 def trans(storage_service: StorageService, action: Callable[[], TransReturned]) -> TransReturned:
 	storage_service.begin_transaction()
 	try:
@@ -41,10 +42,9 @@ def trans_with_tail(
 		raise_500(e)
 
 
+# noinspection DuplicatedCode
 def trans_with_fail_over(
-		storage_service: StorageService,
-		action: Callable[[], TransReturned],
-		fail_over: Callable[[], TransReturned]
+		storage_service: StorageService, action: Callable[[], TransReturned], fail_over: Callable[[], TransReturned]
 ) -> TransReturned:
 	storage_service.begin_transaction()
 	try:

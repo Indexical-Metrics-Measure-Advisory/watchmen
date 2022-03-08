@@ -40,6 +40,7 @@ class PipelineMonitorLogDataService:
 		schema = self.get_topic_schema()
 		storage = self.ask_storages().ask_topic_storage(schema)
 		data_service = ask_topic_data_service(schema, storage, self.principalService)
+		# noinspection SpellCheckingInspection
 		page = data_service.page(data_service.get_data_entity_helper().get_entity_pager(
 			criteria=[
 				EntityCriteriaExpression(
@@ -68,12 +69,15 @@ class PipelineMonitorLogDataService:
 				left=ColumnNameLiteral(columnName=TopicDataColumnNames.TENANT_ID.value), right=criteria.tenantId)
 		]
 		if is_not_blank(criteria.traceId):
+			# noinspection SpellCheckingInspection
 			entity_criteria.append(EntityCriteriaExpression(
 				left=ColumnNameLiteral(columnName='traceid'), right=criteria.traceId))
 		if is_not_blank(criteria.topicId):
+			# noinspection SpellCheckingInspection
 			entity_criteria.append(EntityCriteriaExpression(
 				left=ColumnNameLiteral(columnName='topicid'), right=criteria.topicId))
 		if is_not_blank(criteria.pipelineId):
+			# noinspection SpellCheckingInspection
 			entity_criteria.append(EntityCriteriaExpression(
 				left=ColumnNameLiteral(columnName='pipelineid'), right=criteria.pipelineId))
 		if is_not_blank(criteria.status):

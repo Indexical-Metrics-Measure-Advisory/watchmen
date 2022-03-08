@@ -20,7 +20,7 @@ def factor_common_value_not_in_range(
 		changed_rows_count_in_range: int, total_rows_count: int
 ) -> RuleResult:
 	if changed_rows_count_in_range == 0:
-		# no changed, success
+		# no changes, success
 		return RuleResult.SUCCESS
 
 	mismatched = ArrayHelper(data) \
