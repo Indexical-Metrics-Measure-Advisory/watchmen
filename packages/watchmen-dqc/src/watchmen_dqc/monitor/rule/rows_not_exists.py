@@ -12,6 +12,6 @@ def rows_not_exists(
 ) -> int:
 	count = data_service.count()
 	if rule is not None:
-		trigger(rule, count != 0, date_range[0], data_service.get_principal_service())
+		trigger(rule, count == 0, date_range[0], data_service.get_principal_service())
 
 	return count

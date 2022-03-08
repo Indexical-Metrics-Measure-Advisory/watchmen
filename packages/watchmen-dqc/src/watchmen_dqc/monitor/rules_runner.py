@@ -96,24 +96,25 @@ class MonitorRulesRunner:
 		"""
 		date_range = compute_date_range(process_date, frequency)
 		rows_not_exists_rule = find_rule(rules, MonitorRuleCode.ROWS_NOT_EXISTS)
-		count = rows_not_exists(data_service, rows_not_exists_rule, date_range)
-		if count == 0:
-			self.run_rows_count_mismatch_with_another(rules, data_service, date_range, 0)
+		total_rows_count = rows_not_exists(data_service, rows_not_exists_rule, date_range)
+		if total_rows_count == 0:
+			self.run_rows_count_mismatch_with_another(rules, data_service, date_range, False)
 		else:
-			self.run_all_rules(rules, data_service, date_range)
+			self.run_all_rules(rules, data_service, date_range, total_rows_count)
 
 	# noinspection PyMethodMayBeStatic
 	def run_rows_count_mismatch_with_another(
 			self, rules: List[MonitorRule], data_service: TopicDataService,
-			date_range: Tuple[datetime, datetime], count: Optional[int] = None) -> int:
+			date_range: Tuple[datetime, datetime], has_data: bool) -> int:
 		rule = find_rule(rules, MonitorRuleCode.ROWS_COUNT_MISMATCH_AND_ANOTHER)
-		return rows_count_mismatch_with_another(data_service, rule, date_range, count)
+		return rows_count_mismatch_with_another(data_service, rule, date_range, has_data)
 
 	def run_all_rules(
 			self, rules: List[MonitorRule], data_service: TopicDataService,
-			date_range: Tuple[datetime, datetime]) -> None:
-		count_in_range = self.run_rows_count_mismatch_with_another(rules, data_service, date_range)
-		run_all_rules(data_service, rules, date_range, count_in_range)
+			date_range: Tuple[datetime, datetime],
+			total_rows_count: int) -> None:
+		changed_rows_count_in_range = self.run_rows_count_mismatch_with_another(rules, data_service, date_range, True)
+		run_all_rules(data_service, rules, date_range, changed_rows_count_in_range, total_rows_count)
 
 
 class SelfCleaningMonitorRulesRunner(MonitorRulesRunner):

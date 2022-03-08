@@ -1,8 +1,4 @@
 # FACTOR_MISMATCH_TYPE = 'factor-mismatch-type',
-#
-# # topic row count
-# ROWS_NO_CHANGE = 'rows-no-change',
-#
 # # for all factor types
 # FACTOR_IS_EMPTY = 'factor-is-empty',
 # FACTOR_COMMON_VALUE_OVER_COVERAGE = 'factor-common-value-over-coverage',
@@ -35,11 +31,13 @@ from watchmen_model.dqc import MonitorRule, MonitorRuleCode
 from watchmen_utilities import ArrayHelper
 from .disabled_rules import disabled_rules
 from .factor_mismatch_enum import factor_mismatch_enum
+from .rows_no_change import rows_no_change
 from .trigger_pipeline import trigger
 from .types import RuleHandler, RuleResult
 
 rules_map: Dict[MonitorRuleCode, RuleHandler] = {
-	MonitorRuleCode.FACTOR_MISMATCH_ENUM: factor_mismatch_enum
+	MonitorRuleCode.FACTOR_MISMATCH_ENUM: factor_mismatch_enum,
+	MonitorRuleCode.ROWS_NO_CHANGE: rows_no_change
 }
 
 
@@ -56,12 +54,19 @@ def accept(rule: MonitorRule) -> bool:
 
 def run_all_rules(
 		data_service: TopicDataService, rules: List[MonitorRule],
-		date_range: Tuple[datetime, datetime], changed_count_in_range: int) -> None:
+		date_range: Tuple[datetime, datetime],
+		changed_rows_count_in_range: int, total_rows_count: int) -> None:
 	"""
 	run all rules except disabled ones, rows_not_exists, rows_count_mismatch_and_another.
 	make sure pass-in rules are in same frequency, will not check them inside.
 	"""
+
+	def run_rule(rule: MonitorRule) -> Tuple[MonitorRule, RuleResult]:
+		result = rules_map[rule.code](data_service, rule, date_range, changed_rows_count_in_range, total_rows_count)
+		return rule, result
+
 	ArrayHelper(rules) \
-		.map(lambda x: (x, rules_map[x.code](data_service, x, date_range, changed_count_in_range))) \
+		.filter(accept) \
+		.map(run_rule) \
 		.filter(lambda x: x[1] != RuleResult.IGNORED) \
-		.each(lambda x: trigger(x[0], x[1] == RuleResult.SUCCESS, date_range[0], data_service.get_principal_service()))
+		.each(lambda x: trigger(x[0], x[1] == RuleResult.FAILED, date_range[0], data_service.get_principal_service()))

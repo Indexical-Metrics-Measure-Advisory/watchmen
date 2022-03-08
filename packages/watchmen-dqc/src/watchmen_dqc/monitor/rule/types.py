@@ -7,9 +7,9 @@ from watchmen_model.dqc import MonitorRule
 
 
 class RuleResult(str, Enum):
-	SUCCESS = 'success',
-	FAILED = 'failed',
-	IGNORED = 'ignored'
+	SUCCESS = 'success',  # no issue detected
+	FAILED = 'failed',  # issue detected
+	IGNORED = 'ignored'  # rule ignored
 
 
-RuleHandler = Callable[[TopicDataService, MonitorRule, Tuple[datetime, datetime], int], RuleResult]
+RuleHandler = Callable[[TopicDataService, MonitorRule, Tuple[datetime, datetime], int, int], RuleResult]
