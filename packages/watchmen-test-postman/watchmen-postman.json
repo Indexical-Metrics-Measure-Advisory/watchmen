@@ -5720,7 +5720,7 @@
                           "script": {
                             "id": "d298b19c-fce3-43e5-b5fd-2f13c9e61df0",
                             "exec": [
-                              "pm.test(\"Trucate Raw Topic\", () => {",
+                              "pm.test(\"Truncate Raw Topic\", () => {",
                               "    pm.response.to.have.status(200);",
                               "});"
                             ],
