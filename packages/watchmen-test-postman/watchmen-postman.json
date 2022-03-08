@@ -7626,7 +7626,7 @@
                       "response": []
                     },
                     {
-                      "name": "New Request",
+                      "name": "INSERT RAW",
                       "id": "90a19af5-7ff8-4b20-8eb3-e1c594093b56",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
