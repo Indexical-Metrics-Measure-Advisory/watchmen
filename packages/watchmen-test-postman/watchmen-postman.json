@@ -5105,7 +5105,7 @@
                           "script": {
                             "id": "ad554e1a-5f9d-4833-9611-ea342fe4c53e",
                             "exec": [
-                              "pm.test(\"Trucate Topic\", () => {",
+                              "pm.test(\"Truncate Topic\", () => {",
                               "    pm.response.to.have.status(200);",
                               "});"
                             ],
