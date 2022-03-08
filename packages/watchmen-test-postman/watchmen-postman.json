@@ -7533,7 +7533,20 @@
                 },
                 {
                   "name": "INSERT - ROW",
-                  "item": [],
+                  "item": [
+                    {
+                      "name": "New Request",
+                      "id": "07228eaa-1803-4f65-895f-3bd1bac5e5ff",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
+                    }
+                  ],
                   "id": "ec177838-0bc9-422e-bd51-fcfbf09d24b8"
                 },
                 {
