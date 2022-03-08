@@ -7528,7 +7528,20 @@
               "item": [
                 {
                   "name": "MERGE - ROW",
-                  "item": [],
+                  "item": [
+                    {
+                      "name": "New Request",
+                      "id": "22aa0618-9650-40a5-9258-beadbbd7b432",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
+                    }
+                  ],
                   "id": "0a06de62-86db-4491-87b5-ab63bc4bf308"
                 },
                 {
