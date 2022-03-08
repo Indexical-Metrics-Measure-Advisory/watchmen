@@ -1,4 +1,3 @@
-# FACTOR_MISMATCH_TYPE = 'factor-mismatch-type',
 # # for all factor types
 # FACTOR_IS_EMPTY = 'factor-is-empty',
 # FACTOR_COMMON_VALUE_OVER_COVERAGE = 'factor-common-value-over-coverage',
@@ -31,13 +30,15 @@ from watchmen_model.dqc import MonitorRule, MonitorRuleCode
 from watchmen_utilities import ArrayHelper
 from .disabled_rules import disabled_rules
 from .factor_mismatch_enum import factor_mismatch_enum
+from .factor_mismatch_type import factor_mismatch_type
 from .rows_no_change import rows_no_change
 from .trigger_pipeline import trigger
 from .types import RuleHandler, RuleResult
 
 rules_map: Dict[MonitorRuleCode, RuleHandler] = {
 	MonitorRuleCode.FACTOR_MISMATCH_ENUM: factor_mismatch_enum,
-	MonitorRuleCode.ROWS_NO_CHANGE: rows_no_change
+	MonitorRuleCode.ROWS_NO_CHANGE: rows_no_change,
+	MonitorRuleCode.FACTOR_MISMATCH_TYPE: factor_mismatch_type
 }
 
 
@@ -50,6 +51,10 @@ def accept(rule: MonitorRule) -> bool:
 	elif rule_code == MonitorRuleCode.ROWS_COUNT_MISMATCH_AND_ANOTHER:
 		return False
 	return True
+
+
+def accept_result(result: Tuple[MonitorRule, RuleResult]) -> bool:
+	return result[1] != RuleResult.IGNORED
 
 
 def run_all_rules(
@@ -65,8 +70,7 @@ def run_all_rules(
 		result = rules_map[rule.code](data_service, rule, date_range, changed_rows_count_in_range, total_rows_count)
 		return rule, result
 
-	ArrayHelper(rules) \
-		.filter(accept) \
-		.map(run_rule) \
-		.filter(lambda x: x[1] != RuleResult.IGNORED) \
-		.each(lambda x: trigger(x[0], x[1] == RuleResult.FAILED, date_range[0], data_service.get_principal_service()))
+	def trigger_pipeline(result: Tuple[MonitorRule, RuleResult]) -> None:
+		trigger(result[0], result[1], date_range[0], data_service.get_principal_service())
+
+	ArrayHelper(rules).filter(accept).map(run_rule).filter(accept_result).each(trigger_pipeline)

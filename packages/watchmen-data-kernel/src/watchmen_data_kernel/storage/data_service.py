@@ -10,8 +10,7 @@ from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import PipelineTriggerType, Topic
 from watchmen_model.common import DataModel, DataPage, Pageable
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
-from watchmen_storage import ColumnNameLiteral, EntityColumnName, EntityCriteria, EntityCriteriaExpression, \
-	EntityCriteriaOperator, EntityPager, \
+from watchmen_storage import EntityColumnName, EntityCriteria, EntityPager, \
 	EntityStraightColumn, \
 	SnowflakeGenerator, \
 	TopicDataStorageSPI
@@ -252,23 +251,12 @@ class TopicDataService(TopicStructureService):
 		finally:
 			storage.close()
 
-	def count_changed_on_time_range(self, start_time: datetime, end_time: datetime) -> int:
+	def count_by_criteria(self, criteria: EntityCriteria) -> int:
 		data_entity_helper = self.get_data_entity_helper()
 		storage = self.get_storage()
 		try:
 			storage.connect()
-			return storage.count(data_entity_helper.get_entity_finder([
-				EntityCriteriaExpression(
-					left=ColumnNameLiteral(columnName=TopicDataColumnNames.UPDATE_TIME.value),
-					operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
-					right=start_time
-				),
-				EntityCriteriaExpression(
-					left=ColumnNameLiteral(columnName=TopicDataColumnNames.UPDATE_TIME.value),
-					operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
-					right=end_time
-				)
-			]))
+			return storage.count(data_entity_helper.get_entity_finder(criteria))
 		finally:
 			storage.close()
 

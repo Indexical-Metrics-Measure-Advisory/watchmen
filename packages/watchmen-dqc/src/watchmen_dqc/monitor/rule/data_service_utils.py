@@ -1,6 +1,6 @@
 from datetime import datetime
 from logging import getLogger
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.meta import TopicService
@@ -11,7 +11,8 @@ from watchmen_model.admin import Factor
 from watchmen_model.common import FactorId, TopicId
 from watchmen_model.dqc import MonitorRule
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
-from watchmen_storage import ColumnNameLiteral, EntityCriteria, EntityCriteriaExpression, EntityCriteriaOperator
+from watchmen_storage import ColumnNameLiteral, EntityCriteria, EntityCriteriaExpression, EntityCriteriaJoint, \
+	EntityCriteriaJointConjunction, EntityCriteriaOperator
 from watchmen_utilities import ArrayHelper, is_blank
 
 logger = getLogger(__name__)
@@ -62,3 +63,26 @@ def build_date_range_criteria(date_range: Tuple[datetime, datetime]) -> EntityCr
 			right=date_range[1]
 		)
 	]
+
+
+def build_column_name_literal(factor: Factor, data_service: TopicDataService) -> ColumnNameLiteral:
+	return ColumnNameLiteral(columnName=data_service.get_data_entity_helper().get_column_name(factor.name))
+
+
+def less_than(factor: Factor, data_service: TopicDataService, value: Any) -> EntityCriteriaExpression:
+	return EntityCriteriaExpression(
+		left=build_column_name_literal(factor, data_service),
+		operator=EntityCriteriaOperator.LESS_THAN,
+		right=value
+	)
+
+
+def out_of_range(factor: Factor, data_service: TopicDataService, min_value: Any, max_value: Any) -> EntityCriteriaJoint:
+	left = build_column_name_literal(factor, data_service)
+	return EntityCriteriaJoint(
+		conjunction=EntityCriteriaJointConjunction.OR,
+		children=[
+			EntityCriteriaExpression(left=left, operator=EntityCriteriaOperator.LESS_THAN, right=min_value),
+			EntityCriteriaExpression(left=left, operator=EntityCriteriaOperator.GREATER_THAN, right=max_value)
+		]
+	)

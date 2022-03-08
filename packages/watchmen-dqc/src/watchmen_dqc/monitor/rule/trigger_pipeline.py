@@ -7,6 +7,7 @@ from watchmen_auth import PrincipalService
 from watchmen_data_kernel.meta import TopicService
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_dqc.common import ask_monitor_result_pipeline_async, DqcException
+from watchmen_dqc.monitor.rule.types import RuleResult
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import PipelineTriggerType
 from watchmen_model.dqc import MonitorRule, MonitorRuleDetected
@@ -52,7 +53,9 @@ def trigger_pipeline(detected: MonitorRuleDetected, principal_service: Principal
 		run(trigger.invoke())
 
 
-def trigger(rule: MonitorRule, result: bool, start_date_of_range: date, principal_service: PrincipalService) -> None:
+def trigger(
+		rule: MonitorRule, result: RuleResult,
+		start_date_of_range: date, principal_service: PrincipalService) -> None:
 	topic_id = rule.topicId
 	topic = get_topic_service(principal_service).find_by_id(topic_id)
 	factor_id = rule.factorId
@@ -67,7 +70,7 @@ def trigger(rule: MonitorRule, result: bool, start_date_of_range: date, principa
 		topicName=topic.name,
 		factorId=factor_id,
 		factorName=factor_name,
-		result=result,
+		detected=result == RuleResult.FAILED,
 		severity=rule.severity,
 		processDate=start_date_of_range
 	)

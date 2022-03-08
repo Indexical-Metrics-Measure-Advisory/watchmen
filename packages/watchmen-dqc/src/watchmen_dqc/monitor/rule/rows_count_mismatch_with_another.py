@@ -5,8 +5,9 @@ from typing import Optional, Tuple
 from watchmen_data_kernel.storage import TopicDataService
 from watchmen_model.dqc import MonitorRule
 from watchmen_utilities import is_blank
-from .data_service_utils import exchange_topic_data_service
+from .data_service_utils import build_date_range_criteria, exchange_topic_data_service
 from .trigger_pipeline import trigger
+from .types import RuleResult
 
 logger = getLogger(__name__)
 
@@ -23,10 +24,11 @@ def do_it(
 		return
 
 	another_data_service = exchange_topic_data_service(data_service, another_topic_id)
-	changed_row_count_of_another = another_data_service.count_changed_on_time_range(date_range[0], date_range[1])
+	changed_row_count_of_another = another_data_service.count_by_criteria(build_date_range_criteria(date_range))
 
 	trigger(
-		rule, changed_row_count != changed_row_count_of_another, date_range[0], data_service.get_principal_service())
+		rule, RuleResult.FAILED if changed_row_count != changed_row_count_of_another else RuleResult.SUCCESS,
+		date_range[0], data_service.get_principal_service())
 
 
 def rows_count_mismatch_with_another(
@@ -39,7 +41,7 @@ def rows_count_mismatch_with_another(
 	"""
 	if has_data:
 		# get count of changed rows of current topic
-		changed_row_count = data_service.count_changed_on_time_range(date_range[0], date_range[1])
+		changed_row_count = data_service.count_by_criteria(build_date_range_criteria(date_range))
 	else:
 		changed_row_count = 0
 

@@ -1,4 +1,3 @@
-# noinspection PyUnusedLocal
 from datetime import datetime
 from typing import Tuple
 
@@ -16,4 +15,4 @@ def rows_no_change(
 	if total_rows_count == 0:
 		return RuleResult.SUCCESS
 	rate = changed_rows_count_in_range / total_rows_count * 100
-	return RuleResult.SUCCESS if rate < rule.params.coverageRate else RuleResult.FAILED
+	return RuleResult.SUCCESS if rate <= rule.params.coverageRate else RuleResult.FAILED
