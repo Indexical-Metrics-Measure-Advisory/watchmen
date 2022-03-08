@@ -7535,7 +7535,7 @@
                   "name": "INSERT - ROW",
                   "item": [
                     {
-                      "name": "New Request",
+                      "name": "INSERT ROW",
                       "id": "07228eaa-1803-4f65-895f-3bd1bac5e5ff",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
