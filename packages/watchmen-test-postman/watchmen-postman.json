@@ -7634,7 +7634,7 @@
               "name": "POST - SCRIPT",
               "item": [
                 {
-                  "name": "New Request",
+                  "name": "TRUCATE TOPIC",
                   "id": "d803f383-e22e-4784-b5cc-eb8db1954b9c",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
