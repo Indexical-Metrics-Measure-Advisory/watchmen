@@ -12,8 +12,7 @@ from watchmen_model.common import ComputedParameter, ConstantParameter, Paramete
 	ParameterExpressionOperator, ParameterJoint, ParameterJointType
 from watchmen_model.pipeline_kernel import PipelineMonitorLog
 from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteriaExpression, \
-	EntityCriteriaJoint, \
-	EntityCriteriaJointConjunction, EntityCriteriaOperator
+	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator
 
 
 def create_fake_principal_service() -> PrincipalService:
