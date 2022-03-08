@@ -7542,7 +7542,7 @@
                             "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
                           }
                         },
-                        "method": "GET",
+                        "method": "POST",
                         "header": [],
                         "body": {
                           "mode": "raw",
