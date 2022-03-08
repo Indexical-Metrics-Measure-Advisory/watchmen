@@ -8322,18 +8322,6 @@
                     }
                   ],
                   "id": "dc74edab-871c-47a0-85bc-7e2b4a781dd2"
-                },
-                {
-                  "name": "New Request",
-                  "id": "e7b343a8-4dc4-41f2-83e3-bc13f12f8235",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "method": "GET",
-                    "header": []
-                  },
-                  "response": []
                 }
               ],
               "id": "fec06304-21eb-4f58-961c-9073f66be5f5"
