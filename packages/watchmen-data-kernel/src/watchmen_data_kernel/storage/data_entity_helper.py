@@ -182,6 +182,10 @@ class TopicDataEntityHelper:
 		data[TopicDataColumnNames.INSERT_TIME.value] = insert_time
 
 	# noinspection PyMethodMayBeStatic
+	def find_update_time(self, data: Dict[str, Any]) -> Optional[datetime]:
+		return data.get(TopicDataColumnNames.UPDATE_TIME.value)
+
+	# noinspection PyMethodMayBeStatic
 	def assign_update_time(self, data: Dict[str, Any], update_time: datetime) -> None:
 		data[TopicDataColumnNames.UPDATE_TIME.value] = update_time
 

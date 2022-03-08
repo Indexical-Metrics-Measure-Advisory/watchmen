@@ -1,7 +1,3 @@
-# # structure
-#
-# # type
-# FACTOR_MISMATCH_ENUM = 'factor-mismatch-enum',
 # FACTOR_MISMATCH_TYPE = 'factor-mismatch-type',
 #
 # # topic row count
@@ -32,14 +28,30 @@
 # # for 2 factors
 # FACTOR_AND_ANOTHER = 'factor-and-another'
 from datetime import datetime
-from typing import Callable, Dict, List, Tuple
+from typing import Dict, List, Tuple
 
 from watchmen_data_kernel.storage import TopicDataService
 from watchmen_model.dqc import MonitorRule, MonitorRuleCode
+from watchmen_utilities import ArrayHelper
 from .disabled_rules import disabled_rules
+from .factor_mismatch_enum import factor_mismatch_enum
+from .trigger_pipeline import trigger
+from .types import RuleHandler, RuleResult
 
-RuleHandler = Callable[[TopicDataService, MonitorRule, Tuple[datetime, datetime], int], None]
-rules_map: Dict[MonitorRuleCode, Callable] = {}
+rules_map: Dict[MonitorRuleCode, RuleHandler] = {
+	MonitorRuleCode.FACTOR_MISMATCH_ENUM: factor_mismatch_enum
+}
+
+
+def accept(rule: MonitorRule) -> bool:
+	rule_code = rule.code
+	if rule_code in disabled_rules:
+		return False
+	elif rule_code == MonitorRuleCode.ROWS_NOT_EXISTS:
+		return False
+	elif rule_code == MonitorRuleCode.ROWS_COUNT_MISMATCH_AND_ANOTHER:
+		return False
+	return True
 
 
 def run_all_rules(
@@ -49,12 +61,7 @@ def run_all_rules(
 	run all rules except disabled ones, rows_not_exists, rows_count_mismatch_and_another.
 	make sure pass-in rules are in same frequency, will not check them inside.
 	"""
-	for rule in rules:
-		rule_code = rule.code
-		if rule_code in disabled_rules:
-			continue
-		elif rule_code == MonitorRuleCode.ROWS_NOT_EXISTS:
-			continue
-		elif rule_code == MonitorRuleCode.ROWS_COUNT_MISMATCH_AND_ANOTHER:
-			continue
-		rules_map[rule_code](data_service, rule, date_range, changed_count_in_range)
+	ArrayHelper(rules) \
+		.map(lambda x: (x, rules_map[x.code](data_service, x, date_range, changed_count_in_range))) \
+		.filter(lambda x: x[1] != RuleResult.IGNORED) \
+		.each(lambda x: trigger(x[0], x[1] == RuleResult.SUCCESS, date_range[0], data_service.get_principal_service()))

@@ -1,9 +1,17 @@
+from logging import getLogger
+from typing import Optional, Tuple
+
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.meta import TopicService
 from watchmen_data_kernel.service import ask_topic_data_service, ask_topic_storage
 from watchmen_data_kernel.storage import TopicDataService
 from watchmen_dqc.common import DqcException
-from watchmen_model.common import TopicId
+from watchmen_model.admin import Factor
+from watchmen_model.common import FactorId, TopicId
+from watchmen_model.dqc import MonitorRule
+from watchmen_utilities import ArrayHelper, is_blank
+
+logger = getLogger(__name__)
 
 
 def get_topic_service(principal_service: PrincipalService) -> TopicService:
@@ -21,3 +29,18 @@ def exchange_topic_data_service(data_service: TopicDataService, topic_id: TopicI
 		raise DqcException(f'Topic[name={topic.name}] not found.')
 	storage = ask_topic_storage(schema, principal_service)
 	return ask_topic_data_service(schema, storage, data_service.get_principal_service())
+
+
+def find_factor(
+		data_service: TopicDataService, factor_id: Optional[FactorId],
+		rule: MonitorRule) -> Tuple[bool, Optional[Factor]]:
+	if is_blank(factor_id):
+		logger.error(f'Factor id not declared on rule[{rule.dict()}].')
+		return False, None
+	topic = data_service.get_topic()
+	factor = ArrayHelper(topic.factors).find(lambda x: x.factorId == factor_id)
+	if factor is None:
+		logger.error(f'Factor[id={factor_id}] on rule[{rule.dict()}] not found.')
+		return False, None
+	else:
+		return True, factor
