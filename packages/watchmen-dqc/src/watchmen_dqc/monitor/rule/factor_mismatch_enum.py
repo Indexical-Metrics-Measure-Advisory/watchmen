@@ -14,6 +14,6 @@ def factor_mismatch_enum(
 	found, factor = find_factor(data_service, rule.factorId, rule)
 	if not found:
 		return RuleResult.IGNORED
-	# data_service.find_distinct_values()
+	data_service.find_distinct_values()
 
 	return RuleResult.FAILED
