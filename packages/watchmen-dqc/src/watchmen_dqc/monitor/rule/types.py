@@ -19,6 +19,6 @@ DistinctDataRuleHandler = Callable[
 	RuleResult
 ]
 AllDataRuleHandler = Callable[
-	[List[Any], MonitorRule, Tuple[datetime, datetime], int, int],
+	[TopicDataService, Factor, List[List[Any]], MonitorRule, Tuple[datetime, datetime], int, int],
 	RuleResult
 ]
