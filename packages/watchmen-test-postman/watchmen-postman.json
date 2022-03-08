@@ -7530,7 +7530,7 @@
                   "name": "MERGE - ROW",
                   "item": [
                     {
-                      "name": "New Request",
+                      "name": "PATCH TOPIC",
                       "id": "22aa0618-9650-40a5-9258-beadbbd7b432",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
