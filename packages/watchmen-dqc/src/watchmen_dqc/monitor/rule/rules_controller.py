@@ -11,9 +11,6 @@
 # # for string type
 # FACTOR_MATCH_REGEXP = 'factor-match-regexp',
 # FACTOR_MISMATCH_REGEXP = 'factor-mismatch-regexp',
-#
-# # for 2 factors
-# FACTOR_AND_ANOTHER = 'factor-and-another'
 from datetime import datetime
 from typing import Dict, List, Tuple
 
@@ -21,6 +18,7 @@ from watchmen_data_kernel.storage import TopicDataService
 from watchmen_model.dqc import MonitorRule, MonitorRuleCode
 from watchmen_utilities import ArrayHelper
 from .disabled_rules import disabled_rules
+from .factor_and_another import factor_and_another
 from .factor_avg_not_in_range import factor_avg_not_in_range
 from .factor_is_blank import factor_is_blank
 from .factor_is_empty import factor_is_empty
@@ -46,7 +44,8 @@ rules_map: Dict[MonitorRuleCode, RuleHandler] = {
 	MonitorRuleCode.FACTOR_NOT_IN_RANGE: factor_not_in_range,
 	MonitorRuleCode.FACTOR_MAX_NOT_IN_RANGE: factor_max_not_in_range,
 	MonitorRuleCode.FACTOR_MIN_NOT_IN_RANGE: factor_min_not_in_range,
-	MonitorRuleCode.FACTOR_AVG_NOT_IN_RANGE: factor_avg_not_in_range
+	MonitorRuleCode.FACTOR_AVG_NOT_IN_RANGE: factor_avg_not_in_range,
+	MonitorRuleCode.FACTOR_AND_ANOTHER: factor_and_another
 }
 
 
