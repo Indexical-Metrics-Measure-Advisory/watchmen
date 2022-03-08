@@ -3,7 +3,6 @@
 # FACTOR_EMPTY_OVER_COVERAGE = 'factor-empty-over-coverage',
 #
 # # for number type
-# FACTOR_NOT_IN_RANGE = 'factor-not-in-range',
 # FACTOR_MAX_NOT_IN_RANGE = 'factor-max-not-in-range',
 # FACTOR_MIN_NOT_IN_RANGE = 'factor-min-not-in-range',
 # FACTOR_AVG_NOT_IN_RANGE = 'factor-avg-not-in-range',
@@ -13,7 +12,6 @@
 # FACTOR_COMMON_VALUE_NOT_IN_RANGE = 'factor-common-value-not-in-range',
 #
 # # for string type
-# FACTOR_STRING_LENGTH_NOT_IN_RANGE = 'factor-string-length-not-in-range',
 # FACTOR_MATCH_REGEXP = 'factor-match-regexp',
 # FACTOR_MISMATCH_REGEXP = 'factor-mismatch-regexp',
 #
@@ -30,6 +28,7 @@ from .factor_is_blank import factor_is_blank
 from .factor_is_empty import factor_is_empty
 from .factor_mismatch_enum import factor_mismatch_enum
 from .factor_mismatch_type import factor_mismatch_type
+from .factor_not_in_range import factor_not_in_range
 from .factor_string_length_mismatch import factor_string_length_mismatch
 from .factor_string_length_not_in_range import factor_string_length_not_in_range
 from .rows_no_change import rows_no_change
@@ -43,7 +42,8 @@ rules_map: Dict[MonitorRuleCode, RuleHandler] = {
 	MonitorRuleCode.FACTOR_IS_EMPTY: factor_is_empty,
 	MonitorRuleCode.FACTOR_IS_BLANK: factor_is_blank,
 	MonitorRuleCode.FACTOR_STRING_LENGTH_MISMATCH: factor_string_length_mismatch,
-	MonitorRuleCode.FACTOR_STRING_LENGTH_NOT_IN_RANGE: factor_string_length_not_in_range
+	MonitorRuleCode.FACTOR_STRING_LENGTH_NOT_IN_RANGE: factor_string_length_not_in_range,
+	MonitorRuleCode.FACTOR_NOT_IN_RANGE: factor_not_in_range
 }
 
 
