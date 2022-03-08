@@ -8265,7 +8265,20 @@
               "item": [
                 {
                   "name": "PRE - SCRIPT",
-                  "item": [],
+                  "item": [
+                    {
+                      "name": "New Request",
+                      "id": "839d6280-6575-4059-b632-684dc6d79c33",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
+                    }
+                  ],
                   "id": "c59d0299-e6d4-4e62-a276-d4c249161102"
                 },
                 {
