@@ -7546,7 +7546,7 @@
                         "header": [],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\r\n    \"propA\": \"text1\",\r\n    \"propB\": 100,\r\n    \"propC\": true,\r\n    \"propD\": \"2022-03-22\",\r\n    \"propE\": \"2022-03-22 22:39:45\"\r\n}",
+                          "raw": "{\r\n    \"propA\": \"text\",\r\n    \"propB\": 100,\r\n    \"propC\": true,\r\n    \"propD\": \"2022-03-22\",\r\n    \"propE\": \"2022-03-22 22:39:45\"\r\n}",
                           "options": {
                             "raw": {
                               "language": "json"
