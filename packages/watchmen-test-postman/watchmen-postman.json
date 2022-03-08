@@ -8377,7 +8377,7 @@
                   "name": "DETELE ROW",
                   "item": [
                     {
-                      "name": "DETELE ROW",
+                      "name": "DELETE ROW",
                       "event": [
                         {
                           "listen": "test",
