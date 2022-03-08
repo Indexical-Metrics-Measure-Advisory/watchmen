@@ -8297,7 +8297,7 @@
                   "name": "DETELE ROWS",
                   "item": [
                     {
-                      "name": "New Request",
+                      "name": "DELETE ROWS",
                       "id": "6f776e78-beff-479d-b335-9cdd4067a84b",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
