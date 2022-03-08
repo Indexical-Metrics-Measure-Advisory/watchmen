@@ -8130,7 +8130,7 @@
                       "response": []
                     },
                     {
-                      "name": "TRUCATE RAW TOPIC",
+                      "name": "TRUNCATE RAW TOPIC",
                       "id": "2b3543da-dc5a-4fe0-9aff-0b876db18577",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
