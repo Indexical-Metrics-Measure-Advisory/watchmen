@@ -290,12 +290,16 @@ class TopicDataService(TopicStructureService):
 		return self.get_storage().find_and_lock_by_id(data_id, data_entity_helper.get_entity_id_helper())
 
 	def find_distinct_values(
-			self, criteria: EntityCriteria, column_names: List[EntityColumnName]) -> List[Dict[str, Any]]:
+			self, criteria: EntityCriteria, column_names: List[EntityColumnName],
+			distinct_value_on_single_column: bool = False) -> List[Dict[str, Any]]:
 		data_entity_helper = self.get_data_entity_helper()
 		storage = self.get_storage()
 		try:
 			storage.connect()
-			return storage.find_distinct_values(data_entity_helper.get_distinct_values_finder(criteria, column_names))
+			return storage.find_distinct_values(
+				data_entity_helper.get_distinct_values_finder(
+					criteria=criteria, column_names=column_names,
+					distinct_value_on_single_column=distinct_value_on_single_column))
 		finally:
 			storage.close()
 

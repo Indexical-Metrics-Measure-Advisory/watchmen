@@ -1,3 +1,4 @@
+from datetime import datetime
 from logging import getLogger
 from typing import Optional, Tuple
 
@@ -9,6 +10,8 @@ from watchmen_dqc.common import DqcException
 from watchmen_model.admin import Factor
 from watchmen_model.common import FactorId, TopicId
 from watchmen_model.dqc import MonitorRule
+from watchmen_model.pipeline_kernel import TopicDataColumnNames
+from watchmen_storage import ColumnNameLiteral, EntityCriteria, EntityCriteriaExpression, EntityCriteriaOperator
 from watchmen_utilities import ArrayHelper, is_blank
 
 logger = getLogger(__name__)
@@ -44,3 +47,18 @@ def find_factor(
 		return False, None
 	else:
 		return True, factor
+
+
+def build_date_range_criteria(date_range: Tuple[datetime, datetime]) -> EntityCriteria:
+	return [
+		EntityCriteriaExpression(
+			left=ColumnNameLiteral(columnName=TopicDataColumnNames.UPDATE_TIME.value),
+			operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
+			right=date_range[0]
+		),
+		EntityCriteriaExpression(
+			left=ColumnNameLiteral(columnName=TopicDataColumnNames.UPDATE_TIME.value),
+			operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
+			right=date_range[1]
+		)
+	]
