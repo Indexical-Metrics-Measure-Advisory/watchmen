@@ -8265,36 +8265,11 @@
               "item": [
                 {
                   "name": "DETELE ROW",
-                  "item": [
-                    {
-                      "name": "DETELE ROW",
-                      "id": "b59eeb57-e175-4086-a0af-3ad9317afc3e",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "method": "GET",
-                        "header": []
-                      },
-                      "response": []
-                    },
-                    {
-                      "name": "New Request",
-                      "id": "eaeb00a2-5606-495d-a9ff-381da5126192",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "method": "GET",
-                        "header": []
-                      },
-                      "response": []
-                    }
-                  ],
+                  "item": [],
                   "id": "393851bd-30e4-477c-bddd-07c6016e066e"
                 },
                 {
-                  "name": "DETELE ROWS",
+                  "name": "New Folder",
                   "item": [],
                   "id": "dc74edab-871c-47a0-85bc-7e2b4a781dd2"
                 }
