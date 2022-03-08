@@ -6099,7 +6099,7 @@
                           "script": {
                             "id": "5128efba-3f74-4795-9e1d-a90f3ac64696",
                             "exec": [
-                              "pm.test(\"Trucate Topic\", () => {",
+                              "pm.test(\"Truncate Topic\", () => {",
                               "    pm.response.to.have.status(200);",
                               "});"
                             ],
@@ -6141,7 +6141,7 @@
                       "response": []
                     },
                     {
-                      "name": "TRUCATE RAW TOPIC",
+                      "name": "TRUNCATE RAW TOPIC",
                       "event": [
                         {
                           "listen": "test",
