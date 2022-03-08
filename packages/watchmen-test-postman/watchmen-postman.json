@@ -8426,8 +8426,15 @@
                         "disableBodyPruning": true
                       },
                       "request": {
-                        "method": "GET",
-                        "header": []
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "url": "{{URL_PREFIX}}/pipeline/data"
                       },
                       "response": []
                     }
