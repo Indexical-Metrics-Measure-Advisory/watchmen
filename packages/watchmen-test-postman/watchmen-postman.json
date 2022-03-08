@@ -7918,6 +7918,18 @@
                         "url": "{{URL_PREFIX}}/pipeline/data"
                       },
                       "response": []
+                    },
+                    {
+                      "name": "New Request",
+                      "id": "e91723c5-24a0-4456-8ab0-d32b95aa5aaf",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
                     }
                   ],
                   "id": "372da162-d10a-45ea-b796-1d8fc2a88b95"
