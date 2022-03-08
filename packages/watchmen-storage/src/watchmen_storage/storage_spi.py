@@ -138,7 +138,7 @@ class StorageSPI(ABC):
 		pass
 
 	@abstractmethod
-	def count(self, helper: EntityHelper) -> int:
+	def count(self, finder: EntityFinder) -> int:
 		pass
 
 

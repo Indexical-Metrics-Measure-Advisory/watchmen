@@ -20,7 +20,7 @@ from watchmen_model.dqc import MonitorJobLock, MonitorRule, MonitorRuleCode, Mon
 from watchmen_model.dqc.monitor_job_lock import MonitorJobLockStatus
 from watchmen_model.system import Tenant
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
-from .rule import compute_date_range, rows_count_mismatch_with_another, rows_not_exists
+from .rule import compute_date_range, rows_count_mismatch_with_another, rows_not_exists, run_all_rules
 
 logger = getLogger(__name__)
 
@@ -63,9 +63,9 @@ class MonitorRulesRunner:
 		rules = rule_service.find_by_grade_or_topic_id(None, topic_id, self.principalService.get_tenant_id())
 		rules = ArrayHelper(rules) \
 			.filter(lambda x: should_run_rule(x, frequency)) \
-			.filter(lambda x: x.params.topicId is not None) \
+			.filter(lambda x: x.topicId is not None) \
 			.to_list()
-		rules_by_topic: Dict[TopicId, List[MonitorRule]] = ArrayHelper(rules).group_by(lambda x: x.params.topicId)
+		rules_by_topic: Dict[TopicId, List[MonitorRule]] = ArrayHelper(rules).group_by(lambda x: x.topicId)
 		ArrayHelper(list(rules_by_topic.keys())).each(lambda x: self.run_on_topic(x, process_date, rules_by_topic[x]))
 
 	def get_topic_data_service(self, topic_id: TopicId, rules_count: int) -> Tuple[bool, Optional[TopicDataService]]:
@@ -113,16 +113,15 @@ class MonitorRulesRunner:
 	# noinspection PyMethodMayBeStatic
 	def run_rows_count_mismatch_with_another(
 			self, rules: List[MonitorRule], data_service: TopicDataService,
-			date_range: Tuple[datetime, datetime], count: Optional[int] = None) -> None:
+			date_range: Tuple[datetime, datetime], count: Optional[int] = None) -> int:
 		rule = find_rule(rules, MonitorRuleCode.ROWS_COUNT_MISMATCH_AND_ANOTHER)
-		if rule is None:
-			return
-		rows_count_mismatch_with_another(data_service, rule, date_range, count)
+		return rows_count_mismatch_with_another(data_service, rule, date_range, count)
 
 	def run_all_rules(
 			self, rules: List[MonitorRule], data_service: TopicDataService,
 			date_range: Tuple[datetime, datetime]) -> None:
-		self.run_rows_count_mismatch_with_another(rules, data_service, date_range)
+		count_in_range = self.run_rows_count_mismatch_with_another(rules, data_service, date_range)
+		run_all_rules(data_service, rules, date_range, count_in_range)
 
 
 def get_tenant_service(principal_service: PrincipalService) -> TenantService:

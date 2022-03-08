@@ -106,6 +106,8 @@ class MonitorRule(TenantBasedTuple, BaseModel):
 	code: MonitorRuleCode = None
 	grade: MonitorRuleGrade = None
 	severity: MonitorRuleSeverity = None
+	topicId: TopicId = None
+	factorId: Optional[FactorId] = None
 	params: MonitorRuleParameters = None
 	enabled: bool = False
 

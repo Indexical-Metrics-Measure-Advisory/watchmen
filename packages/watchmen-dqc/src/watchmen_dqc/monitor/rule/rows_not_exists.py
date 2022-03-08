@@ -3,6 +3,7 @@ from typing import Optional, Tuple
 
 from watchmen_data_kernel.storage import TopicDataService
 from watchmen_model.dqc import MonitorRule
+from .trigger_pipeline import trigger
 
 
 def rows_not_exists(
@@ -10,8 +11,7 @@ def rows_not_exists(
 		date_range: Tuple[datetime, datetime]
 ) -> int:
 	count = data_service.count()
-	if rule is not None and count == 0:
-		# TODO rule matched, trigger a pipeline
-		pass
+	if rule is not None:
+		trigger(rule, count != 0, date_range[0], data_service.get_principal_service())
 
 	return count
