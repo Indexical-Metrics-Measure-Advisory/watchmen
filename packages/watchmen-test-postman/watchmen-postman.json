@@ -7582,7 +7582,7 @@
                       "response": []
                     },
                     {
-                      "name": "New Request",
+                      "name": "MERGE ROW",
                       "id": "7f28d14a-2451-4137-8bbd-9cdf8600dba8",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
