@@ -7583,6 +7583,22 @@
                     },
                     {
                       "name": "MERGE ROW",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "1e12dc55-0a58-4459-8aac-0e12e5793ebd",
+                            "exec": [
+                              "pm.test(\"Merge Row\", () => {\r",
+                              "    pm.response.to.have.status(200);\r",
+                              "    const data = pm.response.json();\r",
+                              "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId);\r",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "7f28d14a-2451-4137-8bbd-9cdf8600dba8",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
