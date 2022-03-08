@@ -15,6 +15,7 @@ pandas-profiling = "^3.1.0"
 APScheduler = "^3.9.1"
 watchmen-meta = { path = "../watchmen-meta", develop = true }
 watchmen-data-kernel = { path = "../watchmen-data-kernel", develop = true }
+watchmen-pipeline-kernel = { path = "../watchmen-pipeline-kernel", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
 watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
 watchmen-storage-mongodb = { path = "../watchmen-storage-mongodb", develop = true, optional = true }

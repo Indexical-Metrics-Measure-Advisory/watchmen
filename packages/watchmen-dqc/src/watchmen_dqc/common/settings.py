@@ -18,6 +18,7 @@ class DqcSettings(BaseSettings):
 	MONITOR_JOB_MONTHLY_DAY: str = "1"
 	MONITOR_JOB_MONTHLY_HOURS: int = 0
 	MONITOR_JOB_MONTHLY_MINUTES: int = 1
+	MONITOR_RESULT_PIPELINE_ASYNC: bool = False
 
 
 settings = DqcSettings()
@@ -42,3 +43,7 @@ def ask_weekly_monitor_job_trigger_time() -> Tuple[str, int, int]:
 
 def ask_monthly_monitor_job_trigger_time() -> Tuple[str, int, int]:
 	return settings.MONITOR_JOB_MONTHLY_DAY, settings.MONITOR_JOB_MONTHLY_HOURS, settings.MONITOR_JOB_MONTHLY_MINUTES
+
+
+def ask_monitor_result_pipeline_async() -> bool:
+	return settings.MONITOR_RESULT_PIPELINE_ASYNC

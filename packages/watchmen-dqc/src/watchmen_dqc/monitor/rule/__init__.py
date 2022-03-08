@@ -1,2 +1,3 @@
+from .date_range import compute_date_range
 from .rows_count_mismatch_with_another import rows_count_mismatch_with_another
 from .rows_not_exists import rows_not_exists
