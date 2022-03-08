@@ -7874,6 +7874,12 @@
                         "disableBodyPruning": true
                       },
                       "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                          }
+                        },
                         "method": "PATCH",
                         "header": [],
                         "body": {
