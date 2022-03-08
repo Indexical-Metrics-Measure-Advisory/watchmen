@@ -15,8 +15,8 @@ class MonitorRuleShaper(EntityShaper):
 			'code': monitor_rule.code,
 			'grade': monitor_rule.grade,
 			'severity': monitor_rule.severity,
-			'topic_id': monitor_rule.params.topicId if monitor_rule.params is not None else None,
-			'factor_id': monitor_rule.params.factorId if monitor_rule.params is not None else None,
+			'topic_id': monitor_rule.topicId,
+			'factor_id': monitor_rule.factorId,
 			'params': monitor_rule.params,
 			'enabled': monitor_rule.enabled
 		})
@@ -28,6 +28,8 @@ class MonitorRuleShaper(EntityShaper):
 			code=row.get('code'),
 			grade=row.get('grade'),
 			severity=row.get('severity'),
+			topicId=row.get('topic_id'),
+			factorId=row.get('factor_id'),
 			params=row.get('params'),
 			enabled=row.get('enabled')
 		))

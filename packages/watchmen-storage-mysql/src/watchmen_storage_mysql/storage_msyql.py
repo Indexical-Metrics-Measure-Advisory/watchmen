@@ -181,7 +181,7 @@ class StorageMySQL(TransactionalStorageSPI):
 	def delete(self, deleter: EntityDeleter) -> int:
 		table = self.find_table(deleter.name)
 		statement = delete(table)
-		statement = build_criteria_for_statement([table], statement, deleter.criteria)
+		statement = build_criteria_for_statement([table], statement, deleter.criteria, True)
 		result = self.connection.execute(statement)
 		return result.rowcount
 
@@ -365,9 +365,10 @@ class StorageMySQL(TransactionalStorageSPI):
 		results = self.connection.execute(statement).mappings().all()
 		return len(results) != 0
 
-	def count(self, helper: EntityHelper) -> int:
-		table = self.find_table(helper.name)
+	def count(self, finder: EntityFinder) -> int:
+		table = self.find_table(finder.name)
 		statement = select(func.count()).select_from(table)
+		statement = build_criteria_for_statement([table], statement, finder.criteria)
 		count, _ = self.execute_page_count(statement, 1)
 		return count
 
