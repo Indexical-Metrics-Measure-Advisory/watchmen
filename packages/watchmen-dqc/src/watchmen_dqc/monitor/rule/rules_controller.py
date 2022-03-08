@@ -1,5 +1,4 @@
 # # for all factor types
-# FACTOR_IS_EMPTY = 'factor-is-empty',
 # FACTOR_COMMON_VALUE_OVER_COVERAGE = 'factor-common-value-over-coverage',
 # FACTOR_EMPTY_OVER_COVERAGE = 'factor-empty-over-coverage',
 #
@@ -29,6 +28,7 @@ from watchmen_data_kernel.storage import TopicDataService
 from watchmen_model.dqc import MonitorRule, MonitorRuleCode
 from watchmen_utilities import ArrayHelper
 from .disabled_rules import disabled_rules
+from .factor_is_empty import factor_is_empty
 from .factor_mismatch_enum import factor_mismatch_enum
 from .factor_mismatch_type import factor_mismatch_type
 from .rows_no_change import rows_no_change
@@ -38,7 +38,8 @@ from .types import RuleHandler, RuleResult
 rules_map: Dict[MonitorRuleCode, RuleHandler] = {
 	MonitorRuleCode.FACTOR_MISMATCH_ENUM: factor_mismatch_enum,
 	MonitorRuleCode.ROWS_NO_CHANGE: rows_no_change,
-	MonitorRuleCode.FACTOR_MISMATCH_TYPE: factor_mismatch_type
+	MonitorRuleCode.FACTOR_MISMATCH_TYPE: factor_mismatch_type,
+	MonitorRuleCode.FACTOR_IS_EMPTY: factor_is_empty
 }
 
 
