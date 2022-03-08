@@ -8378,7 +8378,7 @@
                           "script": {
                             "id": "0c8bd1dc-3bb5-4ed4-ac3b-9fe94cc4d464",
                             "exec": [
-                              "pm.test(\"Detele Row\", () => {\r",
+                              "pm.test(\"Delete Row\", () => {\r",
                               "    pm.response.to.have.status(200);\r",
                               "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId)\r",
                               "});"
