@@ -8319,7 +8319,7 @@
                       "response": []
                     },
                     {
-                      "name": "New Request",
+                      "name": "PATCH TOPIC",
                       "id": "a92493c4-1972-4ccf-9f9c-d2d0422eba30",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
