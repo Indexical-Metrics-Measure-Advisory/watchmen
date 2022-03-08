@@ -8265,7 +8265,20 @@
               "item": [
                 {
                   "name": "DETELE ROW",
-                  "item": [],
+                  "item": [
+                    {
+                      "name": "New Request",
+                      "id": "b59eeb57-e175-4086-a0af-3ad9317afc3e",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
+                    }
+                  ],
                   "id": "393851bd-30e4-477c-bddd-07c6016e066e"
                 },
                 {
