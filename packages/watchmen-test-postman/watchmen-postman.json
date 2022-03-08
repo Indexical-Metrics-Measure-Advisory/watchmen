@@ -8267,7 +8267,7 @@
                   "name": "DETELE ROW",
                   "item": [
                     {
-                      "name": "New Request",
+                      "name": "DETELE ROW",
                       "id": "b59eeb57-e175-4086-a0af-3ad9317afc3e",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
