@@ -13,8 +13,6 @@
 # FACTOR_COMMON_VALUE_NOT_IN_RANGE = 'factor-common-value-not-in-range',
 #
 # # for string type
-# FACTOR_IS_BLANK = 'factor-is-blank',
-# FACTOR_STRING_LENGTH_MISMATCH = 'factor-string-length-mismatch',
 # FACTOR_STRING_LENGTH_NOT_IN_RANGE = 'factor-string-length-not-in-range',
 # FACTOR_MATCH_REGEXP = 'factor-match-regexp',
 # FACTOR_MISMATCH_REGEXP = 'factor-mismatch-regexp',
@@ -28,9 +26,11 @@ from watchmen_data_kernel.storage import TopicDataService
 from watchmen_model.dqc import MonitorRule, MonitorRuleCode
 from watchmen_utilities import ArrayHelper
 from .disabled_rules import disabled_rules
+from .factor_is_blank import factor_is_blank
 from .factor_is_empty import factor_is_empty
 from .factor_mismatch_enum import factor_mismatch_enum
 from .factor_mismatch_type import factor_mismatch_type
+from .factor_string_length_mismatch import factor_string_length_mismatch
 from .rows_no_change import rows_no_change
 from .trigger_pipeline import trigger
 from .types import RuleHandler, RuleResult
@@ -39,7 +39,9 @@ rules_map: Dict[MonitorRuleCode, RuleHandler] = {
 	MonitorRuleCode.FACTOR_MISMATCH_ENUM: factor_mismatch_enum,
 	MonitorRuleCode.ROWS_NO_CHANGE: rows_no_change,
 	MonitorRuleCode.FACTOR_MISMATCH_TYPE: factor_mismatch_type,
-	MonitorRuleCode.FACTOR_IS_EMPTY: factor_is_empty
+	MonitorRuleCode.FACTOR_IS_EMPTY: factor_is_empty,
+	MonitorRuleCode.FACTOR_IS_BLANK: factor_is_blank,
+	MonitorRuleCode.FACTOR_STRING_LENGTH_MISMATCH: factor_string_length_mismatch
 }
 
 
