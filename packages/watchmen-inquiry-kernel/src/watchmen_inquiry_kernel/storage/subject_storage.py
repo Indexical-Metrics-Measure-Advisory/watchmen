@@ -1,4 +1,5 @@
-from typing import Any, Dict, List, Optional
+from abc import abstractmethod
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common.settings import ask_presto_enabled
@@ -16,8 +17,7 @@ from watchmen_model.admin.space import SpaceFilter
 from watchmen_model.common import DataPage, FactorId, Pageable, TopicId
 from watchmen_model.console import ConnectedSpace, SubjectDatasetColumn, SubjectDatasetJoin, SubjectJoinType
 from watchmen_storage import ColumnNameLiteral, FreeAggregatePager, FreeAggregator, FreeColumn, FreeFinder, FreeJoin, \
-	FreeJoinType, \
-	FreePager
+	FreeJoinType, FreePager, TopicDataStorageSPI
 from watchmen_utilities import ArrayHelper, is_blank
 
 
@@ -33,6 +33,55 @@ def get_space_service(connected_space_service: ConnectedSpaceService) -> SpaceSe
 	return SpaceService(
 		connected_space_service.storage, connected_space_service.snowflakeGenerator,
 		connected_space_service.principalService)
+
+
+class FindAgent:
+	@abstractmethod
+	def connect(self) -> None:
+		pass
+
+	@abstractmethod
+	def close(self) -> None:
+		pass
+
+	@abstractmethod
+	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
+		pass
+
+	@abstractmethod
+	def free_page(self, pager: FreePager) -> DataPage:
+		pass
+
+	@abstractmethod
+	def free_aggregate_find(self, aggregator: FreeAggregator) -> List[Dict[str, Any]]:
+		pass
+
+	@abstractmethod
+	def free_aggregate_page(self, pager: FreeAggregatePager) -> DataPage:
+		pass
+
+
+class StorageFindAgent(FindAgent):
+	def __init__(self, storage: TopicDataStorageSPI):
+		self.storage = storage
+
+	def connect(self) -> None:
+		self.storage.connect()
+
+	def close(self) -> None:
+		self.storage.close()
+
+	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
+		return self.storage.free_find(finder)
+
+	def free_page(self, pager: FreePager) -> DataPage:
+		return self.storage.free_page(pager)
+
+	def free_aggregate_find(self, aggregator: FreeAggregator) -> List[Dict[str, Any]]:
+		return self.storage.free_aggregate_find(aggregator)
+
+	def free_aggregate_page(self, pager: FreeAggregatePager) -> DataPage:
+		return self.storage.free_aggregate_page(pager)
 
 
 class SubjectStorage:
@@ -163,31 +212,9 @@ class SubjectStorage:
 		ArrayHelper(available_schemas).each(lambda x: storage.register_topic(x.get_topic()))
 		return FreeFinder(columns=columns, joins=joins, criteria=criteria)
 
-	def find_by_storage_directly(self) -> List[Dict[str, Any]]:
-		available_schemas = self.schema.get_available_schemas()
-		storage = ask_topic_storage(self.schema.get_primary_topic_schema(), self.principalService)
-		# register topic, in case of it is not registered yet
-		ArrayHelper(available_schemas).each(lambda x: storage.register_topic(x.get_topic()))
-		try:
-			storage.connect()
-			return storage.free_find(self.ask_storage_directly_finder())
-		finally:
-			storage.close()
-
 	def find(self) -> List[Dict[str, Any]]:
-		if not ask_use_storage_directly():
-			# TODO use presto
-			return self.find_by_storage_directly()
-
-		if self.schema.from_one_data_source():
-			return self.find_by_storage_directly()
-		elif not ask_presto_enabled():
-			raise InquiryKernelException(
-				'Cannot perform inquiry on storage native when there are multiple data sources, '
-				'ask your administrator to turn on presto/trino engine.')
-		else:
-			# TODO use presto
-			return self.find_by_storage_directly()
+		return self.find_data(
+			lambda agent: agent.free_find(self.ask_storage_directly_finder()))
 
 	def ask_storage_directly_pager(self, pageable: Pageable) -> FreePager:
 		finder = self.ask_storage_directly_finder()
@@ -198,31 +225,9 @@ class SubjectStorage:
 			pageable=pageable
 		)
 
-	def page_by_storage_directly(self, pageable: Pageable) -> DataPage:
-		available_schemas = self.schema.get_available_schemas()
-		storage = ask_topic_storage(self.schema.get_primary_topic_schema(), self.principalService)
-		# register topic, in case of it is not registered yet
-		ArrayHelper(available_schemas).each(lambda x: storage.register_topic(x.get_topic()))
-		try:
-			storage.connect()
-			return storage.free_page(self.ask_storage_directly_pager(pageable))
-		finally:
-			storage.close()
-
 	def page(self, pageable: Pageable) -> DataPage:
-		if not ask_use_storage_directly():
-			# TODO use presto
-			return self.page_by_storage_directly(pageable)
-
-		if self.schema.from_one_data_source():
-			return self.page_by_storage_directly(pageable)
-		elif not ask_presto_enabled():
-			raise InquiryKernelException(
-				'Cannot perform inquiry on storage native when there are multiple data sources, '
-				'ask your administrator to turn on presto/trino engine.')
-		else:
-			# TODO use presto
-			return self.page_by_storage_directly(pageable)
+		return self.find_data(
+			lambda agent: agent.free_page(self.ask_storage_directly_pager(pageable)))
 
 	def ask_storage_directly_aggregator(self, report_schema: ReportSchema) -> FreeAggregator:
 		finder = self.ask_storage_directly_finder()
@@ -236,15 +241,8 @@ class SubjectStorage:
 		)
 
 	def aggregate_find(self, report_schema: ReportSchema) -> List[Dict[str, Any]]:
-		available_schemas = self.schema.get_available_schemas()
-		storage = ask_topic_storage(self.schema.get_primary_topic_schema(), self.principalService)
-		# register topic, in case of it is not registered yet
-		ArrayHelper(available_schemas).each(lambda x: storage.register_topic(x.get_topic()))
-		try:
-			storage.connect()
-			return storage.free_aggregate_find(self.ask_storage_directly_aggregator(report_schema))
-		finally:
-			storage.close()
+		return self.find_data(
+			lambda agent: agent.free_aggregate_find(self.ask_storage_directly_aggregator(report_schema)))
 
 	def ask_storage_directly_aggregate_pager(
 			self, report_schema: ReportSchema, pageable: Pageable) -> FreeAggregatePager:
@@ -259,12 +257,39 @@ class SubjectStorage:
 		)
 
 	def aggregate_page(self, report_schema: ReportSchema, pageable: Pageable) -> DataPage:
+		return self.find_data(
+			lambda agent: agent.free_aggregate_page(self.ask_storage_directly_aggregate_pager(report_schema, pageable)))
+
+	# noinspection PyMethodMayBeStatic
+	def do_find(
+			self, find_agent: FindAgent, find: Callable[[FindAgent], Union[List[Dict[str, Any]], DataPage]]
+	) -> Union[List[Dict[str, Any]], DataPage]:
+		try:
+			find_agent.connect()
+			return find(find_agent)
+		finally:
+			find_agent.close()
+
+	def ask_storage_find_agent(self) -> StorageFindAgent:
 		available_schemas = self.schema.get_available_schemas()
 		storage = ask_topic_storage(self.schema.get_primary_topic_schema(), self.principalService)
 		# register topic, in case of it is not registered yet
 		ArrayHelper(available_schemas).each(lambda x: storage.register_topic(x.get_topic()))
-		try:
-			storage.connect()
-			return storage.free_aggregate_page(self.ask_storage_directly_aggregate_pager(report_schema, pageable))
-		finally:
-			storage.close()
+		return StorageFindAgent(storage)
+
+	def ask_presto_find_agent(self) -> FindAgent:
+		# TODO create presto find agent
+		pass
+
+	def find_data(self, find: Callable[[FindAgent], Any]) -> Union[List[Dict[str, Any]], DataPage]:
+		if not ask_use_storage_directly():
+			return self.do_find(self.ask_presto_find_agent(), find)
+
+		if self.schema.from_one_data_source():
+			return self.do_find(self.ask_storage_find_agent(), find)
+		elif not ask_presto_enabled():
+			raise InquiryKernelException(
+				'Cannot perform inquiry on storage native when there are multiple data sources, '
+				'ask your administrator to turn on presto/trino engine.')
+		else:
+			return self.do_find(self.ask_presto_find_agent(), find)
