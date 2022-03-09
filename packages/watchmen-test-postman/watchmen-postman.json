@@ -7705,7 +7705,7 @@
                         "method": "DELETE",
                         "header": [],
                         "url": {
-                          "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{RAW_TOPIC_NAME}}",
+                          "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{RAW_TOPIC_NAME}} ",
                           "host": [
                             "{{URL_PREFIX}}"
                           ],
@@ -7717,7 +7717,7 @@
                           "query": [
                             {
                               "key": "topic_name",
-                              "value": "{{RAW_TOPIC_NAME}}"
+                              "value": "{{RAW_TOPIC_NAME}} "
                             }
                           ]
                         }
