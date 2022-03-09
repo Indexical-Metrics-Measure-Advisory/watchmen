@@ -18,4 +18,7 @@ class SubjectDataService:
 
 	def page(self, pageable: Pageable) -> DataPage:
 		storage = SubjectStorage(self.schema, self.principalService)
-		return storage.page(pageable)
+		page = storage.page(pageable)
+		# translate to a data table
+		page.data = self.get_schema().translate_to_array_table(page.data)
+		return page

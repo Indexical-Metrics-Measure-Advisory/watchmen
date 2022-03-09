@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common.settings import ask_presto_enabled
@@ -15,7 +15,7 @@ from watchmen_model.admin import Factor, Space
 from watchmen_model.admin.space import SpaceFilter
 from watchmen_model.common import DataPage, FactorId, Pageable, TopicId
 from watchmen_model.console import ConnectedSpace, SubjectDatasetColumn, SubjectDatasetJoin, SubjectJoinType
-from watchmen_storage import ColumnNameLiteral, FreeColumn, FreeJoin, \
+from watchmen_storage import ColumnNameLiteral, FreeColumn, FreeFinder, FreeJoin, \
 	FreeJoinType, FreePager
 from watchmen_utilities import ArrayHelper, is_blank
 
@@ -89,7 +89,7 @@ class SubjectStorage:
 			type=join_type
 		)
 
-	def page_by_storage_directly(self, pageable: Pageable) -> DataPage:
+	def ask_storage_directly_finder(self) -> FreeFinder:
 		# build pager
 		subject = self.schema.get_subject()
 		dataset = subject.dataset
@@ -160,14 +160,36 @@ class SubjectStorage:
 		storage = ask_topic_storage(self.schema.get_primary_topic_schema(), self.principalService)
 		# register topic, in case of it is not registered yet
 		ArrayHelper(available_schemas).each(lambda x: storage.register_topic(x.get_topic()))
+		return FreeFinder(columns=columns, joins=joins, criteria=criteria)
+
+	def find_by_storage_directly(self) -> List[Dict[str, Any]]:
+		available_schemas = self.schema.get_available_schemas()
+		storage = ask_topic_storage(self.schema.get_primary_topic_schema(), self.principalService)
+		# register topic, in case of it is not registered yet
+		ArrayHelper(available_schemas).each(lambda x: storage.register_topic(x.get_topic()))
 		try:
 			storage.connect()
-			return storage.free_page(FreePager(
-				columns=columns,
-				joins=joins,
-				criteria=criteria,
-				pageable=pageable
-			))
+			return storage.free_find(self.ask_storage_directly_finder())
+		finally:
+			storage.close()
+
+	def ask_storage_directly_pager(self, pageable: Pageable) -> FreePager:
+		finder = self.ask_storage_directly_finder()
+		return FreePager(
+			columns=finder.criteria,
+			joins=finder.joins,
+			criteria=finder.criteria,
+			pageable=pageable
+		)
+
+	def page_by_storage_directly(self, pageable: Pageable) -> DataPage:
+		available_schemas = self.schema.get_available_schemas()
+		storage = ask_topic_storage(self.schema.get_primary_topic_schema(), self.principalService)
+		# register topic, in case of it is not registered yet
+		ArrayHelper(available_schemas).each(lambda x: storage.register_topic(x.get_topic()))
+		try:
+			storage.connect()
+			return storage.free_page(self.ask_storage_directly_pager(pageable))
 		finally:
 			storage.close()
 
