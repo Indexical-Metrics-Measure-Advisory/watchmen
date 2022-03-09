@@ -53,7 +53,6 @@ async def fetch_subject_data(
 async def fetch_report_data(
 		report_id: Optional[ReportId],
 		principal_service: PrincipalService = Depends(get_console_principal)) -> DataResult:
-	# TODO fetch report data
 	if is_blank(report_id):
 		raise_400('Report id is required.')
 
