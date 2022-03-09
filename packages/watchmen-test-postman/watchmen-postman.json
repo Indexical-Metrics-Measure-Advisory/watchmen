@@ -6141,7 +6141,7 @@
                       "response": []
                     },
                     {
-                      "name": "TRUNCATE RAW TOPIC",
+                      "name": "TRUCATE RAW TOPIC",
                       "event": [
                         {
                           "listen": "test",
