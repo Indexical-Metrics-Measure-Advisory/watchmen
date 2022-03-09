@@ -1,7 +1,9 @@
 from unittest import TestCase
 
 from watchmen_model.admin import Factor, FactorType, Topic, TopicKind, TopicType
-from watchmen_storage import ColumnNameLiteral, FreeAggregateArithmetic, FreeAggregateColumn, FreeAggregator, \
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, \
+	FreeAggregateArithmetic, FreeAggregateColumn, \
+	FreeAggregator, \
 	FreeColumn, FreeJoin
 from watchmen_storage_mysql import StorageMySQLConfiguration
 
@@ -29,6 +31,10 @@ class ReportTest(TestCase):
 					FreeColumn(
 						literal=ColumnNameLiteral(entityName='topic1', columnName='topic1_id'),
 						alias='ID'
+					),
+					FreeColumn(
+						literal=ColumnNameLiteral(entityName='topic1', columnName='topic1_id'),
+						alias='ANOTHER_ID'
 					)
 				],
 				joins=[
@@ -42,6 +48,25 @@ class ReportTest(TestCase):
 						name='column_1',
 						arithmetic=FreeAggregateArithmetic.SUMMARY,
 						alias='IdSum'
+					),
+					FreeAggregateColumn(
+						name='column_2',
+						arithmetic=FreeAggregateArithmetic.NONE,
+						alias='Id'
+					)
+				],
+				criteria=[
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(entityName='topic1', columnName='topic1_id'),
+						operator=EntityCriteriaOperator.NOT_EQUALS,
+						right='0'
+					)
+				],
+				high_order_criteria=[
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(columnName='column_2'),
+						operator=EntityCriteriaOperator.GREATER_THAN,
+						right='1'
 					)
 				]
 			))
