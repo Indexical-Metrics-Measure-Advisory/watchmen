@@ -3,7 +3,7 @@ from decimal import Decimal
 from logging import getLogger
 from typing import Any, Dict, List, Optional, Tuple
 
-from sqlalchemy import and_, Column, delete, distinct, func, insert, MetaData, Numeric, select, String, Table, text, \
+from sqlalchemy import and_, delete, distinct, func, insert, select, Table, text, \
 	update
 from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.sql import Join, label
@@ -638,24 +638,6 @@ CREATE TABLE {entity_name} (
 			data[alias] = row.get(f'agg_column_{index + 1}')
 		return data
 
-	# noinspection PyMethodMayBeStatic
-	def create_sub_query_table(self, aggregator: FreeAggregator) -> Table:
-		columns = aggregator.columns
-		aggregate_columns: Dict[str, bool] = ArrayHelper(aggregator.aggregateColumns) \
-			.map(lambda x: (x.arithmetic is not None and x.arithmetic != FreeAggregateArithmetic.NONE, x.name)) \
-			.to_map(lambda x: x[1], lambda x: x[0])
-
-		# treat all non aggregate column to be text, all aggregate column to be decimal
-		def to_table_column(column: FreeColumn, index: int) -> Column:
-			name = f'column_{index + 1}'
-			aggregated = True if aggregate_columns.get(name) else False
-			if aggregated:
-				return Column(name, Numeric)
-			else:
-				return Column(name, String)
-
-		return Table('topic___sqt__', MetaData(), *ArrayHelper(columns).map_with_index(to_table_column).to_list())
-
 	def free_aggregate_find(self, aggregator: FreeAggregator) -> List[Dict[str, Any]]:
 		select_from, tables = self.build_free_joins(aggregator.joins)
 		statement = select(self.build_free_columns(aggregator.columns, tables)).select_from(select_from)
@@ -665,7 +647,6 @@ CREATE TABLE {entity_name} (
 		aggregate_columns = aggregator.aggregateColumns
 		statement = select(self.build_free_aggregate_columns(aggregate_columns)).select_from(sub_query)
 		# obviously, table is not existing. fake a table of sub query selection to build high order criteria
-		sub_query_table = self.create_sub_query_table(aggregator)
 		statement = build_criteria_for_statement([], statement, aggregator.high_order_criteria)
 		# find columns rather than grouped
 		non_group_columns = ArrayHelper(aggregate_columns) \
