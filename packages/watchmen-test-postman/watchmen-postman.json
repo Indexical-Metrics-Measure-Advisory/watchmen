@@ -8764,6 +8764,23 @@
             },
             {
               "name": "CREATE RAW TOPIC",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "e53d3808-125b-457a-80d6-93befb2cbe5a",
+                    "exec": [
+                      "pm.test(\"Create Raw Topic\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    var data = pm.response.json();",
+                      "    pm.environment.set('RAW_TOPIC_ID', data.topicId)",
+                      "    pm.environment.set('RAW_TOPIC_NAME', data.name)",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "21ab05c9-c075-4964-8352-8bd985e311ef",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
