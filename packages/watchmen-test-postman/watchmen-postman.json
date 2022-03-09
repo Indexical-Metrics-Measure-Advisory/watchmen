@@ -8735,7 +8735,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "TRUCATE MONITOR TOPIC",
               "id": "07c36091-a3b8-43ec-a6e0-f3ad3ccef1e0",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
