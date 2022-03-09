@@ -7690,7 +7690,7 @@
                       "response": []
                     },
                     {
-                      "name": "TRUNCATE RAW TOPIC",
+                      "name": "TRUCATE RAW TOPIC",
                       "id": "aa2b56df-a3d6-419f-837f-9c50a6f182a8",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
