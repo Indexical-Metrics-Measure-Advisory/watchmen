@@ -473,6 +473,7 @@ class SubjectStorage:
 			raise InquiryKernelException(f'Cannot match subject dataset column by given parameter[{parameter.dict()}].')
 		return ColumnNameLiteral(columnName=f'column_{index[0] + 1}')
 
+	# noinspection PyMethodMayBeStatic
 	def build_literal_by_report_constant_segment(
 			self, subject_column_map: Dict[SubjectDatasetColumnId, Tuple[int, SubjectDatasetColumn]],
 			variable: MightAVariable
