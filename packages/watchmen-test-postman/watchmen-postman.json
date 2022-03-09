@@ -8096,7 +8096,7 @@
                       "response": []
                     },
                     {
-                      "name": "TRUCATE TOPIC",
+                      "name": "TRUNCATE TOPIC",
                       "id": "e91723c5-24a0-4456-8ab0-d32b95aa5aaf",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
@@ -8239,7 +8239,7 @@
                     "method": "DELETE",
                     "header": [],
                     "url": {
-                      "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{READ_TOPIC_NAME}}",
+                      "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{READ_TOPIC_NAME}} ",
                       "host": [
                         "{{URL_PREFIX}}"
                       ],
@@ -8251,7 +8251,7 @@
                       "query": [
                         {
                           "key": "topic_name",
-                          "value": "{{READ_TOPIC_NAME}}"
+                          "value": "{{READ_TOPIC_NAME}} "
                         }
                       ]
                     }
