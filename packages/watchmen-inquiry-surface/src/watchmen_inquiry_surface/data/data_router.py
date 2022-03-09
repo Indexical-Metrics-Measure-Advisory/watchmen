@@ -99,7 +99,7 @@ async def fetch_report_data_temporary(
 	return get_report_data_service(subject, report, principal_service).find()
 
 
-@router.post('/subject/data/criteria', tags=[UserRole.ADMIN], response_model=DataResult)
+@router.post('/subject/data/criteria', tags=[UserRole.ADMIN], response_model=DataPage)
 async def query_dataset(
 		criteria: SubjectDatasetCriteria,
 		principal_service: PrincipalService = Depends(get_console_principal)) -> DataPage:
