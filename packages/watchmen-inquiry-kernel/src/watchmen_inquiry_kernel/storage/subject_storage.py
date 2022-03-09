@@ -7,7 +7,7 @@ from watchmen_data_kernel.storage_bridge import ask_topic_data_entity_helper, pa
 	parse_parameter_for_storage, PipelineVariables
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_inquiry_kernel.common import ask_use_storage_directly, InquiryKernelException
-from watchmen_inquiry_kernel.subject_schema import SubjectSchema
+from watchmen_inquiry_kernel.schema import SubjectSchema
 from watchmen_meta.admin import SpaceService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.console import ConnectedSpaceService

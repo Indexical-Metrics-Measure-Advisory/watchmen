@@ -1,5 +1,5 @@
 from watchmen_auth import PrincipalService
-from watchmen_inquiry_kernel.subject_schema import SubjectSchema
+from watchmen_inquiry_kernel.schema import SubjectSchema
 from watchmen_model.common import DataPage, DataResult, Pageable
 from watchmen_model.console import Subject
 from .subject_storage import SubjectStorage
@@ -15,6 +15,9 @@ class SubjectDataService:
 
 	def get_subject(self):
 		return self.schema.get_subject()
+
+	def get_principal_service(self):
+		return self.principalService
 
 	def find(self) -> DataResult:
 		storage = SubjectStorage(self.schema, self.principalService)
