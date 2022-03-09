@@ -8709,6 +8709,18 @@
                 "header": []
               },
               "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "8dc14332-23e5-4f28-b109-9c675dda2e64",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
             }
           ],
           "id": "c9bb1e9f-e9ec-4cbb-abda-9c9e13e1ac06"
