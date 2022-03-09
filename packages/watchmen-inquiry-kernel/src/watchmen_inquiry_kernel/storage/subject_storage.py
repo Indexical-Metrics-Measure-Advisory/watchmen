@@ -225,8 +225,15 @@ class SubjectStorage:
 			return self.page_by_storage_directly(pageable)
 
 	def ask_storage_directly_aggregator(self, report_schema: ReportSchema) -> FreeAggregator:
-		# TODO
-		pass
+		finder = self.ask_storage_directly_finder()
+		return FreeAggregator(
+			columns=finder.columns,
+			joins=finder.joins,
+			criteria=finder.criteria,
+			# TODO build aggregate columns and high order criteria
+			aggregateColumns=None,
+			highOrderCriteria=None,
+		)
 
 	def aggregate_find(self, report_schema: ReportSchema) -> List[Dict[str, Any]]:
 		available_schemas = self.schema.get_available_schemas()
@@ -243,7 +250,7 @@ class SubjectStorage:
 			self, report_schema: ReportSchema, pageable: Pageable) -> FreeAggregatePager:
 		aggregator = self.ask_storage_directly_aggregator(report_schema)
 		return FreeAggregatePager(
-			columns=aggregator.criteria,
+			columns=aggregator.columns,
 			joins=aggregator.joins,
 			criteria=aggregator.criteria,
 			aggregateColumns=aggregator.aggregateColumns,
