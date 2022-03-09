@@ -5098,7 +5098,7 @@
                       "response": []
                     },
                     {
-                      "name": "TRUNCATE TOPIC",
+                      "name": "TRUCATE TOPIC",
                       "event": [
                         {
                           "listen": "test",
@@ -5147,7 +5147,7 @@
                       "response": []
                     },
                     {
-                      "name": "TRUNCATE RAW TOPIC",
+                      "name": "TRUCATE RAW TOPIC",
                       "event": [
                         {
                           "listen": "test",
@@ -5379,7 +5379,7 @@
                       "response": []
                     },
                     {
-                      "name": "TRUNCATE TOPIC",
+                      "name": "TRUCATE TOPIC",
                       "event": [
                         {
                           "listen": "test",
@@ -5428,7 +5428,7 @@
                       "response": []
                     },
                     {
-                      "name": "TRUNCATE RAW TOPIC",
+                      "name": "TRUCATE RAW TOPIC",
                       "event": [
                         {
                           "listen": "test",
@@ -7850,7 +7850,7 @@
                       "response": []
                     },
                     {
-                      "name": "TRUNCATE TOPIC",
+                      "name": "TRUCATE TOPIC",
                       "id": "56672f70-3d12-4307-b3b2-ba3797ca383d",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
@@ -7885,7 +7885,7 @@
                       "response": []
                     },
                     {
-                      "name": "TRUNCATE RAW TOPIC",
+                      "name": "TRUCATE RAW TOPIC",
                       "id": "90e034da-b4b1-489c-84af-7564d5363dbf",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
