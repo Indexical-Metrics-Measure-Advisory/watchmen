@@ -9079,7 +9079,20 @@
         },
         {
           "name": "OPERATOR",
-          "item": [],
+          "item": [
+            {
+              "name": "New Request",
+              "id": "76f43718-52d2-4e2e-8b41-3949d9defe0b",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            }
+          ],
           "id": "63df678b-d7e8-4b74-84db-b918c2a108ed"
         }
       ],
