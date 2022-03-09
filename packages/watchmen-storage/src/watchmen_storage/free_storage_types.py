@@ -38,14 +38,18 @@ class FreeAggregateArithmetic(str, Enum):
 
 
 class FreeAggregateColumn(DataModel):
-	name: str  # name must match column's alias of finder
+	name: str  # name must match free column's index, such as column_1, column_2 (starts from 1)
 	arithmetic: Optional[FreeAggregateArithmetic] = None
 	alias: Optional[str] = None
 
 
 class FreeAggregator(FreeFinder):
 	aggregateColumns: List[FreeAggregateColumn]
-	high_order_criteria: Optional[EntityCriteria] = None  # name must match column's alias of finder
+	"""
+	entity name use "__sqt__"
+	column name must match free column's index, such as column_1, column_2 (starts from 1)
+	"""
+	high_order_criteria: Optional[EntityCriteria] = None
 
 
 class FreePager(FreeFinder):

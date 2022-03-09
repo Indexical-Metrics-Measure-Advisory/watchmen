@@ -1,7 +1,7 @@
 from datetime import date, datetime, time
 from typing import Any, Callable, List, Tuple
 
-from sqlalchemy import and_, case, func, or_, Table, text
+from sqlalchemy import and_, case, func, literal_column, or_, Table, text
 
 from watchmen_storage import as_table_name, ask_decimal_fraction_digits, ask_decimal_integral_digits, \
 	ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteria, EntityCriteriaExpression, \
@@ -22,7 +22,10 @@ def build_literal(tables: List[Table], literal: Literal, build_plain_value: Call
 	if isinstance(literal, ColumnNameLiteral):
 		if is_blank(literal.entityName):
 			# table name is not given
-			if len(tables) != 1:
+			if len(tables) == 0:
+				# in subquery, no table passed-in
+				return literal_column(literal.columnName)
+			elif len(tables) != 1:
 				raise UnexpectedStorageException(
 					'Available table must be unique when entity name is missed in column name literal.')
 			else:
