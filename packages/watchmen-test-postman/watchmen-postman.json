@@ -8854,6 +8854,22 @@
             },
             {
               "name": "CREATE PIPELINE MONITOR LOG TOPIC",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "e3f11e36-d807-41ec-bbbb-af1d45e4fea4",
+                    "exec": [
+                      "pm.test(\"Create Monitor Topic\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    var data = pm.response.json();",
+                      "    pm.environment.set('MONITOR_TOPIC_ID', data.topicId)",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "a3a90146-a1c0-4f40-a5b3-7a63e43f50d0",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
