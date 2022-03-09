@@ -9021,6 +9021,21 @@
             },
             {
               "name": "TRUNCATE TOPIC",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "3082943f-cf5b-47a3-85da-127dbc734306",
+                    "exec": [
+                      "pm.test(\"Truncate Topic\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "8dc14332-23e5-4f28-b109-9c675dda2e64",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
