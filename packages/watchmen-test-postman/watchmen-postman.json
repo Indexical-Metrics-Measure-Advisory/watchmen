@@ -8616,13 +8616,46 @@
           "item": [
             {
               "name": "LOGIN - SUPER ADMIN",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "6be74378-04aa-4c2d-b1c4-e14fd933d347",
+                    "exec": [
+                      "pm.test(\"Super Admin Login Access Token\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "    var data = pm.response.json();",
+                      "    pm.environment.set('SUPER_ADMIN_JWT_TOKEN', data.accessToken)",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "3e6da7e8-5498-41fb-b127-7863b70b07a2",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
                 "method": "POST",
-                "header": []
+                "header": [],
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "key": "username",
+                      "value": "imma-super",
+                      "type": "text"
+                    },
+                    {
+                      "key": "password",
+                      "value": "change-me",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "url": "{{URL_PREFIX}}/login"
               },
               "response": []
             },
