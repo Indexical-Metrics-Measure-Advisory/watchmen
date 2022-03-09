@@ -8096,7 +8096,7 @@
                       "response": []
                     },
                     {
-                      "name": "TRUNCATE TOPIC",
+                      "name": "TRUCATE TOPIC",
                       "id": "e91723c5-24a0-4456-8ab0-d32b95aa5aaf",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
@@ -8224,7 +8224,7 @@
               "name": "POST - SCRIPT",
               "item": [
                 {
-                  "name": "TRUNCATE  READ TOPIC",
+                  "name": "TRUCATE  READ TOPIC",
                   "id": "d803f383-e22e-4784-b5cc-eb8db1954b9c",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
