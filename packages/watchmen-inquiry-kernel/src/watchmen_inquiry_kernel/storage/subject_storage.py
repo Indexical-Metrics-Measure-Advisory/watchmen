@@ -14,21 +14,16 @@ from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.console import ConnectedSpaceService
 from watchmen_model.admin import Factor, Space
 from watchmen_model.admin.space import SpaceFilter
-from watchmen_model.common import DataPage, FactorId, Pageable, SubjectDatasetColumnId, TopicId
+from watchmen_model.common import ComputedParameter, ConstantParameter, DataPage, FactorId, Pageable, Parameter, \
+	ParameterComputeType, ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, \
+	ParameterJointType, SubjectDatasetColumnId, TopicFactorParameter, TopicId
 from watchmen_model.console import ConnectedSpace, ReportDimension, ReportFunnel, ReportFunnelType, ReportIndicator, \
-	ReportIndicatorArithmetic, \
-	SubjectDatasetColumn, \
-	SubjectDatasetJoin, \
-	SubjectJoinType
-from watchmen_storage import ColumnNameLiteral, EntityCriteria, EntityCriteriaExpression, EntityCriteriaJoint, \
-	EntityCriteriaJointConjunction, EntityCriteriaOperator, \
-	EntityCriteriaStatement, FreeAggregateArithmetic, \
-	FreeAggregateColumn, \
-	FreeAggregatePager, \
-	FreeAggregator, FreeColumn, \
-	FreeFinder, FreeJoin, \
-	FreeJoinType, FreePager, TopicDataStorageSPI
-from watchmen_utilities import ArrayHelper, is_blank, is_date
+	ReportIndicatorArithmetic, SubjectDatasetColumn, SubjectDatasetJoin, SubjectJoinType
+from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteria, \
+	EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, \
+	EntityCriteriaStatement, FreeAggregateArithmetic, FreeAggregateColumn, FreeAggregatePager, FreeAggregator, \
+	FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, Literal, TopicDataStorageSPI
+from watchmen_utilities import ArrayHelper, is_blank, is_date, is_not_blank
 
 
 def ask_empty_variables() -> PipelineVariables:
@@ -309,30 +304,36 @@ class SubjectStorage:
 
 	# noinspection PyMethodMayBeStatic
 	def get_values_from_funnel(self, funnel: ReportFunnel) -> Tuple[Any, Any]:
+		funnel_type = funnel.type
 		is_range = funnel.range
 		values = funnel.values  # one element when is not range, one or two elements when is range
-		if is_range:
-			if len(values) == 1:
-				# only start value available
-				start_value = values[0]
-				end_value = None
-			elif len(values) == 0:
-				# no values declared
-				start_value = None
-				end_value = None
-			else:
-				start_value = values[0]
-				end_value = values[1]
-		else:
+		if funnel_type == ReportFunnelType.ENUM:
+			# for enumeration type, multiple values are allowed, all gathered to start_value
+			start_value = ArrayHelper(values).filter(lambda x: is_not_blank(x)).to_list()
+			start_value = None if len(start_value) == 0 else start_value
 			end_value = None
-			if len(values) == 0:
-				start_value = None
+		else:
+			if is_range:
+				if len(values) == 1:
+					# only start value available
+					start_value = values[0]
+					end_value = None
+				elif len(values) == 0:
+					# no values declared
+					start_value = None
+					end_value = None
+				else:
+					start_value = values[0]
+					end_value = values[1]
 			else:
-				start_value = values[0]
-		start_value = None if is_blank(start_value) else str(start_value).strip()
-		end_value = None if is_blank(end_value) else str(end_value).strip()
+				end_value = None
+				if len(values) == 0:
+					start_value = None
+				else:
+					start_value = values[0]
+			start_value = None if is_blank(start_value) else str(start_value).strip()
+			end_value = None if is_blank(end_value) else str(end_value).strip()
 
-		funnel_type = funnel.type
 		if funnel_type == ReportFunnelType.NUMERIC:
 			return start_value, end_value
 		elif funnel_type == ReportFunnelType.DATE:
@@ -370,6 +371,7 @@ class SubjectStorage:
 		else:
 			raise InquiryKernelException(f'Funnel type[{funnel_type}] is not supported.')
 
+	# noinspection PyUnusedLocal
 	def build_expression_by_funnel(
 			self, funnel: ReportFunnel, subject_column_map: Dict[SubjectDatasetColumnId, int],
 			report_schema: ReportSchema) -> Optional[EntityCriteriaStatement]:
@@ -385,40 +387,275 @@ class SubjectStorage:
 		index = subject_column_map.get(column_id)
 		if index is None:
 			raise InquiryKernelException(f'Cannot match subject dataset column by given funnel[{funnel.dict()}].')
-		is_range = funnel.range
-		if not is_range:
-			return EntityCriteriaExpression(
-				left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
-				right=start_value
+
+		funnel_type = funnel.type
+		if funnel_type == ReportFunnelType.ENUM:
+			if len(start_value) == 0:
+				return EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
+					right=start_value[0]
+				)
+			else:
+				return EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
+					operator=EntityCriteriaOperator.IN,
+					right=start_value
+				)
+		else:
+			is_range = funnel.range
+			if not is_range:
+				return EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
+					right=start_value
+				)
+			elif start_value is None:
+				return EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
+					operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
+					right=end_value
+				)
+			elif end_value is None:
+				return EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
+					operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
+					right=start_value
+				)
+			else:
+				return EntityCriteriaJoint(
+					conjunction=EntityCriteriaJointConjunction.AND,
+					children=[
+						EntityCriteriaExpression(
+							left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
+							operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
+							right=start_value
+						),
+						EntityCriteriaExpression(
+							left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
+							operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
+							right=end_value
+						)
+					]
+				)
+
+	def build_criteria_joint_by_report_joint(
+			self, subject_column_map: Dict[SubjectDatasetColumnId, int], joint: ParameterJoint
+	) -> Optional[EntityCriteriaJoint]:
+		if joint is None:
+			raise InquiryKernelException(f'Joint cannot be none.')
+		conjunction = EntityCriteriaJointConjunction.AND
+		if joint.jointType == ParameterJointType.OR:
+			conjunction = EntityCriteriaJointConjunction.OR
+
+		criteria_joint = EntityCriteriaJoint(
+			conjunction=conjunction,
+			children=ArrayHelper(joint.filters).map(
+				lambda x: self.build_criteria_statement_by_report_filter(subject_column_map, x)).filter(
+				lambda x: x is not None).to_list()
+		)
+		if len(joint.children) == 0:
+			return None
+		else:
+			return criteria_joint
+
+	# noinspection PyMethodMayBeStatic
+	def build_literal_by_report_topic_factor_parameter(
+			self, subject_column_map: Dict[SubjectDatasetColumnId, int],
+			parameter: TopicFactorParameter) -> Literal:
+		# topic id is ignored here, factor id is column id of subject dataset column
+		factor_id = parameter.factorId
+		if is_blank(factor_id):
+			raise InquiryKernelException(f'Column id not declared in parameter.')
+		index = subject_column_map.get(factor_id)
+		if index is None:
+			raise InquiryKernelException(f'Cannot match subject dataset column by given parameter[{parameter.dict()}].')
+		return ColumnNameLiteral(columnName=f'column_{index + 1}')
+
+	def build_literal_by_report_constant_parameter(
+			self, subject_column_map: Dict[SubjectDatasetColumnId, int],
+			parameter: ConstantParameter, as_list: bool = False) -> Literal:
+		pass
+
+	def build_literal_by_report_computed_parameter(
+			self, subject_column_map: Dict[SubjectDatasetColumnId, int],
+			parameter: ComputedParameter) -> Literal:
+		compute_type = parameter.type
+		if compute_type == ParameterComputeType.ADD:
+			return ComputedLiteral(
+				operator=ComputedLiteralOperator.ADD,
+				elements=ArrayHelper(parameter.parameters).map(
+					lambda x: self.build_literal_by_report_parameter(subject_column_map, x)).to_list()
 			)
-		elif start_value is None:
-			return EntityCriteriaExpression(
-				left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
-				operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
-				right=end_value
+		elif compute_type == ParameterComputeType.SUBTRACT:
+			return ComputedLiteral(
+				operator=ComputedLiteralOperator.SUBTRACT,
+				elements=ArrayHelper(parameter.parameters).map(
+					lambda x: self.build_literal_by_report_parameter(subject_column_map, x)).to_list()
 			)
-		elif end_value is None:
-			return EntityCriteriaExpression(
-				left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
-				operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
-				right=start_value
+		elif compute_type == ParameterComputeType.MULTIPLY:
+			return ComputedLiteral(
+				operator=ComputedLiteralOperator.MULTIPLY,
+				elements=ArrayHelper(parameter.parameters).map(
+					lambda x: self.build_literal_by_report_parameter(subject_column_map, x)).to_list()
+			)
+		elif compute_type == ParameterComputeType.DIVIDE:
+			return ComputedLiteral(
+				operator=ComputedLiteralOperator.DIVIDE,
+				elements=ArrayHelper(parameter.parameters).map(
+					lambda x: self.build_literal_by_report_parameter(subject_column_map, x)).to_list()
+			)
+		elif compute_type == ParameterComputeType.MODULUS:
+			return ComputedLiteral(
+				operator=ComputedLiteralOperator.MODULUS,
+				elements=ArrayHelper(parameter.parameters).map(
+					lambda x: self.build_literal_by_report_parameter(subject_column_map, x)).to_list()
+			)
+		elif compute_type == ParameterComputeType.YEAR_OF:
+			return ComputedLiteral(
+				operator=ComputedLiteralOperator.YEAR_OF,
+				elements=[self.build_literal_by_report_parameter(subject_column_map, parameter.parameters[0])]
+			)
+		elif compute_type == ParameterComputeType.HALF_YEAR_OF:
+			return ComputedLiteral(
+				operator=ComputedLiteralOperator.HALF_YEAR_OF,
+				elements=[self.build_literal_by_report_parameter(subject_column_map, parameter.parameters[0])]
+			)
+		elif compute_type == ParameterComputeType.QUARTER_OF:
+			return ComputedLiteral(
+				operator=ComputedLiteralOperator.QUARTER_OF,
+				elements=[self.build_literal_by_report_parameter(subject_column_map, parameter.parameters[0])]
+			)
+		elif compute_type == ParameterComputeType.MONTH_OF:
+			return ComputedLiteral(
+				operator=ComputedLiteralOperator.MONTH_OF,
+				elements=[self.build_literal_by_report_parameter(subject_column_map, parameter.parameters[0])]
+			)
+		elif compute_type == ParameterComputeType.WEEK_OF_YEAR:
+			return ComputedLiteral(
+				operator=ComputedLiteralOperator.WEEK_OF_YEAR,
+				elements=[self.build_literal_by_report_parameter(subject_column_map, parameter.parameters[0])]
+			)
+		elif compute_type == ParameterComputeType.WEEK_OF_MONTH:
+			return ComputedLiteral(
+				operator=ComputedLiteralOperator.WEEK_OF_MONTH,
+				elements=[self.build_literal_by_report_parameter(subject_column_map, parameter.parameters[0])]
+			)
+		elif compute_type == ParameterComputeType.DAY_OF_MONTH:
+			return ComputedLiteral(
+				operator=ComputedLiteralOperator.DAY_OF_MONTH,
+				elements=[self.build_literal_by_report_parameter(subject_column_map, parameter.parameters[0])]
+			)
+		elif compute_type == ParameterComputeType.DAY_OF_WEEK:
+			return ComputedLiteral(
+				operator=ComputedLiteralOperator.DAY_OF_WEEK,
+				elements=[self.build_literal_by_report_parameter(subject_column_map, parameter.parameters[0])]
+			)
+		elif compute_type == ParameterComputeType.CASE_THEN:
+			def build_case(param: Parameter) -> Union[EntityCriteriaJoint, Literal]:
+				if param.conditional and param.on is not None:
+					return \
+						self.build_criteria_joint_by_report_joint(subject_column_map, param.on), \
+						self.build_literal_by_report_parameter(subject_column_map, param)
+				else:
+					return self.build_literal_by_report_parameter(subject_column_map, param)
+
+			return ComputedLiteral(
+				operator=ComputedLiteralOperator.CASE_THEN,
+				elements=ArrayHelper(parameter.parameters).map(build_case).to_list()
 			)
 		else:
-			return EntityCriteriaJoint(
-				conjunction=EntityCriteriaJointConjunction.AND,
-				children=[
-					EntityCriteriaExpression(
-						left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
-						operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
-						right=start_value
-					),
-					EntityCriteriaExpression(
-						left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
-						operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
-						right=end_value
-					)
-				]
+			raise InquiryKernelException(f'Compute type[{compute_type}] is not supported.')
+
+	def build_literal_by_report_parameter(
+			self, subject_column_map: Dict[SubjectDatasetColumnId, int],
+			parameter: Parameter, as_list: bool = False) -> Literal:
+		if parameter is None:
+			raise InquiryKernelException(f'Parameter cannot be none.')
+		if isinstance(parameter, TopicFactorParameter):
+			return self.build_literal_by_report_topic_factor_parameter(subject_column_map, parameter)
+		elif isinstance(parameter, ConstantParameter):
+			return self.build_literal_by_report_constant_parameter(subject_column_map, parameter, as_list)
+		elif isinstance(parameter, ComputedParameter):
+			return self.build_literal_by_report_computed_parameter(subject_column_map, parameter)
+		else:
+			raise InquiryKernelException(f'Parameter[{parameter.dict()}] is not supported.')
+
+	def build_criteria_expression_by_report_expression(
+			self, subject_column_map: Dict[SubjectDatasetColumnId, int],
+			expression: ParameterExpression) -> EntityCriteriaExpression:
+		if expression is None:
+			raise InquiryKernelException(f'Expression cannot be none.')
+		operator = expression.operator
+		if operator == ParameterExpressionOperator.EMPTY:
+			return EntityCriteriaExpression(
+				left=self.build_literal_by_report_parameter(subject_column_map, expression.left),
+				operator=EntityCriteriaOperator.IS_EMPTY
 			)
+		elif operator == ParameterExpressionOperator.NOT_EMPTY:
+			return EntityCriteriaExpression(
+				left=self.build_literal_by_report_parameter(subject_column_map, expression.left),
+				operator=EntityCriteriaOperator.IS_NOT_EMPTY
+			)
+
+		if operator == ParameterExpressionOperator.EQUALS:
+			return EntityCriteriaExpression(
+				left=self.build_literal_by_report_parameter(subject_column_map, expression.left),
+				operator=EntityCriteriaOperator.EQUALS,
+				right=self.build_literal_by_report_parameter(subject_column_map, expression.right)
+			)
+		elif operator == ParameterExpressionOperator.NOT_EQUALS:
+			return EntityCriteriaExpression(
+				left=self.build_literal_by_report_parameter(subject_column_map, expression.left),
+				operator=EntityCriteriaOperator.NOT_EQUALS,
+				right=self.build_literal_by_report_parameter(subject_column_map, expression.right)
+			)
+		elif operator == ParameterExpressionOperator.LESS:
+			return EntityCriteriaExpression(
+				left=self.build_literal_by_report_parameter(subject_column_map, expression.left),
+				operator=EntityCriteriaOperator.LESS_THAN,
+				right=self.build_literal_by_report_parameter(subject_column_map, expression.right)
+			)
+		elif operator == ParameterExpressionOperator.LESS_EQUALS:
+			return EntityCriteriaExpression(
+				left=self.build_literal_by_report_parameter(subject_column_map, expression.left),
+				operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
+				right=self.build_literal_by_report_parameter(subject_column_map, expression.right)
+			)
+		elif operator == ParameterExpressionOperator.MORE:
+			return EntityCriteriaExpression(
+				left=self.build_literal_by_report_parameter(subject_column_map, expression.left),
+				operator=EntityCriteriaOperator.GREATER_THAN,
+				right=self.build_literal_by_report_parameter(subject_column_map, expression.right)
+			)
+		elif operator == ParameterExpressionOperator.MORE_EQUALS:
+			return EntityCriteriaExpression(
+				left=self.build_literal_by_report_parameter(subject_column_map, expression.left),
+				operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
+				right=self.build_literal_by_report_parameter(subject_column_map, expression.right)
+			)
+		elif operator == ParameterExpressionOperator.IN:
+			return EntityCriteriaExpression(
+				left=self.build_literal_by_report_parameter(subject_column_map, expression.left),
+				operator=EntityCriteriaOperator.IN,
+				right=self.build_literal_by_report_parameter(subject_column_map, expression.right, True)
+			)
+		elif operator == ParameterExpressionOperator.NOT_IN:
+			return EntityCriteriaExpression(
+				left=self.build_literal_by_report_parameter(subject_column_map, expression.left),
+				operator=EntityCriteriaOperator.NOT_IN,
+				right=self.build_literal_by_report_parameter(subject_column_map, expression.right, True)
+			)
+		else:
+			raise InquiryKernelException(f'Expression operator[{operator}] is not supported.')
+
+	def build_criteria_statement_by_report_filter(
+			self, subject_column_map: Dict[SubjectDatasetColumnId, int], condition: ParameterCondition
+	) -> EntityCriteriaStatement:
+		if isinstance(condition, ParameterJoint):
+			return self.build_criteria_joint_by_report_joint(subject_column_map, condition)
+		elif isinstance(condition, ParameterExpression):
+			return self.build_criteria_expression_by_report_expression(subject_column_map, condition)
+		else:
+			raise InquiryKernelException(f'Parameter condition[{condition.dict()}] is not supported.')
 
 	def build_expression_by_report_filters(
 			self, subject_column_map: Dict[SubjectDatasetColumnId, int], report_schema: ReportSchema
@@ -429,8 +666,8 @@ class SubjectStorage:
 		filters = report_schema.get_report().filters
 		if filters is None:
 			return []
-
-		return []
+		joint = self.build_criteria_joint_by_report_joint(subject_column_map, filters)
+		return [] if joint is None else [joint]
 
 	def build_high_order_criteria(self, report_schema: ReportSchema) -> Optional[EntityCriteria]:
 		# build high order criteria, there are filters and funnels

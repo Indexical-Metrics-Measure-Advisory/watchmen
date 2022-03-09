@@ -8,7 +8,7 @@ from watchmen_storage import as_table_name, ask_decimal_fraction_digits, ask_dec
 	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, Literal, \
 	NoCriteriaForUpdateException, UnexpectedStorageException, UnsupportedComputationException, \
 	UnsupportedCriteriaException
-from watchmen_utilities import ArrayHelper, DateTimeConstants, is_blank
+from watchmen_utilities import ArrayHelper, DateTimeConstants, is_blank, is_not_blank
 from .types import SQLAlchemyStatement
 
 
@@ -133,6 +133,25 @@ def build_criteria_expression(tables: List[Table], expression: EntityCriteriaExp
 	elif op == EntityCriteriaOperator.IS_NOT_BLANK:
 		return func.trim(built_left) != ''
 
+	if op == EntityCriteriaOperator.IN or op == EntityCriteriaOperator.NOT_IN:
+		if isinstance(expression.right, list):
+			built_right = ArrayHelper(expression.right).map(lambda x: build_literal(tables, x)).to_list()
+		elif isinstance(expression.right, ColumnNameLiteral):
+			built_right = build_literal(tables, expression.right)
+		elif isinstance(expression.right, ComputedLiteral):
+			# TODO cannot know whether the built literal will returns a list or a value, let it be now.
+			built_right = build_literal(tables, expression.right)
+		elif isinstance(expression.right, str):
+			built_right = ArrayHelper(expression.right.strip().split(',')).filter(lambda x: is_not_blank(x)).to_list()
+		else:
+			built_right = build_literal(tables, expression.right)
+			if not isinstance(built_right, list):
+				built_right = [built_right]
+		if op == EntityCriteriaOperator.IN:
+			return built_left.in_(built_right)
+		elif op == EntityCriteriaOperator.NOT_IN:
+			return built_left.not_in(built_right)
+
 	built_right = build_literal(tables, expression.right)
 	if op == EntityCriteriaOperator.EQUALS:
 		return built_left == built_right
@@ -146,10 +165,6 @@ def build_criteria_expression(tables: List[Table], expression: EntityCriteriaExp
 		return built_left > built_right
 	elif op == EntityCriteriaOperator.GREATER_THAN_OR_EQUALS:
 		return built_left >= built_right
-	elif op == EntityCriteriaOperator.IN:
-		return built_left.in_(built_right)
-	elif op == EntityCriteriaOperator.NOT_IN:
-		return built_left.not_in(built_right)
 	elif op == EntityCriteriaOperator.LIKE:
 		return built_left.ilike(f'%{built_right}%')
 	elif op == EntityCriteriaOperator.NOT_LIKE:
