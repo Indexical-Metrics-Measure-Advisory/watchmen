@@ -27,7 +27,7 @@ def ask_dqc_topics() -> List[Topic]:
 			factors=[
 				Factor(
 					factorId='dra-f-1', name='ruleCode', type=FactorType.TEXT,
-					flatten=True, indexGroup=FactorIndexGroup.INDEX_1),
+					flatten=True, indexGroup=FactorIndexGroup.INDEX_1, precision='50'),
 				Factor(
 					factorId='dra-f-2', name='topicId', type=FactorType.TEXT,
 					flatten=True, indexGroup=FactorIndexGroup.INDEX_2, precision='50'),
@@ -38,11 +38,13 @@ def ask_dqc_topics() -> List[Topic]:
 					flatten=True, indexGroup=FactorIndexGroup.INDEX_3, precision='50'),
 				Factor(
 					factorId='dra-f-5', name='factorName', type=FactorType.TEXT),
-				Factor(factorId='dra-f-6', name='detected', type=FactorType.BOOLEAN),
+				Factor(factorId='dra-f-6', name='detected', type=FactorType.BOOLEAN, flatten=True),
 				Factor(factorId='dra-f-7', name='severity', type=FactorType.TEXT),
 				# the start day of date range
 				# sunday of weekly; 1st of monthly.
-				Factor(factorId='dra-f-8', name='processDate', type=FactorType.DATE)
+				Factor(
+					factorId='dra-f-8', name='processDate', type=FactorType.DATE,
+					flatten=True, indexGroup=FactorIndexGroup.INDEX_4)
 			],
 			description='Topic data monitor by rules, raw topic.'
 		),
