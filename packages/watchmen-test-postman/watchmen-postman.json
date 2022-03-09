@@ -7019,7 +7019,7 @@
                   "response": []
                 },
                 {
-                  "name": "TRUNCATE RAW TOPIC",
+                  "name": "TRUCATE RAW TOPIC",
                   "id": "76f928f3-eb3e-4925-a88a-2b20d9fbceee",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
