@@ -127,6 +127,8 @@ async def query_dataset(
 		dataset_column = subject_column_map.get(name)
 		if dataset_column is None:
 			raise_400(f'Cannot find column[name={name}] from subject.')
+
+		arithmetic = ReportIndicatorArithmetic.NONE
 		if indicator.arithmetic == SubjectDatasetCriteriaIndicatorArithmetic.COUNT:
 			arithmetic = ReportIndicatorArithmetic.COUNT
 		elif indicator.arithmetic == SubjectDatasetCriteriaIndicatorArithmetic.SUMMARY:
@@ -137,8 +139,11 @@ async def query_dataset(
 			arithmetic = ReportIndicatorArithmetic.MAXIMUM
 		elif indicator.arithmetic == SubjectDatasetCriteriaIndicatorArithmetic.MINIMUM:
 			arithmetic = ReportIndicatorArithmetic.MINIMUM
-		else:
+		elif indicator.arithmetic == SubjectDatasetCriteriaIndicatorArithmetic.NONE or indicator.arithmetic is None:
 			arithmetic = ReportIndicatorArithmetic.NONE
+		else:
+			raise_400(f'Indicator arithmetic[{indicator.arithmetic}] is not supported.')
+
 		return ReportIndicator(
 			columnId=dataset_column.columnId,
 			arithmetic=arithmetic,

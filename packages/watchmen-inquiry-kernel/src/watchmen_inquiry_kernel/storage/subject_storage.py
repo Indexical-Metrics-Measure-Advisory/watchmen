@@ -14,9 +14,14 @@ from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.console import ConnectedSpaceService
 from watchmen_model.admin import Factor, Space
 from watchmen_model.admin.space import SpaceFilter
-from watchmen_model.common import DataPage, FactorId, Pageable, TopicId
-from watchmen_model.console import ConnectedSpace, SubjectDatasetColumn, SubjectDatasetJoin, SubjectJoinType
-from watchmen_storage import ColumnNameLiteral, FreeAggregatePager, FreeAggregator, FreeColumn, FreeFinder, FreeJoin, \
+from watchmen_model.common import DataPage, FactorId, Pageable, SubjectDatasetColumnId, TopicId
+from watchmen_model.console import ConnectedSpace, ReportDimension, ReportIndicator, ReportIndicatorArithmetic, \
+	SubjectDatasetColumn, \
+	SubjectDatasetJoin, \
+	SubjectJoinType
+from watchmen_storage import ColumnNameLiteral, FreeAggregateArithmetic, FreeAggregateColumn, FreeAggregatePager, \
+	FreeAggregator, FreeColumn, \
+	FreeFinder, FreeJoin, \
 	FreeJoinType, FreePager, TopicDataStorageSPI
 from watchmen_utilities import ArrayHelper, is_blank
 
@@ -229,6 +234,74 @@ class SubjectStorage:
 		return self.find_data(
 			lambda agent: agent.free_page(self.ask_storage_directly_pager(pageable)))
 
+	# noinspection PyMethodMayBeStatic
+	def build_aggregate_column_by_indicator(
+			self, indicator: ReportIndicator, indicator_index: int,
+			subject_column_map: Dict[SubjectDatasetColumnId, int], report_schema: ReportSchema
+	) -> FreeAggregateColumn:
+		column_id = indicator.columnId
+		index = subject_column_map.get(column_id)
+		if index is None:
+			raise InquiryKernelException(f'Cannot match subject dataset column by given indicator[{indicator.dict()}].')
+		if indicator.arithmetic == ReportIndicatorArithmetic.COUNT:
+			arithmetic = FreeAggregateArithmetic.COUNT
+		elif indicator.arithmetic == ReportIndicatorArithmetic.SUMMARY:
+			arithmetic = FreeAggregateArithmetic.SUMMARY
+		elif indicator.arithmetic == ReportIndicatorArithmetic.AVERAGE:
+			arithmetic = FreeAggregateArithmetic.AVERAGE
+		elif indicator.arithmetic == ReportIndicatorArithmetic.MAXIMUM:
+			arithmetic = FreeAggregateArithmetic.MAXIMUM
+		elif indicator.arithmetic == ReportIndicatorArithmetic.MINIMUM:
+			arithmetic = FreeAggregateArithmetic.MINIMUM
+		elif indicator.arithmetic == ReportIndicatorArithmetic.NONE or indicator.arithmetic is None:
+			arithmetic = FreeAggregateArithmetic.NONE
+		else:
+			raise InquiryKernelException(f'Indicator arithmetic[{indicator.arithmetic}] is not supported.')
+		return FreeAggregateColumn(
+			name=f'column_{index + 1}',
+			arithmetic=arithmetic,
+			alias=report_schema.as_indicator_name(indicator, indicator_index)
+		)
+
+	# noinspection PyMethodMayBeStatic
+	def build_aggregate_column_by_dimension(
+			self, dimension: ReportDimension, dimension_index: int,
+			subject_column_map: Dict[SubjectDatasetColumnId, int], report_schema: ReportSchema
+	) -> FreeAggregateColumn:
+		column_id = dimension.columnId
+		index = subject_column_map.get(column_id)
+		if index is None:
+			raise InquiryKernelException(f'Cannot match subject dataset column by given dimension[{dimension.dict()}].')
+		return FreeAggregateColumn(
+			name=f'column_{index + 1}',
+			arithmetic=None,
+			alias=report_schema.as_dimension_name(dimension, dimension_index)
+		)
+
+	def build_aggregate_columns(self, report_schema: ReportSchema) -> List[FreeAggregateColumn]:
+		"""
+		indicators and dimensions will be translated to aggregate columns.
+		in design time, indicators and dimensions use column id to refer to subject dataset column.
+		however, when building subject query, name of subject dataset column will be built as f"column_{index + 1}",
+		such as "column_1", "column_2" (starts from 1).
+		they will be translated to data column alias when query subject data directly.
+		but in aggregate case, the subject query is used to be from subject query, and no alias translation there,
+		therefore, aggregate columns also need to be translated to the sub query column names.
+		"""
+		subject_column_map: Dict[SubjectDatasetColumnId, int] = ArrayHelper(
+			self.schema.get_subject().dataset.columns) \
+			.map_with_index(lambda x, index: (x, index)) \
+			.to_map(lambda x: x[0].columnId, lambda x: x[1])
+
+		indicator_columns = ArrayHelper(report_schema.get_report().indicators) \
+			.map_with_index(
+			lambda x, index: self.build_aggregate_column_by_indicator(x, index, subject_column_map, report_schema))
+		dimension_columns = ArrayHelper(report_schema.get_report().dimensions) \
+			.map_with_index(
+			lambda x, index: self.build_aggregate_column_by_dimension(x, index, subject_column_map, report_schema))
+
+		return [*indicator_columns, *dimension_columns]
+
 	def ask_storage_directly_aggregator(self, report_schema: ReportSchema) -> FreeAggregator:
 		finder = self.ask_storage_directly_finder()
 		return FreeAggregator(
@@ -236,7 +309,7 @@ class SubjectStorage:
 			joins=finder.joins,
 			criteria=finder.criteria,
 			# TODO build aggregate columns and high order criteria
-			aggregateColumns=None,
+			aggregateColumns=self.build_aggregate_columns(report_schema),
 			highOrderCriteria=None,
 		)
 
