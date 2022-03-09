@@ -8,7 +8,6 @@ from watchmen_storage_mysql import StorageMySQLConfiguration
 
 
 class FirstTest(TestCase):
-
 	def setUp(self) -> None:
 		self.storage = StorageMySQLConfiguration.config() \
 			.host('localhost', 3306).account('watchmen', 'watchmen').schema('watchmen') \

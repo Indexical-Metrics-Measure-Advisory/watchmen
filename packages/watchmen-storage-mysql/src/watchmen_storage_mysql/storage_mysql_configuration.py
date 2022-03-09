@@ -40,7 +40,7 @@ class Configuration:
 	def build(self) -> StorageMySQL:
 		return StorageMySQLConfiguration(self.dataSource, self.params).create_storage()
 
-	def build_topic_data(self) -> StorageMySQL:
+	def build_topic_data(self) -> TopicDataStorageMySQL:
 		return StorageMySQLConfiguration(self.dataSource, self.params).create_topic_data_storage()
 
 

@@ -28,5 +28,25 @@ class FreeFinder(DataModel):
 	criteria: Optional[EntityCriteria] = None
 
 
+class FreeAggregateArithmetic(str, Enum):
+	NONE = 'none'
+	COUNT = 'count'
+	SUMMARY = 'sum'
+	AVERAGE = 'avg'
+	MAXIMUM = 'max'
+	MINIMUM = 'min'
+
+
+class FreeAggregateColumn(DataModel):
+	name: str  # name must match column's alias of finder
+	arithmetic: Optional[FreeAggregateArithmetic] = None
+	alias: Optional[str] = None
+
+
+class FreeAggregator(FreeFinder):
+	aggregateColumns: List[FreeAggregateColumn]
+	high_order_criteria: Optional[EntityCriteria] = None  # name must match column's alias of finder
+
+
 class FreePager(FreeFinder):
 	pageable: Pageable = None
