@@ -8639,7 +8639,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "LOGIN ADMIN",
               "id": "dec9bc99-d893-4f6e-86b1-dc56e2811b52",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
