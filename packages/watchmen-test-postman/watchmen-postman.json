@@ -8719,6 +8719,23 @@
             },
             {
               "name": "LOGIN ADMIN",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "9592d894-b7a3-4ec6-b8b1-a01924f65736",
+                    "exec": [
+                      "pm.test(\"Admin Login Access Token\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "    var data = pm.response.json();",
+                      "    pm.environment.set('JWT_TOKEN', data.accessToken)",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "dec9bc99-d893-4f6e-86b1-dc56e2811b52",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
@@ -8726,6 +8743,21 @@
               "request": {
                 "method": "POST",
                 "header": [],
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "key": "username",
+                      "value": "imma-admin",
+                      "type": "text"
+                    },
+                    {
+                      "key": "password",
+                      "value": "1234abcd",
+                      "type": "text"
+                    }
+                  ]
+                },
                 "url": "{{URL_PREFIX}}/login"
               },
               "response": []
