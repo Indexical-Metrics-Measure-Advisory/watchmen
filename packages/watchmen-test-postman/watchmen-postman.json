@@ -8863,7 +8863,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"topicId\": \"{{PIPELINE_MONITOR_TOPIC_ID}}\"\n    \"name\": \"raw_pipeline_monitor_log\",\n    \"type\": \"raw\",\n    \"kind\": \"system\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [],\n    \"description\": \"Pipeline Monitor Log Raw Topic\"\n}",
+                  "raw": "{\n    \"topicId\": \"{{PIPELINE_MONITOR_TOPIC_ID}}\",\n    \"name\": \"raw_pipeline_monitor_log\",\n    \"type\": \"raw\",\n    \"kind\": \"system\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [],\n    \"description\": \"Pipeline Monitor Log Raw Topic\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
