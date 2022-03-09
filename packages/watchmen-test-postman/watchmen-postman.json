@@ -7374,7 +7374,7 @@
                   "response": []
                 },
                 {
-                  "name": "TRUCATE TOPIC",
+                  "name": "TRUNCATE TOPIC",
                   "event": [
                     {
                       "listen": "test",
