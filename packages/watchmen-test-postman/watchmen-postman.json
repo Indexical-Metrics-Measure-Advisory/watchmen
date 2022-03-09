@@ -9020,7 +9020,7 @@
               "response": []
             },
             {
-              "name": "TRUNCATE TOPIC",
+              "name": "DELETE TOPIC",
               "event": [
                 {
                   "listen": "test",
