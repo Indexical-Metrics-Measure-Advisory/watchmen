@@ -8687,7 +8687,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "PIPELINE FUNCTION",
               "id": "9c922650-8ee4-4b93-aaea-9eefc385e56c",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
