@@ -8111,7 +8111,7 @@
                         "method": "DELETE",
                         "header": [],
                         "url": {
-                          "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{TOPIC_NAME}} ",
+                          "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{TOPIC_NAME}}",
                           "host": [
                             "{{URL_PREFIX}}"
                           ],
@@ -8123,7 +8123,7 @@
                           "query": [
                             {
                               "key": "topic_name",
-                              "value": "{{TOPIC_NAME}} "
+                              "value": "{{TOPIC_NAME}}"
                             }
                           ]
                         }
@@ -8131,7 +8131,7 @@
                       "response": []
                     },
                     {
-                      "name": "TRUNCATE RAW TOPIC",
+                      "name": "TRUCATE RAW TOPIC",
                       "id": "2b3543da-dc5a-4fe0-9aff-0b876db18577",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
