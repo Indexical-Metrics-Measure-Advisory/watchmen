@@ -6431,7 +6431,7 @@
                       "response": []
                     },
                     {
-                      "name": "TRUCATE RAW TOPIC",
+                      "name": "TRUNCATE RAW TOPIC",
                       "id": "caf1728c-50a8-441e-97aa-6301de556ed2",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
