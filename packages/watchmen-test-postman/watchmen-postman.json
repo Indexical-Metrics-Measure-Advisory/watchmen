@@ -8663,7 +8663,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "CREATE TOPIC",
               "id": "4c3c6c68-7161-44f9-a456-84d54c671b5e",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
