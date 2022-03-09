@@ -8900,6 +8900,22 @@
             },
             {
               "name": "PIPELINE FUNCTION",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "580761cd-2c0a-42cb-831b-6b46d3098439",
+                    "exec": [
+                      "pm.test(\"Create Pipeline For Function\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "9c922650-8ee4-4b93-aaea-9eefc385e56c",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
