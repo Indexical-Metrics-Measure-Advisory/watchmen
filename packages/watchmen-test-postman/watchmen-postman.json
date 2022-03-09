@@ -9008,13 +9008,50 @@
             },
             {
               "name": "DELETE PIPELINE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "c1b54c97-bcbf-4356-ae27-a2d925e798eb",
+                    "exec": [
+                      "pm.test('Delete Pipeline', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.environment.unset(\"PIPELINE_ID\");",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "3410ffd6-077c-4762-afbe-2f60eb1712de",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                  }
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "pipeline"
+                  ],
+                  "query": [
+                    {
+                      "key": "pipeline_id",
+                      "value": "{{PIPELINE_ID}}"
+                    }
+                  ]
+                }
               },
               "response": []
             }
