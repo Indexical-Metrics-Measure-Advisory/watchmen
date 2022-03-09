@@ -7,6 +7,7 @@ from watchmen_data_kernel.service import ask_topic_storage
 from watchmen_data_kernel.storage_bridge import ask_topic_data_entity_helper, parse_condition_for_storage, \
 	parse_parameter_for_storage, PipelineVariables
 from watchmen_data_kernel.topic_schema import TopicSchema
+from watchmen_data_kernel.utils import MightAVariable, parse_variable
 from watchmen_inquiry_kernel.common import ask_use_storage_directly, InquiryKernelException
 from watchmen_inquiry_kernel.schema import ReportSchema, SubjectSchema
 from watchmen_meta.admin import SpaceService
@@ -16,14 +17,14 @@ from watchmen_model.admin import Factor, Space
 from watchmen_model.admin.space import SpaceFilter
 from watchmen_model.common import ComputedParameter, ConstantParameter, DataPage, FactorId, Pageable, Parameter, \
 	ParameterComputeType, ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, \
-	ParameterJointType, SubjectDatasetColumnId, TopicFactorParameter, TopicId
+	ParameterJointType, SubjectDatasetColumnId, TopicFactorParameter, TopicId, VariablePredefineFunctions
 from watchmen_model.console import ConnectedSpace, ReportDimension, ReportFunnel, ReportFunnelType, ReportIndicator, \
 	ReportIndicatorArithmetic, SubjectDatasetColumn, SubjectDatasetJoin, SubjectJoinType
 from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteria, \
 	EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, \
 	EntityCriteriaStatement, FreeAggregateArithmetic, FreeAggregateColumn, FreeAggregatePager, FreeAggregator, \
 	FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, Literal, TopicDataStorageSPI
-from watchmen_utilities import ArrayHelper, is_blank, is_date, is_not_blank
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_date, is_not_blank
 
 
 def ask_empty_variables() -> PipelineVariables:
@@ -373,7 +374,8 @@ class SubjectStorage:
 
 	# noinspection PyUnusedLocal
 	def build_expression_by_funnel(
-			self, funnel: ReportFunnel, subject_column_map: Dict[SubjectDatasetColumnId, int],
+			self, funnel: ReportFunnel,
+			subject_column_map: Dict[SubjectDatasetColumnId, Tuple[int, SubjectDatasetColumn]],
 			report_schema: ReportSchema) -> Optional[EntityCriteriaStatement]:
 		if funnel is None:
 			return None
@@ -392,12 +394,12 @@ class SubjectStorage:
 		if funnel_type == ReportFunnelType.ENUM:
 			if len(start_value) == 0:
 				return EntityCriteriaExpression(
-					left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
+					left=ColumnNameLiteral(columnName=f'column_{index[0] + 1}'),
 					right=start_value[0]
 				)
 			else:
 				return EntityCriteriaExpression(
-					left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
+					left=ColumnNameLiteral(columnName=f'column_{index[0] + 1}'),
 					operator=EntityCriteriaOperator.IN,
 					right=start_value
 				)
@@ -405,18 +407,18 @@ class SubjectStorage:
 			is_range = funnel.range
 			if not is_range:
 				return EntityCriteriaExpression(
-					left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
+					left=ColumnNameLiteral(columnName=f'column_{index[0] + 1}'),
 					right=start_value
 				)
 			elif start_value is None:
 				return EntityCriteriaExpression(
-					left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
+					left=ColumnNameLiteral(columnName=f'column_{index[0] + 1}'),
 					operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
 					right=end_value
 				)
 			elif end_value is None:
 				return EntityCriteriaExpression(
-					left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
+					left=ColumnNameLiteral(columnName=f'column_{index[0] + 1}'),
 					operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
 					right=start_value
 				)
@@ -425,12 +427,12 @@ class SubjectStorage:
 					conjunction=EntityCriteriaJointConjunction.AND,
 					children=[
 						EntityCriteriaExpression(
-							left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
+							left=ColumnNameLiteral(columnName=f'column_{index[0] + 1}'),
 							operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
 							right=start_value
 						),
 						EntityCriteriaExpression(
-							left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
+							left=ColumnNameLiteral(columnName=f'column_{index[0] + 1}'),
 							operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
 							right=end_value
 						)
@@ -438,7 +440,8 @@ class SubjectStorage:
 				)
 
 	def build_criteria_joint_by_report_joint(
-			self, subject_column_map: Dict[SubjectDatasetColumnId, int], joint: ParameterJoint
+			self, subject_column_map: Dict[SubjectDatasetColumnId, Tuple[int, SubjectDatasetColumn]],
+			joint: ParameterJoint
 	) -> Optional[EntityCriteriaJoint]:
 		if joint is None:
 			raise InquiryKernelException(f'Joint cannot be none.')
@@ -459,7 +462,7 @@ class SubjectStorage:
 
 	# noinspection PyMethodMayBeStatic
 	def build_literal_by_report_topic_factor_parameter(
-			self, subject_column_map: Dict[SubjectDatasetColumnId, int],
+			self, subject_column_map: Dict[SubjectDatasetColumnId, Tuple[int, SubjectDatasetColumn]],
 			parameter: TopicFactorParameter) -> Literal:
 		# topic id is ignored here, factor id is column id of subject dataset column
 		factor_id = parameter.factorId
@@ -468,15 +471,57 @@ class SubjectStorage:
 		index = subject_column_map.get(factor_id)
 		if index is None:
 			raise InquiryKernelException(f'Cannot match subject dataset column by given parameter[{parameter.dict()}].')
-		return ColumnNameLiteral(columnName=f'column_{index + 1}')
+		return ColumnNameLiteral(columnName=f'column_{index[0] + 1}')
+
+	def build_literal_by_report_constant_segment(
+			self, subject_column_map: Dict[SubjectDatasetColumnId, Tuple[int, SubjectDatasetColumn]],
+			variable: MightAVariable
+	) -> Literal:
+		prefix = variable.text
+		variable_name = variable.variable
+		if variable_name == VariablePredefineFunctions.NEXT_SEQ.value:
+			value = ask_snowflake_generator().next_id()
+			return value if is_blank(prefix) else f'{prefix}{value}'
+		elif variable_name == VariablePredefineFunctions.NOW.value:
+			return lambda variables, principal_service: get_current_time_in_seconds()
+		elif variable_name.startswith(VariablePredefineFunctions.YEAR_DIFF.value):
+			return create_date_diff(prefix, variable_name, VariablePredefineFunctions.YEAR_DIFF)
+		elif variable_name.startswith(VariablePredefineFunctions.MONTH_DIFF.value):
+			return create_date_diff(prefix, variable_name, VariablePredefineFunctions.MONTH_DIFF)
+		elif variable_name.startswith(VariablePredefineFunctions.DAY_DIFF.value):
+			return create_date_diff(prefix, variable_name, VariablePredefineFunctions.DAY_DIFF)
+
+		# recover to original string
+		return f'{prefix}{{{variable_name}}}'
 
 	def build_literal_by_report_constant_parameter(
-			self, subject_column_map: Dict[SubjectDatasetColumnId, int],
+			self, subject_column_map: Dict[SubjectDatasetColumnId, Tuple[int, SubjectDatasetColumn]],
 			parameter: ConstantParameter, as_list: bool = False) -> Literal:
-		pass
+		value = parameter.value
+		if value is None:
+			return [None] if as_list else None
+		elif len(value) == 0:
+			return [None] if as_list else None
+		elif is_blank(value):
+			return [''] if as_list else ''
+		elif '{' not in value or '}' not in value:
+			return value.strip().split(',') if as_list else value
+		else:
+			_, variables = parse_variable(value)
+			if len(variables) == 1:
+				if variables[0].has_variable():
+					return self.build_literal_by_report_constant_segment(subject_column_map, variables[0])
+				else:
+					return variables[0].text.strip().split(',') if as_list else variables[0].text
+			else:
+				return ComputedLiteral(
+					operator=ComputedLiteralOperator.CONCAT,
+					elements=ArrayHelper(variables).map(
+						lambda x: self.build_literal_by_report_constant_segment(subject_column_map, x)).to_list()
+				)
 
 	def build_literal_by_report_computed_parameter(
-			self, subject_column_map: Dict[SubjectDatasetColumnId, int],
+			self, subject_column_map: Dict[SubjectDatasetColumnId, Tuple[int, SubjectDatasetColumn]],
 			parameter: ComputedParameter) -> Literal:
 		compute_type = parameter.type
 		if compute_type == ParameterComputeType.ADD:
@@ -566,7 +611,7 @@ class SubjectStorage:
 			raise InquiryKernelException(f'Compute type[{compute_type}] is not supported.')
 
 	def build_literal_by_report_parameter(
-			self, subject_column_map: Dict[SubjectDatasetColumnId, int],
+			self, subject_column_map: Dict[SubjectDatasetColumnId, Tuple[int, SubjectDatasetColumn]],
 			parameter: Parameter, as_list: bool = False) -> Literal:
 		if parameter is None:
 			raise InquiryKernelException(f'Parameter cannot be none.')
@@ -580,7 +625,7 @@ class SubjectStorage:
 			raise InquiryKernelException(f'Parameter[{parameter.dict()}] is not supported.')
 
 	def build_criteria_expression_by_report_expression(
-			self, subject_column_map: Dict[SubjectDatasetColumnId, int],
+			self, subject_column_map: Dict[SubjectDatasetColumnId, Tuple[int, SubjectDatasetColumn]],
 			expression: ParameterExpression) -> EntityCriteriaExpression:
 		if expression is None:
 			raise InquiryKernelException(f'Expression cannot be none.')
@@ -648,7 +693,8 @@ class SubjectStorage:
 			raise InquiryKernelException(f'Expression operator[{operator}] is not supported.')
 
 	def build_criteria_statement_by_report_filter(
-			self, subject_column_map: Dict[SubjectDatasetColumnId, int], condition: ParameterCondition
+			self, subject_column_map: Dict[SubjectDatasetColumnId, Tuple[int, SubjectDatasetColumn]],
+			condition: ParameterCondition
 	) -> EntityCriteriaStatement:
 		if isinstance(condition, ParameterJoint):
 			return self.build_criteria_joint_by_report_joint(subject_column_map, condition)
@@ -658,7 +704,8 @@ class SubjectStorage:
 			raise InquiryKernelException(f'Parameter condition[{condition.dict()}] is not supported.')
 
 	def build_expression_by_report_filters(
-			self, subject_column_map: Dict[SubjectDatasetColumnId, int], report_schema: ReportSchema
+			self, subject_column_map: Dict[SubjectDatasetColumnId, Tuple[int, SubjectDatasetColumn]],
+			report_schema: ReportSchema
 	) -> List[EntityCriteriaJoint]:
 		"""
 		empty list or one element
@@ -671,10 +718,10 @@ class SubjectStorage:
 
 	def build_high_order_criteria(self, report_schema: ReportSchema) -> Optional[EntityCriteria]:
 		# build high order criteria, there are filters and funnels
-		subject_column_map: Dict[SubjectDatasetColumnId, int] = ArrayHelper(
+		subject_column_map: Dict[SubjectDatasetColumnId, Tuple[int, SubjectDatasetColumn]] = ArrayHelper(
 			self.schema.get_subject().dataset.columns) \
 			.map_with_index(lambda x, index: (x, index)) \
-			.to_map(lambda x: x[0].columnId, lambda x: x[1])
+			.to_map(lambda x: x[0].columnId, lambda x: (x[1], x[0]))
 
 		return [
 			*self.build_expression_by_report_filters(subject_column_map, report_schema),
