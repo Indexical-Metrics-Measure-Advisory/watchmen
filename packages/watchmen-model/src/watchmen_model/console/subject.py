@@ -5,7 +5,8 @@ from pydantic import BaseModel
 
 from watchmen_model.common import Auditable, ConnectedSpaceId, construct_parameter, construct_parameter_conditions, \
 	construct_parameter_joint, \
-	DataModel, FactorId, LastVisit, Parameter, ParameterCondition, ParameterJoint, SubjectDatasetColumnId, SubjectId, \
+	DataModel, FactorId, LastVisit, Pageable, Parameter, ParameterCondition, ParameterJoint, SubjectDatasetColumnId, \
+	SubjectId, \
 	TopicId, \
 	UserBasedTuple
 from watchmen_utilities import ArrayHelper
@@ -111,9 +112,18 @@ class Subject(UserBasedTuple, Auditable, LastVisit, BaseModel):
 			super().__setattr__(name, value)
 
 
+class SubjectDatasetCriteriaIndicatorArithmetic(str, Enum):
+	NONE = 'none'
+	COUNT = 'count'
+	SUMMARY = 'sum'
+	AVERAGE = 'avg'
+	MAXIMUM = 'max'
+	MINIMUM = 'min'
+
+
 class SubjectDatasetCriteriaIndicator(BaseModel):
 	name: str = None
-	arithmetic: str = None
+	arithmetic: SubjectDatasetCriteriaIndicatorArithmetic = None
 	alias: str = None
 
 
@@ -133,7 +143,7 @@ def construct_criteria_indicators(indicators: Optional[list]) -> Optional[List[S
 	return ArrayHelper(indicators).map(lambda x: construct_criteria_indicator(x)).to_list()
 
 
-class SubjectDatasetCriteria(BaseModel):
+class SubjectDatasetCriteria(Pageable):
 	# use one of subject id or name
 	subjectId: Optional[SubjectId]
 	subjectName: Optional[str]
