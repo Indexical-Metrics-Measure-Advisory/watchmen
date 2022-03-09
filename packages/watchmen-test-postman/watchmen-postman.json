@@ -8796,7 +8796,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"name\": \"Test_Raw_Topic\",\n    \"type\": \"raw\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propC\"},\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propD\"},\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propE\"},\n        {\"factorId\": \"6\", \"type\": \"number\", \"name\": \"propF\"}\n    ],\n    \"description\": \"Test Raw Topic\"\n}",
+                  "raw": "{\n    \"topicId\": \"{{RAW_TOPIC_ID}}\"\n    \"name\": \"Test_Raw_Topic\",\n    \"type\": \"raw\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propC\"},\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propD\"},\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propE\"},\n        {\"factorId\": \"6\", \"type\": \"number\", \"name\": \"propF\"}\n    ],\n    \"description\": \"Test Raw Topic\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
