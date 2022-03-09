@@ -9027,8 +9027,17 @@
                   "script": {
                     "id": "3082943f-cf5b-47a3-85da-127dbc734306",
                     "exec": [
-                      "pm.test(\"Truncate Topic\", () => {",
+                      "pm.test(\"Delete Topic\", () => {",
                       "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    const topic_id = pm.environment.get(\"TOPIC_ID\");",
+                      "    const topic_name = pm.environment.get(\"TOPIC_NAME\");",
+                      "    pm.expect(data.topicId).to.equal(topic_id);",
+                      "    pm.expect(data.name).to.equal(topic_name);",
+                      "    pm.environment.unset(\"TOPIC_ID\");",
+                      "    pm.environment.unset(\"TOPIC_NAME\");",
+                      "})",
+                      "",
                       "});",
                       ""
                     ],
@@ -9050,19 +9059,17 @@
                 "method": "DELETE",
                 "header": [],
                 "url": {
-                  "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{TOPIC_NAME}}",
+                  "raw": "{{URL_PREFIX}}/topic?topic_id={{TOPIC_ID}}",
                   "host": [
                     "{{URL_PREFIX}}"
                   ],
                   "path": [
-                    "topic",
-                    "data",
-                    "truncate"
+                    "topic"
                   ],
                   "query": [
                     {
-                      "key": "topic_name",
-                      "value": "{{TOPIC_NAME}}"
+                      "key": "topic_id",
+                      "value": "{{TOPIC_ID}}"
                     }
                   ]
                 }
