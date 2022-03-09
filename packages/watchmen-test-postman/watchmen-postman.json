@@ -4970,6 +4970,8 @@
                         "exec": [
                           "pm.test(\"Create Pipeline Monitor Log Topic\", () => {",
                           "    pm.response.to.have.status(200);",
+                          "    var data = pm.response.json();",
+                          "    pm.environment.set('MONITOR_TOPIC_ID', data.topicId)",
                           "});"
                         ],
                         "type": "text/javascript"
