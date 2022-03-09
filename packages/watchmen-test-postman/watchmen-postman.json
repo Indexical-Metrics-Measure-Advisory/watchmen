@@ -8666,8 +8666,24 @@
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"dataSourceCode\": \"Test-Datasource\",\n    \"dataSourceType\": \"mysql\",\n    \"host\": \"localhost\",\n    \"port\": \"{{DATABASE_PORT}}\",\n    \"username\": \"{{DATABASE_USERNAME}}\",\n    \"password\": \"{{DATABASE_PASSWORD}}\",\n    \"name\": \"{{DATABASE_SCHEMA}}\",\n    \"tenantId\": \"1\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/datasource"
               },
               "response": []
             },
