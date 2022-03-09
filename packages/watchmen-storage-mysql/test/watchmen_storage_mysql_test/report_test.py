@@ -62,7 +62,7 @@ class ReportTest(TestCase):
 						right='0'
 					)
 				],
-				high_order_criteria=[
+				highOrderCriteria=[
 					EntityCriteriaExpression(
 						left=ColumnNameLiteral(columnName='column_2'),
 						operator=EntityCriteriaOperator.GREATER_THAN,
