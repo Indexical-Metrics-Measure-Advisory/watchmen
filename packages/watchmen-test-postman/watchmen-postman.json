@@ -6984,7 +6984,7 @@
                   "response": []
                 },
                 {
-                  "name": "TRUCATE TOPIC",
+                  "name": "TRUNCATE TOPIC",
                   "id": "40681fdc-8fee-4c4d-8db8-25a1d3160b94",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
