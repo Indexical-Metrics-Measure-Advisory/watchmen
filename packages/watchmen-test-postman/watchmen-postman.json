@@ -9075,18 +9075,6 @@
               "response": []
             },
             {
-              "name": "TRUNCATE RAW TOPIC",
-              "id": "2ddfab20-e400-41f7-98e2-679dcaa8152c",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
-              },
-              "response": []
-            },
-            {
               "name": "TRUNCATE MONITOR TOPIC",
               "id": "07c36091-a3b8-43ec-a6e0-f3ad3ccef1e0",
               "protocolProfileBehavior": {
