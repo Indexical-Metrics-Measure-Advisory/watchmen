@@ -8674,6 +8674,21 @@
                     ],
                     "type": "text/javascript"
                   }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "4c9c27a2-bce4-4fc3-9616-7fa1c270cd4b",
+                    "exec": [
+                      "pm.test('Datasource created', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.dataSourceId).to.not.be.null;",
+                      "    pm.environment.set('DATA_SOURCE_ID', data.dataSourceId)",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
                 }
               ],
               "id": "44e6b5ad-db09-436c-b3b8-39671cd09ca4",
