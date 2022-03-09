@@ -1,9 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from watchmen_model.admin import Topic
 from watchmen_model.common import DataPage
-from .free_storage_types import FreePager
+from .free_storage_types import FreeFinder, FreePager
 from .storage_types import Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
 	EntityIdHelper, EntityList, EntityPager, EntityStraightValuesFinder, EntityUpdater
 
@@ -210,6 +210,10 @@ class TopicDataStorageSPI(TransactionalStorageSPI):
 
 	@abstractmethod
 	def truncate(self, helper: EntityHelper) -> None:
+		pass
+
+	@abstractmethod
+	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
 		pass
 
 	@abstractmethod

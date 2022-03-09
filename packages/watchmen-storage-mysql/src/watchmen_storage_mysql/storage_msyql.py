@@ -13,7 +13,8 @@ from watchmen_model.common import DataPage, TopicId
 from watchmen_storage import as_table_name, ColumnNameLiteral, Entity, EntityColumnAggregateArithmetic, \
 	EntityCriteriaExpression, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
 	EntityIdHelper, EntityList, EntityNotFoundException, EntityPager, EntityStraightAggregateColumn, \
-	EntityStraightColumn, EntityStraightValuesFinder, EntityUpdater, FreeColumn, FreeJoin, FreeJoinType, FreePager, \
+	EntityStraightColumn, EntityStraightValuesFinder, EntityUpdater, FreeColumn, FreeFinder, FreeJoin, FreeJoinType, \
+	FreePager, \
 	NoFreeJoinException, TooManyEntitiesFoundException, TopicDataStorageSPI, TransactionalStorageSPI, \
 	UnexpectedStorageException, UnsupportedStraightColumnException
 from watchmen_utilities import ArrayHelper, is_blank
@@ -557,6 +558,22 @@ CREATE TABLE {entity_name} (
 			.map_with_index(lambda x, index: self.build_free_column(x, index, tables)) \
 			.to_list()
 
+	# noinspection PyMethodMayBeStatic
+	def deserialize_from_auto_generated_columns(self, row: Dict[str, Any], columns: List[FreeColumn]) -> Dict[str, Any]:
+		data: Dict[str, Any] = {}
+		for index, column in enumerate(columns):
+			data[column.alias] = row.get(f'column_{index + 1}')
+		return data
+
+	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
+		select_from, tables = self.build_free_joins(finder.joins)
+		statement = select(self.build_free_columns(finder.columns, tables)).select_from(select_from)
+		statement = build_criteria_for_statement(tables, statement, finder.criteria)
+		results = self.connection.execute(statement).mappings().all()
+		return ArrayHelper(results) \
+			.map(lambda x: self.deserialize_from_auto_generated_columns(x, finder.columns)) \
+			.to_list()
+
 	def free_page(self, pager: FreePager) -> DataPage:
 		page_size = pager.pageable.pageSize
 		select_from, tables = self.build_free_joins(pager.joins)
@@ -575,13 +592,10 @@ CREATE TABLE {entity_name} (
 		statement = statement.offset(offset).limit(page_size)
 		results = self.connection.execute(statement).mappings().all()
 
-		def deserialize(row: Dict[str, Any]) -> Dict[str, Any]:
-			data: Dict[str, Any] = {}
-			for index, column in enumerate(pager.columns):
-				data[column.alias] = row.get(f'column_{index + 1}')
-			return data
+		results = ArrayHelper(results) \
+			.map(lambda x: self.deserialize_from_auto_generated_columns(x, pager.columns)) \
+			.to_list()
 
-		results = ArrayHelper(results).map(deserialize).to_list()
 		return DataPage(
 			data=results,
 			pageNumber=page_number,

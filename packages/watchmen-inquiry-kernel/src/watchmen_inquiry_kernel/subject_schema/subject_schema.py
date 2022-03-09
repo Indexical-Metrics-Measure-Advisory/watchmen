@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.meta import TopicService
@@ -259,3 +259,10 @@ class SubjectSchema:
 
 	def get_available_schemas(self) -> List[TopicSchema]:
 		return self.available_schemas
+
+	def translate_to_array_row(self, row: Dict[str, Any]) -> List[Any]:
+		columns = self.get_subject().dataset.columns
+		return ArrayHelper(columns).map(lambda x: row.get(x.alias)).to_list()
+
+	def translate_to_array_table(self, data: List[Dict[str, Any]]) -> List[List[Any]]:
+		return ArrayHelper(data).map(self.translate_to_array_row).to_list()
