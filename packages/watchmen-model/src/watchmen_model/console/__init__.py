@@ -3,4 +3,5 @@ from .connected_space_graphic import ConnectedSpaceGraphic, SubjectGraphic, Topi
 from .dashboard import Dashboard, DashboardParagraph, DashboardReport
 from .data_result_set import SubjectDataResultSet
 from .report import Report, ReportDimension, ReportFunnel, ReportFunnelType, ReportIndicator, ReportIndicatorArithmetic
-from .subject import Subject, SubjectDataset, SubjectDatasetColumn, SubjectDatasetJoin, SubjectJoinType
+from .subject import Subject, SubjectDataset, SubjectDatasetColumn, SubjectDatasetCriteria, \
+	SubjectDatasetCriteriaIndicator, SubjectDatasetCriteriaIndicatorArithmetic, SubjectDatasetJoin, SubjectJoinType

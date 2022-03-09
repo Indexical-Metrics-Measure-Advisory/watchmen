@@ -15,8 +15,7 @@ from watchmen_model.admin import Factor, Space
 from watchmen_model.admin.space import SpaceFilter
 from watchmen_model.common import DataPage, FactorId, Pageable, TopicId
 from watchmen_model.console import ConnectedSpace, SubjectDatasetColumn, SubjectDatasetJoin, SubjectJoinType
-from watchmen_storage import ColumnNameLiteral, FreeColumn, FreeFinder, FreeJoin, \
-	FreeJoinType, FreePager
+from watchmen_storage import ColumnNameLiteral, FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager
 from watchmen_utilities import ArrayHelper, is_blank
 
 
@@ -172,6 +171,21 @@ class SubjectStorage:
 			return storage.free_find(self.ask_storage_directly_finder())
 		finally:
 			storage.close()
+
+	def find(self) -> List[Dict[str, Any]]:
+		if not ask_use_storage_directly():
+			# TODO use presto
+			return self.find_by_storage_directly()
+
+		if self.schema.from_one_data_source():
+			return self.find_by_storage_directly()
+		elif not ask_presto_enabled():
+			raise InquiryKernelException(
+				'Cannot perform inquiry on storage native when there are multiple data sources, '
+				'ask your administrator to turn on presto/trino engine.')
+		else:
+			# TODO use presto
+			return self.find_by_storage_directly()
 
 	def ask_storage_directly_pager(self, pageable: Pageable) -> FreePager:
 		finder = self.ask_storage_directly_finder()

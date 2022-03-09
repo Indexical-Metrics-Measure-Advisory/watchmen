@@ -69,6 +69,13 @@ class SubjectService(UserBasedTupleService):
 		storable.subjectId = storable_id
 		return storable
 
+	def find_by_name(self, name: str) -> Optional[Subject]:
+		return self.storage.find_one(self.get_entity_finder(
+			criteria=[
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='name'), right=name)
+			]
+		))
+
 	def find_by_connect_id(self, connect_id: ConnectedSpaceId) -> List[Subject]:
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(
