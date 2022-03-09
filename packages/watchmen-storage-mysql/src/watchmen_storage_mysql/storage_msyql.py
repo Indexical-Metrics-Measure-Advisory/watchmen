@@ -1,7 +1,7 @@
 from datetime import date, time
 from decimal import Decimal
 from logging import getLogger
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from sqlalchemy import and_, delete, distinct, func, insert, select, Table, text, \
 	update
@@ -15,7 +15,7 @@ from watchmen_storage import as_table_name, ColumnNameLiteral, Entity, EntityCol
 	EntityCriteriaExpression, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
 	EntityIdHelper, EntityList, EntityNotFoundException, EntityPager, EntityStraightAggregateColumn, \
 	EntityStraightColumn, EntityStraightValuesFinder, EntityUpdater, FreeAggregateArithmetic, FreeAggregateColumn, \
-	FreeAggregator, FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, NoFreeJoinException, \
+	FreeAggregatePager, FreeAggregator, FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, NoFreeJoinException, \
 	TooManyEntitiesFoundException, TopicDataStorageSPI, TransactionalStorageSPI, UnexpectedStorageException, \
 	UnsupportedStraightColumnException
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
@@ -638,16 +638,19 @@ CREATE TABLE {entity_name} (
 			data[alias] = row.get(f'agg_column_{index + 1}')
 		return data
 
-	def free_aggregate_find(self, aggregator: FreeAggregator) -> List[Dict[str, Any]]:
+	def build_aggregate_statement(
+			self, aggregator: FreeAggregator,
+			selection: Callable[[List[FreeAggregateColumn]], Any]
+	) -> SQLAlchemyStatement:
 		select_from, tables = self.build_free_joins(aggregator.joins)
 		statement = select(self.build_free_columns(aggregator.columns, tables)).select_from(select_from)
 		statement = build_criteria_for_statement(tables, statement, aggregator.criteria)
 		sub_query = statement.subquery()
 
 		aggregate_columns = aggregator.aggregateColumns
-		statement = select(self.build_free_aggregate_columns(aggregate_columns)).select_from(sub_query)
+		statement = select(selection(aggregate_columns)).select_from(sub_query)
 		# obviously, table is not existing. fake a table of sub query selection to build high order criteria
-		statement = build_criteria_for_statement([], statement, aggregator.high_order_criteria)
+		statement = build_criteria_for_statement([], statement, aggregator.highOrderCriteria)
 		# find columns rather than grouped
 		non_group_columns = ArrayHelper(aggregate_columns) \
 			.filter(lambda x: x.arithmetic is None or x.arithmetic == FreeAggregateArithmetic.NONE) \
@@ -655,8 +658,40 @@ CREATE TABLE {entity_name} (
 		if len(non_group_columns) != 0:
 			statement = statement.group_by(
 				*ArrayHelper(non_group_columns).map(lambda x: text(x.name)).to_list())
+		return statement
+
+	def free_aggregate_find(self, aggregator: FreeAggregator) -> List[Dict[str, Any]]:
+		statement = self.build_aggregate_statement(
+			aggregator, lambda columns: self.build_free_aggregate_columns(columns))
 
 		results = self.connection.execute(statement).mappings().all()
 		return ArrayHelper(results) \
-			.map(lambda x: self.deserialize_from_auto_generated_aggregate_columns(x, aggregate_columns)) \
+			.map(lambda x: self.deserialize_from_auto_generated_aggregate_columns(x, aggregator.aggregateColumns)) \
 			.to_list()
+
+	def free_aggregate_page(self, pager: FreeAggregatePager) -> DataPage:
+		page_size = pager.pageable.pageSize
+		count_statement = self.build_aggregate_statement(pager, lambda columns: func.count())
+		count, empty_page = self.execute_page_count(count_statement, page_size)
+		if count == 0:
+			return empty_page
+
+		page_number, max_page_number = self.compute_page(count, page_size, pager.pageable.pageNumber)
+
+		statement = self.build_aggregate_statement(
+			pager, lambda columns, tables: self.build_free_columns(columns, tables))
+		offset = page_size * (page_number - 1)
+		statement = statement.offset(offset).limit(page_size)
+		results = self.connection.execute(statement).mappings().all()
+
+		results = ArrayHelper(results) \
+			.map(lambda x: self.deserialize_from_auto_generated_aggregate_columns(x, pager.aggregateColumns)) \
+			.to_list()
+
+		return DataPage(
+			data=results,
+			pageNumber=page_number,
+			pageSize=page_size,
+			itemCount=count,
+			pageCount=max_page_number
+		)

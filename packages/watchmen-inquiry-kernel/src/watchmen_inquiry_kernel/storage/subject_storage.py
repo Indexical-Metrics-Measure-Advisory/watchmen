@@ -15,7 +15,9 @@ from watchmen_model.admin import Factor, Space
 from watchmen_model.admin.space import SpaceFilter
 from watchmen_model.common import DataPage, FactorId, Pageable, TopicId
 from watchmen_model.console import ConnectedSpace, SubjectDatasetColumn, SubjectDatasetJoin, SubjectJoinType
-from watchmen_storage import ColumnNameLiteral, FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager
+from watchmen_storage import ColumnNameLiteral, FreeAggregatePager, FreeAggregator, FreeColumn, FreeFinder, FreeJoin, \
+	FreeJoinType, \
+	FreePager
 from watchmen_utilities import ArrayHelper, is_blank
 
 
@@ -222,8 +224,40 @@ class SubjectStorage:
 			# TODO use presto
 			return self.page_by_storage_directly(pageable)
 
-	def aggregate_find(self, report_schema: ReportSchema) -> List[Dict[str, Any]]:
+	def ask_storage_directly_aggregator(self, report_schema: ReportSchema) -> FreeAggregator:
+		# TODO
 		pass
 
+	def aggregate_find(self, report_schema: ReportSchema) -> List[Dict[str, Any]]:
+		available_schemas = self.schema.get_available_schemas()
+		storage = ask_topic_storage(self.schema.get_primary_topic_schema(), self.principalService)
+		# register topic, in case of it is not registered yet
+		ArrayHelper(available_schemas).each(lambda x: storage.register_topic(x.get_topic()))
+		try:
+			storage.connect()
+			return storage.free_aggregate_find(self.ask_storage_directly_aggregator(report_schema))
+		finally:
+			storage.close()
+
+	def ask_storage_directly_aggregate_pager(
+			self, report_schema: ReportSchema, pageable: Pageable) -> FreeAggregatePager:
+		aggregator = self.ask_storage_directly_aggregator(report_schema)
+		return FreeAggregatePager(
+			columns=aggregator.criteria,
+			joins=aggregator.joins,
+			criteria=aggregator.criteria,
+			aggregateColumns=aggregator.aggregateColumns,
+			highOrderCriteria=aggregator.highOrderCriteria,
+			pageable=pageable
+		)
+
 	def aggregate_page(self, report_schema: ReportSchema, pageable: Pageable) -> DataPage:
-		pass
+		available_schemas = self.schema.get_available_schemas()
+		storage = ask_topic_storage(self.schema.get_primary_topic_schema(), self.principalService)
+		# register topic, in case of it is not registered yet
+		ArrayHelper(available_schemas).each(lambda x: storage.register_topic(x.get_topic()))
+		try:
+			storage.connect()
+			return storage.free_aggregate_page(self.ask_storage_directly_aggregate_pager(report_schema, pageable))
+		finally:
+			storage.close()

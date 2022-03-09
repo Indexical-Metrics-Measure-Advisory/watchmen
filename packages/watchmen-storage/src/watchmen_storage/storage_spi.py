@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 
 from watchmen_model.admin import Topic
 from watchmen_model.common import DataPage
-from .free_storage_types import FreeAggregator, FreeFinder, FreePager
+from .free_storage_types import FreeAggregatePager, FreeAggregator, FreeFinder, FreePager
 from .storage_types import Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
 	EntityIdHelper, EntityList, EntityPager, EntityStraightValuesFinder, EntityUpdater
 
@@ -222,4 +222,8 @@ class TopicDataStorageSPI(TransactionalStorageSPI):
 
 	@abstractmethod
 	def free_aggregate_find(self, aggregator: FreeAggregator) -> List[Dict[str, Any]]:
+		pass
+
+	@abstractmethod
+	def free_aggregate_page(self, pager: FreeAggregatePager) -> DataPage:
 		pass

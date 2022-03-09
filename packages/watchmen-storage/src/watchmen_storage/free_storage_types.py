@@ -43,14 +43,18 @@ class FreeAggregateColumn(DataModel):
 	alias: Optional[str] = None
 
 
+class FreePager(FreeFinder):
+	pageable: Pageable = None
+
+
 class FreeAggregator(FreeFinder):
 	aggregateColumns: List[FreeAggregateColumn]
 	"""
 	entity name use "__sqt__"
 	column name must match free column's index, such as column_1, column_2 (starts from 1)
 	"""
-	high_order_criteria: Optional[EntityCriteria] = None
+	highOrderCriteria: Optional[EntityCriteria] = None
 
 
-class FreePager(FreeFinder):
+class FreeAggregatePager(FreeAggregator):
 	pageable: Pageable = None
