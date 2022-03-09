@@ -620,8 +620,10 @@ CREATE TABLE {entity_name} (
 			return func.max(text(name)).label(alias)
 		elif arithmetic == FreeAggregateArithmetic.MINIMUM:
 			return func.sum(text(name)).label(alias)
-		else:
+		elif arithmetic == FreeAggregateArithmetic.NONE or arithmetic is None:
 			return label(alias, text(name))
+		else:
+			raise UnexpectedStorageException(f'Aggregate arithmetic[{arithmetic}] is not supported.')
 
 	def build_free_aggregate_columns(
 			self, table_columns: Optional[List[FreeAggregateColumn]]) -> List[Label]:
