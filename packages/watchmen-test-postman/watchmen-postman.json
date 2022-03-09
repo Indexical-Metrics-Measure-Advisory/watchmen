@@ -8613,7 +8613,20 @@
         },
         {
           "name": "FUNCTION",
-          "item": [],
+          "item": [
+            {
+              "name": "New Request",
+              "id": "3e6da7e8-5498-41fb-b127-7863b70b07a2",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            }
+          ],
           "id": "c9bb1e9f-e9ec-4cbb-abda-9c9e13e1ac06"
         },
         {
