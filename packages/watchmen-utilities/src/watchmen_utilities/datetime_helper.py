@@ -149,9 +149,11 @@ def try_to_format_time(might_be_time: str, time_format: str) -> Tuple[bool, Opti
 
 def is_time(value: Optional[str], formats: List[str]) -> Tuple[bool, Optional[time]]:
 	"""
-	none is not a date value, otherwise remove non-number characters and try to parse by given formats.
+	none is not a time value, otherwise remove non-number characters and try to parse by given formats.
 	digits after removing must match digits of format
 	"""
+	if value is None:
+		return False, None
 	tidy_value = sub(r'\D', '', value)
 	count = len(tidy_value)
 	suitable_formats = ArrayHelper(formats).filter(lambda x: len(x) == count).to_list()
@@ -203,6 +205,8 @@ def is_date_plus_format(value: Optional[str], formats: List[str]) -> Tuple[bool,
 	digits after removing must match digits of format.
 	return format itself when parsed
 	"""
+	if value is None:
+		return False, None, None
 	tidy_value = sub(r'\D', '', value)
 	count = len(tidy_value)
 	# format cannot use length to match

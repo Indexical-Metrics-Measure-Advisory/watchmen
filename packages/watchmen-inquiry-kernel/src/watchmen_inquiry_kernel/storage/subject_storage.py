@@ -1,8 +1,8 @@
 from abc import abstractmethod
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from watchmen_auth import PrincipalService
-from watchmen_data_kernel.common.settings import ask_presto_enabled
+from watchmen_data_kernel.common.settings import ask_date_formats, ask_presto_enabled
 from watchmen_data_kernel.service import ask_topic_storage
 from watchmen_data_kernel.storage_bridge import ask_topic_data_entity_helper, parse_condition_for_storage, \
 	parse_parameter_for_storage, PipelineVariables
@@ -15,15 +15,20 @@ from watchmen_meta.console import ConnectedSpaceService
 from watchmen_model.admin import Factor, Space
 from watchmen_model.admin.space import SpaceFilter
 from watchmen_model.common import DataPage, FactorId, Pageable, SubjectDatasetColumnId, TopicId
-from watchmen_model.console import ConnectedSpace, ReportDimension, ReportIndicator, ReportIndicatorArithmetic, \
+from watchmen_model.console import ConnectedSpace, ReportDimension, ReportFunnel, ReportFunnelType, ReportIndicator, \
+	ReportIndicatorArithmetic, \
 	SubjectDatasetColumn, \
 	SubjectDatasetJoin, \
 	SubjectJoinType
-from watchmen_storage import ColumnNameLiteral, FreeAggregateArithmetic, FreeAggregateColumn, FreeAggregatePager, \
+from watchmen_storage import ColumnNameLiteral, EntityCriteria, EntityCriteriaExpression, EntityCriteriaJoint, \
+	EntityCriteriaJointConjunction, EntityCriteriaOperator, \
+	EntityCriteriaStatement, FreeAggregateArithmetic, \
+	FreeAggregateColumn, \
+	FreeAggregatePager, \
 	FreeAggregator, FreeColumn, \
 	FreeFinder, FreeJoin, \
 	FreeJoinType, FreePager, TopicDataStorageSPI
-from watchmen_utilities import ArrayHelper, is_blank
+from watchmen_utilities import ArrayHelper, is_blank, is_date
 
 
 def ask_empty_variables() -> PipelineVariables:
@@ -302,15 +307,153 @@ class SubjectStorage:
 
 		return [*indicator_columns, *dimension_columns]
 
+	# noinspection PyMethodMayBeStatic
+	def get_values_from_funnel(self, funnel: ReportFunnel) -> Tuple[Any, Any]:
+		is_range = funnel.range
+		values = funnel.values  # one element when is not range, one or two elements when is range
+		if is_range:
+			if len(values) == 1:
+				# only start value available
+				start_value = values[0]
+				end_value = None
+			elif len(values) == 0:
+				# no values declared
+				start_value = None
+				end_value = None
+			else:
+				start_value = values[0]
+				end_value = values[1]
+		else:
+			end_value = None
+			if len(values) == 0:
+				start_value = None
+			else:
+				start_value = values[0]
+		start_value = None if is_blank(start_value) else str(start_value).strip()
+		end_value = None if is_blank(end_value) else str(end_value).strip()
+
+		funnel_type = funnel.type
+		if funnel_type == ReportFunnelType.NUMERIC:
+			return start_value, end_value
+		elif funnel_type == ReportFunnelType.DATE:
+			# if given value cannot be parsed to a date, let it be None
+			_, start_value = is_date(start_value, ask_date_formats())
+			_, end_value = is_date(end_value, ask_date_formats())
+		elif funnel_type == ReportFunnelType.YEAR:
+			return start_value, end_value
+		elif funnel_type == ReportFunnelType.HALF_YEAR:
+			return start_value, end_value
+		elif funnel_type == ReportFunnelType.QUARTER:
+			return start_value, end_value
+		elif funnel_type == ReportFunnelType.MONTH:
+			return start_value, end_value
+		elif funnel_type == ReportFunnelType.HALF_MONTH:
+			return start_value, end_value
+		elif funnel_type == ReportFunnelType.TEN_DAYS:
+			return start_value, end_value
+		elif funnel_type == ReportFunnelType.WEEK_OF_MONTH:
+			return start_value, end_value
+		elif funnel_type == ReportFunnelType.HALF_WEEK:
+			return start_value, end_value
+		elif funnel_type == ReportFunnelType.DAY_KIND:
+			return start_value, end_value
+		elif funnel_type == ReportFunnelType.DAY_OF_WEEK:
+			return start_value, end_value
+		elif funnel_type == ReportFunnelType.HOUR:
+			return start_value, end_value
+		elif funnel_type == ReportFunnelType.HOUR_KIND:
+			return start_value, end_value
+		elif funnel_type == ReportFunnelType.AM_PM:
+			return start_value, end_value
+		elif funnel_type == ReportFunnelType.ENUM:
+			return start_value, end_value
+		else:
+			raise InquiryKernelException(f'Funnel type[{funnel_type}] is not supported.')
+
+	def build_expression_by_funnel(
+			self, funnel: ReportFunnel, subject_column_map: Dict[SubjectDatasetColumnId, int],
+			report_schema: ReportSchema) -> Optional[EntityCriteriaStatement]:
+		if funnel is None:
+			return None
+		if not funnel.enabled:
+			return None
+		start_value, end_value = self.get_values_from_funnel(funnel)
+		if start_value is None and end_value is None:
+			# no value declared, ignore this funnel
+			return None
+		column_id = funnel.columnId
+		index = subject_column_map.get(column_id)
+		if index is None:
+			raise InquiryKernelException(f'Cannot match subject dataset column by given funnel[{funnel.dict()}].')
+		is_range = funnel.range
+		if not is_range:
+			return EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
+				right=start_value
+			)
+		elif start_value is None:
+			return EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
+				operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
+				right=end_value
+			)
+		elif end_value is None:
+			return EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
+				operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
+				right=start_value
+			)
+		else:
+			return EntityCriteriaJoint(
+				conjunction=EntityCriteriaJointConjunction.AND,
+				children=[
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
+						operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
+						right=start_value
+					),
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
+						operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
+						right=end_value
+					)
+				]
+			)
+
+	def build_expression_by_report_filters(
+			self, subject_column_map: Dict[SubjectDatasetColumnId, int], report_schema: ReportSchema
+	) -> List[EntityCriteriaJoint]:
+		"""
+		empty list or one element
+		"""
+		filters = report_schema.get_report().filters
+		if filters is None:
+			return []
+
+		return []
+
+	def build_high_order_criteria(self, report_schema: ReportSchema) -> Optional[EntityCriteria]:
+		# build high order criteria, there are filters and funnels
+		subject_column_map: Dict[SubjectDatasetColumnId, int] = ArrayHelper(
+			self.schema.get_subject().dataset.columns) \
+			.map_with_index(lambda x, index: (x, index)) \
+			.to_map(lambda x: x[0].columnId, lambda x: x[1])
+
+		return [
+			*self.build_expression_by_report_filters(subject_column_map, report_schema),
+			*ArrayHelper(report_schema.get_report().funnels).map(
+				lambda x: self.build_expression_by_funnel(x, subject_column_map, report_schema)).filter(
+				lambda x: x is not None).to_list()
+		]
+
 	def ask_storage_directly_aggregator(self, report_schema: ReportSchema) -> FreeAggregator:
 		finder = self.ask_storage_directly_finder()
 		return FreeAggregator(
 			columns=finder.columns,
 			joins=finder.joins,
 			criteria=finder.criteria,
-			# TODO build aggregate columns and high order criteria
 			aggregateColumns=self.build_aggregate_columns(report_schema),
-			highOrderCriteria=None,
+			highOrderCriteria=self.build_high_order_criteria(report_schema),
 		)
 
 	def aggregate_find(self, report_schema: ReportSchema) -> List[Dict[str, Any]]:

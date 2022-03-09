@@ -223,9 +223,15 @@ async def query_dataset(
 		filters=filters
 	)
 
+	page_size = ask_dataset_page_max_rows()
+	if criteria.pageSize is None or criteria.pageSize < 1 or criteria.pageSize > page_size:
+		page_size = ask_dataset_page_max_rows()
+	else:
+		page_size = criteria.pageSize
+
 	pageable = Pageable(
 		pageNumber=1 if criteria.pageNumber is None or criteria.pageNumber < 1 else criteria.pageNumber,
-		pageSize=ask_dataset_page_max_rows() if criteria.pageSize is None or criteria.pageSize < 1 else criteria.pageSize
+		pageSize=page_size
 	)
 
 	return get_report_data_service(subject, report, principal_service).page(pageable)
