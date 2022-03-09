@@ -13,11 +13,11 @@ from watchmen_model.common import DataPage, TopicId
 from watchmen_storage import as_table_name, ColumnNameLiteral, Entity, EntityColumnAggregateArithmetic, \
 	EntityCriteriaExpression, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
 	EntityIdHelper, EntityList, EntityNotFoundException, EntityPager, EntityStraightAggregateColumn, \
-	EntityStraightColumn, EntityStraightValuesFinder, EntityUpdater, FreeColumn, FreeFinder, FreeJoin, FreeJoinType, \
-	FreePager, \
-	NoFreeJoinException, TooManyEntitiesFoundException, TopicDataStorageSPI, TransactionalStorageSPI, \
-	UnexpectedStorageException, UnsupportedStraightColumnException
-from watchmen_utilities import ArrayHelper, is_blank
+	EntityStraightColumn, EntityStraightValuesFinder, EntityUpdater, FreeAggregateArithmetic, FreeAggregateColumn, \
+	FreeAggregator, FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, NoFreeJoinException, \
+	TooManyEntitiesFoundException, TopicDataStorageSPI, TransactionalStorageSPI, UnexpectedStorageException, \
+	UnsupportedStraightColumnException
+from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 from .sort_build import build_sort_for_statement
 from .table_creator import build_aggregate_assist_column, build_columns, build_columns_script, build_indexes, \
 	build_indexes_script, build_unique_indexes, build_unique_indexes_script, build_version_column
@@ -603,3 +603,57 @@ CREATE TABLE {entity_name} (
 			itemCount=count,
 			pageCount=max_page_number
 		)
+
+	# noinspection PyMethodMayBeStatic
+	def build_free_aggregate_column(self, table_column: FreeAggregateColumn, index: int) -> Label:
+		name = table_column.name
+		alias = f'agg_column_{index + 1}'
+		arithmetic = table_column.arithmetic
+		if arithmetic == FreeAggregateArithmetic.COUNT:
+			return func.count(text(name)).label(alias)
+		elif arithmetic == FreeAggregateArithmetic.SUMMARY:
+			return func.sum(text(name)).label(alias)
+		elif arithmetic == FreeAggregateArithmetic.AVERAGE:
+			return func.avg(text(name)).label(alias)
+		elif arithmetic == FreeAggregateArithmetic.MAXIMUM:
+			return func.max(text(name)).label(alias)
+		elif arithmetic == FreeAggregateArithmetic.MINIMUM:
+			return func.sum(text(name)).label(alias)
+		else:
+			return label(alias, text(name))
+
+	def build_free_aggregate_columns(
+			self, table_columns: Optional[List[FreeAggregateColumn]]) -> List[Label]:
+		return ArrayHelper(table_columns) \
+			.map_with_index(lambda x, index: self.build_free_aggregate_column(x, index)) \
+			.to_list()
+
+	# noinspection PyMethodMayBeStatic
+	def deserialize_from_auto_generated_aggregate_columns(
+			self, row: Dict[str, Any], columns: List[FreeAggregateColumn]) -> Dict[str, Any]:
+		data: Dict[str, Any] = {}
+		for index, column in enumerate(columns):
+			alias = column.alias if is_not_blank(column.alias) else column.name
+			data[alias] = row.get(f'agg_column_{index + 1}')
+		return data
+
+	def free_aggregate_find(self, aggregator: FreeAggregator) -> List[Dict[str, Any]]:
+		select_from, tables = self.build_free_joins(aggregator.joins)
+		statement = select(self.build_free_columns(aggregator.columns, tables)).select_from(select_from)
+		statement = build_criteria_for_statement(tables, statement, aggregator.criteria)
+		sub_query = statement.subquery()
+
+		aggregate_columns = aggregator.aggregateColumns
+		statement = select(self.build_free_aggregate_columns(aggregate_columns)).select_from(sub_query)
+		# find columns rather than grouped
+		non_group_columns = ArrayHelper(aggregate_columns) \
+			.filter(lambda x: x.arithmetic is None or x.arithmetic == FreeAggregateArithmetic.NONE) \
+			.to_list()
+		if len(non_group_columns) != 0:
+			statement = statement.group_by(
+				*ArrayHelper(non_group_columns).map(lambda x: text(x.name)).to_list())
+
+		results = self.connection.execute(statement).mappings().all()
+		return ArrayHelper(results) \
+			.map(lambda x: self.deserialize_from_auto_generated_aggregate_columns(x, aggregate_columns)) \
+			.to_list()
