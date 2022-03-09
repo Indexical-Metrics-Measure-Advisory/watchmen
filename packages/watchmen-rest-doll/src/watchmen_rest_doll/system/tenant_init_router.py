@@ -16,7 +16,6 @@ from watchmen_model.system import Tenant
 from watchmen_rest import get_any_admin_principal
 from watchmen_rest.util import raise_400, raise_404
 from watchmen_rest_doll.admin import ask_save_pipeline_action, ask_save_topic_action
-from watchmen_rest_doll.doll import create_dqc_topics_on_tenant_create, create_pipeline_monitor_topics_on_tenant_create
 from watchmen_rest_doll.util import trans
 from watchmen_utilities import ArrayHelper, is_blank
 
@@ -87,13 +86,11 @@ async def init_tenant(
 	meta_tenant_service = get_meta_tenant_service(principal_service)
 
 	def action() -> None:
-		if create_pipeline_monitor_topics_on_tenant_create():
-			topics = ask_pipeline_monitor_topics()
-			create_topics_and_pipelines(
-				topics, ask_pipeline_monitor_pipelines(topics), tenant_id, meta_tenant_service, principal_service)
-		if create_dqc_topics_on_tenant_create():
-			topics = ask_dqc_topics()
-			create_topics_and_pipelines(
-				topics, ask_dqc_pipelines(topics), tenant_id, meta_tenant_service, principal_service)
+		topics = ask_pipeline_monitor_topics()
+		create_topics_and_pipelines(
+			topics, ask_pipeline_monitor_pipelines(topics), tenant_id, meta_tenant_service, principal_service)
+		topics = ask_dqc_topics()
+		create_topics_and_pipelines(
+			topics, ask_dqc_pipelines(topics), tenant_id, meta_tenant_service, principal_service)
 
 	trans(meta_tenant_service, action)
