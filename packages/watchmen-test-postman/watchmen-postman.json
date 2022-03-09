@@ -6626,7 +6626,7 @@
                       "response": []
                     },
                     {
-                      "name": "TRUNCATE RAW TOPIC",
+                      "name": "TRUCATE RAW TOPIC",
                       "id": "690d8a76-3398-4725-b719-63825ddbf60c",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
@@ -6824,7 +6824,7 @@
                   "response": []
                 },
                 {
-                  "name": "TRUNCATE RAW TOPIC",
+                  "name": "TRUCATE RAW TOPIC",
                   "id": "690d8a76-3398-4725-b719-63825ddbf60c",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
