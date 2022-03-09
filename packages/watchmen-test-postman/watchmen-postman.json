@@ -8615,7 +8615,7 @@
           "name": "FUNCTION",
           "item": [
             {
-              "name": "New Request",
+              "name": "LOGIN - SUPER ADMIN",
               "id": "3e6da7e8-5498-41fb-b127-7863b70b07a2",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
