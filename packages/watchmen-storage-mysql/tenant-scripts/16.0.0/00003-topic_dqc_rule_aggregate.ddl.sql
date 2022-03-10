@@ -15,5 +15,6 @@ CREATE TABLE topic_dqc_rule_aggregate
     INDEX (rulecode),
     INDEX (topicid),
     INDEX (factorid),
-    INDEX (tenant_id_)
+    INDEX (tenant_id_),
+    INDEX (update_time_)
 );

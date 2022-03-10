@@ -16,5 +16,6 @@ CREATE TABLE topic_dqc_raw_rule_result
     INDEX (topicid),
     INDEX (factorid),
     INDEX (processdate),
-    INDEX (tenant_id_)
+    INDEX (tenant_id_),
+    INDEX (update_time_)
 );
