@@ -26,6 +26,7 @@ from .table_defs_oracle import find_table, register_table
 from .types import SQLAlchemyStatement
 from .where_build import build_criteria_for_statement, build_literal
 
+# noinspection DuplicatedCode
 logger = getLogger(__name__)
 
 
@@ -380,6 +381,7 @@ class StorageOracle(TransactionalStorageSPI):
 		return count
 
 
+# noinspection DuplicatedCode
 class TopicDataStorageOracle(StorageOracle, TopicDataStorageSPI):
 	def register_topic(self, topic: Topic) -> None:
 		register_table(topic)

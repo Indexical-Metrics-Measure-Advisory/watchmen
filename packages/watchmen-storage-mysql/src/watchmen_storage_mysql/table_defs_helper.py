@@ -1,4 +1,4 @@
-from typing import List, Type, Union
+from typing import List, Type, Union  # noqa
 
 from sqlalchemy import Boolean, Column, Date, Integer, JSON, MetaData, String, Text
 

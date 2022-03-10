@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime  # noqa
 from typing import Dict, Optional, Tuple
 
 from sqlalchemy import Integer, String, Table
