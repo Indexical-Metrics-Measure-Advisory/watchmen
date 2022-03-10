@@ -8623,7 +8623,20 @@
             },
             {
               "name": "DATE FUNCTION",
-              "item": [],
+              "item": [
+                {
+                  "name": "New Request",
+                  "id": "56d85332-44b7-4037-95ae-f51a9f7b36ff",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
+                }
+              ],
               "id": "8ed3aea6-0e6a-4a40-bfbe-e6022f63b3c2"
             },
             {
