@@ -495,6 +495,7 @@ class SubjectStorage:
 		else:
 			raise InquiryKernelException(f'Constant[{variable_name}] is not supported.')
 
+	# noinspection PyMethodMayBeStatic
 	def parse_date_diff_variable(
 			self, subject_column_map: Dict[SubjectDatasetColumnId, Tuple[int, SubjectDatasetColumn]],
 			variable_name: str) -> Literal:

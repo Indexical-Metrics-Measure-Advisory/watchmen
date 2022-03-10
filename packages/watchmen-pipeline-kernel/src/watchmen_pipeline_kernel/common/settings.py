@@ -20,10 +20,10 @@ class PipelineKernelSettings(BaseSettings):
 	PIPELINE_ASYNC_HANDLE_MONITOR_LOG: bool = True  # handle monitor log (might with pipelines) asynchronized
 
 	class Config:
+		# secrets_dir = '/var/run'
 		env_file = '.env'
 		env_file_encoding = 'utf-8'
 		case_sensitive = True
-		# secrets_dir = '/var/run'
 
 
 settings = PipelineKernelSettings()

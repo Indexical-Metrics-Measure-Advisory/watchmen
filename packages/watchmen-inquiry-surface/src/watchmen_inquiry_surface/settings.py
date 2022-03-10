@@ -9,10 +9,10 @@ class InquirySurfaceSettings(BaseSettings):
 	DATASET_PAGE_MAX_ROWS: int = 10000
 
 	class Config:
+		# secrets_dir = '/var/run'
 		env_file = '.env'
 		env_file_encoding = 'utf-8'
 		case_sensitive = True
-		# secrets_dir = '/var/run'
 
 
 settings = InquirySurfaceSettings()

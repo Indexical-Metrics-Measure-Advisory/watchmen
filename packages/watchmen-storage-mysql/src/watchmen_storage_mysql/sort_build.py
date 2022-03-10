@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union  # noqa
 
 from sqlalchemy import asc, desc
 

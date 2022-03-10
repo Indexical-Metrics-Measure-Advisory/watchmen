@@ -3,10 +3,10 @@ from typing import Any, Callable, List, Tuple
 
 from sqlalchemy import and_, case, func, literal_column, or_, Table
 
-from watchmen_storage import as_table_name, ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteria, \
-	EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, \
-	EntityCriteriaStatement, Literal, NoCriteriaForUpdateException, UnexpectedStorageException, \
-	UnsupportedComputationException, UnsupportedCriteriaException
+from watchmen_storage import as_table_name, ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, \
+	EntityCriteria, EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, \
+	EntityCriteriaOperator, EntityCriteriaStatement, Literal, NoCriteriaForUpdateException, \
+	UnexpectedStorageException, UnsupportedComputationException, UnsupportedCriteriaException
 from watchmen_utilities import ArrayHelper, DateTimeConstants, is_blank, is_not_blank
 from .types import SQLAlchemyStatement
 
@@ -15,6 +15,7 @@ def to_decimal(value: Any) -> Any:
 	return func.to_number(value)
 
 
+# noinspection DuplicatedCode
 def build_literal(tables: List[Table], literal: Literal, build_plain_value: Callable[[Any], Any] = None):
 	if isinstance(literal, ColumnNameLiteral):
 		if is_blank(literal.entityName):
@@ -118,6 +119,7 @@ def build_literal(tables: List[Table], literal: Literal, build_plain_value: Call
 		return literal
 
 
+# noinspection DuplicatedCode
 def build_criteria_expression(tables: List[Table], expression: EntityCriteriaExpression):
 	built_left = build_literal(tables, expression.left)
 	op = expression.operator

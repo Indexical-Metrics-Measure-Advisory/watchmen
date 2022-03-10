@@ -18,6 +18,7 @@ def to_decimal(value: Any) -> Any:
 	return func.convert(value, text(f'DECIMAL({decimal_integral_digits}, {decimal_fraction_digits})'))
 
 
+# noinspection DuplicatedCode
 def build_literal(tables: List[Table], literal: Literal, build_plain_value: Callable[[Any], Any] = None):
 	if isinstance(literal, ColumnNameLiteral):
 		if is_blank(literal.entityName):
@@ -121,6 +122,7 @@ def build_literal(tables: List[Table], literal: Literal, build_plain_value: Call
 		return literal
 
 
+# noinspection DuplicatedCode
 def build_criteria_expression(tables: List[Table], expression: EntityCriteriaExpression):
 	built_left = build_literal(tables, expression.left)
 	op = expression.operator

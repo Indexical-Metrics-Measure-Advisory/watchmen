@@ -1,4 +1,4 @@
-from typing import List
+from typing import List  # noqa
 
 from sqlalchemy import Column, Date, DateTime, DECIMAL, Integer, String, Table, Time
 

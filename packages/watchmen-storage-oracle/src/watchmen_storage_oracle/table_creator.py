@@ -5,6 +5,7 @@ from watchmen_storage import as_table_name
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 
 
+# noinspection DuplicatedCode
 def ask_column_name(factor: Factor) -> str:
 	return factor.name.strip().lower().replace('.', '_').replace('-', '_').replace(' ', '_')
 
@@ -154,7 +155,7 @@ def build_version_column(topic: Topic) -> str:
 	return f'\tversion_ NUMBER(8),' if is_aggregation_topic(topic) else ''
 
 
-# noinspection SqlResolve
+# noinspection SqlResolve,DuplicatedCode
 def build_columns_script(topic: Topic, original_topic: Topic) -> List[str]:
 	entity_name = as_table_name(topic)
 	original_factors: Dict[str, Factor] = ArrayHelper(original_topic.factors) \

@@ -9,10 +9,10 @@ class KernelSettings(BaseSettings):
 	USE_STORAGE_DIRECTLY: bool = True  # use storage directly when all topics in subject are from one data source
 
 	class Config:
+		# secrets_dir = '/var/run'
 		env_file = '.env'
 		env_file_encoding = 'utf-8'
 		case_sensitive = True
-		# secrets_dir = '/var/run'
 
 
 settings = KernelSettings()

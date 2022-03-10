@@ -31,7 +31,7 @@ class RestSettings(BaseSettings):
 	PROMETHEUS_CONTEXT: str = '/metrics'
 
 	class Config:
+		# secrets_dir = '/var/run'
 		env_file = '.env'
 		env_file_encoding = 'utf-8'
 		case_sensitive = True
-		# secrets_dir = '/var/run'
