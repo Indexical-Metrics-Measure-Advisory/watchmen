@@ -9032,6 +9032,18 @@
               "name": "DATE FUNCTION",
               "item": [
                 {
+                  "name": "CREATE TOPIC",
+                  "id": "6e045f2a-0d58-431e-b129-b3b7e9ccabcb",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
+                },
+                {
                   "name": "DATE FUNCTION",
                   "id": "56d85332-44b7-4037-95ae-f51a9f7b36ff",
                   "protocolProfileBehavior": {
@@ -9050,18 +9062,6 @@
                       }
                     },
                     "url": "{{URL_PREFIX}}/pipeline"
-                  },
-                  "response": []
-                },
-                {
-                  "name": "CREATE TOPIC",
-                  "id": "6e045f2a-0d58-431e-b129-b3b7e9ccabcb",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "method": "GET",
-                    "header": []
                   },
                   "response": []
                 }
