@@ -78,8 +78,8 @@ const createSQL = (topic: Topic): string => {
 CREATE OR REPLACE PROCEDURE SCHEMA_CHANGE AS
 	CURSOR cursorIndexes IS SELECT UI.INDEX_NAME
 		FROM USER_INDEXES UI
-		WHERE UI.TABLE_NAME = '${tableName}'
-        AND NOT EXISTS (SELECT 1 FROM USER_CONSTRAINTS WHERE TABLE_NAME = '${tableName}' AND CONSTRAINT_TYPE = 'P' AND CONSTRAINT_NAME = UI.INDEX_NAME);
+		WHERE UI.TABLE_NAME = '${tableName.toUpperCase()}'
+        AND NOT EXISTS (SELECT 1 FROM USER_CONSTRAINTS WHERE TABLE_NAME = '${tableName.toUpperCase()}' AND CONSTRAINT_TYPE = 'P' AND CONSTRAINT_NAME = UI.INDEX_NAME);
     columnExists NUMBER;
 BEGIN 
 	-- will not drop any column even it is not in definition, just keep it
