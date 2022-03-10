@@ -135,7 +135,8 @@ def build_by_raw(topic: Topic) -> Table:
 		create_json(TopicDataColumnNames.RAW_TOPIC_DATA.value),
 		create_tuple_id_column(TopicDataColumnNames.TENANT_ID.value, nullable=False),
 		create_datetime(TopicDataColumnNames.INSERT_TIME.value, nullable=False),
-		create_datetime(TopicDataColumnNames.UPDATE_TIME.value, nullable=False)
+		create_datetime(TopicDataColumnNames.UPDATE_TIME.value, nullable=False),
+		extend_existing=True
 	)
 
 
@@ -148,7 +149,8 @@ def build_by_aggregation(topic: Topic) -> Table:
 		create_tuple_id_column(TopicDataColumnNames.TENANT_ID.value, nullable=False),
 		create_int(TopicDataColumnNames.VERSION.value),
 		create_datetime(TopicDataColumnNames.INSERT_TIME.value, nullable=False),
-		create_datetime(TopicDataColumnNames.UPDATE_TIME.value, nullable=False)
+		create_datetime(TopicDataColumnNames.UPDATE_TIME.value, nullable=False),
+		extend_existing=True
 	)
 
 
@@ -159,5 +161,6 @@ def build_by_regular(topic: Topic) -> Table:
 		*create_columns(topic.factors),
 		create_tuple_id_column(TopicDataColumnNames.TENANT_ID.value, nullable=False),
 		create_datetime(TopicDataColumnNames.INSERT_TIME.value, nullable=False),
-		create_datetime(TopicDataColumnNames.UPDATE_TIME.value, nullable=False)
+		create_datetime(TopicDataColumnNames.UPDATE_TIME.value, nullable=False),
+		extend_existing=True
 	)

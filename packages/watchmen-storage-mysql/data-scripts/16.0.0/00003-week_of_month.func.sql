@@ -16,19 +16,19 @@ BEGIN
         # 6 is sunday
         IF weekday_of_first_day = 6 THEN
             # first week is full week
-            return 1;
+            RETURN 1;
         ELSE
             # first week is short
-            return 0;
+            RETURN 0;
         END IF;
     ELSE
         # 6 is sunday
         IF weekday_of_first_day = 6 THEN
             # first week is full week, must add 1
-            return week_of_year_of_given_date - week_of_year_of_first_day + 1;
+            RETURN week_of_year_of_given_date - week_of_year_of_first_day + 1;
         ELSE
             # first week is short
-            return week_of_year_of_given_date - week_of_year_of_first_day;
+            RETURN week_of_year_of_given_date - week_of_year_of_first_day;
         END IF;
     END IF;
 END|
