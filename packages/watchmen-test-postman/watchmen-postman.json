@@ -8663,6 +8663,51 @@
                     "url": "{{URL_PREFIX}}/login"
                   },
                   "response": []
+                },
+                {
+                  "name": "CREATE RAW TOPIC",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "e53d3808-125b-457a-80d6-93befb2cbe5a",
+                        "exec": [
+                          "pm.test(\"Create Raw Topic\", () => {",
+                          "    pm.response.to.have.status(200);",
+                          "    var data = pm.response.json();",
+                          "    pm.environment.set('RAW_TOPIC_ID', data.topicId)",
+                          "    pm.environment.set('RAW_TOPIC_NAME', data.name)",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
+                  "id": "21ab05c9-c075-4964-8352-8bd985e311ef",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "POST",
+                    "header": [],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n    \"topicId\": \"{{RAW_TOPIC_ID}}\",\n    \"name\": \"Test_Raw_Topic\",\n    \"type\": \"raw\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propC\"},\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propD\"},\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propE\"},\n        {\"factorId\": \"6\", \"type\": \"number\", \"name\": \"propF\"}\n    ],\n    \"description\": \"Test Raw Topic\"\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": "{{URL_PREFIX}}/topic"
+                  },
+                  "response": []
                 }
               ],
               "id": "c268b19a-31fe-4d3b-aede-4637e7b6ea07"
@@ -8800,51 +8845,6 @@
                   ]
                 },
                 "url": "{{URL_PREFIX}}/login"
-              },
-              "response": []
-            },
-            {
-              "name": "CREATE RAW TOPIC",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "id": "e53d3808-125b-457a-80d6-93befb2cbe5a",
-                    "exec": [
-                      "pm.test(\"Create Raw Topic\", () => {",
-                      "    pm.response.to.have.status(200);",
-                      "    var data = pm.response.json();",
-                      "    pm.environment.set('RAW_TOPIC_ID', data.topicId)",
-                      "    pm.environment.set('RAW_TOPIC_NAME', data.name)",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ],
-              "id": "21ab05c9-c075-4964-8352-8bd985e311ef",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": {
-                    "token": "{{JWT_TOKEN}}"
-                  }
-                },
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"topicId\": \"{{RAW_TOPIC_ID}}\",\n    \"name\": \"Test_Raw_Topic\",\n    \"type\": \"raw\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propC\"},\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propD\"},\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propE\"},\n        {\"factorId\": \"6\", \"type\": \"number\", \"name\": \"propF\"}\n    ],\n    \"description\": \"Test Raw Topic\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": "{{URL_PREFIX}}/topic"
               },
               "response": []
             },
