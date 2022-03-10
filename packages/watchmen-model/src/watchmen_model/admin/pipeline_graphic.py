@@ -2,8 +2,7 @@ from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
-from watchmen_model.common import DataModel, GraphicPosition, GraphicRect, PipelineGraphicId, TopicId, \
-	UserBasedTuple
+from watchmen_model.common import DataModel, GraphicPosition, GraphicRect, PipelineGraphicId, TopicId, UserBasedTuple
 from watchmen_utilities import ArrayHelper
 
 

@@ -3,8 +3,7 @@ from decimal import Decimal
 from logging import getLogger
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from sqlalchemy import and_, delete, distinct, func, insert, select, Table, text, \
-	update
+from sqlalchemy import and_, delete, distinct, func, insert, select, Table, text, update
 from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.sql import Join, label
 from sqlalchemy.sql.elements import Label, literal_column
@@ -15,9 +14,9 @@ from watchmen_storage import as_table_name, ColumnNameLiteral, Entity, EntityCol
 	EntityCriteriaExpression, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
 	EntityIdHelper, EntityList, EntityNotFoundException, EntityPager, EntityStraightAggregateColumn, \
 	EntityStraightColumn, EntityStraightValuesFinder, EntityUpdater, FreeAggregateArithmetic, FreeAggregateColumn, \
-	FreeAggregatePager, FreeAggregator, FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, NoFreeJoinException, \
-	TooManyEntitiesFoundException, TopicDataStorageSPI, TransactionalStorageSPI, UnexpectedStorageException, \
-	UnsupportedStraightColumnException
+	FreeAggregatePager, FreeAggregator, FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, \
+	NoFreeJoinException, TooManyEntitiesFoundException, TopicDataStorageSPI, TransactionalStorageSPI, \
+	UnexpectedStorageException, UnsupportedStraightColumnException
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 from .sort_build import build_sort_for_statement
 from .table_creator import build_aggregate_assist_column, build_columns, build_columns_script, build_indexes_script, \

@@ -4,10 +4,7 @@ from unittest import TestCase
 from watchmen_model.admin import WriteTopicActionType
 from watchmen_model.admin.pipeline_action_write import InsertOrMergeRowAction, MappingFactor
 from watchmen_model.common import ComputedParameter, ConstantParameter, DataModel, ParameterComputeType, \
-	ParameterExpression, \
-	ParameterExpressionOperator, \
-	ParameterJoint, ParameterJointType, \
-	ParameterKind
+	ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, ParameterKind
 
 
 class DataModelTest(TestCase):

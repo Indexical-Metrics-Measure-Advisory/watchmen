@@ -4,8 +4,8 @@ from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_model.admin import Factor, Topic, TopicType
 from watchmen_model.common import DataPage, FactorId, Pageable, TenantId, TopicId
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaJoint, \
-	EntityCriteriaJointConjunction, EntityCriteriaOperator, \
-	EntityDistinctValuesFinder, EntityRow, EntityShaper, SnowflakeGenerator
+	EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityDistinctValuesFinder, EntityRow, EntityShaper, \
+	SnowflakeGenerator
 from watchmen_utilities import ArrayHelper, is_not_blank
 
 

@@ -6,8 +6,7 @@ from watchmen_model.admin import Factor, FactorType
 from watchmen_model.dqc import MonitorRule
 from watchmen_storage import EntityCriteria
 from watchmen_utilities import DateTimeConstants
-from .data_service_utils import build_date_range_criteria, \
-	find_factor, less_than, out_of_range
+from .data_service_utils import build_date_range_criteria, find_factor, less_than, out_of_range
 from .types import RuleResult
 
 

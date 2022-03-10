@@ -1,8 +1,8 @@
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import StorageService
 from watchmen_model.dqc import MonitorJobLock, MonitorJobLockId
-from watchmen_storage import EntityHelper, EntityIdHelper, \
-	EntityRow, EntityShaper, SnowflakeGenerator, TransactionalStorageSPI
+from watchmen_storage import EntityHelper, EntityIdHelper, EntityRow, EntityShaper, SnowflakeGenerator, \
+	TransactionalStorageSPI
 from watchmen_utilities import get_current_time_in_seconds
 
 
