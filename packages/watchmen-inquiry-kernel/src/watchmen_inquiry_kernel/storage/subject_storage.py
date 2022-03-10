@@ -1,13 +1,14 @@
 from abc import abstractmethod
+from datetime import date
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from watchmen_auth import PrincipalService
-from watchmen_data_kernel.common.settings import ask_date_formats, ask_presto_enabled
+from watchmen_data_kernel.common.settings import ask_all_date_formats, ask_date_formats, ask_presto_enabled
 from watchmen_data_kernel.service import ask_topic_storage
 from watchmen_data_kernel.storage_bridge import ask_topic_data_entity_helper, parse_condition_for_storage, \
 	parse_parameter_for_storage, PipelineVariables
 from watchmen_data_kernel.topic_schema import TopicSchema
-from watchmen_data_kernel.utils import MightAVariable, parse_variable
+from watchmen_data_kernel.utils import MightAVariable, parse_function_in_variable, parse_variable
 from watchmen_inquiry_kernel.common import ask_use_storage_directly, InquiryKernelException
 from watchmen_inquiry_kernel.schema import ReportSchema, SubjectSchema
 from watchmen_meta.admin import SpaceService
@@ -24,7 +25,8 @@ from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteral
 	EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, \
 	EntityCriteriaStatement, FreeAggregateArithmetic, FreeAggregateColumn, FreeAggregatePager, FreeAggregator, \
 	FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, Literal, TopicDataStorageSPI
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_date, is_not_blank
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_date, is_not_blank, month_diff, \
+	truncate_time, year_diff
 
 
 def ask_empty_variables() -> PipelineVariables:
@@ -474,6 +476,70 @@ class SubjectStorage:
 		return ColumnNameLiteral(columnName=f'column_{index[0] + 1}')
 
 	# noinspection PyMethodMayBeStatic
+	def test_date(self, variable_name: str) -> Tuple[bool, Optional[date]]:
+		if variable_name == VariablePredefineFunctions.NOW:
+			return True, get_current_time_in_seconds()
+		else:
+			return is_date(variable_name, ask_all_date_formats())
+
+	# noinspection PyMethodMayBeStatic
+	def compute_date_diff(
+			self, function: VariablePredefineFunctions, end_date: date, start_date: date, variable_name: str
+	) -> int:
+		if function == VariablePredefineFunctions.YEAR_DIFF:
+			return year_diff(end_date, start_date)
+		elif function == VariablePredefineFunctions.MONTH_DIFF:
+			return month_diff(end_date, start_date)
+		elif function == VariablePredefineFunctions.DAY_DIFF:
+			return (truncate_time(end_date) - truncate_time(start_date)).days
+		else:
+			raise InquiryKernelException(f'Constant[{variable_name}] is not supported.')
+
+	def parse_date_diff_variable(
+			self, subject_column_map: Dict[SubjectDatasetColumnId, Tuple[int, SubjectDatasetColumn]],
+			variable_name: str) -> Literal:
+		if variable_name.startswith('&'):
+			variable_name = variable_name[1:]
+		# use alias to match
+		found = ArrayHelper(list(subject_column_map.values())).find(lambda x: x[1].alias == variable_name)
+		if found is None:
+			raise InquiryKernelException(f'Cannot match subject dataset column by given variable[{variable_name}].')
+		index = found[0]
+		return ColumnNameLiteral(columnName=f'column_{index}')
+
+	def create_date_diff(
+			self, subject_column_map: Dict[SubjectDatasetColumnId, Tuple[int, SubjectDatasetColumn]],
+			prefix: str, variable_name: str, function: VariablePredefineFunctions
+	) -> Literal:
+		parsed_params = parse_function_in_variable(variable_name, function.value, 2)
+		end_variable_name = parsed_params[0]
+		start_variable_name = parsed_params[1]
+		end_parsed, end_date = self.test_date(end_variable_name)
+		start_parsed, start_date = self.test_date(start_variable_name)
+		if end_parsed and start_parsed:
+			diff = self.compute_date_diff(function, end_date, start_date, variable_name)
+			return diff if is_blank(prefix) else f'{prefix}{diff}'
+		elif start_parsed:
+			e_date = self.parse_date_diff_variable(subject_column_map, end_variable_name)
+			s_date = start_date
+		elif end_parsed:
+			e_date = end_date
+			s_date = self.parse_date_diff_variable(subject_column_map, start_variable_name)
+		else:
+			e_date = self.parse_date_diff_variable(subject_column_map, end_variable_name)
+			s_date = self.parse_date_diff_variable(subject_column_map, start_variable_name)
+
+		if function == VariablePredefineFunctions.YEAR_DIFF:
+			operator = ComputedLiteralOperator.YEAR_DIFF
+		elif function == VariablePredefineFunctions.MONTH_DIFF:
+			operator = ComputedLiteralOperator.MONTH_DIFF
+		elif function == VariablePredefineFunctions.DAY_DIFF:
+			operator = ComputedLiteralOperator.DAY_DIFF
+		else:
+			raise InquiryKernelException(f'Variable name[{variable_name}] is not supported.')
+		return ComputedLiteral(operator=operator, elements=[e_date, s_date])
+
+	# noinspection PyMethodMayBeStatic
 	def build_literal_by_report_constant_segment(
 			self, subject_column_map: Dict[SubjectDatasetColumnId, Tuple[int, SubjectDatasetColumn]],
 			variable: MightAVariable
@@ -486,11 +552,14 @@ class SubjectStorage:
 		elif variable_name == VariablePredefineFunctions.NOW.value:
 			return lambda variables, principal_service: get_current_time_in_seconds()
 		elif variable_name.startswith(VariablePredefineFunctions.YEAR_DIFF.value):
-			return create_date_diff(prefix, variable_name, VariablePredefineFunctions.YEAR_DIFF)
+			return self.create_date_diff(
+				subject_column_map, prefix, variable_name, VariablePredefineFunctions.YEAR_DIFF)
 		elif variable_name.startswith(VariablePredefineFunctions.MONTH_DIFF.value):
-			return create_date_diff(prefix, variable_name, VariablePredefineFunctions.MONTH_DIFF)
+			return self.create_date_diff(
+				subject_column_map, prefix, variable_name, VariablePredefineFunctions.MONTH_DIFF)
 		elif variable_name.startswith(VariablePredefineFunctions.DAY_DIFF.value):
-			return create_date_diff(prefix, variable_name, VariablePredefineFunctions.DAY_DIFF)
+			return self.create_date_diff(
+				subject_column_map, prefix, variable_name, VariablePredefineFunctions.DAY_DIFF)
 
 		# recover to original string
 		return f'{prefix}{{{variable_name}}}'
