@@ -41,7 +41,7 @@ class MetaSettings(BaseSettings):
 		env_file = '.env'
 		env_file_encoding = 'utf-8'
 		case_sensitive = True
-		# secrets_dir = '/var/run'
+	# secrets_dir = '/var/run'
 
 
 settings = MetaSettings()
@@ -70,6 +70,16 @@ def build_mysql_storage() -> Callable[[], TransactionalStorageSPI]:
 	return lambda: configuration.build()
 
 
+def build_oracle_storage() -> Callable[[], TransactionalStorageSPI]:
+	from watchmen_storage_oracle import StorageOracleConfiguration
+	configuration = StorageOracleConfiguration.config() \
+		.host(settings.META_STORAGE_HOST, settings.META_STORAGE_PORT) \
+		.account(settings.META_STORAGE_USER_NAME, settings.META_STORAGE_PASSWORD) \
+		.schema(settings.META_STORAGE_NAME) \
+		.echo(settings.META_STORAGE_ECHO)
+	return lambda: configuration.build()
+
+
 class MetaStorageHolder:
 	metaStorage: Optional[Callable[[], TransactionalStorageSPI]] = None
 
@@ -81,7 +91,9 @@ def build_meta_storage() -> Callable[[], TransactionalStorageSPI]:
 	storage_type = settings.META_STORAGE_TYPE
 	if storage_type == DataSourceType.MYSQL:
 		return build_mysql_storage()
-	# TODO build oracle storage, mssql storage, mongodb storage
+	if storage_type == DataSourceType.ORACLE:
+		return build_oracle_storage()
+	# TODO build mssql storage, mongodb storage
 
 	raise InitialMetaAppException(f'Meta storage type[{storage_type}] is not supported yet.')
 
