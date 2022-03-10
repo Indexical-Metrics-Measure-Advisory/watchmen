@@ -8848,6 +8848,182 @@
                     "url": "{{URL_PREFIX}}/topic"
                   },
                   "response": []
+                },
+                {
+                  "name": "PIPELINE FUNCTION",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "580761cd-2c0a-42cb-831b-6b46d3098439",
+                        "exec": [
+                          "pm.test(\"Create Pipeline For Function\", () => {",
+                          "    pm.response.to.have.status(200);",
+                          "    const data = pm.response.json();",
+                          "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId);",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
+                  "id": "9c922650-8ee4-4b93-aaea-9eefc385e56c",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "POST",
+                    "header": [],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n    \"topicId\": \"{{RAW_TOPIC_ID}}\",\n    \"name\": \"Test Insert Or Merge Row\",\n    \"type\": \"insert-or-merge\",\n    \"stages\": [\n        {\n            \"stageId\": \"f-1\",\n            \"name\": \"Stage 1\",\n            \"units\": [\n                {\n                    \"unitId\": \"f-2\",\n                    \"name\": \"Unit 1.1\",\n                    \"do\": [\n                        {\n                            \"actionId\": \"f-3\",\n                            \"type\": \"insert-or-merge-row\",\n                            \"topicId\": \"{{TOPIC_ID}}\",\n                            \"mapping\": [\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"1\"\n                                    },\n                                    \"factorId\": \"1\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"2\"\n                                    },\n                                    \"factorId\": \"2\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"3\"\n                                    },\n                                    \"factorId\": \"3\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"4\"\n                                    },\n                                    \"factorId\": \"4\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"5\"\n                                    },\n                                    \"factorId\": \"5\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"6\"\n                                    },\n                                    \"factorId\": \"6\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"computed\",\n                                        \"type\": \"add\",\n                                        \"parameters\": [\n                                            {\n                                                \"kind\": \"topic\",\n                                                \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                                \"factorId\": \"2\"\n                                            },\n                                            {\n                                                \"kind\": \"topic\",\n                                                \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                                \"factorId\": \"6\"\n                                            }\n                                        ]\n                                    },\n                                    \"factorId\": \"7\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"computed\",\n                                        \"type\": \"subtract\",\n                                        \"parameters\": [\n                                            {\n                                                \"kind\": \"topic\",\n                                                \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                                \"factorId\": \"2\"\n                                            },\n                                            {\n                                                \"kind\": \"topic\",\n                                                \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                                \"factorId\": \"6\"\n                                            }\n                                        ]\n                                    },\n                                    \"factorId\": \"8\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"computed\",\n                                        \"type\": \"multiply\",\n                                        \"parameters\": [\n                                            {\n                                                \"kind\": \"topic\",\n                                                \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                                \"factorId\": \"2\"\n                                            },\n                                            {\n                                                \"kind\": \"topic\",\n                                                \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                                \"factorId\": \"6\"\n                                            }\n                                        ]\n                                    },\n                                    \"factorId\": \"9\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"computed\",\n                                        \"type\": \"divide\",\n                                        \"parameters\": [\n                                            {\n                                                \"kind\": \"topic\",\n                                                \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                                \"factorId\": \"2\"\n                                            },\n                                            {\n                                                \"kind\": \"topic\",\n                                                \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                                \"factorId\": \"6\"\n                                            }\n                                        ]\n                                    },\n                                    \"factorId\": \"10\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"computed\",\n                                        \"type\": \"modulus\",\n                                        \"parameters\": [\n                                            {\n                                                \"kind\": \"topic\",\n                                                \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                                \"factorId\": \"2\"\n                                            },\n                                            {\n                                                \"kind\": \"topic\",\n                                                \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                                \"factorId\": \"6\"\n                                            }\n                                        ]\n                                    },\n                                    \"factorId\": \"11\"\n                                }\n                            ],\n                            \"by\": {\n                                \"jointType\": \"and\",\n                                \"filters\": [\n                                    {\n                                        \"left\": {\n                                            \"kind\": \"topic\",\n                                            \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                            \"factorId\": \"1\"\n                                        },\n                                        \"operator\": \"equals\",\n                                        \"right\": {\n                                            \"kind\": \"topic\",\n                                            \"topicId\": \"{{TOPIC_ID}}\",\n                                            \"factorId\": \"1\"\n                                        }\n                                    }\n                                ]\n                            }\n                        }\n                    ]\n                }\n            ]\n        }\n    ],\n    \"enabled\": true,\n    \"validated\": true\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": "{{URL_PREFIX}}/pipeline"
+                  },
+                  "response": []
+                },
+                {
+                  "name": "INSERT RAW",
+                  "id": "c6aa1b03-95a2-4b6d-9e3b-1a503dc74615",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "POST",
+                    "header": [],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n    \"code\": \"Test_Raw_Topic\",\n    \"data\": {\n        \"propA\": \"text\",\n        \"propB\": 100,\n        \"propC\": true,\n        \"propD\": \"2022-03-22\",\n        \"propE\": \"2022-03-22 22:39:45\",\n        \"propF\": 30\n    }\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": "{{URL_PREFIX}}/pipeline/data"
+                  },
+                  "response": []
+                },
+                {
+                  "name": "DELETE PIPELINE",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "c1b54c97-bcbf-4356-ae27-a2d925e798eb",
+                        "exec": [
+                          "pm.test('Delete Pipeline', () => {",
+                          "    pm.response.to.have.status(200);",
+                          "    pm.environment.unset(\"PIPELINE_ID\");",
+                          "})",
+                          ""
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
+                  "id": "3410ffd6-077c-4762-afbe-2f60eb1712de",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "DELETE",
+                    "header": [],
+                    "url": {
+                      "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
+                      "host": [
+                        "{{URL_PREFIX}}"
+                      ],
+                      "path": [
+                        "pipeline"
+                      ],
+                      "query": [
+                        {
+                          "key": "pipeline_id",
+                          "value": "{{PIPELINE_ID}}"
+                        }
+                      ]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "DELETE TOPIC",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "3082943f-cf5b-47a3-85da-127dbc734306",
+                        "exec": [
+                          "pm.test(\"Delete Topic\", () => {",
+                          "    pm.response.to.have.status(200);",
+                          "    const data = pm.response.json();",
+                          "    const topic_id = pm.environment.get(\"TOPIC_ID\");",
+                          "    const topic_name = pm.environment.get(\"TOPIC_NAME\");",
+                          "    pm.expect(data.topicId).to.equal(topic_id);",
+                          "    pm.expect(data.name).to.equal(topic_name);",
+                          "    pm.environment.unset(\"TOPIC_ID\");",
+                          "    pm.environment.unset(\"TOPIC_NAME\");",
+                          "});",
+                          ""
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
+                  "id": "8dc14332-23e5-4f28-b109-9c675dda2e64",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "DELETE",
+                    "header": [],
+                    "url": {
+                      "raw": "{{URL_PREFIX}}/topic?topic_id={{TOPIC_ID}}",
+                      "host": [
+                        "{{URL_PREFIX}}"
+                      ],
+                      "path": [
+                        "topic"
+                      ],
+                      "query": [
+                        {
+                          "key": "topic_id",
+                          "value": "{{TOPIC_ID}}"
+                        }
+                      ]
+                    }
+                  },
+                  "response": []
                 }
               ],
               "id": "0a28ab13-186d-48d8-b830-fc9d5d6a5e98"
@@ -8935,182 +9111,6 @@
                   }
                 },
                 "url": "{{URL_PREFIX}}/datasource"
-              },
-              "response": []
-            },
-            {
-              "name": "PIPELINE FUNCTION",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "id": "580761cd-2c0a-42cb-831b-6b46d3098439",
-                    "exec": [
-                      "pm.test(\"Create Pipeline For Function\", () => {",
-                      "    pm.response.to.have.status(200);",
-                      "    const data = pm.response.json();",
-                      "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId);",
-                      "});"
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ],
-              "id": "9c922650-8ee4-4b93-aaea-9eefc385e56c",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": {
-                    "token": "{{JWT_TOKEN}}"
-                  }
-                },
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"topicId\": \"{{RAW_TOPIC_ID}}\",\n    \"name\": \"Test Insert Or Merge Row\",\n    \"type\": \"insert-or-merge\",\n    \"stages\": [\n        {\n            \"stageId\": \"f-1\",\n            \"name\": \"Stage 1\",\n            \"units\": [\n                {\n                    \"unitId\": \"f-2\",\n                    \"name\": \"Unit 1.1\",\n                    \"do\": [\n                        {\n                            \"actionId\": \"f-3\",\n                            \"type\": \"insert-or-merge-row\",\n                            \"topicId\": \"{{TOPIC_ID}}\",\n                            \"mapping\": [\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"1\"\n                                    },\n                                    \"factorId\": \"1\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"2\"\n                                    },\n                                    \"factorId\": \"2\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"3\"\n                                    },\n                                    \"factorId\": \"3\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"4\"\n                                    },\n                                    \"factorId\": \"4\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"5\"\n                                    },\n                                    \"factorId\": \"5\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"6\"\n                                    },\n                                    \"factorId\": \"6\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"computed\",\n                                        \"type\": \"add\",\n                                        \"parameters\": [\n                                            {\n                                                \"kind\": \"topic\",\n                                                \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                                \"factorId\": \"2\"\n                                            },\n                                            {\n                                                \"kind\": \"topic\",\n                                                \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                                \"factorId\": \"6\"\n                                            }\n                                        ]\n                                    },\n                                    \"factorId\": \"7\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"computed\",\n                                        \"type\": \"subtract\",\n                                        \"parameters\": [\n                                            {\n                                                \"kind\": \"topic\",\n                                                \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                                \"factorId\": \"2\"\n                                            },\n                                            {\n                                                \"kind\": \"topic\",\n                                                \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                                \"factorId\": \"6\"\n                                            }\n                                        ]\n                                    },\n                                    \"factorId\": \"8\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"computed\",\n                                        \"type\": \"multiply\",\n                                        \"parameters\": [\n                                            {\n                                                \"kind\": \"topic\",\n                                                \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                                \"factorId\": \"2\"\n                                            },\n                                            {\n                                                \"kind\": \"topic\",\n                                                \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                                \"factorId\": \"6\"\n                                            }\n                                        ]\n                                    },\n                                    \"factorId\": \"9\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"computed\",\n                                        \"type\": \"divide\",\n                                        \"parameters\": [\n                                            {\n                                                \"kind\": \"topic\",\n                                                \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                                \"factorId\": \"2\"\n                                            },\n                                            {\n                                                \"kind\": \"topic\",\n                                                \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                                \"factorId\": \"6\"\n                                            }\n                                        ]\n                                    },\n                                    \"factorId\": \"10\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"computed\",\n                                        \"type\": \"modulus\",\n                                        \"parameters\": [\n                                            {\n                                                \"kind\": \"topic\",\n                                                \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                                \"factorId\": \"2\"\n                                            },\n                                            {\n                                                \"kind\": \"topic\",\n                                                \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                                \"factorId\": \"6\"\n                                            }\n                                        ]\n                                    },\n                                    \"factorId\": \"11\"\n                                }\n                            ],\n                            \"by\": {\n                                \"jointType\": \"and\",\n                                \"filters\": [\n                                    {\n                                        \"left\": {\n                                            \"kind\": \"topic\",\n                                            \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                            \"factorId\": \"1\"\n                                        },\n                                        \"operator\": \"equals\",\n                                        \"right\": {\n                                            \"kind\": \"topic\",\n                                            \"topicId\": \"{{TOPIC_ID}}\",\n                                            \"factorId\": \"1\"\n                                        }\n                                    }\n                                ]\n                            }\n                        }\n                    ]\n                }\n            ]\n        }\n    ],\n    \"enabled\": true,\n    \"validated\": true\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": "{{URL_PREFIX}}/pipeline"
-              },
-              "response": []
-            },
-            {
-              "name": "INSERT RAW",
-              "id": "c6aa1b03-95a2-4b6d-9e3b-1a503dc74615",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": {
-                    "token": "{{JWT_TOKEN}}"
-                  }
-                },
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"code\": \"Test_Raw_Topic\",\n    \"data\": {\n        \"propA\": \"text\",\n        \"propB\": 100,\n        \"propC\": true,\n        \"propD\": \"2022-03-22\",\n        \"propE\": \"2022-03-22 22:39:45\",\n        \"propF\": 30\n    }\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": "{{URL_PREFIX}}/pipeline/data"
-              },
-              "response": []
-            },
-            {
-              "name": "DELETE PIPELINE",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "id": "c1b54c97-bcbf-4356-ae27-a2d925e798eb",
-                    "exec": [
-                      "pm.test('Delete Pipeline', () => {",
-                      "    pm.response.to.have.status(200);",
-                      "    pm.environment.unset(\"PIPELINE_ID\");",
-                      "})",
-                      ""
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ],
-              "id": "3410ffd6-077c-4762-afbe-2f60eb1712de",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": {
-                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
-                  }
-                },
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
-                  "host": [
-                    "{{URL_PREFIX}}"
-                  ],
-                  "path": [
-                    "pipeline"
-                  ],
-                  "query": [
-                    {
-                      "key": "pipeline_id",
-                      "value": "{{PIPELINE_ID}}"
-                    }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "DELETE TOPIC",
-              "event": [
-                {
-                  "listen": "test",
-                  "script": {
-                    "id": "3082943f-cf5b-47a3-85da-127dbc734306",
-                    "exec": [
-                      "pm.test(\"Delete Topic\", () => {",
-                      "    pm.response.to.have.status(200);",
-                      "    const data = pm.response.json();",
-                      "    const topic_id = pm.environment.get(\"TOPIC_ID\");",
-                      "    const topic_name = pm.environment.get(\"TOPIC_NAME\");",
-                      "    pm.expect(data.topicId).to.equal(topic_id);",
-                      "    pm.expect(data.name).to.equal(topic_name);",
-                      "    pm.environment.unset(\"TOPIC_ID\");",
-                      "    pm.environment.unset(\"TOPIC_NAME\");",
-                      "});",
-                      ""
-                    ],
-                    "type": "text/javascript"
-                  }
-                }
-              ],
-              "id": "8dc14332-23e5-4f28-b109-9c675dda2e64",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": {
-                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
-                  }
-                },
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{URL_PREFIX}}/topic?topic_id={{TOPIC_ID}}",
-                  "host": [
-                    "{{URL_PREFIX}}"
-                  ],
-                  "path": [
-                    "topic"
-                  ],
-                  "query": [
-                    {
-                      "key": "topic_id",
-                      "value": "{{TOPIC_ID}}"
-                    }
-                  ]
-                }
               },
               "response": []
             }
