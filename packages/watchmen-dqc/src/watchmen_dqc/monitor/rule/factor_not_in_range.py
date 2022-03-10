@@ -3,8 +3,8 @@ from typing import Tuple
 
 from watchmen_data_kernel.storage import TopicDataService
 from watchmen_model.dqc import MonitorRule
-from watchmen_storage import EntityCriteriaExpression, EntityCriteriaJoint, \
-	EntityCriteriaJointConjunction, EntityCriteriaOperator
+from watchmen_storage import EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, \
+	EntityCriteriaOperator
 from .data_service_utils import build_column_name_literal, build_date_range_criteria, find_factor
 from .types import RuleResult
 

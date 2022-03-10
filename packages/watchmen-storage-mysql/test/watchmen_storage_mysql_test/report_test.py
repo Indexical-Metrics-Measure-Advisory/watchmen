@@ -2,9 +2,7 @@ from unittest import TestCase
 
 from watchmen_model.admin import Factor, FactorType, Topic, TopicKind, TopicType
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, \
-	FreeAggregateArithmetic, FreeAggregateColumn, \
-	FreeAggregator, \
-	FreeColumn, FreeJoin
+	FreeAggregateArithmetic, FreeAggregateColumn, FreeAggregator, FreeColumn, FreeJoin
 from watchmen_storage_mysql import StorageMySQLConfiguration
 
 

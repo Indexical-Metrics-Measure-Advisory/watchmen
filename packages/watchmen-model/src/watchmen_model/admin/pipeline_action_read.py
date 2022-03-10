@@ -1,6 +1,5 @@
 from watchmen_model.common import construct_parameter_joint
-from .pipeline_action import AggregateArithmeticHolder, FindBy, FromFactor, FromTopic, \
-	MemoryWriter, ReadTopicActionType
+from .pipeline_action import AggregateArithmeticHolder, FindBy, FromFactor, FromTopic, MemoryWriter, ReadTopicActionType
 
 
 class ReadTopicAction(FromTopic, MemoryWriter, FindBy):

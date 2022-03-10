@@ -6,8 +6,9 @@ from .indicator import Indicator, IndicatorAggregateArithmetic, IndicatorMeasure
 	RelevantIndicatorType
 from .inspection import Inspection, InspectionAmPmRange, InspectionDayKindRange, InspectionDayOfMonthRange, \
 	InspectionDayOfWeekRange, InspectionHalfMonthRange, InspectionHalfWeekRange, InspectionHalfYearRange, \
-	InspectionHourKindRange, InspectionHourRange, InspectionMonthRange, InspectionQuarterRange, InspectionTenDaysRange, \
-	InspectionTimeRange, InspectionTimeRangeType, InspectionWeekOfMonthRange, InspectionWeekOfYearRange, \
+	InspectionHourKindRange, InspectionHourRange, InspectionMonthRange, InspectionQuarterRange, \
+	InspectionTenDaysRange, InspectionTimeRange, InspectionTimeRangeType, InspectionWeekOfMonthRange, \
+	InspectionWeekOfYearRange, \
 	InspectionYearRange, InspectMeasureOn
 from .measure_method import MeasureMethod
 from .navigation import MANUAL_COMPUTE_NAVIGATION_INDICATOR_ID, ManualComputeNavigationIndicator, Navigation, \

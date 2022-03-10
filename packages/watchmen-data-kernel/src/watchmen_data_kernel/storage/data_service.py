@@ -10,9 +10,7 @@ from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import PipelineTriggerType, Topic
 from watchmen_model.common import DataModel, DataPage, Pageable
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
-from watchmen_storage import EntityColumnName, EntityCriteria, EntityPager, \
-	EntityStraightColumn, \
-	SnowflakeGenerator, \
+from watchmen_storage import EntityColumnName, EntityCriteria, EntityPager, EntityStraightColumn, SnowflakeGenerator, \
 	TopicDataStorageSPI
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
 from .data_entity_helper import TopicDataEntityHelper

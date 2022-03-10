@@ -3,8 +3,7 @@ from typing import Optional, Union
 from watchmen_meta.common import UserBasedTupleService, UserBasedTupleShaper
 from watchmen_model.admin import PipelineGraphic, TopicGraphic
 from watchmen_model.common import PipelineGraphicId
-from watchmen_storage import EntityRow, \
-	EntityShaper
+from watchmen_storage import EntityRow, EntityShaper
 from watchmen_utilities import ArrayHelper
 
 

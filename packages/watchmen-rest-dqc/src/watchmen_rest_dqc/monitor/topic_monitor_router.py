@@ -6,9 +6,8 @@ from starlette.responses import Response
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_all_date_formats
 from watchmen_data_kernel.meta import TenantService, TopicService
-from watchmen_dqc.monitor import MonitorDataService, SelfCleaningMonitorRulesRunner, \
-	to_previous_month, to_previous_week, \
-	to_yesterday
+from watchmen_dqc.monitor import MonitorDataService, SelfCleaningMonitorRulesRunner, to_previous_month, \
+	to_previous_week, to_yesterday
 from watchmen_model.admin import User, UserRole
 from watchmen_model.common import TenantId
 from watchmen_model.dqc import MonitorRuleLog, MonitorRuleLogCriteria, MonitorRuleStatisticalInterval

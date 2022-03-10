@@ -4,8 +4,7 @@ from pydantic import BaseModel
 
 from watchmen_model.common import construct_parameter, construct_parameter_joint, FactorId, Parameter
 from watchmen_utilities import ArrayHelper
-from .pipeline_action import AggregateArithmeticHolder, FindBy, PipelineAction, ToFactor, ToTopic, \
-	WriteTopicActionType
+from .pipeline_action import AggregateArithmeticHolder, FindBy, PipelineAction, ToFactor, ToTopic, WriteTopicActionType
 
 
 class MappingFactor(AggregateArithmeticHolder, BaseModel):

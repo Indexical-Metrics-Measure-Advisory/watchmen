@@ -1,14 +1,11 @@
-from enum import Enum
+sfrom enum import Enum
 from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
 from watchmen_model.common import Auditable, ConnectedSpaceId, construct_parameter, construct_parameter_conditions, \
-	construct_parameter_joint, \
-	DataModel, FactorId, LastVisit, Pageable, Parameter, ParameterCondition, ParameterJoint, SubjectDatasetColumnId, \
-	SubjectId, \
-	TopicId, \
-	UserBasedTuple
+	construct_parameter_joint, DataModel, FactorId, LastVisit, Pageable, Parameter, ParameterCondition, \
+	ParameterJoint, SubjectDatasetColumnId, SubjectId, TopicId, UserBasedTuple
 from watchmen_utilities import ArrayHelper
 
 

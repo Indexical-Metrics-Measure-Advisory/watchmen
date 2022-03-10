@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import List, Optional, Union
 
-from watchmen_meta.common import AuditableShaper, LastVisitShaper, TupleNotFoundException, \
-	UserBasedTupleService, UserBasedTupleShaper
+from watchmen_meta.common import AuditableShaper, LastVisitShaper, TupleNotFoundException, UserBasedTupleService, \
+	UserBasedTupleShaper
 from watchmen_model.common import ConnectedSpaceId, SubjectId, TenantId, UserId
 from watchmen_model.console import Subject, SubjectDataset
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityRow, EntityShaper
