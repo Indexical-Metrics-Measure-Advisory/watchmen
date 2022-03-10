@@ -5,9 +5,9 @@ CREATE TABLE enums
     description      VARCHAR2(255),
     parent_enum_id   VARCHAR2(50),
     tenant_id        VARCHAR2(50) NOT NULL,
-    created_at       DATE    NOT NULL,
+    created_at       DATE         NOT NULL,
     created_by       VARCHAR2(50) NOT NULL,
-    last_modified_at DATE    NOT NULL,
+    last_modified_at DATE         NOT NULL,
     last_modified_by VARCHAR2(50) NOT NULL,
     version          NUMBER(20),
     CONSTRAINT pk_enums PRIMARY KEY (enum_id)
