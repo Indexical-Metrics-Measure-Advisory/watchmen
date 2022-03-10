@@ -20,5 +20,6 @@ CREATE TABLE topic_raw_pipeline_monitor_log
     INDEX (dataid),
     INDEX (status),
     INDEX (starttime),
-    INDEX (tenant_id_)
+    INDEX (tenant_id_),
+    INDEX (update_time_)
 );
