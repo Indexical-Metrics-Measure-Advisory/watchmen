@@ -9054,7 +9054,7 @@
                   "response": []
                 },
                 {
-                  "name": "New Request",
+                  "name": "CREATE TOPIC",
                   "id": "6e045f2a-0d58-431e-b129-b3b7e9ccabcb",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
