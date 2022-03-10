@@ -8850,7 +8850,7 @@
                   "response": []
                 },
                 {
-                  "name": "PIPELINE FUNCTION",
+                  "name": "MATH FUNCTION",
                   "event": [
                     {
                       "listen": "test",
