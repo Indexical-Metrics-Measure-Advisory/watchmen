@@ -1,0 +1,6 @@
+CREATE OR REPLACE FUNCTION DATEDIFF(end_date IN DATE, start_date IN DATE)
+    RETURN NUMBER
+    IS
+BEGIN
+    RETURN TRUNC(end_date) - TRUNC(start_date);
+END;

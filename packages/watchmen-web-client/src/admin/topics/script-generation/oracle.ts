@@ -57,7 +57,7 @@ export const OracleFactorTypeMap: Record<FactorType, string> = {
 	[FactorType.OCCUPATION]: 'VARCHAR2(10)',
 	[FactorType.DATE_OF_BIRTH]: 'DATE',
 	[FactorType.AGE]: 'NUMBER(5)',
-	[FactorType.ID_NO]: 'VARCHAR2(64)',
+	[FactorType.ID_NO]: 'VARCHAR2(50)',
 	[FactorType.RELIGION]: 'VARCHAR2(10)',
 	[FactorType.NATIONALITY]: 'VARCHAR2(10)',
 
