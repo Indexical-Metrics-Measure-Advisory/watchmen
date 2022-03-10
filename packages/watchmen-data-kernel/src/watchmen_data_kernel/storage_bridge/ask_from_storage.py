@@ -159,19 +159,31 @@ def create_date_diff(
 		def parse_date(
 				name: str, variables: PipelineVariables, principal_service: PrincipalService
 		) -> Tuple[bool, Union[date, ParsedStorageParameter]]:
-			if name.startswith('&'):
+			if allow_in_memory_variables and not name.strip('&'):
+				# try to get from memory variables
+				parsed, value, parsed_date = get_date_from_variables(variables, principal_service, name)
+				if not parsed:
+					raise DataKernelException(f'Value[{value}] cannot be parsed to date or datetime.')
+				return True, parsed_date
+			else:
+				# support "&" starting or plain name
+				if name.startswith('&'):
+					available_name = name[1:]
+				else:
+					available_name = name
 				if allow_in_memory_variables:
-					# in pipeline find by, factor name, factor must find in given available schemas (actually, only one)
+					# in pipeline find by, factor name, factor must find in given available schemas.
+					# actually, the only one is the source topic of find by itself
 					if len(available_schemas) == 0:
 						raise DataKernelException(
 							f'Variable name[{name}] is not supported, since no available topic given.')
 					topic = available_schemas[0].get_topic()
-					factor_name = name[1:]
+					factor_name = available_name
 				else:
-					# in console, topic.factor, topic must in given available schemas
-					if '.' not in name:
+					# in console subject, topic.factor, topic must in given available schemas
+					if '.' not in available_name:
 						raise DataKernelException(f'Variable name[{name}] is not supported.')
-					names = name[1:].split('.')
+					names = available_name.split('.')
 					if len(names) != 2:
 						raise DataKernelException(f'Variable name[{name}] is not supported.')
 					topic_name = names[0]
@@ -188,34 +200,27 @@ def create_date_diff(
 				return True, ParsedStorageTopicFactorParameter(
 					TopicFactorParameter(kind=ParameterKind.TOPIC, topicId=topic.topicId, factorId=factor.factorId),
 					available_schemas, principal_service, allow_in_memory_variables)
-			elif allow_in_memory_variables:
-				parsed, value, parsed_date = get_date_from_variables(variables, principal_service, name)
-				if not parsed:
-					raise DataKernelException(f'Value[{value}] cannot be parsed to date or datetime.')
-				return True, parsed_date
-			else:
-				raise DataKernelException(f'Variable name[{name}] is not supported.')
 
-		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
-			e_parsed, e_date = True, end_date if end_parsed \
-				else parse_date(end_variable_name, variables, principal_service)
-			s_parsed, s_date = True, start_date if start_parsed \
-				else parse_date(start_variable_name, variables, principal_service)
-			if e_parsed and s_parsed:
-				diff = compute_date_diff(function, e_date, s_date, variable_name)
-				return diff if is_blank(prefix) else f'{prefix}{diff}'
+	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+		e_parsed, e_date = True, end_date if end_parsed \
+			else parse_date(end_variable_name, variables, principal_service)
+		s_parsed, s_date = True, start_date if start_parsed \
+			else parse_date(start_variable_name, variables, principal_service)
+		if e_parsed and s_parsed:
+			diff = compute_date_diff(function, e_date, s_date, variable_name)
+			return diff if is_blank(prefix) else f'{prefix}{diff}'
+		else:
+			if function == VariablePredefineFunctions.YEAR_DIFF:
+				operator = ComputedLiteralOperator.YEAR_DIFF
+			elif function == VariablePredefineFunctions.MONTH_DIFF:
+				operator = ComputedLiteralOperator.MONTH_DIFF
+			elif function == VariablePredefineFunctions.DAY_DIFF:
+				operator = ComputedLiteralOperator.DAY_DIFF
 			else:
-				if function == VariablePredefineFunctions.YEAR_DIFF:
-					operator = ComputedLiteralOperator.YEAR_DIFF
-				elif function == VariablePredefineFunctions.MONTH_DIFF:
-					operator = ComputedLiteralOperator.MONTH_DIFF
-				elif function == VariablePredefineFunctions.DAY_DIFF:
-					operator = ComputedLiteralOperator.DAY_DIFF
-				else:
-					raise DataKernelException(f'Variable name[{variable_name}] is not supported.')
-				return create_ask_value_for_computed(operator, [e_date, s_date])
+				raise DataKernelException(f'Variable name[{variable_name}] is not supported.')
+			return create_ask_value_for_computed(operator, [e_date, s_date])
 
-		return action
+	return action
 
 
 # noinspection DuplicatedCode
