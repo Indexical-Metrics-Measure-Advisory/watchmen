@@ -8851,6 +8851,83 @@
                         "url": "{{URL_PREFIX}}/pipeline"
                       },
                       "response": []
+                    },
+                    {
+                      "name": "INSERT RAW",
+                      "id": "c6aa1b03-95a2-4b6d-9e3b-1a503dc74615",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n    \"code\": \"Test_Raw_Topic\",\n    \"data\": {\n        \"propA\": \"text\",\n        \"propB\": 100,\n        \"propC\": true,\n        \"propD\": \"2022-03-22\",\n        \"propE\": \"2022-03-22 22:39:45\",\n        \"propF\": 30\n    }\n}",
+                          "options": {
+                            "raw": {
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": "{{URL_PREFIX}}/pipeline/data"
+                      },
+                      "response": []
+                    },
+                    {
+                      "name": "DELETE PIPELINE",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "c1b54c97-bcbf-4356-ae27-a2d925e798eb",
+                            "exec": [
+                              "pm.test('Delete Pipeline', () => {",
+                              "    pm.response.to.have.status(200);",
+                              "    pm.environment.unset(\"PIPELINE_ID\");",
+                              "})",
+                              ""
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
+                      "id": "3410ffd6-077c-4762-afbe-2f60eb1712de",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                          "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
+                          "host": [
+                            "{{URL_PREFIX}}"
+                          ],
+                          "path": [
+                            "pipeline"
+                          ],
+                          "query": [
+                            {
+                              "key": "pipeline_id",
+                              "value": "{{PIPELINE_ID}}"
+                            }
+                          ]
+                        }
+                      },
+                      "response": []
                     }
                   ],
                   "id": "2e2aefc7-fe16-4a29-80a8-ecb024d103c2"
@@ -8896,83 +8973,6 @@
                       }
                     },
                     "url": "{{URL_PREFIX}}/topic"
-                  },
-                  "response": []
-                },
-                {
-                  "name": "INSERT RAW",
-                  "id": "c6aa1b03-95a2-4b6d-9e3b-1a503dc74615",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": {
-                        "token": "{{JWT_TOKEN}}"
-                      }
-                    },
-                    "method": "POST",
-                    "header": [],
-                    "body": {
-                      "mode": "raw",
-                      "raw": "{\n    \"code\": \"Test_Raw_Topic\",\n    \"data\": {\n        \"propA\": \"text\",\n        \"propB\": 100,\n        \"propC\": true,\n        \"propD\": \"2022-03-22\",\n        \"propE\": \"2022-03-22 22:39:45\",\n        \"propF\": 30\n    }\n}",
-                      "options": {
-                        "raw": {
-                          "language": "json"
-                        }
-                      }
-                    },
-                    "url": "{{URL_PREFIX}}/pipeline/data"
-                  },
-                  "response": []
-                },
-                {
-                  "name": "DELETE PIPELINE",
-                  "event": [
-                    {
-                      "listen": "test",
-                      "script": {
-                        "id": "c1b54c97-bcbf-4356-ae27-a2d925e798eb",
-                        "exec": [
-                          "pm.test('Delete Pipeline', () => {",
-                          "    pm.response.to.have.status(200);",
-                          "    pm.environment.unset(\"PIPELINE_ID\");",
-                          "})",
-                          ""
-                        ],
-                        "type": "text/javascript"
-                      }
-                    }
-                  ],
-                  "id": "3410ffd6-077c-4762-afbe-2f60eb1712de",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": {
-                        "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
-                      }
-                    },
-                    "method": "DELETE",
-                    "header": [],
-                    "url": {
-                      "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
-                      "host": [
-                        "{{URL_PREFIX}}"
-                      ],
-                      "path": [
-                        "pipeline"
-                      ],
-                      "query": [
-                        {
-                          "key": "pipeline_id",
-                          "value": "{{PIPELINE_ID}}"
-                        }
-                      ]
-                    }
                   },
                   "response": []
                 },
