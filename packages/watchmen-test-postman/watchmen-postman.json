@@ -9139,6 +9139,18 @@
               "name": "CONSTANT FUNCTION",
               "item": [
                 {
+                  "name": "CREATE RAW TOPIC",
+                  "id": "9987f4e6-bd95-4db4-aeca-299c7a675d76",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
+                },
+                {
                   "name": "CREATE TOPIC",
                   "id": "3e0e672e-cd2e-4b8e-a4eb-211879f93d7d",
                   "protocolProfileBehavior": {
@@ -9163,18 +9175,6 @@
                 {
                   "name": "CONSTANT FUNCATION",
                   "id": "bb821db6-f878-4197-b115-07fd015ef78d",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "method": "GET",
-                    "header": []
-                  },
-                  "response": []
-                },
-                {
-                  "name": "CREATE RAW TOPIC",
-                  "id": "9987f4e6-bd95-4db4-aeca-299c7a675d76",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
