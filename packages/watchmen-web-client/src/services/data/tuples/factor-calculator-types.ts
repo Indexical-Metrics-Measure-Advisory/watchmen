@@ -161,7 +161,8 @@ export enum VariablePredefineFunctions {
 
 	DAY_DIFF = '&dayDiff',
 	MONTH_DIFF = '&monthDiff',
-	YEAR_DIFF = '&yearDiff'
+	YEAR_DIFF = '&yearDiff',
+	NOW = '&now'
 }
 
 export interface ParsedVariablePredefineFunctions {

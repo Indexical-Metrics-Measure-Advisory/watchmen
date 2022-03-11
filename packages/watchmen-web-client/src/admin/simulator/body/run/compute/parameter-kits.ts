@@ -10,6 +10,7 @@ import {
 import {isDateDiffConstant} from '@/services/data/tuples/factor-calculator-utils';
 import {Factor} from '@/services/data/tuples/factor-types';
 import {Topic} from '@/services/data/tuples/topic-types';
+import {getCurrentTime} from '@/services/data/utils';
 import {isXaNumber} from '@/services/utils';
 import dayjs from 'dayjs';
 import {DataRow} from '../../../types';
@@ -173,6 +174,8 @@ const computeVariable = (options: { variable: string, getFirstValue: (propertyNa
 	return variable.split('.').map(x => x.trim()).reduce((value: any, part, index) => {
 		if (index === 0 && part === VariablePredefineFunctions.NEXT_SEQ) {
 			return currentSnowflakeId++;
+		} else if (index === 0 && part === VariablePredefineFunctions.NOW) {
+			return getCurrentTime();
 		} else if (index === 0) {
 			return getFirstValue(part);
 		} else if (value == null) {
