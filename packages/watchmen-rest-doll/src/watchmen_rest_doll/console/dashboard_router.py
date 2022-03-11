@@ -316,7 +316,7 @@ async def delete_dashboard_by_id(
 
 
 @router.delete('/dashboard', tags=[UserRole.SUPER_ADMIN], response_model=Dashboard)
-async def delete_report_by_id_by_super_admin(
+async def delete_dashboard_by_id_by_super_admin(
 		dashboard_id: Optional[DashboardId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
 ) -> Dashboard:

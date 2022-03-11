@@ -14,6 +14,7 @@ from watchmen_model.admin.space import SpaceFilter
 from watchmen_model.common import ConnectedSpaceId, FactorId, ParameterJoint, PipelineId, ReportId, SpaceId, \
 	SubjectId, TenantBasedTuple, TenantId, TopicId, UserId
 from watchmen_model.console import ConnectedSpace, Report, Subject, SubjectDataset
+from watchmen_model.dqc import MonitorRule
 from watchmen_model.system import Tenant
 from watchmen_rest import get_any_admin_principal
 from watchmen_rest.util import raise_400, raise_403
@@ -37,6 +38,7 @@ class MixImportDataRequest(BaseModel):
 	pipelines: Optional[List[Pipeline]] = []
 	spaces: Optional[List[Space]] = []
 	connectedSpaces: Optional[List[ConnectedSpaceWithSubjects]] = []
+	monitorRules: Optional[List[MonitorRule]]
 	importType: MixedImportType = None
 
 
@@ -387,6 +389,8 @@ def try_to_import(request: MixImportDataRequest, user_service: UserService, do_u
 		.map(lambda x: x.reports).flatten().to_list()
 	report_service = get_report_service(user_service)
 	report_results = ArrayHelper(reports).map(lambda x: try_to_import_report(x, report_service, do_update)).to_list()
+
+	# TODO import monitor rules
 
 	return MixImportDataResponse(
 		passed=is_all_passed([

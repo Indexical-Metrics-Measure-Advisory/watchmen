@@ -1,6 +1,7 @@
 from typing import Callable, List, Optional
 
 from fastapi import APIRouter, Depends
+from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
 from watchmen_dqc.admin import CatalogService
@@ -110,8 +111,30 @@ async def query_catalog(
 	return trans_readonly(catalog_service, action)
 
 
-@router.delete('/dqc/catalog', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=Catalog)
-async def delete_catalog_by_id(
+@router.get('/dqc/catalog/delete', tags=[UserRole.ADMIN], response_class=Response)
+async def delete_dashboard_by_id(
+		catalog_id: Optional[CatalogId], principal_service: PrincipalService = Depends(get_admin_principal)
+) -> None:
+	if is_blank(catalog_id):
+		raise_400('Catalog id is required.')
+
+	catalog_service = get_catalog_service(principal_service)
+
+	# noinspection DuplicatedCode
+	def action() -> None:
+		# noinspection PyTypeChecker
+		existing_catalog: Optional[Catalog] = catalog_service.find_by_id(catalog_id)
+		if existing_catalog is None:
+			raise_404()
+		if existing_catalog.tenantId != principal_service.get_tenant_id():
+			raise_403()
+		catalog_service.delete(catalog_id)
+
+	trans(catalog_service, action)
+
+
+@router.delete('/dqc/catalog', tags=[UserRole.SUPER_ADMIN], response_model=Catalog)
+async def delete_catalog_by_id_by_super_admin(
 		catalog_id: Optional[CatalogId] = None,
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> Catalog:
