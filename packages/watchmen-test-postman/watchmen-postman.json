@@ -8928,6 +8928,61 @@
                         }
                       },
                       "response": []
+                    },
+                    {
+                      "name": "DELETE TOPIC",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "3082943f-cf5b-47a3-85da-127dbc734306",
+                            "exec": [
+                              "pm.test(\"Delete Topic\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "    const data = pm.response.json();",
+                              "    const topic_id = pm.environment.get(\"TOPIC_ID\");",
+                              "    const topic_name = pm.environment.get(\"TOPIC_NAME\");",
+                              "    pm.expect(data.topicId).to.equal(topic_id);",
+                              "    pm.expect(data.name).to.equal(topic_name);",
+                              "    pm.environment.unset(\"TOPIC_ID\");",
+                              "    pm.environment.unset(\"TOPIC_NAME\");",
+                              "});",
+                              ""
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
+                      "id": "8dc14332-23e5-4f28-b109-9c675dda2e64",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                          "raw": "{{URL_PREFIX}}/topic?topic_id={{TOPIC_ID}}",
+                          "host": [
+                            "{{URL_PREFIX}}"
+                          ],
+                          "path": [
+                            "topic"
+                          ],
+                          "query": [
+                            {
+                              "key": "topic_id",
+                              "value": "{{TOPIC_ID}}"
+                            }
+                          ]
+                        }
+                      },
+                      "response": []
                     }
                   ],
                   "id": "2e2aefc7-fe16-4a29-80a8-ecb024d103c2"
@@ -8973,61 +9028,6 @@
                       }
                     },
                     "url": "{{URL_PREFIX}}/topic"
-                  },
-                  "response": []
-                },
-                {
-                  "name": "DELETE TOPIC",
-                  "event": [
-                    {
-                      "listen": "test",
-                      "script": {
-                        "id": "3082943f-cf5b-47a3-85da-127dbc734306",
-                        "exec": [
-                          "pm.test(\"Delete Topic\", () => {",
-                          "    pm.response.to.have.status(200);",
-                          "    const data = pm.response.json();",
-                          "    const topic_id = pm.environment.get(\"TOPIC_ID\");",
-                          "    const topic_name = pm.environment.get(\"TOPIC_NAME\");",
-                          "    pm.expect(data.topicId).to.equal(topic_id);",
-                          "    pm.expect(data.name).to.equal(topic_name);",
-                          "    pm.environment.unset(\"TOPIC_ID\");",
-                          "    pm.environment.unset(\"TOPIC_NAME\");",
-                          "});",
-                          ""
-                        ],
-                        "type": "text/javascript"
-                      }
-                    }
-                  ],
-                  "id": "8dc14332-23e5-4f28-b109-9c675dda2e64",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": {
-                        "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
-                      }
-                    },
-                    "method": "DELETE",
-                    "header": [],
-                    "url": {
-                      "raw": "{{URL_PREFIX}}/topic?topic_id={{TOPIC_ID}}",
-                      "host": [
-                        "{{URL_PREFIX}}"
-                      ],
-                      "path": [
-                        "topic"
-                      ],
-                      "query": [
-                        {
-                          "key": "topic_id",
-                          "value": "{{TOPIC_ID}}"
-                        }
-                      ]
-                    }
                   },
                   "response": []
                 }
