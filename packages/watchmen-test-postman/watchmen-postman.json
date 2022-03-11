@@ -9173,7 +9173,7 @@
                   "response": []
                 },
                 {
-                  "name": "New Request",
+                  "name": "CREATE RAW TOPIC",
                   "id": "9987f4e6-bd95-4db4-aeca-299c7a675d76",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
