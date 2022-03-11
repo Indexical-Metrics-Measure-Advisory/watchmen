@@ -8989,7 +8989,20 @@
                 },
                 {
                   "name": "BY",
-                  "item": [],
+                  "item": [
+                    {
+                      "name": "New Request",
+                      "id": "35cf4b13-f372-4d94-82c4-ef41235ede73",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
+                    }
+                  ],
                   "id": "00378e14-cc09-44c7-a350-8ac92a81cb7f"
                 },
                 {
