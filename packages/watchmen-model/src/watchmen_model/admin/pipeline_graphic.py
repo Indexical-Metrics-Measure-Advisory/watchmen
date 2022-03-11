@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Optional, Union
 
 from pydantic import BaseModel
@@ -80,6 +81,8 @@ class PipelineGraphic(UserBasedTuple, BaseModel):
 	pipelineGraphId: PipelineGraphicId = None
 	name: str = None
 	topics: List[TopicGraphic] = []
+	createdAt: datetime = None
+	lastModifiedAt: datetime = None
 
 	def __setattr__(self, name, value):
 		if name == 'topics':
