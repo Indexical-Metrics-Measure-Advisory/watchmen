@@ -24,7 +24,9 @@ class PipelineGraphicShaper(EntityShaper):
 		row = {
 			'pipeline_graphic_id': pipeline_graphic.pipelineGraphId,
 			'name': pipeline_graphic.name,
-			'topics': ArrayHelper(pipeline_graphic.topics).map(lambda x: self.serialize_to_dict(x)).to_list()
+			'topics': ArrayHelper(pipeline_graphic.topics).map(lambda x: self.serialize_to_dict(x)).to_list(),
+			'created_at': pipeline_graphic.createdAt,
+			'last_modified_at': pipeline_graphic.lastModifiedAt
 		}
 		row = UserBasedTupleShaper.serialize(pipeline_graphic, row)
 		return row
@@ -33,7 +35,9 @@ class PipelineGraphicShaper(EntityShaper):
 		pipeline_graphic = PipelineGraphic(
 			pipelineGraphId=row.get('pipeline_graphic_id'),
 			name=row.get('name'),
-			topics=row.get('topics')
+			topics=row.get('topics'),
+			createdAt=row.get('created_at'),
+			lastModifiedAt=row.get('last_modified_at')
 		)
 		# noinspection PyTypeChecker
 		pipeline_graphic: PipelineGraphic = UserBasedTupleShaper.deserialize(row, pipeline_graphic)

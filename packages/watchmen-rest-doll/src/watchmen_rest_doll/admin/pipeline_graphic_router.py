@@ -12,7 +12,7 @@ from watchmen_rest import get_admin_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly
-from watchmen_utilities import is_blank
+from watchmen_utilities import get_current_time_in_seconds, is_blank
 
 router = APIRouter()
 
@@ -54,6 +54,8 @@ async def save_pipeline_graphic(
 		# noinspection DuplicatedCode
 		if TupleService.is_storable_id_faked(graphic.pipeline_graphicId):
 			pipeline_graphic_service.redress_storable_id(graphic)
+			graphic.createdAt = get_current_time_in_seconds()
+			graphic.lastModifiedAt = get_current_time_in_seconds()
 			# noinspection PyTypeChecker
 			graphic: PipelineGraphic = pipeline_graphic_service.create(graphic)
 		else:
@@ -65,7 +67,9 @@ async def save_pipeline_graphic(
 					raise_403()
 				if existing_pipeline_graphic.userId != graphic.userId:
 					raise_403()
+				graphic.createdAt = existing_pipeline_graphic.createdAt
 
+			graphic.lastModifiedAt = get_current_time_in_seconds()
 			# noinspection PyTypeChecker
 			graphic: PipelineGraphic = pipeline_graphic_service.update(graphic)
 

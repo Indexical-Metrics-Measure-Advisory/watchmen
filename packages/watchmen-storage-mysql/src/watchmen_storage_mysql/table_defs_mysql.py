@@ -106,7 +106,8 @@ table_pipeline_graphics = Table(
 	'pipeline_graphics', meta_data,
 	create_pk('pipeline_graphic_id'),
 	create_str('name', 45), create_json('topics'),
-	create_tenant_id(), create_user_id()
+	create_tenant_id(), create_user_id(),
+	create_datetime('created_at', False), create_datetime('last_modified_at', False)
 )
 # console
 table_connected_spaces = Table(

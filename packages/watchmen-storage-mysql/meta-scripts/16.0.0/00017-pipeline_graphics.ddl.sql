@@ -5,6 +5,8 @@ CREATE TABLE pipeline_graphics
     topics              JSON,
     user_id             VARCHAR(50) NOT NULL,
     tenant_id           VARCHAR(50) NOT NULL,
+    created_at          DATETIME    NOT NULL,
+    last_modified_at    DATETIME    NOT NULL,
     PRIMARY KEY (pipeline_graphic_id),
     INDEX (name),
     INDEX (user_id),
