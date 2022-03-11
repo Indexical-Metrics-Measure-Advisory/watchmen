@@ -9,7 +9,7 @@ from watchmen_model.pipeline_kernel import PipelineMonitorLog, PipelineMonitorLo
 from watchmen_pipeline_kernel.monitor_log import PipelineMonitorLogDataService
 from watchmen_rest import get_any_admin_principal
 from watchmen_rest.util import raise_400
-from watchmen_utilities import is_blank
+from watchmen_utilities import ArrayHelper, is_blank
 
 router = APIRouter()
 
@@ -32,5 +32,12 @@ async def fetch_pipeline_logs(
 	else:
 		criteria.tenantId = principal_service.get_tenant_id()
 
+	page = PipelineMonitorLogDataService(principal_service).page(criteria)
+
+	# translate dataId to string
+	def translate_data_id_to_str(log: PipelineMonitorLog) -> None:
+		log.dataId = str(log.dataId)
+
+	page.data = ArrayHelper(page.data).each(translate_data_id_to_str)
 	# noinspection PyTypeChecker
-	return PipelineMonitorLogDataService(principal_service).page(criteria)
+	return page
