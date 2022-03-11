@@ -16,8 +16,9 @@ const DefaultOne: DataSource = {
 	password: '',
 	url: '',
 	params: [],
-	createTime: getCurrentTime(),
-	lastModified: getCurrentTime()
+	version: 1,
+	createdAt: getCurrentTime(),
+	lastModifiedAt: getCurrentTime()
 };
 export const listMockDataSources = async (options: {
 	search: string;
@@ -53,8 +54,9 @@ export const fetchMockDataSource = async (dataSourceId: DataSourceId): Promise<{
 		password: '',
 		url: '',
 		params: [],
-		createTime: getCurrentTime(),
-		lastModified: getCurrentTime()
+		version: 1,
+		createdAt: getCurrentTime(),
+		lastModifiedAt: getCurrentTime()
 	};
 	return {dataSource};
 };

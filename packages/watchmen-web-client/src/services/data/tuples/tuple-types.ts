@@ -1,8 +1,12 @@
 import {DateTime} from '../types';
 
 export interface Tuple {
-	createTime: DateTime;
-	lastModified: DateTime;
+	createdAt: DateTime;
+	lastModifiedAt: DateTime;
+}
+
+export interface OptimisticLock {
+	version: number;
 }
 
 export interface QueryTuple {

@@ -11,8 +11,9 @@ export const createTopic = (): Topic => {
 		kind: TopicKind.BUSINESS,
 		type: TopicType.DISTINCT,
 		factors: [],
-		createTime: getCurrentTime(),
-		lastModified: getCurrentTime()
+		version: 1,
+		createdAt: getCurrentTime(),
+		lastModifiedAt: getCurrentTime()
 	};
 };
 
@@ -27,9 +28,7 @@ export const createFactor = (topic: Topic, ignoreType: boolean = false): Factor 
 
 	return {
 		factorId: removeFakeIdPrefix(newFactorId), name: '', label: '',
-		...(ignoreType ? {} : {type: FactorType.TEXT}),
-		createTime: getCurrentTime(),
-		lastModified: getCurrentTime()
+		...(ignoreType ? {} : {type: FactorType.TEXT})
 	} as Factor;
 };
 

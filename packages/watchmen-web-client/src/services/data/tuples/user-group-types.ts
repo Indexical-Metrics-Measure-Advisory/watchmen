@@ -1,11 +1,11 @@
 import {SpaceHolder} from './space-types';
 import {TenantId} from './tenant-types';
-import {Tuple, TupleHolder} from './tuple-types';
+import {OptimisticLock, Tuple, TupleHolder} from './tuple-types';
 import {UserHolder} from './user-types';
 
 export type UserGroupId = string;
 
-export interface UserGroup extends Tuple, SpaceHolder, UserHolder {
+export interface UserGroup extends Tuple, OptimisticLock, SpaceHolder, UserHolder {
 	userGroupId: UserGroupId;
 	name: string;
 	description?: string;

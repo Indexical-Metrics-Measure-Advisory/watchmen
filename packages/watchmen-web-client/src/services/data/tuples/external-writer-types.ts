@@ -1,6 +1,6 @@
 import {Token} from '../types';
 import {TenantId} from './tenant-types';
-import {Tuple} from './tuple-types';
+import {OptimisticLock, Tuple} from './tuple-types';
 
 export enum ExternalWriterType {
 	STANDARD_WRITER = 'standard-writer',
@@ -9,7 +9,7 @@ export enum ExternalWriterType {
 
 export type ExternalWriterId = string;
 
-export interface ExternalWriter extends Tuple {
+export interface ExternalWriter extends Tuple, OptimisticLock {
 	writerId: ExternalWriterId;
 	writerCode: string;
 	type: ExternalWriterType;

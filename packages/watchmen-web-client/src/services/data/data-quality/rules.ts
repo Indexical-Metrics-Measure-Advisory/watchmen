@@ -1,4 +1,4 @@
-import {Apis, post} from '../apis';
+import {Apis, get, post} from '../apis';
 import {fetchMockMonitorRuleLogs, fetchMockRules} from '../mock/data-quality/mock-rules';
 import {isMockService} from '../utils';
 import {
@@ -15,9 +15,9 @@ export const fetchMonitorRules = async (options: { criteria: MonitorRulesCriteri
 	if (isMockService()) {
 		return await fetchMockRules(options);
 	} else {
-		return post({
+		return get({
 			api: Apis.QUERY_RULE,
-			data: {criteria: options.criteria}
+			search: {grade: options.criteria.grade, topicId: options.criteria.topicId}
 		});
 	}
 };

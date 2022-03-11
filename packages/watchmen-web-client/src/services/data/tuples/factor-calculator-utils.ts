@@ -23,8 +23,9 @@ export const createUnknownTopic = (topicId: TopicId, name: string = 'Unknown Top
 		kind: TopicKind.SYSTEM,
 		type: TopicType.DISTINCT,
 		factors: [] as Array<Factor>,
-		createTime: getCurrentTime(),
-		lastModified: getCurrentTime()
+		version: 1,
+		createdAt: getCurrentTime(),
+		lastModifiedAt: getCurrentTime()
 	};
 };
 export const createUnknownFactor = (factorId: FactorId, name: string = 'Unknown Factor'): Factor => {
@@ -32,9 +33,7 @@ export const createUnknownFactor = (factorId: FactorId, name: string = 'Unknown 
 		factorId,
 		name,
 		type: FactorType.TEXT,
-		label: '',
-		createTime: getCurrentTime(),
-		lastModified: getCurrentTime()
+		label: ''
 	};
 };
 

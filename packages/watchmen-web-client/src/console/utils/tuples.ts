@@ -17,8 +17,8 @@ export const createDashboard = (name?: string): Dashboard => {
 		name: name || `${getCurrentLanguage().PLAIN.NEW_DASHBOARD_NAME} ${base64Encode(dashboardId).substring(0, 12)}`,
 		reports: [],
 		lastVisitTime: getCurrentTime(),
-		createTime: getCurrentTime(),
-		lastModified: getCurrentTime()
+		createdAt: getCurrentTime(),
+		lastModifiedAt: getCurrentTime()
 	};
 };
 
@@ -31,8 +31,8 @@ export const createConnectedSpace = (spaceId: SpaceId, name?: string): Connected
 		subjects: [],
 		isTemplate: false,
 		lastVisitTime: getCurrentTime(),
-		createTime: getCurrentTime(),
-		lastModified: getCurrentTime()
+		createdAt: getCurrentTime(),
+		lastModifiedAt: getCurrentTime()
 	};
 };
 
@@ -47,8 +47,8 @@ export const createSubject = (name?: string): Subject => {
 			joins: []
 		},
 		lastVisitTime: getCurrentTime(),
-		createTime: getCurrentTime(),
-		lastModified: getCurrentTime()
+		createdAt: getCurrentTime(),
+		lastModifiedAt: getCurrentTime()
 	};
 };
 
@@ -62,7 +62,7 @@ export const createReport = (name?: string): Report => {
 		rect: {x: 32, y: 32, width: 480, height: 300},
 		chart: {type: ChartType.COUNT},
 		lastVisitTime: getCurrentTime(),
-		createTime: getCurrentTime(),
-		lastModified: getCurrentTime()
+		createdAt: getCurrentTime(),
+		lastModifiedAt: getCurrentTime()
 	};
 };

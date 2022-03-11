@@ -25,7 +25,7 @@ export const prepareAdminDB = () => {
 
 const getLastModifiedAt = (tuples: Array<Tuple>): Dayjs => {
 	return tuples.reduce((time, tuple) => {
-		const lastModifiedAt = tuple.lastModified;
+		const lastModifiedAt = tuple.lastModifiedAt;
 		if (lastModifiedAt) {
 			return time.isBefore(dayjs(lastModifiedAt)) ? dayjs(lastModifiedAt) : time;
 		} else {
@@ -144,7 +144,7 @@ export const loadAdminData = async (): Promise<AdminCacheData> => {
 			lastModifiedTimeOfPipelines: getLastModifiedAt(pipelines),
 			lastModifiedTimeOfTopics: getLastModifiedAt(topics),
 			lastModifiedTimeOfGraphics: graphics.reduce((time, graphics) => {
-				const lastModifiedAt = graphics.lastModified;
+				const lastModifiedAt = graphics.lastModifiedAt;
 				if (lastModifiedAt) {
 					return time.isBefore(dayjs(lastModifiedAt)) ? dayjs(lastModifiedAt) : time;
 				} else {

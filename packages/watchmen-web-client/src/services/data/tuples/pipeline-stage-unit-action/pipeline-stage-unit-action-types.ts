@@ -23,7 +23,16 @@ export enum WriteTopicActionType {
 	WRITE_FACTOR = 'write-factor',
 }
 
-export type PipelineStageUnitActionType = WriteTopicActionType | ReadTopicActionType | SystemActionType;
+export enum DeleteTopicActionType {
+	DELETE_ROW = 'delete-row',
+	DELETE_ROWS = 'delete-rows'
+}
+
+export type PipelineStageUnitActionType =
+	WriteTopicActionType
+	| ReadTopicActionType
+	| DeleteTopicActionType
+	| SystemActionType;
 
 export type PipelineStageUnitActionId = string;
 

@@ -69,12 +69,14 @@ export const saveUser = async (user: User): Promise<void> => {
 	} else if (isFakedUuid(user)) {
 		const data = await post({api: Apis.USER_CREATE, data: transformToServer(user)});
 		user.userId = data.userId;
+		user.version = data.version
 		user.tenantId = data.tenantId ?? user.tenantId;
-		user.lastModified = data.lastModified;
+		user.lastModifiedAt = data.lastModifiedAt;
 	} else {
 		const data = await post({api: Apis.USER_SAVE, data: transformToServer(user)});
+		user.version = data.version
 		user.tenantId = data.tenantId ?? user.tenantId;
-		user.lastModified = data.lastModified;
+		user.lastModifiedAt = data.lastModifiedAt;
 	}
 };
 

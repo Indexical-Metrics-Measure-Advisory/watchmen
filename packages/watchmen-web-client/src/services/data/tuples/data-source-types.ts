@@ -1,5 +1,5 @@
 import {TenantId} from './tenant-types';
-import {Tuple} from './tuple-types';
+import {OptimisticLock, Tuple} from './tuple-types';
 
 export enum DataSourceType {
 	MYSQL = 'mysql',
@@ -14,7 +14,7 @@ export interface DataSourceParam {
 
 export type DataSourceId = string;
 
-export interface DataSource extends Tuple {
+export interface DataSource extends Tuple, OptimisticLock {
 	dataSourceId: DataSourceId;
 	dataSourceCode: string;
 	dataSourceType: DataSourceType;

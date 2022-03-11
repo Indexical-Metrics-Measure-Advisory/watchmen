@@ -69,16 +69,17 @@ export const saveUserGroup = async (userGroup: UserGroup): Promise<void> => {
 	} else if (isFakedUuid(userGroup)) {
 		const data = await post({api: Apis.USER_GROUP_CREATE, data: userGroup});
 		userGroup.userGroupId = data.userGroupId;
+		userGroup.version = data.version;
 		userGroup.tenantId = data.tenantId;
-		userGroup.lastModified = data.lastModified;
+		userGroup.lastModifiedAt = data.lastModifiedAt;
 	} else {
 		const data = await post({
 			api: Apis.USER_GROUP_SAVE,
-			search: {userGroupId: userGroup.userGroupId},
 			data: userGroup
 		});
+		userGroup.version = data.version;
 		userGroup.tenantId = data.tenantId;
-		userGroup.lastModified = data.lastModified;
+		userGroup.lastModifiedAt = data.lastModifiedAt;
 	}
 };
 

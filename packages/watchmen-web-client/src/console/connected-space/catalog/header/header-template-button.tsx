@@ -1,4 +1,4 @@
-import {saveConnectedSpace} from '@/services/data/tuples/connected-space';
+import {switchConnectedSpaceAsTemplate} from '@/services/data/tuples/connected-space';
 import {ConnectedSpace} from '@/services/data/tuples/connected-space-types';
 import {ICON_TEMPLATE} from '@/widgets/basic/constants';
 import {PageHeaderButton} from '@/widgets/basic/page-header-buttons';
@@ -26,7 +26,7 @@ export const HeaderTemplateButton = (props: { connectedSpace: ConnectedSpace }) 
 	const onSetTemplateClicked = () => {
 		connectedSpace.isTemplate = !connectedSpace.isTemplate;
 		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
-			async () => await saveConnectedSpace(connectedSpace),
+			async () => await switchConnectedSpaceAsTemplate(connectedSpace),
 			() => forceUpdate());
 	};
 

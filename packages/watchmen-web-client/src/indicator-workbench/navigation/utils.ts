@@ -20,8 +20,8 @@ export const createNavigation = (name?: string): Navigation => {
 		timeRangeType: NavigationTimeRangeType.YEAR,
 		timeRangeYear: `${new Date().getFullYear() - 1}`,
 		compareWithPreviousTimeRange: false,
-		createTime: getCurrentTime(),
-		lastModified: getCurrentTime()
+		createdAt: getCurrentTime(),
+		lastModifiedAt: getCurrentTime()
 	};
 };
 

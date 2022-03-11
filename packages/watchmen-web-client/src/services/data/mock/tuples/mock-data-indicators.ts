@@ -14,8 +14,8 @@ const OrderPremiumIndicator: Indicator = {
 	factorId: Order.factors.find(factor => factor.name === 'premium')?.factorId,
 	valueBuckets: [BUCKET_AMOUNT_ID],
 	category1: 'premium',
-	createTime: getCurrentTime(),
-	lastModified: getCurrentTime()
+	createdAt: getCurrentTime(),
+	lastModifiedAt: getCurrentTime()
 };
 export const MonthlyOrderPremiumIndicator: Indicator = {
 	indicatorId: INDICATOR_MONTHLY_ORDER_PREMIUM_ID,
@@ -25,8 +25,8 @@ export const MonthlyOrderPremiumIndicator: Indicator = {
 	category1: 'premium',
 	category2: 'short term',
 	category3: 'monthly',
-	createTime: getCurrentTime(),
-	lastModified: getCurrentTime()
+	createdAt: getCurrentTime(),
+	lastModifiedAt: getCurrentTime()
 };
 const WeeklyOrderPremiumIndicator: Indicator = {
 	indicatorId: INDICATOR_WEEKLY_ORDER_PREMIUM_ID,
@@ -36,8 +36,8 @@ const WeeklyOrderPremiumIndicator: Indicator = {
 	category1: 'premium',
 	category2: 'short term',
 	category3: 'weekly',
-	createTime: getCurrentTime(),
-	lastModified: getCurrentTime()
+	createdAt: getCurrentTime(),
+	lastModifiedAt: getCurrentTime()
 };
 export const OrderPremiumIndicators = [OrderPremiumIndicator, MonthlyOrderPremiumIndicator, WeeklyOrderPremiumIndicator];
 export const DemoIndicators = [OrderPremiumIndicators].flat();

@@ -1,4 +1,6 @@
+import {DeleteTopicAction} from '@/services/data/tuples/pipeline-stage-unit-action/delete-topic-actions-types';
 import {
+	DeleteTopicActionType,
 	PipelineStageUnitAction,
 	ReadTopicActionType,
 	SystemActionType,
@@ -58,4 +60,9 @@ export const isInsertRowAction = (action: PipelineStageUnitAction): action is In
 };
 export const isWriteFactorAction = (action: PipelineStageUnitAction): action is WriteFactorAction => {
 	return action.type === WriteTopicActionType.WRITE_FACTOR;
+};
+
+export const isDeleteTopicAction = (action: PipelineStageUnitAction): action is DeleteTopicAction => {
+	return action.type === DeleteTopicActionType.DELETE_ROW
+		|| action.type === DeleteTopicActionType.DELETE_ROWS;
 };

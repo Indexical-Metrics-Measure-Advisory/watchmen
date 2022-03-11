@@ -30,8 +30,9 @@ const createCatalog = (): Catalog => {
 	return {
 		catalogId,
 		name: `Catalog ${base64Encode(catalogId).substring(0, 12)}`,
-		createTime: getCurrentTime(),
-		lastModified: getCurrentTime()
+		version: 1,
+		createdAt: getCurrentTime(),
+		lastModifiedAt: getCurrentTime()
 	};
 };
 

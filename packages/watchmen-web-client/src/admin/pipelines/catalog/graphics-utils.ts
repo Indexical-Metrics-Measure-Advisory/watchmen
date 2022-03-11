@@ -181,7 +181,7 @@ export const transformGraphicsToSave = (graphics: AssembledPipelinesGraphics): P
 				rect: JSON.parse(JSON.stringify(graphics.rect))
 			};
 		}),
-		createTime: '',
-		lastModified: getCurrentTime()
+		createdAt: getCurrentTime(),
+		lastModifiedAt: getCurrentTime()
 	};
 };

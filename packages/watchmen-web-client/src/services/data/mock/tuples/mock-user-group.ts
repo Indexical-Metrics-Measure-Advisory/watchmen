@@ -20,8 +20,8 @@ export const listMockUserGroups = async (options: {
 						userGroupId: '1',
 						name: 'Oklahoma',
 						description: 'South-center market analysis squad.',
-						createTime: getCurrentTime(),
-						lastModified: getCurrentTime()
+						createdAt: getCurrentTime(),
+						lastModifiedAt: getCurrentTime()
 					}
 				],
 				itemCount: 0,
@@ -43,50 +43,57 @@ export const fetchMockUserGroup = async (userGroupId: UserGroupId): Promise<{ us
 				description: 'South-center market analysis squad.',
 				userIds: ['1', '2', '3', '4', '5'],
 				spaceIds: ['1'],
-				createTime: getCurrentTime(),
-				lastModified: getCurrentTime()
+				version: 1,
+				createdAt: getCurrentTime(),
+				lastModifiedAt: getCurrentTime()
 			};
 			break;
 		case '2':
 			userGroup = {
 				userGroupId, name: 'Delaware', userIds: [], spaceIds: [],
-				createTime: getCurrentTime(),
-				lastModified: getCurrentTime()
+				version: 1,
+				createdAt: getCurrentTime(),
+				lastModifiedAt: getCurrentTime()
 			};
 			break;
 		case '3':
 			userGroup = {
 				userGroupId, name: 'Hawaii', userIds: [], spaceIds: [],
-				createTime: getCurrentTime(),
-				lastModified: getCurrentTime()
+				version: 1,
+				createdAt: getCurrentTime(),
+				lastModifiedAt: getCurrentTime()
 			};
 			break;
 		case '4':
 			userGroup = {
 				userGroupId, name: 'Alaska', userIds: [], spaceIds: [],
-				createTime: getCurrentTime(),
-				lastModified: getCurrentTime()
+				version: 1,
+				createdAt: getCurrentTime(),
+				lastModifiedAt: getCurrentTime()
 			};
 			break;
 		case '5':
 			userGroup = {
 				userGroupId, name: 'Missouri', userIds: [], spaceIds: [],
-				createTime: getCurrentTime(),
-				lastModified: getCurrentTime()
+				version: 1,
+				createdAt: getCurrentTime(),
+				lastModifiedAt: getCurrentTime()
 			};
 			break;
 		case '6':
 			userGroup = {
 				userGroupId, name: 'Arkansas', userIds: [], spaceIds: [],
-				createTime: getCurrentTime(),
-				lastModified: getCurrentTime()
+				version: 1,
+				createdAt: getCurrentTime(),
+				lastModifiedAt: getCurrentTime()
 			};
 			break;
 		default:
 			userGroup = {
 				userGroupId, name: 'Mock User Group', userIds: [], spaceIds: [],
-				createTime: getCurrentTime(),
-				lastModified: getCurrentTime()
+				version: 1,
+				createdAt: getCurrentTime(),
+				lastModifiedAt: getCurrentTime()
 			};
 	}
 	return {

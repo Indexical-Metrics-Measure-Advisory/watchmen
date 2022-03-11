@@ -26,8 +26,8 @@ const createReport = (): Report => {
 		rect: {x: 0, y: 0, width: 0, height: 0},
 		chart: {type: ChartType.BAR, settings: {colorSeries: PredefinedChartColorSeries.REGULAR}},
 		lastVisitTime: getCurrentTime(),
-		createTime: getCurrentTime(),
-		lastModified: getCurrentTime()
+		createdAt: getCurrentTime(),
+		lastModifiedAt: getCurrentTime()
 	};
 };
 

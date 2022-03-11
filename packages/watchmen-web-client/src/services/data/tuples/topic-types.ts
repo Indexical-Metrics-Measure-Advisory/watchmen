@@ -1,7 +1,7 @@
 import {DataSourceId} from './data-source-types';
 import {Factor} from './factor-types';
 import {TenantId} from './tenant-types';
-import {Tuple, TupleHolder} from './tuple-types';
+import {OptimisticLock, Tuple, TupleHolder} from './tuple-types';
 
 export enum TopicKind {
 	SYSTEM = 'system',
@@ -19,7 +19,7 @@ export enum TopicType {
 
 export type TopicId = string;
 
-export interface Topic extends Tuple {
+export interface Topic extends Tuple, OptimisticLock {
 	topicId: TopicId;
 	name: string;
 	kind: TopicKind;

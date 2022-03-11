@@ -90,7 +90,7 @@ export const NavigationState = () => {
 			const found = page.data.data.find(nav => (nav as QueryNavigation).navigationId == navigation.navigationId) as (QueryNavigation | undefined);
 			if (found != null) {
 				found.name = navigation.name;
-				found.lastModified = navigation.lastModified;
+				found.lastModifiedAt = navigation.lastModifiedAt;
 			}
 		};
 		on(NavigationEventTypes.NAVIGATION_SAVED, onNavigationSaved);

@@ -34,9 +34,9 @@ export const ReadActionLog = (props: {
 		return null;
 	}
 
-	const {value, by} = log;
-	const displayValue = toDisplayValue(value);
-	const displayBy = toDisplayBy(by);
+	const {touched, findBy} = log;
+	const displayValue = toDisplayValue(touched);
+	const displayBy = toDisplayBy(findBy);
 
 	const valueIsObject = displayValue.startsWith('[') || displayValue.startsWith('{');
 	const byIsObject = displayBy.startsWith('[') || displayBy.startsWith('{');
@@ -49,6 +49,6 @@ export const ReadActionLog = (props: {
 		<BodyLabel>Matched By</BodyLabel>
 		{byIsObject
 			? <ObjectValue value={displayBy} readOnly={true}/>
-			: <BodyValue>{by}</BodyValue>}
+			: <BodyValue>{displayBy}</BodyValue>}
 	</>;
 };

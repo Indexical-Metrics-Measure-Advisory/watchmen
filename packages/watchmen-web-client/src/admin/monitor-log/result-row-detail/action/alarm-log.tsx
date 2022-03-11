@@ -1,4 +1,5 @@
 import {isAlarmLog, MonitorLogAction} from '@/services/data/admin/logs';
+import {toDisplayValue} from './utils';
 import {BodyLabel, BodyValue} from './widgets';
 
 export const AlarmLog = (props: { log: MonitorLogAction }) => {
@@ -8,20 +9,13 @@ export const AlarmLog = (props: { log: MonitorLogAction }) => {
 		return null;
 	}
 
-	const {conditionResult = true, value} = log;
-	let displayValue;
-	if (value === void 0) {
-		displayValue = 'Not be logged';
-	} else if (value == null) {
-		displayValue = 'null';
-	} else {
-		displayValue = `${value}`;
-	}
+	const {prerequisite = true, touched} = log;
+	let displayValue = toDisplayValue(touched);
 
 	return <>
 		<BodyLabel>Alarmed</BodyLabel>
-		<BodyValue emphasis={true}>{`${conditionResult}`}</BodyValue>
-		{conditionResult
+		<BodyValue emphasis={true}>{`${prerequisite}`}</BodyValue>
+		{prerequisite
 			? <>
 				<BodyLabel>Value</BodyLabel>
 				<BodyValue>{displayValue}</BodyValue>

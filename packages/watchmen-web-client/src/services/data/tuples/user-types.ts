@@ -1,5 +1,5 @@
 import {TenantId} from './tenant-types';
-import {Tuple, TupleHolder} from './tuple-types';
+import {OptimisticLock, Tuple, TupleHolder} from './tuple-types';
 import {UserGroupHolder} from './user-group-types';
 
 export enum UserRole {
@@ -10,7 +10,7 @@ export enum UserRole {
 
 export type UserId = string;
 
-export interface User extends Tuple, UserGroupHolder {
+export interface User extends Tuple, OptimisticLock, UserGroupHolder {
 	userId: UserId;
 	name: string;
 	role: UserRole;

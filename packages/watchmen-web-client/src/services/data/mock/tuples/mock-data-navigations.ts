@@ -39,8 +39,8 @@ export const NavPremium: Navigation = {
 	timeRangeYear: `${new Date().getFullYear() - 1}`,
 	compareWithPreviousTimeRange: true,
 	description: 'Premium Navigation',
-	createTime: getCurrentTime(),
-	lastModified: getCurrentTime()
+	createdAt: getCurrentTime(),
+	lastModifiedAt: getCurrentTime()
 };
 
 export const DemoNavigations = [NavPremium];

@@ -71,12 +71,14 @@ export const saveEnum = async (enumeration: Enum): Promise<void> => {
 	} else if (isFakedUuid(enumeration)) {
 		const data = await post({api: Apis.ENUM_CREATE, data: toSave});
 		enumeration.enumId = data.enumId;
+		enumeration.version = data.version;
 		enumeration.tenantId = data.tenantId;
-		enumeration.lastModified = data.lastModified;
+		enumeration.lastModifiedAt = data.lastModifiedAt;
 	} else {
 		const data = await post({api: Apis.ENUM_SAVE, data: toSave});
+		enumeration.version = data.version;
 		enumeration.tenantId = data.tenantId;
-		enumeration.lastModified = data.lastModified;
+		enumeration.lastModifiedAt = data.lastModifiedAt;
 	}
 };
 

@@ -75,11 +75,11 @@ export const StandardTupleCard = (props: {
 		<TupleCardStatistics>
 			<TupleCardStatisticsItem tooltip={{label: 'Created At', alignment: TooltipAlignment.CENTER}}>
 				<FontAwesomeIcon icon={ICON_CREATED_AT}/>
-				<span>{prettifyDateTimeToMinute(tuple.createTime)}</span>
+				<span>{prettifyDateTimeToMinute(tuple.createdAt)}</span>
 			</TupleCardStatisticsItem>
 			<TupleCardStatisticsItem tooltip={{label: 'Last Modified At', alignment: TooltipAlignment.CENTER}}>
 				<FontAwesomeIcon icon={ICON_LAST_MODIFIED_AT}/>
-				<span>{prettifyDateTimeToMinute(tuple.lastModified)}</span>
+				<span>{prettifyDateTimeToMinute(tuple.lastModifiedAt)}</span>
 			</TupleCardStatisticsItem>
 		</TupleCardStatistics>
 	</TupleCard>;

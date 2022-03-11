@@ -52,7 +52,7 @@ export const DetailProcess = (props: {
 		}
 	};
 
-	const pipelineExecution = row.conditionResult || true;
+	const pipelineExecution = row.prerequisite ?? true;
 
 	return <DetailProcessContainer ref={containerRef}>
 		<Title>
@@ -76,7 +76,7 @@ export const DetailProcess = (props: {
 				</TitleLabel>
 				<TitleLabel>
 					<TitleNameLabel>Spent:</TitleNameLabel>
-					<TitleExecutionLabel>{row.completeTime} ms</TitleExecutionLabel>
+					<TitleExecutionLabel>{row.spentInMills} ms</TitleExecutionLabel>
 				</TitleLabel>
 			</SectionTitle>
 			{(row.stages || getStages()).map((stageLog, stageIndex) => {

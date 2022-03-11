@@ -42,10 +42,12 @@ export const saveDataSource = async (dataSource: DataSource): Promise<void> => {
 	} else if (isFakedUuid(dataSource)) {
 		const data = await post({api: Apis.DATASOURCE_CREATE, data: dataSource});
 		dataSource.dataSourceId = data.dataSourceId;
-		dataSource.lastModified = data.lastModified;
+		dataSource.version = data.version;
+		dataSource.lastModifiedAt = data.lastModifiedAt;
 	} else {
 		const data = await post({api: Apis.DATASOURCE_SAVE, data: dataSource});
-		dataSource.lastModified = data.lastModified;
+		dataSource.version = data.version;
+		dataSource.lastModifiedAt = data.lastModifiedAt;
 	}
 };
 

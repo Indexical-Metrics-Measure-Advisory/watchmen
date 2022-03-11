@@ -42,7 +42,7 @@ export const fetchConnectedSpaceGraphics = async (): Promise<Array<ConnectedSpac
 	}
 };
 
-export const saveConnectedSpace = async (connectedSpace: ConnectedSpace, templateConnectedSpaceIds: Array<ConnectedSpaceId> = []): Promise<void> => {
+export const connectAsConnectedSpace = async (connectedSpace: ConnectedSpace, templateConnectedSpaceIds: Array<ConnectedSpaceId> = []): Promise<void> => {
 	if (isMockService()) {
 		return saveMockConnectedSpace(connectedSpace);
 	} else if (isFakedUuid(connectedSpace)) {
@@ -56,12 +56,20 @@ export const saveConnectedSpace = async (connectedSpace: ConnectedSpace, templat
 		});
 		connectedSpace.subjects = data.subjects || [];
 		connectedSpace.connectId = data.connectId;
-		connectedSpace.lastModified = data.lastModified;
-	} else {
-		const data = await post({api: Apis.CONNECTED_SPACE_SAVE, data: connectedSpace});
-		connectedSpace.lastModified = data.lastModified;
+		connectedSpace.lastModifiedAt = data.lastModifiedAt;
 	}
 };
+
+export const switchConnectedSpaceAsTemplate = async (connectedSpace: ConnectedSpace): Promise<void> => {
+	if (isMockService()) {
+		return renameMockConnectedSpace(connectedSpace);
+	} else {
+		await get({
+			api: Apis.CONNECTED_SPACE_AS_TEMPLATE,
+			search: {connectId: connectedSpace.connectId, is_template: connectedSpace.isTemplate}
+		});
+	}
+}
 
 export const renameConnectedSpace = async (connectedSpace: ConnectedSpace): Promise<void> => {
 	if (isMockService()) {

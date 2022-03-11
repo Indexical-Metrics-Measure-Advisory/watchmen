@@ -14,8 +14,8 @@ export const createInspection = (): Inspection => {
 		name: '',
 		aggregateArithmetics: [IndicatorAggregateArithmetic.SUM],
 		measureOn: InspectMeasureOn.NONE,
-		createTime: getCurrentTime(),
-		lastModified: getCurrentTime()
+		createdAt: getCurrentTime(),
+		lastModifiedAt: getCurrentTime()
 	} as Inspection;
 };
 

@@ -27,8 +27,8 @@ export const Floor: NumericValueMeasureBucket = {
 		{name: 'Sky Floor', value: {min: '21'}}
 	],
 	description: 'Floor of apartment',
-	createTime: getCurrentTime(),
-	lastModified: getCurrentTime()
+	createdAt: getCurrentTime(),
+	lastModifiedAt: getCurrentTime()
 };
 export const Cities: EnumMeasureBucket = {
 	bucketId: BUCKET_CITIES_ID,
@@ -41,8 +41,8 @@ export const Cities: EnumMeasureBucket = {
 		{name: 'Others', value: ['&others']}
 	],
 	description: 'New York and others',
-	createTime: getCurrentTime(),
-	lastModified: getCurrentTime()
+	createdAt: getCurrentTime(),
+	lastModifiedAt: getCurrentTime()
 };
 export const Amounts: NumericValueBucket = {
 	bucketId: BUCKET_AMOUNT_ID,
@@ -55,8 +55,8 @@ export const Amounts: NumericValueBucket = {
 		{name: 'VIP Order', value: {min: '100000'}}
 	],
 	description: '',
-	createTime: getCurrentTime(),
-	lastModified: getCurrentTime()
+	createdAt: getCurrentTime(),
+	lastModifiedAt: getCurrentTime()
 };
 export const CitiesIsland: EnumMeasureBucket = {
 	bucketId: BUCKET_CITIES_ISLAND_ID,
@@ -69,8 +69,8 @@ export const CitiesIsland: EnumMeasureBucket = {
 		{name: 'Others', value: ['&others']}
 	],
 	description: 'Island and others',
-	createTime: getCurrentTime(),
-	lastModified: getCurrentTime()
+	createdAt: getCurrentTime(),
+	lastModifiedAt: getCurrentTime()
 };
 
 export const DemoBuckets = [Floor, Cities, Amounts, CitiesIsland];

@@ -26,8 +26,8 @@ export const HeaderCreateGraphicsButton = () => {
 			pipelineGraphId: generateUuid(),
 			name: `Pipelines Group ${base64Encode(generateUuid()).substring(0, 12)}`,
 			topics: [],
-			createTime: getCurrentTime(),
-			lastModified: getCurrentTime()
+			createdAt: getCurrentTime(),
+			lastModifiedAt: getCurrentTime()
 		};
 		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
 			async () => await savePipelinesGraphics(graphics),

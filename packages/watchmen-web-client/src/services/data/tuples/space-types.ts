@@ -1,7 +1,7 @@
 import {ParameterJoint} from './factor-calculator-types';
 import {TenantId} from './tenant-types';
 import {TopicHolder, TopicId} from './topic-types';
-import {Tuple, TupleHolder} from './tuple-types';
+import {OptimisticLock, Tuple, TupleHolder} from './tuple-types';
 import {UserGroupHolder} from './user-group-types';
 
 /** filter */
@@ -13,7 +13,7 @@ export interface SpaceFilter {
 
 export type SpaceId = string;
 
-export interface Space extends Tuple, TopicHolder, UserGroupHolder {
+export interface Space extends Tuple, TopicHolder, OptimisticLock, UserGroupHolder {
 	spaceId: SpaceId;
 	name: string;
 	description?: string;

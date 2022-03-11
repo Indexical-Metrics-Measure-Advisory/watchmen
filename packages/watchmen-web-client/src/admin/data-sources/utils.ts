@@ -14,7 +14,8 @@ export const createDataSource = (): DataSource => {
 		password: '',
 		url: '',
 		params: [],
-		createTime: getCurrentTime(),
-		lastModified: getCurrentTime()
+		version: 1,
+		createdAt: getCurrentTime(),
+		lastModifiedAt: getCurrentTime()
 	};
 };

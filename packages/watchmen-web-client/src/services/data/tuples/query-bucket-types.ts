@@ -3,7 +3,7 @@ import {EnumId} from './enum-types';
 import {MeasureMethod} from './indicator-types';
 import {QueryTuple} from './tuple-types';
 
-type BucketProperties = 'bucketId' | 'name' | 'type' | 'description' | 'createTime' | 'lastModified';
+type BucketProperties = 'bucketId' | 'name' | 'type' | 'description' | 'createdAt' | 'lastModifiedAt';
 type MeasureBucketProperties = BucketProperties | 'measure';
 type EnumBucketProperties = MeasureBucketProperties | 'enumId';
 

@@ -33,7 +33,7 @@ const NavigationCard = (props: { navigation: QueryNavigation }) => {
 			<TupleCardStatisticsItem
 				tooltip={{label: Lang.INDICATOR_WORKBENCH.NAVIGATION.CREATE_AT, alignment: TooltipAlignment.CENTER}}>
 				<FontAwesomeIcon icon={ICON_CREATED_AT}/>
-				<span>{prettifyDateTimeToMinute(navigation.createTime)}</span>
+				<span>{prettifyDateTimeToMinute(navigation.createdAt)}</span>
 			</TupleCardStatisticsItem>
 			<TupleCardStatisticsItem
 				tooltip={{
@@ -41,7 +41,7 @@ const NavigationCard = (props: { navigation: QueryNavigation }) => {
 					alignment: TooltipAlignment.CENTER
 				}}>
 				<FontAwesomeIcon icon={ICON_LAST_MODIFIED_AT}/>
-				<span>{prettifyDateTimeToMinute(navigation.lastModified)}</span>
+				<span>{prettifyDateTimeToMinute(navigation.lastModifiedAt)}</span>
 			</TupleCardStatisticsItem>
 		</TupleCardStatistics>
 	</TupleCard>;
