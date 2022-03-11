@@ -26,8 +26,9 @@ import {renderEditor} from './editor';
 const createSpace = (): Space => {
 	return {
 		spaceId: generateUuid(), name: '', topicIds: [], userGroupIds: [],
-		createTime: getCurrentTime(),
-		lastModified: getCurrentTime()
+		version: 1,
+		createdAt: getCurrentTime(),
+		lastModifiedAt: getCurrentTime()
 	};
 };
 

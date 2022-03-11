@@ -35,8 +35,8 @@ export const fetchMockNavigation = async (navigationId: NavigationId): Promise<{
 		navigation = {
 			navigationId,
 			name: 'Mock Navigation',
-			createTime: getCurrentTime(),
-			lastModified: getCurrentTime()
+			createdAt: getCurrentTime(),
+			lastModifiedAt: getCurrentTime()
 		} as Navigation;
 	}
 	return {navigation};

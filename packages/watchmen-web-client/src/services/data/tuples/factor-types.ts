@@ -1,4 +1,3 @@
-import {DateTime} from '../types';
 import {EnumId} from './enum-types';
 
 export enum FactorType {
@@ -314,10 +313,9 @@ export interface Factor {
 	enumId?: EnumId;
 	defaultValue?: string;
 	indexGroup?: FactorIndexGroup;
-	// will be flatten to table column or not, only used in raw topic, and must be top level factor
+	// will flatten to table column or not, only used in raw topic, and must be top level factor
 	flatten?: boolean;
 	encrypt?: FactorEncryptMethod;
+	precision?: string;
 	description?: string;
-	createTime: DateTime;
-	lastModified: DateTime;
 }

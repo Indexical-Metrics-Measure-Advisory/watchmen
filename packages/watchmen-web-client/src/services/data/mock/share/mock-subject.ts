@@ -23,8 +23,8 @@ export const fetchMockSharedSubject = async (subjectId: SubjectId, token: Token)
 								type: ChartType.COUNT
 							},
 							lastVisitTime: getCurrentTime(),
-							createTime: getCurrentTime(),
-							lastModified: getCurrentTime()
+							createdAt: getCurrentTime(),
+							lastModifiedAt: getCurrentTime()
 						}
 					],
 					dataset: {
@@ -33,8 +33,8 @@ export const fetchMockSharedSubject = async (subjectId: SubjectId, token: Token)
 						joins: []
 					},
 					lastVisitTime: getCurrentTime(),
-					createTime: getCurrentTime(),
-					lastModified: getCurrentTime()
+					createdAt: getCurrentTime(),
+					lastModifiedAt: getCurrentTime()
 				} as Subject
 			});
 		}, 500);

@@ -1,4 +1,5 @@
 import {
+	DeleteTopicActionType,
 	PipelineStageUnitAction,
 	PipelineStageUnitActionType,
 	ReadTopicActionType,
@@ -34,7 +35,9 @@ const ActionTypeLabels: Record<PipelineStageUnitActionType, string> = {
 	[WriteTopicActionType.WRITE_FACTOR]: 'Write Factor',
 	[WriteTopicActionType.INSERT_OR_MERGE_ROW]: 'Insert or Merge Row',
 	[WriteTopicActionType.MERGE_ROW]: 'Merge Row',
-	[WriteTopicActionType.INSERT_ROW]: 'Insert Row'
+	[WriteTopicActionType.INSERT_ROW]: 'Insert Row',
+	[DeleteTopicActionType.DELETE_ROW]: 'Delete Row',
+	[DeleteTopicActionType.DELETE_ROWS]: 'Delete Rows',
 };
 
 interface DropdownState {

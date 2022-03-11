@@ -24,8 +24,9 @@ const createUser = (): User => {
 		userId: generateUuid(), name: '', nickName: '', password: '',
 		role: UserRole.CONSOLE,
 		userGroupIds: [],
-		createTime: getCurrentTime(),
-		lastModified: getCurrentTime()
+		version: 1,
+		createdAt: getCurrentTime(),
+		lastModifiedAt: getCurrentTime()
 	};
 };
 

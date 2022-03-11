@@ -8,7 +8,8 @@ export const createExternalWriter = (): ExternalWriter => {
 		writerCode: '',
 		type: ExternalWriterType.ELASTIC_SEARCH_WRITER,
 		url: '',
-		createTime: getCurrentTime(),
-		lastModified: getCurrentTime()
+		version: 1,
+		createdAt: getCurrentTime(),
+		lastModifiedAt: getCurrentTime()
 	};
 };

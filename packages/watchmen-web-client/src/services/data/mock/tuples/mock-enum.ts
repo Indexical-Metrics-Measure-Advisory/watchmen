@@ -22,26 +22,26 @@ export const listMockEnums = async (options: {
 					{
 						enumId: MOCK_ENUM_CITY_ID,
 						name: 'Mock City',
-						createTime: getCurrentTime(),
-						lastModified: getCurrentTime()
+						createdAt: getCurrentTime(),
+						lastModifiedAt: getCurrentTime()
 					},
 					{
 						enumId: MOCK_ENUM_COUNTRY_ID,
 						name: 'Mock Country',
-						createTime: getCurrentTime(),
-						lastModified: getCurrentTime()
+						createdAt: getCurrentTime(),
+						lastModifiedAt: getCurrentTime()
 					},
 					{
 						enumId: MOCK_ENUM_GENDER_ID,
 						name: 'Mock Gender',
-						createTime: getCurrentTime(),
-						lastModified: getCurrentTime()
+						createdAt: getCurrentTime(),
+						lastModifiedAt: getCurrentTime()
 					},
 					{
 						enumId: MOCK_ENUM_STATE_ID,
 						name: 'Mock State',
-						createTime: getCurrentTime(),
-						lastModified: getCurrentTime()
+						createdAt: getCurrentTime(),
+						lastModifiedAt: getCurrentTime()
 					}
 				],
 				itemCount: 1,
@@ -68,8 +68,9 @@ export const fetchMockEnum = async (enumId: EnumId): Promise<{ enumeration: Enum
 				{code: '006', label: 'Connecticut'},
 				{code: '007', label: 'Massachusetts'}
 			],
-			createTime: getCurrentTime(),
-			lastModified: getCurrentTime()
+			version: 1,
+			createdAt: getCurrentTime(),
+			lastModifiedAt: getCurrentTime()
 		};
 		return {enumeration};
 	} else if (enumId === MOCK_ENUM_COUNTRY_ID) {
@@ -80,8 +81,9 @@ export const fetchMockEnum = async (enumId: EnumId): Promise<{ enumeration: Enum
 				{code: '001', label: 'United States'},
 				{code: '002', label: 'Japan'}
 			],
-			createTime: getCurrentTime(),
-			lastModified: getCurrentTime()
+			version: 1,
+			createdAt: getCurrentTime(),
+			lastModifiedAt: getCurrentTime()
 		};
 		return {enumeration};
 	} else if (enumId === MOCK_ENUM_CITY_ID) {
@@ -97,8 +99,9 @@ export const fetchMockEnum = async (enumId: EnumId): Promise<{ enumeration: Enum
 				{code: '006', label: 'Bridgeport'},
 				{code: '007', label: 'Boston'}
 			],
-			createTime: getCurrentTime(),
-			lastModified: getCurrentTime()
+			version: 1,
+			createdAt: getCurrentTime(),
+			lastModifiedAt: getCurrentTime()
 		};
 		return {enumeration};
 	} else {
@@ -109,8 +112,9 @@ export const fetchMockEnum = async (enumId: EnumId): Promise<{ enumeration: Enum
 				{code: 'F', label: 'Female'},
 				{code: 'M', label: 'Male'}
 			],
-			createTime: getCurrentTime(),
-			lastModified: getCurrentTime()
+			version: 1,
+			createdAt: getCurrentTime(),
+			lastModifiedAt: getCurrentTime()
 		};
 		return {enumeration};
 	}

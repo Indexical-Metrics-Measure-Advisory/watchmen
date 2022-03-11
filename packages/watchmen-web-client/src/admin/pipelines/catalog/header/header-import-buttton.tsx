@@ -182,8 +182,8 @@ export const HeaderImportButton = () => {
 			topics: topics.map(topic => {
 				return {topicId: topic.topicId} as TopicGraphics;
 			}),
-			createTime: getCurrentTime(),
-			lastModified: getCurrentTime()
+			createdAt: getCurrentTime(),
+			lastModifiedAt: getCurrentTime()
 		};
 		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
 			async () => await savePipelinesGraphics(graphics),

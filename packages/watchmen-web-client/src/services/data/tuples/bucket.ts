@@ -45,11 +45,11 @@ export const saveBucket = async (bucket: Bucket): Promise<void> => {
 		const data = await post({api: Apis.BUCKET_CREATE, data: bucket});
 		bucket.bucketId = data.bucketId;
 		bucket.tenantId = data.tenantId;
-		bucket.lastModified = data.lastModified;
+		bucket.lastModifiedAt = data.lastModifiedAt;
 	} else {
 		const data = await post({api: Apis.BUCKET_SAVE, search: {bucketId: bucket.bucketId}, data: bucket});
 		bucket.tenantId = data.tenantId;
-		bucket.lastModified = data.lastModified;
+		bucket.lastModifiedAt = data.lastModifiedAt;
 	}
 };
 

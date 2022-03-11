@@ -10,6 +10,7 @@ import React, {useState} from 'react';
 import {ExpandToggleButton, TitleExecutionLabel, TitleLabel, TitleNameLabel} from '../widgets';
 import {AlarmLog} from './alarm-log';
 import {CopyToMemoryLog} from './copy-to-memory-log';
+import {DeleteActionLog} from './delete-action-log';
 import {ReadActionLog} from './read-action-log';
 import {
 	ActionError,
@@ -45,7 +46,7 @@ export const DetailProcessAction = (props: {
 			</TitleLabel>
 			<TitleLabel>
 				<TitleNameLabel>Spent</TitleNameLabel>
-				<TitleExecutionLabel>{log.completeTime || 0} ms</TitleExecutionLabel>
+				<TitleExecutionLabel>{log.spentInMills || 0} ms</TitleExecutionLabel>
 			</TitleLabel>
 			<ExpandToggleButton
 				tooltip={{label: expanded ? 'Collapse' : 'Expand', alignment: TooltipAlignment.RIGHT, offsetX: 8}}
@@ -72,6 +73,7 @@ export const DetailProcessAction = (props: {
 						<WriteToExternalLog action={action} log={log}/>
 						<ReadActionLog action={action} log={log}/>
 						<WriteActionLog action={action} log={log} topicsMap={topicsMap}/>
+						<DeleteActionLog action={action} log={log} topicsMap={topicsMap}/>
 					</>
 					: null}
 			</DetailProcessActionBody>

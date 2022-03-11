@@ -1,6 +1,6 @@
 import {toConnectedSpace} from '@/routes/utils';
 import {AvailableSpaceInConsole} from '@/services/data/console/settings-types';
-import {listTemplateConnectedSpaces, saveConnectedSpace} from '@/services/data/tuples/connected-space';
+import {listTemplateConnectedSpaces, connectAsConnectedSpace} from '@/services/data/tuples/connected-space';
 import {ConnectedSpace, ConnectedSpaceId, ConnectedSpaceTemplate} from '@/services/data/tuples/connected-space-types';
 import {Space, SpaceId} from '@/services/data/tuples/space-types';
 import {AlertLabel} from '@/widgets/alert/widgets';
@@ -81,7 +81,7 @@ const AvailableTemplatesSelector = (props: { spaceId: SpaceId, templates: Array<
 		fire(EventTypes.HIDE_DIALOG);
 		const connectedSpace = createConnectedSpace(spaceId);
 		fire(EventTypes.INVOKE_REMOTE_REQUEST,
-			async () => await saveConnectedSpace(connectedSpace, selectedConnectedSpaceIds),
+			async () => await connectAsConnectedSpace(connectedSpace, selectedConnectedSpaceIds),
 			() => switchTo(connectedSpace));
 	};
 	const onCancelClicked = () => {
@@ -135,7 +135,7 @@ const AvailableSpacesSelector = (props: { spaces: Array<AvailableSpaceInConsole>
 		fire(EventTypes.HIDE_DIALOG);
 		const connectedSpace = createConnectedSpace(selection.spaceId);
 		fire(EventTypes.INVOKE_REMOTE_REQUEST,
-			async () => await saveConnectedSpace(connectedSpace),
+			async () => await connectAsConnectedSpace(connectedSpace),
 			() => switchTo(connectedSpace));
 	};
 	const onConfirmClicked = async () => {

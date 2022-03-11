@@ -1,42 +1,35 @@
-import {isWriteLog, MonitorLogAction} from '@/services/data/admin/logs';
+import {isDeleteLog, MonitorLogAction} from '@/services/data/admin/logs';
+import {DeleteTopicAction} from '@/services/data/tuples/pipeline-stage-unit-action/delete-topic-actions-types';
 import {
-	PipelineStageUnitAction,
-	WriteTopicActionType
+	DeleteTopicActionType,
+	PipelineStageUnitAction
 } from '@/services/data/tuples/pipeline-stage-unit-action/pipeline-stage-unit-action-types';
-import {
-	isWriteFactorAction,
-	isWriteTopicAction
-} from '@/services/data/tuples/pipeline-stage-unit-action/pipeline-stage-unit-action-utils';
-import {
-	WriteFactorAction,
-	WriteTopicAction
-} from '@/services/data/tuples/pipeline-stage-unit-action/write-topic-actions-types';
+import {isDeleteTopicAction} from '@/services/data/tuples/pipeline-stage-unit-action/pipeline-stage-unit-action-utils';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {isMockService} from '@/services/data/utils';
-import {ImpactInsertOrUpdateRows} from './impact-rows';
+import {ImpactDeleteRows} from './impact-rows';
 import {toDisplayBy, toDisplayValue} from './utils';
 import {BodyLabel, BodyValue, ObjectValue} from './widgets';
 
-const redressAction = (action: any): WriteTopicAction => {
+const redressAction = (action: any): DeleteTopicAction => {
 	return (isMockService()
 		? {
-			type: WriteTopicActionType.WRITE_FACTOR,
-			variableName: 'z',
+			type: DeleteTopicActionType.DELETE_ROW,
 			...action
 		}
-		: action) as WriteTopicAction;
+		: action) as DeleteTopicAction;
 };
 
-export const WriteActionLog = (props: {
+export const DeleteActionLog = (props: {
 	action: PipelineStageUnitAction;
-	log: MonitorLogAction,
+	log: MonitorLogAction;
 	topicsMap: Map<string, Topic>
 }) => {
 	const {log, topicsMap} = props;
 	let {action} = props;
 	action = redressAction(action);
 
-	if (!isWriteLog(log) || !isWriteTopicAction(action)) {
+	if (!isDeleteLog(log) || !isDeleteTopicAction(action)) {
 		return null;
 	}
 
@@ -47,19 +40,15 @@ export const WriteActionLog = (props: {
 	let target;
 	const topic = topicsMap.get(action.topicId);
 	target = topic?.name || '?';
-	if (isWriteFactorAction(action)) {
-		// eslint-disable-next-line
-		const factor = topic?.factors.find(factor => factor.factorId == (action as WriteFactorAction).factorId);
-		target += `.${factor?.label || factor?.name || '?'}`;
-	}
+
 	const valueIsObject = displayValue.startsWith('[') || displayValue.startsWith('{');
 	const byIsObject = displayBy.startsWith('[') || displayBy.startsWith('{');
 
 	return <>
-		<ImpactInsertOrUpdateRows log={log}/>
-		<BodyLabel>Write To</BodyLabel>
+		<ImpactDeleteRows log={log}/>
+		<BodyLabel>Delete From</BodyLabel>
 		<BodyValue>{target}</BodyValue>
-		<BodyLabel>Write Content</BodyLabel>
+		<BodyLabel>Delete Content</BodyLabel>
 		{valueIsObject
 			? <ObjectValue value={displayValue} readOnly={true}/>
 			: <BodyValue>{displayValue}</BodyValue>}

@@ -42,10 +42,12 @@ export const saveExternalWriter = async (externalWriter: ExternalWriter): Promis
 	} else if (isFakedUuid(externalWriter)) {
 		const data = await post({api: Apis.EXTERNAL_WRITER_CREATE, data: externalWriter});
 		externalWriter.writerId = data.writerId;
-		externalWriter.lastModified = data.lastModified;
+		externalWriter.version = data.version;
+		externalWriter.lastModifiedAt = data.lastModifiedAt;
 	} else {
 		const data = await post({api: Apis.EXTERNAL_WRITER_SAVE, data: externalWriter});
-		externalWriter.lastModified = data.lastModified;
+		externalWriter.version = data.version;
+		externalWriter.lastModifiedAt = data.lastModifiedAt;
 	}
 };
 

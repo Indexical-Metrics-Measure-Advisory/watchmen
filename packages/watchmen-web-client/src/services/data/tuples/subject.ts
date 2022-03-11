@@ -9,12 +9,15 @@ export const saveSubject = async (subject: Subject, connectedSpaceId: ConnectedS
 	if (isMockService()) {
 		return saveMockSubject(subject);
 	} else if (isFakedUuid(subject)) {
-		const data = await post({api: Apis.SUBJECT_CREATE, search: {connectId: connectedSpaceId}, data: subject});
+		const data = await post({
+			api: Apis.SUBJECT_CREATE,
+			data: {...subject, connectId: connectedSpaceId}
+		});
 		subject.subjectId = data.subjectId;
-		subject.lastModified = data.lastModified;
+		subject.lastModifiedAt = data.lastModifiedAt;
 	} else {
 		const data = await post({api: Apis.SUBJECT_SAVE, data: subject});
-		subject.lastModified = data.lastModified;
+		subject.lastModifiedAt = data.lastModifiedAt;
 	}
 };
 

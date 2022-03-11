@@ -1,8 +1,8 @@
-import {Tuple} from './tuple-types';
+import {OptimisticLock, Tuple} from './tuple-types';
 
 export type TenantId = string;
 
-export interface Tenant extends Tuple {
+export interface Tenant extends Tuple, OptimisticLock {
 	tenantId: TenantId;
 	name: string;
 }

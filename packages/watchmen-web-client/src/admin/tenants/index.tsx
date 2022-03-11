@@ -23,8 +23,9 @@ import {renderEditor} from './editor';
 const createTenant = (): Tenant => {
 	return {
 		tenantId: generateUuid(), name: '',
-		createTime: getCurrentTime(),
-		lastModified: getCurrentTime()
+		version: 1,
+		createdAt: getCurrentTime(),
+		lastModifiedAt: getCurrentTime()
 	};
 };
 

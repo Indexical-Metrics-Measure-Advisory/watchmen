@@ -20,8 +20,9 @@ import {renderEditor} from './editor';
 const createUserGroup = (): UserGroup => {
 	return {
 		userGroupId: generateUuid(), name: '', spaceIds: [], userIds: [],
-		createTime: getCurrentTime(),
-		lastModified: getCurrentTime()
+		version: 1,
+		createdAt: getCurrentTime(),
+		lastModifiedAt: getCurrentTime()
 	};
 };
 

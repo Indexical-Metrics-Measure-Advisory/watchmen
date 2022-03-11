@@ -6,6 +6,7 @@ import {
 import {isCopyToMemoryAction} from '@/services/data/tuples/pipeline-stage-unit-action/pipeline-stage-unit-action-utils';
 import {CopyToMemoryAction} from '@/services/data/tuples/pipeline-stage-unit-action/system-actions-types';
 import {isMockService} from '@/services/data/utils';
+import {toDisplayValue} from './utils';
 import {BodyLabel, BodyValue} from './widgets';
 
 const redressAction = (action: any): CopyToMemoryAction => {
@@ -30,15 +31,8 @@ export const CopyToMemoryLog = (props: {
 		return null;
 	}
 
-	const {value} = log;
-	let displayValue;
-	if (value === void 0) {
-		displayValue = 'Not be logged';
-	} else if (value == null) {
-		displayValue = 'null';
-	} else {
-		displayValue = `${value}`;
-	}
+	const {touched} = log;
+	let displayValue = toDisplayValue(touched);
 
 	return <>
 		<BodyLabel>{action.variableName} ↢</BodyLabel>

@@ -57,7 +57,7 @@ export const saveNavigation = async (navigation: Navigation): Promise<void> => {
 		const data = await post({api: Apis.NAVIGATION_CREATE, data: navigation});
 		navigation.navigationId = data.navigationId;
 		navigation.tenantId = data.tenantId;
-		navigation.lastModified = data.lastModified;
+		navigation.lastModifiedAt = data.lastModifiedAt;
 	} else {
 		const data = await post({
 			api: Apis.NAVIGATION_SAVE,
@@ -65,7 +65,7 @@ export const saveNavigation = async (navigation: Navigation): Promise<void> => {
 			data: navigation
 		});
 		navigation.tenantId = data.tenantId;
-		navigation.lastModified = data.lastModified;
+		navigation.lastModifiedAt = data.lastModifiedAt;
 	}
 };
 

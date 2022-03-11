@@ -13,6 +13,7 @@ export const CatalogRawTopics: Catalog = {
 	bizOwnerId: '2',
 	tags: ['raw'],
 	description: 'All raw topics',
-	createTime: getCurrentTime(),
-	lastModified: getCurrentTime()
+	version: 1,
+	createdAt: getCurrentTime(),
+	lastModifiedAt: getCurrentTime()
 };

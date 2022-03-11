@@ -33,12 +33,12 @@ const BucketCard = (props: { bucket: QueryBucket }) => {
 			<TupleCardStatisticsItem
 				tooltip={{label: Lang.INDICATOR_WORKBENCH.BUCKET.CREATE_AT, alignment: TooltipAlignment.CENTER}}>
 				<FontAwesomeIcon icon={ICON_CREATED_AT}/>
-				<span>{prettifyDateTimeToMinute(bucket.createTime)}</span>
+				<span>{prettifyDateTimeToMinute(bucket.createdAt)}</span>
 			</TupleCardStatisticsItem>
 			<TupleCardStatisticsItem
 				tooltip={{label: Lang.INDICATOR_WORKBENCH.BUCKET.LAST_MODIFIED_AT, alignment: TooltipAlignment.CENTER}}>
 				<FontAwesomeIcon icon={ICON_LAST_MODIFIED_AT}/>
-				<span>{prettifyDateTimeToMinute(bucket.lastModified)}</span>
+				<span>{prettifyDateTimeToMinute(bucket.lastModifiedAt)}</span>
 			</TupleCardStatisticsItem>
 		</TupleCardStatistics>
 	</TupleCard>;

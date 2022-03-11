@@ -63,7 +63,7 @@ export const saveIndicator = async (indicator: Indicator): Promise<void> => {
 		const data = await post({api: Apis.INDICATOR_CREATE, data: indicator});
 		indicator.indicatorId = data.indicatorId;
 		indicator.tenantId = data.tenantId;
-		indicator.lastModified = data.lastModified;
+		indicator.lastModifiedAt = data.lastModifiedAt;
 	} else {
 		const data = await post({
 			api: Apis.INDICATOR_SAVE,
@@ -71,7 +71,7 @@ export const saveIndicator = async (indicator: Indicator): Promise<void> => {
 			data: indicator
 		});
 		indicator.tenantId = data.tenantId;
-		indicator.lastModified = data.lastModified;
+		indicator.lastModifiedAt = data.lastModifiedAt;
 	}
 };
 

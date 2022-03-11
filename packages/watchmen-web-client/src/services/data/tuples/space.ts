@@ -109,16 +109,17 @@ export const saveSpace = async (space: Space): Promise<void> => {
 	} else if (isFakedUuid(space)) {
 		const data = await post({api: Apis.SPACE_CREATE, data: transformToServer(space)});
 		space.spaceId = data.spaceId;
+		space.version = data.version;
 		space.tenantId = data.tenantId;
-		space.lastModified = data.lastModified;
+		space.lastModifiedAt = data.lastModifiedAt;
 	} else {
 		const data = await post({
 			api: Apis.SPACE_SAVE,
-			search: {spaceId: space.spaceId},
 			data: transformToServer(space)
 		});
+		space.version = data.version;
 		space.tenantId = data.tenantId;
-		space.lastModified = data.lastModified;
+		space.lastModifiedAt = data.lastModifiedAt;
 	}
 };
 

@@ -74,8 +74,8 @@ const PipelineCatalogContainer = () => {
 					pipelineGraphId: generateUuid(),
 					name: 'Pipelines Group',
 					topics: [],
-					createTime: getCurrentTime(),
-					lastModified: getCurrentTime()
+					createdAt: getCurrentTime(),
+					lastModifiedAt: getCurrentTime()
 				};
 			}
 			const assembled = createInitGraphics({
@@ -150,8 +150,8 @@ const PipelineCatalogContainer = () => {
 				pipelineGraphId: generateUuid(),
 				name: 'Pipelines Group',
 				topics: [],
-				createTime: getCurrentTime(),
-				lastModified: getCurrentTime()
+				createdAt: getCurrentTime(),
+				lastModifiedAt: getCurrentTime()
 			};
 			const assembled = createInitGraphics({
 				topics: data.topics,

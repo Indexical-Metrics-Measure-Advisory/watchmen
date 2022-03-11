@@ -20,8 +20,8 @@ export const fetchMockSharedDashboard = async (dashboardId: DashboardId, token: 
 						}
 					],
 					lastVisitTime: getCurrentTime(),
-					createTime: getCurrentTime(),
-					lastModified: getCurrentTime()
+					createdAt: getCurrentTime(),
+					lastModifiedAt: getCurrentTime()
 				} as Dashboard,
 				connectedSpaces: [
 					{
@@ -43,8 +43,8 @@ export const fetchMockSharedDashboard = async (dashboardId: DashboardId, token: 
 										type: ChartType.COUNT
 									},
 									lastVisitTime: getCurrentTime(),
-									createTime: getCurrentTime(),
-									lastModified: getCurrentTime()
+									createdAt: getCurrentTime(),
+									lastModifiedAt: getCurrentTime()
 								}
 							],
 							dataset: {
@@ -53,13 +53,13 @@ export const fetchMockSharedDashboard = async (dashboardId: DashboardId, token: 
 								joins: []
 							},
 							lastVisitTime: getCurrentTime(),
-							lastModified: getCurrentTime(),
-							createTime: getCurrentTime()
+							lastModifiedAt: getCurrentTime(),
+							createdAt: getCurrentTime()
 						}],
 						isTemplate: false,
 						lastVisitTime: getCurrentTime(),
-						lastModified: getCurrentTime(),
-						createTime: getCurrentTime()
+						lastModifiedAt: getCurrentTime(),
+						createdAt: getCurrentTime()
 					} as ConnectedSpace
 				]
 			});

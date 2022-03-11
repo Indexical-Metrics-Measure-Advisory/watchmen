@@ -57,7 +57,7 @@ export const saveNewReport = async (report: Report, subjectId: SubjectId): Promi
 	if (isMockService()) {
 		return saveMockReport(report);
 	} else {
-		const data = await post({api: Apis.REPORT_CREATE, search: {subjectId}, data: transformToServer(report)});
+		const data = await post({api: Apis.REPORT_CREATE, data: {...transformToServer(report), subjectId}});
 		report.reportId = data.reportId;
 		report.lastVisitTime = data.lastModified;
 	}
@@ -71,7 +71,7 @@ export const saveReport = async (report: Report): Promise<void> => {
 	} else {
 		const data = await post({api: Apis.REPORT_SAVE, data: transformToServer(report)});
 		report.reportId = data.reportId;
-		report.lastModified = data.lastModified;
+		report.lastModifiedAt = data.lastModifiedAt;
 	}
 };
 

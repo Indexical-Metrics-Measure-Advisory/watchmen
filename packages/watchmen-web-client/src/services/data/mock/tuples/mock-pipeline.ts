@@ -8,8 +8,8 @@ export const fetchMockPipelinesGraphics = async (): Promise<Array<PipelinesGraph
 			pipelineGraphId: generateUuid(),
 			name: '',
 			topics: [],
-			createTime: getCurrentTime(),
-			lastModified: getCurrentTime()
+			createdAt: getCurrentTime(),
+			lastModifiedAt: getCurrentTime()
 		}]), 500);
 	});
 };

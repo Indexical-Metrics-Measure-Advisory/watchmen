@@ -16,8 +16,8 @@ export const createBucket = (): NumericValueBucket => {
 		type: BucketType.VALUE,
 		include: RangeBucketValueIncluding.INCLUDE_MIN,
 		segments: [],
-		createTime: getCurrentTime(),
-		lastModified: getCurrentTime()
+		createdAt: getCurrentTime(),
+		lastModifiedAt: getCurrentTime()
 	};
 	defendNumericValueSegmentsHolder(bucket);
 	return bucket as NumericValueBucket;

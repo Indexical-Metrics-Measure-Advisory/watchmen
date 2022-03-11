@@ -17,9 +17,11 @@ export const fetchMockMonitorLogs = async (options: {
 						traceId: generateUuid(),
 						pipelineId: '1',
 						topicId: '1',
+						dataId: '1',
 						status: MonitorLogStatus.DONE,
+						stages: [],
 						startTime: dayjs().format('YYYY/MM/DD HH:mm:ss.SSS'),
-						completeTime: '' + Math.round(Math.random() * 1000)
+						spentInMills: Math.round(Math.random() * 1000)
 					} as MonitorLogRow;
 				}),
 				pageCount: 2,

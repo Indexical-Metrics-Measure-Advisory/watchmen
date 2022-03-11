@@ -52,6 +52,6 @@ export const deletePAT = async (patId: string) => {
 			}, 300);
 		});
 	} else {
-		return await post({api: Apis.PAT_DELETE.replace(':patId', patId)});
+		return await get({api: Apis.PAT_DELETE, search: {patId}});
 	}
 };

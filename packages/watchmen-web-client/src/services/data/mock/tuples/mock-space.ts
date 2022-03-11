@@ -22,8 +22,8 @@ export const listMockSpaces = async (options: {
 						spaceId: '1',
 						name: 'Quotation & Order',
 						description: 'All Sales Data',
-						createTime: getCurrentTime(),
-						lastModified: getCurrentTime()
+						createdAt: getCurrentTime(),
+						lastModifiedAt: getCurrentTime()
 					} as QuerySpace
 				],
 				itemCount: 0,
@@ -44,8 +44,9 @@ export const listMockSpacesForExport = async (): Promise<Array<Space>> => {
 					name: 'Quotation & Order',
 					topicIds: [Quotation.topicId, Order.topicId],
 					userGroupIds: [],
-					createTime: getCurrentTime(),
-					lastModified: getCurrentTime()
+					version: 1,
+					createdAt: getCurrentTime(),
+					lastModifiedAt: getCurrentTime()
 				}
 			]);
 		}, 500);
@@ -60,8 +61,9 @@ export const fetchMockSpace = async (spaceId: SpaceId): Promise<{ space: Space; 
 			description: 'All Sales Data',
 			topicIds: [Quotation.topicId, Order.topicId],
 			userGroupIds: [],
-			createTime: getCurrentTime(),
-			lastModified: getCurrentTime()
+			version: 1,
+			createdAt: getCurrentTime(),
+			lastModifiedAt: getCurrentTime()
 		},
 		groups: [{userGroupId: '1', name: 'Oklahoma'}],
 		topics: [

@@ -37,12 +37,14 @@ export const saveTopic = async (topic: Topic): Promise<void> => {
 	} else if (isFakedUuid(topic)) {
 		const data = await post({api: Apis.TOPIC_CREATE, data: topic});
 		topic.topicId = data.topicId;
+		topic.version = data.version;
 		topic.tenantId = data.tenantId;
-		topic.lastModified = data.lastModified;
+		topic.lastModifiedAt = data.lastModifiedAt;
 	} else {
-		const data = await post({api: Apis.TOPIC_SAVE, search: {topicId: topic.topicId}, data: topic});
+		const data = await post({api: Apis.TOPIC_SAVE, data: topic});
+		topic.version = data.version;
 		topic.tenantId = data.tenantId;
-		topic.lastModified = data.lastModified;
+		topic.lastModifiedAt = data.lastModifiedAt;
 	}
 };
 

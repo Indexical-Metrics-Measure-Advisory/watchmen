@@ -19,8 +19,8 @@ export const listMockReports = async (options: {
 						reportId: '1',
 						name: 'Premium on State',
 						description: 'Annual premium summary group by state.',
-						createTime: getCurrentTime(),
-						lastModified: getCurrentTime()
+						createdAt: getCurrentTime(),
+						lastModifiedAt: getCurrentTime()
 					}
 				],
 				itemCount: 0,

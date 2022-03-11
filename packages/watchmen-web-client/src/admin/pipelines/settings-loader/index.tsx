@@ -22,8 +22,8 @@ export const SettingsHolder = () => {
 			pipelineGraphId: generateUuid(),
 			name: '',
 			topics: [],
-			createTime: getCurrentTime(),
-			lastModified: getCurrentTime()
+			createdAt: getCurrentTime(),
+			lastModifiedAt: getCurrentTime()
 		}]
 	});
 

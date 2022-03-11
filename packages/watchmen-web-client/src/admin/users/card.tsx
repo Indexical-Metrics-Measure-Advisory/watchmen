@@ -37,11 +37,11 @@ const UserCard = (props: { user: QueryUser }) => {
 		<TupleCardStatistics>
 			<TupleCardStatisticsItem tooltip={{label: 'Created At', alignment: TooltipAlignment.CENTER}}>
 				<FontAwesomeIcon icon={ICON_CREATED_AT}/>
-				<span>{prettifyDateTimeToMinute(user.createTime)}</span>
+				<span>{prettifyDateTimeToMinute(user.createdAt)}</span>
 			</TupleCardStatisticsItem>
 			<TupleCardStatisticsItem tooltip={{label: 'Last Modified At', alignment: TooltipAlignment.CENTER}}>
 				<FontAwesomeIcon icon={ICON_LAST_MODIFIED_AT}/>
-				<span>{prettifyDateTimeToMinute(user.lastModified)}</span>
+				<span>{prettifyDateTimeToMinute(user.lastModifiedAt)}</span>
 			</TupleCardStatisticsItem>
 		</TupleCardStatistics>
 	</TupleCard>;

@@ -2,6 +2,7 @@ import {Apis, post} from '../apis';
 import {fetchMockMonitorLogs} from '../mock/admin/mock-logs';
 import {PipelineStageId} from '../tuples/pipeline-stage-types';
 import {
+	DeleteTopicActionType,
 	PipelineStageUnitActionId,
 	PipelineStageUnitActionType,
 	ReadTopicActionType,
@@ -26,78 +27,86 @@ export interface MonitorLogCriteria {
 export enum MonitorLogStatus {
 	DONE = 'DONE',
 	ERROR = 'ERROR',
+	IGNORED = 'IGNORED'
 }
 
 export type MonitorLogActionId = string;
 
-export interface MonitorLogAction {
+export interface StandardMonitorLog {
+	status: MonitorLogStatus;
+	startTime: DateTime;
+	spentInMills?: number;
+	error?: string;
+}
+
+export interface ConditionalMonitorLog {
+	prerequisite?: boolean;
+	prerequisiteDefinedAs?: any;
+}
+
+export interface MonitorLogAction extends StandardMonitorLog {
 	uid: MonitorLogActionId;
 	actionId: PipelineStageUnitActionId;
 	type: PipelineStageUnitActionType;
-	status: MonitorLogStatus;
-	completeTime: DateTime;
-	error?: string;
 	insertCount: number;
 	updateCount: number;
+	deleteCount: number;
+	definedAs?: any;
+	touched: any;
 }
 
 export type FindBy = any;
 
 export interface ReadAction extends MonitorLogAction {
 	type: ReadTopicActionType;
-	value?: any;
-	by: FindBy;
+	findBy: FindBy;
 }
 
 export interface WriteAction extends MonitorLogAction {
 	type: WriteTopicActionType;
-	value?: any;
-	by?: FindBy;
+	findBy: FindBy;
 }
 
-export interface AlarmAction extends MonitorLogAction {
+export interface DeleteAction extends MonitorLogAction {
+	type: DeleteTopicActionType;
+	findBy: FindBy;
+}
+
+export interface AlarmAction extends MonitorLogAction, ConditionalMonitorLog {
 	type: SystemActionType.ALARM;
-	conditionResult: boolean;
-	value?: any;
 }
 
 export interface CopyToMemoryAction extends MonitorLogAction {
 	type: SystemActionType.COPY_TO_MEMORY;
-	value?: any;
 }
 
 export interface WriteToExternalAction extends MonitorLogAction {
 	type: SystemActionType.WRITE_TO_EXTERNAL;
-	value?: any;
 }
 
-export interface MonitorLogUnit {
+export interface MonitorLogUnit extends StandardMonitorLog, ConditionalMonitorLog {
 	unitId: PipelineStageUnitId;
 	name: string;
-	conditionResult: boolean;
+	loopVariableName?: string;
+	loopVariableValue?: any;
 	actions: Array<MonitorLogAction>;
 }
 
-export interface MonitorLogStage {
+export interface MonitorLogStage extends StandardMonitorLog, ConditionalMonitorLog {
 	stageId: PipelineStageId;
 	name: string;
-	conditionResult: boolean;
 	units: Array<MonitorLogUnit>;
 }
 
-export interface MonitorLogRow {
+export interface MonitorLogRow extends StandardMonitorLog, ConditionalMonitorLog {
 	uid: string;
 	traceId: string;
 	pipelineId: PipelineId;
 	topicId: TopicId;
-	status: MonitorLogStatus;
-	startTime: DateTime;
-	completeTime: DateTime;
-	oldValue: any;
-	newValue: any;
-	conditionResult: boolean;
+	dataId: string;
+	oldValue?: any;
+	newValue?: any;
 	stages: Array<MonitorLogStage>;
-	error?: string;
 }
 
 export type MonitorLogs = Array<MonitorLogRow>;
@@ -150,5 +159,11 @@ export const isWriteLog = (log: MonitorLogAction): log is WriteAction => {
 		WriteTopicActionType.INSERT_ROW === log.type ||
 		WriteTopicActionType.MERGE_ROW === log.type ||
 		WriteTopicActionType.INSERT_OR_MERGE_ROW === log.type
+	);
+};
+export const isDeleteLog = (log: MonitorLogAction): log is ReadAction => {
+	return (
+		DeleteTopicActionType.DELETE_ROW === log.type ||
+		DeleteTopicActionType.DELETE_ROWS === log.type
 	);
 };

@@ -21,12 +21,12 @@ export const saveDashboard = async (dashboard: Dashboard): Promise<void> => {
 	if (isMockService()) {
 		return saveMockDashboard(dashboard);
 	} else if (isFakedUuid(dashboard)) {
-		const data = await get({api: Apis.DASHBOARD_CREATE, search: {name: dashboard.name}});
+		const data = await post({api: Apis.DASHBOARD_CREATE, data: {name: dashboard.name}});
 		dashboard.dashboardId = data.dashboardId;
-		dashboard.lastModified = data.lastModified;
+		dashboard.lastModifiedAt = data.lastModifiedAt;
 	} else {
 		const data = await post({api: Apis.DASHBOARD_SAVE, data: dashboard});
-		dashboard.lastModified = data.lastModified;
+		dashboard.lastModifiedAt = data.lastModifiedAt;
 	}
 };
 

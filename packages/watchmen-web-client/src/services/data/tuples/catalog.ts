@@ -21,12 +21,14 @@ export const saveCatalog = async (catalog: Catalog): Promise<void> => {
 	} else if (isFakedUuid(catalog)) {
 		const data = await post({api: Apis.CATALOG_CREATE, data: catalog});
 		catalog.catalogId = data.catalogId;
+		catalog.version = data.version;
 		catalog.tenantId = data.tenantId;
-		catalog.lastModified = data.lastModified;
+		catalog.lastModifiedAt = data.lastModifiedAt;
 	} else {
-		const data = await post({api: Apis.CATALOG_SAVE, search: {catalogId: catalog.catalogId}, data: catalog});
+		const data = await post({api: Apis.CATALOG_SAVE, data: catalog});
 		catalog.tenantId = data.tenantId;
-		catalog.lastModified = data.lastModified;
+		catalog.version = data.version;
+		catalog.lastModifiedAt = data.lastModifiedAt;
 	}
 };
 

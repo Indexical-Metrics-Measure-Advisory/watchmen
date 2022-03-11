@@ -26,9 +26,11 @@ export const saveTenant = async (tenant: Tenant): Promise<void> => {
 	} else if (isFakedUuid(tenant)) {
 		const data = await post({api: Apis.TENANT_CREATE, data: tenant});
 		tenant.tenantId = data.tenantId;
-		tenant.lastModified = data.lastModified;
+		tenant.version = data.version;
+		tenant.lastModifiedAt = data.lastModifiedAt;
 	} else {
 		const data = await post({api: Apis.TENANT_SAVE, data: tenant});
-		tenant.lastModified = data.lastModified;
+		tenant.version = data.version;
+		tenant.lastModifiedAt = data.lastModifiedAt;
 	}
 };

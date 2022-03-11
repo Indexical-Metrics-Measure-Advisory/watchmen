@@ -51,11 +51,11 @@ const TopicCard = (props: { topic: QueryTopic }) => {
 		<TupleCardStatistics>
 			<TupleCardStatisticsItem tooltip={{label: 'Created At', alignment: TooltipAlignment.CENTER}}>
 				<FontAwesomeIcon icon={ICON_CREATED_AT}/>
-				<span>{prettifyDateTimeToMinute(topic.createTime)}</span>
+				<span>{prettifyDateTimeToMinute(topic.createdAt)}</span>
 			</TupleCardStatisticsItem>
 			<TupleCardStatisticsItem tooltip={{label: 'Last Modified At', alignment: TooltipAlignment.CENTER}}>
 				<FontAwesomeIcon icon={ICON_LAST_MODIFIED_AT}/>
-				<span>{prettifyDateTimeToMinute(topic.lastModified)}</span>
+				<span>{prettifyDateTimeToMinute(topic.lastModifiedAt)}</span>
 			</TupleCardStatisticsItem>
 		</TupleCardStatistics>
 	</TupleCard>;

@@ -25,7 +25,7 @@ export const DetailProcessStage = (props: {
 
 	const onExpandToggleClicked = () => setExpanded(!expanded);
 
-	const stageExecution = log.conditionResult ?? true;
+	const stageExecution = log.prerequisite ?? true;
 
 	return <DetailProcessStageContainer>
 		<StageSectionTitle>

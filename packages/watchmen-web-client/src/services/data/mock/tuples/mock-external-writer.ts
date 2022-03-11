@@ -10,8 +10,9 @@ const StandardWriter: ExternalWriter = {
 	type: ExternalWriterType.STANDARD_WRITER,
 	tenantId: '1',
 	url: '',
-	createTime: getCurrentTime(),
-	lastModified: getCurrentTime()
+	version: 1,
+	createdAt: getCurrentTime(),
+	lastModifiedAt: getCurrentTime()
 };
 const EsWriter: ExternalWriter = {
 	writerId: '2',
@@ -19,8 +20,9 @@ const EsWriter: ExternalWriter = {
 	type: ExternalWriterType.ELASTIC_SEARCH_WRITER,
 	tenantId: '1',
 	url: '',
-	createTime: getCurrentTime(),
-	lastModified: getCurrentTime()
+	version: 1,
+	createdAt: getCurrentTime(),
+	lastModifiedAt: getCurrentTime()
 };
 
 export const listMockExternalWriters = async (options: {
