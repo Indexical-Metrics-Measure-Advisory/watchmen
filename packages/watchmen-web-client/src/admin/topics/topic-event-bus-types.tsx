@@ -22,6 +22,7 @@ export enum TopicEventTypes {
 	FACTOR_ENCRYPT_CHANGED = 'factor-encrypt-changed',
 	FACTOR_DESCRIPTION_CHANGED = 'factor-description-changed',
 	FACTOR_VALUE_RULE_CHANGED = 'factor-value-rule-changed',
+	FACTOR_PRECISION_CHANGED = 'factor-precision-changed',
 
 	FACTOR_SEARCH_TEXT_CHANGED = 'factor-search-text-changed'
 }
@@ -98,6 +99,10 @@ export interface TopicEventBus {
 	fire(type: TopicEventTypes.FACTOR_VALUE_RULE_CHANGED, factor: Factor): this;
 	on(type: TopicEventTypes.FACTOR_VALUE_RULE_CHANGED, listener: (factor: Factor) => void): this;
 	off(type: TopicEventTypes.FACTOR_VALUE_RULE_CHANGED, listener: (factor: Factor) => void): this;
+
+	fire(type: TopicEventTypes.FACTOR_PRECISION_CHANGED, factor: Factor): this;
+	on(type: TopicEventTypes.FACTOR_PRECISION_CHANGED, listener: (factor: Factor) => void): this;
+	off(type: TopicEventTypes.FACTOR_PRECISION_CHANGED, listener: (factor: Factor) => void): this;
 
 	fire(type: TopicEventTypes.FACTOR_SEARCH_TEXT_CHANGED, topic: Topic, searchText: string): this;
 	on(type: TopicEventTypes.FACTOR_SEARCH_TEXT_CHANGED, listener: (topic: Topic, searchText: string) => void): this;

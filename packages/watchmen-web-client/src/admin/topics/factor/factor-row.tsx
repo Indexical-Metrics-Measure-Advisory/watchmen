@@ -11,6 +11,7 @@ import {FactorFlattenCell} from './factor-flatten-cell';
 import {FactorIndexGroupCell} from './factor-index-group-cell';
 import {FactorLabelCell} from './factor-label-cell';
 import {FactorNameCell} from './factor-name-cell';
+import {FactorPrecisionCell} from './factor-precision-cell';
 import {FactorTypeCell} from './factor-type-cell';
 import {FactorDescriptionLabel, FactorPropLabel, FactorRowContainer} from './widgets';
 
@@ -36,6 +37,7 @@ export const FactorRow = (props: {
 		<FactorIndexGroupCell factor={factor}/>
 		<FactorEncryptCell topic={topic} factor={factor}/>
 		<FactorFlattenCell topic={topic} factor={factor}/>
+		<FactorPrecisionCell topic={topic} factor={factor}/>
 		<FactorDescriptionLabel>Description</FactorDescriptionLabel>
 		<FactorDescriptionCell factor={factor}/>
 		<FactorButtons topic={topic} factor={factor}/>
