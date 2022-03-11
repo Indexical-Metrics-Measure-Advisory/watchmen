@@ -9042,6 +9042,12 @@
                         "disableBodyPruning": true
                       },
                       "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
                         "method": "PATCH",
                         "header": [],
                         "body": {
