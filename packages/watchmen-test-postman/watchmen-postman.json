@@ -8762,53 +8762,54 @@
               "item": [
                 {
                   "name": "MAPPING",
-                  "item": [],
-                  "id": "2e2aefc7-fe16-4a29-80a8-ecb024d103c2"
-                },
-                {
-                  "name": "CREATE TOPIC",
-                  "event": [
+                  "item": [
                     {
-                      "listen": "test",
-                      "script": {
-                        "id": "3c969b05-c4ad-4b72-b431-f53d018015d0",
-                        "exec": [
-                          "pm.test(\"Create Distinct Topic\", () => {",
-                          "    pm.response.to.have.status(200);",
-                          "    var data = pm.response.json();",
-                          "    pm.environment.set('TOPIC_ID', data.topicId)",
-                          "    pm.environment.set('TOPIC_NAME', data.name)",
-                          "});"
-                        ],
-                        "type": "text/javascript"
-                      }
+                      "name": "CREATE TOPIC",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "3c969b05-c4ad-4b72-b431-f53d018015d0",
+                            "exec": [
+                              "pm.test(\"Create Distinct Topic\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "    var data = pm.response.json();",
+                              "    pm.environment.set('TOPIC_ID', data.topicId)",
+                              "    pm.environment.set('TOPIC_NAME', data.name)",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
+                      "id": "4c3c6c68-7161-44f9-a456-84d54c671b5e",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n    \"topicId\": \"{{TOPIC_ID}}\",\n    \"name\": \"Test_Distinct_Topic\",\n    \"type\": \"distinct\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propC\"},\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propD\"},\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propE\"},\n        {\"factorId\": \"6\", \"type\": \"number\", \"name\": \"propF\"},\n        {\"factorId\": \"7\", \"type\": \"number\", \"name\": \"propG\"},\n        {\"factorId\": \"8\", \"type\": \"number\", \"name\": \"propH\"},\n        {\"factorId\": \"9\", \"type\": \"number\", \"name\": \"propI\"},\n        {\"factorId\": \"10\", \"type\": \"number\", \"name\": \"propJ\"},\n        {\"factorId\": \"11\", \"type\": \"number\", \"name\": \"propK\"},\n        {\"factorId\": \"12\", \"type\": \"number\", \"name\": \"propL\"},\n        {\"factorId\": \"13\", \"type\": \"number\", \"name\": \"propM\"},\n        {\"factorId\": \"14\", \"type\": \"number\", \"name\": \"propN\"},\n        {\"factorId\": \"15\", \"type\": \"number\", \"name\": \"propO\"},\n        {\"factorId\": \"16\", \"type\": \"number\", \"name\": \"propP\"},\n        {\"factorId\": \"17\", \"type\": \"number\", \"name\": \"propQ\"},\n        {\"factorId\": \"18\", \"type\": \"number\", \"name\": \"propR\"},\n        {\"factorId\": \"19\", \"type\": \"number\", \"name\": \"propS\"}\n    ],\n    \"description\": \"Test Distinct Topic\"\n}",
+                          "options": {
+                            "raw": {
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": "{{URL_PREFIX}}/topic"
+                      },
+                      "response": []
                     }
                   ],
-                  "id": "4c3c6c68-7161-44f9-a456-84d54c671b5e",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": {
-                        "token": "{{JWT_TOKEN}}"
-                      }
-                    },
-                    "method": "POST",
-                    "header": [],
-                    "body": {
-                      "mode": "raw",
-                      "raw": "{\n    \"topicId\": \"{{TOPIC_ID}}\",\n    \"name\": \"Test_Distinct_Topic\",\n    \"type\": \"distinct\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propC\"},\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propD\"},\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propE\"},\n        {\"factorId\": \"6\", \"type\": \"number\", \"name\": \"propF\"},\n        {\"factorId\": \"7\", \"type\": \"number\", \"name\": \"propG\"},\n        {\"factorId\": \"8\", \"type\": \"number\", \"name\": \"propH\"},\n        {\"factorId\": \"9\", \"type\": \"number\", \"name\": \"propI\"},\n        {\"factorId\": \"10\", \"type\": \"number\", \"name\": \"propJ\"},\n        {\"factorId\": \"11\", \"type\": \"number\", \"name\": \"propK\"},\n        {\"factorId\": \"12\", \"type\": \"number\", \"name\": \"propL\"},\n        {\"factorId\": \"13\", \"type\": \"number\", \"name\": \"propM\"},\n        {\"factorId\": \"14\", \"type\": \"number\", \"name\": \"propN\"},\n        {\"factorId\": \"15\", \"type\": \"number\", \"name\": \"propO\"},\n        {\"factorId\": \"16\", \"type\": \"number\", \"name\": \"propP\"},\n        {\"factorId\": \"17\", \"type\": \"number\", \"name\": \"propQ\"},\n        {\"factorId\": \"18\", \"type\": \"number\", \"name\": \"propR\"},\n        {\"factorId\": \"19\", \"type\": \"number\", \"name\": \"propS\"}\n    ],\n    \"description\": \"Test Distinct Topic\"\n}",
-                      "options": {
-                        "raw": {
-                          "language": "json"
-                        }
-                      }
-                    },
-                    "url": "{{URL_PREFIX}}/topic"
-                  },
-                  "response": []
+                  "id": "2e2aefc7-fe16-4a29-80a8-ecb024d103c2"
                 },
                 {
                   "name": "CREATE PIPELINE MONITOR LOG TOPIC",
