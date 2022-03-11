@@ -9149,6 +9149,18 @@
                     "header": []
                   },
                   "response": []
+                },
+                {
+                  "name": "New Request",
+                  "id": "3e0e672e-cd2e-4b8e-a4eb-211879f93d7d",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
                 }
               ],
               "id": "679888c9-bff2-4e09-b33b-ac487d689181"
