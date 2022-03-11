@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Callable, Optional
 
 from watchmen_meta.admin.user_service import USER_ENTITY_NAME, USER_ENTITY_SHAPER
+from watchmen_meta.common import ask_meta_storage
 from watchmen_meta.system.pat_service import PAT_ENTITY_NAME, PAT_ENTITY_SHAPER
 from watchmen_model.admin import User
 from watchmen_model.system import PersonalAccessToken
@@ -38,13 +39,11 @@ def find_user_by_name(storage: TransactionalStorageSPI, username: str, clear_pwd
 		storage.close()
 
 
-def build_find_user_by_name(
-		storage: TransactionalStorageSPI, clear_pwd: bool = True
-) -> Callable[[str], Optional[User]]:
+def build_find_user_by_name(clear_pwd: bool = True) -> Callable[[str], Optional[User]]:
 	"""
 	autonomous transaction inside
 	"""
-	return lambda username: find_user_by_name(storage, username, clear_pwd)
+	return lambda username: find_user_by_name(ask_meta_storage(), username, clear_pwd)
 
 
 def find_pat_by_token(storage: TransactionalStorageSPI, pat_token: str) -> Optional[PersonalAccessToken]:
@@ -90,8 +89,8 @@ def find_user_by_pat(storage: TransactionalStorageSPI, pat_token: str) -> Option
 		storage.close()
 
 
-def build_find_user_by_pat(storage: TransactionalStorageSPI) -> Callable[[str], Optional[User]]:
+def build_find_user_by_pat() -> Callable[[str], Optional[User]]:
 	"""
 	autonomous transaction inside
 	"""
-	return lambda pat_token: find_user_by_pat(storage, pat_token)
+	return lambda pat_token: find_user_by_pat(ask_meta_storage(), pat_token)

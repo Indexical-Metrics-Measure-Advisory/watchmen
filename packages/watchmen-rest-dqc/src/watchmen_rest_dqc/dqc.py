@@ -19,13 +19,13 @@ class DqcApp(RestApp):
 		"""
 		autonomous transaction
 		"""
-		return build_find_user_by_name(ask_meta_storage())
+		return build_find_user_by_name()
 
 	def build_find_user_by_pat(self) -> Callable[[str], Optional[User]]:
 		"""
 		autonomous transaction
 		"""
-		return build_find_user_by_pat(ask_meta_storage())
+		return build_find_user_by_pat()
 
 	def post_construct(self, app: FastAPI) -> None:
 		init_monitor_jobs()

@@ -22,7 +22,7 @@ logger = getLogger(__name__)
 
 def authenticate(username, password) -> User:
 	# principal is careless
-	find_user_by_name = build_find_user_by_name(ask_meta_storage(), False)
+	find_user_by_name = build_find_user_by_name(False)
 	user = find_user_by_name(username)
 	if user is None:
 		raise_401('Incorrect username or password.')
