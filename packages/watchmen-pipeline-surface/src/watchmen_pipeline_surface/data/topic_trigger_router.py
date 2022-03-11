@@ -101,7 +101,7 @@ async def rerun_by_topic_data(
 		if pipeline is None:
 			raise_404('Pipeline not found.')
 
-	# here is a problem, the only certainly is data already in storage
+	# here is a problem, the only certain thing is data already in storage or not
 	# has to find out the previous status of this data row, it is created by insert or merge?
 	# to find out this, to find the last pipeline log for non-raw topic
 	# for raw topic, always be treated as insert
