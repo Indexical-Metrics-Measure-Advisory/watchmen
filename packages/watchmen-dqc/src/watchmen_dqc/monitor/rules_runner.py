@@ -8,12 +8,11 @@ from watchmen_auth import PrincipalService
 from watchmen_data_kernel.meta import TenantService, TopicService
 from watchmen_data_kernel.service import ask_topic_data_service, ask_topic_storage
 from watchmen_data_kernel.storage import TopicDataService
-from watchmen_dqc.admin import MonitorRuleService
 from watchmen_dqc.common import ask_daily_monitor_job_trigger_time, ask_monitor_job_trigger, \
 	ask_monitor_jobs_enabled, ask_monthly_monitor_job_trigger_time, ask_weekly_monitor_job_trigger_time
 from watchmen_dqc.util import fake_super_admin, fake_tenant_admin
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
-from watchmen_meta.dqc import MonitorJobLockService
+from watchmen_meta.dqc import MonitorJobLockService, MonitorRuleService
 from watchmen_model.admin import Topic
 from watchmen_model.common import TenantId, TopicId
 from watchmen_model.dqc import MonitorJobLock, MonitorRule, MonitorRuleCode, MonitorRuleStatisticalInterval

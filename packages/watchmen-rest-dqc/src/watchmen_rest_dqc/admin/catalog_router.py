@@ -4,9 +4,9 @@ from fastapi import APIRouter, Depends
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
-from watchmen_dqc.admin import CatalogService
 from watchmen_meta.admin import TopicService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
+from watchmen_meta.dqc import CatalogService
 from watchmen_model.admin import UserRole
 from watchmen_model.common import TenantId, TopicId
 from watchmen_model.dqc import Catalog, CatalogCriteria, CatalogId
