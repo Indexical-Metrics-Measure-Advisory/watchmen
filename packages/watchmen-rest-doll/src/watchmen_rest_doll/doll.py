@@ -19,13 +19,13 @@ class DollApp(RestApp):
 		"""
 		autonomous transaction
 		"""
-		return build_find_user_by_name(ask_meta_storage())
+		return build_find_user_by_name()
 
 	def build_find_user_by_pat(self) -> Callable[[str], Optional[User]]:
 		"""
 		autonomous transaction
 		"""
-		return build_find_user_by_pat(ask_meta_storage())
+		return build_find_user_by_pat()
 
 	def is_tuple_delete_enabled(self) -> bool:
 		return self.get_settings().TUPLE_DELETABLE
