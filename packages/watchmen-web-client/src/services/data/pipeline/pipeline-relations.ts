@@ -18,6 +18,7 @@ import {
 import {
 	isAlarmAction,
 	isCopyToMemoryAction,
+	isDeleteTopicAction,
 	isInsertRowAction,
 	isMergeRowAction,
 	isReadTopicAction,
@@ -225,6 +226,14 @@ export const buildPipelineRelation = (options: { pipeline: Pipeline; topicsMap: 
 							findOnParameter(mapping.source, readFactorIds, variables, trigger.topic);
 						});
 					}
+				} else if (isDeleteTopicAction(action)) {
+					const topicId = action.topicId;
+					let factors = writeFactorIds[topicId];
+					if (!factors) {
+						factors = [];
+						writeFactorIds[topicId] = factors;
+					}
+					findOnCondition(action.by, readFactorIds, variables, trigger.topic);
 				}
 			});
 		});

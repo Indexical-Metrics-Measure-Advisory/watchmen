@@ -19,6 +19,8 @@ import {FindBy, PipelineStageUnitAction} from '../tuples/pipeline-stage-unit-act
 import {
 	isAlarmAction,
 	isCopyToMemoryAction,
+	isDeleteRowsAction,
+	isDeleteTopicAction,
 	isExistsAction,
 	isInsertRowAction,
 	isMergeRowAction,
@@ -95,7 +97,7 @@ const countIndex = (one: TopicFactorParameter, another: Parameter, topic: Topic,
 const isIndexUsed = (action: FindBy, topic: Topic): boolean => {
 	const {by} = action;
 
-	const unique = !isReadFactorsAction(action) && !isReadRowsAction(action) && !isExistsAction(action);
+	const unique = !isReadFactorsAction(action) && !isReadRowsAction(action) && !isExistsAction(action) && !isDeleteRowsAction(action);
 
 	const definedIndexes: Record<FactorIndexGroup, Array<FactorId>> = topic.factors.reduce((indexes, factor) => {
 		if (factor.indexGroup) {
@@ -437,6 +439,37 @@ export const validatePipeline = (pipeline: Pipeline, topics: Array<Topic>): Pipe
 					if (topic && !isIndexUsed(action, topic)) {
 						missIndexed.push(`#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}`);
 					}
+				} else if (isDeleteTopicAction(action)) {
+					const {topicId, by} = action;
+					// eslint-disable-next-line
+					const topic = topics.find(topic => topic.topicId == topicId);
+					if (!topic) {
+						messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] target topic is incorrect.`);
+					}
+					if (!by || by.filters.length === 0) {
+						messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] read by is not given yet.`);
+					} else if (!isJointValid4Pipeline({
+						joint: by,
+						allTopics: [topic, triggerTopic].filter(x => x) as Array<Topic>,
+						triggerTopic,
+						variables,
+						reasons: (reason) => {
+							messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] read by is incorrect caused by ${ParameterInvalidReasonsLabels[reason]}.`);
+						}
+					})) {
+						// do nothing, reason already be added by passed function
+					}
+
+					const built = tryToBuildVariable({action, variables, topics, triggerTopic});
+					if (!built) {
+						// cannot build variable, return true as failed.
+						messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] topic or factor is incorrect.`);
+					}
+					if (topic && !isIndexUsed(action, topic)) {
+						missIndexed.push(`#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}`);
+					}
+					// pass all validation
+					return false;
 				} else {
 					messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] action type is not supported yet.`);
 				}

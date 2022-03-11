@@ -1,4 +1,5 @@
 import {
+	isDeleteTopicAction,
 	isReadTopicAction,
 	isWriteTopicAction
 } from '@/services/data/tuples/pipeline-stage-unit-action/pipeline-stage-unit-action-utils';
@@ -52,7 +53,7 @@ const buildPipelineNodes = (
 							// eslint-disable-next-line
 							const readTopic = topics.find(t => t.topicId == action.topicId)!;
 							readTopics.push(buildTopicNode(readTopic, pipelineNode, [], [...new Set([topic, ...ancestors])], topics, pipelines, false));
-						} else if (isWriteTopicAction(action)) {
+						} else if (isWriteTopicAction(action) || isDeleteTopicAction(action)) {
 							// eslint-disable-next-line
 							const writeTopic = topics.find(t => t.topicId == action.topicId)!;
 							writeTopics.push(buildTopicNode(writeTopic, pipelineNode, [], [...new Set([topic, ...ancestors])], topics, pipelines, true));

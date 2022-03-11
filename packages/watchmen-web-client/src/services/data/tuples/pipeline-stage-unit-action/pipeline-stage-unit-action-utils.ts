@@ -1,4 +1,4 @@
-import {DeleteTopicAction} from '@/services/data/tuples/pipeline-stage-unit-action/delete-topic-actions-types';
+import {DeleteRowAction, DeleteRowsAction, DeleteTopicAction} from './delete-topic-actions-types';
 import {
 	DeleteTopicActionType,
 	PipelineStageUnitAction,
@@ -65,4 +65,10 @@ export const isWriteFactorAction = (action: PipelineStageUnitAction): action is 
 export const isDeleteTopicAction = (action: PipelineStageUnitAction): action is DeleteTopicAction => {
 	return action.type === DeleteTopicActionType.DELETE_ROW
 		|| action.type === DeleteTopicActionType.DELETE_ROWS;
+};
+export const isDeleteRowAction = (action: PipelineStageUnitAction): action is DeleteRowAction => {
+	return action.type === DeleteTopicActionType.DELETE_ROW;
+};
+export const isDeleteRowsAction = (action: PipelineStageUnitAction): action is DeleteRowsAction => {
+	return action.type === DeleteTopicActionType.DELETE_ROWS;
 };

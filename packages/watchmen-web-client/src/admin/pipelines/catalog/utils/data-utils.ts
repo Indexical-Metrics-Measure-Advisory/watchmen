@@ -2,6 +2,7 @@ import {Parameter, VariablePredefineFunctions} from '@/services/data/tuples/fact
 import {isDateDiffConstant} from '@/services/data/tuples/factor-calculator-utils';
 import {isComputedParameter, isConstantParameter, isTopicFactorParameter} from '@/services/data/tuples/parameter-utils';
 import {
+	isDeleteTopicAction,
 	isExistsAction,
 	isInsertRowAction,
 	isMergeRowAction,
@@ -21,7 +22,7 @@ export const computeWriteFlowTopicIds = (pipeline: Pipeline): Array<{ source: To
 	return pipeline.stages.map(stage => {
 		return stage.units.map(unit => {
 			return unit.do.map(action => {
-				if (!isWriteTopicAction(action)) {
+				if (!isWriteTopicAction(action) && !isDeleteTopicAction(action)) {
 					return null;
 				}
 

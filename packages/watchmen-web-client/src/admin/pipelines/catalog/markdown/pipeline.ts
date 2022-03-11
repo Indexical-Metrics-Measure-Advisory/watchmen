@@ -29,6 +29,9 @@ import {
 import {
 	isAlarmAction,
 	isCopyToMemoryAction,
+	isDeleteRowAction,
+	isDeleteRowsAction,
+	isDeleteTopicAction,
 	isExistsAction,
 	isInsertRowAction,
 	isMergeRowAction,
@@ -272,6 +275,20 @@ const generateActionBody = (options: {
 		}
 
 		return `\n\t.to(byTopic('${topicName}')${mapping})${by}`;
+	} else if (isDeleteTopicAction(action)) {
+		let by;
+		if (action.by) {
+			by = `\n\t.by(${generateJoint(action.by, topicsMap).replaceAll('\n', '\n\t')})`;
+		} else {
+			by = `\n\t.by(missed())`;
+		}
+		if (isDeleteRowAction(action) || isDeleteRowsAction(action)) {
+			const topic = topicsMap[action.topicId];
+			const topicName = topic?.name || 'MissedTopic';
+			return `\n\t.from(byTopic('${topicName}'))${by}\n\t.delete()`;
+		} else {
+			return '\n\t.unsupportedActionBody()';
+		}
 	} else {
 		return '\n\t.unsupportedAction()';
 	}
