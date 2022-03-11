@@ -1,5 +1,5 @@
-import {DateTime} from '@/services/data/types';
 import {BlockCoordinate, BlockFrame, BlockName} from '../graphics/graphics-types';
+import {DateTime} from '../types';
 import {PipelineStage} from './pipeline-stage-types';
 import {Conditional} from './pipeline-super-types';
 import {TenantId} from './tenant-types';

@@ -8,6 +8,8 @@ import {Topic} from '@/services/data/tuples/topic-types';
 import React from 'react';
 import {Alarm} from '../alarm';
 import {CopyToMemory} from '../copy-to-memory';
+import {DeleteRow} from '../delete-row';
+import {DeleteRows} from '../delete-rows';
 import {InsertRow} from '../insert-row';
 import {MergeRow} from '../merge-row';
 import {ReadFactor} from '../read-factor';
@@ -52,5 +54,9 @@ export const ActionBody = (props: {
 		           triggerTopic={triggerTopic}/>
 		<MergeRow pipeline={pipeline} stage={stage} unit={unit} action={action} topics={topics}
 		          triggerTopic={triggerTopic}/>
+		<DeleteRow pipeline={pipeline} stage={stage} unit={unit} action={action} topics={topics}
+		           triggerTopic={triggerTopic}/>
+		<DeleteRows pipeline={pipeline} stage={stage} unit={unit} action={action} topics={topics}
+		            triggerTopic={triggerTopic}/>
 	</ActionBodyContainer>;
 };

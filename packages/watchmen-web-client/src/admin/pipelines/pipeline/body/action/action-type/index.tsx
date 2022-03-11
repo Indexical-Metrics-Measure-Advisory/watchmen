@@ -37,7 +37,7 @@ const ActionTypeLabels: Record<PipelineStageUnitActionType, string> = {
 	[WriteTopicActionType.MERGE_ROW]: 'Merge Row',
 	[WriteTopicActionType.INSERT_ROW]: 'Insert Row',
 	[DeleteTopicActionType.DELETE_ROW]: 'Delete Row',
-	[DeleteTopicActionType.DELETE_ROWS]: 'Delete Rows',
+	[DeleteTopicActionType.DELETE_ROWS]: 'Delete Rows'
 };
 
 interface DropdownState {
@@ -121,6 +121,15 @@ export const ActionTypeEditor = (props: { action: PipelineStageUnitAction }) => 
 			</ActionTypeOptions>
 			<ActionTypeOptions>
 				{[WriteTopicActionType.WRITE_FACTOR, WriteTopicActionType.INSERT_OR_MERGE_ROW, WriteTopicActionType.MERGE_ROW, WriteTopicActionType.INSERT_ROW].map(actionType => {
+					return <ActionTypeOption selected={actionType === action.type}
+					                         onClick={onActionTypeClicked(actionType)}
+					                         key={actionType}>
+						{ActionTypeLabels[actionType]}
+					</ActionTypeOption>;
+				})}
+			</ActionTypeOptions>
+			<ActionTypeOptions>
+				{[DeleteTopicActionType.DELETE_ROW, DeleteTopicActionType.DELETE_ROWS].map(actionType => {
 					return <ActionTypeOption selected={actionType === action.type}
 					                         onClick={onActionTypeClicked(actionType)}
 					                         key={actionType}>

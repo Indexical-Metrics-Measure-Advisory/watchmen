@@ -1,4 +1,5 @@
 import {
+	isDeleteTopicAction,
 	isReadTopicAction,
 	isWriteTopicAction
 } from '@/services/data/tuples/pipeline-stage-unit-action/pipeline-stage-unit-action-utils';
@@ -57,7 +58,7 @@ export const voteNextDynamicPipeline = (options: {
 						// ignore self
 						io.read.push(action.topicId);
 						// eslint-disable-next-line
-					} else if (isWriteTopicAction(action) && action.topicId != pipeline.topicId) {
+					} else if ((isWriteTopicAction(action) || isDeleteTopicAction(action)) && action.topicId != pipeline.topicId) {
 						// ignore self
 						io.write.push(action.topicId);
 						io.trails.push(...(topicPipelineMap.get(action.topicId) || []));
