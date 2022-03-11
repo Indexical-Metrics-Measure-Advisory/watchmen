@@ -8991,7 +8991,7 @@
                   "name": "BY",
                   "item": [
                     {
-                      "name": "New Request",
+                      "name": "CREATE TOPIC",
                       "id": "35cf4b13-f372-4d94-82c4-ef41235ede73",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
