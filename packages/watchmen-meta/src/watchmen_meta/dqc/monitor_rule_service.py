@@ -1,8 +1,8 @@
 from typing import List, Optional
 
 from watchmen_meta.common import TupleService, TupleShaper
-from watchmen_model.common import TenantId, TopicId
-from watchmen_model.dqc import MonitorRule, MonitorRuleGrade, MonitorRuleId
+from watchmen_model.common import FactorId, TenantId, TopicId
+from watchmen_model.dqc import MonitorRule, MonitorRuleCode, MonitorRuleGrade, MonitorRuleId
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, EntityName, \
 	EntityRow, EntityShaper
 from watchmen_utilities import is_not_blank
@@ -71,6 +71,32 @@ class MonitorRuleService(TupleService):
 		if is_not_blank(topic_id):
 			criteria.append(EntityCriteriaExpression(
 				left=ColumnNameLiteral(columnName='topic_id'), right=topic_id))
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria=criteria))
+
+	def find_by_location(
+			self, code: MonitorRuleCode, topic_id: Optional[TopicId], factor_id: Optional[FactorId],
+			tenant_id: TenantId
+	) -> Optional[MonitorRule]:
+		criteria = []
+		if tenant_id is not None and len(tenant_id.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		if code is not None:
+			criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='code'), right=code.value))
+		if is_not_blank(topic_id):
+			criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='topic_id'), right=topic_id))
+		else:
+			criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='topic_id'), operator=EntityCriteriaOperator.IS_EMPTY))
+		if is_not_blank(factor_id):
+			criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='factor_id'), right=factor_id))
+		else:
+			criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='factor_id'), operator=EntityCriteriaOperator.IS_EMPTY))
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(criteria=criteria))
 

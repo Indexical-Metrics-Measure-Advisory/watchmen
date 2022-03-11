@@ -8,13 +8,14 @@ from watchmen_auth import PrincipalService
 from watchmen_meta.admin import FactorService, PipelineService, SpaceService, TopicService, UserService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.console import ConnectedSpaceService, ReportService, SubjectService
+from watchmen_meta.dqc import MonitorRuleService
 from watchmen_meta.system import TenantService
 from watchmen_model.admin import Factor, Pipeline, PipelineStage, Space, Topic, User, UserRole
 from watchmen_model.admin.space import SpaceFilter
 from watchmen_model.common import ConnectedSpaceId, FactorId, ParameterJoint, PipelineId, ReportId, SpaceId, \
 	SubjectId, TenantBasedTuple, TenantId, TopicId, UserId
 from watchmen_model.console import ConnectedSpace, Report, Subject, SubjectDataset
-from watchmen_model.dqc import MonitorRule
+from watchmen_model.dqc import MonitorRule, MonitorRuleId
 from watchmen_model.system import Tenant
 from watchmen_rest import get_any_admin_principal
 from watchmen_rest.util import raise_400, raise_403
@@ -22,7 +23,7 @@ from watchmen_rest_doll.admin.pipeline_router import post_save_pipeline
 from watchmen_rest_doll.admin.topic_router import post_save_topic
 from watchmen_rest_doll.console.connected_space_router import ConnectedSpaceWithSubjects, SubjectWithReports
 from watchmen_rest_doll.util import trans
-from watchmen_utilities import ArrayHelper, is_blank
+from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 
 router = APIRouter()
 
@@ -72,6 +73,10 @@ class ReportImportDataResult(ImportDataResult):
 	reportId: Optional[ReportId] = None
 
 
+class MonitorRuleImportDataResult(ImportDataResult):
+	monitorRuleId: Optional[MonitorRuleId] = None
+
+
 class MixImportDataResponse(BaseModel):
 	passed: bool = None
 	topics: List[TopicImportDataResult] = []
@@ -79,7 +84,8 @@ class MixImportDataResponse(BaseModel):
 	spaces: List[SpaceImportDataResult] = []
 	connectedSpaces: List[ConnectedSpaceImportDataResult] = []
 	subjects: List[SubjectImportDataResult] = []
-	reports: List[ReportImportDataResult] = []
+	reports: List[ReportImportDataResult] = [],
+	monitorRules: List[MonitorRuleImportDataResult] = []
 
 
 def get_user_service(principal_service: PrincipalService) -> UserService:
@@ -108,6 +114,10 @@ def get_subject_service(user_service: UserService) -> SubjectService:
 
 def get_report_service(user_service: UserService) -> ReportService:
 	return ReportService(user_service.storage, user_service.snowflakeGenerator, user_service.principalService)
+
+
+def get_monitor_rule_service(user_service: UserService) -> MonitorRuleService:
+	return MonitorRuleService(user_service.storage, user_service.snowflakeGenerator, user_service.principalService)
 
 
 def same_tenant_validate(tenant_id: Optional[TenantId], a_tuple: TenantBasedTuple) -> TenantId:
@@ -354,6 +364,49 @@ def try_to_import_report(
 	return ReportImportDataResult(reportId=report.reportId, name=report.name, passed=True)
 
 
+def for_same_location(monitor_rule: MonitorRule, another_monitor_rule: MonitorRule) -> bool:
+	if another_monitor_rule.code != monitor_rule.code:
+		return False
+	elif another_monitor_rule.topicId != monitor_rule.topicId:
+		return False
+	elif another_monitor_rule.factorId != monitor_rule.factorId:
+		return False
+	return True
+
+
+def try_to_import_monitor_rule(
+		monitor_rule: MonitorRule, monitor_rule_service: MonitorRuleService, do_update: bool
+) -> MonitorRuleImportDataResult:
+	if is_blank(monitor_rule.ruleId):
+		monitor_rule_service.redress_storable_id(monitor_rule)
+		monitor_rule_service.create(monitor_rule)
+	else:
+		existing_monitor_rule: Optional[MonitorRule] = monitor_rule_service.find_by_id(monitor_rule.ruleId)
+		if existing_monitor_rule is None:
+			monitor_rule_service.create(monitor_rule)
+		elif do_update:
+			if not for_same_location(monitor_rule, another_monitor_rule):
+				# has same id, but not for same location
+				existing_monitor_rule: Optional[MonitorRule] = monitor_rule_service.find_by_location(
+					monitor_rule.code, monitor_rule.topicId, monitor_rule.factorId, existing_monitor_rule.tenantId)
+				if existing_monitor_rule is None:
+					# same location rule not found, redress the rule id and create
+					monitor_rule_service.create(monitor_rule)
+				else:
+					# use the original rule id and update
+					monitor_rule.ruleId = existing_monitor_rule.ruleId
+					monitor_rule_service.update(monitor_rule)
+			else:
+				monitor_rule_service.update(monitor_rule)
+		else:
+			return MonitorRuleImportDataResult(
+				monitorRuleId=monitor_rule.ruleId, name=monitor_rule.code, passed=False,
+				reason='Monitor rule already exists.')
+
+	return MonitorRuleImportDataResult(
+		monitorRuleId=monitor_rule.ruleId, name=monitor_rule.code, passed=True)
+
+
 def is_all_passed(results: List[List[ImportDataResult]]) -> bool:
 	return ArrayHelper(results).flatten().every(lambda x: x.passed)
 
@@ -390,7 +443,9 @@ def try_to_import(request: MixImportDataRequest, user_service: UserService, do_u
 	report_service = get_report_service(user_service)
 	report_results = ArrayHelper(reports).map(lambda x: try_to_import_report(x, report_service, do_update)).to_list()
 
-	# TODO import monitor rules
+	monitor_rule_service = get_monitor_rule_service(user_service)
+	monitor_rule_results = ArrayHelper(request.monitorRules).map(
+		lambda x: try_to_import_monitor_rule(x, monitor_rule_service, do_update)).to_list()
 
 	return MixImportDataResponse(
 		passed=is_all_passed([
@@ -400,7 +455,8 @@ def try_to_import(request: MixImportDataRequest, user_service: UserService, do_u
 		spaces=space_results,
 		connectedSpaces=connected_space_results,
 		subjects=subject_results,
-		reports=report_results
+		reports=report_results,
+		monitorRules=monitor_rule_results
 	)
 
 
@@ -424,7 +480,7 @@ def import_on_replace(
 	return try_to_import(request, user_service, True)
 
 
-def fill_topic_ids(
+def refill_topic_ids(
 		topics: Optional[List[Topic]], topic_service: TopicService
 ) -> Tuple[Dict[TopicId, TopicId], Dict[FactorId, FactorId]]:
 	topic_id_map: Dict[TopicId, TopicId] = {}
@@ -471,7 +527,7 @@ def create_topic_and_factor_ids_replacer(
 	return replace_topic_and_factor_ids
 
 
-def fill_pipeline_ids(
+def refill_pipeline_ids(
 		pipelines: Optional[List[Pipeline]], pipeline_service: PipelineService,
 		topic_id_map: Dict[TopicId, TopicId], factor_id_map: Dict[FactorId, FactorId]
 ) -> None:
@@ -488,7 +544,7 @@ def fill_pipeline_ids(
 	ArrayHelper(pipelines).each(fill_pipeline_id)
 
 
-def fill_space_ids(
+def refill_space_ids(
 		spaces: Optional[List[Space]], space_service: SpaceService,
 		topic_id_map: Dict[TopicId, TopicId], factor_id_map: Dict[FactorId, FactorId]
 ) -> Dict[SpaceId, SpaceId]:
@@ -520,7 +576,7 @@ def fill_space_ids(
 	return space_id_map
 
 
-def fill_connected_space_ids(
+def refill_connected_space_ids(
 		connected_spaces: Optional[List[ConnectedSpace]], connected_space_service: ConnectedSpaceService,
 		space_id_map: Dict[SpaceId, SpaceId]
 ) -> Dict[ConnectedSpaceId, ConnectedSpaceId]:
@@ -538,7 +594,7 @@ def fill_connected_space_ids(
 	return space_id_map
 
 
-def fill_subject_ids(
+def refill_subject_ids(
 		subjects: Optional[List[SubjectWithReports]], subject_service: SubjectService,
 		connected_space_id_map: Dict[ConnectedSpaceId, ConnectedSpaceId],
 		topic_id_map: Dict[TopicId, TopicId], factor_id_map: Dict[FactorId, FactorId]
@@ -561,7 +617,7 @@ def fill_subject_ids(
 	return subject_id_map
 
 
-def fill_report_ids(
+def refill_report_ids(
 		reports: Optional[List[Report]], report_service: ReportService,
 		connected_space_id_map: Dict[ConnectedSpaceId, ConnectedSpaceId],
 		subject_id_map: Dict[SubjectId, SubjectId],
@@ -581,46 +637,71 @@ def fill_report_ids(
 	ArrayHelper(reports).each(fill_report_id)
 
 
+def refill_monitor_rule_ids(
+		monitor_rules: Optional[List[MonitorRule]], monitor_rule_service: MonitorRuleService,
+		topic_id_map: Dict[TopicId, TopicId], factor_id_map: Dict[FactorId, FactorId]
+) -> None:
+	def fill_rule_id(monitor_rule: MonitorRule) -> None:
+		monitor_rule_service.redress_storable_id(monitor_rule)
+		if is_not_blank(monitor_rule.topicId):
+			monitor_rule.topicId = topic_id_map.get(monitor_rule.topicId)
+		if is_not_blank(monitor_rule.factorId):
+			monitor_rule.factorId = factor_id_map.get(monitor_rule.factorId)
+		if monitor_rule.params is not None:
+			if is_not_blank(monitor_rule.params.topicId):
+				monitor_rule.params.topicId = topic_id_map.get(monitor_rule.topicId)
+			if is_not_blank(monitor_rule.params.factorId):
+				monitor_rule.params.factorId = factor_id_map.get(monitor_rule.factorId)
+
+	ArrayHelper(monitor_rules).each(fill_rule_id)
+
+
+# noinspection DuplicatedCode
 def force_new_import(request: MixImportDataRequest, user_service: UserService) -> MixImportDataResponse:
 	# keep relationship, replace them all
 	topic_service = get_topic_service(user_service)
-	topic_id_map, factor_id_map = fill_topic_ids(request.topics, topic_service)
+	topic_id_map, factor_id_map = refill_topic_ids(request.topics, topic_service)
 	topic_results = ArrayHelper(request.topics) \
 		.map(lambda x: topic_service.create(x)) \
 		.each(lambda x: post_save_topic(x, topic_service)) \
 		.map(lambda x: TopicImportDataResult(topicId=x.topicId, name=x.name, passed=True)).to_list()
 
 	pipeline_service = get_pipeline_service(user_service)
-	fill_pipeline_ids(request.pipelines, pipeline_service, topic_id_map, factor_id_map)
+	refill_pipeline_ids(request.pipelines, pipeline_service, topic_id_map, factor_id_map)
 	pipeline_results = ArrayHelper(request.pipelines) \
 		.map(lambda x: pipeline_service.create(x)) \
 		.each(lambda x: post_save_pipeline(x, pipeline_service)) \
 		.map(lambda x: PipelineImportDataResult(pipelineId=x.pipelineId, name=x.name, passed=True)).to_list()
 
 	space_service = get_space_service(user_service)
-	space_id_map = fill_space_ids(request.spaces, space_service, topic_id_map, factor_id_map)
+	space_id_map = refill_space_ids(request.spaces, space_service, topic_id_map, factor_id_map)
 	space_results = ArrayHelper(request.spaces) \
 		.map(lambda x: space_service.create(x)) \
 		.map(lambda x: SpaceImportDataResult(spaceId=x.spaceId, name=x.name, passed=True)).to_list()
 
 	connected_space_service = get_connected_space_service(user_service)
-	connected_space_id_map = fill_connected_space_ids(request.connectedSpaces, connected_space_service, space_id_map)
+	connected_space_id_map = refill_connected_space_ids(request.connectedSpaces, connected_space_service, space_id_map)
 	connected_space_results = ArrayHelper(request.connectedSpaces) \
 		.map(lambda x: connected_space_service.create(x)) \
 		.map(lambda x: ConnectedSpaceImportDataResult(connectId=x.connectId, name=x.name, passed=True)).to_list()
 
 	subjects = ArrayHelper(request.connectedSpaces).map(lambda x: x.subjects).flatten().to_list()
 	subject_service = get_subject_service(user_service)
-	subject_id_map = fill_subject_ids(subjects, subject_service, connected_space_id_map, topic_id_map, factor_id_map)
+	subject_id_map = refill_subject_ids(subjects, subject_service, connected_space_id_map, topic_id_map, factor_id_map)
 	subject_results = ArrayHelper(subjects).map(lambda x: subject_service.create(x)) \
 		.map(lambda x: SubjectImportDataResult(subjectId=x.subjectId, name=x.name, passed=True)).to_list()
 
 	reports = ArrayHelper(subjects).map(lambda x: x.reports).flatten().to_list()
 	report_service = get_report_service(user_service)
-	fill_report_ids(reports, report_service, connected_space_id_map, subject_id_map, topic_id_map, factor_id_map)
+	refill_report_ids(reports, report_service, connected_space_id_map, subject_id_map, topic_id_map, factor_id_map)
 	report_results = ArrayHelper(reports) \
 		.map(lambda x: report_service.create(x)) \
 		.map(lambda x: ReportImportDataResult(reportId=x.reportId, name=x.name, passed=True)).to_list()
+
+	monitor_rule_service = get_monitor_rule_service(user_service)
+	refill_monitor_rule_ids(request.monitorRules, monitor_rule_service, topic_id_map, factor_id_map)
+	monitor_rule_results = ArrayHelper(request.monitorRules).map(
+		lambda x: try_to_import_monitor_rule(x, monitor_rule_service, do_update)).to_list()
 
 	return MixImportDataResponse(
 		passed=is_all_passed([
@@ -631,7 +712,8 @@ def force_new_import(request: MixImportDataRequest, user_service: UserService) -
 		spaces=space_results,
 		connectedSpaces=connected_space_results,
 		subjects=subject_results,
-		reports=report_results
+		reports=report_results,
+		monitorRules=monitor_rule_results
 	)
 
 
