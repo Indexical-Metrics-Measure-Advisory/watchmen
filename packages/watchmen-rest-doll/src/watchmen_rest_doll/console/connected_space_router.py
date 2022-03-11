@@ -231,6 +231,38 @@ async def find_my_connected_spaces(
 	return trans(connected_space_service, action)
 
 
+@router.get('/connected_space/template', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=Subject)
+async def updated_connected_space_as_template(
+		connect_id: Optional[ConnectedSpaceId], is_template: Optional[bool],
+		principal_service: PrincipalService = Depends(get_console_principal)
+) -> None:
+	"""
+	set as template connected space will not increase the optimistic lock version
+	"""
+	if is_blank(connect_id):
+		raise_400('Connected space id is required.')
+	if is_template is None:
+		raise_400('Connected space as template or not is required.')
+
+	connected_space_service = get_connected_space_service(principal_service)
+
+	# noinspection DuplicatedCode
+	def action() -> None:
+		existing_one = connected_space_service.find_tenant_and_user(connect_id)
+		if existing_one is None:
+			raise_404()
+		existing_tenant_id, existing_user_id = existing_one
+		if existing_tenant_id != principal_service.get_tenant_id():
+			raise_403()
+		elif existing_user_id != principal_service.get_user_id():
+			raise_403()
+		# noinspection PyTypeChecker
+		connected_space_service.update_as_template(
+			connect_id, is_template, principal_service.get_user_id(), principal_service.get_tenant_id())
+
+	trans(connected_space_service, action)
+
+
 @router.get('/connected_space/rename', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_class=Response)
 async def update_connected_space_name_by_id(
 		connect_id: Optional[ConnectedSpaceId], name: Optional[str],

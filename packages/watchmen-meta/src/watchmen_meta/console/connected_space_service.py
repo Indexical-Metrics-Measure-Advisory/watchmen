@@ -118,6 +118,32 @@ class ConnectedSpaceService(UserBasedTupleService):
 			raise TupleNotFoundException('Update 0 row might be caused by tuple not found.')
 		return last_modified_at
 
+	# noinspection DuplicatedCode
+	def update_as_template(
+			self, connect_id: ConnectedSpaceId, is_template: bool,
+			user_id: UserId, tenant_id: TenantId) -> datetime:
+		"""
+		update name will not increase optimistic lock version
+		"""
+		last_modified_at = self.now()
+		last_modified_by = self.principalService.get_user_id()
+		updated_count = self.storage.update_only(self.get_entity_updater(
+			criteria=[
+				EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName=self.get_storable_id_column_name()), right=connect_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='user_id'), right=user_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
+			],
+			update={
+				'is_template': is_template,
+				'last_modified_at': last_modified_at,
+				'last_modified_by': last_modified_by
+			}
+		))
+		if updated_count == 0:
+			raise TupleNotFoundException('Update 0 row might be caused by tuple not found.')
+		return last_modified_at
+
 	def update_last_visit_time(self, connect_id: ConnectedSpaceId) -> datetime:
 		now = self.now()
 		self.storage.update(self.get_entity_updater(
