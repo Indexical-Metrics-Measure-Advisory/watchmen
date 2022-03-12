@@ -9546,7 +9546,7 @@
                   "name": "MEMORY",
                   "item": [
                     {
-                      "name": "New Request",
+                      "name": "CONSTANT FUNCTION",
                       "id": "d05728ef-f6fe-4bf5-8613-10838062e41a",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
