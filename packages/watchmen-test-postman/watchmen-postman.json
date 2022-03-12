@@ -9634,36 +9634,7 @@
                 },
                 {
                   "name": "STORAGE",
-                  "item": [
-                    {
-                      "name": "CONSTANT FUNCTION",
-                      "id": "d1b3346d-a7b1-4004-8825-55240b846a3d",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "auth": {
-                          "type": "bearer",
-                          "bearer": {
-                            "token": "{{JWT_TOKEN}}"
-                          }
-                        },
-                        "method": "POST",
-                        "header": [],
-                        "body": {
-                          "mode": "raw",
-                          "raw": "",
-                          "options": {
-                            "raw": {
-                              "language": "json"
-                            }
-                          }
-                        },
-                        "url": "{{URL_PREFIX}}/pipeline"
-                      },
-                      "response": []
-                    }
-                  ],
+                  "item": [],
                   "id": "5984c255-9f65-46ad-bf8c-047533bbbca6"
                 },
                 {
