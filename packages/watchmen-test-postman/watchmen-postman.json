@@ -9547,6 +9547,23 @@
                   "item": [
                     {
                       "name": "CREATE TOPIC",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "50098e86-10b5-4a92-9ba4-afce8265f86a",
+                            "exec": [
+                              "pm.test(\"Create Distinct Topic\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "    var data = pm.response.json();",
+                              "    pm.environment.set('TOPIC_ID', data.topicId)",
+                              "    pm.environment.set('TOPIC_NAME', data.name)",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "284b66df-89e2-4de7-96d4-f33fecbb48a8",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
