@@ -9365,7 +9365,7 @@
                   "name": "STORAGE",
                   "item": [
                     {
-                      "name": "New Request",
+                      "name": "CREATE TOPIC",
                       "id": "01a5d3c5-f6c2-4a1e-a11b-8967e3c312f2",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
