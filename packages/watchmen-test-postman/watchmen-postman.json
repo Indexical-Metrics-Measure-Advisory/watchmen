@@ -9604,7 +9604,7 @@
                   "name": "STORAGE",
                   "item": [
                     {
-                      "name": "New Request",
+                      "name": "CONSTANT FUNCTION",
                       "id": "d1b3346d-a7b1-4004-8825-55240b846a3d",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
