@@ -9363,7 +9363,20 @@
                 },
                 {
                   "name": "STORAGE",
-                  "item": [],
+                  "item": [
+                    {
+                      "name": "New Request",
+                      "id": "01a5d3c5-f6c2-4a1e-a11b-8967e3c312f2",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
+                    }
+                  ],
                   "id": "988e6778-7ca1-4f6f-90f2-97d10ea3e435"
                 }
               ],
