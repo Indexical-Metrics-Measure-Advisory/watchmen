@@ -9416,8 +9416,17 @@
                         "disableBodyPruning": true
                       },
                       "request": {
-                        "method": "GET",
-                        "header": []
+                        "method": "PATCH",
+                        "header": [],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n    \"propA\": \"text\",\n    \"propB\": 100,\n    \"propC\": true,\n    \"propD\": \"2022-03-22\",\n    \"propE\": \"2022-03-22 22:39:45\",\n    \"propF\": 30,\n    \"propG\": 130,\n    \"propH\": 70,\n    \"propI\": 3000,\n    \"propJ\": 3.333333,\n    \"propK\": 10\n}",
+                          "options": {
+                            "raw": {
+                              "language": "json"
+                            }
+                          }
+                        }
                       },
                       "response": []
                     },
