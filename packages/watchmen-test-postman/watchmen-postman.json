@@ -9648,11 +9648,34 @@
                     },
                     {
                       "name": "CREATE RAW TOPIC",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "7b56ab00-2a3c-4b27-9ad2-05197751949d",
+                            "exec": [
+                              "pm.test(\"Create Raw Topic\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "    var data = pm.response.json();",
+                              "    pm.environment.set('RAW_TOPIC_ID', data.topicId)",
+                              "    pm.environment.set('RAW_TOPIC_NAME', data.name)",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "8189cec3-48a7-4a0d-ba3f-c2f5d402f010",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
                       },
                       "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
                         "method": "POST",
                         "header": [],
                         "body": {
