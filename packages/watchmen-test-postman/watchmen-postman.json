@@ -9366,13 +9366,46 @@
                   "item": [
                     {
                       "name": "CREATE TOPIC",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "16e67e58-5d19-428d-8c21-bba8dee7db13",
+                            "exec": [
+                              "pm.test(\"Create Distinct Topic\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "    var data = pm.response.json();",
+                              "    pm.environment.set('TOPIC_ID', data.topicId)",
+                              "    pm.environment.set('TOPIC_NAME', data.name)",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "01a5d3c5-f6c2-4a1e-a11b-8967e3c312f2",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
                       },
                       "request": {
-                        "method": "GET",
-                        "header": []
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n    \"topicId\": \"{{TOPIC_ID}}\",\n    \"name\": \"Test_Distinct_Topic\",\n    \"type\": \"distinct\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propC\"},\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propD\"},\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propE\"},\n        {\"factorId\": \"6\", \"type\": \"number\", \"name\": \"propF\"},\n        {\"factorId\": \"7\", \"type\": \"year\", \"name\": \"propG\"},\n        {\"factorId\": \"8\", \"type\": \"half-year\", \"name\": \"propH\"},\n        {\"factorId\": \"9\", \"type\": \"quarter\", \"name\": \"propI\"},\n        {\"factorId\": \"10\", \"type\": \"month\", \"name\": \"propJ\"},\n        {\"factorId\": \"11\", \"type\": \"week-of-year\", \"name\": \"propK\"},\n        {\"factorId\": \"12\", \"type\": \"week-of-month\", \"name\": \"propL\"},\n        {\"factorId\": \"13\", \"type\": \"day-of-month\", \"name\": \"propM\"},\n        {\"factorId\": \"14\", \"type\": \"day-of-week\", \"name\": \"propN\"}\n    ],\n    \"description\": \"Test Distinct Topic\"\n}",
+                          "options": {
+                            "raw": {
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": "{{URL_PREFIX}}/topic"
                       },
                       "response": []
                     },
