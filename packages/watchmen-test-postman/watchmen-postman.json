@@ -9602,7 +9602,20 @@
                 },
                 {
                   "name": "STORAGE",
-                  "item": [],
+                  "item": [
+                    {
+                      "name": "New Request",
+                      "id": "d1b3346d-a7b1-4004-8825-55240b846a3d",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
+                    }
+                  ],
                   "id": "5984c255-9f65-46ad-bf8c-047533bbbca6"
                 },
                 {
