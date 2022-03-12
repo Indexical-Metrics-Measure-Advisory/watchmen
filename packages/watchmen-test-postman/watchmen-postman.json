@@ -9378,6 +9378,11 @@
                   "id": "eea68113-1f82-4d5d-b5d6-6d02b552317b"
                 },
                 {
+                  "name": "New Folder",
+                  "item": [],
+                  "id": "5984c255-9f65-46ad-bf8c-047533bbbca6"
+                },
+                {
                   "name": "CREATE RAW TOPIC",
                   "id": "9987f4e6-bd95-4db4-aeca-299c7a675d76",
                   "protocolProfileBehavior": {
