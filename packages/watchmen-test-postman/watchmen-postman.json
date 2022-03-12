@@ -9695,25 +9695,9 @@
       "id": "fe777952-b426-4a5b-a395-428acafe48a4"
     },
     {
-      "name": "SUBJECT",
-      "item": [
-        {
-          "name": "SPACE",
-          "item": [],
-          "id": "115672d8-3555-440b-8052-c8e9c370e840"
-        },
-        {
-          "name": "DATASET",
-          "item": [],
-          "id": "4be0c839-19e6-4ccd-a5eb-e09c4ddbdaec"
-        }
-      ],
-      "id": "c3559069-a139-4890-b153-42518e18405c"
-    },
-    {
-      "name": "DQC",
+      "name": "New Folder",
       "item": [],
-      "id": "19e99fdc-76dc-4660-b1eb-d29457d0b56b"
+      "id": "c3559069-a139-4890-b153-42518e18405c"
     }
   ]
 }
