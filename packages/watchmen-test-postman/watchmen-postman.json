@@ -9463,12 +9463,34 @@
                     },
                     {
                       "name": "DATE FUNCATION",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "977ea918-2dec-4417-8706-eea659628b2a",
+                            "exec": [
+                              "pm.test(\"Create Pipeline For Function\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "    const data = pm.response.json();",
+                              "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId);",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "835a5db2-1866-44ca-9248-7d96a4237553",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
                       },
                       "request": {
-                        "method": "GET",
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "POST",
                         "header": [],
                         "body": {
                           "mode": "raw",
@@ -9478,7 +9500,8 @@
                               "language": "json"
                             }
                           }
-                        }
+                        },
+                        "url": "{{URL_PREFIX}}/pipeline"
                       },
                       "response": []
                     },
