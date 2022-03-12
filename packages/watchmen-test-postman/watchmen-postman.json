@@ -9641,7 +9641,8 @@
                               "language": "json"
                             }
                           }
-                        }
+                        },
+                        "url": "{{URL_PREFIX}}/pipeline/data"
                       },
                       "response": []
                     }
