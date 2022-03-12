@@ -8665,6 +8665,64 @@
                   "response": []
                 },
                 {
+                  "name": "CREATE DATASOURCE",
+                  "event": [
+                    {
+                      "listen": "prerequest",
+                      "script": {
+                        "id": "cec0ea3e-e58a-43b3-a518-122eaad35d8d",
+                        "exec": [
+                          "pm.environment.set('DATABASE_PORT', 3309)",
+                          "pm.environment.set('DATABASE_USERNAME', \"admin\")",
+                          "pm.environment.set('DATABASE_PASSWORD', \"admin\")",
+                          "pm.environment.set('DATABASE_SCHEMA', \"new_watchmen\")"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    },
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "4c9c27a2-bce4-4fc3-9616-7fa1c270cd4b",
+                        "exec": [
+                          "pm.test('Datasource created', () => {",
+                          "    const data = pm.response.json();",
+                          "    pm.expect(data.dataSourceId).to.not.be.null;",
+                          "    pm.environment.set('DATA_SOURCE_ID', data.dataSourceId)",
+                          "})",
+                          ""
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
+                  "id": "44e6b5ad-db09-436c-b3b8-39671cd09ca4",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "POST",
+                    "header": [],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n    \"dataSourceCode\": \"Test-Datasource\",\n    \"dataSourceType\": \"mysql\",\n    \"host\": \"localhost\",\n    \"port\": \"{{DATABASE_PORT}}\",\n    \"username\": \"{{DATABASE_USERNAME}}\",\n    \"password\": \"{{DATABASE_PASSWORD}}\",\n    \"name\": \"{{DATABASE_SCHEMA}}\",\n    \"tenantId\": \"1\"\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": "{{URL_PREFIX}}/datasource"
+                  },
+                  "response": []
+                },
+                {
                   "name": "CREATE RAW TOPIC",
                   "event": [
                     {
@@ -8751,64 +8809,6 @@
                       ]
                     },
                     "url": "{{URL_PREFIX}}/login"
-                  },
-                  "response": []
-                },
-                {
-                  "name": "CREATE DATASOURCE",
-                  "event": [
-                    {
-                      "listen": "prerequest",
-                      "script": {
-                        "id": "cec0ea3e-e58a-43b3-a518-122eaad35d8d",
-                        "exec": [
-                          "pm.environment.set('DATABASE_PORT', 3309)",
-                          "pm.environment.set('DATABASE_USERNAME', \"admin\")",
-                          "pm.environment.set('DATABASE_PASSWORD', \"admin\")",
-                          "pm.environment.set('DATABASE_SCHEMA', \"new_watchmen\")"
-                        ],
-                        "type": "text/javascript"
-                      }
-                    },
-                    {
-                      "listen": "test",
-                      "script": {
-                        "id": "4c9c27a2-bce4-4fc3-9616-7fa1c270cd4b",
-                        "exec": [
-                          "pm.test('Datasource created', () => {",
-                          "    const data = pm.response.json();",
-                          "    pm.expect(data.dataSourceId).to.not.be.null;",
-                          "    pm.environment.set('DATA_SOURCE_ID', data.dataSourceId)",
-                          "})",
-                          ""
-                        ],
-                        "type": "text/javascript"
-                      }
-                    }
-                  ],
-                  "id": "44e6b5ad-db09-436c-b3b8-39671cd09ca4",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": {
-                        "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
-                      }
-                    },
-                    "method": "POST",
-                    "header": [],
-                    "body": {
-                      "mode": "raw",
-                      "raw": "{\n    \"dataSourceCode\": \"Test-Datasource\",\n    \"dataSourceType\": \"mysql\",\n    \"host\": \"localhost\",\n    \"port\": \"{{DATABASE_PORT}}\",\n    \"username\": \"{{DATABASE_USERNAME}}\",\n    \"password\": \"{{DATABASE_PASSWORD}}\",\n    \"name\": \"{{DATABASE_SCHEMA}}\",\n    \"tenantId\": \"1\"\n}",
-                      "options": {
-                        "raw": {
-                          "language": "json"
-                        }
-                      }
-                    },
-                    "url": "{{URL_PREFIX}}/datasource"
                   },
                   "response": []
                 }
