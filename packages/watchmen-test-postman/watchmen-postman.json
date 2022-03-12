@@ -9544,7 +9544,20 @@
               "item": [
                 {
                   "name": "MEMORY",
-                  "item": [],
+                  "item": [
+                    {
+                      "name": "New Request",
+                      "id": "d05728ef-f6fe-4bf5-8613-10838062e41a",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
+                    }
+                  ],
                   "id": "eea68113-1f82-4d5d-b5d6-6d02b552317b"
                 },
                 {
