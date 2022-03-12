@@ -9546,7 +9546,7 @@
                   "name": "MEMORY",
                   "item": [
                     {
-                      "name": "New Request",
+                      "name": "CREATE TOPIC",
                       "id": "284b66df-89e2-4de7-96d4-f33fecbb48a8",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
