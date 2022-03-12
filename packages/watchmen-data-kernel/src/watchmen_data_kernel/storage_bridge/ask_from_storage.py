@@ -197,14 +197,14 @@ def create_date_diff(
 				if factor is None:
 					raise DataKernelException(
 						f'Factor[{factor_name}] in topic[id={topic.topicId}, name={topic.name}] not found.')
-				return True, ParsedStorageTopicFactorParameter(
+				return False, ParsedStorageTopicFactorParameter(
 					TopicFactorParameter(kind=ParameterKind.TOPIC, topicId=topic.topicId, factorId=factor.factorId),
 					available_schemas, principal_service, allow_in_memory_variables)
 
 	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
-		e_parsed, e_date = True, end_date if end_parsed \
+		e_parsed, e_date = (True, end_date) if end_parsed \
 			else parse_date(end_variable_name, variables, principal_service)
-		s_parsed, s_date = True, start_date if start_parsed \
+		s_parsed, s_date = (True, start_date) if start_parsed \
 			else parse_date(start_variable_name, variables, principal_service)
 		if e_parsed and s_parsed:
 			diff = compute_date_diff(function, e_date, s_date, variable_name)
@@ -218,7 +218,8 @@ def create_date_diff(
 				operator = ComputedLiteralOperator.DAY_DIFF
 			else:
 				raise DataKernelException(f'Variable name[{variable_name}] is not supported.')
-			return create_ask_value_for_computed(operator, [e_date, s_date])
+			func = create_ask_value_for_computed(operator, [e_date, s_date])
+			return func(variables, principal_service)
 
 	return action
 
