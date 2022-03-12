@@ -9365,11 +9365,6 @@
                   "name": "STORAGE",
                   "item": [
                     {
-                      "name": "New Folder",
-                      "item": [],
-                      "id": "d0817f7f-732f-486a-868a-5b7e8428bb70"
-                    },
-                    {
                       "name": "CREATE TOPIC",
                       "id": "01a5d3c5-f6c2-4a1e-a11b-8967e3c312f2",
                       "protocolProfileBehavior": {
