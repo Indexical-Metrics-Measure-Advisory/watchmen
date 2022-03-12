@@ -59,6 +59,7 @@ class TopicCache:
 		self.byIdCache.clear()
 		self.byTenantAndNameCache.clear()
 		self.schemaByIdCache.clear()
+		self.entityHelperByIdCache.clear()
 		pipeline_by_topic_cache.clear()
 
 
