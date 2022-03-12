@@ -9562,7 +9562,7 @@
                         "header": [],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\n    \"topicId\": \"{{TOPIC_ID}}\",\n    \"name\": \"Test_Distinct_Topic\",\n    \"type\": \"distinct\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propC\"},\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propD\"},\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propE\"},\n        {\"factorId\": \"6\", \"type\": \"number\", \"name\": \"propF\"},\n        {\"factorId\": \"7\", \"type\": \"year\", \"name\": \"propG\"},\n        {\"factorId\": \"8\", \"type\": \"half-year\", \"name\": \"propH\"},\n        {\"factorId\": \"9\", \"type\": \"quarter\", \"name\": \"propI\"},\n        {\"factorId\": \"10\", \"type\": \"month\", \"name\": \"propJ\"},\n        {\"factorId\": \"11\", \"type\": \"week-of-year\", \"name\": \"propK\"},\n        {\"factorId\": \"12\", \"type\": \"week-of-month\", \"name\": \"propL\"},\n        {\"factorId\": \"13\", \"type\": \"day-of-month\", \"name\": \"propM\"},\n        {\"factorId\": \"14\", \"type\": \"day-of-week\", \"name\": \"propN\"}\n    ],\n    \"description\": \"Test Distinct Topic\"\n}",
+                          "raw": "{\n    \"topicId\": \"{{TOPIC_ID}}\",\n    \"name\": \"Test_Distinct_Topic\",\n    \"type\": \"distinct\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propC\"},\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propD\"},\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propE\"},\n        {\"factorId\": \"6\", \"type\": \"sequence\", \"name\": \"propSequence\"},\n        {\"factorId\": \"7\", \"type\": \"number\", \"name\": \"propCount\"},\n        {\"factorId\": \"8\", \"type\": \"number\", \"name\": \"propSum\"},\n        {\"factorId\": \"9\", \"type\": \"text\", \"name\": \"propOld\"},\n        {\"factorId\": \"10\", \"type\": \"number\", \"name\": \"propDateDiff\"},\n        {\"factorId\": \"11\", \"type\": \"number\", \"name\": \"propMonthDiff\"},\n        {\"factorId\": \"12\", \"type\": \"number\", \"name\": \"propYearDiff\"}\n    ],\n    \"description\": \"Test Distinct Topic\"\n}",
                           "options": {
                             "raw": {
                               "language": "json"
@@ -9604,6 +9604,18 @@
                   "name": "STORAGE",
                   "item": [
                     {
+                      "name": "CREATE TOPIC",
+                      "id": "b7e8a643-845e-4c40-92e3-01d497f311f8",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
+                    },
+                    {
                       "name": "CONSTANT FUNCTION",
                       "id": "d1b3346d-a7b1-4004-8825-55240b846a3d",
                       "protocolProfileBehavior": {
@@ -9628,18 +9640,6 @@
                           }
                         },
                         "url": "{{URL_PREFIX}}/pipeline"
-                      },
-                      "response": []
-                    },
-                    {
-                      "name": "CREATE TOPIC",
-                      "id": "b7e8a643-845e-4c40-92e3-01d497f311f8",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "method": "GET",
-                        "header": []
                       },
                       "response": []
                     }
