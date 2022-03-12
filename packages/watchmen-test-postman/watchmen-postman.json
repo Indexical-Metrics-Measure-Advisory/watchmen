@@ -9546,6 +9546,18 @@
                   "name": "MEMORY",
                   "item": [
                     {
+                      "name": "New Request",
+                      "id": "284b66df-89e2-4de7-96d4-f33fecbb48a8",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
+                    },
+                    {
                       "name": "CONSTANT FUNCTION",
                       "id": "d05728ef-f6fe-4bf5-8613-10838062e41a",
                       "protocolProfileBehavior": {
@@ -9560,18 +9572,6 @@
                     {
                       "name": "New Request",
                       "id": "4826bd8a-92b0-4ac3-a431-0f8c58f9b2b9",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "method": "GET",
-                        "header": []
-                      },
-                      "response": []
-                    },
-                    {
-                      "name": "New Request",
-                      "id": "284b66df-89e2-4de7-96d4-f33fecbb48a8",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
                       },
