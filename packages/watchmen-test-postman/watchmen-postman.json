@@ -10017,6 +10017,16 @@
                     ],
                     "type": "text/javascript"
                   }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "id": "aae9e7ef-828a-46cc-870a-9dad833444bf",
+                    "exec": [
+                      "pm.environment.set(\"AGGRE_TOPIC_ID\", \"f-1\")"
+                    ],
+                    "type": "text/javascript"
+                  }
                 }
               ],
               "id": "43d4fbd3-a46a-446f-a5df-4a39f5ad9479",
