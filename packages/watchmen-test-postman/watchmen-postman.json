@@ -9878,6 +9878,11 @@
               "name": "LESS THAN OR EQUALS",
               "item": [],
               "id": "dd913e1c-f61f-4ac1-8e26-fccd87f225a0"
+            },
+            {
+              "name": "GREATER THAN",
+              "item": [],
+              "id": "fb8dda05-9629-4725-963c-c4af9546baea"
             }
           ],
           "id": "63df678b-d7e8-4b74-84db-b918c2a108ed"
