@@ -9791,7 +9791,7 @@
               "name": "NORMAL",
               "item": [
                 {
-                  "name": "New Folder",
+                  "name": "EQUALS",
                   "item": [],
                   "id": "ea731286-7fc6-423b-8a9e-4cb500f7748a"
                 },
