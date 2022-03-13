@@ -10002,6 +10002,23 @@
             },
             {
               "name": "CREATE AGGREGATE TOPIC",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "31c85260-e73b-4f55-8215-c2ae5f2fc250",
+                    "exec": [
+                      "pm.test(\"Create Aggregate Topic\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    var data = pm.response.json();",
+                      "    pm.environment.set('AGGRE_TOPIC_ID', data.topicId)",
+                      "    pm.environment.set('AGGRE_TOPIC_NAME', data.name)",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "43d4fbd3-a46a-446f-a5df-4a39f5ad9479",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
