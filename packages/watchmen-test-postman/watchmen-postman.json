@@ -9957,12 +9957,35 @@
             },
             {
               "name": "CREATE TOPIC",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "1910a37a-befd-4006-a10e-90dcf392694d",
+                    "exec": [
+                      "pm.test(\"Create Distinct Topic\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    var data = pm.response.json();",
+                      "    pm.environment.set('TOPIC_ID', data.topicId)",
+                      "    pm.environment.set('TOPIC_NAME', data.name)",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "cb278eab-1c2c-4fc7-a56e-38ce5677691c",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
                 "header": [],
                 "body": {
                   "mode": "raw",
@@ -9972,7 +9995,8 @@
                       "language": "json"
                     }
                   }
-                }
+                },
+                "url": "{{URL_PREFIX}}/topic"
               },
               "response": []
             },
