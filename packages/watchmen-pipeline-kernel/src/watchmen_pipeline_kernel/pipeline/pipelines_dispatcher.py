@@ -16,10 +16,10 @@ class PipelinesDispatcher:
 		if context is None:
 			# no context needs to be invoked
 			return None
-
 		created_contexts = context.start(self.storages, handle_monitor_log)
+		print(str(len(created_contexts)))
 		if len(created_contexts) != 0:
-			self.contexts.extend(*created_contexts)
+			self.contexts.extend(created_contexts)
 		# invoke next
 		self.start(handle_monitor_log)
 
@@ -27,9 +27,9 @@ class PipelinesDispatcher:
 		if len(self.contexts) == 0:
 			return None
 		# get next context
-		context = self.contexts[0]
+		context = self.contexts.pop(0)
 		if context is None:
 			raise PipelineKernelException(f'Pipeline context is none, cannot be invoked.')
 		# next context is ready, pop it
-		self.contexts = self.contexts[1:]
+		# self.contexts = self.contexts[1:]
 		return context
