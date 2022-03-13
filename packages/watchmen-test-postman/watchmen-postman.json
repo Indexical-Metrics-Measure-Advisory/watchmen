@@ -9868,6 +9868,11 @@
               "name": "NOT_EQUALS",
               "item": [],
               "id": "cae5e177-5d06-4ad3-a661-eeb4994c8da8"
+            },
+            {
+              "name": "New Folder",
+              "item": [],
+              "id": "efb64b34-e88d-4d61-b032-58508f61be3d"
             }
           ],
           "id": "63df678b-d7e8-4b74-84db-b918c2a108ed"
