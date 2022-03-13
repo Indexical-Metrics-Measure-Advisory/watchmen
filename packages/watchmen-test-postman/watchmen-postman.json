@@ -9788,6 +9788,11 @@
           "name": "OPERATOR",
           "item": [
             {
+              "name": "New Folder",
+              "item": [],
+              "id": "2cb722c2-d185-46f5-8bd9-5a7acddea370"
+            },
+            {
               "name": "EXPRESSION",
               "event": [
                 {
