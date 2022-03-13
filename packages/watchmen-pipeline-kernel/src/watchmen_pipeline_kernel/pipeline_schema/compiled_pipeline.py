@@ -70,6 +70,7 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 		)
 
 		created_pipeline_contexts = QueuedPipelineContexts()
+
 		try:
 			# test prerequisite
 			prerequisite = self.prerequisiteTest(variables, principal_service)
@@ -117,7 +118,7 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 		else:
 			def new_pipeline(schema: TopicSchema, trigger: TopicTrigger) -> None:
 				created_pipeline_contexts.append(
-					schema=schema, trigger=trigger, trace_id=monitor_log.trace_id,
+					schema=schema, trigger=trigger, trace_id=monitor_log.traceId,
 					principal_service=principal_service)
 
 			return stage.run(
@@ -126,7 +127,9 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 
 
 class QueuedPipelineContexts:
-	contexts: List[PipelineContext] = []
+
+	def __init__(self):
+		self.contexts: List[PipelineContext] = []
 
 	# noinspection PyMethodMayBeStatic,DuplicatedCode
 	def should_run(self, trigger_type: PipelineTriggerType, pipeline: Pipeline) -> bool:

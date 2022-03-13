@@ -683,7 +683,7 @@ class ParsedStorageMappingFactor:
 			if original_data is None:
 				# the very first time to insert this, simply set as value
 				value = self.parsedParameter.value(variables, principal_service)
-			elif not variables.has_previous_trigger_data():
+			elif variables.has_previous_trigger_data():
 				# it used to be triggered, find previous value, subtract it and add current value
 				previous_value, current_value = self.compute_previous_and_current_value(variables, principal_service)
 				value = self.get_original_value(original_data) - previous_value + current_value
@@ -697,7 +697,7 @@ class ParsedStorageMappingFactor:
 				# the very first time to insert this, simply set as value
 				value = self.parsedParameter.value(variables, principal_service)
 				self.set_aggregate_assist_avg_count(data, 1)
-			elif not variables.has_previous_trigger_data():
+			elif variables.has_previous_trigger_data():
 				# it used to be triggered, find previous value and avg count in original data, to compute the new avg
 				previous_value, current_value = self.compute_previous_and_current_value(variables, principal_service)
 				count = self.get_aggregate_assist_avg_count(original_data)
@@ -717,7 +717,7 @@ class ParsedStorageMappingFactor:
 			if original_data is None:
 				# the very first time to insert this, count always be 1
 				value = 1
-			elif not variables.has_previous_trigger_data():
+			elif variables.has_previous_trigger_data():
 				# it used to be triggered, ignored
 				value = self.get_original_value(original_data)
 				# but when there is some incorrect value already saved, correct it to 1
