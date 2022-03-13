@@ -9933,6 +9933,18 @@
                 "header": []
               },
               "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "43d4fbd3-a46a-446f-a5df-4a39f5ad9479",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
             }
           ],
           "id": "2c37c9dd-ccd7-41ac-88dc-cacb92f63733"
