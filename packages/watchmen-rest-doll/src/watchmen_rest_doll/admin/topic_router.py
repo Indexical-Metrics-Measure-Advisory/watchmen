@@ -65,7 +65,6 @@ def build_topic_index(topic: Topic, topic_service: TopicService) -> None:
 
 def post_save_topic(topic: Topic, topic_service: TopicService) -> None:
 	build_topic_index(topic, topic_service)
-	CacheService.topic().remove(topic.topicId)
 	CacheService.topic().put(topic)
 
 
