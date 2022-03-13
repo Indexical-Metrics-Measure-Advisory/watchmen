@@ -9923,7 +9923,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "CREATE TOPIC",
               "id": "cb278eab-1c2c-4fc7-a56e-38ce5677691c",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
