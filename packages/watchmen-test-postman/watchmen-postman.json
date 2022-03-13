@@ -9804,7 +9804,7 @@
               "response": []
             },
             {
-              "name": "INSERT ROW",
+              "name": "INSERT RAW",
               "id": "27550853-f7d8-46ea-bfb7-c116b82164c3",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
