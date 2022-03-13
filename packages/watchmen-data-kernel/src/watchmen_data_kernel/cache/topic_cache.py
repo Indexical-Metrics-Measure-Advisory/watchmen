@@ -22,6 +22,9 @@ class TopicCache:
 		return f'{tenant_id}-{name}'
 
 	def put(self, topic: Topic) -> Optional[Topic]:
+		# topic is changed, remove from entity helper cache anyway
+		self.entityHelperByIdCache.remove(topic.topicId)
+		# refresh other caches
 		existing_topic = self.byIdCache.put(topic.topicId, topic)
 		self.byTenantAndNameCache.put(
 			self.to_tenant_and_name_key(topic.name, topic.tenantId), topic)
