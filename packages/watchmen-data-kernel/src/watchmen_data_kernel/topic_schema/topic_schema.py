@@ -6,6 +6,7 @@ from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import is_raw_topic, Topic, TopicKind
 from watchmen_utilities import ArrayHelper
 from .aid_hierarchy import aid
+from .date_time_factor import parse_date_or_time_factors
 from .default_value_factor import DefaultValueFactorGroup, parse_default_value_factors
 from .encrypt_factor import EncryptFactorGroup, parse_encrypt_factors
 from .flatten_factor import FlattenFactor, parse_flatten_factors
@@ -15,6 +16,7 @@ class TopicSchema:
 	def __init__(self, topic: Topic):
 		self.topic = topic
 		self.flattenFactors = parse_flatten_factors(self.topic)
+		self.dateOrTimeFactors = parse_date_or_time_factors(self.topic)
 		self.encryptFactorGroups = parse_encrypt_factors(self.topic)
 		self.defaultValueFactorGroups = parse_default_value_factors(self.topic)
 
@@ -48,6 +50,10 @@ class TopicSchema:
 		"""
 		if self.should_initialize_default_values():
 			ArrayHelper(self.defaultValueFactorGroups).each(lambda x: x.set_default_value(data))
+		return data
+
+	def cast_date_or_time(self, data: Dict[str, Any]) -> Dict[str, Any]:
+		ArrayHelper(self.dateOrTimeFactors).each(lambda x: x.translate(data))
 		return data
 
 	def should_encrypt(self) -> bool:
@@ -84,6 +90,7 @@ class TopicSchema:
 		given data might be changed, and returns exactly the given one
 		"""
 		data = self.initialize_default_values(data)
+		data = self.cast_date_or_time(data)
 		data = self.encrypt(data)
 		data = self.aid_hierarchy(data)
 		data = self.flatten(data)
