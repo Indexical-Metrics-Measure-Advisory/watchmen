@@ -99,10 +99,13 @@ class StorageMySQL(TransactionalStorageSPI):
 		))
 		return updated_count
 
-	def update_only(self, updater: EntityUpdater) -> int:
+	def update_only(self, updater: EntityUpdater, peace_when_zero: bool = False) -> int:
 		updated_count = self.update(updater)
 		if updated_count == 0:
-			raise EntityNotFoundException(f'Entity not found by updater[{updater}]')
+			if peace_when_zero:
+				return 0
+			else:
+				raise EntityNotFoundException(f'Entity not found by updater[{updater}]')
 		elif updated_count == 1:
 			return 1
 		else:

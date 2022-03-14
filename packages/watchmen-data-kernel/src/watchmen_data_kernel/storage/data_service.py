@@ -336,7 +336,8 @@ class TopicDataService(TopicStructureService):
 		try:
 			storage.connect()
 			updated_count = storage.update_only(
-				data_entity_helper.get_entity_updater(criteria, data_entity_helper.serialize_to_storage(data)))
+				updater=data_entity_helper.get_entity_updater(criteria, data_entity_helper.serialize_to_storage(data)),
+				peace_when_zero=True)
 			if updated_count == 0:
 				# rollback version
 				data_entity_helper.assign_version(data, current_version)

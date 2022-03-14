@@ -127,7 +127,6 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 
 
 class QueuedPipelineContexts:
-
 	def __init__(self):
 		self.contexts: List[PipelineContext] = []
 
