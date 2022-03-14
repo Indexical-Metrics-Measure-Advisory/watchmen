@@ -491,6 +491,7 @@ class CompiledInsertion(CompiledWriteTopicAction):
 			principal_service: PrincipalService, topic_data_service: TopicDataService) -> None:
 		data = self.parsedMapping.run(None, variables, principal_service)
 		self.schema.initialize_default_values(data)
+		self.schema.cast_date_or_time(data)
 		self.schema.encrypt(data)
 		data = topic_data_service.insert(data)
 		action_monitor_log.insertCount = 1
@@ -520,6 +521,7 @@ class CompiledUpdate(CompiledWriteTopicAction):
 		updated_data = self.parsedMapping.run(original_data, variables, principal_service)
 		updated_data = self.merge_into(original_data, updated_data)
 		self.schema.initialize_default_values(updated_data)
+		self.schema.cast_date_or_time(updated_data)
 		self.schema.encrypt(updated_data)
 		return updated_data
 
