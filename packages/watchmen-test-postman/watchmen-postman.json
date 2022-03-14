@@ -10150,7 +10150,20 @@
         },
         {
           "name": "ENCRYPT",
-          "item": [],
+          "item": [
+            {
+              "name": "New Request",
+              "id": "3f8799a4-e288-4cd9-88bb-612bc5f4364a",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            }
+          ],
           "id": "191a98a6-20f8-4f53-94e3-1648bd485c46"
         },
         {
