@@ -19,7 +19,8 @@ class PatShaper(EntityShaper):
 			'tenant_id': pat.tenantId,
 			'note': pat.note,
 			'expired': pat.expired,
-			'permissions': pat.permissions
+			'permissions': pat.permissions,
+			'created_at': pat.createdAt
 		}
 
 	def deserialize(self, row: EntityRow) -> PersonalAccessToken:
@@ -31,7 +32,8 @@ class PatShaper(EntityShaper):
 			tenantId=row.get('tenant_id'),
 			note=row.get('note'),
 			expired=row.get('expired'),
-			permissions=row.get('permissions')
+			permissions=row.get('permissions'),
+			createdAt=row.get('created_at')
 		)
 
 

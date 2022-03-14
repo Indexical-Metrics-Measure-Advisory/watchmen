@@ -12,7 +12,7 @@ class Token(BaseModel):
 	tenantId: TenantId = None
 
 
-class PersonalAccessToken(BaseModel, UserBasedTuple):
+class PersonalAccessToken(UserBasedTuple, BaseModel):
 	patId: str = PatId
 	token: str = None
 	username: str = None
