@@ -62,7 +62,7 @@ def heart_beat_on_pipelines() -> None:
 			loaded: Optional[Pipeline] = pipeline_service.find_by_id(pipeline.pipelineId)
 			if loaded is None:
 				CacheService.pipeline().remove(pipeline.pipelineId)
-			elif loaded.lastModifiedAt >= pipeline.lastModifiedAt:
+			elif loaded.lastModifiedAt > pipeline.lastModifiedAt or loaded.version > pipeline.version:
 				CacheService.pipeline().put(loaded)
 	finally:
 		pipeline_service.close_transaction()
@@ -77,7 +77,7 @@ def heart_beat_on_topics() -> None:
 			loaded: Optional[Topic] = topic_service.find_by_id(topic.topicId)
 			if loaded is None:
 				CacheService.topic().remove(topic.topicId)
-			elif loaded.lastModifiedAt >= topic.lastModifiedAt:
+			elif loaded.lastModifiedAt > topic.lastModifiedAt or loaded.version > topic.version:
 				CacheService.topic().put(loaded)
 	finally:
 		topic_service.close_transaction()
@@ -92,7 +92,7 @@ def heart_beat_on_data_sources() -> None:
 			loaded: Optional[DataSource] = data_source_service.find_by_id(data_source.dataSourceId)
 			if loaded is None:
 				CacheService.data_source().remove(data_source.dataSourceId)
-			elif loaded.lastModifiedAt >= data_source.lastModifiedAt:
+			elif loaded.lastModifiedAt > data_source.lastModifiedAt or loaded.version > data_source.version:
 				CacheService.data_source().put(loaded)
 	finally:
 		data_source_service.close_transaction()
@@ -107,7 +107,7 @@ def heart_beat_on_external_writers() -> None:
 			loaded: Optional[ExternalWriter] = external_writer_service.find_by_id(external_writer.writerId)
 			if loaded is None:
 				CacheService.external_writer().remove(external_writer.writerId)
-			elif loaded.lastModifiedAt >= external_writer.lastModifiedAt:
+			elif loaded.lastModifiedAt > external_writer.lastModifiedAt or loaded.version > external_writer.version:
 				CacheService.external_writer().put(loaded)
 	finally:
 		external_writer_service.close_transaction()
@@ -122,7 +122,7 @@ def heart_beat_on_tenants() -> None:
 			loaded: Optional[Tenant] = tenant_service.find_by_id(tenant.tenantId)
 			if loaded is None:
 				CacheService.tenant().remove(tenant.tenantId)
-			elif loaded.lastModifiedAt >= tenant.lastModifiedAt:
+			elif loaded.lastModifiedAt > tenant.lastModifiedAt or loaded.version > tenant.version:
 				CacheService.tenant().put(loaded)
 	finally:
 		tenant_service.close_transaction()
