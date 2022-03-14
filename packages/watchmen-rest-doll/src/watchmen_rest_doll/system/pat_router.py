@@ -15,7 +15,7 @@ from watchmen_model.system import PersonalAccessToken
 from watchmen_rest import get_any_principal
 from watchmen_rest.util import raise_400
 from watchmen_rest_doll.util import trans
-from watchmen_utilities import ArrayHelper, is_blank
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank
 
 router = APIRouter()
 
@@ -50,6 +50,7 @@ async def create_pat(
 			note=params.note,
 			expired=params.expired,
 			permissions=[],
+			createdAt=get_current_time_in_seconds()
 		)
 		pat_service.create(pat)
 		return ClientPat(patId=pat.patId, token=pat.token, note=pat.note)
