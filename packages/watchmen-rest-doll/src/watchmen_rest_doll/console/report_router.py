@@ -32,6 +32,9 @@ def ask_save_report_action(
 		report.userId = principal_service.get_user_id()
 		report.tenantId = principal_service.get_tenant_id()
 		report.lastVisitTime = get_current_time_in_seconds()
+		if report.simulating is None:
+			report.simulating = False
+
 		if report_service.is_storable_id_faked(report.reportId):
 			subject_id = report.subjectId
 			if is_blank(subject_id):
