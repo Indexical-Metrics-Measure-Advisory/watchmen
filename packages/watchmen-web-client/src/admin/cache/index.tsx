@@ -1,3 +1,4 @@
+import {isSuperAdmin} from '@/services/data/account';
 import {DataSource} from '@/services/data/tuples/data-source-types';
 import {ExternalWriter} from '@/services/data/tuples/external-writer-types';
 import {Pipeline, PipelinesGraphics, PipelinesGraphicsId} from '@/services/data/tuples/pipeline-types';
@@ -54,7 +55,20 @@ export const AdminCache = () => {
 		if (!data.initialized) {
 			prepareAdminDB();
 			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
-				async () => await loadAdminData(),
+				async () => {
+					if (isSuperAdmin()) {
+						// super admin does not need any cache data
+						return {
+							pipelines: [],
+							topics: [],
+							graphics: [],
+							dataSources: [],
+							externalWriters: []
+						};
+					} else {
+						return await loadAdminData();
+					}
+				},
 				(data) => {
 					setData({initialized: true, data});
 					fire(AdminCacheEventTypes.DATA_LOADED, data);
