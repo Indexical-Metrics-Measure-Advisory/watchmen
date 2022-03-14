@@ -93,7 +93,7 @@ async def find_external_writers_by_name(
 
 
 @router.get(
-	"/external_writer/all", tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=List[ExternalWriter])
+	"/external_writer/all", tags=[UserRole.ADMIN], response_model=List[ExternalWriter])
 async def find_all_external_writers(
 		principal_service: PrincipalService = Depends(get_any_admin_principal)) -> List[ExternalWriter]:
 	tenant_id = None
