@@ -59,7 +59,7 @@ class EncryptFactorGroup:
 		# if there is one, name is same as group's, and will not contain group anymore
 		self.factors = ArrayHelper(factors).filter(lambda x: len(x.names) == 1).to_list()
 		groups = ArrayHelper(factors).filter(lambda x: len(x.names) > 1) \
-			.map(lambda x: x.pop_first_name()) \
+			.each(lambda x: x.pop_first_name()) \
 			.group_by(lambda x: x.names[0])
 		self.groups = ArrayHelper(list(groups.items())) \
 			.map(lambda x: EncryptFactorGroup(name=x[0], factors=x[1])).to_list()
