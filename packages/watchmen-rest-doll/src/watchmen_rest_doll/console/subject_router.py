@@ -38,7 +38,7 @@ def ask_save_subject_action(
 		subject.userId = principal_service.get_user_id()
 		subject.tenantId = principal_service.get_tenant_id()
 		subject.lastVisitTime = get_current_time_in_seconds()
-		if subject_service.is_storable_id_faked(subject.reportId):
+		if subject_service.is_storable_id_faked(subject.subjectId):
 			connect_id = subject.connectId
 			if is_blank(connect_id):
 				raise_400('Connected space id is required.')

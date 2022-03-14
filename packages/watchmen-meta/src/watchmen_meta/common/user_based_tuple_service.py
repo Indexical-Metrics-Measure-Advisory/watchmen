@@ -1,7 +1,7 @@
 from typing import List, Optional, Tuple
 
 from watchmen_auth import PrincipalService
-from watchmen_model.common import TenantId, UserBasedTuple, UserId
+from watchmen_model.common import Auditable, TenantId, UserBasedTuple, UserId
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityRow, SnowflakeGenerator, \
 	TooManyEntitiesFoundException, TransactionalStorageSPI
 from .storage_service import EntityService, TupleId, TupleNotFoundException
@@ -39,7 +39,19 @@ class UserBasedTupleService(EntityService):
 
 	def update(self, a_tuple: UserBasedTuple) -> UserBasedTuple:
 		original_last_modified_at, original_last_modified_by = self.try_to_prepare_auditable_on_update(a_tuple)
-		updated_count = self.storage.update_one(a_tuple, self.get_entity_id_helper())
+		if isinstance(a_tuple, Auditable):
+			updated_count = self.storage.update_only(self.get_entity_updater(
+				criteria=[
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(columnName=self.get_storable_id_column_name()),
+						right=self.get_storable_id(a_tuple))
+				],
+				# to avoid update created columns in update
+				update=self.try_to_ignore_created_columns(
+					self.ignore_storable_id(self.get_entity_shaper().serialize(a_tuple)))
+			))
+		else:
+			updated_count = self.storage.update_one(a_tuple, self.get_entity_id_helper())
 		if updated_count == 0:
 			self.try_to_recover_auditable_on_update(a_tuple, original_last_modified_at, original_last_modified_by)
 			raise TupleNotFoundException('Update 0 row might be caused by tuple not found.')
