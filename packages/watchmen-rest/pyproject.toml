@@ -11,7 +11,7 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.9"
 fastapi = "^0.75.0"
-uvicorn = "^0.17.5"
+uvicorn = "^0.17.6"
 jsonschema = "^4.4.0"
 python-jose = "^3.3.0"
 jose = "^1.0.0"
