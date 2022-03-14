@@ -109,6 +109,7 @@ class TupleService(EntityService):
 			))
 			if updated_count == 0:
 				a_tuple.version = version
+				self.try_to_recover_auditable_on_update(a_tuple, original_last_modified_at, original_last_modified_by)
 				raise OptimisticLockException('Update 0 row might be caused by optimistic lock.')
 		else:
 			updated_count = self.storage.update_only(self.get_entity_updater(
@@ -122,8 +123,8 @@ class TupleService(EntityService):
 					self.ignore_optimistic_keys(self.get_entity_shaper().serialize(a_tuple)))
 			))
 			if updated_count == 0:
+				self.try_to_recover_auditable_on_update(a_tuple, original_last_modified_at, original_last_modified_by)
 				raise TupleNotFoundException('Update 0 row might be caused by tuple not found.')
-		self.try_to_recover_auditable_on_update(a_tuple, original_last_modified_at, original_last_modified_by)
 		return a_tuple
 
 	def delete(self, tuple_id: TupleId) -> Optional[Tuple]:
