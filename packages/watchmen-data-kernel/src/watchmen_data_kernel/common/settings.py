@@ -25,6 +25,7 @@ class KernelSettings(BaseSettings):
 		'%H%M%S',  # 6 digits
 		'%H%M'  # 4 digits
 	]  # all digits, other characters are prohibitive
+	ABANDON_DATE_TIME_ON_PARSE_FAIL: bool = False
 
 	ENCRYPT_AES_KEY: str = 'hWmZq4t7w9z$C&F)J@NcRfUjXn2r5u8x'  # AES key of factor encryption
 	ENCRYPT_AES_IV: str = 'J@NcRfUjXn2r5u8x'  # AES iv of factor encryption
@@ -50,32 +51,42 @@ class KernelSettings(BaseSettings):
 settings = KernelSettings()
 logger.info(f'Data kernel settings[{settings.dict()}].')
 
+full_datetime_formats = list(settings.FULL_DATETIME_FORMATS)
+datetime_formats = list(settings.DATETIME_FORMATS)
+date_formats = list(settings.DATE_FORMATS)
+all_date_formats = ArrayHelper(list(settings.FULL_DATETIME_FORMATS)) \
+	.grab(*settings.DATETIME_FORMATS) \
+	.grab(*settings.DATE_FORMATS) \
+	.to_list()
+time_formats = list(settings.TIME_FORMATS)
+
 
 def ask_storage_echo_enabled() -> bool:
 	return settings.STORAGE_ECHO
 
 
 def ask_full_datetime_formats() -> List[str]:
-	return list(settings.FULL_DATETIME_FORMATS)
+	return full_datetime_formats
 
 
 def ask_datetime_formats() -> List[str]:
-	return list(settings.DATETIME_FORMATS)
+	return datetime_formats
 
 
 def ask_date_formats() -> List[str]:
-	return list(settings.DATE_FORMATS)
+	return date_formats
 
 
 def ask_all_date_formats() -> List[str]:
-	return ArrayHelper(list(settings.FULL_DATETIME_FORMATS)) \
-		.grab(*settings.DATETIME_FORMATS) \
-		.grab(*settings.DATE_FORMATS) \
-		.to_list()
+	return all_date_formats
 
 
 def ask_time_formats() -> List[str]:
-	return list(settings.TIME_FORMATS)
+	return time_formats
+
+
+def ask_abandon_date_time_on_parse_fail() -> bool:
+	return settings.ABANDON_DATE_TIME_ON_PARSE_FAIL
 
 
 def ask_encrypt_aes_params() -> Tuple[str, str]:
