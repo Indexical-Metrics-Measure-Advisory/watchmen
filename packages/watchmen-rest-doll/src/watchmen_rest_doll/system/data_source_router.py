@@ -53,7 +53,7 @@ async def save_data_source(
 
 	# noinspection DuplicatedCode
 	def action(a_data_source: DataSource) -> DataSource:
-		if data_source_service.is_storable_id_faked(a_data_source.data_sourceId):
+		if data_source_service.is_storable_id_faked(a_data_source.dataSourceId):
 			data_source_service.redress_storable_id(a_data_source)
 			# noinspection PyTypeChecker
 			a_data_source: DataSource = data_source_service.create(a_data_source)
