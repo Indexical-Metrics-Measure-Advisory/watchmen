@@ -146,6 +146,9 @@ def ask_save_user_action(
 		if is_not_blank(pwd):
 			user.password = crypt_password(pwd)
 
+		if user.isActive is None:
+			user.isActive = True
+
 		if user_service.is_storable_id_faked(user.userId):
 			if principal_service.is_super_admin() and check_user_group:
 				if user.groupIds is not None and len(user.groupIds) != 0:
