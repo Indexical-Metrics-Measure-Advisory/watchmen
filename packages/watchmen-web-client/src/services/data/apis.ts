@@ -103,7 +103,7 @@ export const Apis = {
 	// SUBJECT_SHARE: 'subject/share',
 	SUBJECT_DATA: 'subject/data?subject_id=:subjectId',
 
-	REPORT_CREATE: 'report?subject_id=:subjectId',
+	REPORT_CREATE: 'report',
 	REPORT_SAVE: 'report',
 	REPORT_DELETE: 'report/delete?report_id=:reportId',
 	REPORT_TEMPORARY: 'report/temporary',
