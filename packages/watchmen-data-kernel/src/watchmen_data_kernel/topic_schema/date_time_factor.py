@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Union
 from watchmen_data_kernel.common import ask_all_date_formats, ask_time_formats
 from watchmen_data_kernel.common.settings import ask_abandon_date_time_on_parse_fail
 from watchmen_model.admin import Factor, FactorType, Topic
-from watchmen_utilities import ArrayHelper, is_blank, is_date, is_not_blank, is_time
+from watchmen_utilities import ArrayHelper, is_blank, is_not_blank, try_to_date, try_to_time
 
 """
 design of date/time/datetime translator. same with encryption, see that for more. 
@@ -25,17 +25,16 @@ class DateOrTimeFactor:
 	def translate(self, value: Any) -> Optional[Union[date, time, Any]]:
 		factor_type = self.factor.type
 		if factor_type == FactorType.FULL_DATETIME:
-			parsed, parsed_value = is_date(value, ask_all_date_formats())
+			parsed_value = try_to_date(value, ask_all_date_formats())
 		elif factor_type == FactorType.DATETIME:
-			parsed, parsed_value = is_date(value, ask_all_date_formats())
+			parsed_value = try_to_date(value, ask_all_date_formats())
 		elif factor_type == FactorType.DATE or factor_type == FactorType.DATE_OF_BIRTH:
-			parsed, parsed_value = is_date(value, ask_all_date_formats())
+			parsed_value = try_to_date(value, ask_all_date_formats())
 		elif factor_type == FactorType.TIME:
-			parsed, parsed_value = is_time(value, ask_time_formats())
+			parsed_value = try_to_time(value, ask_time_formats())
 		else:
-			parsed = False
 			parsed_value = value
-		if parsed:
+		if parsed_value is not None:
 			return parsed_value
 		elif ask_abandon_date_time_on_parse_fail():
 			return None
