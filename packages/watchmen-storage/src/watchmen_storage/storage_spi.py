@@ -38,7 +38,7 @@ class StorageSPI(ABC):
 		pass
 
 	@abstractmethod
-	def update_only(self, updater: EntityUpdater) -> int:
+	def update_only(self, updater: EntityUpdater, peace_when_zero: bool = False) -> int:
 		"""
 		update only one, if update none or more than one item, raise exception
 		"""

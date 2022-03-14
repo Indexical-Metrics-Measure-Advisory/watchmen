@@ -91,7 +91,9 @@ def construct_triggers(triggered: Optional[list] = None) -> Optional[List[Tuple[
 		return ArrayHelper(triggered).map(lambda x: construct_trigger(x)).to_list()
 
 
-def construct_trigger(trigger: Optional[Tuple[TopicId, TopicTrigger]] = None) -> Tuple[TopicId, TopicTrigger]:
+def construct_trigger(
+		trigger: Optional[Tuple[TopicId, Union[dict, TopicTrigger]]] = None
+) -> Optional[Tuple[TopicId, TopicTrigger]]:
 	if trigger is None:
 		return None
 	else:
