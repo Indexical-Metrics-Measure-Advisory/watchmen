@@ -10153,16 +10153,39 @@
           "item": [
             {
               "name": "CREATE RAW TOPIC",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "1e59c3b2-a2c2-41b2-bea9-2c0909acf212",
+                    "exec": [
+                      "pm.test(\"Create Raw Topic\", () => {\r",
+                      "    pm.response.to.have.status(200);\r",
+                      "    var data = pm.response.json();\r",
+                      "    pm.environment.set('RAW_TOPIC_ID', data.topicId)\r",
+                      "    pm.environment.set('RAW_TOPIC_NAME', data.name)\r",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "3f8799a4-e288-4cd9-88bb-612bc5f4364a",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "POST",
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\r\n    \"topicId\": \"{{RAW_TOPIC_ID}}\",\r\n    \"name\": \"Test_Raw_Topic\",\r\n    \"type\": \"raw\",\r\n    \"kind\": \"business\",\r\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\r\n    \"factors\": [\r\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\r\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\r\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propC\"},\r\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propD\"},\r\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propE\"}\r\n    ],\r\n    \"description\": \"Test Raw Topic\"\r\n}",
+                  "raw": "{\r\n    \"topicId\": \"{{RAW_TOPIC_ID}}\",\r\n    \"name\": \"Test_Raw_Topic\",\r\n    \"type\": \"raw\",\r\n    \"kind\": \"business\",\r\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\r\n    \"factors\": [\r\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"AES256_PKCS5_PADDING\"},\r\n        {\"factorId\": \"2\", \"type\": \"text\", \"name\": \"MD5\"},\r\n        {\"factorId\": \"3\", \"type\": \"text\", \"name\": \"SHA256\"},\r\n        {\"factorId\": \"4\", \"type\": \"text\", \"name\": \"MASK_MAIL\"},\r\n        {\"factorId\": \"5\", \"type\": \"text\", \"name\": \"MASK_CENTER_3\"},\r\n        {\"factorId\": \"6\", \"type\": \"text\", \"name\": \"MASK_CENTER_5\"},\r\n        {\"factorId\": \"7\", \"type\": \"text\", \"name\": \"MASK_LAST_3\"},\r\n        {\"factorId\": \"8\", \"type\": \"text\", \"name\": \"MASK_LAST_6\"},\r\n        {\"factorId\": \"9\", \"type\": \"datetime\", \"name\": \"MASK_DAY\"},\r\n        {\"factorId\": \"10\", \"type\": \"datetime\", \"name\": \"MASK_MONTH\"},\r\n        {\"factorId\": \"11\", \"type\": \"datetime\", \"name\": \"MASK_MONTH_DAY\"}\r\n    ],\r\n    \"description\": \"Test Raw Topic\"\r\n}",
                   "options": {
                     "raw": {
                       "language": "json"
@@ -10170,6 +10193,107 @@
                   }
                 },
                 "url": "{{URL_PREFIX}}/topic"
+              },
+              "response": []
+            },
+            {
+              "name": "CREATE TOPIC",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "d48b7880-4551-4c56-b2b8-34be1084ea4a",
+                    "exec": [
+                      "pm.test(\"Create Distinct Topic\", () => {\r",
+                      "    pm.response.to.have.status(200);\r",
+                      "    var data = pm.response.json();\r",
+                      "    pm.environment.set('TOPIC_ID', data.topicId)\r",
+                      "    pm.environment.set('TOPIC_NAME', data.name)\r",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "323bd1cc-b581-4350-ad15-3b0eaa7e5d09",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"topicId\": \"{{TOPIC_ID}}\",\r\n    \"name\": \"Test_Distinct_Topic\",\r\n    \"type\": \"distinct\",\r\n    \"kind\": \"business\",\r\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\r\n    \"factors\": [\r\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"AES256_PKCS5_PADDING\", \"encrypt\": \"AES256-PKCS5-PADDING\"},\r\n        {\"factorId\": \"2\", \"type\": \"text\", \"name\": \"MD5\", \"encrypt\": \"MD5\"},\r\n        {\"factorId\": \"3\", \"type\": \"text\", \"name\": \"SHA256\", \"encrypt\": \"SHA256\"},\r\n        {\"factorId\": \"4\", \"type\": \"text\", \"name\": \"MASK_MAIL\", \"encrypt\": \"MASK-MAIL\"},\r\n        {\"factorId\": \"5\", \"type\": \"text\", \"name\": \"MASK_CENTER_3\", \"encrypt\": \"MASK-CENTER-3\"},\r\n        {\"factorId\": \"6\", \"type\": \"text\", \"name\": \"MASK_CENTER_5\", \"encrypt\": \"MASK-CENTER-5\"},\r\n        {\"factorId\": \"7\", \"type\": \"text\", \"name\": \"MASK_LAST_3\", \"encrypt\": \"MASK-LAST-3\"},\r\n        {\"factorId\": \"8\", \"type\": \"text\", \"name\": \"MASK_LAST_6\", \"encrypt\": \"MASK-LAST-6\"},\r\n        {\"factorId\": \"9\", \"type\": \"datetime\", \"name\": \"MASK_DAY\", \"encrypt\": \"MASK-DAY\"},\r\n        {\"factorId\": \"10\", \"type\": \"datetime\", \"name\": \"MASK_MONTH\", \"encrypt\": \"MASK-MONTH\"},\r\n        {\"factorId\": \"11\", \"type\": \"datetime\", \"name\": \"MASK_MONTH_DAY\", \"encrypt\": \"MASK-MONTH-DAY\"}\r\n    ],\r\n    \"description\": \"Test Raw Topic\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/topic"
+              },
+              "response": []
+            },
+            {
+              "name": "CREATE PIPELINE",
+              "id": "c136da41-5ce4-4829-8886-77e5497988d3",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"topicId\": \"{{RAW_TOPIC_ID}}\",\r\n    \"name\": \"Test Encrypt\",\r\n    \"type\": \"insert-or-merge\",\r\n    \"stages\": [\r\n        {\r\n            \"stageId\": \"f-1\",\r\n            \"name\": \"Stage 1\",\r\n            \"units\": [\r\n                {\r\n                    \"unitId\": \"f-2\",\r\n                    \"name\": \"Unit 1.2\",\r\n                    \"loopVariableName\": \"loop_list\",\r\n                    \"do\": [\r\n                        {\r\n                            \"actionId\": \"fa-1\",\r\n                            \"type\": \"insert-row\",\r\n                            \"topicId\": \"{{TOPIC_ID}}\",\r\n                            \"mapping\": [\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"topic\",\r\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\r\n                                        \"factorId\": \"1\"\r\n                                    },\r\n                                    \"factorId\": \"1\"\r\n                                },\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"topic\",\r\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\r\n                                        \"factorId\": \"2\"\r\n                                    },\r\n                                    \"factorId\": \"2\"\r\n                                },\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"topic\",\r\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\r\n                                        \"factorId\": \"3\"\r\n                                    },\r\n                                    \"factorId\": \"3\"\r\n                                },\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"topic\",\r\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\r\n                                        \"factorId\": \"4\"\r\n                                    },\r\n                                    \"factorId\": \"4\"\r\n                                },\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"topic\",\r\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\r\n                                        \"factorId\": \"5\"\r\n                                    },\r\n                                    \"factorId\": \"5\"\r\n                                },\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"topic\",\r\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\r\n                                        \"factorId\": \"6\"\r\n                                    },\r\n                                    \"factorId\": \"6\"\r\n                                },\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"topic\",\r\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\r\n                                        \"factorId\": \"7\"\r\n                                    },\r\n                                    \"factorId\": \"7\"\r\n                                },\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"topic\",\r\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\r\n                                        \"factorId\": \"8\"\r\n                                    },\r\n                                    \"factorId\": \"8\"\r\n                                },\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"topic\",\r\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\r\n                                        \"factorId\": \"9\"\r\n                                    },\r\n                                    \"factorId\": \"9\"\r\n                                },\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"topic\",\r\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\r\n                                        \"factorId\": \"10\"\r\n                                    },\r\n                                    \"factorId\": \"10\"\r\n                                },\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"topic\",\r\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\r\n                                        \"factorId\": \"11\"\r\n                                    },\r\n                                    \"factorId\": \"11\"\r\n                                }\r\n                            ]\r\n                        }\r\n                    ]\r\n                }\r\n            ]\r\n        }\r\n    ],\r\n    \"enabled\": true,\r\n    \"validated\": true\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/pipeline"
+              },
+              "response": []
+            },
+            {
+              "name": "IMPORT RAW",
+              "id": "95d6c48a-1462-4b03-b2b9-ec176dac954e",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"code\": \"Test_Raw_Topic\",\r\n    \"data\": {\r\n        \"AES256_PKCS5_PADDING\": \"AAAAAAAAAA\",\r\n        \"MD5\": \"AAAAAAAAAA\",\r\n        \"SHA256\": \"AAAAAAAAAA\",\r\n        \"MASK_MAIL\": \"AAAAAAAAAA\",\r\n        \"MASK_CENTER_3\": \"AAAAAAAAAA\",\r\n        \"MASK_CENTER_5\": \"AAAAAAAAAA\",\r\n        \"MASK_LAST_3\": \"AAAAAAAAAA\",\r\n        \"MASK_LAST_6\": \"AAAAAAAAAA\",\r\n        \"MASK_DAY\": \"2022-03-23 22:39:45\",\r\n        \"MASK_MONTH\": \"2022-03-23 22:39:45\",\r\n        \"MASK_MONTH_DAY\": \"2022-03-23 22:39:45\"\r\n    }\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/pipeline/data"
               },
               "response": []
             }
