@@ -10254,7 +10254,7 @@
                     "token": "{{JWT_TOKEN}}"
                   }
                 },
-                "method": "GET",
+                "method": "POST",
                 "header": [],
                 "body": {
                   "mode": "raw",
@@ -10264,7 +10264,8 @@
                       "language": "json"
                     }
                   }
-                }
+                },
+                "url": "{{URL_PREFIX}}/pipeline"
               },
               "response": []
             }
