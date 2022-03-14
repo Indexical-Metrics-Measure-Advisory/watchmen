@@ -213,7 +213,11 @@ const request = async (options: {
 	}
 
 	const response = await doFetch(url, {method, headers, body});
-	return await response.json();
+	if (response.bodyUsed) {
+		return await response.json();
+	} else {
+		return null
+	}
 };
 
 export const get = async (options: { api: string; search?: Record<string, any>; auth?: boolean }) => {
