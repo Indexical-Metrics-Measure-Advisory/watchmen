@@ -52,7 +52,7 @@ async def save_external_writer(
 
 	# noinspection DuplicatedCode
 	def action(writer: ExternalWriter) -> ExternalWriter:
-		if external_writer_service.is_storable_id_faked(writer.external_writerId):
+		if external_writer_service.is_storable_id_faked(writer.writerId):
 			external_writer_service.redress_storable_id(writer)
 			# noinspection PyTypeChecker
 			writer: ExternalWriter = external_writer_service.create(writer)

@@ -124,13 +124,13 @@ export const isFakedUuid = (tuple: Tuple): boolean => {
 		return tuple.subjectId.startsWith(FAKE_ID_PREFIX);
 	} else if (isEnum(tuple)) {
 		return tuple.enumId.startsWith(FAKE_ID_PREFIX);
-	} else if (isTenant(tuple)) {
-		// tenant base tuples always have tenantId
-		return tuple.tenantId.startsWith(FAKE_ID_PREFIX);
 	} else if (isDataSource(tuple)) {
 		return tuple.dataSourceId.startsWith(FAKE_ID_PREFIX);
 	} else if (isExternalWriter(tuple)) {
 		return tuple.writerId.startsWith(FAKE_ID_PREFIX);
+	} else if (isTenant(tuple)) {
+		// tenant base tuples always have tenantId
+		return tuple.tenantId.startsWith(FAKE_ID_PREFIX);
 	}
 
 	console.groupCollapsed('Unsupported tuple type');

@@ -65,7 +65,7 @@ export const Apis = {
 	USER_GROUP_SAVE: 'user_group',
 
 	DATASOURCE_LIST_BY_NAME: 'datasource/name?query_name=:search',
-	DATASOURCE_GET: 'datasource?datasource_id=:dataSourceId',
+	DATASOURCE_GET: 'datasource?data_source_id=:dataSourceId',
 	DATASOURCE_CREATE: 'datasource',
 	DATASOURCE_SAVE: 'datasource',
 	DATASOURCE_LOAD_ALL: 'datasource/all',
