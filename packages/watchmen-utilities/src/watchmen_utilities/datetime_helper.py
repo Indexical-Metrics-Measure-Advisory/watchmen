@@ -207,6 +207,10 @@ def is_date_plus_format(value: Optional[str], formats: List[str]) -> Tuple[bool,
 	"""
 	if value is None:
 		return False, None, None
+	if 'Z' in value:
+		# abandon everything after Z
+		value = value[: value.index('Z')]
+
 	tidy_value = sub(r'\D', '', value)
 	count = len(tidy_value)
 	# format cannot use length to match
