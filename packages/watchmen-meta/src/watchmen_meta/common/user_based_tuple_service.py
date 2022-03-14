@@ -38,9 +38,10 @@ class UserBasedTupleService(EntityService):
 		return a_tuple
 
 	def update(self, a_tuple: UserBasedTuple) -> UserBasedTuple:
-		self.try_to_prepare_auditable_on_update(a_tuple)
+		original_last_modified_at, original_last_modified_by = self.try_to_prepare_auditable_on_update(a_tuple)
 		updated_count = self.storage.update_one(a_tuple, self.get_entity_id_helper())
 		if updated_count == 0:
+			self.try_to_recover_auditable_on_update(a_tuple, original_last_modified_at, original_last_modified_by)
 			raise TupleNotFoundException('Update 0 row might be caused by tuple not found.')
 		return a_tuple
 

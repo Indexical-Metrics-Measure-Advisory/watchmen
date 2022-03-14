@@ -1,8 +1,7 @@
 from typing import Optional
 
 from watchmen_auth import PrincipalService
-from watchmen_model.common import Auditable, FactorId, OptimisticLock, TenantBasedTuple, Tuple
-from watchmen_model.dqc import MonitorRuleCode
+from watchmen_model.common import Auditable, OptimisticLock, TenantBasedTuple, Tuple
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityRow, OptimisticLockException, \
 	SnowflakeGenerator, TransactionalStorageSPI
 from .storage_service import EntityService, TupleId, TupleNotFoundException
@@ -92,7 +91,7 @@ class TupleService(EntityService):
 		"""
 		with optimistic lock logic
 		"""
-		self.try_to_prepare_auditable_on_update(a_tuple)
+		original_last_modified_at, original_last_modified_by = self.try_to_prepare_auditable_on_update(a_tuple)
 		is_optimistic_lock, version = self.try_to_prepare_optimistic_lock_on_update(a_tuple)
 		if is_optimistic_lock:
 			# noinspection PyTypeChecker
@@ -106,7 +105,7 @@ class TupleService(EntityService):
 				],
 				# to avoid update created columns in update
 				update=self.try_to_ignore_created_columns(
-					self.ignore_optimistic_keys(self.get_entity_shaper().serialize(a_tuple)))
+					self.ignore_storable_id(self.get_entity_shaper().serialize(a_tuple)))
 			))
 			if updated_count == 0:
 				a_tuple.version = version
@@ -120,10 +119,11 @@ class TupleService(EntityService):
 				],
 				# to avoid update created columns in update
 				update=self.try_to_ignore_created_columns(
-					self.ignore_storable_id(self.get_entity_shaper().serialize(a_tuple)))
+					self.ignore_optimistic_keys(self.get_entity_shaper().serialize(a_tuple)))
 			))
 			if updated_count == 0:
 				raise TupleNotFoundException('Update 0 row might be caused by tuple not found.')
+		self.try_to_recover_auditable_on_update(a_tuple, original_last_modified_at, original_last_modified_by)
 		return a_tuple
 
 	def delete(self, tuple_id: TupleId) -> Optional[Tuple]:
