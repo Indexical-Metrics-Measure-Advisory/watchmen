@@ -10153,11 +10153,34 @@
           "item": [
             {
               "name": "CREATE RAW TOPIC",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "1e59c3b2-a2c2-41b2-bea9-2c0909acf212",
+                    "exec": [
+                      "pm.test(\"Create Raw Topic\", () => {\r",
+                      "    pm.response.to.have.status(200);\r",
+                      "    var data = pm.response.json();\r",
+                      "    pm.environment.set('RAW_TOPIC_ID', data.topicId)\r",
+                      "    pm.environment.set('RAW_TOPIC_NAME', data.name)\r",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "3f8799a4-e288-4cd9-88bb-612bc5f4364a",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "POST",
                 "header": [],
                 "body": {
