@@ -112,7 +112,7 @@ class QueryTenantDataPage(DataPage):
 	data: List[Tenant]
 
 
-@router.post('/tenant/name', tags=[UserRole.SUPER_ADMIN], response_model=QueryTenantDataPage)
+@router.post('/tenant/name', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=QueryTenantDataPage)
 async def find_tenants_by_name(
 		query_name: Optional[str] = None, pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
