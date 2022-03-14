@@ -82,7 +82,7 @@ class PipelineService(TupleService):
 		if count == 0:
 			return None
 		elif count == 1:
-			return rows[0].tenandId
+			return rows[0].tenantId
 		else:
 			raise TooManyEntitiesFoundException(f'Too many entities found by finder[{finder}].')
 
