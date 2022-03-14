@@ -154,7 +154,7 @@ def is_time(value: Optional[str], formats: List[str]) -> Tuple[bool, Optional[ti
 	"""
 	if value is None:
 		return False, None
-	tidy_value = sub(r'\D', '', value)
+	tidy_value = sub(r'[^0-9+]', '', value)
 	count = len(tidy_value)
 	suitable_formats = ArrayHelper(formats).filter(lambda x: len(x) == count).to_list()
 	for suitable_format in suitable_formats:
@@ -215,7 +215,7 @@ def is_date_plus_format(value: Optional[str], formats: List[str]) -> Tuple[bool,
 	if value is None:
 		return False, None, None
 
-	tidy_value = sub(r'\D', '', value)
+	tidy_value = sub(r'[^0-9+]', '', value)
 	count = len(tidy_value)
 	# format cannot use length to match
 	suitable_formats = ArrayHelper(formats).filter(lambda x: is_suitable_format(count, x)).to_list()
