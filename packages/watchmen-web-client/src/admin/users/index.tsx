@@ -1,5 +1,6 @@
 import {isSuperAdmin} from '@/services/data/account';
 import {TuplePage} from '@/services/data/query/tuple-page';
+import {QueryTenant} from '@/services/data/tuples/query-tenant-types';
 import {QueryUser} from '@/services/data/tuples/query-user-types';
 import {listTenants} from '@/services/data/tuples/tenant';
 import {QueryTuple} from '@/services/data/tuples/tuple-types';
@@ -43,7 +44,10 @@ const AdminUsers = () => {
 	const {on, off, fire} = useTupleEventBus();
 	useEffect(() => {
 		const onDoCreateUser = async () => {
-			const tenants = (await listTenants({search: '', pageNumber: 1, pageSize: 9999})).data;
+			let tenants: Array<QueryTenant> = [];
+			if (isSuperAdmin()) {
+				tenants = (await listTenants({search: '', pageNumber: 1, pageSize: 9999})).data;
+			}
 			fire(TupleEventTypes.TUPLE_CREATED, createUser(), {tenants});
 		};
 		const onDoEditUser = async (queryUser: QueryUser) => {
