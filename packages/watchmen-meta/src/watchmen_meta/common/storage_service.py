@@ -5,7 +5,7 @@ from datetime import datetime
 from typing import List, Optional, Tuple, TypeVar
 
 from watchmen_auth import PrincipalService
-from watchmen_model.common import Auditable, OptimisticLock, Pageable, Storable
+from watchmen_model.common import Auditable, OptimisticLock, Pageable, Storable, UserId
 from watchmen_storage import EntityColumnName, EntityCriteria, EntityDeleter, EntityDistinctValuesFinder, \
 	EntityFinder, EntityHelper, EntityIdHelper, EntityName, EntityPager, EntityRow, EntityShaper, EntitySort, \
 	EntityUpdate, EntityUpdater, SnowflakeGenerator, TransactionalStorageSPI
@@ -73,13 +73,26 @@ class StorageService(ABC):
 		if isinstance(storable, OptimisticLock):
 			storable.version = 1
 
-	def try_to_prepare_auditable_on_update(self, storable: Storable) -> None:
+	def try_to_prepare_auditable_on_update(self, storable: Storable) -> Tuple[Optional[datetime], Optional[UserId]]:
 		"""
 		set last modified columns when given storable is an auditable
 		"""
 		if isinstance(storable, Auditable):
+			last_modified_at = storable.lastModifiedAt
+			last_modified_by = storable.lastModifiedBy
 			storable.lastModifiedAt = self.now()
 			storable.lastModifiedBy = self.principalService.get_user_id()
+			return last_modified_at, last_modified_by
+		else:
+			return None, None
+
+	# noinspection PyMethodMayBeStatic
+	def try_to_recover_auditable_on_update(
+			self, storable: Storable, last_modified_at: Optional[datetime], last_modified_by: Optional[UserId]
+	) -> None:
+		if isinstance(storable, Auditable):
+			storable.lastModifiedAt = last_modified_at
+			storable.lastModifiedBy = last_modified_by
 
 	# noinspection PyMethodMayBeStatic
 	def try_to_prepare_optimistic_lock_on_update(self, storable: Storable) -> Tuple[bool, int]:
