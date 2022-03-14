@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from watchmen_model.system import DataSource, DataSourceType
 from .data_source_mysql import MySQLDataSourceHelper, MySQLDataSourceParams
-from .storage_msyql import StorageMySQL, TopicDataStorageMySQL
+from .storage_mysql import StorageMySQL, TopicDataStorageMySQL
 
 
 # noinspection PyRedeclaration

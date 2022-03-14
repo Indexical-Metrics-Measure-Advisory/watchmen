@@ -5,7 +5,7 @@ from watchmen_model.common import DataModel
 from watchmen_model.system import DataSource
 from watchmen_storage import DataSourceHelper
 from watchmen_utilities import serialize_to_json
-from .storage_msyql import StorageMySQL, TopicDataStorageMySQL
+from .storage_mysql import StorageMySQL, TopicDataStorageMySQL
 
 
 def redress_url(value: str) -> str:
