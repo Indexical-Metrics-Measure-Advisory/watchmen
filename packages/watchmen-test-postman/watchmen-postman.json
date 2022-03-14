@@ -10172,6 +10172,18 @@
                 "url": "{{URL_PREFIX}}/topic"
               },
               "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "323bd1cc-b581-4350-ad15-3b0eaa7e5d09",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
             }
           ],
           "id": "191a98a6-20f8-4f53-94e3-1648bd485c46"
