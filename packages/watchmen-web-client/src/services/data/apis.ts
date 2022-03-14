@@ -216,7 +216,7 @@ const request = async (options: {
 	try {
 		return await response.json();
 	} catch {
-		return await response.text();
+		return null;
 	}
 };
 
