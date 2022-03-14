@@ -213,10 +213,10 @@ const request = async (options: {
 	}
 
 	const response = await doFetch(url, {method, headers, body});
-	if (response.bodyUsed) {
+	try {
 		return await response.json();
-	} else {
-		return null
+	} catch {
+		return await response.text();
 	}
 };
 
