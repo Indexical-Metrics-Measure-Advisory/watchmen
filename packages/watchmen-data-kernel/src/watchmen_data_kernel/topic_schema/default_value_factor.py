@@ -12,7 +12,7 @@ design of default value initializer. same with encryption, see that for more.
 """
 
 
-class EncryptFactor:
+class DefaultValueFactor:
 	def __init__(self, factor: Factor):
 		self.factor = factor
 		self.factorName = '' if is_blank(factor.name) else factor.name.strip()
@@ -27,10 +27,10 @@ class EncryptFactor:
 
 
 class DefaultValueFactorGroup:
-	factors: Optional[List[EncryptFactor]] = None
+	factors: Optional[List[DefaultValueFactor]] = None
 	groups: Optional[List[DefaultValueFactorGroup]] = None
 
-	def __init__(self, name: str, factors: List[EncryptFactor]):
+	def __init__(self, name: str, factors: List[DefaultValueFactor]):
 		self.name = name
 		# in reality, zero or one factor.
 		# if there is one, name is same as group's, and will not contain group anymore
@@ -60,7 +60,7 @@ def parse_default_value_factors(topic: Topic) -> List[DefaultValueFactorGroup]:
 
 	groups = ArrayHelper(topic.factors) \
 		.filter(lambda x: x.defaultValue is not None) \
-		.map(lambda x: EncryptFactor(x)) \
+		.map(lambda x: DefaultValueFactor(x)) \
 		.filter(lambda x: is_not_blank(x.factorName)) \
 		.group_by(lambda x: x.names[0])
 
