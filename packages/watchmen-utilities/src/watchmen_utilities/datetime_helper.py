@@ -194,7 +194,7 @@ def try_to_format_date(might_be_date: str, date_format: str) -> Tuple[bool, Opti
 def is_suitable_format(value_length: int, a_format: str) -> bool:
 	plus_year = '%Y' in a_format
 	plus_timezone = '%Z' in a_format
-	plus_digits = (2 if plus_year else 0) + (2 if plus_timezone else 0)
+	plus_digits = (2 if plus_year else 0) + (3 if plus_timezone else 0)
 	if value_length > 14 and not plus_timezone:
 		return '%f' in a_format
 	elif value_length > 14 and plus_timezone:
