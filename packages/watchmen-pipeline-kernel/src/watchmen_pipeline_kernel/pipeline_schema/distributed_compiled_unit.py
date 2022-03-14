@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from logging import getLogger
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, Union
 
 from dask import config
 from distributed import Client
@@ -15,6 +15,7 @@ from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.admin import Pipeline, PipelineStage, PipelineUnit, Topic, User
 from watchmen_model.common import DataModel, TopicId
 from watchmen_model.pipeline_kernel import MonitorLogStage, MonitorLogUnit
+from watchmen_model.pipeline_kernel.pipeline_monitor_log import construct_unit
 from watchmen_pipeline_kernel.common import ask_parallel_actions_count, ask_parallel_actions_dask_temp_dir, \
 	ask_parallel_actions_dask_use_process, PipelineKernelException
 from watchmen_pipeline_kernel.pipeline_schema_interface import CreateQueuePipeline
@@ -66,6 +67,40 @@ class DistributedUnitLoopItemResult(DataModel):
 	log: MonitorLogUnit
 	triggered: List[Tuple[TopicId, TopicTrigger]]
 	success: bool
+
+	def __getstate__(self):
+		return self.to_dict()
+
+	def __setstate__(self, state):
+		for key, value in state.items():
+			self.__setattr__(key, value)
+
+	def __setattr__(self, name, value):
+		if name == 'log':
+			super().__setattr__(name, construct_unit(value))
+		if name == 'triggered':
+			super().__setattr__(name, construct_triggers(value))
+		else:
+			super().__setattr__(name, value)
+
+
+def construct_triggers(triggered: Optional[list] = None) -> Optional[List[Tuple[TopicId, TopicTrigger]]]:
+	if triggered is None:
+		return None
+	else:
+		return ArrayHelper(triggered).map(lambda x: construct_trigger(x)).to_list()
+
+
+def construct_trigger(trigger: Optional[Tuple[TopicId, TopicTrigger]] = None) -> Tuple[TopicId, TopicTrigger]:
+	if trigger is None:
+		return None
+	else:
+		if isinstance(trigger[1], dict):
+			topic_id = trigger[0]
+			topic_trigger = TopicTrigger(**trigger[1])
+			return topic_id, topic_trigger
+		else:
+			return trigger
 
 
 class DistributedUnitLoopResult(DataModel):
