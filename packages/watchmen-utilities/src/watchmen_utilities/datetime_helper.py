@@ -197,6 +197,11 @@ def is_suitable_format(value_length: int, a_format: str) -> bool:
 	plus_digits = (2 if plus_year else 0) + (2 if plus_timezone else 0)
 	if value_length > 14 and not plus_timezone:
 		return '%f' in a_format
+	elif value_length > 14 and plus_timezone:
+		if value_length > 18:
+			return '%f' in a_format and plus_timezone
+		else:
+			return False
 	else:
 		return value_length == len(a_format) + plus_digits
 
