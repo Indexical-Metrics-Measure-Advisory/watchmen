@@ -2,6 +2,7 @@ from typing import List, Type, Union  # noqa
 
 from sqlalchemy import Boolean, Column, Date, Integer, JSON, MetaData, String, Text
 
+# noinspection DuplicatedCode
 meta_data = MetaData()
 
 ID_TYPE = String(50)
@@ -23,10 +24,11 @@ def create_datetime(name: str, nullable: bool = True) -> Column:
 	return Column(name, Date, nullable=nullable)
 
 
-def create_json(name: str) -> Column:
-	return Column(name, JSON, nullable=True)
+def create_json(name: str, nullable: bool = True) -> Column:
+	return Column(name, JSON, nullable=nullable)
 
 
+# noinspection DuplicatedCode
 def create_medium_text(name: str) -> Column:
 	return Column(name, Text, nullable=True)
 

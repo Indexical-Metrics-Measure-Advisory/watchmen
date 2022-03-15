@@ -48,6 +48,12 @@ table_external_writers = Table(
 	create_str('pat', 255), create_str('url', 255),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
+table_key_stores = Table(
+	'key_stores', meta_data,
+	create_pk('tenant_id'), create_pk('key_type', String(20)),
+	create_json("params", False),
+	create_datetime('created_at', False), create_tuple_id_column('created_by', nullable=False)
+)
 # admin
 table_users = Table(
 	'users', meta_data,
@@ -214,6 +220,7 @@ tables: Dict[str, Table] = {
 	'tenants': table_tenants,
 	'external_writers': table_external_writers,
 	'data_sources': table_data_sources,
+	'key_stores': table_key_stores,
 	# admin
 	'users': table_users,
 	'user_groups': table_user_groups,
