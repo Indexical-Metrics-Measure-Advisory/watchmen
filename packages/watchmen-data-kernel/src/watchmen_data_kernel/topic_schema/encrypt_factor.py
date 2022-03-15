@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from watchmen_auth import PrincipalService
-from watchmen_data_kernel.encryption import ask_encryptor
+from watchmen_data_kernel.encryption import Encryptor, find_encryptor, register_encryptor
 from watchmen_model.admin import Factor, FactorEncryptMethod, Topic
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 
@@ -37,6 +37,29 @@ now, loop by groups, there is no duplicated visit anymore.
 """
 
 
+def ask_encryptor(method: Union[FactorEncryptMethod, str], principal_service: PrincipalService) -> Encryptor:
+	encryptor = find_encryptor(method)
+	if encryptor.should_ask_params():
+		key_type = encryptor.get_key_type()
+		tenant_id = principal_service.get_tenant_id()
+		particular_key = f'{tenant_id}-{key_type}'
+		particular_encryptor = find_encryptor(particular_key)
+		if particular_encryptor is not None:
+			return particular_encryptor
+		# to avoid loop dependency
+		from watchmen_data_kernel.meta import KeyStoreService
+		key_store = KeyStoreService(principal_service).find_by_type(key_type, tenant_id)
+		if key_store is None:
+			# no special key store declared, use global one
+			return encryptor
+		else:
+			particular_encryptor = encryptor.create_particular(key_store.params)
+			register_encryptor(particular_key, particular_encryptor)
+			return particular_encryptor
+	else:
+		return encryptor
+
+
 class EncryptFactor:
 	def __init__(self, factor: Factor):
 		self.factor = factor
@@ -65,7 +88,7 @@ class EncryptFactorGroup:
 		self.groups = ArrayHelper(list(groups.items())) \
 			.map(lambda x: EncryptFactorGroup(name=x[0], factors=x[1])).to_list()
 
-	def encrypt(self, data: Dict[str, Any], principal_service) -> None:
+	def encrypt(self, data: Dict[str, Any], principal_service: PrincipalService) -> None:
 		value = data.get(self.name)
 		if value is None:
 			return

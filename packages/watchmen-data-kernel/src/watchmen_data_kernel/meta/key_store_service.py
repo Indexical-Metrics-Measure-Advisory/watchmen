@@ -14,8 +14,8 @@ class KeyStoreService:
 
 	# noinspection PyMethodMayBeStatic
 	def find_by_type(self, key_type: str, tenant_id: TenantId) -> Optional[KeyStore]:
-		key_store = CacheService.key_store().get(key_type, tenant_id)
-		if key_store is not None:
+		hit, key_store = CacheService.key_store().get(key_type, tenant_id)
+		if hit:
 			return key_store
 
 		storage_service = KeyStoreStorageService(ask_meta_storage())
@@ -23,6 +23,7 @@ class KeyStoreService:
 		try:
 			key_store: KeyStore = storage_service.find_by_type(key_type, tenant_id)
 			if key_store is None:
+				CacheService.key_store().declare_not_existing(key_type, tenant_id)
 				return None
 
 			CacheService.key_store().put(key_store)
