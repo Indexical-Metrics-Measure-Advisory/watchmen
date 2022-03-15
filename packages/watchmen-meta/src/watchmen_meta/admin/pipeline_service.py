@@ -28,6 +28,8 @@ class PipelineShaper(EntityShaper):
 			'topic_id': pipeline.topicId,
 			'name': pipeline.name,
 			'type': pipeline.type,
+			'prerequisite_enabled': pipeline.conditional,
+			'prerequisite_on': pipeline.on,
 			'stages': PipelineShaper.serialize_stages(pipeline.stages),
 			'enabled': pipeline.enabled,
 			'validated': pipeline.validated
@@ -40,6 +42,8 @@ class PipelineShaper(EntityShaper):
 			topicId=row.get('topic_id'),
 			name=row.get('name'),
 			type=row.get('type'),
+			conditional=row.get('prerequisite_enabled'),
+			on=row.get('prerequisite_on'),
 			stages=row.get('stages'),
 			enabled=row.get('enabled'),
 			validated=row.get('validated')
