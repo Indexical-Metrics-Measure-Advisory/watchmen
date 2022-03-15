@@ -4,7 +4,6 @@ ALTER TABLE subjects MODIFY name VARCHAR(50) NOT NULL;
 ALTER TABLE subjects DROP topiccount;
 ALTER TABLE subjects DROP graphicscount;
 ALTER TABLE subjects DROP reports;
-ALTER TABLE subjects DROP reportids;
 ALTER TABLE subjects ADD connect_id VARCHAR(50) NOT NULL;
 ALTER TABLE subjects ADD auto_refresh_interval BIGINT NULL;
 ALTER TABLE subjects ADD user_id VARCHAR(50) NOT NULL;
