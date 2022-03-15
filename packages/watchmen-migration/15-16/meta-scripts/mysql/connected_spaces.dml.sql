@@ -1,0 +1,1 @@
+UPDATE connected_spaces SET created_at = NOW(), created_by = '-1', last_modified_at = NOW(), last_modified_by = '-1';
