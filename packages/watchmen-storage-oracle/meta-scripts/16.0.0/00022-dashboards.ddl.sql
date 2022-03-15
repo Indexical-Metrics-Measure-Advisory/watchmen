@@ -1,7 +1,7 @@
 CREATE TABLE dashboards
 (
     dashboard_id          VARCHAR2(50) NOT NULL,
-    name                  VARCHAR2(45) NOT NULL,
+    name                  VARCHAR2(50) NOT NULL,
     dashboards            CLOB,
     paragraphs            CLOB,
     auto_refresh_interval NUMBER(20),

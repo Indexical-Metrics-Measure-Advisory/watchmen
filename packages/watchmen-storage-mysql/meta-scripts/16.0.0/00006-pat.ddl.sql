@@ -3,7 +3,7 @@ CREATE TABLE pats
     pat_id      VARCHAR(50)  NOT NULL,
     token       VARCHAR(255) NOT NULL,
     user_id     VARCHAR(50)  NOT NULL,
-    username    VARCHAR(45),
+    username    VARCHAR(50),
     tenant_id   VARCHAR(50)  NOT NULL,
     note        VARCHAR(255),
     expired     DATETIME,

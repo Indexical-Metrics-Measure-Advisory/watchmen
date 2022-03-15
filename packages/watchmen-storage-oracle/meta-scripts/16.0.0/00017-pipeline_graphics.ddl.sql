@@ -1,7 +1,7 @@
 CREATE TABLE pipeline_graphics
 (
     pipeline_graphic_id VARCHAR2(50) NOT NULL,
-    name                VARCHAR2(45) NOT NULL,
+    name                VARCHAR2(50) NOT NULL,
     topics              CLOB,
     user_id             VARCHAR2(50) NOT NULL,
     tenant_id           VARCHAR2(50) NOT NULL,

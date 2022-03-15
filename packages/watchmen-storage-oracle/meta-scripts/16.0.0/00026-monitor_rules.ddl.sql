@@ -1,7 +1,7 @@
 CREATE TABLE monitor_rules
 (
     rule_id          VARCHAR2(50) NOT NULL,
-    code             VARCHAR2(45) NOT NULL,
+    code             VARCHAR2(50) NOT NULL,
     grade            VARCHAR2(20) NOT NULL,
     severity         VARCHAR2(20) NOT NULL,
     topic_id         VARCHAR2(50),

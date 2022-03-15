@@ -1,7 +1,7 @@
 CREATE TABLE dashboards
 (
     dashboard_id          VARCHAR(50) NOT NULL,
-    name                  VARCHAR(45) NOT NULL,
+    name                  VARCHAR(50) NOT NULL,
     reports               JSON,
     paragraphs            JSON,
     auto_refresh_interval BIGINT,
