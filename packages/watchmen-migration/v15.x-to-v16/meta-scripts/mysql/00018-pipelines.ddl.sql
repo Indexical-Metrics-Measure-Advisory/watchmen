@@ -4,7 +4,7 @@ ALTER TABLE pipelines CHANGE pipelineid pipeline_id VARCHAR(50) NOT NULL;
 ALTER TABLE pipelines CHANGE topicid topic_id VARCHAR(50) NOT NULL;
 ALTER TABLE pipelines MODIFY type VARCHAR(20) NOT NULL;
 ALTER TABLE pipelines CHANGE conditional prerequisite_enabled TINYINT(1);
-ALTER TABLE pipelines CHANGE `on` prerequisite JSON;
+ALTER TABLE pipelines CHANGE `on` prerequisite_on JSON;
 ALTER TABLE pipelines MODIFY enabled TINYINT(1) NULL;
 ALTER TABLE pipelines ADD validated TINYINT(1) NULL;
 ALTER TABLE pipelines CHANGE tenantid tenant_id VARCHAR(50) NOT NULL;
