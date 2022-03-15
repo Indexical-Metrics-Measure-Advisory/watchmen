@@ -1,8 +1,10 @@
 from logging import getLogger
 from typing import Dict, Optional, Union
 
+from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_all_date_formats, ask_encrypt_aes_params, DataKernelException
 from watchmen_data_kernel.encryption import Encryptor
+from watchmen_data_kernel.meta import KeyStoreService
 from watchmen_model.admin import FactorEncryptMethod
 from .aes_encryptor import AESEncryptor
 from .center_masker import CenterMasker
@@ -58,8 +60,29 @@ def is_encryptor_registered(method: Union[FactorEncryptMethod, str]) -> bool:
 	return encryptor_registry.is_registered(method)
 
 
-def ask_encryptor(method: Union[FactorEncryptMethod, str]) -> Encryptor:
-	return encryptor_registry.ask_encryptor(method)
+def get_key_store_service(principal_service: PrincipalService) -> KeyStoreService:
+	return KeyStoreService(principal_service)
+
+
+def ask_encryptor(method: Union[FactorEncryptMethod, str], principal_service: PrincipalService) -> Encryptor:
+	encryptor = encryptor_registry.ask_encryptor(method)
+	if encryptor.should_ask_params():
+		key_type = encryptor.get_key_type()
+		tenant_id = principal_service.get_tenant_id()
+		particular_key = f'{tenant_id}-{key_type}'
+		particular_encryptor = encryptor_registry.ask_encryptor(particular_key)
+		if particular_encryptor is not None:
+			return particular_encryptor
+		key_store = get_key_store_service(principal_service).find_by_type(key_type, tenant_id)
+		if key_store is None:
+			# no special key store declared, use global one
+			return encryptor
+		else:
+			particular_encryptor = encryptor.create_particular(key_store.params)
+			register_encryptor(particular_key, particular_encryptor)
+			return particular_encryptor
+	else:
+		return encryptor
 
 
 # register default

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
+from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import is_raw_topic, Topic, TopicKind
 from watchmen_utilities import ArrayHelper
@@ -59,12 +60,12 @@ class TopicSchema:
 	def should_encrypt(self) -> bool:
 		return self.get_topic().kind != TopicKind.SYSTEM
 
-	def encrypt(self, data: Dict[str, Any]) -> Dict[str, Any]:
+	def encrypt(self, data: Dict[str, Any], principal_service: PrincipalService) -> Dict[str, Any]:
 		"""
 		given data might be changed, and returns exactly the given one
 		"""
 		if self.should_encrypt():
-			ArrayHelper(self.encryptFactorGroups).each(lambda x: x.encrypt(data))
+			ArrayHelper(self.encryptFactorGroups).each(lambda x: x.encrypt(data, principal_service))
 		return data
 
 	def should_aid_hierarchy(self) -> bool:
@@ -85,13 +86,13 @@ class TopicSchema:
 			aid(data, [], ask_snowflake_generator())
 		return data
 
-	def prepare_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
+	def prepare_data(self, data: Dict[str, Any], principal_service: PrincipalService) -> Dict[str, Any]:
 		"""
 		given data might be changed, and returns exactly the given one
 		"""
 		data = self.initialize_default_values(data)
 		data = self.cast_date_or_time(data)
-		data = self.encrypt(data)
+		data = self.encrypt(data, principal_service)
 		data = self.aid_hierarchy(data)
 		data = self.flatten(data)
 		return data

@@ -72,3 +72,6 @@ class DateMasker(Encryptor):
 	def do_decrypt(self, value: str) -> str:
 		# center mask cannot be decrypted
 		return value
+
+	def get_key_type(self) -> str:
+		return self.method.value

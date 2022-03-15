@@ -1,7 +1,9 @@
 from base64 import b64decode, b64encode
-from typing import Any, Union
+from typing import Any, Dict, Union
 
+from watchmen_data_kernel.common import DataKernelException
 from watchmen_model.admin import FactorEncryptMethod
+from watchmen_utilities import is_blank
 from .encryptor import Encryptor
 
 
@@ -35,3 +37,18 @@ class AESEncryptor(Encryptor):
 	def do_decrypt(self, value: str) -> str:
 		# remove prefix and decrypt
 		return self.ask_aes().decrypt(b64decode(value[5:])).decode('utf-8')
+
+	def should_ask_params(self) -> bool:
+		return True
+
+	def get_key_type(self) -> str:
+		return FactorEncryptMethod.AES256_PKCS5_PADDING.value
+
+	def create_particular(self, params: Dict[str, Any]) -> Encryptor:
+		key = params.get('key')
+		if is_blank(key) or len(key) != 32:
+			raise DataKernelException(f'Parameter key[{key}] should be 32 digits.')
+		iv = params.get('iv')
+		if is_blank(iv) or len(iv) != 16:
+			raise DataKernelException(f'Parameter iv[{iv}] should be 16 digits.')
+		return AESEncryptor(key, iv)

@@ -32,3 +32,6 @@ class SHA256Encryptor(Encryptor):
 	def do_decrypt(self, value: str) -> str:
 		# sha256 cannot be decrypted, remove prefix only
 		return value[8:]
+
+	def get_key_type(self) -> str:
+		return FactorEncryptMethod.SHA256.value

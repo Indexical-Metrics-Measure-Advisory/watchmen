@@ -25,3 +25,6 @@ class MD5Encryptor(Encryptor):
 	def do_decrypt(self, value: str) -> str:
 		# md5 cannot be decrypted, remove prefix only
 		return value[5:]
+
+	def get_key_type(self) -> str:
+		return FactorEncryptMethod.MD5.value
