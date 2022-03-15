@@ -6,7 +6,7 @@ ALTER TABLE connected_spaces DROP type;
 ALTER TABLE connected_spaces CHANGE istemplate is_template TINYINT(1) NOT NULL;
 ALTER TABLE connected_spaces DROP subjects;
 ALTER TABLE connected_spaces DROP groupids;
-ALTER TABLE connected_spaces drop subjectids;
+ALTER TABLE connected_spaces DROP subjectids;
 ALTER TABLE connected_spaces CHANGE userid user_id VARCHAR(50) NOT NULL;
 ALTER TABLE connected_spaces CHANGE tenantid tenant_id VARCHAR(50) NOT NULL;
 ALTER TABLE connected_spaces ADD last_visit_time DATETIME NOT NULL;

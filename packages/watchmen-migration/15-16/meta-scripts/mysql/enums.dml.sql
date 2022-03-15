@@ -52,4 +52,4 @@ END|
 DELIMITER ;
 CALL WATCHMEN_MIGRATION_COPY_ENUM_ITEMS();
 DROP PROCEDURE IF EXISTS WATCHMEN_MIGRATION_COPY_ENUM_ITEMS;
-UPDATE enums SET created_at = NOW(), created_by = '-1', last_modified_at = NOW(), last_modified_by = '-1';
+UPDATE enums SET created_at = NOW(), created_by = '-1', last_modified_at = NOW(), last_modified_by = '-1', version = 1;
