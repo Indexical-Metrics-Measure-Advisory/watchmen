@@ -44,6 +44,10 @@ class TenantByIdCache(Cache):
 	pass
 
 
+class KeyStoreByTypeCache(Cache):
+	pass
+
+
 cache_set = CacheManager()
 cache_set.setup({
 	'TOPIC_BY_ID': {'cache_class': TopicByIdCache, 'maxsize': 512},
@@ -55,7 +59,8 @@ cache_set.setup({
 	'DATA_SOURCE_BY_ID': {'cache_class': DataSourceByIdCache, 'maxsize': 64},
 	'DATA_STORAGE_BUILDER_BY_ID': {'cache_class': DataStorageBuilderByIdCache, 'maxsize': 64},
 	'EXTERNAL_WRITER_BY_ID': {'cache_class': ExternalWriterByIdCache, 'maxsize': 16},
-	'TENANT_BY_ID': {'cache_class': TenantByIdCache, 'maxsize': 32}
+	'TENANT_BY_ID': {'cache_class': TenantByIdCache, 'maxsize': 32},
+	'KEY_STORE_BY_TYPE': {'cache_class': KeyStoreByTypeCache, 'maxsize': 32}
 })
 
 
@@ -105,3 +110,7 @@ def get_external_writer_by_id_cache() -> ExternalWriterByIdCache:
 
 def get_tenant_by_id_cache() -> TenantByIdCache:
 	return cache_set['TENANT_BY_ID']
+
+
+def get_key_store_by_type_cache() -> KeyStoreByTypeCache:
+	return cache_set['KEY_STORE_BY_TYPE']

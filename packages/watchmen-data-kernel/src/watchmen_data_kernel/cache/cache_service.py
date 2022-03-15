@@ -12,6 +12,7 @@ from watchmen_model.admin import Pipeline, Topic
 from watchmen_model.system import DataSource, ExternalWriter, Tenant
 from .data_source_cache import data_source_cache, DataSourceCache
 from .external_writer_cache import external_writer_cache, ExternalWriterCache
+from .key_store_cache import key_store_cache, KeyStoreCache
 from .pipeline_by_topic_cache import pipeline_by_topic_cache, PipelineByTopicCache
 from .pipeline_cache import pipeline_cache, PipelineCache
 from .tenant_cache import tenant_cache, TenantCache
@@ -44,6 +45,10 @@ class CacheService:
 		return tenant_cache
 
 	@staticmethod
+	def key_store() -> KeyStoreCache:
+		return key_store_cache
+
+	@staticmethod
 	def clear_all() -> None:
 		CacheService.pipeline().clear()
 		CacheService.topic().clear()
@@ -51,6 +56,7 @@ class CacheService:
 		CacheService.data_source().clear()
 		CacheService.external_writer().clear()
 		CacheService.tenant().clear()
+		CacheService.key_store().clear()
 
 
 def heart_beat_on_pipelines() -> None:
