@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
+from watchmen_auth import PrincipalService
 from watchmen_data_kernel.encryption import ask_encryptor
 from watchmen_model.admin import Factor, FactorEncryptMethod, Topic
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
@@ -64,19 +65,19 @@ class EncryptFactorGroup:
 		self.groups = ArrayHelper(list(groups.items())) \
 			.map(lambda x: EncryptFactorGroup(name=x[0], factors=x[1])).to_list()
 
-	def encrypt(self, data: Dict[str, Any]) -> None:
+	def encrypt(self, data: Dict[str, Any], principal_service) -> None:
 		value = data.get(self.name)
 		if value is None:
 			return
 		if isinstance(value, dict):
-			ArrayHelper(self.groups).each(lambda x: x.encrypt(value))
+			ArrayHelper(self.groups).each(lambda x: x.encrypt(value, principal_service))
 		elif isinstance(value, list):
 			def each(item):
-				ArrayHelper(self.groups).each(lambda x: x.encrypt(item))
+				ArrayHelper(self.groups).each(lambda x: x.encrypt(item, principal_service))
 
 			ArrayHelper(value).each(lambda x: each(x))
 		else:
-			data[self.name] = encrypt(value, self.factors[0].get_encrypt_method())
+			data[self.name] = encrypt(value, self.factors[0].get_encrypt_method(), principal_service)
 
 
 def parse_encrypt_factors(topic: Topic) -> List[EncryptFactorGroup]:
@@ -90,11 +91,11 @@ def parse_encrypt_factors(topic: Topic) -> List[EncryptFactorGroup]:
 		.map(lambda x: EncryptFactorGroup(name=x[0], factors=x[1])).to_list()
 
 
-def encrypt(value: Any, method: FactorEncryptMethod) -> Any:
+def encrypt(value: Any, method: FactorEncryptMethod, principal_service: PrincipalService) -> Any:
 	# do encryption
 	# check it is encrypted or not first
 	# data read from topic, and write again, might be encrypted already
 	if method == FactorEncryptMethod.NONE:
 		return value
 	else:
-		return ask_encryptor(method).encrypt(value)
+		return ask_encryptor(method, principal_service).encrypt(value)

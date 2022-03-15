@@ -27,3 +27,6 @@ class MailMasker(Encryptor):
 	def do_decrypt(self, value: str) -> str:
 		# mail mask cannot be decrypted
 		return value
+
+	def get_key_type(self) -> str:
+		return FactorEncryptMethod.MASK_MAIL.value

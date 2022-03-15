@@ -49,7 +49,7 @@ class PipelineTrigger:
 		return ask_topic_data_service(schema, storage, self.principalService)
 
 	def prepare_trigger_data(self):
-		self.triggerTopicSchema.prepare_data(self.triggerData)
+		self.triggerTopicSchema.prepare_data(self.triggerData, self.principalService)
 
 	def save_trigger_data(self) -> TopicTrigger:
 		data_service = self.ask_topic_data_service(self.triggerTopicSchema)

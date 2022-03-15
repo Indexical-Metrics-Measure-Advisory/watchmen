@@ -1,6 +1,9 @@
-from abc import abstractmethod
-from typing import Any, Union
+from __future__ import annotations
 
+from abc import abstractmethod
+from typing import Any, Dict, Union
+
+from watchmen_data_kernel.common import DataKernelException
 from watchmen_model.admin import FactorEncryptMethod
 
 
@@ -49,3 +52,14 @@ class Encryptor:
 			return self.do_decrypt(value)
 		else:
 			return value
+
+	# noinspection PyMethodMayBeStatic
+	def should_ask_params(self) -> bool:
+		return False
+
+	@abstractmethod
+	def get_key_type(self) -> str:
+		pass
+
+	def create_particular(self, params: Dict[str, Any]) -> Encryptor:
+		raise DataKernelException(f'Method[create_particular] is not implemented on key type[{self.get_key_type()}].')
