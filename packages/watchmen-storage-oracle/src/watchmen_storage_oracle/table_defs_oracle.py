@@ -23,14 +23,14 @@ table_pats = Table(
 	'pats', meta_data,
 	create_pk('pat_id'),
 	create_str('token', 255, False),
-	create_user_id(), create_str('username', 45),
+	create_user_id(), create_str('username', 50),
 	create_tenant_id(), create_str('note', 255),
 	create_datetime('expired'), create_json('permissions'), create_datetime('created_at', False)
 )
 table_tenants = Table(
 	'tenants', meta_data,
 	create_pk('tenant_id'),
-	create_str('name', 45, False),
+	create_str('name', 50, False),
 	*create_tuple_audit_columns(), create_optimistic_lock()
 )
 table_data_sources = Table(
@@ -52,28 +52,28 @@ table_external_writers = Table(
 table_users = Table(
 	'users', meta_data,
 	create_pk('user_id'),
-	create_str('name', 45, False), create_str('nickname', 45), create_str('password', 100),
-	create_bool('is_active'), create_json('group_ids'), create_str('role', 45),
+	create_str('name', 50, False), create_str('nickname', 50), create_str('password', 100),
+	create_bool('is_active'), create_json('group_ids'), create_str('role', 50),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 table_user_groups = Table(
 	'user_groups', meta_data,
 	create_pk('user_group_id'),
-	create_str('name', 45, False), create_description(),
+	create_str('name', 50, False), create_description(),
 	create_json('user_ids'), create_json('space_ids'),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 table_spaces = Table(
 	'spaces', meta_data,
 	create_pk('space_id'),
-	create_str('name', 45, False), create_description(),
+	create_str('name', 50, False), create_description(),
 	create_json('topic_ids'), create_json('group_ids'), create_json('filters'),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 table_enums = Table(
 	'enums', meta_data,
 	create_pk('enum_id'),
-	create_str('name', 45, False), create_description(),
+	create_str('name', 50, False), create_description(),
 	create_tuple_id_column('parent_enum_id'),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
@@ -98,14 +98,14 @@ table_pipelines = Table(
 	'pipelines', meta_data,
 	create_pk('pipeline_id'),
 	create_tuple_id_column('topic_id', False),
-	create_str('name', 45, False), create_str('type', 20, False),
+	create_str('name', 50, False), create_str('type', 20, False),
 	create_json('stages'), create_bool('enabled', False), create_bool('validated', False),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 table_pipeline_graphics = Table(
 	'pipeline_graphics', meta_data,
 	create_pk('pipeline_graphic_id'),
-	create_str('name', 45), create_json('topics'),
+	create_str('name', 50), create_json('topics'),
 	create_tenant_id(), create_user_id(),
 	create_datetime('created_at', False), create_datetime('last_modified_at', False)
 )
@@ -113,7 +113,7 @@ table_pipeline_graphics = Table(
 table_connected_spaces = Table(
 	'connected_spaces', meta_data,
 	create_pk('connect_id'),
-	create_tuple_id_column('space_id', False), create_str('name', 45, False), create_bool('is_template', False),
+	create_tuple_id_column('space_id', False), create_str('name', 50, False), create_bool('is_template', False),
 	create_tenant_id(), create_user_id(), create_last_visit_time(), *create_tuple_audit_columns()
 )
 table_connected_space_graphics = Table(
@@ -125,7 +125,7 @@ table_connected_space_graphics = Table(
 table_subjects = Table(
 	'subjects', meta_data,
 	create_pk('subject_id'),
-	create_str('name', 45, False),
+	create_str('name', 50, False),
 	create_tuple_id_column('connect_id', False),
 	create_int('auto_refresh_interval'), create_json('dataset'),
 	create_tenant_id(), create_user_id(), create_last_visit_time(), *create_tuple_audit_columns()
@@ -133,7 +133,7 @@ table_subjects = Table(
 table_reports = Table(
 	'reports', meta_data,
 	create_pk('report_id'),
-	create_str('name', 45, False),
+	create_str('name', 50, False),
 	create_tuple_id_column('subject_id', False), create_tuple_id_column('connect_id', False),
 	create_json('filters'), create_json('funnels'),
 	create_json('indicators'), create_json('dimensions'),
@@ -146,7 +146,7 @@ table_reports = Table(
 table_dashboards = Table(
 	'dashboards', meta_data,
 	create_pk('dashboard_id'),
-	create_str('name', 45, False),
+	create_str('name', 50, False),
 	create_json('reports'), create_json('paragraphs'),
 	create_int('auto_refresh_interval'),
 	create_tenant_id(), create_user_id(), create_last_visit_time(), *create_tuple_audit_columns()
@@ -168,7 +168,7 @@ table_last_snapshot = Table(
 table_factor_index = Table(
 	'factor_index', meta_data,
 	create_pk('factor_index_id'),
-	create_tuple_id_column('factor_id'), create_str('factor_type', 50), create_str('factor_name', 45),
+	create_tuple_id_column('factor_id'), create_str('factor_type', 50), create_str('factor_name', 50),
 	create_str('factor_label', 100), create_str('factor_description', 100),
 	create_tuple_id_column('topic_id'), create_str('topic_name', 25),
 	create_tenant_id(),
@@ -178,7 +178,7 @@ table_factor_index = Table(
 table_pipeline_index = Table(
 	'pipeline_index', meta_data,
 	create_pk('pipeline_index_id'),
-	create_tuple_id_column('pipeline_id'), create_str('pipeline_name', 45, False),
+	create_tuple_id_column('pipeline_id'), create_str('pipeline_name', 50, False),
 	create_tuple_id_column('stage_id'), create_str('stage_name', 100, False),
 	create_tuple_id_column('unit_id'), create_str('unit_name', 100, False),
 	create_tuple_id_column('action_id'),
@@ -192,14 +192,14 @@ table_pipeline_index = Table(
 # dqc
 table_catalogs = Table(
 	'catalogs', meta_data,
-	create_pk('catalog_id'), create_str('name', 45, False),
+	create_pk('catalog_id'), create_str('name', 50, False),
 	create_json('topic_ids'), create_tuple_id_column('tech_owner_id'), create_tuple_id_column('biz_owner_id'),
 	create_json('tags'), create_description(),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 table_monitor_rules = Table(
 	'monitor_rules', meta_data,
-	create_pk('rule_id'), create_str('code', 45, False),
+	create_pk('rule_id'), create_str('code', 50, False),
 	create_str('grade', 20, False), create_str('severity', 20, False),
 	create_tuple_id_column('topic_id'), create_tuple_id_column('factor_id'),
 	create_json('params'), create_bool('enabled'),
