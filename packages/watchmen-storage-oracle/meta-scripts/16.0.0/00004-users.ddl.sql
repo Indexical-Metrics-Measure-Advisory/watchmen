@@ -1,8 +1,8 @@
 CREATE TABLE users
 (
     user_id          VARCHAR2(50) NOT NULL,
-    name             VARCHAR2(45),
-    nickname         VARCHAR2(45),
+    name             VARCHAR2(50),
+    nickname         VARCHAR2(50),
     password         VARCHAR2(255),
     is_active        NUMBER(1)    NOT NULL,
     group_ids        VARCHAR(2048),

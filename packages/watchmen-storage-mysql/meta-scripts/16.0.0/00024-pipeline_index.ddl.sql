@@ -2,7 +2,7 @@ CREATE TABLE pipeline_index
 (
     pipeline_index_id     VARCHAR(50) NOT NULL,
     pipeline_id           VARCHAR(50) NOT NULL,
-    pipeline_name         VARCHAR(45),
+    pipeline_name         VARCHAR(50),
     stage_id              VARCHAR(50) NOT NULL,
     stage_name            VARCHAR(100),
     unit_id               VARCHAR(50) NOT NULL,

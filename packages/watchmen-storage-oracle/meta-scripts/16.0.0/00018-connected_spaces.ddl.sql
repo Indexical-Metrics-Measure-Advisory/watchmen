@@ -2,7 +2,7 @@ CREATE TABLE connected_spaces
 (
     connect_id       VARCHAR2(50) NOT NULL,
     space_id         VARCHAR2(50) NOT NULL,
-    name             VARCHAR2(45) NOT NULL,
+    name             VARCHAR2(50) NOT NULL,
     is_template      NUMBER(1)    NOT NULL,
     user_id          VARCHAR2(50) NOT NULL,
     tenant_id        VARCHAR2(50) NOT NULL,

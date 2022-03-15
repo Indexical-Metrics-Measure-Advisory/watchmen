@@ -1,7 +1,7 @@
 CREATE TABLE tenants
 (
     tenant_id        VARCHAR2(50) NOT NULL,
-    name             VARCHAR2(45),
+    name             VARCHAR2(50),
     created_at       DATE         NOT NULL,
     created_by       VARCHAR2(50) NOT NULL,
     last_modified_at DATE         NOT NULL,

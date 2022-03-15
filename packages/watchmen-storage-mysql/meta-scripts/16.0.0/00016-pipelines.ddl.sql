@@ -2,7 +2,7 @@ CREATE TABLE pipelines
 (
     pipeline_id      VARCHAR(50) NOT NULL,
     topic_id         VARCHAR(50) NOT NULL,
-    name             VARCHAR(45) NOT NULL,
+    name             VARCHAR(50) NOT NULL,
     type             VARCHAR(20) NOT NULL,
     stages           JSON,
     enabled          TINYINT(1),

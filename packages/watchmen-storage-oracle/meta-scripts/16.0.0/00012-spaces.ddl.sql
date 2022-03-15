@@ -1,7 +1,7 @@
 CREATE TABLE spaces
 (
     space_id         VARCHAR2(50) NOT NULL,
-    name             VARCHAR2(45) NOT NULL,
+    name             VARCHAR2(50) NOT NULL,
     description      VARCHAR2(255),
     topic_ids        VARCHAR(2048),
     group_ids        VARCHAR(2048),

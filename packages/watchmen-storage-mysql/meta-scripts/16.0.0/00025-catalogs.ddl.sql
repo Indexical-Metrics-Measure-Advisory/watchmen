@@ -1,7 +1,7 @@
 CREATE TABLE catalogs
 (
     catalog_id       VARCHAR(50) NOT NULL,
-    name             VARCHAR(45) NOT NULL,
+    name             VARCHAR(50) NOT NULL,
     topic_ids        JSON,
     tech_owner_id    VARCHAR(50),
     biz_owner_id     VARCHAR(50),

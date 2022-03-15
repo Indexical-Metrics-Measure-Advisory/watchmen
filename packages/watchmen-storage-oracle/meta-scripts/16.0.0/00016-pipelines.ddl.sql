@@ -2,7 +2,7 @@ CREATE TABLE pipelines
 (
     pipeline_id      VARCHAR2(50) NOT NULL,
     topic_id         VARCHAR2(50) NOT NULL,
-    name             VARCHAR2(45) NOT NULL,
+    name             VARCHAR2(50) NOT NULL,
     type             VARCHAR2(20) NOT NULL,
     stages           CLOB,
     enabled          NUMBER(1),

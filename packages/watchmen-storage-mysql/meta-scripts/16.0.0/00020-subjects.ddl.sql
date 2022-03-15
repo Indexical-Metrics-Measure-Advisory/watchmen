@@ -1,7 +1,7 @@
 CREATE TABLE subjects
 (
     subject_id            VARCHAR(50) NOT NULL,
-    name                  VARCHAR(45) NOT NULL,
+    name                  VARCHAR(50) NOT NULL,
     connect_id            VARCHAR(50) NOT NULL,
     auto_refresh_interval BIGINT,
     dataset               JSON,

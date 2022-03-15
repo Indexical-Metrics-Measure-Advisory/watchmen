@@ -1,7 +1,7 @@
 CREATE TABLE topics
 (
     topic_id         VARCHAR2(50) NOT NULL,
-    name             VARCHAR2(45) NOT NULL,
+    name             VARCHAR2(50) NOT NULL,
     description      VARCHAR2(255),
     type             VARCHAR2(20) NOT NULL,
     kind             VARCHAR2(20) NOT NULL,

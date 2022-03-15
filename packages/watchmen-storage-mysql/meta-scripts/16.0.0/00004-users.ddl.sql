@@ -1,8 +1,8 @@
 CREATE TABLE users
 (
     user_id          VARCHAR(50) NOT NULL,
-    name             VARCHAR(45),
-    nickname         VARCHAR(45),
+    name             VARCHAR(50),
+    nickname         VARCHAR(50),
     password         VARCHAR(255),
     is_active        TINYINT(1)  NOT NULL,
     group_ids        JSON,

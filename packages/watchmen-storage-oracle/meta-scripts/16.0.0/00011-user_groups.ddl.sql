@@ -1,7 +1,7 @@
 CREATE TABLE user_groups
 (
     user_group_id    VARCHAR2(50) NOT NULL,
-    name             VARCHAR2(45) NOT NULL,
+    name             VARCHAR2(50) NOT NULL,
     description      VARCHAR2(255),
     user_ids         VARCHAR(2048),
     space_ids        VARCHAR(2048),
