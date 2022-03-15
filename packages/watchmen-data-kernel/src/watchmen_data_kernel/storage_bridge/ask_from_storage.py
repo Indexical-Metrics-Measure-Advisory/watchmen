@@ -159,7 +159,7 @@ def create_date_diff(
 		def parse_date(
 				name: str, variables: PipelineVariables, principal_service: PrincipalService
 		) -> Tuple[bool, Union[date, ParsedStorageParameter]]:
-			if allow_in_memory_variables and not name.strip('&'):
+			if allow_in_memory_variables and not name.startswith('&'):
 				# try to get from memory variables
 				parsed, value, parsed_date = get_date_from_variables(variables, principal_service, name)
 				if not parsed:
@@ -172,7 +172,7 @@ def create_date_diff(
 				else:
 					available_name = name
 				if allow_in_memory_variables:
-					# in pipeline find by, factor name, factor must find in given available schemas.
+					# in pipeline "find by" use factor name. factor must find in given available schemas.
 					# actually, the only one is the source topic of find by itself
 					if len(available_schemas) == 0:
 						raise DataKernelException(
@@ -180,7 +180,7 @@ def create_date_diff(
 					topic = available_schemas[0].get_topic()
 					factor_name = available_name
 				else:
-					# in console subject, topic.factor, topic must in given available schemas
+					# in console subject use topic.factor. topic must in given available schemas
 					if '.' not in available_name:
 						raise DataKernelException(f'Variable name[{name}] is not supported.')
 					names = available_name.split('.')
