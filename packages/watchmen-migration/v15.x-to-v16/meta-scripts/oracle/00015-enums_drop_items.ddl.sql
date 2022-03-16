@@ -1,1 +1,0 @@
-ALTER TABLE enums DROP COLUMN items;
