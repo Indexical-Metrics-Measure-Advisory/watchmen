@@ -28,7 +28,7 @@ def bundling_tails(tails: List[Callable[[], None]]) -> Callable[[], None]:
 
 
 @router.post('/topic/import', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
-async def import_dashboards(
+async def import_topics(
 		topics: List[Topic], principal_service: PrincipalService = Depends(get_any_admin_principal)) -> None:
 	if topics is None:
 		return

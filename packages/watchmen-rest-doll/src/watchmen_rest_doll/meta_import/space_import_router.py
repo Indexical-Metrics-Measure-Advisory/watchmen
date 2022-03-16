@@ -21,7 +21,7 @@ def get_space_service(principal_service: PrincipalService) -> SpaceService:
 
 
 @router.post('/space/import', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
-async def import_dashboards(
+async def import_spaces(
 		spaces: List[Space], principal_service: PrincipalService = Depends(get_any_admin_principal)) -> None:
 	if spaces is None:
 		return

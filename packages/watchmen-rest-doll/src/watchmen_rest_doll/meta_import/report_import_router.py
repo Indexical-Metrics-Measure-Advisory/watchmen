@@ -22,7 +22,7 @@ def get_report_service(principal_service: PrincipalService) -> ReportService:
 
 
 @router.post('/report/import', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
-async def import_dashboards(
+async def import_reports(
 		reports: List[Report], principal_service: PrincipalService = Depends(get_any_admin_principal)) -> None:
 	if reports is None:
 		return

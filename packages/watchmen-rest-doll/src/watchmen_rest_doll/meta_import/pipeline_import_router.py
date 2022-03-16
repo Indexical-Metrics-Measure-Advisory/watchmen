@@ -21,7 +21,7 @@ def get_pipeline_service(principal_service: PrincipalService) -> PipelineService
 
 
 @router.post('/pipeline/import', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
-async def import_dashboards(
+async def import_pipelines(
 		pipelines: List[Pipeline], principal_service: PrincipalService = Depends(get_any_admin_principal)) -> None:
 	if pipelines is None:
 		return
