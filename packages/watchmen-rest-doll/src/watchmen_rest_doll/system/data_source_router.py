@@ -1,7 +1,6 @@
 from typing import List, Optional
 
 from fastapi import APIRouter, Body, Depends
-
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
@@ -11,9 +10,10 @@ from watchmen_model.common import DataPage, DataSourceId, Pageable
 from watchmen_model.system import DataSource
 from watchmen_rest import get_any_admin_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
+from watchmen_utilities import is_blank
+
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly
-from watchmen_utilities import is_blank
 
 router = APIRouter()
 
@@ -92,8 +92,7 @@ async def find_data_sources_by_name(
 	return trans_readonly(data_source_service, action)
 
 
-@router.get(
-	"/datasource/all", tags=[UserRole.ADMIN], response_model=List[DataSource])
+@router.get('/datasource/all', tags=[UserRole.ADMIN], response_model=List[DataSource])
 async def find_all_data_sources(
 		principal_service: PrincipalService = Depends(get_any_admin_principal)) -> List[DataSource]:
 	data_source_service = get_data_source_service(principal_service)

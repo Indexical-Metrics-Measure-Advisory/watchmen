@@ -68,7 +68,7 @@ def ask_save_connected_space_action(
 
 
 @router.post('/connected_space/import', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
-async def import_dashboards(
+async def import_connected_spaces(
 		connected_spaces: List[ConnectedSpace],
 		principal_service: PrincipalService = Depends(get_any_admin_principal)) -> None:
 	if connected_spaces is None:

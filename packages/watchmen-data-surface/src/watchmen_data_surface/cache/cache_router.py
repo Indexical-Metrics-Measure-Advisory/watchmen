@@ -46,3 +46,10 @@ async def clear_all_external_writers_cache(
 async def clear_all_tenants_cache(
 		principal_service: PrincipalService = Depends(get_super_admin_principal)) -> None:
 	CacheService.tenant().clear()
+
+
+# noinspection PyUnusedLocal
+@router.get('/cache/clear/key_store/all', tags=[UserRole.SUPER_ADMIN], response_class=Response)
+async def clear_all_tenants_cache(
+		principal_service: PrincipalService = Depends(get_super_admin_principal)) -> None:
+	CacheService.key_store().clear()
