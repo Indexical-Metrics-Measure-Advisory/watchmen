@@ -18,6 +18,7 @@ from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteriaExpression, \
 	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, Literal
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_date, is_decimal
+
 from .ask_from_memory import assert_parameter_count, create_ask_factor_value, parse_parameter_in_memory
 from .topic_utils import ask_topic_data_entity_helper
 from .utils import always_none, compute_date_diff, create_from_previous_trigger_data, \
@@ -159,47 +160,48 @@ def create_date_diff(
 		def parse_date(
 				name: str, variables: PipelineVariables, principal_service: PrincipalService
 		) -> Tuple[bool, Union[date, ParsedStorageParameter]]:
-			if allow_in_memory_variables and not name.startswith('&'):
+			if name.startswith('&'):
+				# not from variables
+				available_name = name[1:]
+			elif allow_in_memory_variables:
 				# try to get from memory variables
 				parsed, value, parsed_date = get_date_from_variables(variables, principal_service, name)
 				if not parsed:
 					raise DataKernelException(f'Value[{value}] cannot be parsed to date or datetime.')
 				return True, parsed_date
 			else:
-				# support "&" starting or plain name
-				if name.startswith('&'):
-					available_name = name[1:]
-				else:
-					available_name = name
-				if allow_in_memory_variables:
-					# in pipeline "find by" use factor name. factor must find in given available schemas.
-					# actually, the only one is the source topic of find by itself
-					if len(available_schemas) == 0:
-						raise DataKernelException(
-							f'Variable name[{name}] is not supported, since no available topic given.')
-					topic = available_schemas[0].get_topic()
-					factor_name = available_name
-				else:
-					# in console subject use topic.factor. topic must in given available schemas
-					if '.' not in available_name:
-						raise DataKernelException(f'Variable name[{name}] is not supported.')
-					names = available_name.split('.')
-					if len(names) != 2:
-						raise DataKernelException(f'Variable name[{name}] is not supported.')
-					topic_name = names[0]
-					factor_name = names[1]
-					topic = ArrayHelper(available_schemas).map(lambda x: x.get_topic()).find(
-						lambda x: x.name == topic_name)
-					if topic is None:
-						raise DataKernelException(f'Topic[{topic_name}] not found in given available topics.')
-				factor: Optional[Factor] = ArrayHelper(available_schemas[0].get_topic().factors) \
-					.find(lambda x: x.name == factor_name)
-				if factor is None:
+				# still not from variables
+				available_name = name
+
+			if allow_in_memory_variables:
+				# in pipeline "find by" use factor name. factor must find in given available schemas.
+				# actually, the only one is the source topic of find by itself
+				if len(available_schemas) == 0:
 					raise DataKernelException(
-						f'Factor[{factor_name}] in topic[id={topic.topicId}, name={topic.name}] not found.')
-				return False, ParsedStorageTopicFactorParameter(
-					TopicFactorParameter(kind=ParameterKind.TOPIC, topicId=topic.topicId, factorId=factor.factorId),
-					available_schemas, principal_service, allow_in_memory_variables)
+						f'Variable name[{name}] is not supported, since no available topic given.')
+				topic = available_schemas[0].get_topic()
+				factor_name = available_name
+			else:
+				# in console subject use topic.factor. topic must in given available schemas
+				if '.' not in available_name:
+					raise DataKernelException(f'Variable name[{name}] is not supported.')
+				names = available_name.split('.')
+				if len(names) != 2:
+					raise DataKernelException(f'Variable name[{name}] is not supported.')
+				topic_name = names[0]
+				factor_name = names[1]
+				topic = ArrayHelper(available_schemas).map(lambda x: x.get_topic()).find(
+					lambda x: x.name == topic_name)
+				if topic is None:
+					raise DataKernelException(f'Topic[{topic_name}] not found in given available topics.')
+			factor: Optional[Factor] = ArrayHelper(available_schemas[0].get_topic().factors) \
+				.find(lambda x: x.name == factor_name)
+			if factor is None:
+				raise DataKernelException(
+					f'Factor[{factor_name}] in topic[id={topic.topicId}, name={topic.name}] not found.')
+			return False, ParsedStorageTopicFactorParameter(
+				TopicFactorParameter(kind=ParameterKind.TOPIC, topicId=topic.topicId, factorId=factor.factorId),
+				available_schemas, principal_service, allow_in_memory_variables)
 
 	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
 		e_parsed, e_date = (True, end_date) if end_parsed \
