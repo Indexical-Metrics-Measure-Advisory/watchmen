@@ -4,7 +4,7 @@ CREATE FUNCTION WATCHMEN_MIGRATION_REDRESS_CONSTANT_FUNCTIONS(a_json JSON)
     RETURNS JSON
     NO SQL
 BEGIN
-    DECLARE func_body VARCHAR(200) DEFAULT '\\([[:blank:]]*([^\)[[:blank:]]]+)[[:blank:]]*,[[:blank:]]*([^\)[[:blank:]]]+)[[:blank:]]*\\)';
+    DECLARE func_body VARCHAR(200) DEFAULT '[[:blank:]]*\\([[:blank:]]*([^\)[[:blank:]]]+)[[:blank:]]*,[[:blank:]]*([^\)[[:blank:]]]+)[[:blank:]]*\\)';
     DECLARE first_not_date VARCHAR(200) DEFAULT '\\(([^\)[[:digit:]]])([^\)]+),([^\)]+)\\)';
     DECLARE second_not_date VARCHAR(200) DEFAULT '\\(([^\)]+),([^\)[[:digit:]]])([^\)]+)\\)';
 

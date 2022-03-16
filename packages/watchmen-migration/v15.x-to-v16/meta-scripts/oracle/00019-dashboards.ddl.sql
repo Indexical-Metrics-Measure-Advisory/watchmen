@@ -1,13 +1,13 @@
 ALTER TABLE console_dashboards RENAME TO dashboards;
 ALTER TABLE dashboards RENAME COLUMN dashboardid TO dashboard_id;
-ALTER TABLE dashboards MODIFY (dashboard_id VARCHAR2(50) NOT NULL);
+ALTER TABLE dashboards MODIFY (dashboard_id VARCHAR2(50));
 ALTER TABLE dashboards MODIFY name VARCHAR2(50) NOT NULL;
 ALTER TABLE dashboards RENAME COLUMN lastvisittime TO last_visit_time;
 ALTER TABLE dashboards MODIFY (last_visit_time DATE NOT NULL);
 ALTER TABLE dashboards RENAME COLUMN userid TO user_id;
 ALTER TABLE dashboards MODIFY (user_id VARCHAR2(50) NOT NULL);
 ALTER TABLE dashboards RENAME COLUMN tenantid TO tenant_id;
-ALTER TABLE dashboards MODIFY (tenant_id VARCHAR2(50) NOT NULL);
+ALTER TABLE dashboards MODIFY (tenant_id VARCHAR2(50));
 ALTER TABLE dashboards ADD auto_refresh_interval NUMBER(20);
 ALTER TABLE dashboards DROP COLUMN createtime;
 ALTER TABLE dashboards DROP COLUMN lastmodified;
