@@ -3,7 +3,7 @@ RENAME TABLE users_1 TO users;
 ALTER TABLE users CHANGE userid user_id VARCHAR(50) NOT NULL;
 ALTER TABLE users MODIFY nickname VARCHAR(50) NULL;
 ALTER TABLE users MODIFY password VARCHAR(255) NULL;
-ALTER TABLE users MODIFY is_active tinyint(1) NOT NULL;
+ALTER TABLE users MODIFY is_active TINYINT(1) NOT NULL;
 ALTER TABLE users CHANGE groupids group_ids JSON NULL;
 ALTER TABLE users MODIFY role VARCHAR(20) NOT NULL;
 ALTER TABLE users CHANGE tenantid tenant_id VARCHAR(50) NOT NULL;

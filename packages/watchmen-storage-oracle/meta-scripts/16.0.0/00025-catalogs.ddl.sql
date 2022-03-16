@@ -2,10 +2,10 @@ CREATE TABLE catalogs
 (
     catalog_id       VARCHAR2(50) NOT NULL,
     name             VARCHAR2(50) NOT NULL,
-    topic_ids        VARCHAR(2048),
+    topic_ids        VARCHAR2(2048),
     tech_owner_id    VARCHAR2(50),
     biz_owner_id     VARCHAR2(50),
-    tags             VARCHAR(2048),
+    tags             VARCHAR2(2048),
     description      VARCHAR2(255),
     tenant_id        VARCHAR2(50) NOT NULL,
     created_at       DATE         NOT NULL,
