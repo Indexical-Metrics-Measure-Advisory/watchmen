@@ -7,6 +7,7 @@ logger = getLogger(__name__)
 
 class KernelSettings(BaseSettings):
 	USE_STORAGE_DIRECTLY: bool = True  # use storage directly when all topics in subject are from one data source
+	PRESTO: bool = True  # presto
 
 	class Config:
 		# secrets_dir = '/var/run'
@@ -21,3 +22,7 @@ logger.info(f'Inquiry kernel settings[{settings.dict()}].')
 
 def ask_use_storage_directly() -> bool:
 	return settings.USE_STORAGE_DIRECTLY
+
+
+def ask_presto_enabled() -> bool:
+	return settings.PRESTO
