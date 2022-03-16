@@ -1,1 +1,0 @@
-TRUNCATE TABLE snowflake_competitive_workers;
