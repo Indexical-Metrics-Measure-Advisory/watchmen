@@ -30,16 +30,17 @@ BEGIN
     DECLARE done INT DEFAULT FALSE;
     DECLARE v_connect_id VARCHAR(50);
     DECLARE v_subject_ids LONGTEXT DEFAULT NULL;
+    DECLARE v_user_id VARCHAR(50);
     DECLARE subject_id_index INT UNSIGNED DEFAULT 0;
     DECLARE subject_ids_count INT UNSIGNED DEFAULT 0;
     DECLARE current_item LONGTEXT DEFAULT NULL;
-    DECLARE cur_list CURSOR FOR SELECT connect_id, subjectids FROM connected_spaces WHERE subjectids IS NOT NULL AND subjectids != '';
+    DECLARE cur_list CURSOR FOR SELECT connect_id, subjectids, user_id FROM connected_spaces WHERE subjectids IS NOT NULL AND subjectids != '';
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
     OPEN cur_list;
     read_loop :
     LOOP
-        FETCH cur_list INTO v_connect_id, v_subject_ids;
+        FETCH cur_list INTO v_connect_id, v_subject_ids, v_user_id;
         IF done THEN
             LEAVE read_loop;
         END IF;
@@ -53,11 +54,11 @@ BEGIN
                 SET @subject_id = TRIM(BOTH '"' FROM current_item);
 
                 SET @sql_update = CONCAT(
-                        'UPDATE reports SET connect_id = \'', v_connect_id, '\' WHERE subject_id = \'', @subject_id, '\'');
+                        'UPDATE reports SET connect_id = \'', v_connect_id, ', user_id = \'', v_user_id, '\' WHERE subject_id = \'', @subject_id, '\'');
                 PREPARE a_sql FROM @sql_update;
                 EXECUTE a_sql;
                 SET @sql_update = CONCAT(
-                        'UPDATE subjects SET connect_id = \'', v_connect_id, '\' WHERE subject_id = \'', @subject_id, '\'');
+                        'UPDATE subjects SET connect_id = \'', v_connect_id, ', user_id = \'', v_user_id,  '\' WHERE subject_id = \'', @subject_id, '\'');
                 PREPARE a_sql FROM @sql_update;
                 EXECUTE a_sql;
                 COMMIT;
