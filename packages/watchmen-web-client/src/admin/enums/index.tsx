@@ -1,10 +1,11 @@
+import {EnumItemsDownloadDialog} from '@/admin/enums/enum-items-download-dialog';
 import {TuplePage} from '@/services/data/query/tuple-page';
-import {fetchEnumAndParents, listEnums, listEnumsForHolder, saveEnum} from '@/services/data/tuples/enum';
+import {fetchEnumAndParents, listAllEnums, listEnums, listEnumsForHolder, saveEnum} from '@/services/data/tuples/enum';
 import {Enum} from '@/services/data/tuples/enum-types';
 import {QueryEnum} from '@/services/data/tuples/query-enum-types';
 import {QueryTuple} from '@/services/data/tuples/tuple-types';
 import {AlertLabel} from '@/widgets/alert/widgets';
-import {TUPLE_SEARCH_PAGE_SIZE} from '@/widgets/basic/constants';
+import {ICON_DOWNLOAD, TUPLE_SEARCH_PAGE_SIZE} from '@/widgets/basic/constants';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {TupleWorkbench} from '@/widgets/tuple-workbench';
@@ -67,8 +68,34 @@ const AdminEnums = () => {
 		};
 	}, [on, off, fire, fireGlobal]);
 
+	const onDownloadEnumItemsClicked = () => {
+		const askData = () => {
+			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
+				async () => await listAllEnums(),
+				(enums: Array<QueryEnum>) => {
+					if (enums.length === 0) {
+						fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Failed to get enumeration list.</AlertLabel>);
+					} else {
+						fireGlobal(EventTypes.SHOW_DIALOG, <EnumItemsDownloadDialog enums={enums}/>,
+							{
+								marginTop: '10vh',
+								marginLeft: '20%',
+								width: '60%',
+								height: '80vh'
+							});
+					}
+				});
+		};
+		askData();
+	};
+
 	return <TupleWorkbench title="Enumerations"
 	                       createButtonLabel="Create Enumeration" canCreate={true}
+	                       moreButtons={[{
+		                       label: 'Download Enum Items',
+		                       icon: ICON_DOWNLOAD,
+		                       action: onDownloadEnumItemsClicked
+	                       }]}
 	                       searchPlaceholder="Search by enum name, description, etc."
 	                       tupleLabel="Enumeration" tupleImage={EnumBackground} tupleImagePosition="left 80px"
 	                       renderEditor={renderEditor}
