@@ -5,7 +5,7 @@ CREATE TABLE users
     nickname         VARCHAR2(50),
     password         VARCHAR2(255),
     is_active        NUMBER(1)    NOT NULL,
-    group_ids        VARCHAR(2048),
+    group_ids        VARCHAR2(2048),
     role             VARCHAR2(20) NOT NULL,
     tenant_id        VARCHAR2(50) NOT NULL,
     created_at       DATE         NOT NULL,

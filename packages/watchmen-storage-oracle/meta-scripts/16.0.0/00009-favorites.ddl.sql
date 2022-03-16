@@ -1,7 +1,7 @@
 CREATE TABLE favorites
 (
-    connected_space_ids VARCHAR(2048),
-    dashboard_ids       VARCHAR(2048),
+    connected_space_ids VARCHAR2(2048),
+    dashboard_ids       VARCHAR2(2048),
     tenant_id           VARCHAR2(50) NOT NULL,
     user_id             VARCHAR2(50) NOT NULL,
     last_visit_time     DATE         NOT NULL,
