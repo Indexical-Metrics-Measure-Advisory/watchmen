@@ -2,12 +2,12 @@ from datetime import date, datetime, time
 from typing import Any, Callable, List, Tuple
 
 from sqlalchemy import and_, case, func, literal_column, or_, Table
-
 from watchmen_storage import as_table_name, ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, \
 	EntityCriteria, EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, \
 	EntityCriteriaOperator, EntityCriteriaStatement, Literal, NoCriteriaForUpdateException, \
 	UnexpectedStorageException, UnsupportedComputationException, UnsupportedCriteriaException
 from watchmen_utilities import ArrayHelper, DateTimeConstants, is_blank, is_not_blank
+
 from .types import SQLAlchemyStatement
 
 
@@ -90,7 +90,15 @@ def build_literal(tables: List[Table], literal: Literal, build_plain_value: Call
 			else:
 				return case(*cases, build_literal(tables, anyway))
 		elif operator == ComputedLiteralOperator.CONCAT:
-			return func.concat(*ArrayHelper(literal.elements).map(lambda x: build_literal(tables, x)).to_list())
+			literals = ArrayHelper(literal.elements).map(lambda x: build_literal(tables, x)).to_list()
+			literal_count = len(literals)
+			if literal_count == 1:
+				return literals[0]
+			elif literal_count == 2:
+				return func.concat(literals[0], literals[1])
+			else:
+				return ArrayHelper(literal.elements[2:]) \
+					.reduce(lambda prev, x: func.concat(prev, x), func.concat(literals[0], literals[1]))
 		elif operator == ComputedLiteralOperator.YEAR_DIFF:
 			# yeardiff is a customized function, which can be found in meta-scripts folder
 			# make sure each topic storage have this function
