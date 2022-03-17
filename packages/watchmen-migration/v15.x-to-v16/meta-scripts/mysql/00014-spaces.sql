@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 RENAME TABLE spaces TO spaces_1;
 RENAME TABLE spaces_1 TO spaces;
 ALTER TABLE spaces CHANGE spaceid space_id VARCHAR(50) NOT NULL;

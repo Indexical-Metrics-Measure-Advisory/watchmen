@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 RENAME TABLE console_dashboards TO dashboards;
 ALTER TABLE dashboards CHANGE dashboardid dashboard_id VARCHAR(50) NOT NULL;
 ALTER TABLE dashboards MODIFY name VARCHAR(50) NOT NULL;

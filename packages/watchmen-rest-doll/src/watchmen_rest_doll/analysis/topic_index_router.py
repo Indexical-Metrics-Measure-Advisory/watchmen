@@ -49,7 +49,8 @@ async def build_topic_index(
 	return trans(topic_service, action)
 
 
-@router.get('/topic/index/name', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=List[Topic])
+@router.get(
+	'/topic/index/name', tags=[UserRole.CONSOLE, UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=List[Topic])
 async def fetch_topic_by_name(
 		query_name: Optional[str] = None, tenant_id: Optional[TenantId] = None,
 		principal_service: PrincipalService = Depends(get_any_admin_principal)

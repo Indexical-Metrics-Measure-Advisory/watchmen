@@ -385,7 +385,7 @@ def try_to_import_monitor_rule(
 		if existing_monitor_rule is None:
 			monitor_rule_service.create(monitor_rule)
 		elif do_update:
-			if not for_same_location(monitor_rule, another_monitor_rule):
+			if not for_same_location(monitor_rule, existing_monitor_rule):
 				# has same id, but not for same location
 				existing_monitor_rule: Optional[MonitorRule] = monitor_rule_service.find_by_location(
 					monitor_rule.code, monitor_rule.topicId, monitor_rule.factorId, existing_monitor_rule.tenantId)
@@ -411,6 +411,7 @@ def is_all_passed(results: List[List[ImportDataResult]]) -> bool:
 	return ArrayHelper(results).flatten().every(lambda x: x.passed)
 
 
+# noinspection DuplicatedCode
 def try_to_import(request: MixImportDataRequest, user_service: UserService, do_update: bool) -> MixImportDataResponse:
 	topic_service = get_topic_service(user_service)
 	topic_results = ArrayHelper(request.topics).map(
@@ -700,8 +701,9 @@ def force_new_import(request: MixImportDataRequest, user_service: UserService) -
 
 	monitor_rule_service = get_monitor_rule_service(user_service)
 	refill_monitor_rule_ids(request.monitorRules, monitor_rule_service, topic_id_map, factor_id_map)
-	monitor_rule_results = ArrayHelper(request.monitorRules).map(
-		lambda x: try_to_import_monitor_rule(x, monitor_rule_service, do_update)).to_list()
+	monitor_rule_results = ArrayHelper(request.monitorRules) \
+		.map(lambda x: monitor_rule_service.create(x)) \
+		.map(lambda x: MonitorRuleImportDataResult(ruleId=x.ruleId, name=x.code, passed=True)).to_list()
 
 	return MixImportDataResponse(
 		passed=is_all_passed([

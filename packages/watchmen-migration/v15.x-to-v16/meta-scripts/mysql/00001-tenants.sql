@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 RENAME TABLE tenants TO tenants_1;
 RENAME TABLE tenants_1 TO tenants;
 ALTER TABLE tenants CHANGE tenantid tenant_id VARCHAR(50) NOT NULL;

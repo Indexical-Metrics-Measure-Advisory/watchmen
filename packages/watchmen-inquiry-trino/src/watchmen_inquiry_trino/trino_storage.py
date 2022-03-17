@@ -428,6 +428,7 @@ class TrinoStorage(TrinoStorageSPI):
 			data[column.alias] = row[index]
 		return data
 
+	# noinspection SqlResolve
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
 		sql = f'SELECT {self.build_free_columns(finder.columns)} FROM {self.build_free_joins(finder.joins)}'
 		where = self.build_criteria_for_statement(finder.criteria)
@@ -451,6 +452,7 @@ class TrinoStorage(TrinoStorageSPI):
 			page_number = max_page_number
 		return page_number, max_page_number
 
+	# noinspection SqlResolve
 	def free_page(self, pager: FreePager) -> DataPage:
 		page_size = pager.pageable.pageSize
 		select_from = self.build_free_joins(pager.joins)
@@ -517,6 +519,7 @@ class TrinoStorage(TrinoStorageSPI):
 		return ArrayHelper(table_columns) \
 			.map_with_index(lambda x, index: self.build_free_aggregate_column(x, index)).join(', ')
 
+	# noinspection SqlResolve
 	def build_aggregate_statement(
 			self, aggregator: FreeAggregator,
 			selection: Callable[[List[FreeAggregateColumn]], Any]

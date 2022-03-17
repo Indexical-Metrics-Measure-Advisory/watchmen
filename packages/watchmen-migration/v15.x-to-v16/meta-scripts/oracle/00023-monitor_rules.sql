@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 ALTER TABLE monitor_rules RENAME TO monitor_rules_1;
 ALTER TABLE monitor_rules_1 RENAME TO monitor_rules;
 ALTER TABLE monitor_rules RENAME COLUMN ruleid TO rule_id;

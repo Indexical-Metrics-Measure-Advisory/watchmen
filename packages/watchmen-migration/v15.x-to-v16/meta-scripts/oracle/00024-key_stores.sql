@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 ALTER TABLE key_stores RENAME TO key_stores_1;
 ALTER TABLE key_stores_1 RENAME TO key_stores;
 ALTER TABLE key_stores DROP CONSTRAINT key_store_pk;

@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 RENAME TABLE console_space_favorites TO favorites;
 ALTER TABLE favorites CHANGE connectedspaceids connected_space_ids JSON;
 ALTER TABLE favorites CHANGE dashboardids dashboard_ids JSON;

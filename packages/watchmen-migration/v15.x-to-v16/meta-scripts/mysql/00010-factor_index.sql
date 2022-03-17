@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 RENAME TABLE factor_index TO factor_index_1;
 RENAME TABLE factor_index_1 TO factor_index;
 ALTER TABLE factor_index CHANGE factorindexid factor_index_id VARCHAR(50) NOT NULL;

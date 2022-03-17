@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 ALTER TABLE pipelines RENAME TO pipelines_1;
 ALTER TABLE pipelines_1 RENAME TO pipelines;
 ALTER TABLE pipelines RENAME COLUMN pipelineid TO pipeline_id;

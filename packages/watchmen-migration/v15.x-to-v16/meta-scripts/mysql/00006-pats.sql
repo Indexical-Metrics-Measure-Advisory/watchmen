@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 RENAME TABLE pats TO pats_1;
 RENAME TABLE pats_1 TO pats;
 ALTER TABLE pats CHANGE patid pat_id VARCHAR(50) NOT NULL;

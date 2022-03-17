@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 RENAME TABLE data_sources TO data_sources_1;
 RENAME TABLE data_sources_1 TO data_sources;
 ALTER TABLE data_sources CHANGE datasourceid data_source_id VARCHAR(50) NOT NULL;

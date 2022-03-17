@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 ALTER TABLE console_space_last_snapshot RENAME TO last_snapshots;
 ALTER TABLE last_snapshots MODIFY language VARCHAR2(20);
 ALTER TABLE last_snapshots RENAME COLUMN lastdashboardid TO last_dashboard_id;
