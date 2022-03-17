@@ -24,7 +24,7 @@ class TestTrino(TestCase):
 
 		# '''1' as X,
 		# false as X,
-		# parse_datetime('20211120194638', 'yyyyMMddHHmmss') AS X
+		# parse_datetime('2021112019:46:38', 'yyyyMMddHH:mm:ss') AS X
 		# CAST('123' AS DECIMAL) AS X
 		# date_diff('day', DATE '2020-03-04', DATE '2020-03-02') + 1 AS X
 		cur.execute("select column_1 from (SELECT USER_ID AS COLUMN_1 FROM test.watchmen.users) as u")
