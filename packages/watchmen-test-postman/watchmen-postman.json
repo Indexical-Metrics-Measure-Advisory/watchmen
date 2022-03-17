@@ -9805,6 +9805,15 @@
                     },
                     "method": "POST",
                     "header": [],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\r\n    \"name\": \"Test_Read_Distinct_Topic\",\r\n    \"type\": \"distinct\",\r\n    \"kind\": \"business\",\r\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\r\n    \"factors\": [\r\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\r\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\r\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propC\"},\r\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propD\"},\r\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propE\"}\r\n    ],\r\n    \"description\": \"Test Read Distinct Topic\"\r\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
                     "url": "{{URL_PREFIX}}/topic"
                   },
                   "response": []
