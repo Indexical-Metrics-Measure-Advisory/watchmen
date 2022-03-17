@@ -25,6 +25,7 @@ ALTER TABLE pipeline_index RENAME COLUMN sourcefromtopicid TO source_from_topic_
 ALTER TABLE pipeline_index MODIFY (source_from_topic_id VARCHAR2(50));
 ALTER TABLE pipeline_index RENAME COLUMN sourcefromfactorid TO source_from_factor_id;
 ALTER TABLE pipeline_index MODIFY (source_from_factor_id VARCHAR2(50));
+-- noinspection SqlAddNotNullColumn
 ALTER TABLE pipeline_index ADD (tenant_id VARCHAR2(50) NOT NULL);
 ALTER TABLE pipeline_index DROP COLUMN factorid;
 ALTER TABLE pipeline_index DROP COLUMN reftype;
@@ -41,4 +42,5 @@ CREATE INDEX i_pipeline_index_pipeline_name ON pipeline_index (pipeline_name);
 CREATE INDEX i_pipeline_index_source_from_factor_id ON pipeline_index (source_from_factor_id);
 CREATE INDEX i_pipeline_index_source_from_topic_id ON pipeline_index (source_from_topic_id);
 CREATE INDEX i_pipeline_index_tenant_id ON pipeline_index (tenant_id);
+-- noinspection SqlWithoutWhere
 UPDATE pipeline_index SET created_at = SYSDATE, last_modified_at = SYSDATE;

@@ -9,4 +9,5 @@ ALTER TABLE pipeline_graphics ADD last_modified_at DATETIME NOT NULL;
 CREATE INDEX tenant_id ON pipeline_graphics (tenant_id);
 CREATE INDEX user_id ON pipeline_graphics (user_id);
 CREATE INDEX name ON pipeline_graphics (name);
+-- noinspection SqlWithoutWhere
 UPDATE pipeline_graphics SET created_at = NOW(), last_modified_at = NOW();

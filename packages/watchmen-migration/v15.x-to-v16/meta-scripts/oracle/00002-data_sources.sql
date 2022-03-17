@@ -24,4 +24,5 @@ CREATE INDEX i_data_sources_last_modified_by ON data_sources (last_modified_by);
 CREATE INDEX i_data_sources_tenant_id ON data_sources (tenant_id);
 CREATE INDEX i_data_sources_data_source_code ON data_sources (data_source_code);
 CREATE INDEX i_data_sources_data_source_type ON data_sources (data_source_type);
+-- noinspection SqlWithoutWhere
 UPDATE data_sources SET created_at = SYSDATE, created_by = '-1', last_modified_at = SYSDATE, last_modified_by = '-1', version = 1;

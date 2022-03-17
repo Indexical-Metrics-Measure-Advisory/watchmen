@@ -13,4 +13,5 @@ CREATE INDEX tenant_id ON pats (tenant_id);
 CREATE INDEX user_id ON pats (user_id);
 CREATE INDEX username ON pats (username);
 CREATE INDEX token ON pats (token);
+-- noinspection SqlWithoutWhere
 UPDATE pats SET created_at = NOW();

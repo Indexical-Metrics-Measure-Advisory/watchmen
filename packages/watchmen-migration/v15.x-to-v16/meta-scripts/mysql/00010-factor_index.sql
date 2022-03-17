@@ -20,4 +20,5 @@ CREATE INDEX factor_name ON factor_index (factor_name);
 CREATE INDEX tenant_id ON factor_index (tenant_id);
 CREATE INDEX topic_id ON factor_index (topic_id);
 CREATE INDEX topic_name ON factor_index (topic_name);
+-- noinspection SqlWithoutWhere
 UPDATE factor_index SET created_at = NOW(), last_modified_at = NOW();

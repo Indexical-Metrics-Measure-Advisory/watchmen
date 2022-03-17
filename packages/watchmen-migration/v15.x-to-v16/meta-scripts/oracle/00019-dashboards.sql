@@ -22,4 +22,5 @@ CREATE INDEX i_dashboards_last_modified_by ON dashboards (last_modified_by);
 CREATE INDEX i_dashboards_name ON dashboards (name);
 CREATE INDEX i_dashboards_tenant_id ON dashboards (tenant_id);
 CREATE INDEX i_dashboards_user_id ON dashboards (user_id);
+-- noinspection SqlWithoutWhere
 UPDATE dashboards SET created_at = SYSDATE, created_by = '-1', last_modified_at = SYSDATE, last_modified_by = '-1';

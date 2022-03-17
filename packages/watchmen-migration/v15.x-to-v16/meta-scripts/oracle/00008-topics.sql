@@ -26,4 +26,5 @@ CREATE INDEX i_topics_type ON topics (type);
 CREATE INDEX i_topics_name ON topics (name);
 CREATE INDEX i_topics_tenant_id ON topics (tenant_id);
 CREATE UNIQUE INDEX u_topics_name_tenant_id ON topics (name, tenant_id);
+-- noinspection SqlWithoutWhere
 UPDATE topics set created_at = SYSDATE, created_by = '-1', last_modified_at = SYSDATE, last_modified_by = '-1', version = 1;

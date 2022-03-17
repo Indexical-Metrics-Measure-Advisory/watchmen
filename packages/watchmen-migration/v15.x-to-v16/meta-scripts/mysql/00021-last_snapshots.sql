@@ -9,4 +9,5 @@ ALTER TABLE last_snapshots DROP createtime;
 ALTER TABLE last_snapshots DROP lastmodified;
 ALTER TABLE last_snapshots ADD last_visit_time DATETIME NOT NULL;
 CREATE INDEX tenant_id ON last_snapshots (tenant_id);
+-- noinspection SqlWithoutWhere
 UPDATE last_snapshots SET last_visit_time = NOW();

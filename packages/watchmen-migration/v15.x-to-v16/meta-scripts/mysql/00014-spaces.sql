@@ -19,4 +19,5 @@ CREATE INDEX last_modified_at ON spaces (last_modified_at);
 CREATE INDEX last_modified_by ON spaces (last_modified_by);
 CREATE INDEX name ON spaces (name);
 CREATE INDEX tenant_id ON spaces (tenant_id);
+-- noinspection SqlWithoutWhere
 UPDATE spaces set created_at = NOW(), created_by = '-1', last_modified_at = NOW(), last_modified_by = '-1', version = 1;

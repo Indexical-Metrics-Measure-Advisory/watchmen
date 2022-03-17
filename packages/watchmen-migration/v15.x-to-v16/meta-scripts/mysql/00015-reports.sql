@@ -25,4 +25,5 @@ CREATE INDEX last_modified_by ON reports (last_modified_by);
 CREATE INDEX name ON reports (name);
 CREATE INDEX user_id ON reports (user_id);
 CREATE INDEX tenant_id ON reports (tenant_id);
+-- noinspection SqlWithoutWhere
 UPDATE reports SET created_at = NOW(), created_by = '-1', last_modified_at = NOW(), last_modified_by = '-1';

@@ -19,4 +19,5 @@ CREATE INDEX writer_code ON external_writers (writer_code);
 CREATE INDEX type ON external_writers (type);
 CREATE INDEX tenant_id ON external_writers (tenant_id);
 CREATE UNIQUE INDEX writer_code_tenant_id ON external_writers (writer_code, tenant_id);
+-- noinspection SqlWithoutWhere
 UPDATE external_writers SET created_at = NOW(), created_by = '-1', last_modified_at = NOW(), last_modified_by = '-1', version = 1;

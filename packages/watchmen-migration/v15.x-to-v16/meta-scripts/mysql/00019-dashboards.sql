@@ -18,4 +18,5 @@ CREATE INDEX last_modified_by ON dashboards (last_modified_by);
 CREATE INDEX name ON dashboards (name);
 CREATE INDEX tenant_id ON dashboards (tenant_id);
 CREATE INDEX user_id ON dashboards (user_id);
+-- noinspection SqlWithoutWhere
 UPDATE dashboards SET created_at = NOW(), created_by = '-1', last_modified_at = NOW(), last_modified_by = '-1';

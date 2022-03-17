@@ -24,4 +24,5 @@ CREATE INDEX name ON pipelines (name);
 CREATE INDEX type ON pipelines (type);
 CREATE INDEX validated ON pipelines (validated);
 CREATE INDEX tenant_id ON pipelines (tenant_id);
+-- noinspection SqlWithoutWhere
 UPDATE pipelines SET created_at = NOW(), created_by = '-1', last_modified_at = NOW(), last_modified_by = '-1', version = 1;
