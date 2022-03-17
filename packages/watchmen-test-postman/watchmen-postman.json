@@ -9792,6 +9792,24 @@
               "item": [
                 {
                   "name": "CREATE READ TOPIC",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "74d31f76-7540-4bb1-9861-9a106fbc8386",
+                        "exec": [
+                          "pm.test(\"Create Read Topic\", () => {\r",
+                          "    pm.response.to.have.status(200);\r",
+                          "    var data = pm.response.json();\r",
+                          "    pm.environment.set('READ_TOPIC_ID', data.topicId)\r",
+                          "    pm.environment.set('READ_TOPIC_NAME', data.name)\r",
+                          "    pm.environment.set('READ_TOPIC_VERSION', data.version)\r",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "d666f3b1-f04e-4576-81c0-0d878cb0676f",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
