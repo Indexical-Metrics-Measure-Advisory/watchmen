@@ -24,6 +24,7 @@ class TestTrino(TestCase):
 		# false as X,
 		# parse_datetime('20211120194638', 'yyyyMMddHHmmss') AS X
 		# CAST('123' AS DECIMAL) AS X
-		cur.execute("select date_diff('day', DATE '2020-03-04', DATE '2020-03-02') + 1 AS X, u.* from test.watchmen.users as u")
+		# date_diff('day', DATE '2020-03-04', DATE '2020-03-02') + 1 AS X
+		cur.execute("select COUNT(1) from test.watchmen.users as u")
 		rows = cur.fetchall()
 		print(rows)
