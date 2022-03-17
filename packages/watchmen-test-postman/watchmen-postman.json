@@ -9791,7 +9791,7 @@
               "name": "PRE SCRIPT",
               "item": [
                 {
-                  "name": "New Request",
+                  "name": "CREATE READ TOPIC",
                   "id": "d666f3b1-f04e-4576-81c0-0d878cb0676f",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
