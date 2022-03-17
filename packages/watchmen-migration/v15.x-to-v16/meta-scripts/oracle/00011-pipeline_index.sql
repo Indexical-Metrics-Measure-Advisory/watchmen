@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 ALTER TABLE pipeline_index RENAME TO pipeline_index_1;
 ALTER TABLE pipeline_index_1 RENAME TO pipeline_index;
 TRUNCATE TABLE pipeline_index;

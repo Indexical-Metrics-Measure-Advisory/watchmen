@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 RENAME TABLE console_spaces TO connected_spaces;
 ALTER TABLE connected_spaces CHANGE connectid connect_id VARCHAR(50) NOT NULL;
 ALTER TABLE connected_spaces CHANGE spaceid space_id VARCHAR(50) NOT NULL;

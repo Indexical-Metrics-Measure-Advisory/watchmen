@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 RENAME TABLE external_writer TO external_writers;
 ALTER TABLE external_writers CHANGE writerid writer_id VARCHAR(50) NOT NULL;
 ALTER TABLE external_writers CHANGE writercode writer_code VARCHAR(50) NOT NULL;

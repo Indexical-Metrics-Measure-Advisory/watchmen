@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 RENAME TABLE user_groups TO user_groups_1;
 RENAME TABLE user_groups_1 TO user_groups;
 ALTER TABLE user_groups CHANGE usergroupid user_group_id VARCHAR(50) NOT NULL;

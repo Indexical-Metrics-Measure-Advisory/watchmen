@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 ALTER TABLE catalogs RENAME TO catalogs_1;
 ALTER TABLE catalogs_1 RENAME TO catalogs;
 ALTER TABLE catalogs RENAME COLUMN catalogid TO catalog_id;

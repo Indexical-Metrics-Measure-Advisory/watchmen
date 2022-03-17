@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 ALTER TABLE topics RENAME TO topics_1;
 ALTER TABLE topics_1 RENAME TO topics;
 ALTER TABLE topics RENAME COLUMN topicid TO topic_id;

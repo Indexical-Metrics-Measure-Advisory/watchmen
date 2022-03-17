@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 RENAME TABLE console_space_graph TO connected_space_graphics;
 ALTER TABLE connected_space_graphics CHANGE connectid connect_id VARCHAR(50) NOT NULL;
 ALTER TABLE connected_space_graphics CHANGE userid user_id VARCHAR(50) NOT NULL;

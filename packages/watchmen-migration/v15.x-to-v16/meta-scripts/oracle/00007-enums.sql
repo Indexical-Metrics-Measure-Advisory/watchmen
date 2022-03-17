@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 ALTER TABLE enums RENAME TO enums_1;
 ALTER TABLE enums_1 RENAME TO enums;
 ALTER TABLE enums RENAME COLUMN enumid TO enum_id;

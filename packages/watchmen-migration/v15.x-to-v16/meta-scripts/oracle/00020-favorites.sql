@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 ALTER TABLE console_space_favorites RENAME TO favorites;
 ALTER TABLE favorites ADD (connected_space_ids VARCHAR2(2048) NULL);
 -- noinspection SqlWithoutWhere

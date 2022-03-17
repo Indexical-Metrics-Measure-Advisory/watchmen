@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 RENAME TABLE users TO users_1;
 RENAME TABLE users_1 TO users;
 ALTER TABLE users CHANGE userid user_id VARCHAR(50) NOT NULL;

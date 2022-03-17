@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 ALTER TABLE external_writer RENAME TO external_writers;
 ALTER TABLE external_writers RENAME COLUMN writerid TO writer_id;
 ALTER TABLE external_writers MODIFY (writer_id VARCHAR2(50));

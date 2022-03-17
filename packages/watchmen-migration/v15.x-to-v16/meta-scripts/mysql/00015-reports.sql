@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 RENAME TABLE reports TO reports_1;
 RENAME TABLE reports_1 TO reports;
 ALTER TABLE reports CHANGE reportid report_id VARCHAR(50) NOT NULL;

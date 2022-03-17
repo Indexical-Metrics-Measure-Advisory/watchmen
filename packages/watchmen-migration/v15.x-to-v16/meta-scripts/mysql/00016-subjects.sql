@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 RENAME TABLE console_space_subjects TO subjects;
 ALTER TABLE subjects CHANGE subjectid subject_id VARCHAR(50) NOT NULL;
 ALTER TABLE subjects MODIFY name VARCHAR(50) NOT NULL;

@@ -4,6 +4,7 @@ from trino.dbapi import connect
 
 
 class TestTrino(TestCase):
+	# noinspection SqlResolve
 	def test_trino(self):
 		conn = connect(
 			host='localhost',
@@ -13,6 +14,7 @@ class TestTrino(TestCase):
 			# schema="<schema>",
 		)
 		cur = conn.cursor()
+		# noinspection SqlIdentifier
 		cur.execute('SELECT * FROM system.runtime.nodes')
 		rows = cur.fetchall()
 		print(rows)

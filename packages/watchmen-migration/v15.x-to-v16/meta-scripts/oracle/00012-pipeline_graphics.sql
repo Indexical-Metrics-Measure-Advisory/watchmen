@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 ALTER TABLE pipeline_graph RENAME TO pipeline_graphics;
 ALTER TABLE pipeline_graphics RENAME COLUMN pipelinegraphid TO pipeline_graphic_id;
 ALTER TABLE pipeline_graphics MODIFY (pipeline_graphic_id VARCHAR2(50));
