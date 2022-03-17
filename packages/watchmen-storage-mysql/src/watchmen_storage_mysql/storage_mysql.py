@@ -484,7 +484,7 @@ CREATE TABLE {entity_name} (
 	# noinspection PyMethodMayBeStatic
 	def build_single_on(self, join: FreeJoin, primary_table: Table, secondary_table: Table) -> Any:
 		primary_column = primary_table.c[join.primary.columnName]
-		secondary_column = secondary_table.c[join.primary.columnName]
+		secondary_column = secondary_table.c[join.secondary.columnName]
 		return primary_column == secondary_column
 
 	def try_to_join(self, groups: Dict[TopicId, List[FreeJoin]], tables: List[Table], built=None) -> Join:
