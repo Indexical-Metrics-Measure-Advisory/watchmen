@@ -12,8 +12,7 @@ from watchmen_model.common import DataPage, FactorId, TopicId
 from watchmen_storage import as_table_name, ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, \
 	EntityCriteria, EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, \
 	EntityCriteriaOperator, EntityCriteriaStatement, FreeAggregateArithmetic, FreeAggregateColumn, FreeAggregatePager, \
-	FreeAggregator, \
-	FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, Literal, NoCriteriaForUpdateException, \
+	FreeAggregator, FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, Literal, NoCriteriaForUpdateException, \
 	NoFreeJoinException, UnexpectedStorageException, UnsupportedComputationException, UnsupportedCriteriaException
 from watchmen_utilities import ArrayHelper, DateTimeConstants, is_blank, is_decimal, is_not_blank
 from .exception import InquiryTrinoException
@@ -321,9 +320,9 @@ class TrinoStorage(TrinoStorageSPI):
 		built_left = self.build_literal(expression.left)
 		op = expression.operator
 		if op == EntityCriteriaOperator.IS_EMPTY:
-			return f'({built_left} IS NULL OR {built_left} = \'\')'
+			return f'{built_left} IS NULL OR {built_left} = \'\''
 		elif op == EntityCriteriaOperator.IS_NOT_EMPTY:
-			return f'({built_left} IS NOT NULL AND {built_left} != \'\')'
+			return f'{built_left} IS NOT NULL AND {built_left} != \'\''
 		elif op == EntityCriteriaOperator.IS_BLANK:
 			return f'TRIM({built_left}) = \'\''
 		elif op == EntityCriteriaOperator.IS_NOT_BLANK:
