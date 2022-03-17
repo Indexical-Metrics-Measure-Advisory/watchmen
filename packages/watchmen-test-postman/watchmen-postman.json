@@ -9789,7 +9789,20 @@
           "item": [
             {
               "name": "PRE SCRIPT",
-              "item": [],
+              "item": [
+                {
+                  "name": "New Request",
+                  "id": "d666f3b1-f04e-4576-81c0-0d878cb0676f",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
+                }
+              ],
               "id": "168d92bd-f8f9-4eb5-ade9-a6bcefdf314b"
             },
             {
