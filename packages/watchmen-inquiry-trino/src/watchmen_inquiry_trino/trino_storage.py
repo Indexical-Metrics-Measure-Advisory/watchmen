@@ -11,14 +11,10 @@ from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import DataPage, FactorId, TopicId
 from watchmen_storage import as_table_name, ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, \
 	EntityCriteria, EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, \
-	EntityCriteriaOperator, \
-	EntityCriteriaStatement, \
-	FreeAggregatePager, FreeAggregator, \
-	FreeColumn, FreeFinder, \
-	FreeJoin, FreeJoinType, \
-	FreePager, Literal, \
-	NoCriteriaForUpdateException, NoFreeJoinException, UnexpectedStorageException, UnsupportedComputationException, \
-	UnsupportedCriteriaException
+	EntityCriteriaOperator, EntityCriteriaStatement, FreeAggregateArithmetic, FreeAggregateColumn, FreeAggregatePager, \
+	FreeAggregator, \
+	FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, Literal, NoCriteriaForUpdateException, \
+	NoFreeJoinException, UnexpectedStorageException, UnsupportedComputationException, UnsupportedCriteriaException
 from watchmen_utilities import ArrayHelper, DateTimeConstants, is_blank, is_decimal, is_not_blank
 from .exception import InquiryTrinoException
 from .settings import ask_trino_basic_auth, ask_trino_host
@@ -209,7 +205,8 @@ class TrinoStorage(TrinoStorageSPI):
 		"""
 		if isinstance(literal, ColumnNameLiteral):
 			if is_blank(literal.entityName):
-				raise InquiryTrinoException(f'Literal[{literal.to_dict()}] has not entity name declared.')
+				# build column name which have sub query. in this case, no entity name is needed.
+				return literal.columnName
 			else:
 				# here entity name is topic name
 				schema = self.find_schema_by_name(literal.entityName)
@@ -494,8 +491,100 @@ class TrinoStorage(TrinoStorageSPI):
 			pageCount=max_page_number
 		)
 
+	# noinspection PyMethodMayBeStatic
+	def build_free_aggregate_column(self, table_column: FreeAggregateColumn, index: int) -> str:
+		name = table_column.name
+		alias = f'agg_column_{index + 1}'
+		arithmetic = table_column.arithmetic
+		if arithmetic == FreeAggregateArithmetic.COUNT:
+			return f'COUNT({name}) AS {alias}'
+		elif arithmetic == FreeAggregateArithmetic.SUMMARY:
+			return f'SUM({name}) AS {alias}'
+		elif arithmetic == FreeAggregateArithmetic.AVERAGE:
+			return f'AVG({name}) AS {alias}'
+		elif arithmetic == FreeAggregateArithmetic.MAXIMUM:
+			return f'MAX({name}) AS {alias}'
+		elif arithmetic == FreeAggregateArithmetic.MINIMUM:
+			return f'MIN({name}) AS {alias}'
+		elif arithmetic == FreeAggregateArithmetic.NONE or arithmetic is None:
+			return f'{name} AS {alias}'
+		else:
+			raise UnexpectedStorageException(f'Aggregate arithmetic[{arithmetic}] is not supported.')
+
+	def build_free_aggregate_columns(
+			self, table_columns: Optional[List[FreeAggregateColumn]]) -> str:
+		return ArrayHelper(table_columns) \
+			.map_with_index(lambda x, index: self.build_free_aggregate_column(x, index)).join(', ')
+
+	def build_aggregate_statement(
+			self, aggregator: FreeAggregator,
+			selection: Callable[[List[FreeAggregateColumn]], Any]
+	) -> str:
+		sub_query_sql = f'SELECT {self.build_free_columns(aggregator.columns)} FROM {self.build_free_joins(aggregator.joins)}'
+		where = self.build_criteria_for_statement(aggregator.criteria)
+		if where is not None:
+			sub_query_sql = f'({sub_query_sql} WHERE {where}) AS SQ'
+
+		aggregate_columns = aggregator.aggregateColumns
+		sql = f'SELECT {selection(aggregate_columns)} FROM {sub_query_sql}'
+		# obviously, table is not existing. fake a table of sub query selection to build high order criteria
+		statement = self.build_criteria_for_statement(aggregator.highOrderCriteria)
+		# find columns rather than grouped
+		non_group_columns = ArrayHelper(aggregate_columns) \
+			.filter(lambda x: x.arithmetic is None or x.arithmetic == FreeAggregateArithmetic.NONE) \
+			.to_list()
+		if len(non_group_columns) != 0:
+			sql = f'{sql} GROUP BY {ArrayHelper(non_group_columns).map(lambda x: x.name).join(", ")}'
+		return sql
+
+	# noinspection PyMethodMayBeStatic
+	def deserialize_from_aggregate_row(
+			self, row: List[Any], columns: List[FreeAggregateColumn]) -> Dict[str, Any]:
+		data: Dict[str, Any] = {}
+		for index, column in enumerate(columns):
+			alias = column.alias if is_not_blank(column.alias) else column.name
+			data[alias] = row[index]
+		return data
+
 	def free_aggregate_find(self, aggregator: FreeAggregator) -> List[Dict[str, Any]]:
-		pass
+		sql = self.build_aggregate_statement(aggregator, lambda columns: self.build_free_aggregate_columns(columns))
+		cursor = self.connection.cursor()
+		cursor.execute(sql)
+		rows = cursor.fetchall()
+		return ArrayHelper(rows) \
+			.map(lambda x: self.deserialize_from_aggregate_row(x, aggregator.aggregateColumns)).to_list()
 
 	def free_aggregate_page(self, pager: FreeAggregatePager) -> DataPage:
-		pass
+		page_size = pager.pageable.pageSize
+		sql = self.build_aggregate_statement(pager, lambda columns: 'COUNT(1)')
+		cursor = self.connection.cursor()
+		cursor.execute(sql)
+		count = cursor.fetchall()[0][0]
+		if count == 0:
+			return DataPage(
+				data=[],
+				pageNumber=1,
+				pageSize=page_size,
+				itemCount=0,
+				pageCount=0
+			)
+
+		page_number, max_page_number = self.compute_page(count, page_size, pager.pageable.pageNumber)
+
+		sql = self.build_aggregate_statement(pager, lambda columns: self.build_free_aggregate_columns(columns))
+		offset = page_size * (page_number - 1)
+		sql = f'{sql} OFFSET {offset} LIMIT {page_size}'
+		cursor = self.connection.cursor()
+		cursor.execute(sql)
+		rows = cursor.fetchall()
+
+		results = ArrayHelper(rows) \
+			.map(lambda x: self.deserialize_from_aggregate_row(x, pager.aggregateColumns)).to_list()
+
+		return DataPage(
+			data=results,
+			pageNumber=page_number,
+			pageSize=page_size,
+			itemCount=count,
+			pageCount=max_page_number
+		)
