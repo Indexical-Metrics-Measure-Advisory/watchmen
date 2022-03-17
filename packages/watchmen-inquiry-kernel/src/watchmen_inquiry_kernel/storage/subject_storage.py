@@ -849,8 +849,12 @@ class SubjectStorage:
 		return StorageFindAgent(storage)
 
 	def ask_presto_find_agent(self) -> FindAgent:
-		# TODO create presto find agent
-		pass
+		from watchmen_inquiry_trino import ask_trino_topic_storage
+		storage = ask_trino_topic_storage(self.principalService)
+		# register topic, in case of it is not registered yet
+		available_schemas = self.schema.get_available_schemas()
+		ArrayHelper(available_schemas).each(lambda x: storage.register_topic(x.get_topic()))
+		return StorageFindAgent(storage)
 
 	def find_data(self, find: Callable[[FindAgent], Any]) -> Union[List[Dict[str, Any]], DataPage]:
 		if not ask_use_storage_directly():

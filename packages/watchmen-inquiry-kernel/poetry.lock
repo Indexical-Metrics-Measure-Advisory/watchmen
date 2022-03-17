@@ -14,7 +14,7 @@ name = "certifi"
 version = "2021.10.8"
 description = "Python package for providing Mozilla's CA Bundle."
 category = "main"
-optional = false
+optional = true
 python-versions = "*"
 
 [[package]]
@@ -33,7 +33,7 @@ name = "charset-normalizer"
 version = "2.0.12"
 description = "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet."
 category = "main"
-optional = false
+optional = true
 python-versions = ">=3.5.0"
 
 [package.extras]
@@ -71,7 +71,7 @@ name = "greenlet"
 version = "1.1.2"
 description = "Lightweight in-process concurrent programming"
 category = "main"
-optional = false
+optional = true
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*"
 
 [package.extras]
@@ -82,7 +82,7 @@ name = "idna"
 version = "3.3"
 description = "Internationalized Domain Names in Applications (IDNA)"
 category = "main"
-optional = false
+optional = true
 python-versions = ">=3.5"
 
 [[package]]
@@ -158,7 +158,7 @@ name = "requests"
 version = "2.27.1"
 description = "Python HTTP for Humans."
 category = "main"
-optional = false
+optional = true
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*"
 
 [package.dependencies]
@@ -176,7 +176,7 @@ name = "sqlalchemy"
 version = "1.4.32"
 description = "Database Abstraction Library"
 category = "main"
-optional = false
+optional = true
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,>=2.7"
 
 [package.dependencies]
@@ -208,7 +208,7 @@ name = "trino"
 version = "0.310.0"
 description = "Client for the Trino distributed SQL Engine"
 category = "main"
-optional = false
+optional = true
 python-versions = ">=3.7"
 
 [package.dependencies]
@@ -233,7 +233,7 @@ name = "urllib3"
 version = "1.26.9"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
 category = "main"
-optional = false
+optional = true
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
 
 [package.extras]
@@ -280,6 +280,23 @@ mssql = ["watchmen-storage-mssql @ ../watchmen-storage-mssql"]
 [package.source]
 type = "directory"
 url = "../watchmen-data-kernel"
+
+[[package]]
+name = "watchmen-inquiry-trino"
+version = "16.0.0"
+description = ""
+category = "main"
+optional = true
+python-versions = "^3.9"
+develop = true
+
+[package.dependencies]
+trino = "^0.310.0"
+watchmen-data-kernel = {path = "../watchmen-data-kernel", develop = true}
+
+[package.source]
+type = "directory"
+url = "../watchmen-inquiry-trino"
 
 [[package]]
 name = "watchmen-meta"
@@ -434,7 +451,7 @@ oracle = ["watchmen-storage-oracle"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "3c6ecbf955ccd3e084f1d4cc87e62836e6511148c83f7f36fc7f3ac391f85d8e"
+content-hash = "ab779cf56a03b5cd148760960a8117d256c8a4a64485ed7e14840a2de7d96395"
 
 [metadata.files]
 cacheout = [
@@ -823,6 +840,7 @@ urllib3 = [
 ]
 watchmen-auth = []
 watchmen-data-kernel = []
+watchmen-inquiry-trino = []
 watchmen-meta = []
 watchmen-model = []
 watchmen-storage = []
