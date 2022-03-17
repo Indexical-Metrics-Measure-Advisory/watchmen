@@ -141,8 +141,12 @@ def build_criteria_expression(tables: List[Table], expression: EntityCriteriaExp
 		elif isinstance(expression.right, ColumnNameLiteral):
 			built_right = build_literal(tables, expression.right)
 		elif isinstance(expression.right, ComputedLiteral):
-			# TODO cannot know whether the built literal will returns a list or a value, let it be now.
-			built_right = build_literal(tables, expression.right)
+			if expression.right.operator == ComputedLiteralOperator.CASE_THEN:
+				# TODO cannot know whether the built literal will returns a list or a value, let it be now.
+				built_right = build_literal(tables, expression.right)
+			else:
+				# any other computation will not lead a list
+				built_right = [build_literal(tables, expression.right)]
 		elif isinstance(expression.right, str):
 			built_right = ArrayHelper(expression.right.strip().split(',')).filter(lambda x: is_not_blank(x)).to_list()
 		else:
