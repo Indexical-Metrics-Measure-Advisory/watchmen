@@ -95,11 +95,11 @@ def build_literal(tables: List[Table], literal: Literal, build_plain_value: Call
 		elif operator == ComputedLiteralOperator.CONCAT:
 			return func.concat(*ArrayHelper(literal.elements).map(lambda x: build_literal(tables, x)).to_list())
 		elif operator == ComputedLiteralOperator.YEAR_DIFF:
-			# yeardiff is a customized function, which can be found in meta-scripts folder
+			# yeardiff is a customized function, which can be found in data-scripts folder
 			# make sure each topic storage have this function
 			return func.yeardiff(build_literal(tables, literal.elements[0]), build_literal(tables, literal.elements[1]))
 		elif operator == ComputedLiteralOperator.MONTH_DIFF:
-			# monthdiff is a customized function, which can be found in meta-scripts folder
+			# monthdiff is a customized function, which can be found in data-scripts folder
 			# make sure each topic storage have this function
 			return func.monthdiff(
 				build_literal(tables, literal.elements[0]), build_literal(tables, literal.elements[1]))

@@ -20,6 +20,10 @@ class TestTrino(TestCase):
 		rows = cur.fetchall()
 		print(rows)
 
-		cur.execute('select * from test.watchmen.users')
+		# '''1' as X,
+		# false as X,
+		# parse_datetime('20211120194638', 'yyyyMMddHHmmss') AS X
+		# CAST('123' AS DECIMAL) AS X
+		cur.execute("select date_diff('day', DATE '2020-03-04', DATE '2020-03-02') + 1 AS X, u.* from test.watchmen.users as u")
 		rows = cur.fetchall()
 		print(rows)
