@@ -105,7 +105,7 @@ table_pipelines = Table(
 	create_pk('pipeline_id'),
 	create_tuple_id_column('topic_id', False),
 	create_str('name', 50, False), create_str('type', 20, False),
-	create_bool('conditional'), create_json('on'),
+	create_bool('prerequisite_enabled'), create_json('prerequisite_on'),
 	create_json('stages'), create_bool('enabled', False), create_bool('validated', False),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
