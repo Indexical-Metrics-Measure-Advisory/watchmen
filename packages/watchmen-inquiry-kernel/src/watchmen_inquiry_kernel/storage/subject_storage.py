@@ -9,7 +9,7 @@ from watchmen_data_kernel.storage_bridge import ask_topic_data_entity_helper, pa
 	parse_parameter_for_storage, PipelineVariables
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_data_kernel.utils import MightAVariable, parse_function_in_variable, parse_variable
-from watchmen_inquiry_kernel.common import ask_presto_enabled, ask_use_storage_directly, InquiryKernelException
+from watchmen_inquiry_kernel.common import ask_trino_enabled, ask_use_storage_directly, InquiryKernelException
 from watchmen_inquiry_kernel.schema import ReportSchema, SubjectSchema
 from watchmen_meta.admin import SpaceService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
@@ -858,7 +858,7 @@ class SubjectStorage:
 
 		if self.schema.from_one_data_source():
 			return self.do_find(self.ask_storage_find_agent(), find)
-		elif not ask_presto_enabled():
+		elif not ask_trino_enabled():
 			raise InquiryKernelException(
 				'Cannot perform inquiry on storage native when there are multiple data sources, '
 				'ask your administrator to turn on presto/trino engine.')
