@@ -9915,7 +9915,7 @@
               "name": "GREATER THAN",
               "item": [
                 {
-                  "name": "New Request",
+                  "name": "GREATER THAN",
                   "id": "dccccc03-3700-49b6-ae45-b28b79dbc6e7",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
