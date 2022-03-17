@@ -10,9 +10,16 @@ from watchmen_data_kernel.meta import DataSourceService
 from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import DataPage, FactorId, TopicId
 from watchmen_storage import as_table_name, ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, \
-	FreeAggregatePager, FreeAggregator, FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, Literal, \
-	NoFreeJoinException, UnexpectedStorageException, UnsupportedComputationException
-from watchmen_utilities import ArrayHelper, DateTimeConstants, is_blank, is_decimal
+	EntityCriteria, EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, \
+	EntityCriteriaOperator, \
+	EntityCriteriaStatement, \
+	FreeAggregatePager, FreeAggregator, \
+	FreeColumn, FreeFinder, \
+	FreeJoin, FreeJoinType, \
+	FreePager, Literal, \
+	NoCriteriaForUpdateException, NoFreeJoinException, UnexpectedStorageException, UnsupportedComputationException, \
+	UnsupportedCriteriaException
+from watchmen_utilities import ArrayHelper, DateTimeConstants, is_blank, is_decimal, is_not_blank
 from .exception import InquiryTrinoException
 from .settings import ask_trino_basic_auth, ask_trino_host
 from .trino_storage_spi import TrinoStorageSPI
@@ -300,6 +307,93 @@ class TrinoStorage(TrinoStorageSPI):
 			# noinspection PyTypeChecker
 			return literal
 
+	def build_like_pattern(self, to_be_pattern: str) -> str:
+		if isinstance(to_be_pattern, str):
+			if to_be_pattern.startswith('\''):
+				to_be_pattern = to_be_pattern[1:]
+			if to_be_pattern.endswith('\''):
+				to_be_pattern = to_be_pattern[:-1]
+		to_be_pattern = to_be_pattern.lower()
+		to_be_pattern = to_be_pattern.replace('\'', '\'\'')
+		to_be_pattern = to_be_pattern.replace('_', '\\_')
+		to_be_pattern = to_be_pattern.replace('%', '\\%')
+		return f'%{to_be_pattern.lower()}%'
+
+	def build_criteria_expression(self, expression: EntityCriteriaExpression) -> str:
+		built_left = self.build_literal(expression.left)
+		op = expression.operator
+		if op == EntityCriteriaOperator.IS_EMPTY:
+			return f'({built_left} IS NULL OR {built_left} = \'\')'
+		elif op == EntityCriteriaOperator.IS_NOT_EMPTY:
+			return f'({built_left} IS NOT NULL AND {built_left} != \'\')'
+		elif op == EntityCriteriaOperator.IS_BLANK:
+			return f'TRIM({built_left}) = \'\''
+		elif op == EntityCriteriaOperator.IS_NOT_BLANK:
+			return f'TRIM({built_left}) != \'\''
+
+		if op == EntityCriteriaOperator.IN or op == EntityCriteriaOperator.NOT_IN:
+			if isinstance(expression.right, list):
+				built_right = ArrayHelper(expression.right).map(lambda x: self.build_literal(x)).to_list()
+			elif isinstance(expression.right, ColumnNameLiteral):
+				built_right = self.build_literal(expression.right)
+			elif isinstance(expression.right, ComputedLiteral):
+				if expression.right.operator == ComputedLiteralOperator.CASE_THEN:
+					# TODO cannot know whether the built literal will returns a list or a value, let it be now.
+					built_right = self.build_literal(expression.right)
+				else:
+					# any other computation will not lead a list
+					built_right = [self.build_literal(expression.right)]
+			elif isinstance(expression.right, str):
+				built_right = ArrayHelper(expression.right.strip().split(',')).filter(
+					lambda x: is_not_blank(x)).to_list()
+			else:
+				built_right = self.build_literal(expression.right)
+				if not isinstance(built_right, list):
+					built_right = [built_right]
+			if op == EntityCriteriaOperator.IN:
+				return f'{built_left} IN ({ArrayHelper(built_right).join(", ")})'
+			elif op == EntityCriteriaOperator.NOT_IN:
+				return f'{built_left} NOT IN ({ArrayHelper(built_right).join(", ")})'
+
+		built_right = self.build_literal(expression.right)
+		if op == EntityCriteriaOperator.EQUALS:
+			return f'{built_left} = {built_right}'
+		elif op == EntityCriteriaOperator.NOT_EQUALS:
+			return f'{built_left} != {built_right}'
+		elif op == EntityCriteriaOperator.LESS_THAN:
+			return f'{built_left} < {built_right}'
+		elif op == EntityCriteriaOperator.LESS_THAN_OR_EQUALS:
+			return f'{built_left} <= {built_right}'
+		elif op == EntityCriteriaOperator.GREATER_THAN:
+			return f'{built_left} > {built_right}'
+		elif op == EntityCriteriaOperator.GREATER_THAN_OR_EQUALS:
+			return f'{built_left} >= {built_right}'
+		elif op == EntityCriteriaOperator.LIKE:
+			return f'LOWER({built_left}) LIKE \'{self.build_like_pattern(built_right)}\' ESCAPE \'\\\''
+		elif op == EntityCriteriaOperator.NOT_LIKE:
+			return f'LOWER({built_left}) NOT \'{self.build_like_pattern(built_right)}\' LIKE ESCAPE \'\\\''
+		else:
+			raise UnsupportedCriteriaException(f'Unsupported criteria expression operator[{op}].')
+
+	def build_criteria_joint(self, joint: EntityCriteriaJoint) -> str:
+		conjunction = joint.conjunction
+		if conjunction == EntityCriteriaJointConjunction.AND:
+			return ArrayHelper(joint.children).map(lambda x: self.build_criteria_statement(x)) \
+				.map(lambda x: f'({x})').join(' AND ')
+		elif conjunction == EntityCriteriaJointConjunction.OR:
+			return ArrayHelper(joint.children).map(lambda x: self.build_criteria_statement(x)) \
+				.map(lambda x: f'({x})').join(' OR ')
+		else:
+			raise UnsupportedCriteriaException(f'Unsupported criteria joint conjunction[{conjunction}].')
+
+	def build_criteria_statement(self, statement: EntityCriteriaStatement) -> str:
+		if isinstance(statement, EntityCriteriaExpression):
+			return self.build_criteria_expression(statement)
+		elif isinstance(statement, EntityCriteriaJoint):
+			return self.build_criteria_joint(statement)
+		else:
+			raise UnsupportedCriteriaException(f'Unsupported criteria[{statement}].')
+
 	# noinspection PyMethodMayBeStatic
 	def build_free_column(self, table_column: FreeColumn, index: int) -> str:
 		built = self.build_literal(table_column.literal)
@@ -310,13 +404,95 @@ class TrinoStorage(TrinoStorageSPI):
 			.map_with_index(lambda x, index: self.build_free_column(x, index)) \
 			.join(', ')
 
+	def build_criteria(self, criteria: EntityCriteria):
+		if criteria is None or len(criteria) == 0:
+			return None
+
+		if len(criteria) == 1:
+			return self.build_criteria_statement(criteria[0])
+		else:
+			return self.build_criteria_statement(EntityCriteriaJoint(children=criteria))
+
+	def build_criteria_for_statement(
+			self, criteria: EntityCriteria, raise_exception_on_missed: bool = False) -> Optional[str]:
+		where = self.build_criteria(criteria)
+		if where is not None:
+			return where
+		elif raise_exception_on_missed:
+			raise NoCriteriaForUpdateException(f'No criteria found from[{criteria}].')
+		else:
+			return None
+
+	# noinspection PyMethodMayBeStatic
+	def deserialize_from_row(self, row: List[Any], columns: List[FreeColumn]) -> Dict[str, Any]:
+		data: Dict[str, Any] = {}
+		for index, column in enumerate(columns):
+			data[column.alias] = row[index]
+		return data
+
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
-		sql = \
-			f'SELECT {self.build_free_columns(finder.columns)} ' \
-			f'FROM {self.build_free_joins(finder.joins)}'
+		sql = f'SELECT {self.build_free_columns(finder.columns)} FROM {self.build_free_joins(finder.joins)}'
+		where = self.build_criteria_for_statement(finder.criteria)
+		if where is not None:
+			sql = f'{sql} WHERE {where}'
+		cursor = self.connection.cursor()
+		cursor.execute(sql)
+		rows = cursor.fetchall()
+		return ArrayHelper(rows).map(lambda x: self.deserialize_from_row(x, finder.columns)).to_list()
+
+	# noinspection PyMethodMayBeStatic
+	def compute_page(self, count: int, page_size: int, page_number: int) -> Tuple[int, int]:
+		"""
+		first: page number; second: max page number
+		"""
+		pages = count / page_size
+		max_page_number = int(pages)
+		if pages > max_page_number:
+			max_page_number += 1
+		if page_number > max_page_number:
+			page_number = max_page_number
+		return page_number, max_page_number
 
 	def free_page(self, pager: FreePager) -> DataPage:
-		pass
+		page_size = pager.pageable.pageSize
+		select_from = self.build_free_joins(pager.joins)
+
+		sql = f'SELECT COUNT(1) FROM {select_from}'
+		where = self.build_criteria_for_statement(pager.criteria)
+		if where is not None:
+			sql = f'{sql} WHERE {where}'
+		cursor = self.connection.cursor()
+		cursor.execute(sql)
+		count = cursor.fetchall()[0][0]
+		if count == 0:
+			return DataPage(
+				data=[],
+				pageNumber=1,
+				pageSize=page_size,
+				itemCount=0,
+				pageCount=0
+			)
+
+		page_number, max_page_number = self.compute_page(count, page_size, pager.pageable.pageNumber)
+
+		sql = f'SELECT {self.build_free_columns(pager.columns)} FROM {select_from}'
+		if where is not None:
+			sql = f'{sql} WHERE {where}'
+		offset = page_size * (page_number - 1)
+		sql = f'{sql} OFFSET {offset} LIMIT {page_size}'
+		cursor = self.connection.cursor()
+		cursor.execute(sql)
+		rows = cursor.fetchall()
+
+		results = ArrayHelper(rows).map(lambda x: self.deserialize_from_row(x, pager.columns)).to_list()
+
+		return DataPage(
+			data=results,
+			pageNumber=page_number,
+			pageSize=page_size,
+			itemCount=count,
+			pageCount=max_page_number
+		)
 
 	def free_aggregate_find(self, aggregator: FreeAggregator) -> List[Dict[str, Any]]:
 		pass
