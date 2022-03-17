@@ -9916,11 +9916,33 @@
               "item": [
                 {
                   "name": "GREATER THAN",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "a517839a-6f66-4a47-988c-206d2fade99a",
+                        "exec": [
+                          "pm.test(\"Greater Than\", () => {\r",
+                          "    pm.response.to.have.status(200);\r",
+                          "    const data = pm.response.json();\r",
+                          "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId);\r",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "dccccc03-3700-49b6-ae45-b28b79dbc6e7",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
                   "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
                     "method": "POST",
                     "header": [],
                     "body": {
@@ -9931,7 +9953,8 @@
                           "language": "json"
                         }
                       }
-                    }
+                    },
+                    "url": "{{URL_PREFIX}}/pipeline"
                   },
                   "response": []
                 }
