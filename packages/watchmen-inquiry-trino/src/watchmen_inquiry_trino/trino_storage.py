@@ -304,6 +304,7 @@ class TrinoStorage(TrinoStorageSPI):
 			# noinspection PyTypeChecker
 			return literal
 
+	# noinspection PyMethodMayBeStatic
 	def build_like_pattern(self, to_be_pattern: str) -> str:
 		if isinstance(to_be_pattern, str):
 			if to_be_pattern.startswith('\''):
@@ -528,7 +529,9 @@ class TrinoStorage(TrinoStorageSPI):
 		aggregate_columns = aggregator.aggregateColumns
 		sql = f'SELECT {selection(aggregate_columns)} FROM {sub_query_sql}'
 		# obviously, table is not existing. fake a table of sub query selection to build high order criteria
-		statement = self.build_criteria_for_statement(aggregator.highOrderCriteria)
+		where = self.build_criteria_for_statement(aggregator.highOrderCriteria)
+		if where is not None:
+			sql = f'{sql} WHERE {where}'
 		# find columns rather than grouped
 		non_group_columns = ArrayHelper(aggregate_columns) \
 			.filter(lambda x: x.arithmetic is None or x.arithmetic == FreeAggregateArithmetic.NONE) \
@@ -554,6 +557,7 @@ class TrinoStorage(TrinoStorageSPI):
 		return ArrayHelper(rows) \
 			.map(lambda x: self.deserialize_from_aggregate_row(x, aggregator.aggregateColumns)).to_list()
 
+	# noinspection DuplicatedCode
 	def free_aggregate_page(self, pager: FreeAggregatePager) -> DataPage:
 		page_size = pager.pageable.pageSize
 		sql = self.build_aggregate_statement(pager, lambda columns: 'COUNT(1)')

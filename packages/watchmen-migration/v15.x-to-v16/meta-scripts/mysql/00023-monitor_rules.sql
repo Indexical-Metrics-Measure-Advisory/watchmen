@@ -23,4 +23,5 @@ CREATE INDEX severity ON monitor_rules (severity);
 CREATE INDEX factor_id ON monitor_rules (factor_id);
 CREATE INDEX topic_id ON monitor_rules (topic_id);
 CREATE INDEX tenant_id ON monitor_rules (tenant_id);
+-- noinspection SqlWithoutWhere
 UPDATE monitor_rules SET created_at = NOW(), created_by = '-1', last_modified_at = NOW(), last_modified_by = '-1';

@@ -43,5 +43,6 @@ BEGIN
 END;
 CALL WATCHMEN_MIGRATION_COPY_SUBJECT_IDS();
 DROP PROCEDURE WATCHMEN_MIGRATION_COPY_SUBJECT_IDS;
+-- noinspection SqlWithoutWhere
 UPDATE subjects SET created_at = SYSDATE, created_by = '-1', last_modified_at = SYSDATE, last_modified_by = '-1';
 ALTER TABLE subjects DROP COLUMN reportids;

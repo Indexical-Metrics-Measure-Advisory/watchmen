@@ -18,4 +18,5 @@ CREATE INDEX last_modified_at ON user_groups (last_modified_at);
 CREATE INDEX last_modified_by ON user_groups (last_modified_by);
 CREATE INDEX name ON user_groups (name);
 CREATE INDEX tenant_id ON user_groups (tenant_id);
+-- noinspection SqlWithoutWhere
 UPDATE user_groups set created_at = NOW(), created_by = '-1', last_modified_at = NOW(), last_modified_by = '-1', version = 1;

@@ -22,4 +22,5 @@ CREATE INDEX name ON catalogs (name);
 CREATE INDEX tech_owner_id ON catalogs (tech_owner_id);
 CREATE INDEX biz_owner_id ON catalogs (biz_owner_id);
 CREATE INDEX tenant_id ON catalogs (tenant_id);
+-- noinspection SqlWithoutWhere
 UPDATE catalogs SET created_at = NOW(), created_by = '-1', last_modified_at = NOW(), last_modified_by = '-1', version = 1;

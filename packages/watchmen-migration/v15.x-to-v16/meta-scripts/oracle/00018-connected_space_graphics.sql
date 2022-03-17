@@ -10,4 +10,5 @@ ALTER TABLE connected_space_graphics DROP COLUMN lastmodified;
 ALTER TABLE connected_space_graphics ADD (last_visit_time DATE DEFAULT SYSDATE NOT NULL);
 CREATE INDEX i_connected_space_graphics_user_id ON connected_space_graphics (user_id);
 CREATE INDEX i_connected_space_graphics_tenant_id ON connected_space_graphics (tenant_id);
+-- noinspection SqlWithoutWhere
 UPDATE connected_space_graphics SET last_visit_time = SYSDATE;

@@ -14,4 +14,5 @@ CREATE INDEX i_tenants_created_at ON tenants (created_at);
 CREATE INDEX i_tenants_created_by ON tenants (created_by);
 CREATE INDEX i_tenants_last_modified_at ON tenants (last_modified_at);
 CREATE INDEX i_tenants_last_modified_by ON tenants (last_modified_by);
+-- noinspection SqlWithoutWhere
 UPDATE tenants set created_at = SYSDATE, created_by = '-1', last_modified_at = SYSDATE, last_modified_by = '-1', version = 1;

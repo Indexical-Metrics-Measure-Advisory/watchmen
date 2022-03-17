@@ -14,4 +14,5 @@ ALTER TABLE last_snapshots DROP COLUMN createtime;
 ALTER TABLE last_snapshots DROP COLUMN lastmodified;
 ALTER TABLE last_snapshots ADD (last_visit_time DATE DEFAULT SYSDATE NOT NULL);
 CREATE INDEX i_last_snapshots_tenant_id ON last_snapshots (tenant_id);
+-- noinspection SqlWithoutWhere
 UPDATE last_snapshots SET last_visit_time = SYSDATE;

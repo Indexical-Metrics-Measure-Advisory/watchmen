@@ -21,4 +21,5 @@ CREATE INDEX last_modified_by ON users (last_modified_by);
 CREATE INDEX role ON users (role);
 CREATE INDEX tenant_id ON users (tenant_id);
 CREATE UNIQUE INDEX name ON users (name);
+-- noinspection SqlWithoutWhere
 UPDATE users set created_at = NOW(), created_by = '-1', last_modified_at = NOW(), last_modified_by = '-1', version = 1;

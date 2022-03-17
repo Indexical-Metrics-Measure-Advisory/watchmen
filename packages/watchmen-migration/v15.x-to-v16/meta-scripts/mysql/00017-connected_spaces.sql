@@ -70,5 +70,6 @@ END|
 DELIMITER ;
 CALL WATCHMEN_MIGRATION_COPY_CONNECT_IDS();
 DROP PROCEDURE IF EXISTS WATCHMEN_MIGRATION_COPY_CONNECT_IDS;
+-- noinspection SqlWithoutWhere
 UPDATE connected_spaces SET created_at = NOW(), created_by = '-1', last_modified_at = NOW(), last_modified_by = '-1';
 ALTER TABLE connected_spaces DROP subjectids;

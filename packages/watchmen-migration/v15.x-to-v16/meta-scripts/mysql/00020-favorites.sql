@@ -7,4 +7,5 @@ ALTER TABLE favorites DROP createtime;
 ALTER TABLE favorites DROP lastmodified;
 ALTER TABLE favorites ADD last_visit_time DATETIME NOT NULL;
 CREATE INDEX tenant_id ON favorites (tenant_id);
+-- noinspection SqlWithoutWhere
 UPDATE favorites SET last_visit_time = NOW();

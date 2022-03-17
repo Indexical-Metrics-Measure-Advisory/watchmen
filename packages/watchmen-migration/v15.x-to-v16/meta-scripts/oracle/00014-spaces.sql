@@ -5,9 +5,11 @@ ALTER TABLE spaces MODIFY (space_id VARCHAR2(50));
 ALTER TABLE spaces MODIFY name VARCHAR2(50) NOT NULL;
 ALTER TABLE spaces MODIFY description VARCHAR2(255);
 ALTER TABLE spaces ADD (topic_ids VARCHAR2(2048) NULL);
+-- noinspection SqlWithoutWhere
 UPDATE spaces SET topic_ids = topicids;
 ALTER TABLE spaces DROP COLUMN topicids;
 ALTER TABLE spaces ADD (group_ids VARCHAR2(2048) NULL);
+-- noinspection SqlWithoutWhere
 UPDATE spaces SET group_ids = groupids;
 ALTER TABLE spaces DROP COLUMN groupids;
 ALTER TABLE spaces RENAME COLUMN tenantid TO tenant_id;
@@ -25,4 +27,5 @@ CREATE INDEX i_spaces_last_modified_at ON spaces (last_modified_at);
 CREATE INDEX i_spaces_last_modified_by ON spaces (last_modified_by);
 CREATE INDEX i_spaces_name ON spaces (name);
 CREATE INDEX i_spaces_tenant_id ON spaces (tenant_id);
+-- noinspection SqlWithoutWhere
 UPDATE spaces set created_at = SYSDATE, created_by = '-1', last_modified_at = SYSDATE, last_modified_by = '-1', version = 1;
