@@ -1,0 +1,2 @@
+class InquiryTrinoException(Exception):
+	pass
