@@ -12,6 +12,7 @@ packages = [
 python = "^3.9"
 trino = "^0.310.0"
 watchmen-data-kernel = { path = "../watchmen-data-kernel", develop = true }
+join = "^0.1.1"
 
 [tool.poetry.dev-dependencies]
 
