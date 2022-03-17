@@ -9788,6 +9788,11 @@
           "name": "OPERATOR",
           "item": [
             {
+              "name": "EQUALS",
+              "item": [],
+              "id": "357ee8ca-1a51-4c20-a0be-56aad1d7d6c6"
+            },
+            {
               "name": "NOT EQUALS",
               "item": [],
               "id": "cae5e177-5d06-4ad3-a661-eeb4994c8da8"
@@ -9821,11 +9826,6 @@
               "name": "NOT_IN",
               "item": [],
               "id": "46a98664-c685-4f81-a918-14c6f9d622f8"
-            },
-            {
-              "name": "EQUALS",
-              "item": [],
-              "id": "357ee8ca-1a51-4c20-a0be-56aad1d7d6c6"
             }
           ],
           "id": "63df678b-d7e8-4b74-84db-b918c2a108ed"
