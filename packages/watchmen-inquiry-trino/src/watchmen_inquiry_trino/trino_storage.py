@@ -1,11 +1,13 @@
 from datetime import date, datetime, time
 from decimal import Decimal
+from logging import getLogger
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from trino.dbapi import connect
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
+from watchmen_data_kernel.common import ask_storage_echo_enabled
 from watchmen_data_kernel.meta import DataSourceService
 from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import DataPage, FactorId, TopicId
@@ -18,6 +20,8 @@ from watchmen_utilities import ArrayHelper, DateTimeConstants, is_blank, is_deci
 from .exception import InquiryTrinoException
 from .settings import ask_trino_basic_auth, ask_trino_host
 from .trino_storage_spi import TrinoStorageSPI
+
+logger = getLogger(__name__)
 
 
 def get_data_source_service(principal_service: PrincipalService) -> DataSourceService:
@@ -296,13 +300,13 @@ class TrinoStorage(TrinoStorageSPI):
 				raise UnsupportedComputationException(f'Unsupported computation operator[{operator}].')
 		elif isinstance(literal, datetime):
 			formatted = literal.strftime('%Y%m%d%H%M%S')
-			return f'DATE_PARSE({formatted}, \'%Y%m%d%H%i%S\')'
+			return f'DATE_PARSE(\'{formatted}\', \'%Y%m%d%H%i%S\')'
 		elif isinstance(literal, date):
 			formatted = literal.strftime('%Y%m%d')
-			return f'DATE_PARSE({formatted}, \'%Y%m%d\')'
+			return f'DATE_PARSE(\'{formatted}\', \'%Y%m%d\')'
 		elif isinstance(literal, time):
 			formatted = literal.strftime('%H%M%S')
-			return f'DATE_PARSE({formatted}, \'%H%i%S\')'
+			return f'DATE_PARSE(\'{formatted}\', \'%H%i%S\')'
 		elif build_plain_value is not None:
 			return build_plain_value(literal)
 		elif isinstance(literal, str):
@@ -443,6 +447,8 @@ class TrinoStorage(TrinoStorageSPI):
 		if where is not None:
 			sql = f'{sql} WHERE {where}'
 		cursor = self.connection.cursor()
+		if ask_storage_echo_enabled():
+			logger.info(f'SQL: {sql}')
 		cursor.execute(sql)
 		rows = cursor.fetchall()
 		return ArrayHelper(rows).map(lambda x: self.deserialize_from_row(x, finder.columns)).to_list()
@@ -470,6 +476,8 @@ class TrinoStorage(TrinoStorageSPI):
 		if where is not None:
 			sql = f'{sql} WHERE {where}'
 		cursor = self.connection.cursor()
+		if ask_storage_echo_enabled():
+			logger.info(f'SQL: {sql}')
 		cursor.execute(sql)
 		count = cursor.fetchall()[0][0]
 		if count == 0:
@@ -489,6 +497,8 @@ class TrinoStorage(TrinoStorageSPI):
 		offset = page_size * (page_number - 1)
 		sql = f'{sql} OFFSET {offset} LIMIT {page_size}'
 		cursor = self.connection.cursor()
+		if ask_storage_echo_enabled():
+			logger.info(f'SQL: {sql}')
 		cursor.execute(sql)
 		rows = cursor.fetchall()
 
@@ -563,6 +573,8 @@ class TrinoStorage(TrinoStorageSPI):
 	def free_aggregate_find(self, aggregator: FreeAggregator) -> List[Dict[str, Any]]:
 		sql = self.build_aggregate_statement(aggregator, lambda columns: self.build_free_aggregate_columns(columns))
 		cursor = self.connection.cursor()
+		if ask_storage_echo_enabled():
+			logger.info(f'SQL: {sql}')
 		cursor.execute(sql)
 		rows = cursor.fetchall()
 		return ArrayHelper(rows) \
@@ -573,6 +585,8 @@ class TrinoStorage(TrinoStorageSPI):
 		page_size = pager.pageable.pageSize
 		sql = self.build_aggregate_statement(pager, lambda columns: 'COUNT(1)')
 		cursor = self.connection.cursor()
+		if ask_storage_echo_enabled():
+			logger.info(f'SQL: {sql}')
 		cursor.execute(sql)
 		count = cursor.fetchall()[0][0]
 		if count == 0:
@@ -590,6 +604,8 @@ class TrinoStorage(TrinoStorageSPI):
 		offset = page_size * (page_number - 1)
 		sql = f'{sql} OFFSET {offset} LIMIT {page_size}'
 		cursor = self.connection.cursor()
+		if ask_storage_echo_enabled():
+			logger.info(f'SQL: {sql}')
 		cursor.execute(sql)
 		rows = cursor.fetchall()
 
