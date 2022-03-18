@@ -270,13 +270,17 @@ class TrinoStorage(TrinoStorageSPI):
 			elif operator == ComputedLiteralOperator.CONCAT:
 				return f'CONCAT({ArrayHelper(literal.elements).map(lambda x: self.build_literal(x)).join(", ")})'
 			elif operator == ComputedLiteralOperator.YEAR_DIFF:
-				# TODO trino year diff
-				pass
+				return \
+					f'DATE_DIFF(\'year\', ' \
+					f'DATE_TRUNC(\'day\', {self.build_literal(literal.elements[1])}), ' \
+					f'DATE_TRUNC(\'day\', {self.build_literal(literal.elements[0])}))'
 			# return func.yeardiff(
 			# 	self.build_literal(literal.elements[0]), self.build_literal(literal.elements[1]))
 			elif operator == ComputedLiteralOperator.MONTH_DIFF:
-				# TODO trino month diff
-				pass
+				return \
+					f'DATE_DIFF(\'month\', ' \
+					f'DATE_TRUNC(\'day\', {self.build_literal(literal.elements[1])}), ' \
+					f'DATE_TRUNC(\'day\', {self.build_literal(literal.elements[0])}))'
 			# return func.monthdiff(
 			# 	self.build_literal(literal.elements[0]), self.build_literal(literal.elements[1]))
 			elif operator == ComputedLiteralOperator.DAY_DIFF:
@@ -285,7 +289,7 @@ class TrinoStorage(TrinoStorageSPI):
 				return \
 					f'DATE_DIFF(\'day\', ' \
 					f'DATE_TRUNC(\'day\', {self.build_literal(literal.elements[1])}), ' \
-					f'DATE_TRUNC(\'day\', {self.build_literal(literal.elements[0])})) - 1'
+					f'DATE_TRUNC(\'day\', {self.build_literal(literal.elements[0])}))'
 			elif operator == ComputedLiteralOperator.CHAR_LENGTH:
 				return f'LENGTH({self.build_literal(literal.elements[0])})'
 			else:
