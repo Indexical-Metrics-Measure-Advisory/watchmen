@@ -28,7 +28,8 @@ class TestTrino(TestCase):
 		# CAST('123' AS DECIMAL) AS X
 		# date_diff('day', DATE '2020-03-04', DATE '2020-03-02') + 1 AS X
 		cur.execute(
-			"SELECT COLUMN_1 "
+			"SELECT COLUMN_1, "
+			"CAST(CEIL((EXTRACT(DAY_OF_YEAR FROM (DATE '2022-05-08')) - 7 + EXTRACT(DAY_OF_WEEK FROM DATE_TRUNC('year', DATE '2022-05-08'))) / CAST(7 AS DOUBLE)) AS INTEGER) AS X "
 			"FROM ("
 			"   SELECT USER_ID AS COLUMN_1 FROM test.watchmen.users "
 			"   WHERE CASE WHEN user_id != '1' THEN 'X' ELSE 'Y' END = 'X'"

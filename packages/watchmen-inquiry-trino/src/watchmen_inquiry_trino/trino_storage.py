@@ -239,13 +239,18 @@ class TrinoStorage(TrinoStorageSPI):
 			elif operator == ComputedLiteralOperator.MONTH_OF:
 				return f'EXTRACT(MONTH FROM {self.build_literal(literal.elements[0])})'
 			elif operator == ComputedLiteralOperator.WEEK_OF_YEAR:
-				# TODO trino week of year
-				pass
+				built = self.build_literal(literal.elements[0])
+				# days left after exclude days of zero week of year
+				days_of_zero_week = f'7 - EXTRACT(DAY_OF_WEEK FROM DATE_TRUNC(\'year\', {built}))'
+				days_exclude_zero_week = f'EXTRACT(DAY_OF_YEAR FROM ({built})) - ({days_of_zero_week})'
+				return f'CAST(CEIL(({days_exclude_zero_week}) / CAST(7 AS DOUBLE)) AS INTEGER)'
 			# return func.week(self.build_literal(literal.elements[0]), 0)
 			elif operator == ComputedLiteralOperator.WEEK_OF_MONTH:
-				# TODO trino week of month
-				pass
-			# return func.weekofmonth(self.build_literal(literal.elements[0]))
+				built = self.build_literal(literal.elements[0])
+				# days left after exclude days of zero week of month
+				days_of_zero_week = f'7 - EXTRACT(DAY_OF_WEEK FROM DATE_TRUNC(\'month\', {built}))'
+				days_exclude_zero_week = f'EXTRACT(DAY FROM ({built})) - ({days_of_zero_week})'
+				return f'CAST(CEIL(({days_exclude_zero_week}) / CAST(7 AS DOUBLE)) AS INTEGER)'
 			elif operator == ComputedLiteralOperator.DAY_OF_MONTH:
 				return f'EXTRACT(DAY_OF_MONTH FROM {self.build_literal(literal.elements[0])})'
 			elif operator == ComputedLiteralOperator.DAY_OF_WEEK:
