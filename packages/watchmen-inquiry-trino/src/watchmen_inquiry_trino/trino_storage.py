@@ -467,7 +467,7 @@ class TrinoStorage(TrinoStorageSPI):
 			page_number = max_page_number
 		return page_number, max_page_number
 
-	# noinspection SqlResolve
+	# noinspection SqlResolve,DuplicatedCode
 	def free_page(self, pager: FreePager) -> DataPage:
 		page_size = pager.pageable.pageSize
 		select_from = self.build_free_joins(pager.joins)
