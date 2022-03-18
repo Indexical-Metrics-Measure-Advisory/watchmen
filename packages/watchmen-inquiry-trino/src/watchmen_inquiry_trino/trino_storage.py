@@ -311,7 +311,8 @@ class TrinoStorage(TrinoStorageSPI):
 			return build_plain_value(literal)
 		elif isinstance(literal, str):
 			# a value, return itself
-			return f'\'{literal}\''
+			replaced = literal.replace('\'', '\'\'')
+			return f'\'{replaced}\''
 		else:
 			# noinspection PyTypeChecker
 			return literal
