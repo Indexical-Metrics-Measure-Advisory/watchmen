@@ -9721,12 +9721,34 @@
                     },
                     {
                       "name": "CONSTANT FUNCATION",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "be881cba-27be-4e16-b655-0d540bb39070",
+                            "exec": [
+                              "pm.test(\"Constant Function\", () => {\r",
+                              "    pm.response.to.have.status(200);\r",
+                              "    const data = pm.response.json();\r",
+                              "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId);\r",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "bb821db6-f878-4197-b115-07fd015ef78d",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
                       },
                       "request": {
-                        "method": "GET",
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "POST",
                         "header": [],
                         "body": {
                           "mode": "raw",
@@ -9736,7 +9758,8 @@
                               "language": "json"
                             }
                           }
-                        }
+                        },
+                        "url": "{{URL_PREFIX}}/pipeline"
                       },
                       "response": []
                     },
