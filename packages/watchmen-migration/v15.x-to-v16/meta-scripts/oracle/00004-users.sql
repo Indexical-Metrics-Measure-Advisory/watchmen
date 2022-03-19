@@ -6,6 +6,7 @@ ALTER TABLE users MODIFY nickname VARCHAR2(50);
 ALTER TABLE users MODIFY password VARCHAR2(255);
 ALTER TABLE users MODIFY is_active NUMBER(1) NOT NULL;
 ALTER TABLE users ADD (group_ids VARCHAR2(2048) NULL);
+-- noinspection SqlWithoutWhere
 UPDATE users SET group_ids = groupids;
 ALTER TABLE users DROP COLUMN groupids;
 ALTER TABLE users MODIFY role VARCHAR2(20) NOT NULL;
@@ -25,4 +26,5 @@ CREATE INDEX i_users_last_modified_by ON users (last_modified_by);
 CREATE INDEX i_users_role ON users (role);
 CREATE INDEX i_users_tenant_id ON users (tenant_id);
 CREATE UNIQUE INDEX u_users_name ON users (name);
+-- noinspection SqlWithoutWhere
 UPDATE users set created_at = SYSDATE, created_by = '-1', last_modified_at = SYSDATE, last_modified_by = '-1', version = 1;

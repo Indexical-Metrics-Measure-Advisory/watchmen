@@ -17,4 +17,5 @@ CREATE INDEX i_pats_tenant_id ON pats (tenant_id);
 CREATE INDEX i_pats_user_id ON pats (user_id);
 CREATE INDEX i_pats_username ON pats (username);
 CREATE INDEX i_pats_token ON pats (token);
+-- noinspection SqlWithoutWhere
 UPDATE pats SET created_at = SYSDATE;

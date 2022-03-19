@@ -484,7 +484,7 @@ CREATE TABLE {entity_name} (
 	# noinspection PyMethodMayBeStatic
 	def build_single_on(self, join: FreeJoin, primary_table: Table, secondary_table: Table) -> Any:
 		primary_column = primary_table.c[join.primary.columnName]
-		secondary_column = secondary_table.c[join.primary.columnName]
+		secondary_column = secondary_table.c[join.secondary.columnName]
 		return primary_column == secondary_column
 
 	def try_to_join(self, groups: Dict[TopicId, List[FreeJoin]], tables: List[Table], built=None) -> Join:
@@ -623,7 +623,7 @@ CREATE TABLE {entity_name} (
 		elif arithmetic == FreeAggregateArithmetic.MAXIMUM:
 			return func.max(text(name)).label(alias)
 		elif arithmetic == FreeAggregateArithmetic.MINIMUM:
-			return func.sum(text(name)).label(alias)
+			return func.min(text(name)).label(alias)
 		elif arithmetic == FreeAggregateArithmetic.NONE or arithmetic is None:
 			return label(alias, text(name))
 		else:
@@ -685,7 +685,7 @@ CREATE TABLE {entity_name} (
 		page_number, max_page_number = self.compute_page(count, page_size, pager.pageable.pageNumber)
 
 		statement = self.build_aggregate_statement(
-			pager, lambda columns, tables: self.build_free_columns(columns, tables))
+			pager, lambda columns: self.build_free_aggregate_columns(columns))
 		offset = page_size * (page_number - 1)
 		statement = statement.offset(offset).limit(page_size)
 		results = self.connection.execute(statement).mappings().all()

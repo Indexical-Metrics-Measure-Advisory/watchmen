@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 ALTER TABLE factor_index RENAME TO factor_index_1;
 ALTER TABLE factor_index_1 RENAME TO factor_index;
 ALTER TABLE factor_index RENAME COLUMN factorindexid TO factor_index_id;
@@ -29,4 +30,5 @@ CREATE INDEX i_factor_index_factor_name ON factor_index (factor_name);
 CREATE INDEX i_factor_index_tenant_id ON factor_index (tenant_id);
 CREATE INDEX i_factor_index_topic_id ON factor_index (topic_id);
 CREATE INDEX i_factor_index_topic_name ON factor_index (topic_name);
+-- noinspection SqlWithoutWhere
 UPDATE factor_index SET created_at = SYSDATE, last_modified_at = SYSDATE;

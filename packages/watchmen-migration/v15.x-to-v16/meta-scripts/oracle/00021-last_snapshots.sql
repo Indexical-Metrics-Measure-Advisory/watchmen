@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 ALTER TABLE console_space_last_snapshot RENAME TO last_snapshots;
 ALTER TABLE last_snapshots MODIFY language VARCHAR2(20);
 ALTER TABLE last_snapshots RENAME COLUMN lastdashboardid TO last_dashboard_id;
@@ -14,4 +15,5 @@ ALTER TABLE last_snapshots DROP COLUMN createtime;
 ALTER TABLE last_snapshots DROP COLUMN lastmodified;
 ALTER TABLE last_snapshots ADD (last_visit_time DATE DEFAULT SYSDATE NOT NULL);
 CREATE INDEX i_last_snapshots_tenant_id ON last_snapshots (tenant_id);
+-- noinspection SqlWithoutWhere
 UPDATE last_snapshots SET last_visit_time = SYSDATE;

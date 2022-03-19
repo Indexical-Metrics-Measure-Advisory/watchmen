@@ -227,7 +227,7 @@ class SubjectStorage:
 	def ask_storage_directly_pager(self, pageable: Pageable) -> FreePager:
 		finder = self.ask_storage_directly_finder()
 		return FreePager(
-			columns=finder.criteria,
+			columns=finder.columns,
 			joins=finder.joins,
 			criteria=finder.criteria,
 			pageable=pageable

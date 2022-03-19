@@ -95,11 +95,11 @@ def build_literal(tables: List[Table], literal: Literal, build_plain_value: Call
 		elif operator == ComputedLiteralOperator.CONCAT:
 			return func.concat(*ArrayHelper(literal.elements).map(lambda x: build_literal(tables, x)).to_list())
 		elif operator == ComputedLiteralOperator.YEAR_DIFF:
-			# yeardiff is a customized function, which can be found in meta-scripts folder
+			# yeardiff is a customized function, which can be found in data-scripts folder
 			# make sure each topic storage have this function
 			return func.yeardiff(build_literal(tables, literal.elements[0]), build_literal(tables, literal.elements[1]))
 		elif operator == ComputedLiteralOperator.MONTH_DIFF:
-			# monthdiff is a customized function, which can be found in meta-scripts folder
+			# monthdiff is a customized function, which can be found in data-scripts folder
 			# make sure each topic storage have this function
 			return func.monthdiff(
 				build_literal(tables, literal.elements[0]), build_literal(tables, literal.elements[1]))
@@ -141,8 +141,12 @@ def build_criteria_expression(tables: List[Table], expression: EntityCriteriaExp
 		elif isinstance(expression.right, ColumnNameLiteral):
 			built_right = build_literal(tables, expression.right)
 		elif isinstance(expression.right, ComputedLiteral):
-			# TODO cannot know whether the built literal will returns a list or a value, let it be now.
-			built_right = build_literal(tables, expression.right)
+			if expression.right.operator == ComputedLiteralOperator.CASE_THEN:
+				# TODO cannot know whether the built literal will returns a list or a value, let it be now.
+				built_right = build_literal(tables, expression.right)
+			else:
+				# any other computation will not lead a list
+				built_right = [build_literal(tables, expression.right)]
 		elif isinstance(expression.right, str):
 			built_right = ArrayHelper(expression.right.strip().split(',')).filter(lambda x: is_not_blank(x)).to_list()
 		else:

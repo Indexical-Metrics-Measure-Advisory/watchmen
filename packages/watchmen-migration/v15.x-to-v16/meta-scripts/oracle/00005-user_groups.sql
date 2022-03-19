@@ -4,9 +4,11 @@ ALTER TABLE user_groups RENAME COLUMN usergroupid TO user_group_id;
 ALTER TABLE user_groups MODIFY (user_group_id VARCHAR2(50));
 ALTER TABLE user_groups MODIFY description VARCHAR2(255);
 ALTER TABLE user_groups ADD (user_ids VARCHAR2(2048) NULL);
+-- noinspection SqlWithoutWhere
 UPDATE user_groups SET user_ids = userids;
 ALTER TABLE user_groups DROP COLUMN userids;
 ALTER TABLE user_groups ADD (space_ids VARCHAR2(2048) NULL);
+-- noinspection SqlWithoutWhere
 UPDATE user_groups SET space_ids = spaceids;
 ALTER TABLE user_groups DROP COLUMN spaceids;
 ALTER TABLE user_groups RENAME COLUMN tenantid TO tenant_id;
@@ -24,4 +26,5 @@ CREATE INDEX i_user_groups_last_modified_at ON user_groups (last_modified_at);
 CREATE INDEX i_user_groups_last_modified_by ON user_groups (last_modified_by);
 CREATE INDEX i_user_groups_name ON user_groups (name);
 CREATE INDEX i_user_groups_tenant_id ON user_groups (tenant_id);
+-- noinspection SqlWithoutWhere
 UPDATE user_groups set created_at = SYSDATE, created_by = '-1', last_modified_at = SYSDATE, last_modified_by = '-1', version = 1;

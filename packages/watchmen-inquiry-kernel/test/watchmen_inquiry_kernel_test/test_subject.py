@@ -43,7 +43,7 @@ class TestSubject(TestCase):
 	# noinspection PyMethodMayBeStatic
 	def prepare_data(self):
 		data_source = DataSource(
-			dataSourceId='1', dataSourceCode='ds1', dataSourceType=DataSourceType.MYSQL,
+			dataSourceId='1', dataSourceCode='test', dataSourceType=DataSourceType.MYSQL,
 			host='localhost', port='3306', username='watchmen', password='watchmen', name='watchmen',
 			tenantId='1')
 		data_source_service = get_data_source_service(create_fake_principal_service())

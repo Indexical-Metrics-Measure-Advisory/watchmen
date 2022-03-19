@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 RENAME TABLE pipeline_index TO pipeline_index_1;
 RENAME TABLE pipeline_index_1 TO pipeline_index;
 ALTER TABLE pipeline_index CHANGE pipelineindexid pipeline_index_id VARCHAR(50) NOT NULL;
@@ -28,4 +29,5 @@ CREATE INDEX pipeline_name ON pipeline_index (pipeline_name);
 CREATE INDEX source_from_factor_id ON pipeline_index (source_from_factor_id);
 CREATE INDEX source_from_topic_id ON pipeline_index (source_from_topic_id);
 CREATE INDEX tenant_id ON pipeline_index (tenant_id);
+-- noinspection SqlWithoutWhere
 UPDATE pipeline_index SET created_at = NOW(), last_modified_at = NOW();

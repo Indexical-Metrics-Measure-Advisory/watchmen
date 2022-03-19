@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 RENAME TABLE pats TO pats_1;
 RENAME TABLE pats_1 TO pats;
 ALTER TABLE pats CHANGE patid pat_id VARCHAR(50) NOT NULL;
@@ -13,4 +14,5 @@ CREATE INDEX tenant_id ON pats (tenant_id);
 CREATE INDEX user_id ON pats (user_id);
 CREATE INDEX username ON pats (username);
 CREATE INDEX token ON pats (token);
+-- noinspection SqlWithoutWhere
 UPDATE pats SET created_at = NOW();

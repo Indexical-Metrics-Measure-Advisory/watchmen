@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 RENAME TABLE console_space_subjects TO subjects;
 ALTER TABLE subjects CHANGE subjectid subject_id VARCHAR(50) NOT NULL;
 ALTER TABLE subjects MODIFY name VARCHAR(50) NOT NULL;
@@ -65,5 +66,6 @@ END|
 DELIMITER ;
 CALL WATCHMEN_MIGRATION_COPY_SUBJECT_IDS();
 DROP PROCEDURE IF EXISTS WATCHMEN_MIGRATION_COPY_SUBJECT_IDS;
+-- noinspection SqlWithoutWhere
 UPDATE subjects SET created_at = NOW(), created_by = '-1', last_modified_at = NOW(), last_modified_by = '-1';
 ALTER TABLE subjects DROP reportids;
