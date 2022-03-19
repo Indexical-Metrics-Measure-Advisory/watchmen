@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 ALTER TABLE monitor_rules RENAME TO monitor_rules_1;
 ALTER TABLE monitor_rules_1 RENAME TO monitor_rules;
 ALTER TABLE monitor_rules RENAME COLUMN ruleid TO rule_id;
@@ -27,4 +28,5 @@ CREATE INDEX i_monitor_rules_severity ON monitor_rules (severity);
 CREATE INDEX i_monitor_rules_factor_id ON monitor_rules (factor_id);
 CREATE INDEX i_monitor_rules_topic_id ON monitor_rules (topic_id);
 CREATE INDEX i_monitor_rules_tenant_id ON monitor_rules (tenant_id);
+-- noinspection SqlWithoutWhere
 UPDATE monitor_rules SET created_at = SYSDATE, created_by = '-1', last_modified_at = SYSDATE, last_modified_by = '-1';

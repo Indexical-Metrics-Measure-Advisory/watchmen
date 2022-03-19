@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 RENAME TABLE topics TO topics_1;
 RENAME TABLE topics_1 TO topics;
 ALTER TABLE topics CHANGE topicid topic_id VARCHAR(50) NOT NULL;
@@ -23,4 +24,5 @@ CREATE INDEX type ON topics (type);
 CREATE INDEX name ON topics (name);
 CREATE INDEX tenant_id ON topics (tenant_id);
 CREATE UNIQUE INDEX name_tenant_id ON topics (name, tenant_id);
+-- noinspection SqlWithoutWhere
 UPDATE topics set created_at = NOW(), created_by = '-1', last_modified_at = NOW(), last_modified_by = '-1', version = 1;

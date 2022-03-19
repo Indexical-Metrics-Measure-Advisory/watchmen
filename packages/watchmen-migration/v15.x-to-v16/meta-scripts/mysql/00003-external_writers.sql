@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 RENAME TABLE external_writer TO external_writers;
 ALTER TABLE external_writers CHANGE writerid writer_id VARCHAR(50) NOT NULL;
 ALTER TABLE external_writers CHANGE writercode writer_code VARCHAR(50) NOT NULL;
@@ -19,4 +20,5 @@ CREATE INDEX writer_code ON external_writers (writer_code);
 CREATE INDEX type ON external_writers (type);
 CREATE INDEX tenant_id ON external_writers (tenant_id);
 CREATE UNIQUE INDEX writer_code_tenant_id ON external_writers (writer_code, tenant_id);
+-- noinspection SqlWithoutWhere
 UPDATE external_writers SET created_at = NOW(), created_by = '-1', last_modified_at = NOW(), last_modified_by = '-1', version = 1;

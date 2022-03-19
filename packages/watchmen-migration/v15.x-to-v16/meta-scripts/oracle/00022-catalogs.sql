@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 ALTER TABLE catalogs RENAME TO catalogs_1;
 ALTER TABLE catalogs_1 RENAME TO catalogs;
 ALTER TABLE catalogs RENAME COLUMN catalogid TO catalog_id;
@@ -5,6 +6,7 @@ ALTER TABLE catalogs MODIFY (catalog_id VARCHAR2(50));
 ALTER TABLE catalogs MODIFY name VARCHAR2(50) NOT NULL;
 ALTER TABLE catalogs MODIFY description VARCHAR2(255);
 ALTER TABLE catalogs ADD (topic_ids VARCHAR2(2048) NULL);
+-- noinspection SqlWithoutWhere
 UPDATE catalogs SET topic_ids = topicids;
 ALTER TABLE catalogs DROP COLUMN topicids;
 ALTER TABLE catalogs RENAME COLUMN techownerid TO tech_owner_id;
@@ -28,4 +30,5 @@ CREATE INDEX i_catalogs_name ON catalogs (name);
 CREATE INDEX i_catalogs_tech_owner_id ON catalogs (tech_owner_id);
 CREATE INDEX i_catalogs_biz_owner_id ON catalogs (biz_owner_id);
 CREATE INDEX i_catalogs_tenant_id ON catalogs (tenant_id);
+-- noinspection SqlWithoutWhere
 UPDATE catalogs SET created_at = SYSDATE, created_by = '-1', last_modified_at = SYSDATE, last_modified_by = '-1', version = 1;

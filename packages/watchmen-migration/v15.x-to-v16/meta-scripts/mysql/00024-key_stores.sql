@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 RENAME TABLE key_stores TO key_stores_1;
 RENAME TABLE key_stores_1 TO key_stores;
 ALTER TABLE key_stores DROP PRIMARY KEY;

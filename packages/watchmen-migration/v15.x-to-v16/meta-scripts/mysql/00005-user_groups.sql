@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 RENAME TABLE user_groups TO user_groups_1;
 RENAME TABLE user_groups_1 TO user_groups;
 ALTER TABLE user_groups CHANGE usergroupid user_group_id VARCHAR(50) NOT NULL;
@@ -18,4 +19,5 @@ CREATE INDEX last_modified_at ON user_groups (last_modified_at);
 CREATE INDEX last_modified_by ON user_groups (last_modified_by);
 CREATE INDEX name ON user_groups (name);
 CREATE INDEX tenant_id ON user_groups (tenant_id);
+-- noinspection SqlWithoutWhere
 UPDATE user_groups set created_at = NOW(), created_by = '-1', last_modified_at = NOW(), last_modified_by = '-1', version = 1;

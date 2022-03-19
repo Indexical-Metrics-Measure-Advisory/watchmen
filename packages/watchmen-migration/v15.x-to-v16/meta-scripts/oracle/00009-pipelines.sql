@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 ALTER TABLE pipelines RENAME TO pipelines_1;
 ALTER TABLE pipelines_1 RENAME TO pipelines;
 ALTER TABLE pipelines RENAME COLUMN pipelineid TO pipeline_id;
@@ -28,4 +29,5 @@ CREATE INDEX i_pipelines_name ON pipelines (name);
 CREATE INDEX i_pipelines_type ON pipelines (type);
 CREATE INDEX i_pipelines_validated ON pipelines (validated);
 CREATE INDEX i_pipelines_tenant_id ON pipelines (tenant_id);
+-- noinspection SqlWithoutWhere
 UPDATE pipelines SET created_at = SYSDATE, created_by = '-1', last_modified_at = SYSDATE, last_modified_by = '-1', version = 1;

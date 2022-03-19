@@ -1,3 +1,4 @@
+-- noinspection SqlResolveForFile
 RENAME TABLE console_dashboards TO dashboards;
 ALTER TABLE dashboards CHANGE dashboardid dashboard_id VARCHAR(50) NOT NULL;
 ALTER TABLE dashboards MODIFY name VARCHAR(50) NOT NULL;
@@ -18,4 +19,5 @@ CREATE INDEX last_modified_by ON dashboards (last_modified_by);
 CREATE INDEX name ON dashboards (name);
 CREATE INDEX tenant_id ON dashboards (tenant_id);
 CREATE INDEX user_id ON dashboards (user_id);
+-- noinspection SqlWithoutWhere
 UPDATE dashboards SET created_at = NOW(), created_by = '-1', last_modified_at = NOW(), last_modified_by = '-1';

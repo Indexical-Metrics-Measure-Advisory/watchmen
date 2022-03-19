@@ -2,12 +2,12 @@ from datetime import date, datetime, time
 from typing import Any, Callable, List, Tuple
 
 from sqlalchemy import and_, case, func, literal_column, or_, Table
+
 from watchmen_storage import as_table_name, ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, \
 	EntityCriteria, EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, \
 	EntityCriteriaOperator, EntityCriteriaStatement, Literal, NoCriteriaForUpdateException, \
 	UnexpectedStorageException, UnsupportedComputationException, UnsupportedCriteriaException
 from watchmen_utilities import ArrayHelper, DateTimeConstants, is_blank, is_not_blank
-
 from .types import SQLAlchemyStatement
 
 
@@ -58,6 +58,8 @@ def build_literal(tables: List[Table], literal: Literal, build_plain_value: Call
 				.map(lambda x: build_literal(tables, x, to_decimal)) \
 				.reduce(lambda prev, current: prev % current, None)
 		elif operator == ComputedLiteralOperator.YEAR_OF:
+			# year is a customized function, which can be found in data-scripts folder
+			# make sure each topic storage have this function
 			return func.year(build_literal(tables, literal.elements[0]))
 		elif operator == ComputedLiteralOperator.HALF_YEAR_OF:
 			return case(
@@ -65,20 +67,27 @@ def build_literal(tables: List[Table], literal: Literal, build_plain_value: Call
 				else_=DateTimeConstants.HALF_YEAR_SECOND.value
 			)
 		elif operator == ComputedLiteralOperator.QUARTER_OF:
+			# quarter is a customized function, which can be found in data-scripts folder
+			# make sure each topic storage have this function
 			return func.quarter(build_literal(tables, literal.elements[0]))
 		elif operator == ComputedLiteralOperator.MONTH_OF:
 			return func.month(build_literal(tables, literal.elements[0]))
 		elif operator == ComputedLiteralOperator.WEEK_OF_YEAR:
+			# week is a customized function, which can be found in data-scripts folder
+			# make sure each topic storage have this function
 			return func.week(build_literal(tables, literal.elements[0]), 0)
 		elif operator == ComputedLiteralOperator.WEEK_OF_MONTH:
-			# weekofmonth is a customized function, which can be found in meta-scripts folder
+			# weekofmonth is a customized function, which can be found in data-scripts folder
 			# make sure each topic storage have this function
 			return func.weekofmonth(build_literal(tables, literal.elements[0]))
 		elif operator == ComputedLiteralOperator.DAY_OF_MONTH:
+			# day is a customized function, which can be found in data-scripts folder
+			# make sure each topic storage have this function
 			return func.day(build_literal(tables, literal.elements[0]))
 		elif operator == ComputedLiteralOperator.DAY_OF_WEEK:
-			# weekday in oracle is 0: Monday - 6: Sunday, here need 1: Sunday - 7: Saturday
-			return (func.weekday(build_literal(tables, literal.elements[0])) + 1) % 7 + 1
+			# weekday is a customized function, which can be found in data-scripts folder
+			# make sure each topic storage have this function
+			return func.weekday(build_literal(tables, literal.elements[0]))
 		elif operator == ComputedLiteralOperator.CASE_THEN:
 			elements = literal.elements
 			cases = ArrayHelper(elements).filter(lambda x: isinstance(x, Tuple)) \
@@ -100,15 +109,17 @@ def build_literal(tables: List[Table], literal: Literal, build_plain_value: Call
 				return ArrayHelper(literal.elements[2:]) \
 					.reduce(lambda prev, x: func.concat(prev, x), func.concat(literals[0], literals[1]))
 		elif operator == ComputedLiteralOperator.YEAR_DIFF:
-			# yeardiff is a customized function, which can be found in meta-scripts folder
+			# yeardiff is a customized function, which can be found in data-scripts folder
 			# make sure each topic storage have this function
 			return func.yeardiff(build_literal(tables, literal.elements[0]), build_literal(tables, literal.elements[1]))
 		elif operator == ComputedLiteralOperator.MONTH_DIFF:
-			# monthdiff is a customized function, which can be found in meta-scripts folder
+			# monthdiff is a customized function, which can be found in data-scripts folder
 			# make sure each topic storage have this function
 			return func.monthdiff(
 				build_literal(tables, literal.elements[0]), build_literal(tables, literal.elements[1]))
 		elif operator == ComputedLiteralOperator.DAY_DIFF:
+			# datediff is a customized function, which can be found in data-scripts folder
+			# make sure each topic storage have this function
 			return func.datediff(build_literal(tables, literal.elements[0]), build_literal(tables, literal.elements[1]))
 		elif operator == ComputedLiteralOperator.CHAR_LENGTH:
 			return func.length(build_literal(tables, literal.elements[0]))
@@ -146,8 +157,12 @@ def build_criteria_expression(tables: List[Table], expression: EntityCriteriaExp
 		elif isinstance(expression.right, ColumnNameLiteral):
 			built_right = build_literal(tables, expression.right)
 		elif isinstance(expression.right, ComputedLiteral):
-			# TODO cannot know whether the built literal will returns a list or a value, let it be now.
-			built_right = build_literal(tables, expression.right)
+			if expression.right.operator == ComputedLiteralOperator.CASE_THEN:
+				# TODO cannot know whether the built literal will returns a list or a value, let it be now.
+				built_right = build_literal(tables, expression.right)
+			else:
+				# any other computation will not lead a list
+				built_right = [build_literal(tables, expression.right)]
 		elif isinstance(expression.right, str):
 			built_right = ArrayHelper(expression.right.strip().split(',')).filter(lambda x: is_not_blank(x)).to_list()
 		else:
