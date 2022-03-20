@@ -10530,6 +10530,23 @@
           "item": [
             {
               "name": "CREATE REPORT",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "3ee5c5c4-e449-475b-aa1b-2779c76137d5",
+                    "exec": [
+                      "pm.test('Create Report', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.environment.set(\"REPORT_ID\", data.reportId);",
+                      "    pm.environment.set(\"REPORT_NAME\", data.name);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "3c310de1-2841-4aed-b7e9-515126f8e669",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
