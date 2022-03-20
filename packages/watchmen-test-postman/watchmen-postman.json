@@ -10643,7 +10643,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "\t{\n\t\"pageNumber\": 1\n\t\"pageSize\": 10\n    }",
+              "raw": "\t{\n\t\"pageNumber\": 1,\n\t\"pageSize\": 10\n    }",
               "options": {
                 "raw": {
                   "language": "json"
