@@ -10515,8 +10515,7 @@
                   "query": [
                     {
                       "key": "subject_id",
-                      "value": "{{SUBJECT_ID}}",
-                      "type": "text"
+                      "value": "{{SUBJECT_ID}}"
                     }
                   ]
                 }
