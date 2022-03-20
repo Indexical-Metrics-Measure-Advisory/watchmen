@@ -10445,14 +10445,14 @@
       "id": "c3559069-a139-4890-b153-42518e18405c"
     },
     {
-      "name": "DQC",
-      "item": [],
-      "id": "19e99fdc-76dc-4660-b1eb-d29457d0b56b"
-    },
-    {
       "name": "Pipeline Monitor",
       "item": [],
       "id": "b8f71fdf-274a-449e-bfa8-12a22b6e4972"
+    },
+    {
+      "name": "DQC",
+      "item": [],
+      "id": "19e99fdc-76dc-4660-b1eb-d29457d0b56b"
     }
   ]
 }
