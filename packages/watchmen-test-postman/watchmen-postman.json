@@ -10527,7 +10527,20 @@
         },
         {
           "name": "REPORT",
-          "item": [],
+          "item": [
+            {
+              "name": "New Request",
+              "id": "142f8fa9-e01f-471b-bfdc-0a8470509083",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            }
+          ],
           "id": "3191c34a-4994-4e97-a1ce-2d7442f8f19f"
         }
       ],
