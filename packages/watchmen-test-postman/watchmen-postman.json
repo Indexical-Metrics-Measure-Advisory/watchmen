@@ -10627,7 +10627,7 @@
       "name": "PIPELINE MONITOR",
       "item": [
         {
-          "name": "New Request",
+          "name": "PIPELINE LOG",
           "id": "c7423598-0891-468c-913b-946d975a9fe3",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
