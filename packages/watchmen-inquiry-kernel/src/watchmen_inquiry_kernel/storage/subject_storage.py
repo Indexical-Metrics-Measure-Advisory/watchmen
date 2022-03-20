@@ -298,10 +298,10 @@ class SubjectStorage:
 
 		indicator_columns = ArrayHelper(report_schema.get_report().indicators) \
 			.map_with_index(
-			lambda x, index: self.build_aggregate_column_by_indicator(x, index, subject_column_map, report_schema))
+			lambda x, index: self.build_aggregate_column_by_indicator(x, index, subject_column_map, report_schema)).to_list()
 		dimension_columns = ArrayHelper(report_schema.get_report().dimensions) \
 			.map_with_index(
-			lambda x, index: self.build_aggregate_column_by_dimension(x, index, subject_column_map, report_schema))
+			lambda x, index: self.build_aggregate_column_by_dimension(x, index, subject_column_map, report_schema)).to_list()
 
 		return [*indicator_columns, *dimension_columns]
 
