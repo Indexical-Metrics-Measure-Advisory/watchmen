@@ -10432,24 +10432,6 @@
       "name": "SUBJECT",
       "item": [
         {
-          "name": "SUBJECT",
-          "item": [
-            {
-              "name": "CREATE SUBJECT",
-              "id": "6a5e798d-f27b-4c44-86f6-f4c8a71deaa4",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
-              },
-              "response": []
-            }
-          ],
-          "id": "115672d8-3555-440b-8052-c8e9c370e840"
-        },
-        {
           "name": "DATASET",
           "item": [],
           "id": "4be0c839-19e6-4ccd-a5eb-e09c4ddbdaec"
