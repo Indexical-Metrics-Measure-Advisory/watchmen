@@ -10529,7 +10529,7 @@
           "name": "REPORT",
           "item": [
             {
-              "name": "CREATE REPORT",
+              "name": "REPORT DATA",
               "id": "142f8fa9-e01f-471b-bfdc-0a8470509083",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
