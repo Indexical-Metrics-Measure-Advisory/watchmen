@@ -10535,8 +10535,40 @@
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{URL_PREFIX}}/report/data?report_id={{REPORT_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "report",
+                    "data"
+                  ],
+                  "query": [
+                    {
+                      "key": "report_id",
+                      "value": "{{REPORT_ID}}",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
