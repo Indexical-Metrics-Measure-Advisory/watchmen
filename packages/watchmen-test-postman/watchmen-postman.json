@@ -10625,7 +10625,20 @@
     },
     {
       "name": "PIPELINE MONITOR",
-      "item": [],
+      "item": [
+        {
+          "name": "New Request",
+          "id": "c7423598-0891-468c-913b-946d975a9fe3",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ],
       "id": "b8f71fdf-274a-449e-bfa8-12a22b6e4972"
     },
     {
