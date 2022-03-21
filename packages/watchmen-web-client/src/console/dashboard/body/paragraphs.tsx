@@ -21,6 +21,7 @@ export const Paragraphs = (props: {
 	useEffect(() => {
 		const onParagraphChanged = () => {
 			fire(DashboardEventTypes.SAVE_DASHBOARD, dashboard);
+			forceUpdate()
 		};
 		on(DashboardEventTypes.PARAGRAPH_ADDED, onParagraphChanged);
 		on(DashboardEventTypes.PARAGRAPH_REMOVED, onParagraphChanged);
