@@ -605,7 +605,7 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 				if allow_insert:
 					# data not found, do insertion
 					self.do_insert(
-						variables, new_pipeline, action_monitor_log, principal_service, topic_data_service, True)
+						variables, new_pipeline, action_monitor_log, principal_service, topic_data_service, False)
 				else:
 					# insertion is not allowed
 					raise PipelineKernelException(f'Data not found, {self.on_topic_message()}, by [{[statement]}].')
