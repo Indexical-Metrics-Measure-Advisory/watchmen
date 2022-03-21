@@ -68,6 +68,14 @@ class TopicSchema:
 			ArrayHelper(self.encryptFactorGroups).each(lambda x: x.encrypt(data, principal_service))
 		return data
 
+	def decrypt(self, data: Dict[str, Any], principal_service: PrincipalService) -> Dict[str, Any]:
+		"""
+		given data might be changed, and returns exactly the given one
+		"""
+		if self.should_encrypt():
+			ArrayHelper(self.encryptFactorGroups).each(lambda x: x.decrypt(data, principal_service))
+		return data
+
 	def should_aid_hierarchy(self) -> bool:
 		topic = self.get_topic()
 		if not is_raw_topic(topic):

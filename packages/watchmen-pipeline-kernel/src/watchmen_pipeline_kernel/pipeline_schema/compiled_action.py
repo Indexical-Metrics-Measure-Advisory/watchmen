@@ -28,8 +28,9 @@ from watchmen_model.common import ConstantParameter, ParameterKind
 from watchmen_model.pipeline_kernel import MonitorAlarmAction, MonitorCopyToMemoryAction, MonitorDeleteAction, \
 	MonitorLogAction, MonitorLogStatus, MonitorLogUnit, MonitorReadAction, MonitorWriteAction, \
 	MonitorWriteToExternalAction
-from watchmen_pipeline_kernel.common import ask_pipeline_update_retry, ask_pipeline_update_retry_force, \
-	ask_pipeline_update_retry_interval, ask_pipeline_update_retry_times, PipelineKernelException
+from watchmen_pipeline_kernel.common import ask_decrypt_factor_value, ask_pipeline_update_retry, \
+	ask_pipeline_update_retry_force, ask_pipeline_update_retry_interval, ask_pipeline_update_retry_times, \
+	PipelineKernelException
 from watchmen_pipeline_kernel.pipeline_schema_interface import CreateQueuePipeline, TopicStorages
 from watchmen_storage import EntityColumnAggregateArithmetic, EntityCriteria, EntityStraightAggregateColumn, \
 	EntityStraightColumn
@@ -318,7 +319,11 @@ class CompiledReadRowAction(CompiledReadTopicAction):
 				raise PipelineKernelException(
 					f'Too many data[count={count}] found, {self.on_topic_message()}, by [{[statement]}].')
 			else:
-				variables.put(self.variableName, data[0])
+				value = data[0]
+				if value is not None:
+					if ask_decrypt_factor_value():
+						value = self.schema.decrypt(value, principal_service)
+				variables.put(self.variableName, value)
 				action_monitor_log.touched = {'data': data}
 
 		return self.safe_run(action_monitor_log, work)
@@ -334,6 +339,8 @@ class CompiledReadRowsAction(CompiledReadTopicAction):
 			statement = self.parsedFindBy.run(variables, principal_service)
 			action_monitor_log.findBy = statement.to_dict()
 			data = topic_data_service.find(criteria=[statement])
+			if ask_decrypt_factor_value():
+				data = ArrayHelper(data).map(lambda x: self.schema.decrypt(x, principal_service)).to_list()
 			variables.put(self.variableName, data)
 			action_monitor_log.touched = {'data': data}
 
@@ -369,7 +376,7 @@ class CompiledReadFactorAction(CompiledReadTopicFactorAction):
 	def build_straight_column(self, topic_data_service: TopicDataService) -> EntityStraightColumn:
 		factor_name = self.factor.name
 		column_name = topic_data_service.get_data_entity_helper().get_column_name(self.factor.name)
-		if self.aggregateArithmetic == AggregateArithmetic.NONE:
+		if self.aggregateArithmetic is None or self.aggregateArithmetic == AggregateArithmetic.NONE:
 			return EntityStraightColumn(columnName=column_name, alias=factor_name)
 		elif self.aggregateArithmetic == AggregateArithmetic.COUNT:
 			return EntityStraightAggregateColumn(
@@ -403,11 +410,14 @@ class CompiledReadFactorAction(CompiledReadTopicFactorAction):
 			data = topic_data_service.find_straight_values(
 				criteria=[statement], columns=[self.build_straight_column(topic_data_service)])
 			if len(data) == 0:
-				variables.put(self.variableName, 0)
-				action_monitor_log.touched = {'data': 0}
+				raise PipelineKernelException(f'Data not found, {self.on_topic_message()}, by [{[statement]}].')
 			else:
 				value = data[0].popitem()[1]
-				value = 0 if value is None else value
+				if value is not None:
+					if self.aggregateArithmetic is None or self.aggregateArithmetic == AggregateArithmetic.NONE:
+						if ask_decrypt_factor_value():
+							value = self.schema.decrypt({self.factor.name: value}, principal_service) \
+								.get(self.factor.name)
 				variables.put(self.variableName, value)
 				action_monitor_log.touched = {'data': value}
 
@@ -426,6 +436,11 @@ class CompiledReadFactorsAction(CompiledReadTopicFactorAction):
 			column_name = topic_data_service.get_data_entity_helper().get_column_name(self.factor.name)
 			data = topic_data_service.find_distinct_values(criteria=[statement], column_names=[column_name])
 			factor_values = ArrayHelper(data).map(lambda x: x.get(self.factor.name)).to_list()
+			if ask_decrypt_factor_value():
+				factor_values = ArrayHelper(data) \
+					.map(lambda x: self.schema.decrypt({self.factor.name: x}, principal_service)) \
+					.map(lambda x: x.get(self.factor.name)) \
+					.to_list()
 			variables.put(self.variableName, factor_values)
 			action_monitor_log.touched = {'data': factor_values}
 
