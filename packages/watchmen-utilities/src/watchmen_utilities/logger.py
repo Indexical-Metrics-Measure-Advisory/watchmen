@@ -18,6 +18,9 @@ class LoggerSettings(BaseSettings):
 	LOGGER_LEVEL: LogLevel = LogLevel.ERROR
 	LOGGER_TO_FILE: bool = False
 	LOGGER_FILE: str = 'temp/rotating.log'
+	LOGGER_FILE_SIZE: int = 10242880
+	LOGGER_FILE_BACKUP_COUNT: int = 5
+	LOGGER_FILE_ENCODING = 'utf-8'
 	LOGGER_JSON_FORMAT: bool = False
 	# noinspection SpellCheckingInspection
 	LOGGER_FORMAT: str = '%(asctime)s - %(process)d - %(threadName)s - %(name)s - %(levelname)s - %(message)s'
@@ -60,7 +63,10 @@ def init_log():
 	# Add file rotating handler
 	if settings.LOGGER_TO_FILE:
 		file_log_handler = handlers.RotatingFileHandler(
-			filename=settings.LOGGER_FILE, maxBytes=10242880, backupCount=5, encoding='utf-8')
+			filename=settings.LOGGER_FILE,
+			maxBytes=settings.LOGGER_FILE_SIZE,
+			backupCount=settings.LOGGER_FILE_BACKUP_COUNT,
+			encoding=settings.LOGGER_FILE_ENCODING)
 		file_log_handler.setLevel(logger_level)
 		if settings.LOGGER_JSON_FORMAT:
 			formatter = JsonFormatter(settings.LOGGER_FORMAT)
