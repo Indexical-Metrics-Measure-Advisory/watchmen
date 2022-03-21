@@ -14,7 +14,8 @@ class DataSourceParam(DataModel, BaseModel):
 class DataSourceType(str, Enum):
 	MYSQL = 'mysql',
 	ORACLE = 'oracle',
-	MONGODB = 'mongodb'
+	MONGODB = 'mongodb',
+	MSSQL = 'mssql'
 
 
 class DataSource(TenantBasedTuple, OptimisticLock, BaseModel):
