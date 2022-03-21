@@ -102,6 +102,20 @@ class EncryptFactorGroup:
 		else:
 			data[self.name] = encrypt(value, self.factors[0].get_encrypt_method(), principal_service)
 
+	def decrypt(self, data: Dict[str, Any], principal_service: PrincipalService) -> None:
+		value = data.get(self.name)
+		if value is None:
+			return
+		if isinstance(value, dict):
+			ArrayHelper(self.groups).each(lambda x: x.decrypt(value, principal_service))
+		elif isinstance(value, list):
+			def each(item):
+				ArrayHelper(self.groups).each(lambda x: x.decrypt(item, principal_service))
+
+			ArrayHelper(value).each(lambda x: each(x))
+		else:
+			data[self.name] = decrypt(value, self.factors[0].get_encrypt_method(), principal_service)
+
 
 def parse_encrypt_factors(topic: Topic) -> List[EncryptFactorGroup]:
 	groups = ArrayHelper(topic.factors) \
@@ -122,3 +136,13 @@ def encrypt(value: Any, method: FactorEncryptMethod, principal_service: Principa
 		return value
 	else:
 		return ask_encryptor(method, principal_service).encrypt(value)
+
+
+def decrypt(value: Any, method: FactorEncryptMethod, principal_service: PrincipalService) -> Any:
+	# do encryption
+	# check it is encrypted or not first
+	# data read from topic, and write again, might be encrypted already
+	if method == FactorEncryptMethod.NONE:
+		return value
+	else:
+		return ask_encryptor(method, principal_service).decrypt(value)
