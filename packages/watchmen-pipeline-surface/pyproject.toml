@@ -29,6 +29,8 @@ mongodb = ["watchmen-storage-mongodb"]
 mssql = ["watchmen-storage-mssql"]
 kafka = ["kafka-python", "aiokafka"]
 rabbitmq = ["aio-pika"]
+standard_ext_writer = ["requests"]
+es_ext_writer = []
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
