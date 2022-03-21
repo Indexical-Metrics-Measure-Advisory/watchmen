@@ -488,12 +488,19 @@ class CompiledInsertion(CompiledWriteTopicAction):
 	def do_insert(
 			self, variables: PipelineVariables, new_pipeline: CreateQueuePipeline,
 			action_monitor_log: MonitorWriteAction,
-			principal_service: PrincipalService, topic_data_service: TopicDataService) -> None:
+			principal_service: PrincipalService, topic_data_service: TopicDataService,
+			allow_failure: bool) -> bool:
 		data = self.parsedMapping.run(None, variables, principal_service)
 		self.schema.initialize_default_values(data)
 		self.schema.cast_date_or_time(data)
 		self.schema.encrypt(data, principal_service)
-		data = topic_data_service.insert(data)
+		try:
+			data = topic_data_service.insert(data)
+		except Exception as e:
+			if allow_failure:
+				return False
+			else:
+				raise e
 		action_monitor_log.insertCount = 1
 		action_monitor_log.touched = {'data': data}
 		# new pipeline
@@ -572,7 +579,7 @@ class CompiledInsertRowAction(CompiledInsertion):
 			principal_service: PrincipalService) -> bool:
 		def work() -> None:
 			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
-			self.do_insert(variables, new_pipeline, action_monitor_log, principal_service, topic_data_service)
+			self.do_insert(variables, new_pipeline, action_monitor_log, principal_service, topic_data_service, False)
 
 		return self.safe_run(action_monitor_log, work)
 
@@ -598,7 +605,7 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 				if allow_insert:
 					# data not found, do insertion
 					self.do_insert(
-						variables, new_pipeline, action_monitor_log, principal_service, topic_data_service)
+						variables, new_pipeline, action_monitor_log, principal_service, topic_data_service, True)
 				else:
 					# insertion is not allowed
 					raise PipelineKernelException(f'Data not found, {self.on_topic_message()}, by [{[statement]}].')
@@ -635,16 +642,19 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 					topic_data_service.get_storage().rollback_and_close()
 					raise e
 
-		def work(times: int) -> None:
+		def work(times: int, is_insert_allowed: bool) -> None:
 			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
 			statement = self.parsedFindBy.run(variables, principal_service)
 			action_monitor_log.findBy = statement.to_dict()
 			data = topic_data_service.find(criteria=[statement])
 			count = len(data)
 			if count == 0:
-				if allow_insert:
+				if is_insert_allowed:
 					# data not found, do insertion
-					self.do_insert(variables, new_pipeline, action_monitor_log, principal_service, topic_data_service)
+					fail_on_insert = self.do_insert(
+						variables, new_pipeline, action_monitor_log, principal_service, topic_data_service, True)
+					if fail_on_insert:
+						work(times, False)
 				else:
 					# insertion is not allowed
 					raise PipelineKernelException(f'Data not found, {self.on_topic_message()}, by [{[statement]}].')
@@ -670,7 +680,7 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 						interval = interval + randrange(1, 20)
 						sleep(interval / 1000)
 						# example: try update on [0, 1, 2] when retry times is 3
-						work(times + 1)
+						work(times + 1, is_insert_allowed)
 					elif ask_pipeline_update_retry() and ask_pipeline_update_retry_force():
 						last_try()
 					else:
@@ -679,7 +689,7 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 
 		def create_worker() -> Callable[[], None]:
 			# retry times starts from 0
-			return lambda: work(0)
+			return lambda: work(0, allow_insert)
 
 		return self.safe_run(action_monitor_log, create_worker())
 
