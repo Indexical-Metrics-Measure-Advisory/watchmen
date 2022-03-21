@@ -20,7 +20,7 @@ class LoggerSettings(BaseSettings):
 	LOGGER_FILE: str = 'temp/rotating.log'
 	LOGGER_FILE_SIZE: int = 10242880
 	LOGGER_FILE_BACKUP_COUNT: int = 5
-	LOGGER_FILE_ENCODING = 'utf-8'
+	LOGGER_FILE_ENCODING: str = 'utf-8'
 	LOGGER_JSON_FORMAT: bool = False
 	# noinspection SpellCheckingInspection
 	LOGGER_FORMAT: str = '%(asctime)s - %(process)d - %(threadName)s - %(name)s - %(levelname)s - %(message)s'
