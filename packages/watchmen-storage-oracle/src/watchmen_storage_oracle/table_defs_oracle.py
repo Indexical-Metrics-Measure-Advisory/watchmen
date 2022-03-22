@@ -12,6 +12,7 @@ from .table_defs_helper import create_bool, create_datetime, create_description,
 from .topic_table_generate import build_by_aggregation, build_by_raw, build_by_regular
 
 # snowflake workers
+# noinspection DuplicatedCode
 table_snowflake_competitive_workers = Table(
 	SNOWFLAKE_WORKER_ID_TABLE, meta_data,
 	create_str('ip', String(100)), create_str('process_id', String(60)),
@@ -109,6 +110,7 @@ table_pipelines = Table(
 	create_json('stages'), create_bool('enabled', False), create_bool('validated', False),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
+# noinspection DuplicatedCode
 table_pipeline_graphics = Table(
 	'pipeline_graphics', meta_data,
 	create_pk('pipeline_graphic_id'),

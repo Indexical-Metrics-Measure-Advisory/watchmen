@@ -6,6 +6,7 @@ from fastapi import HTTPException
 from watchmen_meta.common import StorageService
 from watchmen_rest.util import raise_500
 
+# noinspection DuplicatedCode
 logger = getLogger(__name__)
 TransReturned = TypeVar('TransReturned')
 
@@ -25,6 +26,7 @@ def trans(storage_service: StorageService, action: Callable[[], TransReturned]) 
 		raise_500(e)
 
 
+# noinspection DuplicatedCode
 def trans_with_tail(
 		storage_service: StorageService,
 		action: Callable[[], Tuple[TransReturned, Callable[[], None]]]) -> TransReturned:
