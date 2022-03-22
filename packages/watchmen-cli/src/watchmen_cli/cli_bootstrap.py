@@ -1,16 +1,15 @@
-import json
 from enum import Enum
+from json import dump, dumps, load
 from os import path
 from typing import Any, Dict, List
 
-import requests
+from requests import post
 
-from sdk.common.common_sdk import test_url
-from sdk.constants import FILE
-from sdk.service.data_search import search_space, search_topic, search_user, search_user_group
-from sdk.service.data_sync import list_pipeline, sync_pipeline, sync_space, sync_topic, sync_user, sync_user_group
-from sdk.service.markdown_service import import_markdowns, import_markdowns_v2
-from sdk.utils.file_service import create_file, create_folder, load_file_to_json, load_folder
+from .common import test_url
+from .constants import FILE
+from .service import import_markdowns, import_markdowns_v2, list_pipeline, search_space, search_topic, search_user, \
+	search_user_group, sync_pipeline, sync_space, sync_topic, sync_user, sync_user_group
+from .utils import create_file, create_folder, load_file_to_json, load_folder
 
 IMPORT = 'import'
 GENERATE = 'generate'
@@ -32,7 +31,7 @@ class ModelType(str, Enum):
 def get_access_token(host: str, username: str, password: str) -> str:
 	login_data = {'username': username, 'password': password, 'grant_type': 'password'}
 	headers = {'Content-Type': 'application/x-www-form-urlencoded'}
-	response = requests.post(f'{host}/login/access-token', data=login_data, headers=headers)
+	response = post(f'{host}/login/access-token', data=login_data, headers=headers)
 	token = response.json().get('access_token')
 	return token
 
@@ -41,8 +40,8 @@ def get_access_token(host: str, username: str, password: str) -> str:
 def import_topics_to_env(token: str, host: str, topics: List[Dict[str, Any]]) -> None:
 	headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token}
 	for topic in topics:
-		response = requests.post(
-			f'{host}/topic/import', data=json.dumps(topic), headers=headers)
+		response = post(
+			f'{host}/topic/import', data=dumps(topic), headers=headers)
 		if response.status_code == 200:
 			print(f'Import topic[{topic.get("name")}] successfully')
 		else:
@@ -53,21 +52,21 @@ def import_topics_to_env(token: str, host: str, topics: List[Dict[str, Any]]) ->
 def import_pipelines_to_env(token: str, host: str, pipelines: List[Dict[str, Any]]) -> None:
 	headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token}
 	for pipeline in pipelines:
-		response = requests.post(
-			f'{host}/pipeline/import', data=json.dumps(pipeline), headers=headers)
+		response = post(
+			f'{host}/pipeline/import', data=dumps(pipeline), headers=headers)
 		if response.status_code == 200:
 			print(f'Import pipeline[{pipeline.get("name")}] successfully.')
 		else:
 			print(f'Import pipeline[{pipeline.get("name")}] failed.')
 
 
-class WatchmenCli:
+class CliBootstrap:
 	# noinspection PyMethodMayBeStatic
 	def __load_site_json(self):
 		data = {}
 		if path.exists('site/site.json'):
 			with open('site/site.json', 'r') as outfile:
-				data = json.load(outfile)
+				data = load(outfile)
 				return data
 		else:
 			return data
@@ -81,7 +80,7 @@ class WatchmenCli:
 	# noinspection PyMethodMayBeStatic
 	def __save_to_json(self, data: Dict[str, Any]) -> None:
 		with open('temp/site.json', 'w') as outfile:
-			json.dump(data, outfile)
+			dump(data, outfile)
 
 	def add_site(self, name: str, host: str, username: str = None, password: str = None) -> None:
 		sites = self.__load_site_json()
@@ -175,8 +174,8 @@ class WatchmenCli:
 		try:
 			token = get_access_token(host, username, password)
 			print('import topics first')
-			with open('/app/config/topic/' + 'topic.json', 'r') as src:
-				topics = json.load(src)
+			with open('/app/config/topic/topic.json', 'r') as src:
+				topics = load(src)
 				import_topics_to_env(token, host, topics)
 		except Exception as err:
 			raise err
@@ -186,8 +185,8 @@ class WatchmenCli:
 		try:
 			token = get_access_token(host, username, password)
 			print('import pipelines')
-			with open('/app/config/pipeline/' + 'pipeline.json', 'r') as src:
-				pipelines = json.load(src)
+			with open('/app/config/pipeline/pipeline.json', 'r') as src:
+				pipelines = load(src)
 				import_pipelines_to_env(token, host, pipelines)
 		except Exception as err:
 			raise err
@@ -199,7 +198,7 @@ class WatchmenCli:
 	def deploy_asset(self, host: str, username: str, password: str):
 		try:
 			token = get_access_token(host, username, password)
-			print('import md asset')
+			print('Import markdown asset')
 			print(token)
 			import_markdowns_v2(host, token, 'replace')
 		except Exception as err:

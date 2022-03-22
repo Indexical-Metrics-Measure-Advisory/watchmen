@@ -1,6 +1,6 @@
-import fire
+from fire import Fire
 
-from .watchmen_cli import WatchmenCli
+from watchmen_cli import CliBootstrap
 
 """
 :authors: imma-team
@@ -8,4 +8,4 @@ from .watchmen_cli import WatchmenCli
 """
 
 if __name__ == '__main__':
-    fire.Fire(WatchmenCli)
+	Fire(CliBootstrap)
