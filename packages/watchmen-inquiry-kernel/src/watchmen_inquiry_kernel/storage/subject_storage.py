@@ -848,7 +848,7 @@ class SubjectStorage:
 		ArrayHelper(available_schemas).each(lambda x: storage.register_topic(x.get_topic()))
 		return StorageFindAgent(storage)
 
-	def ask_presto_find_agent(self) -> FindAgent:
+	def ask_trino_find_agent(self) -> FindAgent:
 		from watchmen_inquiry_trino import ask_trino_topic_storage
 		storage = ask_trino_topic_storage(self.principalService)
 		# register topic, in case of it is not registered yet
@@ -858,7 +858,7 @@ class SubjectStorage:
 
 	def find_data(self, find: Callable[[FindAgent], Any]) -> Union[List[Dict[str, Any]], DataPage]:
 		if not ask_use_storage_directly():
-			return self.do_find(self.ask_presto_find_agent(), find)
+			return self.do_find(self.ask_trino_find_agent(), find)
 
 		if self.schema.from_one_data_source():
 			return self.do_find(self.ask_storage_find_agent(), find)
@@ -867,4 +867,4 @@ class SubjectStorage:
 				'Cannot perform inquiry on storage native when there are multiple data sources, '
 				'ask your administrator to turn on presto/trino engine.')
 		else:
-			return self.do_find(self.ask_presto_find_agent(), find)
+			return self.do_find(self.ask_trino_find_agent(), find)
