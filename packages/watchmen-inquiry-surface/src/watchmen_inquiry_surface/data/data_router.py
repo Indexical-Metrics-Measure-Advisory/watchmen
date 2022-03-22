@@ -164,7 +164,7 @@ async def query_dataset(
 		# topicId is not need here since subject will be build as a sub query
 		return TopicFactorParameter(
 			kind=ParameterKind.TOPIC,
-			factor_id=dataset_column.columnId
+			factorId=dataset_column.columnId
 		)
 
 	def translate_constant(param: ConstantParameter) -> ConstantParameter:
