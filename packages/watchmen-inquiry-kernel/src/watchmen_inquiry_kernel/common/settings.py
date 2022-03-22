@@ -7,7 +7,7 @@ logger = getLogger(__name__)
 
 class KernelSettings(BaseSettings):
 	USE_STORAGE_DIRECTLY: bool = True  # use storage directly when all topics in subject are from one data source
-	TRINO: bool = True  # presto
+	TRINO: bool = True  # trino
 
 	class Config:
 		# secrets_dir = '/var/run'
