@@ -1,3 +1,3 @@
 # Watchmen Inquiry Kernel
 
-Inquiry kernel of _**Watchmen**_.
+Inquiry trino of _**Watchmen**_.
