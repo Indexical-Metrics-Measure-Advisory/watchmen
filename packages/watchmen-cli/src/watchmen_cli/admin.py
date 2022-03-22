@@ -1,22 +1,25 @@
-import json
+from json import dumps
 
-import requests
+from requests import get, post
 
-from sdk.auth.auth_sdk import login
-from sdk.utils.header_utils import build_headers
+from .auth import login
+from .utils import build_headers
+
+
+def as_url(site, url: str) -> str:
+	return f'{site.get("host")}{url}'
 
 
 def search_topics(site, name):
 	headers = build_headers(login(site))
-	response = requests.get(site["host"] + "topic/name?query_name=" + name, headers=headers)
+	response = get(as_url(site, f'topic/name?query_name={name}'), headers=headers)
 	return response.json()
 
 
 def import_topics(site, topics):
 	headers = build_headers(login(site))
 	for topic in topics:
-		response = requests.post(
-			site["host"] + "topic/import", data=json.dumps(topic), headers=headers)
+		response = post(as_url(site, 'topic/import'), data=dumps(topic), headers=headers)
 		if response.status_code == 200:
 			print("import successfully")
 		else:
@@ -25,9 +28,7 @@ def import_topics(site, topics):
 
 def load_topic_list(site, names):
 	headers = build_headers(login(site))
-	# TODO
-	response = requests.post(site["host"] + "topic/list/name", data=json.dumps(names), headers=headers)
-
+	response = post(as_url(site, 'topic/list/name'), data=dumps(names), headers=headers)
 	return response.json()
 
 
@@ -37,20 +38,20 @@ def load_user_list(site, username_list):
 
 def search_spaces(site, name):
 	headers = build_headers(login(site))
-	response = requests.get(site["host"] + "space/name?query_name=" + name, headers=headers)
+	response = get(as_url(site, f'space/name?query_name={name}'), headers=headers)
 	return response.json()
 
 
 def load_space_list(site, names):
 	headers = build_headers(login(site))
-	response = requests.post(site["host"] + "space/list/name", data=json.dumps(names), headers=headers)
+	response = post(as_url(site, 'space/list/name'), data=dumps(names), headers=headers)
 
 	return response.json()
 
 
 def load_user_groups(site, names):
 	headers = build_headers(login(site))
-	response = requests.post(site["host"] + "user_group/list/name", data=json.dumps(names), headers=headers)
+	response = post(as_url(site, 'user_group/list/name'), data=dumps(names), headers=headers)
 
 	data = response.json()
 	# print(data)
@@ -60,28 +61,27 @@ def load_user_groups(site, names):
 def import_spaces(site, spaces):
 	headers = build_headers(login(site))
 	for space in spaces:
-		response = requests.post(site["host"] + "space/import", data=json.dumps(space), headers=headers)
+		response = post(as_url(site, 'space/import'), data=dumps(space), headers=headers)
 		if response.status_code == 200:
 			print("import successfully")
 
 
 def list_all_pipeline(site):
 	headers = build_headers(login(site))
-	response = requests.get(site["host"] + "pipeline/all", headers=headers)
+	response = get(as_url(site, 'pipeline/all'), headers=headers)
 	return response.json()
 
 
 def load_pipeline_by_id(site, id):
 	headers = build_headers(login(site))
-	response = requests.get(site["host"] + "pipeline?pipeline_id=" + str(id), headers=headers)
+	response = get(as_url(site, f'pipeline?pipeline_id={id}'), headers=headers)
 	return response.json()
 
 
 def import_pipelines(site, pipelines):
 	headers = build_headers(login(site))
 	for pipeline in pipelines:
-		response = requests.post(
-			site["host"] + "pipeline/import", data=json.dumps(pipeline), headers=headers)
+		response = post(as_url(site, 'pipeline/import'), data=dumps(pipeline), headers=headers)
 		if response.status_code == 200:
 			print("import successfully")
 		else:
@@ -90,22 +90,21 @@ def import_pipelines(site, pipelines):
 
 def search_user_groups(site, name):
 	headers = build_headers(login(site))
-	response = requests.get(site["host"] + "user_group/name?query_name=" + name, headers=headers)
+	response = get(as_url(site, f'user_group/name?query_name={name}'), headers=headers)
 	return response.json()
 
 
 def import_user_groups(site, groups):
 	headers = build_headers(login(site))
 	for group in groups:
-		response = requests.post(
-			site["host"] + "user_group/import", data=json.dumps(group), headers=headers)
+		response = post(as_url(site, 'user_group/import'), data=dumps(group), headers=headers)
 		if response.status_code == 200:
 			print("import successfully")
 
 
 def search_users(site, name):
 	headers = build_headers(login(site))
-	response = requests.get(site["host"] + "user/name?query_name=" + name, headers=headers)
+	response = get(as_url(site, f'user/name?query_name={name}'), headers=headers)
 	# print(response.status_code)
 	return response.json()
 
@@ -113,17 +112,15 @@ def search_users(site, name):
 def import_users(site, users):
 	headers = build_headers(login(site))
 	for user in users:
-		response = requests.post(
-			site["host"] + "user/import", data=json.dumps(user), headers=headers)
+		response = post(as_url(site, 'user/import'), data=dumps(user), headers=headers)
 		if response.status_code == 200:
 			print("import successfully")
 
 
 def load_users(site, names):
-	print(json.dumps(names))
+	print(dumps(names))
 	headers = build_headers(login(site))
-	response = requests.post(
-		site["host"] + "user/list/name", data=json.dumps(names), headers=headers)
+	response = post(as_url(site, 'user/list/name'), data=dumps(names), headers=headers)
 	data = response.json()
 	# print(response.json())
 	# print(data)

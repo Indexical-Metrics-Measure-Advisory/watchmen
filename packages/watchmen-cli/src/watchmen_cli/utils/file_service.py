@@ -17,7 +17,7 @@ def save_to_file(site_name: str, data_list: List[Any], model_name: str) -> None:
 
 def load_from_file(site_name: str, model_name: str) -> Any:
 	path = __get_path(site_name, model_name)
-	with open(f'{path}/{model_name}.json', "r") as outfile:
+	with open(f'{path}/{model_name}.json', 'r') as outfile:
 		return load(outfile)
 
 
@@ -27,7 +27,7 @@ def create_file(path: str, file_name: str, data_list: List[Any]) -> None:
 
 
 def load_file_to_json(file: Union[str, PathLike]) -> Any:
-	with open(file, "r") as outfile:
+	with open(file, 'r') as outfile:
 		return load(outfile)
 
 
