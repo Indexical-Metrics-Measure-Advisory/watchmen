@@ -1,19 +1,19 @@
 -- noinspection SqlResolveForFile
 ALTER TABLE external_writer RENAME TO external_writers;
 ALTER TABLE external_writers RENAME COLUMN writerid TO writer_id;
-ALTER TABLE external_writers MODIFY (writer_id VARCHAR2(50));
+ALTER TABLE external_writers MODIFY writer_id VARCHAR2(50);
 ALTER TABLE external_writers RENAME COLUMN writercode TO writer_code;
-ALTER TABLE external_writers MODIFY (writer_code VARCHAR2(50));
+ALTER TABLE external_writers MODIFY writer_code VARCHAR2(50);
 ALTER TABLE external_writers MODIFY pat VARCHAR2(255);
 ALTER TABLE external_writers MODIFY url VARCHAR2(255);
 ALTER TABLE external_writers RENAME COLUMN tenantId TO tenant_id;
-ALTER TABLE external_writers MODIFY (tenant_id VARCHAR2(50) NOT NULL);
+ALTER TABLE external_writers MODIFY tenant_id VARCHAR2(50) NOT NULL;
 ALTER TABLE external_writers DROP COLUMN createtime;
 ALTER TABLE external_writers DROP COLUMN lastmodified;
-ALTER TABLE external_writers ADD (created_at DATE DEFAULT SYSDATE NOT NULL);
-ALTER TABLE external_writers ADD (created_by VARCHAR2(50) DEFAULT '-1' NOT NULL);
-ALTER TABLE external_writers ADD (last_modified_at DATE DEFAULT SYSDATE NOT NULL);
-ALTER TABLE external_writers ADD (last_modified_by VARCHAR2(50) DEFAULT '-1' NOT NULL);
+ALTER TABLE external_writers ADD created_at DATE DEFAULT SYSDATE NOT NULL;
+ALTER TABLE external_writers ADD created_by VARCHAR2(50) DEFAULT '-1' NOT NULL;
+ALTER TABLE external_writers ADD last_modified_at DATE DEFAULT SYSDATE NOT NULL;
+ALTER TABLE external_writers ADD last_modified_by VARCHAR2(50) DEFAULT '-1' NOT NULL;
 ALTER TABLE external_writers ADD version NUMBER(20) NULL;
 CREATE INDEX i_external_writers_created_at ON external_writers (created_at);
 CREATE INDEX i_external_writers_created_by ON external_writers (created_by);
