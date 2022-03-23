@@ -33,7 +33,7 @@ class InspectionTimeRangeType(str, Enum):
 	AM_PM = 'am-pm',
 
 
-class InspectionTimeRange(DataModel):
+class InspectionTimeRange(DataModel, BaseModel):
 	type: InspectionTimeRangeType = None
 	value: Any = None
 
