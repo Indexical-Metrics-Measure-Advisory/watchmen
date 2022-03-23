@@ -1,10 +1,10 @@
 from enum import Enum
-from typing import Any, List, Optional, Union
+from typing import Any, List, Literal, Optional, Union
 
 from pydantic import BaseModel
+
 from watchmen_model.common import BucketId, DataModel, EnumId, OptimisticLock, TenantBasedTuple
 from watchmen_utilities import ArrayHelper
-
 from .measure_method import MeasureMethod
 
 
@@ -68,7 +68,7 @@ class Bucket(TenantBasedTuple, OptimisticLock, BaseModel):
 			super().__setattr__(name, value)
 
 
-class NumericSegmentValue(DataModel):
+class NumericSegmentValue(DataModel, BaseModel):
 	min: str = None
 	max: str = None
 
@@ -113,7 +113,7 @@ class NumericValueMeasureBucket(MeasureBucket, NumericSegmentsHolder):
 	] = None
 
 
-OtherCategorySegmentValue = '&others'
+OtherCategorySegmentValue = Literal['&others']
 
 CategorySegmentValue = List[Union[str, OtherCategorySegmentValue]]
 

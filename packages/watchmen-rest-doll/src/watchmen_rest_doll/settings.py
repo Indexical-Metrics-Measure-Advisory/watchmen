@@ -8,4 +8,4 @@ class DollSettings(RestSettings):
 	CREATE_PIPELINE_MONITOR_TOPICS_ON_TENANT_CREATE: bool = True
 	CREATE_DQC_TOPICS_ON_TENANT_CREATE: bool = False  # enable it when dqc is on
 
-	INDICATOR_WORKBENCH: bool = False  # enable indicator workbench
+	INDICATOR_WORKBENCH: bool = True  # enable indicator workbench

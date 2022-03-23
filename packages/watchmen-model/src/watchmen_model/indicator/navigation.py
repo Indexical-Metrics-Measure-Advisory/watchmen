@@ -1,7 +1,7 @@
+from enum import Enum
 from typing import List, Optional, Union
 
 from pydantic import BaseModel
-from watchmen_model.admin import Enum
 from watchmen_model.common import BucketId, DataModel, FactorId, IndicatorId, NavigationId, UserBasedTuple
 from watchmen_utilities import ArrayHelper, is_not_blank
 
@@ -85,8 +85,8 @@ class ManualComputeNavigationIndicator(NavigationIndicator):
 	2. aggregateArithmetics fixed as {@link IndicatorAggregateArithmetic#MAX}, will be ignored anyway in runtime
 	3. criteria fixed as zero length array, will be ignored anyway in runtime
 	"""
-	indicatorId: MANUAL_COMPUTE_NAVIGATION_INDICATOR_ID = MANUAL_COMPUTE_NAVIGATION_INDICATOR_ID
-	aggregateArithmetic: IndicatorAggregateArithmetic.MAX = IndicatorAggregateArithmetic.MAX
+	indicatorId: IndicatorId = MANUAL_COMPUTE_NAVIGATION_INDICATOR_ID
+	aggregateArithmetic: IndicatorAggregateArithmetic = IndicatorAggregateArithmetic.MAX
 
 
 class NavigationTimeRangeType(str, Enum):
