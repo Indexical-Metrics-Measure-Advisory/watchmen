@@ -159,8 +159,8 @@ export const Apis = {
 	BUCKET_GET: 'indicator/bucket?bucket_id=:bucketId',
 	BUCKET_LIST_FOR_INDICATOR_VALUE: 'indicator/bucket/numeric-value?query_name=:search',
 	/** bucketIds is joined by comma */
-	BUCKET_LIST_BY_IDS: 'indicator/buckets/ids?bucket_ids=:bucketIds',
-	BUCKET_LIST_BY_METHODS: 'indicator/buckets/methods',
+	BUCKET_LIST_BY_IDS: 'indicator/bucket/ids',
+	BUCKET_LIST_BY_METHODS: 'indicator/bucket/methods',
 
 	INSPECTION_LIST: 'indicator/inspection/list',
 	INSPECTION_CREATE: 'indicator/inspection',
