@@ -737,6 +737,48 @@ type = "directory"
 url = "../watchmen-data-surface"
 
 [[package]]
+name = "watchmen-indicator-kernel"
+version = "16.0.0"
+description = ""
+category = "main"
+optional = true
+python-versions = "^3.9"
+develop = true
+
+[package.extras]
+mysql = ["watchmen-indicator-storage-mysql @ ../watchmen-indicator-storage-mysql"]
+oracle = ["watchmen-indicator-storage-oracle @ ../watchmen-indicator-storage-oracle"]
+mongodb = ["watchmen-indicator-storage-mongodb @ ../watchmen-indicator-storage-mongodb"]
+mssql = ["watchmen-indicator-storage-mssql @ ../watchmen-indicator-storage-mssql"]
+
+[package.source]
+type = "directory"
+url = "../watchmen-indicator/packages/watchmen-indicator-kernel"
+
+[[package]]
+name = "watchmen-indicator-surface"
+version = "16.0.0"
+description = ""
+category = "main"
+optional = true
+python-versions = "^3.9"
+develop = true
+
+[package.dependencies]
+watchmen-indicator-kernel = {path = "../watchmen-indicator-kernel", develop = true}
+watchmen-rest = {path = "../../../watchmen-rest", develop = true}
+
+[package.extras]
+mysql = ["watchmen-indicator-storage-mysql @ ../watchmen-indicator-storage-mysql"]
+oracle = ["watchmen-indicator-storage-oracle @ ../watchmen-indicator-storage-oracle"]
+mongodb = ["watchmen-indicator-storage-mongodb @ ../watchmen-indicator-storage-mongodb"]
+mssql = ["watchmen-indicator-storage-mssql @ ../watchmen-indicator-storage-mssql"]
+
+[package.source]
+type = "directory"
+url = "../watchmen-indicator/packages/watchmen-indicator-surface"
+
+[[package]]
 name = "watchmen-inquiry-kernel"
 version = "16.0.0"
 description = ""
@@ -832,8 +874,8 @@ python-versions = "^3.9"
 develop = true
 
 [package.dependencies]
-dask = "^2022.2.1"
-distributed = "^2022.2.1"
+dask = "^2022.3.0"
+distributed = "^2022.3.0"
 watchmen-data-kernel = {path = "../watchmen-data-kernel", develop = true}
 
 [package.extras]
@@ -1015,6 +1057,7 @@ heapdict = "*"
 
 [extras]
 es_ext_writer = []
+indicator = ["watchmen-indicator-surface"]
 kafka = []
 mongodb = ["watchmen-storage-mongodb"]
 mssql = ["watchmen-storage-mssql"]
@@ -1028,7 +1071,7 @@ trino = []
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "7194e699d6c9ee84cbba6aa79e8dccd0d197e6b2f9ef2351ce2c5e626c758ed1"
+content-hash = "026291a5d44a0f15930995cec7ca6ac8d5431f34c7319b2f1dfb91873eeed34a"
 
 [metadata.files]
 anyio = [
@@ -1767,6 +1810,8 @@ uvicorn = [
 watchmen-auth = []
 watchmen-data-kernel = []
 watchmen-data-surface = []
+watchmen-indicator-kernel = []
+watchmen-indicator-surface = []
 watchmen-inquiry-kernel = []
 watchmen-inquiry-surface = []
 watchmen-meta = []
