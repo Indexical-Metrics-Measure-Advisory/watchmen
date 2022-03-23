@@ -7,6 +7,7 @@ export const createIndicator = (): Indicator => {
 		indicatorId: generateUuid(),
 		name: '',
 		topicId: '',
+		version: 1,
 		createdAt: getCurrentTime(),
 		lastModifiedAt: getCurrentTime()
 	};
