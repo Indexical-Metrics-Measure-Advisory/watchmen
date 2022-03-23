@@ -200,6 +200,7 @@ class EntityService(IdentifiedStorableService):
 	def get_entity_finder_for_columns(
 			self, criteria: EntityCriteria,
 			distinctColumnNames: List[EntityColumnName],
+			distinctValueOnSingleColumn: Optional[bool] = False,
 			sort: Optional[EntitySort] = None
 	) -> EntityDistinctValuesFinder:
 		return EntityDistinctValuesFinder(
@@ -208,7 +209,7 @@ class EntityService(IdentifiedStorableService):
 			criteria=criteria,
 			sort=sort,
 			distinctColumnNames=distinctColumnNames,
-			distinctValueOnSingleColumn=False
+			distinctValueOnSingleColumn=distinctValueOnSingleColumn
 		)
 
 	def get_entity_pager(
