@@ -2,10 +2,10 @@ from datetime import datetime  # noqa
 from typing import Dict, Optional, Tuple
 
 from sqlalchemy import Integer, String, Table
-
 from watchmen_model.admin import is_aggregation_topic, is_raw_topic, Topic
 from watchmen_model.common import TopicId
 from watchmen_storage import SNOWFLAKE_WORKER_ID_TABLE, UnexpectedStorageException
+
 from .table_defs_helper import create_bool, create_datetime, create_description, create_int, create_json, \
 	create_last_visit_time, create_medium_text, create_optimistic_lock, create_pk, create_str, \
 	create_tenant_id, create_tuple_audit_columns, create_tuple_id_column, create_user_id, meta_data
@@ -106,7 +106,7 @@ table_pipelines = Table(
 	create_pk('pipeline_id'),
 	create_tuple_id_column('topic_id', False),
 	create_str('name', 50, False), create_str('type', 20, False),
-	create_bool('conditional'), create_json('on'),
+	create_bool('prerequisite_enabled'), create_json('prerequisite_on'),
 	create_json('stages'), create_bool('enabled', False), create_bool('validated', False),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
@@ -249,6 +249,11 @@ tables: Dict[str, Table] = {
 	'catalogs': table_catalogs,
 	'monitor_rules': table_monitor_rules
 }
+
+
+def register_meta_table(table_name: str, table_def: Table) -> None:
+	tables[table_name] = table_def
+
 
 topic_tables: Dict[TopicId, Tuple[Table, datetime]] = {}
 
