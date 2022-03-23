@@ -67,7 +67,7 @@ export const fetchBucketsByIds = async (bucketIds: Array<BucketId>): Promise<Arr
 	if (isMockService()) {
 		return await fetchMockBucketsByIds(bucketIds);
 	} else {
-		return await get({api: Apis.BUCKET_LIST_BY_IDS, search: {bucketIds: bucketIds.join(',')}});
+		return await post({api: Apis.BUCKET_LIST_BY_IDS, data: bucketIds});
 	}
 };
 
