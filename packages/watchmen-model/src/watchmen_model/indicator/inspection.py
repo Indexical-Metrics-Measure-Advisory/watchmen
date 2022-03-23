@@ -1,8 +1,10 @@
 from enum import Enum
-from typing import Any, List, Literal
+from typing import Any, List, Literal, Optional, Union
 
-from watchmen_model.common import BucketId, DataModel, FactorId, IndicatorId, InspectionId, OptimisticLock, \
-	TenantBasedTuple
+from pydantic import BaseModel
+from watchmen_model.common import BucketId, DataModel, FactorId, IndicatorId, InspectionId, UserBasedTuple
+from watchmen_utilities import ArrayHelper
+
 from .indicator import IndicatorAggregateArithmetic
 from .measure_method import MeasureMethod
 
@@ -111,7 +113,53 @@ class InspectionAmPmRange(InspectionTimeRange):
 	value: Literal[1, 2]
 
 
-class Inspection(TenantBasedTuple, OptimisticLock):
+def construct_time_range(a_range: Optional[Union[dict, InspectionTimeRange]]) -> Optional[InspectionTimeRange]:
+	if a_range is None:
+		return None
+	elif isinstance(a_range, InspectionTimeRange):
+		return a_range
+	elif a_range.type == InspectionTimeRangeType.YEAR:
+		return InspectionYearRange(**a_range)
+	elif a_range.type == InspectionTimeRangeType.HALF_YEAR:
+		return InspectionHalfYearRange(**a_range)
+	elif a_range.type == InspectionTimeRangeType.QUARTER:
+		return InspectionQuarterRange(**a_range)
+	elif a_range.type == InspectionTimeRangeType.MONTH:
+		return InspectionMonthRange(**a_range)
+	elif a_range.type == InspectionTimeRangeType.HALF_MONTH:
+		return InspectionHalfMonthRange(**a_range)
+	elif a_range.type == InspectionTimeRangeType.TEN_DAYS:
+		return InspectionTenDaysRange(**a_range)
+	elif a_range.type == InspectionTimeRangeType.WEEK_OF_YEAR:
+		return InspectionWeekOfYearRange(**a_range)
+	elif a_range.type == InspectionTimeRangeType.WEEK_OF_MONTH:
+		return InspectionWeekOfMonthRange(**a_range)
+	elif a_range.type == InspectionTimeRangeType.HALF_WEEK:
+		return InspectionHalfWeekRange(**a_range)
+	elif a_range.type == InspectionTimeRangeType.DAY_OF_MONTH:
+		return InspectionDayOfMonthRange(**a_range)
+	elif a_range.type == InspectionTimeRangeType.DAY_OF_WEEK:
+		return InspectionDayOfWeekRange(**a_range)
+	elif a_range.type == InspectionTimeRangeType.DAY_KIND:
+		return InspectionDayKindRange(**a_range)
+	elif a_range.type == InspectionTimeRangeType.HOUR:
+		return InspectionHourRange(**a_range)
+	elif a_range.type == InspectionTimeRangeType.HOUR_KIND:
+		return InspectionHourKindRange(**a_range)
+	elif a_range.type == InspectionTimeRangeType.AM_PM:
+		return InspectionAmPmRange(**a_range)
+	else:
+		raise Exception(f'Inspection time range type[{a_range.type}] cannot be recognized.')
+
+
+def construct_time_ranges(ranges: Optional[list] = None) -> Optional[List[InspectionTimeRange]]:
+	if ranges is None:
+		return None
+	else:
+		return ArrayHelper(ranges).map(lambda x: construct_time_range(x)).to_list()
+
+
+class Inspection(UserBasedTuple, BaseModel):
 	inspectionId: InspectionId = None
 	name: str = None
 	indicatorId: IndicatorId = None
@@ -133,3 +181,9 @@ class Inspection(TenantBasedTuple, OptimisticLock):
 	measureOnTime: MeasureMethod = None
 	# time measure on factor
 	measureOnTimeFactorId: FactorId = None
+
+	def __setattr__(self, name, value):
+		if name == 'timeRanges':
+			super().__setattr__(name, construct_time_ranges(value))
+		else:
+			super().__setattr__(name, value)

@@ -20,7 +20,7 @@ class RangeBucketValueIncluding(str, Enum):
 	INCLUDE_MAX = "include-max"
 
 
-class BucketSegment(DataModel):
+class BucketSegment(DataModel, BaseModel):
 	name: str = None
 	value: Any = None
 
