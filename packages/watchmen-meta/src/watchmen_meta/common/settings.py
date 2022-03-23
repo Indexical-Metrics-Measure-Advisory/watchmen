@@ -20,7 +20,7 @@ class MetaSettings(BaseSettings):
 	SUPER_ADMIN_USER_NAME: str = 'imma-super'
 	SUPER_ADMIN_USER_NICKNAME: str = 'IMMA Super'
 
-	META_STORAGE_TYPE: str = DataSourceType.MYSQL
+	META_STORAGE_TYPE: DataSourceType = DataSourceType.MYSQL
 	META_STORAGE_USER_NAME: str = 'watchmen'
 	META_STORAGE_PASSWORD: str = 'watchmen'
 	META_STORAGE_HOST: str = 'localhost'

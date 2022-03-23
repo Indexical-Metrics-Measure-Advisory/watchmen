@@ -8,6 +8,10 @@ meta_data = MetaData()
 ID_TYPE = String(50)
 
 
+def ask_meta_data() -> MetaData:
+	return meta_data
+
+
 def create_str(name: str, length: int, nullable: bool = True) -> Column:
 	return Column(name, String(length), nullable=nullable)
 
