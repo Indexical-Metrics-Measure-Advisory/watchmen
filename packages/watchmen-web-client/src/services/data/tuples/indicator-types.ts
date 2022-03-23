@@ -2,7 +2,7 @@ import {BucketId} from './bucket-types';
 import {FactorId} from './factor-types';
 import {TenantId} from './tenant-types';
 import {TopicId} from './topic-types';
-import {Tuple} from './tuple-types';
+import {OptimisticLock, Tuple} from './tuple-types';
 
 export enum MeasureMethod {
 	// address related
@@ -98,7 +98,7 @@ export interface RelevantIndicator {
 	type: RelevantIndicatorType;
 }
 
-export interface Indicator extends Tuple {
+export interface Indicator extends Tuple, OptimisticLock {
 	indicatorId: IndicatorId;
 	name: string;
 	topicId: TopicId;

@@ -143,15 +143,15 @@ export const Apis = {
 	CATALOG_DELETE: 'dqc/catalog/delete?catalog_id=:catalogId',
 
 	// indicator workbench
-	INDICATORS_LIST_FOR_SELECTION: 'indicator/indicator/list/selection?query_name=:search',
+	INDICATORS_LIST_FOR_SELECTION: 'indicator/indicator/name?query_name=:search',
 	TOPIC_LIST_FOR_INDICATOR_SELECTION: 'topic/index/name?query_name=:search',
 	ENUM_LIST_FOR_INDICATOR_TOPIC: 'enum/list/topic?topic_id=:topicId',
 	INDICATOR_GET: 'indicator/indicator?indicator_id=:indicatorId',
 	INDICATOR_CREATE: 'indicator/indicator',
-	INDICATOR_SAVE: 'indicator/update/indicator?indicator_id=:indicatorId',
+	INDICATOR_SAVE: 'indicator/indicator',
 	RELEVANT_INDICATOR_LIST: 'indicator/indicator/relevant?indicator_id=:indicatorId',
-	INDICATOR_CATEGORIES: 'indicator/categories',
-	INDICATORS_LIST: 'indicator/indicator/list',
+	INDICATOR_CATEGORIES: 'indicator/indicator/category/available',
+	INDICATORS_LIST: 'indicator/indicator/all',
 
 	BUCKET_LIST_BY_NAME: 'indicator/bucket/name?query_name=:search',
 	BUCKET_CREATE: 'indicator/bucket',
