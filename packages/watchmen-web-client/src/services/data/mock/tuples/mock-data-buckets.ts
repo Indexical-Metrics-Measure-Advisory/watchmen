@@ -27,6 +27,7 @@ export const Floor: NumericValueMeasureBucket = {
 		{name: 'Sky Floor', value: {min: '21'}}
 	],
 	description: 'Floor of apartment',
+	version: 1,
 	createdAt: getCurrentTime(),
 	lastModifiedAt: getCurrentTime()
 };
@@ -41,6 +42,7 @@ export const Cities: EnumMeasureBucket = {
 		{name: 'Others', value: ['&others']}
 	],
 	description: 'New York and others',
+	version: 1,
 	createdAt: getCurrentTime(),
 	lastModifiedAt: getCurrentTime()
 };
@@ -55,6 +57,7 @@ export const Amounts: NumericValueBucket = {
 		{name: 'VIP Order', value: {min: '100000'}}
 	],
 	description: '',
+	version: 1,
 	createdAt: getCurrentTime(),
 	lastModifiedAt: getCurrentTime()
 };
@@ -69,6 +72,7 @@ export const CitiesIsland: EnumMeasureBucket = {
 		{name: 'Others', value: ['&others']}
 	],
 	description: 'Island and others',
+	version: 1,
 	createdAt: getCurrentTime(),
 	lastModifiedAt: getCurrentTime()
 };

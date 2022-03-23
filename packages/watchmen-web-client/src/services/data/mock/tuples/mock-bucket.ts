@@ -40,6 +40,7 @@ export const fetchMockBucket = async (bucketId: BucketId): Promise<{ bucket: Buc
 			type: BucketType.VALUE,
 			include: RangeBucketValueIncluding.INCLUDE_MIN,
 			segments: [],
+			version: 1,
 			createdAt: getCurrentTime(),
 			lastModifiedAt: getCurrentTime()
 		} as NumericValueBucket;
