@@ -2,9 +2,9 @@ from enum import Enum
 from typing import List, Optional, Union
 
 from pydantic import BaseModel
-from watchmen_model.common import BucketId, DataModel, FactorId, IndicatorId, NavigationId, UserBasedTuple
-from watchmen_utilities import ArrayHelper, is_not_blank
 
+from watchmen_model.common import Auditable, BucketId, DataModel, FactorId, IndicatorId, NavigationId, UserBasedTuple
+from watchmen_utilities import ArrayHelper, is_not_blank
 from .indicator import IndicatorAggregateArithmetic
 
 
@@ -114,7 +114,7 @@ def construct_indicators(indicators: Optional[list] = None) -> Optional[List[Nav
 		return ArrayHelper(indicators).map(lambda x: construct_indicator(x)).to_list()
 
 
-class Navigation(UserBasedTuple, BaseModel):
+class Navigation(UserBasedTuple, Auditable, BaseModel):
 	navigationId: NavigationId = None
 	name: str = None
 	description: str = None
