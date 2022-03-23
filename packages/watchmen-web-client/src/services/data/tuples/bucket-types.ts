@@ -1,7 +1,7 @@
 import {EnumId} from './enum-types';
 import {MeasureMethod} from './indicator-types';
 import {TenantId} from './tenant-types';
-import {Tuple} from './tuple-types';
+import {OptimisticLock, Tuple} from './tuple-types';
 
 export type BucketId = string;
 
@@ -17,7 +17,7 @@ export interface BucketSegment {
 	value: unknown;
 }
 
-export interface Bucket extends Tuple {
+export interface Bucket extends Tuple, OptimisticLock {
 	bucketId: BucketId;
 	name: string;
 	type: BucketType;
