@@ -61,7 +61,6 @@ export const saveNavigation = async (navigation: Navigation): Promise<void> => {
 	} else {
 		const data = await post({
 			api: Apis.NAVIGATION_SAVE,
-			search: {navigationId: navigation.navigationId},
 			data: navigation
 		});
 		navigation.tenantId = data.tenantId;
