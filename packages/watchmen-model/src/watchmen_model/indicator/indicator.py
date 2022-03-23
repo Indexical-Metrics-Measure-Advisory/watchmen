@@ -2,9 +2,9 @@ from enum import Enum
 from typing import List, Optional, Union
 
 from pydantic import BaseModel
-from watchmen_model.common import DataModel, FactorId, IndicatorId, OptimisticLock, TenantBasedTuple, TopicId
-from watchmen_utilities import ArrayHelper
 
+from watchmen_model.common import BucketId, DataModel, FactorId, IndicatorId, OptimisticLock, TenantBasedTuple, TopicId
+from watchmen_utilities import ArrayHelper
 from .measure_method import MeasureMethod
 
 
@@ -57,14 +57,14 @@ class Indicator(TenantBasedTuple, OptimisticLock, BaseModel):
 	indicatorId: IndicatorId = None
 	name: str = None
 	topicId: TopicId = None
-	# /** is a count indicator when factor is not appointed */
+	# is a count indicator when factor is not appointed
 	factorId: FactorId = None
 	category1: str = None
 	category2: str = None
 	category3: str = None
 	description: str = None
-	# /** effective only when factorId is appointed */
-	valueBuckets: List[str] = []
+	# effective only when factorId is appointed
+	valueBuckets: List[BucketId] = []
 	# noinspection SpellCheckingInspection
 	relevants: List[RelevantIndicator] = []
 
