@@ -1,8 +1,9 @@
 from typing import List
 
+from pydantic import BaseModel
 from watchmen_model.admin import Enum
-from watchmen_model.common import BucketId, DataModel, FactorId, IndicatorId, NavigationId, OptimisticLock, \
-	TenantBasedTuple
+from watchmen_model.common import BucketId, DataModel, FactorId, IndicatorId, NavigationId, UserBasedTuple
+
 from .indicator import IndicatorAggregateArithmetic
 
 
@@ -61,7 +62,7 @@ class NavigationTimeRangeType(str, Enum):
 	MONTH = 'month'
 
 
-class Navigation(TenantBasedTuple, OptimisticLock):
+class Navigation(UserBasedTuple, BaseModel):
 	navigationId: NavigationId = None
 	name: str = None
 	description: str = None

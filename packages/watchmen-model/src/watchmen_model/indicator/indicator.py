@@ -1,7 +1,10 @@
 from enum import Enum
-from typing import List
+from typing import List, Optional, Union
 
+from pydantic import BaseModel
 from watchmen_model.common import DataModel, FactorId, IndicatorId, OptimisticLock, TenantBasedTuple, TopicId
+from watchmen_utilities import ArrayHelper
+
 from .measure_method import MeasureMethod
 
 
@@ -28,12 +31,29 @@ class RelevantIndicatorType(str, Enum):
 	RELEVANT_CAUSES_THIS = 'relevant-causes-this'
 
 
-class RelevantIndicator(DataModel):
+class RelevantIndicator(DataModel, BaseModel):
 	indicatorId: IndicatorId = None
 	type: RelevantIndicatorType = None
 
 
-class Indicator(TenantBasedTuple, OptimisticLock):
+def construct_relevant(relevant: Optional[Union[dict, RelevantIndicator]]) -> Optional[RelevantIndicator]:
+	if relevant is None:
+		return None
+	elif isinstance(relevant, RelevantIndicator):
+		return relevant
+	else:
+		# noinspection PyArgumentList
+		return RelevantIndicator(**relevant)
+
+
+def construct_relevants(relevants: Optional[list] = None) -> Optional[List[RelevantIndicator]]:
+	if relevants is None:
+		return None
+	else:
+		return ArrayHelper(relevants).map(lambda x: construct_relevant(x)).to_list()
+
+
+class Indicator(TenantBasedTuple, OptimisticLock, BaseModel):
 	indicatorId: IndicatorId = None
 	name: str = None
 	topicId: TopicId = None
@@ -47,3 +67,9 @@ class Indicator(TenantBasedTuple, OptimisticLock):
 	valueBuckets: List[str] = []
 	# noinspection SpellCheckingInspection
 	relevants: List[RelevantIndicator] = []
+
+	def __setattr__(self, name, value):
+		if name == 'relevants':
+			super().__setattr__(name, construct_relevants(value))
+		else:
+			super().__setattr__(name, value)
