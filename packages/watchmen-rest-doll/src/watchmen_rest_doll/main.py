@@ -1,8 +1,9 @@
+from watchmen_rest.system import health_router
+from watchmen_utilities import ArrayHelper
+
 from watchmen_data_surface import get_data_surface_routers
 from watchmen_inquiry_surface import get_inquiry_surface_routers
 from watchmen_pipeline_surface import get_pipeline_surface_routers
-from watchmen_rest.system import health_router
-from watchmen_utilities import ArrayHelper
 from .admin import enumeration_router, pipeline_graphic_router, pipeline_router, space_router, topic_router, \
 	user_group_router, user_router
 from .analysis import pipeline_index_router, topic_index_router
@@ -54,3 +55,13 @@ ArrayHelper([
 ArrayHelper(get_data_surface_routers()).each(lambda x: app.include_router(x))
 ArrayHelper(get_pipeline_surface_routers()).each(lambda x: app.include_router(x))
 ArrayHelper(get_inquiry_surface_routers()).each(lambda x: app.include_router(x))
+
+
+def init_indicator_workbench() -> None:
+	if not doll.ask_indicator_workbench_enabled():
+		return
+	from watchmen_indicator_surface import get_indicator_surface_routers
+	ArrayHelper(get_indicator_surface_routers()).each(lambda x: app.include_router(x))
+
+
+init_indicator_workbench()

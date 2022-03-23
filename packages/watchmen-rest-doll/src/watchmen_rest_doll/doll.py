@@ -1,11 +1,11 @@
 from typing import Callable, Optional, Tuple
 
 from fastapi import FastAPI
+from watchmen_model.admin import User
+from watchmen_rest import RestApp
 
 from watchmen_meta.auth import build_find_user_by_name, build_find_user_by_pat
-from watchmen_model.admin import User
 from watchmen_pipeline_surface import pipeline_surface
-from watchmen_rest import RestApp
 from .settings import DollSettings
 
 
@@ -34,6 +34,9 @@ class DollApp(RestApp):
 
 	def create_dqc_topics_on_tenant_create(self) -> bool:
 		return self.get_settings().CREATE_DQC_TOPICS_ON_TENANT_CREATE
+
+	def ask_indicator_workbench_enabled(self) -> bool:
+		return self.get_settings().INDICATOR_WORKBENCH
 
 	def post_construct(self, app: FastAPI) -> None:
 		pass
@@ -67,3 +70,7 @@ def create_pipeline_monitor_topics_on_tenant_create() -> bool:
 
 def create_dqc_topics_on_tenant_create() -> bool:
 	return doll.create_dqc_topics_on_tenant_create()
+
+
+def ask_indicator_workbench_enabled() -> bool:
+	return doll.ask_indicator_workbench_enabled()
