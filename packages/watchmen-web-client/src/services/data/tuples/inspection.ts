@@ -40,7 +40,6 @@ export const saveInspection = async (inspection: Inspection): Promise<void> => {
 	} else {
 		const data = await post({
 			api: Apis.INSPECTION_SAVE,
-			search: {inspectionId: inspection.inspectionId},
 			data: inspection
 		});
 		inspection.tenantId = data.tenantId;

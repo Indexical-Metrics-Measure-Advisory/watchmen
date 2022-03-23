@@ -165,7 +165,7 @@ export const Apis = {
 	INSPECTION_LIST: 'indicator/inspection/list',
 	INSPECTION_CREATE: 'indicator/inspection',
 	INSPECTION_GET: 'indicator/inspection?inspection_id=:inspectionId',
-	INSPECTION_SAVE: 'indicator/update/inspection?inspection_id=:inspectionId',
+	INSPECTION_SAVE: 'indicator/inspection',
 	INSPECTION_DATA: 'indicator/inspection/data?inspection_id=:inspectionId',
 
 	NAVIGATION_LIST_BY_NAME: 'indicator/navigation/name?query_name=:search',
