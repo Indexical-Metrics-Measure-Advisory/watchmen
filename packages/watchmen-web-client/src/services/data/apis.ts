@@ -155,7 +155,7 @@ export const Apis = {
 
 	BUCKET_LIST_BY_NAME: 'indicator/bucket/name?query_name=:search',
 	BUCKET_CREATE: 'indicator/bucket',
-	BUCKET_SAVE: 'indicator/update/bucket?bucket_id=:bucketId',
+	BUCKET_SAVE: 'indicator/bucket',
 	BUCKET_GET: 'indicator/bucket?bucket_id=:bucketId',
 	BUCKET_LIST_FOR_INDICATOR_VALUE: 'indicator/bucket/numeric-value?query_name=:search',
 	/** bucketIds is joined by comma */
