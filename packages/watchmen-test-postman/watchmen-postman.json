@@ -10557,8 +10557,24 @@
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"subjectId\": \"{{SUBJECT_ID}}\",\n    \"subjectName\": \"{{SUBJECT_NAME}}\",\n    \"indicators\": [ {\n            \"columnId\": \"f-2\",\n            \"name\": \"alias_b\",\n            \"arithmetic\": \"none\"\n        }],\n    \"conditions\": []\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/subject/data/criteria"
               },
               "response": []
             }
