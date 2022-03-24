@@ -10592,53 +10592,54 @@
           "item": [
             {
               "name": "iNDICATOR",
-              "item": [],
-              "id": "172d5707-2b4e-49a5-a412-67f45cc75a9e"
-            },
-            {
-              "name": "CREATE REPORT",
-              "event": [
+              "item": [
                 {
-                  "listen": "test",
-                  "script": {
-                    "id": "3ee5c5c4-e449-475b-aa1b-2779c76137d5",
-                    "exec": [
-                      "pm.test('Create Report', () => {",
-                      "    pm.response.to.have.status(200);",
-                      "    const data = pm.response.json();",
-                      "    pm.environment.set(\"REPORT_ID\", data.reportId);",
-                      "    pm.environment.set(\"REPORT_NAME\", data.name);",
-                      "})"
-                    ],
-                    "type": "text/javascript"
-                  }
+                  "name": "CREATE REPORT",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "3ee5c5c4-e449-475b-aa1b-2779c76137d5",
+                        "exec": [
+                          "pm.test('Create Report', () => {",
+                          "    pm.response.to.have.status(200);",
+                          "    const data = pm.response.json();",
+                          "    pm.environment.set(\"REPORT_ID\", data.reportId);",
+                          "    pm.environment.set(\"REPORT_NAME\", data.name);",
+                          "})"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
+                  "id": "3c310de1-2841-4aed-b7e9-515126f8e669",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "POST",
+                    "header": [],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n    \"name\": \"Test_Report\",\n    \"subjectId\": \"{{SUBJECT_ID}}\",\n    \"connectId\": \"{{CONNECT_ID}}\",\n    \"funnels\": [],\n    \"indicators\": [\n        {\n            \"columnId\": \"f-2\",\n            \"name\": \"sum_propB\",\n            \"arithmetic\": \"sum\"\n        }\n    ],\n    \"dimensions\": [],\n    \"description\": \"test report\",\n    \"rect\": {\n        \"x\": 0,\n        \"y\": 0,\n        \"width\": 167.63888549804688,\n        \"height\": 35.55555534362793\n    },\n    \"chart\": {\n        \"type\": \"count\",\n        \"settings\": {\n            \"border\": null,\n            \"backgroundColor\": null,\n            \"colorSeries\": \"regular\"\n        }\n    },\n    \"simulating\": 0,\n    \"simulateData\": [],\n    \"simulateThumbnail\": \"test\"\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": "{{URL_PREFIX}}/report"
+                  },
+                  "response": []
                 }
               ],
-              "id": "3c310de1-2841-4aed-b7e9-515126f8e669",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": {
-                    "token": "{{JWT_TOKEN}}"
-                  }
-                },
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"name\": \"Test_Report\",\n    \"subjectId\": \"{{SUBJECT_ID}}\",\n    \"connectId\": \"{{CONNECT_ID}}\",\n    \"funnels\": [],\n    \"indicators\": [\n        {\n            \"columnId\": \"f-2\",\n            \"name\": \"sum_propB\",\n            \"arithmetic\": \"sum\"\n        }\n    ],\n    \"dimensions\": [],\n    \"description\": \"test report\",\n    \"rect\": {\n        \"x\": 0,\n        \"y\": 0,\n        \"width\": 167.63888549804688,\n        \"height\": 35.55555534362793\n    },\n    \"chart\": {\n        \"type\": \"count\",\n        \"settings\": {\n            \"border\": null,\n            \"backgroundColor\": null,\n            \"colorSeries\": \"regular\"\n        }\n    },\n    \"simulating\": 0,\n    \"simulateData\": [],\n    \"simulateThumbnail\": \"test\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": "{{URL_PREFIX}}/report"
-              },
-              "response": []
+              "id": "172d5707-2b4e-49a5-a412-67f45cc75a9e"
             },
             {
               "name": "REPORT DATA",
