@@ -10521,6 +10521,18 @@
                 }
               },
               "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "b5d35a4d-55d1-4203-9fc6-3fb92ec9be7e",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
             }
           ],
           "id": "4be0c839-19e6-4ccd-a5eb-e09c4ddbdaec"
@@ -10642,18 +10654,6 @@
                   }
                 },
                 "url": "{{URL_PREFIX}}/report/temporary"
-              },
-              "response": []
-            },
-            {
-              "name": "New Request",
-              "id": "b5d35a4d-55d1-4203-9fc6-3fb92ec9be7e",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
               },
               "response": []
             }
