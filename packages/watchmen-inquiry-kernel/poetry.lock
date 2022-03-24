@@ -476,11 +476,12 @@ mongodb = ["watchmen-storage-mongodb"]
 mssql = ["watchmen-storage-mssql"]
 mysql = ["watchmen-storage-mysql"]
 oracle = ["watchmen-storage-oracle"]
+trino = ["watchmen-inquiry-trino"]
 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "ab779cf56a03b5cd148760960a8117d256c8a4a64485ed7e14840a2de7d96395"
+content-hash = "6d66da5317c661d7f3ce6499079f234e3272ef39f0c217e33eab6afc98f08b33"
 
 [metadata.files]
 cacheout = [

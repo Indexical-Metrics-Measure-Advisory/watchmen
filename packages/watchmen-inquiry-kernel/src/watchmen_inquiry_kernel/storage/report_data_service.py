@@ -11,10 +11,10 @@ class ReportDataService:
 		self.subject_data_service = SubjectDataService(subject, principal_service)
 		self.schema = ReportSchema(report)
 
-	def get_schema(self):
+	def get_schema(self) -> ReportSchema:
 		return self.schema
 
-	def get_report(self):
+	def get_report(self) -> Report:
 		return self.schema.get_report()
 
 	def find(self) -> DataResult:

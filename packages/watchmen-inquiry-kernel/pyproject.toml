@@ -24,6 +24,7 @@ mysql = ["watchmen-storage-mysql"]
 oracle = ["watchmen-storage-oracle"]
 mongodb = ["watchmen-storage-mongodb"]
 mssql = ["watchmen-storage-mssql"]
+trino = ["watchmen-inquiry-trino"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
