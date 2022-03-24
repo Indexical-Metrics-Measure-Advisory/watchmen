@@ -10521,6 +10521,62 @@
                 }
               },
               "response": []
+            },
+            {
+              "name": "SUBJECT DATA CRITERIA",
+              "id": "b5d35a4d-55d1-4203-9fc6-3fb92ec9be7e",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"subjectId\": \"{{SUBJECT_ID}}\",\n    \"subjectName\": \"{{SUBJECT_NAME}}\",\n    \"indicators\": [ {\n            \"columnId\": \"f-2\",\n            \"name\": \"alias_b\",\n            \"arithmetic\": \"none\"\n        }],\n    \"conditions\": []\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/subject/data/criteria"
+              },
+              "response": []
+            },
+            {
+              "name": "SUBJECT DATA CRITERIA 2",
+              "id": "ce40d146-d00b-42cc-9c24-217ef0c4be73",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"subjectId\": \"{{SUBJECT_ID}}\",\n    \"subjectName\": \"{{SUBJECT_NAME}}\",\n    \"indicators\": [\n        {\n            \"columnId\": \"f-2\",\n            \"name\": \"alias_b\",\n            \"arithmetic\": \"sum\"\n        },\n        {\n            \"columnId\": \"f-1\",\n            \"name\": \"alias_a\",\n            \"arithmetic\": \"none\"\n        }\n    ],\n    \"conditions\": [\n        {\n            \"jointType\": \"and\",\n            \"filters\": [\n                {\n                    \"left\": {\n                        \"kind\": \"topic\",\n                        \"factorId\": \"alias_c\"\n                    },\n                    \"operator\": \"equals\",\n                    \"right\": {\n                        \"kind\": \"constant\",\n                        \"value\": \"1\"\n                    }\n                }\n            ]\n        }\n    ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/subject/data/criteria"
+              },
+              "response": []
             }
           ],
           "id": "4be0c839-19e6-4ccd-a5eb-e09c4ddbdaec"
@@ -10616,6 +10672,34 @@
                 }
               },
               "response": []
+            },
+            {
+              "name": "REPORT TEMPORARY",
+              "id": "520af1c8-f4da-4c8e-b479-12b879418363",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"reportId\": \"{{REPORT_ID}}\",\n    \"name\": \"Test_Report\",\n    \"subjectId\": \"{{SUBJECT_ID}}\",\n    \"connectId\": \"{{CONNECT_ID}}\",\n    \"funnels\": [],\n    \"indicators\": [\n        {\n            \"columnId\": \"f-2\",\n            \"name\": \"count_propB\",\n            \"arithmetic\": \"count\"\n        }\n    ],\n    \"dimensions\": [],\n    \"description\": \"test report\",\n    \"rect\": {\n        \"x\": 0,\n        \"y\": 0,\n        \"width\": 167.63888549804688,\n        \"height\": 35.55555534362793\n    },\n    \"chart\": {\n        \"type\": \"count\",\n        \"settings\": {\n            \"border\": null,\n            \"backgroundColor\": null,\n            \"colorSeries\": \"regular\"\n        }\n    },\n    \"simulating\": 0,\n    \"simulateData\": [],\n    \"simulateThumbnail\": \"test\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/report/temporary"
+              },
+              "response": []
             }
           ],
           "id": "3191c34a-4994-4e97-a1ce-2d7442f8f19f"
@@ -10656,6 +10740,11 @@
         }
       ],
       "id": "b8f71fdf-274a-449e-bfa8-12a22b6e4972"
+    },
+    {
+      "name": "Trino",
+      "item": [],
+      "id": "2012c942-0317-4f3d-98df-0dcd85d02761"
     },
     {
       "name": "DQC",
