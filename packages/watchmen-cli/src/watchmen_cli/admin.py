@@ -32,6 +32,7 @@ def load_topic_list(site, names):
 	return response.json()
 
 
+# noinspection PyUnusedLocal
 def load_user_list(site, username_list):
 	headers = build_headers(login(site))
 
@@ -72,9 +73,9 @@ def list_all_pipeline(site):
 	return response.json()
 
 
-def load_pipeline_by_id(site, id):
+def load_pipeline_by_id(site, pipeline_id):
 	headers = build_headers(login(site))
-	response = get(as_url(site, f'pipeline?pipeline_id={id}'), headers=headers)
+	response = get(as_url(site, f'pipeline?pipeline_id={pipeline_id}'), headers=headers)
 	return response.json()
 
 

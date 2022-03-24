@@ -110,15 +110,15 @@ class CliBootstrap:
 	def hosts(self):
 		print(self.__load_site_json())
 
-	def list(self, type, site):
-		model_type = ModelType(type)
+	def list(self, model_type, site):
+		model_type = ModelType(model_type)
 		sites = self.__load_site_json()
 
 		switcher_list = {
 			ModelType.PIPELINE.value: list_pipeline
 		}
 
-		switcher_list.get(type)(sites[site])
+		switcher_list.get(model_type)(sites[site])
 
 	# noinspection PyDefaultArgument
 	def sync(self, model_type: str, source: str, target: str, keys: List[str] = []) -> None:

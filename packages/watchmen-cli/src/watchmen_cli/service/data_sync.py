@@ -13,8 +13,8 @@ def list_pipeline(site):
 def sync_pipeline(source_site, target_site, ids):
 	if source_site != FILE:
 		pipeline_list = []
-		for id in ids:
-			pipeline_list.append(load_pipeline_by_id(source_site, id))
+		for pipeline_id in ids:
+			pipeline_list.append(load_pipeline_by_id(source_site, pipeline_id))
 	else:
 		pipeline_list: list = load_from_file(source_site, 'pipeline')
 
@@ -76,17 +76,21 @@ def sync_topic(source_site, target_site, names):
 		save_to_file(target_site, topic_list, 'topic')
 
 
-def __sync_connect_spaces(self, source_site, target_site, ids):
+# noinspection PyUnusedLocal
+def __sync_connect_spaces(source_site, target_site, ids):
 	pass
 
 
-def __sync_dashboards(self, source_site, target_site, ids):
+# noinspection PyUnusedLocal
+def __sync_dashboards(source_site, target_site, ids):
 	pass
 
 
-def __sync_subjects(self, source_site, target_site, ids):
+# noinspection PyUnusedLocal
+def __sync_subjects(source_site, target_site, ids):
 	pass
 
 
-def __sync_reports(self, source_site, target_site, ids):
+# noinspection PyUnusedLocal
+def __sync_reports(source_site, target_site, ids):
 	pass
