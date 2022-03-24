@@ -10529,11 +10529,6 @@
           "name": "REPORT",
           "item": [
             {
-              "name": "SUBJECT DATA",
-              "item": [],
-              "id": "f1226199-ca50-444e-afec-521404f0e6f2"
-            },
-            {
               "name": "CREATE REPORT",
               "event": [
                 {
