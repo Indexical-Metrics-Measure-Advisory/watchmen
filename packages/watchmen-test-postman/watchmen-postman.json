@@ -10567,7 +10567,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"subjectId\": \"{{SUBJECT_ID}}\",\n    \"subjectName\": \"{{SUBJECT_NAME}}\",\n    \"indicators\": [ {\n            \"columnId\": \"f-2\",\n            \"name\": \"alias_b\",\n            \"arithmetic\": \"none\"\n        }],\n    \"conditions\": []\n}",
+                  "raw": "{\n    \"subjectId\": \"{{SUBJECT_ID}}\",\n    \"subjectName\": \"{{SUBJECT_NAME}}\",\n    \"indicators\": [\n        {\n            \"columnId\": \"f-2\",\n            \"name\": \"alias_b\",\n            \"arithmetic\": \"sum\"\n        },\n        {\n            \"columnId\": \"f-1\",\n            \"name\": \"alias_a\",\n            \"arithmetic\": \"none\"\n        }\n    ],\n    \"conditions\": [\n        {\n            \"left\": \"\",\n            \"operator\": \"\",\n            \"right\": \"\"\n        }\n    ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
