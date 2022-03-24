@@ -10481,52 +10481,52 @@
                     "url": "{{URL_PREFIX}}/subject"
                   },
                   "response": []
+                },
+                {
+                  "name": "SUBJECT DATA",
+                  "id": "070a9a81-7993-4a86-8f38-32c8a6cef469",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "POST",
+                    "header": [],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\r\n    \"pageNumber\": 1,\r\n\t\"pageSize\": 10\r\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{URL_PREFIX}}/subject/data?subject_id={{SUBJECT_ID}}",
+                      "host": [
+                        "{{URL_PREFIX}}"
+                      ],
+                      "path": [
+                        "subject",
+                        "data"
+                      ],
+                      "query": [
+                        {
+                          "key": "subject_id",
+                          "value": "{{SUBJECT_ID}}"
+                        }
+                      ]
+                    }
+                  },
+                  "response": []
                 }
               ],
               "id": "559514d3-013f-4ade-ba87-bfd6da8f135d"
-            },
-            {
-              "name": "SUBJECT DATA",
-              "id": "070a9a81-7993-4a86-8f38-32c8a6cef469",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": {
-                    "token": "{{JWT_TOKEN}}"
-                  }
-                },
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\r\n    \"pageNumber\": 1,\r\n\t\"pageSize\": 10\r\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{URL_PREFIX}}/subject/data?subject_id={{SUBJECT_ID}}",
-                  "host": [
-                    "{{URL_PREFIX}}"
-                  ],
-                  "path": [
-                    "subject",
-                    "data"
-                  ],
-                  "query": [
-                    {
-                      "key": "subject_id",
-                      "value": "{{SUBJECT_ID}}"
-                    }
-                  ]
-                }
-              },
-              "response": []
             },
             {
               "name": "SUBJECT DATA CRITERIA",
