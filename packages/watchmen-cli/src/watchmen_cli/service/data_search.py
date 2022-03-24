@@ -29,13 +29,16 @@ def search_user_group(site, name):
 		print(f'User group[id={group.get("userGroupId")}, name={group.get("name")}].')
 
 
-def search_report(self, site, name):
+# noinspection PyUnusedLocal
+def search_report(site, name):
 	pass
 
 
-def search_connect_space(self, site, name):
+# noinspection PyUnusedLocal
+def search_connect_space(site, name):
 	pass
 
 
-def search_subject(self, site, name):
+# noinspection PyUnusedLocal
+def search_subject(site, name):
 	pass

@@ -49,6 +49,7 @@ def read_data_from_markdown(markdown: str):
 	return topic_list, pipeline_list, space_list, connect_space_list
 
 
+# noinspection PyUnusedLocal
 def import_markdowns(folder, site, import_type, markdown_file):
 	markdown_list = list_asset_markdown(folder)
 	for markdown in markdown_list:

@@ -4,7 +4,7 @@ from trino.dbapi import connect
 
 
 class TestTrino(TestCase):
-	# noinspection SqlResolve
+	# noinspection SqlResolve,SqlCaseVsIf
 	def test_trino(self):
 		conn = connect(
 			host='localhost',

@@ -19,33 +19,41 @@ def search_template_space(site, space_id):
 # def load
 
 
+# noinspection PyUnusedLocal
 def search_template_chart(site, name):
 	pass
 
 
+# noinspection PyUnusedLocal
 def search_template_subject(site, name):
 	pass
 
 
-def load_template_space(site, id: str):
+# noinspection PyUnusedLocal
+def load_template_space(site, space_id: str):
 	pass
 
 
+# noinspection PyUnusedLocal
 def import_template_space(site, template_space):
 	pass
 
 
+# noinspection PyUnusedLocal
 def load_template_subject(site, subject_id):
 	pass
 
 
+# noinspection PyUnusedLocal
 def import_template_subject(site, template_subject):
 	pass
 
 
+# noinspection PyUnusedLocal
 def load_template_chart(site, chart_id):
 	pass
 
 
+# noinspection PyUnusedLocal
 def import_template_chart(site, template_chart):
 	pass
