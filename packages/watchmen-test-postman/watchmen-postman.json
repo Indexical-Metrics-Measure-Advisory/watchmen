@@ -10530,7 +10530,20 @@
           "item": [
             {
               "name": "SUBJECT DATA",
-              "item": [],
+              "item": [
+                {
+                  "name": "New Request",
+                  "id": "6769e28d-cc6e-49c5-b1ed-4c496b442627",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
+                }
+              ],
               "id": "f1226199-ca50-444e-afec-521404f0e6f2"
             },
             {
