@@ -10539,7 +10539,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "",
+                  "raw": "{\n    \"subjectId\": \"\",\n    \"subjectName\": \"\",\n    \"indicators\": [],\n    \"conditions\": []\n}",
                   "options": {
                     "raw": {
                       "language": "json"
