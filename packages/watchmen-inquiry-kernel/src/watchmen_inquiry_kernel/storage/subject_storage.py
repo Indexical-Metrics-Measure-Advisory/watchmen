@@ -457,7 +457,7 @@ class SubjectStorage:
 				lambda x: self.build_criteria_statement_by_report_filter(subject_column_map, x)).filter(
 				lambda x: x is not None).to_list()
 		)
-		if len(joint.children) == 0:
+		if len(joint.filters) == 0:
 			return None
 		else:
 			return criteria_joint
