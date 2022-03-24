@@ -10,13 +10,13 @@ class SubjectDataService:
 		self.schema = SubjectSchema(subject, principal_service)
 		self.principalService = principal_service
 
-	def get_schema(self):
+	def get_schema(self) -> SubjectSchema:
 		return self.schema
 
-	def get_subject(self):
+	def get_subject(self) -> Subject:
 		return self.schema.get_subject()
 
-	def get_principal_service(self):
+	def get_principal_service(self) -> PrincipalService:
 		return self.principalService
 
 	def find(self) -> DataResult:
