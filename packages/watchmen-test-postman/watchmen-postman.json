@@ -10681,37 +10681,37 @@
                     }
                   },
                   "response": []
+                },
+                {
+                  "name": "REPORT TEMPORARY",
+                  "id": "520af1c8-f4da-4c8e-b479-12b879418363",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "POST",
+                    "header": [],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n    \"reportId\": \"{{REPORT_ID}}\",\n    \"name\": \"Test_Report\",\n    \"subjectId\": \"{{SUBJECT_ID}}\",\n    \"connectId\": \"{{CONNECT_ID}}\",\n    \"funnels\": [],\n    \"indicators\": [\n        {\n            \"columnId\": \"f-2\",\n            \"name\": \"count_propB\",\n            \"arithmetic\": \"count\"\n        }\n    ],\n    \"dimensions\": [],\n    \"description\": \"test report\",\n    \"rect\": {\n        \"x\": 0,\n        \"y\": 0,\n        \"width\": 167.63888549804688,\n        \"height\": 35.55555534362793\n    },\n    \"chart\": {\n        \"type\": \"count\",\n        \"settings\": {\n            \"border\": null,\n            \"backgroundColor\": null,\n            \"colorSeries\": \"regular\"\n        }\n    },\n    \"simulating\": 0,\n    \"simulateData\": [],\n    \"simulateThumbnail\": \"test\"\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": "{{URL_PREFIX}}/report/temporary"
+                  },
+                  "response": []
                 }
               ],
               "id": "172d5707-2b4e-49a5-a412-67f45cc75a9e"
-            },
-            {
-              "name": "REPORT TEMPORARY",
-              "id": "520af1c8-f4da-4c8e-b479-12b879418363",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": {
-                    "token": "{{JWT_TOKEN}}"
-                  }
-                },
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"reportId\": \"{{REPORT_ID}}\",\n    \"name\": \"Test_Report\",\n    \"subjectId\": \"{{SUBJECT_ID}}\",\n    \"connectId\": \"{{CONNECT_ID}}\",\n    \"funnels\": [],\n    \"indicators\": [\n        {\n            \"columnId\": \"f-2\",\n            \"name\": \"count_propB\",\n            \"arithmetic\": \"count\"\n        }\n    ],\n    \"dimensions\": [],\n    \"description\": \"test report\",\n    \"rect\": {\n        \"x\": 0,\n        \"y\": 0,\n        \"width\": 167.63888549804688,\n        \"height\": 35.55555534362793\n    },\n    \"chart\": {\n        \"type\": \"count\",\n        \"settings\": {\n            \"border\": null,\n            \"backgroundColor\": null,\n            \"colorSeries\": \"regular\"\n        }\n    },\n    \"simulating\": 0,\n    \"simulateData\": [],\n    \"simulateThumbnail\": \"test\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": "{{URL_PREFIX}}/report/temporary"
-              },
-              "response": []
             }
           ],
           "id": "3191c34a-4994-4e97-a1ce-2d7442f8f19f"
