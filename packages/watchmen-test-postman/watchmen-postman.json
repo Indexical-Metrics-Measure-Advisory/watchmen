@@ -10532,7 +10532,7 @@
               "name": "SUBJECT DATA",
               "item": [
                 {
-                  "name": "New Request",
+                  "name": "SUBJECT DATA",
                   "id": "6769e28d-cc6e-49c5-b1ed-4c496b442627",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
