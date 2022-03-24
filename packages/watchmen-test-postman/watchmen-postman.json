@@ -10637,53 +10637,53 @@
                     "url": "{{URL_PREFIX}}/report"
                   },
                   "response": []
+                },
+                {
+                  "name": "REPORT DATA",
+                  "id": "142f8fa9-e01f-471b-bfdc-0a8470509083",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "GET",
+                    "header": [],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{URL_PREFIX}}/report/data?report_id={{REPORT_ID}}",
+                      "host": [
+                        "{{URL_PREFIX}}"
+                      ],
+                      "path": [
+                        "report",
+                        "data"
+                      ],
+                      "query": [
+                        {
+                          "key": "report_id",
+                          "value": "{{REPORT_ID}}",
+                          "type": "text"
+                        }
+                      ]
+                    }
+                  },
+                  "response": []
                 }
               ],
               "id": "172d5707-2b4e-49a5-a412-67f45cc75a9e"
-            },
-            {
-              "name": "REPORT DATA",
-              "id": "142f8fa9-e01f-471b-bfdc-0a8470509083",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": {
-                    "token": "{{JWT_TOKEN}}"
-                  }
-                },
-                "method": "GET",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": {
-                  "raw": "{{URL_PREFIX}}/report/data?report_id={{REPORT_ID}}",
-                  "host": [
-                    "{{URL_PREFIX}}"
-                  ],
-                  "path": [
-                    "report",
-                    "data"
-                  ],
-                  "query": [
-                    {
-                      "key": "report_id",
-                      "value": "{{REPORT_ID}}",
-                      "type": "text"
-                    }
-                  ]
-                }
-              },
-              "response": []
             },
             {
               "name": "REPORT TEMPORARY",
