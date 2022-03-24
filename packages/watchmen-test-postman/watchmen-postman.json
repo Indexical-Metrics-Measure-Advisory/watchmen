@@ -10436,53 +10436,54 @@
           "item": [
             {
               "name": "SINGLE TOPIC",
-              "item": [],
-              "id": "559514d3-013f-4ade-ba87-bfd6da8f135d"
-            },
-            {
-              "name": "CREATE SUBJECT",
-              "event": [
+              "item": [
                 {
-                  "listen": "test",
-                  "script": {
-                    "id": "0b099cfd-73f4-4671-81cd-6ae01d6bdfc9",
-                    "exec": [
-                      "pm.test('Create Subject', () => {\r",
-                      "    pm.response.to.have.status(200);\r",
-                      "    const data = pm.response.json();\r",
-                      "    pm.environment.set(\"SUBJECT_ID\", data.subjectId);\r",
-                      "    pm.environment.set(\"SUBJECT_NAME\", data.name);\r",
-                      "})"
-                    ],
-                    "type": "text/javascript"
-                  }
+                  "name": "CREATE SUBJECT",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "0b099cfd-73f4-4671-81cd-6ae01d6bdfc9",
+                        "exec": [
+                          "pm.test('Create Subject', () => {\r",
+                          "    pm.response.to.have.status(200);\r",
+                          "    const data = pm.response.json();\r",
+                          "    pm.environment.set(\"SUBJECT_ID\", data.subjectId);\r",
+                          "    pm.environment.set(\"SUBJECT_NAME\", data.name);\r",
+                          "})"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
+                  "id": "340acbd0-56c7-497f-abfe-1a6296d408d9",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "POST",
+                    "header": [],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\r\n    \"name\": \"Test_Subject\",\r\n    \"connectId\": \"{{CONNECT_ID}}\",\r\n    \"reports\": [\r\n        \"1\",\r\n        \"2\"\r\n    ],\r\n    \"dataset\": {\r\n        \"joins\": [],\r\n        \"columns\": [\r\n            {\r\n                \"alias\": \"alias_a\",\r\n                \"columnId\": \"f-1\",\r\n                \"parameter\": {\r\n                    \"on\": null,\r\n                    \"kind\": \"topic\",\r\n                    \"type\": null,\r\n                    \"value\": null,\r\n                    \"topicId\": \"{{TOPIC_ID}}\",\r\n                    \"factorId\": \"1\",\r\n                    \"parameters\": [],\r\n                    \"conditional\": false\r\n                }\r\n            },\r\n            {\r\n                \"alias\": \"alias_b\",\r\n                \"columnId\": \"f-2\",\r\n                \"parameter\": {\r\n                    \"on\": null,\r\n                    \"kind\": \"topic\",\r\n                    \"type\": null,\r\n                    \"value\": null,\r\n                    \"topicId\": \"{{TOPIC_ID}}\",\r\n                    \"factorId\": \"2\",\r\n                    \"parameters\": [],\r\n                    \"conditional\": false\r\n                }\r\n            },\r\n            {\r\n                \"alias\": \"alias_c\",\r\n                \"columnId\": \"f-3\",\r\n                \"parameter\": {\r\n                    \"on\": null,\r\n                    \"kind\": \"topic\",\r\n                    \"type\": null,\r\n                    \"value\": null,\r\n                    \"topicId\": \"{{TOPIC_ID}}\",\r\n                    \"factorId\": \"3\",\r\n                    \"parameters\": [],\r\n                    \"conditional\": false\r\n                }\r\n            },\r\n            {\r\n                \"alias\": \"alias_d\",\r\n                \"columnId\": \"f-4\",\r\n                \"parameter\": {\r\n                    \"on\": null,\r\n                    \"kind\": \"topic\",\r\n                    \"type\": null,\r\n                    \"value\": null,\r\n                    \"topicId\": \"{{TOPIC_ID}}\",\r\n                    \"factorId\": \"4\",\r\n                    \"parameters\": [],\r\n                    \"conditional\": false\r\n                }\r\n            },\r\n            {\r\n                \"alias\": \"alias_e\",\r\n                \"columnId\": \"f-5\",\r\n                \"parameter\": {\r\n                    \"on\": null,\r\n                    \"kind\": \"topic\",\r\n                    \"type\": null,\r\n                    \"value\": null,\r\n                    \"topicId\": \"{{TOPIC_ID}}\",\r\n                    \"factorId\": \"5\",\r\n                    \"parameters\": [],\r\n                    \"conditional\": false\r\n                }\r\n            }\r\n        ]\r\n    }\r\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": "{{URL_PREFIX}}/subject"
+                  },
+                  "response": []
                 }
               ],
-              "id": "340acbd0-56c7-497f-abfe-1a6296d408d9",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "auth": {
-                  "type": "bearer",
-                  "bearer": {
-                    "token": "{{JWT_TOKEN}}"
-                  }
-                },
-                "method": "POST",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\r\n    \"name\": \"Test_Subject\",\r\n    \"connectId\": \"{{CONNECT_ID}}\",\r\n    \"reports\": [\r\n        \"1\",\r\n        \"2\"\r\n    ],\r\n    \"dataset\": {\r\n        \"joins\": [],\r\n        \"columns\": [\r\n            {\r\n                \"alias\": \"alias_a\",\r\n                \"columnId\": \"f-1\",\r\n                \"parameter\": {\r\n                    \"on\": null,\r\n                    \"kind\": \"topic\",\r\n                    \"type\": null,\r\n                    \"value\": null,\r\n                    \"topicId\": \"{{TOPIC_ID}}\",\r\n                    \"factorId\": \"1\",\r\n                    \"parameters\": [],\r\n                    \"conditional\": false\r\n                }\r\n            },\r\n            {\r\n                \"alias\": \"alias_b\",\r\n                \"columnId\": \"f-2\",\r\n                \"parameter\": {\r\n                    \"on\": null,\r\n                    \"kind\": \"topic\",\r\n                    \"type\": null,\r\n                    \"value\": null,\r\n                    \"topicId\": \"{{TOPIC_ID}}\",\r\n                    \"factorId\": \"2\",\r\n                    \"parameters\": [],\r\n                    \"conditional\": false\r\n                }\r\n            },\r\n            {\r\n                \"alias\": \"alias_c\",\r\n                \"columnId\": \"f-3\",\r\n                \"parameter\": {\r\n                    \"on\": null,\r\n                    \"kind\": \"topic\",\r\n                    \"type\": null,\r\n                    \"value\": null,\r\n                    \"topicId\": \"{{TOPIC_ID}}\",\r\n                    \"factorId\": \"3\",\r\n                    \"parameters\": [],\r\n                    \"conditional\": false\r\n                }\r\n            },\r\n            {\r\n                \"alias\": \"alias_d\",\r\n                \"columnId\": \"f-4\",\r\n                \"parameter\": {\r\n                    \"on\": null,\r\n                    \"kind\": \"topic\",\r\n                    \"type\": null,\r\n                    \"value\": null,\r\n                    \"topicId\": \"{{TOPIC_ID}}\",\r\n                    \"factorId\": \"4\",\r\n                    \"parameters\": [],\r\n                    \"conditional\": false\r\n                }\r\n            },\r\n            {\r\n                \"alias\": \"alias_e\",\r\n                \"columnId\": \"f-5\",\r\n                \"parameter\": {\r\n                    \"on\": null,\r\n                    \"kind\": \"topic\",\r\n                    \"type\": null,\r\n                    \"value\": null,\r\n                    \"topicId\": \"{{TOPIC_ID}}\",\r\n                    \"factorId\": \"5\",\r\n                    \"parameters\": [],\r\n                    \"conditional\": false\r\n                }\r\n            }\r\n        ]\r\n    }\r\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-                "url": "{{URL_PREFIX}}/subject"
-              },
-              "response": []
+              "id": "559514d3-013f-4ade-ba87-bfd6da8f135d"
             },
             {
               "name": "SUBJECT DATA",
