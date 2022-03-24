@@ -10539,7 +10539,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"subjectId\": \"{{SUBJECT_ID}}\",\n    \"subjectName\": \"{{SUBJECT_NAME}}\",\n    \"indicators\": [ {\n            \"columnId\": \"f-2\",\n            \"name\": \"propB\",\n            \"arithmetic\": \"None\"\n        }],\n    \"conditions\": []\n}",
+                  "raw": "{\n    \"subjectId\": \"{{SUBJECT_ID}}\",\n    \"subjectName\": \"{{SUBJECT_NAME}}\",\n    \"indicators\": [ {\n            \"columnId\": \"f-2\",\n            \"name\": \"propB\",\n            \"arithmetic\": \"none\"\n        }],\n    \"conditions\": []\n}",
                   "options": {
                     "raw": {
                       "language": "json"
