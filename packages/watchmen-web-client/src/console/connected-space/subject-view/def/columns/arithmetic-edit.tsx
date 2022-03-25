@@ -15,7 +15,7 @@ export const ArithmeticEditor = (props: { column: SubjectDataSetColumn }) => {
 
 	const onArithmeticChange = (option: DropdownOption) => {
 		const value = option.value as SubjectColumnArithmetic;
-		if (value == column.arithmetic) {
+		if (value === column.arithmetic) {
 			return;
 		}
 
