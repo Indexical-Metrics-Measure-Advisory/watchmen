@@ -21,6 +21,7 @@ from watchmen_model.common import ComputedParameter, ConstantParameter, DataPage
 	ParameterJointType, SubjectDatasetColumnId, TopicFactorParameter, TopicId, VariablePredefineFunctions
 from watchmen_model.console import ConnectedSpace, ReportDimension, ReportFunnel, ReportFunnelType, ReportIndicator, \
 	ReportIndicatorArithmetic, SubjectDatasetColumn, SubjectDatasetJoin, SubjectJoinType
+from watchmen_model.console.subject import SubjectColumnArithmetic
 from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteria, \
 	EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, \
 	EntityCriteriaStatement, FreeAggregateArithmetic, FreeAggregateColumn, FreeAggregatePager, FreeAggregator, \
@@ -203,7 +204,22 @@ class SubjectStorage:
 		def to_free_column(column: SubjectDatasetColumn) -> FreeColumn:
 			literal = parse_parameter_for_storage(column.parameter, available_schemas, self.principalService, False) \
 				.run(empty_variables, self.principalService)
-			return FreeColumn(literal=literal, alias=column.alias)
+			arithmetic = column.arithmetic
+			if arithmetic is None or arithmetic == SubjectColumnArithmetic.NONE:
+				column_arithmetic = FreeAggregateArithmetic.NONE
+			elif arithmetic == SubjectColumnArithmetic.COUNT:
+				column_arithmetic = FreeAggregateArithmetic.COUNT
+			elif arithmetic == SubjectColumnArithmetic.SUMMARY:
+				column_arithmetic = FreeAggregateArithmetic.SUMMARY
+			elif arithmetic == SubjectColumnArithmetic.AVERAGE:
+				column_arithmetic = FreeAggregateArithmetic.AVERAGE
+			elif arithmetic == SubjectColumnArithmetic.MAXIMUM:
+				column_arithmetic = FreeAggregateArithmetic.MAXIMUM
+			elif arithmetic == SubjectColumnArithmetic.MINIMUM:
+				column_arithmetic = FreeAggregateArithmetic.MINIMUM
+			else:
+				raise InquiryKernelException(f'Column arithmetic[{arithmetic}] is not supported.')
+			return FreeColumn(literal=literal, alias=column.alias, arithmetic=column_arithmetic)
 
 		columns = ArrayHelper(dataset.columns).map(to_free_column).to_list()
 		if dataset.joins is None or len(dataset.joins) == 0:
