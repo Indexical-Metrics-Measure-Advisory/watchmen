@@ -1,3 +1,4 @@
+import {ArithmeticEditor} from '@/console/connected-space/subject-view/def/columns/arithmetic-edit';
 import {ParameterKind} from '@/services/data/tuples/factor-calculator-types';
 import {Subject, SubjectDataSetColumn} from '@/services/data/tuples/subject-types';
 import {Topic} from '@/services/data/tuples/topic-types';
@@ -54,6 +55,7 @@ export const ColumnEditor = (props: {
 		<TopicFactorEditor parameter={column.parameter}
 		                   availableTopics={availableTopics} pickedTopics={pickedTopics}/>
 		<AliasEditor column={column}/>
+		<ArithmeticEditor column={column}/>
 		<DeleteMeButton onClick={onDeleteClicked}>
 			<FontAwesomeIcon icon={ICON_DELETE}/>
 		</DeleteMeButton>

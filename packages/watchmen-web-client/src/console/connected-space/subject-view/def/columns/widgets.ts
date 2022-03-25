@@ -1,3 +1,4 @@
+import {Dropdown} from '@/widgets/basic/dropdown';
 import {Input} from '@/widgets/basic/input';
 import styled from 'styled-components';
 
@@ -53,12 +54,12 @@ export const ColumnEditWrapper = styled.div.attrs<{ shorten: boolean }>(({shorte
 	return {
 		'data-widget': 'subject-def-column-edit-wrapper',
 		style: {
-			gridTemplateColumns: shorten ? 'auto auto auto 1fr' : (void 0)
+			gridTemplateColumns: shorten ? 'auto auto auto auto 1fr' : (void 0)
 		}
 	};
 })<{ shorten: boolean }>`
 	display               : grid;
-	grid-template-columns : auto 1fr auto auto;
+	grid-template-columns : auto 1fr auto auto auto;
 	grid-row-gap          : calc(var(--margin) / 4);
 	position              : relative;
 	align-self            : stretch;
@@ -102,6 +103,49 @@ export const AliasLabel = styled.div.attrs({'data-widget': 'subject-def-column-a
 `;
 export const AliasEditInput = styled(Input).attrs({'data-widget': 'subject-def-column-alias-edit-input'})`
 	width         : 200px;
+	height        : var(--param-height);
+	border        : 0;
+	border-radius : 0 calc(var(--param-height) / 2) calc(var(--param-height) / 2) 0;
+	box-shadow    : var(--param-border);
+	&:hover {
+		z-index          : 1;
+		background-color : var(--bg-color);
+		box-shadow       : var(--primary-hover-shadow);
+	}
+`;
+export const ArithmeticEdit = styled.div.attrs({'data-widget': 'subject-def-column-arithmetic-edit'})`
+	display      : flex;
+	position     : relative;
+	align-items  : center;
+	align-self   : stretch;
+	justify-self : stretch;
+	height       : var(--param-height);
+	margin-left  : calc(var(--margin) / 2);
+	&:before {
+		content          : '';
+		display          : block;
+		position         : absolute;
+		left             : calc(var(--margin) / -2);
+		top              : 50%;
+		height           : 1px;
+		width            : calc(var(--margin) / 2);
+		background-color : var(--param-bg-color);
+	}
+`;
+export const ArithmeticLabel = styled.div.attrs({'data-widget': 'subject-def-column-arithmetic-edit-label'})`
+	display          : flex;
+	align-items      : center;
+	align-self       : stretch;
+	justify-self     : stretch;
+	background-color : var(--param-bg-color);
+	font-variant     : petite-caps;
+	font-weight      : var(--font-bold);
+	padding          : 0 calc(var(--margin) / 4);
+	border-radius    : calc(var(--param-height) / 2) 0 0 calc(var(--param-height) / 2);
+	box-shadow       : var(--param-top-border), var(--param-bottom-border);
+`;
+export const ArithmeticEditInput = styled(Dropdown).attrs({'data-widget': 'subject-def-column-arithmetic-edit-input'})`
+	width         : 150px;
 	height        : var(--param-height);
 	border        : 0;
 	border-radius : 0 calc(var(--param-height) / 2) calc(var(--param-height) / 2) 0;
