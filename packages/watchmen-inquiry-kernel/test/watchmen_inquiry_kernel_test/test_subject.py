@@ -97,7 +97,7 @@ class TestSubject(TestCase):
 							]
 						),
 						alias='Column1',
-						arithmetic=SubjectColumnArithmetic.SUMMARY
+						# arithmetic=SubjectColumnArithmetic.SUMMARY
 					),
 					SubjectDatasetColumn(
 						columnId='2',
