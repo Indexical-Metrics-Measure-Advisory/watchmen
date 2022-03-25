@@ -16,6 +16,10 @@ export const fetchUpdatedPipelines = async (lastModifiedTime: Dayjs): Promise<Ar
 	if (isMockService()) {
 		return fetchMockAllPipelines();
 	} else {
-		return await post({api: Apis.PIPELINE_UPDATED, data: {at: lastModifiedTime.format('YYYY/MM/DD HH:mm:ss')}});
+		try {
+			return await post({api: Apis.PIPELINE_UPDATED, data: {at: lastModifiedTime.format('YYYY/MM/DD HH:mm:ss')}});
+		} catch {
+			return await fetchAllPipelines();
+		}
 	}
 };
