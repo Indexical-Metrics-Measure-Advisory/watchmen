@@ -441,7 +441,7 @@ class TrinoStorage(TrinoStorageSPI):
 			data[column.alias] = row[index]
 		return data
 
-	# noinspection PyMethodMayBeStatic
+	# noinspection PyMethodMayBeStatic,DuplicatedCode
 	def fake_aggregate_columns(self, table_columns: List[FreeColumn]) -> Tuple[bool, List[FreeAggregateColumn]]:
 		aggregated = ArrayHelper(table_columns) \
 			.some(lambda x: x.arithmetic is not None and x.arithmetic != FreeAggregateColumn.NONE)
@@ -593,7 +593,7 @@ class TrinoStorage(TrinoStorageSPI):
 	def build_aggregate_statement(
 			self, aggregator: FreeAggregator,
 			selection: Callable[[List[FreeAggregateColumn]], Any]
-	) -> str:
+	) -> Tuple[bool, str]:
 		sub_query_sql = f'SELECT {self.build_free_columns(aggregator.columns)} FROM {self.build_free_joins(aggregator.joins)}'
 		where = self.build_criteria_for_statement(aggregator.criteria)
 		if where is not None:
@@ -608,12 +608,11 @@ class TrinoStorage(TrinoStorageSPI):
 		if where is not None:
 			sql = f'{sql} WHERE {where}'
 		# find columns rather than grouped
-		non_group_columns = ArrayHelper(aggregate_columns) \
-			.filter(lambda x: x.arithmetic is None or x.arithmetic == FreeAggregateArithmetic.NONE) \
-			.to_list()
-		if len(non_group_columns) != 0:
-			sql = f'{sql} GROUP BY {ArrayHelper(non_group_columns).map(lambda x: x.name).join(", ")}'
-		return sql
+		has_group_by, group_by = self.build_aggregate_group_by(aggregate_columns)
+		if has_group_by:
+			sql = f'{sql} GROUP BY {group_by}'
+			return True, sql
+		return False, sql
 
 	# noinspection PyMethodMayBeStatic
 	def deserialize_from_aggregate_row(
@@ -625,7 +624,7 @@ class TrinoStorage(TrinoStorageSPI):
 		return data
 
 	def free_aggregate_find(self, aggregator: FreeAggregator) -> List[Dict[str, Any]]:
-		sql = self.build_aggregate_statement(aggregator, lambda columns: self.build_free_aggregate_columns(columns))
+		_, sql = self.build_aggregate_statement(aggregator, lambda columns: self.build_free_aggregate_columns(columns))
 		cursor = self.connection.cursor()
 		if ask_storage_echo_enabled():
 			logger.info(f'SQL: {sql}')
@@ -634,27 +633,36 @@ class TrinoStorage(TrinoStorageSPI):
 		return ArrayHelper(rows) \
 			.map(lambda x: self.deserialize_from_aggregate_row(x, aggregator.highOrderAggregateColumns)).to_list()
 
+	# noinspection PyMethodMayBeStatic
+	def has_aggregate_column(self, table_columns: List[FreeAggregateColumn]) -> bool:
+		return ArrayHelper(table_columns) \
+			.some(lambda x: x.arithmetic is not None and x.arithmetic != FreeAggregateArithmetic.NONE)
+
 	# noinspection DuplicatedCode
 	def free_aggregate_page(self, pager: FreeAggregatePager) -> DataPage:
 		page_size = pager.pageable.pageSize
-		sql = self.build_aggregate_statement(pager, lambda columns: 'COUNT(1)')
-		cursor = self.connection.cursor()
-		if ask_storage_echo_enabled():
-			logger.info(f'SQL: {sql}')
-		cursor.execute(sql)
-		count = cursor.fetchall()[0][0]
-		if count == 0:
-			return DataPage(
-				data=[],
-				pageNumber=1,
-				pageSize=page_size,
-				itemCount=0,
-				pageCount=0
-			)
+		has_group_by, sql = self.build_aggregate_statement(pager, lambda columns: 'COUNT(1)')
+		aggregated = self.has_aggregate_column(pager.highOrderAggregateColumns)
+		if aggregated and not has_group_by:
+			count = 1
+		else:
+			cursor = self.connection.cursor()
+			if ask_storage_echo_enabled():
+				logger.info(f'SQL: {sql}')
+			cursor.execute(sql)
+			count = cursor.fetchall()[0][0]
+			if count == 0:
+				return DataPage(
+					data=[],
+					pageNumber=1,
+					pageSize=page_size,
+					itemCount=0,
+					pageCount=0
+				)
 
 		page_number, max_page_number = self.compute_page(count, page_size, pager.pageable.pageNumber)
 
-		sql = self.build_aggregate_statement(pager, lambda columns: self.build_free_aggregate_columns(columns))
+		_, sql = self.build_aggregate_statement(pager, lambda columns: self.build_free_aggregate_columns(columns))
 		offset = page_size * (page_number - 1)
 		sql = f'{sql} OFFSET {offset} LIMIT {page_size}'
 		cursor = self.connection.cursor()
