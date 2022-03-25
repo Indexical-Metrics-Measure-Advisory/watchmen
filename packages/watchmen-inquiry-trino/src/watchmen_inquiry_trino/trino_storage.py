@@ -441,12 +441,50 @@ class TrinoStorage(TrinoStorageSPI):
 			data[column.alias] = row[index]
 		return data
 
-	# noinspection SqlResolve
-	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
+	# noinspection PyMethodMayBeStatic
+	def fake_aggregate_columns(self, table_columns: List[FreeColumn]) -> Tuple[bool, List[FreeAggregateColumn]]:
+		aggregated = ArrayHelper(table_columns) \
+			.some(lambda x: x.arithmetic is not None and x.arithmetic != FreeAggregateColumn.NONE)
+		return aggregated, [] if not aggregated else ArrayHelper(table_columns).map_with_index(
+			lambda x, index: FreeAggregateColumn(
+				name=f'column_{index + 1}',
+				arithmetic=x.arithmetic,
+				alias=x.alias
+			)).to_list()
+
+	# noinspection PyMethodMayBeStatic
+	def build_aggregate_group_by(self, table_columns: List[FreeAggregateColumn]) -> Tuple[bool, Optional[str]]:
+		# find columns rather than grouped
+		non_group_columns = ArrayHelper(table_columns) \
+			.filter(lambda x: x.arithmetic is None or x.arithmetic == FreeAggregateArithmetic.NONE) \
+			.to_list()
+		if len(non_group_columns) != 0:
+			sql = f'{ArrayHelper(non_group_columns).map(lambda x: x.name).join(", ")}'
+			return True, sql
+		else:
+			return False, None
+
+	def build_fake_aggregate_columns(self, table_columns: List[FreeColumn], sql: str) -> str:
+		"""
+		use sub query to do free columns aggregate to avoid group by computation
+		"""
+		aggregated, aggregate_columns = self.fake_aggregate_columns(table_columns)
+		if aggregated:
+			sql = f'SELECT {self.build_free_aggregate_columns(aggregate_columns, "column")} FROM ({sql}) as FQ '
+			has_group_by, group_by = self.build_aggregate_group_by(aggregate_columns)
+			if has_group_by:
+				sql = f'{sql} GROUP BY {group_by}'
+		return sql
+
+	def build_find_sql(self, finder: FreeFinder) -> str:
 		sql = f'SELECT {self.build_free_columns(finder.columns)} FROM {self.build_free_joins(finder.joins)}'
 		where = self.build_criteria_for_statement(finder.criteria)
 		if where is not None:
 			sql = f'{sql} WHERE {where}'
+		return self.build_fake_aggregate_columns(finder.columns, sql)
+
+	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
+		sql = self.build_find_sql(finder)
 		cursor = self.connection.cursor()
 		if ask_storage_echo_enabled():
 			logger.info(f'SQL: {sql}')
@@ -476,11 +514,22 @@ class TrinoStorage(TrinoStorageSPI):
 		where = self.build_criteria_for_statement(pager.criteria)
 		if where is not None:
 			sql = f'{sql} WHERE {where}'
-		cursor = self.connection.cursor()
-		if ask_storage_echo_enabled():
-			logger.info(f'SQL: {sql}')
-		cursor.execute(sql)
-		count = cursor.fetchall()[0][0]
+		aggregated, aggregate_columns = self.fake_aggregate_columns(pager.columns)
+		count = 0
+		if aggregated:
+			has_group_by, group_by = self.build_aggregate_group_by(aggregate_columns)
+			if has_group_by:
+				sql = f'{sql} GROUP BY {group_by}'
+			else:
+				# aggregated and no group by, one and only one row
+				count = 1
+		if count != 1:
+			cursor = self.connection.cursor()
+			if ask_storage_echo_enabled():
+				logger.info(f'SQL: {sql}')
+			cursor.execute(sql)
+			count = cursor.fetchall()[0][0]
+
 		if count == 0:
 			return DataPage(
 				data=[],
@@ -495,6 +544,7 @@ class TrinoStorage(TrinoStorageSPI):
 		sql = f'SELECT {self.build_free_columns(pager.columns)} FROM {select_from}'
 		if where is not None:
 			sql = f'{sql} WHERE {where}'
+		sql = self.build_fake_aggregate_columns(pager.columns, sql)
 		offset = page_size * (page_number - 1)
 		sql = f'{sql} OFFSET {offset} LIMIT {page_size}'
 		cursor = self.connection.cursor()
@@ -514,9 +564,10 @@ class TrinoStorage(TrinoStorageSPI):
 		)
 
 	# noinspection PyMethodMayBeStatic
-	def build_free_aggregate_column(self, table_column: FreeAggregateColumn, index: int) -> str:
+	def build_free_aggregate_column(
+			self, table_column: FreeAggregateColumn, index: int, prefix_name: str) -> str:
 		name = table_column.name
-		alias = f'agg_column_{index + 1}'
+		alias = f'{prefix_name}_{index + 1}'
 		arithmetic = table_column.arithmetic
 		if arithmetic == FreeAggregateArithmetic.COUNT:
 			return f'COUNT({name}) AS {alias}'
@@ -534,9 +585,9 @@ class TrinoStorage(TrinoStorageSPI):
 			raise UnexpectedStorageException(f'Aggregate arithmetic[{arithmetic}] is not supported.')
 
 	def build_free_aggregate_columns(
-			self, table_columns: Optional[List[FreeAggregateColumn]]) -> str:
+			self, table_columns: Optional[List[FreeAggregateColumn]], prefix_name: str = 'agg_column') -> str:
 		return ArrayHelper(table_columns) \
-			.map_with_index(lambda x, index: self.build_free_aggregate_column(x, index)).join(', ')
+			.map_with_index(lambda x, index: self.build_free_aggregate_column(x, index, prefix_name)).join(', ')
 
 	# noinspection SqlResolve
 	def build_aggregate_statement(
@@ -546,7 +597,9 @@ class TrinoStorage(TrinoStorageSPI):
 		sub_query_sql = f'SELECT {self.build_free_columns(aggregator.columns)} FROM {self.build_free_joins(aggregator.joins)}'
 		where = self.build_criteria_for_statement(aggregator.criteria)
 		if where is not None:
-			sub_query_sql = f'({sub_query_sql} WHERE {where}) AS SQ'
+			sub_query_sql = f'{sub_query_sql} WHERE {where}'
+		sub_query_sql = self.build_fake_aggregate_columns(aggregator.columns, sub_query_sql)
+		sub_query_sql = f'({sub_query_sql}) AS SQ'
 
 		aggregate_columns = aggregator.highOrderAggregateColumns
 		sql = f'SELECT {selection(aggregate_columns)} FROM {sub_query_sql}'

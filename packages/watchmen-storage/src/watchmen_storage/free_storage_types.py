@@ -5,9 +5,19 @@ from watchmen_model.common import DataModel, Pageable
 from .storage_types import ColumnNameLiteral, EntityCriteria, Literal
 
 
+class FreeAggregateArithmetic(str, Enum):
+	NONE = 'none'
+	COUNT = 'count'
+	SUMMARY = 'sum'
+	AVERAGE = 'avg'
+	MAXIMUM = 'max'
+	MINIMUM = 'min'
+
+
 class FreeColumn(DataModel):
 	literal: Literal
 	alias: str
+	arithmetic: Optional[FreeAggregateArithmetic] = None
 
 
 class FreeJoinType(str, Enum):
@@ -26,15 +36,6 @@ class FreeFinder(DataModel):
 	columns: List[FreeColumn] = None
 	joins: List[FreeJoin] = None
 	criteria: Optional[EntityCriteria] = None
-
-
-class FreeAggregateArithmetic(str, Enum):
-	NONE = 'none'
-	COUNT = 'count'
-	SUMMARY = 'sum'
-	AVERAGE = 'avg'
-	MAXIMUM = 'max'
-	MINIMUM = 'min'
 
 
 class FreeAggregateColumn(DataModel):
