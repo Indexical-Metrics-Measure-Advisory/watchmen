@@ -7,7 +7,7 @@ export const Apis = {
 	// admin only
 	// update date apis
 	PIPELINE_UPDATED: 'pipeline/updated',
-	PIPELINE_GRAPHICS_MINE_UPDATED: 'pipeline/graphics/me/updated',
+	PIPELINE_GRAPHICS_MINE_UPDATED: 'pipeline/graphics/updated',
 	TOPIC_UPDATED: 'topic/updated',
 
 	PIPELINE_ALL: 'pipeline/all',
