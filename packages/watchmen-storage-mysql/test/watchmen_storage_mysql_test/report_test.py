@@ -41,7 +41,14 @@ class ReportTest(TestCase):
 						primary=ColumnNameLiteral(entityName='1')
 					)
 				],
-				aggregateColumns=[
+				criteria=[
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(entityName='topic1', columnName='topic1_id'),
+						operator=EntityCriteriaOperator.NOT_EQUALS,
+						right='0'
+					)
+				],
+				hightOrderAggregateColumns=[
 					FreeAggregateColumn(
 						name='column_1',
 						arithmetic=FreeAggregateArithmetic.SUMMARY,
@@ -51,13 +58,6 @@ class ReportTest(TestCase):
 						name='column_2',
 						arithmetic=FreeAggregateArithmetic.NONE,
 						alias='Id'
-					)
-				],
-				criteria=[
-					EntityCriteriaExpression(
-						left=ColumnNameLiteral(entityName='topic1', columnName='topic1_id'),
-						operator=EntityCriteriaOperator.NOT_EQUALS,
-						right='0'
 					)
 				],
 				highOrderCriteria=[

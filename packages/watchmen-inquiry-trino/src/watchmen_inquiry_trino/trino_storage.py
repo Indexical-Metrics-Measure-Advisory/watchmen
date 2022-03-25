@@ -548,7 +548,7 @@ class TrinoStorage(TrinoStorageSPI):
 		if where is not None:
 			sub_query_sql = f'({sub_query_sql} WHERE {where}) AS SQ'
 
-		aggregate_columns = aggregator.aggregateColumns
+		aggregate_columns = aggregator.highOrderAggregateColumns
 		sql = f'SELECT {selection(aggregate_columns)} FROM {sub_query_sql}'
 		# obviously, table is not existing. fake a table of sub query selection to build high order criteria
 		where = self.build_criteria_for_statement(aggregator.highOrderCriteria)
@@ -579,7 +579,7 @@ class TrinoStorage(TrinoStorageSPI):
 		cursor.execute(sql)
 		rows = cursor.fetchall()
 		return ArrayHelper(rows) \
-			.map(lambda x: self.deserialize_from_aggregate_row(x, aggregator.aggregateColumns)).to_list()
+			.map(lambda x: self.deserialize_from_aggregate_row(x, aggregator.highOrderAggregateColumns)).to_list()
 
 	# noinspection DuplicatedCode
 	def free_aggregate_page(self, pager: FreeAggregatePager) -> DataPage:
@@ -611,7 +611,7 @@ class TrinoStorage(TrinoStorageSPI):
 		rows = cursor.fetchall()
 
 		results = ArrayHelper(rows) \
-			.map(lambda x: self.deserialize_from_aggregate_row(x, pager.aggregateColumns)).to_list()
+			.map(lambda x: self.deserialize_from_aggregate_row(x, pager.highOrderAggregateColumns)).to_list()
 
 		return DataPage(
 			data=results,

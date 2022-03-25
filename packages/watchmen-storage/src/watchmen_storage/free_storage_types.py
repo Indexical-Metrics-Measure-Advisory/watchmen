@@ -48,7 +48,7 @@ class FreePager(FreeFinder):
 
 
 class FreeAggregator(FreeFinder):
-	aggregateColumns: List[FreeAggregateColumn]
+	highOrderAggregateColumns: List[FreeAggregateColumn]
 	"""
 	leave empty on entity name
 	column name must match free column's index, such as column_1, column_2 (starts from 1)
