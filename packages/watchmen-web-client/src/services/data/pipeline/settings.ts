@@ -53,8 +53,8 @@ export const fetchUpdatedPipelinesSettingsData = async (options: {
 	} = options;
 
 	const [pipelines, topics, {
-		updated_graphics,
-		removed_graphic_ids
+		updated: updated_graphics,
+		removed: removed_graphic_ids
 	}, dataSources, externalWriters] = await Promise.all([
 		fetchUpdatedPipelines(lastModifiedTimeOfPipelines),
 		fetchUpdatedTopics(lastModifiedTimeOfTopics),
