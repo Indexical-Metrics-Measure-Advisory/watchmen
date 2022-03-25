@@ -476,6 +476,19 @@ class TrinoStorage(TrinoStorageSPI):
 				sql = f'{sql} GROUP BY {group_by}'
 		return sql
 
+	def build_fake_aggregate_count(self, table_columns: List[FreeColumn], sql: str) -> Tuple[bool, bool, str]:
+		"""
+		use sub query to do free columns aggregate to avoid group by computation
+		"""
+		aggregated, aggregate_columns = self.fake_aggregate_columns(table_columns)
+		if aggregated:
+			sql = f'SELECT COUNT(1) FROM ({sql}) as FQ '
+			has_group_by, group_by = self.build_aggregate_group_by(aggregate_columns)
+			if has_group_by:
+				sql = f'{sql} GROUP BY {group_by}'
+			return aggregated, has_group_by, sql
+		return False, False, sql
+
 	def build_find_sql(self, finder: FreeFinder) -> str:
 		sql = f'SELECT {self.build_free_columns(finder.columns)} FROM {self.build_free_joins(finder.joins)}'
 		where = self.build_criteria_for_statement(finder.criteria)
@@ -508,22 +521,15 @@ class TrinoStorage(TrinoStorageSPI):
 	# noinspection SqlResolve,DuplicatedCode
 	def free_page(self, pager: FreePager) -> DataPage:
 		page_size = pager.pageable.pageSize
-		select_from = self.build_free_joins(pager.joins)
-
-		sql = f'SELECT COUNT(1) FROM {select_from}'
+		base_sql = f'SELECT {self.build_free_columns(pager.columns)} FROM {self.build_free_joins(pager.joins)}'
 		where = self.build_criteria_for_statement(pager.criteria)
 		if where is not None:
-			sql = f'{sql} WHERE {where}'
-		aggregated, aggregate_columns = self.fake_aggregate_columns(pager.columns)
-		count = 0
-		if aggregated:
-			has_group_by, group_by = self.build_aggregate_group_by(aggregate_columns)
-			if has_group_by:
-				sql = f'{sql} GROUP BY {group_by}'
-			else:
-				# aggregated and no group by, one and only one row
-				count = 1
-		if count != 1:
+			base_sql = f'{base_sql} WHERE {where}'
+
+		aggregated, has_group_by, sql = self.build_fake_aggregate_count(pager.columns, base_sql)
+		if aggregated and not has_group_by:
+			count = 1
+		else:
 			cursor = self.connection.cursor()
 			if ask_storage_echo_enabled():
 				logger.info(f'SQL: {sql}')
@@ -541,10 +547,7 @@ class TrinoStorage(TrinoStorageSPI):
 
 		page_number, max_page_number = self.compute_page(count, page_size, pager.pageable.pageNumber)
 
-		sql = f'SELECT {self.build_free_columns(pager.columns)} FROM {select_from}'
-		if where is not None:
-			sql = f'{sql} WHERE {where}'
-		sql = self.build_fake_aggregate_columns(pager.columns, sql)
+		sql = self.build_fake_aggregate_columns(pager.columns, base_sql)
 		offset = page_size * (page_number - 1)
 		sql = f'{sql} OFFSET {offset} LIMIT {page_size}'
 		cursor = self.connection.cursor()

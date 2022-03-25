@@ -11,6 +11,7 @@ from watchmen_model.admin import Factor, FactorType, Space, Topic, TopicKind, To
 from watchmen_model.common import ComputedParameter, ConstantParameter, Pageable, ParameterComputeType, ParameterKind, \
 	TopicFactorParameter
 from watchmen_model.console import ConnectedSpace, Subject, SubjectDataset, SubjectDatasetColumn
+from watchmen_model.console.subject import SubjectColumnArithmetic
 from watchmen_model.system import DataSource, DataSourceType
 
 
@@ -95,7 +96,8 @@ class TestSubject(TestCase):
 								ConstantParameter(kind=ParameterKind.CONSTANT, value='2')
 							]
 						),
-						alias='Column1'
+						alias='Column1',
+						arithmetic=SubjectColumnArithmetic.SUMMARY
 					),
 					SubjectDatasetColumn(
 						columnId='2',
