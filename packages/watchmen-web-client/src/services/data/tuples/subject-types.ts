@@ -7,11 +7,21 @@ import {Tuple} from './tuple-types';
 
 export type SubjectDataSetColumnId = string;
 
+export enum SubjectColumnArithmetic {
+	NONE = 'none',
+	COUNT = 'count',
+	SUMMARY = 'sum',
+	AVERAGE = 'avg',
+	MAXIMUM = 'max',
+	MINIMUM = 'min'
+}
+
 /** column */
 export interface SubjectDataSetColumn {
 	columnId: SubjectDataSetColumnId;
 	parameter: Parameter;
 	alias?: string;
+	arithmetic?: SubjectColumnArithmetic;
 }
 
 /** filter */
