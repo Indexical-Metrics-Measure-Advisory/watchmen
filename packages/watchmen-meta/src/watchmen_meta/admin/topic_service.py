@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Optional
 
 from watchmen_meta.common import TupleService, TupleShaper
@@ -145,6 +146,20 @@ class TopicService(TupleService):
 
 	def find_all(self, tenant_id: Optional[TenantId]) -> List[Topic]:
 		criteria = []
+		if is_not_blank(tenant_id):
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria))
+
+	# noinspection DuplicatedCode
+	def find_modified_after(self, last_modified_at: datetime, tenant_id: Optional[TenantId]) -> List[Topic]:
+		criteria = [
+			EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='last_modified_at'),
+				operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
+				right=last_modified_at
+			)
+		]
 		if is_not_blank(tenant_id):
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		# noinspection PyTypeChecker

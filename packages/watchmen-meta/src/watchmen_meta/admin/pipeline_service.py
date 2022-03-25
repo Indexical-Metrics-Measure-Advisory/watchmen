@@ -1,11 +1,12 @@
+from datetime import datetime
 from typing import List, Optional
 
 from watchmen_meta.common import TupleNotFoundException, TupleService, TupleShaper
 from watchmen_model.admin import Pipeline, PipelineStage
 from watchmen_model.common import PipelineId, TenantId, TopicId
-from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityRow, EntityShaper, \
-	TooManyEntitiesFoundException
-from watchmen_utilities import ArrayHelper
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, \
+	EntityShaper, TooManyEntitiesFoundException
+from watchmen_utilities import ArrayHelper, is_not_blank
 
 
 class PipelineShaper(EntityShaper):
@@ -150,6 +151,20 @@ class PipelineService(TupleService):
 	def find_all(self, tenant_id: Optional[TenantId]) -> List[Pipeline]:
 		criteria = []
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria))
+
+	# noinspection DuplicatedCode
+	def find_modified_after(self, last_modified_at: datetime, tenant_id: Optional[TenantId]) -> List[Pipeline]:
+		criteria = [
+			EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='last_modified_at'),
+				operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
+				right=last_modified_at
+			)
+		]
+		if is_not_blank(tenant_id):
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(criteria))

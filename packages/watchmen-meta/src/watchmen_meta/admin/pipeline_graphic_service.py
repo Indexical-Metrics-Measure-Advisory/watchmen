@@ -1,10 +1,12 @@
-from typing import Optional, Union
+from datetime import datetime
+from typing import List, Optional, Union
 
 from watchmen_meta.common import UserBasedTupleService, UserBasedTupleShaper
 from watchmen_model.admin import PipelineGraphic, TopicGraphic
-from watchmen_model.common import PipelineGraphicId
-from watchmen_storage import EntityRow, EntityShaper
-from watchmen_utilities import ArrayHelper
+from watchmen_model.common import PipelineGraphicId, TenantId, UserId
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, \
+	EntityRow, EntityShaper
+from watchmen_utilities import ArrayHelper, is_not_blank
 
 
 class PipelineGraphicShaper(EntityShaper):
@@ -64,3 +66,41 @@ class PipelineGraphicService(UserBasedTupleService):
 	def set_storable_id(self, storable: PipelineGraphic, storable_id: PipelineGraphicId) -> PipelineGraphic:
 		storable.pipelineGraphId = storable_id
 		return storable
+
+	# noinspection DuplicatedCode
+	def find_modified_after(
+			self, last_modified_at: datetime, user_id: Optional[UserId], tenant_id: Optional[TenantId]
+	) -> List[PipelineGraphic]:
+		criteria = [
+			EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='last_modified_at'),
+				operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
+				right=last_modified_at
+			)
+		]
+		if is_not_blank(user_id):
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='user_id'), right=user_id))
+		if is_not_blank(tenant_id):
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria))
+
+	def find_by_ids(
+			self, graphic_ids: List[PipelineGraphicId], user_id: Optional[UserId], tenant_id: Optional[TenantId]
+	) -> List[PipelineGraphic]:
+		criteria = [
+			EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='pipeline_graphic_id'),
+				operator=EntityCriteriaOperator.IN,
+				right=graphic_ids
+			)
+		]
+		if is_not_blank(user_id):
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='user_id'), right=user_id))
+		if is_not_blank(tenant_id):
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		# noinspection PyTypeChecker
+		return self.storage.find_distinct_values(self.get_entity_finder_for_columns(
+			distinctColumnNames=['pipeline_graphic_id'],
+			criteria=criteria
+		))

@@ -1,10 +1,13 @@
+from datetime import datetime
 from typing import Callable, List, Optional
 
 from fastapi import APIRouter, Depends
+from pydantic import BaseModel
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
+from watchmen_data_kernel.common import ask_all_date_formats
 from watchmen_meta.admin import PipelineService
 from watchmen_meta.analysis import PipelineIndexService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, TupleService
@@ -14,7 +17,7 @@ from watchmen_rest import get_admin_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly
-from watchmen_utilities import ArrayHelper, is_blank
+from watchmen_utilities import ArrayHelper, is_blank, is_date
 
 router = APIRouter()
 
@@ -192,6 +195,33 @@ async def find_all_pipelines(principal_service: PrincipalService = Depends(get_a
 	def action() -> List[Pipeline]:
 		tenant_id = principal_service.get_tenant_id()
 		return pipeline_service.find_all(tenant_id)
+
+	return trans_readonly(pipeline_service, action)
+
+
+class LastModified(BaseModel):
+	at: str = None
+
+
+# noinspection DuplicatedCode
+@router.post('/pipeline/updated', tags=[UserRole.ADMIN], response_model=List[Pipeline])
+async def find_updated_pipelines(
+		lastModified: LastModified, principal_service: PrincipalService = Depends(get_admin_principal)
+) -> List[Pipeline]:
+	if lastModified is None or is_blank(lastModified.at):
+		return []
+	parsed, last_modified_at = is_date(lastModified.at, ask_all_date_formats())
+	if not parsed:
+		return []
+	if not isinstance(last_modified_at, datetime):
+		last_modified_at = datetime(
+			year=last_modified_at.year, month=last_modified_at.month, day=last_modified_at.day,
+			hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
+
+	pipeline_service = get_pipeline_service(principal_service)
+
+	def action() -> List[Pipeline]:
+		return pipeline_service.find_modified_after(last_modified_at, principal_service.get_tenant_id())
 
 	return trans_readonly(pipeline_service, action)
 
