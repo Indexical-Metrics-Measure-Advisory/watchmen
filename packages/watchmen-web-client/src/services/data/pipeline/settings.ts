@@ -25,10 +25,17 @@ const fetchUpdatedPipelinesGraphics = async (lastModifiedTime: Dayjs, existingGr
 	if (isMockService()) {
 		return {updated: [], removed: []};
 	} else {
-		return await post({
-			api: Apis.PIPELINE_GRAPHICS_MINE_UPDATED,
-			data: {at: lastModifiedTime.format('YYYY/MM/DD HH:mm:ss'), existingGraphicIds: existingGraphicsIds}
-		});
+		try {
+			return await post({
+				api: Apis.PIPELINE_GRAPHICS_MINE_UPDATED,
+				data: {at: lastModifiedTime.format('YYYY/MM/DD HH:mm:ss'), existingGraphicIds: existingGraphicsIds}
+			});
+		} catch {
+			return {
+				updated: await fetchPipelinesGraphics(),
+				removed: []
+			};
+		}
 	}
 };
 
