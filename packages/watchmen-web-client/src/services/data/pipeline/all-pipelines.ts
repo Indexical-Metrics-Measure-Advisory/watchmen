@@ -1,5 +1,5 @@
 import {Dayjs} from 'dayjs';
-import {Apis, get} from '../apis';
+import {Apis, get, post} from '../apis';
 import {fetchMockAllPipelines} from '../mock/pipeline/mock-all-pipelines';
 import {Pipeline} from '../tuples/pipeline-types';
 import {isMockService} from '../utils';
@@ -16,8 +16,6 @@ export const fetchUpdatedPipelines = async (lastModifiedTime: Dayjs): Promise<Ar
 	if (isMockService()) {
 		return fetchMockAllPipelines();
 	} else {
-		// TODO fetch updated pipelines, not implemented yet. use fetch whole data instead now.
-		return fetchAllPipelines();
-		// return await post({api: Apis.PIPELINE_UPDATED, data: {lastModified: lastModifiedTime.format('YYYY/MM/DD HH:mm:ss')}});
+		return await post({api: Apis.PIPELINE_UPDATED, data: {at: lastModifiedTime.format('YYYY/MM/DD HH:mm:ss')}});
 	}
 };

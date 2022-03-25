@@ -1,5 +1,5 @@
 import {Dayjs} from 'dayjs';
-import {Apis, get} from '../apis';
+import {Apis, get, post} from '../apis';
 import {fetchMockAllTopics} from '../mock/pipeline/mock-all-topics';
 import {Topic} from '../tuples/topic-types';
 import {isMockService} from '../utils';
@@ -16,8 +16,6 @@ export const fetchUpdatedTopics = async (lastModifiedTime: Dayjs): Promise<Array
 	if (isMockService()) {
 		return fetchMockAllTopics();
 	} else {
-		// TODO fetch updated topics, not implemented yet. use fetch whole data instead now.
-		return fetchAllTopics();
-		// return await post({api: Apis.TOPIC_UPDATED, data: {lastModified: lastModifiedTime.format('YYYY/MM/DD HH:mm:ss')}});
+		return await post({api: Apis.TOPIC_UPDATED, data: {at: lastModifiedTime.format('YYYY/MM/DD HH:mm:ss')}});
 	}
 };

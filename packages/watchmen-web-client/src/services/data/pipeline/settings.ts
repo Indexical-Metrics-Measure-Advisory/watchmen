@@ -1,3 +1,4 @@
+import {Apis, post} from '@/services/data/apis';
 import {Dayjs} from 'dayjs';
 import {fetchPipelinesGraphics} from '../tuples/pipeline';
 import {PipelinesGraphics, PipelinesGraphicsId} from '../tuples/pipeline-types';
@@ -20,15 +21,14 @@ export const fetchPipelinesSettingsData = async (): Promise<PipelinesSettings> =
 	return {pipelines, topics, graphics, dataSources, externalWriters};
 };
 
-const fetchUpdatedPipelinesGraphics = async (lastModifiedTime: Dayjs, existsGraphicsIds: Array<PipelinesGraphicsId>): Promise<{ updated: Array<PipelinesGraphics>, removed: Array<PipelinesGraphicsId> }> => {
+const fetchUpdatedPipelinesGraphics = async (lastModifiedTime: Dayjs, existingGraphicsIds: Array<PipelinesGraphicsId>): Promise<{ updated: Array<PipelinesGraphics>, removed: Array<PipelinesGraphicsId> }> => {
 	if (isMockService()) {
 		return {updated: [], removed: []};
 	} else {
-		// TODO fetch updated pipeline graphics, not implemented yet. use fetch whole data instead now.
-		return {
-			updated: await fetchPipelinesGraphics(),
-			removed: []
-		};
+		return await post({
+			api: Apis.PIPELINE_GRAPHICS_MINE_UPDATED,
+			data: {at: lastModifiedTime.format('YYYY/MM/DD HH:mm:ss'), existingGraphicIds: existingGraphicsIds}
+		});
 	}
 };
 
@@ -45,7 +45,10 @@ export const fetchUpdatedPipelinesSettingsData = async (options: {
 		existsGraphicsIds
 	} = options;
 
-	const [pipelines, topics, graphics, dataSources, externalWriters] = await Promise.all([
+	const [pipelines, topics, {
+		updated_graphics,
+		removed_graphic_ids
+	}, dataSources, externalWriters] = await Promise.all([
 		fetchUpdatedPipelines(lastModifiedTimeOfPipelines),
 		fetchUpdatedTopics(lastModifiedTimeOfTopics),
 		fetchUpdatedPipelinesGraphics(lastModifiedTimeOfGraphics, existsGraphicsIds),
@@ -57,9 +60,9 @@ export const fetchUpdatedPipelinesSettingsData = async (options: {
 	return {
 		pipelines,
 		topics,
-		graphics: graphics.updated,
+		graphics: updated_graphics,
 		dataSources,
 		externalWriters,
-		removedGraphics: graphics.removed
+		removedGraphics: removed_graphic_ids
 	};
 };
