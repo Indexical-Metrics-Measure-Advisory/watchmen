@@ -444,7 +444,7 @@ class TrinoStorage(TrinoStorageSPI):
 	# noinspection PyMethodMayBeStatic,DuplicatedCode
 	def fake_aggregate_columns(self, table_columns: List[FreeColumn]) -> Tuple[bool, List[FreeAggregateColumn]]:
 		aggregated = ArrayHelper(table_columns) \
-			.some(lambda x: x.arithmetic is not None and x.arithmetic != FreeAggregateColumn.NONE)
+			.some(lambda x: x.arithmetic is not None and x.arithmetic != FreeAggregateArithmetic.NONE)
 		return aggregated, [] if not aggregated else ArrayHelper(table_columns).map_with_index(
 			lambda x, index: FreeAggregateColumn(
 				name=f'column_{index + 1}',
