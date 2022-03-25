@@ -1,9 +1,12 @@
+from datetime import datetime
 from typing import Callable, List, Optional, Tuple
 
 from fastapi import APIRouter, Body, Depends
+from pydantic import BaseModel
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
+from watchmen_data_kernel.common import ask_all_date_formats
 from watchmen_data_kernel.service import sync_topic_structure_storage
 from watchmen_meta.admin import FactorService, TopicService
 from watchmen_meta.analysis import TopicIndexService
@@ -14,7 +17,7 @@ from watchmen_rest import get_admin_principal, get_console_principal, get_super_
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly, trans_with_tail
-from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
+from watchmen_utilities import ArrayHelper, is_blank, is_date, is_not_blank
 
 router = APIRouter()
 
@@ -203,6 +206,32 @@ async def find_all_topics(principal_service: PrincipalService = Depends(get_cons
 
 	def action() -> List[Topic]:
 		return topic_service.find_all(tenant_id)
+
+	return trans_readonly(topic_service, action)
+
+
+class LastModified(BaseModel):
+	at: str = None
+
+
+# noinspection DuplicatedCode
+@router.post('/topic/updated', tags=[UserRole.ADMIN], response_model=List[Topic])
+async def find_updated_topics(
+		lastModified: LastModified, principal_service: PrincipalService = Depends(get_admin_principal)) -> List[Topic]:
+	if lastModified is None or is_blank(lastModified.at):
+		return []
+	parsed, last_modified_at = is_date(lastModified.at, ask_all_date_formats())
+	if not parsed:
+		return []
+	if not isinstance(last_modified_at, datetime):
+		last_modified_at = datetime(
+			year=last_modified_at.year, month=last_modified_at.month, day=last_modified_at.day,
+			hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
+
+	topic_service = get_topic_service(principal_service)
+
+	def action() -> List[Topic]:
+		return topic_service.find_modified_after(last_modified_at, principal_service.get_tenant_id())
 
 	return trans_readonly(topic_service, action)
 
