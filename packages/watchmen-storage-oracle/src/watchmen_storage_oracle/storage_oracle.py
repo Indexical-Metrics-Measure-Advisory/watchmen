@@ -620,6 +620,20 @@ CREATE TABLE {entity_name} (
 
 		return statement
 
+	def build_fake_aggregate_count(
+			self, table_columns: List[FreeColumn], statement: SQLAlchemyStatement
+	) -> Tuple[bool, bool, SQLAlchemyStatement]:
+		"""
+		use sub query to do free columns aggregate to avoid group by computation
+		"""
+		aggregated, aggregate_columns = self.fake_aggregate_columns(table_columns)
+		if aggregated:
+			sub_query = statement.subquery()
+			statement = select(func.count()).select_from(sub_query)
+			has_group_by, statement = self.build_aggregate_group_by(aggregate_columns, statement)
+			return aggregated, has_group_by, statement
+		return False, False, statement
+
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
 		select_from, tables = self.build_free_joins(finder.joins)
 		statement = select(self.build_free_columns(finder.columns, tables)).select_from(select_from)
@@ -633,25 +647,20 @@ CREATE TABLE {entity_name} (
 	def free_page(self, pager: FreePager) -> DataPage:
 		page_size = pager.pageable.pageSize
 		select_from, tables = self.build_free_joins(pager.joins)
+		base_statement = select(self.build_free_columns(pager.columns, tables)).select_from(select_from)
+		base_statement = build_criteria_for_statement(tables, base_statement, pager.criteria)
 
-		statement = select(func.count()).select_from(select_from)
-		statement = build_criteria_for_statement(tables, statement, pager.criteria)
-		aggregated, aggregate_columns = self.fake_aggregate_columns(pager.columns)
-		count = 0
-		if aggregated:
-			has_group_by, statement = self.build_aggregate_group_by(aggregate_columns, statement)
-			if not has_group_by:
-				count = 1
-		if count != 1:
+		aggregated, has_group_by, statement = self.build_fake_aggregate_count(pager.columns, base_statement)
+		if aggregated and not has_group_by:
+			count = 1
+		else:
 			count, empty_page = self.execute_page_count(statement, page_size)
 			if count == 0:
 				return empty_page
 
 		page_number, max_page_number = self.compute_page(count, page_size, pager.pageable.pageNumber)
 
-		statement = select(self.build_free_columns(pager.columns, tables)).select_from(select_from)
-		statement = build_criteria_for_statement(tables, statement, pager.criteria)
-		statement = self.build_fake_aggregate_columns(pager.columns, statement)
+		statement = self.build_fake_aggregate_columns(pager.columns, base_statement)
 		offset = page_size * (page_number - 1)
 		statement = statement.offset(offset).limit(page_size)
 		results = self.connection.execute(statement).mappings().all()
