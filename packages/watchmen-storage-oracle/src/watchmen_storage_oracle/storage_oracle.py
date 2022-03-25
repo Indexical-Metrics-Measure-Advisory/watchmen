@@ -662,7 +662,7 @@ CREATE TABLE {entity_name} (
 		statement = build_criteria_for_statement(tables, statement, aggregator.criteria)
 		sub_query = statement.subquery()
 
-		aggregate_columns = aggregator.aggregateColumns
+		aggregate_columns = aggregator.highOrderAggregateColumns
 		statement = select(selection(aggregate_columns)).select_from(sub_query)
 		# obviously, table is not existing. fake a table of sub query selection to build high order criteria
 		statement = build_criteria_for_statement([], statement, aggregator.highOrderCriteria)
@@ -681,7 +681,7 @@ CREATE TABLE {entity_name} (
 
 		results = self.connection.execute(statement).mappings().all()
 		return ArrayHelper(results) \
-			.map(lambda x: self.deserialize_from_auto_generated_aggregate_columns(x, aggregator.aggregateColumns)) \
+			.map(lambda x: self.deserialize_from_auto_generated_aggregate_columns(x, aggregator.highOrderAggregateColumns)) \
 			.to_list()
 
 	def free_aggregate_page(self, pager: FreeAggregatePager) -> DataPage:
@@ -700,7 +700,7 @@ CREATE TABLE {entity_name} (
 		results = self.connection.execute(statement).mappings().all()
 
 		results = ArrayHelper(results) \
-			.map(lambda x: self.deserialize_from_auto_generated_aggregate_columns(x, pager.aggregateColumns)) \
+			.map(lambda x: self.deserialize_from_auto_generated_aggregate_columns(x, pager.highOrderAggregateColumns)) \
 			.to_list()
 
 		return DataPage(

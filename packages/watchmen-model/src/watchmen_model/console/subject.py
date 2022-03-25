@@ -23,10 +23,20 @@ class SubjectDatasetJoin(DataModel, BaseModel):
 	type: SubjectJoinType = SubjectJoinType.INNER
 
 
+class SubjectColumnArithmetic(str, Enum):
+	NONE = 'none'
+	COUNT = 'count'
+	SUMMARY = 'sum'
+	AVERAGE = 'avg'
+	MAXIMUM = 'max'
+	MINIMUM = 'min'
+
+
 class SubjectDatasetColumn(DataModel, BaseModel):
 	columnId: SubjectDatasetColumnId = None
 	parameter: Parameter
 	alias: str = None
+	arithmetic: SubjectColumnArithmetic = None
 
 	def __setattr__(self, name, value):
 		if name == 'parameter':

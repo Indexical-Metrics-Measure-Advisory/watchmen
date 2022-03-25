@@ -147,7 +147,7 @@ class SubjectStorage:
 			type=join_type
 		)
 
-	def ask_storage_directly_finder(self) -> FreeFinder:
+	def ask_storage_finder(self) -> FreeFinder:
 		# build pager
 		subject = self.schema.get_subject()
 		dataset = subject.dataset
@@ -222,10 +222,10 @@ class SubjectStorage:
 
 	def find(self) -> List[Dict[str, Any]]:
 		return self.find_data(
-			lambda agent: agent.free_find(self.ask_storage_directly_finder()))
+			lambda agent: agent.free_find(self.ask_storage_finder()))
 
-	def ask_storage_directly_pager(self, pageable: Pageable) -> FreePager:
-		finder = self.ask_storage_directly_finder()
+	def ask_storage_pager(self, pageable: Pageable) -> FreePager:
+		finder = self.ask_storage_finder()
 		return FreePager(
 			columns=finder.columns,
 			joins=finder.joins,
@@ -235,7 +235,7 @@ class SubjectStorage:
 
 	def page(self, pageable: Pageable) -> DataPage:
 		return self.find_data(
-			lambda agent: agent.free_page(self.ask_storage_directly_pager(pageable)))
+			lambda agent: agent.free_page(self.ask_storage_pager(pageable)))
 
 	# noinspection PyMethodMayBeStatic
 	def build_aggregate_column_by_indicator(
@@ -298,10 +298,12 @@ class SubjectStorage:
 
 		indicator_columns = ArrayHelper(report_schema.get_report().indicators) \
 			.map_with_index(
-			lambda x, index: self.build_aggregate_column_by_indicator(x, index, subject_column_map, report_schema)).to_list()
+			lambda x, index: self.build_aggregate_column_by_indicator(
+				x, index, subject_column_map, report_schema)).to_list()
 		dimension_columns = ArrayHelper(report_schema.get_report().dimensions) \
 			.map_with_index(
-			lambda x, index: self.build_aggregate_column_by_dimension(x, index, subject_column_map, report_schema)).to_list()
+			lambda x, index: self.build_aggregate_column_by_dimension(
+				x, index, subject_column_map, report_schema)).to_list()
 
 		return [*indicator_columns, *dimension_columns]
 
@@ -801,35 +803,35 @@ class SubjectStorage:
 				lambda x: x is not None).to_list()
 		]
 
-	def ask_storage_directly_aggregator(self, report_schema: ReportSchema) -> FreeAggregator:
-		finder = self.ask_storage_directly_finder()
+	def ask_storage_aggregator(self, report_schema: ReportSchema) -> FreeAggregator:
+		finder = self.ask_storage_finder()
 		return FreeAggregator(
 			columns=finder.columns,
 			joins=finder.joins,
 			criteria=finder.criteria,
-			aggregateColumns=self.build_aggregate_columns(report_schema),
+			highOrderAggregateColumns=self.build_aggregate_columns(report_schema),
 			highOrderCriteria=self.build_high_order_criteria(report_schema),
 		)
 
 	def aggregate_find(self, report_schema: ReportSchema) -> List[Dict[str, Any]]:
 		return self.find_data(
-			lambda agent: agent.free_aggregate_find(self.ask_storage_directly_aggregator(report_schema)))
+			lambda agent: agent.free_aggregate_find(self.ask_storage_aggregator(report_schema)))
 
-	def ask_storage_directly_aggregate_pager(
+	def ask_storage_aggregate_pager(
 			self, report_schema: ReportSchema, pageable: Pageable) -> FreeAggregatePager:
-		aggregator = self.ask_storage_directly_aggregator(report_schema)
+		aggregator = self.ask_storage_aggregator(report_schema)
 		return FreeAggregatePager(
 			columns=aggregator.columns,
 			joins=aggregator.joins,
 			criteria=aggregator.criteria,
-			aggregateColumns=aggregator.aggregateColumns,
+			highOrderAggregateColumns=aggregator.highOrderAggregateColumns,
 			highOrderCriteria=aggregator.highOrderCriteria,
 			pageable=pageable
 		)
 
 	def aggregate_page(self, report_schema: ReportSchema, pageable: Pageable) -> DataPage:
 		return self.find_data(
-			lambda agent: agent.free_aggregate_page(self.ask_storage_directly_aggregate_pager(report_schema, pageable)))
+			lambda agent: agent.free_aggregate_page(self.ask_storage_aggregate_pager(report_schema, pageable)))
 
 	# noinspection PyMethodMayBeStatic
 	def do_find(
