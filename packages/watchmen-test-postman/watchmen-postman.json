@@ -10669,6 +10669,18 @@
                   "response": []
                 },
                 {
+                  "name": "IMPORT RAW",
+                  "id": "eac9d9af-ded8-4c2a-8176-3863585a5b49",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
+                },
+                {
                   "name": "CRATE SUBJECT",
                   "id": "9c6cf4b2-fbd5-43fc-bf85-d5ea7ce205b2",
                   "protocolProfileBehavior": {
@@ -10692,18 +10704,6 @@
                 {
                   "name": "SUBJECT DATA",
                   "id": "bcaa7c87-f747-4c9d-aeef-3dc2980200f7",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "method": "GET",
-                    "header": []
-                  },
-                  "response": []
-                },
-                {
-                  "name": "IMPORT RAW",
-                  "id": "eac9d9af-ded8-4c2a-8176-3863585a5b49",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
