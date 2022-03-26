@@ -10894,7 +10894,7 @@
                   "response": []
                 },
                 {
-                  "name": "New Request",
+                  "name": "REPORT DATA",
                   "id": "bb99ea4e-6f28-42b3-862e-2475357e2bbc",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
