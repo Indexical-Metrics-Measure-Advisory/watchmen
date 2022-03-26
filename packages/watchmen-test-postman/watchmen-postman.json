@@ -10598,6 +10598,18 @@
                     "header": []
                   },
                   "response": []
+                },
+                {
+                  "name": "New Request",
+                  "id": "30765d02-6e65-4fb6-a4c8-f1d613308b76",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
                 }
               ],
               "id": "f3a99b31-18e9-43a3-a977-c68cbf4989ba"
