@@ -10589,12 +10589,35 @@
               "item": [
                 {
                   "name": "CREATE RAW TOPIC",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "ca77278e-e674-4161-ae60-9caa87f5f6e3",
+                        "exec": [
+                          "pm.test(\"Create Raw Topic\", () => {",
+                          "    pm.response.to.have.status(200);",
+                          "    var data = pm.response.json();",
+                          "    pm.environment.set('RAW_TOPIC_ID', data.topicId)",
+                          "    pm.environment.set('RAW_TOPIC_NAME', data.name)",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "30765d02-6e65-4fb6-a4c8-f1d613308b76",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
                   "request": {
-                    "method": "GET",
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "POST",
                     "header": [],
                     "body": {
                       "mode": "raw",
@@ -10605,7 +10628,7 @@
                         }
                       }
                     },
-                    "url": ""
+                    "url": "{{URL_PREFIX}}/topic"
                   },
                   "response": []
                 },
