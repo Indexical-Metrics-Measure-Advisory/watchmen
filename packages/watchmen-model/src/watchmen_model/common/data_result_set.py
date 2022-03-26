@@ -1,8 +1,9 @@
+from datetime import datetime, date, time
 from typing import List, Union
 
 from pydantic import BaseModel
 
-DataResultSetCell = Union[str, int, float, bool, None]
+DataResultSetCell = Union[str, int, float, bool, datetime, date, time, None]
 DataResultSetRow = List[DataResultSetCell]
 DataResultSet = List[DataResultSetRow]
 
