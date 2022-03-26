@@ -10586,7 +10586,20 @@
             },
             {
               "name": "JOIN",
-              "item": [],
+              "item": [
+                {
+                  "name": "New Request",
+                  "id": "9c6cf4b2-fbd5-43fc-bf85-d5ea7ce205b2",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
+                }
+              ],
               "id": "f3a99b31-18e9-43a3-a977-c68cbf4989ba"
             }
           ],
