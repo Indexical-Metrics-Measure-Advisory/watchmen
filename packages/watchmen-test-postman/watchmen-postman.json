@@ -10657,7 +10657,7 @@
                   "response": []
                 },
                 {
-                  "name": "New Request",
+                  "name": "CREATE PIPELINE",
                   "id": "936e20f9-849d-46d4-ad35-64eec9177907",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
