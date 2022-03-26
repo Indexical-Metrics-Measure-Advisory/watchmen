@@ -10991,7 +10991,8 @@
           },
           "request": {
             "method": "GET",
-            "header": []
+            "header": [],
+            "url": "{{DQC_URL_PREFIX}}"
           },
           "response": []
         }
