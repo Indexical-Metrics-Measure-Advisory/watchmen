@@ -10849,7 +10849,7 @@
               "name": "DiMENSION",
               "item": [
                 {
-                  "name": "New Request",
+                  "name": "CREATE REPORT",
                   "id": "c43480b4-591f-41ac-89ba-2590b078000c",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
