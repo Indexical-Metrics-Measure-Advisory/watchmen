@@ -626,13 +626,15 @@ CREATE TABLE {entity_name} (
 		"""
 		use sub query to do free columns aggregate to avoid group by computation
 		"""
+		sub_query = statement.subquery()
 		aggregated, aggregate_columns = self.fake_aggregate_columns(table_columns)
 		if aggregated:
-			sub_query = statement.subquery()
 			statement = select(func.count()).select_from(sub_query)
 			has_group_by, statement = self.build_aggregate_group_by(aggregate_columns, statement)
 			return aggregated, has_group_by, statement
-		return False, False, statement
+		else:
+			statement = select(func.count()).select_from(sub_query)
+			return False, False, statement
 
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
 		select_from, tables = self.build_free_joins(finder.joins)
