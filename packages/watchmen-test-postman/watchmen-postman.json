@@ -10588,7 +10588,7 @@
               "name": "JOIN",
               "item": [
                 {
-                  "name": "New Request",
+                  "name": "CREATE RAW TOPIC",
                   "id": "30765d02-6e65-4fb6-a4c8-f1d613308b76",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
