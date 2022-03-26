@@ -10700,6 +10700,18 @@
                     "header": []
                   },
                   "response": []
+                },
+                {
+                  "name": "New Request",
+                  "id": "eac9d9af-ded8-4c2a-8176-3863585a5b49",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
                 }
               ],
               "id": "f3a99b31-18e9-43a3-a977-c68cbf4989ba"
