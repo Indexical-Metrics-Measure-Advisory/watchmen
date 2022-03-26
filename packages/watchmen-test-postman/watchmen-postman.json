@@ -10850,12 +10850,29 @@
               "item": [
                 {
                   "name": "CREATE REPORT",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "f9d32f98-9880-45e7-885a-3bec90aba055",
+                        "exec": [
+                          "pm.test('Create Report', () => {",
+                          "    pm.response.to.have.status(200);",
+                          "    const data = pm.response.json();",
+                          "    pm.environment.set(\"REPORT_ID\", data.reportId);",
+                          "    pm.environment.set(\"REPORT_NAME\", data.name);",
+                          "})"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "c43480b4-591f-41ac-89ba-2590b078000c",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
                   "request": {
-                    "method": "GET",
+                    "method": "POST",
                     "header": [],
                     "body": {
                       "mode": "raw",
@@ -10865,7 +10882,8 @@
                           "language": "json"
                         }
                       }
-                    }
+                    },
+                    "url": "{{URL_PREFIX}}/report"
                   },
                   "response": []
                 }
