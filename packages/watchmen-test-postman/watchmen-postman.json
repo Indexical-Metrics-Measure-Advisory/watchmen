@@ -10982,7 +10982,20 @@
     },
     {
       "name": "DQC",
-      "item": [],
+      "item": [
+        {
+          "name": "New Request",
+          "id": "ad3c6376-ae71-49ef-8f37-1487e44060db",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ],
       "id": "19e99fdc-76dc-4660-b1eb-d29457d0b56b"
     }
   ]
