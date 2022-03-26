@@ -480,9 +480,9 @@ class TrinoStorage(TrinoStorageSPI):
 		"""
 		use sub query to do free columns aggregate to avoid group by computation
 		"""
+		sql = f'SELECT COUNT(1) FROM ({sql}) as FQ'
 		aggregated, aggregate_columns = self.fake_aggregate_columns(table_columns)
 		if aggregated:
-			sql = f'SELECT COUNT(1) FROM ({sql}) as FQ '
 			has_group_by, group_by = self.build_aggregate_group_by(aggregate_columns)
 			if has_group_by:
 				sql = f'{sql} GROUP BY {group_by}'
