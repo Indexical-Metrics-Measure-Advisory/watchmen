@@ -10643,6 +10643,18 @@
                     "header": []
                   },
                   "response": []
+                },
+                {
+                  "name": "New Request",
+                  "id": "68937100-2300-4b5a-a8d4-eeef77e6a93f",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
                 }
               ],
               "id": "f3a99b31-18e9-43a3-a977-c68cbf4989ba"
