@@ -65,7 +65,7 @@ class TopicProfileService:
 
 		columns = [
 			TopicDataColumnNames.ID.value,
-			*ArrayHelper(schema.get_topic().factors).map(lambda x: x.name),
+			*ArrayHelper(schema.get_topic().factors).map(lambda x: x.name).to_list(),
 			TopicDataColumnNames.TENANT_ID.value,
 			TopicDataColumnNames.INSERT_TIME.value,
 			TopicDataColumnNames.UPDATE_TIME.value
