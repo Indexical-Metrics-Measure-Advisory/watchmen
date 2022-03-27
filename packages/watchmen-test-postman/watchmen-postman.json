@@ -10985,21 +10985,22 @@
       "item": [
         {
           "name": "TOPIC PROFILE",
-          "item": [],
+          "item": [
+            {
+              "name": "New Request",
+              "id": "ad3c6376-ae71-49ef-8f37-1487e44060db",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": "{{DQC_URL_PREFIX}}"
+              },
+              "response": []
+            }
+          ],
           "id": "dd78035f-a0e4-46b4-b4c6-ac624ac65bc5"
-        },
-        {
-          "name": "New Request",
-          "id": "ad3c6376-ae71-49ef-8f37-1487e44060db",
-          "protocolProfileBehavior": {
-            "disableBodyPruning": true
-          },
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{DQC_URL_PREFIX}}"
-          },
-          "response": []
         }
       ],
       "id": "19e99fdc-76dc-4660-b1eb-d29457d0b56b"
