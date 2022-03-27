@@ -11020,6 +11020,15 @@
                 },
                 "method": "POST",
                 "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"rules\": [\n        {\n            \"code\": \"factor-is-blank\",\n            \"grade\": \"factor\",\n            \"severity\": \"warn\",\n            \"topicId\": \"{{TOPIC_ID}}\",\n            \"factorId\": \"1\",\n            \"enabled\": true\n        }\n    ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
                 "url": "{{DQC_URL_PREFIX}}/dqc/monitor/rules"
               },
               "response": []
