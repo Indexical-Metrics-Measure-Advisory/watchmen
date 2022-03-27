@@ -469,6 +469,7 @@ class TrinoStorage(TrinoStorageSPI):
 		"""
 		aggregated, aggregate_columns = self.fake_aggregate_columns(table_columns)
 		if aggregated:
+			# noinspection SqlResolve
 			sql = f'SELECT {self.build_free_aggregate_columns(aggregate_columns, "column")} FROM ({sql}) as FQ '
 			has_group_by, group_by = self.build_aggregate_group_by(aggregate_columns)
 			if has_group_by:
@@ -479,6 +480,7 @@ class TrinoStorage(TrinoStorageSPI):
 		"""
 		use sub query to do free columns aggregate to avoid group by computation
 		"""
+		# noinspection SqlResolve
 		sql = f'SELECT COUNT(1) FROM ({sql}) as FQ'
 		aggregated, aggregate_columns = self.fake_aggregate_columns(table_columns)
 		if aggregated:
@@ -489,6 +491,7 @@ class TrinoStorage(TrinoStorageSPI):
 		return False, False, sql
 
 	def build_find_sql(self, finder: FreeFinder) -> str:
+		# noinspection SqlResolve
 		sql = f'SELECT {self.build_free_columns(finder.columns)} FROM {self.build_free_joins(finder.joins)}'
 		where = self.build_criteria_for_statement(finder.criteria)
 		if where is not None:
