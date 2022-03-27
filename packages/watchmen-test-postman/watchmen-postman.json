@@ -11032,6 +11032,18 @@
                 "url": "{{DQC_URL_PREFIX}}/dqc/monitor/rules"
               },
               "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "d449774d-129c-4678-bb00-3abf9f250fc2",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
             }
           ],
           "id": "4ab7c301-e6aa-4bd6-804b-d742bc54a0cc"
