@@ -8,7 +8,7 @@ from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_all_date_formats, DataKernelException
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.common import VariablePredefineFunctions
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_date, month_diff, truncate_time, \
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_date, month_diff, truncate_time, \
 	try_to_decimal, year_diff
 from .variables import PipelineVariables
 
@@ -86,7 +86,7 @@ def create_snowflake_generator(prefix: str) -> Callable[[PipelineVariables, Prin
 	# noinspection PyUnusedLocal
 	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
 		value = ask_snowflake_generator().next_id()
-		return value if is_blank(prefix) else f'{prefix}{value}'
+		return value if len(prefix) == 0 else f'{prefix}{value}'
 
 	return action
 
@@ -106,7 +106,7 @@ def create_from_previous_trigger_data(prefix, name: str) -> Callable[[PipelineVa
 	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
 		previous_data = variables.get_previous_trigger_data()
 		value = get_value_from(name, names, lambda x: previous_data.get(x))
-		return value if is_blank(prefix) else f'{prefix}{value}'
+		return value if len(prefix) == 0 else f'{prefix}{value}'
 
 	return action
 
@@ -131,7 +131,7 @@ def create_get_from_variables_with_prefix(prefix, name: str) -> Callable[[Pipeli
 	# noinspection PyUnusedLocal
 	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
 		value = get_value_from(name, names, create_get_value_from_variables(variables))
-		return value if is_blank(prefix) else f'{prefix}{value}'
+		return value if len(prefix) == 0 else f'{prefix}{value}'
 
 	return action
 
