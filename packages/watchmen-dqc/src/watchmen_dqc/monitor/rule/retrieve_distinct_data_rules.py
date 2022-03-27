@@ -75,5 +75,4 @@ def run_retrieve_distinct_data_rules(
 		return ArrayHelper(concerned_rules).map(run_rule).to_list()
 
 	return ArrayHelper(factors).map(lambda x: run_rules(x)) \
-		.reduce(lambda all_results, x: [*all_results, *x], []) \
-		.to_list()
+		.reduce(lambda all_results, x: [*all_results, *x], [])
