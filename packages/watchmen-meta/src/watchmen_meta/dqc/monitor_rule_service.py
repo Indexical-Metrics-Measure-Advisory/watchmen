@@ -17,7 +17,7 @@ class MonitorRuleShaper(EntityShaper):
 			'severity': monitor_rule.severity,
 			'topic_id': monitor_rule.topicId,
 			'factor_id': monitor_rule.factorId,
-			'params': monitor_rule.params.to_dict(),
+			'params': monitor_rule.params.to_dict() if monitor_rule.params is not None else None,
 			'enabled': monitor_rule.enabled
 		})
 
