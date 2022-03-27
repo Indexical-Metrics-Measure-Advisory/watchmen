@@ -343,10 +343,9 @@ class TrinoStorage(TrinoStorageSPI):
 			return f'TRIM({built_left}) != \'\''
 
 		if op == EntityCriteriaOperator.IN or op == EntityCriteriaOperator.NOT_IN:
-			if isinstance(expression.right, list):
-				built_right = ArrayHelper(expression.right).map(lambda x: self.build_literal(x)).to_list()
-			elif isinstance(expression.right, ColumnNameLiteral):
-				built_right = self.build_literal(expression.right)
+			if isinstance(expression.right, ColumnNameLiteral):
+				raise UnsupportedCriteriaException(
+					'In or not-in criteria expression on another column is not supported.')
 			elif isinstance(expression.right, ComputedLiteral):
 				if expression.right.operator == ComputedLiteralOperator.CASE_THEN:
 					# TODO cannot know whether the built literal will returns a list or a value, let it be now.
