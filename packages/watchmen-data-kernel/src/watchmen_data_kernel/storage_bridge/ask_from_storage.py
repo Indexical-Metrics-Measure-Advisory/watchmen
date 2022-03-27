@@ -366,10 +366,8 @@ def create_run_constant_segment(
 			[PossibleParameterType.STRING if has_prefix else PossibleParameterType.NUMBER]
 	elif variable_name == VariablePredefineFunctions.NOW.value:
 		if has_prefix:
-			return \
-				lambda variables, principal_service: \
-					f'{prefix}{get_current_time_in_seconds().strftime("%Y-%m-%d %H:%M:%S")}', \
-				[PossibleParameterType.STRING]
+			value = f'{prefix}{get_current_time_in_seconds().strftime("%Y-%m-%d %H:%M:%S")}'
+			return lambda variables, principal_service: value, [PossibleParameterType.STRING]
 		else:
 			return lambda variables, principal_service: get_current_time_in_seconds(), [PossibleParameterType.DATETIME]
 	elif variable_name.startswith(VariablePredefineFunctions.YEAR_DIFF.value):
