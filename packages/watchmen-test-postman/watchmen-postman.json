@@ -11112,7 +11112,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "CREATE",
               "id": "b7a68f16-01ff-45df-b13a-d91d4fb6a18e",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
