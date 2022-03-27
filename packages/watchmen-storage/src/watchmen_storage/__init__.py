@@ -22,4 +22,3 @@ from .storage_types import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOp
 	EntityStraightAggregateColumn, EntityStraightColumn, EntityStraightValuesFinder, EntityUpdate, EntityUpdater, \
 	Literal
 from .topic_utils import as_table_name
-from .types_detect import ask_possible_left_types, ask_possible_right_types, DetectedType
