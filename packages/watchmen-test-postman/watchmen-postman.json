@@ -10780,6 +10780,23 @@
                 },
                 {
                   "name": "CRATE SUBJECT",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "f761601d-ff62-41c0-b78c-120c1244cf9e",
+                        "exec": [
+                          "pm.test('Create Subject', () => {",
+                          "    pm.response.to.have.status(200);",
+                          "    const data = pm.response.json();",
+                          "    pm.environment.set(\"SUBJECT_ID\", data.subjectId);",
+                          "    pm.environment.set(\"SUBJECT_NAME\", data.name);",
+                          "})"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "9c6cf4b2-fbd5-43fc-bf85-d5ea7ce205b2",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
