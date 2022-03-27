@@ -10634,6 +10634,23 @@
                 },
                 {
                   "name": "CREATE TOPIC 1",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "438d4f4f-c329-4a0c-a68d-fa4e2d487f1b",
+                        "exec": [
+                          "pm.test(\"Create Distinct Topic\", () => {",
+                          "    pm.response.to.have.status(200);",
+                          "    var data = pm.response.json();",
+                          "    pm.environment.set('TOPIC_ID_1', data.topicId)",
+                          "    pm.environment.set('TOPIC_NAME_1', data.name)",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "68937100-2300-4b5a-a8d4-eeef77e6a93f",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
