@@ -3,6 +3,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from datetime import date
 from decimal import Decimal
+from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from watchmen_auth import PrincipalService
@@ -10,7 +11,7 @@ from watchmen_data_kernel.common import ask_all_date_formats, DataKernelExceptio
 from watchmen_data_kernel.meta import TopicService
 from watchmen_data_kernel.topic_schema import cast_value_for_factor, TopicSchema
 from watchmen_data_kernel.utils import MightAVariable, parse_function_in_variable, parse_variable
-from watchmen_model.admin import AggregateArithmetic, Factor, is_raw_topic, MappingFactor, Topic
+from watchmen_model.admin import AggregateArithmetic, Factor, FactorType, is_raw_topic, MappingFactor, Topic
 from watchmen_model.common import ComputedParameter, ConstantParameter, FactorId, Parameter, ParameterComputeType, \
 	ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, \
 	ParameterKind, TopicFactorParameter, TopicId, VariablePredefineFunctions
@@ -18,7 +19,6 @@ from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteriaExpression, \
 	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, Literal
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_date, is_decimal
-
 from .ask_from_memory import assert_parameter_count, create_ask_factor_value, parse_parameter_in_memory
 from .topic_utils import ask_topic_data_entity_helper
 from .utils import always_none, compute_date_diff, create_from_previous_trigger_data, \
@@ -29,6 +29,17 @@ from .variables import PipelineVariables
 
 def get_topic_service(principal_service: PrincipalService) -> TopicService:
 	return TopicService(principal_service)
+
+
+class PossibleParameterType(str, Enum):
+	STRING = 'string',
+	NUMBER = 'number',
+	BOOLEAN = 'boolean',
+	DATE = 'date',
+	TIME = 'time',
+	DATETIME = 'datetime',
+	ANY_SINGLE_VALUE = 'any-single-value',
+	ANY_VALUE = 'any-value'
 
 
 class ParsedStorageParameter:
@@ -80,6 +91,10 @@ class ParsedStorageParameter:
 		return factor
 
 	@abstractmethod
+	def get_possible_types(self) -> List[PossibleParameterType]:
+		pass
+
+	@abstractmethod
 	def parse(
 			self, parameter: Parameter, available_schemas: List[TopicSchema],
 			principal_service: PrincipalService, allow_in_memory_variables: bool) -> None:
@@ -101,6 +116,7 @@ def create_ask_factor_statement(
 
 
 class ParsedStorageTopicFactorParameter(ParsedStorageParameter):
+	# class variables, only for declare types, don't use it
 	topic: Topic = None
 	topicFromVariables: bool = False
 	factor: Factor = None
@@ -109,6 +125,117 @@ class ParsedStorageTopicFactorParameter(ParsedStorageParameter):
 		Callable[[PipelineVariables, PrincipalService], Any],
 		Callable[[PipelineVariables, PrincipalService], ColumnNameLiteral]
 	] = None
+
+	def get_possible_types(self) -> List[PossibleParameterType]:
+		factor_type = self.factor.type
+		if factor_type == FactorType.SEQUENCE:
+			return [PossibleParameterType.NUMBER]
+		elif factor_type == FactorType.NUMBER:
+			return [PossibleParameterType.NUMBER]
+		elif factor_type == FactorType.UNSIGNED:
+			return [PossibleParameterType.NUMBER]
+		elif factor_type == FactorType.TEXT:
+			return [PossibleParameterType.STRING]
+		elif factor_type == FactorType.ADDRESS:
+			return [PossibleParameterType.STRING]
+		elif factor_type == FactorType.CONTINENT:
+			return [PossibleParameterType.STRING]
+		elif factor_type == FactorType.REGION:
+			return [PossibleParameterType.STRING]
+		elif factor_type == FactorType.COUNTRY:
+			return [PossibleParameterType.STRING]
+		elif factor_type == FactorType.PROVINCE:
+			return [PossibleParameterType.STRING]
+		elif factor_type == FactorType.CITY:
+			return [PossibleParameterType.STRING]
+		elif factor_type == FactorType.DISTRICT:
+			return [PossibleParameterType.STRING]
+		elif factor_type == FactorType.ROAD:
+			return [PossibleParameterType.STRING]
+		elif factor_type == FactorType.COMMUNITY:
+			return [PossibleParameterType.STRING]
+		elif factor_type == FactorType.FLOOR:
+			return [PossibleParameterType.NUMBER]
+		elif factor_type == FactorType.RESIDENCE_TYPE:
+			return [PossibleParameterType.STRING]
+		elif factor_type == FactorType.RESIDENTIAL_AREA:
+			return [PossibleParameterType.NUMBER]
+		elif factor_type == FactorType.EMAIL:
+			return [PossibleParameterType.STRING]
+		elif factor_type == FactorType.PHONE:
+			return [PossibleParameterType.STRING]
+		elif factor_type == FactorType.MOBILE:
+			return [PossibleParameterType.STRING]
+		elif factor_type == FactorType.FAX:
+			return [PossibleParameterType.STRING]
+		elif factor_type == FactorType.DATETIME:
+			return [PossibleParameterType.DATETIME]
+		elif factor_type == FactorType.FULL_DATETIME:
+			return [PossibleParameterType.DATETIME]
+		elif factor_type == FactorType.DATE:
+			return [PossibleParameterType.DATE]
+		elif factor_type == FactorType.TIME:
+			return [PossibleParameterType.TIME]
+		elif factor_type == FactorType.YEAR:
+			return [PossibleParameterType.NUMBER]
+		elif factor_type == FactorType.HALF_YEAR:
+			return [PossibleParameterType.NUMBER]
+		elif factor_type == FactorType.QUARTER:
+			return [PossibleParameterType.NUMBER]
+		elif factor_type == FactorType.MONTH:
+			return [PossibleParameterType.NUMBER]
+		elif factor_type == FactorType.HALF_MONTH:
+			return [PossibleParameterType.NUMBER]
+		elif factor_type == FactorType.TEN_DAYS:
+			return [PossibleParameterType.NUMBER]
+		elif factor_type == FactorType.WEEK_OF_YEAR:
+			return [PossibleParameterType.NUMBER]
+		elif factor_type == FactorType.WEEK_OF_MONTH:
+			return [PossibleParameterType.NUMBER]
+		elif factor_type == FactorType.HALF_WEEK:
+			return [PossibleParameterType.NUMBER]
+		elif factor_type == FactorType.DAY_OF_MONTH:
+			return [PossibleParameterType.NUMBER]
+		elif factor_type == FactorType.DAY_OF_WEEK:
+			return [PossibleParameterType.NUMBER]
+		elif factor_type == FactorType.DAY_KIND:
+			return [PossibleParameterType.NUMBER]
+		elif factor_type == FactorType.HOUR:
+			return [PossibleParameterType.NUMBER]
+		elif factor_type == FactorType.HOUR_KIND:
+			return [PossibleParameterType.NUMBER]
+		elif factor_type == FactorType.MINUTE:
+			return [PossibleParameterType.NUMBER]
+		elif factor_type == FactorType.SECOND:
+			return [PossibleParameterType.NUMBER]
+		elif factor_type == FactorType.MILLISECOND:
+			return [PossibleParameterType.NUMBER]
+		elif factor_type == FactorType.AM_PM:
+			return [PossibleParameterType.NUMBER]
+		elif factor_type == FactorType.GENDER:
+			return [PossibleParameterType.STRING]
+		elif factor_type == FactorType.OCCUPATION:
+			return [PossibleParameterType.STRING]
+		elif factor_type == FactorType.DATE_OF_BIRTH:
+			return [PossibleParameterType.DATETIME]
+		elif factor_type == FactorType.AGE:
+			return [PossibleParameterType.NUMBER]
+		elif factor_type == FactorType.ID_NO:
+			return [PossibleParameterType.STRING]
+		elif factor_type == FactorType.RELIGION:
+			return [PossibleParameterType.STRING]
+		elif factor_type == FactorType.NATIONALITY:
+			return [PossibleParameterType.STRING]
+		elif factor_type == FactorType.BIZ_TRADE:
+			return [PossibleParameterType.STRING]
+		elif factor_type == FactorType.BIZ_SCALE:
+			return [PossibleParameterType.NUMBER]
+		elif factor_type == FactorType.BOOLEAN:
+			return [PossibleParameterType.BOOLEAN]
+		elif factor_type == FactorType.ENUM:
+			return [PossibleParameterType.STRING]
+		else:
+			raise DataKernelException(f'Factor type[{factor_type}] is not supported.')
 
 	def parse(
 			self, parameter: TopicFactorParameter, available_schemas: List[TopicSchema],
@@ -153,7 +280,7 @@ def create_date_diff(
 		# noinspection PyUnusedLocal,DuplicatedCode
 		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
 			diff = compute_date_diff(function, end_date, start_date, variable_name)
-			return diff if is_blank(prefix) else f'{prefix}{diff}'
+			return diff if len(prefix) == 0 else f'{prefix}{diff}'
 
 		return action
 	else:
@@ -210,7 +337,7 @@ def create_date_diff(
 			else parse_date(start_variable_name, variables, principal_service)
 		if e_parsed and s_parsed:
 			diff = compute_date_diff(function, e_date, s_date, variable_name)
-			return diff if is_blank(prefix) else f'{prefix}{diff}'
+			return diff if len(prefix) == 0 else f'{prefix}{diff}'
 		else:
 			if function == VariablePredefineFunctions.YEAR_DIFF:
 				operator = ComputedLiteralOperator.YEAR_DIFF
@@ -229,22 +356,40 @@ def create_date_diff(
 # noinspection DuplicatedCode
 def create_run_constant_segment(
 		variable: MightAVariable, available_schemas: List[TopicSchema], allow_in_memory_variables: bool
-) -> Callable[[PipelineVariables, PrincipalService], Any]:
+) -> Tuple[Callable[[PipelineVariables, PrincipalService], Any], List[PossibleParameterType]]:
 	prefix = variable.text
+	has_prefix = len(prefix) != 0
 	variable_name = variable.variable
 	if variable_name == VariablePredefineFunctions.NEXT_SEQ.value:
-		return create_snowflake_generator(prefix)
+		return \
+			create_snowflake_generator(prefix), \
+			[PossibleParameterType.STRING if has_prefix else PossibleParameterType.NUMBER]
 	elif variable_name == VariablePredefineFunctions.NOW.value:
-		return lambda variables, principal_service: get_current_time_in_seconds()
+		if has_prefix:
+			return \
+				lambda variables, principal_service: \
+					f'{prefix}{get_current_time_in_seconds().strftime("%Y-%m-%d %H:%M:%S")}', \
+				[PossibleParameterType.STRING]
+		else:
+			return lambda variables, principal_service: get_current_time_in_seconds(), [PossibleParameterType.DATETIME]
 	elif variable_name.startswith(VariablePredefineFunctions.YEAR_DIFF.value):
-		return create_date_diff(
-			prefix, variable_name, VariablePredefineFunctions.YEAR_DIFF, available_schemas, allow_in_memory_variables)
+		return \
+			create_date_diff(
+				prefix, variable_name,
+				VariablePredefineFunctions.YEAR_DIFF, available_schemas, allow_in_memory_variables), \
+			[PossibleParameterType.STRING if has_prefix else PossibleParameterType.NUMBER]
 	elif variable_name.startswith(VariablePredefineFunctions.MONTH_DIFF.value):
-		return create_date_diff(
-			prefix, variable_name, VariablePredefineFunctions.MONTH_DIFF, available_schemas, allow_in_memory_variables)
+		return \
+			create_date_diff(
+				prefix, variable_name,
+				VariablePredefineFunctions.MONTH_DIFF, available_schemas, allow_in_memory_variables), \
+			[PossibleParameterType.STRING if has_prefix else PossibleParameterType.NUMBER]
 	elif variable_name.startswith(VariablePredefineFunctions.DAY_DIFF.value):
-		return create_date_diff(
-			prefix, variable_name, VariablePredefineFunctions.DAY_DIFF, available_schemas, allow_in_memory_variables)
+		return \
+			create_date_diff(
+				prefix, variable_name,
+				VariablePredefineFunctions.DAY_DIFF, available_schemas, allow_in_memory_variables), \
+			[PossibleParameterType.STRING if has_prefix else PossibleParameterType.NUMBER]
 
 	if allow_in_memory_variables:
 		if variable_name.startswith(VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA.value):
@@ -255,31 +400,41 @@ def create_run_constant_segment(
 			length = len(VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA.value)
 			if len(variable_name) < length + 2 or variable_name[length:length + 1] != '.':
 				raise DataKernelException(f'Constant[{variable_name}] is not supported.')
-			return create_from_previous_trigger_data(prefix, variable_name[length + 1:])
+			return \
+				create_from_previous_trigger_data(prefix, variable_name[length + 1:]), \
+				[PossibleParameterType.STRING if has_prefix else PossibleParameterType.ANY_VALUE]
 		else:
-			return create_get_from_variables_with_prefix(prefix, variable_name)
+			return \
+				create_get_from_variables_with_prefix(prefix, variable_name), \
+				[PossibleParameterType.STRING if has_prefix else PossibleParameterType.ANY_VALUE]
 	else:
 		# recover to original string
-		return create_static_str(f'{prefix}{{{variable_name}}}')
+		return create_static_str(f'{prefix}{{{variable_name}}}'), [PossibleParameterType.STRING]
 
 
 def create_ask_constant_value(
 		variables: List[MightAVariable], available_schemas: List[TopicSchema], allow_in_memory_variables: bool
-) -> Callable[[PipelineVariables, PrincipalService], Any]:
+) -> Tuple[Callable[[PipelineVariables, PrincipalService], Any], List[PossibleParameterType]]:
 	if len(variables) == 1:
 		if variables[0].has_variable():
 			return create_run_constant_segment(variables[0], available_schemas, allow_in_memory_variables)
 		else:
-			return create_static_str(variables[0].text)
+			return create_static_str(variables[0].text), [PossibleParameterType.STRING]
 	else:
-		return create_ask_value_for_computed(
-			ComputedLiteralOperator.CONCAT,
-			ArrayHelper(variables).map(
-				lambda x: create_run_constant_segment(x, available_schemas, allow_in_memory_variables)).to_list())
+		segments = ArrayHelper(variables) \
+			.map(lambda x: create_run_constant_segment(x, available_schemas, allow_in_memory_variables)) \
+			.map(lambda x: x[0]) \
+			.to_list()
+		return create_ask_value_for_computed(ComputedLiteralOperator.CONCAT, segments), [PossibleParameterType.STRING]
 
 
 class ParsedStorageConstantParameter(ParsedStorageParameter):
+	# class variables, only for declare types, don't use it
 	askValue: Callable[[PipelineVariables, PrincipalService], Any] = None
+	possibleTypes: List[PossibleParameterType] = []
+
+	def get_possible_types(self) -> List[PossibleParameterType]:
+		return self.possibleTypes
 
 	# noinspection DuplicatedCode
 	def parse(
@@ -287,16 +442,21 @@ class ParsedStorageConstantParameter(ParsedStorageParameter):
 			principal_service: PrincipalService, allow_in_memory_variables: bool) -> None:
 		value = parameter.value
 		if value is None:
+			self.possibleTypes = [PossibleParameterType.ANY_SINGLE_VALUE]
 			self.askValue = always_none
 		elif len(value) == 0:
+			self.possibleTypes = [PossibleParameterType.ANY_SINGLE_VALUE]
 			self.askValue = always_none
 		elif is_blank(value):
-			self.askValue = create_static_str(value)
+			self.possibleTypes = [PossibleParameterType.ANY_SINGLE_VALUE]
+			self.askValue = always_none
 		elif '{' not in value or '}' not in value:
+			self.possibleTypes = [PossibleParameterType.ANY_VALUE]
 			self.askValue = create_static_str(value)
 		else:
 			_, variables = parse_variable(value)
-			self.askValue = create_ask_constant_value(variables, available_schemas, allow_in_memory_variables)
+			self.askValue, self.possibleTypes = create_ask_constant_value(
+				variables, available_schemas, allow_in_memory_variables)
 
 	def run(self, variables: PipelineVariables, principal_service: PrincipalService) -> Any:
 		return self.askValue(variables, principal_service)
@@ -351,7 +511,12 @@ def create_ask_value_for_computed(
 
 
 class ParsedStorageComputedParameter(ParsedStorageParameter):
+	# class variables, only for declare types, don't use it
 	askValue: Callable[[PipelineVariables, PrincipalService], Literal] = None
+	possibleTypes: List[PossibleParameterType] = []
+
+	def get_possible_types(self) -> List[PossibleParameterType]:
+		return self.possibleTypes
 
 	def parse(
 			self, parameter: ComputedParameter, available_schemas: List[TopicSchema],
@@ -385,6 +550,7 @@ class ParsedStorageComputedParameter(ParsedStorageParameter):
 		def parse_sub_parameters(param: ComputedParameter) -> List[ParsedStorageParameter]:
 			return ArrayHelper(param.parameters).map(parse_parameter).to_list()
 
+		self.possibleTypes = [PossibleParameterType.NUMBER]
 		if compute_type == ParameterComputeType.ADD:
 			assert_parameter_count('add', parameter.parameters, 2)
 			# treat none value as 0
@@ -466,6 +632,12 @@ class ParsedStorageComputedParameter(ParsedStorageParameter):
 			else:
 				anyway_route = None
 
+			self.possibleTypes = ArrayHelper(routes) \
+				.map(lambda x: x[1].get_possible_types()) \
+				.grab([] if anyway_route is None else anyway_route.get_possible_types()) \
+				.distinct() \
+				.to_list()
+
 			self.askValue = create_ask_value_for_computed(
 				ComputedLiteralOperator.CASE_THEN, ArrayHelper(routes).grab(anyway_route).to_list())
 		else:
@@ -513,6 +685,7 @@ class ParsedStorageCondition:
 
 
 class ParsedStorageJoint(ParsedStorageCondition):
+	# class variables, only for declare types, don't use it
 	jointType: ParameterJointType = ParameterJointType.AND
 	filters: List[ParsedStorageCondition] = []
 
@@ -542,6 +715,7 @@ class ParsedStorageJoint(ParsedStorageCondition):
 
 
 class ParsedStorageExpression(ParsedStorageCondition):
+	# class variables, only for declare types, don't use it
 	left: Optional[ParsedStorageParameter] = None
 	operator: Optional[ParameterExpressionOperator] = None
 	right: Optional[ParsedStorageParameter] = None
