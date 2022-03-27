@@ -11006,7 +11006,7 @@
           "name": "RULES",
           "item": [
             {
-              "name": "New Request",
+              "name": "SAVE RULES",
               "id": "859884a7-a0c9-4bf5-b6ce-8c087ea4a5a9",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
