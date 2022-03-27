@@ -11006,6 +11006,27 @@
           "name": "RULES",
           "item": [
             {
+              "name": "CREATE RAW RULE RESULT",
+              "id": "b7a68f16-01ff-45df-b13a-d91d4fb6a18e",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"dqc_raw_rule_result\",\n    \"type\": \"raw\",\n    \"kind\": \"system\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [],\n    \"description\": \"DQC Result Raw Topic\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "response": []
+            },
+            {
               "name": "SAVE RULES",
               "id": "859884a7-a0c9-4bf5-b6ce-8c087ea4a5a9",
               "protocolProfileBehavior": {
@@ -11030,27 +11051,6 @@
                   }
                 },
                 "url": "{{DQC_URL_PREFIX}}/dqc/monitor/rules"
-              },
-              "response": []
-            },
-            {
-              "name": "CREATE RAW RULE RESULT",
-              "id": "b7a68f16-01ff-45df-b13a-d91d4fb6a18e",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": [],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"name\": \"dqc_raw_rule_result\",\n    \"type\": \"raw\",\n    \"kind\": \"system\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [],\n    \"description\": \"DQC Result Raw Topic\"\n}",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                }
               },
               "response": []
             },
