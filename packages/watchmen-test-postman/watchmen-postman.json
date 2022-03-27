@@ -10830,8 +10830,39 @@
                     "disableBodyPruning": true
                   },
                   "request": {
-                    "method": "GET",
-                    "header": []
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "POST",
+                    "header": [],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n    \"pageNumber\": 1,\n\t\"pageSize\": 10\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{URL_PREFIX}}/subject/data?subject_id={{SUBJECT_ID}}",
+                      "host": [
+                        "{{URL_PREFIX}}"
+                      ],
+                      "path": [
+                        "subject",
+                        "data"
+                      ],
+                      "query": [
+                        {
+                          "key": "subject_id",
+                          "value": "{{SUBJECT_ID}}"
+                        }
+                      ]
+                    }
                   },
                   "response": []
                 }
