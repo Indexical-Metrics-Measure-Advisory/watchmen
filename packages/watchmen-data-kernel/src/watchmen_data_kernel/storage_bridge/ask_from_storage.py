@@ -7,7 +7,7 @@ from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from watchmen_auth import PrincipalService
-from watchmen_data_kernel.common import ask_all_date_formats, DataKernelException
+from watchmen_data_kernel.common import ask_all_date_formats, ask_time_formats, DataKernelException
 from watchmen_data_kernel.meta import TopicService
 from watchmen_data_kernel.topic_schema import cast_value_for_factor, TopicSchema
 from watchmen_data_kernel.utils import MightAVariable, parse_function_in_variable, parse_variable
@@ -18,7 +18,7 @@ from watchmen_model.common import ComputedParameter, ConstantParameter, FactorId
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteriaExpression, \
 	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, Literal
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_date, is_decimal
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_date, is_decimal, is_time
 from .ask_from_memory import assert_parameter_count, create_ask_factor_value, parse_parameter_in_memory
 from .topic_utils import ask_topic_data_entity_helper
 from .utils import always_none, compute_date_diff, create_from_previous_trigger_data, \
@@ -728,6 +728,38 @@ class ParsedStorageExpression(ParsedStorageCondition):
 			self.right = parse_parameter_for_storage(
 				condition.right, available_schemas, principal_service, allow_in_memory_variables)
 
+	# noinspection PyMethodMayBeStatic
+	def handle_equation_possible_types(self, a_value: Any, another_possible_types: List[PossibleParameterType]) -> Any:
+		if isinstance(a_value, (int, float, Decimal, str)):
+			if another_possible_types == [PossibleParameterType.BOOLEAN]:
+				if str(a_value).lower() in ['1', 't', 'true', 'y', 'yes']:
+					return True
+				elif str(a_value).lower() in ['0', 'f', 'false', 'n', 'no']:
+					return False
+			elif another_possible_types == [PossibleParameterType.NUMBER]:
+				parsed, decimal_value = is_decimal(str(a_value))
+				if parsed:
+					return decimal_value
+		return a_value
+
+	# noinspection PyMethodMayBeStatic
+	def handle_comparison_possible_types(
+			self, a_value: Any, another_possible_types: List[PossibleParameterType]) -> Any:
+		if isinstance(a_value, str):
+			if PossibleParameterType.NUMBER in another_possible_types:
+				parsed, decimal_value = is_decimal(a_value)
+				if parsed:
+					return decimal_value
+			if PossibleParameterType.DATE in another_possible_types or PossibleParameterType.DATETIME in another_possible_types:
+				parsed, date_value = is_date(a_value, ask_all_date_formats())
+				if parsed:
+					return date_value
+			if PossibleParameterType.TIME in another_possible_types:
+				parsed, time_value = is_time(a_value, ask_time_formats())
+				if parsed:
+					return time_value
+		return a_value
+
 	def run(self, variables: PipelineVariables, principal_service: PrincipalService) -> EntityCriteriaExpression:
 		left_value = self.left.run(variables, principal_service)
 		if self.operator == ParameterExpressionOperator.EMPTY:
@@ -737,21 +769,33 @@ class ParsedStorageExpression(ParsedStorageCondition):
 
 		right_value = self.right.run(variables, principal_service)
 		if self.operator == ParameterExpressionOperator.EQUALS:
+			left_value = self.handle_equation_possible_types(left_value, self.right.get_possible_types())
+			right_value = self.handle_equation_possible_types(right_value, self.left.get_possible_types())
 			return EntityCriteriaExpression(
 				left=left_value, operator=EntityCriteriaOperator.EQUALS, right=right_value)
 		elif self.operator == ParameterExpressionOperator.NOT_EQUALS:
+			left_value = self.handle_equation_possible_types(left_value, self.right.get_possible_types())
+			right_value = self.handle_equation_possible_types(right_value, self.left.get_possible_types())
 			return EntityCriteriaExpression(
 				left=left_value, operator=EntityCriteriaOperator.NOT_EQUALS, right=right_value)
 		elif self.operator == ParameterExpressionOperator.LESS:
+			left_value = self.handle_comparison_possible_types(left_value, self.right.get_possible_types())
+			right_value = self.handle_comparison_possible_types(right_value, self.left.get_possible_types())
 			return EntityCriteriaExpression(
 				left=left_value, operator=EntityCriteriaOperator.LESS_THAN, right=right_value)
 		elif self.operator == ParameterExpressionOperator.LESS_EQUALS:
+			left_value = self.handle_comparison_possible_types(left_value, self.right.get_possible_types())
+			right_value = self.handle_comparison_possible_types(right_value, self.left.get_possible_types())
 			return EntityCriteriaExpression(
 				left=left_value, operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS, right=right_value)
 		elif self.operator == ParameterExpressionOperator.MORE:
+			left_value = self.handle_comparison_possible_types(left_value, self.right.get_possible_types())
+			right_value = self.handle_comparison_possible_types(right_value, self.left.get_possible_types())
 			return EntityCriteriaExpression(
 				left=left_value, operator=EntityCriteriaOperator.GREATER_THAN, right=right_value)
 		elif self.operator == ParameterExpressionOperator.MORE_EQUALS:
+			left_value = self.handle_comparison_possible_types(left_value, self.right.get_possible_types())
+			right_value = self.handle_comparison_possible_types(right_value, self.left.get_possible_types())
 			return EntityCriteriaExpression(
 				left=left_value, operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS, right=right_value)
 		elif self.operator == ParameterExpressionOperator.IN:
