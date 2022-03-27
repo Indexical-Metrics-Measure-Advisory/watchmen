@@ -66,7 +66,7 @@ async def save_monitor_rules(
 
 	def action() -> List[MonitorRule]:
 		save_rules = ArrayHelper(rules).map(for_one).to_list()
-		monitor_rule_service.delete_othters_by_ids(
+		monitor_rule_service.delete_others_by_ids(
 			ArrayHelper(save_rules).map(lambda x: x.ruleId).to_list(), principal_service.get_tenant_id())
 		return save_rules
 
