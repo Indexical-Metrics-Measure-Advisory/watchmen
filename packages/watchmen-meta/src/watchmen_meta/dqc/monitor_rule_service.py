@@ -100,11 +100,11 @@ class MonitorRuleService(TupleService):
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(criteria=criteria))
 
-	def delete_by_ids(self, rule_ids: List[MonitorRuleId], tenant_id: TenantId) -> List[MonitorRule]:
+	def delete_othters_by_ids(self, rule_ids: List[MonitorRuleId], tenant_id: TenantId) -> List[MonitorRule]:
 		criteria = [
 			EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id),
 			EntityCriteriaExpression(
-				left=ColumnNameLiteral(columnName='rule_id'), operator=EntityCriteriaOperator.IN,
+				left=ColumnNameLiteral(columnName='rule_id'), operator=EntityCriteriaOperator.NOT_IN,
 				right=rule_ids)
 		]
 
