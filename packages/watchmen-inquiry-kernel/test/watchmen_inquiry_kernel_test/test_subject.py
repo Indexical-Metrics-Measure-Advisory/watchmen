@@ -11,7 +11,6 @@ from watchmen_model.admin import Factor, FactorType, Space, Topic, TopicKind, To
 from watchmen_model.common import ComputedParameter, ConstantParameter, Pageable, ParameterComputeType, ParameterKind, \
 	TopicFactorParameter
 from watchmen_model.console import ConnectedSpace, Subject, SubjectDataset, SubjectDatasetColumn
-from watchmen_model.console.subject import SubjectColumnArithmetic
 from watchmen_model.system import DataSource, DataSourceType
 
 
