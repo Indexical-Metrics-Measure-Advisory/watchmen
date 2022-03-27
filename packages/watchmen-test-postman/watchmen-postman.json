@@ -10634,25 +10634,91 @@
                 },
                 {
                   "name": "CREATE TOPIC 1",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "438d4f4f-c329-4a0c-a68d-fa4e2d487f1b",
+                        "exec": [
+                          "pm.test(\"Create Distinct Topic\", () => {",
+                          "    pm.response.to.have.status(200);",
+                          "    var data = pm.response.json();",
+                          "    pm.environment.set('TOPIC_ID_1', data.topicId)",
+                          "    pm.environment.set('TOPIC_NAME_1', data.name)",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "68937100-2300-4b5a-a8d4-eeef77e6a93f",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
                   "request": {
-                    "method": "GET",
-                    "header": []
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "POST",
+                    "header": [],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n    \"name\": \"Test_Distinct_Topic_1\",\n    \"type\": \"distinct\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propC\"},\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propD\"},\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propE\"},\n        {\"factorId\": \"6\", \"type\": \"text\", \"name\": \"propF\"}\n    ],\n    \"description\": \"Test Distinct Topic 1\"\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": "{{URL_PREFIX}}/topic"
                   },
                   "response": []
                 },
                 {
                   "name": "CREATE TOPIC 2",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "2b1e0808-b8de-4616-8b27-4512b2294eba",
+                        "exec": [
+                          "pm.test(\"Create Distinct Topic\", () => {",
+                          "    pm.response.to.have.status(200);",
+                          "    var data = pm.response.json();",
+                          "    pm.environment.set('TOPIC_ID_2', data.topicId)",
+                          "    pm.environment.set('TOPIC_NAME_2', data.name)",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "29c7831d-5da3-49cc-99eb-d705dfdebb05",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
                   "request": {
-                    "method": "GET",
-                    "header": []
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "POST",
+                    "header": [],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n    \"name\": \"Test_Distinct_Topic_2\",\n    \"type\": \"distinct\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propC\"},\n        {\"factorId\": \"4\", \"type\": \"text\", \"name\": \"propD\"}\n    ],\n    \"description\": \"Test Distinct Topic 2\"\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": "{{URL_PREFIX}}/topic"
                   },
                   "response": []
                 },
@@ -10663,8 +10729,24 @@
                     "disableBodyPruning": true
                   },
                   "request": {
-                    "method": "GET",
-                    "header": []
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "POST",
+                    "header": [],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n    \"topicId\": \"{{RAW_TOPIC_ID}}\",\n    \"name\": \"Test Insert Row\",\n    \"type\": \"insert-or-merge\",\n    \"stages\": [\n        {\n            \"stageId\": \"f-1\",\n            \"name\": \"Stage 1\",\n            \"units\": [\n                {\n                    \"unitId\": \"f-2\",\n                    \"name\": \"Unit 1.2\",\n                    \"do\": [\n                        {\n                            \"actionId\": \"fa-1\",\n                            \"type\": \"insert-row\",\n                            \"topicId\": \"{{TOPIC_ID_1}}\",\n                            \"mapping\": [\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"1\"\n                                    },\n                                    \"factorId\": \"1\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"2\"\n                                    },\n                                    \"factorId\": \"2\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"3\"\n                                    },\n                                    \"factorId\": \"3\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"4\"\n                                    },\n                                    \"factorId\": \"4\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"5\"\n                                    },\n                                    \"factorId\": \"5\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"10\"\n                                    },\n                                    \"factorId\": \"6\"\n                                }\n                            ]\n                        },\n                        {\n                            \"actionId\": \"fa-2\",\n                            \"type\": \"insert-row\",\n                            \"topicId\": \"{{TOPIC_ID_2}}\",\n                            \"mapping\": [\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"7\"\n                                    },\n                                    \"factorId\": \"1\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"8\"\n                                    },\n                                    \"factorId\": \"2\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"9\"\n                                    },\n                                    \"factorId\": \"3\"\n                                },\n                                {\n                                    \"source\": {\n                                        \"kind\": \"topic\",\n                                        \"topicId\": \"{{RAW_TOPIC_ID}}\",\n                                        \"factorId\": \"10\"\n                                    },\n                                    \"factorId\": \"4\"\n                                }\n                            ]\n                        }\n                    ]\n                }\n            ]\n        }\n    ],\n    \"enabled\": true,\n    \"validated\": true\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": "{{URL_PREFIX}}/pipeline"
                   },
                   "response": []
                 },
@@ -10675,29 +10757,69 @@
                     "disableBodyPruning": true
                   },
                   "request": {
-                    "method": "GET",
-                    "header": []
-                  },
-                  "response": []
-                },
-                {
-                  "name": "CRATE SUBJECT",
-                  "id": "9c6cf4b2-fbd5-43fc-bf85-d5ea7ce205b2",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "method": "GET",
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "POST",
                     "header": [],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n    \"name\": \"Test_Subject\",\n    \"connectId\": \"{{CONNECT_ID}}\",\n    \"reports\": [\n        \"1\",\n        \"2\"\n    ],\n    \"dataset\": {\n        \"joins\": [],\n        \"columns\": [\n            {\n                \"alias\": \"alias_a\",\n                \"columnId\": \"f-1\",\n                \"parameter\": {\n                    \"on\": null,\n                    \"kind\": \"topic\",\n                    \"type\": null,\n                    \"value\": null,\n                    \"topicId\": \"{{TOPIC_ID}}\",\n                    \"factorId\": \"1\",\n                    \"parameters\": [],\n                    \"conditional\": false\n                }\n            },\n            {\n                \"alias\": \"alias_b\",\n                \"columnId\": \"f-2\",\n                \"parameter\": {\n                    \"on\": null,\n                    \"kind\": \"topic\",\n                    \"type\": null,\n                    \"value\": null,\n                    \"topicId\": \"{{TOPIC_ID}}\",\n                    \"factorId\": \"2\",\n                    \"parameters\": [],\n                    \"conditional\": false\n                }\n            },\n            {\n                \"alias\": \"alias_c\",\n                \"columnId\": \"f-3\",\n                \"parameter\": {\n                    \"on\": null,\n                    \"kind\": \"topic\",\n                    \"type\": null,\n                    \"value\": null,\n                    \"topicId\": \"{{TOPIC_ID}}\",\n                    \"factorId\": \"3\",\n                    \"parameters\": [],\n                    \"conditional\": false\n                }\n            },\n            {\n                \"alias\": \"alias_d\",\n                \"columnId\": \"f-4\",\n                \"parameter\": {\n                    \"on\": null,\n                    \"kind\": \"topic\",\n                    \"type\": null,\n                    \"value\": null,\n                    \"topicId\": \"{{TOPIC_ID}}\",\n                    \"factorId\": \"4\",\n                    \"parameters\": [],\n                    \"conditional\": false\n                }\n            },\n            {\n                \"alias\": \"alias_e\",\n                \"columnId\": \"f-5\",\n                \"parameter\": {\n                    \"on\": null,\n                    \"kind\": \"topic\",\n                    \"type\": null,\n                    \"value\": null,\n                    \"topicId\": \"{{TOPIC_ID}}\",\n                    \"factorId\": \"5\",\n                    \"parameters\": [],\n                    \"conditional\": false\n                }\n            }\n        ]\n    }\n}",
+                      "raw": "{\n    \"code\": \"Test_Raw_Topic_2\",\n    \"data\": {\n        \"propA\": \"text\",\n        \"propB\": 100,\n        \"propC\": true,\n        \"propD\": \"2022-03-22\",\n        \"propE\": \"2022-03-22 22:39:45\",\n        \"propF\": {\n            \"propA\": \"child_text\",\n            \"propB\": 1000,\n            \"propC\": false,\n            \"propD\": \"10\"\n        }\n    }\n}",
                       "options": {
                         "raw": {
                           "language": "json"
                         }
                       }
+                    },
+                    "url": "{{URL_PREFIX}}/pipeline/data"
+                  },
+                  "response": []
+                },
+                {
+                  "name": "CRATE SUBJECT",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "f761601d-ff62-41c0-b78c-120c1244cf9e",
+                        "exec": [
+                          "pm.test('Create Subject', () => {",
+                          "    pm.response.to.have.status(200);",
+                          "    const data = pm.response.json();",
+                          "    pm.environment.set(\"SUBJECT_ID\", data.subjectId);",
+                          "    pm.environment.set(\"SUBJECT_NAME\", data.name);",
+                          "})"
+                        ],
+                        "type": "text/javascript"
+                      }
                     }
+                  ],
+                  "id": "9c6cf4b2-fbd5-43fc-bf85-d5ea7ce205b2",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "POST",
+                    "header": [],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n    \"name\": \"Test_Subject\",\n    \"connectId\": \"{{CONNECT_ID}}\",\n    \"reports\": [\n        \"1\",\n        \"2\"\n    ],\n    \"dataset\": {\n        \"joins\": [\n            {\n                \"topicId\": \"{{TOPIC_ID_1}}\",\n                \"factorId\": \"6\",\n                \"secondaryTopicId\": \"{{TOPIC_ID_2}}\",\n                \"secondaryFactorId\": \"4\",\n                \"type\": \"inner\"\n            }\n        ],\n        \"columns\": [\n            {\n                \"alias\": \"alias_a\",\n                \"columnId\": \"f-1\",\n                \"parameter\": {\n                    \"on\": null,\n                    \"kind\": \"topic\",\n                    \"type\": null,\n                    \"value\": null,\n                    \"topicId\": \"{{TOPIC_ID_1}}\",\n                    \"factorId\": \"1\",\n                    \"parameters\": [],\n                    \"conditional\": false\n                }\n            },\n            {\n                \"alias\": \"alias_b\",\n                \"columnId\": \"f-2\",\n                \"parameter\": {\n                    \"on\": null,\n                    \"kind\": \"topic\",\n                    \"type\": null,\n                    \"value\": null,\n                    \"topicId\": \"{{TOPIC_ID_1}}\",\n                    \"factorId\": \"2\",\n                    \"parameters\": [],\n                    \"conditional\": false\n                }\n            },\n            {\n                \"alias\": \"alias_c\",\n                \"columnId\": \"f-3\",\n                \"parameter\": {\n                    \"on\": null,\n                    \"kind\": \"topic\",\n                    \"type\": null,\n                    \"value\": null,\n                    \"topicId\": \"{{TOPIC_ID_1}}\",\n                    \"factorId\": \"3\",\n                    \"parameters\": [],\n                    \"conditional\": false\n                }\n            },\n            {\n                \"alias\": \"alias_d\",\n                \"columnId\": \"f-4\",\n                \"parameter\": {\n                    \"on\": null,\n                    \"kind\": \"topic\",\n                    \"type\": null,\n                    \"value\": null,\n                    \"topicId\": \"{{TOPIC_ID_1}}\",\n                    \"factorId\": \"4\",\n                    \"parameters\": [],\n                    \"conditional\": false\n                }\n            },\n            {\n                \"alias\": \"alias_e\",\n                \"columnId\": \"f-5\",\n                \"parameter\": {\n                    \"on\": null,\n                    \"kind\": \"topic\",\n                    \"type\": null,\n                    \"value\": null,\n                    \"topicId\": \"{{TOPIC_ID_1}}\",\n                    \"factorId\": \"5\",\n                    \"parameters\": [],\n                    \"conditional\": false\n                }\n            },\n            {\n                \"alias\": \"alias_f\",\n                \"columnId\": \"f-6\",\n                \"parameter\": {\n                    \"on\": null,\n                    \"kind\": \"topic\",\n                    \"type\": null,\n                    \"value\": null,\n                    \"topicId\": \"{{TOPIC_ID_2}}\",\n                    \"factorId\": \"1\",\n                    \"parameters\": [],\n                    \"conditional\": false\n                }\n            },\n            {\n                \"alias\": \"alias_g\",\n                \"columnId\": \"f-7\",\n                \"parameter\": {\n                    \"on\": null,\n                    \"kind\": \"topic\",\n                    \"type\": null,\n                    \"value\": null,\n                    \"topicId\": \"{{TOPIC_ID_2}}\",\n                    \"factorId\": \"2\",\n                    \"parameters\": [],\n                    \"conditional\": false\n                }\n            },\n            {\n                \"alias\": \"alias_h\",\n                \"columnId\": \"f-8\",\n                \"parameter\": {\n                    \"on\": null,\n                    \"kind\": \"topic\",\n                    \"type\": null,\n                    \"value\": null,\n                    \"topicId\": \"{{TOPIC_ID_2}}\",\n                    \"factorId\": \"3\",\n                    \"parameters\": [],\n                    \"conditional\": false\n                }\n            },\n            {\n                \"alias\": \"alias_i\",\n                \"columnId\": \"f-9\",\n                \"parameter\": {\n                    \"on\": null,\n                    \"kind\": \"topic\",\n                    \"type\": null,\n                    \"value\": null,\n                    \"topicId\": \"{{TOPIC_ID_2}}\",\n                    \"factorId\": \"4\",\n                    \"parameters\": [],\n                    \"conditional\": false\n                }\n            }\n        ]\n    }\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": "{{URL_PREFIX}}/subject"
                   },
                   "response": []
                 },
@@ -10708,8 +10830,39 @@
                     "disableBodyPruning": true
                   },
                   "request": {
-                    "method": "GET",
-                    "header": []
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "POST",
+                    "header": [],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n    \"pageNumber\": 1,\n\t\"pageSize\": 10\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{URL_PREFIX}}/subject/data?subject_id={{SUBJECT_ID}}",
+                      "host": [
+                        "{{URL_PREFIX}}"
+                      ],
+                      "path": [
+                        "subject",
+                        "data"
+                      ],
+                      "query": [
+                        {
+                          "key": "subject_id",
+                          "value": "{{SUBJECT_ID}}"
+                        }
+                      ]
+                    }
                   },
                   "response": []
                 }
