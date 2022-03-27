@@ -65,5 +65,4 @@ def run_retrieve_all_data_rules(
 	return ArrayHelper(factors) \
 		.map(lambda x: (x, translate_to_array(rows, x))) \
 		.map(lambda x: run_rules(x[0], x[1])) \
-		.reduce(lambda all_results, x: [*all_results, *x], []) \
-		.to_list()
+		.reduce(lambda all_results, x: [*all_results, *x], [])
