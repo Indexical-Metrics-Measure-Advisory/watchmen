@@ -11022,7 +11022,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"rules\": [\n        {\n            \"code\": \"factor-is-blank\",\n            \"grade\": \"factor\",\n            \"severity\": \"warn\",\n            \"topicId\": \"{{TOPIC_ID}}\",\n            \"factorId\": \"1\",\n            \"enabled\": true\n        }\n    ]\n}",
+                  "raw": "[\n    {\n        \"code\": \"factor-is-blank\",\n        \"grade\": \"factor\",\n        \"severity\": \"warn\",\n        \"topicId\": \"{{TOPIC_ID}}\",\n        \"factorId\": \"1\",\n        \"params\": {\n            \"statisticalInterval\": \"daily\"\n        },\n        \"enabled\": true\n    }\n]",
                   "options": {
                     "raw": {
                       "language": "json"
