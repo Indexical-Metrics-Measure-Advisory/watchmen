@@ -90,10 +90,12 @@ def run_all_rules(
 
 	# rules need to retrieve distinct data and count
 	retrieve_distinct_data_rules = ArrayHelper(rules).filter(should_retrieve_distinct_data).to_list()
-	run_retrieve_distinct_data_rules(
+	results = run_retrieve_distinct_data_rules(
 		data_service, retrieve_distinct_data_rules, date_range, changed_rows_count_in_range, total_rows_count)
+	ArrayHelper(results).filter(accept_result).each(trigger_pipeline)
 
 	# rules need to retrieve all data
 	retrieve_all_data_rules = ArrayHelper(rules).filter(should_retrieve_all_data).to_list()
-	run_retrieve_all_data_rules(
+	results = run_retrieve_all_data_rules(
 		data_service, retrieve_all_data_rules, date_range, changed_rows_count_in_range, total_rows_count)
+	ArrayHelper(results).filter(accept_result).each(trigger_pipeline)
