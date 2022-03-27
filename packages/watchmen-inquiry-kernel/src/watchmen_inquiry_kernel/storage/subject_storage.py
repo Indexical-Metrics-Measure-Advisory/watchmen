@@ -148,11 +148,10 @@ class SubjectStorage:
 			type=join_type
 		)
 
-	def ask_filters_from_space(
-			self, criteria: List[ParsedStorageCondition], variables: PipelineVariables) -> List[ParsedStorageCondition]:
+	def ask_filters_from_space(self, criteria: List[ParsedStorageCondition]) -> List[ParsedStorageCondition]:
 		if self.schema.should_ignore_space():
 			return criteria
-		
+
 		subject = self.schema.get_subject()
 		available_schemas = self.schema.get_available_schemas()
 
@@ -188,14 +187,9 @@ class SubjectStorage:
 			.map(lambda x: parse_condition_for_storage(x.joint, available_schemas, self.principalService, False)) \
 			.to_list()
 		if len(criteria_from_space) != 0:
-			criteria = ArrayHelper(criteria_from_space).grab(*criteria) \
-				.map(lambda x: x.run(variables, self.principalService)).to_list()
-		elif len(criteria) == 0:
-			criteria = []
+			return ArrayHelper(criteria_from_space).grab(*criteria).to_list()
 		else:
-			criteria = ArrayHelper(criteria) \
-				.map(lambda x: x.run(variables, self.principalService)).to_list()
-		return criteria
+			return criteria
 
 	def ask_storage_finder(self) -> FreeFinder:
 		# build pager
@@ -208,7 +202,8 @@ class SubjectStorage:
 			criteria = [parse_condition_for_storage(dataset.filters, available_schemas, self.principalService, False)]
 		else:
 			criteria = []
-		criteria = self.ask_filters_from_space(criteria, empty_variables)
+		criteria = self.ask_filters_from_space(criteria)
+		criteria = ArrayHelper(criteria).map(lambda x: x.run(empty_variables, self.principalService)).to_list()
 
 		def to_free_column(column: SubjectDatasetColumn) -> FreeColumn:
 			literal = parse_parameter_for_storage(column.parameter, available_schemas, self.principalService, False) \
