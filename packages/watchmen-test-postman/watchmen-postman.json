@@ -11004,7 +11004,20 @@
         },
         {
           "name": "RULES",
-          "item": [],
+          "item": [
+            {
+              "name": "New Request",
+              "id": "859884a7-a0c9-4bf5-b6ce-8c087ea4a5a9",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            }
+          ],
           "id": "4ab7c301-e6aa-4bd6-804b-d742bc54a0cc"
         }
       ],
