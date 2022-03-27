@@ -6,8 +6,8 @@ from .subject_storage import SubjectStorage
 
 
 class SubjectDataService:
-	def __init__(self, subject: Subject, principal_service: PrincipalService):
-		self.schema = SubjectSchema(subject, principal_service)
+	def __init__(self, subject: Subject, principal_service: PrincipalService, ignore_space: bool = False):
+		self.schema = SubjectSchema(subject, principal_service, ignore_space)
 		self.principalService = principal_service
 
 	def get_schema(self) -> SubjectSchema:

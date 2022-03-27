@@ -220,8 +220,9 @@ def find_topic_schemas(
 
 
 class SubjectSchema:
-	def __init__(self, subject: Subject, principal_service: PrincipalService):
+	def __init__(self, subject: Subject, principal_service: PrincipalService, ignore_space: bool = False):
 		self.subject = subject
+		self.ignoreSpace = ignore_space
 		dataset = subject.dataset
 		if dataset is None:
 			raise InquiryKernelException(f'Dataset definition of subject[id={subject.subjectId}] not found.')
@@ -247,6 +248,9 @@ class SubjectSchema:
 			data_source_id = available_schema.get_topic().dataSourceId
 			data_sources[data_source_id] = True
 		self.fromOneDataSource = len(data_sources) == 1
+
+	def should_ignore_space(self):
+		return self.ignoreSpace
 
 	def get_subject(self) -> Subject:
 		return self.subject
