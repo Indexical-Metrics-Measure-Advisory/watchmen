@@ -10984,6 +10984,11 @@
       "name": "DQC",
       "item": [
         {
+          "name": "New Folder",
+          "item": [],
+          "id": "dd78035f-a0e4-46b4-b4c6-ac624ac65bc5"
+        },
+        {
           "name": "New Request",
           "id": "ad3c6376-ae71-49ef-8f37-1487e44060db",
           "protocolProfileBehavior": {
