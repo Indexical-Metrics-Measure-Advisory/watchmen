@@ -11119,7 +11119,16 @@
               },
               "request": {
                 "method": "GET",
-                "header": []
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"dqc_raw_rule_result\",\n    \"type\": \"raw\",\n    \"kind\": \"system\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [],\n    \"description\": \"Pipeline Monitor Log Raw Topic\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
               },
               "response": []
             }
