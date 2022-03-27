@@ -382,7 +382,7 @@ class TrinoStorage(TrinoStorageSPI):
 		elif op == EntityCriteriaOperator.LIKE:
 			return f'LOWER({built_left}) LIKE \'{self.build_like_pattern(built_right)}\' ESCAPE \'\\\''
 		elif op == EntityCriteriaOperator.NOT_LIKE:
-			return f'LOWER({built_left}) NOT \'{self.build_like_pattern(built_right)}\' LIKE ESCAPE \'\\\''
+			return f'LOWER({built_left}) NOT LIKE \'{self.build_like_pattern(built_right)}\' ESCAPE \'\\\''
 		else:
 			raise UnsupportedCriteriaException(f'Unsupported criteria expression operator[{op}].')
 
