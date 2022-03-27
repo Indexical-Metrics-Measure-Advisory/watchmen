@@ -11040,8 +11040,32 @@
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": {
+                  "raw": "{{DQC_URL_PREFIX}}/dqc/monitor/rules?topic_id={{TOPIC_ID}}",
+                  "host": [
+                    "{{DQC_URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "dqc",
+                    "monitor",
+                    "rules"
+                  ],
+                  "query": [
+                    {
+                      "key": "topic_id",
+                      "value": "{{TOPIC_ID}}",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
