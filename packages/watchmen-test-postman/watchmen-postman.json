@@ -11084,7 +11084,30 @@
                 },
                 "method": "GET",
                 "header": [],
-                "url": "{{DQC_URL_PREFIX}}/dqc/monitor/rules/run"
+                "url": {
+                  "raw": "{{DQC_URL_PREFIX}}/dqc/monitor/rules/run?frequency=daily&topic_name={{TOPIC_NAME}}",
+                  "host": [
+                    "{{DQC_URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "dqc",
+                    "monitor",
+                    "rules",
+                    "run"
+                  ],
+                  "query": [
+                    {
+                      "key": "frequency",
+                      "value": "daily",
+                      "type": "text"
+                    },
+                    {
+                      "key": "topic_name",
+                      "value": "{{TOPIC_NAME}}",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
