@@ -10,7 +10,7 @@ from .factor_median_not_in_range import factor_median_not_in_range
 from .factor_quantile_not_in_range import factor_quantile_not_in_range
 from .factor_stdev_not_in_range import factor_stdev_not_in_range
 from .retrieve_data_rules_utils import find_factors_and_log_missed, group_rules_by_factor
-from .types import AllDataRuleHandler
+from .types import AllDataRuleHandler, RuleResult
 
 retrieve_all_data_rules_map: Dict[MonitorRuleCode, AllDataRuleHandler] = {
 	MonitorRuleCode.FACTOR_MEDIAN_NOT_IN_RANGE: factor_median_not_in_range,
@@ -22,7 +22,7 @@ retrieve_all_data_rules_map: Dict[MonitorRuleCode, AllDataRuleHandler] = {
 def run_retrieve_all_data_rules(
 		data_service: TopicDataService, rules: List[MonitorRule],
 		date_range: Tuple[datetime, datetime],
-		changed_rows_count_in_range: int, total_rows_count: int) -> None:
+		changed_rows_count_in_range: int, total_rows_count: int) -> List[Tuple[MonitorRule, RuleResult]]:
 	"""
 	run rules which should retrieve all data,
 	make sure pass-in rules are qualified, will not check them inside
@@ -49,17 +49,21 @@ def run_retrieve_all_data_rules(
 			.map(lambda x: [x]) \
 			.to_list()
 
-	def run_rules(factor: Factor, data: List[Any]) -> None:
+	def run_rules(factor: Factor, data: List[Any]) -> List[Tuple[MonitorRule, RuleResult]]:
 		concerned_rules = rules_by_factor.get(factor.factorId)
 		if concerned_rules is None or len(concerned_rules) == 0:
-			return
+			return []
 
-		def run_rule(rule: MonitorRule) -> None:
-			retrieve_all_data_rules_map[rule.code](
+		def run_rule(rule: MonitorRule) -> Tuple[MonitorRule, RuleResult]:
+			result = retrieve_all_data_rules_map[rule.code](
 				data_service, factor,
 				data, rule, date_range, changed_rows_count_in_range, total_rows_count)
+			return rule, result
 
-		ArrayHelper(concerned_rules).each(run_rule)
+		return ArrayHelper(concerned_rules).map(run_rule).to_list()
 
-	ArrayHelper(factors).map(lambda x: (x, translate_to_array(rows, x))) \
-		.each(lambda x: run_rules(x[0], x[1]))
+	return ArrayHelper(factors) \
+		.map(lambda x: (x, translate_to_array(rows, x))) \
+		.map(lambda x: run_rules(x[0], x[1])) \
+		.reduce(lambda all_results, x: [*all_results, *x], []) \
+		.to_list()
