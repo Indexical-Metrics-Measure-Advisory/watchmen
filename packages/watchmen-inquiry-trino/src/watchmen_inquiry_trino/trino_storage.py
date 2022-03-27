@@ -135,7 +135,7 @@ class TrinoStorage(TrinoStorageSPI):
 			else:
 				groups_by_secondary: Dict[TopicId, List[FreeJoin]] = ArrayHelper(joins_by_primary) \
 					.group_by(lambda x: x.secondary.entityName)
-				for secondary_topic_id, joins_by_secondary in groups_by_secondary:
+				for secondary_topic_id, joins_by_secondary in groups_by_secondary.items():
 					# every join is left join, otherwise reduce to inner join
 					outer_join: bool = ArrayHelper(joins_by_secondary).every(lambda x: x.type == FreeJoinType.LEFT)
 					secondary_schema = self.find_schema_by_id(secondary_topic_id)
@@ -144,9 +144,9 @@ class TrinoStorage(TrinoStorageSPI):
 
 					join_operator = 'LEFT JOIN' if outer_join else 'INNER JOIN'
 					if built is None:
-						built = f'{primary_schema.get_alias()} {join_operator} {secondary_schema.get_alias()} ON {on}'
+						built = f'{primary_schema.get_entity_name()} AS {primary_schema.get_alias()} {join_operator} {secondary_schema.get_entity_name()} AS {secondary_schema.get_alias()} ON {on} '
 					else:
-						built = f' {join_operator} {secondary_schema.get_alias()} ON {on}'
+						built = f' {join_operator} {secondary_schema.get_entity_name()} AS {secondary_schema.get_alias()} ON {on}'
 					# append into used
 					if secondary_schema not in schemas:
 						schemas.append(secondary_schema)
@@ -179,7 +179,7 @@ class TrinoStorage(TrinoStorageSPI):
 	def build_free_joins(self, table_joins: Optional[List[FreeJoin]]) -> str:
 		if table_joins is None or len(table_joins) == 0:
 			raise NoFreeJoinException('No join found.')
-		if len(table_joins) == 1:
+		if len(table_joins) == 1 and table_joins[0].secondary is None:
 			# single topic, here entity name is topic id
 			schema = self.find_schema_by_id(table_joins[0].primary.entityName)
 			return f'{schema.get_entity_name()} AS {schema.get_alias()}'
