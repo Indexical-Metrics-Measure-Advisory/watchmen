@@ -11034,7 +11034,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "GET RULES",
               "id": "d449774d-129c-4678-bb00-3abf9f250fc2",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
