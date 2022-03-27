@@ -73,6 +73,23 @@ def equals_date(value: date, another: Any, formats: List[str]) -> bool:
 		return False
 
 
+def equals_bool(value: bool, another: Any) -> bool:
+	if isinstance(another, bool):
+		return value == another
+	elif isinstance(another, (int, float, Decimal)):
+		if value:
+			return another == 1
+		else:
+			return another == 0
+	elif isinstance(another, str):
+		if value:
+			return another.lower() in ['1', 't', 'true', 'y', 'yes']
+		else:
+			return another.lower() in ['0', 'f', 'false', 'n', 'no']
+	else:
+		return False
+
+
 def value_equals(
 		one: Any, another: Any,
 		time_formats: List[str], date_formats: List[str]) -> bool:
@@ -99,6 +116,10 @@ def value_equals(
 	elif isinstance(another, datetime) or isinstance(another, date):
 		# compare datetime or date
 		return equals_date(another, one, date_formats)
+	elif isinstance(one, bool):
+		return equals_bool(one, another)
+	elif isinstance(another, bool):
+		return equals_bool(another, one)
 	elif isinstance(one, str):
 		# compare string
 		if isinstance(another, int) or isinstance(another, float) or isinstance(another, Decimal):
