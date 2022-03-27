@@ -51,7 +51,11 @@ class MonitorRulesRunner:
 			self, process_date: date, topic_id: Optional[TopicId] = None,
 			frequency: Optional[MonitorRuleStatisticalInterval] = None) -> None:
 		rule_service = get_rule_service(self.principalService)
-		rules = rule_service.find_by_grade_or_topic_id(None, topic_id, self.principalService.get_tenant_id())
+		try:
+			rule_service.begin_transaction()
+			rules = rule_service.find_by_grade_or_topic_id(None, topic_id, self.principalService.get_tenant_id())
+		finally:
+			rule_service.close_transaction()
 		rules = ArrayHelper(rules) \
 			.filter(lambda x: should_run_rule(x, frequency)) \
 			.filter(lambda x: x.topicId is not None) \
