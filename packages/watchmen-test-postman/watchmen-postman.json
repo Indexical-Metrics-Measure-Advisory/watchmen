@@ -10987,7 +10987,7 @@
           "name": "TOPIC PROFILE",
           "item": [
             {
-              "name": "New Request",
+              "name": "TOPIC PROFILE",
               "id": "ad3c6376-ae71-49ef-8f37-1487e44060db",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
