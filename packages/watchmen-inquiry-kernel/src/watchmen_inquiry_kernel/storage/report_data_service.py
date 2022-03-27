@@ -7,8 +7,9 @@ from .subject_storage import SubjectStorage
 
 
 class ReportDataService:
-	def __init__(self, subject: Subject, report: Report, principal_service: PrincipalService):
-		self.subject_data_service = SubjectDataService(subject, principal_service)
+	def __init__(
+			self, subject: Subject, report: Report, principal_service: PrincipalService, ignore_space: bool = False):
+		self.subject_data_service = SubjectDataService(subject, principal_service, ignore_space)
 		self.schema = ReportSchema(report)
 
 	def get_schema(self) -> ReportSchema:

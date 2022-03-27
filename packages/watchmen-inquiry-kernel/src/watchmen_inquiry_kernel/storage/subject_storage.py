@@ -6,7 +6,7 @@ from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_all_date_formats, ask_date_formats
 from watchmen_data_kernel.service import ask_topic_storage
 from watchmen_data_kernel.storage_bridge import ask_topic_data_entity_helper, parse_condition_for_storage, \
-	parse_parameter_for_storage, PipelineVariables
+	parse_parameter_for_storage, ParsedStorageCondition, PipelineVariables
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_data_kernel.utils import MightAVariable, parse_function_in_variable, parse_variable
 from watchmen_inquiry_kernel.common import ask_trino_enabled, ask_use_storage_directly, InquiryKernelException
@@ -14,8 +14,8 @@ from watchmen_inquiry_kernel.schema import ReportSchema, SubjectSchema
 from watchmen_meta.admin import SpaceService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.console import ConnectedSpaceService
-from watchmen_model.admin import Factor, Space
-from watchmen_model.admin.space import SpaceFilter
+from watchmen_model.admin import Factor
+from watchmen_model.admin.space import Space, SpaceFilter
 from watchmen_model.common import ComputedParameter, ConstantParameter, DataPage, FactorId, Pageable, Parameter, \
 	ParameterComputeType, ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, \
 	ParameterJointType, SubjectDatasetColumnId, TopicFactorParameter, TopicId, VariablePredefineFunctions
@@ -148,10 +148,12 @@ class SubjectStorage:
 			type=join_type
 		)
 
-	def ask_storage_finder(self) -> FreeFinder:
-		# build pager
+	def ask_filters_from_space(
+			self, criteria: List[ParsedStorageCondition], variables: PipelineVariables) -> List[ParsedStorageCondition]:
+		if self.schema.should_ignore_space():
+			return criteria
+		
 		subject = self.schema.get_subject()
-		dataset = subject.dataset
 		available_schemas = self.schema.get_available_schemas()
 
 		connect_id = subject.connectId
@@ -173,11 +175,6 @@ class SubjectStorage:
 		finally:
 			connected_space_service.close_transaction()
 
-		if dataset.filters is not None:
-			criteria = [parse_condition_for_storage(dataset.filters, available_schemas, self.principalService, False)]
-		else:
-			criteria = []
-
 		def should_use(space_filter: Optional[SpaceFilter]) -> bool:
 			if space_filter is None:
 				return False
@@ -186,20 +183,32 @@ class SubjectStorage:
 
 			return ArrayHelper(available_schemas).some(lambda x: x.get_topic().topicId == space_filter.topicId)
 
-		empty_variables = ask_empty_variables()
-
 		criteria_from_space = ArrayHelper(space.filters) \
 			.filter(lambda x: should_use(x)) \
 			.map(lambda x: parse_condition_for_storage(x.joint, available_schemas, self.principalService, False)) \
 			.to_list()
 		if len(criteria_from_space) != 0:
 			criteria = ArrayHelper(criteria_from_space).grab(*criteria) \
-				.map(lambda x: x.run(empty_variables, self.principalService)).to_list()
+				.map(lambda x: x.run(variables, self.principalService)).to_list()
 		elif len(criteria) == 0:
 			criteria = []
 		else:
 			criteria = ArrayHelper(criteria) \
-				.map(lambda x: x.run(empty_variables, self.principalService)).to_list()
+				.map(lambda x: x.run(variables, self.principalService)).to_list()
+		return criteria
+
+	def ask_storage_finder(self) -> FreeFinder:
+		# build pager
+		subject = self.schema.get_subject()
+		dataset = subject.dataset
+		available_schemas = self.schema.get_available_schemas()
+
+		empty_variables = ask_empty_variables()
+		if dataset.filters is not None:
+			criteria = [parse_condition_for_storage(dataset.filters, available_schemas, self.principalService, False)]
+		else:
+			criteria = []
+		criteria = self.ask_filters_from_space(criteria, empty_variables)
 
 		def to_free_column(column: SubjectDatasetColumn) -> FreeColumn:
 			literal = parse_parameter_for_storage(column.parameter, available_schemas, self.principalService, False) \
