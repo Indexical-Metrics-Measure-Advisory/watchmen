@@ -733,9 +733,9 @@ class ParsedStorageExpression(ParsedStorageCondition):
 		if isinstance(a_value, (int, float, Decimal, str)):
 			if another_possible_types == [PossibleParameterType.BOOLEAN]:
 				if str(a_value).lower() in ['1', 't', 'true', 'y', 'yes']:
-					return True
+					return Decimal('1')
 				elif str(a_value).lower() in ['0', 'f', 'false', 'n', 'no']:
-					return False
+					return Decimal('0')
 			elif another_possible_types == [PossibleParameterType.NUMBER]:
 				parsed, decimal_value = is_decimal(str(a_value))
 				if parsed:
