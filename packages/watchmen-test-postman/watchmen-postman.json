@@ -11290,7 +11290,27 @@
         },
         {
           "name": "CATALOG",
-          "item": [],
+          "item": [
+            {
+              "name": "SAVE CATALOG",
+              "id": "3da8ce35-f5b2-4a9c-8a47-33f172819724",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "url": "{{DQC_URL_PREFIX}}/dqc/catalog"
+              },
+              "response": []
+            }
+          ],
           "id": "e34a0b6c-3002-4508-9ac3-90b4566741c1"
         }
       ],
