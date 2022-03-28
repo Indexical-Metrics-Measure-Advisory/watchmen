@@ -728,7 +728,7 @@ class ParsedStorageExpression(ParsedStorageCondition):
 			self.right = parse_parameter_for_storage(
 				condition.right, available_schemas, principal_service, allow_in_memory_variables)
 
-	# noinspection PyMethodMayBeStatic
+	# noinspection PyMethodMayBeStatic,DuplicatedCode
 	def handle_equation_possible_types(self, a_value: Any, another_possible_types: List[PossibleParameterType]) -> Any:
 		if isinstance(a_value, (int, float, Decimal, str)):
 			if another_possible_types == [PossibleParameterType.BOOLEAN]:
@@ -742,7 +742,7 @@ class ParsedStorageExpression(ParsedStorageCondition):
 					return decimal_value
 		return a_value
 
-	# noinspection PyMethodMayBeStatic
+	# noinspection PyMethodMayBeStatic,DuplicatedCode
 	def handle_comparison_possible_types(
 			self, a_value: Any, another_possible_types: List[PossibleParameterType]) -> Any:
 		if isinstance(a_value, str):

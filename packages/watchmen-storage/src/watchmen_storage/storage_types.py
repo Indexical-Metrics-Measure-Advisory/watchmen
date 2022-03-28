@@ -110,7 +110,7 @@ class ComputedLiteralOperator(str, Enum):
 
 class ComputedLiteral(DataModel):
 	operator: ComputedLiteralOperator
-	elements: List[Literal, Tuple[EntityCriteriaStatement, Literal]]
+	elements: List[Union[Literal, Tuple[EntityCriteriaStatement, Literal]]]
 
 
 class ColumnNameLiteral(DataModel):
