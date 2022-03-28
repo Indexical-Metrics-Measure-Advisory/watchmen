@@ -295,6 +295,7 @@ tables: Dict[str, MongoDocument] = {
 	'monitor_rules': table_monitor_rules
 }
 
+# noinspection DuplicatedCode
 topic_documents: Dict[TopicId, Tuple[MongoDocument, datetime]] = {}
 
 

@@ -510,7 +510,7 @@ CREATE TABLE {entity_name} (
 			else:
 				groups_by_secondary: Dict[TopicId, List[FreeJoin]] = ArrayHelper(joins_by_primary) \
 					.group_by(lambda x: x.secondary.entityName)
-				for secondary_entity_name, joins_by_secondary in groups_by_secondary:
+				for secondary_entity_name, joins_by_secondary in groups_by_secondary.items():
 					# every join is left join, otherwise reduce to inner join
 					outer_join = ArrayHelper(joins_by_secondary).every(lambda x: x.type == FreeJoinType.LEFT)
 					secondary_table = self.find_table(secondary_entity_name)
@@ -553,7 +553,7 @@ CREATE TABLE {entity_name} (
 	def build_free_joins(self, table_joins: Optional[List[FreeJoin]]) -> Tuple[Join, List[Table]]:
 		if table_joins is None or len(table_joins) == 0:
 			raise NoFreeJoinException('No join found.')
-		if len(table_joins) == 1:
+		if len(table_joins) == 1 and table_joins[0].secondary is None:
 			# single topic
 			entity_name = table_joins[0].primary.entityName
 			table = self.find_table(entity_name)

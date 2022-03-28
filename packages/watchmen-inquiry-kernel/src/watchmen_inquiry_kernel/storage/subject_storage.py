@@ -364,14 +364,19 @@ class SubjectStorage:
 			.map_with_index(lambda x, index: (x, index)) \
 			.to_map(lambda x: x[0].columnId, lambda x: x[1])
 
+		def build_aggregate_column_by_indicator(indicator: ReportIndicator, index: int) -> FreeAggregateColumn:
+			return self.build_aggregate_column_by_indicator(indicator, index, subject_column_map, report_schema)
+
 		indicator_columns = ArrayHelper(report_schema.get_report().indicators) \
-			.map_with_index(
-			lambda x, index: self.build_aggregate_column_by_indicator(
-				x, index, subject_column_map, report_schema)).to_list()
+			.map_with_index(lambda x, index: build_aggregate_column_by_indicator(x, index)) \
+			.to_list()
+
+		def build_aggregate_column_by_dimension(dimension: ReportDimension, index: int) -> FreeAggregateColumn:
+			return self.build_aggregate_column_by_dimension(dimension, index, subject_column_map, report_schema)
+
 		dimension_columns = ArrayHelper(report_schema.get_report().dimensions) \
-			.map_with_index(
-			lambda x, index: self.build_aggregate_column_by_dimension(
-				x, index, subject_column_map, report_schema)).to_list()
+			.map_with_index(lambda x, index: build_aggregate_column_by_dimension(x, index)) \
+			.to_list()
 
 		return [*indicator_columns, *dimension_columns]
 
