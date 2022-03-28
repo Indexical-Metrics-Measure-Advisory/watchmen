@@ -4,7 +4,7 @@ from decimal import Decimal
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from watchmen_auth import PrincipalService
-from watchmen_data_kernel.common import ask_all_date_formats, ask_date_formats
+from watchmen_data_kernel.common import ask_all_date_formats, ask_date_formats, ask_time_formats
 from watchmen_data_kernel.service import ask_topic_storage
 from watchmen_data_kernel.storage_bridge import ask_topic_data_entity_helper, parse_condition_for_storage, \
 	parse_parameter_for_storage, ParsedStorageCondition, PipelineVariables, PossibleParameterType
@@ -29,7 +29,7 @@ from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteral
 	EntityCriteriaStatement, FreeAggregateArithmetic, FreeAggregateColumn, FreeAggregatePager, FreeAggregator, \
 	FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, Literal, TopicDataStorageSPI
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_date, is_decimal, is_not_blank, \
-	month_diff, truncate_time, year_diff
+	is_time, month_diff, truncate_time, year_diff
 
 
 def ask_empty_variables() -> PipelineVariables:
@@ -115,17 +115,25 @@ class SubjectColumnMap:
 	) -> SubjectColumnDef:
 		return SubjectColumnDef(column=column, index=index, possibleTypes=possible_types)
 
-	def get_index_by_column_id(self, column_id: SubjectDatasetColumnId) -> int:
+	def get_column_by_column_id(self, column_id: SubjectDatasetColumnId) -> SubjectColumnDef:
 		column_def: Optional[SubjectColumnDef] = self.column_map.get(column_id)
 		if column_def is None:
 			raise InquiryKernelException(f'Subject column[id={column_id}] not declared.')
-		return column_def.index
+		return column_def
+
+	def get_index_by_column_id(self, column_id: SubjectDatasetColumnId) -> int:
+		return self.get_column_by_column_id(column_id).index
 
 	def get_index_by_column_alias(self, alias: str) -> int:
 		column_def: Optional[SubjectColumnDef] = ArrayHelper(self.columns).find(lambda x: x.column.alias == alias)
 		if column_def is None:
 			raise InquiryKernelException(f'Subject column[alias={alias}] not declared.')
 		return column_def.index
+
+
+class TypedLiteral(DataModel):
+	literal: Literal
+	possibleTypes: List[PossibleParameterType]
 
 
 class SubjectStorage:
@@ -540,15 +548,16 @@ class SubjectStorage:
 	# noinspection PyMethodMayBeStatic
 	def build_literal_by_report_topic_factor_parameter(
 			self, subject_column_map: SubjectColumnMap, parameter: TopicFactorParameter
-	) -> Literal:
+	) -> TypedLiteral:
 		# topic id is ignored here, factor id is column id of subject dataset column
 		factor_id = parameter.factorId
 		if is_blank(factor_id):
 			raise InquiryKernelException(f'Column id not declared in parameter.')
-		index = subject_column_map.get_index_by_column_id(factor_id)
-		if index is None:
-			raise InquiryKernelException(f'Cannot match subject dataset column by given parameter[{parameter.dict()}].')
-		return ColumnNameLiteral(columnName=f'column_{index + 1}')
+		column = subject_column_map.get_column_by_column_id(factor_id)
+		return TypedLiteral(
+			literal=ColumnNameLiteral(columnName=f'column_{column.index + 1}'),
+			possibleTypes=column.possibleTypes
+		)
 
 	# noinspection PyMethodMayBeStatic
 	def test_date(self, variable_name: str) -> Tuple[bool, Optional[date]]:
@@ -615,145 +624,207 @@ class SubjectStorage:
 	# noinspection PyMethodMayBeStatic
 	def build_literal_by_report_constant_segment(
 			self, subject_column_map: SubjectColumnMap, variable: MightAVariable
-	) -> Literal:
+	) -> TypedLiteral:
 		prefix = variable.text
 		variable_name = variable.variable
 		if variable_name == VariablePredefineFunctions.NEXT_SEQ.value:
 			value = ask_snowflake_generator().next_id()
-			return value if is_blank(prefix) else f'{prefix}{value}'
+			if len(prefix) == 0:
+				return TypedLiteral(literal=value, possibleTypes=[PossibleParameterType.NUMBER])
+			else:
+				return TypedLiteral(literal=f'{prefix}{value}', possibleTypes=[PossibleParameterType.STRING])
 		elif variable_name == VariablePredefineFunctions.NOW.value:
-			return lambda variables, principal_service: get_current_time_in_seconds()
+			if len(prefix) == 0:
+				return TypedLiteral(
+					literal=get_current_time_in_seconds(), possibleTypes=[PossibleParameterType.DATETIME])
+			else:
+				return TypedLiteral(
+					literal=f'{prefix}{get_current_time_in_seconds().strftime("%Y-%m-%d %H:%M:%S")}',
+					possibleTypes=[PossibleParameterType.STRING]
+				)
 		elif variable_name.startswith(VariablePredefineFunctions.YEAR_DIFF.value):
-			return self.create_date_diff(
-				subject_column_map, prefix, variable_name, VariablePredefineFunctions.YEAR_DIFF)
+			return TypedLiteral(
+				literal=self.create_date_diff(
+					subject_column_map, prefix, variable_name, VariablePredefineFunctions.YEAR_DIFF),
+				possibleTypes=[PossibleParameterType.STRING if len(prefix) != 0 else PossibleParameterType.NUMBER]
+			)
 		elif variable_name.startswith(VariablePredefineFunctions.MONTH_DIFF.value):
-			return self.create_date_diff(
-				subject_column_map, prefix, variable_name, VariablePredefineFunctions.MONTH_DIFF)
+			return TypedLiteral(
+				literal=self.create_date_diff(
+					subject_column_map, prefix, variable_name, VariablePredefineFunctions.MONTH_DIFF),
+				possibleTypes=[PossibleParameterType.STRING if len(prefix) != 0 else PossibleParameterType.NUMBER]
+			)
 		elif variable_name.startswith(VariablePredefineFunctions.DAY_DIFF.value):
-			return self.create_date_diff(
-				subject_column_map, prefix, variable_name, VariablePredefineFunctions.DAY_DIFF)
+			return TypedLiteral(
+				literal=self.create_date_diff(
+					subject_column_map, prefix, variable_name, VariablePredefineFunctions.DAY_DIFF),
+				possibleTypes=[PossibleParameterType.STRING if len(prefix) != 0 else PossibleParameterType.NUMBER]
+			)
 
 		# recover to original string
-		return f'{prefix}{{{variable_name}}}'
+		return TypedLiteral(literal=f'{prefix}{{{variable_name}}}', possibleTypes=[PossibleParameterType.STRING])
 
 	def build_literal_by_report_constant_parameter(
 			self, subject_column_map: SubjectColumnMap, parameter: ConstantParameter, as_list: bool = False
-	) -> Literal:
+	) -> TypedLiteral:
 		value = parameter.value
 		if value is None:
-			return [None] if as_list else None
+			return TypedLiteral(
+				literal=[] if as_list else None, possibleTypes=[PossibleParameterType.ANY_SINGLE_VALUE])
 		elif len(value) == 0:
-			return [None] if as_list else None
+			return TypedLiteral(
+				literal=[] if as_list else None, possibleTypes=[PossibleParameterType.ANY_SINGLE_VALUE])
 		elif is_blank(value):
-			return [''] if as_list else ''
+			return TypedLiteral(
+				literal=[] if as_list else None, possibleTypes=[PossibleParameterType.ANY_SINGLE_VALUE])
 		elif '{' not in value or '}' not in value:
-			return value.strip().split(',') if as_list else value
+			return TypedLiteral(
+				literal=value.strip().split(',') if as_list else value,
+				possibleTypes=[PossibleParameterType.ANY_SINGLE_VALUE])
 		else:
 			_, variables = parse_variable(value)
 			if len(variables) == 1:
 				if variables[0].has_variable():
 					return self.build_literal_by_report_constant_segment(subject_column_map, variables[0])
 				else:
-					return variables[0].text.strip().split(',') if as_list else variables[0].text
+					return TypedLiteral(
+						literal=variables[0].text.strip().split(',') if as_list else variables[0].text,
+						possibleTypes=[PossibleParameterType.STRING])
 			else:
-				return ComputedLiteral(
-					operator=ComputedLiteralOperator.CONCAT,
-					elements=ArrayHelper(variables).map(
-						lambda x: self.build_literal_by_report_constant_segment(subject_column_map, x)).to_list()
+				return TypedLiteral(
+					literal=ComputedLiteral(
+						operator=ComputedLiteralOperator.CONCAT,
+						elements=ArrayHelper(variables).map(
+							lambda x: self.build_literal_by_report_constant_segment(subject_column_map, x)).to_list()
+					),
+					possibleTypes=[PossibleParameterType.STRING]
 				)
 
 	def build_literal_by_report_computed_parameter(
-			self, subject_column_map: SubjectColumnMap, parameter: ComputedParameter) -> Literal:
+			self, subject_column_map: SubjectColumnMap, parameter: ComputedParameter
+	) -> TypedLiteral:
 		compute_type = parameter.type
+
+		def build_elements(parameters: List[Parameter]) -> List[Literal]:
+			return ArrayHelper(parameters) \
+				.map(lambda x: self.build_literal_by_report_parameter(subject_column_map, x).literal) \
+				.to_list()
+
 		if compute_type == ParameterComputeType.ADD:
-			return ComputedLiteral(
-				operator=ComputedLiteralOperator.ADD,
-				elements=ArrayHelper(parameter.parameters).map(
-					lambda x: self.build_literal_by_report_parameter(subject_column_map, x)).to_list()
+			return TypedLiteral(
+				literal=ComputedLiteral(
+					operator=ComputedLiteralOperator.ADD, elements=build_elements(parameter.parameters)),
+				possibleTypes=[PossibleParameterType.NUMBER]
 			)
 		elif compute_type == ParameterComputeType.SUBTRACT:
-			return ComputedLiteral(
-				operator=ComputedLiteralOperator.SUBTRACT,
-				elements=ArrayHelper(parameter.parameters).map(
-					lambda x: self.build_literal_by_report_parameter(subject_column_map, x)).to_list()
+			return TypedLiteral(
+				literal=ComputedLiteral(
+					operator=ComputedLiteralOperator.SUBTRACT, elements=build_elements(parameter.parameters)),
+				possibleTypes=[PossibleParameterType.NUMBER]
 			)
 		elif compute_type == ParameterComputeType.MULTIPLY:
-			return ComputedLiteral(
-				operator=ComputedLiteralOperator.MULTIPLY,
-				elements=ArrayHelper(parameter.parameters).map(
-					lambda x: self.build_literal_by_report_parameter(subject_column_map, x)).to_list()
+			return TypedLiteral(
+				literal=ComputedLiteral(
+					operator=ComputedLiteralOperator.MULTIPLY, elements=build_elements(parameter.parameters)),
+				possibleTypes=[PossibleParameterType.NUMBER]
 			)
 		elif compute_type == ParameterComputeType.DIVIDE:
-			return ComputedLiteral(
-				operator=ComputedLiteralOperator.DIVIDE,
-				elements=ArrayHelper(parameter.parameters).map(
-					lambda x: self.build_literal_by_report_parameter(subject_column_map, x)).to_list()
+			return TypedLiteral(
+				literal=ComputedLiteral(
+					operator=ComputedLiteralOperator.DIVIDE, elements=build_elements(parameter.parameters)),
+				possibleTypes=[PossibleParameterType.NUMBER]
 			)
 		elif compute_type == ParameterComputeType.MODULUS:
-			return ComputedLiteral(
-				operator=ComputedLiteralOperator.MODULUS,
-				elements=ArrayHelper(parameter.parameters).map(
-					lambda x: self.build_literal_by_report_parameter(subject_column_map, x)).to_list()
+			return TypedLiteral(
+				literal=ComputedLiteral(
+					operator=ComputedLiteralOperator.MODULUS, elements=build_elements(parameter.parameters)),
+				possibleTypes=[PossibleParameterType.NUMBER]
 			)
 		elif compute_type == ParameterComputeType.YEAR_OF:
-			return ComputedLiteral(
-				operator=ComputedLiteralOperator.YEAR_OF,
-				elements=[self.build_literal_by_report_parameter(subject_column_map, parameter.parameters[0])]
+			return TypedLiteral(
+				literal=ComputedLiteral(
+					operator=ComputedLiteralOperator.YEAR_OF, elements=build_elements([parameter.parameters[0]])),
+				possibleTypes=[PossibleParameterType.NUMBER]
 			)
 		elif compute_type == ParameterComputeType.HALF_YEAR_OF:
-			return ComputedLiteral(
-				operator=ComputedLiteralOperator.HALF_YEAR_OF,
-				elements=[self.build_literal_by_report_parameter(subject_column_map, parameter.parameters[0])]
+			return TypedLiteral(
+				literal=ComputedLiteral(
+					operator=ComputedLiteralOperator.HALF_YEAR_OF, elements=build_elements([parameter.parameters[0]])),
+				possibleTypes=[PossibleParameterType.NUMBER]
 			)
 		elif compute_type == ParameterComputeType.QUARTER_OF:
-			return ComputedLiteral(
-				operator=ComputedLiteralOperator.QUARTER_OF,
-				elements=[self.build_literal_by_report_parameter(subject_column_map, parameter.parameters[0])]
+			return TypedLiteral(
+				literal=ComputedLiteral(
+					operator=ComputedLiteralOperator.QUARTER_OF, elements=build_elements([parameter.parameters[0]])),
+				possibleTypes=[PossibleParameterType.NUMBER]
 			)
 		elif compute_type == ParameterComputeType.MONTH_OF:
-			return ComputedLiteral(
-				operator=ComputedLiteralOperator.MONTH_OF,
-				elements=[self.build_literal_by_report_parameter(subject_column_map, parameter.parameters[0])]
+			return TypedLiteral(
+				literal=ComputedLiteral(
+					operator=ComputedLiteralOperator.MONTH_OF, elements=build_elements([parameter.parameters[0]])),
+				possibleTypes=[PossibleParameterType.NUMBER]
 			)
 		elif compute_type == ParameterComputeType.WEEK_OF_YEAR:
-			return ComputedLiteral(
-				operator=ComputedLiteralOperator.WEEK_OF_YEAR,
-				elements=[self.build_literal_by_report_parameter(subject_column_map, parameter.parameters[0])]
+			return TypedLiteral(
+				literal=ComputedLiteral(
+					operator=ComputedLiteralOperator.WEEK_OF_YEAR, elements=build_elements([parameter.parameters[0]])),
+				possibleTypes=[PossibleParameterType.NUMBER]
 			)
 		elif compute_type == ParameterComputeType.WEEK_OF_MONTH:
-			return ComputedLiteral(
-				operator=ComputedLiteralOperator.WEEK_OF_MONTH,
-				elements=[self.build_literal_by_report_parameter(subject_column_map, parameter.parameters[0])]
+			return TypedLiteral(
+				literal=ComputedLiteral(
+					operator=ComputedLiteralOperator.WEEK_OF_MONTH, elements=build_elements([parameter.parameters[0]])),
+				possibleTypes=[PossibleParameterType.NUMBER]
 			)
 		elif compute_type == ParameterComputeType.DAY_OF_MONTH:
-			return ComputedLiteral(
-				operator=ComputedLiteralOperator.DAY_OF_MONTH,
-				elements=[self.build_literal_by_report_parameter(subject_column_map, parameter.parameters[0])]
+			return TypedLiteral(
+				literal=ComputedLiteral(
+					operator=ComputedLiteralOperator.DAY_OF_MONTH, elements=build_elements([parameter.parameters[0]])),
+				possibleTypes=[PossibleParameterType.NUMBER]
 			)
 		elif compute_type == ParameterComputeType.DAY_OF_WEEK:
-			return ComputedLiteral(
-				operator=ComputedLiteralOperator.DAY_OF_WEEK,
-				elements=[self.build_literal_by_report_parameter(subject_column_map, parameter.parameters[0])]
+			return TypedLiteral(
+				literal=ComputedLiteral(
+					operator=ComputedLiteralOperator.DAY_OF_WEEK, elements=build_elements([parameter.parameters[0]])),
+				possibleTypes=[PossibleParameterType.NUMBER]
 			)
 		elif compute_type == ParameterComputeType.CASE_THEN:
-			def build_case(param: Parameter) -> Union[EntityCriteriaJoint, Literal]:
-				if param.conditional and param.on is not None:
-					return \
-						self.build_criteria_joint_by_report_joint(subject_column_map, param.on), \
-						self.build_literal_by_report_parameter(subject_column_map, param)
-				else:
-					return self.build_literal_by_report_parameter(subject_column_map, param)
+			class CaseRoute(DataModel):
+				joint: Optional[EntityCriteriaJoint] = None
+				literal: TypedLiteral
 
-			return ComputedLiteral(
-				operator=ComputedLiteralOperator.CASE_THEN,
-				elements=ArrayHelper(parameter.parameters).map(build_case).to_list()
+			def build_case(param: Parameter) -> CaseRoute:
+				if param.conditional and param.on is not None:
+					return CaseRoute(
+						joint=self.build_criteria_joint_by_report_joint(subject_column_map, param.on),
+						literal=self.build_literal_by_report_parameter(subject_column_map, param)
+					)
+				else:
+					return CaseRoute(
+						literal=self.build_literal_by_report_parameter(subject_column_map, param)
+					)
+
+			routes = ArrayHelper(parameter.parameters).map(build_case).to_list()
+			possible_types = ArrayHelper(routes) \
+				.map(lambda x: x.literal.possibleTypes) \
+				.distinct() \
+				.to_list()
+			elements = ArrayHelper(routes) \
+				.map(lambda x: (x.joint, x.literal)) \
+				.map(lambda x: x[1] if x[0] is None else x) \
+				.to_list()
+
+			return TypedLiteral(
+				literal=ComputedLiteral(
+					operator=ComputedLiteralOperator.CASE_THEN, elements=elements),
+				possibleTypes=possible_types
 			)
 		else:
 			raise InquiryKernelException(f'Compute type[{compute_type}] is not supported.')
 
 	def build_literal_by_report_parameter(
 			self, subject_column_map: SubjectColumnMap, parameter: Parameter, as_list: bool = False
-	) -> Literal:
+	) -> TypedLiteral:
 		if parameter is None:
 			raise InquiryKernelException(f'Parameter cannot be none.')
 		if isinstance(parameter, TopicFactorParameter):
@@ -765,6 +836,38 @@ class SubjectStorage:
 		else:
 			raise InquiryKernelException(f'Parameter[{parameter.dict()}] is not supported.')
 
+	# noinspection PyMethodMayBeStatic,DuplicatedCode
+	def handle_equation_possible_types(self, a_value: Any, another_possible_types: List[PossibleParameterType]) -> Any:
+		if isinstance(a_value, (int, float, Decimal, str)):
+			if another_possible_types == [PossibleParameterType.BOOLEAN]:
+				if str(a_value).lower() in ['1', 't', 'true', 'y', 'yes']:
+					return Decimal('1')
+				elif str(a_value).lower() in ['0', 'f', 'false', 'n', 'no']:
+					return Decimal('0')
+			elif another_possible_types == [PossibleParameterType.NUMBER]:
+				parsed, decimal_value = is_decimal(str(a_value))
+				if parsed:
+					return decimal_value
+		return a_value
+
+	# noinspection PyMethodMayBeStatic,DuplicatedCode
+	def handle_comparison_possible_types(
+			self, a_value: Any, another_possible_types: List[PossibleParameterType]) -> Any:
+		if isinstance(a_value, str):
+			if PossibleParameterType.NUMBER in another_possible_types:
+				parsed, decimal_value = is_decimal(a_value)
+				if parsed:
+					return decimal_value
+			if PossibleParameterType.DATE in another_possible_types or PossibleParameterType.DATETIME in another_possible_types:
+				parsed, date_value = is_date(a_value, ask_all_date_formats())
+				if parsed:
+					return date_value
+			if PossibleParameterType.TIME in another_possible_types:
+				parsed, time_value = is_time(a_value, ask_time_formats())
+				if parsed:
+					return time_value
+		return a_value
+
 	def build_criteria_expression_by_report_expression(
 			self, subject_column_map: SubjectColumnMap, expression: ParameterExpression) -> EntityCriteriaExpression:
 		if expression is None:
@@ -772,62 +875,52 @@ class SubjectStorage:
 		operator = expression.operator
 		if operator == ParameterExpressionOperator.EMPTY:
 			return EntityCriteriaExpression(
-				left=self.build_literal_by_report_parameter(subject_column_map, expression.left),
+				left=self.build_literal_by_report_parameter(subject_column_map, expression.left).literal,
 				operator=EntityCriteriaOperator.IS_EMPTY
 			)
 		elif operator == ParameterExpressionOperator.NOT_EMPTY:
 			return EntityCriteriaExpression(
-				left=self.build_literal_by_report_parameter(subject_column_map, expression.left),
+				left=self.build_literal_by_report_parameter(subject_column_map, expression.left).literal,
 				operator=EntityCriteriaOperator.IS_NOT_EMPTY
 			)
 
+		def build_equation() -> EntityCriteriaExpression:
+			left = self.build_literal_by_report_parameter(subject_column_map, expression.left)
+			right = self.build_literal_by_report_parameter(subject_column_map, expression.right)
+			left_value = self.handle_equation_possible_types(left.literal, right.possibleTypes)
+			right_value = self.handle_equation_possible_types(right.literal, left.possibleTypes)
+			return EntityCriteriaExpression(left=left_value, operator=operator, right=right_value)
+
+		def build_comparison() -> EntityCriteriaExpression:
+			left = self.build_literal_by_report_parameter(subject_column_map, expression.left)
+			right = self.build_literal_by_report_parameter(subject_column_map, expression.right)
+			left_value = self.handle_comparison_possible_types(left.literal, right.get_possible_types())
+			right_value = self.handle_comparison_possible_types(right.literal, left.get_possible_types())
+			return EntityCriteriaExpression(left=left_value, operator=operator, right=right_value)
+
 		if operator == ParameterExpressionOperator.EQUALS:
-			return EntityCriteriaExpression(
-				left=self.build_literal_by_report_parameter(subject_column_map, expression.left),
-				operator=EntityCriteriaOperator.EQUALS,
-				right=self.build_literal_by_report_parameter(subject_column_map, expression.right)
-			)
+			return build_equation()
 		elif operator == ParameterExpressionOperator.NOT_EQUALS:
-			return EntityCriteriaExpression(
-				left=self.build_literal_by_report_parameter(subject_column_map, expression.left),
-				operator=EntityCriteriaOperator.NOT_EQUALS,
-				right=self.build_literal_by_report_parameter(subject_column_map, expression.right)
-			)
+			return build_equation()
 		elif operator == ParameterExpressionOperator.LESS:
-			return EntityCriteriaExpression(
-				left=self.build_literal_by_report_parameter(subject_column_map, expression.left),
-				operator=EntityCriteriaOperator.LESS_THAN,
-				right=self.build_literal_by_report_parameter(subject_column_map, expression.right)
-			)
+			return build_comparison()
 		elif operator == ParameterExpressionOperator.LESS_EQUALS:
-			return EntityCriteriaExpression(
-				left=self.build_literal_by_report_parameter(subject_column_map, expression.left),
-				operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
-				right=self.build_literal_by_report_parameter(subject_column_map, expression.right)
-			)
+			return build_comparison()
 		elif operator == ParameterExpressionOperator.MORE:
-			return EntityCriteriaExpression(
-				left=self.build_literal_by_report_parameter(subject_column_map, expression.left),
-				operator=EntityCriteriaOperator.GREATER_THAN,
-				right=self.build_literal_by_report_parameter(subject_column_map, expression.right)
-			)
+			return build_comparison()
 		elif operator == ParameterExpressionOperator.MORE_EQUALS:
-			return EntityCriteriaExpression(
-				left=self.build_literal_by_report_parameter(subject_column_map, expression.left),
-				operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
-				right=self.build_literal_by_report_parameter(subject_column_map, expression.right)
-			)
+			return build_comparison()
 		elif operator == ParameterExpressionOperator.IN:
 			return EntityCriteriaExpression(
-				left=self.build_literal_by_report_parameter(subject_column_map, expression.left),
+				left=self.build_literal_by_report_parameter(subject_column_map, expression.left).literal,
 				operator=EntityCriteriaOperator.IN,
-				right=self.build_literal_by_report_parameter(subject_column_map, expression.right, True)
+				right=self.build_literal_by_report_parameter(subject_column_map, expression.right, True).literal
 			)
 		elif operator == ParameterExpressionOperator.NOT_IN:
 			return EntityCriteriaExpression(
-				left=self.build_literal_by_report_parameter(subject_column_map, expression.left),
+				left=self.build_literal_by_report_parameter(subject_column_map, expression.left).literal,
 				operator=EntityCriteriaOperator.NOT_IN,
-				right=self.build_literal_by_report_parameter(subject_column_map, expression.right, True)
+				right=self.build_literal_by_report_parameter(subject_column_map, expression.right, True).literal
 			)
 		else:
 			raise InquiryKernelException(f'Expression operator[{operator}] is not supported.')
