@@ -11292,7 +11292,7 @@
           "name": "CATALOG",
           "item": [
             {
-              "name": "New Request",
+              "name": "SAVE CATALOG",
               "id": "3da8ce35-f5b2-4a9c-8a47-33f172819724",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
