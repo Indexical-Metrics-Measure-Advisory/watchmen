@@ -2,15 +2,20 @@ from unittest import TestCase
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
-from watchmen_inquiry_kernel.storage import SubjectDataService
+from watchmen_inquiry_kernel.storage import ReportDataService, SubjectDataService
 from watchmen_meta.admin import SpaceService, TopicService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.console import ConnectedSpaceService
 from watchmen_meta.system import DataSourceService
 from watchmen_model.admin import Factor, FactorType, Space, Topic, TopicKind, TopicType, User, UserRole
-from watchmen_model.common import ComputedParameter, ConstantParameter, Pageable, ParameterComputeType, ParameterKind, \
+from watchmen_model.common import ComputedParameter, ConstantParameter, Pageable, ParameterComputeType, \
+	ParameterExpression, ParameterExpressionOperator, ParameterJoint, \
+	ParameterJointType, ParameterKind, \
 	TopicFactorParameter
-from watchmen_model.console import ConnectedSpace, Subject, SubjectDataset, SubjectDatasetColumn
+from watchmen_model.console import ConnectedSpace, Report, ReportDimension, ReportIndicator, ReportIndicatorArithmetic, \
+	Subject, \
+	SubjectDataset, \
+	SubjectDatasetColumn
 from watchmen_model.system import DataSource, DataSourceType
 
 
@@ -55,7 +60,8 @@ class TestSubject(TestCase):
 		topic1 = Topic(
 			topicId='1', name='topic1', type=TopicType.DISTINCT, kind=TopicKind.BUSINESS,
 			factors=[
-				Factor(factorId='1', name='topic1_id', type=FactorType.SEQUENCE)
+				Factor(factorId='1', name='topic1_id', type=FactorType.SEQUENCE),
+				Factor(factorId='2', name='topic1_enabled', type=FactorType.BOOLEAN)
 			],
 			dataSourceId=data_source.dataSourceId,
 			tenantId='1')
@@ -130,12 +136,39 @@ class TestSubject(TestCase):
 							]
 						),
 						alias='Column6'
+					),
+					SubjectDatasetColumn(
+						columnId='7',
+						parameter=TopicFactorParameter(kind=ParameterKind.TOPIC, topicId='1', factorId='2'),
+						alias='Column7'
 					)
 				]
 			),
 			connectId='1',
 			userId='1', tenantId='1'
 		)
-		data_service = SubjectDataService(subject, create_fake_principal_service())
-		page = data_service.page(Pageable(pageNumber=1, pageSize=100))
+		subject_data_service = SubjectDataService(subject, create_fake_principal_service())
+		page = subject_data_service.page(Pageable(pageNumber=1, pageSize=100))
 		print(page)
+
+		report = Report(
+			indicators=[
+				ReportIndicator(columnId='1', name='sum_value', arithmetic=ReportIndicatorArithmetic.SUMMARY)
+			],
+			dimensions=[
+				ReportDimension(columnId='7', name='enabled')
+			],
+			filters=ParameterJoint(
+				jointType=ParameterJointType.AND,
+				filters=[
+					ParameterExpression(
+						left=TopicFactorParameter(kind=ParameterKind.TOPIC, factorId='7'),
+						operator=ParameterExpressionOperator.EQUALS,
+						right=ConstantParameter(kind=ParameterKind.CONSTANT, value='true')
+					)
+				]
+			)
+		)
+		report_data_service = ReportDataService(subject, report, create_fake_principal_service(), False)
+		data = report_data_service.find()
+		print(data)
