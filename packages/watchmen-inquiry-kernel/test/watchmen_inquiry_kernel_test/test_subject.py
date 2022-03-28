@@ -16,6 +16,7 @@ from watchmen_model.console import ConnectedSpace, Report, ReportDimension, Repo
 	Subject, \
 	SubjectDataset, \
 	SubjectDatasetColumn
+from watchmen_model.console.subject import SubjectColumnArithmetic
 from watchmen_model.system import DataSource, DataSourceType
 
 
@@ -102,7 +103,7 @@ class TestSubject(TestCase):
 							]
 						),
 						alias='Column1',
-						# arithmetic=SubjectColumnArithmetic.SUMMARY
+						arithmetic=SubjectColumnArithmetic.SUMMARY
 					),
 					SubjectDatasetColumn(
 						columnId='2',
