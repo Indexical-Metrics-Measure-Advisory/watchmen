@@ -15,11 +15,10 @@ from watchmen_storage import as_table_name, ColumnNameLiteral, Entity, EntityCol
 	NoFreeJoinException, TooManyEntitiesFoundException, TopicDataStorageSPI, TransactionalStorageSPI, \
 	UnexpectedStorageException, UnsupportedStraightColumnException
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
-from .document_defs_mongo import find_document
+from .document_defs_mongo import find_document, register_document
 from .document_mongo import DOCUMENT_OBJECT_ID, MongoDocument
 from .engine_mongo import MongoConnection, MongoEngine
 from .sort_build import build_sort_for_statement
-from .table_defs_mysql import register_table
 from .where_build import build_criteria_for_statement, build_literal
 
 # noinspection DuplicatedCode
@@ -379,7 +378,7 @@ class StorageMongoDB(TransactionalStorageSPI):
 
 class TopicDataStorageMongoDB(StorageMongoDB, TopicDataStorageSPI):
 	def register_topic(self, topic: Topic) -> None:
-		register_table(topic)
+		register_document(topic)
 
 	def create_topic_entity(self, topic: Topic) -> None:
 		# create collection is unnecessary
