@@ -316,7 +316,7 @@ def find_from_topic_tables(table_name: str) -> Optional[MongoDocument]:
 		return found[0]
 
 
-def register_table(topic: Topic) -> None:
+def register_document(topic: Topic) -> None:
 	existing = topic_documents.get(topic.topicId)
 	if existing is not None:
 		last_modified_at = existing[1]
