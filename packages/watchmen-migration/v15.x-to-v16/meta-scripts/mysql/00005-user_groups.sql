@@ -2,7 +2,7 @@
 RENAME TABLE user_groups TO user_groups_1;
 RENAME TABLE user_groups_1 TO user_groups;
 ALTER TABLE user_groups CHANGE usergroupid user_group_id VARCHAR(50) NOT NULL;
-ALTER TABLE user_groups MODIFY description VARCHAR(255) NULL;
+ALTER TABLE user_groups MODIFY description VARCHAR(1024) NULL;
 ALTER TABLE user_groups CHANGE userids user_ids JSON NULL;
 ALTER TABLE user_groups CHANGE spaceids space_ids JSON NULL;
 ALTER TABLE user_groups CHANGE tenantid tenant_id VARCHAR(50) NOT NULL;

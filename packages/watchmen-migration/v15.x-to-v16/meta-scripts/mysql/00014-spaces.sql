@@ -3,7 +3,7 @@ RENAME TABLE spaces TO spaces_1;
 RENAME TABLE spaces_1 TO spaces;
 ALTER TABLE spaces CHANGE spaceid space_id VARCHAR(50) NOT NULL;
 ALTER TABLE spaces MODIFY name VARCHAR(50) NOT NULL;
-ALTER TABLE spaces MODIFY description VARCHAR(255) NULL;
+ALTER TABLE spaces MODIFY description VARCHAR(1024) NULL;
 ALTER TABLE spaces CHANGE topicids topic_ids JSON NULL;
 ALTER TABLE spaces CHANGE groupids group_ids JSON NULL;
 ALTER TABLE spaces CHANGE tenantid tenant_id VARCHAR(50) NULL;
