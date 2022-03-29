@@ -2,7 +2,7 @@ CREATE TABLE user_groups
 (
     user_group_id    VARCHAR(50) NOT NULL,
     name             VARCHAR(50) NOT NULL,
-    description      VARCHAR(255),
+    description      VARCHAR(1024),
     user_ids         JSON,
     space_ids        JSON,
     tenant_id        VARCHAR(50) NOT NULL,

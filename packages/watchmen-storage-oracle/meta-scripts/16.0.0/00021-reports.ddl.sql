@@ -4,7 +4,7 @@ CREATE TABLE reports
     name               VARCHAR2(50) NOT NULL,
     connect_id         VARCHAR2(50) NOT NULL,
     subject_id         VARCHAR2(50) NOT NULL,
-    description        VARCHAR2(255),
+    description        VARCHAR2(1024),
     filters            CLOB,
     funnels            CLOB,
     indicators         CLOB,

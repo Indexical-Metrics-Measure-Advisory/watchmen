@@ -4,7 +4,7 @@ CREATE TABLE reports
     name               VARCHAR(50) NOT NULL,
     connect_id         VARCHAR(50) NOT NULL,
     subject_id         VARCHAR(50) NOT NULL,
-    description        VARCHAR(255),
+    description        VARCHAR(1024),
     filters            JSON,
     funnels            JSON,
     indicators         JSON,

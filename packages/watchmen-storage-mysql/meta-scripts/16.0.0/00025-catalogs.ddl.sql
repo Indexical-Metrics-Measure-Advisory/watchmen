@@ -6,7 +6,7 @@ CREATE TABLE catalogs
     tech_owner_id    VARCHAR(50),
     biz_owner_id     VARCHAR(50),
     tags             JSON,
-    description      VARCHAR(255),
+    description      VARCHAR(1024),
     tenant_id        VARCHAR(50) NOT NULL,
     created_at       DATETIME    NOT NULL,
     created_by       VARCHAR(50) NOT NULL,

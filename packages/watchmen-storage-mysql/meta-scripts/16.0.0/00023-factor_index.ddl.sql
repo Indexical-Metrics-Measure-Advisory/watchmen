@@ -5,7 +5,7 @@ CREATE TABLE factor_index
     factor_type        VARCHAR(50) NOT NULL,
     factor_name        VARCHAR(50) NOT NULL,
     factor_label       VARCHAR(100),
-    factor_description VARCHAR(100),
+    factor_description VARCHAR(1024),
     topic_id           VARCHAR(50) NOT NULL,
     topic_name         VARCHAR(50) NOT NULL,
     tenant_id          VARCHAR(50) NOT NULL,

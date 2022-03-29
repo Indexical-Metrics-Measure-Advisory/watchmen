@@ -2,7 +2,7 @@ CREATE TABLE spaces
 (
     space_id         VARCHAR(50) NOT NULL,
     name             VARCHAR(50) NOT NULL,
-    description      VARCHAR(255),
+    description      VARCHAR(1024),
     topic_ids        JSON,
     group_ids        JSON,
     filters          JSON,
