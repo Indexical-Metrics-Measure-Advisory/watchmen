@@ -4,7 +4,8 @@ from typing import Any, Dict, List, Optional
 from watchmen_model.admin import Topic
 from watchmen_model.common import DataPage
 from watchmen_storage import as_table_name, Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, \
-	EntityHelper, EntityId, EntityIdHelper, EntityList, EntityPager, EntityStraightValuesFinder, EntityUpdater, \
+	EntityHelper, EntityId, EntityIdHelper, EntityList, EntityNotFoundException, EntityPager, \
+	EntityStraightValuesFinder, EntityUpdater, \
 	FreeAggregatePager, FreeAggregator, FreeFinder, FreePager, TooManyEntitiesFoundException, TopicDataStorageSPI, \
 	TransactionalStorageSPI, UnexpectedStorageException
 from watchmen_utilities import ArrayHelper
@@ -79,12 +80,61 @@ class StorageMongoDB(TransactionalStorageSPI):
 		return self.connection.update_by_id(document, entity, document.ask_id_column_value(entity)).modified_count
 
 	def update_only(self, updater: EntityUpdater, peace_when_zero: bool = False) -> int:
-		# TODO
-		pass
+		document = self.find_document(updater.name)
+		entities = self.find_distinct_values(EntityDistinctValuesFinder(
+			name=updater.name,
+			shaper=updater.shaper,
+			criteria=updater.criteria,
+			distinctColumnNames=[DOCUMENT_OBJECT_ID],
+			distinctValueOnSingleColumn=False
+		))
+
+		should_update_count = len(entities)
+		if should_update_count == 0:
+			if peace_when_zero:
+				return 0
+			else:
+				raise EntityNotFoundException(f'Entity not found by updater[{updater}]')
+		elif should_update_count == 1:
+			updated_count = self.connection.update_by_id(
+				document, updater.update, str(entities[0][DOCUMENT_OBJECT_ID])).modified_count
+			if updated_count == 0:
+				# might be removed by another session
+				if peace_when_zero:
+					return 0
+				else:
+					raise EntityNotFoundException(f'Entity not found by updater[{updater}]')
+			return updated_count
+		else:
+			raise TooManyEntitiesFoundException(f'Too many entities found by updater[{updater}].')
 
 	def update_only_and_pull(self, updater: EntityUpdater) -> Optional[Entity]:
-		# TODO
-		pass
+		document = self.find_document(updater.name)
+		entities = self.find_distinct_values(EntityDistinctValuesFinder(
+			name=updater.name,
+			shaper=updater.shaper,
+			criteria=updater.criteria,
+			distinctColumnNames=[DOCUMENT_OBJECT_ID],
+			distinctValueOnSingleColumn=False
+		))
+
+		should_update_count = len(entities)
+		if should_update_count == 0:
+			return None
+		elif should_update_count == 1:
+			object_id = str(entities[0][DOCUMENT_OBJECT_ID])
+			entity = self.connection.find_by_id(document, object_id)
+			if entity is not None:
+				updated_count = self.connection.update_by_id(document, updater.update, object_id).modified_count
+				if updated_count == 0:
+					# might be removed by another session
+					return None
+				return updater.shaper.deserialize(self.remove_object_id(entity))
+			else:
+				# might be removed by another session
+				return None
+		else:
+			raise TooManyEntitiesFoundException(f'Too many entities found by updater[{updater}].')
 
 	def update(self, updater: EntityUpdater) -> int:
 		# TODO
@@ -123,6 +173,7 @@ class StorageMongoDB(TransactionalStorageSPI):
 		# TODO
 		pass
 
+	# noinspection PyMethodMayBeStatic
 	def remove_object_id(self, data: Dict[str, Any]) -> Dict[str, Any]:
 		if DOCUMENT_OBJECT_ID in data:
 			del data[DOCUMENT_OBJECT_ID]
@@ -130,7 +181,11 @@ class StorageMongoDB(TransactionalStorageSPI):
 
 	def find_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
 		document = self.find_document(helper.name)
-		return self.connection.find_by_id(document, entity_id)
+		entity = self.connection.find_by_id(document, entity_id)
+		if entity is None:
+			return None
+		else:
+			return helper.shaper.deserialize(self.remove_object_id(entity))
 
 	def find_and_lock_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
 		"""
