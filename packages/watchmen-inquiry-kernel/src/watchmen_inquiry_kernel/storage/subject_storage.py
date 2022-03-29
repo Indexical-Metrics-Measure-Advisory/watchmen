@@ -433,6 +433,7 @@ class SubjectStorage:
 			# if given value cannot be parsed to a date, let it be None
 			_, start_value = is_date(start_value, ask_date_formats())
 			_, end_value = is_date(end_value, ask_date_formats())
+			return start_value, end_value
 		elif funnel_type == ReportFunnelType.YEAR:
 			return to_integer(start_value, end_value)
 		elif funnel_type == ReportFunnelType.HALF_YEAR:
