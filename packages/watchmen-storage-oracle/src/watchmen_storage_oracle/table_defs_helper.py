@@ -74,4 +74,4 @@ def create_last_visit_time() -> Column:
 
 
 def create_description() -> Column:
-	return Column('description', String(255), nullable=True)
+	return Column('description', String(1024), nullable=True)
