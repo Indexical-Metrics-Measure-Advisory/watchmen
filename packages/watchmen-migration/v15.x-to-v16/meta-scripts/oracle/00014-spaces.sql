@@ -4,7 +4,7 @@ ALTER TABLE spaces_1 RENAME TO spaces;
 ALTER TABLE spaces RENAME COLUMN spaceid TO space_id;
 ALTER TABLE spaces MODIFY space_id VARCHAR2(50);
 ALTER TABLE spaces MODIFY name VARCHAR2(50) NOT NULL;
-ALTER TABLE spaces MODIFY description VARCHAR2(255);
+ALTER TABLE spaces MODIFY description VARCHAR2(1024);
 ALTER TABLE spaces ADD topic_ids VARCHAR2(2048) NULL;
 -- noinspection SqlWithoutWhere
 UPDATE spaces SET topic_ids = topicids;

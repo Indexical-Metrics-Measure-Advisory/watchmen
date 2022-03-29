@@ -6,7 +6,7 @@ ALTER TABLE factor_index CHANGE factorid factor_id VARCHAR(50) NOT NULL;
 ALTER TABLE factor_index CHANGE type factor_type VARCHAR(50) NOT NULL;
 ALTER TABLE factor_index CHANGE name factor_name VARCHAR(50) NOT NULL;
 ALTER TABLE factor_index CHANGE label factor_label VARCHAR(100) NULL;
-ALTER TABLE factor_index CHANGE description factor_description VARCHAR(100) NULL;
+ALTER TABLE factor_index CHANGE description factor_description VARCHAR(1024) NULL;
 ALTER TABLE factor_index CHANGE topicid topic_id VARCHAR(50) NOT NULL;
 ALTER TABLE factor_index CHANGE topicname topic_name VARCHAR(50) NOT NULL;
 ALTER TABLE factor_index CHANGE tenantid tenant_id VARCHAR(50) NOT NULL;
