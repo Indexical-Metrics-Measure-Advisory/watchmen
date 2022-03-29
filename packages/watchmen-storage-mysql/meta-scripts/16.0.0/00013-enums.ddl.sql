@@ -2,7 +2,7 @@ CREATE TABLE enums
 (
     enum_id          VARCHAR(50) NOT NULL,
     name             VARCHAR(50) NOT NULL,
-    description      VARCHAR(255),
+    description      VARCHAR(1024),
     parent_enum_id   VARCHAR(50),
     tenant_id        VARCHAR(50) NOT NULL,
     created_at       DATETIME    NOT NULL,

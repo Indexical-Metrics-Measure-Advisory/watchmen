@@ -2,7 +2,7 @@ CREATE TABLE spaces
 (
     space_id         VARCHAR2(50) NOT NULL,
     name             VARCHAR2(50) NOT NULL,
-    description      VARCHAR2(255),
+    description      VARCHAR2(1024),
     topic_ids        VARCHAR2(2048),
     group_ids        VARCHAR2(2048),
     filters          CLOB,
