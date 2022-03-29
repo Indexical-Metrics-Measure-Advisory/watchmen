@@ -2,7 +2,7 @@ ALTER TABLE user_groups RENAME TO user_groups_1;
 ALTER TABLE user_groups_1 RENAME TO user_groups;
 ALTER TABLE user_groups RENAME COLUMN usergroupid TO user_group_id;
 ALTER TABLE user_groups MODIFY user_group_id VARCHAR2(50);
-ALTER TABLE user_groups MODIFY description VARCHAR2(255);
+ALTER TABLE user_groups MODIFY description VARCHAR2(1024);
 ALTER TABLE user_groups ADD user_ids VARCHAR2(2048) NULL;
 -- noinspection SqlWithoutWhere
 UPDATE user_groups SET user_ids = userids;

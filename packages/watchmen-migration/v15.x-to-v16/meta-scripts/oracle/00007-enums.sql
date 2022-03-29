@@ -3,7 +3,7 @@ ALTER TABLE enums RENAME TO enums_1;
 ALTER TABLE enums_1 RENAME TO enums;
 ALTER TABLE enums RENAME COLUMN enumid TO enum_id;
 ALTER TABLE enums MODIFY enum_id VARCHAR2(50);
-ALTER TABLE enums MODIFY description VARCHAR2(255);
+ALTER TABLE enums MODIFY description VARCHAR2(1024);
 ALTER TABLE enums RENAME COLUMN parentenumid TO parent_enum_id;
 ALTER TABLE enums MODIFY parent_enum_id VARCHAR2(50);
 ALTER TABLE enums RENAME COLUMN tenantid TO tenant_id;

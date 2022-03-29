@@ -2,7 +2,7 @@
 RENAME TABLE topics TO topics_1;
 RENAME TABLE topics_1 TO topics;
 ALTER TABLE topics CHANGE topicid topic_id VARCHAR(50) NOT NULL;
-ALTER TABLE topics MODIFY description VARCHAR(255) NULL;
+ALTER TABLE topics MODIFY description VARCHAR(1024) NULL;
 ALTER TABLE topics MODIFY type VARCHAR(20) NOT NULL;
 ALTER TABLE topics MODIFY kind VARCHAR(20) NOT NULL;
 ALTER TABLE topics CHANGE datasourceid data_source_id VARCHAR(50) NULL;

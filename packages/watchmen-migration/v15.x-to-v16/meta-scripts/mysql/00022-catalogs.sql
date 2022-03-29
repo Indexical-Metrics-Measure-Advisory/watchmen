@@ -3,7 +3,7 @@ RENAME TABLE catalogs TO catalogs_1;
 RENAME TABLE catalogs_1 TO catalogs;
 ALTER TABLE catalogs CHANGE catalogid catalog_id VARCHAR(50) NOT NULL;
 ALTER TABLE catalogs MODIFY name VARCHAR(50) NOT NULL;
-ALTER TABLE catalogs MODIFY description VARCHAR(255) NULL;
+ALTER TABLE catalogs MODIFY description VARCHAR(1024) NULL;
 ALTER TABLE catalogs CHANGE topicids topic_ids JSON NULL;
 ALTER TABLE catalogs CHANGE techownerid tech_owner_id VARCHAR(50) NULL;
 ALTER TABLE catalogs CHANGE bizownerid biz_owner_id VARCHAR(50) NULL;
