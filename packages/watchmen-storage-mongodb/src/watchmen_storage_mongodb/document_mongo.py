@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 
 from bson import ObjectId
 
-from watchmen_storage import UnexpectedStorageException
+from watchmen_storage import EntityId, UnexpectedStorageException
 from watchmen_utilities import ArrayHelper
 
 
@@ -47,7 +47,14 @@ class MongoDocument:
 	def ask_id_column(self) -> Optional[MongoDocumentColumn]:
 		return self.id_column
 
-	def try_to_copy_id_column(self, data: Dict[str, Any]) -> Dict[str, Any]:
+	def ask_id_column_value(self, data: Dict[str, Any]) -> Optional[EntityId]:
+		id_column = self.ask_id_column()
+		if id_column is not None:
+			return data.get(id_column.name)
+		else:
+			return None
+
+	def copy_id_column_to_object_id(self, data: Dict[str, Any]) -> Dict[str, Any]:
 		id_column = self.ask_id_column()
 		if id_column is not None:
 			original_id_value = data.get(id_column.name)

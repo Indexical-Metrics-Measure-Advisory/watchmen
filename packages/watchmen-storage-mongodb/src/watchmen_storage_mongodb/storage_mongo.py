@@ -5,11 +5,11 @@ from watchmen_model.admin import Topic
 from watchmen_model.common import DataPage
 from watchmen_storage import as_table_name, Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, \
 	EntityHelper, EntityId, EntityIdHelper, EntityList, EntityPager, EntityStraightValuesFinder, EntityUpdater, \
-	FreeAggregatePager, FreeAggregator, FreeFinder, FreePager, TopicDataStorageSPI, TransactionalStorageSPI, \
-	UnexpectedStorageException
+	FreeAggregatePager, FreeAggregator, FreeFinder, FreePager, TooManyEntitiesFoundException, TopicDataStorageSPI, \
+	TransactionalStorageSPI, UnexpectedStorageException
 from watchmen_utilities import ArrayHelper
 from .document_defs_mongo import find_document, register_document
-from .document_mongo import MongoDocument
+from .document_mongo import DOCUMENT_OBJECT_ID, MongoDocument
 from .engine_mongo import MongoConnection, MongoEngine
 
 # noinspection DuplicatedCode
@@ -61,31 +61,37 @@ class StorageMongoDB(TransactionalStorageSPI):
 
 	def insert_one(self, one: Entity, helper: EntityHelper) -> None:
 		document = self.find_document(helper.name)
-		row = helper.shaper.serialize(one)
-		document.try_to_copy_id_column(row)
-		self.connection.insert_one(document, row)
+		entity = helper.shaper.serialize(one)
+		entity = document.copy_id_column_to_object_id(entity)
+		self.connection.insert_one(document, entity)
 
 	def insert_all(self, data: List[Entity], helper: EntityHelper) -> None:
 		document = self.find_document(helper.name)
-		rows = ArrayHelper(data) \
+		entities = ArrayHelper(data) \
 			.map(lambda x: helper.shaper.serialize(x)) \
-			.map(lambda x: document.try_to_copy_id_column(x)) \
+			.map(lambda x: document.copy_id_column_to_object_id(x)) \
 			.to_list()
-		self.connection.insert_many(document, rows)
+		self.connection.insert_many(document, entities)
 
 	def update_one(self, one: Entity, helper: EntityIdHelper) -> int:
-		pass
+		document = self.find_document(helper.name)
+		entity = helper.shaper.serialize(one)
+		return self.connection.update_by_id(document, entity, document.ask_id_column_value(entity)).modified_count
 
 	def update_only(self, updater: EntityUpdater, peace_when_zero: bool = False) -> int:
+		# TODO
 		pass
 
 	def update_only_and_pull(self, updater: EntityUpdater) -> Optional[Entity]:
+		# TODO
 		pass
 
 	def update(self, updater: EntityUpdater) -> int:
+		# TODO
 		pass
 
 	def update_and_pull(self, updater: EntityUpdater) -> EntityList:
+		# TODO
 		pass
 
 	def delete_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> int:
@@ -93,49 +99,84 @@ class StorageMongoDB(TransactionalStorageSPI):
 		return self.connection.delete_by_id(document, entity_id).deleted_count
 
 	def delete_by_id_and_pull(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
-		pass
+		entity = self.find_by_id(entity_id, helper)
+		if entity is None:
+			# not found, no need to delete
+			return None
+		else:
+			self.delete_by_id(entity_id, helper)
+			return entity
 
 	def delete_only(self, deleter: EntityDeleter) -> int:
+		# TODO
 		pass
 
 	def delete_only_and_pull(self, deleter: EntityDeleter) -> Optional[Entity]:
+		# TODO
 		pass
 
 	def delete(self, deleter: EntityDeleter) -> int:
+		# TODO
 		pass
 
 	def delete_and_pull(self, deleter: EntityDeleter) -> EntityList:
+		# TODO
 		pass
+
+	def remove_object_id(self, data: Dict[str, Any]) -> Dict[str, Any]:
+		if DOCUMENT_OBJECT_ID in data:
+			del data[DOCUMENT_OBJECT_ID]
+		return data
 
 	def find_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
 		document = self.find_document(helper.name)
 		return self.connection.find_by_id(document, entity_id)
 
 	def find_and_lock_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
-		pass
+		"""
+		there is no pessimistic lock in mongodb, use find_by_id instead
+		"""
+		return self.find_by_id(entity_id, helper)
 
 	def find_one(self, finder: EntityFinder) -> Optional[Entity]:
-		pass
+		data = self.find(finder)
+		if len(data) == 0:
+			return None
+		elif len(data) == 1:
+			return data[0]
+		else:
+			raise TooManyEntitiesFoundException(f'Too many entities found by finder[{finder}].')
 
 	def find(self, finder: EntityFinder) -> EntityList:
+		# TODO
 		pass
 
 	def find_distinct_values(self, finder: EntityDistinctValuesFinder) -> EntityList:
+		# TODO
 		pass
 
 	def find_straight_values(self, finder: EntityStraightValuesFinder) -> EntityList:
+		# TODO
 		pass
 
 	def find_all(self, helper: EntityHelper) -> EntityList:
-		pass
+		document = self.find_document(helper.name)
+		entities = self.connection.find_all(document)
+		return ArrayHelper(entities) \
+			.map(lambda x: helper.shaper.deserialize(x)) \
+			.map(lambda x: self.remove_object_id(x)) \
+			.to_list()
 
 	def page(self, pager: EntityPager) -> DataPage:
+		# TODO
 		pass
 
 	def exists(self, finder: EntityFinder) -> bool:
+		# TODO
 		pass
 
 	def count(self, finder: EntityFinder) -> int:
+		# TODO
 		pass
 
 
@@ -169,13 +210,17 @@ class TopicDataStorageMongoDB(StorageMongoDB, TopicDataStorageSPI):
 		self.connection.drop_collection(document.name)
 
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
+		# TODO
 		pass
 
 	def free_page(self, pager: FreePager) -> DataPage:
+		# TODO
 		pass
 
 	def free_aggregate_find(self, aggregator: FreeAggregator) -> List[Dict[str, Any]]:
+		# TODO
 		pass
 
 	def free_aggregate_page(self, pager: FreeAggregatePager) -> DataPage:
+		# TODO
 		pass

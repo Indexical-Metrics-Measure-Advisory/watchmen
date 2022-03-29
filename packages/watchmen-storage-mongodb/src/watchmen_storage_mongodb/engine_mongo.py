@@ -6,7 +6,7 @@ from bson import ObjectId
 from pymongo import MongoClient
 from pymongo.collection import Collection
 from pymongo.database import Database
-from pymongo.results import DeleteResult
+from pymongo.results import DeleteResult, UpdateResult
 
 from .codes_options import ask_codec_options
 from .document_mongo import MongoDocument
@@ -44,14 +44,20 @@ class MongoConnection:
 	def insert_many(self, document: MongoDocument, data: List[Dict[str, Any]]) -> None:
 		self.collection(document.name).insert_many(data)
 
+	def update_by_id(self, document: MongoDocument, data: Dict[str, Any], object_id: str) -> UpdateResult:
+		return self.collection(document.name).update_many({'id_': ObjectId(object_id)}, {'$set': data})
+
 	def delete_by_id(self, document: MongoDocument, object_id: str) -> DeleteResult:
 		return self.delete_many(document, {'_id': ObjectId(object_id)})
 
 	def delete_many(self, document: MongoDocument, criteria: Dict[str, Any]) -> DeleteResult:
 		return self.collection(document.name).delete_many(criteria)
 
-	def find_by_id(self, document: MongoDocument, object_id: str) -> Dict[str]:
+	def find_by_id(self, document: MongoDocument, object_id: str) -> Dict[str, Any]:
 		return self.collection(document.name).find_one({'_id': ObjectId(object_id)}, codec_options=ask_codec_options())
+
+	def find_all(self, document: MongoDocument) -> List[Dict[str, Any]]:
+		return self.collection(document.name).find({})
 
 
 class MongoEngine:
