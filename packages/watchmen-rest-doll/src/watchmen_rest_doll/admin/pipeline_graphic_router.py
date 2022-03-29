@@ -47,7 +47,6 @@ async def save_pipeline_graphic(
 	"""
 	create or update my pipeline graphic
 	"""
-
 	pipeline_graphic_service = get_pipeline_graphic_service(principal_service)
 
 	def action(graphic: PipelineGraphic) -> PipelineGraphic:
@@ -55,7 +54,8 @@ async def save_pipeline_graphic(
 		graphic.tenantId = principal_service.get_tenant_id()
 
 		# noinspection DuplicatedCode
-		if TupleService.is_storable_id_faked(graphic.pipeline_graphicId):
+
+		if TupleService.is_storable_id_faked(graphic.pipelineGraphId):
 			pipeline_graphic_service.redress_storable_id(graphic)
 			graphic.createdAt = get_current_time_in_seconds()
 			graphic.lastModifiedAt = get_current_time_in_seconds()
