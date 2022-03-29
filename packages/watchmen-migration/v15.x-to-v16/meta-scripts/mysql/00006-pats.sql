@@ -9,7 +9,7 @@ ALTER TABLE pats CHANGE tenantid tenant_id VARCHAR(50) NOT NULL;
 ALTER TABLE pats MODIFY note VARCHAR(255) NULL;
 ALTER TABLE pats DROP createtime;
 ALTER TABLE pats DROP lastmodified;
-ALTER TABLE pats ADD created_at DATETIME NOT NULL;
+ALTER TABLE pats ADD created_at DATETIME DEFAULT NOW() NOT NULL;
 CREATE INDEX tenant_id ON pats (tenant_id);
 CREATE INDEX user_id ON pats (user_id);
 CREATE INDEX username ON pats (username);
