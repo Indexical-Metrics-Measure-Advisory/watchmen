@@ -4,12 +4,10 @@ from typing import Any, Dict, List, Optional
 from watchmen_model.admin import Topic
 from watchmen_model.common import DataPage
 from watchmen_storage import as_table_name, Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, \
-	EntityHelper, EntityId, \
-	EntityIdHelper, EntityList, \
-	EntityPager, \
-	EntityStraightValuesFinder, EntityUpdater, FreeAggregatePager, FreeAggregator, FreeFinder, FreePager, \
-	TopicDataStorageSPI, TransactionalStorageSPI, \
+	EntityHelper, EntityId, EntityIdHelper, EntityList, EntityPager, EntityStraightValuesFinder, EntityUpdater, \
+	FreeAggregatePager, FreeAggregator, FreeFinder, FreePager, TopicDataStorageSPI, TransactionalStorageSPI, \
 	UnexpectedStorageException
+from watchmen_utilities import ArrayHelper
 from .document_defs_mongo import find_document, register_document
 from .document_mongo import MongoDocument
 from .engine_mongo import MongoConnection, MongoEngine
@@ -62,10 +60,18 @@ class StorageMongoDB(TransactionalStorageSPI):
 		return find_document(name)
 
 	def insert_one(self, one: Entity, helper: EntityHelper) -> None:
-		pass
+		document = self.find_document(helper.name)
+		row = helper.shaper.serialize(one)
+		document.try_to_copy_id_column(row)
+		self.connection.insert_one(document, row)
 
 	def insert_all(self, data: List[Entity], helper: EntityHelper) -> None:
-		pass
+		document = self.find_document(helper.name)
+		rows = ArrayHelper(data) \
+			.map(lambda x: helper.shaper.serialize(x)) \
+			.map(lambda x: document.try_to_copy_id_column(x)) \
+			.to_list()
+		self.connection.insert_many(document, rows)
 
 	def update_one(self, one: Entity, helper: EntityIdHelper) -> int:
 		pass
@@ -83,7 +89,8 @@ class StorageMongoDB(TransactionalStorageSPI):
 		pass
 
 	def delete_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> int:
-		pass
+		document = self.find_document(helper.name)
+		return self.connection.delete_by_id(document, entity_id).deleted_count
 
 	def delete_by_id_and_pull(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
 		pass
@@ -101,7 +108,8 @@ class StorageMongoDB(TransactionalStorageSPI):
 		pass
 
 	def find_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
-		pass
+		document = self.find_document(helper.name)
+		return self.connection.find_by_id(document, entity_id)
 
 	def find_and_lock_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
 		pass

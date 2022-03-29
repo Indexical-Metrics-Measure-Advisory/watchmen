@@ -1,8 +1,15 @@
 from __future__ import annotations
 
+from typing import Any, Dict, List
+
+from bson import ObjectId
 from pymongo import MongoClient
 from pymongo.collection import Collection
 from pymongo.database import Database
+from pymongo.results import DeleteResult
+
+from .codes_options import ask_codec_options
+from .document_mongo import MongoDocument
 
 
 class MongoConnection:
@@ -30,6 +37,21 @@ class MongoConnection:
 
 	def drop_collection(self, name: str) -> None:
 		self.collection(name).drop()
+
+	def insert_one(self, document: MongoDocument, data: Dict[str, Any]) -> None:
+		self.collection(document.name).insert_one(data)
+
+	def insert_many(self, document: MongoDocument, data: List[Dict[str, Any]]) -> None:
+		self.collection(document.name).insert_many(data)
+
+	def delete_by_id(self, document: MongoDocument, object_id: str) -> DeleteResult:
+		return self.delete_many(document, {'_id': ObjectId(object_id)})
+
+	def delete_many(self, document: MongoDocument, criteria: Dict[str, Any]) -> DeleteResult:
+		return self.collection(document.name).delete_many(criteria)
+
+	def find_by_id(self, document: MongoDocument, object_id: str) -> Dict[str]:
+		return self.collection(document.name).find_one({'_id': ObjectId(object_id)}, codec_options=ask_codec_options())
 
 
 class MongoEngine:
