@@ -2,7 +2,7 @@
 RENAME TABLE enums TO enums_1;
 RENAME TABLE enums_1 TO enums;
 ALTER TABLE enums CHANGE enumid enum_id VARCHAR(50) NOT NULL;
-ALTER TABLE enums MODIFY description VARCHAR(255) NULL;
+ALTER TABLE enums MODIFY description VARCHAR(1024) NULL;
 ALTER TABLE enums CHANGE parentenumid parent_enum_id VARCHAR(50) NULL;
 ALTER TABLE enums CHANGE tenantid tenant_id VARCHAR(50) NOT NULL;
 ALTER TABLE enums DROP createtime;

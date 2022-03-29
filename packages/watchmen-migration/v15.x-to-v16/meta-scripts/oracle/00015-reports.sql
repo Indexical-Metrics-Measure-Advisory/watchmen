@@ -6,7 +6,7 @@ ALTER TABLE reports MODIFY report_id VARCHAR2(50);
 ALTER TABLE reports MODIFY name VARCHAR2(50) NOT NULL;
 ALTER TABLE reports ADD connect_id VARCHAR2(50) NULL;
 ALTER TABLE reports ADD subject_id VARCHAR2(50) NULL;
-ALTER TABLE reports MODIFY description VARCHAR2(255);
+ALTER TABLE reports MODIFY description VARCHAR2(1024);
 ALTER TABLE reports RENAME COLUMN simulating to simulating_1;
 ALTER TABLE reports ADD simulating NUMBER(1) DEFAULT 0 NOT NULL;
 UPDATE reports SET simulating = 1 WHERE LOWER(simulating_1) != 'false';

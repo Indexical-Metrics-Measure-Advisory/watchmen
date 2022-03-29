@@ -5,7 +5,7 @@ ALTER TABLE reports CHANGE reportid report_id VARCHAR(50) NOT NULL;
 ALTER TABLE reports MODIFY name VARCHAR(50) NOT NULL;
 ALTER TABLE reports ADD connect_id VARCHAR(50) NOT NULL;
 ALTER TABLE reports ADD subject_id VARCHAR(50) NOT NULL;
-ALTER TABLE reports MODIFY description VARCHAR(255) NULL;
+ALTER TABLE reports MODIFY description VARCHAR(1024) NULL;
 ALTER TABLE reports MODIFY simulating TINYINT(1) NOT NULL;
 ALTER TABLE reports CHANGE simulateData simulate_data JSON NULL;
 ALTER TABLE reports CHANGE simulateThumbnail simulate_thumbnail MEDIUMTEXT NULL;

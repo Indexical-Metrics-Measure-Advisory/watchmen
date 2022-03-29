@@ -4,7 +4,7 @@ ALTER TABLE catalogs_1 RENAME TO catalogs;
 ALTER TABLE catalogs RENAME COLUMN catalogid TO catalog_id;
 ALTER TABLE catalogs MODIFY catalog_id VARCHAR2(50);
 ALTER TABLE catalogs MODIFY name VARCHAR2(50) NOT NULL;
-ALTER TABLE catalogs MODIFY description VARCHAR2(255);
+ALTER TABLE catalogs MODIFY description VARCHAR2(1024);
 ALTER TABLE catalogs ADD topic_ids VARCHAR2(2048) NULL;
 -- noinspection SqlWithoutWhere
 UPDATE catalogs SET topic_ids = topicids;

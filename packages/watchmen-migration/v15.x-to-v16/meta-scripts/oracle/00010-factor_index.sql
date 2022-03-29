@@ -12,7 +12,7 @@ ALTER TABLE factor_index MODIFY factor_name VARCHAR2(50);
 ALTER TABLE factor_index RENAME COLUMN label TO factor_label;
 ALTER TABLE factor_index MODIFY factor_label VARCHAR2(100);
 ALTER TABLE factor_index RENAME COLUMN description TO factor_description;
-ALTER TABLE factor_index MODIFY factor_description VARCHAR2(100);
+ALTER TABLE factor_index MODIFY factor_description VARCHAR2(1024);
 ALTER TABLE factor_index RENAME COLUMN topicid TO topic_id;
 ALTER TABLE factor_index MODIFY topic_id VARCHAR2(50);
 ALTER TABLE factor_index RENAME COLUMN topicname TO topic_name;
