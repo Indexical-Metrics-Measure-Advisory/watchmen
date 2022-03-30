@@ -162,6 +162,7 @@ export enum VariablePredefineFunctions {
 	DAY_DIFF = '&dayDiff',
 	MONTH_DIFF = '&monthDiff',
 	YEAR_DIFF = '&yearDiff',
+	DATE_FORMAT = '&fmtDate',
 	NOW = '&now'
 }
 

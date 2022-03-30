@@ -96,3 +96,25 @@ export const formatToKGB = (x: number): string => {
 	}
 	return `${x}`;
 };
+
+const DATE_FORMAT_MAPPING: { [key in string]: string } = {
+	'Y': '%Y',  // 4 digits year
+	'y': '%y',  // 2 digits year
+	'M': '%m',  // 2 digits month
+	'D': '%d',  // 2 digits day of month
+	'h': '%H',  // 2 digits hour, 00 - 23
+	'H': '%I',  // 2 digits hour, 01 - 12
+	'm': '%M',  // 2 digits minute
+	's': '%S',  // 2 digits second
+	'W': '%A',  // Monday - Sunday
+	'w': '%a',  // Mon - Sun
+	'B': '%B',  // January - December
+	'b': '%b',  // Jan - Dec
+	'p': '%p'  // AM/PM
+};
+
+export const translate_date_format = (format: string): string => {
+	return Object.keys(DATE_FORMAT_MAPPING).reduce((format, key) => {
+		return format.replaceAll(key, DATE_FORMAT_MAPPING[key]);
+	}, format);
+};
