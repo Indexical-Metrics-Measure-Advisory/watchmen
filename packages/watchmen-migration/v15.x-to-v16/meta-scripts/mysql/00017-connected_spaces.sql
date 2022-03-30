@@ -9,7 +9,7 @@ ALTER TABLE connected_spaces DROP subjects;
 ALTER TABLE connected_spaces DROP groupids;
 ALTER TABLE connected_spaces CHANGE userid user_id VARCHAR(50) NOT NULL;
 ALTER TABLE connected_spaces CHANGE tenantid tenant_id VARCHAR(50) NOT NULL;
-ALTER TABLE connected_spaces CHANGE lastvisittime last_visit_time DATETIME NOT NULL;
+ALTER TABLE connected_spaces CHANGE lastvisittime last_visit_time DATETIME DEFAULT NOW() NOT NULL;
 ALTER TABLE connected_spaces DROP createtime;
 ALTER TABLE connected_spaces DROP lastmodified;
 ALTER TABLE connected_spaces ADD created_at DATETIME DEFAULT NOW() NOT NULL;
@@ -51,15 +51,15 @@ BEGIN
 
         WHILE subject_id_index < subject_ids_count
             DO
+                SELECT subject_id_index ;
                 SET current_item := JSON_EXTRACT(v_subject_ids, CONCAT('$[', subject_id_index, ']'));
                 SET @subject_id = TRIM(BOTH '"' FROM current_item);
-
                 SET @sql_update = CONCAT(
-                        'UPDATE reports SET connect_id = \'', v_connect_id, ', user_id = \'', v_user_id, '\' WHERE subject_id = \'', @subject_id, '\'');
+                        'UPDATE reports SET connect_id = \'', v_connect_id, '\', user_id = \'', v_user_id, '\' WHERE subject_id = \'', @subject_id, '\'');
                 PREPARE a_sql FROM @sql_update;
                 EXECUTE a_sql;
                 SET @sql_update = CONCAT(
-                        'UPDATE subjects SET connect_id = \'', v_connect_id, ', user_id = \'', v_user_id,  '\' WHERE subject_id = \'', @subject_id, '\'');
+                        'UPDATE subjects SET connect_id = \'', v_connect_id, '\', user_id = \'', v_user_id,  '\' WHERE subject_id = \'', @subject_id, '\'');
                 PREPARE a_sql FROM @sql_update;
                 EXECUTE a_sql;
                 COMMIT;

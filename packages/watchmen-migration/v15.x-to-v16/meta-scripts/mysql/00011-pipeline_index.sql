@@ -9,7 +9,7 @@ ALTER TABLE pipeline_index CHANGE stagename stage_name VARCHAR(100) NULL;
 ALTER TABLE pipeline_index CHANGE unitid unit_id VARCHAR(50) NOT NULL;
 ALTER TABLE pipeline_index CHANGE unitname unit_name VARCHAR(100) NULL;
 ALTER TABLE pipeline_index CHANGE actionid action_id VARCHAR(50) NOT NULL;
-ALTER TABLE pipeline_index CHANGE mappingtotopicid mapping_to_topic_id VARCHAR(50) NOT NULL;
+ALTER TABLE pipeline_index CHANGE mappingtotopicid mapping_to_topic_id VARCHAR(50)  NULL;
 ALTER TABLE pipeline_index CHANGE mappingtofactorid mapping_to_factor_id VARCHAR(50) NULL;
 ALTER TABLE pipeline_index CHANGE sourcefromtopicid source_from_topic_id VARCHAR(50) NULL;
 ALTER TABLE pipeline_index CHANGE sourcefromfactorid source_from_factor_id VARCHAR(50) NULL;

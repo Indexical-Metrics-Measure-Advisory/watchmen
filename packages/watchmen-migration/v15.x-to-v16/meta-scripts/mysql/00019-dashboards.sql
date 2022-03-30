@@ -2,7 +2,7 @@
 RENAME TABLE console_dashboards TO dashboards;
 ALTER TABLE dashboards CHANGE dashboardid dashboard_id VARCHAR(50) NOT NULL;
 ALTER TABLE dashboards MODIFY name VARCHAR(50) NOT NULL;
-ALTER TABLE dashboards CHANGE lastvisittime last_visit_time DATETIME NOT NULL;
+ALTER TABLE dashboards CHANGE lastvisittime last_visit_time DATETIME DEFAULT NOW() NULL;
 ALTER TABLE dashboards CHANGE userid user_id VARCHAR(50) NOT NULL;
 ALTER TABLE dashboards CHANGE tenantid tenant_id VARCHAR(50) NOT NULL;
 ALTER TABLE dashboards ADD auto_refresh_interval BIGINT;

@@ -9,7 +9,7 @@ ALTER TABLE subjects ADD connect_id VARCHAR(50) NOT NULL;
 ALTER TABLE subjects ADD auto_refresh_interval BIGINT NULL;
 ALTER TABLE subjects ADD user_id VARCHAR(50) NOT NULL;
 ALTER TABLE subjects CHANGE tenantid tenant_id VARCHAR(50) NOT NULL;
-ALTER TABLE subjects CHANGE lastvisittime last_visit_time DATETIME NOT NULL;
+ALTER TABLE subjects CHANGE lastvisittime last_visit_time DATETIME DEFAULT NOW() NOT NULL;
 ALTER TABLE subjects DROP createdat;
 ALTER TABLE subjects DROP lastmodified;
 ALTER TABLE subjects DROP createtime;
