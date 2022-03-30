@@ -11,7 +11,7 @@ ALTER TABLE reports CHANGE simulateData simulate_data JSON NULL;
 ALTER TABLE reports CHANGE simulateThumbnail simulate_thumbnail MEDIUMTEXT NULL;
 ALTER TABLE reports ADD user_id VARCHAR(50) NOT NULL;
 ALTER TABLE reports CHANGE tenantid tenant_id VARCHAR(50) NOT NULL;
-ALTER TABLE reports CHANGE lastvisittime last_visit_time DATETIME NOT NULL;
+ALTER TABLE reports CHANGE lastvisittime last_visit_time DATETIME DEFAULT NOW() NULL;
 ALTER TABLE reports DROP createtime;
 ALTER TABLE reports DROP lastmodified;
 ALTER TABLE reports DROP createdat;
