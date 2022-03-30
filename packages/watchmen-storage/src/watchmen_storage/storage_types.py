@@ -104,8 +104,9 @@ class ComputedLiteralOperator(str, Enum):
 	YEAR_DIFF = 'year-diff',
 	MONTH_DIFF = 'month-diff',
 	DAY_DIFF = 'day-diff',
+	FORMAT_DATE = 'format-date',
 
-	CHAR_LENGTH = 'char-length'
+	CHAR_LENGTH = 'char-length',
 
 
 class ComputedLiteral(DataModel):

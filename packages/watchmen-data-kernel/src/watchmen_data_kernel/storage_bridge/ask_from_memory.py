@@ -17,7 +17,7 @@ from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, get_day
 	get_half_year, get_month, get_quarter, get_week_of_month, get_week_of_year, get_year, greater_or_equals_date, \
 	greater_or_equals_decimal, greater_or_equals_time, is_blank, is_date, is_date_or_time_instance, is_empty, \
 	is_not_empty, is_numeric_instance, less_or_equals_date, less_or_equals_decimal, less_or_equals_time, \
-	try_to_decimal, value_equals, value_not_equals
+	translate_date_format_to_memory, try_to_decimal, value_equals, value_not_equals
 from .utils import always_none, compute_date_diff, create_from_previous_trigger_data, \
 	create_get_from_variables_with_prefix, create_previous_trigger_data, create_snowflake_generator, \
 	create_static_str, get_date_from_variables, get_value_from, test_date
@@ -445,6 +445,32 @@ def create_date_diff(
 	return run
 
 
+def create_date_format(prefix: str, variable_name: str) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	parsed_params = parse_function_in_variable(variable_name, VariablePredefineFunctions.DATE_FORMAT.value, 2)
+	end_variable_name = parsed_params[0]
+	date_format = parsed_params[1]
+	if is_blank(date_format):
+		raise DataKernelException(f'Date format[{date_format}] cannot be recognized.')
+	date_format = translate_date_format_to_memory(date_format)
+	end_parsed, end_date = test_date(end_variable_name)
+	if end_parsed:
+		# noinspection PyUnusedLocal
+		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+			return end_date.strftime(date_format)
+	else:
+		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+			e_parsed, e_value, e_date = get_date_from_variables(variables, principal_service, end_variable_name)
+			if not e_parsed:
+				raise DataKernelException(f'Value[{e_value}] cannot be parsed to date or datetime.')
+			return e_date.strftime(date_format)
+
+	def run(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+		value = action(variables, principal_service)
+		return value if is_blank(prefix) else f'{prefix}{value}'
+
+	return run
+
+
 # noinspection DuplicatedCode
 def create_run_constant_segment(variable: MightAVariable) -> Callable[[PipelineVariables, PrincipalService], Any]:
 	prefix = variable.text
@@ -459,6 +485,8 @@ def create_run_constant_segment(variable: MightAVariable) -> Callable[[PipelineV
 		return create_date_diff(prefix, variable_name, VariablePredefineFunctions.MONTH_DIFF)
 	elif variable_name.startswith(VariablePredefineFunctions.DAY_DIFF.value):
 		return create_date_diff(prefix, variable_name, VariablePredefineFunctions.DAY_DIFF)
+	elif variable_name.startswith(VariablePredefineFunctions.DATE_FORMAT.value):
+		return create_date_format(prefix, variable_name)
 	elif variable_name.startswith(VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA.value):
 		if variable_name == VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA.value:
 			if is_blank(prefix):
