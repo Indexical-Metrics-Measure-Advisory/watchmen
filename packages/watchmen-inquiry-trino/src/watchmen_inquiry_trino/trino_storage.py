@@ -72,6 +72,29 @@ class TrinoStorageSchemas:
 		return self.data.get(topic_name)
 
 
+# noinspection DuplicatedCode
+DATE_FORMAT_MAPPING = {
+	'Y': '%Y',  # 4 digits year
+	'y': '%y',  # 2 digits year
+	'M': '%m',  # 2 digits month
+	'D': '%d',  # 2 digits day of month
+	'h': '%H',  # 2 digits hour, 00 - 23
+	'H': '%h',  # 2 digits hour, 01 - 12
+	'm': '%i',  # 2 digits minute
+	's': '%S',  # 2 digits second
+	'W': '%W',  # Monday - Sunday
+	'w': '%a',  # Mon - Sun
+	'B': '%M',  # January - December
+	'b': '%b',  # Jan - Dec
+	'p': '%p'  # AM/PM
+}
+
+
+def translate_date_format(date_format: str) -> str:
+	return ArrayHelper(list(DATE_FORMAT_MAPPING)) \
+		.reduce(lambda original, x: original.replace(x, DATE_FORMAT_MAPPING[x]), date_format)
+
+
 class TrinoStorage(TrinoStorageSPI):
 	def __init__(self, principal_service: PrincipalService):
 		self.principalService = principal_service
@@ -294,6 +317,10 @@ class TrinoStorage(TrinoStorageSPI):
 					f'DATE_DIFF(\'day\', ' \
 					f'DATE_TRUNC(\'day\', {self.build_literal(literal.elements[1])}), ' \
 					f'DATE_TRUNC(\'day\', {self.build_literal(literal.elements[0])}))'
+			elif operator == ComputedLiteralOperator.FORMAT_DATE:
+				return \
+					f'DATE_FORMAT({self.build_literal(literal.elements[0])}, ' \
+					f'\'{translate_date_format(literal.elements[1])}\')'
 			elif operator == ComputedLiteralOperator.CHAR_LENGTH:
 				return f'LENGTH({self.build_literal(literal.elements[0])})'
 			else:

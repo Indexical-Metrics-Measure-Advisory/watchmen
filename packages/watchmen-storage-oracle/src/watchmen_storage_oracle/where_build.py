@@ -15,6 +15,28 @@ def to_decimal(value: Any) -> Any:
 	return func.to_number(value)
 
 
+DATE_FORMAT_MAPPING = {
+	'Y': 'YYYY',  # 4 digits year
+	'y': 'YY',  # 2 digits year
+	'M': 'MM',  # 2 digits month
+	'D': 'DD',  # 2 digits day of month
+	'h': 'HH24',  # 2 digits hour, 00 - 23
+	'H': 'HH',  # 2 digits hour, 01 - 12
+	'm': 'MI',  # 2 digits minute
+	's': 'SS',  # 2 digits second
+	'W': 'DAY',  # Monday - Sunday
+	'w': 'DY',  # Mon - Sun
+	'B': 'MONTH',  # January - December
+	'b': 'MON',  # Jan - Dec
+	'p': 'PM'  # AM/PM
+}
+
+
+def translate_date_format(date_format: str) -> str:
+	return ArrayHelper(list(DATE_FORMAT_MAPPING)) \
+		.reduce(lambda original, x: original.replace(x, DATE_FORMAT_MAPPING[x]), date_format)
+
+
 # noinspection DuplicatedCode
 def build_literal(tables: List[Table], literal: Literal, build_plain_value: Callable[[Any], Any] = None):
 	if isinstance(literal, ColumnNameLiteral):
@@ -121,6 +143,9 @@ def build_literal(tables: List[Table], literal: Literal, build_plain_value: Call
 			# datediff is a customized function, which can be found in data-scripts folder
 			# make sure each topic storage have this function
 			return func.datediff(build_literal(tables, literal.elements[0]), build_literal(tables, literal.elements[1]))
+		elif operator == ComputedLiteralOperator.FORMAT_DATE:
+			return func.to_char(
+				build_literal(tables, literal.elements[0]), translate_date_format(literal.elements[1]))
 		elif operator == ComputedLiteralOperator.CHAR_LENGTH:
 			return func.length(build_literal(tables, literal.elements[0]))
 		else:

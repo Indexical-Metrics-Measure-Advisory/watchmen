@@ -19,6 +19,29 @@ def to_decimal(value: Any) -> Any:
 
 
 # noinspection DuplicatedCode
+DATE_FORMAT_MAPPING = {
+	'Y': '%Y',  # 4 digits year
+	'y': '%y',  # 2 digits year
+	'M': '%m',  # 2 digits month
+	'D': '%d',  # 2 digits day of month
+	'h': '%H',  # 2 digits hour, 00 - 23
+	'H': '%h',  # 2 digits hour, 01 - 12
+	'm': '%i',  # 2 digits minute
+	's': '%S',  # 2 digits second
+	'W': '%W',  # Monday - Sunday
+	'w': '%a',  # Mon - Sun
+	'B': '%M',  # January - December
+	'b': '%b',  # Jan - Dec
+	'p': '%p'  # AM/PM
+}
+
+
+def translate_date_format(date_format: str) -> str:
+	return ArrayHelper(list(DATE_FORMAT_MAPPING)) \
+		.reduce(lambda original, x: original.replace(x, DATE_FORMAT_MAPPING[x]), date_format)
+
+
+# noinspection DuplicatedCode
 def build_literal(tables: List[Table], literal: Literal, build_plain_value: Callable[[Any], Any] = None):
 	if isinstance(literal, ColumnNameLiteral):
 		if is_blank(literal.entityName):
@@ -105,6 +128,9 @@ def build_literal(tables: List[Table], literal: Literal, build_plain_value: Call
 				build_literal(tables, literal.elements[0]), build_literal(tables, literal.elements[1]))
 		elif operator == ComputedLiteralOperator.DAY_DIFF:
 			return func.datediff(build_literal(tables, literal.elements[0]), build_literal(tables, literal.elements[1]))
+		elif operator == ComputedLiteralOperator.FORMAT_DATE:
+			return func.date_format(
+				build_literal(tables, literal.elements[0]), translate_date_format(literal.elements[1]))
 		elif operator == ComputedLiteralOperator.CHAR_LENGTH:
 			return func.char_length(build_literal(tables, literal.elements[0]))
 		else:
