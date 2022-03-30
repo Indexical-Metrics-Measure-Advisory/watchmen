@@ -92,7 +92,7 @@ class MongoConnection:
 	def find_distinct(self, document: MongoDocument, column_name: str, criteria: Dict[str, Any]):
 		results = self.collection(document.name).aggregate(pipeline=[
 			{'$match': {'$expr': criteria}},
-			{'$group': {DOCUMENT_OBJECT_ID: f'${column_name}'}}
+			{'$group': {DOCUMENT_OBJECT_ID: f'${column_name}'}}  # , 'count': { '$sum': 1 } }}
 		], codec_options=ask_codec_options())
 		for item in results:
 			item[column_name] = item[DOCUMENT_OBJECT_ID]
