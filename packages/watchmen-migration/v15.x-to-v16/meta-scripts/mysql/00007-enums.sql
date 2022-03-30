@@ -21,7 +21,7 @@ CREATE INDEX tenant_id ON enums (tenant_id);
 CREATE TABLE enum_items (
     item_id      VARCHAR(50) NOT NULL,
     code         VARCHAR(50) NOT NULL,
-    label        VARCHAR(100),
+    label        VARCHAR(255),
     parent_code  VARCHAR(50),
     replace_code VARCHAR(50),
     enum_id      VARCHAR(50),
@@ -64,11 +64,11 @@ BEGIN
                 SELECT REPLACE(current_item, '"{', '{') into current_item;
                 SELECT REPLACE(current_item, '}"', '}') into current_item;
 
-                SELECT IFNULL(MAX(item_id), 0) + 1 INTO next_item_id FROM enum_items;
-                SET @code = TRIM(BOTH '"' FROM IFNULL(JSON_EXTRACT(current_item, '$.code'), ''));
-                SET @label = TRIM(BOTH '"' FROM IFNULL(JSON_EXTRACT(current_item, '$.label'), ''));
-                SET @parent_code = TRIM(BOTH '"' FROM IFNULL(JSON_EXTRACT(current_item, '$.parentCode'), ''));
-                SET @replace_code = TRIM(BOTH '"' FROM IFNULL(JSON_EXTRACT(current_item, '$.replaceCode'), ''));
+                SELECT IFNULL(MAX(CAST(item_id AS DECIMAL)), 0) + 1 INTO next_item_id FROM enum_items;
+                SET @code = REPLACE(TRIM(BOTH '"' FROM IFNULL(JSON_EXTRACT(current_item, '$.code'), '')), '\'', '\'\'');
+                SET @label = REPLACE(TRIM(BOTH '"' FROM IFNULL(JSON_EXTRACT(current_item, '$.label'), '')), '\'', '\'\'');
+                SET @parent_code = REPLACE(TRIM(BOTH '"' FROM IFNULL(JSON_EXTRACT(current_item, '$.parentCode'), '')), '\'', '\'\'');
+                SET @replace_code = REPLACE(TRIM(BOTH '"' FROM IFNULL(JSON_EXTRACT(current_item, '$.replaceCode'), '')), '\'', '\'\'');
 
                 SET @sql_insert = CONCAT(
                         'INSERT INTO enum_items(item_id, code, label, parent_code, replace_code, enum_id, tenant_id) VALUES (\'',
