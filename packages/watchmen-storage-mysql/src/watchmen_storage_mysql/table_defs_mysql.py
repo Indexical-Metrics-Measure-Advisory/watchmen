@@ -87,7 +87,7 @@ table_enums = Table(
 table_enum_items = Table(
 	'enum_items', meta_data,
 	create_pk('item_id'),
-	create_str('code', 50, False), create_str('label', 100),
+	create_str('code', 50, False), create_str('label', 255),
 	create_str('parent_code', 50), create_str('replace_code', 50),
 	create_tuple_id_column('enum_id'),
 	create_tenant_id()
