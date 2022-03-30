@@ -167,9 +167,14 @@ class TrinoStorage(TrinoStorageSPI):
 
 					join_operator = 'LEFT JOIN' if outer_join else 'INNER JOIN'
 					if built is None:
-						built = f'{primary_schema.get_entity_name()} AS {primary_schema.get_alias()} {join_operator} {secondary_schema.get_entity_name()} AS {secondary_schema.get_alias()} ON {on} '
+						built = \
+							f'{primary_schema.get_entity_name()} AS {primary_schema.get_alias()} ' \
+							f'{join_operator} ' \
+							f'{secondary_schema.get_entity_name()} AS {secondary_schema.get_alias()} ON {on} '
 					else:
-						built = f' {join_operator} {secondary_schema.get_entity_name()} AS {secondary_schema.get_alias()} ON {on}'
+						built = \
+							f' {join_operator} ' \
+							f'{secondary_schema.get_entity_name()} AS {secondary_schema.get_alias()} ON {on}'
 					# append into used
 					if secondary_schema not in schemas:
 						schemas.append(secondary_schema)

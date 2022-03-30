@@ -1,5 +1,5 @@
 import {Parameter, VariablePredefineFunctions} from '@/services/data/tuples/factor-calculator-types';
-import {isDateDiffConstant} from '@/services/data/tuples/factor-calculator-utils';
+import {isDateDiffConstant, isDateFormatConstant} from '@/services/data/tuples/factor-calculator-utils';
 import {isComputedParameter, isConstantParameter, isTopicFactorParameter} from '@/services/data/tuples/parameter-utils';
 import {
 	isDeleteTopicAction,
@@ -64,9 +64,13 @@ const computeParameterFrom = (parameter: Parameter, variables: { [key in string]
 				if (dateDiff.is) {
 					const params = dateDiff.parsed?.params;
 					return (params || []).map(param => tryToComputeToVariable(param, variables));
-				} else {
-					return tryToComputeToVariable(name, variables);
 				}
+				const dateFormat = isDateFormatConstant(name);
+				if (dateFormat.is) {
+					const params = dateDiff.parsed?.params;
+					return (params || []).map(param => tryToComputeToVariable(param, variables));
+				}
+				return tryToComputeToVariable(name, variables);
 			} else {
 				return null;
 			}
