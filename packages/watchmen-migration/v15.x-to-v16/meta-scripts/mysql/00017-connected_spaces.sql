@@ -55,11 +55,11 @@ BEGIN
                 SET @subject_id = TRIM(BOTH '"' FROM current_item);
 
                 SET @sql_update = CONCAT(
-                        'UPDATE reports SET connect_id = \'', v_connect_id, ', user_id = \'', v_user_id, '\' WHERE subject_id = \'', @subject_id, '\'');
+                        'UPDATE reports SET connect_id = \'', v_connect_id, '\', user_id = \'', v_user_id, '\' WHERE subject_id = \'', @subject_id, '\'');
                 PREPARE a_sql FROM @sql_update;
                 EXECUTE a_sql;
                 SET @sql_update = CONCAT(
-                        'UPDATE subjects SET connect_id = \'', v_connect_id, ', user_id = \'', v_user_id,  '\' WHERE subject_id = \'', @subject_id, '\'');
+                        'UPDATE subjects SET connect_id = \'', v_connect_id, '\', user_id = \'', v_user_id,  '\' WHERE subject_id = \'', @subject_id, '\'');
                 PREPARE a_sql FROM @sql_update;
                 EXECUTE a_sql;
                 COMMIT;
