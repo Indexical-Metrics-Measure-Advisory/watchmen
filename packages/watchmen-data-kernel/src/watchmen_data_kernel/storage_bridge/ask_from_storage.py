@@ -18,7 +18,8 @@ from watchmen_model.common import ComputedParameter, ConstantParameter, FactorId
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteriaExpression, \
 	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, Literal
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_date, is_decimal, is_time
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_date, is_decimal, is_time, \
+	translate_date_format_to_memory
 from .ask_from_memory import assert_parameter_count, create_ask_factor_value, parse_parameter_in_memory
 from .topic_utils import ask_topic_data_entity_helper
 from .utils import always_none, compute_date_diff, create_from_previous_trigger_data, \
@@ -266,6 +267,55 @@ class ParsedStorageTopicFactorParameter(ParsedStorageParameter):
 		return self.askValue(variables, principal_service)
 
 
+def parse_date(
+		name: str, variables: PipelineVariables,
+		available_schemas: List[TopicSchema], allow_in_memory_variables: bool,
+		principal_service: PrincipalService
+) -> Tuple[bool, Union[date, ParsedStorageParameter]]:
+	if name.startswith('&'):
+		# not from variables
+		available_name = name[1:]
+	elif allow_in_memory_variables:
+		# try to get from memory variables
+		parsed, value, parsed_date = get_date_from_variables(variables, principal_service, name)
+		if not parsed:
+			raise DataKernelException(f'Value[{value}] cannot be parsed to date or datetime.')
+		return True, parsed_date
+	else:
+		# still not from variables
+		available_name = name
+
+	if allow_in_memory_variables:
+		# in pipeline "find by" use factor name. factor must find in given available schemas.
+		# actually, the only one is the source topic of find by itself
+		if len(available_schemas) == 0:
+			raise DataKernelException(
+				f'Variable name[{name}] is not supported, since no available topic given.')
+		topic = available_schemas[0].get_topic()
+		factor_name = available_name
+	else:
+		# in console subject use topic.factor. topic must in given available schemas
+		if '.' not in available_name:
+			raise DataKernelException(f'Variable name[{name}] is not supported.')
+		names = available_name.split('.')
+		if len(names) != 2:
+			raise DataKernelException(f'Variable name[{name}] is not supported.')
+		topic_name = names[0]
+		factor_name = names[1]
+		topic = ArrayHelper(available_schemas).map(lambda x: x.get_topic()).find(
+			lambda x: x.name == topic_name)
+		if topic is None:
+			raise DataKernelException(f'Topic[{topic_name}] not found in given available topics.')
+	factor: Optional[Factor] = ArrayHelper(available_schemas[0].get_topic().factors) \
+		.find(lambda x: x.name == factor_name)
+	if factor is None:
+		raise DataKernelException(
+			f'Factor[{factor_name}] in topic[id={topic.topicId}, name={topic.name}] not found.')
+	return False, ParsedStorageTopicFactorParameter(
+		TopicFactorParameter(kind=ParameterKind.TOPIC, topicId=topic.topicId, factorId=factor.factorId),
+		available_schemas, principal_service, allow_in_memory_variables)
+
+
 # noinspection DuplicatedCode
 def create_date_diff(
 		prefix: str, variable_name: str, function: VariablePredefineFunctions,
@@ -284,73 +334,72 @@ def create_date_diff(
 
 		return action
 	else:
-		def parse_date(
-				name: str, variables: PipelineVariables, principal_service: PrincipalService
-		) -> Tuple[bool, Union[date, ParsedStorageParameter]]:
-			if name.startswith('&'):
-				# not from variables
-				available_name = name[1:]
-			elif allow_in_memory_variables:
-				# try to get from memory variables
-				parsed, value, parsed_date = get_date_from_variables(variables, principal_service, name)
-				if not parsed:
-					raise DataKernelException(f'Value[{value}] cannot be parsed to date or datetime.')
-				return True, parsed_date
+		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+			if end_parsed:
+				e_parsed = True
+				e_date = end_date
 			else:
-				# still not from variables
-				available_name = name
-
-			if allow_in_memory_variables:
-				# in pipeline "find by" use factor name. factor must find in given available schemas.
-				# actually, the only one is the source topic of find by itself
-				if len(available_schemas) == 0:
-					raise DataKernelException(
-						f'Variable name[{name}] is not supported, since no available topic given.')
-				topic = available_schemas[0].get_topic()
-				factor_name = available_name
+				e_parsed, e_date = parse_date(
+					end_variable_name, variables, available_schemas, allow_in_memory_variables, principal_service)
+			if start_parsed:
+				s_parsed = True,
+				s_date = start_date
 			else:
-				# in console subject use topic.factor. topic must in given available schemas
-				if '.' not in available_name:
-					raise DataKernelException(f'Variable name[{name}] is not supported.')
-				names = available_name.split('.')
-				if len(names) != 2:
-					raise DataKernelException(f'Variable name[{name}] is not supported.')
-				topic_name = names[0]
-				factor_name = names[1]
-				topic = ArrayHelper(available_schemas).map(lambda x: x.get_topic()).find(
-					lambda x: x.name == topic_name)
-				if topic is None:
-					raise DataKernelException(f'Topic[{topic_name}] not found in given available topics.')
-			factor: Optional[Factor] = ArrayHelper(available_schemas[0].get_topic().factors) \
-				.find(lambda x: x.name == factor_name)
-			if factor is None:
-				raise DataKernelException(
-					f'Factor[{factor_name}] in topic[id={topic.topicId}, name={topic.name}] not found.')
-			return False, ParsedStorageTopicFactorParameter(
-				TopicFactorParameter(kind=ParameterKind.TOPIC, topicId=topic.topicId, factorId=factor.factorId),
-				available_schemas, principal_service, allow_in_memory_variables)
-
-	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
-		e_parsed, e_date = (True, end_date) if end_parsed \
-			else parse_date(end_variable_name, variables, principal_service)
-		s_parsed, s_date = (True, start_date) if start_parsed \
-			else parse_date(start_variable_name, variables, principal_service)
-		if e_parsed and s_parsed:
-			diff = compute_date_diff(function, e_date, s_date, variable_name)
-			return diff if len(prefix) == 0 else f'{prefix}{diff}'
-		else:
-			if function == VariablePredefineFunctions.YEAR_DIFF:
-				operator = ComputedLiteralOperator.YEAR_DIFF
-			elif function == VariablePredefineFunctions.MONTH_DIFF:
-				operator = ComputedLiteralOperator.MONTH_DIFF
-			elif function == VariablePredefineFunctions.DAY_DIFF:
-				operator = ComputedLiteralOperator.DAY_DIFF
+				s_parsed, s_date = parse_date(
+					start_variable_name, variables, available_schemas, allow_in_memory_variables, principal_service)
+			if e_parsed and s_parsed:
+				diff = compute_date_diff(function, e_date, s_date, variable_name)
+				return diff if len(prefix) == 0 else f'{prefix}{diff}'
 			else:
-				raise DataKernelException(f'Variable name[{variable_name}] is not supported.')
-			func = create_ask_value_for_computed(operator, [e_date, s_date])
-			return func(variables, principal_service)
+				if function == VariablePredefineFunctions.YEAR_DIFF:
+					operator = ComputedLiteralOperator.YEAR_DIFF
+				elif function == VariablePredefineFunctions.MONTH_DIFF:
+					operator = ComputedLiteralOperator.MONTH_DIFF
+				elif function == VariablePredefineFunctions.DAY_DIFF:
+					operator = ComputedLiteralOperator.DAY_DIFF
+				else:
+					raise DataKernelException(f'Variable name[{variable_name}] is not supported.')
+				func = create_ask_value_for_computed(operator, [e_date, s_date])
+				return func(variables, principal_service)
 
-	return action
+		return action
+
+
+def create_date_format(
+		prefix: str, variable_name: str,
+		available_schemas: List[TopicSchema], allow_in_memory_variables: bool
+) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	parsed_params = parse_function_in_variable(variable_name, VariablePredefineFunctions.DATE_FORMAT.value, 2)
+	end_variable_name = parsed_params[0]
+	date_format = parsed_params[1]
+	if is_blank(date_format):
+		raise DataKernelException(f'Date format[{date_format}] cannot be recognized.')
+	end_parsed, end_date = test_date(end_variable_name)
+	if end_parsed:
+		# noinspection PyUnusedLocal,DuplicatedCode
+		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+			translated_date_format = translate_date_format_to_memory(date_format)
+			formatted = end_date.strftime(translated_date_format)
+			return formatted if len(prefix) == 0 else f'{prefix}{formatted}'
+
+		return action
+	else:
+		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+			if end_parsed:
+				e_parsed = True
+				e_date = end_date
+			else:
+				e_parsed, e_date = parse_date(
+					end_variable_name, variables, available_schemas, allow_in_memory_variables, principal_service)
+			if e_parsed:
+				translated_date_format = translate_date_format_to_memory(date_format)
+				formatted = end_date.strftime(translated_date_format)
+				return formatted if len(prefix) == 0 else f'{prefix}{formatted}'
+			else:
+				func = create_ask_value_for_computed(ComputedLiteralOperator.FORMAT_DATE, [e_date, date_format])
+				return func(variables, principal_service)
+
+		return action
 
 
 # noinspection DuplicatedCode
@@ -388,6 +437,10 @@ def create_run_constant_segment(
 				prefix, variable_name,
 				VariablePredefineFunctions.DAY_DIFF, available_schemas, allow_in_memory_variables), \
 			[PossibleParameterType.STRING if has_prefix else PossibleParameterType.NUMBER]
+	elif variable_name.startswith(VariablePredefineFunctions.DATE_FORMAT.value):
+		return \
+			create_date_format(prefix, variable_name, available_schemas, allow_in_memory_variables), \
+			[PossibleParameterType.STRING]
 
 	if allow_in_memory_variables:
 		if variable_name.startswith(VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA.value):

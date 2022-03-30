@@ -264,6 +264,26 @@ def try_to_date(value: Any, formats: List[str], allow_timestamp: bool = False) -
 	return None
 
 
+DATE_FORMAT_MAPPING = {
+	'Y': '%Y',  # 4 digits year
+	'y': '%y',  # 2 digits year
+	'M': '%m',  # 2 digits month
+	'D': '%d',  # 2 digits day of month
+	'h': '%H',  # 2 digits hour
+	'm': '%M',  # 2 digits minute
+	's': '%S',  # 2 digits second
+	'W': '%A',  # Monday - Sunday
+	'w': '%a',  # Mon - Sun
+	'B': '%B',  # January - December
+	'b': '%b'  # Jan - Dec
+}
+
+
+def translate_date_format_to_memory(date_format: str) -> str:
+	return ArrayHelper(list(DATE_FORMAT_MAPPING)) \
+		.reduce(lambda original, x: original.replace(x, DATE_FORMAT_MAPPING[x]), date_format)
+
+
 class DateTimeConstants(int, Enum):
 	"""
 	Week starts from Sunday
