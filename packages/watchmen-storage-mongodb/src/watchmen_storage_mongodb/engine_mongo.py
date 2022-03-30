@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from bson import ObjectId
 from pymongo import MongoClient
@@ -9,7 +9,7 @@ from pymongo.database import Database
 from pymongo.results import DeleteResult, UpdateResult
 
 from .codes_options import ask_codec_options
-from .document_mongo import MongoDocument
+from .document_mongo import DOCUMENT_OBJECT_ID, MongoDocument
 
 
 class MongoConnection:
@@ -45,19 +45,59 @@ class MongoConnection:
 		self.collection(document.name).insert_many(data)
 
 	def update_by_id(self, document: MongoDocument, data: Dict[str, Any], object_id: str) -> UpdateResult:
-		return self.collection(document.name).update_many({'id_': ObjectId(object_id)}, {'$set': data})
+		return self.collection(document.name).update_many({DOCUMENT_OBJECT_ID: ObjectId(object_id)}, {'$set': data})
+
+	def update_many(self, document: MongoDocument, data: Dict[str, Any], criteria: Dict[str, Any]) -> UpdateResult:
+		return self.collection(document.name).update_many(
+			filter={'$expr': criteria},
+			update=data,
+			upsert=False
+		)
 
 	def delete_by_id(self, document: MongoDocument, object_id: str) -> DeleteResult:
-		return self.delete_many(document, {'_id': ObjectId(object_id)})
+		return self.collection(document.name).delete_many({DOCUMENT_OBJECT_ID: ObjectId(object_id)})
 
 	def delete_many(self, document: MongoDocument, criteria: Dict[str, Any]) -> DeleteResult:
-		return self.collection(document.name).delete_many(criteria)
+		return self.collection(document.name).delete_many({'$expr': criteria})
 
 	def find_by_id(self, document: MongoDocument, object_id: str) -> Dict[str, Any]:
-		return self.collection(document.name).find_one({'_id': ObjectId(object_id)}, codec_options=ask_codec_options())
+		return self.collection(document.name) \
+			.find_one({DOCUMENT_OBJECT_ID: ObjectId(object_id)}, codec_options=ask_codec_options())
+
+	def find(self, document: MongoDocument, criteria: Dict[str, Any], sort: Optional[Dict[str, Any]] = None):
+		if sort is None:
+			return self.collection(document.name).find(filter={'$expr': criteria}, codec_options=ask_codec_options())
+		else:
+			return self.collection(document.name) \
+				.find(filter={'$expr': criteria}, sort=sort, codec_options=ask_codec_options())
+
+	def find_with_project(
+			self, document: MongoDocument, project: Dict[str, Any],
+			criteria: Dict[str, Any], sort: Optional[Dict[str, Any]] = None):
+		if sort is None:
+			return self.collection(document.name).aggregate(pipeline=[
+				{'$match': {'$expr': criteria}},
+				{'$project': project}
+			], codec_options=ask_codec_options())
+		else:
+			return self.collection(document.name).aggregate(pipeline=[
+				{'$match': {'$expr': criteria}},
+				{'$project': project},
+				{'$sort': sort}
+			], codec_options=ask_codec_options())
 
 	def find_all(self, document: MongoDocument) -> List[Dict[str, Any]]:
-		return self.collection(document.name).find({})
+		return self.collection(document.name).find({}, codec_options=ask_codec_options())
+
+	def find_distinct(self, document: MongoDocument, column_name: str, criteria: Dict[str, Any]):
+		results = self.collection(document.name).aggregate(pipeline=[
+			{'$match': {'$expr': criteria}},
+			{'$group': {DOCUMENT_OBJECT_ID: f'${column_name}'}}
+		], codec_options=ask_codec_options())
+		for item in results:
+			item[column_name] = item[DOCUMENT_OBJECT_ID]
+			del item[DOCUMENT_OBJECT_ID]
+		return results
 
 
 class MongoEngine:

@@ -9,13 +9,10 @@ from watchmen_meta.console import ConnectedSpaceService
 from watchmen_meta.system import DataSourceService
 from watchmen_model.admin import Factor, FactorType, Space, Topic, TopicKind, TopicType, User, UserRole
 from watchmen_model.common import ComputedParameter, ConstantParameter, Pageable, ParameterComputeType, \
-	ParameterExpression, ParameterExpressionOperator, ParameterJoint, \
-	ParameterJointType, ParameterKind, \
+	ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, ParameterKind, \
 	TopicFactorParameter
-from watchmen_model.console import ConnectedSpace, Report, ReportDimension, ReportIndicator, ReportIndicatorArithmetic, \
-	Subject, \
-	SubjectDataset, \
-	SubjectDatasetColumn
+from watchmen_model.console import ConnectedSpace, Report, ReportDimension, ReportIndicator, \
+	ReportIndicatorArithmetic, Subject, SubjectDataset, SubjectDatasetColumn
 from watchmen_model.console.subject import SubjectColumnArithmetic
 from watchmen_model.system import DataSource, DataSourceType
 
