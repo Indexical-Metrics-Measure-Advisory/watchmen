@@ -35,6 +35,7 @@ class MongoDataSourceHelper(DataSourceHelper):
 				params
 			)
 
+	# noinspection PyUnusedLocal
 	@staticmethod
 	def acquire_engine_by_url(url: str, params: MongoDataSourceParams) -> MongoEngine:
 		return MongoEngine(url)

@@ -5,15 +5,15 @@ from watchmen_model.admin import Topic
 from watchmen_model.common import DataPage
 from watchmen_storage import as_table_name, Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, \
 	EntityHelper, EntityId, EntityIdHelper, EntityList, EntityNotFoundException, EntityPager, \
-	EntityStraightValuesFinder, EntityUpdater, \
-	FreeAggregatePager, FreeAggregator, FreeFinder, FreePager, TooManyEntitiesFoundException, TopicDataStorageSPI, \
-	TransactionalStorageSPI, UnexpectedStorageException
+	EntityStraightValuesFinder, EntityUpdater, FreeAggregatePager, FreeAggregator, FreeFinder, FreePager, \
+	TooManyEntitiesFoundException, TopicDataStorageSPI, TransactionalStorageSPI, UnexpectedStorageException
 from watchmen_utilities import ArrayHelper
 from .document_defs_mongo import find_document, register_document
 from .document_mongo import DOCUMENT_OBJECT_ID, MongoDocument
 from .engine_mongo import MongoConnection, MongoEngine
+from .sort_build import build_sort_for_statement
+from .where_build import build_criteria_for_statement
 
-# noinspection DuplicatedCode
 logger = getLogger(__name__)
 
 
@@ -137,12 +137,26 @@ class StorageMongoDB(TransactionalStorageSPI):
 			raise TooManyEntitiesFoundException(f'Too many entities found by updater[{updater}].')
 
 	def update(self, updater: EntityUpdater) -> int:
-		# TODO
-		pass
+		document = self.find_document(updater.name)
+		where = build_criteria_for_statement([document], updater.criteria)
+		return self.connection.update_many(document, updater.update, where).modified_count
 
+	# noinspection DuplicatedCode
 	def update_and_pull(self, updater: EntityUpdater) -> EntityList:
-		# TODO
-		pass
+		entity_list = self.find(EntityFinder(
+			name=updater.name,
+			shaper=updater.shaper,
+			criteria=updater.criteria
+		))
+		found_count = len(entity_list)
+		if found_count == 0:
+			# not found, no need to update
+			return []
+		else:
+			updated_count = self.update(updater)
+			if updated_count != found_count:
+				logger.warning(f'Update count[{updated_count}] does not match pull count[{found_count}].')
+			return entity_list
 
 	def delete_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> int:
 		document = self.find_document(helper.name)
@@ -158,20 +172,74 @@ class StorageMongoDB(TransactionalStorageSPI):
 			return entity
 
 	def delete_only(self, deleter: EntityDeleter) -> int:
-		# TODO
-		pass
+		document = self.find_document(deleter.name)
+		entities = self.find_distinct_values(EntityDistinctValuesFinder(
+			name=deleter.name,
+			shaper=deleter.shaper,
+			criteria=deleter.criteria,
+			distinctColumnNames=[DOCUMENT_OBJECT_ID],
+			distinctValueOnSingleColumn=False
+		))
+
+		should_delete_count = len(entities)
+		if should_delete_count == 0:
+			raise EntityNotFoundException(f'Entity not found by deleter[{deleter}].')
+		elif should_delete_count == 1:
+			deleted_count = self.connection.delete_by_id(document, str(entities[0][DOCUMENT_OBJECT_ID])).deleted_count
+			if deleted_count == 0:
+				raise EntityNotFoundException(f'Entity not found by deleter[{deleter}].')
+			return deleted_count
+		else:
+			raise TooManyEntitiesFoundException(f'Too many entities found by deleter[{deleter}].')
 
 	def delete_only_and_pull(self, deleter: EntityDeleter) -> Optional[Entity]:
-		# TODO
-		pass
+		document = self.find_document(deleter.name)
+		entities = self.find_distinct_values(EntityDistinctValuesFinder(
+			name=deleter.name,
+			shaper=deleter.shaper,
+			criteria=deleter.criteria,
+			distinctColumnNames=[DOCUMENT_OBJECT_ID],
+			distinctValueOnSingleColumn=False
+		))
+
+		should_delete_count = len(entities)
+		if should_delete_count == 0:
+			return None
+		elif should_delete_count == 1:
+			object_id = str(entities[0][DOCUMENT_OBJECT_ID])
+			entity = self.connection.find_by_id(document, object_id)
+			if entity is not None:
+				deleted_count = self.connection.delete_by_id(document, object_id).deleted_count
+				if deleted_count == 0:
+					# might be removed by another session
+					return None
+				return deleter.shaper.deserialize(self.remove_object_id(entity))
+			else:
+				# might be removed by another session
+				return None
+		else:
+			raise TooManyEntitiesFoundException(f'Too many entities found by deleter[{deleter}].')
 
 	def delete(self, deleter: EntityDeleter) -> int:
-		# TODO
-		pass
+		document = self.find_document(deleter.name)
+		where = build_criteria_for_statement([document], deleter.criteria)
+		return self.connection.delete_many(document, where).deleted_count
 
+	# noinspection DuplicatedCode
 	def delete_and_pull(self, deleter: EntityDeleter) -> EntityList:
-		# TODO
-		pass
+		entity_list = self.find(EntityFinder(
+			name=deleter.name,
+			shaper=deleter.shaper,
+			criteria=deleter.criteria
+		))
+		found_count = len(entity_list)
+		if found_count == 0:
+			return []
+		else:
+			deleted_count = self.delete(deleter)
+			if deleted_count != found_count:
+				logger.warning(f'Delete count[{deleted_count}] does not match pull count[{found_count}].')
+			return entity_list
 
 	# noinspection PyMethodMayBeStatic
 	def remove_object_id(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -203,12 +271,35 @@ class StorageMongoDB(TransactionalStorageSPI):
 			raise TooManyEntitiesFoundException(f'Too many entities found by finder[{finder}].')
 
 	def find(self, finder: EntityFinder) -> EntityList:
-		# TODO
-		pass
+		document = self.find_document(finder.name)
+		where = build_criteria_for_statement([document], finder.criteria)
+		sort = build_sort_for_statement(finder.sort)
+		results = self.connection.find(document, where, sort)
+		return ArrayHelper(results) \
+			.map(lambda x: dict(x)) \
+			.map(lambda x: self.remove_object_id(x)) \
+			.map(finder.shaper.deserialize) \
+			.to_list()
 
 	def find_distinct_values(self, finder: EntityDistinctValuesFinder) -> EntityList:
-		# TODO
-		pass
+		document = self.find_document(finder.name)
+		where = build_criteria_for_statement([document], finder.criteria)
+		if len(finder.distinctColumnNames) != 1 or not finder.distinctValueOnSingleColumn:
+			def add_column(columns: Dict[str, int], column_name: str) -> Dict[str, int]:
+				columns[column_name] = 1
+				return columns
+
+			project = ArrayHelper(finder.distinctColumnNames).reduce(add_column, {})
+			sort = build_sort_for_statement(finder.sort)
+			results = self.connection.find_with_project(document, project, where, sort)
+		else:
+			results = self.connection.find_distinct(document, finder.distinctColumnNames[0], where)
+			
+		return ArrayHelper(results) \
+			.map(lambda x: dict(x)) \
+			.map(lambda x: self.remove_object_id(x)) \
+			.map(finder.shaper.deserialize) \
+			.to_list()
 
 	def find_straight_values(self, finder: EntityStraightValuesFinder) -> EntityList:
 		# TODO
