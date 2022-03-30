@@ -24,7 +24,7 @@ CREATE INDEX tenant_id ON enums (tenant_id);
 CREATE TABLE enum_items (
     item_id      VARCHAR2(50) NOT NULL,
     code         VARCHAR2(50) NOT NULL,
-    label        VARCHAR2(100),
+    label        VARCHAR2(255),
     parent_code  VARCHAR2(50),
     replace_code VARCHAR2(50),
     enum_id      VARCHAR2(50),
@@ -49,11 +49,11 @@ BEGIN
         FOR item_index IN 0 .. enum_items.GET_SIZE() - 1 LOOP
             current_item := TREAT(enum_items.GET(item_index) AS JSON_OBJECT_T);
 
-            SELECT NVL(MAX(item_id), 0) + 1 INTO next_item_id FROM enum_items;
-            item_code := TRIM(BOTH '"' FROM NVL(current_item.GET_STRING('code'), ''));
-            item_label := TRIM(BOTH '"' FROM NVL(current_item.GET_STRING('label'), ''));
-            item_parent_code := TRIM(BOTH '"' FROM NVL(current_item.GET_STRING('parentCode'), ''));
-            item_replace_code := TRIM(BOTH '"' FROM NVL(current_item.GET_STRING('replaceCode'), ''));
+            SELECT NVL(MAX(TO_NUMBER(item_id)), 0) + 1 INTO next_item_id FROM enum_items;
+            item_code := REPLACE(TRIM(BOTH '"' FROM NVL(current_item.GET_STRING('code'), '')), '''', '''''');
+            item_label := REPLACE(TRIM(BOTH '"' FROM NVL(current_item.GET_STRING('label'), '')), '''', '''''');
+            item_parent_code := REPLACE(TRIM(BOTH '"' FROM NVL(current_item.GET_STRING('parentCode'), '')), '''', '''''');
+            item_replace_code := REPLACE(TRIM(BOTH '"' FROM NVL(current_item.GET_STRING('replaceCode'), '')), '''', '''''');
 
             EXECUTE IMMEDIATE 'INSERT INTO enum_items(item_id, code, label, parent_code, replace_code, enum_id, tenant_id) VALUES (''' ||
                     next_item_id || ''', ''' || item_code || ''', ''' || item_label || ''', ''' || item_parent_code || ''', ''' ||

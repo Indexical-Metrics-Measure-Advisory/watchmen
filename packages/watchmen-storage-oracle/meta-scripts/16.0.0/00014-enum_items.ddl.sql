@@ -2,7 +2,7 @@ CREATE TABLE enum_items
 (
     item_id      VARCHAR2(50) NOT NULL,
     code         VARCHAR2(50) NOT NULL,
-    label        VARCHAR2(100),
+    label        VARCHAR2(255),
     parent_code  VARCHAR2(50),
     replace_code VARCHAR2(50),
     enum_id      VARCHAR2(50),
