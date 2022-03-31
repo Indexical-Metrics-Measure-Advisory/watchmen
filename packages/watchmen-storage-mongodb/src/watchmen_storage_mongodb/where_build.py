@@ -99,24 +99,25 @@ def build_literal(
 				'$add': ArrayHelper(literal.elements).map(lambda x: build_literal(documents, x, to_decimal)).to_list()
 			}
 		elif operator == ComputedLiteralOperator.SUBTRACT:
-			return {
-				'$subtract': ArrayHelper(literal.elements).map(
-					lambda x: build_literal(documents, x, to_decimal)).to_list()
-			}
+			first = build_literal(documents, literal.elements[0], to_decimal)
+			return ArrayHelper(literal.elements[1:]) \
+				.map(lambda x: build_literal(documents, x, to_decimal)) \
+				.reduce(lambda prev, x: {'$subtract': [prev, x]}, first)
 		elif operator == ComputedLiteralOperator.MULTIPLY:
 			return {
 				'$multiply': ArrayHelper(literal.elements).map(
 					lambda x: build_literal(documents, x, to_decimal)).to_list()
 			}
 		elif operator == ComputedLiteralOperator.DIVIDE:
-			return {
-				'$divide': ArrayHelper(literal.elements).map(
-					lambda x: build_literal(documents, x, to_decimal)).to_list()
-			}
+			first = build_literal(documents, literal.elements[0], to_decimal)
+			return ArrayHelper(literal.elements[1:]) \
+				.map(lambda x: build_literal(documents, x, to_decimal)) \
+				.reduce(lambda prev, x: {'$divide': [prev, x]}, first)
 		elif operator == ComputedLiteralOperator.MODULUS:
-			return {
-				'$mod': ArrayHelper(literal.elements).map(lambda x: build_literal(documents, x, to_decimal)).to_list()
-			}
+			first = build_literal(documents, literal.elements[0], to_decimal)
+			return ArrayHelper(literal.elements[1:]) \
+				.map(lambda x: build_literal(documents, x, to_decimal)) \
+				.reduce(lambda prev, x: {'$mod': [prev, x]}, first)
 		elif operator == ComputedLiteralOperator.YEAR_OF:
 			return {'$year': build_literal(documents, literal.elements[0])}
 		elif operator == ComputedLiteralOperator.HALF_YEAR_OF:
@@ -265,6 +266,7 @@ def build_literal(
 		elif operator == ComputedLiteralOperator.DAY_DIFF:
 			return built_date_diff(documents, literal, 'day')
 		elif operator == ComputedLiteralOperator.FORMAT_DATE:
+			# TODO incorrect, some specifiers are not supported by mongodb
 			return {
 				'$dateToString': {
 					'date': build_literal(documents, literal.elements[0]),
