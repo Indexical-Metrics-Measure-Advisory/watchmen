@@ -1,13 +1,17 @@
 from logging import getLogger
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from watchmen_model.admin import Topic
 from watchmen_model.common import DataPage
-from watchmen_storage import as_table_name, Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, \
+from watchmen_storage import as_table_name, Entity, EntityColumnAggregateArithmetic, EntityDeleter, \
+	EntityDistinctValuesFinder, EntityFinder, \
 	EntityHelper, EntityId, EntityIdHelper, EntityList, EntityNotFoundException, EntityPager, \
-	EntityStraightValuesFinder, EntityUpdater, FreeAggregatePager, FreeAggregator, FreeFinder, FreePager, \
-	TooManyEntitiesFoundException, TopicDataStorageSPI, TransactionalStorageSPI, UnexpectedStorageException
-from watchmen_utilities import ArrayHelper
+	EntityStraightAggregateColumn, EntityStraightColumn, EntityStraightValuesFinder, EntityUpdater, FreeAggregatePager, \
+	FreeAggregator, FreeFinder, \
+	FreePager, \
+	TooManyEntitiesFoundException, TopicDataStorageSPI, TransactionalStorageSPI, UnexpectedStorageException, \
+	UnsupportedStraightColumnException
+from watchmen_utilities import ArrayHelper, is_blank
 from .document_defs_mongo import find_document, register_document
 from .document_mongo import DOCUMENT_OBJECT_ID, MongoDocument
 from .engine_mongo import MongoConnection, MongoEngine
@@ -276,8 +280,7 @@ class StorageMongoDB(TransactionalStorageSPI):
 		sort = build_sort_for_statement(finder.sort)
 		results = self.connection.find(document, where, sort)
 		return ArrayHelper(results) \
-			.map(lambda x: dict(x)) \
-			.map(lambda x: self.remove_object_id(x)) \
+			.map(self.remove_object_id) \
 			.map(finder.shaper.deserialize) \
 			.to_list()
 
@@ -294,36 +297,162 @@ class StorageMongoDB(TransactionalStorageSPI):
 			results = self.connection.find_with_project(document, project, where, sort)
 		else:
 			results = self.connection.find_distinct(document, finder.distinctColumnNames[0], where)
-			
+
 		return ArrayHelper(results) \
-			.map(lambda x: dict(x)) \
-			.map(lambda x: self.remove_object_id(x)) \
+			.map(self.remove_object_id) \
 			.map(finder.shaper.deserialize) \
 			.to_list()
 
+	# noinspection PyMethodMayBeStatic
+	def build_straight_non_aggregate_columns(self, columns: List[EntityStraightColumn]) -> Dict[str, Any]:
+		def add_into_non_aggregate_column(
+				non_aggregate_columns: Dict[str, Any], column: EntityStraightColumn) -> Dict[str, Any]:
+			name = column.columnName
+			non_aggregate_columns[name] = f'${name}'
+			return non_aggregate_columns
+
+		return ArrayHelper(columns) \
+			.filter(lambda x: not isinstance(x, EntityStraightAggregateColumn)) \
+			.reduce(add_into_non_aggregate_column, {})
+
+	# noinspection PyMethodMayBeStatic
+	def build_straight_aggregate_columns(self, columns: List[EntityStraightColumn]) -> Dict[str, Any]:
+		def add_into_aggregate_column(
+				aggregate_columns: Dict[str, Any], column: EntityStraightAggregateColumn
+		) -> Dict[str, Any]:
+			name = column.columnName
+			arithmetic = column.arithmetic
+			if arithmetic == EntityColumnAggregateArithmetic.COUNT:
+				aggregate_columns[name] = {name: {'$sum': 1}}
+			elif arithmetic == EntityColumnAggregateArithmetic.SUM:
+				aggregate_columns[name] = {name: {'$sum': f'${name}'}}
+			elif arithmetic == EntityColumnAggregateArithmetic.AVG:
+				aggregate_columns[name] = {name: {'$avg': f'${name}'}}
+			elif arithmetic == EntityColumnAggregateArithmetic.MAX:
+				aggregate_columns[name] = {name: {'$max': f'${name}'}}
+			elif arithmetic == EntityColumnAggregateArithmetic.MIN:
+				aggregate_columns[name] = {name: {'$min': f'${name}'}}
+			else:
+				raise UnsupportedStraightColumnException(
+					f'Straight column[name={name}, arithmetic={arithmetic}] is not supported.')
+			return aggregate_columns
+
+		return ArrayHelper(columns) \
+			.filter(lambda x: isinstance(x, EntityStraightAggregateColumn)) \
+			.reduce(add_into_aggregate_column, {})
+
+	# noinspection PyMethodMayBeStatic
+	def get_alias_from_straight_column(self, straight_column: EntityStraightColumn) -> Any:
+		return straight_column.columnName if is_blank(straight_column.alias) else straight_column.alias
+
+	# noinspection PyMethodMayBeStatic
+	def build_straight_project_columns(
+			self, straight_columns: List[EntityStraightColumn],
+			non_aggregate_columns: Dict[str, Any], aggregate_columns: Dict[str, Any]) -> Dict[str, Any]:
+		def to_project_column(columns: Dict[str, Any], column: EntityStraightColumn) -> Dict[str, Any]:
+			alias = self.get_alias_from_straight_column(column)
+			name = column.columnName
+			if name in non_aggregate_columns:
+				columns[alias] = f'$_id.{name}'
+			elif name in aggregate_columns:
+				columns[alias] = f'${name}'
+			else:
+				raise UnsupportedStraightColumnException(f'Straight column[name={name}] is not supported.')
+			return columns
+
+		return ArrayHelper(straight_columns).reduce(to_project_column, {})
+
 	def find_straight_values(self, finder: EntityStraightValuesFinder) -> EntityList:
-		# TODO
-		pass
+		document = self.find_document(finder.name)
+		straight_columns = finder.straightColumns
+		aggregate_columns = self.build_straight_aggregate_columns(straight_columns)
+		if len(aggregate_columns) == 0:
+			def add_column(columns: Dict[str, int], column_name: str) -> Dict[str, int]:
+				columns[column_name] = 1
+				return columns
+
+			project = ArrayHelper(straight_columns).reduce(add_column, {})
+			where = build_criteria_for_statement([document], finder.criteria)
+			sort = build_sort_for_statement(finder.sort)
+			return self.connection.find_with_project(document, project, where, sort)
+		else:
+			non_aggregate_columns = self.build_straight_non_aggregate_columns(straight_columns)
+			group = {
+				DOCUMENT_OBJECT_ID: non_aggregate_columns,
+				**aggregate_columns
+			}
+			project = {
+				DOCUMENT_OBJECT_ID: 0,
+				**self.build_straight_project_columns(straight_columns, non_aggregate_columns, aggregate_columns)
+			}
+			where = build_criteria_for_statement([document], finder.criteria)
+			sort = build_sort_for_statement(finder.sort)
+			return self.connection.find_on_group(document, project, where, group, sort)
 
 	def find_all(self, helper: EntityHelper) -> EntityList:
 		document = self.find_document(helper.name)
 		entities = self.connection.find_all(document)
 		return ArrayHelper(entities) \
-			.map(lambda x: helper.shaper.deserialize(x)) \
-			.map(lambda x: self.remove_object_id(x)) \
+			.map(self.remove_object_id) \
+			.map(helper.shaper.deserialize) \
 			.to_list()
 
+	# noinspection PyMethodMayBeStatic
+	def create_empty_page(self, page_size: int) -> DataPage:
+		return DataPage(
+			data=[],
+			pageNumber=1,
+			pageSize=page_size,
+			itemCount=0,
+			pageCount=0
+		)
+
+	# noinspection PyMethodMayBeStatic
+	def compute_page(self, count: int, page_size: int, page_number: int) -> Tuple[int, int]:
+		"""
+		first: page number; second: max page number
+		"""
+		pages = count / page_size
+		max_page_number = int(pages)
+		if pages > max_page_number:
+			max_page_number += 1
+		if page_number > max_page_number:
+			page_number = max_page_number
+		return page_number, max_page_number
+
 	def page(self, pager: EntityPager) -> DataPage:
-		# TODO
-		pass
+		document = self.find_document(pager.name)
+		where = build_criteria_for_statement([document], pager.criteria)
+		page_size = pager.pageable.pageSize
+		count = self.connection.count(document, where)
+		if count == 0:
+			return self.create_empty_page(page_size)
+
+		page_number, max_page_number = self.compute_page(count, page_size, pager.pageable.pageNumber)
+		offset = page_size * (page_number - 1)
+		sort = build_sort_for_statement(pager.sort)
+		results = self.connection.page(document, where, offset, page_size, sort)
+		entities = ArrayHelper(results) \
+			.map(self.remove_object_id) \
+			.map(pager.shaper.deserialize) \
+			.to_list()
+		return DataPage(
+			data=entities,
+			pageNumber=page_number,
+			pageSize=page_size,
+			itemCount=count,
+			pageCount=max_page_number
+		)
 
 	def exists(self, finder: EntityFinder) -> bool:
-		# TODO
-		pass
+		document = self.find_document(finder.name)
+		where = build_criteria_for_statement([document], finder.criteria)
+		return self.connection.exists(document, where)
 
 	def count(self, finder: EntityFinder) -> int:
-		# TODO
-		pass
+		document = self.find_document(finder.name)
+		where = build_criteria_for_statement([document], finder.criteria)
+		return self.connection.count(document, where)
 
 
 class TopicDataStorageMongoDB(StorageMongoDB, TopicDataStorageSPI):

@@ -99,6 +99,52 @@ class MongoConnection:
 			del item[DOCUMENT_OBJECT_ID]
 		return results
 
+	def exists(self, document: MongoDocument, criteria: Dict[str, any]) -> bool:
+		return self.count(document, criteria) != 0
+
+	def count(self, document: MongoDocument, criteria: Dict[str, any]) -> int:
+		results = self.collection(document.name).aggregate([
+			{'$match': {'$expr': criteria}},
+			{'$count': 'count'}
+		])
+		return results[0]['count']
+
+	def find_on_group(
+			self, document: MongoDocument, project: Dict[str, Any],
+			criteria: Dict[str, Any], group: Dict[str, Any],
+			sort: Optional[Dict[str, Any]] = None):
+		if sort is None:
+			return self.collection(document.name).aggregate([
+				{'$match': {'$expr': criteria}},
+				{'$group': group},
+				{'$project': project}
+			], codec_options=ask_codec_options())
+		else:
+			return self.collection(document.name).aggregate([
+				{'$match': {'$expr': criteria}},
+				{'$group': group},
+				{'$project': project},
+				{'$sort': sort}
+			], codec_options=ask_codec_options())
+
+	def page(
+			self, document: MongoDocument, criteria: Dict[str, Any],
+			offset: int, limit: int,
+			sort: Optional[Dict[str, Any]] = None):
+		if sort is None:
+			return self.collection(document.name).aggregate([
+				{'$match': {'$expr': criteria}},
+				{'$skip': offset},
+				{'$limit': limit}
+			])
+		else:
+			return self.collection(document.name).aggregate([
+				{'$match': {'$expr': criteria}},
+				{'$sort': sort},
+				{'$skip': offset},
+				{'$limit': limit}
+			])
+
 
 class MongoEngine:
 	def __init__(self, url: str):
