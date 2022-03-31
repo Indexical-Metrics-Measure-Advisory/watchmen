@@ -4,11 +4,9 @@ from typing import Any, Dict, List, Optional, Tuple
 from watchmen_model.admin import Topic
 from watchmen_model.common import DataPage
 from watchmen_storage import as_table_name, Entity, EntityColumnAggregateArithmetic, EntityDeleter, \
-	EntityDistinctValuesFinder, EntityFinder, \
-	EntityHelper, EntityId, EntityIdHelper, EntityList, EntityNotFoundException, EntityPager, \
-	EntityStraightAggregateColumn, EntityStraightColumn, EntityStraightValuesFinder, EntityUpdater, FreeAggregatePager, \
-	FreeAggregator, FreeFinder, \
-	FreePager, \
+	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, EntityIdHelper, EntityList, \
+	EntityNotFoundException, EntityPager, EntityStraightAggregateColumn, EntityStraightColumn, \
+	EntityStraightValuesFinder, EntityUpdater, FreeAggregatePager, FreeAggregator, FreeFinder, FreePager, \
 	TooManyEntitiesFoundException, TopicDataStorageSPI, TransactionalStorageSPI, UnexpectedStorageException, \
 	UnsupportedStraightColumnException
 from watchmen_utilities import ArrayHelper, is_blank
@@ -485,17 +483,25 @@ class TopicDataStorageMongoDB(StorageMongoDB, TopicDataStorageSPI):
 		self.connection.drop_collection(document.name)
 
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
-		# TODO
-		pass
+		"""
+		not supported by mongo
+		"""
+		raise UnexpectedStorageException(f'Method[free_find] does not support by mongo storage.')
 
 	def free_page(self, pager: FreePager) -> DataPage:
-		# TODO
-		pass
+		"""
+		not supported by mongo
+		"""
+		raise UnexpectedStorageException(f'Method[free_page] does not support by mongo storage.')
 
 	def free_aggregate_find(self, aggregator: FreeAggregator) -> List[Dict[str, Any]]:
-		# TODO
-		pass
+		"""
+		not supported by mongo
+		"""
+		raise UnexpectedStorageException(f'Method[free_aggregate_find] does not support by mongo storage.')
 
 	def free_aggregate_page(self, pager: FreeAggregatePager) -> DataPage:
-		# TODO
-		pass
+		"""
+		not supported by mongo
+		"""
+		raise UnexpectedStorageException(f'Method[free_aggregate_page] does not support by mongo storage.')
