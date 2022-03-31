@@ -1,9 +1,9 @@
 from typing import Any, Dict, List, Optional, Union
 
-from watchmen_storage import EntityCriteria, EntityCriteriaExpression, EntityCriteriaJoint, \
-	EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, Literal, \
-	NoCriteriaForUpdateException, UnsupportedCriteriaException
-from watchmen_utilities import ArrayHelper
+from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteria, \
+	EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, \
+	EntityCriteriaStatement, Literal, NoCriteriaForUpdateException, UnsupportedCriteriaException
+from watchmen_utilities import ArrayHelper, is_not_blank
 from .document_mongo import MongoDocument
 
 
@@ -12,6 +12,7 @@ def build_literal(documents: List[MongoDocument], literal: Literal) -> Union[str
 	pass
 
 
+# noinspection DuplicatedCode
 def build_criteria_expression(documents: List[MongoDocument], expression: EntityCriteriaExpression) -> Dict[str, Any]:
 	op = expression.operator
 	if op == EntityCriteriaOperator.IS_EMPTY:
@@ -30,6 +31,48 @@ def build_criteria_expression(documents: List[MongoDocument], expression: Entity
 			{'$ne': [{'$ifNull': [built, 'not-exists']}, 'not-exists']},
 			{'$ne': [{'$strLenCP': {'$trim': {'input': built}}}, 0]}
 		]}
+
+	if op == EntityCriteriaOperator.IN or op == EntityCriteriaOperator.NOT_IN:
+		if isinstance(expression.right, ColumnNameLiteral):
+			raise UnsupportedCriteriaException('In or not-in criteria expression on another column is not supported.')
+		elif isinstance(expression.right, ComputedLiteral):
+			if expression.right.operator == ComputedLiteralOperator.CASE_THEN:
+				# TODO cannot know whether the built literal will returns a list or a value, let it be now.
+				built_right = build_literal(documents, expression.right)
+			else:
+				# any other computation will not lead a list
+				built_right = [build_literal(documents, expression.right)]
+		elif isinstance(expression.right, str):
+			built_right = ArrayHelper(expression.right.strip().split(',')).filter(lambda x: is_not_blank(x)).to_list()
+		else:
+			built_right = build_literal(documents, expression.right)
+			if not isinstance(built_right, list):
+				built_right = [built_right]
+		if op == EntityCriteriaOperator.IN:
+			return {'$in': [build_literal(documents, expression.left), built_right]}
+		elif op == EntityCriteriaOperator.NOT_IN:
+			return {'$not': {'$in': [build_literal(documents, expression.left), built_right]}}
+
+	built_left = build_literal(documents, expression.left)
+	built_right = build_literal(documents, expression.right)
+	if op == EntityCriteriaOperator.EQUALS:
+		return {'$eq': [built_left, built_right]}
+	elif op == EntityCriteriaOperator.NOT_EQUALS:
+		return {'$ne': [built_left, built_right]}
+	elif op == EntityCriteriaOperator.LESS_THAN:
+		return {'$lt': [built_left, built_right]}
+	elif op == EntityCriteriaOperator.LESS_THAN_OR_EQUALS:
+		return {'$lte': [built_left, built_right]}
+	elif op == EntityCriteriaOperator.GREATER_THAN:
+		return {'$gt': [built_left, built_right]}
+	elif op == EntityCriteriaOperator.GREATER_THAN_OR_EQUALS:
+		return {'$gte': [built_left, built_right]}
+	elif op == EntityCriteriaOperator.LIKE:
+		return {'$regexMatch': {'input': built_left, 'regexp': built_right}}
+	elif op == EntityCriteriaOperator.NOT_LIKE:
+		return {'$not': {'$regexMatch': {'input': built_left, 'regexp': built_right}}}
+	else:
+		raise UnsupportedCriteriaException(f'Unsupported criteria expression operator[{op}].')
 
 
 def build_criteria_joint(documents: List[MongoDocument], joint: EntityCriteriaJoint) -> Dict[str, any]:
