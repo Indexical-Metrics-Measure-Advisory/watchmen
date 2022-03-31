@@ -157,6 +157,11 @@ class IdentifiedStorableService(StorageService):
 			self.set_storable_id(storable, self.generate_storable_id())
 		return storable
 
+	def generate_storable_id_for_storable(self,storable: Storable)->Storable:
+		self.set_storable_id(storable, self.generate_storable_id())
+		return storable
+
+
 	# noinspection PyMethodMayBeStatic
 	def get_optimistic_column_name(self) -> str:
 		return 'version'
