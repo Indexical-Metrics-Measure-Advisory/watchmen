@@ -1,15 +1,294 @@
-from typing import Any, Dict, List, Optional, Union
+from datetime import date, datetime, time
+from decimal import Decimal
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteria, \
 	EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, \
-	EntityCriteriaStatement, Literal, NoCriteriaForUpdateException, UnsupportedCriteriaException
-from watchmen_utilities import ArrayHelper, is_not_blank
+	EntityCriteriaStatement, Literal, NoCriteriaForUpdateException, UnexpectedStorageException, \
+	UnsupportedComputationException, UnsupportedCriteriaException
+from watchmen_utilities import ArrayHelper, DateTimeConstants, is_decimal, is_not_blank
 from .document_mongo import MongoDocument
 
 
-def build_literal(documents: List[MongoDocument], literal: Literal) -> Union[str, Dict[str: Any]]:
-	# TODO
-	pass
+def to_decimal(value: Any) -> str:
+	if isinstance(value, (int, float, Decimal)):
+		return str(value)
+	elif isinstance(value, str):
+		parsed, decimal_value = is_decimal(value)
+		if not parsed:
+			raise UnexpectedStorageException(f'Given value[{value}] cannot be casted to a decimal.')
+		else:
+			return str(decimal_value)
+	else:
+		raise UnexpectedStorageException(f'Given value[{value}] cannot be casted to a decimal.')
+
+
+# noinspection DuplicatedCode
+DATE_FORMAT_MAPPING = {
+	'Y': '%Y',  # 4 digits year
+	'y': '%y',  # 2 digits year
+	'M': '%m',  # 2 digits month
+	'D': '%d',  # 2 digits day of month
+	'h': '%H',  # 2 digits hour, 00 - 23
+	'H': '%h',  # 2 digits hour, 01 - 12
+	'm': '%M',  # 2 digits minute
+	's': '%S',  # 2 digits second
+	'W': '%W',  # Monday - Sunday
+	'w': '%a',  # Mon - Sun
+	'B': '%M',  # January - December
+	'b': '%b',  # Jan - Dec
+	'p': '%p'  # AM/PM
+}
+
+
+def translate_date_format(date_format: str) -> str:
+	return ArrayHelper(list(DATE_FORMAT_MAPPING)) \
+		.reduce(lambda original, x: original.replace(x, DATE_FORMAT_MAPPING[x]), date_format)
+
+
+def built_date_diff(documents: List[MongoDocument], literal: Literal, unit: str) -> Dict[str, Any]:
+	return {
+		'$let': {
+			'vars': {
+				'original_start_date': build_literal(documents, literal.elements[1]),
+				'original_end_date': build_literal(documents, literal.elements[0])
+			},
+			'in': {
+				'$let': {
+					'vars': {
+						'start_parts': {'$dateToParts': {'date': '$$original_start_date'}},
+						'end_parts': {'$dateToParts': {'date': '$$original_end_date'}}
+					},
+					'in': {
+						'$let': {
+							'vars': {
+								'start_date': {'$dateFromParts': {
+									'year': '$$start_parts.year', 'month': '$$start_parts.month',
+									'day': '$$start_parts.day'
+								}},
+								'end_date': {'$dateFromParts': {
+									'year': '$$end_parts.year', 'month': '$$end_parts.month',
+									'day': '$$end_parts.day'
+								}}
+							},
+							'in': {
+								'$dateDiff': {
+									'startDate': '$$start_date',
+									'endDate': '$$end_date',
+									'unit': unit
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+
+def build_literal(
+		documents: List[MongoDocument], literal: Literal, build_plain_value: Callable[[Any], str] = None
+) -> Union[str, Dict[str: Any]]:
+	if isinstance(literal, ColumnNameLiteral):
+		# only one document is supported
+		return f'${literal.columnName}'
+	elif isinstance(literal, ComputedLiteral):
+		operator = literal.operator
+		if operator == ComputedLiteralOperator.ADD:
+			return {
+				'$add': ArrayHelper(literal.elements).map(lambda x: build_literal(documents, x, to_decimal)).to_list()
+			}
+		elif operator == ComputedLiteralOperator.SUBTRACT:
+			return {
+				'$subtract': ArrayHelper(literal.elements).map(
+					lambda x: build_literal(documents, x, to_decimal)).to_list()
+			}
+		elif operator == ComputedLiteralOperator.MULTIPLY:
+			return {
+				'$multiply': ArrayHelper(literal.elements).map(
+					lambda x: build_literal(documents, x, to_decimal)).to_list()
+			}
+		elif operator == ComputedLiteralOperator.DIVIDE:
+			return {
+				'$divide': ArrayHelper(literal.elements).map(
+					lambda x: build_literal(documents, x, to_decimal)).to_list()
+			}
+		elif operator == ComputedLiteralOperator.MODULUS:
+			return {
+				'$mod': ArrayHelper(literal.elements).map(lambda x: build_literal(documents, x, to_decimal)).to_list()
+			}
+		elif operator == ComputedLiteralOperator.YEAR_OF:
+			return {'$year': build_literal(documents, literal.elements[0])}
+		elif operator == ComputedLiteralOperator.HALF_YEAR_OF:
+			return {
+				'$cond': [
+					{'$lte': [{'$month': build_literal(documents, literal.elements[0])}, 6]},
+					DateTimeConstants.HALF_YEAR_FIRST.value, DateTimeConstants.HALF_YEAR_SECOND.value
+				]
+			}
+		elif operator == ComputedLiteralOperator.QUARTER_OF:
+			return {'$ceil': {'$divide': [{'$month': build_literal(documents, literal.elements[0])}, 3]}}
+		elif operator == ComputedLiteralOperator.MONTH_OF:
+			return {'$month': build_literal(documents, literal.elements[0])}
+		elif operator == ComputedLiteralOperator.WEEK_OF_YEAR:
+			# week of year in mongo is 0 - 53
+			return {'$week': build_literal(documents, literal.elements[0])}
+		elif operator == ComputedLiteralOperator.WEEK_OF_MONTH:
+			return {
+				'$let': {
+					# built literal, which is a date
+					'vars': {'current': build_literal(documents, literal.elements[0])},
+					'in': {
+						'$let': {
+							# parse to parts
+							'vars': {'parts': {'$dateToParts': {'date': '$$current'}}},
+							'in': {
+								'$let': {
+									# get first day of current date
+									'vars': {'first': {'$dateFromParts': {
+										'year': '$$parts.year', 'month': '$$parts.month', 'day': 1
+									}}},
+									'in': {
+										'$let': {
+											'vars': {
+												'current_week': {'$week': '$$current'},
+												'first_week': {'$week': '$$first'},
+												'first_weekday': {'$dayOfWeek': '$$first'}
+											},
+											'in': {
+												'$cond': [
+													{'$eq': ['$$first_weekday', 1]},
+													{'$add': [{'$subtract': ['$$current_week', '$$first_week']}, 1]},
+													{'$subtract': ['$$current_week', '$$first_week']}
+												]
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		elif operator == ComputedLiteralOperator.DAY_OF_MONTH:
+			return {'$dayOfMonth': build_literal(documents, literal.elements[0])}
+		elif operator == ComputedLiteralOperator.DAY_OF_WEEK:
+			# weekday in mongo is 1: Sunday - 7: Saturday
+			return {'$dayOfWeek': build_literal(documents, literal.elements[0])}
+		elif operator == ComputedLiteralOperator.CASE_THEN:
+			elements = literal.elements
+			cases = ArrayHelper(elements).filter(lambda x: isinstance(x, Tuple)) \
+				.map(lambda x: (build_criteria_statement(documents, x[0]), build_literal(documents, x[1]))) \
+				.map(lambda x: {'case': x[0], 'then': x[1]}) \
+				.to_list()
+			anyway = ArrayHelper(elements).find(lambda x: not isinstance(x, Tuple))
+			if anyway is None:
+				return {'$switch': {'branches': cases}}
+			else:
+				return {'$switch': {'branches': cases, 'default': build_literal(documents, anyway)}}
+		elif operator == ComputedLiteralOperator.CONCAT:
+			return {'$concat': ArrayHelper(literal.elements).map(lambda x: build_literal(documents, x)).to_list()}
+		elif operator == ComputedLiteralOperator.YEAR_DIFF:
+			return {
+				'$let': {
+					'vars': {
+						'start_date': {'$dateToParts': {'date': build_literal(documents, literal.elements[1])}},
+						'end_date': {'$dateToParts': {'date': build_literal(documents, literal.elements[0])}}
+					},
+					'in': {'$switch': {'branches': [
+						{'case': {'$eq': ['$$end_date.year', '$$start_date.year']}, 'then': 0},
+						{'case': {'$gt': ['$$end_date.year', '$$start_date.year']}, 'then': {
+							'$switch': {'branches': [
+								{'case': {'$eq': ['$$end_date.month', '$$start_date.month']}, 'then': {
+									'$switch': {'branches': [
+										{'case': {'$gt': ['$$end_date.day', '$$start_date.day']}, 'then': {
+											'$subtract': ['$$end_date.year', '$$start_date.year']
+										}},
+										{'case': {'$eq': ['$$end_date.month', 2]}, 'then': {
+											'$cond': [
+												{'$and': [
+													{'$eq': ['$$end_date.day', {'$cond': [
+														{'$and': [
+															{'$eq': [{'$mod': ['$$end_date.year', 4]}, 0]},
+															{'$ne': [{'$mod': ['$$end_date.year', 100]}, 0]},
+															{'$eq': [{'$mod': ['$$end_date.year', 400]}, 0]}
+														]}, 29, 28
+													]}]},
+													{'&gt': ['$$start_date.day', '$$end_date.day']}]},
+												{'$subtract': ['$$end_date.year', '$$start_date.year']},
+												{'$subtract': [
+													{'$subtract': ['$$end_date.year', '$$start_date.year']}, 1]}
+											]
+										}}
+									], 'default': {
+										'$subtract': [{'$subtract': ['$$end_date.year', '$$start_date.year']}, 1]}}
+								}},
+								{
+									'case': {'$gt': ['$$end_date.month', '$$start_date.month']},
+									'then': {'$subtract': ['$$end_date.year', '$$start_date.year']}
+								}
+							], 'default': {'$subtract': [{'$subtract': ['$$end_date.year', '$$start_date.year']}, 1]}}
+						}}
+					], 'default': {
+						'$switch': {'branches': [
+							{'case': {'$eq': ['$$end_date.month', '$$start_date.month']}, 'then': {
+								'$cond': [
+									{'$gt': ['$$start_date.day', '$$end_date.day']},
+									{'$cond': [
+										{'$gt': ['$$end_date.month', 2]},
+										{'$cond': [
+											{'$eq': ['$$start_date.day', {'$cond': [
+												{'$and': [
+													{'$eq': [{'$mod': ['$$start_date.year', 4]}, 0]},
+													{'$ne': [{'$mod': ['$$start_date.year', 100]}, 0]},
+													{'$eq': [{'$mod': ['$$start_date.year', 400]}, 0]}
+												]}, 29, 28
+											]}]},
+											{'$subtract': ['$$end_date.year', '$$start_date.year']},
+											{'$add': [{'$subtract': ['$$end_date.year', '$$start_date.year']}, 1]}
+										]},
+										{'$add': [{'$subtract': ['$$end_date.year', '$$start_date.year']}, 1]}
+									]},
+									{'$subtract': ['$$end_date.year', '$$start_date.year']}
+								]
+							}},
+							{
+								'case': {'$gt': ['$$end_date.month', '$$start_date.month']},
+								'then': {'$add': [{'$subtract': ['$$end_date.year', '$$start_date.year']}, 1]}
+							}
+						], 'default': {'$subtract': ['$$end_date.year', '$$start_date.year']}}
+					}}}
+				}
+			}
+		elif operator == ComputedLiteralOperator.MONTH_DIFF:
+			return built_date_diff(documents, literal, 'month')
+		elif operator == ComputedLiteralOperator.DAY_DIFF:
+			return built_date_diff(documents, literal, 'day')
+		elif operator == ComputedLiteralOperator.FORMAT_DATE:
+			return {
+				'$dateToString': {
+					'date': build_literal(documents, literal.elements[0]),
+					'format': translate_date_format(literal.elements[1])
+				}
+			}
+		elif operator == ComputedLiteralOperator.CHAR_LENGTH:
+			return {'$strLenCP': build_literal(documents, literal.elements[0])}
+		else:
+			raise UnsupportedComputationException(f'Unsupported computation operator[{operator}].')
+	elif isinstance(literal, datetime):
+		return literal
+	elif isinstance(literal, date):
+		return literal
+	elif isinstance(literal, time):
+		return literal
+	elif build_plain_value is not None:
+		return build_plain_value(literal)
+	elif isinstance(literal, str):
+		# a value, return itself
+		return literal
+	else:
+		# noinspection PyTypeChecker
+		return literal
 
 
 # noinspection DuplicatedCode
