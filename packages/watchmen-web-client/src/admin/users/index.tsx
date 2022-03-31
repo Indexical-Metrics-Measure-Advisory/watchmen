@@ -31,8 +31,8 @@ const createUser = (): User => {
 	};
 };
 
-const fetchUserAndCodes = async (queryUser: QueryUser) => {
-	const {user, groups, tenants} = await fetchUser(queryUser.userId);
+const fetchUserAndCodes = async (queryUser: QueryUser, ignoreGroups: boolean = false) => {
+	const {user, groups, tenants} = await fetchUser(queryUser.userId, ignoreGroups);
 	// console.log(tenants);
 	return {tuple: user, groups, tenants};
 };
@@ -52,7 +52,7 @@ const AdminUsers = () => {
 		};
 		const onDoEditUser = async (queryUser: QueryUser) => {
 			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
-				async () => await fetchUserAndCodes(queryUser),
+				async () => await fetchUserAndCodes(queryUser, isSuperAdmin()),
 				({tuple, groups, tenants}) => fire(TupleEventTypes.TUPLE_LOADED, tuple, {groups, tenants}));
 		};
 		const onDoSearchUser = async (searchText: string, pageNumber: number) => {

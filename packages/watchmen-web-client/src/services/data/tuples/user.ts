@@ -38,7 +38,7 @@ export const listUsers = async (options: {
 	}
 };
 
-export const fetchUser = async (userId: UserId): Promise<{ user: User; groups: Array<QueryUserGroupForHolder>; tenants: Array<QueryTenant> }> => {
+export const fetchUser = async (userId: UserId, ignoreGroups: boolean = false): Promise<{ user: User; groups: Array<QueryUserGroupForHolder>; tenants: Array<QueryTenant> }> => {
 	if (isMockService()) {
 		return fetchMockUser(userId);
 	} else {
@@ -50,7 +50,7 @@ export const fetchUser = async (userId: UserId): Promise<{ user: User; groups: A
 		}
 
 		const {groupIds} = user;
-		if (groupIds && groupIds.length > 0) {
+		if (!ignoreGroups && groupIds && groupIds.length > 0) {
 			const groups = await post({api: Apis.USER_GROUP_BY_IDS, data: groupIds});
 			return {user: transformFromServer(user), groups, tenants};
 		} else {
@@ -69,12 +69,12 @@ export const saveUser = async (user: User): Promise<void> => {
 	} else if (isFakedUuid(user)) {
 		const data = await post({api: Apis.USER_CREATE, data: transformToServer(user)});
 		user.userId = data.userId;
-		user.version = data.version
+		user.version = data.version;
 		user.tenantId = data.tenantId ?? user.tenantId;
 		user.lastModifiedAt = data.lastModifiedAt;
 	} else {
 		const data = await post({api: Apis.USER_SAVE, data: transformToServer(user)});
-		user.version = data.version
+		user.version = data.version;
 		user.tenantId = data.tenantId ?? user.tenantId;
 		user.lastModifiedAt = data.lastModifiedAt;
 	}
