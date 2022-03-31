@@ -491,12 +491,12 @@ def refill_topic_ids(
 
 	def fill_factor_id(factor: Factor) -> None:
 		old_factor_id = factor.factorId
-		factor = factor_service.redress_factor_id(factor)
+		factor.factorId = factor_service.generate_factor_id()
 		factor_id_map[old_factor_id] = factor.factorId
 
 	def fill_topic_id(topic: Topic) -> None:
 		old_topic_id = topic.topicId
-		topic = topic_service.generate_storable_id_for_storable(topic)
+		topic.topicId = topic_service.generate_storable_id()
 		topic_id_map[old_topic_id] = topic.topicId
 		ArrayHelper(topic.factors).each(fill_factor_id)
 
@@ -535,7 +535,7 @@ def refill_pipeline_ids(
 	replace_topic_and_factor_ids = create_topic_and_factor_ids_replacer(topic_id_map, factor_id_map)
 
 	def fill_pipeline_id(pipeline: Pipeline) -> None:
-		pipeline_service.generate_storable_id_for_storable(pipeline)
+		pipeline.pipelineId = pipeline_service.generate_storable_id()
 		pipeline.topicId = topic_id_map.get(pipeline.topicId) if pipeline.topicId in topic_id_map else pipeline.topicId
 		if pipeline.on is not None:
 			pipeline.on = ParameterJoint(**replace_ids(pipeline.on.dict(), replace_topic_and_factor_ids))
@@ -553,7 +553,7 @@ def refill_space_ids(
 
 	def fill_space_id(space: Space) -> None:
 		old_space_id = space.spaceId
-		space_service.generate_storable_id_for_storable(space)
+		space.spaceId = space_service.generate_storable_id()
 		space_id_map[old_space_id] = space.spaceId
 
 	def replace_topic_id(space: Space) -> None:
@@ -585,7 +585,7 @@ def refill_connected_space_ids(
 
 	def fill_connected_space_id(connected_space: ConnectedSpace) -> None:
 		old_connect_id = connected_space.connectId
-		connected_space_service.generate_storable_id_for_storable(connected_space)
+		connected_space.connectId = connected_space_service.generate_storable_id()
 		connected_space_id_map[old_connect_id] = connected_space.connectId
 		connected_space.spaceId = space_id_map[connected_space.spaceId] \
 			if connected_space.spaceId in space_id_map else connected_space.spaceId
@@ -606,7 +606,7 @@ def refill_subject_ids(
 
 	def fill_subject_id(subject: Subject) -> None:
 		old_subject_id = subject.subjectId
-		subject_service.generate_storable_id_for_storable(subject)
+		subject.subjectId = subject_service.generate_storable_id()
 		subject_id_map[old_subject_id] = subject.subjectId
 		subject.connectId = connected_space_id_map[subject.connectId] \
 			if subject.connectId in connected_space_id_map else subject.connectId
@@ -627,7 +627,7 @@ def refill_report_ids(
 	replace_topic_and_factor_ids = create_topic_and_factor_ids_replacer(topic_id_map, factor_id_map)
 
 	def fill_report_id(report: Report) -> None:
-		report_service.generate_storable_id_for_storable(report)
+		report.reportId = report_service.generate_storable_id()
 		report.subjectId = subject_id_map[report.subjectId] \
 			if report.subjectId in subject_id_map else report.subjectId
 		report.connectId = connected_space_id_map[report.connectId] \
@@ -643,7 +643,7 @@ def refill_monitor_rule_ids(
 		topic_id_map: Dict[TopicId, TopicId], factor_id_map: Dict[FactorId, FactorId]
 ) -> None:
 	def fill_rule_id(monitor_rule: MonitorRule) -> None:
-		monitor_rule_service.generate_storable_id_for_storable(monitor_rule)
+		monitor_rule.ruleId = monitor_rule_service.generate_storable_id()
 		if is_not_blank(monitor_rule.topicId):
 			monitor_rule.topicId = topic_id_map.get(monitor_rule.topicId)
 		if is_not_blank(monitor_rule.factorId):
