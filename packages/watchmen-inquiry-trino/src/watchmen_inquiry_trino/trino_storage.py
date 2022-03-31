@@ -231,9 +231,6 @@ class TrinoStorage(TrinoStorageSPI):
 	def build_literal(
 			self, literal: Literal, build_plain_value: Callable[[Any], str] = None
 	) -> Union[str, int, float, Decimal, bool]:
-		"""
-		if literal is EntityColumnValue, and it is a string, add ''.
-		"""
 		if isinstance(literal, ColumnNameLiteral):
 			if is_blank(literal.entityName):
 				# build column name which have sub query. in this case, no entity name is needed.
@@ -276,7 +273,6 @@ class TrinoStorage(TrinoStorageSPI):
 				days_of_zero_week = f'7 - EXTRACT(DAY_OF_WEEK FROM DATE_TRUNC(\'year\', {built}))'
 				days_exclude_zero_week = f'EXTRACT(DAY_OF_YEAR FROM ({built})) - ({days_of_zero_week})'
 				return f'CAST(CEIL(({days_exclude_zero_week}) / CAST(7 AS DOUBLE)) AS INTEGER)'
-			# return func.week(self.build_literal(literal.elements[0]), 0)
 			elif operator == ComputedLiteralOperator.WEEK_OF_MONTH:
 				built = self.build_literal(literal.elements[0])
 				# days left after exclude days of zero week of month
@@ -306,18 +302,12 @@ class TrinoStorage(TrinoStorageSPI):
 					f'DATE_DIFF(\'year\', ' \
 					f'DATE_TRUNC(\'day\', {self.build_literal(literal.elements[1])}), ' \
 					f'DATE_TRUNC(\'day\', {self.build_literal(literal.elements[0])}))'
-			# return func.yeardiff(
-			# 	self.build_literal(literal.elements[0]), self.build_literal(literal.elements[1]))
 			elif operator == ComputedLiteralOperator.MONTH_DIFF:
 				return \
 					f'DATE_DIFF(\'month\', ' \
 					f'DATE_TRUNC(\'day\', {self.build_literal(literal.elements[1])}), ' \
 					f'DATE_TRUNC(\'day\', {self.build_literal(literal.elements[0])}))'
-			# return func.monthdiff(
-			# 	self.build_literal(literal.elements[0]), self.build_literal(literal.elements[1]))
 			elif operator == ComputedLiteralOperator.DAY_DIFF:
-				# trino day diff, same day returns 1.
-				# in watchmen, first is end date, second is start date. exchange them when call trino function
 				return \
 					f'DATE_DIFF(\'day\', ' \
 					f'DATE_TRUNC(\'day\', {self.build_literal(literal.elements[1])}), ' \
