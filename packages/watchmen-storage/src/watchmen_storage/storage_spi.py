@@ -212,6 +212,10 @@ class TopicDataStorageSPI(TransactionalStorageSPI):
 	def truncate(self, helper: EntityHelper) -> None:
 		pass
 
+	# noinspection PyMethodMayBeStatic
+	def is_free_find_supported(self) -> bool:
+		return True
+
 	@abstractmethod
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
 		pass

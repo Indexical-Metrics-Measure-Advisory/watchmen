@@ -482,6 +482,9 @@ class TopicDataStorageMongoDB(StorageMongoDB, TopicDataStorageSPI):
 		document = self.find_document(helper.name)
 		self.connection.drop_collection(document.name)
 
+	def is_free_find_supported(self) -> bool:
+		return False
+
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
 		"""
 		not supported by mongo
