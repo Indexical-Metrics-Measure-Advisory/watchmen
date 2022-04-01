@@ -49,6 +49,12 @@ class EnumService(TupleService):
 	def get_storable_id_column_name(self) -> str:
 		return 'enum_id'
 
+	def find_by_name(self, name: str, tenant_id: Optional[TenantId]) -> Optional[Enum]:
+		criteria = [EntityCriteriaExpression(left=ColumnNameLiteral(columnName='name'), right=name)]
+		if tenant_id is not None and len(tenant_id.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		return self.storage.find_one(self.get_entity_finder(criteria))
+
 	# noinspection DuplicatedCode
 	def find_by_text(self, text: Optional[str], tenant_id: Optional[TenantId], pageable: Pageable) -> DataPage:
 		criteria = []
