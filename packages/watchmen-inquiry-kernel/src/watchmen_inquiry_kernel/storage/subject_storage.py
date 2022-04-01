@@ -1005,9 +1005,16 @@ class SubjectStorage:
 		finally:
 			find_agent.close()
 
-	def ask_storage_find_agent(self) -> StorageFindAgent:
+	def ask_storage_find_agent(self) -> FindAgent:
 		available_schemas = self.schema.get_available_schemas()
 		storage = ask_topic_storage(self.schema.get_primary_topic_schema(), self.principalService)
+		if not storage.is_free_find_supported():
+			if not ask_trino_enabled():
+				raise InquiryKernelException(
+					'Cannot perform inquiry on storage native when there are multiple data sources, '
+					'ask your administrator to turn on presto/trino engine.')
+			else:
+				return self.ask_trino_find_agent()
 		# register topic, in case of it is not registered yet
 		ArrayHelper(available_schemas).each(lambda x: storage.register_topic(x.get_topic()))
 		return StorageFindAgent(storage)
