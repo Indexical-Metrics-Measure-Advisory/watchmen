@@ -2,7 +2,7 @@ from enum import Enum
 from typing import List, Optional
 
 from watchmen_model.common import DataModel, Pageable
-from .storage_types import ColumnNameLiteral, EntityCriteria, Literal
+from .storage_types import ColumnNameLiteral, EntityCriteria, EntitySortColumn, Literal
 
 
 class FreeAggregateArithmetic(str, Enum):
@@ -55,6 +55,11 @@ class FreeAggregator(FreeFinder):
 	column name must match free column's index, such as column_1, column_2 (starts from 1)
 	"""
 	highOrderCriteria: Optional[EntityCriteria] = None
+	"""
+	column name must match free column's index, such as column_1, column_2 (starts from 1)
+	"""
+	highOrderSortColumns: List[EntitySortColumn]
+	highOrderTruncation: Optional[int] = None
 
 
 class FreeAggregatePager(FreeAggregator):
