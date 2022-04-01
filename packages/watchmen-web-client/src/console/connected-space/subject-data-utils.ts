@@ -15,25 +15,25 @@ import {isExpressionFilter, isJointFilter} from '@/services/data/tuples/subject-
 import {TopicId} from '@/services/data/tuples/topic-types';
 
 const computeRelatedTopicIdsByComputed = (computed: Computed): Array<TopicId> => {
-	const topicIds: Array<TopicId> = [
-		...computed.parameters
-			.reduce<Array<TopicId>>((topicIds, param) => {
-				if (isTopicFactorParameter(param)) {
-					topicIds.push(param.topicId);
-				} else if (isConstantParameter(param)) {
-					// do nothing
-				} else if (isComputedParameter(param)) {
-					topicIds.push(...computeRelatedTopicIdsByComputed(param));
-				}
-				return topicIds;
-			}, []),
-		...computed.parameters
-			.filter(param => computed.type == ParameterComputeType.CASE_THEN && param.conditional && param.on != null)
-			.reduce<Array<TopicId>>((topicIds, param) => {
-				const {filters} = param.on ?? {filters: [] as Array<ParameterCondition>};
-				topicIds.push(...filters.map(filter => computeRelatedTopicIdsByFilter(filter)).flat().filter(x => !!x));
-			}, [] as Array<TopicId>)
-	].filter(topicId => !!topicId);
+	const topicIdsFromParameters: Array<TopicId> = computed.parameters
+		.reduce<Array<TopicId>>((topicIds, param) => {
+			if (isTopicFactorParameter(param)) {
+				topicIds.push(param.topicId);
+			} else if (isConstantParameter(param)) {
+				// do nothing
+			} else if (isComputedParameter(param)) {
+				topicIds.push(...computeRelatedTopicIdsByComputed(param));
+			}
+			return topicIds;
+		}, []);
+	const topicIdsFromConditions: Array<TopicId> = computed.parameters
+		.filter(param => computed.type === ParameterComputeType.CASE_THEN && param.conditional && param.on != null)
+		.reduce<Array<TopicId>>((topicIds, param) => {
+			const {filters} = param.on ?? {filters: [] as Array<ParameterCondition>};
+			topicIds.push(...filters.map(filter => computeRelatedTopicIdsByFilter(filter)).flat().filter(x => !!x));
+			return topicIds;
+		}, []);
+	const topicIds: Array<TopicId> = [...topicIdsFromParameters, ...topicIdsFromConditions].filter(topicId => !!topicId);
 	return Array.from(new Set(topicIds));
 };
 
