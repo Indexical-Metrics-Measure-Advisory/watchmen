@@ -3,7 +3,7 @@ import {Apis, get, page, post} from '../apis';
 import {fetchMockEnum, listMockEnums, listMockEnumsForHolder, saveMockEnum} from '../mock/tuples/mock-enum';
 import {TuplePage} from '../query/tuple-page';
 import {isMockService} from '../utils';
-import {Enum, EnumId} from './enum-types';
+import {Enum, EnumId, EnumItem} from './enum-types';
 import {QueryEnum, QueryEnumForHolder} from './query-enum-types';
 import {isFakedUuid} from './utils';
 
@@ -88,5 +88,13 @@ export const listEnumsForHolder = async (): Promise<Array<QueryEnumForHolder>> =
 	} else {
 		// return listMockEnumsForHolder();
 		return await get({api: Apis.ENUM_LOAD_ALL});
+	}
+};
+
+export const importEnumItems = async (items: Array<{ enumId?: EnumId, name?: string, items: Array<EnumItem> }>): Promise<void> => {
+	if (isMockService()) {
+		// do nothing
+	} else {
+		return await post({api: Apis.ENUM_ITEMS_IMPORT, data: items});
 	}
 };

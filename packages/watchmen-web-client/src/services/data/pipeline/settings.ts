@@ -1,5 +1,5 @@
-import {Apis, post} from '@/services/data/apis';
 import {Dayjs} from 'dayjs';
+import {Apis, post} from '../apis';
 import {fetchPipelinesGraphics} from '../tuples/pipeline';
 import {PipelinesGraphics, PipelinesGraphicsId} from '../tuples/pipeline-types';
 import {isMockService} from '../utils';

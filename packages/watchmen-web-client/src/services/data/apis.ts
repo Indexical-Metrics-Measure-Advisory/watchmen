@@ -42,6 +42,7 @@ export const Apis = {
 	ENUM_CREATE: 'enum',
 	ENUM_SAVE: 'enum',
 	ENUM_LOAD_ALL: 'enum/all',
+	ENUM_ITEMS_IMPORT: 'enum/items/import',
 
 	REPORT_LIST_BY_NAME: 'report/name?query_name=:search',
 

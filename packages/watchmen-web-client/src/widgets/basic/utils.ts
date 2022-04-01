@@ -91,7 +91,8 @@ export enum UploadFileType {
 	CSV = 'csv',
 	JSON = 'json',
 	JSON5 = 'json5',
-	MARKDOWN = 'md'
+	MARKDOWN = 'md',
+	ZIP = 'zip'
 }
 
 export const UploadFileAcceptsJson = [UploadFileType.JSON, UploadFileType.JSON5];
