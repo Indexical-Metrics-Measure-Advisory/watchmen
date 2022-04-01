@@ -31,7 +31,7 @@ from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteral
 	FreeAggregatePager, FreeAggregator, FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, Literal, \
 	TopicDataStorageSPI
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_date, is_decimal, is_not_blank, \
-	is_time, month_diff, truncate_time, year_diff
+	is_time, month_diff, translate_date_format_to_memory, truncate_time, year_diff
 
 
 def ask_empty_variables() -> PipelineVariables:
@@ -588,7 +588,7 @@ class SubjectStorage:
 			raise InquiryKernelException(f'Constant[{variable_name}] is not supported.')
 
 	# noinspection PyMethodMayBeStatic
-	def parse_date_diff_variable(
+	def parse_date_function_variable(
 			self, subject_column_map: SubjectColumnMap, variable_name: str
 	) -> Literal:
 		if variable_name.startswith('&'):
@@ -610,14 +610,14 @@ class SubjectStorage:
 			diff = self.compute_date_diff(function, end_date, start_date, variable_name)
 			return diff if is_blank(prefix) else f'{prefix}{diff}'
 		elif start_parsed:
-			e_date = self.parse_date_diff_variable(subject_column_map, end_variable_name)
+			e_date = self.parse_date_function_variable(subject_column_map, end_variable_name)
 			s_date = start_date
 		elif end_parsed:
 			e_date = end_date
-			s_date = self.parse_date_diff_variable(subject_column_map, start_variable_name)
+			s_date = self.parse_date_function_variable(subject_column_map, start_variable_name)
 		else:
-			e_date = self.parse_date_diff_variable(subject_column_map, end_variable_name)
-			s_date = self.parse_date_diff_variable(subject_column_map, start_variable_name)
+			e_date = self.parse_date_function_variable(subject_column_map, end_variable_name)
+			s_date = self.parse_date_function_variable(subject_column_map, start_variable_name)
 
 		if function == VariablePredefineFunctions.YEAR_DIFF:
 			operator = ComputedLiteralOperator.YEAR_DIFF
@@ -628,6 +628,21 @@ class SubjectStorage:
 		else:
 			raise InquiryKernelException(f'Variable name[{variable_name}] is not supported.')
 		return ComputedLiteral(operator=operator, elements=[e_date, s_date])
+
+	def create_date_format(self, subject_column_map: SubjectColumnMap, prefix: str, variable_name: str) -> Literal:
+		parsed_params = parse_function_in_variable(variable_name, VariablePredefineFunctions.DATE_FORMAT.value, 2)
+		variable_name = parsed_params[0]
+		date_format = parsed_params[1]
+		if is_blank(date_format):
+			raise InquiryKernelException(f'Date format[{date_format}] cannot be recognized.')
+		parsed, parsed_date = self.test_date(variable_name)
+		if parsed:
+			translated_date_format = translate_date_format_to_memory(date_format)
+			formatted = parsed_date.strftime(translated_date_format)
+			return formatted if len(prefix) == 0 else f'{prefix}{formatted}'
+		else:
+			a_date = self.parse_date_function_variable(subject_column_map, variable_name)
+			return ComputedLiteral(operator=ComputedLiteralOperator.FORMAT_DATE, elements=[a_date, date_format])
 
 	# noinspection PyMethodMayBeStatic
 	def build_literal_by_report_constant_segment(
@@ -667,6 +682,11 @@ class SubjectStorage:
 				literal=self.create_date_diff(
 					subject_column_map, prefix, variable_name, VariablePredefineFunctions.DAY_DIFF),
 				possibleTypes=[PossibleParameterType.STRING if len(prefix) != 0 else PossibleParameterType.NUMBER]
+			)
+		elif variable_name.startswith(VariablePredefineFunctions.DATE_FORMAT.value):
+			return TypedLiteral(
+				literal=self.create_date_format(subject_column_map, prefix, variable_name),
+				possibleTypes=[PossibleParameterType.STRING]
 			)
 
 		# recover to original string
