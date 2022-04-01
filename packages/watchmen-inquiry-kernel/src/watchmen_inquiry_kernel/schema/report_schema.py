@@ -1,5 +1,6 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
+from watchmen_model.chart import ChartTruncationType
 from watchmen_model.console import Report, ReportDimension, ReportIndicator
 from watchmen_utilities import ArrayHelper, is_blank
 
@@ -32,6 +33,20 @@ class ReportSchema:
 			*ArrayHelper(self.get_report().dimensions).map_with_index(
 				lambda x, index: self.as_dimension_name(x, index)).to_list()
 		]
+
+	def get_sort_type(self) -> ChartTruncationType:
+		chart = self.get_report().chart
+		if chart is not None and chart.settings is not None and chart.settings.truncation is not None:
+			return chart.settings.truncation.type
+		return ChartTruncationType.NONE
+
+	def get_truncation_count(self) -> Optional[int]:
+		chart = self.get_report().chart
+		if chart is not None and chart.settings is not None and chart.settings.truncation is not None:
+			if is_blank(chart.settings.truncation.count):
+				return None
+			return chart.settings.truncation.count
+		return None
 
 	def translate_to_array_row(self, row: Dict[str, Any]) -> List[Any]:
 		return [

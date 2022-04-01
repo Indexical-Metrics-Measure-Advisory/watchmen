@@ -17,6 +17,7 @@ from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.console import ConnectedSpaceService
 from watchmen_model.admin import Factor
 from watchmen_model.admin.space import Space, SpaceFilter
+from watchmen_model.chart import ChartTruncationType
 from watchmen_model.common import ComputedParameter, ConstantParameter, DataModel, DataPage, FactorId, Pageable, \
 	Parameter, ParameterComputeType, ParameterCondition, ParameterExpression, ParameterExpressionOperator, \
 	ParameterJoint, ParameterJointType, SubjectDatasetColumnId, TopicFactorParameter, TopicId, \
@@ -26,8 +27,9 @@ from watchmen_model.console import ConnectedSpace, ReportDimension, ReportFunnel
 from watchmen_model.console.subject import Subject, SubjectColumnArithmetic
 from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteria, \
 	EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, \
-	EntityCriteriaStatement, FreeAggregateArithmetic, FreeAggregateColumn, FreeAggregatePager, FreeAggregator, \
-	FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, Literal, TopicDataStorageSPI
+	EntityCriteriaStatement, EntitySortColumn, EntitySortMethod, FreeAggregateArithmetic, FreeAggregateColumn, \
+	FreeAggregatePager, FreeAggregator, FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, Literal, \
+	TopicDataStorageSPI
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_date, is_decimal, is_not_blank, \
 	is_time, month_diff, truncate_time, year_diff
 
@@ -966,6 +968,31 @@ class SubjectStorage:
 				lambda x: x is not None).to_list()
 		]
 
+	def build_sort_columns(self, report_schema: ReportSchema) -> List[EntitySortColumn]:
+		sort_type = report_schema.get_sort_type()
+		if sort_type is None or sort_type == ChartTruncationType.NONE:
+			return []
+		else:
+			method = EntitySortMethod.ASC if sort_type == ChartTruncationType.TOP else EntitySortMethod.DESC
+			subject_column_map: Dict[SubjectDatasetColumnId, int] = ArrayHelper(
+				self.schema.get_subject().dataset.columns) \
+				.map_with_index(lambda x, index: (x, index)) \
+				.to_map(lambda x: x[0].columnId, lambda x: x[1])
+
+			def build_sort_column_by_dimension(dimension: ReportDimension, index: int) -> EntitySortColumn:
+				column_id = dimension.columnId
+				index = subject_column_map.get(column_id)
+				if index is None:
+					raise InquiryKernelException(
+						f'Cannot match subject dataset column by given dimension[{dimension.dict()}].')
+				return EntitySortColumn(name=f'column_{index + 1}', method=method)
+
+			sort_columns = ArrayHelper(report_schema.get_report().dimensions) \
+				.map_with_index(lambda x, index: build_sort_column_by_dimension(x, index)) \
+				.to_list()
+
+			return sort_columns
+
 	def ask_storage_aggregator(self, report_schema: ReportSchema) -> FreeAggregator:
 		finder, possible_types_list = self.ask_storage_finder()
 		return FreeAggregator(
@@ -974,6 +1001,8 @@ class SubjectStorage:
 			criteria=finder.criteria,
 			highOrderAggregateColumns=self.build_aggregate_columns(report_schema),
 			highOrderCriteria=self.build_high_order_criteria(report_schema, possible_types_list),
+			highOrderSortColumns=self.build_sort_columns(report_schema),
+			highOrderTruncation=report_schema.get_truncation_count()
 		)
 
 	def aggregate_find(self, report_schema: ReportSchema) -> List[Dict[str, Any]]:
@@ -988,6 +1017,8 @@ class SubjectStorage:
 			criteria=aggregator.criteria,
 			highOrderAggregateColumns=aggregator.highOrderAggregateColumns,
 			highOrderCriteria=aggregator.highOrderCriteria,
+			highOrderSortColumns=aggregator.highOrderSortColumns,
+			highOrderTruncation=aggregator.highOrderTruncation,
 			pageable=pageable
 		)
 
