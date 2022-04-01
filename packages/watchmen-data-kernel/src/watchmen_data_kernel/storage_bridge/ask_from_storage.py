@@ -370,30 +370,30 @@ def create_date_format(
 		available_schemas: List[TopicSchema], allow_in_memory_variables: bool
 ) -> Callable[[PipelineVariables, PrincipalService], Any]:
 	parsed_params = parse_function_in_variable(variable_name, VariablePredefineFunctions.DATE_FORMAT.value, 2)
-	end_variable_name = parsed_params[0]
+	variable_name = parsed_params[0]
 	date_format = parsed_params[1]
 	if is_blank(date_format):
 		raise DataKernelException(f'Date format[{date_format}] cannot be recognized.')
-	end_parsed, end_date = test_date(end_variable_name)
-	if end_parsed:
+	parsed, parsed_date = test_date(variable_name)
+	if parsed:
 		# noinspection PyUnusedLocal,DuplicatedCode
 		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
 			translated_date_format = translate_date_format_to_memory(date_format)
-			formatted = end_date.strftime(translated_date_format)
+			formatted = parsed_date.strftime(translated_date_format)
 			return formatted if len(prefix) == 0 else f'{prefix}{formatted}'
 
 		return action
 	else:
 		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
-			if end_parsed:
+			if parsed:
 				e_parsed = True
-				e_date = end_date
+				e_date = parsed_date
 			else:
 				e_parsed, e_date = parse_date(
-					end_variable_name, variables, available_schemas, allow_in_memory_variables, principal_service)
+					variable_name, variables, available_schemas, allow_in_memory_variables, principal_service)
 			if e_parsed:
 				translated_date_format = translate_date_format_to_memory(date_format)
-				formatted = end_date.strftime(translated_date_format)
+				formatted = parsed_date.strftime(translated_date_format)
 				return formatted if len(prefix) == 0 else f'{prefix}{formatted}'
 			else:
 				func = create_ask_value_for_computed(ComputedLiteralOperator.FORMAT_DATE, [e_date, date_format])
@@ -685,7 +685,8 @@ class ParsedStorageComputedParameter(ParsedStorageParameter):
 
 			self.possibleTypes = ArrayHelper(routes) \
 				.map(lambda x: x[1].get_possible_types()) \
-				.grab([] if anyway_route is None else anyway_route.get_possible_types()) \
+				.flatten() \
+				.grab(*([] if anyway_route is None else anyway_route.get_possible_types())) \
 				.distinct() \
 				.to_list()
 

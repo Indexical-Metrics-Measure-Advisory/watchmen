@@ -243,7 +243,6 @@ def build_literal(
 		elif operator == ComputedLiteralOperator.DAY_DIFF:
 			return built_date_diff(documents, literal, 'day')
 		elif operator == ComputedLiteralOperator.FORMAT_DATE:
-			# TODO incorrect, some specifiers are not supported by mongodb
 			return {
 				'$let': {
 					'vars': {
