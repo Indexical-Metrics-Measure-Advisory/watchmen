@@ -103,6 +103,8 @@ def find_topic_schemas_by_constant_parameter(
 			parsed_params = parse_function_in_variable(variable_name, VariablePredefineFunctions.MONTH_DIFF.value, 2)
 		elif variable_name.startswith(VariablePredefineFunctions.DAY_DIFF.value):
 			parsed_params = parse_function_in_variable(variable_name, VariablePredefineFunctions.DAY_DIFF.value, 2)
+		elif variable_name.startswith(VariablePredefineFunctions.DATE_FORMAT.value):
+			parsed_params = parse_function_in_variable(variable_name, VariablePredefineFunctions.DATE_FORMAT.value, 2)
 		else:
 			return []
 
@@ -128,8 +130,8 @@ def find_topic_schemas_by_computed_parameter(
 	def find_each(schemas: List[TopicSchema], sub: Parameter) -> List[TopicSchema]:
 		schemas_from_joint = []
 		if compute_type == ParameterComputeType.CASE_THEN:
-			if parameter.conditional and parameter.on is not None:
-				schemas_from_joint = find_topic_schemas_by_joint(parameter.on, principal_service)
+			if sub.conditional and sub.on is not None:
+				schemas_from_joint = find_topic_schemas_by_joint(sub.on, principal_service)
 		schemas_from_sub = find_topic_schemas_by_parameter(sub, principal_service)
 		return ArrayHelper(schemas).grab(*schemas_from_sub).grab(*schemas_from_joint).to_list()
 
@@ -208,11 +210,11 @@ def find_topic_schemas_by_filters(
 
 
 def find_topic_schemas(
-		columns: List[SubjectDatasetColumn], filters: Optional[ParameterJoint],
+		columns: List[SubjectDatasetColumn], joint: Optional[ParameterJoint],
 		principal_service: PrincipalService) -> List[TopicSchema]:
 	schemas = find_topic_schemas_by_columns(columns, principal_service)
-	if filters is not None and filters.filters is not None and len(filters.filters) != 0:
-		schemas = ArrayHelper(schemas).grab(*find_topic_schemas_by_filters(filters, principal_service)).to_list()
+	if joint is not None and joint.filters is not None and len(joint.filters) != 0:
+		schemas = ArrayHelper(schemas).grab(*find_topic_schemas_by_filters(joint, principal_service)).to_list()
 
 	distinct_map: Dict[TopicId, TopicSchema] = {}
 	for schema in schemas:
