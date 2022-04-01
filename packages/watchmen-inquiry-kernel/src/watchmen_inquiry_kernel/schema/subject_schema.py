@@ -209,7 +209,8 @@ def find_topic_schemas(
 		columns: List[SubjectDatasetColumn], filters: Optional[ParameterJoint],
 		principal_service: PrincipalService) -> List[TopicSchema]:
 	schemas = find_topic_schemas_by_columns(columns, principal_service)
-	schemas = ArrayHelper(schemas).grab(*find_topic_schemas_by_filters(filters, principal_service)).to_list()
+	if filters.filters is not None and len(filters.filters) != 0:
+		schemas = ArrayHelper(schemas).grab(*find_topic_schemas_by_filters(filters, principal_service)).to_list()
 
 	distinct_map: Dict[TopicId, TopicSchema] = {}
 	for schema in schemas:
