@@ -1,6 +1,8 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from fastapi import APIRouter, Body, Depends
+from pydantic import BaseModel
+from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
 from watchmen_meta.admin import EnumItemService, EnumService, TopicService
@@ -156,7 +158,7 @@ async def find_enums_by_topic(
 
 
 @router.get('/enum/all', tags=[UserRole.ADMIN], response_model=List[Enum])
-async def find_all_enums(principal_service: PrincipalService = Depends(get_console_principal)) -> List[Enum]:
+async def find_all_enums(principal_service: PrincipalService = Depends(get_admin_principal)) -> List[Enum]:
 	"""
 	no enumeration items included, only enumeration itself
 	"""
@@ -167,6 +169,46 @@ async def find_all_enums(principal_service: PrincipalService = Depends(get_conso
 		return enum_service.find_all(tenant_id)
 
 	return trans_readonly(enum_service, action)
+
+
+class ImportEnumItems(BaseModel):
+	enumId: Optional[EnumId] = None
+	name: Optional[str] = None
+	items: List[EnumItem]
+
+
+@router.post('/enum/items/import', tags=[UserRole.ADMIN], response_class=Response)
+async def items_import(
+		import_items_list: List[ImportEnumItems], principal_service: PrincipalService = Depends(get_admin_principal)
+) -> None:
+	if import_items_list is None or len(import_items_list) == 0:
+		return
+
+	enum_service = get_enum_service(principal_service)
+	enum_item_service = get_enum_item_service(enum_service)
+
+	def find_enum(import_items: ImportEnumItems) -> Tuple[Enum, List[EnumItem]]:
+		enum_id = import_items.enumId
+		name = import_items.name
+		if is_blank(enum_id) and is_blank(name):
+			raise_400('At least one of enumeration id and name must be provided.')
+		enumeration = None
+		if is_not_blank(enum_id):
+			enumeration = enum_service.find_by_id(enum_id)
+		if enumeration is None and is_not_blank(name):
+			enumeration = enum_service.find_by_name(name, principal_service.get_tenant_id())
+		if enumeration is None:
+			raise_404(f'Enumeration[id={enum_id}, name={name}] not found.')
+		return enumeration, import_items.items
+
+	def save_items(enumeration: Enum, items: List[EnumItem]) -> None:
+		enum_item_service.delete_by_enum_id(enumeration.enumId)
+		ArrayHelper(items).each(lambda x: create_enum_item(enum_item_service, x, enumeration))
+
+	def action() -> None:
+		ArrayHelper(import_items_list).map(lambda x: find_enum(x)).each(lambda x: save_items(x[0], x[1]))
+
+	return trans(enum_service, action)
 
 
 @router.delete('/enum', tags=[UserRole.SUPER_ADMIN], response_model=Enum)
