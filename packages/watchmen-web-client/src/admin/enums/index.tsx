@@ -33,7 +33,7 @@ class ParsedImportFile {
 	items?: Array<EnumItem>;
 	message?: string;
 	notImplemented?: boolean;
-	path: string;
+	path?: string;
 }
 
 const fetchEnumAndCodes = async (queryEnum: QueryEnum) => {
@@ -139,7 +139,7 @@ const AdminEnums = () => {
 			async () => await importEnumItems(files.map(file => ({
 				enumId: file.enumId,
 				name: file.name,
-				items: file.items
+				items: file.items ?? []
 			}))),
 			() => fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel> Enum items uploaded. </AlertLabel>)
 		);
@@ -153,17 +153,17 @@ const AdminEnums = () => {
 		const hasError = results.some(result => result.notImplemented || result.message != null);
 		if (hasError) {
 			const files = results.filter(result => result.notImplemented || result.message != null).map(result => `'${result.path}'`).join(', ');
-			if (files.length == results.length) {
+			if (files.length === results.length) {
 				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
 					No file in zip can be parsed, check your files please.
 				</AlertLabel>);
 			} else {
 				fireGlobal(EventTypes.SHOW_YES_NO_DIALOG, `File(s) ${files} cannot be parsed, do you still want to import the correct ones?`,
 					async () => {
-						fire(EventTypes.HIDE_DIALOG);
+						fireGlobal(EventTypes.HIDE_DIALOG);
 						await doImport(results.filter(result => !result.notImplemented && result.message == null));
 					},
-					() => fire(EventTypes.HIDE_DIALOG));
+					() => fireGlobal(EventTypes.HIDE_DIALOG));
 			}
 		} else {
 			await doImport(results);
