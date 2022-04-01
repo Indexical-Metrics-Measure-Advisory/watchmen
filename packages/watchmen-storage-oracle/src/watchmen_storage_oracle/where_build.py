@@ -119,7 +119,7 @@ def build_literal(tables: List[Table], literal: Literal, build_plain_value: Call
 			if anyway is None:
 				return case(*cases)
 			else:
-				return case(*cases, build_literal(tables, anyway))
+				return case(*cases, else_=build_literal(tables, anyway))
 		elif operator == ComputedLiteralOperator.CONCAT:
 			literals = ArrayHelper(literal.elements).map(lambda x: build_literal(tables, x)).to_list()
 			literal_count = len(literals)
