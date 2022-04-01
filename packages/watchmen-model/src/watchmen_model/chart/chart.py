@@ -80,7 +80,7 @@ class EChartsTitleText(EChartsFontHolder):
 	text: str = None
 
 
-class EChartsTitle(EChartsBorderHolder, EChartsPositionHolder, EChartsAlignmentHolder):
+class EChartsTitle(EChartsBorderHolder, EChartsPositionHolder, EChartsAlignmentHolder, BaseModel):
 	text: EChartsTitleText = None
 	subtext: EChartsTitleText = None
 	backgroundColor: ChartColor = None
@@ -88,7 +88,7 @@ class EChartsTitle(EChartsBorderHolder, EChartsPositionHolder, EChartsAlignmentH
 	itemGap: float = None
 
 
-class EChartsTitleHolder(DataModel):
+class EChartsTitleHolder(DataModel, BaseModel):
 	title: EChartsTitle = None
 
 
@@ -338,7 +338,6 @@ class DropdownItem(InputItem):
 
 class EChartsSettings(ChartSettings, EChartsTitleHolder):
 	pass
-
 
 class CountChartSettingsText(DataModel, BaseModel):
 	font: ChartFont = None
