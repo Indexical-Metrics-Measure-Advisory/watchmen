@@ -123,15 +123,17 @@ def find_topic_schemas_by_computed_parameter(
 		raise InquiryKernelException(f'At least 1 parameter on computation.')
 
 	compute_type = parameter.type
-	condition_schemas = []
-	if compute_type == ParameterComputeType.CASE_THEN:
-		if parameter.conditional and parameter.on is not None:
-			condition_schemas = find_topic_schemas_by_joint(parameter.on, principal_service)
+	found_schemas = []
 
 	def find_each(schemas: List[TopicSchema], sub: Parameter) -> List[TopicSchema]:
-		return ArrayHelper(schemas).grab(*find_topic_schemas_by_parameter(sub, principal_service)).to_list()
+		schemas_from_joint = []
+		if compute_type == ParameterComputeType.CASE_THEN:
+			if parameter.conditional and parameter.on is not None:
+				schemas_from_joint = find_topic_schemas_by_joint(parameter.on, principal_service)
+		schemas_from_sub = find_topic_schemas_by_parameter(sub, principal_service)
+		return ArrayHelper(schemas).grab(*schemas_from_sub).grab(*schemas_from_joint).to_list()
 
-	return ArrayHelper(parameter.parameters).reduce(find_each, condition_schemas)
+	return ArrayHelper(parameter.parameters).reduce(find_each, found_schemas)
 
 
 def find_topic_schemas_by_parameter(
