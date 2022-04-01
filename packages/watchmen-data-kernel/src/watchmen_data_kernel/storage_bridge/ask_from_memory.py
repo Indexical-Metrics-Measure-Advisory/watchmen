@@ -447,22 +447,22 @@ def create_date_diff(
 
 def create_date_format(prefix: str, variable_name: str) -> Callable[[PipelineVariables, PrincipalService], Any]:
 	parsed_params = parse_function_in_variable(variable_name, VariablePredefineFunctions.DATE_FORMAT.value, 2)
-	end_variable_name = parsed_params[0]
+	variable_name = parsed_params[0]
 	date_format = parsed_params[1]
 	if is_blank(date_format):
 		raise DataKernelException(f'Date format[{date_format}] cannot be recognized.')
 	date_format = translate_date_format_to_memory(date_format)
-	end_parsed, end_date = test_date(end_variable_name)
-	if end_parsed:
+	parsed, parsed_date = test_date(variable_name)
+	if parsed:
 		# noinspection PyUnusedLocal
 		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
-			return end_date.strftime(date_format)
+			return parsed_date.strftime(date_format)
 	else:
 		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
-			e_parsed, e_value, e_date = get_date_from_variables(variables, principal_service, end_variable_name)
-			if not e_parsed:
-				raise DataKernelException(f'Value[{e_value}] cannot be parsed to date or datetime.')
-			return e_date.strftime(date_format)
+			date_parsed, value, a_date = get_date_from_variables(variables, principal_service, variable_name)
+			if not date_parsed:
+				raise DataKernelException(f'Value[{value}] cannot be parsed to date or datetime.')
+			return a_date.strftime(date_format)
 
 	def run(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
 		value = action(variables, principal_service)

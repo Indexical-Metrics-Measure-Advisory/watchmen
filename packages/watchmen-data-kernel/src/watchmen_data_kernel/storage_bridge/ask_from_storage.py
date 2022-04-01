@@ -386,17 +386,17 @@ def create_date_format(
 	else:
 		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
 			if parsed:
-				e_parsed = True
-				e_date = parsed_date
+				date_parsed = True
+				a_date = parsed_date
 			else:
-				e_parsed, e_date = parse_date(
+				date_parsed, a_date = parse_date(
 					variable_name, variables, available_schemas, allow_in_memory_variables, principal_service)
-			if e_parsed:
+			if date_parsed:
 				translated_date_format = translate_date_format_to_memory(date_format)
 				formatted = parsed_date.strftime(translated_date_format)
 				return formatted if len(prefix) == 0 else f'{prefix}{formatted}'
 			else:
-				func = create_ask_value_for_computed(ComputedLiteralOperator.FORMAT_DATE, [e_date, date_format])
+				func = create_ask_value_for_computed(ComputedLiteralOperator.FORMAT_DATE, [a_date, date_format])
 				return func(variables, principal_service)
 
 		return action
