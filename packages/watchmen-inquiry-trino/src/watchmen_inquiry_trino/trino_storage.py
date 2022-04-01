@@ -13,7 +13,9 @@ from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import DataPage, FactorId, TopicId
 from watchmen_storage import as_table_name, ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, \
 	EntityCriteria, EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, \
-	EntityCriteriaOperator, EntityCriteriaStatement, FreeAggregateArithmetic, FreeAggregateColumn, FreeAggregatePager, \
+	EntityCriteriaOperator, EntityCriteriaStatement, EntitySortColumn, EntitySortMethod, FreeAggregateArithmetic, \
+	FreeAggregateColumn, \
+	FreeAggregatePager, \
 	FreeAggregator, FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, Literal, NoCriteriaForUpdateException, \
 	NoFreeJoinException, UnexpectedStorageException, UnsupportedComputationException, UnsupportedCriteriaException
 from watchmen_utilities import ArrayHelper, DateTimeConstants, is_blank, is_decimal, is_not_blank
@@ -650,8 +652,26 @@ class TrinoStorage(TrinoStorageSPI):
 			data[alias] = row[index]
 		return data
 
+	# noinspection PyMethodMayBeStatic
+	def build_aggregate_order_by(self, columns: Optional[List[EntitySortColumn]]) -> Optional[str]:
+		if columns is None or len(columns) == 0:
+			return None
+
+		def as_sort_method(column: EntitySortColumn) -> str:
+			if column.method == EntitySortMethod.ASC:
+				return ''
+			else:
+				return ' DESC'
+
+		return ArrayHelper(columns).map(lambda x: f'{x.name}{as_sort_method(x)}').join(', ')
+
 	def free_aggregate_find(self, aggregator: FreeAggregator) -> List[Dict[str, Any]]:
 		_, sql = self.build_aggregate_statement(aggregator, lambda columns: self.build_free_aggregate_columns(columns))
+		order_by = self.build_aggregate_order_by(aggregator.highOrderSortColumns)
+		if order_by is not None:
+			sql = f'{sql} ORDER BY {order_by}'
+		if aggregator.highOrderTruncation is not None and aggregator.highOrderTruncation > 0:
+			sql = f'{sql} LIMIT {aggregator.highOrderTruncation}'
 		cursor = self.connection.cursor()
 		if ask_storage_echo_enabled():
 			logger.info(f'SQL: {sql}')
@@ -690,6 +710,9 @@ class TrinoStorage(TrinoStorageSPI):
 		page_number, max_page_number = self.compute_page(count, page_size, pager.pageable.pageNumber)
 
 		_, sql = self.build_aggregate_statement(pager, lambda columns: self.build_free_aggregate_columns(columns))
+		order_by = self.build_aggregate_order_by(pager.highOrderSortColumns)
+		if order_by is not None:
+			sql = f'{sql} ORDER BY {order_by}'
 		offset = page_size * (page_number - 1)
 		sql = f'{sql} OFFSET {offset} LIMIT {page_size}'
 		cursor = self.connection.cursor()

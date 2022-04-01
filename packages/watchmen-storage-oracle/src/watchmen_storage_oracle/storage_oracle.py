@@ -741,6 +741,9 @@ CREATE TABLE {entity_name} (
 	def free_aggregate_find(self, aggregator: FreeAggregator) -> List[Dict[str, Any]]:
 		_, statement = self.build_aggregate_statement(
 			aggregator, lambda columns: self.build_free_aggregate_columns(columns))
+		statement = build_sort_for_statement(statement, aggregator.highOrderSortColumns)
+		if aggregator.highOrderTruncation is not None and aggregator.highOrderTruncation > 0:
+			statement = statement.limit(aggregator.highOrderTruncation)
 
 		results = self.connection.execute(statement).mappings().all()
 
@@ -769,6 +772,7 @@ CREATE TABLE {entity_name} (
 
 		_, statement = self.build_aggregate_statement(
 			pager, lambda columns: self.build_free_aggregate_columns(columns))
+		statement = build_sort_for_statement(statement, pager.highOrderSortColumns)
 		offset = page_size * (page_number - 1)
 		statement = statement.offset(offset).limit(page_size)
 		results = self.connection.execute(statement).mappings().all()
