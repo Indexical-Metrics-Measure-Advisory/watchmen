@@ -1,5 +1,7 @@
 from enum import Enum
 
+from pydantic import BaseModel
+
 from watchmen_model.common import DataModel
 
 
@@ -14,5 +16,5 @@ class ChartTruncation(DataModel):
 	count: int = 20
 
 
-class ChartTruncationHolder(DataModel):
+class ChartTruncationHolder(DataModel, BaseModel):
 	truncation: ChartTruncation = None
