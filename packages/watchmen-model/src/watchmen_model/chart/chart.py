@@ -76,7 +76,7 @@ class EChartsAlignmentHolder(DataModel):
 	verticalAlign: EChartsVerticalAlignment = None
 
 
-class EChartsTitleText(EChartsFontHolder):
+class EChartsTitleText(EChartsFontHolder, BaseModel):
 	text: str = None
 
 
