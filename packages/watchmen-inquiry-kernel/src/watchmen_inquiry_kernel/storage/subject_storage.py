@@ -241,7 +241,7 @@ class SubjectStorage:
 		available_schemas = self.schema.get_available_schemas()
 
 		empty_variables = ask_empty_variables()
-		if dataset.filters is not None:
+		if dataset.filters is not None and dataset.filters.filters is not None and len(dataset.filters.filters) != 0:
 			criteria = [parse_condition_for_storage(dataset.filters, available_schemas, self.principalService, False)]
 		else:
 			criteria = []
