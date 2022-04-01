@@ -11,7 +11,7 @@ class ChartTruncationType(str, Enum):
 	BOTTOM = 'bottom'
 
 
-class ChartTruncation(DataModel):
+class ChartTruncation(DataModel, BaseModel):
 	type: ChartTruncationType = ChartTruncationType.NONE
 	count: int = 20
 
