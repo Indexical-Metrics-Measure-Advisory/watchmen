@@ -23,29 +23,6 @@ def to_decimal(value: Any) -> str:
 		raise UnexpectedStorageException(f'Given value[{value}] cannot be casted to a decimal.')
 
 
-# noinspection DuplicatedCode
-DATE_FORMAT_MAPPING = {
-	'Y': '%Y',  # 4 digits year
-	'y': '%y',  # 2 digits year
-	'M': '%m',  # 2 digits month
-	'D': '%d',  # 2 digits day of month
-	'h': '%H',  # 2 digits hour, 00 - 23
-	'H': '%h',  # 2 digits hour, 01 - 12
-	'm': '%M',  # 2 digits minute
-	's': '%S',  # 2 digits second
-	'W': '%W',  # Monday - Sunday
-	'w': '%a',  # Mon - Sun
-	'B': '%M',  # January - December
-	'b': '%b',  # Jan - Dec
-	'p': '%p'  # AM/PM
-}
-
-
-def translate_date_format(date_format: str) -> str:
-	return ArrayHelper(list(DATE_FORMAT_MAPPING)) \
-		.reduce(lambda original, x: original.replace(x, DATE_FORMAT_MAPPING[x]), date_format)
-
-
 def built_date_diff(documents: List[MongoDocument], literal: Literal, unit: str) -> Dict[str, Any]:
 	return {
 		'$let': {
@@ -268,9 +245,120 @@ def build_literal(
 		elif operator == ComputedLiteralOperator.FORMAT_DATE:
 			# TODO incorrect, some specifiers are not supported by mongodb
 			return {
-				'$dateToString': {
-					'date': build_literal(documents, literal.elements[0]),
-					'format': translate_date_format(literal.elements[1])
+				'$let': {
+					'vars': {
+						'date': build_literal(documents, literal.elements[0]),
+						'format': build_literal(documents, literal.elements[1]),
+						'day_of_week_names': [
+							'', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+						'day_of_week_abbr_names': ['', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sun'],
+						'month_names': [
+							'', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September',
+							'October', 'November', 'December'
+						],
+						'month_abbr_names': [
+							'', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+					},
+					'in': {
+						'$let': {
+							'vars': {
+								'parts': {'$dateToParts': {'date': '$$date'}},
+								'day_of_week': {'$dayOfWeek': '$$date'},
+								'format_chars': {
+									'$map': {
+										'input': {'$range': [0, {'$strLenCP': '$$format'}]},
+										'in': {'$substrCP': ['$$format', '$$this', 1]}
+									}
+								}
+							},
+							'in': {
+								'$let': {
+									'vars': {
+										'formatted': [
+											{'$toString': '$$parts.year'},  # Y, 4 digits year
+											{'$substrCP': [{'$toString': '$$parts.year'}, 2, 2]},  # y, 2 digits year
+											{'$cond': [  # M, 2 digits month
+												{'$lt': ['$$parts.month', 10]},
+												{'$concat': ['0', {'$toString': '$$parts.month'}]},
+												{'$toString': '$$parts.month'}]
+											},
+											{'$cond': [  # D, 2 digits day of month
+												{'$lt': ['$$parts.day', 10]},
+												{'$concat': ['0', {'$toString': '$$parts.day'}]},
+												{'$toString': '$$parts.day'}]
+											},
+											{'$cond': [  # h, 2 digits hour, 00 - 23
+												{'$lt': ['$$parts.hour', 10]},
+												{'$concat': ['0', {'$toString': '$$parts.hour'}]},
+												{'$toString': '$$parts.hour'}]
+											},
+											{'$switch': {'branches': [  # H, 2 digits hour, 01 - 12
+												{'case': {'$eq': ['$$parts.hour', 0]}, 'then': '12'},
+												{
+													'case': {'$lt': ['$$parts.hour', 10]},
+													'then': {'$concat': ['0', {'$toString': '$$parts.hour'}]}
+												},
+												{'case': {'$eq': ['$$parts.hour', 0]}, 'then': '12'},
+												{
+													'case': {'$lt': ['$$parts.hour', 22]},
+													'then': {'$concat': [
+														'0',
+														{'$toString': {'$subtract': ['$$parts.hour', 12]}}
+													]}
+												}
+											], 'default': {'$toString': {'$subtract': ['$$parts.hour', 12]}}}},
+											{'$cond': [  # m, 2 digits minute
+												{'$lt': ['$$parts.minute', 10]},
+												{'$concat': ['0', {'$toString': '$$parts.minute'}]},
+												{'$toString': '$$parts.minute'}]
+											},
+											{'$cond': [  # s, 2 digits second
+												{'$lt': ['$$parts.second', 10]},
+												{'$concat': ['0', {'$toString': '$$parts.second'}]},
+												{'$toString': '$$parts.second'}]
+											},
+											# W, Monday - Sunday
+											{'$arrayElemAt': ['$$day_of_week_names', '$$day_of_week']},
+											# w, Mon - Sun
+											{'$arrayElemAt': ['$$day_of_week_abbr_names', '$$day_of_week']},
+											# B, January - December
+											{'$arrayElemAt': ['$$month_names', '$$parts.month']},
+											# b, Jan - Dec
+											{'$arrayElemAt': ['$$month_abbr_names', '$$parts.month']},
+											# p, AM/PM
+											{'$cond': [{'$lt': ['$$parts.hour', 12]}, 'AM', 'PM']}
+										],
+										'exchange_index': [
+											'Y', 'y', 'M', 'D', 'h', 'H', 'm', 's', 'W', 'w', 'B', 'b', 'p']
+									},
+									'in': {
+										'$reduce': {
+											'input:': {
+												'$map': {
+													'input': '$$format_chars',
+													'as': 'ch',
+													'in': {
+														'$let': {
+															'vars': {'idx': {
+																'$indexOfArray': ['$$exchange_index', '$$ch']
+															}},
+															'in': {'$cond': [
+																{'$eq': ['$$idx', -1]},
+																'$$ch',
+																{'$arrayElemAt': ['$$formatted', '$$idx']}
+															]}
+														}
+													}
+												}
+											},
+											'initialValue': '',
+											'in': {'$concat': ["$$value", "$$this"]}
+										}
+									}
+								}
+							}
+						}
+					}
 				}
 			}
 		elif operator == ComputedLiteralOperator.CHAR_LENGTH:
