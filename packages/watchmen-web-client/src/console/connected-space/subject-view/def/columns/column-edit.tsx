@@ -1,4 +1,3 @@
-import {ArithmeticEditor} from '@/console/connected-space/subject-view/def/columns/arithmetic-edit';
 import {ParameterKind} from '@/services/data/tuples/factor-calculator-types';
 import {Subject, SubjectDataSetColumn} from '@/services/data/tuples/subject-types';
 import {Topic} from '@/services/data/tuples/topic-types';
@@ -16,6 +15,7 @@ import {DeleteMeButton} from '../../../widgets/parameter/widgets';
 import {useSubjectDefEventBus} from '../subject-def-event-bus';
 import {SubjectDefEventTypes} from '../subject-def-event-bus-types';
 import {AliasEditor} from './alias-edit';
+import {ArithmeticEditor} from './arithmetic-edit';
 import {Column2DefEventBridge} from './column-2-def-event-bridge';
 import {ColumnEventBusProvider} from './column-event-bus';
 import {Parameter2ColumnEventBridge} from './parameter-2-column-event-bridge';
