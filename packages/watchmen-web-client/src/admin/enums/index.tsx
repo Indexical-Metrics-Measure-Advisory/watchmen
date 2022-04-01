@@ -107,18 +107,31 @@ const AdminEnums = () => {
 		};
 		askData();
 	};
+	const readIdNameFromFileName = (fileName: string): { id?: EnumId, name: string } => {
+		const extStartPos = fileName.lastIndexOf('.');
+		const namePart = fileName.substring(0, extStartPos - 1);
+		let id: EnumId;
+		let name: string;
+		if (namePart.indexOf('-') !== -1) {
+			[name, id] = namePart.split('-');
+		} else {
+			id = namePart;
+			name = namePart;
+		}
+		return {id, name};
+	};
 	const readFile = async (path: string, file: JSZipObject): Promise<ParsedImportFile> => {
 		const fileName = file.name;
-		const [name, id] = fileName.split('-');
+		const {id, name} = readIdNameFromFileName(fileName);
 		try {
 			switch (true) {
-				case name.endsWith('.txt'):
-				case name.endsWith('.csv'): {
+				case fileName.endsWith('.txt'):
+				case fileName.endsWith('.csv'): {
 					const content = await file.async('string');
 					const items = await parseFromCsv(content);
 					return {enumId: id, name, items, notImplemented: false, path};
 				}
-				case name.endsWith('.json'): {
+				case fileName.endsWith('.json'): {
 					const content = await file.async('string');
 					const items = await parseFromJson(content);
 					return {enumId: id, name, items, notImplemented: false, path};
