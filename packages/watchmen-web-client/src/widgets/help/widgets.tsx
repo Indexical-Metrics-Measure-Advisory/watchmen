@@ -1,5 +1,8 @@
 import styled, {keyframes} from 'styled-components';
+import {Button} from '../basic/button';
 import {BASE_HEIGHT, BASE_MARGIN, HELP_Z_INDEX} from '../basic/constants';
+import {Input} from '../basic/input';
+import {DialogBody} from '../dialog/widgets';
 
 const AutoHide = keyframes`
 	from {
@@ -68,4 +71,42 @@ export const HelpIcon = styled.div.attrs({
 		height  : ${BASE_HEIGHT}px;
 		opacity : 0.8;
 	}
+`;
+
+export const HelpDialogBody = styled(DialogBody)`
+	display               : grid;
+	position              : relative;
+	grid-template-columns : 1fr;
+	margin                : calc(var(--margin) * -1) calc(var(--margin) * -1) calc(var(--margin) / -2) calc(var(--margin) * -1);
+	padding               : calc(var(--margin) / 2);
+`;
+export const HelpDialogSearchInput = styled(Input)`
+	display       : flex;
+	height        : calc(var(--height) * 2);
+	margin-bottom : calc(var(--margin) / 2);
+	font-size     : 2em;
+	font-weight   : var(--font-bold);
+	padding       : 0 calc(var(--input-indent) * 2);
+	opacity       : 0.9;
+`;
+export const HelpDialogSearchResults = styled.div`
+	display       : flex;
+	position      : relative;
+	margin-bottom : calc(var(--margin) / 2);
+`;
+export const HelpDialogButtons = styled.div`
+	display : flex;
+`;
+export const HelpDialogVersionLabel = styled.div`
+	display     : flex;
+	position    : relative;
+	flex-grow   : 1;
+	align-items : center;
+	opacity     : 0.5;
+	font-weight : var(--font-bold);
+`;
+export const HelpDialogCloseButton = styled(Button)`
+	min-width : 200px;
+	height    : calc(var(--height) * 1.2);
+	font-size : 1.4em;
 `;
