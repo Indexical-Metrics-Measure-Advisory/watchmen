@@ -132,7 +132,7 @@ def build_literal(tables: List[Table], literal: Literal, build_plain_value: Call
 			return func.date_format(
 				build_literal(tables, literal.elements[0]), translate_date_format(literal.elements[1]))
 		elif operator == ComputedLiteralOperator.CHAR_LENGTH:
-			return func.char_length(build_literal(tables, literal.elements[0]))
+			return func.char_length(func.ifnull(build_literal(tables, literal.elements[0]), ''))
 		else:
 			raise UnsupportedComputationException(f'Unsupported computation operator[{operator}].')
 	elif isinstance(literal, datetime):
