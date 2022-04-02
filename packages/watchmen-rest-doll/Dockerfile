@@ -4,6 +4,7 @@ WORKDIR /app
 ADD . .
 RUN pip install poetry
 RUN poetry config virtualenvs.create false
+RUN poetry update
 RUN poetry install --no-dev -E mysql
 
 EXPOSE 8000
