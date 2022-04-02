@@ -152,6 +152,13 @@ def get_date_from_variables(
 	return parsed, value, parsed_date
 
 
+def get_value_from_variables(
+		variables: PipelineVariables, principal_service: PrincipalService, variable_name: str
+) -> Tuple[bool, Any, Any]:
+	value = get_value_from(variable_name, variable_name.strip().split('.'), create_get_value_from_variables(variables))
+	return True, value, value
+
+
 def compute_date_diff(
 		function: VariablePredefineFunctions, end_date: date, start_date: date, variable_name: str
 ) -> int:

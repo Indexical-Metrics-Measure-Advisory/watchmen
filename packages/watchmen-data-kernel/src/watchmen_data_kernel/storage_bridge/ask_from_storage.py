@@ -24,7 +24,7 @@ from .ask_from_memory import assert_parameter_count, create_ask_factor_value, pa
 from .topic_utils import ask_topic_data_entity_helper
 from .utils import always_none, compute_date_diff, create_from_previous_trigger_data, \
 	create_get_from_variables_with_prefix, create_snowflake_generator, create_static_str, get_date_from_variables, \
-	test_date
+	get_value_from_variables, test_date
 from .variables import PipelineVariables
 
 
@@ -267,20 +267,25 @@ class ParsedStorageTopicFactorParameter(ParsedStorageParameter):
 		return self.askValue(variables, principal_service)
 
 
-def parse_date(
+def parse_variable_to_value(
 		name: str, variables: PipelineVariables,
 		available_schemas: List[TopicSchema], allow_in_memory_variables: bool,
+		parse_from_variables: Callable[[PipelineVariables, PrincipalService, str], Tuple[bool, Any, Any]],
 		principal_service: PrincipalService
-) -> Tuple[bool, Union[date, ParsedStorageParameter]]:
+) -> Tuple[bool, Union[Any, ParsedStorageParameter]]:
+	"""
+	the first element of the tuple is whether the variable is found in variables.
+	if it is not from variables, the second element should be a topic factor parameter.
+	"""
 	if name.startswith('&'):
 		# not from variables
 		available_name = name[1:]
 	elif allow_in_memory_variables:
 		# try to get from memory variables
-		parsed, value, parsed_date = get_date_from_variables(variables, principal_service, name)
+		parsed, value, parsed_value = parse_from_variables(variables, principal_service, name)
 		if not parsed:
 			raise DataKernelException(f'Value[{value}] cannot be parsed to date or datetime.')
-		return True, parsed_date
+		return True, parsed_value
 	else:
 		# still not from variables
 		available_name = name
@@ -339,14 +344,16 @@ def create_date_diff(
 				e_parsed = True
 				e_date = end_date
 			else:
-				e_parsed, e_date = parse_date(
-					end_variable_name, variables, available_schemas, allow_in_memory_variables, principal_service)
+				e_parsed, e_date = parse_variable_to_value(
+					end_variable_name, variables, available_schemas, allow_in_memory_variables,
+					get_date_from_variables, principal_service)
 			if start_parsed:
 				s_parsed = True,
 				s_date = start_date
 			else:
-				s_parsed, s_date = parse_date(
-					start_variable_name, variables, available_schemas, allow_in_memory_variables, principal_service)
+				s_parsed, s_date = parse_variable_to_value(
+					start_variable_name, variables, available_schemas, allow_in_memory_variables,
+					get_date_from_variables, principal_service)
 			if e_parsed and s_parsed:
 				diff = compute_date_diff(function, e_date, s_date, variable_name)
 				return diff if len(prefix) == 0 else f'{prefix}{diff}'
@@ -389,8 +396,9 @@ def create_date_format(
 				date_parsed = True
 				a_date = parsed_date
 			else:
-				date_parsed, a_date = parse_date(
-					variable_name, variables, available_schemas, allow_in_memory_variables, principal_service)
+				date_parsed, a_date = parse_variable_to_value(
+					variable_name, variables, available_schemas, allow_in_memory_variables,
+					get_date_from_variables, principal_service)
 			if date_parsed:
 				translated_date_format = translate_date_format_to_memory(date_format)
 				formatted = parsed_date.strftime(translated_date_format)
@@ -400,6 +408,29 @@ def create_date_format(
 				return func(variables, principal_service)
 
 		return action
+
+
+def create_char_length(
+		prefix: str, variable_name: str,
+		available_schemas: List[TopicSchema], allow_in_memory_variables: bool
+) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+		value_parsed, value = parse_variable_to_value(
+			variable_name, variables, available_schemas, allow_in_memory_variables,
+			get_value_from_variables, principal_service)
+		if value_parsed:
+			if value is None:
+				length = 0
+			elif isinstance(value, str):
+				length = len(value)
+			else:
+				length = len(str(value))
+			return length if len(prefix) == 0 else f'{prefix}{length}'
+		else:
+			func = create_ask_value_for_computed(ComputedLiteralOperator.FORMAT_DATE, [value])
+			return func(variables, principal_service)
+
+	return action
 
 
 # noinspection DuplicatedCode
@@ -441,6 +472,10 @@ def create_run_constant_segment(
 		return \
 			create_date_format(prefix, variable_name, available_schemas, allow_in_memory_variables), \
 			[PossibleParameterType.STRING]
+	elif variable_name.endswith(VariablePredefineFunctions.LENGTH.value):
+		return \
+			create_char_length(prefix, variable_name, available_schemas, allow_in_memory_variables), \
+			[PossibleParameterType.STRING if has_prefix else PossibleParameterType.NUMBER]
 
 	if allow_in_memory_variables:
 		if variable_name.startswith(VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA.value):
