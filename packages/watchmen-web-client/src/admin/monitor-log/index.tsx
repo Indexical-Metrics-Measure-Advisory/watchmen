@@ -4,6 +4,7 @@ import {Pipeline} from '@/services/data/tuples/pipeline-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {FullWidthPage} from '@/widgets/basic/page';
 import {FullWidthPageHeaderContainer, PageTitle} from '@/widgets/basic/page-header';
+import {HELP_KEYS, useHelp} from '@/widgets/help';
 import React, {useEffect, useState} from 'react';
 import {MonitorLogEventBusProvider} from './monitor-log-event-bus';
 import {SearchCriteria} from './search-criteria';
@@ -26,6 +27,7 @@ const AdminMonitorLogsIndex = () => {
 			setState({topics, pipelines});
 		})();
 	}, []);
+	useHelp(HELP_KEYS.ADMIN_MONITOR_LOGS);
 
 	return <FullWidthPage>
 		<FullWidthPageHeaderContainer>

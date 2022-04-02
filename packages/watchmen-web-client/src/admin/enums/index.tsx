@@ -87,6 +87,7 @@ const AdminEnums = () => {
 			off(TupleEventTypes.SAVE_TUPLE, onSaveEnum);
 		};
 	}, [on, off, fire, fireGlobal]);
+	useHelp(HELP_KEYS.ADMIN_ENUM);
 
 	const onDownloadEnumItemsClicked = () => {
 		const askData = () => {
@@ -205,7 +206,6 @@ const AdminEnums = () => {
 	/>;
 };
 const AdminEnumsIndex = () => {
-	useHelp(HELP_KEYS.ADMIN_ENUM);
 	return <TupleEventBusProvider>
 		<AdminEnums/>
 	</TupleEventBusProvider>;

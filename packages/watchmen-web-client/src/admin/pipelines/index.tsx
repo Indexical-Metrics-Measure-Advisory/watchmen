@@ -1,5 +1,6 @@
 import {Router} from '@/routes/types';
 import {FullWidthPage} from '@/widgets/basic/page';
+import {HELP_KEYS, useHelp} from '@/widgets/help';
 import React, {useEffect, useState} from 'react';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {PipelinesCatalog} from './catalog';
@@ -52,6 +53,7 @@ const PipelinesContainerDelegate = () => {
 			off(PipelinesEventTypes.SETTINGS_LOADED, onSettingsLoaded);
 		};
 	}, [fire, on, off]);
+	useHelp(HELP_KEYS.ADMIN_PIPELINE);
 
 	return <AdminMain>
 		<FullWidthPage>

@@ -15,6 +15,7 @@ import {AlertLabel} from '@/widgets/alert/widgets';
 import {ICON_DOWNLOAD, TUPLE_SEARCH_PAGE_SIZE} from '@/widgets/basic/constants';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
+import {HELP_KEYS, useHelp} from '@/widgets/help';
 import {TupleWorkbench} from '@/widgets/tuple-workbench';
 import {TupleEventBusProvider, useTupleEventBus} from '@/widgets/tuple-workbench/tuple-event-bus';
 import {TupleEventTypes} from '@/widgets/tuple-workbench/tuple-event-bus-types';
@@ -153,6 +154,7 @@ const AdminTopics = () => {
 			off(TupleEventTypes.SAVE_TUPLE, onSaveTopic);
 		};
 	}, [on, off, fire, fireGlobal, fireCache]);
+	useHelp(HELP_KEYS.ADMIN_TOPIC);
 
 	const onDownloadScriptsClicked = () => {
 		const askData = () => {

@@ -21,6 +21,7 @@ export enum EventTypes {
 	SHOW_YES_NO_DIALOG = 'show-yes-no-dialog',
 
 	SHOW_HELP = 'show-help',
+	SWITCH_HELP_KEY = 'switch-help-key',
 
 	SIDE_MENU_RESIZED = 'side-menu-resized',
 	ASK_SIDE_MENU_WIDTH = 'ask-side-menu-width',
@@ -99,6 +100,11 @@ export interface EventBus {
 	on(type: EventTypes.SHOW_HELP, listener: (key: string) => void): this;
 	off(type: EventTypes.SHOW_HELP, listener: (key: string) => void): this;
 
+	fire(type: EventTypes.SWITCH_HELP_KEY, key: string): this;
+	on(type: EventTypes.SWITCH_HELP_KEY, listener: (key: string) => void): this;
+	off(type: EventTypes.SWITCH_HELP_KEY, listener: (key: string) => void): this;
+
+	// side menu
 	fire(type: EventTypes.SIDE_MENU_RESIZED, width: number): this;
 	on(type: EventTypes.SIDE_MENU_RESIZED, listener: (width: number) => void): this;
 	off(type: EventTypes.SIDE_MENU_RESIZED, listener: (width: number) => void): this;
@@ -107,6 +113,7 @@ export interface EventBus {
 	on(type: EventTypes.ASK_SIDE_MENU_WIDTH, listener: (onWidthGet: (width: number) => void) => void): this;
 	off(type: EventTypes.ASK_SIDE_MENU_WIDTH, listener: (onWidthGet: (width: number) => void) => void): this;
 
+	// remote request
 	fire(type: EventTypes.INVOKE_REMOTE_REQUEST, request: () => Promise<any>, success?: (data?: any) => void, failure?: (error?: any) => void): this;
 	on(type: EventTypes.INVOKE_REMOTE_REQUEST, listener: (request: () => Promise<any>, success?: (data?: any) => void, failure?: (error?: any) => void) => void): this;
 	off(type: EventTypes.INVOKE_REMOTE_REQUEST, listener: (request: () => Promise<any>, success?: (data?: any) => void, failure?: (error?: any) => void) => void): this;

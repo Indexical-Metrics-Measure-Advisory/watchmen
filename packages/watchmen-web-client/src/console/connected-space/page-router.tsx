@@ -6,6 +6,7 @@ import {Subject, SubjectId} from '@/services/data/tuples/subject-types';
 import {AlertLabel} from '@/widgets/alert/widgets';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
+import {HELP_KEYS, useHelp} from '@/widgets/help';
 import {Lang} from '@/widgets/langs';
 import React, {useEffect, useState} from 'react';
 import {Redirect, Route, Switch, useHistory, useParams} from 'react-router-dom';
@@ -41,6 +42,7 @@ const ReportRouter = (props: { connectedSpace: ConnectedSpace }) => {
 			});
 		}
 	}, [connectedSpace.connectId, connectedSpace.subjects, subjectId, reportId, fireGlobal, history]);
+	useHelp(HELP_KEYS.CONSOLE_REPORT);
 
 	if (!data) {
 		return null;

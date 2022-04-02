@@ -25,25 +25,25 @@ hotkeys.filter = () => {
 };
 
 export enum HELP_KEYS {
-	ADMIN_TENANT = 'data-zone',
-	ADMIN_DATA_SOURCE = 'data-source',
-	ADMIN_EXTERNAL_WRITER = 'external-writer',
+	ADMIN_TENANT = 'data zone',
+	ADMIN_DATA_SOURCE = 'data source',
+	ADMIN_EXTERNAL_WRITER = 'external writer',
 	ADMIN_USER = 'user',
-	ADMIN_USER_GROUP = 'user-group',
+	ADMIN_USER_GROUP = 'user group',
 	ADMIN_SPACE = 'space',
 	ADMIN_ENUM = 'enumeration',
 	ADMIN_TOPIC = 'topic',
 	ADMIN_PIPELINE = 'pipeline',
 	ADMIN_SIMULATOR = 'simulator',
-	ADMIN_MONITOR_LOGS = 'monitor-logs',
+	ADMIN_MONITOR_LOGS = 'monitor logs',
 	ADMIN_DASHBOARD = 'dashboard',
 	CONSOLE_HOME = 'console home',
-	CONSOLE_CONNECTED_SPACE = 'console-connected-space',
-	CONSOLE_SUBJECT = 'console-subject',
-	CONSOLE_REPORT = 'console-report',
+	CONSOLE_CONNECTED_SPACE = 'connected space',
+	CONSOLE_SUBJECT = 'subject',
+	CONSOLE_REPORT = 'report',
 	CONSOLE_DASHBOARD = 'dashboard',
-	DQC_STATISTICS = 'run-statistics',
-	DQC_MONITOR_RULES = 'monitor-rules',
+	DQC_STATISTICS = 'statistics',
+	DQC_MONITOR_RULES = 'monitor rules',
 	DQC_CONSANGUINITY = 'consanguinity',
 	DQC_CATALOG = 'catalog',
 	SETTINGS = 'settings'
@@ -101,7 +101,7 @@ const CONTENTS: Array<{ words: string, name: string, url: string }> = [
 
 const match = (text?: string): Array<MatchedItem> => {
 	text = (text || '').toLowerCase();
-	const version = process.env.REACT_APP_VERSION;
+	// const version = process.env.REACT_APP_VERSION;
 	if (text.length === 0) {
 		return CONTENTS.map(item => {
 			return {name: item.name, url: `https://imma-watchmen.com/docs/web-client/${item.url}`};
@@ -140,7 +140,7 @@ const HelpDialog = (props: { text?: string }) => {
 		setMatchedItems(match(value.trim()));
 	};
 	const onItemClicked = (item: MatchedItem) => () => {
-		window.open(item.url)
+		window.open(item.url);
 	};
 	const onCloseClicked = () => {
 		fire(EventTypes.HIDE_DIALOG);
@@ -182,9 +182,14 @@ export const HelpButton = () => {
 		const onShowHelp = (key: string) => {
 			setState({key, visible: true});
 		};
+		const onHelpKeySwitched = (key: string) => {
+			setState(state => ({key, visible: state.visible}));
+		};
 		on(EventTypes.SHOW_HELP, onShowHelp);
+		on(EventTypes.SWITCH_HELP_KEY, onHelpKeySwitched);
 		return () => {
 			off(EventTypes.SHOW_HELP, onShowHelp);
+			off(EventTypes.SWITCH_HELP_KEY, onHelpKeySwitched);
 		};
 	}, [on, off]);
 
@@ -216,8 +221,9 @@ export const useHelp = (key: string) => {
 			return false;
 		};
 		hotkeys('⌃+k,⌘+k', showHelp);
+		fire(EventTypes.SWITCH_HELP_KEY, key);
 		return () => {
-			hotkeys.unbind('h', showHelp);
+			hotkeys.unbind('⌃+k,⌘+k', showHelp);
 		};
 	}, [fire, key]);
 	useEffect(() => {

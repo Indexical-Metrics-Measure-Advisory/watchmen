@@ -8,6 +8,7 @@ import {AlertLabel} from '@/widgets/alert/widgets';
 import {FullWidthPage} from '@/widgets/basic/page';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
+import {HELP_KEYS, useHelp} from '@/widgets/help';
 import {Lang} from '@/widgets/langs';
 import React, {Fragment, useEffect, useState} from 'react';
 import {Redirect, Route, Switch, useHistory, useParams} from 'react-router-dom';
@@ -123,6 +124,7 @@ const ConsoleDashboardAuto = () => {
 };
 
 const ConsoleDashboardIndex = () => {
+	useHelp(HELP_KEYS.CONSOLE_DASHBOARD);
 	return <Switch>
 		<Route path={Router.CONSOLE_DASHBOARD}><ConsoleDashboard/></Route>
 		<Route path={Router.CONSOLE_DASHBOARD_AUTO}><ConsoleDashboardAuto/></Route>

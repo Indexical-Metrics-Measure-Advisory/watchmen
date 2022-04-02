@@ -4,6 +4,7 @@ import {Subject, SubjectId} from '@/services/data/tuples/subject-types';
 import {AlertLabel} from '@/widgets/alert/widgets';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
+import {HELP_KEYS, useHelp} from '@/widgets/help';
 import {Lang} from '@/widgets/langs';
 import React, {useEffect, useState} from 'react';
 import {useHistory, useParams} from 'react-router-dom';
@@ -30,6 +31,7 @@ export const SubjectView = (props: { connectedSpace: ConnectedSpace }) => {
 			});
 		}
 	}, [connectedSpace.connectId, connectedSpace.subjects, subjectId, fireGlobal, history]);
+	useHelp(HELP_KEYS.CONSOLE_SUBJECT);
 
 	// eslint-disable-next-line
 	if (!subject || subject.subjectId !== subjectId) {
