@@ -15,6 +15,7 @@ import {ICON_DOWNLOAD, ICON_UPLOAD, TUPLE_SEARCH_PAGE_SIZE} from '@/widgets/basi
 import {uploadFile, UploadFileType} from '@/widgets/basic/utils';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
+import {HELP_KEYS, useHelp} from '@/widgets/help';
 import {TupleWorkbench} from '@/widgets/tuple-workbench';
 import {TupleEventBusProvider, useTupleEventBus} from '@/widgets/tuple-workbench/tuple-event-bus';
 import {TupleEventTypes} from '@/widgets/tuple-workbench/tuple-event-bus-types';
@@ -204,6 +205,7 @@ const AdminEnums = () => {
 	/>;
 };
 const AdminEnumsIndex = () => {
+	useHelp(HELP_KEYS.ADMIN_ENUM);
 	return <TupleEventBusProvider>
 		<AdminEnums/>
 	</TupleEventBusProvider>;

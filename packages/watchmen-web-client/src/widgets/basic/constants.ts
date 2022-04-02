@@ -133,6 +133,7 @@ export const SIDE_MENU_RESIZE_HANDLE_Z_INDEX = 500;
 export const CHART_DRAG_Z_INDEX = 1000;
 export const CHART_SETTINGS_RESIZE_HANDLE_Z_INDEX = 500;
 export const REMOTE_REQUEST_INDEX = 99999;
+export const HELP_Z_INDEX = 99979;
 
 export const BASE_MARGIN = 32;
 export const BASE_HEIGHT = 28;
