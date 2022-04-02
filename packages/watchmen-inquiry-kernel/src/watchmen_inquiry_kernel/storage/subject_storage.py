@@ -588,7 +588,7 @@ class SubjectStorage:
 			raise InquiryKernelException(f'Constant[{variable_name}] is not supported.')
 
 	# noinspection PyMethodMayBeStatic
-	def parse_date_function_variable(
+	def create_column_by_variable(
 			self, subject_column_map: SubjectColumnMap, variable_name: str
 	) -> Literal:
 		if variable_name.startswith('&'):
@@ -610,14 +610,14 @@ class SubjectStorage:
 			diff = self.compute_date_diff(function, end_date, start_date, variable_name)
 			return diff if is_blank(prefix) else f'{prefix}{diff}'
 		elif start_parsed:
-			e_date = self.parse_date_function_variable(subject_column_map, end_variable_name)
+			e_date = self.create_column_by_variable(subject_column_map, end_variable_name)
 			s_date = start_date
 		elif end_parsed:
 			e_date = end_date
-			s_date = self.parse_date_function_variable(subject_column_map, start_variable_name)
+			s_date = self.create_column_by_variable(subject_column_map, start_variable_name)
 		else:
-			e_date = self.parse_date_function_variable(subject_column_map, end_variable_name)
-			s_date = self.parse_date_function_variable(subject_column_map, start_variable_name)
+			e_date = self.create_column_by_variable(subject_column_map, end_variable_name)
+			s_date = self.create_column_by_variable(subject_column_map, start_variable_name)
 
 		if function == VariablePredefineFunctions.YEAR_DIFF:
 			operator = ComputedLiteralOperator.YEAR_DIFF
@@ -641,7 +641,7 @@ class SubjectStorage:
 			formatted = parsed_date.strftime(translated_date_format)
 			return formatted if len(prefix) == 0 else f'{prefix}{formatted}'
 		else:
-			a_date = self.parse_date_function_variable(subject_column_map, variable_name)
+			a_date = self.create_column_by_variable(subject_column_map, variable_name)
 			return ComputedLiteral(operator=ComputedLiteralOperator.FORMAT_DATE, elements=[a_date, date_format])
 
 	# noinspection PyMethodMayBeStatic
@@ -687,6 +687,14 @@ class SubjectStorage:
 			return TypedLiteral(
 				literal=self.create_date_format(subject_column_map, prefix, variable_name),
 				possibleTypes=[PossibleParameterType.STRING]
+			)
+		elif variable_name.endswith(VariablePredefineFunctions.LENGTH.value):
+			return TypedLiteral(
+				literal=ComputedLiteral(
+					operator=ComputedLiteralOperator.CHAR_LENGTH,
+					elements=[self.create_column_by_variable(subject_column_map, variable_name)]
+				),
+				possibleTypes=[PossibleParameterType.STRING if len(prefix) != 0 else PossibleParameterType.NUMBER]
 			)
 
 		# recover to original string
