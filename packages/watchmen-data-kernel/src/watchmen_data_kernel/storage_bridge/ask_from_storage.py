@@ -427,7 +427,7 @@ def create_char_length(
 				length = len(str(value))
 			return length if len(prefix) == 0 else f'{prefix}{length}'
 		else:
-			func = create_ask_value_for_computed(ComputedLiteralOperator.FORMAT_DATE, [value])
+			func = create_ask_value_for_computed(ComputedLiteralOperator.CHAR_LENGTH, [value])
 			return func(variables, principal_service)
 
 	return action
