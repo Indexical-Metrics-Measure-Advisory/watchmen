@@ -11,6 +11,7 @@ import {AlertLabel} from '@/widgets/alert/widgets';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
+import {HELP_KEYS, useHelp} from '@/widgets/help';
 import {Lang} from '@/widgets/langs';
 import React, {MouseEvent, useEffect, useRef, useState} from 'react';
 import {useHistory} from 'react-router-dom';
@@ -243,6 +244,7 @@ const CatalogBody = (props: { connectedSpace: ConnectedSpace }) => {
 
 export const Catalog = (props: { connectedSpace: ConnectedSpace }) => {
 	const {connectedSpace} = props;
+	useHelp(HELP_KEYS.CONSOLE_CONNECTED_SPACE);
 
 	return <CatalogEventBusProvider>
 		<CatalogHeader connectedSpace={connectedSpace}/>

@@ -1,5 +1,6 @@
 import {AdminCacheData} from '@/services/local-persist/types';
 import {FullWidthPage} from '@/widgets/basic/page';
+import {HELP_KEYS, useHelp} from '@/widgets/help';
 import React, {useEffect, useState} from 'react';
 import {CacheState} from '../cache';
 import {useAdminCacheEventBus} from '../cache/cache-event-bus';
@@ -29,6 +30,7 @@ const AdminDebugIndex = () => {
 			askData();
 		}
 	}, [fireCache, state.initialized]);
+	useHelp(HELP_KEYS.ADMIN_SIMULATOR);
 
 	return <AdminMain>
 		<FullWidthPage>

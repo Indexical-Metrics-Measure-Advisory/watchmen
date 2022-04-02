@@ -1,5 +1,6 @@
 import {FullWidthPage} from '@/widgets/basic/page';
 import {FullWidthPageHeaderContainer, PageTitle} from '@/widgets/basic/page-header';
+import {HELP_KEYS, useHelp} from '@/widgets/help';
 import React from 'react';
 import {createHelpCmd} from '../command';
 import {Command} from '../command/types';
@@ -19,6 +20,8 @@ export const CONSANGUINITY_COMMANDS: Array<Command> = [PipelineCmd, TopicCmd, Fl
 export const CONSANGUINITY_HELP_COMMAND = createHelpCmd([PipelineHelpCmd, TopicHelpCmd, FlowHelpCmd, GraphHelpCmd]);
 
 const DataQualityConsanguinityIndex = () => {
+	useHelp(HELP_KEYS.DQC_CONSANGUINITY);
+
 	return <FullWidthPage>
 		<FullWidthPageHeaderContainer>
 			<PageTitle>Consanguinity</PageTitle>

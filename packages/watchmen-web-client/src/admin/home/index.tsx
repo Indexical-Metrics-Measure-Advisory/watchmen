@@ -6,6 +6,7 @@ import {Router} from '@/routes/types';
 import {fetchAdminDashboard} from '@/services/data/admin/home';
 import {ConnectedSpace} from '@/services/data/tuples/connected-space-types';
 import {Dashboard} from '@/services/data/tuples/dashboard-types';
+import {HELP_KEYS, useHelp} from '@/widgets/help';
 import React, {useEffect, useState} from 'react';
 import {useHistory} from 'react-router-dom';
 import {AdminLoading} from './admin-loading';
@@ -20,6 +21,7 @@ interface HomeState {
 
 const AdminDashboard = (props: { dashboard: Dashboard }) => {
 	const {dashboard} = props;
+	useHelp(HELP_KEYS.ADMIN_DASHBOARD);
 
 	return <DashboardEventBusProvider>
 		<AdminDashboardContainer>
