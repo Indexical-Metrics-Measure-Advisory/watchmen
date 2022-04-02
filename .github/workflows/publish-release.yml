@@ -107,6 +107,6 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ./packages/watchmen-rest-doll
-          file: ./packages/wathmen-rest-doll/Dockerfile
+          file: ./packages/watchmen-rest-doll/Dockerfile
           push: true
           tags: ghcr.io/indexical-metrics-measure-advisory/watchmen-matryoshka-doll:${{ github.event.release.tag_name }}
