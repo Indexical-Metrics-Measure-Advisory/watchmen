@@ -361,7 +361,7 @@ def build_literal(
 				}
 			}
 		elif operator == ComputedLiteralOperator.CHAR_LENGTH:
-			return {'$strLenCP': build_literal(documents, literal.elements[0])}
+			return {'$strLenCP': {'$ifNull': [build_literal(documents, literal.elements[0]), '']}}
 		else:
 			raise UnsupportedComputationException(f'Unsupported computation operator[{operator}].')
 	elif isinstance(literal, datetime):
