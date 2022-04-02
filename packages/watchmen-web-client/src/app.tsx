@@ -5,6 +5,7 @@ import {Tooltip} from '@/widgets/basic/tooltip';
 import {Dialog} from '@/widgets/dialog';
 import {YesNoDialog} from '@/widgets/dialog/yes-no-dialog';
 import {EventBusProvider} from '@/widgets/events/event-bus';
+import {HelpButton} from '@/widgets/help';
 import {Languages} from '@/widgets/langs';
 import {ThemeWrapper} from '@/widgets/theme/theme-wrapper';
 import dayjs from 'dayjs';
@@ -38,6 +39,7 @@ const app = () => {
 		<Dialog/>
 		<YesNoDialog/>
 		<Tooltip/>
+		<HelpButton/>
 	</EventBusProvider>;
 };
 export default app;

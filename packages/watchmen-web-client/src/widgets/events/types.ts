@@ -20,6 +20,8 @@ export enum EventTypes {
 	HIDE_DIALOG = 'hide-dialog',
 	SHOW_YES_NO_DIALOG = 'show-yes-no-dialog',
 
+	SHOW_HELP = 'show-help',
+
 	SIDE_MENU_RESIZED = 'side-menu-resized',
 	ASK_SIDE_MENU_WIDTH = 'ask-side-menu-width',
 
@@ -91,6 +93,11 @@ export interface EventBus {
 	fire(type: EventTypes.SHOW_YES_NO_DIALOG, question: string, onYes: () => void, onNo: () => void): this;
 	on(type: EventTypes.SHOW_YES_NO_DIALOG, listener: (question: string, onYes: () => void, onNo: () => void) => void): this;
 	off(type: EventTypes.SHOW_YES_NO_DIALOG, listener: (question: string, onYes: () => void, onNo: () => void) => void): this;
+
+	// help
+	fire(type: EventTypes.SHOW_HELP, key: string): this;
+	on(type: EventTypes.SHOW_HELP, listener: (key: string) => void): this;
+	off(type: EventTypes.SHOW_HELP, listener: (key: string) => void): this;
 
 	fire(type: EventTypes.SIDE_MENU_RESIZED, width: number): this;
 	on(type: EventTypes.SIDE_MENU_RESIZED, listener: (width: number) => void): this;
