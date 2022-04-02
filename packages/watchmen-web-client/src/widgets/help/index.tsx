@@ -101,16 +101,16 @@ const CONTENTS: Array<{ words: string, name: string, url: string }> = [
 
 const match = (text?: string): Array<MatchedItem> => {
 	text = (text || '').toLowerCase();
-	// const version = process.env.REACT_APP_VERSION;
+	const version = process.env.REACT_APP_VERSION;
 	if (text.length === 0) {
 		return CONTENTS.map(item => {
-			return {name: item.name, url: `https://imma-watchmen.com/docs/web-client/${item.url}`};
+			return {name: item.name, url: `https://imma-watchmen.com/docs/${version}/web-client/${item.url}`};
 		});
 	} else {
 		return CONTENTS.filter(item => {
 			return item.words.includes(text as string);
 		}).map(item => {
-			return {name: item.name, url: `https://imma-watchmen.com/docs/web-client/${item.url}`};
+			return {name: item.name, url: `https://imma-watchmen.com/docs/${version}/web-client/${item.url}`};
 		});
 	}
 };
