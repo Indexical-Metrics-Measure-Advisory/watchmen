@@ -89,11 +89,44 @@ export const HelpDialogSearchInput = styled(Input)`
 	padding       : 0 calc(var(--input-indent) * 2);
 	opacity       : 0.9;
 `;
-export const HelpDialogSearchResults = styled.div`
+export const HelpDialogSearchResults = styled.div.attrs({
+	'data-v-scroll': ''
+})`
+	display        : flex;
+	position       : relative;
+	flex-direction : column;
+	margin-bottom  : calc(var(--margin) / 2);
+	max-height     : calc(80vh - 32px - 72px - 36px);
+	overflow-x     : hidden;
+	overflow-y     : auto;
+
+`;
+export const HelpDialogSearchResultItem = styled.div`
 	display       : flex;
 	position      : relative;
-	margin-bottom : calc(var(--margin) / 2);
+	align-items   : center;
+	font-size     : 1.4em;
+	padding       : 0 calc(var(--input-indent) * 2);
+	border-bottom : var(--border);
+	min-height    : calc(var(--height) * 1.5);
+	cursor        : pointer;
+	transition    : background-color 300ms ease-in-out, border-radius 300ms ease-in-out;
+	&:hover {
+		background-color : var(--hover-color);
+		border-radius    : calc(var(--border-radius) * 2);
+		> svg {
+			color : var(--success-color);
+		}
+	}
+	> span:first-child {
+		flex-grow : 1;
+	}
+	> svg {
+		opacity    : 0.7;
+		transition : color 300ms ease-in-out;
+	}
 `;
+
 export const HelpDialogButtons = styled.div`
 	display : flex;
 `;

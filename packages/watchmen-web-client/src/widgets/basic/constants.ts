@@ -47,6 +47,7 @@ import {
 	faEthernet,
 	faExpand,
 	faExpandArrowsAlt,
+	faExternalLinkAlt,
 	faExternalLinkSquareAlt,
 	faFeather,
 	faFeatherPointed,
@@ -309,6 +310,7 @@ export const ICON_LIST_ICON_ASTERISK = faStarOfLife;
 export const ICON_USE_INDICATOR = faHighlighter;
 export const ICON_EXPAND_NODES = faPlus;
 export const ICON_COLLAPSE_NODES = faMinus;
+export const ICON_EXTERNAL_LINK = faExternalLinkAlt;
 
 export const ICON_COMMENTS = faCommentDots;
 export const ICON_CMD_PROMPT = faTerminal;
