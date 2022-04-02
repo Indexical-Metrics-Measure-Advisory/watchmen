@@ -9,7 +9,7 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
-      - name: Change version in config file
+      - name: Setup python
         uses: actions/setup-python@v3
         with:
           python-version: '3.9'
@@ -30,3 +30,98 @@ jobs:
           poetry update
           poetry build
           poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
+      - name: package watchmen-storage and publish to pypi
+        working-directory: ./packages/watchmen-storage
+        run: |
+          poetry update
+          poetry build
+          poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
+      - name: package watchmen-auth and publish to pypi
+        working-directory: ./packages/watchmen-auth
+        run: |
+          poetry update
+          poetry build
+          poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
+      - name: package watchmen-storage-mysql and publish to pypi
+        working-directory: ./packages/watchmen-storage-mysql
+        run: |
+          poetry update
+          poetry build
+          poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
+      - name: package watchmen-storage-oracle and publish to pypi
+        working-directory: ./packages/watchmen-storage-oracle
+        run: |
+          poetry update
+          poetry build
+          poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
+      - name: package watchmen-storage-mssql and publish to pypi
+        working-directory: ./packages/watchmen-storage-mssql
+        run: |
+          poetry update
+          poetry build
+          poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
+      - name: package watchmen-storage-mongodb and publish to pypi
+        working-directory: ./packages/watchmen-storage-mongodb
+        run: |
+          poetry update
+          poetry build
+          poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
+      - name: package watchmen-rest and publish to pypi
+        working-directory: ./packages/watchmen-rest
+        run: |
+          poetry update
+          poetry build
+          poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
+      - name: package watchmen-meta and publish to pypi
+        working-directory: ./packages/watchmen-meta
+        run: |
+          poetry update
+          poetry build
+          poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
+      - name: package watchmen-data-kernel and publish to pypi
+        working-directory: ./packages/watchmen-data-kernel
+        run: |
+          poetry update
+          poetry build
+          poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
+      - name: package watchmen-inquiry-trino and publish to pypi
+        working-directory: ./packages/watchmen-inquiry-trino
+        run: |
+          poetry update
+          poetry build
+          poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
+      - name: package watchmen-data-surface and publish to pypi
+        working-directory: ./packages/watchmen-data-surface
+        run: |
+          poetry update
+          poetry build
+          poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
+      - name: package watchmen-pipeline-kernel and publish to pypi
+        working-directory: ./packages/watchmen-pipeline-kernel
+        run: |
+          poetry update
+          poetry build
+          poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
+      - name: package watchmen-inquiry-surface and publish to pypi
+        working-directory: ./packages/watchmen-inquiry-surface
+        run: |
+          poetry update
+          poetry build
+          poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.CR_PAT }}
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: ./packages/wathmen-rest-doll
+          file: ./packages/wathmen-rest-doll/Dockerfile
+          push: true
+          tags: ghcr.io/indexical-metrics-measure-advisory/watchmen-matryoshka-doll:${{ github.event.release.tag_name }}
