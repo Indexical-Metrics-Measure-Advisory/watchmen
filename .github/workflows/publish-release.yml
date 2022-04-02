@@ -24,6 +24,9 @@ jobs:
           poetry update
           poetry build
           poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
+      - name: Sleep for 1 seconds
+        run: sleep 1s
+        shell: bash
       - name: package watchmen-model and publish to pypi
         working-directory: ./packages/watchmen-model
         run: |
@@ -66,6 +69,9 @@ jobs:
           poetry update
           poetry build
           poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
+      - name: Sleep for 1 seconds
+        run: sleep 1s
+        shell: bash
       - name: package watchmen-rest and publish to pypi
         working-directory: ./packages/watchmen-rest
         run: |
