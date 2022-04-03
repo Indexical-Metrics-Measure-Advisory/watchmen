@@ -14,6 +14,7 @@ from .document_defs_mongo import find_document, register_document
 from .document_mongo import DOCUMENT_OBJECT_ID, MongoDocument
 from .engine_mongo import MongoConnection, MongoEngine
 from .sort_build import build_sort_for_statement
+from .topic_document_generate import build_to_trino_fields
 from .where_build import build_criteria_for_statement
 
 logger = getLogger(__name__)
@@ -484,6 +485,15 @@ class TopicDataStorageMongoDB(StorageMongoDB, TopicDataStorageSPI):
 
 	def is_free_find_supported(self) -> bool:
 		return False
+
+	def append_topic_to_trino(self, topic: Topic) -> None:
+		self.connection.insert_one(self.find_document('_schema'), {
+			'table': as_table_name(topic.name),
+			'fields': ArrayHelper(build_to_trino_fields(topic)).map(lambda x: x.to_dict()).to_list()
+		})
+
+	def drop_topic_from_trino(self, topic: Topic) -> None:
+		self.connection.delete_many(self.find_document('_schema'), {'table': as_table_name(topic.name)})
 
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
 		"""

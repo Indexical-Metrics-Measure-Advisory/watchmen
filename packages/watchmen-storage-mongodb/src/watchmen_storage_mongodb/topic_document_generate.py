@@ -1,12 +1,14 @@
 from typing import List  # noqa
 
-from watchmen_model.admin import Factor, FactorType, Topic
+from watchmen_model.admin import Factor, FactorType, is_aggregation_topic, is_raw_topic, Topic
+from watchmen_model.common import DataModel
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
-from watchmen_storage import as_table_name, UnexpectedStorageException
+from watchmen_storage import as_table_name, ask_decimal_fraction_digits, ask_decimal_integral_digits, \
+	UnexpectedStorageException
 from watchmen_utilities import ArrayHelper, is_blank
 from .document_defs_helper import create_bool, create_datetime, create_int, create_json, create_pk, \
 	create_tuple_id_column
-from .document_mongo import MongoDocument, MongoDocumentColumn, MongoDocumentColumnType
+from .document_mongo import DOCUMENT_OBJECT_ID, MongoDocument, MongoDocumentColumn, MongoDocumentColumnType
 
 
 def create_column(factor: Factor) -> MongoDocumentColumn:
@@ -166,3 +168,54 @@ def build_by_regular(topic: Topic) -> MongoDocument:
 			create_datetime(TopicDataColumnNames.UPDATE_TIME.value, nullable=False)
 		]
 	)
+
+
+def build_to_document(topic: Topic) -> MongoDocument:
+	if is_raw_topic(topic):
+		return build_by_raw(topic)
+	elif is_aggregation_topic(topic):
+		return build_by_aggregation(topic)
+	else:
+		return build_by_regular(topic)
+
+
+class TrinoField(DataModel, MongoDocumentColumnType):
+	name: str
+	type: str
+	hidden: bool = False
+
+
+def to_trino_type(column_type: MongoDocumentColumnType) -> str:
+	if column_type == MongoDocumentColumnType.ID:
+		return 'ObjectId'
+	elif column_type == MongoDocumentColumnType.STRING:
+		return 'varchar'
+	elif column_type == MongoDocumentColumnType.NUMBER:
+		decimal_integral_digits = ask_decimal_integral_digits()
+		decimal_fraction_digits = ask_decimal_fraction_digits()
+		return f'decimal({decimal_integral_digits}, {decimal_fraction_digits})'
+	elif column_type == MongoDocumentColumnType.BOOLEAN:
+		return 'boolean'
+	elif column_type == MongoDocumentColumnType.DATE:
+		return 'date'
+	elif column_type == MongoDocumentColumnType.TIME:
+		return 'time'
+	elif column_type == MongoDocumentColumnType.DATETIME:
+		return 'timestamp'
+	elif column_type == MongoDocumentColumnType.OBJECT:
+		return 'json'
+	else:
+		raise UnexpectedStorageException(f'Column type[{column_type}] is not supported in trino.')
+
+
+def to_trino_field(column: MongoDocumentColumn) -> TrinoField:
+	return TrinoField(
+		name=column.name,
+		type=to_trino_type(column.columnType),
+		hidden=True if column.name == DOCUMENT_OBJECT_ID else False
+	)
+
+
+def build_to_trino_fields(topic: Topic) -> List[TrinoField]:
+	document = build_to_document(topic)
+	return ArrayHelper(document.columns).map(lambda x: to_trino_field(x)).to_list()
