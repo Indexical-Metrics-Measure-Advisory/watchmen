@@ -13,7 +13,6 @@ import {isComputedParameter, isTopicFactorParameter} from '@/services/data/tuple
 import {Subject, SubjectDataSetFilterJoint} from '@/services/data/tuples/subject-types';
 import {isExpressionFilter, isJointFilter} from '@/services/data/tuples/subject-utils';
 import {Topic, TopicId} from '@/services/data/tuples/topic-types';
-import {againstSnakeCaseName} from '@/services/utils';
 
 const getTopicIdsFromParameter = (parameter: Parameter): Array<TopicId> => {
 	if (isTopicFactorParameter(parameter)) {
@@ -60,9 +59,9 @@ export const isDefValid = (subject: Subject, topics: Array<Topic>): { valid: boo
 		if (!alias || alias.trim().length === 0) {
 			columnInvalidMessage = `Column[#${index + 1}] is incorrect caused by no name specified.`;
 			return true;
-		} else if (againstSnakeCaseName(alias.trim())) {
-			columnInvalidMessage = `Column[#${index + 1}] is incorrect caused by name cannot start with digit and must follow snake case.`;
-			return true;
+			// } else if (againstSnakeCaseName(alias.trim())) {
+			// 	columnInvalidMessage = `Column[#${index + 1}] is incorrect caused by name cannot start with digit and must follow snake case.`;
+			// 	return true;
 		}
 		return !isParameterValid4DataSet({
 			parameter,
