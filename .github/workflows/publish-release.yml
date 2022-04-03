@@ -21,76 +21,91 @@ jobs:
       - name: package watchmen-utilities and publish to pypi
         working-directory: ./packages/watchmen-utilities
         run: |
+          poetry update
           poetry build
           poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
       - name: package watchmen-model and publish to pypi
         working-directory: ./packages/watchmen-model
         run: |
+          poetry update
           poetry build
           poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
       - name: package watchmen-storage and publish to pypi
         working-directory: ./packages/watchmen-storage
         run: |
+          poetry update
           poetry build
           poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
       - name: package watchmen-auth and publish to pypi
         working-directory: ./packages/watchmen-auth
         run: |
+          poetry update
           poetry build
           poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
       - name: package watchmen-storage-mysql and publish to pypi
         working-directory: ./packages/watchmen-storage-mysql
         run: |
+          poetry update
           poetry build
           poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
       - name: package watchmen-storage-oracle and publish to pypi
         working-directory: ./packages/watchmen-storage-oracle
         run: |
+          poetry update
           poetry build
           poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
       - name: package watchmen-storage-mssql and publish to pypi
         working-directory: ./packages/watchmen-storage-mssql
         run: |
+          poetry update
           poetry build
           poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
       - name: package watchmen-storage-mongodb and publish to pypi
         working-directory: ./packages/watchmen-storage-mongodb
         run: |
+          poetry update
           poetry build
           poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
       - name: package watchmen-rest and publish to pypi
         working-directory: ./packages/watchmen-rest
         run: |
+          poetry update
           poetry build
           poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
       - name: package watchmen-meta and publish to pypi
         working-directory: ./packages/watchmen-meta
         run: |
+          poetry update
           poetry build
           poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
       - name: package watchmen-data-kernel and publish to pypi
         working-directory: ./packages/watchmen-data-kernel
         run: |
+          poetry update
           poetry build
           poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
       - name: package watchmen-inquiry-trino and publish to pypi
         working-directory: ./packages/watchmen-inquiry-trino
         run: |
+          poetry update
           poetry build
           poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
       - name: package watchmen-data-surface and publish to pypi
         working-directory: ./packages/watchmen-data-surface
         run: |
+          poetry update
           poetry build
           poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
       - name: package watchmen-pipeline-kernel and publish to pypi
         working-directory: ./packages/watchmen-pipeline-kernel
         run: |
+          poetry update
           poetry build
           poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
       - name: package watchmen-inquiry-surface and publish to pypi
         working-directory: ./packages/watchmen-inquiry-surface
         run: |
+          poetry update
           poetry build
           poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
       - name: Set up QEMU
