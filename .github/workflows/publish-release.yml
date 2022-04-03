@@ -102,6 +102,18 @@ jobs:
           poetry update
           poetry build
           poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
+      - name: package watchmen-inquiry-kernel and publish to pypi
+        working-directory: ./packages/watchmen-inquiry-kernel
+        run: |
+          poetry update
+          poetry build
+          poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
+      - name: package watchmen-pipeline-surface and publish to pypi
+        working-directory: ./packages/watchmen-pipeline-surface
+        run: |
+          poetry update
+          poetry build
+          poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
       - name: package watchmen-inquiry-surface and publish to pypi
         working-directory: ./packages/watchmen-inquiry-surface
         run: |
