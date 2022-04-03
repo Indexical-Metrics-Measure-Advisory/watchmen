@@ -1,7 +1,7 @@
 from typing import Optional
 
 from watchmen_auth import PrincipalService
-from watchmen_data_kernel.common import ask_replace_topic_to_storage, ask_sync_topic_to_storage
+from watchmen_data_kernel.common import ask_replace_topic_to_storage, ask_sync_topic_to_storage, ask_trino_enabled
 from watchmen_model.admin import Topic
 from watchmen_utilities import is_blank
 from .storage_helper import ask_topic_storage
@@ -43,8 +43,21 @@ def update_topic_structure(topic: Topic, original_topic: Topic, principal_servic
 	storage.update_topic_entity(topic, original_topic)
 
 
+def sync_for_trino(topic: Topic, original_topic: Optional[Topic], principal_service: PrincipalService) -> None:
+	if original_topic is not None and can_do_next(original_topic):
+		storage = ask_topic_storage(original_topic, principal_service)
+		storage.drop_topic_from_trino(original_topic)
+
+	if can_do_next(topic):
+		storage = ask_topic_storage(topic, principal_service)
+		storage.append_topic_to_trino(topic)
+
+
 def sync_topic_structure_storage(
 		topic: Topic, original_topic: Optional[Topic], principal_service: PrincipalService) -> None:
+	if ask_trino_enabled():
+		sync_for_trino(topic, original_topic, principal_service)
+
 	if not ask_sync_topic_to_storage():
 		return
 

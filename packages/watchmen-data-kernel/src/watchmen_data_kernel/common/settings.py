@@ -2,6 +2,7 @@ from logging import getLogger
 from typing import List, Set, Tuple
 
 from pydantic import BaseSettings
+
 from watchmen_utilities import ArrayHelper
 
 logger = getLogger(__name__)
@@ -37,6 +38,7 @@ class KernelSettings(BaseSettings):
 
 	SYNC_TOPIC_TO_STORAGE: bool = False  # sync topic change to storage entity
 	REPLACE_TOPIC_TO_STORAGE: bool = False  # force replace existing topic entity (drop and recreate)
+	TRINO: bool = True  # trino
 
 	class Config:
 		# secrets_dir = '/var/run'
@@ -116,3 +118,7 @@ def ask_sync_topic_to_storage() -> bool:
 
 def ask_replace_topic_to_storage() -> bool:
 	return settings.REPLACE_TOPIC_TO_STORAGE
+
+
+def ask_trino_enabled() -> bool:
+	return settings.TRINO

@@ -216,6 +216,12 @@ class TopicDataStorageSPI(TransactionalStorageSPI):
 	def is_free_find_supported(self) -> bool:
 		return True
 
+	def append_topic_to_trino(self, topic: Topic) -> None:
+		pass
+
+	def drop_topic_from_trino(self, topic: Topic) -> None:
+		pass
+
 	@abstractmethod
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
 		pass

@@ -1,15 +1,19 @@
 from datetime import datetime
 from typing import Dict, Optional, Tuple
 
-from watchmen_model.admin import is_aggregation_topic, is_raw_topic, Topic
+from watchmen_model.admin import Topic
 from watchmen_model.common import TopicId
 from watchmen_storage import SNOWFLAKE_WORKER_ID_TABLE, UnexpectedStorageException
 from .document_defs_helper import create_bool, create_datetime, create_description, create_int, create_json, \
 	create_last_visit_time, create_optimistic_lock, create_pk, create_str, create_tenant_id, \
 	create_tuple_audit_columns, create_tuple_id_column, create_user_id
 from .document_mongo import MongoDocument, MongoDocumentColumnType
-from .topic_document_generate import build_by_aggregation, build_by_raw, build_by_regular
+from .topic_document_generate import build_to_document
 
+table_trino_schema = MongoDocument(
+	name='_schema',
+	columns=[create_str('table'), create_json('fields')]
+)
 table_snowflake_competitive_workers = MongoDocument(
 	name=SNOWFLAKE_WORKER_ID_TABLE,
 	columns=[
@@ -261,6 +265,7 @@ table_monitor_rules = MongoDocument(
 
 # noinspection DuplicatedCode
 tables: Dict[str, MongoDocument] = {
+	'_schema': table_trino_schema,
 	# snowflake workers
 	SNOWFLAKE_WORKER_ID_TABLE: table_snowflake_competitive_workers,
 	# system
@@ -324,9 +329,4 @@ def register_document(topic: Topic) -> None:
 			# do nothing
 			return
 
-	if is_raw_topic(topic):
-		topic_documents[topic.topicId] = (build_by_raw(topic), topic.lastModifiedAt)
-	elif is_aggregation_topic(topic):
-		topic_documents[topic.topicId] = (build_by_aggregation(topic), topic.lastModifiedAt)
-	else:
-		topic_documents[topic.topicId] = (build_by_regular(topic), topic.lastModifiedAt)
+	topic_documents[topic.topicId] = (build_to_document(topic), topic.lastModifiedAt)
