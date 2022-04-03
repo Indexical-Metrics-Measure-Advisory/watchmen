@@ -103,6 +103,11 @@ jobs:
         run: |
           poetry build
           poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
+      - name: package watchmen-dqc and publish to pypi
+        working-directory: ./packages/watchmen-dqc
+        run: |
+          poetry build
+          poetry publish -u '${{secrets.PIP_USERNAME}}' -p '${{secrets.PIP_PASSWORD}}'
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
