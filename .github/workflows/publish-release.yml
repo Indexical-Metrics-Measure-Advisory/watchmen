@@ -113,10 +113,17 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.CR_PAT }}
-      - name: Build and push
+      - name: Doll build and push
         uses: docker/build-push-action@v2
         with:
           context: ./packages/watchmen-rest-doll
           file: ./packages/watchmen-rest-doll/Dockerfile
           push: true
           tags: ghcr.io/indexical-metrics-measure-advisory/watchmen-matryoshka-doll:${{ github.event.release.tag_name }}
+      - name: Web client build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: ./packages/watchmen-web-client
+          file: ./packages/watchmen-web-client/Dockerfile
+          push: true
+          tags: ghcr.io/indexical-metrics-measure-advisory/watchmen-web-client:${{ github.event.release.tag_name }}
