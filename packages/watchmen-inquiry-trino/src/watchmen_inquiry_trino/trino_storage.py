@@ -175,7 +175,7 @@ class TrinoStorage(TrinoStorageSPI):
 							f'{secondary_schema.get_entity_name()} AS {secondary_schema.get_alias()} ON {on} '
 					else:
 						built = \
-							f' {join_operator} ' \
+							f'{built} {join_operator} ' \
 							f'{secondary_schema.get_entity_name()} AS {secondary_schema.get_alias()} ON {on}'
 					# append into used
 					if secondary_schema not in schemas:
