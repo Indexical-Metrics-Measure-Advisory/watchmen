@@ -42,7 +42,7 @@ class OracleDataSourceHelper(DataSourceHelper):
 		if len(url) != 0:
 			return OracleDataSourceHelper.acquire_engine_by_url(url, params)
 		else:
-			return self.acquire_engine_by_params(
+			return OracleDataSourceHelper.acquire_engine_by_params(
 				data_source.username, data_source.password,
 				data_source.host, data_source.port,
 				data_source.name,
@@ -102,7 +102,7 @@ class OracleDataSourceHelper(DataSourceHelper):
 			encoding='UTF-8')
 
 		return create_engine(
-			"oracle+cx_oracle://", creator=pool.acquire,
+			'oracle+cx_oracle://', creator=pool.acquire,
 			poolclass=NullPool, coerce_to_decimal=False, echo=params.echo, optimize_limits=True,
 			future=True)
 

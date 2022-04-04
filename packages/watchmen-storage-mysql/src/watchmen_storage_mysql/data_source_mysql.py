@@ -38,7 +38,7 @@ class MySQLDataSourceHelper(DataSourceHelper):
 		if len(url) != 0:
 			return MySQLDataSourceHelper.acquire_engine_by_url(url, params)
 		else:
-			return self.acquire_engine_by_params(
+			return MySQLDataSourceHelper.acquire_engine_by_params(
 				data_source.username, data_source.password,
 				data_source.host, data_source.port,
 				data_source.name,

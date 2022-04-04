@@ -1,0 +1,2 @@
+SET DATEFIRST 7;
+GO

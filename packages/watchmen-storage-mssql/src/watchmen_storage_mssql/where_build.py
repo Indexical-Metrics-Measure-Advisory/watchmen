@@ -3,11 +3,12 @@ from typing import Any, Callable, List, Tuple
 
 from sqlalchemy import and_, case, func, literal_column, or_, Table, text
 
-from watchmen_storage import as_table_name, ask_decimal_fraction_digits, ask_decimal_integral_digits, \
-	ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteria, EntityCriteriaExpression, \
-	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, Literal, \
-	NoCriteriaForUpdateException, UnexpectedStorageException, UnsupportedComputationException, \
-	UnsupportedCriteriaException
+from watchmen_storage import as_table_name, ask_decimal_fraction_digits, ask_decimal_integral_digits, ColumnNameLiteral, \
+	ComputedLiteral, \
+	ComputedLiteralOperator, \
+	EntityCriteria, EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, \
+	EntityCriteriaOperator, EntityCriteriaStatement, Literal, NoCriteriaForUpdateException, \
+	UnexpectedStorageException, UnsupportedComputationException, UnsupportedCriteriaException
 from watchmen_utilities import ArrayHelper, DateTimeConstants, is_blank, is_not_blank
 from .types import SQLAlchemyStatement
 
@@ -15,24 +16,23 @@ from .types import SQLAlchemyStatement
 def to_decimal(value: Any) -> Any:
 	decimal_integral_digits = ask_decimal_integral_digits()
 	decimal_fraction_digits = ask_decimal_fraction_digits()
-	return func.convert(value, text(f'DECIMAL({decimal_integral_digits}, {decimal_fraction_digits})'))
+	return func.convert(text(f'DECIMAL({decimal_integral_digits}, {decimal_fraction_digits})'), value)
 
 
-# noinspection DuplicatedCode
 DATE_FORMAT_MAPPING = {
-	'Y': '%Y',  # 4 digits year
-	'y': '%y',  # 2 digits year
-	'M': '%m',  # 2 digits month
-	'D': '%d',  # 2 digits day of month
-	'h': '%H',  # 2 digits hour, 00 - 23
-	'H': '%h',  # 2 digits hour, 01 - 12
-	'm': '%i',  # 2 digits minute
-	's': '%S',  # 2 digits second
-	'W': '%W',  # Monday - Sunday
-	'w': '%a',  # Mon - Sun
-	'B': '%M',  # January - December
-	'b': '%b',  # Jan - Dec
-	'p': '%p'  # AM/PM
+	'Y': 'yyyy',  # 4 digits year
+	'y': 'yy',  # 2 digits year
+	'M': 'MM',  # 2 digits month
+	'D': 'dd',  # 2 digits day of month
+	'h': 'HH',  # 2 digits hour, 00 - 23
+	'H': 'hh',  # 2 digits hour, 01 - 12
+	'm': 'mm',  # 2 digits minute
+	's': 'ss',  # 2 digits second
+	'W': 'dddd',  # Monday - Sunday
+	'w': 'ddd',  # Mon - Sun
+	'B': 'MMMM',  # January - December
+	'b': 'MMM',  # Jan - Dec
+	'p': 'tt'  # AM/PM
 }
 
 
@@ -84,6 +84,8 @@ def build_literal(tables: List[Table], literal: Literal, build_plain_value: Call
 				.map(lambda x: build_literal(tables, x, to_decimal)) \
 				.reduce(lambda prev, current: prev % current, None)
 		elif operator == ComputedLiteralOperator.YEAR_OF:
+			# year is a customized function, which can be found in data-scripts folder
+			# make sure each topic storage have this function
 			return func.year(build_literal(tables, literal.elements[0]))
 		elif operator == ComputedLiteralOperator.HALF_YEAR_OF:
 			return case(
@@ -91,20 +93,24 @@ def build_literal(tables: List[Table], literal: Literal, build_plain_value: Call
 				else_=DateTimeConstants.HALF_YEAR_SECOND.value
 			)
 		elif operator == ComputedLiteralOperator.QUARTER_OF:
-			return func.quarter(build_literal(tables, literal.elements[0]))
+			# quarter is a customized function, which can be found in data-scripts folder
+			# make sure each topic storage have this function
+			return func.dbo.quarter(build_literal(tables, literal.elements[0]))
 		elif operator == ComputedLiteralOperator.MONTH_OF:
 			return func.month(build_literal(tables, literal.elements[0]))
 		elif operator == ComputedLiteralOperator.WEEK_OF_YEAR:
-			return func.week(build_literal(tables, literal.elements[0]), 0)
-		elif operator == ComputedLiteralOperator.WEEK_OF_MONTH:
-			# weekofmonth is a customized function, which can be found in meta-scripts folder
+			# week is a customized function, which can be found in data-scripts folder
 			# make sure each topic storage have this function
-			return func.weekofmonth(build_literal(tables, literal.elements[0]))
+			return func.dbo.week(build_literal(tables, literal.elements[0]), 0)
+		elif operator == ComputedLiteralOperator.WEEK_OF_MONTH:
+			# weekofmonth is a customized function, which can be found in data-scripts folder
+			# make sure each topic storage have this function
+			return func.dbo.weekofmonth(build_literal(tables, literal.elements[0]))
 		elif operator == ComputedLiteralOperator.DAY_OF_MONTH:
 			return func.day(build_literal(tables, literal.elements[0]))
 		elif operator == ComputedLiteralOperator.DAY_OF_WEEK:
-			# weekday in mysql is 0: Monday - 6: Sunday, here need 1: Sunday - 7: Saturday
-			return (func.weekday(build_literal(tables, literal.elements[0])) + 1) % 7 + 1
+			# assume date first is 7
+			return func.datepart(text('WEEKDAY'), build_literal(tables, literal.elements[0]))
 		elif operator == ComputedLiteralOperator.CASE_THEN:
 			elements = literal.elements
 			cases = ArrayHelper(elements).filter(lambda x: isinstance(x, Tuple)) \
@@ -116,31 +122,41 @@ def build_literal(tables: List[Table], literal: Literal, build_plain_value: Call
 			else:
 				return case(*cases, else_=build_literal(tables, anyway))
 		elif operator == ComputedLiteralOperator.CONCAT:
-			return func.concat(*ArrayHelper(literal.elements).map(lambda x: build_literal(tables, x)).to_list())
+			literals = ArrayHelper(literal.elements).map(lambda x: build_literal(tables, x)).to_list()
+			literal_count = len(literals)
+			if literal_count == 1:
+				return literals[0]
+			elif literal_count == 2:
+				return func.concat(literals[0], literals[1])
+			else:
+				return ArrayHelper(literal.elements[2:]) \
+					.reduce(lambda prev, x: func.concat(prev, x), func.concat(literals[0], literals[1]))
 		elif operator == ComputedLiteralOperator.YEAR_DIFF:
 			# yeardiff is a customized function, which can be found in data-scripts folder
 			# make sure each topic storage have this function
-			return func.yeardiff(build_literal(tables, literal.elements[0]), build_literal(tables, literal.elements[1]))
-		elif operator == ComputedLiteralOperator.MONTH_DIFF:
-			# monthdiff is a customized function, which can be found in data-scripts folder
-			# make sure each topic storage have this function
-			return func.monthdiff(
+			return func.dbo.yeardiff(
 				build_literal(tables, literal.elements[0]), build_literal(tables, literal.elements[1]))
+		elif operator == ComputedLiteralOperator.MONTH_DIFF:
+			return func.datediff(
+				text('MONTH'),
+				build_literal(tables, literal.elements[1]), build_literal(tables, literal.elements[0]))
 		elif operator == ComputedLiteralOperator.DAY_DIFF:
-			return func.datediff(build_literal(tables, literal.elements[1]), build_literal(tables, literal.elements[0]))
+			return func.datediff(
+				text('DAY'),
+				build_literal(tables, literal.elements[1]), build_literal(tables, literal.elements[0]))
 		elif operator == ComputedLiteralOperator.FORMAT_DATE:
-			return func.date_format(
+			return func.format(
 				build_literal(tables, literal.elements[0]), translate_date_format(literal.elements[1]))
 		elif operator == ComputedLiteralOperator.CHAR_LENGTH:
-			return func.char_length(func.ifnull(build_literal(tables, literal.elements[0]), ''))
+			return func.len(func.isnull(build_literal(tables, literal.elements[0]), ''))
 		else:
 			raise UnsupportedComputationException(f'Unsupported computation operator[{operator}].')
 	elif isinstance(literal, datetime):
-		return func.str_to_date(literal.strftime('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%i:%s')
+		return func.convert(text('DATETIME'), literal.strftime('%Y-%m-%d %H:%M:%S'), 120)
 	elif isinstance(literal, date):
-		return func.str_to_date(literal.strftime('%Y-%m-%d'), '%Y-%m-%d')
+		return func.convert(text('DATE'), literal.strftime('%Y%m%d'), 112)
 	elif isinstance(literal, time):
-		return func.str_to_date(literal.strftime('%H:%M:%S'), '%H:%i:%s')
+		return func.convert(text('TIME'), literal.strftime('%H:%M:%S'), 108)
 	elif build_plain_value is not None:
 		return build_plain_value(literal)
 	else:
