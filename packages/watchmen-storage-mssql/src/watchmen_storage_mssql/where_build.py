@@ -3,12 +3,11 @@ from typing import Any, Callable, List, Tuple
 
 from sqlalchemy import and_, case, func, literal_column, or_, Table, text
 
-from watchmen_storage import as_table_name, ask_decimal_fraction_digits, ask_decimal_integral_digits, ColumnNameLiteral, \
-	ComputedLiteral, \
-	ComputedLiteralOperator, \
-	EntityCriteria, EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, \
-	EntityCriteriaOperator, EntityCriteriaStatement, Literal, NoCriteriaForUpdateException, \
-	UnexpectedStorageException, UnsupportedComputationException, UnsupportedCriteriaException
+from watchmen_storage import as_table_name, ask_decimal_fraction_digits, ask_decimal_integral_digits, \
+	ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteria, EntityCriteriaExpression, \
+	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, Literal, \
+	NoCriteriaForUpdateException, UnexpectedStorageException, UnsupportedComputationException, \
+	UnsupportedCriteriaException
 from watchmen_utilities import ArrayHelper, DateTimeConstants, is_blank, is_not_blank
 from .types import SQLAlchemyStatement
 

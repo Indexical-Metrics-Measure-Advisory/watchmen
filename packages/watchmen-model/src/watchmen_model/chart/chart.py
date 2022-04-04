@@ -339,6 +339,7 @@ class DropdownItem(InputItem):
 class EChartsSettings(ChartSettings, EChartsTitleHolder):
 	pass
 
+
 class CountChartSettingsText(DataModel, BaseModel):
 	font: ChartFont = None
 	formatUseGrouping: bool = None

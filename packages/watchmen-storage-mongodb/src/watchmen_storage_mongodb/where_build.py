@@ -243,6 +243,7 @@ def build_literal(
 		elif operator == ComputedLiteralOperator.DAY_DIFF:
 			return built_date_diff(documents, literal, 'day')
 		elif operator == ComputedLiteralOperator.FORMAT_DATE:
+			# noinspection SpellCheckingInspection
 			return {
 				'$let': {
 					'vars': {
@@ -279,18 +280,15 @@ def build_literal(
 											{'$cond': [  # M, 2 digits month
 												{'$lt': ['$$parts.month', 10]},
 												{'$concat': ['0', {'$toString': '$$parts.month'}]},
-												{'$toString': '$$parts.month'}]
-											},
+												{'$toString': '$$parts.month'}]},
 											{'$cond': [  # D, 2 digits day of month
 												{'$lt': ['$$parts.day', 10]},
 												{'$concat': ['0', {'$toString': '$$parts.day'}]},
-												{'$toString': '$$parts.day'}]
-											},
+												{'$toString': '$$parts.day'}]},
 											{'$cond': [  # h, 2 digits hour, 00 - 23
 												{'$lt': ['$$parts.hour', 10]},
 												{'$concat': ['0', {'$toString': '$$parts.hour'}]},
-												{'$toString': '$$parts.hour'}]
-											},
+												{'$toString': '$$parts.hour'}]},
 											{'$switch': {'branches': [  # H, 2 digits hour, 01 - 12
 												{'case': {'$eq': ['$$parts.hour', 0]}, 'then': '12'},
 												{
@@ -309,13 +307,11 @@ def build_literal(
 											{'$cond': [  # m, 2 digits minute
 												{'$lt': ['$$parts.minute', 10]},
 												{'$concat': ['0', {'$toString': '$$parts.minute'}]},
-												{'$toString': '$$parts.minute'}]
-											},
+												{'$toString': '$$parts.minute'}]},
 											{'$cond': [  # s, 2 digits second
 												{'$lt': ['$$parts.second', 10]},
 												{'$concat': ['0', {'$toString': '$$parts.second'}]},
-												{'$toString': '$$parts.second'}]
-											},
+												{'$toString': '$$parts.second'}]},
 											# W, Monday - Sunday
 											{'$arrayElemAt': ['$$day_of_week_names', '$$day_of_week']},
 											# w, Mon - Sun
