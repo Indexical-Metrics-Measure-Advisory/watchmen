@@ -60,6 +60,7 @@ def ask_super_admin() -> PrincipalService:
 	))
 
 
+# noinspection DuplicatedCode
 def build_mysql_storage() -> Callable[[], TransactionalStorageSPI]:
 	from watchmen_storage_mysql import StorageMySQLConfiguration
 	configuration = StorageMySQLConfiguration.config() \
@@ -80,6 +81,27 @@ def build_oracle_storage() -> Callable[[], TransactionalStorageSPI]:
 	return lambda: configuration.build()
 
 
+# noinspection DuplicatedCode
+def build_mongodb_storage() -> Callable[[], TransactionalStorageSPI]:
+	from watchmen_storage_mongodb import StorageMongoConfiguration
+	configuration = StorageMongoConfiguration.config() \
+		.host(settings.META_STORAGE_HOST, settings.META_STORAGE_PORT) \
+		.account(settings.META_STORAGE_USER_NAME, settings.META_STORAGE_PASSWORD) \
+		.schema(settings.META_STORAGE_NAME) \
+		.echo(settings.META_STORAGE_ECHO)
+	return lambda: configuration.build()
+
+
+def build_mssql_storage() -> Callable[[], TransactionalStorageSPI]:
+	from watchmen_storage_mssql import StorageMSSQLConfiguration
+	configuration = StorageMSSQLConfiguration.config() \
+		.host(settings.META_STORAGE_HOST, settings.META_STORAGE_PORT) \
+		.account(settings.META_STORAGE_USER_NAME, settings.META_STORAGE_PASSWORD) \
+		.schema(settings.META_STORAGE_NAME) \
+		.echo(settings.META_STORAGE_ECHO)
+	return lambda: configuration.build()
+
+
 class MetaStorageHolder:
 	metaStorage: Optional[Callable[[], TransactionalStorageSPI]] = None
 
@@ -93,7 +115,10 @@ def build_meta_storage() -> Callable[[], TransactionalStorageSPI]:
 		return build_mysql_storage()
 	if storage_type == DataSourceType.ORACLE:
 		return build_oracle_storage()
-	# TODO build mssql storage, mongodb storage
+	if storage_type == DataSourceType.MONGODB:
+		return build_mongodb_storage()
+	if storage_type == DataSourceType.MSSQL:
+		return build_mssql_storage()
 
 	raise InitialMetaAppException(f'Meta storage type[{storage_type}] is not supported yet.')
 
