@@ -1007,7 +1007,7 @@ class SubjectStorage:
 				.map_with_index(lambda x, index: (x, index)) \
 				.to_map(lambda x: x[0].columnId, lambda x: x[1])
 
-			def build_sort_column_by_dimension(dimension: ReportDimension, index: int) -> EntitySortColumn:
+			def build_sort_column_by_dimension(dimension: ReportDimension) -> EntitySortColumn:
 				column_id = dimension.columnId
 				index = subject_column_map.get(column_id)
 				if index is None:
@@ -1016,7 +1016,7 @@ class SubjectStorage:
 				return EntitySortColumn(name=f'column_{index + 1}', method=method)
 
 			sort_columns = ArrayHelper(report_schema.get_report().dimensions) \
-				.map_with_index(lambda x, index: build_sort_column_by_dimension(x, index)) \
+				.map(build_sort_column_by_dimension) \
 				.to_list()
 
 			return sort_columns

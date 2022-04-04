@@ -152,6 +152,7 @@ def get_date_from_variables(
 	return parsed, value, parsed_date
 
 
+# noinspection PyUnusedLocal
 def get_value_from_variables(
 		variables: PipelineVariables, principal_service: PrincipalService, variable_name: str
 ) -> Tuple[bool, Any, Any]:

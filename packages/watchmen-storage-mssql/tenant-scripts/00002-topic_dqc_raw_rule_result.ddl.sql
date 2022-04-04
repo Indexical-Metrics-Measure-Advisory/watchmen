@@ -1,3 +1,4 @@
+-- noinspection SpellCheckingInspectionForFile
 CREATE TABLE topic_dqc_raw_rule_result
 (
     id_          BIGINT,
