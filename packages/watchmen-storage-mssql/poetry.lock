@@ -25,6 +25,14 @@ dotenv = ["python-dotenv (>=0.10.4)"]
 email = ["email-validator (>=1.0.3)"]
 
 [[package]]
+name = "pyodbc"
+version = "4.0.32"
+description = "DB API Module for ODBC"
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "python-json-logger"
 version = "2.0.2"
 description = "A python library adding a json log formatter"
@@ -125,7 +133,7 @@ url = "../watchmen-utilities"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "e8999a0c165f4445ac3cd300ac837fae98a596361ca142d5c8ef3facaf6dd022"
+content-hash = "712e65536082fa2eb8076b14aee3c038768793343283347fed1112ed41e4dac9"
 
 [metadata.files]
 greenlet = [
@@ -221,6 +229,21 @@ pydantic = [
     {file = "pydantic-1.9.0-cp39-cp39-win_amd64.whl", hash = "sha256:2cc6a4cb8a118ffec2ca5fcb47afbacb4f16d0ab8b7350ddea5e8ef7bcc53a16"},
     {file = "pydantic-1.9.0-py3-none-any.whl", hash = "sha256:085ca1de245782e9b46cefcf99deecc67d418737a1fd3f6a4f511344b613a5b3"},
     {file = "pydantic-1.9.0.tar.gz", hash = "sha256:742645059757a56ecd886faf4ed2441b9c0cd406079c2b4bee51bcc3fbcd510a"},
+]
+pyodbc = [
+    {file = "pyodbc-4.0.32-cp27-cp27m-win32.whl", hash = "sha256:2152ce6d5131d769ff5839aa762e12d844c95e9ec4bb2f666e8cd9dfa1ae2240"},
+    {file = "pyodbc-4.0.32-cp27-cp27m-win_amd64.whl", hash = "sha256:56ec4974096d40d6c62a228799122dbc2ade6c4045cc5d31860212a32cae95b1"},
+    {file = "pyodbc-4.0.32-cp36-cp36m-win32.whl", hash = "sha256:699c080b1c1f7b4afc368b3521fd1161f46a10223443692a249cb01d90949b31"},
+    {file = "pyodbc-4.0.32-cp36-cp36m-win_amd64.whl", hash = "sha256:0d4e14adb149cae45da37fa87aa297055156dae6e89ca3c75493d3d62d78e543"},
+    {file = "pyodbc-4.0.32-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:6c1e1c1fe747b0f6419e8df0b5c43161e7437dbf72f93f9fcfb9b7358fad3e12"},
+    {file = "pyodbc-4.0.32-cp37-cp37m-win32.whl", hash = "sha256:bbc07517f339e019ee9f1fe679c4241251d11ca2124567616f67d62e73c29fc0"},
+    {file = "pyodbc-4.0.32-cp37-cp37m-win_amd64.whl", hash = "sha256:e81ebf9cab80a6eaba7922dea02036e9f8a507a7b818856b8008a02d6fc0d2ab"},
+    {file = "pyodbc-4.0.32-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:0e4178e9b93329bbba17555882008e36a114179d06033b813a13b254dcd755d0"},
+    {file = "pyodbc-4.0.32-cp38-cp38-win32.whl", hash = "sha256:c066f032e69fd71e9fadb3a380dfe8ecd1728b40a2bf38f76054d284f8523b29"},
+    {file = "pyodbc-4.0.32-cp38-cp38-win_amd64.whl", hash = "sha256:736acad1b264ddb7313058dfe37265b0c5160c1c2a9d1ffd391347c025eb5dd1"},
+    {file = "pyodbc-4.0.32-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:339d8aa633b0c65be5149c3378c7e3b5bead94dc8bb023a715b416bd047a008e"},
+    {file = "pyodbc-4.0.32-cp39-cp39-win_amd64.whl", hash = "sha256:cda790bdc25bfad12d4fb9ba93368275802f7f9ecfa4c9c65e982d3a7fc35f2e"},
+    {file = "pyodbc-4.0.32.tar.gz", hash = "sha256:9be5f0c3590655e1968488410fe3528bb8023d527e7ccec1f663d64245071a6b"},
 ]
 python-json-logger = [
     {file = "python-json-logger-2.0.2.tar.gz", hash = "sha256:202a4f29901a4b8002a6d1b958407eeb2dd1d83c18b18b816f5b64476dde9096"},
