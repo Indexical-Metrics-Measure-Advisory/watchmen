@@ -24,7 +24,6 @@ jobs:
   publish_oracle:
     name: Package the image with different storage
     runs-on: ubuntu-latest
-    if:  ${{ github.event.inputs.storage == 'oracle' }}
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
@@ -51,3 +50,17 @@ jobs:
           file: ./packages/watchmen-rest-doll/build_script/Dockerfile_${{ github.event.inputs.storage }}
           push: true
           tags: ghcr.io/indexical-metrics-measure-advisory/watchmen-doll-${{ github.event.inputs.storage }}:${{ github.event.inputs.image_version }}
+      - name: Create release branch
+        run: git checkout -b release/v${{ github.event.inputs.image_version }}
+      - name: Initialize mandatory git config
+        run: |
+          git config user.name "skywalkerX69"
+          git config user.email skywalkerX69@outlook.com
+      - name: Commit config and manifest files
+        id: make-commit
+        run: |
+          git add .
+          git commit --message "Prepare release ${{ github.event.inputs.image_version }}"
+          echo "::set-output name=commit::$(git rev-parse HEAD)"
+      - name: Push new branch
+        run: git push origin release/v${{ github.event.inputs.image_version }}
