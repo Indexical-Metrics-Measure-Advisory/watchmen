@@ -131,7 +131,7 @@ async def find_tenants_by_name(
 	return trans_readonly(tenant_service, action)
 
 
-@router.post('/tenant/infra', tags=[UserRole.SUPER_ADMIN, UserRole.ADMIN], response_class=Response)
+@router.get('/tenant/infra', tags=[UserRole.SUPER_ADMIN, UserRole.ADMIN], response_class=Response)
 async def create_tenant_infra_topics(
 		tenant_id: Optional[TenantId],
 		principal_service: PrincipalService = Depends(get_admin_principal)
