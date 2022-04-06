@@ -2823,7 +2823,7 @@
           "name": "SYSTEM",
           "item": [
             {
-              "name": "New Request",
+              "name": "LOGIN-ADMIN",
               "id": "93515980-977a-4946-b914-a77df0fe43ac",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
