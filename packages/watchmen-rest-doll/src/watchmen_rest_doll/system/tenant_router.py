@@ -13,13 +13,13 @@ from watchmen_model.common import DataPage, Pageable, TenantId
 from watchmen_model.dqc import ask_dqc_pipelines, ask_dqc_topics
 from watchmen_model.pipeline_kernel import ask_pipeline_monitor_pipelines, ask_pipeline_monitor_topics
 from watchmen_model.system import Tenant
-from watchmen_rest import get_any_principal, get_super_admin_principal
+from watchmen_rest import get_admin_principal, get_any_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.admin import ask_save_pipeline_action, ask_save_topic_action
 from watchmen_rest_doll.doll import ask_create_dqc_topics_on_tenant_create, \
 	ask_create_pipeline_monitor_topics_on_tenant_create, ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly
-from watchmen_utilities import is_blank
+from watchmen_utilities import is_blank, is_not_blank
 
 router = APIRouter()
 
@@ -131,10 +131,18 @@ async def find_tenants_by_name(
 	return trans_readonly(tenant_service, action)
 
 
-@router.post('/tenant/infra', tags=[UserRole.SUPER_ADMIN], response_class=Response)
+@router.post('/tenant/infra', tags=[UserRole.SUPER_ADMIN, UserRole.ADMIN], response_class=Response)
 async def create_tenant_infra_topics(
-		principal_service: PrincipalService = Depends(get_super_admin_principal)
+		tenant_id: Optional[TenantId],
+		principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> None:
+	if principal_service.is_super_admin():
+		if is_blank(tenant_id):
+			raise_400('Tenant id is required.')
+	elif is_not_blank(tenant_id):
+		if tenant_id != principal_service.get_tenant_id():
+			raise_403()
+
 	tenant_service = get_tenant_service(principal_service)
 
 	def action() -> None:
