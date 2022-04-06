@@ -2831,6 +2831,21 @@
               "request": {
                 "method": "POST",
                 "header": [],
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "key": "username",
+                      "value": "imma-admin",
+                      "type": "text"
+                    },
+                    {
+                      "key": "password",
+                      "value": "1234abcd",
+                      "type": "text"
+                    }
+                  ]
+                },
                 "url": "{{URL_PREFIX}}/login"
               },
               "response": []
