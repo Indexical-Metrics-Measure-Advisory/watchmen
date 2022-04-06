@@ -2824,6 +2824,25 @@
           "item": [
             {
               "name": "LOGIN-ADMIN",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "0e3a4845-0273-45da-9bd2-75e5d1a91a03",
+                    "exec": [
+                      "pm.test('Login Access Token', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.accessToken).to.not.be.null;",
+                      "    pm.expect(data.tokenType).to.eql('bearer');",
+                      "    pm.expect(data.role).to.eql('admin');",
+                      "    pm.expect(data.tenantId).to.eql('1');",
+                      "    pm.environment.set('JWT_TOKEN', data.accessToken)",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "93515980-977a-4946-b914-a77df0fe43ac",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
