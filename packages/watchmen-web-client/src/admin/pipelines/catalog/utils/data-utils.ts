@@ -45,8 +45,12 @@ const tryToComputeToVariable = (statement: string, variables: { [key in string]:
 };
 const computeParameterFrom = (parameter: Parameter, variables: { [key in string]: TopicId }): Array<TopicId> => {
 	if (isTopicFactorParameter(parameter)) {
-		// ignored
-		return [];
+		const topicId = parameter.topicId;
+		if (Object.values(variables).includes(topicId)) {
+			return [topicId];
+		} else {
+			return [];
+		}
 	} else if (isConstantParameter(parameter)) {
 		const segments = (parameter.value || '').match(/([^{]*({[^}]+})?)/g);
 		if (segments == null) {
