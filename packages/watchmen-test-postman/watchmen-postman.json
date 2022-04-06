@@ -2868,6 +2868,18 @@
                 "url": "{{URL_PREFIX}}/login"
               },
               "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "c398d433-9619-4600-9d27-ae9b6d6ac9fe",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
             }
           ],
           "id": "190de5b4-4005-4815-b56e-dab1f1732762"
