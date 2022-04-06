@@ -13,7 +13,7 @@ class Token(BaseModel):
 
 
 class PersonalAccessToken(UserBasedTuple, BaseModel):
-	patId: str = PatId
+	patId: PatId = None
 	token: str = None
 	username: str = None
 	note: str = None
