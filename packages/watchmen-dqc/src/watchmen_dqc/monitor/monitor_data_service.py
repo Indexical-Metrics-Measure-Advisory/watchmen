@@ -72,7 +72,7 @@ class MonitorDataService:
 			parsed, end_date = is_date(criteria.endDate, ask_datetime_formats())
 			if parsed:
 				if isinstance(end_date, datetime):
-					end_date = end_date.replace(microsecond=0, tzinfo=None)
+					end_date = end_date.replace(hour=23, minute=59, second=59, microsecond=999999, tzinfo=None)
 				else:
 					end_date = datetime(
 						year=end_date.year, month=end_date.month, day=end_date.day,
