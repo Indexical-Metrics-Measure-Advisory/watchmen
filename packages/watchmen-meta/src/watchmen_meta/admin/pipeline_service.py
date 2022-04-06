@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from watchmen_meta.common import TupleNotFoundException, TupleService, TupleShaper
 from watchmen_model.admin import Pipeline, PipelineStage
-from watchmen_model.common import PipelineId, TenantId, TopicId
+from watchmen_model.common import ParameterJoint, PipelineId, TenantId, TopicId
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, \
 	EntityShaper, TooManyEntitiesFoundException
 from watchmen_utilities import ArrayHelper, is_not_blank
@@ -23,6 +23,12 @@ class PipelineShaper(EntityShaper):
 			return None
 		return ArrayHelper(stages).map(lambda x: PipelineShaper.serialize_stage(x)).to_list()
 
+	@staticmethod
+	def serialize_prerequisite_on(on: Optional[ParameterJoint]) -> Optional[dict]:
+		if on is None:
+			return None
+		return on.to_dict()
+
 	def serialize(self, pipeline: Pipeline) -> EntityRow:
 		return TupleShaper.serialize_tenant_based(pipeline, {
 			'pipeline_id': pipeline.pipelineId,
@@ -30,7 +36,7 @@ class PipelineShaper(EntityShaper):
 			'name': pipeline.name,
 			'type': pipeline.type,
 			'prerequisite_enabled': pipeline.conditional,
-			'prerequisite_on': pipeline.on,
+			'prerequisite_on': PipelineShaper.serialize_prerequisite_on(pipeline.on),
 			'stages': PipelineShaper.serialize_stages(pipeline.stages),
 			'enabled': pipeline.enabled,
 			'validated': pipeline.validated
