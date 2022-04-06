@@ -2870,7 +2870,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "TENANT INFRA TOPIC",
               "id": "c398d433-9619-4600-9d27-ae9b6d6ac9fe",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
