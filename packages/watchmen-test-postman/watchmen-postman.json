@@ -2877,7 +2877,8 @@
               },
               "request": {
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": "{{URL_PREFIX}}/tenant/infra"
               },
               "response": []
             }
