@@ -1,7 +1,6 @@
-from typing import List, Optional
+from typing import Callable, List, Optional
 
 from fastapi import APIRouter, Body, Depends
-from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
@@ -13,13 +12,13 @@ from watchmen_model.common import DataPage, Pageable, TenantId
 from watchmen_model.dqc import ask_dqc_pipelines, ask_dqc_topics
 from watchmen_model.pipeline_kernel import ask_pipeline_monitor_pipelines, ask_pipeline_monitor_topics
 from watchmen_model.system import Tenant
-from watchmen_rest import get_admin_principal, get_any_principal, get_super_admin_principal
+from watchmen_rest import get_any_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.admin import ask_save_pipeline_action, ask_save_topic_action
 from watchmen_rest_doll.doll import ask_create_dqc_topics_on_tenant_create, \
 	ask_create_pipeline_monitor_topics_on_tenant_create, ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly
-from watchmen_utilities import is_blank, is_not_blank
+from watchmen_utilities import is_blank
 
 router = APIRouter()
 
@@ -60,7 +59,7 @@ async def load_tenant_by_id(
 
 
 def create_topics_and_pipelines(
-		topics: List[Topic], pipelines: List[Pipeline],
+		topics: List[Topic], create_pipelines: Callable[[List[Topic]], List[Pipeline]],
 		tenant_id: TenantId,
 		tenant_service: TenantService, principal_service: PrincipalService
 ) -> None:
@@ -73,7 +72,7 @@ def create_topics_and_pipelines(
 		topic_create(topic)
 	pipeline_service = get_pipeline_service(tenant_service)
 	pipeline_create = ask_save_pipeline_action(pipeline_service, principal_service)
-	# noinspection PyTypeChecker
+	pipelines = create_pipelines(topics)
 	for pipeline in pipelines:
 		pipeline.tenantId = tenant_id
 		pipeline_create(pipeline)
@@ -93,12 +92,14 @@ async def save_tenant(
 			if ask_create_pipeline_monitor_topics_on_tenant_create():
 				topics = ask_pipeline_monitor_topics()
 				create_topics_and_pipelines(
-					topics, ask_pipeline_monitor_pipelines(topics), a_tenant.tenantId, tenant_service, principal_service
+					topics, lambda source_topics: ask_pipeline_monitor_pipelines(source_topics),
+					a_tenant.tenantId, tenant_service, principal_service
 				)
 			if ask_create_dqc_topics_on_tenant_create():
 				topics = ask_dqc_topics()
 				create_topics_and_pipelines(
-					topics, ask_dqc_pipelines(topics), a_tenant.tenantId, tenant_service, principal_service
+					topics, lambda source_topics: ask_dqc_pipelines(source_topics),
+					a_tenant.tenantId, tenant_service, principal_service
 				)
 		else:
 			# noinspection PyTypeChecker
@@ -129,35 +130,6 @@ async def find_tenants_by_name(
 			return tenant_service.find_by_text(query_name, pageable)
 
 	return trans_readonly(tenant_service, action)
-
-
-@router.get('/tenant/infra', tags=[UserRole.SUPER_ADMIN, UserRole.ADMIN], response_class=Response)
-async def create_tenant_infra_topics(
-		tenant_id: Optional[TenantId],
-		principal_service: PrincipalService = Depends(get_admin_principal)
-) -> None:
-	if principal_service.is_super_admin():
-		if is_blank(tenant_id):
-			raise_400('Tenant id is required.')
-	elif is_not_blank(tenant_id):
-		if tenant_id != principal_service.get_tenant_id():
-			raise_403()
-
-	tenant_service = get_tenant_service(principal_service)
-
-	def action() -> None:
-		if ask_create_pipeline_monitor_topics_on_tenant_create():
-			topics = ask_pipeline_monitor_topics()
-			create_topics_and_pipelines(
-				topics, ask_pipeline_monitor_pipelines(topics), tenant_id, tenant_service, principal_service
-			)
-		if ask_create_dqc_topics_on_tenant_create():
-			topics = ask_dqc_topics()
-			create_topics_and_pipelines(
-				topics, ask_dqc_pipelines(topics), tenant_id, tenant_service, principal_service
-			)
-
-	return trans(tenant_service, action)
 
 
 @router.delete('/tenant', tags=[UserRole.SUPER_ADMIN], response_model=Tenant)

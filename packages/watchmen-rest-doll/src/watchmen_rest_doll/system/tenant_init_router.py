@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Callable, List, Optional
 
 from fastapi import APIRouter, Depends
 from starlette.responses import Response
@@ -39,7 +39,7 @@ def get_pipeline_service(tenant_service: MetaTenantService) -> PipelineService:
 
 
 def create_topics_and_pipelines(
-		topics: List[Topic], pipelines: List[Pipeline],
+		topics: List[Topic], create_pipelines: Callable[[List[Topic]], List[Pipeline]],
 		tenant_id: TenantId,
 		tenant_service: MetaTenantService, principal_service: PrincipalService
 ) -> None:
@@ -55,7 +55,7 @@ def create_topics_and_pipelines(
 			topic_save(topic)
 	pipeline_service = get_pipeline_service(tenant_service)
 	pipeline_create = ask_save_pipeline_action(pipeline_service, principal_service)
-	# noinspection PyTypeChecker
+	pipelines = create_pipelines(topics)
 	for pipeline in pipelines:
 		pipeline.tenantId = tenant_id
 		existing_pipelines = pipeline_service.find_by_topic_id(pipeline.topicId, pipeline.tenantId)
@@ -76,9 +76,9 @@ async def init_tenant(
 		elif principal_service.is_tenant_admin():
 			tenant_id = principal_service.get_tenant_id()
 	else:
-		if principal_service.get_tenant_id() != tenant_id:
+		if principal_service.get_tenant_id() != tenant_id and principal_service.is_tenant_admin():
 			raise_400(f'Tenant[{tenant_id}] does not match principal.')
-		else:
+		elif principal_service.is_super_admin():
 			tenant: Optional[Tenant] = get_tenant_service(principal_service).find_by_id(tenant_id)
 			if tenant is None:
 				raise_404(f'Tenant[id={tenant_id}] not found.')
@@ -88,9 +88,11 @@ async def init_tenant(
 	def action() -> None:
 		topics = ask_pipeline_monitor_topics()
 		create_topics_and_pipelines(
-			topics, ask_pipeline_monitor_pipelines(topics), tenant_id, meta_tenant_service, principal_service)
+			topics, lambda source_topics: ask_pipeline_monitor_pipelines(source_topics),
+			tenant_id, meta_tenant_service, principal_service)
 		topics = ask_dqc_topics()
 		create_topics_and_pipelines(
-			topics, ask_dqc_pipelines(topics), tenant_id, meta_tenant_service, principal_service)
+			topics, lambda source_topics: ask_dqc_pipelines(source_topics),
+			tenant_id, meta_tenant_service, principal_service)
 
 	trans(meta_tenant_service, action)
