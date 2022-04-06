@@ -49,15 +49,21 @@ def ask_dqc_topics() -> List[Topic]:
 			description='Topic data monitor by rules, raw topic.'
 		),
 		Topic(
-			name='dqc_rule_aggregate',
+			name='dqc_rule_daily',
 			kind=TopicKind.SYSTEM,
-			type=TopicType.AGGREGATE,
+			type=TopicType.DISTINCT,
 			factors=[
 				Factor(factorId='dra-f-1', name='ruleCode', type=FactorType.TEXT, indexGroup=FactorIndexGroup.INDEX_1),
 				Factor(factorId='dra-f-2', name='topicId', type=FactorType.TEXT, indexGroup=FactorIndexGroup.INDEX_2),
 				Factor(factorId='dra-f-3', name='factorId', type=FactorType.TEXT, indexGroup=FactorIndexGroup.INDEX_3),
-				Factor(factorId='dra-f-4', name='count', type=FactorType.UNSIGNED, precision='10')
+				Factor(factorId='dra-f-4', name='year', type=FactorType.YEAR, indexGroup=FactorIndexGroup.INDEX_4),
+				Factor(factorId='dra-f-5', name='month', type=FactorType.MONTH, indexGroup=FactorIndexGroup.INDEX_5),
+				Factor(
+					factorId='dra-f-6', name='day', type=FactorType.DAY_OF_MONTH, indexGroup=FactorIndexGroup.INDEX_6),
+				Factor(
+					factorId='dra-f-7', name='processDate', type=FactorType.DATE, indexGroup=FactorIndexGroup.INDEX_7),
+				Factor(factorId='dra-f-8', name='count', type=FactorType.UNSIGNED, precision='10')
 			],
-			description='Topic data monitor by rules, aggregation topic.'
+			description='Topic data monitor by rules, distinct topic.'
 		)
 	]

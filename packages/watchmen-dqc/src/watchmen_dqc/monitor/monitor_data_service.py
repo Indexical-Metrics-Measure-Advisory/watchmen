@@ -30,7 +30,7 @@ class MonitorDataService:
 		self.principalService = principal_service
 
 	def find(self, criteria: MonitorRuleLogCriteria) -> List[MonitorRuleLog]:
-		schema = get_topic_schema('dqc_rule_aggregate', self.principalService)
+		schema = get_topic_schema('dqc_rule_daily', self.principalService)
 		storage = ask_topic_storage(schema, self.principalService)
 		service = ask_topic_data_service(schema, storage, self.principalService)
 		storage_criteria = [
@@ -61,7 +61,7 @@ class MonitorDataService:
 						year=start_date.year, month=start_date.month, day=start_date.day,
 						hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
 				storage_criteria.append(EntityCriteriaExpression(
-					left=ColumnNameLiteral(columnName=TopicDataColumnNames.UPDATE_TIME.value),
+					left=ColumnNameLiteral(columnName='processdate'),
 					operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
 					right=start_date
 				))
@@ -78,7 +78,7 @@ class MonitorDataService:
 						year=end_date.year, month=end_date.month, day=end_date.day,
 						hour=23, minute=59, second=59, microsecond=999999, tzinfo=None)
 				storage_criteria.append(EntityCriteriaExpression(
-					left=ColumnNameLiteral(columnName=TopicDataColumnNames.UPDATE_TIME.value),
+					left=ColumnNameLiteral(columnName='processdate'),
 					operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
 					right=end_date
 				))
@@ -89,7 +89,7 @@ class MonitorDataService:
 		columns = [
 			EntityStraightColumn(columnName='rulecode'),
 			EntityStraightAggregateColumn(
-				columnName=TopicDataColumnNames.ID.value, alias='occurredtimes',
+				columnName='count', alias='occurredtimes',
 				arithmetic=EntityColumnAggregateArithmetic.COUNT),
 			EntityStraightAggregateColumn(
 				columnName=TopicDataColumnNames.UPDATE_TIME.value, alias='lastoccurred',
