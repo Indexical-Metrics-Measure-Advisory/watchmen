@@ -149,14 +149,12 @@ async def create_tenant_infra_topics(
 		if ask_create_pipeline_monitor_topics_on_tenant_create():
 			topics = ask_pipeline_monitor_topics()
 			create_topics_and_pipelines(
-				topics, ask_pipeline_monitor_pipelines(topics),
-				principal_service.get_tenant_id(), tenant_service, principal_service
+				topics, ask_pipeline_monitor_pipelines(topics), tenant_id, tenant_service, principal_service
 			)
 		if ask_create_dqc_topics_on_tenant_create():
 			topics = ask_dqc_topics()
 			create_topics_and_pipelines(
-				topics, ask_dqc_pipelines(topics),
-				principal_service.get_tenant_id(), tenant_service, principal_service
+				topics, ask_dqc_pipelines(topics), tenant_id, tenant_service, principal_service
 			)
 
 	return trans(tenant_service, action)
