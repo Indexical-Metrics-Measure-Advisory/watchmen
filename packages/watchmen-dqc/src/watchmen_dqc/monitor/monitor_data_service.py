@@ -60,13 +60,13 @@ class MonitorDataService:
 					start_date = datetime(
 						year=start_date.year, month=start_date.month, day=start_date.day,
 						hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
-			storage_criteria.append(EntityCriteriaExpression(
-				left=ColumnNameLiteral(columnName=TopicDataColumnNames.UPDATE_TIME.value),
-				operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
-				right=start_date
-			))
-		else:
-			raise DataKernelException(f'Cannot parse given start date[{criteria.startDate}].')
+				storage_criteria.append(EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName=TopicDataColumnNames.UPDATE_TIME.value),
+					operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
+					right=start_date
+				))
+			else:
+				raise DataKernelException(f'Cannot parse given start date[{criteria.startDate}].')
 
 		if is_not_blank(criteria.endDate):
 			parsed, end_date = is_date(criteria.endDate, ask_datetime_formats())
@@ -77,13 +77,13 @@ class MonitorDataService:
 					end_date = datetime(
 						year=end_date.year, month=end_date.month, day=end_date.day,
 						hour=23, minute=59, second=59, microsecond=999999, tzinfo=None)
-			storage_criteria.append(EntityCriteriaExpression(
-				left=ColumnNameLiteral(columnName=TopicDataColumnNames.UPDATE_TIME.value),
-				operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
-				right=end_date
-			))
-		else:
-			raise DataKernelException(f'Cannot parse given end date[{criteria.startDate}].')
+				storage_criteria.append(EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName=TopicDataColumnNames.UPDATE_TIME.value),
+					operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
+					right=end_date
+				))
+			else:
+				raise DataKernelException(f'Cannot parse given end date[{criteria.startDate}].')
 
 		# noinspection SpellCheckingInspection
 		columns = [
