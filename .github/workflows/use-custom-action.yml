@@ -22,7 +22,7 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v3
       - name: package watchmen-utilities and publish to pypi
-        uses: ./.github/actions/change-version-action/
+        uses: /.github/actions/change-version-action/
         id: change-version
         with:
           version: ${{ github.event.inputs.version }}
