@@ -2,11 +2,11 @@
 
 path=$GITHUB_WORKSPACE$INPUT_FILEPATH
 
-if [ $INPUT_FILETYPE=="toml" ]; then
+if [ $INPUT_FILETYPE == "toml" ]; then
   python /change_poetry_toml.py $INPUT_VERSION $path
 fi
 
-if [ $INPUT_FILETYPE=="json" ]; then
+if [ $INPUT_FILETYPE == "json" ]; then
   python /change_package_json.py $INPUT_VERSION $path
 fi
 
