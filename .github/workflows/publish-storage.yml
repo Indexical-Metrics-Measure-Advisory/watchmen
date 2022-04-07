@@ -51,7 +51,7 @@ jobs:
           push: true
           tags: ghcr.io/indexical-metrics-measure-advisory/watchmen-doll-${{ github.event.inputs.storage }}:${{ github.event.inputs.image_version }}
       - name: Create release branch
-        run: git checkout -b release/v${{ github.event.inputs.image_version }}
+        run: git checkout -b release/v16.0
       - name: Initialize mandatory git config
         run: |
           git config user.name "skywalkerX69"
@@ -63,4 +63,8 @@ jobs:
           git commit --message "Prepare release ${{ github.event.inputs.image_version }}"
           echo "::set-output name=commit::$(git rev-parse HEAD)"
       - name: Push new branch
-        run: git push --force origin release/v${{ github.event.inputs.image_version }}
+        run: git push --force origin release/v16.0
+      - name: Create and push new tag
+        run: |
+          git tag -a v${{ github.event.inputs.image_version }} -m "for new release"
+          git push origin v${{ github.event.inputs.image_version }}
