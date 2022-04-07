@@ -27,6 +27,6 @@ jobs:
         with:
           version: ${{ github.event.inputs.version }}
           filepath: /packages/watchmen-utilities
-          filetype: ${{ github.event.inputs.filetyp }}
+          filetype: ${{ github.event.inputs.filetype }}
           pip_username: ${{secrets.PIP_USERNAME}}
           pip_password: ${{secrets.PIP_PASSWORD}}
