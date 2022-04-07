@@ -387,7 +387,7 @@ class BarChartSettingsSeries(DataModel, BaseModel):
 	transformAxis: bool = None
 
 
-class BarChartSettings(EChartsSettings, EChartsLegendHolder, EChartsGrid, EChartsXAxisHolder, EChartsYAxisHolder):
+class BarChartSettings(EChartsSettings, EChartsLegendHolder, EChartsGridHolder, EChartsXAxisHolder, EChartsYAxisHolder):
 	series: BarChartSettingsSeries = None
 	label: BarChartSettingsLabel = None
 	decal: bool = None
@@ -402,7 +402,8 @@ class LineChartSettingsSeries(BarChartSettingsSeries):
 	smooth: bool = None
 
 
-class LineChartSettings(EChartsSettings, EChartsLegendHolder, EChartsGrid, EChartsXAxisHolder, EChartsYAxisHolder):
+class LineChartSettings(
+	EChartsSettings, EChartsLegendHolder, EChartsGridHolder, EChartsXAxisHolder, EChartsYAxisHolder):
 	series: LineChartSettingsSeries = None
 	label: BarChartSettingsLabel = None
 
@@ -412,7 +413,8 @@ class LineChart(Chart):
 	settings: LineChartSettings = None
 
 
-class ScatterChartSettings(EChartsSettings, EChartsLegendHolder, EChartsGrid, EChartsXAxisHolder, EChartsYAxisHolder):
+class ScatterChartSettings(
+	EChartsSettings, EChartsLegendHolder, EChartsGridHolder, EChartsXAxisHolder, EChartsYAxisHolder):
 	pass
 
 
