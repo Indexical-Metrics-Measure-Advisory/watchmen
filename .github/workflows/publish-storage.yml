@@ -66,5 +66,5 @@ jobs:
         run: git push --force origin release/v16.0
       - name: Create and push new tag
         run: |
-          git tag -a v${{ github.event.inputs.image_version }} -m "for new release"
-          git push origin v${{ github.event.inputs.image_version }}
+          git tag -a v${{ github.event.inputs.image_version }}.release -m "tag for new release"
+          git push origin v${{ github.event.inputs.image_version }}.release
