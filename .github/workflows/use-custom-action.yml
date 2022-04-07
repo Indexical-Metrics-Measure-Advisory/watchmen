@@ -14,14 +14,6 @@ on:
         description: 'file type'
         required: true
         type: string
-      pip_username:
-        description: 'user name'
-        required: true
-        type: string
-      pip_password:
-        description: 'user name'
-        required: true
-        type: string
 jobs:
   publish_release:
     name: Package the all components
