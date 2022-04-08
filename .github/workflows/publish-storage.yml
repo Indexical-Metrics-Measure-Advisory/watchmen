@@ -49,6 +49,6 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ./packages/watchmen-rest-dqc
-          file: ./packages/watchmen-rest-dqc/Dockerfile
+          file: ./packages/watchmen-rest-dqc/build_script/Dockerfile_${{ github.event.inputs.storage }}
           push: true
-          tags: ghcr.io/indexical-metrics-measure-advisory/watchmen-matryoshka-dqc:${{ github.event.release.tag_name }}
+          tags: ghcr.io/indexical-metrics-measure-advisory/watchmen-dqc-${{ github.event.inputs.storage }}:${{ github.event.inputs.image_version }}
