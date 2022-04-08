@@ -10,8 +10,8 @@ import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {useEffect, useState} from 'react';
-import {useIndicatorsEventBus} from '../indicators-event-bus';
-import {IndicatorsEventTypes} from '../indicators-event-bus-types';
+import {useIndicatorsEventBus} from '../../indicators-event-bus';
+import {IndicatorsEventTypes} from '../../indicators-event-bus-types';
 import {LinkedIndicatorFactorBucket, LinkedIndicatorFactorBucketsContainer} from './widgets';
 
 export const LinkedIndicatorFactorBuckets = (props: { indicator: Indicator }) => {
