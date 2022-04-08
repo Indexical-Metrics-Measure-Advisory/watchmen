@@ -5,24 +5,8 @@ inputs:
   version:
     description: 'Package version'
     required: true
-  filepath:
-    description: 'Package path'
-    required: true
-  filetype:
-    description: 'Package file type'
-    required: true
-  pip_username:
-    description: 'pip username'
-    required: true
-  pip_password:
-    description: 'pip password'
-    required: true
 runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
     - ${{ inputs.version }}
-    - ${{ inputs.filepath }}
-    - ${{ inputs.filetype }}
-    - ${{ inputs.pip_username }}
-    - ${{ inputs.pip_password }}

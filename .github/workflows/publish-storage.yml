@@ -16,10 +16,6 @@ on:
         description: 'package version'
         required: true
         type: string
-      dependence_version:
-        description: 'dependence version'
-        required: true
-        type: string
 jobs:
   publish_oracle:
     name: Package the image with different storage
@@ -32,7 +28,6 @@ jobs:
         with:
           python-version: '3.9'
           architecture: 'x64'
-      - run: python change_version.py ${{ github.event.inputs.dependence_version }}
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
@@ -50,21 +45,10 @@ jobs:
           file: ./packages/watchmen-rest-doll/build_script/Dockerfile_${{ github.event.inputs.storage }}
           push: true
           tags: ghcr.io/indexical-metrics-measure-advisory/watchmen-doll-${{ github.event.inputs.storage }}:${{ github.event.inputs.image_version }}
-      - name: Create release branch
-        run: git checkout -b release/v16.0
-      - name: Initialize mandatory git config
-        run: |
-          git config user.name "skywalkerX69"
-          git config user.email skywalkerX69@outlook.com
-      - name: Commit config and manifest files
-        id: make-commit
-        run: |
-          git add .
-          git commit --message "Prepare release ${{ github.event.inputs.image_version }}"
-          echo "::set-output name=commit::$(git rev-parse HEAD)"
-      - name: Push new branch
-        run: git push --force origin release/v16.0
-      - name: Create and push new tag
-        run: |
-          git tag -a v${{ github.event.inputs.image_version }}.release -m "tag for new release"
-          git push origin v${{ github.event.inputs.image_version }}.release
+      - name: DQC build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: ./packages/watchmen-rest-dqc
+          file: ./packages/watchmen-rest-dqc/Dockerfile
+          push: true
+          tags: ghcr.io/indexical-metrics-measure-advisory/watchmen-matryoshka-dqc:${{ github.event.release.tag_name }}

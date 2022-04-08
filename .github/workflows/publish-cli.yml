@@ -9,7 +9,6 @@ jobs:
   publish_cli:
     name: Package the image and push to gitHub container registry
     runs-on: ubuntu-latest
-    if:  ${{ github.event.inputs.storage == 'oracle' }}
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3

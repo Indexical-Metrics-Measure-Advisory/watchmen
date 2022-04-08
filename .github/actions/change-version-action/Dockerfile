@@ -5,8 +5,7 @@ FROM python:3.9.6-slim-buster
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-COPY change_poetry_toml.py /change_poetry_toml.py
-COPY change_package_json.py /change_package_json.py
+COPY change_version.py /change_version.py
 
 # Code file to execute when the docker container starts up (`entrypoint.sh`)
 ENTRYPOINT ["/entrypoint.sh"]

@@ -1,0 +1,38 @@
+name: Create release branch
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'package version'
+        required: true
+        type: string
+      branch_name:
+        description: 'new branch name'
+        required: true
+        type: string
+jobs:
+  publish_release:
+    name: Package the all components
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+      - name: Change version of all module
+        uses: ./.github/actions/change-version-action/
+        id: change-version
+        with:
+          version: ${{ github.event.inputs.version }}
+      - name: Create release branch
+        run: git checkout -b ${{ github.event.inputs.branch_name }}
+      - name: Initialize mandatory git config
+        run: |
+          git config user.name "skywalkerX69"
+          git config user.email skywalkerX69@outlook.com
+      - name: Commit config and manifest files
+        id: make-commit
+        run: |
+          git add .
+          git commit --message "Prepare release ${{ github.event.inputs.version }}"
+          echo "::set-output name=commit::$(git rev-parse HEAD)"
+      - name: Push new branch
+        run: git push --force origin ${{ github.event.inputs.branch_name }}
