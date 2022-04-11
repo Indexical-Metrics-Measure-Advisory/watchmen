@@ -287,7 +287,12 @@ export const Zh = {
 		LOADING: '努力加载数据...',
 		ON_EDIT: '正在编辑中, 所有未保存的数据都将丢失. 是否确定放弃编辑?',
 		INDICATOR: {
-			TITLE: '准备指标因子',
+			LIST_TITLE: '指标',
+			LIST_CREATE_INDICATOR: '创建指标',
+			LIST_LABEL: '指标',
+			NEW_INDICATOR_PREFIX: '新',
+			EXISTING_INDICATOR_PREFIX: '已存在的',
+			TITLE: '准备指标',
 			STEP: '步骤',
 			WAIT_INPUT: '等待输入...',
 			SEARCHING: '努力查找中...',

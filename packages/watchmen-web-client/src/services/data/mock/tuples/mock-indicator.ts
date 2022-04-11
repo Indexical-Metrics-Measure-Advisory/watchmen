@@ -1,3 +1,4 @@
+import {TuplePage} from '@/services/data/query/tuple-page';
 import {isIndicatorFactor} from '../../tuples/factor-calculator-utils';
 import {Indicator, IndicatorId} from '../../tuples/indicator-types';
 import {
@@ -112,5 +113,24 @@ export const listMockIndicators = async (): Promise<Array<Indicator>> => {
 		setTimeout(() => {
 			resolve(DemoIndicators);
 		}, 500);
+	});
+};
+
+export const listMockIndicatorPage = async (options: {
+	search: string;
+	pageNumber?: number;
+	pageSize?: number;
+}): Promise<TuplePage<QueryIndicator>> => {
+	const {pageNumber = 1, pageSize = 9} = options;
+	return new Promise<TuplePage<QueryIndicator>>((resolve) => {
+		setTimeout(() => {
+			resolve({
+				data: DemoIndicators,
+				itemCount: DemoIndicators.length,
+				pageNumber,
+				pageSize,
+				pageCount: 1
+			});
+		}, 1000);
 	});
 };

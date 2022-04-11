@@ -1,14 +1,15 @@
-import React from 'react';
+import {IndicatorList} from '@/indicator-workbench/indicator/list';
+import React, {useState} from 'react';
 import {Indicator} from './edit';
 import {IndicatorState} from './indicator-state';
 import {IndicatorsEventBusProvider} from './indicators-event-bus';
 
 const IndicatorWorkbenchIndicatorIndex = () => {
-	// const [editing, setEditing] = useState(false);
+	const [editing, setEditing] = useState(false);
 
 	return <IndicatorsEventBusProvider>
 		<IndicatorState/>
-		<Indicator/>
+		{editing ? <Indicator/> : <IndicatorList/>}
 	</IndicatorsEventBusProvider>;
 };
 

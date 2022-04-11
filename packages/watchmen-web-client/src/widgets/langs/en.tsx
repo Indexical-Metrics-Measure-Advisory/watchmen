@@ -287,6 +287,11 @@ export const En = {
 		LOADING: 'Loading Data...',
 		ON_EDIT: 'Still in editing, all changes will be lost if interrupt. Are you sure to continue?',
 		INDICATOR: {
+			LIST_TITLE: 'Indicators',
+			LIST_CREATE_INDICATOR: 'Create Indicator',
+			LIST_LABEL: 'Indicator',
+			NEW_INDICATOR_PREFIX: 'A New',
+			EXISTING_INDICATOR_PREFIX: 'An Existing',
 			TITLE: 'Prepare Indicators',
 			STEP: 'Step',
 			WAIT_INPUT: 'Waiting for input...',

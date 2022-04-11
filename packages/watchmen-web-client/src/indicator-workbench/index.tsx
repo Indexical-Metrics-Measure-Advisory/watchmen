@@ -44,7 +44,7 @@ const IndicatorWorkbenchIndex = () => {
 					</IndicatorWorkbenchMain>
 				</Route> : null}
 			{isAdmin()
-				? <Route path={Router.INDICATOR_WORKBENCH_PREPARE}>
+				? <Route path={Router.INDICATOR_WORKBENCH_INDICATORS}>
 					<IndicatorWorkbenchMain>
 						<IndicatorWorkbenchIndicatorIndex/>
 					</IndicatorWorkbenchMain>

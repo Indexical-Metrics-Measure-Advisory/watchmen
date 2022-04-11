@@ -1,5 +1,6 @@
+import {TuplePage} from '@/services/data/query/tuple-page';
 import {findAccount} from '../account';
-import {Apis, get, post} from '../apis';
+import {Apis, get, page, post} from '../apis';
 import {
 	fetchMockEnumsForTopic,
 	fetchMockIndicator,
@@ -7,6 +8,7 @@ import {
 	fetchMockIndicatorsForSelection,
 	fetchMockRelevantIndicators,
 	fetchMockTopicsForIndicatorSelection,
+	listMockIndicatorPage,
 	listMockIndicators,
 	saveMockIndicator
 } from '../mock/tuples/mock-indicator';
@@ -21,11 +23,25 @@ import {
 import {TopicId} from './topic-types';
 import {isFakedUuid} from './utils';
 
+export const listIndicators = async (options: {
+	search: string;
+	pageNumber?: number;
+	pageSize?: number;
+}): Promise<TuplePage<QueryIndicator>> => {
+	const {search = '', pageNumber = 1, pageSize = 9} = options;
+
+	if (isMockService()) {
+		return listMockIndicatorPage(options);
+	} else {
+		return await page({api: Apis.INDICATOR_LIST_BY_NAME, search: {search}, pageable: {pageNumber, pageSize}});
+	}
+};
+
 export const fetchIndicatorsForSelection = async (search: string): Promise<Array<QueryIndicator>> => {
 	if (isMockService()) {
 		return await fetchMockIndicatorsForSelection(search.trim());
 	} else {
-		return await get({api: Apis.INDICATORS_LIST_FOR_SELECTION, search: {search}});
+		return await get({api: Apis.INDICATOR_LIST_FOR_SELECTION, search: {search}});
 	}
 };
 
@@ -96,7 +112,7 @@ export const loadIndicatorCategories = async (prefix: QueryIndicatorCategoryPara
 	}
 };
 
-export const listIndicators = async (): Promise<Array<Indicator>> => {
+export const listAllIndicators = async (): Promise<Array<Indicator>> => {
 	if (isMockService()) {
 		return listMockIndicators();
 	} else {

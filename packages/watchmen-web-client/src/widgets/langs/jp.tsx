@@ -287,6 +287,11 @@ export const Jp = {
 		LOADING: 'データ読み込み中...',
 		ON_EDIT: '編集中、保存されていないデータはすべて失われます。編集を破棄しますか。',
 		INDICATOR: {
+			LIST_TITLE: '指標',
+			LIST_CREATE_INDICATOR: '指標を作成',
+			LIST_LABEL: '指標',
+			NEW_INDICATOR_PREFIX: '新しい',
+			EXISTING_INDICATOR_PREFIX: '既存',
 			TITLE: '指標を準備',
 			STEP: 'ステップ',
 			WAIT_INPUT: '入力を待っている...',
