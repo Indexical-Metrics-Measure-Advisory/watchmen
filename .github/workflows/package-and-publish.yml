@@ -7,6 +7,10 @@ on:
         description: Pre-release Branch
         required: true
         type: string
+      version:
+        description: Target Version
+        required: true
+        type: string
 
 jobs:
   build-and-publish:
