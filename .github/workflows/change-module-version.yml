@@ -158,17 +158,17 @@ jobs:
         with:
           module-name: watchmen-web-client
           target-version: ${{ inputs.version }}
-#      - name: Create release branch
-#        run: git checkout -b $TARGET_BRANCH_NAME
-#      - name: Initialize mandatory git config
-#        run: |
-#          git config user.name "skywalkerX69"
-#          git config user.email skywalkerX69@outlook.com
-#      - name: Commit config and manifest files
-#        id: make-commit
-#        run: |
-#          git add .
-#          git commit --message "Module version aligned to [${{ inputs.version }}]"
-#          echo "::set-output name=commit::$(git rev-parse HEAD)"
-#      - name: Push new branch
-#        run: git push --force origin $TARGET_BRANCH_NAME
+      - name: Create release branch
+        run: git checkout -b $TARGET_BRANCH_NAME
+      - name: Initialize mandatory git config
+        run: |
+          git config user.name "skywalkerX69"
+          git config user.email skywalkerX69@outlook.com
+      - name: Commit config and manifest files
+        id: make-commit
+        run: |
+          git add .
+          git commit --message "Module version aligned to [${{ inputs.version }}]"
+          echo "::set-output name=commit::$(git rev-parse HEAD)"
+      - name: Push new branch
+        run: git push --force origin $TARGET_BRANCH_NAME
