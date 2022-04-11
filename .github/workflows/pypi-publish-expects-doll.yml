@@ -1,4 +1,4 @@
-name: Publish excepts doll
+name: Publish to Pypi excepts doll
 
 on:
   workflow_call:

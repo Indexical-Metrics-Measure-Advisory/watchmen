@@ -1,4 +1,4 @@
-name: Trigger release by tag
+name: Trigger release by r-tag
 
 on:
   push:

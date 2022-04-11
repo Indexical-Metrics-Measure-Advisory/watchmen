@@ -1,4 +1,4 @@
-name: Change modules version and dependencies
+name: Align version
 
 on:
   workflow_call:
@@ -17,8 +17,8 @@ on:
         type: string
 
 jobs:
-  change-version:
-    name: Change module version
+  align-version:
+    name: Align module versions
     runs-on: ubuntu-latest
     steps:
       - name: Echo inputs

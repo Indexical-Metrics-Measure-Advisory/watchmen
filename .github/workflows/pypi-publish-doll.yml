@@ -1,4 +1,4 @@
-name: Package and publish doll
+name: Publish doll to Pypi
 
 on:
   workflow_call:
