@@ -19,7 +19,11 @@ try {
             }
             const pos = line.indexOf('=');
             const name = line.substring(0, pos).trim();
-            const version = line.substring(pos + 1).trim();
+            const version = line.substring(pos + 1).trim()
+                .replace('version', '"version"')
+                .replace('path', '"path"')
+                .replace('develop', '"develop"')
+                .replace('optional', '"optional"');
             if (version.startsWith('"')) {
                 return line;
             } else {
@@ -28,11 +32,12 @@ try {
                     delete json.develop;
                     delete json.path;
                     versionUpdated = true;
-                    console.log(`Version updated to ${targetVersion} from develop dependency.`);
                     if (json.optional) {
+                        console.log(`Version updated to ${targetVersion} from develop dependency, and it is optional.`);
                         return `${name} = { version = "${targetVersion}", optional = true }`;
                     } else {
-                        return `${name} = { version = "${targetVersion}" }`;
+                        console.log(`Version updated to ${targetVersion} from develop dependency.`);
+                        return `${name} = "${targetVersion}"`;
                     }
                 } else {
                     return line;
