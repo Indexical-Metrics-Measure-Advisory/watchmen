@@ -13,259 +13,132 @@ on:
         type: string
         default: '16.0.27'
 jobs:
-  manual_release:
-    name: Package the all components
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@v3
-      - name: Echo inputs
-        run: |
-          echo "Branch: ${{ github.event.inputs.branch}}"
-          echo "Version: ${{ github.event.inputs.version}}"
-      - name: Change version [watchmen-utilities]
-        uses: ./.github/actions/change-poetry-version/
-        id: change-poetry-version-utilities
-        with:
-          project-file: ./packages/watchmen-utilities/pyproject.toml
-          target-version: ${{ github.event.inputs.version }}
-      - name: Change version [watchmen-model]
-        uses: ./.github/actions/change-poetry-version/
-        id: change-poetry-version-model
-        with:
-          project-file: ./packages/watchmen-model/pyproject.toml
-          target-version: ${{ github.event.inputs.version }}
-      - name: Change version [watchmen-storage]
-        uses: ./.github/actions/change-poetry-version/
-        id: change-poetry-version-storage
-        with:
-          project-file: ./packages/watchmen-storage/pyproject.toml
-          target-version: ${{ github.event.inputs.version }}
-      - name: Change version [watchmen-storage-mongodb]
-        uses: ./.github/actions/change-poetry-version/
-        id: change-poetry-version-storage-mongodb
-        with:
-          project-file: ./packages/watchmen-storage-mongodb/pyproject.toml
-          target-version: ${{ github.event.inputs.version }}
-      - name: Change version [watchmen-storage-mssql]
-        uses: ./.github/actions/change-poetry-version/
-        id: change-poetry-version-storage-mssql
-        with:
-          project-file: ./packages/watchmen-storage-mssql/pyproject.toml
-          target-version: ${{ github.event.inputs.version }}
-      - name: Change version [watchmen-storage-mysql]
-        uses: ./.github/actions/change-poetry-version/
-        id: change-poetry-version-storage-mysql
-        with:
-          project-file: ./packages/watchmen-storage-mysql/pyproject.toml
-          target-version: ${{ github.event.inputs.version }}
-      - name: Change version [watchmen-storage-oracle]
-        uses: ./.github/actions/change-poetry-version/
-        id: change-poetry-version-storage-oracle
-        with:
-          project-file: ./packages/watchmen-storage-oracle/pyproject.toml
-          target-version: ${{ github.event.inputs.version }}
-      - name: Change version [watchmen-auth]
-        uses: ./.github/actions/change-poetry-version/
-        id: change-poetry-version-auth
-        with:
-          project-file: ./packages/watchmen-auth/pyproject.toml
-          target-version: ${{ github.event.inputs.version }}
-      - name: Change version [watchmen-rest]
-        uses: ./.github/actions/change-poetry-version/
-        id: change-poetry-version-rest
-        with:
-          project-file: ./packages/watchmen-rest/pyproject.toml
-          target-version: ${{ github.event.inputs.version }}
-      - name: Change version [watchmen-meta]
-        uses: ./.github/actions/change-poetry-version/
-        id: change-poetry-version-meta
-        with:
-          project-file: ./packages/watchmen-meta/pyproject.toml
-          target-version: ${{ github.event.inputs.version }}
-      - name: Change version [watchmen-data-kernel]
-        uses: ./.github/actions/change-poetry-version/
-        id: change-poetry-version-data-kernel
-        with:
-          project-file: ./packages/watchmen-data-kernel/pyproject.toml
-          target-version: ${{ github.event.inputs.version }}
-      - name: Change version [watchmen-data-surface]
-        uses: ./.github/actions/change-poetry-version/
-        id: change-poetry-version-data-surface
-        with:
-          project-file: ./packages/watchmen-data-surface/pyproject.toml
-          target-version: ${{ github.event.inputs.version }}
-      - name: Change version [watchmen-pipeline-kernel]
-        uses: ./.github/actions/change-poetry-version/
-        id: change-poetry-version-pipeline-kernel
-        with:
-          project-file: ./packages/watchmen-pipeline-kernel/pyproject.toml
-          target-version: ${{ github.event.inputs.version }}
-      - name: Change version [watchmen-pipeline-surface]
-        uses: ./.github/actions/change-poetry-version/
-        id: change-poetry-version-pipeline-surface
-        with:
-          project-file: ./packages/watchmen-pipeline-surface/pyproject.toml
-          target-version: ${{ github.event.inputs.version }}
-      - name: Change version [watchmen-inquiry-trino]
-        uses: ./.github/actions/change-poetry-version/
-        id: change-poetry-version-inquiry-trino
-        with:
-          project-file: ./packages/watchmen-inquiry-trino/pyproject.toml
-          target-version: ${{ github.event.inputs.version }}
-      - name: Change version [watchmen-inquiry-kernel]
-        uses: ./.github/actions/change-poetry-version/
-        id: change-poetry-version-inquiry-kernel
-        with:
-          project-file: ./packages/watchmen-inquiry-kernel/pyproject.toml
-          target-version: ${{ github.event.inputs.version }}
-      - name: Change version [watchmen-inquiry-surface]
-        uses: ./.github/actions/change-poetry-version/
-        id: change-poetry-version-inquiry-surface
-        with:
-          project-file: ./packages/watchmen-inquiry-surface/pyproject.toml
-          target-version: ${{ github.event.inputs.version }}
-      - name: Change version [watchmen-rest-doll]
-        uses: ./.github/actions/change-poetry-version/
-        id: change-poetry-version-rest-doll
-        with:
-          project-file: ./packages/watchmen-rest-doll/pyproject.toml
-          target-version: ${{ github.event.inputs.version }}
-      - name: Change version [watchmen-dqc]
-        uses: ./.github/actions/change-poetry-version/
-        id: change-poetry-version-dqc
-        with:
-          project-file: ./packages/watchmen-dqc/pyproject.toml
-          target-version: ${{ github.event.inputs.version }}
-      - name: Change version [watchmen-rest-dqc]
-        uses: ./.github/actions/change-poetry-version/
-        id: change-poetry-version-rest-dqc
-        with:
-          project-file: ./packages/watchmen-rest-dqc/pyproject.toml
-          target-version: ${{ github.event.inputs.version }}
-      - name: Change version [watchmen-cli]
-        uses: ./.github/actions/change-poetry-version/
-        id: change-poetry-version-cli
-        with:
-          project-file: ./packages/watchmen-cli/pyproject.toml
-          target-version: ${{ github.event.inputs.version }}
-      - name: Change Version [watchmen-web-client]
-        uses: ./.github/actions/change-node-version/
-        id: change-node-version-web-client
-        with:
-          package-file: ./packages/watchmen-web-client/package.json
-          target-version: ${{ github.event.inputs.version }}
-      - name: Setup python
-        uses: actions/setup-python@v3
-        with:
-          python-version: '3.9'
-          architecture: 'x64'
-      - name: Setup poetry
-        run: |
-          python -m pip install --upgrade pip
-          pip install poetry
-      - name: Package [watchmen-utilities] and publish to Pypi
-        working-directory: ./packages/watchmen-utilities
-        run: |
-          poetry build
-#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
-      - name: Package [watchmen-model] and publish to Pypi
-        working-directory: ./packages/watchmen-model
-        run: |
-          poetry build
-#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
-      - name: Package [watchmen-storage] and publish to Pypi
-        working-directory: ./packages/watchmen-storage
-        run: |
-          poetry build
-#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
-      - name: Package [watchmen-storage-mongodb] and publish to Pypi
-        working-directory: ./packages/watchmen-storage-mongodb
-        run: |
-          poetry build
-#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
-      - name: Package [watchmen-storage-mssql] and publish to Pypi
-        working-directory: ./packages/watchmen-storage-mssql
-        run: |
-          poetry build
-#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
-      - name: Package [watchmen-storage-mysql] and publish to Pypi
-        working-directory: ./packages/watchmen-storage-mysql
-        run: |
-          poetry build
-#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
-      - name: Package [watchmen-storage-oracle] and publish to Pypi
-        working-directory: ./packages/watchmen-storage-oracle
-        run: |
-          poetry build
-#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
-      - name: Package [watchmen-auth] and publish to Pypi
-        working-directory: ./packages/watchmen-auth
-        run: |
-          poetry build
-#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
-      - name: Package [watchmen-rest] and publish to Pypi
-        working-directory: ./packages/watchmen-rest
-        run: |
-          poetry build
-#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
-      - name: Package [watchmen-meta] and publish to Pypi
-        working-directory: ./packages/watchmen-meta
-        run: |
-          poetry build
-#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
-      - name: Package [watchmen-data-kernel] and publish to Pypi
-        working-directory: ./packages/watchmen-data-kernel
-        run: |
-          poetry build
-#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
-      - name: Package [watchmen-data-surface] and publish to Pypi
-        working-directory: ./packages/watchmen-data-surface
-        run: |
-          poetry build
-#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
-      - name: Package [watchmen-pipeline-kernel] and publish to Pypi
-        working-directory: ./packages/watchmen-pipeline-kernel
-        run: |
-          poetry build
-#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
-      - name: Package [watchmen-pipeline-surface] and publish to Pypi
-        working-directory: ./packages/watchmen-pipeline-surface
-        run: |
-          poetry build
-#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
-      - name: Package [watchmen-inquiry-trino] and publish to Pypi
-        working-directory: ./packages/watchmen-inquiry-trino
-        run: |
-          poetry build
-#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
-      - name: Package [watchmen-inquiry-kernel] and publish to Pypi
-        working-directory: ./packages/watchmen-inquiry-kernel
-        run: |
-          poetry build
-#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
-      - name: Package [watchmen-inquiry-surface] and publish to Pypi
-        working-directory: ./packages/watchmen-inquiry-surface
-        run: |
-          poetry build
-#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
-      - name: Package [watchmen-rest-doll] and publish to Pypi
-        working-directory: ./packages/watchmen-rest-doll
-        run: |
-          poetry build
-#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
-      - name: Package [watchmen-dqc] and publish to Pypi
-        working-directory: ./packages/watchmen-dqc
-        run: |
-          poetry build
-#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
-      - name: Package [watchmen-rest-dqc] and publish to Pypi
-        working-directory: ./packages/watchmen-rest-dqc
-        run: |
-          poetry build
-#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
-      - name: Package [watchmen-cli] and publish to Pypi
-        working-directory: ./packages/watchmen-cli
-        run: |
-          poetry build
-#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
+  change-version:
+    uses: ./.github/workflows/change-module-version.yml
+    with:
+      branch: ${{ github.event.inputs.branch}}
+      version: ${{ github.event.inputs.version }}
+#  build-and-publish:
+#    name: Package the all components
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Check out the repo
+#        uses: actions/checkout@v3
+#      - name: Echo inputs
+#        run: |
+#          echo "Branch: ${{ github.event.inputs.branch }}"
+#          echo "Version: ${{ github.event.inputs.version }}"
+#      - name: Setup python
+#        uses: actions/setup-python@v3
+#        with:
+#          python-version: '3.9'
+#          architecture: 'x64'
+#      - name: Setup poetry
+#        run: |
+#          python -m pip install --upgrade pip
+#          pip install poetry
+#      - name: Package [watchmen-utilities] and publish to Pypi
+#        working-directory: ./packages/watchmen-utilities
+#        run: |
+#          poetry build
+##          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
+#      - name: Package [watchmen-model] and publish to Pypi
+#        working-directory: ./packages/watchmen-model
+#        run: |
+#          poetry build
+##          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
+#      - name: Package [watchmen-storage] and publish to Pypi
+#        working-directory: ./packages/watchmen-storage
+#        run: |
+#          poetry build
+##          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
+#      - name: Package [watchmen-storage-mongodb] and publish to Pypi
+#        working-directory: ./packages/watchmen-storage-mongodb
+#        run: |
+#          poetry build
+##          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
+#      - name: Package [watchmen-storage-mssql] and publish to Pypi
+#        working-directory: ./packages/watchmen-storage-mssql
+#        run: |
+#          poetry build
+##          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
+#      - name: Package [watchmen-storage-mysql] and publish to Pypi
+#        working-directory: ./packages/watchmen-storage-mysql
+#        run: |
+#          poetry build
+##          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
+#      - name: Package [watchmen-storage-oracle] and publish to Pypi
+#        working-directory: ./packages/watchmen-storage-oracle
+#        run: |
+#          poetry build
+##          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
+#      - name: Package [watchmen-auth] and publish to Pypi
+#        working-directory: ./packages/watchmen-auth
+#        run: |
+#          poetry build
+##          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
+#      - name: Package [watchmen-rest] and publish to Pypi
+#        working-directory: ./packages/watchmen-rest
+#        run: |
+#          poetry build
+##          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
+#      - name: Package [watchmen-meta] and publish to Pypi
+#        working-directory: ./packages/watchmen-meta
+#        run: |
+#          poetry build
+##          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
+#      - name: Package [watchmen-data-kernel] and publish to Pypi
+#        working-directory: ./packages/watchmen-data-kernel
+#        run: |
+#          poetry build
+##          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
+#      - name: Package [watchmen-data-surface] and publish to Pypi
+#        working-directory: ./packages/watchmen-data-surface
+#        run: |
+#          poetry build
+##          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
+#      - name: Package [watchmen-pipeline-kernel] and publish to Pypi
+#        working-directory: ./packages/watchmen-pipeline-kernel
+#        run: |
+#          poetry build
+##          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
+#      - name: Package [watchmen-pipeline-surface] and publish to Pypi
+#        working-directory: ./packages/watchmen-pipeline-surface
+#        run: |
+#          poetry build
+##          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
+#      - name: Package [watchmen-inquiry-trino] and publish to Pypi
+#        working-directory: ./packages/watchmen-inquiry-trino
+#        run: |
+#          poetry build
+##          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
+#      - name: Package [watchmen-inquiry-kernel] and publish to Pypi
+#        working-directory: ./packages/watchmen-inquiry-kernel
+#        run: |
+#          poetry build
+##          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
+#      - name: Package [watchmen-inquiry-surface] and publish to Pypi
+#        working-directory: ./packages/watchmen-inquiry-surface
+#        run: |
+#          poetry build
+##          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
+#      - name: Package [watchmen-rest-doll] and publish to Pypi
+#        working-directory: ./packages/watchmen-rest-doll
+#        run: |
+#          poetry build
+##          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
+#      - name: Package [watchmen-dqc] and publish to Pypi
+#        working-directory: ./packages/watchmen-dqc
+#        run: |
+#          poetry build
+##          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
+#      - name: Package [watchmen-rest-dqc] and publish to Pypi
+#        working-directory: ./packages/watchmen-rest-dqc
+#        run: |
+#          poetry build
+##          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
+#      - name: Package [watchmen-cli] and publish to Pypi
+#        working-directory: ./packages/watchmen-cli
+#        run: |
+#          poetry build
+##          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''

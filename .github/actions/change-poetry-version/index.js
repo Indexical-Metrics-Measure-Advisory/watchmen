@@ -3,7 +3,8 @@ const fs = require('fs');
 
 try {
     const targetVersion = core.getInput('target-version');
-    const projectFile = core.getInput('project-file');
+    const moduleName = core.getInput('module-name');
+    const projectFile = `./packages/${moduleName}/pyproject.toml`;
     const content = fs.readFileSync(projectFile, 'utf8');
     const lines = content.split('\n');
     let versionUpdated = false;
@@ -35,10 +36,10 @@ try {
                     delete json.path;
                     versionUpdated = true;
                     if (json.optional) {
-                        core.notice(`Version updated to ${targetVersion} from develop dependency, and it is optional.`);
+                        core.notice(`For module[${moduleName}], version updated to ${targetVersion} from develop dependency, and it is optional.`);
                         return `${name} = { version = "${targetVersion}", optional = true }`;
                     } else {
-                        core.notice(`Version updated to ${targetVersion} from develop dependency.`);
+                        core.notice(`For module[${moduleName}], version updated to ${targetVersion} from develop dependency.`);
                         return `${name} = "${targetVersion}"`;
                     }
                 } else {
@@ -50,7 +51,7 @@ try {
         }
     }).join('\n');
     if (!versionUpdated) {
-        core.notice('No version needs to be updated.');
+        core.notice('For module[${moduleName}], no version needs to be updated.');
     } else {
         fs.writeFileSync(projectFile, newContent, 'utf8');
     }
