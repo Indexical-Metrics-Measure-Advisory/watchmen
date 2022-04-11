@@ -51,7 +51,7 @@ try {
         }
     }).join('\n');
     if (!versionUpdated) {
-        core.notice('For module[${moduleName}], no version needs to be updated.');
+        core.notice(`For module[${moduleName}], no version needs to be updated.`);
     } else {
         fs.writeFileSync(projectFile, newContent, 'utf8');
     }

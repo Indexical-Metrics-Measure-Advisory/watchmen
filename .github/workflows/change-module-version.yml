@@ -3,10 +3,6 @@ name: Change module version
 on:
   workflow_call:
     inputs:
-      branch:
-        description: Branch Name
-        required: true
-        type: string
       version:
         description: Target Version
         required: true
@@ -19,8 +15,15 @@ jobs:
     steps:
       - name: Echo inputs
         run: |
-          echo "Branch: ${{ inputs.branch }}"
-          echo "Target version: ${{ inputs.version }}"
+          echo "Target version: [${{ inputs.version }}]"
+      - name: Compute target branch
+        uses: ./.github/actions/compute-target-branch
+        id: compute-target-branch
+        with:
+          target-version: ${{ inputs.version }}
+      - name: Echo target branch
+        run: |
+          echo "Target branch: [$TARGET_BRANCH_NAME]"
       - name: Check out the repo
         uses: actions/checkout@v3
       - name: Change version [watchmen-utilities]
@@ -28,130 +31,144 @@ jobs:
         id: change-poetry-version-utilities
         with:
           module-name: watchmen-utilities
-          target-version: ${{ github.event.inputs.version }}
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-model]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-model
         with:
           module-name: watchmen-model
-          target-version: ${{ github.event.inputs.version }}
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-storage]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-storage
         with:
           module-name: watchmen-storage
-          target-version: ${{ github.event.inputs.version }}
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-storage-mongodb]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-storage-mongodb
         with:
           module-name: watchmen-storage-mongodb
-          target-version: ${{ github.event.inputs.version }}
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-storage-mssql]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-storage-mssql
         with:
           module-name: watchmen-storage-mssql
-          target-version: ${{ github.event.inputs.version }}
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-storage-mysql]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-storage-mysql
         with:
           module-name: watchmen-storage-mysql
-          target-version: ${{ github.event.inputs.version }}
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-storage-oracle]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-storage-oracle
         with:
           module-name: watchmen-storage-oracle
-          target-version: ${{ github.event.inputs.version }}
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-auth]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-auth
         with:
           module-name: watchmen-auth
-          target-version: ${{ github.event.inputs.version }}
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-rest]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-rest
         with:
           module-name: watchmen-rest
-          target-version: ${{ github.event.inputs.version }}
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-meta]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-meta
         with:
           module-name: watchmen-meta
-          target-version: ${{ github.event.inputs.version }}
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-data-kernel]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-data-kernel
         with:
           module-name: watchmen-data-kernel
-          target-version: ${{ github.event.inputs.version }}
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-data-surface]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-data-surface
         with:
           module-name: watchmen-data-surface
-          target-version: ${{ github.event.inputs.version }}
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-pipeline-kernel]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-pipeline-kernel
         with:
           module-name: watchmen-pipeline-kernel
-          target-version: ${{ github.event.inputs.version }}
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-pipeline-surface]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-pipeline-surface
         with:
           module-name: watchmen-pipeline-surface
-          target-version: ${{ github.event.inputs.version }}
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-inquiry-trino]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-inquiry-trino
         with:
           module-name: watchmen-inquiry-trino
-          target-version: ${{ github.event.inputs.version }}
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-inquiry-kernel]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-inquiry-kernel
         with:
           module-name: watchmen-inquiry-kernel
-          target-version: ${{ github.event.inputs.version }}
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-inquiry-surface]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-inquiry-surface
         with:
           module-name: watchmen-inquiry-surface
-          target-version: ${{ github.event.inputs.version }}
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-rest-doll]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-rest-doll
         with:
           module-name: watchmen-rest-doll
-          target-version: ${{ github.event.inputs.version }}
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-dqc]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-dqc
         with:
           module-name: watchmen-dqc
-          target-version: ${{ github.event.inputs.version }}
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-rest-dqc]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-rest-dqc
         with:
           module-name: watchmen-rest-dqc
-          target-version: ${{ github.event.inputs.version }}
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-cli]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-cli
         with:
           module-name: watchmen-cli
-          target-version: ${{ github.event.inputs.version }}
+          target-version: ${{ inputs.version }}
       - name: Change Version [watchmen-web-client]
         uses: ./.github/actions/change-node-version/
         id: change-node-version-web-client
         with:
-          package-name: watchmen-web-client
-          target-version: ${{ github.event.inputs.version }}
+          module-name: watchmen-web-client
+          target-version: ${{ inputs.version }}
+#      - name: Create release branch
+#        run: git checkout -b $TARGET_BRANCH_NAME
+#      - name: Initialize mandatory git config
+#        run: |
+#          git config user.name "skywalkerX69"
+#          git config user.email skywalkerX69@outlook.com
+#      - name: Commit config and manifest files
+#        id: make-commit
+#        run: |
+#          git add .
+#          git commit --message "Module version aligned to [${{ inputs.version }}]"
+#          echo "::set-output name=commit::$(git rev-parse HEAD)"
+#      - name: Push new branch
+#        run: git push --force origin $TARGET_BRANCH_NAME
