@@ -1,4 +1,4 @@
-name: Package and Publish
+name: Publish images
 
 on:
   workflow_call:

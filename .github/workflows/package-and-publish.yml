@@ -1,4 +1,4 @@
-name: Package and Publish
+name: Package and publish
 
 on:
   workflow_call:
@@ -29,6 +29,7 @@ jobs:
         run: |
           echo "Pre-release branch: [${{ inputs.branch }}]"
           echo "Target version: [${{ inputs.version }}]"
+          echo "Release branch: [${{ inputs.release }}]"
       - name: Check out the repo
         uses: actions/checkout@v3
         with:
