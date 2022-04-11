@@ -19,8 +19,8 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v3
       - name: Compute target branch
-        uses: ./.github/actions/compute-target-branch
-        id: compute-target-branch
+        uses: ./.github/actions/compute-pre-release-branch
+        id: compute-pre-release-branch
         with:
           target-version: ${{ inputs.version }}
       - name: Echo target branch
@@ -169,6 +169,7 @@ jobs:
         run: |
           git add .
           git commit --message "Module version aligned to [${{ inputs.version }}]"
+          git tag pre-release-${{ inputs.version }}
           echo "::set-output name=commit::$(git rev-parse HEAD)"
       - name: Push new branch
-        run: git push --force origin $TARGET_BRANCH_NAME
+        run: git push --force origin $TARGET_BRANCH_NAME --tags

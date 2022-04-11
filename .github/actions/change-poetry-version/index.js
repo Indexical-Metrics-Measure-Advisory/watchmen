@@ -46,6 +46,9 @@ try {
                     return line;
                 }
             }
+        } else if (line.startsWith('version=') || line.startsWith('version =')) {
+            core.notice(`For module[${moduleName}], version updated to ${targetVersion}.`);
+            return `version = "${targetVersion}"`;
         } else {
             return line;
         }
