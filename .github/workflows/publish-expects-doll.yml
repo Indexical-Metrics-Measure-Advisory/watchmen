@@ -1,4 +1,4 @@
-name: Package and publish
+name: Publish excepts doll
 
 on:
   workflow_call:
@@ -11,15 +11,9 @@ on:
         description: Target version
         required: true
         type: string
-      release:
-        description: Release branch
-        required: true
-        type: string
 
 # check out given pre-release branch
 # build and publish to Pypi
-# force push to release branch
-# add release tag
 jobs:
   build-and-publish:
     name: Package modules and publish
@@ -29,7 +23,6 @@ jobs:
         run: |
           echo "Pre-release branch: [${{ inputs.branch }}]"
           echo "Target version: [${{ inputs.version }}]"
-          echo "Release branch: [${{ inputs.release }}]"
       - name: Check out the repo
         uses: actions/checkout@v3
         with:
@@ -128,11 +121,6 @@ jobs:
         run: |
           poetry build
       #          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
-      - name: Package [watchmen-rest-doll] and publish to Pypi
-        working-directory: ./packages/watchmen-rest-doll
-        run: |
-          poetry build
-      #          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
       - name: Package [watchmen-dqc] and publish to Pypi
         working-directory: ./packages/watchmen-dqc
         run: |
@@ -148,18 +136,3 @@ jobs:
         run: |
           poetry build
       #          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
-      - name: Create release branch
-        run: git checkout -b ${{ inputs.release }}
-      - name: Initialize mandatory git config
-        run: |
-          git config user.name "skywalkerX69"
-          git config user.email skywalkerX69@outlook.com
-      - name: Commit config and manifest files
-        id: make-commit
-        run: |
-          git add .
-          git commit --message "Release [${{ inputs.version }}]"
-          git tag ${{ inputs.version }}
-          echo "::set-output name=commit::$(git rev-parse HEAD)"
-      - name: Push new branch
-        run: git push --force origin ${{ inputs.release }} --tags
