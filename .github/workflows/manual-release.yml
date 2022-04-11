@@ -52,35 +52,42 @@ jobs:
       version: ${{ github.event.inputs.version }}
   # publish expects doll
   publish-expects-doll:
-    needs: [prepare, change-module-version]
+    needs: [ prepare, change-module-version ]
     uses: ./.github/workflows/publish-expects-doll.yml
     with:
       branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
       version: ${{ github.event.inputs.version }}
   # publish doll only
   publish-doll:
-    needs: [prepare, change-module-version, publish-expects-doll]
+    needs: [ prepare, change-module-version, publish-expects-doll ]
     uses: ./.github/workflows/publish-doll.yml
     with:
       branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
       version: ${{ github.event.inputs.version }}
   # create release branch, from pre-release branch. and add release tag.
   create-release-branch:
-    needs: [prepare, publish-doll]
+    needs: [ prepare, publish-doll ]
     uses: ./.github/workflows/create-release-branch.yml
     with:
       branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
       version: ${{ github.event.inputs.version }}
       release: ${{ needs.prepare.outputs.release_branch_name }}
-  # create release, use given version (also is the release tag on release branch)
-  create-release:
-    needs: create-release-branch
-    uses: ./.github/workflows/create-release.yml
+  # drop pre-release branch and tag
+  drop-pre-release:
+    needs: [ prepare, create-release-branch ]
+    uses: ./.github/workflows/drop-pre-release-branch.yml
     with:
-      tag: ${{ github.event.inputs.version }}
-  publish-images:
-    needs: [prepare, create-release]
-    uses: ./.github/workflows/publish-images.yml
-    with:
-      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
       version: ${{ github.event.inputs.version }}
+  # create release, use given version (also is the release tag on release branch)
+#  create-release:
+#    needs: create-release-branch
+#    uses: ./.github/workflows/create-release.yml
+#    with:
+#      tag: ${{ github.event.inputs.version }}
+#  publish-images:
+#    needs: [prepare, create-release]
+#    uses: ./.github/workflows/publish-images.yml
+#    with:
+#      branch: ${{ needs.prepare.outputs.release_branch_name }}
+#      version: ${{ github.event.inputs.version }}
