@@ -19,7 +19,8 @@ jobs:
     steps:
       - name: Echo inputs
         run: |
-          echo "Branch: [${{ inputs.branch }}]"
+          echo "Pre-release branch: [${{ inputs.branch }}]"
+          echo "Target version: [${{ inputs.version }}]"
       - name: Check out the repo
         uses: actions/checkout@v3
         with:
