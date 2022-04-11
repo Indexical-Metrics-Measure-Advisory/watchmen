@@ -23,7 +23,7 @@ jobs:
         uses: ./.github/actions/compute-pre-release-branch
         id: compute-pre-release-branch
         with:
-          version: ${{ inputs.version }}
+          version: ${{ github.event.inputs.version }}
       - name: Echo target branch
         run: |
           echo "Target branch: [$PRE_RELEASE_BRANCH_NAME]"
