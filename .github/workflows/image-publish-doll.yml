@@ -1,4 +1,4 @@
-name: Publish images
+name: Publish doll images
 
 on:
   workflow_call:

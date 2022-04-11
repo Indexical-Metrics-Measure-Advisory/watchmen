@@ -54,8 +54,8 @@ jobs:
         run: |
           echo "Target branch: [$RELEASE_BRANCH_NAME]"
           echo "::set-output name=release_branch_name::$RELEASE_BRANCH_NAME"
-  # change all versions; change development dependencies to production dependencies.
-  change-module-version:
+  # align all versions; change development dependencies to production dependencies.
+  align-module-version:
     needs: prepare
     uses: ./.github/workflows/version-align.yml
     with:
@@ -63,14 +63,14 @@ jobs:
       branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
       version: ${{ github.event.inputs.version }}
   # publish expects doll
-  publish-expects-doll:
+  publish-to-pypi-expects-doll:
     needs: [ prepare, change-module-version ]
     uses: ./.github/workflows/pypi-publish-expects-doll.yml
     with:
       branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
       version: ${{ github.event.inputs.version }}
   # publish doll only
-  publish-doll:
+  publish-doll-to-pypi:
     needs: [ prepare, change-module-version, publish-expects-doll ]
     uses: ./.github/workflows/pypi-publish-doll.yml
     with:

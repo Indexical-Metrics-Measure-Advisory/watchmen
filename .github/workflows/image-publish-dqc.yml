@@ -1,4 +1,4 @@
-name: Publish images
+name: Publish dqc images
 
 on:
   workflow_call:
