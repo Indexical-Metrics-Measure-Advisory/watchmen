@@ -24,6 +24,7 @@ try {
                 .replace('path', '"path"')
                 .replace('develop', '"develop"')
                 .replace('optional', '"optional"');
+            console.log(version);
             if (version.startsWith('"')) {
                 return line;
             } else {
