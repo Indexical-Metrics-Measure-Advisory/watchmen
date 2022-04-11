@@ -10,7 +10,7 @@ try {
     packageJson.version = targetVersion;
     const newContent = JSON.stringify(packageJson, null, 2);
     fs.writeFileSync(packageFile, newContent, 'utf8');
-    console.log(newContent);
+    // console.log(newContent);
 } catch (error) {
     core.setFailed(error.message);
 }
