@@ -40,12 +40,7 @@ jobs:
         run: |
           git config user.name "skywalkerX69"
           git config user.email skywalkerX69@outlook.com
-      - name: Commit config and manifest files
-        id: make-commit
-        run: |
-          git add .
-          git commit --message "Release [${{ inputs.version }}]"
-          git tag ${{ inputs.version }}
-          echo "::set-output name=commit::$(git rev-parse HEAD)"
       - name: Push new branch
-        run: git push --force origin ${{ inputs.release }} --tags
+        run: |
+          git tag ${{ inputs.version }}
+          git push --force origin ${{ inputs.release }} --tags
