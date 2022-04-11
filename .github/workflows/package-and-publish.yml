@@ -148,6 +148,8 @@ jobs:
         run: |
           poetry build
       #          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
+      - name: Create release branch
+        run: git checkout -b ${{ inputs.release }}
       - name: Initialize mandatory git config
         run: |
           git config user.name "skywalkerX69"
