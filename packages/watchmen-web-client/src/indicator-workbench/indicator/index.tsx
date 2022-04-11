@@ -5,7 +5,7 @@ import {IndicatorState} from './indicator-state';
 import {IndicatorsEventBusProvider} from './indicators-event-bus';
 
 const IndicatorWorkbenchIndicatorIndex = () => {
-	const [editing, setEditing] = useState(false);
+	const [editing] = useState(true);
 
 	return <IndicatorsEventBusProvider>
 		<IndicatorState/>
