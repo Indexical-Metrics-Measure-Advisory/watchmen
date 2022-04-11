@@ -79,7 +79,7 @@ jobs:
     with:
       tag: ${{ github.event.inputs.version }}
   publish-images:
-    needs: create-release
+    needs: [prepare, create-release]
     uses: ./.github/workflows/publish-images.yml
     with:
       branch: ${{ needs.prepare.outputs.release_branch_name }}
