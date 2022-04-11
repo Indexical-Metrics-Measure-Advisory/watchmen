@@ -16,6 +16,8 @@ try {
             if (line.startsWith('[')) {
                 startToReplace = false;
                 return line;
+            } else if (line.trim().length === 0) {
+                return line;
             }
             const pos = line.indexOf('=');
             const name = line.substring(0, pos).trim();
