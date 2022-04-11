@@ -26,7 +26,6 @@ try {
                 .replace(/path\s?=/, '"path":')
                 .replace(/develop\s?=/, '"develop":')
                 .replace(/optional\s?=/, '"optional":')
-            console.log(version);
             if (version.startsWith('"')) {
                 return line;
             } else {
@@ -36,10 +35,10 @@ try {
                     delete json.path;
                     versionUpdated = true;
                     if (json.optional) {
-                        console.log(`Version updated to ${targetVersion} from develop dependency, and it is optional.`);
+                        core.notice(`Version updated to ${targetVersion} from develop dependency, and it is optional.`);
                         return `${name} = { version = "${targetVersion}", optional = true }`;
                     } else {
-                        console.log(`Version updated to ${targetVersion} from develop dependency.`);
+                        core.notice(`Version updated to ${targetVersion} from develop dependency.`);
                         return `${name} = "${targetVersion}"`;
                     }
                 } else {
@@ -51,10 +50,9 @@ try {
         }
     }).join('\n');
     if (!versionUpdated) {
-        console.log('No version needs to be updated.');
+        core.notice('No version needs to be updated.');
     } else {
         fs.writeFileSync(projectFile, newContent, 'utf8');
-        console.log(newContent);
     }
 } catch (error) {
     core.setFailed(error.message);
