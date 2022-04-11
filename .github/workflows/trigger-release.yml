@@ -24,9 +24,9 @@ jobs:
         run: |
           echo "Target version: [$RELEASE_VERSION]"
           echo "::set-output name=version::$RELEASE_VERSION"
-  release:
-    needs: prepare
-    uses: ./.github/workflows/manual-release.yml
-    with:
-      ref: ${{ github.ref }}
-      version: ${{ needs.prepare.outputs.version }}
+#  release:
+#    needs: prepare
+#    uses: ./.github/workflows/manual-release.yml
+#    with:
+#      ref: ${{ github.ref }}
+#      version: ${{ needs.prepare.outputs.version }}
