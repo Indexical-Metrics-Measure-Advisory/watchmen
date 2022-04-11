@@ -27,8 +27,6 @@ jobs:
       - name: Echo target branch
         run: |
           echo "Target branch: [$PRE_RELEASE_BRANCH_NAME]"
-    outputs:
-      pre_release_branch_name: $PRE_RELEASE_BRANCH_NAME
   change-version:
     needs: prepare
     uses: ./.github/workflows/change-module-version.yml
