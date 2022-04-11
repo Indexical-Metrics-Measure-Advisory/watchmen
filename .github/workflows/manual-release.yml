@@ -23,18 +23,18 @@ jobs:
         uses: ./.github/actions/compute-pre-release-branch
         id: compute-pre-release-branch
         with:
-          target-version: ${{ inputs.version }}
+          version: ${{ inputs.version }}
       - name: Echo target branch
         run: |
           echo "Target branch: [$PRE_RELEASE_BRANCH_NAME]"
-  change-version:
-    uses: ./.github/workflows/change-module-version.yml
-    with:
-      ref: main
-      branch: $PRE_RELEASE_BRANCH_NAME
-      version: ${{ github.event.inputs.version }}
-  package-and-publish:
-    uses: ./.github/workflows/package-and-publish.yml
-    with:
-      branch: $PRE_RELEASE_BRANCH_NAME
-      version: ${{ github.event.inputs.version }}
+#  change-version:
+#    uses: ./.github/workflows/change-module-version.yml
+#    with:
+#      ref: main
+#      branch: $PRE_RELEASE_BRANCH_NAME
+#      version: ${{ github.event.inputs.version }}
+#  package-and-publish:
+#    uses: ./.github/workflows/package-and-publish.yml
+#    with:
+#      branch: $PRE_RELEASE_BRANCH_NAME
+#      version: ${{ github.event.inputs.version }}
