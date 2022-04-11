@@ -13,8 +13,8 @@ on:
         type: string
 
 jobs:
-  change-version:
-    name: Change module version
+  drop-pre-release:
+    name: Drop pre-release branch and tag
     runs-on: ubuntu-latest
     steps:
       - name: Echo inputs
