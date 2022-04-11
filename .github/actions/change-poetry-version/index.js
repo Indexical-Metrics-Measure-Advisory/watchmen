@@ -46,6 +46,8 @@ try {
                     return line;
                 }
             }
+        } else {
+            return line;
         }
     }).join('\n');
     if (!versionUpdated) {
