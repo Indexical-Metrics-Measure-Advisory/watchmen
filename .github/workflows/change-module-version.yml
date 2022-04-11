@@ -162,7 +162,7 @@ jobs:
         with:
           module-name: watchmen-web-client
           target-version: ${{ inputs.version }}
-      - name: Create release branch
+      - name: Create pre release branch
         run: git checkout -b ${{ inputs.branch }}
       - name: Initialize mandatory git config
         run: |
