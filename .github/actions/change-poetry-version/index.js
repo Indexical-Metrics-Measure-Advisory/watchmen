@@ -48,11 +48,12 @@ try {
             }
         }
     }).join('\n');
-    fs.writeFileSync(packageFile, newContent, 'utf8');
     if (!versionUpdated) {
         console.log('No version needs to be updated.');
+    } else {
+        fs.writeFileSync(projectFile, newContent, 'utf8');
+        console.log(newContent);
     }
-    console.log(newContent);
 } catch (error) {
     core.setFailed(error.message);
 }
