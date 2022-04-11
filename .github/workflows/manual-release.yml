@@ -30,13 +30,18 @@ jobs:
         run: |
           echo "Target branch: [$PRE_RELEASE_BRANCH_NAME]"
           echo "::set-output name=pre_release_branch_name::$PRE_RELEASE_BRANCH_NAME"
-  change-version:
+  catch-pre-release-branch:
+    runs-on: ubuntu-latest
     needs: prepare
-    uses: ./.github/workflows/change-module-version.yml
-    with:
-      ref: main
-      branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
-      version: ${{ github.event.inputs.version }}
+    steps:
+      - run: echo ${{needs.prepare.outputs.pre_release_branch_name}}
+#  change-version:
+#    needs: prepare
+#    uses: ./.github/workflows/change-module-version.yml
+#    with:
+#      ref: main
+#      branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
+#      version: ${{ github.event.inputs.version }}
 #  package-and-publish:
 #    uses: ./.github/workflows/package-and-publish.yml
 #    with:
