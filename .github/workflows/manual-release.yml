@@ -16,6 +16,8 @@ jobs:
   prepare:
     name: Prepare jobs
     runs-on: ubuntu-latest
+    outputs:
+      pre_release_branch_name: ${{ steps.compute-pre-release-branch.outputs.pre_release_branch_name }}
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
@@ -27,6 +29,7 @@ jobs:
       - name: Echo target branch
         run: |
           echo "Target branch: [$PRE_RELEASE_BRANCH_NAME]"
+          echo "::set-output name=pre_release_branch_name::$PRE_RELEASE_BRANCH_NAME"
   change-version:
     needs: prepare
     uses: ./.github/workflows/change-module-version.yml
