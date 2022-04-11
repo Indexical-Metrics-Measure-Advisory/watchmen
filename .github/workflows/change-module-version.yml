@@ -16,6 +16,8 @@ jobs:
       - name: Echo inputs
         run: |
           echo "Target version: [${{ inputs.version }}]"
+      - name: Check out the repo
+        uses: actions/checkout@v3
       - name: Compute target branch
         uses: ./.github/actions/compute-target-branch
         id: compute-target-branch
@@ -24,8 +26,6 @@ jobs:
       - name: Echo target branch
         run: |
           echo "Target branch: [$TARGET_BRANCH_NAME]"
-      - name: Check out the repo
-        uses: actions/checkout@v3
       - name: Change version [watchmen-utilities]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-utilities
