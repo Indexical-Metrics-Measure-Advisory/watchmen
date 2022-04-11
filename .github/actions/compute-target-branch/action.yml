@@ -1,0 +1,10 @@
+name: Change Node Version
+description: Github actions for change version of poetry project
+author: 'skywalkerX69 <skywalkerX69@outlook.com>'
+inputs:
+  target-version:
+    description: Target Version
+    required: true
+runs:
+  using: node16
+  main: index.js
