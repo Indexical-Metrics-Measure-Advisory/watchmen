@@ -6,7 +6,7 @@ try {
     const packageFile = core.getInput('package-file');
 
     const content = fs.readFileSync(packageFile, 'utf8');
-    const packageJson = JSON.parse(data);
+    const packageJson = JSON.parse(content);
     packageJson.version = targetVersion;
     const newContent = JSON.stringify(packageJson, null, 2);
     fs.writeFileSync(packageFile, newContent, 'utf8');
