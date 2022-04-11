@@ -12,6 +12,9 @@ jobs:
     outputs:
       version: ${{ steps.output-version.outputs.version }}
     steps:
+      - name: Echo inputs
+        run: |
+          echo "Ref: [${{ github.ref }}]"
       - name: Check out the repo
         uses: actions/checkout@v3
       - name: Compute version
@@ -24,9 +27,19 @@ jobs:
         run: |
           echo "Target version: [$RELEASE_VERSION]"
           echo "::set-output name=version::$RELEASE_VERSION"
-#  release:
-#    needs: prepare
-#    uses: ./.github/workflows/manual-release.yml
-#    with:
-#      ref: ${{ github.ref }}
-#      version: ${{ needs.prepare.outputs.version }}
+  #  release:
+  #    needs: prepare
+  #    uses: ./.github/workflows/release-manual.yml
+  #    with:
+  #      ref: ${{ github.ref }}
+  #      version: ${{ needs.prepare.outputs.version }}
+  drop-pre-release:
+    name: Drop trigger tag
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch }}
+      - name: Drop tag
+        run: git push origin :${{ github.ref }}
