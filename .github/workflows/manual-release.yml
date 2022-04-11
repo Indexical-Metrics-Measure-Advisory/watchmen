@@ -1,0 +1,31 @@
+name: Manual Release
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Branch name
+        required: true
+        type: string
+        default: 'main'
+      version:
+        description: Version
+        required: true
+        type: string
+        default: 'p-16.0.27'
+jobs:
+  manual_release:
+    name: Package the all components
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+      - name: Echo inputs
+        run: |
+          echo "Branch: ${{ github.event.inputs.branch}}"
+          echo "Version: ${{ github.event.inputs.version}}"
+      - name: Change version of all module
+        uses: ./.github/actions/change-node-action/
+        id: change-node-version
+        with:
+          package-file: ./packages/watchmen-web-client/package.json
+          target-version: ${{ github.event.inputs.version }}
