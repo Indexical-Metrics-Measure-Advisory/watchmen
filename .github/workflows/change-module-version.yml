@@ -1,4 +1,4 @@
-name: Change module version
+name: Change modules version and dependencies
 
 on:
   workflow_call:

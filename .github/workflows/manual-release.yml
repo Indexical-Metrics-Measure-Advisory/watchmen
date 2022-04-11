@@ -42,17 +42,39 @@ jobs:
         run: |
           echo "Target branch: [$RELEASE_BRANCH_NAME]"
           echo "::set-output name=release_branch_name::$RELEASE_BRANCH_NAME"
-  change-version:
+  # change all versions; change development dependencies to production dependencies.
+  change-module-version:
     needs: prepare
     uses: ./.github/workflows/change-module-version.yml
     with:
       ref: main
       branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
       version: ${{ github.event.inputs.version }}
-  package-and-publish:
-    needs: [prepare, change-version]
-    uses: ./.github/workflows/package-and-publish.yml
+  # publish expects doll
+  publish-expects-doll:
+    needs: [prepare, change-module-version]
+    uses: ./.github/workflows/publish-expects-doll.yml
+    with:
+      branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
+      version: ${{ github.event.inputs.version }}
+  # publish doll only
+  publish-doll:
+    needs: [prepare, change-module-version, publish-expects-doll]
+    uses: ./.github/workflows/publish-doll.yml
+    with:
+      branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
+      version: ${{ github.event.inputs.version }}
+  # create release branch, from pre-release branch. and add release tag.
+  create-release-branch:
+    needs: [prepare, publish-doll]
+    uses: ./.github/workflows/create-release-branch.yml
     with:
       branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
       version: ${{ github.event.inputs.version }}
       release: ${{ needs.prepare.outputs.release_branch_name }}
+  # create release, use given version (also is the release tag on release branch)
+  create-release:
+    needs: create-release-branch
+    uses: ./.github/workflows/create-release.yml
+    with:
+      tag: ${{ github.event.inputs.version }}
