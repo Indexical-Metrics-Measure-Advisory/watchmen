@@ -47,7 +47,8 @@ try {
                 }
             }
         } else if (line.startsWith('version=') || line.startsWith('version =')) {
-            core.notice(`For module[${moduleName}], version updated to ${targetVersion}.`);
+            const originalVerion = line.replace('version', '').trim().substring(1).replace('"', '').trim();
+            core.notice(`For module[${moduleName}], version updated to ${targetVersion} from ${originalVerion}.`);
             return `version = "${targetVersion}"`;
         } else {
             return line;
