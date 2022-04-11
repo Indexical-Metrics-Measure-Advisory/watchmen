@@ -16,7 +16,6 @@ jobs:
   change-version:
     uses: ./.github/workflows/change-module-version.yml
     with:
-      branch: ${{ github.event.inputs.branch}}
       version: ${{ github.event.inputs.version }}
 #  build-and-publish:
 #    name: Package the all components
