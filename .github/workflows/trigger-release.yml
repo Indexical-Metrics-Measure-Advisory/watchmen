@@ -1,0 +1,32 @@
+name: Trigger release by tag
+
+on:
+  push:
+    tags:
+      - r-*
+
+jobs:
+  prepare:
+    name: Prepare jobs
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.output-version.outputs.version }}
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+      - name: Compute version
+        uses: ./.github/actions/compute-version
+        id: compute-version
+        with:
+          version: ${{ github.event.inputs.version }}
+      - name: Echo pre-release branch
+        id: output-version
+        run: |
+          echo "Target version: [$RELEASE_VERSION]"
+          echo "::set-output name=version::$RELEASE_VERSION"
+  release:
+    needs: prepare
+    uses: ./.github/workflows/manual-release.yml
+    with:
+      ref: ${{ github.ref }}
+      version: ${{ needs.prepare.outputs.version }}

@@ -1,9 +1,10 @@
 name: Manual release
+
 on:
   workflow_dispatch:
     inputs:
-      branch:
-        description: Branch name
+      ref:
+        description: Branch or tag name
         required: true
         type: string
         default: 'main'
@@ -12,6 +13,17 @@ on:
         required: true
         type: string
         default: '16.0.27'
+  workflow_call:
+    inputs:
+      ref:
+        description: Branch or tag name
+        required: true
+        type: string
+      version:
+        description: Version
+        required: true
+        type: string
+
 jobs:
   prepare:
     name: Prepare jobs
@@ -47,7 +59,7 @@ jobs:
     needs: prepare
     uses: ./.github/workflows/change-module-version.yml
     with:
-      ref: main
+      ref: ${{ github.event.inputs.ref }}
       branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
       version: ${{ github.event.inputs.version }}
   # publish expects doll
@@ -80,14 +92,14 @@ jobs:
       branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
       version: ${{ github.event.inputs.version }}
   # create release, use given version (also is the release tag on release branch)
-#  create-release:
-#    needs: create-release-branch
-#    uses: ./.github/workflows/create-release.yml
-#    with:
-#      tag: ${{ github.event.inputs.version }}
-#  publish-images:
-#    needs: [prepare, create-release]
-#    uses: ./.github/workflows/publish-images.yml
-#    with:
-#      branch: ${{ needs.prepare.outputs.release_branch_name }}
-#      version: ${{ github.event.inputs.version }}
+  create-release:
+    needs: create-release-branch
+    uses: ./.github/workflows/create-release.yml
+    with:
+      tag: ${{ github.event.inputs.version }}
+  publish-images:
+    needs: [prepare, create-release]
+    uses: ./.github/workflows/publish-images.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ github.event.inputs.version }}
