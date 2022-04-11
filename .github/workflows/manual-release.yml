@@ -17,3 +17,7 @@ jobs:
     uses: ./.github/workflows/change-module-version.yml
     with:
       version: ${{ github.event.inputs.version }}
+  package-and-publish:
+    uses: ./.github/workflows/package-and-publish.yml
+    with:
+      branch: $TARGET_BRANCH_NAME
