@@ -69,8 +69,6 @@ jobs:
     with:
       branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
       version: ${{ github.event.inputs.version }}
-  # process indicator
-
   # publish doll only
   publish-doll-to-pypi:
     needs: [ prepare, change-module-version, publish-expects-doll ]
