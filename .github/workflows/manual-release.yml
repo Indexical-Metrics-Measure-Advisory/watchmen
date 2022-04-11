@@ -23,7 +23,19 @@ jobs:
         run: |
           echo "Branch: ${{ github.event.inputs.branch}}"
           echo "Version: ${{ github.event.inputs.version}}"
-      - name: Change version of all module
+      - name: Change version [Watchmen-Utilities]
+        uses: ./.github/actions/change-poetry-version/
+        id: change-poetry-version-utilities
+        with:
+          project-file: ./packages/watchmen-utilities/pyproject.toml
+          target-version: ${{ github.event.inputs.version }}
+      - name: Change version [Watchmen-Auth]
+        uses: ./.github/actions/change-poetry-version/
+        id: change-poetry-version-auth
+        with:
+          project-file: ./packages/watchmen-auth/pyproject.toml
+          target-version: ${{ github.event.inputs.version }}
+      - name: Change Version [Watchmen-Web-Client]
         uses: ./.github/actions/change-node-version/
         id: change-node-version
         with:
