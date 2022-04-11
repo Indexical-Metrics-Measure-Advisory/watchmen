@@ -22,10 +22,10 @@ try {
             const pos = line.indexOf('=');
             const name = line.substring(0, pos).trim();
             const version = line.substring(pos + 1).trim()
-                .replace('version', '"version"')
-                .replace('path', '"path"')
-                .replace('develop', '"develop"')
-                .replace('optional', '"optional"');
+                .replace(/version\s?=/, '"version" =')
+                .replace(/path\s?=/, '"path" =')
+                .replace(/develop\s?=/, '"develop" =')
+                .replace(/optional\s?=/, '"optional" =')
             console.log(version);
             if (version.startsWith('"')) {
                 return line;
