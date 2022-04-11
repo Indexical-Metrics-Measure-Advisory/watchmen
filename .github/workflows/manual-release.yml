@@ -1,4 +1,4 @@
-name: Manual Release
+name: Manual release
 on:
   workflow_dispatch:
     inputs:
@@ -22,22 +22,22 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
-      - name: Compute target branch
+      - name: Compute pre-release branch
         uses: ./.github/actions/compute-pre-release-branch
         id: compute-pre-release-branch
         with:
           version: ${{ github.event.inputs.version }}
-      - name: Echo target branch
+      - name: Echo pre-release branch
         id: output-pre-release-branch
         run: |
           echo "Target branch: [$PRE_RELEASE_BRANCH_NAME]"
           echo "::set-output name=pre_release_branch_name::$PRE_RELEASE_BRANCH_NAME"
-      - name: Compute target branch
+      - name: Compute release branch
         uses: ./.github/actions/compute-release-branch
         id: compute-release-branch
         with:
-          version: ${{ inputs.version }}
-      - name: Echo target branch
+          version: ${{ github.event.inputs.version }}
+      - name: Echo release branch
         id: output-release-branch
         run: |
           echo "Target branch: [$RELEASE_BRANCH_NAME]"
@@ -50,7 +50,7 @@ jobs:
       branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
       version: ${{ github.event.inputs.version }}
   package-and-publish:
-    needs: prepare
+    needs: [prepare, change-version]
     uses: ./.github/workflows/package-and-publish.yml
     with:
       branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
