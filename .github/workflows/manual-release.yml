@@ -30,6 +30,7 @@ jobs:
   change-version:
     uses: ./.github/workflows/change-module-version.yml
     with:
+      ref: main
       branch: $PRE_RELEASE_BRANCH_NAME
       version: ${{ github.event.inputs.version }}
   package-and-publish:

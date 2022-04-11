@@ -3,6 +3,10 @@ name: Change module version
 on:
   workflow_call:
     inputs:
+      ref:
+        description: The branch or tag name.
+        required: true
+        type: string
       branch:
         description: Pre-release Branch
         required: true
@@ -19,7 +23,13 @@ jobs:
     steps:
       - name: Echo inputs
         run: |
+          echo "Ref: [${{ inputs.ref }}]"
+          echo "Pre-release branch: [${{ inputs.branch }}]"
           echo "Target version: [${{ inputs.version }}]"
+      - name: Check out the repo
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.ref }}
       - name: Change version [watchmen-utilities]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-utilities
