@@ -5,8 +5,8 @@ inputs:
   target-version:
     description: Target Version
     required: true
-  package-file:
-    description: Package File
+  module-name:
+    description: Module Name
     required: true
 runs:
   using: node16
