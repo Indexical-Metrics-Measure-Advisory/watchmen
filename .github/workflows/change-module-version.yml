@@ -163,7 +163,7 @@ jobs:
           module-name: watchmen-web-client
           target-version: ${{ inputs.version }}
       - name: Create release branch
-        run: git checkout -b $TARGET_BRANCH_NAME
+        run: git checkout -b ${{ inputs.branch }}
       - name: Initialize mandatory git config
         run: |
           git config user.name "skywalkerX69"
@@ -176,4 +176,4 @@ jobs:
           git tag pre-release-${{ inputs.version }}
           echo "::set-output name=commit::$(git rev-parse HEAD)"
       - name: Push new branch
-        run: git push --force origin $TARGET_BRANCH_NAME --tags
+        run: git push --force origin ${{ inputs.branch }} --tags
