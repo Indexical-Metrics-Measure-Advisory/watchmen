@@ -2,6 +2,11 @@ name: Publish to Pypi excepts doll
 
 on:
   workflow_call:
+    secrets:
+      PIP_USERNAME:
+        required: true
+      PIP_PASSWORD:
+        required: true
     inputs:
       branch:
         description: Pre-release branch
