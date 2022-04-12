@@ -144,7 +144,8 @@ export const Apis = {
 	CATALOG_DELETE: 'dqc/catalog/delete?catalog_id=:catalogId',
 
 	// indicator workbench
-	INDICATORS_LIST_FOR_SELECTION: 'indicator/indicator/name?query_name=:search',
+	INDICATOR_LIST_BY_NAME: 'indicator/indicator/name?query_name=:search',
+	INDICATOR_LIST_FOR_SELECTION: 'indicator/indicator/name?query_name=:search',
 	TOPIC_LIST_FOR_INDICATOR_SELECTION: 'topic/index/name?query_name=:search',
 	ENUM_LIST_FOR_INDICATOR_TOPIC: 'enum/list/topic?topic_id=:topicId',
 	INDICATOR_GET: 'indicator/indicator?indicator_id=:indicatorId',

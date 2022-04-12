@@ -1,12 +1,12 @@
 import {ButtonInk} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
 import {useRef} from 'react';
-import {EmphaticSinkingLabel, Step, StepBody, StepBodyButtons, StepTitle, StepTitleButton} from '../../step-widgets';
-import {useIndicatorsEventBus} from '../indicators-event-bus';
-import {IndicatorsEventTypes} from '../indicators-event-bus-types';
-import {IndicatorDeclarationStep} from '../types';
+import {EmphaticSinkingLabel, Step, StepBody, StepBodyButtons, StepTitle, StepTitleButton} from '../../../step-widgets';
+import {useIndicatorsEventBus} from '../../indicators-event-bus';
+import {IndicatorsEventTypes} from '../../indicators-event-bus-types';
+import {IndicatorDeclarationStep} from '../../types';
+import {useStep} from '../../use-step';
 import {useConstructed} from '../use-constructed';
-import {useStep} from '../use-step';
 import {BucketsDef} from './buckets-def';
 import {BucketsEventBusProvider} from './buckets-event-bus';
 
