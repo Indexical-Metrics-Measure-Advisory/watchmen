@@ -56,9 +56,8 @@ try {
     }).join('\n');
     if (!versionUpdated) {
         core.notice(`For module[${moduleName}], no version needs to be updated.`);
-    } else {
-        fs.writeFileSync(projectFile, newContent, 'utf8');
     }
+    fs.writeFileSync(projectFile, newContent, 'utf8');
 } catch (error) {
     core.setFailed(error.message);
 }
