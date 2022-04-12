@@ -10,7 +10,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
-pymongo = "^4.0.2"
+pymongo = "^4.1.0"
 watchmen-storage = { path = "../watchmen-storage", develop = true }
 
 [tool.poetry.dev-dependencies]

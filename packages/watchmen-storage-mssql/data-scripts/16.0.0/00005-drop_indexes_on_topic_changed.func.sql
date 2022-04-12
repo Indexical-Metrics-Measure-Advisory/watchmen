@@ -1,3 +1,4 @@
+-- noinspection SqlSignatureForFile @ routine/"SP_EXECUTESQL"
 CREATE OR ALTER PROCEDURE DROP_INDEXES_ON_TOPIC_CHANGED(@topic_name NVARCHAR(128))
 AS
 BEGIN
