@@ -27,8 +27,15 @@ try {
                 .replace(/path\s?=/, '"path":')
                 .replace(/develop\s?=/, '"develop":')
                 .replace(/optional\s?=/, '"optional":')
+            const shouldReplace = name.startsWith('watchmen-');
             if (version.startsWith('"')) {
-                return line;
+                if (shouldReplace) {
+                    versionUpdated = true;
+                    core.notice(`For module[${moduleName}], version updated to ${targetVersion} from ${version.replace(/"/g, '')}.`);
+                    return `${name} = "${targetVersion}"`;
+                } else {
+                    return line;
+                }
             } else {
                 const json = JSON.parse(version);
                 if (json.develop) {
@@ -40,6 +47,15 @@ try {
                         return `${name} = { version = "${targetVersion}", optional = true }`;
                     } else {
                         core.notice(`For module[${moduleName}], version updated to ${targetVersion} from develop dependency.`);
+                        return `${name} = "${targetVersion}"`;
+                    }
+                } else if (shouldReplace) {
+                    versionUpdated = true;
+                    if (json.optional) {
+                        core.notice(`For module[${moduleName}], version updated to ${targetVersion} from ${json.version}, and it is optional.`);
+                        return `${name} = { version = "${targetVersion}", optional = true }`;
+                    } else {
+                        core.notice(`For module[${moduleName}], version updated to ${targetVersion} from ${json.version}.`);
                         return `${name} = "${targetVersion}"`;
                     }
                 } else {

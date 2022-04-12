@@ -92,7 +92,7 @@ jobs:
       version: ${{ github.event.inputs.version }}
   # publish doll image, on mysql
   publish-doll-mysql-image:
-    needs: [ prepare, create-release-branch ]
+    needs: [ prepare, publish-web-client-image ]
     uses: ./.github/workflows/image-publish-doll.yml
     with:
       branch: ${{ needs.prepare.outputs.release_branch_name }}
@@ -100,7 +100,7 @@ jobs:
       storage: mysql
   # publish doll image, on oracle
   publish-doll-oracle-image:
-    needs: [ prepare, create-release-branch ]
+    needs: [ prepare, publish-web-client-image ]
     uses: ./.github/workflows/image-publish-doll.yml
     with:
       branch: ${{ needs.prepare.outputs.release_branch_name }}
@@ -108,7 +108,7 @@ jobs:
       storage: oracle
   # publish doll image, on mongodb
   publish-doll-mongodb-image:
-    needs: [ prepare, create-release-branch ]
+    needs: [ prepare, publish-web-client-image ]
     uses: ./.github/workflows/image-publish-doll.yml
     with:
       branch: ${{ needs.prepare.outputs.release_branch_name }}
@@ -117,7 +117,7 @@ jobs:
   # TODO publish doll image, on mssql
   # publish dqc image, on mysql
   publish-dqc-mysql-image:
-    needs: [ prepare, create-release-branch ]
+    needs: [ prepare, publish-web-client-image ]
     uses: ./.github/workflows/image-publish-dqc.yml
     with:
       branch: ${{ needs.prepare.outputs.release_branch_name }}
@@ -125,7 +125,7 @@ jobs:
       storage: mysql
   # publish dqc image, on oracle
   publish-dqc-oracle-image:
-    needs: [ prepare, create-release-branch ]
+    needs: [ prepare, publish-web-client-image ]
     uses: ./.github/workflows/image-publish-dqc.yml
     with:
       branch: ${{ needs.prepare.outputs.release_branch_name }}
@@ -133,7 +133,7 @@ jobs:
       storage: oracle
   # publish dqc image, on mongodb
   publish-dqc-mongodb-image:
-    needs: [ prepare, create-release-branch ]
+    needs: [ prepare, publish-web-client-image ]
     uses: ./.github/workflows/image-publish-dqc.yml
     with:
       branch: ${{ needs.prepare.outputs.release_branch_name }}
