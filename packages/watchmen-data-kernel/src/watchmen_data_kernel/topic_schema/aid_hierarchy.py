@@ -67,4 +67,10 @@ def aid(
 		if isinstance(value, dict):
 			aid(value, my_ancestors, snowflake_generator)
 		elif isinstance(value, list):
-			ArrayHelper(value).each(lambda x: aid(x, my_ancestors, snowflake_generator))
+			def aid_each(element: Any) -> None:
+				if isinstance(value, dict):
+					aid(element, my_ancestors, snowflake_generator)
+				elif isinstance(value, list):
+					ArrayHelper(value).each(aid_each)
+
+			ArrayHelper(value).each(aid_each)
