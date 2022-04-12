@@ -66,7 +66,7 @@ jobs:
       branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
       version: ${{ needs.compute-version.outputs.version }}
   # publish to pypi
-  publish-to-pypi-expects-doll:
+  publish-pypi:
     needs: [ compute-version, prepare, align-module-version ]
     uses: ./.github/workflows/pypi-publish.yml
     with:
@@ -74,7 +74,7 @@ jobs:
       version: ${{ needs.compute-version.outputs.version }}
   # create release branch, from pre-release branch. and add release tag.
   create-release-branch:
-    needs: [ compute-version, prepare, publish-doll-to-pypi ]
+    needs: [ compute-version, prepare, publish-pypi ]
     uses: ./.github/workflows/create-release-branch.yml
     with:
       branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
