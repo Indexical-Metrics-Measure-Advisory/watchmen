@@ -35,9 +35,6 @@ class DollApp(RestApp):
 	def ask_create_dqc_topics_on_tenant_create(self) -> bool:
 		return self.get_settings().CREATE_DQC_TOPICS_ON_TENANT_CREATE
 
-	def ask_indicator_workbench_enabled(self) -> bool:
-		return self.get_settings().INDICATOR_WORKBENCH
-
 	def post_construct(self, app: FastAPI) -> None:
 		pass
 
@@ -70,7 +67,3 @@ def ask_create_pipeline_monitor_topics_on_tenant_create() -> bool:
 
 def ask_create_dqc_topics_on_tenant_create() -> bool:
 	return doll.ask_create_dqc_topics_on_tenant_create()
-
-
-def ask_indicator_workbench_enabled() -> bool:
-	return doll.ask_indicator_workbench_enabled()
