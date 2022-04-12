@@ -98,56 +98,56 @@ jobs:
 #    with:
 #      tag: ${{ github.event.inputs.version }}
   publish-web-client-image:
-    needs: prepare
+    needs: [ prepare, create-release-branch ]
     uses: ./.github/workflows/image-publish-web-client.yml
     with:
       branch: ${{ needs.prepare.outputs.release_branch_name }}
       version: ${{ github.event.inputs.version }}
       indicator: false
   publish-web-client-indicator-image:
-    needs: prepare
+    needs: [ prepare, create-release-branch ]
     uses: ./.github/workflows/image-publish-web-client.yml
     with:
       branch: ${{ needs.prepare.outputs.release_branch_name }}
       version: ${{ github.event.inputs.version }}
       indicator: true
 #  publish-doll-mysql-image:
-#    needs: prepare
+#    needs: [ prepare, create-release-branch ]
 #    uses: ./.github/workflows/image-publish-doll.yml
 #    with:
 #      branch: ${{ needs.prepare.outputs.release_branch_name }}
 #      version: ${{ github.event.inputs.version }}
 #      storage: mysql
 #  publish-doll-oracle-image:
-#    needs: prepare
+#    needs: [ prepare, create-release-branch ]
 #    uses: ./.github/workflows/image-publish-doll.yml
 #    with:
 #      branch: ${{ needs.prepare.outputs.release_branch_name }}
 #      version: ${{ github.event.inputs.version }}
 #      storage: oracle
 #  publish-doll-mongodb-image:
-#    needs: prepare
+#    needs: [ prepare, create-release-branch ]
 #    uses: ./.github/workflows/image-publish-doll.yml
 #    with:
 #      branch: ${{ needs.prepare.outputs.release_branch_name }}
 #      version: ${{ github.event.inputs.version }}
 #      storage: mongodb
 #  publish-dqc-mysql-image:
-#    needs: prepare
+#    needs: [ prepare, create-release-branch ]
 #    uses: ./.github/workflows/image-publish-dqc.yml
 #    with:
 #      branch: ${{ needs.prepare.outputs.release_branch_name }}
 #      version: ${{ github.event.inputs.version }}
 #      storage: mysql
 #  publish-dqc-oracle-image:
-#    needs: prepare
+#    needs: [ prepare, create-release-branch ]
 #    uses: ./.github/workflows/image-publish-dqc.yml
 #    with:
 #      branch: ${{ needs.prepare.outputs.release_branch_name }}
 #      version: ${{ github.event.inputs.version }}
 #      storage: oracle
 #  publish-dqc-mongodb-image:
-#    needs: prepare
+#    needs: [ prepare, create-release-branch ]
 #    uses: ./.github/workflows/image-publish-dqc.yml
 #    with:
 #      branch: ${{ needs.prepare.outputs.release_branch_name }}
