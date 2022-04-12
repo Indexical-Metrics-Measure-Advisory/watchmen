@@ -89,7 +89,7 @@ jobs:
       version: ${{ needs.compute-version.outputs.version }}
   # create release, use given version (also is the release tag on release branch)
   create-release:
-    needs: create-release-branch
+    needs: [ compute-version, create-release-branch ]
     uses: ./.github/workflows/create-release.yml
     with:
       tag: ${{ needs.compute-version.outputs.version }}
