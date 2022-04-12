@@ -1,10 +1,13 @@
+from logging import getLogger
 from typing import Any, Dict, List, Optional
 
 from watchmen_storage import SnowflakeGenerator
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, is_blank
 
 MY_AID_ID = 'aid_me'
 AID_ROOT = 'aid_root'
+
+logger = getLogger(__name__)
 
 
 class Ancestor:
@@ -52,19 +55,26 @@ def aid(
 	given data should be modified
 	"""
 
-	# create aid me
-	aid_me = snowflake_generator.next_id()
-	data[MY_AID_ID] = aid_me
+	try:
+		# create aid me
+		aid_me = snowflake_generator.next_id()
+		data[MY_AID_ID] = aid_me
 
-	# create ancestor aid ids
-	my_hierarchy_number = len(ancestors)
-	used_ancestor_keys: Dict[str, bool] = {}
-	ArrayHelper(ancestors).each(lambda x: apply_ancestor_aid_id(data, my_hierarchy_number, x, used_ancestor_keys))
+		# create ancestor aid ids
+		my_hierarchy_number = len(ancestors)
+		used_ancestor_keys: Dict[str, bool] = {}
+		ArrayHelper(ancestors).each(lambda x: apply_ancestor_aid_id(data, my_hierarchy_number, x, used_ancestor_keys))
 
-	for key in data:
-		value = data[key]
-		my_ancestors = ArrayHelper(ancestors).copy().grab(Ancestor(name=key, aid_id=aid_me)).to_list()
-		if isinstance(value, dict):
-			aid(value, my_ancestors, snowflake_generator)
-		elif isinstance(value, list):
-			ArrayHelper(value).each(lambda x: aid(x, my_ancestors, snowflake_generator))
+		for key in data:
+			value = data[key]
+			my_ancestors = ArrayHelper(ancestors).copy().grab(Ancestor(name=key, aid_id=aid_me)).to_list()
+			if isinstance(value, dict):
+				aid(value, my_ancestors, snowflake_generator)
+			elif isinstance(value, list):
+				ArrayHelper(value).each(lambda x: aid(x, my_ancestors, snowflake_generator))
+	except Exception as e:
+		hierarchy = ArrayHelper(ancestors).map(lambda x: x.name).join('/')
+		if is_blank(hierarchy):
+			hierarchy = 'root'
+		logger.error(f'Error occurred on hierarchy [{hierarchy}].')
+		raise e
