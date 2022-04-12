@@ -62,17 +62,10 @@ jobs:
       ref: ${{ github.event.inputs.ref }}
       branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
       version: ${{ github.event.inputs.version }}
-  # publish expects doll
+  # publish to pypi
   publish-to-pypi-expects-doll:
     needs: [ prepare, align-module-version ]
-    uses: ./.github/workflows/pypi-publish-expects-doll.yml
-    with:
-      branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
-      version: ${{ github.event.inputs.version }}
-  # publish doll only
-  publish-doll-to-pypi:
-    needs: [ prepare, align-module-version, publish-to-pypi-expects-doll ]
-    uses: ./.github/workflows/pypi-publish-doll.yml
+    uses: ./.github/workflows/pypi-publish.yml
     with:
       branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
       version: ${{ github.event.inputs.version }}
