@@ -57,42 +57,42 @@ jobs:
         run: |
           echo "Target branch: [$RELEASE_BRANCH_NAME]"
           echo "::set-output name=release_branch_name::$RELEASE_BRANCH_NAME"
-#  # align all versions; change development dependencies to production dependencies.
-#  align-module-version:
-#    needs: prepare
-#    uses: ./.github/workflows/version-align.yml
-#    with:
-#      ref: ${{ github.ref }}
-#      branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
-#      version: ${{ needs.compute-version.outputs.version }}
-#  # publish to pypi
-#  publish-to-pypi-expects-doll:
-#    needs: [ compute-version, prepare, align-module-version ]
-#    uses: ./.github/workflows/pypi-publish.yml
-#    with:
-#      branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
-#      version: ${{ needs.compute-version.outputs.version }}
-#  # create release branch, from pre-release branch. and add release tag.
-#  create-release-branch:
-#    needs: [ compute-version, prepare, publish-doll-to-pypi ]
-#    uses: ./.github/workflows/create-release-branch.yml
-#    with:
-#      branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
-#      version: ${{ needs.compute-version.outputs.version }}
-#      release: ${{ needs.prepare.outputs.release_branch_name }}
-#  # drop pre-release branch and tag
-#  drop-pre-release:
-#    needs: [ compute-version, prepare, create-release-branch ]
-#    uses: ./.github/workflows/drop-pre-release-branch.yml
-#    with:
-#      branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
-#      version: ${{ needs.compute-version.outputs.version }}
-#  # create release, use given version (also is the release tag on release branch)
-#  create-release:
-#    needs: create-release-branch
-#    uses: ./.github/workflows/create-release.yml
-#    with:
-#      tag: ${{ needs.compute-version.outputs.version }}
+  # align all versions; change development dependencies to production dependencies.
+  align-module-version:
+    needs: prepare
+    uses: ./.github/workflows/version-align.yml
+    with:
+      ref: ${{ github.ref }}
+      branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
+      version: ${{ needs.compute-version.outputs.version }}
+  # publish to pypi
+  publish-to-pypi-expects-doll:
+    needs: [ compute-version, prepare, align-module-version ]
+    uses: ./.github/workflows/pypi-publish.yml
+    with:
+      branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
+      version: ${{ needs.compute-version.outputs.version }}
+  # create release branch, from pre-release branch. and add release tag.
+  create-release-branch:
+    needs: [ compute-version, prepare, publish-doll-to-pypi ]
+    uses: ./.github/workflows/create-release-branch.yml
+    with:
+      branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
+      version: ${{ needs.compute-version.outputs.version }}
+      release: ${{ needs.prepare.outputs.release_branch_name }}
+  # drop pre-release branch and tag
+  drop-pre-release:
+    needs: [ compute-version, prepare, create-release-branch ]
+    uses: ./.github/workflows/drop-pre-release-branch.yml
+    with:
+      branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
+      version: ${{ needs.compute-version.outputs.version }}
+  # create release, use given version (also is the release tag on release branch)
+  create-release:
+    needs: create-release-branch
+    uses: ./.github/workflows/create-release.yml
+    with:
+      tag: ${{ needs.compute-version.outputs.version }}
 #  # publish web client image, both non-indicator and with-indicator
 #  publish-web-client-image:
 #    needs: [ compute-version, prepare, create-release-branch ]
@@ -151,6 +151,7 @@ jobs:
 #      storage: mongodb
 #  # TODO publish dqc image, on mssql
   drop-trigger-tag:
+    needs: align-module-version
     name: Drop trigger tag
     runs-on: ubuntu-latest
     steps:
