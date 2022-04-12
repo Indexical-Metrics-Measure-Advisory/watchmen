@@ -33,7 +33,7 @@ jobs:
   #    with:
   #      ref: ${{ github.ref }}
   #      version: ${{ needs.prepare.outputs.version }}
-  drop-pre-release:
+  drop-trigger-tag:
     name: Drop trigger tag
     runs-on: ubuntu-latest
     steps:
