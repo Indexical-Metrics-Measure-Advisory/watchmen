@@ -1,4 +1,4 @@
-import {IndicatorsData} from '../indicators-event-bus-types';
+import {IndicatorsData} from '../../indicators-event-bus-types';
 import {IndicatorFactorBuckets} from './indicator-factor-buckets';
 import {MeasureBuckets} from './measure-buckets';
 import {BucketsDefContainer} from './widgets';

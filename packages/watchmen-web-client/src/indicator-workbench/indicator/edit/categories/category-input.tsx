@@ -2,11 +2,11 @@ import {Indicator} from '@/services/data/tuples/indicator-types';
 import {QueryIndicatorCategoryParams} from '@/services/data/tuples/query-indicator-types';
 import {noop} from '@/services/utils';
 import {useThrottler} from '@/widgets/throttler';
-import {SearchItem, SearchItems, SearchText} from '../../search-text';
-import {useSearchTextEventBus} from '../../search-text/search-text-event-bus';
-import {SearchTextEventTypes} from '../../search-text/search-text-event-bus-types';
-import {useIndicatorsEventBus} from '../indicators-event-bus';
-import {IndicatorsEventTypes} from '../indicators-event-bus-types';
+import {SearchItem, SearchItems, SearchText} from '../../../search-text';
+import {useSearchTextEventBus} from '../../../search-text/search-text-event-bus';
+import {SearchTextEventTypes} from '../../../search-text/search-text-event-bus-types';
+import {useIndicatorsEventBus} from '../../indicators-event-bus';
+import {IndicatorsEventTypes} from '../../indicators-event-bus-types';
 import {CategoryContainer, CategoryIndexLabel} from './widgets';
 
 export const CategoryInput = (props: {
