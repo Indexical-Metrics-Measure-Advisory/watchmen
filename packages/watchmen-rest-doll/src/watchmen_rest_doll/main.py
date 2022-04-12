@@ -55,13 +55,3 @@ ArrayHelper([
 ArrayHelper(get_data_surface_routers()).each(lambda x: app.include_router(x))
 ArrayHelper(get_pipeline_surface_routers()).each(lambda x: app.include_router(x))
 ArrayHelper(get_inquiry_surface_routers()).each(lambda x: app.include_router(x))
-
-
-def init_indicator_workbench() -> None:
-	if not doll.ask_indicator_workbench_enabled():
-		return
-	from watchmen_indicator_surface import get_indicator_surface_routers
-	ArrayHelper(get_indicator_surface_routers()).each(lambda x: app.include_router(x))
-
-
-init_indicator_workbench()

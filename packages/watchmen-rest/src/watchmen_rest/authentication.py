@@ -11,7 +11,7 @@ from watchmen_auth import AuthenticationDetails, AuthenticationManager, Authenti
 	AuthFailOn401, \
 	AuthFailOn403, authorize, authorize_token, PrincipalService
 from watchmen_model.admin import User, UserRole
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, is_not_blank
 from .settings import RestSettings
 from .util import raise_401, raise_403
 
@@ -38,7 +38,7 @@ class JWTAuthenticationProvider(AuthenticationProvider):
 		self.find_user_by_name = find_user_by_name
 
 	def accept(self, details: AuthenticationDetails) -> bool:
-		return details.scheme == AuthenticationScheme.JWT.value
+		return is_not_blank(details.scheme) and details.scheme.lower() == AuthenticationScheme.JWT.value.lower()
 
 	def authenticate(self, details: AuthenticationDetails) -> Optional[User]:
 		try:
@@ -59,7 +59,7 @@ class PATAuthenticationProvider(AuthenticationProvider):
 		self.find_user_by_pat = find_user_by_pat
 
 	def accept(self, details: AuthenticationDetails) -> bool:
-		return details.scheme == AuthenticationScheme.PAT.value
+		return is_not_blank(details.scheme) and details.scheme.lower() == AuthenticationScheme.PAT.value.lower()
 
 	def authenticate(self, details: AuthenticationDetails) -> Optional[User]:
 		token = details.token

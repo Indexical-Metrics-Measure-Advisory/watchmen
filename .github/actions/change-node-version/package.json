@@ -1,0 +1,10 @@
+{
+  "name": "change-node-version",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "@actions/core": "^1.6.0"
+  }
+}

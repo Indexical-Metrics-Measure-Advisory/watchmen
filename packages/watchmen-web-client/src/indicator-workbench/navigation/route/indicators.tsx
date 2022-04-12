@@ -1,4 +1,4 @@
-import {listIndicators} from '@/services/data/tuples/indicator';
+import {listAllIndicators} from '@/services/data/tuples/indicator';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
@@ -30,7 +30,7 @@ export const Indicators = () => {
 				setLoading(true);
 
 				fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
-					async () => await listIndicators(),
+					async () => await listAllIndicators(),
 					(indicators: Array<Indicator>) => {
 						setState({loaded: true, data: indicators});
 						setLoading(false);

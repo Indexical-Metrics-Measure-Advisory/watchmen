@@ -177,8 +177,8 @@ table_last_snapshot = Table(
 table_factor_index = Table(
 	'factor_index', meta_data,
 	create_pk('factor_index_id'),
-	create_tuple_id_column('factor_id'), create_str('factor_type', 50), create_str('factor_name', 50),
-	create_str('factor_label', 100), create_str('factor_description', 100),
+	create_tuple_id_column('factor_id'), create_str('factor_type', 50), create_str('factor_name', 255),
+	create_str('factor_label', 255), create_str('factor_description', 1024),
 	create_tuple_id_column('topic_id'), create_str('topic_name', 25),
 	create_tenant_id(),
 	create_datetime('created_at', False),

@@ -1,0 +1,142 @@
+name: Manual release
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch or tag name
+        required: true
+        type: string
+        default: 'main'
+      version:
+        description: Version
+        required: true
+        type: string
+        default: '16.0.27'
+
+jobs:
+  prepare:
+    name: Prepare jobs
+    runs-on: ubuntu-latest
+    outputs:
+      pre_release_branch_name: ${{ steps.output-pre-release-branch.outputs.pre_release_branch_name }}
+      release_branch_name: ${{ steps.output-release-branch.outputs.release_branch_name }}
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+      - name: Compute pre-release branch
+        uses: ./.github/actions/compute-pre-release-branch
+        id: compute-pre-release-branch
+        with:
+          version: ${{ github.event.inputs.version }}
+      - name: Echo pre-release branch
+        id: output-pre-release-branch
+        run: |
+          echo "Target branch: [$PRE_RELEASE_BRANCH_NAME]"
+          echo "::set-output name=pre_release_branch_name::$PRE_RELEASE_BRANCH_NAME"
+      - name: Compute release branch
+        uses: ./.github/actions/compute-release-branch
+        id: compute-release-branch
+        with:
+          version: ${{ github.event.inputs.version }}
+      - name: Echo release branch
+        id: output-release-branch
+        run: |
+          echo "Target branch: [$RELEASE_BRANCH_NAME]"
+          echo "::set-output name=release_branch_name::$RELEASE_BRANCH_NAME"
+  # align all versions; change development dependencies to production dependencies.
+  align-module-version:
+    needs: prepare
+    uses: ./.github/workflows/version-align.yml
+    with:
+      ref: ${{ github.event.inputs.ref }}
+      branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
+      version: ${{ github.event.inputs.version }}
+  # publish to pypi
+  publish-pypi:
+    needs: [ prepare, align-module-version ]
+    uses: ./.github/workflows/pypi-publish.yml
+    secrets:
+      PIP_USERNAME: ${{ secrets.PIP_USERNAME }}
+      PIP_PASSWORD: ${{ secrets.PIP_PASSWORD }}
+    with:
+      branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
+      version: ${{ github.event.inputs.version }}
+  # create release branch, from pre-release branch. and add release tag.
+  create-release-branch:
+    needs: [ prepare, publish-pypi ]
+    uses: ./.github/workflows/create-release-branch.yml
+    with:
+      branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
+      version: ${{ github.event.inputs.version }}
+      release: ${{ needs.prepare.outputs.release_branch_name }}
+  # drop pre-release branch and tag
+  drop-pre-release:
+    needs: [ prepare, create-release-branch ]
+    uses: ./.github/workflows/drop-pre-release-branch.yml
+    with:
+      branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
+      version: ${{ github.event.inputs.version }}
+  # create release, use given version (also is the release tag on release branch)
+  create-release:
+    needs: create-release-branch
+    uses: ./.github/workflows/create-release.yml
+    with:
+      tag: ${{ github.event.inputs.version }}
+  # publish web client image, both non-indicator and with-indicator
+  publish-web-client-image:
+    needs: [ prepare, create-release-branch ]
+    uses: ./.github/workflows/image-publish-web-client.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ github.event.inputs.version }}
+  # publish doll image, on mysql
+  publish-doll-mysql-image:
+    needs: [ prepare, publish-web-client-image ]
+    uses: ./.github/workflows/image-publish-doll.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ github.event.inputs.version }}
+      storage: mysql
+  # publish doll image, on oracle
+  publish-doll-oracle-image:
+    needs: [ prepare, publish-web-client-image ]
+    uses: ./.github/workflows/image-publish-doll.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ github.event.inputs.version }}
+      storage: oracle
+  # publish doll image, on mongodb
+  publish-doll-mongodb-image:
+    needs: [ prepare, publish-web-client-image ]
+    uses: ./.github/workflows/image-publish-doll.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ github.event.inputs.version }}
+      storage: mongodb
+  # TODO publish doll image, on mssql
+  # publish dqc image, on mysql
+  publish-dqc-mysql-image:
+    needs: [ prepare, publish-web-client-image ]
+    uses: ./.github/workflows/image-publish-dqc.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ github.event.inputs.version }}
+      storage: mysql
+  # publish dqc image, on oracle
+  publish-dqc-oracle-image:
+    needs: [ prepare, publish-web-client-image ]
+    uses: ./.github/workflows/image-publish-dqc.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ github.event.inputs.version }}
+      storage: oracle
+  # publish dqc image, on mongodb
+  publish-dqc-mongodb-image:
+    needs: [ prepare, publish-web-client-image ]
+    uses: ./.github/workflows/image-publish-dqc.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ github.event.inputs.version }}
+      storage: mongodb
+  # TODO publish dqc image, on mssql
