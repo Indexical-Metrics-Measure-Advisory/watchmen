@@ -1,4 +1,4 @@
-name: Publish different storage
+name: Publish different storage (deprecated)
 on:
   workflow_dispatch:
     inputs:

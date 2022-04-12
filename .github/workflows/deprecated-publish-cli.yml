@@ -1,4 +1,4 @@
-name: Publish cli
+name: Publish cli (deprecated)
 on:
   workflow_dispatch:
       image_version:

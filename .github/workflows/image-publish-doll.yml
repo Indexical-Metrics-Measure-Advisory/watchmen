@@ -4,11 +4,11 @@ on:
   workflow_call:
     inputs:
       branch:
-        description: Release Branch
+        description: Release branch
         required: true
         type: string
       version:
-        description: Target Version
+        description: Target version
         required: true
         type: string
 

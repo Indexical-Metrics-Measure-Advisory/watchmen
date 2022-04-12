@@ -105,10 +105,24 @@ jobs:
       version: ${{ github.event.inputs.version }}
   publish-doll-image:
     needs: [prepare, create-release]
-    uses: ./.github/workflows/image-pypi-publish-doll.yml
+    uses: ./.github/workflows/image-publish-doll.yml
     with:
       branch: ${{ needs.prepare.outputs.release_branch_name }}
       version: ${{ github.event.inputs.version }}
+  publish-doll-oralce-image:
+    needs: [prepare, create-release]
+    uses: ./.github/workflows/image-publish-doll-storage.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ github.event.inputs.version }}
+      storage: oracle
+  publish-doll-mongodb-image:
+    needs: [prepare, create-release]
+    uses: ./.github/workflows/image-publish-doll-storage.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ github.event.inputs.version }}
+      storage: mongodb
   publish-dqc-image:
     needs: [prepare, create-release]
     uses: ./.github/workflows/image-publish-dqc.yml
