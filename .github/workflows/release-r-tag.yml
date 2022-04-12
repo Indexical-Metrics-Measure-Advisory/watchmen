@@ -93,63 +93,63 @@ jobs:
     uses: ./.github/workflows/create-release.yml
     with:
       tag: ${{ needs.compute-version.outputs.version }}
-#  # publish web client image, both non-indicator and with-indicator
-#  publish-web-client-image:
-#    needs: [ compute-version, prepare, create-release-branch ]
-#    uses: ./.github/workflows/image-publish-web-client.yml
-#    with:
-#      branch: ${{ needs.prepare.outputs.release_branch_name }}
-#      version: ${{ needs.compute-version.outputs.version }}
-#  # publish doll image, on mysql
-#  publish-doll-mysql-image:
-#    needs: [ compute-version, prepare, create-release-branch ]
-#    uses: ./.github/workflows/image-publish-doll.yml
-#    with:
-#      branch: ${{ needs.prepare.outputs.release_branch_name }}
-#      version: ${{ needs.compute-version.outputs.version }}
-#      storage: mysql
-#  # publish doll image, on oracle
-#  publish-doll-oracle-image:
-#    needs: [ compute-version, prepare, create-release-branch ]
-#    uses: ./.github/workflows/image-publish-doll.yml
-#    with:
-#      branch: ${{ needs.prepare.outputs.release_branch_name }}
-#      version: ${{ needs.compute-version.outputs.version }}
-#      storage: oracle
-#  # publish doll image, on mongodb
-#  publish-doll-mongodb-image:
-#    needs: [ compute-version, prepare, create-release-branch ]
-#    uses: ./.github/workflows/image-publish-doll.yml
-#    with:
-#      branch: ${{ needs.prepare.outputs.release_branch_name }}
-#      version: ${{ needs.compute-version.outputs.version }}
-#      storage: mongodb
-#  # TODO publish doll image, on mssql
-#  # publish dqc image, on mysql
-#  publish-dqc-mysql-image:
-#    needs: [ compute-version, prepare, create-release-branch ]
-#    uses: ./.github/workflows/image-publish-dqc.yml
-#    with:
-#      branch: ${{ needs.prepare.outputs.release_branch_name }}
-#      version: ${{ needs.compute-version.outputs.version }}
-#      storage: mysql
-#  # publish dqc image, on oracle
-#  publish-dqc-oracle-image:
-#    needs: [ compute-version, prepare, create-release-branch ]
-#    uses: ./.github/workflows/image-publish-dqc.yml
-#    with:
-#      branch: ${{ needs.prepare.outputs.release_branch_name }}
-#      version: ${{ needs.compute-version.outputs.version }}
-#      storage: oracle
-#  # publish dqc image, on mongodb
-#  publish-dqc-mongodb-image:
-#    needs: [ compute-version, prepare, create-release-branch ]
-#    uses: ./.github/workflows/image-publish-dqc.yml
-#    with:
-#      branch: ${{ needs.prepare.outputs.release_branch_name }}
-#      version: ${{ needs.compute-version.outputs.version }}
-#      storage: mongodb
-#  # TODO publish dqc image, on mssql
+  # publish web client image, both non-indicator and with-indicator
+  publish-web-client-image:
+    needs: [ compute-version, prepare, create-release-branch ]
+    uses: ./.github/workflows/image-publish-web-client.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ needs.compute-version.outputs.version }}
+  # publish doll image, on mysql
+  publish-doll-mysql-image:
+    needs: [ compute-version, prepare, create-release-branch ]
+    uses: ./.github/workflows/image-publish-doll.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ needs.compute-version.outputs.version }}
+      storage: mysql
+  # publish doll image, on oracle
+  publish-doll-oracle-image:
+    needs: [ compute-version, prepare, create-release-branch ]
+    uses: ./.github/workflows/image-publish-doll.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ needs.compute-version.outputs.version }}
+      storage: oracle
+  # publish doll image, on mongodb
+  publish-doll-mongodb-image:
+    needs: [ compute-version, prepare, create-release-branch ]
+    uses: ./.github/workflows/image-publish-doll.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ needs.compute-version.outputs.version }}
+      storage: mongodb
+  # TODO publish doll image, on mssql
+  # publish dqc image, on mysql
+  publish-dqc-mysql-image:
+    needs: [ compute-version, prepare, create-release-branch ]
+    uses: ./.github/workflows/image-publish-dqc.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ needs.compute-version.outputs.version }}
+      storage: mysql
+  # publish dqc image, on oracle
+  publish-dqc-oracle-image:
+    needs: [ compute-version, prepare, create-release-branch ]
+    uses: ./.github/workflows/image-publish-dqc.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ needs.compute-version.outputs.version }}
+      storage: oracle
+  # publish dqc image, on mongodb
+  publish-dqc-mongodb-image:
+    needs: [ compute-version, prepare, create-release-branch ]
+    uses: ./.github/workflows/image-publish-dqc.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ needs.compute-version.outputs.version }}
+      storage: mongodb
+  # TODO publish dqc image, on mssql
   drop-trigger-tag:
     needs: align-module-version
     name: Drop trigger tag
