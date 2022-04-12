@@ -13,16 +13,6 @@ on:
         required: true
         type: string
         default: '16.0.27'
-  workflow_call:
-    inputs:
-      ref:
-        description: Branch or tag name
-        required: true
-        type: string
-      version:
-        description: Version
-        required: true
-        type: string
 
 jobs:
   prepare:
