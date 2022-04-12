@@ -1,4 +1,4 @@
-name: Manual release
+name: Manual publish images
 
 on:
   workflow_dispatch:
