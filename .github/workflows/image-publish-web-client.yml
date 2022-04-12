@@ -14,7 +14,7 @@ on:
 
 jobs:
   build-and-publish-no-indicator:
-    name: Publish images
+    name: Publish image
     runs-on: ubuntu-latest
     steps:
       - name: Echo inputs

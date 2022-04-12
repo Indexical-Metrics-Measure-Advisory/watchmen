@@ -16,7 +16,7 @@ on:
 # build and publish to Pypi
 jobs:
   build-and-publish:
-    name: Package modules and publish
+    name: Publish image
     runs-on: ubuntu-latest
     steps:
       - name: Echo inputs
@@ -40,4 +40,4 @@ jobs:
         working-directory: ./packages/watchmen-rest-doll
         run: |
           poetry build
-      #          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
+          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}''
