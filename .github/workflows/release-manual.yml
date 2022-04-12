@@ -92,11 +92,11 @@ jobs:
       branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
       version: ${{ github.event.inputs.version }}
   # create release, use given version (also is the release tag on release branch)
-#  create-release:
-#    needs: create-release-branch
-#    uses: ./.github/workflows/create-release.yml
-#    with:
-#      tag: ${{ github.event.inputs.version }}
+  create-release:
+    needs: create-release-branch
+    uses: ./.github/workflows/create-release.yml
+    with:
+      tag: ${{ github.event.inputs.version }}
   publish-web-client-image:
     needs: [ prepare, create-release ]
     uses: ./.github/workflows/image-publish-web-client.yml
