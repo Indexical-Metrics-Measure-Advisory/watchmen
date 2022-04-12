@@ -72,10 +72,10 @@ def aid(
 				aid(value, my_ancestors, snowflake_generator)
 			elif isinstance(value, list):
 				def aid_each(element: Any) -> None:
-					if isinstance(value, dict):
+					if isinstance(element, dict):
 						aid(element, my_ancestors, snowflake_generator)
-					elif isinstance(value, list):
-						ArrayHelper(value).each(aid_each)
+					elif isinstance(element, list):
+						ArrayHelper(element).each(aid_each)
 
 				ArrayHelper(value).each(aid_each)
 	except Exception as e:
