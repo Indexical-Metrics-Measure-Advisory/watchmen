@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-pipeline-kernel"
-version = "16.0.27"
+version = "16.1.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
