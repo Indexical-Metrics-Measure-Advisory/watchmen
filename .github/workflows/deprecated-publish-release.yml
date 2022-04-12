@@ -1,4 +1,4 @@
-name: Publish Release
+name: Publish Release (deprecated)
 on:
   release:
     types: [published]

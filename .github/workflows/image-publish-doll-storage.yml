@@ -1,4 +1,4 @@
-name: Publish dqc images
+name: Publish doll images
 
 on:
   workflow_call:
@@ -11,6 +11,10 @@ on:
         description: Target version
         required: true
         type: string
+      storage:
+        description: Storage type
+        required: true
+        type: string
 
 jobs:
   build-and-publish:
@@ -21,6 +25,7 @@ jobs:
         run: |
           echo "Release branch: [${{ inputs.branch }}]"
           echo "Target version: [${{ inputs.version }}]"
+          echo "Storage type: [${{ inputs.storage }}]"
       - name: Check out the repo
         uses: actions/checkout@v3
         with:
@@ -31,10 +36,10 @@ jobs:
         uses: docker/setup-buildx-action@v1
       - name: Login to GitHub Container Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
-      - name: DQC build and push
+      - name: Doll build and push
         uses: docker/build-push-action@v2
         with:
-          context: ./packages/watchmen-rest-dqc
-          file: ./packages/watchmen-rest-dqc/Dockerfile
+          context: ./packages/watchmen-rest-doll
+          file: ./packages/watchmen-rest-doll/build_script/Dockerfile_${{ inputs.storage }}
           push: true
-          tags: ghcr.io/indexical-metrics-measure-advisory/watchmen-matryoshka-dqc:${{ inputs.version }}
+          tags: ghcr.io/indexical-metrics-measure-advisory/watchmen-matryoshka-doll-${{ inputs.storage }}:${{ inputs.version }}

@@ -8,11 +8,11 @@ on:
         required: true
         type: string
       branch:
-        description: Pre-release Branch
+        description: Pre-release branch
         required: true
         type: string
       version:
-        description: Target Version
+        description: Target version
         required: true
         type: string
 
