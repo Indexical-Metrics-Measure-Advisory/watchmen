@@ -8,14 +8,14 @@ import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {useEffect} from 'react';
-import {SearchItem, SearchText} from '../../search-text';
-import {SearchTextEventBusProvider, useSearchTextEventBus} from '../../search-text/search-text-event-bus';
-import {SearchTextEventTypes} from '../../search-text/search-text-event-bus-types';
-import {Step, StepTitleButton, StepTitleConjunctionLabel} from '../../step-widgets';
-import {useIndicatorsEventBus} from '../indicators-event-bus';
-import {IndicatorsData, IndicatorsEventTypes} from '../indicators-event-bus-types';
-import {IndicatorDeclarationStep} from '../types';
-import {useStep} from '../use-step';
+import {SearchItem, SearchText} from '../../../search-text';
+import {SearchTextEventBusProvider, useSearchTextEventBus} from '../../../search-text/search-text-event-bus';
+import {SearchTextEventTypes} from '../../../search-text/search-text-event-bus-types';
+import {Step, StepTitleButton, StepTitleConjunctionLabel} from '../../../step-widgets';
+import {useIndicatorsEventBus} from '../../indicators-event-bus';
+import {IndicatorsData, IndicatorsEventTypes} from '../../indicators-event-bus-types';
+import {IndicatorDeclarationStep} from '../../types';
+import {useStep} from '../../use-step';
 import {Title} from './widgets';
 
 interface IndicatorCandidate extends SearchItem {

@@ -17,12 +17,12 @@ import {
 	StepBodyConjunctionLabel,
 	StepTitle,
 	StepTitleButton
-} from '../../step-widgets';
-import {useIndicatorsEventBus} from '../indicators-event-bus';
-import {IndicatorsEventTypes} from '../indicators-event-bus-types';
-import {IndicatorDeclarationStep} from '../types';
+} from '../../../step-widgets';
+import {useIndicatorsEventBus} from '../../indicators-event-bus';
+import {IndicatorsEventTypes} from '../../indicators-event-bus-types';
+import {IndicatorDeclarationStep} from '../../types';
+import {useStep} from '../../use-step';
 import {useConstructed} from '../use-constructed';
-import {useStep} from '../use-step';
 import {
 	NoRelevant,
 	RelevantIndicatorsBodyCell,

@@ -3,12 +3,12 @@ import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
 import {useThrottler} from '@/widgets/throttler';
 import {ChangeEvent, useRef} from 'react';
-import {EmphaticSinkingLabel, Step, StepBody, StepTitle} from '../../step-widgets';
-import {useIndicatorsEventBus} from '../indicators-event-bus';
-import {IndicatorsEventTypes} from '../indicators-event-bus-types';
-import {IndicatorDeclarationStep} from '../types';
+import {EmphaticSinkingLabel, Step, StepBody, StepTitle} from '../../../step-widgets';
+import {useIndicatorsEventBus} from '../../indicators-event-bus';
+import {IndicatorsEventTypes} from '../../indicators-event-bus-types';
+import {IndicatorDeclarationStep} from '../../types';
+import {useStep} from '../../use-step';
 import {useConstructed} from '../use-constructed';
-import {useStep} from '../use-step';
 import {DescriptionText} from './widgets';
 
 export const Description = () => {
