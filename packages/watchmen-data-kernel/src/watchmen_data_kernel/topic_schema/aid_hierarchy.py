@@ -65,19 +65,19 @@ def aid(
 		used_ancestor_keys: Dict[str, bool] = {}
 		ArrayHelper(ancestors).each(lambda x: apply_ancestor_aid_id(data, my_hierarchy_number, x, used_ancestor_keys))
 
-	for key in data:
-		value = data[key]
-		my_ancestors = ArrayHelper(ancestors).copy().grab(Ancestor(name=key, aid_id=aid_me)).to_list()
-		if isinstance(value, dict):
-			aid(value, my_ancestors, snowflake_generator)
-		elif isinstance(value, list):
-			def aid_each(element: Any) -> None:
-				if isinstance(value, dict):
-					aid(element, my_ancestors, snowflake_generator)
-				elif isinstance(value, list):
-					ArrayHelper(value).each(aid_each)
+		for key in data:
+			value = data[key]
+			my_ancestors = ArrayHelper(ancestors).copy().grab(Ancestor(name=key, aid_id=aid_me)).to_list()
+			if isinstance(value, dict):
+				aid(value, my_ancestors, snowflake_generator)
+			elif isinstance(value, list):
+				def aid_each(element: Any) -> None:
+					if isinstance(value, dict):
+						aid(element, my_ancestors, snowflake_generator)
+					elif isinstance(value, list):
+						ArrayHelper(value).each(aid_each)
 
-			ArrayHelper(value).each(aid_each)
+				ArrayHelper(value).each(aid_each)
 	except Exception as e:
 		hierarchy = ArrayHelper(ancestors).map(lambda x: x.name).join('/')
 		if is_blank(hierarchy):
