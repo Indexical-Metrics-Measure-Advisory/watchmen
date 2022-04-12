@@ -1,10 +1,10 @@
 import {Lang} from '@/widgets/langs';
 import {useRef} from 'react';
-import {SearchTextEventBusProvider} from '../../search-text/search-text-event-bus';
-import {EmphaticSinkingLabel, Step, StepBody, StepTitle} from '../../step-widgets';
-import {IndicatorDeclarationStep} from '../types';
+import {SearchTextEventBusProvider} from '../../../search-text/search-text-event-bus';
+import {EmphaticSinkingLabel, Step, StepBody, StepTitle} from '../../../step-widgets';
+import {IndicatorDeclarationStep} from '../../types';
+import {useStep} from '../../use-step';
 import {useConstructed} from '../use-constructed';
-import {useStep} from '../use-step';
 import {CategoryInput} from './category-input';
 import {CategoriesContainer} from './widgets';
 

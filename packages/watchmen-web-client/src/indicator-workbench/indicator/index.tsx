@@ -1,16 +1,13 @@
-import {FixWidthPage} from '@/widgets/basic/page';
-import {PageHeader} from '@/widgets/basic/page-header';
-import {Lang} from '@/widgets/langs';
 import React from 'react';
-import {Indicators} from './indicators';
+import {IndicatorState} from './indicator-state';
 import {IndicatorsEventBusProvider} from './indicators-event-bus';
+import IndicatorList from './list';
 
 const IndicatorWorkbenchIndicatorIndex = () => {
 	return <IndicatorsEventBusProvider>
-		<FixWidthPage maxWidth="80%">
-			<PageHeader title={Lang.INDICATOR_WORKBENCH.INDICATOR.TITLE}/>
-			<Indicators/>
-		</FixWidthPage>
+		<IndicatorState/>
+		<IndicatorList/>
+		{/*<IndicatorEditor/>*/}
 	</IndicatorsEventBusProvider>;
 };
 
