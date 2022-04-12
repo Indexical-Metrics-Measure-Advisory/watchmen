@@ -59,7 +59,7 @@ jobs:
           echo "::set-output name=release_branch_name::$RELEASE_BRANCH_NAME"
   # align all versions; change development dependencies to production dependencies.
   align-module-version:
-    needs: prepare
+    needs: [ compute-version, prepare ]
     uses: ./.github/workflows/version-align.yml
     with:
       ref: ${{ github.ref }}
