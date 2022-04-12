@@ -11,6 +11,8 @@ import {TupleWorkbench} from '@/widgets/tuple-workbench';
 import {TupleEventBusProvider, useTupleEventBus} from '@/widgets/tuple-workbench/tuple-event-bus';
 import {TupleEventTypes} from '@/widgets/tuple-workbench/tuple-event-bus-types';
 import React, {useEffect} from 'react';
+import {useIndicatorsEventBus} from '../indicators-event-bus';
+import {IndicatorsEventTypes} from '../indicators-event-bus-types';
 import {renderCard} from './card';
 import {renderEditor} from './editor';
 
@@ -19,6 +21,7 @@ const getKeyOfIndicator = (indicator: QueryIndicator) => indicator.indicatorId;
 export const RealIndicatorList = () => {
 	const {fire: fireGlobal} = useEventBus();
 	const {on, off, fire} = useTupleEventBus();
+	const {fire: fireIndicator} = useIndicatorsEventBus();
 	useEffect(() => {
 		const onDoCreateIndicator = async () => {
 			// fire(TupleEventTypes.TUPLE_CREATED, createIndicator());
@@ -36,7 +39,10 @@ export const RealIndicatorList = () => {
 		const onDoSearchIndicator = async (searchText: string, pageNumber: number) => {
 			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
 				async () => await listIndicators({search: searchText, pageNumber, pageSize: TUPLE_SEARCH_PAGE_SIZE}),
-				(page: TuplePage<QueryTuple>) => fire(TupleEventTypes.TUPLE_SEARCHED, page, searchText));
+				(page: TuplePage<QueryTuple>) => {
+					fire(TupleEventTypes.TUPLE_SEARCHED, page, searchText);
+					fireIndicator(IndicatorsEventTypes.SEARCHED, page, searchText);
+				});
 		};
 		on(TupleEventTypes.DO_CREATE_TUPLE, onDoCreateIndicator);
 		on(TupleEventTypes.DO_EDIT_TUPLE, onDoEditIndicator);
@@ -46,7 +52,7 @@ export const RealIndicatorList = () => {
 			off(TupleEventTypes.DO_EDIT_TUPLE, onDoEditIndicator);
 			off(TupleEventTypes.DO_SEARCH_TUPLE, onDoSearchIndicator);
 		};
-	}, [on, off, fire, fireGlobal]);
+	}, [on, off, fire, fireIndicator, fireGlobal]);
 
 	return <TupleWorkbench title={Lang.INDICATOR_WORKBENCH.INDICATOR.LIST_TITLE}
 	                       createButtonLabel={Lang.INDICATOR_WORKBENCH.INDICATOR.LIST_CREATE_INDICATOR} canCreate={true}
