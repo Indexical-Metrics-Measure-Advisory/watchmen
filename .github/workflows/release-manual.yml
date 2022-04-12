@@ -64,21 +64,21 @@ jobs:
       version: ${{ github.event.inputs.version }}
   # publish expects doll
   publish-to-pypi-expects-doll:
-    needs: [ prepare, change-module-version ]
+    needs: [ prepare, align-module-version ]
     uses: ./.github/workflows/pypi-publish-expects-doll.yml
     with:
       branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
       version: ${{ github.event.inputs.version }}
   # publish doll only
   publish-doll-to-pypi:
-    needs: [ prepare, change-module-version, publish-expects-doll ]
+    needs: [ prepare, align-module-version, publish-to-pypi-expects-doll ]
     uses: ./.github/workflows/pypi-publish-doll.yml
     with:
       branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
       version: ${{ github.event.inputs.version }}
   # create release branch, from pre-release branch. and add release tag.
   create-release-branch:
-    needs: [ prepare, publish-doll ]
+    needs: [ prepare, publish-doll-to-pypi ]
     uses: ./.github/workflows/create-release-branch.yml
     with:
       branch: ${{ needs.prepare.outputs.pre_release_branch_name }}
