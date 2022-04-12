@@ -36,9 +36,9 @@ on:
 
 jobs:
   # publish doll image, on mysql
-  publish-doll-mysql-image:
+  publish-doll-image:
     uses: ./.github/workflows/image-publish-doll.yml
-    if: ${{ github.event.inputs.doll || github.event.inputs.doll == 'true' }}
+    if: ${{ github.event.inputs.doll == 'true' }}
     with:
       branch: ${{ github.event.inputs.ref }}
       version: ${{ github.event.inputs.version }}
@@ -46,7 +46,7 @@ jobs:
   # publish dqc image, on mysql
   publish-dqc-image:
     uses: ./.github/workflows/image-publish-dqc.yml
-    if: ${{ github.event.inputs.dqc || github.event.inputs.dqc == 'true' }}
+    if: ${{ github.event.inputs.dqc == 'true' }}
     with:
       branch: ${{ github.event.inputs.ref }}
       version: ${{ github.event.inputs.version }}
