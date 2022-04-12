@@ -1,3 +1,4 @@
+import {TuplePage} from '@/services/data/query/tuple-page';
 import {BucketId} from '@/services/data/tuples/bucket-types';
 import {Indicator, IndicatorId} from '@/services/data/tuples/indicator-types';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
@@ -6,6 +7,7 @@ import {
 	QueryIndicatorCategoryParams,
 	TopicForIndicator
 } from '@/services/data/tuples/query-indicator-types';
+import {QueryTuple} from '@/services/data/tuples/tuple-types';
 import {IndicatorDeclarationStep} from './types';
 
 export interface IndicatorsData {
@@ -15,6 +17,8 @@ export interface IndicatorsData {
 }
 
 export enum IndicatorsEventTypes {
+	SEARCHED = 'searched',
+
 	SWITCH_STEP = 'switch-step',
 
 	CREATE_INDICATOR = 'create-indicator',
@@ -31,6 +35,14 @@ export enum IndicatorsEventTypes {
 }
 
 export interface IndicatorsEventBus {
+	fire<T extends QueryTuple>(type: IndicatorsEventTypes.SEARCHED, page: TuplePage<T>, searchText: string): this;
+	on<T extends QueryTuple>(type: IndicatorsEventTypes.SEARCHED, listener: (page: TuplePage<T>, searchText: string) => void): this;
+	off<T extends QueryTuple>(type: IndicatorsEventTypes.SEARCHED, listener: (page: TuplePage<T>, searchText: string) => void): this;
+
+	fire(type: IndicatorsEventTypes.SWITCH_STEP, step: IndicatorDeclarationStep, data?: IndicatorsData): this;
+	on(type: IndicatorsEventTypes.SWITCH_STEP, listener: (step: IndicatorDeclarationStep, data?: IndicatorsData) => void): this;
+	off(type: IndicatorsEventTypes.SWITCH_STEP, listener: (step: IndicatorDeclarationStep, data?: IndicatorsData) => void): this;
+
 	fire(type: IndicatorsEventTypes.SWITCH_STEP, step: IndicatorDeclarationStep, data?: IndicatorsData): this;
 	on(type: IndicatorsEventTypes.SWITCH_STEP, listener: (step: IndicatorDeclarationStep, data?: IndicatorsData) => void): this;
 	off(type: IndicatorsEventTypes.SWITCH_STEP, listener: (step: IndicatorDeclarationStep, data?: IndicatorsData) => void): this;

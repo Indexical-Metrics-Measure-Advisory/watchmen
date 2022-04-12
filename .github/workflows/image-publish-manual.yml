@@ -1,0 +1,53 @@
+name: Manual publish images
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch or tag name
+        required: true
+        type: string
+        default: 'main'
+      version:
+        description: Version
+        required: true
+        type: string
+        default: '16.0.27'
+      storage:
+        description: 'Storage type'
+        required: true
+        default: 'oracle'
+        type: choice
+        options:
+          - oracle
+          - mysql
+#          - mssql
+          - mongodb
+      doll:
+        description: 'Doll'
+        required: true
+        default: false
+        type: boolean
+      dqc:
+        description: 'DQC'
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  # publish doll image, on mysql
+  publish-doll-image:
+    uses: ./.github/workflows/image-publish-doll.yml
+    if: ${{ github.event.inputs.doll == 'true' }}
+    with:
+      branch: ${{ github.event.inputs.ref }}
+      version: ${{ github.event.inputs.version }}
+      storage: ${{ github.event.inputs.storage }}
+  # publish dqc image, on mysql
+  publish-dqc-image:
+    uses: ./.github/workflows/image-publish-dqc.yml
+    if: ${{ github.event.inputs.dqc == 'true' }}
+    with:
+      branch: ${{ github.event.inputs.ref }}
+      version: ${{ github.event.inputs.version }}
+      storage: ${{ github.event.inputs.storage }}

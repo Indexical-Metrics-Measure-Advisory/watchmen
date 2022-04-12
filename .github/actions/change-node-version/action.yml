@@ -1,0 +1,13 @@
+name: Change Node Version
+description: Github actions for change version of nodejs project
+author: 'skywalkerX69 <skywalkerX69@outlook.com>'
+inputs:
+  target-version:
+    description: Target Version
+    required: true
+  module-name:
+    description: Module Name
+    required: true
+runs:
+  using: node16
+  main: index.js
