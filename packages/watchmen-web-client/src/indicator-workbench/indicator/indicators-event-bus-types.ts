@@ -4,10 +4,10 @@ import {Indicator, IndicatorId} from '@/services/data/tuples/indicator-types';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
 import {
 	EnumForIndicator,
+	QueryIndicator,
 	QueryIndicatorCategoryParams,
 	TopicForIndicator
 } from '@/services/data/tuples/query-indicator-types';
-import {QueryTuple} from '@/services/data/tuples/tuple-types';
 import {IndicatorDeclarationStep} from './types';
 
 export interface IndicatorsData {
@@ -18,7 +18,9 @@ export interface IndicatorsData {
 
 export enum IndicatorsEventTypes {
 	SEARCHED = 'searched',
+	ASK_SEARCHED = 'ask-searched',
 
+	ASK_INDICATOR = 'ask-indicator',
 	SWITCH_STEP = 'switch-step',
 
 	CREATE_INDICATOR = 'create-indicator',
@@ -35,9 +37,17 @@ export enum IndicatorsEventTypes {
 }
 
 export interface IndicatorsEventBus {
-	fire<T extends QueryTuple>(type: IndicatorsEventTypes.SEARCHED, page: TuplePage<T>, searchText: string): this;
-	on<T extends QueryTuple>(type: IndicatorsEventTypes.SEARCHED, listener: (page: TuplePage<T>, searchText: string) => void): this;
-	off<T extends QueryTuple>(type: IndicatorsEventTypes.SEARCHED, listener: (page: TuplePage<T>, searchText: string) => void): this;
+	fire(type: IndicatorsEventTypes.SEARCHED, page: TuplePage<QueryIndicator>, searchText: string): this;
+	on(type: IndicatorsEventTypes.SEARCHED, listener: (page: TuplePage<QueryIndicator>, searchText: string) => void): this;
+	off(type: IndicatorsEventTypes.SEARCHED, listener: (page: TuplePage<QueryIndicator>, searchText: string) => void): this;
+
+	fire(type: IndicatorsEventTypes.ASK_SEARCHED, onData: (page?: TuplePage<QueryIndicator>, searchText?: string) => void): this;
+	on(type: IndicatorsEventTypes.ASK_SEARCHED, listener: (onData: (page?: TuplePage<QueryIndicator>, searchText?: string) => void) => void): this;
+	off(type: IndicatorsEventTypes.ASK_SEARCHED, listener: (onData: (page?: TuplePage<QueryIndicator>, searchText?: string) => void) => void): this;
+
+	fire(type: IndicatorsEventTypes.ASK_INDICATOR, onData: (indicator?: Indicator) => void): this;
+	on(type: IndicatorsEventTypes.ASK_INDICATOR, listener: (onData: (indicator?: Indicator) => void) => void): this;
+	off(type: IndicatorsEventTypes.ASK_INDICATOR, listener: (onData: (indicator?: Indicator) => void) => void): this;
 
 	fire(type: IndicatorsEventTypes.SWITCH_STEP, step: IndicatorDeclarationStep, data?: IndicatorsData): this;
 	on(type: IndicatorsEventTypes.SWITCH_STEP, listener: (step: IndicatorDeclarationStep, data?: IndicatorsData) => void): this;

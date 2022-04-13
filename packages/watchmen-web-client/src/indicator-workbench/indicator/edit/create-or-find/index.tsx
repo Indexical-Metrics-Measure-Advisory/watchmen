@@ -1,3 +1,4 @@
+import {Router} from '@/routes/types';
 import {fetchIndicatorsForSelection} from '@/services/data/tuples/indicator';
 import {Indicator, IndicatorId} from '@/services/data/tuples/indicator-types';
 import {QueryIndicator} from '@/services/data/tuples/query-indicator-types';
@@ -8,6 +9,7 @@ import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {useEffect} from 'react';
+import {useHistory} from 'react-router-dom';
 import {SearchItem, SearchText} from '../../../search-text';
 import {SearchTextEventBusProvider, useSearchTextEventBus} from '../../../search-text/search-text-event-bus';
 import {SearchTextEventTypes} from '../../../search-text/search-text-event-bus-types';
@@ -23,6 +25,7 @@ interface IndicatorCandidate extends SearchItem {
 }
 
 const ActivePart = () => {
+	const history = useHistory();
 	const {fire: fireGlobal} = useEventBus();
 	const {fire} = useIndicatorsEventBus();
 	const {fire: fireSearch} = useSearchTextEventBus();
@@ -55,6 +58,14 @@ const ActivePart = () => {
 			fireSearch(SearchTextEventTypes.HIDE_SEARCH);
 		});
 	};
+	const onBackToListClicked = () => {
+		fireGlobal(EventTypes.SHOW_YES_NO_DIALOG,
+			Lang.INDICATOR_WORKBENCH.ON_EDIT,
+			() => {
+				fireGlobal(EventTypes.HIDE_DIALOG);
+				history.push(Router.INDICATOR_WORKBENCH_INDICATORS);
+			}, () => fireGlobal(EventTypes.HIDE_DIALOG));
+	};
 
 	return <Title visible={state.active}>
 		<StepTitleButton ink={ButtonInk.PRIMARY} onClick={onCreateClicked}>
@@ -65,10 +76,14 @@ const ActivePart = () => {
 		            openText={Lang.INDICATOR_WORKBENCH.INDICATOR.FIND_INDICATOR}
 		            closeText={Lang.INDICATOR_WORKBENCH.INDICATOR.DISCARD_FIND_INDICATOR}
 		            placeholder={Lang.PLAIN.FIND_INDICATOR_PLACEHOLDER}/>
+		<StepTitleButton ink={ButtonInk.WAIVE} onClick={onBackToListClicked}>
+			{Lang.INDICATOR_WORKBENCH.INDICATOR.BACK_TO_LIST}
+		</StepTitleButton>
 	</Title>;
 };
 
 const DonePart = () => {
+	const history = useHistory();
 	const {fire: fireGlobal} = useEventBus();
 	const {on, off, fire} = useIndicatorsEventBus();
 	const {data, done, activeStep} = useStep({step: IndicatorDeclarationStep.CREATE_OR_FIND});
@@ -87,6 +102,14 @@ const DonePart = () => {
 			() => {
 				fire(IndicatorsEventTypes.SWITCH_STEP, IndicatorDeclarationStep.CREATE_OR_FIND);
 				fireGlobal(EventTypes.HIDE_DIALOG);
+			}, () => fireGlobal(EventTypes.HIDE_DIALOG));
+	};
+	const onBackToListClicked = () => {
+		fireGlobal(EventTypes.SHOW_YES_NO_DIALOG,
+			Lang.INDICATOR_WORKBENCH.ON_EDIT,
+			() => {
+				fireGlobal(EventTypes.HIDE_DIALOG);
+				history.push(Router.INDICATOR_WORKBENCH_INDICATORS);
 			}, () => fireGlobal(EventTypes.HIDE_DIALOG));
 	};
 
@@ -111,8 +134,17 @@ const DonePart = () => {
 				<StepTitleButton ink={ButtonInk.DANGER} onClick={onRestartClicked}>
 					{Lang.INDICATOR_WORKBENCH.INDICATOR.RESTART}
 				</StepTitleButton>
+				<StepTitleConjunctionLabel>{Lang.INDICATOR_WORKBENCH.INDICATOR.OR}</StepTitleConjunctionLabel>
+				<StepTitleButton ink={ButtonInk.WAIVE} onClick={onBackToListClicked}>
+					{Lang.INDICATOR_WORKBENCH.INDICATOR.BACK_TO_LIST}
+				</StepTitleButton>
 			</>
-			: null}
+			: <>
+				<StepTitleConjunctionLabel>{Lang.INDICATOR_WORKBENCH.INDICATOR.OR}</StepTitleConjunctionLabel>
+				<StepTitleButton ink={ButtonInk.WAIVE} onClick={onBackToListClicked}>
+					{Lang.INDICATOR_WORKBENCH.INDICATOR.BACK_TO_LIST}
+				</StepTitleButton>
+			</>}
 	</Title>;
 };
 

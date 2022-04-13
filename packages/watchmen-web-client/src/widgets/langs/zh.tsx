@@ -277,10 +277,10 @@ export const Zh = {
 	INDICATOR_WORKBENCH: {
 		MENU: {
 			TITLE: '指标工作台',
-			BUCKETS: '准备分桶',
-			PREPARE: '准备指标因子',
-			INSPECTION: '指标构建',
-			NAVIGATION: '指标领航',
+			BUCKETS: '分桶',
+			INDICATORS: '指标',
+			INSPECTIONS: '指标构建',
+			NAVIGATIONS: '指标领航',
 			SETTINGS: '设置',
 			LOGOUT: '登出'
 		},
@@ -306,6 +306,7 @@ export const Zh = {
 			ON_CREATE_INDICATOR: '正在定义新指标',
 			ON_VIEW_INDICATOR: '展示指标',
 			RESTART: '重新开始',
+			BACK_TO_LIST: '返回列表',
 			PICK_TOPIC: '选择一个主题或者数据因子',
 			DEFINE_ON_TOPIC: '基于主题',
 			INDICATOR_ON_TOPIC: '主题级',

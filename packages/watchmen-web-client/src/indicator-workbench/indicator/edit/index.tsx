@@ -1,9 +1,11 @@
+import {Indicator} from '@/services/data/tuples/indicator-types';
+import {isFakedUuid} from '@/services/data/tuples/utils';
 import {FixWidthPage} from '@/widgets/basic/page';
 import {PageHeader} from '@/widgets/basic/page-header';
 import {Lang} from '@/widgets/langs';
 import React, {useEffect} from 'react';
 import {useIndicatorsEventBus} from '../indicators-event-bus';
-import {IndicatorsEventTypes} from '../indicators-event-bus-types';
+import {IndicatorsData, IndicatorsEventTypes} from '../indicators-event-bus-types';
 import {IndicatorDeclarationStep} from '../types';
 import {Categories} from './categories';
 import {CreateOrFind} from './create-or-find';
@@ -19,7 +21,18 @@ import {IndicatorsContainer} from './widgets';
 export const IndicatorEditor = () => {
 	const {fire} = useIndicatorsEventBus();
 	useEffect(() => {
-		fire(IndicatorsEventTypes.SWITCH_STEP, IndicatorDeclarationStep.CREATE_OR_FIND);
+		fire(IndicatorsEventTypes.ASK_INDICATOR, (indicator?: Indicator) => {
+			console.log(indicator)
+			if (indicator == null) {
+				fire(IndicatorsEventTypes.SWITCH_STEP, IndicatorDeclarationStep.CREATE_OR_FIND);
+			} else if (isFakedUuid(indicator)) {
+				fire(IndicatorsEventTypes.SWITCH_STEP, IndicatorDeclarationStep.PICK_TOPIC, {indicator});
+			} else {
+				fire(IndicatorsEventTypes.PICK_INDICATOR, indicator.indicatorId, (data: IndicatorsData) => {
+					fire(IndicatorsEventTypes.SWITCH_STEP, IndicatorDeclarationStep.LAST_STEP, data);
+				});
+			}
+		});
 	}, [fire]);
 
 	return <FixWidthPage maxWidth="80%">
