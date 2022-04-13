@@ -120,13 +120,20 @@ def get_monitor_rule_service(user_service: UserService) -> MonitorRuleService:
 	return MonitorRuleService(user_service.storage, user_service.snowflakeGenerator, user_service.principalService)
 
 
-def same_tenant_validate(tenant_id: Optional[TenantId], a_tuple: TenantBasedTuple) -> TenantId:
+def same_tenant_validate(tuple_or_tenant_id: Union[TenantBasedTuple, Optional[TenantId]], a_tuple: TenantBasedTuple) -> TenantId:
 	if is_blank(a_tuple.tenantId):
-		return tenant_id
-	elif tenant_id is None:
+		return tuple_or_tenant_id
+	elif tuple_or_tenant_id is None:
 		return a_tuple.tenantId
-	elif tenant_id != a_tuple.tenantId:
+	elif isinstance(tuple_or_tenant_id, TenantBasedTuple):
+		if tuple_or_tenant_id.tenantId != a_tuple.tenantId:
+			raise_400('Data must under same tenant.')
+		else:
+			return a_tuple.tenantId
+	elif tuple_or_tenant_id != a_tuple.tenantId:
 		raise_400('Data must under same tenant.')
+	else:
+		return a_tuple.tenantId
 
 
 def find_tenant_id(request: MixImportDataRequest) -> Optional[TenantId]:
