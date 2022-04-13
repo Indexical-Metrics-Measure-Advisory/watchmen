@@ -352,6 +352,8 @@ export const computeParameterTypes = (
 			const name = segments[0].substring(1, segments[0].length - 1).trim();
 			if (name === VariablePredefineFunctions.NEXT_SEQ) {
 				return [{array: false, type: FactorType.SEQUENCE}];
+			} else if (name === VariablePredefineFunctions.NOW) {
+				return [{array: false, type: FactorType.DATETIME}];
 			} else if (name.endsWith(`.${VariablePredefineFunctions.COUNT}`) || name.endsWith(`.${VariablePredefineFunctions.LENGTH}`)) {
 				return [{array: false, type: FactorType.UNSIGNED}];
 			} else if (name.endsWith(`.${VariablePredefineFunctions.SUM}`)) {
