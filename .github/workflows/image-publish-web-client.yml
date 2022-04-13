@@ -47,7 +47,7 @@ jobs:
           push: true
           tags: ghcr.io/indexical-metrics-measure-advisory/watchmen-web-client:${{ inputs.version }}
   build-and-publish-indicator:
-    name: Publish images
+    name: Publish image
     runs-on: ubuntu-latest
     steps:
       - name: Echo inputs
