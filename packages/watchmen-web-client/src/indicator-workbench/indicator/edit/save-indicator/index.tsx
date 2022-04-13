@@ -13,8 +13,8 @@ import {Step, StepTitle, StepTitleButton} from '../../../step-widgets';
 import {useIndicatorsEventBus} from '../../indicators-event-bus';
 import {IndicatorsEventTypes} from '../../indicators-event-bus-types';
 import {IndicatorDeclarationStep} from '../../types';
-import {useStep} from '../../use-step';
-import {useConstructed} from '../use-constructed';
+import {useStep} from '../use-step';
+import {Construct, useConstructed} from '../use-constructed';
 import {NameInput, SaveButton} from './widgets';
 
 export const SaveIndicator = () => {
@@ -29,11 +29,11 @@ export const SaveIndicator = () => {
 		step: IndicatorDeclarationStep.SAVE_INDICATOR,
 		active: () => {
 			setOnEdit(true);
-			setConstructed(true);
+			setConstructed(Construct.ACTIVE);
 		},
 		done: () => {
 			setOnEdit(false);
-			setConstructed(true);
+			setConstructed(Construct.DONE);
 		},
 		dropped: () => setVisible(false)
 	});

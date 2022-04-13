@@ -21,8 +21,8 @@ import {
 import {useIndicatorsEventBus} from '../../indicators-event-bus';
 import {IndicatorsEventTypes} from '../../indicators-event-bus-types';
 import {IndicatorDeclarationStep} from '../../types';
-import {useStep} from '../../use-step';
-import {useConstructed} from '../use-constructed';
+import {useStep} from '../use-step';
+import {Construct, useConstructed} from '../use-constructed';
 import {
 	NoRelevant,
 	RelevantIndicatorsBodyCell,
@@ -42,8 +42,8 @@ export const Relevant = () => {
 	const forceUpdate = useForceUpdate();
 	const {data, done} = useStep({
 		step: IndicatorDeclarationStep.RELEVANT_INDICATORS,
-		active: () => setConstructed(true),
-		done: () => setConstructed(true),
+		active: () => setConstructed(Construct.ACTIVE),
+		done: () => setConstructed(Construct.DONE),
 		dropped: () => {
 			setDetected(false);
 			setIndicators([]);
@@ -51,7 +51,7 @@ export const Relevant = () => {
 		}
 	});
 
-	if (!constructed) {
+	if (constructed === Construct.WAIT) {
 		return null;
 	}
 

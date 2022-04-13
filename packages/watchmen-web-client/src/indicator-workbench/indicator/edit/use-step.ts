@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
-import {useIndicatorsEventBus} from './indicators-event-bus';
-import {IndicatorsData, IndicatorsEventTypes} from './indicators-event-bus-types';
-import {IndicatorDeclarationStep} from './types';
+import {useIndicatorsEventBus} from '../indicators-event-bus';
+import {IndicatorsData, IndicatorsEventTypes} from '../indicators-event-bus-types';
+import {IndicatorDeclarationStep} from '../types';
 
 export interface StepState {
 	activeStep?: IndicatorDeclarationStep;

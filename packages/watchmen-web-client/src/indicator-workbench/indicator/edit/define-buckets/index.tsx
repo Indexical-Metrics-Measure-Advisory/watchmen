@@ -5,8 +5,8 @@ import {EmphaticSinkingLabel, Step, StepBody, StepBodyButtons, StepTitle, StepTi
 import {useIndicatorsEventBus} from '../../indicators-event-bus';
 import {IndicatorsEventTypes} from '../../indicators-event-bus-types';
 import {IndicatorDeclarationStep} from '../../types';
-import {useStep} from '../../use-step';
-import {useConstructed} from '../use-constructed';
+import {useStep} from '../use-step';
+import {Construct, useConstructed} from '../use-constructed';
 import {BucketsDef} from './buckets-def';
 import {BucketsEventBusProvider} from './buckets-event-bus';
 
@@ -16,12 +16,12 @@ export const DefineBuckets = () => {
 	const {constructed, setConstructed, visible, setVisible} = useConstructed(ref);
 	const {data, done} = useStep({
 		step: IndicatorDeclarationStep.DEFINE_BUCKETS,
-		active: () => setConstructed(true),
-		done: () => setConstructed(true),
+		active: () => setConstructed(Construct.ACTIVE),
+		done: () => setConstructed(Construct.DONE),
 		dropped: () => setVisible(false)
 	});
 
-	if (!constructed) {
+	if (constructed === Construct.WAIT) {
 		return null;
 	}
 

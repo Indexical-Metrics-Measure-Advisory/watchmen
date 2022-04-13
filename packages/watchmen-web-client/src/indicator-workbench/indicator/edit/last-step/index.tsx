@@ -5,21 +5,21 @@ import {EmphaticSinkingLabel, Step, StepBody, StepBodyButtons, StepTitle, StepTi
 import {useIndicatorsEventBus} from '../../indicators-event-bus';
 import {IndicatorsEventTypes} from '../../indicators-event-bus-types';
 import {IndicatorDeclarationStep} from '../../types';
-import {useStep} from '../../use-step';
-import {useConstructed} from '../use-constructed';
+import {useStep} from '../use-step';
+import {Construct, useConstructed} from '../use-constructed';
 
 export const LastStep = () => {
 	const ref = useRef<HTMLDivElement>(null);
 	const {fire} = useIndicatorsEventBus();
-	const {constructed, setConstructed, visible, setVisible} = useConstructed(ref);
+	const {constructed, setConstructed, visible, setVisible} = useConstructed(ref, true);
 	useStep({
 		step: IndicatorDeclarationStep.LAST_STEP,
-		active: () => setConstructed(true),
-		done: () => setConstructed(true),
+		active: () => setConstructed(Construct.ACTIVE),
+		done: () => setConstructed(Construct.DONE),
 		dropped: () => setVisible(false)
 	});
 
-	if (!constructed) {
+	if (constructed === Construct.WAIT) {
 		return null;
 	}
 

@@ -17,7 +17,7 @@ import {Step, StepTitleButton, StepTitleConjunctionLabel} from '../../../step-wi
 import {useIndicatorsEventBus} from '../../indicators-event-bus';
 import {IndicatorsData, IndicatorsEventTypes} from '../../indicators-event-bus-types';
 import {IndicatorDeclarationStep} from '../../types';
-import {useStep} from '../../use-step';
+import {useStep} from '../use-step';
 import {Title} from './widgets';
 
 interface IndicatorCandidate extends SearchItem {
