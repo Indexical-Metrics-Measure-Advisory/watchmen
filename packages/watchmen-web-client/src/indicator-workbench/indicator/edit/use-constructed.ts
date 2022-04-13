@@ -10,7 +10,7 @@ export const useConstructed = (ref: RefObject<HTMLDivElement>, avoidScroll?: boo
 			}
 			setVisible(true);
 		}
-	}, [constructed, ref]);
+	}, [constructed, ref, avoidScroll]);
 	useEffect(() => {
 		if (!visible) {
 			setConstructed(false);

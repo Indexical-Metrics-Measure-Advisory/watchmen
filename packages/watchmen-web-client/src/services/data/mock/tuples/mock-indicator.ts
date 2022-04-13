@@ -1,4 +1,3 @@
-import {TuplePage} from '@/services/data/query/tuple-page';
 import {isIndicatorFactor} from '../../tuples/factor-calculator-utils';
 import {Indicator, IndicatorId} from '../../tuples/indicator-types';
 import {
@@ -9,6 +8,7 @@ import {
 } from '../../tuples/query-indicator-types';
 import {TopicId, TopicKind, TopicType} from '../../tuples/topic-types';
 import {isFakedUuid} from '../../tuples/utils';
+import {TuplePage} from '../../query/tuple-page';
 import {DemoTopics, MonthlyOrderPremium} from '../tuples/mock-data-topics';
 import {DemoIndicators, MonthlyOrderPremiumIndicator, OrderPremiumIndicators} from './mock-data-indicators';
 import {listMockEnums} from './mock-enum';
