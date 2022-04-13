@@ -6,3 +6,13 @@ export const Title = styled(StepTitle)`
 		margin-right : calc(var(--margin) / 2);
 	}
 `;
+
+export const BackToListButtonActiveContainer = styled.div`
+	display     : flex;
+	margin-left : calc(var(--margin) / 2);
+`;
+export const BackToListButtonDoneContainer = styled.div`
+	display         : flex;
+	flex-grow       : 1;
+	justify-content : flex-end;
+`;
