@@ -39,7 +39,7 @@ export const SaveIndicator = () => {
 	});
 	const forceUpdate = useForceUpdate();
 	useEffect(() => {
-		if ((constructed == Construct.ACTIVE || constructed === Construct.DONE) && onEdit) {
+		if ((constructed === Construct.ACTIVE || constructed === Construct.DONE) && onEdit) {
 			inputRef.current?.focus();
 		}
 	}, [constructed, onEdit]);

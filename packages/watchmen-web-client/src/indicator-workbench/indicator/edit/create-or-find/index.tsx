@@ -18,7 +18,7 @@ import {useIndicatorsEventBus} from '../../indicators-event-bus';
 import {IndicatorsData, IndicatorsEventTypes} from '../../indicators-event-bus-types';
 import {IndicatorDeclarationStep} from '../../types';
 import {useStep} from '../use-step';
-import {Title} from './widgets';
+import {BackToListButtonActiveContainer, BackToListButtonDoneContainer, Title} from './widgets';
 
 interface IndicatorCandidate extends SearchItem {
 	indicatorId: IndicatorId;
@@ -76,9 +76,11 @@ const ActivePart = () => {
 		            openText={Lang.INDICATOR_WORKBENCH.INDICATOR.FIND_INDICATOR}
 		            closeText={Lang.INDICATOR_WORKBENCH.INDICATOR.DISCARD_FIND_INDICATOR}
 		            placeholder={Lang.PLAIN.FIND_INDICATOR_PLACEHOLDER}/>
-		<StepTitleButton ink={ButtonInk.WAIVE} onClick={onBackToListClicked}>
-			{Lang.INDICATOR_WORKBENCH.INDICATOR.BACK_TO_LIST}
-		</StepTitleButton>
+		<BackToListButtonActiveContainer>
+			<StepTitleButton ink={ButtonInk.WAIVE} onClick={onBackToListClicked}>
+				{Lang.INDICATOR_WORKBENCH.INDICATOR.BACK_TO_LIST}
+			</StepTitleButton>
+		</BackToListButtonActiveContainer>
 	</Title>;
 };
 
@@ -134,17 +136,13 @@ const DonePart = () => {
 				<StepTitleButton ink={ButtonInk.DANGER} onClick={onRestartClicked}>
 					{Lang.INDICATOR_WORKBENCH.INDICATOR.RESTART}
 				</StepTitleButton>
-				<StepTitleConjunctionLabel>{Lang.INDICATOR_WORKBENCH.INDICATOR.OR}</StepTitleConjunctionLabel>
-				<StepTitleButton ink={ButtonInk.WAIVE} onClick={onBackToListClicked}>
-					{Lang.INDICATOR_WORKBENCH.INDICATOR.BACK_TO_LIST}
-				</StepTitleButton>
 			</>
-			: <>
-				<StepTitleConjunctionLabel>{Lang.INDICATOR_WORKBENCH.INDICATOR.OR}</StepTitleConjunctionLabel>
-				<StepTitleButton ink={ButtonInk.WAIVE} onClick={onBackToListClicked}>
-					{Lang.INDICATOR_WORKBENCH.INDICATOR.BACK_TO_LIST}
-				</StepTitleButton>
-			</>}
+			: null}
+		<BackToListButtonDoneContainer>
+			<StepTitleButton ink={ButtonInk.WAIVE} onClick={onBackToListClicked}>
+				{Lang.INDICATOR_WORKBENCH.INDICATOR.BACK_TO_LIST}
+			</StepTitleButton>
+		</BackToListButtonDoneContainer>
 	</Title>;
 };
 
