@@ -49,7 +49,7 @@ const putIfPresent = (cache: IndicatorCategoryCache, key: Array<string | undefin
 export const IndicatorState = () => {
 	const {fire: fireGlobal} = useEventBus();
 	const {on, off, fire} = useIndicatorsEventBus();
-	const [, setData] = useState<IndicatorsData>({});
+	const [data, setData] = useState<IndicatorsData>({});
 	const [categories] = useState<IndicatorCategoryCache>({c1: {}, c2: {}, c3: {}});
 	useEffect(() => {
 		const onCreateIndicator = (onCreated: (indicator: Indicator) => void) => {
@@ -79,6 +79,15 @@ export const IndicatorState = () => {
 			off(IndicatorsEventTypes.PICK_INDICATOR, onPickIndicator);
 		};
 	}, [on, off, fireGlobal]);
+	useEffect(() => {
+		const onAskIndicator = (onData: (indicator?: Indicator) => void) => {
+			onData(data.indicator);
+		};
+		on(IndicatorsEventTypes.ASK_INDICATOR, onAskIndicator);
+		return () => {
+			off(IndicatorsEventTypes.ASK_INDICATOR, onAskIndicator);
+		};
+	}, [on, off, data]);
 	useEffect(() => {
 		const onPickTopic = async (data: IndicatorsData, onData: (data: IndicatorsData) => void) => {
 			onData(data);

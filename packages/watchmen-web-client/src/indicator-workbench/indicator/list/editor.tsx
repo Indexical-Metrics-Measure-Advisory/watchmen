@@ -1,10 +1,11 @@
+import {Router} from '@/routes/types';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import React from 'react';
+import {Redirect} from 'react-router-dom';
 
+// noinspection JSUnusedLocalSymbols
 const IndicatorEditor = (props: { indicator: Indicator }) => {
-	// const {indicator} = props;
-
-	return <></>;
+	return <Redirect to={Router.INDICATOR_WORKBENCH_INDICATOR_PREPARE}/>;
 };
 
 export const renderEditor = (indicator: Indicator) => {

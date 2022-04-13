@@ -277,10 +277,10 @@ export const En = {
 	INDICATOR_WORKBENCH: {
 		MENU: {
 			TITLE: 'Indicator Workbench',
-			BUCKETS: 'Prepare Buckets',
-			PREPARE: 'Prepare Indicator',
-			INSPECTION: 'Indicators Inspection',
-			NAVIGATION: 'Indicators Navigation',
+			BUCKETS: 'Buckets',
+			INDICATORS: 'Indicators',
+			INSPECTIONS: 'Inspections',
+			NAVIGATIONS: 'Navigations',
 			SETTINGS: 'Settings',
 			LOGOUT: 'Logout'
 		},
@@ -294,7 +294,7 @@ export const En = {
 			EXISTING_INDICATOR_PREFIX: 'An Existing',
 			CREATE_AT: 'Created At',
 			LAST_MODIFIED_AT: 'Last Modified At',
-			TITLE: 'Prepare Indicators',
+			TITLE: 'Prepare Indicator',
 			STEP: 'Step',
 			WAIT_INPUT: 'Waiting for input...',
 			SEARCHING: 'Searching...',
@@ -306,6 +306,7 @@ export const En = {
 			ON_CREATE_INDICATOR: 'Creating An Indicator',
 			ON_VIEW_INDICATOR: 'View Indicator',
 			RESTART: 'Restart',
+			BACK_TO_LIST: 'Back to list',
 			PICK_TOPIC: 'Pick a Topic or Factor',
 			DEFINE_ON_TOPIC: 'Define on Topic',
 			INDICATOR_ON_TOPIC: 'On Topic',

@@ -277,10 +277,10 @@ export const Jp = {
 	INDICATOR_WORKBENCH: {
 		MENU: {
 			TITLE: '指標ーワークベンチ',
-			BUCKETS: 'バケットを準備',
-			PREPARE: '指標を準備',
-			INSPECTION: '指標を構造',
-			NAVIGATION: '指標航法',
+			BUCKETS: 'バケット',
+			INDICATORS: '指標',
+			INSPECTIONS: '指標を構造',
+			NAVIGATIONS: '指標航法',
 			SETTINGS: '設定',
 			LOGOUT: 'ログアウト'
 		},
@@ -306,6 +306,7 @@ export const Jp = {
 			ON_CREATE_INDICATOR: '新しい指標が定義されています',
 			ON_VIEW_INDICATOR: '指標を表示',
 			RESTART: '再起動',
+			BACK_TO_LIST: 'リストに戻り',
 			PICK_TOPIC: 'トピックまたはファクターを選択します',
 			DEFINE_ON_TOPIC: 'トピックに対する定義',
 			INDICATOR_ON_TOPIC: 'トピックに関する',

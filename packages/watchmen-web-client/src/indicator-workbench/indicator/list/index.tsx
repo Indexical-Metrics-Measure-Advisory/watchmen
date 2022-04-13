@@ -1,8 +1,8 @@
 import IndicatorBackground from '@/assets/indicator-background.svg';
 import {TuplePage} from '@/services/data/query/tuple-page';
 import {fetchIndicator, listIndicators} from '@/services/data/tuples/indicator';
+import {Indicator} from '@/services/data/tuples/indicator-types';
 import {QueryIndicator} from '@/services/data/tuples/query-indicator-types';
-import {QueryTuple} from '@/services/data/tuples/tuple-types';
 import {TUPLE_SEARCH_PAGE_SIZE} from '@/widgets/basic/constants';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
@@ -24,7 +24,9 @@ export const RealIndicatorList = () => {
 	const {fire: fireIndicator} = useIndicatorsEventBus();
 	useEffect(() => {
 		const onDoCreateIndicator = async () => {
-			// fire(TupleEventTypes.TUPLE_CREATED, createIndicator());
+			fireIndicator(IndicatorsEventTypes.CREATE_INDICATOR, (indicator: Indicator) => {
+				fire(TupleEventTypes.TUPLE_CREATED, indicator);
+			});
 		};
 		const onDoEditIndicator = async (queryIndicator: QueryIndicator) => {
 			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
@@ -33,13 +35,13 @@ export const RealIndicatorList = () => {
 					return {tuple: indicator};
 				},
 				({tuple}) => {
-					// fire(TupleEventTypes.TUPLE_LOADED, tuple);
+					fire(TupleEventTypes.TUPLE_LOADED, tuple);
 				});
 		};
 		const onDoSearchIndicator = async (searchText: string, pageNumber: number) => {
 			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
 				async () => await listIndicators({search: searchText, pageNumber, pageSize: TUPLE_SEARCH_PAGE_SIZE}),
-				(page: TuplePage<QueryTuple>) => {
+				(page: TuplePage<QueryIndicator>) => {
 					fire(TupleEventTypes.TUPLE_SEARCHED, page, searchText);
 					fireIndicator(IndicatorsEventTypes.SEARCHED, page, searchText);
 				});

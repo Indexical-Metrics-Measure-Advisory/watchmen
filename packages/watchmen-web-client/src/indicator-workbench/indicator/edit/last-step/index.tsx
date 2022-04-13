@@ -11,7 +11,7 @@ import {useConstructed} from '../use-constructed';
 export const LastStep = () => {
 	const ref = useRef<HTMLDivElement>(null);
 	const {fire} = useIndicatorsEventBus();
-	const {constructed, setConstructed, visible, setVisible} = useConstructed(ref);
+	const {constructed, setConstructed, visible, setVisible} = useConstructed(ref, true);
 	useStep({
 		step: IndicatorDeclarationStep.LAST_STEP,
 		active: () => setConstructed(true),

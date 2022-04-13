@@ -46,8 +46,9 @@ export enum Router {
 	DATA_QUALITY_SETTINGS = '/data-quality/settings',
 
 	INDICATOR_WORKBENCH = '/indicator-workbench',
-	INDICATOR_WORKBENCH_BUCKETS = '/indicator-workbench/buckets',
-	INDICATOR_WORKBENCH_INDICATORS = '/indicator-workbench/indicators',
+	INDICATOR_WORKBENCH_BUCKETS = '/indicator-workbench/bucket',
+	INDICATOR_WORKBENCH_INDICATORS = '/indicator-workbench/indicator',
+	INDICATOR_WORKBENCH_INDICATOR_PREPARE = '/indicator-workbench/indicator/prepare',
 	INDICATOR_WORKBENCH_INSPECTION = '/indicator-workbench/inspection',
 	INDICATOR_WORKBENCH_NAVIGATION = '/indicator-workbench/navigator',
 	INDICATOR_WORKBENCH_NAVIGATION_QUERY = '/indicator-workbench/navigator/query',
@@ -55,5 +56,5 @@ export enum Router {
 	INDICATOR_WORKBENCH_SETTINGS = '/indicator-workbench/settings',
 
 	SHARE = '/share',
-	SHARE_DASHBOARD = '/share/dashboard/:dashboardId/:token',
+	SHARE_DASHBOARD = '/share/dashboard/:dashboardId/:token'
 }
