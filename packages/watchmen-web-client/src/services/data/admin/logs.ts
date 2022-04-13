@@ -130,8 +130,7 @@ export const fetchMonitorLogs = async (options: {
 		return post({
 			api: Apis.QUERY_LOG,
 			data: {
-				criteria: options.criteria,
-				pagination: {pageNumber: options.pageNumber, pageSize: options.pageSize}
+				criteria: {...options.criteria, pageNumber: options.pageNumber, pageSize: options.pageSize}
 			}
 		});
 	}
