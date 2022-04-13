@@ -3,8 +3,8 @@ import {useRef} from 'react';
 import {SearchTextEventBusProvider} from '../../../search-text/search-text-event-bus';
 import {EmphaticSinkingLabel, Step, StepBody, StepTitle} from '../../../step-widgets';
 import {IndicatorDeclarationStep} from '../../types';
-import {useStep} from '../../use-step';
-import {useConstructed} from '../use-constructed';
+import {useStep} from '../use-step';
+import {Construct, useConstructed} from '../use-constructed';
 import {CategoryInput} from './category-input';
 import {CategoriesContainer} from './widgets';
 
@@ -13,8 +13,8 @@ export const Categories = () => {
 	const {constructed, setConstructed, visible, setVisible} = useConstructed(ref);
 	const {data} = useStep({
 		step: IndicatorDeclarationStep.CATEGORIES,
-		active: () => setConstructed(true),
-		done: () => setConstructed(true),
+		active: () => setConstructed(Construct.ACTIVE),
+		done: () => setConstructed(Construct.DONE),
 		dropped: () => setVisible(false)
 	});
 

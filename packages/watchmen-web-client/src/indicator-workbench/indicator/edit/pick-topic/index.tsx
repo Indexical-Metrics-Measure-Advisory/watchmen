@@ -14,8 +14,8 @@ import {Step, StepTitle, StepTitleButton, StepTitleButtonsRetractor} from '../..
 import {useIndicatorsEventBus} from '../../indicators-event-bus';
 import {IndicatorsData, IndicatorsEventTypes} from '../../indicators-event-bus-types';
 import {IndicatorDeclarationStep} from '../../types';
-import {useStep} from '../../use-step';
-import {useConstructed} from '../use-constructed';
+import {useStep} from '../use-step';
+import {Construct, useConstructed} from '../use-constructed';
 import {TopicOrFactorCandidateName} from './widgets';
 
 interface TopicOrFactorCandidate extends SearchItem {
@@ -122,12 +122,12 @@ export const PickTopic = () => {
 	const {constructed, setConstructed, visible, setVisible} = useConstructed(ref);
 	const {data, active, done} = useStep({
 		step: IndicatorDeclarationStep.PICK_TOPIC,
-		active: () => setConstructed(true),
-		done: () => setConstructed(true),
+		active: () => setConstructed(Construct.ACTIVE),
+		done: () => setConstructed(Construct.DONE),
 		dropped: () => setVisible(false)
 	});
 
-	if (!constructed) {
+	if (constructed === Construct.WAIT) {
 		return null;
 	}
 

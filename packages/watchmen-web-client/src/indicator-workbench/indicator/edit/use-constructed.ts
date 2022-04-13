@@ -1,17 +1,25 @@
 import {RefObject, useEffect, useState} from 'react';
 
-export const useConstructed = (ref: RefObject<HTMLDivElement>) => {
-	const [constructed, setConstructed] = useState(false);
+export enum Construct {
+	ACTIVE,
+	DONE,
+	WAIT
+}
+
+export const useConstructed = (ref: RefObject<HTMLDivElement>, avoidScrollOnActive: boolean = false) => {
+	const [constructed, setConstructed] = useState(Construct.WAIT);
 	const [visible, setVisible] = useState(false);
 	useEffect(() => {
-		if (constructed) {
+		if (constructed === Construct.ACTIVE && !avoidScrollOnActive) {
 			ref.current?.scrollIntoView({behavior: 'smooth'});
+		}
+		if (constructed === Construct.ACTIVE || constructed === Construct.DONE) {
 			setVisible(true);
 		}
-	}, [constructed, ref]);
+	}, [constructed, ref, avoidScrollOnActive]);
 	useEffect(() => {
 		if (!visible) {
-			setConstructed(false);
+			setConstructed(Construct.WAIT);
 		}
 	}, [visible]);
 

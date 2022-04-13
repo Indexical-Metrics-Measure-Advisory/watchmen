@@ -17,9 +17,9 @@ import {Fragment, useRef} from 'react';
 import {EmphaticSinkingLabel, Step, StepBody, StepTitle} from '../../../step-widgets';
 import {MeasureMethodSort} from '../../../utils/sort';
 import {IndicatorDeclarationStep} from '../../types';
-import {useStep} from '../../use-step';
 import {MeasureFactor} from '../measure-factor';
-import {useConstructed} from '../use-constructed';
+import {Construct, useConstructed} from '../use-constructed';
+import {useStep} from '../use-step';
 import {
 	AggregateItem,
 	AggregateItemsBlock,
@@ -110,12 +110,12 @@ export const MeasureMethods = () => {
 	const {constructed, setConstructed, visible, setVisible} = useConstructed(ref);
 	const {data} = useStep({
 		step: IndicatorDeclarationStep.MEASURE_METHODS,
-		active: () => setConstructed(true),
-		done: () => setConstructed(true),
+		active: () => setConstructed(Construct.ACTIVE),
+		done: () => setConstructed(Construct.DONE),
 		dropped: () => setVisible(false)
 	});
 
-	if (!constructed) {
+	if (constructed === Construct.WAIT) {
 		return null;
 	}
 

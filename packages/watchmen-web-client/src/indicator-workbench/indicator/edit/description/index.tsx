@@ -7,8 +7,8 @@ import {EmphaticSinkingLabel, Step, StepBody, StepTitle} from '../../../step-wid
 import {useIndicatorsEventBus} from '../../indicators-event-bus';
 import {IndicatorsEventTypes} from '../../indicators-event-bus-types';
 import {IndicatorDeclarationStep} from '../../types';
-import {useStep} from '../../use-step';
-import {useConstructed} from '../use-constructed';
+import {useStep} from '../use-step';
+import {Construct, useConstructed} from '../use-constructed';
 import {DescriptionText} from './widgets';
 
 export const Description = () => {
@@ -18,13 +18,13 @@ export const Description = () => {
 	const {constructed, setConstructed, visible, setVisible} = useConstructed(ref);
 	const {data} = useStep({
 		step: IndicatorDeclarationStep.DESCRIPTION,
-		active: () => setConstructed(true),
-		done: () => setConstructed(true),
+		active: () => setConstructed(Construct.ACTIVE),
+		done: () => setConstructed(Construct.DONE),
 		dropped: () => setVisible(false)
 	});
 	const forceUpdate = useForceUpdate();
 
-	if (!constructed) {
+	if (constructed === Construct.WAIT) {
 		return null;
 	}
 
