@@ -540,7 +540,8 @@ def refill_pipeline_ids(
 		if pipeline.on is not None:
 			pipeline.on = ParameterJoint(**replace_ids(pipeline.on.dict(), replace_topic_and_factor_ids))
 		pipeline.stages = ArrayHelper(pipeline.stages) \
-			.map(lambda x: PipelineStage(**replace_ids(x.dict(), replace_topic_and_factor_ids)))
+			.map(lambda x: PipelineStage(**replace_ids(x.dict(), replace_topic_and_factor_ids))) \
+			.to_list()
 
 	ArrayHelper(pipelines).each(fill_pipeline_id)
 
