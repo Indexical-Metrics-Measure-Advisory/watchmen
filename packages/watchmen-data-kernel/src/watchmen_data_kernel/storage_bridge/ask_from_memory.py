@@ -776,7 +776,7 @@ def parse_prerequisite_in_memory(
 	if filters is None or len(filters) == 0:
 		# no filters defined
 		return always_true
-	condition = ParsedMemoryCondition(joint, principal_service)
+	condition = ParsedMemoryJoint(joint, principal_service)
 
 	return create_ask_prerequisite(condition)
 
