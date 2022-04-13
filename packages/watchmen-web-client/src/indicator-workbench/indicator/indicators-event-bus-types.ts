@@ -45,9 +45,9 @@ export interface IndicatorsEventBus {
 	on(type: IndicatorsEventTypes.ASK_SEARCHED, listener: (onData: (page?: TuplePage<QueryIndicator>, searchText?: string) => void) => void): this;
 	off(type: IndicatorsEventTypes.ASK_SEARCHED, listener: (onData: (page?: TuplePage<QueryIndicator>, searchText?: string) => void) => void): this;
 
-	fire(type: IndicatorsEventTypes.ASK_INDICATOR, onData: (indicator?: Indicator) => void): this;
-	on(type: IndicatorsEventTypes.ASK_INDICATOR, listener: (onData: (indicator?: Indicator) => void) => void): this;
-	off(type: IndicatorsEventTypes.ASK_INDICATOR, listener: (onData: (indicator?: Indicator) => void) => void): this;
+	fire(type: IndicatorsEventTypes.ASK_INDICATOR, onData: (data?: IndicatorsData) => void): this;
+	on(type: IndicatorsEventTypes.ASK_INDICATOR, listener: (onData: (data?: IndicatorsData) => void) => void): this;
+	off(type: IndicatorsEventTypes.ASK_INDICATOR, listener: (onData: (data?: IndicatorsData) => void) => void): this;
 
 	fire(type: IndicatorsEventTypes.SWITCH_STEP, step: IndicatorDeclarationStep, data?: IndicatorsData): this;
 	on(type: IndicatorsEventTypes.SWITCH_STEP, listener: (step: IndicatorDeclarationStep, data?: IndicatorsData) => void): this;

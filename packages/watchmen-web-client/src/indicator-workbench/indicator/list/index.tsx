@@ -1,6 +1,6 @@
 import IndicatorBackground from '@/assets/indicator-background.svg';
 import {TuplePage} from '@/services/data/query/tuple-page';
-import {fetchIndicator, listIndicators} from '@/services/data/tuples/indicator';
+import {listIndicators} from '@/services/data/tuples/indicator';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import {QueryIndicator} from '@/services/data/tuples/query-indicator-types';
 import {TUPLE_SEARCH_PAGE_SIZE} from '@/widgets/basic/constants';
@@ -12,7 +12,7 @@ import {TupleEventBusProvider, useTupleEventBus} from '@/widgets/tuple-workbench
 import {TupleEventTypes} from '@/widgets/tuple-workbench/tuple-event-bus-types';
 import React, {useEffect} from 'react';
 import {useIndicatorsEventBus} from '../indicators-event-bus';
-import {IndicatorsEventTypes} from '../indicators-event-bus-types';
+import {IndicatorsData, IndicatorsEventTypes} from '../indicators-event-bus-types';
 import {renderCard} from './card';
 import {renderEditor} from './editor';
 
@@ -29,14 +29,9 @@ export const RealIndicatorList = () => {
 			});
 		};
 		const onDoEditIndicator = async (queryIndicator: QueryIndicator) => {
-			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
-				async () => {
-					const {indicator} = await fetchIndicator(queryIndicator.indicatorId);
-					return {tuple: indicator};
-				},
-				({tuple}) => {
-					fire(TupleEventTypes.TUPLE_LOADED, tuple);
-				});
+			fireIndicator(IndicatorsEventTypes.PICK_INDICATOR, queryIndicator.indicatorId, (data: IndicatorsData) => {
+				fire(TupleEventTypes.TUPLE_LOADED, data.indicator!);
+			});
 		};
 		const onDoSearchIndicator = async (searchText: string, pageNumber: number) => {
 			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
