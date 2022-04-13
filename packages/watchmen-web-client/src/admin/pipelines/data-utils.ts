@@ -16,6 +16,10 @@ import {
 import {PipelineStage} from '@/services/data/tuples/pipeline-stage-types';
 import {AggregateArithmetic} from '@/services/data/tuples/pipeline-stage-unit-action/aggregate-arithmetic-types';
 import {
+	DeleteRowAction,
+	DeleteRowsAction
+} from '@/services/data/tuples/pipeline-stage-unit-action/delete-topic-actions-types';
+import {
 	FindBy,
 	FromFactor,
 	FromTopic,
@@ -28,6 +32,8 @@ import {
 import {
 	isAlarmAction,
 	isCopyToMemoryAction,
+	isDeleteRowAction,
+	isDeleteRowsAction,
 	isExistsAction,
 	isInsertRowAction,
 	isMergeRowAction,
@@ -223,6 +229,12 @@ export const defendMergeRowAction = (action: MergeRowAction) => {
 export const defendInsertRowAction = (action: InsertRowAction) => {
 	defendMappingRow(action);
 };
+export const defendDeleteRowAction = (action: DeleteRowAction) => {
+	defendFindBy(action);
+};
+export const defendDeleteRowsAction = (action: DeleteRowsAction) => {
+	defendFindBy(action);
+};
 export const defendAction = (action: PipelineStageUnitAction) => {
 	if (isAlarmAction(action)) {
 		defendAlarmAction(action);
@@ -244,6 +256,10 @@ export const defendAction = (action: PipelineStageUnitAction) => {
 		defendMergeRowAction(action);
 	} else if (isInsertRowAction(action)) {
 		defendInsertRowAction(action);
+	} else if (isDeleteRowAction(action)) {
+		defendDeleteRowAction(action);
+	} else if (isDeleteRowsAction(action)) {
+		defendDeleteRowsAction(action);
 	}
 };
 
