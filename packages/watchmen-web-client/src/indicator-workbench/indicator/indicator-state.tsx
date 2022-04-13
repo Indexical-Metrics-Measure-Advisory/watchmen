@@ -80,8 +80,8 @@ export const IndicatorState = () => {
 		};
 	}, [on, off, fireGlobal]);
 	useEffect(() => {
-		const onAskIndicator = (onData: (indicator?: Indicator) => void) => {
-			onData(data.indicator);
+		const onAskIndicator = (onData: (data?: IndicatorsData) => void) => {
+			onData(data);
 		};
 		on(IndicatorsEventTypes.ASK_INDICATOR, onAskIndicator);
 		return () => {
