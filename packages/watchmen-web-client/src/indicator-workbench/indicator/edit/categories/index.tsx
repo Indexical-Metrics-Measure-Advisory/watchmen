@@ -3,8 +3,8 @@ import {useRef} from 'react';
 import {SearchTextEventBusProvider} from '../../../search-text/search-text-event-bus';
 import {EmphaticSinkingLabel, Step, StepBody, StepTitle} from '../../../step-widgets';
 import {IndicatorDeclarationStep} from '../../types';
-import {useStep} from '../use-step';
 import {Construct, useConstructed} from '../use-constructed';
+import {useStep} from '../use-step';
 import {CategoryInput} from './category-input';
 import {CategoriesContainer} from './widgets';
 
@@ -18,7 +18,7 @@ export const Categories = () => {
 		dropped: () => setVisible(false)
 	});
 
-	if (!constructed || data?.indicator == null) {
+	if (constructed === Construct.WAIT || data?.indicator == null) {
 		return null;
 	}
 

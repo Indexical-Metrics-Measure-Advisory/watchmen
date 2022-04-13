@@ -13,8 +13,8 @@ import {Step, StepTitle, StepTitleButton} from '../../../step-widgets';
 import {useIndicatorsEventBus} from '../../indicators-event-bus';
 import {IndicatorsEventTypes} from '../../indicators-event-bus-types';
 import {IndicatorDeclarationStep} from '../../types';
-import {useStep} from '../use-step';
 import {Construct, useConstructed} from '../use-constructed';
+import {useStep} from '../use-step';
 import {NameInput, SaveButton} from './widgets';
 
 export const SaveIndicator = () => {
@@ -39,12 +39,12 @@ export const SaveIndicator = () => {
 	});
 	const forceUpdate = useForceUpdate();
 	useEffect(() => {
-		if (constructed && onEdit) {
+		if ((constructed == Construct.ACTIVE || constructed === Construct.DONE) && onEdit) {
 			inputRef.current?.focus();
 		}
 	}, [constructed, onEdit]);
 
-	if (!constructed || data?.indicator == null) {
+	if (constructed === Construct.WAIT || data?.indicator == null) {
 		return null;
 	}
 
