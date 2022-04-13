@@ -31,7 +31,9 @@ import {
 } from '@/services/data/tuples/pipeline-stage-unit-action/pipeline-stage-unit-action-types';
 import {
 	isAlarmAction,
-	isCopyToMemoryAction, isDeleteRowAction, isDeleteRowsAction,
+	isCopyToMemoryAction,
+	isDeleteRowAction,
+	isDeleteRowsAction,
 	isExistsAction,
 	isInsertRowAction,
 	isMergeRowAction,
