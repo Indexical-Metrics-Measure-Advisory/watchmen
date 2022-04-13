@@ -13,7 +13,7 @@ def is_empty(value: Any) -> bool:
 	if value is None:
 		return True
 	elif isinstance(value, str):
-		return len(str) == 0
+		return len(value) == 0
 	elif isinstance(value, list):
 		return len(value) == 0
 	elif isinstance(value, dict):
