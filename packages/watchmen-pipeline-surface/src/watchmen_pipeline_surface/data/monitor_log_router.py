@@ -38,6 +38,6 @@ async def fetch_pipeline_logs(
 	def translate_data_id_to_str(log: PipelineMonitorLog) -> None:
 		log.dataId = str(log.dataId)
 
-	page.data = ArrayHelper(page.data).each(translate_data_id_to_str)
+	page.data = ArrayHelper(page.data).each(translate_data_id_to_str).to_list()
 	# noinspection PyTypeChecker
 	return page
