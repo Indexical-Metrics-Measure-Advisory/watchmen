@@ -98,6 +98,10 @@ def value_equals(
 		return another is None or (isinstance(another, str) and another == '')
 	elif another is None or (isinstance(another, str) and another == ''):
 		return False
+	elif isinstance(one, bool):
+		return equals_bool(one, another)
+	elif isinstance(another, bool):
+		return equals_bool(another, one)
 	elif isinstance(one, int) or isinstance(one, float) or isinstance(one, Decimal):
 		# compare numeric
 		return equals_decimal(Decimal(one), another)
@@ -116,10 +120,6 @@ def value_equals(
 	elif isinstance(another, datetime) or isinstance(another, date):
 		# compare datetime or date
 		return equals_date(another, one, date_formats)
-	elif isinstance(one, bool):
-		return equals_bool(one, another)
-	elif isinstance(another, bool):
-		return equals_bool(another, one)
 	elif isinstance(one, str):
 		# compare string
 		if isinstance(another, int) or isinstance(another, float) or isinstance(another, Decimal):
