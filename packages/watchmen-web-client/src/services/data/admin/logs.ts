@@ -129,10 +129,7 @@ export const fetchMonitorLogs = async (options: {
 	} else {
 		return post({
 			api: Apis.QUERY_LOG,
-			data: {
-				criteria: options.criteria,
-				pagination: {pageNumber: options.pageNumber, pageSize: options.pageSize}
-			}
+			data: {...options.criteria, pageNumber: options.pageNumber, pageSize: options.pageSize}
 		});
 	}
 };
