@@ -4,6 +4,7 @@ from abc import abstractmethod
 from datetime import date
 from decimal import Decimal
 from enum import Enum
+from inspect import isfunction
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from watchmen_auth import PrincipalService
@@ -588,6 +589,8 @@ def create_ask_value_for_computed(
 				condition: ParsedStorageCondition = element[0]
 				parameter: ParsedStorageParameter = element[1]
 				return condition.run(variables, principal_service), parameter.run(variables, principal_service)
+			elif isfunction(element):
+				return element(variables, principal_service)
 			else:
 				return element
 
