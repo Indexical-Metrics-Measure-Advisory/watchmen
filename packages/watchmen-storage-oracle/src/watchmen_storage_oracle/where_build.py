@@ -1,7 +1,8 @@
 from datetime import date, datetime, time
+from decimal import Decimal
 from typing import Any, Callable, List, Tuple
 
-from sqlalchemy import and_, case, func, literal_column, or_, Table
+from sqlalchemy import and_, case, func, literal, literal_column, or_, Table
 
 from watchmen_storage import as_table_name, ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, \
 	EntityCriteria, EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, \
@@ -193,9 +194,15 @@ def build_criteria_expression(tables: List[Table], expression: EntityCriteriaExp
 			if not isinstance(built_right, list):
 				built_right = [built_right]
 		if op == EntityCriteriaOperator.IN:
-			return built_left.in_(built_right)
+			if isinstance(built_left, (bool, str, int, float, Decimal, date, time)):
+				return literal(built_left).in_(built_right)
+			else:
+				return built_left.in_(built_right)
 		elif op == EntityCriteriaOperator.NOT_IN:
-			return built_left.not_in(built_right)
+			if isinstance(built_left, (bool, str, int, float, Decimal, date, time)):
+				return literal(built_left).not_in(built_right)
+			else:
+				return built_left.not_in(built_right)
 
 	built_right = build_literal(tables, expression.right)
 	if op == EntityCriteriaOperator.EQUALS:
