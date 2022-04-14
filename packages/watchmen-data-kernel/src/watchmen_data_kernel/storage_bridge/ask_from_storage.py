@@ -577,7 +577,11 @@ class TypedParsedStorageConstantParameter(ParsedStorageConstantParameter):
 
 def create_ask_value_for_computed(
 		operator: ComputedLiteralOperator,
-		elements: List[Union[ParsedStorageParameter, Tuple[ParsedStorageCondition, ParsedStorageParameter], Any]]
+		elements: List[Union[
+			ParsedStorageParameter,
+			Tuple[ParsedStorageCondition, ParsedStorageParameter],
+			Callable[[PipelineVariables, PrincipalService], Any],
+			Any]]
 ) -> Callable[[PipelineVariables, PrincipalService], Any]:
 	def compute(variables: PipelineVariables, principal_service: PrincipalService) -> Literal:
 		def transform(
