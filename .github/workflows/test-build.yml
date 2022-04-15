@@ -16,6 +16,19 @@ jobs:
       DB_PASSWORD: root
       LOG_FILE: /tmp/scripts/runtime.log
       BASE_PATH: ${{ github.workspace }}
+      META_STORAGE_TYPE: mysql
+      META_STORAGE_USER_NAME: root
+      META_STORAGE_PASSWORD: root
+      META_STORAGE_HOST: localhost
+      META_STORAGE_PORT: 3306
+      META_STORAGE_NAME: watchmen
+      TUPLE_DELETABLE: True
+      SYNC_TOPIC_TO_STORAGE: TRUE
+      REPLACE_TOPIC_TO_STORAGE: TRUE
+      PIPELINE_ELASTIC_SEARCH_EXTERNAL_WRITER: TRUE
+      META_STORAGE_ECHO: FALSE
+      PIPELINE_PARALLEL_ACTIONS_IN_LOOP_UNIT: True
+      USE_STORAGE_DIRECTLY: TRUE
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
@@ -39,6 +52,21 @@ jobs:
             do
               mysql -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }} -P3306 --default-character-set=utf8 ${{ env.DB_DATABASE }} < $file 2>&1
             done
+      - name: Setup python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.9'
+          architecture: 'x64'
+      - name: Setup poetry
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+      - name: build [watchmen-rest-doll] and start
+        working-directory: ./packages/watchman-rest-doll
+        run: |
+          poetry config virtualenvs.create false
+          poetry install --no-dev -vv -E mysql -E trino
+          uvicorn watchmen_rest_doll.main:app --host='0.0.0.0' --port='8000'
 #      - name: Install Node
 #        uses: actions/setup-node@v3
 #        with:
