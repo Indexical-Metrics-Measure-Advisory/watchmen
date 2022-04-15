@@ -97,7 +97,7 @@ jobs:
           to: ci-postman@mail.matrdata.com
           from: github-ci@mail.matrdata.com
           body: ${{ github.job }} job in worflow ${{ github.workflow }} of ${{ github.repository }} has ${{ job.status }}
-          attachments: ./testResults/RunReports.zip
+          attachments: testResults/htmlreport.html
       - name: notify feishu
         if: always()
         uses: potaesm/github-actions-request@1.0.7
