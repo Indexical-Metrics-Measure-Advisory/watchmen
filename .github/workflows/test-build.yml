@@ -1,0 +1,44 @@
+name: Test-Build
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch or tag name
+        required: true
+        type: string
+        default: 'main'
+jobs:
+  test-api:
+    runs-on: ubuntu-latest
+    env:
+      DB_DATABASE: watchmen
+      DB_USER: root
+      DB_PASSWORD: root
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch }}
+      - name: Set up MySQL
+        run: |
+          sudo /etc/init.d/mysql start
+          mysql -e 'CREATE DATABASE ${{ env.DB_DATABASE }};' -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
+
+#      - name: Install Node
+#        uses: actions/setup-node@v3
+#        with:
+#          node-version: 16
+#      - name: Install newman
+#        run: |
+#          npm install -g newman
+#          npm install -g newman-reporter-htmlextra
+#      - name: Make directory for result
+#        run: mkdir -p testResults
+#      - name: Run postman collection
+#        run: |
+#          newman run ./packages/watchmen-test-postman/watchmen-postman.json -r htmlextra --reporter-htmlextra-export testResults/htmlreport.html --reporter-htmlextra-darkTheme > testResults/runreport1.html
+#      - name: Output the run details
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: RunReports
+#          path: testResults
