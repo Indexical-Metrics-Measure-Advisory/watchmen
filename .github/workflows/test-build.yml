@@ -79,7 +79,6 @@ jobs:
         run: mkdir -p testResults
       - name: Run postman collection
         run: |
-#          newman run ./packages/watchmen-test-postman/watchmen-postman.json -r htmlextra --reporter-htmlextra-export testResults/htmlreport.html --reporter-htmlextra-darkTheme > testResults/runreport1.html
           newman run ./packages/watchmen-test-postman/watchmen-postman.json
       - name: Output the run details
         uses: actions/upload-artifact@v2
