@@ -14,6 +14,7 @@ jobs:
       DB_DATABASE: watchmen
       DB_USER: root
       DB_PASSWORD: root
+      LOG_FILE: /tmp/scripts/runtime.log
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
@@ -23,7 +24,21 @@ jobs:
         run: |
           sudo /etc/init.d/mysql start
           mysql -e 'CREATE DATABASE ${{ env.DB_DATABASE }};' -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
-
+      - name: Run db script
+        run: |
+          script_path=./packages/watchmen-storage-mysql/meta-script/16.0.0
+          for file in ${script_path}/*
+            do
+              mysql -u${{ env.DB_USER }} -p$${{ env.DB_PASSWORD }} -P3306 --default-character-set=utf8 ${{ env.DB_DATABASE }} < $file >& error.log
+              echo $file
+              echo -e "\n===========$file=============\n" >>${LOG_FILE}
+              cat error.log >>${LOG_FILE}
+              error=`grep ERROR error.log`
+              if [ -n "$error" ] ; then
+                echo $error
+                exit
+              fi
+            done
 #      - name: Install Node
 #        uses: actions/setup-node@v3
 #        with:
