@@ -27,6 +27,7 @@ jobs:
           mysql -e 'CREATE DATABASE ${{ env.DB_DATABASE }};' -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
       - name: Run db script
         run: |
+          mkdir -p ${LOG_FILE}
           script_path=./packages/watchmen-storage-mysql/meta-scripts/16.0.0
           for file in ${script_path}/*
             do
