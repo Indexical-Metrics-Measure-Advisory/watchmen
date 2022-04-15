@@ -85,3 +85,26 @@ jobs:
         with:
           name: RunReports
           path: testResults
+      - name: Send email
+        if: always()
+        uses: dawidd6/action-send-mail@v3.2.0
+        with:
+          server_address: smtp.feishu.cn
+          server_port: 465
+          username: github-ci@mail.matrdata.com
+          password: ${{secrets.MAIL_PASSWORD}}
+          subject: job ${{ job.status }} for  ${{ github.job }} job of ${{ github.repository }}
+          to: ci-postman@mail.matrdata.com
+          from: github-ci@mail.matrdata.com
+          body: ${{ github.job }} job in worflow ${{ github.workflow }} of ${{ github.repository }} has ${{ job.status }}
+          attachments: ./testResults/RunReports.zip
+      - name: notify feishu
+        if: always()
+        uses: potaesm/github-actions-request@1.0.7
+        with:
+          url: ${{ secrets.FEISHU_CHANNLE_ID }}
+          method: post
+          baseURL: https://open.feishu.cn/open-apis/bot/v2/hook
+          headers: '{ "Content-Type": "application/json" }'
+          data: '{"msg_type":"interactive","card":{"config":{"wide_screen_mode":true},"header":{"title":{"tag":"lark_md","content":"CI job mysql success"}},"elements":[{"tag":"hr"},{"tag":"action","actions":[{"tag":"button","text":{"tag":"plain_text","content":"Check it out."},"type":"primary","url":"https://github.com/Indexical-Metrics-Measure-Advisory/watchmen/actions"}]}]}}'
+          timeout: 30000
