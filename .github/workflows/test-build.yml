@@ -30,12 +30,7 @@ jobs:
           script_path=./packages/watchmen-storage-mysql/meta-scripts/16.0.0
           for file in ${script_path}/*
             do
-              mysql -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }} -P3306 --default-character-set=utf8 ${{ env.DB_DATABASE }} < $file >& error.log
-              error=`grep ERROR error.log`
-              if [ -n "$error" ] ; then
-                echo $error
-                exit
-              fi
+              mysql -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }} -P3306 --default-character-set=utf8 ${{ env.DB_DATABASE }} < $file 2>&1
             done
 #      - name: Install Node
 #        uses: actions/setup-node@v3
