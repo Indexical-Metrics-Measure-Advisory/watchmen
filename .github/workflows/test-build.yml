@@ -62,7 +62,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
       - name: build [watchmen-rest-doll] and start
-        working-directory: ./packages/watchman-rest-doll
+        working-directory: ./packages/watchmen-rest-doll
         run: |
           poetry config virtualenvs.create false
           poetry install --no-dev -vv -E mysql -E trino
