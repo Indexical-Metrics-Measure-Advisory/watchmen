@@ -27,7 +27,7 @@ jobs:
           mysql -e 'CREATE DATABASE ${{ env.DB_DATABASE }};' -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
       - name: Run db script
         run: |
-          script_path = ${{ evn.BASE_PATH }}/packages/watchmen-storage-mysql/meta-script/16.0.0
+          script_path = ${{ env.BASE_PATH }}/packages/watchmen-storage-mysql/meta-script/16.0.0
           for file in ${script_path}/*
             do
               mysql -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }} -P3306 --default-character-set=utf8 ${{ env.DB_DATABASE }} < $file >& error.log
