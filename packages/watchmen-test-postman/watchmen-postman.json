@@ -2888,9 +2888,15 @@
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
                 "header": [],
-                "url": "{{URL_PREFIX}}/tenant/infra"
+                "url": "{{URL_PREFIX}}/tenant/init"
               },
               "response": []
             }
