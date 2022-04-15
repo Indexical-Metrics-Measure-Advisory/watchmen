@@ -67,21 +67,21 @@ jobs:
           poetry config virtualenvs.create false
           poetry install --no-dev -vv -E mysql -E trino
           uvicorn watchmen_rest_doll.main:app --host='0.0.0.0' --port='8000' > server.out 2>&1 &
-#      - name: Install Node
-#        uses: actions/setup-node@v3
-#        with:
-#          node-version: 16
-#      - name: Install newman
-#        run: |
-#          npm install -g newman
-#          npm install -g newman-reporter-htmlextra
-#      - name: Make directory for result
-#        run: mkdir -p testResults
-#      - name: Run postman collection
-#        run: |
-#          newman run ./packages/watchmen-test-postman/watchmen-postman.json -r htmlextra --reporter-htmlextra-export testResults/htmlreport.html --reporter-htmlextra-darkTheme > testResults/runreport1.html
-#      - name: Output the run details
-#        uses: actions/upload-artifact@v2
-#        with:
-#          name: RunReports
-#          path: testResults
+      - name: Install Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - name: Install newman
+        run: |
+          npm install -g newman
+          npm install -g newman-reporter-htmlextra
+      - name: Make directory for result
+        run: mkdir -p testResults
+      - name: Run postman collection
+        run: |
+          newman run ./packages/watchmen-test-postman/watchmen-postman.json -r htmlextra --reporter-htmlextra-export testResults/htmlreport.html --reporter-htmlextra-darkTheme > testResults/runreport1.html
+      - name: Output the run details
+        uses: actions/upload-artifact@v2
+        with:
+          name: RunReports
+          path: testResults
