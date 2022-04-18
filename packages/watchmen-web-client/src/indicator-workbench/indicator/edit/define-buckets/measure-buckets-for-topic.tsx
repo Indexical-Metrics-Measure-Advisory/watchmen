@@ -1,5 +1,4 @@
 import {fetchBucketsByMethods} from '@/services/data/tuples/bucket';
-import {isEnumMeasureBucket, isMeasureBucket} from '@/services/data/tuples/bucket-utils';
 import {Factor, FactorId} from '@/services/data/tuples/factor-types';
 import {Indicator, MeasureMethod} from '@/services/data/tuples/indicator-types';
 import {detectMeasures, isTimePeriodMeasure} from '@/services/data/tuples/indicator-utils';
@@ -9,7 +8,6 @@ import {
 	QueryByEnumMethod,
 	QueryByMeasureMethod
 } from '@/services/data/tuples/query-bucket-types';
-import {isQueryByEnum} from '@/services/data/tuples/query-bucket-utils';
 import {EnumForIndicator, TopicForIndicator} from '@/services/data/tuples/query-indicator-types';
 import {isNotNull} from '@/services/data/utils';
 import {Button} from '@/widgets/basic/button';
@@ -21,6 +19,7 @@ import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {useState} from 'react';
 import {MeasureFactor} from '../measure-factor';
+import {matchBuckets, uniqueMeasureMethods} from './utils';
 import {
 	MatchedMeasureBucketLabel,
 	MatchedMeasureBuckets,
@@ -30,24 +29,15 @@ import {
 	OrderedLabel
 } from './widgets';
 
-const FactorMeasureBuckets = (props: { methods: Array<MeasureMethod>; factor: Factor; buckets: Array<QueryBucket>; enum?: EnumForIndicator; }) => {
+const FactorMeasureBuckets = (props: {
+	methods: Array<MeasureMethod>;
+	factor: Factor;
+	buckets: Array<QueryBucket>;
+	enum?: EnumForIndicator;
+}) => {
 	const {methods, factor, buckets, enum: enumeration} = props;
 
-	const matchedBuckets: Array<QueryBucket> = [...new Set(methods)].map(method => {
-		if (method === MeasureMethod.ENUM) {
-			if (factor.enumId != null) {
-				// eslint-disable-next-line
-				return buckets.filter(bucket => isEnumMeasureBucket(bucket) && bucket.enumId == factor.enumId);
-			} else {
-				// no enumId assigned, then no bucket can be applied
-				return [];
-			}
-		} else {
-			return buckets.filter(bucket => isMeasureBucket(bucket) && bucket.measure === method);
-		}
-	}).flat().sort((b1, b2) => {
-		return (b1.name || '').localeCompare(b2.name || '', void 0, {sensitivity: 'base', caseFirst: 'upper'});
-	});
+	const matchedBuckets = matchBuckets({methods, enumId: factor.enumId, buckets});
 
 	if (matchedBuckets.length === 0) {
 		return null;
@@ -66,7 +56,7 @@ const FactorMeasureBuckets = (props: { methods: Array<MeasureMethod>; factor: Fa
 	</>;
 };
 
-export const MeasureBuckets = (props: { indicator: Indicator; topic?: TopicForIndicator, enums?: Array<EnumForIndicator> }) => {
+export const MeasureBucketsForTopic = (props: { indicator: Indicator; topic?: TopicForIndicator, enums?: Array<EnumForIndicator> }) => {
 	const {topic, enums} = props;
 
 	const {fire: fireGlobal} = useEventBus();
@@ -81,7 +71,7 @@ export const MeasureBuckets = (props: { indicator: Indicator; topic?: TopicForIn
 						if (measure.method !== MeasureMethod.ENUM) {
 							return {method: measure.method} as QueryByMeasureMethod;
 						} else {
-							const factorId = measure.factorId;
+							const factorId = measure.factorOrColumnId;
 							if (factorId != null) {
 								// eslint-disable-next-line
 								const factor = (topic?.factors || []).find(factor => factor.factorId == factorId);
@@ -93,17 +83,7 @@ export const MeasureBuckets = (props: { indicator: Indicator; topic?: TopicForIn
 						}
 					})
 					.filter(isNotNull) as Array<QueryByBucketMethod>;
-				const uniqueMethods = Object.values(methods.reduce((all, method) => {
-					if (isQueryByEnum(method)) {
-						const enumId = method.enumId;
-						if (all[enumId] == null) {
-							all[enumId] = method;
-						}
-					} else if (all[method.method as MeasureMethod] == null) {
-						all[method.method as MeasureMethod] = method;
-					}
-					return all;
-				}, {} as Record<string, QueryByBucketMethod>));
+				const uniqueMethods = uniqueMeasureMethods(methods);
 				if (uniqueMethods.length === 0) {
 					return [];
 				} else {
@@ -116,11 +96,11 @@ export const MeasureBuckets = (props: { indicator: Indicator; topic?: TopicForIn
 			});
 	};
 
-	const factorGroups = detectMeasures(topic).reduce((groups, {method, factorId}) => {
-		let methods = groups[factorId];
+	const factorGroups = detectMeasures(topic).reduce((groups, {method, factorOrColumnId}) => {
+		let methods = groups[factorOrColumnId];
 		if (methods == null) {
 			methods = [];
-			groups[factorId] = methods;
+			groups[factorOrColumnId] = methods;
 		}
 		methods.push(method);
 		return groups;

@@ -1,5 +1,5 @@
-import {MeasureColumnItems} from '@/indicator-workbench/indicator/edit/measure-methods/measure-column-items';
 import {EnumForIndicator} from '@/services/data/tuples/query-indicator-types';
+import {MeasureColumnItems} from './measure-column-items';
 import {MeasureFactorItems} from './measure-factor-items';
 import {AvailableMeasureColumn, AvailableMeasureFactor} from './types';
 

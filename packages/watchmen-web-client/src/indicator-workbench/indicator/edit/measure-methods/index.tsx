@@ -31,10 +31,10 @@ const prepareMeasures = (data?: IndicatorsData): MeasureFilter => {
 		return (func: (measure: MeasureMethod) => boolean): Array<AvailableMeasureFactor> => {
 			const {factors = []} = data?.topic || {};
 			return measures.filter(({method}) => func(method))
-				.map(({factorId, method}) => {
+				.map(({factorOrColumnId, method}) => {
 					// eslint-disable-next-line
-					const factor = factors.find(factor => factor.factorId == factorId);
-					return {factorId, factorName: factor?.name, factor, method};
+					const factor = factors.find(factor => factor.factorId == factorOrColumnId);
+					return {factorOrColumnId, factorName: factor?.name, factor, method};
 				});
 		};
 	} else if (data.subject != null) {
@@ -42,11 +42,11 @@ const prepareMeasures = (data?: IndicatorsData): MeasureFilter => {
 		return (func: (measure: MeasureMethod) => boolean): Array<AvailableMeasureColumn> => {
 			const {columns = []} = data.subject?.dataset || {};
 			return measures.filter(({method}) => func(method))
-				.map(({factorId, method}) => {
+				.map(({factorOrColumnId, method}) => {
 					// eslint-disable-next-line
-					const column = columns.find(column => column.columnId == factorId);
+					const column = columns.find(column => column.columnId == factorOrColumnId);
 					const {factor} = findTopicAndFactor(column!, data.subject!);
-					return {factorId, columnAlias: column?.alias, column, method, enumId: factor?.enumId};
+					return {factorOrColumnId, columnAlias: column?.alias, column, method, enumId: factor?.enumId};
 				});
 		};
 	} else {
