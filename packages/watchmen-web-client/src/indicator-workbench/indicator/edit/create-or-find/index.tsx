@@ -33,7 +33,7 @@ const ActivePart = () => {
 
 	const onCreateClicked = () => {
 		fire(IndicatorsEventTypes.CREATE_INDICATOR, (indicator: Indicator) => {
-			fire(IndicatorsEventTypes.SWITCH_STEP, IndicatorDeclarationStep.PICK_TOPIC, {indicator});
+			fire(IndicatorsEventTypes.SWITCH_STEP, IndicatorDeclarationStep.PICK_TOPIC_OR_SUBJECT, {indicator});
 			fireSearch(SearchTextEventTypes.HIDE_SEARCH);
 		});
 	};

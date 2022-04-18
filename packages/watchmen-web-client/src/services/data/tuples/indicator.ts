@@ -6,6 +6,7 @@ import {
 	fetchMockIndicatorCategories,
 	fetchMockIndicatorsForSelection,
 	fetchMockRelevantIndicators,
+	fetchMockSubjectsForIndicatorSelection,
 	fetchMockTopicsForIndicatorSelection,
 	listAllMockIndicators,
 	listMockIndicators,
@@ -18,6 +19,7 @@ import {
 	EnumForIndicator,
 	QueryIndicator,
 	QueryIndicatorCategoryParams,
+	SubjectForIndicator,
 	TopicForIndicator
 } from './query-indicator-types';
 import {TopicId} from './topic-types';
@@ -61,6 +63,14 @@ export const fetchTopicsForIndicatorSelection = async (search: string): Promise<
 		return await fetchMockTopicsForIndicatorSelection(search.trim());
 	} else {
 		return await get({api: Apis.TOPIC_LIST_FOR_INDICATOR_SELECTION, search: {search}});
+	}
+};
+
+export const fetchSubjectsForIndicatorSelection = async (search: string): Promise<Array<SubjectForIndicator>> => {
+	if (isMockService()) {
+		return await fetchMockSubjectsForIndicatorSelection(search.trim());
+	} else {
+		return await get({api: Apis.SUBJECT_LIST_FOR_INDICATOR_SELECTION, search: {search}});
 	}
 };
 

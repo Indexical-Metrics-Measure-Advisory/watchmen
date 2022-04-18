@@ -1,14 +1,15 @@
+import {TuplePage} from '../../query/tuple-page';
 import {isIndicatorFactor} from '../../tuples/factor-calculator-utils';
 import {Indicator, IndicatorId} from '../../tuples/indicator-types';
 import {
 	EnumForIndicator,
 	QueryIndicator,
 	QueryIndicatorCategoryParams,
+	SubjectForIndicator,
 	TopicForIndicator
 } from '../../tuples/query-indicator-types';
 import {TopicId, TopicKind, TopicType} from '../../tuples/topic-types';
 import {isFakedUuid} from '../../tuples/utils';
-import {TuplePage} from '../../query/tuple-page';
 import {DemoTopics, MonthlyOrderPremium} from '../tuples/mock-data-topics';
 import {DemoIndicators, MonthlyOrderPremiumIndicator, OrderPremiumIndicators} from './mock-data-indicators';
 import {listMockEnums} from './mock-enum';
@@ -36,6 +37,15 @@ export const fetchMockTopicsForIndicatorSelection = async (text: string): Promis
 									|| (factor.name || '').toUpperCase().includes(matchedText));
 						});
 				}));
+		}, 500);
+	});
+};
+
+export const fetchMockSubjectsForIndicatorSelection = async (text: string): Promise<Array<SubjectForIndicator>> => {
+	return new Promise<Array<SubjectForIndicator>>(resolve => {
+		// const matchedText = text.toUpperCase();
+		setTimeout(() => {
+			resolve([]);
 		}, 500);
 	});
 };
