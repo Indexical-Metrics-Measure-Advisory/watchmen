@@ -38,9 +38,9 @@ export const BucketOn = () => {
 	const [buckets, setBuckets] = useState<Buckets>({loaded: false, data: []});
 	const forceUpdate = useForceUpdate();
 	useEffect(() => {
-		const askBuckets = async ({indicator, topic}: IndicatorForInspection): Promise<Array<QueryBucket>> => {
+		const askBuckets = async ({indicator, topic, subject}: IndicatorForInspection): Promise<Array<QueryBucket>> => {
 			return new Promise(resolve => {
-				fire(InspectionEventTypes.ASK_BUCKETS, buildBucketsAskingParams(indicator, topic), (buckets: Array<QueryBucket>) => {
+				fire(InspectionEventTypes.ASK_BUCKETS, buildBucketsAskingParams(indicator, topic, subject), (buckets: Array<QueryBucket>) => {
 					resolve(buckets);
 				});
 			});
@@ -132,9 +132,19 @@ export const BucketOn = () => {
 		forceUpdate();
 	};
 
-	const measureOnOptions = buildMeasureOnOptions(indicator!.indicator, indicator!.topic, buckets.data);
+	const measureOnOptions = buildMeasureOnOptions({
+		indicator: indicator!.indicator,
+		topic: indicator!.topic,
+		subject: indicator!.subject,
+		buckets: buckets.data
+	});
 	const measureOn = safeGetMeasureOn(inspection ?? (void 0));
-	const bucketOptions = buildBucketOptions(inspection!, indicator!.topic, buckets.data);
+	const bucketOptions = buildBucketOptions({
+		inspection: inspection!,
+		topic: indicator!.topic,
+		subject: indicator!.subject,
+		buckets: buckets.data
+	});
 	const selectedBucketId = (() => {
 		if (measureOn === InspectMeasureOn.NONE) {
 			return (void 0);

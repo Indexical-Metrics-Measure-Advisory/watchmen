@@ -94,7 +94,7 @@ export const buildColumnDefs = (options: {
 	buckets: Array<QueryBucket>;
 }): Columns => {
 	const {inspection, indicator, buckets} = options;
-	const {indicator: {factorId}, topic} = indicator;
+	const {indicator: {factorId}, topic, subject} = indicator;
 
 	const factor = findFactor(topic, factorId);
 	const factorName = factor?.label || factor?.name || 'Value';

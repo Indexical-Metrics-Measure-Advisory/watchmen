@@ -1,9 +1,10 @@
 import {Indicator, IndicatorAggregateArithmetic, MeasureMethod} from '@/services/data/tuples/indicator-types';
-import {detectMeasures, isTimePeriodMeasure} from '@/services/data/tuples/indicator-utils';
+import {detectMeasures, findTopicAndFactor, isTimePeriodMeasure} from '@/services/data/tuples/indicator-utils';
 import {Inspection, InspectMeasureOn} from '@/services/data/tuples/inspection-types';
+import {isTopicFactorParameter} from '@/services/data/tuples/parameter-utils';
 import {QueryByBucketMethod, QueryByEnumMethod, QueryByMeasureMethod} from '@/services/data/tuples/query-bucket-types';
 import {isQueryByEnum, isQueryByMeasure} from '@/services/data/tuples/query-bucket-utils';
-import {TopicForIndicator} from '@/services/data/tuples/query-indicator-types';
+import {SubjectForIndicator, TopicForIndicator} from '@/services/data/tuples/query-indicator-types';
 import {generateUuid} from '@/services/data/tuples/utils';
 import {getCurrentTime, isNotNull} from '@/services/data/utils';
 import {Lang} from '@/widgets/langs';
@@ -77,14 +78,28 @@ export const validateInspection = (options: {
 	success(inspection);
 };
 
-export const buildBucketsAskingParams = (indicator: Indicator, topic: TopicForIndicator) => {
+export const buildBucketsAskingParams = (
+	indicator: Indicator, topic?: TopicForIndicator, subject?: SubjectForIndicator
+) => {
 	return {
 		valueBucketIds: indicator.valueBuckets ?? [],
 		measureMethods: detectMeasures(topic, (measure: MeasureMethod) => !isTimePeriodMeasure(measure))
 			.map(({factorOrColumnId, method}) => {
 				if (method === MeasureMethod.ENUM) {
-					// eslint-disable-next-line
-					const enumId = topic.factors.find(factor => factor.factorId == factorOrColumnId)?.enumId;
+					let enumId = null;
+					if (topic != null) {
+						// eslint-disable-next-line
+						enumId = topic.factors.find(factor => factor.factorId == factorOrColumnId)?.enumId;
+					} else if (subject != null) {
+						// eslint-disable-next-line
+						const column = subject.dataset.columns.find(column => column.columnId == factorOrColumnId);
+						if (column != null && isTopicFactorParameter(column.parameter)) {
+							const {factor} = findTopicAndFactor(column, subject);
+							if (factor != null) {
+								enumId = factor.enumId;
+							}
+						}
+					}
 					if (enumId == null || enumId.trim().length === 0) {
 						return null;
 					} else {

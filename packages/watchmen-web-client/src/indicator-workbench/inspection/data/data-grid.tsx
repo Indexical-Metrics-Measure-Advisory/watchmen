@@ -1,5 +1,7 @@
 import {Enum} from '@/services/data/tuples/enum-types';
+import {findTopicAndFactor} from '@/services/data/tuples/indicator-utils';
 import {Inspection, InspectMeasureOn} from '@/services/data/tuples/inspection-types';
+import {isTopicFactorParameter} from '@/services/data/tuples/parameter-utils';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
 import {RowOfAny} from '@/services/data/types';
 import {Lang} from '@/widgets/langs';
@@ -59,19 +61,34 @@ export const DataGrid = (props: { inspection: Inspection; indicator: IndicatorFo
 				});
 			};
 
-			const askEnum = async ({topic}: IndicatorForInspection): Promise<Enum | undefined> => {
+			const askEnum = async ({topic, subject}: IndicatorForInspection): Promise<Enum | undefined> => {
 				return new Promise(resolve => {
 					if (inspection.measureOnFactorId != null
 						&& inspection.measureOn === InspectMeasureOn.OTHER
 						&& inspection.measureOnBucketId == null) {
 						// measure on a factor and on naturally classification
-						// eslint-disable-next-line
-						const factor = (topic.factors || []).find(factor => factor.factorId == inspection.measureOnFactorId);
-						if (factor != null && factor.enumId != null) {
-							fire(InspectionEventTypes.ASK_ENUM, factor.enumId, (enumeration?: Enum) => {
-								resolve(enumeration);
-							});
-							return;
+						if (topic != null) {
+							// eslint-disable-next-line
+							const factor = (topic.factors || []).find(factor => factor.factorId == inspection.measureOnFactorId);
+							if (factor != null && factor.enumId != null) {
+								fire(InspectionEventTypes.ASK_ENUM, factor.enumId, (enumeration?: Enum) => {
+									resolve(enumeration);
+								});
+								// will resolve in promise, avoid the finally resolve
+								return;
+							}
+						} else if (subject != null) {
+							const column = (subject.dataset.columns || []).find(column => column.columnId == inspection.measureOnFactorId);
+							if (column != null && isTopicFactorParameter(column.parameter)) {
+								const {factor} = findTopicAndFactor(column, subject);
+								if (factor != null && factor.enumId != null) {
+									fire(InspectionEventTypes.ASK_ENUM, factor.enumId, (enumeration?: Enum) => {
+										resolve(enumeration);
+									});
+									// will resolve in promise, avoid the finally resolve
+									return;
+								}
+							}
 						}
 					}
 					resolve(void 0);
