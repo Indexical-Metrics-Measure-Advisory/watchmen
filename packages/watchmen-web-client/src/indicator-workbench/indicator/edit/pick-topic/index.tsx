@@ -82,7 +82,7 @@ const ActivePart = (props: { data?: IndicatorsData; visible: boolean }) => {
 	};
 	const onSelectionChange = async (item: TopicOrFactorCandidate) => {
 		const {indicator} = data!;
-		indicator!.topicId = item.topic.topicId;
+		indicator!.topicOrSubjectId = item.topic.topicId;
 		indicator!.factorId = item.factor?.factorId;
 		data!.topic = item.topic;
 		data!.enums = await fetchEnumsForTopic(item.topic.topicId);

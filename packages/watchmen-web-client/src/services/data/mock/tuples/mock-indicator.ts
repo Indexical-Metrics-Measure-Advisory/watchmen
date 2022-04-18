@@ -61,9 +61,9 @@ export const fetchMockIndicator = async (indicatorId: IndicatorId): Promise<{ in
 	// eslint-disable-next-line
 	const found = DemoIndicators.find(({indicatorId: id}) => id == indicatorId);
 	if (found) {
-		const indicator = JSON.parse(JSON.stringify(found));
+		const indicator: Indicator = JSON.parse(JSON.stringify(found));
 		// eslint-disable-next-line
-		const topic = DemoTopics.find(({topicId: id}) => id == indicator.topicId)!;
+		const topic = DemoTopics.find(({topicId: id}) => id == indicator.topicOrSubjectId)!;
 		const {data: demoEnums} = await listMockEnums({search: ''});
 		const enums = (topic.factors || []).filter(factor => factor.enumId)
 			// eslint-disable-next-line
