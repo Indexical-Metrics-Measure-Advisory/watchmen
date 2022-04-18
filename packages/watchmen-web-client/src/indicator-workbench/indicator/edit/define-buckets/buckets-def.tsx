@@ -1,6 +1,7 @@
 import {IndicatorsData} from '../../indicators-event-bus-types';
 import {IndicatorFactorBuckets} from './indicator-factor-buckets';
-import {MeasureBuckets} from './measure-buckets';
+import {MeasureBucketsForSubject} from './measure-buckets-for-subject';
+import {MeasureBucketsForTopic} from './measure-buckets-for-topic';
 import {BucketsDefContainer} from './widgets';
 
 export const BucketsDef = (props: { data: IndicatorsData }) => {
@@ -12,6 +13,8 @@ export const BucketsDef = (props: { data: IndicatorsData }) => {
 
 	return <BucketsDefContainer>
 		<IndicatorFactorBuckets indicator={data.indicator}/>
-		<MeasureBuckets indicator={data.indicator} topic={data.topic} enums={data.enums}/>
+		{data.topic != null
+			? <MeasureBucketsForTopic indicator={data.indicator} topic={data.topic} enums={data.enums}/>
+			: <MeasureBucketsForSubject indicator={data.indicator} subject={data.subject} enums={data.enums}/>}
 	</BucketsDefContainer>;
 };

@@ -81,10 +81,10 @@ export const buildBucketsAskingParams = (indicator: Indicator, topic: TopicForIn
 	return {
 		valueBucketIds: indicator.valueBuckets ?? [],
 		measureMethods: detectMeasures(topic, (measure: MeasureMethod) => !isTimePeriodMeasure(measure))
-			.map(({factorId, method}) => {
+			.map(({factorOrColumnId, method}) => {
 				if (method === MeasureMethod.ENUM) {
 					// eslint-disable-next-line
-					const enumId = topic.factors.find(factor => factor.factorId == factorId)?.enumId;
+					const enumId = topic.factors.find(factor => factor.factorId == factorOrColumnId)?.enumId;
 					if (enumId == null || enumId.trim().length === 0) {
 						return null;
 					} else {

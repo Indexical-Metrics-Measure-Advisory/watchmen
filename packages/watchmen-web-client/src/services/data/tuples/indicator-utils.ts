@@ -129,13 +129,13 @@ const factorToIndicatorMeasures = (factorOrColumnId: FactorId | SubjectDataSetCo
 	} else if (Array.isArray(measures)) {
 		return measures.map(measure => {
 			if (accept == null || accept(measure)) {
-				return {factorId: factorOrColumnId, method: measure};
+				return {factorOrColumnId, method: measure};
 			} else {
 				return null;
 			}
 		}).filter(isNotNull);
 	} else if (accept == null || accept(measures)) {
-		return [{factorId: factorOrColumnId, method: measures}];
+		return [{factorOrColumnId, method: measures}];
 	} else {
 		return null;
 	}
@@ -241,7 +241,11 @@ export const isCategoryMeasure = (measure: MeasureMethod): boolean => {
 	return [MeasureMethod.BOOLEAN, MeasureMethod.ENUM].includes(measure);
 };
 
-export const findTopicAndFactor = (column: SubjectDataSetColumn, subject: SubjectForIndicator): { topic?: Topic, factor?: Factor } => {
+export const findTopicAndFactor = (column: SubjectDataSetColumn, subject?: SubjectForIndicator): { topic?: Topic, factor?: Factor } => {
+	if (subject == null) {
+		return {};
+	}
+
 	const parameter = column.parameter;
 	if (isTopicFactorParameter(parameter)) {
 		const {topicId, factorId} = parameter;
