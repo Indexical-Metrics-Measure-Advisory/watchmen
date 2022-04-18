@@ -21,7 +21,18 @@ import {
 	TopicForIndicator
 } from './query-indicator-types';
 import {TopicId} from './topic-types';
+import {UserGroupId} from './user-group-types';
 import {isFakedUuid} from './utils';
+
+type IndicatorOnServer = Omit<Indicator, 'userGroupIds'> & { groupIds: Array<UserGroupId> };
+const transformFromServer = (indicator: IndicatorOnServer): Indicator => {
+	const {groupIds, ...rest} = indicator;
+	return {userGroupIds: groupIds, ...rest};
+};
+const transformToServer = (indicator: Indicator): IndicatorOnServer => {
+	const {userGroupIds, ...rest} = indicator;
+	return {groupIds: userGroupIds, ...rest};
+};
 
 export const listIndicators = async (options: {
 	search: string;
@@ -65,9 +76,9 @@ export const fetchIndicator = async (indicatorId: IndicatorId): Promise<{ indica
 	if (isMockService()) {
 		return await fetchMockIndicator(indicatorId);
 	} else {
-		const indicator = await get({api: Apis.INDICATOR_GET, search: {indicatorId}});
-		const topic = await get({api: Apis.TOPIC_GET, search: {topicId: indicator.topicId}});
-		return {indicator, topic};
+		const indicator: IndicatorOnServer = await get({api: Apis.INDICATOR_GET, search: {indicatorId}});
+		const topic = await get({api: Apis.TOPIC_GET, search: {topicId: indicator.topicOrSubjectId}});
+		return {indicator: transformFromServer(indicator), topic};
 	}
 };
 
@@ -84,7 +95,7 @@ export const saveIndicator = async (indicator: Indicator): Promise<void> => {
 	} else {
 		const data = await post({
 			api: Apis.INDICATOR_SAVE,
-			data: indicator
+			data: transformToServer(indicator)
 		});
 		indicator.tenantId = data.tenantId;
 		indicator.version = data.version;
@@ -116,6 +127,7 @@ export const listAllIndicators = async (): Promise<Array<Indicator>> => {
 	if (isMockService()) {
 		return listAllMockIndicators();
 	} else {
-		return await get({api: Apis.INDICATORS_LIST});
+		const indicators: Array<IndicatorOnServer> = await get({api: Apis.INDICATORS_LIST});
+		return (indicators || []).map(indicator => transformFromServer(indicator));
 	}
 };

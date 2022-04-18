@@ -1,8 +1,11 @@
 import {BucketId} from './bucket-types';
+import {ParameterJoint} from './factor-calculator-types';
 import {FactorId} from './factor-types';
+import {SubjectDataSetColumnId, SubjectId} from './subject-types';
 import {TenantId} from './tenant-types';
 import {TopicId} from './topic-types';
 import {OptimisticLock, Tuple} from './tuple-types';
+import {UserGroupId} from './user-group-types';
 
 export enum MeasureMethod {
 	// address related
@@ -98,15 +101,28 @@ export interface RelevantIndicator {
 	type: RelevantIndicatorType;
 }
 
+export enum IndicatorBaseOn {
+	TOPIC = 'topic',
+	SUBJECT = 'subject'
+}
+
+export interface IndicatorFilter {
+	enabled: boolean;
+	joint: ParameterJoint;
+}
+
 export interface Indicator extends Tuple, OptimisticLock {
 	indicatorId: IndicatorId;
 	name: string;
-	topicId: TopicId;
+	topicOrSubjectId: TopicId | SubjectId;
 	/** is a count indicator when factor is not appointed */
-	factorId?: FactorId;
+	factorId?: FactorId | SubjectDataSetColumnId;
+	baseOn: IndicatorBaseOn;
 	/** effective only when factorId is appointed */
 	valueBuckets?: Array<BucketId>;
 	relevants?: Array<RelevantIndicator>;
+	userGroupIds: Array<UserGroupId>;
+	filter?: IndicatorFilter;
 	// categories, ordered
 	category1?: string;
 	category2?: string;

@@ -29,7 +29,7 @@ export const IndicatorContent = (props: {
 		(async () => {
 			const [topic, valueBuckets] = await Promise.all([
 				new Promise<Topic | undefined>(resolve => {
-					fire(NavigationEventTypes.ASK_TOPIC, indicator.topicId, (topic?: Topic) => {
+					fire(NavigationEventTypes.ASK_TOPIC, indicator.topicOrSubjectId, (topic?: Topic) => {
 						resolve(topic);
 					});
 				}),
