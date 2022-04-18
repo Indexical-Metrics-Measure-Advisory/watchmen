@@ -16,7 +16,7 @@ import {IndicatorDeclarationStep} from '../../types';
 import {Construct, useConstructed} from '../use-constructed';
 import {useStep} from '../use-step';
 import {AggregateItems} from './aggregate-items';
-import {MeasureFactorItems} from './measure-factor-items';
+import {MeasureItems} from './measure-items';
 import {AvailableMeasureColumn, AvailableMeasureFactor} from './types';
 import {MeasureItemsContainer} from './widgets';
 
@@ -108,11 +108,9 @@ export const MeasureMethods = () => {
 		</StepTitle>
 		<StepBody visible={visible}>
 			<MeasureItemsContainer>
-				{[geoMeasures, timePeriodMeasures, individualMeasures, organizationMeasures, categoryMeasures]
-					.map(({key, label, measures}) => {
-						return <MeasureFactorItems label={label} measureFactors={measures} enums={data?.enums || []}
-						                           key={key}/>;
-					})}
+				<MeasureItems
+					measures={[geoMeasures, timePeriodMeasures, individualMeasures, organizationMeasures, categoryMeasures]}
+					enums={data?.enums}/>
 				<AggregateItems label={Lang.INDICATOR_WORKBENCH.INDICATOR.AGGREGATE} aggregates={aggregates}/>
 			</MeasureItemsContainer>
 		</StepBody>
