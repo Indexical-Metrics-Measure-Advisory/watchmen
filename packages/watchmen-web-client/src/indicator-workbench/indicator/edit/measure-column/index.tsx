@@ -32,6 +32,6 @@ export const MeasureColumn = (props: { column: SubjectDataSetColumn, enum?: Enum
 
 	return <MeasureColumnItem {...tooltip} ref={ref}>
 		<FontAwesomeIcon icon={ICON_FACTOR}/>
-		<span>{name || 'Noname Factor'}</span>
+		<span>{alias || 'Noname Factor'}</span>
 	</MeasureColumnItem>;
 };
