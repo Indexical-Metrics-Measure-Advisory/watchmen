@@ -141,6 +141,29 @@ const factorToIndicatorMeasures = (factorOrColumnId: FactorId | SubjectDataSetCo
 	}
 };
 
+export const translateComputeTypeToFactorType = (computeType: ParameterComputeType): FactorType | null => {
+	if (computeType === ParameterComputeType.YEAR_OF) {
+		return FactorType.YEAR;
+	} else if (computeType === ParameterComputeType.HALF_YEAR_OF) {
+		return FactorType.HALF_YEAR;
+	} else if (computeType === ParameterComputeType.QUARTER_OF) {
+		return FactorType.QUARTER;
+	} else if (computeType === ParameterComputeType.MONTH_OF) {
+		return FactorType.MONTH;
+	} else if (computeType === ParameterComputeType.WEEK_OF_YEAR) {
+		return FactorType.WEEK_OF_YEAR;
+	} else if (computeType === ParameterComputeType.WEEK_OF_MONTH) {
+		return FactorType.WEEK_OF_MONTH;
+	} else if (computeType === ParameterComputeType.DAY_OF_MONTH) {
+		return FactorType.DAY_OF_MONTH;
+	} else if (computeType === ParameterComputeType.DAY_OF_WEEK) {
+		return FactorType.DAY_OF_WEEK;
+	} else {
+		// TODO case then is ignored now
+		return null;
+	}
+};
+
 export const detectMeasures = (topicOrSubject?: Topic | TopicForIndicator | SubjectForIndicator, accept?: (measure: MeasureMethod) => boolean): Array<IndicatorMeasure> => {
 	if (topicOrSubject == null) {
 		return [];
@@ -161,28 +184,14 @@ export const detectMeasures = (topicOrSubject?: Topic | TopicForIndicator | Subj
 					return null;
 				}
 			} else if (isComputedParameter(parameter)) {
-				const computeType = parameter.type;
-				if (computeType === ParameterComputeType.YEAR_OF) {
-					return factorToIndicatorMeasures(column.columnId, FactorType.YEAR, accept);
-				} else if (computeType === ParameterComputeType.HALF_YEAR_OF) {
-					return factorToIndicatorMeasures(column.columnId, FactorType.HALF_YEAR, accept);
-				} else if (computeType === ParameterComputeType.QUARTER_OF) {
-					return factorToIndicatorMeasures(column.columnId, FactorType.QUARTER, accept);
-				} else if (computeType === ParameterComputeType.MONTH_OF) {
-					return factorToIndicatorMeasures(column.columnId, FactorType.MONTH, accept);
-				} else if (computeType === ParameterComputeType.WEEK_OF_YEAR) {
-					return factorToIndicatorMeasures(column.columnId, FactorType.WEEK_OF_YEAR, accept);
-				} else if (computeType === ParameterComputeType.WEEK_OF_MONTH) {
-					return factorToIndicatorMeasures(column.columnId, FactorType.WEEK_OF_MONTH, accept);
-				} else if (computeType === ParameterComputeType.DAY_OF_MONTH) {
-					return factorToIndicatorMeasures(column.columnId, FactorType.DAY_OF_MONTH, accept);
-				} else if (computeType === ParameterComputeType.DAY_OF_WEEK) {
-					return factorToIndicatorMeasures(column.columnId, FactorType.DAY_OF_WEEK, accept);
+				const factorType = translateComputeTypeToFactorType(parameter.type);
+				if (factorType != null) {
+					return factorToIndicatorMeasures(column.columnId, factorType, accept);
 				} else {
-					// TODO case then is ignored now
 					return null;
 				}
 			} else {
+				// constant value cannot be measured
 				return null;
 			}
 		}).filter(isNotNull).flat();

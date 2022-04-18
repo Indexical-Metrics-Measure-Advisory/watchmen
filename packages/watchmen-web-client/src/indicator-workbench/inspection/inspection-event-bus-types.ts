@@ -3,14 +3,20 @@ import {Enum, EnumId} from '@/services/data/tuples/enum-types';
 import {Indicator, IndicatorId} from '@/services/data/tuples/indicator-types';
 import {Inspection, InspectionId} from '@/services/data/tuples/inspection-types';
 import {QueryBucket, QueryByBucketMethod} from '@/services/data/tuples/query-bucket-types';
-import {EnumForIndicator, QueryIndicator, TopicForIndicator} from '@/services/data/tuples/query-indicator-types';
+import {
+	EnumForIndicator,
+	QueryIndicator,
+	SubjectForIndicator,
+	TopicForIndicator
+} from '@/services/data/tuples/query-indicator-types';
 import {QueryInspection} from '@/services/data/tuples/query-inspection-types';
 import {RowOfAny} from '@/services/data/types';
 import {Columns} from './types';
 
 export interface IndicatorForInspection {
 	indicator: Indicator;
-	topic: TopicForIndicator;
+	topic?: TopicForIndicator;
+	subject?: SubjectForIndicator;
 	enums: Array<EnumForIndicator>;
 }
 
