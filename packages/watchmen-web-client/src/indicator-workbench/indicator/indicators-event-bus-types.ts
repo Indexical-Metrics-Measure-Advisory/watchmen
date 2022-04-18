@@ -6,6 +6,7 @@ import {
 	EnumForIndicator,
 	QueryIndicator,
 	QueryIndicatorCategoryParams,
+	SubjectForIndicator,
 	TopicForIndicator
 } from '@/services/data/tuples/query-indicator-types';
 import {IndicatorDeclarationStep} from './types';
@@ -13,6 +14,7 @@ import {IndicatorDeclarationStep} from './types';
 export interface IndicatorsData {
 	indicator?: Indicator;
 	topic?: TopicForIndicator;
+	subject?: SubjectForIndicator;
 	enums?: Array<EnumForIndicator>;
 }
 
@@ -25,7 +27,7 @@ export enum IndicatorsEventTypes {
 
 	CREATE_INDICATOR = 'create-indicator',
 	PICK_INDICATOR = 'pick-indicator',
-	PICK_TOPIC = 'pick-topic',
+	PICK_TOPIC_OR_SUBJECT = 'pick-topic-or-subject',
 
 	INDICATOR_VALUE_BUCKET_PICKED = 'indicator-value-bucket-picked',
 	INDICATOR_VALUE_BUCKET_UNPICKED = 'indicator-value-bucket-unpicked',
@@ -65,9 +67,9 @@ export interface IndicatorsEventBus {
 	on(type: IndicatorsEventTypes.PICK_INDICATOR, listener: (indicatorId: IndicatorId, onData: (data: IndicatorsData) => void) => void): this;
 	off(type: IndicatorsEventTypes.PICK_INDICATOR, listener: (indicatorId: IndicatorId, onData: (data: IndicatorsData) => void) => void): this;
 
-	fire(type: IndicatorsEventTypes.PICK_TOPIC, data: IndicatorsData, onData: (data: IndicatorsData) => void): this;
-	on(type: IndicatorsEventTypes.PICK_TOPIC, listener: (data: IndicatorsData, onData: (data: IndicatorsData) => void) => void): this;
-	off(type: IndicatorsEventTypes.PICK_TOPIC, listener: (data: IndicatorsData, onData: (data: IndicatorsData) => void) => void): this;
+	fire(type: IndicatorsEventTypes.PICK_TOPIC_OR_SUBJECT, data: IndicatorsData, onData: (data: IndicatorsData) => void): this;
+	on(type: IndicatorsEventTypes.PICK_TOPIC_OR_SUBJECT, listener: (data: IndicatorsData, onData: (data: IndicatorsData) => void) => void): this;
+	off(type: IndicatorsEventTypes.PICK_TOPIC_OR_SUBJECT, listener: (data: IndicatorsData, onData: (data: IndicatorsData) => void) => void): this;
 
 	fire(type: IndicatorsEventTypes.INDICATOR_VALUE_BUCKET_PICKED, indicator: Indicator, bucket: QueryBucket): this;
 	on(type: IndicatorsEventTypes.INDICATOR_VALUE_BUCKET_PICKED, listener: (indicator: Indicator, bucket: QueryBucket) => void): this;

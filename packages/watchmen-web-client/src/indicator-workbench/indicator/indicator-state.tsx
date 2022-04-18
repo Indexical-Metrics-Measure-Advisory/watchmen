@@ -92,9 +92,9 @@ export const IndicatorState = () => {
 		const onPickTopic = async (data: IndicatorsData, onData: (data: IndicatorsData) => void) => {
 			onData(data);
 		};
-		on(IndicatorsEventTypes.PICK_TOPIC, onPickTopic);
+		on(IndicatorsEventTypes.PICK_TOPIC_OR_SUBJECT, onPickTopic);
 		return () => {
-			off(IndicatorsEventTypes.PICK_TOPIC, onPickTopic);
+			off(IndicatorsEventTypes.PICK_TOPIC_OR_SUBJECT, onPickTopic);
 		};
 	}, [on, off]);
 	useEffect(() => {

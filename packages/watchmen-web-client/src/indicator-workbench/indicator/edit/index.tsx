@@ -24,7 +24,7 @@ export const IndicatorEditor = () => {
 			if (data == null || data.indicator == null) {
 				fire(IndicatorsEventTypes.SWITCH_STEP, IndicatorDeclarationStep.CREATE_OR_FIND);
 			} else if (isFakedUuid(data.indicator)) {
-				fire(IndicatorsEventTypes.SWITCH_STEP, IndicatorDeclarationStep.PICK_TOPIC, {indicator: data.indicator});
+				fire(IndicatorsEventTypes.SWITCH_STEP, IndicatorDeclarationStep.PICK_TOPIC_OR_SUBJECT, {indicator: data.indicator});
 			} else {
 				fire(IndicatorsEventTypes.SWITCH_STEP, IndicatorDeclarationStep.LAST_STEP, data);
 			}

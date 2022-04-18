@@ -1,7 +1,15 @@
+import {ParameterComputeType} from '@/services/data/tuples/factor-calculator-types';
 import {isIndicatorFactor} from '@/services/data/tuples/factor-calculator-utils';
 import {Factor} from '@/services/data/tuples/factor-types';
-import {fetchEnumsForTopic, fetchTopicsForIndicatorSelection} from '@/services/data/tuples/indicator';
-import {TopicForIndicator} from '@/services/data/tuples/query-indicator-types';
+import {
+	fetchEnumsForTopic,
+	fetchSubjectsForIndicatorSelection,
+	fetchTopicsForIndicatorSelection
+} from '@/services/data/tuples/indicator';
+import {IndicatorBaseOn} from '@/services/data/tuples/indicator-types';
+import {isComputedParameter, isTopicFactorParameter} from '@/services/data/tuples/parameter-utils';
+import {SubjectForIndicator, TopicForIndicator} from '@/services/data/tuples/query-indicator-types';
+import {SubjectDataSetColumn} from '@/services/data/tuples/subject-types';
 import {ButtonInk} from '@/widgets/basic/types';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
@@ -14,32 +22,66 @@ import {Step, StepTitle, StepTitleButton, StepTitleButtonsRetractor} from '../..
 import {useIndicatorsEventBus} from '../../indicators-event-bus';
 import {IndicatorsData, IndicatorsEventTypes} from '../../indicators-event-bus-types';
 import {IndicatorDeclarationStep} from '../../types';
-import {useStep} from '../use-step';
 import {Construct, useConstructed} from '../use-constructed';
-import {TopicOrFactorCandidateName} from './widgets';
+import {useStep} from '../use-step';
+import {CandidateBaseOn, CandidateName} from './widgets';
 
-interface TopicOrFactorCandidate extends SearchItem {
+interface TopicFactorCandidate extends SearchItem {
 	topic: TopicForIndicator;
 	factor?: Factor;
 }
 
-const TopicOrFactorCandidateItem = (props: { topic: TopicForIndicator; factor?: Factor }) => {
+interface SubjectColumnCandidate extends SearchItem {
+	subject: SubjectForIndicator;
+	column: SubjectDataSetColumn;
+}
+
+const TopicFactorCandidateItem = (props: { topic: TopicForIndicator; factor: Factor }) => {
 	const {topic, factor} = props;
 
-	if (factor == null) {
-		return <>
-			<TopicOrFactorCandidateName>{topic.name}</TopicOrFactorCandidateName>
-			{/*<TopicOrFactorCandidateUsage>*/}
-			{/*	{Lang.INDICATOR_WORKBENCH.INDICATOR.INDICATOR_ON_TOPIC}*/}
-			{/*</TopicOrFactorCandidateUsage>*/}
-		</>;
+	return <>
+		<CandidateName>{topic.name}.{factor.name}</CandidateName>
+		<CandidateBaseOn>
+			{Lang.INDICATOR_WORKBENCH.INDICATOR.INDICATOR_ON_TOPIC}
+		</CandidateBaseOn>
+	</>;
+};
+const SubjectColumnCandidateItem = (props: { subject: SubjectForIndicator; column: SubjectDataSetColumn }) => {
+	const {subject, column} = props;
+	return <>
+		<CandidateName>{subject.name}.{column.alias}</CandidateName>
+		<CandidateBaseOn>
+			{Lang.INDICATOR_WORKBENCH.INDICATOR.INDICATOR_ON_SUBJECT}
+		</CandidateBaseOn>
+	</>;
+};
+
+const isIndicatorColumn = (column: SubjectDataSetColumn, subject: SubjectForIndicator): boolean => {
+	const parameter = column.parameter;
+	if (isTopicFactorParameter(parameter)) {
+		const {topicId, factorId} = parameter;
+		// eslint-disable-next-line
+		const topic = (subject.topics || []).find(topic => topic.topicId == topicId);
+		if (topic == null) {
+			return false;
+		}
+		// eslint-disable-next-line
+		const factor = (topic.factors || []).find(factor => factor.factorId == factorId);
+		if (factor == null) {
+			return false;
+		}
+		return isIndicatorFactor(factor);
+	} else if (isComputedParameter(parameter)) {
+		const computeType = parameter.type;
+		return [
+			ParameterComputeType.ADD,
+			ParameterComputeType.SUBTRACT,
+			ParameterComputeType.MULTIPLY,
+			ParameterComputeType.DIVIDE,
+			ParameterComputeType.MODULUS
+		].includes(computeType);
 	} else {
-		return <>
-			<TopicOrFactorCandidateName>{topic.name}.{factor.name}</TopicOrFactorCandidateName>
-			{/*<TopicOrFactorCandidateUsage>*/}
-			{/*	<FactorTypeLabel factor={factor}/>*/}
-			{/*</TopicOrFactorCandidateUsage>*/}
-		</>;
+		return false;
 	}
 };
 
@@ -53,41 +95,67 @@ const ActivePart = (props: { data?: IndicatorsData; visible: boolean }) => {
 		fireSearch(SearchTextEventTypes.FOCUS);
 	}, [fireSearch]);
 
-	const search = async (text: string): Promise<Array<TopicOrFactorCandidate>> => {
-		return new Promise<Array<TopicOrFactorCandidate>>(resolve => {
+	const search = async (text: string): Promise<Array<TopicFactorCandidate | SubjectColumnCandidate>> => {
+		return new Promise<Array<TopicFactorCandidate | SubjectColumnCandidate>>(resolve => {
 			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
-				async () => await fetchTopicsForIndicatorSelection(text),
-				(candidates: Array<TopicForIndicator>) => {
-					resolve(candidates.map(candidate => {
-						return [
-							// {
-							// 	topic: candidate,
-							// 	key: `topic-${candidate.topicId}`,
-							// 	text: <TopicOrFactorCandidateItem topic={candidate}/>
-							// },
-							...(candidate.factors || []).filter(factor => {
-								return isIndicatorFactor(factor.type);
-							}).map(factor => {
+				async () => {
+					const topics = await fetchTopicsForIndicatorSelection(text);
+					const subjects = await fetchSubjectsForIndicatorSelection(text);
+					return {topics, subjects};
+				},
+				(candidates: { topics: Array<TopicForIndicator>, subjects: Array<SubjectForIndicator> }) => {
+					const {topics, subjects} = candidates;
+					resolve([
+						...topics.map(candidate => {
+							return [
+								...(candidate.factors || []).filter(factor => {
+									return isIndicatorFactor(factor.type);
+								}).map(factor => {
+									return {
+										topic: candidate,
+										factor,
+										key: `factor-${candidate.topicId}-${factor.factorId}`,
+										text: <TopicFactorCandidateItem topic={candidate} factor={factor}/>
+									};
+								})
+							];
+						}).flat(),
+						...subjects.map(candidate => {
+							return (candidate.dataset.columns || []).filter(column => {
+								return isIndicatorColumn(column, candidate);
+							}).map(column => {
 								return {
-									topic: candidate,
-									factor,
-									key: `factor-${candidate.topicId}-${factor.factorId}`,
-									text: <TopicOrFactorCandidateItem topic={candidate} factor={factor}/>
+									subject: candidate,
+									column,
+									key: `column-${candidate.subjectId}-${column.columnId}`,
+									text: <SubjectColumnCandidateItem subject={candidate} column={column}/>
 								};
-							})
-						];
-					}).flat());
+							});
+						}).flat()
+					]);
 				}, () => resolve([]));
 		});
 	};
-	const onSelectionChange = async (item: TopicOrFactorCandidate) => {
+	const isBaseOnTopic = (item: TopicFactorCandidate | SubjectColumnCandidate): item is TopicFactorCandidate => {
+		return (item as any).topic != null;
+	};
+	const onSelectionChange = async (item: TopicFactorCandidate | SubjectColumnCandidate) => {
 		const {indicator} = data!;
-		indicator!.topicOrSubjectId = item.topic.topicId;
-		indicator!.factorId = item.factor?.factorId;
-		data!.topic = item.topic;
-		data!.enums = await fetchEnumsForTopic(item.topic.topicId);
+		if (isBaseOnTopic(item)) {
+			indicator!.topicOrSubjectId = item.topic.topicId;
+			indicator!.factorId = item.factor?.factorId;
+			indicator!.baseOn = IndicatorBaseOn.TOPIC;
+			data!.topic = item.topic;
+			data!.enums = await fetchEnumsForTopic(item.topic.topicId);
+		} else {
+			indicator!.topicOrSubjectId = item.subject.subjectId;
+			indicator!.factorId = item.column.columnId;
+			indicator!.baseOn = IndicatorBaseOn.SUBJECT;
+			data!.subject = item.subject;
+			// TODO ask enums for subject
+		}
 
-		fire(IndicatorsEventTypes.PICK_TOPIC, data!, (data: IndicatorsData) => {
+		fire(IndicatorsEventTypes.PICK_TOPIC_OR_SUBJECT, data!, (data: IndicatorsData) => {
 			fire(IndicatorsEventTypes.SWITCH_STEP, IndicatorDeclarationStep.DEFINE_BUCKETS, data);
 		});
 	};
@@ -95,33 +163,46 @@ const ActivePart = (props: { data?: IndicatorsData; visible: boolean }) => {
 	return <StepTitle visible={visible}>
 		<SearchText search={search} onSelectionChange={onSelectionChange}
 		            buttonFirst={true} alwaysShowSearchInput={true}
-		            openText={Lang.INDICATOR_WORKBENCH.INDICATOR.PICK_TOPIC}
-		            placeholder={Lang.PLAIN.FIND_TOPIC_OR_FACTOR_PLACEHOLDER}/>
+		            openText={Lang.INDICATOR_WORKBENCH.INDICATOR.PICK_TOPIC_OR_SUBJECT}
+		            placeholder={Lang.PLAIN.FIND_TOPIC_OR_FACTOR_OR_SUBJECT_PLACEHOLDER}/>
 	</StepTitle>;
 };
 
 const DonePart = (props: { data?: IndicatorsData; visible: boolean }) => {
 	const {data, visible} = props;
 
-	const {indicator, topic} = data ?? {};
-	const topicName = topic?.name;
-	// eslint-disable-next-line
-	const factor = indicator?.factorId == null ? null : ((topic?.factors || []).find(factor => factor.factorId == indicator.factorId) ?? null);
-	const factorName = factor?.name;
+	const {indicator, topic, subject} = data ?? {};
+	if (indicator?.baseOn === IndicatorBaseOn.TOPIC) {
+		const topicName = topic?.name;
+		// eslint-disable-next-line
+		const factor: Factor | null = indicator?.factorId == null ? null : ((topic?.factors || []).find(factor => factor.factorId == indicator.factorId) ?? null);
+		const factorName = factor?.name;
 
-	return <StepTitle visible={visible}>
-		<StepTitleButton ink={ButtonInk.SUCCESS} asLabel={true}>
-			{Lang.INDICATOR_WORKBENCH.INDICATOR.DEFINE_ON_TOPIC} [ {topicName}{factorName ? `.${factorName}` : ''} ]
-		</StepTitleButton>
-		<StepTitleButtonsRetractor/>
-	</StepTitle>;
+		return <StepTitle visible={visible}>
+			<StepTitleButton ink={ButtonInk.SUCCESS} asLabel={true}>
+				{Lang.INDICATOR_WORKBENCH.INDICATOR.DEFINE_ON_TOPIC} [ {topicName}{factorName ? `.${factorName}` : ''} ]
+			</StepTitleButton>
+			<StepTitleButtonsRetractor/>
+		</StepTitle>;
+	} else {
+		const subjectName = subject?.name;
+		// eslint-disable-next-line
+		const column: SubjectDataSetColumn | null = indicator?.factorId == null ? null : ((subject?.dataset.columns || []).find(column => column.columnId == indicator.factorId) ?? null);
+		const columnAlias = column?.alias;
+		return <StepTitle visible={visible}>
+			<StepTitleButton ink={ButtonInk.SUCCESS} asLabel={true}>
+				{Lang.INDICATOR_WORKBENCH.INDICATOR.DEFINE_ON_SUBJECT} [ {subjectName}{columnAlias ? `.${columnAlias}` : ''} ]
+			</StepTitleButton>
+			<StepTitleButtonsRetractor/>
+		</StepTitle>;
+	}
 };
 
 export const PickTopic = () => {
 	const ref = useRef<HTMLDivElement>(null);
 	const {constructed, setConstructed, visible, setVisible} = useConstructed(ref);
 	const {data, active, done} = useStep({
-		step: IndicatorDeclarationStep.PICK_TOPIC,
+		step: IndicatorDeclarationStep.PICK_TOPIC_OR_SUBJECT,
 		active: () => setConstructed(Construct.ACTIVE),
 		done: () => setConstructed(Construct.DONE),
 		dropped: () => setVisible(false)
@@ -131,7 +212,7 @@ export const PickTopic = () => {
 		return null;
 	}
 
-	return <Step index={IndicatorDeclarationStep.PICK_TOPIC} visible={visible} ref={ref}>
+	return <Step index={IndicatorDeclarationStep.PICK_TOPIC_OR_SUBJECT} visible={visible} ref={ref}>
 		<SearchTextEventBusProvider>
 			<ActivePart data={data} visible={active}/>
 		</SearchTextEventBusProvider>

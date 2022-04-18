@@ -1,9 +1,9 @@
 import styled from 'styled-components';
 
-export const TopicOrFactorCandidateName = styled.span`
+export const CandidateName = styled.span`
 	flex-grow : 1;
 `;
-export const TopicOrFactorCandidateUsage = styled.span`
+export const CandidateBaseOn = styled.span`
 	display          : flex;
 	position         : relative;
 	align-items      : center;
