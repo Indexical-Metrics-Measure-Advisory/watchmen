@@ -3,9 +3,9 @@ from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
-from watchmen_model.common import BucketId, DataModel, FactorId, IndicatorId, OptimisticLock, TenantBasedTuple, TopicId
+from watchmen_model.common import BucketId, construct_parameter_joint, DataModel, FactorId, IndicatorId, \
+	OptimisticLock, ParameterJoint, SubjectDatasetColumnId, SubjectId, TenantBasedTuple, TopicId, UserGroupId
 from watchmen_utilities import ArrayHelper
-from .measure_method import MeasureMethod
 
 
 class IndicatorAggregateArithmetic(str, Enum):
@@ -14,11 +14,6 @@ class IndicatorAggregateArithmetic(str, Enum):
 	AVG = 'avg'
 	MAX = 'max'
 	MIN = 'min'
-
-
-class IndicatorMeasure(DataModel):
-	factorId: FactorId = None
-	method: MeasureMethod = None
 
 
 class RelevantIndicatorType(str, Enum):
@@ -53,12 +48,45 @@ def construct_relevants(relevants: Optional[list] = None) -> Optional[List[Relev
 		return ArrayHelper(relevants).map(lambda x: construct_relevant(x)).to_list()
 
 
+class IndicatorBaseOn(str, Enum):
+	TOPIC = 'topic',
+	SUBJECT = 'subject'
+
+
+# noinspection PyRedundantParentheses,DuplicatedCode
+class AvoidFastApiError:
+	joint: ParameterJoint = None
+
+
+class IndicatorFilter(DataModel, AvoidFastApiError, BaseModel):
+	enabled: bool = False
+
+	def __setattr__(self, name, value):
+		if name == 'joint':
+			super().__setattr__(name, construct_parameter_joint(value))
+		else:
+			super().__setattr__(name, value)
+
+
+def construct_filter(a_filter: Optional[Union[dict, IndicatorFilter]]) -> Optional[IndicatorFilter]:
+	if a_filter is None:
+		return None
+	elif isinstance(a_filter, IndicatorFilter):
+		return a_filter
+	else:
+		# noinspection PyArgumentList
+		return IndicatorFilter(**a_filter)
+
+
 class Indicator(TenantBasedTuple, OptimisticLock, BaseModel):
 	indicatorId: IndicatorId = None
 	name: str = None
-	topicId: TopicId = None
+	# when indicator is on topic
+	topicOrSubjectId: Union[TopicId, SubjectId] = None
 	# is a count indicator when factor is not appointed
-	factorId: FactorId = None
+	# it is columnId when base one a subject
+	factorId: Union[FactorId, SubjectDatasetColumnId] = None
+	baseOn: IndicatorBaseOn = None
 	category1: str = None
 	category2: str = None
 	category3: str = None
@@ -67,9 +95,13 @@ class Indicator(TenantBasedTuple, OptimisticLock, BaseModel):
 	valueBuckets: List[BucketId] = []
 	# noinspection SpellCheckingInspection
 	relevants: List[RelevantIndicator] = []
+	groupIds: List[UserGroupId] = None
+	filter: IndicatorFilter = None
 
 	def __setattr__(self, name, value):
 		if name == 'relevants':
 			super().__setattr__(name, construct_relevants(value))
+		elif name == 'filter':
+			super().__setattr__(name, construct_filter(value))
 		else:
 			super().__setattr__(name, value)
