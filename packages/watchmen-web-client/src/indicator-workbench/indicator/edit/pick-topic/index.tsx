@@ -1,4 +1,3 @@
-import {ParameterComputeType} from '@/services/data/tuples/factor-calculator-types';
 import {isIndicatorFactor} from '@/services/data/tuples/factor-calculator-utils';
 import {Factor} from '@/services/data/tuples/factor-types';
 import {
@@ -7,7 +6,7 @@ import {
 	fetchTopicsForIndicatorSelection
 } from '@/services/data/tuples/indicator';
 import {IndicatorBaseOn} from '@/services/data/tuples/indicator-types';
-import {isComputedParameter, isTopicFactorParameter} from '@/services/data/tuples/parameter-utils';
+import {isIndicatorColumn} from '@/services/data/tuples/indicator-utils';
 import {SubjectForIndicator, TopicForIndicator} from '@/services/data/tuples/query-indicator-types';
 import {SubjectDataSetColumn} from '@/services/data/tuples/subject-types';
 import {ButtonInk} from '@/widgets/basic/types';
@@ -54,35 +53,6 @@ const SubjectColumnCandidateItem = (props: { subject: SubjectForIndicator; colum
 			{Lang.INDICATOR_WORKBENCH.INDICATOR.INDICATOR_ON_SUBJECT}
 		</CandidateBaseOn>
 	</>;
-};
-
-const isIndicatorColumn = (column: SubjectDataSetColumn, subject: SubjectForIndicator): boolean => {
-	const parameter = column.parameter;
-	if (isTopicFactorParameter(parameter)) {
-		const {topicId, factorId} = parameter;
-		// eslint-disable-next-line
-		const topic = (subject.topics || []).find(topic => topic.topicId == topicId);
-		if (topic == null) {
-			return false;
-		}
-		// eslint-disable-next-line
-		const factor = (topic.factors || []).find(factor => factor.factorId == factorId);
-		if (factor == null) {
-			return false;
-		}
-		return isIndicatorFactor(factor);
-	} else if (isComputedParameter(parameter)) {
-		const computeType = parameter.type;
-		return [
-			ParameterComputeType.ADD,
-			ParameterComputeType.SUBTRACT,
-			ParameterComputeType.MULTIPLY,
-			ParameterComputeType.DIVIDE,
-			ParameterComputeType.MODULUS
-		].includes(computeType);
-	} else {
-		return false;
-	}
 };
 
 const ActivePart = (props: { data?: IndicatorsData; visible: boolean }) => {

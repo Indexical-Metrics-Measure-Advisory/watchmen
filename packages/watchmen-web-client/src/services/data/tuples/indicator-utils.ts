@@ -1,8 +1,11 @@
 import {isNotNull} from '../utils';
-import {getFactorType} from './factor-calculator-utils';
-import {Factor, FactorType} from './factor-types';
+import {ParameterComputeType} from './factor-calculator-types';
+import {getFactorType, isIndicatorFactor} from './factor-calculator-utils';
+import {Factor, FactorId, FactorType} from './factor-types';
 import {IndicatorMeasure, MeasureMethod} from './indicator-types';
-import {TopicForIndicator} from './query-indicator-types';
+import {isComputedParameter, isTopicFactorParameter} from './parameter-utils';
+import {SubjectForIndicator, TopicForIndicator} from './query-indicator-types';
+import {SubjectDataSetColumn, SubjectDataSetColumnId} from './subject-types';
 import {Topic} from './topic-types';
 
 export const tryToTransformToMeasure = (factorOrType: Factor | FactorType): Array<MeasureMethod> | MeasureMethod | undefined => {
@@ -118,30 +121,76 @@ export const tryToTransformToMeasures = (factorOrType: Factor | FactorType): Arr
 	}
 };
 
-export const detectMeasures = (topic?: Topic | TopicForIndicator, accept?: (measure: MeasureMethod) => boolean): Array<IndicatorMeasure> => {
-	if (topic == null) {
+const factorToIndicatorMeasures = (factorOrColumnId: FactorId | SubjectDataSetColumnId, factorType: FactorType, accept?: (measure: MeasureMethod) => boolean): Array<IndicatorMeasure> | null => {
+	const measures = tryToTransformToMeasure(factorType);
+	if (measures == null) {
+		// ignore
+		return null;
+	} else if (Array.isArray(measures)) {
+		return measures.map(measure => {
+			if (accept == null || accept(measure)) {
+				return {factorId: factorOrColumnId, method: measure};
+			} else {
+				return null;
+			}
+		}).filter(isNotNull);
+	} else if (accept == null || accept(measures)) {
+		return [{factorId: factorOrColumnId, method: measures}];
+	} else {
+		return null;
+	}
+};
+
+export const detectMeasures = (topicOrSubject?: Topic | TopicForIndicator | SubjectForIndicator, accept?: (measure: MeasureMethod) => boolean): Array<IndicatorMeasure> => {
+	if (topicOrSubject == null) {
 		return [];
 	}
 
-	return (topic.factors || []).map(factor => {
-		const measures = tryToTransformToMeasure(factor);
-		if (measures == null) {
-			// ignore
-			return null;
-		} else if (Array.isArray(measures)) {
-			return measures.map(measure => {
-				if (accept == null || accept(measure)) {
-					return {factorId: factor.factorId, method: measure};
+	const isSubject = (topicOrSubject: Topic | TopicForIndicator | SubjectForIndicator): topicOrSubject is SubjectForIndicator => {
+		return (topicOrSubject as any).subjectId != null;
+	};
+
+	if (isSubject(topicOrSubject)) {
+		return (topicOrSubject.dataset.columns || []).map(column => {
+			const parameter = column.parameter;
+			if (isTopicFactorParameter(parameter)) {
+				const {factor} = findTopicAndFactor(column, topicOrSubject);
+				if (factor != null) {
+					return factorToIndicatorMeasures(factor.factorId, factor.type, accept);
 				} else {
 					return null;
 				}
-			}).filter(isNotNull);
-		} else if (accept == null || accept(measures)) {
-			return [{factorId: factor.factorId, method: measures}];
-		} else {
-			return null;
-		}
-	}).filter(isNotNull).flat();
+			} else if (isComputedParameter(parameter)) {
+				const computeType = parameter.type;
+				if (computeType === ParameterComputeType.YEAR_OF) {
+					return factorToIndicatorMeasures(column.columnId, FactorType.YEAR, accept);
+				} else if (computeType === ParameterComputeType.HALF_YEAR_OF) {
+					return factorToIndicatorMeasures(column.columnId, FactorType.HALF_YEAR, accept);
+				} else if (computeType === ParameterComputeType.QUARTER_OF) {
+					return factorToIndicatorMeasures(column.columnId, FactorType.QUARTER, accept);
+				} else if (computeType === ParameterComputeType.MONTH_OF) {
+					return factorToIndicatorMeasures(column.columnId, FactorType.MONTH, accept);
+				} else if (computeType === ParameterComputeType.WEEK_OF_YEAR) {
+					return factorToIndicatorMeasures(column.columnId, FactorType.WEEK_OF_YEAR, accept);
+				} else if (computeType === ParameterComputeType.WEEK_OF_MONTH) {
+					return factorToIndicatorMeasures(column.columnId, FactorType.WEEK_OF_MONTH, accept);
+				} else if (computeType === ParameterComputeType.DAY_OF_MONTH) {
+					return factorToIndicatorMeasures(column.columnId, FactorType.DAY_OF_MONTH, accept);
+				} else if (computeType === ParameterComputeType.DAY_OF_WEEK) {
+					return factorToIndicatorMeasures(column.columnId, FactorType.DAY_OF_WEEK, accept);
+				} else {
+					// TODO case then is ignored now
+					return null;
+				}
+			} else {
+				return null;
+			}
+		}).filter(isNotNull).flat();
+	} else {
+		return (topicOrSubject.factors || []).map(factor => {
+			return factorToIndicatorMeasures(factor.factorId, factor.type, accept);
+		}).filter(isNotNull).flat();
+	}
 };
 
 export const isGeoMeasure = (measure: MeasureMethod): boolean => {
@@ -190,4 +239,48 @@ export const isOrganizationMeasure = (measure: MeasureMethod): boolean => {
 
 export const isCategoryMeasure = (measure: MeasureMethod): boolean => {
 	return [MeasureMethod.BOOLEAN, MeasureMethod.ENUM].includes(measure);
+};
+
+export const findTopicAndFactor = (column: SubjectDataSetColumn, subject: SubjectForIndicator): { topic?: Topic, factor?: Factor } => {
+	const parameter = column.parameter;
+	if (isTopicFactorParameter(parameter)) {
+		const {topicId, factorId} = parameter;
+		// eslint-disable-next-line
+		const topic = (subject.topics || []).find(topic => topic.topicId == topicId);
+		if (topic == null) {
+			return {};
+		}
+		// eslint-disable-next-line
+		const factor = (topic.factors || []).find(factor => factor.factorId == factorId);
+		if (factor == null) {
+			return {topic};
+		} else {
+			return {topic, factor};
+		}
+	} else {
+		return {};
+	}
+};
+
+export const isIndicatorColumn = (column: SubjectDataSetColumn, subject: SubjectForIndicator): boolean => {
+	const parameter = column.parameter;
+	if (isTopicFactorParameter(parameter)) {
+		const {factor} = findTopicAndFactor(column, subject);
+		if (factor != null) {
+			return isIndicatorFactor(factor);
+		} else {
+			return false;
+		}
+	} else if (isComputedParameter(parameter)) {
+		const computeType = parameter.type;
+		return [
+			ParameterComputeType.ADD,
+			ParameterComputeType.SUBTRACT,
+			ParameterComputeType.MULTIPLY,
+			ParameterComputeType.DIVIDE,
+			ParameterComputeType.MODULUS
+		].includes(computeType);
+	} else {
+		return false;
+	}
 };

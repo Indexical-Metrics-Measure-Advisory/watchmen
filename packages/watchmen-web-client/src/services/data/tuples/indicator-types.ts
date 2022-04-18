@@ -74,7 +74,7 @@ export const IndicatorAggregateArithmeticSort: Record<IndicatorAggregateArithmet
 export type IndicatorId = string;
 
 export interface IndicatorMeasure {
-	factorId: FactorId;
+	factorId: FactorId | SubjectDataSetColumnId;
 	method: MeasureMethod;
 }
 
