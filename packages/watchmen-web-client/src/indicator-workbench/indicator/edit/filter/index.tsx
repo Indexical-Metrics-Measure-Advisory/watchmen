@@ -1,4 +1,3 @@
-import {useStep} from '@/indicator-workbench/indicator/edit/use-step';
 import {IndicatorBaseOn} from '@/services/data/tuples/indicator-types';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {Lang} from '@/widgets/langs';
@@ -7,6 +6,7 @@ import {EmphaticSinkingLabel, Step, StepBody, StepTitle} from '../../../step-wid
 import {useIndicatorsEventBus} from '../../indicators-event-bus';
 import {IndicatorDeclarationStep} from '../../types';
 import {Construct, useConstructed} from '../use-constructed';
+import {useStep} from '../use-step';
 
 export const Filter = () => {
 	const ref = useRef<HTMLDivElement>(null);
@@ -25,9 +25,9 @@ export const Filter = () => {
 	}
 
 	let title = '';
-	if (data?.indicator?.baseOn == IndicatorBaseOn.TOPIC) {
+	if (data?.indicator?.baseOn === IndicatorBaseOn.TOPIC) {
 		title = Lang.INDICATOR_WORKBENCH.INDICATOR.FILTERS_ON_TOPIC;
-	} else if (data?.indicator?.baseOn == IndicatorBaseOn.SUBJECT) {
+	} else if (data?.indicator?.baseOn === IndicatorBaseOn.SUBJECT) {
 		title = Lang.INDICATOR_WORKBENCH.INDICATOR.FILTERS_ON_SUBJECT;
 	}
 
