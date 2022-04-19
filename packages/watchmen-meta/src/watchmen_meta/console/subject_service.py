@@ -5,7 +5,10 @@ from watchmen_meta.common import AuditableShaper, LastVisitShaper, TupleNotFound
 	UserBasedTupleShaper
 from watchmen_model.common import ConnectedSpaceId, SubjectId, TenantId, UserId
 from watchmen_model.console import Subject, SubjectDataset
-from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityRow, EntityShaper
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaJoint, \
+	EntityCriteriaJointConjunction, EntityCriteriaOperator, \
+	EntityRow, \
+	EntityShaper
 
 
 class SubjectShaper(EntityShaper):
@@ -75,6 +78,16 @@ class SubjectService(UserBasedTupleService):
 				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='name'), right=name)
 			]
 		))
+
+	def find_by_text(self, text: Optional[str], tenant_id: Optional[TenantId]) -> List[Subject]:
+		criteria = []
+		if text is not None and len(text.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='name'), operator=EntityCriteriaOperator.LIKE, right=text))
+		if tenant_id is not None and len(tenant_id.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria=criteria))
 
 	def find_by_connect_id(self, connect_id: ConnectedSpaceId) -> List[Subject]:
 		# noinspection PyTypeChecker
