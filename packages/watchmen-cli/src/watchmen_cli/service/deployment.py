@@ -2,6 +2,9 @@ import os
 from typing import Tuple, List
 
 from watchmen_cli.common.client import Client
+from watchmen_cli.common.constants import topics, pipelines, spaces, connected_spaces, import_type, pipeline_id, \
+    connect_id, space_id, topic_id, prefix_encoding
+
 from watchmen_cli.common.exception import DeployException
 from watchmen_cli.settings import settings
 from watchmen_utilities import ArrayHelper
@@ -37,20 +40,20 @@ class Deployment:
 
         json_list = ArrayHelper(file_content.split("\n")) \
             .map(lambda x: x.strip()) \
-            .filter(lambda x: x.startswith('<a href="data:application/json;base64,')) \
-            .map(lambda x: x.replace('<a href="data:application/json;base64,', '')) \
+            .filter(lambda x: x.startswith(prefix_encoding)) \
+            .map(lambda x: x.replace(prefix_encoding, '')) \
             .map(lambda x: b64decode(x[0:x.find('"')])) \
             .map(lambda x: loads(x)) \
             .to_list()
 
         for json_data in json_list:
-            if "pipelineId" in json_data:
+            if pipeline_id in json_data:
                 pipeline_list.append(json_data)
-            elif "topicId" in json_data:
+            elif topic_id in json_data:
                 topic_list.append(json_data)
-            elif "spaceId" in json_data and "connectId" not in json_data:
+            elif space_id in json_data and connect_id not in json_data:
                 space_list.append(json_data)
-            elif "connectId" in json_data:
+            elif connect_id in json_data:
                 connect_space_list.append(json_data)
         return topic_list, pipeline_list, space_list, connect_space_list
 
@@ -60,11 +63,11 @@ class Deployment:
             data = file.read()
             topic_list, pipeline_list, space_list, connect_space_list = self.read_data_from_markdown(data)
             data_ = {
-                'topics': topic_list,
-                'pipelines': pipeline_list,
-                'spaces': space_list,
-                'connectedSpaces': connect_space_list,
-                'importType': settings.META_CLI_DEPLOY_PATTERN
+                topics: topic_list,
+                pipelines: pipeline_list,
+                spaces: space_list,
+                connected_spaces: connect_space_list,
+                import_type: settings.META_CLI_DEPLOY_PATTERN
             }
             self.import_md_asset(data_)
 

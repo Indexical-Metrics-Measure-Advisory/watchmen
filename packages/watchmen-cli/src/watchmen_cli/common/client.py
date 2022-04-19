@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Any, Dict
+from typing import Optional, Tuple, Any, Dict, Union
 from logging import getLogger
 from requests import post, RequestException
 
@@ -29,7 +29,8 @@ class Client:
         else:
             raise AuthenticationException("Need Pat or UserName/Password")
 
-    def post(self, url: str, data: Optional[Dict], headers: Optional[Dict], params: Optional[Dict] = None) -> Tuple[int, Any]:
+    def post(self, url: str, data: Optional[Union[Dict, str]], headers: Optional[Dict],
+             params: Optional[Dict] = None) -> Tuple[int, Any]:
         try:
             response = post(self.host(url), data=data, params=params, headers=headers)
             return response.status_code, response.json()
