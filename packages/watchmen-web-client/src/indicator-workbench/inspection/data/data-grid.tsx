@@ -78,6 +78,7 @@ export const DataGrid = (props: { inspection: Inspection; indicator: IndicatorFo
 								return;
 							}
 						} else if (subject != null) {
+							// eslint-disable-next-line
 							const column = (subject.dataset.columns || []).find(column => column.columnId == inspection.measureOnFactorId);
 							if (column != null && isTopicFactorParameter(column.parameter)) {
 								const {factor} = findTopicAndFactor(column, subject);

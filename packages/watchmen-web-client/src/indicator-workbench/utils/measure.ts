@@ -1,10 +1,15 @@
 import {FactorId} from '@/services/data/tuples/factor-types';
 import {MeasureMethod} from '@/services/data/tuples/indicator-types';
-import {isTimePeriodMeasure, TimePeriodMeasure, tryToTransformToMeasures} from '@/services/data/tuples/indicator-utils';
-import {TopicForIndicator} from '@/services/data/tuples/query-indicator-types';
+import {
+	isTimePeriodMeasure,
+	TimePeriodMeasure,
+	tryToTransformColumnToMeasures,
+	tryToTransformToMeasures
+} from '@/services/data/tuples/indicator-utils';
+import {SubjectForIndicator, TopicForIndicator} from '@/services/data/tuples/query-indicator-types';
 import {DropdownOption} from '@/widgets/basic/types';
 
-export const buildTimePeriodOptions = (topic: TopicForIndicator): Array<DropdownOption> => {
+export const buildTimePeriodOptionsOnTopic = (topic: TopicForIndicator): Array<DropdownOption> => {
 	return (topic.factors || []).filter(factor => {
 		const measures = tryToTransformToMeasures(factor);
 		return measures.some(measure => isTimePeriodMeasure(measure));
@@ -15,6 +20,19 @@ export const buildTimePeriodOptions = (topic: TopicForIndicator): Array<Dropdown
 		};
 	});
 };
+
+export const buildTimePeriodOptionsOnSubject = (subject: SubjectForIndicator): Array<DropdownOption> => {
+	return (subject.dataset.columns || []).filter(column => {
+		const measures = tryToTransformColumnToMeasures(column, subject);
+		return measures.some(measure => isTimePeriodMeasure(measure));
+	}).map(column => {
+		return {
+			value: column.columnId,
+			label: column.alias || 'Noname Factor'
+		};
+	});
+};
+
 const TimeMeasureMethodSort: Record<TimePeriodMeasure, number> = {
 	[MeasureMethod.YEAR]: 1,
 	[MeasureMethod.HALF_YEAR]: 2,

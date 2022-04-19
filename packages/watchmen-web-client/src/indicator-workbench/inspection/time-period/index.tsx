@@ -2,7 +2,11 @@ import {FactorId} from '@/services/data/tuples/factor-types';
 import {DropdownOption} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
-import {buildTimePeriodOptions, tryToGetTopTimeMeasureByFactor} from '../../utils/measure';
+import {
+	buildTimePeriodOptionsOnSubject,
+	buildTimePeriodOptionsOnTopic,
+	tryToGetTopTimeMeasureByFactor
+} from '../../utils/measure';
 import {getValidRanges} from '../../utils/range';
 import {useInspectionEventBus} from '../inspection-event-bus';
 import {InspectionEventTypes} from '../inspection-event-bus-types';
@@ -56,14 +60,19 @@ export const TimePeriod = () => {
 		forceUpdate();
 	};
 
-	const topic = indicator!.topic;
-	const timeFactorOptions = buildTimePeriodOptions(topic);
+	const {topic, subject} = indicator!;
+	let timeFactorOptions: Array<DropdownOption> = [];
+	if (topic != null) {
+		timeFactorOptions = buildTimePeriodOptionsOnTopic(topic);
+	} else if (subject != null) {
+		timeFactorOptions = buildTimePeriodOptionsOnSubject(subject);
+	}
 
 	return <TimePeriodContainer>
 		<InspectionLabel>{Lang.INDICATOR_WORKBENCH.INSPECTION.TIME_PERIOD_LABEL}</InspectionLabel>
 		<TimePeriodDropdown value={inspection?.timeRangeFactorId ?? null} options={timeFactorOptions}
 		                    onChange={onTimeFactorChange}
 		                    please={Lang.PLAIN.DROPDOWN_PLACEHOLDER}/>
-		<TimePeriodFilterSelector inspection={inspection!} topic={topic} valueChanged={onValueChanged}/>
+		<TimePeriodFilterSelector inspection={inspection!} topic={topic} subject={subject} valueChanged={onValueChanged}/>
 	</TimePeriodContainer>;
 };

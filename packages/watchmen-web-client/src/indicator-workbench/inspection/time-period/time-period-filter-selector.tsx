@@ -1,36 +1,22 @@
-import {tryToTransformToMeasures} from '@/services/data/tuples/indicator-utils';
 import {Inspection} from '@/services/data/tuples/inspection-types';
-import {TopicForIndicator} from '@/services/data/tuples/query-indicator-types';
-import {useForceUpdate} from '@/widgets/basic/utils';
-import {tryToGetTopTimeMeasure} from '../../utils/measure';
-import {FilterBuilders} from './filter-builder';
-import {TimePeriodFilterDropdown} from './widgets';
+import {SubjectForIndicator, TopicForIndicator} from '@/services/data/tuples/query-indicator-types';
+import {Fragment} from 'react';
+import {FilterOnSubject} from './filter-on-subject';
+import {FilterOnTopic} from './filter-on-topic';
 
-export const TimePeriodFilterSelector = (props: { inspection: Inspection; topic: TopicForIndicator; valueChanged: () => void }) => {
-	const {inspection, topic, valueChanged} = props;
+export const TimePeriodFilterSelector = (props: {
+	inspection: Inspection;
+	topic?: TopicForIndicator;
+	subject?: SubjectForIndicator;
+	valueChanged: () => void
+}) => {
+	const {inspection, topic, subject, valueChanged} = props;
 
-	const forceUpdate = useForceUpdate();
-
-	const factor = inspection.timeRangeFactorId == null
-		? null
-		// eslint-disable-next-line
-		: (topic.factors || []).find(factor => factor.factorId == inspection.timeRangeFactorId);
-
-	if (factor == null) {
-		return null;
+	if (topic != null) {
+		return <FilterOnTopic inspection={inspection} topic={topic} valueChanged={valueChanged}/>;
+	} else if (subject != null) {
+		return <FilterOnSubject inspection={inspection} subject={subject} valueChanged={valueChanged}/>;
+	} else {
+		return <Fragment/>;
 	}
-
-	const measures = tryToTransformToMeasures(factor);
-	const topMeasure = tryToGetTopTimeMeasure(measures);
-	if (topMeasure == null) {
-		return null;
-	}
-
-	const onValueChanged = () => {
-		valueChanged();
-		forceUpdate();
-	};
-	const {options, selection, onValueChange} = FilterBuilders[topMeasure](inspection, onValueChanged);
-
-	return <TimePeriodFilterDropdown value={''} options={options} display={selection} onChange={onValueChange}/>;
 };
