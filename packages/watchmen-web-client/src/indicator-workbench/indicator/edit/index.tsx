@@ -10,11 +10,13 @@ import {Categories} from './categories';
 import {CreateOrFind} from './create-or-find';
 import {DefineBuckets} from './define-buckets';
 import {Description} from './description';
+import {Filter} from './filter';
 import {LastStep} from './last-step';
 import {MeasureMethods} from './measure-methods';
 import {PickTopic} from './pick-topic';
 import {Relevant} from './relevant';
 import {SaveIndicator} from './save-indicator';
+import {UserGroupAssigner} from './user-group';
 import {IndicatorsContainer} from './widgets';
 
 export const IndicatorEditor = () => {
@@ -40,6 +42,8 @@ export const IndicatorEditor = () => {
 			<DefineBuckets/>
 			<SaveIndicator/>
 			<Relevant/>
+			<UserGroupAssigner/>
+			<Filter/>
 			<Categories/>
 			<Description/>
 			<LastStep/>
