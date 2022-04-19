@@ -1,8 +1,15 @@
 import {isEnumMeasureBucket, isMeasureBucket} from '@/services/data/tuples/bucket-utils';
 import {Factor} from '@/services/data/tuples/factor-types';
 import {Indicator} from '@/services/data/tuples/indicator-types';
-import {isTimePeriodMeasure, tryToTransformToMeasures} from '@/services/data/tuples/indicator-utils';
+import {
+	findTopicAndFactor,
+	isTimePeriodMeasure,
+	tryToTransformColumnToMeasures,
+	tryToTransformToMeasures
+} from '@/services/data/tuples/indicator-utils';
 import {Navigation, NavigationIndicator} from '@/services/data/tuples/navigation-types';
+import {SubjectDataSetColumn} from '@/services/data/tuples/subject-types';
+import {DropdownOption} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {useEffect} from 'react';
 import {v4} from 'uuid';
@@ -47,37 +54,70 @@ export const IndicatorCriteriaEditContent = (props: {
 	const criteria = (navigationIndicator.criteria || []);
 	const displayCriteria = [...criteria, {}];
 
-	// factors which defined as buckets in indicator and factors which has time measure
-	// can be used as navigation indicator criteria
-	const isFactorSupported = (factor: Factor): boolean => {
-		const measures = tryToTransformToMeasures(factor);
-		if (measures.some(isTimePeriodMeasure)) {
-			return true;
-		}
-		// eslint-disable-next-line
-		if (factor.enumId != null && defData.measureBuckets.some(bucket => isEnumMeasureBucket(bucket) && bucket.enumId == factor.enumId)) {
-			// enumeration factor, matches enumeration bucket
-			return true;
-		} else {
-			// not an enumeration factor, at least one bucket is matched
-			return factor.enumId == null && defData.measureBuckets.some(bucket => isMeasureBucket(bucket) && measures.includes(bucket.measure));
-		}
-	};
-
-	const criteriaFactorOptions = (defData.topic?.factors || []).filter(factor => {
-		// eslint-disable-next-line
-		return indicator.factorId == factor.factorId || isFactorSupported(factor);
-	}).sort((f1, f2) => {
-		return (f1.label || f1.name || '').localeCompare(f2.label || f2.name || '', void 0, {
-			sensitivity: 'base',
-			caseFirst: 'upper'
-		});
-	}).map(factor => {
-		return {
-			value: factor.factorId,
-			label: factor.label || factor.name || 'Noname Factor'
+	let criteriaFactorOptions: Array<DropdownOption> = [];
+	if (defData.topic != null) {
+		// factors which defined as buckets in indicator and factors which has time measure
+		// can be used as navigation indicator criteria
+		const isFactorSupported = (factor: Factor): boolean => {
+			const measures = tryToTransformToMeasures(factor);
+			if (measures.some(isTimePeriodMeasure)) {
+				return true;
+			}
+			// eslint-disable-next-line
+			if (factor.enumId != null && defData.measureBuckets.some(bucket => isEnumMeasureBucket(bucket) && bucket.enumId == factor.enumId)) {
+				// enumeration factor, matches enumeration bucket
+				return true;
+			} else {
+				// not an enumeration factor, at least one bucket is matched
+				return factor.enumId == null && defData.measureBuckets.some(bucket => isMeasureBucket(bucket) && measures.includes(bucket.measure));
+			}
 		};
-	});
+		criteriaFactorOptions = (defData.topic.factors || []).filter(factor => {
+			// eslint-disable-next-line
+			return indicator.factorId == factor.factorId || isFactorSupported(factor);
+		}).sort((f1, f2) => {
+			return (f1.label || f1.name || '').localeCompare(f2.label || f2.name || '', void 0, {
+				sensitivity: 'base',
+				caseFirst: 'upper'
+			});
+		}).map(factor => {
+			return {
+				value: factor.factorId,
+				label: factor.label || factor.name || 'Noname Factor'
+			};
+		});
+	} else if (defData.subject != null) {
+		const isColumnSupported = (column: SubjectDataSetColumn): boolean => {
+			const measures = tryToTransformColumnToMeasures(column, defData.subject!);
+			if (measures.some(isTimePeriodMeasure)) {
+				return true;
+			}
+			const {factor} = findTopicAndFactor(column, defData.subject);
+			const enumId = factor != null ? factor.enumId : (void 0);
+			// eslint-disable-next-line
+			if (enumId != null && defData.measureBuckets.some(bucket => isEnumMeasureBucket(bucket) && bucket.enumId == enumId)) {
+				// enumeration factor, matches enumeration bucket
+				return true;
+			} else {
+				// not an enumeration factor, at least one bucket is matched
+				return enumId == null && defData.measureBuckets.some(bucket => isMeasureBucket(bucket) && measures.includes(bucket.measure));
+			}
+		};
+		criteriaFactorOptions = (defData.subject.dataset.columns || []).filter(column => {
+			// eslint-disable-next-line
+			return indicator.factorId == column.columnId || isColumnSupported(column);
+		}).sort((c1, c2) => {
+			return (c1.alias || '').localeCompare(c2.alias || '', void 0, {
+				sensitivity: 'base',
+				caseFirst: 'upper'
+			});
+		}).map(column => {
+			return {
+				value: column.columnId,
+				label: column.alias || 'Noname Factor'
+			};
+		});
+	}
 
 	return <IndicatorCriteriaEditContentContainer expanded={expanded} ref={containerRef}>
 		<IndicatorNameEditor navigation={navigation} navigationIndicator={navigationIndicator}/>

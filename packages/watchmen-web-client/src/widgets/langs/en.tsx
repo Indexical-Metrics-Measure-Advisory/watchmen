@@ -480,7 +480,7 @@ export const En = {
 			SHOW_INDICATOR_CANDIDATES: 'Show Indicator Candidates',
 			ROOT: 'Root',
 			MISSED_INDICATOR: 'Missed Indicator',
-			MISSED_INDICATOR_TOPIC: 'Missed Indicator Topic',
+			MISSED_INDICATOR_BASE: 'Missed Indicator Topic or Subject',
 			NO_INDICATOR_CRITERIA_DEFINED: 'No Criteria Defined Yet',
 			INDICATOR_CRITERIA_DEFINED: 'Criteria Applied',
 			INDICATOR_NAME: 'Describe This Indicator:',
