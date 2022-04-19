@@ -133,3 +133,20 @@ export const listMockUserGroupsForSpace = async (search: string): Promise<Array<
 		}, 500);
 	});
 };
+
+export const fetchMockUserGroupsByIds = async (): Promise<Array<QueryUserGroupForHolder>> => {
+	return new Promise((resolve) => {
+		setTimeout(() => {
+			resolve(
+				[
+					{userGroupId: '1', name: 'Oklahoma'},
+					{userGroupId: '2', name: 'Delaware'},
+					{userGroupId: '3', name: 'Hawaii'},
+					{userGroupId: '4', name: 'Alaska'},
+					{userGroupId: '5', name: 'Missouri'},
+					{userGroupId: '6', name: 'Arkansas'}
+				]
+			);
+		}, 500);
+	});
+};

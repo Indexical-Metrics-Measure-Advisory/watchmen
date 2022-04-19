@@ -15,7 +15,7 @@ const OrderPremiumIndicator: Indicator = {
 	baseOn: IndicatorBaseOn.TOPIC,
 	valueBuckets: [BUCKET_AMOUNT_ID],
 	category1: 'premium',
-	userGroupIds: [],
+	userGroupIds: ['1', '2'],
 	version: 1,
 	createdAt: getCurrentTime(),
 	lastModifiedAt: getCurrentTime()
