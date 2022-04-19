@@ -121,6 +121,27 @@ export const tryToTransformToMeasures = (factorOrType: Factor | FactorType): Arr
 	}
 };
 
+export const tryToTransformColumnToMeasures = (column: SubjectDataSetColumn, subject: SubjectForIndicator): Array<MeasureMethod> => {
+	if (isTopicFactorParameter(column.parameter)) {
+		const {factor} = findTopicAndFactor(column, subject);
+		if (factor == null) {
+			return [];
+		} else {
+			return tryToTransformToMeasures(factor.type);
+		}
+	} else if (isComputedParameter(column.parameter)) {
+		const factorType = translateComputeTypeToFactorType(column.parameter.type);
+		if (factorType == null) {
+			return [];
+		} else {
+			return tryToTransformToMeasures(factorType);
+		}
+	} else {
+		// constant value cannot be measured
+		return [];
+	}
+};
+
 const factorToIndicatorMeasures = (factorOrColumnId: FactorId | SubjectDataSetColumnId, factorType: FactorType, accept?: (measure: MeasureMethod) => boolean): Array<IndicatorMeasure> | null => {
 	const measures = tryToTransformToMeasure(factorType);
 	if (measures == null) {

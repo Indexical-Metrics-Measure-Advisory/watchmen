@@ -9,7 +9,12 @@ import {useInspectionEventBus} from '../inspection-event-bus';
 import {InspectionEventTypes} from '../inspection-event-bus-types';
 import {useVisibleOnII} from '../use-visible-on-ii';
 import {InspectionLabel} from '../widgets';
-import {buildTimeFactorOptions, buildTimeMeasureOptions} from './utils';
+import {
+	buildTimeFactorOptionsOnSubject,
+	buildTimeFactorOptionsOnTopic,
+	buildTimeMeasureOptionsOnSubject,
+	buildTimeMeasureOptionsOnTopic
+} from './utils';
 import {TimeMeasureOnContainer, TimeMeasureOnDropdown, TimePeriodDropdown} from './widgets';
 
 export const TimeMeasureOn = () => {
@@ -64,13 +69,24 @@ export const TimeMeasureOn = () => {
 		forceUpdate();
 	};
 
-	const topic = indicator!.topic;
-	const factor = inspection?.timeRangeFactorId == null
-		? (void 0)
-		// eslint-disable-next-line
-		: (topic.factors || []).find(factor => factor.factorId == inspection.timeRangeFactorId);
-	const timeFactorOptions = buildTimeFactorOptions(inspection!, topic, factor);
-	const timeMeasureOptions = buildTimeMeasureOptions(inspection!, topic, factor);
+	const {topic, subject} = indicator!;
+	let timeFactorOptions: Array<DropdownOption> = [];
+	let timeMeasureOptions: Array<DropdownOption> = [];
+	if (topic != null) {
+		const factor = inspection?.timeRangeFactorId == null
+			? (void 0)
+			// eslint-disable-next-line
+			: (topic.factors || []).find(factor => factor.factorId == inspection.timeRangeFactorId);
+		timeFactorOptions = buildTimeFactorOptionsOnTopic(inspection!, topic, factor);
+		timeMeasureOptions = buildTimeMeasureOptionsOnTopic(inspection!, topic, factor);
+	} else if (subject != null) {
+		const column = inspection?.timeRangeFactorId == null
+			? (void 0)
+			// eslint-disable-next-line
+			: (subject.dataset.columns || []).find(column => column.columnId == inspection.timeRangeFactorId);
+		timeFactorOptions = buildTimeFactorOptionsOnSubject(inspection!, subject, column);
+		timeMeasureOptions = buildTimeMeasureOptionsOnSubject(inspection!, subject, column);
+	}
 
 	return <TimeMeasureOnContainer>
 		<InspectionLabel>{Lang.INDICATOR_WORKBENCH.INSPECTION.TIME_MEASURE_ON_LABEL}</InspectionLabel>

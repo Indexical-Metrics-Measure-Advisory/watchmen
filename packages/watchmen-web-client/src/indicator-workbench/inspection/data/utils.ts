@@ -3,7 +3,8 @@ import {Factor, FactorId} from '@/services/data/tuples/factor-types';
 import {IndicatorAggregateArithmetic, IndicatorAggregateArithmeticSort} from '@/services/data/tuples/indicator-types';
 import {Inspection, InspectMeasureOn} from '@/services/data/tuples/inspection-types';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
-import {TopicForIndicator} from '@/services/data/tuples/query-indicator-types';
+import {SubjectForIndicator, TopicForIndicator} from '@/services/data/tuples/query-indicator-types';
+import {SubjectDataSetColumn, SubjectDataSetColumnId} from '@/services/data/tuples/subject-types';
 import {ReactNode} from 'react';
 import {IndicatorForInspection} from '../inspection-event-bus-types';
 import {Column, Columns, ColumnType} from '../types';
@@ -15,6 +16,15 @@ const findFactor = (topic: TopicForIndicator, factorId?: FactorId): Factor | und
 
 	// eslint-disable-next-line
 	return (topic.factors || []).find(factor => factor.factorId == factorId);
+};
+
+const findColumn = (subject: SubjectForIndicator, columnId?: SubjectDataSetColumnId): SubjectDataSetColumn | undefined => {
+	if (columnId == null) {
+		return (void 0);
+	}
+
+	// eslint-disable-next-line
+	return (subject.dataset.columns || []).find(column => column.columnId == columnId);
 };
 
 const findBucket = (buckets: Array<QueryBucket>, bucketId?: BucketId): QueryBucket | undefined => {
@@ -69,22 +79,37 @@ const buildColumnForMeasureOnValue = (options: {
 };
 const buildColumnForMeasureOnOther = (options: {
 	inspection: Inspection;
-	topic: TopicForIndicator;
+	topic?: TopicForIndicator;
+	subject?: SubjectForIndicator;
 	buckets: Array<QueryBucket>;
 	columns: Columns;
 }) => {
-	const {inspection, topic, buckets, columns} = options;
+	const {inspection, topic, subject, buckets, columns} = options;
 
 	const measureOnFactorId = inspection.measureOnFactorId;
-	const measureOnFactor = findFactor(topic, measureOnFactorId);
-	if (measureOnFactor != null) {
-		const measureOnBucketId = inspection.measureOnBucketId;
-		if (measureOnBucketId == null) {
-			// use naturally category, let column name to be factor name
-			appendColumnDef(columns, measureOnFactor.label || measureOnFactor.name || 'Noname Factor', ColumnType.TEXT);
-		} else {
-			const bucket = findBucket(buckets, measureOnBucketId);
-			appendColumnDef(columns, bucket?.name || 'Noname Bucket', ColumnType.TEXT);
+	if (topic != null) {
+		const measureOnFactor = findFactor(topic, measureOnFactorId);
+		if (measureOnFactor != null) {
+			const measureOnBucketId = inspection.measureOnBucketId;
+			if (measureOnBucketId == null) {
+				// use naturally category, let column name to be factor name
+				appendColumnDef(columns, measureOnFactor.label || measureOnFactor.name || 'Noname Factor', ColumnType.TEXT);
+			} else {
+				const bucket = findBucket(buckets, measureOnBucketId);
+				appendColumnDef(columns, bucket?.name || 'Noname Bucket', ColumnType.TEXT);
+			}
+		}
+	} else if (subject != null) {
+		const measureOnColumn = findColumn(subject, measureOnFactorId);
+		if (measureOnColumn != null) {
+			const measureOnBucketId = inspection.measureOnBucketId;
+			if (measureOnBucketId == null) {
+				// use naturally category, let column name to be factor name
+				appendColumnDef(columns, measureOnColumn.alias || 'Noname Factor', ColumnType.TEXT);
+			} else {
+				const bucket = findBucket(buckets, measureOnBucketId);
+				appendColumnDef(columns, bucket?.name || 'Noname Bucket', ColumnType.TEXT);
+			}
 		}
 	}
 };
@@ -96,22 +121,36 @@ export const buildColumnDefs = (options: {
 	const {inspection, indicator, buckets} = options;
 	const {indicator: {factorId}, topic, subject} = indicator;
 
-	const factor = findFactor(topic, factorId);
-	const factorName = factor?.label || factor?.name || 'Value';
-
 	const columns: Columns = [];
+
+	let factorOrColumnName = 'Value';
+	if (topic != null) {
+		const factor = findFactor(topic, factorId);
+		factorOrColumnName = factor?.label || factor?.name || 'Value';
+	} else if (subject != null) {
+		const column = findColumn(subject, factorId);
+		factorOrColumnName = column?.alias || 'Value';
+	}
+
 	if (inspection.measureOn == null || inspection.measureOn === InspectMeasureOn.NONE) {
 		// no measure
 	} else if (inspection.measureOn === InspectMeasureOn.VALUE) {
 		buildColumnForMeasureOnValue({inspection, buckets, columns});
 	} else if (inspection.measureOn === InspectMeasureOn.OTHER) {
-		buildColumnForMeasureOnOther({inspection, topic, buckets, columns});
+		buildColumnForMeasureOnOther({inspection, topic, subject, buckets, columns});
 	}
 
 	if (inspection.measureOnTime != null) {
-		const timeFactor = findFactor(topic, inspection.measureOnTimeFactorId);
-		if (timeFactor != null) {
-			appendColumnDef(columns, timeFactor.label || timeFactor.name || 'Noname Factor', ColumnType.TIME);
+		if (topic != null) {
+			const timeFactor = findFactor(topic, inspection.measureOnTimeFactorId);
+			if (timeFactor != null) {
+				appendColumnDef(columns, timeFactor.label || timeFactor.name || 'Noname Factor', ColumnType.TIME);
+			}
+		} else if (subject != null) {
+			const timeColumn = findColumn(subject, inspection.measureOnTimeFactorId);
+			if (timeColumn != null) {
+				appendColumnDef(columns, timeColumn.alias || 'Noname Factor', ColumnType.TIME);
+			}
 		}
 	}
 
@@ -120,7 +159,7 @@ export const buildColumnDefs = (options: {
 	).sort((a1, a2) => {
 		return IndicatorAggregateArithmeticSort[a1] - IndicatorAggregateArithmeticSort[a2];
 	}).forEach(arithmetic => {
-		appendColumnDef(columns, `${asArithmeticName(arithmetic)} ${factorName}`, ColumnType.NUMERIC);
+		appendColumnDef(columns, `${asArithmeticName(arithmetic)} ${factorOrColumnName}`, ColumnType.NUMERIC);
 	});
 
 	return columns;
