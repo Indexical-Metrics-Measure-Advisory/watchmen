@@ -132,6 +132,7 @@ export const buildBucketOptions = (options: {
 			factorType = factor.type;
 			enumId = factor.enumId;
 		} else if (subject != null) {
+			// eslint-disable-next-line
 			const column = (subject.dataset.columns || []).find(column => column.columnId == inspection.measureOnFactorId);
 			if (column == null) {
 				return {available: true, options: []};
