@@ -15,7 +15,7 @@ export const AssignedIndicatorUserGroupsContainer = styled.div.attrs({'data-widg
 export const AssignedIndicatorUserGroup = styled(ItemBlock).attrs({'data-widget': 'assigned-indicator-user-group'})`
 	padding : 0 0 0 calc(var(--margin) / 2);
 	&:after {
-		background-color : var(--info-color);
+		background-color : var(--danger-color);
 	}
 	&:hover > span:last-child {
 		left : calc(var(--height) * -0.1);
