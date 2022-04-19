@@ -1,6 +1,6 @@
 from fire import Fire
 
-from watchmen_cli import CliBootstrap
+from watchmen_cli.main import CommandLineInterfaces
 
 """
 :authors: imma-team
@@ -8,4 +8,4 @@ from watchmen_cli import CliBootstrap
 """
 
 if __name__ == '__main__':
-	Fire(CliBootstrap)
+	Fire(CommandLineInterfaces)

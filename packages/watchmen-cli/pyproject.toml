@@ -12,6 +12,7 @@ packages = [
 python = "^3.9"
 fire = "^0.4.0"
 requests = "^2.27.1"
+watchmen_utilities = { path = "../watchmen_utilities", develop = true }
 
 [tool.poetry.dev-dependencies]
 

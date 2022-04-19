@@ -69,12 +69,56 @@ def find_template_connected_spaces_by_ids(
 	return template_connected_spaces
 
 
+def construct_report(report: Optional[Union[dict, Report]]) -> Optional[Report]:
+	if report is None:
+		return None
+	elif isinstance(report, Report):
+		return report
+	else:
+		return Report(**report)
+
+
+def construct_reports(reports: Optional[list] = None) -> Optional[List[Report]]:
+	if reports is None:
+		return None
+	else:
+		return ArrayHelper(reports).map(lambda x: construct_report(x)).to_list()
+
+
 class SubjectWithReports(Subject):
 	reports: List[Report] = []
+
+	def __setattr__(self, name, value):
+		if name == 'reports':
+			super().__setattr__(name, construct_reports(value))
+		else:
+			super().__setattr__(name, value)
+
+
+def construct_subject(subject: Optional[Union[dict, SubjectWithReports]]) -> Optional[SubjectWithReports]:
+	if subject is None:
+		return None
+	elif isinstance(subject, SubjectWithReports):
+		return subject
+	else:
+		return SubjectWithReports(**subject)
+
+
+def construct_subjects(subjects: Optional[list] = None) -> Optional[List[SubjectWithReports]]:
+	if subjects is None:
+		return None
+	else:
+		return ArrayHelper(subjects).map(lambda x: construct_subject(x)).to_list()
 
 
 class ConnectedSpaceWithSubjects(ConnectedSpace):
 	subjects: List[SubjectWithReports] = []
+
+	def __setattr__(self, name, value):
+		if name == 'subjects':
+			super().__setattr__(name, construct_subjects(value))
+		else:
+			super().__setattr__(name, value)
 
 
 def copy_to_connected_space(
