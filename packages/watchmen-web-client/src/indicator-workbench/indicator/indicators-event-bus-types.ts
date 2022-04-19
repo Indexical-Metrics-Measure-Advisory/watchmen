@@ -9,6 +9,8 @@ import {
 	SubjectForIndicator,
 	TopicForIndicator
 } from '@/services/data/tuples/query-indicator-types';
+import {QueryUserGroupForHolder} from '@/services/data/tuples/query-user-group-types';
+import {UserGroupId} from '@/services/data/tuples/user-group-types';
 import {IndicatorDeclarationStep} from './types';
 
 export interface IndicatorsData {
@@ -31,6 +33,9 @@ export enum IndicatorsEventTypes {
 
 	INDICATOR_VALUE_BUCKET_PICKED = 'indicator-value-bucket-picked',
 	INDICATOR_VALUE_BUCKET_UNPICKED = 'indicator-value-bucket-unpicked',
+
+	USER_GROUP_ASSIGNED = 'user-group-assigned',
+	USER_GROUP_UNASSIGNED = 'user-group-unassigned',
 
 	SAVE_INDICATOR = 'save-indicator',
 	INDICATOR_SAVED = 'indicator-saved',
@@ -78,6 +83,14 @@ export interface IndicatorsEventBus {
 	fire(type: IndicatorsEventTypes.INDICATOR_VALUE_BUCKET_UNPICKED, indicator: Indicator, bucketId: BucketId): this;
 	on(type: IndicatorsEventTypes.INDICATOR_VALUE_BUCKET_UNPICKED, listener: (indicator: Indicator, bucketId: BucketId) => void): this;
 	off(type: IndicatorsEventTypes.INDICATOR_VALUE_BUCKET_UNPICKED, listener: (indicator: Indicator, bucketId: BucketId) => void): this;
+
+	fire(type: IndicatorsEventTypes.USER_GROUP_ASSIGNED, indicator: Indicator, userGroup: QueryUserGroupForHolder): this;
+	on(type: IndicatorsEventTypes.USER_GROUP_ASSIGNED, listener: (indicator: Indicator, userGroup: QueryUserGroupForHolder) => void): this;
+	off(type: IndicatorsEventTypes.USER_GROUP_ASSIGNED, listener: (indicator: Indicator, userGroup: QueryUserGroupForHolder) => void): this;
+
+	fire(type: IndicatorsEventTypes.USER_GROUP_UNASSIGNED, indicator: Indicator, userGroupId: UserGroupId): this;
+	on(type: IndicatorsEventTypes.USER_GROUP_UNASSIGNED, listener: (indicator: Indicator, userGroupId: UserGroupId) => void): this;
+	off(type: IndicatorsEventTypes.USER_GROUP_UNASSIGNED, listener: (indicator: Indicator, userGroupId: UserGroupId) => void): this;
 
 	fire(type: IndicatorsEventTypes.SAVE_INDICATOR, indicator: Indicator, onSaved: (indicator: Indicator, saved: boolean) => void): this;
 	on(type: IndicatorsEventTypes.SAVE_INDICATOR, listener: (indicator: Indicator, onSaved: (indicator: Indicator, saved: boolean) => void) => void): this;

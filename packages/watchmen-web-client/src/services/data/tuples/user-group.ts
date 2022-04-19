@@ -1,7 +1,7 @@
 import {findAccount} from '../account';
 import {Apis, get, page, post} from '../apis';
 import {
-	fetchMockUserGroup,
+	fetchMockUserGroup, fetchMockUserGroupsByIds,
 	listMockUserGroups,
 	listMockUserGroupsForSpace,
 	saveMockUserGroup
@@ -89,4 +89,13 @@ export const listUserGroupsForHolder = async (search: string): Promise<Array<Que
 	} else {
 		return await get({api: Apis.USER_GROUP_LIST_FOR_HOLDER_BY_NAME, search: {search}});
 	}
+};
+
+export const fetchUserGroupsByIds = async (userGroupIds: Array<UserGroupId>): Promise<Array<QueryUserGroupForHolder>> => {
+	if (isMockService()) {
+		return fetchMockUserGroupsByIds();
+	} else {
+		return await post({api: Apis.USER_GROUP_BY_IDS, data: userGroupIds});
+	}
+
 };

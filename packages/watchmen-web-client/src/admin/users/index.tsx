@@ -94,7 +94,7 @@ const AdminUsers = () => {
 
 	return <TupleWorkbench title="Users"
 	                       createButtonLabel="Create User" canCreate={true}
-	                       searchPlaceholder="Search by user name, group name, etc."
+	                       searchPlaceholder="Search by user name, nickname."
 	                       tupleLabel="User" tupleImage={UserBackground} renderEditor={renderEditor}
 	                       renderCard={renderCard} getKeyOfTuple={getKeyOfUser}
 	/>;
