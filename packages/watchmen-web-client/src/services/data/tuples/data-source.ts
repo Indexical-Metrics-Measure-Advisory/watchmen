@@ -44,7 +44,7 @@ export const saveDataSource = async (dataSource: DataSource): Promise<void> => {
 		dataSource.dataSourceId = data.dataSourceId;
 		dataSource.version = data.version;
 		dataSource.lastModifiedAt = data.lastModifiedAt;
-		console.log(dataSource)
+		// console.log(dataSource);
 	} else {
 		const data = await post({api: Apis.DATASOURCE_SAVE, data: dataSource});
 		dataSource.version = data.version;

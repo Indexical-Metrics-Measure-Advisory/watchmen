@@ -7,8 +7,8 @@ import {EmphaticSinkingLabel, Step, StepBody, StepTitle} from '../../../step-wid
 import {useIndicatorsEventBus} from '../../indicators-event-bus';
 import {IndicatorsEventTypes} from '../../indicators-event-bus-types';
 import {IndicatorDeclarationStep} from '../../types';
-import {useStep} from '../use-step';
 import {Construct, useConstructed} from '../use-constructed';
+import {useStep} from '../use-step';
 import {DescriptionText} from './widgets';
 
 export const Description = () => {

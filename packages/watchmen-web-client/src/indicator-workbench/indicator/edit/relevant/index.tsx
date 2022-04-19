@@ -21,8 +21,8 @@ import {
 import {useIndicatorsEventBus} from '../../indicators-event-bus';
 import {IndicatorsEventTypes} from '../../indicators-event-bus-types';
 import {IndicatorDeclarationStep} from '../../types';
-import {useStep} from '../use-step';
 import {Construct, useConstructed} from '../use-constructed';
+import {useStep} from '../use-step';
 import {
 	NoRelevant,
 	RelevantIndicatorsBodyCell,

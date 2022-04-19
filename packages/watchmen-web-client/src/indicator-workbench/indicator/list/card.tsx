@@ -36,7 +36,10 @@ const IndicatorCard = (props: { indicator: QueryIndicator }) => {
 				<span>{prettifyDateTimeToMinute(indicator.createdAt)}</span>
 			</TupleCardStatisticsItem>
 			<TupleCardStatisticsItem
-				tooltip={{label: Lang.INDICATOR_WORKBENCH.INDICATOR.LAST_MODIFIED_AT, alignment: TooltipAlignment.CENTER}}>
+				tooltip={{
+					label: Lang.INDICATOR_WORKBENCH.INDICATOR.LAST_MODIFIED_AT,
+					alignment: TooltipAlignment.CENTER
+				}}>
 				<FontAwesomeIcon icon={ICON_LAST_MODIFIED_AT}/>
 				<span>{prettifyDateTimeToMinute(indicator.lastModifiedAt)}</span>
 			</TupleCardStatisticsItem>
