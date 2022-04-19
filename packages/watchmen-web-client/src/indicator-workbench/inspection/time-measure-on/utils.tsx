@@ -1,8 +1,13 @@
 import {Factor} from '@/services/data/tuples/factor-types';
 import {MeasureMethod} from '@/services/data/tuples/indicator-types';
-import {isTimePeriodMeasure, tryToTransformToMeasures} from '@/services/data/tuples/indicator-utils';
+import {
+	isTimePeriodMeasure,
+	tryToTransformColumnToMeasures,
+	tryToTransformToMeasures
+} from '@/services/data/tuples/indicator-utils';
 import {Inspection} from '@/services/data/tuples/inspection-types';
-import {TopicForIndicator} from '@/services/data/tuples/query-indicator-types';
+import {SubjectForIndicator, TopicForIndicator} from '@/services/data/tuples/query-indicator-types';
+import {SubjectDataSetColumn} from '@/services/data/tuples/subject-types';
 import {MeasureMethodLabels} from '@/widgets/basic/measure-method-label';
 import {DropdownOption} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
@@ -38,7 +43,7 @@ const buildFirstFactorAsTimeFactor = (inspection: Inspection, firstFactor?: Fact
 	}] : [];
 };
 
-const buildOtherAsTimeFactors = (topic: TopicForIndicator, firstFactor?: Factor): Array<DropdownOption> => {
+const buildOtherFactorsAsTimeFactors = (topic: TopicForIndicator, firstFactor?: Factor): Array<DropdownOption> => {
 	return (topic.factors || [])
 		.filter(factor => factor !== firstFactor)
 		.map(factor => ({factor, measures: tryToTransformToMeasures(factor)}))
@@ -59,7 +64,7 @@ const buildOtherAsTimeFactors = (topic: TopicForIndicator, firstFactor?: Factor)
 		});
 };
 
-export const buildTimeFactorOptions = (inspection: Inspection, topic: TopicForIndicator, firstFactor?: Factor): Array<DropdownOption> => {
+export const buildTimeFactorOptionsOnTopic = (inspection: Inspection, topic: TopicForIndicator, firstFactor?: Factor): Array<DropdownOption> => {
 	if (topic == null) {
 		return [];
 	}
@@ -69,7 +74,58 @@ export const buildTimeFactorOptions = (inspection: Inspection, topic: TopicForIn
 		// measure on factor itself.
 		// when filter is only one value, top time measure is not applicable since only one group will be addressed
 		...buildFirstFactorAsTimeFactor(inspection, firstFactor),
-		...buildOtherAsTimeFactors(topic, firstFactor)
+		...buildOtherFactorsAsTimeFactors(topic, firstFactor)
+	];
+};
+
+const buildFirstColumnAsTimeFactor = (inspection: Inspection, subject: SubjectForIndicator, firstColumn?: SubjectDataSetColumn): Array<DropdownOption> => {
+	if (firstColumn == null) {
+		return [];
+	}
+
+	const available = !isOneRangeOnly(inspection)
+		|| tryToTransformColumnToMeasures(firstColumn, subject).filter(measure => isDescendantOf(measure, inspection.timeRangeMeasure)).length !== 0;
+
+	return available ? [{
+		value: firstColumn.columnId,
+		label: firstColumn.alias || 'Noname Factor'
+	}] : [];
+};
+
+const buildOtherColumnsAsTimeFactors = (subject: SubjectForIndicator, firstColumn?: SubjectDataSetColumn): Array<DropdownOption> => {
+	return (subject.dataset.columns || [])
+		.filter(column => column !== firstColumn)
+		.map(column => {
+			return {column, measures: tryToTransformColumnToMeasures(column, subject)};
+		})
+		.filter(({measures}) => measures.some(measure => isTimePeriodMeasure(measure)))
+		.map(({column, measures}) => {
+			return {
+				column,
+				measures: measures.filter(measure => isTimePeriodMeasure(measure))
+					.sort((m1, m2) => MeasureMethodSort[m1] - MeasureMethodSort[m2])
+			};
+		}).sort(({column: c1}, {column: c2}) => {
+			return (c1.alias || '').localeCompare(c2.alias || '', void 0, {
+				sensitivity: 'base',
+				caseFirst: 'upper'
+			});
+		}).map(({column}) => {
+			return {value: column.columnId, label: column.alias || 'Noname Factor'};
+		});
+};
+
+export const buildTimeFactorOptionsOnSubject = (inspection: Inspection, subject: SubjectForIndicator, firstColumn?: SubjectDataSetColumn): Array<DropdownOption> => {
+	if (subject == null) {
+		return [];
+	}
+
+	return [
+		buildNoTimeMeasureOption(),
+		// measure on factor itself.
+		// when filter is only one value, top time measure is not applicable since only one group will be addressed
+		...buildFirstColumnAsTimeFactor(inspection, subject, firstColumn),
+		...buildOtherColumnsAsTimeFactors(subject, firstColumn)
 	];
 };
 
@@ -88,7 +144,7 @@ const isDescendantOf = (measure: MeasureMethod, ancestor?: MeasureMethod): boole
 	}
 };
 
-export const buildTimeMeasureOptions = (inspection: Inspection, topic: TopicForIndicator, firstFactor?: Factor): Array<DropdownOption> => {
+export const buildTimeMeasureOptionsOnTopic = (inspection: Inspection, topic: TopicForIndicator, firstFactor?: Factor): Array<DropdownOption> => {
 	if (topic == null) {
 		return [];
 	}
@@ -110,6 +166,38 @@ export const buildTimeMeasureOptions = (inspection: Inspection, topic: TopicForI
 			: tryToTransformToMeasures(firstFactor);
 	} else {
 		measures = tryToTransformToMeasures(factor);
+	}
+
+	return measures.map(measure => {
+		return {
+			value: measure,
+			label: MeasureMethodLabels[measure]
+		};
+	});
+};
+
+export const buildTimeMeasureOptionsOnSubject = (inspection: Inspection, subject: SubjectForIndicator, firstColumn?: SubjectDataSetColumn): Array<DropdownOption> => {
+	if (subject == null) {
+		return [];
+	}
+
+	const measureOnTimeFactorId = inspection.measureOnTimeFactorId;
+	if (measureOnTimeFactorId == null) {
+		return [];
+	}
+
+	// eslint-disable-next-line
+	const column = (subject.dataset.columns || []).find(column => column.columnId == measureOnTimeFactorId);
+	if (column == null) {
+		return [];
+	}
+	let measures;
+	if (column === firstColumn) {
+		measures = isOneRangeOnly(inspection)
+			? tryToTransformColumnToMeasures(firstColumn, subject).filter(measure => isDescendantOf(measure, inspection.timeRangeMeasure))
+			: tryToTransformColumnToMeasures(firstColumn, subject);
+	} else {
+		measures = tryToTransformColumnToMeasures(column, subject);
 	}
 
 	return measures.map(measure => {
