@@ -6,7 +6,11 @@ import {
 } from '@/services/data/tuples/bucket-utils';
 import {Factor} from '@/services/data/tuples/factor-types';
 import {Indicator, MeasureMethod} from '@/services/data/tuples/indicator-types';
-import {tryToTransformToMeasures} from '@/services/data/tuples/indicator-utils';
+import {
+	findTopicAndFactor,
+	tryToTransformColumnToMeasures,
+	tryToTransformToMeasures
+} from '@/services/data/tuples/indicator-utils';
 import {
 	NavigationIndicatorCriteria,
 	NavigationIndicatorCriteriaOperator
@@ -15,6 +19,8 @@ import {
 	isNavigationIndicatorCriteriaOnBucket,
 	isNavigationIndicatorCriteriaOnExpression
 } from '@/services/data/tuples/navigation-utils';
+import {SubjectForIndicator} from '@/services/data/tuples/query-indicator-types';
+import {SubjectDataSetColumn} from '@/services/data/tuples/subject-types';
 import {isNotNull} from '@/services/data/utils';
 import {Lang} from '@/widgets/langs';
 import {IndicatorCriteriaDefData} from '../types';
@@ -28,23 +34,46 @@ export const findAvailableBuckets = (criteria: NavigationIndicatorCriteria, indi
 		}).filter(isNotNull);
 	}
 
-	// eslint-disable-next-line
-	const factor = (defData.topic?.factors || []).find(factor => factor.factorId == criteria.factorId);
-	if (factor == null) {
+	if (defData.topic != null) {
+		// eslint-disable-next-line
+		const factor = (defData.topic?.factors || []).find(factor => factor.factorId == criteria.factorId);
+		if (factor == null) {
+			return [];
+		}
+
+		return tryToTransformToMeasures(factor).map(measure => {
+			if (factor.enumId != null) {
+				// eslint-disable-next-line
+				return (defData.measureBuckets || []).filter(isEnumMeasureBucket).filter(bucket => bucket.enumId == factor.enumId);
+			} else {
+				return (defData.measureBuckets || []).filter(bucket => {
+					return (isCategoryMeasureBucket(bucket) && bucket.measure === measure)
+						|| (isNumericValueMeasureBucket(bucket) && bucket.measure === measure);
+				});
+			}
+		}).flat();
+	} else if (defData.subject != null) {
+		// eslint-disable-next-line
+		const column = (defData.subject.dataset.columns || []).find(column => column.columnId == criteria.factorId);
+		if (column == null) {
+			return [];
+		}
+
+		const {factor} = findTopicAndFactor(column, defData.subject);
+		return tryToTransformColumnToMeasures(column, defData.subject).map(measure => {
+			if (factor?.enumId != null) {
+				// eslint-disable-next-line
+				return (defData.measureBuckets || []).filter(isEnumMeasureBucket).filter(bucket => bucket.enumId == factor.enumId);
+			} else {
+				return (defData.measureBuckets || []).filter(bucket => {
+					return (isCategoryMeasureBucket(bucket) && bucket.measure === measure)
+						|| (isNumericValueMeasureBucket(bucket) && bucket.measure === measure);
+				});
+			}
+		}).flat();
+	} else {
 		return [];
 	}
-
-	return tryToTransformToMeasures(factor).map(measure => {
-		if (factor.enumId != null) {
-			// eslint-disable-next-line
-			return (defData.measureBuckets || []).filter(isEnumMeasureBucket).filter(bucket => bucket.enumId == factor.enumId);
-		} else {
-			return (defData.measureBuckets || []).filter(bucket => {
-				return (isCategoryMeasureBucket(bucket) && bucket.measure === measure)
-					|| (isNumericValueMeasureBucket(bucket) && bucket.measure === measure);
-			});
-		}
-	}).flat();
 };
 
 export const buildValueBucketOptions = (criteria: NavigationIndicatorCriteria, indicator: Indicator, defData: IndicatorCriteriaDefData) => {
@@ -79,8 +108,16 @@ export const showInputForValue = (criteria: NavigationIndicatorCriteria): boolea
 	return !isNavigationIndicatorCriteriaOnBucket(criteria);
 };
 
-export const getAvailableTimeRange = (factor?: Factor): { year: boolean; month: boolean } => {
+export const getAvailableTimeRangeOnFactor = (factor?: Factor): { year: boolean; month: boolean } => {
 	const measures = factor == null ? [] : tryToTransformToMeasures(factor);
+	return {
+		year: measures.includes(MeasureMethod.YEAR),
+		month: measures.includes(MeasureMethod.MONTH)
+	};
+};
+
+export const getAvailableTimeRangeOnColumn = (column?: SubjectDataSetColumn, subject?: SubjectForIndicator): { year: boolean; month: boolean } => {
+	const measures = (column == null || subject == null) ? [] : tryToTransformColumnToMeasures(column, subject);
 	return {
 		year: measures.includes(MeasureMethod.YEAR),
 		month: measures.includes(MeasureMethod.MONTH)

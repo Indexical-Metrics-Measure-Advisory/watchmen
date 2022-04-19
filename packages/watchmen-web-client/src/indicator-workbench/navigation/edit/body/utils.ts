@@ -140,7 +140,7 @@ export const isReadyToCalculation = (navigation: Navigation, navigationIndicator
 		return false;
 	}
 
-	if (defData.loaded && defData.topic == null) {
+	if (defData.loaded && defData.topic == null && defData.subject == null) {
 		return false;
 	}
 

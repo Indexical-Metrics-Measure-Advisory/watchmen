@@ -1,5 +1,5 @@
 import {MeasureMethod} from '@/services/data/tuples/indicator-types';
-import {tryToTransformToMeasures} from '@/services/data/tuples/indicator-utils';
+import {tryToTransformColumnToMeasures, tryToTransformToMeasures} from '@/services/data/tuples/indicator-utils';
 import {
 	Navigation,
 	NavigationIndicator,
@@ -19,7 +19,13 @@ import {NavigationEventTypes} from '../../../navigation-event-bus-types';
 import {useNavigationEditEventBus} from '../navigation-edit-event-bus';
 import {NavigationEditEventTypes} from '../navigation-edit-event-bus-types';
 import {IndicatorCriteriaDefData} from '../types';
-import {getAvailableTimeRange, getTimeRangePlaceholder, isCriteriaValueVisible, showInputForValue} from './utils';
+import {
+	getAvailableTimeRangeOnColumn,
+	getAvailableTimeRangeOnFactor,
+	getTimeRangePlaceholder,
+	isCriteriaValueVisible,
+	showInputForValue
+} from './utils';
 import {IndicatorCriteriaValue} from './widgets';
 
 const InputEditor = (props: {
@@ -34,18 +40,23 @@ const InputEditor = (props: {
 	const {fire} = useNavigationEventBus();
 	const {fire: fireEdit} = useNavigationEditEventBus();
 	const forceUpdate = useForceUpdate();
-	// eslint-disable-next-line
-	const factor = (defData.topic?.factors || []).find(factor => factor.factorId == criteria.factorId);
-	const {year, month} = getAvailableTimeRange(factor);
-	const tooltipTrigger = useTooltip<HTMLInputElement>({
-		use: (() => {
+	let useTrigger: boolean = false;
+	let hasYear: boolean = false;
+	let hasMonth: boolean = false;
+	if (defData.topic != null) {
+		// eslint-disable-next-line
+		const factor = (defData.topic?.factors || []).find(factor => factor.factorId == criteria.factorId);
+		const {year, month} = getAvailableTimeRangeOnFactor(factor);
+		hasYear = year;
+		hasMonth = month;
+		useTrigger = (() => {
 			if (defData.topic == null) {
-				return (void 0);
+				return false;
 			}
 			// eslint-disable-next-line
 			const factor = (defData.topic.factors || []).find(({factorId}) => factorId == criteria.factorId);
 			if (factor == null) {
-				return (void 0);
+				return false;
 			}
 			const measures = tryToTransformToMeasures(factor);
 			if (measures.includes(MeasureMethod.YEAR) || measures.includes(MeasureMethod.MONTH)) {
@@ -53,8 +64,33 @@ const InputEditor = (props: {
 			} else {
 				return false;
 			}
-		})(),
-		tooltip: getTimeRangePlaceholder(year, month),
+		})();
+	} else if (defData.subject != null) {
+		// eslint-disable-next-line
+		const column = (defData.subject.dataset.columns || []).find(column => column.columnId == criteria.factorId);
+		const {year, month} = getAvailableTimeRangeOnColumn(column, defData.subject);
+		hasYear = year;
+		hasMonth = month;
+		useTrigger = (() => {
+			if (defData.subject == null) {
+				return false;
+			}
+			// eslint-disable-next-line
+			const column = (defData.subject.dataset.columns || []).find(({columnId}) => columnId == criteria.factorId);
+			if (column == null) {
+				return false;
+			}
+			const measures = tryToTransformColumnToMeasures(column, defData.subject);
+			if (measures.includes(MeasureMethod.YEAR) || measures.includes(MeasureMethod.MONTH)) {
+				return getTimeRangePlaceholder(year, month) != null;
+			} else {
+				return false;
+			}
+		})();
+	}
+	const tooltipTrigger = useTooltip<HTMLInputElement>({
+		use: useTrigger,
+		tooltip: getTimeRangePlaceholder(hasYear, hasMonth),
 		target: inputRef,
 		alignment: TooltipAlignment.RIGHT
 	});

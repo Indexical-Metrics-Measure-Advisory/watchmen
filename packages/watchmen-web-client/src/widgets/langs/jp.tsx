@@ -480,7 +480,7 @@ export const Jp = {
 			SHOW_INDICATOR_CANDIDATES: '候補メトリックを表示',
 			ROOT: '根',
 			MISSED_INDICATOR: '指標定義が見つかりませんで',
-			MISSED_INDICATOR_TOPIC: '指標に対応するトピック定義が見つかりませんで',
+			MISSED_INDICATOR_BASE: '指標に対応するトピックまたは主題定義が見つかりませんでした',
 			NO_INDICATOR_CRITERIA_DEFINED: 'フィルタが定義されていません',
 			INDICATOR_CRITERIA_DEFINED: '個の条件が定義されて',
 			INDICATOR_NAME: '指標の説明:',

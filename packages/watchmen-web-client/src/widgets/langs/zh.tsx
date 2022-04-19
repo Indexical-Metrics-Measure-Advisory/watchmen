@@ -480,7 +480,7 @@ export const Zh = {
 			SHOW_INDICATOR_CANDIDATES: '显示候选指标',
 			ROOT: '根',
 			MISSED_INDICATOR: '未找到指标定义',
-			MISSED_INDICATOR_TOPIC: '未找到指标对应的数据集定义',
+			MISSED_INDICATOR_BASE: '未找到指标对应的数据集或主题定义',
 			NO_INDICATOR_CRITERIA_DEFINED: '尚未定义过滤条件',
 			INDICATOR_CRITERIA_DEFINED: '个条件已定义',
 			INDICATOR_NAME: '指标描述:',

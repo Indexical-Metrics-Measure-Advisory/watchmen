@@ -1,4 +1,5 @@
 import {Navigation, NavigationIndicator} from '@/services/data/tuples/navigation-types';
+import {SubjectForIndicator} from '@/services/data/tuples/query-indicator-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
@@ -13,8 +14,9 @@ const NameLabel = (props: {
 	navigation: Navigation;
 	navigationIndicator: NavigationIndicator;
 	topic?: Topic;
+	subject?: SubjectForIndicator;
 }) => {
-	const {navigation, navigationIndicator, topic} = props;
+	const {navigation, navigationIndicator, topic, subject} = props;
 	const {criteria = []} = navigationIndicator;
 
 	const {on, off} = useNavigationEditEventBus();
@@ -32,8 +34,8 @@ const NameLabel = (props: {
 		};
 	}, [on, off, forceUpdate, navigation, navigationIndicator]);
 
-	if (topic == null) {
-		return <>{Lang.INDICATOR_WORKBENCH.NAVIGATION.MISSED_INDICATOR_TOPIC}</>;
+	if (topic == null && subject == null) {
+		return <>{Lang.INDICATOR_WORKBENCH.NAVIGATION.MISSED_INDICATOR_BASE}</>;
 	} else if (criteria.length === 0) {
 		return <>{Lang.INDICATOR_WORKBENCH.NAVIGATION.NO_INDICATOR_CRITERIA_DEFINED}</>;
 	} else if ((navigationIndicator.name || '').trim().length === 0) {
@@ -64,6 +66,6 @@ export const IndicatorCriteriaNodeContent = (props: {
 	return <IndicatorCriteriaNode error={error} warn={warn}
 	                              onMouseEnter={onMouseEnter} onClick={onClicked}>
 		<NameLabel navigation={navigation} navigationIndicator={navigationIndicator}
-		           topic={defData.topic}/>
+		           topic={defData.topic} subject={defData.subject}/>
 	</IndicatorCriteriaNode>;
 };
