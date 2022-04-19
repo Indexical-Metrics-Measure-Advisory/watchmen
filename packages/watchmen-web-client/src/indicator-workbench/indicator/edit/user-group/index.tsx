@@ -1,4 +1,3 @@
-import {useStep} from '@/indicator-workbench/indicator/edit/use-step';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {Lang} from '@/widgets/langs';
 import {useRef} from 'react';
@@ -6,6 +5,7 @@ import {EmphaticSinkingLabel, Step, StepBody, StepTitle} from '../../../step-wid
 import {useIndicatorsEventBus} from '../../indicators-event-bus';
 import {IndicatorDeclarationStep} from '../../types';
 import {Construct, useConstructed} from '../use-constructed';
+import {useStep} from '../use-step';
 
 export const UserGroupAssigner = () => {
 	const ref = useRef<HTMLDivElement>(null);
