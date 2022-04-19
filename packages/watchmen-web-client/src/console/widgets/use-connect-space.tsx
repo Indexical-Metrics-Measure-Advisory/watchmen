@@ -1,6 +1,6 @@
 import {toConnectedSpace} from '@/routes/utils';
 import {AvailableSpaceInConsole} from '@/services/data/console/settings-types';
-import {listTemplateConnectedSpaces, connectAsConnectedSpace} from '@/services/data/tuples/connected-space';
+import {connectAsConnectedSpace, listTemplateConnectedSpaces} from '@/services/data/tuples/connected-space';
 import {ConnectedSpace, ConnectedSpaceId, ConnectedSpaceTemplate} from '@/services/data/tuples/connected-space-types';
 import {Space, SpaceId} from '@/services/data/tuples/space-types';
 import {AlertLabel} from '@/widgets/alert/widgets';

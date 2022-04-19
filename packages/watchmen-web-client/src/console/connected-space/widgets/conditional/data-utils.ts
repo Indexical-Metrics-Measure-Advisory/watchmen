@@ -1,6 +1,7 @@
 import {
 	ParameterExpression,
-	ParameterExpressionOperator, ParameterJoint,
+	ParameterExpressionOperator,
+	ParameterJoint,
 	ParameterJointType
 } from '@/services/data/tuples/factor-calculator-types';
 import {createConstantParameter, createTopicFactorParameter} from '@/services/data/tuples/parameter-utils';

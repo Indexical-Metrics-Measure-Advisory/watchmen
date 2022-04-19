@@ -5,8 +5,8 @@ import {EmphaticSinkingLabel, Step, StepBody, StepBodyButtons, StepTitle, StepTi
 import {useIndicatorsEventBus} from '../../indicators-event-bus';
 import {IndicatorsEventTypes} from '../../indicators-event-bus-types';
 import {IndicatorDeclarationStep} from '../../types';
-import {useStep} from '../use-step';
 import {Construct, useConstructed} from '../use-constructed';
+import {useStep} from '../use-step';
 import {BucketsDef} from './buckets-def';
 import {BucketsEventBusProvider} from './buckets-event-bus';
 

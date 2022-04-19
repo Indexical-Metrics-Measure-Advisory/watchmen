@@ -69,7 +69,7 @@ export const switchConnectedSpaceAsTemplate = async (connectedSpace: ConnectedSp
 			search: {connectId: connectedSpace.connectId, is_template: connectedSpace.isTemplate}
 		});
 	}
-}
+};
 
 export const renameConnectedSpace = async (connectedSpace: ConnectedSpace): Promise<void> => {
 	if (isMockService()) {

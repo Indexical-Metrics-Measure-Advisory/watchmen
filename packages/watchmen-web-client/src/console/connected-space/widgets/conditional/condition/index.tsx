@@ -25,7 +25,8 @@ export const Condition = (props: {
 	} else if (isExpressionParameter(condition)) {
 		return <ExpressionEventBusProvider>
 			<Expression2ParentBridge onChange={onChange}/>
-			<Expression expression={condition} availableTopics={availableTopics} pickedTopics={pickedTopics} removeMe={removeMe}/>
+			<Expression expression={condition} availableTopics={availableTopics} pickedTopics={pickedTopics}
+			            removeMe={removeMe}/>
 		</ExpressionEventBusProvider>;
 	} else {
 		return null;

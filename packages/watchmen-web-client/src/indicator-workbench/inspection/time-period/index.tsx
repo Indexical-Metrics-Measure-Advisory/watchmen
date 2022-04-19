@@ -73,6 +73,7 @@ export const TimePeriod = () => {
 		<TimePeriodDropdown value={inspection?.timeRangeFactorId ?? null} options={timeFactorOptions}
 		                    onChange={onTimeFactorChange}
 		                    please={Lang.PLAIN.DROPDOWN_PLACEHOLDER}/>
-		<TimePeriodFilterSelector inspection={inspection!} topic={topic} subject={subject} valueChanged={onValueChanged}/>
+		<TimePeriodFilterSelector inspection={inspection!} topic={topic} subject={subject}
+		                          valueChanged={onValueChanged}/>
 	</TimePeriodContainer>;
 };
