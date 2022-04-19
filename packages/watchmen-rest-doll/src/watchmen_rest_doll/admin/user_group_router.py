@@ -88,12 +88,12 @@ def sync_group(
 		# do nothing
 		return
 
-	users = service.find_by_ids(user_or_space_ids, tenant_id)
-	found_count = len(users)
+	holders = service.find_by_ids(user_or_space_ids, tenant_id)
+	found_count = len(holders)
 	if given_count != found_count:
 		raise_400(f'{where} ids do not match.')
 
-	ArrayHelper(users) \
+	ArrayHelper(holders) \
 		.filter(lambda x: not has_user_group_id(x, user_group_id)) \
 		.map(lambda x: append_user_group_id(x, user_group_id)) \
 		.each(lambda x: update_user_or_space(service, x))
