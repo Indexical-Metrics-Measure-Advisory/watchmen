@@ -14,7 +14,7 @@ import {
 } from '../mock/tuples/mock-indicator';
 import {TuplePage} from '../query/tuple-page';
 import {isMockService} from '../utils';
-import {Indicator, IndicatorId} from './indicator-types';
+import {Indicator, IndicatorBaseOn, IndicatorId} from './indicator-types';
 import {
 	EnumForIndicator,
 	QueryIndicator,
@@ -82,13 +82,19 @@ export const fetchEnumsForTopic = async (topicId: TopicId): Promise<Array<EnumFo
 	}
 };
 
-export const fetchIndicator = async (indicatorId: IndicatorId): Promise<{ indicator: Indicator; topic: TopicForIndicator; enums?: Array<EnumForIndicator>; }> => {
+export const fetchIndicator = async (indicatorId: IndicatorId): Promise<{ indicator: Indicator; topic?: TopicForIndicator; subject?: SubjectForIndicator; enums?: Array<EnumForIndicator>; }> => {
 	if (isMockService()) {
 		return await fetchMockIndicator(indicatorId);
 	} else {
 		const indicator: IndicatorOnServer = await get({api: Apis.INDICATOR_GET, search: {indicatorId}});
-		const topic = await get({api: Apis.TOPIC_GET, search: {topicId: indicator.topicOrSubjectId}});
-		return {indicator: transformFromServer(indicator), topic};
+		let topic: TopicForIndicator | undefined = (void 0);
+		let subject: SubjectForIndicator | undefined = (void 0);
+		if (indicator.baseOn === IndicatorBaseOn.TOPIC) {
+			topic = await get({api: Apis.TOPIC_GET, search: {topicId: indicator.topicOrSubjectId}});
+		} else if (indicator.baseOn === IndicatorBaseOn.SUBJECT) {
+			subject = await get({api: Apis.SUBJECT_FOR_INDICATOR_GET, search: {subjectId: indicator.topicOrSubjectId}});
+		}
+		return {indicator: transformFromServer(indicator), topic, subject};
 	}
 };
 
