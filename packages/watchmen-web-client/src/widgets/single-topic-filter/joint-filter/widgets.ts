@@ -4,6 +4,12 @@ export const FilterJointContainer = styled.div.attrs({'data-widget': 'filter-joi
 	display               : grid;
 	grid-template-columns : auto auto auto auto 1fr;
 	grid-row-gap          : calc(var(--margin) / 4);
+	div[data-widget=parameter-topic-factor-edit] {
+		grid-template-columns : 1fr;
+		> div[data-widget=dropdown]:first-child {
+			display : none;
+		}
+	}
 `;
 export const FilterJointTypeEditContainer = styled.div.attrs({'data-widget': 'filter-joint-type-edit'})`
 	display          : flex;
