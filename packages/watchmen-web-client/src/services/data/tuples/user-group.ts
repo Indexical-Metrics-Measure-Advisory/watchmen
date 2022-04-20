@@ -1,7 +1,8 @@
 import {findAccount} from '../account';
 import {Apis, get, page, post} from '../apis';
 import {
-	fetchMockUserGroup, fetchMockUserGroupsByIds,
+	fetchMockUserGroup,
+	fetchMockUserGroupsByIds,
 	listMockUserGroups,
 	listMockUserGroupsForSpace,
 	saveMockUserGroup
