@@ -177,10 +177,10 @@ def ask_save_space_action(space_service: SpaceService, principal_service: Princi
 			validate_topics(space_service, topic_ids, space.tenantId)
 			# noinspection PyTypeChecker
 			space: Space = space_service.update(space)
-			# remove user from user groups, in case user groups are removed
+			# remove space from user groups, in case user groups are removed
 			removed_user_group_ids = ArrayHelper(existing_space.groupIds).difference(user_group_ids).to_list()
 			remove_space_from_groups(space_service, space.spaceId, removed_user_group_ids, space.tenantId)
-			# synchronize user to user groups
+			# synchronize space to user groups
 			sync_space_to_groups(space_service, space.spaceId, user_group_ids, space.tenantId)
 		return space
 
