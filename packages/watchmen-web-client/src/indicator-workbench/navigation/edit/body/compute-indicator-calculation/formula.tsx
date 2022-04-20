@@ -45,7 +45,8 @@ v1.r: increment value of v1,
 v1.s: score value of v1,
 and v2.c/v2.p/v2.r/v2.s ... vn.c/vn.p/vn.r/vn.s
 eg 1: v1.c - v1.p;
-eg 2: interpolation(v1.r, -0.2, 5, 0.2, 20)`;
+eg 2: interpolation(v1.r, -0.2, 5, 0.2, 20);
+eg 3: abs(v1.c - v2.c)`;
 
 	return <ComputeIndicatorCalculationFormulaContainer expanded={expanded}>
 		<ComputeIndicatorCalculationFormulaLabel>
