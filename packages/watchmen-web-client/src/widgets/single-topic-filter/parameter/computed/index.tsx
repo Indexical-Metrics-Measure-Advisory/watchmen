@@ -6,7 +6,7 @@ import styled from 'styled-components';
 import {
 	useComputedParameterFromChanged,
 	useDelegateComputedParameterChildChangedToMe
-} from '../../parameter/computed/use-computed-parameter';
+} from '../../../parameter/computed/use-computed-parameter';
 import {ParameterComputeTypeEdit} from '../compute-type';
 import {SubParameters} from './sub-parameters';
 import {ComputedEditContainer} from './widgets';

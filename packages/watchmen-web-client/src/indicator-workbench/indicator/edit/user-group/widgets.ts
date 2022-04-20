@@ -1,5 +1,5 @@
-import {ItemBlock} from '@/indicator-workbench/indicator/edit/widgets';
 import styled from 'styled-components';
+import {ItemBlock} from '../widgets';
 
 export const AssignedIndicatorUserGroupsContainer = styled.div.attrs({'data-widget': 'assigned-indicator-user-groups'})`
 	display     : flex;

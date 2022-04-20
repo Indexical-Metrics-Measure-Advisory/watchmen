@@ -2,8 +2,8 @@ import {Parameter, ParameterKind} from '@/services/data/tuples/factor-calculator
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React from 'react';
 import styled from 'styled-components';
-import {ICON_COLLAPSE_CONTENT, ICON_EDIT} from '../../basic/constants';
-import {useParamFrom} from '../../parameter/param-from/use-param-from';
+import {ICON_COLLAPSE_CONTENT, ICON_EDIT} from '../../../basic/constants';
+import {useParamFrom} from '../../../parameter/param-from/use-param-from';
 import {ParameterFromEditContainer, ParameterFromIcon, ParameterFromLabel, ParameterTypeButton} from './widgets';
 
 const ParameterFromEdit = (props: { parameter: Parameter; availableKinds?: Array<ParameterKind> }) => {

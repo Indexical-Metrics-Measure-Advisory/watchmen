@@ -2,8 +2,8 @@ import {ComputedParameter, Parameter} from '@/services/data/tuples/factor-calcul
 import {Topic} from '@/services/data/tuples/topic-types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React from 'react';
-import {ICON_DELETE} from '../../basic/constants';
-import {useSubParamDelete} from '../../parameter/sub-param/use-sub-param-delete';
+import {ICON_DELETE} from '../../../basic/constants';
+import {useSubParamDelete} from '../../../parameter/sub-param/use-sub-param-delete';
 import {ComputedEditor} from '../computed';
 import {ConstantValueEditor} from '../constant';
 import {TopicFactorEditor} from '../topic-factor';

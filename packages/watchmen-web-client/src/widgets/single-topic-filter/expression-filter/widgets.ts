@@ -1,5 +1,5 @@
-import {DROPDOWN_Z_INDEX} from '@/widgets/basic/constants';
 import styled from 'styled-components';
+import {DROPDOWN_Z_INDEX} from '../../basic/constants';
 import {ParameterFromEditor} from '../parameter/param-from';
 
 export const ExpressionFilterContainer = styled.div.attrs({'data-widget': 'filter-expression'})`

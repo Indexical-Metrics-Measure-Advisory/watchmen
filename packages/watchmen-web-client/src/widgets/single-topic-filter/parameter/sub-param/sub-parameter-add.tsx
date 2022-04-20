@@ -2,8 +2,8 @@ import {ComputedParameter, Parameter} from '@/services/data/tuples/factor-calcul
 import {canAddMoreParameter} from '@/services/data/tuples/parameter-utils';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React from 'react';
-import {ICON_ADD} from '../../basic/constants';
-import {useSubParamAdd} from '../../parameter/sub-param/use-sub-param-add';
+import {ICON_ADD} from '../../../basic/constants';
+import {useSubParamAdd} from '../../../parameter/sub-param/use-sub-param-add';
 import {ParameterAddButton, ParameterAddContainer} from './widgets';
 
 export const SubParameterAdd = (props: {
