@@ -4,12 +4,12 @@ import {TopicForIndicator} from '@/services/data/tuples/query-indicator-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {isFakedUuid} from '@/services/data/tuples/utils';
 import {noop} from '@/services/utils';
+import {SingleTopicFilter} from '@/widgets/single-topic-filter';
+import {FilterEventBusProvider, useFilterEventBus} from '@/widgets/single-topic-filter/filter-event-bus';
+import {FilterEventTypes} from '@/widgets/single-topic-filter/filter-event-bus-types';
 import React, {useEffect} from 'react';
 import {useIndicatorsEventBus} from '../../indicators-event-bus';
 import {IndicatorsEventTypes} from '../../indicators-event-bus-types';
-import {FilterEventBusProvider, useFilterEventBus} from './filter-event-bus';
-import {FilterEventTypes} from './filter-event-bus-types';
-import {JointEdit} from './joint-filter/joint-edit';
 
 const TopFilter = (props: { indicator: Indicator; filter: IndicatorFilter; topic: Topic; }) => {
 	const {indicator, filter, topic} = props;
@@ -19,6 +19,7 @@ const TopFilter = (props: { indicator: Indicator; filter: IndicatorFilter; topic
 	useEffect(() => {
 		const onChanged = () => {
 			fireIndicator(IndicatorsEventTypes.FILTER_CHANGED, indicator);
+			filter.enabled = !(filter.joint == null || filter.joint.filters == null || filter.joint.filters.length === 0);
 			if (!isFakedUuid(indicator)) {
 				fireIndicator(IndicatorsEventTypes.SAVE_INDICATOR, indicator, noop);
 			}
@@ -36,14 +37,16 @@ const TopFilter = (props: { indicator: Indicator; filter: IndicatorFilter; topic
 		};
 	}, [on, off, fireIndicator, indicator]);
 
-	return <JointEdit joint={filter.joint} topic={topic}/>;
+	return <SingleTopicFilter joint={filter.joint} topic={topic}/>;
 };
 
 export const TopFilterEdit = (props: { indicator: Indicator; topic: TopicForIndicator; }) => {
 	const {indicator, topic} = props;
 
 	if (indicator.filter == null) {
-		indicator.filter = {enabled: false, joint: {jointType: ParameterJointType.AND, filters: []}};
+		indicator.filter = {enabled: true, joint: {jointType: ParameterJointType.AND, filters: []}};
+	} else if (indicator.filter.joint == null) {
+		indicator.filter.joint = {jointType: ParameterJointType.AND, filters: []};
 	}
 	const filter = indicator.filter!;
 

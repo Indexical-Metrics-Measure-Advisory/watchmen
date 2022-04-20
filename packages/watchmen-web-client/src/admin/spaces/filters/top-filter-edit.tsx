@@ -1,11 +1,11 @@
 import {SpaceFilter} from '@/services/data/tuples/space-types';
 import {Topic} from '@/services/data/tuples/topic-types';
+import {SingleTopicFilter} from '@/widgets/single-topic-filter';
+import {FilterEventBusProvider, useFilterEventBus} from '@/widgets/single-topic-filter/filter-event-bus';
+import {FilterEventTypes} from '@/widgets/single-topic-filter/filter-event-bus-types';
 import {useTupleEventBus} from '@/widgets/tuple-workbench/tuple-event-bus';
 import {TupleEventTypes, TupleState} from '@/widgets/tuple-workbench/tuple-event-bus-types';
 import React, {useEffect} from 'react';
-import {FilterEventBusProvider, useFilterEventBus} from './filter-event-bus';
-import {FilterEventTypes} from './filter-event-bus-types';
-import {JointEdit} from './joint-filter/joint-edit';
 
 const TopFilter = (props: { filter: SpaceFilter; topic: Topic; }) => {
 	const {filter, topic} = props;
@@ -29,7 +29,7 @@ const TopFilter = (props: { filter: SpaceFilter; topic: Topic; }) => {
 		};
 	}, [on, off, fireTuple, filter]);
 
-	return <JointEdit joint={filter.joint} topic={topic}/>;
+	return <SingleTopicFilter joint={filter.joint} topic={topic}/>;
 };
 
 export const TopFilterEdit = (props: { filter: SpaceFilter; topic: Topic; }) => {
