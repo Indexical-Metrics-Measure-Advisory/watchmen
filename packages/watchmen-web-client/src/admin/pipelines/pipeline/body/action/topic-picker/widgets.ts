@@ -1,3 +1,4 @@
+import {Button} from '@/widgets/basic/button';
 import {Dropdown} from '@/widgets/basic/dropdown';
 import styled from 'styled-components';
 
@@ -5,6 +6,7 @@ export const TopicFinderContainer = styled.div.attrs({'data-widget': 'topic-find
 	display               : grid;
 	position              : relative;
 	grid-template-columns : auto 1fr;
+	//grid-column-gap       : calc(var(--margin) / 2);
 `;
 export const TopicDropdown = styled(Dropdown)`
 	align-self       : center;
@@ -13,7 +15,7 @@ export const TopicDropdown = styled(Dropdown)`
 	padding          : 0 calc(var(--margin) / 2);
 	background-color : var(--bg-color);
 	border           : 0;
-	border-radius    : calc(var(--param-height) / 2);
+	border-radius    : calc(var(--param-height) / 2) 0 0 calc(var(--param-height) / 2);
 	box-shadow       : var(--param-border);
 	&:hover,
 	&:focus {
@@ -34,4 +36,21 @@ export const TopicDropdown = styled(Dropdown)`
 export const IncorrectOptionLabel = styled.span.attrs({'data-widget': 'incorrect-option'})`
 	color           : var(--danger-color);
 	text-decoration : line-through;
+`;
+export const PrefillButton = styled(Button)`
+	height        : var(--param-height);
+	border        : 0;
+	border-radius : 0 calc(var(--param-height) / 2) calc(var(--param-height) / 2) 0;
+	margin-left   : 1px;
+	align-self    : center;
+	justify-self  : start;
+	box-shadow    : var(--param-primary-border);
+	&[data-ink=primary] {
+		&:hover {
+			box-shadow : var(--param-primary-border), var(--primary-hover-shadow);
+		}
+	}
+	> svg {
+		font-size : 0.8em;
+	}
 `;
