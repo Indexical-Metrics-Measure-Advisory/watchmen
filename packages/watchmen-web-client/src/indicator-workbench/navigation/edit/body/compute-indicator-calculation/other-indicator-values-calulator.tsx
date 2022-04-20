@@ -119,7 +119,8 @@ export const OtherIndicatorValuesCalculator = (props: {
 		shouldAvoidFormulaChanged: functions.shouldAvoidFormulaChanged,
 		shouldAvoidScoreIncludeChanged: alwaysAvoidScoreIncludeChanged,
 		compute: functions.computeScore,
-		onComputed: functions.onComputed
+		onComputed: functions.onComputed,
+		shouldAvoidButterflyEffect: true
 	});
 	useEffect(() => {
 		setFunctions(() => {

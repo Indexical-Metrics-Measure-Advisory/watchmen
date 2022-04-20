@@ -47,7 +47,9 @@ export const NavigationRoot = (props: { id: string; navigation: Navigation }) =>
 		shouldAvoidFormulaChanged: alwaysAvoidFormulaChanged,
 		shouldAvoidScoreIncludeChanged: avoidValuesEvent,
 		compute: computeScore,
-		onComputed: forceUpdate
+		// don't know why call forceUpdate directly cannot do repaint, but it works after a timeout
+		onComputed: () => setTimeout(() => forceUpdate(), 100),
+		shouldAvoidButterflyEffect: false
 	});
 	useEffect(() => {
 		setAvoidValuesEvent(() => (aNavigation: Navigation) => aNavigation !== navigation);

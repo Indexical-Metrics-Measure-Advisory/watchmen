@@ -49,11 +49,12 @@ export const useIndicatorValuesAggregator = (options: {
 	shouldAvoidScoreIncludeChanged: (navigation: Navigation, navigationIndicator: NavigationIndicator) => boolean;
 	compute: (data: AllCalculatedIndicatorValuesData) => AllIndicatedValuesCalculationResult;
 	onComputed: (result: AllIndicatedValuesCalculationResult) => void;
+	shouldAvoidButterflyEffect: boolean;
 }) => {
 	const {
 		navigation,
 		shouldAvoidIndicatorRemovedAndValuesCalculated, shouldAvoidFormulaChanged, shouldAvoidScoreIncludeChanged,
-		compute, onComputed
+		compute, onComputed, shouldAvoidButterflyEffect
 	} = options;
 
 	const {on, off, fire} = useNavigationEditEventBus();
@@ -70,9 +71,18 @@ export const useIndicatorValuesAggregator = (options: {
 			}
 			func();
 		};
+		const applyComputed = (computed: AllIndicatedValuesCalculationResult) => {
+			const {failed, failureReason, shouldComputeScore, score} = computed;
+			allValues.calculated = true;
+			allValues.failed = failed;
+			allValues.failureReason = failureReason;
+			allValues.shouldComputeScore = shouldComputeScore;
+			allValues.score = score;
+			onComputed({failed, failureReason, shouldComputeScore, score});
+		};
 		const doCalculate = () => {
 			const computed = compute(allValues.data);
-			if (needApplyComputed(computed, allValues)) {
+			if (shouldAvoidButterflyEffect && needApplyComputed(computed, allValues)) {
 				// only applied when need to
 				// value change guard is obligatory, since in following scenario will cause an infinite recursion.
 				// e.g. there are 2 aggregators, typically 2 compute indicators
@@ -84,13 +94,10 @@ export const useIndicatorValuesAggregator = (options: {
 				//    therefore, a {@link NavigationEditEventTypes.VALUES_CALCULATED} event will be fired again,
 				//    and step 2 will be triggerred again ,
 				// so stack overflows.
-				const {failed, failureReason, shouldComputeScore, score} = computed;
-				allValues.calculated = true;
-				allValues.failed = failed;
-				allValues.failureReason = failureReason;
-				allValues.shouldComputeScore = shouldComputeScore;
-				allValues.score = score;
-				onComputed({failed, failureReason, shouldComputeScore, score});
+				applyComputed(computed);
+			} else {
+				// always apply computed
+				applyComputed(computed);
 			}
 		};
 		const calculate = () => {
@@ -159,7 +166,7 @@ export const useIndicatorValuesAggregator = (options: {
 		on, off, fire,
 		navigation, allValues,
 		shouldAvoidIndicatorRemovedAndValuesCalculated, shouldAvoidFormulaChanged, shouldAvoidScoreIncludeChanged,
-		compute, onComputed
+		compute, onComputed, shouldAvoidButterflyEffect
 	]);
 
 	return allValues;
