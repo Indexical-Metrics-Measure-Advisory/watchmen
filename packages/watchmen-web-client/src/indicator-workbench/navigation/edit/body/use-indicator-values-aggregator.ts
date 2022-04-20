@@ -82,19 +82,21 @@ export const useIndicatorValuesAggregator = (options: {
 		};
 		const doCalculate = () => {
 			const computed = compute(allValues.data);
-			if (shouldAvoidButterflyEffect && needApplyComputed(computed, allValues)) {
-				// only applied when need to
-				// value change guard is obligatory, since in following scenario will cause an infinite recursion.
-				// e.g. there are 2 aggregators, typically 2 compute indicators
-				// 1. when aggregator A is computed, fires a {@link NavigationEditEventTypes.VALUES_CALCULATED} event,
-				// 2. aggregator B will capture the event, and do calculation,
-				//    and fire a {@link NavigationEditEventTypes.VALUES_CALCULATED} event,
-				// 3. aggregator A will capture the event from step #1 and #2, event from #1 is ignored,
-				//    but event from #2 is consumed (which is already done in step 1).
-				//    therefore, a {@link NavigationEditEventTypes.VALUES_CALCULATED} event will be fired again,
-				//    and step 2 will be triggerred again ,
-				// so stack overflows.
-				applyComputed(computed);
+			if (shouldAvoidButterflyEffect ) {
+				if (needApplyComputed(computed, allValues)) {
+					// only applied when need to
+					// value change guard is obligatory, since in following scenario will cause an infinite recursion.
+					// e.g. there are 2 aggregators, typically 2 compute indicators
+					// 1. when aggregator A is computed, fires a {@link NavigationEditEventTypes.VALUES_CALCULATED} event,
+					// 2. aggregator B will capture the event, and do calculation,
+					//    and fire a {@link NavigationEditEventTypes.VALUES_CALCULATED} event,
+					// 3. aggregator A will capture the event from step #1 and #2, event from #1 is ignored,
+					//    but event from #2 is consumed (which is already done in step 1).
+					//    therefore, a {@link NavigationEditEventTypes.VALUES_CALCULATED} event will be fired again,
+					//    and step 2 will be triggerred again ,
+					// so stack overflows.
+					applyComputed(computed);
+				}
 			} else {
 				// always apply computed
 				applyComputed(computed);
