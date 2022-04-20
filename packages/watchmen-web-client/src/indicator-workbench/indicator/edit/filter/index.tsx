@@ -1,19 +1,20 @@
 import {IndicatorBaseOn} from '@/services/data/tuples/indicator-types';
-import {useEventBus} from '@/widgets/events/event-bus';
+import {TopicForIndicator} from '@/services/data/tuples/query-indicator-types';
 import {Lang} from '@/widgets/langs';
-import {useRef} from 'react';
+import React, {useRef} from 'react';
 import {EmphaticSinkingLabel, Step, StepBody, StepTitle} from '../../../step-widgets';
-import {useIndicatorsEventBus} from '../../indicators-event-bus';
 import {IndicatorDeclarationStep} from '../../types';
 import {Construct, useConstructed} from '../use-constructed';
 import {useStep} from '../use-step';
+import {TopFilterEdit} from './top-filter-edit';
+import {IndicatorFilterContainer} from './widgets';
 
 export const Filter = () => {
 	const ref = useRef<HTMLDivElement>(null);
-	const {fire: fireGlobal} = useEventBus();
-	const {fire} = useIndicatorsEventBus();
+	// const {fire: fireGlobal} = useEventBus();
+	// const {fire} = useIndicatorsEventBus();
 	const {constructed, setConstructed, visible, setVisible} = useConstructed(ref);
-	const {data, done} = useStep({
+	const {data} = useStep({
 		step: IndicatorDeclarationStep.FILTERS,
 		active: () => setConstructed(Construct.ACTIVE),
 		done: () => setConstructed(Construct.DONE),
@@ -25,8 +26,10 @@ export const Filter = () => {
 	}
 
 	let title = '';
+	let topic: TopicForIndicator | null = null;
 	if (data?.indicator?.baseOn === IndicatorBaseOn.TOPIC) {
 		title = Lang.INDICATOR_WORKBENCH.INDICATOR.FILTERS_ON_TOPIC;
+		topic = data?.topic ?? null;
 	} else if (data?.indicator?.baseOn === IndicatorBaseOn.SUBJECT) {
 		title = Lang.INDICATOR_WORKBENCH.INDICATOR.FILTERS_ON_SUBJECT;
 	}
@@ -38,6 +41,11 @@ export const Filter = () => {
 			</EmphaticSinkingLabel>
 		</StepTitle>
 		<StepBody visible={visible}>
+			{topic != null
+				? <IndicatorFilterContainer>
+					<TopFilterEdit indicator={data?.indicator!} topic={topic}/>
+				</IndicatorFilterContainer>
+				: null}
 		</StepBody>
 	</Step>;
 };

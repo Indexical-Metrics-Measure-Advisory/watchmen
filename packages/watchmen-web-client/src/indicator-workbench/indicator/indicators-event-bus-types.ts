@@ -37,6 +37,8 @@ export enum IndicatorsEventTypes {
 	USER_GROUP_ASSIGNED = 'user-group-assigned',
 	USER_GROUP_UNASSIGNED = 'user-group-unassigned',
 
+	FILTER_CHANGED = 'filter-changed',
+
 	SAVE_INDICATOR = 'save-indicator',
 	INDICATOR_SAVED = 'indicator-saved',
 
@@ -91,6 +93,10 @@ export interface IndicatorsEventBus {
 	fire(type: IndicatorsEventTypes.USER_GROUP_UNASSIGNED, indicator: Indicator, userGroupId: UserGroupId): this;
 	on(type: IndicatorsEventTypes.USER_GROUP_UNASSIGNED, listener: (indicator: Indicator, userGroupId: UserGroupId) => void): this;
 	off(type: IndicatorsEventTypes.USER_GROUP_UNASSIGNED, listener: (indicator: Indicator, userGroupId: UserGroupId) => void): this;
+
+	fire(type: IndicatorsEventTypes.FILTER_CHANGED, indicator: Indicator): this;
+	on(type: IndicatorsEventTypes.FILTER_CHANGED, listener: (indicator: Indicator) => void): this;
+	off(type: IndicatorsEventTypes.FILTER_CHANGED, listener: (indicator: Indicator) => void): this;
 
 	fire(type: IndicatorsEventTypes.SAVE_INDICATOR, indicator: Indicator, onSaved: (indicator: Indicator, saved: boolean) => void): this;
 	on(type: IndicatorsEventTypes.SAVE_INDICATOR, listener: (indicator: Indicator, onSaved: (indicator: Indicator, saved: boolean) => void) => void): this;
