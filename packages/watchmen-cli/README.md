@@ -3,57 +3,45 @@
 ## installation
 
 ```bash
-pip install fire 
-pip install requests
+pip install poetry
+poetry install --no-dev -vv
 ```
 
 ## basic usage
 
+
 #### init configuration
 
-- add site
+- support env configuration
+
+```yml
+META_CLI_HOST=http://localhost
+META_CLI_USERNAME=xxxxxx
+META_CLI_PASSWORD=xxxxxx
+META_CLI_PAT=xxxxxx
+META_CLI_DEPLOY_FOLDER=/path/to/deploy/file
+META_CLI_DEPLOY_PATTERN=replace
+```
+you should config META_CLI_USERNAME and META_CLI_PASSWORD, or config the META_CLI_PAT for authentication
+
+
+- cli pattern
 
 ```bash
-python cli.py add_site source http://localhost:8080/ username password 
+NAME
+    cli.py
+
+SYNOPSIS
+    cli.py COMMAND
+
+COMMANDS
+    COMMAND is one of the following:
+    
+     deploy_asset
 ```
 
-- search
-    - space
-    - user
-    - user group
-    - topic
+- deploy md asset
 
 ```bash
-python cli.py search topic source query_name
+python cli.py deploy_asset
 ```
-
-- list
-    - pipeline
-
-```bash
-python cli.py list pipeline source 
-```
-
-- sync
-    - space
-        - name
-    - topic
-        - name
-    - user
-    - user group
-    - pipeline
-        - ids
-
-```bash
-python cli.py sync topic source target ["topic_name"]
-python cli.py sync pipeline source target [111]
-```
-
-#### build executable app
-
-```bash
-pip install pyinstaller
-pyinstaller cli.py
-```
-
-- run it in ``dist`` folder 

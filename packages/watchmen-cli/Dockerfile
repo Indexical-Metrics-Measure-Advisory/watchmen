@@ -2,7 +2,7 @@ FROM python:3.9.6-slim-buster
 
 WORKDIR /app
 ADD . .
-RUN pip install requests && pip install fire
+RUN pip install poetry && poetry config virtualenvs.create false && poetry install --no-dev -vv
 
-ENV command="deploy" host="http://0.0.0.0" username="username" password="password"
-CMD python cli.py $command --host=$host --username=$username --password=$password
+ENV command="deploy_asset"
+CMD python ./src/cli.py $command
