@@ -5,11 +5,11 @@ import {isTopicFactorParameter} from '@/services/data/tuples/parameter-utils';
 import {Topic} from '@/services/data/tuples/topic-types';
 import React, {useEffect} from 'react';
 import styled from 'styled-components';
-import {useForceUpdate} from '../../basic/utils';
-import {useParameterEventBus} from '../../parameter/parameter-event-bus';
-import {ParameterEventTypes} from '../../parameter/parameter-event-bus-types';
-import {useTopicFactor} from '../../parameter/topic-factor/use-topic-factor';
-import {buildFactorOptions, buildTopicOptions} from '../../tuples';
+import {useForceUpdate} from '../../../basic/utils';
+import {useParameterEventBus} from '../../../parameter/parameter-event-bus';
+import {ParameterEventTypes} from '../../../parameter/parameter-event-bus-types';
+import {useTopicFactor} from '../../../parameter/topic-factor/use-topic-factor';
+import {buildFactorOptions, buildTopicOptions} from '../../../tuples';
 import {FactorDropdown, IncorrectOptionLabel, TopicDropdown, TopicFactorEditContainer} from './widgets';
 
 const RealTopicFactorEdit = (props: {

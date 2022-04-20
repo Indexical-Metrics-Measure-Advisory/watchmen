@@ -7,10 +7,4 @@ export const SpaceFilterContainer = styled.div.attrs({'data-widget': 'space-filt
 	flex-grow      : 1;
 	flex-direction : column;
 	padding        : calc(var(--margin) / 2) var(--margin) calc(var(--margin) / 2) calc(var(--margin) / 2);
-	div[data-widget=parameter-topic-factor-edit] {
-		grid-template-columns : 1fr;
-		> div[data-widget=dropdown]:first-child {
-			display : none;
-		}
-	}
 `;

@@ -35,7 +35,7 @@ const TopFilter = (props: { indicator: Indicator; filter: IndicatorFilter; topic
 			off(FilterEventTypes.FILTER_REMOVED, onChanged);
 			off(FilterEventTypes.CONTENT_CHANGED, onChanged);
 		};
-	}, [on, off, fireIndicator, indicator]);
+	}, [on, off, fireIndicator, indicator, filter]);
 
 	return <SingleTopicFilter joint={filter.joint} topic={topic}/>;
 };

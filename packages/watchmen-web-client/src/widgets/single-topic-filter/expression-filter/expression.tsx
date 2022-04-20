@@ -1,7 +1,7 @@
 import {Parameter, ParameterExpression, ParameterKind} from '@/services/data/tuples/factor-calculator-types';
 import {Topic} from '@/services/data/tuples/topic-types';
-import {useForceUpdate} from '@/widgets/basic/utils';
 import React, {useEffect} from 'react';
+import {useForceUpdate} from '../../basic/utils';
 import {ParameterEventBusProvider, useParameterEventBus} from '../../parameter/parameter-event-bus';
 import {ParameterEventTypes} from '../../parameter/parameter-event-bus-types';
 import {Parameter2FilterEventBridge} from '../parameter-2-filter-event-bridge';

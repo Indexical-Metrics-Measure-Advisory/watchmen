@@ -2,9 +2,9 @@ import {ComputedParameter} from '@/services/data/tuples/factor-calculator-types'
 import {Topic} from '@/services/data/tuples/topic-types';
 import React from 'react';
 import {v4} from 'uuid';
-import {HierarchicalParameterEventBridge} from '../../parameter/computed/hierarchical-parameter-event-bridge';
-import {useSubParameterChanged} from '../../parameter/computed/use-computed-parameter';
-import {ParameterEventBusProvider} from '../../parameter/parameter-event-bus';
+import {HierarchicalParameterEventBridge} from '../../../parameter/computed/hierarchical-parameter-event-bridge';
+import {useSubParameterChanged} from '../../../parameter/computed/use-computed-parameter';
+import {ParameterEventBusProvider} from '../../../parameter/parameter-event-bus';
 import {SubParameterEdit} from '../sub-param';
 import {SubParameterAdd} from '../sub-param/sub-parameter-add';
 import {SubParametersContainer} from './widgets';

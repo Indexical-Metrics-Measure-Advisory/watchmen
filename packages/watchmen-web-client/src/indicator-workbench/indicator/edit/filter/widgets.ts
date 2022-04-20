@@ -6,10 +6,4 @@ export const IndicatorFilterContainer = styled.div.attrs({'data-widget': 'indica
 	grid-column    : 1 / span 3;
 	flex-grow      : 1;
 	flex-direction : column;
-	div[data-widget=parameter-topic-factor-edit] {
-		grid-template-columns : 1fr;
-		> div[data-widget=dropdown]:first-child {
-			display : none;
-		}
-	}
 `;

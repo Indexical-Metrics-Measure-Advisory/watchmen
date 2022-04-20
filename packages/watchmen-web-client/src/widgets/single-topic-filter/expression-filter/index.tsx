@@ -1,8 +1,8 @@
 import {ParameterExpression, ParameterJoint, ParameterKind} from '@/services/data/tuples/factor-calculator-types';
 import {Topic} from '@/services/data/tuples/topic-types';
-import {ICON_DELETE} from '@/widgets/basic/constants';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {MouseEvent} from 'react';
+import {ICON_DELETE} from '../../basic/constants';
 import {FilterEventBusProvider} from '../filter-event-bus';
 import {HierarchicalFilterEventBridge} from '../hierarchical-filter-event-bridge';
 import {RemoveFilterIcon} from '../widgets';

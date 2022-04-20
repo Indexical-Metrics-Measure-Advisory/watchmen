@@ -3,11 +3,11 @@ import {
 	ComputedParameter,
 	ParameterComputeType
 } from '@/services/data/tuples/factor-calculator-types';
-import {ICON_EDIT} from '@/widgets/basic/constants';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React from 'react';
-import {useComputeType} from '../../parameter/compute-type/use-compute-type';
-import {ParameterComputeTypeDropdown, ParameterComputeTypeOption} from '../../parameter/compute-type/widgets';
+import {ICON_EDIT} from '../../../basic/constants';
+import {useComputeType} from '../../../parameter/compute-type/use-compute-type';
+import {ParameterComputeTypeDropdown, ParameterComputeTypeOption} from '../../../parameter/compute-type/widgets';
 import {ParameterComputeTypeLabels} from '../constants';
 import {ParameterComputeTypeContainer, ParameterComputeTypeIcon, ParameterComputeTypeLabel} from './widgets';
 
