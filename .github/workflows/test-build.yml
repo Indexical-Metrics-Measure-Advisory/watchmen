@@ -1,12 +1,8 @@
 name: Test-Build
 on:
-  workflow_dispatch:
-    inputs:
-      ref:
-        description: Branch or tag name
-        required: true
-        type: string
-        default: 'main'
+  schedule:
+    - cron: "0 0 * * *"
+
 jobs:
   test-api:
     runs-on: ubuntu-latest
