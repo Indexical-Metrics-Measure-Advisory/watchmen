@@ -1,3 +1,5 @@
+import {ParameterJointType, ParameterKind} from '@/services/data/tuples/factor-calculator-types';
+import {SubjectColumnArithmetic, SubjectDataSetFilter, SubjectDataSetJoin} from '@/services/data/tuples/subject-types';
 import {TuplePage} from '../../query/tuple-page';
 import {isIndicatorFactor} from '../../tuples/factor-calculator-utils';
 import {Indicator, IndicatorId} from '../../tuples/indicator-types';
@@ -45,7 +47,35 @@ export const fetchMockSubjectsForIndicatorSelection = async (text: string): Prom
 	return new Promise<Array<SubjectForIndicator>>(resolve => {
 		// const matchedText = text.toUpperCase();
 		setTimeout(() => {
-			resolve([]);
+			resolve([
+				{
+					subjectId: '1',
+					name: 'Order Premium',
+					dataset: {
+						columns: [
+							{
+								columnId: '1',
+								parameter: {kind: ParameterKind.TOPIC, topicId: '6', factorId: '601'},
+								arithmetic: SubjectColumnArithmetic.NONE,
+								alias: 'Year'
+							}, {
+								columnId: '2',
+								parameter: {kind: ParameterKind.TOPIC, topicId: '6', factorId: '602'},
+								arithmetic: SubjectColumnArithmetic.NONE,
+								alias: 'Month'
+							}, {
+								columnId: '3',
+								parameter: {kind: ParameterKind.TOPIC, topicId: '6', factorId: '603'},
+								arithmetic: SubjectColumnArithmetic.NONE,
+								alias: 'Premium'
+							}
+						],
+						filters: {jointType: ParameterJointType.AND, filters: [] as Array<SubjectDataSetFilter>},
+						joins: [] as Array<SubjectDataSetJoin>
+					},
+					topics: [MonthlyOrderPremium]
+				} as SubjectForIndicator
+			]);
 		}, 500);
 	});
 };

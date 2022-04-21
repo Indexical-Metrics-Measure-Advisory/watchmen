@@ -200,7 +200,7 @@ export const detectMeasures = (topicOrSubject?: Topic | TopicForIndicator | Subj
 			if (isTopicFactorParameter(parameter)) {
 				const {factor} = findTopicAndFactor(column, topicOrSubject);
 				if (factor != null) {
-					return factorToIndicatorMeasures(factor.factorId, factor.type, accept);
+					return factorToIndicatorMeasures(column.columnId, factor.type, accept);
 				} else {
 					return null;
 				}
