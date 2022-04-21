@@ -2,7 +2,7 @@ import {ParameterJointType, ParameterKind} from '@/services/data/tuples/factor-c
 import {SubjectColumnArithmetic, SubjectDataSetFilter, SubjectDataSetJoin} from '@/services/data/tuples/subject-types';
 import {TuplePage} from '../../query/tuple-page';
 import {isIndicatorFactor} from '../../tuples/factor-calculator-utils';
-import {Indicator, IndicatorId} from '../../tuples/indicator-types';
+import {Indicator, IndicatorBaseOn, IndicatorId} from '../../tuples/indicator-types';
 import {
 	EnumForIndicator,
 	QueryIndicator,
@@ -15,6 +15,34 @@ import {isFakedUuid} from '../../tuples/utils';
 import {DemoTopics, MonthlyOrderPremium} from '../tuples/mock-data-topics';
 import {DemoIndicators, MonthlyOrderPremiumIndicator, OrderPremiumIndicators} from './mock-data-indicators';
 import {listMockEnums} from './mock-enum';
+
+const MOCK_SUBJECT = {
+	subjectId: '1',
+	name: 'Order Premium',
+	dataset: {
+		columns: [
+			{
+				columnId: '1',
+				parameter: {kind: ParameterKind.TOPIC, topicId: '6', factorId: '601'},
+				arithmetic: SubjectColumnArithmetic.NONE,
+				alias: 'Year'
+			}, {
+				columnId: '2',
+				parameter: {kind: ParameterKind.TOPIC, topicId: '6', factorId: '602'},
+				arithmetic: SubjectColumnArithmetic.NONE,
+				alias: 'Month'
+			}, {
+				columnId: '3',
+				parameter: {kind: ParameterKind.TOPIC, topicId: '6', factorId: '603'},
+				arithmetic: SubjectColumnArithmetic.NONE,
+				alias: 'Premium'
+			}
+		],
+		filters: {jointType: ParameterJointType.AND, filters: [] as Array<SubjectDataSetFilter>},
+		joins: [] as Array<SubjectDataSetJoin>
+	},
+	topics: [MonthlyOrderPremium]
+} as SubjectForIndicator;
 
 export const fetchMockIndicatorsForSelection = async (text: string): Promise<Array<QueryIndicator>> => {
 	return new Promise<Array<QueryIndicator>>(resolve => {
@@ -47,35 +75,7 @@ export const fetchMockSubjectsForIndicatorSelection = async (text: string): Prom
 	return new Promise<Array<SubjectForIndicator>>(resolve => {
 		// const matchedText = text.toUpperCase();
 		setTimeout(() => {
-			resolve([
-				{
-					subjectId: '1',
-					name: 'Order Premium',
-					dataset: {
-						columns: [
-							{
-								columnId: '1',
-								parameter: {kind: ParameterKind.TOPIC, topicId: '6', factorId: '601'},
-								arithmetic: SubjectColumnArithmetic.NONE,
-								alias: 'Year'
-							}, {
-								columnId: '2',
-								parameter: {kind: ParameterKind.TOPIC, topicId: '6', factorId: '602'},
-								arithmetic: SubjectColumnArithmetic.NONE,
-								alias: 'Month'
-							}, {
-								columnId: '3',
-								parameter: {kind: ParameterKind.TOPIC, topicId: '6', factorId: '603'},
-								arithmetic: SubjectColumnArithmetic.NONE,
-								alias: 'Premium'
-							}
-						],
-						filters: {jointType: ParameterJointType.AND, filters: [] as Array<SubjectDataSetFilter>},
-						joins: [] as Array<SubjectDataSetJoin>
-					},
-					topics: [MonthlyOrderPremium]
-				} as SubjectForIndicator
-			]);
+			resolve([MOCK_SUBJECT]);
 		}, 500);
 	});
 };
@@ -97,19 +97,24 @@ export const fetchMockEnumsForTopic = async (topicId: TopicId): Promise<Array<En
 	});
 };
 
-export const fetchMockIndicator = async (indicatorId: IndicatorId): Promise<{ indicator: Indicator; topic: TopicForIndicator; enums?: Array<EnumForIndicator>; }> => {
+export const fetchMockIndicator = async (indicatorId: IndicatorId): Promise<{ indicator: Indicator; topic?: TopicForIndicator; subject?: SubjectForIndicator; enums?: Array<EnumForIndicator>; }> => {
 	// eslint-disable-next-line
 	const found = DemoIndicators.find(({indicatorId: id}) => id == indicatorId);
 	if (found) {
 		const indicator: Indicator = JSON.parse(JSON.stringify(found));
-		// eslint-disable-next-line
-		const topic = DemoTopics.find(({topicId: id}) => id == indicator.topicOrSubjectId)!;
-		const {data: demoEnums} = await listMockEnums({search: ''});
-		const enums = (topic.factors || []).filter(factor => factor.enumId)
+		if (indicator.baseOn === IndicatorBaseOn.TOPIC) {
 			// eslint-disable-next-line
-			.map(factor => demoEnums.find(enumeration => enumeration.enumId == factor.enumId))
-			.filter(enumeration => enumeration != null) as Array<EnumForIndicator>;
-		return {indicator, topic, enums};
+			const topic = DemoTopics.find(({topicId: id}) => id == indicator.topicOrSubjectId)!;
+			const {data: demoEnums} = await listMockEnums({search: ''});
+			const enums = (topic.factors || []).filter(factor => factor.enumId)
+				// eslint-disable-next-line
+				.map(factor => demoEnums.find(enumeration => enumeration.enumId == factor.enumId))
+				.filter(enumeration => enumeration != null) as Array<EnumForIndicator>;
+			return {indicator, topic, enums};
+		} else {
+			const subject = JSON.parse(JSON.stringify(MOCK_SUBJECT));
+			return {indicator, subject};
+		}
 	} else {
 		return {
 			indicator: {

@@ -6,6 +6,7 @@ import {MonthlyOrderPremium, Order, WeeklyOrderPremium} from './mock-data-topics
 export const INDICATOR_ORDER_PREMIUM_ID = '1';
 export const INDICATOR_MONTHLY_ORDER_PREMIUM_ID = '2';
 export const INDICATOR_WEEKLY_ORDER_PREMIUM_ID = '3';
+export const INDICATOR_MONTHLY_ORDER_PREMIUM_ON_SUBJECT_ID = '4';
 
 const OrderPremiumIndicator: Indicator = {
 	indicatorId: INDICATOR_ORDER_PREMIUM_ID,
@@ -48,5 +49,21 @@ const WeeklyOrderPremiumIndicator: Indicator = {
 	createdAt: getCurrentTime(),
 	lastModifiedAt: getCurrentTime()
 };
-export const OrderPremiumIndicators = [OrderPremiumIndicator, MonthlyOrderPremiumIndicator, WeeklyOrderPremiumIndicator];
+const MonthlyOrderPremiumIndicatorOnSubject: Indicator = {
+	indicatorId: INDICATOR_MONTHLY_ORDER_PREMIUM_ON_SUBJECT_ID,
+	name: 'Monthly Order Premium On Subject',
+	topicOrSubjectId: '1',
+	factorId: MonthlyOrderPremium.factors.find(factor => factor.name === 'premium')?.factorId,
+	baseOn: IndicatorBaseOn.SUBJECT,
+	valueBuckets: [BUCKET_AMOUNT_ID],
+	category1: 'premium',
+	category2: 'short term',
+	category3: 'monthly',
+	userGroupIds: [],
+	version: 1,
+	createdAt: getCurrentTime(),
+	lastModifiedAt: getCurrentTime()
+};
+export const OrderPremiumIndicators = [
+	OrderPremiumIndicator, MonthlyOrderPremiumIndicator, WeeklyOrderPremiumIndicator, MonthlyOrderPremiumIndicatorOnSubject];
 export const DemoIndicators = [OrderPremiumIndicators].flat();
