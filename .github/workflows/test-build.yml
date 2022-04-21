@@ -98,13 +98,13 @@ jobs:
           from: github-ci@mail.matrdata.com
           body: ${{ github.job }} job in worflow ${{ github.workflow }} of ${{ github.repository }} has ${{ job.status }}
           attachments: testResults/htmlreport.html
-#      - name: notify feishu
-#        if: always()
-#        uses: potaesm/github-actions-request@1.0.7
-#        with:
-#          url: ${{ secrets.FEISHU_CHANNLE_ID }}
-#          method: post
-#          baseURL: https://open.feishu.cn/open-apis/bot/v2/hook
-#          headers: '{ "Content-Type": "application/json" }'
-#          data: '{"msg_type":"interactive","card":{"config":{"wide_screen_mode":true},"header":{"title":{"tag":"lark_md","content":"Mysql CI testing complete"}},"elements":[{"tag":"hr"},{"tag":"action","actions":[{"tag":"button","text":{"tag":"plain_text","content":"Check it out."},"type":"primary","url":"https://github.com/Indexical-Metrics-Measure-Advisory/watchmen/actions"}]}]}}'
-#          timeout: 30000
+      - name: notify feishu
+        if: always()
+        uses: potaesm/github-actions-request@1.0.7
+        with:
+          url: ${{ secrets.FEISHU_CHANNLE_ID }}
+          method: post
+          baseURL: https://open.feishu.cn/open-apis/bot/v2/hook
+          headers: '{ "Content-Type": "application/json" }'
+          data: '{"msg_type":"interactive","card":{"config":{"wide_screen_mode":true},"header":{"title":{"tag":"lark_md","content":"Mysql CI testing complete"}},"elements":[{"tag":"hr"},{"tag":"action","actions":[{"tag":"button","text":{"tag":"plain_text","content":"Check it out."},"type":"primary","url":"https://github.com/Indexical-Metrics-Measure-Advisory/watchmen/actions"}]}]}}'
+          timeout: 30000
