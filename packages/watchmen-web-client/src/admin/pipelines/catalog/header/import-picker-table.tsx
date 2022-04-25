@@ -339,8 +339,8 @@ export const ImportPickerTable = (props: {
 							const subjectIds = (connectedSpaceCandidate.connectedSpace.subjects || []).map(subject => subject.subjectId);
 							return [
 								connectedSpaceCandidate,
-								// eslint-disable-next-line
 								...subjectCandidates
+									// eslint-disable-next-line
 									.filter(subjectCandidate => subjectIds.some(subjectId => subjectId == subjectCandidate.subject.subjectId))
 									.map(subjectCandidate => {
 										return [

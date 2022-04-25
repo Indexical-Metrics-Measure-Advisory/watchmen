@@ -2,7 +2,7 @@ import {ImportTPSCSType, tryToImportTopicsAndPipelines} from '@/services/data/da
 import {ImportDataResponse} from '@/services/data/data-import/import-data-types';
 import {MonitorRules} from '@/services/data/data-quality/rule-types';
 import {isRuleOnFactor, isRuleOnTopic} from '@/services/data/data-quality/rules';
-import {Bucket} from '@/services/data/tuples/bucket-types';
+import {Bucket, BucketId} from '@/services/data/tuples/bucket-types';
 import {listConnectedSpacesForExport} from '@/services/data/tuples/connected-space';
 import {ConnectedSpace} from '@/services/data/tuples/connected-space-types';
 import {listIndicatorsForExport} from '@/services/data/tuples/indicator';
@@ -13,7 +13,7 @@ import {listSpacesForExport} from '@/services/data/tuples/space';
 import {Space} from '@/services/data/tuples/space-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {generateUuid} from '@/services/data/tuples/utils';
-import {getCurrentTime} from '@/services/data/utils';
+import {getCurrentTime, isNotNull} from '@/services/data/utils';
 import {AdminCacheData} from '@/services/local-persist/types';
 import {base64Decode} from '@/services/utils';
 import {AlertLabel} from '@/widgets/alert/widgets';
@@ -107,8 +107,15 @@ const PipelinesImport = (props: {
 						return connectedSpace;
 					}).filter(x => !!x) as Array<ConnectedSpace>,
 				indicators: selectedIndicators,
-				// TODO
-				buckets: [],
+				buckets: (() => {
+					const bucketsMap = buckets.map((map, bucket) => {
+						map[bucket.bucketId] = bucket;
+						return map;
+					}, {} as Record<BucketId, Bucket>);
+					return selectedIndicators.map(indicators => {
+						return (indicators.valueBuckets || []).map(bucketId => bucketsMap[bucketId]).filter(isNotNull);
+					}).flat();
+				})(),
 				monitorRules: monitorRules.filter(rule => {
 					if (isRuleOnTopic(rule) || isRuleOnFactor(rule)) {
 						// eslint-disable-next-line
