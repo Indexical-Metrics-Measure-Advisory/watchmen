@@ -46,7 +46,7 @@ const generateAvailableBuckets = (options: { indicator: Indicator; buckets: Arra
 	}
 
 	return `- Buckets
-${availableBuckets.map(bucket => `   - ${bucket.name || 'Noname Bucket'}`).join('\n')}
+${availableBuckets.map(bucket => `   - <a href="#bucket-${bucket.bucketId}">${bucket.name || 'Noname Bucket'}</a>`).join('\n')}
 `;
 };
 
@@ -57,7 +57,7 @@ const generateIndicatorMarkdown = (options: {
 }): string => {
 	const {indicator, buckets, connectedSpaces, topicsMap, index, sectionIndex} = options;
 
-	return `## ${sectionIndex}.${index + 1}. ${indicator.name || 'Noname Indicator'} #${indicator.indicatorId}<span id="bucket-${indicator.indicatorId}"/>
+	return `## ${sectionIndex}.${index + 1}. ${indicator.name || 'Noname Indicator'} #${indicator.indicatorId}<span id="indicator-${indicator.indicatorId}"/>
 ${(indicator.description || '').replace(/\n/g, '  ').replace(/</g, '&lt;')}
 
 <a href="data:application/json;base64,${base64Encode(JSON.stringify(indicator))}" target="_blank" download="${indicator.name || 'Noname Indicator'}-${indicator.indicatorId}.json">Download Meta File</a>
