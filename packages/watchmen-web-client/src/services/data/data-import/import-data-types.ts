@@ -1,9 +1,9 @@
-import {MonitorRuleId} from '@/services/data/data-quality/rule-types';
-import {ReportId} from '@/services/data/tuples/report-types';
-import {SubjectId} from '@/services/data/tuples/subject-types';
+import {MonitorRuleId} from '../data-quality/rule-types';
 import {ConnectedSpaceId} from '../tuples/connected-space-types';
 import {PipelineId} from '../tuples/pipeline-types';
+import {ReportId} from '../tuples/report-types';
 import {SpaceId} from '../tuples/space-types';
+import {SubjectId} from '../tuples/subject-types';
 import {TopicId} from '../tuples/topic-types';
 
 export interface ImportDataResponse {

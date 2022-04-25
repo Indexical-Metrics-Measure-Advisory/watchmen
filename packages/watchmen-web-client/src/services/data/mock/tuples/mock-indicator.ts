@@ -1,6 +1,5 @@
-import {ParameterJointType, ParameterKind} from '@/services/data/tuples/factor-calculator-types';
-import {SubjectColumnArithmetic, SubjectDataSetFilter, SubjectDataSetJoin} from '@/services/data/tuples/subject-types';
 import {TuplePage} from '../../query/tuple-page';
+import {ParameterJointType, ParameterKind} from '../../tuples/factor-calculator-types';
 import {isIndicatorFactor} from '../../tuples/factor-calculator-utils';
 import {Indicator, IndicatorBaseOn, IndicatorId} from '../../tuples/indicator-types';
 import {
@@ -10,6 +9,7 @@ import {
 	SubjectForIndicator,
 	TopicForIndicator
 } from '../../tuples/query-indicator-types';
+import {SubjectColumnArithmetic, SubjectDataSetFilter, SubjectDataSetJoin} from '../../tuples/subject-types';
 import {TopicId, TopicKind, TopicType} from '../../tuples/topic-types';
 import {isFakedUuid} from '../../tuples/utils';
 import {DemoTopics, MonthlyOrderPremium} from '../tuples/mock-data-topics';
