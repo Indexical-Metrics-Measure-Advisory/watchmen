@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from enum import Enum
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
@@ -12,10 +13,13 @@ from watchmen_meta.dqc import MonitorRuleService
 from watchmen_meta.system import TenantService
 from watchmen_model.admin import Factor, Pipeline, PipelineStage, Space, Topic, User, UserRole
 from watchmen_model.admin.space import SpaceFilter
-from watchmen_model.common import ConnectedSpaceId, FactorId, ParameterJoint, PipelineId, ReportId, SpaceId, \
+from watchmen_model.common import BucketId, ConnectedSpaceId, FactorId, IndicatorId, ParameterJoint, PipelineId, \
+	ReportId, \
+	SpaceId, \
 	SubjectId, TenantBasedTuple, TenantId, TopicId, UserId
 from watchmen_model.console import ConnectedSpace, Report, Subject, SubjectDataset
 from watchmen_model.dqc import MonitorRule, MonitorRuleId
+from watchmen_model.indicator import Bucket, Indicator
 from watchmen_model.system import Tenant
 from watchmen_rest import get_any_admin_principal
 from watchmen_rest.util import raise_400, raise_403
@@ -39,6 +43,8 @@ class MixImportDataRequest(BaseModel):
 	pipelines: Optional[List[Pipeline]] = []
 	spaces: Optional[List[Space]] = []
 	connectedSpaces: Optional[List[ConnectedSpaceWithSubjects]] = []
+	indicators: Optional[List[Indicator]] = []
+	buckets: Optional[List[Bucket]] = []
 	monitorRules: Optional[List[MonitorRule]]
 	importType: MixedImportType = None
 
@@ -71,6 +77,14 @@ class SubjectImportDataResult(ImportDataResult):
 
 class ReportImportDataResult(ImportDataResult):
 	reportId: Optional[ReportId] = None
+
+
+class IndicatorImportDataResult(ImportDataResult):
+	indicatorId: Optional[IndicatorId] = None
+
+
+class BucketImportDataResult(ImportDataResult):
+	bucketId: Optional[BucketId] = None
 
 
 class MonitorRuleImportDataResult(ImportDataResult):
@@ -120,7 +134,44 @@ def get_monitor_rule_service(user_service: UserService) -> MonitorRuleService:
 	return MonitorRuleService(user_service.storage, user_service.snowflakeGenerator, user_service.principalService)
 
 
-def same_tenant_validate(tuple_or_tenant_id: Union[TenantBasedTuple, Optional[TenantId]], a_tuple: TenantBasedTuple) -> TenantId:
+class MixedImportWithIndicator:
+	@abstractmethod
+	def try_to_import_indicators(
+			self, user_service: UserService,
+			indicators: List[Indicator], buckets: List[Bucket],
+			do_update: bool
+	) -> Tuple[List[IndicatorImportDataResult], List[BucketImportDataResult]]:
+		raise NotImplementedError()
+
+	@abstractmethod
+	def force_new_import_indicators(
+			self, user_service: UserService,
+			indicators: List[Indicator], buckets: List[Bucket],
+			subject_id_map: Dict[SubjectId, SubjectId],
+			topic_id_map: Dict[TopicId, TopicId], factor_id_map: Dict[FactorId, FactorId]
+	) -> Tuple[List[IndicatorImportDataResult], List[BucketImportDataResult]]:
+		raise NotImplementedError()
+
+
+class MixImportHandle:
+	def __init__(self):
+		self.indicator_handler = None
+
+	def register_indicator_handler(self, handler: MixedImportWithIndicator) -> None:
+		self.indicator_handler = handler
+
+	def has_indicator_handler(self) -> bool:
+		return self.indicator_handler is not None
+
+	def ask_indicator_handler(self) -> Optional[MixedImportWithIndicator]:
+		return self.indicator_handler
+
+
+mix_import_handle = MixImportHandle()
+
+
+def same_tenant_validate(
+		tuple_or_tenant_id: Union[TenantBasedTuple, Optional[TenantId]], a_tuple: TenantBasedTuple) -> TenantId:
 	if is_blank(a_tuple.tenantId):
 		return tuple_or_tenant_id
 	elif tuple_or_tenant_id is None:
@@ -381,6 +432,18 @@ def for_same_location(monitor_rule: MonitorRule, another_monitor_rule: MonitorRu
 	return True
 
 
+def try_to_import_indicators(
+		user_service: UserService,
+		indicators: List[Indicator], buckets: List[Bucket],
+		do_update: bool
+) -> Tuple[List[IndicatorImportDataResult], List[BucketImportDataResult]]:
+	if mix_import_handle.has_indicator_handler():
+		return mix_import_handle.ask_indicator_handler().try_to_import_indicators(
+			user_service, indicators, buckets, do_update)
+	else:
+		return [], []
+
+
 def try_to_import_monitor_rule(
 		monitor_rule: MonitorRule, monitor_rule_service: MonitorRuleService, do_update: bool
 ) -> MonitorRuleImportDataResult:
@@ -451,6 +514,9 @@ def try_to_import(request: MixImportDataRequest, user_service: UserService, do_u
 	report_service = get_report_service(user_service)
 	report_results = ArrayHelper(reports).map(lambda x: try_to_import_report(x, report_service, do_update)).to_list()
 
+	indicator_results, bucket_results = try_to_import_indicators(
+		user_service, request.indicators, request.buckets, do_update)
+
 	monitor_rule_service = get_monitor_rule_service(user_service)
 	monitor_rule_results = ArrayHelper(request.monitorRules).map(
 		lambda x: try_to_import_monitor_rule(x, monitor_rule_service, do_update)).to_list()
@@ -464,6 +530,8 @@ def try_to_import(request: MixImportDataRequest, user_service: UserService, do_u
 		connectedSpaces=connected_space_results,
 		subjects=subject_results,
 		reports=report_results,
+		indicators=indicator_results,
+		buckets=bucket_results,
 		monitorRules=monitor_rule_results
 	)
 
@@ -646,6 +714,19 @@ def refill_report_ids(
 	ArrayHelper(reports).each(fill_report_id)
 
 
+def force_new_import_indicators(
+		user_service: UserService,
+		indicators: List[Indicator], buckets: List[Bucket],
+		subject_id_map: Dict[SubjectId, SubjectId],
+		topic_id_map: Dict[TopicId, TopicId], factor_id_map: Dict[FactorId, FactorId]
+) -> Tuple[List[IndicatorImportDataResult], List[BucketImportDataResult]]:
+	if mix_import_handle.has_indicator_handler():
+		mix_import_handle.ask_indicator_handler().force_new_import_indicators(
+			user_service, indicators, buckets, subject_id_map, topic_id_map, factor_id_map)
+	else:
+		return [], []
+
+
 def refill_monitor_rule_ids(
 		monitor_rules: Optional[List[MonitorRule]], monitor_rule_service: MonitorRuleService,
 		topic_id_map: Dict[TopicId, TopicId], factor_id_map: Dict[FactorId, FactorId]
@@ -709,6 +790,9 @@ def force_new_import(request: MixImportDataRequest, user_service: UserService) -
 		.map(lambda x: report_service.create(x)) \
 		.map(lambda x: ReportImportDataResult(reportId=x.reportId, name=x.name, passed=True)).to_list()
 
+	indicator_results, bucket_results = force_new_import_indicators(
+		user_service, request.indicators, request.buckets, subject_id_map, topic_id_map, factor_id_map)
+
 	monitor_rule_service = get_monitor_rule_service(user_service)
 	refill_monitor_rule_ids(request.monitorRules, monitor_rule_service, topic_id_map, factor_id_map)
 	monitor_rule_results = ArrayHelper(request.monitorRules) \
@@ -725,6 +809,8 @@ def force_new_import(request: MixImportDataRequest, user_service: UserService) -
 		connectedSpaces=connected_space_results,
 		subjects=subject_results,
 		reports=report_results,
+		indicators=indicator_results,
+		buckets=bucket_results,
 		monitorRules=monitor_rule_results
 	)
 
