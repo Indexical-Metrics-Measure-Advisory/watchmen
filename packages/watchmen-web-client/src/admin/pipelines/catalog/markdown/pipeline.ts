@@ -385,7 +385,7 @@ export const generatePipelines = (options: {
 	} = options;
 
 	if (Object.values(pipelinesMap).length === 0) {
-		return '> No pipelines.';
+		return '> No pipeline.';
 	}
 
 	return Object.values(pipelinesMap).sort((p1, p2) => {
