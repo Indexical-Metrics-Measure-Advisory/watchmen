@@ -53,6 +53,14 @@ export const fetchMockIndicatorsForSelection = async (text: string): Promise<Arr
 	});
 };
 
+export const listMockIndicatorsForExport = async (): Promise<Array<Indicator>> => {
+	return new Promise<Array<Indicator>>(resolve => {
+		setTimeout(() => {
+			resolve(OrderPremiumIndicators);
+		}, 500);
+	});
+};
+
 export const fetchMockTopicsForIndicatorSelection = async (text: string): Promise<Array<TopicForIndicator>> => {
 	return new Promise<Array<TopicForIndicator>>(resolve => {
 		const matchedText = text.toUpperCase();
