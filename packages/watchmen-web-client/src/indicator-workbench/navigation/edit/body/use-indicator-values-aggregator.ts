@@ -82,7 +82,7 @@ export const useIndicatorValuesAggregator = (options: {
 		};
 		const doCalculate = () => {
 			const computed = compute(allValues.data);
-			if (shouldAvoidButterflyEffect ) {
+			if (shouldAvoidButterflyEffect) {
 				if (needApplyComputed(computed, allValues)) {
 					// only applied when need to
 					// value change guard is obligatory, since in following scenario will cause an infinite recursion.
