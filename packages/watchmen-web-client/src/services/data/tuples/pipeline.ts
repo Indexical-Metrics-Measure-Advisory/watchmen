@@ -26,10 +26,10 @@ export const savePipelinesGraphics = async (graphics: PipelinesGraphics): Promis
 	} else if (isFakedUuidForGraphics(graphics)) {
 		const data = await post({api: Apis.PIPELINE_GRAPHICS_SAVE, data: graphics});
 		graphics.pipelineGraphId = data.pipelineGraphId;
-		graphics.lastModifiedAt = data.lastModifiedAt
+		graphics.lastModifiedAt = data.lastModifiedAt;
 	} else {
 		const data = await post({api: Apis.PIPELINE_GRAPHICS_SAVE, data: graphics});
-		graphics.lastModifiedAt = data.lastModifiedAt
+		graphics.lastModifiedAt = data.lastModifiedAt;
 	}
 };
 
