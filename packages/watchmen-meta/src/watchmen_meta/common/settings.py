@@ -136,9 +136,6 @@ class SnowflakeGeneratorHolder:
 	snowflakeGenerator: Optional[SnowflakeGenerator] = None
 
 
-snowflake_generator_holder = SnowflakeGeneratorHolder()
-
-
 def build_snowflake_generator(storage: TransactionalStorageSPI) -> SnowflakeGenerator:
 	if settings.SNOWFLAKE_COMPETITIVE_WORKERS:
 		# competitive workers
@@ -168,6 +165,10 @@ def build_snowflake_generator(storage: TransactionalStorageSPI) -> SnowflakeGene
 			data_center_id=settings.SNOWFLAKE_DATA_CENTER_ID,
 			generate_worker_id=immutable_worker_id(settings.SNOWFLAKE_WORKER_ID)
 		)
+
+
+snowflake_generator_holder = SnowflakeGeneratorHolder()
+snowflake_generator_holder.snowflakeGenerator = build_snowflake_generator(ask_meta_storage())
 
 
 def ask_snowflake_generator() -> SnowflakeGenerator:
