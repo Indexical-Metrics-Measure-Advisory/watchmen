@@ -1,4 +1,5 @@
 import {
+	BucketCandidate,
 	Candidate,
 	ConnectedSpaceCandidate,
 	IndicatorCandidate,
@@ -32,6 +33,10 @@ export const isIndicatorCandidate = (candidate: Candidate): candidate is Indicat
 	return (candidate as any).indicator != null;
 };
 
+export const isBucketCandidate = (candidate: Candidate): candidate is BucketCandidate => {
+	return (candidate as any).bucket != null;
+};
+
 export const getCandidateKey = (candidate: Candidate): string => {
 	if (isTopicCandidate(candidate)) {
 		return `topic-${candidate.topic.topicId}`;
@@ -45,6 +50,8 @@ export const getCandidateKey = (candidate: Candidate): string => {
 		return `subject-${candidate.subject.subjectId}`;
 	} else if (isIndicatorCandidate(candidate)) {
 		return `indicator-${candidate.indicator.indicatorId}`;
+	} else if (isBucketCandidate(candidate)) {
+		return `bucket-${candidate.bucket.bucketId}`;
 	} else {
 		throw new Error('Never occurred.');
 	}
@@ -63,6 +70,8 @@ export const getCandidateName = (candidate: Candidate, askDefault: boolean = tru
 		return candidate.subject.name || (askDefault ? 'Noname Subject' : '');
 	} else if (isIndicatorCandidate(candidate)) {
 		return candidate.indicator.name || (askDefault ? 'Noname Indicator' : '');
+	} else if (isBucketCandidate(candidate)) {
+		return candidate.bucket.name || (askDefault ? 'Noname Bucket' : '');
 	} else {
 		throw new Error('Never occurred.');
 	}
@@ -81,6 +90,8 @@ export const getCandidateType = (candidate: Candidate): string => {
 		return 'Subject';
 	} else if (isIndicatorCandidate(candidate)) {
 		return 'Indicator';
+	} else if (isBucketCandidate(candidate)) {
+		return 'Bucket';
 	} else {
 		throw new Error('Never occurred.');
 	}
