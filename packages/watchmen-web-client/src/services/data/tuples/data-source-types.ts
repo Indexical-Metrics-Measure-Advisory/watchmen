@@ -4,7 +4,8 @@ import {OptimisticLock, Tuple} from './tuple-types';
 export enum DataSourceType {
 	MYSQL = 'mysql',
 	ORACLE = 'oracle',
-	MONGODB = 'mongodb'
+	MONGODB = 'mongodb',
+	MSSQL = 'mssql'
 }
 
 export interface DataSourceParam {

@@ -12,6 +12,8 @@ import dayjs from 'dayjs';
 import React, {ChangeEvent, useState} from 'react';
 import styled from 'styled-components';
 import {generateLiquibaseScripts} from './script-generation/liquibase';
+import {generateMSSQLAlterSQLScripts} from './script-generation/mssql-sql-alteration';
+import {generateMSSQLCreateSQLScripts} from './script-generation/mssql-sql-creation';
 import {generateMySQLAlterSQLScripts} from './script-generation/mysql-sql-alteration';
 import {generateMySQLCreateSQLScripts} from './script-generation/mysql-sql-creation';
 import {generateOracleAlterSQLScripts} from './script-generation/oracle-sql-alteration';
@@ -80,7 +82,7 @@ const DownloadOptionsBar = styled.div`
 `;
 const DatabaseBar = styled.div`
 	display               : grid;
-	grid-template-columns : 120px auto auto auto auto 1fr;
+	grid-template-columns : 120px auto auto auto auto auto auto 1fr;
 	align-items           : center;
 	height                : calc(var(--height) * 1.5);
 `;
@@ -112,7 +114,8 @@ const DownloadOptionLabel = styled.div`
 
 enum Database {
 	ORACLE = 'oracle',
-	MYSQL = 'mysql'
+	MYSQL = 'mysql',
+	MSSQL = 'mssql'
 }
 
 enum ScriptType {
@@ -216,11 +219,17 @@ export const ScriptsDownloadDialog = (props: {
 		if (databases.includes(Database.ORACLE) && scriptTypes.includes(ScriptType.CREATE) && scriptFormats.includes(ScriptFormat.SQL)) {
 			generateOracleCreateSQLScripts(zip, selection);
 		}
+		if (databases.includes(Database.MSSQL) && scriptTypes.includes(ScriptType.CREATE) && scriptFormats.includes(ScriptFormat.SQL)) {
+			generateMSSQLCreateSQLScripts(zip, selection);
+		}
 		if (databases.includes(Database.MYSQL) && scriptTypes.includes(ScriptType.ALTER) && scriptFormats.includes(ScriptFormat.SQL)) {
 			generateMySQLAlterSQLScripts(zip, selection);
 		}
 		if (databases.includes(Database.ORACLE) && scriptTypes.includes(ScriptType.ALTER) && scriptFormats.includes(ScriptFormat.SQL)) {
 			generateOracleAlterSQLScripts(zip, selection);
+		}
+		if (databases.includes(Database.MSSQL) && scriptTypes.includes(ScriptType.ALTER) && scriptFormats.includes(ScriptFormat.SQL)) {
+			generateMSSQLAlterSQLScripts(zip, selection);
 		}
 		if (scriptFormats.includes(ScriptFormat.LIQUIBASE)) {
 			generateLiquibaseScripts(zip, selection);
@@ -263,6 +272,8 @@ export const ScriptsDownloadDialog = (props: {
 					<DownloadOptionLabel>Oracle</DownloadOptionLabel>
 					<CheckBox value={databases.includes(Database.MYSQL)} onChange={onDatabaseChanged(Database.MYSQL)}/>
 					<DownloadOptionLabel>MySQL</DownloadOptionLabel>
+					<CheckBox value={databases.includes(Database.MSSQL)} onChange={onDatabaseChanged(Database.MSSQL)}/>
+					<DownloadOptionLabel>MSSQL</DownloadOptionLabel>
 				</DatabaseBar>
 				<ScriptTypeBar>
 					<DownloadOptionLeadLabel>Script Type</DownloadOptionLeadLabel>
