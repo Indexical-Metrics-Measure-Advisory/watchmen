@@ -11,7 +11,7 @@ import {
 	TopicsMap
 } from '@/services/data/pipeline/pipeline-relations';
 import {listBucketsForExport} from '@/services/data/tuples/bucket';
-import {Bucket} from '@/services/data/tuples/bucket-types';
+import {Bucket, BucketId} from '@/services/data/tuples/bucket-types';
 import {listConnectedSpacesForExport} from '@/services/data/tuples/connected-space';
 import {ConnectedSpace} from '@/services/data/tuples/connected-space-types';
 import {DataSource} from '@/services/data/tuples/data-source-types';
@@ -46,8 +46,8 @@ import {generateMarkdown} from '../markdown';
 import {DataSourcesMap, ExternalWritersMap, MonitorRulesMap} from '../markdown/types';
 import {AssembledPipelinesGraphics} from '../types';
 import {TopicPickerTable} from './topic-picker-table';
-import {SpaceCandidate, TopicCandidate} from './types';
-import {isSpaceCandidate, isTopicCandidate} from './utils';
+import {IndicatorCandidate, SpaceCandidate, TopicCandidate} from './types';
+import {isIndicatorCandidate, isSpaceCandidate, isTopicCandidate} from './utils';
 import {ExportOptionBar, ExportOptionLabel, PICKER_DIALOG_HEIGHT, PickerDialogBody} from './widgets';
 
 const findPipelinesWriteMe = (topics: Array<Topic>, topicRelations: TopicRelationMap): Array<Pipeline> => {
@@ -163,6 +163,12 @@ const PipelinesDownload = (props: {
 		const selectedSpaces = candidates.filter<SpaceCandidate>(isSpaceCandidate).filter(c => c.picked).map(({space}) => space);
 		// eslint-disable-next-line
 		const selectedConnectedSpaces = connectedSpaces.filter(connectedSpace => selectedSpaces.some(space => space.spaceId == connectedSpace.spaceId));
+		const selectedIndicators = candidates.filter<IndicatorCandidate>(isIndicatorCandidate).filter(c => c.picked).map(({indicator}) => indicator);
+		const bucketMap = buckets.reduce((map, bucket) => {
+			map[bucket.bucketId] = bucket;
+			return map;
+		}, {} as Record<BucketId, Bucket>);
+		const selectedBuckets = [...new Set(selectedIndicators.map(indicator => indicator.valueBuckets).flat().filter(isNotNull))].map(bucketId => bucketMap[bucketId]).filter(isNotNull);
 
 		// use these topics to find upstream
 		const topicsMap = buildTopicsMap(topics);
@@ -222,6 +228,7 @@ const PipelinesDownload = (props: {
 			}, {} as MonitorRulesMap),
 			topicRelations, pipelineRelations,
 			spaces: selectedSpaces, connectedSpaces: selectedConnectedSpaces,
+			indicators: selectedIndicators, buckets: selectedBuckets,
 			selectedSvg, allSvg
 		});
 
