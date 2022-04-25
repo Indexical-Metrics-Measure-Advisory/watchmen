@@ -66,7 +66,7 @@ export const switchConnectedSpaceAsTemplate = async (connectedSpace: ConnectedSp
 	} else {
 		await get({
 			api: Apis.CONNECTED_SPACE_AS_TEMPLATE,
-			search: {connectId: connectedSpace.connectId, is_template: connectedSpace.isTemplate}
+			search: {connectId: connectedSpace.connectId, template: connectedSpace.isTemplate}
 		});
 	}
 }
