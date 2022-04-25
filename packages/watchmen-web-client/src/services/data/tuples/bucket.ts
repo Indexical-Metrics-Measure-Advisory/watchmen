@@ -6,6 +6,7 @@ import {
 	fetchMockBucketsByMethods,
 	fetchMockBucketsForIndicatorValue,
 	listMockBuckets,
+	listMockBucketsForExport,
 	saveMockBucket
 } from '../mock/tuples/mock-bucket';
 import {TuplePage} from '../query/tuple-page';
@@ -26,6 +27,22 @@ export const listBuckets = async (options: {
 	} else {
 		return await page({api: Apis.BUCKET_LIST_BY_NAME, search: {search}, pageable: {pageNumber, pageSize}});
 	}
+};
+
+export const listBucketsForExport = async (): Promise<Array<Bucket>> => {
+	return new Promise<Array<Bucket>>(async resolve => {
+		let buckets: Array<Bucket> = [];
+		try {
+			if (isMockService()) {
+				buckets = await listMockBucketsForExport();
+			} else {
+				buckets = (await get({api: Apis.BUCKETS_EXPORT}) || []);
+			}
+		} catch {
+			// do nothing, returns an empty array
+		}
+		resolve(buckets);
+	});
 };
 
 export const fetchBucket = async (bucketId: BucketId): Promise<{ bucket: Bucket }> => {

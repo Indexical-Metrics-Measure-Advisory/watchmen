@@ -156,6 +156,7 @@ export const Apis = {
 	RELEVANT_INDICATOR_LIST: 'indicator/indicator/relevant?indicator_id=:indicatorId',
 	INDICATOR_CATEGORIES: 'indicator/indicator/category/available',
 	INDICATORS_LIST: 'indicator/indicator/all',
+	INDICATORS_EXPORT: 'indicator/indicator/export',
 
 	BUCKET_LIST_BY_NAME: 'indicator/bucket/name?query_name=:search',
 	BUCKET_CREATE: 'indicator/bucket',
@@ -165,6 +166,7 @@ export const Apis = {
 	/** bucketIds is joined by comma */
 	BUCKET_LIST_BY_IDS: 'indicator/bucket/ids',
 	BUCKET_LIST_BY_METHODS: 'indicator/bucket/methods',
+	BUCKETS_EXPORT: 'indicator/bucket/export',
 
 	INSPECTION_LIST: 'indicator/inspection/list',
 	INSPECTION_CREATE: 'indicator/inspection',

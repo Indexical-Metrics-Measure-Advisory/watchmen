@@ -1,6 +1,7 @@
 import {
 	Candidate,
 	ConnectedSpaceCandidate,
+	IndicatorCandidate,
 	PipelineCandidate,
 	SpaceCandidate,
 	SubjectCandidate,
@@ -27,6 +28,10 @@ export const isSubjectCandidate = (candidate: Candidate): candidate is SubjectCa
 	return (candidate as any).subject != null;
 };
 
+export const isIndicatorCandidate = (candidate: Candidate): candidate is IndicatorCandidate => {
+	return (candidate as any).indicator != null;
+};
+
 export const getCandidateKey = (candidate: Candidate): string => {
 	if (isTopicCandidate(candidate)) {
 		return `topic-${candidate.topic.topicId}`;
@@ -38,6 +43,8 @@ export const getCandidateKey = (candidate: Candidate): string => {
 		return `connected-space-${candidate.connectedSpace.connectId}`;
 	} else if (isSubjectCandidate(candidate)) {
 		return `subject-${candidate.subject.subjectId}`;
+	} else if (isIndicatorCandidate(candidate)) {
+		return `indicator-${candidate.indicator.indicatorId}`;
 	} else {
 		throw new Error('Never occurred.');
 	}
@@ -54,6 +61,8 @@ export const getCandidateName = (candidate: Candidate, askDefault: boolean = tru
 		return candidate.connectedSpace.name || (askDefault ? 'Noname Connected Space' : '');
 	} else if (isSubjectCandidate(candidate)) {
 		return candidate.subject.name || (askDefault ? 'Noname Subject' : '');
+	} else if (isIndicatorCandidate(candidate)) {
+		return candidate.indicator.name || (askDefault ? 'Noname Indicator' : '');
 	} else {
 		throw new Error('Never occurred.');
 	}
@@ -70,6 +79,8 @@ export const getCandidateType = (candidate: Candidate): string => {
 		return 'Connected Space';
 	} else if (isSubjectCandidate(candidate)) {
 		return 'Subject';
+	} else if (isIndicatorCandidate(candidate)) {
+		return 'Indicator';
 	} else {
 		throw new Error('Never occurred.');
 	}

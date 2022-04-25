@@ -1,9 +1,18 @@
+import {ConnectedSpace} from '@/services/data/tuples/connected-space-types';
+import {IndicatorBaseOn} from '@/services/data/tuples/indicator-types';
 import {CheckBox} from '@/widgets/basic/checkbox';
 import {Input} from '@/widgets/basic/input';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import React, {ChangeEvent, useState} from 'react';
-import {SpaceCandidate, TopicCandidate} from './types';
-import {getCandidateKey, getCandidateName, getCandidateType, isSpaceCandidate, isTopicCandidate} from './utils';
+import {IndicatorCandidate, SpaceCandidate, TopicCandidate} from './types';
+import {
+	getCandidateKey,
+	getCandidateName,
+	getCandidateType,
+	isIndicatorCandidate,
+	isSpaceCandidate,
+	isTopicCandidate
+} from './utils';
 import {
 	PickerTableBody,
 	PickerTableBodyCell,
@@ -17,8 +26,11 @@ interface Filter {
 	handler?: number;
 }
 
-export const TopicPickerTable = (props: { candidates: Array<TopicCandidate | SpaceCandidate> }) => {
-	const {candidates} = props;
+export const TopicPickerTable = (props: {
+	candidates: Array<TopicCandidate | SpaceCandidate | IndicatorCandidate>;
+	connectedSpaces?: Array<ConnectedSpace>
+}) => {
+	const {candidates, connectedSpaces = []} = props;
 
 	const [items, setItems] = useState(candidates);
 	const [filter, setFilter] = useState<Filter>({value: ''});
@@ -50,7 +62,7 @@ export const TopicPickerTable = (props: { candidates: Array<TopicCandidate | Spa
 		}
 		forceUpdate();
 	};
-	const onSelectionChange = (candidate: TopicCandidate | SpaceCandidate) => (value: boolean) => {
+	const onSelectionChange = (candidate: TopicCandidate | SpaceCandidate | IndicatorCandidate) => (value: boolean) => {
 		candidate.picked = value;
 		if (isTopicCandidate(candidate) && !candidate.picked) {
 			// unpick a topic, unpick related spaces as well
@@ -58,7 +70,29 @@ export const TopicPickerTable = (props: { candidates: Array<TopicCandidate | Spa
 				// eslint-disable-next-line
 				if ((spaceCandidate.space.topicIds || []).some(topicId => topicId == candidate.topic.topicId)) {
 					spaceCandidate.picked = false;
+					const unpickedSubjectIds = connectedSpaces
+						// eslint-disable-next-line
+						.filter(connectedSpace => connectedSpace.spaceId == spaceCandidate.space.spaceId)
+						.map(connectedSpace => connectedSpace.subjects)
+						.flat()
+						.map(subject => subject.subjectId);
+					candidates.filter(isIndicatorCandidate).filter(indicatorCandidate => {
+						return indicatorCandidate.indicator.baseOn === IndicatorBaseOn.SUBJECT;
+					}).forEach(indicatorCandidate => {
+						// eslint-disable-next-line
+						if (unpickedSubjectIds.some(subjectId => subjectId == indicatorCandidate.indicator.topicOrSubjectId)) {
+							indicatorCandidate.picked = false;
+						}
+					});
 				}
+				candidates.filter(isIndicatorCandidate).filter(indicatorCandidate => {
+					return indicatorCandidate.indicator.baseOn === IndicatorBaseOn.TOPIC;
+				}).forEach(indicatorCandidate => {
+					// eslint-disable-next-line
+					if (indicatorCandidate.indicator.topicOrSubjectId == candidate.topic.topicId) {
+						indicatorCandidate.picked = false;
+					}
+				});
 			});
 		} else if (isSpaceCandidate(candidate) && candidate.picked) {
 			// pick a space, pick related topics as well
@@ -68,6 +102,50 @@ export const TopicPickerTable = (props: { candidates: Array<TopicCandidate | Spa
 					topicCandidate.picked = true;
 				}
 			});
+		} else if (isSpaceCandidate(candidate) && !candidate.picked) {
+			const unpickedSubjectIds = connectedSpaces
+				// eslint-disable-next-line
+				.filter(connectedSpace => connectedSpace.spaceId == candidate.space.spaceId)
+				.map(connectedSpace => connectedSpace.subjects)
+				.flat()
+				.map(subject => subject.subjectId);
+			candidates.filter(isIndicatorCandidate).filter(indicatorCandidate => {
+				return indicatorCandidate.indicator.baseOn === IndicatorBaseOn.SUBJECT;
+			}).forEach(indicatorCandidate => {
+				// eslint-disable-next-line
+				if (unpickedSubjectIds.some(subjectId => subjectId == indicatorCandidate.indicator.topicOrSubjectId)) {
+					indicatorCandidate.picked = false;
+				}
+			});
+		} else if (isIndicatorCandidate(candidate) && candidate.picked) {
+			// pick an indicator, pick related spaces and topics as well
+			if (candidate.indicator.baseOn === IndicatorBaseOn.TOPIC) {
+				// base on topic
+				candidates.filter(isTopicCandidate).forEach(topicCandidate => {
+					// eslint-disable-next-line
+					if (candidate.indicator.topicOrSubjectId == topicCandidate.topic.topicId) {
+						topicCandidate.picked = true;
+					}
+				});
+			} else {
+				const neededConnectedSpaces = connectedSpaces.filter(connectedSpace => {
+					// eslint-disable-next-line
+					return (connectedSpace.subjects || []).some(subject => subject.subjectId == candidate.indicator.topicOrSubjectId);
+				});
+				// base on subject
+				candidates.filter(isSpaceCandidate).forEach(spaceCandidate => {
+					// eslint-disable-next-line
+					if (neededConnectedSpaces.some(connectedSpace => connectedSpace.spaceId == spaceCandidate.space.spaceId)) {
+						spaceCandidate.picked = true;
+						candidates.filter(isTopicCandidate).forEach(topicCandidate => {
+							// eslint-disable-next-line
+							if ((spaceCandidate.space.topicIds || []).some(topicId => topicId == topicCandidate.topic.topicId)) {
+								topicCandidate.picked = true;
+							}
+						});
+					}
+				});
+			}
 		}
 		forceUpdate();
 	};

@@ -25,6 +25,13 @@ export const listMockBuckets = async (options: {
 		}, 1000);
 	});
 };
+export const listMockBucketsForExport = async (): Promise<Array<Bucket>> => {
+	return new Promise<Array<Bucket>>(resolve => {
+		setTimeout(() => {
+			resolve(DemoQueryBuckets);
+		}, 500);
+	});
+};
 
 export const fetchMockBucket = async (bucketId: BucketId): Promise<{ bucket: Bucket }> => {
 	let bucket: Bucket;
