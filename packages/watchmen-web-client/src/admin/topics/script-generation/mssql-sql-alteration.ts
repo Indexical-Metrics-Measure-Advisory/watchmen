@@ -78,7 +78,7 @@ const createSQL = (topic: Topic): string => {
 CREATE OR ALTER PROCEDURE SCHEMA_CHANGE
 AS
 BEGIN 
-	DECLARE @topic_name NVARCHAR(128) = '${topic.name}';
+	DECLARE @topic_name NVARCHAR(128) = '${tableName}';
 	-- will not drop any column even it is not in definition, just keep it
 	DECLARE @count INT;
 ${buildFactors(topic)}
