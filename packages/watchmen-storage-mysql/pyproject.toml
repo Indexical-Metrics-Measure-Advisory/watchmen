@@ -12,6 +12,7 @@ packages = [
 python = "^3.9"
 SQLAlchemy = "^1.4.31"
 PyMySQL = "^1.0.2"
+cryptography = "^36.0.2"
 watchmen-storage = "16.0.32"
 
 [tool.poetry.dev-dependencies]
