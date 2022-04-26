@@ -14,9 +14,7 @@ from watchmen_meta.system import TenantService
 from watchmen_model.admin import Factor, Pipeline, PipelineStage, Space, Topic, User, UserRole
 from watchmen_model.admin.space import SpaceFilter
 from watchmen_model.common import BucketId, ConnectedSpaceId, FactorId, IndicatorId, ParameterJoint, PipelineId, \
-	ReportId, \
-	SpaceId, \
-	SubjectId, TenantBasedTuple, TenantId, TopicId, UserId
+	ReportId, SpaceId, SubjectId, TenantBasedTuple, TenantId, TopicId, UserId
 from watchmen_model.console import ConnectedSpace, Report, Subject, SubjectDataset
 from watchmen_model.dqc import MonitorRule, MonitorRuleId
 from watchmen_model.indicator import Bucket, Indicator
@@ -192,9 +190,19 @@ def find_tenant_id(request: MixImportDataRequest) -> Optional[TenantId]:
 	tenant_id = ArrayHelper(request.pipelines).reduce(same_tenant_validate, tenant_id)
 	tenant_id = ArrayHelper(request.spaces).reduce(same_tenant_validate, tenant_id)
 	tenant_id = ArrayHelper(request.connectedSpaces).reduce(same_tenant_validate, tenant_id)
-	subjects = ArrayHelper(request.connectedSpaces).map(lambda x: x.subjects).flatten()
+	subjects = ArrayHelper(request.connectedSpaces) \
+		.map(lambda x: x.subjects) \
+		.flatten() \
+		.filter(lambda x: x is not None)
 	tenant_id = subjects.reduce(same_tenant_validate, tenant_id)
-	tenant_id = subjects.map(lambda x: x.reports).flatten().reduce(same_tenant_validate, tenant_id)
+	tenant_id = subjects \
+		.map(lambda x: x.reports) \
+		.flatten() \
+		.filter(lambda x: x is not None) \
+		.reduce(same_tenant_validate, tenant_id)
+	tenant_id = ArrayHelper(request.indicators).reduce(same_tenant_validate, tenant_id)
+	tenant_id = ArrayHelper(request.buckets).reduce(same_tenant_validate, tenant_id)
+	tenant_id = ArrayHelper(request.monitorRules).reduce(same_tenant_validate, tenant_id)
 	return tenant_id
 
 
@@ -207,10 +215,18 @@ def fill_tenant_id(request: MixImportDataRequest, tenant_id: TenantId) -> None:
 	ArrayHelper(request.pipelines).each(lambda x: set_tenant_id(x, tenant_id))
 	ArrayHelper(request.spaces).each(lambda x: set_tenant_id(x, tenant_id))
 	ArrayHelper(request.connectedSpaces).each(lambda x: set_tenant_id(x, tenant_id))
-	ArrayHelper(request.connectedSpaces).map(lambda x: x.subjects).flatten() \
+	ArrayHelper(request.connectedSpaces) \
+		.map(lambda x: x.subjects) \
+		.flatten() \
+		.filter(lambda x: x is not None) \
 		.each(lambda x: set_tenant_id(x, tenant_id)) \
-		.map(lambda x: x.reports).flatten() \
+		.map(lambda x: x.reports) \
+		.flatten() \
+		.filter(lambda x: x is not None) \
 		.each(lambda x: set_tenant_id(x, tenant_id))
+	ArrayHelper(request.indicators).each(lambda x: set_tenant_id(x, tenant_id))
+	ArrayHelper(request.buckets).each(lambda x: set_tenant_id(x, tenant_id))
+	ArrayHelper(request.monitorRules).each(lambda x: set_tenant_id(x, tenant_id))
 
 
 def validate_tenant_id_when_super_admin(
@@ -276,11 +292,17 @@ def prepare_and_validate_request(
 
 	def set_user_id_to_subject(subject: SubjectWithReports, user_id: UserId) -> None:
 		subject.userId = user_id
-		ArrayHelper(subject.reports).flatten().each(lambda x: set_user_id_to_report(x, user_id))
+		ArrayHelper(subject.reports) \
+			.flatten() \
+			.filter(lambda x: x is not None) \
+			.each(lambda x: set_user_id_to_report(x, user_id))
 
 	def set_user_id_to_connected_space(connected_space: ConnectedSpaceWithSubjects, user_id: UserId) -> None:
 		connected_space.userId = user_id
-		ArrayHelper(connected_space.subjects).flatten().each(lambda x: set_user_id_to_subject(x, user_id))
+		ArrayHelper(connected_space.subjects) \
+			.flatten() \
+			.filter(lambda x: x is not None) \
+			.each(lambda x: set_user_id_to_subject(x, user_id))
 
 	if principal_service.is_super_admin():
 		# to find a tenant admin
@@ -373,8 +395,12 @@ def try_to_import_connected_space(
 	def set_connect_id(subject_or_report: Union[SubjectWithReports, Report], connect_id: ConnectedSpaceId) -> None:
 		subject_or_report.connectId = connect_id
 
-	ArrayHelper(connected_space.subjects).each(lambda x: set_connect_id(x, connected_space.connectId)) \
-		.map(lambda x: x.reports).flatten().each(lambda x: set_connect_id(x, connected_space.connectId))
+	ArrayHelper(connected_space.subjects) \
+		.each(lambda x: set_connect_id(x, connected_space.connectId)) \
+		.map(lambda x: x.reports) \
+		.flatten() \
+		.filter(lambda x: x is not None) \
+		.each(lambda x: set_connect_id(x, connected_space.connectId))
 
 	return ConnectedSpaceImportDataResult(connectId=connected_space.connectId, name=connected_space.name, passed=True)
 
@@ -478,7 +504,7 @@ def try_to_import_monitor_rule(
 
 
 def is_all_passed(results: List[List[ImportDataResult]]) -> bool:
-	return ArrayHelper(results).flatten().every(lambda x: x.passed)
+	return ArrayHelper(results).flatten().filter(lambda x: x is not None).every(lambda x: x.passed)
 
 
 # noinspection DuplicatedCode
@@ -503,14 +529,21 @@ def try_to_import(request: MixImportDataRequest, user_service: UserService, do_u
 
 	subjects = ArrayHelper(request.connectedSpaces) \
 		.filter(lambda x: x.connectId in success_connected_space_ids) \
-		.map(lambda x: x.subjects).flatten().to_list()
+		.map(lambda x: x.subjects) \
+		.flatten() \
+		.filter(lambda x: x is not None) \
+		.to_list()
 	subject_service = get_subject_service(user_service)
 	subject_results = ArrayHelper(subjects) \
 		.map(lambda x: try_to_import_subject(x, subject_service, do_update)).to_list()
 	success_subject_ids = ArrayHelper(subject_results).filter(lambda x: x.passed).map(lambda x: x.subjectId).to_list()
 
-	reports = ArrayHelper(subjects).filter(lambda x: x.subjectId in success_subject_ids) \
-		.map(lambda x: x.reports).flatten().to_list()
+	reports = ArrayHelper(subjects) \
+		.filter(lambda x: x.subjectId in success_subject_ids) \
+		.map(lambda x: x.reports) \
+		.flatten() \
+		.filter(lambda x: x is not None) \
+		.to_list()
 	report_service = get_report_service(user_service)
 	report_results = ArrayHelper(reports).map(lambda x: try_to_import_report(x, report_service, do_update)).to_list()
 
@@ -654,10 +687,21 @@ def refill_space_ids(
 
 
 def refill_connected_space_ids(
-		connected_spaces: Optional[List[ConnectedSpace]], connected_space_service: ConnectedSpaceService,
+		connected_spaces: Optional[List[ConnectedSpaceWithSubjects]], connected_space_service: ConnectedSpaceService,
 		space_id_map: Dict[SpaceId, SpaceId]
 ) -> Dict[ConnectedSpaceId, ConnectedSpaceId]:
 	connected_space_id_map: Dict[ConnectedSpaceId, ConnectedSpaceId] = {}
+
+	def build_hierarchy_from_report(report: Report, subject_id: SubjectId, connect_id: ConnectedSpaceId) -> None:
+		report.connectId = connect_id
+		report.subjectId = subject_id
+
+	def build_hierarchy_from_subject(subject: Subject, connect_id: ConnectedSpaceId) -> None:
+		subject.connectId = connect_id
+		ArrayHelper(subject.reports) \
+			.flatten() \
+			.filter(lambda x: x is not None) \
+			.each(lambda x: build_hierarchy_from_report(x, subject.subjectId, connect_id))
 
 	def fill_connected_space_id(connected_space: ConnectedSpace) -> None:
 		old_connect_id = connected_space.connectId
@@ -665,6 +709,11 @@ def refill_connected_space_ids(
 		connected_space_id_map[old_connect_id] = connected_space.connectId
 		connected_space.spaceId = space_id_map[connected_space.spaceId] \
 			if connected_space.spaceId in space_id_map else connected_space.spaceId
+
+		ArrayHelper(connected_space.subjects) \
+			.flatten() \
+			.filter(lambda x: x is not None) \
+			.each(lambda x: build_hierarchy_from_subject(x, old_connect_id))
 
 	ArrayHelper(connected_spaces).each(fill_connected_space_id)
 
@@ -721,7 +770,7 @@ def force_new_import_indicators(
 		topic_id_map: Dict[TopicId, TopicId], factor_id_map: Dict[FactorId, FactorId]
 ) -> Tuple[List[IndicatorImportDataResult], List[BucketImportDataResult]]:
 	if mix_import_handle.has_indicator_handler():
-		mix_import_handle.ask_indicator_handler().force_new_import_indicators(
+		return mix_import_handle.ask_indicator_handler().force_new_import_indicators(
 			user_service, indicators, buckets, subject_id_map, topic_id_map, factor_id_map)
 	else:
 		return [], []
@@ -746,7 +795,7 @@ def refill_monitor_rule_ids(
 	ArrayHelper(monitor_rules).each(fill_rule_id)
 
 
-# noinspection DuplicatedCode
+# noinspection DuplicatedCode,PyTypeChecker
 def force_new_import(request: MixImportDataRequest, user_service: UserService) -> MixImportDataResponse:
 	# keep relationship, replace them all
 	topic_service = get_topic_service(user_service)
@@ -777,13 +826,21 @@ def force_new_import(request: MixImportDataRequest, user_service: UserService) -
 		.map(lambda x: connected_space_service.create(x)) \
 		.map(lambda x: ConnectedSpaceImportDataResult(connectId=x.connectId, name=x.name, passed=True)).to_list()
 
-	subjects = ArrayHelper(request.connectedSpaces).map(lambda x: x.subjects).flatten().to_list()
+	subjects = ArrayHelper(request.connectedSpaces) \
+		.map(lambda x: x.subjects) \
+		.flatten() \
+		.filter(lambda x: x is not None) \
+		.to_list()
 	subject_service = get_subject_service(user_service)
 	subject_id_map = refill_subject_ids(subjects, subject_service, connected_space_id_map, topic_id_map, factor_id_map)
 	subject_results = ArrayHelper(subjects).map(lambda x: subject_service.create(x)) \
 		.map(lambda x: SubjectImportDataResult(subjectId=x.subjectId, name=x.name, passed=True)).to_list()
 
-	reports = ArrayHelper(subjects).map(lambda x: x.reports).flatten().to_list()
+	reports = ArrayHelper(subjects) \
+		.map(lambda x: x.reports) \
+		.flatten() \
+		.filter(lambda x: x is not None) \
+		.to_list()
 	report_service = get_report_service(user_service)
 	refill_report_ids(reports, report_service, connected_space_id_map, subject_id_map, topic_id_map, factor_id_map)
 	report_results = ArrayHelper(reports) \
