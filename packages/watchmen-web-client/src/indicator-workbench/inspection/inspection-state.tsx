@@ -127,7 +127,7 @@ export const InspectionState = () => {
 						setIndicatorsForInspections(ifi => {
 							return {...ifi, [indicatorId]: {indicator, topic, subject, enums: enums ?? []}};
 						});
-						onData({indicator, topic, enums: enums ?? []});
+						onData({indicator, topic, subject, enums: enums ?? []});
 					});
 			}
 		};
