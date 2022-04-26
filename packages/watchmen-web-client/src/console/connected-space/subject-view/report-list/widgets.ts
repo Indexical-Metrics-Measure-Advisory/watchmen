@@ -22,6 +22,7 @@ export const ReportCard = styled.div.attrs({'data-widget': 'report-card'})`
 	flex-direction : column;
 	padding        : calc(var(--margin) / 2) var(--margin);
 	position       : relative;
+	align-self     : stretch;
 	border-radius  : calc(var(--border-radius) * 2);
 	box-shadow     : var(--shadow);
 	cursor         : pointer;
