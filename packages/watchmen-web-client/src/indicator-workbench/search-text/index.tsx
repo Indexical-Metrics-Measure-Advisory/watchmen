@@ -24,6 +24,7 @@ export const SearchText = <I extends SearchItem>(props: {
 	initSearchText?: string;
 	search: (text: string) => Promise<SearchItems<I>>;
 	onSelectionChange: (item: I) => Promise<string | void>;
+	onTextClear?: () => void;
 	openText?: string;
 	closeText?: string;
 	placeholder?: string;
@@ -32,7 +33,7 @@ export const SearchText = <I extends SearchItem>(props: {
 	hideButton?: boolean;
 }) => {
 	const {
-		initSearchText, search, onSelectionChange,
+		initSearchText, search, onSelectionChange, onTextClear,
 		openText, placeholder,
 		buttonFirst = false, alwaysShowSearchInput = false, hideButton = false
 	} = props;
@@ -81,6 +82,7 @@ export const SearchText = <I extends SearchItem>(props: {
 
 	const doSearch = (text: string) => {
 		if (text.length === 0) {
+			onTextClear && onTextClear();
 			setTimeoutHandle(handle => {
 				if (handle != null) {
 					window.clearTimeout(handle);
