@@ -238,7 +238,7 @@ def ask_save_user_group_action(
 					user_group.userGroupId, indicator_ids, removed_indicator_ids, user_group.tenantId,
 					user_group_service)
 
-			return user_group
+		return user_group
 
 	return action
 
