@@ -1,7 +1,7 @@
-import {Bucket} from '@/services/data/tuples/bucket-types';
 import {Apis, post} from '../apis';
 import {MonitorRules} from '../data-quality/rule-types';
 import {tryToMockImportTopicsAndPipelines} from '../mock/data-import/import-data';
+import {Bucket} from '../tuples/bucket-types';
 import {ConnectedSpace} from '../tuples/connected-space-types';
 import {Indicator} from '../tuples/indicator-types';
 import {Pipeline} from '../tuples/pipeline-types';

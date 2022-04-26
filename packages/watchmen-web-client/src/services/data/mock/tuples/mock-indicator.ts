@@ -1,4 +1,3 @@
-import {DemoConnectedSpaces} from '@/services/data/mock/tuples/mock-data-connected-spaces';
 import {TuplePage} from '../../query/tuple-page';
 import {ParameterJointType, ParameterKind} from '../../tuples/factor-calculator-types';
 import {isIndicatorFactor} from '../../tuples/factor-calculator-utils';
@@ -14,6 +13,7 @@ import {SubjectColumnArithmetic, SubjectDataSetFilter, SubjectDataSetJoin} from 
 import {TopicId, TopicKind, TopicType} from '../../tuples/topic-types';
 import {isFakedUuid} from '../../tuples/utils';
 import {DemoTopics, MonthlyOrderPremium} from '../tuples/mock-data-topics';
+import {DemoConnectedSpaces} from './mock-data-connected-spaces';
 import {DemoIndicators, MonthlyOrderPremiumIndicator, OrderPremiumIndicators} from './mock-data-indicators';
 import {listMockEnums} from './mock-enum';
 

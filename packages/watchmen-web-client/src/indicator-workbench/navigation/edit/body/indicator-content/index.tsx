@@ -1,9 +1,19 @@
+import {Apis, get} from '@/services/data/apis';
 import {Bucket} from '@/services/data/tuples/bucket-types';
-import {Indicator, MeasureMethod} from '@/services/data/tuples/indicator-types';
-import {tryToTransformToMeasures} from '@/services/data/tuples/indicator-utils';
+import {Indicator, IndicatorBaseOn, MeasureMethod} from '@/services/data/tuples/indicator-types';
+import {
+	findTopicAndFactor,
+	tryToTransformColumnToMeasures,
+	tryToTransformToMeasures
+} from '@/services/data/tuples/indicator-utils';
 import {Navigation, NavigationIndicator} from '@/services/data/tuples/navigation-types';
 import {QueryByBucketMethod, QueryByEnumMethod, QueryByMeasureMethod} from '@/services/data/tuples/query-bucket-types';
+import {SubjectForIndicator} from '@/services/data/tuples/query-indicator-types';
 import {Topic} from '@/services/data/tuples/topic-types';
+import {AlertLabel} from '@/widgets/alert/widgets';
+import {useEventBus} from '@/widgets/events/event-bus';
+import {EventTypes} from '@/widgets/events/types';
+import {Lang} from '@/widgets/langs';
 import {useEffect, useState} from 'react';
 import {useNavigationEventBus} from '../../../navigation-event-bus';
 import {NavigationEventTypes} from '../../../navigation-event-bus-types';
@@ -19,6 +29,7 @@ export const IndicatorContent = (props: {
 }) => {
 	const {navigation, navigationIndicator, indicator, id} = props;
 
+	const {fire: fireGlobal} = useEventBus();
 	const {fire} = useNavigationEventBus();
 	const [defData, setDefData] = useState<IndicatorCriteriaDefData>({
 		loaded: false,
@@ -27,12 +38,17 @@ export const IndicatorContent = (props: {
 	});
 	useEffect(() => {
 		(async () => {
-			const [topic, valueBuckets] = await Promise.all([
-				new Promise<Topic | undefined>(resolve => {
-					fire(NavigationEventTypes.ASK_TOPIC, indicator.topicOrSubjectId, (topic?: Topic) => {
-						resolve(topic);
-					});
-				}),
+			const [topic, subject, valueBuckets] = await Promise.all([
+				indicator.baseOn === IndicatorBaseOn.TOPIC
+					? new Promise<Topic | undefined>(resolve => {
+						fire(NavigationEventTypes.ASK_TOPIC, indicator.topicOrSubjectId, (topic?: Topic) => {
+							resolve(topic);
+						});
+					})
+					: (async () => null)(),
+				indicator.baseOn === IndicatorBaseOn.SUBJECT
+					? await get({api: Apis.SUBJECT_FOR_INDICATOR_GET, search: {subjectId: indicator.topicOrSubjectId}})
+					: (async () => null)(),
 				new Promise<Array<Bucket>>(resolve => {
 					fire(NavigationEventTypes.ASK_VALUE_BUCKETS, indicator.valueBuckets || [], (buckets: Array<Bucket>) => {
 						resolve(buckets);
@@ -50,13 +66,34 @@ export const IndicatorContent = (props: {
 					});
 					return measures;
 				}, [] as Array<QueryByBucketMethod>), (buckets: Array<Bucket>) => {
-					setDefData({loaded: true, topic, valueBuckets, measureBuckets: buckets});
+					setDefData({loaded: true, topic, subject: (void 0), valueBuckets, measureBuckets: buckets});
 				});
+			} else if (subject != null) {
+				fire(NavigationEventTypes.ASK_MEASURE_BUCKETS,
+					((subject as SubjectForIndicator).dataset.columns || []).reduce<Array<QueryByBucketMethod>>((measures, column) => {
+						tryToTransformColumnToMeasures(column, subject).forEach(method => {
+							if (method !== MeasureMethod.ENUM) {
+								measures.push({method} as QueryByMeasureMethod);
+							} else {
+								const {factor} = findTopicAndFactor(column, subject);
+								if (factor != null && factor.enumId != null) {
+									measures.push({
+										enumId: factor.enumId,
+										method: MeasureMethod.ENUM
+									} as QueryByEnumMethod);
+								}
+							}
+						});
+						return measures;
+					}, [] as Array<QueryByBucketMethod>),
+					(buckets: Array<Bucket>) => {
+						setDefData({loaded: true, topic: (void 0), subject, valueBuckets, measureBuckets: buckets});
+					});
 			} else {
-				setDefData({loaded: true, topic, valueBuckets, measureBuckets: []});
+				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>{Lang.ERROR.UNPREDICTED}</AlertLabel>);
 			}
 		})();
-	}, [fire, indicator]);
+	}, [fireGlobal, fire, indicator]);
 
 	return <>
 		<IndicatorCriteria navigation={navigation} navigationIndicator={navigationIndicator}

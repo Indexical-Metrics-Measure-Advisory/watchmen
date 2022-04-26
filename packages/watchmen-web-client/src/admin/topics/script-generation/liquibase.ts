@@ -1,9 +1,9 @@
-import {MSSQLFactorTypeMap} from '@/admin/topics/script-generation/mssql';
 import {FactorType} from '@/services/data/tuples/factor-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {isAggregationTopic, isNotAggregationTopic, isRawTopic} from '@/services/data/tuples/topic-utils';
 import {ZipFiles} from '@/widgets/basic/utils';
 import {v4} from 'uuid';
+import {MSSQLFactorTypeMap} from './mssql';
 import {MySQLFactorTypeMap} from './mysql';
 import {OracleFactorTypeMap} from './oracle';
 import {
