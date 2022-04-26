@@ -39,7 +39,7 @@ export const AssignedIndicatorUserGroups = (props: { indicator: Indicator }) => 
 		};
 	}, [on, off, forceUpdate, indicator, userGroups]);
 	useEffect(() => {
-		if (indicator.valueBuckets == null || indicator.valueBuckets.length === 0) {
+		if (indicator.userGroupIds == null || indicator.userGroupIds.length === 0) {
 			return;
 		}
 
