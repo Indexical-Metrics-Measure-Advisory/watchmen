@@ -1,3 +1,4 @@
+import {DemoConnectedSpaces} from '@/services/data/mock/tuples/mock-data-connected-spaces';
 import {TuplePage} from '../../query/tuple-page';
 import {ParameterJointType, ParameterKind} from '../../tuples/factor-calculator-types';
 import {isIndicatorFactor} from '../../tuples/factor-calculator-utils';
@@ -120,7 +121,13 @@ export const fetchMockIndicator = async (indicatorId: IndicatorId): Promise<{ in
 				.filter(enumeration => enumeration != null) as Array<EnumForIndicator>;
 			return {indicator, topic, enums};
 		} else {
-			const subject = JSON.parse(JSON.stringify(MOCK_SUBJECT));
+			const foundSubject = DemoConnectedSpaces
+				.filter(connectedSpace => !(connectedSpace.subjects == null || connectedSpace.subjects.length === 0))
+				.map(connectedSpace => connectedSpace.subjects)
+				.flat()
+				// eslint-disable-next-line
+				.find(subject => subject.subjectId == indicator.topicOrSubjectId);
+			const subject = JSON.parse(JSON.stringify(foundSubject ?? MOCK_SUBJECT));
 			return {indicator, subject};
 		}
 	} else {
