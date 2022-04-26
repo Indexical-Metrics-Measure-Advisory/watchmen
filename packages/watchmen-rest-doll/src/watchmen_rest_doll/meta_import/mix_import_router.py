@@ -717,7 +717,7 @@ def refill_connected_space_ids(
 
 	ArrayHelper(connected_spaces).each(fill_connected_space_id)
 
-	return space_id_map
+	return connected_space_id_map
 
 
 def refill_subject_ids(
