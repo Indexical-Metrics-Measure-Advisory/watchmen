@@ -28,7 +28,7 @@ export const useThrottler = () => {
 		return {
 			replace: (save: (time: FireTiming) => void, timeout: number) => {
 				if (queue.timeoutHandle) {
-					clearTimeout(queue.timeoutHandle);
+					window.clearTimeout(queue.timeoutHandle);
 				}
 				queue.save = save;
 				queue.timeoutHandle = window.setTimeout(() => {
@@ -39,7 +39,7 @@ export const useThrottler = () => {
 			},
 			clear: (execute: boolean) => {
 				if (queue.timeoutHandle) {
-					clearTimeout(queue.timeoutHandle);
+					window.clearTimeout(queue.timeoutHandle);
 				}
 				if (execute && queue.save) {
 					queue.save(FireTiming.FORCE);

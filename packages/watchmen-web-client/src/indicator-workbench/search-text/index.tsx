@@ -2,6 +2,7 @@ import {ICON_LOADING, ICON_WAIT_INPUT} from '@/widgets/basic/constants';
 import {ButtonInk} from '@/widgets/basic/types';
 import {useCollapseFixedThing} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
+import {useThrottler} from '@/widgets/throttler';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {ChangeEvent, KeyboardEvent, ReactNode, useEffect, useRef, useState} from 'react';
 import {useSearchTextEventBus} from './search-text-event-bus';
@@ -45,9 +46,10 @@ export const SearchText = <I extends SearchItem>(props: {
 	const [showSearchInput, setShowSearchInput] = useState(alwaysShowSearchInput);
 	const [showSearchPopup, setShowSearchPopup] = useState(false);
 	const [searchText, setSearchText] = useState(initSearchText ?? '');
-	const [timeoutHandle, setTimeoutHandle] = useState<number | null>(null);
 	const [result, setResult] = useState<SearchResult<I>>({searched: false, items: []});
 	const [activeItemIndex, setActiveItemIndex] = useState<number>(-1);
+	const saveQueue = useThrottler();
+	useEffect(() => saveQueue.clear(false), [saveQueue]);
 	useEffect(() => {
 		const onHideSearch = () => {
 			setShowSearchPopup(false);
@@ -83,31 +85,21 @@ export const SearchText = <I extends SearchItem>(props: {
 	const doSearch = (text: string) => {
 		if (text.length === 0) {
 			onTextClear && onTextClear();
-			setTimeoutHandle(handle => {
-				if (handle != null) {
-					window.clearTimeout(handle);
-				}
-				return window.setTimeout(() => {
-					setActiveItemIndex(-1);
-					setResult({searched: false, items: []});
-				}, 300);
-			});
+			saveQueue.replace(() => {
+				setActiveItemIndex(-1);
+				setResult({searched: false, items: []});
+			}, 300);
 		} else {
-			setTimeoutHandle(handle => {
-				if (handle != null) {
-					window.clearTimeout(handle);
+			saveQueue.replace(async () => {
+				try {
+					const items = await search(text);
+					setActiveItemIndex(items.length !== 0 ? 0 : -1);
+					setResult({searched: true, items});
+				} catch {
+					setActiveItemIndex(-1);
+					setResult({searched: true, items: []});
 				}
-				return window.setTimeout(async () => {
-					try {
-						const items = await search(text);
-						setActiveItemIndex(items.length !== 0 ? 0 : -1);
-						setResult({searched: true, items});
-					} catch {
-						setActiveItemIndex(-1);
-						setResult({searched: true, items: []});
-					}
-				}, 150);
-			});
+			}, 150);
 		}
 	};
 	const onSearchTextChanged = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -148,9 +140,7 @@ export const SearchText = <I extends SearchItem>(props: {
 				break;
 			case 'Enter':
 				if (activeItemIndex !== -1) {
-					if (timeoutHandle != null) {
-						window.clearTimeout(timeoutHandle);
-					}
+					saveQueue.clear(false);
 					const text = await onSelectionChange(result.items[activeItemIndex]);
 					if (text != null) {
 						setSearchText(text);
