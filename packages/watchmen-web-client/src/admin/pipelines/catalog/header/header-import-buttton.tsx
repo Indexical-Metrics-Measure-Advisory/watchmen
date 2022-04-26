@@ -113,9 +113,9 @@ const PipelinesImport = (props: {
 						map[bucket.bucketId] = bucket;
 						return map;
 					}, {} as Record<BucketId, Bucket>);
-					return selectedIndicators.map(indicators => {
-						return (indicators.valueBuckets || []).map(bucketId => bucketsMap[bucketId]).filter(isNotNull);
-					}).flat();
+					return [...new Set(selectedIndicators.map(indicators => {
+						return (indicators.valueBuckets || []).filter(isNotNull);
+					}).flat())].map(bucketId => bucketsMap[bucketId]).filter(isNotNull);
 				})(),
 				monitorRules: monitorRules.filter(rule => {
 					if (isRuleOnTopic(rule) || isRuleOnFactor(rule)) {
