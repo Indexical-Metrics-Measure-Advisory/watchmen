@@ -120,12 +120,12 @@ export const InspectionState = () => {
 			} else {
 				fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
 					async () => {
-						const {indicator, topic, enums} = await fetchIndicator(indicatorId);
-						return {indicator, topic, enums};
+						const {indicator, topic, subject, enums} = await fetchIndicator(indicatorId);
+						return {indicator, topic, subject, enums};
 					},
-					({indicator, topic, enums}: IndicatorForInspection) => {
+					({indicator, topic, subject, enums}: IndicatorForInspection) => {
 						setIndicatorsForInspections(ifi => {
-							return {...ifi, [indicatorId]: {indicator, topic, enums: enums ?? []}};
+							return {...ifi, [indicatorId]: {indicator, topic, subject, enums: enums ?? []}};
 						});
 						onData({indicator, topic, enums: enums ?? []});
 					});
