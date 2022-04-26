@@ -30,7 +30,7 @@ export const DemoConnectedSpaces: Array<ConnectedSpace> = [
 					filters: {jointType: ParameterJointType.AND, filters: []},
 					columns: [
 						{
-							columnId: generateUuid(),
+							columnId: '1',
 							parameter: {
 								kind: ParameterKind.TOPIC,
 								topicId: Quotation.topicId,
@@ -39,7 +39,7 @@ export const DemoConnectedSpaces: Array<ConnectedSpace> = [
 							alias: 'Column1'
 						},
 						{
-							columnId: generateUuid(),
+							columnId: '2',
 							parameter: {
 								kind: ParameterKind.TOPIC,
 								topicId: '1',
@@ -48,7 +48,7 @@ export const DemoConnectedSpaces: Array<ConnectedSpace> = [
 							alias: 'Column2'
 						},
 						{
-							columnId: generateUuid(),
+							columnId: '3',
 							parameter: {
 								kind: ParameterKind.TOPIC,
 								topicId: '1',
@@ -57,7 +57,7 @@ export const DemoConnectedSpaces: Array<ConnectedSpace> = [
 							alias: 'Column3'
 						},
 						{
-							columnId: generateUuid(),
+							columnId: '4',
 							parameter: {
 								kind: ParameterKind.TOPIC,
 								topicId: '2',
@@ -66,7 +66,7 @@ export const DemoConnectedSpaces: Array<ConnectedSpace> = [
 							alias: 'Column4'
 						},
 						{
-							columnId: generateUuid(),
+							columnId: '5',
 							parameter: {
 								kind: ParameterKind.TOPIC,
 								topicId: '2',
@@ -75,7 +75,7 @@ export const DemoConnectedSpaces: Array<ConnectedSpace> = [
 							alias: 'Column5'
 						},
 						{
-							columnId: generateUuid(),
+							columnId: '6',
 							parameter: {
 								kind: ParameterKind.TOPIC,
 								topicId: '2',
@@ -84,7 +84,7 @@ export const DemoConnectedSpaces: Array<ConnectedSpace> = [
 							alias: 'Column6'
 						},
 						{
-							columnId: generateUuid(),
+							columnId: '7',
 							parameter: {
 								kind: ParameterKind.TOPIC,
 								topicId: '3',
@@ -93,7 +93,7 @@ export const DemoConnectedSpaces: Array<ConnectedSpace> = [
 							alias: 'Column7'
 						},
 						{
-							columnId: generateUuid(),
+							columnId: '8',
 							parameter: {
 								kind: ParameterKind.TOPIC,
 								topicId: '3',
@@ -102,7 +102,7 @@ export const DemoConnectedSpaces: Array<ConnectedSpace> = [
 							alias: 'Column8'
 						},
 						{
-							columnId: generateUuid(),
+							columnId: '9',
 							parameter: {
 								kind: ParameterKind.TOPIC,
 								topicId: '3',
@@ -111,7 +111,7 @@ export const DemoConnectedSpaces: Array<ConnectedSpace> = [
 							alias: 'Column9'
 						},
 						{
-							columnId: generateUuid(),
+							columnId: '10',
 							parameter: {
 								kind: ParameterKind.TOPIC,
 								topicId: '3',
