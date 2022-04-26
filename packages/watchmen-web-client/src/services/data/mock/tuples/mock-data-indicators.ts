@@ -53,7 +53,7 @@ const MonthlyOrderPremiumIndicatorOnSubject: Indicator = {
 	indicatorId: INDICATOR_MONTHLY_ORDER_PREMIUM_ON_SUBJECT_ID,
 	name: 'Monthly Order Premium On Subject',
 	topicOrSubjectId: '1',
-	factorId: MonthlyOrderPremium.factors.find(factor => factor.name === 'premium')?.factorId,
+	factorId: '6', // premium
 	baseOn: IndicatorBaseOn.SUBJECT,
 	valueBuckets: [BUCKET_AMOUNT_ID],
 	category1: 'premium',
