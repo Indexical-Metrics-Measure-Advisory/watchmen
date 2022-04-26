@@ -513,17 +513,31 @@ def replace_ids(a_dict: dict, replace: Callable[[dict, str], None]) -> dict:
 def create_topic_and_factor_ids_replacer(
 		topic_id_map: Dict[TopicId, TopicId], factor_id_map: Dict[FactorId, FactorId]
 ) -> Callable[[dict, str], None]:
+	# noinspection PyTypeChecker
 	def replace_topic_and_factor_ids(a_dict: dict, key: str) -> None:
 		if key == 'topicId':
-			old_topic_id = a_dict['topic_id']
+			old_topic_id = a_dict['topicId']
 			new_topic_id = topic_id_map.get(old_topic_id)
 			if new_topic_id is not None:
-				a_dict['topic_id'] = new_topic_id
-		if key == 'factorId':
-			old_factor_id = a_dict['factor_id']
+				a_dict['topicId'] = new_topic_id
+		elif key == 'secondaryTopicId':
+			old_topic_id = a_dict['secondaryTopicId']
+			new_topic_id = topic_id_map.get(old_topic_id)
+			if new_topic_id is not None:
+				a_dict['secondaryTopicId'] = new_topic_id
+		elif key == 'factorId':
+			old_factor_id = a_dict['factorId']
 			new_factor_id = factor_id_map.get(old_factor_id)
 			if new_factor_id is not None:
-				a_dict['factor_id'] = new_factor_id
+				a_dict['factorId'] = new_factor_id
+		else:
+			value = a_dict[key]
+			if isinstance(value, dict):
+				replace_ids(value, replace_topic_and_factor_ids)
+			elif isinstance(value, list):
+				ArrayHelper(value)\
+					.filter(lambda x: isinstance(x, dict)) \
+					.each(lambda x: replace_ids(x, replace_topic_and_factor_ids))
 
 	return replace_topic_and_factor_ids
 
