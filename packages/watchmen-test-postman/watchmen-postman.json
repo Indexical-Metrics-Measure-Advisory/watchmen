@@ -673,8 +673,30 @@
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/external_writer?writer_id={{EXTERNAL_WRITER_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "external_writer"
+                  ],
+                  "query": [
+                    {
+                      "key": "writer_id",
+                      "value": "{{EXTERNAL_WRITER_ID}}",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
