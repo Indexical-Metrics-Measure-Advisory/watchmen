@@ -33,7 +33,7 @@ export const IndicatorEditor = () => {
 		});
 	}, [fire]);
 
-	return <FixWidthPage maxWidth="80%">
+	return <FixWidthPage>
 		<PageHeader title={Lang.INDICATOR_WORKBENCH.INDICATOR.TITLE}/>
 		<IndicatorsContainer>
 			<CreateOrFind/>
