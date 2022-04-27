@@ -4,6 +4,8 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel
+from starlette.requests import Request
 
 from watchmen_auth import AuthenticationScheme, PrincipalService
 from watchmen_meta.admin import UserService
@@ -13,22 +15,33 @@ from watchmen_model.admin import User
 from watchmen_model.system import Token
 from watchmen_rest import create_jwt_token, get_any_principal, retrieve_authentication_manager
 from watchmen_rest.util import raise_401
-from watchmen_rest_doll.doll import ask_access_token_expires_in, ask_jwt_params
+from watchmen_rest_doll.doll import ask_access_token_expires_in, ask_jwt_params, ask_saml2_enabled, ask_saml2_settings
+from watchmen_rest_doll.settings import SSOTypes
 from watchmen_rest_doll.util import verify_password
 
 router = APIRouter()
 logger = getLogger(__name__)
 
 
+class LoginConfiguration(BaseModel):
+	loginMethod: str = 'doll',
+	loginUrl: str = None
+
+
 @router.get('/auth/config', tags=['authenticate'], response_model=LoginConfiguration)
 async def load_login_config(request: Request) -> LoginConfiguration:
-	if settings.SSO_ON and settings.SSO_PROVIDER == SSOTypes.SAML2:
+	if ask_saml2_enabled():
+		from watchmen_rest_doll.sso.saml.saml_helper import prepare_from_fastapi_request
+		# noinspection PyPackageRequirements
+		from onelogin.saml2.auth import OneLogin_Saml2_Auth
+
 		req = await prepare_from_fastapi_request(request)
-		auth = OneLogin_Saml2_Auth(req, ask_saml_settings())
+		auth = OneLogin_Saml2_Auth(req, ask_saml2_settings())
 		callback_url = auth.login()
-		return LoginConfiguration(loginMethod=settings.SSO_PROVIDER, loginUrl=callback_url)
+		return LoginConfiguration(loginMethod=SSOTypes.SAML2, loginUrl=callback_url)
 	else:
 		return LoginConfiguration()
+
 
 def authenticate(username, password) -> User:
 	# principal is careless

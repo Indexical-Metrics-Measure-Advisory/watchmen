@@ -2,23 +2,30 @@ import urllib.parse
 from datetime import timedelta
 from typing import Optional
 
+# noinspection PyPackageRequirements
 from cryptography.hazmat.backends import default_backend
+# noinspection PyPackageRequirements
 from cryptography.hazmat.primitives import hashes
+# noinspection PyPackageRequirements
 from cryptography.hazmat.primitives.asymmetric import padding
+# noinspection PyPackageRequirements
 from cryptography.x509 import load_pem_x509_certificate
+# noinspection PyPackageRequirements
 from onelogin.saml2.utils import OneLogin_Saml2_Utils
+# noinspection PyPackageRequirements
 from onelogin.saml2.xml_utils import OneLogin_Saml2_XML
 
 from watchmen_meta.auth import build_find_user_by_name
 from watchmen_model.admin import User
 from watchmen_model.system import Token
 from watchmen_rest import create_jwt_token
+from watchmen_rest_doll.doll import ask_access_token_expires_in, ask_jwt_params
 
 USERNAME_PATH = "/samlp:Response/saml:Assertion/saml:AttributeStatement/saml:Attribute[@Name='username']/saml:AttributeValue"
 
 
 def verify_signature(saml_response, algorithm, signature, relay_state, settings):
-	cert = settings["idp"]["x509cert"]
+	cert = settings['idp']['x509cert']
 	cert_str = OneLogin_Saml2_Utils.format_cert(cert)
 	cert_obj = load_pem_x509_certificate(str.encode(cert_str), default_backend())
 	public_key = cert_obj.public_key()
@@ -60,27 +67,27 @@ async def prepare_from_fastapi_request(request):
 	}
 
 	if request.query_params:
-		rv["get_data"] = request.query_params,
-	if "SAMLResponse" in form_data:
-		saml_response = form_data["SAMLResponse"]
-		rv["post_data"]["SAMLResponse"] = saml_response
-	if "RelayState" in form_data:
-		relay_state = form_data["RelayState"]
-		rv["post_data"]["RelayState"] = relay_state
+		rv['get_data'] = request.query_params,
+	if 'SAMLResponse' in form_data:
+		saml_response = form_data['SAMLResponse']
+		rv['post_data']['SAMLResponse'] = saml_response
+	if 'RelayState' in form_data:
+		relay_state = form_data['RelayState']
+		rv['post_data']['RelayState'] = relay_state
 	return rv
 
 
 def find_user(user_name: str) -> Optional[User]:
-	find_user_by_name = build_find_user_by_name(False)
-	return find_user_by_name(user_name)
+	return build_find_user_by_name(True)(user_name)
 
 
-def build_token(user: User, settings):
-	access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+def build_token(user: User):
+	jwt_secret_key, jwt_algorithm = ask_jwt_params()
+	access_token_expires = timedelta(minutes=ask_access_token_expires_in())
 	return Token(
 		accessToken=create_jwt_token(
 			subject=user.name, expires_delta=access_token_expires,
-			secret_key=settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM
+			secret_key=jwt_secret_key, algorithm=jwt_algorithm
 		),
 		tokenType='bearer',
 		role=user.role,
