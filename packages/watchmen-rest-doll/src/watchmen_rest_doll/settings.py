@@ -1,5 +1,10 @@
+from enum import Enum
+
 from watchmen_rest import RestSettings
-from .sso.sso_types import SSOTypes
+
+
+class SSOTypes(str, Enum):
+	SAML2 = 'saml2'
 
 
 class DollSettings(RestSettings):

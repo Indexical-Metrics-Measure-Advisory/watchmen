@@ -15,8 +15,8 @@ from .gui import favorite_router, last_snapshot_router
 from .meta_import import connected_space_import_router, dashboard_import_router, mix_import_router, \
 	pipeline_import_router, report_import_router, space_import_router, subject_import_router, topic_import_router, \
 	user_group_import_router, user_import_router
+from .sso.sso_router import install_sso_router
 from .system import data_source_router, external_writer_router, pat_router, tenant_init_router, tenant_router
-
 
 app = doll.construct()
 
@@ -52,6 +52,8 @@ ArrayHelper([
 	# analysis
 	topic_index_router.router, pipeline_index_router.router
 ]).each(lambda x: app.include_router(x))
+
+install_sso_router(app)
 
 ArrayHelper(get_data_surface_routers()).each(lambda x: app.include_router(x))
 ArrayHelper(get_pipeline_surface_routers()).each(lambda x: app.include_router(x))
