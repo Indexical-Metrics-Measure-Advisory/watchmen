@@ -20,6 +20,16 @@ router = APIRouter()
 logger = getLogger(__name__)
 
 
+@router.get('/auth/config', tags=['authenticate'], response_model=LoginConfiguration)
+async def load_login_config(request: Request) -> LoginConfiguration:
+	if settings.SSO_ON and settings.SSO_PROVIDER == SSOTypes.SAML2:
+		req = await prepare_from_fastapi_request(request)
+		auth = OneLogin_Saml2_Auth(req, ask_saml_settings())
+		callback_url = auth.login()
+		return LoginConfiguration(loginMethod=settings.SSO_PROVIDER, loginUrl=callback_url)
+	else:
+		return LoginConfiguration()
+
 def authenticate(username, password) -> User:
 	# principal is careless
 	find_user_by_name = build_find_user_by_name(False)

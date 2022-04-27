@@ -34,12 +34,10 @@ class RestApp:
 			description=self.settings.DESCRIPTION
 		)
 
-
 		self.init_cors(app)
 		self.init_prometheus(app)
 
 		self.init_authentication()
-		self.init_sso(app)
 		self.post_construct(app)
 
 		logger.info('REST app constructed.')
@@ -58,14 +56,6 @@ class RestApp:
 	def init_prometheus(self, app: FastAPI) -> None:
 		if self.is_prometheus_on():
 			install_prometheus(app, self.settings)
-
-	def is_sso_on(self) -> bool:
-		return self.settings.SSO_ON
-
-	@abstractmethod
-	def init_sso(self, app: FastAPI) -> None:
-		pass
-
 
 	# noinspection PyMethodMayBeStatic
 	def get_authentication_providers(self) -> List[AuthenticationProvider]:
