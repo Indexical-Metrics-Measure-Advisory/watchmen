@@ -1269,14 +1269,14 @@ mysql = ["watchmen-storage-mysql"]
 oracle = ["watchmen-storage-oracle"]
 prometheus = ["starlette-prometheus"]
 rabbit = ["aio-pika"]
-sso = ["python3-saml", "cryptography"]
+sso = ["python3-saml"]
 standard_ext_writer = ["requests"]
 trino = ["watchmen-inquiry-trino"]
 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "e9610e0e5ec6f947196e5aecaed1f39260a4b84de4edf657a657adfda607a467"
+content-hash = "e44e968f98acdfc1c1194da7e23d9796e08c9b2d3aa8e721a0f6ac9e59813478"
 
 [metadata.files]
 aio-pika = [
