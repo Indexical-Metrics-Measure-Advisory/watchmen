@@ -8,10 +8,12 @@ from fastapi import FastAPI
 
 from watchmen_auth import AuthenticationProvider
 from watchmen_model.admin import User
+
 from .auth_helper import register_authentication_manager
 from .authentication import build_authentication_manager
 from .cors import install_cors
 from .prometheus import install_prometheus
+
 from .settings import RestSettings
 
 logger = getLogger(f'app.{__name__}')
@@ -31,11 +33,13 @@ class RestApp:
 			version=self.settings.VERSION,
 			description=self.settings.DESCRIPTION
 		)
+
+
 		self.init_cors(app)
 		self.init_prometheus(app)
 
 		self.init_authentication()
-
+		self.init_sso(app)
 		self.post_construct(app)
 
 		logger.info('REST app constructed.')
@@ -54,6 +58,14 @@ class RestApp:
 	def init_prometheus(self, app: FastAPI) -> None:
 		if self.is_prometheus_on():
 			install_prometheus(app, self.settings)
+
+	def is_sso_on(self) -> bool:
+		return self.settings.SSO_ON
+
+	@abstractmethod
+	def init_sso(self, app: FastAPI) -> None:
+		pass
+
 
 	# noinspection PyMethodMayBeStatic
 	def get_authentication_providers(self) -> List[AuthenticationProvider]:
