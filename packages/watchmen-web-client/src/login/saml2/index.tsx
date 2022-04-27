@@ -1,3 +1,9 @@
+import {getSaml2CallbackUrl} from '@/services/data/login';
+import {Account} from '@/services/data/login/types';
+import {ButtonInk} from '@/widgets/basic/types';
+import {faKey, faUserAstronaut} from '@fortawesome/free-solid-svg-icons';
+import dayjs from 'dayjs';
+import React, {ChangeEvent, useEffect, useRef, useState} from 'react';
 import {
 	Error,
 	Form,
@@ -16,13 +22,7 @@ import {
 	LoginHeaderLogo,
 	LoginHeaderTitle,
 	SubmitButton
-} from '@/login/widgets';
-import {getSaml2CallbackUrl} from '@/services/data/login';
-import {Account} from '@/services/data/login/types';
-import {ButtonInk} from '@/widgets/basic/types';
-import {faKey, faUserAstronaut} from '@fortawesome/free-solid-svg-icons';
-import dayjs from 'dayjs';
-import React, {ChangeEvent, useEffect, useRef, useState} from 'react';
+} from '../widgets';
 
 const Saml2Login = () => {
 	const nameRef = useRef<HTMLInputElement>(null);
