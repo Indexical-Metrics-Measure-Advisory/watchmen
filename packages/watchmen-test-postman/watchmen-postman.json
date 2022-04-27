@@ -667,7 +667,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "EXTERNAL WRITER DELETE",
               "id": "7c195c5f-206c-4477-b3df-0158ad3df8cc",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
