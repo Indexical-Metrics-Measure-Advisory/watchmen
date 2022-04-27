@@ -1,12 +1,13 @@
 import {Router} from '@/routes/types';
 import {saveAccountIntoSession} from '@/services/data/account';
-import {login} from '@/services/data/login';
-import {Account} from '@/services/data/login/types';
+import {askLoginConfig, login} from '@/services/data/login';
+import {Account, LoginConfig, LoginMethod} from '@/services/data/login/types';
 import {ButtonInk} from '@/widgets/basic/types';
+import {useEventBus} from '@/widgets/events/event-bus';
 import {Lang} from '@/widgets/langs';
 import {faKey, faUserAstronaut} from '@fortawesome/free-solid-svg-icons';
 import dayjs from 'dayjs';
-import React, {ChangeEvent, useEffect, useRef, useState} from 'react';
+import React, {ChangeEvent, Fragment, useEffect, useRef, useState} from 'react';
 import {useHistory} from 'react-router-dom';
 import {
 	Error,
@@ -28,7 +29,7 @@ import {
 	SubmitButton
 } from './widgets';
 
-const LoginIndex = () => {
+const RegularLogin = () => {
 	const history = useHistory();
 	const nameRef = useRef<HTMLInputElement>(null);
 	const credentialRef = useRef<HTMLInputElement>(null);
@@ -128,6 +129,33 @@ const LoginIndex = () => {
 			</FormPart>
 		</LoginBody>
 	</LoginContainer>;
+};
+
+const LoginIndex = () => {
+	const {fire} = useEventBus();
+	const [config, setConfig] = useState<LoginConfig | null>(null);
+	useEffect(() => {
+		(async () => {
+			try {
+				const config = await askLoginConfig();
+				setConfig(config);
+			} catch {
+				setConfig({method: LoginMethod.DOLL});
+			}
+		})();
+	}, [fire]);
+
+	if (config == null) {
+		return <Fragment/>;
+	} else if (config.method == null || config.url == null || config.url.trim().length === 0 || config.method === LoginMethod.DOLL) {
+		return <RegularLogin/>;
+	} else if (config.method === LoginMethod.SAML2) {
+		// redirect to saml2 server
+		window.location.replace(config.url!);
+		return <Fragment/>;
+	} else {
+		return <RegularLogin/>;
+	}
 };
 
 export {LoginIndex};

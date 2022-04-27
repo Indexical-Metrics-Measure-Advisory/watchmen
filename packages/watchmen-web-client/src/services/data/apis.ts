@@ -2,7 +2,9 @@ import {findToken} from './account';
 import {doFetch, getServiceHost} from './utils';
 
 export const Apis = {
+	LOGIN_CONFIG: 'auth/config',
 	LOGIN: 'login',
+	EXCHANGE_SAML2_TOKEN: 'token/exchange-saml',
 
 	// admin only
 	// update date apis
