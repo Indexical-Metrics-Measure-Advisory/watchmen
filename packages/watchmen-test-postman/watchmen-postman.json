@@ -511,7 +511,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{URL_PREFIX}}/datasource?datasource_id={{DATA_SOURCE_ID}}",
+                  "raw": "{{URL_PREFIX}}/datasource?data_source_id={{DATA_SOURCE_ID}}",
                   "host": [
                     "{{URL_PREFIX}}"
                   ],
@@ -520,7 +520,7 @@
                   ],
                   "query": [
                     {
-                      "key": "datasource_id",
+                      "key": "data_source_id",
                       "value": "{{DATA_SOURCE_ID}}"
                     }
                   ]
@@ -535,10 +535,16 @@
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "DELETE",
                 "header": [],
                 "url": {
-                  "raw": "{{URL_PREFIX}}/datasource?DataSourceId={{DATA_SOURCE_ID}}",
+                  "raw": "{{URL_PREFIX}}/datasource?data_source_id={{DATA_SOURCE_ID}}",
                   "host": [
                     "{{URL_PREFIX}}"
                   ],
@@ -547,7 +553,7 @@
                   ],
                   "query": [
                     {
-                      "key": "DataSourceId",
+                      "key": "data_source_id",
                       "value": "{{DATA_SOURCE_ID}}"
                     }
                   ]
