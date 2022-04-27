@@ -1092,7 +1092,7 @@ mongodb = ["watchmen-storage-mongodb @ ../watchmen-storage-mongodb"]
 mssql = ["watchmen-storage-mssql @ ../watchmen-storage-mssql"]
 kafka = ["kafka-python (>=2.0.2,<3.0.0)", "aiokafka (>=0.7.2,<0.8.0)"]
 rabbitmq = ["aio-pika (>=7.1.2,<8.0.0)"]
-standard_ext_writer = []
+standard_ext_writer = ["requests (>=2.27.1,<3.0.0)"]
 es_ext_writer = []
 
 [package.source]
@@ -1269,14 +1269,14 @@ mysql = ["watchmen-storage-mysql"]
 oracle = ["watchmen-storage-oracle"]
 prometheus = ["starlette-prometheus"]
 rabbit = ["aio-pika"]
-sso = ["python3-saml"]
+sso = ["python3-saml", "cryptography"]
 standard_ext_writer = ["requests"]
 trino = ["watchmen-inquiry-trino"]
 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "aff3e2c959264b562d546280071382eaa79d638162e77f19165b9c34250c3755"
+content-hash = "e9610e0e5ec6f947196e5aecaed1f39260a4b84de4edf657a657adfda607a467"
 
 [metadata.files]
 aio-pika = [
