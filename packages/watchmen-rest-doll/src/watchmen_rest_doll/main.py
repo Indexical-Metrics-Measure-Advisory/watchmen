@@ -16,10 +16,9 @@ from .meta_import import connected_space_import_router, dashboard_import_router,
 	pipeline_import_router, report_import_router, space_import_router, subject_import_router, topic_import_router, \
 	user_group_import_router, user_import_router
 from .system import data_source_router, external_writer_router, pat_router, tenant_init_router, tenant_router
-from starlette.middleware.sessions import SessionMiddleware
+
 
 app = doll.construct()
-app.add_middleware(SessionMiddleware, secret_key="SECRET_KEY")
 
 
 @app.on_event("startup")
