@@ -15,7 +15,8 @@ from watchmen_model.admin import User
 from watchmen_model.system import Token
 from watchmen_rest import create_jwt_token, get_any_principal, retrieve_authentication_manager
 from watchmen_rest.util import raise_401
-from watchmen_rest_doll.doll import ask_access_token_expires_in, ask_jwt_params, ask_saml2_enabled, ask_saml2_settings
+from watchmen_rest_doll.doll import ask_access_token_expires_in, ask_jwt_params, ask_saml2_enabled, ask_saml2_settings, \
+	ask_sso_enabled
 from watchmen_rest_doll.settings import SSOTypes
 from watchmen_rest_doll.util import verify_password
 
@@ -24,13 +25,13 @@ logger = getLogger(__name__)
 
 
 class LoginConfiguration(BaseModel):
-	method: Union[str, SSOTypes] = 'doll',
+	method: Union[str, SSOTypes] = SSOTypes.DOLL,
 	url: Optional[str] = None
 
 
 @router.get('/auth/config', tags=['authenticate'], response_model=LoginConfiguration)
 async def load_login_config(request: Request) -> LoginConfiguration:
-	if ask_saml2_enabled():
+	if ask_sso_enabled() and ask_saml2_enabled():
 		from watchmen_rest_doll.sso.saml.saml_helper import prepare_from_fastapi_request
 		# noinspection PyPackageRequirements
 		from onelogin.saml2.auth import OneLogin_Saml2_Auth
@@ -40,7 +41,7 @@ async def load_login_config(request: Request) -> LoginConfiguration:
 		callback_url = auth.login()
 		return LoginConfiguration(method=SSOTypes.SAML2, url=callback_url)
 	else:
-		return LoginConfiguration()
+		return LoginConfiguration(method=SSOTypes.DOLL)
 
 
 def authenticate(username, password) -> User:

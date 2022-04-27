@@ -5,6 +5,7 @@ from watchmen_rest import RestSettings
 
 class SSOTypes(str, Enum):
 	SAML2 = 'saml2'
+	DOLL = "doll"
 
 
 class DollSettings(RestSettings):
