@@ -1,5 +1,5 @@
 import {MeasureMethod} from '@/services/data/tuples/indicator-types';
-import {tryToTransformToMeasures} from '@/services/data/tuples/indicator-utils';
+import {findTopicAndFactor, tryToTransformToMeasures} from '@/services/data/tuples/indicator-utils';
 import {fetchNavigationIndicatorData} from '@/services/data/tuples/navigation';
 import {Navigation, NavigationIndicator, NavigationTimeRangeType} from '@/services/data/tuples/navigation-types';
 import {isNavigationIndicatorCriteriaOnExpression} from '@/services/data/tuples/navigation-utils';
@@ -84,14 +84,29 @@ const replace = (options: {
 		...navigationIndicator,
 		criteria: (navigationIndicator.criteria || []).map(criteria => {
 			if (isNavigationIndicatorCriteriaOnExpression(criteria)) {
-				// eslint-disable-next-line
-				const factor = (defData.topic?.factors || []).find(factor => factor.factorId == criteria.factorId);
-				if (factor == null) {
-					return {...criteria};
+				let measures: Array<MeasureMethod> = [];
+				if (defData.topic != null) {
+					// eslint-disable-next-line
+					const factor = (defData.topic?.factors || []).find(factor => factor.factorId == criteria.factorId);
+					if (factor == null) {
+						return {...criteria};
+					}
+					measures = tryToTransformToMeasures(factor);
+				} else if (defData.subject != null) {
+					// eslint-disable-next-line
+					const column = (defData.subject.dataset.columns || []).find(column => column.columnId == criteria.factorId);
+					if (column == null) {
+						return {...criteria};
+					}
+					const {factor} = findTopicAndFactor(column, defData.subject);
+					if (factor == null) {
+						return {...criteria};
+					} else {
+						measures = tryToTransformToMeasures(factor);
+					}
 				}
 
 				let newValue = criteria.value || '';
-				const measures = tryToTransformToMeasures(factor);
 				if (measures.includes(MeasureMethod.YEAR) && measures.includes(MeasureMethod.MONTH)) {
 					newValue = replaceYM(newValue, [
 						replaceYearMonth(ym),
