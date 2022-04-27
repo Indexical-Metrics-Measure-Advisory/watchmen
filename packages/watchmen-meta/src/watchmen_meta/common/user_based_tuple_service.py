@@ -1,10 +1,11 @@
 from typing import List, Optional, Tuple
 
 from watchmen_auth import PrincipalService
-from watchmen_model.common import Auditable, TenantId, UserBasedTuple, UserId
+from watchmen_model.common import Auditable, OptimisticLock, TenantId, UserBasedTuple, UserId
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityRow, SnowflakeGenerator, \
 	TooManyEntitiesFoundException, TransactionalStorageSPI
 from .storage_service import EntityService, TupleId, TupleNotFoundException
+from .tuple_service import AuditableShaper, OptimisticLockShaper
 
 
 class UserBasedTupleShaper:
@@ -12,12 +13,20 @@ class UserBasedTupleShaper:
 	def serialize(user_based_tuple: UserBasedTuple, row: EntityRow) -> EntityRow:
 		row['user_id'] = user_based_tuple.userId
 		row['tenant_id'] = user_based_tuple.tenantId
+		if isinstance(user_based_tuple, Auditable):
+			row = AuditableShaper.serialize(user_based_tuple, row)
+		if isinstance(user_based_tuple, OptimisticLock):
+			row = OptimisticLockShaper.serialize(user_based_tuple, row)
 		return row
 
 	@staticmethod
 	def deserialize(row: EntityRow, user_based_tuple: UserBasedTuple) -> UserBasedTuple:
 		user_based_tuple.userId = row.get('user_id')
 		user_based_tuple.tenantId = row.get('tenant_id')
+		if isinstance(user_based_tuple, Auditable):
+			user_based_tuple = AuditableShaper.deserialize(row, user_based_tuple)
+		if isinstance(user_based_tuple, OptimisticLock):
+			user_based_tuple = OptimisticLockShaper.deserialize(row, user_based_tuple)
 		return user_based_tuple
 
 

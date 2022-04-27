@@ -38,7 +38,7 @@ export const NoData = styled.div.attrs<{ visible: boolean }>(({visible}) => {
 export const TupleSearchList = styled.div.attrs({'data-widget': 'tuple-search-list'})`
 	display               : grid;
 	grid-column           : span 2;
-	grid-template-columns : repeat(3, 1fr);
+	grid-template-columns : repeat(3, calc((100% - var(--margin)) / 3));
 	grid-column-gap       : calc(var(--margin) / 2);
 	grid-row-gap          : calc(var(--margin) / 2);
 	padding-top           : calc(var(--margin) / 2);

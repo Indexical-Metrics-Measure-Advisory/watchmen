@@ -21,7 +21,7 @@ export const UserGroupAssigner = () => {
 		dropped: () => setVisible(false)
 	});
 
-	if (constructed === Construct.WAIT) {
+	if (constructed === Construct.WAIT || data?.indicator == null) {
 		return null;
 	}
 

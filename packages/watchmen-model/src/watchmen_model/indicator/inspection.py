@@ -118,38 +118,40 @@ def construct_time_range(a_range: Optional[Union[dict, InspectionTimeRange]]) ->
 		return None
 	elif isinstance(a_range, InspectionTimeRange):
 		return a_range
-	elif a_range.type == InspectionTimeRangeType.YEAR:
+	
+	range_type = a_range.get('type')
+	if range_type == InspectionTimeRangeType.YEAR:
 		return InspectionYearRange(**a_range)
-	elif a_range.type == InspectionTimeRangeType.HALF_YEAR:
+	elif range_type == InspectionTimeRangeType.HALF_YEAR:
 		return InspectionHalfYearRange(**a_range)
-	elif a_range.type == InspectionTimeRangeType.QUARTER:
+	elif range_type == InspectionTimeRangeType.QUARTER:
 		return InspectionQuarterRange(**a_range)
-	elif a_range.type == InspectionTimeRangeType.MONTH:
+	elif range_type == InspectionTimeRangeType.MONTH:
 		return InspectionMonthRange(**a_range)
-	elif a_range.type == InspectionTimeRangeType.HALF_MONTH:
+	elif range_type == InspectionTimeRangeType.HALF_MONTH:
 		return InspectionHalfMonthRange(**a_range)
-	elif a_range.type == InspectionTimeRangeType.TEN_DAYS:
+	elif range_type == InspectionTimeRangeType.TEN_DAYS:
 		return InspectionTenDaysRange(**a_range)
-	elif a_range.type == InspectionTimeRangeType.WEEK_OF_YEAR:
+	elif range_type == InspectionTimeRangeType.WEEK_OF_YEAR:
 		return InspectionWeekOfYearRange(**a_range)
-	elif a_range.type == InspectionTimeRangeType.WEEK_OF_MONTH:
+	elif range_type == InspectionTimeRangeType.WEEK_OF_MONTH:
 		return InspectionWeekOfMonthRange(**a_range)
-	elif a_range.type == InspectionTimeRangeType.HALF_WEEK:
+	elif range_type == InspectionTimeRangeType.HALF_WEEK:
 		return InspectionHalfWeekRange(**a_range)
-	elif a_range.type == InspectionTimeRangeType.DAY_OF_MONTH:
+	elif range_type == InspectionTimeRangeType.DAY_OF_MONTH:
 		return InspectionDayOfMonthRange(**a_range)
-	elif a_range.type == InspectionTimeRangeType.DAY_OF_WEEK:
+	elif range_type == InspectionTimeRangeType.DAY_OF_WEEK:
 		return InspectionDayOfWeekRange(**a_range)
-	elif a_range.type == InspectionTimeRangeType.DAY_KIND:
+	elif range_type == InspectionTimeRangeType.DAY_KIND:
 		return InspectionDayKindRange(**a_range)
-	elif a_range.type == InspectionTimeRangeType.HOUR:
+	elif range_type == InspectionTimeRangeType.HOUR:
 		return InspectionHourRange(**a_range)
-	elif a_range.type == InspectionTimeRangeType.HOUR_KIND:
+	elif range_type == InspectionTimeRangeType.HOUR_KIND:
 		return InspectionHourKindRange(**a_range)
-	elif a_range.type == InspectionTimeRangeType.AM_PM:
+	elif range_type == InspectionTimeRangeType.AM_PM:
 		return InspectionAmPmRange(**a_range)
 	else:
-		raise Exception(f'Inspection time range type[{a_range.type}] cannot be recognized.')
+		raise Exception(f'Inspection time range type[{range_type}] cannot be recognized.')
 
 
 def construct_time_ranges(ranges: Optional[list] = None) -> Optional[List[InspectionTimeRange]]:

@@ -7,6 +7,7 @@ import {
 	tryToTransformToMeasures
 } from '@/services/data/tuples/indicator-utils';
 import {SubjectForIndicator, TopicForIndicator} from '@/services/data/tuples/query-indicator-types';
+import {SubjectDataSetColumnId} from '@/services/data/tuples/subject-types';
 import {DropdownOption} from '@/widgets/basic/types';
 
 export const buildTimePeriodOptionsOnTopic = (topic: TopicForIndicator): Array<DropdownOption> => {
@@ -55,7 +56,7 @@ export const tryToGetTopTimeMeasure = (measures: Array<MeasureMethod>): TimePeri
 		return TimeMeasureMethodSort[m1] - TimeMeasureMethodSort[m2];
 	})[0];
 };
-export const tryToGetTopTimeMeasureByFactor = (topic?: TopicForIndicator, factorId?: FactorId): TimePeriodMeasure | undefined => {
+export const tryToGetTopTimeMeasureByTopic = (topic?: TopicForIndicator, factorId?: FactorId): TimePeriodMeasure | undefined => {
 	if (topic == null || factorId == null) {
 		return (void 0);
 	}
@@ -63,6 +64,18 @@ export const tryToGetTopTimeMeasureByFactor = (topic?: TopicForIndicator, factor
 	const factor = (topic?.factors || []).find(factor => factor.factorId == factorId);
 	if (factor != null) {
 		return tryToGetTopTimeMeasure(tryToTransformToMeasures(factor));
+	} else {
+		return (void 0);
+	}
+};
+export const tryToGetTopTimeMeasureBySubject = (subject?: SubjectForIndicator, columnId?: SubjectDataSetColumnId): TimePeriodMeasure | undefined => {
+	if (subject == null || columnId == null) {
+		return (void 0);
+	}
+	// eslint-disable-next-line
+	const column = (subject.dataset.columns || []).find(column => column.columnId == columnId);
+	if (column != null) {
+		return tryToGetTopTimeMeasure(tryToTransformColumnToMeasures(column, subject));
 	} else {
 		return (void 0);
 	}

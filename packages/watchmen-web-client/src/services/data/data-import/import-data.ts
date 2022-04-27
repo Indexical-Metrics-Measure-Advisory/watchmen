@@ -1,7 +1,9 @@
 import {Apis, post} from '../apis';
 import {MonitorRules} from '../data-quality/rule-types';
 import {tryToMockImportTopicsAndPipelines} from '../mock/data-import/import-data';
+import {Bucket} from '../tuples/bucket-types';
 import {ConnectedSpace} from '../tuples/connected-space-types';
+import {Indicator} from '../tuples/indicator-types';
 import {Pipeline} from '../tuples/pipeline-types';
 import {Space} from '../tuples/space-types';
 import {Topic} from '../tuples/topic-types';
@@ -20,6 +22,8 @@ export const tryToImportTopicsAndPipelines = async (options: {
 	spaces: Array<Space>;
 	connectedSpaces: Array<ConnectedSpace>;
 	monitorRules: MonitorRules;
+	indicators: Array<Indicator>;
+	buckets: Array<Bucket>;
 	importType: ImportTPSCSType;
 }): Promise<ImportDataResponse> => {
 	if (isMockService()) {

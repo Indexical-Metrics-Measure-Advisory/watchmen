@@ -39,7 +39,7 @@ class ReportShaper(EntityShaper):
 			'description': report.description,
 			'rect': self.serialize_to_dict(report.rect),
 			'chart': self.serialize_to_dict(report.chart),
-			'simulating': report.simulating,
+			'simulating': False if report.simulating is None else report.simulating,
 			'simulate_data': report.simulateData,
 			'simulate_thumbnail': report.simulateThumbnail
 		}

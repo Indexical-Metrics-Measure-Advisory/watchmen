@@ -28,10 +28,14 @@ export const TupleCardTitle = styled.div.attrs({'data-widget': 'tuple-card-title
 	font-family : var(--title-font-family);
 	font-size   : 1.6em;
 	> span {
-		flex-grow : 1;
+		flex-grow     : 1;
+		word-break    : break-word;
+		overflow      : hidden;
+		text-overflow : ellipsis;
 	}
 `;
 export const TupleProfileButton = styled(TooltipButton).attrs({'data-widget': 'tuple-profile-button'})`
+	align-self : start;
 `;
 export const TupleCardDescription = styled.div.attrs({'data-widget': 'tuple-card-description'})`
 	display     : flex;
