@@ -21,7 +21,8 @@ export const DataSourceTypeInput = (props: { dataSource: DataSource }) => {
 	const options: Array<DropdownOption> = [
 		{value: DataSourceType.MYSQL, label: 'MySQL'},
 		{value: DataSourceType.ORACLE, label: 'Oracle'},
-		{value: DataSourceType.MONGODB, label: 'MongoDB'}
+		{value: DataSourceType.MONGODB, label: 'MongoDB'},
+		{value: DataSourceType.MSSQL, label: 'MSSQL'}
 	];
 
 	return <TuplePropertyDropdown value={dataSource.dataSourceType} options={options} onChange={onTypeChange}/>;

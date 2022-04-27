@@ -76,9 +76,10 @@ export const PickIndicatorEditor = () => {
 			} else {
 				inspection!.aggregateArithmetics = inspection?.aggregateArithmetics ?? [IndicatorAggregateArithmetic.SUM];
 			}
-			fire(InspectionEventTypes.INDICATOR_PICKED, indicator);
-
-			setVisible(false);
+			fire(InspectionEventTypes.SAVE_INSPECTION, inspection!, () => {
+				fire(InspectionEventTypes.INDICATOR_PICKED, indicator);
+				setVisible(false);
+			});
 		});
 	};
 

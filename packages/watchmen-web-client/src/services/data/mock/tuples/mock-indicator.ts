@@ -13,6 +13,7 @@ import {SubjectColumnArithmetic, SubjectDataSetFilter, SubjectDataSetJoin} from 
 import {TopicId, TopicKind, TopicType} from '../../tuples/topic-types';
 import {isFakedUuid} from '../../tuples/utils';
 import {DemoTopics, MonthlyOrderPremium} from '../tuples/mock-data-topics';
+import {DemoConnectedSpaces} from './mock-data-connected-spaces';
 import {DemoIndicators, MonthlyOrderPremiumIndicator, OrderPremiumIndicators} from './mock-data-indicators';
 import {listMockEnums} from './mock-enum';
 
@@ -49,6 +50,14 @@ export const fetchMockIndicatorsForSelection = async (text: string): Promise<Arr
 		const matchedText = text.toUpperCase();
 		setTimeout(() => {
 			resolve(OrderPremiumIndicators.filter(indicator => indicator.name.toUpperCase().includes(matchedText)));
+		}, 500);
+	});
+};
+
+export const listMockIndicatorsForExport = async (): Promise<Array<Indicator>> => {
+	return new Promise<Array<Indicator>>(resolve => {
+		setTimeout(() => {
+			resolve(OrderPremiumIndicators);
 		}, 500);
 	});
 };
@@ -112,7 +121,13 @@ export const fetchMockIndicator = async (indicatorId: IndicatorId): Promise<{ in
 				.filter(enumeration => enumeration != null) as Array<EnumForIndicator>;
 			return {indicator, topic, enums};
 		} else {
-			const subject = JSON.parse(JSON.stringify(MOCK_SUBJECT));
+			const foundSubject = DemoConnectedSpaces
+				.filter(connectedSpace => !(connectedSpace.subjects == null || connectedSpace.subjects.length === 0))
+				.map(connectedSpace => connectedSpace.subjects)
+				.flat()
+				// eslint-disable-next-line
+				.find(subject => subject.subjectId == indicator.topicOrSubjectId);
+			const subject = JSON.parse(JSON.stringify(foundSubject ?? MOCK_SUBJECT));
 			return {indicator, subject};
 		}
 	} else {

@@ -1,4 +1,4 @@
-import {isDataQualityCenterEnabled} from '@/feature-switch';
+import {isDataQualityCenterEnabled, isIndicatorWorkbenchEnabled} from '@/feature-switch';
 import {MonitorRuleGrade} from '@/services/data/data-quality/rule-types';
 import {fetchMonitorRules} from '@/services/data/data-quality/rules';
 import {
@@ -10,10 +10,14 @@ import {
 	TopicRelationMap,
 	TopicsMap
 } from '@/services/data/pipeline/pipeline-relations';
+import {listBucketsForExport} from '@/services/data/tuples/bucket';
+import {Bucket, BucketId} from '@/services/data/tuples/bucket-types';
 import {listConnectedSpacesForExport} from '@/services/data/tuples/connected-space';
 import {ConnectedSpace} from '@/services/data/tuples/connected-space-types';
 import {DataSource} from '@/services/data/tuples/data-source-types';
 import {ExternalWriter} from '@/services/data/tuples/external-writer-types';
+import {listIndicatorsForExport} from '@/services/data/tuples/indicator';
+import {Indicator, IndicatorBaseOn} from '@/services/data/tuples/indicator-types';
 import {Pipeline} from '@/services/data/tuples/pipeline-types';
 import {listSpacesForExport} from '@/services/data/tuples/space';
 import {Space} from '@/services/data/tuples/space-types';
@@ -42,8 +46,8 @@ import {generateMarkdown} from '../markdown';
 import {DataSourcesMap, ExternalWritersMap, MonitorRulesMap} from '../markdown/types';
 import {AssembledPipelinesGraphics} from '../types';
 import {TopicPickerTable} from './topic-picker-table';
-import {SpaceCandidate, TopicCandidate} from './types';
-import {isSpaceCandidate, isTopicCandidate} from './utils';
+import {IndicatorCandidate, SpaceCandidate, TopicCandidate} from './types';
+import {isIndicatorCandidate, isSpaceCandidate, isTopicCandidate} from './utils';
 import {ExportOptionBar, ExportOptionLabel, PICKER_DIALOG_HEIGHT, PickerDialogBody} from './widgets';
 
 const findPipelinesWriteMe = (topics: Array<Topic>, topicRelations: TopicRelationMap): Array<Pipeline> => {
@@ -124,9 +128,14 @@ const PipelinesDownload = (props: {
 	externalWriters: Array<ExternalWriter>;
 	spaces: Array<Space>;
 	connectedSpaces: Array<ConnectedSpace>;
+	indicators: Array<Indicator>;
+	buckets: Array<Bucket>;
 	askSvg: (topics: Array<Topic>) => Promise<string>
 }) => {
-	const {pipelines, topics, graphics, dataSources, externalWriters, spaces, connectedSpaces, askSvg} = props;
+	const {
+		pipelines, topics, graphics, dataSources, externalWriters, spaces, connectedSpaces, indicators, buckets,
+		askSvg
+	} = props;
 
 	const {fire} = useEventBus();
 	const [selectionOnly, setSelectionOnly] = useState(true);
@@ -142,7 +151,8 @@ const PipelinesDownload = (props: {
 				})
 			};
 		});
-		return [...selectedTopics, ...selectedSpaces];
+		const selectedIndicators = indicators.map(indicator => ({indicator, picked: false}));
+		return [...selectedTopics, ...selectedSpaces, ...selectedIndicators];
 	});
 
 	const onSelectionOnlyChanged = (value: boolean) => {
@@ -153,6 +163,12 @@ const PipelinesDownload = (props: {
 		const selectedSpaces = candidates.filter<SpaceCandidate>(isSpaceCandidate).filter(c => c.picked).map(({space}) => space);
 		// eslint-disable-next-line
 		const selectedConnectedSpaces = connectedSpaces.filter(connectedSpace => selectedSpaces.some(space => space.spaceId == connectedSpace.spaceId));
+		const selectedIndicators = candidates.filter<IndicatorCandidate>(isIndicatorCandidate).filter(c => c.picked).map(({indicator}) => indicator);
+		const bucketMap = buckets.reduce((map, bucket) => {
+			map[bucket.bucketId] = bucket;
+			return map;
+		}, {} as Record<BucketId, Bucket>);
+		const selectedBuckets = [...new Set(selectedIndicators.map(indicator => indicator.valueBuckets).flat().filter(isNotNull))].map(bucketId => bucketMap[bucketId]).filter(isNotNull);
 
 		// use these topics to find upstream
 		const topicsMap = buildTopicsMap(topics);
@@ -212,6 +228,7 @@ const PipelinesDownload = (props: {
 			}, {} as MonitorRulesMap),
 			topicRelations, pipelineRelations,
 			spaces: selectedSpaces, connectedSpaces: selectedConnectedSpaces,
+			indicators: selectedIndicators, buckets: selectedBuckets,
 			selectedSvg, allSvg
 		});
 
@@ -227,8 +244,8 @@ const PipelinesDownload = (props: {
 
 	return <>
 		<PickerDialogBody>
-			<DialogLabel>Pick topics/spaces to export, related pipelines will be included as well.</DialogLabel>
-			<TopicPickerTable candidates={candidates}/>
+			<DialogLabel>Pick items to export, related data will be included as well.</DialogLabel>
+			<TopicPickerTable candidates={candidates} connectedSpaces={connectedSpaces}/>
 		</PickerDialogBody>
 		<DialogFooter>
 			<ExportOptionBar>
@@ -259,7 +276,14 @@ export const HeaderExportButton = (props: { graphics: AssembledPipelinesGraphics
 			const {pipelines, topics, dataSources, externalWriters} = data!;
 
 			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
-				const [spaces, connectedSpaces] = await Promise.all([listSpacesForExport(), listConnectedSpacesForExport()]);
+				const [
+					spaces, connectedSpaces, indicators, buckets
+				] = await Promise.all([
+					listSpacesForExport(),
+					listConnectedSpacesForExport(),
+					isIndicatorWorkbenchEnabled() ? listIndicatorsForExport() : (async () => [])(),
+					isIndicatorWorkbenchEnabled() ? listBucketsForExport() : (async () => [])()
+				]);
 				// drop spaces has no topic
 				const availableSpaces = spaces.filter(space => space.topicIds != null && space.topicIds.length !== 0);
 				// drop connected spaces is not template, has no subject, and not belongs to available spaces
@@ -267,13 +291,32 @@ export const HeaderExportButton = (props: { graphics: AssembledPipelinesGraphics
 					.filter(connectedSpace => connectedSpace.subjects != null && connectedSpace.subjects.length !== 0)
 					// eslint-disable-next-line
 					.filter(connectedSpace => availableSpaces.some(space => space.spaceId == connectedSpace.spaceId));
+				const availableSubjects = availableConnectedSpaces.map(connectedSpace => connectedSpace.subjects).flat();
+				const availableIndicators = indicators.filter(indicator => {
+					if (indicator.topicOrSubjectId == null) {
+						return false;
+					}
+					if (indicator.baseOn === IndicatorBaseOn.TOPIC) {
+						return true;
+					} else {
+						// eslint-disable-next-line
+						return availableSubjects.some(subject => indicator.topicOrSubjectId == subject.subjectId);
+					}
+				});
 
-				return {spaces: availableSpaces, connectedSpaces: availableConnectedSpaces};
-			}, ({spaces, connectedSpaces}: { spaces: Array<Space>, connectedSpaces: Array<ConnectedSpace> }) => {
+				return {
+					spaces: availableSpaces, connectedSpaces: availableConnectedSpaces,
+					indicators: availableIndicators, buckets
+				};
+			}, ({spaces, connectedSpaces, indicators, buckets}: {
+				spaces: Array<Space>; connectedSpaces: Array<ConnectedSpace>;
+				indicators: Array<Indicator>; buckets: Array<Bucket>;
+			}) => {
 				fireGlobal(EventTypes.SHOW_DIALOG,
 					<PipelinesDownload pipelines={pipelines} topics={topics} graphics={graphics}
 					                   dataSources={dataSources} externalWriters={externalWriters}
 					                   spaces={spaces} connectedSpaces={connectedSpaces}
+					                   indicators={indicators} buckets={buckets}
 					                   askSvg={askSvg}/>, {
 						marginTop: '10vh',
 						marginLeft: '20%',
@@ -285,6 +328,7 @@ export const HeaderExportButton = (props: { graphics: AssembledPipelinesGraphics
 					<PipelinesDownload pipelines={pipelines} topics={topics} graphics={graphics}
 					                   dataSources={dataSources} externalWriters={externalWriters}
 					                   spaces={[]} connectedSpaces={[]}
+					                   indicators={[]} buckets={[]}
 					                   askSvg={askSvg}/>, {
 						marginTop: '10vh',
 						marginLeft: '20%',

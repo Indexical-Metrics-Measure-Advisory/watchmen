@@ -54,11 +54,15 @@ export const CategoryInput = (props: {
 			resolve(item.key);
 		});
 	};
+	const onNoXTextCleared = (prop: 'category1' | 'category2' | 'category3') => () => {
+		indicator[prop] = '';
+		save();
+	}
 
 	return <CategoryContainer>
 		<CategoryIndexLabel>#{index}</CategoryIndexLabel>
 		<SearchText initSearchText={indicator[name] ?? ''} search={searchNoX(name)}
-		            onSelectionChange={onNoXSelectionChange(name)}
+		            onSelectionChange={onNoXSelectionChange(name)} onTextClear={onNoXTextCleared(name)}
 		            alwaysShowSearchInput={true}
 		            hideButton={true}/>
 	</CategoryContainer>;

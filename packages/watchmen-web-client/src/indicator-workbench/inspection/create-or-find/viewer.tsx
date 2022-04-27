@@ -110,6 +110,7 @@ export const CreateOrFindViewer = () => {
 
 	const onNamed = () => {
 		fire(InspectionEventTypes.SAVE_INSPECTION, inspection, () => {
+			forceUpdate();
 			fireGlobal(EventTypes.HIDE_DIALOG);
 		});
 	};

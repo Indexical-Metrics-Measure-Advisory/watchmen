@@ -75,10 +75,10 @@ FactorTypeMap: Dict[FactorType, Union[str, Callable[[Optional[str]], str]]] = {
 	FactorType.FAX: varchar_50,
 
 	# date time related
-	FactorType.DATETIME: 'DATE',
-	FactorType.FULL_DATETIME: 'DATE',
+	FactorType.DATETIME: 'DATETIME',
+	FactorType.FULL_DATETIME: 'DATETIME',
 	FactorType.DATE: 'DATE',
-	FactorType.TIME: 'DATE',
+	FactorType.TIME: 'TIME',
 	FactorType.YEAR: 'DECIMAL(5)',
 	FactorType.HALF_YEAR: 'DECIMAL(3)',
 	FactorType.QUARTER: 'DECIMAL(3)',
@@ -167,9 +167,9 @@ def build_columns_script(topic: Topic, original_topic: Topic) -> List[str]:
 	def build_column_script(factor: Tuple[Factor, bool]) -> str:
 		if factor[1]:
 			# do alter column
-			return f'ALTER TABLE {entity_name} ALTER ({ask_column_name(factor[0])} {ask_column_type(factor[0])})'
+			return f'ALTER TABLE {entity_name} ALTER COLUMN {ask_column_name(factor[0])} {ask_column_type(factor[0])}'
 		else:
-			return f'ALTER TABLE {entity_name} ADD ({ask_column_name(factor[0])} {ask_column_type(factor[0])})'
+			return f'ALTER TABLE {entity_name} ADD COLUMN {ask_column_name(factor[0])} {ask_column_type(factor[0])}'
 
 	if is_raw_topic(topic):
 		factors = ArrayHelper(topic.factors) \
@@ -194,6 +194,7 @@ def build_columns_script(topic: Topic, original_topic: Topic) -> List[str]:
 	return columns
 
 
+# noinspection DuplicatedCode
 def build_unique_indexes_script(topic: Topic) -> List[str]:
 	index_groups: Dict[str, List[Factor]] = ArrayHelper(topic.factors) \
 		.filter(lambda x: is_not_blank(x.indexGroup) and x.indexGroup.startswith('u-')) \
@@ -217,7 +218,7 @@ def build_indexes_script(topic: Topic) -> List[str]:
 	# noinspection SqlResolve
 	def build_index(factors: List[Factor], index: int) -> str:
 		return \
-			f'CREATE INDEX u_{as_table_name(topic)}_{index + 1} ON as_table_name(topic) ' \
+			f'CREATE INDEX i_{as_table_name(topic)}_{index + 1} ON as_table_name(topic) ' \
 			f'({ArrayHelper(factors).map(lambda x: ask_column_name(x)).join(",")})'
 
 	return ArrayHelper(list(index_groups.values())) \

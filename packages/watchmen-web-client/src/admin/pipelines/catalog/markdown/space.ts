@@ -143,7 +143,7 @@ const generateSubject = (options: {
 	const thumbnails = (subject.reports || []).filter(report => report.simulateThumbnail).map(report => report.simulateThumbnail);
 	// console.log(thumbnails);
 
-	return `##### ${sectionIndex}.${spaceIndex + 1}.2.${connectedSpaceIndex + 1}.${index + 1}. ${subject.name || 'Noname Subject'}
+	return `##### ${sectionIndex}.${spaceIndex + 1}.2.${connectedSpaceIndex + 1}.${index + 1}. ${subject.name || 'Noname Subject'}<span id="subject-${subject.subjectId}"/>
 ###### ${sectionIndex}.${spaceIndex + 1}.2.${connectedSpaceIndex + 1}.${index + 1}.1. Related Topics
 ${topics.length === 0 ? '> No related topic.' : ''}
 ${topics.filter(x => !!x).map(topic => {
@@ -228,7 +228,7 @@ export const generateSpaces = (options: {
 	const {spaces, connectedSpaces, topicsMap, sectionIndex} = options;
 
 	if (spaces.length === 0) {
-		return '> No spaces.';
+		return '> No space.';
 	}
 
 	return spaces.sort((s1, s2) => {

@@ -10,6 +10,7 @@ import {
 	fetchMockTopicsForIndicatorSelection,
 	listAllMockIndicators,
 	listMockIndicators,
+	listMockIndicatorsForExport,
 	saveMockIndicator
 } from '../mock/tuples/mock-indicator';
 import {TuplePage} from '../query/tuple-page';
@@ -56,6 +57,26 @@ export const fetchIndicatorsForSelection = async (search: string): Promise<Array
 	} else {
 		return await get({api: Apis.INDICATOR_LIST_FOR_SELECTION, search: {search}});
 	}
+};
+
+export const listIndicatorsForExport = async (): Promise<Array<Indicator>> => {
+	return new Promise<Array<Indicator>>(async resolve => {
+		let indicators: Array<Indicator> = [];
+		try {
+			if (isMockService()) {
+				indicators = await listMockIndicatorsForExport();
+			} else {
+				indicators = (await get({api: Apis.INDICATORS_EXPORT}) || []).map((indicator: IndicatorOnServer) => transformFromServer(indicator));
+			}
+		} catch {
+			// do nothing, returns an empty array
+		}
+		// remove user group data
+		resolve(indicators.map(space => {
+			space.userGroupIds = [];
+			return space;
+		}));
+	});
 };
 
 export const fetchTopicsForIndicatorSelection = async (search: string): Promise<Array<TopicForIndicator>> => {

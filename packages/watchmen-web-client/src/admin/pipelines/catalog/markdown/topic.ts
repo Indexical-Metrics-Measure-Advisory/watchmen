@@ -210,7 +210,7 @@ export const generateTopics = (options: {
 	} = options;
 
 	if (Object.values(topicsMap).length === 0) {
-		return '> No topics.';
+		return '> No topic.';
 	}
 
 	return Object.values(topicsMap).sort((t1, t2) => {

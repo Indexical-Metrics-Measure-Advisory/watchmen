@@ -1,16 +1,20 @@
+import {isIndicatorWorkbenchEnabled} from '@/feature-switch';
 import {ImportTPSCSType, tryToImportTopicsAndPipelines} from '@/services/data/data-import/import-data';
 import {ImportDataResponse} from '@/services/data/data-import/import-data-types';
 import {MonitorRules} from '@/services/data/data-quality/rule-types';
 import {isRuleOnFactor, isRuleOnTopic} from '@/services/data/data-quality/rules';
+import {Bucket, BucketId} from '@/services/data/tuples/bucket-types';
 import {listConnectedSpacesForExport} from '@/services/data/tuples/connected-space';
 import {ConnectedSpace} from '@/services/data/tuples/connected-space-types';
+import {listIndicatorsForExport} from '@/services/data/tuples/indicator';
+import {Indicator} from '@/services/data/tuples/indicator-types';
 import {savePipelinesGraphics} from '@/services/data/tuples/pipeline';
 import {Pipeline, PipelinesGraphics, TopicGraphics} from '@/services/data/tuples/pipeline-types';
 import {listSpacesForExport} from '@/services/data/tuples/space';
 import {Space} from '@/services/data/tuples/space-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {generateUuid} from '@/services/data/tuples/utils';
-import {getCurrentTime} from '@/services/data/utils';
+import {getCurrentTime, isNotNull} from '@/services/data/utils';
 import {AdminCacheData} from '@/services/local-persist/types';
 import {base64Decode} from '@/services/utils';
 import {AlertLabel} from '@/widgets/alert/widgets';
@@ -40,6 +44,8 @@ const PipelinesImport = (props: {
 	pipelines: Array<Pipeline>; cachedPipelines: Array<Pipeline>;
 	spaces: Array<Space>; cachedSpaces: Array<Space>;
 	connectedSpaces: Array<ConnectedSpace>; cachedConnectedSpaces: Array<ConnectedSpace>;
+	indicators: Array<Indicator>; cachedIndicators: Array<Indicator>;
+	buckets: Array<Bucket>;
 	monitorRules: MonitorRules;
 	onSuccess: (options: { topics: Array<Topic>, pipelines: Array<Pipeline> }) => void
 }) => {
@@ -48,6 +54,8 @@ const PipelinesImport = (props: {
 		pipelines, cachedPipelines,
 		spaces, cachedSpaces,
 		connectedSpaces, cachedConnectedSpaces,
+		indicators, cachedIndicators,
+		buckets,
 		monitorRules,
 		onSuccess
 	} = props;
@@ -60,7 +68,8 @@ const PipelinesImport = (props: {
 			spaces: spaces.map(space => ({space, picked: true})),
 			connectedSpaces: connectedSpaces.map(connectedSpace => ({connectedSpace, picked: true})),
 			subjects: connectedSpaces.map(connectedSpace => connectedSpace.subjects || [])
-				.flat().map(subject => ({subject, picked: true}))
+				.flat().map(subject => ({subject, picked: true})),
+			indicators: indicators.map(indicator => ({indicator, picked: true}))
 		};
 	});
 	const [importType, setImportType] = useState<ImportTPSCSType>(ImportTPSCSType.NON_REDUNDANT);
@@ -81,9 +90,9 @@ const PipelinesImport = (props: {
 
 		const selectedConnectedSpaces = candidates.connectedSpaces.filter(x => x.picked).map(x => x.connectedSpace);
 		const selectedSubjects = candidates.subjects.filter(x => x.picked).map(x => x.subject);
+		const selectedIndicators = candidates.indicators.filter(x => x.picked).map(x => x.indicator);
 
 		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
-
 			return await tryToImportTopicsAndPipelines({
 				topics: selectedTopics,
 				pipelines: selectedPipelines,
@@ -98,6 +107,16 @@ const PipelinesImport = (props: {
 						}
 						return connectedSpace;
 					}).filter(x => !!x) as Array<ConnectedSpace>,
+				indicators: selectedIndicators,
+				buckets: (() => {
+					const bucketsMap = buckets.reduce((map, bucket) => {
+						map[bucket.bucketId] = bucket;
+						return map;
+					}, {} as Record<BucketId, Bucket>);
+					return [...new Set(selectedIndicators.map(indicators => {
+						return (indicators.valueBuckets || []).filter(isNotNull);
+					}).flat())].map(bucketId => bucketsMap[bucketId]).filter(isNotNull);
+				})(),
 				monitorRules: monitorRules.filter(rule => {
 					if (isRuleOnTopic(rule) || isRuleOnFactor(rule)) {
 						// eslint-disable-next-line
@@ -141,7 +160,8 @@ const PipelinesImport = (props: {
 			<DialogLabel>Pick items to import.</DialogLabel>
 			<ImportPickerTable candidates={candidates}
 			                   cachedTopics={cachedTopics} cachedPipelines={cachedPipelines}
-			                   cachedSpaces={cachedSpaces} cachedConnectedSpaces={cachedConnectedSpaces}/>
+			                   cachedSpaces={cachedSpaces} cachedConnectedSpaces={cachedConnectedSpaces}
+			                   cachedIndicators={cachedIndicators}/>
 		</PickerDialogBody>
 		<DialogFooter>
 			<ImportTypes>
@@ -199,7 +219,7 @@ export const HeaderImportButton = () => {
 	};
 	const onFileSelected = async (file: File) => {
 		const content = await file.text();
-		const {topics, pipelines, spaces, connectedSpaces, monitorRules} = content.split('\n')
+		const {topics, pipelines, spaces, connectedSpaces, indicators, buckets, monitorRules} = content.split('\n')
 			.map(x => x.trim())
 			.filter(x => x.startsWith('<a href="data:application/json;base64,'))
 			.map(x => x.replace('<a href="data:application/json;base64,', ''))
@@ -214,6 +234,10 @@ export const HeaderImportButton = () => {
 					all.connectedSpaces.push(item as ConnectedSpace);
 				} else if (item.spaceId) {
 					all.spaces.push(item as Space);
+				} else if (isIndicatorWorkbenchEnabled() && item.indicatorId) {
+					all.indicators.push(item as Indicator);
+				} else if (isIndicatorWorkbenchEnabled() && item.bucketId) {
+					all.buckets.push(item as Bucket);
 				} else {
 					// monitor rules, each one is an array
 					all.monitorRules.push(...item);
@@ -224,16 +248,23 @@ export const HeaderImportButton = () => {
 				pipelines: [] as Array<Pipeline>,
 				spaces: [] as Array<Space>,
 				connectedSpaces: [] as Array<ConnectedSpace>,
+				indicators: [] as Array<Indicator>,
+				buckets: [] as Array<Bucket>,
 				monitorRules: [] as MonitorRules
 			});
 		fireCache(AdminCacheEventTypes.ASK_DATA, async (data?: AdminCacheData) => {
 			const {topics: cachedTopics, pipelines: cachedPipelines} = data || {};
-			const [cachedSpaces, cachedConnectedSpaces] = await Promise.all([listSpacesForExport(), listConnectedSpacesForExport()]);
+			const [cachedSpaces, cachedConnectedSpaces, cachedIndicators] = await Promise.all([
+				listSpacesForExport(), listConnectedSpacesForExport(),
+				isIndicatorWorkbenchEnabled() ? listIndicatorsForExport() : (async () => [])()
+			]);
 			fireGlobal(EventTypes.SHOW_DIALOG,
 				<PipelinesImport topics={topics} cachedTopics={cachedTopics || []}
 				                 pipelines={pipelines} cachedPipelines={cachedPipelines || []}
 				                 spaces={spaces} cachedSpaces={cachedSpaces}
 				                 connectedSpaces={connectedSpaces} cachedConnectedSpaces={cachedConnectedSpaces}
+				                 indicators={indicators} cachedIndicators={cachedIndicators}
+				                 buckets={buckets}
 				                 monitorRules={monitorRules}
 				                 onSuccess={onImportSuccess}/>, {
 					marginTop: '10vh',

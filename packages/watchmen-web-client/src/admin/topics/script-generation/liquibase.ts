@@ -3,6 +3,7 @@ import {Topic} from '@/services/data/tuples/topic-types';
 import {isAggregationTopic, isNotAggregationTopic, isRawTopic} from '@/services/data/tuples/topic-utils';
 import {ZipFiles} from '@/widgets/basic/utils';
 import {v4} from 'uuid';
+import {MSSQLFactorTypeMap} from './mssql';
 import {MySQLFactorTypeMap} from './mysql';
 import {OracleFactorTypeMap} from './oracle';
 import {
@@ -88,11 +89,13 @@ const buildColumnOnModify = (options: { topic: Topic; columnName: string; column
 					<dbms type="mysql"/>
 					<sqlCheck expectedResult="0">SELECT COUNT(1) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = '${tableName}' AND COLUMN_NAME = '${columnName}'</sqlCheck>
 				</and>
-			</or>
-			<or>
 				<and>
 					<dbms type="oracle"/>
 					<sqlCheck expectedResult="0">SELECT COUNT(1) FROM USER_TAB_COLUMNS WHERE TABLE_NAME = '${tableName}' AND COLUMN_NAME = '${columnName}'</sqlCheck>
+				</and>
+				<and>
+					<dbms type="mssql"/>
+					<sqlCheck expectedResult="0">SELECT COUNT(1) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '${tableName}' AND COLUMN_NAME = '${columnName}'</sqlCheck>
 				</and>
 			</or>
        </preConditions>
@@ -111,6 +114,10 @@ const buildColumnOnModify = (options: { topic: Topic; columnName: string; column
 				<and>
 					<dbms type="oracle"/>
 					<sqlCheck expectedResult="1">SELECT COUNT(1) FROM USER_TAB_COLUMNS WHERE TABLE_NAME = '${tableName}' AND COLUMN_NAME = '${columnName}'</sqlCheck>
+				</and>
+				<and>
+					<dbms type="mssql"/>
+					<sqlCheck expectedResult="1">SELECT COUNT(1) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '${tableName}' AND COLUMN_NAME = '${columnName}'</sqlCheck>
 				</and>
 			</or>
         </preConditions>
@@ -191,6 +198,15 @@ ${Object.keys(OracleFactorTypeMap).map(factorType => {
 	<property dbms="mysql" name="audit-column.type" value="DATETIME"/>
 ${Object.keys(MySQLFactorTypeMap).map(factorType => {
 		return `\t<property dbms="mysql" name="${factorType}.type" value="${MySQLFactorTypeMap[factorType as FactorType]}"/>`;
+	}).join('\n')}
+	<property dbms="mssql" name="pk-column.type" value="DECIMAL(20)"/>
+	<property dbms="mssql" name="json-column.type" value="NVARCHAR(MAX)"/>
+	<property dbms="mssql" name="aggregate-assist-column.type" value="NVARCHAR(1024)"/>
+	<property dbms="mssql" name="version-column.type" value="DECIMAL(8)"/>
+	<property dbms="mssql" name="tenant-column.type" value="NVARCHAR(50)"/>
+	<property dbms="mssql" name="audit-column.type" value="DATETIME"/>
+${Object.keys(MSSQLFactorTypeMap).map(factorType => {
+		return `\t<property dbms="mssql" name="${factorType}.type" value="${MSSQLFactorTypeMap[factorType as FactorType]}"/>`;
 	}).join('\n')}
 	<changeSet id="${v4()}" author="watchmen">
 		<preConditions onFail="MARK_RAN">

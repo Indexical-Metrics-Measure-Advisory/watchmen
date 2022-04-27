@@ -5,7 +5,8 @@ import {Lang} from '@/widgets/langs';
 import {
 	buildTimePeriodOptionsOnSubject,
 	buildTimePeriodOptionsOnTopic,
-	tryToGetTopTimeMeasureByFactor
+	tryToGetTopTimeMeasureBySubject,
+	tryToGetTopTimeMeasureByTopic
 } from '../../utils/measure';
 import {getValidRanges} from '../../utils/range';
 import {useInspectionEventBus} from '../inspection-event-bus';
@@ -30,8 +31,15 @@ export const TimePeriod = () => {
 		if (inspection?.timeRangeFactorId == factorId) {
 			return;
 		}
-		const previousTopTimeMeasure = tryToGetTopTimeMeasureByFactor(indicator?.topic, inspection?.timeRangeFactorId);
-		const currentTopTimeMeasure = tryToGetTopTimeMeasureByFactor(indicator?.topic, factorId);
+		let previousTopTimeMeasure;
+		let currentTopTimeMeasure;
+		if (indicator?.topic != null) {
+			previousTopTimeMeasure = tryToGetTopTimeMeasureByTopic(indicator?.topic, inspection?.timeRangeFactorId);
+			currentTopTimeMeasure = tryToGetTopTimeMeasureByTopic(indicator?.topic, factorId);
+		} else {
+			previousTopTimeMeasure = tryToGetTopTimeMeasureBySubject(indicator?.subject, inspection?.timeRangeFactorId);
+			currentTopTimeMeasure = tryToGetTopTimeMeasureBySubject(indicator?.subject, factorId);
+		}
 		inspection!.timeRangeFactorId = factorId;
 		inspection!.timeRangeMeasure = currentTopTimeMeasure;
 		if (currentTopTimeMeasure !== previousTopTimeMeasure) {
