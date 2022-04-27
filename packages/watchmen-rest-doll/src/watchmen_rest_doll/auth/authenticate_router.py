@@ -1,6 +1,6 @@
 from datetime import timedelta
 from logging import getLogger
-from typing import Optional
+from typing import Optional, Union
 
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
@@ -24,8 +24,8 @@ logger = getLogger(__name__)
 
 
 class LoginConfiguration(BaseModel):
-	loginMethod: str = 'doll',
-	loginUrl: str = None
+	method: Union[str, SSOTypes] = 'doll',
+	url: Optional[str] = None
 
 
 @router.get('/auth/config', tags=['authenticate'], response_model=LoginConfiguration)
@@ -38,7 +38,7 @@ async def load_login_config(request: Request) -> LoginConfiguration:
 		req = await prepare_from_fastapi_request(request)
 		auth = OneLogin_Saml2_Auth(req, ask_saml2_settings())
 		callback_url = auth.login()
-		return LoginConfiguration(loginMethod=SSOTypes.SAML2, loginUrl=callback_url)
+		return LoginConfiguration(method=SSOTypes.SAML2, url=callback_url)
 	else:
 		return LoginConfiguration()
 
