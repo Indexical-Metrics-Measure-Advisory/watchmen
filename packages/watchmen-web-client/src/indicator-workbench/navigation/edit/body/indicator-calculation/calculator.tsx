@@ -19,9 +19,6 @@ const replaceYear = (r: string) => (s: string): string => {
 const replaceMonth = (r: string) => (s: string): string => {
 	return s.replace(/month/gi, r);
 };
-const replaceYearMonth = (r: string) => (s: string): string => {
-	return s.replace(/ym/gi, r);
-};
 const replaceYM = (s: string, funcs: Array<(s: string) => string>) => {
 	return funcs.reduce((s, func) => func(s), s);
 };
@@ -42,30 +39,27 @@ const buildMonth = (navigation: Navigation): number => {
 		return Number(m);
 	}
 };
-const buildYM = (navigation: Navigation, current: boolean): { year: string, month: string; ym: string } => {
+const buildYM = (navigation: Navigation, current: boolean): { year: string, month: string } => {
 	const year = buildYear(navigation);
 	const month = buildMonth(navigation);
 	if (current) {
 		return {
 			year: year + '',
-			month: month + '',
-			ym: `${year}/${month < 10 ? `0${month}` : month}`
+			month: month + ''
 		};
 	} else if (navigation.timeRangeType === NavigationTimeRangeType.MONTH) {
 		if (month === 1) {
-			return {year: (year - 1) + '', month: '12', ym: `${year - 1}/12`};
+			return {year: (year - 1) + '', month: '12'};
 		} else {
 			return {
 				year: year + '',
-				month: (month - 1) + '',
-				ym: `${year}/${month - 1 < 10 ? `0${month - 1}` : (month - 1)}`
+				month: (month - 1) + ''
 			};
 		}
 	} else {
 		return {
 			year: (year - 1) + '',
-			month: month + '',
-			ym: `${year - 1}/${month < 10 ? `0${month}` : month}`
+			month: month + ''
 		};
 	}
 };
@@ -78,7 +72,7 @@ const replace = (options: {
 }) => {
 	const {navigation, navigationIndicator, defData, current} = options;
 
-	const {year, month, ym} = buildYM(navigation, current);
+	const {year, month} = buildYM(navigation, current);
 
 	return {
 		...navigationIndicator,
@@ -109,7 +103,6 @@ const replace = (options: {
 				let newValue = criteria.value || '';
 				if (measures.includes(MeasureMethod.YEAR) && measures.includes(MeasureMethod.MONTH)) {
 					newValue = replaceYM(newValue, [
-						replaceYearMonth(ym),
 						replaceYear(year),
 						replaceMonth(month)
 					]);

@@ -38,7 +38,7 @@ export const Zh = {
 		DROPDOWN_PLACEHOLDER: '请选择...',
 		FIND_NAVIGATION_PLACEHOLDER: '根据名称查找.',
 		NEW_NAVIGATION_NAME: '指标领航',
-		NAVIGATION_CRITERIA_TIME_RANGE_YEAR_MONTH: '填写"year", "month" or "ym"来引用统一定义的时间窗口.',
+		NAVIGATION_CRITERIA_TIME_RANGE_YEAR_MONTH: '填写"year"或"month"来引用统一定义的时间窗口.',
 		NAVIGATION_CRITERIA_TIME_RANGE_YEAR: '填写"year"来引用统一定义的年份.',
 		NAVIGATION_CRITERIA_TIME_RANGE_MONTH: '填写"month"来引用统一定义的月份.'
 	},

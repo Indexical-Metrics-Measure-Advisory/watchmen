@@ -38,7 +38,7 @@ export const En = {
 		DROPDOWN_PLACEHOLDER: 'Please Select...',
 		FIND_NAVIGATION_PLACEHOLDER: 'Search by navigation name.',
 		NEW_NAVIGATION_NAME: 'Navigation',
-		NAVIGATION_CRITERIA_TIME_RANGE_YEAR_MONTH: 'Use "year", "month" or "ym" to refer predefined time range.',
+		NAVIGATION_CRITERIA_TIME_RANGE_YEAR_MONTH: 'Use "year" or "month" to refer predefined time range.',
 		NAVIGATION_CRITERIA_TIME_RANGE_YEAR: 'Use "year" to refer predefined time range.',
 		NAVIGATION_CRITERIA_TIME_RANGE_MONTH: 'Use "month" to refer predefined time range.'
 	},

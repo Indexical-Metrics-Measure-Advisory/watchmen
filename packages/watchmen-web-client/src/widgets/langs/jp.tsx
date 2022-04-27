@@ -38,7 +38,7 @@ export const Jp = {
 		DROPDOWN_PLACEHOLDER: '選択してください...',
 		FIND_NAVIGATION_PLACEHOLDER: '名前に基づいて検索します。',
 		NEW_NAVIGATION_NAME: '指標航法',
-		NAVIGATION_CRITERIA_TIME_RANGE_YEAR_MONTH: '"year", "month" or "ym" と入力して、統一定義された時間枠を参照します。',
+		NAVIGATION_CRITERIA_TIME_RANGE_YEAR_MONTH: '統一定義された時間枠を参照するには、"year" または "month" を入力します。',
 		NAVIGATION_CRITERIA_TIME_RANGE_YEAR: '統一された年を参照するには、"year" を入力します。',
 		NAVIGATION_CRITERIA_TIME_RANGE_MONTH: '統一された月を参照するには、"month" を入力します。'
 	},
