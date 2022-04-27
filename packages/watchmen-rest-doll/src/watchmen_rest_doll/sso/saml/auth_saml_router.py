@@ -27,7 +27,7 @@ async def token_exchange(token: TokenExchange) -> SamlToken:
 				token.data, token.algorithm, token.signature, token.relayState, ask_saml2_settings()):
 			user_name = get_user_name_in_saml_body(token.data)
 			user = find_user(user_name)
-			return SamlToken(**build_token(user), accountName=user_name)
+			return SamlToken(**build_token(user).dict(), accountName=user_name)
 		else:
 			raise_401('Invalid signature')
 	else:
