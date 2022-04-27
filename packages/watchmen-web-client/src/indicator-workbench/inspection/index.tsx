@@ -7,7 +7,7 @@ import {InspectionEventBusProvider} from './inspection-event-bus';
 
 const IndicatorWorkbenchInspectionIndex = () => {
 	return <InspectionEventBusProvider>
-		<FixWidthPage maxWidth="80%">
+		<FixWidthPage>
 			<PageHeader title={Lang.INDICATOR_WORKBENCH.INSPECTION.TITLE}/>
 			<Inspection/>
 		</FixWidthPage>
