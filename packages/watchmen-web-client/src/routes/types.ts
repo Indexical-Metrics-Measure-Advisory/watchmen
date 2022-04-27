@@ -1,5 +1,7 @@
 export enum Router {
 	LOGIN = '/login',
+	MOCK_SAML2_LOGIN = '/saml/login',
+	SAML2_CALLBACK = '/saml/callback',
 
 	ADMIN = '/admin',
 	ADMIN_HOME = '/admin/home',
