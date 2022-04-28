@@ -15,6 +15,7 @@ export const AvailableEnumItemsContainer = styled.div.attrs({'data-widget': 'ava
 export const AvailableEnumItemSelectors = styled.div`
 	display     : flex;
 	position    : relative;
+	flex-wrap   : wrap;
 	padding-top : calc(var(--margin) / 4);
 	margin-left : calc(var(--margin) / -4);
 `;
