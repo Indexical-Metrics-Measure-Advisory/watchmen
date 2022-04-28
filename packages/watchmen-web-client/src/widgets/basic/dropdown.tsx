@@ -308,7 +308,7 @@ export const Dropdown = (props: DropdownProps) => {
 				const display = typeof computed === 'string' ? computed : computed.node;
 				let compare;
 				if (isJSXElement(display) && display.props.labelKey != null) {
-					// it is a i18n string, is delegated and now it is a JSX element
+					// it is an i18n string, is delegated therefore now it is a JSX element
 					compare = getLangLabel(display.props.labelKey);
 				} else {
 					// label still might be a JSX element, because of i18n delegate logic
