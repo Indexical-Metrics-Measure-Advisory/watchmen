@@ -1816,7 +1816,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "USER DELETE",
               "id": "7d42c97a-b87a-4134-a170-7d514f6a3790",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
