@@ -1562,7 +1562,7 @@
                 "auth": {
                   "type": "bearer",
                   "bearer": {
-                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                    "token": "{{JWT_TOKEN}}"
                   }
                 },
                 "method": "POST",
