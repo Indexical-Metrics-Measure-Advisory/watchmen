@@ -978,6 +978,20 @@
           "item": [
             {
               "name": "CLEAR ALL CACHE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "f03c733a-48cf-4b68-861b-fdd8a9950971",
+                    "exec": [
+                      "pm.test('Clear all cache', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "7b72bcc3-c43c-450d-b310-859befe8f2fa",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
