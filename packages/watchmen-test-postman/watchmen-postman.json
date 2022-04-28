@@ -1445,6 +1445,7 @@
                       "    pm.expect(data.lastModifiedBy).to.not.be.null;",
                       "    pm.expect(data.version).to.eql(1);",
                       "    pm.environment.set('USER_GROUP_ID', data.userGroupId);",
+                      "    pm.environment.set('USER_GROUP_NAME', data.name);",
                       "    pm.environment.set('USER_GROUP_CREATED_AT', data.createdAt);",
                       "    pm.environment.set('USER_GROUP_CREATED_BY', data.createdBy);",
                       "    pm.environment.set('USER_GROUP_VERSION', data.version);",
