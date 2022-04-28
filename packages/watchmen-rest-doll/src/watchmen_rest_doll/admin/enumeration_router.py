@@ -194,6 +194,14 @@ async def items_import(
 		if is_not_blank(enum_id):
 			# both provided, find by id
 			enumeration = enum_service.find_by_id(enum_id)
+			if enumeration is None:
+				enumeration = Enum(
+					enumId=enum_id,
+					name=name,
+					tenantId=principal_service.get_tenant_id(),
+					items=[]
+				)
+				get_enum_service(principal_service).create(enumeration)
 		if is_not_blank(name) and enumeration is None:
 			enumeration = enum_service.find_by_name(name, principal_service.get_tenant_id())
 		else:
