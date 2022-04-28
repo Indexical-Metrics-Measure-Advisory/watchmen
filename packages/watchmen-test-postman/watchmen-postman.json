@@ -106,6 +106,18 @@
                 "url": "{{URL_PREFIX}}/token/exchange-user"
               },
               "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "427c2e3e-55f4-4b6e-af18-6f6e0d7070f1",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
             }
           ],
           "id": "1382ab45-3f9c-43c6-8911-a80066686b3e"
