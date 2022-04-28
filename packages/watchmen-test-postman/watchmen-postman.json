@@ -1459,7 +1459,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"name\": \"Test-User-{{$randomInt}}\",\n    \"nickName\": \"Test-User-Nickname\",\n    \"password\": \"abcd1234\",\n    \"isActive\": true,\n    \"groupIds\": [],\n    \"role\": \"console\"\n}",
+                  "raw": "{\n    \"name\": \"Test-User\",\n    \"nickName\": \"Test-User-Nickname\",\n    \"password\": \"abcd1234\",\n    \"isActive\": true,\n    \"groupIds\": [],\n    \"role\": \"console\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
