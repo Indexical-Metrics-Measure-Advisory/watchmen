@@ -1567,6 +1567,15 @@
                 },
                 "method": "POST",
                 "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"pageNumber\": 10,\n    \"pageSize\": 10\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
                 "url": {
                   "raw": "{{URL_PREFIX}}/user_group/name?query_name={{USER_GROUP_NAME}}",
                   "host": [
