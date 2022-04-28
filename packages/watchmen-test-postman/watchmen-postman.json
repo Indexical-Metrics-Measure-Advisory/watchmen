@@ -1872,7 +1872,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "DELETE SPACE",
               "id": "58139fb3-18d2-4cde-ab56-7ffe52ca6220",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
