@@ -719,9 +719,24 @@
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "POST",
                 "header": [],
-                "url": "{{URL_PREFIX}}/external_writer"
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"note\": \"test create pat\",\n    \"expired\": \"2022-05-01\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/pat/create"
               },
               "response": []
             },
