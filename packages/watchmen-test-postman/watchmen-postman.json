@@ -61,13 +61,34 @@
             },
             {
               "name": "LOGIN - ADMIN",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "873d6923-dd21-423c-94bd-9b1b5c9e2832",
+                    "exec": [
+                      "pm.test('Login Access Token', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.accessToken).to.not.be.null;",
+                      "    pm.expect(data.tokenType).to.eql('bearer');",
+                      "    pm.expect(data.role).to.eql('admin');",
+                      "    pm.expect(data.tenantId).to.eql('1');",
+                      "    pm.environment.set('JWT_TOKEN', data.accessToken)",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "427c2e3e-55f4-4b6e-af18-6f6e0d7070f1",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "method": "POST",
+                "header": [],
+                "url": "{{URL_PREFIX}}/login"
               },
               "response": []
             },
