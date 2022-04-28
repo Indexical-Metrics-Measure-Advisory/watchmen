@@ -413,6 +413,20 @@
             },
             {
               "name": "TENANT DELETE CREATED",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "9bf10ae0-8daa-44b7-8bb7-70c9d7163631",
+                    "exec": [
+                      "pm.test('Delete Tenant', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "92f56950-5a06-4fc3-b7e9-4af7b63783a2",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
