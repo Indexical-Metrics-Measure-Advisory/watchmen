@@ -55,6 +55,16 @@ const DropdownContainer = styled.div.attrs<{ 'data-widget'?: string, active: boo
 			opacity : 1;
 		}
 	}
+	&[data-no-border=true] {
+		> div[data-widget="dropdown-options-container"] {
+			&[data-at-bottom=true] {
+				margin-top: 2px;
+			}
+			&[data-at-bottom=false] {
+				margin-bottom: 2px;
+			}
+		}
+	}
 `;
 const Label = styled.span.attrs({'data-widget': 'dropdown-label'})`
 	flex-grow     : 1;
@@ -82,8 +92,8 @@ const Options = styled.div.attrs<State>(
 			style: {
 				opacity: active ? 1 : (void 0),
 				pointerEvents: active ? 'auto' : (void 0),
-				top: atBottom ? (top + height) : (void 0),
-				bottom: atBottom ? (void 0) : `calc(100vh - ${top}px)`,
+				top: atBottom ? (top + height - 1) : (void 0),
+				bottom: atBottom ? (void 0) : `calc(100vh - ${top}px - 1px)`,
 				left,
 				minWidth,
 				borderTopLeftRadius: atBottom ? 0 : 'var(--border-radius)',

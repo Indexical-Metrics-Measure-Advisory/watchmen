@@ -21,7 +21,7 @@ export const TopicFactorEditContainer = styled.div.attrs({'data-widget': 'parame
 		z-index          : -1;
 	}
 `;
-export const TFDropdown = styled(Dropdown).attrs<{ valid: boolean }>({})<{ valid: boolean }>`
+export const TFDropdown = styled(Dropdown).attrs<{ valid: boolean }>({'data-no-border': true})<{ valid: boolean }>`
 	height           : var(--param-height);
 	padding          : 0 calc(var(--margin) / 2);
 	border           : 0;
@@ -31,10 +31,7 @@ export const TFDropdown = styled(Dropdown).attrs<{ valid: boolean }>({})<{ valid
 		z-index    : 1;
 		box-shadow : ${({valid}) => valid ? 'var(--primary-hover-shadow)' : 'var(--danger-hover-shadow)'};
 		> div[data-widget="dropdown-options-container"] {
-			border      : 0;
-			margin-top  : 0;
-			margin-left : 0;
-			box-shadow  : ${({valid}) => valid ? 'var(--param-border)' : 'var(--danger-hover-shadow)'};
+			box-shadow : ${({valid}) => valid ? 'var(--param-border)' : 'var(--danger-hover-shadow)'};
 		}
 	}
 	> span[data-widget="dropdown-label"] {
@@ -44,8 +41,8 @@ export const TFDropdown = styled(Dropdown).attrs<{ valid: boolean }>({})<{ valid
 		color : ${({valid}) => valid ? (void 0) : 'var(--danger-color)'};
 	}
 	> div[data-widget="dropdown-options-container"] {
-		margin-top  : -1px;
-		margin-left : -1px;
+		border     : 0;
+		box-shadow : var(--param-border);
 		> span {
 			padding : 0 calc(var(--margin) / 2);
 		}

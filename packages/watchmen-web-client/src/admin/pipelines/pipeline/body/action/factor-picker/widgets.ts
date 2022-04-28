@@ -6,7 +6,7 @@ export const FactorFinderContainer = styled.div.attrs({'data-widget': 'factor-fi
 	position              : relative;
 	grid-template-columns : auto 1fr;
 `;
-export const FactorDropdown = styled(Dropdown)`
+export const FactorDropdown = styled(Dropdown).attrs({'data-no-border': true})`
 	align-self       : center;
 	height           : var(--param-height);
 	padding          : 0 calc(var(--margin) / 2);
@@ -18,16 +18,16 @@ export const FactorDropdown = styled(Dropdown)`
 	&:focus {
 		z-index    : 1;
 		box-shadow : var(--primary-hover-shadow);
-		> div {
-			border     : 0;
-			box-shadow : var(--param-border);
-		}
 	}
 	> span[data-widget="dropdown-label"] {
 		min-width : 120px;
 	}
-	> div[data-widget="dropdown-options-container"] > span {
-		padding : 0 calc(var(--margin) / 2);
+	> div[data-widget="dropdown-options-container"] {
+		border     : 0;
+		box-shadow : var(--param-border);
+		> span {
+			padding : 0 calc(var(--margin) / 2);
+		}
 	}
 `;
 export const IncorrectOptionLabel = styled.span.attrs({'data-widget': 'incorrect-option'})`
