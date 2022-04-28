@@ -896,6 +896,20 @@
             },
             {
               "name": "PAT DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "f4a83b2b-d2a7-4ab2-840f-2d58f219c55d",
+                    "exec": [
+                      "pm.test('Delete Pat', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "5e1d2706-98ae-4996-a7a1-8de9adbbb6c5",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
@@ -921,8 +935,7 @@
                   "query": [
                     {
                       "key": "pat_id",
-                      "value": "{{PAT_ID}}",
-                      "type": "text"
+                      "value": "{{PAT_ID}}"
                     }
                   ]
                 }
