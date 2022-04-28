@@ -1427,7 +1427,7 @@
           "name": "USER GROUP",
           "item": [
             {
-              "name": "New Request",
+              "name": "USER CREATE",
               "id": "1b92da30-5177-4ccd-b7c8-fa8c3b5d6ec6",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
