@@ -1116,7 +1116,6 @@
                       "pm.test('Create User', () => {",
                       "    const data = pm.response.json();",
                       "    pm.expect(data.userId).to.not.be.null;",
-                      "    pm.expect(data.name).to.eql('Test-User')",
                       "    pm.expect(data.tenantId).to.not.be.null;",
                       "    pm.expect(data.createdAt).to.not.be.null;",
                       "    pm.expect(data.createdBy).to.not.be.null;",
