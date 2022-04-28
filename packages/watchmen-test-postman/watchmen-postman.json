@@ -1872,6 +1872,18 @@
               "response": []
             },
             {
+              "name": "New Request",
+              "id": "58139fb3-18d2-4cde-ab56-7ffe52ca6220",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
               "name": "USER DELETE",
               "event": [
                 {
@@ -1922,18 +1934,6 @@
                     }
                   ]
                 }
-              },
-              "response": []
-            },
-            {
-              "name": "New Request",
-              "id": "58139fb3-18d2-4cde-ab56-7ffe52ca6220",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
               },
               "response": []
             }
