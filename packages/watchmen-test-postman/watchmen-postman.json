@@ -1817,13 +1817,55 @@
             },
             {
               "name": "USER DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "73c993e4-24bf-45cb-a547-9e425b597672",
+                    "exec": [
+                      "pm.test(\"Delete User By Id\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    const user_id = pm.environment.get(\"USER_ID\");",
+                      "    pm.expect(data.userId).to.equal(user_id);",
+                      "    pm.environment.unset(\"USER_ID\");",
+                      "    pm.environment.unset('USER_CREATED_AT');",
+                      "    pm.environment.unset('USER_CREATED_BY');",
+                      "    pm.environment.unset('USER_VERSION');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "7d42c97a-b87a-4134-a170-7d514f6a3790",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                  }
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/user?user_id={{USER_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "user"
+                  ],
+                  "query": [
+                    {
+                      "key": "user_id",
+                      "value": "{{USER_ID}}"
+                    }
+                  ]
+                }
               },
               "response": []
             }
