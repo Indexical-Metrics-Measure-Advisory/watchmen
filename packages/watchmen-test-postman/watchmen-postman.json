@@ -784,9 +784,31 @@
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
                 "header": [],
-                "url": "{{URL_PREFIX}}/pat/delete"
+                "url": {
+                  "raw": "{{URL_PREFIX}}/pat/delete?pat_id={{PAT_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "pat",
+                    "delete"
+                  ],
+                  "query": [
+                    {
+                      "key": "pat_id",
+                      "value": "{{PAT_ID}}",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
