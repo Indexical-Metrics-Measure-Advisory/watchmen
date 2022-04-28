@@ -504,7 +504,7 @@
                 "auth": {
                   "type": "bearer",
                   "bearer": {
-                    "token": "{{JWT_TOKEN}}"
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
                   }
                 },
                 "method": "POST",
