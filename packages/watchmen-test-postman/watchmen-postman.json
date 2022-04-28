@@ -60,6 +60,18 @@
               "response": []
             },
             {
+              "name": "LOGIN - ADMIN",
+              "id": "427c2e3e-55f4-4b6e-af18-6f6e0d7070f1",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
               "name": "VALIDATE ACCESS TOKEN - SUPER ADMIN",
               "id": "0def2ec7-1e1a-4050-954c-31c81b6f68c8",
               "protocolProfileBehavior": {
@@ -104,18 +116,6 @@
                 "method": "GET",
                 "header": [],
                 "url": "{{URL_PREFIX}}/token/exchange-user"
-              },
-              "response": []
-            },
-            {
-              "name": "LOGIN - ADMIN",
-              "id": "427c2e3e-55f4-4b6e-af18-6f6e0d7070f1",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
               },
               "response": []
             }
