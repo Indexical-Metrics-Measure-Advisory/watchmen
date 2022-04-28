@@ -1,5 +1,7 @@
 import {BucketId} from '@/services/data/tuples/bucket-types';
+import {ComparableTypes} from '@/services/data/tuples/factor-types';
 import {Indicator} from '@/services/data/tuples/indicator-types';
+import {findTopicAndFactor} from '@/services/data/tuples/indicator-utils';
 import {
 	Navigation,
 	NavigationIndicator,
@@ -12,6 +14,7 @@ import {
 	isNavigationIndicatorCriteriaOnBucket,
 	isNavigationIndicatorCriteriaOnExpression
 } from '@/services/data/tuples/navigation-utils';
+import {isNotNull} from '@/services/data/utils';
 import {noop} from '@/services/utils';
 import {Dropdown} from '@/widgets/basic/dropdown';
 import {DropdownOption} from '@/widgets/basic/types';
@@ -97,20 +100,28 @@ export const IndicatorCriteriaArithmeticEditor = (props: {
 		forceUpdate();
 	};
 
-	const arithmeticOptions = [
-		...buildValueBucketOptions(criteria, indicator, defData),
-		{
-			value: NavigationIndicatorCriteriaOperator.EQUALS,
-			label: CriteriaArithmeticLabel[NavigationIndicatorCriteriaOperator.EQUALS]
-		},
-		{
-			value: NavigationIndicatorCriteriaOperator.NOT_EQUALS,
-			label: CriteriaArithmeticLabel[NavigationIndicatorCriteriaOperator.NOT_EQUALS]
-		},
-		{
-			value: NavigationIndicatorCriteriaOperator.LESS,
-			label: CriteriaArithmeticLabel[NavigationIndicatorCriteriaOperator.LESS]
-		},
+	const comparable = (() => {
+		if (defData.topic != null) {
+			// eslint-disable-next-line
+			const factor = (defData.topic?.factors || []).find(factor => factor.factorId == criteria.factorId);
+			return factor == null || ComparableTypes.includes(factor.type);
+		} else if (defData.subject != null) {
+			// eslint-disable-next-line
+			const column = (defData.subject.dataset.columns || []).find(column => column.columnId == criteria.factorId);
+			if (column == null) {
+				return true;
+			}
+
+			const {factor} = findTopicAndFactor(column, defData.subject);
+			return factor == null || ComparableTypes.includes(factor.type);
+		} else {
+			return true;
+		}
+	})();
+	const comparableArithmeticOptions = comparable ? [{
+		value: NavigationIndicatorCriteriaOperator.LESS,
+		label: CriteriaArithmeticLabel[NavigationIndicatorCriteriaOperator.LESS]
+	},
 		{
 			value: NavigationIndicatorCriteriaOperator.LESS_EQUALS,
 			label: CriteriaArithmeticLabel[NavigationIndicatorCriteriaOperator.LESS_EQUALS]
@@ -122,8 +133,20 @@ export const IndicatorCriteriaArithmeticEditor = (props: {
 		{
 			value: NavigationIndicatorCriteriaOperator.MORE_EQUALS,
 			label: CriteriaArithmeticLabel[NavigationIndicatorCriteriaOperator.MORE_EQUALS]
-		}
-	];
+		}] : [];
+
+	const arithmeticOptions = [
+		...buildValueBucketOptions(criteria, indicator, defData),
+		{
+			value: NavigationIndicatorCriteriaOperator.EQUALS,
+			label: CriteriaArithmeticLabel[NavigationIndicatorCriteriaOperator.EQUALS]
+		},
+		{
+			value: NavigationIndicatorCriteriaOperator.NOT_EQUALS,
+			label: CriteriaArithmeticLabel[NavigationIndicatorCriteriaOperator.NOT_EQUALS]
+		},
+		...comparableArithmeticOptions
+	].filter(isNotNull);
 
 	return <IndicatorCriteriaArithmetic>
 		{isCriteriaArithmeticVisible(criteria)
