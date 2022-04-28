@@ -792,6 +792,20 @@
             },
             {
               "name": "EXTERNAL WRITER DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "3ea78802-2b0b-4619-85f5-21a67f3ea18c",
+                    "exec": [
+                      "pm.test('Delete external writer', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "7c195c5f-206c-4477-b3df-0158ad3df8cc",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
