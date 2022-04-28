@@ -412,7 +412,7 @@
               "response": []
             },
             {
-              "name": "TENANT DELETE CREATED",
+              "name": "TENANT DELETE",
               "event": [
                 {
                   "listen": "test",
