@@ -6,7 +6,9 @@ export const TopicFinderContainer = styled.div.attrs({'data-widget': 'topic-find
 	display               : grid;
 	position              : relative;
 	grid-template-columns : auto 1fr;
-	//grid-column-gap       : calc(var(--margin) / 2);
+	> div[data-widget=dropdown]:first-child:last-child {
+		border-radius    : calc(var(--param-height) / 2);
+	}
 `;
 export const TopicDropdown = styled(Dropdown)`
 	align-self       : center;

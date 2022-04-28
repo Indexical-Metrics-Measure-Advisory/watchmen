@@ -78,6 +78,7 @@ const Options = styled.div.attrs<State>(
 		return {
 			'data-widget': 'dropdown-options-container',
 			'data-v-scroll': '',
+			'data-at-bottom': atBottom,
 			style: {
 				opacity: active ? 1 : (void 0),
 				pointerEvents: active ? 'auto' : (void 0),
