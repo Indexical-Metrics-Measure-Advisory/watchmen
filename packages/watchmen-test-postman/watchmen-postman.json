@@ -191,6 +191,20 @@
           "item": [
             {
               "name": "TENANT - LOAD 1",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "fe4d53e0-2ea4-49ff-b499-c85835f62c4b",
+                    "exec": [
+                      "pm.test('Load Tenant', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "a7ae9e14-0d6b-4dea-8170-1c14c7b0767a",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
