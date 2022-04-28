@@ -730,7 +730,7 @@
                 "auth": {
                   "type": "bearer",
                   "bearer": {
-                    "token": "{{JWT_TOKEN}}"
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
                   }
                 },
                 "method": "DELETE",
@@ -746,8 +746,7 @@
                   "query": [
                     {
                       "key": "writer_id",
-                      "value": "{{EXTERNAL_WRITER_ID}}",
-                      "type": "text"
+                      "value": "{{EXTERNAL_WRITER_ID}}"
                     }
                   ]
                 }
