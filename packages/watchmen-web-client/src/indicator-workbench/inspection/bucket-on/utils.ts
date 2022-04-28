@@ -7,7 +7,7 @@ import {
 } from '@/services/data/tuples/bucket-utils';
 import {EnumId} from '@/services/data/tuples/enum-types';
 import {Factor, FactorType} from '@/services/data/tuples/factor-types';
-import {Indicator} from '@/services/data/tuples/indicator-types';
+import {Indicator, MeasureMethod} from '@/services/data/tuples/indicator-types';
 import {
 	findTopicAndFactor,
 	isTimePeriodMeasure,
@@ -31,7 +31,8 @@ export const couldMeasureOnIndicatorValue = (indicator: Indicator, buckets: Arra
 const canFactorMeasured = (factorOrType: Factor | FactorType, buckets: Array<QueryBucket>): boolean => {
 	if (typeof factorOrType !== 'string' && factorOrType.enumId != null) {
 		// eslint-disable-next-line
-		return buckets.some(bucket => isEnumMeasureBucket(bucket) && bucket.enumId == factorOrType.enumId);
+		// return buckets.some(bucket => isEnumMeasureBucket(bucket) && bucket.enumId == factorOrType.enumId);
+		return true;
 	}
 	const measures = tryToTransformToMeasures(factorOrType).filter(measure => !isTimePeriodMeasure(measure));
 	if (measures.length === 0) {
@@ -175,7 +176,8 @@ export const buildBucketOptions = (options: {
 				return !isEnumMeasureBucket(bucket) || bucket.enumId == enumId;
 			})).flat())
 		];
-		const hasCategoryBucket = availableBuckets.some(bucket => isCategoryMeasureBucket(bucket) || isEnumMeasureBucket(bucket));
+		const hasCategoryBucket = measures.includes(MeasureMethod.ENUM)
+			|| availableBuckets.some(bucket => isCategoryMeasureBucket(bucket) || isEnumMeasureBucket(bucket));
 
 		return {
 			available: true,
