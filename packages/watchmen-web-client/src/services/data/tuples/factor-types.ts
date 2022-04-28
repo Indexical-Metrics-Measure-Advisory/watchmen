@@ -73,13 +73,24 @@ export enum FactorType {
 	ARRAY = 'array',
 }
 
+/**
+ * comparable means types can be compared with <, <=, >, >=
+ */
+export const ComparableTypes: Array<FactorType> = [
+	FactorType.NUMBER, FactorType.UNSIGNED,
+	FactorType.FLOOR, FactorType.RESIDENTIAL_AREA,
+	FactorType.YEAR, FactorType.QUARTER, FactorType.MONTH, FactorType.HOUR,
+	FactorType.AGE,
+	FactorType.BIZ_SCALE
+];
+
 export interface SourceTypes {
 	includes?: Array<FactorType>;
 	excludes?: Array<FactorType>;
 }
 
 /**
- * compatible compatible means types in value can be write into type in key
+ * compatible means types in value can be written into type in key
  */
 export const CompatibleTypes: Record<FactorType, SourceTypes> = {
 	[FactorType.SEQUENCE]: {includes: [FactorType.SEQUENCE, FactorType.NUMBER, FactorType.UNSIGNED]},

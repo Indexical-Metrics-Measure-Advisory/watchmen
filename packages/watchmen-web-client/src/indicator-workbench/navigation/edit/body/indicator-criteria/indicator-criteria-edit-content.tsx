@@ -1,4 +1,4 @@
-import {isEnumMeasureBucket, isMeasureBucket} from '@/services/data/tuples/bucket-utils';
+import {isMeasureBucket} from '@/services/data/tuples/bucket-utils';
 import {Factor} from '@/services/data/tuples/factor-types';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import {
@@ -63,9 +63,8 @@ export const IndicatorCriteriaEditContent = (props: {
 			if (measures.some(isTimePeriodMeasure)) {
 				return true;
 			}
-			// eslint-disable-next-line
-			if (factor.enumId != null && defData.measureBuckets.some(bucket => isEnumMeasureBucket(bucket) && bucket.enumId == factor.enumId)) {
-				// enumeration factor, matches enumeration bucket
+			if (factor.enumId != null) {
+				// enumeration factor
 				return true;
 			} else {
 				// not an enumeration factor, at least one bucket is matched
@@ -94,9 +93,8 @@ export const IndicatorCriteriaEditContent = (props: {
 			}
 			const {factor} = findTopicAndFactor(column, defData.subject);
 			const enumId = factor != null ? factor.enumId : (void 0);
-			// eslint-disable-next-line
-			if (enumId != null && defData.measureBuckets.some(bucket => isEnumMeasureBucket(bucket) && bucket.enumId == enumId)) {
-				// enumeration factor, matches enumeration bucket
+			if (enumId != null) {
+				// enumeration factor
 				return true;
 			} else {
 				// not an enumeration factor, at least one bucket is matched
