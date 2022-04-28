@@ -737,7 +737,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "PAT DELETE",
               "id": "5e1d2706-98ae-4996-a7a1-8de9adbbb6c5",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
