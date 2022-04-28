@@ -1873,11 +1873,39 @@
             },
             {
               "name": "DELETE SPACE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "3681b09e-7877-4121-8bbe-44db05877e31",
+                    "exec": [
+                      "pm.test('Delete User Group', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    const space_id = pm.environment.get(\"SPACE_ID\");",
+                      "    pm.expect(data.spaceId).to.equal(space_id);",
+                      "    pm.environment.unset('SPACE_ID');",
+                      "    pm.environment.unset('SPACE_CREATED_AT');",
+                      "    pm.environment.unset('SPACE_CREATED_BY');",
+                      "    pm.environment.unset('SPACE_VERSION');",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "58139fb3-18d2-4cde-ab56-7ffe52ca6220",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "DELETE",
                 "header": [],
                 "url": {
