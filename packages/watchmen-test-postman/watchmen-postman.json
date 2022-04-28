@@ -1472,6 +1472,18 @@
               "response": []
             },
             {
+              "name": "New Request",
+              "id": "3f9b2123-e8b2-4a9d-a696-7453875a265d",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
               "name": "USER GROUP CREATE",
               "event": [
                 {
@@ -1866,18 +1878,6 @@
                     }
                   ]
                 }
-              },
-              "response": []
-            },
-            {
-              "name": "New Request",
-              "id": "3f9b2123-e8b2-4a9d-a696-7453875a265d",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
               },
               "response": []
             }
