@@ -1559,10 +1559,16 @@
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                  }
+                },
                 "method": "POST",
                 "header": [],
                 "url": {
-                  "raw": "{{URL_PREFIX}}/user_group/name?query_name",
+                  "raw": "{{URL_PREFIX}}/user_group/name?query_name={{USER_GROUP_NAME}}",
                   "host": [
                     "{{URL_PREFIX}}"
                   ],
@@ -1573,7 +1579,7 @@
                   "query": [
                     {
                       "key": "query_name",
-                      "value": null
+                      "value": "{{USER_GROUP_NAME}}"
                     }
                   ]
                 }
