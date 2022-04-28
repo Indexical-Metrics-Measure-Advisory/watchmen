@@ -34,8 +34,6 @@ const IndicatorWorkbenchMain = styled.main.attrs<{ scrollable?: boolean }>(({scr
 const IndicatorWorkbenchIndex = () => {
 	return <IndicatorWorkbenchContainer>
 		<IndicatorWorkbenchMenu/>
-
-
 		<Switch>
 			{isAdmin()
 				? <Route path={Router.INDICATOR_WORKBENCH_BUCKETS}>
@@ -69,7 +67,6 @@ const IndicatorWorkbenchIndex = () => {
 					to={isAdmin() ? Router.INDICATOR_WORKBENCH_INDICATORS : Router.INDICATOR_WORKBENCH_INSPECTION}/>
 			</Route>
 		</Switch>
-
 		<WaterMark/>
 	</IndicatorWorkbenchContainer>;
 };

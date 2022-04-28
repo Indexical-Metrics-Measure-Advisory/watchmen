@@ -20,7 +20,7 @@ export const InternalRoutes = () => {
 	if (account == null) {
 		saveCurrentURL();
 		// not login
-		return <>
+		return <Switch>
 			<Route path={Router.LOGIN}><Login/></Route>
 			{isSaml2MockEnabled() ?
 				<Route path={Router.MOCK_SAML2_LOGIN}><Saml2Login/></Route> : null}
@@ -28,11 +28,10 @@ export const InternalRoutes = () => {
 			<Route path="*">
 				<Redirect to={Router.LOGIN}/>
 			</Route>
-		</>;
+		</Switch>;
 	} else {
 		removeSSOTriggerURL();
-		return <>
-
+		return <Switch>
 			<Route path={Router.ADMIN}><Admin/></Route>
 			{isDataQualityCenterEnabled()
 				? <Route path={Router.DATA_QUALITY}><DataQuality/></Route>
@@ -48,7 +47,7 @@ export const InternalRoutes = () => {
 			<Route path="*">
 				{isAdmin() || isSuperAdmin() ? <Redirect to={Router.ADMIN}/> : <Redirect to={Router.CONSOLE}/>}
 			</Route>
-		</>;
+		</Switch>;
 	}
 };
 
