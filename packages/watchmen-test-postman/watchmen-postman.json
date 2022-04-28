@@ -725,7 +725,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "PAT LIST",
               "id": "0e8e5df0-382b-4272-8fcf-b720bc3b03cb",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
