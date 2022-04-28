@@ -1473,13 +1473,57 @@
             },
             {
               "name": "SPACE CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "d7ec0a50-39bb-49f2-86a0-7bc6abb7bfdf",
+                    "exec": [
+                      "pm.test('Create Space', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.spaceId).to.not.be.null;",
+                      "    pm.expect(data.name).to.eql('Test-Space')",
+                      "    pm.expect(data.tenantId).to.not.be.null;",
+                      "    pm.expect(data.createdAt).to.not.be.null;",
+                      "    pm.expect(data.createdBy).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedAt).to.not.be.null;",
+                      "    pm.expect(data.lastModifiedBy).to.not.be.null;",
+                      "    pm.expect(data.version).to.eql(1);",
+                      "    pm.environment.set('SPACE_ID', data.spaceId);",
+                      "    pm.environment.set('SPACE_NAME', data.name);",
+                      "    pm.environment.set('SPACE_CREATED_AT', data.createdAt);",
+                      "    pm.environment.set('SPACE_CREATED_BY', data.createdBy);",
+                      "    pm.environment.set('SPACE_VERSION', data.version);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "3f9b2123-e8b2-4a9d-a696-7453875a265d",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Test-Space\",\n    \"description\": \"A description\",\n    \"topicIds\": [],\n    \"groupIds\": [],\n    \"filters\": [\n        {\n            \"topicId\": \"1\",\n            \"enabled\": true,\n            \"joint\": {\n                \"jointType\": \"and\",\n                \"filters\": [\n                    {\n                        \"left\": {\n                            \"kind\": \"topic\",\n                            \"topicId\": \"1\",\n                            \"factorId\": \"1\"\n                        },\n                        \"operator\": \"empty\"\n                    },\n                    {\n                        \"jointType\": \"or\",\n                        \"filters\": [\n                            {\n                                \"left\": {\n                                    \"kind\": \"constant\",\n                                    \"value\": \"2\"\n                                },\n                                \"operator\": \"not-equals\",\n                                \"right\": {\n                                    \"kind\": \"computed\",\n                                    \"type\": \"add\",\n                                    \"parameters\": [\n                                        {\"kind\": \"constant\", \"value\": \"3\"},\n                                        {\"kind\": \"constant\", \"value\": \"4\"}\n                                    ]\n                                }\n                            }\n                        ]\n                    }\n                ]\n            }\n        }\n    ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/space"
               },
               "response": []
             },
