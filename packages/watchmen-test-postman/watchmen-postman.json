@@ -640,7 +640,7 @@
                   "script": {
                     "id": "0f122635-7f39-4142-9ac5-7ed31e7cd00f",
                     "exec": [
-                      "pm.test('Delete Data Source', () => {",
+                      "pm.test('Delete DataSource', () => {",
                       "    pm.response.to.have.status(200);",
                       "})"
                     ],
