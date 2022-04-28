@@ -441,7 +441,7 @@
                 "method": "DELETE",
                 "header": [],
                 "url": {
-                  "raw": "{{URL_PREFIX}}/tenant?tenant_id={{TENANT_ID}} ",
+                  "raw": "{{URL_PREFIX}}/tenant?tenant_id={{TENANT_ID}}",
                   "host": [
                     "{{URL_PREFIX}}"
                   ],
@@ -451,7 +451,7 @@
                   "query": [
                     {
                       "key": "tenant_id",
-                      "value": "{{TENANT_ID}} "
+                      "value": "{{TENANT_ID}}"
                     }
                   ]
                 }
