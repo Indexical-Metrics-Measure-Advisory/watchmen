@@ -25,7 +25,7 @@
                       "    pm.expect(data.tokenType).to.eql('bearer');",
                       "    pm.expect(data.role).to.eql('superadmin');",
                       "    pm.expect(data.tenantId).to.eql('-1');",
-                      "    pm.environment.set('JWT_TOKEN', data.accessToken)",
+                      "    pm.environment.set('SUPER_ADMIN_JWT_TOKEN', data.accessToken)",
                       "})",
                       ""
                     ],
@@ -51,6 +51,54 @@
                     {
                       "key": "password",
                       "value": "change-me",
+                      "type": "text"
+                    }
+                  ]
+                },
+                "url": "{{URL_PREFIX}}/login"
+              },
+              "response": []
+            },
+            {
+              "name": "LOGIN - ADMIN",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "873d6923-dd21-423c-94bd-9b1b5c9e2832",
+                    "exec": [
+                      "pm.test('Login Access Token', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.accessToken).to.not.be.null;",
+                      "    pm.expect(data.tokenType).to.eql('bearer');",
+                      "    pm.expect(data.role).to.eql('admin');",
+                      "    pm.expect(data.tenantId).to.eql('1');",
+                      "    pm.environment.set('JWT_TOKEN', data.accessToken)",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "id": "427c2e3e-55f4-4b6e-af18-6f6e0d7070f1",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "urlencoded",
+                  "urlencoded": [
+                    {
+                      "key": "username",
+                      "value": "imma-admin",
+                      "type": "text"
+                    },
+                    {
+                      "key": "password",
+                      "value": "1234abcd",
                       "type": "text"
                     }
                   ]
@@ -182,7 +230,7 @@
                 "auth": {
                   "type": "bearer",
                   "bearer": {
-                    "token": "{{JWT_TOKEN}}"
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
                   }
                 },
                 "method": "POST",
@@ -238,7 +286,7 @@
                 "auth": {
                   "type": "bearer",
                   "bearer": {
-                    "token": "{{JWT_TOKEN}}"
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
                   }
                 },
                 "method": "POST",
@@ -303,7 +351,7 @@
                 "auth": {
                   "type": "bearer",
                   "bearer": {
-                    "token": "{{JWT_TOKEN}}"
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
                   }
                 },
                 "method": "POST",
@@ -331,7 +379,7 @@
                 "auth": {
                   "type": "bearer",
                   "bearer": {
-                    "token": "{{JWT_TOKEN}}"
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
                   }
                 },
                 "method": "DELETE",
@@ -384,7 +432,7 @@
                 "auth": {
                   "type": "bearer",
                   "bearer": {
-                    "token": "{{JWT_TOKEN}}"
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
                   }
                 },
                 "method": "POST",
@@ -456,7 +504,7 @@
                 "auth": {
                   "type": "bearer",
                   "bearer": {
-                    "token": "{{JWT_TOKEN}}"
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
                   }
                 },
                 "method": "POST",
@@ -505,7 +553,7 @@
                 "auth": {
                   "type": "bearer",
                   "bearer": {
-                    "token": "{{JWT_TOKEN}}"
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
                   }
                 },
                 "method": "GET",
@@ -538,7 +586,7 @@
                 "auth": {
                   "type": "bearer",
                   "bearer": {
-                    "token": "{{JWT_TOKEN}}"
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
                   }
                 },
                 "method": "DELETE",
@@ -600,7 +648,7 @@
                 "auth": {
                   "type": "bearer",
                   "bearer": {
-                    "token": "{{JWT_TOKEN}}"
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
                   }
                 },
                 "method": "POST",
@@ -649,7 +697,7 @@
                 "auth": {
                   "type": "bearer",
                   "bearer": {
-                    "token": "{{JWT_TOKEN}}"
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
                   }
                 },
                 "method": "GET",
@@ -682,7 +730,7 @@
                 "auth": {
                   "type": "bearer",
                   "bearer": {
-                    "token": "{{JWT_TOKEN}}"
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
                   }
                 },
                 "method": "DELETE",
@@ -698,8 +746,7 @@
                   "query": [
                     {
                       "key": "writer_id",
-                      "value": "{{EXTERNAL_WRITER_ID}}",
-                      "type": "text"
+                      "value": "{{EXTERNAL_WRITER_ID}}"
                     }
                   ]
                 }
@@ -714,13 +761,101 @@
           "item": [
             {
               "name": "PAT CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "c52df9dc-d729-4720-80cd-0d20ffa90ad6",
+                    "exec": [
+                      "pm.test('Create Pat', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.environment.set('PAT_ID', data.patId);",
+                      "    pm.environment.set('PAT_TOKEN', data.token);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "1dbbd4d8-d3a2-4925-b9d8-9deb4b2a6d7c",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"note\": \"test create pat\",\n    \"expired\": \"2022-05-01\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/pat/create"
+              },
+              "response": []
+            },
+            {
+              "name": "PAT LIST",
+              "id": "0e8e5df0-382b-4272-8fcf-b720bc3b03cb",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": "{{URL_PREFIX}}/pat/list"
+              },
+              "response": []
+            },
+            {
+              "name": "PAT DELETE",
+              "id": "5e1d2706-98ae-4996-a7a1-8de9adbbb6c5",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/pat/delete?pat_id={{PAT_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "pat",
+                    "delete"
+                  ],
+                  "query": [
+                    {
+                      "key": "pat_id",
+                      "value": "{{PAT_ID}}",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
