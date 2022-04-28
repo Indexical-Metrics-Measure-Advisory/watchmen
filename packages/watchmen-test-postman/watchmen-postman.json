@@ -109,6 +109,20 @@
             },
             {
               "name": "VALIDATE ACCESS TOKEN - SUPER ADMIN",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "422471e4-9cee-4628-b433-c47a4c3a068a",
+                    "exec": [
+                      "pm.test('Validate access token', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "0def2ec7-1e1a-4050-954c-31c81b6f68c8",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
