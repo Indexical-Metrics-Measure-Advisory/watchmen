@@ -9,7 +9,7 @@ export const TopicFactorEditContainer = styled.div.attrs({'data-widget': 'parame
 	align-items           : center;
 	height                : var(--param-height);
 `;
-export const TopicDropdown = styled(Dropdown)`
+export const TopicDropdown = styled(Dropdown).attrs({'data-no-border': true})`
 	height                     : var(--param-height);
 	border-top-right-radius    : 0;
 	border-bottom-right-radius : 0;
@@ -20,13 +20,16 @@ export const TopicDropdown = styled(Dropdown)`
 	&:focus {
 		z-index    : 1;
 		box-shadow : var(--primary-hover-shadow);
-		> div {
-			border     : 0;
-			box-shadow : var(--param-border);
+	}
+	> div[data-widget="dropdown-options-container"] {
+		border     : 0;
+		box-shadow : var(--param-border);
+		> span {
+			padding : 0 calc(var(--margin) / 2);
 		}
 	}
 `;
-export const FactorDropdown = styled(Dropdown)`
+export const FactorDropdown = styled(Dropdown).attrs({'data-no-border': true})`
 	height                     : var(--param-height);
 	border-top-right-radius    : 0;
 	border-bottom-right-radius : 0;
@@ -37,9 +40,12 @@ export const FactorDropdown = styled(Dropdown)`
 	&:focus {
 		z-index    : 1;
 		box-shadow : var(--primary-hover-shadow);
-		> div {
-			border     : 0;
-			box-shadow : var(--param-border);
+	}
+	> div[data-widget="dropdown-options-container"] {
+		border     : 0;
+		box-shadow : var(--param-border);
+		> span {
+			padding : 0 calc(var(--margin) / 2);
 		}
 	}
 `;

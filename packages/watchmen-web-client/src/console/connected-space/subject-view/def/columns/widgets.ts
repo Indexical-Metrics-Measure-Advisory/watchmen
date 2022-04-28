@@ -144,7 +144,10 @@ export const ArithmeticLabel = styled.div.attrs({'data-widget': 'subject-def-col
 	border-radius    : calc(var(--param-height) / 2) 0 0 calc(var(--param-height) / 2);
 	box-shadow       : var(--param-top-border), var(--param-bottom-border);
 `;
-export const ArithmeticEditInput = styled(Dropdown).attrs({'data-widget': 'subject-def-column-arithmetic-edit-input'})`
+export const ArithmeticEditInput = styled(Dropdown).attrs({
+	'data-widget': 'subject-def-column-arithmetic-edit-input',
+	'data-no-border': true
+})`
 	width         : 150px;
 	height        : var(--param-height);
 	border        : 0;
@@ -154,5 +157,12 @@ export const ArithmeticEditInput = styled(Dropdown).attrs({'data-widget': 'subje
 		z-index          : 1;
 		background-color : var(--bg-color);
 		box-shadow       : var(--primary-hover-shadow);
+	}
+	> div[data-widget="dropdown-options-container"] {
+		border     : 0;
+		box-shadow : var(--param-border);
+		> span {
+			padding : 0 calc(var(--margin) / 2);
+		}
 	}
 `;
