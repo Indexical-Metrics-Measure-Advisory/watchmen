@@ -152,6 +152,20 @@
             },
             {
               "name": "TEST ACCESS TOKEN - SUPER ADMIN",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "05f70035-4ff6-413d-9373-2fc649043208",
+                    "exec": [
+                      "pm.test('Test access token', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "32302dba-850b-4097-be13-5a0fef3f20ee",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
