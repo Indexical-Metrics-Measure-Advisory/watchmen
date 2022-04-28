@@ -877,6 +877,20 @@
             },
             {
               "name": "PAT LIST",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "4729a336-28d1-47fe-9fbe-50738e2ceac0",
+                    "exec": [
+                      "pm.test('List pat', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "0e8e5df0-382b-4272-8fcf-b720bc3b03cb",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
