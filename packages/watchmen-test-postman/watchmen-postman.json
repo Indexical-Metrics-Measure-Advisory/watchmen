@@ -1283,14 +1283,30 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "LAST - SNAPSHOT DELETE",
               "id": "2cef02fc-250f-4e54-b5b6-f290ddf59e5a",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/last_snapshot?user_id={{LASTSNAPSHOT_USER_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "last_snapshot"
+                  ],
+                  "query": [
+                    {
+                      "key": "user_id",
+                      "value": "{{LASTSNAPSHOT_USER_ID}}",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
