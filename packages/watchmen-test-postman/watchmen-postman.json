@@ -2632,6 +2632,18 @@
                 "url": "{{URL_PREFIX}}/enum"
               },
               "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "3cec8e21-d0cc-49aa-8951-03b449a34537",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
             }
           ],
           "id": "03745d16-5763-4e02-8bfc-0c28721f3e80"
