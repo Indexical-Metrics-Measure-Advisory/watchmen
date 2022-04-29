@@ -2006,6 +2006,20 @@
             },
             {
               "name": "USER GROUP UPDATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "103f9275-c4a5-43fd-b758-91feebfc93da",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "f077217c-4177-4989-b053-59d119364166",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
