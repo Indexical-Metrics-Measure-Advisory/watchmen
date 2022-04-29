@@ -3791,6 +3791,7 @@
                       "    pm.expect(data.role).to.eql('admin');",
                       "    pm.expect(data.tenantId).to.eql('1');",
                       "    pm.environment.set('JWT_TOKEN', data.accessToken)",
+                      "    pm.environment.set('TENANT_ID', data.accessToken)",
                       "})"
                     ],
                     "type": "text/javascript"
