@@ -2752,13 +2752,46 @@
           "item": [
             {
               "name": "CREATE DATASOURCE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "5bfb7e1f-664e-444b-9976-06441c02ff12",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.environment.set('DATA_SOURCE_ID', data.dataSourceId);",
+                      "});",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "49b40a26-4005-43f1-912b-74713428fde1",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"dataSourceCode\": \"Test-DataSource\",\n    \"dataSourceType\": \"mysql\",\n    \"host\": \"127.0.0.1\",\n    \"port\": \"3306\",\n    \"username\": \"watchmen\",\n    \"password\": \"watchmen\",\n    \"name\": \"watchmen\",\n    \"url\": \"mysql://watchmen:watchmen@127.0.0.1:3306/watchmen?charset=utf8\",\n    \"params\": [\n        {\"name\": \"x\", \"value\": \"1\"},\n        {\"name\": \"y\", \"value\": \"2\"}\n    ],\n    \"tenantId\": \"1\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/datasource"
               },
               "response": []
             },
