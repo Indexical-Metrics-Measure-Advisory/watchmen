@@ -1204,7 +1204,20 @@
         },
         {
           "name": "LAST SNAPSHOT",
-          "item": [],
+          "item": [
+            {
+              "name": "New Request",
+              "id": "137d0cb9-b7f6-4690-bf2c-5d2946fb99ec",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            }
+          ],
           "id": "deeee44b-b4bd-4f34-993e-0e57975583e2"
         },
         {
