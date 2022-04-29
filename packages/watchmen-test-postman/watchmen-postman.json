@@ -1085,6 +1085,8 @@
                     "exec": [
                       "pm.test(\"Status code is 200\", function () {",
                       "    pm.response.to.have.status(200);",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.environment.set(\"FAVORITE_USER_ID\", jsonData.userId);",
                       "});"
                     ],
                     "type": "text/javascript"
@@ -1106,7 +1108,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "",
+                  "raw": "{\n    \"connectedSpaceIds\": [],\n    \"dashboardIds\": []\n}",
                   "options": {
                     "raw": {
                       "language": "json"
