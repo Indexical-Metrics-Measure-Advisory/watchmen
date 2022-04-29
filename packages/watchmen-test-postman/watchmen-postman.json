@@ -2751,6 +2751,18 @@
           "name": "TOPIC",
           "item": [
             {
+              "name": "New Request",
+              "id": "49b40a26-4005-43f1-912b-74713428fde1",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
               "name": "TOPIC CREATE",
               "event": [
                 {
@@ -3235,18 +3247,6 @@
                     }
                   ]
                 }
-              },
-              "response": []
-            },
-            {
-              "name": "New Request",
-              "id": "49b40a26-4005-43f1-912b-74713428fde1",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
               },
               "response": []
             }
