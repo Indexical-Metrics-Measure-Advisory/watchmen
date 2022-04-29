@@ -3564,7 +3564,7 @@
                 "auth": {
                   "type": "bearer",
                   "bearer": {
-                    "token": "{{JWT_TOKEN}}"
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
                   }
                 },
                 "method": "DELETE",
@@ -3580,8 +3580,7 @@
                   "query": [
                     {
                       "key": "pipeline_id",
-                      "value": "{{PIPELINE_ID}}",
-                      "type": "text"
+                      "value": "{{PIPELINE_ID}}"
                     }
                   ]
                 }
