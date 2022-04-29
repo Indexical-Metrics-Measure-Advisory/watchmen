@@ -1149,6 +1149,18 @@
                 "url": "{{URL_PREFIX}}/favorite"
               },
               "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "d199255e-dead-40c3-9dfb-d1b2797f8e73",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
             }
           ],
           "id": "9f1d8885-fa09-4bf1-b623-91d2e9c3f951"
