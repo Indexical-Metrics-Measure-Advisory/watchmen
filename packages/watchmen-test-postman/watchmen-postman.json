@@ -3917,6 +3917,18 @@
               "response": []
             },
             {
+              "name": "New Request",
+              "id": "9a4e714d-2fdc-4516-87dc-190c27a0327b",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
               "name": "SUBJECT CREATE",
               "event": [
                 {
@@ -4117,18 +4129,6 @@
                     }
                   ]
                 }
-              },
-              "response": []
-            },
-            {
-              "name": "New Request",
-              "id": "9a4e714d-2fdc-4516-87dc-190c27a0327b",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
               },
               "response": []
             }
