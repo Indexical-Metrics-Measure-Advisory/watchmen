@@ -1215,6 +1215,8 @@
                     "exec": [
                       "pm.test(\"Status code is 200\", function () {",
                       "    pm.response.to.have.status(200);",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.environment.set(\"LASTSNAPSHOT_USER_ID\", jsonData.userId);",
                       "});"
                     ],
                     "type": "text/javascript"
