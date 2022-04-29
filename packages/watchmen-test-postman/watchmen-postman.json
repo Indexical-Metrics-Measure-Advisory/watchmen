@@ -3918,6 +3918,24 @@
             },
             {
               "name": "CONNECTED SPACE CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "084af145-b239-40ea-a3e7-96b0a496df40",
+                    "exec": [
+                      "pm.test('Create Connected Space', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.environment.set('CONNECT_ID', data.connectId);",
+                      "    pm.environment.set('CONNECTED_SPACE_ID', data.spaceId);",
+                      "    pm.environment.set('CONNECTED_SPACE_NAME', data.name);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "9a4e714d-2fdc-4516-87dc-190c27a0327b",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
