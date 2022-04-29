@@ -3872,6 +3872,18 @@
           "name": "SUBJECT",
           "item": [
             {
+              "name": "SPACE CREATE",
+              "id": "5484e607-8fdb-44d7-bd79-b5a877f162d5",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
               "name": "SUBJECT CREATE",
               "event": [
                 {
@@ -4072,18 +4084,6 @@
                     }
                   ]
                 }
-              },
-              "response": []
-            },
-            {
-              "name": "New Request",
-              "id": "5484e607-8fdb-44d7-bd79-b5a877f162d5",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
               },
               "response": []
             }
