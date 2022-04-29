@@ -4233,7 +4233,7 @@
                   "script": {
                     "id": "4873d8a8-d2d1-4268-a7aa-47948ff4443b",
                     "exec": [
-                      "pm.test('Delete User Group', () => {",
+                      "pm.test('Delete Space', () => {",
                       "    pm.response.to.have.status(200);",
                       "    pm.environment.unset('SPACE_ID');",
                       "",
