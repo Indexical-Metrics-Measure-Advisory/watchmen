@@ -1119,13 +1119,34 @@
             },
             {
               "name": "FAVORITE LIST",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "83aa0422-5dd0-48d9-b593-2bf4cf63ebfb",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "789c961b-6648-4296-9588-cca8b898a1e2",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": "{{URL_PREFIX}}/favorite"
               },
               "response": []
             }
