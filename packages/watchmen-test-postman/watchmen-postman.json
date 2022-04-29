@@ -1077,6 +1077,20 @@
           "item": [
             {
               "name": "FAVORITE CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "cb142c60-0f1a-47a9-a046-6c178a9f426e",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "b5c6edb2-0164-4234-9067-b2fb210b6e9b",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
@@ -1090,6 +1104,15 @@
                 },
                 "method": "POST",
                 "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
                 "url": "{{URL_PREFIX}}/favorite"
               },
               "response": []
