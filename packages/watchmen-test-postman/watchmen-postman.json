@@ -2536,7 +2536,7 @@
                   "script": {
                     "id": "b484b3fe-e113-4b04-86d6-6a31d83731b4",
                     "exec": [
-                      "pm.test('Delete User Group', () => {",
+                      "pm.test('Delete Space', () => {",
                       "    pm.response.to.have.status(200);",
                       "    const data = pm.response.json();",
                       "    const space_id = pm.environment.get(\"SPACE_ID\");",
