@@ -2588,7 +2588,20 @@
         },
         {
           "name": "ENUMERATION",
-          "item": [],
+          "item": [
+            {
+              "name": "New Request",
+              "id": "8f6738dc-74fb-472f-87fd-a7777825e18a",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            }
+          ],
           "id": "03745d16-5763-4e02-8bfc-0c28721f3e80"
         },
         {
