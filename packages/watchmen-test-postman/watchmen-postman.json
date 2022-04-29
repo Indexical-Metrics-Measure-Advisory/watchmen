@@ -3839,7 +3839,23 @@
                 },
                 "method": "GET",
                 "header": [],
-                "url": "{{URL_PREFIX}}/tenant/init"
+                "url": {
+                  "raw": "{{URL_PREFIX}}/tenant/init?tenant_id=1",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "tenant",
+                    "init"
+                  ],
+                  "query": [
+                    {
+                      "key": "tenant_id",
+                      "value": "1",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
