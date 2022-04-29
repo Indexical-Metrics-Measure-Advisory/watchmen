@@ -1220,6 +1220,15 @@
                 },
                 "method": "GET",
                 "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"language\": \"english\",\n\t\"lastDashboardId\": null,\n\t\"adminDashboardId\": \"null\",\n\t\"favoritePin\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
                 "url": "{{URL_PREFIX}}/last_snapshot"
               },
               "response": []
