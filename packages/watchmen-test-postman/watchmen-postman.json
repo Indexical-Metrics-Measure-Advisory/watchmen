@@ -1289,8 +1289,29 @@
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                  }
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/last_snapshot?user_id={{LASTSNAPSHOT_USER_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "last_snapshot"
+                  ],
+                  "query": [
+                    {
+                      "key": "user_id",
+                      "value": "{{LASTSNAPSHOT_USER_ID}}"
+                    }
+                  ]
+                }
               },
               "response": []
             }
