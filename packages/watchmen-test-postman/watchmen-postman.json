@@ -1154,13 +1154,49 @@
             },
             {
               "name": "New Request",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "ca33fa95-4d77-434e-bb28-7567d6990115",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "d199255e-dead-40c3-9dfb-d1b2797f8e73",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{SUPER+ADMIN_JWT_TOKEN}}"
+                  }
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/favorite?user_id={{FAVORITE_USER_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "favorite"
+                  ],
+                  "query": [
+                    {
+                      "key": "user_id",
+                      "value": "{{FAVORITE_USER_ID}}",
+                      "type": "text"
+                    }
+                  ]
+                }
               },
               "response": []
             }
