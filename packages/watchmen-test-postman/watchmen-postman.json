@@ -2670,6 +2670,20 @@
             },
             {
               "name": "ENUM FIND BY NAME",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "804fffcb-bb02-4027-a98e-d5682af8d29c",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "69d43a79-7c1c-438a-98c6-8cb49f47188b",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
