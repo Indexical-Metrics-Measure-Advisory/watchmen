@@ -2668,7 +2668,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "ENUM FIND BY NAME",
               "id": "69d43a79-7c1c-438a-98c6-8cb49f47188b",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
