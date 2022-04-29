@@ -1289,24 +1289,8 @@
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{URL_PREFIX}}/last_snapshot?user_id={{LASTSNAPSHOT_USER_ID}}",
-                  "host": [
-                    "{{URL_PREFIX}}"
-                  ],
-                  "path": [
-                    "last_snapshot"
-                  ],
-                  "query": [
-                    {
-                      "key": "user_id",
-                      "value": "{{LASTSNAPSHOT_USER_ID}}",
-                      "type": "text"
-                    }
-                  ]
-                }
+                "method": "GET",
+                "header": []
               },
               "response": []
             }
