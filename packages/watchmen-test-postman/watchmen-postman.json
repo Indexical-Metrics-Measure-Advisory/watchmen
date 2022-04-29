@@ -1251,13 +1251,34 @@
             },
             {
               "name": "LAST - SNAPSHOT LIST",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "33ace948-b000-4a5c-8145-6097c4fa1534",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "b1950446-b691-4d2f-85ef-02dd3e172d32",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": "{{URL_PREFIX}}/last_snapshot"
               },
               "response": []
             }
