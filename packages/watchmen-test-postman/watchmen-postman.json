@@ -2854,7 +2854,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"name\": \"Test_Distinct_Topic3\",\n    \"type\": \"distinct\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\n            \"factorId\": \"1\",\n            \"type\": \"text\",\n            \"name\": \"propA\",\n            \"label\": \"propA\"\n        },\n        {\n            \"factorId\": \"2\",\n            \"type\": \"text\",\n            \"name\": \"propB\"\n        }\n    ],\n    \"description\": \"Test Distinct Topic\"\n}",
+                  "raw": "{\n    \"name\": \"Test_Distinct_Topic_{{$randomInt}}\",\n    \"type\": \"distinct\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\n            \"factorId\": \"1\",\n            \"type\": \"text\",\n            \"name\": \"propA\",\n            \"label\": \"propA\"\n        },\n        {\n            \"factorId\": \"2\",\n            \"type\": \"text\",\n            \"name\": \"propB\"\n        }\n    ],\n    \"description\": \"Test Distinct Topic\"\n}",
                   "options": {
                     "raw": {
                       "language": "json"
