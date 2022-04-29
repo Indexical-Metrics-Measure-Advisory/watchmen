@@ -4227,13 +4227,45 @@
             },
             {
               "name": "New Request",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "4873d8a8-d2d1-4268-a7aa-47948ff4443b",
+                    "exec": [
+                      "pm.test('Delete User Group', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.environment.unset('SPACE_ID');",
+                      "",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "b6c1dc57-af50-4ad2-850f-95080d9e96b3",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/space?space_id={{SPACE_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "space"
+                  ],
+                  "query": [
+                    {
+                      "key": "space_id",
+                      "value": "{{SPACE_ID}}"
+                    }
+                  ]
+                }
               },
               "response": []
             }
