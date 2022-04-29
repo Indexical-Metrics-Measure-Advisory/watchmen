@@ -1281,6 +1281,18 @@
                 "url": "{{URL_PREFIX}}/last_snapshot"
               },
               "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "2cef02fc-250f-4e54-b5b6-f290ddf59e5a",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
             }
           ],
           "id": "deeee44b-b4bd-4f34-993e-0e57975583e2"
