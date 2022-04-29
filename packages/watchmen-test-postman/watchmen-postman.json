@@ -4132,7 +4132,7 @@
               "response": []
             },
             {
-              "name": "SUBJECT CREATE2",
+              "name": "SUBJECT CREATE 2",
               "id": "57e39942-8684-4c97-b53b-cc3fdc3ae1cf",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
