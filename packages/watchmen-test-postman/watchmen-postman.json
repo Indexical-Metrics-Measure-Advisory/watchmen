@@ -2674,8 +2674,24 @@
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "method": "POST",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/enum/name?query_name={{ENUM_NAME}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "enum",
+                    "name"
+                  ],
+                  "query": [
+                    {
+                      "key": "query_name",
+                      "value": "{{ENUM_NAME}}"
+                    }
+                  ]
+                }
               },
               "response": []
             }
