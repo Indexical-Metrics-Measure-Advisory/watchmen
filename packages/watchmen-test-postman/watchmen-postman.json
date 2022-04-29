@@ -1250,7 +1250,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "LAST - SNAPSHOT LIST",
               "id": "b1950446-b691-4d2f-85ef-02dd3e172d32",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
