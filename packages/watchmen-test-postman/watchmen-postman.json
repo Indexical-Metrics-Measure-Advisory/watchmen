@@ -2599,6 +2599,8 @@
                     "exec": [
                       "pm.test(\"Status code is 200\", function () {",
                       "    pm.response.to.have.status(200);",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.environment.set(\"ENUM_ID\", jsonData.enumId);",
                       "});"
                     ],
                     "type": "text/javascript"
