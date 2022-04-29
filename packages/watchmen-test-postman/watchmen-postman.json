@@ -2590,7 +2590,7 @@
           "name": "ENUMERATION",
           "item": [
             {
-              "name": "New Request",
+              "name": "ENUM CREATE",
               "id": "8f6738dc-74fb-472f-87fd-a7777825e18a",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
