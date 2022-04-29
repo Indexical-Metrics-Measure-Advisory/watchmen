@@ -2591,6 +2591,20 @@
           "item": [
             {
               "name": "ENUM CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "218d06c1-afff-4e51-a6c5-2da0424d8e44",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "8f6738dc-74fb-472f-87fd-a7777825e18a",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
