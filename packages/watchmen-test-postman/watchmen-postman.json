@@ -1207,6 +1207,20 @@
           "item": [
             {
               "name": "LAST - SNAPSHOT CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "d7cc54b6-a30e-4b6b-a564-5518c7d028e7",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "137d0cb9-b7f6-4690-bf2c-5d2946fb99ec",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
