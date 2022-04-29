@@ -3917,7 +3917,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "CONNECTED SPACE CREATE",
               "id": "9a4e714d-2fdc-4516-87dc-190c27a0327b",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
