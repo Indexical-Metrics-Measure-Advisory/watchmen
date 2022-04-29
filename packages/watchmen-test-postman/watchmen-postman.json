@@ -2620,7 +2620,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"enumId\": null,\n    \"name\": \"enum_test\",\n    \"description\": \"test enum\",\n    \"parentEnumId\": null,\n    \"items\": [\n        {\n            \"itemId\": \"i1\",\n            \"code\": \"code1\",\n            \"label\": null,\n            \"parentCode\": null,\n            \"replaceCode\": null,\n            \"enumId\": null,\n            \"tenantId\": null,\n        }\n    ]\n}",
+                  "raw": "{\n    \"enumId\": null,\n    \"name\": \"enum_test\",\n    \"description\": \"test enum\",\n    \"parentEnumId\": null,\n    \"items\": [\n        {\n            \"itemId\": \"i1\",\n            \"code\": \"code1\",\n            \"label\": null,\n            \"parentCode\": null,\n            \"replaceCode\": null,\n            \"enumId\": null,\n            \"tenantId\": null\n        }\n    ]\n}",
                   "options": {
                     "raw": {
                       "language": "json"
