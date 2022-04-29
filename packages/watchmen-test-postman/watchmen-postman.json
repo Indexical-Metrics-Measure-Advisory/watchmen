@@ -1206,7 +1206,7 @@
           "name": "LAST SNAPSHOT",
           "item": [
             {
-              "name": "New Request",
+              "name": "LAST - SNAPSHOT CREATE",
               "id": "137d0cb9-b7f6-4690-bf2c-5d2946fb99ec",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
