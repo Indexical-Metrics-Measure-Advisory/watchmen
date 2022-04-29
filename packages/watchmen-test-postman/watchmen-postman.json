@@ -1176,7 +1176,7 @@
                 "auth": {
                   "type": "bearer",
                   "bearer": {
-                    "token": "{{SUPER+ADMIN_JWT_TOKEN}}"
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
                   }
                 },
                 "method": "DELETE",
@@ -1192,8 +1192,7 @@
                   "query": [
                     {
                       "key": "user_id",
-                      "value": "{{FAVORITE_USER_ID}}",
-                      "type": "text"
+                      "value": "{{FAVORITE_USER_ID}}"
                     }
                   ]
                 }
