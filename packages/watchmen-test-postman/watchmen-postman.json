@@ -4235,6 +4235,9 @@
                     "exec": [
                       "pm.test('Delete Space', () => {",
                       "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    const space_id = pm.environment.get(\"SPACE_ID\");",
+                      "    pm.expect(data.spaceId).to.equal(space_id);",
                       "    pm.environment.unset('SPACE_ID');",
                       "",
                       "})",
