@@ -7737,13 +7737,44 @@
                     },
                     {
                       "name": "EXTERNAL WRITER DELETE",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "153955cf-f84c-4261-9bd5-ce68589b238a",
+                            "exec": [
+                              "pm.test('Delete external writer', () => {",
+                              "    pm.response.to.have.status(200);",
+                              "    pm.environment.unset('EXTERNAL_WRITER_ID');",
+                              "    pm.environment.unset('EXTERNAL_WRITER_VERSION');",
+                              "})"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "8e7e7e44-87db-4fe0-839d-4879c3af88bf",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
                       },
                       "request": {
-                        "method": "GET",
-                        "header": []
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                          "raw": "{{URL_PREFIX}}/external_writer?writer_id={{EXTERNAL_WRITER_ID}}",
+                          "host": [
+                            "{{URL_PREFIX}}"
+                          ],
+                          "path": [
+                            "external_writer"
+                          ],
+                          "query": [
+                            {
+                              "key": "writer_id",
+                              "value": "{{EXTERNAL_WRITER_ID}}"
+                            }
+                          ]
+                        }
                       },
                       "response": []
                     }
