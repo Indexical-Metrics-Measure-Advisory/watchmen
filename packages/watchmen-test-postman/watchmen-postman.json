@@ -6090,11 +6090,37 @@
             },
             {
               "name": "SPACE DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "d2c6a60f-0980-493f-a0d6-431880624448",
+                    "exec": [
+                      "pm.test('Delete Space', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    const space_id = pm.environment.get(\"SPACE_ID\");",
+                      "    pm.expect(data.spaceId).to.equal(space_id);",
+                      "    pm.environment.unset('SPACE_ID');",
+                      "",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "93abc4d2-2209-40c6-8ed2-ffb7fb12339f",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                  }
+                },
                 "method": "DELETE",
                 "header": [],
                 "url": {
