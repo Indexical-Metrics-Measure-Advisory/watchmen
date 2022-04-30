@@ -4899,6 +4899,18 @@
           "name": "DASHBOARD",
           "item": [
             {
+              "name": "New Request",
+              "id": "88ab73ad-522c-412c-aeca-b8c1ba8b9c06",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
               "name": "REPORT CREATE",
               "event": [
                 {
@@ -5206,18 +5218,6 @@
                     }
                   ]
                 }
-              },
-              "response": []
-            },
-            {
-              "name": "New Request",
-              "id": "88ab73ad-522c-412c-aeca-b8c1ba8b9c06",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
               },
               "response": []
             }
