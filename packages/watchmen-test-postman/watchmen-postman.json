@@ -4900,13 +4900,46 @@
           "item": [
             {
               "name": "SPACE CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "5826915d-d361-4ce2-91d4-fa374799758a",
+                    "exec": [
+                      "pm.test('Create Space', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.environment.set('SPACE_ID', data.spaceId);",
+                      "    pm.environment.set('SPACE_NAME', data.name);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "5d58cdf1-8da6-4734-8a34-47adfd08380f",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Test-Space\",\n    \"description\": \"A description\",\n    \"topicIds\": [],\n    \"groupIds\": [],\n    \"filters\": [\n        {\n            \"topicId\": \"1\",\n            \"enabled\": true,\n            \"joint\": {\n                \"jointType\": \"and\",\n                \"filters\": [\n                    {\n                        \"left\": {\n                            \"kind\": \"topic\",\n                            \"topicId\": \"1\",\n                            \"factorId\": \"1\"\n                        },\n                        \"operator\": \"empty\"\n                    },\n                    {\n                        \"jointType\": \"or\",\n                        \"filters\": [\n                            {\n                                \"left\": {\n                                    \"kind\": \"constant\",\n                                    \"value\": \"2\"\n                                },\n                                \"operator\": \"not-equals\",\n                                \"right\": {\n                                    \"kind\": \"computed\",\n                                    \"type\": \"add\",\n                                    \"parameters\": [\n                                        {\"kind\": \"constant\", \"value\": \"3\"},\n                                        {\"kind\": \"constant\", \"value\": \"4\"}\n                                    ]\n                                }\n                            }\n                        ]\n                    }\n                ]\n            }\n        }\n    ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/space"
               },
               "response": []
             },
