@@ -4336,7 +4336,7 @@
           "name": "REPORT",
           "item": [
             {
-              "name": "New Request",
+              "name": "SPACE CREATE",
               "id": "40618b4a-cd57-412e-9855-7954066d7272",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
