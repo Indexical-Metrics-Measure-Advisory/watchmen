@@ -5523,13 +5523,52 @@
             },
             {
               "name": "CONNECTED SPACE DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "fb6f0969-5000-4ddb-be59-230a1ff3db16",
+                    "exec": [
+                      "pm.test(\"Delete Connected Space\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.environment.unset('CONNECT_ID');",
+                      "    pm.environment.unset('CONNECTED_SPACE_ID');",
+                      "    pm.environment.unset('CONNECTED_SPACE_NAME');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "58384dbc-dfc2-437d-9afb-68f888478369",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/connected_space/delete?connect_id={{CONNECT_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "connected_space",
+                    "delete"
+                  ],
+                  "query": [
+                    {
+                      "key": "connect_id",
+                      "value": "{{CONNECT_ID}}"
+                    }
+                  ]
+                }
               },
               "response": []
             },
