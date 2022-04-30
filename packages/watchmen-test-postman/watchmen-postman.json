@@ -4336,6 +4336,18 @@
           "name": "REPORT",
           "item": [
             {
+              "name": "New Request",
+              "id": "40618b4a-cd57-412e-9855-7954066d7272",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
               "name": "CONNECTED SPACE CREATE",
               "event": [
                 {
@@ -4640,18 +4652,6 @@
                     }
                   ]
                 }
-              },
-              "response": []
-            },
-            {
-              "name": "New Request",
-              "id": "40618b4a-cd57-412e-9855-7954066d7272",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
               },
               "response": []
             }
