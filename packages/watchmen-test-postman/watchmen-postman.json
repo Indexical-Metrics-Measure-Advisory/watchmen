@@ -7489,7 +7489,7 @@
                         "header": [],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\n    \"writerCode\": \"Test-External-Writer-{{$randomInt}}\",\n    \"type\": \"standard-writer\",\n    \"pat\": \"a-pat\",\n    \"url\": \"{{URL_PREFIX}}/external_writer\",\n    \"tenantId\": \"1\"\n}",
+                          "raw": "{\n    \"writerCode\": \"Test-External-Writer-{{$randomInt}}\",\n    \"type\": \"standard-writer\",\n    \"pat\": \"a-pat\",\n    \"url\": \"{{URL_PREFIX}}/health\",\n    \"tenantId\": \"1\"\n}",
                           "options": {
                             "raw": {
                               "language": "json"
