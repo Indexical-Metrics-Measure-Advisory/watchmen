@@ -4336,6 +4336,18 @@
           "name": "REPORT",
           "item": [
             {
+              "name": "New Request",
+              "id": "7269c755-49f1-46bd-8a1f-bd12f07f091a",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
               "name": "SUBJECT CREATE",
               "event": [
                 {
@@ -4580,18 +4592,6 @@
                     }
                   ]
                 }
-              },
-              "response": []
-            },
-            {
-              "name": "New Request",
-              "id": "7269c755-49f1-46bd-8a1f-bd12f07f091a",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
               },
               "response": []
             }
