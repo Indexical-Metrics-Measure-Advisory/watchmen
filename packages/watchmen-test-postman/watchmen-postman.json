@@ -6149,6 +6149,23 @@
           "item": [
             {
               "name": "SPACE CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "b3217b21-d49e-475a-abf4-24f55653f562",
+                    "exec": [
+                      "pm.test('Create Space', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.environment.set('SPACE_ID', data.spaceId);",
+                      "    pm.environment.set('SPACE_NAME', data.name);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "2c68e307-3bd9-48da-8acf-23fe0412e3e0",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
