@@ -4900,6 +4900,23 @@
           "item": [
             {
               "name": "REPORT CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "c618e303-b00c-4319-9507-3e86b2ae7e2c",
+                    "exec": [
+                      "pm.test('Create Report', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.environment.set(\"REPORT_ID\", data.reportId);",
+                      "    pm.environment.set(\"REPORT_NAME\", data.name);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "0dbbd08c-c397-4678-9117-adcaccb3898e",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
