@@ -6253,18 +6253,6 @@
               "response": []
             },
             {
-              "name": "New Request",
-              "id": "9b346507-7cc9-43c8-a948-55b154366fe1",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
-              },
-              "response": []
-            },
-            {
               "name": "SPACE GRAPHIC CREATE",
               "event": [
                 {
@@ -6385,6 +6373,18 @@
                     }
                   ]
                 }
+              },
+              "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "9b346507-7cc9-43c8-a948-55b154366fe1",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
               },
               "response": []
             }
