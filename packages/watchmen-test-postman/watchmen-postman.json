@@ -5194,6 +5194,12 @@
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
                 "header": [],
                 "url": {
@@ -5208,13 +5214,11 @@
                   "query": [
                     {
                       "key": "dashboard_id",
-                      "value": "{{DASHBOARD_ID}}",
-                      "type": "text"
+                      "value": "{{DASHBOARD_ID}}"
                     },
                     {
                       "key": "token",
-                      "value": "{{JWT_TOKEN}}",
-                      "type": "text"
+                      "value": "{{JWT_TOKEN}}"
                     }
                   ]
                 }
