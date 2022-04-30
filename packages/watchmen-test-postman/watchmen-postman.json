@@ -5424,13 +5424,51 @@
             },
             {
               "name": "REPORT DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "6d6165bd-8aa1-428b-9023-2702c447613b",
+                    "exec": [
+                      "pm.test('Delete Report', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.environment.unset(\"REPORT_ID\");",
+                      "    pm.environment.unset(\"REPORT_NAME\");",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "7922da88-4259-49ef-8889-24e8f8a71ab7",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/report/delete?report_id={{REPORT_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "report",
+                    "delete"
+                  ],
+                  "query": [
+                    {
+                      "key": "report_id",
+                      "value": "{{REPORT_ID}}"
+                    }
+                  ]
+                }
               },
               "response": []
             },
