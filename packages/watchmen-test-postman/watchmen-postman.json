@@ -3947,7 +3947,7 @@
                 "header": [],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    {{PIPELINE_MONITOR_TOPIC}}\n}",
+                  "raw": "{{PIPELINE_MONITOR_TOPIC}}\n",
                   "options": {
                     "raw": {
                       "language": "json"
