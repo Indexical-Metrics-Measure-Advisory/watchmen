@@ -3917,6 +3917,20 @@
             },
             {
               "name": "TOPIC UPDATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "480f2051-3596-4bce-b8cb-ecfaf03347fe",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "6ea9524d-7197-4f88-a6b8-1e3681addafa",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
