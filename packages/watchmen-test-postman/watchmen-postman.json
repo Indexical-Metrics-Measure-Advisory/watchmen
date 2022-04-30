@@ -4899,6 +4899,18 @@
           "name": "DASHBOARD",
           "item": [
             {
+              "name": "New Request",
+              "id": "0dbbd08c-c397-4678-9117-adcaccb3898e",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
               "name": "DASHBOARD CREATE",
               "id": "b19d3f2d-3a6b-4af6-8337-f85ba4e33de6",
               "protocolProfileBehavior": {
@@ -5161,18 +5173,6 @@
                     }
                   ]
                 }
-              },
-              "response": []
-            },
-            {
-              "name": "New Request",
-              "id": "0dbbd08c-c397-4678-9117-adcaccb3898e",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
               },
               "response": []
             }
