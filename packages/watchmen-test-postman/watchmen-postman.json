@@ -5977,6 +5977,18 @@
               "response": []
             },
             {
+              "name": "CONNECTED SPACE CREATE",
+              "id": "6944c70e-8374-426a-9c8d-1ccd032d4cae",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
               "name": "CONNECTED SPACE DELETE BY SUPER ADMIN",
               "event": [
                 {
@@ -6025,18 +6037,6 @@
                     }
                   ]
                 }
-              },
-              "response": []
-            },
-            {
-              "name": "New Request",
-              "id": "6944c70e-8374-426a-9c8d-1ccd032d4cae",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
               },
               "response": []
             }
