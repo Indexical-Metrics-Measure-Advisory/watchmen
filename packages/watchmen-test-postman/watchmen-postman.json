@@ -4376,7 +4376,7 @@
                     }
                   }
                 },
-                "url": "{{URL_PREFIX}}/subject"
+                "url": "{{URL_PREFIX}}/space"
               },
               "response": []
             },
