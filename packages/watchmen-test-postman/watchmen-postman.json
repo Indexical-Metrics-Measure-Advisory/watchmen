@@ -3861,6 +3861,32 @@
             },
             {
               "name": "TOPIC FIND BY NAME",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "5d8df52d-7311-4d7d-aec3-e182f6d22048",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {",
+                      "    pm.response.to.have.status(200);",
+                      "    var jsonData = pm.response.json()[0];",
+                      "    pm.environment.set(\"PIPELINE_MONITOR_TOPIC_ID\", jsonData.topicId);",
+                      "});",
+                      "pm.test(\"Body is correct\", function () {",
+                      "    pm.response.to.have.body(\"response_body_string\");",
+                      "});",
+                      "pm.test(\"Body is correct\", function () {",
+                      "    pm.response.to.have.body(\"response_body_string\");",
+                      "});",
+                      "pm.test(\"Your test name\", function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.value).to.eql(100);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "fbf1bbfb-b703-4439-afad-6bb7cd4145cf",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
@@ -3875,7 +3901,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{URL_PREFIX}}/topic/list/name?query_name=test&exclude_types=",
+                  "raw": "{{URL_PREFIX}}/topic/list/name?query_name=raw_pipeline_monitor_log&exclude_types=",
                   "host": [
                     "{{URL_PREFIX}}"
                   ],
@@ -3887,7 +3913,7 @@
                   "query": [
                     {
                       "key": "query_name",
-                      "value": "test"
+                      "value": "raw_pipeline_monitor_log"
                     },
                     {
                       "key": "exclude_types",
