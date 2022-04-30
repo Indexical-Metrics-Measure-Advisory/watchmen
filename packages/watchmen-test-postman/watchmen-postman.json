@@ -6148,6 +6148,18 @@
           "name": "CONNECTED SPACE GRAPHIC",
           "item": [
             {
+              "name": "New Request",
+              "id": "39986207-f974-48b9-bffb-2967a4e65f6e",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
               "name": "SPACE GRAPHIC CREATE",
               "event": [
                 {
@@ -6268,18 +6280,6 @@
                     }
                   ]
                 }
-              },
-              "response": []
-            },
-            {
-              "name": "New Request",
-              "id": "39986207-f974-48b9-bffb-2967a4e65f6e",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
               },
               "response": []
             }
