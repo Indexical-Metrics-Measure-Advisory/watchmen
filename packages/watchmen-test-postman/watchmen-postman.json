@@ -5399,7 +5399,7 @@
                 "auth": {
                   "type": "bearer",
                   "bearer": {
-                    "token": "{{JWT_TOKEN}}"
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
                   }
                 },
                 "method": "DELETE",
@@ -5415,8 +5415,7 @@
                   "query": [
                     {
                       "key": "dashboard_id",
-                      "value": "{{DASHBOARD_ID}}",
-                      "type": "text"
+                      "value": "{{DASHBOARD_ID}}"
                     }
                   ]
                 }
