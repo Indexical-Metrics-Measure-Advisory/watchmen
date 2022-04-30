@@ -6476,8 +6476,30 @@
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/connected_space/delete?connect_id={{CONNECT_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "connected_space",
+                    "delete"
+                  ],
+                  "query": [
+                    {
+                      "key": "connect_id",
+                      "value": "{{CONNECT_ID}}"
+                    }
+                  ]
+                }
               },
               "response": []
             }
