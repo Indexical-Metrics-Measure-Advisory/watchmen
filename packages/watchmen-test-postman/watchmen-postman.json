@@ -5331,13 +5331,45 @@
             },
             {
               "name": "DASHBOARD CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "6e8e2a92-405b-4b76-b637-3732250477d3",
+                    "exec": [
+                      "pm.test('Create Dashboard', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.environment.set(\"DASHBOARD_ID\", data.dashboardId);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "16c3161a-0da0-4ca9-91c9-b8242211f3ee",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "POST",
-                "header": []
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Test_Dashboard\",\n  \"reports\": [\n    {\n      \"rect\": {\n        \"x\": 29,\n        \"y\": 28,\n        \"width\": 751,\n        \"height\": 640\n      },\n      \"reportId\": \"{{REPORT_ID}}\"\n    },\n    {\n      \"rect\": {\n        \"x\": 799,\n        \"y\": 10,\n        \"width\": 781,\n        \"height\": 335\n      },\n      \"reportId\": \"{{REPORT_ID}}\"\n    },\n    {\n      \"rect\": {\n        \"x\": 876,\n        \"y\": 312,\n        \"width\": 497,\n        \"height\": 394\n      },\n      \"reportId\": \"{{REPORT_ID}}\"\n    }\n  ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/dashboard"
               },
               "response": []
             },
