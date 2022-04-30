@@ -4336,6 +4336,18 @@
           "name": "REPORT",
           "item": [
             {
+              "name": "SUBJECT CREATE",
+              "id": "1d0a4831-191b-4b76-b3f5-44ba7418020d",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
               "name": "REPORT CREATE",
               "event": [
                 {
@@ -4535,18 +4547,6 @@
                     }
                   ]
                 }
-              },
-              "response": []
-            },
-            {
-              "name": "SUBJECT CREATE",
-              "id": "1d0a4831-191b-4b76-b3f5-44ba7418020d",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
               },
               "response": []
             }
