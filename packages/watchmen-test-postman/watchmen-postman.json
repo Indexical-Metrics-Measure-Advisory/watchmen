@@ -6396,7 +6396,7 @@
                 "auth": {
                   "type": "bearer",
                   "bearer": {
-                    "token": "{{JWT_TOKEN}}"
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
                   }
                 },
                 "method": "DELETE",
@@ -6413,8 +6413,7 @@
                   "query": [
                     {
                       "key": "connect_id",
-                      "value": "{{CONNECT_ID}}",
-                      "type": "text"
+                      "value": "{{CONNECT_ID}}"
                     }
                   ]
                 }
