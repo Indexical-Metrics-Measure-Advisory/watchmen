@@ -4899,7 +4899,7 @@
           "name": "DASHBOARD",
           "item": [
             {
-              "name": "New Request",
+              "name": "CONNECTED SPACE CREATE",
               "id": "a3c688ed-1e55-4634-8f9c-4e1ed176a793",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
