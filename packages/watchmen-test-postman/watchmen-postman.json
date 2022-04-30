@@ -4784,6 +4784,23 @@
             },
             {
               "name": "CONNECTED SPACE DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "a12ef8fb-2c39-4c97-a511-0d846272425b",
+                    "exec": [
+                      "pm.test(\"Delete Connected Space\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.environment.unset('CONNECT_ID');",
+                      "    pm.environment.unset('CONNECTED_SPACE_ID');",
+                      "    pm.environment.unset('CONNECTED_SPACE_NAME');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "fa9400e8-06d8-45db-b812-664a173e0cfc",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
