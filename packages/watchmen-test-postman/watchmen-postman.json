@@ -5423,7 +5423,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "REPORT DELETE",
               "id": "7922da88-4259-49ef-8889-24e8f8a71ab7",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
