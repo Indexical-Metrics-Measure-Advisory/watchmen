@@ -3917,7 +3917,7 @@
               "response": []
             },
             {
-              "name": "TOPIC UPDATE",
+              "name": "TOPIC PIPELINE MONITOR UPDATE",
               "event": [
                 {
                   "listen": "test",
