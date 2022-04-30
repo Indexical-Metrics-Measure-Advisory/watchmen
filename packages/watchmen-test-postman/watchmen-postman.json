@@ -4735,13 +4735,44 @@
             },
             {
               "name": "SUBJECT DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "13efab79-81af-4982-9bfa-eda8014523ca",
+                    "exec": [
+                      "pm.test('Delete Subject By Super Admin', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.environment.unset(\"SUBJECT_ID\");",
+                      "    pm.environment.unset(\"SUBJECT_NAME\");",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "8430ceb5-fd8f-464a-b6eb-3080fb866cac",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/subject?subject_id={{SUBJECT_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "subject"
+                  ],
+                  "query": [
+                    {
+                      "key": "subject_id",
+                      "value": "{{SUBJECT_ID}}"
+                    }
+                  ]
+                }
               },
               "response": []
             },
@@ -4758,7 +4789,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "SPACE DELETE",
               "id": "ff0689b5-a519-4371-8d9a-9ff046a38a59",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
