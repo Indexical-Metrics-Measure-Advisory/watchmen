@@ -6148,6 +6148,18 @@
           "name": "CONNECTED SPACE GRAPHIC",
           "item": [
             {
+              "name": "New Request",
+              "id": "2c68e307-3bd9-48da-8acf-23fe0412e3e0",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
               "name": "CONNECTED SPACE CREATE",
               "id": "39986207-f974-48b9-bffb-2967a4e65f6e",
               "protocolProfileBehavior": {
@@ -6280,18 +6292,6 @@
                     }
                   ]
                 }
-              },
-              "response": []
-            },
-            {
-              "name": "New Request",
-              "id": "2c68e307-3bd9-48da-8acf-23fe0412e3e0",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
               },
               "response": []
             }
