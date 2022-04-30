@@ -5095,6 +5095,22 @@
             },
             {
               "name": "DASHBOARD CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "2dde5a07-dc0d-47a9-aec1-b56235f5bc4a",
+                    "exec": [
+                      "pm.test('Create Dashboard', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.environment.set(\"DASHBOARD_ID\", data.dashboardId);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "b19d3f2d-3a6b-4af6-8337-f85ba4e33de6",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
