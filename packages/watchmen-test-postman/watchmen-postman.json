@@ -3916,7 +3916,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "TOPIC UPDATE",
               "id": "6ea9524d-7197-4f88-a6b8-1e3681addafa",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
