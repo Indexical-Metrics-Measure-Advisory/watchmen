@@ -6148,7 +6148,7 @@
           "name": "CONNECTED SPACE GRAPHIC",
           "item": [
             {
-              "name": "New Request",
+              "name": "CONNECTED SPACE CREATE",
               "id": "39986207-f974-48b9-bffb-2967a4e65f6e",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
