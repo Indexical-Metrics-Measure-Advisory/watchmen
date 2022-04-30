@@ -7012,6 +7012,50 @@
                     "url": "{{URL_PREFIX}}/topic"
                   },
                   "response": []
+                },
+                {
+                  "name": "CREATE PIPELINE MONITOR LOG TOPIC Copy 2",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "3adcc4f4-2c3a-4ec7-9a81-179b17a78631",
+                        "exec": [
+                          "pm.test(\"Create Pipeline Monitor Log Topic\", () => {",
+                          "    pm.response.to.have.status(200);",
+                          "    var data = pm.response.json();",
+                          "    pm.environment.set('MONITOR_TOPIC_ID', data.topicId)",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
+                  "id": "5f9220e9-37a2-4b6f-b8ba-12c4252fb894",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "POST",
+                    "header": [],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n    \"name\": \"raw_pipeline_monitor_log\",\n    \"type\": \"raw\",\n    \"kind\": \"system\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [],\n    \"description\": \"Pipeline Monitor Log Raw Topic\"\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": "{{URL_PREFIX}}/topic"
+                  },
+                  "response": []
                 }
               ],
               "id": "79b24909-0895-47e2-8733-6c9275f5140b"
