@@ -4336,7 +4336,7 @@
           "name": "REPORT",
           "item": [
             {
-              "name": "New Request",
+              "name": "CONNECTED SPACE CREATE",
               "id": "7269c755-49f1-46bd-8a1f-bd12f07f091a",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
