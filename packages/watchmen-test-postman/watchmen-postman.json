@@ -3870,7 +3870,8 @@
                       "pm.test(\"Status code is 200\", function () {",
                       "    pm.response.to.have.status(200);",
                       "    var jsonData = pm.response.json()[0];",
-                      "    pm.environment.set(\"PIPELINE_MONITOR_TOPIC_ID\", jsonData.topicId);",
+                      "    jsonData.dataSourceId = pm.environment.get(\"DATA_SOURCE_ID\");",
+                      "    pm.environment.set(\"PIPELINE_MONITOR_TOPIC\", jsonData);",
                       "});",
                       ""
                     ],
