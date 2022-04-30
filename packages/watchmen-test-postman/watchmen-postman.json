@@ -5447,7 +5447,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "CONNECTED SPACE DELETE",
               "id": "58384dbc-dfc2-437d-9afb-68f888478369",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
