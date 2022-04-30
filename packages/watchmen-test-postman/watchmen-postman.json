@@ -5986,7 +5986,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{URL_PREFIX}}/connected_space/connect?space_id={{SPACE_ID}}&name={{SPACE_NAME}}&template_ids=",
+                  "raw": "{{URL_PREFIX}}/connected_space/connect?space_id={{SPACE_ID}}&name={{SPACE_NAME}}&template_ids=t1",
                   "host": [
                     "{{URL_PREFIX}}"
                   ],
@@ -6005,7 +6005,7 @@
                     },
                     {
                       "key": "template_ids",
-                      "value": ""
+                      "value": "t1"
                     }
                   ]
                 }
