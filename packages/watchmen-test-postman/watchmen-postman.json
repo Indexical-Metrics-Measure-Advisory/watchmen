@@ -3860,7 +3860,7 @@
               "response": []
             },
             {
-              "name": "TOPIC FIND PAGE",
+              "name": "TOPIC FIND BY NAME",
               "id": "fbf1bbfb-b703-4439-afad-6bb7cd4145cf",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
