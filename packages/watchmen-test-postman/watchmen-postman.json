@@ -6970,12 +6970,12 @@
                   "response": []
                 },
                 {
-                  "name": "CREATE PIPELINE MONITOR LOG TOPIC Copy",
+                  "name": "CREATE PIPELINE MONITOR LOG TOPIC Copy 2",
                   "event": [
                     {
                       "listen": "test",
                       "script": {
-                        "id": "994a34af-f0ae-421d-9b53-491565b2a203",
+                        "id": "3adcc4f4-2c3a-4ec7-9a81-179b17a78631",
                         "exec": [
                           "pm.test(\"Create Pipeline Monitor Log Topic\", () => {",
                           "    pm.response.to.have.status(200);",
@@ -6987,7 +6987,7 @@
                       }
                     }
                   ],
-                  "id": "c39fcd3c-d2cc-4499-bed1-5f0e09466b13",
+                  "id": "5f9220e9-37a2-4b6f-b8ba-12c4252fb894",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
@@ -7014,12 +7014,12 @@
                   "response": []
                 },
                 {
-                  "name": "CREATE PIPELINE MONITOR LOG TOPIC Copy 2",
+                  "name": "CREATE PIPELINE MONITOR LOG TOPIC Copy",
                   "event": [
                     {
                       "listen": "test",
                       "script": {
-                        "id": "3adcc4f4-2c3a-4ec7-9a81-179b17a78631",
+                        "id": "994a34af-f0ae-421d-9b53-491565b2a203",
                         "exec": [
                           "pm.test(\"Create Pipeline Monitor Log Topic\", () => {",
                           "    pm.response.to.have.status(200);",
@@ -7031,7 +7031,7 @@
                       }
                     }
                   ],
-                  "id": "5f9220e9-37a2-4b6f-b8ba-12c4252fb894",
+                  "id": "c39fcd3c-d2cc-4499-bed1-5f0e09466b13",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
