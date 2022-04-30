@@ -5632,6 +5632,18 @@
           "name": "CONNECTED SPACE",
           "item": [
             {
+              "name": "SPACE CREATE",
+              "id": "5fe4c979-809f-4259-9d5e-8c96f6f1e077",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
               "name": "CONNECTED SPACE CREATE",
               "event": [
                 {
@@ -5980,18 +5992,6 @@
                     }
                   ]
                 }
-              },
-              "response": []
-            },
-            {
-              "name": "New Request",
-              "id": "5fe4c979-809f-4259-9d5e-8c96f6f1e077",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
               },
               "response": []
             }
