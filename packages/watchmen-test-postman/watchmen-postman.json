@@ -6522,6 +6522,26 @@
             },
             {
               "name": "SPACE DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "70bc24e5-df24-4962-af2a-4ae07c92f03e",
+                    "exec": [
+                      "pm.test('Delete Space', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    const space_id = pm.environment.get(\"SPACE_ID\");",
+                      "    pm.expect(data.spaceId).to.equal(space_id);",
+                      "    pm.environment.unset('SPACE_ID');",
+                      "",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "4007711e-7fce-4837-8225-3cb90a539a62",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
