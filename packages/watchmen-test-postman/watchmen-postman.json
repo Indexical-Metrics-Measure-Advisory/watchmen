@@ -3871,7 +3871,7 @@
                       "    pm.response.to.have.status(200);",
                       "    var jsonData = pm.response.json()[0];",
                       "    jsonData.dataSourceId = pm.environment.get(\"DATA_SOURCE_ID\");",
-                      "    pm.environment.set(\"PIPELINE_MONITOR_TOPIC\", jsonData);",
+                      "    pm.environment.set(\"PIPELINE_MONITOR_TOPIC\", JSON.stringify(jsonData));",
                       "});",
                       ""
                     ],
