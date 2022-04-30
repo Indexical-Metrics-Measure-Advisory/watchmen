@@ -4646,7 +4646,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "REPORT CREATE",
               "id": "5e80b842-7895-40a1-b965-a04f930213e5",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
