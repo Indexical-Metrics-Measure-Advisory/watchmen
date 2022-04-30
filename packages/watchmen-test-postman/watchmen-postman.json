@@ -5474,6 +5474,22 @@
             },
             {
               "name": "SUBJECT DELETE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "c1b75f52-b0ca-49de-bb6d-6c6d7a7afb7f",
+                    "exec": [
+                      "pm.test('Delete Subject By Super Admin', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.environment.unset(\"SUBJECT_ID\");",
+                      "    pm.environment.unset(\"SUBJECT_NAME\");",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "b4de330e-413a-45eb-b1a8-8cf7979956ce",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
