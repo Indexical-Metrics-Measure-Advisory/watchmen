@@ -4945,13 +4945,61 @@
             },
             {
               "name": "CONNECTED SPACE CREATE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "0ee0ce18-d69b-4998-83d0-0264e412bfa9",
+                    "exec": [
+                      "pm.test('Create Connected Space', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.environment.set('CONNECT_ID', data.connectId);",
+                      "    pm.environment.set('CONNECTED_SPACE_ID', data.spaceId);",
+                      "    pm.environment.set('CONNECTED_SPACE_NAME', data.name);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "a3c688ed-1e55-4634-8f9c-4e1ed176a793",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/connected_space/connect?space_id={{SPACE_ID}}&name={{SPACE_NAME}}&template_ids=",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "connected_space",
+                    "connect"
+                  ],
+                  "query": [
+                    {
+                      "key": "space_id",
+                      "value": "{{SPACE_ID}}"
+                    },
+                    {
+                      "key": "name",
+                      "value": "{{SPACE_NAME}}"
+                    },
+                    {
+                      "key": "template_ids",
+                      "value": ""
+                    }
+                  ]
+                }
               },
               "response": []
             },
