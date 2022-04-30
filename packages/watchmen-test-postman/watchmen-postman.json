@@ -4899,7 +4899,7 @@
           "name": "DASHBOARD",
           "item": [
             {
-              "name": "New Request",
+              "name": "SPACE CREATE",
               "id": "5d58cdf1-8da6-4734-8a34-47adfd08380f",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
