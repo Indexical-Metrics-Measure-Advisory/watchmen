@@ -800,6 +800,8 @@
                     "exec": [
                       "pm.test('Delete external writer', () => {",
                       "    pm.response.to.have.status(200);",
+                      "    pm.environment.unset('EXTERNAL_WRITER_ID');",
+                      "    pm.environment.unset('EXTERNAL_WRITER_VERSION');",
                       "})"
                     ],
                     "type": "text/javascript"
