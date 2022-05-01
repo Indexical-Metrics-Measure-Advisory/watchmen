@@ -13040,6 +13040,20 @@
                 },
                 {
                   "name": "IMPORT RAW",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "32ff471d-1591-4eff-9d37-12d9c47c8f53",
+                        "exec": [
+                          "pm.test(\"Status code is 200\", function () {",
+                          "    pm.response.to.have.status(200);",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "14beb1b8-ecbd-4ad1-bdda-3bb14eefbf4d",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
