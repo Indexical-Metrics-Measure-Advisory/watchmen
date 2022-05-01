@@ -12553,6 +12553,18 @@
                   "name": "STORAGE",
                   "item": [
                     {
+                      "name": "New Request",
+                      "id": "a4634246-01d0-40ed-8c3a-1f7c337bd2b8",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
+                    },
+                    {
                       "name": "CREATE TOPIC",
                       "event": [
                         {
@@ -12786,18 +12798,6 @@
                             }
                           ]
                         }
-                      },
-                      "response": []
-                    },
-                    {
-                      "name": "New Request",
-                      "id": "a4634246-01d0-40ed-8c3a-1f7c337bd2b8",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "method": "GET",
-                        "header": []
                       },
                       "response": []
                     }
