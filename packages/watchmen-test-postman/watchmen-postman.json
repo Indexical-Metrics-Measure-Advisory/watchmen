@@ -12357,6 +12357,22 @@
                     },
                     {
                       "name": "CONSTANT FUNCTION",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "ee600490-469e-4fb8-9875-fa5d3bc20767",
+                            "exec": [
+                              "pm.test(\"Create Pipeline For Function\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "    const data = pm.response.json();",
+                              "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId);",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "d05728ef-f6fe-4bf5-8613-10838062e41a",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
