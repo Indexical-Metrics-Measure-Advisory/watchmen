@@ -602,6 +602,8 @@ def create_datetime_func(
 		value = parameter.value(variables, principal_service)
 		if value is None:
 			return None
+		if isinstance(value, date):
+			return func(value)
 		parsed, dt_value = is_date(value, ask_all_date_formats())
 		if not parsed:
 			raise DataKernelException(f'Cannot parse value[{value}] to datetime.')

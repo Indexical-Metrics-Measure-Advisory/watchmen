@@ -625,7 +625,9 @@ class ParsedStorageComputedParameter(ParsedStorageParameter):
 		def try_to_date_type(value: Any) -> Any:
 			if value is None:
 				return None
-			if isinstance(value, (date, str)):
+			if isinstance(value, date):
+				return value
+			if isinstance(value, str):
 				parsed, dt_value = is_date(value, ask_all_date_formats())
 				return dt_value if parsed else value
 			else:
