@@ -10907,11 +10907,33 @@
                     },
                     {
                       "name": "DELETE PIPELINE",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "5b3bab66-0cda-4467-84e3-6b318aa1c807",
+                            "exec": [
+                              "pm.test('Delete Pipeline', () => {",
+                              "    pm.response.to.have.status(200);",
+                              "    pm.environment.unset(\"PIPELINE_ID\");",
+                              "})",
+                              ""
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "19634d1a-540c-4a2a-9f56-2a0b75e68f6b",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
                       },
                       "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                          }
+                        },
                         "method": "DELETE",
                         "header": [],
                         "url": {
