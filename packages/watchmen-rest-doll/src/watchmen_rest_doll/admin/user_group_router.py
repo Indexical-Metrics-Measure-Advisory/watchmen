@@ -142,7 +142,7 @@ def remove_user_group_from_spaces(
 		user_group_service: UserGroupService, user_group_id: UserGroupId, space_ids: List[SpaceId], tenant_id: TenantId
 ) -> None:
 	remove_user_group_from_holders(
-		get_user_service(user_group_service), user_group_id, space_ids, tenant_id, 'Space')
+		get_space_service(user_group_service), user_group_id, space_ids, tenant_id, 'Space')
 
 
 class SyncUserGroupChangeWithIndicator:
