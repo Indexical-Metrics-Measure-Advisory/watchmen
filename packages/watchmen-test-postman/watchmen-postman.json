@@ -10414,6 +10414,7 @@
                             "exec": [
                               "pm.test(\"Delete Row\", () => {\r",
                               "    pm.response.to.have.status(200);\r",
+                              "    const data = pm.response.json();\r",
                               "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId)\r",
                               "});"
                             ],
