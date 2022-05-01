@@ -10527,13 +10527,50 @@
                     },
                     {
                       "name": "TRUNCATE RAW TOPIC",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "d9aec1bb-781a-4bdb-a5cc-01dd8c38bba1",
+                            "exec": [
+                              "pm.test(\"Truncate Raw Topic\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "cf4d5b9c-112a-42d1-89d1-0ac007250ff9",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
                       },
                       "request": {
-                        "method": "GET",
-                        "header": []
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                          "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{RAW_TOPIC_NAME}}",
+                          "host": [
+                            "{{URL_PREFIX}}"
+                          ],
+                          "path": [
+                            "topic",
+                            "data",
+                            "truncate"
+                          ],
+                          "query": [
+                            {
+                              "key": "topic_name",
+                              "value": "{{RAW_TOPIC_NAME}}"
+                            }
+                          ]
+                        }
                       },
                       "response": []
                     }
