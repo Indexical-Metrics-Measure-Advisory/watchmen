@@ -28,7 +28,7 @@ def create_datetime(name: str, nullable: bool = True) -> Column:
 	return Column(name, Date, nullable=nullable)
 
 
-def create_json(name: str, nullable: bool = False) -> Column:
+def create_json(name: str, nullable: bool = True) -> Column:
 	return Column(name, JSON, nullable=nullable)
 
 
