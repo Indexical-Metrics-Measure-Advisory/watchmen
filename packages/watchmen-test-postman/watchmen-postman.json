@@ -11844,18 +11844,6 @@
                         "header": []
                       },
                       "response": []
-                    },
-                    {
-                      "name": "New Request",
-                      "id": "8876f3e8-8045-4f85-901e-83e39100e090",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "method": "GET",
-                        "header": []
-                      },
-                      "response": []
                     }
                   ],
                   "id": "bd695f90-6f98-40a0-9428-0a4cc5f8754d"
