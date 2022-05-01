@@ -23,10 +23,10 @@ class Configuration:
 	def url(self, url: str) -> Configuration:
 		"""
 		url should include account information, like:
-		1. oracle://username:password@host:port/?sid=your_sid
-		2. oracle+cx_oracle://username:password@host:port/?sid=your_sid
-		3. oracle://username:password@host:port/?service_name=your_service_name
-		4. oracle+cx_oracle://username:password@host:port/?service_name=your_service_name
+		1. mssql://username:password@dsn
+		2. mssql+pyodbc://username:password@dsn
+		1. mssql://username:password@host:port/name?driver=ODBC+Driver+17+for+SQL+Server
+		2. mssql+pyodbc://username:password@host:port/name?driver=ODBC+Driver+17+for+SQL+Server
 		"""
 		self.dataSource.url = url
 		return self
