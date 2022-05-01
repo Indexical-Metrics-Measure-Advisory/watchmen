@@ -12143,6 +12143,18 @@
                         "header": []
                       },
                       "response": []
+                    },
+                    {
+                      "name": "New Request",
+                      "id": "bbf935dd-cb70-4300-8606-e5e7926ec926",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
                     }
                   ],
                   "id": "988e6778-7ca1-4f6f-90f2-97d10ea3e435"
