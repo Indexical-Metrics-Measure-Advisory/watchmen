@@ -148,6 +148,8 @@ def get_date_from_variables(
 		variables: PipelineVariables, principal_service: PrincipalService, variable_name: str
 ) -> Tuple[bool, Any, date]:
 	value = get_value_from(variable_name, variable_name.strip().split('.'), create_get_value_from_variables(variables))
+	if isinstance(value, date):
+		return True, value, value
 	parsed, parsed_date = is_date(value, ask_all_date_formats())
 	return parsed, value, parsed_date
 
