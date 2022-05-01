@@ -11767,6 +11767,22 @@
                     },
                     {
                       "name": "DATE FUNCTION",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "6805d21a-b60e-411b-b33b-148446dfd64f",
+                            "exec": [
+                              "pm.test(\"Create Pipeline For Function\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "    const data = pm.response.json();",
+                              "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId);",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "56d85332-44b7-4037-95ae-f51a9f7b36ff",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
