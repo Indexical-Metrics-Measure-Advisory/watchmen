@@ -11358,6 +11358,7 @@
                               "    pm.expect(data.name).to.equal(topic_name);",
                               "    pm.environment.unset(\"TOPIC_ID\");",
                               "    pm.environment.unset(\"TOPIC_NAME\");",
+                              "    pm.environment.unset(\"TOPIC_VERSION\");",
                               "});",
                               ""
                             ],
