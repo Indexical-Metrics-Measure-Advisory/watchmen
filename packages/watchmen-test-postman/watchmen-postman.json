@@ -12554,6 +12554,20 @@
                   "item": [
                     {
                       "name": "PATCH READ TOPIC",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "37c4941f-463f-44ad-97d6-53c125df815d",
+                            "exec": [
+                              "pm.test(\"Status code is 200\", function () {",
+                              "    pm.response.to.have.status(200);",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "a4634246-01d0-40ed-8c3a-1f7c337bd2b8",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
