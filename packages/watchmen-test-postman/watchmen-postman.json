@@ -11518,6 +11518,22 @@
                     },
                     {
                       "name": "MATH FUNCATION",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "b21b7b87-6c1e-4a72-a4c0-588faf64a69f",
+                            "exec": [
+                              "pm.test(\"Create Pipeline For Function\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "    const data = pm.response.json();",
+                              "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId);",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "e4728b01-79fb-483f-93dd-dcc1ed62debb",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
