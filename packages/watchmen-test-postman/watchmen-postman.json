@@ -13055,7 +13055,7 @@
                     "header": [],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\r\n    \"code\": \"Test_Raw_Topic\",\r\n    \"data\": {\r\n        \"propA\": \"text2\",\r\n        \"propB\": 200,\r\n        \"propC\": true,\r\n        \"propD\": \"2022-03-24\",\r\n        \"propE\": \"2022-03-24 22:39:45\"\r\n    }\r\n}",
+                      "raw": "{\r\n    \"code\": \"{{RAW_TOPIC_NAME}}\",\r\n    \"data\": {\r\n        \"propA\": \"text2\",\r\n        \"propB\": 200,\r\n        \"propC\": true,\r\n        \"propD\": \"2022-03-24\",\r\n        \"propE\": \"2022-03-24 22:39:45\"\r\n    }\r\n}",
                       "options": {
                         "raw": {
                           "language": "json"
@@ -13063,6 +13063,125 @@
                       }
                     },
                     "url": "{{URL_PREFIX}}/pipeline/data"
+                  },
+                  "response": []
+                },
+                {
+                  "name": "DELETE PIPELINE",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "6a480a59-28fa-4535-9eec-b9ce742c7db4",
+                        "exec": [
+                          "pm.test('Delete Pipeline', () => {",
+                          "    pm.response.to.have.status(200);",
+                          "    pm.environment.unset(\"PIPELINE_ID\");",
+                          "})",
+                          ""
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
+                  "id": "badc240b-28fe-4daf-89e3-365326737914",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "DELETE",
+                    "header": [],
+                    "url": {
+                      "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
+                      "host": [
+                        "{{URL_PREFIX}}"
+                      ],
+                      "path": [
+                        "pipeline"
+                      ],
+                      "query": [
+                        {
+                          "key": "pipeline_id",
+                          "value": "{{PIPELINE_ID}}"
+                        }
+                      ]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "TRUCATE TOPIC",
+                  "id": "7230ee6f-56d4-441f-be78-e91d289b4df3",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "DELETE",
+                    "header": [],
+                    "url": {
+                      "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{TOPIC_NAME}}",
+                      "host": [
+                        "{{URL_PREFIX}}"
+                      ],
+                      "path": [
+                        "topic",
+                        "data",
+                        "truncate"
+                      ],
+                      "query": [
+                        {
+                          "key": "topic_name",
+                          "value": "{{TOPIC_NAME}}"
+                        }
+                      ]
+                    }
+                  },
+                  "response": []
+                },
+                {
+                  "name": "TRUNCATE RAW TOPIC",
+                  "id": "4454268b-f3a5-4087-b834-8433974821ec",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "DELETE",
+                    "header": [],
+                    "url": {
+                      "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{RAW_TOPIC_NAME}}",
+                      "host": [
+                        "{{URL_PREFIX}}"
+                      ],
+                      "path": [
+                        "topic",
+                        "data",
+                        "truncate"
+                      ],
+                      "query": [
+                        {
+                          "key": "topic_name",
+                          "value": "{{RAW_TOPIC_NAME}}"
+                        }
+                      ]
+                    }
                   },
                   "response": []
                 }
