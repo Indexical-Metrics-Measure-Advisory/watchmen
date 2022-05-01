@@ -12625,7 +12625,7 @@
                         "disableBodyPruning": true
                       },
                       "request": {
-                        "method": "GET",
+                        "method": "PATCH",
                         "header": []
                       },
                       "response": []
