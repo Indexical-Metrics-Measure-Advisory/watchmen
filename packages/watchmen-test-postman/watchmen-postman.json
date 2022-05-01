@@ -12666,13 +12666,50 @@
                     },
                     {
                       "name": "DELETE PIPELINE",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "942e0ded-4466-4f1e-b148-15d2def84c81",
+                            "exec": [
+                              "pm.test('Delete Pipeline', () => {",
+                              "    pm.response.to.have.status(200);",
+                              "    pm.environment.unset(\"PIPELINE_ID\");",
+                              "})",
+                              ""
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "875eeeb7-c2fb-49dd-a12c-eb97c1248106",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
                       },
                       "request": {
-                        "method": "GET",
-                        "header": []
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                          "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
+                          "host": [
+                            "{{URL_PREFIX}}"
+                          ],
+                          "path": [
+                            "pipeline"
+                          ],
+                          "query": [
+                            {
+                              "key": "pipeline_id",
+                              "value": "{{PIPELINE_ID}}"
+                            }
+                          ]
+                        }
                       },
                       "response": []
                     },
