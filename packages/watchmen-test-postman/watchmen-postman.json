@@ -9366,6 +9366,20 @@
                 },
                 {
                   "name": "INSERT RAW 2",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "a7269007-2eb7-402c-a274-1e256edf4d21",
+                        "exec": [
+                          "pm.test(\"Insert Raw 2\", () => {",
+                          "    pm.response.to.have.status(200);",
+                          "});"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "897848f8-8eb0-4546-93e7-ac898fcd1e61",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
