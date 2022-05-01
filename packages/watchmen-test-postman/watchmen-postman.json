@@ -10584,6 +10584,7 @@
                             "exec": [
                               "pm.test('Delete Pipeline', () => {",
                               "    pm.response.to.have.status(200);",
+                              "    const data = pm.response.json();",
                               "    pm.environment.unset(\"PIPELINE_ID\");",
                               "})",
                               ""
