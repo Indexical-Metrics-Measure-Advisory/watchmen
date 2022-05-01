@@ -13067,7 +13067,7 @@
                   "response": []
                 },
                 {
-                  "name": "New Request",
+                  "name": "DELETE PIPELINE",
                   "id": "badc240b-28fe-4daf-89e3-365326737914",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
