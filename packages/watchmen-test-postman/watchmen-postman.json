@@ -10737,6 +10737,22 @@
                     },
                     {
                       "name": "DELETE ROWS",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "a53fc481-e81d-44ed-b251-d5d16438ebe9",
+                            "exec": [
+                              "pm.test(\"Delete Rows\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "    const data = pm.response.json();",
+                              "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId)",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "6f776e78-beff-479d-b335-9cdd4067a84b",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
