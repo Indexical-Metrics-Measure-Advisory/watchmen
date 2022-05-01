@@ -11340,6 +11340,18 @@
                         }
                       },
                       "response": []
+                    },
+                    {
+                      "name": "New Request",
+                      "id": "4ebf2444-ccb9-4e96-b7ac-c3695765c2b5",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
                     }
                   ],
                   "id": "2e2aefc7-fe16-4a29-80a8-ecb024d103c2"
