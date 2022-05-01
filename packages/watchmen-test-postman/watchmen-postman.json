@@ -9379,6 +9379,15 @@
                     },
                     "method": "POST",
                     "header": [],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n    \"code\": \"{{RAW_TOPIC_NAME}}\",\n    \"data\": {\n        \"propA\": \"text2\",\n        \"propB\": 100,\n        \"propC\": true,\n        \"propD\": \"2022-03-22\",\n        \"propE\": \"2022-03-22 22:39:45\"\n    }\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
                     "url": "{{URL_PREFIX}}/pipeline/data"
                   },
                   "response": []
