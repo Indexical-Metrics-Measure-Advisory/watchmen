@@ -11163,50 +11163,6 @@
                     "url": "{{URL_PREFIX}}/topic"
                   },
                   "response": []
-                },
-                {
-                  "name": "CREATE PIPELINE MONITOR LOG TOPIC",
-                  "event": [
-                    {
-                      "listen": "test",
-                      "script": {
-                        "id": "e3f11e36-d807-41ec-bbbb-af1d45e4fea4",
-                        "exec": [
-                          "pm.test(\"Create Monitor Topic\", () => {",
-                          "    pm.response.to.have.status(200);",
-                          "    var data = pm.response.json();",
-                          "    pm.environment.set('MONITOR_TOPIC_ID', data.topicId)",
-                          "});"
-                        ],
-                        "type": "text/javascript"
-                      }
-                    }
-                  ],
-                  "id": "a3a90146-a1c0-4f40-a5b3-7a63e43f50d0",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": {
-                        "token": "{{JWT_TOKEN}}"
-                      }
-                    },
-                    "method": "POST",
-                    "header": [],
-                    "body": {
-                      "mode": "raw",
-                      "raw": "{\n    \"topicId\": \"{{MONITOR_TOPIC_ID}}\",\n    \"name\": \"raw_pipeline_monitor_log\",\n    \"type\": \"raw\",\n    \"kind\": \"system\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [],\n    \"description\": \"Pipeline Monitor Log Raw Topic\"\n}",
-                      "options": {
-                        "raw": {
-                          "language": "json"
-                        }
-                      }
-                    },
-                    "url": "{{URL_PREFIX}}/topic"
-                  },
-                  "response": []
                 }
               ],
               "id": "c268b19a-31fe-4d3b-aede-4637e7b6ea07"
