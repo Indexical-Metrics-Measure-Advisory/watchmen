@@ -9365,6 +9365,18 @@
                   "response": []
                 },
                 {
+                  "name": "New Request",
+                  "id": "897848f8-8eb0-4546-93e7-ac898fcd1e61",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
+                },
+                {
                   "name": "TRUNCATE TOPIC",
                   "event": [
                     {
@@ -9509,18 +9521,6 @@
                         }
                       ]
                     }
-                  },
-                  "response": []
-                },
-                {
-                  "name": "New Request",
-                  "id": "897848f8-8eb0-4546-93e7-ac898fcd1e61",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "method": "GET",
-                    "header": []
                   },
                   "response": []
                 }
