@@ -11929,7 +11929,24 @@
                       },
                       "request": {
                         "method": "DELETE",
-                        "header": []
+                        "header": [],
+                        "url": {
+                          "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{RAW_TOPIC_NAME}}",
+                          "host": [
+                            "{{URL_PREFIX}}"
+                          ],
+                          "path": [
+                            "topic",
+                            "data",
+                            "truncate"
+                          ],
+                          "query": [
+                            {
+                              "key": "topic_name",
+                              "value": "{{RAW_TOPIC_NAME}}"
+                            }
+                          ]
+                        }
                       },
                       "response": []
                     }
