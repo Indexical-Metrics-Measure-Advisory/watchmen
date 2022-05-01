@@ -11377,7 +11377,7 @@
                       "response": []
                     },
                     {
-                      "name": "New Request",
+                      "name": "TRUCATE RAW TOPIC",
                       "id": "0a552346-a6c2-4f87-8e11-c907d73bc64d",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
