@@ -12619,72 +12619,6 @@
                       "response": []
                     },
                     {
-                      "name": "PATCH READ TOPIC 2",
-                      "event": [
-                        {
-                          "listen": "test",
-                          "script": {
-                            "id": "49561c7f-c194-4ea6-8401-152b3ce0dcbd",
-                            "exec": [
-                              "pm.test(\"Status code is 200\", function () {",
-                              "    pm.response.to.have.status(200);",
-                              "});"
-                            ],
-                            "type": "text/javascript"
-                          }
-                        }
-                      ],
-                      "id": "a56d8577-f754-4295-8315-22a153c23a16",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "auth": {
-                          "type": "bearer",
-                          "bearer": {
-                            "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
-                          }
-                        },
-                        "method": "PATCH",
-                        "header": [],
-                        "body": {
-                          "mode": "raw",
-                          "raw": "{\n    \"propA\": \"text2\",\n    \"propB\": 200,\n    \"propC\": true,\n    \"propD\": \"2022-03-22\",\n    \"propE\": \"2022-03-22 22:39:45\"\n}",
-                          "options": {
-                            "raw": {
-                              "language": "json"
-                            }
-                          }
-                        },
-                        "url": {
-                          "raw": "{{URL_PREFIX}}/topic/data/patch?topic_name={{READ_TOPIC_NAME}}&patch_type=insert&tenant_id=1",
-                          "host": [
-                            "{{URL_PREFIX}}"
-                          ],
-                          "path": [
-                            "topic",
-                            "data",
-                            "patch"
-                          ],
-                          "query": [
-                            {
-                              "key": "topic_name",
-                              "value": "{{READ_TOPIC_NAME}}"
-                            },
-                            {
-                              "key": "patch_type",
-                              "value": "insert"
-                            },
-                            {
-                              "key": "tenant_id",
-                              "value": "1"
-                            }
-                          ]
-                        }
-                      },
-                      "response": []
-                    },
-                    {
                       "name": "CREATE TOPIC",
                       "event": [
                         {
@@ -12763,7 +12697,7 @@
                         "header": [],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\r\n    \"topicId\": \"{{RAW_TOPIC_ID}}\",\r\n    \"name\": \"Test Constant Function\",\r\n    \"type\": \"insert-or-merge\",\r\n    \"stages\": [\r\n        {\r\n            \"stageId\": \"f-1\",\r\n            \"name\": \"Stage 1\",\r\n            \"units\": [\r\n                {\r\n                    \"unitId\": \"f-2\",\r\n                    \"name\": \"Unit 1.1\",\r\n                    \"do\": [\r\n                        {\r\n                            \"actionId\": \"f-3\",\r\n                            \"type\": \"read-row\",\r\n                            \"topicId\": \"{{READ_TOPIC_ID}}\",\r\n                            \"variableName\": \"loop_list\",\r\n                            \"by\": {\r\n                                \"jointType\": \"and\",\r\n                                \"filters\": [\r\n                                    {\r\n                                        \"left\": {\r\n                                            \"kind\": \"constant\",\r\n                                            \"value\": \"{&dayDiff(&propD,propD)}\"\r\n                                        },\r\n                                        \"operator\": \"more-equals\",\r\n                                        \"right\": {\r\n                                            \"kind\": \"constant\",\r\n                                            \"value\": \"1\"\r\n                                        }\r\n                                    }\r\n                                ]\r\n                            }\r\n                        }\r\n                    ]\r\n                },\r\n                {\r\n                    \"unitId\": \"f-2\",\r\n                    \"name\": \"Unit 1.2\",\r\n                    \"loopVariableName\": \"loop_list\",\r\n                    \"do\": [\r\n                        {\r\n                            \"actionId\": \"fa-1\",\r\n                            \"type\": \"insert-row\",\r\n                            \"topicId\": \"{{TOPIC_ID}}\",\r\n                            \"mapping\": [\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"constant\",\r\n                                        \"value\": \"{loop_list.propA}\"\r\n                                    },\r\n                                    \"factorId\": \"1\"\r\n                                },\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"constant\",\r\n                                        \"value\": \"{loop_list.propB}\"\r\n                                    },\r\n                                    \"factorId\": \"2\"\r\n                                },\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"constant\",\r\n                                        \"value\": \"{loop_list.propC}\"\r\n                                    },\r\n                                    \"factorId\": \"3\"\r\n                                },\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"constant\",\r\n                                        \"value\": \"{loop_list.propD}\"\r\n                                    },\r\n                                    \"factorId\": \"4\"\r\n                                },\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"constant\",\r\n                                        \"value\": \"{loop_list.propE}\"\r\n                                    },\r\n                                    \"factorId\": \"5\"\r\n                                }\r\n                            ]\r\n                        }\r\n                    ]\r\n                }\r\n            ]\r\n        }\r\n    ],\r\n    \"enabled\": true,\r\n    \"validated\": true\r\n}",
+                          "raw": "{\r\n    \"topicId\": \"{{RAW_TOPIC_ID}}\",\r\n    \"name\": \"Test Constant Function\",\r\n    \"type\": \"insert-or-merge\",\r\n    \"stages\": [\r\n        {\r\n            \"stageId\": \"f-1\",\r\n            \"name\": \"Stage 1\",\r\n            \"units\": [\r\n                {\r\n                    \"unitId\": \"f-2\",\r\n                    \"name\": \"Unit 1.1\",\r\n                    \"do\": [\r\n                        {\r\n                            \"actionId\": \"f-3\",\r\n                            \"type\": \"read-row\",\r\n                            \"topicId\": \"{{READ_TOPIC_ID}}\",\r\n                            \"variableName\": \"loop_list\",\r\n                            \"by\": {\r\n                                \"jointType\": \"and\",\r\n                                \"filters\": [\r\n                                    {\r\n                                        \"left\": {\r\n                                            \"kind\": \"constant\",\r\n                                            \"value\": \"{&dayDiff(&propD,propD)}\"\r\n                                        },\r\n                                        \"operator\": \"more-equals\",\r\n                                        \"right\": {\r\n                                            \"kind\": \"constant\",\r\n                                            \"value\": \"1\"\r\n                                        }\r\n                                    },\r\n                                    {\r\n                                        \"left\": {\r\n                                            \"kind\": \"constant\",\r\n                                            \"value\": \"{&monthDiff(2022-04-22,&propD)}\"\r\n                                        },\r\n                                        \"operator\": \"equals\",\r\n                                        \"right\": {\r\n                                            \"kind\": \"constant\",\r\n                                            \"value\": \"1\"\r\n                                        }\r\n                                    },\r\n                                    {\r\n                                        \"left\": {\r\n                                            \"kind\": \"constant\",\r\n                                            \"value\": \"{&yearDiff(&propE,2023-04-22)}\"\r\n                                        },\r\n                                        \"operator\": \"equals\",\r\n                                        \"right\": {\r\n                                            \"kind\": \"constant\",\r\n                                            \"value\": \"-1\"\r\n                                        }\r\n                                    }\r\n                                ]\r\n                            }\r\n                        }\r\n                    ]\r\n                },\r\n                {\r\n                    \"unitId\": \"f-2\",\r\n                    \"name\": \"Unit 1.2\",\r\n                    \"loopVariableName\": \"loop_list\",\r\n                    \"do\": [\r\n                        {\r\n                            \"actionId\": \"fa-1\",\r\n                            \"type\": \"insert-row\",\r\n                            \"topicId\": \"{{TOPIC_ID}}\",\r\n                            \"mapping\": [\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"constant\",\r\n                                        \"value\": \"{loop_list.propA}\"\r\n                                    },\r\n                                    \"factorId\": \"1\"\r\n                                },\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"constant\",\r\n                                        \"value\": \"{loop_list.propB}\"\r\n                                    },\r\n                                    \"factorId\": \"2\"\r\n                                },\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"constant\",\r\n                                        \"value\": \"{loop_list.propC}\"\r\n                                    },\r\n                                    \"factorId\": \"3\"\r\n                                },\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"constant\",\r\n                                        \"value\": \"{loop_list.propD}\"\r\n                                    },\r\n                                    \"factorId\": \"4\"\r\n                                },\r\n                                {\r\n                                    \"source\": {\r\n                                        \"kind\": \"constant\",\r\n                                        \"value\": \"{loop_list.propE}\"\r\n                                    },\r\n                                    \"factorId\": \"5\"\r\n                                }\r\n                            ]\r\n                        }\r\n                    ]\r\n                }\r\n            ]\r\n        }\r\n    ],\r\n    \"enabled\": true,\r\n    \"validated\": true\r\n}",
                           "options": {
                             "raw": {
                               "language": "json"
@@ -12791,7 +12725,7 @@
                         "header": [],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\n    \"code\": \"{{RAW_TOPIC_NAME}}\",\n    \"data\": {\n        \"propA\": \"text\",\n        \"propB\": 100,\n        \"propC\": true,\n        \"propD\": \"2022-03-20\",\n        \"propE\": \"2022-03-21 22:39:45\"\n    }\n}",
+                          "raw": "{\n    \"code\": \"{{RAW_TOPIC_NAME}}\",\n    \"data\": {\n        \"propA\": \"text\",\n        \"propB\": 100,\n        \"propC\": true,\n        \"propD\": \"2022-03-23\",\n        \"propE\": \"2022-03-23 22:39:45\"\n    }\n}",
                           "options": {
                             "raw": {
                               "language": "json"
@@ -12971,7 +12905,7 @@
                     "header": [],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\r\n    \"topicId\": \"{{READ_TOPIC_ID}}\",\r\n    \"name\": \"{{READ_TOPIC_NAME}}\",\r\n    \"type\": \"distinct\",\r\n    \"kind\": \"business\",\r\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\r\n    \"factors\": [\r\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\r\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\r\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propC\"},\r\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propD\"},\r\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propE\"}\r\n    ],\r\n    \"description\": \"Test Read Distinct Topic\",\r\n    \"version\": \"{{READ_TOPIC_VERSION}}\"\r\n}",
+                      "raw": "{\r\n    \"topicId\": \"{{READ_TOPIC_ID}}\",\r\n    \"name\": \"{{READ_TOPIC_NAME}}\",\r\n    \"type\": \"distinct\",\r\n    \"kind\": \"business\",\r\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\r\n    \"factors\": [\r\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\r\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\r\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propC\"},\r\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propD\"},\r\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propE\"}\r\n    ],\r\n    \"description\": \"Test Read Distinct Topic\",\r\n    \"version\": {{READ_TOPIC_VERSION}}\r\n}",
                       "options": {
                         "raw": {
                           "language": "json"
