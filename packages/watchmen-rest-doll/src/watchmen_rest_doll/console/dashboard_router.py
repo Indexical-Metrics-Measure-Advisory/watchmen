@@ -14,6 +14,7 @@ from watchmen_model.common import ConnectedSpaceId, DashboardId, SubjectId
 from watchmen_model.console import Dashboard, Report
 from watchmen_model.gui import LastSnapshot
 from watchmen_rest import get_admin_principal, get_console_principal, get_principal_by_jwt, get_super_admin_principal
+from watchmen_rest.auth_helper import retrieve_authentication_manager
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly
@@ -252,7 +253,7 @@ async def load_shared_dashboard(dashboard_id: Optional[DashboardId], token: Opti
 	if is_blank(token):
 		raise_400('Token is required.')
 
-	principal_service: PrincipalService = get_principal_by_jwt(token, [UserRole.CONSOLE, UserRole.ADMIN])
+	principal_service: PrincipalService = get_principal_by_jwt(retrieve_authentication_manager(), token, [UserRole.CONSOLE, UserRole.ADMIN])
 	dashboard_service = get_dashboard_service(principal_service)
 
 	def action() -> StandaloneDashboard:
