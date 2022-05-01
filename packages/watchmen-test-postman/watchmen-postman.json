@@ -10818,6 +10818,18 @@
                         "header": []
                       },
                       "response": []
+                    },
+                    {
+                      "name": "New Request",
+                      "id": "d2a02b14-6de1-4813-afc0-bf9fdf67c6d1",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
                     }
                   ],
                   "id": "dc74edab-871c-47a0-85bc-7e2b4a781dd2"
