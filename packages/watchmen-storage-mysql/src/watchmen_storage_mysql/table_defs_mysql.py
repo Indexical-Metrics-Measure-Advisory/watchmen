@@ -15,7 +15,7 @@ from .topic_table_generate import build_by_aggregation, build_by_raw, build_by_r
 # noinspection DuplicatedCode
 table_snowflake_competitive_workers = Table(
 	SNOWFLAKE_WORKER_ID_TABLE, meta_data,
-	create_str('ip', String(100)), create_str('process_id', String(60)),
+	create_str('ip', 100), create_str('process_id', 60),
 	create_pk('data_center_id', Integer), create_pk('worker_id', Integer),
 	create_datetime('registered_at', False), create_datetime('last_beat_at', False)
 )
