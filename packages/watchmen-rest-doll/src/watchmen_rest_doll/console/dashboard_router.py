@@ -253,8 +253,8 @@ async def load_shared_dashboard(dashboard_id: Optional[DashboardId], token: Opti
 	if is_blank(token):
 		raise_400('Token is required.')
 
-	principal_service: PrincipalService = get_principal_by_jwt(retrieve_authentication_manager(), token,
-	                                                           [UserRole.CONSOLE, UserRole.ADMIN])
+	principal_service: PrincipalService = get_principal_by_jwt(
+		retrieve_authentication_manager(), token, [UserRole.CONSOLE, UserRole.ADMIN])
 	dashboard_service = get_dashboard_service(principal_service)
 
 	def action() -> StandaloneDashboard:
