@@ -13330,7 +13330,9 @@
                       "    pm.response.to.have.status(200);",
                       "    var data = pm.response.json();",
                       "    pm.environment.set('AGGRE_TOPIC_ID', data.topicId)",
-                      "    pm.environment.set('AGGRE_TOPIC_NAME', data.name)",
+                      "    pm.environment.set('AGGRE_TOPIC_NAME', data.name);",
+                      "    pm.environment.set('AGGRE_TOPIC_VERSION', data.version)",
+                      "",
                       "});"
                     ],
                     "type": "text/javascript"
