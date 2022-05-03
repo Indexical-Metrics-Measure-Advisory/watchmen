@@ -179,7 +179,7 @@ def build_to_document(topic: Topic) -> MongoDocument:
 		return build_by_regular(topic)
 
 
-class TrinoField(DataModel, MongoDocumentColumnType):
+class TrinoField(DataModel):
 	name: str
 	type: str
 	hidden: bool = False
