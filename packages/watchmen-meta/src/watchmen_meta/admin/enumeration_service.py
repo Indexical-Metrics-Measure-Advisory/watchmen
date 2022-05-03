@@ -4,9 +4,8 @@ from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_model.admin import Enum, EnumItem
 from watchmen_model.common import DataPage, EnumId, EnumItemId, Pageable, TenantId
 from watchmen_storage import ColumnNameLiteral, EntityCriteria, EntityCriteriaExpression, EntityCriteriaJoint, \
-	EntityCriteriaJointConjunction, EntityCriteriaOperator, \
-	EntityDeleter, EntityFinder, EntityHelper, EntityRow, EntityShaper, EntitySort, SnowflakeGenerator, \
-	TransactionalStorageSPI
+	EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityDeleter, EntityFinder, EntityHelper, EntityRow, \
+	EntityShaper, EntitySort, SnowflakeGenerator, TransactionalStorageSPI
 
 
 class EnumShaper(EntityShaper):

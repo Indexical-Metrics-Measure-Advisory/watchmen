@@ -8,8 +8,7 @@ from jsonschema.exceptions import ValidationError
 from starlette.requests import Request
 
 from watchmen_auth import AuthenticationDetails, AuthenticationManager, AuthenticationProvider, AuthenticationScheme, \
-	AuthFailOn401, \
-	AuthFailOn403, authorize, authorize_token, PrincipalService
+	AuthFailOn401, AuthFailOn403, authorize, authorize_token, PrincipalService
 from watchmen_model.admin import User, UserRole
 from watchmen_utilities import ArrayHelper, is_not_blank
 from .settings import RestSettings

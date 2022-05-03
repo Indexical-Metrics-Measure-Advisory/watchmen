@@ -4,10 +4,7 @@ from watchmen_model.admin import Factor, MappingFactor, Pipeline, PipelineStage,
 	Topic, WriteTopicActionType
 from watchmen_model.admin.pipeline_action_write import InsertOrMergeRowAction
 from watchmen_model.common import ComputedParameter, ConstantParameter, ParameterComputeType, ParameterExpression, \
-	ParameterExpressionOperator, ParameterJoint, \
-	ParameterJointType, \
-	ParameterKind, \
-	TopicFactorParameter
+	ParameterExpressionOperator, ParameterJoint, ParameterJointType, ParameterKind, TopicFactorParameter
 from watchmen_utilities import ArrayHelper
 
 

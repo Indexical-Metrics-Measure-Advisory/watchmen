@@ -5,9 +5,7 @@ from watchmen_meta.common import AuditableShaper, LastVisitShaper, TupleNotFound
 	UserBasedTupleShaper
 from watchmen_model.common import ConnectedSpaceId, SubjectId, TenantId, UserId
 from watchmen_model.console import Subject, SubjectDataset
-from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaJoint, \
-	EntityCriteriaJointConjunction, EntityCriteriaOperator, \
-	EntityRow, \
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, \
 	EntityShaper
 
 
