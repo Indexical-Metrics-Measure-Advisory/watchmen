@@ -324,11 +324,12 @@ mongodb = ["watchmen-storage-mongodb"]
 mssql = ["watchmen-storage-mssql"]
 mysql = ["watchmen-storage-mysql"]
 oracle = ["watchmen-storage-oracle"]
+postgresql = ["watchmen-storage-postgresql"]
 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "3696166613f73341b6bb41aaca3b14926c4b26ca60f7d7622d2d6957598035bf"
+content-hash = "470ca5d5c30c0d76bf7b4d7eef34990d7c9d2a572a494eb52f714fe003c8aab2"
 
 [metadata.files]
 cffi = [
