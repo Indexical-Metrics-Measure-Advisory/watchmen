@@ -85,6 +85,8 @@ def build_literal(tables: List[Table], literal: Literal, build_plain_value: Call
 			# make sure each topic storage have this function
 			return func.year(build_literal(tables, literal.elements[0]))
 		elif operator == ComputedLiteralOperator.HALF_YEAR_OF:
+			# month is a customized function, which can be found in data-scripts folder
+			# make sure each topic storage have this function
 			return case(
 				(func.month(build_literal(tables, literal.elements[0])) <= 6, DateTimeConstants.HALF_YEAR_FIRST.value),
 				else_=DateTimeConstants.HALF_YEAR_SECOND.value
@@ -94,6 +96,8 @@ def build_literal(tables: List[Table], literal: Literal, build_plain_value: Call
 			# make sure each topic storage have this function
 			return func.quarter(build_literal(tables, literal.elements[0]))
 		elif operator == ComputedLiteralOperator.MONTH_OF:
+			# month is a customized function, which can be found in data-scripts folder
+			# make sure each topic storage have this function
 			return func.month(build_literal(tables, literal.elements[0]))
 		elif operator == ComputedLiteralOperator.WEEK_OF_YEAR:
 			# week is a customized function, which can be found in data-scripts folder
