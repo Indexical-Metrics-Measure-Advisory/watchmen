@@ -40,8 +40,8 @@ jobs:
             do
               if [ -d ${script_path}/$version ];then
                 for file in ${script_path}/$version/*
-                  echo `pwd`/$file
                   do
+                    echo `pwd`/$file
                     mysql -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }} -P3306 --default-character-set=utf8 ${{ env.DB_DATABASE }} < $file 2>&1
                   done
             done
