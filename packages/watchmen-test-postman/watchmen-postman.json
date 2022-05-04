@@ -11022,10 +11022,7 @@
                       "script": {
                         "id": "cec0ea3e-e58a-43b3-a518-122eaad35d8d",
                         "exec": [
-                          "pm.environment.set('DATABASE_PORT', 3309)",
-                          "pm.environment.set('DATABASE_USERNAME', \"admin\")",
-                          "pm.environment.set('DATABASE_PASSWORD', \"admin\")",
-                          "pm.environment.set('DATABASE_SCHEMA', \"new_watchmen\")"
+                          ""
                         ],
                         "type": "text/javascript"
                       }
