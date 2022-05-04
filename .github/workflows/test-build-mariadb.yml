@@ -63,6 +63,22 @@ jobs:
           pip install poetry
       - name: build [watchmen-rest-doll] and start
         working-directory: ./packages/watchmen-rest-doll
+        env:
+          LOG_FILE: /tmp/scripts/runtime.log
+          BASE_PATH: ${{ github.workspace }}
+          META_STORAGE_TYPE: mysql
+          META_STORAGE_USER_NAME: admin
+          META_STORAGE_PASSWORD: admin
+          META_STORAGE_HOST: localhost
+          META_STORAGE_PORT: 3306
+          META_STORAGE_NAME: watchmen
+          TUPLE_DELETABLE: True
+          SYNC_TOPIC_TO_STORAGE: TRUE
+          REPLACE_TOPIC_TO_STORAGE: TRUE
+          PIPELINE_ELASTIC_SEARCH_EXTERNAL_WRITER: TRUE
+          META_STORAGE_ECHO: FALSE
+          PIPELINE_PARALLEL_ACTIONS_IN_LOOP_UNIT: True
+          USE_STORAGE_DIRECTLY: TRUE
         run: |
           poetry config virtualenvs.create false
           poetry install --no-dev -vv -E mysql -E trino
