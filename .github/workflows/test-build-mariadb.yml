@@ -16,7 +16,7 @@ jobs:
       mariadb:
         image: mariadb:latest
         ports:
-          - 3306
+          - 3306:3306
         env:
           MYSQL_USER: ${{env.DB_USER}}
           MYSQL_PASSWORD: ${{env.DB_PASSWORD}}
@@ -35,7 +35,7 @@ jobs:
                 for file in ${script_path}/$version/*
                   do
                     echo `pwd`/$file
-                    docker exec -it mariadb mysql -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }} -P3306 --default-character-set=utf8 ${{ env.DB_DATABASE }} < $file 2>&1
+                    mysql -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }} -P3306 --default-character-set=utf8 ${{ env.DB_DATABASE }} --protocol=tcp < $file 2>&1
                   done
               fi
             done
