@@ -47,7 +47,7 @@ def decimal_32_6(precision: Optional[str] = '32,6') -> str:
 
 
 FactorTypeMap: Dict[FactorType, Union[str, Callable[[Optional[str]], str]]] = {
-	FactorType.SEQUENCE: 'NUMBER(30)',
+	FactorType.SEQUENCE: 'NUMBER(20)',
 
 	FactorType.NUMBER: decimal_32_6,
 	FactorType.UNSIGNED: decimal_32_6,

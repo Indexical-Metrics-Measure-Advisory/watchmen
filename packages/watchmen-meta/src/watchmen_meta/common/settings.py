@@ -102,6 +102,16 @@ def build_mssql_storage() -> Callable[[], TransactionalStorageSPI]:
 	return lambda: configuration.build()
 
 
+def build_postgresql_storage() -> Callable[[], TransactionalStorageSPI]:
+	from watchmen_storage_postgresql import StoragePostgreSQLConfiguration
+	configuration = StoragePostgreSQLConfiguration.config() \
+		.host(settings.META_STORAGE_HOST, settings.META_STORAGE_PORT) \
+		.account(settings.META_STORAGE_USER_NAME, settings.META_STORAGE_PASSWORD) \
+		.schema(settings.META_STORAGE_NAME) \
+		.echo(settings.META_STORAGE_ECHO)
+	return lambda: configuration.build()
+
+
 class MetaStorageHolder:
 	metaStorage: Optional[Callable[[], TransactionalStorageSPI]] = None
 
@@ -119,6 +129,8 @@ def build_meta_storage() -> Callable[[], TransactionalStorageSPI]:
 		return build_mongodb_storage()
 	if storage_type == DataSourceType.MSSQL:
 		return build_mssql_storage()
+	if storage_type == DataSourceType.POSTGRESQL:
+		return build_postgresql_storage()
 
 	raise InitialMetaAppException(f'Meta storage type[{storage_type}] is not supported yet.')
 
