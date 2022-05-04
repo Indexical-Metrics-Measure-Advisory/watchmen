@@ -6,12 +6,12 @@ DECLARE
     DECLARE end_month               SMALLINT DEFAULT EXTRACT(MONTH FROM end_date);
     DECLARE end_day                 SMALLINT DEFAULT EXTRACT(DAY FROM end_date);
     DECLARE end_last_day_of_month   SMALLINT DEFAULT EXTRACT(DAY FROM
-                                                             (DATE_TRUNC('MONTH', end_date) + INTERVAL '1 MONTH - 1 day'));
+                                                             (DATE_TRUNC('MONTH', end_date) + INTERVAL '1 MONTH - 1 DAY'));
     DECLARE start_year              SMALLINT DEFAULT EXTRACT(YEAR FROM start_date);
     DECLARE start_month             SMALLINT DEFAULT EXTRACT(MONTH FROM start_date);
     DECLARE start_day               SMALLINT DEFAULT EXTRACT(DAY FROM start_date);
     DECLARE start_last_day_of_month SMALLINT DEFAULT EXTRACT(DAY FROM
-                                                             (DATE_TRUNC('MONTH', start_date) + INTERVAL '1 MONTH - 1 day'));
+                                                             (DATE_TRUNC('MONTH', start_date) + INTERVAL '1 MONTH - 1 DAY'));
 BEGIN
     IF end_year = start_year THEN
         IF end_month = start_month THEN
@@ -62,4 +62,3 @@ BEGIN
     END IF;
 END;
 $$ LANGUAGE PLPGSQL;
-

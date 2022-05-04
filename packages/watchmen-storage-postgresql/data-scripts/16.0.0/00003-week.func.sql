@@ -19,7 +19,7 @@ BEGIN
             RETURN 1;
         END IF;
     ELSE
-        weeks := CEIL((days_of_year_of_given_date - days_of_first_week) * 0.1 / 7);
+        weeks := CEIL((days_of_year_of_given_date - days_of_first_week) * 1.0 / 7);
         RETURN weeks;
     END IF;
 END;
