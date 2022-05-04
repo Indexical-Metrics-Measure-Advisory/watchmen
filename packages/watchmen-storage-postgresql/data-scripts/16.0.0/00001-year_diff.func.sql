@@ -1,16 +1,16 @@
 CREATE OR REPLACE FUNCTION YEARDIFF(end_date IN DATE, start_date IN DATE) RETURNS SMALLINT AS
 $$
 DECLARE
-    end_year                        SMALLINT DEFAULT EXTRACT(YEAR FROM end_date);
-    DECLARE end_month               SMALLINT DEFAULT EXTRACT(MONTH FROM end_date);
-    DECLARE end_day                 SMALLINT DEFAULT EXTRACT(DAY FROM end_date);
-    DECLARE end_last_day_of_month   SMALLINT DEFAULT EXTRACT(DAY FROM
-                                                             (DATE_TRUNC('MONTH', end_date) + INTERVAL '1 MONTH - 1 DAY'));
-    DECLARE start_year              SMALLINT DEFAULT EXTRACT(YEAR FROM start_date);
-    DECLARE start_month             SMALLINT DEFAULT EXTRACT(MONTH FROM start_date);
-    DECLARE start_day               SMALLINT DEFAULT EXTRACT(DAY FROM start_date);
-    DECLARE start_last_day_of_month SMALLINT DEFAULT EXTRACT(DAY FROM
-                                                             (DATE_TRUNC('MONTH', start_date) + INTERVAL '1 MONTH - 1 DAY'));
+    end_year                SMALLINT DEFAULT EXTRACT(YEAR FROM end_date);
+    end_month               SMALLINT DEFAULT EXTRACT(MONTH FROM end_date);
+    end_day                 SMALLINT DEFAULT EXTRACT(DAY FROM end_date);
+    end_last_day_of_month   SMALLINT DEFAULT EXTRACT(DAY FROM
+                                                     (DATE_TRUNC('MONTH', end_date) + INTERVAL '1 MONTH - 1 DAY'));
+    start_year              SMALLINT DEFAULT EXTRACT(YEAR FROM start_date);
+    start_month             SMALLINT DEFAULT EXTRACT(MONTH FROM start_date);
+    start_day               SMALLINT DEFAULT EXTRACT(DAY FROM start_date);
+    start_last_day_of_month SMALLINT DEFAULT EXTRACT(DAY FROM
+                                                     (DATE_TRUNC('MONTH', start_date) + INTERVAL '1 MONTH - 1 DAY'));
 BEGIN
     IF end_year = start_year THEN
         -- same year, always return 0
