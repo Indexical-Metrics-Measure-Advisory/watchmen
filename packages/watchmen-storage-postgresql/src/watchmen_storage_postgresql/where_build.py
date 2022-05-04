@@ -2,7 +2,8 @@ from datetime import date, datetime, time
 from decimal import Decimal
 from typing import Any, Callable, List, Tuple
 
-from sqlalchemy import and_, case, func, literal, literal_column, or_, Table
+from sqlalchemy import and_, case, func, literal, literal_column, or_, Table, DECIMAL, TIME
+from sqlalchemy.sql.expression import cast
 
 from watchmen_storage import as_table_name, ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, \
 	EntityCriteria, EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, \
@@ -13,7 +14,7 @@ from .types import SQLAlchemyStatement
 
 
 def to_decimal(value: Any) -> Any:
-	return func.to_number(value)
+	return cast(value, DECIMAL)
 
 
 DATE_FORMAT_MAPPING = {
@@ -25,10 +26,10 @@ DATE_FORMAT_MAPPING = {
 	'H': 'HH',  # 2 digits hour, 01 - 12
 	'm': 'MI',  # 2 digits minute
 	's': 'SS',  # 2 digits second
-	'W': 'DAY',  # Monday - Sunday
-	'w': 'DY',  # Mon - Sun
-	'B': 'MONTH',  # January - December
-	'b': 'MON',  # Jan - Dec
+	'W': 'FMDay',  # Monday - Sunday
+	'w': 'Dy',  # Mon - Sun
+	'B': 'FMMonth',  # January - December
+	'b': 'Mon',  # Jan - Dec
 	'p': 'PM'  # AM/PM
 }
 
@@ -126,15 +127,7 @@ def build_literal(tables: List[Table], literal: Literal, build_plain_value: Call
 			else:
 				return case(*cases, else_=build_literal(tables, anyway))
 		elif operator == ComputedLiteralOperator.CONCAT:
-			literals = ArrayHelper(literal.elements).map(lambda x: build_literal(tables, x)).to_list()
-			literal_count = len(literals)
-			if literal_count == 1:
-				return literals[0]
-			elif literal_count == 2:
-				return func.concat(literals[0], literals[1])
-			else:
-				return ArrayHelper(literal.elements[2:]) \
-					.reduce(lambda prev, x: func.concat(prev, x), func.concat(literals[0], literals[1]))
+			return func.concat(*ArrayHelper(literal.elements).map(lambda x: build_literal(tables, x)).to_list())
 		elif operator == ComputedLiteralOperator.YEAR_DIFF:
 			# yeardiff is a customized function, which can be found in data-scripts folder
 			# make sure each topic storage have this function
@@ -152,15 +145,15 @@ def build_literal(tables: List[Table], literal: Literal, build_plain_value: Call
 			return func.to_char(
 				build_literal(tables, literal.elements[0]), translate_date_format(literal.elements[1]))
 		elif operator == ComputedLiteralOperator.CHAR_LENGTH:
-			return func.length(func.ifnull(build_literal(tables, literal.elements[0]), ''))
+			return func.length(func.coalesce(build_literal(tables, literal.elements[0]), ''))
 		else:
 			raise UnsupportedComputationException(f'Unsupported computation operator[{operator}].')
 	elif isinstance(literal, datetime):
-		return func.to_date(literal.strftime('%Y-%m-%d %H:%M:%S'), 'YYYY-MM-DD HH24:MI:SS')
+		return func.to_timestamp(literal.strftime('%Y-%m-%d %H:%M:%S'), 'YYYY-MM-DD HH24:MI:SS')
 	elif isinstance(literal, date):
 		return func.to_date(literal.strftime('%Y-%m-%d'), 'YYYY-MM-DD')
 	elif isinstance(literal, time):
-		return func.to_date(literal.strftime('%H:%M:%S'), 'HH24:MI:SS')
+		return cast(func.to_timestamp(literal.strftime('%H:%M:%S'), 'HH24:MI:SS'), TIME)
 	elif build_plain_value is not None:
 		return build_plain_value(literal)
 	else:

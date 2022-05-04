@@ -11,7 +11,7 @@ def ask_column_name(factor: Factor) -> str:
 
 
 def varchar_column(precision: str) -> str:
-	return f'VARCHAR2({precision})'
+	return f'VARCHAR({precision})'
 
 
 def varchar_10(precision: Optional[str] = '10') -> str:
@@ -35,7 +35,7 @@ def varchar_255(precision: Optional[str] = '255') -> str:
 
 
 def decimal_column(precision: str) -> str:
-	return f'NUMBER({precision})'
+	return f'DECIMAL({precision})'
 
 
 def decimal_10_2(precision: Optional[str] = '10,2') -> str:
@@ -47,7 +47,7 @@ def decimal_32_6(precision: Optional[str] = '32,6') -> str:
 
 
 FactorTypeMap: Dict[FactorType, Union[str, Callable[[Optional[str]], str]]] = {
-	FactorType.SEQUENCE: 'NUMBER(20)',
+	FactorType.SEQUENCE: 'DECIMAL(20)',
 
 	FactorType.NUMBER: decimal_32_6,
 	FactorType.UNSIGNED: decimal_32_6,
@@ -55,7 +55,7 @@ FactorTypeMap: Dict[FactorType, Union[str, Callable[[Optional[str]], str]]] = {
 	FactorType.TEXT: varchar_255,
 
 	# address
-	FactorType.ADDRESS: 'VARCHAR2(1024)',
+	FactorType.ADDRESS: 'VARCHAR(1024)',
 	FactorType.CONTINENT: varchar_10,
 	FactorType.REGION: varchar_10,
 	FactorType.COUNTRY: varchar_10,
@@ -64,7 +64,7 @@ FactorTypeMap: Dict[FactorType, Union[str, Callable[[Optional[str]], str]]] = {
 	FactorType.DISTRICT: varchar_255,
 	FactorType.ROAD: varchar_255,
 	FactorType.COMMUNITY: varchar_100,
-	FactorType.FLOOR: 'NUMBER(5)',
+	FactorType.FLOOR: 'SMALLINT',
 	FactorType.RESIDENCE_TYPE: varchar_10,
 	FactorType.RESIDENTIAL_AREA: decimal_10_2,
 
@@ -75,48 +75,48 @@ FactorTypeMap: Dict[FactorType, Union[str, Callable[[Optional[str]], str]]] = {
 	FactorType.FAX: varchar_50,
 
 	# date time related
-	FactorType.DATETIME: 'DATE',
-	FactorType.FULL_DATETIME: 'DATE',
+	FactorType.DATETIME: 'TIMESTAMP',
+	FactorType.FULL_DATETIME: 'TIMESTAMP',
 	FactorType.DATE: 'DATE',
-	FactorType.TIME: 'DATE',
-	FactorType.YEAR: 'NUMBER(5)',
-	FactorType.HALF_YEAR: 'NUMBER(3)',
-	FactorType.QUARTER: 'NUMBER(3)',
-	FactorType.MONTH: 'NUMBER(3)',
-	FactorType.HALF_MONTH: 'NUMBER(3)',
-	FactorType.TEN_DAYS: 'NUMBER(3)',
-	FactorType.WEEK_OF_YEAR: 'NUMBER(3)',
-	FactorType.WEEK_OF_MONTH: 'NUMBER(3)',
-	FactorType.HALF_WEEK: 'NUMBER(3)',
-	FactorType.DAY_OF_MONTH: 'NUMBER(3)',
-	FactorType.DAY_OF_WEEK: 'NUMBER(3)',
-	FactorType.DAY_KIND: 'NUMBER(3)',
-	FactorType.HOUR: 'NUMBER(3)',
-	FactorType.HOUR_KIND: 'NUMBER(3)',
-	FactorType.MINUTE: 'NUMBER(3)',
-	FactorType.SECOND: 'NUMBER(3)',
-	FactorType.MILLISECOND: 'NUMBER(3)',
-	FactorType.AM_PM: 'NUMBER(3)',
+	FactorType.TIME: 'TIME',
+	FactorType.YEAR: 'SMALLINT',
+	FactorType.HALF_YEAR: 'SMALLINT',
+	FactorType.QUARTER: 'SMALLINT',
+	FactorType.MONTH: 'SMALLINT',
+	FactorType.HALF_MONTH: 'SMALLINT',
+	FactorType.TEN_DAYS: 'SMALLINT',
+	FactorType.WEEK_OF_YEAR: 'SMALLINT',
+	FactorType.WEEK_OF_MONTH: 'SMALLINT',
+	FactorType.HALF_WEEK: 'SMALLINT',
+	FactorType.DAY_OF_MONTH: 'SMALLINT',
+	FactorType.DAY_OF_WEEK: 'SMALLINT',
+	FactorType.DAY_KIND: 'SMALLINT',
+	FactorType.HOUR: 'SMALLINT',
+	FactorType.HOUR_KIND: 'SMALLINT',
+	FactorType.MINUTE: 'SMALLINT',
+	FactorType.SECOND: 'SMALLINT',
+	FactorType.MILLISECOND: 'SMALLINT',
+	FactorType.AM_PM: 'SMALLINT',
 
 	# individual
 	FactorType.GENDER: varchar_10,
 	FactorType.OCCUPATION: varchar_10,
 	FactorType.DATE_OF_BIRTH: 'DATE',
-	FactorType.AGE: 'NUMBER(5)',
+	FactorType.AGE: 'SMALLINT',
 	FactorType.ID_NO: varchar_50,
 	FactorType.RELIGION: varchar_10,
 	FactorType.NATIONALITY: varchar_10,
 
 	# organization
 	FactorType.BIZ_TRADE: varchar_10,
-	FactorType.BIZ_SCALE: 'NUMBER(9)',
+	FactorType.BIZ_SCALE: 'DECIMAL(9)',
 
-	FactorType.BOOLEAN: 'NUMBER(1)',
+	FactorType.BOOLEAN: 'SMALLINT',
 
 	FactorType.ENUM: varchar_20,
 
-	FactorType.OBJECT: 'CLOB',
-	FactorType.ARRAY: 'CLOB'
+	FactorType.OBJECT: 'JSON',
+	FactorType.ARRAY: 'JSON'
 }
 
 
@@ -137,9 +137,9 @@ def build_columns(topic: Topic) -> str:
 			.map(lambda x: f'\t{ask_column_name(x)} {ask_column_type(x)},') \
 			.to_list()
 		if len(flatten_factors) == 0:
-			return '\tdata_ CLOB,'
+			return '\tdata_ JSON,'
 		else:
-			return '\n'.join(flatten_factors) + '\n\tdata_ CLOB,'
+			return '\n'.join(flatten_factors) + '\n\tdata_ JSON,'
 	else:
 		return ArrayHelper(topic.factors) \
 			.filter(lambda x: '.' not in x.name) \
@@ -149,11 +149,11 @@ def build_columns(topic: Topic) -> str:
 
 # noinspection DuplicatedCode
 def build_aggregate_assist_column(topic: Topic) -> str:
-	return f'\taggregate_assist_ VARCHAR2(1024),' if is_aggregation_topic(topic) else ''
+	return f'\taggregate_assist_ JSON,' if is_aggregation_topic(topic) else ''
 
 
 def build_version_column(topic: Topic) -> str:
-	return f'\tversion_ NUMBER(8),' if is_aggregation_topic(topic) else ''
+	return f'\tversion_ DECIMAL(8),' if is_aggregation_topic(topic) else ''
 
 
 # noinspection SqlResolve,DuplicatedCode
@@ -166,7 +166,7 @@ def build_columns_script(topic: Topic, original_topic: Topic) -> List[str]:
 	def build_column_script(factor: Tuple[Factor, bool]) -> str:
 		if factor[1]:
 			# do alter column
-			return f'ALTER TABLE {entity_name} MODIFY ({ask_column_name(factor[0])} {ask_column_type(factor[0])})'
+			return f'ALTER TABLE {entity_name} ALTER COLUMN ({ask_column_name(factor[0])} TYPE {ask_column_type(factor[0])})'
 		else:
 			return f'ALTER TABLE {entity_name} ADD ({ask_column_name(factor[0])} {ask_column_type(factor[0])})'
 
@@ -184,11 +184,11 @@ def build_columns_script(topic: Topic, original_topic: Topic) -> List[str]:
 		.to_list()
 
 	if is_raw_topic(topic) and not is_raw_topic(original_topic):
-		columns.append(f'ALTER TABLE {entity_name} ADD COLUMN data_ CLOB')
+		columns.append(f'ALTER TABLE {entity_name} ADD COLUMN data_ JSON')
 
 	if is_aggregation_topic(topic) and not is_aggregation_topic(original_topic):
-		columns.append(f'ALTER TABLE {entity_name} ADD COLUMN aggregate_assist_ VARCHAR2(1024)')
-		columns.append(f'ALTER TABLE {entity_name} ADD COLUMN version_ NUMBER(8)')
+		columns.append(f'ALTER TABLE {entity_name} ADD COLUMN aggregate_assist_ JSON')
+		columns.append(f'ALTER TABLE {entity_name} ADD COLUMN version_ DECIMAL(8)')
 
 	return columns
 

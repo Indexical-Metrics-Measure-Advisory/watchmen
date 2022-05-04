@@ -2,12 +2,12 @@ CREATE OR REPLACE FUNCTION WEEK(a_date IN DATE)
     RETURNS SMALLINT AS
 $$
 DECLARE
-    first_day_of_year                    DATE DEFAULT TO_DATE(EXTRACT(YEAR FROM a_date) || '0101', 'YYYYMMDD');
+    first_day_of_year            DATE DEFAULT TO_DATE(EXTRACT(YEAR FROM a_date) || '0101', 'YYYYMMDD');
     -- Sunday 1 to Saturday 7
-    DECLARE weekday_of_first_day_of_year SMALLINT DEFAULT CAST(TO_CHAR(first_day_of_year, 'D') AS SMALLINT);
-    DECLARE days_of_year_of_given_date   SMALLINT DEFAULT CAST(TO_CHAR(a_date, 'DDD') AS SMALLINT);
-    DECLARE days_of_first_week           SMALLINT DEFAULT MOD(8 - weekday_of_first_day_of_year, 7);
-    DECLARE weeks                        SMALLINT;
+    weekday_of_first_day_of_year SMALLINT DEFAULT CAST(TO_CHAR(first_day_of_year, 'D') AS SMALLINT);
+    days_of_year_of_given_date   SMALLINT DEFAULT CAST(TO_CHAR(a_date, 'DDD') AS SMALLINT);
+    days_of_first_week           SMALLINT DEFAULT MOD(8 - weekday_of_first_day_of_year, 7);
+    weeks                        SMALLINT;
 BEGIN
     IF days_of_year_of_given_date <= days_of_first_week THEN
         -- given date is in first week

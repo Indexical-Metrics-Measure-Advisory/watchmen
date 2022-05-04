@@ -2,11 +2,11 @@ CREATE OR REPLACE FUNCTION WEEKOFMONTH(a_date IN DATE)
     RETURNS SMALLINT AS
 $$
 DECLARE
-    first_day                          DATE DEFAULT DATE_TRUNC('MONTH', a_date);
-    DECLARE week_of_year_of_first_day  SMALLINT DEFAULT WEEK(first_day);
+    first_day                  DATE DEFAULT DATE_TRUNC('MONTH', a_date);
+    week_of_year_of_first_day  SMALLINT DEFAULT WEEK(first_day);
     -- Sunday 1 to Saturday 7
-    DECLARE weekday_of_first_day       SMALLINT DEFAULT CAST(TO_CHAR(first_day, 'D') AS SMALLINT);
-    DECLARE week_of_year_of_given_date SMALLINT DEFAULT WEEK(a_date);
+    weekday_of_first_day       SMALLINT DEFAULT CAST(TO_CHAR(first_day, 'D') AS SMALLINT);
+    week_of_year_of_given_date SMALLINT DEFAULT WEEK(a_date);
 BEGIN
     IF week_of_year_of_first_day = week_of_year_of_given_date THEN
         -- 1 is sunday
