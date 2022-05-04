@@ -16,6 +16,7 @@ class DataSourceType(str, Enum):
 	ORACLE = 'oracle',
 	MONGODB = 'mongodb',
 	MSSQL = 'mssql'
+	POSTGRESQL = 'postgresql'
 
 
 class DataSource(TenantBasedTuple, OptimisticLock, BaseModel):
