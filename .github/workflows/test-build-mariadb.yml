@@ -1,0 +1,47 @@
+name: Test Build Mariadb
+
+on: workflow_dispatch
+
+env:
+  DB_USER: admin
+  DB_PASSWORD: admin
+  DB_DATABASE: watchmen
+  DB_ROOT_PASSWORD: admin
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      mariadb:
+        image: mariadb:latest
+        ports:
+          - 3306
+        env:
+          MYSQL_USER: ${{env.DB_USER}}
+          MYSQL_PASSWORD: ${{env.DB_PASSWORD}}
+          MYSQL_DATABASE: ${{env.DB_DATABASE}}
+          MYSQL_ROOT_PASSWORD: ${{env.DB_ROOT_PASSWORD}}
+        options: --health-cmd="mysqladmin ping" --health-interval=5s --health-timeout=2s --health-retries=3
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: Verify MariaDB connection
+        env:
+          PORT: ${{ job.services.mariadb.ports[3306] }}
+        run: |
+          while ! mysqladmin ping -h"127.0.0.1" -P"$PORT" --silent; do
+            sleep 1
+          done
+      - name: Run db meta script
+        run: |
+          script_path=./packages/watchmen-storage-mysql/meta-scripts
+          for version in `ls ${script_path}`
+            do
+              if [ -d ${script_path}/$version ];then
+                for file in ${script_path}/$version/*
+                  echo `pwd`/$file
+                  do
+                    mysql -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }} -P3306 --default-character-set=utf8 ${{ env.DB_DATABASE }} < $file 2>&1
+                  done
+            done
