@@ -202,26 +202,26 @@
 		},
 		{
 			"key": "DATABASE_PORT",
-			"value": "",
-			"type": "any",
+			"value": "3306",
+			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "DATABASE_USERNAME",
-			"value": "",
-			"type": "any",
+			"value": "admin",
+			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "DATABASE_PASSWORD",
-			"value": "",
-			"type": "any",
+			"value": "admin",
+			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "DATABASE_SCHEMA",
-			"value": "",
-			"type": "any",
+			"value": "watchmen",
+			"type": "default",
 			"enabled": true
 		},
 		{
