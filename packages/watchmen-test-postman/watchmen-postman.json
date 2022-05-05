@@ -8648,6 +8648,18 @@
                   "name": "READ - FACTORS",
                   "item": [
                     {
+                      "name": "PATCH TOPIC",
+                      "id": "99e7aa2f-fb6a-4298-9af3-ef380b2f90d3",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
+                    },
+                    {
                       "name": "READ FACTORS",
                       "event": [
                         {
@@ -8833,18 +8845,6 @@
                             }
                           ]
                         }
-                      },
-                      "response": []
-                    },
-                    {
-                      "name": "New Request",
-                      "id": "99e7aa2f-fb6a-4298-9af3-ef380b2f90d3",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "method": "GET",
-                        "header": []
                       },
                       "response": []
                     }
