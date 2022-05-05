@@ -13621,6 +13621,7 @@
                       "    var data = pm.response.json();\r",
                       "    pm.environment.set('TOPIC_ID', data.topicId)\r",
                       "    pm.environment.set('TOPIC_NAME', data.name)\r",
+                      "    pm.environment.set('TOPIC_VERSION', data.version)\r",
                       "});"
                     ],
                     "type": "text/javascript"
