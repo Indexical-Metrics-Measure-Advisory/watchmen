@@ -7228,6 +7228,7 @@
                             "exec": [
                               "pm.test(\"Update Topic\", () => {",
                               "    pm.response.to.have.status(200);",
+                              "    pm.environment.set('TOPIC_VERSION', data.name);",
                               "});"
                             ],
                             "type": "text/javascript"
