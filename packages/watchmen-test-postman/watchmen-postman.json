@@ -7581,7 +7581,7 @@
                         "header": [],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\n    \"writerCode\": \"Test-External-Writer-{{$randomInt}}\",\n    \"type\": \"standard-writer\",\n    \"pat\": \"{{PAT_TOKEN}}\",\n    \"url\": \"http://127.0.0.1:8000/external_writer/for_test\",\n    \"tenantId\": \"1\"\n}",
+                          "raw": "{\n    \"writerCode\": \"Test-External-Writer-{{$randomInt}}\",\n    \"type\": \"standard-writer\",\n    \"pat\": \"{{PAT_TOKEN}}\",\n    \"url\": \"{{URL_PREFIX}}/external_writer/for_test\",\n    \"tenantId\": \"1\"\n}",
                           "options": {
                             "raw": {
                               "language": "json"
