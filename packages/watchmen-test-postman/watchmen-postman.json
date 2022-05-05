@@ -8733,26 +8733,7 @@
                 },
                 {
                   "name": "READ - FACTORS",
-                  "item": [
-                    {
-                      "name": "EXISTS",
-                      "item": [
-                        {
-                          "name": "New Request",
-                          "id": "d11b0c5e-4021-4f01-9aea-fc173157c29d",
-                          "protocolProfileBehavior": {
-                            "disableBodyPruning": true
-                          },
-                          "request": {
-                            "method": "GET",
-                            "header": []
-                          },
-                          "response": []
-                        }
-                      ],
-                      "id": "50d46d81-4a5f-4477-bf38-044eb2da2115"
-                    }
-                  ],
+                  "item": [],
                   "id": "e5a31610-54da-4044-8d48-ea1c74343614"
                 },
                 {
@@ -9141,24 +9122,6 @@
                 }
               ],
               "id": "78fff255-c034-448d-b7f1-62b379cf3c24"
-            },
-            {
-              "name": "EXISTS",
-              "item": [
-                {
-                  "name": "New Request",
-                  "id": "d11b0c5e-4021-4f01-9aea-fc173157c29d",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "method": "GET",
-                    "header": []
-                  },
-                  "response": []
-                }
-              ],
-              "id": "50d46d81-4a5f-4477-bf38-044eb2da2115"
             },
             {
               "name": "WRITE - TOPIC - ACTION",
