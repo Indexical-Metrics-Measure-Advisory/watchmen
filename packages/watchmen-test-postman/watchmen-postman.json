@@ -7501,7 +7501,7 @@
                   "name": "WRITE - TO - EXTERNAL",
                   "item": [
                     {
-                      "name": "New Request",
+                      "name": "PAT CREATE",
                       "id": "323e560d-e289-4d4d-abab-5cd9663271bd",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
