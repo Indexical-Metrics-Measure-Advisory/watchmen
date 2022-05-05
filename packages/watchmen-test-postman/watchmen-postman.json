@@ -3723,6 +3723,18 @@
               "response": []
             },
             {
+              "name": "New Request",
+              "id": "321b9a31-bdec-4898-b6f8-0db2266f6efd",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
               "name": "PIPELINE GRAPHICS DELETE BY SUPER ADMIN",
               "event": [
                 {
@@ -3768,18 +3780,6 @@
                     }
                   ]
                 }
-              },
-              "response": []
-            },
-            {
-              "name": "New Request",
-              "id": "321b9a31-bdec-4898-b6f8-0db2266f6efd",
-              "protocolProfileBehavior": {
-                "disableBodyPruning": true
-              },
-              "request": {
-                "method": "GET",
-                "header": []
               },
               "response": []
             }
