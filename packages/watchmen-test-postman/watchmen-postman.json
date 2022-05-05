@@ -15125,25 +15125,6 @@
         }
       ],
       "id": "075340f7-37d1-4e97-95a4-0e6fd4bb0d58"
-    },
-    {
-      "name": "New Request",
-      "id": "f6aa2989-c4a9-41ce-a607-5e84fcb20642",
-      "protocolProfileBehavior": {
-        "disableBodyPruning": true
-      },
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": {
-            "token": "{{JWT_TOKEN}}"
-          }
-        },
-        "method": "POST",
-        "header": [],
-        "url": "http://localhost:8000/login"
-      },
-      "response": []
     }
   ]
 }
