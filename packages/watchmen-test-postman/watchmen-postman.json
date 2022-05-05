@@ -3724,6 +3724,23 @@
             },
             {
               "name": "PIPELINE GRAPHICS CREATE 2",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "defec427-c163-4223-aa2b-cba4065f7746",
+                    "exec": [
+                      "pm.test(\"Create Pipeline Graphics\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.expect(data.pipelineGraphId).to.is.not.null",
+                      "    pm.environment.set(\"PIPELINE_GRAPH_ID\", data.pipelineGraphId);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "321b9a31-bdec-4898-b6f8-0db2266f6efd",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
@@ -3731,6 +3748,15 @@
               "request": {
                 "method": "POST",
                 "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Test_Pipeline_Graphics\",\n    \"topics\": [\n        {\n            \"topicId\": 1,\n            \"rect\": {\n                \"coordinate\": {\n                    \"x\": 1,\n                    \"y\": 1\n                },\n                \"frame\": {\n                    \"x\": 1,\n                    \"y\": 1,\n                    \"width\": 10,\n                    \"height\": 10\n                },\n                \"name\": {\n                    \"x\": 2,\n                    \"y\": 2\n                }\n            }\n        }\n    ]\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
                 "url": "{{URL_PREFIX}}/pipeline/graphics"
               },
               "response": []
