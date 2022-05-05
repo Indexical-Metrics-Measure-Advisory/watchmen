@@ -13476,7 +13476,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "TRUNCATE AGGRE TOPIC",
               "id": "c96dc5c5-e970-4e28-9014-ae0bc0623ad4",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
