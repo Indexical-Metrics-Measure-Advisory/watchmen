@@ -7502,6 +7502,24 @@
                   "item": [
                     {
                       "name": "PAT CREATE",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "81444b91-4833-4acf-8a54-ba8872ec4665",
+                            "exec": [
+                              "pm.test('Create Pat', () => {",
+                              "    pm.response.to.have.status(200);",
+                              "    const data = pm.response.json();",
+                              "    pm.environment.set('PAT_ID', data.patId);",
+                              "    pm.environment.set('PAT_TOKEN', data.token);",
+                              "})",
+                              ""
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
                       "id": "323e560d-e289-4d4d-abab-5cd9663271bd",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
