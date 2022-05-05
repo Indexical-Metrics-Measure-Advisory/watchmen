@@ -8733,7 +8733,197 @@
                 },
                 {
                   "name": "READ - FACTORS",
-                  "item": [],
+                  "item": [
+                    {
+                      "name": "READ FACTORS",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "9a482bdd-bb0d-4823-a1a2-4d50ec8f6f67",
+                            "exec": [
+                              "pm.test(\"Read Factors\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "    const data = pm.response.json();",
+                              "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId);",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
+                      "id": "6efda758-1452-435e-9ee7-0c6f1cb54133",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n    \"topicId\": \"{{RAW_TOPIC_ID}}\",\n    \"name\": \"Test Read Factors\",\n    \"type\": \"insert-or-merge\",\n    \"stages\": [\n        {\n            \"stageId\": \"f-1\",\n            \"name\": \"Stage 1\",\n            \"units\": [\n                {\n                    \"unitId\": \"f-2\",\n                    \"name\": \"Unit 1.1\",\n                    \"do\": [\n                        {\n                            \"actionId\": \"f-3\",\n                            \"type\": \"read-factors\",\n                            \"topicId\": \"{{READ_TOPIC_ID}}\",\n                            \"factorId\": \"1\",\n                            \"variableName\": \"factor_variable\",\n                            \"by\": {\n                                \"jointType\": \"and\",\n                                \"filters\": [\n                                    {\n                                        \"left\": {\n                                            \"kind\": \"topic\",\n                                            \"topicId\": \"{{READ_TOPIC_ID}}\",\n                                            \"factorId\": \"3\"\n                                        },\n                                        \"operator\": \"equals\",\n                                        \"right\": {\n                                            \"kind\": \"constant\",\n                                            \"value\": \"1\"\n                                        }\n                                    }\n                                ]\n                            }\n                        }\n                    ]\n                },\n                {\n                    \"unitId\": \"f-2\",\n                    \"name\": \"Unit 1.2\",\n                    \"loopVariableName\": \"factor_variable\",\n                    \"do\": [\n                        {\n                            \"actionId\": \"f-3\",\n                            \"type\": \"write-factor\",\n                            \"topicId\": \"{{TOPIC_ID}}\",\n                            \"factorId\": \"2\",\n                            \"source\": {\n                                \"kind\": \"constant\",\n                                \"value\": \"888\"\n                            },\n                            \"by\": {\n                                \"jointType\": \"and\",\n                                \"filters\": [\n                                    {\n                                        \"left\": {\n                                            \"kind\": \"computed\",\n                                            \"type\": \"case-then\",\n                                            \"parameters\": [\n                                                {\n                                                    \"on\": {\n                                                        \"jointType\": \"and\",\n                                                        \"filters\": [\n                                                            {\n                                                                \"left\": {\n                                                                    \"kind\": \"topic\",\n                                                                    \"topicId\": \"{{TOPIC_ID}}\",\n                                                                    \"factorId\": \"1\"\n                                                                },\n                                                                \"operator\": \"equals\",\n                                                                \"right\": {\n                                                                    \"kind\": \"constant\",\n                                                                    \"value\": \"{factor_variable}\"\n                                                                }\n                                                            }\n                                                        ]\n                                                    },\n                                                    \"conditional\": true,\n                                                    \"kind\": \"constant\",\n                                                    \"value\": \"test\"\n                                                }\n                                            ]\n                                        },\n                                        \"operator\": \"equals\",\n                                        \"right\": {\n                                            \"kind\": \"constant\",\n                                            \"value\": \"test\"\n                                        }\n                                    }\n                                ]\n                            }\n                        }\n                    ]\n                }\n            ]\n        }\n    ],\n    \"enabled\": true,\n    \"validated\": true\n}",
+                          "options": {
+                            "raw": {
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": "{{URL_PREFIX}}/pipeline"
+                      },
+                      "response": []
+                    },
+                    {
+                      "name": "INSERT ROW",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "8103a4ca-aff4-4aed-b1bc-8a4ce6e29a6d",
+                            "exec": [
+                              "pm.test(\"Inert Raw\", () => {\r",
+                              "    pm.response.to.have.status(200);\r",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
+                      "id": "330e9450-0418-4f22-9cd2-945b014a6c31",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n    \"code\": \"{{RAW_TOPIC_NAME}}\",\n    \"data\": {\n        \"propA\": \"text3\",\n        \"propB\": 100,\n        \"propC\": true,\n        \"propD\": \"2022-03-22\",\n        \"propE\": \"2022-03-22 22:39:45\"\n    }\n}",
+                          "options": {
+                            "raw": {
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": "{{URL_PREFIX}}/pipeline/data"
+                      },
+                      "response": []
+                    },
+                    {
+                      "name": "TRUNCATE TOPIC",
+                      "id": "a0f814df-44f9-4c20-8d9e-f83c6b375598",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                          "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{TOPIC_NAME}}",
+                          "host": [
+                            "{{URL_PREFIX}}"
+                          ],
+                          "path": [
+                            "topic",
+                            "data",
+                            "truncate"
+                          ],
+                          "query": [
+                            {
+                              "key": "topic_name",
+                              "value": "{{TOPIC_NAME}}"
+                            }
+                          ]
+                        }
+                      },
+                      "response": []
+                    },
+                    {
+                      "name": "TRUNCATE RAW TOPIC",
+                      "id": "68fe1c55-a427-4173-99f1-dd6fee10ef32",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                          "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{RAW_TOPIC_NAME}}",
+                          "host": [
+                            "{{URL_PREFIX}}"
+                          ],
+                          "path": [
+                            "topic",
+                            "data",
+                            "truncate"
+                          ],
+                          "query": [
+                            {
+                              "key": "topic_name",
+                              "value": "{{RAW_TOPIC_NAME}}"
+                            }
+                          ]
+                        }
+                      },
+                      "response": []
+                    },
+                    {
+                      "name": "DELETE PIPELINE",
+                      "id": "c7bdee35-17bd-4e37-bfe8-c3b21a2f18ba",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                          "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
+                          "host": [
+                            "{{URL_PREFIX}}"
+                          ],
+                          "path": [
+                            "pipeline"
+                          ],
+                          "query": [
+                            {
+                              "key": "pipeline_id",
+                              "value": "{{PIPELINE_ID}}"
+                            }
+                          ]
+                        }
+                      },
+                      "response": []
+                    }
+                  ],
                   "id": "e5a31610-54da-4044-8d48-ea1c74343614"
                 },
                 {
@@ -8898,195 +9088,6 @@
                     {
                       "name": "DELETE PIPELINE",
                       "id": "062b7446-2ceb-4892-9d75-bc148d5d85b2",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "auth": {
-                          "type": "bearer",
-                          "bearer": {
-                            "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
-                          }
-                        },
-                        "method": "DELETE",
-                        "header": [],
-                        "url": {
-                          "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
-                          "host": [
-                            "{{URL_PREFIX}}"
-                          ],
-                          "path": [
-                            "pipeline"
-                          ],
-                          "query": [
-                            {
-                              "key": "pipeline_id",
-                              "value": "{{PIPELINE_ID}}"
-                            }
-                          ]
-                        }
-                      },
-                      "response": []
-                    },
-                    {
-                      "name": "READ FACTORS",
-                      "event": [
-                        {
-                          "listen": "test",
-                          "script": {
-                            "id": "9a482bdd-bb0d-4823-a1a2-4d50ec8f6f67",
-                            "exec": [
-                              "pm.test(\"Read Factors\", () => {",
-                              "    pm.response.to.have.status(200);",
-                              "    const data = pm.response.json();",
-                              "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId);",
-                              "});"
-                            ],
-                            "type": "text/javascript"
-                          }
-                        }
-                      ],
-                      "id": "6efda758-1452-435e-9ee7-0c6f1cb54133",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "auth": {
-                          "type": "bearer",
-                          "bearer": {
-                            "token": "{{JWT_TOKEN}}"
-                          }
-                        },
-                        "method": "POST",
-                        "header": [],
-                        "body": {
-                          "mode": "raw",
-                          "raw": "{\n    \"topicId\": \"{{RAW_TOPIC_ID}}\",\n    \"name\": \"Test Read Factors\",\n    \"type\": \"insert-or-merge\",\n    \"stages\": [\n        {\n            \"stageId\": \"f-1\",\n            \"name\": \"Stage 1\",\n            \"units\": [\n                {\n                    \"unitId\": \"f-2\",\n                    \"name\": \"Unit 1.1\",\n                    \"do\": [\n                        {\n                            \"actionId\": \"f-3\",\n                            \"type\": \"read-factors\",\n                            \"topicId\": \"{{READ_TOPIC_ID}}\",\n                            \"factorId\": \"1\",\n                            \"variableName\": \"factor_variable\",\n                            \"by\": {\n                                \"jointType\": \"and\",\n                                \"filters\": [\n                                    {\n                                        \"left\": {\n                                            \"kind\": \"topic\",\n                                            \"topicId\": \"{{READ_TOPIC_ID}}\",\n                                            \"factorId\": \"3\"\n                                        },\n                                        \"operator\": \"equals\",\n                                        \"right\": {\n                                            \"kind\": \"constant\",\n                                            \"value\": \"1\"\n                                        }\n                                    }\n                                ]\n                            }\n                        }\n                    ]\n                },\n                {\n                    \"unitId\": \"f-2\",\n                    \"name\": \"Unit 1.2\",\n                    \"loopVariableName\": \"factor_variable\",\n                    \"do\": [\n                        {\n                            \"actionId\": \"f-3\",\n                            \"type\": \"write-factor\",\n                            \"topicId\": \"{{TOPIC_ID}}\",\n                            \"factorId\": \"2\",\n                            \"source\": {\n                                \"kind\": \"constant\",\n                                \"value\": \"888\"\n                            },\n                            \"by\": {\n                                \"jointType\": \"and\",\n                                \"filters\": [\n                                    {\n                                        \"left\": {\n                                            \"kind\": \"computed\",\n                                            \"type\": \"case-then\",\n                                            \"parameters\": [\n                                                {\n                                                    \"on\": {\n                                                        \"jointType\": \"and\",\n                                                        \"filters\": [\n                                                            {\n                                                                \"left\": {\n                                                                    \"kind\": \"topic\",\n                                                                    \"topicId\": \"{{TOPIC_ID}}\",\n                                                                    \"factorId\": \"1\"\n                                                                },\n                                                                \"operator\": \"equals\",\n                                                                \"right\": {\n                                                                    \"kind\": \"constant\",\n                                                                    \"value\": \"{factor_variable}\"\n                                                                }\n                                                            }\n                                                        ]\n                                                    },\n                                                    \"conditional\": true,\n                                                    \"kind\": \"constant\",\n                                                    \"value\": \"test\"\n                                                }\n                                            ]\n                                        },\n                                        \"operator\": \"equals\",\n                                        \"right\": {\n                                            \"kind\": \"constant\",\n                                            \"value\": \"test\"\n                                        }\n                                    }\n                                ]\n                            }\n                        }\n                    ]\n                }\n            ]\n        }\n    ],\n    \"enabled\": true,\n    \"validated\": true\n}",
-                          "options": {
-                            "raw": {
-                              "language": "json"
-                            }
-                          }
-                        },
-                        "url": "{{URL_PREFIX}}/pipeline"
-                      },
-                      "response": []
-                    },
-                    {
-                      "name": "INSERT ROW",
-                      "event": [
-                        {
-                          "listen": "test",
-                          "script": {
-                            "id": "8103a4ca-aff4-4aed-b1bc-8a4ce6e29a6d",
-                            "exec": [
-                              "pm.test(\"Inert Raw\", () => {\r",
-                              "    pm.response.to.have.status(200);\r",
-                              "});"
-                            ],
-                            "type": "text/javascript"
-                          }
-                        }
-                      ],
-                      "id": "330e9450-0418-4f22-9cd2-945b014a6c31",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "auth": {
-                          "type": "bearer",
-                          "bearer": {
-                            "token": "{{JWT_TOKEN}}"
-                          }
-                        },
-                        "method": "POST",
-                        "header": [],
-                        "body": {
-                          "mode": "raw",
-                          "raw": "{\n    \"code\": \"{{RAW_TOPIC_NAME}}\",\n    \"data\": {\n        \"propA\": \"text3\",\n        \"propB\": 100,\n        \"propC\": true,\n        \"propD\": \"2022-03-22\",\n        \"propE\": \"2022-03-22 22:39:45\"\n    }\n}",
-                          "options": {
-                            "raw": {
-                              "language": "json"
-                            }
-                          }
-                        },
-                        "url": "{{URL_PREFIX}}/pipeline/data"
-                      },
-                      "response": []
-                    },
-                    {
-                      "name": "TRUNCATE TOPIC",
-                      "id": "a0f814df-44f9-4c20-8d9e-f83c6b375598",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "auth": {
-                          "type": "bearer",
-                          "bearer": {
-                            "token": "{{JWT_TOKEN}}"
-                          }
-                        },
-                        "method": "DELETE",
-                        "header": [],
-                        "url": {
-                          "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{TOPIC_NAME}}",
-                          "host": [
-                            "{{URL_PREFIX}}"
-                          ],
-                          "path": [
-                            "topic",
-                            "data",
-                            "truncate"
-                          ],
-                          "query": [
-                            {
-                              "key": "topic_name",
-                              "value": "{{TOPIC_NAME}}"
-                            }
-                          ]
-                        }
-                      },
-                      "response": []
-                    },
-                    {
-                      "name": "TRUNCATE RAW TOPIC",
-                      "id": "68fe1c55-a427-4173-99f1-dd6fee10ef32",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "auth": {
-                          "type": "bearer",
-                          "bearer": {
-                            "token": "{{JWT_TOKEN}}"
-                          }
-                        },
-                        "method": "DELETE",
-                        "header": [],
-                        "url": {
-                          "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{RAW_TOPIC_NAME}}",
-                          "host": [
-                            "{{URL_PREFIX}}"
-                          ],
-                          "path": [
-                            "topic",
-                            "data",
-                            "truncate"
-                          ],
-                          "query": [
-                            {
-                              "key": "topic_name",
-                              "value": "{{RAW_TOPIC_NAME}}"
-                            }
-                          ]
-                        }
-                      },
-                      "response": []
-                    },
-                    {
-                      "name": "DELETE PIPELINE",
-                      "id": "c7bdee35-17bd-4e37-bfe8-c3b21a2f18ba",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
                       },
@@ -9965,7 +9966,7 @@
                         "header": [],
                         "body": {
                           "mode": "raw",
-                          "raw": "{\n    \"code\": \"Test_Raw_Topic\",\n    \"data\": {\n        \"propA\": \"text2\",\n        \"propB\": 200,\n        \"propC\": true,\n        \"propD\": \"2022-03-22\",\n        \"propE\": \"2022-03-22 22:39:45\"\n    }\n}",
+                          "raw": "{\n    \"code\": \"{{RAW_TOPIC_NAME}}\",\n    \"data\": {\n        \"propA\": \"text2\",\n        \"propB\": 200,\n        \"propC\": true,\n        \"propD\": \"2022-03-22\",\n        \"propE\": \"2022-03-22 22:39:45\"\n    }\n}",
                           "options": {
                             "raw": {
                               "language": "json"
