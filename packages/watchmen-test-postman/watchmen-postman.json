@@ -13411,7 +13411,22 @@
               },
               "request": {
                 "method": "GET",
-                "header": []
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID_2}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "pipeline"
+                  ],
+                  "query": [
+                    {
+                      "key": "pipeline_id",
+                      "value": "{{PIPELINE_ID_2}}"
+                    }
+                  ]
+                }
               },
               "response": []
             },
