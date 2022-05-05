@@ -3143,6 +3143,8 @@
                     "exec": [
                       "pm.test(\"Update Topic\", () => {",
                       "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.environment.set(\"TOPIC_VERSION\", data.version);",
                       "})"
                     ],
                     "type": "text/javascript"
