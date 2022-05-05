@@ -13284,6 +13284,22 @@
             },
             {
               "name": "CREATE PIPELINE 2",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "f6f83354-2ada-4d6f-9376-91c3be926287",
+                    "exec": [
+                      "pm.test(\"Create pipeline\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.environment.set(\"PIPELINE_ID_2\", data.pipelineId);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "50aef51f-f023-4976-8d71-ccfccca232d9",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
