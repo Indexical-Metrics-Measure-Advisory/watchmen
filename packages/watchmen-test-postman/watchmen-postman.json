@@ -9903,6 +9903,7 @@
                             "exec": [
                               "pm.test(\"Write Factor\", () => {",
                               "    pm.response.to.have.status(200);",
+                              "    var data = pm.response.json();",
                               "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId)",
                               "});"
                             ],
