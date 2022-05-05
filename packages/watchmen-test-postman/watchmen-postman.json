@@ -13662,11 +13662,11 @@
                   "script": {
                     "id": "38213e36-05df-4121-a0fc-3631b9480ded",
                     "exec": [
-                      "pm.test('Delete Pipeline', () => {",
+                      "pm.test(\"Create pipeline\", () => {",
                       "    pm.response.to.have.status(200);",
-                      "    pm.environment.unset(\"PIPELINE_ID\");",
-                      "})",
-                      ""
+                      "    const data = pm.response.json();",
+                      "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId);",
+                      "});"
                     ],
                     "type": "text/javascript"
                   }
