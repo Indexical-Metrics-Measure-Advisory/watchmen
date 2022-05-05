@@ -13728,6 +13728,22 @@
             },
             {
               "name": "DETELE PIPELINE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "463f1117-deeb-4e29-9c66-47e60a4df210",
+                    "exec": [
+                      "pm.test('Delete Pipeline', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.environment.unset(\"PIPELINE_ID\");",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "4d3003a5-f070-4515-847e-f9da21657601",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
