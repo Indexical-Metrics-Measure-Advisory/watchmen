@@ -8738,196 +8738,214 @@
                       "name": "EXISTS",
                       "item": [
                         {
-                          "name": "EXISTS",
-                          "event": [
-                            {
-                              "listen": "test",
-                              "script": {
-                                "id": "94a5c974-08c5-4ff6-831a-a829cd110206",
-                                "exec": [
-                                  "pm.test(\"Exists\", () => {",
-                                  "    pm.response.to.have.status(200);",
-                                  "    const data = pm.response.json();",
-                                  "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId);",
-                                  "});"
-                                ],
-                                "type": "text/javascript"
-                              }
-                            }
-                          ],
-                          "id": "d3f5fd17-825c-44b4-ada7-e88526d4021e",
+                          "name": "New Request",
+                          "id": "d11b0c5e-4021-4f01-9aea-fc173157c29d",
                           "protocolProfileBehavior": {
                             "disableBodyPruning": true
                           },
                           "request": {
-                            "auth": {
-                              "type": "bearer",
-                              "bearer": {
-                                "token": "{{JWT_TOKEN}}"
-                              }
-                            },
-                            "method": "POST",
-                            "header": [],
-                            "body": {
-                              "mode": "raw",
-                              "raw": "{\n    \"topicId\": \"{{RAW_TOPIC_ID}}\",\n    \"name\": \"Exists\",\n    \"type\": \"insert-or-merge\",\n    \"stages\": [\n        {\n            \"stageId\": \"f-1\",\n            \"name\": \"Stage 1\",\n            \"units\": [\n                {\n                    \"unitId\": \"f-2\",\n                    \"name\": \"Unit 1.1\",\n                    \"do\": [\n                        {\n                            \"actionId\": \"f-3\",\n                            \"type\": \"exists\",\n                            \"topicId\": \"{{READ_TOPIC_ID}}\",\n                            \"variableName\": \"exists_variable\",\n                            \"by\": {\n                                \"jointType\": \"and\",\n                                \"filters\": [\n                                    {\n                                        \"left\": {\n                                            \"kind\": \"topic\",\n                                            \"topicId\": \"{{READ_TOPIC_ID}}\",\n                                            \"factorId\": \"3\"\n                                        },\n                                        \"operator\": \"equals\",\n                                        \"right\": {\n                                            \"kind\": \"constant\",\n                                            \"value\": \"1\"\n                                        }\n                                    }\n                                ]\n                            }\n                        }\n                    ]\n                }\n            ]\n        }\n    ],\n    \"enabled\": true,\n    \"validated\": true\n}",
-                              "options": {
-                                "raw": {
-                                  "language": "json"
-                                }
-                              }
-                            },
-                            "url": "{{URL_PREFIX}}/pipeline"
-                          },
-                          "response": []
-                        },
-                        {
-                          "name": "INSERT RAW",
-                          "event": [
-                            {
-                              "listen": "test",
-                              "script": {
-                                "id": "5b66aabd-1b5f-4a7d-bde3-e19df6296246",
-                                "exec": [
-                                  "pm.test(\"Inert Raw\", () => {\r",
-                                  "    pm.response.to.have.status(200);\r",
-                                  "});"
-                                ],
-                                "type": "text/javascript"
-                              }
-                            }
-                          ],
-                          "id": "2b793014-af40-4cb9-8814-26f423bc0015",
-                          "protocolProfileBehavior": {
-                            "disableBodyPruning": true
-                          },
-                          "request": {
-                            "auth": {
-                              "type": "bearer",
-                              "bearer": {
-                                "token": "{{JWT_TOKEN}}"
-                              }
-                            },
-                            "method": "POST",
-                            "header": [],
-                            "body": {
-                              "mode": "raw",
-                              "raw": "{\n    \"code\": \"{{RAW_TOPIC_NAME}}\",\n    \"data\": {\n        \"propA\": \"text\",\n        \"propB\": 100,\n        \"propC\": true,\n        \"propD\": \"2022-03-22\",\n        \"propE\": \"2022-03-22 22:39:45\"\n    }\n}",
-                              "options": {
-                                "raw": {
-                                  "language": "json"
-                                }
-                              }
-                            },
-                            "url": "{{URL_PREFIX}}/pipeline/data"
-                          },
-                          "response": []
-                        },
-                        {
-                          "name": "TRUNCATE TOPIC",
-                          "id": "ce81ee97-12ec-4bce-a39c-a6ac4a5c4497",
-                          "protocolProfileBehavior": {
-                            "disableBodyPruning": true
-                          },
-                          "request": {
-                            "auth": {
-                              "type": "bearer",
-                              "bearer": {
-                                "token": "{{JWT_TOKEN}}"
-                              }
-                            },
-                            "method": "DELETE",
-                            "header": [],
-                            "url": {
-                              "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{TOPIC_NAME}}",
-                              "host": [
-                                "{{URL_PREFIX}}"
-                              ],
-                              "path": [
-                                "topic",
-                                "data",
-                                "truncate"
-                              ],
-                              "query": [
-                                {
-                                  "key": "topic_name",
-                                  "value": "{{TOPIC_NAME}}"
-                                }
-                              ]
-                            }
-                          },
-                          "response": []
-                        },
-                        {
-                          "name": "TRUNCATE RAW TOPIC",
-                          "id": "690d8a76-3398-4725-b719-63825ddbf60c",
-                          "protocolProfileBehavior": {
-                            "disableBodyPruning": true
-                          },
-                          "request": {
-                            "auth": {
-                              "type": "bearer",
-                              "bearer": {
-                                "token": "{{JWT_TOKEN}}"
-                              }
-                            },
-                            "method": "DELETE",
-                            "header": [],
-                            "url": {
-                              "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{RAW_TOPIC_NAME}}",
-                              "host": [
-                                "{{URL_PREFIX}}"
-                              ],
-                              "path": [
-                                "topic",
-                                "data",
-                                "truncate"
-                              ],
-                              "query": [
-                                {
-                                  "key": "topic_name",
-                                  "value": "{{RAW_TOPIC_NAME}}"
-                                }
-                              ]
-                            }
-                          },
-                          "response": []
-                        },
-                        {
-                          "name": "DELETE PIPELINE",
-                          "id": "062b7446-2ceb-4892-9d75-bc148d5d85b2",
-                          "protocolProfileBehavior": {
-                            "disableBodyPruning": true
-                          },
-                          "request": {
-                            "auth": {
-                              "type": "bearer",
-                              "bearer": {
-                                "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
-                              }
-                            },
-                            "method": "DELETE",
-                            "header": [],
-                            "url": {
-                              "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
-                              "host": [
-                                "{{URL_PREFIX}}"
-                              ],
-                              "path": [
-                                "pipeline"
-                              ],
-                              "query": [
-                                {
-                                  "key": "pipeline_id",
-                                  "value": "{{PIPELINE_ID}}"
-                                }
-                              ]
-                            }
+                            "method": "GET",
+                            "header": []
                           },
                           "response": []
                         }
                       ],
                       "id": "50d46d81-4a5f-4477-bf38-044eb2da2115"
+                    }
+                  ],
+                  "id": "e5a31610-54da-4044-8d48-ea1c74343614"
+                },
+                {
+                  "name": "EXISTS 2",
+                  "item": [
+                    {
+                      "name": "EXISTS",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "94a5c974-08c5-4ff6-831a-a829cd110206",
+                            "exec": [
+                              "pm.test(\"Exists\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "    const data = pm.response.json();",
+                              "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId);",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
+                      "id": "d3f5fd17-825c-44b4-ada7-e88526d4021e",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n    \"topicId\": \"{{RAW_TOPIC_ID}}\",\n    \"name\": \"Exists\",\n    \"type\": \"insert-or-merge\",\n    \"stages\": [\n        {\n            \"stageId\": \"f-1\",\n            \"name\": \"Stage 1\",\n            \"units\": [\n                {\n                    \"unitId\": \"f-2\",\n                    \"name\": \"Unit 1.1\",\n                    \"do\": [\n                        {\n                            \"actionId\": \"f-3\",\n                            \"type\": \"exists\",\n                            \"topicId\": \"{{READ_TOPIC_ID}}\",\n                            \"variableName\": \"exists_variable\",\n                            \"by\": {\n                                \"jointType\": \"and\",\n                                \"filters\": [\n                                    {\n                                        \"left\": {\n                                            \"kind\": \"topic\",\n                                            \"topicId\": \"{{READ_TOPIC_ID}}\",\n                                            \"factorId\": \"3\"\n                                        },\n                                        \"operator\": \"equals\",\n                                        \"right\": {\n                                            \"kind\": \"constant\",\n                                            \"value\": \"1\"\n                                        }\n                                    }\n                                ]\n                            }\n                        }\n                    ]\n                }\n            ]\n        }\n    ],\n    \"enabled\": true,\n    \"validated\": true\n}",
+                          "options": {
+                            "raw": {
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": "{{URL_PREFIX}}/pipeline"
+                      },
+                      "response": []
+                    },
+                    {
+                      "name": "INSERT RAW",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "5b66aabd-1b5f-4a7d-bde3-e19df6296246",
+                            "exec": [
+                              "pm.test(\"Inert Raw\", () => {\r",
+                              "    pm.response.to.have.status(200);\r",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
+                      "id": "2b793014-af40-4cb9-8814-26f423bc0015",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n    \"code\": \"{{RAW_TOPIC_NAME}}\",\n    \"data\": {\n        \"propA\": \"text\",\n        \"propB\": 100,\n        \"propC\": true,\n        \"propD\": \"2022-03-22\",\n        \"propE\": \"2022-03-22 22:39:45\"\n    }\n}",
+                          "options": {
+                            "raw": {
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": "{{URL_PREFIX}}/pipeline/data"
+                      },
+                      "response": []
+                    },
+                    {
+                      "name": "TRUNCATE TOPIC",
+                      "id": "ce81ee97-12ec-4bce-a39c-a6ac4a5c4497",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                          "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{TOPIC_NAME}}",
+                          "host": [
+                            "{{URL_PREFIX}}"
+                          ],
+                          "path": [
+                            "topic",
+                            "data",
+                            "truncate"
+                          ],
+                          "query": [
+                            {
+                              "key": "topic_name",
+                              "value": "{{TOPIC_NAME}}"
+                            }
+                          ]
+                        }
+                      },
+                      "response": []
+                    },
+                    {
+                      "name": "TRUNCATE RAW TOPIC",
+                      "id": "690d8a76-3398-4725-b719-63825ddbf60c",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                          "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{RAW_TOPIC_NAME}}",
+                          "host": [
+                            "{{URL_PREFIX}}"
+                          ],
+                          "path": [
+                            "topic",
+                            "data",
+                            "truncate"
+                          ],
+                          "query": [
+                            {
+                              "key": "topic_name",
+                              "value": "{{RAW_TOPIC_NAME}}"
+                            }
+                          ]
+                        }
+                      },
+                      "response": []
+                    },
+                    {
+                      "name": "DELETE PIPELINE",
+                      "id": "062b7446-2ceb-4892-9d75-bc148d5d85b2",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                          "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
+                          "host": [
+                            "{{URL_PREFIX}}"
+                          ],
+                          "path": [
+                            "pipeline"
+                          ],
+                          "query": [
+                            {
+                              "key": "pipeline_id",
+                              "value": "{{PIPELINE_ID}}"
+                            }
+                          ]
+                        }
+                      },
+                      "response": []
                     },
                     {
                       "name": "READ FACTORS",
@@ -9119,11 +9137,6 @@
                       "response": []
                     }
                   ],
-                  "id": "e5a31610-54da-4044-8d48-ea1c74343614"
-                },
-                {
-                  "name": "EXISTS 2",
-                  "item": [],
                   "id": "2fcfd4d2-90fa-40e6-800e-5626ba6e38c0"
                 }
               ],
@@ -9133,191 +9146,14 @@
               "name": "EXISTS",
               "item": [
                 {
-                  "name": "EXISTS",
-                  "event": [
-                    {
-                      "listen": "test",
-                      "script": {
-                        "id": "94a5c974-08c5-4ff6-831a-a829cd110206",
-                        "exec": [
-                          "pm.test(\"Exists\", () => {",
-                          "    pm.response.to.have.status(200);",
-                          "    const data = pm.response.json();",
-                          "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId);",
-                          "});"
-                        ],
-                        "type": "text/javascript"
-                      }
-                    }
-                  ],
-                  "id": "d3f5fd17-825c-44b4-ada7-e88526d4021e",
+                  "name": "New Request",
+                  "id": "d11b0c5e-4021-4f01-9aea-fc173157c29d",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
                   "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": {
-                        "token": "{{JWT_TOKEN}}"
-                      }
-                    },
-                    "method": "POST",
-                    "header": [],
-                    "body": {
-                      "mode": "raw",
-                      "raw": "{\n    \"topicId\": \"{{RAW_TOPIC_ID}}\",\n    \"name\": \"Exists\",\n    \"type\": \"insert-or-merge\",\n    \"stages\": [\n        {\n            \"stageId\": \"f-1\",\n            \"name\": \"Stage 1\",\n            \"units\": [\n                {\n                    \"unitId\": \"f-2\",\n                    \"name\": \"Unit 1.1\",\n                    \"do\": [\n                        {\n                            \"actionId\": \"f-3\",\n                            \"type\": \"exists\",\n                            \"topicId\": \"{{READ_TOPIC_ID}}\",\n                            \"variableName\": \"exists_variable\",\n                            \"by\": {\n                                \"jointType\": \"and\",\n                                \"filters\": [\n                                    {\n                                        \"left\": {\n                                            \"kind\": \"topic\",\n                                            \"topicId\": \"{{READ_TOPIC_ID}}\",\n                                            \"factorId\": \"3\"\n                                        },\n                                        \"operator\": \"equals\",\n                                        \"right\": {\n                                            \"kind\": \"constant\",\n                                            \"value\": \"1\"\n                                        }\n                                    }\n                                ]\n                            }\n                        }\n                    ]\n                }\n            ]\n        }\n    ],\n    \"enabled\": true,\n    \"validated\": true\n}",
-                      "options": {
-                        "raw": {
-                          "language": "json"
-                        }
-                      }
-                    },
-                    "url": "{{URL_PREFIX}}/pipeline"
-                  },
-                  "response": []
-                },
-                {
-                  "name": "INSERT RAW",
-                  "event": [
-                    {
-                      "listen": "test",
-                      "script": {
-                        "id": "5b66aabd-1b5f-4a7d-bde3-e19df6296246",
-                        "exec": [
-                          "pm.test(\"Inert Raw\", () => {\r",
-                          "    pm.response.to.have.status(200);\r",
-                          "});"
-                        ],
-                        "type": "text/javascript"
-                      }
-                    }
-                  ],
-                  "id": "2b793014-af40-4cb9-8814-26f423bc0015",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": {
-                        "token": "{{JWT_TOKEN}}"
-                      }
-                    },
-                    "method": "POST",
-                    "header": [],
-                    "body": {
-                      "mode": "raw",
-                      "raw": "{\n    \"code\": \"{{RAW_TOPIC_NAME}}\",\n    \"data\": {\n        \"propA\": \"text\",\n        \"propB\": 100,\n        \"propC\": true,\n        \"propD\": \"2022-03-22\",\n        \"propE\": \"2022-03-22 22:39:45\"\n    }\n}",
-                      "options": {
-                        "raw": {
-                          "language": "json"
-                        }
-                      }
-                    },
-                    "url": "{{URL_PREFIX}}/pipeline/data"
-                  },
-                  "response": []
-                },
-                {
-                  "name": "TRUNCATE TOPIC",
-                  "id": "ce81ee97-12ec-4bce-a39c-a6ac4a5c4497",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": {
-                        "token": "{{JWT_TOKEN}}"
-                      }
-                    },
-                    "method": "DELETE",
-                    "header": [],
-                    "url": {
-                      "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{TOPIC_NAME}}",
-                      "host": [
-                        "{{URL_PREFIX}}"
-                      ],
-                      "path": [
-                        "topic",
-                        "data",
-                        "truncate"
-                      ],
-                      "query": [
-                        {
-                          "key": "topic_name",
-                          "value": "{{TOPIC_NAME}}"
-                        }
-                      ]
-                    }
-                  },
-                  "response": []
-                },
-                {
-                  "name": "TRUNCATE RAW TOPIC",
-                  "id": "690d8a76-3398-4725-b719-63825ddbf60c",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": {
-                        "token": "{{JWT_TOKEN}}"
-                      }
-                    },
-                    "method": "DELETE",
-                    "header": [],
-                    "url": {
-                      "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{RAW_TOPIC_NAME}}",
-                      "host": [
-                        "{{URL_PREFIX}}"
-                      ],
-                      "path": [
-                        "topic",
-                        "data",
-                        "truncate"
-                      ],
-                      "query": [
-                        {
-                          "key": "topic_name",
-                          "value": "{{RAW_TOPIC_NAME}}"
-                        }
-                      ]
-                    }
-                  },
-                  "response": []
-                },
-                {
-                  "name": "DELETE PIPELINE",
-                  "id": "062b7446-2ceb-4892-9d75-bc148d5d85b2",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "auth": {
-                      "type": "bearer",
-                      "bearer": {
-                        "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
-                      }
-                    },
-                    "method": "DELETE",
-                    "header": [],
-                    "url": {
-                      "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
-                      "host": [
-                        "{{URL_PREFIX}}"
-                      ],
-                      "path": [
-                        "pipeline"
-                      ],
-                      "query": [
-                        {
-                          "key": "pipeline_id",
-                          "value": "{{PIPELINE_ID}}"
-                        }
-                      ]
-                    }
+                    "method": "GET",
+                    "header": []
                   },
                   "response": []
                 }
