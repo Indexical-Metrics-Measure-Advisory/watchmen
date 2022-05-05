@@ -13711,7 +13711,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "DETELE PIPELINE",
               "id": "4d3003a5-f070-4515-847e-f9da21657601",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
