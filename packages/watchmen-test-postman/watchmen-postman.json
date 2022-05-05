@@ -13709,6 +13709,18 @@
                 "url": "{{URL_PREFIX}}/pipeline/data"
               },
               "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "4d3003a5-f070-4515-847e-f9da21657601",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
             }
           ],
           "id": "191a98a6-20f8-4f53-94e3-1648bd485c46"
