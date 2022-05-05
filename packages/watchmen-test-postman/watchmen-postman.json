@@ -13656,6 +13656,22 @@
             },
             {
               "name": "CREATE PIPELINE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "38213e36-05df-4121-a0fc-3631b9480ded",
+                    "exec": [
+                      "pm.test('Delete Pipeline', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.environment.unset(\"PIPELINE_ID\");",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "c136da41-5ce4-4829-8886-77e5497988d3",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
