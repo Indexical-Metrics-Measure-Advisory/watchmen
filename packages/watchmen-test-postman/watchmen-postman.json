@@ -13246,7 +13246,7 @@
                   "script": {
                     "id": "e19be318-901a-41ae-8369-708542ca8f2e",
                     "exec": [
-                      "pm.test(\"Greater Than\", () => {",
+                      "pm.test(\"Create pipeline\", () => {",
                       "    pm.response.to.have.status(200);",
                       "    const data = pm.response.json();",
                       "    pm.environment.set(\"PIPELINE_ID\", data.pipelineId);",
