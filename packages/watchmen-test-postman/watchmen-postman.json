@@ -7228,6 +7228,7 @@
                             "exec": [
                               "pm.test(\"Update Topic\", () => {",
                               "    pm.response.to.have.status(200);",
+                              "    var data = pm.response.json()",
                               "    pm.environment.set('RAW_TOPIC_VERSION', data.version);",
                               "});"
                             ],
@@ -7593,48 +7594,6 @@
                       "response": []
                     },
                     {
-                      "name": "INSERT RAW",
-                      "event": [
-                        {
-                          "listen": "test",
-                          "script": {
-                            "id": "1f7bf74b-bf68-44d5-90f7-ae04b0c39555",
-                            "exec": [
-                              "pm.test(\"Inert Raw\", () => {",
-                              "    pm.response.to.have.status(200);",
-                              "});"
-                            ],
-                            "type": "text/javascript"
-                          }
-                        }
-                      ],
-                      "id": "e575d2de-c0d5-40a7-888a-c6e97db8389e",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "auth": {
-                          "type": "bearer",
-                          "bearer": {
-                            "token": "{{JWT_TOKEN}}"
-                          }
-                        },
-                        "method": "POST",
-                        "header": [],
-                        "body": {
-                          "mode": "raw",
-                          "raw": "{\n    \"code\": \"{{RAW_TOPIC_NAME}}\",\n    \"data\": {\n        \"propA\": \"text\",\n        \"propB\": 100,\n        \"propC\": true,\n        \"propD\": \"2022-03-22\",\n        \"propE\": \"2022-03-22 22:39:45\"\n    }\n}",
-                          "options": {
-                            "raw": {
-                              "language": "json"
-                            }
-                          }
-                        },
-                        "url": "{{URL_PREFIX}}/pipeline/data"
-                      },
-                      "response": []
-                    },
-                    {
                       "name": "WRITE TO EXTERNAL",
                       "event": [
                         {
@@ -7675,6 +7634,97 @@
                           }
                         },
                         "url": "{{URL_PREFIX}}/pipeline"
+                      },
+                      "response": []
+                    },
+                    {
+                      "name": "DELETE PIPELINE",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "bfc33694-1c38-4417-adaf-1354a8047325",
+                            "exec": [
+                              "pm.test('Delete Pipeline', () => {",
+                              "    pm.response.to.have.status(200);",
+                              "    pm.environment.unset(\"PIPELINE_ID\");",
+                              "})",
+                              ""
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
+                      "id": "8cc53010-272a-450d-bc0b-75a263fcbdfa",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                          "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
+                          "host": [
+                            "{{URL_PREFIX}}"
+                          ],
+                          "path": [
+                            "pipeline"
+                          ],
+                          "query": [
+                            {
+                              "key": "pipeline_id",
+                              "value": "{{PIPELINE_ID}}"
+                            }
+                          ]
+                        }
+                      },
+                      "response": []
+                    },
+                    {
+                      "name": "INSERT RAW",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "1f7bf74b-bf68-44d5-90f7-ae04b0c39555",
+                            "exec": [
+                              "pm.test(\"Inert Raw\", () => {",
+                              "    pm.response.to.have.status(200);",
+                              "});"
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
+                      "id": "e575d2de-c0d5-40a7-888a-c6e97db8389e",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n    \"code\": \"{{RAW_TOPIC_NAME}}\",\n    \"data\": {\n        \"propA\": \"text\",\n        \"propB\": 100,\n        \"propC\": true,\n        \"propD\": \"2022-03-22\",\n        \"propE\": \"2022-03-22 22:39:45\"\n    }\n}",
+                          "options": {
+                            "raw": {
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": "{{URL_PREFIX}}/pipeline/data"
                       },
                       "response": []
                     },
@@ -7770,55 +7820,6 @@
                             {
                               "key": "topic_name",
                               "value": "{{TOPIC_NAME}}"
-                            }
-                          ]
-                        }
-                      },
-                      "response": []
-                    },
-                    {
-                      "name": "DELETE PIPELINE",
-                      "event": [
-                        {
-                          "listen": "test",
-                          "script": {
-                            "id": "bfc33694-1c38-4417-adaf-1354a8047325",
-                            "exec": [
-                              "pm.test('Delete Pipeline', () => {",
-                              "    pm.response.to.have.status(200);",
-                              "    pm.environment.unset(\"PIPELINE_ID\");",
-                              "})",
-                              ""
-                            ],
-                            "type": "text/javascript"
-                          }
-                        }
-                      ],
-                      "id": "8cc53010-272a-450d-bc0b-75a263fcbdfa",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "auth": {
-                          "type": "bearer",
-                          "bearer": {
-                            "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
-                          }
-                        },
-                        "method": "DELETE",
-                        "header": [],
-                        "url": {
-                          "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
-                          "host": [
-                            "{{URL_PREFIX}}"
-                          ],
-                          "path": [
-                            "pipeline"
-                          ],
-                          "query": [
-                            {
-                              "key": "pipeline_id",
-                              "value": "{{PIPELINE_ID}}"
                             }
                           ]
                         }
@@ -10374,6 +10375,55 @@
                       "response": []
                     },
                     {
+                      "name": "DELETE PIPELINE",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "f2b0800d-6a64-4a2a-86e7-06279e8174fe",
+                            "exec": [
+                              "pm.test('Delete Pipeline', () => {",
+                              "    pm.response.to.have.status(200);",
+                              "    pm.environment.unset(\"PIPELINE_ID\");",
+                              "})",
+                              ""
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
+                      "id": "4cfc33e3-b604-4d4d-9505-60265dbb325a",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                          "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
+                          "host": [
+                            "{{URL_PREFIX}}"
+                          ],
+                          "path": [
+                            "pipeline"
+                          ],
+                          "query": [
+                            {
+                              "key": "pipeline_id",
+                              "value": "{{PIPELINE_ID}}"
+                            }
+                          ]
+                        }
+                      },
+                      "response": []
+                    },
+                    {
                       "name": "TRUNCATE TOPIC",
                       "event": [
                         {
@@ -10466,55 +10516,6 @@
                             {
                               "key": "topic_name",
                               "value": "{{RAW_TOPIC_NAME}}"
-                            }
-                          ]
-                        }
-                      },
-                      "response": []
-                    },
-                    {
-                      "name": "DELETE PIPELINE",
-                      "event": [
-                        {
-                          "listen": "test",
-                          "script": {
-                            "id": "f2b0800d-6a64-4a2a-86e7-06279e8174fe",
-                            "exec": [
-                              "pm.test('Delete Pipeline', () => {",
-                              "    pm.response.to.have.status(200);",
-                              "    pm.environment.unset(\"PIPELINE_ID\");",
-                              "})",
-                              ""
-                            ],
-                            "type": "text/javascript"
-                          }
-                        }
-                      ],
-                      "id": "4cfc33e3-b604-4d4d-9505-60265dbb325a",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "auth": {
-                          "type": "bearer",
-                          "bearer": {
-                            "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
-                          }
-                        },
-                        "method": "DELETE",
-                        "header": [],
-                        "url": {
-                          "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
-                          "host": [
-                            "{{URL_PREFIX}}"
-                          ],
-                          "path": [
-                            "pipeline"
-                          ],
-                          "query": [
-                            {
-                              "key": "pipeline_id",
-                              "value": "{{PIPELINE_ID}}"
                             }
                           ]
                         }
@@ -10704,6 +10705,55 @@
                       "response": []
                     },
                     {
+                      "name": "DELETE PIPELINE",
+                      "event": [
+                        {
+                          "listen": "test",
+                          "script": {
+                            "id": "5b3bab66-0cda-4467-84e3-6b318aa1c807",
+                            "exec": [
+                              "pm.test('Delete Pipeline', () => {",
+                              "    pm.response.to.have.status(200);",
+                              "    pm.environment.unset(\"PIPELINE_ID\");",
+                              "})",
+                              ""
+                            ],
+                            "type": "text/javascript"
+                          }
+                        }
+                      ],
+                      "id": "19634d1a-540c-4a2a-9f56-2a0b75e68f6b",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "auth": {
+                          "type": "bearer",
+                          "bearer": {
+                            "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                          }
+                        },
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                          "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
+                          "host": [
+                            "{{URL_PREFIX}}"
+                          ],
+                          "path": [
+                            "pipeline"
+                          ],
+                          "query": [
+                            {
+                              "key": "pipeline_id",
+                              "value": "{{PIPELINE_ID}}"
+                            }
+                          ]
+                        }
+                      },
+                      "response": []
+                    },
+                    {
                       "name": "TRUNCATE TOPIC",
                       "event": [
                         {
@@ -10796,55 +10846,6 @@
                             {
                               "key": "topic_name",
                               "value": "{{RAW_TOPIC_NAME}}"
-                            }
-                          ]
-                        }
-                      },
-                      "response": []
-                    },
-                    {
-                      "name": "DELETE PIPELINE",
-                      "event": [
-                        {
-                          "listen": "test",
-                          "script": {
-                            "id": "5b3bab66-0cda-4467-84e3-6b318aa1c807",
-                            "exec": [
-                              "pm.test('Delete Pipeline', () => {",
-                              "    pm.response.to.have.status(200);",
-                              "    pm.environment.unset(\"PIPELINE_ID\");",
-                              "})",
-                              ""
-                            ],
-                            "type": "text/javascript"
-                          }
-                        }
-                      ],
-                      "id": "19634d1a-540c-4a2a-9f56-2a0b75e68f6b",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "auth": {
-                          "type": "bearer",
-                          "bearer": {
-                            "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
-                          }
-                        },
-                        "method": "DELETE",
-                        "header": [],
-                        "url": {
-                          "raw": "{{URL_PREFIX}}/pipeline?pipeline_id={{PIPELINE_ID}}",
-                          "host": [
-                            "{{URL_PREFIX}}"
-                          ],
-                          "path": [
-                            "pipeline"
-                          ],
-                          "query": [
-                            {
-                              "key": "pipeline_id",
-                              "value": "{{PIPELINE_ID}}"
                             }
                           ]
                         }
