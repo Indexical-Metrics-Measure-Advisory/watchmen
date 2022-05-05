@@ -15083,8 +15083,15 @@
         "disableBodyPruning": true
       },
       "request": {
-        "method": "GET",
-        "header": []
+        "auth": {
+          "type": "bearer",
+          "bearer": {
+            "token": "{{JWT_TOKEN}}"
+          }
+        },
+        "method": "POST",
+        "header": [],
+        "url": "http://localhost:8000"
       },
       "response": []
     }
