@@ -13323,7 +13323,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "DELETE PIPELINE",
               "id": "7b067613-c45c-42b9-a2a5-285ce817ca66",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
@@ -13361,6 +13361,18 @@
             {
               "name": "New Request",
               "id": "c96dc5c5-e970-4e28-9014-ae0bc0623ad4",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "a99f9316-c876-4b22-aa4f-8fa782f89952",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
