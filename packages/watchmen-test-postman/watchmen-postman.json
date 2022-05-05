@@ -2821,6 +2821,7 @@
                       "    pm.expect(data.topicId).to.not.be.null;",
                       "    pm.environment.set(\"TOPIC_ID\", data.topicId);",
                       "    pm.environment.set(\"TOPIC_NAME\", data.name);",
+                      "    pm.environment.set(\"TOPIC_VERSION\", data.name);",
                       "    var factor_schema = [{",
                       "        \"items\": {",
                       "            \"factorId\": \"string\",",
