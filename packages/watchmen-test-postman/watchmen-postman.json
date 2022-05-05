@@ -3723,14 +3723,15 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "PIPELINE GRAPHICS CREATE 2",
               "id": "321b9a31-bdec-4898-b6f8-0db2266f6efd",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "method": "POST",
+                "header": [],
+                "url": "{{URL_PREFIX}}/pipeline/graphics"
               },
               "response": []
             },
