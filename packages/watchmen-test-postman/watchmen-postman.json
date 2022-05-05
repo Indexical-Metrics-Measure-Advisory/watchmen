@@ -3142,9 +3142,6 @@
                     "exec": [
                       "pm.test(\"Update Topic\", () => {",
                       "    pm.response.to.have.status(200);",
-                      "    const data = pm.response.json();",
-                      "    pm.expect(data.name).to.equal('Test_Distinct_Topic_2');",
-                      "    pm.environment.set(\"TOPIC_NAME\", \"Test_Distinct_Topic_2\");",
                       "})"
                     ],
                     "type": "text/javascript"
