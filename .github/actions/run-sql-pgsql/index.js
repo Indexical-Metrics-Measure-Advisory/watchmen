@@ -12,7 +12,6 @@ try {
     password: 'admin',
     database: 'watchmen'
     });
-    pgclient.connect();
 
     function travel(dir,callback){
         fs.readdirSync(dir).forEach((file)=>{
@@ -26,15 +25,17 @@ try {
         })
     }
 
-    function do_run(path){
+    function do_run(path) {
+        pgclient.connect();
         var sql = fs.readFileSync(path).toString();
         pgclient.query(sql, (err, res) => {
-            if (err) throw err
-        });
+            console.log(err, res)
+            pgclient.end()
+        })
     }
 
     travel(meta_script_path,do_run)
-    pgclient.end()
+
 } catch (error) {
     core.setFailed(error.message);
 }
