@@ -14993,6 +14993,7 @@
                       "    const space_id = pm.environment.get(\"SPACE_ID\");",
                       "    pm.expect(data.spaceId).to.equal(space_id);",
                       "    pm.environment.unset('SPACE_ID');",
+                      "    pm.environment.unset('SPACE_NAME');",
                       "",
                       "})",
                       ""
