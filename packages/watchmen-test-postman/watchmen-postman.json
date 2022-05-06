@@ -14350,6 +14350,18 @@
                     }
                   },
                   "response": []
+                },
+                {
+                  "name": "New Request",
+                  "id": "7393fc65-07e7-4309-9df2-2d841923f9be",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
                 }
               ],
               "id": "f3a99b31-18e9-43a3-a977-c68cbf4989ba"
