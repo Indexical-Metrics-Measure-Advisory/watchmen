@@ -1,16 +1,18 @@
 const core = require('@actions/core');
-const { Client } = require('pg');
+const { Pool } = require('pg');
 const fs = require('fs');
 const path=require('path');
 
+
 try {
     const meta_script_path = `./packages/watchmen-storage-postgresql/meta-scripts`;
-    const pgclient = new Client({
-    host: 'localhost',
-    port: '5432',
-    user: 'admin',
-    password: 'admin',
-    database: 'watchmen'
+
+    const pool = new Pool({
+        user: 'admin',
+        host: 'localhost',
+        database: 'watchmen',
+        password: 'admin',
+        port: 5432
     });
 
     function travel(dir,callback){
@@ -26,11 +28,10 @@ try {
     }
 
     function do_run(path) {
-        pgclient.connect();
         var sql = fs.readFileSync(path).toString();
-        pgclient.query(sql, (err, res) => {
+        pool.query(sql, (err, res) => {
             console.log(err, res)
-            pgclient.end()
+            pool.end()
         })
     }
 
