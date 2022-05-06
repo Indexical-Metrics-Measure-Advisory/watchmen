@@ -9149,7 +9149,7 @@
                   "name": "POST - SCRIPT",
                   "item": [
                     {
-                      "name": "New Request",
+                      "name": "TRUNCATE READ TOPIC",
                       "id": "95cacb80-ec0e-4f5b-ac7d-104417ca98a6",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
