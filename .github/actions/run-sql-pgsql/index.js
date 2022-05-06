@@ -27,15 +27,16 @@ try {
         })
     }
 
-    function do_run(path) {
+    async function do_run(path) {
         var sql = fs.readFileSync(path).toString();
-        pool.query(sql, (err, res) => {
-            console.log(err, res)
+        await pool.query(sql, (err, res) => {
+            if (err) throw err
+            console.log(res)
         })
     }
 
     travel(meta_script_path,do_run)
-    pool.end()
+    await pool.end()
 } catch (error) {
     core.setFailed(error.message);
 }
