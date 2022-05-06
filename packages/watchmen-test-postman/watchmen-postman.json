@@ -14272,6 +14272,15 @@
                   "request": {
                     "method": "POST",
                     "header": [],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n    \"name\": \"Test-Space-{{$randomInt}}\",\n    \"description\": \"A description\",\n    \"topicIds\": [],\n    \"groupIds\": [],\n    \"filters\": [\n        {\n            \"topicId\": \"1\",\n            \"enabled\": true,\n            \"joint\": {\n                \"jointType\": \"and\",\n                \"filters\": [\n                    {\n                        \"left\": {\n                            \"kind\": \"topic\",\n                            \"topicId\": \"1\",\n                            \"factorId\": \"1\"\n                        },\n                        \"operator\": \"empty\"\n                    },\n                    {\n                        \"jointType\": \"or\",\n                        \"filters\": [\n                            {\n                                \"left\": {\n                                    \"kind\": \"constant\",\n                                    \"value\": \"2\"\n                                },\n                                \"operator\": \"not-equals\",\n                                \"right\": {\n                                    \"kind\": \"computed\",\n                                    \"type\": \"add\",\n                                    \"parameters\": [\n                                        {\"kind\": \"constant\", \"value\": \"3\"},\n                                        {\"kind\": \"constant\", \"value\": \"4\"}\n                                    ]\n                                }\n                            }\n                        ]\n                    }\n                ]\n            }\n        }\n    ]\n}",
+                      "options": {
+                        "raw": {
+                          "language": "json"
+                        }
+                      }
+                    },
                     "url": "{{URL_PREFIX}}/space"
                   },
                   "response": []
