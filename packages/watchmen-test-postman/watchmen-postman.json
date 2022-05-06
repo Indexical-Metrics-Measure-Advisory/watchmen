@@ -15104,6 +15104,18 @@
                 "header": []
               },
               "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "de49dadb-f66f-4910-be47-2bd938b1a3ee",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
             }
           ],
           "id": "422c4bcf-a8fe-42e2-b0d4-9efbd4ff45a2"
