@@ -14913,7 +14913,7 @@
           "name": "POST - SCRIPT",
           "item": [
             {
-              "name": "New Request",
+              "name": "DELETE CONNECTED SPACE",
               "id": "4d01a476-0ce6-44df-a09c-f6dde7f844cd",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
