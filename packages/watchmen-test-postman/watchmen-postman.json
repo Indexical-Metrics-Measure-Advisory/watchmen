@@ -14855,7 +14855,7 @@
               "name": "POST - SCRIPT",
               "item": [
                 {
-                  "name": "New Request",
+                  "name": "DELETE SUBJECT",
                   "id": "72659d63-56ba-4c60-8ba9-46a803dcb1b1",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
