@@ -8659,7 +8659,7 @@
                       "response": []
                     },
                     {
-                      "name": "New Request",
+                      "name": "DELAY 1S",
                       "id": "0f350300-fbf1-4051-9513-5022da0eeb2e",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
