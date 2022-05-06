@@ -14397,8 +14397,38 @@
                     "disableBodyPruning": true
                   },
                   "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{JWT_TOKEN}}"
+                      }
+                    },
                     "method": "GET",
-                    "header": []
+                    "header": [],
+                    "url": {
+                      "raw": "{{URL_PREFIX}}/connected_space/connect?space_id={{SPACE_ID}}&name={{SPACE_NAME}}&template_ids=",
+                      "host": [
+                        "{{URL_PREFIX}}"
+                      ],
+                      "path": [
+                        "connected_space",
+                        "connect"
+                      ],
+                      "query": [
+                        {
+                          "key": "space_id",
+                          "value": "{{SPACE_ID}}"
+                        },
+                        {
+                          "key": "name",
+                          "value": "{{SPACE_NAME}}"
+                        },
+                        {
+                          "key": "template_ids",
+                          "value": ""
+                        }
+                      ]
+                    }
                   },
                   "response": []
                 }
