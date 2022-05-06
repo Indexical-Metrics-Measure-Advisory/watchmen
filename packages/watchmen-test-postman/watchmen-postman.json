@@ -14388,6 +14388,22 @@
                 },
                 {
                   "name": "New Request",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "84d24793-c194-42d2-bea6-e8a6361102c3",
+                        "exec": [
+                          "pm.test('Delete Subject By Super Admin', () => {",
+                          "    pm.response.to.have.status(200);",
+                          "    pm.environment.unset(\"SUBJECT_ID\");",
+                          "    pm.environment.unset(\"SUBJECT_NAME\");",
+                          "})"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "4253db54-21e2-44bb-af28-0f4ce6b0af83",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
