@@ -8454,6 +8454,19 @@
                       "response": []
                     },
                     {
+                      "name": "DELAY 1S",
+                      "id": "0f350300-fbf1-4051-9513-5022da0eeb2e",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": "https://postman-echo.com/delay/1"
+                      },
+                      "response": []
+                    },
+                    {
                       "name": "READ FACTOR",
                       "event": [
                         {
@@ -8657,19 +8670,6 @@
                         }
                       },
                       "response": []
-                    },
-                    {
-                      "name": "DELAY 1S",
-                      "id": "0f350300-fbf1-4051-9513-5022da0eeb2e",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "method": "GET",
-                        "header": [],
-                        "url": "https://postman-echo.com/delay/1"
-                      },
-                      "response": []
                     }
                   ],
                   "id": "931e3229-7e86-4a11-96a2-7ddd84aca9f0"
@@ -8789,7 +8789,8 @@
                       },
                       "request": {
                         "method": "GET",
-                        "header": []
+                        "header": [],
+                        "url": "https://postman-echo.com/delay/1"
                       },
                       "response": []
                     },
