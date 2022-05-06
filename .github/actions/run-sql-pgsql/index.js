@@ -36,7 +36,7 @@ try {
     }
 
     travel(meta_script_path,do_run)
-    await pool.end()
+    pool.end()
 } catch (error) {
     core.setFailed(error.message);
 }
