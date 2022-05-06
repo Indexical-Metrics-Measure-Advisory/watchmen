@@ -14791,6 +14791,18 @@
                     "url": "{{URL_PREFIX}}/report/temporary"
                   },
                   "response": []
+                },
+                {
+                  "name": "New Request",
+                  "id": "598e2f27-3722-4810-87b7-c7868148daed",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "GET",
+                    "header": []
+                  },
+                  "response": []
                 }
               ],
               "id": "172d5707-2b4e-49a5-a412-67f45cc75a9e"
