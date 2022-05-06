@@ -17,6 +17,6 @@ class PersonalAccessToken(UserBasedTuple, BaseModel):
 	token: str = None
 	username: str = None
 	note: str = None
-	expired: date = None
+	expired: datetime = None
 	permissions: list = None
 	createdAt: datetime = None
