@@ -15132,7 +15132,7 @@
                 "method": "DELETE",
                 "header": [],
                 "url": {
-                  "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{TOPIC_NAME_1}}",
+                  "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{TOPIC_NAME_2}}",
                   "host": [
                     "{{URL_PREFIX}}"
                   ],
@@ -15144,7 +15144,7 @@
                   "query": [
                     {
                       "key": "topic_name",
-                      "value": "{{TOPIC_NAME_1}}"
+                      "value": "{{TOPIC_NAME_2}}"
                     }
                   ]
                 }
