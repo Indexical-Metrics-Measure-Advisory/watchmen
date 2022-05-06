@@ -1,0 +1,35 @@
+name: Test Build Pgsql
+
+on: workflow_dispatch
+
+env:
+  DB_USER: admin
+  DB_PASSWORD: admin
+  DB_DATABASE: watchmen
+  DB_ROOT_PASSWORD: admin
+
+jobs:
+  container-job:
+    runs-on: ubuntu-latest
+    container: node:10.18-jessie
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: ${{env.DB_USER}}
+          POSTGRES_PASSWORD: ${{env.DB_PASSWORD}}
+          POSTGRES_DB: ${{env.DB_DATABASE}}
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Run sql
+        uses: ./.github/actions/run-sql-pgsql/
+        id: run-sql-pgsql
