@@ -14387,7 +14387,7 @@
                   "response": []
                 },
                 {
-                  "name": "New Request",
+                  "name": "DELETE SUBJECT",
                   "event": [
                     {
                       "listen": "test",
