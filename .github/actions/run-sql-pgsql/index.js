@@ -31,12 +31,11 @@ try {
         var sql = fs.readFileSync(path).toString();
         pool.query(sql, (err, res) => {
             console.log(err, res)
-            pool.end()
         })
     }
 
     travel(meta_script_path,do_run)
-
+    pool.end()
 } catch (error) {
     core.setFailed(error.message);
 }
