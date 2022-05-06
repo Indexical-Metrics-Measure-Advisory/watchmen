@@ -14530,7 +14530,7 @@
                   "response": []
                 },
                 {
-                  "name": "New Request",
+                  "name": "DELETE SUBJECT",
                   "id": "e847df88-0453-41e5-a0d9-12a19461c2c3",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
