@@ -14265,6 +14265,23 @@
                 },
                 {
                   "name": "CREATE SPACE",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "792c6f29-dbf5-4375-851d-ac86a86dcf02",
+                        "exec": [
+                          "pm.test('Create Space', () => {",
+                          "    const data = pm.response.json();",
+                          "    pm.environment.set('SPACE_ID', data.spaceId);",
+                          "    pm.environment.set('SPACE_NAME', data.name);",
+                          "})",
+                          ""
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "7393fc65-07e7-4309-9df2-2d841923f9be",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
@@ -14274,7 +14291,7 @@
                     "header": [],
                     "body": {
                       "mode": "raw",
-                      "raw": "{\n    \"name\": \"Test-Space-{{$randomInt}}\",\n    \"description\": \"A description\",\n    \"topicIds\": [],\n    \"groupIds\": [],\n    \"filters\": [\n        {\n            \"topicId\": \"1\",\n            \"enabled\": true,\n            \"joint\": {\n                \"jointType\": \"and\",\n                \"filters\": [\n                    {\n                        \"left\": {\n                            \"kind\": \"topic\",\n                            \"topicId\": \"1\",\n                            \"factorId\": \"1\"\n                        },\n                        \"operator\": \"empty\"\n                    },\n                    {\n                        \"jointType\": \"or\",\n                        \"filters\": [\n                            {\n                                \"left\": {\n                                    \"kind\": \"constant\",\n                                    \"value\": \"2\"\n                                },\n                                \"operator\": \"not-equals\",\n                                \"right\": {\n                                    \"kind\": \"computed\",\n                                    \"type\": \"add\",\n                                    \"parameters\": [\n                                        {\"kind\": \"constant\", \"value\": \"3\"},\n                                        {\"kind\": \"constant\", \"value\": \"4\"}\n                                    ]\n                                }\n                            }\n                        ]\n                    }\n                ]\n            }\n        }\n    ]\n}",
+                      "raw": "{\n    \"name\": \"Test-Space-{{$randomInt}}\",\n    \"description\": \"A description\",\n    \"topicIds\": [],\n    \"groupIds\": [],\n    \"filters\": [\n        {\n            \"topicId\": \"1\",\n            \"enabled\": true,\n            \"joint\": {\n                \"jointType\": \"and\",\n                \"filters\": []\n            }\n        }\n    ]\n}",
                       "options": {
                         "raw": {
                           "language": "json"
