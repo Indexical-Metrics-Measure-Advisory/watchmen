@@ -14856,6 +14856,22 @@
               "item": [
                 {
                   "name": "DELETE SUBJECT",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "887c0ca4-230d-481d-8283-cbfddadd9bac",
+                        "exec": [
+                          "pm.test('Delete Subject By Super Admin', () => {",
+                          "    pm.response.to.have.status(200);",
+                          "    pm.environment.unset(\"SUBJECT_ID\");",
+                          "    pm.environment.unset(\"SUBJECT_NAME\");",
+                          "})"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "72659d63-56ba-4c60-8ba9-46a803dcb1b1",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
