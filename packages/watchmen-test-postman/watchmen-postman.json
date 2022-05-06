@@ -14911,7 +14911,20 @@
         },
         {
           "name": "POST - SCRIPT",
-          "item": [],
+          "item": [
+            {
+              "name": "New Request",
+              "id": "4d01a476-0ce6-44df-a09c-f6dde7f844cd",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
+            }
+          ],
           "id": "422c4bcf-a8fe-42e2-b0d4-9efbd4ff45a2"
         }
       ],
