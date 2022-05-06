@@ -14531,11 +14531,33 @@
                 },
                 {
                   "name": "DELETE SUBJECT",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "5b74c431-c7e3-4d19-8951-ba41663fc7f4",
+                        "exec": [
+                          "pm.test('Delete Subject By Super Admin', () => {",
+                          "    pm.response.to.have.status(200);",
+                          "    pm.environment.unset(\"SUBJECT_ID\");",
+                          "    pm.environment.unset(\"SUBJECT_NAME\");",
+                          "})"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "e847df88-0453-41e5-a0d9-12a19461c2c3",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
                   },
                   "request": {
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                      }
+                    },
                     "method": "DELETE",
                     "header": [],
                     "url": {
