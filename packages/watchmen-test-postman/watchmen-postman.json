@@ -14799,8 +14799,29 @@
                     "disableBodyPruning": true
                   },
                   "request": {
-                    "method": "GET",
-                    "header": []
+                    "auth": {
+                      "type": "bearer",
+                      "bearer": {
+                        "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                      }
+                    },
+                    "method": "DELETE",
+                    "header": [],
+                    "url": {
+                      "raw": "{{URL_PREFIX}}/report?report_id={{REPORT_ID}}",
+                      "host": [
+                        "{{URL_PREFIX}}"
+                      ],
+                      "path": [
+                        "report"
+                      ],
+                      "query": [
+                        {
+                          "key": "report_id",
+                          "value": "{{REPORT_ID}}"
+                        }
+                      ]
+                    }
                   },
                   "response": []
                 }
