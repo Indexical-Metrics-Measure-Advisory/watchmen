@@ -15082,7 +15082,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "TRUNCATE TOPIC 1",
               "id": "8c2c6d72-4521-4e4c-b810-a5fbb027edf9",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
