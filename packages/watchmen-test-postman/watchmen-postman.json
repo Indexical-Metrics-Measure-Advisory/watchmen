@@ -14592,6 +14592,23 @@
               "item": [
                 {
                   "name": "CREATE SUBJECT",
+                  "event": [
+                    {
+                      "listen": "test",
+                      "script": {
+                        "id": "ef1ffbf5-9452-4f76-9a00-378f5f0f300f",
+                        "exec": [
+                          "pm.test('Create Subject', () => {",
+                          "    pm.response.to.have.status(200);",
+                          "    const data = pm.response.json();",
+                          "    pm.environment.set(\"SUBJECT_ID\", data.subjectId);",
+                          "    pm.environment.set(\"SUBJECT_NAME\", data.name);",
+                          "})"
+                        ],
+                        "type": "text/javascript"
+                      }
+                    }
+                  ],
                   "id": "82ee65ff-ab19-4c71-8c76-b6779693ba6c",
                   "protocolProfileBehavior": {
                     "disableBodyPruning": true
