@@ -919,7 +919,14 @@
                   }
                 },
                 "method": "GET",
-                "header": [],
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "pat GTutBEhdebwD_nOQXFq4xg",
+                    "type": "text",
+                    "disabled": true
+                  }
+                ],
                 "url": "{{URL_PREFIX}}/pat/list"
               },
               "response": []
