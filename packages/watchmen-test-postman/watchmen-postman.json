@@ -14919,8 +14919,24 @@
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/connected_space/delete?connect_id={{CONNECT_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "connected_space",
+                    "delete"
+                  ],
+                  "query": [
+                    {
+                      "key": "connect_id",
+                      "value": "{{CONNECT_ID}}"
+                    }
+                  ]
+                }
               },
               "response": []
             }
