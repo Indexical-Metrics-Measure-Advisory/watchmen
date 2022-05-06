@@ -14264,6 +14264,19 @@
                   "response": []
                 },
                 {
+                  "name": "CREATE SPACE",
+                  "id": "7393fc65-07e7-4309-9df2-2d841923f9be",
+                  "protocolProfileBehavior": {
+                    "disableBodyPruning": true
+                  },
+                  "request": {
+                    "method": "POST",
+                    "header": [],
+                    "url": "{{URL_PREFIX}}/space"
+                  },
+                  "response": []
+                },
+                {
                   "name": "CRATE SUBJECT",
                   "event": [
                     {
@@ -14348,18 +14361,6 @@
                         }
                       ]
                     }
-                  },
-                  "response": []
-                },
-                {
-                  "name": "CREATE SPACE",
-                  "id": "7393fc65-07e7-4309-9df2-2d841923f9be",
-                  "protocolProfileBehavior": {
-                    "disableBodyPruning": true
-                  },
-                  "request": {
-                    "method": "GET",
-                    "header": []
                   },
                   "response": []
                 }
