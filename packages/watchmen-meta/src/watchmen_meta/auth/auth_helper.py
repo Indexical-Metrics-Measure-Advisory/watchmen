@@ -62,7 +62,7 @@ def find_pat_by_token(storage: TransactionalStorageSPI, pat_token: str) -> Optio
 	if pat.expired is None:
 		# no expired date
 		return pat
-	if pat.expired < datetime.now().date():
+	if pat.expired < datetime.now():
 		# pat is expired
 		return None
 	return pat
