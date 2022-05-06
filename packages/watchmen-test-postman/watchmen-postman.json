@@ -14965,13 +14965,54 @@
             },
             {
               "name": "DELETE SPACE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "19990f3c-fdf6-4c6c-9380-c7bca04d7813",
+                    "exec": [
+                      "pm.test('Delete Space', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    const space_id = pm.environment.get(\"SPACE_ID\");",
+                      "    pm.expect(data.spaceId).to.equal(space_id);",
+                      "    pm.environment.unset('SPACE_ID');",
+                      "",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "fd2c2d87-9b10-4d0b-9fce-8a7206f3ed90",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+                  }
+                },
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{URL_PREFIX}}/space?space_id={{SPACE_ID}}",
+                  "host": [
+                    "{{URL_PREFIX}}"
+                  ],
+                  "path": [
+                    "space"
+                  ],
+                  "query": [
+                    {
+                      "key": "space_id",
+                      "value": "{{SPACE_ID}}"
+                    }
+                  ]
+                }
               },
               "response": []
             }
