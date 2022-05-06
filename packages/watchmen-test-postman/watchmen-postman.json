@@ -15097,7 +15097,7 @@
                 "method": "POST",
                 "header": [],
                 "url": {
-                  "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{TOPIC_NAME}}",
+                  "raw": "{{URL_PREFIX}}/topic/data/truncate?topic_name={{TOPIC_NAME_1}}",
                   "host": [
                     "{{URL_PREFIX}}"
                   ],
@@ -15109,7 +15109,7 @@
                   "query": [
                     {
                       "key": "topic_name",
-                      "value": "{{TOPIC_NAME}}"
+                      "value": "{{TOPIC_NAME_1}}"
                     }
                   ]
                 }
