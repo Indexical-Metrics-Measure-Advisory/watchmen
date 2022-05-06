@@ -8657,6 +8657,18 @@
                         }
                       },
                       "response": []
+                    },
+                    {
+                      "name": "New Request",
+                      "id": "0f350300-fbf1-4051-9513-5022da0eeb2e",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
                     }
                   ],
                   "id": "931e3229-7e86-4a11-96a2-7ddd84aca9f0"
@@ -8765,6 +8777,18 @@
                             }
                           ]
                         }
+                      },
+                      "response": []
+                    },
+                    {
+                      "name": "DELAY 1S",
+                      "id": "9a88b353-7565-4bf9-a58a-78e94800c540",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
                       },
                       "response": []
                     },
@@ -8954,18 +8978,6 @@
                             }
                           ]
                         }
-                      },
-                      "response": []
-                    },
-                    {
-                      "name": "DELAY 1S",
-                      "id": "9a88b353-7565-4bf9-a58a-78e94800c540",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "method": "GET",
-                        "header": []
                       },
                       "response": []
                     }
