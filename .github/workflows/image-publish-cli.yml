@@ -1,0 +1,45 @@
+name: Publish cli images
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: Release branch
+        required: true
+        type: string
+      version:
+        description: Target version
+        required: true
+        type: string
+      storage:
+        description: Storage type
+        required: true
+        type: string
+
+jobs:
+  build-and-publish:
+    name: Publish image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo inputs
+        run: |
+          echo "Release branch: [${{ inputs.branch }}]"
+          echo "Target version: [${{ inputs.version }}]"
+          echo "Storage type: [${{ inputs.storage }}]"
+      - name: Check out the repo
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ inputs.branch }}
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+      - name: Doll build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: ./packages/watchmen-cli
+          file: ./packages/watchmen-rest-doll/Dockerfile
+          push: true
+          tags: ghcr.io/indexical-metrics-measure-advisory/watchmen-cli:${{ inputs.version }}
