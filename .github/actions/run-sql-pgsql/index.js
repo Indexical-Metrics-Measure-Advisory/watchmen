@@ -29,7 +29,6 @@ try {
 
     async function do_run(path) {
         var sql = fs.readFileSync(path).toString();
-        await pool.query('set AUTOCOMMIT on')
         await pool.query(sql, (err, res) => {
             if (err) throw err
             console.log(res)
