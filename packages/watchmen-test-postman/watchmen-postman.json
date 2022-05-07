@@ -16067,7 +16067,7 @@
       "name": "FLATTEN",
       "item": [
         {
-          "name": "New Request",
+          "name": "CREATE RAW TOPIC",
           "id": "d9f4ec33-9bdb-4cd5-97c3-e22da0082752",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
