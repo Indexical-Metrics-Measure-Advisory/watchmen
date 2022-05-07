@@ -16065,7 +16065,20 @@
     },
     {
       "name": "FLATTEN",
-      "item": [],
+      "item": [
+        {
+          "name": "New Request",
+          "id": "d9f4ec33-9bdb-4cd5-97c3-e22da0082752",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": []
+          },
+          "response": []
+        }
+      ],
       "id": "757d2705-8d17-41ec-b133-a7074b70b5bf"
     }
   ]
