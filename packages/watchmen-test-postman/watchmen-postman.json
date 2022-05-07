@@ -8397,7 +8397,7 @@
                           "script": {
                             "id": "2d738310-f4c9-4391-afb6-25212a3fa541",
                             "exec": [
-                              "sleep 1"
+                              ""
                             ],
                             "type": "text/javascript"
                           }
