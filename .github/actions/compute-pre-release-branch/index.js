@@ -6,7 +6,7 @@ try {
     const [major, minor, patch] = targetVersion.split('.');
     // console.log(targetVersion);
     // console.log(major, minor, patch);
-    core.exportVariable('PRE_RELEASE_BRANCH_NAME', `pre-release/v${major}.0`);
+    core.exportVariable('PRE_RELEASE_BRANCH_NAME', `pre-release/v${major}.${minor}`);
 } catch (error) {
     core.setFailed(error.message);
 }
