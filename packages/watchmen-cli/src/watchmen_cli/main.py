@@ -1,5 +1,5 @@
 from watchmen_cli.common.exception import ConfigException
-from watchmen_cli.service.deployment import Deployment
+from watchmen_cli.service import Deployment
 from watchmen_cli.settings import settings
 
 
