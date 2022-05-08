@@ -15601,7 +15601,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "DELETE CONNECTED SPACE",
               "id": "be47e730-462c-445f-8d93-e7626053684a",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
