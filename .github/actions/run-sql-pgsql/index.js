@@ -20,10 +20,10 @@ try {
             var client = await pool.connect()
 
             async function travel(dir) {
-                for (file in fs.readdirSync(dir)){
+                for (const file of fs.readdirSync(dir)){
                     var pathname = path.join(dir, file)
                     if (fs.statSync(pathname).isDirectory()) {
-                        travel(pathname)
+                        await travel(pathname)
                     } else {
                         console.log(pathname)
                         sql = fs.readFileSync(pathname).toString();
