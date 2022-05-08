@@ -15490,6 +15490,18 @@
                 "url": "{{URL_PREFIX}}/space"
               },
               "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "5c8a4c5f-2e59-4f8a-98e4-3448c4177189",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
             }
           ],
           "id": "650b4d12-8879-4f0b-aeca-f83ef8b34a3d"
