@@ -19,8 +19,8 @@ try {
         try {
             var client = await pool.connect()
 
-            function travel(dir) {
-                fs.readdirSync(dir).forEach(async (file) => {
+            async function travel(dir) {
+                for (file in fs.readdirSync(dir)){
                     var pathname = path.join(dir, file)
                     if (fs.statSync(pathname).isDirectory()) {
                         travel(pathname)
@@ -29,10 +29,10 @@ try {
                         sql = fs.readFileSync(pathname).toString();
                         await client.query(sql)
                     }
-                })
+                }
             }
 
-            travel(meta_script_path)
+            await travel(meta_script_path)
         } finally {
             client.release()
             pool.end()
