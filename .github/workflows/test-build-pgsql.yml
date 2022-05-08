@@ -54,7 +54,7 @@ jobs:
         env:
           LOG_FILE: /tmp/scripts/runtime.log
           BASE_PATH: ${{ github.workspace }}
-          META_STORAGE_TYPE: mysql
+          META_STORAGE_TYPE: postgresql
           META_STORAGE_USER_NAME: admin
           META_STORAGE_PASSWORD: admin
           META_STORAGE_HOST: localhost
@@ -69,7 +69,7 @@ jobs:
           USE_STORAGE_DIRECTLY: TRUE
         run: |
           poetry config virtualenvs.create false
-          poetry install --no-dev -vv -E mysql -E trino
+          poetry install --no-dev -vv -E postgresql -E trino
           uvicorn watchmen_rest_doll.main:app --host='0.0.0.0' --port='8000' > server.out 2>&1 &
       - name: Install Node
         uses: actions/setup-node@v3
