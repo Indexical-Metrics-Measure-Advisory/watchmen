@@ -15788,7 +15788,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "DELETE REPORT",
               "id": "a269d906-8d6b-449b-a389-b07080333481",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
