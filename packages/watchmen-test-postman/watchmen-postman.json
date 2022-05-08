@@ -15455,6 +15455,7 @@
                     "id": "68387c71-2916-4fc0-a0c1-783f0a5c4be7",
                     "exec": [
                       "pm.test('Create Space', () => {",
+                      "    pm.response.to.have.status(200);",
                       "    const data = pm.response.json();",
                       "    pm.environment.set('SPACE_ID', data.spaceId);",
                       "    pm.environment.set('SPACE_NAME', data.name);",
