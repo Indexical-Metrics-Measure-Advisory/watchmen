@@ -15354,7 +15354,7 @@
           "name": "PRE - SCRIPT",
           "item": [
             {
-              "name": "New Request",
+              "name": "CREATE USER",
               "id": "9e3e1477-e7ab-416f-9c69-e421c22699a4",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
