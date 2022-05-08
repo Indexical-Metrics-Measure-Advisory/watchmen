@@ -15397,6 +15397,18 @@
                 "url": "{{URL_PREFIX}}/user"
               },
               "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "d0e6a03b-1104-43ab-a6c0-f4a59663565e",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
             }
           ],
           "id": "650b4d12-8879-4f0b-aeca-f83ef8b34a3d"
