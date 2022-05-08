@@ -15602,6 +15602,21 @@
             },
             {
               "name": "DELETE CONNECTED SPACE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "d348bd69-a009-4442-90ac-cfe0fe6f5b1f",
+                    "exec": [
+                      "pm.test(\"Delete Connected Space By Super Admin\", () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.environment.unset('CONNECT_ID');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "be47e730-462c-445f-8d93-e7626053684a",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
