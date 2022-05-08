@@ -15744,6 +15744,23 @@
             },
             {
               "name": "CREATE REPORT",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "a4a1fded-46b2-42ae-b5c5-dd6ff375e919",
+                    "exec": [
+                      "pm.test('Create Report', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.environment.set(\"REPORT_ID\", data.reportId);",
+                      "    pm.environment.set(\"REPORT_NAME\", data.name);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "e7c3fba5-1046-4710-b1c7-3005ac1a5367",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
