@@ -15542,7 +15542,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "CREATE CONNECTED SPACE",
               "id": "7e612d4d-4bf1-4a77-8eb7-b28bdc9e75c9",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
