@@ -15743,7 +15743,7 @@
               "response": []
             },
             {
-              "name": "New Request",
+              "name": "CREATE REPORT",
               "id": "e7c3fba5-1046-4710-b1c7-3005ac1a5367",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
