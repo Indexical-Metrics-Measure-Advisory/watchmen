@@ -15650,13 +15650,46 @@
             },
             {
               "name": "CREATE SUBJECT",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "040ea27e-bfc9-456a-a131-c0b5b320595f",
+                    "exec": [
+                      "pm.test('Create Subject', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.environment.set(\"SUBJECT_ID\", data.subjectId);",
+                      "    pm.environment.set(\"SUBJECT_NAME\", data.name);",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "feb624f4-e383-4368-9c04-c41c342d453a",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
               },
               "request": {
-                "method": "GET",
-                "header": []
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Test_Subject\",\n    \"connectId\": \"{{CONNECT_ID}}\",\n    \"reports\": [\n        \"1\",\n        \"2\"\n    ],\n    \"dataset\": {\n        \"joins\": [],\n        \"columns\": []\n    }\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{URL_PREFIX}}/subject"
               },
               "response": []
             }
