@@ -15786,6 +15786,18 @@
                 "url": "{{URL_PREFIX}}/report"
               },
               "response": []
+            },
+            {
+              "name": "New Request",
+              "id": "a269d906-8d6b-449b-a389-b07080333481",
+              "protocolProfileBehavior": {
+                "disableBodyPruning": true
+              },
+              "request": {
+                "method": "GET",
+                "header": []
+              },
+              "response": []
             }
           ],
           "id": "650b4d12-8879-4f0b-aeca-f83ef8b34a3d"
