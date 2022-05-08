@@ -15789,6 +15789,22 @@
             },
             {
               "name": "DELETE REPORT",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "0cdca0b8-d9cb-408a-bfaa-828010e7d3f6",
+                    "exec": [
+                      "pm.test('Delete report', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.environment.unset(\"REPORT_ID\");",
+                      "    pm.environment.unset(\"REPORT_NAME\");",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "a269d906-8d6b-449b-a389-b07080333481",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
