@@ -15360,8 +15360,23 @@
                 "disableBodyPruning": true
               },
               "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": {
+                    "token": "{{JWT_TOKEN}}"
+                  }
+                },
                 "method": "POST",
                 "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n    \"name\": \"Test-User-{{$randomInt}}\",\n    \"nickName\": \"Test-User-Nickname\",\n    \"password\": \"abcd1234\",\n    \"isActive\": true,\n    \"groupIds\": [],\n    \"role\": \"console\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
                 "url": "{{URL_PREFIX}}/user"
               },
               "response": []
