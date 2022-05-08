@@ -15362,6 +15362,7 @@
                     "id": "deb826e4-ebd7-455d-b582-54a36d012900",
                     "exec": [
                       "pm.test('Create User', () => {",
+                      "    pm.response.to.have.status(200);",
                       "    const data = pm.response.json();",
                       "    pm.environment.set('USER_ID', data.userId);",
                       "})",
