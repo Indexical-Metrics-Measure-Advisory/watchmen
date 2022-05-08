@@ -15493,6 +15493,22 @@
             },
             {
               "name": "DELETE SPACE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "2a8d6280-1983-4685-bb90-60606cc2043d",
+                    "exec": [
+                      "pm.test('Delete Space', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    pm.environment.unset('SPACE_ID');",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "5c8a4c5f-2e59-4f8a-98e4-3448c4177189",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
