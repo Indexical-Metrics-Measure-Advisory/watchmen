@@ -15355,6 +15355,22 @@
           "item": [
             {
               "name": "CREATE USER",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "deb826e4-ebd7-455d-b582-54a36d012900",
+                    "exec": [
+                      "pm.test('Create User', () => {",
+                      "    const data = pm.response.json();",
+                      "    pm.environment.set('USER_ID', data.userId);",
+                      "})",
+                      ""
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "9e3e1477-e7ab-416f-9c69-e421c22699a4",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
