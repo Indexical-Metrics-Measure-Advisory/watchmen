@@ -32,12 +32,12 @@ jobs:
         uses: actions/checkout@v3
       - name: Run db meta script
         uses: ./.github/actions/run-sql-pgsql/
-        id: run-sql-pgsql
+        id: run-meta-sql-pgsql
         with:
           script-path: './packages/watchmen-storage-postgresql/meta-scripts'
       - name: Run db data script
         uses: ./.github/actions/run-sql-pgsql/
-        id: run-sql-pgsql
+        id: run-data-sql-pgsql
         with:
           script-path: './packages/watchmen-storage-postgresql/data-scripts'
       - name: Setup python
