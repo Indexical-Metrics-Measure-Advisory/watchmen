@@ -1,5 +1,9 @@
 name: 'Run Sql for Pgsql'
 description: 'execute initial sql script in pgsql for CI testing'
+inputs:
+  script-path:
+    description: 'sql path'
+    required: true
 runs:
   using: 'node16'
   main: 'index.js'
