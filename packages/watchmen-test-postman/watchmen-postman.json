@@ -15543,6 +15543,23 @@
             },
             {
               "name": "CREATE CONNECTED SPACE",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "id": "5b04d9ad-87a1-48e6-b85f-526080ba8419",
+                    "exec": [
+                      "pm.test('Create Connected Space', () => {",
+                      "    pm.response.to.have.status(200);",
+                      "    const data = pm.response.json();",
+                      "    pm.environment.set('CONNECT_ID', data.connectId);",
+                      "",
+                      "})"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
               "id": "7e612d4d-4bf1-4a77-8eb7-b28bdc9e75c9",
               "protocolProfileBehavior": {
                 "disableBodyPruning": true
