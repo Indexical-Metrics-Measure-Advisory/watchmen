@@ -15,28 +15,28 @@ try {
         port: 5432
     });
 
-    function travel(dir,callback){
-        fs.readdirSync(dir).forEach((file)=>{
-            var pathname=path.join(dir,file)
-            if(fs.statSync(pathname).isDirectory()){
-                travel(pathname,callback)
-            }else{
-                console.log(pathname)
-                callback(pathname)
-            }
-        })
+    const client = await pool.connect()
+
+     function travel(dir){
+        try{
+            fs.readdirSync(dir).forEach(async (file)=>{
+                var pathname=path.join(dir,file)
+                if(fs.statSync(pathname).isDirectory()){
+                    travel(pathname)
+                }else{
+                    console.log(pathname)
+                    sql = fs.readFileSync(pathname).toString();
+                    await client.query(sql)
+                }
+            })
+        } finally {
+            client.release()
+            pool.end()
+        }
     }
 
-    async function do_run(path) {
-        var sql = fs.readFileSync(path).toString();
-        await pool.query(sql, (err, res) => {
-            if (err) throw err
-            console.log(res)
-        })
-    }
+    travel(meta_script_path)
 
-    travel(meta_script_path,do_run)
-    pool.end()
 } catch (error) {
     core.setFailed(error.message);
 }
