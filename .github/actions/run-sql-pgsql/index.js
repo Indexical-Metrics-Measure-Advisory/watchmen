@@ -16,10 +16,10 @@ try {
     });
 
     (async () => {
-        const client = await pool.connect()
+        try {
+            var client = await pool.connect()
 
-        function travel(dir) {
-            try {
+            function travel(dir) {
                 fs.readdirSync(dir).forEach(async (file) => {
                     var pathname = path.join(dir, file)
                     if (fs.statSync(pathname).isDirectory()) {
@@ -30,13 +30,14 @@ try {
                         await client.query(sql)
                     }
                 })
-            } finally {
-                client.release()
-                pool.end()
             }
+
+            travel(meta_script_path)
+        } finally {
+            client.release()
+            pool.end()
         }
 
-        travel(meta_script_path)
     })()
 
 
