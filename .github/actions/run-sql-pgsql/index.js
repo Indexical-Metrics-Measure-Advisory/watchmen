@@ -5,7 +5,7 @@ const path = require('path');
 
 
 try {
-    const meta_script_path = `./packages/watchmen-storage-postgresql/meta-scripts`;
+    const meta_script_path = core.getInput('script-path');
 
     const pool = new Pool({
         user: 'admin',
