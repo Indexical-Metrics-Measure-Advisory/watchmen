@@ -8881,7 +8881,7 @@
                       "response": []
                     },
                     {
-                      "name": "DELAY 5",
+                      "name": "DELAY 5S",
                       "id": "fc4f6384-d47a-4be1-9bf7-bfaef28c441c",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
