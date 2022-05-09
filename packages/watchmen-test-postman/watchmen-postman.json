@@ -8790,7 +8790,7 @@
                       "request": {
                         "method": "GET",
                         "header": [],
-                        "url": "https://postman-echo.com/delay/5"
+                        "url": "https://postman-echo.com/delay/1"
                       },
                       "response": []
                     },
