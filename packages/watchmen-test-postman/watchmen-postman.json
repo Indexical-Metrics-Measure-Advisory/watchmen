@@ -8881,6 +8881,18 @@
                       "response": []
                     },
                     {
+                      "name": "DELAY 5",
+                      "id": "fc4f6384-d47a-4be1-9bf7-bfaef28c441c",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
+                    },
+                    {
                       "name": "DELETE PIPELINE",
                       "id": "c7bdee35-17bd-4e37-bfe8-c3b21a2f18ba",
                       "protocolProfileBehavior": {
@@ -8980,18 +8992,6 @@
                             }
                           ]
                         }
-                      },
-                      "response": []
-                    },
-                    {
-                      "name": "New Request",
-                      "id": "fc4f6384-d47a-4be1-9bf7-bfaef28c441c",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "method": "GET",
-                        "header": []
                       },
                       "response": []
                     }
