@@ -8888,7 +8888,8 @@
                       },
                       "request": {
                         "method": "GET",
-                        "header": []
+                        "header": [],
+                        "url": "https://postman-echo.com/delay/5"
                       },
                       "response": []
                     },
