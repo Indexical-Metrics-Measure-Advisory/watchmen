@@ -8624,7 +8624,7 @@
                       "response": []
                     },
                     {
-                      "name": "DELAY 10",
+                      "name": "DELAY 1",
                       "id": "103a7ad7-968e-45c0-9e6b-ec71da7126e5",
                       "protocolProfileBehavior": {
                         "disableBodyPruning": true
@@ -8632,7 +8632,7 @@
                       "request": {
                         "method": "GET",
                         "header": [],
-                        "url": "https://postman-echo.com/delay/10"
+                        "url": "https://postman-echo.com/delay/1"
                       },
                       "response": []
                     },
