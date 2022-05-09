@@ -8881,19 +8881,6 @@
                       "response": []
                     },
                     {
-                      "name": "DELAY 5S",
-                      "id": "fc4f6384-d47a-4be1-9bf7-bfaef28c441c",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "method": "GET",
-                        "header": [],
-                        "url": "https://postman-echo.com/delay/5"
-                      },
-                      "response": []
-                    },
-                    {
                       "name": "DELETE PIPELINE",
                       "id": "c7bdee35-17bd-4e37-bfe8-c3b21a2f18ba",
                       "protocolProfileBehavior": {
