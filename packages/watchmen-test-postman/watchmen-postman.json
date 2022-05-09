@@ -8795,19 +8795,6 @@
                       "response": []
                     },
                     {
-                      "name": "DELAY 1S",
-                      "id": "9a88b353-7565-4bf9-a58a-78e94800c540",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "method": "GET",
-                        "header": [],
-                        "url": "https://postman-echo.com/delay/5"
-                      },
-                      "response": []
-                    },
-                    {
                       "name": "READ FACTORS",
                       "event": [
                         {
