@@ -8637,6 +8637,18 @@
                       "response": []
                     },
                     {
+                      "name": "DELAY 10",
+                      "id": "103a7ad7-968e-45c0-9e6b-ec71da7126e5",
+                      "protocolProfileBehavior": {
+                        "disableBodyPruning": true
+                      },
+                      "request": {
+                        "method": "GET",
+                        "header": []
+                      },
+                      "response": []
+                    },
+                    {
                       "name": "TRUNCATE RAW TOPIC",
                       "id": "caf1728c-50a8-441e-97aa-6301de556ed2",
                       "protocolProfileBehavior": {
@@ -8668,18 +8680,6 @@
                             }
                           ]
                         }
-                      },
-                      "response": []
-                    },
-                    {
-                      "name": "New Request",
-                      "id": "103a7ad7-968e-45c0-9e6b-ec71da7126e5",
-                      "protocolProfileBehavior": {
-                        "disableBodyPruning": true
-                      },
-                      "request": {
-                        "method": "GET",
-                        "header": []
                       },
                       "response": []
                     }
