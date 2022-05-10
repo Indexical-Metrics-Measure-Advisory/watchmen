@@ -68,7 +68,6 @@ def heart_beat_on_pipelines() -> None:
 			loaded: Optional[Pipeline] = pipeline_service.find_by_id(pipeline.pipelineId)
 			if loaded is None:
 				CacheService.pipeline().remove(pipeline.pipelineId)
-				CacheService.pipelines_by_topic().remove_one(pipeline.topicId, pipeline.pipelineId)
 			elif loaded.lastModifiedAt > pipeline.lastModifiedAt or loaded.version > pipeline.version:
 				CacheService.pipeline().put(loaded)
 	finally:
