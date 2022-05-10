@@ -253,7 +253,7 @@ async def delete_pipeline_by_id_by_super_admin(
 		pipeline: Pipeline = pipeline_service.delete(pipeline_id)
 		if pipeline is None:
 			raise_404()
-		post_delete_pipeline(pipeline.topicId, pipeline_service)
+		post_delete_pipeline(pipeline.pipelineId, pipeline_service)
 		return pipeline
 
 	return trans(pipeline_service, action)
