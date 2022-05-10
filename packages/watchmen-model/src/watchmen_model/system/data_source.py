@@ -1,9 +1,10 @@
 from enum import Enum
-from typing import List
+from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
 from watchmen_model.common import DataModel, DataSourceId, OptimisticLock, TenantBasedTuple
+from watchmen_utilities import ArrayHelper
 
 
 class DataSourceParam(DataModel, BaseModel):
@@ -19,6 +20,22 @@ class DataSourceType(str, Enum):
 	POSTGRESQL = 'postgresql'
 
 
+def construct_param(param: Optional[Union[dict, DataSourceParam]]) -> Optional[DataSourceParam]:
+	if param is None:
+		return None
+	elif isinstance(param, DataSourceParam):
+		return param
+	else:
+		return DataSourceParam(**param)
+
+
+def construct_params(params: Optional[list] = None) -> Optional[List[DataSourceParam]]:
+	if params is None:
+		return None
+	else:
+		return ArrayHelper(params).map(lambda x: construct_param(x)).to_list()
+
+
 class DataSource(TenantBasedTuple, OptimisticLock, BaseModel):
 	dataSourceId: DataSourceId = None
 	dataSourceCode: str = None
@@ -30,3 +47,9 @@ class DataSource(TenantBasedTuple, OptimisticLock, BaseModel):
 	name: str = None
 	url: str = None
 	params: List[DataSourceParam] = []
+
+	def __setattr__(self, name, value):
+		if name == 'params':
+			super().__setattr__(name, construct_params(value))
+		else:
+			super().__setattr__(name, value)

@@ -2,12 +2,29 @@ from typing import List, Optional
 
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_model.common import DataPage, DataSourceId, Pageable, TenantId
-from watchmen_model.system import DataSource
+from watchmen_model.system import DataSource, DataSourceParam
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, \
 	EntityShaper
+from watchmen_utilities import ArrayHelper
 
 
 class DataSourceShaper(EntityShaper):
+
+	@staticmethod
+	def serialize_param(param: Optional[DataSourceParam]) -> Optional[DataSourceParam]:
+		if param is None:
+			return None
+		if isinstance(param, dict):
+			return param
+		else:
+			return param.to_dict()
+
+	@staticmethod
+	def serialize_params(params: Optional[List[DataSourceParam]]) -> Optional[list]:
+		if params is None:
+			return None
+		return ArrayHelper(params).map(lambda x: DataSourceShaper.serialize_param(x)).to_list()
+
 	def serialize(self, data_source: DataSource) -> EntityRow:
 		return TupleShaper.serialize_tenant_based(data_source, {
 			'data_source_id': data_source.dataSourceId,
@@ -19,7 +36,7 @@ class DataSourceShaper(EntityShaper):
 			'password': data_source.password,
 			'name': data_source.name,
 			'url': data_source.url,
-			'params': data_source.params
+			'params': DataSourceShaper.serialize_params(data_source.params)
 		})
 
 	def deserialize(self, row: EntityRow) -> DataSource:
