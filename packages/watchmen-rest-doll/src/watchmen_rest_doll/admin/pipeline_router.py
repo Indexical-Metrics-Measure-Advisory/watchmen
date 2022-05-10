@@ -12,7 +12,7 @@ from watchmen_meta.admin import PipelineService
 from watchmen_meta.analysis import PipelineIndexService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, TupleService
 from watchmen_model.admin import Pipeline, PipelineAction, PipelineStage, PipelineUnit, UserRole
-from watchmen_model.common import PipelineId, TenantId
+from watchmen_model.common import PipelineId, TenantId, TopicId
 from watchmen_rest import get_admin_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
@@ -230,9 +230,10 @@ def remove_pipeline_index(pipeline_id: PipelineId, pipeline_service: PipelineSer
 	get_pipeline_index_service(pipeline_service).remove_index(pipeline_id)
 
 
-def post_delete_pipeline(pipeline_id: PipelineId, pipeline_service: PipelineService) -> None:
+def post_delete_pipeline(topic_id: TopicId, pipeline_id: PipelineId, pipeline_service: PipelineService) -> None:
 	remove_pipeline_index(pipeline_id, pipeline_service)
 	CacheService.pipeline().remove(pipeline_id)
+	CacheService.pipelines_by_topic().remove_one(topic_id, pipeline_id)
 
 
 @router.delete('/pipeline', tags=[UserRole.SUPER_ADMIN], response_model=Pipeline)
@@ -253,7 +254,7 @@ async def delete_pipeline_by_id_by_super_admin(
 		pipeline: Pipeline = pipeline_service.delete(pipeline_id)
 		if pipeline is None:
 			raise_404()
-		post_delete_pipeline(pipeline.topicId, pipeline_service)
+		post_delete_pipeline(pipeline.topicId, pipeline.pipelineId, pipeline_service)
 		return pipeline
 
 	return trans(pipeline_service, action)
