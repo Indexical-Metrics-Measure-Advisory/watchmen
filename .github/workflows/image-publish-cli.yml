@@ -11,10 +11,7 @@ on:
         description: Target version
         required: true
         type: string
-      storage:
-        description: Storage type
-        required: true
-        type: string
+
 
 jobs:
   build-and-publish:
@@ -25,7 +22,6 @@ jobs:
         run: |
           echo "Release branch: [${{ inputs.branch }}]"
           echo "Target version: [${{ inputs.version }}]"
-          echo "Storage type: [${{ inputs.storage }}]"
       - name: Check out the repo
         uses: actions/checkout@v3
         with:
