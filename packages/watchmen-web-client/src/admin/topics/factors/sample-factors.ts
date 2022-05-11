@@ -12,7 +12,7 @@ export const SAMPLE_FACTORS_JSON = [
 		'indexGroup': 'Use "i-1"~"i-10" for index, or "u-1"~"u-10" for unique index, or delete property when no index designated',
 		'flatten': 'Boolean value(in sample is string, just for describe how to use it), or delete property in non-raw topic or non-flatten',
 		'encrypt': `${Object.values(FactorEncryptMethod).filter(x => x !== FactorEncryptMethod.NONE).join('|')}, or delete this property when no encryption`,
-		'precision': `For factor types [${Object.values(FactorPrecisions).join('|')}], use [decimal] for text max length, or [decimal, [decimal]] for number precision. Delete this property when use default precision.`,
+		'precision': `For factor types [${Object.keys(FactorPrecisions).join('|')}], use [decimal] for text max length, or [decimal, [decimal]] for number precision. Delete this property when use default precision`,
 		'description': 'Delete this property when no description'
 	},
 	{
