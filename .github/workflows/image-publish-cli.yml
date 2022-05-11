@@ -36,6 +36,6 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ./packages/watchmen-cli
-          file: ./packages/watchmen-rest-doll/Dockerfile
+          file: ./packages/watchmen-cli/Dockerfile
           push: true
           tags: ghcr.io/indexical-metrics-measure-advisory/watchmen-cli:${{ github.event.inputs.version }}
