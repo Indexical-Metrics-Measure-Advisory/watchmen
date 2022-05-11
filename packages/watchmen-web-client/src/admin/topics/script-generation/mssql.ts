@@ -1,5 +1,5 @@
-import {asPrecision} from '@/admin/topics/script-generation/utils';
 import {FactorType} from '@/services/data/tuples/factor-types';
+import {asPrecision} from './utils';
 
 export const MSSQLFactorTypeMap: Record<FactorType, (precision?: string) => string> = {
 	[FactorType.SEQUENCE]: () => `DECIMAL(20)`,

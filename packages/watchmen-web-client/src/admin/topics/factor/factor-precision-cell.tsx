@@ -1,8 +1,8 @@
-import {FactorPrecisions} from '@/admin/topics/constants';
 import {Factor, FactorType} from '@/services/data/tuples/factor-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import React, {ChangeEvent, useEffect} from 'react';
+import {FactorPrecisions} from '../constants';
 import {useTopicEventBus} from '../topic-event-bus';
 import {TopicEventTypes} from '../topic-event-bus-types';
 import {FactorPrecisionCellContainer, FactorPropInput, FactorPropLabel} from './widgets';

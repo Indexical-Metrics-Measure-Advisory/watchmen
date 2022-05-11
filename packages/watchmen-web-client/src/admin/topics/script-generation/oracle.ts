@@ -1,5 +1,5 @@
-import {asPrecision} from '@/admin/topics/script-generation/utils';
 import {FactorType} from '@/services/data/tuples/factor-types';
+import {asPrecision} from './utils';
 
 export const OracleFactorTypeMap: Record<FactorType, (precision?: string) => string> = {
 	[FactorType.SEQUENCE]: () => 'NUMBER(20)',
