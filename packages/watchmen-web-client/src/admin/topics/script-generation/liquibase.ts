@@ -188,7 +188,7 @@ const createXML = (topic: Topic) => {
 	<property dbms="oracle" name="tenant-column.type" value="VARCHAR2(50)"/>
 	<property dbms="oracle" name="audit-column.type" value="DATE"/>
 ${Object.keys(OracleFactorTypeMap).map(factorType => {
-		return `\t<property dbms="oracle" name="${factorType}.type" value="${OracleFactorTypeMap[factorType as FactorType]}"/>`;
+		return `\t<property dbms="oracle" name="${factorType}.type" value="${OracleFactorTypeMap[factorType as FactorType]()}"/>`;
 	}).join('\n')}
 	<property dbms="mysql" name="pk-column.type" value="BIGINT"/>
 	<property dbms="mysql" name="json-column.type" value="JSON"/>
@@ -197,7 +197,7 @@ ${Object.keys(OracleFactorTypeMap).map(factorType => {
 	<property dbms="mysql" name="tenant-column.type" value="VARCHAR(50)"/>
 	<property dbms="mysql" name="audit-column.type" value="DATETIME"/>
 ${Object.keys(MySQLFactorTypeMap).map(factorType => {
-		return `\t<property dbms="mysql" name="${factorType}.type" value="${MySQLFactorTypeMap[factorType as FactorType]}"/>`;
+		return `\t<property dbms="mysql" name="${factorType}.type" value="${MySQLFactorTypeMap[factorType as FactorType]()}"/>`;
 	}).join('\n')}
 	<property dbms="mssql" name="pk-column.type" value="DECIMAL(20)"/>
 	<property dbms="mssql" name="json-column.type" value="NVARCHAR(MAX)"/>
@@ -206,7 +206,7 @@ ${Object.keys(MySQLFactorTypeMap).map(factorType => {
 	<property dbms="mssql" name="tenant-column.type" value="NVARCHAR(50)"/>
 	<property dbms="mssql" name="audit-column.type" value="DATETIME"/>
 ${Object.keys(MSSQLFactorTypeMap).map(factorType => {
-		return `\t<property dbms="mssql" name="${factorType}.type" value="${MSSQLFactorTypeMap[factorType as FactorType]}"/>`;
+		return `\t<property dbms="mssql" name="${factorType}.type" value="${MSSQLFactorTypeMap[factorType as FactorType]()}"/>`;
 	}).join('\n')}
 	<changeSet id="${v4()}" author="watchmen">
 		<preConditions onFail="MARK_RAN">

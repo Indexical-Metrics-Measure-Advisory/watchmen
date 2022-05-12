@@ -1,3 +1,4 @@
+import {FactorPrecisions} from '@/admin/topics/constants';
 import {isEnumFactor} from '@/services/data/tuples/factor-calculator-utils';
 import {
 	CompatibleEncryptMethods,
@@ -53,6 +54,7 @@ const toFactorsFromStructureData = (topic: Topic, data: ShouldBeFactorsStructure
 		if (!isFactorCanBeFlatten(topic, factor)) {
 			delete factor.flatten;
 		}
+		factor.precision = Object.keys(FactorPrecisions).includes(factor.type) && row.precision != null && row.precision.trim().length !== 0 ? row.precision.trim() : (void 0);
 		factor.encrypt = row.encrypt ? (`${row.encrypt}` as FactorEncryptMethod) : (void 0);
 		if (Object.values(FactorEncryptMethod).includes(`${factor.encrypt}`.toUpperCase() as FactorEncryptMethod)) {
 			factor.encrypt = `${factor.encrypt}`.toUpperCase() as FactorEncryptMethod;

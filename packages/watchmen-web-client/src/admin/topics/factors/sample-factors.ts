@@ -1,5 +1,6 @@
 import {FactorEncryptMethod, FactorType} from '@/services/data/tuples/factor-types';
 import {stringify} from 'csv-stringify/dist/esm/sync';
+import {FactorPrecisions} from '../constants';
 
 export const SAMPLE_FACTORS_JSON = [
 	{
@@ -11,6 +12,7 @@ export const SAMPLE_FACTORS_JSON = [
 		'indexGroup': 'Use "i-1"~"i-10" for index, or "u-1"~"u-10" for unique index, or delete property when no index designated',
 		'flatten': 'Boolean value(in sample is string, just for describe how to use it), or delete property in non-raw topic or non-flatten',
 		'encrypt': `${Object.values(FactorEncryptMethod).filter(x => x !== FactorEncryptMethod.NONE).join('|')}, or delete this property when no encryption`,
+		'precision': `For factor types [${Object.keys(FactorPrecisions).join('|')}], use [decimal] for text max length, or [decimal, [decimal]] for number precision. Delete this property when use default precision`,
 		'description': 'Delete this property when no description'
 	},
 	{
@@ -29,6 +31,6 @@ export const SAMPLE_FACTORS_JSON = [
 	}
 ];
 export const SAMPLE_FACTORS_CSV = stringify(SAMPLE_FACTORS_JSON, {
-	columns: ['name', 'label', 'type', 'enumId', 'defaultValue', 'indexGroup', 'flatten', 'encrypt', 'description'],
+	columns: ['name', 'label', 'type', 'enumId', 'defaultValue', 'indexGroup', 'flatten', 'encrypt', 'precision', 'description'],
 	header: true
 });

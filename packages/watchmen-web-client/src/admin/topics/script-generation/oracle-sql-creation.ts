@@ -25,13 +25,13 @@ const buildFactors = (topic: Topic) => {
 			...topic.factors.filter(factor => {
 				return factor.flatten === true;
 			}).map(factor => {
-				return `\t${factor.name.toUpperCase()} ${OracleFactorTypeMap[factor.type]},`;
+				return `\t${factor.name.toUpperCase()} ${OracleFactorTypeMap[factor.type](factor.precision)},`;
 			}),
 			`\t${getRawTopicDataColumnName()} CLOB,`
 		].join('\n');
 	} else {
 		return topic.factors.filter(factor => factor.name.indexOf('.') === -1).map(factor => {
-			return `\t${factor.name.toUpperCase()} ${OracleFactorTypeMap[factor.type]},`;
+			return `\t${factor.name.toUpperCase()} ${OracleFactorTypeMap[factor.type](factor.precision)},`;
 		}).join('\n');
 	}
 };

@@ -44,3 +44,7 @@ export const getInsertTimeColumnName = () => 'insert_time_';
 export const getUpdateTimeColumnName = () => 'update_time_';
 export const asUniqueIndexName = (topic: Topic) => `u_${asTopicName(topic)}`;
 export const asIndexName = (topic: Topic) => `i_${asTopicName(topic)}`;
+
+export const asPrecision = (defaultPrecision: string, precision?: string) => {
+	return precision == null || precision.trim().length === 0 ? defaultPrecision : precision.trim();
+};

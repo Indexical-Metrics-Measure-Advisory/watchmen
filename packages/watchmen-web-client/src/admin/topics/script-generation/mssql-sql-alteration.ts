@@ -35,13 +35,13 @@ const buildFactors = (topic: Topic) => {
 			...topic.factors.filter(factor => {
 				return factor.flatten === true;
 			}).map(factor => {
-				return buildColumn(topic, asFactorName(factor), MSSQLFactorTypeMap[factor.type]);
+				return buildColumn(topic, asFactorName(factor), MSSQLFactorTypeMap[factor.type](factor.precision));
 			}),
 			buildColumn(topic, getRawTopicDataColumnName(), 'NVARCHAR(MAX)')
 		].join('\n');
 	} else {
 		return topic.factors.filter(factor => factor.name.indexOf('.') === -1).map(factor => {
-			return buildColumn(topic, asFactorName(factor), MSSQLFactorTypeMap[factor.type]);
+			return buildColumn(topic, asFactorName(factor), MSSQLFactorTypeMap[factor.type](factor.precision));
 		}).join('\n');
 	}
 };
