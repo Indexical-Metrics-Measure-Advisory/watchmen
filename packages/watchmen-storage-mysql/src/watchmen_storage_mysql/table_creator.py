@@ -198,7 +198,6 @@ def build_columns_script(topic: Topic, original_topic: Topic) -> List[str]:
 	if is_raw_topic(topic):
 		factors = ArrayHelper(topic.factors) \
 			.filter(lambda x: x.flatten) \
-			.map(lambda x: f'\t{ask_column_name(x)} {ask_column_type(x)},') \
 			.to_list()
 	else:
 		factors = topic.factors
