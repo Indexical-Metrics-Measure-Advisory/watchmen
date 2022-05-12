@@ -16266,6 +16266,24 @@
       "item": [
         {
           "name": "CREATE RAW TOPIC",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "id": "a52af081-cfe7-4f22-ac35-5f638b62c7cc",
+                "exec": [
+                  "pm.test(\"Create Raw Topic\", () => {",
+                  "    pm.response.to.have.status(200);",
+                  "    var data = pm.response.json();",
+                  "    pm.environment.set('RAW_TOPIC_ID', data.topicId)",
+                  "    pm.environment.set('RAW_TOPIC_NAME', data.name)",
+                  "    pm.environment.set('RAW_TOPIC_VERSION', data.version)",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "id": "d9f4ec33-9bdb-4cd5-97c3-e22da0082752",
           "protocolProfileBehavior": {
             "disableBodyPruning": true
