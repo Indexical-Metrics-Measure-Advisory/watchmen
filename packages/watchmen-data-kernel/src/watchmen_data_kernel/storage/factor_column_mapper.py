@@ -29,7 +29,7 @@ class TopicFactorColumnMapper:
 
 		def put_into_map(a_dict: Dict[str, str], factor: Factor) -> Dict[str, str]:
 			factor_name = '' if is_blank(factor.name) else factor.name.strip()
-			a_dict[factor_name] = factor_name.lower()
+			a_dict[factor_name] = factor_name.replace('.', '_').lower()
 			return a_dict
 
 		return ArrayHelper(factors).reduce(put_into_map, {})
