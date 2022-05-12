@@ -59,7 +59,23 @@ class RawTopicDataEntityHelper(TopicDataEntityHelper):
 class RawTopicDataService(TopicDataService):
 	def try_to_wrap_to_topic_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
 		self.delete_reversed_columns(data)
-		return {TopicDataColumnNames.RAW_TOPIC_DATA.value: data}
+
+		def wrap_flatten_factor(factor: Factor, from_data: Dict[str, Any], to_data: Dict[str, Any]) -> None:
+			name = factor.name
+			# copy flatten value to wrapped data
+			to_data[name] = from_data.get(name)
+			if name.find('.') != -1 and name in from_data:
+				del from_data[name]
+
+		wrapped_data = {TopicDataColumnNames.RAW_TOPIC_DATA.value: data}
+		# retrieve flatten factors
+		flatten_factors = self.schema.get_flatten_factors()
+		ArrayHelper(flatten_factors) \
+			.map(lambda x: x.get_factor()) \
+			.each(lambda x: wrap_flatten_factor(x, data, wrapped_data))
+		return wrapped_data
+
+	# return {TopicDataColumnNames.RAW_TOPIC_DATA.value: data}
 
 	def try_to_unwrap_from_topic_data(self, topic_data: Dict[str, Any]) -> Dict[str, Any]:
 		unwrapped_data = {}
