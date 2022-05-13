@@ -36,12 +36,9 @@ class EncryptorRegistry:
 		key = self.to_key(method)
 		return key in self.encryptors
 
-	def ask_encryptor(self, method: Union[FactorEncryptMethod, str]) -> Encryptor:
+	def ask_encryptor(self, method: Union[FactorEncryptMethod, str]) -> Optional[Encryptor]:
 		key = self.to_key(method)
-		encryptor = self.encryptors.get(key)
-		if encryptor is None:
-			raise DataKernelException(f'Encryptor[{method}] not found.')
-		return encryptor
+		return self.encryptors.get(key)
 
 
 encryptor_registry = EncryptorRegistry()
