@@ -33,6 +33,11 @@ on:
         required: true
         default: false
         type: boolean
+      cli:
+        description: 'Cli'
+        required: true
+        default: false
+        type: boolean
 
 jobs:
   # publish doll image, on mysql
@@ -51,3 +56,10 @@ jobs:
       branch: ${{ github.event.inputs.ref }}
       version: ${{ github.event.inputs.version }}
       storage: ${{ github.event.inputs.storage }}
+  # publish cli image
+  publish-cli-image:
+    uses: ./.github/workflows/image-publish-cli.yml
+    if: ${{ github.event.inputs.cli == 'true' }}
+    with:
+      branch: ${{ github.event.inputs.ref }}
+      version: ${{ github.event.inputs.version }}

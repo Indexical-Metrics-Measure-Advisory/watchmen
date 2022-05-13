@@ -1,7 +1,7 @@
 name: Publish cli images
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       branch:
         description: Release branch
@@ -11,10 +11,7 @@ on:
         description: Target version
         required: true
         type: string
-      storage:
-        description: Storage type
-        required: true
-        type: string
+
 
 jobs:
   build-and-publish:
@@ -25,7 +22,6 @@ jobs:
         run: |
           echo "Release branch: [${{ inputs.branch }}]"
           echo "Target version: [${{ inputs.version }}]"
-          echo "Storage type: [${{ inputs.storage }}]"
       - name: Check out the repo
         uses: actions/checkout@v3
         with:
@@ -40,6 +36,6 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ./packages/watchmen-cli
-          file: ./packages/watchmen-rest-doll/Dockerfile
+          file: ./packages/watchmen-cli/Dockerfile
           push: true
           tags: ghcr.io/indexical-metrics-measure-advisory/watchmen-cli:${{ inputs.version }}
