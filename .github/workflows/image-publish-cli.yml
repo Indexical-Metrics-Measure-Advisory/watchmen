@@ -1,7 +1,7 @@
 name: Publish cli images
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       branch:
         description: Release branch
@@ -20,8 +20,8 @@ jobs:
     steps:
       - name: Echo inputs
         run: |
-          echo "Release branch: [${{ github.event.inputs.branch }}]"
-          echo "Target version: [${{ github.event.inputs.version }}]"
+          echo "Release branch: [${{ inputs.branch }}]"
+          echo "Target version: [${{ inputs.version }}]"
       - name: Check out the repo
         uses: actions/checkout@v3
         with:
@@ -38,4 +38,4 @@ jobs:
           context: ./packages/watchmen-cli
           file: ./packages/watchmen-cli/Dockerfile
           push: true
-          tags: ghcr.io/indexical-metrics-measure-advisory/watchmen-cli:${{ github.event.inputs.version }}
+          tags: ghcr.io/indexical-metrics-measure-advisory/watchmen-cli:${{ inputs.version }}

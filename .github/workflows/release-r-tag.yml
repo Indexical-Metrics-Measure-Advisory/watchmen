@@ -153,6 +153,13 @@ jobs:
       version: ${{ needs.compute-version.outputs.version }}
       storage: mongodb
   # TODO publish dqc image, on mssql
+  # publish cli image
+  publish-cli-image:
+    needs: [ compute-version, prepare, publish-web-client-image ]
+    uses: ./.github/workflows/image-publish-cli.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ needs.compute-version.outputs.version }}
   drop-trigger-tag:
     needs: align-module-version
     name: Drop trigger tag
