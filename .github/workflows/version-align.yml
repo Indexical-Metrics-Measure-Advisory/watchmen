@@ -30,6 +30,48 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ inputs.ref }}
+      - name: Change version [watchmen-utilities]
+        uses: ./.github/actions/change-poetry-version/
+        id: change-poetry-version-utilities
+        with:
+          module-name: watchmen-utilities
+          target-version: ${{ inputs.version }}
+      - name: Change version [watchmen-model]
+        uses: ./.github/actions/change-poetry-version/
+        id: change-poetry-version-model
+        with:
+          module-name: watchmen-model
+          target-version: ${{ inputs.version }}
+      - name: Change version [watchmen-storage]
+        uses: ./.github/actions/change-poetry-version/
+        id: change-poetry-version-storage
+        with:
+          module-name: watchmen-storage
+          target-version: ${{ inputs.version }}
+      - name: Change version [watchmen-storage-mongodb]
+        uses: ./.github/actions/change-poetry-version/
+        id: change-poetry-version-storage-mongodb
+        with:
+          module-name: watchmen-storage-mongodb
+          target-version: ${{ inputs.version }}
+      - name: Change version [watchmen-storage-mssql]
+        uses: ./.github/actions/change-poetry-version/
+        id: change-poetry-version-storage-mssql
+        with:
+          module-name: watchmen-storage-mssql
+          target-version: ${{ inputs.version }}
+      - name: Change version [watchmen-storage-mysql]
+        uses: ./.github/actions/change-poetry-version/
+        id: change-poetry-version-storage-mysql
+        with:
+          module-name: watchmen-storage-mysql
+          target-version: ${{ inputs.version }}
+      - name: Change version [watchmen-storage-oracle]
+        uses: ./.github/actions/change-poetry-version/
+        id: change-poetry-version-storage-oracle
+        with:
+          module-name: watchmen-storage-oracle
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-storage-postgresql]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-storage-postgresql
