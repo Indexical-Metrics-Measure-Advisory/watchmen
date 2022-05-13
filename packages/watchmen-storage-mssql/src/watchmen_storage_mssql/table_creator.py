@@ -164,12 +164,14 @@ def build_columns_script(topic: Topic, original_topic: Topic) -> List[str]:
 		.to_map(lambda x: x.name.strip().lower(), lambda x: x)
 
 	# noinspection SqlResolve
-	def build_column_script(factor: Tuple[Factor, bool]) -> str:
-		if factor[1]:
-			# do alter column
-			return f'ALTER TABLE {entity_name} ALTER COLUMN {ask_column_name(factor[0])} {ask_column_type(factor[0])}'
-		else:
+	def build_column_script(factor: Tuple[Factor, Optional[Factor]]) -> str:
+		current_factor, original_factor = factor
+		if original_factor is None:
 			return f'ALTER TABLE {entity_name} ADD COLUMN {ask_column_name(factor[0])} {ask_column_type(factor[0])}'
+		elif current_factor.flatten and not original_factor.flatten:
+			return f'ALTER TABLE {entity_name} ADD COLUMN {ask_column_name(factor[0])} {ask_column_type(factor[0])}'
+		else:
+			return f'ALTER TABLE {entity_name} ALTER COLUMN {ask_column_name(factor[0])} {ask_column_type(factor[0])}'
 
 	if is_raw_topic(topic):
 		factors = ArrayHelper(topic.factors) \
@@ -179,7 +181,7 @@ def build_columns_script(topic: Topic, original_topic: Topic) -> List[str]:
 		factors = topic.factors
 
 	columns = ArrayHelper(factors) \
-		.map(lambda x: (x, x.name.strip().lower() in original_factors)) \
+		.map(lambda x: (x, original_factors.get(x.name.strip().lower()))) \
 		.map(build_column_script) \
 		.to_list()
 
