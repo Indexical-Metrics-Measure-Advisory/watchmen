@@ -1,12 +1,11 @@
 import os
-from typing import Tuple, List
+from typing import Tuple, List, Optional
 
 from watchmen_cli.common.client import Client
 from watchmen_cli.common.constants import topics, pipelines, spaces, connected_spaces, import_type, pipeline_id, \
-    connect_id, space_id, topic_id, prefix_encoding
+    connect_id, space_id, topic_id, prefix_encoding, MixedImportType
 
 from watchmen_cli.common.exception import DeployException
-from watchmen_cli.settings import settings
 from watchmen_utilities import ArrayHelper
 from base64 import b64decode
 from json import loads, dumps
@@ -17,8 +16,15 @@ logger = getLogger(__name__)
 
 class Deployment:
 
-    def __init__(self):
-        self.deploy_folder = settings.META_CLI_DEPLOY_FOLDER
+    def __init__(self, host: str, pat: Optional[str],
+                 username: Optional[str], password: Optional[str],
+                 path: Optional[str], pattern: Optional[MixedImportType]):
+        self.host = host
+        self.pat = pat
+        self.username = username
+        self.password = password
+        self.deploy_folder = path
+        self.pattern = pattern
 
     def get_deploy_file(self) -> str:
         for root, ds, fns in os.walk(self.deploy_folder):
@@ -67,13 +73,12 @@ class Deployment:
                 pipelines: pipeline_list,
                 spaces: space_list,
                 connected_spaces: connect_space_list,
-                import_type: settings.META_CLI_DEPLOY_PATTERN
+                import_type: self.pattern
             }
             self.import_md_asset(data_)
 
-    @staticmethod
-    def import_md_asset(data) -> int:
-        client = Client()
+    def import_md_asset(self, data) -> int:
+        client = Client(self.host, self.pat, self.username, self.password)
         token = client.login()
         headers = {'Content-Type': 'application/json', 'Authorization': token}
         status, result = client.post('/import', data=dumps(data), headers=headers)
