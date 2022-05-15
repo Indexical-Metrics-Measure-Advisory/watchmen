@@ -1,3 +1,12 @@
+from enum import Enum
+
+
+class MixedImportType(str, Enum):
+    NON_REDUNDANT = 'non-redundant'
+    REPLACE = 'replace'
+    FORCE_NEW = 'force-new'
+
+
 NON_REDUNDANT = 'non-redundant'
 REPLACE = 'replace'
 FORCE_NEW = 'force-new'
@@ -17,3 +26,5 @@ connected_spaces = 'connectedSpaces'
 import_type = 'importType'
 
 prefix_encoding = '<a href="data:application/json;base64,'
+
+
