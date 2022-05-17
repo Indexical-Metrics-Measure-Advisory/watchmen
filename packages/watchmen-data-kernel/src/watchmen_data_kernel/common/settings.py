@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import List, Set, Tuple
+from typing import List, Tuple
 
 from pydantic import BaseSettings
 
@@ -11,17 +11,17 @@ logger = getLogger(__name__)
 class KernelSettings(BaseSettings):
 	STORAGE_ECHO: bool = False
 
-	FULL_DATETIME_FORMATS: Set[str] = [
+	FULL_DATETIME_FORMATS: List[str] = [
 		'%Y%m%d%H%M%S%f', '%d%m%Y%H%M%S%f', '%m%d%Y%H%M%S%f',  # 14 or more digits,
 	]
-	DATETIME_FORMATS: Set[str] = [
+	DATETIME_FORMATS: List[str] = [
 		'%Y%m%d%H%M%S', '%d%m%Y%H%M%S', '%m%d%Y%H%M%S',  # 14 digits,
 		'%Y%m%d%H%M', '%d%m%Y%H%M', '%m%d%Y%H%M'  # 12 digits
 	]  # all digits, other characters are prohibitive
-	DATE_FORMATS: Set[str] = [
+	DATE_FORMATS: List[str] = [
 		'%Y%m%d', '%d%m%Y', '%m%d%Y',  # 8 digits
 	]  # all digits, other characters are prohibitive
-	TIME_FORMATS: Set[str] = [
+	TIME_FORMATS: List[str] = [
 		'%H%M%S',  # 6 digits
 		'%H%M'  # 4 digits
 	]  # all digits, other characters are prohibitive
