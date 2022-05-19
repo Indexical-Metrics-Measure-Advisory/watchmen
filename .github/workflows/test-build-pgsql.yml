@@ -83,9 +83,10 @@ jobs:
         run: mkdir -p testResults
       - name: Run postman collection
         run: |
-          newman run ./packages/watchmen-test-postman/watchmen-postman.json -e ./packages/watchmen-test-postman/watchmen-environment.json -x -r cli,htmlextra --reporter-htmlextra-export testResults/htmlreport.html
+          newman run ./packages/watchmen-test-postman/watchmen-postman.json -e ./packages/watchmen-test-postman/watchmen-environment.json --bail -r cli,htmlextra --reporter-htmlextra-export testResults/htmlreport.html
       - name: Output the run details
         uses: actions/upload-artifact@v2
+        if: always()
         with:
           name: RunReports
           path: testResults
@@ -110,5 +111,5 @@ jobs:
           method: post
           baseURL: https://open.feishu.cn/open-apis/bot/v2/hook
           headers: '{ "Content-Type": "application/json" }'
-          data: '{"msg_type":"interactive","card":{"config":{"wide_screen_mode":true},"header":{"title":{"tag":"lark_md","content":"Postgresql CI testing complete"}},"elements":[{"tag":"hr"},{"tag":"action","actions":[{"tag":"button","text":{"tag":"plain_text","content":"Check it out."},"type":"primary","url":"https://github.com/Indexical-Metrics-Measure-Advisory/watchmen/actions"}]}]}}'
+          data: '{"msg_type":"interactive","card":{"config":{"wide_screen_mode":true},"header":{"title":{"tag":"lark_md","content":"Postgresql CI testing \$\{\{ job.status \}\}"}},"elements":[{"tag":"hr"},{"tag":"action","actions":[{"tag":"button","text":{"tag":"plain_text","content":"Check it out."},"type":"primary","url":"https://github.com/Indexical-Metrics-Measure-Advisory/watchmen/actions"}]}]}}'
           timeout: 30000
