@@ -54,7 +54,7 @@ jobs:
         env:
           LOGGER_LEVEL: INFO
           LOGGER_TO_FILE: TRUE
-          LOG_FILE: /tmp/scripts/runtime.log
+          LOGGER_FILE: /tmp/scripts/runtime.log
           BASE_PATH: ${{ github.workspace }}
           META_STORAGE_TYPE: postgresql
           META_STORAGE_USER_NAME: admin
