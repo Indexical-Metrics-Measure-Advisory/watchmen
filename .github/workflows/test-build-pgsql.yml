@@ -90,6 +90,12 @@ jobs:
         with:
           name: RunReports
           path: testResults
+      - name: Output the doll details
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: DollServerOput
+          path: /tmp/scripts/runtime.log
       - name: Send email
         if: always()
         uses: dawidd6/action-send-mail@v3.2.0
@@ -111,5 +117,5 @@ jobs:
           method: post
           baseURL: https://open.feishu.cn/open-apis/bot/v2/hook
           headers: '{ "Content-Type": "application/json" }'
-          data: '{"msg_type":"interactive","card":{"config":{"wide_screen_mode":true},"header":{"title":{"tag":"lark_md","content":"Postgresql CI testing \$\{\{ job.status \}\}"}},"elements":[{"tag":"hr"},{"tag":"action","actions":[{"tag":"button","text":{"tag":"plain_text","content":"Check it out."},"type":"primary","url":"https://github.com/Indexical-Metrics-Measure-Advisory/watchmen/actions"}]}]}}'
+          data: format('{{"msg_type":"interactive","card":{{"config":{{"wide_screen_mode":true}},"header":{{"title":{{"tag":"lark_md","content":"Postgresql CI testing {0}"}}}},"elements":[{{"tag":"hr"}}},{{"tag":"action","actions":[{{"tag":"button","text":{{"tag":"plain_text","content":"Check it out."}},"type":"primary","url":"https://github.com/Indexical-Metrics-Measure-Advisory/watchmen/actions"}}]}}]}}}}', ${{ job.status }})
           timeout: 30000
