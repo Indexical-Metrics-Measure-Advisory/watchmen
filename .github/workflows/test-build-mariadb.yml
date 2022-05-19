@@ -63,10 +63,14 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install poetry
+      - name: Make directory for server log
+        working-directory: ./packages/watchmen-rest-doll
+        run: mkdir -p temp
       - name: build [watchmen-rest-doll] and start
         working-directory: ./packages/watchmen-rest-doll
         env:
-          LOG_FILE: /tmp/scripts/runtime.log
+          LOGGER_LEVEL: INFO
+          LOGGER_TO_FILE: TRUE
           BASE_PATH: ${{ github.workspace }}
           META_STORAGE_TYPE: mysql
           META_STORAGE_USER_NAME: admin
@@ -104,6 +108,12 @@ jobs:
         with:
           name: RunReports
           path: testResults
+      - name: Output the doll details
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: DollServerOput
+          path: ./packages/watchmen-rest-doll/temp
       - name: Send email
         if: always()
         uses: dawidd6/action-send-mail@v3.2.0
@@ -125,5 +135,5 @@ jobs:
           method: post
           baseURL: https://open.feishu.cn/open-apis/bot/v2/hook
           headers: '{ "Content-Type": "application/json" }'
-          data: '{"msg_type":"interactive","card":{"config":{"wide_screen_mode":true},"header":{"title":{"tag":"lark_md","content":"Mariadb CI testing \$\{\{ job.status \}\}"}},"elements":[{"tag":"hr"},{"tag":"action","actions":[{"tag":"button","text":{"tag":"plain_text","content":"Check it out."},"type":"primary","url":"https://github.com/Indexical-Metrics-Measure-Advisory/watchmen/actions"}]}]}}'
+          data: '{"msg_type":"interactive","card":{"config":{"wide_screen_mode":true},"header":{"title":{"tag":"lark_md","content":"Mariadb CI testing ${{ job.status }}"}},"elements":[{"tag":"hr"},{"tag":"action","actions":[{"tag":"button","text":{"tag":"plain_text","content":"Check it out."},"type":"primary","url":"https://github.com/Indexical-Metrics-Measure-Advisory/watchmen/actions"}]}]}}'
           timeout: 30000
