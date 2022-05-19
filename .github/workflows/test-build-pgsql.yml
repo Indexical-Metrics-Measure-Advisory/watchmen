@@ -52,6 +52,8 @@ jobs:
       - name: build [watchmen-rest-doll] and start
         working-directory: ./packages/watchmen-rest-doll
         env:
+          LOGGER_LEVEL: INFO
+          LOGGER_TO_FILE: TRUE
           LOG_FILE: /tmp/scripts/runtime.log
           BASE_PATH: ${{ github.workspace }}
           META_STORAGE_TYPE: postgresql
@@ -117,5 +119,5 @@ jobs:
           method: post
           baseURL: https://open.feishu.cn/open-apis/bot/v2/hook
           headers: '{ "Content-Type": "application/json" }'
-          data: format('{{"msg_type":"interactive","card":{{"config":{{"wide_screen_mode":true}},"header":{{"title":{{"tag":"lark_md","content":"Postgresql CI testing {0}"}}}},"elements":[{{"tag":"hr"}}},{{"tag":"action","actions":[{{"tag":"button","text":{{"tag":"plain_text","content":"Check it out."}},"type":"primary","url":"https://github.com/Indexical-Metrics-Measure-Advisory/watchmen/actions"}}]}}]}}}}', ${{ job.status }})
+          data: '{"msg_type":"interactive","card":{"config":{"wide_screen_mode":true},"header":{"title":{"tag":"lark_md","content":"Postgresql CI testing ${{ job.status }}"}},"elements":[{"tag":"hr"},{"tag":"action","actions":[{"tag":"button","text":{"tag":"plain_text","content":"Check it out."},"type":"primary","url":"https://github.com/Indexical-Metrics-Measure-Advisory/watchmen/actions"}]}]}}'
           timeout: 30000
