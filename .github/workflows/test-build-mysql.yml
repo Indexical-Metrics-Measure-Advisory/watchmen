@@ -1,7 +1,9 @@
 name: Test Build Mysql
-on:
-  schedule:
-    - cron: "0 0 * * *"
+#on:
+#  schedule:
+#    - cron: "0 0 * * *"
+
+on: workflow_dispatch
 
 jobs:
   test-api:
@@ -27,15 +29,26 @@ jobs:
       USE_STORAGE_DIRECTLY: TRUE
       LOGGER_LEVEL: INFO
       LOGGER_TO_FILE: TRUE
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: ${{ env.DB_DATABASE }}
+          MYSQL_USER: ${{ env.DB_USER }}
+          MYSQL_PASSWORD: ${{ env.DB_PASSWORD }}
+          MYSQL_ROOT_PASSWORD: ${{ env.DB_PASSWORD }}
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
         with:
           ref: ${{ inputs.branch }}
-      - name: Set up MySQL
-        run: |
-          sudo /etc/init.d/mysql start
-          mysql -e 'CREATE DATABASE ${{ env.DB_DATABASE }};' -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
+#      - name: Set up MySQL
+#        run: |
+#          sudo /etc/init.d/mysql start
+#          mysql -e 'CREATE DATABASE ${{ env.DB_DATABASE }};' -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
       - name: Run db meta script
         run: |
           script_path=./packages/watchmen-storage-mysql/meta-scripts
