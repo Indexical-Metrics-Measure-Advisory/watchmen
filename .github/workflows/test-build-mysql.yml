@@ -10,12 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DB_DATABASE: watchmen
-      DB_USER: admin
+      DB_USER: root
       DB_PASSWORD: admin
       LOG_FILE: /tmp/scripts/runtime.log
       BASE_PATH: ${{ github.workspace }}
       META_STORAGE_TYPE: mysql
-      META_STORAGE_USER_NAME: admin
+      META_STORAGE_USER_NAME: root
       META_STORAGE_PASSWORD: admin
       META_STORAGE_HOST: localhost
       META_STORAGE_PORT: 3306
@@ -34,12 +34,12 @@ jobs:
         image: mysql:8.0.21
         env:
           MYSQL_DATABASE: ${{ env.DB_DATABASE }}
-          MYSQL_USER: ${{ env.DB_USER }}
-          MYSQL_PASSWORD: ${{ env.DB_PASSWORD }}
+#          MYSQL_USER: ${{ env.DB_USER }}
+#          MYSQL_PASSWORD: ${{ env.DB_PASSWORD }}
           MYSQL_ROOT_PASSWORD: ${{ env.DB_PASSWORD }}
         ports:
           - 3306:3306
-        options: --log-bin-trust-function-creators=true --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=10s --health-retries=3
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=10s --health-retries=3
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
