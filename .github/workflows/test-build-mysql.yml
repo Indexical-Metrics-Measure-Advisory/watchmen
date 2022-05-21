@@ -52,6 +52,9 @@ jobs:
       - name: Set global variable log_bin_trust_function_creators
         run: |
            mysql -e 'set global log_bin_trust_function_creators=1;' -uroot -p${{ env.DB_PASSWORD }} -P3306 --default-character-set=utf8 ${{ env.DB_DATABASE }} --protocol=tcp
+      - name: Create User for admin@127.0.0.1
+           mysql -e 'create user \'admin\'@\'127.0.0.1\';' -uroot -p${{ env.DB_PASSWORD }} -P3306 --default-character-set=utf8 ${{ env.DB_DATABASE }} --protocol=tcp
+           mysql -e 'grant all privileges on watchmen.* to \'admin\'@\'127.0.0.1\' with grant option; flush privileges;' -uroot -p${{ env.DB_PASSWORD }} -P3306 --default-character-set=utf8 ${{ env.DB_DATABASE }} --protocol=tcp
       - name: Run db meta script
         run: |
           script_path=./packages/watchmen-storage-mysql/meta-scripts
