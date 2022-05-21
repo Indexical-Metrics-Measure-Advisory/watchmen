@@ -642,6 +642,8 @@
 										"exec": [
 											"pm.test('Delete DataSource', () => {",
 											"    pm.response.to.have.status(200);",
+											"    pm.environment.unset('DATA_SOURCE_ID');",
+											"    pm.environment.unset('EXTERNAL_WRITER_CODE');",
 											"})"
 										],
 										"type": "text/javascript"
