@@ -337,6 +337,12 @@
 			"value": "",
 			"type": "any",
 			"enabled": true
+		},
+		{
+			"key": "DATASOURCE_URL",
+			"value": "mysql://admin:admin@127.0.0.1:3306/watchmen?charset=utf8",
+			"type": "default",
+			"enabled": true
 		}
 	],
 	"_postman_variable_scope": "environment",
