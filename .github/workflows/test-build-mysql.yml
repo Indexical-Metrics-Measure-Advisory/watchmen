@@ -56,6 +56,7 @@ jobs:
         run: |
            mysql -e 'create user "admin"@"127.0.0.1" identified by "admin";' -uroot -p${{ env.DB_PASSWORD }} -P3306 --default-character-set=utf8 ${{ env.DB_DATABASE }} --protocol=tcp
            mysql -e 'grant all privileges on watchmen.* to "admin"@"127.0.0.1" with grant option; flush privileges;' -uroot -p${{ env.DB_PASSWORD }} -P3306 --default-character-set=utf8 ${{ env.DB_DATABASE }} --protocol=tcp
+           mysql -e 'select * from mysql.user where user="admin";' -uroot -padmin-pwd -P3309 --default-character-set=utf8 watchmen --protocol=tcp
       - name: Run db meta script
         run: |
           script_path=./packages/watchmen-storage-mysql/meta-scripts
