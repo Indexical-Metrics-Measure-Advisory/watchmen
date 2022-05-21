@@ -567,7 +567,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"dataSourceCode\": \"Test-DataSource\",\n    \"dataSourceType\": \"mysql\",\n    \"host\": \"127.0.0.1\",\n    \"port\": \"3306\",\n    \"username\": \"watchmen\",\n    \"password\": \"watchmen\",\n    \"name\": \"watchmen\",\n    \"url\": \"mysql://watchmen:watchmen@localhost:3306/watchmen?charset=utf8\",\n    \"params\": [\n        {\"name\": \"x\", \"value\": \"1\"},\n        {\"name\": \"y\", \"value\": \"2\"}\n    ],\n    \"tenantId\": \"1\"\n}",
+									"raw": "{\n    \"dataSourceCode\": \"Test-DataSource\",\n    \"dataSourceType\": \"mysql\",\n    \"host\": \"127.0.0.1\",\n    \"port\": \"3306\",\n    \"username\": \"watchmen\",\n    \"password\": \"watchmen\",\n    \"name\": \"watchmen\",\n    \"url\": \"mysql://watchmen:watchmen@127.0.0.1:3306/watchmen?charset=utf8\",\n    \"params\": [\n        {\"name\": \"x\", \"value\": \"1\"},\n        {\"name\": \"y\", \"value\": \"2\"}\n    ],\n    \"tenantId\": \"1\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
