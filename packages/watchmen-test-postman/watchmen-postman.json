@@ -2793,7 +2793,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"dataSourceCode\": \"Test-DataSource\",\n    \"dataSourceType\": \"mysql\",\n    \"host\": \"127.0.0.1\",\n    \"port\": \"3306\",\n    \"username\": \"admin\",\n    \"password\": \"admin\",\n    \"name\": \"watchmen\",\n    \"url\": \"mysql://admin:admin@127.0.0.1:3309/new_watchmen?charset=utf8\",\n    \"params\": [\n        {\"name\": \"x\", \"value\": \"1\"},\n        {\"name\": \"y\", \"value\": \"2\"}\n    ],\n    \"tenantId\": \"1\"\n}",
+									"raw": "{\n    \"dataSourceCode\": \"Test-DataSource\",\n    \"dataSourceType\": \"mysql\",\n    \"host\": \"127.0.0.1\",\n    \"port\": \"3306\",\n    \"username\": \"admin\",\n    \"password\": \"admin\",\n    \"name\": \"watchmen\",\n    \"url\": \"{{DATASOURCE_URL}}\",\n    \"params\": [\n        {\"name\": \"x\", \"value\": \"1\"},\n        {\"name\": \"y\", \"value\": \"2\"}\n    ],\n    \"tenantId\": \"1\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
