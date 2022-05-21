@@ -29,27 +29,29 @@ jobs:
       USE_STORAGE_DIRECTLY: TRUE
       LOGGER_LEVEL: INFO
       LOGGER_TO_FILE: TRUE
-#    services:
-#      mysql:
-#        image: mysql:8.0.21
-#        env:
-#          MYSQL_DATABASE: ${{ env.DB_DATABASE }}
-#          MYSQL_USER: ${{ env.DB_USER }}
-#          MYSQL_PASSWORD: ${{ env.DB_PASSWORD }}
-#          MYSQL_ROOT_PASSWORD: ${{ env.DB_PASSWORD }}
-#        ports:
-#          - 3306:3306
-#        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=10s --health-retries=3
+    services:
+      mysql:
+        image: mysql:8.0.21
+        env:
+          MYSQL_DATABASE: ${{ env.DB_DATABASE }}
+          MYSQL_USER: ${{ env.DB_USER }}
+          MYSQL_PASSWORD: ${{ env.DB_PASSWORD }}
+          MYSQL_ROOT_PASSWORD: ${{ env.DB_PASSWORD }}
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=10s --health-retries=3
     steps:
       - name: Check out the repo
         uses: actions/checkout@v3
         with:
           ref: ${{ inputs.branch }}
-      - name: Set up MySQL
+#      - name: Set up MySQL
+#        run: |
+#          sudo /etc/init.d/mysql start
+#          mysql -e 'CREATE DATABASE ${{ env.DB_DATABASE }};' -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
+      - name: Set global variable log_bin_trust_function_creators
         run: |
-          sudo /etc/init.d/mysql start
-          mysql -e 'CREATE DATABASE ${{ env.DB_DATABASE }};' -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
-          mysql -e 'set global log_bin_trust_function_creators=1;' -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }}
+           mysql -e 'set global log_bin_trust_function_creators=1;' -u${{ env.DB_USER }} -p${{ env.DB_PASSWORD }} -P3306 --default-character-set=utf8 ${{ env.DB_DATABASE }} --protocol=tcp
       - name: Run db meta script
         run: |
           script_path=./packages/watchmen-storage-mysql/meta-scripts
