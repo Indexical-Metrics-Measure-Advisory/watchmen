@@ -4,6 +4,8 @@ from typing import Any, Optional
 from fastapi import HTTPException
 from starlette import status
 
+from watchmen_utilities import is_not_blank
+
 logger = getLogger(__name__)
 
 
@@ -23,16 +25,14 @@ def raise_403() -> None:
 
 
 def raise_404(detail: Any = 'Data not found.') -> None:
-	"""
-
-	:rtype: object
-	"""
 	raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=detail)
 
 
 def raise_500(e: Optional[Exception] = None, detail: Optional[str] = 'Unpredicted exception occurred.') -> None:
 	if e is not None:
 		logger.error(e, exc_info=True, stack_info=True)
+	if is_not_blank(detail):
+		logger.error(detail)
 
 	raise HTTPException(
 		status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
