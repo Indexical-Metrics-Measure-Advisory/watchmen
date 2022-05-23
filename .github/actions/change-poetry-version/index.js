@@ -31,7 +31,7 @@ try {
             if (version.startsWith('"')) {
                 if (shouldReplace) {
                     versionUpdated = true;
-                    core.notice(`For module[${moduleName}], version updated to ${targetVersion} from ${version.replace(/"/g, '')}.`);
+                    core.notice(`For module[${moduleName}], version of [${name}] updated to ${targetVersion} from ${version.replace(/"/g, '')}.`);
                     return `${name} = "${targetVersion}"`;
                 } else {
                     return line;
@@ -43,19 +43,19 @@ try {
                     delete json.path;
                     versionUpdated = true;
                     if (json.optional) {
-                        core.notice(`For module[${moduleName}], version updated to ${targetVersion} from develop dependency, and it is optional.`);
+                        core.notice(`For module[${moduleName}], version of [${name}] updated to ${targetVersion} from develop dependency, and it is optional.`);
                         return `${name} = { version = "${targetVersion}", optional = true }`;
                     } else {
-                        core.notice(`For module[${moduleName}], version updated to ${targetVersion} from develop dependency.`);
+                        core.notice(`For module[${moduleName}], version of [${name}] updated to ${targetVersion} from develop dependency.`);
                         return `${name} = "${targetVersion}"`;
                     }
                 } else if (shouldReplace) {
                     versionUpdated = true;
                     if (json.optional) {
-                        core.notice(`For module[${moduleName}], version updated to ${targetVersion} from ${json.version}, and it is optional.`);
+                        core.notice(`For module[${moduleName}], version of [${name}] updated to ${targetVersion} from ${json.version}, and it is optional.`);
                         return `${name} = { version = "${targetVersion}", optional = true }`;
                     } else {
-                        core.notice(`For module[${moduleName}], version updated to ${targetVersion} from ${json.version}.`);
+                        core.notice(`For module[${moduleName}], version of [${name}] updated to ${targetVersion} from ${json.version}.`);
                         return `${name} = "${targetVersion}"`;
                     }
                 } else {
@@ -63,8 +63,8 @@ try {
                 }
             }
         } else if (line.startsWith('version=') || line.startsWith('version =')) {
-            const originalVerion = line.replace('version', '').trim().substring(1).replace('"', '').trim();
-            core.notice(`For module[${moduleName}], version updated to ${targetVersion} from ${originalVerion}.`);
+            const originalVersion = line.replace('version', '').trim().substring(1).replace(/"/g, '').trim();
+            core.notice(`For module[${moduleName}], version updated to ${targetVersion} from ${originalVersion}.`);
             return `version = "${targetVersion}"`;
         } else {
             return line;
