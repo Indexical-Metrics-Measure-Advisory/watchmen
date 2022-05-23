@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-rest-doll"
-version = "16.0.39"
+version = "16.0.40"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -13,14 +13,14 @@ python = "^3.9"
 passlib = "^1.7.4"
 bcrypt = "^3.2.0"
 python-multipart = "^0.0.5"
-watchmen-data-surface = "16.0.39"
-watchmen-pipeline-surface = "16.0.39"
-watchmen-inquiry-surface = "16.0.39"
-watchmen-inquiry-trino = { version = "16.0.39", optional = true }
-watchmen-storage-mysql = { version = "16.0.39", optional = true }
-watchmen-storage-oracle = { version = "16.0.39", optional = true }
-watchmen-storage-mongodb = { version = "16.0.39", optional = true }
-watchmen-storage-mssql = { version = "16.0.39", optional = true }
+watchmen-data-surface = "16.0.40"
+watchmen-pipeline-surface = "16.0.40"
+watchmen-inquiry-surface = "16.0.40"
+watchmen-inquiry-trino = { version = "16.0.40", optional = true }
+watchmen-storage-mysql = { version = "16.0.40", optional = true }
+watchmen-storage-oracle = { version = "16.0.40", optional = true }
+watchmen-storage-mongodb = { version = "16.0.40", optional = true }
+watchmen-storage-mssql = { version = "16.0.40", optional = true }
 
 [tool.poetry.dev-dependencies]
 
