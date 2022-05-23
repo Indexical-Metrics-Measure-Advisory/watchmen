@@ -39,9 +39,9 @@ class DashboardShaper(EntityShaper):
 		dashboard = Dashboard(
 			dashboardId=row.get('dashboard_id'),
 			name=row.get('name'),
-			connectId=row.get('connect_id'),
-			autoRefreshInterval=row.get('auto_refresh_interval'),
-			dataset=row.get('dataset')
+			reports=row.get('reports'),
+			paragraphs=row.get('paragraphs'),
+			autoRefreshInterval=row.get('auto_refresh_interval')
 		)
 		# noinspection PyTypeChecker
 		dashboard: Dashboard = AuditableShaper.deserialize(row, dashboard)
