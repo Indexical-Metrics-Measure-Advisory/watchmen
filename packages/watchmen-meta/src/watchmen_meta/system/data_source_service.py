@@ -9,9 +9,8 @@ from watchmen_utilities import ArrayHelper
 
 
 class DataSourceShaper(EntityShaper):
-
 	@staticmethod
-	def serialize_param(param: Optional[DataSourceParam]) -> Optional[DataSourceParam]:
+	def serialize_param(param: Optional[DataSourceParam]) -> Optional[dict]:
 		if param is None:
 			return None
 		if isinstance(param, dict):
