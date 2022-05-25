@@ -6,7 +6,7 @@ from watchmen_auth import PrincipalService
 from watchmen_data_kernel.storage_bridge import now, PipelineVariables
 from watchmen_model.admin import Pipeline, PipelineStage, PipelineUnit
 from watchmen_model.pipeline_kernel import MonitorLogStage, MonitorLogStatus, MonitorLogUnit
-from watchmen_pipeline_kernel.common import ask_parallel_actions_in_loop_unit, PipelineKernelException
+from watchmen_pipeline_kernel.common import ask_parallel_actions_in_loop_unit
 from watchmen_pipeline_kernel.pipeline_schema_interface import CreateQueuePipeline, TopicStorages
 from watchmen_utilities import ArrayHelper
 from .compiled_single_unit import CompiledSingleUnit
