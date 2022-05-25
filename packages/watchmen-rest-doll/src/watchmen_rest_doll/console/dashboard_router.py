@@ -146,7 +146,11 @@ def load_standalone_dashboard(
 
 	return StandaloneDashboard(
 		dashboard=Dashboard(
-			**dashboard.dict(),
+			# **dashboard.dict(),
+			dashboardId=dashboard.dashboardId,
+			name=dashboard.name,
+			paragraphs=dashboard.paragraphs,
+			autoRefreshInterval=dashboard.autoRefreshInterval,
 			# remove useless report data from dashboard
 			reports=ArrayHelper(dashboard.reports).filter(
 				lambda x: available_report_map[x.reportId] is not None).to_list()
