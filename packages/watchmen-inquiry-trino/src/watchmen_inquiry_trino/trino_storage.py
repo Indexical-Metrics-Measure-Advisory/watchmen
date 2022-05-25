@@ -385,9 +385,9 @@ class TrinoStorage(TrinoStorageSPI):
 				if not isinstance(built_right, list):
 					built_right = [built_right]
 			if op == EntityCriteriaOperator.IN:
-				return f'{built_left} IN ({ArrayHelper(built_right).join(", ")})'
+				return f'{built_left} IN ({ArrayHelper(built_right).map(lambda x: self.build_literal(x)).join(", ")})'
 			elif op == EntityCriteriaOperator.NOT_IN:
-				return f'{built_left} NOT IN ({ArrayHelper(built_right).join(", ")})'
+				return f'{built_left} NOT IN ({ArrayHelper(built_right).map(lambda x: self.build_literal(x)).join(", ")})'
 
 		built_right = self.build_literal(expression.right)
 		if op == EntityCriteriaOperator.EQUALS:
@@ -697,7 +697,11 @@ class TrinoStorage(TrinoStorageSPI):
 			if ask_storage_echo_enabled():
 				logger.info(f'SQL: {sql}')
 			cursor.execute(sql)
-			count = cursor.fetchall()[0][0]
+			result = cursor.fetchall()
+			if result:
+				count = result[0][0]
+			else:
+				count = 0
 			if count == 0:
 				return DataPage(
 					data=[],
