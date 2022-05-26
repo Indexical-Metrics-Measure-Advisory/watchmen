@@ -365,7 +365,7 @@ def create_value_recursive_getter_from_current_data(
 		name: str, names: List[str]
 ) -> Callable[[PipelineVariables, PrincipalService], Any]:
 	return lambda variables, principal_service: \
-		get_value_from(name, names, lambda x: variables.find_from_current_data(x))
+		get_value_from(name, names, lambda x: variables.find_from_current_data(x), variables.is_list_on_trigger)
 
 
 def create_ask_factor_value(topic: Topic, factor: Factor) -> Callable[[PipelineVariables, PrincipalService], Any]:
