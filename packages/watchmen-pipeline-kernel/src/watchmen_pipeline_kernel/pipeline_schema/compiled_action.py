@@ -15,8 +15,8 @@ from watchmen_data_kernel.service import ask_topic_data_service
 from watchmen_data_kernel.storage import TopicDataService, TopicTrigger
 from watchmen_data_kernel.storage_bridge import now, parse_action_defined_as, parse_condition_for_storage, \
 	parse_mapping_for_storage, parse_parameter_in_memory, parse_prerequisite_defined_as, parse_prerequisite_in_memory, \
-	ParsedMemoryParameter, ParsedStorageCondition, ParsedStorageMapping, PipelineVariables, PrerequisiteDefinedAs, \
-	PrerequisiteTest, spent_ms
+	ParsedMemoryConstantParameter, ParsedMemoryParameter, ParsedStorageCondition, ParsedStorageMapping, \
+	PipelineVariables, PrerequisiteDefinedAs, PrerequisiteTest, spent_ms
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import AggregateArithmetic, AlarmAction, AlarmActionSeverity, CopyToMemoryAction, \
@@ -34,7 +34,7 @@ from watchmen_pipeline_kernel.common import ask_decrypt_factor_value, ask_pipeli
 from watchmen_pipeline_kernel.pipeline_schema_interface import CreateQueuePipeline, TopicStorages
 from watchmen_storage import EntityColumnAggregateArithmetic, EntityCriteria, EntityStraightAggregateColumn, \
 	EntityStraightColumn
-from watchmen_utilities import ArrayHelper, is_blank
+from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 
 logger = getLogger(__name__)
 
@@ -198,7 +198,26 @@ class CompiledCopyToMemoryAction(CompiledAction):
 		def work() -> None:
 			value = self.parsedSource.value(variables, principal_service)
 			action_monitor_log.touched = {'data': value}
-			variables.put(self.variableName, value)
+			if isinstance(self.parsedSource, ParsedMemoryConstantParameter) and self.action.source is not None:
+				constant_value: Optional[str] = self.action.source.value
+				if is_not_blank(constant_value):
+					constant_value = constant_value.strip()
+				if constant_value.startswith('{') and constant_value.endswith('}'):
+					constant_value = constant_value.lstrip('{').rstrip('}')
+				names = constant_value.split('.')
+				if variables.has(names[0]):
+					# from variables
+					traceable, from_ = variables.trace_variable(names[0])
+					if traceable:
+						variables.put_with_from(
+							self.variableName, value, from_ + '.' + ArrayHelper(names[1:]).join('.'))
+					else:
+						variables.put(self.variableName, value)
+				else:
+					# from trigger data
+					variables.put_with_from(self.variableName, value, constant_value)
+			else:
+				variables.put(self.variableName, value)
 
 		return self.safe_run(action_monitor_log, work)
 

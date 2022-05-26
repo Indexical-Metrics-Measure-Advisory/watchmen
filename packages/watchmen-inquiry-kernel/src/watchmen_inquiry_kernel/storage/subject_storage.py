@@ -35,7 +35,7 @@ from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blan
 
 
 def ask_empty_variables() -> PipelineVariables:
-	return PipelineVariables(None, None)
+	return PipelineVariables(None, None, None)
 
 
 def get_connected_space_service(principal_service: PrincipalService) -> ConnectedSpaceService:

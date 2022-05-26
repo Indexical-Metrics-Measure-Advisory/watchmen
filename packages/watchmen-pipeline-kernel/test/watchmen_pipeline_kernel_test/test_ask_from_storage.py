@@ -7,9 +7,10 @@ from pydantic import BaseModel
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.storage_bridge import parse_condition_for_storage, PipelineVariables
 from watchmen_data_kernel.storage_bridge.ask_from_storage import ParsedStorageJoint
-from watchmen_model.admin import User, UserRole
+from watchmen_data_kernel.topic_schema import TopicSchema
+from watchmen_model.admin import Factor, FactorType, Topic, User, UserRole
 from watchmen_model.common import ComputedParameter, ConstantParameter, ParameterComputeType, ParameterExpression, \
-	ParameterExpressionOperator, ParameterJoint, ParameterJointType
+	ParameterExpressionOperator, ParameterJoint, ParameterJointType, ParameterKind
 from watchmen_model.pipeline_kernel import PipelineMonitorLog
 from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteriaExpression, \
 	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator
@@ -97,7 +98,7 @@ class AskFromStorage(TestCase):
 				'name': 'customer-1'
 			}
 		}
-		variables = PipelineVariables(previous_data, current_data)
+		variables = PipelineVariables(previous_data, current_data, None)
 		result: EntityCriteriaJoint = parsed_joint.run(variables, principal_service)
 
 		# assertion
@@ -175,3 +176,29 @@ class AskFromStorage(TestCase):
 		log = PipelineMonitorLog(prerequisiteDefinedAs=exp)
 		log_dict = log.dict()
 		print(log_dict)
+
+	# noinspection PyMethodMayBeStatic
+	def test_criteria(self):
+		joint = ParameterJoint(
+			jointType=ParameterJointType.AND,
+			filters=[
+				ParameterExpression(
+					left=ConstantParameter(kind=ParameterKind.CONSTANT, value="ABC"),
+					operator=ParameterExpressionOperator.EQUALS,
+					right=ConstantParameter(kind=ParameterKind.CONSTANT, value="{policy.productCode}-{policy.policyNo}")
+				)
+			]
+		)
+		parsed = parse_condition_for_storage(joint, [
+			TopicSchema(Topic(name='policy', factors=[
+				Factor(name='productCode', type=FactorType.TEXT),
+				Factor(name='policyNo', type=FactorType.TEXT)
+			]))
+		], create_fake_principal_service(), True)
+		variables = PipelineVariables(None, {}, None)
+		variables.put('policy', {
+			'productCode': 'A001',
+			'policyNo': 'P001'
+		})
+		result = parsed.run(variables, create_fake_principal_service())
+		print(result.to_dict())
