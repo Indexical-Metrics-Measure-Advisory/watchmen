@@ -24,7 +24,7 @@ from watchmen_model.admin import AggregateArithmetic, AlarmAction, AlarmActionSe
 	Pipeline, PipelineAction, PipelineStage, PipelineTriggerType, PipelineUnit, ReadFactorAction, ReadFactorsAction, \
 	ReadTopicAction, ReadTopicActionType, SystemActionType, Topic, ToTopic, WriteFactorAction, WriteToExternalAction, \
 	WriteTopicAction, WriteTopicActionType
-from watchmen_model.common import ConstantParameter, ParameterKind
+from watchmen_model.common import ConstantParameter, ParameterKind, VariablePredefineFunctions
 from watchmen_model.pipeline_kernel import MonitorAlarmAction, MonitorCopyToMemoryAction, MonitorDeleteAction, \
 	MonitorLogAction, MonitorLogStatus, MonitorLogUnit, MonitorReadAction, MonitorWriteAction, \
 	MonitorWriteToExternalAction
@@ -205,7 +205,10 @@ class CompiledCopyToMemoryAction(CompiledAction):
 				if constant_value.startswith('{') and constant_value.endswith('}'):
 					constant_value = constant_value.lstrip('{').rstrip('}')
 				names = constant_value.split('.')
-				if variables.has(names[0]):
+				if names[0].startswith(VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA.value):
+					# from trigger data, previous one
+					variables.put_with_from(self.variableName, value, ArrayHelper(names[1:]).join('.'))
+				elif variables.has(names[0]):
 					# from variables
 					traceable, from_ = variables.trace_variable(names[0])
 					if traceable:
@@ -214,7 +217,7 @@ class CompiledCopyToMemoryAction(CompiledAction):
 					else:
 						variables.put(self.variableName, value)
 				else:
-					# from trigger data
+					# from trigger data, current one
 					variables.put_with_from(self.variableName, value, constant_value)
 			else:
 				variables.put(self.variableName, value)
