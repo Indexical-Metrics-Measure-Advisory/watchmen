@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 from decimal import Decimal
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_all_date_formats, DataKernelException
@@ -13,7 +13,9 @@ from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_date
 from .variables import PipelineVariables
 
 
-def get_value_from(name: str, names: List[str], get_first: Callable[[str], Any]) -> Any:
+def get_value_from(
+		name: str, names: List[str],
+		get_first: Callable[[str], Any], is_list: Callable[[List[str]], bool]) -> Any:
 	data = get_first(names[0])
 	if data is None:
 		return None
@@ -51,7 +53,22 @@ def get_value_from(name: str, names: List[str], get_first: Callable[[str], Any])
 		elif isinstance(data, dict):
 			data = data.get(current_name)
 		elif isinstance(data, list):
-			data = ArrayHelper(data).map(lambda x: x.get(current_name)).flatten().to_list()
+			# when parent is a list, value might be a primitive type or a list
+			# for that value should be a list but is none, have to check the type by given function
+			# this scenario is existing only on get value from raw trigger data
+			# and get value from variables, and this value is read from raw trigger data
+			value_is_list = is_list(names[:current_index + 1])
+
+			def get_current_value(parent: Dict[str, Any]) -> Any:
+				value = parent.get(current_name)
+				if value is None:
+					if value_is_list:
+						return []
+					else:
+						return value
+				return value
+
+			data = ArrayHelper(data).map(get_current_value).flatten().to_list()
 		else:
 			# cannot retrieve value from plain type variable
 			raise DataKernelException(f'Cannot retrieve[key={name}, current={current_name}] from [{data}].')
@@ -105,7 +122,7 @@ def create_from_previous_trigger_data(prefix, name: str) -> Callable[[PipelineVa
 	# noinspection PyUnusedLocal
 	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
 		previous_data = variables.get_previous_trigger_data()
-		value = get_value_from(name, names, lambda x: previous_data.get(x))
+		value = get_value_from(name, names, lambda x: previous_data.get(x), variables.is_list_on_trigger)
 		return value if len(prefix) == 0 else f'{prefix}{value}'
 
 	return action
@@ -125,12 +142,23 @@ def create_get_value_from_variables(variables: PipelineVariables) -> Callable[[s
 	return get_value
 
 
+def create_is_list_from_variables(variables: PipelineVariables) -> Callable[[List[str]], bool]:
+	def is_list(names: List[str]) -> bool:
+		if variables.has(names[0]):
+			return variables.is_list_on_variables(names)
+		else:
+			return variables.is_list_on_trigger(names)
+
+	return is_list
+
+
 def create_get_from_variables_with_prefix(prefix, name: str) -> Callable[[PipelineVariables, PrincipalService], Any]:
 	names = name.strip().split('.')
 
 	# noinspection PyUnusedLocal
 	def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
-		value = get_value_from(name, names, create_get_value_from_variables(variables))
+		value = get_value_from(
+			name, names, create_get_value_from_variables(variables), create_is_list_from_variables(variables))
 		return value if len(prefix) == 0 else f'{prefix}{value}'
 
 	return action
@@ -147,7 +175,9 @@ def test_date(variable_name: str) -> Tuple[bool, Optional[date]]:
 def get_date_from_variables(
 		variables: PipelineVariables, principal_service: PrincipalService, variable_name: str
 ) -> Tuple[bool, Any, date]:
-	value = get_value_from(variable_name, variable_name.strip().split('.'), create_get_value_from_variables(variables))
+	value = get_value_from(
+		variable_name, variable_name.strip().split('.'),
+		create_get_value_from_variables(variables), create_is_list_from_variables(variables))
 	if isinstance(value, date):
 		return True, value, value
 	parsed, parsed_date = is_date(value, ask_all_date_formats())
@@ -158,7 +188,9 @@ def get_date_from_variables(
 def get_value_from_variables(
 		variables: PipelineVariables, principal_service: PrincipalService, variable_name: str
 ) -> Tuple[bool, Any, Any]:
-	value = get_value_from(variable_name, variable_name.strip().split('.'), create_get_value_from_variables(variables))
+	value = get_value_from(
+		variable_name, variable_name.strip().split('.'),
+		create_get_value_from_variables(variables), create_is_list_from_variables(variables))
 	return True, value, value
 
 

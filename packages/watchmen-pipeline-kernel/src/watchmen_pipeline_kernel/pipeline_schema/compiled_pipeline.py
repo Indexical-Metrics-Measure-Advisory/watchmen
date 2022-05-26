@@ -53,14 +53,16 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 			handle_monitor_log: Callable[[PipelineMonitorLog, bool], None]
 	) -> List[PipelineContext]:
 		# build pipeline variables
-		variables = PipelineVariables(previous_data, current_data)
+		trigger_topic_id = self.pipeline.topicId
+		trigger_topic = get_topic_service(principal_service).find_by_id(trigger_topic_id)
+		variables = PipelineVariables(previous_data, current_data, trigger_topic)
 
 		# build monitor log
 		monitor_log = PipelineMonitorLog(
 			# create uid of pipeline monitor log
 			uid=str(ask_snowflake_generator().next_id()),
 			traceId=trace_id, data_id=data_id,
-			pipelineId=self.pipeline.pipelineId, topicId=self.pipeline.topicId,
+			pipelineId=self.pipeline.pipelineId, topicId=trigger_topic_id,
 			status=MonitorLogStatus.DONE, startTime=now(), spentInMills=0, error=None,
 			oldValue=deepcopy(previous_data) if previous_data is not None else None,
 			newValue=deepcopy(current_data) if current_data is not None else None,

@@ -98,7 +98,7 @@ class AskFromStorage(TestCase):
 				'name': 'customer-1'
 			}
 		}
-		variables = PipelineVariables(previous_data, current_data)
+		variables = PipelineVariables(previous_data, current_data, None)
 		result: EntityCriteriaJoint = parsed_joint.run(variables, principal_service)
 
 		# assertion
@@ -195,7 +195,7 @@ class AskFromStorage(TestCase):
 				Factor(name='policyNo', type=FactorType.TEXT)
 			]))
 		], create_fake_principal_service(), True)
-		variables = PipelineVariables(None, {})
+		variables = PipelineVariables(None, {}, None)
 		variables.put('policy', {
 			'productCode': 'A001',
 			'policyNo': 'P001'
