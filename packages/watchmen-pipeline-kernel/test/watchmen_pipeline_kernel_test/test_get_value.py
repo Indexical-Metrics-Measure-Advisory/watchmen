@@ -5,8 +5,8 @@ from watchmen_data_kernel.storage_bridge import get_value_from, PipelineVariable
 
 
 def value(variables: Dict[str, Any], name: str) -> Any:
-	pv = PipelineVariables(None, variables)
-	return get_value_from(name, name.strip().split('.'), lambda x: pv.find_from_current_data(x))
+	pv = PipelineVariables(None, variables, None)
+	return get_value_from(name, name.strip().split('.'), lambda x: pv.find_from_current_data(x), pv.is_list_on_trigger)
 
 
 class GetValueFromDict(TestCase):
