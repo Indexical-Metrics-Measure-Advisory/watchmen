@@ -56,7 +56,8 @@ class PipelineVariables:
 
 	def put(self, name: str, value: Any):
 		self.variables[name] = value
-		del self.variables_from[name]
+		if name in self.variables_from:
+			del self.variables_from[name]
 
 	def has(self, name: str) -> bool:
 		return name in self.variables
