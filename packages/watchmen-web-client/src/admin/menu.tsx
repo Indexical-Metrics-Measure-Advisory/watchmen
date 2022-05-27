@@ -17,8 +17,8 @@ import {
 	ICON_SETTINGS,
 	ICON_SPACE,
 	ICON_SWITCH_WORKBENCH,
-	ICON_TASK,
 	ICON_TENANT,
+	ICON_TOOLBOX,
 	ICON_TOPIC,
 	ICON_USER,
 	ICON_USER_GROUP,
@@ -177,15 +177,14 @@ export const AdminMenu = () => {
 		              active={!!matchPath(location.pathname, Router.ADMIN_SIMULATOR)}
 		              onClick={onMenuClicked(Router.ADMIN_SIMULATOR)}
 		              visible={!isSuperAdmin()}/>
-		<SideMenuSeparator width={menuWidth} visible={!isSuperAdmin()}/>
-		{/* FEAT hide task menu */}
-		<SideMenuItem icon={ICON_TASK} label="Tasks" showTooltip={showTooltip}
-		              active={!!matchPath(location.pathname, Router.ADMIN_TASKS)}
-		              onClick={onMenuClicked(Router.ADMIN_TASKS)}
-		              visible={false}/>
 		<SideMenuItem icon={ICON_MONITOR_LOGS} label="Monitor Logs" showTooltip={showTooltip}
 		              active={!!matchPath(location.pathname, Router.ADMIN_MONITOR_LOGS)}
 		              onClick={onMenuClicked(Router.ADMIN_MONITOR_LOGS)}
+		              visible={!isSuperAdmin()}/>
+		<SideMenuSeparator width={menuWidth} visible={!isSuperAdmin()}/>
+		<SideMenuItem icon={ICON_TOOLBOX} label="Toolbox" showTooltip={showTooltip}
+		              active={!!matchPath(location.pathname, Router.ADMIN_TOOLBOX)}
+		              onClick={onMenuClicked(Router.ADMIN_TOOLBOX)}
 		              visible={!isSuperAdmin()}/>
 		<SideMenuPlaceholder/>
 		<SideMenuSeparator width={menuWidth}/>

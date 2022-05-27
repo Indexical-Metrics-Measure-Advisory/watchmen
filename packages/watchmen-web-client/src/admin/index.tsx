@@ -22,6 +22,7 @@ import {TopicProfileEventBusProvider} from './topic-profile/topic-profile-event-
 import AdminTopics from './topics';
 import AdminUserGroups from './user-groups';
 import AdminUsers from './users';
+import AdminToolbox from './toolbox';
 
 const AdminContainer = styled.div.attrs({'data-widget': 'admin'})`
 	display : flex;
@@ -82,6 +83,7 @@ const AdminIndex = () => {
 							<AdminMain scrollable={false}><AdminMonitorLogs/></AdminMain>
 						</Route>
 						<Route path={Router.ADMIN_SIMULATOR}><AdminDebug/></Route>
+						<Route path={Router.ADMIN_TOOLBOX}><AdminToolbox/></Route>
 						<Route path={Router.ADMIN_SETTINGS}><AdminMain><AdminSettings/></AdminMain></Route>
 						{/*		<Route path={Path.ADMIN_TASKS}><Tasks/></Route>*/}
 						<Route path="*">
