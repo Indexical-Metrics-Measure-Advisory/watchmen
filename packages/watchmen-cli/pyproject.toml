@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-cli"
-version = "16.0.40"
+version = "16.0.41"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"

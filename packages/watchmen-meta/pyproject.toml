@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-meta"
-version = "16.0.40"
+version = "16.0.41"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -10,12 +10,12 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
-watchmen-auth = "16.0.40"
-watchmen-storage = "16.0.40"
-watchmen-storage-mysql = { version = "16.0.40", optional = true }
-watchmen-storage-oracle = { version = "16.0.40", optional = true }
-watchmen-storage-mongodb = { version = "16.0.40", optional = true }
-watchmen-storage-mssql = { version = "16.0.40", optional = true }
+watchmen-auth = "16.0.41"
+watchmen-storage = "16.0.41"
+watchmen-storage-mysql = { version = "16.0.41", optional = true }
+watchmen-storage-oracle = { version = "16.0.41", optional = true }
+watchmen-storage-mongodb = { version = "16.0.41", optional = true }
+watchmen-storage-mssql = { version = "16.0.41", optional = true }
 
 [tool.poetry.dev-dependencies]
 
