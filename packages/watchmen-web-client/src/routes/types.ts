@@ -20,7 +20,7 @@ export enum Router {
 	ADMIN_MONITOR_LOGS = '/admin/monitor_logs',
 	ADMIN_SIMULATOR = '/admin/simulator',
 	ADMIN_SETTINGS = '/admin/settings',
-	ADMIN_TASKS = '/admin/tasks',
+	ADMIN_TOOLBOX = '/admin/toolbox',
 
 	CONSOLE = '/console',
 	CONSOLE_HOME = '/console/home',

@@ -213,6 +213,7 @@ export const ICON_MAIL = faInbox;
 export const ICON_TIMELINE = faComments;
 export const ICON_MONITOR_LOGS = faEthernet;
 export const ICON_PIPELINE_DEBUG = faDraftingCompass;
+export const ICON_TOOLBOX = faToolbox;
 
 export const ICON_CONSANGUINITY = faDna;
 export const ICON_CATALOG = faWarehouse;
