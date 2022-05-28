@@ -55,7 +55,7 @@ export const TriggerDef = (props: { topics: Array<Topic>, pipelines: Array<Pipel
 			});
 		}
 	};
-	const onSubmitToQueueClicked = () => {
+	const onTriggerClicked = () => {
 		if (trigger.topicId == null) {
 			fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Please pick a topic first.</AlertLabel>);
 			return;
@@ -98,18 +98,18 @@ export const TriggerDef = (props: { topics: Array<Topic>, pipelines: Array<Pipel
 		{topic != null
 			? <>
 				<TriggerLabel>Pipelines</TriggerLabel>
-				<TriggerPipelinesContainer>
-					{availablePipelines.length === 0
-						? <TriggerText>No available pipelines.</TriggerText>
-						: availablePipelines.map(pipeline => {
+				{availablePipelines.length === 0
+					? <TriggerText>No available pipelines.</TriggerText>
+					: <TriggerPipelinesContainer>
+						{availablePipelines.map(pipeline => {
 							return <TriggerPipeline key={pipeline.pipelineId}
 							                        selected={trigger.pipelineIds?.includes(pipeline.pipelineId) ?? false}
 							                        onClick={onPipelineClicked(pipeline.pipelineId)}>
 								{pipeline.name || 'Noname Pipeline'}
 							</TriggerPipeline>;
 						})
-					}
-				</TriggerPipelinesContainer>
+						}
+					</TriggerPipelinesContainer>}
 				<TriggerLabel>Filter by</TriggerLabel>
 				<TriggerFilterContainer>
 					<TopFilterEdit topic={topic} filter={trigger as TriggerTopicFilter}/>
@@ -117,8 +117,8 @@ export const TriggerDef = (props: { topics: Array<Topic>, pipelines: Array<Pipel
 			</>
 			: null}
 		<span/>
-		<TriggerButton ink={ButtonInk.PRIMARY} onClick={onSubmitToQueueClicked}>
-			Run
+		<TriggerButton ink={ButtonInk.PRIMARY} onClick={onTriggerClicked}>
+			Trigger
 		</TriggerButton>
 	</TriggerContainer>;
 };
