@@ -1,0 +1,15 @@
+FROM python:3.9.6-slim-buster
+
+WORKDIR /app
+ADD . .
+WORKDIR /app/packages/watchmen-rest-indicator
+RUN pip install poetry && poetry config virtualenvs.create false && poetry lock && poetry install --no-dev -vv -E mongodb -E trino
+
+EXPOSE 8009
+CMD ["uvicorn","watchmen_rest_indicator.main:app","--host", "0.0.0.0", "--port", "8009"]
+
+
+
+
+
+

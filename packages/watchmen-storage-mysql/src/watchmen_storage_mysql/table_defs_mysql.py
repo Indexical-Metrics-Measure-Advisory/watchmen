@@ -214,6 +214,51 @@ table_monitor_rules = Table(
 	create_json('params'), create_bool('enabled'),
 	create_tenant_id(), *create_tuple_audit_columns()
 )
+# indicator
+table_indicators = Table(
+	'indicators', meta_data,
+	create_pk('indicator_id'), create_str('name', 50),
+	create_tuple_id_column('topic_or_subject_id'), create_tuple_id_column('factor_id'),
+	create_str('base_on', 10),
+	create_str('category_1', 100), create_str('category_2', 100), create_str('category_3', 100),
+	create_json('value_buckets'), create_json('relevants'),
+	create_json('group_ids'), create_json('filter'),
+	create_description(),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+table_buckets = Table(
+	'buckets', meta_data,
+	create_pk('bucket_id'), create_str('name', 50),
+	create_str('type', 20, False), create_str('include', 20),
+	create_str('measure', 20), create_tuple_id_column('enum_id'),
+	create_json('segments'), create_description(),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+
+# noinspection DuplicatedCode
+table_inspections = Table(
+	'inspections', meta_data,
+	create_pk('inspection_id'), create_str('name', 50),
+	create_tuple_id_column('indicator_id'),
+	create_json('aggregate_arithmetics'),
+	create_str('measure_on', 10),
+	create_tuple_id_column('measure_on_factor_id'), create_tuple_id_column('measure_on_bucket_id'),
+	create_str('time_range_measure', 20), create_tuple_id_column('time_range_factor_id'),
+	create_json('time_ranges'),
+	create_str('measure_on_time', 20), create_tuple_id_column('measure_on_time_factor_id'),
+	create_user_id(), create_tenant_id(),
+	*create_tuple_audit_columns()
+)
+
+table_navigations = Table(
+	'navigations', meta_data,
+	create_pk('navigation_id'), create_str('name', 50),
+	create_str('time_range_type', 10), create_str('time_range_year', 10), create_str('time_range_month', 10),
+	create_bool('compare_with_prev_time_range'), create_json('indicators'),
+	create_description(),
+	create_user_id(), create_tenant_id(),
+	*create_tuple_audit_columns()
+)
 
 tables: Dict[str, Table] = {
 	# snowflake workers
@@ -247,7 +292,12 @@ tables: Dict[str, Table] = {
 	'pipeline_index': table_pipeline_index,
 	# dqc
 	'catalogs': table_catalogs,
-	'monitor_rules': table_monitor_rules
+	'monitor_rules': table_monitor_rules,
+	# indicator
+	'buckets': table_buckets,
+	'indicators': table_indicators,
+	'inspections': table_inspections,
+	'navigations': table_navigations
 }
 
 
