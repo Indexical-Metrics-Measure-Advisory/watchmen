@@ -276,7 +276,7 @@ class TopicDataService(TopicStructureService):
 		return self.get_storage().find_and_lock_by_id(data_id, data_entity_helper.get_entity_id_helper())
 
 	def find_distinct_values(
-			self, criteria: EntityCriteria, column_names: List[EntityColumnName],
+			self, criteria: Optional[EntityCriteria], column_names: List[EntityColumnName],
 			distinct_value_on_single_column: bool = False) -> List[Dict[str, Any]]:
 		data_entity_helper = self.get_data_entity_helper()
 		storage = self.get_storage()
@@ -389,9 +389,12 @@ class TopicDataService(TopicStructureService):
 		finally:
 			storage.close()
 
-	def page_and_unwrap(self, page: Pageable) -> DataPage:
+	def page_and_unwrap(self, criteria: Optional[EntityCriteria], page: Pageable) -> DataPage:
 		data_entity_helper = self.get_data_entity_helper()
-		page = self.page(data_entity_helper.get_entity_pager([], page))
+		if criteria is None:
+			page = self.page(data_entity_helper.get_entity_pager([], page))
+		else:
+			page = self.page(data_entity_helper.get_entity_pager(criteria, page))
 		if page.data is not None and len(page.data) != 0:
 			page.data = ArrayHelper(page.data).map(lambda x: self.try_to_unwrap_from_topic_data(x)).to_list()
 		return page
