@@ -57,7 +57,7 @@ export const CategoryInput = (props: {
 	const onNoXTextCleared = (prop: 'category1' | 'category2' | 'category3') => () => {
 		indicator[prop] = '';
 		save();
-	}
+	};
 
 	return <CategoryContainer>
 		<CategoryIndexLabel>#{index}</CategoryIndexLabel>
