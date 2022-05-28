@@ -17,12 +17,12 @@ import AdminSettings from './settings';
 import AdminDebug from './simulator';
 import AdminSpaces from './spaces';
 import AdminTenants from './tenants';
+import AdminToolbox from './toolbox';
 import {TopicProfile} from './topic-profile';
 import {TopicProfileEventBusProvider} from './topic-profile/topic-profile-event-bus';
 import AdminTopics from './topics';
 import AdminUserGroups from './user-groups';
 import AdminUsers from './users';
-import AdminToolbox from './toolbox';
 
 const AdminContainer = styled.div.attrs({'data-widget': 'admin'})`
 	display : flex;
