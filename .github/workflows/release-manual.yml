@@ -114,7 +114,15 @@ jobs:
       branch: ${{ needs.prepare.outputs.release_branch_name }}
       version: ${{ github.event.inputs.version }}
       storage: mongodb
-  # TODO publish doll image, on mssql
+  # publish doll image, on mssql
+  publish-doll-mssql-image:
+    needs: [ prepare, publish-web-client-image ]
+    uses: ./.github/workflows/image-publish-doll.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ github.event.inputs.version }}
+      storage: mssql
+  # TODO publish doll image, on postgresql
   # publish dqc image, on mysql
   publish-dqc-mysql-image:
     needs: [ prepare, publish-web-client-image ]
@@ -139,4 +147,45 @@ jobs:
       branch: ${{ needs.prepare.outputs.release_branch_name }}
       version: ${{ github.event.inputs.version }}
       storage: mongodb
-  # TODO publish dqc image, on mssql
+  # publish dqc image, on mssql
+  publish-dqc-mssql-image:
+    needs: [ prepare, publish-web-client-image ]
+    uses: ./.github/workflows/image-publish-dqc.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ github.event.inputs.version }}
+      storage: mssql
+  # TODO publish dqc image, on postgresql
+  # publish indicator image, on mysql
+  publish-indicator-mysql-image:
+    needs: [ compute-version, prepare, create-release-branch ]
+    uses: ./.github/workflows/image-publish-indicator.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ needs.compute-version.outputs.version }}
+      storage: mysql
+  # publish indicator image, on oracle
+  publish-indicator-oracle-image:
+    needs: [ compute-version, prepare, create-release-branch ]
+    uses: ./.github/workflows/image-publish-indicator.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ needs.compute-version.outputs.version }}
+      storage: oracle
+  # publish indicator image, on mongodb
+  publish-indicator-mongodb-image:
+    needs: [ compute-version, prepare, create-release-branch ]
+    uses: ./.github/workflows/image-publish-indicator.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ needs.compute-version.outputs.version }}
+      storage: mongodb
+  # publish indicator image, on mssql
+  publish-indicator-mssql-image:
+    needs: [ compute-version, prepare, create-release-branch ]
+    uses: ./.github/workflows/image-publish-indicator.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ needs.compute-version.outputs.version }}
+      storage: mssql
+  # TODO publish indicator image, on postgresql
