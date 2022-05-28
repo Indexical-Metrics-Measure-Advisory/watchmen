@@ -1,3 +1,4 @@
+import {Button} from '@/widgets/basic/button';
 import {Dropdown} from '@/widgets/basic/dropdown';
 import styled from 'styled-components';
 
@@ -9,7 +10,7 @@ export const TriggerContainer = styled.div.attrs({'data-widget': 'pipeline-trigg
 	grid-row-gap          : calc(var(--margin) / 2);
 
 `;
-export const PipelineTriggerLabel = styled.span.attrs({'data-widget': 'pipeline-trigger-label'})`
+export const TriggerLabel = styled.span.attrs({'data-widget': 'pipeline-trigger-label'})`
 	display      : flex;
 	position     : relative;
 	align-items  : flex-start;
@@ -38,10 +39,23 @@ export const TopicDropdown = styled(Dropdown).attrs({'data-widget': 'pipeline-tr
 		}
 	}
 `;
-export const TopicFilterContainer = styled.div.attrs({'data-widget': 'topic-filter-edit'})`
+export const TriggerFilterContainer = styled.div.attrs({'data-widget': 'pipeline-trigger-filter-edit'})`
 	display        : flex;
 	position       : relative;
 	flex-grow      : 1;
 	flex-direction : column;
 	padding        : calc(var(--margin) / 4) calc(var(--margin) / 2) calc(var(--margin) / 4) 0;
+`;
+export const TriggerButtonBar = styled.div`
+	display : flex;
+`;
+export const TriggerButton = styled(Button).attrs({'data-widget': 'pipeline-trigger-button'})`
+	height        : var(--tall-height);
+	border-radius : calc(var(--tall-height) / 2);
+	font-size     : calc(var(--font-size) * 1.2);
+	padding       : 0 var(--margin);
+	justify-self  : baseline;
+	&:not(:first-child) {
+		margin-left : calc(var(--margin) / 2);
+	}
 `;

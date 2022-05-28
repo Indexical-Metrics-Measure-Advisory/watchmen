@@ -1,10 +1,17 @@
 import {ParameterJointType} from '@/services/data/tuples/factor-calculator-types';
 import {Topic, TopicId} from '@/services/data/tuples/topic-types';
-import {DropdownOption} from '@/widgets/basic/types';
+import {ButtonInk, DropdownOption} from '@/widgets/basic/types';
 import React, {useState} from 'react';
 import {TopFilterEdit} from './top-filter-edit';
 import {TriggerTopicFilter} from './types';
-import {PipelineTriggerLabel, TopicDropdown, TopicFilterContainer, TriggerContainer} from './widgets';
+import {
+	TopicDropdown,
+	TriggerButton,
+	TriggerButtonBar,
+	TriggerContainer,
+	TriggerFilterContainer,
+	TriggerLabel
+} from './widgets';
 
 export const TriggerDef = (props: { topics: Array<Topic> }) => {
 	const {topics} = props;
@@ -35,15 +42,24 @@ export const TriggerDef = (props: { topics: Array<Topic> }) => {
 	const topic = trigger.topicId == null ? null : topics.find(topic => topic.topicId == trigger.topicId);
 
 	return <TriggerContainer>
-		<PipelineTriggerLabel>Pick a topic</PipelineTriggerLabel>
+		<TriggerLabel>Pick a topic</TriggerLabel>
 		<TopicDropdown value={trigger.topicId ?? null} options={options} onChange={onChange}
 		               please="To trigger pipelines"/>
 		{topic != null
 			? <>
-				<PipelineTriggerLabel>Filter by</PipelineTriggerLabel>
-				<TopicFilterContainer>
+				<TriggerLabel>Filter by</TriggerLabel>
+				<TriggerFilterContainer>
 					<TopFilterEdit topic={topic} filter={trigger as TriggerTopicFilter}/>
-				</TopicFilterContainer>
+				</TriggerFilterContainer>
+				<span/>
+				<TriggerButtonBar>
+					<TriggerButton ink={ButtonInk.INFO}>
+						Fetch Row Count
+					</TriggerButton>
+					<TriggerButton ink={ButtonInk.PRIMARY}>
+						Submit to Queue
+					</TriggerButton>
+				</TriggerButtonBar>
 			</>
 			: null}
 	</TriggerContainer>;
