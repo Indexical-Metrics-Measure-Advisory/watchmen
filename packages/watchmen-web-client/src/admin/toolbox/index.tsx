@@ -1,28 +1,19 @@
-import {VerticalMarginOneUnit} from '@/widgets/basic/margin';
-import {PageHeader} from '@/widgets/basic/page-header';
+import {Router} from '@/routes/types';
 import React from 'react';
-import {ToolboxCard, ToolboxCardDescription, ToolboxCards, ToolboxCardTitle, ToolboxPage} from './widgets';
+import {Redirect, Route, Switch} from 'react-router-dom';
+import {ToolboxList} from './list';
+import {PipelineTrigger} from './pipeline-trigger';
+import {TopicSnapshot} from './topic-snapshot';
 
 const AdminToolboxIndex = () => {
-	return <ToolboxPage>
-		<PageHeader title="Toolbox"/>
-		<VerticalMarginOneUnit/>
-		<ToolboxCards>
-			<ToolboxCard>
-				<ToolboxCardTitle>Topic Snapshot</ToolboxCardTitle>
-				<ToolboxCardDescription>
-					Likes a time machine for a piece or a segment of single topic.
-				</ToolboxCardDescription>
-			</ToolboxCard>
-			<ToolboxCard>
-				<ToolboxCardTitle>Pipeline Trigger</ToolboxCardTitle>
-				<ToolboxCardDescription>
-					Manually trigger specific pipelines on topic.
-				</ToolboxCardDescription>
-			</ToolboxCard>
-		</ToolboxCards>
-		<VerticalMarginOneUnit/>
-	</ToolboxPage>;
+	return <Switch>
+		<Route path={Router.ADMIN_TOOLBOX_PIPELINE_TRIGGER}><PipelineTrigger/></Route>
+		<Route path={Router.ADMIN_TOOLBOX_TOPIC_SNAPSHOT}><TopicSnapshot/></Route>
+		<Route path={Router.ADMIN_TOOLBOX}><ToolboxList/></Route>
+		<Route path="*">
+			<Redirect to={Router.ADMIN_TOOLBOX}/>
+		</Route>
+	</Switch>;
 };
 
 export default AdminToolboxIndex;
