@@ -63,7 +63,7 @@ class TopicPageable(ParameterJoint):
 # noinspection DuplicatedCode
 @router.post('/topic/data', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=DataPage)
 async def fetch_topic_data(
-		topic_name: Optional[str], topic_id: Optional[TopicId], tenant_id: Optional[TenantId] = None,
+		topic_name: Optional[str] = None, topic_id: Optional[TopicId] = None, tenant_id: Optional[TenantId] = None,
 		criteria: TopicPageable = None,
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> DataPage:
@@ -119,7 +119,7 @@ async def fetch_topic_data_count(
 # noinspection DuplicatedCode
 @router.post('/topic/data/ids', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=List[str])
 async def fetch_topic_data_count(
-		topic_id: Optional[TopicId], tenant_id: Optional[TenantId] = None,
+		topic_id: Optional[TopicId] = None, tenant_id: Optional[TenantId] = None,
 		criteria: Optional[ParameterJoint] = None,
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> List[str]:
@@ -146,7 +146,7 @@ async def fetch_topic_data_count(
 # noinspection DuplicatedCode
 @router.delete('/topic/data/truncate', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
 async def truncate_topic_data(
-		topic_name: Optional[str], tenant_id: Optional[TenantId] = None,
+		topic_name: Optional[str] = None, tenant_id: Optional[TenantId] = None,
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> None:
 	if not ask_truncate_topic_data():
