@@ -6,8 +6,6 @@ import {ButtonInk, DropdownOption} from '@/widgets/basic/types';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import React, {useState} from 'react';
-import {usePipelineTriggerEventBus} from './pipeline-trigger-event-bus';
-import {PipelineTriggerEventTypes} from './pipeline-trigger-event-bus-types';
 import {TopFilterEdit} from './top-filter-edit';
 import {TriggerTopicFilter} from './types';
 import {
@@ -25,7 +23,6 @@ export const TriggerDef = (props: { topics: Array<Topic>, pipelines: Array<Pipel
 	const {topics, pipelines} = props;
 
 	const {fire: fireGlobal} = useEventBus();
-	const {fire} = usePipelineTriggerEventBus();
 	const [trigger, setTrigger] = useState<Partial<TriggerTopicFilter>>({
 		joint: {
 			jointType: ParameterJointType.AND,
@@ -67,7 +64,8 @@ export const TriggerDef = (props: { topics: Array<Topic>, pipelines: Array<Pipel
 			fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Please pick at least one pipeline.</AlertLabel>);
 			return;
 		}
-		fire(PipelineTriggerEventTypes.TRIGGER_ADDED, trigger as TriggerTopicFilter);
+		// TODO retrieve ids of this topic
+		// fire pipelines use sync api
 		setTrigger({
 			joint: {
 				jointType: ParameterJointType.AND,
@@ -120,7 +118,7 @@ export const TriggerDef = (props: { topics: Array<Topic>, pipelines: Array<Pipel
 			: null}
 		<span/>
 		<TriggerButton ink={ButtonInk.PRIMARY} onClick={onSubmitToQueueClicked}>
-			Submit to Queue
+			Run
 		</TriggerButton>
 	</TriggerContainer>;
 };
