@@ -7,7 +7,6 @@ import {PageHeader} from '@/widgets/basic/page-header';
 import React, {useEffect, useState} from 'react';
 import {useAdminCacheEventBus} from '../../cache/cache-event-bus';
 import {AdminCacheEventTypes} from '../../cache/cache-event-bus-types';
-import {PipelineTriggerEventBusProvider} from './pipeline-trigger-event-bus';
 import {TriggerDef} from './trigger-def';
 
 export const PipelineTrigger = () => {
@@ -31,11 +30,9 @@ export const PipelineTrigger = () => {
 		askData();
 	}, [fireCache]);
 
-	return <PipelineTriggerEventBusProvider>
-		<FixWidthPage>
-			<PageHeader title="Pipeline Trigger"/>
-			<VerticalMarginOneUnit/>
-			<TriggerDef topics={data.topics} pipelines={data.pipelines}/>
-		</FixWidthPage>
-	</PipelineTriggerEventBusProvider>;
+	return <FixWidthPage>
+		<PageHeader title="Pipeline Trigger"/>
+		<VerticalMarginOneUnit/>
+		<TriggerDef topics={data.topics} pipelines={data.pipelines}/>
+	</FixWidthPage>;
 };
