@@ -36,6 +36,34 @@ class TopicService:
 		finally:
 			storage_service.close_transaction()
 
+	def find_schema_by_id(self, topic_id: TopicId, tenant_id: TenantId) -> Optional[TopicSchema]:
+		if not self.principalService.is_super_admin():
+			if self.principalService.get_tenant_id() != tenant_id:
+				raise Exception('Forbidden')
+
+		schema = CacheService.topic().get_schema(topic_id)
+		if schema is not None:
+			if schema.get_topic().tenantId != tenant_id:
+				return None
+			return schema
+
+		storage_service = TopicStorageService(ask_meta_storage(), ask_snowflake_generator(), self.principalService)
+		storage_service.begin_transaction()
+		try:
+			# noinspection PyTypeChecker
+			topic: Topic = storage_service.find_by_id(topic_id)
+			if topic is None:
+				return None
+
+			CacheService.topic().put(topic)
+			schema = CacheService.topic().get_schema(topic.topicId)
+			if schema is not None:
+				if schema.get_topic().tenantId != tenant_id:
+					return None
+			return schema
+		finally:
+			storage_service.close_transaction()
+
 	def find_schema_by_name(self, name: str, tenant_id: TenantId) -> Optional[TopicSchema]:
 		if not self.principalService.is_super_admin():
 			if self.principalService.get_tenant_id() != tenant_id:
