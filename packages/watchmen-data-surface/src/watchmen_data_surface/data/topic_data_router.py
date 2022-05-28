@@ -7,10 +7,11 @@ from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import DataKernelException
 from watchmen_data_kernel.meta import TopicService
 from watchmen_data_kernel.service import ask_topic_data_service, ask_topic_storage
+from watchmen_data_kernel.storage_bridge import parse_condition_for_storage, PipelineVariables
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_data_surface.settings import ask_truncate_topic_data
 from watchmen_model.admin import PipelineTriggerType, User, UserRole
-from watchmen_model.common import DataPage, Pageable, TenantId
+from watchmen_model.common import DataPage, Pageable, ParameterJoint, TenantId
 from watchmen_rest import get_any_admin_principal
 from watchmen_rest.util import raise_400, raise_404
 from watchmen_utilities import is_blank, is_not_blank
@@ -69,6 +70,29 @@ async def fetch_topic_data(
 	storage = ask_topic_storage(schema, principal_service)
 	service = ask_topic_data_service(schema, storage, principal_service)
 	return service.page_and_unwrap(pageable)
+
+
+@router.post('/topic/data/count', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=int)
+async def fetch_topic_data_count(
+		topic_id: Optional[str], tenant_id: Optional[TenantId] = None,
+		criteria: Optional[ParameterJoint] = None,
+		principal_service: PrincipalService = Depends(get_any_admin_principal)
+) -> int:
+	if is_blank(topic_id):
+		raise_400('Topic id is required.')
+	tenant_id = validate_tenant_id(tenant_id, principal_service)
+	principal_service = fake_to_tenant(principal_service, tenant_id)
+
+	schema = get_topic_service(principal_service).find_schema_by_id(topic_id, tenant_id)
+	storage = ask_topic_storage(schema, principal_service)
+	service = ask_topic_data_service(schema, storage, principal_service)
+
+	if criteria is None:
+		return service.count()
+	else:
+		parsed_criteria = parse_condition_for_storage(criteria, [schema], principal_service, False)
+		empty_variables = PipelineVariables(None, None, None)
+		return service.count_by_criteria([parsed_criteria.run(empty_variables, principal_service)])
 
 
 # noinspection DuplicatedCode
