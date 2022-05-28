@@ -48,7 +48,7 @@ export const saveTopic = async (topic: Topic): Promise<void> => {
 	}
 };
 
-export const listTopicsForHolder = async (search: string): Promise<Array<QueryTopicForHolder>> => {
+export const listTopicsForHolderNonRaw = async (search: string): Promise<Array<QueryTopicForHolder>> => {
 	if (isMockService()) {
 		return listMockTopicsForHolder(search);
 	} else {

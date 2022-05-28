@@ -21,6 +21,8 @@ export enum Router {
 	ADMIN_SIMULATOR = '/admin/simulator',
 	ADMIN_SETTINGS = '/admin/settings',
 	ADMIN_TOOLBOX = '/admin/toolbox',
+	ADMIN_TOOLBOX_TOPIC_SNAPSHOT = '/admin/toolbox/topic-snapshot',
+	ADMIN_TOOLBOX_PIPELINE_TRIGGER = '/admin/toolbox/pipeline-trigger',
 
 	CONSOLE = '/console',
 	CONSOLE_HOME = '/console/home',
