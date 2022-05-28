@@ -141,6 +141,21 @@ jobs:
         run: |
           poetry build
           poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
+      - name: Package [watchmen-indicator-kernel] and publish to Pypi
+        working-directory: ./packages/watchmen-indicator-kernel
+        run: |
+          poetry build
+          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
+      - name: Package [watchmen-indicator-surface] and publish to Pypi
+        working-directory: ./packages/watchmen-indicator-surface
+        run: |
+          poetry build
+          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
+      - name: Package [watchmen-rest-indicator] and publish to Pypi
+        working-directory: ./packages/watchmen-rest-indicator
+        run: |
+          poetry build
+          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
       - name: Package [watchmen-cli] and publish to Pypi
         working-directory: ./packages/watchmen-cli
         run: |
