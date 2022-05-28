@@ -682,14 +682,6 @@ xmlsec = ">=1.3.9"
 test = ["coverage (>=4.5.2)", "flake8 (>=3.6.0)", "freezegun (>=0.3.11,<=1.1.0)", "pylint (==1.9.4)", "pytest (>=4.6)"]
 
 [[package]]
-name = "pytz"
-version = "2022.1"
-description = "World timezone definitions, modern and historical"
-category = "main"
-optional = true
-python-versions = "*"
-
-[[package]]
 name = "pyyaml"
 version = "6.0"
 description = "YAML parser and emitter for Python"
@@ -833,24 +825,6 @@ optional = false
 python-versions = ">= 3.5"
 
 [[package]]
-name = "trino"
-version = "0.312.0"
-description = "Client for the Trino distributed SQL Engine"
-category = "main"
-optional = true
-python-versions = ">=3.7"
-
-[package.dependencies]
-pytz = "*"
-requests = "*"
-
-[package.extras]
-all = ["requests-kerberos", "sqlalchemy (>=1.3,<2.0)"]
-kerberos = ["requests-kerberos"]
-sqlalchemy = ["sqlalchemy (>=1.3,<2.0)"]
-tests = ["requests-kerberos", "sqlalchemy (>=1.3,<2.0)", "httpretty (<1.1)", "pytest", "pytest-runner", "click"]
-
-[[package]]
 name = "typing-extensions"
 version = "4.2.0"
 description = "Backported and Experimental Type Hints for Python 3.7+"
@@ -953,6 +927,54 @@ type = "directory"
 url = "../watchmen-data-surface"
 
 [[package]]
+name = "watchmen-indicator-kernel"
+version = "16.1.0"
+description = ""
+category = "main"
+optional = false
+python-versions = "^3.9"
+develop = true
+
+[package.dependencies]
+watchmen-inquiry-kernel = {path = "../watchmen-inquiry-kernel", develop = true}
+
+[package.extras]
+mysql = ["watchmen-storage-mysql @ ../watchmen-storage-mysql"]
+oracle = ["watchmen-storage-oracle @ ../watchmen-storage-oracle"]
+mongodb = ["watchmen-storage-mongodb @ ../watchmen-storage-mongodb"]
+mssql = ["watchmen-storage-mssql @ ../watchmen-storage-mssql"]
+postgresql = ["watchmen-storage-postgresql @ ../watchmen-storage-postgresql"]
+trino = ["watchmen-inquiry-trino @ ../watchmen-inquiry-trino"]
+
+[package.source]
+type = "directory"
+url = "../watchmen-indicator-kernel"
+
+[[package]]
+name = "watchmen-indicator-surface"
+version = "16.1.0"
+description = ""
+category = "main"
+optional = false
+python-versions = "^3.9"
+develop = true
+
+[package.dependencies]
+watchmen-indicator-kernel = {path = "../watchmen-indicator-kernel", develop = true}
+watchmen-rest = {path = "../watchmen-rest", develop = true}
+
+[package.extras]
+mysql = ["watchmen-storage-mysql @ ../watchmen-storage-mysql"]
+oracle = ["watchmen-storage-oracle @ ../watchmen-storage-oracle"]
+mongodb = ["watchmen-storage-mongodb @ ../watchmen-storage-mongodb"]
+mssql = ["watchmen-storage-mssql @ ../watchmen-storage-mssql"]
+postgresql = ["watchmen-storage-postgresql @ ../watchmen-storage-postgresql"]
+
+[package.source]
+type = "directory"
+url = "../watchmen-indicator-surface"
+
+[[package]]
 name = "watchmen-inquiry-kernel"
 version = "16.1.0"
 description = ""
@@ -1000,23 +1022,6 @@ postgresql = ["watchmen-storage-postgresql @ ../watchmen-storage-postgresql"]
 [package.source]
 type = "directory"
 url = "../watchmen-inquiry-surface"
-
-[[package]]
-name = "watchmen-inquiry-trino"
-version = "16.1.0"
-description = ""
-category = "main"
-optional = true
-python-versions = "^3.9"
-develop = true
-
-[package.dependencies]
-trino = "^0.312.0"
-watchmen-data-kernel = {path = "../watchmen-data-kernel", develop = true}
-
-[package.source]
-type = "directory"
-url = "../watchmen-inquiry-trino"
 
 [[package]]
 name = "watchmen-meta"
@@ -1135,6 +1140,41 @@ watchmen-storage = {path = "../watchmen-storage", develop = true}
 [package.source]
 type = "directory"
 url = "../watchmen-rest"
+
+[[package]]
+name = "watchmen-rest-doll"
+version = "16.1.0"
+description = ""
+category = "main"
+optional = false
+python-versions = "^3.9"
+develop = true
+
+[package.dependencies]
+bcrypt = "^3.2.0"
+passlib = "^1.7.4"
+python-multipart = "^0.0.5"
+watchmen-data-surface = {path = "../watchmen-data-surface", develop = true}
+watchmen-inquiry-surface = {path = "../watchmen-inquiry-surface", develop = true}
+watchmen-pipeline-surface = {path = "../watchmen-pipeline-surface", develop = true}
+
+[package.extras]
+trino = ["watchmen-inquiry-trino @ ../watchmen-inquiry-trino"]
+mysql = ["watchmen-storage-mysql @ ../watchmen-storage-mysql"]
+oracle = ["watchmen-storage-oracle @ ../watchmen-storage-oracle"]
+mongodb = ["watchmen-storage-mongodb @ ../watchmen-storage-mongodb"]
+mssql = ["watchmen-storage-mssql @ ../watchmen-storage-mssql"]
+postgresql = ["watchmen-storage-postgresql @ ../watchmen-storage-postgresql"]
+kafka = ["kafka-python (>=2.0.2,<3.0.0)", "aiokafka (>=0.7.2,<0.8.0)"]
+rabbit = ["aio-pika (>=7.1.2,<8.0.0)"]
+prometheus = ["starlette-prometheus (>=0.9.0,<0.10.0)"]
+standard_ext_writer = ["requests (>=2.27.1,<3.0.0)"]
+es_ext_writer = []
+sso = ["python3-saml (>=1.14.0,<2.0.0)", "cryptography (>=36.0.2,<37.0.0)"]
+
+[package.source]
+type = "directory"
+url = "../watchmen-rest-doll"
 
 [[package]]
 name = "watchmen-storage"
@@ -1305,12 +1345,12 @@ prometheus = ["starlette-prometheus"]
 rabbit = ["aio-pika"]
 sso = ["python3-saml", "cryptography"]
 standard_ext_writer = ["requests"]
-trino = ["watchmen-inquiry-trino"]
+trino = []
 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "7a9c1b264c624676d7ca51cc2e5daa99f1de5791d13b67aff2ca0d3519a759ef"
+content-hash = "feddbf30ce3bf68c73c9a68f60949675278806568fd3128ccfcbc23b7768e823"
 
 [metadata.files]
 aio-pika = [
@@ -2144,10 +2184,6 @@ python3-saml = [
     {file = "python3_saml-1.14.0-py2-none-any.whl", hash = "sha256:c18913fa1d92b0db01e2b15fd9a0c7e21805aa5b19492dc33969b8751826e888"},
     {file = "python3_saml-1.14.0-py3-none-any.whl", hash = "sha256:0e886f5f2d9caf93972a34de72ae2302f4c44bc71472a567cb234e2ab96d91e3"},
 ]
-pytz = [
-    {file = "pytz-2022.1-py2.py3-none-any.whl", hash = "sha256:e68985985296d9a66a881eb3193b0906246245294a881e7c8afe623866ac6a5c"},
-    {file = "pytz-2022.1.tar.gz", hash = "sha256:1e760e2fe6a8163bc0b3d9a19c4f84342afa0a2affebfaa84b01b978a02ecaa7"},
-]
 pyyaml = [
     {file = "PyYAML-6.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:d4db7c7aef085872ef65a8fd7d6d09a14ae91f691dec3e87ee5ee0539d516f53"},
     {file = "PyYAML-6.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:9df7ed3b3d2e0ecfe09e14741b857df43adb5a3ddadc919a2d94fbdf78fea53c"},
@@ -2300,10 +2336,6 @@ tornado = [
     {file = "tornado-6.1-cp39-cp39-win_amd64.whl", hash = "sha256:548430be2740e327b3fe0201abe471f314741efcb0067ec4f2d7dcfb4825f3e4"},
     {file = "tornado-6.1.tar.gz", hash = "sha256:33c6e81d7bd55b468d2e793517c909b139960b6c790a60b7991b9b6b76fb9791"},
 ]
-trino = [
-    {file = "trino-0.312.0-py3-none-any.whl", hash = "sha256:be42ee18966d8f4012163d9329fd1093a4c43b346e56caa0beefab01e94931ec"},
-    {file = "trino-0.312.0.tar.gz", hash = "sha256:c5e7befa467e4b8094b3818a5b864fd6766608e0d57496ee546da7303fc7454a"},
-]
 typing-extensions = [
     {file = "typing_extensions-4.2.0-py3-none-any.whl", hash = "sha256:6657594ee297170d19f67d55c05852a874e7eb634f4f753dbd667855e07c1708"},
     {file = "typing_extensions-4.2.0.tar.gz", hash = "sha256:f1c24655a0da0d1b67f07e17a5e6b2a105894e6824b92096378bb3668ef02376"},
@@ -2319,14 +2351,16 @@ uvicorn = [
 watchmen-auth = []
 watchmen-data-kernel = []
 watchmen-data-surface = []
+watchmen-indicator-kernel = []
+watchmen-indicator-surface = []
 watchmen-inquiry-kernel = []
 watchmen-inquiry-surface = []
-watchmen-inquiry-trino = []
 watchmen-meta = []
 watchmen-model = []
 watchmen-pipeline-kernel = []
 watchmen-pipeline-surface = []
 watchmen-rest = []
+watchmen-rest-doll = []
 watchmen-storage = []
 watchmen-storage-mongodb = []
 watchmen-storage-mssql = []

@@ -1,0 +1,2 @@
+class IndicatorKernelException(Exception):
+	pass
