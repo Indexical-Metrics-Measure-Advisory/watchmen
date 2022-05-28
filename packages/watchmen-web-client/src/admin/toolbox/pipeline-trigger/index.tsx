@@ -1,3 +1,4 @@
+import {Pipeline} from '@/services/data/tuples/pipeline-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {AdminCacheData} from '@/services/local-persist/types';
 import {VerticalMarginOneUnit} from '@/widgets/basic/margin';
@@ -11,13 +12,16 @@ import {TriggerDef} from './trigger-def';
 
 export const PipelineTrigger = () => {
 	const {fire: fireCache} = useAdminCacheEventBus();
-	const [topics, setTopics] = useState<Array<Topic>>([]);
+	const [data, setData] = useState<{ topics: Array<Topic>, pipelines: Array<Pipeline> }>({topics: [], pipelines: []});
 	useEffect(() => {
 		const askData = () => {
 			fireCache(AdminCacheEventTypes.ASK_DATA_LOADED, (loaded) => {
 				if (loaded) {
 					fireCache(AdminCacheEventTypes.ASK_DATA, (data?: AdminCacheData) => {
-						setTopics(data?.topics || []);
+						setData({
+							topics: data?.topics || [],
+							pipelines: data?.pipelines || []
+						});
 					});
 				} else {
 					setTimeout(() => askData(), 100);
@@ -25,13 +29,13 @@ export const PipelineTrigger = () => {
 			});
 		};
 		askData();
-	}, []);
+	}, [fireCache]);
 
 	return <PipelineTriggerEventBusProvider>
 		<FixWidthPage>
 			<PageHeader title="Pipeline Trigger"/>
 			<VerticalMarginOneUnit/>
-			<TriggerDef topics={topics}/>
+			<TriggerDef topics={data.topics} pipelines={data.pipelines}/>
 		</FixWidthPage>
 	</PipelineTriggerEventBusProvider>;
 };

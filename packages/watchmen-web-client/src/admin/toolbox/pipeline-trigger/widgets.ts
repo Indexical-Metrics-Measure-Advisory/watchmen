@@ -21,6 +21,15 @@ export const TriggerLabel = styled.span.attrs({'data-widget': 'pipeline-trigger-
 	font-size    : calc(var(--font-size) * 1.2);
 	white-space  : nowrap;
 `;
+export const TriggerText = styled.span.attrs({'data-widget': 'pipeline-trigger-text'})`
+	display      : flex;
+	position     : relative;
+	align-items  : flex-start;
+	min-height   : var(--tall-height);
+	line-height  : var(--tall-height);
+	font-variant : petite-caps;
+	white-space  : nowrap;
+`;
 export const TopicDropdown = styled(Dropdown).attrs({'data-widget': 'pipeline-trigger-topic-dropdown'})`
 	font-size    : calc(var(--font-size) * 1.2);
 	height       : var(--tall-height);
@@ -39,6 +48,34 @@ export const TopicDropdown = styled(Dropdown).attrs({'data-widget': 'pipeline-tr
 		}
 	}
 `;
+export const TriggerPipelinesContainer = styled.div.attrs({'data-widget': 'pipeline-trigger-pipelines'})`
+	display     : flex;
+	position    : relative;
+	flex-grow   : 1;
+	flex-wrap   : wrap;
+	margin-left : calc(var(--margin) / -2);
+	margin-top  : calc(var(--margin) / -2 + (var(--tall-height) - var(--height)) / 2);
+`;
+export const TriggerPipeline = styled.div.attrs<{ selected: boolean }>(({selected}) => {
+	return {
+		'data-widget': 'pipeline-trigger-pipeline',
+		style: {
+			backgroundColor: selected ? 'var(--param-bg-color)' : (void 0)
+		}
+	};
+})<{ selected: boolean }>`
+	display       : flex;
+	position      : relative;
+	align-items   : center;
+	padding       : 0 calc(var(--margin) / 2);
+	height        : var(--height);
+	border-radius : calc(var(--height) / 2);
+	box-shadow    : var(--param-border);
+	cursor        : pointer;
+	margin-left   : calc(var(--margin) / 2);
+	margin-top    : calc(var(--margin) / 2);
+	transition    : background-color 300ms ease-in-out;
+`;
 export const TriggerFilterContainer = styled.div.attrs({'data-widget': 'pipeline-trigger-filter-edit'})`
 	display        : flex;
 	position       : relative;
@@ -46,16 +83,10 @@ export const TriggerFilterContainer = styled.div.attrs({'data-widget': 'pipeline
 	flex-direction : column;
 	padding        : calc(var(--margin) / 4) calc(var(--margin) / 2) calc(var(--margin) / 4) 0;
 `;
-export const TriggerButtonBar = styled.div`
-	display : flex;
-`;
 export const TriggerButton = styled(Button).attrs({'data-widget': 'pipeline-trigger-button'})`
 	height        : var(--tall-height);
 	border-radius : calc(var(--tall-height) / 2);
 	font-size     : calc(var(--font-size) * 1.2);
 	padding       : 0 var(--margin);
 	justify-self  : baseline;
-	&:not(:first-child) {
-		margin-left : calc(var(--margin) / 2);
-	}
 `;
