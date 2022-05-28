@@ -13,9 +13,10 @@ class CommandLineInterfaces:
 			raise ConfigException("must have authentication configuration")
 		if settings.META_CLI_DEPLOY_FOLDER is None:
 			raise ConfigException("must have data path configuration")
-		dm = Deployment(settings.META_CLI_HOST, settings.META_CLI_PAT,
-		                settings.META_CLI_USERNAME, settings.META_CLI_PASSWORD,
-		                settings.META_CLI_DEPLOY_FOLDER, settings.META_CLI_DEPLOY_PATTERN)
+		dm = Deployment(
+			settings.META_CLI_HOST, settings.META_CLI_PAT,
+			settings.META_CLI_USERNAME, settings.META_CLI_PASSWORD,
+			settings.META_CLI_DEPLOY_FOLDER, settings.META_CLI_DEPLOY_PATTERN)
 		dm.deploy()
 
 	@staticmethod
