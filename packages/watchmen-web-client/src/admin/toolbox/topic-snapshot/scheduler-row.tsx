@@ -2,12 +2,50 @@ import {TopicSnapshotFrequency, TopicSnapshotScheduler} from '@/services/data/ad
 import {Topic} from '@/services/data/tuples/topic-types';
 import {DwarfButton} from '@/widgets/basic/button';
 import {ICON_EDIT} from '@/widgets/basic/constants';
-import {Dropdown} from '@/widgets/basic/dropdown';
-import {DropdownOption} from '@/widgets/basic/types';
-import {useForceUpdate} from '@/widgets/basic/utils';
+import {useEventBus} from '@/widgets/events/event-bus';
+import {EventTypes} from '@/widgets/events/types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React from 'react';
-import {EditLabel, ResultBodyCell, ResultBodyRow, ResultRowEditor} from './widgets';
+import {EditDialog} from './edit-dialog';
+import {ResultBodyCell, ResultBodyRow} from './widgets';
+
+const WEEKDAY_LABELS = {
+	mon: 'Monday',
+	tue: 'Tuesday',
+	wed: 'Wednesday',
+	thu: 'Thursday',
+	fri: 'Friday',
+	sat: 'Saturday',
+	sun: 'Sunday'
+};
+
+const asDisplayFrequency = (scheduler: TopicSnapshotScheduler) => {
+	const {frequency, weekday = 'mon', day = '1', hour = 0, minute = 0} = scheduler;
+
+	const h = hour < 10 ? `0${hour}` : `${hour}`;
+	const m = minute < 10 ? `0${minute}` : `${minute}`;
+	const time = `${h}:${m}`;
+
+	switch (frequency) {
+		case TopicSnapshotFrequency.MONTHLY:
+			if (day === 'L') {
+				return `${time}, Last Day of Month`;
+			} else if (day == '1') {
+				return `${time}, ${day}st Day of Month`;
+			} else if (day == '2') {
+				return `${time}, ${day}nd Day of Month`;
+			} else if (day == '3') {
+				return `${time}, ${day}rd Day of Month`;
+			} else {
+				return `${time}, ${day}th Day of Month`;
+			}
+		case TopicSnapshotFrequency.WEEKLY:
+			return `${time}, Every ${(WEEKDAY_LABELS as any)[weekday] ?? 'Monday'}`;
+		case TopicSnapshotFrequency.DAILY:
+		default:
+			return `${time}, Everyday`;
+	}
+};
 
 export const SchedulerRow = (props: {
 	scheduler: TopicSnapshotScheduler;
@@ -15,82 +53,34 @@ export const SchedulerRow = (props: {
 	topics: Array<Topic>;
 }) => {
 	const {scheduler, index, topics} = props;
-	const {schedulerId, topicId, frequency, condition, weekday = 'mon', day = '1', hour = 0, minute = 0} = scheduler;
+	const {topicId} = scheduler;
 
-	const forceUpdate = useForceUpdate();
+	const {fire: fireGlobal} = useEventBus();
 
 	const onEditClicked = () => {
-	};
-	const onDayOfMonthChange = (option: DropdownOption) => {
-		scheduler.day = option.value as string;
-		forceUpdate();
-	};
-	const onWeekdayChange = (option: DropdownOption) => {
-		scheduler.weekday = option.value as string;
-		forceUpdate();
-	};
-	const onHourChange = (option: DropdownOption) => {
-		scheduler.hour = option.value as number;
-		forceUpdate();
-	};
-	const onMinuteChange = (option: DropdownOption) => {
-		scheduler.minute = option.value as number;
-		forceUpdate();
+		// eslint-disable-next-line
+		const topic = topics.find(topic => topic.topicId == topicId);
+		fireGlobal(EventTypes.SHOW_DIALOG, <EditDialog scheduler={scheduler} topic={topic}/>,
+			{
+				marginTop: '10vh',
+				marginLeft: '20%',
+				width: '60%',
+				height: '80vh'
+			});
 	};
 
 	// eslint-disable-next-line
 	const topic = topics.find(topic => topic.topicId == topicId);
 	const topicName = topic?.name || 'Noname Topic';
 
-	const dayOfMonthOptions = [
-		{value: 'L', label: 'Last Day of Month'},
-		...new Array(31).fill(1).map((_, index) => {
-			return {value: index + 1, label: `${index + 1}`};
-		})
-	];
-	const weekdayOptions = [
-		{value: 'mon', label: 'Monday'},
-		{value: 'tue', label: 'Tuesday'},
-		{value: 'wed', label: 'Wednesday'},
-		{value: 'thu', label: 'Thursday'},
-		{value: 'fri', label: 'Friday'},
-		{value: 'sat', label: 'Saturday'},
-		{value: 'sun', label: 'Sunday'}
-	];
-	const hourOptions = new Array(24).fill(1).map((_, index) => {
-		return {value: index, label: `${index}`};
-	});
-	const minuteOptions = new Array(60).fill(1).map((_, index) => {
-		return {value: index, label: `${index}`};
-	});
-
-	return <ResultBodyRow key={schedulerId}>
+	return <ResultBodyRow>
 		<ResultBodyCell>{index}</ResultBodyCell>
 		<ResultBodyCell>{topicName}</ResultBodyCell>
-		<ResultBodyCell>{frequency}</ResultBodyCell>
+		<ResultBodyCell>{asDisplayFrequency(scheduler)}</ResultBodyCell>
 		<ResultBodyCell>
 			<DwarfButton onClick={onEditClicked}>
 				<FontAwesomeIcon icon={ICON_EDIT}/>
 			</DwarfButton>
 		</ResultBodyCell>
-		<ResultRowEditor>
-			{frequency === TopicSnapshotFrequency.MONTHLY
-				? <>
-					<EditLabel>Day of Month</EditLabel>
-					<Dropdown value={day} options={dayOfMonthOptions} onChange={onDayOfMonthChange}/>
-				</>
-				: null}
-			{frequency === TopicSnapshotFrequency.WEEKLY
-				? <>
-					<EditLabel>Weekday</EditLabel>
-					<Dropdown value={weekday} options={weekdayOptions} onChange={onWeekdayChange}/>
-				</>
-				: null}
-			<EditLabel>Hour</EditLabel>
-			<Dropdown value={hour} options={hourOptions} onChange={onHourChange}/>
-			<EditLabel>Minute</EditLabel>
-			<Dropdown value={minute} options={minuteOptions} onChange={onMinuteChange}/>
-			<EditLabel data-type="condition">Condition</EditLabel>
-		</ResultRowEditor>
 	</ResultBodyRow>;
 };

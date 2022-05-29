@@ -179,12 +179,8 @@ export const ResultRowEditor = styled.div.attrs({'data-widget': 'topic-snapshot-
 	grid-template-columns : 100px 1fr 100px 1fr 100px 1fr;
 	grid-column-gap       : calc(var(--margin) / 2);
 	grid-row-gap          : calc(var(--margin) / 2);
-	align-items           : center;
-	padding               : calc(var(--margin) / 4) calc(var(--margin) / 4) calc(var(--margin) / 4) calc(40px + var(--margin) / 4);
-	opacity               : 0.7;
-	border-left           : var(--border);
-	border-bottom         : var(--border);
-	border-right          : var(--border);
+	margin-top            : var(--margin);
+	margin-bottom         : var(--margin);
 	transition            : height 300ms ease-in-out;
 `;
 export const EditLabel = styled.div.attrs({'data-widget': 'topic-snapshot-edit-label'})`
@@ -195,7 +191,13 @@ export const EditLabel = styled.div.attrs({'data-widget': 'topic-snapshot-edit-l
 	line-height  : var(--height);
 	white-space  : nowrap;
 	font-variant : petite-caps;
-	&[data-type=condition] {
+	&:nth-child(3),
+	&:nth-last-child(2) {
 		grid-column : 1;
+	}
+	+ div[data-widget=dropdown] {
+		width        : auto;
+		min-width    : 150px;
+		justify-self : baseline;
 	}
 `;
