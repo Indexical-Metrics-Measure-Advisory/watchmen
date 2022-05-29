@@ -33,8 +33,12 @@ interface State {
 	threads: string | number;
 }
 
+enum RunningStatus {
+	WAIT, ING, STOPPED
+}
+
 interface RunningState {
-	running: boolean;
+	running: RunningStatus;
 	total: number;
 	success: number;
 	failed: Array<{ dataId: string, pipelineId: PipelineId }>;
@@ -56,25 +60,41 @@ export const TriggerDef = (props: { topics: Array<Topic>, pipelines: Array<Pipel
 		threads: 16
 	});
 	const [fetchingRowCount, setFetchingRowCount] = useState(false);
-	const [running, setRunning] = useState<RunningState>({running: false, total: 0, success: 0, failed: []});
+	const [runningState, setRunningState] = useState<RunningState>({
+		running: RunningStatus.WAIT,
+		total: 0,
+		success: 0,
+		failed: []
+	});
 
 	const onChange = (option: DropdownOption) => {
-		if (running.running) {
+		if (runningState.running === RunningStatus.ING) {
+			return;
+		}
+
+		if (option.value == state.trigger.topicId) {
 			return;
 		}
 
 		setState(({trigger, rowCount, threads}) => {
 			return {
 				trigger: {
-					...trigger,
-					topicId: option.value as TopicId
+					topicId: option.value as TopicId,
+					joint: {
+						jointType: ParameterJointType.AND,
+						filters: []
+					},
+					pipelineIds: []
 				},
-				rowCount, threads
+				threads
 			};
 		});
+		if (runningState.running === RunningStatus.STOPPED) {
+			setRunningState({running: RunningStatus.WAIT, total: 0, success: 0, failed: []});
+		}
 	};
 	const onPipelineClicked = (pipelineId: PipelineId) => () => {
-		if (running.running) {
+		if (runningState.running !== RunningStatus.WAIT) {
 			return;
 		}
 
@@ -103,7 +123,7 @@ export const TriggerDef = (props: { topics: Array<Topic>, pipelines: Array<Pipel
 		}
 	};
 	const onFetchRowCountClicked = () => {
-		if (running.running) {
+		if (runningState.running !== RunningStatus.WAIT) {
 			return;
 		}
 
@@ -159,7 +179,7 @@ export const TriggerDef = (props: { topics: Array<Topic>, pipelines: Array<Pipel
 		link.click();
 	};
 	const onThreadsChange = (event: ChangeEvent<HTMLInputElement>) => {
-		if (running.running) {
+		if (runningState.running !== RunningStatus.WAIT) {
 			return;
 		}
 
@@ -169,7 +189,7 @@ export const TriggerDef = (props: { topics: Array<Topic>, pipelines: Array<Pipel
 		});
 	};
 	const onRunClicked = async () => {
-		if (running.running) {
+		if (runningState.running !== RunningStatus.WAIT) {
 			return;
 		}
 
@@ -195,7 +215,7 @@ export const TriggerDef = (props: { topics: Array<Topic>, pipelines: Array<Pipel
 			return;
 		}
 
-		setRunning(state => ({...state, running: true}));
+		setRunningState(state => ({...state, running: RunningStatus.ING}));
 		const dataIds = await fetchDataIds();
 		const runnable = dataIds.map(dataId => {
 			return state.trigger.pipelineIds.map(pipelineId => {
@@ -206,11 +226,11 @@ export const TriggerDef = (props: { topics: Array<Topic>, pipelines: Array<Pipel
 				};
 			});
 		}).flat();
-		setRunning(state => ({...state, running: true, total: runnable.length}));
+		setRunningState(state => ({...state, running: RunningStatus.ING, total: runnable.length}));
 
 		const fire = () => {
 			if (runnable.length === 0) {
-				setRunning(state => ({...state, running: false}));
+				setRunningState(state => ({...state, running: RunningStatus.STOPPED}));
 				return;
 			}
 			const {topicId, pipelineId, dataId} = runnable.shift()!;
@@ -218,9 +238,9 @@ export const TriggerDef = (props: { topics: Array<Topic>, pipelines: Array<Pipel
 			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
 				await rerunTopic(topicId!, pipelineId, dataId);
 			}, () => {
-				setRunning(state => {
+				setRunningState(state => {
 					return {
-						running: true,
+						running: RunningStatus.ING,
 						total: state.total,
 						success: state.success + 1,
 						failed: state.failed
@@ -228,9 +248,9 @@ export const TriggerDef = (props: { topics: Array<Topic>, pipelines: Array<Pipel
 				});
 				fire();
 			}, () => {
-				setRunning(state => {
+				setRunningState(state => {
 					return {
-						running: true,
+						running: RunningStatus.ING,
 						total: state.total,
 						success: state.success,
 						failed: [...state.failed, {dataId, pipelineId}]
@@ -240,6 +260,23 @@ export const TriggerDef = (props: { topics: Array<Topic>, pipelines: Array<Pipel
 			}, true);
 		};
 		new Array(threadCount).fill(1).forEach(() => fire());
+	};
+	const onDownloadFailedClicked = () => {
+		const content = JSON.stringify({
+			url: `${getServiceHost()}topic/data/rerun?topic_id=${topic?.topicId ?? ''}&data_id=:dataId&pipeline_id=:pipelineId`,
+			data: runningState.failed.map(({pipelineId, dataId}) => {
+				return {
+					topicId: state.trigger.topicId,
+					pipelineId: pipelineId,
+					dataId: dataId
+				};
+			})
+		});
+		const link = document.createElement('a');
+		link.href = 'data:application/json;charset=utf-8,' + encodeURI(content);
+		link.target = '_blank';
+		link.download = `failed-topic[${topic?.name ?? ''}]-trigger-${dayjs().format('YYYYMMDDHHmmss')}.json`;
+		link.click();
 	};
 
 	const options = topics.map(topic => {
@@ -284,7 +321,8 @@ export const TriggerDef = (props: { topics: Array<Topic>, pipelines: Array<Pipel
 			</>
 			: null}
 		<span/>
-		<TriggerButton ink={running.running ? ButtonInk.WAIVE : ButtonInk.PRIMARY} onClick={onFetchRowCountClicked}>
+		<TriggerButton ink={runningState.running !== RunningStatus.WAIT ? ButtonInk.WAIVE : ButtonInk.PRIMARY}
+		               onClick={onFetchRowCountClicked}>
 			<span>Fetch Row Count</span>
 			{fetchingRowCount ? <FontAwesomeIcon icon={ICON_LOADING} spin={true}/> : null}
 		</TriggerButton>
@@ -303,19 +341,30 @@ export const TriggerDef = (props: { topics: Array<Topic>, pipelines: Array<Pipel
 						<TriggerText>With</TriggerText>
 						<Input value={state.threads} onChange={onThreadsChange} ref={threadsInputRef}/>
 						<TriggerText>Threads</TriggerText>
-						<TriggerButton ink={running.running ? ButtonInk.WAIVE : ButtonInk.PRIMARY}
-						               onClick={onRunClicked}>
-							<span>Run in Browser</span>
-							{running.running ? <FontAwesomeIcon icon={ICON_LOADING} spin={true}/> : null}
+						<TriggerButton
+							ink={runningState.running !== RunningStatus.WAIT ? ButtonInk.WAIVE : ButtonInk.PRIMARY}
+							onClick={onRunClicked}>
+							<span>{runningState.running !== RunningStatus.STOPPED ? 'Run in Browser' : 'Triggerred'}</span>
+							{runningState.running === RunningStatus.ING
+								? <FontAwesomeIcon icon={ICON_LOADING} spin={true}/>
+								: null}
 						</TriggerButton>
 					</RunInBrowserContainer>}
-				{running.running
+				{runningState.running === RunningStatus.ING || runningState.running === RunningStatus.STOPPED
 					? <>
 						<span/>
-						<TriggerText>
-							Pipeline triggered, total {running.total}, success {running.success},
-							failed: {running.failed.length}.
-						</TriggerText>
+						<RunInBrowserContainer>
+							<TriggerText data-big={true}>
+								Pipeline triggered, total <span data-ink={ButtonInk.PRIMARY}>{runningState.total}</span>,
+								success <span data-ink={ButtonInk.SUCCESS}>{runningState.success}</span>,
+								failed: <span data-ink={ButtonInk.DANGER}>{runningState.failed.length}</span>.
+							</TriggerText>
+							{runningState.failed.length !== 0 && runningState.running === RunningStatus.STOPPED
+								? <TriggerButton ink={ButtonInk.DANGER} onClick={onDownloadFailedClicked}>
+									Download Failures
+								</TriggerButton>
+								: null}
+						</RunInBrowserContainer>
 					</>
 					: null}
 			</>

@@ -29,6 +29,24 @@ export const TriggerText = styled.span.attrs({'data-widget': 'pipeline-trigger-t
 	line-height  : var(--tall-height);
 	font-variant : petite-caps;
 	white-space  : nowrap;
+	&[data-big=true] {
+		font-size : 2em;
+	}
+	> span[data-ink=primary] {
+		font-weight : var(--font-bold);
+		color       : var(--primary-color);
+		margin-left : 0.5em;
+	}
+	> span[data-ink=danger] {
+		font-weight : var(--font-bold);
+		color       : var(--danger-color);
+		margin-left : 0.5em;
+	}
+	> span[data-ink=success] {
+		font-weight : var(--font-bold);
+		color       : var(--success-color);
+		margin-left : 0.5em;
+	}
 `;
 export const TopicDropdown = styled(Dropdown).attrs({'data-widget': 'pipeline-trigger-topic-dropdown'})`
 	font-size    : calc(var(--font-size) * 1.2);
@@ -84,7 +102,7 @@ export const TriggerFilterContainer = styled.div.attrs({'data-widget': 'pipeline
 	padding        : calc(var(--margin) / 4) calc(var(--margin) / 2) calc(var(--margin) / 4) 0;
 `;
 export const TriggerButton = styled(Button).attrs({'data-widget': 'pipeline-trigger-button'})`
-	height        : var(--tall-height);
+	height        : calc(var(--tall-height) - 2px);
 	border-radius : calc(var(--tall-height) / 2);
 	font-size     : calc(var(--font-size) * 1.2);
 	padding       : 0 var(--margin);
