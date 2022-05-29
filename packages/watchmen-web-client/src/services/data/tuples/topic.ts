@@ -84,7 +84,7 @@ export const fetchTopicDataIds = async (topicId: TopicId, condition?: ParameterJ
 
 export const rerunTopic = async (topicId: TopicId, pipelineId: PipelineId, dataId: string): Promise<void> => {
 	if (isMockService()) {
-		return mockRerunTopic(topicId, pipelineId, dataId);
+		return await mockRerunTopic(topicId, pipelineId, dataId);
 	} else {
 		return await get({api: Apis.TOPIC_RERUN, search: {topicId, pipelineId, dataId}});
 	}
