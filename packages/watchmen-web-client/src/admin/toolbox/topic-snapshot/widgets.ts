@@ -132,12 +132,17 @@ export const ResultBodyRow = styled.div.attrs({'data-widget': 'topic-snapshot-re
 	&:nth-child(2n) {
 		background-color : var(--grid-rib-bg-color);
 	}
-	&:last-child {
-		> div:first-child {
+	&:nth-last-child(2) {
+		border-bottom-left-radius  : calc(var(--border-radius) * 2);
+		border-bottom-right-radius : calc(var(--border-radius) * 2);
+		> div:first-child:nth-last-child(4) {
 			border-bottom-left-radius : calc(var(--border-radius) * 2);
 		}
 		> div:last-child {
 			border-bottom-right-radius : calc(var(--border-radius) * 2);
+			&:nth-child(5) {
+				border-bottom-left-radius : calc(var(--border-radius) * 2);
+			}
 		}
 	}
 	&:hover {
@@ -155,8 +160,7 @@ export const ResultBodyCell = styled.div.attrs({'data-widget': 'topic-snapshot-r
 	overflow      : hidden;
 	white-space   : nowrap;
 	text-overflow : ellipsis;
-	opacity       : 0.9;
-	&:last-child {
+	&:last-child, &:nth-child(4) {
 		border-right : var(--border);
 	}
 	&:first-child {
@@ -166,5 +170,32 @@ export const ResultBodyCell = styled.div.attrs({'data-widget': 'topic-snapshot-r
 		padding : 0;
 		height  : calc(var(--button-height-in-form) * 1.1);
 		width   : calc(var(--button-height-in-form) * 1.1);
+	}
+`;
+export const ResultRowEditor = styled.div.attrs({'data-widget': 'topic-snapshot-result-row-editor'})`
+	display               : grid;
+	position              : relative;
+	grid-column           : 1 / span 4;
+	grid-template-columns : 100px 1fr 100px 1fr 100px 1fr;
+	grid-column-gap       : calc(var(--margin) / 2);
+	grid-row-gap          : calc(var(--margin) / 2);
+	align-items           : center;
+	padding               : calc(var(--margin) / 4) calc(var(--margin) / 4) calc(var(--margin) / 4) calc(40px + var(--margin) / 4);
+	opacity               : 0.7;
+	border-left           : var(--border);
+	border-bottom         : var(--border);
+	border-right          : var(--border);
+	transition            : height 300ms ease-in-out;
+`;
+export const EditLabel = styled.div.attrs({'data-widget': 'topic-snapshot-edit-label'})`
+	display      : flex;
+	position     : relative;
+	align-items  : flex-start;
+	min-height   : var(--height);
+	line-height  : var(--height);
+	white-space  : nowrap;
+	font-variant : petite-caps;
+	&[data-type=condition] {
+		grid-column : 1;
 	}
 `;

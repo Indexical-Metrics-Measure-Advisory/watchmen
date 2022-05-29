@@ -2,8 +2,6 @@ import {fetchTopicSnapshotSchedulers} from '@/services/data/admin/topic-snapshot
 import {TopicSnapshotScheduler} from '@/services/data/admin/topic-snapshot-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {Page} from '@/services/data/types';
-import {DwarfButton} from '@/widgets/basic/button';
-import {ICON_EDIT} from '@/widgets/basic/constants';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {
@@ -11,12 +9,12 @@ import {
 	TupleSearchListPaginationButton,
 	TupleSearchListPaginationPointer
 } from '@/widgets/tuple-workbench/tuple-search/widgets';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useEffect, useState} from 'react';
+import {SchedulerRow} from './scheduler-row';
 import {useTopicSnapshotEventBus} from './topic-snapshot-event-bus';
 import {TopicSnapshotEventTypes} from './topic-snapshot-event-bus-types';
 import {TopicSnapshotCriteria} from './types';
-import {ResultBodyCell, ResultBodyRow, ResultContainer, ResultHeader, ResultHeaderCell, ResultNoData} from './widgets';
+import {ResultContainer, ResultHeader, ResultHeaderCell, ResultNoData} from './widgets';
 
 export const Results = (props: { topics: Array<Topic> }) => {
 	const {topics} = props;
@@ -42,9 +40,6 @@ export const Results = (props: { topics: Array<Topic> }) => {
 		};
 	}, [on, off]);
 
-	const onEditClicked = (scheduler: TopicSnapshotScheduler) => () => {
-		// TODO
-	};
 	const onPreviousPageClicked = () => {
 		const {pageNumber} = page;
 		if (pageNumber > 1) {
@@ -82,20 +77,9 @@ export const Results = (props: { topics: Array<Topic> }) => {
 			? <ResultNoData>No scheduler.</ResultNoData>
 			: <>
 				{page.data.map((scheduler, index) => {
-					const {schedulerId, topicId, frequency} = scheduler;
-					// eslint-disable-next-line
-					const topic = topics.find(topic => topic.topicId == topicId);
-					const topicName = topic?.name || 'Noname Topic';
-					return <ResultBodyRow key={schedulerId}>
-						<ResultBodyCell>{(page.pageNumber - 1) * page.pageSize + index + 1}</ResultBodyCell>
-						<ResultBodyCell>{topicName}</ResultBodyCell>
-						<ResultBodyCell>{frequency}</ResultBodyCell>
-						<ResultBodyCell>
-							<DwarfButton onClick={onEditClicked(scheduler)}>
-								<FontAwesomeIcon icon={ICON_EDIT}/>
-							</DwarfButton>
-						</ResultBodyCell>
-					</ResultBodyRow>;
+					return <SchedulerRow scheduler={scheduler} topics={topics}
+					                     index={(page.pageNumber - 1) * page.pageSize + index + 1}
+					                     key={scheduler.schedulerId}/>;
 				})}
 				<TupleSearchListPagination>
 					<TupleSearchListPaginationButton visible={hasPreviousPage} onClick={onPreviousPageClicked}>

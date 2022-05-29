@@ -41,6 +41,7 @@ export const TopicSnapshot = () => {
 			<VerticalMarginOneUnit/>
 			<Criteria topics={data.topics}/>
 			<Results topics={data.topics}/>
+			<VerticalMarginOneUnit/>
 		</FixWidthPage>
 	</TopicSnapshotEventBusProvider>;
 };
