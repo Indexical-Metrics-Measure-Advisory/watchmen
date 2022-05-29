@@ -50,7 +50,7 @@ export const Criteria = (props: { topics: Array<Topic> }) => {
 		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
 			return await fetchTopicSnapshotSchedulers(state.topicId, state.frequency);
 		}, (schedulers: Page<TopicSnapshotScheduler>) => {
-			fire(TopicSnapshotEventTypes.SEARCHED, schedulers);
+			fire(TopicSnapshotEventTypes.SEARCHED, state, schedulers);
 			setSearching(false);
 		}, () => setSearching(false));
 	};
