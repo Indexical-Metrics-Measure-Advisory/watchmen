@@ -1,7 +1,10 @@
+import {EditDialog} from '@/admin/toolbox/topic-snapshot/edit-dialog';
 import {fetchTopicSnapshotSchedulers} from '@/services/data/admin/topic-snapshot';
 import {TopicSnapshotFrequency, TopicSnapshotScheduler} from '@/services/data/admin/topic-snapshot-types';
+import {ParameterJointType} from '@/services/data/tuples/factor-calculator-types';
 import {Topic, TopicId} from '@/services/data/tuples/topic-types';
 import {Page} from '@/services/data/types';
+import {AlertLabel} from '@/widgets/alert/widgets';
 import {CheckBox} from '@/widgets/basic/checkbox';
 import {ICON_LOADING} from '@/widgets/basic/constants';
 import {ButtonInk, DropdownOption} from '@/widgets/basic/types';
@@ -13,6 +16,7 @@ import {useTopicSnapshotEventBus} from './topic-snapshot-event-bus';
 import {TopicSnapshotEventTypes} from './topic-snapshot-event-bus-types';
 import {CriteriaState} from './types';
 import {
+	CriteriaButtonBar,
 	CriteriaContainer,
 	CriteriaFrequencyContainer,
 	CriteriaLabel,
@@ -54,6 +58,35 @@ export const Criteria = (props: { topics: Array<Topic> }) => {
 			setSearching(false);
 		}, () => setSearching(false));
 	};
+	const onCreateClicked = () => {
+		if (state.topicId == null) {
+			fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Please pick a topic first.</AlertLabel>);
+			return;
+		}
+		const topic = topics.find(topic => topic.topicId == state.topicId);
+		const scheduler: TopicSnapshotScheduler = {
+			schedulerId: '',
+			topicId: state.topicId,
+			frequency: TopicSnapshotFrequency.DAILY,
+			day: '1',
+			weekday: 'mon',
+			hour: 0,
+			minute: 0,
+			filter: {
+				jointType: ParameterJointType.AND,
+				filters: []
+			}
+		};
+		fireGlobal(EventTypes.SHOW_DIALOG,
+			<EditDialog scheduler={scheduler} topic={topic} onConfirm={async () => {
+			}}/>,
+			{
+				marginTop: '10vh',
+				marginLeft: '20%',
+				width: '60%',
+				height: '80vh'
+			});
+	};
 
 	const options = topics.map(topic => {
 		return {
@@ -81,9 +114,14 @@ export const Criteria = (props: { topics: Array<Topic> }) => {
 			<span onClick={onFrequencyClicked(TopicSnapshotFrequency.DAILY)}>Daily</span>
 		</CriteriaFrequencyContainer>
 		<span/>
-		<CriteriaSearchButton ink={ButtonInk.PRIMARY} onClick={onSearchClicked}>
-			<span>Find</span>
-			{searching ? <FontAwesomeIcon icon={ICON_LOADING} spin={true}/> : null}
-		</CriteriaSearchButton>
+		<CriteriaButtonBar>
+			<CriteriaSearchButton ink={ButtonInk.INFO} onClick={onCreateClicked}>
+				<span>Create New Scheduler</span>
+			</CriteriaSearchButton>
+			<CriteriaSearchButton ink={ButtonInk.PRIMARY} onClick={onSearchClicked}>
+				<span>Find</span>
+				{searching ? <FontAwesomeIcon icon={ICON_LOADING} spin={true}/> : null}
+			</CriteriaSearchButton>
+		</CriteriaButtonBar>
 	</CriteriaContainer>;
 };

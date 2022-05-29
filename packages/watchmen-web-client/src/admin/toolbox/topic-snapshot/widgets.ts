@@ -49,6 +49,10 @@ export const CriteriaFrequencyContainer = styled.div.attrs({'data-widget': 'topi
 		cursor : pointer;
 	}
 `;
+export const CriteriaButtonBar = styled.div.attrs({'data-widget': 'topic-snapshot-criteria-button-bar'})`
+	display  : flex;
+	position : relative;
+`;
 export const CriteriaSearchButton = styled(Button).attrs({'data-widget': 'topic-snapshot-criteria-button'})`
 	height        : calc(var(--tall-height) - 2px);
 	border-radius : calc(var(--tall-height) / 2);
@@ -56,6 +60,9 @@ export const CriteriaSearchButton = styled(Button).attrs({'data-widget': 'topic-
 	padding       : 0 var(--margin);
 	justify-self  : baseline;
 	min-width     : 200px;
+	&:not(:first-child) {
+		margin-left : calc(var(--margin) / 2);
+	}
 	> svg {
 		margin-left  : calc(var(--margin) / 2);
 		margin-right : calc(var(--margin) / -4);
@@ -214,5 +221,5 @@ export const TriggerFilterContainer = styled.div.attrs({
 	overflow-x  : hidden;
 	overflow-y  : auto;
 	align-self  : stretch;
-	height  : calc(80vh - var(--margin) * 1.5 - var(--font-size) * 1.5 - var(--margin) * 2 - var(--height) * 3 - var(--margin) * 1.5 - var(--height));
+	height      : calc(80vh - var(--margin) * 1.5 - var(--font-size) * 1.5 - var(--margin) * 2 - var(--height) * 3 - var(--margin) * 1.5 - var(--height));
 `;

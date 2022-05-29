@@ -45,6 +45,7 @@ export const EditDialog = (props: {
 		forceUpdate();
 	};
 	const onConfirmClicked = async () => {
+		// TODO save
 		await onConfirm(data);
 		fireGlobal(EventTypes.HIDE_DIALOG);
 	};
