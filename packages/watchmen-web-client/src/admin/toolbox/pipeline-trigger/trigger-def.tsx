@@ -72,6 +72,7 @@ export const TriggerDef = (props: { topics: Array<Topic>, pipelines: Array<Pipel
 			return;
 		}
 
+		// eslint-disable-next-line
 		if (option.value == state.trigger.topicId) {
 			return;
 		}
