@@ -58,10 +58,10 @@ const DropdownContainer = styled.div.attrs<{ 'data-widget'?: string, active: boo
 	&[data-no-border=true] {
 		> div[data-widget="dropdown-options-container"] {
 			&[data-at-bottom=true] {
-				margin-top: 2px;
+				margin-top : 2px;
 			}
 			&[data-at-bottom=false] {
-				margin-bottom: 2px;
+				margin-bottom : 2px;
 			}
 		}
 	}
@@ -103,6 +103,7 @@ const Options = styled.div.attrs<State>(
 			}
 		};
 	})<State>`
+	display          : block;
 	position         : fixed;
 	max-height       : calc(var(--height) * 8 + 2px);
 	background-color : var(--bg-color);

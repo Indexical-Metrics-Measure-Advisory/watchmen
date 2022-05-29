@@ -14,4 +14,10 @@ export interface TopicSnapshotScheduler {
 	topicId: TopicId;
 	frequency: TopicSnapshotFrequency;
 	condition?: ParameterJoint;
+	// only for weekly
+	weekday?: string;
+	// only for monthly
+	day?: string;
+	hour: number;
+	minute: number;
 }

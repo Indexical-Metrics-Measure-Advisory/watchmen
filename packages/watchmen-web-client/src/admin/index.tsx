@@ -83,7 +83,7 @@ const AdminIndex = () => {
 							<AdminMain scrollable={false}><AdminMonitorLogs/></AdminMain>
 						</Route>
 						<Route path={Router.ADMIN_SIMULATOR}><AdminDebug/></Route>
-						<Route path={Router.ADMIN_TOOLBOX}><AdminToolbox/></Route>
+						<Route path={Router.ADMIN_TOOLBOX}><AdminMain><AdminToolbox/></AdminMain></Route>
 						<Route path={Router.ADMIN_SETTINGS}><AdminMain><AdminSettings/></AdminMain></Route>
 						{/*		<Route path={Path.ADMIN_TASKS}><Tasks/></Route>*/}
 						<Route path="*">

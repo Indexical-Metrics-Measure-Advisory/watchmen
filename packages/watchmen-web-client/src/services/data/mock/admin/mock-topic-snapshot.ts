@@ -15,7 +15,9 @@ export const fetchMockTopicSnapshotSchedulers = async (
 		return {
 			schedulerId: generateUuid(),
 			topicId: topicIds[Math.floor(Math.random() * topicIds.length)],
-			frequency: frequencies[Math.floor(Math.random() * frequencies.length)]
+			frequency: frequencies[Math.floor(Math.random() * frequencies.length)],
+			hour: 0,
+			minute: 0
 		};
 	});
 
