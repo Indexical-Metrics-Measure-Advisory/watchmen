@@ -40,6 +40,7 @@ export const Apis = {
 	TOPIC_SAVE: 'topic',
 	TOPIC_PROFILE: 'dqc/topic/profile?topic_id=:topicId&date=:date',
 	TOPIC_RERUN: 'topic/data/rerun?topic_id=:topicId&pipeline_id=:pipelineId&data_id=:dataId',
+	TOPIC_SNAPSHOT_SCHEDULER_LIST: 'topic/snapshot/scheduler',
 
 	ENUM_LIST_BY_NAME: 'enum/name?query_name=:search',
 	ENUM_GET: 'enum?enum_id=:enumId',

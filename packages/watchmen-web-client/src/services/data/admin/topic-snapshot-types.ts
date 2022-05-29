@@ -1,0 +1,17 @@
+import {ParameterJoint} from '../tuples/factor-calculator-types';
+import {TopicId} from '../tuples/topic-types';
+
+export enum TopicSnapshotFrequency {
+	MONTHLY = 'monthly',
+	WEEKLY = 'weekly',
+	DAILY = 'daily'
+}
+
+export type TopicSnapshotSchedulerId = string;
+
+export interface TopicSnapshotScheduler {
+	schedulerId: TopicSnapshotSchedulerId;
+	topicId: TopicId;
+	frequency: TopicSnapshotFrequency;
+	condition?: ParameterJoint;
+}

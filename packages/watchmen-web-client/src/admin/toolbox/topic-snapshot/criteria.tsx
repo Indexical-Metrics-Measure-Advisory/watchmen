@@ -1,8 +1,16 @@
-import {TopicSnapshotFrequency} from '@/services/data/admin/topic-snapshot';
+import {fetchTopicSnapshotSchedulers} from '@/services/data/admin/topic-snapshot';
+import {TopicSnapshotFrequency, TopicSnapshotScheduler} from '@/services/data/admin/topic-snapshot-types';
 import {Topic, TopicId} from '@/services/data/tuples/topic-types';
+import {Page} from '@/services/data/types';
 import {CheckBox} from '@/widgets/basic/checkbox';
+import {ICON_LOADING} from '@/widgets/basic/constants';
 import {ButtonInk, DropdownOption} from '@/widgets/basic/types';
+import {useEventBus} from '@/widgets/events/event-bus';
+import {EventTypes} from '@/widgets/events/types';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useState} from 'react';
+import {useTopicSnapshotEventBus} from './topic-snapshot-event-bus';
+import {TopicSnapshotEventTypes} from './topic-snapshot-event-bus-types';
 import {CriteriaState} from './types';
 import {
 	CriteriaContainer,
@@ -15,7 +23,10 @@ import {
 export const Criteria = (props: { topics: Array<Topic> }) => {
 	const {topics} = props;
 
+	const {fire: fireGlobal} = useEventBus();
+	const {fire} = useTopicSnapshotEventBus();
 	const [state, setState] = useState<CriteriaState>({frequency: []});
+	const [searching, setSearching] = useState(false);
 
 	const onChange = (option: DropdownOption) => {
 		setState(state => ({topicId: option.value as TopicId, frequency: state.frequency}));
@@ -24,19 +35,25 @@ export const Criteria = (props: { topics: Array<Topic> }) => {
 		if (value) {
 			setState(state => ({topicId: state.topicId, frequency: [...state.frequency, frequency]}));
 		} else {
-			setState(state => ({topic: state.topicId, frequency: state.frequency.filter(f => f != frequency)}));
+			setState(state => ({topicId: state.topicId, frequency: state.frequency.filter(f => f !== frequency)}));
 		}
 	};
 	const onFrequencyClicked = (frequency: TopicSnapshotFrequency) => () => {
 		if (state.frequency.includes(frequency)) {
-			setState(state => ({topic: state.topicId, frequency: state.frequency.filter(f => f != frequency)}));
+			setState(state => ({topicId: state.topicId, frequency: state.frequency.filter(f => f !== frequency)}));
 		} else {
 			setState(state => ({topicId: state.topicId, frequency: [...state.frequency, frequency]}));
 		}
 	};
 	const onSearchClicked = () => {
-
-	}
+		setSearching(true);
+		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
+			return await fetchTopicSnapshotSchedulers(state.topicId, state.frequency);
+		}, (schedulers: Page<TopicSnapshotScheduler>) => {
+			fire(TopicSnapshotEventTypes.SEARCHED, schedulers);
+			setSearching(false);
+		}, () => setSearching(false));
+	};
 
 	const options = topics.map(topic => {
 		return {
@@ -65,7 +82,8 @@ export const Criteria = (props: { topics: Array<Topic> }) => {
 		</CriteriaFrequencyContainer>
 		<span/>
 		<CriteriaSearchButton ink={ButtonInk.PRIMARY} onClick={onSearchClicked}>
-			Find
+			<span>Find</span>
+			{searching ? <FontAwesomeIcon icon={ICON_LOADING} spin={true}/> : null}
 		</CriteriaSearchButton>
 	</CriteriaContainer>;
 };
