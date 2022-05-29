@@ -44,7 +44,7 @@ interface RunningState {
 	failed: Array<{ dataId: string, pipelineId: PipelineId }>;
 }
 
-export const TriggerDef = (props: { topics: Array<Topic>, pipelines: Array<Pipeline> }) => {
+export const Trigger = (props: { topics: Array<Topic>, pipelines: Array<Pipeline> }) => {
 	const {topics, pipelines} = props;
 
 	const {fire: fireGlobal} = useEventBus();
@@ -292,6 +292,8 @@ export const TriggerDef = (props: { topics: Array<Topic>, pipelines: Array<Pipel
 			value: topic.topicId,
 			label: topic.name || 'Noname Topic'
 		};
+	}).sort((p1, p2) => {
+		return (p1.label.toLowerCase()).localeCompare(p2.label.toLowerCase());
 	});
 
 	// eslint-disable-next-line
@@ -300,7 +302,7 @@ export const TriggerDef = (props: { topics: Array<Topic>, pipelines: Array<Pipel
 		// eslint-disable-next-line
 		.filter(pipeline => pipeline.topicId == state.trigger.topicId)
 		.sort((p1, p2) => {
-			return (p1.name || '').localeCompare(p2.name || '');
+			return (p1.name || '').toLowerCase().localeCompare((p2.name || '').toLowerCase());
 		});
 
 	return <TriggerContainer>
