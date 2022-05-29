@@ -8,7 +8,6 @@ export const TriggerContainer = styled.div.attrs({'data-widget': 'pipeline-trigg
 	grid-template-columns : 200px 1fr;
 	grid-column-gap       : calc(var(--margin) / 2);
 	grid-row-gap          : calc(var(--margin) / 2);
-
 `;
 export const TriggerLabel = styled.span.attrs({'data-widget': 'pipeline-trigger-label'})`
 	display      : flex;

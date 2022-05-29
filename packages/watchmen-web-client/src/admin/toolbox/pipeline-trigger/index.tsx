@@ -1,3 +1,4 @@
+import {Router} from '@/routes/types';
 import {Pipeline} from '@/services/data/tuples/pipeline-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {AdminCacheData} from '@/services/local-persist/types';
@@ -5,11 +6,13 @@ import {VerticalMarginOneUnit} from '@/widgets/basic/margin';
 import {FixWidthPage} from '@/widgets/basic/page';
 import {PageHeader} from '@/widgets/basic/page-header';
 import React, {useEffect, useState} from 'react';
+import {useHistory} from 'react-router-dom';
 import {useAdminCacheEventBus} from '../../cache/cache-event-bus';
 import {AdminCacheEventTypes} from '../../cache/cache-event-bus-types';
 import {TriggerDef} from './trigger-def';
 
 export const PipelineTrigger = () => {
+	const history = useHistory();
 	const {fire: fireCache} = useAdminCacheEventBus();
 	const [data, setData] = useState<{ topics: Array<Topic>, pipelines: Array<Pipeline> }>({topics: [], pipelines: []});
 	useEffect(() => {
@@ -30,8 +33,10 @@ export const PipelineTrigger = () => {
 		askData();
 	}, [fireCache]);
 
+	const onBackClicked = () => history.push(Router.ADMIN_TOOLBOX);
+
 	return <FixWidthPage>
-		<PageHeader title="Pipeline Trigger"/>
+		<PageHeader title="Pipeline Trigger" onBackClicked={onBackClicked}/>
 		<VerticalMarginOneUnit/>
 		<TriggerDef topics={data.topics} pipelines={data.pipelines}/>
 	</FixWidthPage>;
