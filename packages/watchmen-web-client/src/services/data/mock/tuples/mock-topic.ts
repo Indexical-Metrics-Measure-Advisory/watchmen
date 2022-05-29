@@ -1,6 +1,6 @@
-import {PipelineId} from '@/services/data/tuples/pipeline-types';
 import {TuplePage} from '../../query/tuple-page';
 import {ParameterJoint} from '../../tuples/factor-calculator-types';
+import {PipelineId} from '../../tuples/pipeline-types';
 import {QueryTopic, QueryTopicForHolder} from '../../tuples/query-topic-types';
 import {Topic, TopicId, TopicKind, TopicType} from '../../tuples/topic-types';
 import {isFakedUuid} from '../../tuples/utils';
