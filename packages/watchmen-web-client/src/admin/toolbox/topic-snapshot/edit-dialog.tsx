@@ -8,19 +8,21 @@ import {DialogBody, DialogFooter, DialogTitle} from '@/widgets/dialog/widgets';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import React, {useState} from 'react';
-import {EditLabel, ResultRowEditor} from './widgets';
+import {TopFilterEdit} from './top-filter-edit';
+import {EditLabel, ResultRowEditor, TriggerFilterContainer} from './widgets';
 
 export const EditDialog = (props: {
 	scheduler: TopicSnapshotScheduler;
 	topic?: Topic;
+	onConfirm: (scheduler: TopicSnapshotScheduler) => Promise<void>;
 }) => {
-	const {scheduler, topic} = props;
+	const {scheduler, topic, onConfirm} = props;
 
 	const {fire: fireGlobal} = useEventBus();
 	const [data] = useState<TopicSnapshotScheduler>({...scheduler});
 	const forceUpdate = useForceUpdate();
 
-	const {frequency, condition, weekday = 'mon', day = '1', hour = 0, minute = 0} = data;
+	const {frequency, weekday = 'mon', day = '1', hour = 0, minute = 0} = data;
 
 	const onFrequencyChange = (option: DropdownOption) => {
 		data.frequency = option.value as TopicSnapshotFrequency;
@@ -42,8 +44,9 @@ export const EditDialog = (props: {
 		data.minute = option.value as number;
 		forceUpdate();
 	};
-	const onConfirmClicked = () => {
-
+	const onConfirmClicked = async () => {
+		await onConfirm(data);
+		fireGlobal(EventTypes.HIDE_DIALOG);
 	};
 	const onCancelClicked = () => {
 		fireGlobal(EventTypes.HIDE_DIALOG);
@@ -98,8 +101,10 @@ export const EditDialog = (props: {
 				<Dropdown value={hour} options={hourOptions} onChange={onHourChange}/>
 				<EditLabel>Minute</EditLabel>
 				<Dropdown value={minute} options={minuteOptions} onChange={onMinuteChange}/>
-				<EditLabel data-type="condition">Condition</EditLabel>
-				<span/>
+				<EditLabel>Filter by</EditLabel>
+				<TriggerFilterContainer>
+					<TopFilterEdit topic={topic!} scheduler={data}/>
+				</TriggerFilterContainer>
 			</ResultRowEditor>
 		</DialogBody>
 		<DialogFooter>
