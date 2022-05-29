@@ -94,8 +94,8 @@ export const fetchMockTopicDataIds = async (topic: TopicId, condition?: Paramete
 export const mockRerunTopic = async (topicId: TopicId, pipelineId: PipelineId, dataId: string): Promise<void> => {
 	const value = Math.random();
 	if (value >= 0.05) {
-		return new Promise<void>(resolve => setTimeout(resolve, Math.floor(Math.random() * 100) + 50));
+		return new Promise<void>(resolve => setTimeout(resolve, Math.floor(Math.random() * 500) + 500));
 	} else {
-		return new Promise<void>((_, reject) => setTimeout(reject, Math.floor(Math.random() * 100) + 50));
+		return new Promise<void>((_, reject) => setTimeout(() => reject(new Error('A mock error')), Math.floor(Math.random() * 500) + 500));
 	}
 };

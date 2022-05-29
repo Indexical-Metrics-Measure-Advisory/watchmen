@@ -77,7 +77,7 @@ export const TriggerDef = (props: { topics: Array<Topic>, pipelines: Array<Pipel
 			return;
 		}
 
-		setState(({trigger, rowCount, threads}) => {
+		setState(({threads}) => {
 			return {
 				trigger: {
 					topicId: option.value as TopicId,
@@ -229,16 +229,22 @@ export const TriggerDef = (props: { topics: Array<Topic>, pipelines: Array<Pipel
 		}).flat();
 		setRunningState(state => ({...state, running: RunningStatus.ING, total: runnable.length}));
 
+		let successCount = 0;
+		let failedCount = 0;
+		let totalCount = runnable.length;
 		const fire = () => {
 			if (runnable.length === 0) {
-				setRunningState(state => ({...state, running: RunningStatus.STOPPED}));
+				if (successCount + failedCount === totalCount) {
+					setRunningState(state => ({...state, running: RunningStatus.STOPPED}));
+				}
 				return;
 			}
 			const {topicId, pipelineId, dataId} = runnable.shift()!;
 
 			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
-				await rerunTopic(topicId!, pipelineId, dataId);
+				return await rerunTopic(topicId!, pipelineId, dataId);
 			}, () => {
+				successCount++;
 				setRunningState(state => {
 					return {
 						running: RunningStatus.ING,
@@ -249,6 +255,7 @@ export const TriggerDef = (props: { topics: Array<Topic>, pipelines: Array<Pipel
 				});
 				fire();
 			}, () => {
+				failedCount++;
 				setRunningState(state => {
 					return {
 						running: RunningStatus.ING,
