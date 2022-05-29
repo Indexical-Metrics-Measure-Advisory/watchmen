@@ -94,3 +94,15 @@ export const TriggerButton = styled(Button).attrs({'data-widget': 'pipeline-trig
 		margin-right : calc(var(--margin) / -4);
 	}
 `;
+export const RunInBrowserContainer = styled.div`
+	display  : flex;
+	position : relative;
+	> *:not(:first-child) {
+		margin-left : calc(var(--margin) / 2);
+	}
+	> input {
+		font-size : calc(var(--font-size) * 1.2);
+		height    : var(--tall-height);
+		padding   : 0 calc(var(--margin) / 2);
+	}
+`;

@@ -6,11 +6,13 @@ import {
 	fetchMockTopicRowCount,
 	listMockTopics,
 	listMockTopicsForHolder,
+	mockRerunTopic,
 	saveMockTopic
 } from '../mock/tuples/mock-topic';
 import {TuplePage} from '../query/tuple-page';
 import {isMockService} from '../utils';
 import {ParameterJoint} from './factor-calculator-types';
+import {PipelineId} from './pipeline-types';
 import {QueryTopic, QueryTopicForHolder} from './query-topic-types';
 import {Topic, TopicId} from './topic-types';
 import {isFakedUuid} from './utils';
@@ -77,5 +79,13 @@ export const fetchTopicDataIds = async (topicId: TopicId, condition?: ParameterJ
 		return fetchMockTopicDataIds(topicId, condition);
 	} else {
 		return await post({api: Apis.TOPIC_DATA_IDS, search: {topicId}, data: condition});
+	}
+};
+
+export const rerunTopic = async (topicId: TopicId, pipelineId: PipelineId, dataId: string): Promise<void> => {
+	if (isMockService()) {
+		return mockRerunTopic(topicId, pipelineId, dataId);
+	} else {
+		return await get({api: Apis.TOPIC_RERUN, search: {topicId, pipelineId, dataId}});
 	}
 };

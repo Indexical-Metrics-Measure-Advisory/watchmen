@@ -1,3 +1,4 @@
+import {PipelineId} from '@/services/data/tuples/pipeline-types';
 import {TuplePage} from '../../query/tuple-page';
 import {ParameterJoint} from '../../tuples/factor-calculator-types';
 import {QueryTopic, QueryTopicForHolder} from '../../tuples/query-topic-types';
@@ -88,4 +89,13 @@ export const fetchMockTopicDataIds = async (topic: TopicId, condition?: Paramete
 			}));
 		}, 500);
 	});
+};
+
+export const mockRerunTopic = async (topicId: TopicId, pipelineId: PipelineId, dataId: string): Promise<void> => {
+	const value = Math.random();
+	if (value >= 0.05) {
+		return new Promise<void>(resolve => setTimeout(resolve, Math.floor(Math.random() * 50) + 50));
+	} else {
+		return new Promise<void>((_, reject) => setTimeout(reject, Math.floor(Math.random() * 50) + 50));
+	}
 };
