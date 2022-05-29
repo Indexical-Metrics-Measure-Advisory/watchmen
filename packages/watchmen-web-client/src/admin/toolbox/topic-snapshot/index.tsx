@@ -1,5 +1,3 @@
-import {useAdminCacheEventBus} from '@/admin/cache/cache-event-bus';
-import {AdminCacheEventTypes} from '@/admin/cache/cache-event-bus-types';
 import {Router} from '@/routes/types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {AdminCacheData} from '@/services/local-persist/types';
@@ -8,6 +6,9 @@ import {FixWidthPage} from '@/widgets/basic/page';
 import {PageHeader} from '@/widgets/basic/page-header';
 import React, {useEffect, useState} from 'react';
 import {useHistory} from 'react-router-dom';
+import {useAdminCacheEventBus} from '../../cache/cache-event-bus';
+import {AdminCacheEventTypes} from '../../cache/cache-event-bus-types';
+import {Criteria} from './criteria';
 
 export const TopicSnapshot = () => {
 	const history = useHistory();
@@ -35,6 +36,7 @@ export const TopicSnapshot = () => {
 	return <FixWidthPage>
 		<PageHeader title="Topic Snapshot" onBackClicked={onBackClicked}/>
 		<VerticalMarginOneUnit/>
+		<Criteria topics={data.topics}/>
 	</FixWidthPage>;
 
 };

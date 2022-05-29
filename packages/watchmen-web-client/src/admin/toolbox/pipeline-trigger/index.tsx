@@ -9,7 +9,7 @@ import React, {useEffect, useState} from 'react';
 import {useHistory} from 'react-router-dom';
 import {useAdminCacheEventBus} from '../../cache/cache-event-bus';
 import {AdminCacheEventTypes} from '../../cache/cache-event-bus-types';
-import {TriggerDef} from './trigger-def';
+import {Trigger} from './trigger';
 
 export const PipelineTrigger = () => {
 	const history = useHistory();
@@ -38,6 +38,6 @@ export const PipelineTrigger = () => {
 	return <FixWidthPage>
 		<PageHeader title="Pipeline Trigger" onBackClicked={onBackClicked}/>
 		<VerticalMarginOneUnit/>
-		<TriggerDef topics={data.topics} pipelines={data.pipelines}/>
+		<Trigger topics={data.topics} pipelines={data.pipelines}/>
 	</FixWidthPage>;
 };
