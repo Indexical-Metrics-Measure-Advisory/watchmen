@@ -89,4 +89,8 @@ export const TriggerButton = styled(Button).attrs({'data-widget': 'pipeline-trig
 	font-size     : calc(var(--font-size) * 1.2);
 	padding       : 0 var(--margin);
 	justify-self  : baseline;
+	> svg {
+		margin-left  : calc(var(--margin) / 2);
+		margin-right : calc(var(--margin) / -4);
+	}
 `;

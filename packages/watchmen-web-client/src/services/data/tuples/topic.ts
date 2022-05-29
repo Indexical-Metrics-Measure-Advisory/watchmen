@@ -1,8 +1,16 @@
 import {findAccount} from '../account';
 import {Apis, get, page, post} from '../apis';
-import {fetchMockTopic, listMockTopics, listMockTopicsForHolder, saveMockTopic} from '../mock/tuples/mock-topic';
+import {
+	fetchMockTopic,
+	fetchMockTopicDataIds,
+	fetchMockTopicRowCount,
+	listMockTopics,
+	listMockTopicsForHolder,
+	saveMockTopic
+} from '../mock/tuples/mock-topic';
 import {TuplePage} from '../query/tuple-page';
 import {isMockService} from '../utils';
+import {ParameterJoint} from './factor-calculator-types';
 import {QueryTopic, QueryTopicForHolder} from './query-topic-types';
 import {Topic, TopicId} from './topic-types';
 import {isFakedUuid} from './utils';
@@ -53,5 +61,21 @@ export const listTopicsForHolderNonRaw = async (search: string): Promise<Array<Q
 		return listMockTopicsForHolder(search);
 	} else {
 		return await get({api: Apis.TOPIC_LIST_FOR_HOLDER_BY_NAME_NON_RAW, search: {search}});
+	}
+};
+
+export const fetchTopicRowCount = async (topicId: TopicId, condition?: ParameterJoint): Promise<number> => {
+	if (isMockService()) {
+		return fetchMockTopicRowCount(topicId, condition);
+	} else {
+		return await post({api: Apis.TOPIC_ROW_COUNT, search: {topicId}, data: condition});
+	}
+};
+
+export const fetchTopicDataIds = async (topicId: TopicId, condition?: ParameterJoint): Promise<Array<string>> => {
+	if (isMockService()) {
+		return fetchMockTopicDataIds(topicId, condition);
+	} else {
+		return await post({api: Apis.TOPIC_DATA_IDS, search: {topicId}, data: condition});
 	}
 };

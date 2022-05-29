@@ -1,4 +1,5 @@
 import {TuplePage} from '../../query/tuple-page';
+import {ParameterJoint} from '../../tuples/factor-calculator-types';
 import {QueryTopic, QueryTopicForHolder} from '../../tuples/query-topic-types';
 import {Topic, TopicId, TopicKind, TopicType} from '../../tuples/topic-types';
 import {isFakedUuid} from '../../tuples/utils';
@@ -67,6 +68,24 @@ export const listMockTopicsForHolder = async (search: string): Promise<Array<Que
 					{topicId: '1', name: 'Quotation'}
 				].filter((x) => x.name.toUpperCase().includes(search.toUpperCase()))
 			);
+		}, 500);
+	});
+};
+
+export const fetchMockTopicRowCount = async (topic: TopicId, condition?: ParameterJoint): Promise<number> => {
+	return new Promise<number>(resolve => {
+		setTimeout(() => {
+			resolve(Math.floor(Math.random() * 200) + 900);
+		}, 500);
+	});
+};
+
+export const fetchMockTopicDataIds = async (topic: TopicId, condition?: ParameterJoint): Promise<Array<string>> => {
+	return new Promise<Array<string>>(resolve => {
+		setTimeout(() => {
+			resolve(new Array(Math.floor(Math.random() * 100) + 100).fill(1).map((_, index) => {
+				return `${959146492349551600 + index}`;
+			}));
 		}, 500);
 	});
 };
