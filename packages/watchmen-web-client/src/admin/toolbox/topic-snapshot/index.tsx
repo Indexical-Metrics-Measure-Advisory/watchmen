@@ -9,6 +9,8 @@ import {useHistory} from 'react-router-dom';
 import {useAdminCacheEventBus} from '../../cache/cache-event-bus';
 import {AdminCacheEventTypes} from '../../cache/cache-event-bus-types';
 import {Criteria} from './criteria';
+import {Results} from './results';
+import {TopicSnapshotEventBusProvider} from './topic-snapshot-event-bus';
 
 export const TopicSnapshot = () => {
 	const history = useHistory();
@@ -33,10 +35,12 @@ export const TopicSnapshot = () => {
 
 	const onBackClicked = () => history.push(Router.ADMIN_TOOLBOX);
 
-	return <FixWidthPage>
-		<PageHeader title="Topic Snapshot" onBackClicked={onBackClicked}/>
-		<VerticalMarginOneUnit/>
-		<Criteria topics={data.topics}/>
-	</FixWidthPage>;
-
+	return <TopicSnapshotEventBusProvider>
+		<FixWidthPage>
+			<PageHeader title="Topic Snapshot" onBackClicked={onBackClicked}/>
+			<VerticalMarginOneUnit/>
+			<Criteria topics={data.topics}/>
+			<Results topics={data.topics}/>
+		</FixWidthPage>
+	</TopicSnapshotEventBusProvider>;
 };

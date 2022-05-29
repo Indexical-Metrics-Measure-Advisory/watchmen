@@ -1,4 +1,4 @@
-import {TopicSnapshotFrequency} from '@/services/data/admin/topic-snapshot';
+import {TopicSnapshotFrequency} from '@/services/data/admin/topic-snapshot-types';
 import {TopicId} from '@/services/data/tuples/topic-types';
 
 export interface CriteriaState {
