@@ -83,13 +83,13 @@ async def start_pipeline(
 
 @router.get('/topic/data/rerun', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=PipelineTriggerResult)
 async def rerun_by_topic_data(
-		topic_name: Optional[str] = None,
+		topic_name: Optional[str] = None, topic_id: Optional[str] = None,
 		data_id: Optional[int] = None, pipeline_id: Optional[PipelineId] = None,
 		tenant_id: Optional[TenantId] = None,
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> PipelineTriggerResult:
-	if is_blank(topic_name):
-		raise_400('Topic name is required.')
+	if is_blank(topic_name) and is_blank(topic_id):
+		raise_400('Topic id or name is required.')
 	if is_blank(data_id):
 		raise_400('Data id is required.')
 	tenant_id = validate_tenant_id(tenant_id, principal_service)
@@ -106,7 +106,10 @@ async def rerun_by_topic_data(
 	# to find out this, to find the last pipeline log for non-raw topic
 	# for raw topic, always be treated as insert
 	# find existing data now
-	schema = get_topic_schema(topic_name, tenant_id, principal_service)
+	if is_not_blank(topic_id):
+		schema = get_topic_service(principal_service).find_schema_by_id(topic_id, tenant_id)
+	else:
+		schema = get_topic_schema(topic_name, tenant_id, principal_service)
 	storage = ask_topic_storage(schema, principal_service)
 	service = ask_topic_data_service(schema, storage, principal_service)
 	existing_data = service.find_previous_data_by_id(id_=data_id, raise_on_not_found=True)
