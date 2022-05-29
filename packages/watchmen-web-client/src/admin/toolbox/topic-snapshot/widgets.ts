@@ -193,11 +193,26 @@ export const EditLabel = styled.div.attrs({'data-widget': 'topic-snapshot-edit-l
 	font-variant : petite-caps;
 	&:nth-child(3),
 	&:nth-last-child(2) {
-		grid-column : 1;
+		grid-column : 1
 	}
 	+ div[data-widget=dropdown] {
 		width        : auto;
 		min-width    : 150px;
 		justify-self : baseline;
 	}
+`;
+export const TriggerFilterContainer = styled.div.attrs({
+	'data-v-scroll': '',
+	'data-widget': 'topic-snapshot-filter-edit'
+})`
+	display     : block;
+	position    : relative;
+	grid-column : 1 / span 6;
+	margin-top  : calc(var(--margin) / -2);
+	margin-left : calc(var(--margin) / -2);
+	padding     : calc(var(--margin) / 2);
+	overflow-x  : hidden;
+	overflow-y  : auto;
+	align-self  : stretch;
+	height  : calc(80vh - var(--margin) * 1.5 - var(--font-size) * 1.5 - var(--margin) * 2 - var(--height) * 3 - var(--margin) * 1.5 - var(--height));
 `;

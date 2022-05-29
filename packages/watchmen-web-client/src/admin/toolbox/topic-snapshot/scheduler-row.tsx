@@ -2,6 +2,7 @@ import {TopicSnapshotFrequency, TopicSnapshotScheduler} from '@/services/data/ad
 import {Topic} from '@/services/data/tuples/topic-types';
 import {DwarfButton} from '@/widgets/basic/button';
 import {ICON_EDIT} from '@/widgets/basic/constants';
+import {useForceUpdate} from '@/widgets/basic/utils';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
@@ -30,10 +31,13 @@ const asDisplayFrequency = (scheduler: TopicSnapshotScheduler) => {
 		case TopicSnapshotFrequency.MONTHLY:
 			if (day === 'L') {
 				return `${time}, Last Day of Month`;
+				// eslint-disable-next-line
 			} else if (day == '1') {
 				return `${time}, ${day}st Day of Month`;
+				// eslint-disable-next-line
 			} else if (day == '2') {
 				return `${time}, ${day}nd Day of Month`;
+				// eslint-disable-next-line
 			} else if (day == '3') {
 				return `${time}, ${day}rd Day of Month`;
 			} else {
@@ -56,11 +60,18 @@ export const SchedulerRow = (props: {
 	const {topicId} = scheduler;
 
 	const {fire: fireGlobal} = useEventBus();
+	const forceUpdate = useForceUpdate();
 
+	const onEditConfirmed = async (editedScheduler: TopicSnapshotScheduler) => {
+		// @ts-ignore
+		Object.keys(editedScheduler).forEach(key => scheduler[key] = editedScheduler[key] as any);
+		forceUpdate();
+	};
 	const onEditClicked = () => {
 		// eslint-disable-next-line
 		const topic = topics.find(topic => topic.topicId == topicId);
-		fireGlobal(EventTypes.SHOW_DIALOG, <EditDialog scheduler={scheduler} topic={topic}/>,
+		fireGlobal(EventTypes.SHOW_DIALOG,
+			<EditDialog scheduler={scheduler} topic={topic} onConfirm={onEditConfirmed}/>,
 			{
 				marginTop: '10vh',
 				marginLeft: '20%',
