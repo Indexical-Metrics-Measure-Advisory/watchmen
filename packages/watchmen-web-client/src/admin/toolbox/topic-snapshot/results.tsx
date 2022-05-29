@@ -1,4 +1,3 @@
-import {TopicSnapshotCriteria} from '@/admin/toolbox/topic-snapshot/types';
 import {fetchTopicSnapshotSchedulers} from '@/services/data/admin/topic-snapshot';
 import {TopicSnapshotScheduler} from '@/services/data/admin/topic-snapshot-types';
 import {Topic} from '@/services/data/tuples/topic-types';
@@ -16,6 +15,7 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useEffect, useState} from 'react';
 import {useTopicSnapshotEventBus} from './topic-snapshot-event-bus';
 import {TopicSnapshotEventTypes} from './topic-snapshot-event-bus-types';
+import {TopicSnapshotCriteria} from './types';
 import {ResultBodyCell, ResultBodyRow, ResultContainer, ResultHeader, ResultHeaderCell, ResultNoData} from './widgets';
 
 export const Results = (props: { topics: Array<Topic> }) => {
