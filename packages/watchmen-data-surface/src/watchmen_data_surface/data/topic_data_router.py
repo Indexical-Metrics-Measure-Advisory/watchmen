@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Body, Depends
 from starlette.responses import Response
@@ -85,11 +85,22 @@ async def fetch_topic_data(
 		pageSize=100 if criteria is None or criteria.pageSize is None or criteria.pageSize <= 0 else criteria.pageSize
 	)
 	if criteria is None or is_blank(criteria.jointType) or criteria.filters is None:
-		return service.page_and_unwrap(None, pageable)
+		page = service.page_and_unwrap(None, pageable)
 	else:
 		parsed_criteria = parse_condition_for_storage(criteria, [schema], principal_service, False)
 		empty_variables = PipelineVariables(None, None, None)
-		return service.page_and_unwrap([parsed_criteria.run(empty_variables, principal_service)], pageable)
+		page = service.page_and_unwrap([parsed_criteria.run(empty_variables, principal_service)], pageable)
+
+	def id_to_str(row: Dict[str, Any]) -> Dict[str, Any]:
+		if TopicDataColumnNames.ID.value in row:
+			copy = row.copy()
+			copy[TopicDataColumnNames.ID.value] = str(row[TopicDataColumnNames.ID.value])
+			return copy
+		else:
+			return row
+
+	page.data = ArrayHelper(page.data).map(id_to_str).to_list()
+	return page
 
 
 # noinspection DuplicatedCode
@@ -140,7 +151,7 @@ async def fetch_topic_data_count(
 		rows = service.find_distinct_values(
 			[parsed_criteria.run(empty_variables, principal_service)], [TopicDataColumnNames.ID.value], False)
 
-	return ArrayHelper(rows).map(lambda x: x.get(TopicDataColumnNames.ID.value)).to_list()
+	return ArrayHelper(rows).map(lambda x: str(x.get(TopicDataColumnNames.ID.value))).to_list()
 
 
 # noinspection DuplicatedCode
