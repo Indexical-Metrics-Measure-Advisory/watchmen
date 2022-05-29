@@ -42,7 +42,7 @@ const DefaultTheme = {
 	warnColor: 'rgb(255, 161, 0)',
 	infoColor: 'rgb(138, 53, 193)',
 	waiveColor: 'rgb(191, 191, 191)',
-	hoverColor: 'rgb(195, 218, 241)',
+	hoverColor: 'rgb(222,231,241)',
 	bgColor: '#F9FAFC',
 	invertColor: '#FFFFFF',
 

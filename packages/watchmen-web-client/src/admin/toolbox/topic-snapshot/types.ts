@@ -5,3 +5,8 @@ export interface CriteriaState {
 	topicId?: TopicId;
 	frequency: Array<TopicSnapshotFrequency>;
 }
+
+export interface TopicSnapshotCriteria extends CriteriaState {
+	pageNumber?: number;
+	pageSize?: number;
+}

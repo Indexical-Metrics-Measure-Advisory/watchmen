@@ -162,4 +162,9 @@ export const ResultBodyCell = styled.div.attrs({'data-widget': 'topic-snapshot-r
 	&:first-child {
 		border-left : var(--border);
 	}
+	> button {
+		padding : 0;
+		height  : calc(var(--button-height-in-form) * 1.1);
+		width   : calc(var(--button-height-in-form) * 1.1);
+	}
 `;
