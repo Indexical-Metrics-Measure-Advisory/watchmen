@@ -39,9 +39,6 @@ class DollApp(RestApp):
 	def ask_create_dqc_topics_on_tenant_create(self) -> bool:
 		return self.get_settings().CREATE_DQC_TOPICS_ON_TENANT_CREATE
 
-	def ask_create_topic_snapshot_topics_on_tenant_create(self) -> bool:
-		return self.get_settings().CREATE_TOPIC_SNAPSHOT_TOPICS_ON_TENANT_CREATE
-
 	def ask_sso_enabled(self) -> bool:
 		return self.get_settings().SSO_ON
 
@@ -104,10 +101,6 @@ def ask_create_pipeline_monitor_topics_on_tenant_create() -> bool:
 
 def ask_create_dqc_topics_on_tenant_create() -> bool:
 	return doll.ask_create_dqc_topics_on_tenant_create()
-
-
-def ask_create_topic_snapshot_topics_on_tenant_create() -> bool:
-	return doll.ask_create_topic_snapshot_topics_on_tenant_create()
 
 
 def ask_sso_enabled() -> bool:

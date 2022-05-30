@@ -9,7 +9,6 @@ from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.system import TenantService
 from watchmen_model.admin import Pipeline, Topic, UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId
-from watchmen_model.data_kernel import ask_topic_snapshot_topics
 from watchmen_model.dqc import ask_dqc_pipelines, ask_dqc_topics
 from watchmen_model.pipeline_kernel import ask_pipeline_monitor_pipelines, ask_pipeline_monitor_topics
 from watchmen_model.system import Tenant
@@ -17,8 +16,7 @@ from watchmen_rest import get_any_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.admin import ask_save_pipeline_action, ask_save_topic_action
 from watchmen_rest_doll.doll import ask_create_dqc_topics_on_tenant_create, \
-	ask_create_pipeline_monitor_topics_on_tenant_create, ask_create_topic_snapshot_topics_on_tenant_create, \
-	ask_tuple_delete_enabled
+	ask_create_pipeline_monitor_topics_on_tenant_create, ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly
 from watchmen_utilities import is_blank
 
@@ -103,10 +101,6 @@ async def save_tenant(
 					topics, lambda source_topics: ask_dqc_pipelines(source_topics),
 					a_tenant.tenantId, tenant_service, principal_service
 				)
-			if ask_create_topic_snapshot_topics_on_tenant_create():
-				topics = ask_topic_snapshot_topics()
-				create_topics_and_pipelines(
-					topics, lambda source_topics: [], a_tenant.tenantId, tenant_service, principal_service)
 		else:
 			# noinspection PyTypeChecker
 			a_tenant: Tenant = tenant_service.update(a_tenant)
