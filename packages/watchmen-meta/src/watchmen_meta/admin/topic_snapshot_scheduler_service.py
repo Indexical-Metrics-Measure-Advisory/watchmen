@@ -76,7 +76,7 @@ class TopicSnapshotSchedulerService(TupleService):
 			criteria.append(EntityCriteriaExpression(
 				left=ColumnNameLiteral(columnName='topic_id'), operator=EntityCriteriaOperator.EQUALS, right=topic_id))
 		if frequency is not None and len(frequency) != 0:
-			if (len(frequency) == 1):
+			if len(frequency) == 1:
 				criteria.append(EntityCriteriaExpression(
 					left=ColumnNameLiteral(columnName='frequency'), operator=EntityCriteriaOperator.EQUALS,
 					right=frequency[0].value))
