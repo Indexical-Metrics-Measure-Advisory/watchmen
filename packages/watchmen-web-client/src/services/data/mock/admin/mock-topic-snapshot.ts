@@ -1,8 +1,8 @@
-import {getCurrentTime} from '@/services/data/utils';
-import {TopicSnapshotFrequency, TopicSnapshotScheduler} from '../../admin/topic-snapshot-types';
+import {TopicSnapshotFrequency, TopicSnapshotScheduler} from '../../tuples/topic-snapshot-types';
 import {TopicId} from '../../tuples/topic-types';
-import {generateUuid} from '../../tuples/utils';
+import {generateUuid, isFakedUuid} from '../../tuples/utils';
 import {Page} from '../../types';
+import {getCurrentTime} from '../../utils';
 import {DemoTopics} from '../tuples/mock-data-topics';
 
 export const fetchMockTopicSnapshotSchedulers = async (
@@ -36,5 +36,15 @@ export const fetchMockTopicSnapshotSchedulers = async (
 				itemCount: (pageNumber ?? 1 - 1) * (pageSize ?? 10) + items.length
 			});
 		}, 500);
+	});
+};
+
+let newSchedulerId = 10000;
+export const saveMockTopicSnapshotScheduler = async (scheduler: TopicSnapshotScheduler): Promise<void> => {
+	return new Promise<void>((resolve) => {
+		if (isFakedUuid(scheduler)) {
+			scheduler.schedulerId = `${newSchedulerId++}`;
+		}
+		setTimeout(() => resolve(), 500);
 	});
 };

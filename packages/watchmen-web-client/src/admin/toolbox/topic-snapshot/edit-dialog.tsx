@@ -1,6 +1,8 @@
-import {TopicSnapshotFrequency, TopicSnapshotScheduler} from '@/services/data/admin/topic-snapshot-types';
+import {saveTopicSnapshotScheduler} from '@/services/data/admin/topic-snapshot';
+import {TopicSnapshotFrequency, TopicSnapshotScheduler} from '@/services/data/tuples/topic-snapshot-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {Button} from '@/widgets/basic/button';
+import {CheckBox} from '@/widgets/basic/checkbox';
 import {Dropdown} from '@/widgets/basic/dropdown';
 import {ButtonInk, DropdownOption} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
@@ -22,10 +24,14 @@ export const EditDialog = (props: {
 	const [data] = useState<TopicSnapshotScheduler>({...scheduler});
 	const forceUpdate = useForceUpdate();
 
-	const {frequency, weekday = 'mon', day = '1', hour = 0, minute = 0} = data;
+	const {frequency, weekday = 'mon', day = '1', hour = 0, minute = 0, enabled = true} = data;
 
 	const onFrequencyChange = (option: DropdownOption) => {
 		data.frequency = option.value as TopicSnapshotFrequency;
+		forceUpdate();
+	};
+	const onEnabledChange = (value: boolean) => {
+		data.enabled = value;
 		forceUpdate();
 	};
 	const onDayOfMonthChange = (option: DropdownOption) => {
@@ -44,10 +50,15 @@ export const EditDialog = (props: {
 		data.minute = option.value as number;
 		forceUpdate();
 	};
-	const onConfirmClicked = async () => {
-		// TODO save
-		await onConfirm(data);
-		fireGlobal(EventTypes.HIDE_DIALOG);
+	const onConfirmClicked = () => {
+		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
+			await saveTopicSnapshotScheduler(data);
+		}, () => {
+			(async () => {
+				await onConfirm(data);
+				fireGlobal(EventTypes.HIDE_DIALOG);
+			})();
+		});
 	};
 	const onCancelClicked = () => {
 		fireGlobal(EventTypes.HIDE_DIALOG);
@@ -86,6 +97,8 @@ export const EditDialog = (props: {
 			<ResultRowEditor>
 				<EditLabel>Frequency</EditLabel>
 				<Dropdown value={frequency} options={frequencyOptions} onChange={onFrequencyChange}/>
+				<EditLabel>Enabled</EditLabel>
+				<CheckBox value={enabled} onChange={onEnabledChange}/>
 				{frequency === TopicSnapshotFrequency.MONTHLY
 					? <>
 						<EditLabel>Day of Month</EditLabel>

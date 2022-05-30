@@ -78,7 +78,7 @@ export const ResultContainer = styled.div.attrs({'data-widget': 'topic-snapshot-
 export const ResultHeader = styled.div.attrs({'data-widget': 'topic-snapshot-result-header'})`
 	display               : grid;
 	position              : relative;
-	grid-template-columns : 40px 1fr 250px 80px;
+	grid-template-columns : 40px 1fr 250px 120px 80px;
 	&:before {
 		content                 : '';
 		display                 : block;
@@ -135,7 +135,7 @@ export const ResultNoData = styled.div.attrs({'data-widget': 'topic-snapshot-res
 export const ResultBodyRow = styled.div.attrs({'data-widget': 'topic-snapshot-result-body-row'})`
 	display               : grid;
 	position              : relative;
-	grid-template-columns : 40px 1fr 250px 80px;
+	grid-template-columns : 40px 1fr 250px 120px 80px;
 	&:nth-child(2n) {
 		background-color : var(--grid-rib-bg-color);
 	}
@@ -167,7 +167,7 @@ export const ResultBodyCell = styled.div.attrs({'data-widget': 'topic-snapshot-r
 	overflow      : hidden;
 	white-space   : nowrap;
 	text-overflow : ellipsis;
-	&:last-child, &:nth-child(4) {
+	&:last-child, &:nth-child(5) {
 		border-right : var(--border);
 	}
 	&:first-child {
@@ -182,7 +182,6 @@ export const ResultBodyCell = styled.div.attrs({'data-widget': 'topic-snapshot-r
 export const ResultRowEditor = styled.div.attrs({'data-widget': 'topic-snapshot-result-row-editor'})`
 	display               : grid;
 	position              : relative;
-	grid-column           : 1 / span 4;
 	grid-template-columns : 100px 1fr 100px 1fr 100px 1fr;
 	grid-column-gap       : calc(var(--margin) / 2);
 	grid-row-gap          : calc(var(--margin) / 2);
@@ -198,7 +197,7 @@ export const EditLabel = styled.div.attrs({'data-widget': 'topic-snapshot-edit-l
 	line-height  : var(--height);
 	white-space  : nowrap;
 	font-variant : petite-caps;
-	&:nth-child(3),
+	&:nth-child(5),
 	&:nth-last-child(2) {
 		grid-column : 1
 	}

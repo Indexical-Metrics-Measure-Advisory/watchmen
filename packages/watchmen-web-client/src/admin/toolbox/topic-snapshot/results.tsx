@@ -1,5 +1,5 @@
 import {fetchTopicSnapshotSchedulers} from '@/services/data/admin/topic-snapshot';
-import {TopicSnapshotScheduler} from '@/services/data/admin/topic-snapshot-types';
+import {TopicSnapshotScheduler} from '@/services/data/tuples/topic-snapshot-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {Page} from '@/services/data/types';
 import {useEventBus} from '@/widgets/events/event-bus';
@@ -71,6 +71,7 @@ export const Results = (props: { topics: Array<Topic> }) => {
 			<ResultHeaderCell/>
 			<ResultHeaderCell>Topic</ResultHeaderCell>
 			<ResultHeaderCell>Frequency</ResultHeaderCell>
+			<ResultHeaderCell>Enabled?</ResultHeaderCell>
 			<ResultHeaderCell/>
 		</ResultHeader>
 		{page.data.length === 0

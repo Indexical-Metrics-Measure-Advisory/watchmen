@@ -1,6 +1,7 @@
-import {OptimisticLock, Tuple} from '@/services/data/tuples/tuple-types';
-import {ParameterJoint} from '../tuples/factor-calculator-types';
-import {TopicId} from '../tuples/topic-types';
+import {ParameterJoint} from './factor-calculator-types';
+import {TenantId} from './tenant-types';
+import {TopicId} from './topic-types';
+import {OptimisticLock, Tuple} from './tuple-types';
 
 export enum TopicSnapshotFrequency {
 	MONTHLY = 'monthly',
@@ -22,4 +23,5 @@ export interface TopicSnapshotScheduler extends Tuple, OptimisticLock {
 	hour: number;
 	minute: number;
 	enabled: boolean;
+	tenantId?: TenantId;
 }
