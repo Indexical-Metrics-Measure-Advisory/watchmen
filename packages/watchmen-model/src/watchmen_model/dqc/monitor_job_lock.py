@@ -8,6 +8,7 @@ from .monitor_rule import MonitorRuleStatisticalInterval
 MonitorJobLockId = TypeVar('MonitorJobLockId', bound=str)
 
 
+# noinspection DuplicatedCode
 class MonitorJobLockStatus(str, Enum):
 	READY = 'ready'
 	FAILED = 'fail',

@@ -1,0 +1,121 @@
+from datetime import date, timedelta
+from logging import getLogger
+from typing import List, Optional, Tuple
+
+from apscheduler.job import Job
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
+from watchmen_auth import PrincipalService
+from watchmen_meta.admin import TopicSnapshotSchedulerService
+from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
+from watchmen_model.admin import TopicSnapshotFrequency, TopicSnapshotScheduler, User, UserRole
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
+from .scheduler import topic_snapshot_jobs
+
+logger = getLogger(__name__)
+
+
+def fake_super_admin() -> PrincipalService:
+	return PrincipalService(User(
+		userId='1',
+		userName='imma-super',
+		tenantId='-1',
+		role=UserRole.SUPER_ADMIN
+	))
+
+
+def get_topic_snapshot_scheduler_service(principal_service: PrincipalService) -> TopicSnapshotSchedulerService:
+	return TopicSnapshotSchedulerService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
+def find_enabled_jobs() -> List[TopicSnapshotScheduler]:
+	scheduler_service = get_topic_snapshot_scheduler_service(fake_super_admin())
+	scheduler_service.begin_transaction()
+	try:
+		return scheduler_service.find_all_enabled()
+	except Exception as e:
+		logger.error(e, exc_info=True, stack_info=True)
+		return []
+	finally:
+		scheduler_service.close_transaction()
+
+
+def to_yesterday(process_date: date) -> date:
+	# get yesterday
+	return process_date - timedelta(days=1)
+
+
+def to_previous_week(process_date: date) -> date:
+	# iso weekday: Monday is 1 and Sunday is 7
+	weekday = process_date.isoweekday()
+	# get last sunday
+	return process_date - timedelta(days=weekday % 7 + 7)
+
+
+def to_previous_month(process_date: date) -> date:
+	# get last day of previous month
+	process_date = process_date.replace(day=1) - timedelta(days=1)
+	# set to first day of previous month
+	return process_date.replace(day=1)
+
+
+def run_job(scheduler: TopicSnapshotScheduler, process_date: date) -> None:
+	# tenants = find_all_tenants()
+	# for tenant in tenants:
+	# 	topics = find_all_topics(tenant.tenantId)
+	# 	for topic in topics:
+	# 		principal_service = fake_tenant_admin(tenant.tenantId)
+	# 		if try_to_lock_topic_for_monitor(topic, frequency, process_date, principal_service):
+	# 			MonitorRulesRunner(principal_service).run(process_date, frequency, topic.topicId)
+	# TODO run topic snapshot job
+	pass
+
+
+def create_job(
+		ioScheduler: AsyncIOScheduler, scheduler: TopicSnapshotScheduler
+) -> Optional[Tuple[TopicSnapshotScheduler, Job]]:
+	trigger = 'cron'
+	hour = scheduler.hour
+	minute = scheduler.minute
+
+	if scheduler.frequency == TopicSnapshotFrequency.DAILY:
+		def run() -> None:
+			process_date = to_yesterday(get_current_time_in_seconds())
+			run_job(scheduler, process_date)
+
+		day_of_week = 'mon-sun'
+		return scheduler, ioScheduler.add_job(run, trigger, day_of_week=day_of_week, hour=hour, minute=minute)
+	elif scheduler.frequency == TopicSnapshotFrequency.WEEKLY:
+		def run() -> None:
+			process_date = to_previous_week(get_current_time_in_seconds())
+			run_job(scheduler, process_date)
+
+		day_of_week = scheduler.weekday
+		return scheduler, scheduler.add_job(run, trigger, day_of_week=day_of_week, hour=hour, minute=minute)
+	elif scheduler.frequency == TopicSnapshotFrequency.MONTHLY:
+		def run() -> None:
+			process_date = to_previous_month(get_current_time_in_seconds())
+			run_job(scheduler, process_date)
+
+		day = scheduler.day
+		return scheduler, scheduler.add_job(run, trigger, day=day, hour=hour, minute=minute)
+	else:
+		logger.warning(
+			f'Cannot create job for scheduler[schedulerId={scheduler.schedulerId}, frequency={scheduler.frequency}].')
+		return None
+
+
+def create_jobs(ioScheduler: AsyncIOScheduler) -> None:
+	schedulers = find_enabled_jobs()
+	ArrayHelper(schedulers) \
+		.map(lambda x: create_job(ioScheduler, x)) \
+		.filter(lambda x: x is not None) \
+		.each(lambda x: topic_snapshot_jobs.put_job(x[0].schedulerId, x[1]))
+
+
+def create_periodic_topic_snapshot_jobs() -> None:
+	scheduler = AsyncIOScheduler()
+	create_jobs(scheduler)
+	scheduler.start()
+	topic_snapshot_jobs.put_scheduler(scheduler)
+	logger.info("Periodic topic snapshot jobs started.")

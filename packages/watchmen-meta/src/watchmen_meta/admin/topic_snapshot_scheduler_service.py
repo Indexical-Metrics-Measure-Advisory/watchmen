@@ -22,6 +22,9 @@ class TopicSnapshotSchedulerShaper(EntityShaper):
 		return TupleShaper.serialize_tenant_based(scheduler, {
 			'scheduler_id': scheduler.schedulerId,
 			'topic_id': scheduler.topicId,
+			'target_topic_name': scheduler.targetTopicName,
+			'target_topic_id': scheduler.targetTopicId,
+			'pipeline_id': scheduler.pipelineId,
 			'filter': TopicSnapshotSchedulerShaper.serialize_filter(scheduler.filter),
 			'weekday': scheduler.weekday,
 			'day': scheduler.day,
@@ -35,6 +38,9 @@ class TopicSnapshotSchedulerShaper(EntityShaper):
 		return TupleShaper.deserialize_tenant_based(row, TopicSnapshotScheduler(
 			schedulerId=row.get('scheduler_id'),
 			topicId=row.get('topic_id'),
+			targetTopicName=row.get('target_topic_name'),
+			targetTopicId=row.get('target_topic_id'),
+			pipelineId=row.get('pipeline_id'),
 			filter=row.get('filter'),
 			weekday=row.get('weekday'),
 			day=row.get('day'),
@@ -94,3 +100,9 @@ class TopicSnapshotSchedulerService(TupleService):
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(criteria=criteria))
+
+	def find_all_enabled(self) -> List[TopicSnapshotScheduler]:
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria=[
+			EntityCriteriaExpression(left=ColumnNameLiteral(columnName='enabled'), right=True)
+		]))
