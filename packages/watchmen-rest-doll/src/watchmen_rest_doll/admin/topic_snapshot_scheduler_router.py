@@ -86,8 +86,6 @@ def ask_save_scheduler_action(
 			target_topic, target_topic_tail = ask_save_topic_action(topic_service, principal_service)(target_topic)
 			scheduler.targetTopicId = target_topic.topicId
 
-			# TODO create pipeline from job task topic to target topic
-
 			# noinspection PyTypeChecker
 			scheduler: TopicSnapshotScheduler = scheduler_service.create(scheduler)
 
@@ -119,8 +117,6 @@ def ask_save_scheduler_action(
 			target_topic = rebuild_target_topic(target_topic, source_topic)
 			target_topic, target_topic_tail = ask_save_topic_action(topic_service, principal_service)(target_topic)
 			scheduler.targetTopicName = target_topic.name
-
-			# TODO create pipeline from job task topic to target topic
 
 			# noinspection PyTypeChecker
 			scheduler: TopicSnapshotScheduler = scheduler_service.update(scheduler)
