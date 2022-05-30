@@ -3,21 +3,33 @@ from typing import Callable, List, Optional, Tuple
 from fastapi import APIRouter, Body, Depends
 
 from watchmen_auth import PrincipalService
-from watchmen_meta.admin import TopicSnapshotSchedulerService
+from watchmen_meta.admin import PipelineService, TopicService, TopicSnapshotSchedulerService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
-from watchmen_model.admin import TopicSnapshotFrequency, TopicSnapshotScheduler, TopicSnapshotSchedulerId, UserRole
+from watchmen_model.admin import Factor, FactorIndexGroup, FactorType, Topic, TopicKind, TopicSnapshotFrequency, \
+	TopicSnapshotScheduler, TopicSnapshotSchedulerId, TopicType, UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId, TopicId
 from watchmen_rest import get_admin_principal
-from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
+from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly, trans_with_tail
-from watchmen_utilities import is_blank
+from watchmen_utilities import ArrayHelper, is_blank
+from .topic_router import ask_save_topic_action
 
 router = APIRouter()
 
 
 def get_topic_snapshot_scheduler_service(principal_service: PrincipalService) -> TopicSnapshotSchedulerService:
 	return TopicSnapshotSchedulerService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
+def get_topic_service(scheduler_service: TopicSnapshotSchedulerService) -> TopicService:
+	return TopicService(
+		scheduler_service.storage, scheduler_service.snowflakeGenerator, scheduler_service.principalService)
+
+
+def get_pipeline_service(scheduler_service: TopicSnapshotSchedulerService) -> PipelineService:
+	return PipelineService(
+		scheduler_service.storage, scheduler_service.snowflakeGenerator, scheduler_service.principalService)
 
 
 class TopicSnapshotSchedulerCriteria(Pageable):
@@ -56,20 +68,71 @@ def sync_topic_snapshot_structure(
 	return tail
 
 
-def ask_save_topic_snapshot_scheduler_action(
+def redress_factor_id(factor: Factor, index: int) -> Factor:
+	factor.factorId = f'ss-{index + 1}'
+	return factor
+
+
+def create_target_topic(scheduler: TopicSnapshotScheduler, source_topic: Topic) -> Topic:
+	return Topic(
+		topicId='f-1',
+		name=scheduler.targetTopicName,
+		type=source_topic.type,
+		kind=source_topic.kind,
+		dataSourceId=source_topic.dataSourceId,
+		factors=[
+			*ArrayHelper(source_topic.factors).map_with_index(lambda f, index: redress_factor_id).to_list(),
+			Factor(
+				factorId=f'ss-{len(source_topic.factors) + 1}',
+				type=FactorType.TEXT,
+				name='snapshotTag',
+				label='Snapshot Tag',
+				description='Snapshot Tag',
+				indexGroup=FactorIndexGroup.INDEX_10,
+				precision="10"
+			)
+		],
+		description=f'Snapshot of [${source_topic.name}]',
+		tenanId=source_topic.tenantId,
+		version=1
+	)
+
+
+def ask_save_scheduler_action(
 		scheduler_service: TopicSnapshotSchedulerService, principal_service: PrincipalService
 ) -> Callable[[TopicSnapshotScheduler], Tuple[TopicSnapshotScheduler, Callable[[], None]]]:
 	def action(scheduler: TopicSnapshotScheduler) -> Tuple[TopicSnapshotScheduler, Callable[[], None]]:
-		if scheduler_service.is_storable_id_faked(scheduler.topicId):
+		topic_service = get_topic_service(scheduler_service)
+		source_topic: Optional[Topic] = topic_service.find_by_id(scheduler.topicId)
+		if source_topic is None:
+			raise_500(None, f'Topic[id={scheduler.topicId}] not found.')
+		if source_topic.type == TopicType.RAW:
+			raise_500(None, f'Topic[id={scheduler.topicId}] is raw topic.')
+		if source_topic.kind == TopicKind.SYSTEM:
+			raise_500(None, f'Topic[id={scheduler.topicId}] is system topic.')
+
+		if scheduler_service.is_storable_id_faked(scheduler.schedulerId):
 			scheduler_service.redress_storable_id(scheduler)
+			topics = topic_service.find_by_name(scheduler.targetTopicName, None, scheduler.tenantId)
+			if len(topics) != 0:
+				raise_500(None, f'Topic[name={scheduler.targetTopicName}] already exists.')
+
+			# create target topic
+			target_topic = create_target_topic(scheduler, source_topic)
+			target_topic, target_topic_tail = ask_save_topic_action(topic_service, principal_service)(target_topic)
+			scheduler.targetTopicId = target_topic.topicId
+
+			# TODO create pipeline from job task topic to target topic
+
 			# noinspection PyTypeChecker
 			scheduler: TopicSnapshotScheduler = scheduler_service.create(scheduler)
+
 			tail = sync_topic_snapshot_structure(scheduler, principal_service)
 		else:
 			# noinspection PyTypeChecker
-			existing_topic: Optional[TopicSnapshotScheduler] = scheduler_service.find_by_id(scheduler.schedulerId)
-			if existing_topic is not None:
-				if existing_topic.tenantId != scheduler.tenantId:
+			existing_scheduler: Optional[TopicSnapshotScheduler] = scheduler_service.find_by_id(scheduler.schedulerId)
+			if existing_scheduler is not None:
+				if existing_scheduler.tenantId != scheduler.tenantId:
 					raise_403()
 
 			# noinspection PyTypeChecker
@@ -82,17 +145,17 @@ def ask_save_topic_snapshot_scheduler_action(
 
 
 @router.post('/topic/snapshot/scheduler', tags=[UserRole.ADMIN], response_model=TopicSnapshotScheduler)
-async def save_topic(
+async def save_scheduler(
 		scheduler: TopicSnapshotScheduler, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> TopicSnapshotScheduler:
 	validate_tenant_id(scheduler, principal_service)
 	scheduler_service = get_topic_snapshot_scheduler_service(principal_service)
-	action = ask_save_topic_snapshot_scheduler_action(scheduler_service, principal_service)
+	action = ask_save_scheduler_action(scheduler_service, principal_service)
 	return trans_with_tail(scheduler_service, lambda: action(scheduler))
 
 
 @router.delete('/topic/snapshot/scheduler', tags=[UserRole.SUPER_ADMIN], response_model=TopicSnapshotScheduler)
-async def save_topic(
+async def delete_scheduler(
 		scheduler_id: Optional[TopicSnapshotSchedulerId],
 		principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> None:
