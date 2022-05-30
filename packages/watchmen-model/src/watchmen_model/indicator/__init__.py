@@ -2,7 +2,7 @@ from .bucket import Bucket, BucketSegment, BucketType, CategoryMeasureBucket, Ca
 	CategorySegmentValue, EnumMeasureBucket, MeasureBucket, NumericSegmentsHolder, NumericSegmentValue, \
 	NumericValueBucket, NumericValueMeasureBucket, NumericValueSegment, OtherCategorySegmentValue, \
 	RangeBucketValueIncluding
-from .indicator import Indicator, IndicatorAggregateArithmetic, IndicatorBaseOn, RelevantIndicator, \
+from .indicator import Indicator, IndicatorAggregateArithmetic, IndicatorBaseOn, IndicatorFilter, RelevantIndicator, \
 	RelevantIndicatorType
 from .inspection import Inspection, InspectionAmPmRange, InspectionDayKindRange, InspectionDayOfMonthRange, \
 	InspectionDayOfWeekRange, InspectionHalfMonthRange, InspectionHalfWeekRange, InspectionHalfYearRange, \
