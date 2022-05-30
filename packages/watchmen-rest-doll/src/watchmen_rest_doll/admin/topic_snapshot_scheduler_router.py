@@ -5,15 +5,16 @@ from fastapi import APIRouter, Body, Depends
 from watchmen_auth import PrincipalService
 from watchmen_meta.admin import PipelineService, TopicService, TopicSnapshotSchedulerService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
-from watchmen_model.admin import Factor, FactorIndexGroup, FactorType, Topic, TopicKind, TopicSnapshotFrequency, \
-	TopicSnapshotScheduler, TopicSnapshotSchedulerId, TopicType, UserRole
+from watchmen_model.admin import Topic, TopicKind, TopicSnapshotFrequency, TopicSnapshotScheduler, \
+	TopicSnapshotSchedulerId, TopicType, UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId, TopicId
 from watchmen_rest import get_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly, trans_with_tail
-from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
+from watchmen_utilities import is_blank, is_not_blank
 from .topic_router import ask_save_topic_action
+from .topic_snapshot_utils import create_target_topic, rebuild_target_topic
 
 router = APIRouter()
 
@@ -59,63 +60,6 @@ async def find_schedulers_page_by_topic_and_frequency(
 	return trans_readonly(scheduler_service, action)
 
 
-def sync_topic_snapshot_structure(
-		scheduler: TopicSnapshotScheduler, principal_service: PrincipalService) -> Callable[[], None]:
-	def tail() -> None:
-		# sync_topic_structure_storage(scheduler, principal_service)
-		pass
-
-	return tail
-
-
-def redress_factor_id(factor: Factor, index: int) -> Factor:
-	# remove index
-	factor.indexGroup = None
-	factor.factorId = f'ss-{index + 1}'
-	return factor
-
-
-def create_target_topic(scheduler: TopicSnapshotScheduler, source_topic: Topic) -> Topic:
-	return Topic(
-		topicId='f-1',
-		name=scheduler.targetTopicName,
-		type=source_topic.type,
-		kind=source_topic.kind,
-		dataSourceId=source_topic.dataSourceId,
-		factors=[
-			*ArrayHelper(source_topic.factors).map_with_index(lambda f, index: redress_factor_id).to_list(),
-			Factor(
-				factorId=f'ss-{len(source_topic.factors) + 1}',
-				type=FactorType.TEXT,
-				name='snapshotTag',
-				label='Snapshot Tag',
-				description='Snapshot Tag',
-				indexGroup=FactorIndexGroup.INDEX_1,
-				precision="10"
-			)
-		],
-		description=f'Snapshot of [${source_topic.name}]',
-		tenanId=source_topic.tenantId,
-		version=1
-	)
-
-
-def rebuild_target_topic(target_topic: Topic, source_topic: Topic) -> Topic:
-	target_topic.factors = [
-		*ArrayHelper(source_topic.factors).map_with_index(lambda f, index: redress_factor_id).to_list(),
-		Factor(
-			factorId=f'ss-{len(source_topic.factors) + 1}',
-			type=FactorType.TEXT,
-			name='snapshotTag',
-			label='Snapshot Tag',
-			description='Snapshot Tag',
-			indexGroup=FactorIndexGroup.INDEX_1,
-			precision="10"
-		)
-	]
-	return target_topic
-
-
 def ask_save_scheduler_action(
 		scheduler_service: TopicSnapshotSchedulerService, principal_service: PrincipalService
 ) -> Callable[[TopicSnapshotScheduler], Tuple[TopicSnapshotScheduler, Callable[[], None]]]:
@@ -147,7 +91,7 @@ def ask_save_scheduler_action(
 			# noinspection PyTypeChecker
 			scheduler: TopicSnapshotScheduler = scheduler_service.create(scheduler)
 
-			tail = sync_topic_snapshot_structure(scheduler, principal_service)
+			tail = target_topic_tail
 		else:
 			# noinspection PyTypeChecker
 			existing_scheduler: Optional[TopicSnapshotScheduler] = scheduler_service.find_by_id(scheduler.schedulerId)
@@ -180,7 +124,8 @@ def ask_save_scheduler_action(
 
 			# noinspection PyTypeChecker
 			scheduler: TopicSnapshotScheduler = scheduler_service.update(scheduler)
-			tail = sync_topic_snapshot_structure(scheduler, principal_service)
+
+			tail = target_topic_tail
 
 		return scheduler, tail
 
