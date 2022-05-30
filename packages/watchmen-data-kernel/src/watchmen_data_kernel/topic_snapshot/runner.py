@@ -115,8 +115,9 @@ def create_job(
 
 def create_jobs(ioScheduler: AsyncIOScheduler) -> None:
 	schedulers = find_enabled_jobs()
+	snowflake_generator = ask_snowflake_generator()
 	ArrayHelper(schedulers) \
-		.map(lambda x: create_job(ioScheduler, x)) \
+		.map(lambda x: create_job(ioScheduler, x, snowflake_generator)) \
 		.filter(lambda x: x is not None) \
 		.each(lambda x: topic_snapshot_jobs.put_job(x[0].schedulerId, x[1]))
 
