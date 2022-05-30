@@ -2,13 +2,22 @@ from typing import List, Optional
 
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_model.common import DataPage, IndicatorId, Pageable, TenantId
-from watchmen_model.indicator import Indicator
+from watchmen_model.indicator import Indicator, IndicatorFilter
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaJoint, \
 	EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityRow, EntityShaper
 from watchmen_utilities import ArrayHelper
 
 
 class IndicatorShaper(EntityShaper):
+	@staticmethod
+	def serialize_filter(a_filter: IndicatorFilter) -> Optional[dict]:
+		if a_filter is None:
+			return None
+		elif isinstance(a_filter, dict):
+			return a_filter
+		else:
+			return a_filter.dict()
+
 	def serialize(self, indicator: Indicator) -> EntityRow:
 		return TupleShaper.serialize_tenant_based(indicator, {
 			'indicator_id': indicator.indicatorId,
@@ -22,7 +31,7 @@ class IndicatorShaper(EntityShaper):
 			'value_buckets': indicator.valueBuckets,
 			'relevants': ArrayHelper(indicator.relevants).map(lambda x: x.to_dict()).to_list(),
 			'group_ids': indicator.groupIds,
-			'filter': indicator.filter,
+			'filter': IndicatorShaper.serialize_filter(indicator.filter),
 			'description': indicator.description,
 		})
 

@@ -5,3 +5,4 @@ from .space_service import SpaceService
 from .topic_service import FactorService, TopicService
 from .user_group_service import UserGroupService
 from .user_service import UserService
+from .topic_snapshot_scheduler_service import TopicSnapshotSchedulerService

@@ -16,3 +16,5 @@ from .space import Space
 from .topic import is_aggregation_topic, is_raw_topic, Topic, TopicKind, TopicType
 from .user import User, UserRole
 from .user_group import UserGroup
+from .topic_snapshot import TopicSnapshotScheduler, TopicSnapshotJobLock, TopicSnapshotJobLockStatus, \
+	TopicSnapshotFrequency, TopicSnapshotSchedulerId, TopicSnapshotJobLockId
