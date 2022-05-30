@@ -10,6 +10,7 @@ from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.system import TenantService as MetaTenantService
 from watchmen_model.admin import Pipeline, Topic, UserRole
 from watchmen_model.common import TenantId
+from watchmen_model.data_kernel import ask_topic_snapshot_topics
 from watchmen_model.dqc import ask_dqc_pipelines, ask_dqc_topics
 from watchmen_model.pipeline_kernel import ask_pipeline_monitor_pipelines, ask_pipeline_monitor_topics
 from watchmen_model.system import Tenant
@@ -94,5 +95,8 @@ async def init_tenant(
 		create_topics_and_pipelines(
 			topics, lambda source_topics: ask_dqc_pipelines(source_topics),
 			tenant_id, meta_tenant_service, principal_service)
+		topics = ask_topic_snapshot_topics()
+		create_topics_and_pipelines(
+			topics, lambda source_topics: [], tenant_id, meta_tenant_service, principal_service)
 
 	trans(meta_tenant_service, action)
