@@ -6,3 +6,4 @@ from .topic_service import FactorService, TopicService
 from .user_group_service import UserGroupService
 from .user_service import UserService
 from .topic_snapshot_scheduler_service import TopicSnapshotSchedulerService
+from .topic_snapshot_lock_service import TopicSnapshotJobLockService
