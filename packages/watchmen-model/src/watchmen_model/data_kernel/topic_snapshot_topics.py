@@ -30,6 +30,9 @@ def ask_topic_snapshot_topics() -> List[Topic]:
 				Factor(
 					factorId='rtst-f-7', name='scheduleDay', type=FactorType.UNSIGNED,
 					indexGroup=FactorIndexGroup.INDEX_6, precision='2'),
+				Factor(
+					factorId='rtst-f-8', name='status', type=FactorType.TEXT,
+					indexGroup=FactorIndexGroup.INDEX_7, precision='10')
 			],
 			description='Topic snapshot tasks raw topic.'
 		)
