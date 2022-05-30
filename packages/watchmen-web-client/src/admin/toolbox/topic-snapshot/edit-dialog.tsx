@@ -1,15 +1,19 @@
 import {saveTopicSnapshotScheduler} from '@/services/data/admin/topic-snapshot';
 import {TopicSnapshotFrequency, TopicSnapshotScheduler} from '@/services/data/tuples/topic-snapshot-types';
 import {Topic} from '@/services/data/tuples/topic-types';
+import {isFakedUuid} from '@/services/data/tuples/utils';
+import {againstSnakeCaseName} from '@/services/utils';
+import {AlertLabel} from '@/widgets/alert/widgets';
 import {Button} from '@/widgets/basic/button';
 import {CheckBox} from '@/widgets/basic/checkbox';
 import {Dropdown} from '@/widgets/basic/dropdown';
+import {Input} from '@/widgets/basic/input';
 import {ButtonInk, DropdownOption} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {DialogBody, DialogFooter, DialogTitle} from '@/widgets/dialog/widgets';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
-import React, {useState} from 'react';
+import React, {ChangeEvent, useState} from 'react';
 import {TopFilterEdit} from './top-filter-edit';
 import {EditLabel, ResultRowEditor, TriggerFilterContainer} from './widgets';
 
@@ -24,7 +28,7 @@ export const EditDialog = (props: {
 	const [data] = useState<TopicSnapshotScheduler>({...scheduler});
 	const forceUpdate = useForceUpdate();
 
-	const {frequency, weekday = 'mon', day = '1', hour = 0, minute = 0, enabled = true} = data;
+	const {targetTopicName = '', frequency, weekday = 'mon', day = '1', hour = 0, minute = 0, enabled = true} = data;
 
 	const onFrequencyChange = (option: DropdownOption) => {
 		data.frequency = option.value as TopicSnapshotFrequency;
@@ -50,7 +54,27 @@ export const EditDialog = (props: {
 		data.minute = option.value as number;
 		forceUpdate();
 	};
+	const onTargetTopicNameChange = (event: ChangeEvent<HTMLInputElement>) => {
+		// target topic name cannot be changed when update scheduler
+		if (!isFakedUuid(data)) {
+			return;
+		}
+
+		data.targetTopicName = event.target.value;
+		forceUpdate();
+	};
+
 	const onConfirmClicked = () => {
+		if (data.targetTopicName == null || data.targetTopicName.trim().length == 0) {
+			fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Target topic name is required.</AlertLabel>);
+			return;
+		}
+		if (againstSnakeCaseName(data.targetTopicName, true)) {
+			fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
+				Please use camel case or snake case for topic name.
+			</AlertLabel>);
+			return;
+		}
 		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
 			await saveTopicSnapshotScheduler(data);
 		}, () => {
@@ -115,6 +139,8 @@ export const EditDialog = (props: {
 				<Dropdown value={hour} options={hourOptions} onChange={onHourChange}/>
 				<EditLabel>Minute</EditLabel>
 				<Dropdown value={minute} options={minuteOptions} onChange={onMinuteChange}/>
+				<EditLabel>Target Topic Name</EditLabel>
+				<Input value={targetTopicName} onChange={onTargetTopicNameChange}/>
 				<EditLabel>Filter by</EditLabel>
 				<TriggerFilterContainer>
 					<TopFilterEdit topic={topic!} scheduler={data}/>

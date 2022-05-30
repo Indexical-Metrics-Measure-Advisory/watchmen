@@ -1,4 +1,5 @@
 import {ParameterJoint} from './factor-calculator-types';
+import {PipelineId} from './pipeline-types';
 import {TenantId} from './tenant-types';
 import {TopicId} from './topic-types';
 import {OptimisticLock, Tuple} from './tuple-types';
@@ -14,6 +15,9 @@ export type TopicSnapshotSchedulerId = string;
 export interface TopicSnapshotScheduler extends Tuple, OptimisticLock {
 	schedulerId: TopicSnapshotSchedulerId;
 	topicId: TopicId;
+	targetTopicName?: string;
+	targetTopicId?: TopicId;
+	pipelineId?: PipelineId;
 	frequency: TopicSnapshotFrequency;
 	filter?: ParameterJoint;
 	// only for weekly
