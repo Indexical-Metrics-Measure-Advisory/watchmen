@@ -36,6 +36,8 @@ class KernelSettings(BaseSettings):
 	KERNEL_CACHE_HEART_BEAT: bool = True  # enable kernel cache heart beat
 	KERNEL_CACHE_HEART_BEAT_INTERVAL: int = 60  # kernel cache heart beat interval, in seconds
 
+	TOPIC_SNAPSHOT_SCHEDULER_HEART_BEAT_INTERVAL: int = 30  # topic snapshot scheduler heart beat interval, in seconds
+
 	SYNC_TOPIC_TO_STORAGE: bool = False  # sync topic change to storage entity
 	REPLACE_TOPIC_TO_STORAGE: bool = False  # force replace existing topic entity (drop and recreate)
 	TRINO: bool = True  # trino
@@ -110,6 +112,10 @@ def ask_cache_heart_beat_enabled() -> bool:
 
 def ask_cache_heart_beat_interval() -> int:
 	return settings.KERNEL_CACHE_HEART_BEAT_INTERVAL
+
+
+def ask_topic_snapshot_scheduler_heart_beat_interval() -> int:
+	return settings.TOPIC_SNAPSHOT_SCHEDULER_HEART_BEAT_INTERVAL
 
 
 def ask_sync_topic_to_storage() -> bool:
