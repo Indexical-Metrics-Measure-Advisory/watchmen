@@ -9,6 +9,7 @@ from watchmen_model.admin import TopicSnapshotFrequency, TopicSnapshotScheduler,
 from watchmen_model.common import DataPage, Pageable, TenantId, TopicId
 from watchmen_rest import get_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
+from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly, trans_with_tail
 from watchmen_utilities import is_blank
 
@@ -90,11 +91,14 @@ async def save_topic(
 	return trans_with_tail(scheduler_service, lambda: action(scheduler))
 
 
-@router.get('/topic/snapshot/scheduler/delete', tags=[UserRole.ADMIN], response_model=TopicSnapshotScheduler)
+@router.delete('/topic/snapshot/scheduler', tags=[UserRole.SUPER_ADMIN], response_model=TopicSnapshotScheduler)
 async def save_topic(
 		scheduler_id: Optional[TopicSnapshotSchedulerId],
 		principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> None:
+	if not ask_tuple_delete_enabled():
+		raise_404('Not Found')
+
 	if is_blank(scheduler_id):
 		raise_400('Scheduler id is required.')
 
@@ -106,10 +110,6 @@ async def save_topic(
 		existing_scheduler: Optional[TopicSnapshotScheduler] = scheduler_service.find_by_id(scheduler_id)
 		if existing_scheduler is None:
 			raise_404()
-		if existing_scheduler.tenantId != principal_service.get_tenant_id():
-			raise_403()
-		if not principal_service.is_tenant_admin() and existing_scheduler.userId != principal_service.get_user_id():
-			raise_403()
 		scheduler_service.delete(scheduler_id)
 
 	trans(scheduler_service, action)
