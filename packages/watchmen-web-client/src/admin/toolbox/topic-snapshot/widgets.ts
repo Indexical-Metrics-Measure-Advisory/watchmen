@@ -182,12 +182,15 @@ export const ResultBodyCell = styled.div.attrs({'data-widget': 'topic-snapshot-r
 export const ResultRowEditor = styled.div.attrs({'data-widget': 'topic-snapshot-result-row-editor'})`
 	display               : grid;
 	position              : relative;
-	grid-template-columns : 100px 1fr 100px 1fr 100px 1fr;
+	grid-template-columns : 120px 1fr 120px 1fr 120px 1fr;
 	grid-column-gap       : calc(var(--margin) / 2);
 	grid-row-gap          : calc(var(--margin) / 2);
 	margin-top            : var(--margin);
 	margin-bottom         : var(--margin);
 	transition            : height 300ms ease-in-out;
+	> input {
+		grid-column : 2 / span 5;
+	}
 `;
 export const EditLabel = styled.div.attrs({'data-widget': 'topic-snapshot-edit-label'})`
 	display      : flex;
@@ -198,6 +201,7 @@ export const EditLabel = styled.div.attrs({'data-widget': 'topic-snapshot-edit-l
 	white-space  : nowrap;
 	font-variant : petite-caps;
 	&:nth-child(5),
+	&:nth-last-child(4),
 	&:nth-last-child(2) {
 		grid-column : 1
 	}
