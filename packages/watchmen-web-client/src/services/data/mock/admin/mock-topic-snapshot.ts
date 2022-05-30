@@ -1,3 +1,4 @@
+import {getCurrentTime} from '@/services/data/utils';
 import {TopicSnapshotFrequency, TopicSnapshotScheduler} from '../../admin/topic-snapshot-types';
 import {TopicId} from '../../tuples/topic-types';
 import {generateUuid} from '../../tuples/utils';
@@ -17,7 +18,11 @@ export const fetchMockTopicSnapshotSchedulers = async (
 			topicId: topicIds[Math.floor(Math.random() * topicIds.length)],
 			frequency: frequencies[Math.floor(Math.random() * frequencies.length)],
 			hour: 0,
-			minute: 0
+			minute: 0,
+			enabled: true,
+			version: 1,
+			createdAt: getCurrentTime(),
+			lastModifiedAt: getCurrentTime()
 		};
 	});
 
