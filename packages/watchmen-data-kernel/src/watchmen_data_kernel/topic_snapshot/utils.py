@@ -9,4 +9,4 @@ def register_topic_snapshot_job(scheduler: TopicSnapshotScheduler) -> None:
 	topic_snapshot_jobs.remove_job(scheduler_id)
 	job = create_job(topic_snapshot_jobs.get_scheduler(), scheduler, ask_snowflake_generator())
 	if job is not None:
-		topic_snapshot_jobs.put_job(scheduler_id, job)
+		topic_snapshot_jobs.put_job(scheduler_id, scheduler.version, job)

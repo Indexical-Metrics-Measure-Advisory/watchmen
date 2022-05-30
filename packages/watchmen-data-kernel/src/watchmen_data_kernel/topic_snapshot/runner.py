@@ -6,6 +6,7 @@ from apscheduler.job import Job
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from watchmen_auth import PrincipalService
+from watchmen_data_kernel.common import ask_topic_snapshot_scheduler_heart_beat_interval
 from watchmen_meta.admin import TopicSnapshotSchedulerService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import TopicSnapshotFrequency, TopicSnapshotScheduler, User, UserRole
@@ -119,12 +120,30 @@ def create_jobs(ioScheduler: AsyncIOScheduler) -> None:
 	ArrayHelper(schedulers) \
 		.map(lambda x: create_job(ioScheduler, x, snowflake_generator)) \
 		.filter(lambda x: x is not None) \
-		.each(lambda x: topic_snapshot_jobs.put_job(x[0].schedulerId, x[1]))
+		.each(lambda x: topic_snapshot_jobs.put_job(x[0].schedulerId, x[0].version, x[1]))
+
+
+def create_scan_job(ioScheduler: AsyncIOScheduler) -> None:
+	def run() -> None:
+		snowflake_generator = ask_snowflake_generator()
+		schedulers = find_enabled_jobs()
+		# remove jobs which not exists in enabled schedulers
+		scheduler_ids = ArrayHelper(schedulers).map(lambda x: x.schedulerId).to_list()
+		topic_snapshot_jobs.remove_jobs_but(scheduler_ids)
+		# replace jobs
+		ArrayHelper(schedulers) \
+			.filter(lambda x: topic_snapshot_jobs.should_put_job(x.schedulerId, x.version)) \
+			.map(lambda x: create_job(ioScheduler, x, snowflake_generator)) \
+			.filter(lambda x: x is not None) \
+			.each(lambda x: topic_snapshot_jobs.put_job(x[0].schedulerId, x[0].version, x[1]))
+
+	ioScheduler.add_job(run, 'interval', seconds=ask_topic_snapshot_scheduler_heart_beat_interval())
 
 
 def create_periodic_topic_snapshot_jobs() -> None:
 	scheduler = AsyncIOScheduler()
 	create_jobs(scheduler)
+	create_scan_job(scheduler)
 	scheduler.start()
 	topic_snapshot_jobs.put_scheduler(scheduler)
 	logger.info("Periodic topic snapshot jobs started.")
