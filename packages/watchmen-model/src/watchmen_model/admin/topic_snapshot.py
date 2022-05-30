@@ -4,7 +4,7 @@ from typing import Optional, TypeVar
 
 from pydantic import BaseModel
 
-from watchmen_model.common import construct_parameter_joint, OptimisticLock, ParameterJoint, Storable, \
+from watchmen_model.common import construct_parameter_joint, OptimisticLock, ParameterJoint, PipelineId, Storable, \
 	TenantBasedTuple, TenantId, TopicId, UserId
 
 TopicSnapshotSchedulerId = TypeVar('TopicSnapshotSchedulerId', bound=str)
@@ -20,6 +20,9 @@ class TopicSnapshotFrequency(str, Enum):
 class TopicSnapshotScheduler(TenantBasedTuple, OptimisticLock, BaseModel):
 	schedulerId: TopicSnapshotSchedulerId = None
 	topicId: TopicId = None
+	targetTopicName: str = None
+	targetTopicId: TopicId = None
+	pipelineId: PipelineId = None
 	frequency: TopicSnapshotFrequency = TopicSnapshotFrequency.DAILY
 	filter: Optional[ParameterJoint] = None
 	# only for weekly

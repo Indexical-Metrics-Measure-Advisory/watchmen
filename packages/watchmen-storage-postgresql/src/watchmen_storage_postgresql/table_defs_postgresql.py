@@ -160,7 +160,27 @@ table_dashboards = Table(
 	create_int('auto_refresh_interval'),
 	create_tenant_id(), create_user_id(), create_last_visit_time(), *create_tuple_audit_columns()
 )
+table_topic_snapshot_schedulers = Table(
+	'topic_snapshot_schedulers', meta_data,
+	create_pk('scheduler_id'),
+	create_tuple_id_column('topic_id', False),
+	create_str('target_topic_name', 25, False), create_tuple_id_column('target_topic_id', False),
+	create_tuple_id_column('pipeline_id', False),
+	create_json('filter'),
+	create_str('weekday', 10), create_str('day', 10),
+	create_int('hour'), create_int('minute'),
+	create_bool('enabled', False),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+table_topic_snapshot_job_locks = Table(
+	'topic_snapshot_job_locks', meta_data,
+	create_pk('lock_id'), create_tuple_id_column('tenant_id', False), create_tuple_id_column('scheduler_id', False),
+	create_str('frequency', 10, False), create_datetime('process_date', False),
+	create_str('status', 10, False),
+	create_tuple_id_column('user_id', False), create_datetime('created_at', False)
+)
 # gui
+# noinspection DuplicatedCode
 table_favorites = Table(
 	'favorites', meta_data,
 	create_json('connected_space_ids'), create_json('dashboard_ids'),
@@ -214,16 +234,14 @@ table_monitor_rules = Table(
 	create_json('params'), create_bool('enabled'),
 	create_tenant_id(), *create_tuple_audit_columns()
 )
-# indicator
-table_buckets = Table(
-	'buckets', meta_data,
-	create_pk('bucket_id'), create_str('name', 50),
-	create_str('type', 20, False), create_str('include', 20),
-	create_str('measure', 20), create_tuple_id_column('enum_id'),
-	create_json('segments'), create_description(),
-	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+table_monitor_job_locks = Table(
+	'monitor_job_locks', meta_data,
+	create_pk('lock_id'), create_tuple_id_column('tenant_id', False), create_tuple_id_column('topic_id', False),
+	create_str('frequency', 10, False), create_datetime('process_date', False),
+	create_str('status', 10, False),
+	create_tuple_id_column('user_id', False), create_datetime('created_at', False)
 )
-
+# indicator
 # noinspection DuplicatedCode
 table_indicators = Table(
 	'indicators', meta_data,
@@ -234,6 +252,14 @@ table_indicators = Table(
 	create_json('value_buckets'), create_json('relevants'),
 	create_json('group_ids'), create_json('filter'),
 	create_description(),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+table_buckets = Table(
+	'buckets', meta_data,
+	create_pk('bucket_id'), create_str('name', 50),
+	create_str('type', 20, False), create_str('include', 20),
+	create_str('measure', 20), create_tuple_id_column('enum_id'),
+	create_json('segments'), create_description(),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 
@@ -280,6 +306,8 @@ tables: Dict[str, Table] = {
 	'topics': table_topics,
 	'pipelines': table_pipelines,
 	'pipeline_graphics': table_pipeline_graphics,
+	'topic_snapshot_schedulers': table_topic_snapshot_schedulers,
+	'topic_snapshot_job_locks': table_topic_snapshot_job_locks,
 	# console
 	'connected_spaces': table_connected_spaces,
 	'connected_space_graphics': table_connected_space_graphics,
@@ -295,6 +323,7 @@ tables: Dict[str, Table] = {
 	# dqc
 	'catalogs': table_catalogs,
 	'monitor_rules': table_monitor_rules,
+	'monitor_job_locks': table_monitor_job_locks,
 	# indicator
 	'buckets': table_buckets,
 	'indicators': table_indicators,
@@ -303,6 +332,7 @@ tables: Dict[str, Table] = {
 }
 
 
+# noinspection DuplicatedCode
 def register_meta_table(table_name: str, table_def: Table) -> None:
 	tables[table_name] = table_def
 

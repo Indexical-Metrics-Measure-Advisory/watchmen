@@ -12,6 +12,7 @@ packages = [
 python = "^3.9"
 cacheout = "^0.13.1"
 pycryptodome = "^3.14.1"
+APScheduler = "^3.9.1"
 watchmen-meta = { path = "../watchmen-meta", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
 watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
