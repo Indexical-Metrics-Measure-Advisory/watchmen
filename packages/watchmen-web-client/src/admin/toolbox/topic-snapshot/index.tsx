@@ -1,5 +1,6 @@
 import {Router} from '@/routes/types';
 import {Topic} from '@/services/data/tuples/topic-types';
+import {isRawTopic} from '@/services/data/tuples/topic-utils';
 import {AdminCacheData} from '@/services/local-persist/types';
 import {VerticalMarginOneUnit} from '@/widgets/basic/margin';
 import {FixWidthPage} from '@/widgets/basic/page';
@@ -22,7 +23,7 @@ export const TopicSnapshot = () => {
 				if (loaded) {
 					fireCache(AdminCacheEventTypes.ASK_DATA, (data?: AdminCacheData) => {
 						setData({
-							topics: data?.topics || []
+							topics: (data?.topics || []).filter(topic => !isRawTopic(topic))
 						});
 					});
 				} else {
