@@ -1,3 +1,4 @@
+import {OptimisticLock, Tuple} from '@/services/data/tuples/tuple-types';
 import {ParameterJoint} from '../tuples/factor-calculator-types';
 import {TopicId} from '../tuples/topic-types';
 
@@ -9,7 +10,7 @@ export enum TopicSnapshotFrequency {
 
 export type TopicSnapshotSchedulerId = string;
 
-export interface TopicSnapshotScheduler {
+export interface TopicSnapshotScheduler extends Tuple, OptimisticLock {
 	schedulerId: TopicSnapshotSchedulerId;
 	topicId: TopicId;
 	frequency: TopicSnapshotFrequency;
@@ -20,4 +21,5 @@ export interface TopicSnapshotScheduler {
 	day?: string;
 	hour: number;
 	minute: number;
+	enabled: boolean;
 }

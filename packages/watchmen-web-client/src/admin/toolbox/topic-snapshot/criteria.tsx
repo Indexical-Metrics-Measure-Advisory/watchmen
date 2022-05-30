@@ -4,6 +4,7 @@ import {TopicSnapshotFrequency, TopicSnapshotScheduler} from '@/services/data/ad
 import {ParameterJointType} from '@/services/data/tuples/factor-calculator-types';
 import {Topic, TopicId} from '@/services/data/tuples/topic-types';
 import {Page} from '@/services/data/types';
+import {getCurrentTime} from '@/services/data/utils';
 import {AlertLabel} from '@/widgets/alert/widgets';
 import {CheckBox} from '@/widgets/basic/checkbox';
 import {ICON_LOADING} from '@/widgets/basic/constants';
@@ -63,6 +64,7 @@ export const Criteria = (props: { topics: Array<Topic> }) => {
 			fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Please pick a topic first.</AlertLabel>);
 			return;
 		}
+		// eslint-disable-next-line
 		const topic = topics.find(topic => topic.topicId == state.topicId);
 		const scheduler: TopicSnapshotScheduler = {
 			schedulerId: '',
@@ -75,7 +77,11 @@ export const Criteria = (props: { topics: Array<Topic> }) => {
 			filter: {
 				jointType: ParameterJointType.AND,
 				filters: []
-			}
+			},
+			enabled: true,
+			version: 1,
+			createdAt: getCurrentTime(),
+			lastModifiedAt: getCurrentTime()
 		};
 		fireGlobal(EventTypes.SHOW_DIALOG,
 			<EditDialog scheduler={scheduler} topic={topic} onConfirm={async () => {
