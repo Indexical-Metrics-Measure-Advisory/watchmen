@@ -48,7 +48,6 @@ class TopicSnapshotJobLock(Storable):
 	lockId: TopicSnapshotJobLockId = None
 	schedulerId: TopicSnapshotSchedulerId = None
 	tenantId: TenantId = None
-	topicId: TopicId = None
 	frequency: TopicSnapshotFrequency = None
 	processDate: date = None
 	status: TopicSnapshotJobLockStatus = None
