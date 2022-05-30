@@ -12,7 +12,7 @@ from watchmen_rest import get_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly, trans_with_tail
-from watchmen_utilities import ArrayHelper, is_blank
+from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 from .topic_router import ask_save_topic_action
 
 router = APIRouter()
@@ -98,6 +98,22 @@ def create_target_topic(scheduler: TopicSnapshotScheduler, source_topic: Topic) 
 	)
 
 
+def rebuild_target_topic(target_topic: Topic, source_topic: Topic) -> Topic:
+	target_topic.factors = [
+		*ArrayHelper(source_topic.factors).map_with_index(lambda f, index: redress_factor_id).to_list(),
+		Factor(
+			factorId=f'ss-{len(source_topic.factors) + 1}',
+			type=FactorType.TEXT,
+			name='snapshotTag',
+			label='Snapshot Tag',
+			description='Snapshot Tag',
+			indexGroup=FactorIndexGroup.INDEX_10,
+			precision="10"
+		)
+	]
+	return target_topic
+
+
 def ask_save_scheduler_action(
 		scheduler_service: TopicSnapshotSchedulerService, principal_service: PrincipalService
 ) -> Callable[[TopicSnapshotScheduler], Tuple[TopicSnapshotScheduler, Callable[[], None]]]:
@@ -113,6 +129,8 @@ def ask_save_scheduler_action(
 
 		if scheduler_service.is_storable_id_faked(scheduler.schedulerId):
 			scheduler_service.redress_storable_id(scheduler)
+
+			# find target topic
 			topics = topic_service.find_by_name(scheduler.targetTopicName, None, scheduler.tenantId)
 			if len(topics) != 0:
 				raise_500(None, f'Topic[name={scheduler.targetTopicName}] already exists.')
@@ -134,6 +152,29 @@ def ask_save_scheduler_action(
 			if existing_scheduler is not None:
 				if existing_scheduler.tenantId != scheduler.tenantId:
 					raise_403()
+
+			# find target topic
+			if is_blank(scheduler.targetTopicId):
+				raise_500(None, f'TargetTopicId is required on scheduler.')
+			# noinspection DuplicatedCode
+			target_topic: Optional[Topic] = topic_service.find_by_id(scheduler.targetTopicId)
+			if target_topic is None:
+				raise_500(None, f'Topic[id={scheduler.targetTopicId}] not found.')
+			if target_topic.type == TopicType.RAW:
+				raise_500(None, f'Target topic[id={scheduler.targetTopicId}] is raw topic.')
+			if target_topic.kind == TopicKind.SYSTEM:
+				raise_500(None, f'Target topic[id={scheduler.targetTopicId}] is system topic.')
+			if is_not_blank(scheduler.targetTopicName) and target_topic.name != scheduler.targetTopicName:
+				raise_500(
+					None,
+					f'Target topic[id={scheduler.targetTopicId}, name={target_topic.name}] '
+					f'has different name with given scheduler[targetTopicName={scheduler.targetTopicName}].')
+			# rebuild target topic
+			target_topic = rebuild_target_topic(target_topic, source_topic)
+			target_topic, target_topic_tail = ask_save_topic_action(topic_service, principal_service)(target_topic)
+			scheduler.targetTopicName = target_topic.name
+
+			# TODO create pipeline from job task topic to target topic
 
 			# noinspection PyTypeChecker
 			scheduler: TopicSnapshotScheduler = scheduler_service.update(scheduler)
