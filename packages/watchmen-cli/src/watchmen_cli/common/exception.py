@@ -8,3 +8,8 @@ class DeployException(Exception):
 
 class ConfigException(Exception):
 	pass
+
+
+class RerunException(Exception):
+	pass
+
