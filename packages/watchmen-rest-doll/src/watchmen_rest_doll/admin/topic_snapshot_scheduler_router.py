@@ -69,6 +69,8 @@ def sync_topic_snapshot_structure(
 
 
 def redress_factor_id(factor: Factor, index: int) -> Factor:
+	# remove index
+	factor.indexGroup = None
 	factor.factorId = f'ss-{index + 1}'
 	return factor
 
@@ -88,7 +90,7 @@ def create_target_topic(scheduler: TopicSnapshotScheduler, source_topic: Topic) 
 				name='snapshotTag',
 				label='Snapshot Tag',
 				description='Snapshot Tag',
-				indexGroup=FactorIndexGroup.INDEX_10,
+				indexGroup=FactorIndexGroup.INDEX_1,
 				precision="10"
 			)
 		],
@@ -107,7 +109,7 @@ def rebuild_target_topic(target_topic: Topic, source_topic: Topic) -> Topic:
 			name='snapshotTag',
 			label='Snapshot Tag',
 			description='Snapshot Tag',
-			indexGroup=FactorIndexGroup.INDEX_10,
+			indexGroup=FactorIndexGroup.INDEX_1,
 			precision="10"
 		)
 	]
