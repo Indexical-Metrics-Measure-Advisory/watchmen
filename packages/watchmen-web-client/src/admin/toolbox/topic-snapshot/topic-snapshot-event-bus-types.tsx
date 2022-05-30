@@ -1,4 +1,4 @@
-import {TopicSnapshotScheduler} from '@/services/data/admin/topic-snapshot-types';
+import {TopicSnapshotScheduler} from '@/services/data/tuples/topic-snapshot-types';
 import {Page} from '@/services/data/types';
 import {TopicSnapshotCriteria} from './types';
 

@@ -1,4 +1,4 @@
-import {TopicSnapshotFrequency, TopicSnapshotScheduler} from '@/services/data/admin/topic-snapshot-types';
+import {TopicSnapshotFrequency, TopicSnapshotScheduler} from '@/services/data/tuples/topic-snapshot-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {DwarfButton} from '@/widgets/basic/button';
 import {ICON_EDIT} from '@/widgets/basic/constants';
@@ -88,6 +88,7 @@ export const SchedulerRow = (props: {
 		<ResultBodyCell>{index}</ResultBodyCell>
 		<ResultBodyCell>{topicName}</ResultBodyCell>
 		<ResultBodyCell>{asDisplayFrequency(scheduler)}</ResultBodyCell>
+		<ResultBodyCell>{scheduler.enabled ? 'Y' : 'N'}</ResultBodyCell>
 		<ResultBodyCell>
 			<DwarfButton onClick={onEditClicked}>
 				<FontAwesomeIcon icon={ICON_EDIT}/>

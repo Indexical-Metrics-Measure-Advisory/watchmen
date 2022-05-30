@@ -1,4 +1,4 @@
-import {TopicSnapshotScheduler} from '@/services/data/admin/topic-snapshot-types';
+import {TopicSnapshotScheduler} from '@/services/data/tuples/topic-snapshot-types';
 import {ParameterJointType} from '@/services/data/tuples/factor-calculator-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {SingleTopicFilter} from '@/widgets/single-topic-filter';

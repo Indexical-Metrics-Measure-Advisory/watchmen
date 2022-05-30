@@ -1,7 +1,6 @@
-import {EditDialog} from '@/admin/toolbox/topic-snapshot/edit-dialog';
 import {fetchTopicSnapshotSchedulers} from '@/services/data/admin/topic-snapshot';
-import {TopicSnapshotFrequency, TopicSnapshotScheduler} from '@/services/data/admin/topic-snapshot-types';
 import {ParameterJointType} from '@/services/data/tuples/factor-calculator-types';
+import {TopicSnapshotFrequency, TopicSnapshotScheduler} from '@/services/data/tuples/topic-snapshot-types';
 import {Topic, TopicId} from '@/services/data/tuples/topic-types';
 import {Page} from '@/services/data/types';
 import {getCurrentTime} from '@/services/data/utils';
@@ -13,6 +12,7 @@ import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useState} from 'react';
+import {EditDialog} from './edit-dialog';
 import {useTopicSnapshotEventBus} from './topic-snapshot-event-bus';
 import {TopicSnapshotEventTypes} from './topic-snapshot-event-bus-types';
 import {CriteriaState} from './types';
