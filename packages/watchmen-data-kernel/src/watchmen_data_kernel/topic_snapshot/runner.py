@@ -9,6 +9,7 @@ from watchmen_auth import PrincipalService
 from watchmen_meta.admin import TopicSnapshotSchedulerService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import TopicSnapshotFrequency, TopicSnapshotScheduler, User, UserRole
+from watchmen_storage import SnowflakeGenerator
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
 from .scheduler import topic_snapshot_jobs
 
@@ -72,7 +73,8 @@ def run_job(scheduler: TopicSnapshotScheduler, process_date: date) -> None:
 
 
 def create_job(
-		ioScheduler: AsyncIOScheduler, scheduler: TopicSnapshotScheduler
+		ioScheduler: AsyncIOScheduler, scheduler: TopicSnapshotScheduler,
+		snowflake_generator: SnowflakeGenerator
 ) -> Optional[Tuple[TopicSnapshotScheduler, Job]]:
 	trigger = 'cron'
 	hour = scheduler.hour
@@ -84,21 +86,27 @@ def create_job(
 			run_job(scheduler, process_date)
 
 		day_of_week = 'mon-sun'
-		return scheduler, ioScheduler.add_job(run, trigger, day_of_week=day_of_week, hour=hour, minute=minute)
+		return scheduler, ioScheduler.add_job(
+			run, trigger, day_of_week=day_of_week, hour=hour, minute=minute,
+			id=str(snowflake_generator.next_id()))
 	elif scheduler.frequency == TopicSnapshotFrequency.WEEKLY:
 		def run() -> None:
 			process_date = to_previous_week(get_current_time_in_seconds())
 			run_job(scheduler, process_date)
 
 		day_of_week = scheduler.weekday
-		return scheduler, scheduler.add_job(run, trigger, day_of_week=day_of_week, hour=hour, minute=minute)
+		return scheduler, ioScheduler.add_job(
+			run, trigger, day_of_week=day_of_week, hour=hour, minute=minute,
+			id=str(snowflake_generator.next_id()))
 	elif scheduler.frequency == TopicSnapshotFrequency.MONTHLY:
 		def run() -> None:
 			process_date = to_previous_month(get_current_time_in_seconds())
 			run_job(scheduler, process_date)
 
 		day = scheduler.day
-		return scheduler, scheduler.add_job(run, trigger, day=day, hour=hour, minute=minute)
+		return scheduler, ioScheduler.add_job(
+			run, trigger, day=day, hour=hour, minute=minute,
+			id=str(snowflake_generator.next_id()))
 	else:
 		logger.warning(
 			f'Cannot create job for scheduler[schedulerId={scheduler.schedulerId}, frequency={scheduler.frequency}].')

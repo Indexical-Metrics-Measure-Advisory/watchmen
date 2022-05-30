@@ -3,6 +3,7 @@ from typing import Callable, List, Optional, Tuple
 from fastapi import APIRouter, Body, Depends
 
 from watchmen_auth import PrincipalService
+from watchmen_data_kernel.topic_snapshot import register_topic_snapshot_job
 from watchmen_meta.admin import PipelineService, TopicService, TopicSnapshotSchedulerService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import Topic, TopicKind, TopicSnapshotFrequency, TopicSnapshotScheduler, \
@@ -60,6 +61,14 @@ async def find_schedulers_page_by_topic_and_frequency(
 	return trans_readonly(scheduler_service, action)
 
 
+def tail_scheduler_save(scheduler: TopicSnapshotScheduler, topic_tail: Callable[[], None]) -> Callable[[], None]:
+	def action() -> None:
+		register_topic_snapshot_job(scheduler)
+		topic_tail()
+
+	return action
+
+
 def ask_save_scheduler_action(
 		scheduler_service: TopicSnapshotSchedulerService, principal_service: PrincipalService
 ) -> Callable[[TopicSnapshotScheduler], Tuple[TopicSnapshotScheduler, Callable[[], None]]]:
@@ -89,7 +98,7 @@ def ask_save_scheduler_action(
 			# noinspection PyTypeChecker
 			scheduler: TopicSnapshotScheduler = scheduler_service.create(scheduler)
 
-			tail = target_topic_tail
+			tail = tail_scheduler_save(scheduler, target_topic_tail)
 		else:
 			# noinspection PyTypeChecker
 			existing_scheduler: Optional[TopicSnapshotScheduler] = scheduler_service.find_by_id(scheduler.schedulerId)
@@ -121,7 +130,7 @@ def ask_save_scheduler_action(
 			# noinspection PyTypeChecker
 			scheduler: TopicSnapshotScheduler = scheduler_service.update(scheduler)
 
-			tail = target_topic_tail
+			tail = tail_scheduler_save(scheduler, target_topic_tail)
 
 		return scheduler, tail
 

@@ -17,11 +17,17 @@ class TopicSnapshotJobs:
 	def get_scheduler(self) -> AsyncIOScheduler:
 		return self.scheduler
 
-	def put_job(self, schedulerId: TopicSnapshotSchedulerId, job: Job) -> None:
-		self.jobs[schedulerId] = job
+	def put_job(self, scheduler_id: TopicSnapshotSchedulerId, job: Job) -> None:
+		self.jobs[scheduler_id] = job
 
-	def get_job(self, schedulerId: TopicSnapshotSchedulerId) -> Optional[Job]:
-		return self.jobs.get(schedulerId)
+	def get_job(self, scheduler_id: TopicSnapshotSchedulerId) -> Optional[Job]:
+		return self.jobs.get(scheduler_id)
+
+	def remove_job(self, scheduler_id: TopicSnapshotSchedulerId) -> Optional[Job]:
+		job = self.get_job(scheduler_id)
+		if job is not None:
+			job.remove()
+		return job
 
 
 topic_snapshot_jobs = TopicSnapshotJobs()
