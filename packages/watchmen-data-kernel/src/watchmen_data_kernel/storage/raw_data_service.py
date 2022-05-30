@@ -71,7 +71,7 @@ class RawTopicDataService(TopicDataService):
 			TopicDataColumnNames.INSERT_TIME.value,
 			TopicDataColumnNames.UPDATE_TIME.value
 		]
-		for key, value in topic_data:
+		for key, value in topic_data.items():
 			if key in reserved_keys:
 				unwrapped_data[key] = value
 
