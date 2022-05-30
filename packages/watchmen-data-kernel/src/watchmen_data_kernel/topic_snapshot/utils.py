@@ -1,7 +1,7 @@
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import TopicSnapshotScheduler
-from .runner import create_job
-from .scheduler import topic_snapshot_jobs
+from .scheduler_launcher import create_job
+from .scheduler_registrar import topic_snapshot_jobs
 
 
 def register_topic_snapshot_job(scheduler: TopicSnapshotScheduler) -> None:

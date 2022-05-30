@@ -9,10 +9,12 @@ from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_topic_snapshot_scheduler_heart_beat_interval
 from watchmen_meta.admin import TopicSnapshotSchedulerService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
-from watchmen_model.admin import TopicSnapshotFrequency, TopicSnapshotScheduler, User, UserRole
+from watchmen_model.admin import TopicSnapshotFrequency, TopicSnapshotScheduler, User, \
+	UserRole
 from watchmen_storage import SnowflakeGenerator
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
-from .scheduler import topic_snapshot_jobs
+from .scheduler_registrar import topic_snapshot_jobs
+from .scheduler_runner import run_job
 
 logger = getLogger(__name__)
 
@@ -61,18 +63,6 @@ def to_previous_month(process_date: date) -> date:
 	return process_date.replace(day=1)
 
 
-def run_job(scheduler: TopicSnapshotScheduler, process_date: date) -> None:
-	# tenants = find_all_tenants()
-	# for tenant in tenants:
-	# 	topics = find_all_topics(tenant.tenantId)
-	# 	for topic in topics:
-	# 		principal_service = fake_tenant_admin(tenant.tenantId)
-	# 		if try_to_lock_topic_for_monitor(topic, frequency, process_date, principal_service):
-	# 			MonitorRulesRunner(principal_service).run(process_date, frequency, topic.topicId)
-	# TODO run topic snapshot job
-	pass
-
-
 def create_job(
 		ioScheduler: AsyncIOScheduler, scheduler: TopicSnapshotScheduler,
 		snowflake_generator: SnowflakeGenerator
@@ -84,7 +74,7 @@ def create_job(
 	if scheduler.frequency == TopicSnapshotFrequency.DAILY:
 		def run() -> None:
 			process_date = to_yesterday(get_current_time_in_seconds())
-			run_job(scheduler, process_date)
+			run_job(scheduler.schedulerId, process_date)
 
 		day_of_week = 'mon-sun'
 		return scheduler, ioScheduler.add_job(
@@ -93,7 +83,7 @@ def create_job(
 	elif scheduler.frequency == TopicSnapshotFrequency.WEEKLY:
 		def run() -> None:
 			process_date = to_previous_week(get_current_time_in_seconds())
-			run_job(scheduler, process_date)
+			run_job(scheduler.schedulerId, process_date)
 
 		day_of_week = scheduler.weekday
 		return scheduler, ioScheduler.add_job(
@@ -102,7 +92,7 @@ def create_job(
 	elif scheduler.frequency == TopicSnapshotFrequency.MONTHLY:
 		def run() -> None:
 			process_date = to_previous_month(get_current_time_in_seconds())
-			run_job(scheduler, process_date)
+			run_job(scheduler.schedulerId, process_date)
 
 		day = scheduler.day
 		return scheduler, ioScheduler.add_job(
