@@ -10,7 +10,7 @@ CREATE TABLE topic_snapshot_schedulers
     day               VARCHAR(10),
     hour              DECIMAL(2),
     minute            DECIMAL(2),
-    enabled           SMALLINT,
+    enabled           BOOLEAN,
     tenant_id         VARCHAR(50) NOT NULL,
     created_at        TIMESTAMP   NOT NULL,
     created_by        VARCHAR(50) NOT NULL,
