@@ -47,6 +47,19 @@ def try_to_lock_scheduler(
 		return False
 
 
+# noinspection PyBroadException
+def accomplish_job(
+		lock: TopicSnapshotJobLock, status: TopicSnapshotJobLockStatus, principal_service: PrincipalService) -> None:
+	lock_service = get_lock_service(principal_service)
+	lock_service.begin_transaction()
+	try:
+		lock.status = status
+		lock_service.create(lock)
+		lock_service.commit_transaction()
+	except Exception:
+		lock_service.rollback_transaction()
+
+
 def run_job(scheduler_id: TopicSnapshotSchedulerId, process_date: date) -> None:
 	scheduler_service = get_topic_snapshot_scheduler_service(fake_super_admin())
 	scheduler: Optional[TopicSnapshotScheduler] = scheduler_service.find_by_id(scheduler_id)
@@ -58,4 +71,13 @@ def run_job(scheduler_id: TopicSnapshotSchedulerId, process_date: date) -> None:
 	principal_service = fake_tenant_admin(scheduler.tenantId)
 	if try_to_lock_scheduler(scheduler, process_date, principal_service):
 		# TODO run topic snapshot job
+		# build statement, ask topic storage to fetch data from source topic
+		# write data to task topic,
+		# note write to s3 directly when there is s3 adapter for raw topic
 		pass
+
+	# TODO handle tasks whether if grab the lock or not
+	# scan task topic to fetch task and trigger pipeline to write to target topic
+	# until there is no data with status ready
+	# or no task at all and task lock status is success/failed
+	pass
