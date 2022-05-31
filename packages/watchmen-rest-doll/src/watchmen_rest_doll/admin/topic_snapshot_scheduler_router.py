@@ -123,12 +123,17 @@ def handle_related_topics_on_create(
 	return target_topic, tail
 
 
-def validate_scheduler_on_update(scheduler: TopicSnapshotScheduler, topic_service: TopicService) -> None:
+def validate_scheduler_on_update(
+		scheduler: TopicSnapshotScheduler, topic_service: TopicService,
+		principal_service: PrincipalService
+) -> None:
 	if is_blank(scheduler.targetTopicId):
 		raise_500(None, f'TargetTopicId is required on scheduler.')
 	# noinspection DuplicatedCode
 	target_topic: Optional[Topic] = topic_service.find_by_id(scheduler.targetTopicId)
 	if target_topic is None:
+		raise_500(None, f'Topic[id={scheduler.targetTopicId}] not found.')
+	if target_topic.tenantId != principal_service.get_tenant_id():
 		raise_500(None, f'Topic[id={scheduler.targetTopicId}] not found.')
 	if target_topic.type == TopicType.RAW:
 		raise_500(None, f'Target topic[id={scheduler.targetTopicId}] is raw topic.')
@@ -145,6 +150,8 @@ def validate_scheduler_on_update(scheduler: TopicSnapshotScheduler, topic_servic
 	pipeline_service = get_pipeline_service(topic_service)
 	pipeline: Optional[Pipeline] = pipeline_service.find_by_id(scheduler.pipelineId)
 	if pipeline is None:
+		raise_500(None, f'Pipeline[id={scheduler.pipelineId}] not found.')
+	if pipeline.tenantId != principal_service.get_tenant_id():
 		raise_500(None, f'Pipeline[id={scheduler.pipelineId}] not found.')
 
 
@@ -176,7 +183,7 @@ def ask_save_scheduler_action(
 
 			# for update scheduler, since source topic is not changed,
 			# which means target topic, task topic and pipeline is no need to be handled
-			validate_scheduler_on_update(scheduler, topic_service)
+			validate_scheduler_on_update(scheduler, topic_service, principal_service)
 
 			# noinspection PyTypeChecker
 			scheduler: TopicSnapshotScheduler = scheduler_service.update(scheduler)
