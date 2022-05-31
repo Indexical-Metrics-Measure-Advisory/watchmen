@@ -2,9 +2,9 @@ from logging import getLogger
 from typing import Callable, Tuple, TypeVar
 
 from fastapi import HTTPException
-from watchmen_rest.util import raise_500
 
 from watchmen_meta.common import StorageService
+from watchmen_rest.util import raise_500
 
 # noinspection DuplicatedCode
 logger = getLogger(__name__)

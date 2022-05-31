@@ -6,7 +6,7 @@ from watchmen_data_kernel.meta import TopicService
 from watchmen_indicator_kernel.common import IndicatorKernelException
 from watchmen_inquiry_kernel.storage import ReportDataService
 from watchmen_model.admin import Factor, Topic
-from watchmen_model.common import ComputedParameter, FactorId, Parameter, ParameterComputeType, ParameterCondition, \
+from watchmen_model.common import FactorId, Parameter, ParameterCondition, \
 	ParameterJoint, ParameterJointType, ParameterKind, TopicFactorParameter, TopicId
 from watchmen_model.console import Report, Subject, SubjectDataset, SubjectDatasetColumn
 from watchmen_model.indicator import Indicator, NavigationIndicator, NavigationIndicatorCriteria

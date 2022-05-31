@@ -1,15 +1,14 @@
 import os
-from typing import Tuple, List, Optional
+from base64 import b64decode
+from json import dumps, loads
+from logging import getLogger
+from typing import List, Optional, Tuple
 
 from watchmen_cli.common.client import Client
-from watchmen_cli.common.constants import topics, pipelines, spaces, connected_spaces, import_type, pipeline_id, \
-	connect_id, space_id, topic_id, prefix_encoding, MixedImportType
-
+from watchmen_cli.common.constants import connect_id, connected_spaces, import_type, MixedImportType, pipeline_id, \
+	pipelines, prefix_encoding, space_id, spaces, topic_id, topics
 from watchmen_cli.common.exception import DeployException
 from watchmen_utilities import ArrayHelper
-from base64 import b64decode
-from json import loads, dumps
-from logging import getLogger
 
 logger = getLogger(__name__)
 

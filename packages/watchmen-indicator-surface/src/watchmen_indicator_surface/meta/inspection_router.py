@@ -48,7 +48,7 @@ async def load_inspection_by_id(
 	inspection_service = get_inspection_service(principal_service)
 
 	return trans_readonly(
-		inspection_service, lambda : do_load_inspection_by_id(inspection_id, inspection_service, principal_service))
+		inspection_service, lambda: do_load_inspection_by_id(inspection_id, inspection_service, principal_service))
 
 
 # noinspection DuplicatedCode

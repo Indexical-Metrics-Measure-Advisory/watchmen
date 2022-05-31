@@ -1,4 +1,5 @@
 from logging import getLogger
+
 from pydantic import BaseSettings
 
 from watchmen_cli.common.constants import REPLACE

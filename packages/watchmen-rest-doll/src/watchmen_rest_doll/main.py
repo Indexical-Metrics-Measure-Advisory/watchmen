@@ -1,9 +1,8 @@
-from watchmen_rest.system import health_router
-from watchmen_utilities import ArrayHelper
-
 from watchmen_data_surface import get_data_surface_routers
 from watchmen_inquiry_surface import get_inquiry_surface_routers
 from watchmen_pipeline_surface import get_pipeline_surface_routers
+from watchmen_rest.system import health_router
+from watchmen_utilities import ArrayHelper
 from .admin import enumeration_router, pipeline_graphic_router, pipeline_router, space_router, topic_router, \
 	topic_snapshot_scheduler_router, user_group_router, user_router
 from .analysis import pipeline_index_router, topic_index_router

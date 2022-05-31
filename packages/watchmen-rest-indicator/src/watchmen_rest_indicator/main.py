@@ -3,8 +3,8 @@ from watchmen_rest_doll.admin import sync_user_group_change
 from watchmen_rest_doll.main import app
 from watchmen_rest_doll.meta_import import mix_import_handle
 from watchmen_utilities import ArrayHelper
-from .sync_user_group_change import UserGroupChangeHandler
 from .indicators_import import IndicatorsImportHandler
+from .sync_user_group_change import UserGroupChangeHandler
 
 sync_user_group_change.register_indicator_handler(UserGroupChangeHandler())
 mix_import_handle.register_indicator_handler(IndicatorsImportHandler())

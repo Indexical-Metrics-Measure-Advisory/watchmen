@@ -2,18 +2,18 @@ from typing import List, Optional, Tuple
 
 from fastapi import APIRouter, Body, Depends
 from pydantic import BaseModel
+
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.meta import BucketService
 from watchmen_indicator_surface.settings import ask_tuple_delete_enabled
 from watchmen_indicator_surface.util import trans, trans_readonly
+from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import UserRole
 from watchmen_model.common import BucketId, DataPage, EnumId, Pageable, TenantId
 from watchmen_model.indicator import Bucket, MeasureMethod
 from watchmen_rest import get_admin_principal, get_console_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
-
-from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 
 router = APIRouter()
 

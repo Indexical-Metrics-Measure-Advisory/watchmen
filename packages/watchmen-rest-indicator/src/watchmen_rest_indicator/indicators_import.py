@@ -4,7 +4,7 @@ from watchmen_indicator_kernel.meta import BucketService, IndicatorService
 from watchmen_meta.admin import UserService
 from watchmen_model.common import BucketId, FactorId, SubjectId, TopicId
 from watchmen_model.indicator import Bucket, Indicator, IndicatorBaseOn
-from watchmen_rest_doll.meta_import import MixedImportWithIndicator, BucketImportDataResult, IndicatorImportDataResult
+from watchmen_rest_doll.meta_import import BucketImportDataResult, IndicatorImportDataResult, MixedImportWithIndicator
 from watchmen_utilities import ArrayHelper, is_blank
 
 
