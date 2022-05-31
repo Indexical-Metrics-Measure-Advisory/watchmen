@@ -39,8 +39,8 @@ class SubjectForIndicator(Subject):
 	topics: List[Topic]
 
 
-@router.get('/indicator/subject/name', tags=[UserRole.CONSOLE, UserRole.ADMIN],
-            response_model=List[SubjectForIndicator])
+@router.get(
+	'/indicator/subject/name', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[SubjectForIndicator])
 def find_subjects_for_indicator(
 		query_name: Optional[str], principal_service: PrincipalService = Depends(get_console_principal)
 ) -> List[SubjectForIndicator]:
