@@ -39,7 +39,7 @@ async def import_topics(
 
 	def action() -> Tuple[None, Callable[[], None]]:
 		validate_tenant_based_tuples(topics, get_user_service(topic_service), principal_service)
-		save = ask_save_topic_action(topic_service, principal_service)
+		save = ask_save_topic_action(topic_service, principal_service, True)
 		# noinspection PyTypeChecker
 		tails = ArrayHelper(topics).map(lambda x: save(x)).map(lambda x: x[1]).to_list()
 		return None, bundling_tails(tails)

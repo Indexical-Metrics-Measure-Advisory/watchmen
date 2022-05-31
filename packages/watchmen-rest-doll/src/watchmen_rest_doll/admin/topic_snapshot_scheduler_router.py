@@ -4,8 +4,7 @@ from fastapi import APIRouter, Body, Depends
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.topic_snapshot import as_snapshot_task_topic_name, create_snapshot_pipeline, \
-	create_snapshot_target_topic, \
-	create_snapshot_task_topic, register_topic_snapshot_job
+	create_snapshot_target_topic, create_snapshot_task_topic, register_topic_snapshot_job
 from watchmen_meta.admin import PipelineService, TopicService, TopicSnapshotSchedulerService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import Pipeline, Topic, TopicKind, TopicSnapshotFrequency, TopicSnapshotScheduler, \

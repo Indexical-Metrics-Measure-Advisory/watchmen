@@ -8,10 +8,13 @@ from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
 from watchmen_data_kernel.common import ask_all_date_formats
 from watchmen_data_kernel.service import sync_topic_structure_storage
-from watchmen_meta.admin import FactorService, TopicService
+from watchmen_data_kernel.topic_snapshot import as_snapshot_task_topic_name, create_snapshot_pipeline, \
+	create_snapshot_target_topic, \
+	rebuild_snapshot_target_topic
+from watchmen_meta.admin import FactorService, TopicService, TopicSnapshotSchedulerService
 from watchmen_meta.analysis import TopicIndexService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
-from watchmen_model.admin import Topic, TopicType, UserRole
+from watchmen_model.admin import Topic, TopicSnapshotScheduler, TopicType, UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId, TopicId
 from watchmen_rest import get_admin_principal, get_console_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
@@ -32,6 +35,11 @@ def get_factor_service(topic_service: TopicService) -> FactorService:
 
 def get_topic_index_service(topic_service: TopicService) -> TopicIndexService:
 	return TopicIndexService(topic_service.storage, topic_service.snowflakeGenerator)
+
+
+def get_snapshot_scheduler_service(topic_service: TopicService) -> TopicSnapshotSchedulerService:
+	return TopicSnapshotSchedulerService(
+		topic_service.storage, topic_service.snowflakeGenerator, topic_service.principalService)
 
 
 @router.get('/topic', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=Topic)
@@ -79,9 +87,30 @@ def sync_topic_structure(
 	return tail
 
 
+def handle_scheduler(
+		scheduler: TopicSnapshotScheduler, source_topic: Topic,
+		topic_service: TopicService,
+		principal_service: PrincipalService
+) -> Optional[Callable[[], None]]:
+	target_topic_id = scheduler.targetTopicId
+	if is_blank(target_topic_id):
+		# incorrect scheduler, ignored
+		return None
+	target_topic: Optional[Topic] = topic_service.find_by_id(target_topic_id)
+	if target_topic is None:
+		target_topic = create_snapshot_target_topic(scheduler, source_topic)
+		target_topic, target_topic_tail = ask_save_topic_action(topic_service, principal_service)(target_topic)
+	else:
+		target_topic = rebuild_snapshot_target_topic(target_topic, source_topic)
+		target_topic, target_topic_tail = ask_save_topic_action(topic_service, principal_service)(target_topic)
+
+	pipeline_id = scheduler.pipelineId
+	if is_blank(pipeline_id):
+		create_snapshot_pipeline()
+
 # noinspection PyUnusedLocal
 def ask_save_topic_action(
-		topic_service: TopicService, principal_service: PrincipalService
+		topic_service: TopicService, principal_service: PrincipalService, handle_snapshots: Optional[bool] = False
 ) -> Callable[[Topic], Tuple[Topic, Callable[[], None]]]:
 	def action(topic: Topic) -> Tuple[Topic, Callable[[], None]]:
 		if topic_service.is_storable_id_faked(topic.topicId):
@@ -100,7 +129,14 @@ def ask_save_topic_action(
 			redress_factor_ids(topic, topic_service)
 			# noinspection PyTypeChecker
 			topic: Topic = topic_service.update(topic)
-			tail = sync_topic_structure(topic, existing_topic, principal_service)
+
+			scheduler_service = get_snapshot_scheduler_service(topic_service)
+			schedulers = scheduler_service.find_by_topic(topic.topicId)
+			if len(schedulers) != 0:
+				task_topic_name = as_snapshot_task_topic_name(topic)
+				ArrayHelper(schedulers).map(lambda x: handle_scheduler(x, topic, topic_service, principal_service))
+			else:
+				tail = sync_topic_structure(topic, existing_topic, principal_service)
 
 		post_save_topic(topic, topic_service)
 
@@ -115,7 +151,7 @@ async def save_topic(
 ) -> Topic:
 	validate_tenant_id(topic, principal_service)
 	topic_service = get_topic_service(principal_service)
-	action = ask_save_topic_action(topic_service, principal_service)
+	action = ask_save_topic_action(topic_service, principal_service, True)
 	return trans_with_tail(topic_service, lambda: action(topic))
 
 
