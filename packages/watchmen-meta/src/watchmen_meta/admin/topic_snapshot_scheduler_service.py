@@ -94,6 +94,14 @@ class TopicSnapshotSchedulerService(TupleService):
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))
 
+	def find_by_topic(self, topic_id: TopicId) -> List[TopicSnapshotScheduler]:
+		criteria = [
+			EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='topic_id'), operator=EntityCriteriaOperator.EQUALS, right=topic_id)
+		]
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria=criteria))
+
 	def find_all(self, tenant_id: Optional[TenantId]) -> List[TopicSnapshotScheduler]:
 		criteria = []
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
