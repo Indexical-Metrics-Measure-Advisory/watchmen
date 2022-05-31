@@ -61,6 +61,11 @@ jobs:
         run: |
           poetry build
           poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
+      - name: Package [watchmen-storage-rds] and publish to Pypi
+        working-directory: ./packages/watchmen-storage-rds
+        run: |
+          poetry build
+          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
       - name: Package [watchmen-storage-mssql] and publish to Pypi
         working-directory: ./packages/watchmen-storage-mssql
         run: |

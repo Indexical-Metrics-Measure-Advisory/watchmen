@@ -54,6 +54,12 @@ jobs:
         with:
           module-name: watchmen-storage-mongodb
           target-version: ${{ inputs.version }}
+      - name: Change version [watchmen-storage-rds]
+        uses: ./.github/actions/change-poetry-version/
+        id: change-poetry-version-storage-rds
+        with:
+          module-name: watchmen-storage-rds
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-storage-mssql]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-storage-mssql
