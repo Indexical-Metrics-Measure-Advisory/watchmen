@@ -3,7 +3,7 @@ from typing import Dict, List, Optional
 from fastapi import APIRouter, Depends
 
 from watchmen_auth import PrincipalService
-from watchmen_indicator_kernel.meta import IndicatorKernelException
+from watchmen_indicator_kernel.common import IndicatorKernelException
 from watchmen_indicator_surface.util import trans_readonly
 from watchmen_meta.admin import SpaceService, TopicService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator

@@ -3,17 +3,20 @@ from typing import Callable, List, Optional, Tuple
 from fastapi import APIRouter, Body, Depends
 
 from watchmen_auth import PrincipalService
-from watchmen_data_kernel.topic_snapshot import create_target_topic, rebuild_target_topic, register_topic_snapshot_job
+from watchmen_data_kernel.topic_snapshot import as_snapshot_task_topic_name, create_snapshot_pipeline, \
+	create_snapshot_target_topic, \
+	create_snapshot_task_topic, register_topic_snapshot_job
 from watchmen_meta.admin import PipelineService, TopicService, TopicSnapshotSchedulerService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
-from watchmen_model.admin import Topic, TopicKind, TopicSnapshotFrequency, TopicSnapshotScheduler, \
+from watchmen_model.admin import Pipeline, Topic, TopicKind, TopicSnapshotFrequency, TopicSnapshotScheduler, \
 	TopicSnapshotSchedulerId, TopicType, UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId, TopicId
 from watchmen_rest import get_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, raise_500, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly, trans_with_tail
-from watchmen_utilities import is_blank, is_not_blank
+from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
+from .pipeline_router import ask_save_pipeline_action
 from .topic_router import ask_save_topic_action
 
 router = APIRouter()
@@ -28,9 +31,9 @@ def get_topic_service(scheduler_service: TopicSnapshotSchedulerService) -> Topic
 		scheduler_service.storage, scheduler_service.snowflakeGenerator, scheduler_service.principalService)
 
 
-def get_pipeline_service(scheduler_service: TopicSnapshotSchedulerService) -> PipelineService:
+def get_pipeline_service(topic_service: TopicService) -> PipelineService:
 	return PipelineService(
-		scheduler_service.storage, scheduler_service.snowflakeGenerator, scheduler_service.principalService)
+		topic_service.storage, topic_service.snowflakeGenerator, topic_service.principalService)
 
 
 class TopicSnapshotSchedulerCriteria(Pageable):
@@ -80,26 +83,48 @@ def validate_source_topic(scheduler: TopicSnapshotScheduler, topic_service: Topi
 	return source_topic
 
 
+def combine_tail_actions(tails: List[Callable[[], None]]) -> Callable[[], None]:
+	def tail() -> None:
+		ArrayHelper(tails).each(lambda x: x())
+
+	return tail
+
+
 def handle_related_topics_on_create(
 		scheduler: TopicSnapshotScheduler, topic_service: TopicService,
 		source_topic: Topic, principal_service: PrincipalService
 ) -> Tuple[Topic, Callable[[], None]]:
-	topics = topic_service.find_by_name(scheduler.targetTopicName, None, scheduler.tenantId)
-	if len(topics) != 0:
+	target_topic: Optional[Topic] = topic_service.find_by_name_and_tenant(scheduler.targetTopicName, scheduler.tenantId)
+	if target_topic is not None:
 		raise_500(None, f'Topic[name={scheduler.targetTopicName}] already exists.')
 
 	# create target topic
-	target_topic = create_target_topic(scheduler, source_topic)
+	target_topic = create_snapshot_target_topic(scheduler, source_topic)
 	target_topic, target_topic_tail = ask_save_topic_action(topic_service, principal_service)(target_topic)
+
 	scheduler.targetTopicId = target_topic.topicId
+	tail = target_topic_tail
 
-	return target_topic, target_topic_tail
+	# find task topic, it might be created by another scheduler
+	task_topic_name = as_snapshot_task_topic_name(source_topic)
+	task_topic: Optional[Topic] = topic_service.find_by_name_and_tenant(task_topic_name, scheduler.tenantId)
+	# create task topic only it is not declared
+	if task_topic is None:
+		task_topic = create_snapshot_task_topic(source_topic)
+		task_topic, task_topic_tail = ask_save_topic_action(topic_service, principal_service)(task_topic)
+		tail = combine_tail_actions([target_topic_tail, task_topic_tail])
+
+	# create pipeline from task topic to target topic
+	pipeline = create_snapshot_pipeline(task_topic, target_topic)
+	pipeline_service = get_pipeline_service(topic_service)
+	pipeline = ask_save_pipeline_action(pipeline_service, principal_service)(pipeline)
+
+	scheduler.pipelineId = pipeline.pipelineId
+
+	return target_topic, tail
 
 
-def handle_related_topics_on_update(
-		scheduler: TopicSnapshotScheduler, topic_service: TopicService,
-		source_topic: Topic, principal_service: PrincipalService
-) -> Tuple[Topic, Callable[[], None]]:
+def validate_scheduler_on_update(scheduler: TopicSnapshotScheduler, topic_service: TopicService) -> None:
 	if is_blank(scheduler.targetTopicId):
 		raise_500(None, f'TargetTopicId is required on scheduler.')
 	# noinspection DuplicatedCode
@@ -115,12 +140,13 @@ def handle_related_topics_on_update(
 			None,
 			f'Target topic[id={scheduler.targetTopicId}, name={target_topic.name}] '
 			f'has different name with given scheduler[targetTopicName={scheduler.targetTopicName}].')
-	# rebuild target topic
-	target_topic = rebuild_target_topic(target_topic, source_topic)
-	target_topic, target_topic_tail = ask_save_topic_action(topic_service, principal_service)(target_topic)
-	scheduler.targetTopicName = target_topic.name
 
-	return target_topic, target_topic_tail
+	if is_blank(scheduler.pipelineId):
+		raise_500(None, f'PipelineId is required on scheduler.')
+	pipeline_service = get_pipeline_service(topic_service)
+	pipeline: Optional[Pipeline] = pipeline_service.find_by_id(scheduler.pipelineId)
+	if pipeline is None:
+		raise_500(None, f'Pipeline[id={scheduler.pipelineId}] not found.')
 
 
 def ask_save_scheduler_action(
@@ -149,14 +175,14 @@ def ask_save_scheduler_action(
 				if existing_scheduler.tenantId != scheduler.tenantId:
 					raise_403()
 
-			# update target topic
-			target_topic, target_topic_tail = handle_related_topics_on_update(
-				scheduler, topic_service, source_topic, principal_service)
+			# for update scheduler, since source topic is not changed,
+			# which means target topic, task topic and pipeline is no need to be handled
+			validate_scheduler_on_update(scheduler, topic_service)
 
 			# noinspection PyTypeChecker
 			scheduler: TopicSnapshotScheduler = scheduler_service.update(scheduler)
 
-			tail = tail_scheduler_save(scheduler, target_topic_tail)
+			tail = tail_scheduler_save(scheduler, lambda: None)
 
 		return scheduler, tail
 
