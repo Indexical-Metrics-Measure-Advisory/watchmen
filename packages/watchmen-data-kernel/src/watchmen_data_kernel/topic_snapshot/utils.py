@@ -5,8 +5,7 @@ from watchmen_model.admin import AggregateArithmetic, Factor, FactorIndexGroup, 
 	MappingFactor, Pipeline, PipelineStage, PipelineTriggerType, PipelineUnit, Topic, TopicSnapshotScheduler, \
 	TopicType, WriteTopicActionType
 from watchmen_model.common import ConstantParameter, ParameterExpression, ParameterExpressionOperator, ParameterJoint, \
-	ParameterJointType, \
-	ParameterKind
+	ParameterJointType, ParameterKind
 from watchmen_utilities import ArrayHelper
 from .scheduler_launcher import create_job
 from .scheduler_registrar import topic_snapshot_jobs
