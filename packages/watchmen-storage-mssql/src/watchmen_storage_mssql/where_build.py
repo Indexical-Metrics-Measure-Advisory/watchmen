@@ -90,7 +90,8 @@ def build_literal(tables: List[Table], a_literal: Literal, build_plain_value: Ca
 		elif operator == ComputedLiteralOperator.HALF_YEAR_OF:
 			return case(
 				(
-				func.month(build_literal(tables, a_literal.elements[0])) <= 6, DateTimeConstants.HALF_YEAR_FIRST.value),
+					func.month(build_literal(tables, a_literal.elements[0])) <= 6,
+					DateTimeConstants.HALF_YEAR_FIRST.value),
 				else_=DateTimeConstants.HALF_YEAR_SECOND.value
 			)
 		elif operator == ComputedLiteralOperator.QUARTER_OF:

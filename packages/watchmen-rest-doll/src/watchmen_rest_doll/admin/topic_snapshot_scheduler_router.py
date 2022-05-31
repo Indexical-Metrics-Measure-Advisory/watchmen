@@ -3,7 +3,7 @@ from typing import Callable, List, Optional, Tuple
 from fastapi import APIRouter, Body, Depends
 
 from watchmen_auth import PrincipalService
-from watchmen_data_kernel.topic_snapshot import register_topic_snapshot_job
+from watchmen_data_kernel.topic_snapshot import register_topic_snapshot_job, create_target_topic, rebuild_target_topic
 from watchmen_meta.admin import PipelineService, TopicService, TopicSnapshotSchedulerService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import Topic, TopicKind, TopicSnapshotFrequency, TopicSnapshotScheduler, \
@@ -15,7 +15,6 @@ from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly, trans_with_tail
 from watchmen_utilities import is_blank, is_not_blank
 from .topic_router import ask_save_topic_action
-from .topic_snapshot_utils import create_target_topic, rebuild_target_topic
 
 router = APIRouter()
 

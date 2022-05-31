@@ -3,6 +3,7 @@ from typing import Dict, List, Optional, Union
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from starlette.responses import Response
+
 from watchmen_auth import PrincipalService
 from watchmen_meta.admin import SpaceService, UserService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
@@ -12,10 +13,9 @@ from watchmen_model.common import ConnectedSpaceId, LastVisit, ReportId, SpaceId
 from watchmen_model.console import ConnectedSpace, Report, Subject
 from watchmen_rest import get_admin_principal, get_console_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_not_blank
-
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_not_blank
 
 router = APIRouter()
 

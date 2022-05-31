@@ -643,7 +643,7 @@ def create_topic_and_factor_ids_replacer(
 			if isinstance(value, dict):
 				replace_ids(value, replace_topic_and_factor_ids)
 			elif isinstance(value, list):
-				ArrayHelper(value)\
+				ArrayHelper(value) \
 					.filter(lambda x: isinstance(x, dict)) \
 					.each(lambda x: replace_ids(x, replace_topic_and_factor_ids))
 

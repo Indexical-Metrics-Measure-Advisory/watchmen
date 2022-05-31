@@ -12,4 +12,3 @@ class ConfigException(Exception):
 
 class RerunException(Exception):
 	pass
-
