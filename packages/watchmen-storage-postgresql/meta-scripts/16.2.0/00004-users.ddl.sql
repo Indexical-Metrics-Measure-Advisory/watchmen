@@ -4,7 +4,7 @@ CREATE TABLE users
     name             VARCHAR(50),
     nickname         VARCHAR(50),
     password         VARCHAR(255),
-    is_active        SMALLINT    NOT NULL,
+    is_active        BOOLEAN    NOT NULL,
     group_ids        JSON,
     role             VARCHAR(20) NOT NULL,
     tenant_id        VARCHAR(50) NOT NULL,
