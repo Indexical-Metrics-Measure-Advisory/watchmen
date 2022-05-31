@@ -53,7 +53,7 @@ def create_snapshot_target_topic(scheduler: TopicSnapshotScheduler, source_topic
 		dataSourceId=source_topic.dataSourceId,
 		factors=build_target_topic_factors(source_topic),
 		description=f'Snapshot of [${source_topic.name}], never change me manually.',
-		tenanId=source_topic.tenantId,
+		tenantId=source_topic.tenantId,
 		version=1
 	)
 
@@ -116,7 +116,7 @@ def create_snapshot_task_topic(source_topic: Topic) -> Topic:
 		dataSourceId=source_topic.dataSourceId,
 		factors=build_task_topic_factors(source_topic),
 		description=f'Snapshot task of [${source_topic.name}], never change me manually.',
-		tenanId=source_topic.tenantId,
+		tenantId=source_topic.tenantId,
 		version=1
 	)
 
@@ -141,30 +141,50 @@ def create_snapshot_pipeline(task_topic: Topic, target_topic: Topic) -> Pipeline
 		name='Snapshot catcher, never change me manually',
 		type=PipelineTriggerType.INSERT_OR_MERGE,
 		conditional=True,
-		on=ParameterJoint(
-			jointType=ParameterJointType.AND,
-			filters=[ParameterExpression(
-				left=ConstantParameter(kind=ParameterKind.CONSTANT, value=f'{{{target_topic.name}}}'),
-				operator=ParameterExpressionOperator.EQUALS,
-				right=ConstantParameter(kind=ParameterKind.CONSTANT, value=f'{target_topic.name}'),
-			)]
-		),
-		stages=[PipelineStage(
-			stageId='ss-s-1',
-			name='Copy data to target topic',
-			units=[PipelineUnit(
-				unitId='ss-u-1',
-				name='Copy data to target topic',
-				do=[InsertRowAction(
-					actionId='ss-a-1',
-					type=WriteTopicActionType.INSERT_ROW,
-					topicId=target_topic.topicId,
-					mapping=ArrayHelper(target_topic.factors).map(lambda f: to_mapping_factor(f)).to_list()
-				)]
-			)]
-		)],
+		on=build_pipeline_prerequisite(task_topic),
+		stages=build_pipeline_stages(target_topic),
 		enabled=True,
 		validated=True,
-		tenanId=task_topic.tenantId,
+		tenantId=task_topic.tenantId,
 		version=1
+	)
+
+
+def rebuild_snapshot_pipeline(pipeline: Pipeline, task_topic: Topic, target_topic: Topic) -> Pipeline:
+	pipeline.topicId = task_topic.topicId,
+	pipeline.name = 'Snapshot catcher, never change me manually',
+	pipeline.type = PipelineTriggerType.INSERT_OR_MERGE,
+	pipeline.conditional = True,
+	pipeline.on = build_pipeline_prerequisite(target_topic),
+	pipeline.stages = build_pipeline_stages(target_topic),
+	pipeline.enabled = True,
+	pipeline.validated = True,
+	return pipeline
+
+
+def build_pipeline_stages(target_topic: Topic) -> List[PipelineStage]:
+	return [PipelineStage(
+		stageId='ss-s-1',
+		name='Copy data to target topic',
+		units=[PipelineUnit(
+			unitId='ss-u-1',
+			name='Copy data to target topic',
+			do=[InsertRowAction(
+				actionId='ss-a-1',
+				type=WriteTopicActionType.INSERT_ROW,
+				topicId=target_topic.topicId,
+				mapping=ArrayHelper(target_topic.factors).map(lambda f: to_mapping_factor(f)).to_list()
+			)]
+		)]
+	)]
+
+
+def build_pipeline_prerequisite(target_topic: Topic) -> ParameterJoint:
+	return ParameterJoint(
+		jointType=ParameterJointType.AND,
+		filters=[ParameterExpression(
+			left=ConstantParameter(kind=ParameterKind.CONSTANT, value=f'{{targetTopicName}}'),
+			operator=ParameterExpressionOperator.EQUALS,
+			right=ConstantParameter(kind=ParameterKind.CONSTANT, value=f'{target_topic.name}'),
+		)]
 	)
