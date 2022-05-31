@@ -5,27 +5,17 @@ from typing import List, Optional, Tuple
 from apscheduler.job import Job
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from watchmen_auth import PrincipalService
+from watchmen_auth import fake_super_admin, PrincipalService
 from watchmen_data_kernel.common import ask_topic_snapshot_scheduler_heart_beat_interval
 from watchmen_meta.admin import TopicSnapshotSchedulerService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
-from watchmen_model.admin import TopicSnapshotFrequency, TopicSnapshotScheduler, User, \
-	UserRole
+from watchmen_model.admin import TopicSnapshotFrequency, TopicSnapshotScheduler
 from watchmen_storage import SnowflakeGenerator
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
 from .scheduler_registrar import topic_snapshot_jobs
 from .scheduler_runner import run_job
 
 logger = getLogger(__name__)
-
-
-def fake_super_admin() -> PrincipalService:
-	return PrincipalService(User(
-		userId='1',
-		userName='imma-super',
-		tenantId='-1',
-		role=UserRole.SUPER_ADMIN
-	))
 
 
 def get_topic_snapshot_scheduler_service(principal_service: PrincipalService) -> TopicSnapshotSchedulerService:
