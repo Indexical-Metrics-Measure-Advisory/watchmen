@@ -152,7 +152,7 @@ def find_all_topics(tenant_id: TenantId) -> List[Topic]:
 def try_to_lock_topic_for_monitor(
 		topic: Topic, frequency: MonitorRuleStatisticalInterval, process_date: date,
 		principal_service: PrincipalService
-) -> bool:
+) -> Tuple[Optional[MonitorJobLock], bool]:
 	if isinstance(process_date, datetime):
 		process_date = process_date.date()
 
@@ -170,10 +170,22 @@ def try_to_lock_topic_for_monitor(
 		)
 		lock_service.create(lock)
 		lock_service.commit_transaction()
-		return True
+		return lock, True
 	except Exception:
 		lock_service.rollback_transaction()
-		return False
+		return None, False
+
+
+# noinspection PyBroadException
+def accomplish_job(lock: MonitorJobLock, status: MonitorJobLockStatus, principal_service: PrincipalService) -> None:
+	lock_service = get_lock_service(principal_service)
+	lock_service.begin_transaction()
+	try:
+		lock.status = status
+		lock_service.create(lock)
+		lock_service.commit_transaction()
+	except Exception:
+		lock_service.rollback_transaction()
 
 
 def run_monitor_rules(
@@ -184,8 +196,15 @@ def run_monitor_rules(
 		topics = find_all_topics(tenant.tenantId)
 		for topic in topics:
 			principal_service = fake_tenant_admin(tenant.tenantId)
-			if try_to_lock_topic_for_monitor(topic, frequency, process_date, principal_service):
-				MonitorRulesRunner(principal_service).run(process_date, frequency, topic.topicId)
+			lock, locked = try_to_lock_topic_for_monitor(topic, frequency, process_date, principal_service)
+			if locked:
+				try:
+					MonitorRulesRunner(principal_service).run(process_date, frequency, topic.topicId)
+					accomplish_job(lock, MonitorJobLockStatus.SUCCESS, principal_service)
+				except Exception as e:
+					logger.error(e, exc_info=True, stack_info=True)
+					accomplish_job(lock, MonitorJobLockStatus.FAILED, principal_service)
+
 	# clear enumeration cache
 	enum_service.clear()
 
