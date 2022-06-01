@@ -7,6 +7,7 @@ ExternalWriterId = TypeVar('ExternalWriterId', bound=str)
 
 UserId = TypeVar('UserId', bound=str)
 UserGroupId = TypeVar('UserGroupId', bound=str)
+NotebookId = TypeVar('NotebookId', bound=str)
 
 EnumId = TypeVar('EnumId', bound=str)
 EnumItemId = TypeVar('EnumItemId', bound=str)

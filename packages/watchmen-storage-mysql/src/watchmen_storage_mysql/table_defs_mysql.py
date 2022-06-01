@@ -28,6 +28,7 @@ table_pats = Table(
 	create_tenant_id(), create_str('note', 255),
 	create_datetime('expired'), create_json('permissions'), create_datetime('created_at', False)
 )
+
 table_tenants = Table(
 	'tenants', meta_data,
 	create_pk('tenant_id'),
@@ -92,6 +93,18 @@ table_enum_items = Table(
 	create_tuple_id_column('enum_id'),
 	create_tenant_id()
 )
+
+table_notebooks = Table(
+	'notebooks', meta_data,
+	create_pk('notebook_id'),
+	create_str('name', 50, False),
+	create_str('storage_type', 50),
+	create_str('storage_location', 150),
+	create_json("environment"),
+	create_json("dependencies"),
+	create_tenant_id(),*create_tuple_audit_columns(),
+)
+
 table_topics = Table(
 	'topics', meta_data,
 	create_pk('topic_id'),
@@ -231,6 +244,7 @@ tables: Dict[str, Table] = {
 	'enums': table_enums,
 	'enum_items': table_enum_items,
 	'topics': table_topics,
+	"notebooks":table_notebooks,
 	'pipelines': table_pipelines,
 	'pipeline_graphics': table_pipeline_graphics,
 	# console
