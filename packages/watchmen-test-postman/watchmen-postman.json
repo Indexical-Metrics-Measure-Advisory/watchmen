@@ -6831,7 +6831,7 @@
 										"header": [],
 										"body": {
 											"mode": "raw",
-											"raw": "{\n    \"dataSourceCode\": \"Test-Datasource\",\n    \"dataSourceType\": \"{{DATASOURCE_TYPE}}\",\n    \"host\": \"localhost\",\n    \"port\": \"{{DATABASE_PORT}}\",\n    \"username\": \"{{DATABASE_USERNAME}}\",\n    \"password\": \"{{DATABASE_PASSWORD}}\",\n    \"name\": \"{{DATABASE_SCHEMA}}\",\n    \"tenantId\": \"1\"\n}",
+											"raw": "{\n    \"dataSourceCode\": \"Test-Datasource\",\n    \"dataSourceType\": \"{{DATASOURCE_TYPE}}\",\n    \"host\": \"localhost\",\n    \"port\": \"{{DATASOURCE_PORT}}\",\n    \"username\": \"{{DATASOURCE_USERNAME}}\",\n    \"password\": \"{{DATASOURCE_PASSWORD}}\",\n    \"name\": \"{{DATASOURCE_SCHEMA}}\",\n    \"tenantId\": \"1\"\n}",
 											"options": {
 												"raw": {
 													"language": "json"
