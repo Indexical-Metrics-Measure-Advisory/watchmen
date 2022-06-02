@@ -65,7 +65,7 @@ export const EditDialog = (props: {
 	};
 
 	const onConfirmClicked = () => {
-		if (data.targetTopicName == null || data.targetTopicName.trim().length == 0) {
+		if (data.targetTopicName == null || data.targetTopicName.trim().length === 0) {
 			fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Target topic name is required.</AlertLabel>);
 			return;
 		}
