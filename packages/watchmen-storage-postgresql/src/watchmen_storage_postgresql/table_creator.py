@@ -111,7 +111,7 @@ FactorTypeMap: Dict[FactorType, Union[str, Callable[[Optional[str]], str]]] = {
 	FactorType.BIZ_TRADE: varchar_10,
 	FactorType.BIZ_SCALE: 'DECIMAL(9)',
 
-	FactorType.BOOLEAN: 'BOOLEAN',
+	FactorType.BOOLEAN: 'SMALLINT',
 
 	FactorType.ENUM: varchar_20,
 
