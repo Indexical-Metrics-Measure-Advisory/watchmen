@@ -13,7 +13,7 @@ CREATE TABLE reports
     chart              JSON,
     simulating         SMALLINT    NOT NULL,
     simulate_data      JSON,
-    simulate_thumbnail JSON,
+    simulate_thumbnail TEXT,
     user_id            VARCHAR(50) NOT NULL,
     tenant_id          VARCHAR(50) NOT NULL,
     last_visit_time    TIMESTAMP   NOT NULL,

@@ -2,7 +2,7 @@ CREATE TABLE dashboards
 (
     dashboard_id          VARCHAR(50) NOT NULL,
     name                  VARCHAR(50) NOT NULL,
-    dashboards            JSON,
+    reports               JSON,
     paragraphs            JSON,
     auto_refresh_interval DECIMAL(20),
     user_id               VARCHAR(50) NOT NULL,
