@@ -56,7 +56,8 @@ class PostgreSQLDataSourceHelper(DataSourceHelper):
 			future=True,
 			pool_recycle=params.poolRecycle,
 			json_serializer=serialize_to_json,
-			encoding='utf-8'
+			encoding='utf-8',
+			supports_native_boolean=False
 		)
 
 	# noinspection DuplicatedCode
