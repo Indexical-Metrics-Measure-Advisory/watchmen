@@ -102,7 +102,7 @@ def build_literal(tables: List[Table], a_literal: Literal, build_plain_value: Ca
 		elif operator == ComputedLiteralOperator.WEEK_OF_YEAR:
 			# week is a customized function, which can be found in data-scripts folder
 			# make sure each topic storage have this function
-			return func.week(build_literal(tables, a_literal.elements[0]), 0)
+			return func.week(build_literal(tables, a_literal.elements[0]))
 		elif operator == ComputedLiteralOperator.WEEK_OF_MONTH:
 			# weekofmonth is a customized function, which can be found in data-scripts folder
 			# make sure each topic storage have this function
