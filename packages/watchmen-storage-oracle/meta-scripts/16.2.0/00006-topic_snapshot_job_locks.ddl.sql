@@ -5,6 +5,7 @@ CREATE TABLE topic_snapshot_job_locks
     scheduler_id VARCHAR2(50) NOT NULL,
     frequency    VARCHAR2(20) NOT NULL,
     process_date DATE,
+    row_count    NUMBER(10)   NOT NULL,
     status       VARCHAR2(20) NOT NULL,
     user_id      VARCHAR2(50) NOT NULL,
     created_at   DATE         NOT NULL,

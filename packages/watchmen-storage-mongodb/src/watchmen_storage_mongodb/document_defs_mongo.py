@@ -216,7 +216,7 @@ table_topic_snapshot_job_locks = MongoDocument(
 	name='topic_snapshot_job_locks',
 	columns=[
 		create_pk('lock_id'), create_tuple_id_column('tenant_id', False), create_tuple_id_column('scheduler_id', False),
-		create_str('frequency', False), create_datetime('process_date', False),
+		create_str('frequency', False), create_datetime('process_date', False), create_int('row_count', False),
 		create_str('status', False),
 		create_tuple_id_column('user_id', False), create_datetime('created_at', False)
 	]

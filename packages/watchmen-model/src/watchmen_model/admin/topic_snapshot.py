@@ -53,6 +53,7 @@ class TopicSnapshotJobLock(Storable):
 	tenantId: TenantId = None
 	frequency: TopicSnapshotFrequency = None
 	processDate: date = None
+	rowCount: int = 0
 	status: TopicSnapshotJobLockStatus = None
 	userId: UserId = None,
 	createdAt: datetime = None

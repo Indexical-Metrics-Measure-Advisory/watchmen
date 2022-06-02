@@ -8,14 +8,14 @@ from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
 from watchmen_data_kernel.common import ask_all_date_formats
 from watchmen_data_kernel.service import sync_topic_structure_storage
-from watchmen_data_kernel.topic_snapshot import as_snapshot_task_topic_name, create_snapshot_pipeline, \
-	create_snapshot_target_topic, create_snapshot_task_topic, rebuild_snapshot_pipeline, \
-	rebuild_snapshot_target_topic, rebuild_snapshot_task_topic
 from watchmen_meta.admin import FactorService, PipelineService, TopicService, TopicSnapshotSchedulerService
 from watchmen_meta.analysis import TopicIndexService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import Pipeline, Topic, TopicSnapshotScheduler, TopicType, UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId, TopicId
+from watchmen_pipeline_kernel.topic_snapshot import as_snapshot_task_topic_name, create_snapshot_pipeline, \
+	create_snapshot_target_topic, create_snapshot_task_topic, rebuild_snapshot_pipeline, \
+	rebuild_snapshot_target_topic, rebuild_snapshot_task_topic
 from watchmen_rest import get_admin_principal, get_console_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
