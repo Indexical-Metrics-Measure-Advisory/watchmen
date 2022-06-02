@@ -198,7 +198,11 @@ def run_job(scheduler_id: TopicSnapshotSchedulerId, process_date: date) -> None:
 	principal_service = fake_tenant_admin(scheduler.tenantId)
 	lock, locked = try_to_lock_scheduler(scheduler, process_date, principal_service)
 	if locked:
-		create_tasks(lock, scheduler, principal_service)
+		try:
+			create_tasks(lock, scheduler, principal_service)
+		except Exception as e:
+			logger.error(e, exc_info=True, stack_info=True)
+			accomplish_job(lock, TopicSnapshotJobLockStatus.FAILED, principal_service)
 
 	# TODO handle tasks whether if grab the lock or not
 	# scan task topic to fetch task and trigger pipeline to write to target topic
