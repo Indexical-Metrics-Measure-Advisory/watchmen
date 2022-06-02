@@ -407,3 +407,37 @@ def get_day_of_month(dt: date) -> int:
 def get_day_of_week(dt: date) -> int:
 	# iso weekday: Monday is 1 and Sunday is 7
 	return (dt.isoweekday() + 1) % 8
+
+
+def to_start_of_day(process_date: date):
+	if isinstance(process_date, datetime):
+		return process_date.date()
+	else:
+		return process_date
+
+
+def to_yesterday(process_date: date) -> date:
+	"""
+	return yesterday
+	"""
+	return to_start_of_day(process_date - timedelta(days=1))
+
+
+def to_previous_week(process_date: date) -> date:
+	"""
+	return first day of previous week, sunday
+	"""
+	# iso weekday: Monday is 1 and Sunday is 7
+	weekday = process_date.isoweekday()
+	# get last sunday
+	return to_start_of_day(process_date - timedelta(days=weekday % 7 + 7))
+
+
+def to_previous_month(process_date: date) -> date:
+	"""
+	return first day of previous month
+	"""
+	# get last day of previous month
+	process_date = process_date.replace(day=1) - timedelta(days=1)
+	# set to first day of previous month
+	return to_start_of_day(process_date.replace(day=1))

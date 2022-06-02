@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from logging import getLogger
 from typing import Dict, List, Optional, Tuple
 
@@ -17,7 +17,8 @@ from watchmen_model.common import TenantId, TopicId
 from watchmen_model.dqc import MonitorJobLock, MonitorRule, MonitorRuleCode, MonitorRuleStatisticalInterval
 from watchmen_model.dqc.monitor_job_lock import MonitorJobLockStatus
 from watchmen_model.system import Tenant
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, to_previous_month, to_previous_week, \
+	to_yesterday
 from .rule import compute_date_range, disabled_rules, enum_service, rows_count_mismatch_with_another, rows_not_exists, \
 	run_all_rules
 
@@ -209,13 +210,6 @@ def run_monitor_rules(
 	enum_service.clear()
 
 
-def to_previous_month(process_date: date) -> date:
-	# get last day of previous month
-	process_date = process_date.replace(day=1) - timedelta(days=1)
-	# set to first day of previous month
-	return process_date.replace(day=1)
-
-
 def create_monthly_runner(scheduler: AsyncIOScheduler) -> None:
 	def run() -> None:
 		process_date = to_previous_month(get_current_time_in_seconds())
@@ -226,13 +220,6 @@ def create_monthly_runner(scheduler: AsyncIOScheduler) -> None:
 	scheduler.add_job(run, trigger, day=day, hour=hour, minute=minute)
 
 
-def to_previous_week(process_date: date) -> date:
-	# iso weekday: Monday is 1 and Sunday is 7
-	weekday = process_date.isoweekday()
-	# get last sunday
-	return process_date - timedelta(days=weekday % 7 + 7)
-
-
 def create_weekly_runner(scheduler: AsyncIOScheduler) -> None:
 	def run() -> None:
 		process_date = to_previous_week(get_current_time_in_seconds())
@@ -241,11 +228,6 @@ def create_weekly_runner(scheduler: AsyncIOScheduler) -> None:
 	trigger = ask_monitor_job_trigger()
 	day_of_week, hour, minute = ask_weekly_monitor_job_trigger_time()
 	scheduler.add_job(run, trigger, day_of_week=day_of_week, hour=hour, minute=minute)
-
-
-def to_yesterday(process_date: date) -> date:
-	# get yesterday
-	return process_date - timedelta(days=1)
 
 
 def create_daily_runner(scheduler: AsyncIOScheduler) -> None:
