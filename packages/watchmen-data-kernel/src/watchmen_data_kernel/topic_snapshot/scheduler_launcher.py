@@ -1,4 +1,3 @@
-from datetime import date, timedelta
 from logging import getLogger
 from typing import List, Optional, Tuple
 
@@ -11,7 +10,8 @@ from watchmen_meta.admin import TopicSnapshotSchedulerService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import TopicSnapshotFrequency, TopicSnapshotScheduler
 from watchmen_storage import SnowflakeGenerator
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, to_previous_month, to_previous_week, \
+	to_yesterday
 from .scheduler_registrar import topic_snapshot_jobs
 from .scheduler_runner import run_job
 
@@ -32,25 +32,6 @@ def find_enabled_jobs() -> List[TopicSnapshotScheduler]:
 		return []
 	finally:
 		scheduler_service.close_transaction()
-
-
-def to_yesterday(process_date: date) -> date:
-	# get yesterday
-	return process_date - timedelta(days=1)
-
-
-def to_previous_week(process_date: date) -> date:
-	# iso weekday: Monday is 1 and Sunday is 7
-	weekday = process_date.isoweekday()
-	# get last sunday
-	return process_date - timedelta(days=weekday % 7 + 7)
-
-
-def to_previous_month(process_date: date) -> date:
-	# get last day of previous month
-	process_date = process_date.replace(day=1) - timedelta(days=1)
-	# set to first day of previous month
-	return process_date.replace(day=1)
 
 
 def create_job(
