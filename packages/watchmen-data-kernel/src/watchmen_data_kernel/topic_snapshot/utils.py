@@ -72,6 +72,7 @@ def build_task_topic_factors(source_topic: Topic) -> List[Factor]:
 			factorId=f'ss-0',
 			type=FactorType.TEXT,
 			name='originalDataId',
+			flatten=True,
 			label='Original Data Id',
 			precision='50'
 		),
