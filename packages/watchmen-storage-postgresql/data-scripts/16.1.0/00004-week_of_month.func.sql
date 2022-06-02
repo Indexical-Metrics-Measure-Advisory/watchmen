@@ -3,10 +3,10 @@ CREATE OR REPLACE FUNCTION WEEKOFMONTH(a_date IN TIMESTAMPTZ)
 $$
 DECLARE
     first_day                  DATE DEFAULT DATE_TRUNC('MONTH', a_date);
-    week_of_year_of_first_day  SMALLINT DEFAULT WEEK(first_day, 0);
+    week_of_year_of_first_day  SMALLINT DEFAULT WEEK(first_day);
     -- Sunday 1 to Saturday 7
     weekday_of_first_day       SMALLINT DEFAULT CAST(TO_CHAR(first_day, 'D') AS SMALLINT);
-    week_of_year_of_given_date SMALLINT DEFAULT WEEK(a_date, 0);
+    week_of_year_of_given_date SMALLINT DEFAULT WEEK(a_date);
 BEGIN
     IF week_of_year_of_first_day = week_of_year_of_given_date THEN
         -- 1 is sunday
