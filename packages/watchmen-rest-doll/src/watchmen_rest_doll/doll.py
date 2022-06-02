@@ -3,7 +3,6 @@ from typing import Any, Callable, Dict, Optional, Tuple
 
 from fastapi import FastAPI
 
-from watchmen_data_kernel.boot import init_topic_snapshot_jobs
 from watchmen_meta.auth import build_find_user_by_name, build_find_user_by_pat
 from watchmen_model.admin import User
 from watchmen_pipeline_surface import pipeline_surface
@@ -69,12 +68,11 @@ class DollApp(RestApp):
 		}
 
 	def post_construct(self, app: FastAPI) -> None:
-		init_topic_snapshot_jobs()
+		pass
 
 	# noinspection PyMethodMayBeStatic
 	def init_pipeline_surface(self) -> None:
-		pipeline_surface.init_connectors()
-		pipeline_surface.init_external_writers()
+		pipeline_surface.init()
 
 	def on_startup(self, app: FastAPI) -> None:
 		self.init_pipeline_surface()

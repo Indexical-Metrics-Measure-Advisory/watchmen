@@ -71,7 +71,7 @@ def build_task_topic_factors(source_topic: Topic) -> List[Factor]:
 		Factor(
 			factorId=f'ss-0',
 			type=FactorType.TEXT,
-			name='originalDataId',
+			name='originaldataid',
 			flatten=True,
 			label='Original Data Id',
 			precision='50'
@@ -89,7 +89,7 @@ def build_task_topic_factors(source_topic: Topic) -> List[Factor]:
 		Factor(
 			factorId=f'ss-{len(source_topic.factors) + 2}',
 			type=FactorType.TEXT,
-			name='snapshotTag',
+			name='snapshottag',
 			label='Snapshot Tag',
 			flattern=True,
 			indexGroup=FactorIndexGroup.INDEX_2,
@@ -98,10 +98,28 @@ def build_task_topic_factors(source_topic: Topic) -> List[Factor]:
 		Factor(
 			factorId=f'ss-{len(source_topic.factors) + 3}',
 			type=FactorType.TEXT,
-			name='targetTopicName',
+			name='targettopicname',
 			label='Target topic name',
 			flattern=True,
 			indexGroup=FactorIndexGroup.INDEX_3,
+			precision='50'
+		),
+		Factor(
+			factorId=f'ss-{len(source_topic.factors) + 4}',
+			type=FactorType.TEXT,
+			name='jobid',
+			label='Job Id',
+			flattern=True,
+			indexGroup=FactorIndexGroup.INDEX_4,
+			precision='50'
+		),
+		Factor(
+			factorId=f'ss-{len(source_topic.factors) + 5}',
+			type=FactorType.TEXT,
+			name='schedulerid',
+			label='Job Scheduler Id',
+			flattern=True,
+			indexGroup=FactorIndexGroup.INDEX_5,
 			precision='50'
 		)
 	]

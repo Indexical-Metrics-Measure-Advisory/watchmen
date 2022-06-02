@@ -175,7 +175,7 @@ table_topic_snapshot_schedulers = Table(
 table_topic_snapshot_job_locks = Table(
 	'topic_snapshot_job_locks', meta_data,
 	create_pk('lock_id'), create_tuple_id_column('tenant_id', False), create_tuple_id_column('scheduler_id', False),
-	create_str('frequency', 10, False), create_datetime('process_date', False),
+	create_str('frequency', 10, False), create_datetime('process_date', False), create_int('row_count', False),
 	create_str('status', 10, False),
 	create_tuple_id_column('user_id', False), create_datetime('created_at', False)
 )

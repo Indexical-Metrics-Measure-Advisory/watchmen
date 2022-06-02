@@ -14,6 +14,7 @@ class TopicSnapshotJobLockShaper(EntityShaper):
 			'scheduler_id': lock.schedulerId,
 			'frequency': lock.frequency,
 			'process_date': lock.processDate,
+			'row_count': lock.rowCount,
 			'status': lock.status,
 			'user_id': lock.userId,
 			'created_at': lock.createdAt
@@ -26,6 +27,7 @@ class TopicSnapshotJobLockShaper(EntityShaper):
 			schedulerId=row.get('scheduler_id'),
 			frequency=row.get('frequency'),
 			processDate=row.get('process_date'),
+			rowCount=row.get('row_count'),
 			status=row.get('status'),
 			userId=row.get('user_id'),
 			createdAt=row.get('created_at')
@@ -75,4 +77,8 @@ class TopicSnapshotJobLockService(StorageService):
 		lock.createdAt = get_current_time_in_seconds()
 
 		self.storage.insert_one(lock, self.get_entity_helper())
+		return lock
+
+	def update(self, lock: TopicSnapshotJobLock) -> TopicSnapshotJobLock:
+		self.storage.update_one(lock, self.get_entity_id_helper())
 		return lock
