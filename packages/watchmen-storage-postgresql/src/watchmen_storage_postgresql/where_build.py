@@ -142,7 +142,7 @@ def build_literal(tables: List[Table], a_literal: Literal, build_plain_value: Ca
 			# datediff is a customized function, which can be found in data-scripts folder
 			# make sure each topic storage have this function
 			return func.datediff(
-				build_literal(tables, a_literal.elements[0]), build_literal(tables, a_literal.elements[1]))
+				build_literal(tables, a_literal.elements[1]), build_literal(tables, a_literal.elements[0]))
 		elif operator == ComputedLiteralOperator.FORMAT_DATE:
 			return func.to_char(
 				build_literal(tables, a_literal.elements[0]), translate_date_format(a_literal.elements[1]))
