@@ -1,9 +1,13 @@
+from datetime import date
 from typing import Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import StorageService
-from watchmen_model.admin import TopicSnapshotJobLock, TopicSnapshotJobLockId
-from watchmen_storage import EntityHelper, EntityIdHelper, EntityRow, EntityShaper, SnowflakeGenerator, \
+from watchmen_model.admin import TopicSnapshotFrequency, TopicSnapshotJobLock, TopicSnapshotJobLockId, \
+	TopicSnapshotSchedulerId
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityFinder, EntityHelper, EntityIdHelper, \
+	EntityRow, \
+	EntityShaper, SnowflakeGenerator, \
 	TransactionalStorageSPI
 from watchmen_utilities import get_current_time_in_seconds
 
@@ -76,6 +80,19 @@ class TopicSnapshotJobLockService(StorageService):
 
 	def find_by_id(self, lock_id: TopicSnapshotJobLockId) -> Optional[TopicSnapshotJobLock]:
 		return self.storage.find_by_id(lock_id, self.get_entity_id_helper())
+
+	def find_by_scheduler_and_process_date(
+			self, scheduler_id: TopicSnapshotSchedulerId,
+			frequency: TopicSnapshotFrequency, process_date: date) -> Optional[TopicSnapshotJobLock]:
+		return self.storage.find_one(EntityFinder(
+			name=self.get_entity_name(),
+			shaper=self.get_entity_shaper(),
+			criteria=[
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='scheduler_id'), right=scheduler_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='frequency'), right=frequency),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='process_date'), right=process_date),
+			]
+		))
 
 	def create(self, lock: TopicSnapshotJobLock) -> TopicSnapshotJobLock:
 		lock.lockId = self.generate_lock_id()
