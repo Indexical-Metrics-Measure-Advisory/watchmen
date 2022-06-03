@@ -2,6 +2,7 @@ import {fetchTopicSnapshotSchedulers} from '@/services/data/admin/topic-snapshot
 import {ParameterJointType} from '@/services/data/tuples/factor-calculator-types';
 import {TopicSnapshotFrequency, TopicSnapshotScheduler} from '@/services/data/tuples/topic-snapshot-types';
 import {Topic, TopicId} from '@/services/data/tuples/topic-types';
+import {generateUuid} from '@/services/data/tuples/utils';
 import {Page} from '@/services/data/types';
 import {getCurrentTime} from '@/services/data/utils';
 import {AlertLabel} from '@/widgets/alert/widgets';
@@ -67,7 +68,7 @@ export const Criteria = (props: { topics: Array<Topic> }) => {
 		// eslint-disable-next-line
 		const topic = topics.find(topic => topic.topicId == state.topicId);
 		const scheduler: TopicSnapshotScheduler = {
-			schedulerId: '',
+			schedulerId: generateUuid(),
 			topicId: state.topicId,
 			frequency: TopicSnapshotFrequency.DAILY,
 			day: '1',
