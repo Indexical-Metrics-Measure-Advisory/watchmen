@@ -2,10 +2,10 @@ from datetime import datetime  # noqa
 from typing import Dict, Optional, Tuple
 
 from sqlalchemy import Integer, String, Table
-
 from watchmen_model.admin import is_aggregation_topic, is_raw_topic, Topic
 from watchmen_model.common import TopicId
 from watchmen_storage import SNOWFLAKE_WORKER_ID_TABLE, UnexpectedStorageException
+
 from .table_defs_helper import create_bool, create_datetime, create_description, create_int, create_json, \
 	create_last_visit_time, create_medium_text, create_optimistic_lock, create_pk, create_str, \
 	create_tenant_id, create_tuple_audit_columns, create_tuple_id_column, create_user_id, meta_data
@@ -165,7 +165,7 @@ table_topic_snapshot_schedulers = Table(
 	create_pk('scheduler_id'),
 	create_tuple_id_column('topic_id', False),
 	create_str('target_topic_name', 25, False), create_tuple_id_column('target_topic_id', False),
-	create_tuple_id_column('pipeline_id', False),
+	create_tuple_id_column('pipeline_id', False), create_str('frequency', 10, False),
 	create_json('filter'),
 	create_str('weekday', 10), create_str('day', 10),
 	create_int('hour'), create_int('minute'),

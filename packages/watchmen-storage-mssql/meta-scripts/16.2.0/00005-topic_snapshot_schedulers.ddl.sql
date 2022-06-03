@@ -5,6 +5,7 @@ CREATE TABLE topic_snapshot_schedulers
     target_topic_name NVARCHAR(50) NOT NULL,
     target_topic_id   NVARCHAR(50) NOT NULL,
     pipeline_id       NVARCHAR(50) NOT NULL,
+    frequency         NVARCHAR(20) NOT NULL,
     filter            NVARCHAR(MAX),
     weekday           NVARCHAR(10),
     day               NVARCHAR(10),
