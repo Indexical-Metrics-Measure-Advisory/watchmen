@@ -91,7 +91,7 @@ def build_task_topic_factors(source_topic: Topic) -> List[Factor]:
 			type=FactorType.TEXT,
 			name='snapshottag',
 			label='Snapshot Tag',
-			flattern=True,
+			flatten=True,
 			indexGroup=FactorIndexGroup.INDEX_2,
 			precision='10'
 		),
@@ -100,7 +100,7 @@ def build_task_topic_factors(source_topic: Topic) -> List[Factor]:
 			type=FactorType.TEXT,
 			name='targettopicname',
 			label='Target topic name',
-			flattern=True,
+			flatten=True,
 			indexGroup=FactorIndexGroup.INDEX_3,
 			precision='50'
 		),
@@ -109,7 +109,7 @@ def build_task_topic_factors(source_topic: Topic) -> List[Factor]:
 			type=FactorType.TEXT,
 			name='jobid',
 			label='Job Id',
-			flattern=True,
+			flatten=True,
 			indexGroup=FactorIndexGroup.INDEX_4,
 			precision='50'
 		),
@@ -118,7 +118,7 @@ def build_task_topic_factors(source_topic: Topic) -> List[Factor]:
 			type=FactorType.TEXT,
 			name='schedulerid',
 			label='Job Scheduler Id',
-			flattern=True,
+			flatten=True,
 			indexGroup=FactorIndexGroup.INDEX_5,
 			precision='50'
 		)
