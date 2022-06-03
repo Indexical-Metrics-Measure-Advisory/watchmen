@@ -142,14 +142,14 @@ export const ResultBodyRow = styled.div.attrs({'data-widget': 'topic-snapshot-re
 	&:nth-last-child(2) {
 		border-bottom-left-radius  : calc(var(--border-radius) * 2);
 		border-bottom-right-radius : calc(var(--border-radius) * 2);
-		> div:first-child:nth-last-child(4) {
+		> div:first-child:nth-last-child(5) {
 			border-bottom-left-radius : calc(var(--border-radius) * 2);
 		}
 		> div:last-child {
 			border-bottom-right-radius : calc(var(--border-radius) * 2);
-			&:nth-child(5) {
-				border-bottom-left-radius : calc(var(--border-radius) * 2);
-			}
+			//&:nth-child(5) {
+			//	border-bottom-left-radius : calc(var(--border-radius) * 2);
+			//}
 		}
 	}
 	&:hover {
