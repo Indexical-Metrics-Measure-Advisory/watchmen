@@ -230,10 +230,14 @@ def run_task(
 			]
 		)
 	], Pageable(pageNumber=1, pageSize=1))
-	if len(page.data) == 0 and not after_sleeping:
-		sleep(30)
-		run_task(lock, scheduler, principal_service, True)
-		return
+	if len(page.data) == 0:
+		if not after_sleeping:
+			sleep(30)
+			run_task(lock, scheduler, principal_service, True)
+			return
+		else:
+			# job accomplished
+			return
 
 	# try to update status to process
 	data = page.data[0]

@@ -159,7 +159,7 @@ def create_snapshot_pipeline(task_topic: Topic, target_topic: Topic) -> Pipeline
 		name='Snapshot catcher, never change me manually',
 		type=PipelineTriggerType.INSERT_OR_MERGE,
 		conditional=True,
-		on=build_pipeline_prerequisite(task_topic),
+		on=build_pipeline_prerequisite(target_topic),
 		stages=build_pipeline_stages(target_topic),
 		enabled=True,
 		validated=True,
