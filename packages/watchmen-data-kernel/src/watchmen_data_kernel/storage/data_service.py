@@ -328,7 +328,9 @@ class TopicDataService(TopicStructureService):
 		finally:
 			storage.close()
 
-	def update_by_id_and_version(self, data: Dict[str, Any]) -> Tuple[int, EntityCriteria]:
+	def update_by_id_and_version(
+			self, data: Dict[str, Any], additional_criteria: Optional[EntityCriteria] = None
+	) -> Tuple[int, EntityCriteria]:
 		"""
 		version + 1, assign audit columns.
 		rollback version when update nothing
@@ -336,6 +338,8 @@ class TopicDataService(TopicStructureService):
 		"""
 		data_entity_helper = self.get_data_entity_helper()
 		criteria = self.build_id_version_criteria(data)
+		if additional_criteria is not None:
+			criteria = [*criteria, *additional_criteria]
 		current_version = data_entity_helper.find_version(data)
 		current_update_time = data_entity_helper.find_update_time(data)
 		# increase version
