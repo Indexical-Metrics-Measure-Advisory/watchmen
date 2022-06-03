@@ -28,6 +28,10 @@ def raise_404(detail: Any = 'Data not found.') -> None:
 	raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=detail)
 
 
+def raise_406(detail: Any = 'Request not acceptable.') -> None:
+	raise HTTPException(status_code=status.HTTP_406_NOT_ACCEPTABLE, detail=detail)
+
+
 def raise_500(e: Optional[Exception] = None, detail: Optional[str] = 'Unpredicted exception occurred.') -> None:
 	if e is not None:
 		logger.error(e, exc_info=True, stack_info=True)
