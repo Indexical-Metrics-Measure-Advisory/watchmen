@@ -5,7 +5,7 @@ from watchmen_model.admin import TopicSnapshotFrequency, TopicSnapshotScheduler,
 from watchmen_model.common import DataPage, Pageable, ParameterJoint, TenantId, TopicId
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, \
 	EntityShaper
-from watchmen_utilities import ArrayHelper, is_not_blank
+from watchmen_utilities import is_not_blank
 
 
 class TopicSnapshotSchedulerShaper(EntityShaper):
@@ -25,6 +25,7 @@ class TopicSnapshotSchedulerShaper(EntityShaper):
 			'target_topic_name': scheduler.targetTopicName,
 			'target_topic_id': scheduler.targetTopicId,
 			'pipeline_id': scheduler.pipelineId,
+			'frequency': scheduler.frequency,
 			'filter': TopicSnapshotSchedulerShaper.serialize_filter(scheduler.filter),
 			'weekday': scheduler.weekday,
 			'day': scheduler.day,
@@ -41,6 +42,7 @@ class TopicSnapshotSchedulerShaper(EntityShaper):
 			targetTopicName=row.get('target_topic_name'),
 			targetTopicId=row.get('target_topic_id'),
 			pipelineId=row.get('pipeline_id'),
+			frequency=row.get('frequency'),
 			filter=row.get('filter'),
 			weekday=row.get('weekday'),
 			day=row.get('day'),
@@ -62,11 +64,11 @@ class TopicSnapshotSchedulerService(TupleService):
 		return TOPIC_SNAPSHOT_SCHEDULER_ENTITY_SHAPER
 
 	def get_storable_id(self, storable: TopicSnapshotScheduler) -> TopicSnapshotSchedulerId:
-		return storable.spaceId
+		return storable.schedulerId
 
 	def set_storable_id(
 			self, storable: TopicSnapshotScheduler, storable_id: TopicSnapshotSchedulerId) -> TopicSnapshotScheduler:
-		storable.spaceId = storable_id
+		storable.schedulerId = storable_id
 		return storable
 
 	def get_storable_id_column_name(self) -> str:
@@ -85,11 +87,11 @@ class TopicSnapshotSchedulerService(TupleService):
 			if len(frequency) == 1:
 				criteria.append(EntityCriteriaExpression(
 					left=ColumnNameLiteral(columnName='frequency'), operator=EntityCriteriaOperator.EQUALS,
-					right=frequency[0].value))
+					right=frequency[0]))
 			else:
 				criteria.append(EntityCriteriaExpression(
 					left=ColumnNameLiteral(columnName='frequency'), operator=EntityCriteriaOperator.IN,
-					right=ArrayHelper(frequency).map(lambda x: x.value).to_list()))
+					right=frequency))
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))

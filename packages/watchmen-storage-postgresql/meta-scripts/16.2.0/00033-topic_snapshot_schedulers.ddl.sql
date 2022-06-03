@@ -5,6 +5,7 @@ CREATE TABLE topic_snapshot_schedulers
     target_topic_name VARCHAR(50) NOT NULL,
     target_topic_id   VARCHAR(50) NOT NULL,
     pipeline_id       VARCHAR(50) NOT NULL,
+    frequency         VARCHAR(20) NOT NULL,
     filter            JSON,
     weekday           VARCHAR(10),
     day               VARCHAR(10),

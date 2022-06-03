@@ -204,7 +204,7 @@ table_topic_snapshot_schedulers = MongoDocument(
 		create_pk('scheduler_id'),
 		create_tuple_id_column('topic_id', False),
 		create_str('target_topic_name', False), create_tuple_id_column('target_topic_id', False),
-		create_tuple_id_column('pipeline_id', False),
+		create_tuple_id_column('pipeline_id', False), create_str('frequency', False),
 		create_json('filter'),
 		create_str('weekday'), create_str('day'),
 		create_int('hour'), create_int('minute'),

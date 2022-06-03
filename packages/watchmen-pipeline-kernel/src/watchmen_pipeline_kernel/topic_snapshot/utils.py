@@ -31,7 +31,7 @@ def redress_factor_id(factor: Factor, index: int) -> Factor:
 
 def build_target_topic_factors(source_topic: Topic) -> List[Factor]:
 	return [
-		*ArrayHelper(source_topic.factors).map_with_index(lambda f, index: redress_factor_id).to_list(),
+		*ArrayHelper(source_topic.factors).map_with_index(redress_factor_id).to_list(),
 		Factor(
 			factorId=f'ss-{len(source_topic.factors) + 1}',
 			type=FactorType.TEXT,
@@ -51,7 +51,7 @@ def create_snapshot_target_topic(scheduler: TopicSnapshotScheduler, source_topic
 		kind=source_topic.kind,
 		dataSourceId=source_topic.dataSourceId,
 		factors=build_target_topic_factors(source_topic),
-		description=f'Snapshot of [${source_topic.name}], never change me manually.',
+		description=f'Snapshot of [{source_topic.name}], never change me manually.',
 		tenantId=source_topic.tenantId,
 		version=1
 	)
@@ -76,7 +76,7 @@ def build_task_topic_factors(source_topic: Topic) -> List[Factor]:
 			label='Original Data Id',
 			precision='50'
 		),
-		*ArrayHelper(source_topic.factors).map_with_index(lambda f, index: redress_factor_id).to_list(),
+		*ArrayHelper(source_topic.factors).map_with_index(redress_factor_id).to_list(),
 		Factor(
 			factorId=f'ss-{len(source_topic.factors) + 1}',
 			type=FactorType.TEXT,
@@ -133,7 +133,7 @@ def create_snapshot_task_topic(source_topic: Topic) -> Topic:
 		kind=source_topic.kind,
 		dataSourceId=source_topic.dataSourceId,
 		factors=build_task_topic_factors(source_topic),
-		description=f'Snapshot task of [${source_topic.name}], never change me manually.',
+		description=f'Snapshot task of [{source_topic.name}], never change me manually.',
 		tenantId=source_topic.tenantId,
 		version=1
 	)
