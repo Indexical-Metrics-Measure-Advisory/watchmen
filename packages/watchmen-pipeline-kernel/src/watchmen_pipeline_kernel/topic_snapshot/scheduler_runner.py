@@ -106,6 +106,8 @@ def try_to_accomplish_job(lock_id: TopicSnapshotJobLockId, principal_service: Pr
 			lock.status = TopicSnapshotJobLockStatus.SUCCESS
 			lock_service.update(lock)
 			lock_service.commit_transaction()
+			logger.info(
+				f'Topic snapshot job[lockId={lock.lockId}, schedulerId={lock.schedulerId}] accomplished successfully.')
 	except Exception:
 		lock_service.rollback_transaction()
 
@@ -204,6 +206,9 @@ def create_tasks(
 	if len(data_ids) == 0:
 		# no data needs to be processed, success
 		accomplish_job(lock, TopicSnapshotJobLockStatus.SUCCESS, principal_service)
+		logger.info(
+			f'Topic snapshot job[lockId={lock.lockId}, schedulerId={scheduler.schedulerId}] '
+			f'accomplished successfully with no data.')
 		return False
 
 	snapshot_tag = build_snapshot_tag(process_date, scheduler.frequency)
