@@ -1,3 +1,5 @@
+from typing import Optional
+
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import StorageService
 from watchmen_model.admin import TopicSnapshotJobLock, TopicSnapshotJobLockId
@@ -71,6 +73,9 @@ class TopicSnapshotJobLockService(StorageService):
 		return EntityIdHelper(
 			name=self.get_entity_name(), shaper=self.get_entity_shaper(),
 			idColumnName=self.get_lock_id_column_name())
+
+	def find_by_id(self, lock_id: TopicSnapshotJobLockId) -> Optional[TopicSnapshotJobLock]:
+		return self.storage.find_by_id(lock_id, self.get_entity_id_helper())
 
 	def create(self, lock: TopicSnapshotJobLock) -> TopicSnapshotJobLock:
 		lock.lockId = self.generate_lock_id()

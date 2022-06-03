@@ -14,7 +14,7 @@ from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_meta.admin import TopicSnapshotJobLockService, TopicSnapshotSchedulerService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import Pipeline, PipelineTriggerType, TopicSnapshotFrequency, TopicSnapshotJobLock, \
-	TopicSnapshotJobLockStatus, TopicSnapshotScheduler, TopicSnapshotSchedulerId
+	TopicSnapshotJobLockId, TopicSnapshotJobLockStatus, TopicSnapshotScheduler, TopicSnapshotSchedulerId
 from watchmen_model.common import Pageable, TenantId, TopicId
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_pipeline_kernel.pipeline import create_monitor_log_pipeline_invoker, PipelineTrigger
@@ -96,6 +96,20 @@ def accomplish_job(
 		lock_service.rollback_transaction()
 
 
+# noinspection PyBroadException
+def try_to_accomplish_job(lock_id: TopicSnapshotJobLockId, principal_service: PrincipalService) -> None:
+	lock_service = get_lock_service(principal_service)
+	lock_service.begin_transaction()
+	try:
+		lock = lock_service.find_by_id(lock_id)
+		if lock is not None and lock.status == TopicSnapshotJobLockStatus.READY:
+			lock.status = TopicSnapshotJobLockStatus.SUCCESS
+			lock_service.update(lock)
+			lock_service.commit_transaction()
+	except Exception:
+		lock_service.rollback_transaction()
+
+
 def build_snapshot_tag(process_date: date, frequency: TopicSnapshotFrequency) -> str:
 	if frequency == TopicSnapshotFrequency.DAILY:
 		return process_date.strftime('d%Y%m%d')
@@ -164,7 +178,7 @@ def find_task_rows(
 		rows = source_topic_service.find_distinct_values(None, [TopicDataColumnNames.ID.value], False)
 	else:
 		parsed_criteria = parse_condition_for_storage(
-			scheduler.filter, [source_topic_schema], principal_service, False)
+			scheduler.filter, [source_topic_schema], principal_service, True)
 		variables = build_variables(process_date, scheduler.frequency)
 		rows = source_topic_service.find_distinct_values(
 			[parsed_criteria.run(variables, principal_service)], [TopicDataColumnNames.ID.value], False)
@@ -236,7 +250,8 @@ def run_task(
 			run_task(lock, scheduler, principal_service, True)
 			return
 		else:
-			# job accomplished
+			# accomplish job
+			try_to_accomplish_job(lock.lockId, principal_service)
 			return
 
 	# try to update status to process
@@ -251,7 +266,9 @@ def run_task(
 	data[TopicDataColumnNames.TENANT_ID.value] = tenant_id
 	data[TopicDataColumnNames.INSERT_TIME.value] = insert_time
 	data[TopicDataColumnNames.UPDATE_TIME.value] = update_time
-	updated_count, _ = task_topic_service.update_by_id_and_version(data)
+	updated_count, _ = task_topic_service.update_by_id_and_version(data, [EntityCriteriaExpression(
+		left=ColumnNameLiteral(columnName='status'), right='ready'
+	)])
 	if updated_count == 0:
 		sleep(1)
 		run_task(lock, scheduler, principal_service)
