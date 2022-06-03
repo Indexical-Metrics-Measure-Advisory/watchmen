@@ -274,7 +274,11 @@ def run_task(
 
 def run_job(scheduler_id: TopicSnapshotSchedulerId, process_date: date) -> None:
 	scheduler_service = get_topic_snapshot_scheduler_service(fake_super_admin())
-	scheduler: Optional[TopicSnapshotScheduler] = scheduler_service.find_by_id(scheduler_id)
+	scheduler_service.begin_transaction()
+	try:
+		scheduler: Optional[TopicSnapshotScheduler] = scheduler_service.find_by_id(scheduler_id)
+	finally:
+		scheduler_service.close_transaction()
 	if scheduler is None:
 		logger.error(f'Topic snapshot scheduler[id={scheduler_id}] not found, remove from scheduler.')
 		topic_snapshot_jobs.remove_job(scheduler_id)
