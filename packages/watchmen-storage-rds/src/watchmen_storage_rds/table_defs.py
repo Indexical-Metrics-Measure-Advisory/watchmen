@@ -160,8 +160,8 @@ table_dashboards = Table(
 	create_int('auto_refresh_interval'),
 	create_tenant_id(), create_user_id(), create_last_visit_time(), *create_tuple_audit_columns()
 )
-table_topic_snapshot_schedulers = Table(
-	'topic_snapshot_schedulers', meta_data,
+table_snapshot_schedulers = Table(
+	'snapshot_schedulers', meta_data,
 	create_pk('scheduler_id'),
 	create_tuple_id_column('topic_id', False),
 	create_str('target_topic_name', 25, False), create_tuple_id_column('target_topic_id', False),
@@ -172,8 +172,8 @@ table_topic_snapshot_schedulers = Table(
 	create_bool('enabled', False),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
-table_topic_snapshot_job_locks = Table(
-	'topic_snapshot_job_locks', meta_data,
+table_snapshot_job_locks = Table(
+	'snapshot_job_locks', meta_data,
 	create_pk('lock_id'), create_tuple_id_column('tenant_id', False), create_tuple_id_column('scheduler_id', False),
 	create_str('frequency', 10, False), create_datetime('process_date', False), create_int('row_count', False),
 	create_str('status', 10, False),
@@ -306,8 +306,8 @@ tables: Dict[str, Table] = {
 	'topics': table_topics,
 	'pipelines': table_pipelines,
 	'pipeline_graphics': table_pipeline_graphics,
-	'topic_snapshot_schedulers': table_topic_snapshot_schedulers,
-	'topic_snapshot_job_locks': table_topic_snapshot_job_locks,
+	'snapshot_schedulers': table_snapshot_schedulers,
+	'snapshot_job_locks': table_snapshot_job_locks,
 	# console
 	'connected_spaces': table_connected_spaces,
 	'connected_space_graphics': table_connected_space_graphics,

@@ -34,7 +34,7 @@ class TopicSnapshotJobLockShaper(EntityShaper):
 		)
 
 
-TOPIC_SNAPSHOT_JOB_LOCK_ENTITY_NAME = 'topic_snapshot_job_locks'
+TOPIC_SNAPSHOT_JOB_LOCK_ENTITY_NAME = 'snapshot_job_locks'
 TOPIC_SNAPSHOT_JOB_LOCK_ENTITY_SHAPER = TopicSnapshotJobLockShaper()
 
 

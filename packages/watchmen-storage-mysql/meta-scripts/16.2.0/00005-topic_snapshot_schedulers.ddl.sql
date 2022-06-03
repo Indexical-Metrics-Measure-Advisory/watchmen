@@ -1,4 +1,4 @@
-CREATE TABLE topic_snapshot_schedulers
+CREATE TABLE snapshot_schedulers
 (
     scheduler_id      VARCHAR(50) NOT NULL,
     topic_id          VARCHAR(50) NOT NULL,

@@ -19,7 +19,7 @@ def register_topic_snapshot_job(scheduler: TopicSnapshotScheduler) -> None:
 
 	job = create_job(topic_snapshot_jobs.get_scheduler(), scheduler, ask_snowflake_generator())
 	if job is not None:
-		topic_snapshot_jobs.put_job(scheduler_id, scheduler.version, job)
+		topic_snapshot_jobs.put_job(scheduler_id, scheduler.version, job[1])
 
 
 def redress_factor_id(factor: Factor, index: int) -> Factor:
@@ -35,7 +35,7 @@ def build_target_topic_factors(source_topic: Topic) -> List[Factor]:
 		Factor(
 			factorId=f'ss-{len(source_topic.factors) + 1}',
 			type=FactorType.TEXT,
-			name='snapshotTag',
+			name='snapshottag',
 			label='Snapshot Tag',
 			indexGroup=FactorIndexGroup.INDEX_1,
 			precision='10'
@@ -201,7 +201,7 @@ def build_pipeline_prerequisite(target_topic: Topic) -> ParameterJoint:
 	return ParameterJoint(
 		jointType=ParameterJointType.AND,
 		filters=[ParameterExpression(
-			left=ConstantParameter(kind=ParameterKind.CONSTANT, value=f'{{targetTopicName}}'),
+			left=ConstantParameter(kind=ParameterKind.CONSTANT, value=f'{{targettopicname}}'),
 			operator=ParameterExpressionOperator.EQUALS,
 			right=ConstantParameter(kind=ParameterKind.CONSTANT, value=f'{target_topic.name}'),
 		)]

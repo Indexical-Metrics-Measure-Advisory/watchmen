@@ -52,7 +52,7 @@ class TopicSnapshotSchedulerShaper(EntityShaper):
 		))
 
 
-TOPIC_SNAPSHOT_SCHEDULER_ENTITY_NAME = 'topic_snapshot_schedulers'
+TOPIC_SNAPSHOT_SCHEDULER_ENTITY_NAME = 'snapshot_schedulers'
 TOPIC_SNAPSHOT_SCHEDULER_ENTITY_SHAPER = TopicSnapshotSchedulerShaper()
 
 
