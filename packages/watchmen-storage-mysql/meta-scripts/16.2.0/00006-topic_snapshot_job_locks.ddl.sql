@@ -1,4 +1,4 @@
-CREATE TABLE topic_snapshot_job_locks
+CREATE TABLE snapshot_job_locks
 (
     lock_id      VARCHAR(50) NOT NULL,
     tenant_id    VARCHAR(50) NOT NULL,

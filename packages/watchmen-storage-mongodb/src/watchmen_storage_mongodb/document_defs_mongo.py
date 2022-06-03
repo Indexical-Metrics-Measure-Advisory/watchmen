@@ -198,8 +198,8 @@ table_dashboards = MongoDocument(
 		create_tenant_id(), create_user_id(), create_last_visit_time(), *create_tuple_audit_columns()
 	]
 )
-table_topic_snapshot_schedulers = MongoDocument(
-	name='topic_snapshot_schedulers',
+table_snapshot_schedulers = MongoDocument(
+	name='snapshot_schedulers',
 	columns=[
 		create_pk('scheduler_id'),
 		create_tuple_id_column('topic_id', False),
@@ -212,8 +212,8 @@ table_topic_snapshot_schedulers = MongoDocument(
 		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 	]
 )
-table_topic_snapshot_job_locks = MongoDocument(
-	name='topic_snapshot_job_locks',
+table_snapshot_job_locks = MongoDocument(
+	name='snapshot_job_locks',
 	columns=[
 		create_pk('lock_id'), create_tuple_id_column('tenant_id', False), create_tuple_id_column('scheduler_id', False),
 		create_str('frequency', False), create_datetime('process_date', False), create_int('row_count', False),
@@ -369,8 +369,8 @@ tables: Dict[str, MongoDocument] = {
 	'topics': table_topics,
 	'pipelines': table_pipelines,
 	'pipeline_graphics': table_pipeline_graphics,
-	'topic_snapshot_schedulers': table_topic_snapshot_schedulers,
-	'topic_snapshot_job_locks': table_topic_snapshot_job_locks,
+	'snapshot_schedulers': table_snapshot_schedulers,
+	'snapshot_job_locks': table_snapshot_job_locks,
 	# console
 	'connected_spaces': table_connected_spaces,
 	'connected_space_graphics': table_connected_space_graphics,

@@ -1,4 +1,4 @@
-CREATE TABLE topic_snapshot_schedulers
+CREATE TABLE snapshot_schedulers
 (
     scheduler_id      VARCHAR(50) NOT NULL,
     topic_id          VARCHAR(50) NOT NULL,
@@ -18,12 +18,12 @@ CREATE TABLE topic_snapshot_schedulers
     last_modified_at  TIMESTAMP   NOT NULL,
     last_modified_by  VARCHAR(50) NOT NULL,
     version           DECIMAL(20),
-    CONSTRAINT pk_topic_snapshot_schedulers PRIMARY KEY (scheduler_id)
+    CONSTRAINT pk_snapshot_schedulers PRIMARY KEY (scheduler_id)
 );
-CREATE INDEX i_topic_snapshot_schedulers_1 ON topic_snapshot_schedulers (topic_id);
-CREATE INDEX i_topic_snapshot_schedulers_2 ON topic_snapshot_schedulers (target_topic_id);
-CREATE INDEX i_topic_snapshot_schedulers_3 ON topic_snapshot_schedulers (tenant_id);
-CREATE INDEX i_topic_snapshot_schedulers_4 ON topic_snapshot_schedulers (created_at);
-CREATE INDEX i_topic_snapshot_schedulers_5 ON topic_snapshot_schedulers (created_by);
-CREATE INDEX i_topic_snapshot_schedulers_6 ON topic_snapshot_schedulers (last_modified_at);
-CREATE INDEX i_topic_snapshot_schedulers_7 ON topic_snapshot_schedulers (last_modified_by);
+CREATE INDEX i_snapshot_schedulers_1 ON snapshot_schedulers (topic_id);
+CREATE INDEX i_snapshot_schedulers_2 ON snapshot_schedulers (target_topic_id);
+CREATE INDEX i_snapshot_schedulers_3 ON snapshot_schedulers (tenant_id);
+CREATE INDEX i_snapshot_schedulers_4 ON snapshot_schedulers (created_at);
+CREATE INDEX i_snapshot_schedulers_5 ON snapshot_schedulers (created_by);
+CREATE INDEX i_snapshot_schedulers_6 ON snapshot_schedulers (last_modified_at);
+CREATE INDEX i_snapshot_schedulers_7 ON snapshot_schedulers (last_modified_by);
