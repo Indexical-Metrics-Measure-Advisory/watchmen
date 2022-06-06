@@ -180,11 +180,11 @@ export const Apis = {
 	INSPECTION_SAVE: 'indicator/inspection',
 	INSPECTION_DATA: 'indicator/inspection/data?inspection_id=:inspectionId',
 
-	NAVIGATION_LIST_BY_NAME: 'indicator/navigation/name?query_name=:search',
-	NAVIGATION_CREATE: 'indicator/navigation',
-	NAVIGATION_SAVE: 'indicator/navigation',
-	NAVIGATION_GET: 'indicator/navigation?navigation_id=:navigationId',
-	NAVIGATION_INDICATOR_DATA: 'indicator/navigation/data'
+	ACHIEVEMENT_LIST_BY_NAME: 'indicator/achievement/name?query_name=:search',
+	ACHIEVEMENT_CREATE: 'indicator/achievement',
+	ACHIEVEMENT_SAVE: 'indicator/achievement',
+	ACHIEVEMENT_GET: 'indicator/achievement?achievement_id=:achievementId',
+	ACHIEVEMENT_INDICATOR_DATA: 'indicator/achievement/data'
 };
 
 const buildApi = (api: string, args?: Record<string, any>): string => {

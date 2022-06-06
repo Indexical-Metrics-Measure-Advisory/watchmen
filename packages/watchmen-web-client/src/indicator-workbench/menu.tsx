@@ -5,10 +5,11 @@ import {
 	ICON_ADMIN,
 	ICON_BUCKETS,
 	ICON_CONSOLE,
-	ICON_DATA_QUALITY, ICON_INDICATOR_GOVERNANCE,
+	ICON_DATA_QUALITY,
+	ICON_INDICATOR_OBJECTIVE_ANALYSIS,
 	ICON_INDICATOR_INDICATOR,
 	ICON_INDICATOR_INSPECTION,
-	ICON_INDICATOR_NAVIGATION,
+	ICON_INDICATOR_ACHIEVEMENT,
 	ICON_LOGOUT,
 	ICON_SETTINGS,
 	ICON_SWITCH_WORKBENCH,
@@ -147,14 +148,14 @@ export const IndicatorWorkbenchMenu = () => {
 		              showTooltip={showTooltip}
 		              active={!!matchPath(location.pathname, Router.INDICATOR_WORKBENCH_INSPECTION)}
 		              onClick={onMenuClicked(Router.INDICATOR_WORKBENCH_INSPECTION)}/>
-		<SideMenuItem icon={ICON_INDICATOR_NAVIGATION} label={Lang.INDICATOR_WORKBENCH.MENU.NAVIGATIONS}
+		<SideMenuItem icon={ICON_INDICATOR_ACHIEVEMENT} label={Lang.INDICATOR_WORKBENCH.MENU.ACHIEVEMENTS}
 		              showTooltip={showTooltip}
-		              active={!!matchPath(location.pathname, Router.INDICATOR_WORKBENCH_NAVIGATION)}
-		              onClick={onMenuClicked(Router.INDICATOR_WORKBENCH_NAVIGATION)}/>
-		<SideMenuItem icon={ICON_INDICATOR_GOVERNANCE} label={Lang.INDICATOR_WORKBENCH.MENU.GOVERNANCE}
+		              active={!!matchPath(location.pathname, Router.INDICATOR_WORKBENCH_ACHIEVEMENT)}
+		              onClick={onMenuClicked(Router.INDICATOR_WORKBENCH_ACHIEVEMENT)}/>
+		<SideMenuItem icon={ICON_INDICATOR_OBJECTIVE_ANALYSIS} label={Lang.INDICATOR_WORKBENCH.MENU.OBJECTIVE_ANALYSIS}
 		              showTooltip={showTooltip}
-		              active={!!matchPath(location.pathname, Router.INDICATOR_WORKBENCH_GOVERNANCE)}
-		              onClick={onMenuClicked(Router.INDICATOR_WORKBENCH_GOVERNANCE)}/>
+		              active={!!matchPath(location.pathname, Router.INDICATOR_WORKBENCH_OBJECTIVE_ANALYSIS)}
+		              onClick={onMenuClicked(Router.INDICATOR_WORKBENCH_OBJECTIVE_ANALYSIS)}/>
 		<SideMenuPlaceholder/>
 		<SideMenuSeparator width={menuWidth}/>
 		<SideMenuItem icon={ICON_SETTINGS} label={Lang.INDICATOR_WORKBENCH.MENU.SETTINGS} showTooltip={showTooltip}

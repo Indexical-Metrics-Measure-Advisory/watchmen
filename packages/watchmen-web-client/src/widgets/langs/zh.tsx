@@ -36,11 +36,11 @@ export const Zh = {
 		FIND_INDICATOR_VALUE_BUCKETS_PLACEHOLDER: '根据分桶名称查找.',
 		FIND_INDICATOR_USER_GROUPS_PLACEHOLDER: '根据用户组名查找.',
 		DROPDOWN_PLACEHOLDER: '请选择...',
-		FIND_NAVIGATION_PLACEHOLDER: '根据名称查找.',
-		NEW_NAVIGATION_NAME: '指标领航',
-		NAVIGATION_CRITERIA_TIME_RANGE_YEAR_MONTH: '填写"year"或"month"来引用统一定义的时间窗口.',
-		NAVIGATION_CRITERIA_TIME_RANGE_YEAR: '填写"year"来引用统一定义的年份.',
-		NAVIGATION_CRITERIA_TIME_RANGE_MONTH: '填写"month"来引用统一定义的月份.'
+		FIND_ACHIEVEMENT_PLACEHOLDER: '根据名称查找.',
+		NEW_ACHIEVEMENT_NAME: '业绩',
+		ACHIEVEMENT_CRITERIA_TIME_RANGE_YEAR_MONTH: '填写"year"或"month"来引用统一定义的时间窗口.',
+		ACHIEVEMENT_CRITERIA_TIME_RANGE_YEAR: '填写"year"来引用统一定义的年份.',
+		ACHIEVEMENT_CRITERIA_TIME_RANGE_MONTH: '填写"month"来引用统一定义的月份.'
 	},
 	STANDARD: {
 		YES: '是',
@@ -280,9 +280,9 @@ export const Zh = {
 			TITLE: '指标工作台',
 			BUCKETS: '分桶',
 			INDICATORS: '指标',
-			INSPECTIONS: '指标洞察',
-			NAVIGATIONS: '指标领航',
-			GOVERNANCE: '指标治理',
+			INSPECTIONS: '洞察',
+			ACHIEVEMENTS: '业绩',
+			OBJECTIVE_ANALYSIS: '指标治理',
 			SETTINGS: '设置',
 			LOGOUT: '登出'
 		},
@@ -426,7 +426,7 @@ export const Zh = {
 			PLEASE_SELECT_ENUM_ITEM: '请至少选择一个枚举项加入到分组.'
 		},
 		INSPECTION: {
-			TITLE: '指标洞察',
+			TITLE: '洞察',
 			OR: '或',
 			PICK_INSPECTION_LABEL: '选择洞察:',
 			PICKED_INSPECTION_LABEL: '已选择洞察:',
@@ -473,15 +473,15 @@ export const Zh = {
 			NO_DATA: '没有合适的数据.',
 			VISUALIZATION_LABEL: '可视化'
 		},
-		NAVIGATION: {
-			TITLE: '指标领航',
-			LABEL: '指标领航',
-			CREATE_NAVIGATION: '创建指标领航',
-			NEW_NAVIGATION_PREFIX: '新',
-			EXISTING_NAVIGATION_PREFIX: '已存在的',
+		ACHIEVEMENT: {
+			TITLE: '业绩',
+			LABEL: '业绩',
+			CREATE_ACHIEVEMENT: '创建业绩定义',
+			NEW_ACHIEVEMENT_PREFIX: '新',
+			EXISTING_ACHIEVEMENT_PREFIX: '已存在的',
 			CREATE_AT: '创建于',
 			LAST_MODIFIED_AT: '最后更新于',
-			NAVIGATION_NOT_FOUND: '需要的指标领航定义没有找到, 请联系您的系统管理员以获取更多信息.',
+			ACHIEVEMENT_NOT_FOUND: '需要的业绩定义没有找到, 请联系您的系统管理员以获取更多信息.',
 			BACK_TO_QUERY: '回查询页',
 			HIDE_INDICATOR_CANDIDATES: '隐藏候选指标',
 			SHOW_INDICATOR_CANDIDATES: '显示候选指标',
@@ -514,8 +514,8 @@ export const Zh = {
 			COMPUTE_INDICATOR_NODE_LABEL: '计算指标',
 			SCORE_INCLUDE_IN_FINAL: '计算入最终得分?:'
 		},
-		GOVERNANCE: {
-			TITLE: '指标治理'
+		OBJECTIVE_ANALYSIS: {
+			TITLE: '目标达成分析'
 		}
 	},
 	SETTINGS: {
