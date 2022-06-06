@@ -13,6 +13,8 @@ import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useState} from 'react';
+import {useAdminCacheEventBus} from '../../cache/cache-event-bus';
+import {AdminCacheEventTypes} from '../../cache/cache-event-bus-types';
 import {EditDialog} from './edit-dialog';
 import {useTopicSnapshotEventBus} from './topic-snapshot-event-bus';
 import {TopicSnapshotEventTypes} from './topic-snapshot-event-bus-types';
@@ -30,6 +32,7 @@ export const Criteria = (props: { topics: Array<Topic> }) => {
 	const {topics} = props;
 
 	const {fire: fireGlobal} = useEventBus();
+	const {fire: fireCache} = useAdminCacheEventBus();
 	const {fire} = useTopicSnapshotEventBus();
 	const [state, setState] = useState<CriteriaState>({frequency: []});
 	const [searching, setSearching] = useState(false);
@@ -84,9 +87,13 @@ export const Criteria = (props: { topics: Array<Topic> }) => {
 			createdAt: getCurrentTime(),
 			lastModifiedAt: getCurrentTime()
 		};
+		const onSchedulerCreated = async () => {
+			await new Promise<void>(resolve => {
+				fireCache(AdminCacheEventTypes.ASK_LOAD_MORE, resolve);
+			});
+		};
 		fireGlobal(EventTypes.SHOW_DIALOG,
-			<EditDialog scheduler={scheduler} topic={topic} onConfirm={async () => {
-			}}/>,
+			<EditDialog scheduler={scheduler} topic={topic} onConfirm={onSchedulerCreated}/>,
 			{
 				marginTop: '10vh',
 				marginLeft: '20%',

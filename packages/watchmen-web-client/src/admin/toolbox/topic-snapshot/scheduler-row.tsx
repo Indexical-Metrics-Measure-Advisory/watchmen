@@ -1,5 +1,3 @@
-import {useAdminCacheEventBus} from '@/admin/cache/cache-event-bus';
-import {AdminCacheEventTypes} from '@/admin/cache/cache-event-bus-types';
 import {TopicSnapshotFrequency, TopicSnapshotScheduler} from '@/services/data/tuples/topic-snapshot-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {DwarfButton} from '@/widgets/basic/button';
@@ -9,6 +7,8 @@ import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React from 'react';
+import {useAdminCacheEventBus} from '../../cache/cache-event-bus';
+import {AdminCacheEventTypes} from '../../cache/cache-event-bus-types';
 import {EditDialog} from './edit-dialog';
 import {ResultBodyCell, ResultBodyRow} from './widgets';
 
