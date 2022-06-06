@@ -70,6 +70,8 @@ import {
 	faLink,
 	faLock,
 	faLockOpen,
+	faMagnifyingGlassChart,
+	faMicroscope,
 	faMinus,
 	faObjectGroup,
 	faPalette,
@@ -83,6 +85,7 @@ import {
 	faPrint,
 	faQuestionCircle,
 	faRandom,
+	faRankingStar,
 	faRobot,
 	faRulerCombined,
 	faSave,
@@ -93,12 +96,10 @@ import {
 	faSortAmountDown,
 	faSortAmountUpAlt,
 	faSpinner,
-	faSquarePollVertical,
 	faStar,
 	faStarOfLife,
 	faStickyNote,
 	faStream,
-	faStreetView,
 	faSyncAlt,
 	faTable,
 	faTags,
@@ -223,9 +224,9 @@ export const ICON_STATISTICS = faCompass;
 export const ICON_END_USER = faChalkboardTeacher;
 
 export const ICON_BUCKETS = faShapes;
-export const ICON_INDICATOR_INDICATOR = faSquarePollVertical;
-export const ICON_INDICATOR_INSPECTION = faToolbox;
-export const ICON_INDICATOR_NAVIGATION = faStreetView;
+export const ICON_INDICATOR_INDICATOR = faMagnifyingGlassChart;
+export const ICON_INDICATOR_INSPECTION = faMicroscope;
+export const ICON_INDICATOR_NAVIGATION = faRankingStar;
 export const ICON_TIME_GROUPING = faClock;
 export const ICON_BUCKET_ON = faShapes;
 export const ICON_CHART_BAR = faChartColumn;
