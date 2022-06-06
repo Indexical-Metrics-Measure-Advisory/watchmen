@@ -1,3 +1,4 @@
+import {Achievement, AchievementIndicator} from '@/services/data/tuples/achievement-types';
 import {isMeasureBucket} from '@/services/data/tuples/bucket-utils';
 import {Factor} from '@/services/data/tuples/factor-types';
 import {Indicator} from '@/services/data/tuples/indicator-types';
@@ -7,7 +8,6 @@ import {
 	tryToTransformColumnToMeasures,
 	tryToTransformToMeasures
 } from '@/services/data/tuples/indicator-utils';
-import {Achievement, AchievementIndicator} from '@/services/data/tuples/achievement-types';
 import {SubjectDataSetColumn} from '@/services/data/tuples/subject-types';
 import {DropdownOption} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';

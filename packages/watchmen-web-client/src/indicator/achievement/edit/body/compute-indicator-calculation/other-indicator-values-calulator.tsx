@@ -2,9 +2,9 @@ import {Achievement, AchievementIndicator} from '@/services/data/tuples/achievem
 import {isNotNull} from '@/services/data/utils';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {Fragment, useEffect, useState} from 'react';
-import {interpolation, toNumber} from '../indicator-values-calculator';
 import {useAchievementEditEventBus} from '../achievement-edit-event-bus';
 import {AchievementEditEventTypes} from '../achievement-edit-event-bus-types';
+import {interpolation, toNumber} from '../indicator-values-calculator';
 import {
 	AllCalculatedIndicatorValuesData,
 	AllIndicatedValuesCalculationResult,

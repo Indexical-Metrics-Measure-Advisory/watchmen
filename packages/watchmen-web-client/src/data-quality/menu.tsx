@@ -24,11 +24,7 @@ import {SideMenuResizeHandle} from '@/widgets/basic/side-menu/side-menu-resize-h
 import {SideMenuSeparator} from '@/widgets/basic/side-menu/side-menu-separator';
 import {SideMenuSwitchWorkbench} from '@/widgets/basic/side-menu/side-menu-switch-workbench';
 import {SideMenuUser} from '@/widgets/basic/side-menu/side-menu-user';
-import {
-	isAdminAvailable,
-	isConsoleAvailable,
-	isIndicatorAvailable
-} from '@/widgets/common-settings/workbench-utils';
+import {isAdminAvailable, isConsoleAvailable, isIndicatorAvailable} from '@/widgets/common-settings/workbench-utils';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import React, {useEffect, useState} from 'react';

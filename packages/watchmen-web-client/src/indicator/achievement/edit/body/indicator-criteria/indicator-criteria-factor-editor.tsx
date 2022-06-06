@@ -1,10 +1,14 @@
-import {FactorId} from '@/services/data/tuples/factor-types';
-import {Indicator} from '@/services/data/tuples/indicator-types';
-import {Achievement, AchievementIndicator, AchievementIndicatorCriteria} from '@/services/data/tuples/achievement-types';
+import {
+	Achievement,
+	AchievementIndicator,
+	AchievementIndicatorCriteria
+} from '@/services/data/tuples/achievement-types';
 import {
 	isAchievementIndicatorCriteriaOnBucket,
 	isAchievementIndicatorCriteriaOnExpression
 } from '@/services/data/tuples/achievement-utils';
+import {FactorId} from '@/services/data/tuples/factor-types';
+import {Indicator} from '@/services/data/tuples/indicator-types';
 import {noop} from '@/services/utils';
 import {Dropdown} from '@/widgets/basic/dropdown';
 import {DropdownOption} from '@/widgets/basic/types';

@@ -1,5 +1,5 @@
-import {TopicSnapshotScheduler} from '@/services/data/tuples/topic-snapshot-types';
 import {ParameterJointType} from '@/services/data/tuples/factor-calculator-types';
+import {TopicSnapshotScheduler} from '@/services/data/tuples/topic-snapshot-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {SingleTopicFilter} from '@/widgets/single-topic-filter';
 import {FilterEventBusProvider} from '@/widgets/single-topic-filter/filter-event-bus';

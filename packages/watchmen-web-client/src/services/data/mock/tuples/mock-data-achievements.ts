@@ -1,10 +1,10 @@
-import {IndicatorAggregateArithmetic} from '../../tuples/indicator-types';
 import {
-	MANUAL_COMPUTE_ACHIEVEMENT_INDICATOR_ID,
 	Achievement,
 	AchievementIndicatorCriteriaOnBucket,
-	AchievementTimeRangeType
+	AchievementTimeRangeType,
+	MANUAL_COMPUTE_ACHIEVEMENT_INDICATOR_ID
 } from '../../tuples/achievement-types';
+import {IndicatorAggregateArithmetic} from '../../tuples/indicator-types';
 import {getCurrentTime} from '../../utils';
 import {BUCKET_CITIES_ID} from './mock-data-buckets';
 import {INDICATOR_ORDER_PREMIUM_ID} from './mock-data-indicators';

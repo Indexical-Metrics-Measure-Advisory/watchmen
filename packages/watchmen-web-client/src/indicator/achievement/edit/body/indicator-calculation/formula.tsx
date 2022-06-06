@@ -1,5 +1,5 @@
-import {IndicatorAggregateArithmetic} from '@/services/data/tuples/indicator-types';
 import {Achievement, AchievementIndicator} from '@/services/data/tuples/achievement-types';
+import {IndicatorAggregateArithmetic} from '@/services/data/tuples/indicator-types';
 import {noop} from '@/services/utils';
 import {CheckBox} from '@/widgets/basic/checkbox';
 import {Dropdown} from '@/widgets/basic/dropdown';

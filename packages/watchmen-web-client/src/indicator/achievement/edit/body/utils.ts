@@ -1,4 +1,3 @@
-import {Indicator} from '@/services/data/tuples/indicator-types';
 import {
 	Achievement,
 	AchievementIndicator,
@@ -8,6 +7,7 @@ import {
 	isAchievementIndicatorCriteriaOnBucket,
 	isAchievementIndicatorCriteriaOnExpression
 } from '@/services/data/tuples/achievement-utils';
+import {Indicator} from '@/services/data/tuples/indicator-types';
 import {Lang} from '@/widgets/langs';
 import {
 	CurveRect,

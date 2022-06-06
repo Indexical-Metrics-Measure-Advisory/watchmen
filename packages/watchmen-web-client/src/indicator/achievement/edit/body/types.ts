@@ -1,6 +1,6 @@
+import {AchievementIndicator} from '@/services/data/tuples/achievement-types';
 import {Bucket} from '@/services/data/tuples/bucket-types';
 import {Indicator} from '@/services/data/tuples/indicator-types';
-import {AchievementIndicator} from '@/services/data/tuples/achievement-types';
 import {SubjectForIndicator} from '@/services/data/tuples/query-indicator-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 

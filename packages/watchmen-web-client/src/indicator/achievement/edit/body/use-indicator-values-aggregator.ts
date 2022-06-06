@@ -3,11 +3,11 @@ import {useEffect, useState} from 'react';
 import {useAchievementEditEventBus} from './achievement-edit-event-bus';
 import {AchievementEditEventTypes} from './achievement-edit-event-bus-types';
 import {
+	AchievementIndicatorCalculatedValues,
 	AllCalculatedIndicatorValues,
 	AllCalculatedIndicatorValuesData,
 	AllIndicatedValuesCalculationResult,
-	CalculatedIndicatorValues,
-	AchievementIndicatorCalculatedValues
+	CalculatedIndicatorValues
 } from './types';
 
 const needApplyComputed = (computed: AllIndicatedValuesCalculationResult, current: AllCalculatedIndicatorValues) => {

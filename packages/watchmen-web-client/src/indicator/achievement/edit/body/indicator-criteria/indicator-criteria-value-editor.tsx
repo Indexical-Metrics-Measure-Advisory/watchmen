@@ -1,5 +1,3 @@
-import {MeasureMethod} from '@/services/data/tuples/indicator-types';
-import {tryToTransformColumnToMeasures, tryToTransformToMeasures} from '@/services/data/tuples/indicator-utils';
 import {
 	Achievement,
 	AchievementIndicator,
@@ -7,6 +5,8 @@ import {
 	AchievementIndicatorCriteriaOnBucket,
 	AchievementIndicatorCriteriaOnExpression
 } from '@/services/data/tuples/achievement-types';
+import {MeasureMethod} from '@/services/data/tuples/indicator-types';
+import {tryToTransformColumnToMeasures, tryToTransformToMeasures} from '@/services/data/tuples/indicator-utils';
 import {noop} from '@/services/utils';
 import {Dropdown} from '@/widgets/basic/dropdown';
 import {Input} from '@/widgets/basic/input';

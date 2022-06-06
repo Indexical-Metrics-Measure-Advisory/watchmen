@@ -1,11 +1,11 @@
-import {Indicator, IndicatorAggregateArithmetic} from '@/services/data/tuples/indicator-types';
 import {
-	MANUAL_COMPUTE_ACHIEVEMENT_INDICATOR_ID,
-	ManualComputeAchievementIndicator,
 	Achievement,
 	AchievementIndicator,
-	AchievementTimeRangeType
+	AchievementTimeRangeType,
+	MANUAL_COMPUTE_ACHIEVEMENT_INDICATOR_ID,
+	ManualComputeAchievementIndicator
 } from '@/services/data/tuples/achievement-types';
+import {Indicator, IndicatorAggregateArithmetic} from '@/services/data/tuples/indicator-types';
 import {generateUuid} from '@/services/data/tuples/utils';
 import {getCurrentTime} from '@/services/data/utils';
 import {base64Encode} from '@/services/utils';

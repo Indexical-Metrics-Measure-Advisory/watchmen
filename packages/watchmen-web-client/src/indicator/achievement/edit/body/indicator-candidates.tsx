@@ -1,9 +1,9 @@
-import {Indicator} from '@/services/data/tuples/indicator-types';
 import {Achievement} from '@/services/data/tuples/achievement-types';
+import {Indicator} from '@/services/data/tuples/indicator-types';
 import {useEffect, useState} from 'react';
-import {MoreIndicators} from './more-indicators';
 import {useAchievementEditEventBus} from './achievement-edit-event-bus';
 import {AchievementEditEventTypes} from './achievement-edit-event-bus-types';
+import {MoreIndicators} from './more-indicators';
 import {IndicatorCategoryContent} from './types';
 import {useShowAddIndicator} from './use-show-add-indicator';
 import {buildCategoryNodes} from './utils';

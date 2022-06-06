@@ -1,15 +1,15 @@
-import {Indicator} from '@/services/data/tuples/indicator-types';
 import {Achievement} from '@/services/data/tuples/achievement-types';
+import {Indicator} from '@/services/data/tuples/indicator-types';
 import {FireTiming, useThrottler} from '@/widgets/throttler';
 import {useEffect, useRef, useState} from 'react';
 import {v4} from 'uuid';
 import {useAchievementEventBus} from '../../achievement-event-bus';
 import {AchievementEventTypes} from '../../achievement-event-bus-types';
-import {IndicatorCandidates} from './indicator-candidates';
-import {MoreComputeIndicators} from './more-compute-indicators';
 import {AchievementEditEventBusProvider, useAchievementEditEventBus} from './achievement-edit-event-bus';
 import {AchievementEditEventTypes} from './achievement-edit-event-bus-types';
 import {AchievementRoot} from './achievement-root';
+import {IndicatorCandidates} from './indicator-candidates';
+import {MoreComputeIndicators} from './more-compute-indicators';
 import {PickedIndicators} from './picked-indicators';
 import {TimeRange} from './time-range';
 import {BodyContainer, BodyPalette, PaletteColumn} from './widgets';

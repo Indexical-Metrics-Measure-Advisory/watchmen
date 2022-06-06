@@ -1,4 +1,5 @@
 import {Apis, get} from '@/services/data/apis';
+import {Achievement, AchievementIndicator} from '@/services/data/tuples/achievement-types';
 import {Bucket} from '@/services/data/tuples/bucket-types';
 import {Indicator, IndicatorBaseOn, MeasureMethod} from '@/services/data/tuples/indicator-types';
 import {
@@ -6,7 +7,6 @@ import {
 	tryToTransformColumnToMeasures,
 	tryToTransformToMeasures
 } from '@/services/data/tuples/indicator-utils';
-import {Achievement, AchievementIndicator} from '@/services/data/tuples/achievement-types';
 import {QueryByBucketMethod, QueryByEnumMethod, QueryByMeasureMethod} from '@/services/data/tuples/query-bucket-types';
 import {SubjectForIndicator} from '@/services/data/tuples/query-indicator-types';
 import {Topic} from '@/services/data/tuples/topic-types';

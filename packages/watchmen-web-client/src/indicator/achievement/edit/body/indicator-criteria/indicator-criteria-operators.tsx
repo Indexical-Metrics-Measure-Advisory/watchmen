@@ -1,4 +1,8 @@
-import {Achievement, AchievementIndicator, AchievementIndicatorCriteria} from '@/services/data/tuples/achievement-types';
+import {
+	Achievement,
+	AchievementIndicator,
+	AchievementIndicatorCriteria
+} from '@/services/data/tuples/achievement-types';
 import {noop} from '@/services/utils';
 import {ICON_DELETE} from '@/widgets/basic/constants';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';

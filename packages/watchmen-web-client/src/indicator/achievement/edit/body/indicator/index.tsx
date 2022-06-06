@@ -1,13 +1,13 @@
-import {Indicator} from '@/services/data/tuples/indicator-types';
 import {Achievement, AchievementIndicator} from '@/services/data/tuples/achievement-types';
 import {isManualComputeAchievementIndicator} from '@/services/data/tuples/achievement-utils';
+import {Indicator} from '@/services/data/tuples/indicator-types';
 import {ICON_DELETE} from '@/widgets/basic/constants';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {ComputeIndicator} from '../compute-indicator';
-import {IndicatorContent} from '../indicator-content';
 import {useAchievementEditEventBus} from '../achievement-edit-event-bus';
 import {AchievementEditEventTypes} from '../achievement-edit-event-bus-types';
+import {ComputeIndicator} from '../compute-indicator';
+import {IndicatorContent} from '../indicator-content';
 import {useCurve} from '../use-curve';
 import {computeCurvePath} from '../utils';
 import {

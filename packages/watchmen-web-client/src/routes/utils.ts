@@ -1,6 +1,6 @@
+import {AchievementId} from '@/services/data/tuples/achievement-types';
 import {ConnectedSpaceId} from '@/services/data/tuples/connected-space-types';
 import {DashboardId} from '@/services/data/tuples/dashboard-types';
-import {AchievementId} from '@/services/data/tuples/achievement-types';
 import {PipelineId} from '@/services/data/tuples/pipeline-types';
 import {ReportId} from '@/services/data/tuples/report-types';
 import {SubjectId} from '@/services/data/tuples/subject-types';

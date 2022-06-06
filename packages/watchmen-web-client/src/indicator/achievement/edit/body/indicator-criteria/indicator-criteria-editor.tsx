@@ -1,5 +1,9 @@
+import {
+	Achievement,
+	AchievementIndicator,
+	AchievementIndicatorCriteria
+} from '@/services/data/tuples/achievement-types';
 import {Indicator} from '@/services/data/tuples/indicator-types';
-import {Achievement, AchievementIndicator, AchievementIndicatorCriteria} from '@/services/data/tuples/achievement-types';
 import {DropdownOption} from '@/widgets/basic/types';
 import {IndicatorCriteriaDefData} from '../types';
 import {IndicatorCriteriaArithmeticEditor} from './indicator-criteria-arithmetic-editor';

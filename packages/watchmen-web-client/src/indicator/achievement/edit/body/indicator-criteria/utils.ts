@@ -1,3 +1,11 @@
+import {
+	AchievementIndicatorCriteria,
+	AchievementIndicatorCriteriaOperator
+} from '@/services/data/tuples/achievement-types';
+import {
+	isAchievementIndicatorCriteriaOnBucket,
+	isAchievementIndicatorCriteriaOnExpression
+} from '@/services/data/tuples/achievement-utils';
 import {Bucket, BucketId} from '@/services/data/tuples/bucket-types';
 import {
 	isCategoryMeasureBucket,
@@ -11,14 +19,6 @@ import {
 	tryToTransformColumnToMeasures,
 	tryToTransformToMeasures
 } from '@/services/data/tuples/indicator-utils';
-import {
-	AchievementIndicatorCriteria,
-	AchievementIndicatorCriteriaOperator
-} from '@/services/data/tuples/achievement-types';
-import {
-	isAchievementIndicatorCriteriaOnBucket,
-	isAchievementIndicatorCriteriaOnExpression
-} from '@/services/data/tuples/achievement-utils';
 import {SubjectForIndicator} from '@/services/data/tuples/query-indicator-types';
 import {SubjectDataSetColumn} from '@/services/data/tuples/subject-types';
 import {isNotNull} from '@/services/data/utils';
