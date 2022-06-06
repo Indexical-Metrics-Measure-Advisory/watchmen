@@ -1,3 +1,5 @@
+import {useAdminCacheEventBus} from '@/admin/cache/cache-event-bus';
+import {AdminCacheEventTypes} from '@/admin/cache/cache-event-bus-types';
 import {TopicSnapshotFrequency, TopicSnapshotScheduler} from '@/services/data/tuples/topic-snapshot-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {DwarfButton} from '@/widgets/basic/button';
@@ -60,11 +62,15 @@ export const SchedulerRow = (props: {
 	const {topicId} = scheduler;
 
 	const {fire: fireGlobal} = useEventBus();
+	const {fire: fireCache} = useAdminCacheEventBus();
 	const forceUpdate = useForceUpdate();
 
 	const onEditConfirmed = async (editedScheduler: TopicSnapshotScheduler) => {
 		// @ts-ignore
 		Object.keys(editedScheduler).forEach(key => scheduler[key] = editedScheduler[key] as any);
+		await new Promise<void>(resolve => {
+			fireCache(AdminCacheEventTypes.ASK_LOAD_MORE, resolve);
+		});
 		forceUpdate();
 	};
 	const onEditClicked = () => {
