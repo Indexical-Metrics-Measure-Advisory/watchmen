@@ -8,7 +8,7 @@ import {
 	ICON_ENUM,
 	ICON_EXTERNAL_WRITERS,
 	ICON_HOME,
-	ICON_INDICATOR_WORKBENCH,
+	ICON_INDICATOR,
 	ICON_LOGOUT,
 	ICON_MONITOR_LOGS,
 	ICON_PIPELINE,
@@ -36,7 +36,7 @@ import {SideMenuUser} from '@/widgets/basic/side-menu/side-menu-user';
 import {
 	isConsoleAvailable,
 	isDataQualityAvailable,
-	isIndicatorWorkbenchAvailable
+	isIndicatorAvailable
 } from '@/widgets/common-settings/workbench-utils';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
@@ -111,11 +111,11 @@ export const AdminMenu = () => {
 	if (isConsoleAvailable()) {
 		workbenches.push({label: 'To Console', icon: ICON_CONSOLE, action: () => onMenuClicked(Router.CONSOLE)()});
 	}
-	if (isIndicatorWorkbenchAvailable()) {
+	if (isIndicatorAvailable()) {
 		workbenches.push({
-			label: 'To Indicator Workbench',
-			icon: ICON_INDICATOR_WORKBENCH,
-			action: () => onMenuClicked(Router.INDICATOR_WORKBENCH)()
+			label: 'To Indicator',
+			icon: ICON_INDICATOR,
+			action: () => onMenuClicked(Router.INDICATOR)()
 		});
 	}
 	if (isDataQualityAvailable()) {

@@ -36,4 +36,4 @@ export const isDashboardOpened = (dashboardId: DashboardId): boolean => {
 };
 export const toDashboard = (dashboardId: DashboardId) => Router.CONSOLE_DASHBOARD.replace(':dashboardId', dashboardId);
 export const toPipeline = (pipelineId: PipelineId) => Router.ADMIN_PIPELINE.replace(':pipelineId', pipelineId);
-export const toAchievementEdit = (achievementId: AchievementId) => Router.INDICATOR_WORKBENCH_ACHIEVEMENT_EDIT.replace(':achievementId', achievementId);
+export const toAchievementEdit = (achievementId: AchievementId) => Router.INDICATOR_ACHIEVEMENT_EDIT.replace(':achievementId', achievementId);

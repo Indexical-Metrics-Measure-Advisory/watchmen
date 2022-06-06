@@ -6,5 +6,4 @@ export const isReportFunnelEnabled = () => process.env.REACT_APP_REPORT_FUNNEL =
 export const isSpaceFilterEnabled = () => process.env.REACT_APP_SPACE_FILTER === 'true';
 export const isWriteExternalEnabled = () => process.env.REACT_APP_EXTERNAL_WRITER_ADAPTERS === 'true';
 export const isChartScriptInConsoleEnabled = () => process.env.REACT_APP_CHART_SCRIPT_IN_CONSOLE === 'true';
-export const isIndicatorWorkbenchEnabled = () => process.env.REACT_APP_INDICATOR_WORKBENCH === 'true';
 export const isSaml2MockEnabled = () => process.env.REACT_APP_MOCK_SAML2 === 'true';

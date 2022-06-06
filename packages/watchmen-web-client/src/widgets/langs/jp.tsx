@@ -120,7 +120,7 @@ export const Jp = {
 			TO_CONSOLE: 'ワークベンチに切り替える',
 			TO_ADMIN: '管理者に切り替える',
 			TO_DATA_QUALITY: 'データ品質センターに切り替える',
-			TO_INDICATOR_WORKBENCH: '指標ーワークベンチに切り替える',
+			TO_INDICATOR: '指標ーワークベンチに切り替える',
 			LOGOUT: 'ログアウト'
 		},
 		FAVORITE: {
@@ -275,7 +275,7 @@ export const Jp = {
 			REPORT_NO_FUNNEL: 'じょうごが有効になっていない。'
 		}
 	},
-	INDICATOR_WORKBENCH: {
+	INDICATOR: {
 		MENU: {
 			TITLE: '指標ーワークベンチ',
 			BUCKETS: 'バケット',
