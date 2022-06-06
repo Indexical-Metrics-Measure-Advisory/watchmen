@@ -12,10 +12,10 @@ import {useBucketDefend} from '../use-bucket-defend';
 type MeasureMethodOfValueMeasureBucket = PropOf<NumericValueMeasureBucket, 'measure'>;
 
 const MeasureMethods: Record<MeasureMethodOfValueMeasureBucket, string> = {
-	[MeasureMethod.FLOOR]: Lang.INDICATOR.MEASURE_METHOD.FLOOR,
-	[MeasureMethod.RESIDENTIAL_AREA]: Lang.INDICATOR.MEASURE_METHOD.RESIDENTIAL_AREA,
-	[MeasureMethod.AGE]: Lang.INDICATOR.MEASURE_METHOD.AGE,
-	[MeasureMethod.BIZ_SCALE]: Lang.INDICATOR.MEASURE_METHOD.BIZ_SCALE
+	[MeasureMethod.FLOOR]: Lang.MEASURE_METHOD.FLOOR,
+	[MeasureMethod.RESIDENTIAL_AREA]: Lang.MEASURE_METHOD.RESIDENTIAL_AREA,
+	[MeasureMethod.AGE]: Lang.MEASURE_METHOD.AGE,
+	[MeasureMethod.BIZ_SCALE]: Lang.MEASURE_METHOD.BIZ_SCALE
 };
 const MeasureMethodOptions: Array<DropdownOption> = Object.keys(MeasureMethods).map(type => {
 	return {
