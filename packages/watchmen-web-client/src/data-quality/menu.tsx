@@ -7,7 +7,7 @@ import {
 	ICON_CONSOLE,
 	ICON_END_USER,
 	ICON_HOME,
-	ICON_INDICATOR_WORKBENCH,
+	ICON_INDICATOR,
 	ICON_LOGOUT,
 	ICON_RULE_DEFINE,
 	ICON_SETTINGS,
@@ -27,7 +27,7 @@ import {SideMenuUser} from '@/widgets/basic/side-menu/side-menu-user';
 import {
 	isAdminAvailable,
 	isConsoleAvailable,
-	isIndicatorWorkbenchAvailable
+	isIndicatorAvailable
 } from '@/widgets/common-settings/workbench-utils';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
@@ -106,11 +106,11 @@ export const DataQualityMenu = () => {
 	if (isAdminAvailable()) {
 		workbenches.push({label: 'To Admin', icon: ICON_ADMIN, action: () => onMenuClicked(Router.ADMIN)()});
 	}
-	if (isIndicatorWorkbenchAvailable()) {
+	if (isIndicatorAvailable()) {
 		workbenches.push({
 			label: 'To Indicator Workbench',
-			icon: ICON_INDICATOR_WORKBENCH,
-			action: () => onMenuClicked(Router.INDICATOR_WORKBENCH)()
+			icon: ICON_INDICATOR,
+			action: () => onMenuClicked(Router.INDICATOR)()
 		});
 	}
 

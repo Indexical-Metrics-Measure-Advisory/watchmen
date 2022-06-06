@@ -120,7 +120,7 @@ export const Zh = {
 			TO_CONSOLE: '转到工作台',
 			TO_ADMIN: '转到管理台',
 			TO_DATA_QUALITY: '转到数据质量中心',
-			TO_INDICATOR_WORKBENCH: '转到指标工作台',
+			TO_INDICATOR: '转到指标工作台',
 			LOGOUT: '登出'
 		},
 		FAVORITE: {
@@ -275,7 +275,7 @@ export const Zh = {
 			REPORT_NO_FUNNEL: '没有启用数据漏斗.'
 		}
 	},
-	INDICATOR_WORKBENCH: {
+	INDICATOR: {
 		MENU: {
 			TITLE: '指标工作台',
 			BUCKETS: '分桶',

@@ -1,4 +1,3 @@
-import {isIndicatorWorkbenchEnabled} from '@/feature-switch';
 import {ImportTPSCSType, tryToImportTopicsAndPipelines} from '@/services/data/data-import/import-data';
 import {ImportDataResponse} from '@/services/data/data-import/import-data-types';
 import {MonitorRules} from '@/services/data/data-quality/rule-types';
@@ -234,9 +233,9 @@ export const HeaderImportButton = () => {
 					all.connectedSpaces.push(item as ConnectedSpace);
 				} else if (item.spaceId) {
 					all.spaces.push(item as Space);
-				} else if (isIndicatorWorkbenchEnabled() && item.indicatorId) {
+				} else if (item.indicatorId) {
 					all.indicators.push(item as Indicator);
-				} else if (isIndicatorWorkbenchEnabled() && item.bucketId) {
+				} else if (item.bucketId) {
 					all.buckets.push(item as Bucket);
 				} else {
 					// monitor rules, each one is an array
@@ -255,8 +254,7 @@ export const HeaderImportButton = () => {
 		fireCache(AdminCacheEventTypes.ASK_DATA, async (data?: AdminCacheData) => {
 			const {topics: cachedTopics, pipelines: cachedPipelines} = data || {};
 			const [cachedSpaces, cachedConnectedSpaces, cachedIndicators] = await Promise.all([
-				listSpacesForExport(), listConnectedSpacesForExport(),
-				isIndicatorWorkbenchEnabled() ? listIndicatorsForExport() : (async () => [])()
+				listSpacesForExport(), listConnectedSpacesForExport(), listIndicatorsForExport()
 			]);
 			fireGlobal(EventTypes.SHOW_DIALOG,
 				<PipelinesImport topics={topics} cachedTopics={cachedTopics || []}

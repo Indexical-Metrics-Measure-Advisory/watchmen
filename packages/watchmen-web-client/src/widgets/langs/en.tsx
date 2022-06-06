@@ -120,7 +120,7 @@ export const En = {
 			TO_CONSOLE: 'To Console',
 			TO_ADMIN: 'To Admin',
 			TO_DATA_QUALITY: 'To Data Quality Center',
-			TO_INDICATOR_WORKBENCH: 'To Indicator Workbench',
+			TO_INDICATOR: 'To Indicator Workbench',
 			LOGOUT: 'Logout'
 		},
 		FAVORITE: {
@@ -275,7 +275,7 @@ export const En = {
 			REPORT_NO_FUNNEL: 'No funnel enabled.'
 		}
 	},
-	INDICATOR_WORKBENCH: {
+	INDICATOR: {
 		MENU: {
 			TITLE: 'Indicator Workbench',
 			BUCKETS: 'Buckets',

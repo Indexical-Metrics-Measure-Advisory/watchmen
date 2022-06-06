@@ -1,4 +1,3 @@
-import {isIndicatorWorkbenchEnabled} from '@/feature-switch';
 import {QueryIndicatorForHolder} from '@/services/data/tuples/query-indicator-types';
 import {QuerySpaceForHolder} from '@/services/data/tuples/query-space-types';
 import {QueryUserForHolder} from '@/services/data/tuples/query-user-types';
@@ -46,12 +45,8 @@ const UserGroupEditor = (props: { userGroup: UserGroup, codes?: HoldByUserGroup 
 		<TuplePropertyInputLines value={userGroup.description || ''} onChange={onPropChange('description')}/>
 		<TuplePropertyLabel>Spaces:</TuplePropertyLabel>
 		<SpacePicker label="Assign Space" userGroup={userGroup} codes={spaces}/>
-		{isIndicatorWorkbenchEnabled()
-			? <>
-				<TuplePropertyLabel>Indicators:</TuplePropertyLabel>
-				<IndicatorPicker label="Assign Indicator" userGroup={userGroup} codes={indicators}/>
-			</>
-			: null}
+		<TuplePropertyLabel>Indicators:</TuplePropertyLabel>
+		<IndicatorPicker label="Assign Indicator" userGroup={userGroup} codes={indicators}/>
 		<TuplePropertyLabel>Users:</TuplePropertyLabel>
 		<UserPicker label="Include User" userGroup={userGroup} codes={users}/>
 	</>;
