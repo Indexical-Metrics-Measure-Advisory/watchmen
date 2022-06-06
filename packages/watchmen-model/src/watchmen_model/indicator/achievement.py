@@ -3,16 +3,16 @@ from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
-from watchmen_model.common import Auditable, BucketId, DataModel, FactorId, IndicatorId, NavigationId, UserBasedTuple
+from watchmen_model.common import Auditable, BucketId, DataModel, FactorId, IndicatorId, AchievementId, UserBasedTuple
 from watchmen_utilities import ArrayHelper, is_not_blank
 from .indicator import IndicatorAggregateArithmetic
 
 
-class NavigationIndicatorCriteria(DataModel, BaseModel):
+class AchievementIndicatorCriteria(DataModel, BaseModel):
 	factorId: FactorId = None
 
 
-class NavigationIndicatorCriteriaOnBucket(NavigationIndicatorCriteria):
+class AchievementIndicatorCriteriaOnBucket(AchievementIndicatorCriteria):
 	"""
 	fill when use predefined bucket
 	"""
@@ -20,7 +20,7 @@ class NavigationIndicatorCriteriaOnBucket(NavigationIndicatorCriteria):
 	bucketSegmentName: str = None
 
 
-class NavigationIndicatorCriteriaOperator(str, Enum):
+class AchievementIndicatorCriteriaOperator(str, Enum):
 	EQUALS = 'equals',
 	NOT_EQUALS = 'not-equals',
 	LESS = 'less',
@@ -29,43 +29,43 @@ class NavigationIndicatorCriteriaOperator(str, Enum):
 	MORE_EQUALS = 'more-equals',
 
 
-class NavigationIndicatorCriteriaOnExpression(NavigationIndicatorCriteria):
-	operator: NavigationIndicatorCriteriaOperator = NavigationIndicatorCriteriaOperator.EQUALS
+class AchievementIndicatorCriteriaOnExpression(AchievementIndicatorCriteria):
+	operator: AchievementIndicatorCriteriaOperator = AchievementIndicatorCriteriaOperator.EQUALS
 	value: str = None
 
 
 def construct_indicator_criteria(
-		criteria: Optional[Union[dict, NavigationIndicatorCriteria]]) -> Optional[NavigationIndicatorCriteria]:
+		criteria: Optional[Union[dict, AchievementIndicatorCriteria]]) -> Optional[AchievementIndicatorCriteria]:
 	if criteria is None:
 		return None
-	elif isinstance(criteria, NavigationIndicatorCriteria):
+	elif isinstance(criteria, AchievementIndicatorCriteria):
 		return criteria
 	else:
 		bucket_id = criteria.get('bucketId')
 		if is_not_blank(bucket_id):
-			return NavigationIndicatorCriteriaOnBucket(**criteria)
+			return AchievementIndicatorCriteriaOnBucket(**criteria)
 		operator = criteria.get('operator')
 		if is_not_blank(operator):
-			return NavigationIndicatorCriteriaOnExpression(**criteria)
+			return AchievementIndicatorCriteriaOnExpression(**criteria)
 		else:
-			return NavigationIndicatorCriteria(**criteria)
+			return AchievementIndicatorCriteria(**criteria)
 
 
 def construct_indicator_criteria_list(
-		criteria_list: Optional[list] = None) -> Optional[List[NavigationIndicatorCriteria]]:
+		criteria_list: Optional[list] = None) -> Optional[List[AchievementIndicatorCriteria]]:
 	if criteria_list is None:
 		return None
 	else:
 		return ArrayHelper(criteria_list).map(lambda x: construct_indicator_criteria(x)).to_list()
 
 
-class NavigationIndicator(DataModel, BaseModel):
+class AchievementIndicator(DataModel, BaseModel):
 	indicatorId: IndicatorId = None
 	name: str = None
 	aggregateArithmetic: IndicatorAggregateArithmetic = None
 	formula: str = None
 	includeInFinalScore: bool = True
-	criteria: List[NavigationIndicatorCriteria] = []
+	criteria: List[AchievementIndicatorCriteria] = []
 	variableName: str = None
 
 	def __setattr__(self, name, value):
@@ -75,54 +75,54 @@ class NavigationIndicator(DataModel, BaseModel):
 			super().__setattr__(name, value)
 
 
-MANUAL_COMPUTE_NAVIGATION_INDICATOR_ID = '-1'
+MANUAL_COMPUTE_ACHIEVEMENT_INDICATOR_ID = '-1'
 
 
-class ManualComputeNavigationIndicator(NavigationIndicator):
+class ManualComputeAchievementIndicator(AchievementIndicator):
 	"""
 	for manual compute indicator,
-	1. indicatorId fixed as {@link MANUAL_COMPUTE_NAVIGATION_INDICATOR_ID},
+	1. indicatorId fixed as {@link MANUAL_COMPUTE_ACHIEVEMENT_INDICATOR_ID},
 	2. aggregateArithmetics fixed as {@link IndicatorAggregateArithmetic#MAX}, will be ignored anyway in runtime
 	3. criteria fixed as zero length array, will be ignored anyway in runtime
 	"""
-	indicatorId: IndicatorId = MANUAL_COMPUTE_NAVIGATION_INDICATOR_ID
+	indicatorId: IndicatorId = MANUAL_COMPUTE_ACHIEVEMENT_INDICATOR_ID
 	aggregateArithmetic: IndicatorAggregateArithmetic = IndicatorAggregateArithmetic.MAX
 
 
-class NavigationTimeRangeType(str, Enum):
+class AchievementTimeRangeType(str, Enum):
 	YEAR = 'year',
 	MONTH = 'month'
 
 
-def construct_indicator(indicator: Optional[Union[dict, NavigationIndicator]]) -> Optional[NavigationIndicator]:
+def construct_indicator(indicator: Optional[Union[dict, AchievementIndicator]]) -> Optional[AchievementIndicator]:
 	if indicator is None:
 		return None
-	elif isinstance(indicator, NavigationIndicator):
+	elif isinstance(indicator, AchievementIndicator):
 		return indicator
 	else:
 		indicator_id = indicator.get('indicatorId')
-		if indicator_id == MANUAL_COMPUTE_NAVIGATION_INDICATOR_ID:
-			return ManualComputeNavigationIndicator(**indicator)
+		if indicator_id == MANUAL_COMPUTE_ACHIEVEMENT_INDICATOR_ID:
+			return ManualComputeAchievementIndicator(**indicator)
 		else:
-			return NavigationIndicator(**indicator)
+			return AchievementIndicator(**indicator)
 
 
-def construct_indicators(indicators: Optional[list] = None) -> Optional[List[NavigationIndicator]]:
+def construct_indicators(indicators: Optional[list] = None) -> Optional[List[AchievementIndicator]]:
 	if indicators is None:
 		return None
 	else:
 		return ArrayHelper(indicators).map(lambda x: construct_indicator(x)).to_list()
 
 
-class Navigation(UserBasedTuple, Auditable, BaseModel):
-	navigationId: NavigationId = None
+class Achievement(UserBasedTuple, Auditable, BaseModel):
+	achievementId: AchievementId = None
 	name: str = None
 	description: str = None
-	timeRangeType: NavigationTimeRangeType = NavigationTimeRangeType.YEAR
+	timeRangeType: AchievementTimeRangeType = AchievementTimeRangeType.YEAR
 	timeRangeYear: str = None
 	timeRangeMonth: str = None
 	compareWithPreviousTimeRange: bool = False
-	indicators: List[NavigationIndicator] = []
+	indicators: List[AchievementIndicator] = []
 
 	def __setattr__(self, name, value):
 		if name == 'indicators':

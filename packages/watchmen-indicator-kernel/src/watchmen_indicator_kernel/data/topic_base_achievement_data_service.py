@@ -9,9 +9,9 @@ from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import FactorId, Parameter, ParameterCondition, \
 	ParameterJoint, ParameterJointType, ParameterKind, TopicFactorParameter, TopicId
 from watchmen_model.console import Report, Subject, SubjectDataset, SubjectDatasetColumn
-from watchmen_model.indicator import Indicator, NavigationIndicator, NavigationIndicatorCriteria
+from watchmen_model.indicator import Indicator, AchievementIndicator, AchievementIndicatorCriteria
 from watchmen_utilities import ArrayHelper, is_blank, is_decimal
-from .navigation_data_service import NavigationDataService
+from .achievement_data_service import AchievementDataService
 
 
 def get_report_data_service(subject: Subject, report: Report, principal_service: PrincipalService) -> ReportDataService:
@@ -22,11 +22,11 @@ def get_topic_service(principal_service: PrincipalService) -> TopicService:
 	return TopicService(principal_service)
 
 
-class TopicBaseNavigationDataService(NavigationDataService):
+class TopicBaseAchievementDataService(AchievementDataService):
 	def __init__(
-			self, navigation_indicator: NavigationIndicator,
+			self, achievement_indicator: AchievementIndicator,
 			indicator: Indicator, topic: Topic, principal_service: PrincipalService):
-		super().__init__(navigation_indicator, principal_service)
+		super().__init__(achievement_indicator, principal_service)
 		self.indicator = indicator
 		self.topic = topic
 
@@ -65,14 +65,14 @@ class TopicBaseNavigationDataService(NavigationDataService):
 
 	# noinspection DuplicatedCode
 	def fake_criteria_to_dataset_filter(self) -> Optional[ParameterJoint]:
-		criteria = ArrayHelper(self.navigationIndicator.criteria).filter(lambda x: x is not None).to_list()
+		criteria = ArrayHelper(self.achievementIndicator.criteria).filter(lambda x: x is not None).to_list()
 		if len(criteria) == 0:
 			return None
 
-		def to_condition(a_criteria: NavigationIndicatorCriteria) -> ParameterCondition:
+		def to_condition(a_criteria: AchievementIndicatorCriteria) -> ParameterCondition:
 			factor = self.find_factor(
 				a_criteria.factorId,
-				lambda: f'Factor of navigation indicator criteria[{criteria.to_dict()}] not declared.')
+				lambda: f'Factor of achievement indicator criteria[{criteria.to_dict()}] not declared.')
 			return self.fake_criteria_to_condition(a_criteria)(self.topic.topicId, factor.factorId)
 
 		return ParameterJoint(

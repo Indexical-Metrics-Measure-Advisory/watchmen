@@ -1,6 +1,6 @@
-CREATE TABLE navigations
+CREATE TABLE achievements
 (
-    navigation_id                VARCHAR(50) NOT NULL,
+    achievement_id                VARCHAR(50) NOT NULL,
     name                         VARCHAR(50),
     time_range_type              VARCHAR(10),
     time_range_year              VARCHAR(10),
@@ -14,7 +14,7 @@ CREATE TABLE navigations
     created_by                   VARCHAR(50) NOT NULL,
     last_modified_at             DATETIME    NOT NULL,
     last_modified_by             VARCHAR(50) NOT NULL,
-    PRIMARY KEY (navigation_id),
+    PRIMARY KEY (achievement_id),
     INDEX (name),
     INDEX (user_id),
     INDEX (tenant_id),

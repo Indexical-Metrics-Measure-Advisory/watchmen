@@ -11,15 +11,15 @@ from watchmen_model.common import BucketId, ComputedParameter, ConstantParameter
 	ParameterJointType, ParameterKind, TopicFactorParameter, TopicId
 from watchmen_model.console import Report, ReportIndicator, ReportIndicatorArithmetic
 from watchmen_model.indicator import CategorySegment, CategorySegmentsHolder, IndicatorAggregateArithmetic, \
-	NavigationIndicator, NavigationIndicatorCriteria, NavigationIndicatorCriteriaOnBucket, \
-	NavigationIndicatorCriteriaOnExpression, NavigationIndicatorCriteriaOperator, NumericSegmentsHolder, \
+	AchievementIndicator, AchievementIndicatorCriteria, AchievementIndicatorCriteriaOnBucket, \
+	AchievementIndicatorCriteriaOnExpression, AchievementIndicatorCriteriaOperator, NumericSegmentsHolder, \
 	NumericValueSegment, OtherCategorySegmentValue, RangeBucketValueIncluding
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 
 
-class NavigationDataService:
-	def __init__(self, navigation_indicator: NavigationIndicator, principal_service: PrincipalService):
-		self.navigationIndicator = navigation_indicator
+class AchievementDataService:
+	def __init__(self, achievement_indicator: AchievementIndicator, principal_service: PrincipalService):
+		self.achievementIndicator = achievement_indicator
 		self.principalService = principal_service
 
 	# noinspection PyMethodMayBeStatic
@@ -130,9 +130,9 @@ class NavigationDataService:
 	) -> Callable[[TopicId, FactorId], ParameterCondition]:
 		def action(topic_id: TopicId, factor_id: FactorId) -> ParameterCondition:
 			if is_blank(bucket_id):
-				raise IndicatorKernelException('Bucket of navigation indicator not declared.')
+				raise IndicatorKernelException('Bucket of achievement indicator not declared.')
 			if is_blank(bucket_segment_name):
-				raise IndicatorKernelException('Bucket segment name of navigation indicator not declared.')
+				raise IndicatorKernelException('Bucket segment name of achievement indicator not declared.')
 			bucket = ask_bucket(bucket_id, self.principalService)
 			segment = ArrayHelper(bucket.segments).find(lambda x: x.name == bucket_segment_name)
 			if segment is None:
@@ -204,24 +204,24 @@ class NavigationDataService:
 
 	# noinspection PyMethodMayBeStatic
 	def fake_value_criteria_to_condition(
-			self, operator: Optional[NavigationIndicatorCriteriaOperator], value: Optional[str]
+			self, operator: Optional[AchievementIndicatorCriteriaOperator], value: Optional[str]
 	) -> Callable[[TopicId, FactorId], ParameterExpression]:
 		def action(topic_id: TopicId, factor_id: FactorId) -> ParameterExpression:
 			if operator is None:
-				raise IndicatorKernelException('Operator of navigation indicator not declared.')
+				raise IndicatorKernelException('Operator of achievement indicator not declared.')
 			if is_blank(value):
-				raise IndicatorKernelException('Compare value of navigation indicator not declared.')
-			if operator == NavigationIndicatorCriteriaOperator.EQUALS:
+				raise IndicatorKernelException('Compare value of achievement indicator not declared.')
+			if operator == AchievementIndicatorCriteriaOperator.EQUALS:
 				expression_operator = ParameterExpressionOperator.EQUALS
-			elif operator == NavigationIndicatorCriteriaOperator.NOT_EQUALS:
+			elif operator == AchievementIndicatorCriteriaOperator.NOT_EQUALS:
 				expression_operator = ParameterExpressionOperator.NOT_EQUALS
-			elif operator == NavigationIndicatorCriteriaOperator.LESS:
+			elif operator == AchievementIndicatorCriteriaOperator.LESS:
 				expression_operator = ParameterExpressionOperator.LESS
-			elif operator == NavigationIndicatorCriteriaOperator.LESS_EQUALS:
+			elif operator == AchievementIndicatorCriteriaOperator.LESS_EQUALS:
 				expression_operator = ParameterExpressionOperator.LESS_EQUALS
-			elif operator == NavigationIndicatorCriteriaOperator.MORE:
+			elif operator == AchievementIndicatorCriteriaOperator.MORE:
 				expression_operator = ParameterExpressionOperator.MORE
-			elif operator == NavigationIndicatorCriteriaOperator.MORE_EQUALS:
+			elif operator == AchievementIndicatorCriteriaOperator.MORE_EQUALS:
 				expression_operator = ParameterExpressionOperator.MORE_EQUALS
 			else:
 				raise IndicatorKernelException(f'Criteria value operator[{operator}] is not supported.')
@@ -234,12 +234,12 @@ class NavigationDataService:
 		return action
 
 	def fake_criteria_to_condition(
-			self, criteria: NavigationIndicatorCriteria) -> Callable[[TopicId, FactorId], ParameterCondition]:
+			self, criteria: AchievementIndicatorCriteria) -> Callable[[TopicId, FactorId], ParameterCondition]:
 		def action(topic_id: TopicId, factor_id: FactorId) -> ParameterCondition:
-			if isinstance(criteria, NavigationIndicatorCriteriaOnBucket):
+			if isinstance(criteria, AchievementIndicatorCriteriaOnBucket):
 				return self.fake_bucket_criteria_to_condition(
 					criteria.bucketId, criteria.bucketSegmentName)(topic_id, factor_id)
-			elif isinstance(criteria, NavigationIndicatorCriteriaOnExpression):
+			elif isinstance(criteria, AchievementIndicatorCriteriaOnExpression):
 				return self.fake_value_criteria_to_condition(criteria.operator, criteria.value)(topic_id, factor_id)
 			else:
 				data = criteria.to_dict()
@@ -250,13 +250,13 @@ class NavigationDataService:
 					return self.fake_value_criteria_to_condition(
 						data.get('operator'), str(data.get('value')))(topic_id, factor_id)
 				else:
-					raise IndicatorKernelException(f'Navigation indicator criteria[{data}] not supported.')
+					raise IndicatorKernelException(f'Achievement indicator criteria[{data}] not supported.')
 
 		return action
 
 	def fake_to_report(self) -> Callable[[FactorId], Report]:
 		def action(factor_id: FactorId) -> Report:
-			arithmetic = self.navigationIndicator.aggregateArithmetic
+			arithmetic = self.achievementIndicator.aggregateArithmetic
 			if arithmetic is None:
 				report_indicator = ReportIndicator(
 					columnId=factor_id, name='_SUM_', arithmetic=ReportIndicatorArithmetic.SUMMARY)
