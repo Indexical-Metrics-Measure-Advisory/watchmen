@@ -4,9 +4,7 @@ from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_model.admin import User, UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId, UserId
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaJoint, \
-	EntityCriteriaJointConjunction, EntityCriteriaOperator, \
-	EntityRow, \
-	EntityShaper
+	EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityRow, EntityShaper
 
 
 class UserShaper(EntityShaper):
