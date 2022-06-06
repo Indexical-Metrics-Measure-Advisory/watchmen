@@ -29,6 +29,6 @@ DashboardId = TypeVar('DashboardId', bound=str)
 BucketId = TypeVar('BucketId', bound=str)
 IndicatorId = TypeVar('IndicatorId', bound=str)
 InspectionId = TypeVar('InspectionId', bound=str)
-NavigationId = TypeVar('NavigationId', bound=str)
+AchievementId = TypeVar('AchievementId', bound=str)
 
 PatId = TypeVar('PatId', bound=str)

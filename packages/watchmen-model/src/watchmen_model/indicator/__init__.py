@@ -10,6 +10,6 @@ from .inspection import Inspection, InspectionAmPmRange, InspectionDayKindRange,
 	InspectionTenDaysRange, InspectionTimeRange, InspectionTimeRangeType, InspectionWeekOfMonthRange, \
 	InspectionWeekOfYearRange, InspectionYearRange, InspectMeasureOn
 from .measure_method import MeasureMethod
-from .navigation import MANUAL_COMPUTE_NAVIGATION_INDICATOR_ID, ManualComputeNavigationIndicator, Navigation, \
-	NavigationIndicator, NavigationIndicatorCriteria, NavigationIndicatorCriteriaOnBucket, \
-	NavigationIndicatorCriteriaOnExpression, NavigationIndicatorCriteriaOperator, NavigationTimeRangeType
+from .achievement import MANUAL_COMPUTE_ACHIEVEMENT_INDICATOR_ID, ManualComputeAchievementIndicator, Achievement, \
+	AchievementIndicator, AchievementIndicatorCriteria, AchievementIndicatorCriteriaOnBucket, \
+	AchievementIndicatorCriteriaOnExpression, AchievementIndicatorCriteriaOperator, AchievementTimeRangeType

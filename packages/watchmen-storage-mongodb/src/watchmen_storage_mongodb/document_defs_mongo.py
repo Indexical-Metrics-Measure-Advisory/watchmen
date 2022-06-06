@@ -338,10 +338,10 @@ table_inspections = MongoDocument(
 	]
 )
 
-table_navigations = MongoDocument(
-	name='navigations',
+table_achievements = MongoDocument(
+	name='achievements',
 	columns=[
-		create_pk('navigation_id'), create_str('name'),
+		create_pk('achievement_id'), create_str('name'),
 		create_str('time_range_type'), create_str('time_range_year'), create_str('time_range_month'),
 		create_bool('compare_with_prev_time_range'), create_json('indicators'),
 		create_description(),
@@ -391,7 +391,7 @@ tables: Dict[str, MongoDocument] = {
 	'buckets': table_buckets,
 	'indicators': table_indicators,
 	'inspections': table_inspections,
-	'navigations': table_navigations
+	'achievements': table_achievements
 }
 
 # noinspection DuplicatedCode

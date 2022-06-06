@@ -278,9 +278,9 @@ table_inspections = Table(
 	*create_tuple_audit_columns()
 )
 
-table_navigations = Table(
-	'navigations', meta_data,
-	create_pk('navigation_id'), create_str('name', 50),
+table_achievements = Table(
+	'achievements', meta_data,
+	create_pk('achievement_id'), create_str('name', 50),
 	create_str('time_range_type', 10), create_str('time_range_year', 10), create_str('time_range_month', 10),
 	create_bool('compare_with_prev_time_range'), create_json('indicators'),
 	create_description(),
@@ -328,7 +328,7 @@ tables: Dict[str, Table] = {
 	'buckets': table_buckets,
 	'indicators': table_indicators,
 	'inspections': table_inspections,
-	'navigations': table_navigations
+	'achievements': table_achievements
 }
 
 
