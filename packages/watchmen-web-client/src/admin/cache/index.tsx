@@ -93,6 +93,20 @@ export const AdminCache = () => {
 			off(AdminCacheEventTypes.ASK_RELOAD, onAskReload);
 		};
 	}, [on, off, fire]);
+	useEffect(() => {
+		const onLoadMore = async (onLoadMore: () => void) => {
+			try {
+				const data = await loadAdminData();
+				setData({initialized: true, data});
+			} finally {
+				onLoadMore();
+			}
+		};
+		on(AdminCacheEventTypes.ASK_LOAD_MORE, onLoadMore);
+		return () => {
+			off(AdminCacheEventTypes.ASK_LOAD_MORE, onLoadMore);
+		};
+	}, [on, off, fire]);
 
 	useEffect(() => {
 		const onSavePipeline = async (pipeline: Pipeline) => {

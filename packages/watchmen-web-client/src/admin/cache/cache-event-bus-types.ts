@@ -10,6 +10,7 @@ export enum AdminCacheEventTypes {
 	ASK_DATA_LOADED = 'ask-data-loaded',
 	ASK_DATA = 'ask-data',
 	ASK_RELOAD = 'ask-reload',
+	ASK_LOAD_MORE = 'ask-load-more',
 
 	SAVE_PIPELINE = 'save-pipeline',
 	SAVE_TOPIC = 'save-topic',
@@ -38,6 +39,10 @@ export interface AdminCacheEventBus {
 	fire(type: AdminCacheEventTypes.ASK_RELOAD, onReloaded: () => void): this;
 	on(type: AdminCacheEventTypes.ASK_RELOAD, listener: (onReloaded: () => void) => void): this;
 	off(type: AdminCacheEventTypes.ASK_RELOAD, listener: (onReloaded: () => void) => void): this;
+
+	fire(type: AdminCacheEventTypes.ASK_LOAD_MORE, onLoadMore: () => void): this;
+	on(type: AdminCacheEventTypes.ASK_LOAD_MORE, listener: (onLoadMore: () => void) => void): this;
+	off(type: AdminCacheEventTypes.ASK_LOAD_MORE, listener: (onLoadMore: () => void) => void): this;
 
 	fire(type: AdminCacheEventTypes.SAVE_PIPELINE, pipeline: Pipeline): this;
 	on(type: AdminCacheEventTypes.SAVE_PIPELINE, listener: (pipeline: Pipeline) => void): this;

@@ -77,6 +77,7 @@ export const EditDialog = (props: {
 		}
 		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
 			await saveTopicSnapshotScheduler(data);
+
 		}, () => {
 			(async () => {
 				await onConfirm(data);

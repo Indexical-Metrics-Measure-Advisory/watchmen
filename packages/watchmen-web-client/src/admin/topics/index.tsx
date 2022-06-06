@@ -10,7 +10,7 @@ import {Topic} from '@/services/data/tuples/topic-types';
 import {isNotRawTopic} from '@/services/data/tuples/topic-utils';
 import {QueryTuple} from '@/services/data/tuples/tuple-types';
 import {AdminCacheData} from '@/services/local-persist/types';
-import {againstSnakeCaseName} from '@/services/utils';
+import {againstSnakeCaseName, noop} from '@/services/utils';
 import {AlertLabel} from '@/widgets/alert/widgets';
 import {ICON_DOWNLOAD, TUPLE_SEARCH_PAGE_SIZE} from '@/widgets/basic/constants';
 import {useEventBus} from '@/widgets/events/event-bus';
@@ -140,6 +140,7 @@ const AdminTopics = () => {
 				() => {
 					onSaved(topic, true);
 					fireCache(AdminCacheEventTypes.SAVE_TOPIC, topic);
+					fireCache(AdminCacheEventTypes.ASK_LOAD_MORE, noop);
 				},
 				() => onSaved(topic, false));
 		};
