@@ -57,6 +57,7 @@ export enum Router {
 	INDICATOR_WORKBENCH_NAVIGATION = '/indicator-workbench/navigator',
 	INDICATOR_WORKBENCH_NAVIGATION_QUERY = '/indicator-workbench/navigator/query',
 	INDICATOR_WORKBENCH_NAVIGATION_EDIT = '/indicator-workbench/navigator/edit/:navigationId',
+	INDICATOR_WORKBENCH_GOVERNANCE = '/indicator-workbench/catalog',
 	INDICATOR_WORKBENCH_SETTINGS = '/indicator-workbench/settings',
 
 	SHARE = '/share',

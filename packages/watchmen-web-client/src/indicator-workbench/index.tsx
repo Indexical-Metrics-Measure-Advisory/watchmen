@@ -3,7 +3,8 @@ import {isAdmin} from '@/services/data/account';
 import React from 'react';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import styled from 'styled-components';
-import IndicatorWorkbenchBucketsIndex from './buckets';
+import IndicatorWorkbenchBucketsIndex from './bucket';
+import IndicatorWorkbenchGovernanceIndex from './governance';
 import IndicatorWorkbenchIndicatorIndex from './indicator';
 import IndicatorWorkbenchInspectionIndex from './inspection';
 import {IndicatorWorkbenchMenu} from './menu';
@@ -54,6 +55,11 @@ const IndicatorWorkbenchIndex = () => {
 			<Route path={Router.INDICATOR_WORKBENCH_NAVIGATION}>
 				<IndicatorWorkbenchMain scrollable={false}>
 					<IndicatorWorkbenchNavigationIndex/>
+				</IndicatorWorkbenchMain>
+			</Route>
+			<Route path={Router.INDICATOR_WORKBENCH_GOVERNANCE}>
+				<IndicatorWorkbenchMain scrollable={false}>
+					<IndicatorWorkbenchGovernanceIndex/>
 				</IndicatorWorkbenchMain>
 			</Route>
 			<Route path={Router.INDICATOR_WORKBENCH_SETTINGS}>

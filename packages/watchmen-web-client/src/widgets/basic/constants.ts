@@ -111,6 +111,7 @@ import {
 	faTimesCircle,
 	faToolbox,
 	faTools,
+	faTowerObservation,
 	faTrashAlt,
 	faUndoAlt,
 	faUpload,
@@ -232,6 +233,7 @@ export const ICON_CHART_LINE = faChartLine;
 export const ICON_CHART_PIE = faChartPie;
 export const ICON_CHART_GROWTH_OF_TIME_GROUPING = faArrowTrendUp;
 export const ICON_CHART_GROWTH_OF_TIME_RANGE = faCodeCompare;
+export const ICON_INDICATOR_GOVERNANCE = faTowerObservation;
 
 export const ICON_SECONDARY_SECTION = faCaretRight;
 
