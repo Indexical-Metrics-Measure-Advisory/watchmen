@@ -10,10 +10,10 @@ from watchmen_model.common import BucketId, ComputedParameter, ConstantParameter
 	ParameterComputeType, ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, \
 	ParameterJointType, ParameterKind, TopicFactorParameter, TopicId
 from watchmen_model.console import Report, ReportIndicator, ReportIndicatorArithmetic
-from watchmen_model.indicator import CategorySegment, CategorySegmentsHolder, IndicatorAggregateArithmetic, \
-	AchievementIndicator, AchievementIndicatorCriteria, AchievementIndicatorCriteriaOnBucket, \
-	AchievementIndicatorCriteriaOnExpression, AchievementIndicatorCriteriaOperator, NumericSegmentsHolder, \
-	NumericValueSegment, OtherCategorySegmentValue, RangeBucketValueIncluding
+from watchmen_model.indicator import AchievementIndicator, AchievementIndicatorCriteria, \
+	AchievementIndicatorCriteriaOnBucket, AchievementIndicatorCriteriaOnExpression, \
+	AchievementIndicatorCriteriaOperator, CategorySegment, CategorySegmentsHolder, IndicatorAggregateArithmetic, \
+	NumericSegmentsHolder, NumericValueSegment, OtherCategorySegmentValue, RangeBucketValueIncluding
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 
 

@@ -1,11 +1,12 @@
 from typing import List, Optional
 
+from watchmen_rest_doll.admin import SyncUserGroupChangeWithIndicator
+
 from watchmen_indicator_kernel.meta import IndicatorService
 from watchmen_meta.admin import UserGroupService
 from watchmen_model.common import IndicatorId, TenantId, UserGroupId
 from watchmen_model.indicator import Indicator
 from watchmen_rest.util import raise_400
-from watchmen_rest_doll.admin import SyncUserGroupChangeWithIndicator
 from watchmen_utilities import ArrayHelper
 
 

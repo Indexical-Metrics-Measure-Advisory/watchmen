@@ -6,10 +6,10 @@ from watchmen_data_kernel.meta import TopicService
 from watchmen_indicator_kernel.common import IndicatorKernelException
 from watchmen_inquiry_kernel.storage import ReportDataService
 from watchmen_model.admin import Factor
-from watchmen_model.common import FactorId, Parameter, ParameterCondition, \
-	ParameterJoint, ParameterJointType, SubjectDatasetColumnId, TopicFactorParameter, TopicId
+from watchmen_model.common import FactorId, Parameter, ParameterCondition, ParameterJoint, ParameterJointType, \
+	SubjectDatasetColumnId, TopicFactorParameter, TopicId
 from watchmen_model.console import Report, Subject, SubjectDatasetColumn
-from watchmen_model.indicator import Indicator, AchievementIndicator, AchievementIndicatorCriteria
+from watchmen_model.indicator import AchievementIndicator, AchievementIndicatorCriteria, Indicator
 from watchmen_utilities import ArrayHelper, is_blank, is_decimal
 from .achievement_data_service import AchievementDataService
 

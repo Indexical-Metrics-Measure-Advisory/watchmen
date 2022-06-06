@@ -1,3 +1,7 @@
+from .achievement import Achievement, AchievementIndicator, AchievementIndicatorCriteria, \
+	AchievementIndicatorCriteriaOnBucket, AchievementIndicatorCriteriaOnExpression, \
+	AchievementIndicatorCriteriaOperator, AchievementTimeRangeType, MANUAL_COMPUTE_ACHIEVEMENT_INDICATOR_ID, \
+	ManualComputeAchievementIndicator
 from .bucket import Bucket, BucketSegment, BucketType, CategoryMeasureBucket, CategorySegment, CategorySegmentsHolder, \
 	CategorySegmentValue, EnumMeasureBucket, MeasureBucket, NumericSegmentsHolder, NumericSegmentValue, \
 	NumericValueBucket, NumericValueMeasureBucket, NumericValueSegment, OtherCategorySegmentValue, \
@@ -10,6 +14,3 @@ from .inspection import Inspection, InspectionAmPmRange, InspectionDayKindRange,
 	InspectionTenDaysRange, InspectionTimeRange, InspectionTimeRangeType, InspectionWeekOfMonthRange, \
 	InspectionWeekOfYearRange, InspectionYearRange, InspectMeasureOn
 from .measure_method import MeasureMethod
-from .achievement import MANUAL_COMPUTE_ACHIEVEMENT_INDICATOR_ID, ManualComputeAchievementIndicator, Achievement, \
-	AchievementIndicator, AchievementIndicatorCriteria, AchievementIndicatorCriteriaOnBucket, \
-	AchievementIndicatorCriteriaOnExpression, AchievementIndicatorCriteriaOperator, AchievementTimeRangeType

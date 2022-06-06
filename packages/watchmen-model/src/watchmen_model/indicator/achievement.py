@@ -3,7 +3,7 @@ from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
-from watchmen_model.common import Auditable, BucketId, DataModel, FactorId, IndicatorId, AchievementId, UserBasedTuple
+from watchmen_model.common import AchievementId, Auditable, BucketId, DataModel, FactorId, IndicatorId, UserBasedTuple
 from watchmen_utilities import ArrayHelper, is_not_blank
 from .indicator import IndicatorAggregateArithmetic
 

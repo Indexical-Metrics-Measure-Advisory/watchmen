@@ -2,8 +2,8 @@ from typing import List
 
 from fastapi import APIRouter
 
-from .data import inspection_data_router, achievement_data_router
-from .meta import bucket_router, indicator_router, inspection_router, achievement_router, subject_router
+from .data import achievement_data_router, inspection_data_router
+from .meta import achievement_router, bucket_router, indicator_router, inspection_router, subject_router
 
 
 def get_indicator_surface_routers() -> List[APIRouter]:
