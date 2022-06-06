@@ -200,7 +200,7 @@ const AdminEnums = () => {
 		                       action: onUploadEnumItemsClicked
 	                       }]}
 	                       searchPlaceholder="Search by enum name, description, etc."
-	                       tupleLabel="Enumeration" tupleImage={EnumBackground} tupleImagePosition="left 80px"
+	                       tupleLabel="Enumeration" tupleImage={EnumBackground} tupleImagePosition="20px 40px"
 	                       renderEditor={renderEditor}
 	                       renderCard={renderCard} getKeyOfTuple={getKeyOfEnum}
 	/>;
