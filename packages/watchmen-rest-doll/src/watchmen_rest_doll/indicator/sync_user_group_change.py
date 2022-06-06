@@ -1,7 +1,5 @@
 from typing import List, Optional
 
-from watchmen_rest_doll.admin import SyncUserGroupChangeWithIndicator
-
 from watchmen_indicator_kernel.meta import IndicatorService
 from watchmen_meta.admin import UserGroupService
 from watchmen_model.common import IndicatorId, TenantId, UserGroupId
@@ -42,7 +40,7 @@ def update_indicator(service: IndicatorService, indicator: Indicator) -> None:
 	service.update(indicator)
 
 
-class UserGroupChangeHandler(SyncUserGroupChangeWithIndicator):
+class SyncUserGroupChangeWithIndicator:
 	# noinspection DuplicatedCode
 	def sync_on_create(
 			self, user_group_id: UserGroupId, indicator_ids: Optional[List[IndicatorId]],

@@ -35,7 +35,7 @@ cryptography = { version = "^36.0.2", optional = true }
 
 [tool.poetry.extras]
 trino = ["watchmen-inquiry-trino"]
-mysql = ["watchmen-storage-mysql"]
+mysql = ["watchmen-storage-mysql", "cryptography"]
 oracle = ["watchmen-storage-oracle"]
 mongodb = ["watchmen-storage-mongodb"]
 mssql = ["watchmen-storage-mssql"]
