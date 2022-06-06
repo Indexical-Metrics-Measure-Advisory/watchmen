@@ -24,7 +24,6 @@ from watchmen_rest.util import raise_400, raise_403
 from watchmen_rest_doll.admin.pipeline_router import post_save_pipeline
 from watchmen_rest_doll.admin.topic_router import post_save_topic
 from watchmen_rest_doll.console.connected_space_router import ConnectedSpaceWithSubjects, SubjectWithReports
-from watchmen_rest_doll.indicator import IndicatorsImportHandler
 from watchmen_rest_doll.util import trans
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 
@@ -152,22 +151,7 @@ class MixedImportWithIndicator:
 		raise NotImplementedError()
 
 
-class MixImportHandle:
-	def __init__(self):
-		self.indicator_handler = None
-
-	def register_indicator_handler(self, handler: MixedImportWithIndicator) -> None:
-		self.indicator_handler = handler
-
-	def has_indicator_handler(self) -> bool:
-		return self.indicator_handler is not None
-
-	def ask_indicator_handler(self) -> Optional[MixedImportWithIndicator]:
-		return self.indicator_handler
-
-
-mix_import_handle = MixImportHandle()
-mix_import_handle.register_indicator_handler(IndicatorsImportHandler())
+mixed_import_indicator_handler = MixedImportWithIndicator()
 
 
 def same_tenant_validate(
@@ -465,11 +449,7 @@ def try_to_import_indicators(
 		indicators: List[Indicator], buckets: List[Bucket],
 		do_update: bool
 ) -> Tuple[List[IndicatorImportDataResult], List[BucketImportDataResult]]:
-	if mix_import_handle.has_indicator_handler():
-		return mix_import_handle.ask_indicator_handler().try_to_import_indicators(
-			user_service, indicators, buckets, do_update)
-	else:
-		return [], []
+	return mixed_import_indicator_handler.try_to_import_indicators(user_service, indicators, buckets, do_update)
 
 
 def try_to_import_monitor_rule(
@@ -785,11 +765,8 @@ def force_new_import_indicators(
 		subject_id_map: Dict[SubjectId, SubjectId],
 		topic_id_map: Dict[TopicId, TopicId], factor_id_map: Dict[FactorId, FactorId]
 ) -> Tuple[List[IndicatorImportDataResult], List[BucketImportDataResult]]:
-	if mix_import_handle.has_indicator_handler():
-		return mix_import_handle.ask_indicator_handler().force_new_import_indicators(
-			user_service, indicators, buckets, subject_id_map, topic_id_map, factor_id_map)
-	else:
-		return [], []
+	return mixed_import_indicator_handler.force_new_import_indicators(
+		user_service, indicators, buckets, subject_id_map, topic_id_map, factor_id_map)
 
 
 def refill_monitor_rule_ids(

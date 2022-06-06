@@ -1,11 +1,10 @@
 from typing import Dict, List, Optional, Tuple
 
-from watchmen_rest_doll.meta_import import BucketImportDataResult, IndicatorImportDataResult, MixedImportWithIndicator
-
 from watchmen_indicator_kernel.meta import BucketService, IndicatorService
 from watchmen_meta.admin import UserService
 from watchmen_model.common import BucketId, FactorId, SubjectId, TopicId
 from watchmen_model.indicator import Bucket, Indicator, IndicatorBaseOn
+from watchmen_rest_doll.meta_import import BucketImportDataResult, IndicatorImportDataResult
 from watchmen_utilities import ArrayHelper, is_blank
 
 
@@ -21,7 +20,7 @@ def clear_user_group_ids(indicator: Indicator) -> None:
 	indicator.groupIds = []
 
 
-class IndicatorsImportHandler(MixedImportWithIndicator):
+class MixedImportWithIndicator:
 	# noinspection PyMethodMayBeStatic
 	def try_to_import_bucket(
 			self, bucket_service: BucketService, bucket: Bucket, do_update: bool
