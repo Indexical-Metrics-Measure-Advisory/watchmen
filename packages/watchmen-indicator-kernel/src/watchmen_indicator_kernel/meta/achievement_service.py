@@ -1,7 +1,7 @@
 from typing import Optional
 
 from watchmen_meta.common import UserBasedTupleService, UserBasedTupleShaper
-from watchmen_model.common import DataPage, AchievementId, Pageable, TenantId, UserId
+from watchmen_model.common import AchievementId, DataPage, Pageable, TenantId, UserId
 from watchmen_model.indicator import Achievement
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaJoint, \
 	EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityRow, EntityShaper

@@ -1,7 +1,8 @@
-from watchmen_indicator_surface import get_indicator_surface_routers
 from watchmen_rest_doll.admin import sync_user_group_change
 from watchmen_rest_doll.main import app
 from watchmen_rest_doll.meta_import import mix_import_handle
+
+from watchmen_indicator_surface import get_indicator_surface_routers
 from watchmen_utilities import ArrayHelper
 from .indicators_import import IndicatorsImportHandler
 from .sync_user_group_change import UserGroupChangeHandler

@@ -1,6 +1,6 @@
 CREATE TABLE achievements
 (
-    achievement_id                VARCHAR(50) NOT NULL,
+    achievement_id               VARCHAR(50) NOT NULL,
     name                         VARCHAR(50),
     time_range_type              VARCHAR(10),
     time_range_year              VARCHAR(10),

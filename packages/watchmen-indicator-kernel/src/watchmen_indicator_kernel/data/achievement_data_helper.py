@@ -1,10 +1,10 @@
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.common import IndicatorKernelException
 from watchmen_model.common import SubjectId, TopicId
-from watchmen_model.indicator import Indicator, IndicatorBaseOn, AchievementIndicator
+from watchmen_model.indicator import AchievementIndicator, Indicator, IndicatorBaseOn
 from watchmen_utilities import is_not_blank
-from .indicator_helper import ask_indicator
 from .achievement_data_service import AchievementDataService
+from .indicator_helper import ask_indicator
 from .subject_base_achievement_data_service import SubjectBaseAchievementDataService
 from .subject_helper import ask_subject
 from .topic_base_achievement_data_service import TopicBaseAchievementDataService

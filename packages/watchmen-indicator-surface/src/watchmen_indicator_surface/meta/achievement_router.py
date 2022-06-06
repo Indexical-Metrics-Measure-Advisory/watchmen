@@ -8,7 +8,7 @@ from watchmen_indicator_surface.settings import ask_tuple_delete_enabled
 from watchmen_indicator_surface.util import trans, trans_readonly
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import UserRole
-from watchmen_model.common import DataPage, AchievementId, Pageable, TenantId, UserId
+from watchmen_model.common import AchievementId, DataPage, Pageable, TenantId, UserId
 from watchmen_model.indicator import Achievement
 from watchmen_rest import get_console_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404

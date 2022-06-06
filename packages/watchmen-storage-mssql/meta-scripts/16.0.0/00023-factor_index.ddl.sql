@@ -1,16 +1,16 @@
 CREATE TABLE factor_index
 (
-    factor_index_id    NVARCHAR(50) NOT NULL,
-    factor_id          NVARCHAR(50) NOT NULL,
-    factor_type        NVARCHAR(50) NOT NULL,
+    factor_index_id    NVARCHAR(50)  NOT NULL,
+    factor_id          NVARCHAR(50)  NOT NULL,
+    factor_type        NVARCHAR(50)  NOT NULL,
     factor_name        NVARCHAR(255) NOT NULL,
     factor_label       NVARCHAR(255),
     factor_description NVARCHAR(1024),
-    topic_id           NVARCHAR(50) NOT NULL,
-    topic_name         NVARCHAR(50) NOT NULL,
-    tenant_id          NVARCHAR(50) NOT NULL,
-    created_at         DATETIME     NOT NULL,
-    last_modified_at   DATETIME     NOT NULL,
+    topic_id           NVARCHAR(50)  NOT NULL,
+    topic_name         NVARCHAR(50)  NOT NULL,
+    tenant_id          NVARCHAR(50)  NOT NULL,
+    created_at         DATETIME      NOT NULL,
+    last_modified_at   DATETIME      NOT NULL,
     CONSTRAINT pk_factor_index PRIMARY KEY (factor_index_id)
 );
 CREATE INDEX i_factor_index_1 ON factor_index (factor_id);
