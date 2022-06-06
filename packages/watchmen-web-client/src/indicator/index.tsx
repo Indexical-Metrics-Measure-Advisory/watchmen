@@ -69,7 +69,7 @@ const IndicatorIndex = () => {
 			</Route>
 			<Route path="*">
 				<Redirect
-					to={isAdmin() ? Router.INDICATOR_INDICATORS : Router.INDICATOR_INSPECTION}/>
+					to={isAdmin() ? Router.INDICATOR_INDICATORS : Router.INDICATOR_OBJECTIVE_ANALYSIS}/>
 			</Route>
 		</Switch>
 		{/*<WaterMark/>*/}

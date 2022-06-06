@@ -12,19 +12,19 @@ import {CategorySegments} from './category-segments';
 type MeasureMethodOfValueMeasureBucket = PropOf<CategoryMeasureBucket, 'measure'>;
 
 const MeasureMethods: Record<MeasureMethodOfValueMeasureBucket, string> = {
-	[MeasureMethod.CONTINENT]: Lang.INDICATOR.MEASURE_METHOD.CONTINENT,
-	[MeasureMethod.REGION]: Lang.INDICATOR.MEASURE_METHOD.REGION,
-	[MeasureMethod.COUNTRY]: Lang.INDICATOR.MEASURE_METHOD.COUNTRY,
-	[MeasureMethod.PROVINCE]: Lang.INDICATOR.MEASURE_METHOD.PROVINCE,
-	[MeasureMethod.CITY]: Lang.INDICATOR.MEASURE_METHOD.CITY,
-	[MeasureMethod.DISTRICT]: Lang.INDICATOR.MEASURE_METHOD.DISTRICT,
-	[MeasureMethod.RESIDENCE_TYPE]: Lang.INDICATOR.MEASURE_METHOD.RESIDENCE_TYPE,
-	[MeasureMethod.GENDER]: Lang.INDICATOR.MEASURE_METHOD.GENDER,
-	[MeasureMethod.OCCUPATION]: Lang.INDICATOR.MEASURE_METHOD.OCCUPATION,
-	[MeasureMethod.RELIGION]: Lang.INDICATOR.MEASURE_METHOD.RELIGION,
-	[MeasureMethod.NATIONALITY]: Lang.INDICATOR.MEASURE_METHOD.NATIONALITY,
-	[MeasureMethod.BIZ_TRADE]: Lang.INDICATOR.MEASURE_METHOD.BIZ_TRADE,
-	[MeasureMethod.BOOLEAN]: Lang.INDICATOR.MEASURE_METHOD.BOOLEAN
+	[MeasureMethod.CONTINENT]: Lang.MEASURE_METHOD.CONTINENT,
+	[MeasureMethod.REGION]: Lang.MEASURE_METHOD.REGION,
+	[MeasureMethod.COUNTRY]: Lang.MEASURE_METHOD.COUNTRY,
+	[MeasureMethod.PROVINCE]: Lang.MEASURE_METHOD.PROVINCE,
+	[MeasureMethod.CITY]: Lang.MEASURE_METHOD.CITY,
+	[MeasureMethod.DISTRICT]: Lang.MEASURE_METHOD.DISTRICT,
+	[MeasureMethod.RESIDENCE_TYPE]: Lang.MEASURE_METHOD.RESIDENCE_TYPE,
+	[MeasureMethod.GENDER]: Lang.MEASURE_METHOD.GENDER,
+	[MeasureMethod.OCCUPATION]: Lang.MEASURE_METHOD.OCCUPATION,
+	[MeasureMethod.RELIGION]: Lang.MEASURE_METHOD.RELIGION,
+	[MeasureMethod.NATIONALITY]: Lang.MEASURE_METHOD.NATIONALITY,
+	[MeasureMethod.BIZ_TRADE]: Lang.MEASURE_METHOD.BIZ_TRADE,
+	[MeasureMethod.BOOLEAN]: Lang.MEASURE_METHOD.BOOLEAN
 };
 const MeasureMethodOptions: Array<DropdownOption> = Object.keys(MeasureMethods).map(type => {
 	return {
