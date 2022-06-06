@@ -11,6 +11,7 @@ from watchmen_model.common import DataPage, IndicatorId, Pageable, SpaceId, Tena
 from watchmen_rest import get_admin_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
+from watchmen_rest_doll.indicator import UserGroupChangeHandler
 from watchmen_rest_doll.util import trans, trans_readonly
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 
@@ -175,6 +176,7 @@ class SyncUserGroupChange:
 
 
 sync_user_group_change = SyncUserGroupChange()
+sync_user_group_change.register_indicator_handler(UserGroupChangeHandler())
 
 
 # noinspection PyUnusedLocal

@@ -1,4 +1,5 @@
 from watchmen_data_surface import get_data_surface_routers
+from watchmen_indicator_surface import get_indicator_surface_routers
 from watchmen_inquiry_surface import get_inquiry_surface_routers
 from watchmen_pipeline_surface import get_pipeline_surface_routers
 from watchmen_rest.system import health_router
@@ -58,3 +59,4 @@ install_sso_router(app)
 ArrayHelper(get_data_surface_routers()).each(lambda x: app.include_router(x))
 ArrayHelper(get_pipeline_surface_routers()).each(lambda x: app.include_router(x))
 ArrayHelper(get_inquiry_surface_routers()).each(lambda x: app.include_router(x))
+ArrayHelper(get_indicator_surface_routers()).each(lambda x: app.include_router(x))
