@@ -9,7 +9,7 @@ import {Enum} from './enum-types';
 import {ExternalWriter} from './external-writer-types';
 import {Indicator} from './indicator-types';
 import {Inspection} from './inspection-types';
-import {Navigation} from './navigation-types';
+import {Achievement} from './achievement-types';
 import {Pipeline, PipelinesGraphics} from './pipeline-types';
 import {Report} from './report-types';
 import {Space} from './space-types';
@@ -75,8 +75,8 @@ export const isBucket = (tuple: Tuple): tuple is Bucket => {
 export const isInspection = (tuple: Tuple): tuple is Inspection => {
 	return !!(tuple as any).inspectionId;
 };
-export const isNavigation = (tuple: Tuple): tuple is Navigation => {
-	return !!(tuple as any).navigationId;
+export const isAchievement = (tuple: Tuple): tuple is Achievement => {
+	return !!(tuple as any).achievementId;
 };
 export const isCatalog = (tuple: Tuple): tuple is Catalog => {
 	return !!(tuple as any).catalogId;
@@ -94,8 +94,8 @@ export const isFakedUuid = (tuple: Tuple): boolean => {
 		return tuple.schedulerId.startsWith(FAKE_ID_PREFIX);
 	} else if (isCatalog(tuple)) {
 		return tuple.catalogId.startsWith(FAKE_ID_PREFIX);
-	} else if (isNavigation(tuple)) {
-		return tuple.navigationId.startsWith(FAKE_ID_PREFIX);
+	} else if (isAchievement(tuple)) {
+		return tuple.achievementId.startsWith(FAKE_ID_PREFIX);
 	} else if (isInspection(tuple)) {
 		// inspection check must before indicator check
 		// since "indicatorId" also exists in inspection object

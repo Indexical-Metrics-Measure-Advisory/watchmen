@@ -36,11 +36,11 @@ export const En = {
 		FIND_INDICATOR_VALUE_BUCKETS_PLACEHOLDER: 'Search by bucket name.',
 		FIND_INDICATOR_USER_GROUPS_PLACEHOLDER: 'Search by user group name.',
 		DROPDOWN_PLACEHOLDER: 'Please Select...',
-		FIND_NAVIGATION_PLACEHOLDER: 'Search by navigation name.',
-		NEW_NAVIGATION_NAME: 'Navigation',
-		NAVIGATION_CRITERIA_TIME_RANGE_YEAR_MONTH: 'Use "year" or "month" to refer predefined time range.',
-		NAVIGATION_CRITERIA_TIME_RANGE_YEAR: 'Use "year" to refer predefined time range.',
-		NAVIGATION_CRITERIA_TIME_RANGE_MONTH: 'Use "month" to refer predefined time range.'
+		FIND_ACHIEVEMENT_PLACEHOLDER: 'Search by achievement name.',
+		NEW_ACHIEVEMENT_NAME: 'Achievement',
+		ACHIEVEMENT_CRITERIA_TIME_RANGE_YEAR_MONTH: 'Use "year" or "month" to refer predefined time range.',
+		ACHIEVEMENT_CRITERIA_TIME_RANGE_YEAR: 'Use "year" to refer predefined time range.',
+		ACHIEVEMENT_CRITERIA_TIME_RANGE_MONTH: 'Use "month" to refer predefined time range.'
 	},
 	STANDARD: {
 		YES: 'Yes',
@@ -281,8 +281,8 @@ export const En = {
 			BUCKETS: 'Buckets',
 			INDICATORS: 'Indicators',
 			INSPECTIONS: 'Inspections',
-			NAVIGATIONS: 'Navigations',
-			GOVERNANCE: 'Governance',
+			ACHIEVEMENTS: 'Achievements',
+			OBJECTIVE_ANALYSIS: 'ObjectiveAnalysis',
 			SETTINGS: 'Settings',
 			LOGOUT: 'Logout'
 		},
@@ -473,15 +473,15 @@ export const En = {
 			NO_DATA: 'No data found.',
 			VISUALIZATION_LABEL: 'Visualization'
 		},
-		NAVIGATION: {
-			TITLE: 'Navigations',
-			LABEL: 'Navigation',
-			CREATE_NAVIGATION: 'Create Navigation',
-			NEW_NAVIGATION_PREFIX: 'A New',
-			EXISTING_NAVIGATION_PREFIX: 'An Existing',
+		ACHIEVEMENT: {
+			TITLE: 'Achievements',
+			LABEL: 'Achievement',
+			CREATE_ACHIEVEMENT: 'Create Achievement',
+			NEW_ACHIEVEMENT_PREFIX: 'A New',
+			EXISTING_ACHIEVEMENT_PREFIX: 'An Existing',
 			CREATE_AT: 'Created At',
 			LAST_MODIFIED_AT: 'Last Modified At',
-			NAVIGATION_NOT_FOUND: 'Failed to load navigation, contact your administrator for more information.',
+			ACHIEVEMENT_NOT_FOUND: 'Failed to load achievement, contact your administrator for more information.',
 			BACK_TO_QUERY: 'Back to Query',
 			HIDE_INDICATOR_CANDIDATES: 'Hide Indicator Candidates',
 			SHOW_INDICATOR_CANDIDATES: 'Show Indicator Candidates',
@@ -514,8 +514,8 @@ export const En = {
 			COMPUTE_INDICATOR_NODE_LABEL: 'Compute Indicator',
 			SCORE_INCLUDE_IN_FINAL: 'Include in Final Score?:'
 		},
-		GOVERNANCE: {
-			TITLE: 'Governance'
+		OBJECTIVE_ANALYSIS: {
+			TITLE: 'Objective Analysis'
 		}
 	},
 	SETTINGS: {

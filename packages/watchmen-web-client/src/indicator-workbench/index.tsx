@@ -4,11 +4,11 @@ import React from 'react';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import styled from 'styled-components';
 import IndicatorWorkbenchBucketsIndex from './bucket';
-import IndicatorWorkbenchGovernanceIndex from './governance';
+import IndicatorWorkbenchObjectiveAnalysisIndex from './objective-analysis';
 import IndicatorWorkbenchIndicatorIndex from './indicator';
 import IndicatorWorkbenchInspectionIndex from './inspection';
 import {IndicatorWorkbenchMenu} from './menu';
-import IndicatorWorkbenchNavigationIndex from './navigation';
+import IndicatorWorkbenchAchievementIndex from './achievement';
 import IndicatorWorkbenchSettingsIndex from './settings';
 
 const IndicatorWorkbenchContainer = styled.div.attrs({'data-widget': 'indicator-workbench'})`
@@ -52,14 +52,14 @@ const IndicatorWorkbenchIndex = () => {
 					<IndicatorWorkbenchInspectionIndex/>
 				</IndicatorWorkbenchMain>
 			</Route>
-			<Route path={Router.INDICATOR_WORKBENCH_NAVIGATION}>
+			<Route path={Router.INDICATOR_WORKBENCH_ACHIEVEMENT}>
 				<IndicatorWorkbenchMain scrollable={false}>
-					<IndicatorWorkbenchNavigationIndex/>
+					<IndicatorWorkbenchAchievementIndex/>
 				</IndicatorWorkbenchMain>
 			</Route>
-			<Route path={Router.INDICATOR_WORKBENCH_GOVERNANCE}>
+			<Route path={Router.INDICATOR_WORKBENCH_OBJECTIVE_ANALYSIS}>
 				<IndicatorWorkbenchMain scrollable={false}>
-					<IndicatorWorkbenchGovernanceIndex/>
+					<IndicatorWorkbenchObjectiveAnalysisIndex/>
 				</IndicatorWorkbenchMain>
 			</Route>
 			<Route path={Router.INDICATOR_WORKBENCH_SETTINGS}>

@@ -226,7 +226,7 @@ export const ICON_END_USER = faChalkboardTeacher;
 export const ICON_BUCKETS = faShapes;
 export const ICON_INDICATOR_INDICATOR = faMagnifyingGlassChart;
 export const ICON_INDICATOR_INSPECTION = faMicroscope;
-export const ICON_INDICATOR_NAVIGATION = faRankingStar;
+export const ICON_INDICATOR_ACHIEVEMENT = faRankingStar;
 export const ICON_TIME_GROUPING = faClock;
 export const ICON_BUCKET_ON = faShapes;
 export const ICON_CHART_BAR = faChartColumn;
@@ -234,7 +234,7 @@ export const ICON_CHART_LINE = faChartLine;
 export const ICON_CHART_PIE = faChartPie;
 export const ICON_CHART_GROWTH_OF_TIME_GROUPING = faArrowTrendUp;
 export const ICON_CHART_GROWTH_OF_TIME_RANGE = faCodeCompare;
-export const ICON_INDICATOR_GOVERNANCE = faTowerObservation;
+export const ICON_INDICATOR_OBJECTIVE_ANALYSIS = faTowerObservation;
 
 export const ICON_SECONDARY_SECTION = faCaretRight;
 

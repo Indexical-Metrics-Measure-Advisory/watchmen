@@ -36,11 +36,11 @@ export const Jp = {
 		FIND_INDICATOR_VALUE_BUCKETS_PLACEHOLDER: 'バケット名に基づいて検索します。',
 		FIND_INDICATOR_USER_GROUPS_PLACEHOLDER: 'ユーザー グループ名に基づいて検索します。',
 		DROPDOWN_PLACEHOLDER: '選択してください...',
-		FIND_NAVIGATION_PLACEHOLDER: '名前に基づいて検索します。',
-		NEW_NAVIGATION_NAME: '指標航法',
-		NAVIGATION_CRITERIA_TIME_RANGE_YEAR_MONTH: '統一定義された時間枠を参照するには、"year" または "month" を入力します。',
-		NAVIGATION_CRITERIA_TIME_RANGE_YEAR: '統一された年を参照するには、"year" を入力します。',
-		NAVIGATION_CRITERIA_TIME_RANGE_MONTH: '統一された月を参照するには、"month" を入力します。'
+		FIND_ACHIEVEMENT_PLACEHOLDER: '名前に基づいて検索します。',
+		NEW_ACHIEVEMENT_NAME: '成果',
+		ACHIEVEMENT_CRITERIA_TIME_RANGE_YEAR_MONTH: '統一定義された時間枠を参照するには、"year" または "month" を入力します。',
+		ACHIEVEMENT_CRITERIA_TIME_RANGE_YEAR: '統一された年を参照するには、"year" を入力します。',
+		ACHIEVEMENT_CRITERIA_TIME_RANGE_MONTH: '統一された月を参照するには、"month" を入力します。'
 	},
 	STANDARD: {
 		YES: 'はい',
@@ -280,9 +280,9 @@ export const Jp = {
 			TITLE: '指標ーワークベンチ',
 			BUCKETS: 'バケット',
 			INDICATORS: '指標',
-			INSPECTIONS: '指標洞察',
-			NAVIGATIONS: '指標航法',
-			GOVERNANCE: '指標ガバナンス',
+			INSPECTIONS: '洞察',
+			ACHIEVEMENTS: '成果',
+			OBJECTIVE_ANALYSIS: '指標ガバナンス',
 			SETTINGS: '設定',
 			LOGOUT: 'ログアウト'
 		},
@@ -426,7 +426,7 @@ export const Jp = {
 			PLEASE_SELECT_ENUM_ITEM: '少なくとも 1 つの列挙項目を選択してセグメント化に参加してください。'
 		},
 		INSPECTION: {
-			TITLE: '指標の洞察',
+			TITLE: '洞察',
 			OR: 'または',
 			PICK_INSPECTION_LABEL: '洞察を選択:',
 			PICKED_INSPECTION_LABEL: '洞察が選択:',
@@ -473,15 +473,15 @@ export const Jp = {
 			NO_DATA: '適切なデータがありません。',
 			VISUALIZATION_LABEL: '視覚化'
 		},
-		NAVIGATION: {
-			TITLE: '航法',
-			LABEL: '航法',
-			CREATE_NAVIGATION: '航法を作成',
-			NEW_NAVIGATION_PREFIX: '新しい',
-			EXISTING_NAVIGATION_PREFIX: '既存',
+		ACHIEVEMENT: {
+			TITLE: '成果',
+			LABEL: '成果',
+			CREATE_ACHIEVEMENT: '成果を作成',
+			NEW_ACHIEVEMENT_PREFIX: '新しい',
+			EXISTING_ACHIEVEMENT_PREFIX: '既存',
 			CREATE_AT: '作成先',
 			LAST_MODIFIED_AT: '最終更新日',
-			NAVIGATION_NOT_FOUND: '航法の定義が見つかりません。詳細については、管理者に問い合わせてください。',
+			ACHIEVEMENT_NOT_FOUND: '成果の定義が見つかりません。詳細については、管理者に問い合わせてください。',
 			BACK_TO_QUERY: 'クエリに戻る',
 			HIDE_INDICATOR_CANDIDATES: '候補メトリックを非表示に',
 			SHOW_INDICATOR_CANDIDATES: '候補メトリックを表示',
@@ -514,8 +514,8 @@ export const Jp = {
 			COMPUTE_INDICATOR_NODE_LABEL: '計算指標',
 			SCORE_INCLUDE_IN_FINAL: '最終スコアに含める:'
 		},
-		GOVERNANCE: {
-			TITLE: 'ガバナンス'
+		OBJECTIVE_ANALYSIS: {
+			TITLE: '目標達成分析'
 		}
 	},
 	SETTINGS: {
