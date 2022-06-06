@@ -156,36 +156,3 @@ jobs:
       version: ${{ github.event.inputs.version }}
       storage: mssql
   # TODO publish dqc image, on postgresql
-  # publish indicator image, on mysql
-  publish-indicator-mysql-image:
-    needs: [ compute-version, prepare, create-release-branch ]
-    uses: ./.github/workflows/image-publish-indicator.yml
-    with:
-      branch: ${{ needs.prepare.outputs.release_branch_name }}
-      version: ${{ needs.compute-version.outputs.version }}
-      storage: mysql
-  # publish indicator image, on oracle
-  publish-indicator-oracle-image:
-    needs: [ compute-version, prepare, create-release-branch ]
-    uses: ./.github/workflows/image-publish-indicator.yml
-    with:
-      branch: ${{ needs.prepare.outputs.release_branch_name }}
-      version: ${{ needs.compute-version.outputs.version }}
-      storage: oracle
-  # publish indicator image, on mongodb
-  publish-indicator-mongodb-image:
-    needs: [ compute-version, prepare, create-release-branch ]
-    uses: ./.github/workflows/image-publish-indicator.yml
-    with:
-      branch: ${{ needs.prepare.outputs.release_branch_name }}
-      version: ${{ needs.compute-version.outputs.version }}
-      storage: mongodb
-  # publish indicator image, on mssql
-  publish-indicator-mssql-image:
-    needs: [ compute-version, prepare, create-release-branch ]
-    uses: ./.github/workflows/image-publish-indicator.yml
-    with:
-      branch: ${{ needs.prepare.outputs.release_branch_name }}
-      version: ${{ needs.compute-version.outputs.version }}
-      storage: mssql
-  # TODO publish indicator image, on postgresql

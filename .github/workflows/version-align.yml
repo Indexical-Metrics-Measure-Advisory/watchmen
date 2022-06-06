@@ -144,6 +144,18 @@ jobs:
         with:
           module-name: watchmen-inquiry-surface
           target-version: ${{ inputs.version }}
+      - name: Change version [watchmen-indicator-kernel]
+        uses: ./.github/actions/change-poetry-version/
+        id: change-poetry-version-indicator-kernel
+        with:
+          module-name: watchmen-indicator-kernel
+          target-version: ${{ inputs.version }}
+      - name: Change version [watchmen-indicator-surface]
+        uses: ./.github/actions/change-poetry-version/
+        id: change-poetry-version-indicator-surface
+        with:
+          module-name: watchmen-indicator-surface
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-rest-doll]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-rest-doll
@@ -161,24 +173,6 @@ jobs:
         id: change-poetry-version-rest-dqc
         with:
           module-name: watchmen-rest-dqc
-          target-version: ${{ inputs.version }}
-      - name: Change version [watchmen-indicator-kernel]
-        uses: ./.github/actions/change-poetry-version/
-        id: change-poetry-version-indicator-kernel
-        with:
-          module-name: watchmen-indicator-kernel
-          target-version: ${{ inputs.version }}
-      - name: Change version [watchmen-indicator-surface]
-        uses: ./.github/actions/change-poetry-version/
-        id: change-poetry-version-indicator-surface
-        with:
-          module-name: watchmen-indicator-surface
-          target-version: ${{ inputs.version }}
-      - name: Change version [watchmen-rest-indicator]
-        uses: ./.github/actions/change-poetry-version/
-        id: change-poetry-version-rest-indicator
-        with:
-          module-name: watchmen-rest-indicator
           target-version: ${{ inputs.version }}
       - name: Change version [watchmen-cli]
         uses: ./.github/actions/change-poetry-version/
