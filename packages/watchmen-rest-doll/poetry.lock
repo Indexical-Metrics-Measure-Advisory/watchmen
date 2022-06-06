@@ -338,7 +338,7 @@ name = "greenlet"
 version = "1.1.2"
 description = "Lightweight in-process concurrent programming"
 category = "main"
-optional = true
+optional = false
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*"
 
 [package.extras]
@@ -792,7 +792,7 @@ name = "sqlalchemy"
 version = "1.4.35"
 description = "Database Abstraction Library"
 category = "main"
-optional = true
+optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,>=2.7"
 
 [package.dependencies]
@@ -1353,7 +1353,7 @@ name = "watchmen-storage-rds"
 version = "16.1.0"
 description = ""
 category = "main"
-optional = true
+optional = false
 python-versions = "^3.9"
 develop = true
 
@@ -1421,7 +1421,7 @@ es_ext_writer = []
 kafka = ["kafka-python", "aiokafka"]
 mongodb = ["watchmen-storage-mongodb"]
 mssql = ["watchmen-storage-mssql"]
-mysql = ["watchmen-storage-mysql"]
+mysql = ["watchmen-storage-mysql", "cryptography"]
 oracle = ["watchmen-storage-oracle"]
 postgresql = ["watchmen-storage-postgresql"]
 prometheus = ["starlette-prometheus"]
@@ -1433,7 +1433,7 @@ trino = ["watchmen-inquiry-trino"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "532ec57389a36a179d479a44fabddd53e55c032425a06b7ec6177b0275f910ac"
+content-hash = "a31c9693a7b85a306d75c3028c80126c6bdec38030ae46cc7d26c27499a1d78c"
 
 [metadata.files]
 aio-pika = [
