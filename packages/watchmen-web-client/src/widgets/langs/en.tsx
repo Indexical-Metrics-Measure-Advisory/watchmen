@@ -282,6 +282,7 @@ export const En = {
 			INDICATORS: 'Indicators',
 			INSPECTIONS: 'Inspections',
 			NAVIGATIONS: 'Navigations',
+			GOVERNANCE: 'Governance',
 			SETTINGS: 'Settings',
 			LOGOUT: 'Logout'
 		},
@@ -512,6 +513,9 @@ export const En = {
 			ADD_COMPUTE_INDICATOR: 'Add Manual Compute Indicator',
 			COMPUTE_INDICATOR_NODE_LABEL: 'Compute Indicator',
 			SCORE_INCLUDE_IN_FINAL: 'Include in Final Score?:'
+		},
+		GOVERNANCE: {
+			TITLE: 'Governance'
 		}
 	},
 	SETTINGS: {

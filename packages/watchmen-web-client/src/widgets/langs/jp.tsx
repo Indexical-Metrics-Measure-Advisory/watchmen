@@ -280,8 +280,9 @@ export const Jp = {
 			TITLE: '指標ーワークベンチ',
 			BUCKETS: 'バケット',
 			INDICATORS: '指標',
-			INSPECTIONS: '指標を構造',
+			INSPECTIONS: '指標洞察',
 			NAVIGATIONS: '指標航法',
+			GOVERNANCE: '指標ガバナンス',
 			SETTINGS: '設定',
 			LOGOUT: 'ログアウト'
 		},
@@ -512,6 +513,9 @@ export const Jp = {
 			ADD_COMPUTE_INDICATOR: '計算指標を増や',
 			COMPUTE_INDICATOR_NODE_LABEL: '計算指標',
 			SCORE_INCLUDE_IN_FINAL: '最終スコアに含める:'
+		},
+		GOVERNANCE: {
+			TITLE: 'ガバナンス'
 		}
 	},
 	SETTINGS: {

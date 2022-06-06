@@ -280,8 +280,9 @@ export const Zh = {
 			TITLE: '指标工作台',
 			BUCKETS: '分桶',
 			INDICATORS: '指标',
-			INSPECTIONS: '指标构建',
+			INSPECTIONS: '指标洞察',
 			NAVIGATIONS: '指标领航',
+			GOVERNANCE: '指标治理',
 			SETTINGS: '设置',
 			LOGOUT: '登出'
 		},
@@ -512,6 +513,9 @@ export const Zh = {
 			ADD_COMPUTE_INDICATOR: '增加计算指标',
 			COMPUTE_INDICATOR_NODE_LABEL: '计算指标',
 			SCORE_INCLUDE_IN_FINAL: '计算入最终得分?:'
+		},
+		GOVERNANCE: {
+			TITLE: '指标治理'
 		}
 	},
 	SETTINGS: {
