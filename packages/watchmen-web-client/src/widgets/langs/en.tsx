@@ -282,7 +282,7 @@ export const En = {
 			INDICATORS: 'Indicators',
 			INSPECTIONS: 'Inspections',
 			ACHIEVEMENTS: 'Achievements',
-			OBJECTIVE_ANALYSIS: 'ObjectiveAnalysis',
+			OBJECTIVE_ANALYSIS: 'Objective Analysis',
 			SETTINGS: 'Settings',
 			LOGOUT: 'Logout'
 		},
