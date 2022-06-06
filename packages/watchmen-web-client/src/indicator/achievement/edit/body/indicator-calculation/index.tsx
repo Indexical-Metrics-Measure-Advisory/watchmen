@@ -1,9 +1,9 @@
-import {Indicator} from '@/services/data/tuples/indicator-types';
 import {Achievement, AchievementIndicator} from '@/services/data/tuples/achievement-types';
+import {Indicator} from '@/services/data/tuples/indicator-types';
 import {useEffect, useState} from 'react';
-import {IndicatorValuesCalculator} from '../indicator-values-calculator';
 import {useAchievementEditEventBus} from '../achievement-edit-event-bus';
 import {AchievementEditEventTypes} from '../achievement-edit-event-bus-types';
+import {IndicatorValuesCalculator} from '../indicator-values-calculator';
 import {IndicatorCriteriaDefData} from '../types';
 import {Expandable, useIndicatorPartExpandable} from '../use-indicator-part-expandable';
 import {isReadyToCalculation} from '../utils';
@@ -30,7 +30,8 @@ const InternalIndicatorCalculation = (props: {
 	return <>
 		<LineToParent achievement={achievement} achievementIndicator={achievementIndicator}/>
 		<IndicatorCalculationNodeContainer ref={containerRef}>
-			<IndicatorCalculationNodeContent id={id} achievement={achievement} achievementIndicator={achievementIndicator}
+			<IndicatorCalculationNodeContent id={id} achievement={achievement}
+			                                 achievementIndicator={achievementIndicator}
 			                                 expanded={expanded}/>
 			<IndicatorCalculationFormula achievement={achievement} achievementIndicator={achievementIndicator}
 			                             expanded={expanded}/>

@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import {v4} from 'uuid';
+import {Achievement} from './achievement-types';
 import {Bucket} from './bucket-types';
 import {Catalog} from './catalog-types';
 import {ConnectedSpace} from './connected-space-types';
@@ -9,7 +10,6 @@ import {Enum} from './enum-types';
 import {ExternalWriter} from './external-writer-types';
 import {Indicator} from './indicator-types';
 import {Inspection} from './inspection-types';
-import {Achievement} from './achievement-types';
 import {Pipeline, PipelinesGraphics} from './pipeline-types';
 import {Report} from './report-types';
 import {Space} from './space-types';

@@ -1,7 +1,3 @@
-import {BucketId} from '@/services/data/tuples/bucket-types';
-import {ComparableTypes} from '@/services/data/tuples/factor-types';
-import {Indicator} from '@/services/data/tuples/indicator-types';
-import {findTopicAndFactor} from '@/services/data/tuples/indicator-utils';
 import {
 	Achievement,
 	AchievementIndicator,
@@ -14,6 +10,10 @@ import {
 	isAchievementIndicatorCriteriaOnBucket,
 	isAchievementIndicatorCriteriaOnExpression
 } from '@/services/data/tuples/achievement-utils';
+import {BucketId} from '@/services/data/tuples/bucket-types';
+import {ComparableTypes} from '@/services/data/tuples/factor-types';
+import {Indicator} from '@/services/data/tuples/indicator-types';
+import {findTopicAndFactor} from '@/services/data/tuples/indicator-utils';
 import {isNotNull} from '@/services/data/utils';
 import {noop} from '@/services/utils';
 import {Dropdown} from '@/widgets/basic/dropdown';

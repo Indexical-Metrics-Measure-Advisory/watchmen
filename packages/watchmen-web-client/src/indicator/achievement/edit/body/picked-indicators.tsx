@@ -1,14 +1,14 @@
-import {Indicator} from '@/services/data/tuples/indicator-types';
 import {Achievement, AchievementIndicator} from '@/services/data/tuples/achievement-types';
 import {isManualComputeAchievementIndicator} from '@/services/data/tuples/achievement-utils';
+import {Indicator} from '@/services/data/tuples/indicator-types';
 import {noop} from '@/services/utils';
 import {useEffect, useLayoutEffect, useState} from 'react';
 import {v4} from 'uuid';
 import {useAchievementEventBus} from '../../achievement-event-bus';
 import {AchievementEventTypes} from '../../achievement-event-bus-types';
-import {PickedIndicator} from './indicator';
 import {useAchievementEditEventBus} from './achievement-edit-event-bus';
 import {AchievementEditEventTypes} from './achievement-edit-event-bus-types';
+import {PickedIndicator} from './indicator';
 import {IndicatorNodeContent} from './types';
 
 enum NodesChangeTrigger {

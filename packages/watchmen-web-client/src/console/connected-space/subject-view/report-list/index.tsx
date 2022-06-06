@@ -2,7 +2,7 @@ import {toSubjectReport} from '@/routes/utils';
 import {ConnectedSpace} from '@/services/data/tuples/connected-space-types';
 import {Report} from '@/services/data/tuples/report-types';
 import {Subject} from '@/services/data/tuples/subject-types';
-import {ICON_REPORT_DIMENSION, ICON_FILTER, ICON_REPORT_INDICATOR} from '@/widgets/basic/constants';
+import {ICON_FILTER, ICON_REPORT_DIMENSION, ICON_REPORT_INDICATOR} from '@/widgets/basic/constants';
 import {TooltipAlignment} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';

@@ -1,7 +1,7 @@
 import {TuplePage} from '@/services/data/query/tuple-page';
+import {Achievement} from '@/services/data/tuples/achievement-types';
 import {Bucket, BucketId} from '@/services/data/tuples/bucket-types';
 import {Indicator} from '@/services/data/tuples/indicator-types';
-import {Achievement} from '@/services/data/tuples/achievement-types';
 import {QueryByBucketMethod} from '@/services/data/tuples/query-bucket-types';
 import {Topic, TopicId} from '@/services/data/tuples/topic-types';
 import {QueryTuple} from '@/services/data/tuples/tuple-types';

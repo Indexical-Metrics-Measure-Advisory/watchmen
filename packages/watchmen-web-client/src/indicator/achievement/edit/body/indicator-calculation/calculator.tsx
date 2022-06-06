@@ -1,8 +1,8 @@
-import {MeasureMethod} from '@/services/data/tuples/indicator-types';
-import {findTopicAndFactor, tryToTransformToMeasures} from '@/services/data/tuples/indicator-utils';
 import {fetchAchievementIndicatorData} from '@/services/data/tuples/achievement';
 import {Achievement, AchievementIndicator, AchievementTimeRangeType} from '@/services/data/tuples/achievement-types';
 import {isAchievementIndicatorCriteriaOnExpression} from '@/services/data/tuples/achievement-utils';
+import {MeasureMethod} from '@/services/data/tuples/indicator-types';
+import {findTopicAndFactor, tryToTransformToMeasures} from '@/services/data/tuples/indicator-utils';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {FireTiming, useThrottler} from '@/widgets/throttler';

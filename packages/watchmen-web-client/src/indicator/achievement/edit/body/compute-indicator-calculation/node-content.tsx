@@ -1,8 +1,8 @@
 import {Achievement, AchievementIndicator} from '@/services/data/tuples/achievement-types';
 import {Lang} from '@/widgets/langs';
-import {useIndicatorValuesCalculator} from '../indicator-values-calculator';
 import {useAchievementEditEventBus} from '../achievement-edit-event-bus';
 import {AchievementEditEventTypes} from '../achievement-edit-event-bus-types';
+import {useIndicatorValuesCalculator} from '../indicator-values-calculator';
 import {
 	ComputeIndicatorCalculationNode,
 	ComputeIndicatorCalculationValue,

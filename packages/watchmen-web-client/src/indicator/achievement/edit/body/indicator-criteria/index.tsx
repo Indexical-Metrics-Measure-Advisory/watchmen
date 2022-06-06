@@ -1,5 +1,5 @@
-import {Indicator} from '@/services/data/tuples/indicator-types';
 import {Achievement, AchievementIndicator} from '@/services/data/tuples/achievement-types';
+import {Indicator} from '@/services/data/tuples/indicator-types';
 import {Lang} from '@/widgets/langs';
 import {IndicatorCriteriaDefData} from '../types';
 import {IndicatorPartRelationLine} from '../widgets';

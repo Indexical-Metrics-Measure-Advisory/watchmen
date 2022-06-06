@@ -1,10 +1,10 @@
 import {
-	MANUAL_COMPUTE_ACHIEVEMENT_INDICATOR_ID,
-	ManualComputeAchievementIndicator,
 	AchievementIndicator,
 	AchievementIndicatorCriteria,
 	AchievementIndicatorCriteriaOnBucket,
-	AchievementIndicatorCriteriaOnExpression
+	AchievementIndicatorCriteriaOnExpression,
+	MANUAL_COMPUTE_ACHIEVEMENT_INDICATOR_ID,
+	ManualComputeAchievementIndicator
 } from './achievement-types';
 
 export const isAchievementIndicatorCriteriaOnBucket = (criteria: AchievementIndicatorCriteria): criteria is AchievementIndicatorCriteriaOnBucket => {
