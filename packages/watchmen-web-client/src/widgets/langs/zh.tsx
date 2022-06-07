@@ -277,7 +277,7 @@ export const Zh = {
 	},
 	INDICATOR: {
 		MENU: {
-			TITLE: '指标工作台',
+			TITLE: 'Watchmen指标工作台',
 			BUCKETS: '分桶',
 			INDICATORS: '指标',
 			INSPECTIONS: '洞察',

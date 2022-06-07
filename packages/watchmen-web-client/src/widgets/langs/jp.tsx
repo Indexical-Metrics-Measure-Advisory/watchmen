@@ -277,7 +277,7 @@ export const Jp = {
 	},
 	INDICATOR: {
 		MENU: {
-			TITLE: '指標ーワークベンチ',
+			TITLE: 'Watchmen指標',
 			BUCKETS: 'バケット',
 			INDICATORS: '指標',
 			INSPECTIONS: '洞察',
