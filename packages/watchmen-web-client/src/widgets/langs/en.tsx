@@ -120,7 +120,7 @@ export const En = {
 			TO_CONSOLE: 'To Console',
 			TO_ADMIN: 'To Admin',
 			TO_DATA_QUALITY: 'To Data Quality Center',
-			TO_INDICATOR: 'To Indicator Workbench',
+			TO_INDICATOR: 'To Indicator',
 			LOGOUT: 'Logout'
 		},
 		FAVORITE: {
@@ -277,7 +277,7 @@ export const En = {
 	},
 	INDICATOR: {
 		MENU: {
-			TITLE: 'Indicator Workbench',
+			TITLE: 'Watchmen Indicator',
 			BUCKETS: 'Buckets',
 			INDICATORS: 'Indicators',
 			INSPECTIONS: 'Inspections',
