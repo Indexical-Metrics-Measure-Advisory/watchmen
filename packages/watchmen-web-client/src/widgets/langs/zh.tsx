@@ -40,7 +40,8 @@ export const Zh = {
 		NEW_ACHIEVEMENT_NAME: '业绩',
 		ACHIEVEMENT_CRITERIA_TIME_RANGE_YEAR_MONTH: '填写"year"或"month"来引用统一定义的时间窗口.',
 		ACHIEVEMENT_CRITERIA_TIME_RANGE_YEAR: '填写"year"来引用统一定义的年份.',
-		ACHIEVEMENT_CRITERIA_TIME_RANGE_MONTH: '填写"month"来引用统一定义的月份.'
+		ACHIEVEMENT_CRITERIA_TIME_RANGE_MONTH: '填写"month"来引用统一定义的月份.',
+		OBJECTIVE_ANALYSIS_SEARCH_PLACEHOLDER: '查找...'
 	},
 	STANDARD: {
 		YES: '是',
@@ -515,7 +516,8 @@ export const Zh = {
 			SCORE_INCLUDE_IN_FINAL: '计算入最终得分?:'
 		},
 		OBJECTIVE_ANALYSIS: {
-			TITLE: '目标达成分析'
+			TITLE: '目标达成分析',
+			NAVIGATOR_TITLE: '导航'
 		}
 	},
 	SETTINGS: {

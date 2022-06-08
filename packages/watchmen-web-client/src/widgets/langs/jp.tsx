@@ -40,7 +40,8 @@ export const Jp = {
 		NEW_ACHIEVEMENT_NAME: '成果',
 		ACHIEVEMENT_CRITERIA_TIME_RANGE_YEAR_MONTH: '統一定義された時間枠を参照するには、"year" または "month" を入力します。',
 		ACHIEVEMENT_CRITERIA_TIME_RANGE_YEAR: '統一された年を参照するには、"year" を入力します。',
-		ACHIEVEMENT_CRITERIA_TIME_RANGE_MONTH: '統一された月を参照するには、"month" を入力します。'
+		ACHIEVEMENT_CRITERIA_TIME_RANGE_MONTH: '統一された月を参照するには、"month" を入力します。',
+		OBJECTIVE_ANALYSIS_SEARCH_PLACEHOLDER: '絞り込み条件...'
 	},
 	STANDARD: {
 		YES: 'はい',
@@ -515,7 +516,8 @@ export const Jp = {
 			SCORE_INCLUDE_IN_FINAL: '最終スコアに含める:'
 		},
 		OBJECTIVE_ANALYSIS: {
-			TITLE: '目標達成分析'
+			TITLE: '目標達成分析',
+			NAVIGATOR_TITLE: '目次'
 		}
 	},
 	SETTINGS: {
