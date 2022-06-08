@@ -40,7 +40,8 @@ export const En = {
 		NEW_ACHIEVEMENT_NAME: 'Achievement',
 		ACHIEVEMENT_CRITERIA_TIME_RANGE_YEAR_MONTH: 'Use "year" or "month" to refer predefined time range.',
 		ACHIEVEMENT_CRITERIA_TIME_RANGE_YEAR: 'Use "year" to refer predefined time range.',
-		ACHIEVEMENT_CRITERIA_TIME_RANGE_MONTH: 'Use "month" to refer predefined time range.'
+		ACHIEVEMENT_CRITERIA_TIME_RANGE_MONTH: 'Use "month" to refer predefined time range.',
+		OBJECTIVE_ANALYSIS_SEARCH_PLACEHOLDER: 'Filter by...'
 	},
 	STANDARD: {
 		YES: 'Yes',
@@ -515,7 +516,8 @@ export const En = {
 			SCORE_INCLUDE_IN_FINAL: 'Include in Final Score?:'
 		},
 		OBJECTIVE_ANALYSIS: {
-			TITLE: 'Objective Analysis'
+			TITLE: 'Objective Analysis',
+			NAVIGATOR_TITLE: 'Navigator'
 		}
 	},
 	SETTINGS: {
