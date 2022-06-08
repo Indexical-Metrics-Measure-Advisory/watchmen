@@ -267,7 +267,10 @@ class StorageMSSQL(TransactionalStorageSPI):
 	# noinspection PyMethodMayBeStatic
 	def translate_straight_column_name(self, straight_column: EntityStraightColumn) -> Any:
 		if isinstance(straight_column, EntityStraightAggregateColumn):
-			if straight_column.arithmetic == EntityColumnAggregateArithmetic.SUM:
+			if straight_column.arithmetic == EntityColumnAggregateArithmetic.COUNT:
+				return func.count(straight_column.columnName) \
+					.label(self.get_alias_from_straight_column(straight_column))
+			elif straight_column.arithmetic == EntityColumnAggregateArithmetic.SUM:
 				return func.sum(straight_column.columnName).label(self.get_alias_from_straight_column(straight_column))
 			elif straight_column.arithmetic == EntityColumnAggregateArithmetic.AVG:
 				return func.avg(straight_column.columnName).label(self.get_alias_from_straight_column(straight_column))
