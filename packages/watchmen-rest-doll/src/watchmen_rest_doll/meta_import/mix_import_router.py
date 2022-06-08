@@ -326,6 +326,7 @@ def try_to_import_topic(topic: Topic, topic_service: TopicService, do_update: bo
 			topic_service.create(topic)
 		elif do_update:
 			topic.version = existing_topic.version
+			topic.dataSourceId = existing_topic.dataSourceId
 			topic_service.update(topic)
 		else:
 			return TopicImportDataResult(
