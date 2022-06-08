@@ -10,6 +10,7 @@ import {Enum} from './enum-types';
 import {ExternalWriter} from './external-writer-types';
 import {Indicator} from './indicator-types';
 import {Inspection} from './inspection-types';
+import {ObjectiveAnalysis} from './objective-analysis-types';
 import {Pipeline, PipelinesGraphics} from './pipeline-types';
 import {Report} from './report-types';
 import {Space} from './space-types';
@@ -78,6 +79,9 @@ export const isInspection = (tuple: Tuple): tuple is Inspection => {
 export const isAchievement = (tuple: Tuple): tuple is Achievement => {
 	return !!(tuple as any).achievementId;
 };
+export const isObjectiveAnalysis = (tuple: Tuple): tuple is ObjectiveAnalysis => {
+	return !!(tuple as any).analysisId;
+};
 export const isCatalog = (tuple: Tuple): tuple is Catalog => {
 	return !!(tuple as any).catalogId;
 };
@@ -94,6 +98,8 @@ export const isFakedUuid = (tuple: Tuple): boolean => {
 		return tuple.schedulerId.startsWith(FAKE_ID_PREFIX);
 	} else if (isCatalog(tuple)) {
 		return tuple.catalogId.startsWith(FAKE_ID_PREFIX);
+	} else if (isObjectiveAnalysis(tuple)) {
+		return tuple.analysisId.startsWith(FAKE_ID_PREFIX);
 	} else if (isAchievement(tuple)) {
 		return tuple.achievementId.startsWith(FAKE_ID_PREFIX);
 	} else if (isInspection(tuple)) {

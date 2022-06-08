@@ -1,5 +1,5 @@
 import {Button} from '@/widgets/basic/button';
-import {ICON_CLOSE, ICON_SEARCH, ICON_SHOW_NAVIGATOR} from '@/widgets/basic/constants';
+import {ICON_COLLAPSE_PANEL, ICON_SEARCH, ICON_SHOW_NAVIGATOR} from '@/widgets/basic/constants';
 import {ButtonInk} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
@@ -42,7 +42,7 @@ export const ObjectiveAnalysisNavigator = () => {
 				<FontAwesomeIcon icon={ICON_SEARCH}/>
 			</Button>
 			<Button onClick={onCloseClicked}>
-				<FontAwesomeIcon icon={ICON_CLOSE}/>
+				<FontAwesomeIcon icon={ICON_COLLAPSE_PANEL}/>
 			</Button>
 		</NavigatorHeader>
 		<NavigatorHeaderSearchInput value={searchText} onChange={onSearchTextChange}
