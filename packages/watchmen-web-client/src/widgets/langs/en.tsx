@@ -517,7 +517,8 @@ export const En = {
 		},
 		OBJECTIVE_ANALYSIS: {
 			TITLE: 'Objective Analysis',
-			NAVIGATOR_TITLE: 'Navigator'
+			NAVIGATOR_TITLE: 'Navigator',
+			NO_DATA: 'No data found.'
 		}
 	},
 	SETTINGS: {

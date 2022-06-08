@@ -517,7 +517,8 @@ export const Jp = {
 		},
 		OBJECTIVE_ANALYSIS: {
 			TITLE: '目標達成分析',
-			NAVIGATOR_TITLE: '目次'
+			NAVIGATOR_TITLE: '目次',
+			NO_DATA: '適切なデータがありません。'
 		}
 	},
 	SETTINGS: {

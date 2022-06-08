@@ -85,6 +85,7 @@ import {
 	faPowerOff,
 	faPrint,
 	faQuestionCircle,
+	faQuoteRight,
 	faRandom,
 	faRankingStar,
 	faRobot,
@@ -236,6 +237,7 @@ export const ICON_CHART_PIE = faChartPie;
 export const ICON_CHART_GROWTH_OF_TIME_GROUPING = faArrowTrendUp;
 export const ICON_CHART_GROWTH_OF_TIME_RANGE = faCodeCompare;
 export const ICON_INDICATOR_OBJECTIVE_ANALYSIS = faTowerObservation;
+export const ICON_OBJECTIVE_ANALYSIS_ITEM = faQuoteRight;
 
 export const ICON_SECONDARY_SECTION = faCaretRight;
 
