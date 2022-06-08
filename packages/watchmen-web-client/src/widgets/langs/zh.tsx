@@ -517,7 +517,8 @@ export const Zh = {
 		},
 		OBJECTIVE_ANALYSIS: {
 			TITLE: '目标达成分析',
-			NAVIGATOR_TITLE: '导航'
+			NAVIGATOR_TITLE: '导航',
+			NO_DATA: '没有合适的数据.'
 		}
 	},
 	SETTINGS: {

@@ -184,7 +184,9 @@ export const Apis = {
 	ACHIEVEMENT_CREATE: 'indicator/achievement',
 	ACHIEVEMENT_SAVE: 'indicator/achievement',
 	ACHIEVEMENT_GET: 'indicator/achievement?achievement_id=:achievementId',
-	ACHIEVEMENT_INDICATOR_DATA: 'indicator/achievement/data'
+	ACHIEVEMENT_INDICATOR_DATA: 'indicator/achievement/data',
+
+	OBJECTIVE_ANALYSIS_LIST: 'indicator/object-analysis/list'
 };
 
 const buildApi = (api: string, args?: Record<string, any>): string => {

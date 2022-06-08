@@ -86,3 +86,62 @@ export const ControlButton = styled(Button).attrs<{ visible: boolean }>(({visibl
 		opacity : 1;
 	}
 `;
+
+export const LoadingLabel = styled.div.attrs({
+	'data-widget': 'loading-label'
+})`
+	display      : flex;
+	position     : relative;
+	align-items  : center;
+	padding      : 0 calc(var(--margin) / 2);
+	font-variant : petite-caps;
+	height       : calc(var(--tall-height) * 1.2);
+	> svg {
+		margin-right : calc(var(--margin) / 4);
+	}
+`;
+export const NoDataLabel = styled.div.attrs({
+	'data-widget': 'no-data-label'
+})`
+	display      : flex;
+	position     : relative;
+	align-items  : center;
+	padding      : 0 calc(var(--margin) / 2);
+	font-variant : petite-caps;
+	height       : calc(var(--tall-height) * 1.2);
+	> svg {
+		margin-right : calc(var(--margin) / 4);
+	}
+`;
+
+export const ObjectiveAnalysisItem = styled.div.attrs({
+	'data-widget': 'objective-analysis-item'
+})`
+	display  : block;
+	position : relative;
+	padding  : calc(var(--margin) / 4) calc(var(--margin) / 2);
+	cursor   : pointer;
+	&:hover {
+		background-color : var(--hover-color);
+	}
+	&:after {
+		content          : '';
+		display          : block;
+		position         : absolute;
+		bottom           : 0;
+		left             : 0;
+		width            : 100%;
+		height           : 1px;
+		background-color : var(--border-color);
+		opacity          : 0.3;
+	}
+	> svg {
+		margin-right : calc(var(--margin) / 4);
+		opacity      : 0.5;
+		color        : var(--info-color)
+	}
+	> span {
+		word-break  : break-all;
+		line-height : var(--line-height);
+	}
+`;
