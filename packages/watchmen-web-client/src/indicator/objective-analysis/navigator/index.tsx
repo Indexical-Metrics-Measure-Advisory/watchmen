@@ -12,6 +12,7 @@ import {ButtonInk} from '@/widgets/basic/types';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
+import {useThrottler} from '@/widgets/throttler';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {ChangeEvent, useEffect, useRef, useState} from 'react';
 import {useObjectiveAnalysisEventBus} from '../objective-analysis-event-bus';
@@ -19,18 +20,22 @@ import {ObjectiveAnalysisEventTypes} from '../objective-analysis-event-bus-types
 import {useNavigatorVisible} from './use-navigator-visible';
 import {
 	ControlButton,
+	ItemCountLabel,
 	LoadingLabel,
 	NavigatorContainer,
 	NavigatorHeader,
 	NavigatorHeaderLabel,
 	NavigatorHeaderSearchInput,
+	NavigatorSearchHeader,
 	NoDataLabel,
-	ObjectiveAnalysisItem
+	ObjectiveAnalysisItem,
+	ObjectiveAnalysisItemList
 } from './widgets';
 
 interface NavigatorState {
 	loaded: boolean;
 	data: Array<ObjectiveAnalysis>;
+	filtered: Array<ObjectiveAnalysis>;
 }
 
 export const ObjectiveAnalysisNavigator = () => {
@@ -39,7 +44,8 @@ export const ObjectiveAnalysisNavigator = () => {
 	const {fire} = useObjectiveAnalysisEventBus();
 	const [searching, setSearching] = useState(false);
 	const [searchText, setSearchText] = useState('');
-	const [state, setState] = useState<NavigatorState>({loaded: false, data: []});
+	const [state, setState] = useState<NavigatorState>({loaded: false, data: [], filtered: []});
+	const searchHandle = useThrottler();
 	const visible = useNavigatorVisible();
 	useEffect(() => {
 		if (state.loaded) {
@@ -48,9 +54,12 @@ export const ObjectiveAnalysisNavigator = () => {
 		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
 			return await listObjectiveAnalysis();
 		}, (data: Array<ObjectiveAnalysis>) => {
-			setState({loaded: true, data});
+			const sorted = data.sort((o1, o2) => {
+				return (o1.title || '').toLowerCase().localeCompare((o2.title || '').toLowerCase());
+			});
+			setState({loaded: true, data: sorted, filtered: sorted});
 		}, () => {
-			setState({loaded: true, data: []});
+			setState({loaded: true, data: [], filtered: []});
 		});
 	}, [fireGlobal, state.loaded]);
 
@@ -64,22 +73,44 @@ export const ObjectiveAnalysisNavigator = () => {
 		fire(ObjectiveAnalysisEventTypes.HIDE_NAVIGATOR);
 	};
 	const onSearchTextChange = (event: ChangeEvent<HTMLInputElement>) => {
-		setSearchText(event.target.value);
+		const {value} = event.target;
+		setSearchText(value);
+		searchHandle.replace(() => {
+			setState(state => {
+				if (value.trim().length === 0) {
+					return {loaded: state.loaded, data: state.data, filtered: state.data};
+				} else {
+					console.log('x');
+					return {
+						loaded: state.loaded,
+						data: state.data,
+						filtered: state.data.filter(item => (item.title || '').toLowerCase().includes(value.trim().toLowerCase()))
+					};
+				}
+			});
+		}, 300);
 	};
 
 	return <NavigatorContainer visible={visible}>
 		<NavigatorHeader>
 			<NavigatorHeaderLabel>{Lang.INDICATOR.OBJECTIVE_ANALYSIS.NAVIGATOR_TITLE}</NavigatorHeaderLabel>
-			<Button onClick={onToggleSearchClicked} ink={searching ? ButtonInk.PRIMARY : (void 0)}>
-				<FontAwesomeIcon icon={ICON_SEARCH}/>
-			</Button>
+			{state.loaded
+				? <Button onClick={onToggleSearchClicked} ink={searching ? ButtonInk.PRIMARY : (void 0)}>
+					<FontAwesomeIcon icon={ICON_SEARCH}/>
+				</Button>
+				: null}
 			<Button onClick={onCloseClicked}>
 				<FontAwesomeIcon icon={ICON_COLLAPSE_PANEL}/>
 			</Button>
 		</NavigatorHeader>
-		<NavigatorHeaderSearchInput value={searchText} onChange={onSearchTextChange}
-		                            placeholder={Lang.PLAIN.OBJECTIVE_ANALYSIS_SEARCH_PLACEHOLDER}
-		                            visible={searching} ref={searchInputRef}/>
+		<NavigatorSearchHeader>
+			<NavigatorHeaderSearchInput value={searchText} onChange={onSearchTextChange}
+			                            placeholder={Lang.PLAIN.OBJECTIVE_ANALYSIS_SEARCH_PLACEHOLDER}
+			                            visible={searching} ref={searchInputRef}/>
+			<ItemCountLabel>
+				{state.filtered.length} / {state.data.length}
+			</ItemCountLabel>
+		</NavigatorSearchHeader>
 		{!state.loaded
 			? <LoadingLabel>
 				<FontAwesomeIcon icon={ICON_LOADING} spin={true}/>
@@ -89,12 +120,14 @@ export const ObjectiveAnalysisNavigator = () => {
 				<NoDataLabel>
 					<span>{Lang.INDICATOR.OBJECTIVE_ANALYSIS.NO_DATA}</span>
 				</NoDataLabel>
-				: state.data.map(item => {
-					return <ObjectiveAnalysisItem key={item.analysisId}>
-						<FontAwesomeIcon icon={ICON_OBJECTIVE_ANALYSIS_ITEM}/>
-						<span>{item.title}</span>
-					</ObjectiveAnalysisItem>;
-				}))}
+				: <ObjectiveAnalysisItemList searching={searching}>
+					{state.filtered.map(item => {
+						return <ObjectiveAnalysisItem key={item.analysisId}>
+							<FontAwesomeIcon icon={ICON_OBJECTIVE_ANALYSIS_ITEM}/>
+							<span>{item.title}</span>
+						</ObjectiveAnalysisItem>;
+					})}
+				</ObjectiveAnalysisItemList>)}
 	</NavigatorContainer>;
 };
 
