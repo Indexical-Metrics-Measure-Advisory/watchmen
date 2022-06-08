@@ -6,7 +6,6 @@ export const NavigatorContainer = styled.div.attrs<{ visible: boolean }>(({visib
 	return {
 		'data-widget': 'objective-analysis-navigator',
 		style: {
-			// borderRightWidth: visible ? (void 0) : 0,
 			marginLeft: visible ? 0 : (void 0)
 		}
 	};
@@ -30,6 +29,9 @@ export const NavigatorHeader = styled.div.attrs({
 		padding : 0;
 		width   : var(--margin);
 		height  : var(--margin);
+		&:last-child {
+			margin-left : calc(var(--margin) / 4);
+		}
 	}
 `;
 export const NavigatorHeaderLabel = styled.div.attrs({
@@ -46,7 +48,7 @@ export const NavigatorHeaderSearchInput = styled(Input).attrs<{ visible: boolean
 		'data-widget': 'objective-analysis-navigator-header-search-input',
 		style: {
 			height: visible ? (void 0) : 0,
-			borderBottomWidth: visible ? (void 0) : 0
+			marginTop: visible ? 0 : -1
 		}
 	};
 })<{ visible: boolean }>`
@@ -56,6 +58,7 @@ export const NavigatorHeaderSearchInput = styled(Input).attrs<{ visible: boolean
 	border-radius      : 0;
 	height             : calc(var(--tall-height) * 1.2);
 	padding            : 0 calc(var(--margin) / 2);
+	background-color   : var(--invert-color);
 `;
 
 export const ControlButton = styled(Button).attrs<{ visible: boolean }>(({visible}) => {
