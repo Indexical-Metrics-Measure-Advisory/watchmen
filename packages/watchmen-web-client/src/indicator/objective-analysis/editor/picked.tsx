@@ -6,7 +6,7 @@ import {Lang} from '@/widgets/langs';
 import {ChangeEvent} from 'react';
 import {useNavigatorVisible} from '../use-navigator-visible';
 import {NameEditor} from './name-editor';
-import {Descriptor, DescriptorWrapper, EditorBody, EditorContainer, EditorHeader, EditorHeaderButtons} from './widgets';
+import {AnalysisDescriptor, AnalysisDescriptorWrapper, EditorBody, EditorContainer, EditorHeader, EditorHeaderButtons} from './widgets';
 
 export const Picked = (props: { analysis: ObjectiveAnalysis }) => {
 	const {analysis} = props;
@@ -32,10 +32,10 @@ export const Picked = (props: { analysis: ObjectiveAnalysis }) => {
 			</EditorHeaderButtons>
 		</EditorHeader>
 		<EditorBody>
-			<DescriptorWrapper>
-				<Descriptor value={analysis.description ?? ''} onChange={onDescriptionChanged}
-				            placeholder={Lang.PLAIN.OBJECTIVE_ANALYSIS_DESCRIPTION_PLACEHOLDER}/>
-			</DescriptorWrapper>
+			<AnalysisDescriptorWrapper>
+				<AnalysisDescriptor value={analysis.description ?? ''} onChange={onDescriptionChanged}
+				                    placeholder={Lang.PLAIN.OBJECTIVE_ANALYSIS_DESCRIPTION_PLACEHOLDER}/>
+			</AnalysisDescriptorWrapper>
 		</EditorBody>
 	</EditorContainer>;
 };
