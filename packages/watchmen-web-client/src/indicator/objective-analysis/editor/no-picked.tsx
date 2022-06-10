@@ -14,17 +14,18 @@ export const NoPicked = () => {
 	const {fire} = useObjectiveAnalysisEventBus();
 
 	const onCreateClicked = () => {
-		const objectiveAnalysis: ObjectiveAnalysis = {
+		const analysis: ObjectiveAnalysis = {
 			analysisId: generateUuid(),
-			title: '',
+			title: 'Noname Analysis',
 			lastVisitTime: getCurrentTime(),
 			createdAt: getCurrentTime(),
 			lastModifiedAt: getCurrentTime()
 		};
 		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
-			return await saveObjectiveAnalysis(objectiveAnalysis);
-		}, (objectiveAnalysis: ObjectiveAnalysis) => {
-			fire(ObjectiveAnalysisEventTypes.CREATED, objectiveAnalysis);
+			return await saveObjectiveAnalysis(analysis);
+		}, () => {
+			fire(ObjectiveAnalysisEventTypes.CREATED, analysis);
+			fire(ObjectiveAnalysisEventTypes.START_EDIT, analysis);
 		});
 	};
 
