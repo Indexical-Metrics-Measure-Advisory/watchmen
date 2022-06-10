@@ -518,7 +518,10 @@ export const Jp = {
 		OBJECTIVE_ANALYSIS: {
 			TITLE: '目標達成分析',
 			NAVIGATOR_TITLE: '目次',
-			NO_DATA: '適切なデータがありません。'
+			NO_DATA: '適切なデータがありません。',
+			NO_OBJECTIVE_ANALYSIS_PICKED: '分析が選択されていませんが、新しい分析を',
+			CREATE_OBJECTIVE_ANALYSIS: '作成します',
+			NO_OBJECTIVE_ANALYSIS_PICKED_2: 'か？'
 		}
 	},
 	SETTINGS: {
