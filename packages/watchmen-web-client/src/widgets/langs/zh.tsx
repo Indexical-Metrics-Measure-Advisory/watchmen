@@ -518,7 +518,10 @@ export const Zh = {
 		OBJECTIVE_ANALYSIS: {
 			TITLE: '目标达成分析',
 			NAVIGATOR_TITLE: '导航',
-			NO_DATA: '没有合适的数据.'
+			NO_DATA: '没有合适的数据.',
+			NO_OBJECTIVE_ANALYSIS_PICKED: '没有选择分析, 现在就',
+			CREATE_OBJECTIVE_ANALYSIS: '创建',
+			NO_OBJECTIVE_ANALYSIS_PICKED_2: '新的吗?'
 		}
 	},
 	SETTINGS: {

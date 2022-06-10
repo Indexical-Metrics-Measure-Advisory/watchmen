@@ -216,7 +216,7 @@ export const En = {
 			SUBJECT_SET_JOINS: 'Set Joins',
 			SUBJECT_DEF_OVERVIEW: 'Overview',
 			NO_PICKED_TOPIC_FOR_SUBJECT: 'No topic picked.',
-			NO_DATASET_COLUMN_FOR_SUBJECT: 'No columns defined, do you want ',
+			NO_DATASET_COLUMN_FOR_SUBJECT: 'No columns defined, do you want to ',
 			CREATE_DATASET_COLUMN_WHEN_NONE: 'create one',
 			NO_DATASET_COLUMN_FOR_SUBJECT_2: '?',
 			ALIAS: 'As',
@@ -231,12 +231,12 @@ export const En = {
 			CAN_NOT_DELETE_CHILD_FROM_COMPUTED: 'Cannot delete this because of reach minimum parameter(s).',
 			CAN_NOT_ADD_CHILD_INTO_COMPUTED: 'Cannot add more because of reach maximum parameter(s).',
 			ADD_COMPUTE_PARAMETER: 'Add Parameter',
-			NO_DATASET_FILTER_FOR_SUBJECT: 'No filter defined, do you want ',
+			NO_DATASET_FILTER_FOR_SUBJECT: 'No filter defined, do you want to ',
 			CREATE_DATASET_FILTER_WHEN_NONE: 'create one',
 			NO_DATASET_FILTER_FOR_SUBJECT_2: '?',
 			ADD_SUB_EXPRESSION_FILTER: 'Add Sub Expression',
 			ADD_SUB_JOINT_FILTER: 'Add Sub Joint',
-			NO_DATASET_JOIN_FOR_SUBJECT: 'No join defined, do you want ',
+			NO_DATASET_JOIN_FOR_SUBJECT: 'No join defined, do you want to ',
 			CREATE_DATASET_JOIN_WHEN_NONE: 'create one',
 			NO_DATASET_JOIN_FOR_SUBJECT_2: '?',
 			ADD_SUBJECT_JOIN: 'Add Join',
@@ -259,7 +259,7 @@ export const En = {
 			SUBJECT_FILTER_JOINT_NO_STATEMENT: 'No Statement in Joint',
 			SUBJECT_UNKNOWN_FILTER: 'Unknown Filter',
 			NO_DATASET_COLUMN: 'No column defined.',
-			NO_REPORT: 'No report defined, do you want ',
+			NO_REPORT: 'No report defined, do you want to ',
 			CREATE_REPORT: 'create one',
 			NO_REPORT_2: '?',
 			NO_MORE_REPORT: 'No more report exists.',
@@ -269,7 +269,7 @@ export const En = {
 			DELETE_REPORT_DIALOG_LABEL: 'Are you sure to delete report? Please note that deletion cannot be recovered.',
 			COLLAPSE_REPORT_SETTINGS_SECTIONS: 'Collapse All Sections',
 			EXPAND_REPORT_SETTINGS_SECTIONS: 'Expand All Sections',
-			REPORT_NO_FILTER: 'No filter defined, do you want ',
+			REPORT_NO_FILTER: 'No filter defined, do you want to ',
 			CREATE_REPORT_FILTER: 'create now',
 			REPORT_NO_FILTER_2: '?',
 			INCORRECT_REPORT_FILTER: 'Incorrect filter found.',
@@ -518,7 +518,10 @@ export const En = {
 		OBJECTIVE_ANALYSIS: {
 			TITLE: 'Objective Analysis',
 			NAVIGATOR_TITLE: 'Navigator',
-			NO_DATA: 'No data found.'
+			NO_DATA: 'No data found.',
+			NO_OBJECTIVE_ANALYSIS_PICKED: 'No analysis picked, do you want to ',
+			CREATE_OBJECTIVE_ANALYSIS: 'create a new one',
+			NO_OBJECTIVE_ANALYSIS_PICKED_2: '?'
 		}
 	},
 	SETTINGS: {

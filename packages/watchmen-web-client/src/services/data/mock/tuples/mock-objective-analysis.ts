@@ -1,5 +1,5 @@
-import {ObjectiveAnalysis} from '@/services/data/tuples/objective-analysis-types';
-import {getCurrentTime} from '@/services/data/utils';
+import {ObjectiveAnalysis} from '../../tuples/objective-analysis-types';
+import {getCurrentTime} from '../../utils';
 
 export const listMockObjectiveAnalysis = async (): Promise<Array<ObjectiveAnalysis>> => {
 	return new Promise<Array<ObjectiveAnalysis>>((resolve) => {
