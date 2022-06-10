@@ -1,3 +1,4 @@
+import {InputLines} from '@/widgets/basic/input-lines';
 import styled from 'styled-components';
 
 export const EditorContainer = styled.div.attrs({
@@ -29,7 +30,7 @@ export const ObjectiveAnalysisCreateButton = styled.span.attrs({'data-widget': '
 `;
 export const EditorHeader = styled.div.attrs<{ navigatorVisible: boolean }>(({navigatorVisible}) => {
 	return {
-		'data-widget': 'object-analysis-editor-header',
+		'data-widget': 'objective-analysis-editor-header',
 		style: {
 			paddingLeft: navigatorVisible ? 0 : (void 0)
 		}
@@ -50,11 +51,48 @@ export const EditorHeader = styled.div.attrs<{ navigatorVisible: boolean }>(({na
 	}
 `;
 export const EditorHeaderButtons = styled.div.attrs({
-	'data-widget': 'object-analysis-editor-header-buttons'
+	'data-widget': 'objective-analysis-editor-header-buttons'
 })`
 	display         : flex;
 	position        : relative;
 	padding         : 0 calc(var(--margin) / 2);
 	align-items     : center;
 	justify-content : flex-end;
+`;
+export const EditorBody = styled.div.attrs({
+	'data-widget': 'objective-analysis-editor-body'
+})`
+	display        : flex;
+	position       : relative;
+	flex-direction : column;
+	padding        : calc(var(--margin) / 2) calc(var(--margin) / 2) var(--margin);
+`;
+export const DescriptorWrapper = styled.div.attrs({
+	'data-widget': 'objective-analysis-descriptor-wrapper'
+})`
+	display       : block;
+	position      : relative;
+	width         : 100%;
+	border-radius : calc(var(--border-radius) * 2);
+	padding       : calc(var(--margin) / 4);
+	overflow      : hidden;
+	&:before {
+		content          : '';
+		display          : block;
+		position         : absolute;
+		top              : 0;
+		left             : 0;
+		width            : 100%;
+		height           : 100%;
+		background-color : var(--primary-color);
+		opacity          : 0.1;
+		z-index          : -1;
+	}
+`;
+export const Descriptor = styled(InputLines)`
+	border        : 0;
+	border-radius : calc(var(--border-radius) * 2);
+	font-size     : 1.3em;
+	width         : 100%;
+	overflow      : hidden;
 `;
