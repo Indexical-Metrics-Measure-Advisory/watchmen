@@ -58,7 +58,7 @@ export const EditorHeaderButtons = styled.div.attrs({
 })`
 	display         : flex;
 	position        : relative;
-	padding         : 0 calc(var(--margin) / 2);
+	padding         : 0 var(--margin) 0 calc(var(--margin) / 2);
 	align-items     : center;
 	justify-content : flex-end;
 `;
