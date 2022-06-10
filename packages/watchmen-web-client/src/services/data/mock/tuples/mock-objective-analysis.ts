@@ -1,4 +1,5 @@
 import {ObjectiveAnalysis} from '../../tuples/objective-analysis-types';
+import {isFakedUuid} from '../../tuples/utils';
 import {getCurrentTime} from '../../utils';
 
 export const listMockObjectiveAnalysis = async (): Promise<Array<ObjectiveAnalysis>> => {
@@ -13,25 +14,17 @@ export const listMockObjectiveAnalysis = async (): Promise<Array<ObjectiveAnalys
 					lastModifiedAt: getCurrentTime()
 				};
 			}));
-			// resolve([{
-			// 	analysisId: '1',
-			// 	title: 'hello worldasdfjhaklsdfhlkashdjflkahsdfkjhaslkdfhlkashjdfklahsjdflkjhalsdfhalkshdflh',
-			// 	lastVisitTime: getCurrentTime(),
-			// 	createdAt: getCurrentTime(),
-			// 	lastModifiedAt: getCurrentTime()
-			// }, {
-			// 	analysisId: '2',
-			// 	title: 'hello world',
-			// 	lastVisitTime: getCurrentTime(),
-			// 	createdAt: getCurrentTime(),
-			// 	lastModifiedAt: getCurrentTime()
-			// }, {
-			// 	analysisId: '3',
-			// 	title: 'hello world',
-			// 	lastVisitTime: getCurrentTime(),
-			// 	createdAt: getCurrentTime(),
-			// 	lastModifiedAt: getCurrentTime()
-			// }]);
 		}, 500);
 	});
+};
+
+let newAnalysisId = 10000;
+export const saveMockObjectiveAnalysis = async (objectiveAnalysis: ObjectiveAnalysis): Promise<void> => {
+	return new Promise<void>((resolve) => {
+		if (isFakedUuid(objectiveAnalysis)) {
+			objectiveAnalysis.analysisId = `${newAnalysisId++}`;
+		}
+		setTimeout(() => resolve(), 500);
+	});
+
 };
