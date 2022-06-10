@@ -17,7 +17,7 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {ChangeEvent, useEffect, useRef, useState} from 'react';
 import {useObjectiveAnalysisEventBus} from '../objective-analysis-event-bus';
 import {ObjectiveAnalysisEventTypes} from '../objective-analysis-event-bus-types';
-import {useNavigatorVisible} from './use-navigator-visible';
+import {useNavigatorVisible} from '../use-navigator-visible';
 import {
 	ControlButton,
 	ItemCountLabel,
@@ -115,6 +115,9 @@ export const ObjectiveAnalysisNavigator = () => {
 			});
 		}, 300);
 	};
+	const onItemClick = (analysis: ObjectiveAnalysis) => () => {
+		fire(ObjectiveAnalysisEventTypes.START_EDIT, analysis);
+	};
 
 	return <NavigatorContainer visible={visible}>
 		<NavigatorHeader>
@@ -147,7 +150,7 @@ export const ObjectiveAnalysisNavigator = () => {
 				</NoDataLabel>
 				: <ObjectiveAnalysisItemList searching={searching}>
 					{state.filtered.map(item => {
-						return <ObjectiveAnalysisItem key={item.analysisId}>
+						return <ObjectiveAnalysisItem key={item.analysisId} onClick={onItemClick(item)}>
 							<FontAwesomeIcon icon={ICON_OBJECTIVE_ANALYSIS_ITEM}/>
 							<span>{item.title}</span>
 						</ObjectiveAnalysisItem>;

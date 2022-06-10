@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
-import {useObjectiveAnalysisEventBus} from '../objective-analysis-event-bus';
-import {ObjectiveAnalysisEventTypes} from '../objective-analysis-event-bus-types';
+import {useObjectiveAnalysisEventBus} from './objective-analysis-event-bus';
+import {ObjectiveAnalysisEventTypes} from './objective-analysis-event-bus-types';
 
 export const useNavigatorVisible = () => {
 	const {on, off} = useObjectiveAnalysisEventBus();

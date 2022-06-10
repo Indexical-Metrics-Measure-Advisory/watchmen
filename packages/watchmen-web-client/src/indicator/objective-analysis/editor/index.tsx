@@ -3,14 +3,14 @@ import {useEffect, useState} from 'react';
 import {useObjectiveAnalysisEventBus} from '../objective-analysis-event-bus';
 import {ObjectiveAnalysisEventTypes} from '../objective-analysis-event-bus-types';
 import {NoPicked} from './no-picked';
-import {EditorContainer} from './widgets';
+import {Picked} from './picked';
 
 export const ObjectiveAnalysisEditor = () => {
 	const {on, off} = useObjectiveAnalysisEventBus();
-	const [objectiveAnalysis, setObjectiveAnalysis] = useState<ObjectiveAnalysis | null>(null);
+	const [analysis, setAnalysis] = useState<ObjectiveAnalysis | null>(null);
 	useEffect(() => {
-		const onStartEdit = (objectiveAnalysis: ObjectiveAnalysis) => {
-			setObjectiveAnalysis(objectiveAnalysis);
+		const onStartEdit = (analysis: ObjectiveAnalysis) => {
+			setAnalysis(analysis);
 		};
 		on(ObjectiveAnalysisEventTypes.START_EDIT, onStartEdit);
 		return () => {
@@ -18,11 +18,9 @@ export const ObjectiveAnalysisEditor = () => {
 		};
 	}, [on, off]);
 
-	if (objectiveAnalysis == null) {
+	if (analysis == null) {
 		return <NoPicked/>;
 	} else {
-		return <EditorContainer>
-
-		</EditorContainer>;
+		return <Picked analysis={analysis}/>;
 	}
 };

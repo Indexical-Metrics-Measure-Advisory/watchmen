@@ -101,8 +101,8 @@ export const ControlButton = styled(Button).attrs<{ visible: boolean }>(({visibl
 	};
 })<{ visible: boolean }>`
 	position      : absolute;
-	height        : calc(var(--margin) * 5 / 4);
-	width         : calc(var(--margin) * 5 / 4);
+	height        : var(--margin);
+	width         : var(--margin);
 	top           : 0;
 	margin-top    : calc(var(--margin) / 4);
 	margin-left   : calc(var(--margin) / 4);
@@ -156,7 +156,7 @@ export const ObjectiveAnalysisItemList = styled.div.attrs<{ searching: boolean }
 	flex-direction : column;
 	flex-grow      : 1;
 	overflow       : auto;
-	height         : calc(100vh - var(--page-header-height) - 33px - calc(var(--margin) / 2));
+	height         : calc(100vh - var(--page-header-height) - var(--margin) - 1px - calc(var(--margin) / 2));
 `;
 export const ObjectiveAnalysisItem = styled.div.attrs({
 	'data-widget': 'objective-analysis-item'
