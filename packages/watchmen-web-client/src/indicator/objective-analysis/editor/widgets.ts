@@ -70,7 +70,7 @@ export const EditorBody = styled.div.attrs({
 	flex-direction : column;
 	padding        : calc(var(--margin) / 2) var(--margin) var(--margin);
 `;
-export const DescriptorWrapper = styled.div.attrs({
+export const AnalysisDescriptorWrapper = styled.div.attrs({
 	'data-widget': 'objective-analysis-descriptor-wrapper'
 })`
 	display  : block;
@@ -92,7 +92,7 @@ export const DescriptorWrapper = styled.div.attrs({
 		z-index          : -1;
 	}
 `;
-export const Descriptor = styled(InputLines)`
+export const AnalysisDescriptor = styled(InputLines)`
 	padding-left  : 0;
 	padding-right : 0;
 	border        : 0;
