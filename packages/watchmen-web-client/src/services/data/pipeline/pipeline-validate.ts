@@ -460,11 +460,11 @@ export const validatePipeline = (pipeline: Pipeline, topics: Array<Topic>): Pipe
 						// do nothing, reason already be added by passed function
 					}
 
-					// const built = tryToBuildVariable({action, variables, topics, triggerTopic});
-					// if (!built) {
-					// 	// cannot build variable, return true as failed.
-					// 	messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] topic or factor is incorrect.`);
-					// }
+					const built = tryToBuildVariable({action, variables, topics, triggerTopic});
+					if (!built) {
+						// cannot build variable, return true as failed.
+						messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] topic or factor is incorrect.`);
+					}
 					if (topic && !isIndexUsed(action, topic)) {
 						missIndexed.push(`#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}`);
 					}
