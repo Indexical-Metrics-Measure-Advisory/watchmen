@@ -38,10 +38,16 @@ interface NavigatorState {
 	filtered: Array<ObjectiveAnalysis>;
 }
 
+const sort = (data: Array<ObjectiveAnalysis>): Array<ObjectiveAnalysis> => {
+	return data.sort((o1, o2) => {
+		return (o1.title || '').toLowerCase().localeCompare((o2.title || '').toLowerCase());
+	});
+};
+
 export const ObjectiveAnalysisNavigator = () => {
 	const searchInputRef = useRef<HTMLInputElement>(null);
 	const {fire: fireGlobal} = useEventBus();
-	const {fire} = useObjectiveAnalysisEventBus();
+	const {on, off, fire} = useObjectiveAnalysisEventBus();
 	const [searching, setSearching] = useState(false);
 	const [searchText, setSearchText] = useState('');
 	const [state, setState] = useState<NavigatorState>({loaded: false, data: [], filtered: []});
@@ -54,14 +60,34 @@ export const ObjectiveAnalysisNavigator = () => {
 		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
 			return await listObjectiveAnalysis();
 		}, (data: Array<ObjectiveAnalysis>) => {
-			const sorted = data.sort((o1, o2) => {
-				return (o1.title || '').toLowerCase().localeCompare((o2.title || '').toLowerCase());
-			});
+			const sorted = sort(data);
 			setState({loaded: true, data: sorted, filtered: sorted});
 		}, () => {
 			setState({loaded: true, data: [], filtered: []});
 		});
 	}, [fireGlobal, state.loaded]);
+	useEffect(() => {
+		const onCreated = (objectiveAnalysis: ObjectiveAnalysis) => {
+			setState(state => {
+				const sorted = sort([...state.data, objectiveAnalysis]);
+				return {
+					loaded: true,
+					data: sorted,
+					filtered: (() => {
+						if (searchText.trim().length === 0) {
+							return sorted;
+						} else {
+							return sorted.filter(item => (item.title || '').toLowerCase().includes(searchText.trim().toLowerCase()));
+						}
+					})()
+				};
+			});
+		};
+		on(ObjectiveAnalysisEventTypes.CREATED, onCreated);
+		return () => {
+			off(ObjectiveAnalysisEventTypes.CREATED, onCreated);
+		};
+	}, [on, off, searchText]);
 
 	const onToggleSearchClicked = () => {
 		setSearching(!searching);
@@ -80,7 +106,6 @@ export const ObjectiveAnalysisNavigator = () => {
 				if (value.trim().length === 0) {
 					return {loaded: state.loaded, data: state.data, filtered: state.data};
 				} else {
-					console.log('x');
 					return {
 						loaded: state.loaded,
 						data: state.data,
