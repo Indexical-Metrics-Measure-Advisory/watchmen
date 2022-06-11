@@ -188,7 +188,8 @@ export const Apis = {
 
 	OBJECTIVE_ANALYSIS_LIST: 'indicator/objective-analysis/list',
 	OBJECTIVE_ANALYSIS_CREATE: 'indicator/objective-analysis',
-	OBJECTIVE_ANALYSIS_SAVE: 'indicator/objective-analysis'
+	OBJECTIVE_ANALYSIS_SAVE: 'indicator/objective-analysis',
+	OBJECTIVE_ANALYSIS_DELETE: 'indicator/object-analysis/delete?analysis_id=:analysisId'
 };
 
 const buildApi = (api: string, args?: Record<string, any>): string => {

@@ -20,12 +20,17 @@ export const listMockObjectiveAnalysis = async (): Promise<Array<ObjectiveAnalys
 };
 
 let newAnalysisId = 10000;
-export const saveMockObjectiveAnalysis = async (objectiveAnalysis: ObjectiveAnalysis): Promise<void> => {
+export const saveMockObjectiveAnalysis = async (analysis: ObjectiveAnalysis): Promise<void> => {
 	return new Promise<void>((resolve) => {
-		if (isFakedUuid(objectiveAnalysis)) {
-			objectiveAnalysis.analysisId = `${newAnalysisId++}`;
+		if (isFakedUuid(analysis)) {
+			analysis.analysisId = `${newAnalysisId++}`;
 		}
 		setTimeout(() => resolve(), 500);
 	});
+};
 
+export const deleteMockObjectiveAnalysis = async (analysis: ObjectiveAnalysis): Promise<void> => {
+	return new Promise((resolve) => {
+		setTimeout(() => resolve(), 500);
+	});
 };
