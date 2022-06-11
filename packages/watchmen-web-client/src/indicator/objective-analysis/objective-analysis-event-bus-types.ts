@@ -1,9 +1,10 @@
+import {Bucket, BucketId} from '@/services/data/tuples/bucket-types';
 import {Enum, EnumId} from '@/services/data/tuples/enum-types';
 import {Indicator, IndicatorId} from '@/services/data/tuples/indicator-types';
 import {Inspection, InspectionId} from '@/services/data/tuples/inspection-types';
 import {ObjectiveAnalysis, ObjectiveAnalysisPerspective} from '@/services/data/tuples/objective-analysis-types';
 import {QueryAchievement} from '@/services/data/tuples/query-achievement-types';
-import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
+import {QueryBucket, QueryByBucketMethod} from '@/services/data/tuples/query-bucket-types';
 import {QueryInspection} from '@/services/data/tuples/query-inspection-types';
 import {Topic, TopicId} from '@/services/data/tuples/topic-types';
 import {AskBucketsParams, IndicatorForInspection} from '../inspection/inspection-event-bus-types';
@@ -27,9 +28,11 @@ export enum ObjectiveAnalysisEventTypes {
 	ASK_INDICATOR = 'ask-indicator',
 	ASK_TOPIC = 'ask-topic',
 	ASK_ENUM = 'ask-enum',
-	ASK_BUCKETS = 'ask-buckets',
+	ASK_QUERY_BUCKETS = 'ask-query-buckets',
+	ASK_MEASURE_BUCKETS = 'ask-measure-buckets',
+	ASK_VALUE_BUCKETS = 'ask-value-buckets',
 
-	SAVE_INSPECTION = 'save-inspection',
+	SAVE_INSPECTION = 'save-inspection'
 }
 
 export interface ObjectiveAnalysisEventBus {
@@ -93,9 +96,17 @@ export interface ObjectiveAnalysisEventBus {
 	on(type: ObjectiveAnalysisEventTypes.ASK_ENUM, listener: (enumId: EnumId, onData: (enumeration?: Enum) => void) => void): this;
 	off(type: ObjectiveAnalysisEventTypes.ASK_ENUM, listener: (enumId: EnumId, onData: (enumeration?: Enum) => void) => void): this;
 
-	fire(type: ObjectiveAnalysisEventTypes.ASK_BUCKETS, params: AskBucketsParams, onData: (buckets: Array<QueryBucket>) => void): this;
-	on(type: ObjectiveAnalysisEventTypes.ASK_BUCKETS, listener: (params: AskBucketsParams, onData: (buckets: Array<QueryBucket>) => void) => void): this;
-	off(type: ObjectiveAnalysisEventTypes.ASK_BUCKETS, listener: (params: AskBucketsParams, onData: (buckets: Array<QueryBucket>) => void) => void): this;
+	fire(type: ObjectiveAnalysisEventTypes.ASK_QUERY_BUCKETS, params: AskBucketsParams, onData: (buckets: Array<QueryBucket>) => void): this;
+	on(type: ObjectiveAnalysisEventTypes.ASK_QUERY_BUCKETS, listener: (params: AskBucketsParams, onData: (buckets: Array<QueryBucket>) => void) => void): this;
+	off(type: ObjectiveAnalysisEventTypes.ASK_QUERY_BUCKETS, listener: (params: AskBucketsParams, onData: (buckets: Array<QueryBucket>) => void) => void): this;
+
+	fire(type: ObjectiveAnalysisEventTypes.ASK_MEASURE_BUCKETS, methods: Array<QueryByBucketMethod>, onData: (buckets: Array<Bucket>) => void): this;
+	on(type: ObjectiveAnalysisEventTypes.ASK_MEASURE_BUCKETS, listener: (methods: Array<QueryByBucketMethod>, onData: (buckets: Array<Bucket>) => void) => void): this;
+	off(type: ObjectiveAnalysisEventTypes.ASK_MEASURE_BUCKETS, listener: (methods: Array<QueryByBucketMethod>, onData: (buckets: Array<Bucket>) => void) => void): this;
+
+	fire(type: ObjectiveAnalysisEventTypes.ASK_VALUE_BUCKETS, bucketIds: Array<BucketId>, onData: (buckets: Array<Bucket>) => void): this;
+	on(type: ObjectiveAnalysisEventTypes.ASK_VALUE_BUCKETS, listener: (bucketIds: Array<BucketId>, onData: (buckets: Array<Bucket>) => void) => void): this;
+	off(type: ObjectiveAnalysisEventTypes.ASK_VALUE_BUCKETS, listener: (bucketIds: Array<BucketId>, onData: (buckets: Array<Bucket>) => void) => void): this;
 
 	fire(type: ObjectiveAnalysisEventTypes.SAVE_INSPECTION, inspection: Inspection, onSaved: (inspection: Inspection, saved: boolean) => void): this;
 	on(type: ObjectiveAnalysisEventTypes.SAVE_INSPECTION, listener: (inspection: Inspection, onSaved: (inspection: Inspection, saved: boolean) => void) => void): this;

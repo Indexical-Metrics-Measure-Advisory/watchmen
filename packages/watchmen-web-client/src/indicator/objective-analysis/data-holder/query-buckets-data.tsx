@@ -28,7 +28,7 @@ const buildEnumMeasureBucketKey = (measure: QueryByEnumMethod): string => {
 	return `enum-${measure.enumId}`;
 };
 
-export const BucketsData = () => {
+export const QueryBucketsData = () => {
 	const {fire: fireGlobal} = useEventBus();
 	const {on, off} = useObjectiveAnalysisEventBus();
 	const [loading, setLoading] = useState(false);
@@ -153,9 +153,9 @@ export const BucketsData = () => {
 			onAskBuckets(params, onRetrieved);
 		}
 
-		on(ObjectiveAnalysisEventTypes.ASK_BUCKETS, onAskBuckets);
+		on(ObjectiveAnalysisEventTypes.ASK_QUERY_BUCKETS, onAskBuckets);
 		return () => {
-			off(ObjectiveAnalysisEventTypes.ASK_BUCKETS, onAskBuckets);
+			off(ObjectiveAnalysisEventTypes.ASK_QUERY_BUCKETS, onAskBuckets);
 		};
 	}, [on, off, fireGlobal, buckets, loading, queue]);
 

@@ -1,4 +1,3 @@
-import {useShowAddIndicator} from '@/indicator/achievement/edit/body/use-show-add-indicator';
 import {Achievement} from '@/services/data/tuples/achievement-types';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import {FireTiming, useThrottler} from '@/widgets/throttler';
@@ -13,6 +12,7 @@ import {IndicatorCandidates} from './indicator-candidates';
 import {MoreComputeIndicators} from './more-compute-indicators';
 import {PickedIndicators} from './picked-indicators';
 import {TimeRange} from './time-range';
+import {useShowAddIndicator} from './use-show-add-indicator';
 import {BodyContainer, BodyPalette, PaletteColumn} from './widgets';
 
 interface Indicators {
