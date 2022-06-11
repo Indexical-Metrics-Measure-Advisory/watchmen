@@ -525,7 +525,8 @@ export const Jp = {
 			CREATE_OBJECTIVE_ANALYSIS: '作成します',
 			NO_OBJECTIVE_ANALYSIS_PICKED_2: 'か？',
 			ADD_INSPECTION: '洞察の追加',
-			ADD_ACHIEVEMENT: '実績の追加'
+			ADD_ACHIEVEMENT: '実績の追加',
+			DELETE_DIALOG_LABEL: '分析を削除してもよろしいですか？ 削除したものは復元できませんので、ご注意ください。'
 		}
 	},
 	SETTINGS: {

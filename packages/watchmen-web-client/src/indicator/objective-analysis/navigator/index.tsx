@@ -38,6 +38,14 @@ const sort = (data: Array<ObjectiveAnalysis>): Array<ObjectiveAnalysis> => {
 	});
 };
 
+const filter = (data: Array<ObjectiveAnalysis>, searchText: string): Array<ObjectiveAnalysis> => {
+	if (searchText.trim().length === 0) {
+		return data;
+	} else {
+		return data.filter(item => (item.title || '').toLowerCase().includes(searchText.trim().toLowerCase()));
+	}
+};
+
 export const ObjectiveAnalysisNavigator = () => {
 	const searchInputRef = useRef<HTMLInputElement>(null);
 	const {fire: fireGlobal} = useEventBus();
@@ -61,47 +69,31 @@ export const ObjectiveAnalysisNavigator = () => {
 		});
 	}, [fireGlobal, state.loaded]);
 	useEffect(() => {
-		const onCreated = (objectiveAnalysis: ObjectiveAnalysis) => {
+		const onCreated = (analysis: ObjectiveAnalysis) => {
 			setState(state => {
-				const sorted = sort([...state.data, objectiveAnalysis]);
-				return {
-					loaded: true,
-					data: sorted,
-					filtered: (() => {
-						if (searchText.trim().length === 0) {
-							return sorted;
-						} else {
-							return sorted.filter(item => (item.title || '').toLowerCase().includes(searchText.trim().toLowerCase()));
-						}
-					})()
-				};
+				const sorted = sort([...state.data, analysis]);
+				return {loaded: true, data: sorted, filtered: filter(sorted, searchText)};
 			});
 		};
-		on(ObjectiveAnalysisEventTypes.CREATED, onCreated);
-		return () => {
-			off(ObjectiveAnalysisEventTypes.CREATED, onCreated);
-		};
-	}, [on, off, searchText]);
-	useEffect(() => {
 		const onRenamed = () => {
 			setState(state => {
 				const sorted = sort(state.data);
-				return {
-					loaded: true,
-					data: sorted,
-					filtered: (() => {
-						if (searchText.trim().length === 0) {
-							return sorted;
-						} else {
-							return sorted.filter(item => (item.title || '').toLowerCase().includes(searchText.trim().toLowerCase()));
-						}
-					})()
-				};
+				return {loaded: true, data: sorted, filtered: filter(sorted, searchText)};
+			});
+		};
+		const onDeleted = (analysis: ObjectiveAnalysis) => {
+			setState(state => {
+				const sorted = sort(state.data.filter(item => item !== analysis));
+				return {loaded: true, data: sorted, filtered: filter(sorted, searchText)};
 			});
 		};
 		on(ObjectiveAnalysisEventTypes.RENAMED, onRenamed);
+		on(ObjectiveAnalysisEventTypes.CREATED, onCreated);
+		on(ObjectiveAnalysisEventTypes.DELETED, onDeleted);
 		return () => {
+			off(ObjectiveAnalysisEventTypes.CREATED, onCreated);
 			off(ObjectiveAnalysisEventTypes.RENAMED, onRenamed);
+			off(ObjectiveAnalysisEventTypes.DELETED, onDeleted);
 		};
 	}, [on, off, searchText]);
 

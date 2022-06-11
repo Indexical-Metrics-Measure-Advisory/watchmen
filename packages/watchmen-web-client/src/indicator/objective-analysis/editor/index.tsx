@@ -12,11 +12,19 @@ export const ObjectiveAnalysisEditor = () => {
 		const onStartEdit = (analysis: ObjectiveAnalysis) => {
 			setAnalysis(analysis);
 		};
+		const onDeleted = (anAnalysis: ObjectiveAnalysis) => {
+			if (anAnalysis !== analysis) {
+				return;
+			}
+			setAnalysis(null);
+		};
 		on(ObjectiveAnalysisEventTypes.START_EDIT, onStartEdit);
+		on(ObjectiveAnalysisEventTypes.DELETED, onDeleted);
 		return () => {
 			off(ObjectiveAnalysisEventTypes.START_EDIT, onStartEdit);
+			off(ObjectiveAnalysisEventTypes.DELETED, onDeleted);
 		};
-	}, [on, off]);
+	}, [on, off, analysis]);
 
 	if (analysis == null) {
 		return <NoPicked/>;

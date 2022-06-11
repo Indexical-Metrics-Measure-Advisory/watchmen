@@ -525,7 +525,8 @@ export const En = {
 			CREATE_OBJECTIVE_ANALYSIS: 'create a new one',
 			NO_OBJECTIVE_ANALYSIS_PICKED_2: '?',
 			ADD_INSPECTION: 'Add Inspection',
-			ADD_ACHIEVEMENT: 'Add Achievement'
+			ADD_ACHIEVEMENT: 'Add Achievement',
+			DELETE_DIALOG_LABEL: 'Are you sure to delete analysis? Please note that deletion cannot be recovered.',
 		}
 	},
 	SETTINGS: {

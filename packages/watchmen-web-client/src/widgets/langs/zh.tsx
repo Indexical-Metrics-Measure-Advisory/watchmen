@@ -525,7 +525,8 @@ export const Zh = {
 			CREATE_OBJECTIVE_ANALYSIS: '创建',
 			NO_OBJECTIVE_ANALYSIS_PICKED_2: '新的吗?',
 			ADD_INSPECTION: '添加洞察分析',
-			ADD_ACHIEVEMENT: '添加业绩分析'
+			ADD_ACHIEVEMENT: '添加业绩分析',
+			DELETE_DIALOG_LABEL: '确认要删除分析吗? 请注意删除动作不能被恢复.'
 		}
 	},
 	SETTINGS: {
