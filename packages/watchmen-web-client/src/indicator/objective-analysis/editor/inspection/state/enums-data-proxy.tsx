@@ -5,7 +5,7 @@ import {InspectionEventTypes} from '../../../../inspection/inspection-event-bus-
 import {useObjectiveAnalysisEventBus} from '../../../objective-analysis-event-bus';
 import {ObjectiveAnalysisEventTypes} from '../../../objective-analysis-event-bus-types';
 
-export const EnumsData = () => {
+export const EnumsDataProxy = () => {
 	const {on, off} = useInspectionEventBus();
 	const {fire} = useObjectiveAnalysisEventBus();
 	useEffect(() => {
