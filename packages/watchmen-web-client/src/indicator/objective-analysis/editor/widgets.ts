@@ -93,8 +93,8 @@ export const AnalysisDescriptorWrapper = styled.div.attrs({
 	}
 `;
 export const AnalysisDescriptor = styled(InputLines)`
-	padding-left  : 0;
-	padding-right : 0;
+	padding-left  : 2px;
+	padding-right : 2px;
 	border        : 0;
 	border-radius : calc(var(--border-radius) * 2);
 	font-size     : 1.3em;
