@@ -14,3 +14,4 @@ from .inspection import Inspection, InspectionAmPmRange, InspectionDayKindRange,
 	InspectionTenDaysRange, InspectionTimeRange, InspectionTimeRangeType, InspectionWeekOfMonthRange, \
 	InspectionWeekOfYearRange, InspectionYearRange, InspectMeasureOn
 from .measure_method import MeasureMethod
+from .objective_analysis import ObjectiveAnalysis, ObjectiveAnalysisPerspective, ObjectiveAnalysisPerspectiveType
