@@ -21,6 +21,7 @@ import {
 	PerspectiveDescriptor,
 	PerspectiveDescriptorWrapper
 } from '../widgets';
+import {InspectionInitializer} from './inspection-initializer';
 
 const InspectionData = (props: { analysis: ObjectiveAnalysis, perspective: ObjectiveAnalysisPerspective }) => {
 	const {analysis, perspective} = props;
@@ -86,6 +87,7 @@ export const PerspectiveOnInspection = (props: { analysis: ObjectiveAnalysis, pe
 				</PerspectiveButtons>
 			</PerspectiveDescriptorWrapper>
 			<Inspection/>
+			<InspectionInitializer analysis={analysis} perspective={perspective}/>
 		</PerspectiveContainer>
 	</InspectionEventBusProvider>;
 };
