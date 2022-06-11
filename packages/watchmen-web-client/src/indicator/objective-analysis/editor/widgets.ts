@@ -7,6 +7,7 @@ export const EditorContainer = styled.div.attrs({
 	display        : flex;
 	position       : relative;
 	flex-direction : column;
+	overflow       : hidden;
 `;
 export const NoDataPicked = styled.div.attrs({
 	'data-widget': 'objective-analysis-unpicked'
@@ -141,8 +142,10 @@ export const PerspectiveContainer = styled.div.attrs({
 		}
 	}
 	div[data-widget=achievement-edit] {
+		margin-top       : calc(var(--margin) / 2);
+		width            : 100%;
 		background-image : none;
-		overflow         : unset;
+		overflow         : auto;
 	}
 `;
 export const PerspectiveDescriptorWrapper = styled.div.attrs({
