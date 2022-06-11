@@ -13,10 +13,8 @@ import React, {useEffect, useState} from 'react';
 import {AchievementEventBusProvider} from '../../../achievement/achievement-event-bus';
 import {AchievementEditPageBody} from '../../../achievement/edit/body';
 import {AchievementSaver} from '../../../achievement/edit/saver';
-import {AchievementStateHolder} from '../../../achievement/state';
 import {useObjectiveAnalysisEventBus} from '../../objective-analysis-event-bus';
 import {ObjectiveAnalysisEventTypes} from '../../objective-analysis-event-bus-types';
-import {CreateOrFindAchievement} from './create-or-find-achievement';
 import {useDescription} from '../use-description';
 import {
 	PerspectiveButtons,
@@ -24,7 +22,9 @@ import {
 	PerspectiveDescriptor,
 	PerspectiveDescriptorWrapper
 } from '../widgets';
+import {CreateOrFindAchievement} from './create-or-find-achievement';
 import {AchievementIndicatorAdjustor} from './indicator-adjustor';
+import {AchievementStateHolder} from './state';
 import {AchievementEdit} from './widgets';
 
 export const PerspectiveOnAchievement = (props: { analysis: ObjectiveAnalysis, perspective: ObjectiveAnalysisPerspective }) => {
