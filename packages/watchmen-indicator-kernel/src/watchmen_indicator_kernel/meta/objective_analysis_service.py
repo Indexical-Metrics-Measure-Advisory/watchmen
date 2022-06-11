@@ -1,7 +1,7 @@
-from typing import Optional
+from typing import List, Optional
 
 from watchmen_meta.common import LastVisitShaper, UserBasedTupleService, UserBasedTupleShaper
-from watchmen_model.common import DataPage, ObjectiveAnalysisId, Pageable, TenantId, UserId
+from watchmen_model.common import ObjectiveAnalysisId, TenantId, UserId
 from watchmen_model.indicator import ObjectiveAnalysis
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityRow, EntityShaper
 from watchmen_utilities import ArrayHelper
@@ -53,14 +53,3 @@ class ObjectiveAnalysisService(UserBasedTupleService):
 	def set_storable_id(self, storable: ObjectiveAnalysis, storable_id: ObjectiveAnalysisId) -> ObjectiveAnalysis:
 		storable.analysisId = storable_id
 		return storable
-
-	# noinspection DuplicatedCode
-	def find_page(
-			self, user_id: Optional[UserId], tenant_id: Optional[TenantId],
-			pageable: Pageable) -> DataPage:
-		criteria = []
-		if user_id is not None and len(user_id.strip()) != 0:
-			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='user_id'), right=user_id))
-		if tenant_id is not None and len(tenant_id.strip()) != 0:
-			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
-		return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))
