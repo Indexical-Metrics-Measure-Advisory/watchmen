@@ -1,5 +1,3 @@
-import {AchievementEditPageBody} from '@/indicator/achievement/edit/body';
-import {AchievementSaver} from '@/indicator/achievement/edit/saver';
 import {fetchAchievement} from '@/services/data/tuples/achievement';
 import {Achievement, AchievementId} from '@/services/data/tuples/achievement-types';
 import {ObjectiveAnalysis, ObjectiveAnalysisPerspective} from '@/services/data/tuples/objective-analysis-types';
@@ -13,6 +11,8 @@ import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useEffect, useState} from 'react';
 import {AchievementEventBusProvider} from '../../achievement/achievement-event-bus';
+import {AchievementEditPageBody} from '../../achievement/edit/body';
+import {AchievementSaver} from '../../achievement/edit/saver';
 import {AchievementStateHolder} from '../../achievement/state';
 import {useObjectiveAnalysisEventBus} from '../objective-analysis-event-bus';
 import {ObjectiveAnalysisEventTypes} from '../objective-analysis-event-bus-types';

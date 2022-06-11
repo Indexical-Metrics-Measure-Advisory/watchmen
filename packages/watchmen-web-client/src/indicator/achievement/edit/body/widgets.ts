@@ -18,6 +18,7 @@ export const BodyPalette = styled.div.attrs({'data-widget': 'achievement-edit-pa
 	display               : grid;
 	position              : relative;
 	grid-template-columns : auto auto auto;
+	padding-bottom        : calc(var(--margin) * 2.5);
 `;
 
 export const PaletteColumn = styled.div.attrs({'data-widget': 'achievement-palette-column'})`
