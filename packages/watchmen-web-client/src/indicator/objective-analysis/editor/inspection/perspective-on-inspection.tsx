@@ -8,14 +8,19 @@ import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {Fragment, useEffect} from 'react';
-import {Inspection} from '../../inspection/inspection';
-import {InspectionEventBusProvider, useInspectionEventBus} from '../../inspection/inspection-event-bus';
-import {InspectionEventTypes} from '../../inspection/inspection-event-bus-types';
-import {InspectionStateHolder} from '../../inspection/state';
-import {useObjectiveAnalysisEventBus} from '../objective-analysis-event-bus';
-import {ObjectiveAnalysisEventTypes} from '../objective-analysis-event-bus-types';
-import {useDescription} from './use-description';
-import {PerspectiveButtons, PerspectiveContainer, PerspectiveDescriptor, PerspectiveDescriptorWrapper} from './widgets';
+import {Inspection} from '../../../inspection/inspection';
+import {InspectionEventBusProvider, useInspectionEventBus} from '../../../inspection/inspection-event-bus';
+import {InspectionEventTypes} from '../../../inspection/inspection-event-bus-types';
+import {InspectionStateHolder} from '../../../inspection/state';
+import {useObjectiveAnalysisEventBus} from '../../objective-analysis-event-bus';
+import {ObjectiveAnalysisEventTypes} from '../../objective-analysis-event-bus-types';
+import {useDescription} from '../use-description';
+import {
+	PerspectiveButtons,
+	PerspectiveContainer,
+	PerspectiveDescriptor,
+	PerspectiveDescriptorWrapper
+} from '../widgets';
 
 const InspectionData = (props: { analysis: ObjectiveAnalysis, perspective: ObjectiveAnalysisPerspective }) => {
 	const {analysis, perspective} = props;

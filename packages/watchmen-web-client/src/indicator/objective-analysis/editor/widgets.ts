@@ -135,6 +135,7 @@ export const PerspectiveContainer = styled.div.attrs({
 	'data-widget': 'object-analysis-perspective'
 })`
 	display        : flex;
+	position       : relative;
 	flex-direction : column;
 	&:hover {
 		div[data-widget=objective-analysis-perspective-buttons] {

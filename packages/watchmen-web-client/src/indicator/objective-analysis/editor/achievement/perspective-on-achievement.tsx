@@ -10,15 +10,22 @@ import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useEffect, useState} from 'react';
-import {AchievementEventBusProvider} from '../../achievement/achievement-event-bus';
-import {AchievementEditPageBody} from '../../achievement/edit/body';
-import {AchievementSaver} from '../../achievement/edit/saver';
-import {AchievementStateHolder} from '../../achievement/state';
-import {useObjectiveAnalysisEventBus} from '../objective-analysis-event-bus';
-import {ObjectiveAnalysisEventTypes} from '../objective-analysis-event-bus-types';
+import {AchievementEventBusProvider} from '../../../achievement/achievement-event-bus';
+import {AchievementEditPageBody} from '../../../achievement/edit/body';
+import {AchievementSaver} from '../../../achievement/edit/saver';
+import {AchievementStateHolder} from '../../../achievement/state';
+import {useObjectiveAnalysisEventBus} from '../../objective-analysis-event-bus';
+import {ObjectiveAnalysisEventTypes} from '../../objective-analysis-event-bus-types';
 import {CreateOrFindAchievement} from './create-or-find-achievement';
-import {useDescription} from './use-description';
-import {PerspectiveButtons, PerspectiveContainer, PerspectiveDescriptor, PerspectiveDescriptorWrapper} from './widgets';
+import {useDescription} from '../use-description';
+import {
+	PerspectiveButtons,
+	PerspectiveContainer,
+	PerspectiveDescriptor,
+	PerspectiveDescriptorWrapper
+} from '../widgets';
+import {AchievementIndicatorAdjustor} from './indicator-adjustor';
+import {AchievementEdit} from './widgets';
 
 export const PerspectiveOnAchievement = (props: { analysis: ObjectiveAnalysis, perspective: ObjectiveAnalysisPerspective }) => {
 	const {analysis, perspective} = props;
@@ -77,10 +84,11 @@ export const PerspectiveOnAchievement = (props: { analysis: ObjectiveAnalysis, p
 			<CreateOrFindAchievement analysis={analysis} perspective={perspective} achievement={achievement}
 			                         onPicked={onAchievementPicked} onCleared={onAchievementCleared}/>
 			{achievement != null
-				? <>
+				? <AchievementEdit>
 					<AchievementEditPageBody achievement={achievement}/>
 					<AchievementSaver achievement={achievement}/>
-				</>
+					<AchievementIndicatorAdjustor achievement={achievement}/>
+				</AchievementEdit>
 				: null}
 		</PerspectiveContainer>
 	</AchievementEventBusProvider>;

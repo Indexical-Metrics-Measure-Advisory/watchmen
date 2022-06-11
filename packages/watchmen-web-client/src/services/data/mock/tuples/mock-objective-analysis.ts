@@ -1,7 +1,7 @@
-import {ACHIEVEMENT_PREMIUM_ID} from '@/services/data/mock/tuples/mock-data-achievements';
 import {ObjectiveAnalysis, ObjectiveAnalysisPerspectiveType} from '../../tuples/objective-analysis-types';
 import {generateUuid, isFakedUuid} from '../../tuples/utils';
 import {getCurrentTime} from '../../utils';
+import {ACHIEVEMENT_PREMIUM_ID} from './mock-data-achievements';
 import {INSPECTION_ORDER_PREMIUM_ID} from './mock-inspection';
 
 export const listMockObjectiveAnalysis = async (): Promise<Array<ObjectiveAnalysis>> => {
