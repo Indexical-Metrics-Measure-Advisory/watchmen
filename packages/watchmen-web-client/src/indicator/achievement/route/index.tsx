@@ -4,12 +4,10 @@ import {Redirect, Route, Switch} from 'react-router-dom';
 import {AchievementEdit} from '../edit';
 import {AchievementQuery} from '../query';
 import {AchievementStateHolder} from '../state';
-import {AchievementState} from './state';
 
 export const AchievementRoute = () => {
 	return <>
 		<AchievementStateHolder/>
-		<AchievementState/>
 		<Switch>
 			<Route path={Router.INDICATOR_ACHIEVEMENT_QUERY}>
 				<AchievementQuery/>
