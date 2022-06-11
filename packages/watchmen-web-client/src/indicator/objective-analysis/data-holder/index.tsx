@@ -1,9 +1,15 @@
-import {AchievementData} from './achievement-data';
+import {AchievementsData} from './achievements-data';
+import {EnumsData} from './enums-data';
 import {IndicatorsData} from './indicators-data';
+import {InspectionsData} from './inspections-data';
+import {TopicsData} from './topics-data';
 
 export const DataHolder = () => {
 	return <>
-		<AchievementData/>
+		<EnumsData/>
+		<TopicsData/>
 		<IndicatorsData/>
+		<AchievementsData/>
+		<InspectionsData/>
 	</>;
 };

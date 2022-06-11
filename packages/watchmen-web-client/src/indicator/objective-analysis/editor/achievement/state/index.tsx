@@ -1,12 +1,12 @@
 import {IndicatorsDataProxy} from './indicators-data-proxy';
 import {MeasureBucketsData} from './measure-buckets-data';
 import {AchievementState} from './state';
-import {TopicsData} from './topics-data';
+import {TopicsDataProxy} from './topics-data-proxy';
 import {ValueBucketsData} from './value-buckets-data';
 
 export const AchievementStateHolder = () => {
 	return <>
-		<TopicsData/>
+		<TopicsDataProxy/>
 		<ValueBucketsData/>
 		<MeasureBucketsData/>
 		<IndicatorsDataProxy/>

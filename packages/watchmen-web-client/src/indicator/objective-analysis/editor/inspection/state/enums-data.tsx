@@ -1,34 +1,21 @@
-import {fetchEnum} from '@/services/data/tuples/enum';
 import {Enum, EnumId} from '@/services/data/tuples/enum-types';
-import {useEventBus} from '@/widgets/events/event-bus';
-import {EventTypes} from '@/widgets/events/types';
-import {Fragment, useEffect, useState} from 'react';
+import {Fragment, useEffect} from 'react';
 import {useInspectionEventBus} from '../../../../inspection/inspection-event-bus';
 import {InspectionEventTypes} from '../../../../inspection/inspection-event-bus-types';
+import {useObjectiveAnalysisEventBus} from '../../../objective-analysis-event-bus';
+import {ObjectiveAnalysisEventTypes} from '../../../objective-analysis-event-bus-types';
 
 export const EnumsData = () => {
-	const {fire: fireGlobal} = useEventBus();
 	const {on, off} = useInspectionEventBus();
-	const [enums, setEnums] = useState<Array<Enum>>([]);
+	const {fire} = useObjectiveAnalysisEventBus();
 	useEffect(() => {
 		const onAskEnum = async (enumId: EnumId, onData: (enumeration?: Enum) => void) => {
-			// eslint-disable-next-line
-			const existing = enums.find(e => e.enumId == enumId);
-			if (existing == null) {
-				fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
-					async () => await fetchEnum(enumId),
-					(enumeration: Enum) => {
-						setEnums(enums => [...enums, enumeration]);
-						onData(enumeration);
-					}, () => onData());
-			} else {
-				onData(existing);
-			}
+			fire(ObjectiveAnalysisEventTypes.ASK_ENUM, enumId, onData);
 		};
 		on(InspectionEventTypes.ASK_ENUM, onAskEnum);
 		return () => {
 			off(InspectionEventTypes.ASK_ENUM, onAskEnum);
 		};
-	}, [fireGlobal, on, off, enums]);
+	}, [on, off, fire]);
 	return <Fragment/>;
 };

@@ -10,10 +10,10 @@ import {ObjectiveAnalysisEventTypes} from '../objective-analysis-event-bus-types
 interface State {
 	loaded: boolean;
 	data: Array<QueryAchievement>;
-	loader?: () => Promise<Array<QueryAchievement>>;
+	loader?: Promise<Array<QueryAchievement>>;
 }
 
-export const AchievementData = () => {
+export const AchievementsData = () => {
 	const {fire: fireGlobal} = useEventBus();
 	const {on, off} = useObjectiveAnalysisEventBus();
 	const [state, setState] = useState<State>({loaded: false, data: []});
@@ -21,10 +21,8 @@ export const AchievementData = () => {
 		const onAskAchievements = (onData: (achievements: Array<QueryAchievement>) => void) => {
 			if (state.loaded) {
 				onData(state.data);
-				return;
-			}
-			if (state.loader) {
-				state.loader().then(achievements => onData(achievements));
+			} else if (state.loader) {
+				state.loader.then(achievements => onData(achievements));
 			} else {
 				const loader = async () => {
 					const sync = (achievements: Array<QueryAchievement>) => {
@@ -43,9 +41,7 @@ export const AchievementData = () => {
 						});
 					});
 				};
-				setState({loaded: false, data: [], loader});
-				// noinspection JSIgnoredPromiseFromCall
-				loader();
+				setState({loaded: false, data: [], loader: loader()});
 			}
 		};
 		on(ObjectiveAnalysisEventTypes.ASK_ACHIEVEMENTS, onAskAchievements);

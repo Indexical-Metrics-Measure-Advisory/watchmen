@@ -3,18 +3,19 @@ import {Topic, TopicId} from '@/services/data/tuples/topic-types';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Fragment, useEffect, useState} from 'react';
-import {useAchievementEventBus} from '../../../../achievement/achievement-event-bus';
-import {AchievementEventTypes} from '../../../../achievement/achievement-event-bus-types';
+import {useObjectiveAnalysisEventBus} from '../objective-analysis-event-bus';
+import {ObjectiveAnalysisEventTypes} from '../objective-analysis-event-bus-types';
 
 type AskingRequest = (topic?: Topic) => void;
 type AskingRequestQueue = Array<AskingRequest>;
 
 export const TopicsData = () => {
 	const {fire: fireGlobal} = useEventBus();
-	const {on, off} = useAchievementEventBus();
+	const {on, off} = useObjectiveAnalysisEventBus();
 	const [loadingQueue] = useState<Record<TopicId, AskingRequestQueue>>({});
 	const [topics] = useState<Record<TopicId, Topic>>({});
 	useEffect(() => {
+			// noinspection DuplicatedCode
 			const onAskTopic = (topicId: TopicId, onData: (topic?: Topic) => void) => {
 				const existing = topics[topicId];
 				if (existing != null) {
@@ -45,9 +46,9 @@ export const TopicsData = () => {
 						});
 				}
 			};
-			on(AchievementEventTypes.ASK_TOPIC, onAskTopic);
+			on(ObjectiveAnalysisEventTypes.ASK_TOPIC, onAskTopic);
 			return () => {
-				off(AchievementEventTypes.ASK_TOPIC, onAskTopic);
+				off(ObjectiveAnalysisEventTypes.ASK_TOPIC, onAskTopic);
 			};
 		}, [fireGlobal, on, off, loadingQueue, topics]
 	);

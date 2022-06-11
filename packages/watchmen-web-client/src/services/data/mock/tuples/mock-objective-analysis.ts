@@ -11,6 +11,7 @@ export const listMockObjectiveAnalysis = async (): Promise<Array<ObjectiveAnalys
 				return {
 					analysisId: `${index + 1}`,
 					title: `Hello world ${index + 1}`,
+					description: 'a\na\na',
 					perspectives: [{
 						perspectiveId: generateUuid(),
 						type: ObjectiveAnalysisPerspectiveType.INSPECTION,
