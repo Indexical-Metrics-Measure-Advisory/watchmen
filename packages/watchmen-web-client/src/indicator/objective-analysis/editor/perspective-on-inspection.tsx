@@ -1,3 +1,4 @@
+import {Inspection as InspectionType} from '@/services/data/tuples/inspection-types';
 import {ObjectiveAnalysis, ObjectiveAnalysisPerspective} from '@/services/data/tuples/objective-analysis-types';
 import {RoundDwarfButton} from '@/widgets/basic/button';
 import {ICON_OBJECTIVE_ANALYSIS_PERSPECTIVE} from '@/widgets/basic/constants';
@@ -22,16 +23,16 @@ const InspectionData = (props: { analysis: ObjectiveAnalysis, perspective: Objec
 	const {fire} = useObjectiveAnalysisEventBus();
 	const {on, off} = useInspectionEventBus();
 	useEffect(() => {
-		const onInspectionSaved = (inspection: Inspection) => {
+		const onInspectionSaved = (inspection: InspectionType) => {
 			perspective.perspectiveId = inspection.inspectionId;
 			fire(ObjectiveAnalysisEventTypes.SAVE, analysis);
 		};
-		const onInspectionPicked = (inspection: Inspection) => {
+		const onInspectionPicked = (inspection: InspectionType) => {
 			perspective.perspectiveId = inspection.inspectionId;
 			fire(ObjectiveAnalysisEventTypes.SAVE, analysis);
 		};
 		const onInspectionCleared = () => {
-			delete perspective.perspectiveId;
+			delete perspective.relationId;
 			fire(ObjectiveAnalysisEventTypes.SAVE, analysis);
 		};
 		on(InspectionEventTypes.INSPECTION_PICKED, onInspectionPicked);
@@ -42,7 +43,7 @@ const InspectionData = (props: { analysis: ObjectiveAnalysis, perspective: Objec
 			off(InspectionEventTypes.INSPECTION_SAVED, onInspectionSaved);
 			off(InspectionEventTypes.INSPECTION_CLEARED, onInspectionCleared);
 		};
-	}, [on, off, analysis, perspective]);
+	}, [on, off, fire, analysis, perspective]);
 
 	return <Fragment/>;
 };

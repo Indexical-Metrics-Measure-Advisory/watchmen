@@ -7,7 +7,7 @@ import {useObjectiveAnalysisEventBus} from '../objective-analysis-event-bus';
 import {ObjectiveAnalysisEventTypes} from '../objective-analysis-event-bus-types';
 
 export const ObjectiveAnalysisSaver = (props: { analysis: ObjectiveAnalysis }) => {
-	// noinspection JSUnusedLocalSymbols
+	// eslint-disable-next-line
 	const {analysis} = props;
 
 	const {fire: fireGlobal} = useEventBus();
@@ -25,7 +25,7 @@ export const ObjectiveAnalysisSaver = (props: { analysis: ObjectiveAnalysis }) =
 			off(ObjectiveAnalysisEventTypes.SAVE, onSave);
 			off(ObjectiveAnalysisEventTypes.RENAMED, onSave);
 		};
-	}, [on, off]);
+	}, [on, off, fireGlobal]);
 
 	return <Fragment/>;
 };
