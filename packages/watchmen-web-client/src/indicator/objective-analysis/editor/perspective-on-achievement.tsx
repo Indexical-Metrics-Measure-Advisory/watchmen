@@ -1,3 +1,4 @@
+import {AchievementId} from '@/services/data/tuples/achievement-types';
 import {ObjectiveAnalysis, ObjectiveAnalysisPerspective} from '@/services/data/tuples/objective-analysis-types';
 import {RoundDwarfButton} from '@/widgets/basic/button';
 import {ICON_OBJECTIVE_ANALYSIS_PERSPECTIVE} from '@/widgets/basic/constants';
@@ -11,6 +12,7 @@ import {AchievementEventBusProvider} from '../../achievement/achievement-event-b
 import {AchievementStateHolder} from '../../achievement/state';
 import {useObjectiveAnalysisEventBus} from '../objective-analysis-event-bus';
 import {ObjectiveAnalysisEventTypes} from '../objective-analysis-event-bus-types';
+import {CreateOrFindAchievement} from './create-or-find-achievement';
 import {useDescription} from './use-description';
 import {PerspectiveButtons, PerspectiveContainer, PerspectiveDescriptor, PerspectiveDescriptorWrapper} from './widgets';
 
@@ -30,6 +32,12 @@ export const PerspectiveOnAchievement = (props: { analysis: ObjectiveAnalysis, p
 			},
 			() => fireGlobal(EventTypes.HIDE_DIALOG));
 	};
+	const onAchievementPicked = (achievement: AchievementId) => {
+
+	};
+	const onAchievementCleared = () => {
+
+	};
 
 	return <AchievementEventBusProvider>
 		<AchievementStateHolder/>
@@ -45,6 +53,8 @@ export const PerspectiveOnAchievement = (props: { analysis: ObjectiveAnalysis, p
 					</RoundDwarfButton>
 				</PerspectiveButtons>
 			</PerspectiveDescriptorWrapper>
+			<CreateOrFindAchievement analysis={analysis} perspective={perspective}
+			                         onPicked={onAchievementPicked} onCleared={onAchievementCleared}/>
 		</PerspectiveContainer>
 	</AchievementEventBusProvider>;
 };

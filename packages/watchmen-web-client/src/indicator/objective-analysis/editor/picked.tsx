@@ -52,7 +52,7 @@ export const Picked = (props: { analysis: ObjectiveAnalysis }) => {
 		return () => {
 			off(ObjectiveAnalysisEventTypes.DELETE_PERSPECTIVE, onDeletePerspective);
 		};
-	}, [on, off]);
+	}, [on, off, fire, forceUpdate, analysis]);
 
 	const onAddInspectionClicked = () => {
 		analysis.perspectives = analysis.perspectives ?? [];
