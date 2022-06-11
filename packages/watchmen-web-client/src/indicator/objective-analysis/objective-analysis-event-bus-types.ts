@@ -1,4 +1,4 @@
-import {ObjectiveAnalysis} from '@/services/data/tuples/objective-analysis-types';
+import {ObjectiveAnalysis, ObjectiveAnalysisPerspective} from '@/services/data/tuples/objective-analysis-types';
 
 export enum ObjectiveAnalysisEventTypes {
 	SHOW_NAVIGATOR = 'show-navigator',
@@ -6,10 +6,10 @@ export enum ObjectiveAnalysisEventTypes {
 
 	CREATED = 'create',
 	DELETED = 'deleted',
+	RENAMED = 'renamed',
 
 	START_EDIT = 'start-edit',
-
-	RENAMED = 'renamed'
+	DELETE_PERSPECTIVE = 'delete-perspective'
 }
 
 export interface ObjectiveAnalysisEventBus {
@@ -29,11 +29,15 @@ export interface ObjectiveAnalysisEventBus {
 	on(type: ObjectiveAnalysisEventTypes.DELETED, listener: (analysis: ObjectiveAnalysis) => void): this;
 	off(type: ObjectiveAnalysisEventTypes.DELETED, listener: (analysis: ObjectiveAnalysis) => void): this;
 
+	fire(type: ObjectiveAnalysisEventTypes.RENAMED, analysis: ObjectiveAnalysis): this;
+	on(type: ObjectiveAnalysisEventTypes.RENAMED, listener: (analysis: ObjectiveAnalysis) => void): this;
+	off(type: ObjectiveAnalysisEventTypes.RENAMED, listener: (analysis: ObjectiveAnalysis) => void): this;
+
 	fire(type: ObjectiveAnalysisEventTypes.START_EDIT, analysis: ObjectiveAnalysis): this;
 	on(type: ObjectiveAnalysisEventTypes.START_EDIT, listener: (analysis: ObjectiveAnalysis) => void): this;
 	off(type: ObjectiveAnalysisEventTypes.START_EDIT, listener: (analysis: ObjectiveAnalysis) => void): this;
 
-	fire(type: ObjectiveAnalysisEventTypes.RENAMED, analysis: ObjectiveAnalysis): this;
-	on(type: ObjectiveAnalysisEventTypes.RENAMED, listener: (analysis: ObjectiveAnalysis) => void): this;
-	off(type: ObjectiveAnalysisEventTypes.RENAMED, listener: (analysis: ObjectiveAnalysis) => void): this;
+	fire(type: ObjectiveAnalysisEventTypes.DELETE_PERSPECTIVE, perspective: ObjectiveAnalysisPerspective): this;
+	on(type: ObjectiveAnalysisEventTypes.DELETE_PERSPECTIVE, listener: (perspective: ObjectiveAnalysisPerspective) => void): this;
+	off(type: ObjectiveAnalysisEventTypes.DELETE_PERSPECTIVE, listener: (perspective: ObjectiveAnalysisPerspective) => void): this;
 }

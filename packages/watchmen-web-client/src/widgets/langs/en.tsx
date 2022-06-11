@@ -527,6 +527,7 @@ export const En = {
 			ADD_INSPECTION: 'Add Inspection',
 			ADD_ACHIEVEMENT: 'Add Achievement',
 			DELETE_DIALOG_LABEL: 'Are you sure to delete analysis? Please note that deletion cannot be recovered.',
+			PERSPECTIVE_DELETE_DIALOG_LABEL: 'Are you sure to delete perspective? Please note that deletion cannot be recovered.'
 		}
 	},
 	SETTINGS: {

@@ -9,7 +9,7 @@ import {AchievementEventTypes} from '../achievement-event-bus-types';
 type AskingRequest = (topic?: Topic) => void;
 type AskingRequestQueue = Array<AskingRequest>;
 
-export const Topics = () => {
+export const TopicsData = () => {
 	const {fire: fireGlobal} = useEventBus();
 	const {on, off} = useAchievementEventBus();
 	const [loadingQueue] = useState<Record<TopicId, AskingRequestQueue>>({});

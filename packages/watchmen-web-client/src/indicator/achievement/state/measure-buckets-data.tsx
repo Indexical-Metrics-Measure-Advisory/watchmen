@@ -28,7 +28,7 @@ const asMeasureMethodKey = (method: QueryByBucketMethod) => {
 	}
 };
 
-export const MeasureBuckets = () => {
+export const MeasureBucketsData = () => {
 	const {fire: fireGlobal} = useEventBus();
 	const {on, off} = useAchievementEventBus();
 	const [loadingQueue] = useState<Record<MeasureMethod | string, AskingRequestQueue>>({});
