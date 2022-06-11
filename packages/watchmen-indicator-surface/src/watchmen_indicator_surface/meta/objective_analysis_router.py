@@ -1,6 +1,6 @@
 from typing import Callable, List, Optional
 
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Depends
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
@@ -9,7 +9,7 @@ from watchmen_indicator_surface.settings import ask_tuple_delete_enabled
 from watchmen_indicator_surface.util import trans, trans_readonly
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import UserRole
-from watchmen_model.common import DataPage, ObjectiveAnalysisId, Pageable, TenantId, UserId
+from watchmen_model.common import ObjectiveAnalysisId, TenantId, UserId
 from watchmen_model.indicator import ObjectiveAnalysis
 from watchmen_rest import get_console_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
@@ -84,24 +84,19 @@ async def save_analysis(
 	return trans(analysis_service, lambda: action(analysis))
 
 
-class QueryObjectiveAnalysisDataPage(DataPage):
-	data: List[ObjectiveAnalysis]
-
-
-@router.post(
+@router.get(
 	'/indicator/objective-analysis/list', tags=[UserRole.CONSOLE, UserRole.ADMIN],
-	response_model=QueryObjectiveAnalysisDataPage)
+	response_model=List[ObjectiveAnalysis])
 async def find_my_analysis(
-		pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_console_principal)
-) -> QueryObjectiveAnalysisDataPage:
+) -> List[ObjectiveAnalysis]:
 	analysis_service = get_analysis_service(principal_service)
 
-	def action() -> QueryObjectiveAnalysisDataPage:
+	def action() -> List[ObjectiveAnalysis]:
 		user_id: UserId = principal_service.get_user_id()
 		tenant_id: TenantId = principal_service.get_tenant_id()
 		# noinspection PyTypeChecker
-		return analysis_service.find_page(user_id, tenant_id, pageable)
+		return analysis_service.find_all_by_user_id(user_id, tenant_id)
 
 	return trans_readonly(analysis_service, action)
 
