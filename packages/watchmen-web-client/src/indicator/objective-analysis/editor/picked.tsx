@@ -1,5 +1,9 @@
 import {deleteObjectiveAnalysis} from '@/services/data/tuples/objective-analysis';
-import {ObjectiveAnalysis, ObjectiveAnalysisPerspectiveType} from '@/services/data/tuples/objective-analysis-types';
+import {
+	ObjectiveAnalysis,
+	ObjectiveAnalysisPerspective,
+	ObjectiveAnalysisPerspectiveType
+} from '@/services/data/tuples/objective-analysis-types';
 import {generateUuid} from '@/services/data/tuples/utils';
 import {RoundDwarfButton} from '@/widgets/basic/button';
 import {ICON_OBJECTIVE_ANALYSIS} from '@/widgets/basic/constants';
@@ -9,11 +13,13 @@ import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {useEffect} from 'react';
 import {useObjectiveAnalysisEventBus} from '../objective-analysis-event-bus';
 import {ObjectiveAnalysisEventTypes} from '../objective-analysis-event-bus-types';
 import {useNavigatorVisible} from '../use-navigator-visible';
 import {NameEditor} from './name-editor';
 import {Perspective} from './perspective';
+import {ObjectiveAnalysisSaver} from './saver';
 import {useDescription} from './use-description';
 import {
 	AnalysisDescriptor,
@@ -28,10 +34,25 @@ export const Picked = (props: { analysis: ObjectiveAnalysis }) => {
 	const {analysis} = props;
 
 	const {fire: fireGlobal} = useEventBus();
-	const {fire} = useObjectiveAnalysisEventBus();
+	const {on, off, fire} = useObjectiveAnalysisEventBus();
 	const navigatorVisible = useNavigatorVisible();
 	const forceUpdate = useForceUpdate();
 	const {onDescriptionChanged, onDescriptionBlurred} = useDescription(analysis);
+	useEffect(() => {
+		const onDeletePerspective = (anAnalysis: ObjectiveAnalysis, perspective: ObjectiveAnalysisPerspective) => {
+			if (anAnalysis !== analysis) {
+				return;
+			}
+
+			analysis.perspectives = (analysis.perspectives || []).filter(p => p !== perspective);
+			fire(ObjectiveAnalysisEventTypes.SAVE, analysis);
+			forceUpdate();
+		};
+		on(ObjectiveAnalysisEventTypes.DELETE_PERSPECTIVE, onDeletePerspective);
+		return () => {
+			off(ObjectiveAnalysisEventTypes.DELETE_PERSPECTIVE, onDeletePerspective);
+		};
+	}, [on, off]);
 
 	const onAddInspectionClicked = () => {
 		analysis.perspectives = analysis.perspectives ?? [];
@@ -39,6 +60,7 @@ export const Picked = (props: { analysis: ObjectiveAnalysis }) => {
 			perspectiveId: generateUuid(),
 			type: ObjectiveAnalysisPerspectiveType.INSPECTION
 		});
+		fire(ObjectiveAnalysisEventTypes.SAVE, analysis);
 		forceUpdate();
 	};
 	const onAddAchievementClicked = () => {
@@ -47,6 +69,7 @@ export const Picked = (props: { analysis: ObjectiveAnalysis }) => {
 			perspectiveId: generateUuid(),
 			type: ObjectiveAnalysisPerspectiveType.ACHIEVEMENT
 		});
+		fire(ObjectiveAnalysisEventTypes.SAVE, analysis);
 		forceUpdate();
 	};
 	const onDeleteClicked = () => {
@@ -64,6 +87,7 @@ export const Picked = (props: { analysis: ObjectiveAnalysis }) => {
 	};
 
 	return <EditorContainer>
+		<ObjectiveAnalysisSaver analysis={analysis}/>
 		<EditorHeader navigatorVisible={navigatorVisible}>
 			<NameEditor analysis={analysis}/>
 			<EditorHeaderButtons>
@@ -86,7 +110,7 @@ export const Picked = (props: { analysis: ObjectiveAnalysis }) => {
 				                    placeholder={Lang.PLAIN.OBJECTIVE_ANALYSIS_DESCRIPTION_PLACEHOLDER}/>
 			</AnalysisDescriptorWrapper>
 			{(analysis.perspectives || []).map(perspective => {
-				return <Perspective data={perspective} key={perspective.perspectiveId}/>;
+				return <Perspective analysis={analysis} perspective={perspective} key={perspective.perspectiveId}/>;
 			})}
 		</EditorBody>
 	</EditorContainer>;

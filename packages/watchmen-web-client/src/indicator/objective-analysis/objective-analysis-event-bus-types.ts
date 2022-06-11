@@ -9,7 +9,8 @@ export enum ObjectiveAnalysisEventTypes {
 	RENAMED = 'renamed',
 
 	START_EDIT = 'start-edit',
-	DELETE_PERSPECTIVE = 'delete-perspective'
+	DELETE_PERSPECTIVE = 'delete-perspective',
+	SAVE = 'save'
 }
 
 export interface ObjectiveAnalysisEventBus {
@@ -37,7 +38,11 @@ export interface ObjectiveAnalysisEventBus {
 	on(type: ObjectiveAnalysisEventTypes.START_EDIT, listener: (analysis: ObjectiveAnalysis) => void): this;
 	off(type: ObjectiveAnalysisEventTypes.START_EDIT, listener: (analysis: ObjectiveAnalysis) => void): this;
 
-	fire(type: ObjectiveAnalysisEventTypes.DELETE_PERSPECTIVE, perspective: ObjectiveAnalysisPerspective): this;
-	on(type: ObjectiveAnalysisEventTypes.DELETE_PERSPECTIVE, listener: (perspective: ObjectiveAnalysisPerspective) => void): this;
-	off(type: ObjectiveAnalysisEventTypes.DELETE_PERSPECTIVE, listener: (perspective: ObjectiveAnalysisPerspective) => void): this;
+	fire(type: ObjectiveAnalysisEventTypes.DELETE_PERSPECTIVE, analysis: ObjectiveAnalysis, perspective: ObjectiveAnalysisPerspective): this;
+	on(type: ObjectiveAnalysisEventTypes.DELETE_PERSPECTIVE, listener: (analysis: ObjectiveAnalysis, perspective: ObjectiveAnalysisPerspective) => void): this;
+	off(type: ObjectiveAnalysisEventTypes.DELETE_PERSPECTIVE, listener: (analysis: ObjectiveAnalysis, perspective: ObjectiveAnalysisPerspective) => void): this;
+
+	fire(type: ObjectiveAnalysisEventTypes.SAVE, analysis: ObjectiveAnalysis): this;
+	on(type: ObjectiveAnalysisEventTypes.SAVE, listener: (analysis: ObjectiveAnalysis) => void): this;
+	off(type: ObjectiveAnalysisEventTypes.SAVE, listener: (analysis: ObjectiveAnalysis) => void): this;
 }

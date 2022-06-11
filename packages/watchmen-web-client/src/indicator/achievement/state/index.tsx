@@ -1,6 +1,6 @@
-import {AchievementState} from '@/indicator/achievement/state/state';
 import {IndicatorsData} from './indicators-data';
 import {MeasureBucketsData} from './measure-buckets-data';
+import {AchievementState} from './state';
 import {TopicsData} from './topics-data';
 import {ValueBucketsData} from './value-buckets-data';
 
