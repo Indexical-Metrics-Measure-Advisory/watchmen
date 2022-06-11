@@ -42,7 +42,8 @@ export const En = {
 		ACHIEVEMENT_CRITERIA_TIME_RANGE_YEAR: 'Use "year" to refer predefined time range.',
 		ACHIEVEMENT_CRITERIA_TIME_RANGE_MONTH: 'Use "month" to refer predefined time range.',
 		OBJECTIVE_ANALYSIS_SEARCH_PLACEHOLDER: 'Filter by...',
-		OBJECTIVE_ANALYSIS_DESCRIPTION_PLACEHOLDER: 'Describe the analysis purpose here...'
+		OBJECTIVE_ANALYSIS_DESCRIPTION_PLACEHOLDER: 'Describe the analysis purpose here...',
+		OBJECTIVE_ANALYSIS_PERSPECTIVE_DESCRIPTION_PLACEHOLDER: 'Describe the perspective here...'
 	},
 	STANDARD: {
 		YES: 'Yes',

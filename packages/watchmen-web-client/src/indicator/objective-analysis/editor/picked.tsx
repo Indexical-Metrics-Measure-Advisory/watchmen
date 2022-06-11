@@ -1,13 +1,15 @@
 import {ObjectiveAnalysis, ObjectiveAnalysisPerspectiveType} from '@/services/data/tuples/objective-analysis-types';
 import {generateUuid} from '@/services/data/tuples/utils';
 import {RoundDwarfButton} from '@/widgets/basic/button';
+import {ICON_OBJECTIVE_ANALYSIS} from '@/widgets/basic/constants';
 import {ButtonInk} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
-import {ChangeEvent, FocusEvent} from 'react';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {useNavigatorVisible} from '../use-navigator-visible';
 import {NameEditor} from './name-editor';
 import {Perspective} from './perspective';
+import {useDescription} from './use-description';
 import {
 	AnalysisDescriptor,
 	AnalysisDescriptorWrapper,
@@ -17,15 +19,12 @@ import {
 	EditorHeaderButtons
 } from './widgets';
 
-const countLines = (text: string): number => {
-	const count = text.split('\n').length;
-	return count === 0 ? 1 : count;
-};
 export const Picked = (props: { analysis: ObjectiveAnalysis }) => {
 	const {analysis} = props;
 
 	const navigatorVisible = useNavigatorVisible();
 	const forceUpdate = useForceUpdate();
+	const {onDescriptionChanged, onDescriptionBlurred} = useDescription(analysis);
 
 	const onAddInspectionClicked = () => {
 		analysis.perspectives = analysis.perspectives ?? [];
@@ -33,24 +32,6 @@ export const Picked = (props: { analysis: ObjectiveAnalysis }) => {
 			perspectiveId: generateUuid(),
 			type: ObjectiveAnalysisPerspectiveType.INSPECTION
 		});
-		forceUpdate();
-	};
-	const onDescriptionChanged = (event: ChangeEvent<HTMLTextAreaElement>) => {
-		analysis.description = event.target.value;
-
-		event.target.style.height = `calc(${countLines(event.target.value)} * var(--line-height) + 12px)`;
-		// wait height changed
-		setTimeout(() => {
-			forceUpdate();
-		}, 0);
-	};
-	const onDescriptionBlurred = (event: FocusEvent<HTMLTextAreaElement>) => {
-		const lines = (analysis.description || '').split('\n').reverse();
-		while (lines.length > 0 && lines[0].trim().length === 0) {
-			lines.shift();
-		}
-		analysis.description = lines.reverse().join('\n');
-		event.target.style.height = `calc(${countLines(analysis.description)} * var(--line-height) + 12px)`;
 		forceUpdate();
 	};
 
@@ -71,6 +52,7 @@ export const Picked = (props: { analysis: ObjectiveAnalysis }) => {
 		</EditorHeader>
 		<EditorBody>
 			<AnalysisDescriptorWrapper>
+				<FontAwesomeIcon icon={ICON_OBJECTIVE_ANALYSIS}/>
 				<AnalysisDescriptor value={analysis.description ?? ''}
 				                    onChange={onDescriptionChanged} onBlur={onDescriptionBlurred}
 				                    placeholder={Lang.PLAIN.OBJECTIVE_ANALYSIS_DESCRIPTION_PLACEHOLDER}/>
