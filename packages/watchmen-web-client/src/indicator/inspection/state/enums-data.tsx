@@ -3,10 +3,10 @@ import {Enum, EnumId} from '@/services/data/tuples/enum-types';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Fragment, useEffect, useState} from 'react';
-import {useInspectionEventBus} from './inspection-event-bus';
-import {InspectionEventTypes} from './inspection-event-bus-types';
+import {useInspectionEventBus} from '../inspection-event-bus';
+import {InspectionEventTypes} from '../inspection-event-bus-types';
 
-export const EnumsState = () => {
+export const EnumsData = () => {
 	const {fire: fireGlobal} = useEventBus();
 	const {on, off} = useInspectionEventBus();
 	const [enums, setEnums] = useState<Array<Enum>>([]);

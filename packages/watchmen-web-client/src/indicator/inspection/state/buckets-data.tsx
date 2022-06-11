@@ -7,8 +7,8 @@ import {isNotNull} from '@/services/data/utils';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Fragment, useEffect, useState} from 'react';
-import {useInspectionEventBus} from './inspection-event-bus';
-import {AskBucketsParams, InspectionEventTypes} from './inspection-event-bus-types';
+import {useInspectionEventBus} from '../inspection-event-bus';
+import {AskBucketsParams, InspectionEventTypes} from '../inspection-event-bus-types';
 
 type OnAskBuckets = (params: AskBucketsParams, onData: (buckets: Array<QueryBucket>) => void) => void;
 type AskingRequest = { params: AskBucketsParams; onData: (buckets: Array<QueryBucket>) => void };
@@ -27,7 +27,7 @@ const buildEnumMeasureBucketKey = (measure: QueryByEnumMethod): string => {
 	return `enum-${measure.enumId}`;
 };
 
-export const BucketsState = () => {
+export const BucketsData = () => {
 	const {fire: fireGlobal} = useEventBus();
 	const {on, off} = useInspectionEventBus();
 	const [loading, setLoading] = useState(false);
