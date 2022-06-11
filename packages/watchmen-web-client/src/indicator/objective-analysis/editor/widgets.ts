@@ -140,6 +140,10 @@ export const PerspectiveContainer = styled.div.attrs({
 			opacity : 1;
 		}
 	}
+	div[data-widget=achievement-edit] {
+		background-image : none;
+		overflow         : unset;
+	}
 `;
 export const PerspectiveDescriptorWrapper = styled.div.attrs({
 	'data-widget': 'objective-analysis-perspective-descriptor-wrapper'
