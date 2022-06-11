@@ -7,8 +7,9 @@ import {isNotNull} from '@/services/data/utils';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Fragment, useEffect, useState} from 'react';
-import {useInspectionEventBus} from '../../../../inspection/inspection-event-bus';
-import {AskBucketsParams, InspectionEventTypes} from '../../../../inspection/inspection-event-bus-types';
+import {AskBucketsParams} from '../../inspection/inspection-event-bus-types';
+import {useObjectiveAnalysisEventBus} from '../objective-analysis-event-bus';
+import {ObjectiveAnalysisEventTypes} from '../objective-analysis-event-bus-types';
 
 type OnAskBuckets = (params: AskBucketsParams, onData: (buckets: Array<QueryBucket>) => void) => void;
 type AskingRequest = { params: AskBucketsParams; onData: (buckets: Array<QueryBucket>) => void };
@@ -29,13 +30,14 @@ const buildEnumMeasureBucketKey = (measure: QueryByEnumMethod): string => {
 
 export const BucketsData = () => {
 	const {fire: fireGlobal} = useEventBus();
-	const {on, off} = useInspectionEventBus();
+	const {on, off} = useObjectiveAnalysisEventBus();
 	const [loading, setLoading] = useState(false);
 	const [queue] = useState<AskingRequestQueue>([]);
 	const [buckets, setBuckets] = useState<LoadedBuckets>({});
 
 	// bucket related
 	useEffect(() => {
+		// noinspection DuplicatedCode
 		const onAskBuckets: OnAskBuckets = ({valueBucketIds, measureMethods}, onData) => {
 			if (loading) {
 				// push to queue
@@ -151,9 +153,9 @@ export const BucketsData = () => {
 			onAskBuckets(params, onRetrieved);
 		}
 
-		on(InspectionEventTypes.ASK_BUCKETS, onAskBuckets);
+		on(ObjectiveAnalysisEventTypes.ASK_BUCKETS, onAskBuckets);
 		return () => {
-			off(InspectionEventTypes.ASK_BUCKETS, onAskBuckets);
+			off(ObjectiveAnalysisEventTypes.ASK_BUCKETS, onAskBuckets);
 		};
 	}, [on, off, fireGlobal, buckets, loading, queue]);
 
