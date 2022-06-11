@@ -14,7 +14,7 @@ export const BucketsDataProxy = () => {
 	// bucket related
 	useEffect(() => {
 		const onAskBuckets: OnAskBuckets = ({valueBucketIds, measureMethods}, onData) => {
-			fire(ObjectiveAnalysisEventTypes.ASK_BUCKETS, {valueBucketIds, measureMethods}, onData);
+			fire(ObjectiveAnalysisEventTypes.ASK_QUERY_BUCKETS, {valueBucketIds, measureMethods}, onData);
 		};
 
 		on(InspectionEventTypes.ASK_BUCKETS, onAskBuckets);

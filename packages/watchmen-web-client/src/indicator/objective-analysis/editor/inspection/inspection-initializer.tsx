@@ -1,8 +1,8 @@
-import {useInspectionEventBus} from '@/indicator/inspection/inspection-event-bus';
-import {IndicatorForInspection, InspectionEventTypes} from '@/indicator/inspection/inspection-event-bus-types';
 import {Inspection} from '@/services/data/tuples/inspection-types';
 import {ObjectiveAnalysis, ObjectiveAnalysisPerspective} from '@/services/data/tuples/objective-analysis-types';
 import {Fragment, useEffect} from 'react';
+import {useInspectionEventBus} from '../../../inspection/inspection-event-bus';
+import {IndicatorForInspection, InspectionEventTypes} from '../../../inspection/inspection-event-bus-types';
 
 export const InspectionInitializer = (props: { analysis: ObjectiveAnalysis, perspective: ObjectiveAnalysisPerspective }) => {
 	const {perspective} = props;
