@@ -277,7 +277,6 @@ table_inspections = Table(
 	create_user_id(), create_tenant_id(),
 	*create_tuple_audit_columns()
 )
-
 table_achievements = Table(
 	'achievements', meta_data,
 	create_pk('achievement_id'), create_str('name', 50),
@@ -287,7 +286,16 @@ table_achievements = Table(
 	create_user_id(), create_tenant_id(),
 	*create_tuple_audit_columns()
 )
+table_objective_analysis = Table(
+	'objective_analysis', meta_data,
+	create_pk('analysis_id'), create_str('title', 100),
+	create_description(), create_json('perspectives'),
+	create_last_visit_time(),
+	create_user_id(), create_tenant_id(),
+	*create_tuple_audit_columns()
+)
 
+# noinspection DuplicatedCode
 tables: Dict[str, Table] = {
 	# snowflake workers
 	SNOWFLAKE_WORKER_ID_TABLE: table_snowflake_competitive_workers,
@@ -328,7 +336,8 @@ tables: Dict[str, Table] = {
 	'buckets': table_buckets,
 	'indicators': table_indicators,
 	'inspections': table_inspections,
-	'achievements': table_achievements
+	'achievements': table_achievements,
+	'objective_analysis': table_objective_analysis
 }
 
 
@@ -337,6 +346,7 @@ def register_meta_table(table_name: str, table_def: Table) -> None:
 	tables[table_name] = table_def
 
 
+# noinspection DuplicatedCode
 topic_tables: Dict[TopicId, Tuple[Table, datetime]] = {}
 
 
