@@ -30,5 +30,6 @@ BucketId = TypeVar('BucketId', bound=str)
 IndicatorId = TypeVar('IndicatorId', bound=str)
 InspectionId = TypeVar('InspectionId', bound=str)
 AchievementId = TypeVar('AchievementId', bound=str)
+ObjectiveAnalysisId = TypeVar('ObjectiveAnalysisId', bound=str)
 
 PatId = TypeVar('PatId', bound=str)
