@@ -1,3 +1,4 @@
+import {useShowAddIndicator} from '@/indicator/achievement/edit/body/use-show-add-indicator';
 import {Achievement} from '@/services/data/tuples/achievement-types';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import {FireTiming, useThrottler} from '@/widgets/throttler';
@@ -51,12 +52,13 @@ const Palette = (props: { achievement: Achievement }) => {
 			};
 		}
 	}, [fireEdit, resizeQueue, indicators.loaded]);
+	const showAddIndicator = useShowAddIndicator(achievement);
 
 	if (!indicators.loaded) {
 		return null;
 	}
 
-	return <BodyPalette id={paletteId} ref={ref}>
+	return <BodyPalette id={paletteId} showAddIndicator={showAddIndicator} ref={ref}>
 		<PaletteColumn>
 			<AchievementRoot id={rootId} achievement={achievement}/>
 		</PaletteColumn>

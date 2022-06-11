@@ -14,7 +14,14 @@ export const BodyContainer = styled.div.attrs({
 	overflow         : scroll;
 `;
 
-export const BodyPalette = styled.div.attrs({'data-widget': 'achievement-edit-palette'})`
+export const BodyPalette = styled.div.attrs<{ showAddIndicator: boolean }>(({showAddIndicator}) => {
+	return {
+		'data-widget': 'achievement-edit-palette',
+		style: {
+			paddingBottom: showAddIndicator ? (void 0) : 'calc(var(--margin) * 6)'
+		}
+	};
+})<{ showAddIndicator: boolean }>`
 	display               : grid;
 	position              : relative;
 	grid-template-columns : auto auto auto;
