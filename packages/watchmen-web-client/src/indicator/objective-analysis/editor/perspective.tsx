@@ -3,8 +3,8 @@ import {
 	ObjectiveAnalysisPerspective,
 	ObjectiveAnalysisPerspectiveType
 } from '@/services/data/tuples/objective-analysis-types';
-import {PerspectiveOnAchievement} from './perspective-on-achievement';
-import {PerspectiveOnInspection} from './perspective-on-inspection';
+import {PerspectiveOnAchievement} from './achievement/perspective-on-achievement';
+import {PerspectiveOnInspection} from './inspection/perspective-on-inspection';
 
 export const Perspective = (props: { analysis: ObjectiveAnalysis, perspective: ObjectiveAnalysisPerspective }) => {
 	const {analysis, perspective} = props;

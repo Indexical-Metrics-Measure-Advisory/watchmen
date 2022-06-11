@@ -7,9 +7,9 @@ import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {useEffect, useState} from 'react';
-import {createAchievement} from '../../../achievement/utils';
-import {useObjectiveAnalysisEventBus} from '../../objective-analysis-event-bus';
-import {ObjectiveAnalysisEventTypes} from '../../objective-analysis-event-bus-types';
+import {createAchievement} from '../../../../achievement/utils';
+import {useObjectiveAnalysisEventBus} from '../../../objective-analysis-event-bus';
+import {ObjectiveAnalysisEventTypes} from '../../../objective-analysis-event-bus-types';
 import {AchievementButton, AchievementDropdown, AchievementLabel, CreateOrFindContainer, OrLabel} from './widgets';
 
 export const CreateOrFindEditor = (props: {
