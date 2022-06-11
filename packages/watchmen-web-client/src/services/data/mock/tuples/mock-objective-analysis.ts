@@ -1,6 +1,8 @@
-import {ObjectiveAnalysis} from '../../tuples/objective-analysis-types';
-import {isFakedUuid} from '../../tuples/utils';
+import {ACHIEVEMENT_PREMIUM_ID} from '@/services/data/mock/tuples/mock-data-achievements';
+import {ObjectiveAnalysis, ObjectiveAnalysisPerspectiveType} from '../../tuples/objective-analysis-types';
+import {generateUuid, isFakedUuid} from '../../tuples/utils';
 import {getCurrentTime} from '../../utils';
+import {INSPECTION_ORDER_PREMIUM_ID} from './mock-inspection';
 
 export const listMockObjectiveAnalysis = async (): Promise<Array<ObjectiveAnalysis>> => {
 	return new Promise<Array<ObjectiveAnalysis>>((resolve) => {
@@ -9,7 +11,15 @@ export const listMockObjectiveAnalysis = async (): Promise<Array<ObjectiveAnalys
 				return {
 					analysisId: `${index + 1}`,
 					title: `Hello world ${index + 1}`,
-					perspectives: [],
+					perspectives: [{
+						perspectiveId: generateUuid(),
+						type: ObjectiveAnalysisPerspectiveType.INSPECTION,
+						relationId: INSPECTION_ORDER_PREMIUM_ID
+					}, {
+						perspectiveId: generateUuid(),
+						type: ObjectiveAnalysisPerspectiveType.ACHIEVEMENT,
+						relationId: ACHIEVEMENT_PREMIUM_ID
+					}],
 					lastVisitTime: getCurrentTime(),
 					createdAt: getCurrentTime(),
 					lastModifiedAt: getCurrentTime()
