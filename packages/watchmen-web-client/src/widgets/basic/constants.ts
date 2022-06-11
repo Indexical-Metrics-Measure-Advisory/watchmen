@@ -3,7 +3,7 @@ import {
 	faAngleLeft,
 	faAngleRight,
 	faArrowAltCircleDown,
-	faArrowDown,
+	faArrowDown, faArrowsDownToLine, faArrowsTurnRight,
 	faArrowTrendUp,
 	faArrowUp,
 	faBan,
@@ -238,6 +238,8 @@ export const ICON_CHART_GROWTH_OF_TIME_GROUPING = faArrowTrendUp;
 export const ICON_CHART_GROWTH_OF_TIME_RANGE = faCodeCompare;
 export const ICON_INDICATOR_OBJECTIVE_ANALYSIS = faTowerObservation;
 export const ICON_OBJECTIVE_ANALYSIS_ITEM = faQuoteRight;
+export const ICON_OBJECTIVE_ANALYSIS = faArrowsDownToLine;
+export const ICON_OBJECTIVE_ANALYSIS_PERSPECTIVE = faArrowsTurnRight;
 
 export const ICON_SECONDARY_SECTION = faCaretRight;
 
