@@ -526,7 +526,8 @@ export const Jp = {
 			NO_OBJECTIVE_ANALYSIS_PICKED_2: 'か？',
 			ADD_INSPECTION: '洞察の追加',
 			ADD_ACHIEVEMENT: '実績の追加',
-			DELETE_DIALOG_LABEL: '分析を削除してもよろしいですか？ 削除したものは復元できませんので、ご注意ください。'
+			DELETE_DIALOG_LABEL: '分析を削除してもよろしいですか？ 削除したものは復元できませんので、ご注意ください。',
+			PERSPECTIVE_DELETE_DIALOG_LABEL: '視点を削除してもよろしいですか？ 削除したものは復元できませんので、ご注意ください。'
 		}
 	},
 	SETTINGS: {

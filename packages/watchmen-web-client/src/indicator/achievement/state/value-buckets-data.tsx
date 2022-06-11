@@ -10,7 +10,7 @@ import {AchievementEventTypes} from '../achievement-event-bus-types';
 type AskingRequest = (bucket?: Bucket) => void;
 type AskingRequestQueue = Array<AskingRequest>;
 
-export const ValueBuckets = () => {
+export const ValueBucketsData = () => {
 	const {fire: fireGlobal} = useEventBus();
 	const {on, off} = useAchievementEventBus();
 	const [loadingQueue] = useState<Record<BucketId, AskingRequestQueue>>({});

@@ -178,7 +178,7 @@ const AdminTopics = () => {
 		askData();
 	};
 
-	return <TupleWorkbench title="Topics"
+	return <TupleWorkbench title="TopicsData"
 	                       createButtonLabel="Create Topic" canCreate={true}
 	                       moreButtons={[{
 		                       label: 'Download Scripts',

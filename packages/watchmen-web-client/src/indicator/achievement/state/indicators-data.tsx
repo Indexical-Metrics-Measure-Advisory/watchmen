@@ -14,7 +14,7 @@ interface IndicatorState {
 type AskingRequest = (indicators: Array<Indicator>) => void;
 type AskingRequestQueue = Array<AskingRequest>;
 
-export const Indicators = () => {
+export const IndicatorsData = () => {
 	const {fire: fireGlobal} = useEventBus();
 	const {on, off} = useAchievementEventBus();
 	const [loading, setLoading] = useState(false);
