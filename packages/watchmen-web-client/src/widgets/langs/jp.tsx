@@ -42,7 +42,7 @@ export const Jp = {
 		ACHIEVEMENT_CRITERIA_TIME_RANGE_YEAR: '統一された年を参照するには、"year" を入力します。',
 		ACHIEVEMENT_CRITERIA_TIME_RANGE_MONTH: '統一された月を参照するには、"month" を入力します。',
 		OBJECTIVE_ANALYSIS_SEARCH_PLACEHOLDER: '絞り込み条件...',
-		OBJECTIVE_ANALYSIS_DESCRIPTION_PLACEHOLDER: '何を分析するために？'
+		OBJECTIVE_ANALYSIS_DESCRIPTION_PLACEHOLDER: 'ここで分析の目的を説明してください...'
 	},
 	STANDARD: {
 		YES: 'はい',
