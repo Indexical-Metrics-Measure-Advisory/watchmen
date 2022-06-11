@@ -4,9 +4,11 @@ import {Lang} from '@/widgets/langs';
 import React from 'react';
 import {Inspection} from './inspection';
 import {InspectionEventBusProvider} from './inspection-event-bus';
+import {InspectionStateHolder} from './state';
 
 const IndicatorInspectionIndex = () => {
 	return <InspectionEventBusProvider>
+		<InspectionStateHolder/>
 		<FixWidthPage>
 			<PageHeader title={Lang.INDICATOR.INSPECTION.TITLE}/>
 			<Inspection/>

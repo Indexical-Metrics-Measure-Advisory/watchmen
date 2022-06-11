@@ -4,8 +4,10 @@ import {ICON_OBJECTIVE_ANALYSIS_PERSPECTIVE} from '@/widgets/basic/constants';
 import {ButtonInk} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import React from 'react';
 import {Inspection} from '../../inspection/inspection';
 import {InspectionEventBusProvider} from '../../inspection/inspection-event-bus';
+import {InspectionStateHolder} from '../../inspection/state';
 import {useDescription} from './use-description';
 import {PerspectiveButtons, PerspectiveContainer, PerspectiveDescriptor, PerspectiveDescriptorWrapper} from './widgets';
 
@@ -15,6 +17,7 @@ export const PerspectiveOnInspection = (props: { data: ObjectiveAnalysisPerspect
 	const {onDescriptionChanged, onDescriptionBlurred} = useDescription(data);
 
 	return <InspectionEventBusProvider>
+		<InspectionStateHolder/>
 		<PerspectiveContainer>
 			<PerspectiveDescriptorWrapper>
 				<FontAwesomeIcon icon={ICON_OBJECTIVE_ANALYSIS_PERSPECTIVE}/>
