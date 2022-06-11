@@ -10,17 +10,14 @@ import {ObjectiveAnalysisEventTypes} from '../objective-analysis-event-bus-types
 interface IndicatorState {
 	loaded: boolean;
 	data: Array<Indicator>;
+	loader?: Promise<Array<Indicator>>;
 }
 
-type AskingRequest = (indicators: Array<Indicator>) => void;
-type AskingRequestQueue = Array<AskingRequest>;
 type LoadedIndicatorsForInspections = Record<IndicatorId, IndicatorForInspection>;
 
 export const IndicatorsData = () => {
 	const {fire: fireGlobal} = useEventBus();
 	const {on, off} = useObjectiveAnalysisEventBus();
-	const [loading, setLoading] = useState(false);
-	const [queue] = useState<AskingRequestQueue>([]);
 	const [state, setState] = useState<IndicatorState>({loaded: false, data: []});
 	const [indicatorsForInspections, setIndicatorsForInspections] = useState<LoadedIndicatorsForInspections>({});
 
@@ -29,33 +26,35 @@ export const IndicatorsData = () => {
 		const onAskIndicators = (onData: (indicators: Array<Indicator>) => void) => {
 			if (state.loaded) {
 				onData(state.data);
-			} else if (loading) {
-				queue.push(onData);
+			} else if (state.loader) {
+				state.loader.then(indicators => onData(indicators));
 			} else {
-				setLoading(true);
-
-				fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
-					async () => await listAllIndicators(),
-					(indicators: Array<Indicator>) => {
-						setState({loaded: true, data: indicators});
-						setLoading(false);
+				const loader = async () => {
+					const sync = (indicators: Array<Indicator>) => {
 						onData(indicators);
-					}, () => {
-						onData([]);
-						setLoading(false);
+						setState({loaded: true, data: indicators});
+					};
+					return new Promise<Array<Indicator>>(resolve => {
+						fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
+							async () => await listAllIndicators(),
+							(indicators: Array<Indicator>) => {
+								sync(indicators);
+								resolve(indicators);
+							}, () => {
+								sync([]);
+								resolve([]);
+							});
 					});
+				};
+				setState({loaded: false, data: [], loader: loader()});
+
 			}
 		};
-		if (!loading && queue.length !== 0) {
-			queue.forEach(onData => onData(state.data));
-			// clear queue
-			queue.length = 0;
-		}
 		on(ObjectiveAnalysisEventTypes.ASK_INDICATORS, onAskIndicators);
 		return () => {
 			off(ObjectiveAnalysisEventTypes.ASK_INDICATORS, onAskIndicators);
 		};
-	}, [fireGlobal, on, off, loading, queue, state.loaded, state.data]);
+	}, [fireGlobal, on, off, state]);
 	useEffect(() => {
 		// noinspection DuplicatedCode
 		const onAskIndicator = (indicatorId: IndicatorId, onData: (indicator: IndicatorForInspection) => void) => {

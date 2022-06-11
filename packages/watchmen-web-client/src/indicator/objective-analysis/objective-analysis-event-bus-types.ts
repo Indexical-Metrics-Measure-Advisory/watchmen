@@ -1,6 +1,10 @@
+import {Enum, EnumId} from '@/services/data/tuples/enum-types';
 import {Indicator, IndicatorId} from '@/services/data/tuples/indicator-types';
+import {Inspection, InspectionId} from '@/services/data/tuples/inspection-types';
 import {ObjectiveAnalysis, ObjectiveAnalysisPerspective} from '@/services/data/tuples/objective-analysis-types';
 import {QueryAchievement} from '@/services/data/tuples/query-achievement-types';
+import {QueryInspection} from '@/services/data/tuples/query-inspection-types';
+import {Topic, TopicId} from '@/services/data/tuples/topic-types';
 import {IndicatorForInspection} from '../inspection/inspection-event-bus-types';
 
 export enum ObjectiveAnalysisEventTypes {
@@ -16,8 +20,14 @@ export enum ObjectiveAnalysisEventTypes {
 	SAVE = 'save',
 
 	ASK_ACHIEVEMENTS = 'ask-achievements',
+	ASK_INSPECTIONS = 'ask-inspections',
+	ASK_INSPECTION = 'ask-inspection',
 	ASK_INDICATORS = 'ask-indicators',
-	ASK_INDICATOR = 'ask-indicator'
+	ASK_INDICATOR = 'ask-indicator',
+	ASK_TOPIC = 'ask-topic',
+	ASK_ENUM = 'ask-enum',
+
+	SAVE_INSPECTION = 'save-inspection',
 }
 
 export interface ObjectiveAnalysisEventBus {
@@ -57,6 +67,14 @@ export interface ObjectiveAnalysisEventBus {
 	on(type: ObjectiveAnalysisEventTypes.ASK_ACHIEVEMENTS, listener: (onData: (achievements: Array<QueryAchievement>) => void) => void): this;
 	off(type: ObjectiveAnalysisEventTypes.ASK_ACHIEVEMENTS, listener: (onData: (achievements: Array<QueryAchievement>) => void) => void): this;
 
+	fire(type: ObjectiveAnalysisEventTypes.ASK_INSPECTIONS, onData: (inspections: Array<QueryInspection>) => void): this;
+	on(type: ObjectiveAnalysisEventTypes.ASK_INSPECTIONS, listener: (onData: (inspections: Array<QueryInspection>) => void) => void): this;
+	off(type: ObjectiveAnalysisEventTypes.ASK_INSPECTIONS, listener: (onData: (inspections: Array<QueryInspection>) => void) => void): this;
+
+	fire(type: ObjectiveAnalysisEventTypes.ASK_INSPECTION, inspectionId: InspectionId, onData: (inspection: Inspection) => void): this;
+	on(type: ObjectiveAnalysisEventTypes.ASK_INSPECTION, listener: (inspectionId: InspectionId, onData: (inspection: Inspection) => void) => void): this;
+	off(type: ObjectiveAnalysisEventTypes.ASK_INSPECTION, listener: (inspectionId: InspectionId, onData: (inspection: Inspection) => void) => void): this;
+
 	fire(type: ObjectiveAnalysisEventTypes.ASK_INDICATORS, onData: (indicators: Array<Indicator>) => void): this;
 	on(type: ObjectiveAnalysisEventTypes.ASK_INDICATORS, listener: (onData: (indicators: Array<Indicator>) => void) => void): this;
 	off(type: ObjectiveAnalysisEventTypes.ASK_INDICATORS, listener: (onData: (indicators: Array<Indicator>) => void) => void): this;
@@ -64,4 +82,16 @@ export interface ObjectiveAnalysisEventBus {
 	fire(type: ObjectiveAnalysisEventTypes.ASK_INDICATOR, indicatorId: IndicatorId, onData: (indicator: IndicatorForInspection) => void): this;
 	on(type: ObjectiveAnalysisEventTypes.ASK_INDICATOR, listener: (indicatorId: IndicatorId, onData: (indicator: IndicatorForInspection) => void) => void): this;
 	off(type: ObjectiveAnalysisEventTypes.ASK_INDICATOR, listener: (indicatorId: IndicatorId, onData: (indicator: IndicatorForInspection) => void) => void): this;
+
+	fire(type: ObjectiveAnalysisEventTypes.ASK_TOPIC, topicId: TopicId, onData: (topic?: Topic) => void): this;
+	on(type: ObjectiveAnalysisEventTypes.ASK_TOPIC, listener: (topicId: TopicId, onData: (topic?: Topic) => void) => void): this;
+	off(type: ObjectiveAnalysisEventTypes.ASK_TOPIC, listener: (topicId: TopicId, onData: (topic?: Topic) => void) => void): this;
+
+	fire(type: ObjectiveAnalysisEventTypes.ASK_ENUM, enumId: EnumId, onData: (enumeration?: Enum) => void): this;
+	on(type: ObjectiveAnalysisEventTypes.ASK_ENUM, listener: (enumId: EnumId, onData: (enumeration?: Enum) => void) => void): this;
+	off(type: ObjectiveAnalysisEventTypes.ASK_ENUM, listener: (enumId: EnumId, onData: (enumeration?: Enum) => void) => void): this;
+
+	fire(type: ObjectiveAnalysisEventTypes.SAVE_INSPECTION, inspection: Inspection, onSaved: (inspection: Inspection, saved: boolean) => void): this;
+	on(type: ObjectiveAnalysisEventTypes.SAVE_INSPECTION, listener: (inspection: Inspection, onSaved: (inspection: Inspection, saved: boolean) => void) => void): this;
+	off(type: ObjectiveAnalysisEventTypes.SAVE_INSPECTION, listener: (inspection: Inspection, onSaved: (inspection: Inspection, saved: boolean) => void) => void): this;
 }

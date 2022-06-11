@@ -1,5 +1,6 @@
 import {InputLines} from '@/widgets/basic/input-lines';
 import styled from 'styled-components';
+import {countLines} from './utils';
 
 export const EditorContainer = styled.div.attrs({
 	'data-widget': 'objective-analysis-editor'
@@ -121,14 +122,19 @@ export const AnalysisDescriptorWrapper = styled.div.attrs({
 		z-index          : -1;
 	}
 `;
-export const AnalysisDescriptor = styled(InputLines)`
+export const AnalysisDescriptor = styled(InputLines).attrs(({value}) => {
+	return {
+		style: {
+			height: `calc(${countLines(value as string ?? '')} * var(--line-height) + 12px)`
+		}
+	};
+})`
 	padding-left  : 2px;
 	padding-right : 2px;
 	border        : 0;
 	border-radius : calc(var(--border-radius) * 2);
 	font-size     : 1.3em;
 	width         : 100%;
-	height        : calc(var(--line-height) + 12px);
 	overflow      : hidden;
 `;
 export const PerspectiveContainer = styled.div.attrs({
@@ -179,14 +185,19 @@ export const PerspectiveDescriptorWrapper = styled.div.attrs({
 		opacity      : 0.8;
 	}
 `;
-export const PerspectiveDescriptor = styled(InputLines)`
+export const PerspectiveDescriptor = styled(InputLines).attrs(({value}) => {
+	return {
+		style: {
+			height: `calc(${countLines(value as string ?? '')} * var(--line-height) + 12px)`
+		}
+	};
+})`
 	padding-left  : 2px;
 	padding-right : 2px;
 	border        : 0;
 	border-radius : calc(var(--border-radius) * 2);
 	font-size     : 1.3em;
 	width         : 100%;
-	height        : calc(var(--line-height) + 12px);
 	overflow      : hidden;
 `;
 export const PerspectiveButtons = styled.div.attrs({
