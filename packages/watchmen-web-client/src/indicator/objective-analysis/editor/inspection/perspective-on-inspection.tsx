@@ -11,7 +11,6 @@ import React, {Fragment, useEffect} from 'react';
 import {Inspection} from '../../../inspection/inspection';
 import {InspectionEventBusProvider, useInspectionEventBus} from '../../../inspection/inspection-event-bus';
 import {InspectionEventTypes} from '../../../inspection/inspection-event-bus-types';
-import {InspectionStateHolder} from '../../../inspection/state';
 import {useObjectiveAnalysisEventBus} from '../../objective-analysis-event-bus';
 import {ObjectiveAnalysisEventTypes} from '../../objective-analysis-event-bus-types';
 import {useDescription} from '../use-description';
@@ -22,6 +21,7 @@ import {
 	PerspectiveDescriptorWrapper
 } from '../widgets';
 import {InspectionInitializer} from './inspection-initializer';
+import {InspectionStateHolder} from './state';
 
 const InspectionData = (props: { analysis: ObjectiveAnalysis, perspective: ObjectiveAnalysisPerspective }) => {
 	const {analysis, perspective} = props;

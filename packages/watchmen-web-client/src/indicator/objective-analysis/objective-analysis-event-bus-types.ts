@@ -1,5 +1,7 @@
+import {Indicator, IndicatorId} from '@/services/data/tuples/indicator-types';
 import {ObjectiveAnalysis, ObjectiveAnalysisPerspective} from '@/services/data/tuples/objective-analysis-types';
 import {QueryAchievement} from '@/services/data/tuples/query-achievement-types';
+import {IndicatorForInspection} from '../inspection/inspection-event-bus-types';
 
 export enum ObjectiveAnalysisEventTypes {
 	SHOW_NAVIGATOR = 'show-navigator',
@@ -13,7 +15,9 @@ export enum ObjectiveAnalysisEventTypes {
 	DELETE_PERSPECTIVE = 'delete-perspective',
 	SAVE = 'save',
 
-	ASK_ACHIEVEMENTS = 'ask-achievements'
+	ASK_ACHIEVEMENTS = 'ask-achievements',
+	ASK_INDICATORS = 'ask-indicators',
+	ASK_INDICATOR = 'ask-indicator'
 }
 
 export interface ObjectiveAnalysisEventBus {
@@ -52,4 +56,12 @@ export interface ObjectiveAnalysisEventBus {
 	fire(type: ObjectiveAnalysisEventTypes.ASK_ACHIEVEMENTS, onData: (achievements: Array<QueryAchievement>) => void): this;
 	on(type: ObjectiveAnalysisEventTypes.ASK_ACHIEVEMENTS, listener: (onData: (achievements: Array<QueryAchievement>) => void) => void): this;
 	off(type: ObjectiveAnalysisEventTypes.ASK_ACHIEVEMENTS, listener: (onData: (achievements: Array<QueryAchievement>) => void) => void): this;
+
+	fire(type: ObjectiveAnalysisEventTypes.ASK_INDICATORS, onData: (indicators: Array<Indicator>) => void): this;
+	on(type: ObjectiveAnalysisEventTypes.ASK_INDICATORS, listener: (onData: (indicators: Array<Indicator>) => void) => void): this;
+	off(type: ObjectiveAnalysisEventTypes.ASK_INDICATORS, listener: (onData: (indicators: Array<Indicator>) => void) => void): this;
+
+	fire(type: ObjectiveAnalysisEventTypes.ASK_INDICATOR, indicatorId: IndicatorId, onData: (indicator: IndicatorForInspection) => void): this;
+	on(type: ObjectiveAnalysisEventTypes.ASK_INDICATOR, listener: (indicatorId: IndicatorId, onData: (indicator: IndicatorForInspection) => void) => void): this;
+	off(type: ObjectiveAnalysisEventTypes.ASK_INDICATOR, listener: (indicatorId: IndicatorId, onData: (indicator: IndicatorForInspection) => void) => void): this;
 }
