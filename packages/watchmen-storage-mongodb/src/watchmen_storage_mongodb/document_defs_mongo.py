@@ -337,7 +337,6 @@ table_inspections = MongoDocument(
 		*create_tuple_audit_columns()
 	]
 )
-
 table_achievements = MongoDocument(
 	name='achievements',
 	columns=[
@@ -345,6 +344,16 @@ table_achievements = MongoDocument(
 		create_str('time_range_type'), create_str('time_range_year'), create_str('time_range_month'),
 		create_bool('compare_with_prev_time_range'), create_json('indicators'),
 		create_description(),
+		create_user_id(), create_tenant_id(),
+		*create_tuple_audit_columns()
+	]
+)
+table_objective_analysis = MongoDocument(
+	name='objective_analysis',
+	columns=[
+		create_pk('analysis_id'), create_str('title'),
+		create_description(), create_json('perspectives'),
+		create_last_visit_time(),
 		create_user_id(), create_tenant_id(),
 		*create_tuple_audit_columns()
 	]
@@ -391,7 +400,8 @@ tables: Dict[str, MongoDocument] = {
 	'buckets': table_buckets,
 	'indicators': table_indicators,
 	'inspections': table_inspections,
-	'achievements': table_achievements
+	'achievements': table_achievements,
+	'objective_analysis': table_objective_analysis
 }
 
 # noinspection DuplicatedCode
