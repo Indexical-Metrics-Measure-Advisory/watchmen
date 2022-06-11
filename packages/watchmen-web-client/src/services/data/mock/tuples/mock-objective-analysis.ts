@@ -9,6 +9,7 @@ export const listMockObjectiveAnalysis = async (): Promise<Array<ObjectiveAnalys
 				return {
 					analysisId: `${index + 1}`,
 					title: `Hello world ${index + 1}`,
+					perspectives: [],
 					lastVisitTime: getCurrentTime(),
 					createdAt: getCurrentTime(),
 					lastModifiedAt: getCurrentTime()

@@ -1,13 +1,7 @@
 import {listObjectiveAnalysis} from '@/services/data/tuples/objective-analysis';
 import {ObjectiveAnalysis} from '@/services/data/tuples/objective-analysis-types';
 import {Button} from '@/widgets/basic/button';
-import {
-	ICON_COLLAPSE_PANEL,
-	ICON_LOADING,
-	ICON_OBJECTIVE_ANALYSIS_ITEM,
-	ICON_SEARCH,
-	ICON_SHOW_NAVIGATOR
-} from '@/widgets/basic/constants';
+import {ICON_COLLAPSE_PANEL, ICON_LOADING, ICON_SEARCH, ICON_SHOW_NAVIGATOR} from '@/widgets/basic/constants';
 import {ButtonInk} from '@/widgets/basic/types';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
@@ -18,6 +12,7 @@ import {ChangeEvent, useEffect, useRef, useState} from 'react';
 import {useObjectiveAnalysisEventBus} from '../objective-analysis-event-bus';
 import {ObjectiveAnalysisEventTypes} from '../objective-analysis-event-bus-types';
 import {useNavigatorVisible} from '../use-navigator-visible';
+import {Item} from './item';
 import {
 	ControlButton,
 	ItemCountLabel,
@@ -28,7 +23,6 @@ import {
 	NavigatorHeaderSearchInput,
 	NavigatorSearchHeader,
 	NoDataLabel,
-	ObjectiveAnalysisItem,
 	ObjectiveAnalysisItemList
 } from './widgets';
 
@@ -88,6 +82,28 @@ export const ObjectiveAnalysisNavigator = () => {
 			off(ObjectiveAnalysisEventTypes.CREATED, onCreated);
 		};
 	}, [on, off, searchText]);
+	useEffect(() => {
+		const onRenamed = () => {
+			setState(state => {
+				const sorted = sort(state.data);
+				return {
+					loaded: true,
+					data: sorted,
+					filtered: (() => {
+						if (searchText.trim().length === 0) {
+							return sorted;
+						} else {
+							return sorted.filter(item => (item.title || '').toLowerCase().includes(searchText.trim().toLowerCase()));
+						}
+					})()
+				};
+			});
+		};
+		on(ObjectiveAnalysisEventTypes.RENAMED, onRenamed);
+		return () => {
+			off(ObjectiveAnalysisEventTypes.RENAMED, onRenamed);
+		};
+	}, [on, off, searchText]);
 
 	const onToggleSearchClicked = () => {
 		setSearching(!searching);
@@ -114,9 +130,6 @@ export const ObjectiveAnalysisNavigator = () => {
 				}
 			});
 		}, 300);
-	};
-	const onItemClick = (analysis: ObjectiveAnalysis) => () => {
-		fire(ObjectiveAnalysisEventTypes.START_EDIT, analysis);
 	};
 
 	return <NavigatorContainer visible={visible}>
@@ -150,10 +163,7 @@ export const ObjectiveAnalysisNavigator = () => {
 				</NoDataLabel>
 				: <ObjectiveAnalysisItemList searching={searching}>
 					{state.filtered.map(item => {
-						return <ObjectiveAnalysisItem key={item.analysisId} onClick={onItemClick(item)}>
-							<FontAwesomeIcon icon={ICON_OBJECTIVE_ANALYSIS_ITEM}/>
-							<span>{item.title}</span>
-						</ObjectiveAnalysisItem>;
+						return <Item analysis={item} key={item.analysisId}/>;
 					})}
 				</ObjectiveAnalysisItemList>)}
 	</NavigatorContainer>;

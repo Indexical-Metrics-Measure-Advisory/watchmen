@@ -522,7 +522,9 @@ export const Zh = {
 			NO_DATA: '没有合适的数据.',
 			NO_OBJECTIVE_ANALYSIS_PICKED: '没有选择分析, 现在就',
 			CREATE_OBJECTIVE_ANALYSIS: '创建',
-			NO_OBJECTIVE_ANALYSIS_PICKED_2: '新的吗?'
+			NO_OBJECTIVE_ANALYSIS_PICKED_2: '新的吗?',
+			ADD_INSPECTION: '添加洞察分析',
+			ADD_ACHIEVEMENT: '添加业绩分析'
 		}
 	},
 	SETTINGS: {

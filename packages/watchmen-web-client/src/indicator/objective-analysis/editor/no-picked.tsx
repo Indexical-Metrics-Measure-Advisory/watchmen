@@ -17,6 +17,7 @@ export const NoPicked = () => {
 		const analysis: ObjectiveAnalysis = {
 			analysisId: generateUuid(),
 			title: 'Noname Analysis',
+			perspectives: [],
 			lastVisitTime: getCurrentTime(),
 			createdAt: getCurrentTime(),
 			lastModifiedAt: getCurrentTime()
