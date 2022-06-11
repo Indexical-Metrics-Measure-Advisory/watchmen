@@ -28,11 +28,20 @@ export const CreateOrFindEditor = () => {
 			setVisible(true);
 			setSelectedInspectionId(null);
 		};
+		const onInspectionPicked = (inspection: Inspection) => {
+			setVisible(false);
+			// eslint-disable-next-line
+			if (selectedInspectionId != inspection.inspectionId) {
+				setSelectedInspectionId(inspection.inspectionId);
+			}
+		};
 		on(InspectionEventTypes.INSPECTION_CLEARED, onInspectionCleared);
+		on(InspectionEventTypes.INSPECTION_PICKED, onInspectionPicked);
 		return () => {
 			off(InspectionEventTypes.INSPECTION_CLEARED, onInspectionCleared);
+			off(InspectionEventTypes.INSPECTION_PICKED, onInspectionPicked);
 		};
-	}, [on, off]);
+	}, [on, off, selectedInspectionId]);
 
 	if (!visible) {
 		return null;
@@ -51,14 +60,12 @@ export const CreateOrFindEditor = () => {
 		fire(InspectionEventTypes.ASK_INSPECTION, selectedInspectionId, (inspection: Inspection) => {
 			fire(InspectionEventTypes.ASK_INDICATOR, inspection.indicatorId, (indicator: IndicatorForInspection) => {
 				fire(InspectionEventTypes.INSPECTION_PICKED, inspection, indicator);
-				setVisible(false);
 			});
 		});
 	};
 	const onCreateClicked = () => {
 		const inspection = createInspection();
 		fire(InspectionEventTypes.INSPECTION_PICKED, inspection);
-		setVisible(false);
 	};
 
 	const options = inspections.map(inspection => {
