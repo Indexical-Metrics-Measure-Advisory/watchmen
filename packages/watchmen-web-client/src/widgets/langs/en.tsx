@@ -522,7 +522,9 @@ export const En = {
 			NO_DATA: 'No data found.',
 			NO_OBJECTIVE_ANALYSIS_PICKED: 'No analysis picked, do you want to ',
 			CREATE_OBJECTIVE_ANALYSIS: 'create a new one',
-			NO_OBJECTIVE_ANALYSIS_PICKED_2: '?'
+			NO_OBJECTIVE_ANALYSIS_PICKED_2: '?',
+			ADD_INSPECTION: 'Add Inspection',
+			ADD_ACHIEVEMENT: 'Add Achievement'
 		}
 	},
 	SETTINGS: {

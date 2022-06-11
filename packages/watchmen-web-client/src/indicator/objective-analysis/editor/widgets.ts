@@ -61,6 +61,27 @@ export const EditorHeaderButtons = styled.div.attrs({
 	padding         : 0 var(--margin) 0 calc(var(--margin) / 2);
 	align-items     : center;
 	justify-content : flex-end;
+	> button:first-child {
+		border-top-right-radius    : 0;
+		border-bottom-right-radius : 0;
+	}
+	> button:nth-child(2) {
+		border-top-left-radius    : 0;
+		border-bottom-left-radius : 0;
+		&:after {
+			content          : '';
+			display          : block;
+			position         : absolute;
+			top              : 30%;
+			left             : -0.5px;
+			width            : 1px;
+			height           : 40%;
+			background-color : var(--bg-color);
+		}
+	}
+	> button:last-child {
+		margin-left : calc(var(--margin) / 2);
+	}
 `;
 export const EditorBody = styled.div.attrs({
 	'data-widget': 'objective-analysis-editor-body'

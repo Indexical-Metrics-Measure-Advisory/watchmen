@@ -37,7 +37,7 @@ export const Jp = {
 		FIND_INDICATOR_USER_GROUPS_PLACEHOLDER: 'ユーザー グループ名に基づいて検索します。',
 		DROPDOWN_PLACEHOLDER: '選択してください...',
 		FIND_ACHIEVEMENT_PLACEHOLDER: '名前に基づいて検索します。',
-		NEW_ACHIEVEMENT_NAME: '成果',
+		NEW_ACHIEVEMENT_NAME: '実績',
 		ACHIEVEMENT_CRITERIA_TIME_RANGE_YEAR_MONTH: '統一定義された時間枠を参照するには、"year" または "month" を入力します。',
 		ACHIEVEMENT_CRITERIA_TIME_RANGE_YEAR: '統一された年を参照するには、"year" を入力します。',
 		ACHIEVEMENT_CRITERIA_TIME_RANGE_MONTH: '統一された月を参照するには、"month" を入力します。',
@@ -283,7 +283,7 @@ export const Jp = {
 			BUCKETS: 'バケット',
 			INDICATORS: '指標',
 			INSPECTIONS: '洞察',
-			ACHIEVEMENTS: '成果',
+			ACHIEVEMENTS: '実績',
 			OBJECTIVE_ANALYSIS: '指標ガバナンス',
 			SETTINGS: '設定',
 			LOGOUT: 'ログアウト'
@@ -476,14 +476,14 @@ export const Jp = {
 			VISUALIZATION_LABEL: '視覚化'
 		},
 		ACHIEVEMENT: {
-			TITLE: '成果',
-			LABEL: '成果',
-			CREATE_ACHIEVEMENT: '成果を作成',
+			TITLE: '実績',
+			LABEL: '実績',
+			CREATE_ACHIEVEMENT: '実績を作成',
 			NEW_ACHIEVEMENT_PREFIX: '新しい',
 			EXISTING_ACHIEVEMENT_PREFIX: '既存',
 			CREATE_AT: '作成先',
 			LAST_MODIFIED_AT: '最終更新日',
-			ACHIEVEMENT_NOT_FOUND: '成果の定義が見つかりません。詳細については、管理者に問い合わせてください。',
+			ACHIEVEMENT_NOT_FOUND: '実績の定義が見つかりません。詳細については、管理者に問い合わせてください。',
 			BACK_TO_QUERY: 'クエリに戻る',
 			HIDE_INDICATOR_CANDIDATES: '候補メトリックを非表示に',
 			SHOW_INDICATOR_CANDIDATES: '候補メトリックを表示',
@@ -522,7 +522,9 @@ export const Jp = {
 			NO_DATA: '適切なデータがありません。',
 			NO_OBJECTIVE_ANALYSIS_PICKED: '分析が選択されていませんが、新しい分析を',
 			CREATE_OBJECTIVE_ANALYSIS: '作成します',
-			NO_OBJECTIVE_ANALYSIS_PICKED_2: 'か？'
+			NO_OBJECTIVE_ANALYSIS_PICKED_2: 'か？',
+			ADD_INSPECTION: '洞察の追加',
+			ADD_ACHIEVEMENT: '実績の追加'
 		}
 	},
 	SETTINGS: {
