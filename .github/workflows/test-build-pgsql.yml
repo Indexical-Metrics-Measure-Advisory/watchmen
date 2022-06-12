@@ -89,7 +89,7 @@ jobs:
         run: mkdir -p testResults
       - name: Run postman collection
         run: |
-          newman run ./packages/watchmen-test-postman/watchmen-postman.json -e ./packages/watchmen-test-postman/watchmen-environment.json --bail -r cli,htmlextra --reporter-htmlextra-export testResults/htmlreport.html
+          newman run ./packages/watchmen-test-postman/watchmen-postman.json -e ./packages/watchmen-test-postman/Test_Postgresql.json --bail -r cli,htmlextra --reporter-htmlextra-export testResults/htmlreport.html
       - name: Output the run details
         uses: actions/upload-artifact@v2
         if: always()
