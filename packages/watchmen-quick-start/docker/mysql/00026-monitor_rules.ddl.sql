@@ -1,0 +1,27 @@
+CREATE TABLE monitor_rules
+(
+    rule_id          VARCHAR(50) NOT NULL,
+    code             VARCHAR(50) NOT NULL,
+    grade            VARCHAR(20) NOT NULL,
+    severity         VARCHAR(20) NOT NULL,
+    topic_id         VARCHAR(50),
+    factor_id        VARCHAR(50),
+    params           JSON,
+    enabled          TINYINT(1),
+    tenant_id        VARCHAR(50) NOT NULL,
+    created_at       DATETIME    NOT NULL,
+    created_by       VARCHAR(50) NOT NULL,
+    last_modified_at DATETIME    NOT NULL,
+    last_modified_by VARCHAR(50) NOT NULL,
+    PRIMARY KEY (rule_id),
+    INDEX (code),
+    INDEX (grade),
+    INDEX (severity),
+    INDEX (topic_id),
+    INDEX (factor_id),
+    INDEX (tenant_id),
+    INDEX (created_at),
+    INDEX (created_by),
+    INDEX (last_modified_at),
+    INDEX (last_modified_by)
+);
