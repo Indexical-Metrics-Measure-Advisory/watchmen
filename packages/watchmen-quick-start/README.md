@@ -16,7 +16,7 @@ go to url localhost:3030
 
 #### General process of playground 
 - login with super user
-  - create datasource
+  - create datasource  
 - login with admin user 
   - create topics and pipelines 
   - test pipelines with simulator 
