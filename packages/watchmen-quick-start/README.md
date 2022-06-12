@@ -29,8 +29,15 @@ go to url localhost:3030
 
 
 ```
-DQC and indicator services are not included 
+- DQC and indicator services are not included 
 ```
+
+#### Tips 
+The current environment will automatically create table in instance database . 
+f you modify the topic structure, it will be deleted and recreated.
+ref to documentation [SYNC_TOPIC_TO_STORAGE](https://imma-watchmen.com/docs/16.1/installation/config/)  
+
+If it is not a Mac, please modify docker.for.mac.localhost parameter is configured in nginx
 
 This cannot be used in a production environment
 If you need to deploy the production environment, please refer to the document production environment deployment
