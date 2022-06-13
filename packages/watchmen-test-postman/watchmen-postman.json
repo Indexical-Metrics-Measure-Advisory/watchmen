@@ -1164,7 +1164,7 @@
 							"response": []
 						},
 						{
-							"name": "New Request",
+							"name": "FAVORITE DELETE",
 							"event": [
 								{
 									"listen": "test",
