@@ -93,7 +93,7 @@ export const HeaderPickTopicsButton = (props: {
 			});
 	};
 
-	return <PageHeaderButton tooltip="Pick TopicsData" onClick={onPickClicked}>
+	return <PageHeaderButton tooltip="Pick Topics" onClick={onPickClicked}>
 		<FontAwesomeIcon icon={ICON_TOPIC}/>
 	</PageHeaderButton>;
 };
