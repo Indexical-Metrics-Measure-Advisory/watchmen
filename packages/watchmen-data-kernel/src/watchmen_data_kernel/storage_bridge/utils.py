@@ -60,7 +60,7 @@ def get_value_from(
 			value_is_list = is_list(names[:current_index + 1])
 
 			def get_current_value(parent: Dict[str, Any]) -> Any:
-				value = parent.get(current_name)
+				value = None if parent is None else parent.get(current_name)
 				if value is None:
 					if value_is_list:
 						return []
