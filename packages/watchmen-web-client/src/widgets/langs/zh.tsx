@@ -531,6 +531,9 @@ export const Zh = {
 		OBJECTIVE_ANALYSIS: {
 			TITLE: '目标达成分析',
 			NAVIGATOR_TITLE: '导航',
+			NAVIGATOR_SEARCH_TOGGLE: '切换搜索栏',
+			NAVIGATOR_CREATE_OBJECTIVE_ANALYSIS: '创建新分析',
+			MINIMIZE_NAVIGATOR: '最小化',
 			NO_DATA: '没有合适的数据.',
 			NO_OBJECTIVE_ANALYSIS_PICKED: '没有选择分析, 现在就',
 			CREATE_OBJECTIVE_ANALYSIS: '创建',

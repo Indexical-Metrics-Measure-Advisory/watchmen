@@ -531,6 +531,9 @@ export const Jp = {
 		OBJECTIVE_ANALYSIS: {
 			TITLE: '目標達成分析',
 			NAVIGATOR_TITLE: '目次',
+			NAVIGATOR_SEARCH_TOGGLE: '検索バーを切り替え',
+			NAVIGATOR_CREATE_OBJECTIVE_ANALYSIS: '新しい分析を作成',
+			MINIMIZE_NAVIGATOR: '最小化',
 			NO_DATA: '適切なデータがありません。',
 			NO_OBJECTIVE_ANALYSIS_PICKED: '分析が選択されていませんが、新しい分析を',
 			CREATE_OBJECTIVE_ANALYSIS: '作成します',

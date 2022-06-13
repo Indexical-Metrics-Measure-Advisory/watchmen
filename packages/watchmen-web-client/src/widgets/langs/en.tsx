@@ -531,6 +531,9 @@ export const En = {
 		OBJECTIVE_ANALYSIS: {
 			TITLE: 'Objective Analysis',
 			NAVIGATOR_TITLE: 'Navigator',
+			NAVIGATOR_SEARCH_TOGGLE: 'Toggle Search',
+			NAVIGATOR_CREATE_OBJECTIVE_ANALYSIS: 'Create Analysis',
+			MINIMIZE_NAVIGATOR: 'Minimize',
 			NO_DATA: 'No data found.',
 			NO_OBJECTIVE_ANALYSIS_PICKED: 'No analysis picked, do you want to ',
 			CREATE_OBJECTIVE_ANALYSIS: 'create a new one',
