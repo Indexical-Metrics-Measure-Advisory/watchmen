@@ -1,8 +1,10 @@
-import {listObjectiveAnalysis} from '@/services/data/tuples/objective-analysis';
+import {listObjectiveAnalysis, saveObjectiveAnalysis} from '@/services/data/tuples/objective-analysis';
 import {ObjectiveAnalysis} from '@/services/data/tuples/objective-analysis-types';
-import {Button} from '@/widgets/basic/button';
-import {ICON_COLLAPSE_PANEL, ICON_LOADING, ICON_SEARCH, ICON_SHOW_NAVIGATOR} from '@/widgets/basic/constants';
-import {ButtonInk} from '@/widgets/basic/types';
+import {generateUuid} from '@/services/data/tuples/utils';
+import {getCurrentTime} from '@/services/data/utils';
+import {ICON_ADD, ICON_COLLAPSE_PANEL, ICON_LOADING, ICON_SEARCH, ICON_SHOW_NAVIGATOR} from '@/widgets/basic/constants';
+import {TooltipButton} from '@/widgets/basic/tooltip-button';
+import {ButtonInk, TooltipAlignment, TooltipPosition} from '@/widgets/basic/types';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
@@ -103,6 +105,23 @@ export const ObjectiveAnalysisNavigator = () => {
 			searchInputRef.current?.focus();
 		}
 	};
+	// noinspection DuplicatedCode
+	const onAddClicked = () => {
+		const analysis: ObjectiveAnalysis = {
+			analysisId: generateUuid(),
+			title: 'Noname Analysis',
+			perspectives: [],
+			lastVisitTime: getCurrentTime(),
+			createdAt: getCurrentTime(),
+			lastModifiedAt: getCurrentTime()
+		};
+		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
+			return await saveObjectiveAnalysis(analysis);
+		}, () => {
+			fire(ObjectiveAnalysisEventTypes.CREATED, analysis);
+			fire(ObjectiveAnalysisEventTypes.START_EDIT, analysis);
+		});
+	};
 	const onCloseClicked = () => {
 		fire(ObjectiveAnalysisEventTypes.HIDE_NAVIGATOR);
 	};
@@ -128,13 +147,28 @@ export const ObjectiveAnalysisNavigator = () => {
 		<NavigatorHeader>
 			<NavigatorHeaderLabel>{Lang.INDICATOR.OBJECTIVE_ANALYSIS.NAVIGATOR_TITLE}</NavigatorHeaderLabel>
 			{state.loaded
-				? <Button onClick={onToggleSearchClicked} ink={searching ? ButtonInk.PRIMARY : (void 0)}>
+				? <TooltipButton tooltip={{
+					position: TooltipPosition.TOP,
+					alignment: TooltipAlignment.CENTER,
+					label: Lang.INDICATOR.OBJECTIVE_ANALYSIS.NAVIGATOR_SEARCH_TOGGLE
+				}} onClick={onToggleSearchClicked} ink={searching ? ButtonInk.PRIMARY : (void 0)}>
 					<FontAwesomeIcon icon={ICON_SEARCH}/>
-				</Button>
+				</TooltipButton>
 				: null}
-			<Button onClick={onCloseClicked}>
+			<TooltipButton tooltip={{
+				position: TooltipPosition.TOP,
+				alignment: TooltipAlignment.CENTER,
+				label: Lang.INDICATOR.OBJECTIVE_ANALYSIS.NAVIGATOR_CREATE_OBJECTIVE_ANALYSIS
+			}} onClick={onAddClicked}>
+				<FontAwesomeIcon icon={ICON_ADD}/>
+			</TooltipButton>
+			<TooltipButton tooltip={{
+				position: TooltipPosition.TOP,
+				alignment: TooltipAlignment.CENTER,
+				label: Lang.INDICATOR.OBJECTIVE_ANALYSIS.MINIMIZE_NAVIGATOR
+			}} onClick={onCloseClicked}>
 				<FontAwesomeIcon icon={ICON_COLLAPSE_PANEL}/>
-			</Button>
+			</TooltipButton>
 		</NavigatorHeader>
 		<NavigatorSearchHeader>
 			<NavigatorHeaderSearchInput value={searchText} onChange={onSearchTextChange}

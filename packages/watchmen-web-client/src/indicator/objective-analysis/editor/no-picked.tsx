@@ -13,6 +13,7 @@ export const NoPicked = () => {
 	const {fire: fireGlobal} = useEventBus();
 	const {fire} = useObjectiveAnalysisEventBus();
 
+	// noinspection DuplicatedCode
 	const onCreateClicked = () => {
 		const analysis: ObjectiveAnalysis = {
 			analysisId: generateUuid(),
