@@ -18,7 +18,10 @@ def get_value_from(
 		get_first: Callable[[str], Any], is_list: Callable[[List[str]], bool]) -> Any:
 	data = get_first(names[0])
 	if data is None:
-		return None
+		if is_list(names[:1]):
+			return []
+		else:
+			return None
 
 	remains_count: int = len(names) - 1
 	current_index: int = 1
@@ -75,8 +78,7 @@ def get_value_from(
 
 		if data is None:
 			# no need to go deeper
-			value_is_list = is_list(names[:current_index + 1])
-			if value_is_list:
+			if is_list(names[:current_index + 1]):
 				return []
 			else:
 				return None
