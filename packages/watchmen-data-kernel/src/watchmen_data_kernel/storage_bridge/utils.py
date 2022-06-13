@@ -75,7 +75,11 @@ def get_value_from(
 
 		if data is None:
 			# no need to go deeper
-			return None
+			value_is_list = is_list(names[:current_index + 1])
+			if value_is_list:
+				return []
+			else:
+				return None
 		elif isinstance(data, list) and len(data) == 0:
 			# no need to go deeper
 			return []
