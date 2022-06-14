@@ -10,9 +10,9 @@ export const IndicatorCurve = styled(AchievementBlockPairCurve).attrs<{ rect: Cu
 	}
 `;
 export const IndicatorNodeContainer = styled.div.attrs({'data-widget': 'indicator-node-container'})`
-	display               : grid;
+	display               : flex;
 	position              : relative;
-	grid-template-columns : repeat(7, auto);
+	//grid-template-columns : repeat(7, auto);
 	align-items           : center;
 	&:not(:last-child) {
 		margin-bottom : calc(var(--margin) / 2);
