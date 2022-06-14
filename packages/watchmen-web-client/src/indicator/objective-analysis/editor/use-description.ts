@@ -8,6 +8,7 @@ export const useDescription = (data: ObjectiveAnalysis | ObjectiveAnalysisPerspe
 
 	const onDescriptionChanged = (event: ChangeEvent<HTMLTextAreaElement>) => {
 		data.description = event.target.value;
+		forceUpdate();
 
 		event.target.style.height = `calc(${countLines(event.target.value)} * var(--line-height) + 12px)`;
 		// wait height changed
