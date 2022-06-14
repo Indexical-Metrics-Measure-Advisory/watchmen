@@ -8,6 +8,7 @@ export const IndicatorCriteriaNodeContainer = styled.div.attrs({'data-widget': '
 export const IndicatorCriteriaNode = styled(AchievementBlock).attrs({'data-widget': 'indicator-criteria-node'})`
 	border-color : var(--achievement-indicator-color);
 	color        : var(--achievement-indicator-color);
+	cursor       : pointer;
 	overflow     : visible;
 	&:before {
 		background-color : var(--achievement-indicator-color);

@@ -23,6 +23,7 @@ export const ComputeIndicatorCalculationNode = styled(IndicatorCalculationNode).
 	})<{ expanded: boolean }>`
 	border-color : var(--achievement-compute-indicator-color);
 	color        : var(--achievement-compute-indicator-color);
+	cursor       : pointer;
 	&:before {
 		background-color : var(--achievement-compute-indicator-color);
 	}

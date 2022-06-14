@@ -1,5 +1,6 @@
 import {saveAchievement} from '@/services/data/tuples/achievement';
 import {Achievement} from '@/services/data/tuples/achievement-types';
+import {noop} from '@/services/utils';
 import {Button} from '@/widgets/basic/button';
 import {ButtonInk} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
@@ -9,6 +10,8 @@ import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import React, {ChangeEvent, useState} from 'react';
 import styled from 'styled-components';
+import {useAchievementEventBus} from '../../../../achievement/achievement-event-bus';
+import {AchievementEventTypes} from '../../../../achievement/achievement-event-bus-types';
 import {
 	AchievementButton,
 	AchievementEntityLabel,
@@ -80,6 +83,7 @@ export const CreateOrFindViewer = (props: { achievement: Achievement; onCleared:
 	const {achievement, onCleared} = props;
 
 	const {fire: fireGlobal} = useEventBus();
+	const {fire} = useAchievementEventBus();
 	const forceUpdate = useForceUpdate();
 
 	const onNamed = () => {
@@ -87,6 +91,7 @@ export const CreateOrFindViewer = (props: { achievement: Achievement; onCleared:
 			await saveAchievement(achievement);
 		}, () => {
 			forceUpdate();
+			fire(AchievementEventTypes.NAME_CHANGED, achievement, noop);
 			fireGlobal(EventTypes.HIDE_DIALOG);
 		});
 	};

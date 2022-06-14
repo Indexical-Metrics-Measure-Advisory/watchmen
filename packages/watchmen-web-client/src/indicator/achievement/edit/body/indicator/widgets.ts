@@ -10,10 +10,10 @@ export const IndicatorCurve = styled(AchievementBlockPairCurve).attrs<{ rect: Cu
 	}
 `;
 export const IndicatorNodeContainer = styled.div.attrs({'data-widget': 'indicator-node-container'})`
-	display               : flex;
-	position              : relative;
+	display     : flex;
+	position    : relative;
 	//grid-template-columns : repeat(7, auto);
-	align-items           : center;
+	align-items : center;
 	&:not(:last-child) {
 		margin-bottom : calc(var(--margin) / 2);
 	}
@@ -21,6 +21,7 @@ export const IndicatorNodeContainer = styled.div.attrs({'data-widget': 'indicato
 export const IndicatorNode = styled(AchievementBlock).attrs({'data-widget': 'indicator-node'})`
 	border-color : var(--achievement-indicator-color);
 	color        : var(--achievement-indicator-color);
+	cursor       : pointer;
 	overflow     : visible;
 	transition   : border-radius 300ms ease-in-out;
 	&:before {

@@ -50,9 +50,9 @@ const InternalComputeIndicator = (props: {
 		};
 	}, [on, off, forceUpdate, achievement, achievementIndicator]);
 
-	const onMouseEnter = () => {
-		fire(AchievementEditEventTypes.EXPAND_NAME, achievement, achievementIndicator);
-	};
+	// const onMouseEnter = () => {
+	// 	fire(AchievementEditEventTypes.EXPAND_NAME, achievement, achievementIndicator);
+	// };
 	const onClicked = () => {
 		fire(AchievementEditEventTypes.EXPAND_NAME, achievement, achievementIndicator);
 	};
@@ -71,12 +71,13 @@ const InternalComputeIndicator = (props: {
 
 	return <>
 		<ComputeIndicatorNode id={id} expanded={expanded}
-		                      onMouseEnter={onMouseEnter} onClick={onClicked} ref={ref}>
+		                      // onMouseEnter={onMouseEnter}
+		                      onClick={onClicked} ref={ref}>
 			<ComputeIndicatorNodeIndex>{index}.</ComputeIndicatorNodeIndex>
 			<ComputeIndicatorNodeName>
 				{name}
 			</ComputeIndicatorNodeName>
-			<ComputeIndicatorNodeRemover>
+			<ComputeIndicatorNodeRemover expanded={expanded}>
 				<span onClick={onRemoveClicked}><FontAwesomeIcon icon={ICON_DELETE}/></span>
 			</ComputeIndicatorNodeRemover>
 		</ComputeIndicatorNode>

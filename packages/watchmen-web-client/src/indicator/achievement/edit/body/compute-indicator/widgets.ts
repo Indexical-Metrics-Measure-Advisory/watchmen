@@ -12,10 +12,10 @@ export const ComputeIndicatorCurve = styled(AchievementBlockPairCurve).attrs<{ r
 	}
 `;
 export const ComputeIndicatorNodeContainer = styled.div.attrs({'data-widget': 'compute-indicator-node-container'})`
-	display               : flex;
-	position              : relative;
+	display     : flex;
+	position    : relative;
 	//grid-template-columns : repeat(7, auto);
-	align-items           : center;
+	align-items : center;
 	&:not(:last-child) {
 		margin-bottom : calc(var(--margin) / 2);
 	}
@@ -32,14 +32,13 @@ export const ComputeIndicatorNode = styled(AchievementBlock).attrs<{ expanded: b
 	}) <{ expanded: boolean }>`
 	border-color : var(--achievement-compute-indicator-color);
 	color        : var(--achievement-compute-indicator-color);
+	cursor       : pointer;
 	overflow     : visible;
 	transition   : border-radius 300ms ease-in-out;
 	&:before {
 		background-color : var(--achievement-compute-indicator-color);
 	}
 	&:hover {
-		border-top-right-radius    : 0;
-		border-bottom-right-radius : 0;
 		> span[data-widget=compute-indicator-remover] {
 			clip-path : polygon(0 0, 0 100%, calc(100% + 1px) 100%, calc(100% + 1px) 0);
 		}
@@ -78,10 +77,17 @@ export const ComputeIndicatorNode = styled(AchievementBlock).attrs<{ expanded: b
 `;
 export const ComputeIndicatorNodeIndex = styled(IndicatorNodeIndex)``;
 export const ComputeIndicatorNodeName = styled(IndicatorNodeName)``;
-export const ComputeIndicatorNodeRemover = styled(IndicatorNodeRemover).attrs({'data-widget': 'compute-indicator-remover'})`
-	border-color               : var(--achievement-compute-indicator-color);
-	border-left-color          : transparent;
-	border-bottom-right-radius : 0;
+export const ComputeIndicatorNodeRemover = styled(IndicatorNodeRemover).attrs<{ expanded: boolean }>(({expanded}) => {
+	return {
+		'data-widget': 'compute-indicator-remover',
+		style: {
+			borderBottomRightRadius: expanded ? 0 : (void 0)
+		}
+	};
+})<{ expanded: boolean }>`
+	border-color      : var(--achievement-compute-indicator-color);
+	border-left-color : transparent;
+	transition        : border-radius 300ms ease-in-out;
 	&:before {
 		background-color : var(--achievement-compute-indicator-color);
 	}
