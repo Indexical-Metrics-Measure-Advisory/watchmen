@@ -87,6 +87,7 @@ export const CreateOrFindViewer = (props: { achievement: Achievement; onCleared:
 			await saveAchievement(achievement);
 		}, () => {
 			forceUpdate();
+			fireGlobal(EventTypes.HIDE_DIALOG);
 		});
 	};
 	const onRenameClicked = () => {
