@@ -86,6 +86,11 @@ jobs:
         run: |
           poetry build
           poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
+      - name: Package [watchmen-storage-oss] and publish to Pypi
+        working-directory: ./packages/watchmen-storage-oss
+        run: |
+          poetry build
+          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
       - name: Package [watchmen-auth] and publish to Pypi
         working-directory: ./packages/watchmen-auth
         run: |
