@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-storage-mysql"
-version = "16.1.4"
+version = "16.1.6"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -13,7 +13,7 @@ python = "^3.9"
 SQLAlchemy = "1.4.35"
 PyMySQL = "^1.0.2"
 cryptography = "^36.0.2"
-watchmen-storage = "16.1.4"
+watchmen-storage = "16.1.6"
 
 [tool.poetry.dev-dependencies]
 
