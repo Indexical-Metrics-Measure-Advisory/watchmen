@@ -20,9 +20,9 @@ export const ComputeIndicatorCalculationNodeContent = (props: {
 	const {fire} = useAchievementEditEventBus();
 	const calculatedValues = useIndicatorValuesCalculator(achievement, achievementIndicator);
 
-	const onMouseEnter = () => {
-		fire(AchievementEditEventTypes.EXPAND_CALCULATION, achievement, achievementIndicator);
-	};
+	// const onMouseEnter = () => {
+	// 	fire(AchievementEditEventTypes.EXPAND_CALCULATION, achievement, achievementIndicator);
+	// };
 	const onClicked = () => {
 		fire(AchievementEditEventTypes.EXPAND_CALCULATION, achievement, achievementIndicator);
 	};
@@ -30,8 +30,9 @@ export const ComputeIndicatorCalculationNodeContent = (props: {
 	return <ComputeIndicatorCalculationNode id={`calc-${id}`}
 	                                        error={calculatedValues.calculateFailed}
 	                                        warn={calculatedValues.shouldComputeScore && !calculatedValues.calculated}
-	                                        onMouseEnter={onMouseEnter} onClick={onClicked}
-	                                        expanded={expanded}>
+		// onMouseEnter={onMouseEnter}
+		                                    onClick={onClicked}
+		                                    expanded={expanded}>
 		<ComputeIndicatorCalculationVariableName compact={true}>
 			{achievementIndicator.variableName}:
 		</ComputeIndicatorCalculationVariableName>

@@ -16,17 +16,18 @@ export const IndicatorCalculationNodeContent = (props: {
 	const {fire} = useAchievementEditEventBus();
 	const calculatedValues = useIndicatorValuesCalculator(achievement, achievementIndicator);
 
-	const onMouseEnter = () => {
-		fire(AchievementEditEventTypes.EXPAND_CALCULATION, achievement, achievementIndicator);
-	};
+	// const onMouseEnter = () => {
+	// 	fire(AchievementEditEventTypes.EXPAND_CALCULATION, achievement, achievementIndicator);
+	// };
 	const onClicked = () => {
 		fire(AchievementEditEventTypes.EXPAND_CALCULATION, achievement, achievementIndicator);
 	};
 
 	return <IndicatorCalculationNode id={`calc-${id}`} error={calculatedValues.loadFailed}
 	                                 warn={!calculatedValues.calculated}
-	                                 onMouseEnter={onMouseEnter} onClick={onClicked}
-	                                 expanded={expanded}>
+		// onMouseEnter={onMouseEnter}
+		                             onClick={onClicked}
+		                             expanded={expanded}>
 		<IndicatorCalculationVariableName compact={true}>
 			{achievementIndicator.variableName}:
 		</IndicatorCalculationVariableName>

@@ -54,9 +54,9 @@ export const IndicatorCriteriaNodeContent = (props: {
 
 	const {fire} = useAchievementEditEventBus();
 
-	const onMouseEnter = () => {
-		fire(AchievementEditEventTypes.EXPAND_CRITERIA, achievement, achievementIndicator);
-	};
+	// const onMouseEnter = () => {
+	// 	fire(AchievementEditEventTypes.EXPAND_CRITERIA, achievement, achievementIndicator);
+	// };
 	const onClicked = () => {
 		fire(AchievementEditEventTypes.EXPAND_CRITERIA, achievement, achievementIndicator);
 	};
@@ -64,7 +64,8 @@ export const IndicatorCriteriaNodeContent = (props: {
 	const {error, warn} = useCriteriaValidation({achievement, achievementIndicator, defData});
 
 	return <IndicatorCriteriaNode error={error} warn={warn}
-	                              onMouseEnter={onMouseEnter} onClick={onClicked}>
+		// onMouseEnter={onMouseEnter}
+		                          onClick={onClicked}>
 		<NameLabel achievement={achievement} achievementIndicator={achievementIndicator}
 		           topic={defData.topic} subject={defData.subject}/>
 	</IndicatorCriteriaNode>;

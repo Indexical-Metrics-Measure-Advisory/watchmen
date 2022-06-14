@@ -17,6 +17,7 @@ export const IndicatorCalculationNode = styled(AchievementBlock).attrs<{ expande
 	})<{ expanded: boolean }>`
 	border-color : var(--achievement-indicator-color);
 	color        : var(--achievement-indicator-color);
+	cursor       : pointer;
 	overflow     : visible;
 	transition   : border-radius 300ms ease-in-out;
 	&:before {
