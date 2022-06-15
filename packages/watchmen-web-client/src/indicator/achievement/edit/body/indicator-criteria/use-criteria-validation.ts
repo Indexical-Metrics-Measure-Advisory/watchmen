@@ -32,7 +32,7 @@ export const useCriteriaValidation = (options: {
 		};
 	}, [on, off, forceUpdate, achievement, achievementIndicator]);
 
-	const error = defData.loaded && defData.topic == null;
+	const error = defData.loaded && defData.topic == null && defData.subject == null;
 	const warn = !isReadyToCalculation(achievement, achievementIndicator, defData);
 
 	return {error, warn};
