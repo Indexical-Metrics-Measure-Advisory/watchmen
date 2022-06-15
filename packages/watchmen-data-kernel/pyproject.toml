@@ -18,6 +18,7 @@ watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true,
 watchmen-storage-mongodb = { path = "../watchmen-storage-mongodb", develop = true, optional = true }
 watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, optional = true }
 watchmen-storage-postgresql = { path = "../watchmen-storage-postgresql", develop = true, optional = true }
+watchmen-storage-oss = { path = "../watchmen-storage-oss", develop = true, optional = true }
 
 [tool.poetry.dev-dependencies]
 
@@ -27,6 +28,7 @@ oracle = ["watchmen-storage-oracle"]
 mongodb = ["watchmen-storage-mongodb"]
 mssql = ["watchmen-storage-mssql"]
 postgresql = ["watchmen-storage-postgresql"]
+oss = ["watchmen-storage-oss"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
