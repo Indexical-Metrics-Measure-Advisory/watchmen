@@ -84,3 +84,12 @@ export const togglePipelineEnabled = async (pipelineId: PipelineId, enabled: boo
 		await get({api: Apis.PIPELINE_ENABLE, search: {pipelineId, enabled}});
 	}
 };
+
+export const importPipelines = async (pipelines: Array<Pipeline>): Promise<Array<Pipeline>> => {
+	if (isMockService()) {
+		pipelines.forEach(saveMockPipeline);
+		return pipelines;
+	} else {
+		return await post({api: Apis.IMPORT_PIPELINES, data: pipelines});
+	}
+};

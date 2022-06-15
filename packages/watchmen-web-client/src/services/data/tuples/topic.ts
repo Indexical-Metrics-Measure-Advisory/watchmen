@@ -89,3 +89,12 @@ export const rerunTopic = async (topicId: TopicId, pipelineId: PipelineId, dataI
 		return await get({api: Apis.TOPIC_RERUN, search: {topicId, pipelineId, dataId}});
 	}
 };
+
+export const importTopics = async (topics: Array<Topic>): Promise<Array<Topic>> => {
+	if (isMockService()) {
+		topics.forEach(saveMockTopic);
+		return topics;
+	} else {
+		return await post({api: Apis.IMPORT_TOPICS, data: topics});
+	}
+};
