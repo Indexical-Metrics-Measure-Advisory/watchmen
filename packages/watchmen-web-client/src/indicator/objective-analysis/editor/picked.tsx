@@ -37,7 +37,7 @@ export const Picked = (props: { analysis: ObjectiveAnalysis }) => {
 	const {on, off, fire} = useObjectiveAnalysisEventBus();
 	const navigatorVisible = useNavigatorVisible();
 	const forceUpdate = useForceUpdate();
-	const {onDescriptionChanged, onDescriptionBlurred} = useDescription(analysis);
+	const {onDescriptionChanged, onDescriptionBlurred} = useDescription(analysis, analysis);
 	useEffect(() => {
 		const onDeletePerspective = (anAnalysis: ObjectiveAnalysis, perspective: ObjectiveAnalysisPerspective) => {
 			if (anAnalysis !== analysis) {

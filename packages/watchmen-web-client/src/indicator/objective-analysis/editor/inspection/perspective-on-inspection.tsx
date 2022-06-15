@@ -59,7 +59,7 @@ export const PerspectiveOnInspection = (props: { analysis: ObjectiveAnalysis, pe
 
 	const {fire: fireGlobal} = useEventBus();
 	const {fire} = useObjectiveAnalysisEventBus();
-	const {onDescriptionChanged, onDescriptionBlurred} = useDescription(perspective);
+	const {onDescriptionChanged, onDescriptionBlurred} = useDescription(analysis, perspective);
 
 	const onDeleteClicked = () => {
 		fireGlobal(EventTypes.SHOW_YES_NO_DIALOG,
