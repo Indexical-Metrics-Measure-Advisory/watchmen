@@ -74,4 +74,5 @@ class CatalogService(TupleService):
 				left=ColumnNameLiteral(columnName='topic_ids'), operator=EntityCriteriaOperator.LIKE,
 				right=criteria.topicId))
 		# noinspection PyTypeChecker
+
 		return self.storage.find(self.get_entity_finder(criteria=storage_criteria))

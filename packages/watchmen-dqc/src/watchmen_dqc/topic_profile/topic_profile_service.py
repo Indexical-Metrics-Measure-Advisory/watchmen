@@ -76,6 +76,7 @@ class TopicProfileService:
 
 		data_frame = build_data_frame(ArrayHelper(data).map(row_to_list).to_list(), columns)
 		data_frame = convert_data_frame_type_by_topic(data_frame, schema.get_topic())
+		data_frame.drop([TopicDataColumnNames.TENANT_ID,TopicDataColumnNames.UPDATE_TIME,TopicDataColumnNames.INSERT_TIME,TopicDataColumnNames.AGGREGATE_ASSIST,TopicDataColumnNames.ID,TopicDataColumnNames.VERSION], axis=1, inplace=True,errors='ignore')
 
 		if data_frame.empty or len(data_frame.index) == 1:
 			return None
