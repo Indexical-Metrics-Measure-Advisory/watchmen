@@ -3,11 +3,11 @@ import {isMultipleDataSourcesEnabled} from '@/feature-switch';
 import {TuplePage} from '@/services/data/query/tuple-page';
 import {listDataSourcesForHolder} from '@/services/data/tuples/data-source';
 import {listEnumsForHolder} from '@/services/data/tuples/enum';
-import {FactorType} from '@/services/data/tuples/factor-types';
+import {Factor, FactorType} from '@/services/data/tuples/factor-types';
 import {QueryTopic} from '@/services/data/tuples/query-topic-types';
 import {fetchTopic, listTopics, saveTopic} from '@/services/data/tuples/topic';
 import {Topic} from '@/services/data/tuples/topic-types';
-import {isNotRawTopic} from '@/services/data/tuples/topic-utils';
+import {isNotRawTopic, isRawTopic} from '@/services/data/tuples/topic-utils';
 import {QueryTuple} from '@/services/data/tuples/tuple-types';
 import {AdminCacheData} from '@/services/local-persist/types';
 import {againstSnakeCaseName, noop} from '@/services/utils';
@@ -37,6 +37,23 @@ const fetchTopicAndCodes = async (queryTopic: QueryTopic) => {
 const getKeyOfTopic = (topic: QueryTopic) => topic.topicId;
 
 const isNameInvalid = (name: string) => againstSnakeCaseName(name, true);
+
+const isFactorNotHold = (topic: Topic, factor: Factor): boolean => {
+	const name = factor.name;
+	const segments = name.split('.');
+	if (segments.length === 1) {
+		return false;
+	}
+
+	segments.length = segments.length - 1;
+	const holderName = segments.join('.');
+	const holderFactor = topic.factors.find(f => f.name === holderName);
+	if (holderFactor == null) {
+		return true;
+	} else {
+		return holderFactor.type !== FactorType.ARRAY && holderFactor.type !== FactorType.OBJECT;
+	}
+};
 
 const AdminTopics = () => {
 	const {fire: fireGlobal} = useEventBus();
@@ -109,6 +126,17 @@ const AdminTopics = () => {
 			} else if (isNotRawTopic(topic) && topic.factors.some(f => f.type === FactorType.OBJECT || f.type === FactorType.ARRAY)) {
 				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
 					Object or array factor is allowed in raw topic only.
+				</AlertLabel>, () => {
+					onSaved(topic, false);
+				});
+				return;
+			} else if (isRawTopic(topic) && topic.factors.some(f => isFactorNotHold(topic, f))) {
+				const indexes = topic.factors
+					.map((f, index) => isFactorNotHold(topic, f) ? (index + 1) : -1)
+					.filter(index => index !== -1)
+					.map(index => `#${index}`);
+				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
+					Hierarchical factor(s) must be declared by parent, please check {indexes.join(', ')}.
 				</AlertLabel>, () => {
 					onSaved(topic, false);
 				});

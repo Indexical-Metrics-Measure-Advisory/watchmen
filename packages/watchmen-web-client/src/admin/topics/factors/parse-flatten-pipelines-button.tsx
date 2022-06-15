@@ -1,0 +1,276 @@
+import {ParameterKind, TopicFactorParameter} from '@/services/data/tuples/factor-calculator-types';
+import {Factor, FactorType} from '@/services/data/tuples/factor-types';
+import {AggregateArithmetic} from '@/services/data/tuples/pipeline-stage-unit-action/aggregate-arithmetic-types';
+import {WriteTopicActionType} from '@/services/data/tuples/pipeline-stage-unit-action/pipeline-stage-unit-action-types';
+import {
+	InsertRowAction,
+	MappingFactor
+} from '@/services/data/tuples/pipeline-stage-unit-action/write-topic-actions-types';
+import {Pipeline, PipelineTriggerType} from '@/services/data/tuples/pipeline-types';
+import {Topic, TopicKind, TopicType} from '@/services/data/tuples/topic-types';
+import {generateUuid, isFakedUuid} from '@/services/data/tuples/utils';
+import {getCurrentTime} from '@/services/data/utils';
+import {AlertLabel} from '@/widgets/alert/widgets';
+import {Button, DwarfButton} from '@/widgets/basic/button';
+import {ICON_PIPELINE} from '@/widgets/basic/constants';
+import {ButtonInk} from '@/widgets/basic/types';
+import {useForceUpdate} from '@/widgets/basic/utils';
+import {DialogFooter, DialogLabel} from '@/widgets/dialog/widgets';
+import {useEventBus} from '@/widgets/events/event-bus';
+import {EventTypes} from '@/widgets/events/types';
+import {useTupleEventBus} from '@/widgets/tuple-workbench/tuple-event-bus';
+import {TupleEventTypes, TupleState} from '@/widgets/tuple-workbench/tuple-event-bus-types';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import React, {useEffect, useState} from 'react';
+import {useTopicEventBus} from '../topic-event-bus';
+import {TopicEventTypes} from '../topic-event-bus-types';
+import {createFactor} from '../utils';
+import {TopicPickerTable} from './topic-picker-table';
+import {PICKER_DIALOG_HEIGHT, PickerDialogBody} from './widgets';
+
+const asPeerTopicName = (topic: Topic): string => {
+	let peerTopicName = topic.name;
+	if (peerTopicName.toLowerCase().startsWith('raw_')) {
+		peerTopicName = `dist_${peerTopicName.substr(4)}`;
+	} else {
+		peerTopicName = `dist_${peerTopicName}`;
+	}
+	return peerTopicName;
+};
+
+const asTopicName = (topic: Topic, factorName: string): string => {
+	if (factorName.indexOf('.') === -1) {
+		return asPeerTopicName(topic);
+	} else {
+		const segments = factorName.split('.').map(segment => segment.trim()).filter(segment => segment.length !== 0);
+		segments.length = segments.length - 1;
+		return `dist_${segments.join('_')}`;
+	}
+};
+
+const asFactorName = (factorName: string): string => {
+	if (factorName.indexOf('.') === -1) {
+		return factorName.trim();
+	} else {
+		const names = factorName.split('.').map(segment => segment.trim());
+		return names[names.length - 1];
+	}
+};
+
+type ParsedTopics = Record<string, {
+	topic: Topic;
+	// key: factor id in distinct topic; value: factor id in raw topic
+	factorIdMap: Record<string, string>;
+	array: boolean;
+	// existing only when array is true
+	loopFactor?: Factor;
+}>
+
+const createPeerTopic = (topic: Topic): Topic => {
+	return {
+		topicId: generateUuid(),
+		name: asPeerTopicName(topic),
+		kind: TopicKind.BUSINESS,
+		type: TopicType.DISTINCT,
+		factors: [],
+		dataSourceId: topic.dataSourceId,
+		version: 1,
+		createdAt: getCurrentTime(),
+		lastModifiedAt: getCurrentTime()
+	};
+};
+const parseTopics = (topic: Topic) => {
+	const clonedFactors: Array<Factor> = [...(topic.factors || [])].sort((f1, f2) => {
+		return (f1.name || '').localeCompare(f2.name || '');
+	});
+
+	const peerTopic = createPeerTopic(topic);
+	return clonedFactors.reduce((topics, factor) => {
+		if (factor.type === FactorType.ARRAY || factor.type === FactorType.OBJECT) {
+			const topicName = `dist_${factor.name.replace('.', '_')}`;
+			const newTopic = {
+				topicId: generateUuid(),
+				name: topicName,
+				kind: TopicKind.BUSINESS,
+				type: TopicType.DISTINCT,
+				factors: [],
+				dataSourceId: topic.dataSourceId,
+				version: 1,
+				createdAt: getCurrentTime(),
+				lastModifiedAt: getCurrentTime()
+			};
+			topics[topicName] = {topic: newTopic, factorIdMap: {}, array: factor.type === FactorType.ARRAY};
+		} else {
+			const topicName = asTopicName(topic, factor.name || '');
+			const newTopic = topics[topicName]!;
+			const factorName = asFactorName(factor.name);
+			const newFactor = {
+				...factor,
+				factorId: createFactor(newTopic.topic, true).factorId,
+				name: factorName
+			};
+			newTopic.topic.factors.push(newFactor);
+			newTopic.factorIdMap[newFactor.factorId] = factor.factorId;
+		}
+		return topics;
+	}, {[peerTopic.name]: {topic: peerTopic, factorIdMap: {}, array: false}} as ParsedTopics);
+};
+
+const parsePipelines = (sourceTopic: Topic, targetTopics: ParsedTopics): Array<Pipeline> => {
+	return Object.values(targetTopics).map(({topic: tailTopic, factorIdMap, array, loopFactor}) => {
+		return {
+			pipelineId: generateUuid(),
+			name: `Flatten to [${tailTopic.name}]`,
+			topicId: sourceTopic.topicId,
+			type: PipelineTriggerType.INSERT_OR_MERGE,
+			conditional: false,
+			stages: [{
+				stageId: generateUuid(),
+				name: 'Copy data stage',
+				conditional: false,
+				units: [{
+					unitId: generateUuid(),
+					name: 'Copy data unit',
+					conditional: false,
+					loopVariableName: array ? `${loopFactor!.name}` : (void 0),
+					do: [{
+						actionId: generateUuid(),
+						type: WriteTopicActionType.INSERT_ROW,
+						topicId: tailTopic.topicId,
+						mapping: tailTopic.factors.map(tailFactor => {
+							return {
+								source: {
+									kind: ParameterKind.TOPIC,
+									topicId: tailTopic.topicId,
+									factorId: factorIdMap[tailFactor.factorId]
+								} as TopicFactorParameter,
+								factorId: tailFactor.factorId,
+								arithmetic: AggregateArithmetic.NONE
+							} as MappingFactor;
+						})
+					} as InsertRowAction]
+				}]
+			}],
+			enabled: true,
+			validated: true,
+			version: 1,
+			createdAt: getCurrentTime(),
+			lastModifiedAt: getCurrentTime()
+		} as Pipeline;
+	});
+};
+
+const TopicPicker = (props: {
+	topics: Array<Topic>;
+	onConfirm: (topics: Array<Topic>) => void
+}) => {
+	const {topics, onConfirm} = props;
+
+	const {fire} = useEventBus();
+	const [candidates] = useState(() => {
+		return topics.map(topic => {
+			return {topic, picked: true};
+		});
+	});
+
+	const onConfirmClicked = () => {
+		onConfirm(candidates.filter(c => c.picked).map(({topic}) => topic));
+		fire(EventTypes.HIDE_DIALOG);
+	};
+	const onCancelClicked = () => {
+		fire(EventTypes.HIDE_DIALOG);
+	};
+
+	return <>
+		<PickerDialogBody>
+			<DialogLabel>Please select topics</DialogLabel>
+			<TopicPickerTable candidates={candidates}/>
+		</PickerDialogBody>
+		<DialogFooter>
+			<Button ink={ButtonInk.PRIMARY} onClick={onConfirmClicked}>Confirm</Button>
+			<Button ink={ButtonInk.WAIVE} onClick={onCancelClicked}>Cancel</Button>
+		</DialogFooter>
+	</>;
+};
+
+export const ParseFlattenPipelinesButton = (props: { topic: Topic }) => {
+	const {topic} = props;
+
+	const {fire: fireGlobal} = useEventBus();
+	const {fire: fireTuple} = useTupleEventBus();
+	const {on, off} = useTopicEventBus();
+	const forceUpdate = useForceUpdate();
+	useEffect(() => {
+		const onTopicTypeChanged = () => {
+			forceUpdate();
+		};
+		on(TopicEventTypes.TOPIC_TYPE_CHANGED, onTopicTypeChanged);
+		return () => {
+			off(TopicEventTypes.TOPIC_TYPE_CHANGED, onTopicTypeChanged);
+		};
+	}, [on, off, topic, forceUpdate]);
+
+	if (topic.type !== TopicType.RAW) {
+		return null;
+	}
+
+	const doParsePipelines = () => {
+		const topics = parseTopics(topic);
+		const pipelines = parsePipelines(topic, topics);
+		const candidates = Object.values(topics).map(({topic}) => topic).sort((g1, g2) => {
+			return (g1.name || '').toLowerCase().localeCompare((g2.name || '').toLowerCase());
+		});
+		const onConfirm = (topics: Array<Topic>) => {
+			// TODO
+		};
+		fireGlobal(EventTypes.SHOW_DIALOG,
+			<TopicPicker topics={candidates} onConfirm={onConfirm}/>,
+			{
+				marginTop: '10vh',
+				marginLeft: '20%',
+				width: '60%',
+				height: PICKER_DIALOG_HEIGHT
+			});
+	};
+	const onParseClicked = () => {
+		if (isFakedUuid(topic)) {
+			fireGlobal(EventTypes.SHOW_YES_NO_DIALOG,
+				'Current topic is not persist yet, should be saved first before parse flatten topics and pipelines. Are you sure to save it first?',
+				() => {
+					fireGlobal(EventTypes.HIDE_DIALOG);
+					fireTuple(TupleEventTypes.SAVE_TUPLE, topic, (topic, saved) => {
+						if (saved) {
+							doParsePipelines();
+						}
+					});
+				}, () => fireGlobal(EventTypes.HIDE_DIALOG));
+		} else {
+			fireTuple(TupleEventTypes.ASK_TUPLE_STATE, (state: TupleState) => {
+				if (state === TupleState.CHANGED) {
+					fireGlobal(EventTypes.SHOW_YES_NO_DIALOG,
+						'Current topic is changed, should be saved first before parse flatten topics and pipelines. Are you sure to save it first?',
+						() => {
+							fireGlobal(EventTypes.HIDE_DIALOG);
+							fireTuple(TupleEventTypes.SAVE_TUPLE, topic, (topic, saved) => {
+								if (saved) {
+									doParsePipelines();
+								}
+							});
+						}, () => fireGlobal(EventTypes.HIDE_DIALOG));
+				} else if (state === TupleState.SAVING) {
+					fireGlobal(EventTypes.SHOW_ALERT,
+						<AlertLabel>
+							Current topic is saving, please wait for saved and try to parse again.
+						</AlertLabel>);
+				} else {
+					doParsePipelines();
+				}
+			});
+		}
+	};
+
+	return <DwarfButton ink={ButtonInk.PRIMARY} onClick={onParseClicked}>
+		<FontAwesomeIcon icon={ICON_PIPELINE}/>
+		<span>Parse Pipelines</span>
+	</DwarfButton>;
+};
