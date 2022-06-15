@@ -103,6 +103,7 @@ async def save_catalog(
 async def query_catalog(
 		criteria: CatalogCriteria, principal_service: PrincipalService = Depends(get_admin_principal)) -> List[Catalog]:
 	catalog_service = get_catalog_service(principal_service)
+
 	def action() -> List[Catalog]:
 		tenant_id: TenantId = principal_service.get_tenant_id()
 		return catalog_service.find_by_criteria(criteria, tenant_id)
