@@ -92,7 +92,7 @@ const parseTopics = (topic: Topic) => {
 	const peerTopic = createPeerTopic(topic);
 	return clonedFactors.reduce((topics, factor) => {
 		if (factor.type === FactorType.ARRAY || factor.type === FactorType.OBJECT) {
-			const topicName = `dist_${factor.name.replace('.', '_')}`;
+			const topicName = `dist_${factor.name.replaceAll('.', '_')}`;
 			const newTopic = {
 				topicId: generateUuid(),
 				name: topicName,
