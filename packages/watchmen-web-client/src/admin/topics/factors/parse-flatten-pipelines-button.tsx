@@ -1,5 +1,8 @@
+import {useAdminCacheEventBus} from '@/admin/cache/cache-event-bus';
+import {AdminCacheEventTypes} from '@/admin/cache/cache-event-bus-types';
 import {ParameterKind, TopicFactorParameter} from '@/services/data/tuples/factor-calculator-types';
 import {Factor, FactorType} from '@/services/data/tuples/factor-types';
+import {importPipelines} from '@/services/data/tuples/pipeline';
 import {AggregateArithmetic} from '@/services/data/tuples/pipeline-stage-unit-action/aggregate-arithmetic-types';
 import {WriteTopicActionType} from '@/services/data/tuples/pipeline-stage-unit-action/pipeline-stage-unit-action-types';
 import {
@@ -7,6 +10,7 @@ import {
 	MappingFactor
 } from '@/services/data/tuples/pipeline-stage-unit-action/write-topic-actions-types';
 import {Pipeline, PipelineTriggerType} from '@/services/data/tuples/pipeline-types';
+import {importTopics} from '@/services/data/tuples/topic';
 import {Topic, TopicKind, TopicType} from '@/services/data/tuples/topic-types';
 import {generateUuid, isFakedUuid} from '@/services/data/tuples/utils';
 import {getCurrentTime} from '@/services/data/utils';
@@ -99,6 +103,7 @@ const parseTopics = (topic: Topic) => {
 				createdAt: getCurrentTime(),
 				lastModifiedAt: getCurrentTime()
 			};
+			// TODO any parent is array, set me as array
 			topics[topicName] = {topic: newTopic, factorIdMap: {}, array: factor.type === FactorType.ARRAY};
 		} else {
 			const topicName = asTopicName(topic, factor.name || '');
@@ -173,6 +178,7 @@ const TopicPicker = (props: {
 		});
 	});
 
+	// noinspection DuplicatedCode
 	const onConfirmClicked = () => {
 		onConfirm(candidates.filter(c => c.picked).map(({topic}) => topic));
 		fire(EventTypes.HIDE_DIALOG);
@@ -197,6 +203,7 @@ export const ParseFlattenPipelinesButton = (props: { topic: Topic }) => {
 	const {topic} = props;
 
 	const {fire: fireGlobal} = useEventBus();
+	const {fire: fireCache} = useAdminCacheEventBus();
 	const {fire: fireTuple} = useTupleEventBus();
 	const {on, off} = useTopicEventBus();
 	const forceUpdate = useForceUpdate();
@@ -216,12 +223,28 @@ export const ParseFlattenPipelinesButton = (props: { topic: Topic }) => {
 
 	const doParsePipelines = () => {
 		const topics = parseTopics(topic);
-		const pipelines = parsePipelines(topic, topics);
 		const candidates = Object.values(topics).map(({topic}) => topic).sort((g1, g2) => {
 			return (g1.name || '').toLowerCase().localeCompare((g2.name || '').toLowerCase());
 		});
-		const onConfirm = (topics: Array<Topic>) => {
-			// TODO
+		const onConfirm = (selectedTopics: Array<Topic>) => {
+			// record fake ids
+			// const pipelines = parsePipelines(topic, topics);
+			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
+				return await importTopics(selectedTopics);
+			}, (importedTopics: Array<Topic>) => {
+				importedTopics.forEach(importedTopic => fireCache(AdminCacheEventTypes.SAVE_TOPIC, importedTopic));
+				const pipelines = parsePipelines(topic, importedTopics.reduce((parsed, importedTopic) => {
+					const inMemoryParsedTopic = topics[importedTopic.name];
+					parsed[importedTopic.name] = {...inMemoryParsedTopic, topic: importedTopic};
+					return parsed;
+				}, {} as ParsedTopics));
+				fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
+					return await importPipelines(pipelines);
+				}, (importedPipelines: Array<Pipeline>) => {
+					importedPipelines.forEach(importedPipeline => fireCache(AdminCacheEventTypes.SAVE_PIPELINE, importedPipeline));
+					fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Flatten distinct topics created.</AlertLabel>);
+				});
+			});
 		};
 		fireGlobal(EventTypes.SHOW_DIALOG,
 			<TopicPicker topics={candidates} onConfirm={onConfirm}/>,
@@ -271,6 +294,6 @@ export const ParseFlattenPipelinesButton = (props: { topic: Topic }) => {
 
 	return <DwarfButton ink={ButtonInk.PRIMARY} onClick={onParseClicked}>
 		<FontAwesomeIcon icon={ICON_PIPELINE}/>
-		<span>Parse Pipelines</span>
+		<span>Build Flatten Topics</span>
 	</DwarfButton>;
 };

@@ -118,10 +118,11 @@ export const IndicatorCriteriaArithmeticEditor = (props: {
 			return true;
 		}
 	})();
-	const comparableArithmeticOptions = comparable ? [{
-		value: AchievementIndicatorCriteriaOperator.LESS,
-		label: CriteriaArithmeticLabel[AchievementIndicatorCriteriaOperator.LESS]
-	},
+	const comparableArithmeticOptions = comparable ? [
+		{
+			value: AchievementIndicatorCriteriaOperator.LESS,
+			label: CriteriaArithmeticLabel[AchievementIndicatorCriteriaOperator.LESS]
+		},
 		{
 			value: AchievementIndicatorCriteriaOperator.LESS_EQUALS,
 			label: CriteriaArithmeticLabel[AchievementIndicatorCriteriaOperator.LESS_EQUALS]
@@ -133,7 +134,8 @@ export const IndicatorCriteriaArithmeticEditor = (props: {
 		{
 			value: AchievementIndicatorCriteriaOperator.MORE_EQUALS,
 			label: CriteriaArithmeticLabel[AchievementIndicatorCriteriaOperator.MORE_EQUALS]
-		}] : [];
+		}
+	] : [];
 
 	const arithmeticOptions = [
 		...buildValueBucketOptions(criteria, indicator, defData),

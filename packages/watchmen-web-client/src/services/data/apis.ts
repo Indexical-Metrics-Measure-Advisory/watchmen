@@ -143,6 +143,8 @@ export const Apis = {
 	QUERY_RULE_RESULT: 'dqc/monitor/result',
 	SAVE_RULE_LIST: 'dqc/monitor/rules',
 	IMPORT_TOPICS_AND_PIPELINES: 'import',
+	IMPORT_TOPICS: 'topic/import',
+	IMPORT_PIPELINES: 'pipeline/import',
 
 	QUERY_CATALOG: 'dqc/catalog/criteria',
 	CATALOG_CREATE: 'dqc/catalog',
