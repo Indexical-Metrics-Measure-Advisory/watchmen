@@ -1,7 +1,6 @@
 from typing import List
 
 from fastapi import APIRouter, Depends
-from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
 from watchmen_meta.admin import PipelineService
@@ -20,17 +19,18 @@ def get_pipeline_service(principal_service: PrincipalService) -> PipelineService
 	return PipelineService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-@router.post('/pipeline/import', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
+@router.post('/pipeline/import', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=List[Pipeline])
 async def import_pipelines(
-		pipelines: List[Pipeline], principal_service: PrincipalService = Depends(get_any_admin_principal)) -> None:
+		pipelines: List[Pipeline], principal_service: PrincipalService = Depends(get_any_admin_principal)
+) -> List[Pipeline]:
 	if pipelines is None:
-		return
+		return []
 	if len(pipelines) == 0:
-		return
+		return []
 
 	pipeline_service = get_pipeline_service(principal_service)
 
-	def action() -> None:
+	def action() -> List[Pipeline]:
 		validate_tenant_based_tuples(pipelines, get_user_service(pipeline_service), principal_service)
 		for pipeline in pipelines:
 			for stage in ArrayHelper(pipeline.stages).to_list():
@@ -41,6 +41,6 @@ async def import_pipelines(
 								an_action.externalWriterId = None
 		save = ask_save_pipeline_action(pipeline_service, principal_service)
 		# noinspection PyTypeChecker
-		ArrayHelper(pipelines).each(lambda x: save(x))
+		return ArrayHelper(pipelines).map(lambda x: save(x)).to_list()
 
-	trans(pipeline_service, action)
+	return trans(pipeline_service, action)
