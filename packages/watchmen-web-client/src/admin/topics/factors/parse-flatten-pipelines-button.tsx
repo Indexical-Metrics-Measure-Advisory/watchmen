@@ -1,5 +1,3 @@
-import {useAdminCacheEventBus} from '@/admin/cache/cache-event-bus';
-import {AdminCacheEventTypes} from '@/admin/cache/cache-event-bus-types';
 import {ParameterKind, TopicFactorParameter} from '@/services/data/tuples/factor-calculator-types';
 import {Factor, FactorType} from '@/services/data/tuples/factor-types';
 import {importPipelines} from '@/services/data/tuples/pipeline';
@@ -26,6 +24,8 @@ import {useTupleEventBus} from '@/widgets/tuple-workbench/tuple-event-bus';
 import {TupleEventTypes, TupleState} from '@/widgets/tuple-workbench/tuple-event-bus-types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useEffect, useState} from 'react';
+import {useAdminCacheEventBus} from '../../cache/cache-event-bus';
+import {AdminCacheEventTypes} from '../../cache/cache-event-bus-types';
 import {useTopicEventBus} from '../topic-event-bus';
 import {TopicEventTypes} from '../topic-event-bus-types';
 import {createFactor} from '../utils';
