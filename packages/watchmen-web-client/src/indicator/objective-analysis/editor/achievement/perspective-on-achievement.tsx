@@ -32,7 +32,7 @@ export const PerspectiveOnAchievement = (props: { analysis: ObjectiveAnalysis, p
 
 	const {fire: fireGlobal} = useEventBus();
 	const {fire} = useObjectiveAnalysisEventBus();
-	const {onDescriptionChanged, onDescriptionBlurred} = useDescription(perspective);
+	const {onDescriptionChanged, onDescriptionBlurred} = useDescription(analysis, perspective);
 	const [achievement, setAchievement] = useState<Achievement | null>(null);
 	useEffect(() => {
 		const achievementId = perspective.relationId;

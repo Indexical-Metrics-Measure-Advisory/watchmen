@@ -1,13 +1,17 @@
 import {ObjectiveAnalysis, ObjectiveAnalysisPerspective} from '@/services/data/tuples/objective-analysis-types';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {ChangeEvent, FocusEvent} from 'react';
+import {useObjectiveAnalysisEventBus} from '../objective-analysis-event-bus';
+import {ObjectiveAnalysisEventTypes} from '../objective-analysis-event-bus-types';
 import {countLines} from './utils';
 
-export const useDescription = (data: ObjectiveAnalysis | ObjectiveAnalysisPerspective) => {
+export const useDescription = (analysis: ObjectiveAnalysis, data: ObjectiveAnalysis | ObjectiveAnalysisPerspective) => {
+	const {fire} = useObjectiveAnalysisEventBus();
 	const forceUpdate = useForceUpdate();
 
 	const onDescriptionChanged = (event: ChangeEvent<HTMLTextAreaElement>) => {
 		data.description = event.target.value;
+		fire(ObjectiveAnalysisEventTypes.SAVE, analysis);
 		forceUpdate();
 
 		event.target.style.height = `calc(${countLines(event.target.value)} * var(--line-height) + 12px)`;
