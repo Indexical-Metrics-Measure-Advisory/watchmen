@@ -1,7 +1,6 @@
 from typing import Callable, List, Tuple
 
 from fastapi import APIRouter, Depends
-from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
 from watchmen_meta.admin import TopicService
@@ -27,21 +26,23 @@ def bundling_tails(tails: List[Callable[[], None]]) -> Callable[[], None]:
 	return end
 
 
-@router.post('/topic/import', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
+@router.post('/topic/import', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=List[Topic])
 async def import_topics(
-		topics: List[Topic], principal_service: PrincipalService = Depends(get_any_admin_principal)) -> None:
+		topics: List[Topic], principal_service: PrincipalService = Depends(get_any_admin_principal)) -> List[Topic]:
 	if topics is None:
-		return
+		return []
 	if len(topics) == 0:
-		return
+		return []
 
 	topic_service = get_topic_service(principal_service)
 
-	def action() -> Tuple[None, Callable[[], None]]:
+	def action() -> Tuple[List[Topic], Callable[[], None]]:
 		validate_tenant_based_tuples(topics, get_user_service(topic_service), principal_service)
 		save = ask_save_topic_action(topic_service, principal_service, True)
 		# noinspection PyTypeChecker
-		tails = ArrayHelper(topics).map(lambda x: save(x)).map(lambda x: x[1]).to_list()
-		return None, bundling_tails(tails)
+		results = ArrayHelper(topics).map(lambda x: save(x)).to_list()
+		saved_topics = ArrayHelper(results).map(lambda x: x[0]).to_list()
+		tails = ArrayHelper(results).map(lambda x: x[1]).to_list()
+		return saved_topics, bundling_tails(tails)
 
-	trans_with_tail(topic_service, action)
+	return trans_with_tail(topic_service, action)
