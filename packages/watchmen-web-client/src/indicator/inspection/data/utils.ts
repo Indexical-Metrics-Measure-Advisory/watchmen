@@ -1,6 +1,10 @@
 import {BucketId} from '@/services/data/tuples/bucket-types';
 import {Factor, FactorId} from '@/services/data/tuples/factor-types';
-import {IndicatorAggregateArithmetic, IndicatorAggregateArithmeticSort} from '@/services/data/tuples/indicator-types';
+import {
+	IndicatorAggregateArithmetic,
+	IndicatorAggregateArithmeticSort,
+	MeasureMethod
+} from '@/services/data/tuples/indicator-types';
 import {Inspection, InspectMeasureOn} from '@/services/data/tuples/inspection-types';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
 import {SubjectForIndicator, TopicForIndicator} from '@/services/data/tuples/query-indicator-types';
