@@ -6,15 +6,15 @@ from starlette.responses import Response
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_all_date_formats
 from watchmen_data_kernel.meta import TenantService, TopicService
-from watchmen_dqc.monitor import MonitorDataService, SelfCleaningMonitorRulesRunner, to_previous_month, \
-	to_previous_week, to_yesterday
+from watchmen_dqc.monitor import MonitorDataService, SelfCleaningMonitorRulesRunner
 from watchmen_model.admin import User, UserRole
 from watchmen_model.common import TenantId
 from watchmen_model.dqc import MonitorRuleLog, MonitorRuleLogCriteria, MonitorRuleStatisticalInterval
 from watchmen_model.system import Tenant
 from watchmen_rest import get_any_admin_principal
 from watchmen_rest.util import raise_400, raise_404
-from watchmen_utilities import get_current_time_in_seconds, is_blank, is_date, is_not_blank, truncate_time
+from watchmen_utilities import get_current_time_in_seconds, is_blank, is_date, is_not_blank, to_previous_month, \
+	to_previous_week, to_yesterday, truncate_time
 
 router = APIRouter()
 
