@@ -87,6 +87,7 @@ const parseTopics = (topic: Topic) => {
 	const clonedFactors: Array<Factor> = [...(topic.factors || [])].sort((f1, f2) => {
 		return (f1.name || '').localeCompare(f2.name || '');
 	});
+	const arrayFactorNames = clonedFactors.filter(factor => factor.type === FactorType.ARRAY).map(factor => factor.name);
 
 	const peerTopic = createPeerTopic(topic);
 	return clonedFactors.reduce((topics, factor) => {
@@ -103,8 +104,9 @@ const parseTopics = (topic: Topic) => {
 				createdAt: getCurrentTime(),
 				lastModifiedAt: getCurrentTime()
 			};
-			// TODO any parent is array, set me as array
-			topics[topicName] = {topic: newTopic, factorIdMap: {}, array: factor.type === FactorType.ARRAY};
+			const array = factor.type === FactorType.ARRAY
+				|| arrayFactorNames.some(name => factor.name.startsWith(`${name}.`));
+			topics[topicName] = {topic: newTopic, factorIdMap: {}, array};
 		} else {
 			const topicName = asTopicName(topic, factor.name || '');
 			const newTopic = topics[topicName]!;
