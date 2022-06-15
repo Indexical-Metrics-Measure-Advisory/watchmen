@@ -5,7 +5,7 @@ import {PipelineEventTypes, PipelineFocusMode} from '../pipeline-event-bus-types
 
 export const PipelineState = (props: { pipeline: Pipeline }) => {
 	const {pipeline} = props;
-	const [focusMode, setFocusMode] = useState<PipelineFocusMode>(PipelineFocusMode.FREE_WALK);
+	const [focusMode, setFocusMode] = useState<PipelineFocusMode>(PipelineFocusMode.STAGE);
 	const {on, off, fire} = usePipelineEventBus();
 	useEffect(() => {
 		setFocusMode(PipelineFocusMode.FREE_WALK);
