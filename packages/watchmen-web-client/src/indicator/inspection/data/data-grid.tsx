@@ -112,6 +112,16 @@ export const DataGrid = (props: { inspection: Inspection; indicator: IndicatorFo
 				// console.log(JSON.stringify(data));
 			}
 			const columns = buildColumnDefs({inspection, indicator, buckets});
+			const timeColumnIndex = columns.findIndex(column => column.type === ColumnType.TIME);
+			if (timeColumnIndex !== -1) {
+				data = data.sort((r1, r2) => {
+					const timeCellValue1 = r1[timeColumnIndex];
+					const timeCellValue2 = r2[timeColumnIndex];
+					const timeCellIntValue1 = parseInt(`${timeCellValue1 ?? '0'}`);
+					const timeCellIntValue2 = parseInt(`${timeCellValue2 ?? '0'}`);
+					return timeCellIntValue1 - timeCellIntValue2;
+				});
+			}
 			setState({initialized: true, columns, data, buckets, selection: []});
 		};
 		on(InspectionEventTypes.DATA_LOADED, onDataLoaded);
