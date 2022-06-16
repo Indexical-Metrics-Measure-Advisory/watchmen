@@ -88,7 +88,6 @@ const Options = styled.div.attrs<State & { shown: boolean }>(
 		 atBottom, shown,
 		 top, left, height, minWidth
 	 }) => {
-		console.log(shown);
 		return {
 			'data-widget': 'dropdown-options-container',
 			'data-v-scroll': '',
