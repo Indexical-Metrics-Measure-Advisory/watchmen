@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-storage-mssql"
-version = "16.1.4"
+version = "16.1.7"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -12,7 +12,7 @@ packages = [
 python = "^3.9"
 SQLAlchemy = "1.4.35"
 pyodbc = "^4.0.32"
-watchmen-storage = "16.1.4"
+watchmen-storage = "16.1.7"
 
 [tool.poetry.dev-dependencies]
 
