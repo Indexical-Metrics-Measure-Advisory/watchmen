@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-inquiry-surface"
-version = "16.0.41"
+version = "16.0.44"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -10,13 +10,13 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
-watchmen-inquiry-kernel = "16.0.41"
-watchmen-rest = "16.0.41"
-watchmen-inquiry-trino = { version = "16.0.41", optional = true }
-watchmen-storage-mysql = { version = "16.0.41", optional = true }
-watchmen-storage-oracle = { version = "16.0.41", optional = true }
-watchmen-storage-mongodb = { version = "16.0.41", optional = true }
-watchmen-storage-mssql = { version = "16.0.41", optional = true }
+watchmen-inquiry-kernel = "16.0.44"
+watchmen-rest = "16.0.44"
+watchmen-inquiry-trino = { version = "16.0.44", optional = true }
+watchmen-storage-mysql = { version = "16.0.44", optional = true }
+watchmen-storage-oracle = { version = "16.0.44", optional = true }
+watchmen-storage-mongodb = { version = "16.0.44", optional = true }
+watchmen-storage-mssql = { version = "16.0.44", optional = true }
 
 [tool.poetry.dev-dependencies]
 
