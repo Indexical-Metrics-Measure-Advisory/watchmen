@@ -16,9 +16,10 @@ class DataSourceType(str, Enum):
 	MYSQL = 'mysql',
 	ORACLE = 'oracle',
 	MONGODB = 'mongodb',
-	MSSQL = 'mssql'
-	POSTGRESQL = 'postgresql'
-	OSS = 'oss'
+	MSSQL = 'mssql',
+	POSTGRESQL = 'postgresql',
+	OSS = 'oss',
+	S3 = 's3'
 
 
 def construct_param(param: Optional[Union[dict, DataSourceParam]]) -> Optional[DataSourceParam]:
