@@ -1,11 +1,47 @@
 {
-	"id": "8b9120a9-e664-4349-ab25-ca44029dffdc",
-	"name": "env1",
+	"id": "b1b04d70-5fbb-435c-be64-3d35d262c263",
+	"name": "Test_Postgresql",
 	"values": [
 		{
 			"key": "URL_PREFIX",
 			"value": "http://localhost:8000",
 			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "DATASOURCE_HOST",
+			"value": "localhost",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "DATASOURCE_PORT",
+			"value": "5432",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "DATASOURCE_USERNAME",
+			"value": "admin",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "DATASOURCE_PASSWORD",
+			"value": "admin",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "DATASOURCE_SCHEMA",
+			"value": "watchmen",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "SUPER_ADMIN_JWT_TOKEN",
+			"value": "",
+			"type": "any",
 			"enabled": true
 		},
 		{
@@ -15,37 +51,13 @@
 			"enabled": true
 		},
 		{
-			"key": "DATA_SOURCE_ID",
+			"key": "TENANT_ID",
 			"value": "",
 			"type": "any",
 			"enabled": true
 		},
 		{
-			"key": "PIPELINE_CREATED_AT",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "PIPELINE_CREATED_BY",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "PIPELINE_VERSION",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "variable_key",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "SUPER_ADMIN_JWT_TOKEN",
+			"key": "PIPELINE_MONITOR_TOPIC",
 			"value": "",
 			"type": "any",
 			"enabled": true
@@ -59,71 +71,17 @@
 		{
 			"key": "RAW_TOPIC_NAME",
 			"value": "",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "DATASOURCE_PORT",
-			"value": "3306",
 			"type": "any",
 			"enabled": true
 		},
 		{
-			"key": "DATASOURCE_USERNAME",
-			"value": "admin",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "DATASOURCE_PASSWORD",
-			"value": "admin",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "DATASOURCE_SCHEMA",
-			"value": "watchmen",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "READ_TOPIC_ID",
+			"key": "RAW_TOPIC_VERSION",
 			"value": "",
 			"type": "any",
 			"enabled": true
 		},
 		{
-			"key": "READ_TOPIC_NAME",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "AGGRE_TOPIC_ID",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "AGGRE_TOPIC_NAME",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "DQC_URL_PREFIX",
-			"value": "",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "TOPIC_ID_1",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "TOPIC_NAME_1",
+			"key": "TOPIC_VERSION",
 			"value": "",
 			"type": "any",
 			"enabled": true
@@ -141,7 +99,31 @@
 			"enabled": true
 		},
 		{
-			"key": "TENANT_ID",
+			"key": "TOPIC_VERSION_2",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "SPACE_NAME",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "TOPIC_ID_1",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "TOPIC_NAME_1",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "TOPIC_VERSION_1",
 			"value": "",
 			"type": "any",
 			"enabled": true
@@ -165,6 +147,12 @@
 			"enabled": true
 		},
 		{
+			"key": "EXTERNAL_WRITER_VERSION",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
 			"key": "PAT_ID",
 			"value": "",
 			"type": "any",
@@ -172,30 +160,6 @@
 		},
 		{
 			"key": "PAT_TOKEN",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "SIMPLE_DATA_SOURCE_ID",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "ADMIN_JWT_TOKEN",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "MONITOR_TOPIC_ID",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "USER_GROUP_NAME",
 			"value": "",
 			"type": "any",
 			"enabled": true
@@ -213,6 +177,12 @@
 			"enabled": true
 		},
 		{
+			"key": "USER_GROUP_NAME",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
 			"key": "ENUM_ID",
 			"value": "",
 			"type": "any",
@@ -225,75 +195,39 @@
 			"enabled": true
 		},
 		{
-			"key": "PIPELINE_MONITOR_TOPIC_ID",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "PIPELINE_MONITOR_TOPIC",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "RAW_TOPIC_VERSION",
+			"key": "DATASOURCE_TYPE",
 			"value": "",
 			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "TOPIC_VERSION",
-			"value": "",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "READ_TOPIC_VERSION",
-			"value": "",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "EXTERNAL_WRITER_VERSION",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "AGGRE_TOPIC_VERSION",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "TOPIC_VERSION_1",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "TOPIC_VERSION_2",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "SPACE_NAME",
-			"value": "",
-			"type": "any",
 			"enabled": true
 		},
 		{
 			"key": "DATASOURCE_URL",
-			"value": "mysql://admin:admin@127.0.0.1:3306/watchmen?charset=utf8",
+			"value": "",
 			"type": "default",
 			"enabled": true
 		},
 		{
-			"key": "DATASOURCE_TYPE",
-			"value": "mysql",
-			"type": "default",
+			"key": "PIPELINE_CREATED_AT",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "PIPELINE_CREATED_BY",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "PIPELINE_VERSION",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "DATA_SOURCE_ID",
+			"value": "",
+			"type": "any",
 			"enabled": true
 		},
 		{
@@ -307,9 +241,45 @@
 			"value": "",
 			"type": "any",
 			"enabled": true
+		},
+		{
+			"key": "READ_TOPIC_ID",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "READ_TOPIC_NAME",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "READ_TOPIC_VERSION",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "AGGRE_TOPIC_ID",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "AGGRE_TOPIC_NAME",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "AGGRE_TOPIC_VERSION",
+			"value": "",
+			"type": "any",
+			"enabled": true
 		}
 	],
 	"_postman_variable_scope": "environment",
-	"_postman_exported_at": "2022-06-09T02:17:54.069Z",
+	"_postman_exported_at": "2022-06-12T16:28:39.362Z",
 	"_postman_exported_using": "Postman/9.18.3"
 }
