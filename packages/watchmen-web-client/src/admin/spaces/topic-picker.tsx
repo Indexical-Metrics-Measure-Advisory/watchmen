@@ -1,6 +1,6 @@
 import {QueryTopicForHolder} from '@/services/data/tuples/query-topic-types';
 import {Space} from '@/services/data/tuples/space-types';
-import {listTopicsForHolder} from '@/services/data/tuples/topic';
+import {listTopicsForHolderNonRaw} from '@/services/data/tuples/topic';
 import {TopicId} from '@/services/data/tuples/topic-types';
 import {TupleItemPicker} from '@/widgets/tuple-workbench/tuple-item-picker';
 import React from 'react';
@@ -54,7 +54,7 @@ export const TopicPicker = (props: {
 	return <TupleItemPicker actionLabel={label}
 	                        holder={space} codes={codes}
 	                        isHolding={hasTopic} getHoldIds={getTopicIds} getNameOfHold={findNameFromTopics}
-	                        listCandidates={listTopicsForHolder} getIdOfCandidate={getIdOfTopic}
+	                        listCandidates={listTopicsForHolderNonRaw} getIdOfCandidate={getIdOfTopic}
 	                        getNameOfCandidate={getNameOfTopic} isCandidateHold={isTopicPicked(space)}
 	                        removeHold={removeTopic(space)} addHold={addTopic(space)}/>;
 };

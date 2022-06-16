@@ -1,0 +1,25 @@
+CREATE TABLE achievements
+(
+    achievement_id               VARCHAR(50) NOT NULL,
+    name                         VARCHAR(50),
+    time_range_type              VARCHAR(10),
+    time_range_year              VARCHAR(10),
+    time_range_month             VARCHAR(10),
+    compare_with_prev_time_range TINYINT(1),
+    indicators                   JSON,
+    description                  VARCHAR(1024),
+    user_id                      VARCHAR(50) NOT NULL,
+    tenant_id                    VARCHAR(50) NOT NULL,
+    created_at                   DATETIME    NOT NULL,
+    created_by                   VARCHAR(50) NOT NULL,
+    last_modified_at             DATETIME    NOT NULL,
+    last_modified_by             VARCHAR(50) NOT NULL,
+    PRIMARY KEY (achievement_id),
+    INDEX (name),
+    INDEX (user_id),
+    INDEX (tenant_id),
+    INDEX (created_at),
+    INDEX (created_by),
+    INDEX (last_modified_at),
+    INDEX (last_modified_by)
+);

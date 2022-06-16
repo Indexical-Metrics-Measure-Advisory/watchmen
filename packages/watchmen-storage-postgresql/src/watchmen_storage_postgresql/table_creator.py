@@ -120,6 +120,7 @@ FactorTypeMap: Dict[FactorType, Union[str, Callable[[Optional[str]], str]]] = {
 }
 
 
+# noinspection DuplicatedCode
 def ask_column_type(factor: Factor) -> str:
 	column_type = FactorTypeMap.get(factor.type)
 	if isinstance(column_type, str):

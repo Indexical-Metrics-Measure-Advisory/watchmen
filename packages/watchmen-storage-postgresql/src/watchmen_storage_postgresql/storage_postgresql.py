@@ -17,12 +17,10 @@ from watchmen_storage import as_table_name, ColumnNameLiteral, Entity, EntityCol
 	FreeAggregatePager, FreeAggregator, FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, \
 	NoFreeJoinException, TooManyEntitiesFoundException, TopicDataStorageSPI, TransactionalStorageSPI, \
 	UnexpectedStorageException, UnsupportedStraightColumnException
+from watchmen_storage_rds import build_sort_for_statement, find_table, register_table, SQLAlchemyStatement
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
-from .sort_build import build_sort_for_statement
 from .table_creator import build_aggregate_assist_column, build_columns, build_columns_script, build_indexes_script, \
 	build_unique_indexes_script, build_version_column
-from .table_defs_postgresql import find_table, register_table
-from .types import SQLAlchemyStatement
 from .where_build import build_criteria_for_statement, build_literal
 
 # noinspection DuplicatedCode
@@ -267,7 +265,10 @@ class StoragePostgreSQL(TransactionalStorageSPI):
 	# noinspection PyMethodMayBeStatic
 	def translate_straight_column_name(self, straight_column: EntityStraightColumn) -> Any:
 		if isinstance(straight_column, EntityStraightAggregateColumn):
-			if straight_column.arithmetic == EntityColumnAggregateArithmetic.SUM:
+			if straight_column.arithmetic == EntityColumnAggregateArithmetic.COUNT:
+				return func.count(straight_column.columnName) \
+					.label(self.get_alias_from_straight_column(straight_column))
+			elif straight_column.arithmetic == EntityColumnAggregateArithmetic.SUM:
 				return func.sum(straight_column.columnName).label(self.get_alias_from_straight_column(straight_column))
 			elif straight_column.arithmetic == EntityColumnAggregateArithmetic.AVG:
 				return func.avg(straight_column.columnName).label(self.get_alias_from_straight_column(straight_column))

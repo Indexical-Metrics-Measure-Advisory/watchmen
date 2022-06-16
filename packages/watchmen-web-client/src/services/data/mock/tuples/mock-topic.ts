@@ -1,4 +1,6 @@
 import {TuplePage} from '../../query/tuple-page';
+import {ParameterJoint} from '../../tuples/factor-calculator-types';
+import {PipelineId} from '../../tuples/pipeline-types';
 import {QueryTopic, QueryTopicForHolder} from '../../tuples/query-topic-types';
 import {Topic, TopicId, TopicKind, TopicType} from '../../tuples/topic-types';
 import {isFakedUuid} from '../../tuples/utils';
@@ -69,4 +71,31 @@ export const listMockTopicsForHolder = async (search: string): Promise<Array<Que
 			);
 		}, 500);
 	});
+};
+
+export const fetchMockTopicRowCount = async (topic: TopicId, condition?: ParameterJoint): Promise<number> => {
+	return new Promise<number>(resolve => {
+		setTimeout(() => {
+			resolve(Math.floor(Math.random() * 200) + 900);
+		}, 500);
+	});
+};
+
+export const fetchMockTopicDataIds = async (topic: TopicId, condition?: ParameterJoint): Promise<Array<string>> => {
+	return new Promise<Array<string>>(resolve => {
+		setTimeout(() => {
+			resolve(new Array(Math.floor(Math.random() * 100) + 100).fill(1).map((_, index) => {
+				return `${959146492349551600 + index}`;
+			}));
+		}, 500);
+	});
+};
+
+export const mockRerunTopic = async (topicId: TopicId, pipelineId: PipelineId, dataId: string): Promise<void> => {
+	const value = Math.random();
+	if (value >= 0.05) {
+		return new Promise<void>(resolve => setTimeout(resolve, Math.floor(Math.random() * 500) + 500));
+	} else {
+		return new Promise<void>((_, reject) => setTimeout(() => reject(new Error('A mock error')), Math.floor(Math.random() * 500) + 500));
+	}
 };

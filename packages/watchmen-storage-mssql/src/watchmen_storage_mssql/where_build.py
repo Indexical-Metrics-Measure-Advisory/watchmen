@@ -9,8 +9,8 @@ from watchmen_storage import as_table_name, ask_decimal_fraction_digits, ask_dec
 	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, Literal, \
 	NoCriteriaForUpdateException, UnexpectedStorageException, UnsupportedComputationException, \
 	UnsupportedCriteriaException
+from watchmen_storage_rds import SQLAlchemyStatement
 from watchmen_utilities import ArrayHelper, DateTimeConstants, is_blank, is_not_blank
-from .types import SQLAlchemyStatement
 
 
 def to_decimal(value: Any) -> Any:
@@ -42,77 +42,79 @@ def translate_date_format(date_format: str) -> str:
 
 
 # noinspection DuplicatedCode
-def build_literal(tables: List[Table], literal: Literal, build_plain_value: Callable[[Any], Any] = None):
-	if isinstance(literal, ColumnNameLiteral):
-		if is_blank(literal.entityName):
+def build_literal(tables: List[Table], a_literal: Literal, build_plain_value: Callable[[Any], Any] = None):
+	if isinstance(a_literal, ColumnNameLiteral):
+		if is_blank(a_literal.entityName):
 			# table name is not given
 			if len(tables) == 0:
 				# in subquery, no table passed-in
-				return literal_column(literal.columnName)
+				return literal_column(a_literal.columnName)
 			elif len(tables) != 1:
 				raise UnexpectedStorageException(
 					'Available table must be unique when entity name is missed in column name literal.')
 			else:
 				# noinspection PyPropertyAccess
-				return tables[0].c[literal.columnName]
+				return tables[0].c[a_literal.columnName]
 		else:
-			table_name = as_table_name(literal.entityName)
+			table_name = as_table_name(a_literal.entityName)
 			table = ArrayHelper(tables).find(lambda x: x.name == table_name)
 			if table is None:
-				raise UnexpectedStorageException(f'Entity[{literal.entityName}] not found.')
-			return table.c[literal.columnName]
-	elif isinstance(literal, ComputedLiteral):
-		operator = literal.operator
+				raise UnexpectedStorageException(f'Entity[{a_literal.entityName}] not found.')
+			return table.c[a_literal.columnName]
+	elif isinstance(a_literal, ComputedLiteral):
+		operator = a_literal.operator
 		if operator == ComputedLiteralOperator.ADD:
-			return ArrayHelper(literal.elements) \
+			return ArrayHelper(a_literal.elements) \
 				.map(lambda x: build_literal(tables, x, to_decimal)) \
 				.reduce(lambda prev, current: prev + current, None)
 		elif operator == ComputedLiteralOperator.SUBTRACT:
-			return ArrayHelper(literal.elements) \
+			return ArrayHelper(a_literal.elements) \
 				.map(lambda x: build_literal(tables, x, to_decimal)) \
 				.reduce(lambda prev, current: prev - current, None)
 		elif operator == ComputedLiteralOperator.MULTIPLY:
-			return ArrayHelper(literal.elements) \
+			return ArrayHelper(a_literal.elements) \
 				.map(lambda x: build_literal(tables, x, to_decimal)) \
 				.reduce(lambda prev, current: prev * current, None)
 		elif operator == ComputedLiteralOperator.DIVIDE:
-			return ArrayHelper(literal.elements) \
+			return ArrayHelper(a_literal.elements) \
 				.map(lambda x: build_literal(tables, x, to_decimal)) \
 				.reduce(lambda prev, current: prev / current, None)
 		elif operator == ComputedLiteralOperator.MODULUS:
-			return ArrayHelper(literal.elements) \
+			return ArrayHelper(a_literal.elements) \
 				.map(lambda x: build_literal(tables, x, to_decimal)) \
 				.reduce(lambda prev, current: prev % current, None)
 		elif operator == ComputedLiteralOperator.YEAR_OF:
 			# year is a customized function, which can be found in data-scripts folder
 			# make sure each topic storage have this function
-			return func.year(build_literal(tables, literal.elements[0]))
+			return func.year(build_literal(tables, a_literal.elements[0]))
 		elif operator == ComputedLiteralOperator.HALF_YEAR_OF:
 			return case(
-				(func.month(build_literal(tables, literal.elements[0])) <= 6, DateTimeConstants.HALF_YEAR_FIRST.value),
+				(
+					func.month(build_literal(tables, a_literal.elements[0])) <= 6,
+					DateTimeConstants.HALF_YEAR_FIRST.value),
 				else_=DateTimeConstants.HALF_YEAR_SECOND.value
 			)
 		elif operator == ComputedLiteralOperator.QUARTER_OF:
 			# quarter is a customized function, which can be found in data-scripts folder
 			# make sure each topic storage have this function
-			return func.dbo.quarter(build_literal(tables, literal.elements[0]))
+			return func.dbo.quarter(build_literal(tables, a_literal.elements[0]))
 		elif operator == ComputedLiteralOperator.MONTH_OF:
-			return func.month(build_literal(tables, literal.elements[0]))
+			return func.month(build_literal(tables, a_literal.elements[0]))
 		elif operator == ComputedLiteralOperator.WEEK_OF_YEAR:
 			# week is a customized function, which can be found in data-scripts folder
 			# make sure each topic storage have this function
-			return func.dbo.week(build_literal(tables, literal.elements[0]))
+			return func.dbo.week(build_literal(tables, a_literal.elements[0]))
 		elif operator == ComputedLiteralOperator.WEEK_OF_MONTH:
 			# weekofmonth is a customized function, which can be found in data-scripts folder
 			# make sure each topic storage have this function
-			return func.dbo.weekofmonth(build_literal(tables, literal.elements[0]))
+			return func.dbo.weekofmonth(build_literal(tables, a_literal.elements[0]))
 		elif operator == ComputedLiteralOperator.DAY_OF_MONTH:
-			return func.day(build_literal(tables, literal.elements[0]))
+			return func.day(build_literal(tables, a_literal.elements[0]))
 		elif operator == ComputedLiteralOperator.DAY_OF_WEEK:
 			# assume date first is 7
-			return func.datepart(text('WEEKDAY'), build_literal(tables, literal.elements[0]))
+			return func.datepart(text('WEEKDAY'), build_literal(tables, a_literal.elements[0]))
 		elif operator == ComputedLiteralOperator.CASE_THEN:
-			elements = literal.elements
+			elements = a_literal.elements
 			cases = ArrayHelper(elements).filter(lambda x: isinstance(x, Tuple)) \
 				.map(lambda x: (build_criteria_statement(tables, x[0]), build_literal(tables, x[1]))) \
 				.to_list()
@@ -122,46 +124,46 @@ def build_literal(tables: List[Table], literal: Literal, build_plain_value: Call
 			else:
 				return case(*cases, else_=build_literal(tables, anyway))
 		elif operator == ComputedLiteralOperator.CONCAT:
-			literals = ArrayHelper(literal.elements).map(lambda x: build_literal(tables, x)).to_list()
+			literals = ArrayHelper(a_literal.elements).map(lambda x: build_literal(tables, x)).to_list()
 			literal_count = len(literals)
 			if literal_count == 1:
 				return literals[0]
 			elif literal_count == 2:
 				return func.concat(literals[0], literals[1])
 			else:
-				return ArrayHelper(literal.elements[2:]) \
+				return ArrayHelper(a_literal.elements[2:]) \
 					.reduce(lambda prev, x: func.concat(prev, x), func.concat(literals[0], literals[1]))
 		elif operator == ComputedLiteralOperator.YEAR_DIFF:
 			# yeardiff is a customized function, which can be found in data-scripts folder
 			# make sure each topic storage have this function
 			return func.dbo.yeardiff(
-				build_literal(tables, literal.elements[0]), build_literal(tables, literal.elements[1]))
+				build_literal(tables, a_literal.elements[0]), build_literal(tables, a_literal.elements[1]))
 		elif operator == ComputedLiteralOperator.MONTH_DIFF:
 			return func.datediff(
 				text('MONTH'),
-				build_literal(tables, literal.elements[1]), build_literal(tables, literal.elements[0]))
+				build_literal(tables, a_literal.elements[1]), build_literal(tables, a_literal.elements[0]))
 		elif operator == ComputedLiteralOperator.DAY_DIFF:
 			return func.datediff(
 				text('DAY'),
-				build_literal(tables, literal.elements[1]), build_literal(tables, literal.elements[0]))
+				build_literal(tables, a_literal.elements[1]), build_literal(tables, a_literal.elements[0]))
 		elif operator == ComputedLiteralOperator.FORMAT_DATE:
 			return func.format(
-				build_literal(tables, literal.elements[0]), translate_date_format(literal.elements[1]))
+				build_literal(tables, a_literal.elements[0]), translate_date_format(a_literal.elements[1]))
 		elif operator == ComputedLiteralOperator.CHAR_LENGTH:
-			return func.len(func.isnull(build_literal(tables, literal.elements[0]), ''))
+			return func.len(func.isnull(build_literal(tables, a_literal.elements[0]), ''))
 		else:
 			raise UnsupportedComputationException(f'Unsupported computation operator[{operator}].')
-	elif isinstance(literal, datetime):
-		return func.convert(text('DATETIME'), literal.strftime('%Y-%m-%d %H:%M:%S'), 120)
-	elif isinstance(literal, date):
-		return func.convert(text('DATE'), literal.strftime('%Y%m%d'), 112)
-	elif isinstance(literal, time):
-		return func.convert(text('TIME'), literal.strftime('%H:%M:%S'), 108)
+	elif isinstance(a_literal, datetime):
+		return func.convert(text('DATETIME'), a_literal.strftime('%Y-%m-%d %H:%M:%S'), 120)
+	elif isinstance(a_literal, date):
+		return func.convert(text('DATE'), a_literal.strftime('%Y%m%d'), 112)
+	elif isinstance(a_literal, time):
+		return func.convert(text('TIME'), a_literal.strftime('%H:%M:%S'), 108)
 	elif build_plain_value is not None:
-		return build_plain_value(literal)
+		return build_plain_value(a_literal)
 	else:
 		# a value, return itself
-		return literal
+		return a_literal
 
 
 # noinspection DuplicatedCode

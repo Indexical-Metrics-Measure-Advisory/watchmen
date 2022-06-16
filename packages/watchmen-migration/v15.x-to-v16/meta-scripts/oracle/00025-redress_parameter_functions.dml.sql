@@ -1,8 +1,8 @@
 CREATE OR REPLACE FUNCTION WATCHMEN_MIGRATION_REDRESS_CONSTANT_FUNCTIONS(a_json CLOB) RETURN STRING IS
-    func_body VARCHAR2(200) DEFAULT '\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)';
-    first_not_date VARCHAR2(200) DEFAULT '\(([^\)0-9])([^\)]+),([^\)]+)\)';
+    func_body       VARCHAR2(200) DEFAULT '\s*\(\s*(\w+)\s*,\s*(\w+)\s*\)';
+    first_not_date  VARCHAR2(200) DEFAULT '\(([^\)0-9])([^\)]+),([^\)]+)\)';
     second_not_date VARCHAR2(200) DEFAULT '\(([^\)]+),([^\)0-9])([^\)]+)\)';
-    data CLOB DEFAULT NULL;
+    data            CLOB DEFAULT NULL;
 BEGIN
     IF a_json IS NULL THEN
         RETURN a_json;
@@ -21,10 +21,20 @@ BEGIN
 
     return data;
 END;
-UPDATE spaces SET filters = WATCHMEN_MIGRATION_REDRESS_CONSTANT_FUNCTIONS(filters) where filters IS NOT NULL;
-UPDATE subjects SET dataset = WATCHMEN_MIGRATION_REDRESS_CONSTANT_FUNCTIONS(dataset) where dataset IS NOT NULL;
-UPDATE reports SET filters = WATCHMEN_MIGRATION_REDRESS_CONSTANT_FUNCTIONS(filters) where filters IS NOT NULL;
-UPDATE pipelines SET stages = WATCHMEN_MIGRATION_REDRESS_CONSTANT_FUNCTIONS(stages) where stages IS NOT NULL;
+UPDATE spaces
+SET filters = WATCHMEN_MIGRATION_REDRESS_CONSTANT_FUNCTIONS(filters)
+where filters IS NOT NULL;
+UPDATE subjects
+SET dataset = WATCHMEN_MIGRATION_REDRESS_CONSTANT_FUNCTIONS(dataset)
+where dataset IS NOT NULL;
+UPDATE reports
+SET filters = WATCHMEN_MIGRATION_REDRESS_CONSTANT_FUNCTIONS(filters)
+where filters IS NOT NULL;
+UPDATE pipelines
+SET stages = WATCHMEN_MIGRATION_REDRESS_CONSTANT_FUNCTIONS(stages)
+where stages IS NOT NULL;
 -- noinspection SqlResolve @ column/"prerequisite_on"
-UPDATE pipelines SET prerequisite_on = WATCHMEN_MIGRATION_REDRESS_CONSTANT_FUNCTIONS(prerequisite_on) where prerequisite_on IS NOT NULL;
+UPDATE pipelines
+SET prerequisite_on = WATCHMEN_MIGRATION_REDRESS_CONSTANT_FUNCTIONS(prerequisite_on)
+where prerequisite_on IS NOT NULL;
 DROP FUNCTION WATCHMEN_MIGRATION_REDRESS_CONSTANT_FUNCTIONS;

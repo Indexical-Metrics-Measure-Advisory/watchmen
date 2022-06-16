@@ -153,9 +153,19 @@ class TopicDataService(TopicStructureService):
 		finally:
 			storage.close()
 
-	def find_previous_data_by_id(self, id_: int, raise_on_not_found: bool = False) -> Optional[Dict[str, Any]]:
+	def find_data_by_id(self, id_: int) -> Optional[Dict[str, Any]]:
 		"""
 		return topic data
+		"""
+		data_entity_helper = self.get_data_entity_helper()
+		storage = self.get_storage()
+		storage.connect()
+		topic_data: Optional[Dict[str, Any]] = storage.find_by_id(id_, data_entity_helper.get_entity_id_helper())
+		return topic_data
+
+	def find_previous_data_by_id(self, id_: int, raise_on_not_found: bool = False) -> Optional[Dict[str, Any]]:
+		"""
+		return previous topic data
 		"""
 		data_entity_helper = self.get_data_entity_helper()
 		storage = self.get_storage()
@@ -276,7 +286,7 @@ class TopicDataService(TopicStructureService):
 		return self.get_storage().find_and_lock_by_id(data_id, data_entity_helper.get_entity_id_helper())
 
 	def find_distinct_values(
-			self, criteria: EntityCriteria, column_names: List[EntityColumnName],
+			self, criteria: Optional[EntityCriteria], column_names: List[EntityColumnName],
 			distinct_value_on_single_column: bool = False) -> List[Dict[str, Any]]:
 		data_entity_helper = self.get_data_entity_helper()
 		storage = self.get_storage()
@@ -318,7 +328,9 @@ class TopicDataService(TopicStructureService):
 		finally:
 			storage.close()
 
-	def update_by_id_and_version(self, data: Dict[str, Any]) -> Tuple[int, EntityCriteria]:
+	def update_by_id_and_version(
+			self, data: Dict[str, Any], additional_criteria: Optional[EntityCriteria] = None
+	) -> Tuple[int, EntityCriteria]:
 		"""
 		version + 1, assign audit columns.
 		rollback version when update nothing
@@ -326,6 +338,8 @@ class TopicDataService(TopicStructureService):
 		"""
 		data_entity_helper = self.get_data_entity_helper()
 		criteria = self.build_id_version_criteria(data)
+		if additional_criteria is not None:
+			criteria = [*criteria, *additional_criteria]
 		current_version = data_entity_helper.find_version(data)
 		current_update_time = data_entity_helper.find_update_time(data)
 		# increase version
@@ -389,9 +403,12 @@ class TopicDataService(TopicStructureService):
 		finally:
 			storage.close()
 
-	def page_and_unwrap(self, page: Pageable) -> DataPage:
+	def page_and_unwrap(self, criteria: Optional[EntityCriteria], page: Pageable) -> DataPage:
 		data_entity_helper = self.get_data_entity_helper()
-		page = self.page(data_entity_helper.get_entity_pager([], page))
+		if criteria is None:
+			page = self.page(data_entity_helper.get_entity_pager([], page))
+		else:
+			page = self.page(data_entity_helper.get_entity_pager(criteria, page))
 		if page.data is not None and len(page.data) != 0:
 			page.data = ArrayHelper(page.data).map(lambda x: self.try_to_unwrap_from_topic_data(x)).to_list()
 		return page

@@ -1,9 +1,9 @@
 from enum import Enum
 from logging import DEBUG, ERROR, FATAL, Formatter, getLogger, handlers, INFO, NOTSET, StreamHandler, WARNING
+from sys import stdout
 
 from pydantic import BaseSettings
 from pythonjsonlogger.jsonlogger import JsonFormatter
-from sys import stdout
 
 
 class LogLevel(str, Enum):

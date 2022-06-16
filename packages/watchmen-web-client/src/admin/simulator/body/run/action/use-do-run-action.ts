@@ -1,4 +1,5 @@
 import {
+	DeleteTopicActionType,
 	ReadTopicActionType,
 	SystemActionType,
 	WriteTopicActionType
@@ -15,6 +16,8 @@ import {
 } from '../types';
 import {runAlarm} from './action-runner/alarm';
 import {runCopyToMemory} from './action-runner/copy-to-memory';
+import {runDeleteRow} from './action-runner/delete-row';
+import {runDeleteRows} from './action-runner/delete-rows';
 import {runExists} from './action-runner/exists';
 import {runInsertOrMergeRow} from './action-runner/insert-or-merge-row';
 import {runInsertRow} from './action-runner/insert-row';
@@ -83,6 +86,12 @@ export const useDoRunAction = (
 						break;
 					case WriteTopicActionType.INSERT_OR_MERGE_ROW:
 						await runInsertOrMergeRow({pipelineContext, internalUnitContext, context, logWrite});
+						break;
+					case DeleteTopicActionType.DELETE_ROW:
+						await runDeleteRow({pipelineContext, internalUnitContext, context, logWrite});
+						break;
+					case DeleteTopicActionType.DELETE_ROWS:
+						await runDeleteRows({pipelineContext, internalUnitContext, context, logWrite});
 						break;
 					default:
 						// noinspection ExceptionCaughtLocallyJS

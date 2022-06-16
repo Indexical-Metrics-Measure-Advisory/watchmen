@@ -11,8 +11,8 @@ CREATE TABLE topic_raw_pipeline_monitor_log
     starttime    DATETIME,
     spentinmills BIGINT,
     tenant_id_   NVARCHAR(50) NOT NULL,
-    insert_time_ DATETIME    NOT NULL,
-    update_time_ DATETIME    NOT NULL,
+    insert_time_ DATETIME     NOT NULL,
+    update_time_ DATETIME     NOT NULL,
     CONSTRAINT pk_topic_raw_pipeline_monitor_log PRIMARY KEY (id_)
 );
 CREATE INDEX i_topic_raw_pipeline_monitor_log_1 ON topic_raw_pipeline_monitor_log (traceid);
