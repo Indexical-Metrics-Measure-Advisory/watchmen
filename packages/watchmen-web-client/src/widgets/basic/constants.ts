@@ -3,7 +3,9 @@ import {
 	faAngleLeft,
 	faAngleRight,
 	faArrowAltCircleDown,
-	faArrowDown, faArrowsDownToLine, faArrowsTurnRight,
+	faArrowDown,
+	faArrowsDownToLine,
+	faArrowsTurnRight,
 	faArrowTrendUp,
 	faArrowUp,
 	faBan,
@@ -56,7 +58,7 @@ import {
 	faFileExport,
 	faFileImport,
 	faFilter,
-	faGaugeSimple,
+	faGauge,
 	faGlobe,
 	faGripVertical,
 	faHandSparkles,
@@ -208,7 +210,7 @@ export const ICON_UNIT = faFeather;
 export const ICON_INDICATOR_MEASURE_METHOD = faCodeMerge;
 export const ICON_BUCKET = faSliders;
 
-export const ICON_DASHBOARD = faGaugeSimple;
+export const ICON_DASHBOARD = faGauge;
 export const ICON_FAVORITE = faStar;
 export const ICON_TEMPLATE = faPaste;
 export const ICON_TASK = faTasks;
