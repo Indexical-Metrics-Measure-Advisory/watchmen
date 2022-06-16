@@ -55,6 +55,16 @@ const DropdownContainer = styled.div.attrs<{ 'data-widget'?: string, active: boo
 			opacity : 1;
 		}
 	}
+	&[data-no-border=true] {
+		> div[data-widget="dropdown-options-container"] {
+			&[data-at-bottom=true] {
+				margin-top : 2px;
+			}
+			&[data-at-bottom=false] {
+				margin-bottom : 2px;
+			}
+		}
+	}
 `;
 const Label = styled.span.attrs({'data-widget': 'dropdown-label'})`
 	flex-grow     : 1;
@@ -73,16 +83,20 @@ const Caret = styled(FontAwesomeIcon).attrs({'data-widget': 'dropdown-caret'})`
 	margin-left : calc(var(--margin) / 4);
 	transition  : all 300ms ease-in-out;
 `;
-const Options = styled.div.attrs<State>(
-	({active, atBottom, top, left, height, minWidth}) => {
+const Options = styled.div.attrs<State & { shown: boolean }>(
+	({
+		 atBottom, shown,
+		 top, left, height, minWidth
+	 }) => {
 		return {
 			'data-widget': 'dropdown-options-container',
 			'data-v-scroll': '',
+			'data-at-bottom': atBottom,
 			style: {
-				opacity: active ? 1 : (void 0),
-				pointerEvents: active ? 'auto' : (void 0),
-				top: atBottom ? (top + height) : (void 0),
-				bottom: atBottom ? (void 0) : `calc(100vh - ${top}px)`,
+				opacity: shown ? 1 : (void 0),
+				pointerEvents: shown ? 'auto' : (void 0),
+				top: atBottom ? (shown ? (top + height - 1) : (top + height + 19)) : (void 0),
+				bottom: atBottom ? (void 0) : (shown ? `calc(100vh - ${top}px - 1px)` : `calc(100vh - ${top}px + 19px)`),
 				left,
 				minWidth,
 				borderTopLeftRadius: atBottom ? 0 : 'var(--border-radius)',
@@ -91,12 +105,13 @@ const Options = styled.div.attrs<State>(
 				borderBottomRightRadius: atBottom ? 'var(--border-radius)' : 0
 			}
 		};
-	})<State>`
+	})<State & { shown: boolean }>`
+	display          : block;
 	position         : fixed;
 	max-height       : calc(var(--height) * 8 + 2px);
 	background-color : var(--bg-color);
 	border           : var(--border);
-	transition       : opacity 300ms ease-in-out;
+	transition       : opacity 300ms ease-in-out, top 300ms ease-in-out, bottom 300ms ease-in-out;
 	z-index          : ${DROPDOWN_Z_INDEX};
 	overflow-y       : auto;
 	opacity          : 0;
@@ -184,6 +199,7 @@ export const Dropdown = (props: DropdownProps) => {
 		height: 0,
 		minWidth: 0
 	});
+	const [popupShown, setPopupShown] = useState(false);
 	const [filter, setFilter] = useState('');
 
 	useEffect(() => {
@@ -203,9 +219,20 @@ export const Dropdown = (props: DropdownProps) => {
 			window.removeEventListener('scroll', onScroll, true);
 		};
 	}, [state, options.length]);
+	useEffect(() => {
+		if (state.active) {
+			setPopupShown(true);
+		}
+	}, [state.active]);
+	useEffect(() => {
+		if (!popupShown) {
+			setState(state => ({...state, active: false}));
+		}
+	}, [popupShown]);
 	useCollapseFixedThing({
 		containerRef, visible: state.active, hide: () => {
-			setState({...state, active: false});
+			// setState({...state, active: false});
+			setPopupShown(false);
 			setTimeout(() => setFilter(''), 300);
 		}
 	});
@@ -235,12 +262,17 @@ export const Dropdown = (props: DropdownProps) => {
 		event.stopPropagation();
 		const ret = onChange(option);
 		if (!ret) {
-			setState({...state, active: false});
+			// setState({...state, active: false});
+			setPopupShown(false);
 			if (filter !== '') {
 				setTimeout(() => setFilter(''), 300);
 			}
 		} else {
-			setState({...state, active: ret.active});
+			if (!ret.active) {
+				setPopupShown(false);
+			} else {
+				// setState({...state, active: ret.active});
+			}
 			if (!ret.active && filter !== '') {
 				setTimeout(() => setFilter(''), 300);
 			}
@@ -293,36 +325,38 @@ export const Dropdown = (props: DropdownProps) => {
 	                          onClick={onClicked}>
 		<Label data-please={!selection}>{label}</Label>
 		<Caret icon={ICON_DROPDOWN}/>
-		<Options {...state} ref={optionsRef}>
-			<OptionFilter {...{...state, active: !!filter}}>
-				<span>?:</span>
-				<input value={filter} onChange={onFilterChanged}
-				       onKeyUp={onKeyUp}
-				       ref={filterInputRef}/>
-			</OptionFilter>
-			{options.map(option => {
-				const {label, key} = option;
-				const asLabel = typeof label === 'function' ? label : directFromLabel;
-				const computed = asLabel(option);
-				const display = typeof computed === 'string' ? computed : computed.node;
-				let compare;
-				if (isJSXElement(display) && display.props.labelKey != null) {
-					// it is a i18n string, is delegated and now it is a JSX element
-					compare = getLangLabel(display.props.labelKey);
-				} else {
-					// label still might be a JSX element, because of i18n delegate logic
-					// in case of this, this option will be filtered no matter what filter text is given
-					compare = typeof computed === 'string' ? computed : (typeof computed.label === 'string' ? computed.label : '');
-				}
-				if (filter && compare.toLowerCase().indexOf(filter.toLowerCase()) === -1) {
-					return null;
-				}
+		{state.active
+			? <Options {...state} shown={popupShown} ref={optionsRef}>
+				<OptionFilter {...{...state, active: !!filter}}>
+					<span>?:</span>
+					<input value={filter} onChange={onFilterChanged}
+					       onKeyUp={onKeyUp}
+					       ref={filterInputRef}/>
+				</OptionFilter>
+				{options.map(option => {
+					const {label, key} = option;
+					const asLabel = typeof label === 'function' ? label : directFromLabel;
+					const computed = asLabel(option);
+					const display = typeof computed === 'string' ? computed : computed.node;
+					let compare;
+					if (isJSXElement(display) && display.props.labelKey != null) {
+						// it is an i18n string, is delegated therefore now it is a JSX element
+						compare = getLangLabel(display.props.labelKey);
+					} else {
+						// label still might be a JSX element, because of i18n delegate logic
+						// in case of this, this option will be filtered no matter what filter text is given
+						compare = typeof computed === 'string' ? computed : (typeof computed.label === 'string' ? computed.label : '');
+					}
+					if (filter && compare.toLowerCase().indexOf(filter.toLowerCase()) === -1) {
+						return null;
+					}
 
-				const asKey = typeof key === 'function' ? key : (() => key != null ? key : option.value);
-				return <Option key={`${asKey(option)}`} onClick={onOptionClicked(option)}>
-					{display}
-				</Option>;
-			})}
-		</Options>
+					const asKey = typeof key === 'function' ? key : (() => key != null ? key : option.value);
+					return <Option key={`${asKey(option)}`} onClick={onOptionClicked(option)}>
+						{display}
+					</Option>;
+				})}
+			</Options>
+			: null}
 	</DropdownContainer>;
 };
