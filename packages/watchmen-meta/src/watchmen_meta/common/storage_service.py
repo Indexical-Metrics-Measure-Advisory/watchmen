@@ -171,7 +171,8 @@ class IdentifiedStorableService(StorageService):
 		return data
 
 	def ignore_storable_id(self, data: EntityRow) -> EntityRow:
-		del data[self.get_storable_id_column_name()]
+		if self.get_storable_id_column_name() in data:
+			del data[self.get_storable_id_column_name()]
 		return data
 
 

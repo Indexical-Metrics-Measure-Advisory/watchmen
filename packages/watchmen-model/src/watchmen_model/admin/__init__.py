@@ -14,5 +14,7 @@ from .pipeline_action_write import InsertRowAction, MappingFactor, MappingRow, M
 from .pipeline_graphic import PipelineGraphic, TopicGraphic, TopicRect
 from .space import Space
 from .topic import is_aggregation_topic, is_raw_topic, Topic, TopicKind, TopicType
+from .topic_snapshot import TopicSnapshotFrequency, TopicSnapshotJobLock, TopicSnapshotJobLockId, \
+	TopicSnapshotJobLockStatus, TopicSnapshotScheduler, TopicSnapshotSchedulerId
 from .user import User, UserRole
 from .user_group import UserGroup

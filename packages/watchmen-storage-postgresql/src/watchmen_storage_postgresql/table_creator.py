@@ -111,7 +111,7 @@ FactorTypeMap: Dict[FactorType, Union[str, Callable[[Optional[str]], str]]] = {
 	FactorType.BIZ_TRADE: varchar_10,
 	FactorType.BIZ_SCALE: 'DECIMAL(9)',
 
-	FactorType.BOOLEAN: 'SMALLINT',
+	FactorType.BOOLEAN: 'BOOLEAN',
 
 	FactorType.ENUM: varchar_20,
 
@@ -120,6 +120,7 @@ FactorTypeMap: Dict[FactorType, Union[str, Callable[[Optional[str]], str]]] = {
 }
 
 
+# noinspection DuplicatedCode
 def ask_column_type(factor: Factor) -> str:
 	column_type = FactorTypeMap.get(factor.type)
 	if isinstance(column_type, str):
@@ -217,7 +218,7 @@ def build_indexes_script(topic: Topic) -> List[str]:
 	# noinspection SqlResolve
 	def build_index(factors: List[Factor], index: int) -> str:
 		return \
-			f'CREATE INDEX u_{as_table_name(topic)}_{index + 1} ON as_table_name(topic) ' \
+			f'CREATE INDEX u_{as_table_name(topic)}_{index + 1} ON {as_table_name(topic)} ' \
 			f'({ArrayHelper(factors).map(lambda x: ask_column_name(x)).join(",")})'
 
 	return ArrayHelper(list(index_groups.values())) \

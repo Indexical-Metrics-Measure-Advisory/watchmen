@@ -12,6 +12,7 @@ export const SideMenuItemContainer = styled.div.attrs({'data-widget': 'side-menu
 	grid-template-columns : var(--side-menu-icon-size) 1fr;
 	grid-column-gap       : var(--side-menu-margin);
 	align-items           : center;
+	align-self            : stretch;
 	padding               : 0 var(--side-menu-margin);
 	min-height            : var(--side-menu-item-height);
 	cursor                : pointer;

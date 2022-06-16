@@ -1,0 +1,2 @@
+ALTER TABLE topics
+    MODIFY name VARCHAR(64);

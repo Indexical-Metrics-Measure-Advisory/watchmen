@@ -9,8 +9,8 @@ CREATE TABLE topic_dqc_raw_rule_result
     detected     TINYINT,
     processdate  DATETIME,
     tenant_id_   NVARCHAR(50) NOT NULL,
-    insert_time_ DATETIME    NOT NULL,
-    update_time_ DATETIME    NOT NULL,
+    insert_time_ DATETIME     NOT NULL,
+    update_time_ DATETIME     NOT NULL,
     PRIMARY KEY (id_),
 );
 CREATE INDEX i_topic_dqc_raw_rule_result_1 ON topic_dqc_raw_rule_result (rulecode);

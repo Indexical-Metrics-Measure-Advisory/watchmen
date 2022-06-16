@@ -36,11 +36,14 @@ export const Jp = {
 		FIND_INDICATOR_VALUE_BUCKETS_PLACEHOLDER: 'バケット名に基づいて検索します。',
 		FIND_INDICATOR_USER_GROUPS_PLACEHOLDER: 'ユーザー グループ名に基づいて検索します。',
 		DROPDOWN_PLACEHOLDER: '選択してください...',
-		FIND_NAVIGATION_PLACEHOLDER: '名前に基づいて検索します。',
-		NEW_NAVIGATION_NAME: '指標航法',
-		NAVIGATION_CRITERIA_TIME_RANGE_YEAR_MONTH: '統一定義された時間枠を参照するには、"year" または "month" を入力します。',
-		NAVIGATION_CRITERIA_TIME_RANGE_YEAR: '統一された年を参照するには、"year" を入力します。',
-		NAVIGATION_CRITERIA_TIME_RANGE_MONTH: '統一された月を参照するには、"month" を入力します。'
+		FIND_ACHIEVEMENT_PLACEHOLDER: '名前に基づいて検索します。',
+		NEW_ACHIEVEMENT_NAME: '実績',
+		ACHIEVEMENT_CRITERIA_TIME_RANGE_YEAR_MONTH: '統一定義された時間枠を参照するには、"year" または "month" を入力します。',
+		ACHIEVEMENT_CRITERIA_TIME_RANGE_YEAR: '統一された年を参照するには、"year" を入力します。',
+		ACHIEVEMENT_CRITERIA_TIME_RANGE_MONTH: '統一された月を参照するには、"month" を入力します。',
+		OBJECTIVE_ANALYSIS_SEARCH_PLACEHOLDER: '絞り込み条件...',
+		OBJECTIVE_ANALYSIS_DESCRIPTION_PLACEHOLDER: 'ここで分析の目的を説明してください...',
+		OBJECTIVE_ANALYSIS_PERSPECTIVE_DESCRIPTION_PLACEHOLDER: 'ここで視点を説明してください...'
 	},
 	STANDARD: {
 		YES: 'はい',
@@ -120,7 +123,7 @@ export const Jp = {
 			TO_CONSOLE: 'ワークベンチに切り替える',
 			TO_ADMIN: '管理者に切り替える',
 			TO_DATA_QUALITY: 'データ品質センターに切り替える',
-			TO_INDICATOR_WORKBENCH: '指標ーワークベンチに切り替える',
+			TO_INDICATOR: '指標ーワークベンチに切り替える',
 			LOGOUT: 'ログアウト'
 		},
 		FAVORITE: {
@@ -275,13 +278,14 @@ export const Jp = {
 			REPORT_NO_FUNNEL: 'じょうごが有効になっていない。'
 		}
 	},
-	INDICATOR_WORKBENCH: {
+	INDICATOR: {
 		MENU: {
-			TITLE: '指標ーワークベンチ',
+			TITLE: 'Watchmen指標',
 			BUCKETS: 'バケット',
 			INDICATORS: '指標',
-			INSPECTIONS: '指標を構造',
-			NAVIGATIONS: '指標航法',
+			INSPECTIONS: '洞察',
+			ACHIEVEMENTS: '実績',
+			OBJECTIVE_ANALYSIS: '指標ガバナンス',
 			SETTINGS: '設定',
 			LOGOUT: 'ログアウト'
 		},
@@ -425,7 +429,7 @@ export const Jp = {
 			PLEASE_SELECT_ENUM_ITEM: '少なくとも 1 つの列挙項目を選択してセグメント化に参加してください。'
 		},
 		INSPECTION: {
-			TITLE: '指標の洞察',
+			TITLE: '洞察',
 			OR: 'または',
 			PICK_INSPECTION_LABEL: '洞察を選択:',
 			PICKED_INSPECTION_LABEL: '洞察が選択:',
@@ -472,15 +476,26 @@ export const Jp = {
 			NO_DATA: '適切なデータがありません。',
 			VISUALIZATION_LABEL: '視覚化'
 		},
-		NAVIGATION: {
-			TITLE: '航法',
-			LABEL: '航法',
-			CREATE_NAVIGATION: '航法を作成',
-			NEW_NAVIGATION_PREFIX: '新しい',
-			EXISTING_NAVIGATION_PREFIX: '既存',
+		ACHIEVEMENT: {
+			TITLE: '実績',
+			LABEL: '実績',
+			OR: 'または',
+			PICK_ACHIEVEMENT_LABEL: '実績を選択:',
+			PICKED_ACHIEVEMENT_LABEL: '実績が選択:',
+			PICK_ACHIEVEMENT: '確認',
+			SET_NAME_LABEL: '名前を設定',
+			NAME_IS_REQUIRED: '読むための名前を入力してください。',
+			NONAME_ON_ACHIEVEMENT: '名前なし',
+			RENAME: '変更',
+			NEW_NAME: '名前を付け',
+			ACHIEVEMENT_IS_REQUIRED: '表示する必要がある実績を選択してください。',
+			PICK_ANOTHER: '他の実績を表示',
+			CREATE_ACHIEVEMENT: '実績を作成',
+			NEW_ACHIEVEMENT_PREFIX: '新しい',
+			EXISTING_ACHIEVEMENT_PREFIX: '既存',
 			CREATE_AT: '作成先',
 			LAST_MODIFIED_AT: '最終更新日',
-			NAVIGATION_NOT_FOUND: '航法の定義が見つかりません。詳細については、管理者に問い合わせてください。',
+			ACHIEVEMENT_NOT_FOUND: '実績の定義が見つかりません。詳細については、管理者に問い合わせてください。',
 			BACK_TO_QUERY: 'クエリに戻る',
 			HIDE_INDICATOR_CANDIDATES: '候補メトリックを非表示に',
 			SHOW_INDICATOR_CANDIDATES: '候補メトリックを表示',
@@ -512,6 +527,21 @@ export const Jp = {
 			ADD_COMPUTE_INDICATOR: '計算指標を増や',
 			COMPUTE_INDICATOR_NODE_LABEL: '計算指標',
 			SCORE_INCLUDE_IN_FINAL: '最終スコアに含める:'
+		},
+		OBJECTIVE_ANALYSIS: {
+			TITLE: '目標達成分析',
+			NAVIGATOR_TITLE: '目次',
+			NAVIGATOR_SEARCH_TOGGLE: '検索バーを切り替え',
+			NAVIGATOR_CREATE_OBJECTIVE_ANALYSIS: '新しい分析を作成',
+			MINIMIZE_NAVIGATOR: '最小化',
+			NO_DATA: '適切なデータがありません。',
+			NO_OBJECTIVE_ANALYSIS_PICKED: '分析が選択されていませんが、新しい分析を',
+			CREATE_OBJECTIVE_ANALYSIS: '作成します',
+			NO_OBJECTIVE_ANALYSIS_PICKED_2: 'か？',
+			ADD_INSPECTION: '洞察の追加',
+			ADD_ACHIEVEMENT: '実績の追加',
+			DELETE_DIALOG_LABEL: '分析を削除してもよろしいですか？ 削除したものは復元できませんので、ご注意ください。',
+			PERSPECTIVE_DELETE_DIALOG_LABEL: '視点を削除してもよろしいですか？ 削除したものは復元できませんので、ご注意ください。'
 		}
 	},
 	SETTINGS: {
@@ -905,49 +935,47 @@ export const Jp = {
 		},
 		DEFINITION_BROKEN: '定義はまだ完了していませんが、現時点ではグラフをレンダリングできません。'
 	},
-	INDICATOR: {
-		MEASURE_METHOD: {
-			CONTINENT: '大陸',
-			REGION: '地域',
-			COUNTRY: '国',
-			PROVINCE: '州/省',
-			CITY: '市',
-			DISTRICT: '区',
-			FLOOR: '階',
-			RESIDENCE_TYPE: '住宅タイプ',
-			RESIDENTIAL_AREA: '住宅面積',
-			YEAR: '年',
-			HALF_YEAR: '上半期/下半期',
-			QUARTER: '四半期',
-			MONTH: '月',
-			HALF_MONTH: '月の上半期/月の下半期',
-			TEN_DAYS: '上旬/中旬/下旬',
-			WEEK_OF_YEAR: '年の週',
-			WEEK_OF_MONTH: '月の週',
-			HALF_WEEK: '週の上半期/週の下半期',
-			DAY_OF_MONTH: '月の日',
-			DAY_OF_WEEK: '週の日',
-			DAY_KIND: '勤務日/週末/祝日',
-			HOUR: '時間',
-			HOUR_KIND: '勤務時間/勤務時間外/睡眠時間',
-			AM_PM: '午前/午後',
-			GENDER: '性別',
-			OCCUPATION: '職業',
-			AGE: '年齢',
-			RELIGION: '宗教',
-			NATIONALITY: '国籍',
-			BIZ_TRADE: '業界',
-			BIZ_SCALE: '規模',
-			BOOLEAN: 'ブール値',
-			ENUM: '列挙'
-		},
-		RELEVANT_TYPE: {
-			SAME: '同じ',
-			HIGH_CORRELATED: '高い関連性',
-			WEAK_CORRELATED: '弱い関連性',
-			THIS_CAUSES_RELEVANT: '現在の指標は、関連指標につながります',
-			RELEVANT_CAUSES_THIS: '関連指標は、現在の指標につながります'
-		}
+	MEASURE_METHOD: {
+		CONTINENT: '大陸',
+		REGION: '地域',
+		COUNTRY: '国',
+		PROVINCE: '州/省',
+		CITY: '市',
+		DISTRICT: '区',
+		FLOOR: '階',
+		RESIDENCE_TYPE: '住宅タイプ',
+		RESIDENTIAL_AREA: '住宅面積',
+		YEAR: '年',
+		HALF_YEAR: '上半期/下半期',
+		QUARTER: '四半期',
+		MONTH: '月',
+		HALF_MONTH: '月の上半期/月の下半期',
+		TEN_DAYS: '上旬/中旬/下旬',
+		WEEK_OF_YEAR: '年の週',
+		WEEK_OF_MONTH: '月の週',
+		HALF_WEEK: '週の上半期/週の下半期',
+		DAY_OF_MONTH: '月の日',
+		DAY_OF_WEEK: '週の日',
+		DAY_KIND: '勤務日/週末/祝日',
+		HOUR: '時間',
+		HOUR_KIND: '勤務時間/勤務時間外/睡眠時間',
+		AM_PM: '午前/午後',
+		GENDER: '性別',
+		OCCUPATION: '職業',
+		AGE: '年齢',
+		RELIGION: '宗教',
+		NATIONALITY: '国籍',
+		BIZ_TRADE: '業界',
+		BIZ_SCALE: '規模',
+		BOOLEAN: 'ブール値',
+		ENUM: '列挙'
+	},
+	RELEVANT_INDICATOR_TYPE: {
+		SAME: '同じ',
+		HIGH_CORRELATED: '高い関連性',
+		WEAK_CORRELATED: '弱い関連性',
+		THIS_CAUSES_RELEVANT: '現在の指標は、関連指標につながります',
+		RELEVANT_CAUSES_THIS: '関連指標は、現在の指標につながります'
 	},
 	SHARE: {
 		NOTHING: '内容が見つかりません。詳細については、管理者にお問い合わせください。'

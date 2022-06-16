@@ -118,7 +118,7 @@ def construct_time_range(a_range: Optional[Union[dict, InspectionTimeRange]]) ->
 		return None
 	elif isinstance(a_range, InspectionTimeRange):
 		return a_range
-	
+
 	range_type = a_range.get('type')
 	if range_type == InspectionTimeRangeType.YEAR:
 		return InspectionYearRange(**a_range)

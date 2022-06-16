@@ -27,10 +27,25 @@ BEGIN
 END|
 DELIMITER ;
 
-UPDATE spaces SET filters = WATCHMEN_MIGRATION_REDRESS_CONSTANT_FUNCTIONS(filters) where filters IS NOT NULL and filters != '';
-UPDATE subjects SET dataset = WATCHMEN_MIGRATION_REDRESS_CONSTANT_FUNCTIONS(dataset) where dataset IS NOT NULL and dataset != '';
-UPDATE reports SET filters = WATCHMEN_MIGRATION_REDRESS_CONSTANT_FUNCTIONS(filters) where filters IS NOT NULL and filters != '';
-UPDATE pipelines SET stages = WATCHMEN_MIGRATION_REDRESS_CONSTANT_FUNCTIONS(stages) where stages IS NOT NULL and stages != '';
-UPDATE pipelines SET prerequisite_on = WATCHMEN_MIGRATION_REDRESS_CONSTANT_FUNCTIONS(prerequisite_on) where prerequisite_on IS NOT NULL and prerequisite_on != '';
+UPDATE spaces
+SET filters = WATCHMEN_MIGRATION_REDRESS_CONSTANT_FUNCTIONS(filters)
+where filters IS NOT NULL
+  and filters != '';
+UPDATE subjects
+SET dataset = WATCHMEN_MIGRATION_REDRESS_CONSTANT_FUNCTIONS(dataset)
+where dataset IS NOT NULL
+  and dataset != '';
+UPDATE reports
+SET filters = WATCHMEN_MIGRATION_REDRESS_CONSTANT_FUNCTIONS(filters)
+where filters IS NOT NULL
+  and filters != '';
+UPDATE pipelines
+SET stages = WATCHMEN_MIGRATION_REDRESS_CONSTANT_FUNCTIONS(stages)
+where stages IS NOT NULL
+  and stages != '';
+UPDATE pipelines
+SET prerequisite_on = WATCHMEN_MIGRATION_REDRESS_CONSTANT_FUNCTIONS(prerequisite_on)
+where prerequisite_on IS NOT NULL
+  and prerequisite_on != '';
 
 DROP FUNCTION IF EXISTS WATCHMEN_MIGRATION_REDRESS_CONSTANT_FUNCTIONS;

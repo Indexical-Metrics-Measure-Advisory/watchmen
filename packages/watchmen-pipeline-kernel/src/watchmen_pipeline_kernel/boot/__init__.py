@@ -1,1 +1,1 @@
-from .boot import init_prebuilt_external_writers
+from .boot import init_prebuilt_external_writers, init_topic_snapshot_jobs

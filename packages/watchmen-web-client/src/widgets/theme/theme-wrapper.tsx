@@ -54,7 +54,8 @@ const GlobalStyle = createGlobalStyle<{ theme: Theme }>`
 	a:visited {
 		color : var(--font-color);
 	}
-	input::placeholder {
+	input::placeholder,
+	textarea::placeholder {
 		color : var(--placeholder-color);
 	}
 	code {

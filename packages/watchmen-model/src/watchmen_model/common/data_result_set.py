@@ -1,4 +1,4 @@
-from datetime import datetime, date, time
+from datetime import date, datetime, time
 from typing import List, Union
 
 from pydantic import BaseModel

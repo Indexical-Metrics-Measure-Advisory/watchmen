@@ -1,4 +1,4 @@
-import {isDataQualityCenterEnabled, isIndicatorWorkbenchEnabled} from '@/feature-switch';
+import {isDataQualityCenterEnabled} from '@/feature-switch';
 import {MonitorRuleGrade} from '@/services/data/data-quality/rule-types';
 import {fetchMonitorRules} from '@/services/data/data-quality/rules';
 import {
@@ -281,8 +281,8 @@ export const HeaderExportButton = (props: { graphics: AssembledPipelinesGraphics
 				] = await Promise.all([
 					listSpacesForExport(),
 					listConnectedSpacesForExport(),
-					isIndicatorWorkbenchEnabled() ? listIndicatorsForExport() : (async () => [])(),
-					isIndicatorWorkbenchEnabled() ? listBucketsForExport() : (async () => [])()
+					listIndicatorsForExport(),
+					listBucketsForExport()
 				]);
 				// drop spaces has no topic
 				const availableSpaces = spaces.filter(space => space.topicIds != null && space.topicIds.length !== 0);

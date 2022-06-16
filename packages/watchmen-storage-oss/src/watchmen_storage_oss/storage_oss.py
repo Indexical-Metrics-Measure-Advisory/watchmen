@@ -1,0 +1,284 @@
+from logging import getLogger
+from typing import Any, Dict, List, Optional
+
+
+from watchmen_model.admin import Topic
+from watchmen_model.common import DataPage
+from watchmen_storage import Entity, EntityDeleter, \
+    EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, EntityIdHelper, EntityList, \
+    EntityPager, EntityStraightValuesFinder, EntityUpdater, FreeAggregatePager, FreeAggregator, FreeFinder, FreePager, \
+    TopicDataStorageSPI, TransactionalStorageSPI, UnexpectedStorageException
+from .object_storage_service import ObjectStorageService
+from .object_defs_oss import register_directory, find_directory
+
+logger = getLogger(__name__)
+
+
+class StorageOss(TransactionalStorageSPI):
+
+    def __init__(self, oss_client: ObjectStorageService):
+        self.oss_client = oss_client
+
+    def begin(self) -> None:
+        # begin is not required in oss
+        pass
+
+    def commit_and_close(self) -> None:
+        """
+        1. commit successfully -> close
+        2. commit failed -> throw exception
+        """
+        # commit_and_close is not required in oss
+        pass
+
+    def rollback_and_close(self) -> None:
+        """
+        1. rollback successfully -> close
+        2. rollback failed -> close
+        """
+        # rollback_and_close is not required in oss
+        pass
+
+    def connect(self) -> None:
+        """
+        connect when not connected, or do nothing if connected.
+        call close when want to connect again. connection is autocommit.
+        this method can be called multiple times, if there is a connection existing, do nothing
+        """
+        # connect is not required in oss
+        pass
+
+    def close(self) -> None:
+        # close is not required in oss
+        pass
+
+    def insert_one(self, one: Entity, helper: EntityHelper) -> None:
+        directory = find_directory(helper.name)
+        row = helper.shaper.serialize(one)
+        key = self.oss_client.gen_key(directory, str(row['id_']))
+        self.oss_client.put_object(key, row)
+
+    def insert_all(self, data: List[Entity], helper: EntityHelper) -> None:
+        for one in data:
+            self.insert_one(one, helper)
+
+    def update_one(self, one: Entity, helper: EntityIdHelper) -> int:
+        """
+        returns 0 when update none, or 1 when update one
+        """
+        """
+        not supported by oss
+        """
+        raise UnexpectedStorageException(f'Method[update_one] does not support by oss storage.')
+
+    def update_only(self, updater: EntityUpdater, peace_when_zero: bool = False) -> int:
+        """
+        update only one, if update none or more than one item, raise exception
+        """
+        """
+        not supported by oss
+        """
+        raise UnexpectedStorageException(f'Method[update_only] does not support by oss storage.')
+
+    def update_only_and_pull(self, updater: EntityUpdater) -> Optional[Entity]:
+        """
+        update only one, if update none or more than one item, raise exception
+        return the one before update
+        """
+        """
+        not supported by oss
+        """
+        raise UnexpectedStorageException(f'Method[update_only_and_pull] does not support by oss storage.')
+
+    def update(self, updater: EntityUpdater) -> int:
+        """
+        not supported by oss
+        """
+        raise UnexpectedStorageException(f'Method[update] does not support by oss storage.')
+
+    def update_and_pull(self, updater: EntityUpdater) -> EntityList:
+        """
+        not supported by oss
+        """
+        raise UnexpectedStorageException(f'Method[update_and_pull] does not support by oss storage.')
+
+    def delete_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> int:
+        """
+        returns 0 when delete none, or 1 when delete one
+        """
+        directory = find_directory(helper.name)
+        key = self.oss_client.gen_key(directory, entity_id)
+        return self.oss_client.delete_object(key)
+
+    def delete_by_id_and_pull(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
+        """
+        return deleted none when delete none, or deleted one when delete one
+        """
+        entity = self.find_by_id(entity_id, helper)
+        if entity is None:
+            # not found, no need to delete
+            return None
+        else:
+            self.delete_by_id(entity_id, helper)
+            return entity
+
+    def delete_only(self, deleter: EntityDeleter) -> int:
+        """
+        delete only one, if delete none or more than one item, raise exception
+        """
+        """
+        not supported by oss
+        """
+        raise UnexpectedStorageException(f'Method[delete_only] does not support by oss storage.')
+
+    def delete_only_and_pull(self, deleter: EntityDeleter) -> Optional[Entity]:
+        """
+        delete only one, if delete none or more than one item, raise exception
+        return the one before delete
+        """
+        """
+        not supported by oss
+        """
+        raise UnexpectedStorageException(f'Method[delete_only_and_pull] does not support by oss storage.')
+
+    def delete(self, deleter: EntityDeleter) -> int:
+        """
+        not supported by oss
+        """
+        raise UnexpectedStorageException(f'Method[delete] does not support by oss storage.')
+
+    def delete_and_pull(self, deleter: EntityDeleter) -> EntityList:
+        """
+        not supported by oss
+        """
+        raise UnexpectedStorageException(f'Method[delete_and_pull] does not support by oss storage.')
+
+    def find_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
+        directory = find_directory(helper.name)
+        key = ObjectStorageService.gen_key(directory, str(entity_id))
+        entity = self.oss_client.get_object(key)
+        if entity is None:
+            return None
+        else:
+            return helper.shaper.deserialize(entity)
+
+    def find_and_lock_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
+        """
+        not supported by oss
+        """
+        raise UnexpectedStorageException(f'Method[find_and_lock_by_id] does not support by oss storage.')
+
+    def find_one(self, finder: EntityFinder) -> Optional[Entity]:
+        """
+        not supported by oss
+        """
+        raise UnexpectedStorageException(f'Method[find_one] does not support by oss storage.')
+
+    def find(self, finder: EntityFinder) -> EntityList:
+        """
+        not supported by oss
+        """
+        raise UnexpectedStorageException(f'Method[find] does not support by oss storage.')
+
+    def find_distinct_values(self, finder: EntityDistinctValuesFinder) -> EntityList:
+        """
+        filled values with given distinct columns, returns an entity list.
+        entity is deserialized by shaper
+        """
+        """
+        not supported by oss
+        """
+        raise UnexpectedStorageException(f'Method[find_distinct_values] does not support by oss storage.')
+
+    def find_straight_values(self, finder: EntityStraightValuesFinder) -> EntityList:
+        """
+        fill values with given straight columns, returns an entity list
+        entity will not be deserialized by shaper.
+        And when there is aggregated columns, other columns will be used in group by
+        """
+        """
+        not supported by oss
+        """
+        raise UnexpectedStorageException(f'Method[find_straight_values] does not support by oss storage.')
+
+    def find_all(self, helper: EntityHelper) -> EntityList:
+        """
+        not supported by oss
+        """
+        raise UnexpectedStorageException(f'Method[find_all] does not support by oss storage.')
+
+    def page(self, pager: EntityPager) -> DataPage:
+        """
+        not supported by oss
+        """
+        raise UnexpectedStorageException(f'Method[page] does not support by oss storage.')
+
+    def exists(self, finder: EntityFinder) -> bool:
+        """
+        not supported by oss
+        """
+        raise UnexpectedStorageException(f'Method[exists] does not support by oss storage.')
+
+    def count(self, finder: EntityFinder) -> int:
+        """
+        not supported by oss
+        """
+        raise UnexpectedStorageException(f'Method[count] does not support by oss storage.')
+
+
+class TopicDataStorageOss(StorageOss, TopicDataStorageSPI):
+
+    def register_topic(self, topic: Topic) -> None:
+        register_directory(topic)
+
+    def create_topic_entity(self, topic: Topic) -> None:
+        # create_topic_entity is not required in oss
+        pass
+
+    def update_topic_entity(self, topic: Topic, original_topic: Topic) -> None:
+        # update_topic_entity is not required in oss
+        pass
+
+    def drop_topic_entity(self, topic_name: str) -> None:
+        # drop_topic_entity is not required in oss
+        pass
+
+    def truncate(self, helper: EntityHelper) -> None:
+        prefix = find_directory(helper.name)
+        self.oss_client.delete_multiple_objects(prefix)
+
+    # noinspection PyMethodMayBeStatic
+    def is_free_find_supported(self) -> bool:
+        return False
+
+    def append_topic_to_trino(self, topic: Topic) -> None:
+        # append_topic_to_trino is not required in oss
+        pass
+
+    def drop_topic_from_trino(self, topic: Topic) -> None:
+        # drop_topic_from_trino is not required in oss
+        pass
+
+    def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
+        """
+        not supported by oss
+        """
+        raise UnexpectedStorageException(f'Method[free_find] does not support by oss storage.')
+
+    def free_page(self, pager: FreePager) -> DataPage:
+        """
+        not supported by oss
+        """
+        raise UnexpectedStorageException(f'Method[free_page] does not support by oss storage.')
+
+    def free_aggregate_find(self, aggregator: FreeAggregator) -> List[Dict[str, Any]]:
+        """
+        not supported by oss
+        """
+        raise UnexpectedStorageException(f'Method[free_aggregate_find] does not support by oss storage.')
+
+    def free_aggregate_page(self, pager: FreeAggregatePager) -> DataPage:
+        """
+        not supported by oss
+        """
+        raise UnexpectedStorageException(f'Method[free_aggregate_page] does not support by oss storage.')

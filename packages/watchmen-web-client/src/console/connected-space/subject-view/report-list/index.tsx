@@ -2,7 +2,7 @@ import {toSubjectReport} from '@/routes/utils';
 import {ConnectedSpace} from '@/services/data/tuples/connected-space-types';
 import {Report} from '@/services/data/tuples/report-types';
 import {Subject} from '@/services/data/tuples/subject-types';
-import {ICON_DIMENSION, ICON_FILTER, ICON_INDICATOR} from '@/widgets/basic/constants';
+import {ICON_FILTER, ICON_REPORT_DIMENSION, ICON_REPORT_INDICATOR} from '@/widgets/basic/constants';
 import {TooltipAlignment} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
@@ -39,12 +39,12 @@ export const ReportList = (props: { connectedSpace: ConnectedSpace, subject: Sub
 					<ReportCardStatistics>
 						<ReportCardStatisticsItem
 							tooltip={{label: Lang.CHART.INDICATORS, alignment: TooltipAlignment.CENTER}}>
-							<FontAwesomeIcon icon={ICON_INDICATOR}/>
+							<FontAwesomeIcon icon={ICON_REPORT_INDICATOR}/>
 							<span>{(report.indicators || []).length}</span>
 						</ReportCardStatisticsItem>
 						<ReportCardStatisticsItem
 							tooltip={{label: Lang.CHART.DIMENSIONS, alignment: TooltipAlignment.CENTER}}>
-							<FontAwesomeIcon icon={ICON_DIMENSION}/>
+							<FontAwesomeIcon icon={ICON_REPORT_DIMENSION}/>
 							<span>{(report.dimensions || []).length}</span>
 						</ReportCardStatisticsItem>
 						<ReportCardStatisticsItem

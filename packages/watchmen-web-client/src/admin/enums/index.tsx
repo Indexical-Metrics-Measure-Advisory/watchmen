@@ -147,17 +147,18 @@ const AdminEnums = () => {
 	};
 	const doImport = async (files: Array<ParsedImportFile>) => {
 		fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
-			Importing enumeration items takes time, please wait a minute. Or click button to leave, upload is
+			Importing enumeration items may take time, please wait a minute. Or click button to leave, upload is
 			processing in back, and a message should popup on success.
-		</AlertLabel>);
-		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
-			async () => await importEnumItems(files.map(file => ({
-				enumId: file.enumId,
-				name: file.name,
-				items: file.items ?? []
-			}))),
-			() => fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel> Enum items uploaded. </AlertLabel>)
-		);
+		</AlertLabel>, () => {
+			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
+				async () => await importEnumItems(files.map(file => ({
+					enumId: file.enumId,
+					name: file.name,
+					items: file.items ?? []
+				}))),
+				() => fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Enum items uploaded.</AlertLabel>)
+			);
+		});
 	};
 	const onFileSelected = async (file: File) => {
 		const content = await file.arrayBuffer();
@@ -200,7 +201,7 @@ const AdminEnums = () => {
 		                       action: onUploadEnumItemsClicked
 	                       }]}
 	                       searchPlaceholder="Search by enum name, description, etc."
-	                       tupleLabel="Enumeration" tupleImage={EnumBackground} tupleImagePosition="left 80px"
+	                       tupleLabel="Enumeration" tupleImage={EnumBackground} tupleImagePosition="20px 40px"
 	                       renderEditor={renderEditor}
 	                       renderCard={renderCard} getKeyOfTuple={getKeyOfEnum}
 	/>;

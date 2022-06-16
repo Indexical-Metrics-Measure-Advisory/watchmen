@@ -21,12 +21,6 @@
 			"enabled": true
 		},
 		{
-			"key": "DATA_SOURCE_VERSION",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
 			"key": "PIPELINE_CREATED_AT",
 			"value": "",
 			"type": "any",
@@ -45,139 +39,7 @@
 			"enabled": true
 		},
 		{
-			"key": "USER_ID",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "USER_CREATED_AT",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "USER_CREATED_BY",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "USER_VERSION",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "SPACE_ID",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "SPACE_NAME",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "SPACE_CREATED_AT",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "SPACE_CREATED_BY",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "SPACE_VERSION",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "CONNECT_ID",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "CONNECTED_SPACE_ID",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "CONNECTED_SPACE_NAME",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "CONNECTED_SPACE_CREATED_AT",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "CONNECTED_SPACE_CREATED_BY",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "SUBJECT_ID",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "SUBJECT_NAME",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
 			"key": "variable_key",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "USER_GROUP_ID",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "USER_GROUP_CREATED_AT",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "USER_GROUP_CREATED_BY",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "USER_GROUP_VERSION",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "REPORT_ID",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "REPORT_NAME",
 			"value": "",
 			"type": "any",
 			"enabled": true
@@ -201,38 +63,26 @@
 			"enabled": true
 		},
 		{
-			"key": "DATABASE_PORT",
+			"key": "DATASOURCE_PORT",
 			"value": "3306",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "DATABASE_USERNAME",
-			"value": "admin",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "DATABASE_PASSWORD",
-			"value": "admin",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "DATABASE_SCHEMA",
-			"value": "watchmen",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "EXTERNAL_WRITER_ID",
-			"value": "",
 			"type": "any",
 			"enabled": true
 		},
 		{
-			"key": "EXTERNAL_WRITER_CODE",
-			"value": "",
+			"key": "DATASOURCE_USERNAME",
+			"value": "admin",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "DATASOURCE_PASSWORD",
+			"value": "admin",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "DATASOURCE_SCHEMA",
+			"value": "watchmen",
 			"type": "any",
 			"enabled": true
 		},
@@ -244,24 +94,6 @@
 		},
 		{
 			"key": "READ_TOPIC_NAME",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "PIPELINE_ID",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "TOPIC_ID",
-			"value": "f-1",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "TOPIC_NAME",
 			"value": "",
 			"type": "any",
 			"enabled": true
@@ -333,7 +165,121 @@
 			"enabled": true
 		},
 		{
+			"key": "PAT_ID",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "PAT_TOKEN",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "SIMPLE_DATA_SOURCE_ID",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "ADMIN_JWT_TOKEN",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "MONITOR_TOPIC_ID",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "USER_GROUP_NAME",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "FAVORITE_USER_ID",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "LASTSNAPSHOT_USER_ID",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "ENUM_ID",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "ENUM_NAME",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "PIPELINE_MONITOR_TOPIC_ID",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "PIPELINE_MONITOR_TOPIC",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "RAW_TOPIC_VERSION",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "TOPIC_VERSION",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "READ_TOPIC_VERSION",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
 			"key": "EXTERNAL_WRITER_VERSION",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "AGGRE_TOPIC_VERSION",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "TOPIC_VERSION_1",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "TOPIC_VERSION_2",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "SPACE_NAME",
 			"value": "",
 			"type": "any",
 			"enabled": true
@@ -343,9 +289,27 @@
 			"value": "mysql://admin:admin@127.0.0.1:3306/watchmen?charset=utf8",
 			"type": "default",
 			"enabled": true
+		},
+		{
+			"key": "DATASOURCE_TYPE",
+			"value": "mysql",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "TOPIC_ID",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "TOPIC_NAME",
+			"value": "",
+			"type": "any",
+			"enabled": true
 		}
 	],
 	"_postman_variable_scope": "environment",
-	"_postman_exported_at": "2022-04-15T15:03:23.330Z",
-	"_postman_exported_using": "Postman/9.13.2"
+	"_postman_exported_at": "2022-06-09T02:17:54.069Z",
+	"_postman_exported_using": "Postman/9.18.3"
 }

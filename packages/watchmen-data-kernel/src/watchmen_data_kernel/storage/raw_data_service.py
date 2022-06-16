@@ -75,8 +75,6 @@ class RawTopicDataService(TopicDataService):
 			.each(lambda x: wrap_flatten_factor(x, data, wrapped_data))
 		return wrapped_data
 
-	# return {TopicDataColumnNames.RAW_TOPIC_DATA.value: data}
-
 	def try_to_unwrap_from_topic_data(self, topic_data: Dict[str, Any]) -> Dict[str, Any]:
 		unwrapped_data = {}
 
@@ -87,7 +85,7 @@ class RawTopicDataService(TopicDataService):
 			TopicDataColumnNames.INSERT_TIME.value,
 			TopicDataColumnNames.UPDATE_TIME.value
 		]
-		for key, value in topic_data:
+		for key, value in topic_data.items():
 			if key in reserved_keys:
 				unwrapped_data[key] = value
 

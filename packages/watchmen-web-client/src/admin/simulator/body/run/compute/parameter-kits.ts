@@ -8,7 +8,7 @@ import {
 	VariablePredefineFunctions
 } from '@/services/data/tuples/factor-calculator-types';
 import {isDateDiffConstant, isDateFormatConstant} from '@/services/data/tuples/factor-calculator-utils';
-import {Factor} from '@/services/data/tuples/factor-types';
+import {Factor, FactorType} from '@/services/data/tuples/factor-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {getCurrentTime} from '@/services/data/utils';
 import {isXaNumber, translate_date_format} from '@/services/utils';
@@ -47,27 +47,30 @@ export const readTopicFactorParameter = (options: {
 	return {topic, factor};
 };
 
+const returnAsArray = (factor: Factor, value: any) => {
+	return factor.type === FactorType.ARRAY && value == null ? [] : value;
+};
 export const getValueFromSourceData = (factor: Factor, sourceData: DataRow): any => {
 	const name = factor.name!;
 	if (!name.includes('.')) {
-		return sourceData[name];
+		return returnAsArray(factor, sourceData[name]);
 	} else {
 		const parts = name.split('.');
 		let source: any = sourceData;
 		return parts.reduce((obj, part) => {
 			if (obj == null) {
-				return null;
+				return returnAsArray(factor, null);
 			} else if (Array.isArray(obj)) {
 				// the next level might be an array, flatten it.
 				return obj.map(item => {
 					if (typeof item === 'object') {
-						return item[part];
+						return returnAsArray(factor, item[part]);
 					} else {
 						throw new Error(`Cannot retrieve data from ${source} by [${part}].`);
 					}
 				}).flat();
 			} else if (typeof obj === 'object') {
-				return obj[part];
+				return returnAsArray(factor, obj[part]);
 			} else {
 				throw new Error(`Cannot retrieve data from ${source} by [${part}].`);
 			}

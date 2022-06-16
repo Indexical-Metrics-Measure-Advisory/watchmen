@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from typing import Callable, List, Optional, Union
 
 from fastapi import APIRouter, Body, Depends
@@ -7,10 +6,11 @@ from watchmen_auth import PrincipalService
 from watchmen_meta.admin import SpaceService, UserGroupService, UserService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import Space, User, UserGroup, UserRole
-from watchmen_model.common import DataPage, IndicatorId, Pageable, SpaceId, TenantId, UserGroupId, UserId
+from watchmen_model.common import DataPage, Pageable, SpaceId, TenantId, UserGroupId, UserId
 from watchmen_rest import get_admin_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
+from watchmen_rest_doll.indicator import SyncUserGroupChangeWithIndicator
 from watchmen_rest_doll.util import trans, trans_readonly
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 
@@ -145,36 +145,7 @@ def remove_user_group_from_spaces(
 		get_space_service(user_group_service), user_group_id, space_ids, tenant_id, 'Space')
 
 
-class SyncUserGroupChangeWithIndicator:
-	@abstractmethod
-	def sync_on_create(
-			self, user_group_id: UserGroupId, indicator_ids: Optional[List[IndicatorId]],
-			tenant_id: TenantId, user_group_service: UserGroupService):
-		raise NotImplementedError()
-
-	@abstractmethod
-	def sync_on_update(
-			self, user_group_id: UserGroupId, indicator_ids: Optional[List[IndicatorId]],
-			removed_indicator_ids: Optional[List[IndicatorId]],
-			tenant_id: TenantId, user_group_service: UserGroupService):
-		raise NotImplementedError()
-
-
-class SyncUserGroupChange:
-	def __init__(self):
-		self.indicator_handler = None
-
-	def register_indicator_handler(self, handler: SyncUserGroupChangeWithIndicator) -> None:
-		self.indicator_handler = handler
-
-	def has_indicator_handler(self) -> bool:
-		return self.indicator_handler is not None
-
-	def ask_indicator_handler(self) -> Optional[SyncUserGroupChangeWithIndicator]:
-		return self.indicator_handler
-
-
-sync_user_group_change = SyncUserGroupChange()
+sync_user_group_change_with_indicator_handler = SyncUserGroupChangeWithIndicator()
 
 
 # noinspection PyUnusedLocal
@@ -197,10 +168,9 @@ def ask_save_user_group_action(
 				get_space_service(user_group_service), user_group.userGroupId, space_ids, user_group.tenantId,
 				'Space')
 
-			if sync_user_group_change.has_indicator_handler():
-				indicator_ids = ArrayHelper(user_group.indicatorIds).distinct().to_list()
-				sync_user_group_change.ask_indicator_handler().sync_on_create(
-					user_group.userGroupId, indicator_ids, user_group.tenantId, user_group_service)
+			indicator_ids = ArrayHelper(user_group.indicatorIds).distinct().to_list()
+			sync_user_group_change_with_indicator_handler.sync_on_create(
+				user_group.userGroupId, indicator_ids, user_group.tenantId, user_group_service)
 		else:
 			# noinspection PyTypeChecker,DuplicatedCode
 			existing_user_group: Optional[UserGroup] = user_group_service.find_by_id(user_group.userGroupId)
@@ -230,13 +200,12 @@ def ask_save_user_group_action(
 				get_space_service(user_group_service), user_group.userGroupId, space_ids, user_group.tenantId,
 				'Space')
 
-			if sync_user_group_change.has_indicator_handler():
-				indicator_ids = ArrayHelper(user_group.indicatorIds).distinct().to_list()
-				removed_indicator_ids = ArrayHelper(existing_user_group.indicatorIds) \
-					.difference(indicator_ids).to_list()
-				sync_user_group_change.ask_indicator_handler().sync_on_update(
-					user_group.userGroupId, indicator_ids, removed_indicator_ids, user_group.tenantId,
-					user_group_service)
+			indicator_ids = ArrayHelper(user_group.indicatorIds).distinct().to_list()
+			removed_indicator_ids = ArrayHelper(existing_user_group.indicatorIds) \
+				.difference(indicator_ids).to_list()
+			sync_user_group_change_with_indicator_handler.sync_on_update(
+				user_group.userGroupId, indicator_ids, removed_indicator_ids, user_group.tenantId,
+				user_group_service)
 
 		return user_group
 

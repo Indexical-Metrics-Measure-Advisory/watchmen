@@ -1,4 +1,3 @@
-import {isIndicatorWorkbenchEnabled} from '@/feature-switch';
 import {
 	PipelineRelationMap,
 	PipelinesMap,
@@ -66,10 +65,6 @@ const generateIndicatorRelated = (options: {
 	indicators: Array<Indicator>; buckets: Array<Bucket>;
 	connectedSpaces: Array<ConnectedSpace>; topicsMap: TopicsMap; enumsMap: EnumsMap;
 }) => {
-	if (!isIndicatorWorkbenchEnabled()) {
-		return '';
-	}
-
 	const {indicators, buckets, connectedSpaces, enumsMap, topicsMap} = options;
 
 	return `

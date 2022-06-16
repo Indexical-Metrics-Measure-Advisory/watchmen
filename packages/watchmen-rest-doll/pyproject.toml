@@ -17,6 +17,7 @@ watchmen-data-surface = { path = "../watchmen-data-surface", develop = true }
 watchmen-pipeline-surface = { path = "../watchmen-pipeline-surface", develop = true }
 watchmen-inquiry-surface = { path = "../watchmen-inquiry-surface", develop = true }
 watchmen-inquiry-trino = { path = "../watchmen-inquiry-trino", develop = true, optional = true }
+watchmen-indicator-surface = { path = "../watchmen-indicator-surface", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
 watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
 watchmen-storage-mongodb = { path = "../watchmen-storage-mongodb", develop = true, optional = true }
@@ -34,7 +35,7 @@ cryptography = { version = "^36.0.2", optional = true }
 
 [tool.poetry.extras]
 trino = ["watchmen-inquiry-trino"]
-mysql = ["watchmen-storage-mysql"]
+mysql = ["watchmen-storage-mysql", "cryptography"]
 oracle = ["watchmen-storage-oracle"]
 mongodb = ["watchmen-storage-mongodb"]
 mssql = ["watchmen-storage-mssql"]

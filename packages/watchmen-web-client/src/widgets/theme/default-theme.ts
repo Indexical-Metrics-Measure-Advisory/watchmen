@@ -32,7 +32,7 @@ const DefaultTheme = {
 	fontDemiBold: 500,
 	fontBold: 600,
 	fontBoldest: 900,
-	placeholderColor: 'rgb(102,102,102,0.7)',
+	placeholderColor: 'rgb(102,102,102,0.5)',
 
 	// color
 	primaryColor: 'rgb(94, 119, 171)',
@@ -42,7 +42,7 @@ const DefaultTheme = {
 	warnColor: 'rgb(255, 161, 0)',
 	infoColor: 'rgb(138, 53, 193)',
 	waiveColor: 'rgb(191, 191, 191)',
-	hoverColor: 'rgb(195, 218, 241)',
+	hoverColor: 'rgb(238,243,252)',
 	bgColor: '#F9FAFC',
 	invertColor: '#FFFFFF',
 
@@ -158,18 +158,18 @@ const DefaultTheme = {
 	// data diff color
 	diffAddedBgColor: 'rgba(148,232,191,0.6)',
 
-	// navigation node color
-	navigationRootColor: 'var(--danger-color)',
-	navigationTimeRangeColor: 'rgba(174,113,109)',
-	navigationIndicatorColor: 'var(--primary-color)',
-	navigationIndicatorBgColor: color('rgb(94,119,171)').alpha(0.1).toString(),
-	navigationIndicatorValueColor: 'var(--success-color)',
-	navigationComputeIndicatorColor: 'rgb(96,148,164)',
-	navigationComputeIndicatorBgColor: color('rgb(96,148,164)').alpha(0.1).toString(),
-	navigationComputeIndicatorValueColor: 'var(--success-color)',
-	navigationCategoryColor: 'var(--info-color)',
-	navigationCandidateColor: 'var(--success-color)',
-	navigationScoreSumColor: 'rgb(69,146,70)'
+	// achievement node color
+	achievementRootColor: 'var(--danger-color)',
+	achievementTimeRangeColor: 'rgba(174,113,109)',
+	achievementIndicatorColor: 'var(--primary-color)',
+	achievementIndicatorBgColor: color('rgb(94,119,171)').alpha(0.1).toString(),
+	achievementIndicatorValueColor: 'var(--success-color)',
+	achievementComputeIndicatorColor: 'rgb(96,148,164)',
+	achievementComputeIndicatorBgColor: color('rgb(96,148,164)').alpha(0.1).toString(),
+	achievementComputeIndicatorValueColor: 'var(--success-color)',
+	achievementCategoryColor: 'var(--info-color)',
+	achievementCandidateColor: 'var(--success-color)',
+	achievementScoreSumColor: 'rgb(69,146,70)'
 };
 
 export default DefaultTheme;

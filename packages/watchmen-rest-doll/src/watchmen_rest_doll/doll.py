@@ -72,8 +72,7 @@ class DollApp(RestApp):
 
 	# noinspection PyMethodMayBeStatic
 	def init_pipeline_surface(self) -> None:
-		pipeline_surface.init_connectors()
-		pipeline_surface.init_external_writers()
+		pipeline_surface.init()
 
 	def on_startup(self, app: FastAPI) -> None:
 		self.init_pipeline_surface()

@@ -6,7 +6,7 @@ import {
 	ICON_DASHBOARD,
 	ICON_DATA_QUALITY,
 	ICON_HOME,
-	ICON_INDICATOR_WORKBENCH,
+	ICON_INDICATOR,
 	ICON_LOGOUT,
 	ICON_MAIL,
 	ICON_NOTIFICATION,
@@ -28,7 +28,7 @@ import {SideMenuUser} from '@/widgets/basic/side-menu/side-menu-user';
 import {
 	isAdminAvailable,
 	isDataQualityAvailable,
-	isIndicatorWorkbenchAvailable
+	isIndicatorAvailable
 } from '@/widgets/common-settings/workbench-utils';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
@@ -121,11 +121,11 @@ export const ConsoleMenu = () => {
 			action: () => onMenuClicked(Router.ADMIN)()
 		});
 	}
-	if (isIndicatorWorkbenchAvailable()) {
+	if (isIndicatorAvailable()) {
 		workbenches.push({
-			label: Lang.CONSOLE.MENU.TO_INDICATOR_WORKBENCH,
-			icon: ICON_INDICATOR_WORKBENCH,
-			action: () => onMenuClicked(Router.INDICATOR_WORKBENCH)()
+			label: Lang.CONSOLE.MENU.TO_INDICATOR,
+			icon: ICON_INDICATOR,
+			action: () => onMenuClicked(Router.INDICATOR)()
 		});
 	}
 	if (isDataQualityAvailable()) {

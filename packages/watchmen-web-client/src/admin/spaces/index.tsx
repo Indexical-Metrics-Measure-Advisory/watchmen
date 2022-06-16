@@ -130,7 +130,7 @@ const AdminSpaces = () => {
 	return <TupleWorkbench title="Spaces"
 	                       createButtonLabel="Create Space" canCreate={true}
 	                       searchPlaceholder="Search by space name, topic name, report name, description, etc."
-	                       tupleLabel="Space" tupleImage={SpaceBackground} tupleImagePosition="left 80px"
+	                       tupleLabel="Space" tupleImage={SpaceBackground} tupleImagePosition="left 40px"
 	                       renderEditor={renderEditor}
 	                       renderCard={renderCard} getKeyOfTuple={getKeyOfSpace}
 	/>;

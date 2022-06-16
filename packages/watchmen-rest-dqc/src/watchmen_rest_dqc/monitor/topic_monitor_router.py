@@ -6,15 +6,15 @@ from starlette.responses import Response
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_all_date_formats
 from watchmen_data_kernel.meta import TenantService, TopicService
-from watchmen_dqc.monitor import MonitorDataService, SelfCleaningMonitorRulesRunner, to_previous_month, \
-	to_previous_week, to_yesterday
+from watchmen_dqc.monitor import MonitorDataService, SelfCleaningMonitorRulesRunner
 from watchmen_model.admin import User, UserRole
 from watchmen_model.common import TenantId
 from watchmen_model.dqc import MonitorRuleLog, MonitorRuleLogCriteria, MonitorRuleStatisticalInterval
 from watchmen_model.system import Tenant
 from watchmen_rest import get_any_admin_principal
 from watchmen_rest.util import raise_400, raise_404
-from watchmen_utilities import get_current_time_in_seconds, is_blank, is_date, is_not_blank, truncate_time
+from watchmen_utilities import get_current_time_in_seconds, is_blank, is_date, is_not_blank, to_previous_month, \
+	to_previous_week, to_yesterday, truncate_time
 
 router = APIRouter()
 
@@ -32,7 +32,8 @@ def ask_principal_service(principal_service: PrincipalService, tenant_id: Option
 		if is_blank(tenant_id):
 			return principal_service
 		elif tenant_id != principal_service.get_tenant_id():
-			raise_400(f'Tenant id[{tenant_id}] does not match current principal.')
+			raise_400(
+				f'Tenant id[{tenant_id}] does not match current principal.')
 		else:
 			return principal_service
 	elif principal_service.is_super_admin():
@@ -70,7 +71,8 @@ def run_topics_rules(
 	principal_service = ask_principal_service(principal_service, tenant_id)
 
 	if is_not_blank(topic_name):
-		schema = get_topic_service(principal_service).find_schema_by_name(topic_name, principal_service.get_tenant_id())
+		schema = get_topic_service(principal_service).find_schema_by_name(
+			topic_name, principal_service.get_tenant_id())
 		if schema is None:
 			raise_404(f'Topic[name={topic_name}] not found.')
 		topic_id = schema.get_topic().topicId

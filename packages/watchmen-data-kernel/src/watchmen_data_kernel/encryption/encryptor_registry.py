@@ -1,7 +1,7 @@
 from logging import getLogger
 from typing import Dict, Optional, Union
 
-from watchmen_data_kernel.common import ask_all_date_formats, ask_encrypt_aes_params, DataKernelException
+from watchmen_data_kernel.common import ask_all_date_formats, ask_encrypt_aes_params
 from watchmen_model.admin import FactorEncryptMethod
 from .aes_encryptor import AESEncryptor
 from .center_masker import CenterMasker

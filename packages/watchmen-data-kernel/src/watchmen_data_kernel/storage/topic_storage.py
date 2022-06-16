@@ -36,6 +36,13 @@ def build_postgresql_storage(data_source: DataSource) -> Callable[[], TopicDataS
 	return lambda: configuration.create_topic_data_storage()
 
 
+def build_oss_storage(data_source: DataSource) -> Callable[[], TopicDataStorageSPI]:
+	from watchmen_storage_oss import StorageOssConfiguration, OssDataSourceParams
+	configuration = StorageOssConfiguration(
+		data_source, OssDataSourceParams(echo=ask_storage_echo_enabled()))
+	return lambda: configuration.create_topic_data_storage()
+
+
 def build_topic_data_storage(data_source: DataSource) -> Callable[[], TopicDataStorageSPI]:
 	if data_source.dataSourceType == DataSourceType.MYSQL:
 		return build_mysql_storage(data_source)
@@ -47,6 +54,8 @@ def build_topic_data_storage(data_source: DataSource) -> Callable[[], TopicDataS
 		return build_mssql_storage(data_source)
 	if data_source.dataSourceType == DataSourceType.POSTGRESQL:
 		return build_postgresql_storage(data_source)
+	if data_source.dataSourceType == DataSourceType.OSS:
+		return build_oss_storage(data_source)
 
 	raise DataKernelException(
 		f'Topic data storage[id={data_source.dataSourceId}, name={data_source.name} type={data_source.dataSourceType}] '

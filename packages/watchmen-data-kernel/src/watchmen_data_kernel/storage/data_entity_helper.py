@@ -84,7 +84,7 @@ class TopicDataEntityHelper:
 
 	def get_distinct_values_finder(
 			self,
-			criteria: EntityCriteria, column_names: List[EntityColumnName],
+			criteria: Optional[EntityCriteria], column_names: List[EntityColumnName],
 			sort: Optional[EntitySort] = None,
 			distinct_value_on_single_column: bool = False) -> EntityDistinctValuesFinder:
 		entity_helper = self.get_entity_helper()

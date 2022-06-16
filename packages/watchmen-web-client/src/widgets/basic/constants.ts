@@ -4,9 +4,12 @@ import {
 	faAngleRight,
 	faArrowAltCircleDown,
 	faArrowDown,
+	faArrowsDownToLine,
+	faArrowsTurnRight,
 	faArrowTrendUp,
 	faArrowUp,
 	faBan,
+	faBars,
 	faBell,
 	faBinoculars,
 	faBusinessTime,
@@ -55,7 +58,7 @@ import {
 	faFileExport,
 	faFileImport,
 	faFilter,
-	faGaugeSimple,
+	faGauge,
 	faGlobe,
 	faGripVertical,
 	faHandSparkles,
@@ -70,6 +73,8 @@ import {
 	faLink,
 	faLock,
 	faLockOpen,
+	faMagnifyingGlassChart,
+	faMicroscope,
 	faMinus,
 	faObjectGroup,
 	faPalette,
@@ -82,7 +87,9 @@ import {
 	faPowerOff,
 	faPrint,
 	faQuestionCircle,
+	faQuoteRight,
 	faRandom,
+	faRankingStar,
 	faRobot,
 	faRulerCombined,
 	faSave,
@@ -93,12 +100,10 @@ import {
 	faSortAmountDown,
 	faSortAmountUpAlt,
 	faSpinner,
-	faSquarePollVertical,
 	faStar,
 	faStarOfLife,
 	faStickyNote,
 	faStream,
-	faStreetView,
 	faSyncAlt,
 	faTable,
 	faTags,
@@ -111,6 +116,7 @@ import {
 	faTimesCircle,
 	faToolbox,
 	faTools,
+	faTowerObservation,
 	faTrashAlt,
 	faUndoAlt,
 	faUpload,
@@ -173,7 +179,7 @@ export const ICON_SWITCH_WORKBENCH = faIgloo;
 export const ICON_CONSOLE = faChalkboard;
 export const ICON_ADMIN = faTools;
 export const ICON_DATA_QUALITY = faCoins;
-export const ICON_INDICATOR_WORKBENCH = faBusinessTime;
+export const ICON_INDICATOR = faBusinessTime;
 export const ICON_HOME = faHome;
 export const ICON_LOGOUT = faPowerOff;
 
@@ -192,8 +198,8 @@ export const ICON_FACTOR = faCodeCommit;
 export const ICON_ENUM = faStream;
 export const ICON_REPORT = faChartBar;
 export const ICON_PARAGRAPH = faParagraph;
-export const ICON_INDICATOR = faTenge;
-export const ICON_DIMENSION = faRulerCombined;
+export const ICON_REPORT_INDICATOR = faTenge;
+export const ICON_REPORT_DIMENSION = faRulerCombined;
 export const ICON_FILTER = faFilter;
 export const ICON_BAN = faBan;
 export const ICON_CSV = faFileCsv;
@@ -204,7 +210,7 @@ export const ICON_UNIT = faFeather;
 export const ICON_INDICATOR_MEASURE_METHOD = faCodeMerge;
 export const ICON_BUCKET = faSliders;
 
-export const ICON_DASHBOARD = faGaugeSimple;
+export const ICON_DASHBOARD = faGauge;
 export const ICON_FAVORITE = faStar;
 export const ICON_TEMPLATE = faPaste;
 export const ICON_TASK = faTasks;
@@ -213,6 +219,7 @@ export const ICON_MAIL = faInbox;
 export const ICON_TIMELINE = faComments;
 export const ICON_MONITOR_LOGS = faEthernet;
 export const ICON_PIPELINE_DEBUG = faDraftingCompass;
+export const ICON_TOOLBOX = faToolbox;
 
 export const ICON_CONSANGUINITY = faDna;
 export const ICON_CATALOG = faWarehouse;
@@ -221,9 +228,9 @@ export const ICON_STATISTICS = faCompass;
 export const ICON_END_USER = faChalkboardTeacher;
 
 export const ICON_BUCKETS = faShapes;
-export const ICON_INDICATOR_INDICATOR = faSquarePollVertical;
-export const ICON_INDICATOR_INSPECTION = faToolbox;
-export const ICON_INDICATOR_NAVIGATION = faStreetView;
+export const ICON_INDICATOR_INDICATOR = faMagnifyingGlassChart;
+export const ICON_INDICATOR_INSPECTION = faMicroscope;
+export const ICON_INDICATOR_ACHIEVEMENT = faRankingStar;
 export const ICON_TIME_GROUPING = faClock;
 export const ICON_BUCKET_ON = faShapes;
 export const ICON_CHART_BAR = faChartColumn;
@@ -231,6 +238,10 @@ export const ICON_CHART_LINE = faChartLine;
 export const ICON_CHART_PIE = faChartPie;
 export const ICON_CHART_GROWTH_OF_TIME_GROUPING = faArrowTrendUp;
 export const ICON_CHART_GROWTH_OF_TIME_RANGE = faCodeCompare;
+export const ICON_INDICATOR_OBJECTIVE_ANALYSIS = faTowerObservation;
+export const ICON_OBJECTIVE_ANALYSIS_ITEM = faQuoteRight;
+export const ICON_OBJECTIVE_ANALYSIS = faArrowsDownToLine;
+export const ICON_OBJECTIVE_ANALYSIS_PERSPECTIVE = faArrowsTurnRight;
 
 export const ICON_SECONDARY_SECTION = faCaretRight;
 
@@ -311,6 +322,7 @@ export const ICON_USE_INDICATOR = faHighlighter;
 export const ICON_EXPAND_NODES = faPlus;
 export const ICON_COLLAPSE_NODES = faMinus;
 export const ICON_EXTERNAL_LINK = faExternalLinkAlt;
+export const ICON_SHOW_NAVIGATOR = faBars;
 
 export const ICON_COMMENTS = faCommentDots;
 export const ICON_CMD_PROMPT = faTerminal;

@@ -190,24 +190,32 @@ async def items_import(
 	def find_enum(import_items: ImportEnumItems) -> Tuple[Enum, List[EnumItem]]:
 		enum_id = import_items.enumId
 		name = import_items.name
+		if is_blank(enum_id) and is_blank(name):
+			raise_400('At least one of enumeration id and name must be provided.')
+
 		enumeration = None
 		if is_not_blank(enum_id):
 			# both provided, find by id
 			enumeration = enum_service.find_by_id(enum_id)
-			if enumeration is None:
-				enumeration = Enum(
-					enumId=enum_id,
-					name=name,
-					tenantId=principal_service.get_tenant_id(),
-					items=[]
-				)
-				get_enum_service(principal_service).create(enumeration)
-		if is_not_blank(name) and enumeration is None:
+		elif is_not_blank(name):
 			enumeration = enum_service.find_by_name(name, principal_service.get_tenant_id())
+
+		if enumeration is not None:
+			# found
+			if enumeration.tenantId != principal_service.get_tenant_id():
+				raise_404(f'Enumeration[id={enum_id}, name={name}] not found.')
+		elif is_not_blank(name):
+			# not found, but name is given, create one
+			enumeration = Enum(
+				enumId=enum_id,
+				name=name,
+				tenantId=principal_service.get_tenant_id(),
+				items=[]
+			)
+			enum_service.create(enumeration)
 		else:
-			raise_400('At least one of enumeration id and name must be provided.')
-		if enumeration is None or enumeration.tenantId != principal_service.get_tenant_id():
 			raise_404(f'Enumeration[id={enum_id}, name={name}] not found.')
+
 		return enumeration, import_items.items
 
 	def save_items(enumeration: Enum, items: List[EnumItem]) -> None:

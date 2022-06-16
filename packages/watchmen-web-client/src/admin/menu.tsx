@@ -8,7 +8,7 @@ import {
 	ICON_ENUM,
 	ICON_EXTERNAL_WRITERS,
 	ICON_HOME,
-	ICON_INDICATOR_WORKBENCH,
+	ICON_INDICATOR,
 	ICON_LOGOUT,
 	ICON_MONITOR_LOGS,
 	ICON_PIPELINE,
@@ -17,8 +17,8 @@ import {
 	ICON_SETTINGS,
 	ICON_SPACE,
 	ICON_SWITCH_WORKBENCH,
-	ICON_TASK,
 	ICON_TENANT,
+	ICON_TOOLBOX,
 	ICON_TOPIC,
 	ICON_USER,
 	ICON_USER_GROUP,
@@ -36,7 +36,7 @@ import {SideMenuUser} from '@/widgets/basic/side-menu/side-menu-user';
 import {
 	isConsoleAvailable,
 	isDataQualityAvailable,
-	isIndicatorWorkbenchAvailable
+	isIndicatorAvailable
 } from '@/widgets/common-settings/workbench-utils';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
@@ -111,11 +111,11 @@ export const AdminMenu = () => {
 	if (isConsoleAvailable()) {
 		workbenches.push({label: 'To Console', icon: ICON_CONSOLE, action: () => onMenuClicked(Router.CONSOLE)()});
 	}
-	if (isIndicatorWorkbenchAvailable()) {
+	if (isIndicatorAvailable()) {
 		workbenches.push({
-			label: 'To Indicator Workbench',
-			icon: ICON_INDICATOR_WORKBENCH,
-			action: () => onMenuClicked(Router.INDICATOR_WORKBENCH)()
+			label: 'To Indicator',
+			icon: ICON_INDICATOR,
+			action: () => onMenuClicked(Router.INDICATOR)()
 		});
 	}
 	if (isDataQualityAvailable()) {
@@ -177,15 +177,14 @@ export const AdminMenu = () => {
 		              active={!!matchPath(location.pathname, Router.ADMIN_SIMULATOR)}
 		              onClick={onMenuClicked(Router.ADMIN_SIMULATOR)}
 		              visible={!isSuperAdmin()}/>
-		<SideMenuSeparator width={menuWidth} visible={!isSuperAdmin()}/>
-		{/* FEAT hide task menu */}
-		<SideMenuItem icon={ICON_TASK} label="Tasks" showTooltip={showTooltip}
-		              active={!!matchPath(location.pathname, Router.ADMIN_TASKS)}
-		              onClick={onMenuClicked(Router.ADMIN_TASKS)}
-		              visible={false}/>
 		<SideMenuItem icon={ICON_MONITOR_LOGS} label="Monitor Logs" showTooltip={showTooltip}
 		              active={!!matchPath(location.pathname, Router.ADMIN_MONITOR_LOGS)}
 		              onClick={onMenuClicked(Router.ADMIN_MONITOR_LOGS)}
+		              visible={!isSuperAdmin()}/>
+		<SideMenuSeparator width={menuWidth} visible={!isSuperAdmin()}/>
+		<SideMenuItem icon={ICON_TOOLBOX} label="Toolbox" showTooltip={showTooltip}
+		              active={!!matchPath(location.pathname, Router.ADMIN_TOOLBOX)}
+		              onClick={onMenuClicked(Router.ADMIN_TOOLBOX)}
 		              visible={!isSuperAdmin()}/>
 		<SideMenuPlaceholder/>
 		<SideMenuSeparator width={menuWidth}/>

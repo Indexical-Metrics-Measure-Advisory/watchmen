@@ -9,11 +9,11 @@ const LabelContainer = styled.span.attrs({'data-widget': 'relevant-type'})`
 `;
 
 export const RelevantIndicatorTypeLabels: Record<RelevantIndicatorType, string> = {
-	[RelevantIndicatorType.SAME]: Lang.INDICATOR.RELEVANT_TYPE.SAME,
-	[RelevantIndicatorType.HIGH_CORRELATED]: Lang.INDICATOR.RELEVANT_TYPE.HIGH_CORRELATED,
-	[RelevantIndicatorType.WEAK_CORRELATED]: Lang.INDICATOR.RELEVANT_TYPE.WEAK_CORRELATED,
-	[RelevantIndicatorType.THIS_CAUSES_RELEVANT]: Lang.INDICATOR.RELEVANT_TYPE.THIS_CAUSES_RELEVANT,
-	[RelevantIndicatorType.RELEVANT_CAUSES_THIS]: Lang.INDICATOR.RELEVANT_TYPE.RELEVANT_CAUSES_THIS
+	[RelevantIndicatorType.SAME]: Lang.RELEVANT_INDICATOR_TYPE.SAME,
+	[RelevantIndicatorType.HIGH_CORRELATED]: Lang.RELEVANT_INDICATOR_TYPE.HIGH_CORRELATED,
+	[RelevantIndicatorType.WEAK_CORRELATED]: Lang.RELEVANT_INDICATOR_TYPE.WEAK_CORRELATED,
+	[RelevantIndicatorType.THIS_CAUSES_RELEVANT]: Lang.RELEVANT_INDICATOR_TYPE.THIS_CAUSES_RELEVANT,
+	[RelevantIndicatorType.RELEVANT_CAUSES_THIS]: Lang.RELEVANT_INDICATOR_TYPE.RELEVANT_CAUSES_THIS
 };
 
 export const RelevantIndicatorTypeLabel = (props: { type: RelevantIndicatorType }) => {

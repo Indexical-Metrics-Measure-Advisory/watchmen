@@ -8,12 +8,10 @@ from fastapi import FastAPI
 
 from watchmen_auth import AuthenticationProvider
 from watchmen_model.admin import User
-
 from .auth_helper import register_authentication_manager
 from .authentication import build_authentication_manager
 from .cors import install_cors
 from .prometheus import install_prometheus
-
 from .settings import RestSettings
 
 logger = getLogger(f'app.{__name__}')
