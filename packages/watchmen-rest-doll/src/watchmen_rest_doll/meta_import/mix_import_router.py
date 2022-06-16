@@ -151,21 +151,7 @@ class MixedImportWithIndicator:
 		raise NotImplementedError()
 
 
-class MixImportHandle:
-	def __init__(self):
-		self.indicator_handler = None
-
-	def register_indicator_handler(self, handler: MixedImportWithIndicator) -> None:
-		self.indicator_handler = handler
-
-	def has_indicator_handler(self) -> bool:
-		return self.indicator_handler is not None
-
-	def ask_indicator_handler(self) -> Optional[MixedImportWithIndicator]:
-		return self.indicator_handler
-
-
-mix_import_handle = MixImportHandle()
+mixed_import_indicator_handler = MixedImportWithIndicator()
 
 
 def same_tenant_validate(
@@ -464,11 +450,7 @@ def try_to_import_indicators(
 		indicators: List[Indicator], buckets: List[Bucket],
 		do_update: bool
 ) -> Tuple[List[IndicatorImportDataResult], List[BucketImportDataResult]]:
-	if mix_import_handle.has_indicator_handler():
-		return mix_import_handle.ask_indicator_handler().try_to_import_indicators(
-			user_service, indicators, buckets, do_update)
-	else:
-		return [], []
+	return mixed_import_indicator_handler.try_to_import_indicators(user_service, indicators, buckets, do_update)
 
 
 def try_to_import_monitor_rule(
@@ -644,7 +626,7 @@ def create_topic_and_factor_ids_replacer(
 			if isinstance(value, dict):
 				replace_ids(value, replace_topic_and_factor_ids)
 			elif isinstance(value, list):
-				ArrayHelper(value)\
+				ArrayHelper(value) \
 					.filter(lambda x: isinstance(x, dict)) \
 					.each(lambda x: replace_ids(x, replace_topic_and_factor_ids))
 
@@ -784,11 +766,8 @@ def force_new_import_indicators(
 		subject_id_map: Dict[SubjectId, SubjectId],
 		topic_id_map: Dict[TopicId, TopicId], factor_id_map: Dict[FactorId, FactorId]
 ) -> Tuple[List[IndicatorImportDataResult], List[BucketImportDataResult]]:
-	if mix_import_handle.has_indicator_handler():
-		return mix_import_handle.ask_indicator_handler().force_new_import_indicators(
-			user_service, indicators, buckets, subject_id_map, topic_id_map, factor_id_map)
-	else:
-		return [], []
+	return mixed_import_indicator_handler.force_new_import_indicators(
+		user_service, indicators, buckets, subject_id_map, topic_id_map, factor_id_map)
 
 
 def refill_monitor_rule_ids(

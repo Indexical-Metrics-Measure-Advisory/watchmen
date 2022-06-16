@@ -9,6 +9,7 @@ const SideMenuLogoContainer = styled.div.attrs({'data-widget': 'side-menu-logo'}
 	grid-template-columns : var(--side-menu-icon-size) 1fr;
 	grid-column-gap       : var(--side-menu-margin);
 	align-items           : center;
+	align-self            : stretch;
 	padding               : calc(var(--margin) / 2) var(--side-menu-margin);
 	height                : 66px;
 `;

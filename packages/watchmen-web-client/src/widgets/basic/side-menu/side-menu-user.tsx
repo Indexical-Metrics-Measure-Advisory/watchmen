@@ -8,6 +8,7 @@ const SideMenuUserContainer = styled.div.attrs({'data-widget': 'side-menu-user'}
 	grid-template-columns : var(--side-menu-icon-size) 1fr;
 	grid-column-gap       : var(--side-menu-margin);
 	align-items           : center;
+	align-self            : stretch;
 	padding               : calc(var(--margin) / 2) var(--side-menu-margin);
 `;
 const SideMenuUserLabel = styled.div.attrs({'data-widget': 'side-menu-user-label'})`

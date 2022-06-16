@@ -1,24 +1,36 @@
 -- noinspection SqlResolveForFile
 RENAME TABLE enums TO enums_1;
 RENAME TABLE enums_1 TO enums;
-ALTER TABLE enums CHANGE enumid enum_id VARCHAR(50) NOT NULL;
-ALTER TABLE enums MODIFY description VARCHAR(1024) NULL;
-ALTER TABLE enums CHANGE parentenumid parent_enum_id VARCHAR(50) NULL;
-ALTER TABLE enums CHANGE tenantid tenant_id VARCHAR(50) NOT NULL;
-ALTER TABLE enums DROP createtime;
-ALTER TABLE enums DROP lastmodified;
-ALTER TABLE enums ADD created_at DATETIME DEFAULT NOW() NOT NULL;
-ALTER TABLE enums ADD created_by VARCHAR(50) DEFAULT '-1' NOT NULL;
-ALTER TABLE enums ADD last_modified_at DATETIME DEFAULT NOW() NOT NULL;
-ALTER TABLE enums ADD last_modified_by VARCHAR(50) DEFAULT '-1' NOT NULL;
-ALTER TABLE enums ADD version BIGINT NULL;
+ALTER TABLE enums
+    CHANGE enumid enum_id VARCHAR(50) NOT NULL;
+ALTER TABLE enums
+    MODIFY description VARCHAR(1024) NULL;
+ALTER TABLE enums
+    CHANGE parentenumid parent_enum_id VARCHAR(50) NULL;
+ALTER TABLE enums
+    CHANGE tenantid tenant_id VARCHAR(50) NOT NULL;
+ALTER TABLE enums
+    DROP createtime;
+ALTER TABLE enums
+    DROP lastmodified;
+ALTER TABLE enums
+    ADD created_at DATETIME DEFAULT NOW() NOT NULL;
+ALTER TABLE enums
+    ADD created_by VARCHAR(50) DEFAULT '-1' NOT NULL;
+ALTER TABLE enums
+    ADD last_modified_at DATETIME DEFAULT NOW() NOT NULL;
+ALTER TABLE enums
+    ADD last_modified_by VARCHAR(50) DEFAULT '-1' NOT NULL;
+ALTER TABLE enums
+    ADD version BIGINT NULL;
 CREATE INDEX created_at ON enums (created_at);
 CREATE INDEX created_by ON enums (created_by);
 CREATE INDEX last_modified_at ON enums (last_modified_at);
 CREATE INDEX last_modified_by ON enums (last_modified_by);
 CREATE INDEX name ON enums (name);
 CREATE INDEX tenant_id ON enums (tenant_id);
-CREATE TABLE enum_items (
+CREATE TABLE enum_items
+(
     item_id      VARCHAR(50) NOT NULL,
     code         VARCHAR(50) NOT NULL,
     label        VARCHAR(255),
@@ -66,9 +78,14 @@ BEGIN
 
                 SELECT IFNULL(MAX(CAST(item_id AS DECIMAL)), 0) + 1 INTO next_item_id FROM enum_items;
                 SET @code = REPLACE(TRIM(BOTH '"' FROM IFNULL(JSON_EXTRACT(current_item, '$.code'), '')), '\'', '\'\'');
-                SET @label = REPLACE(TRIM(BOTH '"' FROM IFNULL(JSON_EXTRACT(current_item, '$.label'), '')), '\'', '\'\'');
-                SET @parent_code = REPLACE(TRIM(BOTH '"' FROM IFNULL(JSON_EXTRACT(current_item, '$.parentCode'), '')), '\'', '\'\'');
-                SET @replace_code = REPLACE(TRIM(BOTH '"' FROM IFNULL(JSON_EXTRACT(current_item, '$.replaceCode'), '')), '\'', '\'\'');
+                SET @label =
+                        REPLACE(TRIM(BOTH '"' FROM IFNULL(JSON_EXTRACT(current_item, '$.label'), '')), '\'', '\'\'');
+                SET @parent_code =
+                        REPLACE(TRIM(BOTH '"' FROM IFNULL(JSON_EXTRACT(current_item, '$.parentCode'), '')), '\'',
+                                '\'\'');
+                SET @replace_code =
+                        REPLACE(TRIM(BOTH '"' FROM IFNULL(JSON_EXTRACT(current_item, '$.replaceCode'), '')), '\'',
+                                '\'\'');
 
                 SET @sql_insert = CONCAT(
                         'INSERT INTO enum_items(item_id, code, label, parent_code, replace_code, enum_id, tenant_id) VALUES (\'',
@@ -86,5 +103,11 @@ DELIMITER ;
 CALL WATCHMEN_MIGRATION_COPY_ENUM_ITEMS();
 DROP PROCEDURE IF EXISTS WATCHMEN_MIGRATION_COPY_ENUM_ITEMS;
 -- noinspection SqlWithoutWhere
-UPDATE enums SET created_at = NOW(), created_by = '-1', last_modified_at = NOW(), last_modified_by = '-1', version = 1;
-ALTER TABLE enums DROP items;
+UPDATE enums
+SET created_at       = NOW(),
+    created_by       = '-1',
+    last_modified_at = NOW(),
+    last_modified_by = '-1',
+    version          = 1;
+ALTER TABLE enums
+    DROP items;

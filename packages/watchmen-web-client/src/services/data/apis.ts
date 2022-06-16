@@ -32,12 +32,16 @@ export const Apis = {
 
 	TOPIC_ALL: 'topic/all',
 	TOPIC_LIST_BY_NAME: 'topic/name?query_name=:search',
-	// TOPIC_LIST_FOR_HOLDER_BY_NAME: 'topic/list/name?query_name=:search',
 	TOPIC_LIST_FOR_HOLDER_BY_NAME_NON_RAW: 'topic/list/name?query_name=:search&exclude_types=raw',
 	TOPIC_GET: 'topic?topic_id=:topicId',
+	TOPIC_ROW_COUNT: 'topic/data/count?topic_id=:topicId',
+	TOPIC_DATA_IDS: 'topic/data/ids?topic_id=:topicId',
 	TOPIC_CREATE: 'topic',
 	TOPIC_SAVE: 'topic',
 	TOPIC_PROFILE: 'dqc/topic/profile?topic_id=:topicId&date=:date',
+	TOPIC_RERUN: 'topic/data/rerun?topic_id=:topicId&pipeline_id=:pipelineId&data_id=:dataId',
+	TOPIC_SNAPSHOT_SCHEDULER_LIST: 'topic/snapshot/scheduler/list',
+	TOPIC_SNAPSHOT_SCHEDULER_SAVE: 'topic/snapshot/scheduler',
 
 	ENUM_LIST_BY_NAME: 'enum/name?query_name=:search',
 	ENUM_GET: 'enum?enum_id=:enumId',
@@ -139,6 +143,8 @@ export const Apis = {
 	QUERY_RULE_RESULT: 'dqc/monitor/result',
 	SAVE_RULE_LIST: 'dqc/monitor/rules',
 	IMPORT_TOPICS_AND_PIPELINES: 'import',
+	IMPORT_TOPICS: 'topic/import',
+	IMPORT_PIPELINES: 'pipeline/import',
 
 	QUERY_CATALOG: 'dqc/catalog/criteria',
 	CATALOG_CREATE: 'dqc/catalog',
@@ -176,11 +182,16 @@ export const Apis = {
 	INSPECTION_SAVE: 'indicator/inspection',
 	INSPECTION_DATA: 'indicator/inspection/data?inspection_id=:inspectionId',
 
-	NAVIGATION_LIST_BY_NAME: 'indicator/navigation/name?query_name=:search',
-	NAVIGATION_CREATE: 'indicator/navigation',
-	NAVIGATION_SAVE: 'indicator/navigation',
-	NAVIGATION_GET: 'indicator/navigation?navigation_id=:navigationId',
-	NAVIGATION_INDICATOR_DATA: 'indicator/navigation/data'
+	ACHIEVEMENT_LIST_BY_NAME: 'indicator/achievement/name?query_name=:search',
+	ACHIEVEMENT_CREATE: 'indicator/achievement',
+	ACHIEVEMENT_SAVE: 'indicator/achievement',
+	ACHIEVEMENT_GET: 'indicator/achievement?achievement_id=:achievementId',
+	ACHIEVEMENT_INDICATOR_DATA: 'indicator/achievement/data',
+
+	OBJECTIVE_ANALYSIS_LIST: 'indicator/objective-analysis/list',
+	OBJECTIVE_ANALYSIS_CREATE: 'indicator/objective-analysis',
+	OBJECTIVE_ANALYSIS_SAVE: 'indicator/objective-analysis',
+	OBJECTIVE_ANALYSIS_DELETE: 'indicator/objective-analysis/delete?analysis_id=:analysisId'
 };
 
 const buildApi = (api: string, args?: Record<string, any>): string => {

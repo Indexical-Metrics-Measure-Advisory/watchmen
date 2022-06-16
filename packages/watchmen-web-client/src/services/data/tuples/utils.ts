@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import {v4} from 'uuid';
+import {Achievement} from './achievement-types';
 import {Bucket} from './bucket-types';
 import {Catalog} from './catalog-types';
 import {ConnectedSpace} from './connected-space-types';
@@ -9,12 +10,13 @@ import {Enum} from './enum-types';
 import {ExternalWriter} from './external-writer-types';
 import {Indicator} from './indicator-types';
 import {Inspection} from './inspection-types';
-import {Navigation} from './navigation-types';
+import {ObjectiveAnalysis} from './objective-analysis-types';
 import {Pipeline, PipelinesGraphics} from './pipeline-types';
 import {Report} from './report-types';
 import {Space} from './space-types';
 import {Subject} from './subject-types';
 import {Tenant} from './tenant-types';
+import {TopicSnapshotScheduler} from './topic-snapshot-types';
 import {Topic} from './topic-types';
 import {Tuple} from './tuple-types';
 import {UserGroup} from './user-group-types';
@@ -74,11 +76,17 @@ export const isBucket = (tuple: Tuple): tuple is Bucket => {
 export const isInspection = (tuple: Tuple): tuple is Inspection => {
 	return !!(tuple as any).inspectionId;
 };
-export const isNavigation = (tuple: Tuple): tuple is Navigation => {
-	return !!(tuple as any).navigationId;
+export const isAchievement = (tuple: Tuple): tuple is Achievement => {
+	return !!(tuple as any).achievementId;
+};
+export const isObjectiveAnalysis = (tuple: Tuple): tuple is ObjectiveAnalysis => {
+	return !!(tuple as any).analysisId;
 };
 export const isCatalog = (tuple: Tuple): tuple is Catalog => {
 	return !!(tuple as any).catalogId;
+};
+export const isTopicSnapshotScheduler = (tuple: Tuple): tuple is TopicSnapshotScheduler => {
+	return !!(tuple as any).schedulerId;
 };
 
 export const generateUuid = (): string => `${FAKE_ID_PREFIX}${v4().replace(/-/g, '')}`;
@@ -86,10 +94,14 @@ export const isFakedUuidForGraphics = (graphics: PipelinesGraphics): boolean => 
 	return graphics.pipelineGraphId.startsWith(FAKE_ID_PREFIX);
 };
 export const isFakedUuid = (tuple: Tuple): boolean => {
-	if (isCatalog(tuple)) {
+	if (isTopicSnapshotScheduler(tuple)) {
+		return tuple.schedulerId.startsWith(FAKE_ID_PREFIX);
+	} else if (isCatalog(tuple)) {
 		return tuple.catalogId.startsWith(FAKE_ID_PREFIX);
-	} else if (isNavigation(tuple)) {
-		return tuple.navigationId.startsWith(FAKE_ID_PREFIX);
+	} else if (isObjectiveAnalysis(tuple)) {
+		return tuple.analysisId.startsWith(FAKE_ID_PREFIX);
+	} else if (isAchievement(tuple)) {
+		return tuple.achievementId.startsWith(FAKE_ID_PREFIX);
 	} else if (isInspection(tuple)) {
 		// inspection check must before indicator check
 		// since "indicatorId" also exists in inspection object

@@ -3,14 +3,14 @@ import {isMultipleDataSourcesEnabled} from '@/feature-switch';
 import {TuplePage} from '@/services/data/query/tuple-page';
 import {listDataSourcesForHolder} from '@/services/data/tuples/data-source';
 import {listEnumsForHolder} from '@/services/data/tuples/enum';
-import {FactorType} from '@/services/data/tuples/factor-types';
+import {Factor, FactorType} from '@/services/data/tuples/factor-types';
 import {QueryTopic} from '@/services/data/tuples/query-topic-types';
 import {fetchTopic, listTopics, saveTopic} from '@/services/data/tuples/topic';
 import {Topic} from '@/services/data/tuples/topic-types';
-import {isNotRawTopic} from '@/services/data/tuples/topic-utils';
+import {isNotRawTopic, isRawTopic} from '@/services/data/tuples/topic-utils';
 import {QueryTuple} from '@/services/data/tuples/tuple-types';
 import {AdminCacheData} from '@/services/local-persist/types';
-import {againstSnakeCaseName} from '@/services/utils';
+import {againstSnakeCaseName, noop} from '@/services/utils';
 import {AlertLabel} from '@/widgets/alert/widgets';
 import {ICON_DOWNLOAD, TUPLE_SEARCH_PAGE_SIZE} from '@/widgets/basic/constants';
 import {useEventBus} from '@/widgets/events/event-bus';
@@ -37,6 +37,23 @@ const fetchTopicAndCodes = async (queryTopic: QueryTopic) => {
 const getKeyOfTopic = (topic: QueryTopic) => topic.topicId;
 
 const isNameInvalid = (name: string) => againstSnakeCaseName(name, true);
+
+const isFactorNotHold = (topic: Topic, factor: Factor): boolean => {
+	const name = factor.name;
+	const segments = name.split('.');
+	if (segments.length === 1) {
+		return false;
+	}
+
+	segments.length = segments.length - 1;
+	const holderName = segments.join('.');
+	const holderFactor = topic.factors.find(f => f.name === holderName);
+	if (holderFactor == null) {
+		return true;
+	} else {
+		return holderFactor.type !== FactorType.ARRAY && holderFactor.type !== FactorType.OBJECT;
+	}
+};
 
 const AdminTopics = () => {
 	const {fire: fireGlobal} = useEventBus();
@@ -113,6 +130,17 @@ const AdminTopics = () => {
 					onSaved(topic, false);
 				});
 				return;
+			} else if (isRawTopic(topic) && topic.factors.some(f => isFactorNotHold(topic, f))) {
+				const indexes = topic.factors
+					.map((f, index) => isFactorNotHold(topic, f) ? (index + 1) : -1)
+					.filter(index => index !== -1)
+					.map(index => `#${index}`);
+				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
+					Hierarchical factor(s) must be declared by parent, please check {indexes.join(', ')}.
+				</AlertLabel>, () => {
+					onSaved(topic, false);
+				});
+				return;
 			} else if (new Set(topic.factors.map(factor => factor.name.toUpperCase())).size !== topic.factors.length) {
 				const indexes = topic.factors
 					.reduce((all, f, index) => {
@@ -140,6 +168,7 @@ const AdminTopics = () => {
 				() => {
 					onSaved(topic, true);
 					fireCache(AdminCacheEventTypes.SAVE_TOPIC, topic);
+					fireCache(AdminCacheEventTypes.ASK_LOAD_MORE, noop);
 				},
 				() => onSaved(topic, false));
 		};

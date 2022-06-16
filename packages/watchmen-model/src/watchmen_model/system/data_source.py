@@ -18,6 +18,7 @@ class DataSourceType(str, Enum):
 	MONGODB = 'mongodb',
 	MSSQL = 'mssql'
 	POSTGRESQL = 'postgresql'
+	OSS = 'oss'
 
 
 def construct_param(param: Optional[Union[dict, DataSourceParam]]) -> Optional[DataSourceParam]:

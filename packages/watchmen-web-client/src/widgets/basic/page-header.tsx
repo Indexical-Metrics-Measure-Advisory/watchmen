@@ -1,7 +1,7 @@
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {ReactNode} from 'react';
 import styled from 'styled-components';
-import {ICON_SETTINGS} from './constants';
+import {ICON_BACK, ICON_SETTINGS} from './constants';
 import {TooltipButton} from './tooltip-button';
 import {TooltipAlignment} from './types';
 
@@ -20,12 +20,14 @@ export const PageTitle = styled.div.attrs({'data-widget': 'page-header-title'})`
 	font-size   : 3em;
 `;
 const SettingsButton = styled(TooltipButton).attrs({'data-widget': 'page-header-settings'})`
-	margin-left : calc(var(--margin) / 2);
-	font-size   : 1.4em;
-	color       : var(--primary-color);
-	width       : var(--height);
-	padding     : 0;
-	overflow    : hidden;
+	margin-left   : calc(var(--margin) / 2);
+	margin-bottom : calc(var(--margin) / 4);
+	align-self    : flex-end;
+	font-size     : 1.4em;
+	color         : var(--primary-color);
+	width         : var(--height);
+	padding       : 0;
+	overflow      : hidden;
 	&:after {
 		content          : '';
 		position         : absolute;
@@ -47,8 +49,12 @@ const SettingsButton = styled(TooltipButton).attrs({'data-widget': 'page-header-
 	}
 `;
 
-export const PageHeader = (props: { title: string; onSettingsClicked?: () => void; }) => {
-	const {title, onSettingsClicked, ...rest} = props;
+export const PageHeader = (props: {
+	title: string;
+	onSettingsClicked?: () => void;
+	onBackClicked?: () => void;
+}) => {
+	const {title, onSettingsClicked, onBackClicked, ...rest} = props;
 
 	return <PageHeaderContainer {...rest}>
 		<PageTitle>{title}</PageTitle>
@@ -56,6 +62,12 @@ export const PageHeader = (props: { title: string; onSettingsClicked?: () => voi
 			? <SettingsButton tooltip={{label: 'Settings', alignment: TooltipAlignment.CENTER}}
 			                  onClick={onSettingsClicked}>
 				<FontAwesomeIcon icon={ICON_SETTINGS}/>
+			</SettingsButton>
+			: null}
+		{onBackClicked
+			? <SettingsButton tooltip={{label: 'Back', alignment: TooltipAlignment.CENTER}}
+			                  onClick={onBackClicked}>
+				<FontAwesomeIcon icon={ICON_BACK} style={{transform: 'rotateY(180deg)'}}/>
 			</SettingsButton>
 			: null}
 	</PageHeaderContainer>;

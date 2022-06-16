@@ -36,6 +36,7 @@ MONITOR_JOB_LOCK_ENTITY_NAME = 'monitor_job_locks'
 MONITOR_JOB_LOCK_ENTITY_SHAPER = MonitorJobLockShaper()
 
 
+# noinspection DuplicatedCode
 class MonitorJobLockService(StorageService):
 	def __init__(
 			self,

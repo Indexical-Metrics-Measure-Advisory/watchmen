@@ -5,8 +5,8 @@ from sqlalchemy.engine import Engine
 
 from watchmen_model.common import DataModel
 from watchmen_model.system import DataSource, DataSourceParam
-from watchmen_storage import DataSourceHelper, UnexpectedStorageException
-from watchmen_utilities import ArrayHelper, is_blank, is_decimal, is_not_blank, serialize_to_json
+from watchmen_storage import DataSourceHelper
+from watchmen_utilities import ArrayHelper, is_blank, is_not_blank, serialize_to_json
 from .storage_postgresql import StoragePostgreSQL, TopicDataStoragePostgreSQL
 
 
@@ -56,7 +56,8 @@ class PostgreSQLDataSourceHelper(DataSourceHelper):
 			future=True,
 			pool_recycle=params.poolRecycle,
 			json_serializer=serialize_to_json,
-			encoding='utf-8'
+			encoding='utf-8',
+			supports_native_boolean=False
 		)
 
 	# noinspection DuplicatedCode

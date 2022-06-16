@@ -75,8 +75,6 @@ class RawTopicDataService(TopicDataService):
 			.each(lambda x: wrap_flatten_factor(x, data, wrapped_data))
 		return wrapped_data
 
-	# return {TopicDataColumnNames.RAW_TOPIC_DATA.value: data}
-
 	def try_to_unwrap_from_topic_data(self, topic_data: Dict[str, Any]) -> Dict[str, Any]:
 		unwrapped_data = {}
 

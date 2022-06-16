@@ -127,7 +127,15 @@ jobs:
       branch: ${{ needs.prepare.outputs.release_branch_name }}
       version: ${{ needs.compute-version.outputs.version }}
       storage: mongodb
-  # TODO publish doll image, on mssql
+  # publish doll image, on mssql
+  publish-doll-mssql-image:
+    needs: [ compute-version, prepare, publish-web-client-image ]
+    uses: ./.github/workflows/image-publish-doll.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ needs.compute-version.outputs.version }}
+      storage: mssql
+  # TODO publish doll image, on postgresql
   # publish dqc image, on mysql
   publish-dqc-mysql-image:
     needs: [ compute-version, prepare, publish-web-client-image ]
@@ -152,7 +160,15 @@ jobs:
       branch: ${{ needs.prepare.outputs.release_branch_name }}
       version: ${{ needs.compute-version.outputs.version }}
       storage: mongodb
-  # TODO publish dqc image, on mssql
+  # publish dqc image, on mssql
+  publish-dqc-mssql-image:
+    needs: [ compute-version, prepare, publish-web-client-image ]
+    uses: ./.github/workflows/image-publish-dqc.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ needs.compute-version.outputs.version }}
+      storage: mssql
+  # TODO publish dqc image, on postgresql
   drop-trigger-tag:
     needs: align-module-version
     name: Drop trigger tag

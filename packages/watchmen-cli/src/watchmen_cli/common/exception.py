@@ -1,11 +1,14 @@
-
 class AuthenticationException(Exception):
-    pass
+	pass
 
 
 class DeployException(Exception):
-    pass
+	pass
 
 
 class ConfigException(Exception):
-    pass
+	pass
+
+
+class RerunException(Exception):
+	pass

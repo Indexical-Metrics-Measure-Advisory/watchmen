@@ -1,16 +1,15 @@
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from logging import getLogger
 from typing import Dict, List, Optional, Tuple
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from watchmen_auth import PrincipalService
+from watchmen_auth import fake_super_admin, fake_tenant_admin, PrincipalService
 from watchmen_data_kernel.meta import TenantService, TopicService
 from watchmen_data_kernel.service import ask_topic_data_service, ask_topic_storage
 from watchmen_data_kernel.storage import TopicDataService
 from watchmen_dqc.common import ask_daily_monitor_job_trigger_time, ask_monitor_job_trigger, \
 	ask_monitor_jobs_enabled, ask_monthly_monitor_job_trigger_time, ask_weekly_monitor_job_trigger_time
-from watchmen_dqc.util import fake_super_admin, fake_tenant_admin
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.dqc import MonitorJobLockService, MonitorRuleService
 from watchmen_model.admin import Topic
@@ -18,7 +17,8 @@ from watchmen_model.common import TenantId, TopicId
 from watchmen_model.dqc import MonitorJobLock, MonitorRule, MonitorRuleCode, MonitorRuleStatisticalInterval
 from watchmen_model.dqc.monitor_job_lock import MonitorJobLockStatus
 from watchmen_model.system import Tenant
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, to_previous_month, to_previous_week, \
+	to_yesterday
 from .rule import compute_date_range, disabled_rules, enum_service, rows_count_mismatch_with_another, rows_not_exists, \
 	run_all_rules
 
@@ -153,7 +153,7 @@ def find_all_topics(tenant_id: TenantId) -> List[Topic]:
 def try_to_lock_topic_for_monitor(
 		topic: Topic, frequency: MonitorRuleStatisticalInterval, process_date: date,
 		principal_service: PrincipalService
-) -> bool:
+) -> Tuple[Optional[MonitorJobLock], bool]:
 	if isinstance(process_date, datetime):
 		process_date = process_date.date()
 
@@ -171,10 +171,22 @@ def try_to_lock_topic_for_monitor(
 		)
 		lock_service.create(lock)
 		lock_service.commit_transaction()
-		return True
+		return lock, True
 	except Exception:
 		lock_service.rollback_transaction()
-		return False
+		return None, False
+
+
+# noinspection PyBroadException
+def accomplish_job(lock: MonitorJobLock, status: MonitorJobLockStatus, principal_service: PrincipalService) -> None:
+	lock_service = get_lock_service(principal_service)
+	lock_service.begin_transaction()
+	try:
+		lock.status = status
+		lock_service.create(lock)
+		lock_service.commit_transaction()
+	except Exception:
+		lock_service.rollback_transaction()
 
 
 def run_monitor_rules(
@@ -185,17 +197,17 @@ def run_monitor_rules(
 		topics = find_all_topics(tenant.tenantId)
 		for topic in topics:
 			principal_service = fake_tenant_admin(tenant.tenantId)
-			if try_to_lock_topic_for_monitor(topic, frequency, process_date, principal_service):
-				MonitorRulesRunner(principal_service).run(process_date, frequency, topic.topicId)
+			lock, locked = try_to_lock_topic_for_monitor(topic, frequency, process_date, principal_service)
+			if locked:
+				try:
+					MonitorRulesRunner(principal_service).run(process_date, frequency, topic.topicId)
+					accomplish_job(lock, MonitorJobLockStatus.SUCCESS, principal_service)
+				except Exception as e:
+					logger.error(e, exc_info=True, stack_info=True)
+					accomplish_job(lock, MonitorJobLockStatus.FAILED, principal_service)
+
 	# clear enumeration cache
 	enum_service.clear()
-
-
-def to_previous_month(process_date: date) -> date:
-	# get last day of previous month
-	process_date = process_date.replace(day=1) - timedelta(days=1)
-	# set to first day of previous month
-	return process_date.replace(day=1)
 
 
 def create_monthly_runner(scheduler: AsyncIOScheduler) -> None:
@@ -208,13 +220,6 @@ def create_monthly_runner(scheduler: AsyncIOScheduler) -> None:
 	scheduler.add_job(run, trigger, day=day, hour=hour, minute=minute)
 
 
-def to_previous_week(process_date: date) -> date:
-	# iso weekday: Monday is 1 and Sunday is 7
-	weekday = process_date.isoweekday()
-	# get last sunday
-	return process_date - timedelta(days=weekday % 7 + 7)
-
-
 def create_weekly_runner(scheduler: AsyncIOScheduler) -> None:
 	def run() -> None:
 		process_date = to_previous_week(get_current_time_in_seconds())
@@ -223,11 +228,6 @@ def create_weekly_runner(scheduler: AsyncIOScheduler) -> None:
 	trigger = ask_monitor_job_trigger()
 	day_of_week, hour, minute = ask_weekly_monitor_job_trigger_time()
 	scheduler.add_job(run, trigger, day_of_week=day_of_week, hour=hour, minute=minute)
-
-
-def to_yesterday(process_date: date) -> date:
-	# get yesterday
-	return process_date - timedelta(days=1)
 
 
 def create_daily_runner(scheduler: AsyncIOScheduler) -> None:

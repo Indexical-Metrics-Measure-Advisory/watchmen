@@ -1,4 +1,4 @@
-import {isDataQualityCenterEnabled, isIndicatorWorkbenchEnabled, isSaml2MockEnabled} from '@/feature-switch';
+import {isDataQualityCenterEnabled, isSaml2MockEnabled} from '@/feature-switch';
 import {findAccount, isAdmin, isSuperAdmin} from '@/services/data/account';
 import {removeSSOTriggerURL, saveCurrentURL} from '@/services/data/login';
 import {RemoteRequest} from '@/widgets/remote-request';
@@ -11,7 +11,7 @@ const Saml2Login = lazy(() => import(/* webpackChunkName: "login-saml2" */ '../l
 const Saml2Callback = lazy(() => import(/* webpackChunkName: "login-saml2" */ '../login/saml2-callback'));
 const Admin = lazy(() => import(/* webpackChunkName: "admin" */ '../admin'));
 const DataQuality = lazy(() => import(/* webpackChunkName: "data-quality" */ '../data-quality'));
-const IndicatorWorkbench = lazy(() => import(/* webpackChunkName: "indicator-workbench" */ '../indicator-workbench'));
+const Indicator = lazy(() => import(/* webpackChunkName: "indicator" */ '../indicator'));
 const Console = lazy(() => import(/* webpackChunkName: "console" */ '../console'));
 const Share = lazy(() => import(/* webpackChunkName: "console" */ '../share'));
 
@@ -37,10 +37,7 @@ export const InternalRoutes = () => {
 				? <Route path={Router.DATA_QUALITY}><DataQuality/></Route>
 				: null
 			}
-			{isIndicatorWorkbenchEnabled()
-				? <Route path={Router.INDICATOR_WORKBENCH}><IndicatorWorkbench/></Route>
-				: null
-			}
+			<Route path={Router.INDICATOR}><Indicator/></Route>
 			<Route path={Router.CONSOLE}><Console/></Route>
 			<Route path={Router.SHARE}><Share/></Route>
 			<Route path={Router.LOGIN}><Login/></Route>

@@ -198,6 +198,30 @@ table_dashboards = MongoDocument(
 		create_tenant_id(), create_user_id(), create_last_visit_time(), *create_tuple_audit_columns()
 	]
 )
+table_snapshot_schedulers = MongoDocument(
+	name='snapshot_schedulers',
+	columns=[
+		create_pk('scheduler_id'),
+		create_tuple_id_column('topic_id', False),
+		create_str('target_topic_name', False), create_tuple_id_column('target_topic_id', False),
+		create_tuple_id_column('pipeline_id', False), create_str('frequency', False),
+		create_json('filter'),
+		create_str('weekday'), create_str('day'),
+		create_int('hour'), create_int('minute'),
+		create_bool('enabled', False),
+		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+	]
+)
+table_snapshot_job_locks = MongoDocument(
+	name='snapshot_job_locks',
+	columns=[
+		create_pk('lock_id'), create_tuple_id_column('tenant_id', False), create_tuple_id_column('scheduler_id', False),
+		create_str('frequency', False), create_datetime('process_date', False), create_int('row_count', False),
+		create_str('status', False),
+		create_tuple_id_column('user_id', False), create_datetime('created_at', False)
+	]
+)
+
 # gui
 table_favorites = MongoDocument(
 	name='favorites',
@@ -262,10 +286,81 @@ table_monitor_rules = MongoDocument(
 		create_tenant_id(), *create_tuple_audit_columns()
 	]
 )
+table_monitor_job_locks = MongoDocument(
+	name='monitor_job_locks',
+	columns=[
+		create_pk('lock_id'), create_tuple_id_column('tenant_id', False), create_tuple_id_column('topic_id', False),
+		create_str('frequency', False), create_datetime('process_date', False),
+		create_str('status', False),
+		create_tuple_id_column('user_id', False), create_datetime('created_at', False)
+	]
+)
+# indicator
+# noinspection DuplicatedCode
+table_indicators = MongoDocument(
+	name='indicators',
+	columns=[
+		create_pk('indicator_id'), create_str('name'),
+		create_tuple_id_column('topic_or_subject_id'), create_tuple_id_column('factor_id'),
+		create_str('base_on'),
+		create_str('category_1'), create_str('category_2'), create_str('category_3'),
+		create_json('value_buckets'), create_json('relevants'),
+		create_json('group_ids'), create_json('filter'),
+		create_description(),
+		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+	]
+)
+table_buckets = MongoDocument(
+	name='buckets',
+	columns=[
+		create_pk('bucket_id'), create_str('name'),
+		create_str('type', False), create_str('include'),
+		create_str('measure'), create_tuple_id_column('enum_id'),
+		create_json('segments'), create_description(),
+		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+	]
+)
+
+# noinspection DuplicatedCode
+table_inspections = MongoDocument(
+	name='inspections',
+	columns=[
+		create_pk('inspection_id'), create_str('name'),
+		create_tuple_id_column('indicator_id'),
+		create_json('aggregate_arithmetics'),
+		create_str('measure_on'),
+		create_tuple_id_column('measure_on_factor_id'), create_tuple_id_column('measure_on_bucket_id'),
+		create_str('time_range_measure'), create_tuple_id_column('time_range_factor_id'),
+		create_json('time_ranges'),
+		create_str('measure_on_time'), create_tuple_id_column('measure_on_time_factor_id'),
+		create_user_id(), create_tenant_id(),
+		*create_tuple_audit_columns()
+	]
+)
+table_achievements = MongoDocument(
+	name='achievements',
+	columns=[
+		create_pk('achievement_id'), create_str('name'),
+		create_str('time_range_type'), create_str('time_range_year'), create_str('time_range_month'),
+		create_bool('compare_with_prev_time_range'), create_json('indicators'),
+		create_description(),
+		create_user_id(), create_tenant_id(),
+		*create_tuple_audit_columns()
+	]
+)
+table_objective_analysis = MongoDocument(
+	name='objective_analysis',
+	columns=[
+		create_pk('analysis_id'), create_str('title'),
+		create_description(), create_json('perspectives'),
+		create_last_visit_time(),
+		create_user_id(), create_tenant_id(),
+		*create_tuple_audit_columns()
+	]
+)
 
 # noinspection DuplicatedCode
 tables: Dict[str, MongoDocument] = {
-	'_schema': table_trino_schema,
 	# snowflake workers
 	SNOWFLAKE_WORKER_ID_TABLE: table_snowflake_competitive_workers,
 	# system
@@ -283,6 +378,8 @@ tables: Dict[str, MongoDocument] = {
 	'topics': table_topics,
 	'pipelines': table_pipelines,
 	'pipeline_graphics': table_pipeline_graphics,
+	'snapshot_schedulers': table_snapshot_schedulers,
+	'snapshot_job_locks': table_snapshot_job_locks,
 	# console
 	'connected_spaces': table_connected_spaces,
 	'connected_space_graphics': table_connected_space_graphics,
@@ -297,7 +394,14 @@ tables: Dict[str, MongoDocument] = {
 	'pipeline_index': table_pipeline_index,
 	# dqc
 	'catalogs': table_catalogs,
-	'monitor_rules': table_monitor_rules
+	'monitor_rules': table_monitor_rules,
+	'monitor_job_locks': table_monitor_job_locks,
+	# indicator
+	'buckets': table_buckets,
+	'indicators': table_indicators,
+	'inspections': table_inspections,
+	'achievements': table_achievements,
+	'objective_analysis': table_objective_analysis
 }
 
 # noinspection DuplicatedCode
