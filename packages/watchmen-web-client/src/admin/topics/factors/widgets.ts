@@ -84,7 +84,7 @@ export const PickerDialogBody = styled(DialogBody)`
 export const PickerTableHeader = styled.div`
 	display               : grid;
 	position              : relative;
-	grid-template-columns : 40px 60px 100px 1fr;
+	grid-template-columns : 40px 60px 120px 1fr;
 	border-bottom         : var(--border);
 	height                : calc(${TABLE_HEADER_HEIGHT});
 	min-height            : calc(${TABLE_HEADER_HEIGHT});
@@ -151,5 +151,15 @@ export const PickerTableBodyCell = styled.div`
 	> div[data-checked=false] {
 		color        : var(--warn-color);
 		border-color : var(--warn-color);
+	}
+	> input {
+		border        : 0;
+		border-radius : 0;
+		width         : 100%;
+		padding-left  : 0;
+		&:hover {
+			border-bottom       : var(--border);
+			border-bottom-color : var(--primary-color);
+		}
 	}
 `;

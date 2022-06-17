@@ -65,6 +65,11 @@ export const TopicPickerTable = (props: { candidates: Array<TopicCandidate> }) =
 		candidate.picked = value;
 		forceUpdate();
 	};
+	const onCandidateNameChange = (candidate: TopicCandidate) => (event: ChangeEvent<HTMLInputElement>) => {
+		const {value} = event.target;
+		candidate.topic.name = value;
+		forceUpdate();
+	};
 
 	const allSelected = items.every(item => item.picked);
 
@@ -90,7 +95,9 @@ export const TopicPickerTable = (props: { candidates: Array<TopicCandidate> }) =
 						          onChange={onSelectionChange(candidate)}/>
 					</PickerTableBodyCell>
 					<PickerTableBodyCell>Topic</PickerTableBodyCell>
-					<PickerTableBodyCell>{getCandidateName(candidate)}</PickerTableBodyCell>
+					<PickerTableBodyCell>
+						<Input value={getCandidateName(candidate)} onChange={onCandidateNameChange(candidate)}/>
+					</PickerTableBodyCell>
 				</PickerTableBodyRow>;
 			})}
 		</PickerTableBody>
