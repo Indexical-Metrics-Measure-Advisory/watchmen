@@ -153,12 +153,13 @@ export const PickerTableBodyCell = styled.div`
 		border-color : var(--warn-color);
 	}
 	> input {
-		border        : 0;
-		border-radius : 0;
-		width         : 100%;
-		padding-left  : 0;
+		border              : 0;
+		border-bottom       : var(--border);
+		border-bottom-color : transparent;
+		border-radius       : 0;
+		width               : 100%;
+		padding-left        : 0;
 		&:hover {
-			border-bottom       : var(--border);
 			border-bottom-color : var(--primary-color);
 		}
 	}
