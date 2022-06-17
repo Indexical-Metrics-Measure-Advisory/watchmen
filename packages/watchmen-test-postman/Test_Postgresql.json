@@ -196,13 +196,13 @@
 		},
 		{
 			"key": "DATASOURCE_TYPE",
-			"value": "",
+			"value": "postgresql",
 			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "DATASOURCE_URL",
-			"value": "",
+			"value": "postgresql+psycopg2://admin:admin@127.0.0.1:5432/watchmen",
 			"type": "default",
 			"enabled": true
 		},
