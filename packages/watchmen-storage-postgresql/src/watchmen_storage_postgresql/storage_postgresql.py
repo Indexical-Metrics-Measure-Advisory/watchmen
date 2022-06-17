@@ -326,7 +326,7 @@ class StoragePostgreSQL(TransactionalStorageSPI):
 	def execute_page_count(self, statement: SQLAlchemyStatement, page_size: int) -> Tuple[int, Optional[DataPage]]:
 		count = self.connection.execute(statement).scalar()
 
-		if count == 0:
+		if count is None or count == 0:
 			return 0, self.create_empty_page(page_size)
 		else:
 			return count, None
