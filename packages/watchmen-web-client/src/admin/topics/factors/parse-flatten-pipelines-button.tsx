@@ -184,21 +184,19 @@ const TopicPicker = (props: {
 	const onConfirmClicked = () => {
 		const topics = candidates.filter(c => c.picked).map(({topic}) => topic);
 		const valid = topics.every(topic => {
-			if (isTopicNameInvalid(topic.name)) {
-				if (!topic.name || !topic.name.trim()) {
-					fire(EventTypes.SHOW_ALERT, <AlertLabel>Topic name is required.</AlertLabel>);
-					return false;
-				} else if (isTopicNameInvalid(topic.name)) {
-					fire(EventTypes.SHOW_ALERT, <AlertLabel>
-						Please use camel case or snake case for topic name.
-					</AlertLabel>);
-					return false;
-				} else if (isTopicNameTooLong(topic.name)) {
-					fire(EventTypes.SHOW_ALERT, <AlertLabel>55 characters maximum for topic name.</AlertLabel>);
-					return false;
-				} else {
-					return true;
-				}
+			if (!topic.name || !topic.name.trim()) {
+				fire(EventTypes.SHOW_ALERT, <AlertLabel>Topic name is required.</AlertLabel>);
+				return false;
+			} else if (isTopicNameInvalid(topic.name)) {
+				fire(EventTypes.SHOW_ALERT, <AlertLabel>
+					Please use camel case or snake case for topic name.
+				</AlertLabel>);
+				return false;
+			} else if (isTopicNameTooLong(topic.name)) {
+				fire(EventTypes.SHOW_ALERT, <AlertLabel>55 characters maximum for topic name.</AlertLabel>);
+				return false;
+			} else {
+				return true;
 			}
 		});
 		if (valid) {
