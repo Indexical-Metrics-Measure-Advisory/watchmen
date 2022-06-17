@@ -222,6 +222,7 @@ export const Dropdown = (props: DropdownProps) => {
 	useEffect(() => {
 		if (state.active) {
 			setPopupShown(true);
+			filterInputRef.current?.focus();
 		}
 	}, [state.active]);
 	useEffect(() => {
