@@ -13,7 +13,6 @@ logger = getLogger(__name__)
 
 
 class StorageOss(TransactionalStorageSPI):
-
 	def __init__(self, oss_client: ObjectStorageService):
 		self.oss_client = oss_client
 
