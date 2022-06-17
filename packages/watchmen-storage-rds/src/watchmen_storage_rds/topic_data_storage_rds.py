@@ -1,15 +1,19 @@
 from abc import abstractmethod
+from datetime import date, time
+from decimal import Decimal
 from logging import getLogger
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from sqlalchemy import and_, func, select, Table, text
 from sqlalchemy.sql import Join, label
 from sqlalchemy.sql.elements import Label, literal_column
 
 from watchmen_model.admin import Topic
-from watchmen_model.common import TopicId
+from watchmen_model.common import DataPage, TopicId
 from watchmen_storage import as_table_name, EntityHelper, FreeAggregateArithmetic, FreeAggregateColumn, \
-	FreeColumn, FreeJoin, FreeJoinType, NoFreeJoinException, TopicDataStorageSPI, \
+	FreeAggregatePager, FreeAggregator, FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, Literal, \
+	NoFreeJoinException, \
+	TopicDataStorageSPI, \
 	UnexpectedStorageException
 from watchmen_utilities import ArrayHelper, is_not_blank
 from .storage_rds import StorageRDS
@@ -108,8 +112,17 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 			return self.build_free_joins_on_multiple(table_joins)
 
 	@abstractmethod
+	def build_literal(self, tables: List[Table], a_literal: Literal, build_plain_value: Callable[[Any], Any] = None):
+		raise NotImplementedError('build_literal is not implemented.')
+
+	# noinspection PyMethodMayBeStatic
 	def build_free_column(self, table_column: FreeColumn, index: int, tables: List[Table]) -> Label:
-		raise NotImplementedError('build_free_column is not implemented yet.')
+		built = self.build_literal(tables, table_column.literal)
+		if isinstance(built, (str, int, float, Decimal, bool, date, time)):
+			# value won't change after build to literal
+			return label(f'column_{index + 1}', built)
+		else:
+			return built.label(f'column_{index + 1}')
 
 	# noinspection PyMethodMayBeStatic
 	def build_free_columns(self, table_columns: Optional[List[FreeColumn]], tables: List[Table]) -> List[Label]:
@@ -204,6 +217,22 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		return ArrayHelper(table_columns) \
 			.some(lambda x: x.arithmetic is not None and x.arithmetic != FreeAggregateArithmetic.NONE)
 
+	def build_aggregate_statement(
+			self, aggregator: FreeAggregator,
+			selection: Callable[[List[FreeAggregateColumn]], Any]
+	) -> Tuple[bool, SQLAlchemyStatement]:
+		select_from, tables = self.build_free_joins(aggregator.joins)
+		statement = select(self.build_free_columns(aggregator.columns, tables)).select_from(select_from)
+		statement = self.build_criteria_for_statement(tables, statement, aggregator.criteria)
+		statement = self.build_fake_aggregate_columns(aggregator.columns, statement)
+		sub_query = statement.subquery()
+
+		aggregate_columns = aggregator.highOrderAggregateColumns
+		statement = select(selection(aggregate_columns)).select_from(sub_query)
+		# obviously, table is not existing. fake a table of sub query selection to build high order criteria
+		statement = self.build_criteria_for_statement([], statement, aggregator.highOrderCriteria)
+		return self.build_aggregate_group_by(aggregate_columns, statement)
+
 	# noinspection PyMethodMayBeStatic
 	def build_aggregate_group_by(
 			self, table_columns: List[FreeAggregateColumn], statement: SQLAlchemyStatement
@@ -216,3 +245,93 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 				*ArrayHelper(non_group_columns).map(lambda x: literal_column(x.name)).to_list())
 			return True, statement
 		return False, statement
+
+	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
+		select_from, tables = self.build_free_joins(finder.joins)
+		statement = select(self.build_free_columns(finder.columns, tables)).select_from(select_from)
+		statement = self.build_criteria_for_statement(tables, statement, finder.criteria)
+		statement = self.build_fake_aggregate_columns(finder.columns, statement)
+		results = self.connection.execute(statement).mappings().all()
+		return ArrayHelper(results) \
+			.map(lambda x: self.deserialize_from_auto_generated_columns(x, finder.columns)) \
+			.to_list()
+
+	def free_page(self, pager: FreePager) -> DataPage:
+		page_size = pager.pageable.pageSize
+		select_from, tables = self.build_free_joins(pager.joins)
+		base_statement = select(self.build_free_columns(pager.columns, tables)).select_from(select_from)
+		base_statement = self.build_criteria_for_statement(tables, base_statement, pager.criteria)
+
+		aggregated, has_group_by, statement = self.build_fake_aggregate_count(pager.columns, base_statement)
+		if aggregated and not has_group_by:
+			count = 1
+		else:
+			count, empty_page = self.execute_page_count(statement, page_size)
+			if count == 0:
+				return empty_page
+
+		page_number, max_page_number = self.compute_page(count, page_size, pager.pageable.pageNumber)
+
+		statement = self.build_fake_aggregate_columns(pager.columns, base_statement)
+		offset = page_size * (page_number - 1)
+		statement = statement.offset(offset).limit(page_size)
+		results = self.connection.execute(statement).mappings().all()
+
+		results = ArrayHelper(results) \
+			.map(lambda x: self.deserialize_from_auto_generated_columns(x, pager.columns)) \
+			.to_list()
+
+		return DataPage(
+			data=results,
+			pageNumber=page_number,
+			pageSize=page_size,
+			itemCount=count,
+			pageCount=max_page_number
+		)
+
+	def free_aggregate_find(self, aggregator: FreeAggregator) -> List[Dict[str, Any]]:
+		_, statement = self.build_aggregate_statement(
+			aggregator, lambda columns: self.build_free_aggregate_columns(columns))
+		statement = self.build_sort_for_statement(statement, aggregator.highOrderSortColumns)
+		if aggregator.highOrderTruncation is not None and aggregator.highOrderTruncation > 0:
+			statement = statement.limit(aggregator.highOrderTruncation)
+
+		results = self.connection.execute(statement).mappings().all()
+
+		def deserialize(row: Dict[str, Any]) -> Dict[str, Any]:
+			return self.deserialize_from_auto_generated_aggregate_columns(row, aggregator.highOrderAggregateColumns)
+
+		return ArrayHelper(results).map(lambda x: deserialize(x)).to_list()
+
+	def free_aggregate_page(self, pager: FreeAggregatePager) -> DataPage:
+		page_size = pager.pageable.pageSize
+		has_group_by, count_statement = self.build_aggregate_statement(pager, lambda columns: func.count())
+		aggregated = self.has_aggregate_column(pager.highOrderAggregateColumns)
+		if aggregated and not has_group_by:
+			count = 1
+		else:
+			count, empty_page = self.execute_page_count(count_statement, page_size)
+			if count == 0:
+				return empty_page
+
+		page_number, max_page_number = self.compute_page(count, page_size, pager.pageable.pageNumber)
+
+		_, statement = self.build_aggregate_statement(
+			pager, lambda columns: self.build_free_aggregate_columns(columns))
+		statement = self.build_sort_for_statement(statement, pager.highOrderSortColumns)
+		offset = page_size * (page_number - 1)
+		statement = statement.offset(offset).limit(page_size)
+		results = self.connection.execute(statement).mappings().all()
+
+		def deserialize(row: Dict[str, Any]) -> Dict[str, Any]:
+			return self.deserialize_from_auto_generated_aggregate_columns(row, pager.highOrderAggregateColumns)
+
+		results = ArrayHelper(results).map(lambda x: deserialize(x)).to_list()
+
+		return DataPage(
+			data=results,
+			pageNumber=page_number,
+			pageSize=page_size,
+			itemCount=count,
+			pageCount=max_page_number
+		)
