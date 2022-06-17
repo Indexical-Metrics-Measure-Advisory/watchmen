@@ -23,6 +23,7 @@ from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, Entity
 from watchmen_utilities import ArrayHelper
 from watchmen_utilities.datetime_helper import last_day_of_month
 from .scheduler_registrar import topic_snapshot_jobs
+from ..common import PipelineKernelException
 
 logger = getLogger(__name__)
 
@@ -126,24 +127,28 @@ def build_variables(process_date: date, frequency: TopicSnapshotFrequency) -> Pi
 	variables.put('processStartYear', process_date.year)
 	variables.put('processStartMonth', process_date.month)
 	variables.put('processStartDay', process_date.day)
-	variables.put('processStartDate', process_date)
+	if isinstance(process_date, datetime):
+		variables.put('processStartDate', process_date.replace(hour=0, minute=0, second=0, microsecond=0))
+	else:
+		variables.put('processStartDate', process_date)
+
 	if frequency == TopicSnapshotFrequency.DAILY:
-		variables.put('processEndYear', process_date.year)
-		variables.put('processEndMonth', process_date.month)
-		variables.put('processEndDay', process_date.day)
-		variables.put('processEndDate', process_date)
+		end_date = process_date
 	elif frequency == TopicSnapshotFrequency.WEEKLY:
 		end_date = process_date + timedelta(days=6)
-		variables.put('processEndYear', end_date.year)
-		variables.put('processEndMonth', end_date.month)
-		variables.put('processEndDay', end_date.day)
-		variables.put('processEndDate', end_date)
 	elif frequency == TopicSnapshotFrequency.MONTHLY:
 		end_date = process_date.replace(day=last_day_of_month(process_date))
-		variables.put('processEndYear', end_date.year)
-		variables.put('processEndMonth', end_date.month)
-		variables.put('processEndDay', end_date.day)
+	else:
+		raise PipelineKernelException(f'Topic snapshot scheduler frequency[{frequency}] is not supported.')
+
+	variables.put('processEndYear', end_date.year)
+	variables.put('processEndMonth', end_date.month)
+	variables.put('processEndDay', end_date.day)
+	if isinstance(end_date, datetime):
+		variables.put('processEndDate', end_date.replace(hour=23, minute=59, second=59, microsecond=999999))
+	else:
 		variables.put('processEndDate', end_date)
+
 	return variables
 
 
