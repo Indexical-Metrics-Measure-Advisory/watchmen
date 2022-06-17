@@ -10,7 +10,7 @@ import {Topic} from '@/services/data/tuples/topic-types';
 import {isNotRawTopic, isRawTopic} from '@/services/data/tuples/topic-utils';
 import {QueryTuple} from '@/services/data/tuples/tuple-types';
 import {AdminCacheData} from '@/services/local-persist/types';
-import {againstSnakeCaseName, noop} from '@/services/utils';
+import {noop} from '@/services/utils';
 import {AlertLabel} from '@/widgets/alert/widgets';
 import {ICON_DOWNLOAD, TUPLE_SEARCH_PAGE_SIZE} from '@/widgets/basic/constants';
 import {useEventBus} from '@/widgets/events/event-bus';
@@ -25,7 +25,7 @@ import {AdminCacheEventTypes} from '../cache/cache-event-bus-types';
 import {renderCard} from './card';
 import {renderEditor} from './editor';
 import {ScriptsDownloadDialog} from './scripts-download-dialog';
-import {createTopic} from './utils';
+import {createTopic, isFactorNameInvalid, isFactorNameTooLong, isTopicNameInvalid, isTopicNameTooLong} from './utils';
 
 const fetchTopicAndCodes = async (queryTopic: QueryTopic) => {
 	const {topic} = await fetchTopic(queryTopic.topicId);
@@ -35,8 +35,6 @@ const fetchTopicAndCodes = async (queryTopic: QueryTopic) => {
 };
 
 const getKeyOfTopic = (topic: QueryTopic) => topic.topicId;
-
-const isNameInvalid = (name: string) => againstSnakeCaseName(name, true);
 
 const isFactorNotHold = (topic: Topic, factor: Factor): boolean => {
 	const name = factor.name;
@@ -84,9 +82,16 @@ const AdminTopics = () => {
 					onSaved(topic, false);
 				});
 				return;
-			} else if (isNameInvalid(topic.name)) {
+			} else if (isTopicNameInvalid(topic.name)) {
 				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
 					Please use camel case or snake case for topic name.
+				</AlertLabel>, () => {
+					onSaved(topic, false);
+				});
+				return;
+			} else if (isTopicNameTooLong(topic.name)) {
+				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
+					55 characters maximum for topic name.
 				</AlertLabel>, () => {
 					onSaved(topic, false);
 				});
@@ -112,13 +117,24 @@ const AdminTopics = () => {
 					onSaved(topic, false);
 				});
 				return;
-			} else if (topic.factors.some(f => isNameInvalid(f.name))) {
+			} else if (topic.factors.some(f => isFactorNameInvalid(f.name))) {
 				const indexes = topic.factors
-					.map((f, index) => isNameInvalid(f.name) ? (index + 1) : -1)
+					.map((f, index) => isFactorNameInvalid(f.name) ? (index + 1) : -1)
 					.filter(index => index !== -1)
 					.map(index => `#${index}`);
 				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
 					Use camel case or snake case for factor name, please check {indexes.join(', ')}.
+				</AlertLabel>, () => {
+					onSaved(topic, false);
+				});
+				return;
+			} else if (topic.factors.some(f => isFactorNameTooLong(topic, f))) {
+				const indexes = topic.factors
+					.map((f, index) => isFactorNameTooLong(topic, f) ? (index + 1) : -1)
+					.filter(index => index !== -1)
+					.map(index => `#${index}`);
+				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
+					55 characters maximum for factor name, please check {indexes.join(', ')}.
 				</AlertLabel>, () => {
 					onSaved(topic, false);
 				});
