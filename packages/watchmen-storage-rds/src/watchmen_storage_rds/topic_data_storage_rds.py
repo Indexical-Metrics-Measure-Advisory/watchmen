@@ -309,7 +309,6 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		page_size = pager.pageable.pageSize
 
 		_, data_statement = self.build_aggregate_statement(pager)
-		data_statement = self.build_sort_for_statement(data_statement, pager.highOrderSortColumns)
 
 		aggregated = self.has_aggregate_column(pager.highOrderAggregateColumns)
 		has_group_by = self.has_group_by_column(pager.highOrderAggregateColumns)
@@ -322,6 +321,7 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 			if count == 0:
 				return empty_page
 
+		data_statement = self.build_sort_for_statement(data_statement, pager.highOrderSortColumns)
 		page_number, max_page_number = self.compute_page(count, page_size, pager.pageable.pageNumber)
 		offset = page_size * (page_number - 1)
 		data_statement = data_statement.offset(offset).limit(page_size)
