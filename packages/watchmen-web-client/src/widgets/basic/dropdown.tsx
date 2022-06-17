@@ -88,7 +88,6 @@ const Options = styled.div.attrs<State & { shown: boolean }>(
 		 atBottom, shown,
 		 top, left, height, minWidth
 	 }) => {
-		console.log(shown);
 		return {
 			'data-widget': 'dropdown-options-container',
 			'data-v-scroll': '',
@@ -223,6 +222,7 @@ export const Dropdown = (props: DropdownProps) => {
 	useEffect(() => {
 		if (state.active) {
 			setPopupShown(true);
+			filterInputRef.current?.focus();
 		}
 	}, [state.active]);
 	useEffect(() => {
