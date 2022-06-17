@@ -1,5 +1,5 @@
 from .pipeline_router import ask_save_pipeline_action
 from .space_router import ask_save_space_action
 from .topic_router import ask_save_topic_action
-from .user_group_router import ask_save_user_group_action, SyncUserGroupChangeWithIndicator
+from .user_group_router import ask_save_user_group_action
 from .user_router import ask_save_user_action
