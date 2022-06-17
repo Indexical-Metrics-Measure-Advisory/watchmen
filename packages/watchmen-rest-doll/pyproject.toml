@@ -23,6 +23,8 @@ watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true,
 watchmen-storage-mongodb = { path = "../watchmen-storage-mongodb", develop = true, optional = true }
 watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, optional = true }
 watchmen-storage-postgresql = { path = "../watchmen-storage-postgresql", develop = true, optional = true }
+watchmen-storage-oss = { path = "../watchmen-storage-oss", develop = true, optional = true }
+watchmen-storage-s3 = { path = "../watchmen-storage-s3", develop = true, optional = true }
 kafka-python = { version = "^2.0.2", optional = true }
 aiokafka = { version = "^0.7.2", optional = true }
 aio-pika = { version = "^7.1.2", optional = true }
@@ -40,6 +42,8 @@ oracle = ["watchmen-storage-oracle"]
 mongodb = ["watchmen-storage-mongodb"]
 mssql = ["watchmen-storage-mssql"]
 postgresql = ["watchmen-storage-postgresql"]
+oss = ["watchmen-storage-oss"]
+s3 = ["watchmen-storage-s3"]
 kafka = ["kafka-python", "aiokafka"]
 rabbit = ["aio-pika"]
 prometheus = ["starlette-prometheus"]
