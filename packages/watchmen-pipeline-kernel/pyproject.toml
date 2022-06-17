@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-pipeline-kernel"
-version = "16.1.4"
+version = "16.1.8"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -12,12 +12,12 @@ packages = [
 python = "^3.9"
 dask = "^2022.4.0"
 distributed = "^2022.4.0"
-watchmen-data-kernel = "16.1.4"
-watchmen-storage-mysql = { version = "16.1.4", optional = true }
-watchmen-storage-oracle = { version = "16.1.4", optional = true }
-watchmen-storage-mongodb = { version = "16.1.4", optional = true }
-watchmen-storage-mssql = { version = "16.1.4", optional = true }
-watchmen-storage-postgresql = { version = "16.1.4", optional = true }
+watchmen-data-kernel = "16.1.8"
+watchmen-storage-mysql = { version = "16.1.8", optional = true }
+watchmen-storage-oracle = { version = "16.1.8", optional = true }
+watchmen-storage-mongodb = { version = "16.1.8", optional = true }
+watchmen-storage-mssql = { version = "16.1.8", optional = true }
+watchmen-storage-postgresql = { version = "16.1.8", optional = true }
 requests = { version = "^2.27.1", optional = true }
 
 [tool.poetry.dev-dependencies]
