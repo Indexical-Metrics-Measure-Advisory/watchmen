@@ -1,8 +1,9 @@
 import {Factor, FactorType} from '@/services/data/tuples/factor-types';
 import {Topic, TopicKind, TopicType} from '@/services/data/tuples/topic-types';
-import {isNotRawTopic} from '@/services/data/tuples/topic-utils';
+import {isNotRawTopic, isRawTopic} from '@/services/data/tuples/topic-utils';
 import {generateUuid, removeFakeIdPrefix} from '@/services/data/tuples/utils';
 import {getCurrentTime} from '@/services/data/utils';
+import {againstSnakeCaseName} from '@/services/utils';
 
 export const createTopic = (): Topic => {
 	return {
@@ -65,4 +66,16 @@ export const isFactorCanBeFlatten = (topic: Topic, factor: Factor): boolean => {
 
 	const [, ...names] = name.split('.').reverse();
 	return isSubFactorCanBeFlatten(topic, names.reverse().join('.'));
+};
+
+export const isTopicNameInvalid = (name: string) => againstSnakeCaseName(name, false);
+export const isTopicNameTooLong = (name: string) => name.trim().length > 55;
+
+export const isFactorNameInvalid = (name: string) => againstSnakeCaseName(name, true);
+export const isFactorNameTooLong = (topic: Topic, factor: Factor) => {
+	if (isRawTopic(topic)) {
+		return factor.flatten && factor.name.trim().length > 55;
+	} else {
+		return factor.name.trim().length > 55;
+	}
 };
