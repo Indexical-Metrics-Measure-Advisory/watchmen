@@ -12,9 +12,7 @@ from watchmen_model.admin import Topic
 from watchmen_model.common import DataPage, TopicId
 from watchmen_storage import as_table_name, EntityHelper, FreeAggregateArithmetic, FreeAggregateColumn, \
 	FreeAggregatePager, FreeAggregator, FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, Literal, \
-	NoFreeJoinException, \
-	TopicDataStorageSPI, \
-	UnexpectedStorageException
+	NoFreeJoinException, TopicDataStorageSPI, UnexpectedStorageException
 from watchmen_utilities import ArrayHelper, is_not_blank
 from .storage_rds import StorageRDS
 from .table_defs import register_table
@@ -107,6 +105,7 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 			# single topic
 			entity_name = table_joins[0].primary.entityName
 			table = self.find_table(entity_name)
+			# noinspection PyTypeChecker
 			return table, [table]
 		else:
 			return self.build_free_joins_on_multiple(table_joins)
@@ -139,6 +138,9 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 
 	# noinspection PyMethodMayBeStatic, DuplicatedCode
 	def fake_aggregate_columns(self, table_columns: List[FreeColumn]) -> Tuple[bool, List[FreeAggregateColumn]]:
+		"""
+		find aggregate columns from given table columns
+		"""
 		aggregated = ArrayHelper(table_columns) \
 			.some(lambda x: x.arithmetic is not None and x.arithmetic != FreeAggregateArithmetic.NONE)
 		return aggregated, [] if not aggregated else ArrayHelper(table_columns).map_with_index(
@@ -148,34 +150,31 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 				alias=x.alias
 			)).to_list()
 
-	def build_fake_aggregate_columns(
-			self, table_columns: List[FreeColumn], statement: SQLAlchemyStatement) -> SQLAlchemyStatement:
+	def build_fake_aggregation_statement(
+			self, table_columns: List[FreeColumn], base_statement: SQLAlchemyStatement) -> SQLAlchemyStatement:
 		"""
 		use sub query to do free columns aggregate to avoid group by computation
 		"""
 		aggregated, aggregate_columns = self.fake_aggregate_columns(table_columns)
 		if aggregated:
-			sub_query = statement.subquery()
-			statement = select(self.build_free_aggregate_columns(aggregate_columns, "column")).select_from(sub_query)
+			sub_query = base_statement.subquery()
+			statement = select(self.build_free_aggregate_columns(aggregate_columns, 'column')).select_from(sub_query)
 			_, statement = self.build_aggregate_group_by(aggregate_columns, statement)
+			return statement
+		else:
+			return base_statement
 
-		return statement
-
-	def build_fake_aggregate_count(
-			self, table_columns: List[FreeColumn], statement: SQLAlchemyStatement
+	def build_fake_aggregation_count(
+			self, table_columns: List[FreeColumn], data_statement: SQLAlchemyStatement
 	) -> Tuple[bool, bool, SQLAlchemyStatement]:
 		"""
-		use sub query to do free columns aggregate to avoid group by computation
+		build count on given data statement
 		"""
-		sub_query = statement.subquery()
+		sub_query = data_statement.subquery()
 		aggregated, aggregate_columns = self.fake_aggregate_columns(table_columns)
-		if aggregated:
-			statement = select(func.count()).select_from(sub_query)
-			has_group_by, statement = self.build_aggregate_group_by(aggregate_columns, statement)
-			return aggregated, has_group_by, statement
-		else:
-			statement = select(func.count()).select_from(sub_query)
-			return False, False, statement
+		count_statement = select(func.count()).select_from(sub_query)
+		# if count of aggregate columns not equals count of table columns, means group by column(s) existing
+		return aggregated, len(aggregate_columns) != len(table_columns), count_statement
 
 	# noinspection PyMethodMayBeStatic
 	def build_free_aggregate_column(self, table_column: FreeAggregateColumn, index: int, prefix_name: str) -> Label:
@@ -224,7 +223,7 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		select_from, tables = self.build_free_joins(aggregator.joins)
 		statement = select(self.build_free_columns(aggregator.columns, tables)).select_from(select_from)
 		statement = self.build_criteria_for_statement(tables, statement, aggregator.criteria)
-		statement = self.build_fake_aggregate_columns(aggregator.columns, statement)
+		statement = self.build_fake_aggregation_statement(aggregator.columns, statement)
 		sub_query = statement.subquery()
 
 		aggregate_columns = aggregator.highOrderAggregateColumns
@@ -250,7 +249,7 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		select_from, tables = self.build_free_joins(finder.joins)
 		statement = select(self.build_free_columns(finder.columns, tables)).select_from(select_from)
 		statement = self.build_criteria_for_statement(tables, statement, finder.criteria)
-		statement = self.build_fake_aggregate_columns(finder.columns, statement)
+		statement = self.build_fake_aggregation_statement(finder.columns, statement)
 		results = self.connection.execute(statement).mappings().all()
 		return ArrayHelper(results) \
 			.map(lambda x: self.deserialize_from_auto_generated_columns(x, finder.columns)) \
@@ -262,20 +261,21 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		base_statement = select(self.build_free_columns(pager.columns, tables)).select_from(select_from)
 		base_statement = self.build_criteria_for_statement(tables, base_statement, pager.criteria)
 
-		aggregated, has_group_by, statement = self.build_fake_aggregate_count(pager.columns, base_statement)
+		data_statement = self.build_fake_aggregation_statement(pager.columns, base_statement)
+
+		aggregated, has_group_by, count_statement = self.build_fake_aggregation_count(pager.columns, data_statement)
 		if aggregated and not has_group_by:
+			# all columns are aggregated, there is one row exactly
 			count = 1
 		else:
-			count, empty_page = self.execute_page_count(statement, page_size)
+			count, empty_page = self.execute_page_count(count_statement, page_size)
 			if count == 0:
 				return empty_page
 
 		page_number, max_page_number = self.compute_page(count, page_size, pager.pageable.pageNumber)
-
-		statement = self.build_fake_aggregate_columns(pager.columns, base_statement)
 		offset = page_size * (page_number - 1)
-		statement = statement.offset(offset).limit(page_size)
-		results = self.connection.execute(statement).mappings().all()
+		data_statement = data_statement.offset(offset).limit(page_size)
+		results = self.connection.execute(data_statement).mappings().all()
 
 		results = ArrayHelper(results) \
 			.map(lambda x: self.deserialize_from_auto_generated_columns(x, pager.columns)) \
