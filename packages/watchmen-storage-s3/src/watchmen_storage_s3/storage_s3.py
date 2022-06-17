@@ -223,8 +223,8 @@ class StorageS3(TransactionalStorageSPI):
 		raise UnexpectedStorageException(f'Method[count] does not support by S3 storage.')
 
 
+# noinspection DuplicatedCode
 class TopicDataStorageS3(StorageS3, TopicDataStorageSPI):
-
 	def register_topic(self, topic: Topic) -> None:
 		register_directory(topic)
 
@@ -247,14 +247,6 @@ class TopicDataStorageS3(StorageS3, TopicDataStorageSPI):
 	# noinspection PyMethodMayBeStatic
 	def is_free_find_supported(self) -> bool:
 		return False
-
-	def append_topic_to_trino(self, topic: Topic) -> None:
-		# append_topic_to_trino is not required in S3
-		pass
-
-	def drop_topic_from_trino(self, topic: Topic) -> None:
-		# drop_topic_from_trino is not required in S3
-		pass
 
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
 		"""

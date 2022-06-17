@@ -224,8 +224,8 @@ class StorageOss(TransactionalStorageSPI):
 		raise UnexpectedStorageException(f'Method[count] does not support by oss storage.')
 
 
+# noinspection DuplicatedCode
 class TopicDataStorageOss(StorageOss, TopicDataStorageSPI):
-
 	def register_topic(self, topic: Topic) -> None:
 		register_directory(topic)
 
@@ -248,14 +248,6 @@ class TopicDataStorageOss(StorageOss, TopicDataStorageSPI):
 	# noinspection PyMethodMayBeStatic
 	def is_free_find_supported(self) -> bool:
 		return False
-
-	def append_topic_to_trino(self, topic: Topic) -> None:
-		# append_topic_to_trino is not required in oss
-		pass
-
-	def drop_topic_from_trino(self, topic: Topic) -> None:
-		# drop_topic_from_trino is not required in oss
-		pass
 
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
 		"""
