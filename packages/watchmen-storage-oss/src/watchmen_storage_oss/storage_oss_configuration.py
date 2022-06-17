@@ -10,7 +10,7 @@ class Configuration:
 	dataSource: DataSource = DataSource(dataSourceType=DataSourceType.OSS)
 	params: OssDataSourceParams = OssDataSourceParams()
 
-	def host(self, host: str, port: int = 3306) -> Configuration:
+	def host(self, host: str, port: int) -> Configuration:
 		self.dataSource.host = host
 		self.dataSource.port = str(port)
 		return self
