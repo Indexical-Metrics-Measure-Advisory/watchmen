@@ -3,14 +3,15 @@ from typing import Callable, List, Optional, Union
 from fastapi import APIRouter, Body, Depends
 
 from watchmen_auth import PrincipalService
+from watchmen_indicator_kernel.meta import IndicatorService
 from watchmen_meta.admin import SpaceService, UserGroupService, UserService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import Space, User, UserGroup, UserRole
-from watchmen_model.common import DataPage, Pageable, SpaceId, TenantId, UserGroupId, UserId
+from watchmen_model.common import DataPage, IndicatorId, Pageable, SpaceId, TenantId, UserGroupId, UserId
+from watchmen_model.indicator import Indicator
 from watchmen_rest import get_admin_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
-from watchmen_rest_doll.indicator import SyncUserGroupChangeWithIndicator
 from watchmen_rest_doll.util import trans, trans_readonly
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 
@@ -28,6 +29,11 @@ def get_user_service(user_group_service: UserGroupService) -> UserService:
 
 def get_space_service(user_group_service: UserGroupService) -> SpaceService:
 	return SpaceService(
+		user_group_service.storage, user_group_service.snowflakeGenerator, user_group_service.principalService)
+
+
+def get_indicator_service(user_group_service: UserGroupService) -> IndicatorService:
+	return IndicatorService(
 		user_group_service.storage, user_group_service.snowflakeGenerator, user_group_service.principalService)
 
 
@@ -143,6 +149,83 @@ def remove_user_group_from_spaces(
 ) -> None:
 	remove_user_group_from_holders(
 		get_space_service(user_group_service), user_group_id, space_ids, tenant_id, 'Space')
+
+
+class SyncUserGroupChangeWithIndicator:
+	# noinspection PyMethodMayBeStatic
+	def has_user_group_id(self, indicator: Indicator, user_group_id: UserGroupId) -> bool:
+		if indicator.groupIds is None:
+			return False
+		elif len(indicator.groupIds) == 0:
+			return False
+		else:
+			return user_group_id in indicator.groupIds
+
+	# noinspection PyMethodMayBeStatic
+	def append_user_group_id(self, indicator: Indicator, user_group_id: UserGroupId) -> Indicator:
+		if indicator.groupIds is None:
+			indicator.groupIds = [user_group_id]
+		else:
+			indicator.groupIds.append(user_group_id)
+		return indicator
+
+	# noinspection PyMethodMayBeStatic
+	def remove_user_group_id(self, indicator: Indicator, user_group_id: UserGroupId) -> Indicator:
+		indicator.groupIds = ArrayHelper(indicator.groupIds).filter(lambda y: y != user_group_id).to_list()
+		return indicator
+
+	# noinspection PyMethodMayBeStatic
+	def update_indicator(self, service: IndicatorService, indicator: Indicator) -> None:
+		service.update(indicator)
+
+	# noinspection DuplicatedCode,PyMethodMayBeStatic
+	def sync_on_create(
+			self, user_group_id: UserGroupId, indicator_ids: Optional[List[IndicatorId]],
+			tenant_id: TenantId, user_group_service: UserGroupService):
+		if indicator_ids is None:
+			return
+
+		given_count = len(indicator_ids)
+		if given_count == 0:
+			# do nothing
+			return
+
+		indicator_service = get_indicator_service(user_group_service)
+		holders = indicator_service.find_by_ids(indicator_ids, tenant_id)
+		found_count = len(holders)
+		if given_count != found_count:
+			raise_400('Indicator ids do not match.')
+
+		ArrayHelper(holders) \
+			.filter(lambda x: not self.has_user_group_id(x, user_group_id)) \
+			.map(lambda x: self.append_user_group_id(x, user_group_id)) \
+			.each(lambda x: self.update_indicator(indicator_service, x))
+
+	# noinspection DuplicatedCode
+	def sync_on_update(
+			self, user_group_id: UserGroupId, indicator_ids: Optional[List[IndicatorId]],
+			removed_indicator_ids: Optional[List[IndicatorId]], tenant_id: TenantId,
+			user_group_service: UserGroupService):
+		if removed_indicator_ids is None:
+			return
+
+		given_count = len(removed_indicator_ids)
+		if given_count == 0:
+			# do nothing
+			return
+
+		indicator_service = get_indicator_service(user_group_service)
+		holders = indicator_service.find_by_ids(removed_indicator_ids, tenant_id)
+		found_count = len(holders)
+		if given_count != found_count:
+			raise_400('Indicator ids do not match.')
+
+		ArrayHelper(holders) \
+			.filter(lambda x: self.has_user_group_id(x, user_group_id)) \
+			.map(lambda x: self.remove_user_group_id(x, user_group_id)) \
+			.each(lambda x: self.update_indicator(indicator_service, x))
+
+		self.sync_on_create(user_group_id, indicator_ids, tenant_id, user_group_service)
 
 
 sync_user_group_change_with_indicator_handler = SyncUserGroupChangeWithIndicator()
