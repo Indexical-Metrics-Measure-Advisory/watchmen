@@ -359,6 +359,10 @@ export const Trigger = (props: { topics: Array<Topic>, pipelines: Array<Pipeline
 								? <FontAwesomeIcon icon={ICON_LOADING} spin={true}/>
 								: null}
 						</TriggerButton>
+						<TriggerText>or</TriggerText>
+						<TriggerButton ink={ButtonInk.PRIMARY} onClick={onDownloadClicked}>
+							Download Data, Run with CLI
+						</TriggerButton>
 					</RunInBrowserContainer>}
 				{runningState.running === RunningStatus.ING || runningState.running === RunningStatus.STOPPED
 					? <>
