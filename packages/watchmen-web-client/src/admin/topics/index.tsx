@@ -134,7 +134,7 @@ const AdminTopics = () => {
 					.filter(index => index !== -1)
 					.map(index => `#${index}`);
 				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
-					55 characters maximum for factor name, please check {indexes.join(', ')}.
+					60 characters maximum for factor name, please check {indexes.join(', ')}.
 				</AlertLabel>, () => {
 					onSaved(topic, false);
 				});
