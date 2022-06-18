@@ -1,9 +1,10 @@
 name: Test Build Mysql
-on:
- schedule:
-   - cron: "0 0 * * *"
 
-#on: workflow_dispatch
+#on:
+# schedule:
+#   - cron: "0 0 * * *"
+
+on: workflow_dispatch
 
 jobs:
   test-api:
@@ -99,6 +100,7 @@ jobs:
         working-directory: ./packages/watchmen-rest-doll
         run: |
           poetry config virtualenvs.create false
+          poetry update
           poetry install --no-dev -vv -E mysql -E trino
           uvicorn watchmen_rest_doll.main:app --host='0.0.0.0' --port='8000' > server.out 2>&1 &
       - name: Install Node
