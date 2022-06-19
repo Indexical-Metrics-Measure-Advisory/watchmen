@@ -28,7 +28,6 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
-      - name: Create database
+      - name: check mssql
         run: |
-          sudo apt-get update && sudo apt-get install -y mssql-tools
-          /opt/mssql-tools/bin/sqlcmd -S tcp:localhost,1433 -U SA -P 'admin' -Q 'CREATE DATABASE watchmen;'
+          docker ps -a
