@@ -31,4 +31,4 @@ jobs:
       - name: Create database
         run: |
           sudo apt-get update && sudo apt-get install -y mssql-tools
-          /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'admin' -Q 'CREATE DATABASE watchmen;'
+          /opt/mssql-tools/bin/sqlcmd -S tcp:localhost,1433 -U SA -P 'admin' -Q 'CREATE DATABASE watchmen;'
