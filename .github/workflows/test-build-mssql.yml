@@ -8,7 +8,7 @@ on: workflow_dispatch
 
 env:
   DB_USER: admin
-  DB_PASSWORD: admin
+  DB_PASSWORD: yourStrong(!)Password
   DB_DATABASE: watchmen
   DB_ROOT_PASSWORD: admin
 
@@ -24,12 +24,11 @@ jobs:
         env:
           ACCEPT_EULA: Y
           SA_PASSWORD: ${{env.DB_PASSWORD}}
-          options: --name=mssql --health-cmd="/opt/mssql-tools/bin/sqlcmd -S 127.0.0.1 -U SA -P 'admin' -Q 'SELECT 1'" --health-interval=10s --health-timeout=10s --health-retries=5
+          options: --name=mssql --health-cmd="/opt/mssql-tools/bin/sqlcmd -S 127.0.0.1 -U SA -P 'yourStrong(!)Password' -Q 'SELECT 1'" --health-interval=10s --health-timeout=10s --health-retries=5
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
       - name: Create database
         run: |
-          sleep 10
           sudo apt-get update && sudo apt-get install -y mssql-tools
-          /opt/mssql-tools/bin/sqlcmd -S 127.0.0.1 -U SA -P 'admin' -Q 'CREATE DATABASE watchmen'
+          /opt/mssql-tools/bin/sqlcmd -S 127.0.0.1,1433 -U SA -P 'yourStrong(!)Password' -Q 'CREATE DATABASE watchmen'
