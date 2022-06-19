@@ -1,0 +1,36 @@
+name: Test Build Mssql
+
+#on:
+#  schedule:
+#    - cron: "0 0 * * *"
+
+on: workflow_dispatch
+
+env:
+  DB_USER: admin
+  DB_PASSWORD: admin
+  DB_DATABASE: watchmen
+  DB_ROOT_PASSWORD: admin
+
+jobs:
+  container-job:
+    runs-on: ubuntu-latest
+
+    services:
+      mssql:
+        image: mcr.microsoft.com/mssql/server:2017-latest
+        ports:
+          - 1433:1433
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: ${{env.DB_PASSWORD}}
+        options:
+          --name=mssql --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'admin' -Q 'SELECT 1'" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      - name: Create database
+        run: |
+          sudo apt-get update && sudo apt-get install -y mssql-tools
+          /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'admin' -Q 'CREATE DATABASE watchmen;'
