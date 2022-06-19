@@ -45,3 +45,16 @@ jobs:
                   done
               fi
             done
+      - name: Run db data script
+        run: |
+          script_path=./packages/watchmen-storage-mssql/data-scripts
+          for version in `ls ${script_path}`
+            do
+              if [ -d ${script_path}/$version ];then
+                for file in ${script_path}/$version/*
+                  do
+                    echo `pwd`/$file
+                    /opt/mssql-tools/bin/sqlcmd -S 127.0.0.1,1433 -U SA -P 'yourStrong(!)Password' -i $file
+                  done
+              fi
+            done
