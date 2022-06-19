@@ -30,5 +30,6 @@ jobs:
         uses: actions/checkout@v3
       - name: Create database
         run: |
+          sleep 10
           sudo apt-get update && sudo apt-get install -y mssql-tools
-          /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'admin' -Q 'CREATE DATABASE watchmen;'
+          /opt/mssql-tools/bin/sqlcmd -S 127.0.0.1 -U SA -P 'admin' -Q 'CREATE DATABASE watchmen'
