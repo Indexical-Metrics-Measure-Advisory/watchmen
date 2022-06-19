@@ -35,12 +35,12 @@ jobs:
               echo "Ubuntu $(lsb_release -rs) is not currently supported.";
               exit;
           fi
-
+          
           sudo su
-          sudo curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
-
-          sudo curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list > /etc/apt/sources.list.d/mssql-release.list
-
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+          
+          curl https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/prod.list > /etc/apt/sources.list.d/mssql-release.list
+          
           exit
           sudo apt-get update
           sudo ACCEPT_EULA=Y apt-get install -y msodbcsql17
@@ -52,4 +52,4 @@ jobs:
           sudo apt-get install -y unixodbc-dev
       - name: Create database
         run: |
-          sqlcmd -S 127.0.0.1 -U sa -P 'admin' -Q 'CREATE DATABASE watchmen;'
+          sqlcmd -S localhost -U sa -P 'admin' -Q 'CREATE DATABASE watchmen;'
