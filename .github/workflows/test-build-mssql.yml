@@ -34,7 +34,7 @@ jobs:
           /opt/mssql-tools/bin/sqlcmd -S 127.0.0.1,1433 -U SA -P 'yourStrong(!)Password' -Q 'CREATE DATABASE watchmen'
       - name: Run db meta script
         run: |
-          script_path=./packages/watchmen-storage-mysql/meta-scripts
+          script_path=./packages/watchmen-storage-mssql/meta-scripts
           for version in `ls ${script_path}`
             do
               if [ -d ${script_path}/$version ];then
