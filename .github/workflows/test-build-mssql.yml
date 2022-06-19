@@ -24,7 +24,7 @@ jobs:
         env:
           ACCEPT_EULA: Y
           SA_PASSWORD: ${{env.DB_PASSWORD}}
-        options: --name=mssql --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'admin' -Q 'SELECT 1'" --health-interval=10s --health-timeout=10s --health-retries=5
+        options: --name=mssql --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -O 1433 -U SA -P 'admin' -Q 'SELECT 1'" --health-interval=10s --health-timeout=10s --health-retries=5
 
     steps:
       - name: Check out repository code
