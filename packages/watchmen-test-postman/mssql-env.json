@@ -1,0 +1,285 @@
+{
+	"id": "6d49b7ac-7141-4450-8e2e-ab78680d6577",
+	"name": "mssql",
+	"values": [
+		{
+			"key": "URL_PREFIX",
+			"value": "http://localhost:8000",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "DATASOURCE_HOST",
+			"value": "localhost",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "DATASOURCE_PORT",
+			"value": "1433",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "DATASOURCE_USERNAME",
+			"value": "SA",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "DATASOURCE_PASSWORD",
+			"value": "yourStrong(!)Password",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "DATASOURCE_SCHEMA",
+			"value": "watchmen",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "SUPER_ADMIN_JWT_TOKEN",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "JWT_TOKEN",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "TENANT_ID",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "PIPELINE_MONITOR_TOPIC",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "RAW_TOPIC_ID",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "RAW_TOPIC_NAME",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "RAW_TOPIC_VERSION",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "TOPIC_VERSION",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "TOPIC_ID_2",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "TOPIC_NAME_2",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "TOPIC_VERSION_2",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "SPACE_NAME",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "TOPIC_ID_1",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "TOPIC_NAME_1",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "TOPIC_VERSION_1",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "TENANT_CREATED_AT",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "TENANT_CREATED_BY",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "TENANT_VERSION",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "EXTERNAL_WRITER_VERSION",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "PAT_ID",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "PAT_TOKEN",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "FAVORITE_USER_ID",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "LASTSNAPSHOT_USER_ID",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "USER_GROUP_NAME",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "ENUM_ID",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "ENUM_NAME",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "DATASOURCE_TYPE",
+			"value": "mssql",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "DATASOURCE_URL",
+			"value": "mssql+pyodbc://SA:yourStrong(!)Password@localhost:1433/watchmen?driver=ODBC+Driver+17+for+SQL+Server",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "PIPELINE_CREATED_AT",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "PIPELINE_CREATED_BY",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "PIPELINE_VERSION",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "DATA_SOURCE_ID",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "TOPIC_ID",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "TOPIC_NAME",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "READ_TOPIC_ID",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "READ_TOPIC_NAME",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "READ_TOPIC_VERSION",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "AGGRE_TOPIC_ID",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "AGGRE_TOPIC_NAME",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		},
+		{
+			"key": "AGGRE_TOPIC_VERSION",
+			"value": "",
+			"type": "any",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2022-06-19T19:28:15.742Z",
+	"_postman_exported_using": "Postman/9.18.3"
+}
