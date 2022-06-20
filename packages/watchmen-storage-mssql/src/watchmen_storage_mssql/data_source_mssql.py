@@ -62,6 +62,9 @@ class MSSQLDataSourceHelper(DataSourceHelper):
 
 	@staticmethod
 	def find_param(params: Optional[List[DataSourceParam]], key: str) -> Optional[str]:
+		if params is None:
+			return None
+		
 		for param in params:
 			if is_not_blank(param.name) and param.name.strip().lower() == key:
 				value = param.value
