@@ -41,7 +41,7 @@ jobs:
                 for file in ${script_path}/$version/*
                   do
                     echo `pwd`/$file
-                    /opt/mssql-tools/bin/sqlcmd -S 127.0.0.1\watchmen,1433 -U SA -P 'yourStrong(!)Password' -i $file
+                    /opt/mssql-tools/bin/sqlcmd -S 127.0.0.1,1433 -U SA -P 'yourStrong(!)Password' -d watchmen -i $file
                   done
               fi
             done
@@ -54,7 +54,7 @@ jobs:
                 for file in ${script_path}/$version/*
                   do
                     echo `pwd`/$file
-                    /opt/mssql-tools/bin/sqlcmd -S 127.0.0.1\watchmen,1433 -U SA -P 'yourStrong(!)Password' -i $file
+                    /opt/mssql-tools/bin/sqlcmd -S 127.0.0.1,1433 -U SA -P 'yourStrong(!)Password' -d watchmen -i $file
                   done
               fi
             done
