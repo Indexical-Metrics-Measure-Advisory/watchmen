@@ -34,7 +34,7 @@ export const MeasureMethodEditor = (props: { bucket: MeasureBucket; methods: Arr
 		} else {
 			label = option.label;
 		}
-		if (typeof label === 'string') {
+		if (typeof label === 'string' || (label as any).$$typeof != null) {
 			return label;
 		} else {
 			return label.node;
