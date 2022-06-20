@@ -79,7 +79,7 @@ jobs:
           META_STORAGE_TYPE: mssql
           META_STORAGE_USER_NAME: SA
           META_STORAGE_PASSWORD: yourStrong(!)Password
-          META_STORAGE_HOST: localhost
+          META_STORAGE_HOST: 127.0.0.1
           META_STORAGE_PORT: 1433
           META_STORAGE_NAME: watchmen
           TUPLE_DELETABLE: True
