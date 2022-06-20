@@ -23,7 +23,9 @@ export const DataSourceTypeInput = (props: { dataSource: DataSource }) => {
 		{value: DataSourceType.ORACLE, label: 'Oracle'},
 		{value: DataSourceType.MONGODB, label: 'MongoDB'},
 		{value: DataSourceType.MSSQL, label: 'MSSQL'},
-		{value: DataSourceType.POSTGRESQL, label: 'PostgreSQL'}
+		{value: DataSourceType.POSTGRESQL, label: 'PostgreSQL'},
+		{value: DataSourceType.AWS_S3, label: 'AWS S3'},
+		{value: DataSourceType.ALI_OSS, label: 'Ali OSS'}
 	];
 
 	return <TuplePropertyDropdown value={dataSource.dataSourceType} options={options} onChange={onTypeChange}/>;

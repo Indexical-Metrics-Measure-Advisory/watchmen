@@ -6,7 +6,9 @@ export enum DataSourceType {
 	ORACLE = 'oracle',
 	MONGODB = 'mongodb',
 	MSSQL = 'mssql',
-	POSTGRESQL = 'postgresql'
+	POSTGRESQL = 'postgresql',
+	AWS_S3 = 's3',
+	ALI_OSS = 'oss'
 }
 
 export interface DataSourceParam {
