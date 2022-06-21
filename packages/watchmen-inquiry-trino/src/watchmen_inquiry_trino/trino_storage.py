@@ -3,6 +3,7 @@ from decimal import Decimal
 from logging import getLogger
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
+from trino.auth import BasicAuthentication, Authentication
 from trino.dbapi import connect
 
 from watchmen_auth import PrincipalService
@@ -19,7 +20,7 @@ from watchmen_storage import as_table_name, ColumnNameLiteral, ComputedLiteral, 
 	UnsupportedComputationException, UnsupportedCriteriaException
 from watchmen_utilities import ArrayHelper, DateTimeConstants, is_blank, is_decimal, is_not_blank
 from .exception import InquiryTrinoException
-from .settings import ask_trino_basic_auth, ask_trino_host
+from .settings import ask_trino_basic_auth, ask_trino_host, ask_trino_need_auth, ask_trino_user, ask_trino_auth_type, AuthenticationType
 from .trino_storage_spi import TrinoStorageSPI
 
 logger = getLogger(__name__)
@@ -118,11 +119,25 @@ class TrinoStorage(TrinoStorageSPI):
 
 		self.schemas.register(TrinoSchema(catalog=data_source.dataSourceCode, schema=data_source.name, topic=topic))
 
+	@staticmethod
+	def auth() -> Authentication:
+		if ask_trino_auth_type() == AuthenticationType.PASSWORD:
+			user, _ = ask_trino_basic_auth()
+			return BasicAuthentication(user, _)
+		else:
+			# todo
+			raise InquiryTrinoException(f'auth type {ask_trino_auth_type()} is not supported')
+
 	def connect(self) -> None:
 		if self.connection is None:
 			host, port = ask_trino_host()
-			user, _ = ask_trino_basic_auth()
-			self.connection = connect(host=host, port=port, user=user)
+			if ask_trino_need_auth():
+				auth = TrinoStorage.auth()
+				user = ask_trino_user()
+				self.connection = connect(http_scheme="https", host=host, port=port, user=user, auth=auth)
+			else:
+				user = ask_trino_user()
+				self.connection = connect(host=host, port=port, user=user)
 
 	def close(self) -> None:
 		if self.connection is not None:
