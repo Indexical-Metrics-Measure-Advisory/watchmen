@@ -30,11 +30,11 @@ const InspectionData = (props: { analysis: ObjectiveAnalysis, perspective: Objec
 	const {on, off} = useInspectionEventBus();
 	useEffect(() => {
 		const onInspectionSaved = (inspection: InspectionType) => {
-			perspective.perspectiveId = inspection.inspectionId;
+			perspective.relationId = inspection.inspectionId;
 			fire(ObjectiveAnalysisEventTypes.SAVE, analysis);
 		};
 		const onInspectionPicked = (inspection: InspectionType) => {
-			perspective.perspectiveId = inspection.inspectionId;
+			perspective.relationId = inspection.inspectionId;
 			fire(ObjectiveAnalysisEventTypes.SAVE, analysis);
 		};
 		const onInspectionCleared = () => {
