@@ -70,7 +70,8 @@ export const AchievementRoot = (props: { id: string; achievement: Achievement })
 	return <AchievementRootNode id={id} ref={ref}>
 		<div>{achievement.name || Lang.INDICATOR.ACHIEVEMENT.ROOT}</div>
 		{shouldComputeScore
-			? <div>{Lang.INDICATOR.ACHIEVEMENT.SCORE_SUM_LABEL} {(score || 0)}</div>
+			// ? <div>{Lang.INDICATOR.ACHIEVEMENT.SCORE_SUM_LABEL} {(score || 0)}</div>
+			? <div>{(score || 0)}</div>
 			: null}
 	</AchievementRootNode>;
 };
