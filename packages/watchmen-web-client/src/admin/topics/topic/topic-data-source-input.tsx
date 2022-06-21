@@ -16,19 +16,20 @@ export const TopicDataSourceInput = (props: { topic: Topic; dataSources: Array<Q
 	useEffect(() => {
 		const onTopicTypeChanged = () => {
 			if (!isRawTopic(topic)) {
+				// eslint-disable-next-line
 				const dataSource = dataSources.find(dataSource => dataSource.dataSourceId == topic.dataSourceId);
 				if (dataSource != null && isS3Storage(dataSource.dataSourceType)) {
 					delete topic.dataSourceId;
 					fire(TopicEventTypes.TOPIC_DATA_SOURCE_CHANGED, topic);
-					forceUpdate();
 				}
 			}
+			forceUpdate();
 		};
 		on(TopicEventTypes.TOPIC_TYPE_CHANGED, onTopicTypeChanged);
 		return () => {
 			off(TopicEventTypes.TOPIC_TYPE_CHANGED, onTopicTypeChanged);
 		};
-	}, [on, off, topic, forceUpdate]);
+	}, [on, off, fire, topic, dataSources, forceUpdate]);
 
 	const onDataSourceChange = (option: DropdownOption) => {
 		topic.dataSourceId = option.value as TopicType;
@@ -43,6 +44,7 @@ export const TopicDataSourceInput = (props: { topic: Topic; dataSources: Array<Q
 			return !isS3Storage(dataSource.dataSourceType);
 		}
 	}).map(dataSource => {
+		console.log(dataSource)
 		return {value: dataSource.dataSourceId, label: dataSource.dataSourceCode};
 	});
 
