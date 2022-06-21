@@ -1,3 +1,4 @@
+import {DataSourceType} from './data-source-types';
 import {QueryTopic} from './query-topic-types';
 import {Topic, TopicKind, TopicType} from './topic-types';
 
@@ -14,3 +15,4 @@ export const isAggregationTopic = (topic: Topic): boolean => {
 		|| TopicType.RATIO === topic.type;
 };
 export const isNotAggregationTopic = (topic: Topic): boolean => !isAggregationTopic(topic);
+export const isS3Storage = (type: DataSourceType) => [DataSourceType.AWS_S3, DataSourceType.ALI_OSS].includes(type);

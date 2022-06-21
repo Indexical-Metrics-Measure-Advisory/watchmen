@@ -5,5 +5,5 @@ export interface QueryDataSource extends Pick<DataSource, 'dataSourceId' | 'data
 	tenantName: string;
 }
 
-export interface QueryDataSourceForHolder extends Pick<DataSource, 'dataSourceId' | 'dataSourceCode'>, QueryTupleForHolder {
+export interface QueryDataSourceForHolder extends Pick<DataSource, 'dataSourceId' | 'dataSourceCode' | 'dataSourceType'>, QueryTupleForHolder {
 }
