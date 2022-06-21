@@ -9,9 +9,8 @@ export const IndicatorCandidateCurve = styled(AchievementBlockPairCurve).attrs({
 	}
 `;
 export const IndicatorCandidateContainer = styled.div.attrs({'data-widget': 'indicator-candidate-container'})`
-	display               : grid;
+	display               : flex;
 	position              : relative;
-	grid-template-columns : repeat(7, auto);
 	align-items           : center;
 	&:not(:last-child) {
 		margin-bottom : calc(var(--margin) / 2);
