@@ -57,8 +57,8 @@ const PipelinesContainerDelegate = () => {
 
 	return <AdminMain>
 		<FullWidthPage>
-			{initialized ? <PipelinesRouter/> : <PipelinesLoading/>}
 			<SettingsHolder/>
+			{initialized ? <PipelinesRouter/> : <PipelinesLoading/>}
 		</FullWidthPage>
 	</AdminMain>;
 };
