@@ -30,7 +30,7 @@ class MongoConnection:
 		self.client.close()
 
 	def database(self) -> Database:
-		return self.client.get_default_database()
+		return self.client.get_default_database(codec_options=ask_codec_options())
 
 	def collection(self, name: str) -> Collection:
 		return self.database()[name]
@@ -62,14 +62,14 @@ class MongoConnection:
 
 	def find_by_id(self, document: MongoDocument, object_id: str) -> Dict[str, Any]:
 		return self.collection(document.name) \
-			.find_one({DOCUMENT_OBJECT_ID: ObjectId(object_id)}, codec_options=ask_codec_options())
+			.find_one({DOCUMENT_OBJECT_ID: ObjectId(object_id)})
 
 	def find(self, document: MongoDocument, criteria: Dict[str, Any], sort: Optional[Dict[str, Any]] = None):
 		if sort is None:
-			return self.collection(document.name).find(filter={'$expr': criteria}, codec_options=ask_codec_options())
+			return self.collection(document.name).find(filter={'$expr': criteria})
 		else:
 			return self.collection(document.name) \
-				.find(filter={'$expr': criteria}, sort=sort, codec_options=ask_codec_options())
+				.find(filter={'$expr': criteria}, sort=sort)
 
 	def find_with_project(
 			self, document: MongoDocument, project: Dict[str, Any],
@@ -78,22 +78,22 @@ class MongoConnection:
 			return self.collection(document.name).aggregate(pipeline=[
 				{'$match': {'$expr': criteria}},
 				{'$project': project}
-			], codec_options=ask_codec_options())
+			])
 		else:
 			return self.collection(document.name).aggregate(pipeline=[
 				{'$match': {'$expr': criteria}},
 				{'$project': project},
 				{'$sort': sort}
-			], codec_options=ask_codec_options())
+			])
 
 	def find_all(self, document: MongoDocument) -> List[Dict[str, Any]]:
-		return self.collection(document.name).find({}, codec_options=ask_codec_options())
+		return self.collection(document.name).find(filter={})
 
 	def find_distinct(self, document: MongoDocument, column_name: str, criteria: Dict[str, Any]):
 		results = self.collection(document.name).aggregate(pipeline=[
 			{'$match': {'$expr': criteria}},
 			{'$group': {DOCUMENT_OBJECT_ID: f'${column_name}'}}  # , 'count': { '$sum': 1 } }}
-		], codec_options=ask_codec_options())
+		])
 		for item in results:
 			item[column_name] = item[DOCUMENT_OBJECT_ID]
 			del item[DOCUMENT_OBJECT_ID]
@@ -118,14 +118,14 @@ class MongoConnection:
 				{'$match': {'$expr': criteria}},
 				{'$group': group},
 				{'$project': project}
-			], codec_options=ask_codec_options())
+			])
 		else:
 			return self.collection(document.name).aggregate([
 				{'$match': {'$expr': criteria}},
 				{'$group': group},
 				{'$project': project},
 				{'$sort': sort}
-			], codec_options=ask_codec_options())
+			])
 
 	def page(
 			self, document: MongoDocument, criteria: Dict[str, Any],
