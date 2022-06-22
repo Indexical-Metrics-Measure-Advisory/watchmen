@@ -44,7 +44,6 @@ export const TopicDataSourceInput = (props: { topic: Topic; dataSources: Array<Q
 			return !isS3Storage(dataSource.dataSourceType);
 		}
 	}).map(dataSource => {
-		console.log(dataSource)
 		return {value: dataSource.dataSourceId, label: dataSource.dataSourceCode};
 	});
 
