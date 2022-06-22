@@ -15,6 +15,7 @@ import {AlertLabel} from '@/widgets/alert/widgets';
 import {TUPLE_SEARCH_PAGE_SIZE} from '@/widgets/basic/constants';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
+import {HELP_KEYS, useHelp} from '@/widgets/help';
 import {Lang} from '@/widgets/langs';
 import {TupleWorkbench} from '@/widgets/tuple-workbench';
 import {TupleEventBusProvider, useTupleEventBus} from '@/widgets/tuple-workbench/tuple-event-bus';
@@ -179,6 +180,7 @@ const IndicatorBuckets = () => {
 			off(TupleEventTypes.SAVE_TUPLE, onSaveBucket);
 		};
 	}, [on, off, fire, fireGlobal]);
+	useHelp(HELP_KEYS.INDICATOR_BUCKET);
 
 	return <TupleWorkbench title={Lang.INDICATOR.BUCKET.TITLE}
 	                       createButtonLabel={Lang.INDICATOR.BUCKET.CREATE_BUCKET} canCreate={true}

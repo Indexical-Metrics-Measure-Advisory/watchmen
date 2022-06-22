@@ -46,6 +46,11 @@ export enum HELP_KEYS {
 	DQC_MONITOR_RULES = 'monitor rules',
 	DQC_CONSANGUINITY = 'consanguinity',
 	DQC_CATALOG = 'catalog',
+	INDICATOR_BUCKET = 'bucket',
+	INDICATOR_INDICATOR = 'indicator',
+	INDICATOR_INSPECTION = 'inspection',
+	INDICATOR_ACHIEVEMENT = 'achievement',
+	INDICATOR_OBJECTIVE_ANALYSIS = 'objective analysis',
 	SETTINGS = 'settings'
 }
 
@@ -96,6 +101,15 @@ const CONTENTS: Array<{ words: string, name: string, url: string }> = [
 	{words: 'dqc data quality center monitor rules 数据监控中心 规则', name: 'DQC / Monitor Rules', url: 'dqc/monitor-rules'},
 	{words: 'dqc data quality center consanguinity 数据监控中心 血缘', name: 'DQC / Consanguinity', url: 'dqc/consanguinity'},
 	{words: 'dqc data quality center catalog 数据监控中心 目录', name: 'DQC / Catalog', url: 'dqc/catalog'},
+	{words: 'indicator bucket 指标 分桶', name: 'Indicator / Bucket', url: 'indicator/bucket'},
+	{words: 'indicator 指标', name: 'Indicator / Indicator', url: 'indicator/indicator'},
+	{words: 'indicator inspection 指标 洞察', name: 'Indicator / Inspection', url: 'indicator/inspection'},
+	{words: 'indicator achievement 指标 业绩', name: 'Indicator / Achievement', url: 'indicator/achievement'},
+	{
+		words: 'indicator inspection achievement objective analysis perspective 指标 洞察 业绩 目标 分析 视角 观点',
+		name: 'Indicator / Objective Analysis',
+		url: 'indicator/objective-analysis'
+	},
 	{words: 'settings configuration options 设置 配置', name: 'Settings', url: 'web-client-index#language'}
 ];
 

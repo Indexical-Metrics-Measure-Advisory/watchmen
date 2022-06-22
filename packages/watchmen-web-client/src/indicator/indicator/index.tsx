@@ -1,4 +1,5 @@
 import {Router} from '@/routes/types';
+import {HELP_KEYS, useHelp} from '@/widgets/help';
 import React from 'react';
 import {Route, Switch} from 'react-router-dom';
 import {IndicatorEditor} from './edit';
@@ -15,6 +16,8 @@ const IndicatorRoute = () => {
 };
 
 const IndicatorIndicatorIndex = () => {
+	useHelp(HELP_KEYS.INDICATOR_INDICATOR);
+
 	return <IndicatorsEventBusProvider>
 		<IndicatorListState/>
 		<IndicatorState/>

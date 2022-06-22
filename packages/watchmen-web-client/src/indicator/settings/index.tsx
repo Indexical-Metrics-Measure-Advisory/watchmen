@@ -4,10 +4,13 @@ import {PageHeader} from '@/widgets/basic/page-header';
 import {LanguageSettings} from '@/widgets/common-settings/language';
 import {PersonalAccessToken} from '@/widgets/common-settings/personal-access-token';
 import {ThemeSettings} from '@/widgets/common-settings/theme';
+import {HELP_KEYS, useHelp} from '@/widgets/help';
 import {Lang} from '@/widgets/langs';
 import React from 'react';
 
 export const IndicatorSettings = () => {
+	useHelp(HELP_KEYS.SETTINGS);
+
 	return <SettingsPage>
 		<PageHeader title={Lang.SETTINGS.TITLE}/>
 		<VerticalMarginOneUnit/>
