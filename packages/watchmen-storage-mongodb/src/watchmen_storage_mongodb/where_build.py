@@ -65,7 +65,7 @@ def built_date_diff(documents: List[MongoDocument], literal: Literal, unit: str)
 
 def build_literal(
 		documents: List[MongoDocument], literal: Literal, build_plain_value: Callable[[Any], str] = None
-) -> Union[str, Dict[str: Any]]:
+) -> Union[str, Dict[str, Any]]:
 	if isinstance(literal, ColumnNameLiteral):
 		# only one document is supported
 		return f'${literal.columnName}'
