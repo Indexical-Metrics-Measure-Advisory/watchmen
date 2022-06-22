@@ -106,7 +106,7 @@ const parseTopics = (topic: Topic) => {
 			};
 			const array = factor.type === FactorType.ARRAY
 				|| arrayFactorNames.some(name => factor.name.startsWith(`${name}.`));
-			topics[topicName] = {topic: newTopic, factorIdMap: {}, array};
+			topics[topicName] = {topic: newTopic, factorIdMap: {}, array, loopFactor: array ? factor : (void 0)};
 		} else {
 			const topicName = asTopicName(topic, factor.name || '');
 			const newTopic = topics[topicName]!;
