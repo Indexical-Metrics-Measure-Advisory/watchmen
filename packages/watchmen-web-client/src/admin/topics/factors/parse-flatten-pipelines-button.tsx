@@ -255,7 +255,8 @@ export const ParseFlattenPipelinesButton = (props: { topic: Topic }) => {
 			}, (importedTopics: Array<Topic>) => {
 				importedTopics.forEach(importedTopic => fireCache(AdminCacheEventTypes.SAVE_TOPIC, importedTopic));
 				const pipelines = parsePipelines(topic, importedTopics.reduce((parsed, importedTopic) => {
-					const inMemoryParsedTopic = topics[importedTopic.name];
+					const inMemoryParsedTopic = Object.values(topics).find(({topic}) => topic === importedTopic);
+					// @ts-ignore
 					parsed[importedTopic.name] = {...inMemoryParsedTopic, topic: importedTopic};
 					return parsed;
 				}, {} as ParsedTopics));
