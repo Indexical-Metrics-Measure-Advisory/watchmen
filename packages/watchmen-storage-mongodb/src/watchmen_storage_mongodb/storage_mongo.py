@@ -41,7 +41,7 @@ class StorageMongoDB(TransactionalStorageSPI):
 		self.connection.begin()
 
 	def commit_and_close(self) -> None:
-		pass
+		self.close()
 
 	def rollback_and_close(self) -> None:
 		try:
@@ -297,8 +297,14 @@ class StorageMongoDB(TransactionalStorageSPI):
 		else:
 			results = self.connection.find_distinct(document, finder.distinctColumnNames[0], where)
 
+		def try_to_remove_object_id(data: Dict[str, Any]) -> Dict[str, Any]:
+			if DOCUMENT_OBJECT_ID not in finder.distinctColumnNames:
+				return self.remove_object_id(data)
+			else:
+				return data
+
 		return ArrayHelper(results) \
-			.map(self.remove_object_id) \
+			.map(try_to_remove_object_id) \
 			.map(finder.shaper.deserialize) \
 			.to_list()
 
