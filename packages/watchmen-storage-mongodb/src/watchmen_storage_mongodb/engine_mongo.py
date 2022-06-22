@@ -75,25 +75,25 @@ class MongoConnection:
 			self, document: MongoDocument, project: Dict[str, Any],
 			criteria: Dict[str, Any], sort: Optional[Dict[str, Any]] = None):
 		if sort is None:
-			return self.collection(document.name).aggregate(pipeline=[
+			return list(self.collection(document.name).aggregate(pipeline=[
 				{'$match': {'$expr': criteria}},
 				{'$project': project}
-			])
+			]))
 		else:
-			return self.collection(document.name).aggregate(pipeline=[
+			return list(self.collection(document.name).aggregate(pipeline=[
 				{'$match': {'$expr': criteria}},
 				{'$project': project},
 				{'$sort': sort}
-			])
+			]))
 
 	def find_all(self, document: MongoDocument) -> List[Dict[str, Any]]:
 		return self.collection(document.name).find(filter={})
 
 	def find_distinct(self, document: MongoDocument, column_name: str, criteria: Dict[str, Any]):
-		results = self.collection(document.name).aggregate(pipeline=[
+		results = list(self.collection(document.name).aggregate(pipeline=[
 			{'$match': {'$expr': criteria}},
 			{'$group': {DOCUMENT_OBJECT_ID: f'${column_name}'}}  # , 'count': { '$sum': 1 } }}
-		])
+		]))
 		for item in results:
 			item[column_name] = item[DOCUMENT_OBJECT_ID]
 			del item[DOCUMENT_OBJECT_ID]
@@ -103,10 +103,10 @@ class MongoConnection:
 		return self.count(document, criteria) != 0
 
 	def count(self, document: MongoDocument, criteria: Dict[str, any]) -> int:
-		results = self.collection(document.name).aggregate([
+		results = list(self.collection(document.name).aggregate([
 			{'$match': {'$expr': criteria}},
 			{'$count': 'count'}
-		])
+		]))
 		return results[0]['count']
 
 	def find_on_group(
@@ -114,36 +114,36 @@ class MongoConnection:
 			criteria: Dict[str, Any], group: Dict[str, Any],
 			sort: Optional[Dict[str, Any]] = None):
 		if sort is None:
-			return self.collection(document.name).aggregate([
+			return list(self.collection(document.name).aggregate([
 				{'$match': {'$expr': criteria}},
 				{'$group': group},
 				{'$project': project}
-			])
+			]))
 		else:
-			return self.collection(document.name).aggregate([
+			return list(self.collection(document.name).aggregate([
 				{'$match': {'$expr': criteria}},
 				{'$group': group},
 				{'$project': project},
 				{'$sort': sort}
-			])
+			]))
 
 	def page(
 			self, document: MongoDocument, criteria: Dict[str, Any],
 			offset: int, limit: int,
 			sort: Optional[Dict[str, Any]] = None):
 		if sort is None:
-			return self.collection(document.name).aggregate([
+			return list(self.collection(document.name).aggregate([
 				{'$match': {'$expr': criteria}},
 				{'$skip': offset},
 				{'$limit': limit}
-			])
+			]))
 		else:
-			return self.collection(document.name).aggregate([
+			return list(self.collection(document.name).aggregate([
 				{'$match': {'$expr': criteria}},
 				{'$sort': sort},
 				{'$skip': offset},
 				{'$limit': limit}
-			])
+			]))
 
 
 class MongoEngine:
