@@ -13,8 +13,7 @@ def is_decimal(value: Optional[str]) -> Tuple[bool, Optional[Decimal]]:
 	if value is None:
 		return False, None
 	try:
-		v = float(value)
-		return True, Decimal(v)
+		return True, Decimal(value)
 	except ValueError:
 		return False, None
 
