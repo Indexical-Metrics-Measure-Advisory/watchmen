@@ -10,6 +10,7 @@ import {Languages} from '@/widgets/langs';
 import {ThemeWrapper} from '@/widgets/theme/theme-wrapper';
 import dayjs from 'dayjs';
 import ArraySupport from 'dayjs/plugin/arraySupport';
+import CustomParseFormat from 'dayjs/plugin/customParseFormat';
 import Duration from 'dayjs/plugin/duration';
 import IsToday from 'dayjs/plugin/isToday';
 import ObjectSupport from 'dayjs/plugin/objectSupport';
@@ -27,6 +28,7 @@ dayjs.extend(IsToday);
 dayjs.extend(RelativeTime);
 dayjs.extend(ArraySupport);
 dayjs.extend(ObjectSupport);
+dayjs.extend(CustomParseFormat);
 
 const app = () => {
 	return <EventBusProvider>
