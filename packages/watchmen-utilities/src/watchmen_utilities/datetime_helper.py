@@ -13,7 +13,16 @@ class DateTimeEncoder(JSONEncoder):
 		if isinstance(o, (datetime, date, time)):
 			return o.isoformat()
 		if isinstance(o, Decimal):
-			return f'{o}'
+			if o == o.to_integral_value():
+				# integral
+				if o > 999999999999999 or o < -999999999999999:
+					return f'{int(o)}'
+				else:
+					return int(o)
+			elif o > 999999999999999 or o < -999999999999999:
+				return f'{float(o)}'
+			else:
+				return float(o)
 		return super().default(o)
 
 
