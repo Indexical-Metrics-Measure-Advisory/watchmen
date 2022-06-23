@@ -213,7 +213,7 @@ const toFactorsFromInstanceData = (topic: Topic, data: ShouldBeFactorsInstance, 
 					} else {
 						factor.type = FactorType.TEXT;
 					}
-				} else if (value.trim().length === 8 && !isNaN(Number(value.trim()))) {
+				} else if (value.trim().length === 8 && isNaN(Number(value.trim()))) {
 					const isValidDate = dayjs(value).isValid();
 					if (factor.type == null && isValidDate) {
 						factor.type = FactorType.TIME;
