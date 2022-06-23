@@ -13,7 +13,7 @@ class DateTimeEncoder(JSONEncoder):
 		if isinstance(o, (datetime, date, time)):
 			return o.isoformat()
 		if isinstance(o, Decimal):
-			return float(o)
+			return f'{o}'
 		return super().default(o)
 
 
