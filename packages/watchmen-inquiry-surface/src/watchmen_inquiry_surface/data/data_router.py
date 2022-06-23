@@ -49,9 +49,6 @@ async def fetch_subject_data(
 	return get_subject_data_service(subject, principal_service).page(pageable)
 
 
-
-
-
 @router.get('/report/data', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=DataResult)
 async def fetch_report_data(
 		report_id: Optional[ReportId],
