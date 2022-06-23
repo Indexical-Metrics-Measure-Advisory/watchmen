@@ -100,7 +100,7 @@ class StorageMongoDB(TransactionalStorageSPI):
 				raise EntityNotFoundException(f'Entity not found by updater[{updater}]')
 		elif should_update_count == 1:
 			# noinspection PyProtectedMember,PyUnresolvedReferences
-			updated_count = self.connection.update_by_id(document, updater.update, str(entities[0]._id)).modified_count
+			updated_count = self.connection.update_by_id(document, updater.update, str(entities[0]._id)).matched_count
 			if updated_count == 0:
 				# might be removed by another session
 				if peace_when_zero:
