@@ -8,7 +8,7 @@ from watchmen_storage import as_table_name, ask_decimal_fraction_digits, ask_dec
 from watchmen_utilities import ArrayHelper, is_blank
 from .document_defs_helper import create_bool, create_datetime, create_int, create_json, create_pk, \
 	create_tuple_id_column
-from .document_mongo import DOCUMENT_OBJECT_ID, MongoDocument, MongoDocumentColumn, MongoDocumentColumnType
+from .document_mongo import MongoDocument, MongoDocumentColumn, MongoDocumentColumnType
 
 
 def create_column(factor: Factor) -> MongoDocumentColumn:
@@ -212,7 +212,7 @@ def to_trino_field(column: MongoDocumentColumn) -> TrinoField:
 	return TrinoField(
 		name=column.name,
 		type=to_trino_type(column.columnType),
-		hidden=True if column.name == DOCUMENT_OBJECT_ID else False
+		hidden=True if column.name == '_id' else False
 	)
 
 

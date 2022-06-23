@@ -18,9 +18,6 @@ class MongoDocumentColumnType(str, Enum):
 	OBJECT = 'object'
 
 
-DOCUMENT_OBJECT_ID = '_id'
-
-
 class MongoDocumentColumn:
 	def __init__(
 			self, name: str, column_type: MongoDocumentColumnType,
@@ -59,11 +56,11 @@ class MongoDocument:
 		if id_column is not None:
 			original_id_value = data.get(id_column.name)
 			if original_id_value is not None:
-				data[DOCUMENT_OBJECT_ID] = ObjectId(original_id_value)
+				data._id = ObjectId(original_id_value)
 		return data
 
 	def create_projection(self) -> Dict[str, int]:
-		projection = {DOCUMENT_OBJECT_ID: -1}
+		projection = {'_id': -1}
 		for column in self.columns:
 			projection[column.name] = 1
 		return projection
