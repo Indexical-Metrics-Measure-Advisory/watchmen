@@ -10,7 +10,7 @@ from .array_helper import ArrayHelper
 
 class DateTimeEncoder(JSONEncoder):
 	def default(self, o):
-		if isinstance(o, (datetime, date)):
+		if isinstance(o, (datetime, date, time)):
 			return o.isoformat()
 		if isinstance(o, Decimal):
 			return float(o)

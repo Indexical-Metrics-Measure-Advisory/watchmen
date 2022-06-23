@@ -9,7 +9,7 @@ from pymongo.database import Database
 from pymongo.results import DeleteResult, UpdateResult
 
 from .codes_options import ask_codec_options
-from .document_mongo import DOCUMENT_OBJECT_ID, MongoDocument
+from .document_mongo import MongoDocument
 
 
 class MongoConnection:
@@ -45,7 +45,7 @@ class MongoConnection:
 		self.collection(document.name).insert_many(data)
 
 	def update_by_id(self, document: MongoDocument, data: Dict[str, Any], object_id: str) -> UpdateResult:
-		return self.collection(document.name).update_many({DOCUMENT_OBJECT_ID: ObjectId(object_id)}, {'$set': data})
+		return self.collection(document.name).update_many({'_id': ObjectId(object_id)}, {'$set': data})
 
 	def update_many(self, document: MongoDocument, data: Dict[str, Any], criteria: Dict[str, Any]) -> UpdateResult:
 		return self.collection(document.name).update_many(
@@ -55,21 +55,22 @@ class MongoConnection:
 		)
 
 	def delete_by_id(self, document: MongoDocument, object_id: str) -> DeleteResult:
-		return self.collection(document.name).delete_many({DOCUMENT_OBJECT_ID: ObjectId(object_id)})
+		return self.collection(document.name).delete_many({'_id': ObjectId(object_id)})
 
 	def delete_many(self, document: MongoDocument, criteria: Dict[str, Any]) -> DeleteResult:
 		return self.collection(document.name).delete_many({'$expr': criteria})
 
 	def find_by_id(self, document: MongoDocument, object_id: str) -> Dict[str, Any]:
-		return self.collection(document.name) \
-			.find_one({DOCUMENT_OBJECT_ID: ObjectId(object_id)})
+		return self.collection(document.name).find_one({'_id': ObjectId(object_id)})
 
-	def find(self, document: MongoDocument, criteria: Dict[str, Any], sort: Optional[Dict[str, Any]] = None):
+	def find(
+			self, document: MongoDocument, criteria: Dict[str, Any], sort: Optional[Dict[str, Any]] = None
+	) -> List[
+		Dict[str, Any]]:
 		if sort is None:
-			return self.collection(document.name).find(filter={'$expr': criteria})
+			return list(self.collection(document.name).find(filter={'$expr': criteria}))
 		else:
-			return self.collection(document.name) \
-				.find(filter={'$expr': criteria}, sort=sort)
+			return list(self.collection(document.name).find(filter={'$expr': criteria}, sort=sort))
 
 	def find_with_project(
 			self, document: MongoDocument, project: Dict[str, Any],
@@ -87,16 +88,19 @@ class MongoConnection:
 			]))
 
 	def find_all(self, document: MongoDocument) -> List[Dict[str, Any]]:
-		return self.collection(document.name).find(filter={})
+		return list(self.collection(document.name).find(filter={}))
 
 	def find_distinct(self, document: MongoDocument, column_name: str, criteria: Dict[str, Any]):
 		results = list(self.collection(document.name).aggregate(pipeline=[
 			{'$match': {'$expr': criteria}},
-			{'$group': {DOCUMENT_OBJECT_ID: f'${column_name}'}}  # , 'count': { '$sum': 1 } }}
+			{'$group': {'_id': f'${column_name}'}}  # , 'count': { '$sum': 1 } }}
 		]))
 		for item in results:
-			item[column_name] = item[DOCUMENT_OBJECT_ID]
-			del item[DOCUMENT_OBJECT_ID]
+			if '_id' in item:
+				# noinspection PyProtectedMember
+				item[column_name] = item._id
+				# noinspection PyProtectedMember
+				del item['_id']
 		return results
 
 	def exists(self, document: MongoDocument, criteria: Dict[str, any]) -> bool:
