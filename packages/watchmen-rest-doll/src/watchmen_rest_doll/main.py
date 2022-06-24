@@ -9,7 +9,7 @@ from watchmen_pipeline_surface import get_pipeline_surface_routers
 from watchmen_rest.system import health_router
 from watchmen_utilities import ArrayHelper
 from .admin import enumeration_router, pipeline_graphic_router, pipeline_router, space_router, topic_router, \
-    user_group_router, user_router, notebook_router
+    user_group_router, user_router, notebook_router, topic_snapshot_scheduler_router
 from .analysis import pipeline_index_router, topic_index_router
 from .auth import authenticate_router
 from .console import connected_space_graphic_router, connected_space_router, dashboard_router, report_router, \
