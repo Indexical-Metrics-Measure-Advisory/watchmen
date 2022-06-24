@@ -20,7 +20,7 @@ class DateTimeEncoder(JSONEncoder):
 				else:
 					return int(o)
 			elif o > 999999999999999 or o < -999999999999999:
-				return f'{float(o)}'
+				return f'{o}'
 			else:
 				return float(o)
 		return super().default(o)
