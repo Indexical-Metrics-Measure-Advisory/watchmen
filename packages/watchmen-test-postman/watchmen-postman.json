@@ -13352,7 +13352,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"name\": \"Test_Aggregate_Topic_{{$randomInt}}\",\n    \"type\": \"aggregate\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"date\", \"name\": \"propD\"},\n        {\"factorId\": \"3\", \"type\": \"number\", \"name\": \"propCount\"},\n        {\"factorId\": \"4\", \"type\": \"number\", \"name\": \"propSum\"},\n        {\"factorId\": \"5\", \"type\": \"number\", \"name\": \"propAvg\"}\n    ],\n    \"description\": \"Test Distinct Topic\"\n}",
+									"raw": "{\n    \"name\": \"Test_Aggregate_Topic_{{$timestamp}}\",\n    \"type\": \"aggregate\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"date\", \"name\": \"propD\"},\n        {\"factorId\": \"3\", \"type\": \"number\", \"name\": \"propCount\"},\n        {\"factorId\": \"4\", \"type\": \"number\", \"name\": \"propSum\"},\n        {\"factorId\": \"5\", \"type\": \"number\", \"name\": \"propAvg\"}\n    ],\n    \"description\": \"Test Distinct Topic\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
