@@ -275,8 +275,7 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 				return empty_page
 
 		page_number, max_page_number = self.compute_page(count, page_size, pager.pageable.pageNumber)
-		offset = page_size * (page_number - 1)
-		data_statement = data_statement.offset(offset).limit(page_size)
+		data_statement = self.build_offset_for_statement(data_statement, page_size, page_number)
 		results = self.connection.execute(data_statement).mappings().all()
 
 		results = ArrayHelper(results) \
@@ -323,8 +322,7 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 
 		data_statement = self.build_sort_for_statement(data_statement, pager.highOrderSortColumns)
 		page_number, max_page_number = self.compute_page(count, page_size, pager.pageable.pageNumber)
-		offset = page_size * (page_number - 1)
-		data_statement = data_statement.offset(offset).limit(page_size)
+		data_statement = self.build_offset_for_statement(data_statement, page_size, page_number)
 		results = self.connection.execute(data_statement).mappings().all()
 
 		def deserialize(row: Dict[str, Any]) -> Dict[str, Any]:
@@ -339,3 +337,4 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 			itemCount=count,
 			pageCount=max_page_number
 		)
+

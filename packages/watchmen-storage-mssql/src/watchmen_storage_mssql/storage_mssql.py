@@ -1,11 +1,12 @@
 from logging import getLogger
 from typing import Any, Callable, List
 
-from sqlalchemy import Table, text
+from sqlalchemy import Table, text, select
+from watchmen_storage import EntityFinder
 
 from watchmen_model.admin import Topic
 from watchmen_storage import as_table_name, EntityCriteria, EntitySort, Literal
-from watchmen_storage_rds import build_sort_for_statement, build_offset_for_statement, SQLAlchemyStatement, StorageRDS, TopicDataStorageRDS
+from watchmen_storage_rds import build_sort_for_statement, SQLAlchemyStatement, StorageRDS, TopicDataStorageRDS
 from .table_creator import build_aggregate_assist_column, build_columns, build_columns_script, build_indexes_script, \
 	build_unique_indexes_script, build_version_column
 from .where_build import build_criteria_for_statement, build_literal
@@ -30,6 +31,15 @@ class StorageMSSQL(StorageRDS):
 			return statement.order_by(text("(SELECT NULL)")).offset(offset).limit(page_size)
 		else:
 			return statement.offset(offset).limit(page_size)
+
+	def exists(self, finder: EntityFinder) -> bool:
+		table = self.find_table(finder.name)
+		statement = select(text('1')).select_from(table)
+		statement = self.build_criteria_for_statement([table], statement, finder.criteria)
+		statement = statement.order_by(text("(SELECT NULL)"))
+		statement = statement.offset(0).limit(1)
+		results = self.connection.execute(statement).mappings().all()
+		return len(results) != 0
 
 
 class TopicDataStorageMSSQL(StorageMSSQL, TopicDataStorageRDS):

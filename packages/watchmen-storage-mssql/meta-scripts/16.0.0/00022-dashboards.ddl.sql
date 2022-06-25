@@ -2,7 +2,7 @@ CREATE TABLE dashboards
 (
     dashboard_id          NVARCHAR(50) NOT NULL,
     name                  NVARCHAR(50) NOT NULL,
-    dashboards            NVARCHAR(MAX),
+    reports               NVARCHAR(MAX),
     paragraphs            NVARCHAR(MAX),
     auto_refresh_interval DECIMAL(20),
     user_id               NVARCHAR(50) NOT NULL,
