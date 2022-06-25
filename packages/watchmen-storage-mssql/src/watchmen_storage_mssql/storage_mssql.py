@@ -5,7 +5,7 @@ from sqlalchemy import Table, text
 
 from watchmen_model.admin import Topic
 from watchmen_storage import as_table_name, EntityCriteria, EntitySort, Literal
-from watchmen_storage_rds import build_sort_for_statement, SQLAlchemyStatement, StorageRDS, TopicDataStorageRDS
+from watchmen_storage_rds import build_sort_for_statement, build_offset_for_statement, SQLAlchemyStatement, StorageRDS, TopicDataStorageRDS
 from .table_creator import build_aggregate_assist_column, build_columns, build_columns_script, build_indexes_script, \
 	build_unique_indexes_script, build_version_column
 from .where_build import build_criteria_for_statement, build_literal
@@ -22,6 +22,14 @@ class StorageMSSQL(StorageRDS):
 
 	def build_sort_for_statement(self, statement: SQLAlchemyStatement, sort: EntitySort) -> SQLAlchemyStatement:
 		return build_sort_for_statement(statement, sort)
+
+	def build_offset_for_statement(
+			self, statement: SQLAlchemyStatement, page_size: int, page_number: int) -> SQLAlchemyStatement:
+		offset = page_size * (page_number - 1)
+		if not statement._order_by_clause.clauses:
+			return statement.order_by(text("(SELECT NULL)")).offset(offset).limit(page_size)
+		else:
+			return statement.offset(offset).limit(page_size)
 
 
 class TopicDataStorageMSSQL(StorageMSSQL, TopicDataStorageRDS):

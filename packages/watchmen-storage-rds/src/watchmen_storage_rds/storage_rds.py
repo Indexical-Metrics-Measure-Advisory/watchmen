@@ -80,6 +80,11 @@ class StorageRDS(TransactionalStorageSPI):
 			self, statement: SQLAlchemyStatement, sort: EntitySort) -> SQLAlchemyStatement:
 		raise NotImplementedError('build_sort_for_statement is not implemented yet.')
 
+	@abstractmethod
+	def build_offset_for_statement(
+			self, statement: SQLAlchemyStatement, page_size: int, page_number: int):
+		raise NotImplementedError('build_offset_for_statement is not implemented yet.')
+
 	def insert_one(self, one: Entity, helper: EntityHelper) -> None:
 		table = self.find_table(helper.name)
 		row = helper.shaper.serialize(one)
@@ -367,8 +372,9 @@ class StorageRDS(TransactionalStorageSPI):
 		statement = select(table)
 		statement = self.build_criteria_for_statement([table], statement, pager.criteria)
 		statement = self.build_sort_for_statement(statement, pager.sort)
-		offset = page_size * (page_number - 1)
-		statement = statement.offset(offset).limit(page_size)
+		# offset = page_size * (page_number - 1)
+		# statement = statement.offset(offset).limit(page_size)
+		statement = self.build_offset_for_statement(statement, page_size, page_number)
 		results = self.connection.execute(statement).mappings().all()
 		entity_list = ArrayHelper(results).map(lambda x: dict(x)).map(pager.shaper.deserialize).to_list()
 		return DataPage(
