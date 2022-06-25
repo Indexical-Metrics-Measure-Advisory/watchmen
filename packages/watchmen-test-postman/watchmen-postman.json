@@ -13249,7 +13249,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"name\": \"Test_Raw_Topic_{{$timestamp}}\",\n    \"type\": \"raw\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"array\", \"name\": \"propList\"},\n        {\"factorId\": \"2\", \"type\": \"text\", \"name\": \"proList.propA\"},\n        {\"factorId\": \"3\", \"type\": \"number\", \"name\": \"proList.propB\"},\n        {\"factorId\": \"4\", \"type\": \"boolean\", \"name\": \"proList.propC\"},\n        {\"factorId\": \"5\", \"type\": \"date\", \"name\": \"proList.propD\"},\n        {\"factorId\": \"6\", \"type\": \"datetime\", \"name\": \"proList.propE\"}\n    ],\n    \"description\": \"Test Raw Topic\",\n    \"version\": {{RAW_TOPIC_VERSION}}\n}",
+									"raw": "{\n    \"name\": \"Test_Raw_Topic_{{$timestamp}}\",\n    \"type\": \"raw\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"array\", \"name\": \"propList\"},\n        {\"factorId\": \"2\", \"type\": \"text\", \"name\": \"proList.propA\"},\n        {\"factorId\": \"3\", \"type\": \"number\", \"name\": \"proList.propB\"},\n        {\"factorId\": \"4\", \"type\": \"boolean\", \"name\": \"proList.propC\"},\n        {\"factorId\": \"5\", \"type\": \"date\", \"name\": \"proList.propD\"},\n        {\"factorId\": \"6\", \"type\": \"datetime\", \"name\": \"proList.propE\"}\n    ],\n    \"description\": \"Test Raw Topic\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
