@@ -6,7 +6,7 @@ from sqlalchemy import Integer, String, Table
 from watchmen_model.admin import is_aggregation_topic, is_raw_topic, Topic
 from watchmen_model.common import TopicId
 from watchmen_storage import SNOWFLAKE_WORKER_ID_TABLE, UnexpectedStorageException
-from .table_defs_helper import create_bool, create_datetime, create_description, create_int, create_json, \
+from .table_defs_helper import create_bool, create_datetime, create_date, create_description, create_int, create_json, \
 	create_last_visit_time, create_medium_text, create_optimistic_lock, create_pk, create_str, \
 	create_tenant_id, create_tuple_audit_columns, create_tuple_id_column, create_user_id, meta_data
 from .topic_table_generate import build_by_aggregation, build_by_raw, build_by_regular
@@ -26,7 +26,7 @@ table_pats = Table(
 	create_str('token', 255, False),
 	create_user_id(), create_str('username', 50),
 	create_tenant_id(), create_str('note', 255),
-	create_datetime('expired'), create_json('permissions'), create_datetime('created_at', False)
+	create_date('expired'), create_json('permissions'), create_datetime('created_at', False)
 )
 table_tenants = Table(
 	'tenants', meta_data,
@@ -175,7 +175,7 @@ table_snapshot_schedulers = Table(
 table_snapshot_job_locks = Table(
 	'snapshot_job_locks', meta_data,
 	create_pk('lock_id'), create_tuple_id_column('tenant_id', False), create_tuple_id_column('scheduler_id', False),
-	create_str('frequency', 10, False), create_datetime('process_date', False), create_int('row_count', False),
+	create_str('frequency', 10, False), create_date('process_date', False), create_int('row_count', False),
 	create_str('status', 10, False),
 	create_tuple_id_column('user_id', False), create_datetime('created_at', False)
 )
@@ -237,7 +237,7 @@ table_monitor_rules = Table(
 table_monitor_job_locks = Table(
 	'monitor_job_locks', meta_data,
 	create_pk('lock_id'), create_tuple_id_column('tenant_id', False), create_tuple_id_column('topic_id', False),
-	create_str('frequency', 10, False), create_datetime('process_date', False),
+	create_str('frequency', 10, False), create_date('process_date', False),
 	create_str('status', 10, False),
 	create_tuple_id_column('user_id', False), create_datetime('created_at', False)
 )

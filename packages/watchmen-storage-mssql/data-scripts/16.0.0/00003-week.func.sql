@@ -18,7 +18,7 @@ BEGIN
             -- first week is full week
             SET @ret = 1;
     ELSE
-        SET @ret = CEILING((@days_of_year_of_given_date - @days_of_first_week) / 7);
+        SET @ret = CEILING((@days_of_year_of_given_date - @days_of_first_week) * 1.0 / 7);
 
     RETURN @ret
 END;

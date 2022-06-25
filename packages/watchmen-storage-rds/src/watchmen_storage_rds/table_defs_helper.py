@@ -1,6 +1,6 @@
 from typing import List, Type, Union  # noqa
 
-from sqlalchemy import Boolean, Column, Date, Integer, JSON, MetaData, String, Text
+from sqlalchemy import Boolean, Column, Date, Integer, JSON, MetaData, String, Text, DateTime
 
 # noinspection DuplicatedCode
 meta_data = MetaData()
@@ -24,8 +24,12 @@ def create_int(name: str, nullable: bool = True) -> Column:
 	return Column(name, Integer, nullable=nullable)
 
 
-def create_datetime(name: str, nullable: bool = True) -> Column:
+def create_date(name: str, nullable: bool = True) -> Column:
 	return Column(name, Date, nullable=nullable)
+
+
+def create_datetime(name: str, nullable: bool = True) -> Column:
+	return Column(name, DateTime, nullable=nullable)
 
 
 def create_json(name: str, nullable: bool = True) -> Column:
@@ -42,7 +46,7 @@ def create_tuple_id_column(name: str, nullable: bool = True) -> Column:
 
 
 def create_pk(name: str, column_type: Union[Type[Integer], String] = ID_TYPE) -> Column:
-	return Column(name, column_type, primary_key=True)
+	return Column(name, column_type, primary_key=True, autoincrement=False)
 
 
 def create_tenant_id() -> Column:
