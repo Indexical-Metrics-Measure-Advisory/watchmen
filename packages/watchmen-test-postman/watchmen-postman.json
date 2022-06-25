@@ -7238,6 +7238,8 @@
 															"pm.test(\"Update Topic\", () => {",
 															"    pm.response.to.have.status(200);",
 															"    var data = pm.response.json()",
+															"    pm.environment.set('RAW_TOPIC_ID', data.topicId)",
+															"    pm.environment.set('RAW_TOPIC_NAME', data.name)",
 															"    pm.environment.set('RAW_TOPIC_VERSION', data.version);",
 															"});"
 														],
