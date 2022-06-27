@@ -84,6 +84,18 @@ jobs:
         with:
           module-name: watchmen-storage-postgresql
           target-version: ${{ inputs.version }}
+      - name: Change version [watchmen-storage-oss]
+        uses: ./.github/actions/change-poetry-version/
+        id: change-poetry-version-storage-oss
+        with:
+          module-name: watchmen-storage-oss
+          target-version: ${{ inputs.version }}
+      - name: Change version [watchmen-storage-s3]
+        uses: ./.github/actions/change-poetry-version/
+        id: change-poetry-version-storage-s3
+        with:
+          module-name: watchmen-storage-s3
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-auth]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-auth
