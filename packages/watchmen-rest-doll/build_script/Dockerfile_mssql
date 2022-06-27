@@ -2,7 +2,7 @@ FROM python:3.9.6-slim-buster
 
 WORKDIR    /opt/mssql
 
-RUN        apt-get update && apt-get install -y curl \
+RUN        apt-get update && apt-get install -y curl && apt-get install -y gnupg2 \
            && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
            && curl https://packages.microsoft.com/config/debian/10/prod.list > /etc/apt/sources.list.d/mssql-release.list \
            && exit \
