@@ -122,7 +122,14 @@ jobs:
       branch: ${{ needs.prepare.outputs.release_branch_name }}
       version: ${{ github.event.inputs.version }}
       storage: mssql
-  # TODO publish doll image, on postgresql
+  # publish doll image, on postgresql
+  publish-doll-postgresql-image:
+    needs: [ prepare, publish-web-client-image ]
+    uses: ./.github/workflows/image-publish-doll.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ github.event.inputs.version }}
+      storage: postgresql
   # publish dqc image, on mysql
   publish-dqc-mysql-image:
     needs: [ prepare, publish-web-client-image ]
@@ -155,4 +162,11 @@ jobs:
       branch: ${{ needs.prepare.outputs.release_branch_name }}
       version: ${{ github.event.inputs.version }}
       storage: mssql
-  # TODO publish dqc image, on postgresql
+  # publish dqc image, on postgresql
+  publish-dqc-postgresql-image:
+    needs: [ prepare, publish-web-client-image ]
+    uses: ./.github/workflows/image-publish-dqc.yml
+    with:
+      branch: ${{ needs.prepare.outputs.release_branch_name }}
+      version: ${{ github.event.inputs.version }}
+      storage: postgresql
