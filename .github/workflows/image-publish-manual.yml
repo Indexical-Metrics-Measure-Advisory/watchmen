@@ -21,7 +21,8 @@ on:
         options:
           - oracle
           - mysql
-#          - mssql
+          - mssql
+          - postgresql
           - mongodb
       doll:
         description: 'Doll'
