@@ -13,7 +13,7 @@ on:
         type: string
 
 jobs:
-  build-and-publish-no-indicator:
+  build-and-publish:
     name: Publish image
     runs-on: ubuntu-latest
     steps:
@@ -46,36 +46,3 @@ jobs:
           file: ./packages/watchmen-web-client/Dockerfile
           push: true
           tags: ghcr.io/indexical-metrics-measure-advisory/watchmen-web-client:${{ inputs.version }}
-  build-and-publish-indicator:
-    name: Publish image
-    runs-on: ubuntu-latest
-    steps:
-      - name: Echo inputs
-        run: |
-          echo "Release branch: [${{ inputs.branch }}]"
-          echo "Target version: [${{ inputs.version }}]"
-      - name: Check out the repo
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ inputs.branch }}
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 16
-      - name: Build with indicator
-        run: |
-          cd ./packages/watchmen-web-client
-          yarn install
-          REACT_APP_INDICATOR_WORKBENCH=true yarn build
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - name: Login to GitHub Container Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
-      - name: Web client with indicator build and push
-        uses: docker/build-push-action@v2
-        with:
-          context: ./packages/watchmen-web-client
-          file: ./packages/watchmen-web-client/Dockerfile
-          push: true
-          tags: ghcr.io/indexical-metrics-measure-advisory/watchmen-web-client-indicator:${{ inputs.version }}
