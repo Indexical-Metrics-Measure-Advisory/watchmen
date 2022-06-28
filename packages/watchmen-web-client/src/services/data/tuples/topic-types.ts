@@ -5,7 +5,8 @@ import {OptimisticLock, Tuple, TupleHolder} from './tuple-types';
 
 export enum TopicKind {
 	SYSTEM = 'system',
-	BUSINESS = 'business'
+	BUSINESS = 'business',
+	SYNONYM = 'synonym'
 }
 
 export enum TopicType {

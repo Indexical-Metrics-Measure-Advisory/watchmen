@@ -4,6 +4,7 @@ import {
 	isDistinctTopic,
 	isMetaTopic,
 	isRawTopic,
+	isSynonymTopic,
 	isSystemTopic
 } from '@/services/data/tuples/topic-utils';
 import {DataQualityCacheData} from '@/services/local-persist/types';
@@ -30,6 +31,7 @@ import {
 	CMD_ARGUMENT_META,
 	CMD_ARGUMENT_RATIO,
 	CMD_ARGUMENT_RAW,
+	CMD_ARGUMENT_SYNONYM,
 	CMD_ARGUMENT_SYSTEM,
 	CMD_ARGUMENT_TIME
 } from './commands';
@@ -44,6 +46,8 @@ const buildFilter = (command: Command) => {
 			return (topic: Topic) => isSystemTopic(topic);
 		case CMD_ARGUMENT_BIZ:
 			return (topic: Topic) => isBusinessTopic(topic);
+		case CMD_ARGUMENT_SYNONYM:
+			return (topic: Topic) => isSynonymTopic(topic);
 		case CMD_ARGUMENT_RAW:
 			return (topic: Topic) => isRawTopic(topic);
 		case CMD_ARGUMENT_META:
