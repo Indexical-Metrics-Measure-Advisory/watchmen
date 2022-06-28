@@ -20,7 +20,7 @@
     "@types/styled-components": "^5.1.25",
     "@types/uuid": "^8.3.4",
     "@uiw/react-md-editor": "^3.14.4",
-    "color": "3.2.1",
+    "color": "^4.2.3",
     "colors": "^1.4.0",
     "csv-parse": "^5.2.0",
     "csv-stringify": "^6.1.3",
