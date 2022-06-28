@@ -38,7 +38,10 @@ const RegularLogin = () => {
 	const [ing, setIng] = useState(false);
 	const [error, setError] = useState('');
 	useEffect(() => {
-		nameRef.current && nameRef.current.focus() && nameRef.current.select();
+		if (nameRef.current) {
+			nameRef.current.focus();
+			nameRef.current.select();
+		}
 	}, []);
 
 	const onValueChange = (prop: keyof Account) => (event: ChangeEvent<HTMLInputElement>) => {
