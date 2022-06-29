@@ -116,6 +116,38 @@ export const parseFromStructureJson = async (topic: Topic, content: string): Pro
 	});
 };
 
+const createAidMeFactor = (options: {
+	mockTopic: Topic;
+	prefix?: string;
+	description: string;
+	factorMap: Record<string, Factor>;
+}) => {
+	const {prefix, factorMap, mockTopic, description} = options;
+
+	const factorName = `${prefix}.aid_me`;
+	const factor = factorMap[factorName] ?? createFactor(mockTopic, true);
+	factor.name = factorName;
+	factor.type = FactorType.NUMBER;
+	factor.description = description;
+	factorMap[factorName] = factor;
+};
+
+const createToAidRootFactor = (options: {
+	mockTopic: Topic;
+	prefix?: string;
+	description: string;
+	factorMap: Record<string, Factor>;
+}) => {
+	const {prefix, factorMap, mockTopic, description} = options;
+
+	const factorName = `${prefix}.aid_root`;
+	const factor = factorMap[factorName] ?? createFactor(mockTopic, true);
+	factor.name = factorName;
+	factor.type = FactorType.NUMBER;
+	factor.description = description;
+	factorMap[factorName] = factor;
+};
+
 type ShouldBeFactorsInstance = any;
 const toFactorsFromInstanceData = (topic: Topic, data: ShouldBeFactorsInstance, prefix?: string): Array<Factor> => {
 	if (data == null || !Array.isArray(data) || data.length === 0) {
@@ -240,24 +272,16 @@ const toFactorsFromInstanceData = (topic: Topic, data: ShouldBeFactorsInstance, 
 					throw new Error(`Conflict type[${FactorType.ARRAY}, ${factor.type}] detected on factor[${factorName}].`);
 				}
 				if (value.length !== 0) {
-					{
-						// create aid_me factor to identify myself
-						const factorName = `${prefix}.aid_me`;
-						const factor = map[factorName] ?? createFactor(mockTopic, true);
-						factor.name = factorName;
-						factor.type = FactorType.NUMBER;
-						factor.description = 'Auto generated id for sub object referring.';
-						map[factorName] = factor;
-					}
-					{
-						// create aid_root factor to reference to root
-						const factorName = `${prefix}.aid_root`;
-						const factor = map[factorName] ?? createFactor(mockTopic, true);
-						factor.name = factorName;
-						factor.type = FactorType.NUMBER;
-						factor.description = 'Auto generated id for reference to root.';
-						map[factorName] = factor;
-					}
+					// create aid_me factor to identify myself
+					createAidMeFactor({
+						prefix: factorName, factorMap: map, mockTopic,
+						description: 'Auto generated id for sub object referring.'
+					});
+					// create aid_root factor to reference to root
+					createToAidRootFactor({
+						prefix: factorName, factorMap: map, mockTopic,
+						description: 'Auto generated id for reference to root.'
+					});
 					toFactorsFromInstanceData(topic, value, factorName).forEach(factor => {
 						map[factor.name] = factor;
 					});
@@ -272,24 +296,15 @@ const toFactorsFromInstanceData = (topic: Topic, data: ShouldBeFactorsInstance, 
 				} else {
 					throw new Error(`Conflict type[${FactorType.OBJECT}, ${factor.type}] detected on factor[${factorName}].`);
 				}
-				{
-					// create aid_me factor to identify myself
-					const factorName = `${prefix}.aid_me`;
-					const factor = map[factorName] ?? createFactor(mockTopic, true);
-					factor.name = factorName;
-					factor.type = FactorType.NUMBER;
-					factor.description = 'Auto generated id for sub object.';
-					map[factorName] = factor;
-				}
-				{
-					// create aid_root factor to reference to root
-					const factorName = `${prefix}.aid_root`;
-					const factor = map[factorName] ?? createFactor(mockTopic, true);
-					factor.name = factorName;
-					factor.type = FactorType.NUMBER;
-					factor.description = 'Auto generated id for reference to root.';
-					map[factorName] = factor;
-				}
+				// create aid_me factor to identify myself
+				createAidMeFactor({
+					prefix: factorName, factorMap: map, mockTopic,
+					description: 'Auto generated id for sub object.'
+				});
+				createToAidRootFactor({
+					prefix: factorName, factorMap: map, mockTopic,
+					description: 'Auto generated id for reference to root.'
+				});
 				toFactorsFromInstanceData(topic, [value], factorName).forEach(factor => {
 					map[factor.name] = factor;
 				});
