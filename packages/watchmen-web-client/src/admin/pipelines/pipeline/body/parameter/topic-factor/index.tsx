@@ -7,7 +7,7 @@ import {
 import {Factor} from '@/services/data/tuples/factor-types';
 import {isTopicFactorParameter} from '@/services/data/tuples/parameter-utils';
 import {Topic} from '@/services/data/tuples/topic-types';
-import {isSynonymTopic} from '@/services/data/tuples/topic-utils';
+import {isNotSynonymTopic, isSynonymTopic} from '@/services/data/tuples/topic-utils';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {useParameterEventBus} from '@/widgets/parameter/parameter-event-bus';
 import {ParameterEventTypes} from '@/widgets/parameter/parameter-event-bus-types';
@@ -34,7 +34,7 @@ const RealTopicFactorEditor = (props: {
 	};
 	const isFactorValid = (factor: Factor) => {
 		return selectedTopic !== extraTopic
-			&& (synonymAllowed || selectedTopic == null || !isSynonymTopic(selectedTopic))
+			&& (synonymAllowed || selectedTopic == null || isNotSynonymTopic(selectedTopic))
 			&& factor !== extraFactor
 			&& isFactorTypeCompatibleWith({
 				factorType: factor.type,
@@ -50,7 +50,7 @@ const RealTopicFactorEditor = (props: {
 			return <IncorrectOptionLabel>{topic.name}</IncorrectOptionLabel>;
 		}
 	}).map(({value, label, key}) => {
-		if (synonymAllowed || !isSynonymTopic(value)) {
+		if (synonymAllowed || isNotSynonymTopic(value)) {
 			return {value, label, key};
 		} else {
 			return {

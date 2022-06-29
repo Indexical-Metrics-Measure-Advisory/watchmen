@@ -4,7 +4,8 @@ import {Topic, TopicKind, TopicType} from './topic-types';
 
 export const isSystemTopic = (topic: Topic): boolean => topic.kind === TopicKind.SYSTEM;
 export const isBusinessTopic = (topic: Topic): boolean => topic.kind === TopicKind.BUSINESS;
-export const isSynonymTopic = (topic: Topic): boolean => topic.kind === TopicKind.SYNONYM;
+export const isSynonymTopic = (topic: Topic | QueryTopic): boolean => topic.kind === TopicKind.SYNONYM;
+export const isNotSynonymTopic = (topic: Topic | QueryTopic): boolean => !isSynonymTopic(topic);
 export const isRawTopic = (topic: Topic | QueryTopic): boolean => topic.type === TopicType.RAW;
 export const isNotRawTopic = (topic: Topic | QueryTopic): boolean => !isRawTopic(topic);
 export const isMetaTopic = (topic: Topic): boolean => topic.type === TopicType.META;
