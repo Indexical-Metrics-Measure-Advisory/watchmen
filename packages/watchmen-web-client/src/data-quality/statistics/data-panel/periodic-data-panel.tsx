@@ -75,28 +75,29 @@ export const PeriodicPanel = (props: {
 							map[topic.topicId] = topic;
 							return map;
 						}, {} as Record<TopicId, Topic>);
-						setData(logs.sort((r1, r2) => r1.count === r2.count ? 0 : (r1.count < r2.count) ? 1 : -1)
-							.map(row => {
-								const {topicId, factorId} = row;
-								if (topicId) {
-									const topic = topicMap[topicId];
-									if (factorId) {
-										return {
-											...row,
-											topicName: topic ? getTopicName(topic) : topicId,
-											// eslint-disable-next-line
-											factorName: (topic?.factors || []).find(factor => factor.factorId == factorId)?.name || 'Noname Factor'
-										};
-									} else {
-										return {
-											...row,
-											topicName: topic ? getTopicName(topic) : topicId,
-											factorName: '-'
-										};
-									}
+						setData(logs.sort((r1, r2) => {
+							return r1.count === r2.count ? 0 : (r1.count < r2.count) ? 1 : -1;
+						}).map(row => {
+							const {topicId, factorId} = row;
+							if (topicId) {
+								const topic = topicMap[topicId];
+								if (factorId) {
+									return {
+										...row,
+										topicName: topic ? getTopicName(topic) : topicId,
+										// eslint-disable-next-line
+										factorName: (topic?.factors || []).find(factor => factor.factorId == factorId)?.name || 'Noname Factor'
+									};
+								} else {
+									return {
+										...row,
+										topicName: topic ? getTopicName(topic) : topicId,
+										factorName: '-'
+									};
 								}
-								return row;
-							}));
+							}
+							return row;
+						}));
 						if (state.topicId) {
 							const topic = topicMap[state.topicId];
 							const topicName = topic ? getTopicName(topic) : state.topicId;
