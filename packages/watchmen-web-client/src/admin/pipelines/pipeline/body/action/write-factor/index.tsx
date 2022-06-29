@@ -7,7 +7,6 @@ import {isWriteFactorAction} from '@/services/data/tuples/pipeline-stage-unit-ac
 import {PipelineStageUnit} from '@/services/data/tuples/pipeline-stage-unit-types';
 import {Pipeline} from '@/services/data/tuples/pipeline-types';
 import {Topic} from '@/services/data/tuples/topic-types';
-import {filterWriteableTopics} from '@/services/data/tuples/topic-utils';
 import React from 'react';
 import {useActionType} from '../action-effect/use-action-type';
 import {useActionEventBus} from '../action-event-bus';
@@ -49,8 +48,8 @@ export const WriteFactor = (props: {
 		<AggregateArithmeticEditor holder={action} onChange={onArithmeticChanged}/>
 		<ActionLeadLabelThin>Target Topic & Factor:</ActionLeadLabelThin>
 		{/* any type is valid here, factor has high priority here */}
-		<TopicFactorPicker action={action} topics={filterWriteableTopics(topics)} expectedTypes={[AnyFactorType.ANY]}/>
+		<TopicFactorPicker action={action} topics={topics} expectedTypes={[AnyFactorType.ANY]} synonymAllowed={false}/>
 		<ActionLeadLabelThin>By:</ActionLeadLabelThin>
-		<FindByCondition action={action} topics={filterWriteableTopics(topics)} topic={triggerTopic}/>
+		<FindByCondition action={action} topics={topics} topic={triggerTopic}/>
 	</>;
 };

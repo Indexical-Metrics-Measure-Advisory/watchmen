@@ -51,11 +51,13 @@ export const TFDropdown = styled(Dropdown).attrs<{ valid: boolean }>({'data-no-b
 export const TopicDropdown = styled(TFDropdown)`
 	border-radius : calc(var(--param-height) / 2) 0 0 calc(var(--param-height) / 2);
 	box-shadow    : ${({valid}) => valid ? 'var(--param-top-border), var(--param-left-border), var(--param-bottom-border)' : 'var(--param-danger-border)'};
+	z-index       : ${({valid}) => valid ? (void 0) : 1};
 `;
 export const FactorDropdown = styled(TFDropdown)`
 	border-radius : 0 calc(var(--param-height) / 2) calc(var(--param-height) / 2) 0;
 	box-shadow    : ${({valid}) => valid ? 'var(--param-border)' : 'var(--param-danger-border)'};
 `;
 export const IncorrectOptionLabel = styled.span.attrs({'data-widget': 'incorrect-option'})`
-	color : var(--danger-color);
+	color           : var(--danger-color);
+	text-decoration : line-through;
 `;

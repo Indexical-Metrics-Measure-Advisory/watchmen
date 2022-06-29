@@ -1,6 +1,7 @@
 import {findSelectedTopic} from '@/services/data/tuples/factor-calculator-utils';
 import {FromTopic, ToTopic} from '@/services/data/tuples/pipeline-stage-unit-action/pipeline-stage-unit-action-types';
 import {Topic} from '@/services/data/tuples/topic-types';
+import {isSynonymTopic} from '@/services/data/tuples/topic-utils';
 import {ButtonInk, DropdownOption} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {buildTopicOptions} from '@/widgets/tuples';
@@ -13,8 +14,9 @@ export const TopicPicker = (props: {
 	action: FromTopic | ToTopic;
 	topics: Array<Topic>;
 	prefillMappingFactors?: () => void;
+	synonymAllowed?: boolean;
 }) => {
-	const {action, topics, prefillMappingFactors} = props;
+	const {action, topics, prefillMappingFactors, synonymAllowed = true} = props;
 	const {topicId} = action;
 
 	const {fire} = useActionEventBus();
@@ -36,6 +38,16 @@ export const TopicPicker = (props: {
 	const topicOptions = buildTopicOptions({
 		topics, extraTopic, toExtraNode: (topic: Topic) => {
 			return <IncorrectOptionLabel>{topic.name}</IncorrectOptionLabel>;
+		}
+	}).map(({value, label, key}) => {
+		if (synonymAllowed || !isSynonymTopic(value)) {
+			return {value, label, key};
+		} else {
+			return {
+				value,
+				key,
+				label: () => ({node: <IncorrectOptionLabel>{value.name}</IncorrectOptionLabel>, label: value.name})
+			};
 		}
 	});
 
