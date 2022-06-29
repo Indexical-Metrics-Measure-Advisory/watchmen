@@ -1,10 +1,12 @@
 import {
 	AnyFactorType,
+	DeclaredVariable,
 	DeclaredVariables,
 	Parameter,
 	ParameterCondition,
 	ParameterExpressionOperator,
 	ParameterInvalidReasonsLabels,
+	ParameterJoint,
 	TopicFactorParameter
 } from '../tuples/factor-calculator-types';
 import {FactorId, FactorIndexGroup} from '../tuples/factor-types';
@@ -33,7 +35,9 @@ import {
 } from '../tuples/pipeline-stage-unit-action/pipeline-stage-unit-action-utils';
 import {Pipeline} from '../tuples/pipeline-types';
 import {buildVariable, isJointValid4Pipeline, isParameterValid4Pipeline} from '../tuples/pipeline-validation-utils';
-import {Topic} from '../tuples/topic-types';
+import {Topic, TopicId} from '../tuples/topic-types';
+import {isSynonymTopic} from '../tuples/topic-utils';
+import {isNotNull} from '../utils';
 
 export interface PipelineValidateResult {
 	pipeline: Pipeline;
@@ -111,7 +115,7 @@ const isIndexUsed = (action: FindBy, topic: Topic): boolean => {
 		return indexes;
 	}, {} as Record<FactorIndexGroup, Array<FactorId>>);
 	const usedIndexGroups: Record<FactorIndexGroup, Array<FactorId>> = {} as Record<FactorIndexGroup, Array<FactorId>>;
-	by.filters.forEach(condition => {
+	(by.filters || []).forEach(condition => {
 		if (!isExpressionParameter(condition)) {
 			return;
 		}
@@ -146,6 +150,55 @@ const isIndexUsed = (action: FindBy, topic: Topic): boolean => {
 	});
 };
 
+const validateWriteTargetTopic = (options: {
+	topics: Array<Topic>;
+	topicId: TopicId;
+	messages: Array<string>;
+	stageIndex: number;
+	unitIndex: number;
+	actionIndex: number;
+}) => {
+	const {topics, topicId, messages, stageIndex, unitIndex, actionIndex} = options;
+
+	// eslint-disable-next-line
+	const topic = topics.find(topic => topic.topicId == topicId);
+	if (!topic) {
+		messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] target topic is incorrect.`);
+	} else if (isSynonymTopic(topic)) {
+		messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] target topic cannot be synonym.`);
+	}
+	return topic;
+};
+const checkReadBy = (options: {
+	by: ParameterJoint;
+	topic?: Topic;
+	triggerTopic?: Topic;
+	variables: Array<DeclaredVariable>;
+	messages: Array<string>;
+	stageIndex: number;
+	unitIndex: number;
+	actionIndex: number;
+	actionType: 'read' | 'merge' | 'delete'
+}) => {
+	const {
+		by, topic, triggerTopic, variables,
+		messages, stageIndex, unitIndex, actionIndex, actionType
+	} = options;
+
+	if (!by || by.filters.length === 0) {
+		messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] ${actionType} by is not given yet.`);
+	} else if (!isJointValid4Pipeline({
+		joint: by,
+		allTopics: [topic, triggerTopic].filter(isNotNull) as Array<Topic>,
+		triggerTopic,
+		variables,
+		reasons: (reason) => {
+			messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] ${actionType} by is incorrect caused by ${ParameterInvalidReasonsLabels[reason]}.`);
+		}
+	})) {
+		// do nothing, reason already be added by passed function
+	}
+};
 export const validatePipeline = (pipeline: Pipeline, topics: Array<Topic>): PipelineValidateResult => {
 	const messages: Array<string> = [];
 	const {name, type, topicId, conditional, on, stages} = pipeline;
@@ -273,7 +326,6 @@ export const validatePipeline = (pipeline: Pipeline, topics: Array<Topic>): Pipe
 							}
 						})) {
 							// do nothing, reason already be added by passed function
-							return true;
 						}
 					}
 				} else if (isCopyToMemoryAction(action)) {
@@ -326,19 +378,10 @@ export const validatePipeline = (pipeline: Pipeline, topics: Array<Topic>): Pipe
 							messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] source factor is incorrect.`);
 						}
 					}
-					if (!by || by.filters.length === 0) {
-						messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] read by is not given yet.`);
-					} else if (!isJointValid4Pipeline({
-						joint: by,
-						allTopics: [topic, triggerTopic].filter(x => x) as Array<Topic>,
-						triggerTopic,
-						variables,
-						reasons: (reason) => {
-							messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] read by is incorrect caused by ${ParameterInvalidReasonsLabels[reason]}.`);
-						}
-					})) {
-						// do nothing, reason already be added by passed function
-					}
+					checkReadBy({
+						by, topic, triggerTopic, variables,
+						messages, stageIndex, unitIndex, actionIndex, actionType: 'read'
+					});
 
 					const built = tryToBuildVariable({action, variables, topics, triggerTopic});
 					if (!built) {
@@ -348,20 +391,17 @@ export const validatePipeline = (pipeline: Pipeline, topics: Array<Topic>): Pipe
 					if (topic && !isIndexUsed(action, topic)) {
 						missIndexed.push(`#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}`);
 					}
-					// pass all validation
-					return false;
 				} else if (isInsertRowAction(action) || isMergeRowAction(action)) {
 					const {topicId, mapping} = action;
 					// eslint-disable-next-line
-					const topic = topics.find(topic => topic.topicId == topicId);
-					if (!topic) {
-						messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] target topic is incorrect.`);
-					}
+					const topic = validateWriteTargetTopic({
+						topics, topicId, messages, stageIndex, unitIndex, actionIndex
+					});
 					if (!mapping || mapping.length === 0) {
 						messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] mapping doesn't be defined yet.`);
 					}
 					if (topic) {
-						const passed = mapping.some(({factorId, source}, index) => {
+						mapping.some(({factorId, source}, index) => {
 							// eslint-disable-next-line
 							const factor = topic.factors.find(factor => factor.factorId == factorId);
 							if (!factor) {
@@ -386,26 +426,13 @@ export const validatePipeline = (pipeline: Pipeline, topics: Array<Topic>): Pipe
 							// false means pass the mapping validation
 							return false;
 						});
-						if (!passed) {
-							return true;
-						}
 					}
 					if (isMergeRowAction(action)) {
 						const {by} = action;
-						if (!by || by.filters.length === 0) {
-							messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] merge by is not given yet.`);
-							return true;
-						} else if (!isJointValid4Pipeline({
-							joint: by,
-							allTopics: [topic, triggerTopic].filter(x => x) as Array<Topic>,
-							triggerTopic,
-							variables,
-							reasons: (reason) => {
-								messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] merge by is incorrect caused by ${ParameterInvalidReasonsLabels[reason]}.`);
-							}
-						})) {
-							// do nothing, reason already be added by passed function
-						}
+						checkReadBy({
+							by, topic, triggerTopic, variables,
+							messages, stageIndex, unitIndex, actionIndex, actionType: 'merge'
+						});
 
 						if (topic && !isIndexUsed(action, topic)) {
 							missIndexed.push(`#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}`);
@@ -414,62 +441,35 @@ export const validatePipeline = (pipeline: Pipeline, topics: Array<Topic>): Pipe
 				} else if (isWriteFactorAction(action)) {
 					const {topicId, factorId, by} = action;
 					// eslint-disable-next-line
-					const topic = topics.find(topic => topic.topicId == topicId);
-					if (!topic) {
-						messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] target topic is incorrect.`);
-					}
+					const topic = validateWriteTargetTopic({
+						topics, topicId, messages, stageIndex, unitIndex, actionIndex
+					});
 					// eslint-disable-next-line
 					const factor = topic?.factors.find(factor => factor.factorId == factorId);
 					if (!factor) {
 						messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] source factor is incorrect.`);
 					}
-					if (!by || by.filters.length === 0) {
-						messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] merge by is not given yet.`);
-					} else if (!isJointValid4Pipeline({
-						joint: by,
-						allTopics: [topic, triggerTopic].filter(x => x) as Array<Topic>,
-						triggerTopic,
-						variables,
-						reasons: (reason) => {
-							messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] merge by is incorrect caused by ${ParameterInvalidReasonsLabels[reason]}.`);
-						}
-					})) {
-						// do nothing, reason already be added by passed function
-					}
+					checkReadBy({
+						by, topic, triggerTopic, variables,
+						messages, stageIndex, unitIndex, actionIndex, actionType: 'merge'
+					});
 					if (topic && !isIndexUsed(action, topic)) {
 						missIndexed.push(`#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}`);
 					}
 				} else if (isDeleteTopicAction(action)) {
 					const {topicId, by} = action;
 					// eslint-disable-next-line
-					const topic = topics.find(topic => topic.topicId == topicId);
-					if (!topic) {
-						messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] target topic is incorrect.`);
-					}
-					if (!by || by.filters.length === 0) {
-						messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] read by is not given yet.`);
-					} else if (!isJointValid4Pipeline({
-						joint: by,
-						allTopics: [topic, triggerTopic].filter(x => x) as Array<Topic>,
-						triggerTopic,
-						variables,
-						reasons: (reason) => {
-							messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] read by is incorrect caused by ${ParameterInvalidReasonsLabels[reason]}.`);
-						}
-					})) {
-						// do nothing, reason already be added by passed function
-					}
+					const topic = validateWriteTargetTopic({
+						topics, topicId, messages, stageIndex, unitIndex, actionIndex
+					});
+					checkReadBy({
+						by, topic, triggerTopic, variables,
+						messages, stageIndex, unitIndex, actionIndex, actionType: 'delete'
+					});
 
-					// const built = tryToBuildVariable({action, variables, topics, triggerTopic});
-					// if (!built) {
-					// 	// cannot build variable, return true as failed.
-					// 	messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] topic or factor is incorrect.`);
-					// }
 					if (topic && !isIndexUsed(action, topic)) {
 						missIndexed.push(`#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}`);
 					}
-					// pass all validation
-					return false;
 				} else {
 					messages.push(`Action[#${stageIndex + 1}.${unitIndex + 1}.${actionIndex + 1}] action type is not supported yet.`);
 				}

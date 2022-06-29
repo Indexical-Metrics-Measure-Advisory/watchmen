@@ -1,7 +1,7 @@
 import {findSelectedTopic} from '@/services/data/tuples/factor-calculator-utils';
 import {FromTopic, ToTopic} from '@/services/data/tuples/pipeline-stage-unit-action/pipeline-stage-unit-action-types';
 import {Topic} from '@/services/data/tuples/topic-types';
-import {isSynonymTopic} from '@/services/data/tuples/topic-utils';
+import {isNotSynonymTopic} from '@/services/data/tuples/topic-utils';
 import {ButtonInk, DropdownOption} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {buildTopicOptions} from '@/widgets/tuples';
@@ -40,7 +40,7 @@ export const TopicPicker = (props: {
 			return <IncorrectOptionLabel>{topic.name}</IncorrectOptionLabel>;
 		}
 	}).map(({value, label, key}) => {
-		if (synonymAllowed || !isSynonymTopic(value)) {
+		if (synonymAllowed || isNotSynonymTopic(value)) {
 			return {value, label, key};
 		} else {
 			return {
