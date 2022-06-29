@@ -7,7 +7,7 @@ from watchmen_inquiry_kernel.storage import ReportDataService
 from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import ComputedParameter, ConstantParameter, DataResult, DataResultSetRow, \
 	FactorId, Parameter, ParameterComputeType, ParameterExpression, ParameterExpressionOperator, ParameterJoint, \
-	ParameterJointType, ParameterKind, TopicFactorParameter, TopicId
+	ParameterJointType, ParameterKind, TopicFactorParameter
 from watchmen_model.console import Report, ReportDimension, ReportIndicator, ReportIndicatorArithmetic, Subject, \
 	SubjectDataset, SubjectDatasetColumn
 from watchmen_model.indicator import Bucket, CategorySegment, CategorySegmentsHolder, Indicator, \
@@ -96,22 +96,6 @@ class TopicBaseInspectionDataService(InspectionDataService):
 				alias=f'column_{column_index}'
 			)
 		return column, column_index, column_index + 1
-
-	# noinspection PyMethodMayBeStatic
-	def get_topic_id_from_time_group_column(self, column: SubjectDatasetColumn) -> TopicId:
-		parameter = column.parameter
-		if parameter.kind == ParameterKind.TOPIC:
-			return parameter.topicId
-		else:
-			return parameter.parameters[0].topicId
-
-	# noinspection PyMethodMayBeStatic
-	def get_factor_id_from_time_group_column(self, column: SubjectDatasetColumn) -> FactorId:
-		parameter = column.parameter
-		if parameter.kind == ParameterKind.TOPIC:
-			return parameter.factorId
-		else:
-			return parameter.parameters[0].factorId
 
 	# noinspection PyMethodMayBeStatic
 	def to_numeric_segments_bucket(self, bucket: Bucket) -> NumericSegmentsHolder:
@@ -339,13 +323,12 @@ class TopicBaseInspectionDataService(InspectionDataService):
 		dataset_columns: List[SubjectDatasetColumn] = []
 		indicator_factor_column, _, next_column_index = self.fake_indicator_factor_to_dataset_column(1)
 		dataset_columns.append(indicator_factor_column)
-		time_group_column, _, next_column_index = self.fake_time_group_to_dataset_column(next_column_index)
+		time_group_column, _, next_column_index = \
+			self.fake_time_group_to_dataset_column(next_column_index)
 		if time_group_column is not None:
 			dataset_columns.append(time_group_column)
-			topic_id = self.get_topic_id_from_time_group_column(time_group_column)
-			topic = get_topic_service(self.principalService).find_by_id(topic_id)
-			factor_id = self.get_factor_id_from_time_group_column(time_group_column)
-			factor = ArrayHelper(topic.factors).find(lambda x: x.factorId == factor_id)
+			topic = get_topic_service(self.principalService).find_by_id(time_group_column.parameter.topicId)
+			factor = ArrayHelper(topic.factors).find(lambda x: x.factorId == time_group_column.parameter.factorId)
 			if factor is None:
 				raise IndicatorKernelException('Factor of time group column not found.')
 			if self.has_year_or_month(factor):
