@@ -1,6 +1,6 @@
 import {QueryDataSourceForHolder} from '@/services/data/tuples/query-data-source-types';
 import {Topic, TopicType} from '@/services/data/tuples/topic-types';
-import {isRawTopic, isS3Storage} from '@/services/data/tuples/topic-utils';
+import {isRawTopic, isRDSStorage, isS3Storage, isSynonymTopic} from '@/services/data/tuples/topic-utils';
 import {DropdownOption} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {TuplePropertyDropdown} from '@/widgets/tuple-workbench/tuple-editor';
@@ -28,6 +28,21 @@ export const TopicDataSourceInput = (props: { topic: Topic; dataSources: Array<Q
 		on(TopicEventTypes.TOPIC_TYPE_CHANGED, onTopicTypeChanged);
 		return () => {
 			off(TopicEventTypes.TOPIC_TYPE_CHANGED, onTopicTypeChanged);
+		};
+	}, [on, off, fire, topic, dataSources, forceUpdate]);
+	useEffect(() => {
+		const onTopicKindChanged = () => {
+			if (isSynonymTopic(topic)) {
+				const dataSource = dataSources.find(dataSource => dataSource.dataSourceId == topic.dataSourceId);
+				if (dataSource != null && !isRDSStorage(dataSource.dataSourceType)) {
+					delete topic.dataSourceId;
+					fire(TopicEventTypes.TOPIC_DATA_SOURCE_CHANGED, topic);
+				}
+			}
+		};
+		on(TopicEventTypes.TOPIC_KIND_CHANGED, onTopicKindChanged);
+		return () => {
+			off(TopicEventTypes.TOPIC_KIND_CHANGED, onTopicKindChanged);
 		};
 	}, [on, off, fire, topic, dataSources, forceUpdate]);
 

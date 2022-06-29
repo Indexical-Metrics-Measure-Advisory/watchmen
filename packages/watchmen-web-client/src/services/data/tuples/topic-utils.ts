@@ -17,6 +17,7 @@ export const isAggregationTopic = (topic: Topic): boolean => {
 };
 export const isNotAggregationTopic = (topic: Topic): boolean => !isAggregationTopic(topic);
 export const isS3Storage = (type: DataSourceType) => [DataSourceType.AWS_S3, DataSourceType.ALI_OSS].includes(type);
+export const isRDSStorage = (type: DataSourceType) => [DataSourceType.MSSQL, DataSourceType.MYSQL, DataSourceType.ORACLE, DataSourceType.POSTGRESQL].includes(type);
 
 export const isTopicWriteable = (topic: Topic): boolean => topic.kind !== TopicKind.SYNONYM;
 export const filterWriteableTopics = (topics: Array<Topic>) => (topics || []).filter(isTopicWriteable);
