@@ -6,6 +6,7 @@ import {isDeleteRowAction} from '@/services/data/tuples/pipeline-stage-unit-acti
 import {PipelineStageUnit} from '@/services/data/tuples/pipeline-stage-unit-types';
 import {Pipeline} from '@/services/data/tuples/pipeline-types';
 import {Topic} from '@/services/data/tuples/topic-types';
+import {filterWriteableTopics} from '@/services/data/tuples/topic-utils';
 import React from 'react';
 import {useActionType} from '../action-effect/use-action-type';
 import {FindByCondition} from '../find-by';
@@ -30,7 +31,7 @@ export const DeleteRow = (props: {
 
 	return <>
 		<ActionLeadLabelThin>Source Topic:</ActionLeadLabelThin>
-		<TopicPicker action={action} topics={topics}/>
+		<TopicPicker action={action} topics={filterWriteableTopics(topics)}/>
 		<ActionLeadLabelThin>By:</ActionLeadLabelThin>
 		<FindByCondition action={action} topics={topics} topic={triggerTopic}/>
 	</>;

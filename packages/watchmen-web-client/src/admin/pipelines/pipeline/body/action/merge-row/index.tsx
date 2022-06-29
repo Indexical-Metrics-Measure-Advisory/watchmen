@@ -10,6 +10,7 @@ import {MappingFactor} from '@/services/data/tuples/pipeline-stage-unit-action/w
 import {PipelineStageUnit} from '@/services/data/tuples/pipeline-stage-unit-types';
 import {Pipeline} from '@/services/data/tuples/pipeline-types';
 import {Topic} from '@/services/data/tuples/topic-types';
+import {filterWriteableTopics} from '@/services/data/tuples/topic-utils';
 import {AlertLabel} from '@/widgets/alert/widgets';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {useEventBus} from '@/widgets/events/event-bus';
@@ -79,7 +80,7 @@ export const MergeRow = (props: {
 
 	return <>
 		<ActionLeadLabelThin>Target Topic:</ActionLeadLabelThin>
-		<TopicPicker action={action} topics={topics} prefillMappingFactors={onPrefillClicked}/>
+		<TopicPicker action={action} topics={filterWriteableTopics(topics)} prefillMappingFactors={onPrefillClicked}/>
 		<ActionLeadLabelThin>Use Mapping:</ActionLeadLabelThin>
 		<FactorsMapping action={action} topics={topics} topic={triggerTopic}/>
 		<ActionLeadLabelThin>By:</ActionLeadLabelThin>
