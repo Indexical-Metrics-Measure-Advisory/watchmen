@@ -33,6 +33,7 @@ export const TopicDataSourceInput = (props: { topic: Topic; dataSources: Array<Q
 	useEffect(() => {
 		const onTopicKindChanged = () => {
 			if (isSynonymTopic(topic)) {
+				// eslint-disable-next-line
 				const dataSource = dataSources.find(dataSource => dataSource.dataSourceId == topic.dataSourceId);
 				if (dataSource != null && !isRDSStorage(dataSource.dataSourceType)) {
 					delete topic.dataSourceId;

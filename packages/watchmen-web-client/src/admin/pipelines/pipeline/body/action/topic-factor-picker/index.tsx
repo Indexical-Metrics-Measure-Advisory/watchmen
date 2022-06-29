@@ -11,8 +11,9 @@ export const TopicFactorPicker = (props: {
 	action: FromFactor | ToFactor;
 	topics: Array<Topic>;
 	expectedTypes: ValueTypes;
+	synonymAllowed?: boolean;
 }) => {
-	const {action, topics, expectedTypes} = props;
+	const {action, topics, expectedTypes, synonymAllowed = true} = props;
 	const {topicId, factorId} = action;
 
 	const parameter = {kind: ParameterKind.TOPIC, topicId, factorId};
@@ -20,7 +21,8 @@ export const TopicFactorPicker = (props: {
 	return <ParameterEventBusProvider>
 		<Parameter2ActionBridge action={action}/>
 		<TopicFactorFinderContainer>
-			<TopicFactorEditor parameter={parameter} topics={topics} expectedTypes={expectedTypes}/>
+			<TopicFactorEditor parameter={parameter} topics={topics} expectedTypes={expectedTypes}
+			                   synonymAllowed={synonymAllowed}/>
 		</TopicFactorFinderContainer>
 	</ParameterEventBusProvider>;
 };

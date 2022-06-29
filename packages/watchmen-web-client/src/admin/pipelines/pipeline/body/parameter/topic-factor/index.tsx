@@ -7,6 +7,7 @@ import {
 import {Factor} from '@/services/data/tuples/factor-types';
 import {isTopicFactorParameter} from '@/services/data/tuples/parameter-utils';
 import {Topic} from '@/services/data/tuples/topic-types';
+import {isSynonymTopic} from '@/services/data/tuples/topic-utils';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {useParameterEventBus} from '@/widgets/parameter/parameter-event-bus';
 import {ParameterEventTypes} from '@/widgets/parameter/parameter-event-bus-types';
@@ -19,16 +20,21 @@ const RealTopicFactorEditor = (props: {
 	parameter: TopicFactorParameter;
 	topics: Array<Topic>;
 	expectedTypes: ValueTypes;
+	synonymAllowed: boolean;
 }) => {
-	const {parameter, topics, expectedTypes} = props;
+	const {parameter, topics, expectedTypes, synonymAllowed} = props;
 
 	const {onTopicChange, onFactorChange, topicId, factorId} = useTopicFactor(parameter);
 
 	const {selected: selectedTopic, extra: extraTopic} = findSelectedTopic(topics, topicId);
 	const {selected: selectedFactor, extra: extraFactor} = findSelectedFactor(selectedTopic, factorId);
 
-	const isValid = (factor: Factor) => {
+	const isTopicValid = (topic: Topic) => {
+		return !(topic === extraTopic || (!synonymAllowed && isSynonymTopic(topic)));
+	};
+	const isFactorValid = (factor: Factor) => {
 		return selectedTopic !== extraTopic
+			&& (synonymAllowed || selectedTopic == null || !isSynonymTopic(selectedTopic))
 			&& factor !== extraFactor
 			&& isFactorTypeCompatibleWith({
 				factorType: factor.type,
@@ -43,17 +49,27 @@ const RealTopicFactorEditor = (props: {
 		topics, extraTopic, toExtraNode: (topic: Topic) => {
 			return <IncorrectOptionLabel>{topic.name}</IncorrectOptionLabel>;
 		}
+	}).map(({value, label, key}) => {
+		if (synonymAllowed || !isSynonymTopic(value)) {
+			return {value, label, key};
+		} else {
+			return {
+				value,
+				key,
+				label: () => ({node: <IncorrectOptionLabel>{value.name}</IncorrectOptionLabel>, label: value.name})
+			};
+		}
 	});
 	const factorOptions = buildFactorOptions({
 		topic: selectedTopic, extraFactor,
-		isValid,
+		isValid: isFactorValid,
 		toExtraNode: (factor: Factor) => {
 			return <IncorrectOptionLabel>{factor.label || factor.name}</IncorrectOptionLabel>;
 		}
 	});
 
-	const topicValid = !selectedTopic || selectedTopic !== extraTopic;
-	const factorValid = !selectedFactor || isValid(selectedFactor);
+	const topicValid = !selectedTopic || isTopicValid(selectedTopic);
+	const factorValid = !selectedFactor || isFactorValid(selectedFactor);
 
 	return <TopicFactorEditContainer>
 		<TopicDropdown value={selectedTopic} options={topicOptions} onChange={onTopicChange}
@@ -69,8 +85,9 @@ export const TopicFactorEditor = (props: {
 	parameter: Parameter;
 	topics: Array<Topic>;
 	expectedTypes: ValueTypes;
+	synonymAllowed?: boolean;
 }) => {
-	const {parameter, topics, expectedTypes} = props;
+	const {parameter, topics, expectedTypes, synonymAllowed = true} = props;
 
 	const {on, off} = useParameterEventBus();
 	const forceUpdate = useForceUpdate();
@@ -85,5 +102,6 @@ export const TopicFactorEditor = (props: {
 		return null;
 	}
 
-	return <RealTopicFactorEditor parameter={parameter} topics={topics} expectedTypes={expectedTypes}/>;
+	return <RealTopicFactorEditor parameter={parameter} topics={topics} expectedTypes={expectedTypes}
+	                              synonymAllowed={synonymAllowed}/>;
 };
