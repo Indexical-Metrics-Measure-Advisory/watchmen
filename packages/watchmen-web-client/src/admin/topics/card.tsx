@@ -1,7 +1,6 @@
-import {isDataQualityCenterEnabled} from '@/feature-switch';
 import {QueryTopic} from '@/services/data/tuples/query-topic-types';
 import {fetchTopic} from '@/services/data/tuples/topic';
-import {isNotRawTopic, isNotSynonymTopic} from '@/services/data/tuples/topic-utils';
+import {isTopicProfileAvailable} from '@/services/data/tuples/topic-utils';
 import {prettifyDateTimeToMinute} from '@/services/data/tuples/utils';
 import {ICON_CREATED_AT, ICON_LAST_MODIFIED_AT, ICON_TOPIC_PROFILE} from '@/widgets/basic/constants';
 import {TooltipAlignment} from '@/widgets/basic/types';
@@ -40,7 +39,7 @@ const TopicCard = (props: { topic: QueryTopic }) => {
 	return <TupleCard key={topic.topicId} onClick={onEditClicked}>
 		<TupleCardTitle>
 			<span>{topic.name}</span>
-			{isDataQualityCenterEnabled() && isNotRawTopic(topic) && isNotSynonymTopic(topic)
+			{isTopicProfileAvailable(topic)
 				? <TupleProfileButton tooltip={{label: 'Profile', alignment: TooltipAlignment.CENTER}}
 				                      onClick={onProfileClicked}>
 					<FontAwesomeIcon icon={ICON_TOPIC_PROFILE}/>

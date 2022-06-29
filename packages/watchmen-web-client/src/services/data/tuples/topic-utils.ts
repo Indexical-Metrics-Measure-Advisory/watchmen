@@ -1,3 +1,4 @@
+import {isDataQualityCenterEnabled, isSynonymDQCEnabled} from '@/feature-switch';
 import {DataSourceType} from './data-source-types';
 import {QueryTopic} from './query-topic-types';
 import {Topic, TopicKind, TopicType} from './topic-types';
@@ -20,5 +21,9 @@ export const isNotAggregationTopic = (topic: Topic): boolean => !isAggregationTo
 export const isS3Storage = (type: DataSourceType) => [DataSourceType.AWS_S3, DataSourceType.ALI_OSS].includes(type);
 export const isRDSStorage = (type: DataSourceType) => [DataSourceType.MSSQL, DataSourceType.MYSQL, DataSourceType.ORACLE, DataSourceType.POSTGRESQL].includes(type);
 
-export const isTopicWriteable = (topic: Topic): boolean => topic.kind !== TopicKind.SYNONYM;
-export const filterWriteableTopics = (topics: Array<Topic>) => (topics || []).filter(isTopicWriteable);
+export const isTopicProfileAvailable = (topic?: Topic | QueryTopic | null): boolean => {
+	return topic != null
+		&& isDataQualityCenterEnabled()
+		&& isNotRawTopic(topic)
+		&& (isSynonymDQCEnabled() || isNotSynonymTopic(topic));
+};

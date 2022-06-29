@@ -1,4 +1,4 @@
-import {isDataQualityCenterEnabled, isWriteExternalEnabled} from '@/feature-switch';
+import {isWriteExternalEnabled} from '@/feature-switch';
 import {toPipeline} from '@/routes/utils';
 import {savePipeline} from '@/services/data/tuples/pipeline';
 import {Pipeline} from '@/services/data/tuples/pipeline-types';
@@ -8,7 +8,7 @@ import {
 	findPipelinesWriteToTopic
 } from '@/services/data/tuples/pipeline-utils';
 import {Topic} from '@/services/data/tuples/topic-types';
-import {isNotRawTopic} from '@/services/data/tuples/topic-utils';
+import {isTopicProfileAvailable} from '@/services/data/tuples/topic-utils';
 import {ICON_ADD, ICON_CLOSE, ICON_TOPIC_PROFILE} from '@/widgets/basic/constants';
 import {TooltipAlignment} from '@/widgets/basic/types';
 import {useEventBus} from '@/widgets/events/event-bus';
@@ -105,7 +105,7 @@ export const Navigator = (props: {
 	return <NavigatorContainer visible={visible}>
 		<NavigatorHeader>
 			<NavigatorHeaderTitle>{name}</NavigatorHeaderTitle>
-			{isDataQualityCenterEnabled() && topic != null && isNotRawTopic(topic)
+			{isTopicProfileAvailable(topic)
 				? <NavigatorHeaderButton tooltip={{label: 'Profile', alignment: TooltipAlignment.CENTER}}
 				                         onClick={onProfileClicked}>
 					<FontAwesomeIcon icon={ICON_TOPIC_PROFILE}/>
