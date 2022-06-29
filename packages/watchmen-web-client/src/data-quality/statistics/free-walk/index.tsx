@@ -1,6 +1,8 @@
+import {isSynonymDQCEnabled} from '@/feature-switch';
 import {MonitorRuleCode, MonitorRuleLog, MonitorRuleLogs} from '@/services/data/data-quality/rule-types';
 import {fetchMonitorRuleLogs} from '@/services/data/data-quality/rules';
 import {Topic, TopicId} from '@/services/data/tuples/topic-types';
+import {isNotSynonymTopic} from '@/services/data/tuples/topic-utils';
 import {Calendar} from '@/widgets/basic/calendar';
 import {ICON_REFRESH} from '@/widgets/basic/constants';
 import {Dropdown} from '@/widgets/basic/dropdown';
@@ -87,7 +89,9 @@ export const FreeWalkPanel = () => {
 		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
 			async () => await fetchMonitorRuleLogs({criteria}),
 			(logs: MonitorRuleLogs) => {
-				setData(logs.sort((r1, r2) => r1.count === r2.count ? 0 : (r1.count < r2.count) ? 1 : -1));
+				setData(logs.sort((r1, r2) => {
+					return r1.count === r2.count ? 0 : (r1.count < r2.count) ? 1 : -1;
+				}));
 				setState({...criteria, loader: (void 0)});
 			});
 	};
@@ -151,7 +155,9 @@ export const FreeWalkPanel = () => {
 	}, {} as Record<TopicId, Topic>);
 	const topicOptions = [
 		{value: '', label: 'Any Topic'},
-		...topics.map(topic => {
+		...topics.filter(topic => {
+			return isSynonymDQCEnabled() || isNotSynonymTopic(topic);
+		}).map(topic => {
 			return {value: topic.topicId, label: getTopicName(topic)};
 		}).sort((o1, o2) => {
 			return o1.label.toLowerCase().localeCompare(o2.label.toLowerCase());
