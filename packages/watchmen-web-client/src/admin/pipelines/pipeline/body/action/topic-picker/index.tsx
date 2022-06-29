@@ -12,7 +12,7 @@ import {IncorrectOptionLabel, PrefillButton, TopicDropdown, TopicFinderContainer
 export const TopicPicker = (props: {
 	action: FromTopic | ToTopic;
 	topics: Array<Topic>;
-	prefillMappingFactors?: () => void
+	prefillMappingFactors?: () => void;
 }) => {
 	const {action, topics, prefillMappingFactors} = props;
 	const {topicId} = action;
