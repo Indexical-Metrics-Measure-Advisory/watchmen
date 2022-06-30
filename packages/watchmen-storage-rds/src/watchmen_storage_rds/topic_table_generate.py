@@ -2,7 +2,7 @@ from typing import List  # noqa
 
 from sqlalchemy import Column, Date, DateTime, DECIMAL, Integer, String, Table, Time
 
-from watchmen_model.admin import Factor, FactorType, Topic
+from watchmen_model.admin import Factor, FactorType, Topic, TopicKind
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import as_table_name, UnexpectedStorageException
 from watchmen_utilities import ArrayHelper, is_blank
@@ -119,6 +119,8 @@ def create_column(factor: Factor) -> Column:
 		return create_bool(factor_name)
 	elif factor_type == FactorType.ENUM:
 		return Column(factor_name, String, nullable=True)
+	elif factor_type == FactorType.OBJECT or factor_type == FactorType.ARRAY:
+		return create_json(factor_name)
 	else:
 		raise UnexpectedStorageException(f'Factor type[{factor_type}] is not supported.')
 
@@ -128,14 +130,19 @@ def create_columns(factors: List[Factor]) -> List[Column]:
 
 
 def build_by_raw(topic: Topic) -> Table:
-	columns = [
-		create_pk(TopicDataColumnNames.ID.value, Integer),
-		*create_columns(ArrayHelper(topic.factors).filter(lambda x: x.flatten).to_list()),
-		create_json(TopicDataColumnNames.RAW_TOPIC_DATA.value),
-		create_tuple_id_column(TopicDataColumnNames.TENANT_ID.value, nullable=False),
-		create_datetime(TopicDataColumnNames.INSERT_TIME.value, nullable=False),
-		create_datetime(TopicDataColumnNames.UPDATE_TIME.value, nullable=False)
-	]
+	if topic.kind == TopicKind.SYNONYM:
+		# all factors at top level will be mapped to column
+		columns = create_columns(ArrayHelper(topic.factors).filter(lambda x: '.' not in x.name).to_list())
+	else:
+		columns = [
+			create_pk(TopicDataColumnNames.ID.value, Integer),
+			*create_columns(ArrayHelper(topic.factors).filter(lambda x: x.flatten).to_list()),
+			create_json(TopicDataColumnNames.RAW_TOPIC_DATA.value),
+			create_tuple_id_column(TopicDataColumnNames.TENANT_ID.value, nullable=False),
+			create_datetime(TopicDataColumnNames.INSERT_TIME.value, nullable=False),
+			create_datetime(TopicDataColumnNames.UPDATE_TIME.value, nullable=False)
+		]
+
 	return Table(
 		as_table_name(topic), meta_data,
 		*columns,
@@ -144,15 +151,19 @@ def build_by_raw(topic: Topic) -> Table:
 
 
 def build_by_aggregation(topic: Topic) -> Table:
-	columns = [
-		create_pk(TopicDataColumnNames.ID.value, Integer),
-		*create_columns(topic.factors),
-		create_json(TopicDataColumnNames.AGGREGATE_ASSIST.value),
-		create_tuple_id_column(TopicDataColumnNames.TENANT_ID.value, nullable=False),
-		create_int(TopicDataColumnNames.VERSION.value),
-		create_datetime(TopicDataColumnNames.INSERT_TIME.value, nullable=False),
-		create_datetime(TopicDataColumnNames.UPDATE_TIME.value, nullable=False)
-	]
+	if topic.kind == TopicKind.SYNONYM:
+		columns = create_columns(topic.factors)
+	else:
+		columns = [
+			create_pk(TopicDataColumnNames.ID.value, Integer),
+			*create_columns(topic.factors),
+			create_json(TopicDataColumnNames.AGGREGATE_ASSIST.value),
+			create_tuple_id_column(TopicDataColumnNames.TENANT_ID.value, nullable=False),
+			create_int(TopicDataColumnNames.VERSION.value),
+			create_datetime(TopicDataColumnNames.INSERT_TIME.value, nullable=False),
+			create_datetime(TopicDataColumnNames.UPDATE_TIME.value, nullable=False)
+		]
+
 	return Table(
 		as_table_name(topic), meta_data,
 		*columns,
@@ -161,13 +172,17 @@ def build_by_aggregation(topic: Topic) -> Table:
 
 
 def build_by_regular(topic: Topic) -> Table:
-	columns = [
-		create_pk(TopicDataColumnNames.ID.value, Integer),
-		*create_columns(topic.factors),
-		create_tuple_id_column(TopicDataColumnNames.TENANT_ID.value, nullable=False),
-		create_datetime(TopicDataColumnNames.INSERT_TIME.value, nullable=False),
-		create_datetime(TopicDataColumnNames.UPDATE_TIME.value, nullable=False)
-	]
+	if topic.kind == TopicKind.SYNONYM:
+		columns = create_columns(topic.factors)
+	else:
+		columns = [
+			create_pk(TopicDataColumnNames.ID.value, Integer),
+			*create_columns(topic.factors),
+			create_tuple_id_column(TopicDataColumnNames.TENANT_ID.value, nullable=False),
+			create_datetime(TopicDataColumnNames.INSERT_TIME.value, nullable=False),
+			create_datetime(TopicDataColumnNames.UPDATE_TIME.value, nullable=False)
+		]
+
 	return Table(
 		as_table_name(topic), meta_data,
 		*columns,

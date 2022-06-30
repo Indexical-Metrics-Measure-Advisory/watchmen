@@ -1,6 +1,6 @@
 from typing import List  # noqa
 
-from watchmen_model.admin import Factor, FactorType, is_aggregation_topic, is_raw_topic, Topic
+from watchmen_model.admin import Factor, FactorType, is_aggregation_topic, is_raw_topic, Topic, TopicKind
 from watchmen_model.common import DataModel
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import as_table_name, ask_decimal_fraction_digits, ask_decimal_integral_digits, \
@@ -120,6 +120,8 @@ def create_column(factor: Factor) -> MongoDocumentColumn:
 		return create_bool(factor_name)
 	elif factor_type == FactorType.ENUM:
 		return MongoDocumentColumn(factor_name, MongoDocumentColumnType.STRING, nullable=True)
+	elif factor_type == FactorType.OBJECT or factor_type == FactorType.ARRAY:
+		return create_json(factor_name)
 	else:
 		raise UnexpectedStorageException(f'Factor type[{factor_type}] is not supported.')
 
@@ -129,45 +131,63 @@ def create_columns(factors: List[Factor]) -> List[MongoDocumentColumn]:
 
 
 def build_by_raw(topic: Topic) -> MongoDocument:
-	return MongoDocument(
-		name=as_table_name(topic),
-		columns=[
-			create_pk(TopicDataColumnNames.ID.value),
-			*create_columns(ArrayHelper(topic.factors).filter(lambda x: x.flatten).to_list()),
-			create_json(TopicDataColumnNames.RAW_TOPIC_DATA.value),
-			create_tuple_id_column(TopicDataColumnNames.TENANT_ID.value, nullable=False),
-			create_datetime(TopicDataColumnNames.INSERT_TIME.value, nullable=False),
-			create_datetime(TopicDataColumnNames.UPDATE_TIME.value, nullable=False),
-		]
-	)
+	if topic.kind == TopicKind.SYNONYM:
+		return MongoDocument(
+			name=as_table_name(topic),
+			columns=create_columns(ArrayHelper(topic.factors).filter(lambda x: '.' not in x.name).to_list())
+		)
+	else:
+		return MongoDocument(
+			name=as_table_name(topic),
+			columns=[
+				create_pk(TopicDataColumnNames.ID.value),
+				*create_columns(ArrayHelper(topic.factors).filter(lambda x: x.flatten).to_list()),
+				create_json(TopicDataColumnNames.RAW_TOPIC_DATA.value),
+				create_tuple_id_column(TopicDataColumnNames.TENANT_ID.value, nullable=False),
+				create_datetime(TopicDataColumnNames.INSERT_TIME.value, nullable=False),
+				create_datetime(TopicDataColumnNames.UPDATE_TIME.value, nullable=False),
+			]
+		)
 
 
 def build_by_aggregation(topic: Topic) -> MongoDocument:
-	return MongoDocument(
-		name=as_table_name(topic),
-		columns=[
-			create_pk(TopicDataColumnNames.ID.value),
-			*create_columns(topic.factors),
-			create_json(TopicDataColumnNames.AGGREGATE_ASSIST.value),
-			create_tuple_id_column(TopicDataColumnNames.TENANT_ID.value, nullable=False),
-			create_int(TopicDataColumnNames.VERSION.value),
-			create_datetime(TopicDataColumnNames.INSERT_TIME.value, nullable=False),
-			create_datetime(TopicDataColumnNames.UPDATE_TIME.value, nullable=False)
-		]
-	)
+	if topic.kind == TopicKind.SYNONYM:
+		return MongoDocument(
+			name=as_table_name(topic),
+			columns=create_columns(topic.factors)
+		)
+	else:
+		return MongoDocument(
+			name=as_table_name(topic),
+			columns=[
+				create_pk(TopicDataColumnNames.ID.value),
+				*create_columns(topic.factors),
+				create_json(TopicDataColumnNames.AGGREGATE_ASSIST.value),
+				create_tuple_id_column(TopicDataColumnNames.TENANT_ID.value, nullable=False),
+				create_int(TopicDataColumnNames.VERSION.value),
+				create_datetime(TopicDataColumnNames.INSERT_TIME.value, nullable=False),
+				create_datetime(TopicDataColumnNames.UPDATE_TIME.value, nullable=False)
+			]
+		)
 
 
 def build_by_regular(topic: Topic) -> MongoDocument:
-	return MongoDocument(
-		name=as_table_name(topic),
-		columns=[
-			create_pk(TopicDataColumnNames.ID.value),
-			*create_columns(topic.factors),
-			create_tuple_id_column(TopicDataColumnNames.TENANT_ID.value, nullable=False),
-			create_datetime(TopicDataColumnNames.INSERT_TIME.value, nullable=False),
-			create_datetime(TopicDataColumnNames.UPDATE_TIME.value, nullable=False)
-		]
-	)
+	if topic.kind == TopicKind.SYNONYM:
+		return MongoDocument(
+			name=as_table_name(topic),
+			columns=create_columns(topic.factors)
+		)
+	else:
+		return MongoDocument(
+			name=as_table_name(topic),
+			columns=[
+				create_pk(TopicDataColumnNames.ID.value),
+				*create_columns(topic.factors),
+				create_tuple_id_column(TopicDataColumnNames.TENANT_ID.value, nullable=False),
+				create_datetime(TopicDataColumnNames.INSERT_TIME.value, nullable=False),
+				create_datetime(TopicDataColumnNames.UPDATE_TIME.value, nullable=False)
+			]
+		)
 
 
 def build_to_document(topic: Topic) -> MongoDocument:
