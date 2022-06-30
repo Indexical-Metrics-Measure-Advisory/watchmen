@@ -485,8 +485,8 @@ class TopicDataStorageMongoDB(StorageMongoDB, TopicDataStorageSPI):
 		# update collection is unnecessary
 		pass
 
-	def drop_topic_entity(self, topic_name: str) -> None:
-		entity_name = as_table_name(topic_name)
+	def drop_topic_entity(self, topic: Topic) -> None:
+		entity_name = as_table_name(topic)
 		try:
 			self.connect()
 			self.connection.drop_collection(entity_name)

@@ -26,8 +26,8 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 	def register_topic(self, topic: Topic) -> None:
 		register_table(topic)
 
-	def drop_topic_entity(self, topic_name: str) -> None:
-		entity_name = as_table_name(topic_name)
+	def drop_topic_entity(self, topic: Topic) -> None:
+		entity_name = as_table_name(topic)
 		try:
 			self.connect()
 			# noinspection SqlResolve

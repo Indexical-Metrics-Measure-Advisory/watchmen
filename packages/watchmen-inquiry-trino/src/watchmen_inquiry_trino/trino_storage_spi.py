@@ -22,7 +22,7 @@ class TrinoStorageSPI(TopicDataStorageSPI):
 		"""
 		raise InquiryTrinoException(f'Method[update_topic_entity] does not support by trino storage.')
 
-	def drop_topic_entity(self, topic_name: str) -> None:
+	def drop_topic_entity(self, topic: Topic) -> None:
 		"""
 		not supported by trino
 		"""
