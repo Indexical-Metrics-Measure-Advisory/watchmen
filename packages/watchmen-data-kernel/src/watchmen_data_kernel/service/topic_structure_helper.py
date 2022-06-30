@@ -44,7 +44,9 @@ def update_topic_structure(topic: Topic, original_topic: Topic, principal_servic
 		return
 
 	storage = ask_topic_storage(topic, principal_service)
-	storage.update_topic_entity(topic, original_topic)
+	# update topic structure only when topic is not a synonym
+	if topic.kind != TopicKind.SYNONYM:
+		storage.update_topic_entity(topic, original_topic)
 
 
 def sync_for_trino(topic: Topic, original_topic: Optional[Topic], principal_service: PrincipalService) -> None:
