@@ -205,7 +205,7 @@ class TopicDataStorageSPI(TransactionalStorageSPI):
 		pass
 
 	@abstractmethod
-	def drop_topic_entity(self, topic_name: str) -> None:
+	def drop_topic_entity(self, topic: Topic) -> None:
 		pass
 
 	@abstractmethod

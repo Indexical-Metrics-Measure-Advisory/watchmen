@@ -236,7 +236,7 @@ class TopicDataStorageS3(StorageS3, TopicDataStorageSPI):
 		# update_topic_entity is not required in S3
 		pass
 
-	def drop_topic_entity(self, topic_name: str) -> None:
+	def drop_topic_entity(self, topic: Topic) -> None:
 		# drop_topic_entity is not required in S3
 		pass
 
