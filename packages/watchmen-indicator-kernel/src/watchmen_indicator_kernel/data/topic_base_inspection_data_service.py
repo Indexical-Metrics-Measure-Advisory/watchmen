@@ -321,10 +321,18 @@ class TopicBaseInspectionDataService(InspectionDataService):
 			)
 		return joint
 
+	def has_indicator_filter(self) -> bool:
+		return \
+			self.indicator.filter is not None \
+			and self.indicator.filter.enabled \
+			and self.indicator.filter.joint is not None \
+			and self.indicator.filter.joint.filters is not None \
+			and len(self.indicator.filter.joint.filters) != 0
+
 	# noinspection DuplicatedCode
 	def build_filters(self) -> Optional[ParameterJoint]:
 		time_range_filter = self.fake_time_range_to_dataset_filter()
-		if self.indicator.filter is not None and self.indicator.filter.enabled and self.indicator.filter.joint is not None:
+		if self.has_indicator_filter():
 			if time_range_filter is not None:
 				return ParameterJoint(
 					jointType=ParameterJointType.AND,
@@ -387,7 +395,9 @@ class TopicBaseInspectionDataService(InspectionDataService):
 					ReportIndicator(columnId='1', name='_MIN_', arithmetic=ReportIndicatorArithmetic.MINIMUM))
 
 		dimensions: List[ReportDimension] = []
-		if len(subject.dataset.columns) == 3:
+		if len(subject.dataset.columns) >= 3:
+			# both defined, on bucket and time group
+			# there might be 3 or 4 dataset columns
 			dimensions.append(ReportDimension(columnId='3', name='_BUCKET_ON_'))
 			fake_column = ArrayHelper(subject.dataset.columns) \
 				.find(lambda x: x.columnId == self.FAKE_TIME_GROUP_COLUMN_ID)
@@ -396,6 +406,7 @@ class TopicBaseInspectionDataService(InspectionDataService):
 			else:
 				dimensions.append(ReportDimension(columnId=self.FAKE_TIME_GROUP_COLUMN_ID, name='_TIME_GROUP_'))
 		elif len(subject.dataset.columns) == 2:
+			# one of bucket or time group defined
 			time_group_existing, _, _ = self.has_time_group()
 			if time_group_existing:
 				fake_column = ArrayHelper(subject.dataset.columns) \
