@@ -80,10 +80,18 @@ class TopicBaseAchievementDataService(AchievementDataService):
 			filters=ArrayHelper(criteria).map(to_condition).to_list()
 		)
 
+	def has_indicator_filter(self) -> bool:
+		return \
+			self.indicator.filter is not None \
+			and self.indicator.filter.enabled \
+			and self.indicator.filter.joint is not None \
+			and self.indicator.filter.joint.filters is not None \
+			and len(self.indicator.filter.joint.filters) != 0
+
 	# noinspection DuplicatedCode
 	def build_filters(self) -> Optional[ParameterJoint]:
 		a_filter = self.fake_criteria_to_dataset_filter()
-		if self.indicator.filter is not None and self.indicator.filter.enabled and self.indicator.filter.joint is not None:
+		if self.has_indicator_filter():
 			if a_filter is not None:
 				return ParameterJoint(
 					jointType=ParameterJointType.AND,
