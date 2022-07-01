@@ -125,6 +125,9 @@ class TopicDataService(TopicStructureService):
 
 	@abstractmethod
 	def try_to_unwrap_from_topic_data(self, topic_data: Dict[str, Any]) -> Dict[str, Any]:
+		"""
+		unwrap to memory topic model from persist model
+		"""
 		pass
 
 	def trigger_by_insert(self, data: Dict[str, Any]) -> TopicTrigger:

@@ -1,7 +1,7 @@
 from typing import Any, Dict, List, Optional
 
 from watchmen_data_kernel.topic_schema import TopicSchema
-from watchmen_model.admin import Factor
+from watchmen_model.admin import Factor, FactorType, TopicKind
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import EntityCriteriaExpression, EntityRow, EntityShaper
 from watchmen_utilities import ArrayHelper
@@ -13,7 +13,12 @@ from .shaper import TopicShaper
 
 class RawTopicFactorColumnMapper(TopicFactorColumnMapper):
 	def get_factors(self, schema: TopicSchema) -> List[Factor]:
-		return ArrayHelper(schema.get_flatten_factors()).map(lambda x: x.get_factor()).to_list()
+		if schema.get_topic().kind == TopicKind.SYNONYM:
+			# top level factors are required
+			return ArrayHelper(schema.get_topic().factors).filter(lambda x: '.' not in x.name).to_list()
+		else:
+			# only flatten factors are required
+			return ArrayHelper(schema.get_flatten_factors()).map(lambda x: x.get_factor()).to_list()
 
 
 class RawTopicShaper(TopicShaper):
@@ -21,15 +26,33 @@ class RawTopicShaper(TopicShaper):
 		return RawTopicFactorColumnMapper(schema)
 
 	def serialize(self, data: Dict[str, Any]) -> EntityRow:
-		row = self.serialize_fix_columns(data)
-		row[TopicDataColumnNames.RAW_TOPIC_DATA.value] = data.get(TopicDataColumnNames.RAW_TOPIC_DATA.value)
-		ArrayHelper(self.get_mapper().get_factor_names()).each(lambda x: self.serialize_factor(data, x, row))
+		if self.is_synonym():
+			row: EntityRow = {}
+			ArrayHelper(self.get_mapper().get_factor_names()).each(lambda x: self.serialize_factor(data, x, row))
+		else:
+			row = self.serialize_fix_columns(data)
+			row[TopicDataColumnNames.RAW_TOPIC_DATA.value] = data.get(TopicDataColumnNames.RAW_TOPIC_DATA.value)
+			ArrayHelper(self.get_mapper().get_factor_names()).each(lambda x: self.serialize_factor(data, x, row))
 		return row
 
 	def deserialize(self, row: EntityRow) -> Dict[str, Any]:
-		data = self.deserialize_fix_columns(row)
-		data[TopicDataColumnNames.RAW_TOPIC_DATA.value] = row.get(TopicDataColumnNames.RAW_TOPIC_DATA.value)
-		ArrayHelper(self.get_mapper().get_column_names()).each(lambda x: self.deserialize_column(row, x, data))
+		if self.is_synonym():
+			temp: Dict[str, Any] = {}
+			# copy columns to temp dict
+			ArrayHelper(self.get_mapper().get_column_names()).each(lambda x: self.deserialize_column(row, x, temp))
+			data: Dict[str, Any] = {}
+			# copy factors which on top level except for object and array type, just like they are flatten
+			for k, v in temp.items():
+				factor: Optional[Factor] = ArrayHelper(self.get_schema().get_topic().factors) \
+					.find(lambda x: x.name == k)
+				if factor is not None and factor.type != FactorType.OBJECT and factor.type != FactorType.ARRAY:
+					data[k] = v
+			# copy whole object as data column
+			data[TopicDataColumnNames.RAW_TOPIC_DATA.value] = temp
+		else:
+			data = self.deserialize_fix_columns(row)
+			data[TopicDataColumnNames.RAW_TOPIC_DATA.value] = row.get(TopicDataColumnNames.RAW_TOPIC_DATA.value)
+			ArrayHelper(self.get_mapper().get_column_names()).each(lambda x: self.deserialize_column(row, x, data))
 		return data
 
 

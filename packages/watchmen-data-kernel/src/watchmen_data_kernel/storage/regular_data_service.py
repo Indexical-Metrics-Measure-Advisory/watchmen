@@ -21,18 +21,24 @@ class RegularTopicShaper(TopicShaper):
 		return RegularTopicFactorColumnMapper(schema)
 
 	def serialize(self, data: Dict[str, Any]) -> EntityRow:
-		row = self.serialize_fix_columns(data)
-		if is_aggregation_topic(self.get_schema().get_topic()):
-			row[TopicDataColumnNames.AGGREGATE_ASSIST.value] = data.get(TopicDataColumnNames.AGGREGATE_ASSIST.value)
-			row[TopicDataColumnNames.VERSION.value] = data.get(TopicDataColumnNames.VERSION.value)
+		if self.is_synonym():
+			row: EntityRow = {}
+		else:
+			row = self.serialize_fix_columns(data)
+			if is_aggregation_topic(self.get_schema().get_topic()):
+				row[TopicDataColumnNames.AGGREGATE_ASSIST.value] = data.get(TopicDataColumnNames.AGGREGATE_ASSIST.value)
+				row[TopicDataColumnNames.VERSION.value] = data.get(TopicDataColumnNames.VERSION.value)
 		ArrayHelper(self.get_mapper().get_factor_names()).each(lambda x: self.serialize_factor(data, x, row))
 		return row
 
 	def deserialize(self, row: EntityRow) -> Dict[str, Any]:
-		data = self.deserialize_fix_columns(row)
-		if is_aggregation_topic(self.get_schema().get_topic()):
-			data[TopicDataColumnNames.AGGREGATE_ASSIST.value] = row.get(TopicDataColumnNames.AGGREGATE_ASSIST.value)
-			data[TopicDataColumnNames.VERSION.value] = row.get(TopicDataColumnNames.VERSION.value)
+		if self.is_synonym():
+			data: Dict[str, Any] = {}
+		else:
+			data = self.deserialize_fix_columns(row)
+			if is_aggregation_topic(self.get_schema().get_topic()):
+				data[TopicDataColumnNames.AGGREGATE_ASSIST.value] = row.get(TopicDataColumnNames.AGGREGATE_ASSIST.value)
+				data[TopicDataColumnNames.VERSION.value] = row.get(TopicDataColumnNames.VERSION.value)
 		ArrayHelper(self.get_mapper().get_column_names()).each(lambda x: self.deserialize_column(row, x, data))
 		return data
 

@@ -2,6 +2,7 @@ from abc import abstractmethod
 from typing import Any, Dict
 
 from watchmen_data_kernel.topic_schema import TopicSchema
+from watchmen_model.admin import TopicKind
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import EntityRow, EntityShaper
 from .factor_column_mapper import TopicFactorColumnMapper
@@ -14,6 +15,9 @@ class TopicShaper(EntityShaper):
 
 	def get_schema(self) -> TopicSchema:
 		return self.schema
+
+	def is_synonym(self) -> bool:
+		return self.get_schema().get_topic().kind == TopicKind.SYNONYM
 
 	@abstractmethod
 	def create_factor_column_mapper(self, schema: TopicSchema) -> TopicFactorColumnMapper:
