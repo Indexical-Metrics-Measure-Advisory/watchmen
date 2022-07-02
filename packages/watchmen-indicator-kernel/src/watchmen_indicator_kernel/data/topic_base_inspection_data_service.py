@@ -345,10 +345,13 @@ class TopicBaseInspectionDataService(InspectionDataService):
 
 	def fake_to_subject(self) -> Subject:
 		dataset_columns: List[SubjectDatasetColumn] = []
+		# append indicator factor anyway
 		indicator_factor_column, _, next_column_index = self.fake_indicator_factor_to_dataset_column(1)
 		dataset_columns.append(indicator_factor_column)
+
 		time_group_column, _, next_column_index = self.fake_time_group_to_dataset_column(next_column_index)
 		if time_group_column is not None:
+			# append time group column
 			dataset_columns.append(time_group_column)
 			topic_id = self.get_topic_id_from_time_group_column(time_group_column)
 			topic = get_topic_service(self.principalService).find_by_id(topic_id)
