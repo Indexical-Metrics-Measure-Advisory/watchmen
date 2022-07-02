@@ -395,23 +395,22 @@ class TopicBaseInspectionDataService(InspectionDataService):
 					ReportIndicator(columnId='1', name='_MIN_', arithmetic=ReportIndicatorArithmetic.MINIMUM))
 
 		dimensions: List[ReportDimension] = []
-		if len(subject.dataset.columns) >= 3:
+		fake_time_group_column = ArrayHelper(subject.dataset.columns) \
+			.find(lambda x: x.columnId == self.FAKE_TIME_GROUP_COLUMN_ID)
+		if len(subject.dataset.columns) == 4 or (len(subject.dataset.columns) == 3 and fake_time_group_column is None):
 			# both defined, on bucket and time group
 			# there might be 3 or 4 dataset columns
 			dimensions.append(ReportDimension(columnId='3', name='_BUCKET_ON_'))
-			fake_column = ArrayHelper(subject.dataset.columns) \
-				.find(lambda x: x.columnId == self.FAKE_TIME_GROUP_COLUMN_ID)
-			if fake_column is None:
+			if fake_time_group_column is None:
 				dimensions.append(ReportDimension(columnId='2', name='_TIME_GROUP_'))
 			else:
 				dimensions.append(ReportDimension(columnId=self.FAKE_TIME_GROUP_COLUMN_ID, name='_TIME_GROUP_'))
-		elif len(subject.dataset.columns) == 2:
+		elif len(subject.dataset.columns) == 2 or (
+				len(subject.dataset.columns) == 3 and fake_time_group_column is not None):
 			# one of bucket or time group defined
 			time_group_existing, _, _ = self.has_time_group()
 			if time_group_existing:
-				fake_column = ArrayHelper(subject.dataset.columns) \
-					.find(lambda x: x.columnId == self.FAKE_TIME_GROUP_COLUMN_ID)
-				if fake_column is None:
+				if fake_time_group_column is None:
 					dimensions.append(ReportDimension(columnId='2', name='_TIME_GROUP_'))
 				else:
 					dimensions.append(ReportDimension(columnId=self.FAKE_TIME_GROUP_COLUMN_ID, name='_TIME_GROUP_'))
