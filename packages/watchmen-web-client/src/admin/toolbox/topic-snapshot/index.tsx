@@ -1,6 +1,6 @@
 import {Router} from '@/routes/types';
 import {Topic} from '@/services/data/tuples/topic-types';
-import {isRawTopic, isSystemTopic} from '@/services/data/tuples/topic-utils';
+import {isRawTopic, isSynonymTopic, isSystemTopic} from '@/services/data/tuples/topic-utils';
 import {AdminCacheData} from '@/services/local-persist/types';
 import {VerticalMarginOneUnit} from '@/widgets/basic/margin';
 import {FixWidthPage} from '@/widgets/basic/page';
@@ -23,7 +23,9 @@ export const TopicSnapshot = () => {
 				if (loaded) {
 					fireCache(AdminCacheEventTypes.ASK_DATA, (data?: AdminCacheData) => {
 						setData({
-							topics: (data?.topics || []).filter(topic => !isRawTopic(topic) && !isSystemTopic(topic))
+							topics: (data?.topics || []).filter(topic => {
+								return !isRawTopic(topic) && !isSystemTopic(topic) && !isSynonymTopic(topic);
+							})
 						});
 					});
 				} else {
