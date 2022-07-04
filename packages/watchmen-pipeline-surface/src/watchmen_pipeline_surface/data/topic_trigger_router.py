@@ -8,7 +8,7 @@ from watchmen_data_kernel.service import ask_topic_data_service, ask_topic_stora
 from watchmen_data_kernel.storage import TopicTrigger
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_meta.common import ask_snowflake_generator
-from watchmen_model.admin import is_raw_topic, PipelineTriggerType, User, UserRole
+from watchmen_model.admin import is_raw_topic, PipelineTriggerType, TopicKind, User, UserRole
 from watchmen_model.common import PipelineId, TenantId
 from watchmen_model.pipeline_kernel import PipelineTriggerResult, PipelineTriggerTraceId
 from watchmen_pipeline_kernel.monitor_log import PipelineMonitorLogDataService
@@ -110,6 +110,10 @@ async def rerun_by_topic_data(
 		schema = get_topic_service(principal_service).find_schema_by_id(topic_id, tenant_id)
 	else:
 		schema = get_topic_schema(topic_name, tenant_id, principal_service)
+
+	if schema.get_topic().kind == TopicKind.SYNONYM:
+		raise_400('Rerun by data id is not supported on synonym topic.')
+
 	storage = ask_topic_storage(schema, principal_service)
 	service = ask_topic_data_service(schema, storage, principal_service)
 	existing_data = service.find_previous_data_by_id(id_=data_id, raise_on_not_found=True)
