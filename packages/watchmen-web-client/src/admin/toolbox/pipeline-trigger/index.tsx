@@ -1,6 +1,7 @@
 import {Router} from '@/routes/types';
 import {Pipeline} from '@/services/data/tuples/pipeline-types';
 import {Topic} from '@/services/data/tuples/topic-types';
+import {isSynonymTopic} from '@/services/data/tuples/topic-utils';
 import {AdminCacheData} from '@/services/local-persist/types';
 import {VerticalMarginOneUnit} from '@/widgets/basic/margin';
 import {FixWidthPage} from '@/widgets/basic/page';
@@ -21,7 +22,7 @@ export const PipelineTrigger = () => {
 				if (loaded) {
 					fireCache(AdminCacheEventTypes.ASK_DATA, (data?: AdminCacheData) => {
 						setData({
-							topics: data?.topics || [],
+							topics: (data?.topics || []).filter(topic => !isSynonymTopic(topic)),
 							pipelines: data?.pipelines || []
 						});
 					});
