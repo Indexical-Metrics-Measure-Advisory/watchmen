@@ -1,4 +1,4 @@
-import {Topic} from '@/services/data/tuples/topic-types';
+import {Topic, TopicKind} from '@/services/data/tuples/topic-types';
 import {AlertLabel} from '@/widgets/alert/widgets';
 import {DropdownButtons, DropdownButtonsContainer, DwarfButton} from '@/widgets/basic/button';
 import {ICON_DOWNLOAD, ICON_DROPDOWN, ICON_UPLOAD} from '@/widgets/basic/constants';
@@ -13,7 +13,7 @@ import {
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import React, {MouseEvent, useRef, useState} from 'react';
+import React, {MouseEvent, useEffect, useRef, useState} from 'react';
 import {useTopicEventBus} from '../topic-event-bus';
 import {TopicEventTypes} from '../topic-event-bus-types';
 import {SAMPLE_FACTORS_CSV, SAMPLE_FACTORS_JSON} from './sample-factors';
@@ -24,8 +24,18 @@ export const FactorsImportButton = (props: { topic: Topic }) => {
 
 	const buttonRef = useRef<HTMLDivElement>(null);
 	const {fire: fireGlobal} = useEventBus();
-	const {fire} = useTopicEventBus();
+	const {on, off, fire} = useTopicEventBus();
 	const [showDropdown, setShowDropdown] = useState(false);
+	const [isSynonym, setIsSynonym] = useState(topic.kind === TopicKind.SYNONYM);
+	useEffect(() => {
+		const onTopicKindChanged = () => {
+			setIsSynonym(topic.kind === TopicKind.SYNONYM);
+		};
+		on(TopicEventTypes.TOPIC_KIND_CHANGED, onTopicKindChanged);
+		return () => {
+			off(TopicEventTypes.TOPIC_KIND_CHANGED, onTopicKindChanged);
+		};
+	}, [on, off, topic.kind]);
 	useCollapseFixedThing({
 		containerRef: buttonRef,
 		visible: showDropdown,
@@ -103,16 +113,34 @@ export const FactorsImportButton = (props: { topic: Topic }) => {
 			'factors-template.json': JSON.stringify(SAMPLE_FACTORS_JSON, null, '\t')
 		}, 'factors-template.zip');
 	};
+	const onSyncWithSourceClicked = () => {
+	};
 
-	return <DropdownButtonsContainer ref={buttonRef}>
-		<DwarfButton ink={ButtonInk.PRIMARY} onClick={onImportByStructureClicked}>
+	const leadButton = isSynonym
+		? <DwarfButton ink={ButtonInk.PRIMARY} onClick={onSyncWithSourceClicked}>
+			<FontAwesomeIcon icon={ICON_UPLOAD}/>
+			<span>Synchronize Factors with Source Table</span>
+			<span data-widget="dropdown-caret" onClick={onDropdownClicked}>
+				<FontAwesomeIcon icon={ICON_DROPDOWN}/>
+			</span>
+		</DwarfButton>
+		: <DwarfButton ink={ButtonInk.PRIMARY} onClick={onImportByStructureClicked}>
 			<FontAwesomeIcon icon={ICON_UPLOAD}/>
 			<span>Import Factors from Structure</span>
 			<span data-widget="dropdown-caret" onClick={onDropdownClicked}>
 				<FontAwesomeIcon icon={ICON_DROPDOWN}/>
 			</span>
-		</DwarfButton>
+		</DwarfButton>;
+
+	return <DropdownButtonsContainer ref={buttonRef}>
+		{leadButton}
 		<DropdownButtons visible={showDropdown}>
+			{isSynonym
+				? <DwarfButton ink={ButtonInk.PRIMARY} onClick={onImportByStructureClicked}>
+					<FontAwesomeIcon icon={ICON_UPLOAD}/>
+					<span>Import Factors from Structure</span>
+				</DwarfButton>
+				: null}
 			<DwarfButton ink={ButtonInk.PRIMARY} onClick={onImportByInstanceClicked}>
 				<FontAwesomeIcon icon={ICON_UPLOAD}/>
 				<span>Import Factors from Instance</span>

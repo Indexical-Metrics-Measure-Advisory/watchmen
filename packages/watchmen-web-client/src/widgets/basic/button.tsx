@@ -28,6 +28,9 @@ export const DropdownButtons = styled.div.attrs<{ visible: boolean }>(({visible}
 	transition     : opacity 300ms ease-in-out, margin-top 300ms ease-in-out;
 	> button {
 		justify-content : unset;
+		&:hover {
+			filter: brightness(1.2);
+		}
 		&:not(:first-child) {
 			border-top-left-radius  : 0;
 			border-top-right-radius : 0;
