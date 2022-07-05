@@ -261,8 +261,8 @@ export const DemoTopics: Array<Topic> = [
 	Products
 ].map(t => ({...t, tenantId: '1'}));
 const asQueryTopic = (topic: Topic): QueryTopic => {
-	const {topicId, name, type, description, createdAt, lastModifiedAt} = topic;
-	return {topicId, name, type, description, createdAt, lastModifiedAt} as QueryTopic;
+	const {topicId, name, type, kind, description, createdAt, lastModifiedAt} = topic;
+	return {topicId, name, type, kind, description, createdAt, lastModifiedAt} as QueryTopic;
 };
 export const DemoQueryTopics: Array<QueryTopic> = [
 	asQueryTopic(Quotation),
