@@ -105,19 +105,19 @@ export const FactorsImportButton = (props: { topic: Topic }) => {
 	};
 
 	return <DropdownButtonsContainer ref={buttonRef}>
-		<DwarfButton ink={ButtonInk.INFO} onClick={onImportByStructureClicked}>
+		<DwarfButton ink={ButtonInk.PRIMARY} onClick={onImportByStructureClicked}>
 			<FontAwesomeIcon icon={ICON_UPLOAD}/>
-			<span>Import Factors by Structure</span>
+			<span>Import Factors from Structure</span>
 			<span data-widget="dropdown-caret" onClick={onDropdownClicked}>
 				<FontAwesomeIcon icon={ICON_DROPDOWN}/>
 			</span>
 		</DwarfButton>
 		<DropdownButtons visible={showDropdown}>
-			<DwarfButton ink={ButtonInk.INFO} onClick={onImportByInstanceClicked}>
+			<DwarfButton ink={ButtonInk.PRIMARY} onClick={onImportByInstanceClicked}>
 				<FontAwesomeIcon icon={ICON_UPLOAD}/>
-				<span>Import Factors by Instance</span>
+				<span>Import Factors from Instance</span>
 			</DwarfButton>
-			<DwarfButton ink={ButtonInk.INFO} onClick={onDownloadClicked}>
+			<DwarfButton ink={ButtonInk.PRIMARY} onClick={onDownloadClicked}>
 				<FontAwesomeIcon icon={ICON_DOWNLOAD} style={{transform: 'scale(0.8)', transformOrigin: 'left'}}/>
 				<span style={{marginLeft: '-3px'}}>Download Structure Template</span>
 			</DwarfButton>
