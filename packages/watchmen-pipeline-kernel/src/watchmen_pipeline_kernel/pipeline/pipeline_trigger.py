@@ -7,7 +7,7 @@ from watchmen_data_kernel.meta import PipelineService
 from watchmen_data_kernel.service import ask_topic_data_service
 from watchmen_data_kernel.storage import TopicDataService, TopicTrigger
 from watchmen_data_kernel.topic_schema import TopicSchema
-from watchmen_model.admin import Pipeline, PipelineTriggerType
+from watchmen_model.admin import Pipeline, PipelineTriggerType, TopicKind
 from watchmen_model.common import PipelineId
 from watchmen_model.pipeline_kernel import PipelineMonitorLog, PipelineTriggerTraceId
 from watchmen_pipeline_kernel.common import PipelineKernelException
@@ -52,17 +52,29 @@ class PipelineTrigger:
 		self.triggerTopicSchema.prepare_data(self.triggerData, self.principalService)
 
 	def save_trigger_data(self) -> TopicTrigger:
-		data_service = self.ask_topic_data_service(self.triggerTopicSchema)
-		if self.triggerType == PipelineTriggerType.INSERT:
-			return data_service.trigger_by_insert(self.triggerData)
-		elif self.triggerType == PipelineTriggerType.INSERT_OR_MERGE:
-			return data_service.trigger_by_insert_or_merge(self.triggerData)
-		elif self.triggerType == PipelineTriggerType.MERGE:
-			return data_service.trigger_by_merge(self.triggerData)
-		elif self.triggerType == PipelineTriggerType.DELETE:
-			return data_service.trigger_by_delete(self.triggerData)
+		if self.triggerTopicSchema.get_topic().kind == TopicKind.SYNONYM:
+			# only insert is supported on synonym
+			if self.triggerType == PipelineTriggerType.INSERT:
+				return TopicTrigger(
+					previous=None,
+					current=self.triggerData,
+					triggerType=PipelineTriggerType.INSERT,
+					internalDataId=-1
+				)
+			else:
+				raise PipelineKernelException(f'Trigger type[{self.triggerType}] is not supported on synonym.')
 		else:
-			raise PipelineKernelException(f'Trigger type[{self.triggerType}] is not supported.')
+			data_service = self.ask_topic_data_service(self.triggerTopicSchema)
+			if self.triggerType == PipelineTriggerType.INSERT:
+				return data_service.trigger_by_insert(self.triggerData)
+			elif self.triggerType == PipelineTriggerType.INSERT_OR_MERGE:
+				return data_service.trigger_by_insert_or_merge(self.triggerData)
+			elif self.triggerType == PipelineTriggerType.MERGE:
+				return data_service.trigger_by_merge(self.triggerData)
+			elif self.triggerType == PipelineTriggerType.DELETE:
+				return data_service.trigger_by_delete(self.triggerData)
+			else:
+				raise PipelineKernelException(f'Trigger type[{self.triggerType}] is not supported.')
 
 	# noinspection PyMethodMayBeStatic,DuplicatedCode
 	def should_run(self, trigger_type: PipelineTriggerType, pipeline: Pipeline) -> bool:
