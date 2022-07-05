@@ -65,7 +65,8 @@ export const FactorsTableFooter = styled.div.attrs({'data-widget': 'factors-tabl
 	align-items     : center;
 	justify-content : flex-end;
 	height          : ${HEADER_HEIGHT}px;
-	> button:not(:first-child) {
+	> button:not(:first-child),
+	> div:not(:first-child) {
 		margin-left : calc(var(--margin) / 3);
 	}
 `;

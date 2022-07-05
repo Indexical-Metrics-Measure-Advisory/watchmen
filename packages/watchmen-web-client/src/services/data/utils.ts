@@ -8,6 +8,15 @@ export const getServiceHost = (): string => {
 		return window.location.protocol + '//' + window.location.host + '/watchmen/';
 	}
 };
+export const getClientHost = (): string => {
+	if ((process.env.REACT_APP_WEB_CONTEXT || '').endsWith('/')) {
+		return window.location.protocol + '//' + window.location.host + process.env.REACT_APP_WEB_CONTEXT!.substr(0, process.env.REACT_APP_WEB_CONTEXT!.length - 1);
+	} else if (process.env.REACT_APP_WEB_CONTEXT) {
+		return window.location.protocol + '//' + window.location.host + process.env.REACT_APP_WEB_CONTEXT;
+	} else {
+		return window.location.protocol + '//' + window.location.host;
+	}
+};
 
 export const isNotNull = <T>(x: T | null | undefined): x is T => !!x;
 export const formatTime = (time: Dayjs) => time.format('YYYY-MM-DD HH:mm:ss');
