@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from typing import Any, Dict, List, Optional
 
-from watchmen_model.admin import Topic
+from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import DataPage
 from watchmen_storage import Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
 	EntityIdHelper, EntityList, EntityPager, EntityStraightValuesFinder, EntityUpdater, FreeAggregatePager, \
@@ -33,6 +33,12 @@ class TrinoStorageSPI(TopicDataStorageSPI):
 		not supported by trino
 		"""
 		raise InquiryTrinoException('Method[truncate] does not support by trino storage.')
+
+	def ask_synonym_factors(self, name: str) -> List[Factor]:
+		"""
+		not supported by trino
+		"""
+		raise InquiryTrinoException('Method[ask_synonym_factors] does not support by trino storage.')
 
 	def begin(self) -> None:
 		"""
