@@ -1,10 +1,10 @@
 name: Test Build Mssql
 
-#on:
-#  schedule:
-#    - cron: "0 0 * * *"
+on:
+  schedule:
+    - cron: "0 0 * * *"
 
-on: workflow_dispatch
+#on: workflow_dispatch
 
 env:
   DB_USER: admin
