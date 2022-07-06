@@ -4059,7 +4059,7 @@
 							"response": []
 						},
 						{
-							"name": "New Request",
+							"name": "LOGIN - SUPER ADMIN",
 							"id": "6ecbe7d2-dc1c-47c7-a54f-5f8e117c8fc2",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
