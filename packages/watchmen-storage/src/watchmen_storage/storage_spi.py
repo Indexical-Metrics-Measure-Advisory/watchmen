@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 
-from watchmen_model.admin import Topic
+from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import DataPage
 from .free_storage_types import FreeAggregatePager, FreeAggregator, FreeFinder, FreePager
 from .storage_types import Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
@@ -210,6 +210,10 @@ class TopicDataStorageSPI(TransactionalStorageSPI):
 
 	@abstractmethod
 	def truncate(self, helper: EntityHelper) -> None:
+		pass
+
+	@abstractmethod
+	def ask_synonym_factors(self, name: str) -> List[Factor]:
 		pass
 
 	# noinspection PyMethodMayBeStatic
