@@ -53,7 +53,10 @@ class PipelineTrigger:
 
 	def save_trigger_data(self) -> TopicTrigger:
 		if self.triggerTopicSchema.get_topic().kind == TopicKind.SYNONYM:
-			# only insert is supported on synonym
+			# only insertion is supported on synonym
+			# will do nothing on synonym topic itself, simply trigger the insert pipeline
+			# typically, there should a historical topic to handle data from synonym topic
+			# and process data based on historical topic insertion
 			if self.triggerType == PipelineTriggerType.INSERT:
 				return TopicTrigger(
 					previous=None,
