@@ -4,8 +4,8 @@ from watchmen_inquiry_surface import get_inquiry_surface_routers
 from watchmen_pipeline_surface import get_pipeline_surface_routers
 from watchmen_rest.system import health_router
 from watchmen_utilities import ArrayHelper
-from .admin import enumeration_router, pipeline_graphic_router, pipeline_router, space_router, topic_router, \
-	topic_snapshot_scheduler_router, user_group_router, user_router
+from .admin import enumeration_router, pipeline_graphic_router, pipeline_router, space_router, synonym_topic_router, \
+	topic_router, topic_snapshot_scheduler_router, user_group_router, user_router
 from .analysis import pipeline_index_router, topic_index_router
 from .auth import authenticate_router
 from .console import connected_space_graphic_router, connected_space_router, dashboard_router, report_router, \
@@ -35,7 +35,7 @@ ArrayHelper([
 	# admin
 	user_router.router, user_group_router.router,
 	enumeration_router.router,
-	topic_router.router, pipeline_router.router, pipeline_graphic_router.router,
+	topic_router.router, synonym_topic_router, pipeline_router.router, pipeline_graphic_router.router,
 	space_router.router,
 	topic_snapshot_scheduler_router.router,
 	# console
