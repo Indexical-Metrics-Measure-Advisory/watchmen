@@ -3832,6 +3832,50 @@
 					"name": "SYSTEM",
 					"item": [
 						{
+							"name": "LOGIN - SUPER ADMIN",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "3997bd6a-6746-414b-970f-359991bf5e20",
+										"exec": [
+											"pm.test('Login Access Token', () => {",
+											"    const data = pm.response.json();",
+											"    pm.environment.set('SUPER_ADMIN_JWT_TOKEN', data.accessToken)",
+											"})",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"id": "6ecbe7d2-dc1c-47c7-a54f-5f8e117c8fc2",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": [
+										{
+											"key": "username",
+											"value": "imma-super",
+											"type": "text"
+										},
+										{
+											"key": "password",
+											"value": "change-me",
+											"type": "text"
+										}
+									]
+								},
+								"url": "{{URL_PREFIX}}/login"
+							},
+							"response": []
+						},
+						{
 							"name": "LOGIN-ADMIN",
 							"event": [
 								{
@@ -4055,50 +4099,6 @@
 									}
 								},
 								"url": "{{URL_PREFIX}}/topic"
-							},
-							"response": []
-						},
-						{
-							"name": "LOGIN - SUPER ADMIN",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"id": "3997bd6a-6746-414b-970f-359991bf5e20",
-										"exec": [
-											"pm.test('Login Access Token', () => {",
-											"    const data = pm.response.json();",
-											"    pm.environment.set('SUPER_ADMIN_JWT_TOKEN', data.accessToken)",
-											"})",
-											""
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"id": "6ecbe7d2-dc1c-47c7-a54f-5f8e117c8fc2",
-							"protocolProfileBehavior": {
-								"disableBodyPruning": true
-							},
-							"request": {
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "urlencoded",
-									"urlencoded": [
-										{
-											"key": "username",
-											"value": "imma-super",
-											"type": "text"
-										},
-										{
-											"key": "password",
-											"value": "change-me",
-											"type": "text"
-										}
-									]
-								},
-								"url": "{{URL_PREFIX}}/login"
 							},
 							"response": []
 						}
@@ -13386,7 +13386,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"name\": \"Test_Distinct_Topic_{{$guid}}\",\n    \"type\": \"distinct\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propC\"},\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propD\"},\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propE\"}\n    ],\n    \"description\": \"Test Distinct Topic\"\n}",
+									"raw": "{\n    \"name\": \"Test_Distinct_Topic_{{$timestamp}}\",\n    \"type\": \"distinct\",\n    \"kind\": \"business\",\n    \"dataSourceId\": \"{{DATA_SOURCE_ID}}\",\n    \"factors\": [\n        {\"factorId\": \"1\", \"type\": \"text\", \"name\": \"propA\"},\n        {\"factorId\": \"2\", \"type\": \"number\", \"name\": \"propB\"},\n        {\"factorId\": \"3\", \"type\": \"boolean\", \"name\": \"propC\"},\n        {\"factorId\": \"4\", \"type\": \"date\", \"name\": \"propD\"},\n        {\"factorId\": \"5\", \"type\": \"datetime\", \"name\": \"propE\"}\n    ],\n    \"description\": \"Test Distinct Topic\"\n}",
 									"options": {
 										"raw": {
 											"language": "json"
