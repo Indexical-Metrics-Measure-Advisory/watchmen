@@ -4015,13 +4015,46 @@
 						},
 						{
 							"name": "CREATE DATASOURCE",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "84e6ddf7-33ad-4b8f-9a3c-64e0292573d7",
+										"exec": [
+											"pm.test('Datasource created', () => {",
+											"    const data = pm.response.json();",
+											"    pm.expect(data.dataSourceId).to.not.be.null;",
+											"    pm.environment.set('DATA_SOURCE_ID', data.dataSourceId)",
+											"})",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
 							"id": "a211989a-fc52-42f7-adca-fff522beeb9e",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
 							"request": {
-								"method": "GET",
-								"header": []
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+									}
+								},
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"dataSourceCode\": \"Test-Datasource\",\n    \"dataSourceType\": \"{{DATASOURCE_TYPE}}\",\n    \"host\": \"localhost\",\n    \"port\": \"{{DATASOURCE_PORT}}\",\n    \"username\": \"{{DATASOURCE_USERNAME}}\",\n    \"password\": \"{{DATASOURCE_PASSWORD}}\",\n    \"name\": \"{{DATASOURCE_SCHEMA}}\",\n    \"tenantId\": \"1\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "{{URL_PREFIX}}/datasource"
 							},
 							"response": []
 						}
