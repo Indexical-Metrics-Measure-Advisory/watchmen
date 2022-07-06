@@ -11,7 +11,7 @@ from watchmen_storage import ColumnNameLiteral, Entity, EntityColumnAggregateAri
 	EntityCriteriaExpression, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
 	EntityIdHelper, EntityList, EntityNotFoundException, EntityPager, EntitySort, EntityStraightAggregateColumn, \
 	EntityStraightColumn, EntityStraightValuesFinder, EntityUpdater, TooManyEntitiesFoundException, \
-	TransactionalStorageSPI, UnexpectedStorageException, UnsupportedStraightColumnException
+	TransactionalStorageSPI, UnexpectedStorageException, UnsupportedStraightColumnException, ask_disable_compiled_cache
 from watchmen_utilities import ArrayHelper, is_blank
 from .table_defs import find_table
 from .types import SQLAlchemyStatement
@@ -31,6 +31,8 @@ class StorageRDS(TransactionalStorageSPI):
 	def connect(self) -> None:
 		if self.connection is None:
 			self.connection = self.engine.connect().execution_options(isolation_level="AUTOCOMMIT")
+			if ask_disable_compiled_cache():
+				self.connection = self.connection.execution_options(compiled_cache=None)
 
 	def begin(self) -> None:
 		if self.connection is not None:

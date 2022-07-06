@@ -4,7 +4,7 @@ from .competitive_worker_id_generator import competitive_worker_id, CompetitiveW
 from .data_source_helper import DataSourceHelper
 from .free_storage_types import FreeAggregateArithmetic, FreeAggregateColumn, FreeAggregatePager, FreeAggregator, \
 	FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager
-from .settings import ask_decimal_fraction_digits, ask_decimal_integral_digits
+from .settings import ask_decimal_fraction_digits, ask_decimal_integral_digits, ask_disable_compiled_cache
 from .snowflake import InvalidSystemClockException, SnowflakeGenerator
 from .snowflake_worker_id_generator import immutable_worker_id, WorkerIdGenerator
 from .storage_based_worker_id_generator import COMPETITIVE_WORKER_SHAPER, CompetitiveWorkerShaper, \
