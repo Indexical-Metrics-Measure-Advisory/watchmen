@@ -35,7 +35,7 @@ ArrayHelper([
 	# admin
 	user_router.router, user_group_router.router,
 	enumeration_router.router,
-	topic_router.router, synonym_topic_router, pipeline_router.router, pipeline_graphic_router.router,
+	topic_router.router, synonym_topic_router.router, pipeline_router.router, pipeline_graphic_router.router,
 	space_router.router,
 	topic_snapshot_scheduler_router.router,
 	# console
