@@ -213,7 +213,7 @@ class TopicDataStorageSPI(TransactionalStorageSPI):
 		pass
 
 	@abstractmethod
-	def ask_synonym_factors(self, name: str) -> List[Factor]:
+	def ask_synonym_factors(self, table_name: str) -> List[Factor]:
 		pass
 
 	# noinspection PyMethodMayBeStatic

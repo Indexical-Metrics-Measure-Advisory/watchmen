@@ -244,7 +244,7 @@ class TopicDataStorageS3(StorageS3, TopicDataStorageSPI):
 		prefix = find_directory(helper.name)
 		self.s3_client.delete_multiple_objects(prefix)
 
-	def ask_synonym_factors(self, name: str) -> List[Factor]:
+	def ask_synonym_factors(self, table_name: str) -> List[Factor]:
 		"""
 		not supported by S3
 		"""

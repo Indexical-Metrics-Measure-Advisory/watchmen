@@ -244,7 +244,7 @@ class TopicDataStorageOss(StorageOss, TopicDataStorageSPI):
 		prefix = find_directory(helper.name)
 		self.oss_client.delete_multiple_objects(prefix)
 
-	def ask_synonym_factors(self, name: str) -> List[Factor]:
+	def ask_synonym_factors(self, table_name: str) -> List[Factor]:
 		"""
 		not supported by oss
 		"""
