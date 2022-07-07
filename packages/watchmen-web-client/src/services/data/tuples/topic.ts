@@ -1,6 +1,7 @@
 import {findAccount} from '../account';
 import {Apis, get, page, post} from '../apis';
 import {
+	askMockSynonymFactors,
 	fetchMockTopic,
 	fetchMockTopicDataIds,
 	fetchMockTopicRowCount,
@@ -11,7 +12,9 @@ import {
 } from '../mock/tuples/mock-topic';
 import {TuplePage} from '../query/tuple-page';
 import {isMockService} from '../utils';
+import {DataSourceId} from './data-source-types';
 import {ParameterJoint} from './factor-calculator-types';
+import {Factor} from './factor-types';
 import {PipelineId} from './pipeline-types';
 import {QueryTopic, QueryTopicForHolder} from './query-topic-types';
 import {Topic, TopicId} from './topic-types';
@@ -96,5 +99,13 @@ export const importTopics = async (topics: Array<Topic>): Promise<Array<Topic>> 
 		return topics;
 	} else {
 		return await post({api: Apis.IMPORT_TOPICS, data: topics});
+	}
+};
+
+export const askSynonymFactors = async (topicName: string, dataSourceId: DataSourceId): Promise<Array<Factor>> => {
+	if (isMockService()) {
+		return await askMockSynonymFactors(topicName, dataSourceId);
+	} else {
+		return await get({api: Apis.TOPIC_SYNONYM_ASK_FACTORS, search: {name: topicName, dataSourceId}});
 	}
 };
