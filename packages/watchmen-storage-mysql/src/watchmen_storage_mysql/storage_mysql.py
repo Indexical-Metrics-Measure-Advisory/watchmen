@@ -1,13 +1,12 @@
 from logging import getLogger
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, List, Optional, Tuple
 
 from sqlalchemy import Table, text
 
-from watchmen_model.admin import Factor, FactorType, Topic
+from watchmen_model.admin import FactorType, Topic
 from watchmen_storage import as_table_name, EntityCriteria, EntitySort, Literal
 from watchmen_storage_rds import build_offset_for_statement, build_sort_for_statement, SQLAlchemyStatement, \
 	StorageRDS, TopicDataStorageRDS
-from watchmen_utilities import ArrayHelper, is_not_blank
 from .table_creator import build_aggregate_assist_column, build_columns, build_columns_script, build_indexes, \
 	build_indexes_script, build_unique_indexes, build_unique_indexes_script, build_version_column
 from .where_build import build_criteria_for_statement, build_literal
@@ -110,6 +109,13 @@ CREATE TABLE {entity_name} (
 		finally:
 			self.close()
 
+	# noinspection SqlResolve
+	def ask_synonym_columns_sql(self, table_name: str) -> str:
+		return \
+			f"SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE, COLUMN_TYPE, COLUMN_COMMENT " \
+			f"FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{table_name}' " \
+			f"ORDER BY ORDINAL_POSITION"
+
 	# noinspection PyMethodMayBeStatic
 	def schema_column_data_type_to_factor_type(self, schema_column_data_type: str) -> Tuple[FactorType, Optional[str]]:
 		if '(' in schema_column_data_type:
@@ -142,66 +148,12 @@ CREATE TABLE {entity_name} (
 		else:
 			return FactorType.TEXT, None
 
-	def schema_column_to_factor(self, column: Dict[str, Any], index: int) -> Factor:
-		factor_type, factor_precision = self.schema_column_data_type_to_factor_type(column.get('COLUMN_TYPE'))
-		return Factor(
-			factorId=str(index),
-			type=factor_type,
-			name=column.get('COLUMN_NAME'),
-			label=column.get('COLUMN_NAME'),
-			description=column.get('COLUMN_COMMENT'),
-			precision=factor_precision
-		)
-
 	# noinspection SqlResolve
-	def ask_synonym_factors(self, table_name: str) -> List[Factor]:
-		try:
-			self.connect()
-			columns = self.connection.execute(text(
-				f"SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME, DATA_TYPE, COLUMN_TYPE, COLUMN_COMMENT "
-				f"FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{table_name}' ORDER BY ORDINAL_POSITION"
-			)).mappings().all()
-			factors = ArrayHelper(columns) \
-				.map_with_index(lambda x, index: self.schema_column_to_factor(x, index + 1))
-			indexes = self.connection.execute(text(
-				f"SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME, INDEX_NAME, NON_UNIQUE "
-				f"FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_NAME = '{table_name}' "
-				f"ORDER BY NON_UNIQUE, INDEX_NAME, COLUMN_NAME"
-			)).mappings().all()
-			index_index = 0
-			unique_index_index = 0
-			previous_index_name = ''
-			previous_index_group = ''
-			ignore_indexes: Dict[str, bool] = {}
-			for an_index in indexes:
-				index_name = an_index.get('INDEX_NAME')
-				if index_name in ignore_indexes:
-					# index ignored
-					continue
-
-				column_name = an_index.get('COLUMN_NAME')
-				factor: Optional[Factor] = factors.find(lambda x: x.name == column_name)
-				if factor is None:
-					continue
-
-				if is_not_blank(factor.indexGroup):
-					# factor already be indexed, ignore current index
-					ignore_indexes[index_name] = True
-					continue
-
-				is_unique = str(an_index.get('NON_UNIQUE')) == '0'
-				if index_name != previous_index_name:
-					previous_index_name = index_name
-					if is_unique:
-						unique_index_index = unique_index_index + 1
-						previous_index_group = f'u-{unique_index_index}'
-					else:
-						index_index = index_index + 1
-						previous_index_group = f'i-{index_index}'
-				factor.indexGroup = previous_index_group
-			return factors.to_list()
-		finally:
-			self.close()
+	def ask_synonym_indexes_sql(self, table_name: str) -> str:
+		return \
+			f"SELECT TABLE_NAME, COLUMN_NAME, INDEX_NAME, NON_UNIQUE " \
+			f"FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_NAME = '{table_name}' " \
+			f"ORDER BY NON_UNIQUE, INDEX_NAME, COLUMN_NAME"
 
 	def build_literal(self, tables: List[Table], a_literal: Literal, build_plain_value: Callable[[Any], Any] = None):
 		return build_literal(tables, a_literal, build_plain_value)

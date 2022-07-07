@@ -8,7 +8,7 @@ from sqlalchemy import and_, func, select, Table, text
 from sqlalchemy.sql import Join, label
 from sqlalchemy.sql.elements import Label, literal_column
 
-from watchmen_model.admin import Topic
+from watchmen_model.admin import Factor, FactorType, Topic
 from watchmen_model.common import DataPage, TopicId
 from watchmen_storage import as_table_name, EntityHelper, FreeAggregateArithmetic, FreeAggregateColumn, \
 	FreeAggregatePager, FreeAggregator, FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, Literal, \
@@ -41,6 +41,82 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		table = self.find_table(helper.name)
 		# noinspection SqlResolve
 		self.connection.execute(text(f'TRUNCATE TABLE {table.name}'))
+
+	@abstractmethod
+	def ask_synonym_columns_sql(self, table_name: str) -> str:
+		raise UnexpectedStorageException('Method[ask_synonym_columns_sql] does not support by rds storage.')
+
+	@abstractmethod
+	def schema_column_data_type_to_factor_type(self, schema_column_data_type: str) -> Tuple[FactorType, Optional[str]]:
+		raise UnexpectedStorageException(
+			'Method[schema_column_data_type_to_factor_type] does not support by rds storage.')
+
+	def schema_column_to_factor(self, column: Dict[str, Any], index: int) -> Factor:
+		factor_type, factor_precision = self.schema_column_data_type_to_factor_type(column.get('COLUMN_TYPE'))
+		return Factor(
+			factorId=str(index),
+			type=factor_type,
+			name=column.get('COLUMN_NAME'),
+			label=column.get('COLUMN_NAME'),
+			description=column.get('COLUMN_COMMENT'),
+			precision=factor_precision
+		)
+
+	def ask_synonym_columns(self, table_name: str) -> List[Factor]:
+		columns = self.connection.execute(text(self.ask_synonym_columns_sql(table_name))).mappings().all()
+		factors = ArrayHelper(columns) \
+			.map_with_index(lambda x, index: self.schema_column_to_factor(x, index + 1)) \
+			.to_list()
+		return factors
+
+	@abstractmethod
+	def ask_synonym_indexes_sql(self, table_name: str) -> str:
+		raise UnexpectedStorageException('Method[ask_synonym_indexes_sql] does not support by rds storage.')
+
+	def build_index_group_by_synonym(self, table_name: str, factors: List[Factor]):
+		factors_helper = ArrayHelper(factors)
+
+		indexes = self.connection.execute(text(self.ask_synonym_indexes_sql(table_name))).mappings().all()
+		index_index = 0
+		unique_index_index = 0
+		previous_index_name = ''
+		previous_index_group = ''
+		ignore_indexes: Dict[str, bool] = {}
+		for an_index in indexes:
+			index_name = an_index.get('INDEX_NAME')
+			if index_name in ignore_indexes:
+				# index ignored
+				continue
+
+			column_name = an_index.get('COLUMN_NAME')
+			factor: Optional[Factor] = factors_helper.find(lambda x: x.name == column_name)
+			if factor is None:
+				continue
+
+			if is_not_blank(factor.indexGroup):
+				# factor already be indexed, ignore current index
+				ignore_indexes[index_name] = True
+				continue
+
+			is_unique = str(an_index.get('NON_UNIQUE')) == '0'
+			if index_name != previous_index_name:
+				previous_index_name = index_name
+				if is_unique:
+					unique_index_index = unique_index_index + 1
+					previous_index_group = f'u-{unique_index_index}'
+				else:
+					index_index = index_index + 1
+					previous_index_group = f'i-{index_index}'
+			factor.indexGroup = previous_index_group
+
+	def ask_synonym_factors(self, table_name: str) -> List[Factor]:
+		try:
+			self.connect()
+			factors = self.ask_synonym_columns(table_name)
+			self.build_index_group_by_synonym(table_name, factors)
+			return factors
+		finally:
+			self.close()
 
 	# noinspection PyMethodMayBeStatic
 	def build_single_on(self, join: FreeJoin, primary_table: Table, secondary_table: Table) -> Any:
