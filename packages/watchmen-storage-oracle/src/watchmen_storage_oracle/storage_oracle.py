@@ -118,13 +118,14 @@ CREATE TABLE {entity_name} (
 		finally:
 			self.close()
 
-	# noinspection SqlResolve,SqlCaseVsIf
+	# noinspection SqlResolve
 	def ask_synonym_columns_sql(self, table_name: str) -> str:
 		return \
 			f"SELECT UTC.TABLE_NAME, UTC.COLUMN_NAME, UTC.DATA_TYPE, " \
 			f"CASE " \
 			f"WHEN DATA_PRECISION IS NOT NULL THEN DATA_TYPE || '(' || DATA_PRECISION || ',' || DATA_SCALE || ')' " \
-			f"ELSE DATA_TYPE || '(' || DATA_LENGTH || ')' " \
+			f"WHEN DATA_LENGTH IS NOT NULL THEN DATA_TYPE || '(' || DATA_LENGTH || ')' " \
+			f"ELSE DATA_TYPE " \
 			f"END AS COLUMN_TYPE, " \
 			f"UCC.COMMENTS AS COLUMN_COMMENT " \
 			f"FROM USER_TAB_COLUMNS UTC, USER_COL_COMMENTS UCC " \
