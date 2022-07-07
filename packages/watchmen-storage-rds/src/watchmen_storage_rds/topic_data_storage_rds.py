@@ -337,4 +337,3 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 			itemCount=count,
 			pageCount=max_page_number
 		)
-
