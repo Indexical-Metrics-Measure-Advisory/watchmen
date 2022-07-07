@@ -154,18 +154,18 @@ CREATE TABLE {entity_name} (
 		)
 
 	# noinspection SqlResolve
-	def ask_synonym_factors(self, name: str) -> List[Factor]:
+	def ask_synonym_factors(self, table_name: str) -> List[Factor]:
 		try:
 			self.connect()
 			columns = self.connection.execute(text(
 				f"SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME, DATA_TYPE, COLUMN_TYPE, COLUMN_COMMENT "
-				f"FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{name}' ORDER BY ORDINAL_POSITION"
+				f"FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{table_name}' ORDER BY ORDINAL_POSITION"
 			)).mappings().all()
 			factors = ArrayHelper(columns) \
 				.map_with_index(lambda x, index: self.schema_column_to_factor(x, index + 1))
 			indexes = self.connection.execute(text(
 				f"SELECT TABLE_SCHEMA, TABLE_NAME, COLUMN_NAME, INDEX_NAME, NON_UNIQUE "
-				f"FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_NAME = '{name}' "
+				f"FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_NAME = '{table_name}' "
 				f"ORDER BY NON_UNIQUE, INDEX_NAME, COLUMN_NAME"
 			)).mappings().all()
 			index_index = 0

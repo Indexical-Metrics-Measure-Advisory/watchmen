@@ -34,7 +34,7 @@ class TrinoStorageSPI(TopicDataStorageSPI):
 		"""
 		raise InquiryTrinoException('Method[truncate] does not support by trino storage.')
 
-	def ask_synonym_factors(self, name: str) -> List[Factor]:
+	def ask_synonym_factors(self, table_name: str) -> List[Factor]:
 		"""
 		not supported by trino
 		"""

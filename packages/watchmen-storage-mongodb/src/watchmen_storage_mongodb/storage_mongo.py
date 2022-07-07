@@ -502,7 +502,7 @@ class TopicDataStorageMongoDB(StorageMongoDB, TopicDataStorageSPI):
 		document = self.find_document(helper.name)
 		self.connection.drop_collection(document.name)
 
-	def ask_synonym_factors(self, name: str) -> List[Factor]:
+	def ask_synonym_factors(self, table_name: str) -> List[Factor]:
 		"""
 		not supported by mongo
 		"""
