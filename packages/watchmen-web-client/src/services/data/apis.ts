@@ -42,6 +42,7 @@ export const Apis = {
 	TOPIC_RERUN: 'topic/data/rerun?topic_id=:topicId&pipeline_id=:pipelineId&data_id=:dataId',
 	TOPIC_SNAPSHOT_SCHEDULER_LIST: 'topic/snapshot/scheduler/list',
 	TOPIC_SNAPSHOT_SCHEDULER_SAVE: 'topic/snapshot/scheduler',
+	TOPIC_SYNONYM_ASK_FACTORS: 'topic/synonym/factors?name=:topic_name&data_source_id=:dataSourceId',
 
 	ENUM_LIST_BY_NAME: 'enum/name?query_name=:search',
 	ENUM_GET: 'enum?enum_id=:enumId',

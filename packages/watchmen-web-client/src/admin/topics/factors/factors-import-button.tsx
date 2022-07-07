@@ -1,3 +1,5 @@
+import {Factor} from '@/services/data/tuples/factor-types';
+import {askSynonymFactors} from '@/services/data/tuples/topic';
 import {Topic, TopicKind} from '@/services/data/tuples/topic-types';
 import {AlertLabel} from '@/widgets/alert/widgets';
 import {DropdownButtons, DropdownButtonsContainer, DwarfButton} from '@/widgets/basic/button';
@@ -16,6 +18,7 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {MouseEvent, useEffect, useRef, useState} from 'react';
 import {useTopicEventBus} from '../topic-event-bus';
 import {TopicEventTypes} from '../topic-event-bus-types';
+import {isTopicNameInvalid} from '../utils';
 import {SAMPLE_FACTORS_CSV, SAMPLE_FACTORS_JSON} from './sample-factors';
 import {parseFromInstanceJson, parseFromStructureCsv, parseFromStructureJson} from './topic-import-from-file';
 
@@ -114,6 +117,33 @@ export const FactorsImportButton = (props: { topic: Topic }) => {
 		}, 'factors-template.zip');
 	};
 	const onSyncWithSourceClicked = () => {
+		if ((topic.name || '').trim().length === 0) {
+			fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Topic name is required.</AlertLabel>);
+			return;
+		}
+		if (isTopicNameInvalid(topic.name)) {
+			fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
+				Please use camel case or snake case for topic name.
+			</AlertLabel>);
+			return;
+		}
+		if (topic.dataSourceId == null) {
+			fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Data source is required.</AlertLabel>);
+			return;
+		}
+
+		fireGlobal(EventTypes.SHOW_YES_NO_DIALOG,
+			'Synchronize synonym topic factors will replace all existing definition, are you sure to continue?',
+			async () => {
+				fireGlobal(EventTypes.HIDE_DIALOG);
+				fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
+					return await askSynonymFactors(topic.name, topic.dataSourceId!);
+				}, (factors: Array<Factor>) => {
+					topic.factors = factors;
+					fire(TopicEventTypes.FACTORS_IMPORTED, topic.factors);
+				});
+			},
+			() => fireGlobal(EventTypes.HIDE_DIALOG));
 	};
 
 	const leadButton = isSynonym
