@@ -113,7 +113,7 @@ CREATE TABLE {entity_name} (
 	def ask_synonym_columns_sql(self, table_name: str) -> str:
 		return \
 			f"SELECT TABLE_NAME, COLUMN_NAME, DATA_TYPE, COLUMN_TYPE, COLUMN_COMMENT " \
-			f"FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{table_name}' " \
+			f"FROM INFORMATION_SCHEMA.COLUMNS WHERE UPPER(TABLE_NAME) = UPPER('{table_name}') " \
 			f"ORDER BY ORDINAL_POSITION"
 
 	# noinspection PyMethodMayBeStatic
@@ -152,7 +152,7 @@ CREATE TABLE {entity_name} (
 	def ask_synonym_indexes_sql(self, table_name: str) -> str:
 		return \
 			f"SELECT TABLE_NAME, COLUMN_NAME, INDEX_NAME, NON_UNIQUE " \
-			f"FROM INFORMATION_SCHEMA.STATISTICS WHERE TABLE_NAME = '{table_name}' " \
+			f"FROM INFORMATION_SCHEMA.STATISTICS WHERE UPPER(TABLE_NAME) = UPPER('{table_name}') " \
 			f"ORDER BY NON_UNIQUE, INDEX_NAME, COLUMN_NAME"
 
 	def build_literal(self, tables: List[Table], a_literal: Literal, build_plain_value: Callable[[Any], Any] = None):
