@@ -7,6 +7,7 @@ export const CMD_TOPIC = '/topic';
 
 export const CMD_ARGUMENT_SYSTEM = 'sys';
 export const CMD_ARGUMENT_BIZ = 'biz';
+export const CMD_ARGUMENT_SYNONYM = 'synonym';
 export const CMD_ARGUMENT_RAW = 'raw';
 export const CMD_ARGUMENT_META = 'meta';
 export const CMD_ARGUMENT_DISTINCT = 'distinct';
@@ -31,6 +32,10 @@ const TopicListByKind = [
 	{
 		label: 'Business', command: CMD_ARGUMENT_BIZ,
 		reminder: 'Press "enter" to list all business topics'
+	},
+	{
+		label: 'Synonym', command: CMD_ARGUMENT_SYNONYM,
+		reminder: 'Press "enter" to list all synonym topics'
 	}
 ];
 const TopicListByType = [

@@ -8,7 +8,8 @@ import {TopicEventTypes} from '../topic-event-bus-types';
 
 const TopicKindOptions: Array<DropdownOption> = [
 	{value: TopicKind.SYSTEM, label: 'System'},
-	{value: TopicKind.BUSINESS, label: 'Business'}
+	{value: TopicKind.BUSINESS, label: 'Business'},
+	{value: TopicKind.SYNONYM, label: 'Synonym'}
 ];
 
 export const TopicKindInput = (props: { topic: Topic }) => {

@@ -7,7 +7,7 @@ from watchmen_inquiry_kernel.storage import ReportDataService
 from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import ComputedParameter, ConstantParameter, DataResult, DataResultSetRow, \
 	FactorId, Parameter, ParameterComputeType, ParameterExpression, ParameterExpressionOperator, ParameterJoint, \
-	ParameterJointType, ParameterKind, TopicFactorParameter
+	ParameterJointType, ParameterKind, TopicFactorParameter, TopicId
 from watchmen_model.console import Report, ReportDimension, ReportIndicator, ReportIndicatorArithmetic, Subject, \
 	SubjectDataset, SubjectDatasetColumn
 from watchmen_model.indicator import Bucket, CategorySegment, CategorySegmentsHolder, Indicator, \
@@ -96,6 +96,22 @@ class TopicBaseInspectionDataService(InspectionDataService):
 				alias=f'column_{column_index}'
 			)
 		return column, column_index, column_index + 1
+
+	# noinspection PyMethodMayBeStatic
+	def get_topic_id_from_time_group_column(self, column: SubjectDatasetColumn) -> TopicId:
+		parameter = column.parameter
+		if parameter.kind == ParameterKind.TOPIC:
+			return parameter.topicId
+		else:
+			return parameter.parameters[0].topicId
+
+	# noinspection PyMethodMayBeStatic
+	def get_factor_id_from_time_group_column(self, column: SubjectDatasetColumn) -> FactorId:
+		parameter = column.parameter
+		if parameter.kind == ParameterKind.TOPIC:
+			return parameter.factorId
+		else:
+			return parameter.parameters[0].factorId
 
 	# noinspection PyMethodMayBeStatic
 	def to_numeric_segments_bucket(self, bucket: Bucket) -> NumericSegmentsHolder:
@@ -305,10 +321,18 @@ class TopicBaseInspectionDataService(InspectionDataService):
 			)
 		return joint
 
+	def has_indicator_filter(self) -> bool:
+		return \
+			self.indicator.filter is not None \
+			and self.indicator.filter.enabled \
+			and self.indicator.filter.joint is not None \
+			and self.indicator.filter.joint.filters is not None \
+			and len(self.indicator.filter.joint.filters) != 0
+
 	# noinspection DuplicatedCode
 	def build_filters(self) -> Optional[ParameterJoint]:
 		time_range_filter = self.fake_time_range_to_dataset_filter()
-		if self.indicator.filter is not None and self.indicator.filter.enabled and self.indicator.filter.joint is not None:
+		if self.has_indicator_filter():
 			if time_range_filter is not None:
 				return ParameterJoint(
 					jointType=ParameterJointType.AND,
@@ -321,14 +345,18 @@ class TopicBaseInspectionDataService(InspectionDataService):
 
 	def fake_to_subject(self) -> Subject:
 		dataset_columns: List[SubjectDatasetColumn] = []
+		# append indicator factor anyway
 		indicator_factor_column, _, next_column_index = self.fake_indicator_factor_to_dataset_column(1)
 		dataset_columns.append(indicator_factor_column)
-		time_group_column, _, next_column_index = \
-			self.fake_time_group_to_dataset_column(next_column_index)
+
+		time_group_column, _, next_column_index = self.fake_time_group_to_dataset_column(next_column_index)
 		if time_group_column is not None:
+			# append time group column
 			dataset_columns.append(time_group_column)
-			topic = get_topic_service(self.principalService).find_by_id(time_group_column.parameter.topicId)
-			factor = ArrayHelper(topic.factors).find(lambda x: x.factorId == time_group_column.parameter.factorId)
+			topic_id = self.get_topic_id_from_time_group_column(time_group_column)
+			topic = get_topic_service(self.principalService).find_by_id(topic_id)
+			factor_id = self.get_factor_id_from_time_group_column(time_group_column)
+			factor = ArrayHelper(topic.factors).find(lambda x: x.factorId == factor_id)
 			if factor is None:
 				raise IndicatorKernelException('Factor of time group column not found.')
 			if self.has_year_or_month(factor):
@@ -370,20 +398,22 @@ class TopicBaseInspectionDataService(InspectionDataService):
 					ReportIndicator(columnId='1', name='_MIN_', arithmetic=ReportIndicatorArithmetic.MINIMUM))
 
 		dimensions: List[ReportDimension] = []
-		if len(subject.dataset.columns) == 3:
+		fake_time_group_column = ArrayHelper(subject.dataset.columns) \
+			.find(lambda x: x.columnId == self.FAKE_TIME_GROUP_COLUMN_ID)
+		if len(subject.dataset.columns) == 4 or (len(subject.dataset.columns) == 3 and fake_time_group_column is None):
+			# both defined, on bucket and time group
+			# there might be 3 or 4 dataset columns
 			dimensions.append(ReportDimension(columnId='3', name='_BUCKET_ON_'))
-			fake_column = ArrayHelper(subject.dataset.columns) \
-				.find(lambda x: x.columnId == self.FAKE_TIME_GROUP_COLUMN_ID)
-			if fake_column is None:
+			if fake_time_group_column is None:
 				dimensions.append(ReportDimension(columnId='2', name='_TIME_GROUP_'))
 			else:
 				dimensions.append(ReportDimension(columnId=self.FAKE_TIME_GROUP_COLUMN_ID, name='_TIME_GROUP_'))
-		elif len(subject.dataset.columns) == 2:
+		elif len(subject.dataset.columns) == 2 or (
+				len(subject.dataset.columns) == 3 and fake_time_group_column is not None):
+			# one of bucket or time group defined
 			time_group_existing, _, _ = self.has_time_group()
 			if time_group_existing:
-				fake_column = ArrayHelper(subject.dataset.columns) \
-					.find(lambda x: x.columnId == self.FAKE_TIME_GROUP_COLUMN_ID)
-				if fake_column is None:
+				if fake_time_group_column is None:
 					dimensions.append(ReportDimension(columnId='2', name='_TIME_GROUP_'))
 				else:
 					dimensions.append(ReportDimension(columnId=self.FAKE_TIME_GROUP_COLUMN_ID, name='_TIME_GROUP_'))

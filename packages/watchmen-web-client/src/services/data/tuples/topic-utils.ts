@@ -1,9 +1,12 @@
+import {isDataQualityCenterEnabled, isSynonymDQCEnabled} from '@/feature-switch';
 import {DataSourceType} from './data-source-types';
 import {QueryTopic} from './query-topic-types';
 import {Topic, TopicKind, TopicType} from './topic-types';
 
 export const isSystemTopic = (topic: Topic): boolean => topic.kind === TopicKind.SYSTEM;
 export const isBusinessTopic = (topic: Topic): boolean => topic.kind === TopicKind.BUSINESS;
+export const isSynonymTopic = (topic: Topic | QueryTopic): boolean => topic.kind === TopicKind.SYNONYM;
+export const isNotSynonymTopic = (topic: Topic | QueryTopic): boolean => !isSynonymTopic(topic);
 export const isRawTopic = (topic: Topic | QueryTopic): boolean => topic.type === TopicType.RAW;
 export const isNotRawTopic = (topic: Topic | QueryTopic): boolean => !isRawTopic(topic);
 export const isMetaTopic = (topic: Topic): boolean => topic.type === TopicType.META;
@@ -16,3 +19,11 @@ export const isAggregationTopic = (topic: Topic): boolean => {
 };
 export const isNotAggregationTopic = (topic: Topic): boolean => !isAggregationTopic(topic);
 export const isS3Storage = (type: DataSourceType) => [DataSourceType.AWS_S3, DataSourceType.ALI_OSS].includes(type);
+export const isRDSStorage = (type: DataSourceType) => [DataSourceType.MSSQL, DataSourceType.MYSQL, DataSourceType.ORACLE, DataSourceType.POSTGRESQL].includes(type);
+
+export const isTopicProfileAvailable = (topic?: Topic | QueryTopic | null): boolean => {
+	return topic != null
+		&& isDataQualityCenterEnabled()
+		&& isNotRawTopic(topic)
+		&& (isSynonymDQCEnabled() || isNotSynonymTopic(topic));
+};

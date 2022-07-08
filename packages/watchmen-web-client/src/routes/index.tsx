@@ -52,9 +52,7 @@ export const Routes = () => {
 	return <Suspense fallback={<div/>}>
 		<BrowserRouter basename={process.env.REACT_APP_WEB_CONTEXT}>
 			<RemoteRequest/>
-			<Switch>
-				<InternalRoutes/>
-			</Switch>
+			<InternalRoutes/>
 		</BrowserRouter>
 	</Suspense>;
 };

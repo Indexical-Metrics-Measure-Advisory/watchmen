@@ -245,13 +245,24 @@ export const WeeklyOrderPremiumIncrement: Topic = {
 	createdAt: getCurrentTime(),
 	lastModifiedAt: getCurrentTime()
 };
+export const Products: Topic = {
+	topicId: '9', name: 'Products', kind: TopicKind.SYNONYM, type: TopicType.DISTINCT,
+	factors: [
+		{factorId: '901', name: 'code', label: 'Product Code', type: FactorType.TEXT},
+		{factorId: '902', name: 'name', label: 'Product Name', type: FactorType.TEXT}
+	],
+	version: 1,
+	createdAt: getCurrentTime(),
+	lastModifiedAt: getCurrentTime()
+};
 export const DemoTopics: Array<Topic> = [
 	Quotation, Order, Participant, RawQuotation,
-	WeeklyOrderPremium, MonthlyOrderPremium, RawEndorsement, WeeklyOrderPremiumIncrement
+	WeeklyOrderPremium, MonthlyOrderPremium, RawEndorsement, WeeklyOrderPremiumIncrement,
+	Products
 ].map(t => ({...t, tenantId: '1'}));
 const asQueryTopic = (topic: Topic): QueryTopic => {
-	const {topicId, name, type, description, createdAt, lastModifiedAt} = topic;
-	return {topicId, name, type, description, createdAt, lastModifiedAt} as QueryTopic;
+	const {topicId, name, type, kind, description, createdAt, lastModifiedAt} = topic;
+	return {topicId, name, type, kind, description, createdAt, lastModifiedAt} as QueryTopic;
 };
 export const DemoQueryTopics: Array<QueryTopic> = [
 	asQueryTopic(Quotation),
@@ -261,5 +272,6 @@ export const DemoQueryTopics: Array<QueryTopic> = [
 	asQueryTopic(WeeklyOrderPremium),
 	asQueryTopic(MonthlyOrderPremium),
 	asQueryTopic(RawEndorsement),
-	asQueryTopic(WeeklyOrderPremiumIncrement)
+	asQueryTopic(WeeklyOrderPremiumIncrement),
+	asQueryTopic(Products)
 ];

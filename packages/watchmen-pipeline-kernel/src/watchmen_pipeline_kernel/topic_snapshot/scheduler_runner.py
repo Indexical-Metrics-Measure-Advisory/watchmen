@@ -13,8 +13,9 @@ from watchmen_data_kernel.storage_bridge import parse_condition_for_storage, Pip
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_meta.admin import TopicSnapshotJobLockService, TopicSnapshotSchedulerService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
-from watchmen_model.admin import Pipeline, PipelineTriggerType, TopicSnapshotFrequency, TopicSnapshotJobLock, \
-	TopicSnapshotJobLockId, TopicSnapshotJobLockStatus, TopicSnapshotScheduler, TopicSnapshotSchedulerId
+from watchmen_model.admin import Pipeline, PipelineTriggerType, Topic, TopicKind, TopicSnapshotFrequency, \
+	TopicSnapshotJobLock, TopicSnapshotJobLockId, TopicSnapshotJobLockStatus, TopicSnapshotScheduler, \
+	TopicSnapshotSchedulerId
 from watchmen_model.common import Pageable, TenantId, TopicId
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_pipeline_kernel.pipeline import create_monitor_log_pipeline_invoker, PipelineTrigger
@@ -316,6 +317,14 @@ def run_job(scheduler_id: TopicSnapshotSchedulerId, process_date: date) -> None:
 		return
 
 	principal_service = fake_tenant_admin(scheduler.tenantId)
+
+	topic_id = scheduler.topicId
+	topic: Optional[Topic] = get_topic_service(principal_service).find_by_id(topic_id)
+	if topic.kind == TopicKind.SYNONYM:
+		logger.error(f'Topic snapshot scheduler[id={scheduler_id}] cannot apply to synonym.')
+		topic_snapshot_jobs.remove_job(scheduler_id)
+		return
+
 	lock, locked = try_to_lock_scheduler(scheduler, process_date, principal_service)
 	if locked:
 		try:

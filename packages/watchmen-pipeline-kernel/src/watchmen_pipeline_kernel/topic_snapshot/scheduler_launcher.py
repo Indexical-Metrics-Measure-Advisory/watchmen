@@ -4,11 +4,12 @@ from typing import List, Optional, Tuple
 from apscheduler.job import Job
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from watchmen_auth import fake_super_admin, PrincipalService
+from watchmen_auth import fake_super_admin, fake_tenant_admin, PrincipalService
 from watchmen_data_kernel.common import ask_topic_snapshot_scheduler_heart_beat_interval
+from watchmen_data_kernel.meta import TopicService
 from watchmen_meta.admin import TopicSnapshotSchedulerService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
-from watchmen_model.admin import TopicSnapshotFrequency, TopicSnapshotScheduler
+from watchmen_model.admin import Topic, TopicKind, TopicSnapshotFrequency, TopicSnapshotScheduler
 from watchmen_storage import SnowflakeGenerator
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, to_previous_month, to_previous_week, \
 	to_yesterday
@@ -20,6 +21,10 @@ logger = getLogger(__name__)
 
 def get_topic_snapshot_scheduler_service(principal_service: PrincipalService) -> TopicSnapshotSchedulerService:
 	return TopicSnapshotSchedulerService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
+def get_topic_service(principal_service: PrincipalService) -> TopicService:
+	return TopicService(principal_service)
 
 
 def find_enabled_jobs() -> List[TopicSnapshotScheduler]:
@@ -38,6 +43,17 @@ def create_job(
 		ioScheduler: AsyncIOScheduler, scheduler: TopicSnapshotScheduler,
 		snowflake_generator: SnowflakeGenerator
 ) -> Optional[Tuple[TopicSnapshotScheduler, Job]]:
+	topic_id = scheduler.topicId
+	if topic_id is None:
+		logger.error(
+			f'Cannot create job for scheduler[schedulerId={scheduler.schedulerId}] because of topic not declared.')
+		return None
+	principal_service = fake_tenant_admin(scheduler.tenantId)
+	topic: Optional[Topic] = get_topic_service(principal_service).find_by_id(topic_id)
+	if topic.kind == TopicKind.SYNONYM:
+		logger.error(f'Topic snapshot scheduler[id={scheduler.schedulerId}] cannot apply to synonym.')
+		return None
+
 	trigger = 'cron'
 	hour = scheduler.hour
 	minute = scheduler.minute

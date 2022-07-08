@@ -1,11 +1,13 @@
 import {TuplePage} from '../../query/tuple-page';
+import {DataSourceId} from '../../tuples/data-source-types';
 import {ParameterJoint} from '../../tuples/factor-calculator-types';
+import {Factor} from '../../tuples/factor-types';
 import {PipelineId} from '../../tuples/pipeline-types';
 import {QueryTopic, QueryTopicForHolder} from '../../tuples/query-topic-types';
 import {Topic, TopicId, TopicKind, TopicType} from '../../tuples/topic-types';
 import {isFakedUuid} from '../../tuples/utils';
 import {getCurrentTime} from '../../utils';
-import {DemoQueryTopics, DemoTopics} from './mock-data-topics';
+import {DemoQueryTopics, DemoTopics, Products} from './mock-data-topics';
 
 export const listMockTopics = async (options: {
 	search: string;
@@ -98,4 +100,12 @@ export const mockRerunTopic = async (topicId: TopicId, pipelineId: PipelineId, d
 	} else {
 		return new Promise<void>((_, reject) => setTimeout(() => reject(new Error('A mock error')), Math.floor(Math.random() * 500) + 500));
 	}
+};
+
+export const askMockSynonymFactors = async (topicName: string, dataSourceId: DataSourceId): Promise<Array<Factor>> => {
+	return new Promise<Array<Factor>>(resolve => {
+		setTimeout(() => {
+			resolve(Products.factors);
+		}, 500);
+	});
 };

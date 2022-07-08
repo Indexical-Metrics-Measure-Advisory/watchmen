@@ -62,4 +62,4 @@ class Encryptor:
 		pass
 
 	def create_particular(self, params: Dict[str, Any]) -> Encryptor:
-		raise DataKernelException(f'Method[create_particular] is not implemented on key type[{self.get_key_type()}].')
+		raise DataKernelException('Method[create_particular] is not implemented on key type[{self.get_key_type()}].')

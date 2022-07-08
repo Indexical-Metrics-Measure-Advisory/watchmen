@@ -48,7 +48,7 @@ export const WriteFactor = (props: {
 		<AggregateArithmeticEditor holder={action} onChange={onArithmeticChanged}/>
 		<ActionLeadLabelThin>Target Topic & Factor:</ActionLeadLabelThin>
 		{/* any type is valid here, factor has high priority here */}
-		<TopicFactorPicker action={action} topics={topics} expectedTypes={[AnyFactorType.ANY]}/>
+		<TopicFactorPicker action={action} topics={topics} expectedTypes={[AnyFactorType.ANY]} synonymAllowed={false}/>
 		<ActionLeadLabelThin>By:</ActionLeadLabelThin>
 		<FindByCondition action={action} topics={topics} topic={triggerTopic}/>
 	</>;
