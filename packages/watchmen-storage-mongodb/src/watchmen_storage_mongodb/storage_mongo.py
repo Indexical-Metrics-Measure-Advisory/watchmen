@@ -1,7 +1,7 @@
 from logging import getLogger
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from watchmen_model.admin import Topic
+from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import DataPage
 from watchmen_storage import as_table_name, Entity, EntityColumnAggregateArithmetic, EntityDeleter, \
 	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, EntityIdHelper, EntityList, \
@@ -485,8 +485,8 @@ class TopicDataStorageMongoDB(StorageMongoDB, TopicDataStorageSPI):
 		# update collection is unnecessary
 		pass
 
-	def drop_topic_entity(self, topic_name: str) -> None:
-		entity_name = as_table_name(topic_name)
+	def drop_topic_entity(self, topic: Topic) -> None:
+		entity_name = as_table_name(topic)
 		try:
 			self.connect()
 			self.connection.drop_collection(entity_name)
@@ -501,6 +501,12 @@ class TopicDataStorageMongoDB(StorageMongoDB, TopicDataStorageSPI):
 		"""
 		document = self.find_document(helper.name)
 		self.connection.drop_collection(document.name)
+
+	def ask_synonym_factors(self, table_name: str) -> List[Factor]:
+		"""
+		not supported by mongo
+		"""
+		raise UnexpectedStorageException('Method[ask_synonym_factors] does not support by mongo storage.')
 
 	def is_free_find_supported(self) -> bool:
 		return False
@@ -518,22 +524,22 @@ class TopicDataStorageMongoDB(StorageMongoDB, TopicDataStorageSPI):
 		"""
 		not supported by mongo
 		"""
-		raise UnexpectedStorageException(f'Method[free_find] does not support by mongo storage.')
+		raise UnexpectedStorageException('Method[free_find] does not support by mongo storage.')
 
 	def free_page(self, pager: FreePager) -> DataPage:
 		"""
 		not supported by mongo
 		"""
-		raise UnexpectedStorageException(f'Method[free_page] does not support by mongo storage.')
+		raise UnexpectedStorageException('Method[free_page] does not support by mongo storage.')
 
 	def free_aggregate_find(self, aggregator: FreeAggregator) -> List[Dict[str, Any]]:
 		"""
 		not supported by mongo
 		"""
-		raise UnexpectedStorageException(f'Method[free_aggregate_find] does not support by mongo storage.')
+		raise UnexpectedStorageException('Method[free_aggregate_find] does not support by mongo storage.')
 
 	def free_aggregate_page(self, pager: FreeAggregatePager) -> DataPage:
 		"""
 		not supported by mongo
 		"""
-		raise UnexpectedStorageException(f'Method[free_aggregate_page] does not support by mongo storage.')
+		raise UnexpectedStorageException('Method[free_aggregate_page] does not support by mongo storage.')

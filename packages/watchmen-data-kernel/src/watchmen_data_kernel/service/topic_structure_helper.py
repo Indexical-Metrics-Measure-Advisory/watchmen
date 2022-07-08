@@ -2,7 +2,7 @@ from typing import Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_replace_topic_to_storage, ask_sync_topic_to_storage, ask_trino_enabled
-from watchmen_model.admin import Topic
+from watchmen_model.admin import Topic, TopicKind
 from watchmen_utilities import is_blank
 from .storage_helper import ask_topic_storage
 
@@ -24,7 +24,9 @@ def create_topic_structure(topic: Topic, principal_service: PrincipalService) ->
 		return
 
 	storage = ask_topic_storage(topic, principal_service)
-	storage.create_topic_entity(topic)
+	# create topic only when topic is not a synonym
+	if topic.kind != TopicKind.SYNONYM:
+		storage.create_topic_entity(topic)
 
 
 def drop_topic_structure(topic: Topic, principal_service: PrincipalService) -> None:
@@ -32,7 +34,9 @@ def drop_topic_structure(topic: Topic, principal_service: PrincipalService) -> N
 		return
 
 	storage = ask_topic_storage(topic, principal_service)
-	storage.drop_topic_entity(beautify_name(topic))
+	# drop topic only when topic is not a synonym
+	if topic.kind != TopicKind.SYNONYM:
+		storage.drop_topic_entity(topic)
 
 
 def update_topic_structure(topic: Topic, original_topic: Topic, principal_service: PrincipalService) -> None:
@@ -40,7 +44,9 @@ def update_topic_structure(topic: Topic, original_topic: Topic, principal_servic
 		return
 
 	storage = ask_topic_storage(topic, principal_service)
-	storage.update_topic_entity(topic, original_topic)
+	# update topic structure only when topic is not a synonym
+	if topic.kind != TopicKind.SYNONYM:
+		storage.update_topic_entity(topic, original_topic)
 
 
 def sync_for_trino(topic: Topic, original_topic: Optional[Topic], principal_service: PrincipalService) -> None:

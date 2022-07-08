@@ -11,6 +11,7 @@ from .factor import Factor
 class TopicKind(str, Enum):
 	SYSTEM = 'system',
 	BUSINESS = 'business'
+	SYNONYM = 'synonym'
 
 
 class TopicType(str, Enum):

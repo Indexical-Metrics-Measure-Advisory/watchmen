@@ -2,12 +2,11 @@ import {QueryEnumForHolder} from '@/services/data/tuples/query-enum-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import React from 'react';
 import {FactorAddButton} from './factor-add-button';
-import {FactorsDownloadTemplateButton} from './factors-download-template-button';
 import {FactorsImportButton} from './factors-import-button';
 import {FactorsTableBody} from './factors-table-body';
 import {FactorsTableHeader} from './factors-table-header';
+import {ParseFlattenPipelinesButton} from './parse-flatten-pipelines-button';
 import {FactorsTableContainer, FactorsTableFooter} from './widgets';
-import {ParseFlattenPipelinesButton} from './parse-flatten-pipelines-button'
 
 export const FactorsTable = (props: { topic: Topic, enums: Array<QueryEnumForHolder> }) => {
 	const {topic, enums} = props;
@@ -19,7 +18,6 @@ export const FactorsTable = (props: { topic: Topic, enums: Array<QueryEnumForHol
 			<FactorAddButton topic={topic}/>
 			<ParseFlattenPipelinesButton topic={topic}/>
 			<FactorsImportButton topic={topic}/>
-			<FactorsDownloadTemplateButton/>
 		</FactorsTableFooter>
 	</FactorsTableContainer>;
 };

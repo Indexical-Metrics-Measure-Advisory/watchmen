@@ -78,7 +78,7 @@ export const InsertRow = (props: {
 
 	return <>
 		<ActionLeadLabelThin>Target Topic:</ActionLeadLabelThin>
-		<TopicPicker action={action} topics={topics} prefillMappingFactors={onPrefillClicked}/>
+		<TopicPicker action={action} topics={topics} prefillMappingFactors={onPrefillClicked} synonymAllowed={false}/>
 		<ActionLeadLabelThin>Use Mapping:</ActionLeadLabelThin>
 		<FactorsMapping action={action} topics={topics} topic={triggerTopic}/>
 	</>;

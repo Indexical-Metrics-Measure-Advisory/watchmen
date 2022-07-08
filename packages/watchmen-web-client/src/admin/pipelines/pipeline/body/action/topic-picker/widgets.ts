@@ -6,9 +6,9 @@ export const TopicFinderContainer = styled.div.attrs({'data-widget': 'topic-find
 	display               : grid;
 	position              : relative;
 	grid-template-columns : auto 1fr;
-	> div[data-widget=dropdown]:first-child:last-child {
-		border-radius    : calc(var(--param-height) / 2);
-	}
+	//> div[data-widget=dropdown]:first-child:last-child {
+	//	border-radius : calc(var(--param-height) / 2);
+	//}
 `;
 export const TopicDropdown = styled(Dropdown).attrs({'data-no-border': true})`
 	align-self       : center;
@@ -17,7 +17,7 @@ export const TopicDropdown = styled(Dropdown).attrs({'data-no-border': true})`
 	padding          : 0 calc(var(--margin) / 2);
 	background-color : var(--bg-color);
 	border           : 0;
-	border-radius    : calc(var(--param-height) / 2) 0 0 calc(var(--param-height) / 2);
+	border-radius    : calc(var(--param-height) / 2);
 	box-shadow       : var(--param-border);
 	&:hover,
 	&:focus {
@@ -42,11 +42,11 @@ export const IncorrectOptionLabel = styled.span.attrs({'data-widget': 'incorrect
 export const PrefillButton = styled(Button)`
 	height        : var(--param-height);
 	border        : 0;
-	border-radius : 0 calc(var(--param-height) / 2) calc(var(--param-height) / 2) 0;
-	margin-left   : 1px;
+	border-radius : calc(var(--param-height) / 2);
+	margin-left   : calc(var(--margin) / 2);
 	align-self    : center;
 	justify-self  : start;
-	box-shadow    : var(--param-primary-border);
+	//box-shadow    : var(--param-primary-border);
 	&[data-ink=primary] {
 		&:hover {
 			box-shadow : var(--param-primary-border), var(--primary-hover-shadow);

@@ -2,8 +2,8 @@ from typing import List
 
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.admin import AggregateArithmetic, Factor, FactorIndexGroup, FactorType, InsertRowAction, \
-	MappingFactor, Pipeline, PipelineStage, PipelineTriggerType, PipelineUnit, Topic, TopicSnapshotScheduler, \
-	TopicType, WriteTopicActionType
+	MappingFactor, Pipeline, PipelineStage, PipelineTriggerType, PipelineUnit, Topic, TopicKind, \
+	TopicSnapshotScheduler, TopicType, WriteTopicActionType
 from watchmen_model.common import ConstantParameter, ParameterExpression, ParameterExpressionOperator, ParameterJoint, \
 	ParameterJointType, ParameterKind
 from watchmen_utilities import ArrayHelper
@@ -49,7 +49,7 @@ def create_snapshot_target_topic(scheduler: TopicSnapshotScheduler, source_topic
 		name=scheduler.targetTopicName,
 		type=source_topic.type,
 		kind=source_topic.kind,
-		dataSourceId=source_topic.dataSourceId,
+		dataSourceId=source_topic.dataSourceId if source_topic.kind != TopicKind.SYNONYM else None,
 		factors=build_target_topic_factors(source_topic),
 		description=f'Snapshot of [{source_topic.name}], never change me manually.',
 		tenantId=source_topic.tenantId,
@@ -131,7 +131,7 @@ def create_snapshot_task_topic(source_topic: Topic) -> Topic:
 		name=as_snapshot_task_topic_name(source_topic),
 		type=TopicType.RAW,
 		kind=source_topic.kind,
-		dataSourceId=source_topic.dataSourceId,
+		dataSourceId=source_topic.dataSourceId if source_topic.kind != TopicKind.SYNONYM else None,
 		factors=build_task_topic_factors(source_topic),
 		description=f'Snapshot task of [{source_topic.name}], never change me manually.',
 		tenantId=source_topic.tenantId,

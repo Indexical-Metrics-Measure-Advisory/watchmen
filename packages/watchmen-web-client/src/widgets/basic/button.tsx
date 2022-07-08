@@ -4,6 +4,43 @@ import styled from 'styled-components';
 import {ICON_LOADING} from './constants';
 import {ButtonProps} from './types';
 
+export const DropdownButtonsContainer = styled.div.attrs({'data-widget': 'dropdown-buttons-container'})`
+	display  : block;
+	position : relative;
+`;
+export const DropdownButtons = styled.div.attrs<{ visible: boolean }>(({visible}) => {
+	return {
+		'data-widget': 'dropdown-buttons',
+		style: {
+			opacity: visible ? 1 : (void 0),
+			marginTop: visible ? 2 : (void 0),
+			pointerEvents: visible ? 'auto' : (void 0)
+		}
+	};
+})<{ visible: boolean }>`
+	display        : flex;
+	position       : absolute;
+	flex-direction : column;
+	margin-top     : 10px;
+	pointer-events : none;
+	width          : 100%;
+	opacity        : 0;
+	transition     : opacity 300ms ease-in-out, margin-top 300ms ease-in-out;
+	> button {
+		justify-content : unset;
+		&:hover {
+			filter: brightness(1.2);
+		}
+		&:not(:first-child) {
+			border-top-left-radius  : 0;
+			border-top-right-radius : 0;
+		}
+		&:not(:last-child) {
+			border-bottom-left-radius  : 0;
+			border-bottom-right-radius : 0;
+		}
+	}
+`;
 const AButton = styled.button`
 	display          : flex;
 	position         : relative;
@@ -76,6 +113,28 @@ const AButton = styled.button`
 	}
 	> svg:first-child:not(:last-child) {
 		margin-right : var(--button-icon-gap);
+	}
+	> span[data-widget=dropdown-caret] {
+		display      : flex;
+		position     : relative;
+		align-self   : stretch;
+		align-items  : center;
+		padding      : 0 calc(var(--margin) / 4);
+		margin-left  : calc(var(--margin) / 4);
+		margin-right : calc(var(--button-indent) * -1);
+		&:before {
+			content          : '';
+			display          : block;
+			position         : absolute;
+			background-color : var(--invert-color);
+			top              : 30%;
+			left             : 0;
+			width            : 1px;
+			height           : 40%;
+		}
+		> svg {
+			transform : translateY(-1px);
+		}
 	}
 `;
 

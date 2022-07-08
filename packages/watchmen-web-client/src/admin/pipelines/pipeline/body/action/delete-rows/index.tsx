@@ -30,7 +30,7 @@ export const DeleteRows = (props: {
 
 	return <>
 		<ActionLeadLabelThin>Source Topic:</ActionLeadLabelThin>
-		<TopicPicker action={action} topics={topics}/>
+		<TopicPicker action={action} topics={topics} synonymAllowed={false}/>
 		<ActionLeadLabelThin>By:</ActionLeadLabelThin>
 		<FindByCondition action={action} topics={topics} topic={triggerTopic}/>
 	</>;

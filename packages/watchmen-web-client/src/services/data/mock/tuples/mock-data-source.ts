@@ -6,7 +6,7 @@ import {getCurrentTime} from '../../utils';
 
 const DefaultOne: DataSource = {
 	dataSourceId: '1',
-	dataSourceCode: 'DEFAULT_ONE',
+	dataSourceCode: 'Default MySQL',
 	dataSourceType: DataSourceType.MYSQL,
 	tenantId: '1',
 	host: '',
@@ -44,7 +44,7 @@ export const listMockDataSources = async (options: {
 export const fetchMockDataSource = async (dataSourceId: DataSourceId): Promise<{ dataSource: DataSource }> => {
 	const dataSource: DataSource = {
 		dataSourceId,
-		dataSourceCode: 'DEFAULT_ONE',
+		dataSourceCode: 'Default MySQL',
 		dataSourceType: DataSourceType.MYSQL,
 		tenantId: '1',
 		host: '',
