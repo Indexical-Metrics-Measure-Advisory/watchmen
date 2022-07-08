@@ -261,7 +261,7 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		alias = f'{prefix_name}_{index + 1}'
 		arithmetic = table_column.arithmetic
 		if arithmetic == FreeAggregateArithmetic.COUNT:
-			return func.count(literal_column(name)).label(alias)
+			return func.count(1).label(alias)
 		elif arithmetic == FreeAggregateArithmetic.SUMMARY:
 			return func.sum(literal_column(name)).label(alias)
 		elif arithmetic == FreeAggregateArithmetic.AVERAGE:

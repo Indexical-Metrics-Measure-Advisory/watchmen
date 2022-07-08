@@ -7,11 +7,12 @@ from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.sql.elements import literal_column
 
 from watchmen_model.common import DataPage
-from watchmen_storage import ColumnNameLiteral, Entity, EntityColumnAggregateArithmetic, EntityCriteria, \
-	EntityCriteriaExpression, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
-	EntityIdHelper, EntityList, EntityNotFoundException, EntityPager, EntitySort, EntityStraightAggregateColumn, \
-	EntityStraightColumn, EntityStraightValuesFinder, EntityUpdater, TooManyEntitiesFoundException, \
-	TransactionalStorageSPI, UnexpectedStorageException, UnsupportedStraightColumnException, ask_disable_compiled_cache
+from watchmen_storage import ask_disable_compiled_cache, ColumnNameLiteral, Entity, EntityColumnAggregateArithmetic, \
+	EntityCriteria, EntityCriteriaExpression, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, \
+	EntityId, EntityIdHelper, EntityList, EntityNotFoundException, EntityPager, EntitySort, \
+	EntityStraightAggregateColumn, EntityStraightColumn, EntityStraightValuesFinder, EntityUpdater, \
+	TooManyEntitiesFoundException, TransactionalStorageSPI, UnexpectedStorageException, \
+	UnsupportedStraightColumnException
 from watchmen_utilities import ArrayHelper, is_blank
 from .table_defs import find_table
 from .types import SQLAlchemyStatement
@@ -280,8 +281,7 @@ class StorageRDS(TransactionalStorageSPI):
 	def translate_straight_column_name(self, straight_column: EntityStraightColumn) -> Any:
 		if isinstance(straight_column, EntityStraightAggregateColumn):
 			if straight_column.arithmetic == EntityColumnAggregateArithmetic.COUNT:
-				return func.count(straight_column.columnName) \
-					.label(self.get_alias_from_straight_column(straight_column))
+				return func.count(1).label(self.get_alias_from_straight_column(straight_column))
 			elif straight_column.arithmetic == EntityColumnAggregateArithmetic.SUM:
 				return func.sum(straight_column.columnName).label(self.get_alias_from_straight_column(straight_column))
 			elif straight_column.arithmetic == EntityColumnAggregateArithmetic.AVG:
