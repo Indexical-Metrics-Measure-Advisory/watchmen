@@ -137,7 +137,8 @@ CREATE TABLE {entity_name} (
 			f"INFORMATION_SCHEMA._PG_TRUETYPMOD(PA.*, PT.*)) AS NUMERIC_SCALE, " \
 			f"COL_DESCRIPTION(PC.OID, PA.ATTNUM) AS COLUMN_COMMENT " \
 			f"FROM PG_CLASS PC, PG_ATTRIBUTE PA, PG_TYPE PT " \
-			f"WHERE PC.RELNAME = '{table_name}' AND PA.ATTRELID = PC.OID AND PA.ATTNUM > 0 AND PA.ATTTYPID = PT.OID " \
+			f"WHERE UPPER(PC.RELNAME) = UPPER('{table_name}') " \
+			f"AND PA.ATTRELID = PC.OID AND PA.ATTNUM > 0 AND PA.ATTTYPID = PT.OID " \
 			f"ORDER BY PA.ATTNUM) AS T"
 
 	def schema_column_data_type_to_factor_type(self, schema_column_data_type: str) -> Tuple[FactorType, Optional[str]]:
@@ -180,7 +181,7 @@ CREATE TABLE {entity_name} (
 			f"FROM PG_INDEX X JOIN PG_CLASS C ON C.OID = X.INDRELID " \
 			f"JOIN PG_CLASS I ON I.OID = X.INDEXRELID JOIN PG_ATTRIBUTE A ON I.OID = A.ATTRELID " \
 			f"WHERE C.RELKIND IN ('r', 'm', 'p')  AND I.RELKIND IN ('i', 'I') " \
-			f"AND C.RELNAME = '{table_name}' AND A.ATTNUM > 0 " \
+			f"AND UPPER(C.RELNAME) = UPPER('{table_name}') AND A.ATTNUM > 0 " \
 			f"ORDER BY NON_UNIQUE, INDEX_NAME, COLUMN_NAME"
 
 	def build_literal(self, tables: List[Table], a_literal: Literal, build_plain_value: Callable[[Any], Any] = None):
