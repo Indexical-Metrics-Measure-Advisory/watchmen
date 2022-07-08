@@ -106,6 +106,6 @@ export const askSynonymFactors = async (topicName: string, dataSourceId: DataSou
 	if (isMockService()) {
 		return await askMockSynonymFactors(topicName, dataSourceId);
 	} else {
-		return await get({api: Apis.TOPIC_SYNONYM_ASK_FACTORS, search: {name: topicName, dataSourceId}});
+		return await get({api: Apis.TOPIC_SYNONYM_ASK_FACTORS, search: {topicName, dataSourceId}});
 	}
 };
