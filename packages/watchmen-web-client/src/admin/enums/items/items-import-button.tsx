@@ -38,7 +38,12 @@ export const ItemsImportButton = (props: { enumeration: Enum }) => {
 		}
 	};
 	const onImportClicked = () => {
-		uploadFile(UploadFileAcceptsTxtCsvJson, onFileSelected);
+		fireGlobal(EventTypes.SHOW_YES_NO_DIALOG, 'All items will be replaced, are you sure to continue?',
+			async () => {
+				fireGlobal(EventTypes.HIDE_DIALOG);
+				uploadFile(UploadFileAcceptsTxtCsvJson, onFileSelected);
+			},
+			() => fireGlobal(EventTypes.HIDE_DIALOG));
 	};
 
 	return <DwarfButton ink={ButtonInk.INFO} onClick={onImportClicked}>
