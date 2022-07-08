@@ -596,7 +596,7 @@ class TrinoStorage(TrinoStorageSPI):
 		alias = f'{prefix_name}_{index + 1}'
 		arithmetic = table_column.arithmetic
 		if arithmetic == FreeAggregateArithmetic.COUNT:
-			return f'COUNT({name}) AS {alias}'
+			return f'COUNT(1) AS {alias}'
 		elif arithmetic == FreeAggregateArithmetic.SUMMARY:
 			return f'SUM({name}) AS {alias}'
 		elif arithmetic == FreeAggregateArithmetic.AVERAGE:
@@ -700,7 +700,7 @@ class TrinoStorage(TrinoStorageSPI):
 			count = 1
 		else:
 			cursor = self.connection.cursor()
-			count_sql = f'SELECT COUNT(*) FROM ({data_sql}) AS CQ'
+			count_sql = f'SELECT COUNT(1) FROM ({data_sql}) AS CQ'
 			self.log_sql(count_sql)
 			cursor.execute(count_sql)
 			result = cursor.fetchall()
