@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Any, Dict, List, Optional
+from datetime import datetime, date
 
 from bson import ObjectId
 
@@ -56,7 +57,7 @@ class MongoDocument:
 		if id_column is not None:
 			original_id_value = data.get(id_column.name)
 			if original_id_value is not None:
-				data._id = ObjectId(original_id_value)
+				data['_id'] = original_id_value
 		return data
 
 	def create_projection(self) -> Dict[str, int]:
@@ -64,3 +65,12 @@ class MongoDocument:
 		for column in self.columns:
 			projection[column.name] = 1
 		return projection
+
+	@staticmethod
+	def change_date_to_datetime(data: Dict[str, Any]) -> Dict[str, Any]:
+		for column_name, column_value in data.items():
+			if isinstance(column_value, date):
+				data[column_name] = datetime.combine(column_value, datetime.min.time())
+			else:
+				pass
+		return data

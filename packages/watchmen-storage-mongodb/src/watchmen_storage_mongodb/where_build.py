@@ -432,9 +432,9 @@ def build_criteria_expression(documents: List[MongoDocument], expression: Entity
 	elif op == EntityCriteriaOperator.GREATER_THAN_OR_EQUALS:
 		return {'$gte': [built_left, built_right]}
 	elif op == EntityCriteriaOperator.LIKE:
-		return {'$regexMatch': {'input': built_left, 'regexp': built_right}}
+		return {'$regexMatch': {'input': built_left, 'regex': built_right}}
 	elif op == EntityCriteriaOperator.NOT_LIKE:
-		return {'$not': {'$regexMatch': {'input': built_left, 'regexp': built_right}}}
+		return {'$not': {'$regexMatch': {'input': built_left, 'regex': built_right}}}
 	else:
 		raise UnsupportedCriteriaException(f'Unsupported criteria expression operator[{op}].')
 
