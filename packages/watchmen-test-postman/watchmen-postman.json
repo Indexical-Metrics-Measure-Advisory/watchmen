@@ -503,7 +503,7 @@
 									}
 								},
 								"url": {
-									"raw": "{{URL_PREFIX}}/tenant/name?query_name=test",
+									"raw": "{{URL_PREFIX}}/tenant/name?query_name=Test",
 									"host": [
 										"{{URL_PREFIX}}"
 									],
@@ -514,7 +514,7 @@
 									"query": [
 										{
 											"key": "query_name",
-											"value": "test"
+											"value": "Test"
 										}
 									]
 								}
