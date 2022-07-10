@@ -67,6 +67,7 @@ class StorageMongoDB(TransactionalStorageSPI):
 		document = self.find_document(helper.name)
 		entity = helper.shaper.serialize(one)
 		entity = document.copy_id_column_to_object_id(entity)
+		entity = document.change_date_to_datetime(entity)
 		self.connection.insert_one(document, entity)
 
 	def insert_all(self, data: List[Entity], helper: EntityHelper) -> None:
@@ -100,7 +101,7 @@ class StorageMongoDB(TransactionalStorageSPI):
 				raise EntityNotFoundException(f'Entity not found by updater[{updater}]')
 		elif should_update_count == 1:
 			# noinspection PyProtectedMember,PyUnresolvedReferences
-			updated_count = self.connection.update_by_id(document, updater.update, str(entities[0]._id)).matched_count
+			updated_count = self.connection.update_by_id(document, updater.update, entities[0]._id).matched_count
 			if updated_count == 0:
 				# might be removed by another session
 				if peace_when_zero:
@@ -512,12 +513,14 @@ class TopicDataStorageMongoDB(StorageMongoDB, TopicDataStorageSPI):
 		return False
 
 	def append_topic_to_trino(self, topic: Topic) -> None:
+		self.connect()
 		self.connection.insert_one(self.find_document('_schema'), {
 			'table': as_table_name(topic.name),
 			'fields': ArrayHelper(build_to_trino_fields(topic)).map(lambda x: x.to_dict()).to_list()
 		})
 
 	def drop_topic_from_trino(self, topic: Topic) -> None:
+		self.connect()
 		self.connection.delete_many(self.find_document('_schema'), {'table': as_table_name(topic.name)})
 
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:

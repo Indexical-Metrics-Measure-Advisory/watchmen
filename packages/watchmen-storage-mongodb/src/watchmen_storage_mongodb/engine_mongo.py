@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from bson import ObjectId
 from pymongo import MongoClient
@@ -44,8 +44,8 @@ class MongoConnection:
 	def insert_many(self, document: MongoDocument, data: List[Dict[str, Any]]) -> None:
 		self.collection(document.name).insert_many(data)
 
-	def update_by_id(self, document: MongoDocument, data: Dict[str, Any], object_id: str) -> UpdateResult:
-		return self.collection(document.name).update_many({'_id': ObjectId(object_id)}, {'$set': data})
+	def update_by_id(self, document: MongoDocument, data: Dict[str, Any], object_id: Union[ObjectId, str, int]) -> UpdateResult:
+		return self.collection(document.name).update_many({'_id': object_id}, {'$set': data})
 
 	def update_many(self, document: MongoDocument, data: Dict[str, Any], criteria: Dict[str, Any]) -> UpdateResult:
 		return self.collection(document.name).update_many(
@@ -54,14 +54,14 @@ class MongoConnection:
 			upsert=False
 		)
 
-	def delete_by_id(self, document: MongoDocument, object_id: str) -> DeleteResult:
-		return self.collection(document.name).delete_many({'_id': ObjectId(object_id)})
+	def delete_by_id(self, document: MongoDocument, object_id: Union[ObjectId, str, int]) -> DeleteResult:
+		return self.collection(document.name).delete_many({'_id': object_id})
 
 	def delete_many(self, document: MongoDocument, criteria: Dict[str, Any]) -> DeleteResult:
 		return self.collection(document.name).delete_many({'$expr': criteria})
 
-	def find_by_id(self, document: MongoDocument, object_id: str) -> Dict[str, Any]:
-		return self.collection(document.name).find_one({'_id': ObjectId(object_id)})
+	def find_by_id(self, document: MongoDocument, object_id: Union[ObjectId, str, int]) -> Dict[str, Any]:
+		return self.collection(document.name).find_one({'_id': object_id})
 
 	def find(
 			self, document: MongoDocument, criteria: Dict[str, Any], sort: Optional[Dict[str, Any]] = None
@@ -111,7 +111,10 @@ class MongoConnection:
 			{'$match': {'$expr': criteria}},
 			{'$count': 'count'}
 		]))
-		return results[0]['count']
+		if results:
+			return results[0]['count']
+		else:
+			return 0
 
 	def find_on_group(
 			self, document: MongoDocument, project: Dict[str, Any],

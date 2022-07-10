@@ -401,7 +401,9 @@ tables: Dict[str, MongoDocument] = {
 	'indicators': table_indicators,
 	'inspections': table_inspections,
 	'achievements': table_achievements,
-	'objective_analysis': table_objective_analysis
+	'objective_analysis': table_objective_analysis,
+	# trino
+	'_schema': table_trino_schema
 }
 
 # noinspection DuplicatedCode
