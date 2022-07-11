@@ -122,6 +122,18 @@ export const ImportMetaDataButton = (props: { topic: Topic }) => {
 			},
 			() => fireGlobal(EventTypes.HIDE_DIALOG));
 	};
+	const doSaveTopic = () => {
+		fireGlobal(EventTypes.HIDE_DIALOG);
+		fireTuple(TupleEventTypes.CHANGE_TUPLE_STATE, TupleState.SAVING);
+		fireTuple(TupleEventTypes.SAVE_TUPLE, topic, (topic, saved) => {
+			if (saved) {
+				fireTuple(TupleEventTypes.CHANGE_TUPLE_STATE, TupleState.SAVED);
+				doImportData();
+			} else {
+				fireTuple(TupleEventTypes.CHANGE_TUPLE_STATE, TupleState.CHANGED);
+			}
+		});
+	};
 	const onImportClicked = () => {
 		const factors = topic.factors || [];
 		if (factors.length === 0) {
@@ -132,27 +144,13 @@ export const ImportMetaDataButton = (props: { topic: Topic }) => {
 		if (isFakedUuid(topic)) {
 			fireGlobal(EventTypes.SHOW_YES_NO_DIALOG,
 				'Current topic is not persist yet, should be saved first before import data. Are you sure to save it first?',
-				() => {
-					fireGlobal(EventTypes.HIDE_DIALOG);
-					fireTuple(TupleEventTypes.SAVE_TUPLE, topic, (topic, saved) => {
-						if (saved) {
-							doImportData();
-						}
-					});
-				}, () => fireGlobal(EventTypes.HIDE_DIALOG));
+				() => doSaveTopic(), () => fireGlobal(EventTypes.HIDE_DIALOG));
 		} else {
 			fireTuple(TupleEventTypes.ASK_TUPLE_STATE, (state: TupleState) => {
 				if (state === TupleState.CHANGED) {
 					fireGlobal(EventTypes.SHOW_YES_NO_DIALOG,
 						'Current topic is changed, should be saved first before import data. Are you sure to save it first?',
-						() => {
-							fireGlobal(EventTypes.HIDE_DIALOG);
-							fireTuple(TupleEventTypes.SAVE_TUPLE, topic, (topic, saved) => {
-								if (saved) {
-									doImportData();
-								}
-							});
-						}, () => fireGlobal(EventTypes.HIDE_DIALOG));
+						() => doSaveTopic(), () => fireGlobal(EventTypes.HIDE_DIALOG));
 				} else if (state === TupleState.SAVING) {
 					fireGlobal(EventTypes.SHOW_ALERT,
 						<AlertLabel>

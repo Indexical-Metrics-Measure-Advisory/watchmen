@@ -277,31 +277,29 @@ export const ParseFlattenPipelinesButton = (props: { topic: Topic }) => {
 				height: PICKER_DIALOG_HEIGHT
 			});
 	};
+	const doSaveTopic = () => {
+		fireGlobal(EventTypes.HIDE_DIALOG);
+		fireTuple(TupleEventTypes.CHANGE_TUPLE_STATE, TupleState.SAVING);
+		fireTuple(TupleEventTypes.SAVE_TUPLE, topic, (topic, saved) => {
+			if (saved) {
+				fireTuple(TupleEventTypes.CHANGE_TUPLE_STATE, TupleState.SAVED);
+				doParsePipelines();
+			} else {
+				fireTuple(TupleEventTypes.CHANGE_TUPLE_STATE, TupleState.CHANGED);
+			}
+		});
+	};
 	const onParseClicked = () => {
 		if (isFakedUuid(topic)) {
 			fireGlobal(EventTypes.SHOW_YES_NO_DIALOG,
 				'Current topic is not persist yet, should be saved first before parse flatten topics and pipelines. Are you sure to save it first?',
-				() => {
-					fireGlobal(EventTypes.HIDE_DIALOG);
-					fireTuple(TupleEventTypes.SAVE_TUPLE, topic, (topic, saved) => {
-						if (saved) {
-							doParsePipelines();
-						}
-					});
-				}, () => fireGlobal(EventTypes.HIDE_DIALOG));
+				() => doSaveTopic(), () => fireGlobal(EventTypes.HIDE_DIALOG));
 		} else {
 			fireTuple(TupleEventTypes.ASK_TUPLE_STATE, (state: TupleState) => {
 				if (state === TupleState.CHANGED) {
 					fireGlobal(EventTypes.SHOW_YES_NO_DIALOG,
 						'Current topic is changed, should be saved first before parse flatten topics and pipelines. Are you sure to save it first?',
-						() => {
-							fireGlobal(EventTypes.HIDE_DIALOG);
-							fireTuple(TupleEventTypes.SAVE_TUPLE, topic, (topic, saved) => {
-								if (saved) {
-									doParsePipelines();
-								}
-							});
-						}, () => fireGlobal(EventTypes.HIDE_DIALOG));
+						() => doSaveTopic(), () => fireGlobal(EventTypes.HIDE_DIALOG));
 				} else if (state === TupleState.SAVING) {
 					fireGlobal(EventTypes.SHOW_ALERT,
 						<AlertLabel>
