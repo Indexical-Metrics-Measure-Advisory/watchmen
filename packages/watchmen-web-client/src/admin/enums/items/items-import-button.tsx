@@ -46,7 +46,7 @@ export const ItemsImportButton = (props: { enumeration: Enum }) => {
 			() => fireGlobal(EventTypes.HIDE_DIALOG));
 	};
 
-	return <DwarfButton ink={ButtonInk.INFO} onClick={onImportClicked}>
+	return <DwarfButton ink={ButtonInk.PRIMARY} onClick={onImportClicked}>
 		<FontAwesomeIcon icon={ICON_UPLOAD}/>
 		<span>Import from File</span>
 	</DwarfButton>;
