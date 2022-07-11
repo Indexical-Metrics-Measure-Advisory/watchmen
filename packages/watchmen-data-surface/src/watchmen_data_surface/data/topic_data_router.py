@@ -202,3 +202,30 @@ async def patch_topic_data(
 		service.trigger_by_delete(data)
 	else:
 		raise DataKernelException(f'Patch type [{patch_type}] is not supported.')
+
+
+@router.post('/topic/data/import', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
+async def clean_and_import_data(
+		topic_id: Optional[TopicId] = None, tenant_id: Optional[TenantId] = None,
+		data=Body(...),
+		principal_service: PrincipalService = Depends(get_any_admin_principal)
+) -> None:
+	if is_blank(topic_id):
+		raise_400('Topic id is required.')
+	if data is None:
+		raise_400('Topic data is required.')
+	if not isinstance(data, List):
+		raise_400('Topic data must be an array.')
+	if len(data) == 0:
+		raise_400('Topic data is required.')
+	tenant_id = validate_tenant_id(tenant_id, principal_service)
+	principal_service = fake_to_tenant(principal_service, tenant_id)
+
+	schema = get_topic_service(principal_service).find_schema_by_id(topic_id, tenant_id)
+	storage = ask_topic_storage(schema, principal_service)
+	service = ask_topic_data_service(schema, storage, principal_service)
+
+	# clean data
+	service.truncate()
+	# noinspection PyTypeChecker
+	ArrayHelper(data).each(lambda x: service.trigger_by_insert(x))
