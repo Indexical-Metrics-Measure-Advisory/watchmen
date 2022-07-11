@@ -72,7 +72,7 @@ const toFactorsFromStructureData = (topic: Topic, data: ShouldBeFactorsStructure
 	}, []);
 };
 
-export const parseFromStructureCsv = async (topic: Topic, content: string): Promise<Array<Factor>> => {
+export const parseFactorsFromStructureCsv = async (topic: Topic, content: string): Promise<Array<Factor>> => {
 	return new Promise((resolve, reject) => {
 		parseCSV(content, {
 			columns: true,
@@ -98,7 +98,7 @@ export const parseFromStructureCsv = async (topic: Topic, content: string): Prom
 	});
 };
 
-export const parseFromStructureJson = async (topic: Topic, content: string): Promise<Array<Factor>> => {
+export const parseFactorsFromStructureJson = async (topic: Topic, content: string): Promise<Array<Factor>> => {
 	return new Promise((resolve, reject) => {
 		try {
 			const data = JSON.parse(content);

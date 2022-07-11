@@ -1,4 +1,4 @@
-import {RoundDwarfButton} from '@/widgets/basic/button';
+import {DwarfButton, RoundDwarfButton} from '@/widgets/basic/button';
 import {HEADER_HEIGHT} from '@/widgets/basic/constants';
 import {DialogBody} from '@/widgets/dialog/widgets';
 import styled from 'styled-components';
@@ -70,6 +70,17 @@ export const FactorsTableFooter = styled.div.attrs({'data-widget': 'factors-tabl
 		margin-left : calc(var(--margin) / 3);
 	}
 `;
+
+export const DownloadTemplateButton = styled(DwarfButton)`
+	> svg {
+		transform        : scale(0.8);
+		transform-origin : left;
+	}
+	> span {
+		margin-left : -3px;
+	}
+`;
+
 const DIALOG_MARGIN = 'var(--margin) * 1.5';
 const DIALOG_LABEL_HEIGHT = 'var(--line-height)';
 const TABLE_HEADER_HEIGHT = 'var(--height) + var(--border-width)';
