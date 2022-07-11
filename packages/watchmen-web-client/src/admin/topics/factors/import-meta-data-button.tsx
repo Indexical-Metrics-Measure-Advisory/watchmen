@@ -1,12 +1,20 @@
+import {CompatibleTypes, FactorType} from '@/services/data/tuples/factor-types';
 import {Topic, TopicKind, TopicType} from '@/services/data/tuples/topic-types';
 import {AlertLabel} from '@/widgets/alert/widgets';
 import {DropdownButtons, DropdownButtonsContainer, DwarfButton} from '@/widgets/basic/button';
 import {ICON_DOWNLOAD, ICON_DROPDOWN, ICON_UPLOAD} from '@/widgets/basic/constants';
 import {ButtonInk} from '@/widgets/basic/types';
-import {uploadFile, UploadFileAcceptsTxtCsvJson, useCollapseFixedThing, useForceUpdate} from '@/widgets/basic/utils';
+import {
+	downloadAsZip,
+	uploadFile,
+	UploadFileAcceptsTxtCsvJson,
+	useCollapseFixedThing,
+	useForceUpdate
+} from '@/widgets/basic/utils';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {stringify} from 'csv-stringify/dist/esm/sync';
 import React, {MouseEvent, useEffect, useRef, useState} from 'react';
 import {useTopicEventBus} from '../topic-event-bus';
 import {TopicEventTypes} from '../topic-event-bus-types';
@@ -95,10 +103,35 @@ export const ImportMetaDataButton = (props: { topic: Topic }) => {
 		setShowDropdown(true);
 	};
 	const onDownloadClicked = async () => {
-		// await downloadAsZip({
-		// 	'factors-template.csv': SAMPLE_FACTORS_CSV,
-		// 	'factors-template.json': JSON.stringify(SAMPLE_FACTORS_JSON, null, '\t')
-		// }, 'factors-template.zip');
+		const factors = topic.factors || [];
+		if (factors.length === 0) {
+			fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Please define factors first.</AlertLabel>);
+			return;
+		}
+
+		const sampleJson = [topic.factors.reduce((row, factor) => {
+			switch (true) {
+				case factor.type === FactorType.BOOLEAN:
+					row[factor.name] = true;
+					break;
+				case factor.type === FactorType.SEQUENCE:
+				case CompatibleTypes[FactorType.NUMBER].includes?.includes(factor.type):
+				case CompatibleTypes[FactorType.UNSIGNED].includes?.includes(factor.type):
+					row[factor.name] = 0;
+					break;
+				default:
+					row[factor.name] = '';
+					break;
+			}
+			return row;
+		}, {} as Record<string, string | number | boolean | null>)];
+		await downloadAsZip({
+			'meta-data-template.csv': stringify(sampleJson, {
+				columns: topic.factors.map(factor => factor.name),
+				header: true
+			}),
+			'meta-data-template.json': JSON.stringify(sampleJson, null, '\t')
+		}, 'meta-data-template.zip');
 	};
 
 	return <DropdownButtonsContainer ref={buttonRef}>
