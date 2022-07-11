@@ -1,5 +1,7 @@
 import {CompatibleTypes, FactorType} from '@/services/data/tuples/factor-types';
+import {importTopicData} from '@/services/data/tuples/topic';
 import {Topic, TopicKind, TopicType} from '@/services/data/tuples/topic-types';
+import {isFakedUuid} from '@/services/data/tuples/utils';
 import {AlertLabel} from '@/widgets/alert/widgets';
 import {DropdownButtons, DropdownButtonsContainer, DwarfButton} from '@/widgets/basic/button';
 import {ICON_DOWNLOAD, ICON_DROPDOWN, ICON_UPLOAD} from '@/widgets/basic/constants';
@@ -13,7 +15,10 @@ import {
 } from '@/widgets/basic/utils';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
+import {useTupleEventBus} from '@/widgets/tuple-workbench/tuple-event-bus';
+import {TupleEventTypes, TupleState} from '@/widgets/tuple-workbench/tuple-event-bus-types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {parse as parseCSV} from 'csv-parse/dist/esm';
 import {stringify} from 'csv-stringify/dist/esm/sync';
 import React, {MouseEvent, useEffect, useRef, useState} from 'react';
 import {useTopicEventBus} from '../topic-event-bus';
@@ -25,6 +30,7 @@ export const ImportMetaDataButton = (props: { topic: Topic }) => {
 
 	const buttonRef = useRef<HTMLDivElement>(null);
 	const {fire: fireGlobal} = useEventBus();
+	const {fire: fireTuple} = useTupleEventBus();
 	const {on, off} = useTopicEventBus();
 	const [showDropdown, setShowDropdown] = useState(false);
 	const forceUpdate = useForceUpdate();
@@ -62,12 +68,37 @@ export const ImportMetaDataButton = (props: { topic: Topic }) => {
 				case name.endsWith('.txt'):
 				case name.endsWith('.csv'): {
 					const content = await file.text();
-					// topic.factors = await parseFromStructureCsv(topic, content);
+					parseCSV(content, {
+						columns: true,
+						comment: '#',
+						skipEmptyLines: true,
+						skipRecordsWithError: true,
+						skipRecordsWithEmptyValues: true,
+						trim: true,
+						autoParse: true,
+						autoParseDate: true
+					}, (err, data) => {
+						if (err) {
+							fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Failed to read data file.</AlertLabel>);
+							return;
+						}
+
+						fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
+							await importTopicData(topic.topicId, data);
+						}, () => {
+							fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Data imported.</AlertLabel>);
+						});
+					});
 					break;
 				}
 				case name.endsWith('.json'): {
 					const content = await file.text();
-					// topic.factors = await parseFromStructureJson(topic, content);
+					const data = JSON.parse(content);
+					fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
+						await importTopicData(topic.topicId, data);
+					}, () => {
+						fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Data imported.</AlertLabel>);
+					});
 					break;
 				}
 				default:
@@ -82,6 +113,15 @@ export const ImportMetaDataButton = (props: { topic: Topic }) => {
 			</AlertLabel>);
 		}
 	};
+	const doImportData = () => {
+		fireGlobal(EventTypes.SHOW_YES_NO_DIALOG,
+			'Existing data will be truncated and replaced by imported data, are you sure to continue?',
+			async () => {
+				fireGlobal(EventTypes.HIDE_DIALOG);
+				uploadFile(UploadFileAcceptsTxtCsvJson, onDataFileSelected);
+			},
+			() => fireGlobal(EventTypes.HIDE_DIALOG));
+	};
 	const onImportClicked = () => {
 		const factors = topic.factors || [];
 		if (factors.length === 0) {
@@ -89,13 +129,40 @@ export const ImportMetaDataButton = (props: { topic: Topic }) => {
 			return;
 		}
 
-		fireGlobal(EventTypes.SHOW_YES_NO_DIALOG,
-			'Existing meta will be truncated and replaced by imported items, are you sure to continue?',
-			async () => {
-				fireGlobal(EventTypes.HIDE_DIALOG);
-				uploadFile(UploadFileAcceptsTxtCsvJson, onDataFileSelected);
-			},
-			() => fireGlobal(EventTypes.HIDE_DIALOG));
+		if (isFakedUuid(topic)) {
+			fireGlobal(EventTypes.SHOW_YES_NO_DIALOG,
+				'Current topic is not persist yet, should be saved first before import data. Are you sure to save it first?',
+				() => {
+					fireGlobal(EventTypes.HIDE_DIALOG);
+					fireTuple(TupleEventTypes.SAVE_TUPLE, topic, (topic, saved) => {
+						if (saved) {
+							doImportData();
+						}
+					});
+				}, () => fireGlobal(EventTypes.HIDE_DIALOG));
+		} else {
+			fireTuple(TupleEventTypes.ASK_TUPLE_STATE, (state: TupleState) => {
+				if (state === TupleState.CHANGED) {
+					fireGlobal(EventTypes.SHOW_YES_NO_DIALOG,
+						'Current topic is changed, should be saved first before import data. Are you sure to save it first?',
+						() => {
+							fireGlobal(EventTypes.HIDE_DIALOG);
+							fireTuple(TupleEventTypes.SAVE_TUPLE, topic, (topic, saved) => {
+								if (saved) {
+									doImportData();
+								}
+							});
+						}, () => fireGlobal(EventTypes.HIDE_DIALOG));
+				} else if (state === TupleState.SAVING) {
+					fireGlobal(EventTypes.SHOW_ALERT,
+						<AlertLabel>
+							Current topic is saving, please wait for saved and try to import again.
+						</AlertLabel>);
+				} else {
+					doImportData();
+				}
+			});
+		}
 	};
 	const onDropdownClicked = (event: MouseEvent<HTMLSpanElement>) => {
 		event.preventDefault();

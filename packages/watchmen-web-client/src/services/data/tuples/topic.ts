@@ -109,3 +109,11 @@ export const askSynonymFactors = async (topicName: string, dataSourceId: DataSou
 		return await get({api: Apis.TOPIC_SYNONYM_ASK_FACTORS, search: {topicName, dataSourceId}});
 	}
 };
+
+export const importTopicData = async (topicId: TopicId, data: Array<any>): Promise<void> => {
+	if (isMockService()) {
+		console.log(data);
+	} else {
+		return await post({api: Apis.TOPIC_IMPORT_DATA, search: {topicId}, data});
+	}
+};
