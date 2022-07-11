@@ -20,7 +20,12 @@ import {useTopicEventBus} from '../topic-event-bus';
 import {TopicEventTypes} from '../topic-event-bus-types';
 import {isTopicNameInvalid} from '../utils';
 import {SAMPLE_FACTORS_CSV, SAMPLE_FACTORS_JSON} from './sample-factors';
-import {parseFromInstanceJson, parseFromStructureCsv, parseFromStructureJson} from './topic-import-from-file';
+import {
+	parseFactorsFromStructureCsv,
+	parseFactorsFromStructureJson,
+	parseFromInstanceJson
+} from './topic-import-from-file';
+import {DownloadTemplateButton} from './widgets';
 
 export const FactorsImportButton = (props: { topic: Topic }) => {
 	const {topic} = props;
@@ -78,13 +83,13 @@ export const FactorsImportButton = (props: { topic: Topic }) => {
 				case name.endsWith('.txt'):
 				case name.endsWith('.csv'): {
 					const content = await file.text();
-					topic.factors = await parseFromStructureCsv(topic, content);
+					topic.factors = await parseFactorsFromStructureCsv(topic, content);
 					fire(TopicEventTypes.FACTORS_IMPORTED, topic.factors);
 					break;
 				}
 				case name.endsWith('.json'): {
 					const content = await file.text();
-					topic.factors = await parseFromStructureJson(topic, content);
+					topic.factors = await parseFactorsFromStructureJson(topic, content);
 					fire(TopicEventTypes.FACTORS_IMPORTED, topic.factors);
 					break;
 				}
@@ -175,10 +180,10 @@ export const FactorsImportButton = (props: { topic: Topic }) => {
 				<FontAwesomeIcon icon={ICON_UPLOAD}/>
 				<span>Import Factors from Instance</span>
 			</DwarfButton>
-			<DwarfButton ink={ButtonInk.PRIMARY} onClick={onDownloadClicked}>
-				<FontAwesomeIcon icon={ICON_DOWNLOAD} style={{transform: 'scale(0.8)', transformOrigin: 'left'}}/>
-				<span style={{marginLeft: '-3px'}}>Download Structure Template</span>
-			</DwarfButton>
+			<DownloadTemplateButton ink={ButtonInk.PRIMARY} onClick={onDownloadClicked}>
+				<FontAwesomeIcon icon={ICON_DOWNLOAD}/>
+				<span>Download Structure Template</span>
+			</DownloadTemplateButton>
 		</DropdownButtons>
 	</DropdownButtonsContainer>;
 };
