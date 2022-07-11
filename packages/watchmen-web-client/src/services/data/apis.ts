@@ -43,6 +43,7 @@ export const Apis = {
 	TOPIC_SNAPSHOT_SCHEDULER_LIST: 'topic/snapshot/scheduler/list',
 	TOPIC_SNAPSHOT_SCHEDULER_SAVE: 'topic/snapshot/scheduler',
 	TOPIC_SYNONYM_ASK_FACTORS: 'topic/synonym/factors?name=:topicName&data_source_id=:dataSourceId',
+	TOPIC_IMPORT_DATA: 'topic/data/import?topic_id=:topicId',
 
 	ENUM_LIST_BY_NAME: 'enum/name?query_name=:search',
 	ENUM_GET: 'enum?enum_id=:enumId',
