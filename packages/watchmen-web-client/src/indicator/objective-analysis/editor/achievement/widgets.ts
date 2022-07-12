@@ -17,6 +17,9 @@ export const Assistant = styled.div.attrs<{ viewMode: boolean }>({})<{ viewMode:
 					margin-right: calc(var(--margin) / 2);
 					padding-left: 0;
 					padding-right: 0;
+					&:first-child {
+						padding-top: calc(var(--margin) / 2);
+					}
 					&:last-child {
 						width: unset;
 					}
