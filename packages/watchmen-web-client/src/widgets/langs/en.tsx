@@ -544,7 +544,8 @@ export const En = {
 			SWITCH_TO_EDIT_MODE: 'Switch to Edit Mode',
 			DELETE_DIALOG_LABEL: 'Are you sure to delete analysis? Please note that deletion cannot be recovered.',
 			PERSPECTIVE_DELETE_DIALOG_LABEL: 'Are you sure to delete perspective? Please note that deletion cannot be recovered.',
-			NO_ACHIEVEMENT: 'No achievement picked.'
+			NO_ACHIEVEMENT: 'No achievement picked.',
+			NO_INSPECTION: 'No inspection picked.'
 		}
 	},
 	SETTINGS: {

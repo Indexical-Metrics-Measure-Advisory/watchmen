@@ -4,7 +4,7 @@ import {ButtonInk} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
 import {useEffect, useState} from 'react';
 import {useInspectionEventBus} from '../inspection-event-bus';
-import {InspectionEventTypes} from '../inspection-event-bus-types';
+import {InspectionEventTypes, InspectionRenderMode} from '../inspection-event-bus-types';
 import {InspectionButton} from '../widgets';
 import {DataToolbarContainer} from './widgets';
 
@@ -28,6 +28,18 @@ export const DataToolbar = (props: { inspection: Inspection }) => {
 			off(InspectionEventTypes.DISPLAY_DATA_READY, onDataLoaded);
 		};
 	}, [on, off, inspection]);
+	useEffect(() => {
+		const onSwitchRenderMode = (renderMode: InspectionRenderMode) => {
+			if (renderMode === InspectionRenderMode.VIEW) {
+				fire(InspectionEventTypes.SET_DATA_GRID_VISIBILITY, inspection, true);
+				setGridVisible(true);
+			}
+		};
+		on(InspectionEventTypes.SWITCH_RENDER_MODE, onSwitchRenderMode);
+		return () => {
+			off(InspectionEventTypes.SWITCH_RENDER_MODE, onSwitchRenderMode);
+		};
+	}, [on, off, fire, inspection]);
 
 	if (!visible) {
 		return null;
