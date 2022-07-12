@@ -540,6 +540,8 @@ export const En = {
 			NO_OBJECTIVE_ANALYSIS_PICKED_2: '?',
 			ADD_INSPECTION: 'Add Inspection',
 			ADD_ACHIEVEMENT: 'Add Achievement',
+			SWITCH_TO_VIEW_MODE: 'Switch to View Mode',
+			SWITCH_TO_EDIT_MODE: 'Switch to Edit Mode',
 			DELETE_DIALOG_LABEL: 'Are you sure to delete analysis? Please note that deletion cannot be recovered.',
 			PERSPECTIVE_DELETE_DIALOG_LABEL: 'Are you sure to delete perspective? Please note that deletion cannot be recovered.'
 		}

@@ -23,7 +23,6 @@ import {
 	PerspectiveDescriptorWrapper
 } from '../widgets';
 import {CreateOrFindAchievement} from './create-or-find-achievement';
-import {AchievementIndicatorAdjustor} from './indicator-adjustor';
 import {AchievementStateHolder} from './state';
 import {AchievementEdit} from './widgets';
 
@@ -87,7 +86,7 @@ export const PerspectiveOnAchievement = (props: { analysis: ObjectiveAnalysis, p
 				? <AchievementEdit>
 					<AchievementEditPageBody achievement={achievement}/>
 					<AchievementSaver achievement={achievement}/>
-					<AchievementIndicatorAdjustor achievement={achievement}/>
+					{/*<AchievementIndicatorAdjustor achievement={achievement}/>*/}
 				</AchievementEdit>
 				: null}
 		</PerspectiveContainer>
