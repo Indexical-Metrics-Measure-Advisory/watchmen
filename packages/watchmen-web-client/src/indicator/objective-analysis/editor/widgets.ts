@@ -60,11 +60,11 @@ export const EditorHeaderButtons = styled.div.attrs({
 	padding         : 0 var(--margin) 0 calc(var(--margin) / 2);
 	align-items     : center;
 	justify-content : flex-end;
-	> button:first-child {
+	> button:first-child:not(:nth-last-child(2)) {
 		border-top-right-radius    : 0;
 		border-bottom-right-radius : 0;
 	}
-	> button:nth-child(2) {
+	> button:nth-child(2):not(:last-child) {
 		border-top-left-radius    : 0;
 		border-bottom-left-radius : 0;
 		&:after {

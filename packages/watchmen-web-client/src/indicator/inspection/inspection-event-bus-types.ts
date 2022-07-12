@@ -25,6 +25,11 @@ export interface AskBucketsParams {
 	measureMethods: Array<QueryByBucketMethod>;
 }
 
+export enum InspectionRenderMode {
+	VIEW = 'view',
+	EDIT = 'edit'
+}
+
 export enum InspectionEventTypes {
 	ASK_INSPECTIONS = 'ask-inspections',
 	ASK_INSPECTION = 'ask-inspection',
@@ -56,7 +61,9 @@ export enum InspectionEventTypes {
 	INSPECTION_CLEARED = 'inspection-cleared',
 
 	SET_DATA_GRID_VISIBILITY = 'set-data-grid-visibility',
-	SET_CHARTS_VISIBILITY = 'set-charts-visibility'
+	SET_CHARTS_VISIBILITY = 'set-charts-visibility',
+
+	SWITCH_RENDER_MODE = 'switch-render-mode'
 }
 
 export interface InspectionEventBus {
@@ -147,4 +154,8 @@ export interface InspectionEventBus {
 	fire(type: InspectionEventTypes.SET_CHARTS_VISIBILITY, inspection: Inspection, visible: boolean): this;
 	on(type: InspectionEventTypes.SET_CHARTS_VISIBILITY, listener: (inspection: Inspection, visible: boolean) => void): this;
 	off(type: InspectionEventTypes.SET_CHARTS_VISIBILITY, listener: (inspection: Inspection, visible: boolean) => void): this;
+
+	fire(type: InspectionEventTypes.SWITCH_RENDER_MODE, renderMode: InspectionRenderMode): this;
+	on(type: InspectionEventTypes.SWITCH_RENDER_MODE, listener: (renderMode: InspectionRenderMode) => void): this;
+	off(type: InspectionEventTypes.SWITCH_RENDER_MODE, listener: (renderMode: InspectionRenderMode) => void): this;
 }

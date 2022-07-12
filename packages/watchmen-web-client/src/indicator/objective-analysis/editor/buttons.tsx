@@ -61,19 +61,21 @@ export const HeaderButtons = (props: { analysis: ObjectiveAnalysis }) => {
 	};
 
 	return <EditorHeaderButtons>
-		<RoundDwarfButton ink={ButtonInk.PRIMARY} onClick={onAddInspectionClicked}>
-			{Lang.INDICATOR.OBJECTIVE_ANALYSIS.ADD_INSPECTION}
-		</RoundDwarfButton>
-		<RoundDwarfButton ink={ButtonInk.PRIMARY} onClick={onAddAchievementClicked}>
-			{Lang.INDICATOR.OBJECTIVE_ANALYSIS.ADD_ACHIEVEMENT}
-		</RoundDwarfButton>
 		{viewMode
 			? <RoundDwarfButton ink={ButtonInk.PRIMARY} onClick={onSwitchToEditModeClicked}>
 				{Lang.INDICATOR.OBJECTIVE_ANALYSIS.SWITCH_TO_EDIT_MODE}
 			</RoundDwarfButton>
-			: <RoundDwarfButton ink={ButtonInk.PRIMARY} onClick={onSwitchToViewModeClicked}>
-				{Lang.INDICATOR.OBJECTIVE_ANALYSIS.SWITCH_TO_VIEW_MODE}
-			</RoundDwarfButton>}
+			: <>
+				<RoundDwarfButton ink={ButtonInk.PRIMARY} onClick={onAddInspectionClicked}>
+					{Lang.INDICATOR.OBJECTIVE_ANALYSIS.ADD_INSPECTION}
+				</RoundDwarfButton>
+				<RoundDwarfButton ink={ButtonInk.PRIMARY} onClick={onAddAchievementClicked}>
+					{Lang.INDICATOR.OBJECTIVE_ANALYSIS.ADD_ACHIEVEMENT}
+				</RoundDwarfButton>
+				<RoundDwarfButton ink={ButtonInk.PRIMARY} onClick={onSwitchToViewModeClicked}>
+					{Lang.INDICATOR.OBJECTIVE_ANALYSIS.SWITCH_TO_VIEW_MODE}
+				</RoundDwarfButton>
+			</>}
 		<RoundDwarfButton ink={ButtonInk.DANGER} onClick={onDeleteClicked}>
 			{Lang.ACTIONS.DELETE}
 		</RoundDwarfButton>

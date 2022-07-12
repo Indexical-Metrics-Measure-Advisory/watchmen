@@ -21,6 +21,8 @@ import {
 	PerspectiveDescriptorWrapper
 } from '../widgets';
 import {InspectionInitializer} from './inspection-initializer';
+import {NoInspectionPicked} from './no-inspection-picked';
+import {RenderModeSwitcher} from './render-mode-switcher';
 import {InspectionStateHolder} from './state';
 
 const InspectionData = (props: { analysis: ObjectiveAnalysis, perspective: ObjectiveAnalysisPerspective }) => {
@@ -86,7 +88,9 @@ export const PerspectiveOnInspection = (props: { analysis: ObjectiveAnalysis, pe
 					</RoundDwarfButton>
 				</PerspectiveButtons>
 			</PerspectiveDescriptorWrapper>
+			<NoInspectionPicked perspective={perspective}/>
 			<Inspection/>
+			<RenderModeSwitcher/>
 			<InspectionInitializer analysis={analysis} perspective={perspective}/>
 		</PerspectiveContainer>
 	</InspectionEventBusProvider>;

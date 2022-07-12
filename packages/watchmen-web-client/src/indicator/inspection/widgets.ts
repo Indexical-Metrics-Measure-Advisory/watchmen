@@ -2,8 +2,13 @@ import {Button} from '@/widgets/basic/button';
 import {Dropdown} from '@/widgets/basic/dropdown';
 import {Input} from '@/widgets/basic/input';
 import styled from 'styled-components';
+import {InspectionRenderMode} from './inspection-event-bus-types';
 
-export const InspectionContainer = styled.div.attrs({'data-widget': 'inspection'})`
+export const InspectionContainer = styled.div.attrs<{ renderMode: InspectionRenderMode }>(({renderMode}) => {
+	return {
+		'data-widget': 'inspection'
+	};
+})<{ renderMode: InspectionRenderMode }>`
 	display               : grid;
 	position              : relative;
 	grid-template-columns : 1fr;
@@ -11,6 +16,16 @@ export const InspectionContainer = styled.div.attrs({'data-widget': 'inspection'
 	margin-top            : var(--margin);
 	padding-bottom        : var(--margin);
 	font-size             : calc(var(--font-size) * 1.2);
+	${({renderMode}) => renderMode === InspectionRenderMode.VIEW ? `
+		> div:not([data-widget=inspection-data]) {
+			display: none;
+		}
+		> div[data-widget=inspection-data] {
+			> div[data-widget=inspection-data-toolbar] {
+				display: none;
+			}
+		}
+	` : ''}
 `;
 export const IndicatorContainer = styled.div.attrs({'data-widget': 'indicator'})`
 	display               : grid;

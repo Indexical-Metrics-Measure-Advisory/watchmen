@@ -544,7 +544,8 @@ export const Zh = {
 			SWITCH_TO_EDIT_MODE: '编辑模式',
 			DELETE_DIALOG_LABEL: '确认要删除分析吗? 请注意删除动作不能被恢复.',
 			PERSPECTIVE_DELETE_DIALOG_LABEL: '确认要删除视角吗? 请注意删除动作不能被恢复.',
-			NO_ACHIEVEMENT: '尚未选择业绩分析.'
+			NO_ACHIEVEMENT: '尚未选择业绩分析.',
+			NO_INSPECTION: '尚未选择洞察分析.'
 		}
 	},
 	SETTINGS: {
