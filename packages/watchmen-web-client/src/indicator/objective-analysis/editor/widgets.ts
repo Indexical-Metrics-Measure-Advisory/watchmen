@@ -149,7 +149,7 @@ export const PerspectiveContainer = styled.div.attrs({
 			opacity : 1;
 		}
 	}
-	div[data-widget=achievement-edit] {
+	div[data-widget=achievement-palette-container] {
 		margin-top       : calc(var(--margin) / 2);
 		width            : 100%;
 		background-image : none;

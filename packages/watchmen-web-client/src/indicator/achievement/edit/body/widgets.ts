@@ -1,11 +1,17 @@
 import styled from 'styled-components';
+import {AchievementRenderMode} from '../../achievement-event-bus-types';
 import {CurveRect} from './types';
 
-export const BodyEditorContainer = styled.div.attrs({
-	'data-widget': 'achievement-edit',
-	'data-v-scroll': '',
-	'data-h-scroll': ''
-})`
+export const AchievementPaletteContainer = styled.div.attrs<{ renderMode: AchievementRenderMode }>(({renderMode}) => {
+	return {
+		'data-widget': 'achievement-palette-container',
+		'data-v-scroll': renderMode === AchievementRenderMode.EDIT ? '' : (void 0),
+		'data-h-scroll': renderMode === AchievementRenderMode.EDIT ? '' : (void 0),
+		style: {
+			overflow: renderMode === AchievementRenderMode.EDIT ? (void 0) : 'hidden'
+		}
+	};
+})<{ renderMode: AchievementRenderMode }>`
 	display          : flex;
 	position         : relative;
 	flex-grow        : 1;
@@ -14,21 +20,178 @@ export const BodyEditorContainer = styled.div.attrs({
 	overflow         : scroll;
 `;
 
-export const BodyPaletteEditor = styled.div.attrs<{ showAddIndicator: boolean }>(({showAddIndicator}) => {
-	return {
-		'data-widget': 'achievement-edit-palette',
-		style: {
-			paddingBottom: showAddIndicator ? (void 0) : 'calc(var(--margin) * 6)'
-		}
-	};
-})<{ showAddIndicator: boolean }>`
+export const AchievementPalette = styled.div.attrs<{ showAddIndicator: boolean; renderMode: AchievementRenderMode }>(
+	({showAddIndicator, renderMode}) => {
+		return {
+			'data-widget': 'achievement-palette',
+			style: {
+				paddingBottom: showAddIndicator ? (void 0) : (renderMode === AchievementRenderMode.VIEW ? 'var(--margin)' : 'calc(var(--margin) * 6)'),
+				display: renderMode === AchievementRenderMode.VIEW ? 'flex' : (void 0),
+				flexDirection: renderMode === AchievementRenderMode.VIEW ? 'column' : (void 0),
+				width: renderMode === AchievementRenderMode.VIEW ? '100%' : (void 0)
+			}
+		};
+	})<{ showAddIndicator: boolean; renderMode: AchievementRenderMode }>`
 	display               : grid;
 	position              : relative;
 	grid-template-columns : auto auto auto;
 	padding-bottom        : calc(var(--margin) * 2.5);
+	${({renderMode}) => renderMode === AchievementRenderMode.VIEW ? `
+	> div[data-widget=achievement-palette-column] {
+		padding: var(--margin);
+		&:first-child {
+			flex-direction: unset;
+			justify-content: center;
+			padding-bottom: 0;
+		}
+		&:last-child {
+			display: grid;
+			grid-template-columns: repeat(2, 1fr);
+			grid-column-gap: var(--margin);
+			grid-row-gap: calc(var(--margin) / 2);
+			width: 100%;
+		}
+		> div[data-widget="time-range-node-container"] {
+			display: none
+		}
+		> div[data-widget=more-indicators-container] {
+			display: none
+		}
+		> div[data-widget=achievement-root-node] {
+			width: 100%;
+			border: 0;
+			font-size: calc(var(--font-size) * 1.6);
+			font-weight: var(--font-bold);
+			font-variant: petite-caps;
+			transition: box-shadow 300ms ease-in-out;
+			&:before {
+				opacity: 0.05;
+			}
+			&:hover {
+				box-shadow: var(--danger-shadow);
+			}
+			> div {
+				height: calc(var(--tall-height) * 1.5);
+				&:last-child:before {
+					content: '🎉';
+					margin-right: calc(var(--margin) / 4);
+					font-size: calc(var(--font-size) * 1.3);
+				}
+			}
+		}
+		> div[data-widget=indicator-node-container] {
+			flex-direction: column;
+			border-radius: calc(var(--border-radius) * 2);
+			box-shadow: var(--shadow);
+			overflow: hidden;
+			transition: box-shadow 300ms ease-in-out;
+			&:hover {
+				box-shadow: var(--hover-shadow);
+			}
+			> div[data-widget=indicator-node] {
+				border: 0;
+				border-bottom-left-radius: 0;
+				border-bottom-right-radius: 0;
+				width: 100%;
+				justify-self: stretch;
+				cursor: default;
+				&:before {
+					display: none;
+				}
+				&:hover {
+					border-top-right-radius: calc(var(--border-radius) * 2);
+				}
+				> span:first-child {
+					display: none;
+				}
+				> span:nth-child(2) {
+					display: flex;
+					position: relative;
+					align-items: center;
+					font-size: calc(var(--font-size) * 1.6);
+					font-weight: var(--font-bold);
+					font-variant: petite-caps;
+					height: calc(var(--tall-height) * 1.5);
+				}
+				> span[data-widget=indicator-remover] {
+					display: none
+				}
+				+ svg, + svg + span, + svg + span + div, + svg + span + div + span {
+					display: none;
+				}
+			}
+			> div[data-widget=indicator-calculation-node-container] {
+				> div[data-widget=indicator-calculation-node] {
+					border: 0;
+					border-top-left-radius: 0;
+					border-top-right-radius: 0;
+					cursor: default;
+					&:before {
+						display: none;
+					}
+					> span:first-child, > span:nth-child(2), > span:last-child {
+						display: none;
+					}
+				}
+				> div[data-widget=indicator-calculation-formula] {
+					display: none;
+				}
+			}
+		}
+		> div[data-widget=compute-indicator-node-container] {
+			flex-direction: column;
+			border-radius: calc(var(--border-radius) * 2);
+			box-shadow: var(--shadow);
+			overflow: hidden;
+			transition: box-shadow 300ms ease-in-out;
+			&:hover {
+				box-shadow: var(--hover-shadow);
+			}
+			> div[data-widget=compute-indicator-node] {
+				border: 0;
+				width: 100%;
+				justify-self: stretch;
+				cursor: default;
+				&:before {
+					display: none;
+				}
+				> span:first-child {
+					display: none;
+				}
+				> span:nth-child(2) {
+					display: flex;
+					position: relative;
+					align-items: center;
+					font-size: calc(var(--font-size) * 1.6);
+					font-weight: var(--font-bold);
+					font-variant: petite-caps;
+					height: calc(var(--tall-height) * 1.5);
+				}
+				> span[data-widget=compute-indicator-remover] {
+					display: none
+				}
+				+ svg, + svg + div, + svg + div + span {
+					display: none;
+				}
+			}
+			> div[data-widget=compute-indicator-calculation-node-container] {
+				> div[data-widget=indicator-calculation-node] {
+					border: 0;
+					cursor: default;
+					&:before {
+						display: none;
+					}
+					> span:first-child, > span:nth-child(2), > span:last-child {
+						display: none;
+					}
+				}
+			}
+		}
+	}
+	` : ''}
 `;
 
-export const PaletteEditorColumn = styled.div.attrs({'data-widget': 'achievement-palette-column'})`
+export const PaletteColumn = styled.div.attrs({'data-widget': 'achievement-palette-column'})`
 	display         : flex;
 	position        : relative;
 	flex-direction  : column;
@@ -152,21 +315,4 @@ export const IndicatorPartRelationLine = styled(AchievementBlockPairLine).attrs(
 	height           : 2px;
 	background-color : var(--achievement-indicator-color);
 	opacity          : 0.5;
-`;
-// export const MissedDefinitionIcon = styled.span.attrs({'data-widget': 'missed-def-icon'})`
-// 	color         : var(--danger-color);
-// 	border-radius : 100%;
-// 	margin-top    : 2px;
-// 	z-index       : 1;
-// 	cursor        : pointer;
-// 	overflow      : hidden;
-// `;
-
-export const BodyPaletteViewer = styled.div.attrs({'data-widget': 'achievement-view-palette'})`
-	display               : grid;
-	position              : relative;
-	grid-template-columns : repeat(3, 1fr);
-	grid-column-gap       : var(--margin);
-	grid-row-gap          : calc(var(--margin) / 2);
-	padding               : calc(var(--margin) / 2) var(--margin) var(--margin);
 `;

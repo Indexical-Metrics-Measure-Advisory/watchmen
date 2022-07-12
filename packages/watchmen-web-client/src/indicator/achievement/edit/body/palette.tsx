@@ -3,6 +3,7 @@ import {Indicator} from '@/services/data/tuples/indicator-types';
 import {FireTiming, useThrottler} from '@/widgets/throttler';
 import {useEffect, useRef, useState} from 'react';
 import {v4} from 'uuid';
+import {AchievementRenderMode} from '../../achievement-event-bus-types';
 import {useAchievementEditEventBus} from './achievement-edit-event-bus';
 import {AchievementEditEventTypes} from './achievement-edit-event-bus-types';
 import {AchievementRoot} from './achievement-root';
@@ -11,10 +12,14 @@ import {MoreComputeIndicators} from './more-compute-indicators';
 import {PickedIndicators} from './picked-indicators';
 import {TimeRange} from './time-range';
 import {useShowAddIndicator} from './use-show-add-indicator';
-import {BodyEditorContainer, BodyPaletteEditor, PaletteEditorColumn} from './widgets';
+import {AchievementPalette, AchievementPaletteContainer, PaletteColumn} from './widgets';
 
-export const Editor = (props: { achievement: Achievement, indicators: Array<Indicator> }) => {
-	const {achievement, indicators} = props;
+export const Palette = (props: {
+	achievement: Achievement;
+	indicators: Array<Indicator>;
+	renderMode: AchievementRenderMode;
+}) => {
+	const {achievement, indicators, renderMode} = props;
 
 	const ref = useRef<HTMLDivElement>(null);
 	const {fire: fireEdit} = useAchievementEditEventBus();
@@ -38,14 +43,14 @@ export const Editor = (props: { achievement: Achievement, indicators: Array<Indi
 			};
 		}
 	}, [fireEdit, resizeQueue]);
-	const showAddIndicator = useShowAddIndicator(achievement);
+	const showAddIndicator = useShowAddIndicator(achievement) && renderMode === AchievementRenderMode.EDIT;
 
-	return <BodyEditorContainer>
-		<BodyPaletteEditor id={paletteId} showAddIndicator={showAddIndicator} ref={ref}>
-			<PaletteEditorColumn>
+	return <AchievementPaletteContainer renderMode={renderMode}>
+		<AchievementPalette id={paletteId} showAddIndicator={showAddIndicator} renderMode={renderMode} ref={ref}>
+			<PaletteColumn>
 				<AchievementRoot id={rootId} achievement={achievement}/>
-			</PaletteEditorColumn>
-			<PaletteEditorColumn>
+			</PaletteColumn>
+			<PaletteColumn>
 				<TimeRange rootId={rootId} achievement={achievement}/>
 				<PickedIndicators rootId={rootId} paletteId={paletteId}
 				                  achievement={achievement} indicators={indicators}/>
@@ -53,7 +58,7 @@ export const Editor = (props: { achievement: Achievement, indicators: Array<Indi
 				                       achievement={achievement}/>
 				<IndicatorCandidates paletteId={paletteId} rootId={rootId}
 				                     achievement={achievement} indicators={indicators}/>
-			</PaletteEditorColumn>
-		</BodyPaletteEditor>
-	</BodyEditorContainer>;
+			</PaletteColumn>
+		</AchievementPalette>
+	</AchievementPaletteContainer>;
 };
