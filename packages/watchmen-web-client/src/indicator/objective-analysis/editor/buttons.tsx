@@ -3,7 +3,6 @@ import {ObjectiveAnalysis, ObjectiveAnalysisPerspectiveType} from '@/services/da
 import {generateUuid} from '@/services/data/tuples/utils';
 import {RoundDwarfButton} from '@/widgets/basic/button';
 import {ButtonInk} from '@/widgets/basic/types';
-import {useForceUpdate} from '@/widgets/basic/utils';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
@@ -18,25 +17,26 @@ export const HeaderButtons = (props: { analysis: ObjectiveAnalysis }) => {
 	const {fire: fireGlobal} = useEventBus();
 	const {fire} = useObjectiveAnalysisEventBus();
 	const [viewMode, setViewMode] = useState(false);
-	const forceUpdate = useForceUpdate();
 
 	const onAddInspectionClicked = () => {
 		analysis.perspectives = analysis.perspectives ?? [];
-		analysis.perspectives.push({
+		const perspective = {
 			perspectiveId: generateUuid(),
 			type: ObjectiveAnalysisPerspectiveType.INSPECTION
-		});
+		};
+		analysis.perspectives.push(perspective);
 		fire(ObjectiveAnalysisEventTypes.SAVE, analysis);
-		forceUpdate();
+		fire(ObjectiveAnalysisEventTypes.PERSPECTIVE_ADDED, analysis, perspective);
 	};
 	const onAddAchievementClicked = () => {
 		analysis.perspectives = analysis.perspectives ?? [];
-		analysis.perspectives.push({
+		const perspective = {
 			perspectiveId: generateUuid(),
 			type: ObjectiveAnalysisPerspectiveType.ACHIEVEMENT
-		});
+		};
+		analysis.perspectives.push(perspective);
 		fire(ObjectiveAnalysisEventTypes.SAVE, analysis);
-		forceUpdate();
+		fire(ObjectiveAnalysisEventTypes.PERSPECTIVE_ADDED, analysis, perspective);
 	};
 	const onSwitchToEditModeClicked = () => {
 		setViewMode(false);

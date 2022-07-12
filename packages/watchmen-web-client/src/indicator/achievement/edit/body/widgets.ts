@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 import {CurveRect} from './types';
 
-export const BodyContainer = styled.div.attrs({
+export const BodyEditorContainer = styled.div.attrs({
 	'data-widget': 'achievement-edit',
 	'data-v-scroll': '',
 	'data-h-scroll': ''
@@ -14,7 +14,7 @@ export const BodyContainer = styled.div.attrs({
 	overflow         : scroll;
 `;
 
-export const BodyPalette = styled.div.attrs<{ showAddIndicator: boolean }>(({showAddIndicator}) => {
+export const BodyPaletteEditor = styled.div.attrs<{ showAddIndicator: boolean }>(({showAddIndicator}) => {
 	return {
 		'data-widget': 'achievement-edit-palette',
 		style: {
@@ -28,7 +28,7 @@ export const BodyPalette = styled.div.attrs<{ showAddIndicator: boolean }>(({sho
 	padding-bottom        : calc(var(--margin) * 2.5);
 `;
 
-export const PaletteColumn = styled.div.attrs({'data-widget': 'achievement-palette-column'})`
+export const PaletteEditorColumn = styled.div.attrs({'data-widget': 'achievement-palette-column'})`
 	display         : flex;
 	position        : relative;
 	flex-direction  : column;
@@ -161,3 +161,12 @@ export const IndicatorPartRelationLine = styled(AchievementBlockPairLine).attrs(
 // 	cursor        : pointer;
 // 	overflow      : hidden;
 // `;
+
+export const BodyPaletteViewer = styled.div.attrs({'data-widget': 'achievement-view-palette'})`
+	display               : grid;
+	position              : relative;
+	grid-template-columns : repeat(3, 1fr);
+	grid-column-gap       : var(--margin);
+	grid-row-gap          : calc(var(--margin) / 2);
+	padding               : calc(var(--margin) / 2) var(--margin) var(--margin);
+`;

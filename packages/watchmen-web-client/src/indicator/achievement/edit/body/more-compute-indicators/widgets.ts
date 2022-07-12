@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import {CurveRect} from '../types';
-import {AchievementBlock, AchievementBlockPairCurve, PaletteColumn} from '../widgets';
+import {AchievementBlock, AchievementBlockPairCurve, PaletteEditorColumn} from '../widgets';
 
 export const MoreIndicatorsContainer = styled.div.attrs({'data-widget': 'more-indicators-container'})`
 	display   : flex;
@@ -10,7 +10,7 @@ export const MoreIndicatorsContainer = styled.div.attrs({'data-widget': 'more-in
 		margin-top : calc(var(--margin) / 2);
 	}
 `;
-export const MoreIndicatorsColumn = styled(PaletteColumn).attrs({'data-widget': 'more-indicators-column'})`
+export const MoreIndicatorsColumn = styled(PaletteEditorColumn).attrs({'data-widget': 'more-indicators-column'})`
 	padding : 0 var(--margin);
 	&:first-child {
 		padding-left : 0;

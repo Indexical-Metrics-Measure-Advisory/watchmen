@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import {CurveRect} from '../types';
-import {AchievementBlock, AchievementBlockPairCurve, PaletteColumn} from '../widgets';
+import {AchievementBlock, AchievementBlockPairCurve, PaletteEditorColumn} from '../widgets';
 
 export const IndicatorCategoryContainer = styled.div.attrs({'data-widget': 'indicator-category-container'})`
 	display   : flex;
@@ -11,7 +11,7 @@ export const IndicatorCategoryContainer = styled.div.attrs({'data-widget': 'indi
 		margin-bottom : calc(var(--margin) / 2);
 	}
 `;
-export const IndicatorCategoryColumn = styled(PaletteColumn).attrs({'data-widget': 'indicator-category-column'})`
+export const IndicatorCategoryColumn = styled(PaletteEditorColumn).attrs({'data-widget': 'indicator-category-column'})`
 	padding : 0 var(--margin);
 	&:first-child {
 		padding-left : 0;

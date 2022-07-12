@@ -23,6 +23,7 @@ export enum ObjectiveAnalysisEventTypes {
 	START_EDIT = 'start-edit',
 	DELETE_PERSPECTIVE = 'delete-perspective',
 	SAVE = 'save',
+	PERSPECTIVE_ADDED = 'perspective-added',
 
 	ASK_ACHIEVEMENTS = 'ask-achievements',
 	ASK_INSPECTIONS = 'ask-inspections',
@@ -78,6 +79,10 @@ export interface ObjectiveAnalysisEventBus {
 	fire(type: ObjectiveAnalysisEventTypes.SAVE, analysis: ObjectiveAnalysis): this;
 	on(type: ObjectiveAnalysisEventTypes.SAVE, listener: (analysis: ObjectiveAnalysis) => void): this;
 	off(type: ObjectiveAnalysisEventTypes.SAVE, listener: (analysis: ObjectiveAnalysis) => void): this;
+
+	fire(type: ObjectiveAnalysisEventTypes.PERSPECTIVE_ADDED, analysis: ObjectiveAnalysis, perspective: ObjectiveAnalysisPerspective): this;
+	on(type: ObjectiveAnalysisEventTypes.PERSPECTIVE_ADDED, listener: (analysis: ObjectiveAnalysis, perspective: ObjectiveAnalysisPerspective) => void): this;
+	off(type: ObjectiveAnalysisEventTypes.PERSPECTIVE_ADDED, listener: (analysis: ObjectiveAnalysis, perspective: ObjectiveAnalysisPerspective) => void): this;
 
 	fire(type: ObjectiveAnalysisEventTypes.ASK_ACHIEVEMENTS, onData: (achievements: Array<QueryAchievement>) => void): this;
 	on(type: ObjectiveAnalysisEventTypes.ASK_ACHIEVEMENTS, listener: (onData: (achievements: Array<QueryAchievement>) => void) => void): this;

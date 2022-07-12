@@ -11,7 +11,7 @@ import {MoreComputeIndicators} from './more-compute-indicators';
 import {PickedIndicators} from './picked-indicators';
 import {TimeRange} from './time-range';
 import {useShowAddIndicator} from './use-show-add-indicator';
-import {BodyPalette, PaletteColumn} from './widgets';
+import {BodyEditorContainer, BodyPaletteEditor, PaletteEditorColumn} from './widgets';
 
 export const Editor = (props: { achievement: Achievement, indicators: Array<Indicator> }) => {
 	const {achievement, indicators} = props;
@@ -40,18 +40,20 @@ export const Editor = (props: { achievement: Achievement, indicators: Array<Indi
 	}, [fireEdit, resizeQueue]);
 	const showAddIndicator = useShowAddIndicator(achievement);
 
-	return <BodyPalette id={paletteId} showAddIndicator={showAddIndicator} ref={ref}>
-		<PaletteColumn>
-			<AchievementRoot id={rootId} achievement={achievement}/>
-		</PaletteColumn>
-		<PaletteColumn>
-			<TimeRange rootId={rootId} achievement={achievement}/>
-			<PickedIndicators rootId={rootId} paletteId={paletteId}
-			                  achievement={achievement} indicators={indicators}/>
-			<MoreComputeIndicators paletteId={paletteId} parentId={rootId}
-			                       achievement={achievement}/>
-			<IndicatorCandidates paletteId={paletteId} rootId={rootId}
-			                     achievement={achievement} indicators={indicators}/>
-		</PaletteColumn>
-	</BodyPalette>;
+	return <BodyEditorContainer>
+		<BodyPaletteEditor id={paletteId} showAddIndicator={showAddIndicator} ref={ref}>
+			<PaletteEditorColumn>
+				<AchievementRoot id={rootId} achievement={achievement}/>
+			</PaletteEditorColumn>
+			<PaletteEditorColumn>
+				<TimeRange rootId={rootId} achievement={achievement}/>
+				<PickedIndicators rootId={rootId} paletteId={paletteId}
+				                  achievement={achievement} indicators={indicators}/>
+				<MoreComputeIndicators paletteId={paletteId} parentId={rootId}
+				                       achievement={achievement}/>
+				<IndicatorCandidates paletteId={paletteId} rootId={rootId}
+				                     achievement={achievement} indicators={indicators}/>
+			</PaletteEditorColumn>
+		</BodyPaletteEditor>
+	</BodyEditorContainer>;
 };

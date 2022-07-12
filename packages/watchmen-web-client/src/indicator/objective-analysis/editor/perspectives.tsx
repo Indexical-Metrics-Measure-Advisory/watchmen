@@ -25,6 +25,19 @@ export const Perspectives = (props: { analysis: ObjectiveAnalysis }) => {
 			off(ObjectiveAnalysisEventTypes.DELETE_PERSPECTIVE, onDeletePerspective);
 		};
 	}, [on, off, fire, forceUpdate, analysis]);
+	useEffect(() => {
+		const onPerspectiveAdded = (anAnalysis: ObjectiveAnalysis) => {
+			if (anAnalysis !== analysis) {
+				return;
+			}
+
+			forceUpdate();
+		};
+		on(ObjectiveAnalysisEventTypes.PERSPECTIVE_ADDED, onPerspectiveAdded);
+		return () => {
+			off(ObjectiveAnalysisEventTypes.PERSPECTIVE_ADDED, onPerspectiveAdded);
+		};
+	}, [on, off, forceUpdate, analysis]);
 
 	return <>
 		{(analysis.perspectives || []).map(perspective => {
