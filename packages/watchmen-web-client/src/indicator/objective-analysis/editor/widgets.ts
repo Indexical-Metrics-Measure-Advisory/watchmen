@@ -78,6 +78,7 @@ export const EditorHeaderButtons = styled.div.attrs({
 			background-color : var(--bg-color);
 		}
 	}
+	> button:nth-last-child(2),
 	> button:last-child {
 		margin-left : calc(var(--margin) / 2);
 	}
