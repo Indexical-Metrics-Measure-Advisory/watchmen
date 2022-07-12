@@ -22,6 +22,7 @@ import {
 } from '../widgets';
 import {InspectionInitializer} from './inspection-initializer';
 import {NoInspectionPicked} from './no-inspection-picked';
+import {RenderModeAssistant} from './render-mode-assistant';
 import {RenderModeSwitcher} from './render-mode-switcher';
 import {InspectionStateHolder} from './state';
 
@@ -89,6 +90,7 @@ export const PerspectiveOnInspection = (props: { analysis: ObjectiveAnalysis, pe
 				</PerspectiveButtons>
 			</PerspectiveDescriptorWrapper>
 			<NoInspectionPicked perspective={perspective}/>
+			<RenderModeAssistant/>
 			<Inspection/>
 			<RenderModeSwitcher/>
 			<InspectionInitializer analysis={analysis} perspective={perspective}/>

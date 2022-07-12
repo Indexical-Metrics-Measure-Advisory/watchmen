@@ -11,3 +11,17 @@ export const NoInspection = styled.div.attrs({'data-widget': 'no-inspection'})`
 	white-space  : nowrap;
 	opacity      : 0.5;
 `;
+
+export const Assistant = styled.div.attrs<{ viewMode: boolean }>({})<{ viewMode: boolean }>`
+	${({viewMode}) => viewMode ? `
+		+ div[data-widget=inspection] {
+			> div[data-widget=inspection-data] {
+				> div[data-widget=inspection-charts] {
+					> div[data-widget=inspection-chart-group]:first-child {
+						padding-top: 0;
+					}
+				}
+			}
+		}
+	` : ''}
+`;
