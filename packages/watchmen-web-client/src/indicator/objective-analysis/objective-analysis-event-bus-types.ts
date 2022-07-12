@@ -13,6 +13,9 @@ export enum ObjectiveAnalysisEventTypes {
 	SHOW_NAVIGATOR = 'show-navigator',
 	HIDE_NAVIGATOR = 'hide-navigator',
 
+	SWITCH_TO_VIEW = 'switch-to-view',
+	SWITCH_TO_EDIT = 'switch-to-edit',
+
 	CREATED = 'create',
 	DELETED = 'deleted',
 	RENAMED = 'renamed',
@@ -43,6 +46,14 @@ export interface ObjectiveAnalysisEventBus {
 	fire(type: ObjectiveAnalysisEventTypes.HIDE_NAVIGATOR): this;
 	on(type: ObjectiveAnalysisEventTypes.HIDE_NAVIGATOR, listener: () => void): this;
 	off(type: ObjectiveAnalysisEventTypes.HIDE_NAVIGATOR, listener: () => void): this;
+
+	fire(type: ObjectiveAnalysisEventTypes.SWITCH_TO_VIEW): this;
+	on(type: ObjectiveAnalysisEventTypes.SWITCH_TO_VIEW, listener: () => void): this;
+	off(type: ObjectiveAnalysisEventTypes.SWITCH_TO_VIEW, listener: () => void): this;
+
+	fire(type: ObjectiveAnalysisEventTypes.SWITCH_TO_EDIT): this;
+	on(type: ObjectiveAnalysisEventTypes.SWITCH_TO_EDIT, listener: () => void): this;
+	off(type: ObjectiveAnalysisEventTypes.SWITCH_TO_EDIT, listener: () => void): this;
 
 	fire(type: ObjectiveAnalysisEventTypes.CREATED, analysis: ObjectiveAnalysis): this;
 	on(type: ObjectiveAnalysisEventTypes.CREATED, listener: (analysis: ObjectiveAnalysis) => void): this;

@@ -40,9 +40,11 @@ export const HeaderButtons = (props: { analysis: ObjectiveAnalysis }) => {
 	};
 	const onSwitchToEditModeClicked = () => {
 		setViewMode(false);
+		fire(ObjectiveAnalysisEventTypes.SWITCH_TO_EDIT);
 	};
 	const onSwitchToViewModeClicked = () => {
 		setViewMode(true);
+		fire(ObjectiveAnalysisEventTypes.SWITCH_TO_VIEW);
 	};
 	const onDeleteClicked = () => {
 		fireGlobal(EventTypes.SHOW_YES_NO_DIALOG,
