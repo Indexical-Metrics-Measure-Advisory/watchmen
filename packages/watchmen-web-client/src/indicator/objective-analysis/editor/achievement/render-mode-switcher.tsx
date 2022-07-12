@@ -19,7 +19,7 @@ export const RenderModeSwitcher = (props: { achievement: Achievement }) => {
 			off(ObjectiveAnalysisEventTypes.SWITCH_TO_EDIT, onSwitchToEdit);
 			off(ObjectiveAnalysisEventTypes.SWITCH_TO_VIEW, onSwitchToView);
 		};
-	}, [on, off, fire]);
+	}, [on, off, fire, achievement]);
 
 	return <Fragment/>;
 };
