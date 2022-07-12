@@ -1,5 +1,3 @@
-import {useObjectiveAnalysisEventBus} from '@/indicator/objective-analysis/objective-analysis-event-bus';
-import {ObjectiveAnalysisEventTypes} from '@/indicator/objective-analysis/objective-analysis-event-bus-types';
 import {deleteObjectiveAnalysis} from '@/services/data/tuples/objective-analysis';
 import {ObjectiveAnalysis, ObjectiveAnalysisPerspectiveType} from '@/services/data/tuples/objective-analysis-types';
 import {generateUuid} from '@/services/data/tuples/utils';
@@ -10,6 +8,8 @@ import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {useState} from 'react';
+import {useObjectiveAnalysisEventBus} from '../objective-analysis-event-bus';
+import {ObjectiveAnalysisEventTypes} from '../objective-analysis-event-bus-types';
 import {EditorHeaderButtons} from './widgets';
 
 export const HeaderButtons = (props: { analysis: ObjectiveAnalysis }) => {
