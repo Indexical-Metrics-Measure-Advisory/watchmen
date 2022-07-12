@@ -6,6 +6,11 @@ import {QueryByBucketMethod} from '@/services/data/tuples/query-bucket-types';
 import {Topic, TopicId} from '@/services/data/tuples/topic-types';
 import {QueryTuple} from '@/services/data/tuples/tuple-types';
 
+export enum AchievementRenderMode {
+	VIEW = 'view',
+	EDIT = 'edit'
+}
+
 export enum AchievementEventTypes {
 	ACHIEVEMENT_PICKED = 'achievement-picked',
 	ASK_ACHIEVEMENT = 'ask-achievement',
@@ -14,6 +19,7 @@ export enum AchievementEventTypes {
 
 	TO_EDIT_ACHIEVEMENT = 'to-edit-achievement',
 	SWITCH_INDICATOR_CANDIDATES = 'switch-indicator_candidates',
+	SWITCH_RENDER_MODE = 'switch-render-mode',
 	BACK_TO_QUERY = 'back-to-query',
 
 	NAME_CHANGED = 'name-changed',
@@ -51,6 +57,10 @@ export interface AchievementEventBus {
 	fire(type: AchievementEventTypes.SWITCH_INDICATOR_CANDIDATES, achievement: Achievement, view: boolean): this;
 	on(type: AchievementEventTypes.SWITCH_INDICATOR_CANDIDATES, listener: (achievement: Achievement, view: boolean) => void): this;
 	off(type: AchievementEventTypes.SWITCH_INDICATOR_CANDIDATES, listener: (achievement: Achievement, view: boolean) => void): this;
+
+	fire(type: AchievementEventTypes.SWITCH_RENDER_MODE, achievement: Achievement, mode: AchievementRenderMode): this;
+	on(type: AchievementEventTypes.SWITCH_RENDER_MODE, listener: (achievement: Achievement, mode: AchievementRenderMode) => void): this;
+	off(type: AchievementEventTypes.SWITCH_RENDER_MODE, listener: (achievement: Achievement, mode: AchievementRenderMode) => void): this;
 
 	fire(type: AchievementEventTypes.BACK_TO_QUERY): this;
 	on(type: AchievementEventTypes.BACK_TO_QUERY, listener: () => void): this;

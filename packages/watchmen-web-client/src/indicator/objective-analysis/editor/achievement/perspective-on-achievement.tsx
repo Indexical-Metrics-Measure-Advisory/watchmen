@@ -1,3 +1,4 @@
+import {RenderModeSwitcher} from '@/indicator/objective-analysis/editor/achievement/render-mode-switcher';
 import {fetchAchievement} from '@/services/data/tuples/achievement';
 import {Achievement, AchievementId} from '@/services/data/tuples/achievement-types';
 import {ObjectiveAnalysis, ObjectiveAnalysisPerspective} from '@/services/data/tuples/objective-analysis-types';
@@ -86,7 +87,7 @@ export const PerspectiveOnAchievement = (props: { analysis: ObjectiveAnalysis, p
 				? <AchievementEdit>
 					<AchievementEditPageBody achievement={achievement}/>
 					<AchievementSaver achievement={achievement}/>
-					{/*<AchievementIndicatorAdjustor achievement={achievement}/>*/}
+					<RenderModeSwitcher achievement={achievement}/>
 				</AchievementEdit>
 				: null}
 		</PerspectiveContainer>
