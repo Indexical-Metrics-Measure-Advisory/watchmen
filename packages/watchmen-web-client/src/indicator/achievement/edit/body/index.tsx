@@ -4,8 +4,7 @@ import {useEffect, useState} from 'react';
 import {useAchievementEventBus} from '../../achievement-event-bus';
 import {AchievementEventTypes, AchievementRenderMode} from '../../achievement-event-bus-types';
 import {AchievementEditEventBusProvider} from './achievement-edit-event-bus';
-import {Editor} from './editor';
-import {Viewer} from './viewer';
+import {Palette} from './palette';
 
 interface Indicators {
 	loaded: boolean;
@@ -41,8 +40,6 @@ export const AchievementEditPageBody = (props: { achievement: Achievement }) => 
 	}
 
 	return <AchievementEditEventBusProvider>
-		{renderMode === AchievementRenderMode.EDIT
-			? <Editor achievement={achievement} indicators={indicators.data}/>
-			: <Viewer achievement={achievement} indicators={indicators.data}/>}
+		<Palette achievement={achievement} indicators={indicators.data} renderMode={renderMode}/>
 	</AchievementEditEventBusProvider>;
 };
