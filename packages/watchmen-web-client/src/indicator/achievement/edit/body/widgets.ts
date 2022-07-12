@@ -185,6 +185,9 @@ export const AchievementPalette = styled.div.attrs<{ showAddIndicator: boolean; 
 						display: none;
 					}
 				}
+				> div[data-widget=compute-indicator-calculation-formula] {
+					display: none;
+				}
 			}
 		}
 	}
