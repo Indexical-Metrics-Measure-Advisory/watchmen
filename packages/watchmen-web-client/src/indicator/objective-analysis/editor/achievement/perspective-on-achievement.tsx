@@ -23,6 +23,7 @@ import {
 	PerspectiveDescriptorWrapper
 } from '../widgets';
 import {CreateOrFindAchievement} from './create-or-find-achievement';
+import {RenderModeAssistant} from './render-mode-assistant';
 import {RenderModeSwitcher} from './render-mode-switcher';
 import {AchievementStateHolder} from './state';
 import {AchievementEdit} from './widgets';
@@ -85,6 +86,7 @@ export const PerspectiveOnAchievement = (props: { analysis: ObjectiveAnalysis, p
 			                         onPicked={onAchievementPicked} onCleared={onAchievementCleared}/>
 			{achievement != null
 				? <AchievementEdit>
+					<RenderModeAssistant/>
 					<AchievementEditPageBody achievement={achievement}/>
 					<AchievementSaver achievement={achievement}/>
 					<RenderModeSwitcher achievement={achievement}/>
