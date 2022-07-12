@@ -1,10 +1,12 @@
 import {Achievement, AchievementId} from '@/services/data/tuples/achievement-types';
 import {ObjectiveAnalysis, ObjectiveAnalysisPerspective} from '@/services/data/tuples/objective-analysis-types';
+import {Lang} from '@/widgets/langs';
 import {useEffect, useState} from 'react';
 import {useObjectiveAnalysisEventBus} from '../../../objective-analysis-event-bus';
 import {ObjectiveAnalysisEventTypes} from '../../../objective-analysis-event-bus-types';
 import {CreateOrFindEditor} from './editor';
 import {CreateOrFindViewer} from './viewer';
+import {NoAchievement} from './widgets';
 
 export const CreateOrFindAchievement = (props: {
 	analysis: ObjectiveAnalysis;
@@ -28,13 +30,18 @@ export const CreateOrFindAchievement = (props: {
 		};
 	}, [on, off, achievement]);
 
-	if (!visible) {
-		return null;
-	}
-
-	if (achievement == null) {
-		return <CreateOrFindEditor onPicked={onPicked}/>;
-	} else {
-		return <CreateOrFindViewer achievement={achievement} onCleared={onCleared}/>;
+	switch (true) {
+		case !visible && achievement == null:
+			return <NoAchievement>
+				{Lang.INDICATOR.OBJECTIVE_ANALYSIS.NO_ACHIEVEMENT}
+			</NoAchievement>;
+		case !visible:
+			return null;
+		case achievement == null:
+			return <CreateOrFindEditor onPicked={onPicked}/>;
+		case achievement != null:
+			return <CreateOrFindViewer achievement={achievement!} onCleared={onCleared}/>;
+		default:
+			return null;
 	}
 };
