@@ -73,13 +73,17 @@ export const AchievementPalette = styled.div.attrs<{ showAddIndicator: boolean; 
 			> div {
 				height: calc(var(--tall-height) * 1.5);
 				&:last-child:before, &:last-child:after {
-					content: '〰〰〰';
-					margin-right: calc(var(--margin) / 4);
-					font-size: calc(var(--font-size) * 1.3);
-					transform: translateY(2px);
+					content: '';
+					border-radius: 2px;
+					opacity: 0.5;
+				}
+				&:last-child:before {
+					content: '↬';
+					margin-right: calc(var(--margin) / 2);
 				}
 				&:last-child:after {
-					margin-left: calc(var(--margin) / 4);
+					content: '↫';
+					margin-left: calc(var(--margin) / 2);
 				}
 			}
 		}
