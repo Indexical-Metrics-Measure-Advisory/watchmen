@@ -73,7 +73,7 @@ export const AchievementPalette = styled.div.attrs<{ showAddIndicator: boolean; 
 			> div {
 				height: calc(var(--tall-height) * 1.5);
 				&:last-child:before {
-					content: '🎉';
+					content: '🧮';
 					margin-right: calc(var(--margin) / 4);
 					font-size: calc(var(--font-size) * 1.3);
 				}
