@@ -7,6 +7,7 @@ import {useEventBus} from '../events/event-bus';
 import {EventTypes} from '../events/types';
 import DarkTheme from './dark-theme';
 import DefaultTheme from './default-theme';
+import LightContrastTheme from './light-contrast-theme';
 import {Theme} from './types';
 
 const shouldIgnorePixel = (key: string) => ['fontDemiBold', 'fontBold', 'fontBoldest'].includes(key);
@@ -95,7 +96,8 @@ const GlobalStyle = createGlobalStyle<{ theme: Theme }>`
 
 const THEMES: Record<string, Theme> = {
 	[DarkTheme.code]: DarkTheme,
-	[DefaultTheme.code]: DefaultTheme
+	[DefaultTheme.code]: DefaultTheme,
+	[LightContrastTheme.code]: LightContrastTheme
 };
 
 const findTheme = (themeCode: string) => {

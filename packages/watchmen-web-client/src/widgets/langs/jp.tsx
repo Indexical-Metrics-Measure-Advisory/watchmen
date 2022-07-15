@@ -553,6 +553,7 @@ export const Jp = {
 		LANGUAGE: '言語',
 		THEME: 'テーマ',
 		THEME_LIGHT: '標準',
+		THEME_LIGHT_CONTRAST_BIGGER: 'ハイコントラスト、大きなフォント',
 		THEME_DARK: 'ダーク',
 		PAT: {
 			TITLE: 'パーソナルアクセストークン',

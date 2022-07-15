@@ -553,6 +553,7 @@ export const Zh = {
 		LANGUAGE: '语言',
 		THEME: '外观',
 		THEME_LIGHT: '标准',
+		THEME_LIGHT_CONTRAST_BIGGER: '高对比大字',
 		THEME_DARK: '暗色',
 		PAT: {
 			TITLE: 'Personal Access Token',
