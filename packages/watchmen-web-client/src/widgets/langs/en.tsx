@@ -553,6 +553,7 @@ export const En = {
 		LANGUAGE: 'Language',
 		THEME: 'Theme',
 		THEME_LIGHT: 'Light',
+		THEME_LIGHT_CONTRAST_BIGGER: 'Light Contrast Bigger',
 		THEME_DARK: 'Dark',
 		PAT: {
 			TITLE: 'Personal Access Token',
