@@ -2046,7 +2046,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"name\": \"Test-Group\",\n    \"description\": \"A description\",\n    \"userIds\": [\n        \"3\",\n        \"2\"\n    ],\n    \"userGroupId\": \"{{USER_GROUP_ID}}\",\n    \"spaceIds\": [\"{{SPACE_ID}}\"],\n    \"createdAt\": \"{{USER_GROUP_CREATED_AT}}\",\n    \"createdBy\": \"{{USER_GROUP_CREATED_BY}}\",\n    \"version\": {{USER_GROUP_VERSION}}\n}",
+									"raw": "{\n    \"name\": \"Test-Group\",\n    \"description\": \"A description\",\n    \"userIds\": [\n        \"{{USER_ID}}\",\n        \"2\"\n    ],\n    \"userGroupId\": \"{{USER_GROUP_ID}}\",\n    \"spaceIds\": [\"{{SPACE_ID}}\"],\n    \"createdAt\": \"{{USER_GROUP_CREATED_AT}}\",\n    \"createdBy\": \"{{USER_GROUP_CREATED_BY}}\",\n    \"version\": {{USER_GROUP_VERSION}}\n}",
 									"options": {
 										"raw": {
 											"language": "json"
