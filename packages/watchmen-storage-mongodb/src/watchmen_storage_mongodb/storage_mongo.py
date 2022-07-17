@@ -1,8 +1,8 @@
 from logging import getLogger
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from watchmen_model.admin import Factor, Topic
-from watchmen_model.common import DataPage
+from watchmen_model.common import DataPage, Storable
 from watchmen_storage import as_table_name, Entity, EntityColumnAggregateArithmetic, EntityDeleter, \
 	EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, EntityIdHelper, EntityList, \
 	EntityNotFoundException, EntityPager, EntityRow, EntityStraightAggregateColumn, EntityStraightColumn, \
@@ -101,7 +101,7 @@ class StorageMongoDB(TransactionalStorageSPI):
 				raise EntityNotFoundException(f'Entity not found by updater[{updater}]')
 		elif should_update_count == 1:
 			# noinspection PyProtectedMember,PyUnresolvedReferences
-			updated_count = self.connection.update_by_id(document, updater.update, entities[0]._id).matched_count
+			updated_count = self.connection.update_by_id(document, document.change_date_to_datetime(updater.update), self.get_id_from_entity(entities[0])).matched_count
 			if updated_count == 0:
 				# might be removed by another session
 				if peace_when_zero:
@@ -127,10 +127,10 @@ class StorageMongoDB(TransactionalStorageSPI):
 			return None
 		elif should_update_count == 1:
 			# noinspection PyProtectedMember,PyUnresolvedReferences
-			object_id = str(entities[0]._id)
+			object_id = self.get_id_from_entity(entities[0])
 			entity = self.connection.find_by_id(document, object_id)
 			if entity is not None:
-				updated_count = self.connection.update_by_id(document, updater.update, object_id).modified_count
+				updated_count = self.connection.update_by_id(document, document.change_date_to_datetime(updater.update), object_id).modified_count
 				if updated_count == 0:
 					# might be removed by another session
 					return None
@@ -144,7 +144,7 @@ class StorageMongoDB(TransactionalStorageSPI):
 	def update(self, updater: EntityUpdater) -> int:
 		document = self.find_document(updater.name)
 		where = build_criteria_for_statement([document], updater.criteria)
-		return self.connection.update_many(document, updater.update, where).modified_count
+		return self.connection.update_many(document, document.change_date_to_datetime(updater.update), where).modified_count
 
 	# noinspection DuplicatedCode
 	def update_and_pull(self, updater: EntityUpdater) -> EntityList:
@@ -191,7 +191,7 @@ class StorageMongoDB(TransactionalStorageSPI):
 			raise EntityNotFoundException(f'Entity not found by deleter[{deleter}].')
 		elif should_delete_count == 1:
 			# noinspection PyProtectedMember,PyUnresolvedReferences
-			deleted_count = self.connection.delete_by_id(document, str(entities[0]._id)).deleted_count
+			deleted_count = self.connection.delete_by_id(document, self.get_id_from_entity(entities[0])).deleted_count
 			if deleted_count == 0:
 				raise EntityNotFoundException(f'Entity not found by deleter[{deleter}].')
 			return deleted_count
@@ -213,7 +213,7 @@ class StorageMongoDB(TransactionalStorageSPI):
 			return None
 		elif should_delete_count == 1:
 			# noinspection PyProtectedMember,PyUnresolvedReferences
-			object_id = str(entities[0]._id)
+			object_id = self.get_id_from_entity(entities[0])
 			entity = self.connection.find_by_id(document, object_id)
 			if entity is not None:
 				deleted_count = self.connection.delete_by_id(document, object_id).deleted_count
@@ -312,7 +312,7 @@ class StorageMongoDB(TransactionalStorageSPI):
 			def action(row: EntityRow) -> Entity:
 				entity = deserialize(row)
 				if '_id' in finder.distinctColumnNames:
-					entity._id = row.get('_id')
+					entity = self.bind_id_to_entity(entity, row.get('_id'))
 				return entity
 
 			return action
@@ -386,8 +386,8 @@ class StorageMongoDB(TransactionalStorageSPI):
 		straight_columns = finder.straightColumns
 		aggregate_columns = self.build_straight_aggregate_columns(straight_columns)
 		if len(aggregate_columns) == 0:
-			def add_column(columns: Dict[str, int], column_name: str) -> Dict[str, int]:
-				columns[column_name] = 1
+			def add_column(columns: Dict[str, int], column: EntityStraightColumn) -> Dict[str, int]:
+				columns[column.columnName] = 1
 				return columns
 
 			project = ArrayHelper(straight_columns).reduce(add_column, {})
@@ -472,6 +472,19 @@ class StorageMongoDB(TransactionalStorageSPI):
 		document = self.find_document(finder.name)
 		where = build_criteria_for_statement([document], finder.criteria)
 		return self.connection.count(document, where)
+
+	def bind_id_to_entity(self, entity: Union[Storable, Dict], id_) -> Union[Storable, Dict]:
+		if isinstance(entity, dict):
+			entity['_id'] = id_
+		else:
+			entity._id = id_
+		return entity
+
+	def get_id_from_entity(self, entity: Union[Storable, Dict]) -> Union[str, int]:
+		if isinstance(entity, dict):
+			return entity['_id']
+		else:
+			return entity._id
 
 
 class TopicDataStorageMongoDB(StorageMongoDB, TopicDataStorageSPI):
