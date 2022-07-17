@@ -68,9 +68,16 @@ class MongoDocument:
 
 	@staticmethod
 	def change_date_to_datetime(data: Dict[str, Any]) -> Dict[str, Any]:
-		for column_name, column_value in data.items():
-			if isinstance(column_value, date):
-				data[column_name] = datetime.combine(column_value, datetime.min.time())
-			else:
-				pass
+		if isinstance(data, dict):
+			for column_name, column_value in data.items():
+				if type(column_value) == date:
+					data[column_name] = datetime.combine(column_value, datetime.min.time())
+				if isinstance(column_value, list):
+					new_list = []
+					for element in column_value:
+						new_element = MongoDocument.change_date_to_datetime(element)
+						new_list.append(new_element)
+					data[column_name] = new_list
+				if isinstance(column_value, dict):
+					data[column_name] = MongoDocument.change_date_to_datetime(column_value)
 		return data

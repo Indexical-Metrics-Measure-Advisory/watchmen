@@ -50,7 +50,7 @@ class MongoConnection:
 	def update_many(self, document: MongoDocument, data: Dict[str, Any], criteria: Dict[str, Any]) -> UpdateResult:
 		return self.collection(document.name).update_many(
 			filter={'$expr': criteria},
-			update=data,
+			update={'$set': data},
 			upsert=False
 		)
 

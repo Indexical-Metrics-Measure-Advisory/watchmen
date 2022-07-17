@@ -444,7 +444,7 @@ def build_criteria_joint(documents: List[MongoDocument], joint: EntityCriteriaJo
 	if conjunction == EntityCriteriaJointConjunction.AND:
 		return {'$and': ArrayHelper(joint.children).map(lambda x: build_criteria_statement(documents, x)).to_list()}
 	elif conjunction == EntityCriteriaJointConjunction.OR:
-		return {'$or:': ArrayHelper(joint.children).map(lambda x: build_criteria_statement(documents, x)).to_list()}
+		return {'$or': ArrayHelper(joint.children).map(lambda x: build_criteria_statement(documents, x)).to_list()}
 	else:
 		raise UnsupportedCriteriaException(f'Unsupported criteria joint conjunction[{conjunction}].')
 
