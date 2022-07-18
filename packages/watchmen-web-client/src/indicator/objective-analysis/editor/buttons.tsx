@@ -6,7 +6,7 @@ import {ButtonInk} from '@/widgets/basic/types';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
 import {useObjectiveAnalysisEventBus} from '../objective-analysis-event-bus';
 import {ObjectiveAnalysisEventTypes} from '../objective-analysis-event-bus-types';
 import {EditorHeaderButtons} from './widgets';
@@ -17,6 +17,9 @@ export const HeaderButtons = (props: { analysis: ObjectiveAnalysis }) => {
 	const {fire: fireGlobal} = useEventBus();
 	const {fire} = useObjectiveAnalysisEventBus();
 	const [viewMode, setViewMode] = useState(false);
+	useEffect(() => {
+		setViewMode(false);
+	}, [analysis]);
 
 	const onAddInspectionClicked = () => {
 		analysis.perspectives = analysis.perspectives ?? [];
