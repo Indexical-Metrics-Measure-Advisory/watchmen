@@ -38,6 +38,7 @@ export const NavPremium: Achievement = {
 	timeRangeType: AchievementTimeRangeType.YEAR,
 	timeRangeYear: `${new Date().getFullYear() - 1}`,
 	compareWithPreviousTimeRange: true,
+	finalScoreIsRatio: false,
 	description: 'Premium Achievement',
 	createdAt: getCurrentTime(),
 	lastModifiedAt: getCurrentTime()
