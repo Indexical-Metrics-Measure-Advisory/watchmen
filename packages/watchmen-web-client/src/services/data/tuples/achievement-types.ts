@@ -78,6 +78,7 @@ export interface Achievement extends Tuple {
 	timeRangeYear: string;
 	timeRangeMonth?: string;
 	compareWithPreviousTimeRange: boolean;
+	finalScoreIsRatio: boolean;
 	indicators: Array<AchievementIndicator>;
 	tenantId?: TenantId;
 }
