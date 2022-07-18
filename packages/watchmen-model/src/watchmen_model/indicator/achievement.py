@@ -122,6 +122,7 @@ class Achievement(UserBasedTuple, Auditable, BaseModel):
 	timeRangeYear: str = None
 	timeRangeMonth: str = None
 	compareWithPreviousTimeRange: bool = False
+	finalScoreIsRatio: bool = False
 	indicators: List[AchievementIndicator] = []
 
 	def __setattr__(self, name, value):

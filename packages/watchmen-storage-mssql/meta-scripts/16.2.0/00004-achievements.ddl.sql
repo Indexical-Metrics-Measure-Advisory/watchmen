@@ -6,6 +6,7 @@ CREATE TABLE achievements
     time_range_year              NVARCHAR(10),
     time_range_month             NVARCHAR(10),
     compare_with_prev_time_range DECIMAL(1),
+    final_score_is_ratio         DECIMAL(1),
     indicators                   NVARCHAR(MAX),
     description                  NVARCHAR(1024),
     user_id                      NVARCHAR(50) NOT NULL,

@@ -18,6 +18,7 @@ class AchievementShaper(EntityShaper):
 			'time_range_year': achievement.timeRangeYear,
 			'time_range_month': achievement.timeRangeMonth,
 			'compare_with_prev_time_range': achievement.compareWithPreviousTimeRange,
+			'final_score_is_ratio': achievement.finalScoreIsRatio,
 			'indicators': ArrayHelper(achievement.indicators).map(lambda x: x.to_dict()).to_list()
 		}
 		row = UserBasedTupleShaper.serialize(achievement, row)
@@ -32,6 +33,7 @@ class AchievementShaper(EntityShaper):
 			timeRangeYear=row.get('time_range_year'),
 			timeRangeMonth=row.get('time_range_month'),
 			compareWithPreviousTimeRange=row.get('compare_with_prev_time_range'),
+			finalScoreIsRatio=row.get('final_score_is_ratio'),
 			indicators=row.get('indicators')
 		)
 		# noinspection PyTypeChecker

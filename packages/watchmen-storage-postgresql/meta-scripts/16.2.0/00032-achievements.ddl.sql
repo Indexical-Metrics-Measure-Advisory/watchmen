@@ -6,6 +6,7 @@ CREATE TABLE achievements
     time_range_year              VARCHAR(10),
     time_range_month             VARCHAR(10),
     compare_with_prev_time_range SMALLINT,
+    final_score_is_ratio         SMALLINT,
     indicators                   JSON,
     description                  VARCHAR(1024),
     user_id                      VARCHAR(50) NOT NULL,
