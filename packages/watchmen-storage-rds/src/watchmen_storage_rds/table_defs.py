@@ -6,9 +6,9 @@ from sqlalchemy import Integer, String, Table
 from watchmen_model.admin import is_aggregation_topic, is_raw_topic, Topic
 from watchmen_model.common import TopicId
 from watchmen_storage import SNOWFLAKE_WORKER_ID_TABLE, UnexpectedStorageException
-from .table_defs_helper import create_bool, create_datetime, create_date, create_description, create_int, create_json, \
-	create_last_visit_time, create_medium_text, create_optimistic_lock, create_pk, create_str, \
-	create_tenant_id, create_tuple_audit_columns, create_tuple_id_column, create_user_id, meta_data
+from .table_defs_helper import create_bool, create_date, create_datetime, create_description, create_int, create_json, \
+	create_last_visit_time, create_medium_text, create_optimistic_lock, create_pk, create_str, create_tenant_id, \
+	create_tuple_audit_columns, create_tuple_id_column, create_user_id, meta_data
 from .topic_table_generate import build_by_aggregation, build_by_raw, build_by_regular
 
 # snowflake workers
@@ -281,7 +281,7 @@ table_achievements = Table(
 	'achievements', meta_data,
 	create_pk('achievement_id'), create_str('name', 50),
 	create_str('time_range_type', 10), create_str('time_range_year', 10), create_str('time_range_month', 10),
-	create_bool('compare_with_prev_time_range'), create_json('indicators'),
+	create_bool('compare_with_prev_time_range'), create_bool('final_score_is_ratio'), create_json('indicators'),
 	create_description(),
 	create_user_id(), create_tenant_id(),
 	*create_tuple_audit_columns()

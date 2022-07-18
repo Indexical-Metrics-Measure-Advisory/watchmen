@@ -342,7 +342,7 @@ table_achievements = MongoDocument(
 	columns=[
 		create_pk('achievement_id'), create_str('name'),
 		create_str('time_range_type'), create_str('time_range_year'), create_str('time_range_month'),
-		create_bool('compare_with_prev_time_range'), create_json('indicators'),
+		create_bool('compare_with_prev_time_range'), create_bool('final_score_is_ratio'), create_json('indicators'),
 		create_description(),
 		create_user_id(), create_tenant_id(),
 		*create_tuple_audit_columns()
