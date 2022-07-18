@@ -35,13 +35,21 @@ const NameLabel = (props: {
 	}, [on, off, forceUpdate, achievement, achievementIndicator]);
 
 	if (topic == null && subject == null) {
-		return <>{Lang.INDICATOR.ACHIEVEMENT.MISSED_INDICATOR_BASE}</>;
+		return <span data-content={Lang.PLAIN.MISSED_ACHIEVEMENT_INDICATOR_BASE}>
+			{Lang.INDICATOR.ACHIEVEMENT.MISSED_INDICATOR_BASE}
+		</span>;
 	} else if (criteria.length === 0) {
-		return <>{Lang.INDICATOR.ACHIEVEMENT.NO_INDICATOR_CRITERIA_DEFINED}</>;
+		return <span data-content={Lang.PLAIN.NONAME_ACHIEVEMENT_INDICATOR}>
+			{Lang.INDICATOR.ACHIEVEMENT.NO_INDICATOR_CRITERIA_DEFINED}
+		</span>;
 	} else if ((achievementIndicator.name || '').trim().length === 0) {
-		return <span>{criteria.length} {Lang.INDICATOR.ACHIEVEMENT.INDICATOR_CRITERIA_DEFINED}</span>;
+		return <span data-content={Lang.PLAIN.NONAME_ACHIEVEMENT_INDICATOR}>
+			{criteria.length} {Lang.INDICATOR.ACHIEVEMENT.INDICATOR_CRITERIA_DEFINED}
+		</span>;
 	} else {
-		return <span>{(achievementIndicator.name || '').trim()}</span>;
+		return <span data-content={(achievementIndicator.name || '').trim()}>
+			{(achievementIndicator.name || '').trim()}
+		</span>;
 	}
 };
 

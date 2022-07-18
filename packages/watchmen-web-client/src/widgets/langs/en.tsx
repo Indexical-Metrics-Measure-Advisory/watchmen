@@ -36,14 +36,16 @@ export const En = {
 		FIND_INDICATOR_VALUE_BUCKETS_PLACEHOLDER: 'Search by bucket name.',
 		FIND_INDICATOR_USER_GROUPS_PLACEHOLDER: 'Search by user group name.',
 		DROPDOWN_PLACEHOLDER: 'Please Select...',
-		FIND_ACHIEVEMENT_PLACEHOLDER: 'Search by achievement name.',
+		FIND_ACHIEVEMENT_PLACEHOLDER: 'Search by analysis name.',
 		NEW_ACHIEVEMENT_NAME: 'Achievement',
 		ACHIEVEMENT_CRITERIA_TIME_RANGE_YEAR_MONTH: 'Use "year" or "month" to refer predefined time range.',
 		ACHIEVEMENT_CRITERIA_TIME_RANGE_YEAR: 'Use "year" to refer predefined time range.',
 		ACHIEVEMENT_CRITERIA_TIME_RANGE_MONTH: 'Use "month" to refer predefined time range.',
 		OBJECTIVE_ANALYSIS_SEARCH_PLACEHOLDER: 'Filter by...',
 		OBJECTIVE_ANALYSIS_DESCRIPTION_PLACEHOLDER: 'Describe the analysis purpose here...',
-		OBJECTIVE_ANALYSIS_PERSPECTIVE_DESCRIPTION_PLACEHOLDER: 'Describe the perspective here...'
+		OBJECTIVE_ANALYSIS_PERSPECTIVE_DESCRIPTION_PLACEHOLDER: 'Describe the perspective here...',
+		NONAME_ACHIEVEMENT_INDICATOR: 'Noname',
+		MISSED_ACHIEVEMENT_INDICATOR_BASE: 'Missed Indicator'
 	},
 	STANDARD: {
 		YES: 'Yes',

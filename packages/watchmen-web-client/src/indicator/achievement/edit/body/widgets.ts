@@ -88,7 +88,8 @@ export const AchievementPalette = styled.div.attrs<{ showAddIndicator: boolean; 
 			}
 		}
 		> div[data-widget=indicator-node-container] {
-			flex-direction: column;
+			display: grid;
+			grid-template-columns: 50% 50%;
 			border-radius: calc(var(--border-radius) * 2);
 			box-shadow: var(--shadow);
 			overflow: hidden;
@@ -97,11 +98,13 @@ export const AchievementPalette = styled.div.attrs<{ showAddIndicator: boolean; 
 				box-shadow: var(--hover-shadow);
 			}
 			> div[data-widget=indicator-node] {
+				grid-column: 2;
 				border: 0;
 				border-bottom-left-radius: 0;
 				border-bottom-right-radius: 0;
 				width: 100%;
-				justify-self: stretch;
+				justify-content: start;
+				padding: 0 calc(var(--margin) / 4);
 				cursor: default;
 				&:before {
 					display: none;
@@ -116,19 +119,63 @@ export const AchievementPalette = styled.div.attrs<{ showAddIndicator: boolean; 
 					display: flex;
 					position: relative;
 					align-items: center;
-					font-size: calc(var(--font-size) * 1.6);
+					font-size: calc(var(--font-size) * 1.2);
 					font-weight: var(--font-bold);
 					font-variant: petite-caps;
 					height: calc(var(--tall-height) * 1.5);
+					margin-top: 2px;
+					margin-bottom: -2px;
+					opacity: 0.5;
+					&:before {
+						content: '(';
+						display: block;
+						position: relative;
+					}
+					&:after {
+						content: ')';
+						display: block;
+						position: relative;
+					}
 				}
 				> span[data-widget=indicator-remover] {
 					display: none
 				}
-				+ svg, + svg + span, + svg + span + div, + svg + span + div + span {
+				+ svg, + svg + span, + svg + span + div + span {
+					display: none;
+				}
+			}
+			> div[data-widget=indicator-criteria-node-container] {
+				grid-row: 1;
+				grid-column: 1;
+				> div[data-widget=indicator-criteria-node] {
+					display: flex;
+					position: relative;
+					border: 0;
+					align-items: center;
+					justify-content: end;
+					justify-self: stretch;
+					padding: 0 calc(var(--margin) / 4);
+					font-size: calc(var(--font-size) * 1.6);
+					font-weight: var(--font-bold);
+					font-variant: petite-caps;
+					height: calc(var(--tall-height) * 1.5);
+					&:before {
+						display: none;
+					}
+					> span[data-content] {
+						visibility: hidden;
+						&:after {
+							content: attr(data-content);
+							visibility: visible;
+						}
+					}
+				}
+				> div[data-widget=indicator-criteria-content] {
 					display: none;
 				}
 			}
 			> div[data-widget=indicator-calculation-node-container] {
+				grid-column: 1 / span 2;
 				> div[data-widget=indicator-calculation-node] {
 					border: 0;
 					border-top-left-radius: 0;
