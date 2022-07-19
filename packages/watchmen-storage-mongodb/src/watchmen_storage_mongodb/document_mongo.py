@@ -1,8 +1,6 @@
+from datetime import date, datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional
-from datetime import datetime, date
-
-from bson import ObjectId
 
 from watchmen_storage import EntityId, UnexpectedStorageException
 from watchmen_utilities import ArrayHelper
@@ -66,8 +64,7 @@ class MongoDocument:
 			projection[column.name] = 1
 		return projection
 
-	@staticmethod
-	def change_date_to_datetime(data: Dict[str, Any]) -> Dict[str, Any]:
+	def change_date_to_datetime(self, data: Dict[str, Any]) -> Dict[str, Any]:
 		if isinstance(data, dict):
 			for column_name, column_value in data.items():
 				if type(column_value) == date:
@@ -75,9 +72,9 @@ class MongoDocument:
 				if isinstance(column_value, list):
 					new_list = []
 					for element in column_value:
-						new_element = MongoDocument.change_date_to_datetime(element)
+						new_element = self.change_date_to_datetime(element)
 						new_list.append(new_element)
 					data[column_name] = new_list
 				if isinstance(column_value, dict):
-					data[column_name] = MongoDocument.change_date_to_datetime(column_value)
+					data[column_name] = self.change_date_to_datetime(column_value)
 		return data

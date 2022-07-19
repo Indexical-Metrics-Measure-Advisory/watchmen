@@ -101,7 +101,10 @@ class StorageMongoDB(TransactionalStorageSPI):
 				raise EntityNotFoundException(f'Entity not found by updater[{updater}]')
 		elif should_update_count == 1:
 			# noinspection PyProtectedMember,PyUnresolvedReferences
-			updated_count = self.connection.update_by_id(document, document.change_date_to_datetime(updater.update), self.get_id_from_entity(entities[0])).matched_count
+			updated_count = self.connection.update_by_id(
+				document, document.change_date_to_datetime(updater.update),
+				self.get_id_from_entity(entities[0])
+			).matched_count
 			if updated_count == 0:
 				# might be removed by another session
 				if peace_when_zero:
@@ -130,7 +133,9 @@ class StorageMongoDB(TransactionalStorageSPI):
 			object_id = self.get_id_from_entity(entities[0])
 			entity = self.connection.find_by_id(document, object_id)
 			if entity is not None:
-				updated_count = self.connection.update_by_id(document, document.change_date_to_datetime(updater.update), object_id).modified_count
+				updated_count = self.connection.update_by_id(
+					document, document.change_date_to_datetime(updater.update), object_id
+				).modified_count
 				if updated_count == 0:
 					# might be removed by another session
 					return None
@@ -144,7 +149,9 @@ class StorageMongoDB(TransactionalStorageSPI):
 	def update(self, updater: EntityUpdater) -> int:
 		document = self.find_document(updater.name)
 		where = build_criteria_for_statement([document], updater.criteria)
-		return self.connection.update_many(document, document.change_date_to_datetime(updater.update), where).modified_count
+		return self.connection.update_many(
+			document, document.change_date_to_datetime(updater.update), where
+		).modified_count
 
 	# noinspection DuplicatedCode
 	def update_and_pull(self, updater: EntityUpdater) -> EntityList:
@@ -473,17 +480,20 @@ class StorageMongoDB(TransactionalStorageSPI):
 		where = build_criteria_for_statement([document], finder.criteria)
 		return self.connection.count(document, where)
 
-	def bind_id_to_entity(self, entity: Union[Storable, Dict], id_) -> Union[Storable, Dict]:
+	# noinspection PyMethodMayBeStatic
+	def bind_id_to_entity(self, entity: Union[Storable, Dict], id_: Any) -> Union[Storable, Dict]:
 		if isinstance(entity, dict):
 			entity['_id'] = id_
 		else:
 			entity._id = id_
 		return entity
 
+	# noinspection PyMethodMayBeStatic
 	def get_id_from_entity(self, entity: Union[Storable, Dict]) -> Union[str, int]:
 		if isinstance(entity, dict):
 			return entity['_id']
 		else:
+			# noinspection PyProtectedMember
 			return entity._id
 
 
