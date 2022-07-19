@@ -473,6 +473,7 @@ export const En = {
 			PRINT: 'Print',
 			PICK_ANOTHER: 'Pick Another Inspection',
 			AGGREGATE_ARITHMETIC_IS_REQUIRED: 'Please pick at least one value transforming.',
+			INCORRECT_CRITERIA: 'Please correct filter criteria',
 			MEASURE_IS_REQUIRED: 'Please pick time grouping or value bucket.',
 			MEASURE_ON_TIME_IS_REQUIRED: 'Please pick time grouping.',
 			INDICATOR_BUCKET_IS_REQUIRED: 'Please pick indicator value bucket.',

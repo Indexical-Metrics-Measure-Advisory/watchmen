@@ -1,4 +1,8 @@
 import {BucketId} from '@/services/data/tuples/bucket-types';
+import {
+	isIndicatorCriteriaOnBucket,
+	isIndicatorCriteriaOnExpression
+} from '@/services/data/tuples/indicator-criteria-utils';
 import {Indicator, IndicatorAggregateArithmetic, MeasureMethod} from '@/services/data/tuples/indicator-types';
 import {detectMeasures, findTopicAndFactor, isTimePeriodMeasure} from '@/services/data/tuples/indicator-utils';
 import {Inspection, InspectMeasureOn} from '@/services/data/tuples/inspection-types';
@@ -33,6 +37,7 @@ export enum InspectionInvalidReason {
 	NAME_IS_REQUIRED = 'name-is-required',
 	INDICATOR_IS_REQUIRED = 'indicator-is-required',
 	AGGREGATE_ARITHMETIC_IS_REQUIRED = 'aggregate-arithmetic-is-required',
+	INCORRECT_CRITERIA = 'incorrect-criteria',
 	MEASURE_IS_REQUIRED = 'measure-is-required',
 	MEASURE_ON_TIME_IS_REQUIRED = 'measure-on-time-is-required',
 	INDICATOR_BUCKET_IS_REQUIRED = 'indicator-bucket-is-required',
@@ -52,6 +57,25 @@ export const validateInspection = (options: {
 	}
 	if (inspection.aggregateArithmetics == null || inspection.aggregateArithmetics.length === 0) {
 		fail(InspectionInvalidReason.AGGREGATE_ARITHMETIC_IS_REQUIRED);
+		return;
+	}
+	if (inspection.criteria != null && inspection.criteria.length !== 0) {
+		const failed = inspection.criteria.some(criteria => {
+			if (criteria.factorId == null) {
+				return true;
+			}
+			if (isIndicatorCriteriaOnBucket(criteria)) {
+				return criteria.bucketSegmentName == null || criteria.bucketSegmentName.length === 0;
+			} else if (isIndicatorCriteriaOnExpression(criteria)) {
+				return criteria.value == null || criteria.value.length === 0;
+			} else {
+				return true;
+			}
+		});
+		if (failed) {
+			fail(InspectionInvalidReason.INCORRECT_CRITERIA);
+			return;
+		}
 		return;
 	}
 	if (inspection.measureOnTimeFactorId == null

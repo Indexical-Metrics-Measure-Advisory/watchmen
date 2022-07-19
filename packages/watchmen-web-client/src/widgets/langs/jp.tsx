@@ -473,6 +473,7 @@ export const Jp = {
 			PRINT: '印刷',
 			PICK_ANOTHER: '他の洞察を表示',
 			AGGREGATE_ARITHMETIC_IS_REQUIRED: '指標値の変換方法を少なくとも 1 つ選択してください。',
+			INCORRECT_CRITERIA: 'フィルター条件を修正してください。',
 			MEASURE_IS_REQUIRED: '時間グループまたはバケットを選択してください。',
 			MEASURE_ON_TIME_IS_REQUIRED: '時間グループを選択してください。',
 			INDICATOR_BUCKET_IS_REQUIRED: '指標値をバケットで選択してください。',

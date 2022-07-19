@@ -1,16 +1,18 @@
-import {buildBucketsAskingParams} from '../utils';
 import {Bucket} from '@/services/data/tuples/bucket-types';
 import {isMeasureBucket} from '@/services/data/tuples/bucket-utils';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {AlertLabel} from '@/widgets/alert/widgets';
+import {useForceUpdate} from '@/widgets/basic/utils';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {useEffect, useState} from 'react';
+import {v4} from 'uuid';
 import {useInspectionEventBus} from '../inspection-event-bus';
 import {InspectionEventTypes} from '../inspection-event-bus-types';
 import {useVisibleOnII} from '../use-visible-on-ii';
+import {buildBucketsAskingParams} from '../utils';
 import {InspectionLabel} from '../widgets';
 import {CriteriaEditor} from './criteria-editor';
 import {IndicatorCriteriaDefData} from './types';
@@ -19,7 +21,7 @@ import {CriteriaContainer, CriteriaRows} from './widgets';
 
 export const Criteria = () => {
 	const {fire: fireGlobal} = useEventBus();
-	const {fire} = useInspectionEventBus();
+	const {on, off, fire} = useInspectionEventBus();
 	const [defData, setDefData] = useState<IndicatorCriteriaDefData>({
 		loaded: false,
 		valueBuckets: [],
@@ -63,6 +65,17 @@ export const Criteria = () => {
 			}
 		})();
 	}, [fireGlobal, fire, indicator]);
+	const forceUpdate = useForceUpdate();
+	useEffect(() => {
+		const onCriteriaAdded = () => forceUpdate();
+		const onCriteriaRemoved = () => forceUpdate();
+		on(InspectionEventTypes.INDICATOR_CRITERIA_ADDED, onCriteriaAdded);
+		on(InspectionEventTypes.INDICATOR_CRITERIA_REMOVED, onCriteriaRemoved);
+		return () => {
+			off(InspectionEventTypes.INDICATOR_CRITERIA_ADDED, onCriteriaAdded);
+			off(InspectionEventTypes.INDICATOR_CRITERIA_REMOVED, onCriteriaRemoved);
+		};
+	}, [on, off]);
 
 	if (!visible || !defData.loaded) {
 		return null;
@@ -76,7 +89,8 @@ export const Criteria = () => {
 		<CriteriaRows>
 			{criteriaList.map(criteria => {
 				return <CriteriaEditor inspection={inspection!} criteria={criteria} indicator={indicator!.indicator}
-				                       factorCandidates={factorOptions} defData={defData}/>;
+				                       factorCandidates={factorOptions} defData={defData}
+				                       key={v4()}/>;
 			})}
 		</CriteriaRows>
 	</CriteriaContainer>;

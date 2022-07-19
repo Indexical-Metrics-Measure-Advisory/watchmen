@@ -1,6 +1,6 @@
 import {fetchAchievementIndicatorData} from '@/services/data/tuples/achievement';
 import {Achievement, AchievementIndicator, AchievementTimeRangeType} from '@/services/data/tuples/achievement-types';
-import {isAchievementIndicatorCriteriaOnExpression} from '@/services/data/tuples/indicator-criteria-utils';
+import {isIndicatorCriteriaOnExpression} from '@/services/data/tuples/indicator-criteria-utils';
 import {MeasureMethod} from '@/services/data/tuples/indicator-types';
 import {findTopicAndFactor, tryToTransformToMeasures} from '@/services/data/tuples/indicator-utils';
 import {useEventBus} from '@/widgets/events/event-bus';
@@ -77,7 +77,7 @@ const replace = (options: {
 	return {
 		...achievementIndicator,
 		criteria: (achievementIndicator.criteria || []).map(criteria => {
-			if (isAchievementIndicatorCriteriaOnExpression(criteria)) {
+			if (isIndicatorCriteriaOnExpression(criteria)) {
 				let measures: Array<MeasureMethod> = [];
 				if (defData.topic != null) {
 					// eslint-disable-next-line

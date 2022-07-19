@@ -473,6 +473,7 @@ export const Zh = {
 			PRINT: '打印',
 			PICK_ANOTHER: '查看其他洞察',
 			AGGREGATE_ARITHMETIC_IS_REQUIRED: '请至少选择一种指标值转换方式.',
+			INCORRECT_CRITERIA: '过滤条件不正确.',
 			MEASURE_IS_REQUIRED: '请选择时间分段或者指标分桶.',
 			MEASURE_ON_TIME_IS_REQUIRED: '请选择时间分段.',
 			INDICATOR_BUCKET_IS_REQUIRED: '请选择指标值分桶.',
