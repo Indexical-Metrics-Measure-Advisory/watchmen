@@ -1,4 +1,4 @@
-import {buildBucketsAskingParams} from '@/indicator/inspection/utils';
+import {buildBucketsAskingParams} from '../utils';
 import {Bucket} from '@/services/data/tuples/bucket-types';
 import {isMeasureBucket} from '@/services/data/tuples/bucket-utils';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
