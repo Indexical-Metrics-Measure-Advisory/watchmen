@@ -9,7 +9,7 @@ from watchmen_model.admin import Factor
 from watchmen_model.common import FactorId, Parameter, ParameterCondition, ParameterJoint, ParameterJointType, \
 	SubjectDatasetColumnId, TopicFactorParameter, TopicId
 from watchmen_model.console import Report, Subject, SubjectDatasetColumn
-from watchmen_model.indicator import AchievementIndicator, AchievementIndicatorCriteria, Indicator
+from watchmen_model.indicator import AchievementIndicator, Indicator, IndicatorCriteria
 from watchmen_utilities import ArrayHelper, is_blank, is_decimal
 from .achievement_data_service import AchievementDataService
 
@@ -66,7 +66,7 @@ class SubjectBaseAchievementDataService(AchievementDataService):
 		if len(criteria) == 0:
 			return None
 
-		def to_condition(a_criteria: AchievementIndicatorCriteria) -> ParameterCondition:
+		def to_condition(a_criteria: IndicatorCriteria) -> ParameterCondition:
 			column = self.find_column(
 				a_criteria.factorId,
 				lambda: f'Column of achievement indicator criteria[{criteria.to_dict()}] not declared.')
