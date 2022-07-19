@@ -80,7 +80,7 @@ export const fetchBucketsForIndicatorValue = async (search: string): Promise<Arr
 	}
 };
 
-export const fetchBucketsByIds = async (bucketIds: Array<BucketId>): Promise<Array<QueryBucket>> => {
+export const fetchBucketsByIds = async (bucketIds: Array<BucketId>): Promise<Array<Bucket>> => {
 	if (isMockService()) {
 		return await fetchMockBucketsByIds(bucketIds);
 	} else {
@@ -88,7 +88,7 @@ export const fetchBucketsByIds = async (bucketIds: Array<BucketId>): Promise<Arr
 	}
 };
 
-export const fetchBucketsByMethods = async (methods: Array<QueryByBucketMethod>): Promise<Array<QueryBucket>> => {
+export const fetchBucketsByMethods = async (methods: Array<QueryByBucketMethod>): Promise<Array<Bucket>> => {
 	if (isMockService()) {
 		return await fetchMockBucketsByMethods(methods);
 	} else {

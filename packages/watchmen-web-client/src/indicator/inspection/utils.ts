@@ -1,3 +1,4 @@
+import {BucketId} from '@/services/data/tuples/bucket-types';
 import {Indicator, IndicatorAggregateArithmetic, MeasureMethod} from '@/services/data/tuples/indicator-types';
 import {detectMeasures, findTopicAndFactor, isTimePeriodMeasure} from '@/services/data/tuples/indicator-utils';
 import {Inspection, InspectMeasureOn} from '@/services/data/tuples/inspection-types';
@@ -80,7 +81,7 @@ export const validateInspection = (options: {
 
 export const buildBucketsAskingParams = (
 	indicator: Indicator, topic?: TopicForIndicator, subject?: SubjectForIndicator
-) => {
+): { valueBucketIds: Array<BucketId>, measureMethods: Array<QueryByBucketMethod> } => {
 	return {
 		valueBucketIds: indicator.valueBuckets ?? [],
 		measureMethods: detectMeasures(topic, (measure: MeasureMethod) => !isTimePeriodMeasure(measure))

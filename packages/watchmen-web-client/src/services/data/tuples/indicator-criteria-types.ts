@@ -1,5 +1,5 @@
-import {BucketId} from '@/services/data/tuples/bucket-types';
-import {FactorId} from '@/services/data/tuples/factor-types';
+import {BucketId} from './bucket-types';
+import {FactorId} from './factor-types';
 
 export interface IndicatorCriteria {
 	factorId?: FactorId;

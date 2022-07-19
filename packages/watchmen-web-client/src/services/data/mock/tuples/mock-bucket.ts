@@ -77,8 +77,8 @@ export const fetchMockBucketsForIndicatorValue = async (search: string): Promise
 	});
 };
 
-export const fetchMockBucketsByIds = async (bucketIds: Array<BucketId>): Promise<Array<QueryBucket>> => {
-	return new Promise<Array<QueryBucket>>((resolve) => {
+export const fetchMockBucketsByIds = async (bucketIds: Array<BucketId>): Promise<Array<Bucket>> => {
+	return new Promise<Array<Bucket>>((resolve) => {
 		setTimeout(() => {
 			resolve(DemoQueryBuckets
 				// eslint-disable-next-line
@@ -88,8 +88,8 @@ export const fetchMockBucketsByIds = async (bucketIds: Array<BucketId>): Promise
 	});
 };
 
-export const fetchMockBucketsByMethods = async (methods: Array<QueryByBucketMethod>): Promise<Array<QueryBucket>> => {
-	return new Promise<Array<QueryBucket>>((resolve) => {
+export const fetchMockBucketsByMethods = async (methods: Array<QueryByBucketMethod>): Promise<Array<Bucket>> => {
+	return new Promise<Array<Bucket>>((resolve) => {
 		setTimeout(() => {
 			resolve(DemoQueryBuckets
 				// eslint-disable-next-line

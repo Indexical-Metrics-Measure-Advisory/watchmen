@@ -4,7 +4,7 @@ import {
 	isEnumMeasureBucket,
 	isNumericValueMeasureBucket
 } from '@/services/data/tuples/bucket-utils';
-import {IndicatorCriteria} from '@/services/data/tuples/indicator-criteria-types';
+import {IndicatorCriteria, IndicatorCriteriaOperator} from '@/services/data/tuples/indicator-criteria-types';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import {
 	findTopicAndFactor,
@@ -14,8 +14,18 @@ import {
 import {isNotNull} from '@/services/data/utils';
 import {DropdownOption} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
-import {IndicatorCriteriaDefData} from '../types';
+import {IndicatorCriteriaDefData} from './types';
 
+export const CriteriaArithmeticLabel: Record<IndicatorCriteriaOperator, string> = {
+	[IndicatorCriteriaOperator.EQUALS]: Lang.PARAMETER.EXPRESSION_OPERATOR.EQUALS,
+	[IndicatorCriteriaOperator.NOT_EQUALS]: Lang.PARAMETER.EXPRESSION_OPERATOR.NOT_EQUALS,
+	[IndicatorCriteriaOperator.LESS]: Lang.PARAMETER.EXPRESSION_OPERATOR.LESS,
+	[IndicatorCriteriaOperator.LESS_EQUALS]: Lang.PARAMETER.EXPRESSION_OPERATOR.LESS_EQUALS,
+	[IndicatorCriteriaOperator.MORE]: Lang.PARAMETER.EXPRESSION_OPERATOR.MORE,
+	[IndicatorCriteriaOperator.MORE_EQUALS]: Lang.PARAMETER.EXPRESSION_OPERATOR.MORE_EQUALS
+};
+
+// noinspection DuplicatedCode
 export const findAvailableBuckets = (criteria: IndicatorCriteria, indicator: Indicator, defData: IndicatorCriteriaDefData): Array<Bucket> => {
 	// eslint-disable-next-line
 	if (criteria.factorId == indicator.factorId) {
@@ -74,18 +84,6 @@ export const buildValueBucketOptions = (criteria: IndicatorCriteria, indicator: 
 			label: bucket.name || 'Noname Bucket'
 		};
 	});
-};
-
-export const getTimeRangePlaceholder = (year: boolean, month: boolean): string | undefined => {
-	if (year && month) {
-		return Lang.PLAIN.INDICATOR_CRITERIA_TIME_RANGE_YEAR_MONTH;
-	} else if (year) {
-		return Lang.PLAIN.INDICATOR_CRITERIA_TIME_RANGE_YEAR;
-	} else if (month) {
-		return Lang.PLAIN.INDICATOR_CRITERIA_TIME_RANGE_MONTH;
-	} else {
-		return (void 0);
-	}
 };
 
 export const buildFactorOptions = (defData: IndicatorCriteriaDefData): Array<DropdownOption> => {
