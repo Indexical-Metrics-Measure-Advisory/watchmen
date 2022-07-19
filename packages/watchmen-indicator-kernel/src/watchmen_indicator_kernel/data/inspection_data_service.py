@@ -9,12 +9,13 @@ from watchmen_model.console import SubjectDatasetColumn
 from watchmen_model.console.subject import SubjectColumnArithmetic
 from watchmen_model.indicator import Inspection, MeasureMethod
 from watchmen_utilities import is_blank
+from .indicator_criteria_service import IndicatorCriteriaService
 
 
-class InspectionDataService:
+class InspectionDataService(IndicatorCriteriaService):
 	def __init__(self, inspection: Inspection, principal_service: PrincipalService):
+		super().__init__(principal_service)
 		self.inspection = inspection
-		self.principalService = principal_service
 		self.FAKE_TIME_GROUP_COLUMN_ID = 'fake_time_group'
 
 	def has_time_group(self) -> Tuple[bool, Optional[FactorId], Optional[MeasureMethod]]:
