@@ -4,8 +4,8 @@ import {
 } from '@/services/data/tuples/achievement-types';
 import {IndicatorCriteriaOperator} from '@/services/data/tuples/indicator-criteria-types';
 import {
-	isAchievementIndicatorCriteriaOnBucket,
-	isAchievementIndicatorCriteriaOnExpression
+	isIndicatorCriteriaOnBucket,
+	isIndicatorCriteriaOnExpression
 } from '@/services/data/tuples/indicator-criteria-utils';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import {Lang} from '@/widgets/langs';
@@ -152,9 +152,9 @@ export const isReadyToCalculation = (achievement: Achievement, achievementIndica
 		if (criteria.factorId == null) {
 			return false;
 		}
-		if (isAchievementIndicatorCriteriaOnBucket(criteria)) {
+		if (isIndicatorCriteriaOnBucket(criteria)) {
 			return criteria.bucketSegmentName != null;
-		} else if (isAchievementIndicatorCriteriaOnExpression(criteria)) {
+		} else if (isIndicatorCriteriaOnExpression(criteria)) {
 			return true;
 		}
 

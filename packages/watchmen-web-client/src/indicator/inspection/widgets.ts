@@ -42,8 +42,9 @@ export const IndicatorContainer = styled.div.attrs({'data-widget': 'indicator'})
 export const InspectionLabel = styled.span.attrs({'data-widget': 'inspection-label'})`
 	display      : flex;
 	position     : relative;
-	align-items  : center;
+	align-items  : start;
 	min-height   : var(--tall-height);
+	line-height  : var(--height);
 	font-weight  : var(--font-demi-bold);
 	font-variant : petite-caps;
 	white-space  : nowrap;

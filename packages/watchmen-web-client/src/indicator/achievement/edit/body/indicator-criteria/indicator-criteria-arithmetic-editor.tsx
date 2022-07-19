@@ -12,8 +12,8 @@ import {
 } from '@/services/data/tuples/indicator-criteria-types';
 import {
 	getCriteriaArithmetic,
-	isAchievementIndicatorCriteriaOnBucket,
-	isAchievementIndicatorCriteriaOnExpression, isCriteriaArithmeticVisible
+	isIndicatorCriteriaOnBucket,
+	isIndicatorCriteriaOnExpression, isCriteriaArithmeticVisible
 } from '@/services/data/tuples/indicator-criteria-utils';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import {findTopicAndFactor} from '@/services/data/tuples/indicator-utils';
@@ -72,7 +72,7 @@ export const IndicatorCriteriaArithmeticEditor = (props: {
 			case IndicatorCriteriaOperator.LESS_EQUALS:
 			case IndicatorCriteriaOperator.MORE:
 			case IndicatorCriteriaOperator.MORE_EQUALS:
-				if (isAchievementIndicatorCriteriaOnBucket(criteria)) {
+				if (isIndicatorCriteriaOnBucket(criteria)) {
 					delete criteria.bucketId;
 					delete criteria.bucketSegmentName;
 				}
@@ -80,13 +80,13 @@ export const IndicatorCriteriaArithmeticEditor = (props: {
 				criteriaOnExp.operator = newValue;
 				break;
 			default:
-				if (isAchievementIndicatorCriteriaOnExpression(criteria)) {
+				if (isIndicatorCriteriaOnExpression(criteria)) {
 					delete criteria.operator;
 					delete criteria.value;
 					const criteriaOnBucket = criteria as IndicatorCriteriaOnBucket;
 					criteriaOnBucket.bucketId = newValue as BucketId;
 					delete criteriaOnBucket.bucketSegmentName;
-				} else if (isAchievementIndicatorCriteriaOnBucket(criteria)) {
+				} else if (isIndicatorCriteriaOnBucket(criteria)) {
 					// eslint-disable-next-line
 					if (criteria.bucketId != newValue as BucketId) {
 						criteria.bucketId = newValue as BucketId;

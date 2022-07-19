@@ -1,8 +1,8 @@
 import {FactorId} from '@/services/data/tuples/factor-types';
 import {IndicatorCriteria} from '@/services/data/tuples/indicator-criteria-types';
 import {
-	isAchievementIndicatorCriteriaOnBucket,
-	isAchievementIndicatorCriteriaOnExpression
+	isIndicatorCriteriaOnBucket,
+	isIndicatorCriteriaOnExpression
 } from '@/services/data/tuples/indicator-criteria-utils';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import {Inspection} from '@/services/data/tuples/inspection-types';
@@ -41,10 +41,10 @@ export const CriteriaFactorEditor = (props: {
 			fire(InspectionEventTypes.INDICATOR_CRITERIA_ADDED, inspection, criteria);
 		} else {
 			// existing criteria
-			if (isAchievementIndicatorCriteriaOnExpression(criteria)) {
+			if (isIndicatorCriteriaOnExpression(criteria)) {
 				// operator and value is for all expression criteria
 				// do nothing
-			} else if (isAchievementIndicatorCriteriaOnBucket(criteria)) {
+			} else if (isIndicatorCriteriaOnBucket(criteria)) {
 				const availableBuckets = findAvailableBuckets(criteria, indicator, defData);
 				// eslint-disable-next-line
 				if (availableBuckets.every(bucket => bucket.bucketId != criteria.bucketId)) {

@@ -18,10 +18,7 @@ export const CriteriaEditor = (props: {
 }) => {
 	const {inspection, criteria, indicator, factorCandidates, defData} = props;
 
-	const index = (inspection.criteria || []).indexOf(criteria) + 1;
-
 	return <CriteriaRow>
-		<InspectionCriteriaIndex>{index === 0 ? (inspection.criteria || []).length + 1 : index}</InspectionCriteriaIndex>
 		<CriteriaFactorEditor inspection={inspection} criteria={criteria} defData={defData}
 		                      factorCandidates={factorCandidates} indicator={indicator}/>
 		<CriteriaArithmeticEditor inspection={inspection} criteria={criteria} defData={defData} indicator={indicator}/>

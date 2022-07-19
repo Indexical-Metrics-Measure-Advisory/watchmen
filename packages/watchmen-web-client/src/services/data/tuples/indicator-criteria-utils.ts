@@ -11,16 +11,16 @@ import {tryToTransformColumnToMeasures, tryToTransformToMeasures} from './indica
 import {SubjectForIndicator} from './query-indicator-types';
 import {SubjectDataSetColumn} from './subject-types';
 
-export const isAchievementIndicatorCriteriaOnBucket = (criteria: IndicatorCriteria): criteria is IndicatorCriteriaOnBucket => {
+export const isIndicatorCriteriaOnBucket = (criteria: IndicatorCriteria): criteria is IndicatorCriteriaOnBucket => {
 	return (criteria as any).bucketId != null;
 };
-export const isAchievementIndicatorCriteriaOnExpression = (criteria: IndicatorCriteria): criteria is IndicatorCriteriaOnExpression => {
+export const isIndicatorCriteriaOnExpression = (criteria: IndicatorCriteria): criteria is IndicatorCriteriaOnExpression => {
 	return (criteria as any).operator != null;
 };
 export const getCriteriaArithmetic = (criteria: IndicatorCriteria): BucketId | IndicatorCriteriaOperator | undefined => {
-	if (isAchievementIndicatorCriteriaOnBucket(criteria)) {
+	if (isIndicatorCriteriaOnBucket(criteria)) {
 		return criteria.bucketId;
-	} else if (isAchievementIndicatorCriteriaOnExpression(criteria)) {
+	} else if (isIndicatorCriteriaOnExpression(criteria)) {
 		return criteria.operator;
 	}
 	return (void 0);
@@ -30,11 +30,11 @@ export const isCriteriaArithmeticVisible = (criteria: IndicatorCriteria): boolea
 };
 export const isCriteriaValueVisible = (criteria: IndicatorCriteria): boolean => {
 	return isCriteriaArithmeticVisible(criteria)
-		&& ((isAchievementIndicatorCriteriaOnBucket(criteria) && criteria.bucketId != null)
-			|| (isAchievementIndicatorCriteriaOnExpression(criteria) && criteria.operator != null));
+		&& ((isIndicatorCriteriaOnBucket(criteria) && criteria.bucketId != null)
+			|| (isIndicatorCriteriaOnExpression(criteria) && criteria.operator != null));
 };
 export const showInputForValue = (criteria: IndicatorCriteria): boolean => {
-	return !isAchievementIndicatorCriteriaOnBucket(criteria);
+	return !isIndicatorCriteriaOnBucket(criteria);
 };
 export const getAvailableTimeRangeOnFactor = (factor?: Factor): { year: boolean; month: boolean } => {
 	const measures = factor == null ? [] : tryToTransformToMeasures(factor);
