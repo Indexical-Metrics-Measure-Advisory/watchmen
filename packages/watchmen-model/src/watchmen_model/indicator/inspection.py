@@ -4,7 +4,7 @@ from typing import Any, List, Literal, Optional, Union
 from pydantic import BaseModel
 
 from watchmen_model.common import Auditable, BucketId, DataModel, FactorId, IndicatorId, InspectionId, UserBasedTuple
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, is_not_blank
 from .indicator import IndicatorAggregateArithmetic
 from .measure_method import MeasureMethod
 
@@ -161,6 +161,57 @@ def construct_time_ranges(ranges: Optional[list] = None) -> Optional[List[Inspec
 		return ArrayHelper(ranges).map(lambda x: construct_time_range(x)).to_list()
 
 
+class InspectionCriteria(DataModel, BaseModel):
+	factorId: FactorId = None
+
+
+class InspectionCriteriaOnBucket(InspectionCriteria):
+	"""
+	fill when use predefined bucket
+	"""
+	bucketId: BucketId = None
+	bucketSegmentName: str = None
+
+
+class InspectionCriteriaOperator(str, Enum):
+	EQUALS = 'equals',
+	NOT_EQUALS = 'not-equals',
+	LESS = 'less',
+	LESS_EQUALS = 'less-equals',
+	MORE = 'more',
+	MORE_EQUALS = 'more-equals',
+
+
+class InspectionCriteriaOnExpression(InspectionCriteria):
+	operator: InspectionCriteriaOperator = InspectionCriteriaOperator.EQUALS
+	value: str = None
+
+
+def construct_criteria(
+		criteria: Optional[Union[dict, InspectionCriteria]]) -> Optional[InspectionCriteria]:
+	if criteria is None:
+		return None
+	elif isinstance(criteria, InspectionCriteria):
+		return criteria
+	else:
+		bucket_id = criteria.get('bucketId')
+		if is_not_blank(bucket_id):
+			return InspectionCriteriaOnBucket(**criteria)
+		operator = criteria.get('operator')
+		if is_not_blank(operator):
+			return InspectionCriteriaOnExpression(**criteria)
+		else:
+			return InspectionCriteria(**criteria)
+
+
+def construct_criteria_list(
+		criteria_list: Optional[list] = None) -> Optional[List[InspectionCriteria]]:
+	if criteria_list is None:
+		return None
+	else:
+		return ArrayHelper(criteria_list).map(lambda x: construct_criteria(x)).to_list()
+
+
 class Inspection(UserBasedTuple, Auditable, BaseModel):
 	inspectionId: InspectionId = None
 	name: str = None
@@ -183,9 +234,12 @@ class Inspection(UserBasedTuple, Auditable, BaseModel):
 	measureOnTime: MeasureMethod = None
 	# time measure on factor
 	measureOnTimeFactorId: FactorId = None
+	criteria: List[InspectionCriteria] = []
 
 	def __setattr__(self, name, value):
 		if name == 'timeRanges':
 			super().__setattr__(name, construct_time_ranges(value))
+		elif name == 'criteria':
+			super().__setattr__(name, construct_criteria_list(value))
 		else:
 			super().__setattr__(name, value)

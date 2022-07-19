@@ -12,6 +12,7 @@ CREATE TABLE inspections
     time_ranges               VARCHAR2(1024),
     measure_on_time           VARCHAR2(20),
     measure_on_time_factor_id VARCHAR2(50),
+    criteria                  CLOB,
     user_id                   VARCHAR2(50) NOT NULL,
     tenant_id                 VARCHAR2(50) NOT NULL,
     created_at                DATE         NOT NULL,

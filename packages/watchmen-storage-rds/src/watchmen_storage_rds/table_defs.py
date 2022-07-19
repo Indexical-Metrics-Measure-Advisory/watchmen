@@ -274,6 +274,7 @@ table_inspections = Table(
 	create_str('time_range_measure', 20), create_tuple_id_column('time_range_factor_id'),
 	create_json('time_ranges'),
 	create_str('measure_on_time', 20), create_tuple_id_column('measure_on_time_factor_id'),
+	create_json('criteria'),
 	create_user_id(), create_tenant_id(),
 	*create_tuple_audit_columns()
 )

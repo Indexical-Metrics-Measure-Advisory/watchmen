@@ -19,7 +19,8 @@ class InspectionShaper(EntityShaper):
 			'time_range_factor_id': inspection.timeRangeFactorId,
 			'time_ranges': ArrayHelper(inspection.timeRanges).map(lambda x: x.to_dict()).to_list(),
 			'measure_on_time': inspection.measureOnTime,
-			'measure_on_time_factor_id': inspection.measureOnTimeFactorId
+			'measure_on_time_factor_id': inspection.measureOnTimeFactorId,
+			'criteria': ArrayHelper(inspection.criteria).map(lambda x: x.to_dict()).to_list()
 		}
 		row = UserBasedTupleShaper.serialize(inspection, row)
 		return row
@@ -37,7 +38,8 @@ class InspectionShaper(EntityShaper):
 			timeRangeFactorId=row.get('time_range_factor_id'),
 			timeRanges=row.get('time_ranges'),
 			measureOnTime=row.get('measure_on_time'),
-			measureOnTimeFactorId=row.get('measure_on_time_factor_id')
+			measureOnTimeFactorId=row.get('measure_on_time_factor_id'),
+			criteria=row.get('criteria')
 		)
 		# noinspection PyTypeChecker
 		inspection: Inspection = UserBasedTupleShaper.deserialize(row, inspection)
