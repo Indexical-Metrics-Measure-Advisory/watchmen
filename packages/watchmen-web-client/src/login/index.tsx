@@ -8,7 +8,6 @@ import {Lang} from '@/widgets/langs';
 import {faKey, faUserAstronaut} from '@fortawesome/free-solid-svg-icons';
 import dayjs from 'dayjs';
 import React, {ChangeEvent, Fragment, useEffect, useRef, useState} from 'react';
-import {useHistory} from 'react-router-dom';
 import {
 	Error,
 	Form,
@@ -30,7 +29,7 @@ import {
 } from './widgets';
 
 const RegularLogin = () => {
-	const history = useHistory();
+	// noinspection DuplicatedCode
 	const nameRef = useRef<HTMLInputElement>(null);
 	const credentialRef = useRef<HTMLInputElement>(null);
 	const [account, setAccount] = useState<Account>({} as Account);
@@ -78,9 +77,9 @@ const RegularLogin = () => {
 				tenantId
 			});
 			if (admin || superAdmin) {
-				history.replace(Router.ADMIN);
+				window.location.replace(Router.ADMIN);
 			} else {
-				history.replace(Router.CONSOLE);
+				window.location.replace(Router.CONSOLE);
 			}
 		} catch {
 			setError(Lang.ERROR.UNPREDICTED);
