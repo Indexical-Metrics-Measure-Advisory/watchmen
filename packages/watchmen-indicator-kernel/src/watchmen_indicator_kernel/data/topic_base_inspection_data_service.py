@@ -6,13 +6,13 @@ from watchmen_indicator_kernel.common import IndicatorKernelException
 from watchmen_inquiry_kernel.storage import ReportDataService
 from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import ComputedParameter, ConstantParameter, DataResult, DataResultSetRow, \
-	FactorId, Parameter, ParameterComputeType, ParameterExpression, ParameterExpressionOperator, ParameterJoint, \
-	ParameterJointType, ParameterKind, TopicFactorParameter, TopicId
+	FactorId, Parameter, ParameterComputeType, ParameterCondition, ParameterExpression, ParameterExpressionOperator, \
+	ParameterJoint, ParameterJointType, ParameterKind, TopicFactorParameter, TopicId
 from watchmen_model.console import Report, ReportDimension, ReportIndicator, ReportIndicatorArithmetic, Subject, \
 	SubjectDataset, SubjectDatasetColumn
 from watchmen_model.indicator import Bucket, CategorySegment, CategorySegmentsHolder, Indicator, \
-	IndicatorAggregateArithmetic, Inspection, InspectMeasureOn, MeasureMethod, NumericSegmentsHolder, \
-	NumericValueSegment, OtherCategorySegmentValue, RangeBucketValueIncluding
+	IndicatorAggregateArithmetic, IndicatorCriteria, Inspection, InspectMeasureOn, MeasureMethod, \
+	NumericSegmentsHolder, NumericValueSegment, OtherCategorySegmentValue, RangeBucketValueIncluding
 from watchmen_utilities import ArrayHelper, is_blank
 from .bucket_helper import ask_bucket
 from .inspection_data_service import InspectionDataService
@@ -330,18 +330,34 @@ class TopicBaseInspectionDataService(InspectionDataService):
 			and len(self.indicator.filter.joint.filters) != 0
 
 	# noinspection DuplicatedCode
+	def fake_criteria_to_dataset_filter(self) -> Optional[ParameterJoint]:
+		criteria = ArrayHelper(self.inspection.criteria).filter(lambda x: x is not None).to_list()
+		if len(criteria) == 0:
+			return None
+
+		def to_condition(a_criteria: IndicatorCriteria) -> ParameterCondition:
+			factor = self.find_factor(
+				a_criteria.factorId,
+				lambda: f'Factor of inspection criteria[{criteria.to_dict()}] not declared.')
+			return self.fake_criteria_to_condition(a_criteria)(self.topic.topicId, factor.factorId)
+
+		return ParameterJoint(
+			jointType=ParameterJointType.AND,
+			filters=ArrayHelper(criteria).map(to_condition).to_list()
+		)
+
+	# noinspection DuplicatedCode
 	def build_filters(self) -> Optional[ParameterJoint]:
 		time_range_filter = self.fake_time_range_to_dataset_filter()
-		if self.has_indicator_filter():
-			if time_range_filter is not None:
-				return ParameterJoint(
-					jointType=ParameterJointType.AND,
-					filters=[time_range_filter, self.indicator.filter.joint]
-				)
-			else:
-				return self.indicator.filter.joint
+		inspection_filter = self.fake_criteria_to_dataset_filter()
+		indicator_filter = self.indicator.filter.joint if self.has_indicator_filter() else None
+		filters = ArrayHelper([time_range_filter, inspection_filter, indicator_filter]) \
+			.filter(lambda x: x is not None) \
+			.to_list()
+		if len(filters) == 0:
+			return None
 		else:
-			return time_range_filter
+			return ParameterJoint(jointType=ParameterJointType.AND, filters=filters)
 
 	def fake_to_subject(self) -> Subject:
 		dataset_columns: List[SubjectDatasetColumn] = []
