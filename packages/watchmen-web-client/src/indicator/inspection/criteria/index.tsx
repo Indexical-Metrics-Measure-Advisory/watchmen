@@ -75,7 +75,7 @@ export const Criteria = () => {
 			off(InspectionEventTypes.INDICATOR_CRITERIA_ADDED, onCriteriaAdded);
 			off(InspectionEventTypes.INDICATOR_CRITERIA_REMOVED, onCriteriaRemoved);
 		};
-	}, [on, off]);
+	}, [on, off, forceUpdate]);
 
 	if (!visible || !defData.loaded) {
 		return null;

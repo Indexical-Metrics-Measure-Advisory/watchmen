@@ -24,9 +24,6 @@ export const CriteriaRow = styled.div.attrs({'data-widget': 'inspection-criteria
 		}
 	}
 `;
-export const InspectionCriteriaIndex = styled.span.attrs({'data-widget': 'inspection-criteria-index'})`
-	font-size : 0.8em;
-`;
 export const InspectionCriteriaFactor = styled.div.attrs({'data-widget': 'inspection-criteria-factor'})`
 	> span {
 		font-variant : petite-caps;

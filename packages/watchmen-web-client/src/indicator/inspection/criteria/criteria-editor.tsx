@@ -7,7 +7,7 @@ import {CriteriaFactorEditor} from './criteria-factor-editor';
 import {CriteriaOperators} from './criteria-operators';
 import {CriteriaValueEditor} from './criteria-value-editor';
 import {IndicatorCriteriaDefData} from './types';
-import {CriteriaRow, InspectionCriteriaIndex} from './widgets';
+import {CriteriaRow} from './widgets';
 
 export const CriteriaEditor = (props: {
 	inspection: Inspection;
