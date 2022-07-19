@@ -28,6 +28,7 @@ const OrderPremiumInspection: Inspection = {
 	aggregateArithmetics: [IndicatorAggregateArithmetic.SUM, IndicatorAggregateArithmetic.AVG],
 	measureOn: InspectMeasureOn.VALUE,
 	measureOnBucketId: BUCKET_AMOUNT_ID,
+	criteria: [],
 	createdAt: getCurrentTime(),
 	lastModifiedAt: getCurrentTime()
 };
