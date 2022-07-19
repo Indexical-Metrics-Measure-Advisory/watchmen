@@ -3,60 +3,10 @@ from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
-from watchmen_model.common import AchievementId, Auditable, BucketId, DataModel, FactorId, IndicatorId, UserBasedTuple
-from watchmen_utilities import ArrayHelper, is_not_blank
+from watchmen_model.common import AchievementId, Auditable, DataModel, IndicatorId, UserBasedTuple
+from watchmen_utilities import ArrayHelper
 from .indicator import IndicatorAggregateArithmetic
-
-
-class AchievementIndicatorCriteria(DataModel, BaseModel):
-	factorId: FactorId = None
-
-
-class AchievementIndicatorCriteriaOnBucket(AchievementIndicatorCriteria):
-	"""
-	fill when use predefined bucket
-	"""
-	bucketId: BucketId = None
-	bucketSegmentName: str = None
-
-
-class AchievementIndicatorCriteriaOperator(str, Enum):
-	EQUALS = 'equals',
-	NOT_EQUALS = 'not-equals',
-	LESS = 'less',
-	LESS_EQUALS = 'less-equals',
-	MORE = 'more',
-	MORE_EQUALS = 'more-equals',
-
-
-class AchievementIndicatorCriteriaOnExpression(AchievementIndicatorCriteria):
-	operator: AchievementIndicatorCriteriaOperator = AchievementIndicatorCriteriaOperator.EQUALS
-	value: str = None
-
-
-def construct_indicator_criteria(
-		criteria: Optional[Union[dict, AchievementIndicatorCriteria]]) -> Optional[AchievementIndicatorCriteria]:
-	if criteria is None:
-		return None
-	elif isinstance(criteria, AchievementIndicatorCriteria):
-		return criteria
-	else:
-		bucket_id = criteria.get('bucketId')
-		if is_not_blank(bucket_id):
-			return AchievementIndicatorCriteriaOnBucket(**criteria)
-		operator = criteria.get('operator')
-		if is_not_blank(operator):
-			return AchievementIndicatorCriteriaOnExpression(**criteria)
-		else:
-			return AchievementIndicatorCriteria(**criteria)
-
-
-def construct_indicator_criteria_list(
-		criteria_list: Optional[list] = None) -> Optional[List[AchievementIndicatorCriteria]]:
-	if criteria_list is None:
-		return None
-	else:
-		return ArrayHelper(criteria_list).map(lambda x: construct_indicator_criteria(x)).to_list()
+from .indicator_criteria import construct_indicator_criteria_list, IndicatorCriteria
 
 
 class AchievementIndicator(DataModel, BaseModel):
@@ -65,7 +15,7 @@ class AchievementIndicator(DataModel, BaseModel):
 	aggregateArithmetic: IndicatorAggregateArithmetic = None
 	formula: str = None
 	includeInFinalScore: bool = True
-	criteria: List[AchievementIndicatorCriteria] = []
+	criteria: List[IndicatorCriteria] = []
 	variableName: str = None
 
 	def __setattr__(self, name, value):
