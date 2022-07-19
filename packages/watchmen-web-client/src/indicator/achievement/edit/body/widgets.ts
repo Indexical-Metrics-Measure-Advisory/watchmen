@@ -72,18 +72,22 @@ export const AchievementPalette = styled.div.attrs<{ showAddIndicator: boolean; 
 			}
 			> div {
 				height: calc(var(--tall-height) * 1.5);
-				&:last-child:before, &:last-child:after {
+				&[data-widget=achievement-root-score]:before, &[data-widget=achievement-root-score]:after {
 					content: '';
 					border-radius: 2px;
-					opacity: 0.5;
+					opacity: 0.2;
+					font-size: calc(var(--font-size) * 1);
 				}
-				&:last-child:before {
-					content: '↬';
-					margin-right: calc(var(--margin) / 2);
+				&[data-widget=achievement-root-score]:before {
+					content: '<<<';
+					margin-right: calc(var(--margin) / 8 * 5);
 				}
-				&:last-child:after {
-					content: '↫';
+				&[data-widget=achievement-root-score]:after {
+					content: '>>>';
 					margin-left: calc(var(--margin) / 2);
+				}
+				&[data-widget=achievement-root-is-ratio] {
+					display: none;
 				}
 			}
 		}
@@ -356,14 +360,39 @@ export const AchievementRootNode = styled(AchievementBlock).attrs({'data-widget'
 	&:before {
 		background-color : var(--achievement-root-color);
 	}
-	> div {
-		display         : flex;
-		position        : relative;
-		align-items     : center;
-		justify-content : center;
-		min-height      : var(--height);
-		width           : 100%;
-		font-weight     : var(--font-bold);
+	&:hover > div[data-widget=achievement-root-is-ratio] {
+		opacity        : 1;
+		pointer-events : auto;
+	}
+`;
+export const AchievementRootName = styled.div.attrs({'data-widget': 'achievement-root-name'})`
+	display         : flex;
+	position        : relative;
+	align-items     : center;
+	justify-content : center;
+	min-height      : var(--height);
+	width           : 100%;
+	font-weight     : var(--font-bold);
+`;
+export const AchievementRootScore = styled.div.attrs({'data-widget': 'achievement-root-score'})`
+	display         : flex;
+	position        : relative;
+	align-items     : center;
+	justify-content : center;
+	min-height      : var(--height);
+	width           : 100%;
+	font-weight     : var(--font-bold);
+`;
+export const AchievementRootIsRatio = styled.div.attrs({'data-widget': 'achievement-root-is-ratio'})`
+	display        : block;
+	position       : absolute;
+	bottom         : 2px;
+	right          : 2px;
+	opacity        : 0;
+	pointer-events : none;
+	transition     : opacity 300ms ease-in-out;
+	> div[data-widget=checkbox] {
+		border-color : var(--achievement-root-color);
 	}
 `;
 export const IndicatorPartRelationLine = styled(AchievementBlockPairLine).attrs({'data-widget': 'indicator-part-relation-line'})`

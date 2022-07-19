@@ -502,6 +502,7 @@ export const En = {
 			HIDE_INDICATOR_CANDIDATES: 'Hide Indicator Candidates',
 			SHOW_INDICATOR_CANDIDATES: 'Show Indicator Candidates',
 			ROOT: 'Root',
+			FINAL_SCORE_IS_RATIO: 'As Percentage',
 			MISSED_INDICATOR: 'Missed Indicator',
 			MISSED_INDICATOR_BASE: 'Missed Indicator Topic or Subject',
 			NO_INDICATOR_CRITERIA_DEFINED: 'No Criteria Defined Yet',

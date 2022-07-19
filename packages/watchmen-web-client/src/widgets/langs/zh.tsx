@@ -502,6 +502,7 @@ export const Zh = {
 			HIDE_INDICATOR_CANDIDATES: '隐藏候选指标',
 			SHOW_INDICATOR_CANDIDATES: '显示候选指标',
 			ROOT: '根',
+			FINAL_SCORE_IS_RATIO: '使用百分比',
 			MISSED_INDICATOR: '未找到指标定义',
 			MISSED_INDICATOR_BASE: '未找到指标对应的数据集或主题定义',
 			NO_INDICATOR_CRITERIA_DEFINED: '尚未定义过滤条件',
