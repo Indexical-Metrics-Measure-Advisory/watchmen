@@ -192,6 +192,7 @@ async def patch_topic_data(
 	principal_service = fake_to_tenant(principal_service, tenant_id)
 
 	schema = get_topic_schema(topic_name, tenant_id, principal_service)
+	data = schema.prepare_data(data, principal_service)
 	storage = ask_topic_storage(schema, principal_service)
 	service = ask_topic_data_service(schema, storage, principal_service)
 	if patch_type == PipelineTriggerType.INSERT:

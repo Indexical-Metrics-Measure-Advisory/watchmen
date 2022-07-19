@@ -107,10 +107,15 @@ class MongoConnection:
 		return self.count(document, criteria) != 0
 
 	def count(self, document: MongoDocument, criteria: Dict[str, any]) -> int:
-		results = list(self.collection(document.name).aggregate([
-			{'$match': {'$expr': criteria}},
-			{'$count': 'count'}
-		]))
+		if criteria:
+			results = list(self.collection(document.name).aggregate([
+				{'$match': {'$expr': criteria}},
+				{'$count': 'count'}
+			]))
+		else:
+			results = list(self.collection(document.name).aggregate([
+				{'$count': 'count'}
+			]))
 		if results:
 			return results[0]['count']
 		else:
@@ -138,19 +143,14 @@ class MongoConnection:
 			self, document: MongoDocument, criteria: Dict[str, Any],
 			offset: int, limit: int,
 			sort: Optional[Dict[str, Any]] = None):
-		if sort is None:
-			return list(self.collection(document.name).aggregate([
-				{'$match': {'$expr': criteria}},
-				{'$skip': offset},
-				{'$limit': limit}
-			]))
-		else:
-			return list(self.collection(document.name).aggregate([
-				{'$match': {'$expr': criteria}},
-				{'$sort': sort},
-				{'$skip': offset},
-				{'$limit': limit}
-			]))
+		pipeline = []
+		if criteria:
+			pipeline.append({'$match': {'$expr': criteria}})
+		if sort:
+			pipeline.append({'$sort': sort})
+		pipeline.append({'$skip': offset})
+		pipeline.append({'$limit': limit})
+		return list(self.collection(document.name).aggregate(pipeline))
 
 
 class MongoEngine:
