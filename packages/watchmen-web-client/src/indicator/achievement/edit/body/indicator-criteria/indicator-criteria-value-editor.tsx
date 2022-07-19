@@ -1,10 +1,12 @@
 import {
 	Achievement,
-	AchievementIndicator,
-	AchievementIndicatorCriteria,
-	AchievementIndicatorCriteriaOnBucket,
-	AchievementIndicatorCriteriaOnExpression
+	AchievementIndicator
 } from '@/services/data/tuples/achievement-types';
+import {
+	IndicatorCriteria,
+	IndicatorCriteriaOnBucket,
+	IndicatorCriteriaOnExpression
+} from '@/services/data/tuples/indicator-criteria-types';
 import {MeasureMethod} from '@/services/data/tuples/indicator-types';
 import {tryToTransformColumnToMeasures, tryToTransformToMeasures} from '@/services/data/tuples/indicator-utils';
 import {noop} from '@/services/utils';
@@ -31,7 +33,7 @@ import {IndicatorCriteriaValue} from './widgets';
 const InputEditor = (props: {
 	achievement: Achievement;
 	achievementIndicator: AchievementIndicator;
-	criteria: AchievementIndicatorCriteria;
+	criteria: IndicatorCriteria;
 	defData: IndicatorCriteriaDefData;
 }) => {
 	const {achievement, achievementIndicator, criteria, defData} = props;
@@ -97,20 +99,20 @@ const InputEditor = (props: {
 
 	const onInputValueChanged = (event: ChangeEvent<HTMLInputElement>) => {
 		const {value} = event.target;
-		(criteria as AchievementIndicatorCriteriaOnExpression).value = value;
+		(criteria as IndicatorCriteriaOnExpression).value = value;
 		forceUpdate();
 		fireEdit(AchievementEditEventTypes.INDICATOR_CRITERIA_CHANGED, achievement, achievementIndicator);
 		fire(AchievementEventTypes.SAVE_ACHIEVEMENT, achievement, noop);
 	};
 
-	return <Input value={(criteria as AchievementIndicatorCriteriaOnExpression).value || ''}
+	return <Input value={(criteria as IndicatorCriteriaOnExpression).value || ''}
 	              onChange={onInputValueChanged} {...tooltipTrigger} ref={inputRef}/>;
 };
 
 export const IndicatorCriteriaValueEditor = (props: {
 	achievement: Achievement;
 	achievementIndicator: AchievementIndicator;
-	criteria: AchievementIndicatorCriteria;
+	criteria: IndicatorCriteria;
 	defData: IndicatorCriteriaDefData;
 }) => {
 	const {achievement, achievementIndicator, criteria, defData} = props;
@@ -119,7 +121,7 @@ export const IndicatorCriteriaValueEditor = (props: {
 	const {on: onEdit, off: offEdit, fire: fireEdit} = useAchievementEditEventBus();
 	const forceUpdate = useForceUpdate();
 	useEffect(() => {
-		const onCriteriaChanged = (aAchievement: Achievement, aAchievementIndicator: AchievementIndicator, aCriteria: AchievementIndicatorCriteria) => {
+		const onCriteriaChanged = (aAchievement: Achievement, aAchievementIndicator: AchievementIndicator, aCriteria: IndicatorCriteria) => {
 			if (aAchievement !== achievement || aAchievementIndicator !== achievementIndicator || aCriteria !== criteria) {
 				return;
 			}
@@ -138,7 +140,7 @@ export const IndicatorCriteriaValueEditor = (props: {
 	}
 
 	const onBucketSegmentChanged = (option: DropdownOption) => {
-		(criteria as AchievementIndicatorCriteriaOnBucket).bucketSegmentName = option.value as string;
+		(criteria as IndicatorCriteriaOnBucket).bucketSegmentName = option.value as string;
 		fireEdit(AchievementEditEventTypes.INDICATOR_CRITERIA_CHANGED, achievement, achievementIndicator);
 		fire(AchievementEventTypes.SAVE_ACHIEVEMENT, achievement, noop);
 		forceUpdate();
@@ -148,7 +150,7 @@ export const IndicatorCriteriaValueEditor = (props: {
 	const getBucketSegmentOptions: Array<DropdownOption> = isInputShown
 		? []
 		: (() => {
-			const bucketId = (criteria as AchievementIndicatorCriteriaOnBucket).bucketId;
+			const bucketId = (criteria as IndicatorCriteriaOnBucket).bucketId;
 			// eslint-disable-next-line
 			const bucket = bucketId == null ? null : [...defData.valueBuckets, ...defData.measureBuckets].find(bucket => bucket.bucketId == bucketId);
 			if (bucket != null) {
@@ -164,7 +166,7 @@ export const IndicatorCriteriaValueEditor = (props: {
 		{isInputShown
 			? <InputEditor achievement={achievement} achievementIndicator={achievementIndicator}
 			               criteria={criteria} defData={defData}/>
-			: <Dropdown value={(criteria as AchievementIndicatorCriteriaOnBucket).bucketSegmentName}
+			: <Dropdown value={(criteria as IndicatorCriteriaOnBucket).bucketSegmentName}
 			            options={getBucketSegmentOptions}
 			            onChange={onBucketSegmentChanged}/>}
 	</IndicatorCriteriaValue>;

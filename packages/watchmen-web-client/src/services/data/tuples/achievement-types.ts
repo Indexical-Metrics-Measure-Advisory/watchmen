@@ -1,34 +1,9 @@
-import {BucketId} from './bucket-types';
-import {FactorId} from './factor-types';
+import {IndicatorCriteria} from './indicator-criteria-types';
 import {IndicatorAggregateArithmetic, IndicatorId} from './indicator-types';
 import {TenantId} from './tenant-types';
 import {Tuple} from './tuple-types';
 
 export type AchievementId = string;
-
-export interface AchievementIndicatorCriteria {
-	factorId?: FactorId;
-}
-
-/** fill when use predefined bucket */
-export interface AchievementIndicatorCriteriaOnBucket extends AchievementIndicatorCriteria {
-	bucketId?: BucketId;
-	bucketSegmentName?: string;
-}
-
-export enum AchievementIndicatorCriteriaOperator {
-	EQUALS = 'equals',
-	NOT_EQUALS = 'not-equals',
-	LESS = 'less',
-	LESS_EQUALS = 'less-equals',
-	MORE = 'more',
-	MORE_EQUALS = 'more-equals',
-}
-
-export interface AchievementIndicatorCriteriaOnExpression extends AchievementIndicatorCriteria {
-	operator?: AchievementIndicatorCriteriaOperator;
-	value?: string;
-}
 
 export interface AchievementIndicator {
 	indicatorId: IndicatorId;
@@ -42,7 +17,7 @@ export interface AchievementIndicator {
 	 * default true
 	 */
 	includeInFinalScore?: boolean;
-	criteria: Array<AchievementIndicatorCriteria>;
+	criteria: Array<IndicatorCriteria>;
 	/**
 	 * used to call by other indicators,
 	 * create variable name when it is added into achievement,

@@ -1,8 +1,4 @@
 import {
-	AchievementIndicatorCriteria,
-	AchievementIndicatorCriteriaOperator
-} from '@/services/data/tuples/achievement-types';
-import {
 	isAchievementIndicatorCriteriaOnBucket,
 	isAchievementIndicatorCriteriaOnExpression
 } from '@/services/data/tuples/achievement-utils';
@@ -13,6 +9,10 @@ import {
 	isNumericValueMeasureBucket
 } from '@/services/data/tuples/bucket-utils';
 import {Factor} from '@/services/data/tuples/factor-types';
+import {
+	IndicatorCriteria,
+	IndicatorCriteriaOperator
+} from '@/services/data/tuples/indicator-criteria-types';
 import {Indicator, MeasureMethod} from '@/services/data/tuples/indicator-types';
 import {
 	findTopicAndFactor,
@@ -25,7 +25,7 @@ import {isNotNull} from '@/services/data/utils';
 import {Lang} from '@/widgets/langs';
 import {IndicatorCriteriaDefData} from '../types';
 
-export const findAvailableBuckets = (criteria: AchievementIndicatorCriteria, indicator: Indicator, defData: IndicatorCriteriaDefData): Array<Bucket> => {
+export const findAvailableBuckets = (criteria: IndicatorCriteria, indicator: Indicator, defData: IndicatorCriteriaDefData): Array<Bucket> => {
 	// eslint-disable-next-line
 	if (criteria.factorId == indicator.factorId) {
 		return (indicator.valueBuckets || []).map(bucketId => {
@@ -76,7 +76,7 @@ export const findAvailableBuckets = (criteria: AchievementIndicatorCriteria, ind
 	}
 };
 
-export const buildValueBucketOptions = (criteria: AchievementIndicatorCriteria, indicator: Indicator, defData: IndicatorCriteriaDefData) => {
+export const buildValueBucketOptions = (criteria: IndicatorCriteria, indicator: Indicator, defData: IndicatorCriteriaDefData) => {
 	return findAvailableBuckets(criteria, indicator, defData).map(bucket => {
 		return {
 			value: bucket.bucketId,
@@ -85,7 +85,7 @@ export const buildValueBucketOptions = (criteria: AchievementIndicatorCriteria, 
 	});
 };
 
-export const getCriteriaArithmetic = (criteria: AchievementIndicatorCriteria): BucketId | AchievementIndicatorCriteriaOperator | undefined => {
+export const getCriteriaArithmetic = (criteria: IndicatorCriteria): BucketId | IndicatorCriteriaOperator | undefined => {
 	if (isAchievementIndicatorCriteriaOnBucket(criteria)) {
 		return criteria.bucketId;
 	} else if (isAchievementIndicatorCriteriaOnExpression(criteria)) {
@@ -94,17 +94,17 @@ export const getCriteriaArithmetic = (criteria: AchievementIndicatorCriteria): B
 	return (void 0);
 };
 
-export const isCriteriaArithmeticVisible = (criteria: AchievementIndicatorCriteria): boolean => {
+export const isCriteriaArithmeticVisible = (criteria: IndicatorCriteria): boolean => {
 	return criteria.factorId != null;
 };
 
-export const isCriteriaValueVisible = (criteria: AchievementIndicatorCriteria): boolean => {
+export const isCriteriaValueVisible = (criteria: IndicatorCriteria): boolean => {
 	return isCriteriaArithmeticVisible(criteria)
 		&& ((isAchievementIndicatorCriteriaOnBucket(criteria) && criteria.bucketId != null)
 			|| (isAchievementIndicatorCriteriaOnExpression(criteria) && criteria.operator != null));
 };
 
-export const showInputForValue = (criteria: AchievementIndicatorCriteria): boolean => {
+export const showInputForValue = (criteria: IndicatorCriteria): boolean => {
 	return !isAchievementIndicatorCriteriaOnBucket(criteria);
 };
 

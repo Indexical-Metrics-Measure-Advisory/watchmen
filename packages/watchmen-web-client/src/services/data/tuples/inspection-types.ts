@@ -1,5 +1,6 @@
 import {BucketId} from './bucket-types';
 import {FactorId} from './factor-types';
+import {IndicatorCriteria} from './indicator-criteria-types';
 import {IndicatorAggregateArithmetic, IndicatorId, MeasureMethod} from './indicator-types';
 import {TenantId} from './tenant-types';
 import {Tuple} from './tuple-types';
@@ -110,30 +111,6 @@ export interface InspectionAmPmRange extends InspectionTimeRange {
 	value: 1 | 2;
 }
 
-export interface InspectionCriteria {
-	factorId?: FactorId;
-}
-
-/** fill when use predefined bucket */
-export interface InspectionCriteriaOnBucket extends InspectionCriteria {
-	bucketId?: BucketId;
-	bucketSegmentName?: string;
-}
-
-export enum InspectionCriteriaOperator {
-	EQUALS = 'equals',
-	NOT_EQUALS = 'not-equals',
-	LESS = 'less',
-	LESS_EQUALS = 'less-equals',
-	MORE = 'more',
-	MORE_EQUALS = 'more-equals',
-}
-
-export interface InspectionCriteriaOnExpression extends InspectionCriteria {
-	operator?: InspectionCriteriaOperator;
-	value?: string;
-}
-
 export interface Inspection extends Tuple {
 	inspectionId: InspectionId;
 	name: string;
@@ -156,6 +133,6 @@ export interface Inspection extends Tuple {
 	measureOnTime?: MeasureMethod;
 	/** time measure on factor */
 	measureOnTimeFactorId?: FactorId;
-	criteria: Array<InspectionCriteria>;
+	criteria: Array<IndicatorCriteria>;
 	tenantId?: TenantId;
 }

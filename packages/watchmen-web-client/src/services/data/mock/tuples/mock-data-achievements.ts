@@ -1,6 +1,6 @@
+import {IndicatorCriteriaOnBucket} from '@/services/data/tuples/indicator-criteria-types';
 import {
 	Achievement,
-	AchievementIndicatorCriteriaOnBucket,
 	AchievementTimeRangeType,
 	MANUAL_COMPUTE_ACHIEVEMENT_INDICATOR_ID
 } from '../../tuples/achievement-types';
@@ -22,7 +22,7 @@ export const NavPremium: Achievement = {
 				factorId: '209',
 				bucketId: BUCKET_CITIES_ID,
 				bucketSegmentName: 'NY'
-			} as AchievementIndicatorCriteriaOnBucket
+			} as IndicatorCriteriaOnBucket
 		],
 		formula: 'interpolation(r, 0.1, 10, 0.8, 20)',
 		aggregateArithmetic: IndicatorAggregateArithmetic.SUM,
