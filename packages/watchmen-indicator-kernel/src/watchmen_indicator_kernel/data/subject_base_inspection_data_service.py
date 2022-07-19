@@ -5,12 +5,12 @@ from watchmen_data_kernel.meta import TopicService
 from watchmen_indicator_kernel.common import IndicatorKernelException
 from watchmen_inquiry_kernel.storage import ReportDataService
 from watchmen_model.common import ComputedParameter, ConstantParameter, DataResult, DataResultSetRow, \
-	ParameterComputeType, ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, \
-	ParameterKind, SubjectDatasetColumnId, TopicFactorParameter
+	ParameterComputeType, ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, \
+	ParameterJointType, ParameterKind, SubjectDatasetColumnId, TopicFactorParameter
 from watchmen_model.console import Report, ReportDimension, ReportIndicator, ReportIndicatorArithmetic, Subject, \
 	SubjectDatasetColumn
-from watchmen_model.indicator import Indicator, IndicatorAggregateArithmetic, Inspection, InspectMeasureOn, \
-	MeasureMethod
+from watchmen_model.indicator import Indicator, IndicatorAggregateArithmetic, IndicatorCriteria, Inspection, \
+	InspectMeasureOn, MeasureMethod
 from watchmen_utilities import ArrayHelper, is_blank
 from .inspection_data_service import InspectionDataService
 
@@ -67,7 +67,7 @@ class SubjectBaseInspectionDataService(InspectionDataService):
 			return None
 
 	# noinspection DuplicatedCode
-	def fake_time_range_to_report(self) -> Optional[ParameterJoint]:
+	def fake_time_range_criteria_to_report(self) -> Optional[ParameterJoint]:
 		time_range_factor_id = self.inspection.timeRangeFactorId
 		if is_blank(time_range_factor_id):
 			return None
@@ -110,11 +110,7 @@ class SubjectBaseInspectionDataService(InspectionDataService):
 							left=ComputedParameter(
 								kind=ParameterKind.COMPUTED,
 								type=compute_type,
-								parameters=[
-									TopicFactorParameter(
-										kind=ParameterKind.TOPIC,
-										topicId='1', factorId=time_range_factor_id)
-								]
+								parameters=[self.build_topic_factor_parameter('1', time_range_factor_id)]
 							),
 							operator=operator,
 							right=ConstantParameter(kind=ParameterKind.CONSTANT, value=str(right))
@@ -126,8 +122,7 @@ class SubjectBaseInspectionDataService(InspectionDataService):
 					jointType=ParameterJointType.AND,
 					filters=[
 						ParameterExpression(
-							left=TopicFactorParameter(
-								kind=ParameterKind.TOPIC, topicId='1', factorId=time_range_factor_id),
+							left=self.build_topic_factor_parameter('1', time_range_factor_id),
 							operator=operator,
 							right=ConstantParameter(kind=ParameterKind.CONSTANT, value=str(right))
 						)
@@ -138,14 +133,30 @@ class SubjectBaseInspectionDataService(InspectionDataService):
 				jointType=ParameterJointType.AND,
 				filters=[
 					ParameterExpression(
-						left=TopicFactorParameter(
-							kind=ParameterKind.TOPIC, topicId='1', factorId=time_range_factor_id),
+						left=self.build_topic_factor_parameter('1', time_range_factor_id),
 						operator=operator,
 						right=ConstantParameter(kind=ParameterKind.CONSTANT, value=str(right))
 					)
 				]
 			)
 		return joint
+
+	# noinspection DuplicatedCode
+	def fake_criteria_to_report(self) -> Optional[ParameterJoint]:
+		criteria = ArrayHelper(self.inspection.criteria).filter(lambda x: x is not None).to_list()
+		if len(criteria) == 0:
+			return self.fake_time_range_criteria_to_report()
+
+		def to_condition(a_criteria: IndicatorCriteria) -> ParameterCondition:
+			column = self.find_column(
+				a_criteria.factorId,
+				lambda: f'Column of inspection criteria[{criteria.to_dict()}] not declared.')
+			return self.fake_criteria_to_condition(a_criteria)('1', column.columnId)
+
+		return ParameterJoint(
+			jointType=ParameterJointType.AND,
+			filters=ArrayHelper(criteria).map(to_condition).grab(self.fake_time_range_criteria_to_report()).to_list()
+		)
 
 	def fake_to_report(self) -> Report:
 		indicators: List[ReportIndicator] = []
@@ -186,7 +197,7 @@ class SubjectBaseInspectionDataService(InspectionDataService):
 		if len(dimensions) == 0:
 			raise IndicatorKernelException('Neither time group nor bucket not found.')
 
-		report_filter = self.fake_time_range_to_report()
+		report_filter = self.fake_criteria_to_report()
 		if report_filter is None:
 			return Report(indicators=indicators, dimensions=dimensions)
 		else:
