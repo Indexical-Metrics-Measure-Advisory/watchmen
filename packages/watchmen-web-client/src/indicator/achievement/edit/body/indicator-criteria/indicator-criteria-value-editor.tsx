@@ -7,6 +7,10 @@ import {
 	IndicatorCriteriaOnBucket,
 	IndicatorCriteriaOnExpression
 } from '@/services/data/tuples/indicator-criteria-types';
+import {
+	getAvailableTimeRangeOnColumn,
+	getAvailableTimeRangeOnFactor, isCriteriaValueVisible, showInputForValue
+} from '@/services/data/tuples/indicator-criteria-utils';
 import {MeasureMethod} from '@/services/data/tuples/indicator-types';
 import {tryToTransformColumnToMeasures, tryToTransformToMeasures} from '@/services/data/tuples/indicator-utils';
 import {noop} from '@/services/utils';
@@ -22,11 +26,7 @@ import {useAchievementEditEventBus} from '../achievement-edit-event-bus';
 import {AchievementEditEventTypes} from '../achievement-edit-event-bus-types';
 import {IndicatorCriteriaDefData} from '../types';
 import {
-	getAvailableTimeRangeOnColumn,
-	getAvailableTimeRangeOnFactor,
-	getTimeRangePlaceholder,
-	isCriteriaValueVisible,
-	showInputForValue
+	getTimeRangePlaceholder
 } from './utils';
 import {IndicatorCriteriaValue} from './widgets';
 

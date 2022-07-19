@@ -1,5 +1,6 @@
 import {BucketId} from '@/services/data/tuples/bucket-types';
 import {Enum, EnumId} from '@/services/data/tuples/enum-types';
+import {IndicatorCriteria} from '@/services/data/tuples/indicator-criteria-types';
 import {Indicator, IndicatorId} from '@/services/data/tuples/indicator-types';
 import {Inspection, InspectionId} from '@/services/data/tuples/inspection-types';
 import {QueryBucket, QueryByBucketMethod} from '@/services/data/tuples/query-bucket-types';
@@ -47,6 +48,12 @@ export enum InspectionEventTypes {
 
 	TIME_RANGE_ON_CHANGED = 'time-range-on-changed',
 	TIME_RANGE_VALUES_CHANGED = 'time-range-values-changed',
+
+	INDICATOR_CRITERIA_CHANGED = 'indicator-criteria-changed',
+	INDICATOR_CRITERIA_ADDED = 'indicator-criteria-added',
+	INDICATOR_CRITERIA_REMOVED = 'indicator-criteria-removed',
+	INDICATOR_CRITERIA_FACTOR_CHANGED = 'indicator-criteria-factor-changed',
+	INDICATOR_CRITERIA_ARITHMETIC_CHANGED = 'indicator-criteria-arithmetic-changed',
 
 	TIME_MEASURE_CHANGED = 'time-measure-changed',
 
@@ -114,6 +121,26 @@ export interface InspectionEventBus {
 	fire(type: InspectionEventTypes.TIME_RANGE_VALUES_CHANGED, inspection: Inspection): this;
 	on(type: InspectionEventTypes.TIME_RANGE_VALUES_CHANGED, listener: (inspection: Inspection) => void): this;
 	off(type: InspectionEventTypes.TIME_RANGE_VALUES_CHANGED, listener: (inspection: Inspection) => void): this;
+
+	fire(type: InspectionEventTypes.INDICATOR_CRITERIA_CHANGED, inspection: Inspection, criteria: IndicatorCriteria): this;
+	on(type: InspectionEventTypes.INDICATOR_CRITERIA_CHANGED, listener: (inspection: Inspection, criteria: IndicatorCriteria) => void): this;
+	off(type: InspectionEventTypes.INDICATOR_CRITERIA_CHANGED, listener: (inspection: Inspection, criteria: IndicatorCriteria) => void): this;
+
+	fire(type: InspectionEventTypes.INDICATOR_CRITERIA_ADDED, inspection: Inspection, criteria: IndicatorCriteria): this;
+	on(type: InspectionEventTypes.INDICATOR_CRITERIA_ADDED, listener: (inspection: Inspection, criteria: IndicatorCriteria) => void): this;
+	off(type: InspectionEventTypes.INDICATOR_CRITERIA_ADDED, listener: (inspection: Inspection, criteria: IndicatorCriteria) => void): this;
+
+	fire(type: InspectionEventTypes.INDICATOR_CRITERIA_REMOVED, inspection: Inspection, criteria: IndicatorCriteria): this;
+	on(type: InspectionEventTypes.INDICATOR_CRITERIA_REMOVED, listener: (inspection: Inspection, criteria: IndicatorCriteria) => void): this;
+	off(type: InspectionEventTypes.INDICATOR_CRITERIA_REMOVED, listener: (inspection: Inspection, criteria: IndicatorCriteria) => void): this;
+
+	fire(type: InspectionEventTypes.INDICATOR_CRITERIA_FACTOR_CHANGED, inspection: Inspection, criteria: IndicatorCriteria): this;
+	on(type: InspectionEventTypes.INDICATOR_CRITERIA_FACTOR_CHANGED, listener: (inspection: Inspection, criteria: IndicatorCriteria) => void): this;
+	off(type: InspectionEventTypes.INDICATOR_CRITERIA_FACTOR_CHANGED, listener: (inspection: Inspection, criteria: IndicatorCriteria) => void): this;
+
+	fire(type: InspectionEventTypes.INDICATOR_CRITERIA_ARITHMETIC_CHANGED, inspection: Inspection, criteria: IndicatorCriteria): this;
+	on(type: InspectionEventTypes.INDICATOR_CRITERIA_ARITHMETIC_CHANGED, listener: (inspection: Inspection, criteria: IndicatorCriteria) => void): this;
+	off(type: InspectionEventTypes.INDICATOR_CRITERIA_ARITHMETIC_CHANGED, listener: (inspection: Inspection, criteria: IndicatorCriteria) => void): this;
 
 	fire(type: InspectionEventTypes.TIME_MEASURE_CHANGED, inspection: Inspection): this;
 	on(type: InspectionEventTypes.TIME_MEASURE_CHANGED, listener: (inspection: Inspection) => void): this;

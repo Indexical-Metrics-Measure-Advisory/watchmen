@@ -1,7 +1,3 @@
-import {
-	Achievement,
-	AchievementIndicator
-} from '@/services/data/tuples/achievement-types';
 import {BucketId} from '@/services/data/tuples/bucket-types';
 import {ComparableTypes} from '@/services/data/tuples/factor-types';
 import {
@@ -13,10 +9,12 @@ import {
 import {
 	getCriteriaArithmetic,
 	isAchievementIndicatorCriteriaOnBucket,
-	isAchievementIndicatorCriteriaOnExpression, isCriteriaArithmeticVisible
+	isAchievementIndicatorCriteriaOnExpression,
+	isCriteriaArithmeticVisible
 } from '@/services/data/tuples/indicator-criteria-utils';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import {findTopicAndFactor} from '@/services/data/tuples/indicator-utils';
+import {Inspection} from '@/services/data/tuples/inspection-types';
 import {isNotNull} from '@/services/data/utils';
 import {noop} from '@/services/utils';
 import {Dropdown} from '@/widgets/basic/dropdown';
@@ -24,39 +22,34 @@ import {DropdownOption} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
 import {useEffect} from 'react';
-import {useAchievementEventBus} from '../../../achievement-event-bus';
-import {AchievementEventTypes} from '../../../achievement-event-bus-types';
-import {useAchievementEditEventBus} from '../achievement-edit-event-bus';
-import {AchievementEditEventTypes} from '../achievement-edit-event-bus-types';
-import {IndicatorCriteriaDefData} from '../types';
-import {CriteriaArithmeticLabel} from '../utils';
-import {buildValueBucketOptions} from './utils';
-import {IndicatorCriteriaArithmetic} from './widgets';
+import {useInspectionEventBus} from '../inspection-event-bus';
+import {InspectionEventTypes} from '../inspection-event-bus-types';
+import {IndicatorCriteriaDefData} from './types';
+import {buildValueBucketOptions, CriteriaArithmeticLabel} from './utils';
+import {InspectionCriteriaArithmetic} from './widgets';
 
-export const IndicatorCriteriaArithmeticEditor = (props: {
-	achievement: Achievement;
-	achievementIndicator: AchievementIndicator;
+export const CriteriaArithmeticEditor = (props: {
+	inspection: Inspection;
 	criteria: IndicatorCriteria;
 	defData: IndicatorCriteriaDefData;
 	indicator: Indicator;
 }) => {
-	const {achievement, achievementIndicator, criteria, defData, indicator} = props;
+	const {inspection, criteria, defData, indicator} = props;
 
-	const {fire} = useAchievementEventBus();
-	const {on: onEdit, off: offEdit, fire: fireEdit} = useAchievementEditEventBus();
+	const {on, off, fire} = useInspectionEventBus();
 	const forceUpdate = useForceUpdate();
 	useEffect(() => {
-		const onCriteriaChanged = (aAchievement: Achievement, aAchievementIndicator: AchievementIndicator, aCriteria: IndicatorCriteria) => {
-			if (aAchievement !== achievement || aAchievementIndicator !== achievementIndicator || aCriteria !== criteria) {
+		const onCriteriaChanged = (anInspection: Inspection, aCriteria: IndicatorCriteria) => {
+			if (anInspection !== inspection || aCriteria !== criteria) {
 				return;
 			}
 			forceUpdate();
 		};
-		onEdit(AchievementEditEventTypes.INDICATOR_CRITERIA_FACTOR_CHANGED, onCriteriaChanged);
+		on(InspectionEventTypes.INDICATOR_CRITERIA_FACTOR_CHANGED, onCriteriaChanged);
 		return () => {
-			offEdit(AchievementEditEventTypes.INDICATOR_CRITERIA_FACTOR_CHANGED, onCriteriaChanged);
+			off(InspectionEventTypes.INDICATOR_CRITERIA_FACTOR_CHANGED, onCriteriaChanged);
 		};
-	}, [onEdit, offEdit, forceUpdate, achievement, achievementIndicator, criteria]);
+	}, [on, off, forceUpdate, inspection, criteria]);
 
 	const onCriteriaArithmeticChanged = (criteria: IndicatorCriteria) => (option: DropdownOption) => {
 		const oldValue = getCriteriaArithmetic(criteria);
@@ -97,9 +90,9 @@ export const IndicatorCriteriaArithmeticEditor = (props: {
 				}
 				break;
 		}
-		fireEdit(AchievementEditEventTypes.INDICATOR_CRITERIA_ARITHMETIC_CHANGED, achievement, achievementIndicator, criteria);
-		fireEdit(AchievementEditEventTypes.INDICATOR_CRITERIA_CHANGED, achievement, achievementIndicator);
-		fire(AchievementEventTypes.SAVE_ACHIEVEMENT, achievement, noop);
+		fire(InspectionEventTypes.INDICATOR_CRITERIA_ARITHMETIC_CHANGED, inspection, criteria);
+		fire(InspectionEventTypes.INDICATOR_CRITERIA_CHANGED, inspection, criteria);
+		fire(InspectionEventTypes.SAVE_INSPECTION, inspection, noop);
 		forceUpdate();
 	};
 
@@ -153,11 +146,11 @@ export const IndicatorCriteriaArithmeticEditor = (props: {
 		...comparableArithmeticOptions
 	].filter(isNotNull);
 
-	return <IndicatorCriteriaArithmetic>
+	return <InspectionCriteriaArithmetic>
 		{isCriteriaArithmeticVisible(criteria)
 			? <Dropdown value={getCriteriaArithmetic(criteria)} options={arithmeticOptions}
 			            onChange={onCriteriaArithmeticChanged(criteria)}
-			            please={Lang.INDICATOR.ACHIEVEMENT.PLEASE_SELECT_CRITERIA_OPERATOR}/>
+			            please={Lang.INDICATOR.INSPECTION.PLEASE_SELECT_CRITERIA_OPERATOR}/>
 			: null}
-	</IndicatorCriteriaArithmetic>;
+	</InspectionCriteriaArithmetic>;
 };

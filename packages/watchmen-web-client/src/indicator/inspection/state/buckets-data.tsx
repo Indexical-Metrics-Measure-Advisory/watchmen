@@ -36,6 +36,7 @@ export const BucketsData = () => {
 
 	// bucket related
 	useEffect(() => {
+		// noinspection DuplicatedCode
 		const onAskBuckets: OnAskBuckets = ({valueBucketIds, measureMethods}, onData) => {
 			if (loading) {
 				// push to queue

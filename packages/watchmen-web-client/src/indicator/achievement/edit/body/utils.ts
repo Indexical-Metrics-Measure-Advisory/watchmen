@@ -2,11 +2,11 @@ import {
 	Achievement,
 	AchievementIndicator
 } from '@/services/data/tuples/achievement-types';
+import {IndicatorCriteriaOperator} from '@/services/data/tuples/indicator-criteria-types';
 import {
 	isAchievementIndicatorCriteriaOnBucket,
 	isAchievementIndicatorCriteriaOnExpression
-} from '@/services/data/tuples/achievement-utils';
-import {IndicatorCriteriaOperator} from '@/services/data/tuples/indicator-criteria-types';
+} from '@/services/data/tuples/indicator-criteria-utils';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import {Lang} from '@/widgets/langs';
 import {

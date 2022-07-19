@@ -1,9 +1,9 @@
-import {IndicatorCriteriaOnBucket} from '@/services/data/tuples/indicator-criteria-types';
 import {
 	Achievement,
 	AchievementTimeRangeType,
 	MANUAL_COMPUTE_ACHIEVEMENT_INDICATOR_ID
 } from '../../tuples/achievement-types';
+import {IndicatorCriteriaOnBucket} from '../../tuples/indicator-criteria-types';
 import {IndicatorAggregateArithmetic} from '../../tuples/indicator-types';
 import {getCurrentTime} from '../../utils';
 import {BUCKET_CITIES_ID} from './mock-data-buckets';

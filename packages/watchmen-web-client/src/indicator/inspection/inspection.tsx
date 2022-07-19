@@ -3,6 +3,7 @@ import {AggregateArithmetic} from './aggregate-arithmetic';
 import {BucketOn} from './bucket-on';
 import {Buttons} from './buttons';
 import {CreateOrFind} from './create-or-find';
+import {Criteria} from './criteria';
 import {Data} from './data';
 import {useInspectionEventBus} from './inspection-event-bus';
 import {InspectionEventTypes, InspectionRenderMode} from './inspection-event-bus-types';
@@ -31,6 +32,7 @@ export const Inspection = () => {
 		</IndicatorContainer>
 		<AggregateArithmetic/>
 		<TimePeriod/>
+		<Criteria/>
 		<TimeMeasureOn/>
 		<BucketOn/>
 		<Buttons/>
