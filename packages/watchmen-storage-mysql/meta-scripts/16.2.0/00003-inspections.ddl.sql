@@ -12,6 +12,7 @@ CREATE TABLE inspections
     time_ranges               VARCHAR(1024),
     measure_on_time           VARCHAR(20),
     measure_on_time_factor_id VARCHAR(50),
+    criteria                  JSON,
     user_id                   VARCHAR(50) NOT NULL,
     tenant_id                 VARCHAR(50) NOT NULL,
     created_at                DATETIME    NOT NULL,
