@@ -76,7 +76,6 @@ export const validateInspection = (options: {
 			fail(InspectionInvalidReason.INCORRECT_CRITERIA);
 			return;
 		}
-		return;
 	}
 	if (inspection.measureOnTimeFactorId == null
 		&& (inspection.measureOn == null || inspection.measureOn === InspectMeasureOn.NONE)) {
