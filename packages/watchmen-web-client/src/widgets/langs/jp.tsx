@@ -502,6 +502,7 @@ export const Jp = {
 			HIDE_INDICATOR_CANDIDATES: '候補メトリックを非表示に',
 			SHOW_INDICATOR_CANDIDATES: '候補メトリックを表示',
 			ROOT: '根',
+			FINAL_SCORE_IS_RATIO: '百分率',
 			MISSED_INDICATOR: '指標定義が見つかりませんで',
 			MISSED_INDICATOR_BASE: '指標に対応するトピックまたは主題定義が見つかりませんでした',
 			NO_INDICATOR_CRITERIA_DEFINED: 'フィルタが定義されていません',
