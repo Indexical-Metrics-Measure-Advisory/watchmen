@@ -1,8 +1,8 @@
 import {
 	Achievement,
-	AchievementIndicator,
-	AchievementIndicatorCriteria
+	AchievementIndicator
 } from '@/services/data/tuples/achievement-types';
+import {IndicatorCriteria} from '@/services/data/tuples/indicator-criteria-types';
 import {noop} from '@/services/utils';
 import {ICON_DELETE} from '@/widgets/basic/constants';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
@@ -15,7 +15,7 @@ import {IndicatorCriteriaButton, IndicatorCriteriaButtons} from './widgets';
 export const IndicatorCriteriaOperators = (props: {
 	achievement: Achievement;
 	achievementIndicator: AchievementIndicator;
-	criteria: AchievementIndicatorCriteria;
+	criteria: IndicatorCriteria;
 }) => {
 	const {achievement, achievementIndicator, criteria} = props;
 

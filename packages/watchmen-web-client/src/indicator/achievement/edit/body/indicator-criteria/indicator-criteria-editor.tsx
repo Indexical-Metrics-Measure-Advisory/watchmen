@@ -1,8 +1,8 @@
 import {
 	Achievement,
-	AchievementIndicator,
-	AchievementIndicatorCriteria
+	AchievementIndicator
 } from '@/services/data/tuples/achievement-types';
+import {IndicatorCriteria} from '@/services/data/tuples/indicator-criteria-types';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import {DropdownOption} from '@/widgets/basic/types';
 import {IndicatorCriteriaDefData} from '../types';
@@ -15,7 +15,7 @@ import {IndicatorCriteriaIndex, IndicatorCriteriaRow} from './widgets';
 export const IndicatorCriteriaEditor = (props: {
 	achievement: Achievement;
 	achievementIndicator: AchievementIndicator;
-	criteria: AchievementIndicatorCriteria;
+	criteria: IndicatorCriteria;
 	indicator: Indicator;
 	factorCandidates: Array<DropdownOption>;
 	defData: IndicatorCriteriaDefData;

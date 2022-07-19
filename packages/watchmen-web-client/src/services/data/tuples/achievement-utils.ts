@@ -1,17 +1,19 @@
 import {
+	IndicatorCriteria,
+	IndicatorCriteriaOnBucket,
+	IndicatorCriteriaOnExpression
+} from '@/services/data/tuples/indicator-criteria-types';
+import {
 	AchievementIndicator,
-	AchievementIndicatorCriteria,
-	AchievementIndicatorCriteriaOnBucket,
-	AchievementIndicatorCriteriaOnExpression,
 	MANUAL_COMPUTE_ACHIEVEMENT_INDICATOR_ID,
 	ManualComputeAchievementIndicator
 } from './achievement-types';
 
-export const isAchievementIndicatorCriteriaOnBucket = (criteria: AchievementIndicatorCriteria): criteria is AchievementIndicatorCriteriaOnBucket => {
+export const isAchievementIndicatorCriteriaOnBucket = (criteria: IndicatorCriteria): criteria is IndicatorCriteriaOnBucket => {
 	return (criteria as any).bucketId != null;
 };
 
-export const isAchievementIndicatorCriteriaOnExpression = (criteria: AchievementIndicatorCriteria): criteria is AchievementIndicatorCriteriaOnExpression => {
+export const isAchievementIndicatorCriteriaOnExpression = (criteria: IndicatorCriteria): criteria is IndicatorCriteriaOnExpression => {
 	return (criteria as any).operator != null;
 };
 

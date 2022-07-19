@@ -1,12 +1,12 @@
 import {
 	Achievement,
-	AchievementIndicator,
-	AchievementIndicatorCriteriaOperator
+	AchievementIndicator
 } from '@/services/data/tuples/achievement-types';
 import {
 	isAchievementIndicatorCriteriaOnBucket,
 	isAchievementIndicatorCriteriaOnExpression
 } from '@/services/data/tuples/achievement-utils';
+import {IndicatorCriteriaOperator} from '@/services/data/tuples/indicator-criteria-types';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import {Lang} from '@/widgets/langs';
 import {
@@ -126,13 +126,13 @@ export const computeCurvePath = (points: { startX: number; startY: number; endX:
 	return `M${startX},${startY} C${endX},${startY} ${(startX)},${endY} ${endX},${endY}`;
 };
 
-export const CriteriaArithmeticLabel: Record<AchievementIndicatorCriteriaOperator, string> = {
-	[AchievementIndicatorCriteriaOperator.EQUALS]: Lang.PARAMETER.EXPRESSION_OPERATOR.EQUALS,
-	[AchievementIndicatorCriteriaOperator.NOT_EQUALS]: Lang.PARAMETER.EXPRESSION_OPERATOR.NOT_EQUALS,
-	[AchievementIndicatorCriteriaOperator.LESS]: Lang.PARAMETER.EXPRESSION_OPERATOR.LESS,
-	[AchievementIndicatorCriteriaOperator.LESS_EQUALS]: Lang.PARAMETER.EXPRESSION_OPERATOR.LESS_EQUALS,
-	[AchievementIndicatorCriteriaOperator.MORE]: Lang.PARAMETER.EXPRESSION_OPERATOR.MORE,
-	[AchievementIndicatorCriteriaOperator.MORE_EQUALS]: Lang.PARAMETER.EXPRESSION_OPERATOR.MORE_EQUALS
+export const CriteriaArithmeticLabel: Record<IndicatorCriteriaOperator, string> = {
+	[IndicatorCriteriaOperator.EQUALS]: Lang.PARAMETER.EXPRESSION_OPERATOR.EQUALS,
+	[IndicatorCriteriaOperator.NOT_EQUALS]: Lang.PARAMETER.EXPRESSION_OPERATOR.NOT_EQUALS,
+	[IndicatorCriteriaOperator.LESS]: Lang.PARAMETER.EXPRESSION_OPERATOR.LESS,
+	[IndicatorCriteriaOperator.LESS_EQUALS]: Lang.PARAMETER.EXPRESSION_OPERATOR.LESS_EQUALS,
+	[IndicatorCriteriaOperator.MORE]: Lang.PARAMETER.EXPRESSION_OPERATOR.MORE,
+	[IndicatorCriteriaOperator.MORE_EQUALS]: Lang.PARAMETER.EXPRESSION_OPERATOR.MORE_EQUALS
 };
 
 export const isReadyToCalculation = (achievement: Achievement, achievementIndicator: AchievementIndicator, defData: IndicatorCriteriaDefData): boolean => {

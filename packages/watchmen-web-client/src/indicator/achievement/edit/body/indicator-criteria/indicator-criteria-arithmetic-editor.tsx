@@ -1,10 +1,6 @@
 import {
 	Achievement,
-	AchievementIndicator,
-	AchievementIndicatorCriteria,
-	AchievementIndicatorCriteriaOnBucket,
-	AchievementIndicatorCriteriaOnExpression,
-	AchievementIndicatorCriteriaOperator
+	AchievementIndicator
 } from '@/services/data/tuples/achievement-types';
 import {
 	isAchievementIndicatorCriteriaOnBucket,
@@ -12,6 +8,12 @@ import {
 } from '@/services/data/tuples/achievement-utils';
 import {BucketId} from '@/services/data/tuples/bucket-types';
 import {ComparableTypes} from '@/services/data/tuples/factor-types';
+import {
+	IndicatorCriteria,
+	IndicatorCriteriaOnBucket,
+	IndicatorCriteriaOnExpression,
+	IndicatorCriteriaOperator
+} from '@/services/data/tuples/indicator-criteria-types';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import {findTopicAndFactor} from '@/services/data/tuples/indicator-utils';
 import {isNotNull} from '@/services/data/utils';
@@ -33,7 +35,7 @@ import {IndicatorCriteriaArithmetic} from './widgets';
 export const IndicatorCriteriaArithmeticEditor = (props: {
 	achievement: Achievement;
 	achievementIndicator: AchievementIndicator;
-	criteria: AchievementIndicatorCriteria;
+	criteria: IndicatorCriteria;
 	defData: IndicatorCriteriaDefData;
 	indicator: Indicator;
 }) => {
@@ -43,7 +45,7 @@ export const IndicatorCriteriaArithmeticEditor = (props: {
 	const {on: onEdit, off: offEdit, fire: fireEdit} = useAchievementEditEventBus();
 	const forceUpdate = useForceUpdate();
 	useEffect(() => {
-		const onCriteriaChanged = (aAchievement: Achievement, aAchievementIndicator: AchievementIndicator, aCriteria: AchievementIndicatorCriteria) => {
+		const onCriteriaChanged = (aAchievement: Achievement, aAchievementIndicator: AchievementIndicator, aCriteria: IndicatorCriteria) => {
 			if (aAchievement !== achievement || aAchievementIndicator !== achievementIndicator || aCriteria !== criteria) {
 				return;
 			}
@@ -55,32 +57,32 @@ export const IndicatorCriteriaArithmeticEditor = (props: {
 		};
 	}, [onEdit, offEdit, forceUpdate, achievement, achievementIndicator, criteria]);
 
-	const onCriteriaArithmeticChanged = (criteria: AchievementIndicatorCriteria) => (option: DropdownOption) => {
+	const onCriteriaArithmeticChanged = (criteria: IndicatorCriteria) => (option: DropdownOption) => {
 		const oldValue = getCriteriaArithmetic(criteria);
-		const newValue = option.value as BucketId | AchievementIndicatorCriteriaOperator;
+		const newValue = option.value as BucketId | IndicatorCriteriaOperator;
 		// eslint-disable-next-line
 		if (oldValue == newValue) {
 			return;
 		}
 		switch (newValue) {
-			case AchievementIndicatorCriteriaOperator.EQUALS:
-			case AchievementIndicatorCriteriaOperator.NOT_EQUALS:
-			case AchievementIndicatorCriteriaOperator.LESS:
-			case AchievementIndicatorCriteriaOperator.LESS_EQUALS:
-			case AchievementIndicatorCriteriaOperator.MORE:
-			case AchievementIndicatorCriteriaOperator.MORE_EQUALS:
+			case IndicatorCriteriaOperator.EQUALS:
+			case IndicatorCriteriaOperator.NOT_EQUALS:
+			case IndicatorCriteriaOperator.LESS:
+			case IndicatorCriteriaOperator.LESS_EQUALS:
+			case IndicatorCriteriaOperator.MORE:
+			case IndicatorCriteriaOperator.MORE_EQUALS:
 				if (isAchievementIndicatorCriteriaOnBucket(criteria)) {
 					delete criteria.bucketId;
 					delete criteria.bucketSegmentName;
 				}
-				const criteriaOnExp = criteria as AchievementIndicatorCriteriaOnExpression;
+				const criteriaOnExp = criteria as IndicatorCriteriaOnExpression;
 				criteriaOnExp.operator = newValue;
 				break;
 			default:
 				if (isAchievementIndicatorCriteriaOnExpression(criteria)) {
 					delete criteria.operator;
 					delete criteria.value;
-					const criteriaOnBucket = criteria as AchievementIndicatorCriteriaOnBucket;
+					const criteriaOnBucket = criteria as IndicatorCriteriaOnBucket;
 					criteriaOnBucket.bucketId = newValue as BucketId;
 					delete criteriaOnBucket.bucketSegmentName;
 				} else if (isAchievementIndicatorCriteriaOnBucket(criteria)) {
@@ -90,7 +92,7 @@ export const IndicatorCriteriaArithmeticEditor = (props: {
 						delete criteria.bucketSegmentName;
 					}
 				} else {
-					(criteria as AchievementIndicatorCriteriaOnBucket).bucketId = newValue as BucketId;
+					(criteria as IndicatorCriteriaOnBucket).bucketId = newValue as BucketId;
 				}
 				break;
 		}
@@ -120,32 +122,32 @@ export const IndicatorCriteriaArithmeticEditor = (props: {
 	})();
 	const comparableArithmeticOptions = comparable ? [
 		{
-			value: AchievementIndicatorCriteriaOperator.LESS,
-			label: CriteriaArithmeticLabel[AchievementIndicatorCriteriaOperator.LESS]
+			value: IndicatorCriteriaOperator.LESS,
+			label: CriteriaArithmeticLabel[IndicatorCriteriaOperator.LESS]
 		},
 		{
-			value: AchievementIndicatorCriteriaOperator.LESS_EQUALS,
-			label: CriteriaArithmeticLabel[AchievementIndicatorCriteriaOperator.LESS_EQUALS]
+			value: IndicatorCriteriaOperator.LESS_EQUALS,
+			label: CriteriaArithmeticLabel[IndicatorCriteriaOperator.LESS_EQUALS]
 		},
 		{
-			value: AchievementIndicatorCriteriaOperator.MORE,
-			label: CriteriaArithmeticLabel[AchievementIndicatorCriteriaOperator.MORE]
+			value: IndicatorCriteriaOperator.MORE,
+			label: CriteriaArithmeticLabel[IndicatorCriteriaOperator.MORE]
 		},
 		{
-			value: AchievementIndicatorCriteriaOperator.MORE_EQUALS,
-			label: CriteriaArithmeticLabel[AchievementIndicatorCriteriaOperator.MORE_EQUALS]
+			value: IndicatorCriteriaOperator.MORE_EQUALS,
+			label: CriteriaArithmeticLabel[IndicatorCriteriaOperator.MORE_EQUALS]
 		}
 	] : [];
 
 	const arithmeticOptions = [
 		...buildValueBucketOptions(criteria, indicator, defData),
 		{
-			value: AchievementIndicatorCriteriaOperator.EQUALS,
-			label: CriteriaArithmeticLabel[AchievementIndicatorCriteriaOperator.EQUALS]
+			value: IndicatorCriteriaOperator.EQUALS,
+			label: CriteriaArithmeticLabel[IndicatorCriteriaOperator.EQUALS]
 		},
 		{
-			value: AchievementIndicatorCriteriaOperator.NOT_EQUALS,
-			label: CriteriaArithmeticLabel[AchievementIndicatorCriteriaOperator.NOT_EQUALS]
+			value: IndicatorCriteriaOperator.NOT_EQUALS,
+			label: CriteriaArithmeticLabel[IndicatorCriteriaOperator.NOT_EQUALS]
 		},
 		...comparableArithmeticOptions
 	].filter(isNotNull);

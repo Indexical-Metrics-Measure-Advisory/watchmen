@@ -1,13 +1,13 @@
 import {
 	Achievement,
-	AchievementIndicator,
-	AchievementIndicatorCriteria
+	AchievementIndicator
 } from '@/services/data/tuples/achievement-types';
 import {
 	isAchievementIndicatorCriteriaOnBucket,
 	isAchievementIndicatorCriteriaOnExpression
 } from '@/services/data/tuples/achievement-utils';
 import {FactorId} from '@/services/data/tuples/factor-types';
+import {IndicatorCriteria} from '@/services/data/tuples/indicator-criteria-types';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import {noop} from '@/services/utils';
 import {Dropdown} from '@/widgets/basic/dropdown';
@@ -25,7 +25,7 @@ import {IndicatorCriteriaFactor} from './widgets';
 export const IndicatorCriteriaFactorEditor = (props: {
 	achievement: Achievement;
 	achievementIndicator: AchievementIndicator;
-	criteria: AchievementIndicatorCriteria;
+	criteria: IndicatorCriteria;
 	defData: IndicatorCriteriaDefData;
 	indicator: Indicator;
 	factorCandidates: Array<DropdownOption>;
@@ -36,7 +36,7 @@ export const IndicatorCriteriaFactorEditor = (props: {
 	const {fire: fireEdit} = useAchievementEditEventBus();
 	const forceUpdate = useForceUpdate();
 
-	const onCriteriaFactorChanged = (criteria: AchievementIndicatorCriteria) => (option: DropdownOption) => {
+	const onCriteriaFactorChanged = (criteria: IndicatorCriteria) => (option: DropdownOption) => {
 		criteria.factorId = option.value as FactorId;
 		if (achievementIndicator.criteria == null) {
 			achievementIndicator.criteria = [];

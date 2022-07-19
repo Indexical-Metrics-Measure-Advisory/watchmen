@@ -1,8 +1,8 @@
 import {
 	Achievement,
-	AchievementIndicator,
-	AchievementIndicatorCriteria
+	AchievementIndicator
 } from '@/services/data/tuples/achievement-types';
+import {IndicatorCriteria} from '@/services/data/tuples/indicator-criteria-types';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import {CalculatedIndicatorValues, IndicatorValues} from './types';
 
@@ -93,13 +93,13 @@ export interface AchievementEditEventBus {
 	on(type: AchievementEditEventTypes.INDICATOR_CRITERIA_CHANGED, listener: (achievement: Achievement, achievementIndicator: AchievementIndicator) => void): this;
 	off(type: AchievementEditEventTypes.INDICATOR_CRITERIA_CHANGED, listener: (achievement: Achievement, achievementIndicator: AchievementIndicator) => void): this;
 
-	fire(type: AchievementEditEventTypes.INDICATOR_CRITERIA_FACTOR_CHANGED, achievement: Achievement, achievementIndicator: AchievementIndicator, criteria: AchievementIndicatorCriteria): this;
-	on(type: AchievementEditEventTypes.INDICATOR_CRITERIA_FACTOR_CHANGED, listener: (achievement: Achievement, achievementIndicator: AchievementIndicator, criteria: AchievementIndicatorCriteria) => void): this;
-	off(type: AchievementEditEventTypes.INDICATOR_CRITERIA_FACTOR_CHANGED, listener: (achievement: Achievement, achievementIndicator: AchievementIndicator, criteria: AchievementIndicatorCriteria) => void): this;
+	fire(type: AchievementEditEventTypes.INDICATOR_CRITERIA_FACTOR_CHANGED, achievement: Achievement, achievementIndicator: AchievementIndicator, criteria: IndicatorCriteria): this;
+	on(type: AchievementEditEventTypes.INDICATOR_CRITERIA_FACTOR_CHANGED, listener: (achievement: Achievement, achievementIndicator: AchievementIndicator, criteria: IndicatorCriteria) => void): this;
+	off(type: AchievementEditEventTypes.INDICATOR_CRITERIA_FACTOR_CHANGED, listener: (achievement: Achievement, achievementIndicator: AchievementIndicator, criteria: IndicatorCriteria) => void): this;
 
-	fire(type: AchievementEditEventTypes.INDICATOR_CRITERIA_ARITHMETIC_CHANGED, achievement: Achievement, achievementIndicator: AchievementIndicator, criteria: AchievementIndicatorCriteria): this;
-	on(type: AchievementEditEventTypes.INDICATOR_CRITERIA_ARITHMETIC_CHANGED, listener: (achievement: Achievement, achievementIndicator: AchievementIndicator, criteria: AchievementIndicatorCriteria) => void): this;
-	off(type: AchievementEditEventTypes.INDICATOR_CRITERIA_ARITHMETIC_CHANGED, listener: (achievement: Achievement, achievementIndicator: AchievementIndicator, criteria: AchievementIndicatorCriteria) => void): this;
+	fire(type: AchievementEditEventTypes.INDICATOR_CRITERIA_ARITHMETIC_CHANGED, achievement: Achievement, achievementIndicator: AchievementIndicator, criteria: IndicatorCriteria): this;
+	on(type: AchievementEditEventTypes.INDICATOR_CRITERIA_ARITHMETIC_CHANGED, listener: (achievement: Achievement, achievementIndicator: AchievementIndicator, criteria: IndicatorCriteria) => void): this;
+	off(type: AchievementEditEventTypes.INDICATOR_CRITERIA_ARITHMETIC_CHANGED, listener: (achievement: Achievement, achievementIndicator: AchievementIndicator, criteria: IndicatorCriteria) => void): this;
 
 	fire(type: AchievementEditEventTypes.INDICATOR_CRITERIA_REMOVED, achievement: Achievement, achievementIndicator: AchievementIndicator): this;
 	on(type: AchievementEditEventTypes.INDICATOR_CRITERIA_REMOVED, listener: (achievement: Achievement, achievementIndicator: AchievementIndicator) => void): this;
