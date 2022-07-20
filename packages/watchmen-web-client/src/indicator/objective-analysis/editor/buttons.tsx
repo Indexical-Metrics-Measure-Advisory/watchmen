@@ -15,11 +15,18 @@ export const HeaderButtons = (props: { analysis: ObjectiveAnalysis }) => {
 	const {analysis} = props;
 
 	const {fire: fireGlobal} = useEventBus();
-	const {fire} = useObjectiveAnalysisEventBus();
+	const {on, off, fire} = useObjectiveAnalysisEventBus();
 	const [viewMode, setViewMode] = useState(false);
 	useEffect(() => {
-		setViewMode(false);
-	}, [analysis]);
+		const onSwitchToEdit = () => setViewMode(false);
+		const onSwitchToView = () => setViewMode(true);
+		on(ObjectiveAnalysisEventTypes.SWITCH_TO_EDIT, onSwitchToEdit);
+		on(ObjectiveAnalysisEventTypes.SWITCH_TO_VIEW, onSwitchToView);
+		return () => {
+			off(ObjectiveAnalysisEventTypes.SWITCH_TO_EDIT, onSwitchToEdit);
+			off(ObjectiveAnalysisEventTypes.SWITCH_TO_VIEW, onSwitchToView);
+		};
+	}, [on, off]);
 
 	const onAddInspectionClicked = () => {
 		analysis.perspectives = analysis.perspectives ?? [];
@@ -42,11 +49,9 @@ export const HeaderButtons = (props: { analysis: ObjectiveAnalysis }) => {
 		fire(ObjectiveAnalysisEventTypes.PERSPECTIVE_ADDED, analysis, perspective);
 	};
 	const onSwitchToEditModeClicked = () => {
-		setViewMode(false);
 		fire(ObjectiveAnalysisEventTypes.SWITCH_TO_EDIT);
 	};
 	const onSwitchToViewModeClicked = () => {
-		setViewMode(true);
 		fire(ObjectiveAnalysisEventTypes.SWITCH_TO_VIEW);
 	};
 	const onDeleteClicked = () => {
