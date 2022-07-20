@@ -6,7 +6,6 @@ CREATE TABLE achievements
     time_range_year              VARCHAR2(10),
     time_range_month             VARCHAR2(10),
     compare_with_prev_time_range NUMBER(1),
-    final_score_is_ratio         NUMBER(1),
     indicators                   CLOB,
     description                  VARCHAR2(1024),
     user_id                      VARCHAR2(50) NOT NULL,
