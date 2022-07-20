@@ -12,7 +12,6 @@ CREATE TABLE inspections
     time_ranges               NVARCHAR(1024),
     measure_on_time           NVARCHAR(20),
     measure_on_time_factor_id NVARCHAR(50),
-    criteria                  NVARCHAR(MAX),
     user_id                   NVARCHAR(50) NOT NULL,
     tenant_id                 NVARCHAR(50) NOT NULL,
     created_at                DATETIME     NOT NULL,
