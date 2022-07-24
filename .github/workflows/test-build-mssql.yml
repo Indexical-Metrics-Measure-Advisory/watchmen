@@ -13,7 +13,7 @@ env:
   DB_ROOT_PASSWORD: admin
 
 jobs:
-  container-job:
+  test-api:
     runs-on: ubuntu-latest
 
     services:

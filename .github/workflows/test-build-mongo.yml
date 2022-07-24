@@ -10,7 +10,7 @@ env:
 
 
 jobs:
-  build:
+  test-api:
     runs-on: ubuntu-latest
 
     steps:
