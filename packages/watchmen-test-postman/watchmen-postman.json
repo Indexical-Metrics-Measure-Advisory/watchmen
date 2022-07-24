@@ -14085,6 +14085,28 @@
 					"name": "PRE - SCRIPT",
 					"item": [
 						{
+							"name": "CREATE DATASOURCE",
+							"id": "1709d3a3-5c45-49d2-8972-91539a05ad81",
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"dataSourceCode\": \"{{DATASOURCE_CODE}}\",\n    \"dataSourceType\": \"{{DATASOURCE_TYPE}}\",\n    \"host\": \"{{DATASOURCE_HOST}}\",\n    \"port\": \"{{DATASOURCE_PORT}}\",\n    \"username\": \"{{DATASOURCE_USERNAME}}\",\n    \"password\": \"{{DATASOURCE_PASSWORD}}\",\n    \"name\": \"{{DATASOURCE_SCHEMA}}\",\n    \"tenantId\": \"1\"\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": "{{URL_PREFIX}}/datasource"
+							},
+							"response": []
+						},
+						{
 							"name": "CREATE RAW TOPIC",
 							"event": [
 								{
@@ -14396,18 +14418,6 @@
 										}
 									]
 								}
-							},
-							"response": []
-						},
-						{
-							"name": "CREATE DATASOURCE",
-							"id": "1709d3a3-5c45-49d2-8972-91539a05ad81",
-							"protocolProfileBehavior": {
-								"disableBodyPruning": true
-							},
-							"request": {
-								"method": "GET",
-								"header": []
 							},
 							"response": []
 						}
