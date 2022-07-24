@@ -9,6 +9,12 @@
 			"enabled": true
 		},
 		{
+			"key": "DATASOURCE_CODE",
+			"value": "test",
+			"type": "default",
+			"enabled": true
+		},
+		{
 			"key": "DATASOURCE_HOST",
 			"value": "localhost",
 			"type": "default",
