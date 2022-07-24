@@ -8,6 +8,7 @@ class StorageSettings(BaseSettings):
 	DECIMAL_INTEGRAL_DIGITS: int = 24
 	DECIMAL_FRACTION_DIGITS: int = 8
 	DISABLE_COMPILED_CACHE: bool = False
+	OBJECT_STORAGE_NEED_DATE_DIRECTORY: bool = False
 
 	class Config:
 		# secrets_dir = '/var/run'
@@ -30,3 +31,7 @@ def ask_decimal_fraction_digits() -> int:
 
 def ask_disable_compiled_cache() -> bool:
 	return storage_settings.DISABLE_COMPILED_CACHE
+
+
+def ask_object_storage_need_date_directory() -> bool:
+	return storage_settings.OBJECT_STORAGE_NEED_DATE_DIRECTORY
