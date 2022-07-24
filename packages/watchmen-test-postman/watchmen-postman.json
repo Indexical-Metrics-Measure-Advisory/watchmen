@@ -14086,11 +14086,33 @@
 					"item": [
 						{
 							"name": "CREATE DATASOURCE",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "c24e7ad6-5384-45bd-a8ca-d246d04d276f",
+										"exec": [
+											"pm.test('Datasource created', () => {",
+											"    const data = pm.response.json();",
+											"    pm.expect(data.dataSourceId).to.not.be.null;",
+											"    pm.environment.set('DATA_SOURCE_ID', data.dataSourceId)",
+											"})"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
 							"id": "1709d3a3-5c45-49d2-8972-91539a05ad81",
 							"protocolProfileBehavior": {
 								"disableBodyPruning": true
 							},
 							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": {
+										"token": "{{SUPER_ADMIN_JWT_TOKEN}}"
+									}
+								},
 								"method": "POST",
 								"header": [],
 								"body": {
