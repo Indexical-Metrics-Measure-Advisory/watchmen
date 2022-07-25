@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 from logging import getLogger
 from typing import Dict, Optional
@@ -5,6 +6,7 @@ from typing import Dict, Optional
 from oss2 import Auth, Bucket, ObjectIterator
 from oss2.exceptions import NoSuchKey
 
+from watchmen_storage import ask_object_storage_need_date_directory
 from watchmen_utilities import serialize_to_json
 
 logger = getLogger(__name__)
@@ -19,7 +21,14 @@ class ObjectStorageService:
 
 	@staticmethod
 	def gen_key(directory: str, id_: str) -> str:
-		key = f"{directory}/{id_}.json"
+		if ask_object_storage_need_date_directory():
+			now = datetime.now()
+			year = now.strftime("%Y")
+			month = now.strftime("%m")
+			day = now.strftime("%d")
+			key = f'{year}/{month}/{day}/{directory}/{id_}.json'
+		else:
+			key = f"{directory}/{id_}.json"
 		return key
 
 	def put_object(self, key: str, data: Dict) -> None:
