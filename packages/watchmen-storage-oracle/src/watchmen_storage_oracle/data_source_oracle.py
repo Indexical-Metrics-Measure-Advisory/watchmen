@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from cx_Oracle import makedsn, SessionPool, SPOOL_ATTRVAL_WAIT
+from cx_Oracle import makedsn, SessionPool, SPOOL_ATTRVAL_WAIT, init_oracle_client
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import NullPool
@@ -10,6 +10,9 @@ from watchmen_model.system import DataSource, DataSourceParam
 from watchmen_storage import DataSourceHelper, UnexpectedStorageException
 from watchmen_utilities import is_decimal, is_not_blank, serialize_to_json
 from .storage_oracle import StorageOracle, TopicDataStorageOracle
+
+
+init_oracle_client(lib_dir=r"/opt/oracle/instantclient_21_3")
 
 
 def redress_url(value: str) -> str:
@@ -99,6 +102,8 @@ class OracleDataSourceHelper(DataSourceHelper):
 				pool_size = int(pool_size)
 			else:
 				pool_size = 3
+		else:
+			pool_size = 3
 
 		pool = SessionPool(
 			user=username, password=password, dsn=dsn,

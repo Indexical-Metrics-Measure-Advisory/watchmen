@@ -9,7 +9,8 @@ class StorageSettings(BaseSettings):
 	DECIMAL_FRACTION_DIGITS: int = 8
 	DISABLE_COMPILED_CACHE: bool = False
 	OBJECT_STORAGE_NEED_DATE_DIRECTORY: bool = False
-
+	STORE_JSON_IN_CLOB: bool = False
+	
 	class Config:
 		# secrets_dir = '/var/run'
 		env_file = '.env'
@@ -35,3 +36,7 @@ def ask_disable_compiled_cache() -> bool:
 
 def ask_object_storage_need_date_directory() -> bool:
 	return storage_settings.OBJECT_STORAGE_NEED_DATE_DIRECTORY
+
+
+def ask_store_json_in_clob() -> bool:
+	return storage_settings.STORE_JSON_IN_CLOB
