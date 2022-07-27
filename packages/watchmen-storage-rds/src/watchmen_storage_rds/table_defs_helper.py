@@ -1,6 +1,9 @@
 from typing import List, Type, Union  # noqa
 
-from sqlalchemy import Boolean, Column, Date, Integer, JSON, MetaData, String, Text, DateTime
+from sqlalchemy import Boolean, Column, Date, Integer, JSON, MetaData, String, Text, DateTime, CLOB
+
+from watchmen_storage import ask_store_json_in_clob
+from .ext_types import ClobToJson
 
 # noinspection DuplicatedCode
 meta_data = MetaData()
@@ -33,7 +36,10 @@ def create_datetime(name: str, nullable: bool = True) -> Column:
 
 
 def create_json(name: str, nullable: bool = True) -> Column:
-	return Column(name, JSON, nullable=nullable)
+	if ask_store_json_in_clob():
+		return Column(name, ClobToJson, nullable=nullable)
+	else:
+		return Column(name, JSON, nullable=nullable)
 
 
 # noinspection DuplicatedCode
