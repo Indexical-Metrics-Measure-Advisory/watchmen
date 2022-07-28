@@ -9,7 +9,6 @@ class StorageSettings(BaseSettings):
 	DECIMAL_FRACTION_DIGITS: int = 8
 	DISABLE_COMPILED_CACHE: bool = False
 	OBJECT_STORAGE_NEED_DATE_DIRECTORY: bool = False
-	STORE_JSON_IN_CLOB: bool = False
 	
 	class Config:
 		# secrets_dir = '/var/run'
