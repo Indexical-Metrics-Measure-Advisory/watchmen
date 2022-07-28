@@ -26,8 +26,8 @@ class StoragePostgreSQL(StorageRDS):
 		return build_sort_for_statement(statement, sort)
 
 	def build_offset_for_statement(
-			self, statement: SQLAlchemyStatement, page_size: int, page_number: int) -> SQLAlchemyStatement:
-		return build_offset_for_statement(statement, page_size, page_number)
+			self, statement: SQLAlchemyStatement, offset: int, limit: int) -> SQLAlchemyStatement:
+		return build_offset_for_statement(statement, offset, limit)
 
 
 class TopicDataStoragePostgreSQL(StoragePostgreSQL, TopicDataStorageRDS):

@@ -31,6 +31,5 @@ def build_sort_for_statement(statement: SQLAlchemyStatement, sort: EntitySort) -
 		return statement
 
 
-def build_offset_for_statement(statement: SQLAlchemyStatement, page_size: int, page_number: int) -> SQLAlchemyStatement:
-	offset = page_size * (page_number - 1)
-	return statement.offset(offset).limit(page_size)
+def build_offset_for_statement(statement: SQLAlchemyStatement, offset: int, limit: int) -> SQLAlchemyStatement:
+	return statement.offset(offset).limit(limit)
