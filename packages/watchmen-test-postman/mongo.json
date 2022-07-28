@@ -280,7 +280,7 @@
 		},
 		{
 			"key": "DATASOURCE_CODE",
-			"value": "",
+			"value": "test",
 			"type": "default",
 			"enabled": true
 		},

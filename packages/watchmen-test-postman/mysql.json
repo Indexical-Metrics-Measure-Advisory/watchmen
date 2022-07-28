@@ -303,6 +303,12 @@
 			"enabled": true
 		},
 		{
+			"key": "DATASOURCE_HOST",
+			"value": "localhost",
+			"type": "default",
+			"enabled": true
+		},
+		{
 			"key": "TOPIC_ID",
 			"value": "",
 			"type": "any",
