@@ -24,13 +24,12 @@ class StorageMSSQL(StorageRDS):
 		return build_sort_for_statement(statement, sort)
 
 	def build_offset_for_statement(
-			self, statement: SQLAlchemyStatement, page_size: int, page_number: int) -> SQLAlchemyStatement:
-		offset = page_size * (page_number - 1)
+			self, statement: SQLAlchemyStatement, offset: int, limit: int) -> SQLAlchemyStatement:
 		# noinspection PyProtectedMember
 		if not statement._order_by_clause.clauses:
-			return statement.order_by(text("(SELECT NULL)")).offset(offset).limit(page_size)
+			return statement.order_by(text("(SELECT NULL)")).offset(offset).limit(limit)
 		else:
-			return statement.offset(offset).limit(page_size)
+			return statement.offset(offset).limit(limit)
 
 	def exists(self, finder: EntityFinder) -> bool:
 		table = self.find_table(finder.name)
