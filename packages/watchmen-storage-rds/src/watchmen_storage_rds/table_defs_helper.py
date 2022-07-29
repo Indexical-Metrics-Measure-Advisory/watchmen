@@ -1,8 +1,8 @@
-from typing import List, Type, Union, Any  # noqa
+from typing import Any, List, Type, Union  # noqa
 
-from sqlalchemy import Boolean, Column, Date, Integer, MetaData, String, Text, DateTime
+from sqlalchemy import Boolean, Column, Date, DateTime, Integer, JSON, MetaData, String, Text
+
 from .ext_types import ClobToJson
-from sqlalchemy.types import JSON
 
 # noinspection DuplicatedCode
 meta_data = MetaData()
@@ -34,12 +34,8 @@ def create_datetime(name: str, nullable: bool = True) -> Column:
 	return Column(name, DateTime, nullable=nullable)
 
 
-def clob_if_oracle_else_json() -> Any:
-	return JSON().with_variant(ClobToJson, "oracle")
-
-
 def create_json(name: str, nullable: bool = True) -> Column:
-	return Column(name, clob_if_oracle_else_json(), nullable=nullable)
+	return Column(name, JSON().with_variant(ClobToJson, "oracle"), nullable=nullable)
 
 
 # noinspection DuplicatedCode
@@ -55,6 +51,7 @@ def create_pk(name: str, column_type: Union[Type[Integer], String] = ID_TYPE) ->
 	return Column(name, column_type, primary_key=True, autoincrement=False)
 
 
+# noinspection DuplicatedCode
 def create_tenant_id() -> Column:
 	return create_tuple_id_column('tenant_id', nullable=False)
 
