@@ -509,6 +509,11 @@ class SubjectStorage:
 				left = ComputedLiteral(
 					operator=ComputedLiteralOperator.YEAR_OF,
 					elements=ColumnNameLiteral(columnName=f'column_{index + 1}'))
+			elif funnel_type == ReportFunnelType.HALF_YEAR and (
+					PossibleParameterType.DATE in possible_types or PossibleParameterType.DATETIME in possible_types):
+				left = ComputedLiteral(
+					operator=ComputedLiteralOperator.HALF_YEAR_OF,
+					elements=ColumnNameLiteral(columnName=f'column_{index + 1}'))
 			elif funnel_type == ReportFunnelType.MONTH and (
 					PossibleParameterType.DATE in possible_types or PossibleParameterType.DATETIME in possible_types):
 				left = ComputedLiteral(
@@ -518,19 +523,16 @@ class SubjectStorage:
 				left = ColumnNameLiteral(columnName=f'column_{index + 1}')
 
 			if not is_range:
-				return EntityCriteriaExpression(
-					left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
-					right=start_value
-				)
+				return EntityCriteriaExpression(left=left, right=start_value)
 			elif start_value is None:
 				return EntityCriteriaExpression(
-					left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
+					left=left,
 					operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
 					right=end_value
 				)
 			elif end_value is None:
 				return EntityCriteriaExpression(
-					left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
+					left=left,
 					operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
 					right=start_value
 				)
@@ -539,12 +541,12 @@ class SubjectStorage:
 					conjunction=EntityCriteriaJointConjunction.AND,
 					children=[
 						EntityCriteriaExpression(
-							left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
+							left=left,
 							operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
 							right=start_value
 						),
 						EntityCriteriaExpression(
-							left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
+							left=left,
 							operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
 							right=end_value
 						)
