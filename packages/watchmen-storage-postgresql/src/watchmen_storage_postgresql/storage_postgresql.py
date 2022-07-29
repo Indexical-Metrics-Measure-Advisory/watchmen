@@ -5,7 +5,7 @@ from sqlalchemy import Table, text
 
 from watchmen_model.admin import FactorType, Topic
 from watchmen_storage import as_table_name, EntityCriteria, EntitySort, Literal
-from watchmen_storage_rds import build_offset_for_statement, build_sort_for_statement, SQLAlchemyStatement, \
+from watchmen_storage_rds import build_sort_for_statement, SQLAlchemyStatement, \
 	StorageRDS, TopicDataStorageRDS
 from .table_creator import build_aggregate_assist_column, build_columns, build_columns_script, build_indexes_script, \
 	build_unique_indexes_script, build_version_column
@@ -24,10 +24,6 @@ class StoragePostgreSQL(StorageRDS):
 
 	def build_sort_for_statement(self, statement: SQLAlchemyStatement, sort: EntitySort) -> SQLAlchemyStatement:
 		return build_sort_for_statement(statement, sort)
-
-	def build_offset_for_statement(
-			self, statement: SQLAlchemyStatement, offset: int, limit: int) -> SQLAlchemyStatement:
-		return build_offset_for_statement(statement, offset, limit)
 
 
 class TopicDataStoragePostgreSQL(StoragePostgreSQL, TopicDataStorageRDS):

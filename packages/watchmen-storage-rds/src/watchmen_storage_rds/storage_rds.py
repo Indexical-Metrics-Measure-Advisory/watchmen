@@ -83,10 +83,14 @@ class StorageRDS(TransactionalStorageSPI):
 			self, statement: SQLAlchemyStatement, sort: EntitySort) -> SQLAlchemyStatement:
 		raise NotImplementedError('build_sort_for_statement is not implemented yet.')
 
-	@abstractmethod
+	# noinspection PyMethodMayBeStatic
+	def compute_pagination_offset(self, page_size: int, page_number: int) -> int:
+		return page_size * (page_number - 1)
+
 	def build_offset_for_statement(
-			self, statement: SQLAlchemyStatement, offset: int, limit: int):
-		raise NotImplementedError('build_offset_for_statement is not implemented yet.')
+			self, statement: SQLAlchemyStatement, page_size: int, page_number: int):
+		offset = self.compute_pagination_offset(page_size, page_number)
+		return statement.offset(offset).limit(page_size)
 
 	def insert_one(self, one: Entity, helper: EntityHelper) -> None:
 		table = self.find_table(helper.name)
@@ -374,8 +378,7 @@ class StorageRDS(TransactionalStorageSPI):
 		statement = select(table)
 		statement = self.build_criteria_for_statement([table], statement, pager.criteria)
 		statement = self.build_sort_for_statement(statement, pager.sort)
-		offset = page_size * (page_number - 1)
-		statement = self.build_offset_for_statement(statement, offset, page_size)
+		statement = self.build_offset_for_statement(statement, page_size, page_number)
 		results = self.connection.execute(statement).mappings().all()
 		entity_list = ArrayHelper(results).map(lambda x: dict(x)).map(pager.shaper.deserialize).to_list()
 		return DataPage(
@@ -390,7 +393,7 @@ class StorageRDS(TransactionalStorageSPI):
 		table = self.find_table(finder.name)
 		statement = select(text('1')).select_from(table)
 		statement = self.build_criteria_for_statement([table], statement, finder.criteria)
-		statement = self.build_offset_for_statement(statement, 0, 1)
+		statement = self.build_offset_for_statement(statement, 1, 0)
 		results = self.connection.execute(statement).mappings().all()
 		return len(results) != 0
 
