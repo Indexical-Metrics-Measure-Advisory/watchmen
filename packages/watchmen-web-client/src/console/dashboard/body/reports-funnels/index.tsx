@@ -50,7 +50,7 @@ export const ReportsFunnels = (props: {
 	const {fire: fireGlobal} = useEventBus();
 	const {on, off, fire} = useDashboardEventBus();
 	const [effective, setEffective] = useState(true);
-	const [rect, setRect] = useState<ReportsFunnelsRect>({x: 16, y: 16, width: 0, height: 0});
+	const [rect, setRect] = useState<ReportsFunnelsRect>({x: -20, y: 16, width: 0, height: 0});
 	const [state, setState] = useState<FunnelsState>({
 		initialized: false,
 		topics: [],
