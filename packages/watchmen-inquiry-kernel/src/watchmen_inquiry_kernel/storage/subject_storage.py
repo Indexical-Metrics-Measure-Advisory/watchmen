@@ -4,7 +4,7 @@ from decimal import Decimal
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from watchmen_auth import PrincipalService
-from watchmen_data_kernel.common import ask_all_date_formats, ask_date_formats, ask_time_formats
+from watchmen_data_kernel.common import ask_all_date_formats, ask_time_formats
 from watchmen_data_kernel.service import ask_topic_storage
 from watchmen_data_kernel.storage_bridge import ask_topic_data_entity_helper, parse_condition_for_storage, \
 	parse_parameter_for_storage, ParsedStorageCondition, PipelineVariables, PossibleParameterType
@@ -502,6 +502,21 @@ class SubjectStorage:
 				)
 		else:
 			is_range = funnel.range
+			column_def = subject_column_map.get_column_by_column_id(column_id)
+			possible_types = column_def.possibleTypes
+			if funnel.type == ReportFunnelType.YEAR and (
+					PossibleParameterType.DATE in possible_types or PossibleParameterType.DATETIME in possible_types):
+				left = ComputedLiteral(
+					operator=ComputedLiteralOperator.YEAR_OF,
+					elements=ColumnNameLiteral(columnName=f'column_{index + 1}'))
+			elif funnel_type == ReportFunnelType.MONTH and (
+					PossibleParameterType.DATE in possible_types or PossibleParameterType.DATETIME in possible_types):
+				left = ComputedLiteral(
+					operator=ComputedLiteralOperator.MONTH_OF,
+					elements=ColumnNameLiteral(columnName=f'column_{index + 1}'))
+			else:
+				left = ColumnNameLiteral(columnName=f'column_{index + 1}')
+
 			if not is_range:
 				return EntityCriteriaExpression(
 					left=ColumnNameLiteral(columnName=f'column_{index + 1}'),
