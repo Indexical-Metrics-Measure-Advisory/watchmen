@@ -8,7 +8,10 @@ export const DashboardReportsFunnels = styled.div.attrs<{ rect: ReportsFunnelsRe
 	({rect: {x, y, width, height}}) => {
 		return {
 			'data-widget': 'dashboard-reports-funnels',
-			style: {top: y, left: x, width: width === 0 ? (void 0) : width, height: height === 0 ? (void 0) : height}
+			style: {
+				top: y, left: x >= 0 ? x : (void 0), right: x >= 0 ? (void 0) : x * -1,
+				width: width === 0 ? (void 0) : width, height: height === 0 ? (void 0) : height
+			}
 		};
 	})<{ rect: ReportsFunnelsRect }>`
 	display          : flex;

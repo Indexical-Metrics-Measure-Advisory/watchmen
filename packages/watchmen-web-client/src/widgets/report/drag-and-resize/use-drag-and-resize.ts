@@ -124,7 +124,9 @@ export const useDragAndResize = (options: {
 		// start dnd
 		const {clientX, clientY} = event;
 		const top = parseFloat(container.style.top);
-		const left = parseFloat(container.style.left);
+		const left = container.style.left == null || container.style.left === ''
+			? (container.getBoundingClientRect().left - container.parentElement!.getBoundingClientRect().left)
+			: parseFloat(container.style.left);
 		const width = parseFloat(container.style.width);
 		const height = parseFloat(container.style.height);
 		const target = event.target as HTMLElement;
