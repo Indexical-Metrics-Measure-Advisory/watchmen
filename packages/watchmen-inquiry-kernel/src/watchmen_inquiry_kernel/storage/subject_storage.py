@@ -387,6 +387,9 @@ class SubjectStorage:
 		funnel_type = funnel.type
 		is_range = funnel.range
 		values = funnel.values  # one element when is not range, one or two elements when is range
+		if values is None or len(values) == 0:
+			return None, None
+
 		if funnel_type == ReportFunnelType.ENUM:
 			# for enumeration type, multiple values are allowed, all gathered to start_value
 			start_value = ArrayHelper(values).filter(lambda x: is_not_blank(x)).to_list()
