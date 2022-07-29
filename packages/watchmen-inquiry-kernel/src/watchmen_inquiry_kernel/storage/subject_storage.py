@@ -508,17 +508,27 @@ class SubjectStorage:
 					PossibleParameterType.DATE in possible_types or PossibleParameterType.DATETIME in possible_types):
 				left = ComputedLiteral(
 					operator=ComputedLiteralOperator.YEAR_OF,
-					elements=ColumnNameLiteral(columnName=f'column_{index + 1}'))
+					elements=[ColumnNameLiteral(columnName=f'column_{index + 1}')])
 			elif funnel_type == ReportFunnelType.HALF_YEAR and (
 					PossibleParameterType.DATE in possible_types or PossibleParameterType.DATETIME in possible_types):
 				left = ComputedLiteral(
 					operator=ComputedLiteralOperator.HALF_YEAR_OF,
-					elements=ColumnNameLiteral(columnName=f'column_{index + 1}'))
+					elements=[ColumnNameLiteral(columnName=f'column_{index + 1}')])
 			elif funnel_type == ReportFunnelType.MONTH and (
 					PossibleParameterType.DATE in possible_types or PossibleParameterType.DATETIME in possible_types):
 				left = ComputedLiteral(
 					operator=ComputedLiteralOperator.MONTH_OF,
-					elements=ColumnNameLiteral(columnName=f'column_{index + 1}'))
+					elements=[ColumnNameLiteral(columnName=f'column_{index + 1}')])
+			elif funnel_type == ReportFunnelType.WEEK_OF_MONTH and (
+					PossibleParameterType.DATE in possible_types or PossibleParameterType.DATETIME in possible_types):
+				left = ComputedLiteral(
+					operator=ComputedLiteralOperator.WEEK_OF_MONTH,
+					elements=[ColumnNameLiteral(columnName=f'column_{index + 1}')])
+			elif funnel_type == ReportFunnelType.DAY_OF_WEEK and (
+					PossibleParameterType.DATE in possible_types or PossibleParameterType.DATETIME in possible_types):
+				left = ComputedLiteral(
+					operator=ComputedLiteralOperator.DAY_OF_WEEK,
+					elements=[ColumnNameLiteral(columnName=f'column_{index + 1}')])
 			else:
 				left = ColumnNameLiteral(columnName=f'column_{index + 1}')
 
