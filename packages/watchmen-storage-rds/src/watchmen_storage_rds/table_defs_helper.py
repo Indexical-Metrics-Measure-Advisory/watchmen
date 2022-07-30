@@ -1,6 +1,7 @@
 from typing import List, Type, Union  # noqa
 
 from sqlalchemy import Boolean, Column, Date, Integer, JSON, MetaData, String, Text, DateTime
+from .ext_types import ClobToJson
 
 # noinspection DuplicatedCode
 meta_data = MetaData()
@@ -33,7 +34,7 @@ def create_datetime(name: str, nullable: bool = True) -> Column:
 
 
 def create_json(name: str, nullable: bool = True) -> Column:
-	return Column(name, JSON, nullable=nullable)
+	return Column(name, JSON().with_variant(ClobToJson, "oracle"), nullable=nullable)
 
 
 # noinspection DuplicatedCode

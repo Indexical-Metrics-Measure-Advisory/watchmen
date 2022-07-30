@@ -389,7 +389,8 @@ class StorageRDS(TransactionalStorageSPI):
 		table = self.find_table(finder.name)
 		statement = select(text('1')).select_from(table)
 		statement = self.build_criteria_for_statement([table], statement, finder.criteria)
-		statement = statement.offset(0).limit(1)
+		# statement = statement.offset(0).limit(1)
+		statement = self.build_offset_for_statement(statement, 1, 1)
 		results = self.connection.execute(statement).mappings().all()
 		return len(results) != 0
 

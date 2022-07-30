@@ -25,7 +25,8 @@ class StorageOracle(StorageRDS):
 
 	def build_offset_for_statement(
 			self, statement: SQLAlchemyStatement, page_size: int, page_number: int) -> SQLAlchemyStatement:
-		return build_offset_for_statement(statement, page_size, page_number)
+		offset = page_size * (page_number - 1)
+		return statement.offset(offset).fetch(page_size)
 
 
 class TopicDataStorageOracle(StorageOracle, TopicDataStorageRDS):
