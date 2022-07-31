@@ -19,3 +19,8 @@ watchmen-utilities = { path = "../watchmen-utilities", develop = true }
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[[tool.poetry.source]]
+name = "foo"
+url = "https://pypi.org/simple/"
+default = true
