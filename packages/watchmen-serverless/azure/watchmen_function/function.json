@@ -1,0 +1,13 @@
+{
+  "scriptFile": "index.py",
+  "entryPoint": "handler",
+  "bindings": [
+    {
+      "name": "myblob",
+      "type": "blobTrigger",
+      "direction": "in",
+      "path": "samples-watchmen/{name}",
+      "connection": "MyStorageAccountAppSetting"
+    }
+  ]
+}
