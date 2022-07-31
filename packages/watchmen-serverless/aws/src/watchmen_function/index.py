@@ -43,7 +43,7 @@ def handler(event, context):
 	principal_service = get_principal_by_pat(retrieve_authentication_manager(), pat, [UserRole.ADMIN, UserRole.SUPER_ADMIN])
 	trace_id: PipelineTriggerTraceId = str(ask_snowflake_generator().next_id())
 	asyncio.run(try_to_invoke_pipelines(trigger_data, trace_id, principal_service))
-	logging.info('Successfully invoke handler ')
+	logging.info('Successfully invoke handler')
 
 	return {'statusCode': 200, 'body': event}
 

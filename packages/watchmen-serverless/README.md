@@ -5,6 +5,7 @@ Serverless technologies feature automatic scaling, built-in high availability, a
 # Workflow
 Cloud providers have their own Function Compute Service of the Serverless architecture. The implementations are different, but the logic of workflow is almost the same. 
 The following figure shows the workflow of Function Compute.
+
 ![avatar](pictures/serverless_workflow.png)  
 The corresponding steps are described as follows: 
 1. The developer writes code to create an application and a service by using a programming language.
