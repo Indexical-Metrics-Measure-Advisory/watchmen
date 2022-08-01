@@ -57,6 +57,7 @@ export const saveAchievement = async (achievement: Achievement): Promise<void> =
 		const data = await post({api: Apis.ACHIEVEMENT_CREATE, data: achievement});
 		achievement.achievementId = data.achievementId;
 		achievement.tenantId = data.tenantId;
+		achievement.version = data.version;
 		achievement.lastModifiedAt = data.lastModifiedAt;
 	} else {
 		const data = await post({
@@ -64,6 +65,7 @@ export const saveAchievement = async (achievement: Achievement): Promise<void> =
 			data: achievement
 		});
 		achievement.tenantId = data.tenantId;
+		achievement.version = data.version;
 		achievement.lastModifiedAt = data.lastModifiedAt;
 	}
 };

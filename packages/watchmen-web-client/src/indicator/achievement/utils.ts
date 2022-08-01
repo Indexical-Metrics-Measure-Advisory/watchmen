@@ -21,6 +21,7 @@ export const createAchievement = (name?: string): Achievement => {
 		timeRangeYear: `${new Date().getFullYear() - 1}`,
 		compareWithPreviousTimeRange: false,
 		finalScoreIsRatio: false,
+		version: 1,
 		createdAt: getCurrentTime(),
 		lastModifiedAt: getCurrentTime()
 	};

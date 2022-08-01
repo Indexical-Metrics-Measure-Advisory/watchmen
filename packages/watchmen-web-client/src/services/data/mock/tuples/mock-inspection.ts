@@ -29,6 +29,7 @@ const OrderPremiumInspection: Inspection = {
 	measureOn: InspectMeasureOn.VALUE,
 	measureOnBucketId: BUCKET_AMOUNT_ID,
 	criteria: [],
+	version: 1,
 	createdAt: getCurrentTime(),
 	lastModifiedAt: getCurrentTime()
 };
