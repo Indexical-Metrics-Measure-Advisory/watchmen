@@ -16,7 +16,6 @@ import {MeasureMethods} from './measure-methods';
 import {PickTopic} from './pick-topic';
 import {Relevant} from './relevant';
 import {SaveIndicator} from './save-indicator';
-import {UserGroupAssigner} from './user-group';
 import {IndicatorsContainer} from './widgets';
 
 export const IndicatorEditor = () => {
@@ -42,7 +41,6 @@ export const IndicatorEditor = () => {
 			<DefineBuckets/>
 			<SaveIndicator/>
 			<Relevant/>
-			<UserGroupAssigner/>
 			<Filter/>
 			<Categories/>
 			<Description/>

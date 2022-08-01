@@ -8,7 +8,6 @@ export const createIndicator = (): Indicator => {
 		name: '',
 		topicOrSubjectId: '',
 		baseOn: IndicatorBaseOn.TOPIC,
-		userGroupIds: [],
 		version: 1,
 		createdAt: getCurrentTime(),
 		lastModifiedAt: getCurrentTime()

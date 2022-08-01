@@ -43,7 +43,6 @@ export const fetchMockUserGroup = async (userGroupId: UserGroupId): Promise<{ us
 				description: 'South-center market analysis squad.',
 				userIds: ['1', '2', '3', '4', '5'],
 				spaceIds: ['1'],
-				indicatorIds: [],
 				version: 1,
 				createdAt: getCurrentTime(),
 				lastModifiedAt: getCurrentTime()
@@ -51,7 +50,7 @@ export const fetchMockUserGroup = async (userGroupId: UserGroupId): Promise<{ us
 			break;
 		case '2':
 			userGroup = {
-				userGroupId, name: 'Delaware', userIds: [], spaceIds: [], indicatorIds: [],
+				userGroupId, name: 'Delaware', userIds: [], spaceIds: [],
 				version: 1,
 				createdAt: getCurrentTime(),
 				lastModifiedAt: getCurrentTime()
@@ -59,7 +58,7 @@ export const fetchMockUserGroup = async (userGroupId: UserGroupId): Promise<{ us
 			break;
 		case '3':
 			userGroup = {
-				userGroupId, name: 'Hawaii', userIds: [], spaceIds: [], indicatorIds: [],
+				userGroupId, name: 'Hawaii', userIds: [], spaceIds: [],
 				version: 1,
 				createdAt: getCurrentTime(),
 				lastModifiedAt: getCurrentTime()
@@ -67,7 +66,7 @@ export const fetchMockUserGroup = async (userGroupId: UserGroupId): Promise<{ us
 			break;
 		case '4':
 			userGroup = {
-				userGroupId, name: 'Alaska', userIds: [], spaceIds: [], indicatorIds: [],
+				userGroupId, name: 'Alaska', userIds: [], spaceIds: [],
 				version: 1,
 				createdAt: getCurrentTime(),
 				lastModifiedAt: getCurrentTime()
@@ -75,7 +74,7 @@ export const fetchMockUserGroup = async (userGroupId: UserGroupId): Promise<{ us
 			break;
 		case '5':
 			userGroup = {
-				userGroupId, name: 'Missouri', userIds: [], spaceIds: [], indicatorIds: [],
+				userGroupId, name: 'Missouri', userIds: [], spaceIds: [],
 				version: 1,
 				createdAt: getCurrentTime(),
 				lastModifiedAt: getCurrentTime()
@@ -83,7 +82,7 @@ export const fetchMockUserGroup = async (userGroupId: UserGroupId): Promise<{ us
 			break;
 		case '6':
 			userGroup = {
-				userGroupId, name: 'Arkansas', userIds: [], spaceIds: [], indicatorIds: [],
+				userGroupId, name: 'Arkansas', userIds: [], spaceIds: [],
 				version: 1,
 				createdAt: getCurrentTime(),
 				lastModifiedAt: getCurrentTime()
@@ -91,7 +90,7 @@ export const fetchMockUserGroup = async (userGroupId: UserGroupId): Promise<{ us
 			break;
 		default:
 			userGroup = {
-				userGroupId, name: 'Mock User Group', userIds: [], spaceIds: [], indicatorIds: [],
+				userGroupId, name: 'Mock User Group', userIds: [], spaceIds: [],
 				version: 1,
 				createdAt: getCurrentTime(),
 				lastModifiedAt: getCurrentTime()

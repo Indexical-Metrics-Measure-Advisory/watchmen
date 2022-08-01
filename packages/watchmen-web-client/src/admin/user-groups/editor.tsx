@@ -1,4 +1,3 @@
-import {QueryIndicatorForHolder} from '@/services/data/tuples/query-indicator-types';
 import {QuerySpaceForHolder} from '@/services/data/tuples/query-space-types';
 import {QueryUserForHolder} from '@/services/data/tuples/query-user-types';
 import {UserGroup} from '@/services/data/tuples/user-group-types';
@@ -7,7 +6,6 @@ import {TuplePropertyInput, TuplePropertyInputLines, TuplePropertyLabel} from '@
 import {useTupleEventBus} from '@/widgets/tuple-workbench/tuple-event-bus';
 import {TupleEventTypes, TupleState} from '@/widgets/tuple-workbench/tuple-event-bus-types';
 import React, {ChangeEvent} from 'react';
-import {IndicatorPicker} from './indicator-picker';
 import {SpacePicker} from './space-picker';
 import {HoldByUserGroup} from './types';
 import {UserPicker} from './user-picker';
@@ -17,8 +15,7 @@ const UserGroupEditor = (props: { userGroup: UserGroup, codes?: HoldByUserGroup 
 		userGroup,
 		codes: {
 			users = [] as Array<QueryUserForHolder>,
-			spaces = [] as Array<QuerySpaceForHolder>,
-			indicators = [] as Array<QueryIndicatorForHolder>
+			spaces = [] as Array<QuerySpaceForHolder>
 		} = {}
 	} = props;
 
@@ -35,7 +32,6 @@ const UserGroupEditor = (props: { userGroup: UserGroup, codes?: HoldByUserGroup 
 
 	// guard data
 	userGroup.spaceIds = userGroup.spaceIds || [];
-	userGroup.indicatorIds = userGroup.indicatorIds || [];
 	userGroup.userIds = userGroup.userIds || [];
 
 	return <>
@@ -45,8 +41,6 @@ const UserGroupEditor = (props: { userGroup: UserGroup, codes?: HoldByUserGroup 
 		<TuplePropertyInputLines value={userGroup.description || ''} onChange={onPropChange('description')}/>
 		<TuplePropertyLabel>Spaces:</TuplePropertyLabel>
 		<SpacePicker label="Assign Space" userGroup={userGroup} codes={spaces}/>
-		<TuplePropertyLabel>Indicators:</TuplePropertyLabel>
-		<IndicatorPicker label="Assign Indicator" userGroup={userGroup} codes={indicators}/>
 		<TuplePropertyLabel>Users:</TuplePropertyLabel>
 		<UserPicker label="Include User" userGroup={userGroup} codes={users}/>
 	</>;
