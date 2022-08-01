@@ -1,3 +1,4 @@
+import {PluginParams} from '@/admin/plugins/plugin/plugin-params';
 import {Plugin} from '@/services/data/tuples/plugin-types';
 import {QueryTenantForHolder} from '@/services/data/tuples/query-tenant-types';
 import {TuplePropertyLabel} from '@/widgets/tuple-workbench/tuple-editor';
@@ -24,6 +25,7 @@ const PluginEditor = (props: { plugin: Plugin; tenants: Array<QueryTenantForHold
 		<PluginNameInput plugin={plugin}/>
 		<TuplePropertyLabel>Data Zone:</TuplePropertyLabel>
 		<PluginTenantInput plugin={plugin} tenants={tenants}/>
+		<PluginParams plugin={plugin}/>
 	</PluginEventBusProvider>;
 };
 
