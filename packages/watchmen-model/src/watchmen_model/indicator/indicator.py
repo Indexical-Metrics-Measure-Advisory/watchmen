@@ -95,7 +95,6 @@ class Indicator(TenantBasedTuple, OptimisticLock, BaseModel):
 	valueBuckets: List[BucketId] = []
 	# noinspection SpellCheckingInspection
 	relevants: List[RelevantIndicator] = []
-	groupIds: List[UserGroupId] = None
 	filter: IndicatorFilter = None
 
 	def __setattr__(self, name, value):

@@ -305,7 +305,7 @@ table_indicators = MongoDocument(
 		create_str('base_on'),
 		create_str('category_1'), create_str('category_2'), create_str('category_3'),
 		create_json('value_buckets'), create_json('relevants'),
-		create_json('group_ids'), create_json('filter'),
+		create_json('filter'),
 		create_description(),
 		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 	]
@@ -334,8 +334,7 @@ table_inspections = MongoDocument(
 		create_json('time_ranges'),
 		create_str('measure_on_time'), create_tuple_id_column('measure_on_time_factor_id'),
 		create_json('criteria'),
-		create_user_id(), create_tenant_id(),
-		*create_tuple_audit_columns()
+		create_tenant_id(), *create_tuple_audit_columns()
 	]
 )
 table_achievements = MongoDocument(
@@ -345,8 +344,7 @@ table_achievements = MongoDocument(
 		create_str('time_range_type'), create_str('time_range_year'), create_str('time_range_month'),
 		create_bool('compare_with_prev_time_range'), create_bool('final_score_is_ratio'), create_json('indicators'),
 		create_description(),
-		create_user_id(), create_tenant_id(),
-		*create_tuple_audit_columns()
+		create_tenant_id(), *create_tuple_audit_columns()
 	]
 )
 table_objective_analysis = MongoDocument(
@@ -355,8 +353,7 @@ table_objective_analysis = MongoDocument(
 		create_pk('analysis_id'), create_str('title'),
 		create_description(), create_json('perspectives'),
 		create_last_visit_time(),
-		create_user_id(), create_tenant_id(),
-		*create_tuple_audit_columns()
+		create_tenant_id(), *create_tuple_audit_columns()
 	]
 )
 
