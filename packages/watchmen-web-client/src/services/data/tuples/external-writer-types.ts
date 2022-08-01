@@ -12,6 +12,7 @@ export type ExternalWriterId = string;
 export interface ExternalWriter extends Tuple, OptimisticLock {
 	writerId: ExternalWriterId;
 	writerCode: string;
+	name: string;
 	type: ExternalWriterType;
 	pat?: Token;
 	url: string;

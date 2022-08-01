@@ -1,3 +1,4 @@
+import {ExternalWriterNameInput} from '@/admin/external-writers/external-writer/external-writer-name-input';
 import {ExternalWriter} from '@/services/data/tuples/external-writer-types';
 import {QueryTenantForHolder} from '@/services/data/tuples/query-tenant-types';
 import {TuplePropertyLabel} from '@/widgets/tuple-workbench/tuple-editor';
@@ -13,10 +14,12 @@ const ExternalWriterEditor = (props: { writer: ExternalWriter; tenants: Array<Qu
 	const {writer, tenants} = props;
 
 	return <ExternalWriterEventBusProvider>
-		<TuplePropertyLabel>External Writer Code:</TuplePropertyLabel>
+		<TuplePropertyLabel>Code:</TuplePropertyLabel>
 		<ExternalWriterCodeInput writer={writer}/>
-		<TuplePropertyLabel>External Writer Type:</TuplePropertyLabel>
+		<TuplePropertyLabel>Type:</TuplePropertyLabel>
 		<ExternalWriterTypeInput writer={writer}/>
+		<TuplePropertyLabel>Name:</TuplePropertyLabel>
+		<ExternalWriterNameInput writer={writer}/>
 		<TuplePropertyLabel>Data Zone:</TuplePropertyLabel>
 		<ExternalWriterTenantInput writer={writer} tenants={tenants}/>
 		<TuplePropertyLabel>Url:</TuplePropertyLabel>
