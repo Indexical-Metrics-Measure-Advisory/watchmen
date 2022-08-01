@@ -1,43 +1,34 @@
-from typing import List, Optional
-
-from watchmen_meta.common import LastVisitShaper, UserBasedTupleService, UserBasedTupleShaper
-from watchmen_model.common import ObjectiveAnalysisId, TenantId, UserId
+from watchmen_meta.common import TupleService, TupleShaper
+from watchmen_model.common import ObjectiveAnalysisId
 from watchmen_model.indicator import ObjectiveAnalysis
-from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityRow, EntityShaper
+from watchmen_storage import EntityRow, EntityShaper
 from watchmen_utilities import ArrayHelper
 
 
 class ObjectiveAnalysisShaper(EntityShaper):
 	def serialize(self, analysis: ObjectiveAnalysis) -> EntityRow:
-		row = {
+		return TupleShaper.serialize_tenant_based(analysis, {
 			'analysis_id': analysis.analysisId,
 			'title': analysis.title,
 			'description': analysis.description,
 			'perspectives': ArrayHelper(analysis.perspectives).map(lambda x: x.to_dict()).to_list()
-		}
-		row = UserBasedTupleShaper.serialize(analysis, row)
-		row = LastVisitShaper.serialize(analysis, row)
-		return row
+		})
 
 	def deserialize(self, row: EntityRow) -> ObjectiveAnalysis:
-		analysis = ObjectiveAnalysis(
+		# noinspection PyTypeChecker
+		return TupleShaper.deserialize_tenant_based(row, ObjectiveAnalysis(
 			analysisId=row.get('analysis_id'),
 			title=row.get('title'),
 			description=row.get('description'),
 			perspectives=row.get('perspectives')
-		)
-		# noinspection PyTypeChecker
-		analysis: ObjectiveAnalysis = UserBasedTupleShaper.deserialize(row, analysis)
-		# noinspection PyTypeChecker
-		analysis: ObjectiveAnalysis = LastVisitShaper.deserialize(row, analysis)
-		return analysis
+		))
 
 
 OBJECTIVE_ANALYSIS_ENTITY_NAME = 'objective_analysis'
 OBJECTIVE_ANALYSIS_ENTITY_SHAPER = ObjectiveAnalysisShaper()
 
 
-class ObjectiveAnalysisService(UserBasedTupleService):
+class ObjectiveAnalysisService(TupleService):
 	def get_entity_name(self) -> str:
 		return OBJECTIVE_ANALYSIS_ENTITY_NAME
 

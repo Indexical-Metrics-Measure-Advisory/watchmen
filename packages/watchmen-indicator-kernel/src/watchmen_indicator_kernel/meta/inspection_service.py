@@ -1,4 +1,4 @@
-from watchmen_meta.common import UserBasedTupleService, UserBasedTupleShaper
+from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_model.common import InspectionId
 from watchmen_model.indicator import Inspection
 from watchmen_storage import EntityRow, EntityShaper
@@ -7,7 +7,7 @@ from watchmen_utilities import ArrayHelper
 
 class InspectionShaper(EntityShaper):
 	def serialize(self, inspection: Inspection) -> EntityRow:
-		row = {
+		return TupleShaper.serialize_tenant_based(inspection, {
 			'inspection_id': inspection.inspectionId,
 			'name': inspection.name,
 			'indicator_id': inspection.indicatorId,
@@ -21,12 +21,11 @@ class InspectionShaper(EntityShaper):
 			'measure_on_time': inspection.measureOnTime,
 			'measure_on_time_factor_id': inspection.measureOnTimeFactorId,
 			'criteria': ArrayHelper(inspection.criteria).map(lambda x: x.to_dict()).to_list()
-		}
-		row = UserBasedTupleShaper.serialize(inspection, row)
-		return row
+		})
 
 	def deserialize(self, row: EntityRow) -> Inspection:
-		inspection = Inspection(
+		# noinspection PyTypeChecker
+		return TupleShaper.deserialize_tenant_based(row, Inspection(
 			inspectionId=row.get('inspection_id'),
 			name=row.get('name'),
 			indicatorId=row.get('indicator_id'),
@@ -40,17 +39,14 @@ class InspectionShaper(EntityShaper):
 			measureOnTime=row.get('measure_on_time'),
 			measureOnTimeFactorId=row.get('measure_on_time_factor_id'),
 			criteria=row.get('criteria')
-		)
-		# noinspection PyTypeChecker
-		inspection: Inspection = UserBasedTupleShaper.deserialize(row, inspection)
-		return inspection
+		))
 
 
 INSPECTION_ENTITY_NAME = 'inspections'
 INSPECTION_ENTITY_SHAPER = InspectionShaper()
 
 
-class InspectionService(UserBasedTupleService):
+class InspectionService(TupleService):
 	def get_entity_name(self) -> str:
 		return INSPECTION_ENTITY_NAME
 
