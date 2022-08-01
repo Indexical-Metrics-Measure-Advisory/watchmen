@@ -1,55 +1,57 @@
 from typing import List, Optional
 
 from watchmen_meta.common import TupleService, TupleShaper
-from watchmen_model.common import DataPage, ExternalWriterId, Pageable, TenantId
-from watchmen_model.system import ExternalWriter
+from watchmen_model.common import DataPage, Pageable, PluginId, TenantId
+from watchmen_model.system import Plugin
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, \
 	EntityShaper
 
 
-class ExternalWriterShaper(EntityShaper):
-	def serialize(self, external_writer: ExternalWriter) -> EntityRow:
-		return TupleShaper.serialize_tenant_based(external_writer, {
-			'writer_id': external_writer.writerId,
-			'writer_code': external_writer.writerCode,
-			'name': external_writer.name,
-			'type': external_writer.type,
-			'pat': external_writer.pat,
-			'url': external_writer.url
+class PluginShaper(EntityShaper):
+	def serialize(self, plugin: Plugin) -> EntityRow:
+		return TupleShaper.serialize_tenant_based(plugin, {
+			'plugin_id': plugin.pluginId,
+			'plugin_code': plugin.pluginCode,
+			'name': plugin.name,
+			'type': plugin.type,
+			'apply_to': plugin.applyTo,
+			'params': plugin.params,
+			'results': plugin.results
 		})
 
-	def deserialize(self, row: EntityRow) -> ExternalWriter:
+	def deserialize(self, row: EntityRow) -> Plugin:
 		# noinspection PyTypeChecker
-		return TupleShaper.deserialize_tenant_based(row, ExternalWriter(
-			writerId=row.get('writer_id'),
-			writerCode=row.get('writer_code'),
+		return TupleShaper.deserialize_tenant_based(row, Plugin(
+			pluginId=row.get('plugin_id'),
+			pluginCode=row.get('plugin_code'),
 			name=row.get('name'),
 			type=row.get('type'),
-			pat=row.get('pat'),
-			url=row.get('url')
+			applyTo=row.get('apply_to'),
+			params=row.get('params'),
+			results=row.get('results')
 		))
 
 
-EXTERNAL_WRITER_ENTITY_NAME = 'external_writers'
-EXTERNAL_WRITER_ENTITY_SHAPER = ExternalWriterShaper()
+PLUGIN_ENTITY_NAME = 'plugins'
+PLUGIN_ENTITY_SHAPER = PluginShaper()
 
 
-class ExternalWriterService(TupleService):
+class PluginService(TupleService):
 	def get_entity_name(self) -> str:
-		return EXTERNAL_WRITER_ENTITY_NAME
+		return PLUGIN_ENTITY_NAME
 
 	def get_entity_shaper(self) -> EntityShaper:
-		return EXTERNAL_WRITER_ENTITY_SHAPER
+		return PLUGIN_ENTITY_SHAPER
 
-	def get_storable_id(self, storable: ExternalWriter) -> ExternalWriterId:
-		return storable.writerId
+	def get_storable_id(self, storable: Plugin) -> PluginId:
+		return storable.pluginId
 
-	def set_storable_id(self, storable: ExternalWriter, storable_id: ExternalWriterId) -> ExternalWriter:
-		storable.writerId = storable_id
+	def set_storable_id(self, storable: Plugin, storable_id: PluginId) -> Plugin:
+		storable.pluginId = storable_id
 		return storable
 
 	def get_storable_id_column_name(self) -> str:
-		return 'writer_id'
+		return 'plugin_id'
 
 	# noinspection DuplicatedCode
 	def find_by_text(
@@ -62,7 +64,7 @@ class ExternalWriterService(TupleService):
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		return self.storage.page(self.get_entity_pager(criteria, pageable))
 
-	def find_all(self, tenant_id: Optional[TenantId]) -> List[ExternalWriter]:
+	def find_all(self, tenant_id: Optional[TenantId]) -> List[Plugin]:
 		criteria = []
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
