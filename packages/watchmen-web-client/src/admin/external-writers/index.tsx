@@ -62,13 +62,13 @@ const AdminExternalWriters = () => {
 		};
 		const onSaveExternalWriter = async (externalWriter: ExternalWriter, onSaved: (externalWriter: ExternalWriter, saved: boolean) => void) => {
 			if (!externalWriter.writerCode || !externalWriter.writerCode.trim()) {
-				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>External Writer code is required.</AlertLabel>, () => {
+				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>External writer code is required.</AlertLabel>, () => {
 					onSaved(externalWriter, false);
 				});
 				return;
 			}
 			if (!externalWriter.type) {
-				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>External Writer type is required.</AlertLabel>, () => {
+				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>External writer type is required.</AlertLabel>, () => {
 					onSaved(externalWriter, false);
 				});
 				return;
@@ -102,7 +102,7 @@ const AdminExternalWriters = () => {
 
 	return <TupleWorkbench title="External Writers"
 	                       createButtonLabel="Create External Writer" canCreate={true}
-	                       searchPlaceholder="Search by external writer name, zone name, etc."
+	                       searchPlaceholder="Search by external writer name, etc."
 	                       tupleLabel="External Writer" tupleImage={ExternalWriterBackground}
 	                       tupleImagePosition="left 80px"
 	                       renderEditor={renderEditor}

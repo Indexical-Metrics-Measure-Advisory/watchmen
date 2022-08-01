@@ -1,4 +1,3 @@
-import {ExternalWriterNameInput} from '@/admin/external-writers/external-writer/external-writer-name-input';
 import {ExternalWriter} from '@/services/data/tuples/external-writer-types';
 import {QueryTenantForHolder} from '@/services/data/tuples/query-tenant-types';
 import {TuplePropertyLabel} from '@/widgets/tuple-workbench/tuple-editor';
@@ -6,6 +5,7 @@ import React from 'react';
 import {ExternalWriterEventBusProvider} from './external-writer-event-bus';
 import {ExternalWriterCodeInput} from './external-writer/external-writer-code-input';
 import {ExternalWriterConnectInput} from './external-writer/external-writer-connection-input';
+import {ExternalWriterNameInput} from './external-writer/external-writer-name-input';
 import {ExternalWriterTenantInput} from './external-writer/external-writer-tenant-input';
 import {ExternalWriterTypeInput} from './external-writer/external-writer-type-input';
 import {HoldByExternalWriter} from './types';

@@ -16,7 +16,7 @@ export interface Plugin extends Tuple, OptimisticLock {
 	pluginCode: string;
 	name: string;
 	type: PluginType;
-	applyTo: PluginApplyTo;
+	applyTo?: PluginApplyTo;
 	params?: Array<string>;
 	results?: Array<string>;
 	tenantId?: TenantId;

@@ -17,6 +17,7 @@ export enum Router {
 	ADMIN_TENANTS = '/admin/tenants',
 	ADMIN_DATA_SOURCES = '/admin/data-sources',
 	ADMIN_EXTERNAL_WRITERS = '/admin/external-writers',
+	ADMIN_PLUGINS = '/admin/plugins',
 	ADMIN_MONITOR_LOGS = '/admin/monitor_logs',
 	ADMIN_SIMULATOR = '/admin/simulator',
 	ADMIN_SETTINGS = '/admin/settings',

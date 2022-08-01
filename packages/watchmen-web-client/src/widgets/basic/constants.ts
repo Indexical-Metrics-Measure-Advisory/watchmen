@@ -85,7 +85,7 @@ import {
 	faPlay,
 	faPlus,
 	faPowerOff,
-	faPrint,
+	faPrint, faPuzzlePiece,
 	faQuestionCircle,
 	faQuoteRight,
 	faRandom,
@@ -188,6 +188,7 @@ export const ICON_USER = faUser;
 export const ICON_TENANT = faCity;
 export const ICON_DATA_SOURCE = faDatabase;
 export const ICON_EXTERNAL_WRITERS = faExternalLinkSquareAlt;
+export const ICON_PLUGINS = faPuzzlePiece;
 export const ICON_SPACE = faGlobe;
 export const ICON_CONNECTION = faLink;
 export const ICON_CONNECTED_SPACE = faDiceD20;

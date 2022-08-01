@@ -1,4 +1,4 @@
-import {isMultipleDataSourcesEnabled, isWriteExternalEnabled} from '@/feature-switch';
+import {isMultipleDataSourcesEnabled, isPluginEnabled, isWriteExternalEnabled} from '@/feature-switch';
 import {Router} from '@/routes/types';
 import {findAccount, isSuperAdmin, quit} from '@/services/data/account';
 import {
@@ -13,6 +13,7 @@ import {
 	ICON_MONITOR_LOGS,
 	ICON_PIPELINE,
 	ICON_PIPELINE_DEBUG,
+	ICON_PLUGINS,
 	ICON_REPORT,
 	ICON_SETTINGS,
 	ICON_SPACE,
@@ -169,6 +170,10 @@ export const AdminMenu = () => {
 		              active={!!matchPath(location.pathname, Router.ADMIN_EXTERNAL_WRITERS)}
 		              onClick={onMenuClicked(Router.ADMIN_EXTERNAL_WRITERS)}
 		              visible={isSuperAdmin() && isWriteExternalEnabled()}/>
+		<SideMenuItem icon={ICON_PLUGINS} label="Plugins" showTooltip={showTooltip}
+		              active={!!matchPath(location.pathname, Router.ADMIN_PLUGINS)}
+		              onClick={onMenuClicked(Router.ADMIN_PLUGINS)}
+		              visible={isSuperAdmin() && isPluginEnabled()}/>
 		<SideMenuItem icon={ICON_USER} label="Users" showTooltip={showTooltip}
 		              active={!!matchPath(location.pathname, Router.ADMIN_USERS)}
 		              onClick={onMenuClicked(Router.ADMIN_USERS)}/>
