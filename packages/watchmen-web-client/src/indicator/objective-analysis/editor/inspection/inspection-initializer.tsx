@@ -19,7 +19,7 @@ export const InspectionInitializer = (props: { analysis: ObjectiveAnalysis, pers
 				});
 			});
 		} else {
-			// create a new one
+			// create new one
 			const inspection = createInspection();
 			fire(InspectionEventTypes.INSPECTION_PICKED, inspection);
 		}

@@ -14,8 +14,9 @@ export const CreateOrFindAchievement = (props: {
 	achievement: Achievement | null;
 	onPicked: (achievementId: AchievementId) => void;
 	onCleared: () => void;
+	reusable?: boolean;
 }) => {
-	const {achievement, onCleared, onPicked} = props;
+	const {achievement, onCleared, onPicked, reusable = true} = props;
 
 	const {on, off} = useObjectiveAnalysisEventBus();
 	const [visible, setVisible] = useState(true);
@@ -38,9 +39,9 @@ export const CreateOrFindAchievement = (props: {
 		case !visible:
 			return null;
 		case achievement == null:
-			return <CreateOrFindEditor onPicked={onPicked}/>;
+			return <CreateOrFindEditor onPicked={onPicked} reusable={reusable}/>;
 		case achievement != null:
-			return <CreateOrFindViewer achievement={achievement!} onCleared={onCleared}/>;
+			return <CreateOrFindViewer achievement={achievement!} onCleared={onCleared} reusable={reusable}/>;
 		default:
 			return null;
 	}

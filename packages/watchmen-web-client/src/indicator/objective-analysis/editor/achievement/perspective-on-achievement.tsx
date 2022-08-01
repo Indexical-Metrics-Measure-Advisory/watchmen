@@ -1,4 +1,4 @@
-import {fetchAchievement} from '@/services/data/tuples/achievement';
+import {fetchAchievement, saveAchievement} from '@/services/data/tuples/achievement';
 import {Achievement, AchievementId} from '@/services/data/tuples/achievement-types';
 import {ObjectiveAnalysis, ObjectiveAnalysisPerspective} from '@/services/data/tuples/objective-analysis-types';
 import {RoundDwarfButton} from '@/widgets/basic/button';
@@ -13,6 +13,7 @@ import React, {useEffect, useState} from 'react';
 import {AchievementEventBusProvider} from '../../../achievement/achievement-event-bus';
 import {AchievementEditPageBody} from '../../../achievement/edit/body';
 import {AchievementSaver} from '../../../achievement/edit/saver';
+import {createAchievement} from '../../../achievement/utils';
 import {useObjectiveAnalysisEventBus} from '../../objective-analysis-event-bus';
 import {ObjectiveAnalysisEventTypes} from '../../objective-analysis-event-bus-types';
 import {useDescription} from '../use-description';
@@ -38,14 +39,28 @@ export const PerspectiveOnAchievement = (props: { analysis: ObjectiveAnalysis, p
 	useEffect(() => {
 		const achievementId = perspective.relationId;
 		if (achievementId != null && achievementId.length !== 0) {
+			// already picked
 			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
 				const {achievement} = await fetchAchievement(achievementId);
 				return achievement;
 			}, (achievement: Achievement) => {
 				setAchievement(achievement);
 			});
+		} else {
+			// create new one
+			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
+				async () => {
+					const achievement = createAchievement();
+					await saveAchievement(achievement);
+					return achievement;
+				},
+				(achievement: Achievement) => {
+					perspective.relationId = achievementId;
+					fire(ObjectiveAnalysisEventTypes.SAVE, analysis);
+					setAchievement(achievement);
+				});
 		}
-	}, [fireGlobal, perspective.relationId]);
+	}, [fireGlobal, fire, analysis, perspective, perspective.relationId]);
 	const forceUpdate = useForceUpdate();
 
 	const onDeleteClicked = () => {
@@ -83,7 +98,8 @@ export const PerspectiveOnAchievement = (props: { analysis: ObjectiveAnalysis, p
 				</PerspectiveButtons>
 			</PerspectiveDescriptorWrapper>
 			<CreateOrFindAchievement analysis={analysis} perspective={perspective} achievement={achievement}
-			                         onPicked={onAchievementPicked} onCleared={onAchievementCleared}/>
+			                         onPicked={onAchievementPicked} onCleared={onAchievementCleared}
+			                         reusable={false}/>
 			{achievement != null
 				? <AchievementEdit>
 					<RenderModeAssistant/>
