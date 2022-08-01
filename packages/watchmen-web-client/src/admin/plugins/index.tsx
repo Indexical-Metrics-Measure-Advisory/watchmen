@@ -73,6 +73,12 @@ const AdminPlugins = () => {
 				});
 				return;
 			}
+			if (!plugin.applyTo) {
+				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Plugin apply to is required.</AlertLabel>, () => {
+					onSaved(plugin, false);
+				});
+				return;
+			}
 			if (!plugin.tenantId) {
 				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Data zone is required.</AlertLabel>, () => {
 					onSaved(plugin, false);
