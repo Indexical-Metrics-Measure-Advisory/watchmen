@@ -16,7 +16,6 @@ const OrderPremiumIndicator: Indicator = {
 	baseOn: IndicatorBaseOn.TOPIC,
 	valueBuckets: [BUCKET_AMOUNT_ID],
 	category1: 'premium',
-	userGroupIds: ['1', '2'],
 	version: 1,
 	createdAt: getCurrentTime(),
 	lastModifiedAt: getCurrentTime()
@@ -30,7 +29,6 @@ export const MonthlyOrderPremiumIndicator: Indicator = {
 	category1: 'premium',
 	category2: 'short term',
 	category3: 'monthly',
-	userGroupIds: [],
 	version: 1,
 	createdAt: getCurrentTime(),
 	lastModifiedAt: getCurrentTime()
@@ -44,7 +42,6 @@ const WeeklyOrderPremiumIndicator: Indicator = {
 	category1: 'premium',
 	category2: 'short term',
 	category3: 'weekly',
-	userGroupIds: [],
 	version: 1,
 	createdAt: getCurrentTime(),
 	lastModifiedAt: getCurrentTime()
@@ -59,7 +56,6 @@ const MonthlyOrderPremiumIndicatorOnSubject: Indicator = {
 	category1: 'premium',
 	category2: 'short term',
 	category3: 'monthly',
-	userGroupIds: [],
 	version: 1,
 	createdAt: getCurrentTime(),
 	lastModifiedAt: getCurrentTime()

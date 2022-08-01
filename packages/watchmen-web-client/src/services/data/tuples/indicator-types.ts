@@ -4,8 +4,7 @@ import {FactorId} from './factor-types';
 import {SubjectDataSetColumnId, SubjectId} from './subject-types';
 import {TenantId} from './tenant-types';
 import {TopicId} from './topic-types';
-import {OptimisticLock, Tuple, TupleHolder} from './tuple-types';
-import {UserGroupId} from './user-group-types';
+import {OptimisticLock, Tuple} from './tuple-types';
 
 export enum MeasureMethod {
 	// address related
@@ -121,7 +120,6 @@ export interface Indicator extends Tuple, OptimisticLock {
 	/** effective only when factorId is appointed */
 	valueBuckets?: Array<BucketId>;
 	relevants?: Array<RelevantIndicator>;
-	userGroupIds: Array<UserGroupId>;
 	filter?: IndicatorFilter;
 	// categories, ordered
 	category1?: string;
@@ -129,8 +127,4 @@ export interface Indicator extends Tuple, OptimisticLock {
 	category3?: string;
 	description?: string;
 	tenantId?: TenantId;
-}
-
-export interface IndicatorHolder extends TupleHolder {
-	indicatorIds: Array<IndicatorId>;
 }

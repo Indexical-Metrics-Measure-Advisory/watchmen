@@ -24,18 +24,7 @@ import {
 	TopicForIndicator
 } from './query-indicator-types';
 import {TopicId} from './topic-types';
-import {UserGroupId} from './user-group-types';
 import {isFakedUuid} from './utils';
-
-type IndicatorOnServer = Omit<Indicator, 'userGroupIds'> & { groupIds: Array<UserGroupId> };
-const transformFromServer = (indicator: IndicatorOnServer): Indicator => {
-	const {groupIds, ...rest} = indicator;
-	return {userGroupIds: groupIds, ...rest};
-};
-const transformToServer = (indicator: Indicator): IndicatorOnServer => {
-	const {userGroupIds, ...rest} = indicator;
-	return {groupIds: userGroupIds, ...rest};
-};
 
 export const listIndicators = async (options: {
 	search: string;
@@ -66,16 +55,12 @@ export const listIndicatorsForExport = async (): Promise<Array<Indicator>> => {
 			if (isMockService()) {
 				indicators = await listMockIndicatorsForExport();
 			} else {
-				indicators = (await get({api: Apis.INDICATORS_EXPORT}) || []).map((indicator: IndicatorOnServer) => transformFromServer(indicator));
+				indicators = await get({api: Apis.INDICATORS_EXPORT});
 			}
 		} catch {
 			// do nothing, returns an empty array
 		}
-		// remove user group data
-		resolve(indicators.map(space => {
-			space.userGroupIds = [];
-			return space;
-		}));
+		resolve(indicators);
 	});
 };
 
@@ -107,7 +92,7 @@ export const fetchIndicator = async (indicatorId: IndicatorId): Promise<{ indica
 	if (isMockService()) {
 		return await fetchMockIndicator(indicatorId);
 	} else {
-		const indicator: IndicatorOnServer = await get({api: Apis.INDICATOR_GET, search: {indicatorId}});
+		const indicator: Indicator = await get({api: Apis.INDICATOR_GET, search: {indicatorId}});
 		let topic: TopicForIndicator | undefined = (void 0);
 		let subject: SubjectForIndicator | undefined = (void 0);
 		if (indicator.baseOn === IndicatorBaseOn.TOPIC) {
@@ -115,7 +100,7 @@ export const fetchIndicator = async (indicatorId: IndicatorId): Promise<{ indica
 		} else if (indicator.baseOn === IndicatorBaseOn.SUBJECT) {
 			subject = await get({api: Apis.SUBJECT_FOR_INDICATOR_GET, search: {subjectId: indicator.topicOrSubjectId}});
 		}
-		return {indicator: transformFromServer(indicator), topic, subject};
+		return {indicator, topic, subject};
 	}
 };
 
@@ -132,7 +117,7 @@ export const saveIndicator = async (indicator: Indicator): Promise<void> => {
 	} else {
 		const data = await post({
 			api: Apis.INDICATOR_SAVE,
-			data: transformToServer(indicator)
+			data: indicator
 		});
 		indicator.tenantId = data.tenantId;
 		indicator.version = data.version;
@@ -164,7 +149,6 @@ export const listAllIndicators = async (): Promise<Array<Indicator>> => {
 	if (isMockService()) {
 		return listAllMockIndicators();
 	} else {
-		const indicators: Array<IndicatorOnServer> = await get({api: Apis.INDICATORS_LIST});
-		return (indicators || []).map(indicator => transformFromServer(indicator));
+		return await get({api: Apis.INDICATORS_LIST});
 	}
 };
