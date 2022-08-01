@@ -6,6 +6,7 @@ export const createExternalWriter = (): ExternalWriter => {
 	return {
 		writerId: generateUuid(),
 		writerCode: '',
+		name: '',
 		type: ExternalWriterType.ELASTIC_SEARCH_WRITER,
 		url: '',
 		version: 1,

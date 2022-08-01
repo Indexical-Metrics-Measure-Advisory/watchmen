@@ -7,6 +7,7 @@ import {getCurrentTime} from '../../utils';
 const StandardWriter: ExternalWriter = {
 	writerId: '1',
 	writerCode: 'STANDARD_WRITER',
+	name: 'Standard Writer',
 	type: ExternalWriterType.STANDARD_WRITER,
 	tenantId: '1',
 	url: '',
@@ -17,6 +18,7 @@ const StandardWriter: ExternalWriter = {
 const EsWriter: ExternalWriter = {
 	writerId: '2',
 	writerCode: 'ES_WRITER',
+	name: 'Elastic Search Writer',
 	type: ExternalWriterType.ELASTIC_SEARCH_WRITER,
 	tenantId: '1',
 	url: '',

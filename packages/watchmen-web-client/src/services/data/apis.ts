@@ -85,6 +85,12 @@ export const Apis = {
 	EXTERNAL_WRITER_SAVE: 'external_writer',
 	EXTERNAL_WRITER_LOAD_ALL: 'external_writer/all',
 
+	PLUGIN_LIST_BY_NAME: 'plugin/name?query_name=:search',
+	PLUGIN_GET: 'plugin?plugin_id=:pluginId',
+	PLUGIN_CREATE: 'plugin',
+	PLUGIN_SAVE: 'plugin',
+	PLUGIN_LOAD_ALL: 'plugin/all',
+
 	DASHBOARD_FOR_ADMIN: 'dashboard/admin',
 
 	// authenticated
