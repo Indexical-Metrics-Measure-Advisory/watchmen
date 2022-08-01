@@ -14,7 +14,9 @@ import {InspectionInvalidReason, validateInspection} from '../utils';
 import {InspectionButton} from '../widgets';
 import {ButtonsContainer} from './widgets';
 
-export const Buttons = () => {
+export const Buttons = (props: { reusable: boolean }) => {
+	const {reusable} = props;
+
 	const {fire: fireGlobal} = useEventBus();
 	const {on, off, fire} = useInspectionEventBus();
 	const {visible, inspection} = useVisibleOnII();
@@ -116,8 +118,10 @@ export const Buttons = () => {
 		{/*<InspectionButton ink={ButtonInk.PRIMARY} onClick={onPrintClicked}>*/}
 		{/*	{Lang.INDICATOR.INSPECTION.PRINT}*/}
 		{/*</InspectionButton>*/}
-		<InspectionButton ink={ButtonInk.DANGER} onClick={onPickAnotherClicked}>
-			{Lang.INDICATOR.INSPECTION.PICK_ANOTHER}
-		</InspectionButton>
+		{reusable
+			? <InspectionButton ink={ButtonInk.DANGER} onClick={onPickAnotherClicked}>
+				{Lang.INDICATOR.INSPECTION.PICK_ANOTHER}
+			</InspectionButton>
+			: null}
 	</ButtonsContainer>;
 };
