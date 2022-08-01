@@ -110,20 +110,20 @@ async def find_all_plugins(
 
 @router.delete('/plugin', tags=[UserRole.SUPER_ADMIN], response_model=Plugin)
 async def delete_plugin_by_id(
-		writer_id: Optional[PluginId] = None,
+		plugin_id: Optional[PluginId] = None,
 		principal_service: PrincipalService = Depends(get_super_admin_principal)
 ) -> Plugin:
 	if not ask_tuple_delete_enabled():
 		raise_404('Not Found')
 
-	if is_blank(writer_id):
+	if is_blank(plugin_id):
 		raise_400('Plugin id is required.')
 
 	plugin_service = get_plugin_service(principal_service)
 
 	def action() -> Plugin:
 		# noinspection PyTypeChecker
-		plugin: Plugin = plugin_service.delete(writer_id)
+		plugin: Plugin = plugin_service.delete(plugin_id)
 		if plugin is None:
 			raise_404()
 		return plugin
