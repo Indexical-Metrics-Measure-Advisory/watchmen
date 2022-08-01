@@ -30,7 +30,6 @@ class IndicatorShaper(EntityShaper):
 			'category_3': indicator.category3,
 			'value_buckets': indicator.valueBuckets,
 			'relevants': ArrayHelper(indicator.relevants).map(lambda x: x.to_dict()).to_list(),
-			'group_ids': indicator.groupIds,
 			'filter': IndicatorShaper.serialize_filter(indicator.filter),
 			'description': indicator.description,
 		})
@@ -48,7 +47,6 @@ class IndicatorShaper(EntityShaper):
 			category3=row.get('category_3'),
 			valueBuckets=row.get('value_buckets'),
 			relevants=row.get('relevants'),
-			groupIds=row.get('group_ids'),
 			filter=row.get('filter'),
 			description=row.get('description'),
 		))
@@ -122,14 +120,6 @@ class IndicatorService(TupleService):
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(criteria))
-
-	# noinspection DuplicatedCode
-	def find_all(self, tenant_id: Optional[TenantId]) -> List[Indicator]:
-		criteria = []
-		if tenant_id is not None and len(tenant_id.strip()) != 0:
-			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
-		# noinspection PyTypeChecker
-		return self.storage.find(self.get_entity_finder(criteria=criteria))
 
 	# noinspection DuplicatedCode
 	def find_all(self, tenant_id: Optional[TenantId]) -> List[Indicator]:

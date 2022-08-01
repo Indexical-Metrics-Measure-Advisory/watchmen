@@ -2,7 +2,7 @@ from typing import List
 
 from pydantic import BaseModel
 
-from watchmen_model.common import IndicatorId, OptimisticLock, SpaceId, TenantBasedTuple, UserGroupId, UserId
+from watchmen_model.common import OptimisticLock, SpaceId, TenantBasedTuple, UserGroupId, UserId
 
 
 class UserGroup(TenantBasedTuple, OptimisticLock, BaseModel):
@@ -11,4 +11,3 @@ class UserGroup(TenantBasedTuple, OptimisticLock, BaseModel):
 	description: str = None
 	userIds: List[UserId] = None
 	spaceIds: List[SpaceId] = None
-	indicatorIds: List[IndicatorId] = None

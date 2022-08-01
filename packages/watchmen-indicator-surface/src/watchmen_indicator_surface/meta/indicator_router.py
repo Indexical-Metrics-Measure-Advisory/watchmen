@@ -6,14 +6,14 @@ from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.meta import IndicatorService
 from watchmen_indicator_surface.settings import ask_tuple_delete_enabled
 from watchmen_indicator_surface.util import trans, trans_readonly
-from watchmen_meta.admin import UserGroupService, UserService
+from watchmen_meta.admin import UserService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
-from watchmen_model.admin import User, UserGroup, UserRole
-from watchmen_model.common import DataPage, IndicatorId, Pageable, TenantId, UserGroupId
+from watchmen_model.admin import UserRole
+from watchmen_model.common import DataPage, IndicatorId, Pageable, TenantId
 from watchmen_model.indicator import Indicator
 from watchmen_rest import get_admin_principal, get_console_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
-from watchmen_utilities import ArrayHelper, is_blank
+from watchmen_utilities import is_blank
 
 router = APIRouter()
 
@@ -27,27 +27,6 @@ def get_user_service(indicator_service: IndicatorService) -> UserService:
 		indicator_service.storage, indicator_service.snowflakeGenerator, indicator_service.principalService)
 
 
-def get_user_group_service(indicator_service: IndicatorService) -> UserGroupService:
-	return UserGroupService(
-		indicator_service.storage, indicator_service.snowflakeGenerator, indicator_service.principalService)
-
-
-def filter_indicators(
-		indicators: List[Indicator], indicator_service: IndicatorService,
-		principal_service: PrincipalService
-) -> List[Indicator]:
-	if principal_service.is_admin():
-		return indicators
-
-	user_id = principal_service.get_user_id()
-	user_service = get_user_service(indicator_service)
-	user: Optional[User] = user_service.find_by_id(user_id)
-	if user is None:
-		raise_403()
-	group_ids = user.groupIds
-	return ArrayHelper(indicators).filter(lambda x: ArrayHelper(x.groupIds).some(lambda y: y in group_ids)).to_list()
-
-
 @router.get('/indicator/indicator/name', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Indicator])
 async def find_indicators_by_name(
 		query_name: Optional[str], principal_service: PrincipalService = Depends(get_console_principal)
@@ -58,11 +37,10 @@ async def find_indicators_by_name(
 		tenant_id: TenantId = principal_service.get_tenant_id()
 		if is_blank(query_name):
 			# noinspection PyTypeChecker
-			indicators = indicator_service.find_by_text(None, tenant_id)
+			return indicator_service.find_by_text(None, tenant_id)
 		else:
 			# noinspection PyTypeChecker
-			indicators = indicator_service.find_by_text(query_name, tenant_id)
-		return filter_indicators(indicators, indicator_service, principal_service)
+			return indicator_service.find_by_text(query_name, tenant_id)
 
 	return trans_readonly(indicator_service, action)
 
@@ -95,8 +73,7 @@ async def find_all_indicators(principal_service: PrincipalService = Depends(get_
 
 	def action() -> List[Indicator]:
 		tenant_id: TenantId = principal_service.get_tenant_id()
-		indicators = indicator_service.find_all(tenant_id)
-		return filter_indicators(indicators, indicator_service, principal_service)
+		return indicator_service.find_all(tenant_id)
 
 	return trans_readonly(indicator_service, action)
 
@@ -119,91 +96,9 @@ async def load_indicator_by_id(
 		if indicator.tenantId != principal_service.get_tenant_id():
 			raise_404()
 
-		indicators = filter_indicators([indicator], indicator_service, principal_service)
-		if len(indicators) == 0:
-			raise_404()
 		return indicator
 
 	return trans_readonly(indicator_service, action)
-
-
-# noinspection DuplicatedCode
-def has_indicator_id(user_group: UserGroup, indicator_id: IndicatorId) -> bool:
-	if user_group.indicatorIds is None:
-		return False
-	elif len(user_group.indicatorIds) == 0:
-		return False
-	else:
-		return indicator_id in user_group.indicatorIds
-
-
-def append_indicator_id_to_user_group(user_group: UserGroup, indicator_id: IndicatorId) -> UserGroup:
-	if user_group.indicatorIds is None:
-		user_group.indicatorIds = [indicator_id]
-	else:
-		user_group.indicatorIds.append(indicator_id)
-	return user_group
-
-
-def update_user_group(user_group_service: UserGroupService, user_group: UserGroup) -> None:
-	user_group_service.update(user_group)
-
-
-# noinspection DuplicatedCode
-def sync_indicator_to_groups(
-		indicator_service: IndicatorService,
-		indicator_id: IndicatorId, user_group_ids: List[UserGroupId],
-		tenant_id: TenantId
-) -> None:
-	if user_group_ids is None:
-		return
-
-	given_count = len(user_group_ids)
-	if given_count == 0:
-		# do nothing
-		return
-
-	user_group_service = get_user_group_service(indicator_service)
-	user_groups = user_group_service.find_by_ids(user_group_ids, tenant_id)
-	found_count = len(user_groups)
-	if given_count != found_count:
-		raise_400('User group ids do not match.')
-
-	ArrayHelper(user_groups) \
-		.filter(lambda x: not has_indicator_id(x, indicator_id)) \
-		.map(lambda x: append_indicator_id_to_user_group(x, indicator_id)) \
-		.each(lambda x: update_user_group(user_group_service, x))
-
-
-def remove_indicator_id_from_user_group(user_group: UserGroup, indicator_id: IndicatorId) -> UserGroup:
-	user_group.indicatorIds = ArrayHelper(user_group.indicatorIds).filter(lambda x: x != indicator_id).to_list()
-	return user_group
-
-
-# noinspection DuplicatedCode
-def remove_indicator_from_groups(
-		indicator_service: IndicatorService,
-		indicator_id: IndicatorId, user_group_ids: List[UserGroupId],
-		tenant_id: TenantId
-) -> None:
-	if user_group_ids is None:
-		return
-
-	given_count = len(user_group_ids)
-	if given_count == 0:
-		# do nothing
-		return
-
-	user_group_service = get_user_group_service(indicator_service)
-	user_groups = user_group_service.find_by_ids(user_group_ids, tenant_id)
-	found_count = len(user_groups)
-	if given_count != found_count:
-		raise_400('User group ids do not match.')
-
-	ArrayHelper(user_groups) \
-		.filter(lambda x: has_indicator_id(x, indicator_id)) \
-		.map(lambda x: remove_indicator_id_from_user_group(x, indicator_id)) \
-		.each(lambda x: update_user_group(user_group_service, x))
 
 
 @router.post('/indicator/indicator', tags=[UserRole.ADMIN], response_model=Indicator)
@@ -216,12 +111,8 @@ async def save_indicator(
 	def action(an_indicator: Indicator) -> Indicator:
 		if indicator_service.is_storable_id_faked(an_indicator.indicatorId):
 			indicator_service.redress_storable_id(an_indicator)
-			user_group_ids = ArrayHelper(an_indicator.groupIds).distinct().to_list()
-			an_indicator.groupIds = user_group_ids
 			# noinspection PyTypeChecker
 			an_indicator: Indicator = indicator_service.create(an_indicator)
-			# synchronize space to user groups
-			sync_indicator_to_groups(indicator_service, an_indicator.indicatorId, user_group_ids, indicator.tenantId)
 		else:
 			# noinspection PyTypeChecker
 			existing_indicator: Optional[Indicator] = indicator_service.find_by_id(an_indicator.indicatorId)
@@ -229,16 +120,8 @@ async def save_indicator(
 				if existing_indicator.tenantId != an_indicator.tenantId:
 					raise_403()
 
-			user_group_ids = ArrayHelper(an_indicator.groupIds).distinct().to_list()
-			an_indicator.groupIds = user_group_ids
 			# noinspection PyTypeChecker
 			an_indicator: Indicator = indicator_service.update(an_indicator)
-			# remove indicator from user groups, in case user groups are removed
-			removed_user_group_ids = ArrayHelper(existing_indicator.groupIds).difference(user_group_ids).to_list()
-			remove_indicator_from_groups(
-				indicator_service, indicator.indicatorId, removed_user_group_ids, indicator.tenantId)
-			# synchronize indicator to user groups
-			sync_indicator_to_groups(indicator_service, indicator.indicatorId, user_group_ids, indicator.tenantId)
 
 		return an_indicator
 
