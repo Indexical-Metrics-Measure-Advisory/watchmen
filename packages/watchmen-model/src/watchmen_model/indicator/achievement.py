@@ -3,7 +3,7 @@ from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
-from watchmen_model.common import AchievementId, DataModel, IndicatorId, TenantBasedTuple
+from watchmen_model.common import AchievementId, DataModel, IndicatorId, OptimisticLock, TenantBasedTuple
 from watchmen_utilities import ArrayHelper
 from .indicator import IndicatorAggregateArithmetic
 from .indicator_criteria import construct_indicator_criteria_list, IndicatorCriteria
@@ -64,7 +64,7 @@ def construct_indicators(indicators: Optional[list] = None) -> Optional[List[Ach
 		return ArrayHelper(indicators).map(lambda x: construct_indicator(x)).to_list()
 
 
-class Achievement(TenantBasedTuple, BaseModel):
+class Achievement(TenantBasedTuple, OptimisticLock, BaseModel):
 	achievementId: AchievementId = None
 	name: str = None
 	description: str = None

@@ -3,7 +3,7 @@ from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
-from watchmen_model.common import AchievementId, DataModel, InspectionId, ObjectiveAnalysisId, \
+from watchmen_model.common import AchievementId, DataModel, InspectionId, ObjectiveAnalysisId, OptimisticLock, \
 	TenantBasedTuple
 from watchmen_utilities import ArrayHelper
 
@@ -38,7 +38,7 @@ def construct_perspectives(indicators: Optional[list] = None) -> Optional[List[O
 		return ArrayHelper(indicators).map(lambda x: construct_perspective(x)).to_list()
 
 
-class ObjectiveAnalysis(TenantBasedTuple, BaseModel):
+class ObjectiveAnalysis(TenantBasedTuple, OptimisticLock, BaseModel):
 	analysisId: ObjectiveAnalysisId = None
 	title: str = None
 	description: str = None
