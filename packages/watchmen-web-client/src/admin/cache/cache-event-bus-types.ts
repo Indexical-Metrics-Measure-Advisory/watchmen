@@ -1,6 +1,7 @@
 import {DataSource} from '@/services/data/tuples/data-source-types';
 import {ExternalWriter} from '@/services/data/tuples/external-writer-types';
 import {Pipeline, PipelinesGraphics} from '@/services/data/tuples/pipeline-types';
+import {Plugin} from '@/services/data/tuples/plugin-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {AdminCacheData} from '@/services/local-persist/types';
 
@@ -18,6 +19,7 @@ export enum AdminCacheEventTypes {
 	REMOVE_PIPELINES_GRAPHICS = 'remove-pipelines-graphics',
 	SAVE_DATA_SOURCE = 'save-data-source',
 	SAVE_EXTERNAL_WRITER = 'save-external-writer',
+	SAVE_PLUGIN = 'save-plugin',
 
 	PIPELINE_LOADED = 'pipeline-loaded',
 	TOPIC_LOADED = 'topic-loaded',
@@ -67,6 +69,10 @@ export interface AdminCacheEventBus {
 	fire(type: AdminCacheEventTypes.SAVE_EXTERNAL_WRITER, writer: ExternalWriter): this;
 	on(type: AdminCacheEventTypes.SAVE_EXTERNAL_WRITER, listener: (writer: ExternalWriter) => void): this;
 	off(type: AdminCacheEventTypes.SAVE_EXTERNAL_WRITER, listener: (writer: ExternalWriter) => void): this;
+
+	fire(type: AdminCacheEventTypes.SAVE_PLUGIN, plugin: Plugin): this;
+	on(type: AdminCacheEventTypes.SAVE_PLUGIN, listener: (plugin: Plugin) => void): this;
+	off(type: AdminCacheEventTypes.SAVE_PLUGIN, listener: (plugin: Plugin) => void): this;
 
 	fire(type: AdminCacheEventTypes.PIPELINE_LOADED, pipeline: Pipeline): this;
 	on(type: AdminCacheEventTypes.PIPELINE_LOADED, listener: (pipeline: Pipeline) => void): this;

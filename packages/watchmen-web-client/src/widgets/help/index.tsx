@@ -28,6 +28,7 @@ export enum HELP_KEYS {
 	ADMIN_TENANT = 'data zone',
 	ADMIN_DATA_SOURCE = 'data source',
 	ADMIN_EXTERNAL_WRITER = 'external writer',
+	ADMIN_PLUGIN = 'plugin',
 	ADMIN_USER = 'user',
 	ADMIN_USER_GROUP = 'user group',
 	ADMIN_SPACE = 'space',
