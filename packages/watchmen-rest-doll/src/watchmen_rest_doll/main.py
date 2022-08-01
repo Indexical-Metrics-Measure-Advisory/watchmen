@@ -16,7 +16,8 @@ from .meta_import import connected_space_import_router, dashboard_import_router,
 	pipeline_import_router, report_import_router, space_import_router, subject_import_router, topic_import_router, \
 	user_group_import_router, user_import_router
 from .sso.sso_router import install_sso_router
-from .system import data_source_router, external_writer_router, pat_router, tenant_init_router, tenant_router
+from .system import data_source_router, external_writer_router, pat_router, plugin_router, tenant_init_router, \
+	tenant_router
 
 app = doll.construct()
 
@@ -30,7 +31,7 @@ ArrayHelper([
 	# system
 	health_router.router,
 	authenticate_router.router, pat_router.router,
-	tenant_router.router, data_source_router.router, external_writer_router.router,
+	tenant_router.router, data_source_router.router, external_writer_router.router, plugin_router.router,
 	tenant_init_router.router,
 	# admin
 	user_router.router, user_group_router.router,
