@@ -9,7 +9,7 @@ CREATE TABLE data_sources
     password         VARCHAR2(50),
     name             VARCHAR2(50),
     url              VARCHAR2(255),
-    params           VARCHAR2(2048),
+    params           CLOB,
     tenant_id        VARCHAR2(50) NOT NULL,
     created_at       DATE         NOT NULL,
     created_by       VARCHAR2(50) NOT NULL,
