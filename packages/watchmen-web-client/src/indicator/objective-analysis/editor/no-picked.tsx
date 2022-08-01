@@ -19,7 +19,7 @@ export const NoPicked = () => {
 			analysisId: generateUuid(),
 			title: 'Noname Analysis',
 			perspectives: [],
-			lastVisitTime: getCurrentTime(),
+			version: 1,
 			createdAt: getCurrentTime(),
 			lastModifiedAt: getCurrentTime()
 		};

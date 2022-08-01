@@ -40,6 +40,7 @@ export const NavPremium: Achievement = {
 	compareWithPreviousTimeRange: true,
 	finalScoreIsRatio: false,
 	description: 'Premium Achievement',
+	version: 1,
 	createdAt: getCurrentTime(),
 	lastModifiedAt: getCurrentTime()
 };

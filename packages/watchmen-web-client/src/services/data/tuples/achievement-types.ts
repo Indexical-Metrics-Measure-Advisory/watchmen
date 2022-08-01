@@ -1,7 +1,7 @@
 import {IndicatorCriteria} from './indicator-criteria-types';
 import {IndicatorAggregateArithmetic, IndicatorId} from './indicator-types';
 import {TenantId} from './tenant-types';
-import {Tuple} from './tuple-types';
+import {OptimisticLock, Tuple} from './tuple-types';
 
 export type AchievementId = string;
 
@@ -45,7 +45,7 @@ export enum AchievementTimeRangeType {
 	MONTH = 'month'
 }
 
-export interface Achievement extends Tuple {
+export interface Achievement extends Tuple, OptimisticLock {
 	achievementId: AchievementId;
 	name: string;
 	description?: string;

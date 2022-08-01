@@ -36,6 +36,7 @@ export const saveInspection = async (inspection: Inspection): Promise<void> => {
 		const data = await post({api: Apis.INSPECTION_CREATE, data: inspection});
 		inspection.inspectionId = data.inspectionId;
 		inspection.tenantId = data.tenantId;
+		inspection.version = data.version;
 		inspection.lastModifiedAt = data.lastModifiedAt;
 	} else {
 		const data = await post({
@@ -43,6 +44,7 @@ export const saveInspection = async (inspection: Inspection): Promise<void> => {
 			data: inspection
 		});
 		inspection.tenantId = data.tenantId;
+		inspection.version = data.version;
 		inspection.lastModifiedAt = data.lastModifiedAt;
 	}
 };

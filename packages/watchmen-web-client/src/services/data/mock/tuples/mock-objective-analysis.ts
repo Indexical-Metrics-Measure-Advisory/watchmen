@@ -21,7 +21,7 @@ export const listMockObjectiveAnalysis = async (): Promise<Array<ObjectiveAnalys
 						type: ObjectiveAnalysisPerspectiveType.ACHIEVEMENT,
 						relationId: ACHIEVEMENT_PREMIUM_ID
 					}],
-					lastVisitTime: getCurrentTime(),
+					version: 1,
 					createdAt: getCurrentTime(),
 					lastModifiedAt: getCurrentTime()
 				};

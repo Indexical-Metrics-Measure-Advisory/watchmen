@@ -25,6 +25,7 @@ export const saveObjectiveAnalysis = async (analysis: ObjectiveAnalysis): Promis
 		const data = await post({api: Apis.OBJECTIVE_ANALYSIS_CREATE, data: analysis});
 		analysis.analysisId = data.analysisId;
 		analysis.tenantId = data.tenantId;
+		analysis.version = data.version;
 		analysis.lastModifiedAt = data.lastModifiedAt;
 	} else {
 		const data = await post({
@@ -32,6 +33,7 @@ export const saveObjectiveAnalysis = async (analysis: ObjectiveAnalysis): Promis
 			data: analysis
 		});
 		analysis.tenantId = data.tenantId;
+		analysis.version = data.version;
 		analysis.lastModifiedAt = data.lastModifiedAt;
 	}
 };

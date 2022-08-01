@@ -3,7 +3,7 @@ import {FactorId} from './factor-types';
 import {IndicatorCriteria} from './indicator-criteria-types';
 import {IndicatorAggregateArithmetic, IndicatorId, MeasureMethod} from './indicator-types';
 import {TenantId} from './tenant-types';
-import {Tuple} from './tuple-types';
+import {OptimisticLock, Tuple} from './tuple-types';
 
 export type InspectionId = string;
 
@@ -111,7 +111,7 @@ export interface InspectionAmPmRange extends InspectionTimeRange {
 	value: 1 | 2;
 }
 
-export interface Inspection extends Tuple {
+export interface Inspection extends Tuple, OptimisticLock {
 	inspectionId: InspectionId;
 	name: string;
 	indicatorId: IndicatorId;
