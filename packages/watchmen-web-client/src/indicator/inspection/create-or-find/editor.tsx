@@ -12,7 +12,9 @@ import {createInspection} from '../utils';
 import {InspectionButton, InspectionDropdown, InspectionLabel, OrLabel} from '../widgets';
 import {CreateOrFindContainer} from './widgets';
 
-export const CreateOrFindEditor = () => {
+export const CreateOrFindEditor = (props: { reusable: boolean }) => {
+	const {reusable} = props;
+
 	const {fire: fireGlobal} = useEventBus();
 	const {on, off, fire} = useInspectionEventBus();
 	const [visible, setVisible] = useState(true);
@@ -74,6 +76,10 @@ export const CreateOrFindEditor = () => {
 			label: inspection.name || 'Noname Inspection'
 		};
 	});
+
+	if (!reusable) {
+		return null;
+	}
 
 	return <CreateOrFindContainer>
 		<InspectionLabel>{Lang.INDICATOR.INSPECTION.PICK_INSPECTION_LABEL}</InspectionLabel>

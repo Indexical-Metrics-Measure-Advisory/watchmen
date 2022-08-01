@@ -58,7 +58,7 @@ export enum Router {
 	INDICATOR_ACHIEVEMENT = '/indicator/navigator',
 	INDICATOR_ACHIEVEMENT_QUERY = '/indicator/navigator/query',
 	INDICATOR_ACHIEVEMENT_EDIT = '/indicator/navigator/edit/:achievementId',
-	INDICATOR_OBJECTIVE_ANALYSIS = '/indicator/catalog',
+	INDICATOR_OBJECTIVE_ANALYSIS = '/indicator/objective-analysis',
 	INDICATOR_SETTINGS = '/indicator/settings',
 
 	SHARE = '/share',

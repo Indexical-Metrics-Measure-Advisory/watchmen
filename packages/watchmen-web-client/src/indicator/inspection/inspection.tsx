@@ -12,7 +12,13 @@ import {TimeMeasureOn} from './time-measure-on';
 import {TimePeriod} from './time-period';
 import {IndicatorContainer, InspectionContainer} from './widgets';
 
-export const Inspection = () => {
+/**
+ * when reusable is false, which means always create new inspection, no pick another inspection button shown.
+ * And, most important part is, new inspection should be invoked outside by InspectionEventTypes.INSPECTION_PICKED after this component rendered.
+ */
+export const Inspection = (props: { reusable?: boolean }) => {
+	const {reusable = true} = props;
+
 	const {on, off} = useInspectionEventBus();
 	const [renderMode, setRenderMode] = useState(InspectionRenderMode.EDIT);
 	useEffect(() => {
@@ -27,7 +33,7 @@ export const Inspection = () => {
 
 	return <InspectionContainer renderMode={renderMode}>
 		<IndicatorContainer>
-			<CreateOrFind/>
+			<CreateOrFind reusable={reusable}/>
 			<PickIndicator/>
 		</IndicatorContainer>
 		<AggregateArithmetic/>
@@ -35,7 +41,7 @@ export const Inspection = () => {
 		<Criteria/>
 		<TimeMeasureOn/>
 		<BucketOn/>
-		<Buttons/>
+		<Buttons reusable={reusable}/>
 		<Data/>
 	</InspectionContainer>;
 };

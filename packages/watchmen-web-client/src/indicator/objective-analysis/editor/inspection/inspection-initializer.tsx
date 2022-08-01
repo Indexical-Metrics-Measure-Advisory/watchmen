@@ -3,6 +3,7 @@ import {ObjectiveAnalysis, ObjectiveAnalysisPerspective} from '@/services/data/t
 import {Fragment, useEffect} from 'react';
 import {useInspectionEventBus} from '../../../inspection/inspection-event-bus';
 import {IndicatorForInspection, InspectionEventTypes} from '../../../inspection/inspection-event-bus-types';
+import {createInspection} from '../../../inspection/utils';
 
 export const InspectionInitializer = (props: { analysis: ObjectiveAnalysis, perspective: ObjectiveAnalysisPerspective }) => {
 	const {perspective} = props;
@@ -11,11 +12,16 @@ export const InspectionInitializer = (props: { analysis: ObjectiveAnalysis, pers
 	useEffect(() => {
 		const inspectionId = perspective.relationId;
 		if (inspectionId != null && inspectionId.trim().length !== 0) {
+			// already picked
 			fire(InspectionEventTypes.ASK_INSPECTION, inspectionId, (inspection: Inspection) => {
 				fire(InspectionEventTypes.ASK_INDICATOR, inspection.indicatorId, (indicator: IndicatorForInspection) => {
 					fire(InspectionEventTypes.INSPECTION_PICKED, inspection, indicator);
 				});
 			});
+		} else {
+			// create a new one
+			const inspection = createInspection();
+			fire(InspectionEventTypes.INSPECTION_PICKED, inspection);
 		}
 	}, [fire, perspective]);
 

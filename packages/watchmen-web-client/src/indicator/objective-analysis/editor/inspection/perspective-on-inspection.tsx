@@ -91,7 +91,7 @@ export const PerspectiveOnInspection = (props: { analysis: ObjectiveAnalysis, pe
 			</PerspectiveDescriptorWrapper>
 			<NoInspectionPicked perspective={perspective}/>
 			<RenderModeAssistant/>
-			<Inspection/>
+			<Inspection reusable={false}/>
 			<RenderModeSwitcher/>
 			<InspectionInitializer analysis={analysis} perspective={perspective}/>
 		</PerspectiveContainer>

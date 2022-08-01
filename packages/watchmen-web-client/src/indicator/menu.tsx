@@ -5,9 +5,7 @@ import {
 	ICON_BUCKETS,
 	ICON_CONSOLE,
 	ICON_DATA_QUALITY,
-	ICON_INDICATOR_ACHIEVEMENT,
 	ICON_INDICATOR_INDICATOR,
-	ICON_INDICATOR_INSPECTION,
 	ICON_INDICATOR_OBJECTIVE_ANALYSIS,
 	ICON_LOGOUT,
 	ICON_SETTINGS,
@@ -145,16 +143,16 @@ export const IndicatorMenu = () => {
 		              active={!!matchPath(location.pathname, Router.INDICATOR_INDICATORS)}
 		              onClick={onMenuClicked(Router.INDICATOR_INDICATORS)}
 		              visible={isAdmin() && !isSuperAdmin()}/>
-		<SideMenuItem icon={ICON_INDICATOR_INSPECTION} label={Lang.INDICATOR.MENU.INSPECTIONS}
-		              showTooltip={showTooltip}
-		              active={!!matchPath(location.pathname, Router.INDICATOR_INSPECTION)}
-		              onClick={onMenuClicked(Router.INDICATOR_INSPECTION)}
-		              visible={isAdmin() && !isSuperAdmin()}/>
-		<SideMenuItem icon={ICON_INDICATOR_ACHIEVEMENT} label={Lang.INDICATOR.MENU.ACHIEVEMENTS}
-		              showTooltip={showTooltip}
-		              active={!!matchPath(location.pathname, Router.INDICATOR_ACHIEVEMENT)}
-		              onClick={onMenuClicked(Router.INDICATOR_ACHIEVEMENT)}
-		              visible={isAdmin() && !isSuperAdmin()}/>
+		{/*<SideMenuItem icon={ICON_INDICATOR_INSPECTION} label={Lang.INDICATOR.MENU.INSPECTIONS}*/}
+		{/*              showTooltip={showTooltip}*/}
+		{/*              active={!!matchPath(location.pathname, Router.INDICATOR_INSPECTION)}*/}
+		{/*              onClick={onMenuClicked(Router.INDICATOR_INSPECTION)}*/}
+		{/*              visible={isAdmin() && !isSuperAdmin()}/>*/}
+		{/*<SideMenuItem icon={ICON_INDICATOR_ACHIEVEMENT} label={Lang.INDICATOR.MENU.ACHIEVEMENTS}*/}
+		{/*              showTooltip={showTooltip}*/}
+		{/*              active={!!matchPath(location.pathname, Router.INDICATOR_ACHIEVEMENT)}*/}
+		{/*              onClick={onMenuClicked(Router.INDICATOR_ACHIEVEMENT)}*/}
+		{/*              visible={isAdmin() && !isSuperAdmin()}/>*/}
 		<SideMenuItem icon={ICON_INDICATOR_OBJECTIVE_ANALYSIS} label={Lang.INDICATOR.MENU.OBJECTIVE_ANALYSIS}
 		              showTooltip={showTooltip}
 		              active={!!matchPath(location.pathname, Router.INDICATOR_OBJECTIVE_ANALYSIS)}
