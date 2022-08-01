@@ -1,6 +1,5 @@
-import {isDataQualityCenterEnabled} from '@/feature-switch';
 import {Router} from '@/routes/types';
-import {findAccount, quit} from '@/services/data/account';
+import {findAccount, isAdmin, isSuperAdmin, quit} from '@/services/data/account';
 import {
 	ICON_ADMIN,
 	ICON_BUCKETS,
@@ -24,7 +23,7 @@ import {SideMenuResizeHandle} from '@/widgets/basic/side-menu/side-menu-resize-h
 import {SideMenuSeparator} from '@/widgets/basic/side-menu/side-menu-separator';
 import {SideMenuSwitchWorkbench} from '@/widgets/basic/side-menu/side-menu-switch-workbench';
 import {SideMenuUser} from '@/widgets/basic/side-menu/side-menu-user';
-import {isAdminAvailable, isConsoleAvailable} from '@/widgets/common-settings/workbench-utils';
+import {isAdminAvailable, isConsoleAvailable, isDataQualityAvailable} from '@/widgets/common-settings/workbench-utils';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
@@ -126,7 +125,7 @@ export const IndicatorMenu = () => {
 			action: () => onMenuClicked(Router.ADMIN)()
 		});
 	}
-	if (isDataQualityCenterEnabled()) {
+	if (isDataQualityAvailable()) {
 		workbenches.push({
 			label: Lang.CONSOLE.MENU.TO_DATA_QUALITY,
 			icon: ICON_DATA_QUALITY,
@@ -139,23 +138,28 @@ export const IndicatorMenu = () => {
 		<SideMenuItem icon={ICON_BUCKETS} label={Lang.INDICATOR.MENU.BUCKETS}
 		              showTooltip={showTooltip}
 		              active={!!matchPath(location.pathname, Router.INDICATOR_BUCKETS)}
-		              onClick={onMenuClicked(Router.INDICATOR_BUCKETS)}/>
+		              onClick={onMenuClicked(Router.INDICATOR_BUCKETS)}
+		              visible={isAdmin() && !isSuperAdmin()}/>
 		<SideMenuItem icon={ICON_INDICATOR_INDICATOR} label={Lang.INDICATOR.MENU.INDICATORS}
 		              showTooltip={showTooltip}
 		              active={!!matchPath(location.pathname, Router.INDICATOR_INDICATORS)}
-		              onClick={onMenuClicked(Router.INDICATOR_INDICATORS)}/>
+		              onClick={onMenuClicked(Router.INDICATOR_INDICATORS)}
+		              visible={isAdmin() && !isSuperAdmin()}/>
 		<SideMenuItem icon={ICON_INDICATOR_INSPECTION} label={Lang.INDICATOR.MENU.INSPECTIONS}
 		              showTooltip={showTooltip}
 		              active={!!matchPath(location.pathname, Router.INDICATOR_INSPECTION)}
-		              onClick={onMenuClicked(Router.INDICATOR_INSPECTION)}/>
+		              onClick={onMenuClicked(Router.INDICATOR_INSPECTION)}
+		              visible={isAdmin() && !isSuperAdmin()}/>
 		<SideMenuItem icon={ICON_INDICATOR_ACHIEVEMENT} label={Lang.INDICATOR.MENU.ACHIEVEMENTS}
 		              showTooltip={showTooltip}
 		              active={!!matchPath(location.pathname, Router.INDICATOR_ACHIEVEMENT)}
-		              onClick={onMenuClicked(Router.INDICATOR_ACHIEVEMENT)}/>
+		              onClick={onMenuClicked(Router.INDICATOR_ACHIEVEMENT)}
+		              visible={isAdmin() && !isSuperAdmin()}/>
 		<SideMenuItem icon={ICON_INDICATOR_OBJECTIVE_ANALYSIS} label={Lang.INDICATOR.MENU.OBJECTIVE_ANALYSIS}
 		              showTooltip={showTooltip}
 		              active={!!matchPath(location.pathname, Router.INDICATOR_OBJECTIVE_ANALYSIS)}
-		              onClick={onMenuClicked(Router.INDICATOR_OBJECTIVE_ANALYSIS)}/>
+		              onClick={onMenuClicked(Router.INDICATOR_OBJECTIVE_ANALYSIS)}
+		              visible={isAdmin() && !isSuperAdmin()}/>
 		<SideMenuPlaceholder/>
 		<SideMenuSeparator width={menuWidth}/>
 		<SideMenuItem icon={ICON_SETTINGS} label={Lang.INDICATOR.MENU.SETTINGS} showTooltip={showTooltip}

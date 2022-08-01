@@ -1,5 +1,5 @@
 import {Router} from '@/routes/types';
-import {findAccount, isAdmin, quit} from '@/services/data/account';
+import {findAccount, quit} from '@/services/data/account';
 import {
 	ICON_ADD,
 	ICON_ADMIN,
@@ -173,7 +173,7 @@ export const ConsoleMenu = () => {
 		              onClick={onMenuClicked(Router.CONSOLE_SETTINGS)}/>
 		<SideMenuSwitchWorkbench icon={ICON_SWITCH_WORKBENCH}
 		                         workbenches={workbenches}
-		                         visible={isAdmin()}/>
+		                         visible={workbenches.length !== 0}/>
 		<SideMenuSeparator width={menuWidth}/>
 		<SideMenuItem icon={ICON_LOGOUT} label={Lang.CONSOLE.MENU.LOGOUT} showTooltip={showTooltip}
 		              onClick={onLogoutClicked}/>
