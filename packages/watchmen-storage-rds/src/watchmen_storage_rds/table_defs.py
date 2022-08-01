@@ -45,8 +45,16 @@ table_data_sources = Table(
 table_external_writers = Table(
 	'external_writers', meta_data,
 	create_pk('writer_id'),
-	create_str('writer_code', 50, False), create_str('type', 50, False),
+	create_str('writer_code', 50, False), create_str('name', 255), create_str('type', 50, False),
 	create_str('pat', 255), create_str('url', 255),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
+table_plugins = Table(
+	'plugins', meta_data,
+	create_pk('plugin_id'),
+	create_str('plugin_code', 50, False), create_str('name', 255),
+	create_str('type', 50, False), create_str('apply_to', 50, False),
+	create_json('params'), create_json('results'),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 table_key_stores = Table(
@@ -301,6 +309,7 @@ tables: Dict[str, Table] = {
 	'pats': table_pats,
 	'tenants': table_tenants,
 	'external_writers': table_external_writers,
+	'plugins': table_plugins,
 	'data_sources': table_data_sources,
 	'key_stores': table_key_stores,
 	# admin

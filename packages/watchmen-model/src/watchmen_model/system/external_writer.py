@@ -13,6 +13,7 @@ class ExternalWriterType(str, Enum):
 class ExternalWriter(TenantBasedTuple, OptimisticLock, BaseModel):
 	writerId: ExternalWriterId = None
 	writerCode: str = None
+	name: str = None
 	type: ExternalWriterType = ExternalWriterType.STANDARD_WRITER
 	# personal access token
 	pat: str = None

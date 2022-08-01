@@ -56,8 +56,18 @@ table_external_writers = MongoDocument(
 	name='external_writers',
 	columns=[
 		create_pk('writer_id'),
-		create_str('writer_code', False), create_str('type', False),
+		create_str('writer_code', False), create_str('name'), create_str('type', False),
 		create_str('pat'), create_str('url'),
+		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+	]
+)
+table_plugins = MongoDocument(
+	name='plugins',
+	columns=[
+		create_pk('plugin_id'),
+		create_str('plugin_code', False), create_str('name'),
+		create_str('type', False), create_str('apply_to', False),
+		create_json('params'), create_json('results'),
 		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 	]
 )
@@ -365,6 +375,7 @@ tables: Dict[str, MongoDocument] = {
 	'pats': table_pats,
 	'tenants': table_tenants,
 	'external_writers': table_external_writers,
+	'plugins': table_plugins,
 	'data_sources': table_data_sources,
 	'key_stores': table_key_stores,
 	# admin

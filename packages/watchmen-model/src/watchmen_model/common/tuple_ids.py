@@ -4,6 +4,7 @@ TenantId = TypeVar('TenantId', bound=str)
 
 DataSourceId = TypeVar('DataSourceId', bound=str)
 ExternalWriterId = TypeVar('ExternalWriterId', bound=str)
+PluginId = TypeVar('PluginId', bound=str)
 
 UserId = TypeVar('UserId', bound=str)
 UserGroupId = TypeVar('UserGroupId', bound=str)
