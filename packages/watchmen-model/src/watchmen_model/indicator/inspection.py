@@ -3,8 +3,8 @@ from typing import Any, List, Literal, Optional, Union
 
 from pydantic import BaseModel
 
-from watchmen_model.common import Auditable, BucketId, DataModel, FactorId, IndicatorId, InspectionId, TenantBasedTuple, \
-	UserBasedTuple
+from watchmen_model.common import BucketId, DataModel, FactorId, IndicatorId, InspectionId, OptimisticLock, \
+	TenantBasedTuple
 from watchmen_utilities import ArrayHelper
 from .indicator import IndicatorAggregateArithmetic
 from .indicator_criteria import construct_indicator_criteria_list, IndicatorCriteria
@@ -163,7 +163,7 @@ def construct_time_ranges(ranges: Optional[list] = None) -> Optional[List[Inspec
 		return ArrayHelper(ranges).map(lambda x: construct_time_range(x)).to_list()
 
 
-class Inspection(TenantBasedTuple, BaseModel):
+class Inspection(TenantBasedTuple, OptimisticLock, BaseModel):
 	inspectionId: InspectionId = None
 	name: str = None
 	indicatorId: IndicatorId = None

@@ -275,7 +275,7 @@ table_inspections = Table(
 	create_json('time_ranges'),
 	create_str('measure_on_time', 20), create_tuple_id_column('measure_on_time_factor_id'),
 	create_json('criteria'),
-	create_tenant_id(), *create_tuple_audit_columns()
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 table_achievements = Table(
 	'achievements', meta_data,
@@ -283,14 +283,14 @@ table_achievements = Table(
 	create_str('time_range_type', 10), create_str('time_range_year', 10), create_str('time_range_month', 10),
 	create_bool('compare_with_prev_time_range'), create_bool('final_score_is_ratio'), create_json('indicators'),
 	create_description(),
-	create_tenant_id(), *create_tuple_audit_columns()
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 table_objective_analysis = Table(
 	'objective_analysis', meta_data,
 	create_pk('analysis_id'), create_str('title', 100),
 	create_description(), create_json('perspectives'),
 	create_last_visit_time(),
-	create_tenant_id(), *create_tuple_audit_columns()
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 
 # noinspection DuplicatedCode
