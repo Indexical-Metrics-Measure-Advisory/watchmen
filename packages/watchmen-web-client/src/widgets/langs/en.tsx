@@ -36,6 +36,7 @@ export const En = {
 		FIND_INDICATOR_VALUE_BUCKETS_PLACEHOLDER: 'Search by bucket name.',
 		FIND_INDICATOR_USER_GROUPS_PLACEHOLDER: 'Search by user group name.',
 		DROPDOWN_PLACEHOLDER: 'Please Select...',
+		NEW_INSPECTION_NAME: 'Inspection',
 		FIND_ACHIEVEMENT_PLACEHOLDER: 'Search by analysis name.',
 		NEW_ACHIEVEMENT_NAME: 'Achievement',
 		INDICATOR_CRITERIA_TIME_RANGE_YEAR_MONTH: 'Use "year" or "month" to refer predefined time range.',

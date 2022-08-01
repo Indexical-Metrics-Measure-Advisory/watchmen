@@ -36,6 +36,7 @@ export const Jp = {
 		FIND_INDICATOR_VALUE_BUCKETS_PLACEHOLDER: 'バケット名に基づいて検索します。',
 		FIND_INDICATOR_USER_GROUPS_PLACEHOLDER: 'ユーザー グループ名に基づいて検索します。',
 		DROPDOWN_PLACEHOLDER: '選択してください...',
+		NEW_INSPECTION_NAME: '洞察',
 		FIND_ACHIEVEMENT_PLACEHOLDER: '名前に基づいて検索します。',
 		NEW_ACHIEVEMENT_NAME: '実績',
 		INDICATOR_CRITERIA_TIME_RANGE_YEAR_MONTH: '統一定義された時間枠を参照するには、"year" または "month" を入力します。',

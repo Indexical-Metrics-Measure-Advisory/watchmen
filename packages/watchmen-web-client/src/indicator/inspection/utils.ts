@@ -12,12 +12,14 @@ import {isQueryByEnum, isQueryByMeasure} from '@/services/data/tuples/query-buck
 import {SubjectForIndicator, TopicForIndicator} from '@/services/data/tuples/query-indicator-types';
 import {generateUuid} from '@/services/data/tuples/utils';
 import {getCurrentTime, isNotNull} from '@/services/data/utils';
-import {Lang} from '@/widgets/langs';
+import {base64Encode} from '@/services/utils';
+import {getCurrentLanguage, Lang} from '@/widgets/langs';
 
 export const createInspection = (): Inspection => {
+	const inspectionId = generateUuid();
 	return {
-		inspectionId: generateUuid(),
-		name: '',
+		inspectionId,
+		name: `${getCurrentLanguage().PLAIN.NEW_INSPECTION_NAME} ${base64Encode(inspectionId).substring(0, 12)}`,
 		aggregateArithmetics: [IndicatorAggregateArithmetic.SUM],
 		measureOn: InspectMeasureOn.NONE,
 		createdAt: getCurrentTime(),

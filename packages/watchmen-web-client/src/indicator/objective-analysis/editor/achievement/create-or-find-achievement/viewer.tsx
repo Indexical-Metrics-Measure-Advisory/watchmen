@@ -79,8 +79,12 @@ const NameDialog = (props: { achievement: Achievement; onNamed: () => void; }) =
 	</>;
 };
 
-export const CreateOrFindViewer = (props: { achievement: Achievement; onCleared: () => void }) => {
-	const {achievement, onCleared} = props;
+export const CreateOrFindViewer = (props: {
+	achievement: Achievement;
+	onCleared: () => void;
+	reusable: boolean;
+}) => {
+	const {achievement, onCleared, reusable} = props;
 
 	const {fire: fireGlobal} = useEventBus();
 	const {fire} = useAchievementEventBus();
@@ -111,9 +115,13 @@ export const CreateOrFindViewer = (props: { achievement: Achievement; onCleared:
 		<AchievementButton ink={ButtonInk.PRIMARY} onClick={onRenameClicked} data-hide-on-print={true}>
 			{hasName ? Lang.INDICATOR.ACHIEVEMENT.RENAME : Lang.INDICATOR.ACHIEVEMENT.NEW_NAME}
 		</AchievementButton>
-		<OrLabel>{Lang.INDICATOR.ACHIEVEMENT.OR}</OrLabel>
-		<AchievementButton ink={ButtonInk.WAIVE} onClick={onPickAnotherClicked} data-hide-on-print={true}>
-			{Lang.INDICATOR.ACHIEVEMENT.PICK_ANOTHER}
-		</AchievementButton>
+		{reusable
+			? <>
+				<OrLabel>{Lang.INDICATOR.ACHIEVEMENT.OR}</OrLabel>
+				<AchievementButton ink={ButtonInk.WAIVE} onClick={onPickAnotherClicked} data-hide-on-print={true}>
+					{Lang.INDICATOR.ACHIEVEMENT.PICK_ANOTHER}
+				</AchievementButton>
+			</>
+			: null}
 	</CreateOrFindContainer>;
 };

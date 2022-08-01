@@ -45,7 +45,7 @@ export const CreateOrFindEditor = (props: { reusable: boolean }) => {
 		};
 	}, [on, off, selectedInspectionId]);
 
-	if (!visible) {
+	if (!visible || !reusable) {
 		return null;
 	}
 
@@ -76,10 +76,6 @@ export const CreateOrFindEditor = (props: { reusable: boolean }) => {
 			label: inspection.name || 'Noname Inspection'
 		};
 	});
-
-	if (!reusable) {
-		return null;
-	}
 
 	return <CreateOrFindContainer>
 		<InspectionLabel>{Lang.INDICATOR.INSPECTION.PICK_INSPECTION_LABEL}</InspectionLabel>

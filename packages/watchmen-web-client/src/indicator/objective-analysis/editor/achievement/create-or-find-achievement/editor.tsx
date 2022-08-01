@@ -14,8 +14,9 @@ import {AchievementButton, AchievementDropdown, AchievementLabel, CreateOrFindCo
 
 export const CreateOrFindEditor = (props: {
 	onPicked: (achievementId: AchievementId) => void;
+	reusable: boolean;
 }) => {
-	const {onPicked} = props;
+	const {onPicked, reusable} = props;
 
 	const {fire: fireGlobal} = useEventBus();
 	const {fire} = useObjectiveAnalysisEventBus();
@@ -26,6 +27,10 @@ export const CreateOrFindEditor = (props: {
 			setAchievements(achievements);
 		});
 	}, [fire]);
+
+	if (!reusable) {
+		return null;
+	}
 
 	const onChange = (option: DropdownOption) => {
 		setSelectedAchievementId(option.value as AchievementId);
