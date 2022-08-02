@@ -88,7 +88,7 @@ async def find_my_inspections(
 
 	def action() -> List[Inspection]:
 		# noinspection PyTypeChecker
-		return inspection_service.find_by_tenant_id(principal_service.get_tenant_id())
+		return inspection_service.find_all(principal_service.get_tenant_id())
 
 	return trans_readonly(inspection_service, action)
 

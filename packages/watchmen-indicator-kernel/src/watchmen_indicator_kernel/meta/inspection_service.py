@@ -65,13 +65,9 @@ class InspectionService(TupleService):
 		storable.inspectionId = storable_id
 		return storable
 
-	def find_by_tenant_id(self, tenant_id: TenantId) -> List[Inspection]:
-		if is_not_blank(tenant_id):
-			criteria = [
-				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
-			]
-			# noinspection PyTypeChecker
-			return self.storage.find(self.get_entity_finder(criteria))
-		else:
-			# noinspection PyTypeChecker
-			return self.storage.find_all(self.get_entity_helper())
+	def find_all(self, tenant_id: TenantId) -> List[Inspection]:
+		criteria = []
+		if tenant_id is not None and len(tenant_id.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria=criteria))
