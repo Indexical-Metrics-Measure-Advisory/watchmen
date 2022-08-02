@@ -10,7 +10,7 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {Fragment, useEffect} from 'react';
 import {Inspection} from '../../../inspection/inspection';
 import {InspectionEventBusProvider, useInspectionEventBus} from '../../../inspection/inspection-event-bus';
-import {InspectionEventTypes} from '../../../inspection/inspection-event-bus-types';
+import {InspectionEventTypes, InspectionRenderMode} from '../../../inspection/inspection-event-bus-types';
 import {useObjectiveAnalysisEventBus} from '../../objective-analysis-event-bus';
 import {ObjectiveAnalysisEventTypes} from '../../objective-analysis-event-bus-types';
 import {useDescription} from '../use-description';
@@ -57,8 +57,12 @@ const InspectionData = (props: { analysis: ObjectiveAnalysis, perspective: Objec
 	return <Fragment/>;
 };
 
-export const PerspectiveOnInspection = (props: { analysis: ObjectiveAnalysis, perspective: ObjectiveAnalysisPerspective }) => {
-	const {analysis, perspective} = props;
+export const PerspectiveOnInspection = (props: {
+	analysis: ObjectiveAnalysis;
+	perspective: ObjectiveAnalysisPerspective;
+	startOnView: boolean;
+}) => {
+	const {analysis, perspective, startOnView} = props;
 
 	const {fire: fireGlobal} = useEventBus();
 	const {fire} = useObjectiveAnalysisEventBus();
@@ -90,8 +94,9 @@ export const PerspectiveOnInspection = (props: { analysis: ObjectiveAnalysis, pe
 				</PerspectiveButtons>
 			</PerspectiveDescriptorWrapper>
 			<NoInspectionPicked perspective={perspective}/>
-			<RenderModeAssistant/>
-			<Inspection reusable={false}/>
+			<RenderModeAssistant startOnView={startOnView}/>
+			<Inspection reusable={false}
+			            startOnRenderMode={startOnView ? InspectionRenderMode.VIEW : InspectionRenderMode.EDIT}/>
 			<RenderModeSwitcher/>
 			<InspectionInitializer analysis={analysis} perspective={perspective}/>
 		</PerspectiveContainer>

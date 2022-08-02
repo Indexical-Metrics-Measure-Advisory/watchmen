@@ -16,11 +16,14 @@ import {IndicatorContainer, InspectionContainer} from './widgets';
  * when reusable is false, which means always create new inspection, no pick another inspection button shown.
  * And, most important part is, new inspection should be invoked outside by InspectionEventTypes.INSPECTION_PICKED after this component rendered.
  */
-export const Inspection = (props: { reusable?: boolean }) => {
-	const {reusable = true} = props;
+export const Inspection = (props: {
+	reusable?: boolean;
+	startOnRenderMode?: InspectionRenderMode
+}) => {
+	const {reusable = true, startOnRenderMode = InspectionRenderMode.EDIT} = props;
 
 	const {on, off} = useInspectionEventBus();
-	const [renderMode, setRenderMode] = useState(InspectionRenderMode.EDIT);
+	const [renderMode, setRenderMode] = useState(startOnRenderMode);
 	useEffect(() => {
 		const onSwitchRenderMode = (renderMode: InspectionRenderMode) => {
 			setRenderMode(renderMode);

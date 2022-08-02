@@ -6,27 +6,20 @@ import {ButtonInk} from '@/widgets/basic/types';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
-import {useEffect, useState} from 'react';
 import {useObjectiveAnalysisEventBus} from '../objective-analysis-event-bus';
 import {ObjectiveAnalysisEventTypes} from '../objective-analysis-event-bus-types';
+import {useViewModeSwitch} from './use-view-mode-switch';
 import {EditorHeaderButtons} from './widgets';
 
-export const HeaderButtons = (props: { analysis: ObjectiveAnalysis }) => {
-	const {analysis} = props;
+export const HeaderButtons = (props: {
+	analysis: ObjectiveAnalysis;
+	startOnView: boolean;
+}) => {
+	const {analysis, startOnView} = props;
 
 	const {fire: fireGlobal} = useEventBus();
-	const {on, off, fire} = useObjectiveAnalysisEventBus();
-	const [viewMode, setViewMode] = useState(false);
-	useEffect(() => {
-		const onSwitchToEdit = () => setViewMode(false);
-		const onSwitchToView = () => setViewMode(true);
-		on(ObjectiveAnalysisEventTypes.SWITCH_TO_EDIT, onSwitchToEdit);
-		on(ObjectiveAnalysisEventTypes.SWITCH_TO_VIEW, onSwitchToView);
-		return () => {
-			off(ObjectiveAnalysisEventTypes.SWITCH_TO_EDIT, onSwitchToEdit);
-			off(ObjectiveAnalysisEventTypes.SWITCH_TO_VIEW, onSwitchToView);
-		};
-	}, [on, off]);
+	const {fire} = useObjectiveAnalysisEventBus();
+	const viewMode = useViewModeSwitch(startOnView);
 
 	const onAddInspectionClicked = () => {
 		analysis.perspectives = analysis.perspectives ?? [];

@@ -5,8 +5,8 @@ export const AchievementEdit = styled.div`
 	position : relative;
 `;
 
-export const Assistant = styled.div.attrs<{ viewMode: boolean }>({'data-widget': 'achievement-view-mode-assistant'})<{ viewMode: boolean }>`
-	${({viewMode}) => viewMode ? `
+export const Assistant = styled.div.attrs<{ viewMode: boolean }>({'data-widget': 'achievement-view-mode-assistant'})<{ onViewMode: boolean }>`
+	${({onViewMode}) => onViewMode ? `
 		+ div[data-widget=achievement-palette-container] {
 			margin-left: calc(var(--margin) / -2);
 			margin-right: calc(var(--margin) / -2);

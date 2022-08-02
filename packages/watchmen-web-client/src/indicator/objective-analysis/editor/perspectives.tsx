@@ -5,8 +5,11 @@ import {useObjectiveAnalysisEventBus} from '../objective-analysis-event-bus';
 import {ObjectiveAnalysisEventTypes} from '../objective-analysis-event-bus-types';
 import {Perspective} from './perspective';
 
-export const Perspectives = (props: { analysis: ObjectiveAnalysis }) => {
-	const {analysis} = props;
+export const Perspectives = (props: {
+	analysis: ObjectiveAnalysis;
+	startOnView: boolean;
+}) => {
+	const {analysis, startOnView} = props;
 
 	const {on, off, fire} = useObjectiveAnalysisEventBus();
 	const forceUpdate = useForceUpdate();
@@ -41,7 +44,8 @@ export const Perspectives = (props: { analysis: ObjectiveAnalysis }) => {
 
 	return <>
 		{(analysis.perspectives || []).map(perspective => {
-			return <Perspective analysis={analysis} perspective={perspective} key={perspective.perspectiveId}/>;
+			return <Perspective analysis={analysis} perspective={perspective} startOnView={startOnView}
+			                    key={perspective.perspectiveId}/>;
 		})}
 	</>;
 };
