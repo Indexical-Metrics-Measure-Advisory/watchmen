@@ -21,7 +21,7 @@ def get_achievement_service(principal_service: PrincipalService) -> AchievementS
 	return AchievementService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-@router.get('/indicator/achievement', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=Achievement)
+@router.get('/indicator/achievement', tags=[UserRole.ADMIN], response_model=Achievement)
 async def load_achievement_by_id(
 		achievement_id: Optional[AchievementId], principal_service: PrincipalService = Depends(get_console_principal)
 ) -> Achievement:
@@ -35,9 +35,6 @@ async def load_achievement_by_id(
 		# noinspection PyTypeChecker
 		achievement: Achievement = achievement_service.find_by_id(achievement_id)
 		if achievement is None:
-			raise_404()
-		# user id must match current principal's
-		if achievement.userId != principal_service.get_user_id():
 			raise_404()
 		# tenant id must match current principal's
 		if achievement.tenantId != principal_service.get_tenant_id():
@@ -53,7 +50,6 @@ def ask_save_achievement_action(
 ) -> Callable[[Achievement], Achievement]:
 	# noinspection DuplicatedCode
 	def action(achievement: Achievement) -> Achievement:
-		achievement.userId = principal_service.get_user_id()
 		achievement.tenantId = principal_service.get_tenant_id()
 		if achievement_service.is_storable_id_faked(achievement.achievementId):
 			achievement_service.redress_storable_id(achievement)
@@ -64,8 +60,6 @@ def ask_save_achievement_action(
 			if existing_inspection is not None:
 				if existing_inspection.tenantId != achievement.tenantId:
 					raise_403()
-				if existing_inspection.userId != achievement.userId:
-					raise_403()
 
 			# noinspection PyTypeChecker
 			achievement: Achievement = achievement_service.update(achievement)
@@ -74,7 +68,7 @@ def ask_save_achievement_action(
 	return action
 
 
-@router.post('/indicator/achievement', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=Achievement)
+@router.post('/indicator/achievement', tags=[UserRole.ADMIN], response_model=Achievement)
 async def save_achievement(
 		achievement: Achievement, principal_service: PrincipalService = Depends(get_console_principal)
 ) -> Achievement:
@@ -88,7 +82,7 @@ class QueryAchievementDataPage(DataPage):
 
 
 @router.post(
-	'/indicator/achievement/name', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=QueryAchievementDataPage)
+	'/indicator/achievement/name', tags=[UserRole.ADMIN], response_model=QueryAchievementDataPage)
 async def find_my_achievements_by_name(
 		query_name: Optional[str], pageable: Pageable = Body(...),
 		principal_service: PrincipalService = Depends(get_console_principal)

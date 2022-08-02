@@ -9,7 +9,7 @@ from watchmen_indicator_surface.settings import ask_tuple_delete_enabled
 from watchmen_indicator_surface.util import trans, trans_readonly
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import UserRole
-from watchmen_model.common import ObjectiveAnalysisId, TenantId, UserId
+from watchmen_model.common import ObjectiveAnalysisId, TenantId
 from watchmen_model.indicator import ObjectiveAnalysis
 from watchmen_rest import get_console_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
@@ -22,7 +22,7 @@ def get_analysis_service(principal_service: PrincipalService) -> ObjectiveAnalys
 	return ObjectiveAnalysisService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-@router.get('/indicator/objective-analysis', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=ObjectiveAnalysis)
+@router.get('/indicator/objective-analysis', tags=[UserRole.ADMIN], response_model=ObjectiveAnalysis)
 async def load_analysis_by_id(
 		analysis_id: Optional[ObjectiveAnalysisId], principal_service: PrincipalService = Depends(get_console_principal)
 ) -> ObjectiveAnalysis:
@@ -36,9 +36,6 @@ async def load_analysis_by_id(
 		# noinspection PyTypeChecker
 		analysis: ObjectiveAnalysis = analysis_service.find_by_id(analysis_id)
 		if analysis is None:
-			raise_404()
-		# user id must match current principal's
-		if analysis.userId != principal_service.get_user_id():
 			raise_404()
 		# tenant id must match current principal's
 		if analysis.tenantId != principal_service.get_tenant_id():
@@ -54,7 +51,6 @@ def ask_save_analysis_action(
 ) -> Callable[[ObjectiveAnalysis], ObjectiveAnalysis]:
 	# noinspection DuplicatedCode
 	def action(analysis: ObjectiveAnalysis) -> ObjectiveAnalysis:
-		analysis.userId = principal_service.get_user_id()
 		analysis.tenantId = principal_service.get_tenant_id()
 		if analysis_service.is_storable_id_faked(analysis.analysisId):
 			analysis_service.redress_storable_id(analysis)
@@ -65,8 +61,6 @@ def ask_save_analysis_action(
 			if existing_inspection is not None:
 				if existing_inspection.tenantId != analysis.tenantId:
 					raise_403()
-				if existing_inspection.userId != analysis.userId:
-					raise_403()
 
 			# noinspection PyTypeChecker
 			analysis: ObjectiveAnalysis = analysis_service.update(analysis)
@@ -75,7 +69,7 @@ def ask_save_analysis_action(
 	return action
 
 
-@router.post('/indicator/objective-analysis', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=ObjectiveAnalysis)
+@router.post('/indicator/objective-analysis', tags=[UserRole.ADMIN], response_model=ObjectiveAnalysis)
 async def save_analysis(
 		analysis: ObjectiveAnalysis, principal_service: PrincipalService = Depends(get_console_principal)
 ) -> ObjectiveAnalysis:
@@ -85,7 +79,7 @@ async def save_analysis(
 
 
 @router.get(
-	'/indicator/objective-analysis/list', tags=[UserRole.CONSOLE, UserRole.ADMIN],
+	'/indicator/objective-analysis/list', tags=[UserRole.ADMIN],
 	response_model=List[ObjectiveAnalysis])
 async def find_my_analysis(
 		principal_service: PrincipalService = Depends(get_console_principal)
@@ -93,16 +87,15 @@ async def find_my_analysis(
 	analysis_service = get_analysis_service(principal_service)
 
 	def action() -> List[ObjectiveAnalysis]:
-		user_id: UserId = principal_service.get_user_id()
 		tenant_id: TenantId = principal_service.get_tenant_id()
 		# noinspection PyTypeChecker
-		return analysis_service.find_all_by_user_id(user_id, tenant_id)
+		return analysis_service.find_all_by_tenant_id(tenant_id)
 
 	return trans_readonly(analysis_service, action)
 
 
-@router.get('/indicator/objective-analysis/delete', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_class=Response)
-async def delete_connected_space_by_id(
+@router.get('/indicator/objective-analysis/delete', tags=[UserRole.ADMIN], response_class=Response)
+async def delete_analysis_by_id(
 		analysis_id: Optional[ObjectiveAnalysisId], principal_service: PrincipalService = Depends(get_console_principal)
 ) -> None:
 	if is_blank(analysis_id):
@@ -117,8 +110,6 @@ async def delete_connected_space_by_id(
 		if existing_analysis is None:
 			raise_404()
 		if existing_analysis.tenantId != principal_service.get_tenant_id():
-			raise_403()
-		if not principal_service.is_tenant_admin() and existing_analysis.userId != principal_service.get_user_id():
 			raise_403()
 		analysis_service.delete(analysis_id)
 

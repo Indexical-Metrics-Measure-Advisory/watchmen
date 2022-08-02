@@ -1,8 +1,10 @@
+from typing import List
+
 from watchmen_meta.common import TupleService, TupleShaper
-from watchmen_model.common import InspectionId
+from watchmen_model.common import InspectionId, TenantId
 from watchmen_model.indicator import Inspection
-from watchmen_storage import EntityRow, EntityShaper
-from watchmen_utilities import ArrayHelper
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityRow, EntityShaper
+from watchmen_utilities import ArrayHelper, is_not_blank
 
 
 class InspectionShaper(EntityShaper):
@@ -62,3 +64,14 @@ class InspectionService(TupleService):
 	def set_storable_id(self, storable: Inspection, storable_id: InspectionId) -> Inspection:
 		storable.inspectionId = storable_id
 		return storable
+
+	def find_by_tenant_id(self, tenant_id: TenantId) -> List[Inspection]:
+		if is_not_blank(tenant_id):
+			criteria = [
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
+			]
+			# noinspection PyTypeChecker
+			return self.storage.find(self.get_entity_finder(criteria))
+		else:
+			# noinspection PyTypeChecker
+			return self.storage.find_all(self.get_entity_helper())
