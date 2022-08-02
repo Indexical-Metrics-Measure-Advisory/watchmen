@@ -1,8 +1,10 @@
+from typing import List
+
 from watchmen_meta.common import TupleService, TupleShaper
-from watchmen_model.common import ObjectiveAnalysisId
+from watchmen_model.common import ObjectiveAnalysisId, TenantId
 from watchmen_model.indicator import ObjectiveAnalysis
-from watchmen_storage import EntityRow, EntityShaper
-from watchmen_utilities import ArrayHelper
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityRow, EntityShaper
+from watchmen_utilities import ArrayHelper, is_not_blank
 
 
 class ObjectiveAnalysisShaper(EntityShaper):
@@ -44,3 +46,14 @@ class ObjectiveAnalysisService(TupleService):
 	def set_storable_id(self, storable: ObjectiveAnalysis, storable_id: ObjectiveAnalysisId) -> ObjectiveAnalysis:
 		storable.analysisId = storable_id
 		return storable
+
+	def find_all_by_tenant_id(self, tenant_id: TenantId) -> List[ObjectiveAnalysis]:
+		if is_not_blank(tenant_id):
+			criteria = [
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
+			]
+			# noinspection PyTypeChecker
+			return self.storage.find(self.get_entity_finder(criteria))
+		else:
+			# noinspection PyTypeChecker
+			return self.storage.find_all(self.get_entity_helper())

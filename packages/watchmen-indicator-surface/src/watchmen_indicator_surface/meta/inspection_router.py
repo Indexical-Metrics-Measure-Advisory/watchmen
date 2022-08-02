@@ -29,16 +29,13 @@ def do_load_inspection_by_id(
 	inspection: Inspection = inspection_service.find_by_id(inspection_id)
 	if inspection is None:
 		raise_404()
-	# user id must match current principal's
-	if inspection.userId != principal_service.get_user_id():
-		raise_404()
 	# tenant id must match current principal's
 	if inspection.tenantId != principal_service.get_tenant_id():
 		raise_404()
 	return inspection
 
 
-@router.get("/indicator/inspection", tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=Inspection)
+@router.get("/indicator/inspection", tags=[UserRole.ADMIN], response_model=Inspection)
 async def load_inspection_by_id(
 		inspection_id: Optional[InspectionId], principal_service: PrincipalService = Depends(get_console_principal)
 ) -> Inspection:
@@ -57,7 +54,6 @@ def ask_save_inspection_action(
 ) -> Callable[[Inspection], Inspection]:
 	# noinspection DuplicatedCode
 	def action(inspection: Inspection) -> Inspection:
-		inspection.userId = principal_service.get_user_id()
 		inspection.tenantId = principal_service.get_tenant_id()
 		if inspection_service.is_storable_id_faked(inspection.inspectionId):
 			inspection_service.redress_storable_id(inspection)
@@ -68,8 +64,6 @@ def ask_save_inspection_action(
 			if existing_inspection is not None:
 				if existing_inspection.tenantId != inspection.tenantId:
 					raise_403()
-				if existing_inspection.userId != inspection.userId:
-					raise_403()
 
 			# noinspection PyTypeChecker
 			inspection: Inspection = inspection_service.update(inspection)
@@ -78,7 +72,7 @@ def ask_save_inspection_action(
 	return action
 
 
-@router.post("/indicator/inspection", tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=Inspection)
+@router.post("/indicator/inspection", tags=[UserRole.ADMIN], response_model=Inspection)
 async def save_inspection(
 		inspection: Inspection, principal_service: PrincipalService = Depends(get_console_principal)
 ) -> Inspection:
@@ -87,15 +81,14 @@ async def save_inspection(
 	return trans(inspection_service, lambda: action(inspection))
 
 
-@router.get("/indicator/inspection/list", tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[Inspection])
+@router.get("/indicator/inspection/list", tags=[UserRole.ADMIN], response_model=List[Inspection])
 async def find_my_inspections(
 		principal_service: PrincipalService = Depends(get_console_principal)) -> List[Inspection]:
 	inspection_service = get_inspection_service(principal_service)
 
 	def action() -> List[Inspection]:
 		# noinspection PyTypeChecker
-		return inspection_service.find_all_by_user_id(
-			principal_service.get_user_id(), principal_service.get_tenant_id())
+		return inspection_service.find_by_tenant_id(principal_service.get_tenant_id())
 
 	return trans_readonly(inspection_service, action)
 
