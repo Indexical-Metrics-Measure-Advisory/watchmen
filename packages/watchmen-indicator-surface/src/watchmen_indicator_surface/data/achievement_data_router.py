@@ -20,7 +20,7 @@ class AchievementValues(BaseModel):
 	current: Optional[Decimal] = None
 
 
-@router.post('/indicator/achievement/data', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=AchievementValues)
+@router.post('/indicator/achievement/data', tags=[UserRole.ADMIN], response_model=AchievementValues)
 async def load_achievement_data(
 		current: AchievementIndicator, previous: Optional[AchievementIndicator] = None,
 		principal_service: PrincipalService = Depends(get_console_principal)) -> AchievementValues:

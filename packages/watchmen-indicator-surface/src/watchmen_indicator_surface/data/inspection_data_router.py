@@ -21,7 +21,7 @@ def get_inspection_service(principal_service: PrincipalService) -> InspectionSer
 	return InspectionService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-@router.get('/indicator/inspection/data', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=DataResultSet)
+@router.get('/indicator/inspection/data', tags=[UserRole.ADMIN], response_model=DataResultSet)
 async def fetch_inspection_data(
 		inspection_id: Optional[InspectionId],
 		principal_service: PrincipalService = Depends(get_console_principal)) -> DataResultSet:
