@@ -89,7 +89,7 @@ async def find_my_analysis(
 	def action() -> List[ObjectiveAnalysis]:
 		tenant_id: TenantId = principal_service.get_tenant_id()
 		# noinspection PyTypeChecker
-		return analysis_service.find_all_by_tenant_id(tenant_id)
+		return analysis_service.find_all(tenant_id)
 
 	return trans_readonly(analysis_service, action)
 
