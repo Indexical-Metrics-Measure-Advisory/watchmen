@@ -11,6 +11,7 @@ import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useEffect, useState} from 'react';
 import {AchievementEventBusProvider} from '../../../achievement/achievement-event-bus';
+import {AchievementRenderMode} from '../../../achievement/achievement-event-bus-types';
 import {AchievementEditPageBody} from '../../../achievement/edit/body';
 import {AchievementSaver} from '../../../achievement/edit/saver';
 import {createAchievement} from '../../../achievement/utils';
@@ -29,8 +30,12 @@ import {RenderModeSwitcher} from './render-mode-switcher';
 import {AchievementStateHolder} from './state';
 import {AchievementEdit} from './widgets';
 
-export const PerspectiveOnAchievement = (props: { analysis: ObjectiveAnalysis, perspective: ObjectiveAnalysisPerspective }) => {
-	const {analysis, perspective} = props;
+export const PerspectiveOnAchievement = (props: {
+	analysis: ObjectiveAnalysis;
+	perspective: ObjectiveAnalysisPerspective;
+	startOnView: boolean;
+}) => {
+	const {analysis, perspective, startOnView} = props;
 
 	const {fire: fireGlobal} = useEventBus();
 	const {fire} = useObjectiveAnalysisEventBus();
@@ -102,8 +107,9 @@ export const PerspectiveOnAchievement = (props: { analysis: ObjectiveAnalysis, p
 			                         reusable={false}/>
 			{achievement != null
 				? <AchievementEdit>
-					<RenderModeAssistant/>
-					<AchievementEditPageBody achievement={achievement}/>
+					<RenderModeAssistant startOnView={startOnView}/>
+					<AchievementEditPageBody achievement={achievement}
+					                         startOnRenderMode={startOnView ? AchievementRenderMode.VIEW : AchievementRenderMode.EDIT}/>
 					<AchievementSaver achievement={achievement}/>
 					<RenderModeSwitcher achievement={achievement}/>
 				</AchievementEdit>

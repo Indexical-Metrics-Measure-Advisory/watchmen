@@ -11,10 +11,13 @@ interface Indicators {
 	data: Array<Indicator>;
 }
 
-export const AchievementEditPageBody = (props: { achievement: Achievement }) => {
-	const {achievement} = props;
+export const AchievementEditPageBody = (props: {
+	achievement: Achievement;
+	startOnRenderMode?: AchievementRenderMode;
+}) => {
+	const {achievement, startOnRenderMode = AchievementRenderMode.EDIT} = props;
 
-	const [renderMode, setRenderMode] = useState(AchievementRenderMode.EDIT);
+	const [renderMode, setRenderMode] = useState(startOnRenderMode);
 	const [indicators, setIndicators] = useState<Indicators>({loaded: false, data: []});
 	const {on, off, fire} = useAchievementEventBus();
 	useEffect(() => {
