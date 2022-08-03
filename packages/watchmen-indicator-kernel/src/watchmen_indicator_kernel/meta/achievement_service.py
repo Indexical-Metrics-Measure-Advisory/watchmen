@@ -19,7 +19,8 @@ class AchievementShaper(EntityShaper):
 			'time_range_month': achievement.timeRangeMonth,
 			'compare_with_prev_time_range': achievement.compareWithPreviousTimeRange,
 			'final_score_is_ratio': achievement.finalScoreIsRatio,
-			'indicators': ArrayHelper(achievement.indicators).map(lambda x: x.to_dict()).to_list()
+			'indicators': ArrayHelper(achievement.indicators).map(lambda x: x.to_dict()).to_list(),
+			'plugin_ids': achievement.pluginIds
 		})
 
 	def deserialize(self, row: EntityRow) -> Achievement:
@@ -33,7 +34,8 @@ class AchievementShaper(EntityShaper):
 			timeRangeMonth=row.get('time_range_month'),
 			compareWithPreviousTimeRange=row.get('compare_with_prev_time_range'),
 			finalScoreIsRatio=row.get('final_score_is_ratio'),
-			indicators=row.get('indicators')
+			indicators=row.get('indicators'),
+			pluginIds=row.get('plugin_ids')
 		))
 
 
