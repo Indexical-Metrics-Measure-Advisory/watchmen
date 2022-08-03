@@ -29,13 +29,8 @@ export const PluginsRootNode = styled(AchievementBlock).attrs({'data-widget': 'p
 	height          : var(--header-height);
 	color           : var(--achievement-plugin-color);
 	border-color    : var(--achievement-plugin-color);
-	cursor          : pointer;
 	&:before {
 		background-color : var(--achievement-plugin-color);
-	}
-	> svg {
-		margin-left  : calc(var(--margin) / -4);
-		margin-right : calc(var(--margin) / 2);
 	}
 `;
 export const PluginCurve = styled(AchievementBlockPairCurve).attrs<{ rect: CurveRect }>({
@@ -49,7 +44,7 @@ export const PluginNodeContainer = styled.div.attrs({'data-widget': 'plugin-node
 	display  : flex;
 	position : relative;
 	&:not(:first-child) {
-		margin-top: calc(var(--margin) / 2);
+		margin-top : calc(var(--margin) / 2);
 	}
 	&:hover {
 		border-top-right-radius    : 0;
@@ -89,7 +84,7 @@ export const PluginNodeRemover = styled(IndicatorNodeRemover).attrs({'data-widge
 	//left              : unset;
 	border-color      : var(--achievement-plugin-color);
 	border-left-color : transparent;
-	transition        : border-radius 300ms ease-in-out , clip-path 300ms ease-in-out;
+	transition        : border-radius 300ms ease-in-out, clip-path 300ms ease-in-out;
 	&:before {
 		background-color : var(--achievement-plugin-color);
 	}

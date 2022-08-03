@@ -42,7 +42,7 @@ export const PickedPlugins = (props: {
 
 	return <>
 		{pluginIds.map((pluginId, index) => {
-			return <PluginPicker parentId={parentId} achievement={achievement} pluginId={pluginId}
+			return <PluginPicker parentId={parentId} achievement={achievement} pluginId={pluginId} index={index}
 			                     plugins={plugins}
 			                     key={`${pluginId}-${index}`}/>;
 		})}
