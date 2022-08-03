@@ -4,11 +4,7 @@ import {Input} from '@/widgets/basic/input';
 import styled from 'styled-components';
 import {InspectionRenderMode} from './inspection-event-bus-types';
 
-export const InspectionContainer = styled.div.attrs<{ renderMode: InspectionRenderMode }>(({renderMode}) => {
-	return {
-		'data-widget': 'inspection'
-	};
-})<{ renderMode: InspectionRenderMode }>`
+export const InspectionContainer = styled.div.attrs<{ renderMode: InspectionRenderMode }>({'data-widget': 'inspection'})<{ renderMode: InspectionRenderMode }>`
 	display               : grid;
 	position              : relative;
 	grid-template-columns : 1fr;
@@ -53,7 +49,8 @@ export const OrLabel = styled(InspectionLabel)`
 	opacity : 0.7;
 `;
 export const LoadingLabel = styled(InspectionLabel)`
-	opacity : 0.7;
+	align-items : center;
+	opacity     : 0.7;
 	> svg {
 		font-size : 0.8em;
 	}

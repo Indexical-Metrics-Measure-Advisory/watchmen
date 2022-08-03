@@ -10,7 +10,8 @@ import {useEffect, useState} from 'react';
 import {createAchievement} from '../../../../achievement/utils';
 import {useObjectiveAnalysisEventBus} from '../../../objective-analysis-event-bus';
 import {ObjectiveAnalysisEventTypes} from '../../../objective-analysis-event-bus-types';
-import {AchievementButton, AchievementDropdown, AchievementLabel, CreateOrFindContainer, OrLabel} from './widgets';
+import {AchievementButton, AchievementDropdown, AchievementLabel, OrLabel} from '../widgets';
+import {CreateOrFindContainer} from './widgets';
 
 export const CreateOrFindEditor = (props: {
 	onPicked: (achievementId: AchievementId) => void;

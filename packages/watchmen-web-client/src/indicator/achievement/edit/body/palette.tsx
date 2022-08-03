@@ -10,6 +10,7 @@ import {AchievementRoot} from './achievement-root';
 import {IndicatorCandidates} from './indicator-candidates';
 import {MoreComputeIndicators} from './more-compute-indicators';
 import {PickedIndicators} from './picked-indicators';
+import {Plugins} from './plugins';
 import {TimeRange} from './time-range';
 import {useShowAddIndicator} from './use-show-add-indicator';
 import {AchievementPalette, AchievementPaletteContainer, PaletteColumn} from './widgets';
@@ -58,6 +59,7 @@ export const Palette = (props: {
 				                       achievement={achievement}/>
 				<IndicatorCandidates paletteId={paletteId} rootId={rootId}
 				                     achievement={achievement} indicators={indicators}/>
+				<Plugins achievement={achievement}/>
 			</PaletteColumn>
 		</AchievementPalette>
 	</AchievementPaletteContainer>;

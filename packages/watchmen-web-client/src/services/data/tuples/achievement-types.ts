@@ -1,5 +1,6 @@
 import {IndicatorCriteria} from './indicator-criteria-types';
 import {IndicatorAggregateArithmetic, IndicatorId} from './indicator-types';
+import {PluginId} from './plugin-types';
 import {TenantId} from './tenant-types';
 import {OptimisticLock, Tuple} from './tuple-types';
 
@@ -55,5 +56,6 @@ export interface Achievement extends Tuple, OptimisticLock {
 	compareWithPreviousTimeRange: boolean;
 	finalScoreIsRatio: boolean;
 	indicators: Array<AchievementIndicator>;
+	pluginIds?: Array<PluginId>;
 	tenantId?: TenantId;
 }
