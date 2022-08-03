@@ -60,7 +60,11 @@ export const NewPlugin = (props: {
 		forceUpdate();
 		setTimeout(() => fire(AchievementEditEventTypes.REPAINT), 100);
 	};
-	const pluginOptions = plugins.map(plugin => {
+	// not picked candidates only
+	const pluginOptions = plugins.filter(plugin => {
+		// eslint-disable-next-line
+		return !(achievement.pluginIds || []).some(pluginId => pluginId == plugin.pluginId);
+	}).map(plugin => {
 		return {value: plugin.pluginId, label: `${plugin.pluginCode}${plugin.name ? ` - ${plugin.name}` : ''}`};
 	});
 
