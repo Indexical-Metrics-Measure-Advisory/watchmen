@@ -498,6 +498,8 @@ export const Zh = {
 			ACHIEVEMENT_IS_REQUIRED: '请选择需要查看的业绩.',
 			PICK_ANOTHER: '查看其他业绩',
 			CREATE_ACHIEVEMENT: '创建业绩',
+			PLUGINS_LABEL: '插件:',
+			ADD_PLUGIN: '请选择...',
 			NEW_ACHIEVEMENT_PREFIX: '新',
 			EXISTING_ACHIEVEMENT_PREFIX: '已存在的',
 			CREATE_AT: '创建于',

@@ -4,7 +4,7 @@ import {Assistant} from './widgets';
 export const RenderModeAssistant = (props: { startOnView: boolean }) => {
 	const {startOnView} = props;
 
-	const onViewMode = useViewModeSwitch(startOnView);
+	const viewMode = useViewModeSwitch(startOnView);
 
-	return <Assistant onViewMode={onViewMode}/>;
+	return <Assistant viewMode={viewMode}/>;
 };

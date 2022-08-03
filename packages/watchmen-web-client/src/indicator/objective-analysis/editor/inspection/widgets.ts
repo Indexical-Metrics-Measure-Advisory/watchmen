@@ -12,8 +12,8 @@ export const NoInspection = styled.div.attrs({'data-widget': 'no-inspection'})`
 	opacity      : 0.5;
 `;
 
-export const Assistant = styled.div.attrs<{ onViewMode: boolean }>({'data-widget': 'inspection-view-mode-assistant'})<{ onViewMode: boolean }>`
-	${({onViewMode}) => onViewMode ? `
+export const Assistant = styled.div.attrs<{ viewMode: boolean }>({'data-widget': 'inspection-view-mode-assistant'})<{ viewMode: boolean }>`
+	${({viewMode}) => viewMode ? `
 		+ div[data-widget=inspection] {
 			> div[data-widget=inspection-data] {
 				> div[data-widget=inspection-charts] {

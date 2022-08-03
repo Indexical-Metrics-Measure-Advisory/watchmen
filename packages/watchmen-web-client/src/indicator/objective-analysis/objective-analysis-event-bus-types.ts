@@ -6,6 +6,7 @@ import {ObjectiveAnalysis, ObjectiveAnalysisPerspective} from '@/services/data/t
 import {QueryAchievement} from '@/services/data/tuples/query-achievement-types';
 import {QueryBucket, QueryByBucketMethod} from '@/services/data/tuples/query-bucket-types';
 import {QueryInspection} from '@/services/data/tuples/query-inspection-types';
+import {QueryPlugin} from '@/services/data/tuples/query-plugin-types';
 import {Topic, TopicId} from '@/services/data/tuples/topic-types';
 import {AskBucketsParams, IndicatorForInspection} from '../inspection/inspection-event-bus-types';
 
@@ -35,6 +36,7 @@ export enum ObjectiveAnalysisEventTypes {
 	ASK_QUERY_BUCKETS = 'ask-query-buckets',
 	ASK_MEASURE_BUCKETS = 'ask-measure-buckets',
 	ASK_VALUE_BUCKETS = 'ask-value-buckets',
+	ASK_PLUGINS = 'ask-plugins',
 
 	SAVE_INSPECTION = 'save-inspection'
 }
@@ -123,6 +125,10 @@ export interface ObjectiveAnalysisEventBus {
 	fire(type: ObjectiveAnalysisEventTypes.ASK_VALUE_BUCKETS, bucketIds: Array<BucketId>, onData: (buckets: Array<Bucket>) => void): this;
 	on(type: ObjectiveAnalysisEventTypes.ASK_VALUE_BUCKETS, listener: (bucketIds: Array<BucketId>, onData: (buckets: Array<Bucket>) => void) => void): this;
 	off(type: ObjectiveAnalysisEventTypes.ASK_VALUE_BUCKETS, listener: (bucketIds: Array<BucketId>, onData: (buckets: Array<Bucket>) => void) => void): this;
+
+	fire(type: ObjectiveAnalysisEventTypes.ASK_PLUGINS, onData: (plugins: Array<QueryPlugin>) => void): this;
+	on(type: ObjectiveAnalysisEventTypes.ASK_PLUGINS, listener: (onData: (plugins: Array<QueryPlugin>) => void) => void): this;
+	off(type: ObjectiveAnalysisEventTypes.ASK_PLUGINS, listener: (onData: (plugins: Array<QueryPlugin>) => void) => void): this;
 
 	fire(type: ObjectiveAnalysisEventTypes.SAVE_INSPECTION, inspection: Inspection, onSaved: (inspection: Inspection, saved: boolean) => void): this;
 	on(type: ObjectiveAnalysisEventTypes.SAVE_INSPECTION, listener: (inspection: Inspection, onSaved: (inspection: Inspection, saved: boolean) => void) => void): this;

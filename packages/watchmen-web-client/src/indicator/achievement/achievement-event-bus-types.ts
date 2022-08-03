@@ -3,6 +3,7 @@ import {Achievement} from '@/services/data/tuples/achievement-types';
 import {Bucket, BucketId} from '@/services/data/tuples/bucket-types';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import {QueryByBucketMethod} from '@/services/data/tuples/query-bucket-types';
+import {QueryPlugin} from '@/services/data/tuples/query-plugin-types';
 import {Topic, TopicId} from '@/services/data/tuples/topic-types';
 import {QueryTuple} from '@/services/data/tuples/tuple-types';
 
@@ -30,7 +31,8 @@ export enum AchievementEventTypes {
 	ASK_INDICATORS = 'ask-indicators',
 	ASK_TOPIC = 'ask-topic',
 	ASK_VALUE_BUCKETS = 'ask-value-buckets',
-	ASK_MEASURE_BUCKETS = 'ask-measure-buckets'
+	ASK_MEASURE_BUCKETS = 'ask-measure-buckets',
+	ASK_PLUGINS = 'ask-plugins'
 }
 
 export interface AchievementEventBus {
@@ -93,4 +95,8 @@ export interface AchievementEventBus {
 	fire(type: AchievementEventTypes.ASK_MEASURE_BUCKETS, methods: Array<QueryByBucketMethod>, onData: (buckets: Array<Bucket>) => void): this;
 	on(type: AchievementEventTypes.ASK_MEASURE_BUCKETS, listener: (methods: Array<QueryByBucketMethod>, onData: (buckets: Array<Bucket>) => void) => void): this;
 	off(type: AchievementEventTypes.ASK_MEASURE_BUCKETS, listener: (methods: Array<QueryByBucketMethod>, onData: (buckets: Array<Bucket>) => void) => void): this;
+
+	fire(type: AchievementEventTypes.ASK_PLUGINS, onData: (plugins: Array<QueryPlugin>) => void): this;
+	on(type: AchievementEventTypes.ASK_PLUGINS, listener: (onData: (plugins: Array<QueryPlugin>) => void) => void): this;
+	off(type: AchievementEventTypes.ASK_PLUGINS, listener: (onData: (plugins: Array<QueryPlugin>) => void) => void): this;
 }

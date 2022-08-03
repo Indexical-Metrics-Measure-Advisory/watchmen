@@ -25,6 +25,7 @@ import {
 	PerspectiveDescriptorWrapper
 } from '../widgets';
 import {CreateOrFindAchievement} from './create-or-find-achievement';
+import {AchievementPlugins} from './plugins';
 import {RenderModeAssistant} from './render-mode-assistant';
 import {RenderModeSwitcher} from './render-mode-switcher';
 import {AchievementStateHolder} from './state';
@@ -60,7 +61,7 @@ export const PerspectiveOnAchievement = (props: {
 					return achievement;
 				},
 				(achievement: Achievement) => {
-					perspective.relationId = achievementId;
+					perspective.relationId = achievement.achievementId;
 					fire(ObjectiveAnalysisEventTypes.SAVE, analysis);
 					setAchievement(achievement);
 				});
@@ -110,6 +111,8 @@ export const PerspectiveOnAchievement = (props: {
 					<RenderModeAssistant startOnView={startOnView}/>
 					<AchievementEditPageBody achievement={achievement}
 					                         startOnRenderMode={startOnView ? AchievementRenderMode.VIEW : AchievementRenderMode.EDIT}/>
+					<AchievementPlugins analysis={analysis} perspective={perspective} achievement={achievement}
+					                    startOnView={startOnView}/>
 					<AchievementSaver achievement={achievement}/>
 					<RenderModeSwitcher achievement={achievement}/>
 				</AchievementEdit>

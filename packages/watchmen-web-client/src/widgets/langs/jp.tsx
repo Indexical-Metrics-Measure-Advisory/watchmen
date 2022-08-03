@@ -498,6 +498,8 @@ export const Jp = {
 			ACHIEVEMENT_IS_REQUIRED: '表示する必要がある実績を選択してください。',
 			PICK_ANOTHER: '他の実績を表示',
 			CREATE_ACHIEVEMENT: '実績を作成',
+			PLUGINS_LABEL: 'プラグイン:',
+			ADD_PLUGIN: '...を選択してください',
 			NEW_ACHIEVEMENT_PREFIX: '新しい',
 			EXISTING_ACHIEVEMENT_PREFIX: '既存',
 			CREATE_AT: '作成先',

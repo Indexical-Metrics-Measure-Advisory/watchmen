@@ -12,14 +12,8 @@ import React, {ChangeEvent, useState} from 'react';
 import styled from 'styled-components';
 import {useAchievementEventBus} from '../../../../achievement/achievement-event-bus';
 import {AchievementEventTypes} from '../../../../achievement/achievement-event-bus-types';
-import {
-	AchievementButton,
-	AchievementEntityLabel,
-	AchievementInput,
-	AchievementLabel,
-	CreateOrFindContainer,
-	OrLabel
-} from './widgets';
+import {AchievementButton, AchievementEntityLabel, AchievementInput, AchievementLabel, OrLabel} from '../widgets';
+import {CreateOrFindContainer} from './widgets';
 
 const NameInput = styled(AchievementInput)`
 	padding : 0;
