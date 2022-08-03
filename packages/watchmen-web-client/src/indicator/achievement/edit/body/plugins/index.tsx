@@ -14,13 +14,9 @@ import {useAchievementEditEventBus} from '../achievement-edit-event-bus';
 import {AchievementEditEventTypes} from '../achievement-edit-event-bus-types';
 import {useCurve} from '../use-curve';
 import {computeCurvePath} from '../utils';
-import {
-	PluginsContainer,
-	PluginsRootColumn,
-	PluginsRootCurve,
-	PluginsRootNode,
-	PluginsRootNodeContainer
-} from './widgets';
+import {NewPlugin} from './new-plugin';
+import {PickedPlugins} from './picked-plugins';
+import {PluginCurve, PluginsContainer, PluginsRootColumn, PluginsRootNode, PluginsRootNodeContainer} from './widgets';
 
 interface PluginsState {
 	loaded: boolean;
@@ -63,18 +59,14 @@ export const Plugins = (props: {
 		};
 		if (!hasMore()) {
 			fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
-				{Lang.INDICATOR.ACHIEVEMENT.NO_INDICATOR_CANDIDATE}
+				{Lang.INDICATOR.ACHIEVEMENT.NO_PLUGIN_CANDIDATE}
 			</AlertLabel>);
 			return;
 		}
 
+		fire(AchievementEditEventTypes.ADD_PLUGIN, achievement);
 		setExpanded(!expanded);
 	};
-
-	const pluginIds = achievement.pluginIds || [];
-	const pluginOptions = state.data.map(plugin => {
-		return {value: plugin.pluginId, label: `${plugin.pluginCode}${plugin.name ? ` - ${plugin.name}` : ''}`};
-	});
 
 	return <PluginsContainer>
 		<PluginsRootColumn>
@@ -85,16 +77,19 @@ export const Plugins = (props: {
 				</PluginsRootNode>
 				{curve == null
 					? null
-					: <PluginsRootCurve rect={curve}>
+					: <PluginCurve rect={curve}>
 						<g>
 							<path d={computeCurvePath(curve)}/>
 						</g>
-					</PluginsRootCurve>}
+					</PluginCurve>}
 			</PluginsRootNodeContainer>
 		</PluginsRootColumn>
-		{expanded
-			? <PluginsRootColumn>
-			</PluginsRootColumn>
-			: null}
+		<PluginsRootColumn>
+			<NewPlugin parentId={id} achievement={achievement} plugins={state.data}
+			           expanded={expanded}/>
+			{expanded
+				? <PickedPlugins parentId={id} achievement={achievement} plugins={state.data}/>
+				: null}
+		</PluginsRootColumn>
 	</PluginsContainer>;
 };

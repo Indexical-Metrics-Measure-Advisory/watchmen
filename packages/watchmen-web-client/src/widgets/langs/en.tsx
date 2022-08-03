@@ -498,8 +498,6 @@ export const En = {
 			ACHIEVEMENT_IS_REQUIRED: 'Please pick an achievement.',
 			PICK_ANOTHER: 'Pick Another Achievement',
 			CREATE_ACHIEVEMENT: 'Create Achievement',
-			PLUGINS_LABEL: 'Plugins:',
-			ADD_PLUGIN: 'Please select...',
 			NEW_ACHIEVEMENT_PREFIX: 'A New',
 			EXISTING_ACHIEVEMENT_PREFIX: 'An Existing',
 			CREATE_AT: 'Created At',
@@ -537,7 +535,8 @@ export const En = {
 			ADD_COMPUTE_INDICATOR: 'Add Manual Compute Indicator',
 			ADD_PREDEFINED_INDICATOR: 'Add Predefined Indicator',
 			PLUGINS_ROOT: 'Plugins',
-			NO_PLUGIN_CANDIDATE: 'No available plugin.',
+			NO_PLUGIN_CANDIDATE: 'No more available plugin.',
+			PLEASE_SELECT_PLUGIN: 'Please select...',
 			COMPUTE_INDICATOR_NODE_LABEL: 'Compute Indicator',
 			SCORE_INCLUDE_IN_FINAL: 'Include in Final Score?:'
 		},
