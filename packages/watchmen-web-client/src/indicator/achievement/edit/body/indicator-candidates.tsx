@@ -36,5 +36,6 @@ export const IndicatorCandidates = (props: {
 	}
 
 	return <MoreIndicators paletteId={paletteId} parentId={rootId}
-	                       achievement={achievement} candidates={state.data}/>;
+	                       achievement={achievement} candidates={state.data}
+	                       showText={true}/>;
 };

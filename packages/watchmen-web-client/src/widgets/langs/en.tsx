@@ -535,6 +535,9 @@ export const En = {
 			INDICATOR_FORMULA_LABEL: 'Formula:',
 			SCORE_SUM_LABEL: 'Final Score:',
 			ADD_COMPUTE_INDICATOR: 'Add Manual Compute Indicator',
+			ADD_PREDEFINED_INDICATOR: 'Add Predefined Indicator',
+			PLUGINS_ROOT: 'Plugins',
+			NO_PLUGIN_CANDIDATE: 'No available plugin.',
 			COMPUTE_INDICATOR_NODE_LABEL: 'Compute Indicator',
 			SCORE_INCLUDE_IN_FINAL: 'Include in Final Score?:'
 		},

@@ -535,6 +535,9 @@ export const Jp = {
 			INDICATOR_FORMULA_LABEL: '数式を計算:',
 			SCORE_SUM_LABEL: '最終的なスコア:',
 			ADD_COMPUTE_INDICATOR: '計算指標を増や',
+			ADD_PREDEFINED_INDICATOR: '定義済み指標の追加',
+			PLUGINS_ROOT: 'プラグイン',
+			NO_PLUGIN_CANDIDATE: 'これ以上のプラグインを選択することができます。',
 			COMPUTE_INDICATOR_NODE_LABEL: '計算指標',
 			SCORE_INCLUDE_IN_FINAL: '最終スコアに含める:'
 		},

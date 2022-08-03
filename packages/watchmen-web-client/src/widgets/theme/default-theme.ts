@@ -169,7 +169,8 @@ const DefaultTheme = {
 	achievementComputeIndicatorValueColor: 'var(--success-color)',
 	achievementCategoryColor: 'var(--info-color)',
 	achievementCandidateColor: 'var(--success-color)',
-	achievementScoreSumColor: 'rgb(69,146,70)'
+	achievementScoreSumColor: 'rgb(69,146,70)',
+	achievementPluginColor: 'rgb(215,124,99)'
 };
 
 export default DefaultTheme;

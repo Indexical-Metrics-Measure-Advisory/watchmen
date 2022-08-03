@@ -535,6 +535,9 @@ export const Zh = {
 			INDICATOR_FORMULA_LABEL: '计算公式:',
 			SCORE_SUM_LABEL: '最终得分:',
 			ADD_COMPUTE_INDICATOR: '增加计算指标',
+			ADD_PREDEFINED_INDICATOR: '增加预定义指标',
+			PLUGINS_ROOT: '插件',
+			NO_PLUGIN_CANDIDATE: '没有更多可以选择的插件.',
 			COMPUTE_INDICATOR_NODE_LABEL: '计算指标',
 			SCORE_INCLUDE_IN_FINAL: '计算入最终得分?:'
 		},
