@@ -23,20 +23,20 @@ def get_plugin_service(principal_service: PrincipalService) -> PluginService:
 
 @router.get('/plugin', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=Plugin)
 async def load_plugin_by_id(
-		writer_id: Optional[PluginId] = None,
+		plugin_id: Optional[PluginId] = None,
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> Plugin:
-	if is_blank(writer_id):
+	if is_blank(plugin_id):
 		raise_400('Plugin id is required.')
 	if not principal_service.is_super_admin():
-		if writer_id != principal_service.get_tenant_id():
+		if plugin_id != principal_service.get_tenant_id():
 			raise_403()
 
 	plugin_service = get_plugin_service(principal_service)
 
 	def action() -> Plugin:
 		# noinspection PyTypeChecker
-		plugin: Plugin = plugin_service.find_by_id(writer_id)
+		plugin: Plugin = plugin_service.find_by_id(plugin_id)
 		if plugin is None:
 			raise_404()
 		return plugin
@@ -51,16 +51,16 @@ async def save_plugin(
 	plugin_service = get_plugin_service(principal_service)
 
 	# noinspection DuplicatedCode
-	def action(writer: Plugin) -> Plugin:
-		if plugin_service.is_storable_id_faked(writer.writerId):
-			plugin_service.redress_storable_id(writer)
+	def action(a_plugin: Plugin) -> Plugin:
+		if plugin_service.is_storable_id_faked(a_plugin.pluginId):
+			plugin_service.redress_storable_id(a_plugin)
 			# noinspection PyTypeChecker
-			writer: Plugin = plugin_service.create(writer)
+			a_plugin: Plugin = plugin_service.create(a_plugin)
 		else:
 			# noinspection PyTypeChecker
-			writer: Plugin = plugin_service.update(writer)
+			a_plugin: Plugin = plugin_service.update(a_plugin)
 
-		return writer
+		return a_plugin
 
 	return trans(plugin_service, lambda: action(plugin))
 
