@@ -35,7 +35,7 @@ export const Plugins = (props: {
 		}
 	}, [fireAchievement, achievement, state.loaded]);
 
-	if (!state.loaded) {
+	if (!state.loaded || state.data.length === 0) {
 		return null;
 	}
 

@@ -49,8 +49,12 @@ export const PluginNodeContainer = styled.div.attrs({'data-widget': 'plugin-node
 	&:hover {
 		border-top-right-radius    : 0;
 		border-bottom-right-radius : 0;
+		> span[data-widget=plugin-opener],
 		> span[data-widget=plugin-remover] {
 			clip-path : polygon(0 0, 0 100%, calc(100% + 1px) 100%, calc(100% + 1px) 0);
+		}
+		> span[data-widget=plugin-remover] {
+			left : calc(100% + var(--header-height) / 3 * 2);
 		}
 	}
 `;
@@ -79,12 +83,23 @@ export const PluginNode = styled(AchievementBlock).attrs({'data-widget': 'plugin
 		}
 	}
 `;
-export const PluginNodeRemover = styled(IndicatorNodeRemover).attrs({'data-widget': 'plugin-remover'})`
-	//position          : relative;
-	//left              : unset;
+export const PluginNodeOpener = styled(IndicatorNodeRemover).attrs({'data-widget': 'plugin-opener'})`
 	border-color      : var(--achievement-plugin-color);
+	border-radius     : 0;
 	border-left-color : transparent;
 	transition        : border-radius 300ms ease-in-out, clip-path 300ms ease-in-out;
+	&:before {
+		background-color : var(--achievement-plugin-color);
+	}
+	> span {
+		color        : var(--achievement-plugin-color);
+		border-color : var(--achievement-plugin-color);
+	}
+`;
+export const PluginNodeRemover = styled(IndicatorNodeRemover).attrs({'data-widget': 'plugin-remover'})`
+	border-color      : var(--achievement-plugin-color);
+	border-left-color : transparent;
+	transition        : border-radius 300ms ease-in-out, clip-path 300ms ease-in-out, left 300ms ease-in-out;
 	&:before {
 		background-color : var(--achievement-plugin-color);
 	}

@@ -2,7 +2,7 @@ import {Achievement} from '@/services/data/tuples/achievement-types';
 import {PluginId} from '@/services/data/tuples/plugin-types';
 import {QueryPlugin} from '@/services/data/tuples/query-plugin-types';
 import {noop} from '@/services/utils';
-import {ICON_DELETE} from '@/widgets/basic/constants';
+import {ICON_DELETE, ICON_EXTERNAL_LINK} from '@/widgets/basic/constants';
 import {Dropdown} from '@/widgets/basic/dropdown';
 import {DropdownOption} from '@/widgets/basic/types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
@@ -12,7 +12,7 @@ import {useAchievementEditEventBus} from '../achievement-edit-event-bus';
 import {AchievementEditEventTypes} from '../achievement-edit-event-bus-types';
 import {useCurve} from '../use-curve';
 import {computeCurvePath} from '../utils';
-import {PluginCurve, PluginNode, PluginNodeContainer, PluginNodeRemover} from './widgets';
+import {PluginCurve, PluginNode, PluginNodeContainer, PluginNodeOpener, PluginNodeRemover} from './widgets';
 
 export const PluginPicker = (props: {
 	parentId: string;
@@ -41,6 +41,9 @@ export const PluginPicker = (props: {
 	const pluginOptions = plugins.map(plugin => {
 		return {value: plugin.pluginId, label: `${plugin.pluginCode}${plugin.name ? ` - ${plugin.name}` : ''}`};
 	});
+	const onOpenClicked = () => {
+		// TODO open plugin
+	};
 	const onRemoveClicked = () => {
 		achievement.pluginIds = achievement.pluginIds!.filter((_, idx) => idx !== index);
 		fire(AchievementEditEventTypes.PLUGIN_REMOVED, achievement);
@@ -52,6 +55,9 @@ export const PluginPicker = (props: {
 		<PluginNode ref={ref}>
 			<Dropdown value={pluginId} options={pluginOptions} onChange={onPluginChange}/>
 		</PluginNode>
+		<PluginNodeOpener>
+			<span onClick={onOpenClicked}><FontAwesomeIcon icon={ICON_EXTERNAL_LINK}/></span>
+		</PluginNodeOpener>
 		<PluginNodeRemover>
 			<span onClick={onRemoveClicked}><FontAwesomeIcon icon={ICON_DELETE}/></span>
 		</PluginNodeRemover>
