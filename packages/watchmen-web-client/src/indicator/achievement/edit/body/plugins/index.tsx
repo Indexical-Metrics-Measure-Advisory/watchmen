@@ -35,6 +35,10 @@ export const Plugins = (props: {
 		}
 	}, [fireAchievement, achievement, state.loaded]);
 
+	if (!state.loaded) {
+		return null;
+	}
+
 	return <PluginsContainer>
 		<PluginsRootColumn>
 			<PluginsRootNodeContainer>
