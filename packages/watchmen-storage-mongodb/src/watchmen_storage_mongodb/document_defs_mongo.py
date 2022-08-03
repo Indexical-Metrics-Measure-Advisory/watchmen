@@ -363,7 +363,6 @@ table_objective_analysis = MongoDocument(
 	columns=[
 		create_pk('analysis_id'), create_str('title'),
 		create_description(), create_json('perspectives'),
-		create_last_visit_time(),
 		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 	]
 )

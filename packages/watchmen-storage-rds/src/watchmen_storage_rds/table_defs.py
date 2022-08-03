@@ -298,7 +298,6 @@ table_objective_analysis = Table(
 	'objective_analysis', meta_data,
 	create_pk('analysis_id'), create_str('title', 100),
 	create_description(), create_json('perspectives'),
-	create_last_visit_time(),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 
