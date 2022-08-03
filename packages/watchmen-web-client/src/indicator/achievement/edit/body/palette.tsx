@@ -1,3 +1,4 @@
+import {isPluginEnabled} from '@/feature-switch';
 import {Achievement} from '@/services/data/tuples/achievement-types';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import {FireTiming, useThrottler} from '@/widgets/throttler';
@@ -45,6 +46,7 @@ export const Palette = (props: {
 		}
 	}, [fireEdit, resizeQueue]);
 	const showAddIndicator = useShowAddIndicator(achievement) && renderMode === AchievementRenderMode.EDIT;
+	const pluginEnabled = isPluginEnabled();
 
 	return <AchievementPaletteContainer renderMode={renderMode}>
 		<AchievementPalette id={paletteId} showAddIndicator={showAddIndicator} renderMode={renderMode} ref={ref}>
@@ -59,7 +61,7 @@ export const Palette = (props: {
 				                       achievement={achievement}/>
 				<IndicatorCandidates paletteId={paletteId} rootId={rootId}
 				                     achievement={achievement} indicators={indicators}/>
-				<Plugins achievement={achievement}/>
+				{pluginEnabled ? <Plugins paletteId={paletteId} parentId={rootId} achievement={achievement}/> : null}
 			</PaletteColumn>
 		</AchievementPalette>
 	</AchievementPaletteContainer>;

@@ -1,6 +1,6 @@
 import {Achievement} from '@/services/data/tuples/achievement-types';
 import {AlertLabel} from '@/widgets/alert/widgets';
-import {ICON_COLLAPSE_NODES, ICON_EXPAND_NODES} from '@/widgets/basic/constants';
+import {ICON_EXPAND_NODES} from '@/widgets/basic/constants';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
@@ -26,8 +26,9 @@ export const MoreIndicators = (props: {
 	parentId: string;
 	achievement: Achievement;
 	candidates: Array<IndicatorCategoryContent>;
+	showText?: boolean;
 }) => {
-	const {paletteId, parentId, achievement, candidates} = props;
+	const {paletteId, parentId, achievement, candidates, showText = false} = props;
 
 	const {fire: fireGlobal} = useEventBus();
 	const {fire} = useAchievementEditEventBus();
@@ -52,8 +53,9 @@ export const MoreIndicators = (props: {
 	return <MoreIndicatorsContainer>
 		<MoreIndicatorsColumn>
 			<MoreIndicatorsNodeContainer>
-				<MoreIndicatorsNode id={id} onClick={onMoreClicked} ref={ref}>
-					<FontAwesomeIcon icon={expanded ? ICON_COLLAPSE_NODES : ICON_EXPAND_NODES}/>
+				<MoreIndicatorsNode id={id} showText={showText} onClick={onMoreClicked} ref={ref}>
+					<FontAwesomeIcon icon={ICON_EXPAND_NODES}/>
+					{showText ? Lang.INDICATOR.ACHIEVEMENT.ADD_PREDEFINED_INDICATOR : null}
 				</MoreIndicatorsNode>
 				{curve == null
 					? null

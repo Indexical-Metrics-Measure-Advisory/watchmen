@@ -23,20 +23,32 @@ export const MoreIndicatorsNodeContainer = styled.div.attrs({'data-widget': 'mor
 	display  : block;
 	position : relative;
 `;
-export const MoreIndicatorsNode = styled(AchievementBlock).attrs({'data-widget': 'more-indicators-node'})`
+export const MoreIndicatorsNode = styled(AchievementBlock).attrs<{ showText: boolean }>(({showText}) => {
+	return {
+		'data-widget': 'more-indicators-node',
+		style: {
+			width: showText ? (void 0) : 'var(--header-height)',
+			minWidth: showText ? (void 0) : 'var(--header-height)',
+			padding: showText ? (void 0) : 0,
+			borderRadius: showText ? (void 0) : '100%'
+		}
+	};
+})<{ showText: boolean }>`
 	justify-content : center;
-	width           : var(--header-height);
-	min-width       : var(--header-height);
 	height          : var(--header-height);
-	padding         : 0;
-	border-radius   : 100%;
 	color           : var(--achievement-category-color);
 	border-color    : var(--achievement-category-color);
-	font-size       : 1.4em;
+	//font-size       : 1.4em;
 	cursor          : pointer;
 	&:before {
 		background-color : var(--achievement-category-color);
 	}
+	${({showText}) => showText ? `
+		> svg {
+			margin-left  : calc(var(--margin) / -4);
+			margin-right : calc(var(--margin) / 2);
+		}
+	` : ''}
 `;
 export const MoreIndicatorsCurve = styled(AchievementBlockPairCurve).attrs<{ rect: CurveRect }>({
 	'data-widget': 'more-indicators-curve'
