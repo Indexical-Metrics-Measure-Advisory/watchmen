@@ -4,10 +4,10 @@ import {QueryPlugin, QueryPluginForHolder} from '../../tuples/query-plugin-types
 import {isFakedUuid} from '../../tuples/utils';
 import {getCurrentTime} from '../../utils';
 
-const StreamlitAchievementPlugin: Plugin = {
+const StreamlitAchievementPlugin001: Plugin = {
 	pluginId: '1',
-	pluginCode: 'STREAMLIT-ACHIEVEMENT',
-	name: 'Streamlit Visualization',
+	pluginCode: 'STREAMLIT-001',
+	name: 'Streamlit Visualization 001',
 	type: PluginType.STREAMLIT,
 	applyTo: PluginApplyTo.ACHIEVEMENT,
 	tenantId: '1',
@@ -15,6 +15,19 @@ const StreamlitAchievementPlugin: Plugin = {
 	createdAt: getCurrentTime(),
 	lastModifiedAt: getCurrentTime()
 };
+const StreamlitAchievementPlugin002: Plugin = {
+	pluginId: '2',
+	pluginCode: 'STREAMLIT-002',
+	name: 'Streamlit Visualization 002',
+	type: PluginType.STREAMLIT,
+	applyTo: PluginApplyTo.ACHIEVEMENT,
+	tenantId: '1',
+	version: 1,
+	createdAt: getCurrentTime(),
+	lastModifiedAt: getCurrentTime()
+};
+
+const ALL_PLUGINS = [StreamlitAchievementPlugin001, StreamlitAchievementPlugin002];
 
 export const listMockPlugins = async (options: {
 	search: string;
@@ -25,7 +38,7 @@ export const listMockPlugins = async (options: {
 	return new Promise((resolve) => {
 		setTimeout(() => {
 			resolve({
-				data: [StreamlitAchievementPlugin].map(writer => {
+				data: ALL_PLUGINS.map(writer => {
 					return {tenantName: 'X World', ...writer};
 				}),
 				itemCount: 2,
@@ -40,7 +53,7 @@ export const listMockPlugins = async (options: {
 export const fetchMockPlugin = async (pluginId: string): Promise<{ plugin: Plugin }> => {
 	return {
 		// eslint-disable-next-line
-		plugin: [StreamlitAchievementPlugin].find(writer => writer.pluginId == pluginId) ?? StreamlitAchievementPlugin
+		plugin: ALL_PLUGINS.find(writer => writer.pluginId == pluginId) ?? StreamlitAchievementPlugin001
 	};
 };
 
@@ -57,9 +70,9 @@ export const saveMockPlugin = async (plugin: Plugin): Promise<void> => {
 export const listMockPluginsForHolder = async (): Promise<Array<QueryPluginForHolder>> => {
 	return new Promise((resolve) => {
 		setTimeout(() => {
-			resolve([StreamlitAchievementPlugin]);
+			resolve(ALL_PLUGINS);
 		}, 500);
 	});
 };
 
-export const DemoPlugins: Array<Plugin> = [StreamlitAchievementPlugin];
+export const DemoPlugins: Array<Plugin> = ALL_PLUGINS;

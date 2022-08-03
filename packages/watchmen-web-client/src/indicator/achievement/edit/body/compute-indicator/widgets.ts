@@ -87,7 +87,7 @@ export const ComputeIndicatorNodeRemover = styled(IndicatorNodeRemover).attrs<{ 
 })<{ expanded: boolean }>`
 	border-color      : var(--achievement-compute-indicator-color);
 	border-left-color : transparent;
-	transition        : border-radius 300ms ease-in-out;
+	transition        : border-radius 300ms ease-in-out, clip-path 300ms ease-in-out;
 	&:before {
 		background-color : var(--achievement-compute-indicator-color);
 	}

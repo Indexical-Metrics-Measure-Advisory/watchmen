@@ -498,8 +498,6 @@ export const Zh = {
 			ACHIEVEMENT_IS_REQUIRED: '请选择需要查看的业绩.',
 			PICK_ANOTHER: '查看其他业绩',
 			CREATE_ACHIEVEMENT: '创建业绩',
-			PLUGINS_LABEL: '插件:',
-			ADD_PLUGIN: '请选择...',
 			NEW_ACHIEVEMENT_PREFIX: '新',
 			EXISTING_ACHIEVEMENT_PREFIX: '已存在的',
 			CREATE_AT: '创建于',
@@ -538,6 +536,7 @@ export const Zh = {
 			ADD_PREDEFINED_INDICATOR: '增加预定义指标',
 			PLUGINS_ROOT: '插件',
 			NO_PLUGIN_CANDIDATE: '没有更多可以选择的插件.',
+			PLEASE_SELECT_PLUGIN: '请选择...',
 			COMPUTE_INDICATOR_NODE_LABEL: '计算指标',
 			SCORE_INCLUDE_IN_FINAL: '计算入最终得分?:'
 		},
