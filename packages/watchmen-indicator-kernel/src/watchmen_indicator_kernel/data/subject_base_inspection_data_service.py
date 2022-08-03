@@ -155,7 +155,8 @@ class SubjectBaseInspectionDataService(InspectionDataService):
 
 		return ParameterJoint(
 			jointType=ParameterJointType.AND,
-			filters=ArrayHelper(criteria).map(to_condition).grab(self.fake_time_range_criteria_to_report()).to_list()
+			filters=ArrayHelper(criteria).map(to_condition).grab(
+				self.fake_time_range_criteria_to_report()).filter(lambda x: x is not None).to_list()
 		)
 
 	def fake_to_report(self) -> Report:
