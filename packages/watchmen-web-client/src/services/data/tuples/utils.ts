@@ -12,6 +12,7 @@ import {Indicator} from './indicator-types';
 import {Inspection} from './inspection-types';
 import {ObjectiveAnalysis} from './objective-analysis-types';
 import {Pipeline, PipelinesGraphics} from './pipeline-types';
+import {Plugin} from './plugin-types';
 import {Report} from './report-types';
 import {Space} from './space-types';
 import {Subject} from './subject-types';
@@ -88,13 +89,18 @@ export const isCatalog = (tuple: Tuple): tuple is Catalog => {
 export const isTopicSnapshotScheduler = (tuple: Tuple): tuple is TopicSnapshotScheduler => {
 	return !!(tuple as any).schedulerId;
 };
+export const isPlugin = (tuple: Tuple): tuple is Plugin => {
+	return !!(tuple as any).pluginId;
+};
 
 export const generateUuid = (): string => `${FAKE_ID_PREFIX}${v4().replace(/-/g, '')}`;
 export const isFakedUuidForGraphics = (graphics: PipelinesGraphics): boolean => {
 	return graphics.pipelineGraphId.startsWith(FAKE_ID_PREFIX);
 };
 export const isFakedUuid = (tuple: Tuple): boolean => {
-	if (isTopicSnapshotScheduler(tuple)) {
+	if (isPlugin(tuple)) {
+		return tuple.pluginId.startsWith(FAKE_ID_PREFIX);
+	} else if (isTopicSnapshotScheduler(tuple)) {
 		return tuple.schedulerId.startsWith(FAKE_ID_PREFIX);
 	} else if (isCatalog(tuple)) {
 		return tuple.catalogId.startsWith(FAKE_ID_PREFIX);
