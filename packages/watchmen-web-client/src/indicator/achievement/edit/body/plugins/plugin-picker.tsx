@@ -17,10 +17,11 @@ import {PluginCurve, PluginNode, PluginNodeContainer, PluginNodeRemover} from '.
 export const PluginPicker = (props: {
 	parentId: string;
 	achievement: Achievement;
-	pluginId?: PluginId;
+	pluginId: PluginId;
+	index: number;
 	plugins: Array<QueryPlugin>;
 }) => {
-	const {parentId, achievement, pluginId, plugins} = props;
+	const {parentId, achievement, pluginId, index, plugins} = props;
 
 	const {fire: fireAchievement} = useAchievementEventBus();
 	const {fire} = useAchievementEditEventBus();
@@ -41,7 +42,9 @@ export const PluginPicker = (props: {
 		return {value: plugin.pluginId, label: `${plugin.pluginCode}${plugin.name ? ` - ${plugin.name}` : ''}`};
 	});
 	const onRemoveClicked = () => {
-
+		achievement.pluginIds = achievement.pluginIds?.splice(index, 1);
+		fire(AchievementEditEventTypes.PLUGIN_REMOVED, achievement);
+		fireAchievement(AchievementEventTypes.SAVE_ACHIEVEMENT, achievement, noop);
 	};
 
 	return <PluginNodeContainer>

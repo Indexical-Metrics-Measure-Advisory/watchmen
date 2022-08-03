@@ -4,8 +4,9 @@ import {QueryPlugin} from '@/services/data/tuples/query-plugin-types';
 import {noop} from '@/services/utils';
 import {Dropdown} from '@/widgets/basic/dropdown';
 import {DropdownOption} from '@/widgets/basic/types';
+import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
-import {useEffect, useState} from 'react';
+import {useEffect} from 'react';
 import {useAchievementEventBus} from '../../../achievement-event-bus';
 import {AchievementEventTypes} from '../../../achievement-event-bus-types';
 import {useAchievementEditEventBus} from '../achievement-edit-event-bus';
@@ -14,32 +15,37 @@ import {useCurve} from '../use-curve';
 import {computeCurvePath} from '../utils';
 import {PluginCurve, PluginNode, PluginNodeContainer} from './widgets';
 
+const hasMore = (achievement: Achievement, plugins: Array<QueryPlugin>) => {
+	const pluginIds = achievement.pluginIds || [];
+	return plugins.filter(plugin => {
+		// eslint-disable-next-line
+		return !pluginIds.some(pluginId => pluginId != plugin.pluginId);
+	}).length !== 0;
+};
+
 export const NewPlugin = (props: {
 	parentId: string;
 	achievement: Achievement;
 	plugins: Array<QueryPlugin>;
-	expanded: boolean;
 }) => {
-	const {parentId, achievement, plugins, expanded} = props;
+	const {parentId, achievement, plugins} = props;
 
 	const {fire: fireAchievement} = useAchievementEventBus();
 	const {on, off, fire} = useAchievementEditEventBus();
-	const [visible, setVisible] = useState(false);
 	const {ref, curve} = useCurve(parentId);
+	const forceUpdate = useForceUpdate();
 	useEffect(() => {
-		const onAddPlugin = (anAchievement: Achievement) => {
-			if (anAchievement !== achievement) {
-				return;
-			}
-			setVisible(true);
-		};
-		on(AchievementEditEventTypes.ADD_PLUGIN, onAddPlugin);
+		const onPluginChanged = (anAchievement: Achievement) => anAchievement === achievement && forceUpdate();
+		const onPluginRemoved = (anAchievement: Achievement) => anAchievement === achievement && forceUpdate();
+		on(AchievementEditEventTypes.PLUGIN_CHANGED, onPluginChanged);
+		on(AchievementEditEventTypes.PLUGIN_REMOVED, onPluginRemoved);
 		return () => {
-			off(AchievementEditEventTypes.ADD_PLUGIN, onAddPlugin);
+			off(AchievementEditEventTypes.PLUGIN_CHANGED, onPluginChanged);
+			off(AchievementEditEventTypes.PLUGIN_REMOVED, onPluginRemoved);
 		};
-	}, [on, off, achievement]);
+	}, [on, off, forceUpdate, achievement]);
 
-	if (!visible || !expanded) {
+	if (!hasMore(achievement, plugins)) {
 		return null;
 	}
 
@@ -51,7 +57,7 @@ export const NewPlugin = (props: {
 		achievement.pluginIds.push(pluginId);
 		fire(AchievementEditEventTypes.PLUGIN_ADDED, achievement);
 		fireAchievement(AchievementEventTypes.SAVE_ACHIEVEMENT, achievement, noop);
-		setVisible(false);
+		forceUpdate();
 	};
 	const pluginOptions = plugins.map(plugin => {
 		return {value: plugin.pluginId, label: `${plugin.pluginCode}${plugin.name ? ` - ${plugin.name}` : ''}`};

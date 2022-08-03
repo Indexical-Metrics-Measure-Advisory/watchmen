@@ -32,7 +32,6 @@ export enum AchievementEditEventTypes {
 	VALUES_CALCULATED = 'values-calculated',
 	ASK_CALCULATED_VALUES = 'ask-calculated-values',
 
-	ADD_PLUGIN = 'add-plugin',
 	PLUGIN_ADDED = 'plugin-added',
 	PLUGIN_CHANGED = 'plugin-changed',
 	PLUGIN_REMOVED = 'plugin-removed'
@@ -130,10 +129,6 @@ export interface AchievementEditEventBus {
 	fire(type: AchievementEditEventTypes.ASK_CALCULATED_VALUES, achievement: Achievement, achievementIndicator: AchievementIndicator, onData: (values: CalculatedIndicatorValues) => void): this;
 	on(type: AchievementEditEventTypes.ASK_CALCULATED_VALUES, listener: (achievement: Achievement, achievementIndicator: AchievementIndicator, onData: (values: CalculatedIndicatorValues) => void) => void): this;
 	off(type: AchievementEditEventTypes.ASK_CALCULATED_VALUES, listener: (achievement: Achievement, achievementIndicator: AchievementIndicator, onData: (values: CalculatedIndicatorValues) => void) => void): this;
-
-	fire(type: AchievementEditEventTypes.ADD_PLUGIN, achievement: Achievement): this;
-	on(type: AchievementEditEventTypes.ADD_PLUGIN, listener: (achievement: Achievement) => void): this;
-	off(type: AchievementEditEventTypes.ADD_PLUGIN, listener: (achievement: Achievement) => void): this;
 
 	fire(type: AchievementEditEventTypes.PLUGIN_ADDED, achievement: Achievement): this;
 	on(type: AchievementEditEventTypes.PLUGIN_ADDED, listener: (achievement: Achievement) => void): this;
