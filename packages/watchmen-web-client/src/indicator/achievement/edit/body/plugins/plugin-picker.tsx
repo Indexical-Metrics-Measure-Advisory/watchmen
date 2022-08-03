@@ -54,6 +54,7 @@ export const PluginPicker = (props: {
 	};
 	// itself and no picked candidates
 	const pluginOptions = plugins.filter(plugin => {
+		// eslint-disable-next-line
 		if (plugin.pluginId == achievement.pluginIds![index]) {
 			return true;
 		}
