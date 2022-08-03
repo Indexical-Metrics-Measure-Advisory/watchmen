@@ -3,7 +3,7 @@ from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
-from watchmen_model.common import AchievementId, DataModel, IndicatorId, OptimisticLock, TenantBasedTuple
+from watchmen_model.common import AchievementId, DataModel, IndicatorId, OptimisticLock, PluginId, TenantBasedTuple
 from watchmen_utilities import ArrayHelper
 from .indicator import IndicatorAggregateArithmetic
 from .indicator_criteria import construct_indicator_criteria_list, IndicatorCriteria
@@ -74,6 +74,7 @@ class Achievement(TenantBasedTuple, OptimisticLock, BaseModel):
 	compareWithPreviousTimeRange: bool = False
 	finalScoreIsRatio: bool = False
 	indicators: List[AchievementIndicator] = []
+	pluginIds: List[PluginId] = []
 
 	def __setattr__(self, name, value):
 		if name == 'indicators':
