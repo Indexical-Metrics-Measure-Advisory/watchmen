@@ -3,10 +3,8 @@ import {isAdmin} from '@/services/data/account';
 import React from 'react';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import styled from 'styled-components';
-import IndicatorAchievementIndex from './achievement';
 import IndicatorBucketsIndex from './bucket';
 import IndicatorIndicatorIndex from './indicator';
-import IndicatorInspectionIndex from './inspection';
 import {IndicatorMenu} from './menu';
 import IndicatorObjectiveAnalysisIndex from './objective-analysis';
 import IndicatorSettingsIndex from './settings';
@@ -36,33 +34,35 @@ const IndicatorIndex = () => {
 		<IndicatorMenu/>
 		<Switch>
 			{isAdmin()
-				? <>
-					<Route path={Router.INDICATOR_BUCKETS}>
-						<IndicatorMain>
-							<IndicatorBucketsIndex/>
-						</IndicatorMain>
-					</Route>
-					<Route path={Router.INDICATOR_INDICATORS}>
-						<IndicatorMain>
-							<IndicatorIndicatorIndex/>
-						</IndicatorMain>
-					</Route>
-					<Route path={Router.INDICATOR_INSPECTION}>
-						<IndicatorMain>
-							<IndicatorInspectionIndex/>
-						</IndicatorMain>
-					</Route>
-					<Route path={Router.INDICATOR_ACHIEVEMENT}>
-						<IndicatorMain scrollable={false}>
-							<IndicatorAchievementIndex/>
-						</IndicatorMain>
-					</Route>
-					<Route path={Router.INDICATOR_OBJECTIVE_ANALYSIS}>
-						<IndicatorMain scrollable={false}>
-							<IndicatorObjectiveAnalysisIndex/>
-						</IndicatorMain>
-					</Route>
-				</> : null}
+				? <Route path={Router.INDICATOR_BUCKETS}>
+					<IndicatorMain>
+						<IndicatorBucketsIndex/>
+					</IndicatorMain>
+				</Route> : null}
+			{isAdmin()
+				? <Route path={Router.INDICATOR_INDICATORS}>
+					<IndicatorMain>
+						<IndicatorIndicatorIndex/>
+					</IndicatorMain>
+				</Route> : null}
+			{/*{isAdmin()*/}
+			{/*	? <Route path={Router.INDICATOR_INSPECTION}>*/}
+			{/*		<IndicatorMain>*/}
+			{/*			<IndicatorInspectionIndex/>*/}
+			{/*		</IndicatorMain>*/}
+			{/*	</Route> : null}*/}
+			{/*{isAdmin()*/}
+			{/*	? <Route path={Router.INDICATOR_ACHIEVEMENT}>*/}
+			{/*		<IndicatorMain scrollable={false}>*/}
+			{/*			<IndicatorAchievementIndex/>*/}
+			{/*		</IndicatorMain>*/}
+			{/*	</Route> : null}*/}
+			{isAdmin()
+				? <Route path={Router.INDICATOR_OBJECTIVE_ANALYSIS}>
+					<IndicatorMain scrollable={false}>
+						<IndicatorObjectiveAnalysisIndex/>
+					</IndicatorMain>
+				</Route> : null}
 			<Route path={Router.INDICATOR_SETTINGS}>
 				<IndicatorMain>
 					<IndicatorSettingsIndex/>
