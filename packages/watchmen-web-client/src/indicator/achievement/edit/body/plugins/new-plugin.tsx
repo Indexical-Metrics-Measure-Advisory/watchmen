@@ -58,6 +58,7 @@ export const NewPlugin = (props: {
 		fire(AchievementEditEventTypes.PLUGIN_ADDED, achievement);
 		fireAchievement(AchievementEventTypes.SAVE_ACHIEVEMENT, achievement, noop);
 		forceUpdate();
+		setTimeout(() => fire(AchievementEditEventTypes.REPAINT), 100);
 	};
 	const pluginOptions = plugins.map(plugin => {
 		return {value: plugin.pluginId, label: `${plugin.pluginCode}${plugin.name ? ` - ${plugin.name}` : ''}`};

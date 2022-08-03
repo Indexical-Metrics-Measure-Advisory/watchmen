@@ -42,9 +42,10 @@ export const PluginPicker = (props: {
 		return {value: plugin.pluginId, label: `${plugin.pluginCode}${plugin.name ? ` - ${plugin.name}` : ''}`};
 	});
 	const onRemoveClicked = () => {
-		achievement.pluginIds = achievement.pluginIds?.splice(index, 1);
+		achievement.pluginIds = achievement.pluginIds!.filter((_, idx) => idx !== index);
 		fire(AchievementEditEventTypes.PLUGIN_REMOVED, achievement);
 		fireAchievement(AchievementEventTypes.SAVE_ACHIEVEMENT, achievement, noop);
+		setTimeout(() => fire(AchievementEditEventTypes.REPAINT), 100);
 	};
 
 	return <PluginNodeContainer>

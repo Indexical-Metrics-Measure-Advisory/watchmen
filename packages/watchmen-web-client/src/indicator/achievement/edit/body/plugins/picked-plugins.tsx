@@ -34,7 +34,7 @@ export const PickedPlugins = (props: {
 		on(AchievementEditEventTypes.PLUGIN_REMOVED, onPluginRemoved);
 		return () => {
 			off(AchievementEditEventTypes.PLUGIN_ADDED, onPluginAdded);
-			on(AchievementEditEventTypes.PLUGIN_REMOVED, onPluginRemoved);
+			off(AchievementEditEventTypes.PLUGIN_REMOVED, onPluginRemoved);
 		};
 	}, [on, off, forceUpdate, achievement]);
 
