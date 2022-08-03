@@ -5,7 +5,9 @@ import {noop} from '@/services/utils';
 import {ICON_DELETE, ICON_EXTERNAL_LINK} from '@/widgets/basic/constants';
 import {Dropdown} from '@/widgets/basic/dropdown';
 import {DropdownOption} from '@/widgets/basic/types';
+import {useForceUpdate} from '@/widgets/basic/utils';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {useEffect} from 'react';
 import {useAchievementEventBus} from '../../../achievement-event-bus';
 import {AchievementEventTypes} from '../../../achievement-event-bus-types';
 import {useAchievementEditEventBus} from '../achievement-edit-event-bus';
@@ -17,28 +19,47 @@ import {PluginCurve, PluginNode, PluginNodeContainer, PluginNodeOpener, PluginNo
 export const PluginPicker = (props: {
 	parentId: string;
 	achievement: Achievement;
-	pluginId: PluginId;
 	index: number;
 	plugins: Array<QueryPlugin>;
 }) => {
-	const {parentId, achievement, pluginId, index, plugins} = props;
+	const {parentId, achievement, index, plugins} = props;
 
 	const {fire: fireAchievement} = useAchievementEventBus();
-	const {fire} = useAchievementEditEventBus();
+	const {on, off, fire} = useAchievementEditEventBus();
 	const {ref, curve} = useCurve(parentId);
+	const forceUpdate = useForceUpdate();
+	useEffect(() => {
+		const onPluginChanged = (anAchievement: Achievement) => {
+			if (anAchievement !== achievement) {
+				return;
+			}
+			forceUpdate();
+		};
+		on(AchievementEditEventTypes.PLUGIN_CHANGED, onPluginChanged);
+		return () => {
+			off(AchievementEditEventTypes.PLUGIN_CHANGED, onPluginChanged);
+		};
+	}, [on, off, forceUpdate, achievement]);
 
 	const onPluginChange = (option: DropdownOption) => {
 		const newPluginId = option.value as PluginId;
 		// eslint-disable-next-line
-		if (newPluginId == pluginId) {
+		if (newPluginId == achievement.pluginIds![index]) {
 			return;
 		}
 
-		achievement.pluginIds!.push(newPluginId);
+		achievement.pluginIds![index] = newPluginId;
 		fire(AchievementEditEventTypes.PLUGIN_CHANGED, achievement);
 		fireAchievement(AchievementEventTypes.SAVE_ACHIEVEMENT, achievement, noop);
 	};
-	const pluginOptions = plugins.map(plugin => {
+	// itself and no picked candidates
+	const pluginOptions = plugins.filter(plugin => {
+		if (plugin.pluginId == achievement.pluginIds![index]) {
+			return true;
+		}
+		// eslint-disable-next-line
+		return !(achievement.pluginIds || []).some(pluginId => pluginId == plugin.pluginId);
+	}).map(plugin => {
 		return {value: plugin.pluginId, label: `${plugin.pluginCode}${plugin.name ? ` - ${plugin.name}` : ''}`};
 	});
 	const onOpenClicked = () => {
@@ -53,7 +74,7 @@ export const PluginPicker = (props: {
 
 	return <PluginNodeContainer>
 		<PluginNode ref={ref}>
-			<Dropdown value={pluginId} options={pluginOptions} onChange={onPluginChange}/>
+			<Dropdown value={achievement.pluginIds![index]} options={pluginOptions} onChange={onPluginChange}/>
 		</PluginNode>
 		<PluginNodeOpener>
 			<span onClick={onOpenClicked}><FontAwesomeIcon icon={ICON_EXTERNAL_LINK}/></span>
