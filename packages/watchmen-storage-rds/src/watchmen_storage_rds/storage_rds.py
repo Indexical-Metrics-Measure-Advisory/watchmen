@@ -1,3 +1,4 @@
+import json
 from abc import abstractmethod
 from logging import getLogger
 from typing import Any, List, Optional, Tuple
@@ -32,15 +33,22 @@ class StorageRDS(TransactionalStorageSPI):
 	def connect(self) -> None:
 		if self.connection is None:
 			self.connection = self.engine.connect().execution_options(isolation_level="AUTOCOMMIT")
+			self.build_dialect_json_deserializer()
 			if ask_disable_compiled_cache():
 				self.connection = self.connection.execution_options(compiled_cache=None)
 
 	def begin(self) -> None:
 		if self.connection is not None:
 			raise UnexpectedStorageException('Connection exists, failed to begin another. It should be closed first.')
-
 		self.connection = self.engine.connect()
+		self.build_dialect_json_deserializer()
 		self.connection.begin()
+
+	def build_dialect_json_deserializer(self) -> None:
+		try:
+			_json_deserializer = self.connection.dialect._json_deserializer
+		except AttributeError:
+			self.connection.dialect._json_deserializer = json.loads
 
 	def commit_and_close(self) -> None:
 		try:
