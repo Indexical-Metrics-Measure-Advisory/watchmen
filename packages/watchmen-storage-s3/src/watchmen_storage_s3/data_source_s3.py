@@ -1,5 +1,7 @@
+from typing import Optional, List
+
 from watchmen_model.common import DataModel
-from watchmen_model.system import DataSource
+from watchmen_model.system import DataSource, DataSourceParam
 from watchmen_storage import DataSourceHelper
 from .simple_storage_service import SimpleStorageService
 from .storage_s3 import StorageS3, TopicDataStorageS3
@@ -22,16 +24,18 @@ class S3DataSourceHelper(DataSourceHelper):
 			data_source.password,
 			data_source.host,
 			data_source.name,
+			data_source.params,
 			params
 		)
 
 	# noinspection PyUnusedLocal
 	@staticmethod
 	def acquire_engine_by_params(
-			username: str, password: str, host: str, name: str,
+			username: str, password: str, host: str, name: str, data_source_params: Optional[List[DataSourceParam]],
 			params: S3DataSourceParams
 	) -> SimpleStorageService:
-		return SimpleStorageService(username, password, host, name)
+		
+		return SimpleStorageService(username, password, host, name, data_source_params)
 
 	def acquire_storage(self) -> StorageS3:
 		return StorageS3(self.engine)

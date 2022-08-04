@@ -7,10 +7,10 @@ from .storage_s3 import StorageS3, TopicDataStorageS3
 
 # noinspection PyRedeclaration
 class Configuration:
-	dataSource: DataSource = DataSource(dataSourceType=DataSourceType.OSS)
+	dataSource: DataSource = DataSource(dataSourceType=DataSourceType.S3)
 	params: S3DataSourceParams = S3DataSourceParams()
 
-	def host(self, host: str, port: int = 3306) -> Configuration:
+	def host(self, host: str, port: int) -> Configuration:
 		self.dataSource.host = host
 		self.dataSource.port = str(port)
 		return self
