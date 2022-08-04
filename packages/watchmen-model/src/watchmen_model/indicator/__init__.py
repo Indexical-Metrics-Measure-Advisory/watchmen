@@ -1,5 +1,6 @@
 from .achievement import Achievement, AchievementIndicator, AchievementTimeRangeType, \
 	MANUAL_COMPUTE_ACHIEVEMENT_INDICATOR_ID, ManualComputeAchievementIndicator
+from .achievement_plugin_task import AchievementPluginTask
 from .bucket import Bucket, BucketSegment, BucketType, CategoryMeasureBucket, CategorySegment, CategorySegmentsHolder, \
 	CategorySegmentValue, EnumMeasureBucket, MeasureBucket, NumericSegmentsHolder, NumericSegmentValue, \
 	NumericValueBucket, NumericValueMeasureBucket, NumericValueSegment, OtherCategorySegmentValue, \
