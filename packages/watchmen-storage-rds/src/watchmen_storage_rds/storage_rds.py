@@ -1,3 +1,4 @@
+import json
 from abc import abstractmethod
 from logging import getLogger
 from typing import Any, List, Optional, Tuple
@@ -13,7 +14,7 @@ from watchmen_storage import ask_disable_compiled_cache, ColumnNameLiteral, Enti
 	EntityStraightAggregateColumn, EntityStraightColumn, EntityStraightValuesFinder, EntityUpdater, \
 	TooManyEntitiesFoundException, TransactionalStorageSPI, UnexpectedStorageException, \
 	UnsupportedStraightColumnException
-from watchmen_utilities import ArrayHelper, is_blank
+from watchmen_utilities import ArrayHelper, is_blank, serialize_to_json
 from .table_defs import find_table
 from .types import SQLAlchemyStatement
 
@@ -25,23 +26,32 @@ class StorageRDS(TransactionalStorageSPI):
 	name in update, criteria, sort must be serialized to column name, otherwise behavior cannot be predicated
 	"""
 	connection: Connection = None
-
+	
 	def __init__(self, engine: Engine):
 		self.engine = engine
-
+	
 	def connect(self) -> None:
 		if self.connection is None:
 			self.connection = self.engine.connect().execution_options(isolation_level="AUTOCOMMIT")
+			self.build_dialect_json_serializer()
 			if ask_disable_compiled_cache():
 				self.connection = self.connection.execution_options(compiled_cache=None)
 
 	def begin(self) -> None:
 		if self.connection is not None:
 			raise UnexpectedStorageException('Connection exists, failed to begin another. It should be closed first.')
-
+		
 		self.connection = self.engine.connect()
+		self.build_dialect_json_serializer()
 		self.connection.begin()
-
+	
+	def build_dialect_json_serializer(self) -> None:
+		try:
+			_json_serializer = self.connection.dialect._json_serializer
+		except AttributeError:
+			self.connection.dialect._json_serializer = serialize_to_json
+			self.connection.dialect._json_deserializer = json.loads
+	
 	def commit_and_close(self) -> None:
 		try:
 			self.connection.commit()
@@ -49,7 +59,7 @@ class StorageRDS(TransactionalStorageSPI):
 			raise e
 		else:
 			self.close()
-
+	
 	def rollback_and_close(self) -> None:
 		try:
 			self.connection.rollback()
@@ -57,7 +67,7 @@ class StorageRDS(TransactionalStorageSPI):
 			logger.warning('Exception raised on rollback.', e, exc_info=True, stack_info=True)
 		finally:
 			self.close()
-
+	
 	def close(self) -> None:
 		try:
 			if self.connection is not None:
@@ -65,11 +75,11 @@ class StorageRDS(TransactionalStorageSPI):
 				del self.connection
 		except Exception as e:
 			logger.warning('Exception raised on close connection.', e)
-
+	
 	# noinspection PyMethodMayBeStatic
 	def find_table(self, name: str) -> Table:
 		return find_table(name)
-
+	
 	@abstractmethod
 	def build_criteria_for_statement(
 			self,
@@ -77,29 +87,29 @@ class StorageRDS(TransactionalStorageSPI):
 			raise_exception_on_missed: bool = False
 	) -> SQLAlchemyStatement:
 		raise NotImplementedError('build_criteria_for_statement is not implemented yet.')
-
+	
 	@abstractmethod
 	def build_sort_for_statement(
 			self, statement: SQLAlchemyStatement, sort: EntitySort) -> SQLAlchemyStatement:
 		raise NotImplementedError('build_sort_for_statement is not implemented yet.')
-
+	
 	# noinspection PyMethodMayBeStatic
 	def compute_pagination_offset(self, page_size: int, page_number: int) -> int:
 		return page_size * (page_number - 1)
-
+	
 	def build_offset_for_statement(
 			self, statement: SQLAlchemyStatement, page_size: int, page_number: int):
 		offset = self.compute_pagination_offset(page_size, page_number)
 		return statement.offset(offset).limit(page_size)
-
+	
 	def insert_one(self, one: Entity, helper: EntityHelper) -> None:
 		table = self.find_table(helper.name)
 		row = helper.shaper.serialize(one)
 		self.connection.execute(insert(table).values(row))
-
+	
 	def insert_all(self, data: List[Entity], helper: EntityHelper) -> None:
 		ArrayHelper(data).each(lambda row: self.insert_one(row, helper))
-
+	
 	def update_one(self, one: Entity, helper: EntityIdHelper) -> int:
 		row = helper.shaper.serialize(one)
 		entity_id = row[helper.idColumnName]
@@ -113,7 +123,7 @@ class StorageRDS(TransactionalStorageSPI):
 			update=row
 		))
 		return updated_count
-
+	
 	def update_only(self, updater: EntityUpdater, peace_when_zero: bool = False) -> int:
 		updated_count = self.update(updater)
 		if updated_count == 0:
@@ -125,7 +135,7 @@ class StorageRDS(TransactionalStorageSPI):
 			return 1
 		else:
 			raise TooManyEntitiesFoundException(f'Too many entities found by updater[{updater}].')
-
+	
 	def update_only_and_pull(self, updater: EntityUpdater) -> Optional[Entity]:
 		entity = self.find_one(EntityFinder(
 			name=updater.name,
@@ -137,14 +147,14 @@ class StorageRDS(TransactionalStorageSPI):
 		else:
 			self.update_only(updater)
 			return entity
-
+	
 	def update(self, updater: EntityUpdater) -> int:
 		table = self.find_table(updater.name)
 		statement = update(table).values(updater.update)
 		statement = self.build_criteria_for_statement([table], statement, updater.criteria, True)
 		result = self.connection.execute(statement)
 		return result.rowcount
-
+	
 	# noinspection DuplicatedCode
 	def update_and_pull(self, updater: EntityUpdater) -> EntityList:
 		entity_list = self.find(EntityFinder(
@@ -161,7 +171,7 @@ class StorageRDS(TransactionalStorageSPI):
 			if updated_count != found_count:
 				logger.warning(f'Update count[{updated_count}] does not match pull count[{found_count}].')
 			return entity_list
-
+	
 	def delete_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> int:
 		table = self.find_table(helper.name)
 		statement = delete(table)
@@ -170,7 +180,7 @@ class StorageRDS(TransactionalStorageSPI):
 		])
 		result = self.connection.execute(statement)
 		return result.rowcount
-
+	
 	def delete_by_id_and_pull(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
 		entity = self.find_by_id(entity_id, helper)
 		if entity is None:
@@ -179,7 +189,7 @@ class StorageRDS(TransactionalStorageSPI):
 		else:
 			self.delete_by_id(entity_id, helper)
 			return entity
-
+	
 	def delete_only(self, deleter: EntityDeleter) -> int:
 		deleted_count = self.delete(deleter)
 		if deleted_count == 0:
@@ -188,7 +198,7 @@ class StorageRDS(TransactionalStorageSPI):
 			return 1
 		else:
 			raise TooManyEntitiesFoundException(f'Too many entities found by deleter[{deleter}].')
-
+	
 	def delete_only_and_pull(self, deleter: EntityDeleter) -> Optional[Entity]:
 		entity = self.find_one(EntityFinder(
 			name=deleter.name,
@@ -200,14 +210,14 @@ class StorageRDS(TransactionalStorageSPI):
 		else:
 			self.delete_only(deleter)
 			return entity
-
+	
 	def delete(self, deleter: EntityDeleter) -> int:
 		table = self.find_table(deleter.name)
 		statement = delete(table)
 		statement = self.build_criteria_for_statement([table], statement, deleter.criteria, True)
 		result = self.connection.execute(statement)
 		return result.rowcount
-
+	
 	# noinspection DuplicatedCode
 	def delete_and_pull(self, deleter: EntityDeleter) -> EntityList:
 		entity_list = self.find(EntityFinder(
@@ -223,7 +233,7 @@ class StorageRDS(TransactionalStorageSPI):
 			if deleted_count != found_count:
 				logger.warning(f'Delete count[{deleted_count}] does not match pull count[{found_count}].')
 			return entity_list
-
+	
 	def find_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
 		return self.find_one(EntityFinder(
 			name=helper.name,
@@ -232,7 +242,7 @@ class StorageRDS(TransactionalStorageSPI):
 				EntityCriteriaExpression(left=ColumnNameLiteral(columnName=helper.idColumnName), right=entity_id)
 			]
 		))
-
+	
 	def find_and_lock_by_id(self, entity_id: EntityId, helper: EntityIdHelper) -> Optional[Entity]:
 		table = self.find_table(helper.name)
 		statement = select(table).with_for_update()
@@ -246,7 +256,7 @@ class StorageRDS(TransactionalStorageSPI):
 			return data[0]
 		else:
 			raise TooManyEntitiesFoundException(f'Too many entities found by finder[{helper}].')
-
+	
 	def find_one(self, finder: EntityFinder) -> Optional[Entity]:
 		data = self.find(finder)
 		if len(data) == 0:
@@ -255,7 +265,7 @@ class StorageRDS(TransactionalStorageSPI):
 			return data[0]
 		else:
 			raise TooManyEntitiesFoundException(f'Too many entities found by finder[{finder}].')
-
+	
 	def find_on_statement_by_finder(
 			self, table: Table, statement: SQLAlchemyStatement, finder: EntityFinder
 	) -> EntityList:
@@ -263,12 +273,12 @@ class StorageRDS(TransactionalStorageSPI):
 		statement = self.build_sort_for_statement(statement, finder.sort)
 		results = self.connection.execute(statement).mappings().all()
 		return ArrayHelper(results).map(lambda x: dict(x)).map(finder.shaper.deserialize).to_list()
-
+	
 	def find(self, finder: EntityFinder) -> EntityList:
 		table = self.find_table(finder.name)
 		statement = select(table)
 		return self.find_on_statement_by_finder(table, statement, finder)
-
+	
 	def find_distinct_values(self, finder: EntityDistinctValuesFinder) -> EntityList:
 		table = self.find_table(finder.name)
 		if len(finder.distinctColumnNames) != 1 or not finder.distinctValueOnSingleColumn:
@@ -276,11 +286,11 @@ class StorageRDS(TransactionalStorageSPI):
 		else:
 			statement = select(distinct(finder.distinctColumnNames[0])).select_from(table)
 		return self.find_on_statement_by_finder(table, statement, finder)
-
+	
 	# noinspection PyMethodMayBeStatic
 	def get_alias_from_straight_column(self, straight_column: EntityStraightColumn) -> Any:
 		return straight_column.columnName if is_blank(straight_column.alias) else straight_column.alias
-
+	
 	# noinspection PyMethodMayBeStatic
 	def translate_straight_column_name(self, straight_column: EntityStraightColumn) -> Any:
 		if isinstance(straight_column, EntityStraightAggregateColumn):
@@ -297,9 +307,9 @@ class StorageRDS(TransactionalStorageSPI):
 		elif isinstance(straight_column, EntityStraightColumn):
 			return literal_column(straight_column.columnName) \
 				.label(self.get_alias_from_straight_column(straight_column))
-
+		
 		raise UnsupportedStraightColumnException(f'Straight column[{straight_column.to_dict()}] is not supported.')
-
+	
 	def translate_straight_group_bys(
 			self, statement: SQLAlchemyStatement, straight_columns: List[EntityStraightColumn]) -> SQLAlchemyStatement:
 		group_columns = ArrayHelper(straight_columns) \
@@ -313,11 +323,11 @@ class StorageRDS(TransactionalStorageSPI):
 		if len(non_group_columns) == 0:
 			# all columns are grouped
 			return statement
-
+		
 		# use alias name to build group by statement
 		return statement.group_by(
 			*ArrayHelper(non_group_columns).map(lambda x: self.get_alias_from_straight_column(x)).to_list())
-
+	
 	def find_straight_values(self, finder: EntityStraightValuesFinder) -> EntityList:
 		table = self.find_table(finder.name)
 		statement = select(
@@ -328,10 +338,10 @@ class StorageRDS(TransactionalStorageSPI):
 		statement = self.build_sort_for_statement(statement, finder.sort)
 		results = self.connection.execute(statement).mappings().all()
 		return ArrayHelper(results).map(lambda x: dict(x)).to_list()
-
+	
 	def find_all(self, helper: EntityHelper) -> EntityList:
 		return self.find(EntityFinder(name=helper.name, shaper=helper.shaper))
-
+	
 	# noinspection PyMethodMayBeStatic
 	def create_empty_page(self, page_size: int) -> DataPage:
 		return DataPage(
@@ -341,15 +351,15 @@ class StorageRDS(TransactionalStorageSPI):
 			itemCount=0,
 			pageCount=0
 		)
-
+	
 	def execute_page_count(self, statement: SQLAlchemyStatement, page_size: int) -> Tuple[int, Optional[DataPage]]:
 		count = self.connection.execute(statement).scalar()
-
+		
 		if count == 0:
 			return 0, self.create_empty_page(page_size)
 		else:
 			return count, None
-
+	
 	# noinspection PyMethodMayBeStatic
 	def compute_page(self, count: int, page_size: int, page_number: int) -> Tuple[int, int]:
 		"""
@@ -362,19 +372,19 @@ class StorageRDS(TransactionalStorageSPI):
 		if page_number > max_page_number:
 			page_number = max_page_number
 		return page_number, max_page_number
-
+	
 	def page(self, pager: EntityPager) -> DataPage:
 		page_size = pager.pageable.pageSize
-
+		
 		table = self.find_table(pager.name)
 		statement = select(func.count()).select_from(table)
 		statement = self.build_criteria_for_statement([table], statement, pager.criteria)
 		count, empty_page = self.execute_page_count(statement, page_size)
 		if count == 0:
 			return empty_page
-
+		
 		page_number, max_page_number = self.compute_page(count, page_size, pager.pageable.pageNumber)
-
+		
 		statement = select(table)
 		statement = self.build_criteria_for_statement([table], statement, pager.criteria)
 		statement = self.build_sort_for_statement(statement, pager.sort)
@@ -388,7 +398,7 @@ class StorageRDS(TransactionalStorageSPI):
 			itemCount=count,
 			pageCount=max_page_number
 		)
-
+	
 	def exists(self, finder: EntityFinder) -> bool:
 		table = self.find_table(finder.name)
 		statement = select(text('1')).select_from(table)
@@ -396,7 +406,7 @@ class StorageRDS(TransactionalStorageSPI):
 		statement = self.build_offset_for_statement(statement, 1, 1)
 		results = self.connection.execute(statement).mappings().all()
 		return len(results) != 0
-
+	
 	def count(self, finder: EntityFinder) -> int:
 		table = self.find_table(finder.name)
 		statement = select(func.count()).select_from(table)
