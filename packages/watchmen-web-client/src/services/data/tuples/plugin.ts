@@ -1,15 +1,15 @@
 import {isWriteExternalEnabled} from '@/feature-switch';
 import {
 	fetchMockPlugin,
+	listMockAchievementPlugins,
 	listMockPlugins,
-	listMockPluginsForHolder,
 	saveMockPlugin
 } from '../../data/mock/tuples/mock-plugin';
 import {Apis, get, page, post} from '../apis';
 import {TuplePage} from '../query/tuple-page';
 import {isMockService} from '../utils';
 import {Plugin, PluginId} from './plugin-types';
-import {QueryPlugin, QueryPluginForHolder} from './query-plugin-types';
+import {QueryPlugin} from './query-plugin-types';
 import {isFakedUuid} from './utils';
 
 export const listPlugins = async (options: {
@@ -51,13 +51,13 @@ export const savePlugin = async (plugin: Plugin): Promise<void> => {
 	}
 };
 
-export const listPluginsForHolder = async (): Promise<Array<QueryPluginForHolder>> => {
+export const listAchievementPlugins = async (): Promise<Array<QueryPlugin>> => {
 	if (!isWriteExternalEnabled()) {
 		return [];
 	} else if (isMockService()) {
-		return listMockPluginsForHolder();
+		return listMockAchievementPlugins();
 	} else {
 		// return listMockEnumsForHolder();
-		return await get({api: Apis.PLUGIN_LOAD_ALL});
+		return await get({api: Apis.PLUGIN_LOAD_ALL_ACHIEVEMENT});
 	}
 };

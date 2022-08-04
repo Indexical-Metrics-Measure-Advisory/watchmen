@@ -90,6 +90,7 @@ export const Apis = {
 	PLUGIN_CREATE: 'plugin',
 	PLUGIN_SAVE: 'plugin',
 	PLUGIN_LOAD_ALL: 'plugin/all',
+	PLUGIN_LOAD_ALL_ACHIEVEMENT: 'plugin/achievement',
 
 	DASHBOARD_FOR_ADMIN: 'dashboard/admin',
 

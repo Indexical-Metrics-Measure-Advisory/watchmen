@@ -1,4 +1,4 @@
-import {listPlugins} from '@/services/data/tuples/plugin';
+import {listAchievementPlugins} from '@/services/data/tuples/plugin';
 import {QueryPlugin} from '@/services/data/tuples/query-plugin-types';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
@@ -30,10 +30,8 @@ export const PluginsData = () => {
 				setLoading(true);
 
 				fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
-					async () => {
-						const page = await listPlugins({search: '', pageNumber: 1, pageSize: 9999});
-						return page.data;
-					}, (plugins: Array<QueryPlugin>) => {
+					async () => await listAchievementPlugins(),
+					(plugins: Array<QueryPlugin>) => {
 						setState({loaded: true, data: plugins});
 						setLoading(false);
 						onData(plugins);
