@@ -8,6 +8,7 @@ import {AchievementEventTypes} from '../../../achievement-event-bus-types';
 import {useCurve} from '../use-curve';
 import {computeCurvePath} from '../utils';
 import {NewPlugin} from './new-plugin';
+import {NoPluginAssist} from './no-plugin-assist';
 import {PickedPlugins} from './picked-plugins';
 import {PluginCurve, PluginsContainer, PluginsRootColumn, PluginsRootNode, PluginsRootNodeContainer} from './widgets';
 
@@ -39,24 +40,27 @@ export const Plugins = (props: {
 		return null;
 	}
 
-	return <PluginsContainer>
-		<PluginsRootColumn>
-			<PluginsRootNodeContainer>
-				<PluginsRootNode id={id} ref={ref}>
-					{Lang.INDICATOR.ACHIEVEMENT.PLUGINS_ROOT}
-				</PluginsRootNode>
-				{curve == null
-					? null
-					: <PluginCurve rect={curve}>
-						<g>
-							<path d={computeCurvePath(curve)}/>
-						</g>
-					</PluginCurve>}
-			</PluginsRootNodeContainer>
-		</PluginsRootColumn>
-		<PluginsRootColumn>
-			<PickedPlugins parentId={id} achievement={achievement} plugins={state.data}/>
-			<NewPlugin parentId={id} achievement={achievement} plugins={state.data}/>
-		</PluginsRootColumn>
-	</PluginsContainer>;
+	return <>
+		<NoPluginAssist achievement={achievement} plugins={state.data}/>
+		<PluginsContainer>
+			<PluginsRootColumn>
+				<PluginsRootNodeContainer>
+					<PluginsRootNode id={id} ref={ref}>
+						{Lang.INDICATOR.ACHIEVEMENT.PLUGINS_ROOT}
+					</PluginsRootNode>
+					{curve == null
+						? null
+						: <PluginCurve rect={curve}>
+							<g>
+								<path d={computeCurvePath(curve)}/>
+							</g>
+						</PluginCurve>}
+				</PluginsRootNodeContainer>
+			</PluginsRootColumn>
+			<PluginsRootColumn>
+				<PickedPlugins parentId={id} achievement={achievement} plugins={state.data}/>
+				<NewPlugin parentId={id} achievement={achievement} plugins={state.data}/>
+			</PluginsRootColumn>
+		</PluginsContainer>
+	</>;
 };

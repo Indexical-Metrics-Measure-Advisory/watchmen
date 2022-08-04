@@ -68,7 +68,7 @@ export const NewPlugin = (props: {
 		return {value: plugin.pluginId, label: `${plugin.pluginCode}${plugin.name ? ` - ${plugin.name}` : ''}`};
 	});
 
-	return <PluginNodeContainer>
+	return <PluginNodeContainer data-new-plugin="true">
 		<PluginNode ref={ref}>
 			<Dropdown value={''} options={pluginOptions} onChange={onPluginChange}
 			          please={Lang.INDICATOR.ACHIEVEMENT.PLEASE_SELECT_PLUGIN}/>

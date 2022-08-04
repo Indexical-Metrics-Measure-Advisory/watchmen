@@ -14,7 +14,14 @@ import {useAchievementEditEventBus} from '../achievement-edit-event-bus';
 import {AchievementEditEventTypes} from '../achievement-edit-event-bus-types';
 import {useCurve} from '../use-curve';
 import {computeCurvePath} from '../utils';
-import {PluginCurve, PluginNode, PluginNodeContainer, PluginNodeOpener, PluginNodeRemover} from './widgets';
+import {
+	PluginCurve,
+	PluginNode,
+	PluginNodeContainer,
+	PluginNodeOpener,
+	PluginNodeRemover,
+	PluginViewModeLabel
+} from './widgets';
 
 export const PluginPicker = (props: {
 	parentId: string;
@@ -72,9 +79,12 @@ export const PluginPicker = (props: {
 		fireAchievement(AchievementEventTypes.SAVE_ACHIEVEMENT, achievement, noop);
 		setTimeout(() => fire(AchievementEditEventTypes.REPAINT), 100);
 	};
+	// eslint-disable-next-line
+	const label = pluginOptions.find(option => option.value == achievement.pluginIds![index])?.label;
 
 	return <PluginNodeContainer>
 		<PluginNode ref={ref}>
+			<PluginViewModeLabel>{label}</PluginViewModeLabel>
 			<Dropdown value={achievement.pluginIds![index]} options={pluginOptions} onChange={onPluginChange}/>
 		</PluginNode>
 		<PluginNodeOpener>
