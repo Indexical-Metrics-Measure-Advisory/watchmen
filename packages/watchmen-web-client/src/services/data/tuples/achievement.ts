@@ -1,14 +1,23 @@
+import {PluginId} from '@/services/data/tuples/plugin-types';
 import {findAccount} from '../../data/account';
 import {Apis, get, page, post} from '../../data/apis';
 import {isMockService} from '../../data/utils';
 import {
+	checkMockAchievementPluginTask,
 	fetchMockAchievement,
 	fetchMockAchievementIndicatorData,
 	listMockAchievements,
-	saveMockAchievement
+	saveMockAchievement,
+	submitMockAchievementPluginTask
 } from '../mock/tuples/mock-achievement';
 import {TuplePage} from '../query/tuple-page';
-import {Achievement, AchievementId, AchievementIndicator} from './achievement-types';
+import {
+	Achievement,
+	AchievementId,
+	AchievementIndicator,
+	AchievementPluginTask,
+	AchievementPluginTaskId
+} from './achievement-types';
 import {QueryAchievement} from './query-achievement-types';
 import {isFakedUuid} from './utils';
 
@@ -79,5 +88,21 @@ export const fetchAchievementIndicatorData = async (current: AchievementIndicato
 			data: {current, previous}
 		});
 		return {current: currentData, previous: previousData};
+	}
+};
+
+export const submitAchievementPluginTask = async (achievementId: AchievementId, pluginId: PluginId): Promise<AchievementPluginTask> => {
+	if (isMockService()) {
+		return submitMockAchievementPluginTask(achievementId, pluginId);
+	} else {
+		return await post({api: Apis.SUBMIT_ACHIEVEMENT_PLUGIN_TASK, search: {achievementId, pluginId}});
+	}
+};
+
+export const checkAchievementPluginTask = async (taskId: AchievementPluginTaskId): Promise<AchievementPluginTask> => {
+	if (isMockService()) {
+		return checkMockAchievementPluginTask(taskId);
+	} else {
+		return await get({api: Apis.CHECK_ACHIEVEMENT_PLUGIN_TASK, search: {taskId}});
 	}
 };

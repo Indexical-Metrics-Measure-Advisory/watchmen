@@ -538,7 +538,10 @@ export const En = {
 			NO_PLUGIN_CANDIDATE: 'No more available plugin.',
 			PLEASE_SELECT_PLUGIN: 'Please select...',
 			COMPUTE_INDICATOR_NODE_LABEL: 'Compute Indicator',
-			SCORE_INCLUDE_IN_FINAL: 'Include in Final Score?:'
+			SCORE_INCLUDE_IN_FINAL: 'Include in Final Score?:',
+			PLUGIN_TASK_SUBMITTED: 'Plugin task submitted, check signal in background and will open in new window once result comes back.',
+			PLUGIN_TASK_SUCCESS: 'Plugin task works out, do you want to open it in new window?',
+			PLUGIN_TASK_FAILED: 'Plugin task failed, click to retry or contact your administrator for more information.'
 		},
 		OBJECTIVE_ANALYSIS: {
 			TITLE: 'Objective Analysis',

@@ -538,7 +538,10 @@ export const Zh = {
 			NO_PLUGIN_CANDIDATE: '没有更多可以选择的插件.',
 			PLEASE_SELECT_PLUGIN: '请选择...',
 			COMPUTE_INDICATOR_NODE_LABEL: '计算指标',
-			SCORE_INCLUDE_IN_FINAL: '计算入最终得分?:'
+			SCORE_INCLUDE_IN_FINAL: '计算入最终得分?:',
+			PLUGIN_TASK_SUBMITTED: '插件任务已经成功提交, 将在后台检查执行结果, 并在获取成功信号后在新窗口打开.',
+			PLUGIN_TASK_SUCCESS: '插件任务执行完成, 现在就在新窗口打开吗?',
+			PLUGIN_TASK_FAILED: '插件任务执行失败, 点击重试或者联系您的系统管理员以获取更多信息.'
 		},
 		OBJECTIVE_ANALYSIS: {
 			TITLE: '目标达成分析',

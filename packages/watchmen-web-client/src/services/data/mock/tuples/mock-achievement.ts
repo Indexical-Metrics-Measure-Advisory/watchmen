@@ -1,5 +1,13 @@
+import {PluginId} from '@/services/data/tuples/plugin-types';
 import {TuplePage} from '../../query/tuple-page';
-import {Achievement, AchievementId, AchievementIndicator} from '../../tuples/achievement-types';
+import {
+	Achievement,
+	AchievementId,
+	AchievementIndicator,
+	AchievementPluginTask,
+	AchievementPluginTaskId,
+	AchievementPluginTaskStatus
+} from '../../tuples/achievement-types';
 import {QueryAchievement} from '../../tuples/query-achievement-types';
 import {isFakedUuid} from '../../tuples/utils';
 import {getCurrentTime} from '../../utils';
@@ -58,6 +66,38 @@ export const fetchMockAchievementIndicatorData = async (current: AchievementIndi
 			const current = 500 + Math.random() * 500;
 			const previous = current * (5 + Math.random() * 5) * 0.1;
 			resolve({current, previous});
+		}, 500);
+	});
+};
+
+let newTaskId = 10000;
+export const submitMockAchievementPluginTask = async (achievementId: AchievementId, pluginId: PluginId): Promise<AchievementPluginTask> => {
+	return new Promise<AchievementPluginTask>(resolve => {
+		setTimeout(() => {
+			resolve({
+				achievementTaskId: `${newTaskId++}`,
+				achievementId,
+				pluginId,
+				status: AchievementPluginTaskStatus.SENT,
+				createdAt: getCurrentTime(),
+				lastModifiedAt: getCurrentTime()
+			});
+		}, 500);
+	});
+};
+
+export const checkMockAchievementPluginTask = async (taskId: AchievementPluginTaskId): Promise<AchievementPluginTask> => {
+	return new Promise<AchievementPluginTask>(resolve => {
+		setTimeout(() => {
+			resolve({
+				achievementTaskId: taskId,
+				achievementId: '',
+				pluginId: '',
+				status: Math.random() < 0.3 ? AchievementPluginTaskStatus.SUCCESS : AchievementPluginTaskStatus.SENT,
+				url: 'https://imma-watchmen.com',
+				createdAt: getCurrentTime(),
+				lastModifiedAt: getCurrentTime()
+			});
 		}, 500);
 	});
 };

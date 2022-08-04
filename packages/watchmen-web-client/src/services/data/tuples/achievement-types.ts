@@ -59,3 +59,20 @@ export interface Achievement extends Tuple, OptimisticLock {
 	pluginIds?: Array<PluginId>;
 	tenantId?: TenantId;
 }
+
+export type AchievementPluginTaskId = string;
+
+export enum AchievementPluginTaskStatus {
+	SUBMITTED = 'submitted',
+	SENT = 'sent',
+	SUCCESS = 'success',
+	FAILED = 'failed'
+}
+
+export interface AchievementPluginTask extends Tuple {
+	achievementTaskId: AchievementPluginTaskId;
+	achievementId: AchievementId;
+	pluginId: PluginId;
+	status: AchievementPluginTaskStatus;
+	url?: string;
+}

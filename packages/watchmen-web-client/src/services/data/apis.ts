@@ -196,6 +196,8 @@ export const Apis = {
 	ACHIEVEMENT_SAVE: 'indicator/achievement',
 	ACHIEVEMENT_GET: 'indicator/achievement?achievement_id=:achievementId',
 	ACHIEVEMENT_INDICATOR_DATA: 'indicator/achievement/data',
+	SUBMIT_ACHIEVEMENT_PLUGIN_TASK: 'indicator/achievement/task?achievement_id=:achievementId&plugin_id=:pluginId',
+	CHECK_ACHIEVEMENT_PLUGIN_TASK: 'indicator/achievement/task?task_id=:taskId',
 
 	OBJECTIVE_ANALYSIS_LIST: 'indicator/objective-analysis/list',
 	OBJECTIVE_ANALYSIS_CREATE: 'indicator/objective-analysis',

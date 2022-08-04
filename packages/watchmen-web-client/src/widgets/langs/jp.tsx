@@ -538,7 +538,10 @@ export const Jp = {
 			NO_PLUGIN_CANDIDATE: 'これ以上のプラグインを選択することができます。',
 			PLEASE_SELECT_PLUGIN: '...を選択してください',
 			COMPUTE_INDICATOR_NODE_LABEL: '計算指標',
-			SCORE_INCLUDE_IN_FINAL: '最終スコアに含める:'
+			SCORE_INCLUDE_IN_FINAL: '最終スコアに含める:',
+			PLUGIN_TASK_SUBMITTED: 'プラグインタスクは正常に送信され、バックグラウンドで実行結果がチェックされ、成功信号を取得した後、新しいウィンドウで開きます。',
+			PLUGIN_TASK_SUCCESS: 'プラグインタスクの実行が完了しましたが、新しいウィンドウが開きますか？',
+			PLUGIN_TASK_FAILED: 'プラグインタスクの実行に失敗しました。再試行するか、詳細については、管理者に連絡してください。'
 		},
 		OBJECTIVE_ANALYSIS: {
 			TITLE: '目標達成分析',
