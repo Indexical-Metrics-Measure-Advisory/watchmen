@@ -8,7 +8,7 @@ from watchmen_indicator_surface.util import trans, trans_readonly
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.system import PluginService
 from watchmen_model.admin import UserRole
-from watchmen_model.common import AchievementId, PluginId
+from watchmen_model.common import AchievementId, AchievementPluginTaskId, PluginId
 from watchmen_model.indicator import AchievementPluginTask
 from watchmen_model.indicator.achievement_plugin_task import AchievementPluginTaskStatus
 from watchmen_rest import get_console_principal
@@ -70,7 +70,7 @@ def create_task(
 @router.get(
 	'/indicator/achievement/task', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=AchievementPluginTask)
 def create_task(
-		task_id: AchievementId,
+		task_id: AchievementPluginTaskId,
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> AchievementPluginTask:
 	if is_blank(task_id):
