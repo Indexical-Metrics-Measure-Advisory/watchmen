@@ -1,5 +1,5 @@
 from watchmen_meta.common import UserBasedTupleService, UserBasedTupleShaper
-from watchmen_model.common import AchievementTaskId
+from watchmen_model.common import AchievementPluginTaskId
 from watchmen_model.indicator import AchievementPluginTask
 from watchmen_storage import EntityRow, EntityShaper
 
@@ -37,9 +37,10 @@ class AchievementPluginTaskService(UserBasedTupleService):
 	def get_storable_id_column_name(self) -> str:
 		return 'achievement_task_id'
 
-	def get_storable_id(self, storable: AchievementPluginTask) -> AchievementTaskId:
+	def get_storable_id(self, storable: AchievementPluginTask) -> AchievementPluginTaskId:
 		return storable.achievementTaskId
 
-	def set_storable_id(self, storable: AchievementPluginTask, storable_id: AchievementTaskId) -> AchievementPluginTask:
+	def set_storable_id(
+			self, storable: AchievementPluginTask, storable_id: AchievementPluginTaskId) -> AchievementPluginTask:
 		storable.achievementTaskId = storable_id
 		return storable

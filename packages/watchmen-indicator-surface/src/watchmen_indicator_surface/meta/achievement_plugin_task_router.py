@@ -1,6 +1,8 @@
-from typing import Callable
+from typing import Callable, Optional
 
 from fastapi import APIRouter, Depends
+from pydantic import BaseModel
+from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.meta import AchievementPluginTaskService, AchievementService
@@ -11,7 +13,7 @@ from watchmen_model.admin import UserRole
 from watchmen_model.common import AchievementId, AchievementPluginTaskId, PluginId
 from watchmen_model.indicator import AchievementPluginTask
 from watchmen_model.indicator.achievement_plugin_task import AchievementPluginTaskStatus
-from watchmen_rest import get_console_principal
+from watchmen_rest import get_console_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_404
 from watchmen_utilities import is_blank
 
@@ -54,7 +56,7 @@ def ask_create_task_action(
 @router.post(
 	'/indicator/achievement/task', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=AchievementPluginTask)
 def create_task(
-		achievement_id: AchievementId, plugin_id: PluginId,
+		achievement_id: Optional[AchievementId], plugin_id: Optional[PluginId],
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> AchievementPluginTask:
 	if is_blank(achievement_id):
@@ -69,8 +71,8 @@ def create_task(
 
 @router.get(
 	'/indicator/achievement/task', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=AchievementPluginTask)
-def create_task(
-		task_id: AchievementPluginTaskId,
+def check_task_status(
+		task_id: Optional[AchievementPluginTaskId],
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> AchievementPluginTask:
 	if is_blank(task_id):
@@ -91,3 +93,36 @@ def create_task(
 		return task
 
 	return trans_readonly(task_service, action)
+
+
+class TaskResult(BaseModel):
+	taskId: AchievementPluginTaskId
+	status: AchievementPluginTaskStatus
+	url: Optional[str]
+
+
+@router.post(
+	'/indicator/achievement/task/result', tags=[UserRole.SUPER_ADMIN], response_class=Response)
+def write_back_task_result(
+		result: TaskResult,
+		principal_service: PrincipalService = Depends(get_super_admin_principal)
+) -> None:
+	if is_blank(result.taskId):
+		raise_400('Achievement plugin task id of result is required.')
+	if result.status is None:
+		raise_400('Achievement plugin task status of result is required.')
+	if result.status == AchievementPluginTaskStatus.SUCCESS and is_blank(result.url):
+		raise_400('Achievement plugin task url of result is required when successful.')
+
+	task_service = get_task_service(principal_service)
+
+	def action() -> None:
+		# noinspection PyTypeChecker
+		task: Optional[AchievementPluginTask] = task_service.find_by_id(result.taskId)
+		if task is None:
+			raise_404()
+		task.status = result.status
+		task.url = result.url
+		task_service.update(task)
+
+	trans(task_service, action)
