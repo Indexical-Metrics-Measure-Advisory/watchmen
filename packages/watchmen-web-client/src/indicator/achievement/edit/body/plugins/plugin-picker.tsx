@@ -1,11 +1,20 @@
-import {Achievement} from '@/services/data/tuples/achievement-types';
+import {checkAchievementPluginTask, submitAchievementPluginTask} from '@/services/data/tuples/achievement';
+import {
+	Achievement,
+	AchievementPluginTask,
+	AchievementPluginTaskStatus
+} from '@/services/data/tuples/achievement-types';
 import {PluginId} from '@/services/data/tuples/plugin-types';
 import {QueryPlugin} from '@/services/data/tuples/query-plugin-types';
 import {noop} from '@/services/utils';
+import {AlertLabel} from '@/widgets/alert/widgets';
 import {ICON_DELETE, ICON_EXTERNAL_LINK} from '@/widgets/basic/constants';
 import {Dropdown} from '@/widgets/basic/dropdown';
 import {DropdownOption} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
+import {useEventBus} from '@/widgets/events/event-bus';
+import {EventTypes} from '@/widgets/events/types';
+import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {useEffect} from 'react';
 import {useAchievementEventBus} from '../../../achievement-event-bus';
@@ -31,6 +40,7 @@ export const PluginPicker = (props: {
 }) => {
 	const {parentId, achievement, index, plugins} = props;
 
+	const {fire: fireGlobal} = useEventBus();
 	const {fire: fireAchievement} = useAchievementEventBus();
 	const {on, off, fire} = useAchievementEditEventBus();
 	const {ref, curve} = useCurve(parentId);
@@ -71,7 +81,36 @@ export const PluginPicker = (props: {
 		return {value: plugin.pluginId, label: `${plugin.pluginCode}${plugin.name ? ` - ${plugin.name}` : ''}`};
 	});
 	const onOpenClicked = () => {
-		// TODO open plugin
+		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
+			async () => await submitAchievementPluginTask(achievement.achievementId, achievement.pluginIds![index]),
+			(task: AchievementPluginTask) => {
+				const taskId = task.achievementTaskId;
+				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
+						{Lang.INDICATOR.ACHIEVEMENT.PLUGIN_TASK_SUBMITTED}
+					</AlertLabel>,
+					() => {
+						const check = async () => {
+							console.log('check');
+							const task = await checkAchievementPluginTask(taskId);
+							console.log(task);
+							if (task.status === AchievementPluginTaskStatus.SUBMITTED || task.status === AchievementPluginTaskStatus.SENT) {
+								setTimeout(check, 5000);
+							} else if (task.status === AchievementPluginTaskStatus.SUCCESS) {
+								fireGlobal(EventTypes.SHOW_YES_NO_DIALOG, Lang.INDICATOR.ACHIEVEMENT.PLUGIN_TASK_SUCCESS,
+									() => {
+										fireGlobal(EventTypes.HIDE_DIALOG);
+										window.open(task.url);
+									}, () => fireGlobal(EventTypes.HIDE_DIALOG));
+							} else {
+								fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
+									{Lang.INDICATOR.ACHIEVEMENT.PLUGIN_TASK_FAILED}
+								</AlertLabel>);
+							}
+						};
+						// noinspection JSIgnoredPromiseFromCall
+						check();
+					});
+			});
 	};
 	const onRemoveClicked = () => {
 		achievement.pluginIds = achievement.pluginIds!.filter((_, idx) => idx !== index);
