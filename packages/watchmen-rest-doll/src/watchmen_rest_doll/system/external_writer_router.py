@@ -13,6 +13,7 @@ from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly
 from watchmen_utilities import is_blank
+from .utils import attach_tenant_name
 
 router = APIRouter()
 
@@ -89,7 +90,9 @@ async def find_external_writers_by_name(
 			# noinspection PyTypeChecker
 			return external_writer_service.find_by_text(query_name, tenant_id, pageable)
 
-	return trans_readonly(external_writer_service, action)
+	page = trans_readonly(external_writer_service, action)
+	page.data = attach_tenant_name(page.data, principal_service)
+	return page
 
 
 @router.get(
@@ -105,7 +108,7 @@ async def find_all_external_writers(
 	def action() -> List[ExternalWriter]:
 		return external_writer_service.find_all(tenant_id)
 
-	return trans_readonly(external_writer_service, action)
+	return attach_tenant_name(trans_readonly(external_writer_service, action), principal_service)
 
 
 @router.delete('/external_writer', tags=[UserRole.SUPER_ADMIN], response_model=ExternalWriter)
