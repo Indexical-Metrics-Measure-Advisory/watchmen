@@ -2,7 +2,7 @@ from typing import List, Optional
 
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_model.common import DataPage, Pageable, PluginId, TenantId
-from watchmen_model.system import Plugin
+from watchmen_model.system import Plugin, PluginApplyTo
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, EntityRow, \
 	EntityShaper
 
@@ -66,6 +66,16 @@ class PluginService(TupleService):
 
 	def find_all(self, tenant_id: Optional[TenantId]) -> List[Plugin]:
 		criteria = []
+		if tenant_id is not None and len(tenant_id.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria))
+
+	def find_all_achievement(self, tenant_id: Optional[TenantId]) -> List[Plugin]:
+		criteria = [
+			EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='apply_to'), right=PluginApplyTo.ACHIEVEMENT.value)
+		]
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		# noinspection PyTypeChecker

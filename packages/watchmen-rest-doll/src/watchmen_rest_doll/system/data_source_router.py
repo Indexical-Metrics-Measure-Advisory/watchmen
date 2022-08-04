@@ -14,6 +14,7 @@ from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly
 from watchmen_utilities import is_blank
+from .utils import attach_tenant_name
 
 router = APIRouter()
 
@@ -89,7 +90,9 @@ async def find_data_sources_by_name(
 			# noinspection PyTypeChecker
 			return data_source_service.find_by_text(query_name, tenant_id, pageable)
 
-	return trans_readonly(data_source_service, action)
+	page = trans_readonly(data_source_service, action)
+	page.data = attach_tenant_name(page.data, principal_service)
+	return page
 
 
 @router.get('/datasource/all', tags=[UserRole.ADMIN], response_model=List[DataSource])
@@ -103,7 +106,7 @@ async def find_all_data_sources(
 			tenant_id = principal_service.get_tenant_id()
 		return data_source_service.find_all(tenant_id)
 
-	return trans_readonly(data_source_service, action)
+	return attach_tenant_name(trans_readonly(data_source_service, action), principal_service)
 
 
 @router.delete('/datasource', tags=[UserRole.SUPER_ADMIN], response_model=DataSource)

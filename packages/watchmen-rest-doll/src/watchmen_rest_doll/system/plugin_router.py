@@ -6,13 +6,14 @@ from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.system import PluginService
 from watchmen_model.admin import UserRole
-from watchmen_model.common import DataPage, PluginId, Pageable
+from watchmen_model.common import DataPage, Pageable, PluginId
 from watchmen_model.system import Plugin
 from watchmen_rest import get_any_admin_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly
 from watchmen_utilities import is_blank
+from .utils import attach_tenant_name
 
 router = APIRouter()
 
@@ -89,11 +90,12 @@ async def find_plugins_by_name(
 			# noinspection PyTypeChecker
 			return plugin_service.find_by_text(query_name, tenant_id, pageable)
 
-	return trans_readonly(plugin_service, action)
+	page = trans_readonly(plugin_service, action)
+	page.data = attach_tenant_name(page.data, principal_service)
+	return page
 
 
-@router.get(
-	"/plugin/all", tags=[UserRole.ADMIN], response_model=List[Plugin])
+@router.get("/plugin/all", tags=[UserRole.ADMIN], response_model=List[Plugin])
 async def find_all_plugins(
 		principal_service: PrincipalService = Depends(get_any_admin_principal)) -> List[Plugin]:
 	tenant_id = None
@@ -105,7 +107,22 @@ async def find_all_plugins(
 	def action() -> List[Plugin]:
 		return plugin_service.find_all(tenant_id)
 
-	return trans_readonly(plugin_service, action)
+	return attach_tenant_name(trans_readonly(plugin_service, action), principal_service)
+
+
+@router.get("/plugin/achievement", tags=[UserRole.ADMIN], response_model=List[Plugin])
+async def find_all_achievement_plugins(
+		principal_service: PrincipalService = Depends(get_any_admin_principal)) -> List[Plugin]:
+	tenant_id = None
+	if principal_service.is_tenant_admin():
+		tenant_id = principal_service.get_tenant_id()
+
+	plugin_service = get_plugin_service(principal_service)
+
+	def action() -> List[Plugin]:
+		return plugin_service.find_all_achievement(tenant_id)
+
+	return attach_tenant_name(trans_readonly(plugin_service, action), principal_service)
 
 
 @router.delete('/plugin', tags=[UserRole.SUPER_ADMIN], response_model=Plugin)
