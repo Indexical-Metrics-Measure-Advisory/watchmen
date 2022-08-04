@@ -4,6 +4,7 @@ CREATE TABLE achievement_plugin_tasks
     achievement_id      VARCHAR2(50) NOT NULL,
     plugin_id           VARCHAR2(50) NOT NULL,
     status              VARCHAR2(10) NOT NULL,
+    url                 VARCHAR2(512),
     user_id             VARCHAR2(50) NOT NULL,
     tenant_id           VARCHAR2(50) NOT NULL,
     created_at          DATE         NOT NULL,
