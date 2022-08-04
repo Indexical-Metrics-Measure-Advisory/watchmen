@@ -1,21 +1,24 @@
 import json
 from logging import getLogger
-from typing import Dict, Optional
+from typing import Dict, Optional, List, Union
 from datetime import datetime
 from boto3 import client, resource
 from boto3.exceptions import Boto3Error
 
+from watchmen_model.system import DataSourceParam
 from watchmen_storage import ask_object_storage_need_date_directory
 from watchmen_utilities import serialize_to_json
+from .object_defs_s3 import as_file_name
 
 logger = getLogger(__name__)
 
 
 class SimpleStorageService:
-	def __init__(self, access_key_id: str, access_key_secret: str, endpoint: str, bucket_name: str):
+	def __init__(self, access_key_id: str, access_key_secret: str, endpoint: str, bucket_name: str, params: Optional[List[DataSourceParam]]):
 		self.access_key_id = access_key_id
 		self.access_key_secret = access_key_secret
 		self.bucket_name = bucket_name
+		self.params = params
 		self.client = client(
 			service_name='s3',
 			region_name=endpoint,
@@ -28,18 +31,19 @@ class SimpleStorageService:
 			aws_access_key_id=access_key_id,
 			aws_secret_access_key=access_key_secret)
 
-	@staticmethod
-	def gen_key(directory: str, id_: str) -> str:
+	def gen_key(self, directory: str, id_: str) -> str:
 		if ask_object_storage_need_date_directory():
-			now = datetime.now()
-			year = now.strftime("%Y")
-			month = now.strftime("%m")
-			day = now.strftime("%d")
-			key = f'{year}/{month}/{day}/{directory}/{id_}.json'
+			literal = self.get_param("filename")
+			key = as_file_name(literal, directory, id_)
 		else:
 			key = f'{directory}/{id_}.json'
 		return key
 
+	def get_param(self, param_key: str) -> Union[None, str, int]:
+		for param in self.params:
+			if param.name == param_key:
+				return param.value
+		
 	def put_object(self, key: str, data: Dict) -> None:
 		self.client.put_object(Body=serialize_to_json(data), Bucket=self.bucket_name, Key=key)
 
