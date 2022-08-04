@@ -1,6 +1,6 @@
 import {TuplePage} from '../../query/tuple-page';
 import {Plugin, PluginApplyTo, PluginType} from '../../tuples/plugin-types';
-import {QueryPlugin, QueryPluginForHolder} from '../../tuples/query-plugin-types';
+import {QueryPlugin} from '../../tuples/query-plugin-types';
 import {isFakedUuid} from '../../tuples/utils';
 import {getCurrentTime} from '../../utils';
 
@@ -27,7 +27,7 @@ const StreamlitAchievementPlugin002: Plugin = {
 	lastModifiedAt: getCurrentTime()
 };
 
-const ALL_PLUGINS = [StreamlitAchievementPlugin001, StreamlitAchievementPlugin002];
+const DemoPlugins = [StreamlitAchievementPlugin001, StreamlitAchievementPlugin002];
 
 export const listMockPlugins = async (options: {
 	search: string;
@@ -38,7 +38,7 @@ export const listMockPlugins = async (options: {
 	return new Promise((resolve) => {
 		setTimeout(() => {
 			resolve({
-				data: ALL_PLUGINS.map(writer => {
+				data: DemoPlugins.map(writer => {
 					return {tenantName: 'X World', ...writer};
 				}),
 				itemCount: 2,
@@ -53,7 +53,7 @@ export const listMockPlugins = async (options: {
 export const fetchMockPlugin = async (pluginId: string): Promise<{ plugin: Plugin }> => {
 	return {
 		// eslint-disable-next-line
-		plugin: ALL_PLUGINS.find(writer => writer.pluginId == pluginId) ?? StreamlitAchievementPlugin001
+		plugin: DemoPlugins.find(writer => writer.pluginId == pluginId) ?? StreamlitAchievementPlugin001
 	};
 };
 
@@ -67,12 +67,10 @@ export const saveMockPlugin = async (plugin: Plugin): Promise<void> => {
 	});
 };
 
-export const listMockPluginsForHolder = async (): Promise<Array<QueryPluginForHolder>> => {
+export const listMockAchievementPlugins = async (): Promise<Array<QueryPlugin>> => {
 	return new Promise((resolve) => {
 		setTimeout(() => {
-			resolve(ALL_PLUGINS);
+			resolve(DemoPlugins.map(plugin => ({...plugin, tenantName: 'X World'})));
 		}, 500);
 	});
 };
-
-export const DemoPlugins: Array<Plugin> = ALL_PLUGINS;

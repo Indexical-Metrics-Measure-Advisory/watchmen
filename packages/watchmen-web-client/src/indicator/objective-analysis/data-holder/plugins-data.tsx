@@ -1,4 +1,4 @@
-import {listPlugins} from '@/services/data/tuples/plugin';
+import {listAchievementPlugins} from '@/services/data/tuples/plugin';
 import {QueryPlugin} from '@/services/data/tuples/query-plugin-types';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
@@ -24,10 +24,8 @@ export const PluginsData = () => {
 				state.loader.then(inspections => onData(inspections));
 			} else {
 				fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
-					async () => {
-						const page = await listPlugins({search: '', pageNumber: 1, pageSize: 9999});
-						return page.data;
-					}, (plugins: Array<QueryPlugin>) => {
+					async () => await listAchievementPlugins(),
+					(plugins: Array<QueryPlugin>) => {
 						const sorted = plugins.sort((i1, i2) => {
 							return (i1.name || '').localeCompare(i2.name || '', void 0, {
 								sensitivity: 'base',
