@@ -35,7 +35,7 @@ def create_datetime(name: str, nullable: bool = True) -> Column:
 
 
 def create_json(name: str, nullable: bool = True) -> Column:
-	return Column(name, JSON().with_variant(ClobToJson, "oracle"), nullable=nullable)
+	return Column(name, JSON, nullable=nullable)
 
 
 # noinspection DuplicatedCode
