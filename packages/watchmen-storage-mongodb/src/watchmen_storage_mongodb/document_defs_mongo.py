@@ -366,6 +366,14 @@ table_objective_analysis = MongoDocument(
 		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 	]
 )
+table_achievement_plugin_tasks = MongoDocument(
+	name='achievement_plugin_tasks',
+	columns=[
+		create_pk('achievement_task_id'), create_tuple_id_column('achievement_id'), create_tuple_id_column('plugin_id'),
+		create_tenant_id(), create_user_id(),
+		*create_tuple_audit_columns()
+	]
+)
 
 # noinspection DuplicatedCode
 tables: Dict[str, MongoDocument] = {
@@ -411,6 +419,7 @@ tables: Dict[str, MongoDocument] = {
 	'inspections': table_inspections,
 	'achievements': table_achievements,
 	'objective_analysis': table_objective_analysis,
+	'achievement_plugin_tasks': table_achievement_plugin_tasks,
 	# trino
 	'_schema': table_trino_schema
 }

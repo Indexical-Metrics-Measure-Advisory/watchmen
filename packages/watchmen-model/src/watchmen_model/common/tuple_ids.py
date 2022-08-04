@@ -32,5 +32,6 @@ IndicatorId = TypeVar('IndicatorId', bound=str)
 InspectionId = TypeVar('InspectionId', bound=str)
 AchievementId = TypeVar('AchievementId', bound=str)
 ObjectiveAnalysisId = TypeVar('ObjectiveAnalysisId', bound=str)
+AchievementTaskId = TypeVar('AchievementTaskId', bound=str)
 
 PatId = TypeVar('PatId', bound=str)
