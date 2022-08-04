@@ -11,6 +11,9 @@ export const PluginsContainer = styled.div.attrs({'data-widget': 'plugins-contai
 		margin-top : calc(var(--margin) / 2);
 	}
 `;
+export const NoPluginAssistant = styled.div.attrs({'data-widget': 'no-plugin-assistant'})`
+	display : none;
+`;
 export const PluginsRootColumn = styled(PaletteColumn).attrs({'data-widget': 'plugins-root-column'})`
 	padding : 0 var(--margin);
 	&:first-child {
@@ -82,6 +85,12 @@ export const PluginNode = styled(AchievementBlock).attrs({'data-widget': 'plugin
 			}
 		}
 	}
+`;
+export const PluginViewModeLabel = styled.span.attrs({'data-widget': 'plugin-view-mode-label'})`
+	display       : none;
+	align-items   : center;
+	padding-left  : var(--margin);
+	padding-right : var(--margin);
 `;
 export const PluginNodeOpener = styled(IndicatorNodeRemover).attrs({'data-widget': 'plugin-opener'})`
 	border-color      : var(--achievement-plugin-color);

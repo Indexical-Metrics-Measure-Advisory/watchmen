@@ -249,6 +249,83 @@ export const AchievementPalette = styled.div.attrs<{ showAddIndicator: boolean; 
 				}
 			}
 		}
+		> div[data-widget=no-plugin-assistant][data-has-plugin=false] {
+			+ div[data-widget=plugins-container] {
+				display: none;
+			}
+		}
+		> div[data-widget=plugins-container] {
+			flex-direction: column;
+			grid-column: 1 / span 2;
+			margin-top: 0;
+			> div[data-widget=plugins-root-column]:first-child {
+				padding-right: 0;
+				margin-bottom: calc(var(--margin) / 2);
+				> div[data-widget=plugins-root-node-container] {
+					align-self: stretch;
+					border-radius: calc(var(--border-radius) * 2);
+					transition: box-shadow 300ms ease-in-out;
+					&:hover {
+						box-shadow: var(--danger-shadow);
+					}
+					> div[data-widget=plugins-root-node] {
+						border: 0;
+						font-size: calc(var(--font-size) * 1.6);
+						font-weight: var(--font-bold);
+					}
+				}
+			}
+			> div[data-widget=plugins-root-column]:last-child {
+				flex-direction: row;
+				flex-wrap: wrap;
+				justify-content: start;
+				padding-left: 0;
+				margin-top: calc(var(--margin) / -2);
+				margin-left: calc(var(--margin) * -1);
+				> div[data-widget=plugin-node-container] {
+					border-radius: calc(var(--border-radius) * 2);
+					box-shadow: var(--shadow);
+					margin-top: calc(var(--margin) / 2);
+					margin-left: var(--margin);
+					overflow: hidden;
+					transition: box-shadow 300ms ease-in-out;
+					&[data-new-plugin=true] {
+						display: none;
+					}
+					&:hover {
+						box-shadow: var(--hover-shadow);
+					}
+					> div[data-widget=plugin-node] {
+						border: 0;
+						&:before {
+							display: none;
+						}
+						> span[data-widget=plugin-view-mode-label] {
+							display: flex;
+						}
+						> div[data-widget=dropdown] {
+							display: none;
+						}
+					}
+					> span[data-widget=plugin-opener] {
+						position: relative;
+						border: 0;
+						background-color: transparent;
+						left: unset;
+						clip-path : polygon(0 0, 0 100%, calc(100% + 1px) 100%, calc(100% + 1px) 0);
+						&:before {
+							display: none;
+						}
+						> span {
+							border-width: var(--border-width);
+						}
+					}
+					> span[data-widget=plugin-remover] {
+						display: none;
+					}
+				} 
+			}
+		}
 	}
 	` : ''}
 `;
