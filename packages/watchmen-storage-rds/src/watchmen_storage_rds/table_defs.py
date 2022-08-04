@@ -303,6 +303,7 @@ table_objective_analysis = Table(
 table_achievement_plugin_tasks = Table(
 	'achievement_plugin_tasks', meta_data,
 	create_pk('achievement_task_id'), create_tuple_id_column('achievement_id'), create_tuple_id_column('plugin_id'),
+	create_str('status', 10, False),
 	create_tenant_id(), create_user_id(),
 	*create_tuple_audit_columns()
 )

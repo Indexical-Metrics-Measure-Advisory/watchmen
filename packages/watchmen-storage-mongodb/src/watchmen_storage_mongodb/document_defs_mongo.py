@@ -370,6 +370,7 @@ table_achievement_plugin_tasks = MongoDocument(
 	name='achievement_plugin_tasks',
 	columns=[
 		create_pk('achievement_task_id'), create_tuple_id_column('achievement_id'), create_tuple_id_column('plugin_id'),
+		create_str('status'),
 		create_tenant_id(), create_user_id(),
 		*create_tuple_audit_columns()
 	]
