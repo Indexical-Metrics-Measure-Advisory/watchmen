@@ -9,7 +9,8 @@ class AchievementPluginTaskShaper(EntityShaper):
 		return UserBasedTupleShaper.serialize(task, {
 			'achievement_task_id': task.achievementTaskId,
 			'achievement_id': task.achievementId,
-			'plugin_id': task.pluginId
+			'plugin_id': task.pluginId,
+			'status': task.status
 		})
 
 	def deserialize(self, row: EntityRow) -> AchievementPluginTask:
@@ -17,7 +18,8 @@ class AchievementPluginTaskShaper(EntityShaper):
 		return UserBasedTupleShaper.deserialize(row, AchievementPluginTask(
 			achievementTaskId=row.get('achievement_task_id'),
 			achievementId=row.get('achievement_id'),
-			pluginId=row.get('plugin_id')
+			pluginId=row.get('plugin_id'),
+			status=row.get('status')
 		))
 
 
