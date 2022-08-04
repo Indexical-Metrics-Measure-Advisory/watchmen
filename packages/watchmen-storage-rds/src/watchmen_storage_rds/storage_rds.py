@@ -14,7 +14,7 @@ from watchmen_storage import ask_disable_compiled_cache, ColumnNameLiteral, Enti
 	EntityStraightAggregateColumn, EntityStraightColumn, EntityStraightValuesFinder, EntityUpdater, \
 	TooManyEntitiesFoundException, TransactionalStorageSPI, UnexpectedStorageException, \
 	UnsupportedStraightColumnException
-from watchmen_utilities import ArrayHelper, is_blank
+from watchmen_utilities import ArrayHelper, is_blank, serialize_to_json
 from .table_defs import find_table
 from .types import SQLAlchemyStatement
 
@@ -33,7 +33,7 @@ class StorageRDS(TransactionalStorageSPI):
 	def connect(self) -> None:
 		if self.connection is None:
 			self.connection = self.engine.connect().execution_options(isolation_level="AUTOCOMMIT")
-			self.build_dialect_json_deserializer()
+			self.build_dialect_json_serializer()
 			if ask_disable_compiled_cache():
 				self.connection = self.connection.execution_options(compiled_cache=None)
 
@@ -41,13 +41,14 @@ class StorageRDS(TransactionalStorageSPI):
 		if self.connection is not None:
 			raise UnexpectedStorageException('Connection exists, failed to begin another. It should be closed first.')
 		self.connection = self.engine.connect()
-		self.build_dialect_json_deserializer()
+		self.build_dialect_json_serializer()
 		self.connection.begin()
 
-	def build_dialect_json_deserializer(self) -> None:
+	def build_dialect_json_serializer(self) -> None:
 		try:
-			_json_deserializer = self.connection.dialect._json_deserializer
+			_json_serializer = self.connection.dialect._json_serializer
 		except AttributeError:
+			self.connection.dialect._json_serializer = serialize_to_json
 			self.connection.dialect._json_deserializer = json.loads
 
 	def commit_and_close(self) -> None:
