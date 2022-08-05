@@ -11,9 +11,10 @@ from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.system import PluginService
 from watchmen_model.admin import UserRole
 from watchmen_model.common import AchievementId, AchievementPluginTaskId, PluginId
-from watchmen_model.indicator import AchievementPluginTask
+from watchmen_model.indicator import Achievement, AchievementPluginTask
 from watchmen_model.indicator.achievement_plugin_task import AchievementPluginTaskStatus
-from watchmen_rest import get_console_principal, get_super_admin_principal
+from watchmen_model.system import Plugin, PluginApplyTo
+from watchmen_rest import get_any_admin_principal, get_console_principal
 from watchmen_rest.util import raise_400, raise_404
 from watchmen_utilities import is_blank
 
@@ -37,6 +38,22 @@ def ask_create_task_action(
 ) -> Callable[[AchievementId, PluginId], AchievementPluginTask]:
 	# noinspection DuplicatedCode
 	def action(achievement_id: AchievementId, plugin_id: PluginId) -> AchievementPluginTask:
+		achievement_service = get_achievement_service(task_service)
+		achievement: Optional[Achievement] = achievement_service.find_by_id(achievement_id)
+		if achievement is None:
+			raise_404('Achievement not found.')
+		if achievement.tenantId != principal_service.get_tenant_id():
+			raise_404('Achievement not found.')
+
+		plugin_service = get_plugin_service(task_service)
+		plugin: Optional[Plugin] = plugin_service.find_by_id(plugin_id)
+		if plugin is None:
+			raise_404('Achievement plugin not found.')
+		if plugin.tenantId != principal_service.get_tenant_id():
+			raise_404('Achievement plugin not found.')
+		if plugin.applyTo != PluginApplyTo.ACHIEVEMENT:
+			raise_400('Plugin is not for achievement.')
+
 		task = AchievementPluginTask(
 			achievementId=achievement_id,
 			pluginId=plugin_id,
@@ -102,10 +119,10 @@ class TaskResult(BaseModel):
 
 
 @router.post(
-	'/indicator/achievement/task/result', tags=[UserRole.SUPER_ADMIN], response_class=Response)
+	'/indicator/achievement/task/result', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
 def write_back_task_result(
 		result: TaskResult,
-		principal_service: PrincipalService = Depends(get_super_admin_principal)
+		principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> None:
 	if is_blank(result.taskId):
 		raise_400('Achievement plugin task id of result is required.')
@@ -120,6 +137,8 @@ def write_back_task_result(
 		# noinspection PyTypeChecker
 		task: Optional[AchievementPluginTask] = task_service.find_by_id(result.taskId)
 		if task is None:
+			raise_404()
+		if principal_service.is_tenant_admin() and task.tenantId != principal_service.get_tenant_id():
 			raise_404()
 		task.status = result.status
 		task.url = result.url
