@@ -10,7 +10,8 @@ class AchievementPluginTaskShaper(EntityShaper):
 			'achievement_task_id': task.achievementTaskId,
 			'achievement_id': task.achievementId,
 			'plugin_id': task.pluginId,
-			'status': task.status
+			'status': task.status,
+			'url': task.url
 		})
 
 	def deserialize(self, row: EntityRow) -> AchievementPluginTask:
@@ -19,7 +20,8 @@ class AchievementPluginTaskShaper(EntityShaper):
 			achievementTaskId=row.get('achievement_task_id'),
 			achievementId=row.get('achievement_id'),
 			pluginId=row.get('plugin_id'),
-			status=row.get('status')
+			status=row.get('status'),
+			url=row.get('url')
 		))
 
 
