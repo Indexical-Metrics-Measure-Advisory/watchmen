@@ -35,5 +35,5 @@ jobs:
         uses: actions/upload-artifact@v2
         if: always()
         with:
-          name: watchmen-web-client_${{version}}.zip
+          name: watchmen-web-client_${{inputs.version}}.zip
           path: ./packages/watchmen-web-client
