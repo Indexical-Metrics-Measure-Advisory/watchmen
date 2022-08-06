@@ -30,7 +30,7 @@ jobs:
           type: 'zip'
           directory: ./packages/watchmen-web-client
           path: build
-          filename: 'watchmen-web-client_${{version}}.zip'
+          filename: 'watchmen-web-client_${{input.version}}.zip'
       - name: Output the run details
         uses: actions/upload-artifact@v2
         if: always()
