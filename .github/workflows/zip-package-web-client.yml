@@ -1,0 +1,39 @@
+name: Package web client to zip file
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version
+        required: true
+        type: string
+        default: 'latest'
+
+jobs:
+  build-and-package:
+    name: Package zip
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - name: Build
+        run: |
+          cd ./packages/watchmen-web-client
+          yarn install
+          yarn build
+      - name: Archive Release
+        uses: thedoctor0/zip-release@main
+        with:
+          type: 'zip'
+          directory: ./packages/watchmen-web-client
+          path: build
+          filename: 'watchmen-web-client_${{inputs.version}}.zip'
+      - name: Output the zip file
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: watchmen-web-client
+          path: ./packages/watchmen-web-client/watchmen-web-client_${{inputs.version}}.zip
