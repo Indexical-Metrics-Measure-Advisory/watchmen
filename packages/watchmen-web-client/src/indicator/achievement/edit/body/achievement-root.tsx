@@ -29,7 +29,11 @@ const computeScore = (data: AllCalculatedIndicatorValuesData): AllIndicatedValue
 		shouldComputeScore: true,
 		score: {
 			value: score,
-			formatted: score.toFixed(1)
+			formatted: new Intl.NumberFormat(undefined, {
+				useGrouping: true,
+				maximumFractionDigits: 1,
+				minimumFractionDigits: 1
+			}).format(score)
 		}
 	};
 };
@@ -46,7 +50,7 @@ export const AchievementRoot = (props: { id: string; achievement: Achievement })
 		return (aAchievement: Achievement) => aAchievement !== achievement;
 	});
 	const forceUpdate = useForceUpdate();
-	const {score: {formatted: score} = {}, shouldComputeScore} = useIndicatorValuesAggregator({
+	const {score: {formatted: score, value: scoreValue } = {}, shouldComputeScore} = useIndicatorValuesAggregator({
 		achievement,
 		shouldAvoidIndicatorRemovedAndValuesCalculated: avoidValuesEvent,
 		shouldAvoidFormulaChanged: alwaysAvoidFormulaChanged,
@@ -89,7 +93,7 @@ export const AchievementRoot = (props: { id: string; achievement: Achievement })
 			style: 'percent',
 			minimumFractionDigits: 0,
 			maximumFractionDigits: 1
-		}).format(Number(score ?? 0))
+		}).format(Number(scoreValue ?? 0))
 		: score;
 
 	return <AchievementRootNode id={id} ref={ref}>

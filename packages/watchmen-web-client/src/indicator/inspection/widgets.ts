@@ -31,7 +31,7 @@ export const IndicatorContainer = styled.div.attrs({'data-widget': 'indicator'})
 		grid-template-columns : 1fr;
 		grid-row-gap          : calc(var(--margin) / 2);
 		> div[data-widget=inspection-pick-indicator] {
-			grid-template-columns : 200px auto auto auto auto 1fr;
+			grid-template-columns : 250px auto auto auto auto 1fr;
 		}
 	}
 `;

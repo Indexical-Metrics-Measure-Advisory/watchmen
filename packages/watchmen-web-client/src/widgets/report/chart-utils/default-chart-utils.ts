@@ -200,9 +200,9 @@ export abstract class DefaultChartUtils implements ChartUtils {
 			this.dimensionCountValidator
 		];
 	}
-	protected formatNumber(value: any, decimal: number = 0): any {
+	protected formatNumber(value: any, fractionDigits: number = 0): any {
 		if (typeof value === 'number') {
-			return createNumberFormat(decimal)(value);
+			return createNumberFormat(fractionDigits)(value);
 		} else {
 			return value;
 		}

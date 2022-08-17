@@ -63,7 +63,7 @@ export const saveMockAchievement = async (achievement: Achievement): Promise<voi
 export const fetchMockAchievementIndicatorData = async (current: AchievementIndicator, previous?: AchievementIndicator): Promise<{ current?: number, previous?: number }> => {
 	return new Promise<{ current?: number, previous?: number }>(resolve => {
 		setTimeout(() => {
-			const current = 500 + Math.random() * 500;
+			const current = 5000 + Math.random() * 500;
 			const previous = current * (5 + Math.random() * 5) * 0.1;
 			resolve({current, previous});
 		}, 500);

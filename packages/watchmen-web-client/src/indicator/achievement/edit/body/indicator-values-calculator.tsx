@@ -20,7 +20,11 @@ export const toNumber = (x: any): number | '' => {
 
 export const formatToNumber = (x: any, fractionDigits: number = 2) => {
 	const v = toNumber(x);
-	return v === '' ? '' : v.toFixed(fractionDigits);
+	return v === '' ? '' : new Intl.NumberFormat(undefined, {
+		useGrouping: true,
+		maximumFractionDigits: fractionDigits,
+		minimumFractionDigits: fractionDigits
+	}).format(v);
 };
 
 export const computeRatio = (currentValue: any, previousValue: any): number => {
