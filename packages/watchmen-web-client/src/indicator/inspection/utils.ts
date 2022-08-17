@@ -109,7 +109,7 @@ export const buildBucketsAskingParams = (
 ): { valueBucketIds: Array<BucketId>, measureMethods: Array<QueryByBucketMethod> } => {
 	return {
 		valueBucketIds: indicator.valueBuckets ?? [],
-		measureMethods: detectMeasures(topic, (measure: MeasureMethod) => !isTimePeriodMeasure(measure))
+		measureMethods: detectMeasures(topic || subject, (measure: MeasureMethod) => !isTimePeriodMeasure(measure))
 			.map(({factorOrColumnId, method}) => {
 				if (method === MeasureMethod.ENUM) {
 					let enumId = null;

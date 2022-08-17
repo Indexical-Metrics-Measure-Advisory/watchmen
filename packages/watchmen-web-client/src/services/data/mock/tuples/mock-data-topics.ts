@@ -196,6 +196,9 @@ export const MonthlyOrderPremium: Topic = {
 		},
 		{
 			factorId: '603', name: 'premium', label: 'Premium Sum', type: FactorType.NUMBER
+		},
+		{
+			factorId: '604', name: 'city', label: 'City', type: FactorType.CITY
 		}
 	],
 	version: 1,
