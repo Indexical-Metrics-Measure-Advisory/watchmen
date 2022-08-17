@@ -120,8 +120,7 @@ const DonePart = () => {
 			return Lang.INDICATOR.INDICATOR.ON_CREATE_INDICATOR;
 		} else {
 			return <>
-				{Lang.INDICATOR.INDICATOR.ON_VIEW_INDICATOR}
-				[ {data.indicator.name} ]
+				{Lang.INDICATOR.INDICATOR.ON_VIEW_INDICATOR} [ {data.indicator.name} ]
 			</>;
 		}
 	})();
