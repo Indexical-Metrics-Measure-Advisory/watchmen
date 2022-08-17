@@ -141,7 +141,7 @@ const buildValueFormatter = (chart: ECharts, defaultShowPercentage: boolean) => 
 export const buildSeriesData = (
 	chart: ECharts,
 	groups: Array<{ value: any, row: ChartDataSetRow }>,
-	formatNumber: (value: any, decimal?: number) => any
+	formatNumber: (value: any, fractionDigits?: number) => any
 ) => {
 	let {settings} = chart;
 
@@ -164,7 +164,7 @@ export const buildSeriesData = (
 export const buildTreeSeriesData = (
 	chart: ECharts,
 	nodes: Array<TreeNode>,
-	formatNumber: (value: any, decimal?: number) => any
+	formatNumber: (value: any, fractionDigits?: number) => any
 ) => {
 	let {settings} = chart;
 

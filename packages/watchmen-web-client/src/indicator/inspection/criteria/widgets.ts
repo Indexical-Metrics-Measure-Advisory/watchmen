@@ -3,7 +3,7 @@ import styled from 'styled-components';
 export const CriteriaContainer = styled.div.attrs({'data-widget': 'inspection-criteria'})`
 	display               : grid;
 	position              : relative;
-	grid-template-columns : 200px 1fr;
+	grid-template-columns : 250px 1fr;
 	grid-column-gap       : calc(var(--margin) / 2);
 `;
 export const CriteriaRows = styled.div.attrs({'data-widget': 'inspection-criteria-rows'})`

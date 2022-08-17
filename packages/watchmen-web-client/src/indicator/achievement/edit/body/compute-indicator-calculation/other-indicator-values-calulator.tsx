@@ -58,7 +58,11 @@ const buildScoreComputer = (achievementIndicator: AchievementIndicator) => {
 				shouldComputeScore: true,
 				score: score === '' ? (void 0) : {
 					value: Number(score),
-					formatted: Number(score).toFixed(1)
+					formatted: new Intl.NumberFormat(undefined, {
+						useGrouping: true,
+						maximumFractionDigits: 1,
+						minimumFractionDigits: 1
+					}).format(Number(score))
 				}
 			};
 		} catch (e: any) {

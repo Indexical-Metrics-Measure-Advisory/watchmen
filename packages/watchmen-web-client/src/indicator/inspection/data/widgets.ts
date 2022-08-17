@@ -10,7 +10,7 @@ export const DataContainer = styled.div.attrs({'data-widget': 'inspection-data'}
 export const DataToolbarContainer = styled.div.attrs({'data-widget': 'inspection-data-toolbar'})`
 	display               : grid;
 	position              : relative;
-	grid-template-columns : 200px auto auto auto 1fr;
+	grid-template-columns : 250px auto auto auto 1fr;
 	grid-column-gap       : calc(var(--margin) / 2);
 	@media print {
 		display : none;

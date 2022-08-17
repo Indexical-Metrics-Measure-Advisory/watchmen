@@ -31,7 +31,7 @@ export const NavPremium: Achievement = {
 		name: '',
 		indicatorId: MANUAL_COMPUTE_ACHIEVEMENT_INDICATOR_ID,
 		criteria: [],
-		formula: 'v1.s * 10',
+		formula: 'v1.s * 100',
 		aggregateArithmetic: IndicatorAggregateArithmetic.MAX,
 		variableName: 'v2'
 	}],

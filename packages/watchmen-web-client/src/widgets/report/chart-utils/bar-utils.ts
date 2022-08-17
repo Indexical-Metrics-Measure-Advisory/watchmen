@@ -32,7 +32,7 @@ export const buildSeriesData = (
 	chart: ECharts,
 	groups: Array<{ value: any, row: ChartDataSetRow }>,
 	indicatorIndex: number,
-	formatNumber: (value: any, decimal?: number) => any
+	formatNumber: (value: any, fractionDigits?: number) => any
 ) => {
 	let {settings} = chart;
 
