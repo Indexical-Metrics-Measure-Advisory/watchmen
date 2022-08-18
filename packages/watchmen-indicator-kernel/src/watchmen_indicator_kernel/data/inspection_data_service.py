@@ -75,7 +75,7 @@ class InspectionDataService(IndicatorCriteriaService):
 				arithmetic=SubjectColumnArithmetic.NONE
 			)
 		else:
-			return
+			return None
 
 	@abstractmethod
 	def find(self) -> DataResult:
