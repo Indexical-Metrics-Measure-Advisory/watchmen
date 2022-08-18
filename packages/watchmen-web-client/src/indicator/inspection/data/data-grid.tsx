@@ -53,9 +53,10 @@ export const DataGrid = (props: { inspection: Inspection; indicator: IndicatorFo
 				return;
 			}
 
-			const askBuckets = async ({indicator, topic}: IndicatorForInspection): Promise<Array<QueryBucket>> => {
+			const askBuckets = async (indicatorForInspection: IndicatorForInspection): Promise<Array<QueryBucket>> => {
+				const {indicator, topic, subject} = indicatorForInspection;
 				return new Promise(resolve => {
-					fire(InspectionEventTypes.ASK_BUCKETS, buildBucketsAskingParams(indicator, topic), (buckets: Array<QueryBucket>) => {
+					fire(InspectionEventTypes.ASK_BUCKETS, buildBucketsAskingParams(indicator, topic, subject), (buckets: Array<QueryBucket>) => {
 						resolve(buckets);
 					});
 				});
