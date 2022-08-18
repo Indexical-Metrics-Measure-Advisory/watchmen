@@ -17,14 +17,14 @@ import {
 	Cities,
 	CitiesIsland
 } from './mock-data-buckets';
-import {INDICATOR_ORDER_PREMIUM_ID} from './mock-data-indicators';
+import {INDICATOR_MONTHLY_ORDER_PREMIUM_ON_SUBJECT_ID} from './mock-data-indicators';
 
 export const INSPECTION_ORDER_PREMIUM_ID = '1';
 
 const OrderPremiumInspection: Inspection = {
 	inspectionId: INSPECTION_ORDER_PREMIUM_ID,
 	name: 'Order Premium',
-	indicatorId: INDICATOR_ORDER_PREMIUM_ID,
+	indicatorId: INDICATOR_MONTHLY_ORDER_PREMIUM_ON_SUBJECT_ID,
 	aggregateArithmetics: [IndicatorAggregateArithmetic.SUM, IndicatorAggregateArithmetic.AVG],
 	measureOn: InspectMeasureOn.VALUE,
 	measureOnBucketId: BUCKET_AMOUNT_ID,

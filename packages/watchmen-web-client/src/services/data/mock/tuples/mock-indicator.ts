@@ -125,6 +125,9 @@ export const fetchMockIndicator = async (indicatorId: IndicatorId): Promise<{ in
 				.map(factor => demoEnums.find(enumeration => enumeration.enumId == factor.enumId))
 				.filter(enumeration => enumeration != null) as Array<EnumForIndicator>;
 			return {indicator, topic, enums};
+			// eslint-disable-next-line
+		} else if (indicator.topicOrSubjectId == MOCK_SUBJECT.subjectId) {
+			return {indicator, subject: JSON.parse(JSON.stringify(MOCK_SUBJECT))};
 		} else {
 			const foundSubject = DemoConnectedSpaces
 				.filter(connectedSpace => !(connectedSpace.subjects == null || connectedSpace.subjects.length === 0))
