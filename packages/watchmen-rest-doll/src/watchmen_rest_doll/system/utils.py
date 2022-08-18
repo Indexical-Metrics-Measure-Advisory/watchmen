@@ -12,7 +12,6 @@ def get_tenant_service(principal_service: PrincipalService) -> TenantService:
 
 def attach_name(data: Union[Plugin, DataSource, ExternalWriter], principal_service: PrincipalService):
 	tenant_id = data.tenantId
-	print(tenant_id)
 	if is_not_blank(tenant_id):
 		tenant = get_tenant_service(principal_service).find_by_id(tenant_id)
 		data.tenantName = tenant.name

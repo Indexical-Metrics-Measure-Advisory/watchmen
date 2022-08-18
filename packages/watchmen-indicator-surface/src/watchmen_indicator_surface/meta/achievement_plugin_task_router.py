@@ -1,10 +1,10 @@
-from typing import Callable, Optional
+from typing import Callable, Optional, Tuple
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-from src.watchmen_indicator_kernel.plugin import call_connector_service
 from starlette.responses import Response
 
+from src.watchmen_indicator_kernel.plugin import call_connector_service
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.meta import AchievementPluginTaskService, AchievementService
 from watchmen_indicator_surface.util import trans, trans_readonly
@@ -36,9 +36,9 @@ def get_plugin_service(task_service: AchievementPluginTaskService) -> PluginServ
 
 def ask_create_task_action(
 		task_service: AchievementPluginTaskService, principal_service: PrincipalService
-) -> Callable[[AchievementId, PluginId], AchievementPluginTask]:
+) -> Callable[[AchievementId, PluginId], Tuple[AchievementPluginTask, Plugin]]:
 	# noinspection DuplicatedCode
-	def action(achievement_id: AchievementId, plugin_id: PluginId) -> AchievementPluginTask:
+	def action(achievement_id: AchievementId, plugin_id: PluginId) -> Tuple[AchievementPluginTask, Plugin]:
 		achievement_service = get_achievement_service(task_service)
 		achievement: Optional[Achievement] = achievement_service.find_by_id(achievement_id)
 		if achievement is None:
@@ -66,7 +66,7 @@ def ask_create_task_action(
 		# noinspection PyTypeChecker
 		task: AchievementPluginTask = task_service.create(task)
 
-		return task,plugin
+		return task, plugin
 
 	return action
 
@@ -84,11 +84,9 @@ def create_task(
 
 	task_service = get_task_service(principal_service)
 	action = ask_create_task_action(task_service, principal_service)
-	task ,plugin=  trans(task_service, lambda: action(achievement_id, plugin_id))
-	call_connector_service(task,plugin)
+	task, plugin = trans(task_service, lambda: action(achievement_id, plugin_id))
+	call_connector_service(task, plugin)
 	return task
-
-
 
 
 @router.get(
@@ -129,7 +127,6 @@ def write_back_task_result(
 		result: TaskResult,
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> None:
-
 	if is_blank(result.taskId):
 		raise_400('Achievement plugin task id of result is required.')
 	if result.status is None:
