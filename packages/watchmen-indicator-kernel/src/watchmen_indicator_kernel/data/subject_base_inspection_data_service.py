@@ -1,12 +1,14 @@
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Tuple
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.meta import TopicService
 from watchmen_indicator_kernel.common import IndicatorKernelException
 from watchmen_inquiry_kernel.storage import ReportDataService
+from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import ComputedParameter, ConstantParameter, DataResult, DataResultSetRow, \
-	ParameterComputeType, ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, \
-	ParameterJointType, ParameterKind, SubjectDatasetColumnId, TopicFactorParameter
+	FactorId, ParameterComputeType, ParameterCondition, ParameterExpression, ParameterExpressionOperator, \
+	ParameterJoint, \
+	ParameterJointType, ParameterKind, SubjectDatasetColumnId, TopicFactorParameter, TopicId
 from watchmen_model.console import Report, ReportDimension, ReportIndicator, ReportIndicatorArithmetic, Subject, \
 	SubjectDatasetColumn
 from watchmen_model.indicator import Indicator, IndicatorAggregateArithmetic, IndicatorCriteria, Inspection, \
@@ -208,19 +210,59 @@ class SubjectBaseInspectionDataService(InspectionDataService):
 	def move_indicators_to_tail(self, row: DataResultSetRow, move_count: int) -> DataResultSetRow:
 		return [*row[move_count:], *row[:move_count]]
 
-	def fake_subject(self):
+	def find_factor(self, topic_id: TopicId, factor_id: FactorId) -> Tuple[Topic, Factor]:
+		topic = get_topic_service(self.principalService).find_by_id(topic_id)
+		factor = ArrayHelper(topic.factors).find(lambda x: x.factorId == factor_id)
+		if factor is None:
+			raise IndicatorKernelException('Factor of time group column not found.')
+
+		return topic, factor
+
+	def try_to_fake_time_group_column(self):
 		time_group_column = self.find_column_of_measure_on_time_dimension()
+		if time_group_column is None:
+			return
+		if not isinstance(time_group_column.parameter, TopicFactorParameter):
+			return
+
+		topic, factor = self.find_factor(time_group_column.parameter.topicId, time_group_column.parameter.factorId)
 		# to figure out that the time group column is date type or not
 		# if it is a date type, must fake a new column into subject
-		if time_group_column is not None and isinstance(time_group_column.parameter, TopicFactorParameter):
-			topic = get_topic_service(self.principalService).find_by_id(time_group_column.parameter.topicId)
-			factor = ArrayHelper(topic.factors).find(lambda x: x.factorId == time_group_column.parameter.factorId)
-			if factor is None:
-				raise IndicatorKernelException('Factor of time group column not found.')
-			if self.has_year_or_month(factor):
-				fake_column = self.fake_time_group_column(topic.topicId, factor.factorId, time_group_column.alias)
-				if fake_column is not None:
-					self.subject.dataset.columns.append(fake_column)
+		if self.has_year_or_month(factor):
+			fake_column = self.fake_time_group_column(topic.topicId, factor.factorId, time_group_column.alias)
+			if fake_column is not None:
+				self.subject.dataset.columns.append(fake_column)
+
+	def try_to_fake_measure_on_column(self):
+		measure_on_column = self.find_column_of_measure_on_dimension()
+		if measure_on_column is None:
+			return
+		if not isinstance(measure_on_column.parameter, TopicFactorParameter):
+			return
+
+		topic, factor = self.find_factor(measure_on_column.parameter.topicId, measure_on_column.parameter.factorId)
+
+		measure_on = self.inspection.measureOn
+		measure_on_bucket_id = self.inspection.measureOnBucketId
+		if is_blank(measure_on_bucket_id):
+			if measure_on == InspectMeasureOn.OTHER:
+				# using naturally classification
+				fake_column = SubjectDatasetColumn(
+					columnId='_BUCKET_ON_',  # TODO str(column_index),
+					parameter=TopicFactorParameter(
+						kind=ParameterKind.TOPIC, topicId=topic.topicId, factorId=factor.factorId),
+					alias='_BUCKET_ON_'
+				)
+			else:
+				raise IndicatorKernelException('Measure on bucket not declared.')
+		else:
+			# TODO
+			return
+
+		self.subject.dataset.columns.append(fake_column)
+
+	def fake_subject(self):
+		self.try_to_fake_time_group_column()
 
 	def find(self) -> DataResult:
 		self.fake_subject()
