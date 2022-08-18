@@ -116,7 +116,17 @@ export const BucketOn = () => {
 			}
 			inspection!.measureOnFactorId = option.value;
 			inspection!.measureOn = InspectMeasureOn.OTHER;
-			delete inspection?.measureOnBucketId;
+			const bucketOptions = buildBucketOptions({
+				inspection: inspection!,
+				topic: indicator!.topic,
+				subject: indicator!.subject,
+				buckets: buckets.data
+			});
+			if (bucketOptions.available && bucketOptions.options.length > 0) {
+				inspection!.measureOnBucketId = bucketOptions.options[0].value;
+			} else {
+				delete inspection?.measureOnBucketId;
+			}
 		}
 		fire(InspectionEventTypes.BUCKET_ON_CHANGED, inspection!);
 		forceUpdate();

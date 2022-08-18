@@ -14,8 +14,10 @@ import {
 	BUCKET_AMOUNT_ID,
 	BUCKET_CITIES_ID,
 	BUCKET_CITIES_ISLAND_ID,
+	BUCKET_FLOOR_ID,
 	Cities,
-	CitiesIsland
+	CitiesIsland,
+	Floor
 } from './mock-data-buckets';
 import {INDICATOR_MONTHLY_ORDER_PREMIUM_ON_SUBJECT_ID} from './mock-data-indicators';
 
@@ -79,9 +81,11 @@ interface OrderPremiumRow {
 	orderIssueDate: string;
 	premium: number;
 	city: string;
+	floor: number;
 	// computed
 	orderSize?: string;
 	cityGroup?: string;
+	floorCategory?: string;
 	year?: number;
 	month?: number;
 }
@@ -111,6 +115,7 @@ const randomPremium = () => {
 	}
 };
 const randomCity = () => MockCities[Math.floor(Math.random() * 7)];
+const randomFloor = () => Math.ceil(Math.random() * 24);
 const buildMockInspectionData = (years: Array<number>): Array<OrderPremiumRow> => {
 	return years.map(year => {
 		return months().map(month => {
@@ -124,7 +129,8 @@ const buildMockInspectionData = (years: Array<number>): Array<OrderPremiumRow> =
 					quoteCreateDate: formatTime(createDate),
 					orderIssueDate: formatTime(issueDate),
 					premium: randomPremium(),
-					city: randomCity().code
+					city: randomCity().code,
+					floor: randomFloor()
 				} as OrderPremiumRow;
 			});
 		}).flat();
@@ -152,13 +158,23 @@ const gatherInspectionData = (inspection: Inspection): Array<RowOfAny> => {
 			return {
 				...row,
 				orderSize: Amounts.segments.find(({value: {min = 0, max = 99999999}}) => {
-					return row.premium >= min && row.premium <= max;
+					return row.premium >= Number(min) && row.premium <= Number(max);
 				})?.name
 			};
 		});
 	} else if (inspection.measureOn === InspectMeasureOn.OTHER) {
 		// eslint-disable-next-line
-		if (inspection.measureOnBucketId == BUCKET_CITIES_ID) {
+		if (inspection.measureOnBucketId == BUCKET_FLOOR_ID) {
+			transformers.push((row: OrderPremiumRow) => {
+				return {
+					...row,
+					floorCategory: Floor.segments.find(({value: {min = 0, max = 99999999}}) => {
+						return row.floor >= Number(min) && row.floor <= Number(max);
+					})?.name
+				};
+			});
+			// eslint-disable-next-line
+		} else if (inspection.measureOnBucketId == BUCKET_CITIES_ID) {
 			transformers.push((row: OrderPremiumRow) => {
 				return {
 					...row,
@@ -210,7 +226,7 @@ const gatherInspectionData = (inspection: Inspection): Array<RowOfAny> => {
 	}
 
 	// arithmetics
-	const buildKey = (row: OrderPremiumRow) => [row.orderSize, row.cityGroup, row.year, row.month].map(x => x ?? '').join('-');
+	const buildKey = (row: OrderPremiumRow) => [row.orderSize, row.cityGroup, row.floorCategory, row.year, row.month].map(x => x ?? '').join('-');
 	const data = dataset.map(row => transformers.reduce((row, transform) => transform(row), row))
 		.reduce((map, row) => {
 			const key = buildKey(row);
@@ -233,6 +249,7 @@ const gatherInspectionData = (inspection: Inspection): Array<RowOfAny> => {
 	const sorters = [
 		(r1: GroupedOrderPremiumRow, r2: GroupedOrderPremiumRow) => (r1.orderSize || '').localeCompare(r2.orderSize || ''),
 		(r1: GroupedOrderPremiumRow, r2: GroupedOrderPremiumRow) => (r1.cityGroup || '').localeCompare(r2.cityGroup || ''),
+		(r1: GroupedOrderPremiumRow, r2: GroupedOrderPremiumRow) => (r1.floorCategory || '').localeCompare(r2.floorCategory || ''),
 		(r1: GroupedOrderPremiumRow, r2: GroupedOrderPremiumRow) => (r1.year || 0) - (r2.year || 0),
 		(r1: GroupedOrderPremiumRow, r2: GroupedOrderPremiumRow) => (r1.month || 0) - (r2.month || 0)
 	];
@@ -244,7 +261,7 @@ const gatherInspectionData = (inspection: Inspection): Array<RowOfAny> => {
 		.sort((a1, a2) => IndicatorAggregateArithmeticSort[a1] - IndicatorAggregateArithmeticSort[a2]);
 	return rows.map(row => {
 		return [
-			row.orderSize, row.cityGroup, row.year, row.month,
+			row.orderSize, row.cityGroup, row.floorCategory, row.year, row.month,
 			arithmetics.includes(IndicatorAggregateArithmetic.COUNT) ? row.count : null,
 			arithmetics.includes(IndicatorAggregateArithmetic.SUM) ? row.sum : null,
 			arithmetics.includes(IndicatorAggregateArithmetic.AVG) ? Number(Number(row.avg).toFixed(2)) : null,

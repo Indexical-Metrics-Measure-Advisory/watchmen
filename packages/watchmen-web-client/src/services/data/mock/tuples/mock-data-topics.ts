@@ -95,7 +95,8 @@ export const MonthlyOrderPremium: Topic = {
 		{factorId: '601', name: 'year', label: 'Year', type: FactorType.YEAR},
 		{factorId: '602', name: 'month', label: 'Month', type: FactorType.MONTH},
 		{factorId: '603', name: 'premium', label: 'Premium Sum', type: FactorType.NUMBER},
-		{factorId: '604', name: 'city', label: 'City', type: FactorType.ENUM, enumId: MOCK_ENUM_CITY_ID}
+		{factorId: '604', name: 'city', label: 'City', type: FactorType.ENUM, enumId: MOCK_ENUM_CITY_ID},
+		{factorId: '605', name: 'floor', label: 'Floor', type: FactorType.FLOOR}
 	],
 	version: 1,
 	createdAt: getCurrentTime(),

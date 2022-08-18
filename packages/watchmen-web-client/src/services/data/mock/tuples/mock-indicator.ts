@@ -42,6 +42,11 @@ const MOCK_SUBJECT = {
 				parameter: {kind: ParameterKind.TOPIC, topicId: '6', factorId: '604'},
 				arithmetic: SubjectColumnArithmetic.NONE,
 				alias: 'City'
+			}, {
+				columnId: '5',
+				parameter: {kind: ParameterKind.TOPIC, topicId: '6', factorId: '605'},
+				arithmetic: SubjectColumnArithmetic.NONE,
+				alias: 'Floor'
 			}
 		],
 		filters: {jointType: ParameterJointType.AND, filters: [] as Array<SubjectDataSetFilter>},
