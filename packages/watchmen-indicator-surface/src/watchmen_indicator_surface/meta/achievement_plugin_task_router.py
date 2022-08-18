@@ -2,6 +2,7 @@ from typing import Callable, Optional
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from src.watchmen_indicator_kernel.plugin import call_connector_service
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
@@ -65,7 +66,7 @@ def ask_create_task_action(
 		# noinspection PyTypeChecker
 		task: AchievementPluginTask = task_service.create(task)
 
-		return task
+		return task,plugin
 
 	return action
 
@@ -83,7 +84,11 @@ def create_task(
 
 	task_service = get_task_service(principal_service)
 	action = ask_create_task_action(task_service, principal_service)
-	return trans(task_service, lambda: action(achievement_id, plugin_id))
+	task ,plugin=  trans(task_service, lambda: action(achievement_id, plugin_id))
+	call_connector_service(task,plugin)
+	return task
+
+
 
 
 @router.get(
@@ -124,6 +129,7 @@ def write_back_task_result(
 		result: TaskResult,
 		principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> None:
+
 	if is_blank(result.taskId):
 		raise_400('Achievement plugin task id of result is required.')
 	if result.status is None:

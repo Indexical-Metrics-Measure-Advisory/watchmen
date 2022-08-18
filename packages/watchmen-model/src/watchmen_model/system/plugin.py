@@ -8,6 +8,7 @@ from watchmen_model.common import OptimisticLock, PluginId, TenantBasedTuple
 
 class PluginType(str, Enum):
 	STREAMLIT = 'streamlit',
+	JUPYTER = 'jupyter',
 
 
 class PluginApplyTo(str, Enum):

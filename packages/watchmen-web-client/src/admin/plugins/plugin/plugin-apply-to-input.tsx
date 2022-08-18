@@ -9,7 +9,11 @@ import {PluginEventTypes} from '../plugin-event-bus-types';
 const APPLY_TO = {
 	[PluginType.STREAMLIT]: [
 		{value: PluginApplyTo.ACHIEVEMENT, label: 'Achievement'}
+	],
+	[PluginType.JUPYTER]: [
+		{value: PluginApplyTo.ACHIEVEMENT, label: 'Achievement'}
 	]
+
 };
 
 export const PluginApplyToInput = (props: { plugin: Plugin }) => {
