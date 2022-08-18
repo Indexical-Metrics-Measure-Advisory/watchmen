@@ -13,7 +13,6 @@ const APPLY_TO = {
 	[PluginType.JUPYTER]: [
 		{value: PluginApplyTo.ACHIEVEMENT, label: 'Achievement'}
 	]
-
 };
 
 export const PluginApplyToInput = (props: { plugin: Plugin }) => {
