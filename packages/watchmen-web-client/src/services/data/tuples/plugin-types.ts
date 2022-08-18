@@ -1,13 +1,13 @@
-import { TenantId } from "./tenant-types";
-import { OptimisticLock, Tuple } from "./tuple-types";
+import {TenantId} from './tenant-types';
+import {OptimisticLock, Tuple} from './tuple-types';
 
 export enum PluginType {
-	STREAMLIT = "streamlit",
-	JUPYTER = "jupyter",
+	STREAMLIT = 'streamlit',
+	JUPYTER = 'jupyter',
 }
 
 export enum PluginApplyTo {
-	ACHIEVEMENT = "achievement",
+	ACHIEVEMENT = 'achievement'
 }
 
 export type PluginId = string;
