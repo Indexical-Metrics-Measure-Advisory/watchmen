@@ -19,7 +19,8 @@ export const PluginTypeInput = (props: { plugin: Plugin }) => {
 	};
 
 	const options: Array<DropdownOption> = [
-		{value: PluginType.STREAMLIT, label: 'Streamlit'}
+		{value: PluginType.STREAMLIT, label: 'Streamlit'},
+		{value: PluginType.JUPYTER, label: 'Jupyter'}
 	];
 
 	return <TuplePropertyDropdown value={plugin.type} options={options} onChange={onTypeChange}/>;
