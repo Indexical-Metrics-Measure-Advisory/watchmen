@@ -1,4 +1,3 @@
-import {PluginId} from '@/services/data/tuples/plugin-types';
 import {TuplePage} from '../../query/tuple-page';
 import {
 	Achievement,
@@ -8,6 +7,7 @@ import {
 	AchievementPluginTaskId,
 	AchievementPluginTaskStatus
 } from '../../tuples/achievement-types';
+import {PluginId} from '../../tuples/plugin-types';
 import {QueryAchievement} from '../../tuples/query-achievement-types';
 import {isFakedUuid} from '../../tuples/utils';
 import {getCurrentTime} from '../../utils';

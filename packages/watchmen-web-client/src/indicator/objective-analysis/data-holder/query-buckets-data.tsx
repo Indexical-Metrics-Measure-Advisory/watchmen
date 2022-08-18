@@ -1,5 +1,11 @@
 import {fetchBucketsByIds, fetchBucketsByMethods} from '@/services/data/tuples/bucket';
-import {isCategoryMeasureBucket, isEnumMeasureBucket, isMeasureBucket} from '@/services/data/tuples/bucket-utils';
+import {Bucket, CategoryMeasureBucket, NumericValueMeasureBucket} from '@/services/data/tuples/bucket-types';
+import {
+	isCategoryMeasureBucket,
+	isEnumMeasureBucket,
+	isMeasureBucket,
+	isNumericValueMeasureBucket
+} from '@/services/data/tuples/bucket-utils';
 import {MeasureMethod} from '@/services/data/tuples/indicator-types';
 import {QueryBucket, QueryByEnumMethod} from '@/services/data/tuples/query-bucket-types';
 import {isQueryByEnum, isQueryByMeasure} from '@/services/data/tuples/query-bucket-utils';
@@ -89,9 +95,11 @@ export const QueryBucketsData = () => {
 										enumId: bucket.enumId
 									});
 								} else if (isCategoryMeasureBucket(bucket)) {
-									key = bucket.measure;
+									key = (bucket as CategoryMeasureBucket).measure;
+								} else if (isNumericValueMeasureBucket(bucket)) {
+									key = (bucket as NumericValueMeasureBucket).measure;
 								} else {
-									key = bucket.bucketId;
+									key = (bucket as Bucket).bucketId;
 								}
 								let existing = all[key];
 								if (existing == null) {

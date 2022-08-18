@@ -1,4 +1,3 @@
-import {PluginId} from '@/services/data/tuples/plugin-types';
 import {findAccount} from '../../data/account';
 import {Apis, get, page, post} from '../../data/apis';
 import {isMockService} from '../../data/utils';
@@ -18,6 +17,7 @@ import {
 	AchievementPluginTask,
 	AchievementPluginTaskId
 } from './achievement-types';
+import {PluginId} from './plugin-types';
 import {QueryAchievement} from './query-achievement-types';
 import {isFakedUuid} from './utils';
 
