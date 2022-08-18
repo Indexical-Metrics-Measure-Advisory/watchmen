@@ -148,7 +148,7 @@ const parsePipelines = (sourceTopic: Topic, targetTopics: ParsedTopics): Array<P
 							return {
 								source: {
 									kind: ParameterKind.TOPIC,
-									topicId: tailTopic.topicId,
+									topicId: sourceTopic.topicId,
 									factorId: factorIdMap[tailFactor.factorId]
 								} as TopicFactorParameter,
 								factorId: tailFactor.factorId,
