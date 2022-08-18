@@ -135,6 +135,7 @@ def copy_to_connected_space(
 	now = get_current_time_in_seconds()
 
 	def copy_and_create_report(report: Report, subject_id: SubjectId) -> Report:
+		del report.reportId
 		report_service.redress_storable_id(report)
 		report.subjectId = subject_id
 		report.connectId = connected_space.connectId
@@ -148,6 +149,7 @@ def copy_to_connected_space(
 
 	def copy_and_create_subject(subject: Subject) -> SubjectWithReports:
 		my_reports = report_map.get(subject.subjectId)
+		del subject.subjectId
 		subject_service.redress_storable_id(subject)
 		subject.connectId = connected_space.connectId
 		subject.userId = connected_space.userId
