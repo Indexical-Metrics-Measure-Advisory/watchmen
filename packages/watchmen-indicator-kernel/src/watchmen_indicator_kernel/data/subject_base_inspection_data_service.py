@@ -7,8 +7,7 @@ from watchmen_inquiry_kernel.storage import ReportDataService
 from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import ComputedParameter, ConstantParameter, DataResult, DataResultSetRow, \
 	FactorId, ParameterComputeType, ParameterCondition, ParameterExpression, ParameterExpressionOperator, \
-	ParameterJoint, \
-	ParameterJointType, ParameterKind, SubjectDatasetColumnId, TopicFactorParameter, TopicId
+	ParameterJoint, ParameterJointType, ParameterKind, SubjectDatasetColumnId, TopicFactorParameter, TopicId
 from watchmen_model.console import Report, ReportDimension, ReportIndicator, ReportIndicatorArithmetic, Subject, \
 	SubjectDatasetColumn
 from watchmen_model.indicator import Indicator, IndicatorAggregateArithmetic, IndicatorCriteria, Inspection, \
