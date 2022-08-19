@@ -1,1 +1,3 @@
 from .distributed_lock import DistributedLock
+from .lock_service import get_lock_service
+from .unique_key_distributed_lock import get_unique_key_distributed_lock

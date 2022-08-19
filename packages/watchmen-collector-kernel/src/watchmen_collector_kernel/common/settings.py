@@ -1,5 +1,10 @@
-from pydantic import BaseSettings
+
+from watchmen_model.common import SettingsModel
 
 
-class CollectorSettings(BaseSettings):
-	pass
+class S3CollectorSettings(SettingsModel):
+	access_key_id: str
+	secret_access_key: str
+	bucket_name: str
+	region: str
+	token: str
