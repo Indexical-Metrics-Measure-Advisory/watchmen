@@ -35,3 +35,5 @@ ObjectiveAnalysisId = TypeVar('ObjectiveAnalysisId', bound=str)
 AchievementPluginTaskId = TypeVar('AchievementPluginTaskId', bound=str)
 
 PatId = TypeVar('PatId', bound=str)
+
+LockId = TypeVar('LockId', bound=str)

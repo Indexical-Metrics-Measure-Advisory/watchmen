@@ -4,6 +4,7 @@ from typing import Dict, Optional, List, Union
 from datetime import datetime
 from boto3 import client, resource
 from boto3.exceptions import Boto3Error
+from botocore.exceptions import ClientError
 
 from watchmen_model.system import DataSourceParam
 from watchmen_storage import ask_object_storage_need_date_directory
@@ -14,7 +15,8 @@ logger = getLogger(__name__)
 
 
 class SimpleStorageService:
-	def __init__(self, access_key_id: str, access_key_secret: str, endpoint: str, bucket_name: str, params: Optional[List[DataSourceParam]]):
+	def __init__(self, access_key_id: str, access_key_secret: str, endpoint: str, bucket_name: str,
+	             params: Optional[List[DataSourceParam]]):
 		self.access_key_id = access_key_id
 		self.access_key_secret = access_key_secret
 		self.bucket_name = bucket_name
@@ -30,7 +32,7 @@ class SimpleStorageService:
 			region_name=endpoint,
 			aws_access_key_id=access_key_id,
 			aws_secret_access_key=access_key_secret)
-
+	
 	def gen_key(self, directory: str, id_: str) -> str:
 		if ask_object_storage_need_date_directory():
 			literal = self.get_param("filename")
@@ -38,15 +40,15 @@ class SimpleStorageService:
 		else:
 			key = f'{directory}/{id_}.json'
 		return key
-
+	
 	def get_param(self, param_key: str) -> Union[None, str, int]:
 		for param in self.params:
 			if param.name == param_key:
 				return param.value
-		
+	
 	def put_object(self, key: str, data: Dict) -> None:
 		self.client.put_object(Body=serialize_to_json(data), Bucket=self.bucket_name, Key=key)
-
+	
 	def get_object(self, key: str) -> Optional[Dict]:
 		try:
 			result = self.client.get_object(Bucket=self.bucket_name, Key=key)
@@ -54,7 +56,7 @@ class SimpleStorageService:
 		except Boto3Error as e:
 			logger.error(f'Get object failed, detail: {e.__dict__}')
 			return None
-
+	
 	def delete_object(self, key: str) -> int:
 		try:
 			self.client.delete_object(Bucket=self.bucket_name, Key=key)
@@ -62,7 +64,19 @@ class SimpleStorageService:
 		except Boto3Error as e:
 			logger.error(f'Delete object failed, detail: {e.__dict__}')
 			return 0
-
+	
 	def delete_multiple_objects(self, prefix: str) -> None:
 		bucket = self.resource.Bucket(self.bucket_name)
 		bucket.objects.filter(Prefix=prefix).delete()
+	
+	def list_objects(self) -> List:
+		bucket = self.resource.Bucket(self.bucket_name)
+		try:
+			objects = list(bucket.objects.all())
+			logger.info("Got objects %s from bucket '%s'",
+			            [o.key for o in objects], bucket.name)
+		except ClientError:
+			logger.exception("Couldn't get objects for bucket '%s'.", bucket.name)
+			raise
+		else:
+			return objects

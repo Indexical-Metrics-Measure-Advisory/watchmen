@@ -308,6 +308,13 @@ table_achievement_plugin_tasks = Table(
 	*create_tuple_audit_columns()
 )
 
+table_resource_lock = Table(
+	'resource_lock', meta_data,
+	create_pk('lock_id'), create_str('resource_id', 500),
+	create_str('model_name', 20), create_str('object_id', 100),
+	create_datetime('registered_at', False)
+)
+
 # noinspection DuplicatedCode
 tables: Dict[str, Table] = {
 	# snowflake workers
@@ -353,6 +360,8 @@ tables: Dict[str, Table] = {
 	'achievements': table_achievements,
 	'objective_analysis': table_objective_analysis,
 	'achievement_plugin_tasks': table_achievement_plugin_tasks
+	# lock
+	'resource_lock': table_resource_lock
 }
 
 
@@ -389,7 +398,7 @@ def register_table(topic: Topic) -> None:
 		if last_modified_at >= topic.lastModifiedAt:
 			# do nothing
 			return
-
+	
 	if is_raw_topic(topic):
 		topic_tables[topic.topicId] = (build_by_raw(topic), topic.lastModifiedAt)
 	elif is_aggregation_topic(topic):

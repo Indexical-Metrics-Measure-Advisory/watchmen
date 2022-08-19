@@ -1,32 +1,22 @@
 from abc import ABC, abstractmethod
+from logging import getLogger
 
 from watchmen_collector_kernel.lock import DistributedLock
 
+logger = getLogger(__name__)
+
 
 class Consumer(ABC):
-
-	def __init__(self):
-		pass
-
+	
 	@abstractmethod
-	def process(self):
+	def process(self, *args, **kwargs):
 		pass
-
+	
 	@abstractmethod
-	def pre_process(self) -> bool:
+	def ask_lock(self, distributed_lock: DistributedLock) -> bool:
 		pass
-
+	
 	@abstractmethod
-	def post_process(self):
+	def ask_unlock(self, distributed_lock: DistributedLock) -> bool:
 		pass
 
-	def run(self):
-		if self.pre_process():
-			try:
-				self.process()
-			except Exception as e:
-				pass
-			finally:
-				self.post_process()
-		else:
-			pass  # sleep
