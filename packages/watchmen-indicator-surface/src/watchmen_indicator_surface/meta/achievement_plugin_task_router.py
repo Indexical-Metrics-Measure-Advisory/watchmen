@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from starlette.responses import Response
 
-from src.watchmen_indicator_kernel.plugin import call_connector_service
+from watchmen_indicator_kernel.plugin import call_connector_service
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.meta import AchievementPluginTaskService, AchievementService
 from watchmen_indicator_surface.util import trans, trans_readonly
