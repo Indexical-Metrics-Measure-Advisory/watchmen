@@ -2,6 +2,7 @@ from logging import getLogger
 
 from pydantic import BaseSettings
 
+from watchmen_collector_kernel.common import S3CollectorSettings
 from watchmen_utilities import is_blank
 from .connectors import KafkaSettings, RabbitmqSettings
 
@@ -18,11 +19,18 @@ class PipelineSurfaceSettings(BaseSettings):
 	RABBITMQ_QUEUE: str = ''
 	RABBITMQ_DURABLE: bool = True
 	RABBITMQ_AUTO_DELETE: bool = False
-
+	
 	KAFKA_CONNECTOR: bool = False
 	KAFKA_BOOTSTRAP_SERVER: str = 'localhost:9092'
 	KAFKA_TOPICS: str = ''
-
+	
+	S3_COLLECTOR_CONNECTOR: bool = False
+	S3_COLLECTOR_ACCESS_KEY_ID: str = ''
+	S3_COLLECTOR_SECRET_ACCESS_KEY: str = ''
+	S3_COLLECTOR_BUCKET_NAME: str = ''
+	S3_COLLECTOR_REGION: str = ''
+	S3_COLLECTOR_TOKEN: str = ''
+	
 	class Config:
 		# secrets_dir = '/var/run'
 		env_file = '.env'
@@ -64,4 +72,18 @@ def ask_rabbitmq_connector_settings() -> RabbitmqSettings:
 		queue=settings.RABBITMQ_QUEUE,
 		durable=settings.RABBITMQ_DURABLE,
 		autoDelete=settings.RABBITMQ_AUTO_DELETE
+	)
+
+
+def ask_s3_connector_enabled() -> bool:
+	return settings.S3_COLLECTOR_CONNECTOR
+
+
+def ask_s3_connector_settings() -> S3CollectorSettings:
+	return S3CollectorSettings(
+		access_key_id=settings.S3_COLLECTOR_ACCESS_KEY_ID,
+		secret_access_key=settings.S3_COLLECTOR_SECRET_ACCESS_KEY,
+		bucket_name=settings.S3_COLLECTOR_BUCKET_NAME,
+		region=settings.S3_COLLECTOR_REGION,
+		token=settings.S3_COLLECTOR_TOKEN
 	)

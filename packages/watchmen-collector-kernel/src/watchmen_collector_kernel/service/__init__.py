@@ -1,0 +1,1 @@
+from .s3_consumer import S3Consumer

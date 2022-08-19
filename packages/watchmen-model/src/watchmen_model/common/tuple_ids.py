@@ -33,3 +33,5 @@ AchievementId = TypeVar('AchievementId', bound=str)
 ObjectiveAnalysisId = TypeVar('ObjectiveAnalysisId', bound=str)
 
 PatId = TypeVar('PatId', bound=str)
+
+LockId = TypeVar('LockId', bound=str)
