@@ -3,13 +3,17 @@ from threading import Thread
 from time import sleep
 from typing import Optional
 
+import asyncio
+
 from watchmen_collector_kernel.common import S3CollectorSettings
-from watchmen_collector_kernel.lock import get_lock_service, get_unique_key_distributed_lock
-from watchmen_collector_kernel.model import ResourceLock, Dependency
-from watchmen_collector_kernel.service import S3Consumer
+from watchmen_collector_kernel.lock import get_oss_collector_lock_service, get_unique_key_distributed_lock, DistributedLock
+from watchmen_collector_kernel.model import OSSCollectorCompetitiveLock
 from watchmen_meta.common import ask_snowflake_generator
-from watchmen_storage_s3 import SimpleStorageService
+from watchmen_storage_s3 import SimpleStorageService, ObjectContent
 from watchmen_utilities import ArrayHelper
+from watchmen_model.pipeline_kernel import PipelineTriggerDataWithPAT
+from watchmen_pipeline_surface.connectors.handler import handle_trigger_data
+from watchmen_model.common import Storable
 
 logger = getLogger(__name__)
 
@@ -20,6 +24,11 @@ def init_s3_collector(settings: S3CollectorSettings):
 	S3Connector(settings).create_connector()
 
 
+class Dependency(Storable):
+	model_name: str
+	object_id: str
+
+
 class S3Connector:
 	
 	def __init__(self, settings: S3CollectorSettings):
@@ -28,8 +37,7 @@ class S3Connector:
 		                                                 endpoint=settings.region,
 		                                                 bucket_name=settings.bucket_name,
 		                                                 params=None)
-		self.s3Consumer = S3Consumer(self.simpleStorageService)
-		self.lock_service = get_lock_service()
+		self.lock_service = get_oss_collector_lock_service()
 		self.snowflakeGenerator = ask_snowflake_generator()
 		self.token = settings.token
 	
@@ -43,36 +51,51 @@ class S3Connector:
 			ArrayHelper(objects).each(self.consume)
 			sleep(5)
 	
-	def consume(self, object_):
+	def consume(self, object_: ObjectContent):
 		if self.validate_key_pattern(object_.key):
 			distributed_lock = get_unique_key_distributed_lock(self.get_resource_lock(object_.key), self.lock_service)
 			dependency = self.get_dependency(object_.key)
-			if self.s3Consumer.ask_lock(distributed_lock):
+			if self.ask_lock(distributed_lock):
 				try:
 					if self.check_dependency_finished(dependency):
-						self.s3Consumer.process(object_.key, self.get_code(object_.key), self.token)
+						self.process(object_.key, self.get_code(object_.key), self.token)
 					else:
 						logger.info("Dependency is not finished %s", object_.key)
 				except Exception as e:
-					logger.error("process object %s error", object_.key, exc_info=1)
+					logger.error("process object %s error", object_.key)
 				finally:
-					self.s3Consumer.ask_unlock(distributed_lock)
+					self.ask_unlock(distributed_lock)
 		else:
 			logger.error("The key pattern is not correct, %s", object_.key)
 	
-	def get_resource_lock(self, key: str) -> ResourceLock:
+	def ask_lock(self, lock: DistributedLock) -> bool:
+		return lock.try_lock_nowait()
+	
+	def ask_unlock(self, lock: DistributedLock) -> bool:
+		return lock.unlock()
+	
+	def process(self, key: str, code: str, token: str):
+		payload = self.simpleStorageService.get_object(key)
+		if payload:
+			trigger_data = PipelineTriggerDataWithPAT(code=code,
+			                                          pat=token,
+			                                          data=payload)
+			asyncio.run(handle_trigger_data(trigger_data))
+			# self.simpleStorageService.delete_object(key)
+	
+	def get_resource_lock(self, key: str) -> OSSCollectorCompetitiveLock:
 		key_parts = key.split(key_delimiter)
-		return ResourceLock(lockId=self.snowflakeGenerator.next_id(),
-		                    resourceId=key,
-		                    modelName=key_parts[1],
-		                    objectId=key_parts[2])
+		return OSSCollectorCompetitiveLock(lockId=self.snowflakeGenerator.next_id(),
+		                                   resourceId=key,
+		                                   modelName=key_parts[1],
+		                                   objectId=key_parts[2])
 	
 	def get_dependency(self, key: str) -> Optional[Dependency]:
 		key_parts = key.split(key_delimiter)
 		if len(key_parts) == 5:
 			return Dependency(model_name=key_parts[3], object_id=key_parts[4])
 		else:
-			return None
+			return Dependency(model_name=key_parts[1], object_id=key_parts[2])
 	
 	def check_dependency_finished(self, dependency: Optional[Dependency]) -> bool:
 		if dependency:
