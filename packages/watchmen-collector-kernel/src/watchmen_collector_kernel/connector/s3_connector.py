@@ -86,7 +86,7 @@ class S3Connector:
 			                                          pat=token,
 			                                          data=payload)
 			asyncio.run(handle_trigger_data(trigger_data))
-		# self.simpleStorageService.delete_object(key)
+		self.simpleStorageService.delete_object(key)
 
 	def get_resource_lock(self, key: str) -> OSSCollectorCompetitiveLock:
 		key_parts = key.split(key_delimiter)
