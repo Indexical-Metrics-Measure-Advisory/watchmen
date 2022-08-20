@@ -2,12 +2,12 @@
 from datetime import datetime
 from typing import Optional
 
-from watchmen_model.common import LockId, Storable
+from watchmen_model.common import Storable, OssCollectorCompetitiveLockId
 from watchmen_utilities import get_current_time_in_seconds
 
 
-class ResourceLock(Storable):
-	lockId: LockId
+class OSSCollectorCompetitiveLock(Storable):
+	lockId: OssCollectorCompetitiveLockId
 	resourceId: str
 	modelName: str
 	objectId: str

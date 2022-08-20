@@ -1,4 +1,4 @@
-CREATE TABLE resource_lock
+CREATE TABLE oss_collector_competitive_lock
 (
     lock_id        VARCHAR(50) NOT NULL,
     resource_id    VARCHAR(500) NOT NULL,

@@ -6,12 +6,21 @@ from boto3 import client, resource
 from boto3.exceptions import Boto3Error
 from botocore.exceptions import ClientError
 
+from watchmen_model.common import DataModel
 from watchmen_model.system import DataSourceParam
 from watchmen_storage import ask_object_storage_need_date_directory
-from watchmen_utilities import serialize_to_json
+from watchmen_utilities import serialize_to_json, ArrayHelper
 from .object_defs_s3 import as_file_name
 
 logger = getLogger(__name__)
+
+
+class ObjectContent(DataModel):
+	key: str
+	lastModified: datetime
+	eTag: str
+	size: int
+	storageClass: str
 
 
 class SimpleStorageService:
@@ -69,14 +78,19 @@ class SimpleStorageService:
 		bucket = self.resource.Bucket(self.bucket_name)
 		bucket.objects.filter(Prefix=prefix).delete()
 	
-	def list_objects(self) -> List:
+	def list_objects(self) -> List[ObjectContent]:
 		bucket = self.resource.Bucket(self.bucket_name)
 		try:
-			objects = list(bucket.objects.all())
-			logger.info("Got objects %s from bucket '%s'",
-			            [o.key for o in objects], bucket.name)
-		except ClientError:
+			# objects = list(bucket.objects.all())
+			response = self.client.list_objects_v2(Bucket=self.bucket_name, MaxKeys=300)
+			objects = ArrayHelper(response['Contents']).map(lambda x: ObjectContent(key=x.get('Key'),
+			                                                              lastModified=x.get('LastModified'),
+			                                                              eTag=x.get('ETag'),
+			                                                              size=x.get('Size'),
+			                                                              storageClass=x.get('StorageClass'))).to_list()
+		except Boto3Error:
 			logger.exception("Couldn't get objects for bucket '%s'.", bucket.name)
 			raise
 		else:
 			return objects
+

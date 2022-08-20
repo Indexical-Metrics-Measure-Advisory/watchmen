@@ -36,4 +36,4 @@ AchievementPluginTaskId = TypeVar('AchievementPluginTaskId', bound=str)
 
 PatId = TypeVar('PatId', bound=str)
 
-LockId = TypeVar('LockId', bound=str)
+OssCollectorCompetitiveLockId = TypeVar('OssCollectorCompetitiveLockId', bound=str)
