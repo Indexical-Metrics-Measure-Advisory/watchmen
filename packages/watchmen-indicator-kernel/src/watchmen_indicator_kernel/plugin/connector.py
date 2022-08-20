@@ -1,7 +1,7 @@
 import json
 from urllib import request
 
-from watchmen_indicator_kernel.common.settings import ask_plugin_host
+from watchmen_indicator_kernel.common import ask_plugin_host
 from watchmen_model.indicator import AchievementPluginTask
 from watchmen_model.system import Plugin
 
