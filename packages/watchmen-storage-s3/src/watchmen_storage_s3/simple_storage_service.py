@@ -4,7 +4,6 @@ from typing import Dict, Optional, List, Union
 from datetime import datetime
 from boto3 import client, resource
 from boto3.exceptions import Boto3Error
-from botocore.exceptions import ClientError
 
 from watchmen_model.common import DataModel
 from watchmen_model.system import DataSourceParam

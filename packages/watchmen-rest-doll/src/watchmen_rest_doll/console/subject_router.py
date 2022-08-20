@@ -76,6 +76,9 @@ async def load_subject_by_name(name: str,
                                principal_service: PrincipalService = Depends(get_console_principal)) -> Subject:
     subject_service = get_subject_service(principal_service)
 
+    # TODO user id add
+
+
     def action() -> Subject:
         return subject_service.find_by_name(name)
 
