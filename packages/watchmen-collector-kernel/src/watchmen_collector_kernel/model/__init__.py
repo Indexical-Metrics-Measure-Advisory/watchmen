@@ -1,2 +1,1 @@
-from .resource_lock import ResourceLock
-from .dependency import Dependency
+from .oss_collector_competitive_lock import OSSCollectorCompetitiveLock

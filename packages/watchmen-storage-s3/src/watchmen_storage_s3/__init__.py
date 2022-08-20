@@ -1,3 +1,3 @@
 from .data_source_s3 import S3DataSourceParams
 from .storage_s3_configuration import StorageS3Configuration
-from .simple_storage_service import SimpleStorageService
+from .simple_storage_service import SimpleStorageService, ObjectContent

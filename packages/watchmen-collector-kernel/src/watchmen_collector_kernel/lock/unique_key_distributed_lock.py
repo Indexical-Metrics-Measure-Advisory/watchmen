@@ -1,13 +1,13 @@
 from sqlalchemy.exc import IntegrityError
 
 from .distributed_lock import DistributedLock
-from .lock_service import LockService
-from watchmen_collector_kernel.model import ResourceLock
+from .oss_collector_lock_service import OssCollectorLockService
+from watchmen_collector_kernel.model import OSSCollectorCompetitiveLock
 
 
 class UniqueKeyDistributedLock(DistributedLock):
 
-	def __init__(self, lock: ResourceLock, lock_service: LockService):
+	def __init__(self, lock: OSSCollectorCompetitiveLock, lock_service: OssCollectorLockService):
 		self.lock = lock
 		self.lockService = lock_service
 
@@ -28,5 +28,5 @@ class UniqueKeyDistributedLock(DistributedLock):
 		self.lockService.delete_by_id(self.lock.lockId)
 	
 
-def get_unique_key_distributed_lock(lock: ResourceLock, lock_service: LockService) -> UniqueKeyDistributedLock:
+def get_unique_key_distributed_lock(lock: OSSCollectorCompetitiveLock, lock_service: OssCollectorLockService) -> UniqueKeyDistributedLock:
 	return UniqueKeyDistributedLock(lock=lock, lock_service=lock_service)
