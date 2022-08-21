@@ -1,4 +1,4 @@
-from watchmen_collector_kernel.connector.s3_connector import init_s3_collector
+
 from watchmen_pipeline_kernel.boot import init_prebuilt_external_writers, init_topic_snapshot_jobs
 from .connectors import init_kafka, init_rabbitmq
 from .settings import ask_kafka_connector_enabled, ask_kafka_connector_settings, ask_rabbitmq_connector_enabled, \
@@ -21,6 +21,7 @@ class PipelineSurface:
 
 	def init_s3_connector(self) -> None:
 		if ask_s3_connector_enabled():
+			from watchmen_collector_kernel.connector import init_s3_collector
 			init_s3_collector(ask_s3_connector_settings())
 
 	def init_connectors(self) -> None:

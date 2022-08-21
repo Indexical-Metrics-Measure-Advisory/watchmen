@@ -12,7 +12,7 @@ packages = [
 python = "^3.9"
 watchmen-pipeline-kernel = { path = "../watchmen-pipeline-kernel", develop = true }
 watchmen-rest = { path = "../watchmen-rest", develop = true }
-watchmen-collector-kernel = { path = "../watchmen-collector-kernel", develop = true }
+watchmen-collector-kernel = { path = "../watchmen-collector-kernel", develop = true, optional = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
 watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
 watchmen-storage-mongodb = { path = "../watchmen-storage-mongodb", develop = true, optional = true }
@@ -26,6 +26,7 @@ requests = { version = "^2.27.1", optional = true }
 [tool.poetry.dev-dependencies]
 
 [tool.poetry.extras]
+collector = ["watchmen-collector-kernel"]
 mysql = ["watchmen-storage-mysql"]
 oracle = ["watchmen-storage-oracle"]
 mongodb = ["watchmen-storage-mongodb"]
