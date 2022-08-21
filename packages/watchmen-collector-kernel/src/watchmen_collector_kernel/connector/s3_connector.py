@@ -99,7 +99,7 @@ class S3Connector:
 		if len(key_parts) == 5:
 			return Dependency(model_name=key_parts[3], object_id=key_parts[4])
 		else:
-			return Dependency(model_name=key_parts[1], object_id=key_parts[2])
+			return None
 
 	def check_dependency_finished(self, dependency: Optional[Dependency]) -> bool:
 		if dependency:
