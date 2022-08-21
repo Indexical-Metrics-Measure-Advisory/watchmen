@@ -1,9 +1,9 @@
+import asyncio
 from logging import getLogger
 from threading import Thread
 from time import sleep
 from typing import Optional
 
-import asyncio
 
 from watchmen_collector_kernel.common import S3CollectorSettings
 from watchmen_collector_kernel.lock import get_oss_collector_lock_service, get_unique_key_distributed_lock, DistributedLock
@@ -12,8 +12,9 @@ from watchmen_meta.common import ask_snowflake_generator
 from watchmen_storage_s3 import SimpleStorageService, ObjectContent
 from watchmen_utilities import ArrayHelper
 from watchmen_model.pipeline_kernel import PipelineTriggerDataWithPAT
-from watchmen_pipeline_surface.connectors.handler import handle_trigger_data
 from watchmen_model.common import Storable
+
+from .handler import save_topic_data, handle_trigger_data
 
 logger = getLogger(__name__)
 
@@ -60,9 +61,9 @@ class S3Connector:
 					if self.check_dependency_finished(dependency):
 						self.process(object_.key, self.get_code(object_.key), self.token)
 					else:
-						logger.info("Dependency is not finished %s", object_.key)
+						logger.error("Dependency is not finished %s", object_.key)
 				except Exception as e:
-					logger.error("process object %s error", object_.key)
+					logger.error("process object %s error", object_.key, exc_info=1)
 				finally:
 					self.ask_unlock(distributed_lock)
 		else:
@@ -80,8 +81,17 @@ class S3Connector:
 			trigger_data = PipelineTriggerDataWithPAT(code=code,
 			                                          pat=token,
 			                                          data=payload)
-			asyncio.run(handle_trigger_data(trigger_data))
-			self.simpleStorageService.delete_object(key)
+			try:
+				save_topic_data(trigger_data)
+			except Exception:
+				logger.error("Save trigger data error %s", key, exc_info=1)
+			else:
+				try:
+					asyncio.run(handle_trigger_data(trigger_data))
+				except Exception:
+					logger.error("Process trigger data error %s", key, exc_info=1)
+				finally:
+					self.simpleStorageService.delete_object(key)
 	
 	def get_resource_lock(self, key: str) -> OSSCollectorCompetitiveLock:
 		key_parts = key.split(key_delimiter)
@@ -95,7 +105,7 @@ class S3Connector:
 		if len(key_parts) == 5:
 			return Dependency(model_name=key_parts[3], object_id=key_parts[4])
 		else:
-			return Dependency(model_name=key_parts[1], object_id=key_parts[2])
+			return None
 	
 	def check_dependency_finished(self, dependency: Optional[Dependency]) -> bool:
 		if dependency:

@@ -31,10 +31,11 @@ def find_topic_schema(name: str, principal_service: PrincipalService) -> TopicSc
 async def invoke(
 		trigger_data: PipelineTriggerData,
 		trace_id: PipelineTriggerTraceId, principal_service: PrincipalService,
-		asynchronized: bool) -> int:
+		asynchronized: bool,
+		save_trigger_data_skipped: bool = False) -> int:
 	if trigger_data.data is None:
 		raise PipelineKernelException(f'Trigger data is null.')
-
+	
 	if principal_service.is_super_admin():
 		if is_blank(trigger_data.tenantId):
 			raise Exception('No tenant appointed.')
@@ -50,7 +51,7 @@ async def invoke(
 	else:
 		if is_not_blank(trigger_data.tenantId) and trigger_data.tenantId != principal_service.get_tenant_id():
 			raise Exception(f'Tenant[{trigger_data.tenantId}] does not match principal.')
-
+	
 	schema = find_topic_schema(trigger_data.code, principal_service)
 	return await PipelineTrigger(
 		trigger_topic_schema=schema,
@@ -59,7 +60,8 @@ async def invoke(
 		trace_id=trace_id,
 		principal_service=principal_service,
 		asynchronized=asynchronized,
-		handle_monitor_log=create_monitor_log_pipeline_invoker(trace_id, principal_service)
+		handle_monitor_log=create_monitor_log_pipeline_invoker(trace_id, principal_service),
+		save_trigger_data_skipped=save_trigger_data_skipped
 	).invoke()
 
 
@@ -75,3 +77,17 @@ async def try_to_invoke_pipelines_async(
 		principal_service: PrincipalService
 ) -> int:
 	return await invoke(trigger_data, trace_id, principal_service, True)
+
+
+async def try_to_invoke_pipelines_skip_save_trigger_data(
+		trigger_data: PipelineTriggerData, trace_id: PipelineTriggerTraceId,
+		principal_service: PrincipalService
+) -> int:
+	return await invoke(trigger_data, trace_id, principal_service, False, True)
+
+
+async def try_to_invoke_pipelines_async_skip_save_trigger_data(
+		trigger_data: PipelineTriggerData, trace_id: PipelineTriggerTraceId,
+		principal_service: PrincipalService
+) -> int:
+	return await invoke(trigger_data, trace_id, principal_service, True, True)
