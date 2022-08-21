@@ -2,7 +2,6 @@ from logging import getLogger
 
 from pydantic import BaseSettings
 
-from watchmen_collector_kernel.common import S3CollectorSettings
 from watchmen_utilities import is_blank
 from .connectors import KafkaSettings, RabbitmqSettings
 
@@ -79,11 +78,16 @@ def ask_s3_connector_enabled() -> bool:
 	return settings.S3_COLLECTOR_CONNECTOR
 
 
-def ask_s3_connector_settings() -> S3CollectorSettings:
-	return S3CollectorSettings(
-		access_key_id=settings.S3_COLLECTOR_ACCESS_KEY_ID,
-		secret_access_key=settings.S3_COLLECTOR_SECRET_ACCESS_KEY,
-		bucket_name=settings.S3_COLLECTOR_BUCKET_NAME,
-		region=settings.S3_COLLECTOR_REGION,
-		token=settings.S3_COLLECTOR_TOKEN
-	)
+def ask_s3_connector_settings():
+	from watchmen_collector_kernel.common import S3CollectorSettings
+	
+	def get_s3_collector_settings() -> S3CollectorSettings:
+		return S3CollectorSettings(
+			access_key_id=settings.S3_COLLECTOR_ACCESS_KEY_ID,
+			secret_access_key=settings.S3_COLLECTOR_SECRET_ACCESS_KEY,
+			bucket_name=settings.S3_COLLECTOR_BUCKET_NAME,
+			region=settings.S3_COLLECTOR_REGION,
+			token=settings.S3_COLLECTOR_TOKEN
+		)
+	
+	return get_s3_collector_settings()
