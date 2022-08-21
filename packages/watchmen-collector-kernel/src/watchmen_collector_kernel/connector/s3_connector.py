@@ -65,7 +65,6 @@ class S3Connector:
 						logger.info("Dependency is not finished %s", object_.key)
 				except Exception as e:
 					traceback.print_exc()
-
 					logger.error("process object %s error", object_.key)
 				finally:
 					self.ask_unlock(distributed_lock)
