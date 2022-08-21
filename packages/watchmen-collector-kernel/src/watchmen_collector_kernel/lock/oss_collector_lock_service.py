@@ -1,7 +1,7 @@
 from watchmen_meta.common import EntityService, ask_meta_storage
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, OssCollectorCompetitiveLockId
-from watchmen_storage import EntityShaper, EntityRow, EntityName, TransactionalStorageSPI, SnowflakeGenerator, \
+from watchmen_storage import EntityShaper, EntityRow, EntityName, TransactionalStorageSPI, \
 	EntityHelper, EntityIdHelper, EntityFinder, ColumnNameLiteral, EntityCriteriaExpression, EntityList
 from watchmen_collector_kernel.model import OSSCollectorCompetitiveLock
 
