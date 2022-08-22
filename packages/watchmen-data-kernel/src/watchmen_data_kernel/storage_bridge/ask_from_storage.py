@@ -312,11 +312,12 @@ def parse_variable_to_value(
 			lambda x: x.name == topic_name)
 		if topic is None:
 			raise DataKernelException(f'Topic[{topic_name}] not found in given available topics.')
-	factor: Optional[Factor] = ArrayHelper(available_schemas[0].get_topic().factors) \
-		.find(lambda x: x.name == factor_name)
+
+	factor: Optional[Factor] = ArrayHelper(topic.factors).find(lambda x: x.name == factor_name)
 	if factor is None:
 		raise DataKernelException(
 			f'Factor[{factor_name}] in topic[id={topic.topicId}, name={topic.name}] not found.')
+
 	return False, ParsedStorageTopicFactorParameter(
 		TopicFactorParameter(kind=ParameterKind.TOPIC, topicId=topic.topicId, factorId=factor.factorId),
 		available_schemas, principal_service, allow_in_memory_variables)
