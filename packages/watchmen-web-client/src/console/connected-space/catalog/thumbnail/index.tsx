@@ -31,7 +31,7 @@ export const Thumbnail = (props: {
 
 	const {on, off} = useCatalogEventBus();
 	const thumbnailRef = useRef<HTMLDivElement>(null);
-	const [min, setMin] = useState(false);
+	const [minimum, setMinimum] = useState(true);
 	const forceUpdate = useForceUpdate();
 	useEffect(() => {
 		on(CatalogEventTypes.TOPIC_MOVED, forceUpdate);
@@ -65,19 +65,19 @@ export const Thumbnail = (props: {
 		const scrollLeft = x / ratio - parentWidth / 2;
 		parent.scrollTo({top: scrollTop, left: scrollLeft, behavior: 'smooth'});
 	};
-	const onCloseClicked = (event: MouseEvent<HTMLButtonElement>) => {
-		event.preventDefault();
-		event.stopPropagation();
-		setMin(!min);
-	};
+	const onMouseEnter = () => minimum && setMinimum(false);
+	const onMouseLeave = () => !minimum && setMinimum(true);
 
 	const horizontalRatio = THUMBNAIL_WIDTH / width;
 	const verticalRatio = THUMBNAIL_HEIGHT / height;
 	const ratio = Math.min(horizontalRatio, verticalRatio);
 
-	return <BodyThumbnail onClick={onThumbnailClicked} minimize={min}
+	return <BodyThumbnail onClick={onThumbnailClicked}
+	                      onMouseEnter={onMouseEnter}
+	                      onMouseLeave={onMouseLeave}
+	                      minimize={minimum}
 	                      ref={thumbnailRef}>
-		{min ? null : <ThumbnailBodySvg  {...svgSize} ratio={ratio}>
+		{minimum ? null : <ThumbnailBodySvg  {...svgSize} ratio={ratio}>
 			<BlockRelations graphics={data.graphics}/>
 			{data.topics.map(topic => {
 				const topicGraphics = topicGraphicsMap.get(topic.topicId)!;
@@ -100,10 +100,9 @@ export const Thumbnail = (props: {
 			}).flat()}
 			<BlockSelection graphics={data.graphics}/>
 		</ThumbnailBodySvg>}
-		{min ? null : <Current ratio={ratio}/>}
-		<CloseButton ink={ButtonInk.WARN} visible={min}
-		             onClick={onCloseClicked}>
-			<FontAwesomeIcon icon={min ? ICON_EXPAND_PANEL : ICON_CLOSE}/>
-		</CloseButton>
+		{minimum ? null : <Current ratio={ratio}/>}
+		{minimum ? <CloseButton ink={ButtonInk.WARN} visible={minimum}>
+			<FontAwesomeIcon icon={minimum ? ICON_EXPAND_PANEL : ICON_CLOSE}/>
+		</CloseButton> : null}
 	</BodyThumbnail>;
 };
