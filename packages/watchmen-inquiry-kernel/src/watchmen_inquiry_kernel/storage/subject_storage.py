@@ -950,32 +950,32 @@ class SubjectStorage:
 				operator=EntityCriteriaOperator.IS_NOT_EMPTY
 			)
 
-		def build_equation() -> EntityCriteriaExpression:
+		def build_equation(an_operator: EntityCriteriaOperator) -> EntityCriteriaExpression:
 			left = self.build_literal_by_report_parameter(subject_column_map, expression.left)
 			right = self.build_literal_by_report_parameter(subject_column_map, expression.right)
 			left_value = self.handle_equation_possible_types(left.literal, right.possibleTypes)
 			right_value = self.handle_equation_possible_types(right.literal, left.possibleTypes)
-			return EntityCriteriaExpression(left=left_value, operator=operator, right=right_value)
+			return EntityCriteriaExpression(left=left_value, operator=an_operator, right=right_value)
 
-		def build_comparison() -> EntityCriteriaExpression:
+		def build_comparison(an_operator: EntityCriteriaOperator) -> EntityCriteriaExpression:
 			left = self.build_literal_by_report_parameter(subject_column_map, expression.left)
 			right = self.build_literal_by_report_parameter(subject_column_map, expression.right)
 			left_value = self.handle_comparison_possible_types(left.literal, right.get_possible_types())
 			right_value = self.handle_comparison_possible_types(right.literal, left.get_possible_types())
-			return EntityCriteriaExpression(left=left_value, operator=operator, right=right_value)
+			return EntityCriteriaExpression(left=left_value, operator=an_operator, right=right_value)
 
 		if operator == ParameterExpressionOperator.EQUALS:
-			return build_equation()
+			return build_equation(EntityCriteriaOperator.EQUALS)
 		elif operator == ParameterExpressionOperator.NOT_EQUALS:
-			return build_equation()
+			return build_equation(EntityCriteriaOperator.NOT_EQUALS)
 		elif operator == ParameterExpressionOperator.LESS:
-			return build_comparison()
+			return build_comparison(EntityCriteriaOperator.LESS_THAN)
 		elif operator == ParameterExpressionOperator.LESS_EQUALS:
-			return build_comparison()
+			return build_comparison(EntityCriteriaOperator.LESS_THAN_OR_EQUALS)
 		elif operator == ParameterExpressionOperator.MORE:
-			return build_comparison()
+			return build_comparison(EntityCriteriaOperator.GREATER_THAN)
 		elif operator == ParameterExpressionOperator.MORE_EQUALS:
-			return build_comparison()
+			return build_comparison(EntityCriteriaOperator.GREATER_THAN_OR_EQUALS)
 		elif operator == ParameterExpressionOperator.IN:
 			return EntityCriteriaExpression(
 				left=self.build_literal_by_report_parameter(subject_column_map, expression.left).literal,
