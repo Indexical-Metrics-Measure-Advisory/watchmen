@@ -960,8 +960,8 @@ class SubjectStorage:
 		def build_comparison(an_operator: EntityCriteriaOperator) -> EntityCriteriaExpression:
 			left = self.build_literal_by_report_parameter(subject_column_map, expression.left)
 			right = self.build_literal_by_report_parameter(subject_column_map, expression.right)
-			left_value = self.handle_comparison_possible_types(left.literal, right.get_possible_types())
-			right_value = self.handle_comparison_possible_types(right.literal, left.get_possible_types())
+			left_value = self.handle_comparison_possible_types(left.literal, right.possibleTypes)
+			right_value = self.handle_comparison_possible_types(right.literal, left.possibleTypes)
 			return EntityCriteriaExpression(left=left_value, operator=an_operator, right=right_value)
 
 		if operator == ParameterExpressionOperator.EQUALS:
