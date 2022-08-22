@@ -11,8 +11,7 @@ export const BodyThumbnail = styled.div.attrs<{ minimize: boolean }>(({minimize}
 		'data-widget': 'pipelines-catalog-thumbnail',
 		style: {
 			width: minimize ? 'calc(var(--margin) / 4 * 3)' : (void 0),
-			height: minimize ? 'calc(var(--margin) / 4 * 3)' : (void 0),
-			overflow: minimize ? 'hidden' : (void 0)
+			height: minimize ? 'calc(var(--margin) / 4 * 3)' : (void 0)
 		}
 	};
 })<{ minimize: boolean }>`
@@ -23,7 +22,8 @@ export const BodyThumbnail = styled.div.attrs<{ minimize: boolean }>(({minimize}
 	width         : ${THUMBNAIL_WIDTH}px;
 	height        : ${THUMBNAIL_HEIGHT}px;
 	margin-left   : calc(var(--margin) / 4);
-	transition    : box-shadow 300ms ease-in-out;
+	overflow      : hidden;
+	transition    : box-shadow 300ms ease-in-out, width 300ms ease-in-out, height 300ms ease-in-out;
 	z-index       : 2;
 	&:hover {
 		box-shadow : var(--primary-hover-shadow);
@@ -103,15 +103,13 @@ export const CloseButton = styled(Button).attrs<{ visible: boolean }>(({visible}
 	return {
 		style: {
 			borderRadius: visible ? 0 : (void 0),
-			opacity: visible ? 0.7 : (void 0),
-			top: visible ? 0 : (void 0),
-			right: visible ? 0 : (void 0)
+			opacity: visible ? 0.5 : (void 0)
 		}
 	};
 })<{ visible: boolean }>`
 	position      : absolute;
-	top           : 2px;
-	right         : 2px;
+	bottom        : 0;
+	left          : 0;
 	width         : calc(var(--margin) / 4 * 3);
 	height        : calc(var(--margin) / 4 * 3);
 	padding       : 0;

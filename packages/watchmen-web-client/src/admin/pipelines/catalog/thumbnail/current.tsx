@@ -2,7 +2,7 @@ import {GraphicsPosition, GraphicsSize} from '@/services/data/graphics/graphics-
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {useCatalogEventBus} from '../catalog-event-bus';
 import {CatalogEventTypes} from '../catalog-event-bus-types';
-import {CurrentRect} from './widgets';
+import {CurrentRect, THUMBNAIL_HEIGHT, THUMBNAIL_WIDTH} from './widgets';
 
 const repaint = async (div: HTMLDivElement, ratio: number): Promise<(GraphicsPosition & GraphicsSize) | void> => {
 	return new Promise(resolve => {
@@ -12,10 +12,9 @@ const repaint = async (div: HTMLDivElement, ratio: number): Promise<(GraphicsPos
 		if (parent && body && svg) {
 			const {width, height} = body.getBoundingClientRect();
 			const {scrollTop, scrollLeft} = body;
-			const {width: parentWidth, height: parentHeight} = parent.getBoundingClientRect();
 			const {width: svgWidth, height: svgHeight} = svg.getBoundingClientRect();
-			const x = parentWidth / 2 - svgWidth / 2 + scrollLeft * ratio;
-			const y = parentHeight / 2 - svgHeight / 2 + scrollTop * ratio;
+			const x = THUMBNAIL_WIDTH / 2 - svgWidth / 2 + scrollLeft * ratio;
+			const y = THUMBNAIL_HEIGHT / 2 - svgHeight / 2 + scrollTop * ratio;
 			resolve({x, y, width: width * ratio, height: height * ratio});
 		} else {
 			resolve();
