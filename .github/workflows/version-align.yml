@@ -132,6 +132,12 @@ jobs:
         with:
           module-name: watchmen-pipeline-kernel
           target-version: ${{ inputs.version }}
+      - name: Change version [watchmen-collector-kernel]
+        uses: ./.github/actions/change-poetry-version/
+        id: change-poetry-version-collector-kernel
+        with:
+          module-name: watchmen-collector-kernel
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-pipeline-surface]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-pipeline-surface

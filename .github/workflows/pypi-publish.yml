@@ -41,91 +41,91 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install poetry
-      - name: Package [watchmen-utilities] and publish to Pypi
-        working-directory: ./packages/watchmen-utilities
-        run: |
-          poetry build
-          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
-      - name: Package [watchmen-model] and publish to Pypi
-        working-directory: ./packages/watchmen-model
-        run: |
-          poetry build
-          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
-      - name: Package [watchmen-storage] and publish to Pypi
-        working-directory: ./packages/watchmen-storage
-        run: |
-          poetry build
-          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
-      - name: Package [watchmen-storage-mongodb] and publish to Pypi
-        working-directory: ./packages/watchmen-storage-mongodb
-        run: |
-          poetry build
-          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
-      - name: Package [watchmen-storage-rds] and publish to Pypi
-        working-directory: ./packages/watchmen-storage-rds
-        run: |
-          poetry build
-          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
-      - name: Package [watchmen-storage-mssql] and publish to Pypi
-        working-directory: ./packages/watchmen-storage-mssql
-        run: |
-          poetry build
-          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
-      - name: Package [watchmen-storage-mysql] and publish to Pypi
-        working-directory: ./packages/watchmen-storage-mysql
-        run: |
-          poetry build
-          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
-      - name: Package [watchmen-storage-oracle] and publish to Pypi
-        working-directory: ./packages/watchmen-storage-oracle
-        run: |
-          poetry build
-          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
-      - name: Package [watchmen-storage-postgresql] and publish to Pypi
-        working-directory: ./packages/watchmen-storage-postgresql
-        run: |
-          poetry build
-          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
-      - name: Package [watchmen-storage-oss] and publish to Pypi
-        working-directory: ./packages/watchmen-storage-oss
-        run: |
-          poetry build
-          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
-      - name: Package [watchmen-storage-s3] and publish to Pypi
-        working-directory: ./packages/watchmen-storage-s3
-        run: |
-          poetry build
-          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
-      - name: Package [watchmen-auth] and publish to Pypi
-        working-directory: ./packages/watchmen-auth
-        run: |
-          poetry build
-          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
-      - name: Package [watchmen-rest] and publish to Pypi
-        working-directory: ./packages/watchmen-rest
-        run: |
-          poetry build
-          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
-      - name: Package [watchmen-meta] and publish to Pypi
-        working-directory: ./packages/watchmen-meta
-        run: |
-          poetry build
-          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
-      - name: Package [watchmen-data-kernel] and publish to Pypi
-        working-directory: ./packages/watchmen-data-kernel
-        run: |
-          poetry build
-          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
-      - name: Package [watchmen-data-surface] and publish to Pypi
-        working-directory: ./packages/watchmen-data-surface
-        run: |
-          poetry build
-          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
-      - name: Package [watchmen-pipeline-kernel] and publish to Pypi
-        working-directory: ./packages/watchmen-pipeline-kernel
-        run: |
-          poetry build
-          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
+#      - name: Package [watchmen-utilities] and publish to Pypi
+#        working-directory: ./packages/watchmen-utilities
+#        run: |
+#          poetry build
+#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
+#      - name: Package [watchmen-model] and publish to Pypi
+#        working-directory: ./packages/watchmen-model
+#        run: |
+#          poetry build
+#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
+#      - name: Package [watchmen-storage] and publish to Pypi
+#        working-directory: ./packages/watchmen-storage
+#        run: |
+#          poetry build
+#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
+#      - name: Package [watchmen-storage-mongodb] and publish to Pypi
+#        working-directory: ./packages/watchmen-storage-mongodb
+#        run: |
+#          poetry build
+#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
+#      - name: Package [watchmen-storage-rds] and publish to Pypi
+#        working-directory: ./packages/watchmen-storage-rds
+#        run: |
+#          poetry build
+#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
+#      - name: Package [watchmen-storage-mssql] and publish to Pypi
+#        working-directory: ./packages/watchmen-storage-mssql
+#        run: |
+#          poetry build
+#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
+#      - name: Package [watchmen-storage-mysql] and publish to Pypi
+#        working-directory: ./packages/watchmen-storage-mysql
+#        run: |
+#          poetry build
+#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
+#      - name: Package [watchmen-storage-oracle] and publish to Pypi
+#        working-directory: ./packages/watchmen-storage-oracle
+#        run: |
+#          poetry build
+#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
+#      - name: Package [watchmen-storage-postgresql] and publish to Pypi
+#        working-directory: ./packages/watchmen-storage-postgresql
+#        run: |
+#          poetry build
+#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
+#      - name: Package [watchmen-storage-oss] and publish to Pypi
+#        working-directory: ./packages/watchmen-storage-oss
+#        run: |
+#          poetry build
+#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
+#      - name: Package [watchmen-storage-s3] and publish to Pypi
+#        working-directory: ./packages/watchmen-storage-s3
+#        run: |
+#          poetry build
+#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
+#      - name: Package [watchmen-auth] and publish to Pypi
+#        working-directory: ./packages/watchmen-auth
+#        run: |
+#          poetry build
+#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
+#      - name: Package [watchmen-rest] and publish to Pypi
+#        working-directory: ./packages/watchmen-rest
+#        run: |
+#          poetry build
+#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
+#      - name: Package [watchmen-meta] and publish to Pypi
+#        working-directory: ./packages/watchmen-meta
+#        run: |
+#          poetry build
+#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
+#      - name: Package [watchmen-data-kernel] and publish to Pypi
+#        working-directory: ./packages/watchmen-data-kernel
+#        run: |
+#          poetry build
+#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
+#      - name: Package [watchmen-data-surface] and publish to Pypi
+#        working-directory: ./packages/watchmen-data-surface
+#        run: |
+#          poetry build
+#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
+#      - name: Package [watchmen-pipeline-kernel] and publish to Pypi
+#        working-directory: ./packages/watchmen-pipeline-kernel
+#        run: |
+#          poetry build
+#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
       - name: Package [watchmen-collector-kernel] and publish to Pypi
         working-directory: ./packages/watchmen-collector-kernel
         run: |
