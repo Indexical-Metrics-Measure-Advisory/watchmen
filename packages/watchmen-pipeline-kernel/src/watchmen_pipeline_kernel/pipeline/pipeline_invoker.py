@@ -31,8 +31,7 @@ def find_topic_schema(name: str, principal_service: PrincipalService) -> TopicSc
 async def invoke(
 		trigger_data: PipelineTriggerData,
 		trace_id: PipelineTriggerTraceId, principal_service: PrincipalService,
-		asynchronized: bool,
-		save_trigger_data_skipped: bool = False) -> int:
+		asynchronized: bool) -> int:
 	if trigger_data.data is None:
 		raise PipelineKernelException(f'Trigger data is null.')
 	
@@ -60,8 +59,7 @@ async def invoke(
 		trace_id=trace_id,
 		principal_service=principal_service,
 		asynchronized=asynchronized,
-		handle_monitor_log=create_monitor_log_pipeline_invoker(trace_id, principal_service),
-		save_trigger_data_skipped=save_trigger_data_skipped
+		handle_monitor_log=create_monitor_log_pipeline_invoker(trace_id, principal_service)
 	).invoke()
 
 
@@ -78,16 +76,3 @@ async def try_to_invoke_pipelines_async(
 ) -> int:
 	return await invoke(trigger_data, trace_id, principal_service, True)
 
-
-async def try_to_invoke_pipelines_skip_save_trigger_data(
-		trigger_data: PipelineTriggerData, trace_id: PipelineTriggerTraceId,
-		principal_service: PrincipalService
-) -> int:
-	return await invoke(trigger_data, trace_id, principal_service, False, True)
-
-
-async def try_to_invoke_pipelines_async_skip_save_trigger_data(
-		trigger_data: PipelineTriggerData, trace_id: PipelineTriggerTraceId,
-		principal_service: PrincipalService
-) -> int:
-	return await invoke(trigger_data, trace_id, principal_service, True, True)
