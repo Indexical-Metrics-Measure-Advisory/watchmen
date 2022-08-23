@@ -41,7 +41,6 @@ class PipelineTrigger:
 		self.principalService = principal_service
 		self.asynchronized = asynchronized
 		self.handle_monitor_log = handle_monitor_log
-		self.save_trigger_data_skipped = save_trigger_data_skipped
 	
 	def ask_topic_data_service(self, schema: TopicSchema) -> TopicDataService:
 		"""
@@ -149,20 +148,10 @@ class PipelineTrigger:
 		trigger data should be prepared and saved
 		"""
 		self.prepare_trigger_data()
-		if self.save_trigger_data_skipped:
-			result = self.get_topic_trigger()
-		else:
-			result = self.save_trigger_data()
+		result = self.save_trigger_data()
 		if self.asynchronized:
 			ensure_future(self.start(result))
 		else:
 			await self.start(result)
 		return result.internalDataId
 	
-	def get_topic_trigger(self) -> TopicTrigger:
-		return TopicTrigger(
-			previous=None,
-			current=self.triggerData,
-			triggerType=PipelineTriggerType.INSERT,
-			internalDataId=-1
-		)

@@ -29,6 +29,9 @@ class PipelineSurfaceSettings(BaseSettings):
 	S3_COLLECTOR_BUCKET_NAME: str = ''
 	S3_COLLECTOR_REGION: str = ''
 	S3_COLLECTOR_TOKEN: str = ''
+	S3_COLLECTOR_TENANT: int = 0
+	S3_COLLECTOR_CONSUME_PREFIX = ''
+	S3_COLLECTOR_DEAD_PREFIX = ''
 	
 	class Config:
 		# secrets_dir = '/var/run'
@@ -87,7 +90,10 @@ def ask_s3_connector_settings():
 			secret_access_key=settings.S3_COLLECTOR_SECRET_ACCESS_KEY,
 			bucket_name=settings.S3_COLLECTOR_BUCKET_NAME,
 			region=settings.S3_COLLECTOR_REGION,
-			token=settings.S3_COLLECTOR_TOKEN
+			token=settings.S3_COLLECTOR_TOKEN,
+			tenant_id=settings.S3_COLLECTOR_TENANT,
+			consume_prefix=settings.S3_COLLECTOR_CONSUME_PREFIX,
+			dead_prefix=settings.S3_COLLECTOR_DEAD_PREFIX
 		)
 	
 	return get_s3_collector_settings()

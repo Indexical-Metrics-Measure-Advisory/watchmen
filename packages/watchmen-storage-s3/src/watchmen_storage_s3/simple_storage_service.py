@@ -78,19 +78,25 @@ class SimpleStorageService:
 		bucket = self.resource.Bucket(self.bucket_name)
 		bucket.objects.filter(Prefix=prefix).delete()
 	
-	def list_objects(self) -> List[ObjectContent]:
+	def list_objects(self, max_keys: int = 10, prefix: Optional[str] = None) -> List[ObjectContent]:
 		bucket = self.resource.Bucket(self.bucket_name)
 		try:
-			# objects = list(bucket.objects.all())
-			response = self.client.list_objects_v2(Bucket=self.bucket_name, MaxKeys=300)
-			objects = ArrayHelper(response['Contents']).map(lambda x: ObjectContent(key=x.get('Key'),
-			                                                              lastModified=x.get('LastModified'),
-			                                                              eTag=x.get('ETag'),
-			                                                              size=x.get('Size'),
-			                                                              storageClass=x.get('StorageClass'))).to_list()
+			if prefix:
+				response = self.client.list_objects_v2(Bucket=self.bucket_name, MaxKeys=max_keys, Prefix=prefix)
+			else:
+				response = self.client.list_objects_v2(Bucket=self.bucket_name, MaxKeys=max_keys)
+			
+			if response.get('Contents', None):
+				objects = ArrayHelper(response['Contents']).map(lambda x: ObjectContent(key=x.get('Key'),
+				                                                                        lastModified=x.get('LastModified'),
+				                                                                        eTag=x.get('ETag'),
+				                                                                        size=x.get('Size'),
+				                                                                        storageClass=x.get(
+					                                                                        'StorageClass'))).to_list()
+			else:
+				objects = []
 		except Boto3Error:
 			logger.exception("Couldn't get objects for bucket '%s'.", bucket.name)
 			raise
 		else:
 			return objects
-
