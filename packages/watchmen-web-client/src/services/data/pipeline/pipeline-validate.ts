@@ -21,14 +21,11 @@ import {FindBy, PipelineStageUnitAction} from '../tuples/pipeline-stage-unit-act
 import {
 	isAlarmAction,
 	isCopyToMemoryAction,
-	isDeleteRowsAction,
 	isDeleteTopicAction,
-	isExistsAction,
 	isInsertRowAction,
 	isMergeRowAction,
 	isReadFactorAction,
 	isReadFactorsAction,
-	isReadRowsAction,
 	isReadTopicAction,
 	isWriteFactorAction,
 	isWriteToExternalAction
@@ -101,7 +98,7 @@ const countIndex = (one: TopicFactorParameter, another: Parameter, topic: Topic,
 const isIndexUsed = (action: FindBy, topic: Topic): boolean => {
 	const {by} = action;
 
-	const unique = !isReadFactorsAction(action) && !isReadRowsAction(action) && !isExistsAction(action) && !isDeleteRowsAction(action);
+	const unique = false;//!isReadFactorsAction(action) && !isReadRowsAction(action) && !isExistsAction(action) && !isDeleteRowsAction(action);
 
 	const definedIndexes: Record<FactorIndexGroup, Array<FactorId>> = topic.factors.reduce((indexes, factor) => {
 		if (factor.indexGroup) {
