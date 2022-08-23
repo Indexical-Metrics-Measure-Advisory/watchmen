@@ -126,6 +126,11 @@ jobs:
         run: |
           poetry build
           poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
+      - name: Package [watchmen-collector-kernel] and publish to Pypi
+        working-directory: ./packages/watchmen-collector-kernel
+        run: |
+          poetry build
+          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
       - name: Package [watchmen-pipeline-surface] and publish to Pypi
         working-directory: ./packages/watchmen-pipeline-surface
         run: |
