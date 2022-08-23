@@ -4,15 +4,14 @@ from threading import Thread
 from time import sleep
 from typing import Optional, Dict, Any
 
-from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.common import S3CollectorSettings
 from watchmen_collector_kernel.lock import get_oss_collector_lock_service, get_unique_key_distributed_lock, \
 	DistributedLock
 from watchmen_collector_kernel.model import OSSCollectorCompetitiveLock
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_storage_s3 import SimpleStorageService, ObjectContent
-from watchmen_utilities import ArrayHelper
-from watchmen_model.pipeline_kernel import PipelineTriggerDataWithPAT, PipelineTriggerData
+
+from watchmen_model.pipeline_kernel import PipelineTriggerData
 from watchmen_model.common import Storable
 
 from .handler import save_topic_data, handle_trigger_data
