@@ -8,3 +8,6 @@ class S3CollectorSettings(SettingsModel):
 	bucket_name: str
 	region: str
 	token: str
+	tenant_id: int
+	consume_prefix: str
+	dead_prefix: str
