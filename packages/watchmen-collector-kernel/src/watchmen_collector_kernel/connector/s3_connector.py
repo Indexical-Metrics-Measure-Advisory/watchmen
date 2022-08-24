@@ -105,12 +105,16 @@ class S3Connector:
 				logger.error("process object %s error", object_.key)
 				need_move = True
 			finally:
-				if need_move:
-					self.move_to_dead_queue(object_.key, payload)
-				else:
-					self.simpleStorageService.delete_object(object_.key)
-				self.ask_unlock(distributed_lock)
-				return 0
+				try:
+					if need_move:
+						self.move_to_dead_queue(object_.key, payload)
+					else:
+						self.simpleStorageService.delete_object(object_.key)
+				except Exception:
+					logger.error("clean the object on S3 error, will block the consume process", object_.key)
+				finally:
+					self.ask_unlock(distributed_lock)
+					return 0
 	
 	def get_payload(self, key: str) -> Dict:
 		result = self.simpleStorageService.get_object(key)
@@ -191,4 +195,3 @@ class S3Connector:
 	@staticmethod
 	def get_identifier(prefix, key) -> str:
 		return key.removeprefix(prefix)
-	
