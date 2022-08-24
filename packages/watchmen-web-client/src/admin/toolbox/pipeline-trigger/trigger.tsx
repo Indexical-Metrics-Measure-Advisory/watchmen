@@ -57,7 +57,7 @@ export const Trigger = (props: { topics: Array<Topic>, pipelines: Array<Pipeline
 			},
 			pipelineIds: []
 		},
-		threads: 16
+		threads: 4
 	});
 	const [fetchingRowCount, setFetchingRowCount] = useState(false);
 	const [runningState, setRunningState] = useState<RunningState>({
@@ -369,9 +369,11 @@ export const Trigger = (props: { topics: Array<Topic>, pipelines: Array<Pipeline
 						<span/>
 						<RunInBrowserContainer>
 							<TriggerText data-big={true}>
-								Pipeline triggered, total <span data-ink={ButtonInk.PRIMARY}>{runningState.total}</span>,
-								success <span data-ink={ButtonInk.SUCCESS}>{runningState.success}</span>,
-								failed: <span data-ink={ButtonInk.DANGER}>{runningState.failed.length}</span>.
+								Pipeline triggered, total <span
+								data-ink={ButtonInk.PRIMARY}>{runningState.total}</span>, <span
+								data-ink={ButtonInk.SUCCESS}>{runningState.success}</span> successful, <span
+								data-ink={ButtonInk.DANGER}>{runningState.failed.length}</span> failed. Check monitor
+								logs to more rerun details.
 							</TriggerText>
 							{runningState.failed.length !== 0 && runningState.running === RunningStatus.STOPPED
 								? <TriggerButton ink={ButtonInk.DANGER} onClick={onDownloadFailedClicked}>
