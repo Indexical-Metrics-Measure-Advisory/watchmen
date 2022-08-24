@@ -527,6 +527,10 @@ class CompiledInsertion(CompiledWriteTopicAction):
 			action_monitor_log: MonitorWriteAction,
 			principal_service: PrincipalService, topic_data_service: TopicDataService,
 			allow_failure: bool) -> bool:
+		"""
+		returns true when insert successfully.
+		return false when insert failed and given allow_failure is true.
+		"""
 		data = self.parsedMapping.run(None, variables, principal_service)
 		self.schema.initialize_default_values(data)
 		self.schema.cast_date_or_time(data)
@@ -549,6 +553,7 @@ class CompiledInsertion(CompiledWriteTopicAction):
 			triggerType=PipelineTriggerType.INSERT,
 			internalDataId=id_
 		))
+		return True
 
 
 # noinspection PyAbstractClass
@@ -689,9 +694,9 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 			if count == 0:
 				if is_insert_allowed:
 					# data not found, do insertion
-					fail_on_insert = self.do_insert(
+					success_on_insert = self.do_insert(
 						variables, new_pipeline, action_monitor_log, principal_service, topic_data_service, True)
-					if fail_on_insert:
+					if not success_on_insert:
 						work(times, False)
 				else:
 					# insertion is not allowed
