@@ -529,7 +529,7 @@ class CompiledInsertion(CompiledWriteTopicAction):
 			allow_failure: bool) -> bool:
 		"""
 		returns true when insert successfully.
-		return false when insert failed and given allow_failure is true.
+		returns false when insert failed and given allow_failure is true.
 		"""
 		data = self.parsedMapping.run(None, variables, principal_service)
 		self.schema.initialize_default_values(data)
