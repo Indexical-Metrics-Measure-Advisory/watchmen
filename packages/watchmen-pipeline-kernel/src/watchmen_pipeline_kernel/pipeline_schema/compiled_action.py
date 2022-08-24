@@ -534,6 +534,7 @@ class CompiledInsertion(CompiledWriteTopicAction):
 		try:
 			data = topic_data_service.insert(data)
 		except Exception as e:
+			logger.error(e, exc_info=True, stack_info=True)
 			if allow_failure:
 				return False
 			else:
