@@ -1,11 +1,14 @@
 import json
+import traceback
 from abc import abstractmethod
 from logging import getLogger
-from typing import Any, List, Optional, Tuple
+from threading import Thread
+from typing import Any, Dict, List, Optional, Tuple
 
 from sqlalchemy import delete, distinct, func, insert, select, Table, text, update
 from sqlalchemy.engine import Connection, Engine
 from sqlalchemy.sql.elements import literal_column
+from time import sleep, time
 
 from watchmen_model.common import DataPage
 from watchmen_storage import ask_disable_compiled_cache, ColumnNameLiteral, Entity, EntityColumnAggregateArithmetic, \
@@ -15,10 +18,27 @@ from watchmen_storage import ask_disable_compiled_cache, ColumnNameLiteral, Enti
 	TooManyEntitiesFoundException, TransactionalStorageSPI, UnexpectedStorageException, \
 	UnsupportedStraightColumnException
 from watchmen_utilities import ArrayHelper, is_blank, serialize_to_json
+from .settings import ask_connection_leak_time_in_seconds, ask_detect_connection_leak_enabled, \
+	ask_print_connection_leak_interval
 from .table_defs import find_table
 from .types import SQLAlchemyStatement
 
 logger = getLogger(__name__)
+
+conn_dict: Dict[str, Tuple[Any, float]] = {}
+
+
+def print_conn_dict() -> None:
+	sleep(ask_print_connection_leak_interval())
+	now = time()
+	for item in conn_dict.values():
+		if now - item[1] > ask_connection_leak_time_in_seconds():
+			logger.error(item[0])
+	print_conn_dict()
+
+
+if ask_detect_connection_leak_enabled():
+	Thread(target=print_conn_dict, args=(), daemon=True).start()
 
 
 class StorageRDS(TransactionalStorageSPI):
@@ -36,6 +56,8 @@ class StorageRDS(TransactionalStorageSPI):
 			self.build_dialect_json_serializer()
 			if ask_disable_compiled_cache():
 				self.connection = self.connection.execution_options(compiled_cache=None)
+			if ask_detect_connection_leak_enabled():
+				conn_dict[str(id(self.connection))] = traceback.format_stack(), time()
 
 	def begin(self) -> None:
 		if self.connection is not None:
@@ -43,6 +65,8 @@ class StorageRDS(TransactionalStorageSPI):
 		self.connection = self.engine.connect()
 		self.build_dialect_json_serializer()
 		self.connection.begin()
+		if ask_detect_connection_leak_enabled():
+			conn_dict[str(id(self.connection))] = traceback.format_stack(), time()
 
 	def build_dialect_json_serializer(self) -> None:
 		try:
@@ -70,6 +94,8 @@ class StorageRDS(TransactionalStorageSPI):
 	def close(self) -> None:
 		try:
 			if self.connection is not None:
+				if ask_detect_connection_leak_enabled():
+					del conn_dict[str(id(self.connection))]
 				self.connection.close()
 				del self.connection
 		except Exception as e:
