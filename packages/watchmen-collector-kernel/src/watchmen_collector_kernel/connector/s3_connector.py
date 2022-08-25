@@ -3,6 +3,7 @@ from logging import getLogger
 from threading import Thread
 from time import sleep
 from typing import Optional, Dict, Any
+import traceback
 
 from watchmen_collector_kernel.common import S3CollectorSettings
 from watchmen_collector_kernel.lock import get_oss_collector_lock_service, get_unique_key_distributed_lock, \
@@ -69,11 +70,12 @@ class S3Connector:
 	def run(self):
 		while True:
 			objects = self.simpleStorageService.list_objects(max_keys=10, prefix=self.consume_prefix)
-			print(len(objects))
+			logger.info("objects size ",len(objects))
 			if len(objects) == 0:
 				sleep(5)
 			else:
 				for object_ in objects:
+					logger.info("object key ",object_.key)
 					result = self.consume(object_)
 					if result == 0:
 						break
@@ -84,6 +86,7 @@ class S3Connector:
 			try:
 				need_move = False
 				payload = self.get_payload(object_.key)
+				logger.info("payload",payload)
 				object_key = self.get_identifier(self.consume_prefix, object_.key)
 				if self.validate_key_pattern(object_key):
 					dependency = self.get_dependency(object_key)
@@ -92,18 +95,23 @@ class S3Connector:
 					else:
 						logger.error("Dependency is not finished %s", object_.key)
 			except KeyValidatedException:
+				traceback.print_exc()
 				logger.error("object key validate error, ready to move to dead queue: %s", object_.key)
 				need_move = True
 			except TopicDataSaveException:
+				traceback.print_exc()
 				logger.error("save topic data error, ready to move to dead queue: %s", object_.key)
 				need_move = True
 			except PayloadNullException:
+				traceback.print_exc()
 				logger.error("payload is None, ready to move to dead queue: %s", object_.key)
 				need_move = True
 			except PipelineExecutionException:
+				traceback.print_exc()
 				logger.error("pipeline executing error, ready to move to dead queue: %s", object_.key)
 				need_move = True
 			except Exception:
+				traceback.print_exc()
 				logger.error("process object %s error", object_.key)
 				need_move = True
 			finally:
