@@ -13,7 +13,8 @@ class OSSCollectorCompetitiveLockShaper(EntityShaper):
 			'resource_id': entity.resourceId,
 			'model_name': entity.modelName,
 			'object_id': entity.objectId,
-			'registered_at': entity.registeredAt
+			'registered_at': entity.registeredAt,
+			'tenant_id': entity.tenantId
 		}
 	
 	def deserialize(self, row: EntityRow) -> OSSCollectorCompetitiveLock:
@@ -22,7 +23,8 @@ class OSSCollectorCompetitiveLockShaper(EntityShaper):
 			resourceId=row.get('resource_id'),
 			modelName=row.get('model_name'),
 			objectId=row.get('object_id'),
-			registeredAt=row.get('registered_at')
+			registeredAt=row.get('registered_at'),
+			tenantId=row.get('tenant_id')
 		)
 
 

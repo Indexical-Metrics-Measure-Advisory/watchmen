@@ -7,4 +7,4 @@ CREATE TABLE oss_collector_competitive_lock
     registered_at  DATE   NOT NULL,
     CONSTRAINT pk_oss_collector_competitive_lock PRIMARY KEY (lock_id)
 );
-CREATE UNIQUE INDEX u_oss_collector_competitive_lock_1 ON topics (model_name, object_id);
+CREATE UNIQUE INDEX u_oss_collector_competitive_lock_1 ON oss_collector_competitive_lock (model_name, object_id);
