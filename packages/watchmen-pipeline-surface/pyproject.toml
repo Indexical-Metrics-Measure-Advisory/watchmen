@@ -26,7 +26,6 @@ requests = { version = "^2.27.1", optional = true }
 [tool.poetry.dev-dependencies]
 
 [tool.poetry.extras]
-collector = ["watchmen-collector-kernel"]
 mysql = ["watchmen-storage-mysql"]
 oracle = ["watchmen-storage-oracle"]
 mongodb = ["watchmen-storage-mongodb"]
