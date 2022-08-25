@@ -94,25 +94,24 @@ class S3Connector:
 						self.process(object_.key, self.get_code(object_key), payload)
 					else:
 						logger.error("Dependency is not finished %s", object_.key)
-			except KeyValidatedException:
-				traceback.print_exc()
-				logger.error("object key validate error, ready to move to dead queue: %s", object_.key)
+			except KeyValidatedException :
+				logger.error("object key validate error, ready to move to dead queue: %s", object_.key,exc_info=True, stack_info=True)
 				need_move = True
 			except TopicDataSaveException:
-				traceback.print_exc()
-				logger.error("save topic data error, ready to move to dead queue: %s", object_.key)
+				# traceback.print_exc()
+				logger.error("save topic data error, ready to move to dead queue: %s", object_.key,exc_info=True, stack_info=True)
 				need_move = True
 			except PayloadNullException:
-				traceback.print_exc()
-				logger.error("payload is None, ready to move to dead queue: %s", object_.key)
+				# traceback.print_exc()
+				logger.error("payload is None, ready to move to dead queue: %s", object_.key,exc_info=True, stack_info=True)
 				need_move = True
 			except PipelineExecutionException:
-				traceback.print_exc()
-				logger.error("pipeline executing error, ready to move to dead queue: %s", object_.key)
+				# traceback.print_exc()
+				logger.error("pipeline executing error, ready to move to dead queue: %s", object_.key,exc_info=True, stack_info=True)
 				need_move = True
 			except Exception:
-				traceback.print_exc()
-				logger.error("process object %s error", object_.key)
+
+				logger.error("process object %s error", object_.key,exc_info=True, stack_info=True)
 				need_move = True
 			finally:
 				try:
