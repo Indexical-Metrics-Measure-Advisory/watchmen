@@ -166,18 +166,24 @@ class TopicDataService(TopicStructureService):
 		topic_data: Optional[Dict[str, Any]] = storage.find_by_id(id_, data_entity_helper.get_entity_id_helper())
 		return topic_data
 
-	def find_previous_data_by_id(self, id_: int, raise_on_not_found: bool = False) -> Optional[Dict[str, Any]]:
+	def find_previous_data_by_id(
+			self, id_: int, raise_on_not_found: bool = False, close_storage: bool = False
+	) -> Optional[Dict[str, Any]]:
 		"""
 		return previous topic data
 		"""
 		data_entity_helper = self.get_data_entity_helper()
 		storage = self.get_storage()
-		storage.connect()
-		previous_topic_data: Optional[Dict[str, Any]] = \
-			storage.find_by_id(id_, data_entity_helper.get_entity_id_helper())
-		if previous_topic_data is None and raise_on_not_found:
-			self.raise_exception(f'Data not found by data[id={id_}] from {self.raise_on_topic()}.')
-		return previous_topic_data
+		try:
+			storage.connect()
+			previous_topic_data: Optional[Dict[str, Any]] = \
+				storage.find_by_id(id_, data_entity_helper.get_entity_id_helper())
+			if previous_topic_data is None and raise_on_not_found:
+				self.raise_exception(f'Data not found by data[id={id_}] from {self.raise_on_topic()}.')
+			return previous_topic_data
+		finally:
+			if close_storage:
+				storage.close()
 
 	def trigger_by_merge(self, data: Dict[str, Any]) -> TopicTrigger:
 		topic = self.get_topic()
@@ -188,7 +194,7 @@ class TopicDataService(TopicStructureService):
 		if not has_id:
 			self.raise_exception(f'Id not found from data[{data}] on merge into {self.raise_on_topic()}.')
 		try:
-			previous_topic_data = self.find_previous_data_by_id(id_, True)
+			previous_topic_data = self.find_previous_data_by_id(id_=id_, raise_on_not_found=True, close_storage=False)
 			topic_data = self.try_to_wrap_to_topic_data(data)
 			data_entity_helper.assign_id_column(topic_data, id_)
 			# copy insert time from previous
@@ -228,7 +234,7 @@ class TopicDataService(TopicStructureService):
 		if not has_id:
 			self.raise_exception(f'Id not found in data[{data}] on delete from {self.raise_on_topic()}.')
 		try:
-			previous_topic_data = self.find_previous_data_by_id(id_, True)
+			previous_topic_data = self.find_previous_data_by_id(id_=id_, raise_on_not_found=True, close_storage=False)
 			storage.connect()
 			deleted_count = storage.delete_by_id(id_, self.get_data_entity_helper().get_entity_id_helper())
 			if deleted_count == 0:

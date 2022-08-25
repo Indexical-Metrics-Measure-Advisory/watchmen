@@ -116,7 +116,7 @@ async def rerun_by_topic_data(
 
 	storage = ask_topic_storage(schema, principal_service)
 	service = ask_topic_data_service(schema, storage, principal_service)
-	existing_data = service.find_previous_data_by_id(id_=data_id, raise_on_not_found=True)
+	existing_data = service.find_previous_data_by_id(id_=data_id, raise_on_not_found=True, close_storage=True)
 	# unwrap it, but reserved columns should be kept
 	unwrapped_data = service.try_to_unwrap_from_topic_data(existing_data)
 
