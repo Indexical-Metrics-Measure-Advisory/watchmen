@@ -25,13 +25,13 @@ from .types import SQLAlchemyStatement
 
 logger = getLogger(__name__)
 
-conn_dict: Dict[str, Tuple[Any, float]] = {}
+alive_conn_dict: Dict[str, Tuple[Any, float]] = {}
 
 
 def print_conn_dict() -> None:
 	sleep(ask_print_connection_leak_interval())
 	now = time()
-	for item in conn_dict.values():
+	for item in alive_conn_dict.values():
 		if now - item[1] > ask_connection_leak_time_in_seconds():
 			logger.error(item[0])
 	print_conn_dict()
@@ -57,7 +57,7 @@ class StorageRDS(TransactionalStorageSPI):
 			if ask_disable_compiled_cache():
 				self.connection = self.connection.execution_options(compiled_cache=None)
 			if ask_detect_connection_leak_enabled():
-				conn_dict[str(id(self.connection))] = traceback.format_stack(), time()
+				alive_conn_dict[str(id(self.connection))] = traceback.format_stack(), time()
 
 	def begin(self) -> None:
 		if self.connection is not None:
@@ -66,7 +66,7 @@ class StorageRDS(TransactionalStorageSPI):
 		self.build_dialect_json_serializer()
 		self.connection.begin()
 		if ask_detect_connection_leak_enabled():
-			conn_dict[str(id(self.connection))] = traceback.format_stack(), time()
+			alive_conn_dict[str(id(self.connection))] = traceback.format_stack(), time()
 
 	def build_dialect_json_serializer(self) -> None:
 		try:
@@ -95,7 +95,7 @@ class StorageRDS(TransactionalStorageSPI):
 		try:
 			if self.connection is not None:
 				if ask_detect_connection_leak_enabled():
-					del conn_dict[str(id(self.connection))]
+					del alive_conn_dict[str(id(self.connection))]
 				self.connection.close()
 				del self.connection
 		except Exception as e:
