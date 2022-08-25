@@ -148,7 +148,8 @@ class S3Connector:
 		return OSSCollectorCompetitiveLock(lockId=self.snowflakeGenerator.next_id(),
 		                                   resourceId=key,
 		                                   modelName=key_parts[1],
-		                                   objectId=key_parts[2])
+		                                   objectId=key_parts[2],
+		                                   tenantId=self.tenant_id)
 	
 	def get_dependency(self, key: str) -> Optional[Dependency]:
 		key_parts = key.split(identifier_delimiter)

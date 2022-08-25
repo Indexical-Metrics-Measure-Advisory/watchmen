@@ -296,10 +296,10 @@ table_objective_analysis = Table(
 	*create_tuple_audit_columns()
 )
 table_oss_collector_competitive_lock = Table(
-	'oss_collector_competitive_lock', meta_data,
+	'collector_competitive_lock', meta_data,
 	create_pk('lock_id'), create_str('resource_id', 500),
 	create_str('model_name', 20), create_str('object_id', 100),
-	create_datetime('registered_at', False)
+	create_datetime('registered_at', False), create_tenant_id()
 )
 
 # noinspection DuplicatedCode
