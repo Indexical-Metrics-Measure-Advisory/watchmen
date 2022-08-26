@@ -114,7 +114,6 @@ class S3Connector:
 				             stack_info=True)
 				need_move = True
 			except Exception:
-				
 				logger.error("process object %s error", object_.key, exc_info=True, stack_info=True)
 				need_move = True
 			finally:
@@ -169,6 +168,8 @@ class S3Connector:
 		key_parts = key.split(identifier_delimiter)
 		if len(key_parts) == 5:
 			return Dependency(model_name=key_parts[3], object_id=key_parts[4])
+		elif len(key_parts) == 3:
+			return Dependency(model_name=key_parts[1], object_id=key_parts[2])
 		else:
 			return None
 	
@@ -178,7 +179,7 @@ class S3Connector:
 			if len(data) == 0:
 				return True
 			elif len(data) == 1:
-				if data.get('status') == 1:
+				if data[0].status == 1:
 					return True
 				else:
 					return False
