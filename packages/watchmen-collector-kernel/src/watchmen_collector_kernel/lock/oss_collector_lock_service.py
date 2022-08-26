@@ -2,7 +2,7 @@ from watchmen_meta.common import EntityService, ask_meta_storage
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, OssCollectorCompetitiveLockId
 from watchmen_storage import EntityShaper, EntityRow, EntityName, TransactionalStorageSPI, \
-	EntityHelper, EntityIdHelper, EntityFinder, ColumnNameLiteral, EntityCriteriaExpression, EntityList
+	EntityHelper, EntityIdHelper, EntityFinder, ColumnNameLiteral, EntityCriteriaExpression, EntityList, Entity
 from watchmen_collector_kernel.model import OSSCollectorCompetitiveLock
 
 
@@ -14,7 +14,8 @@ class OSSCollectorCompetitiveLockShaper(EntityShaper):
 			'model_name': entity.modelName,
 			'object_id': entity.objectId,
 			'registered_at': entity.registeredAt,
-			'tenant_id': entity.tenantId
+			'tenant_id': entity.tenantId,
+			'status': entity.status
 		}
 	
 	def deserialize(self, row: EntityRow) -> OSSCollectorCompetitiveLock:
@@ -24,7 +25,8 @@ class OSSCollectorCompetitiveLockShaper(EntityShaper):
 			modelName=row.get('model_name'),
 			objectId=row.get('object_id'),
 			registeredAt=row.get('registered_at'),
-			tenantId=row.get('tenant_id')
+			tenantId=row.get('tenant_id'),
+			status=row.get('status')
 		)
 
 
@@ -36,7 +38,7 @@ class OssCollectorLockService(EntityService):
 	
 	def __init__(self, storage: TransactionalStorageSPI):
 		super().__init__(storage)
-		
+	
 	def get_entity_name(self) -> EntityName:
 		return OSS_COLLECTOR_COMPETITIVE_LOCK_TABLE
 	
@@ -49,7 +51,8 @@ class OssCollectorLockService(EntityService):
 	def get_storable_id(self, storable: OSSCollectorCompetitiveLock) -> StorableId:
 		return storable.lockId
 	
-	def set_storable_id(self, storable: OSSCollectorCompetitiveLock, storable_id: OssCollectorCompetitiveLockId) -> Storable:
+	def set_storable_id(self, storable: OSSCollectorCompetitiveLock,
+	                    storable_id: OssCollectorCompetitiveLockId) -> Storable:
 		storable.lockId = storable_id
 		return storable
 	
@@ -66,7 +69,14 @@ class OssCollectorLockService(EntityService):
 		                                         name=OSS_COLLECTOR_COMPETITIVE_LOCK_TABLE,
 		                                         shaper=OSS_COLLECTOR_COMPETITIVE_LOCK_ENTITY_SHAPER)
 		                          )
-
+	
+	def update_one(self, one: Entity) -> int:
+		self.storage.update_one(one,
+		                        EntityIdHelper(idColumnName='lock_id',
+		                                       name=OSS_COLLECTOR_COMPETITIVE_LOCK_TABLE,
+		                                       shaper=OSS_COLLECTOR_COMPETITIVE_LOCK_ENTITY_SHAPER)
+		                        )
+	
 	def find_by_dependency(self, model_name: str, object_id: str) -> EntityList:
 		return self.storage.find(EntityFinder(
 			name=self.get_entity_name(),
