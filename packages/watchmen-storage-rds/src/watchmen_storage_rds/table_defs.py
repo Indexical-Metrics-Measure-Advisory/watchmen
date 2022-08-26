@@ -311,7 +311,8 @@ table_oss_collector_competitive_lock = Table(
 	'collector_competitive_lock', meta_data,
 	create_pk('lock_id'), create_str('resource_id', 500),
 	create_str('model_name', 20), create_str('object_id', 100),
-	create_datetime('registered_at', False), create_tenant_id()
+	create_datetime('registered_at', False), create_tenant_id(),
+	create_int('status', False)
 )
 
 # noinspection DuplicatedCode
