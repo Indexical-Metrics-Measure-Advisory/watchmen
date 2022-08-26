@@ -30,7 +30,7 @@ export const AggregateArithmeticEditor = (props: { holder: AggregateArithmeticHo
 
 	const onExpandedClicked = () => setExpanded(true);
 	const onBlur = () => setExpanded(false);
-	const onSeverityClicked = (newArithmetic: AggregateArithmetic) => (event: MouseEvent<HTMLDivElement>) => {
+	const onArithmeticClicked = (newArithmetic: AggregateArithmetic) => (event: MouseEvent<HTMLDivElement>) => {
 		event.preventDefault();
 		event.stopPropagation();
 		if (newArithmetic === arithmetic) {
@@ -54,12 +54,12 @@ export const AggregateArithmeticEditor = (props: { holder: AggregateArithmeticHo
 
 	return <AggregateArithmeticContainer tabIndex={0} onClick={onExpandedClicked} onBlur={onBlur}>
 		<AggregateArithmeticOption active={true} expanded={expanded}
-		                           onClick={onSeverityClicked(arithmetic)}>
+		                           onClick={onArithmeticClicked(arithmetic)}>
 			{OptionsLabel[arithmetic]}
 		</AggregateArithmeticOption>
 		{candidates.map(candidate => {
 			return <AggregateArithmeticOption active={false} expanded={expanded}
-			                                  onClick={onSeverityClicked(candidate)}
+			                                  onClick={onArithmeticClicked(candidate)}
 			                                  key={candidate}>
 				{OptionsLabel[candidate]}
 			</AggregateArithmeticOption>;
