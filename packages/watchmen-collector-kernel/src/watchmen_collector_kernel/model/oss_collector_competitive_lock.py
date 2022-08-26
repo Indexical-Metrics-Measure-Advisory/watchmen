@@ -1,4 +1,3 @@
-
 from datetime import datetime
 from typing import Optional
 
@@ -13,6 +12,4 @@ class OSSCollectorCompetitiveLock(Storable):
 	objectId: str
 	registeredAt: Optional[datetime] = get_current_time_in_seconds()
 	tenantId: TenantId
-	
-	
-
+	status: int = 0  # 0-start 1-end
