@@ -8,6 +8,7 @@ import {PipelineStageUnit} from '@/services/data/tuples/pipeline-stage-unit-type
 import {Pipeline} from '@/services/data/tuples/pipeline-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import React from 'react';
+import {AccumulateModeRow} from '../accumulate-mode';
 import {useActionType} from '../action-effect/use-action-type';
 import {useActionEventBus} from '../action-event-bus';
 import {ActionEventTypes} from '../action-event-bus-types';
@@ -46,6 +47,7 @@ export const WriteFactor = (props: {
 		                 expectedTypes={[AnyFactorType.ANY]}/>
 		<ActionLeadLabelThin>Write As:</ActionLeadLabelThin>
 		<AggregateArithmeticEditor holder={action} onChange={onArithmeticChanged}/>
+		<AccumulateModeRow action={action}/>
 		<ActionLeadLabelThin>Target Topic & Factor:</ActionLeadLabelThin>
 		{/* any type is valid here, factor has high priority here */}
 		<TopicFactorPicker action={action} topics={topics} expectedTypes={[AnyFactorType.ANY]}/>

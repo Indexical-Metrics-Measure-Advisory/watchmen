@@ -15,6 +15,7 @@ import {useForceUpdate} from '@/widgets/basic/utils';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import React from 'react';
+import {AccumulateModeRow} from '../accumulate-mode';
 import {useActionType} from '../action-effect/use-action-type';
 import {FactorsMapping} from '../factors-mapping';
 import {FindByCondition} from '../find-by';
@@ -82,6 +83,7 @@ export const MergeRow = (props: {
 		<TopicPicker action={action} topics={topics} prefillMappingFactors={onPrefillClicked}/>
 		<ActionLeadLabelThin>Use Mapping:</ActionLeadLabelThin>
 		<FactorsMapping action={action} topics={topics} topic={triggerTopic}/>
+		<AccumulateModeRow action={action}/>
 		<ActionLeadLabelThin>By:</ActionLeadLabelThin>
 		<FindByCondition action={action} topics={topics} topic={triggerTopic}/>
 	</>;
