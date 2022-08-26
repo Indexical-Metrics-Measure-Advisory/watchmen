@@ -127,7 +127,11 @@ class ParsedMemoryExpression(ParsedMemoryCondition):
 	def parse(self, condition: ParameterExpression, principal_service: PrincipalService) -> None:
 		self.left = parse_parameter_in_memory(condition.left, principal_service)
 		self.operator = condition.operator
-		self.right = parse_parameter_in_memory(condition.right, principal_service)
+		if self.operator == ParameterExpressionOperator.EMPTY or self.operator == ParameterExpressionOperator.NOT_EMPTY:
+			# there is no need to parse right since it is unnecessary
+			self.right = None
+		else:
+			self.right = parse_parameter_in_memory(condition.right, principal_service)
 
 	def raise_cannot_compare(self, one: Any, another: Any) -> None:
 		raise DataKernelException(
