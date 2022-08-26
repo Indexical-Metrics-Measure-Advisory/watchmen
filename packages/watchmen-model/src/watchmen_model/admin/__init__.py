@@ -9,8 +9,8 @@ from .pipeline_action_delete import DeleteRowAction, DeleteRowsAction, DeleteTop
 from .pipeline_action_read import ExistsAction, ReadFactorAction, ReadFactorsAction, ReadRowAction, ReadRowsAction, \
 	ReadTopicAction
 from .pipeline_action_system import AlarmAction, AlarmActionSeverity, CopyToMemoryAction, WriteToExternalAction
-from .pipeline_action_write import InsertRowAction, MappingFactor, MappingRow, MergeRowAction, WriteFactorAction, \
-	WriteTopicAction
+from .pipeline_action_write import AccumulateMode, InsertRowAction, MappingFactor, MappingRow, MergeRowAction, \
+	WriteFactorAction, WriteTopicAction
 from .pipeline_graphic import PipelineGraphic, TopicGraphic, TopicRect
 from .space import Space
 from .topic import is_aggregation_topic, is_raw_topic, Topic, TopicKind, TopicType
