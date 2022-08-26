@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import List, Optional, Union
 
 from pydantic import BaseModel
@@ -22,8 +23,22 @@ class MappingRow(PipelineAction):
 	mapping: List[MappingFactor] = []
 
 
+class AccumulateMode(str, Enum):
+	# add value in current data for insert
+	# subtract value in previous data, add value in current data for merge
+	STANDARD = 'standard',
+	# allowed only on explicit merge action (merge row/write factor)
+	# subtract value in previous data
+	REVERSE = 'reverse',
+	# force cumulate, not matter there is previous or not. always accumulate to existing value
+	# not allowed on insert action. actually for explicit insert action, behaviour is same as standard mode
+	# ignore previous data even existing, add value in current data only
+	CUMULATE = 'cumulate'
+
+
 class WriteTopicAction(ToTopic):
 	type: WriteTopicActionType = None
+	accumulateMode: AccumulateMode = AccumulateMode.STANDARD
 
 
 def construct_mapping_factor(condition: Optional[Union[dict, MappingFactor]]) -> Optional[MappingFactor]:
