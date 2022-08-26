@@ -106,9 +106,15 @@ class S3Connector:
 			else:
 				return STATUS.DEPENDENCY_FAILED
 		else:
-			payload = self.simpleStorageService.get_object(object_.key)
-			self.move_to_dead_queue(object_.key, payload)
-			return STATUS.CHECK_KEY_FAILED
+			distributed_lock = get_unique_key_distributed_lock(self.get_resource_lock(object_.key),
+			                                                   self.lock_service)
+			if not self.ask_lock(distributed_lock):
+				return STATUS.CREATE_TASK_FAILED
+			else:
+				payload = self.simpleStorageService.get_object(object_.key)
+				self.move_to_dead_queue(object_.key, payload)
+				self.ask_unlock(distributed_lock)
+				return STATUS.CHECK_KEY_FAILED
 	
 	def get_payload(self, key: str) -> Dict:
 		return self.simpleStorageService.get_object(key)
