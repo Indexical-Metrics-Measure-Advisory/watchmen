@@ -12,7 +12,9 @@ from watchmen_data_kernel.common import ask_all_date_formats, ask_time_formats, 
 from watchmen_data_kernel.meta import TopicService
 from watchmen_data_kernel.topic_schema import cast_value_for_factor, TopicSchema
 from watchmen_data_kernel.utils import MightAVariable, parse_function_in_variable, parse_variable
-from watchmen_model.admin import AggregateArithmetic, Factor, FactorType, is_raw_topic, MappingFactor, Topic
+from watchmen_model.admin import AccumulateMode, AggregateArithmetic, Factor, FactorType, FromTopic, InsertRowAction, \
+	is_raw_topic, MappingFactor, Topic, ToTopic
+from watchmen_model.admin.pipeline_action_write import InsertOrMergeRowAction, WriteTopicAction
 from watchmen_model.common import ComputedParameter, ConstantParameter, FactorId, Parameter, ParameterComputeType, \
 	ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, \
 	ParameterKind, TopicFactorParameter, TopicId, VariablePredefineFunctions
@@ -931,9 +933,12 @@ def parse_conditional_parameter_for_storage(
 
 
 class ParsedStorageMappingFactor:
-	def __init__(self, schema: TopicSchema, mapping_factor: MappingFactor, principal_service: PrincipalService):
+	def __init__(
+			self, schema: TopicSchema, mapping_factor: MappingFactor, accumulate_mode: Optional[AccumulateMode],
+			principal_service: PrincipalService):
 		self.mappingFactor = mapping_factor
 		self.arithmetic = AggregateArithmetic.NONE if mapping_factor.arithmetic is None else mapping_factor.arithmetic
+		self.accumulateMode = AccumulateMode.STANDARD if accumulate_mode is None else accumulate_mode
 		factor_id = mapping_factor.factorId
 		if is_blank(factor_id):
 			raise DataKernelException('Factor not declared on mapping.')
@@ -985,12 +990,17 @@ class ParsedStorageMappingFactor:
 		decimal_value = 0 if not parsed else decimal_value
 		return decimal_value
 
+	def compute_previous_value(self, variables: PipelineVariables, principal_service: PrincipalService) -> Decimal:
+		value = self.parsedParameter.value(variables.backward_to_previous(), principal_service)
+		parsed, decimal_value = is_decimal(value)
+		decimal_value = 0 if not parsed else decimal_value
+		return decimal_value
+
 	def compute_previous_and_current_value(
 			self, variables: PipelineVariables, principal_service: PrincipalService) -> Tuple[Decimal, Decimal]:
-		previous_value = self.parsedParameter.value(variables.backward_to_previous(), principal_service)
-		parsed, previous_decimal_value = is_decimal(previous_value)
-		previous_decimal_value = 0 if not parsed else previous_decimal_value
-		return previous_decimal_value, self.compute_current_value(variables, principal_service)
+		return \
+			self.compute_previous_value(variables, principal_service), \
+			self.compute_current_value(variables, principal_service)
 
 	def run(
 			self, data: Dict[str, Any], original_data: Optional[Dict[str, Any]], variables: PipelineVariables,
@@ -998,49 +1008,125 @@ class ParsedStorageMappingFactor:
 	) -> Tuple[str, Any]:
 		if self.arithmetic == AggregateArithmetic.SUM:
 			if original_data is None:
-				# the very first time to insert this, simply set as value
-				value = self.parsedParameter.value(variables, principal_service)
+				# the very first time to insert this
+				if self.accumulateMode == AccumulateMode.REVERSE:
+					raise DataKernelException(
+						'There is no existing aggregated data, therefore reverse accumulating cannot be performed here.')
+				else:
+					# simply set as value
+					value = self.compute_current_value(variables, principal_service)
+			elif self.accumulateMode == AccumulateMode.CUMULATE:
+				# using force cumulating explicitly, ignore previous data anyway
+				value = \
+					self.compute_current_value(variables, principal_service) + self.get_original_value(original_data)
 			elif variables.has_previous_trigger_data():
-				# it used to be triggered, find previous value, subtract it and add current value
-				previous_value, current_value = self.compute_previous_and_current_value(variables, principal_service)
-				value = self.get_original_value(original_data) - previous_value + current_value
+				# has previous data, it used to be triggered,
+				if self.accumulateMode == AccumulateMode.REVERSE:
+					# reverse the last accumulating
+					value = \
+						self.get_original_value(original_data) \
+						- self.compute_previous_value(variables, principal_service)
+				else:
+					# standard mode, then subtract previous value and add current value
+					previous_value, current_value = \
+						self.compute_previous_and_current_value(variables, principal_service)
+					value = self.get_original_value(original_data) - previous_value + current_value
+			elif self.accumulateMode == AccumulateMode.REVERSE:
+				# no previous data, reverse cannot be performed
+				raise DataKernelException(
+					'There is no previous trigger data, therefore reverse accumulating cannot be performed here.')
 			else:
-				# data is triggered at first time, find original value, add current value
-				current_value = self.compute_current_value(variables, principal_service)
-				original_value = self.get_original_value(original_data)
-				value = current_value + original_value
+				# no previous data, then find original value, add current value
+				value = \
+					self.compute_current_value(variables, principal_service) + self.get_original_value(original_data)
 		elif self.arithmetic == AggregateArithmetic.AVG:
+			# noinspection DuplicatedCode
 			if original_data is None:
-				# the very first time to insert this, simply set as value
-				value = self.parsedParameter.value(variables, principal_service)
-				self.set_aggregate_assist_avg_count(data, 1)
-			elif variables.has_previous_trigger_data():
-				# it used to be triggered, find previous value and avg count in original data, to compute the new avg
-				previous_value, current_value = self.compute_previous_and_current_value(variables, principal_service)
-				count = self.get_aggregate_assist_avg_count(original_data)
-				count = 1 if count == 0 else count
-				original_value = self.get_original_value(original_data)
-				value = (original_value * count + current_value - previous_value) / count
-				self.set_aggregate_assist_avg_count(data, count)
-			else:
-				# data is triggered at first time, find original value, add current value
+				# the very first time to insert this
+				if self.accumulateMode == AccumulateMode.REVERSE:
+					raise DataKernelException(
+						'There is no existing aggregated data, therefore reverse accumulating cannot be performed here.')
+				else:
+					# simply set as value
+					value = self.parsedParameter.value(variables, principal_service)
+					self.set_aggregate_assist_avg_count(data, 1)
+			elif self.accumulateMode == AccumulateMode.CUMULATE:
+				# using force cumulating explicitly, ignore previous data anyway
 				current_value = self.compute_current_value(variables, principal_service)
 				count = self.get_aggregate_assist_avg_count(original_data)
-				count = 1 if count == 0 else count
+				original_value = self.get_original_value(original_data)
+				value = (original_value * count + current_value) / (count + 1)
+				self.set_aggregate_assist_avg_count(data, count + 1)
+			elif variables.has_previous_trigger_data():
+				# has previous data, it used to be triggered
+				count = self.get_aggregate_assist_avg_count(original_data)
+				# should at least has one item, 0 must be an error value, fix it
+				if count == 0:
+					raise DataKernelException(
+						'No existing accumulated average (count is 0), '
+						'therefore average accumulating on data change cannot be performed here.')
+				elif self.accumulateMode == AccumulateMode.REVERSE:
+					# reverse the last accumulating
+					if count == 1:
+						# the last one
+						value = 0
+						self.set_aggregate_assist_avg_count(data, 0)
+					else:
+						original_value = self.get_original_value(original_data)
+						previous_value = self.compute_previous_value(variables, principal_service)
+						value = (original_value * count - previous_value) / (count - 1)
+						self.set_aggregate_assist_avg_count(data, count - 1)
+				else:
+					# standard mode
+					# find previous value and avg count in original data, to compute the new avg
+					previous_value, current_value = \
+						self.compute_previous_and_current_value(variables, principal_service)
+					original_value = self.get_original_value(original_data)
+					value = (original_value * count + current_value - previous_value) / count
+					self.set_aggregate_assist_avg_count(data, count)
+			elif self.accumulateMode == AccumulateMode.REVERSE:
+				# no previous data, reverse cannot be performed
+				raise DataKernelException(
+					'There is no previous trigger data, therefore reverse accumulating cannot be performed here.')
+			else:
+				# no previous data, data is triggered at first time,
+				# find original value, add current value, to compute the new avg
+				current_value = self.compute_current_value(variables, principal_service)
+				count = self.get_aggregate_assist_avg_count(original_data)
 				original_value = self.get_original_value(original_data)
 				value = (original_value * count + current_value) / (count + 1)
 				self.set_aggregate_assist_avg_count(data, count + 1)
 		elif self.arithmetic == AggregateArithmetic.COUNT:
 			if original_data is None:
-				# the very first time to insert this, count always be 1
-				value = 1
+				# the very first time to insert this
+				if self.accumulateMode == AccumulateMode.REVERSE:
+					raise DataKernelException(
+						'There is no existing aggregated data, therefore reverse count cannot be performed here.')
+				else:
+					# count always be 1
+					value = 1
+			elif self.accumulateMode == AccumulateMode.CUMULATE:
+				# using force cumulating explicitly, ignore previous data anyway, always add 1
+				value = self.get_original_value(original_data) + 1
 			elif variables.has_previous_trigger_data():
-				# it used to be triggered, ignored
+				# has previous data, it used to be triggered
 				value = self.get_original_value(original_data)
-				# but when there is some incorrect value already saved, correct it to 1
-				value = 1 if value == 0 else value
+				if self.accumulateMode == AccumulateMode.REVERSE:
+					# reverse the last accumulating, subtract 1
+					if value <= 0:
+						raise DataKernelException('Count <= 0, therefore reverse count cannot be performed here.')
+					else:
+						value = value - 1
+				else:
+					# standard mode, since already be counted before, ignore
+					# but when there is some incorrect value already saved, correct it to 1
+					value = 1 if value == 0 else value
+			elif self.accumulateMode == AccumulateMode.REVERSE:
+				# no previous data, reverse cannot be performed
+				raise DataKernelException(
+					'There is no previous trigger data, therefore reverse count cannot be performed here.')
 			else:
-				# data is triggered at first time, count + 1
+				# no previous data, count + 1
 				value = self.get_original_value(original_data) + 1
 		else:
 			value = self.parsedParameter.value(variables, principal_service)
@@ -1052,15 +1138,16 @@ class ParsedStorageMappingFactor:
 
 class ParsedStorageMapping:
 	def __init__(
-			self, schema: TopicSchema,
-			mapping: Optional[List[MappingFactor]], principal_service: PrincipalService):
+			self, schema: TopicSchema, mapping: Optional[List[MappingFactor]],
+			accumulate_mode: Optional[AccumulateMode],
+			principal_service: PrincipalService):
 		self.mapping = mapping
 		if mapping is None:
 			raise DataKernelException('Mapping cannot be none.')
 		if len(mapping) == 0:
 			raise DataKernelException('At least one mapping is required.')
 		self.parsedMappingFactors = ArrayHelper(mapping).map(
-			lambda x: ParsedStorageMappingFactor(schema, x, principal_service)).to_list()
+			lambda x: ParsedStorageMappingFactor(schema, x, accumulate_mode, principal_service)).to_list()
 
 	def run(
 			self,
@@ -1081,6 +1168,20 @@ class ParsedStorageMapping:
 
 
 def parse_mapping_for_storage(
-		schema: TopicSchema,
+		schema: TopicSchema, action: Union[ToTopic, FromTopic],
 		mapping: Optional[List[MappingFactor]], principal_service: PrincipalService) -> ParsedStorageMapping:
-	return ParsedStorageMapping(schema, mapping, principal_service)
+	if isinstance(action, InsertRowAction):
+		# for insert action, always be standard mode
+		accumulate_mode = AccumulateMode.STANDARD
+	elif isinstance(action, InsertOrMergeRowAction):
+		accumulate_mode = AccumulateMode.STANDARD if action.accumulateMode is None else action.accumulateMode
+		# reverse is not allowed for insert/merge action
+		accumulate_mode = AccumulateMode.STANDARD if accumulate_mode == AccumulateMode.REVERSE else accumulate_mode
+	elif isinstance(action, WriteTopicAction):
+		# merge row or write topic
+		accumulate_mode = AccumulateMode.STANDARD if action.accumulateMode is None else action.accumulateMode
+	else:
+		# not required for other actions
+		accumulate_mode = None
+
+	return ParsedStorageMapping(schema, mapping, accumulate_mode, principal_service)
