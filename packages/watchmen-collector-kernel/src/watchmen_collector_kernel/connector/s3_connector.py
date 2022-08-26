@@ -1,17 +1,16 @@
 import asyncio
+from enum import Enum
 from logging import getLogger
 from threading import Thread
 from time import sleep
 from typing import Optional, Dict, Any
-import traceback
 
 from watchmen_collector_kernel.common import S3CollectorSettings
 from watchmen_collector_kernel.lock import get_oss_collector_lock_service, get_unique_key_distributed_lock, \
 	DistributedLock
 from watchmen_collector_kernel.model import OSSCollectorCompetitiveLock
 from watchmen_meta.common import ask_snowflake_generator
-from watchmen_model.common import Storable
-from watchmen_model.pipeline_kernel import PipelineTriggerDataWithPAT
+
 from watchmen_storage_s3 import SimpleStorageService, ObjectContent
 
 from watchmen_model.pipeline_kernel import PipelineTriggerData
@@ -24,20 +23,13 @@ logger = getLogger(__name__)
 identifier_delimiter = "~"
 
 
-class TopicDataSaveException(Exception):
-	pass
-
-
-class PipelineExecutionException(Exception):
-	pass
-
-
-class PayloadNullException(Exception):
-	pass
-
-
-class KeyValidatedException(Exception):
-	pass
+class STATUS(str, Enum):
+	CHECK_KEY_FAILED = "CHECK_KEY_FAILED"
+	DEPENDENCY_FAILED = "DEPENDENCY_FAILED"
+	CREATE_TASK_FAILED = "CREATE_TASK_FAILED"
+	EMPTY_PAYLOAD = "EMPTY_PAYLOAD"
+	COMPLETED_TASK = "COMPLETED_TASK"
+	PROCESS_TASK_FAILED = "PROCESS_TASK_FAILED"
 
 
 def init_s3_collector(settings: S3CollectorSettings):
@@ -68,72 +60,58 @@ class S3Connector:
 		Thread(target=S3Connector.run, args=(self,), daemon=True).start()
 	
 	def run(self):
-		while True:
-			objects = self.simpleStorageService.list_objects(max_keys=10, prefix=self.consume_prefix)
-			logger.info("objects size ", len(objects))
-			if len(objects) == 0:
-				sleep(5)
-			else:
-				for object_ in objects:
-					logger.info("object key ", object_.key)
-					result = self.consume(object_)
-					if result == 0:
-						break
+		try:
+			while True:
+				objects = self.simpleStorageService.list_objects(max_keys=10, prefix=self.consume_prefix)
+				logger.info("objects size ", len(objects))
+				if len(objects) == 0:
+					sleep(5)
+				else:
+					for object_ in objects:
+						logger.info("object key ", object_.key)
+						result = self.consume(object_)
+						if result == STATUS.CREATE_TASK_FAILED or result == STATUS.DEPENDENCY_FAILED:
+							continue
+						elif result == STATUS.CHECK_KEY_FAILED or result == STATUS.COMPLETED_TASK or \
+								STATUS.EMPTY_PAYLOAD or result == STATUS.PROCESS_TASK_FAILED:
+							break
+		except Exception as e:
+			logger.error(e, exc_info=True, stack_info=True)
 	
-	def consume(self, object_: ObjectContent) -> int:
-		distributed_lock = get_unique_key_distributed_lock(self.get_resource_lock(object_.key), self.lock_service)
-		if self.ask_lock(distributed_lock):
-			try:
-				need_move = False
-				payload = self.get_payload(object_.key)
-				logger.info("payload", payload)
-				object_key = self.get_identifier(self.consume_prefix, object_.key)
-				if self.validate_key_pattern(object_key):
-					dependency = self.get_dependency(object_key)
-					if self.check_dependency_finished(dependency):
-						self.process(object_.key, self.get_code(object_key), payload)
+	def consume(self, object_: ObjectContent) -> str:
+		object_key = self.get_identifier(self.consume_prefix, object_.key)
+		if self.validate_key_pattern(object_key):
+			dependency = self.get_dependency(object_key)
+			if self.check_dependency_finished(dependency):
+				distributed_lock = get_unique_key_distributed_lock(self.get_resource_lock(object_.key),
+				                                                   self.lock_service)
+				if not self.ask_lock(distributed_lock):
+					return STATUS.CREATE_TASK_FAILED
+				else:
+					payload = self.get_payload(object_.key)
+					if payload:
+						try:
+							self.process(object_.key, self.get_code(object_key), payload)
+							self.simpleStorageService.delete_object(object_.key)
+							return STATUS.COMPLETED_TASK
+						except Exception:
+							self.move_to_dead_queue(object_.key, payload)
+							return STATUS.PROCESS_TASK_FAILED
+						finally:
+							self.ask_unlock(distributed_lock)
 					else:
-						logger.error("Dependency is not finished %s", object_.key)
-			except KeyValidatedException:
-				logger.error("object key validate error, ready to move to dead queue: %s", object_.key, exc_info=True,
-				             stack_info=True)
-				need_move = True
-			except TopicDataSaveException:
-				# traceback.print_exc()
-				logger.error("save topic data error, ready to move to dead queue: %s", object_.key, exc_info=True,
-				             stack_info=True)
-				need_move = True
-			except PayloadNullException:
-				# traceback.print_exc()
-				logger.error("payload is None, ready to move to dead queue: %s", object_.key, exc_info=True,
-				             stack_info=True)
-				need_move = True
-			except PipelineExecutionException:
-				# traceback.print_exc()
-				logger.error("pipeline executing error, ready to move to dead queue: %s", object_.key, exc_info=True,
-				             stack_info=True)
-				need_move = True
-			except Exception:
-				logger.error("process object %s error", object_.key, exc_info=True, stack_info=True)
-				need_move = True
-			finally:
-				try:
-					if need_move:
 						self.move_to_dead_queue(object_.key, payload)
-					else:
-						self.simpleStorageService.delete_object(object_.key)
-				except Exception:
-					logger.error("clean the object on S3 error, will block the consume process", object_.key)
-				finally:
-					self.ask_unlock(distributed_lock)
-					return 0
+						self.ask_unlock(distributed_lock)
+						return STATUS.EMPTY_PAYLOAD
+			else:
+				return STATUS.DEPENDENCY_FAILED
+		else:
+			payload = self.simpleStorageService.get_object(object_.key)
+			self.move_to_dead_queue(object_.key, payload)
+			return STATUS.CHECK_KEY_FAILED
 	
 	def get_payload(self, key: str) -> Dict:
-		result = self.simpleStorageService.get_object(key)
-		if result:
-			return result
-		else:
-			raise PayloadNullException("payload is None. %s", key)
+		return self.simpleStorageService.get_object(key)
 	
 	def ask_lock(self, lock: DistributedLock) -> bool:
 		return lock.try_lock_nowait()
@@ -144,15 +122,8 @@ class S3Connector:
 	def process(self, key: str, code: str, payload: Dict[str, Any] = None):
 		logger.info("start to process %s and %s", code, key)
 		trigger_data = PipelineTriggerData(code=code, data=payload, tenantId=self.tenant_id)
-		try:
-			result = save_topic_data(trigger_data)
-		except Exception:
-			raise TopicDataSaveException("Save trigger data error", key)
-		else:
-			try:
-				asyncio.run(handle_trigger_data(trigger_data, result))
-			except Exception:
-				raise PipelineExecutionException("Process trigger data error", key)
+		result = save_topic_data(trigger_data)
+		asyncio.run(handle_trigger_data(trigger_data, result))
 	
 	def get_resource_lock(self, key: str) -> OSSCollectorCompetitiveLock:
 		object_key = self.get_identifier(self.consume_prefix, key)
@@ -199,15 +170,13 @@ class S3Connector:
 		elif len(key_parts) == 5:
 			return True
 		else:
-			raise KeyValidatedException("Validate key pattern error %s", identifier)
+			return False
 	
-	def move_to_dead_queue(self, key: str, payload: Optional[Dict] = None):
-		if payload is None:
-			payload = self.simpleStorageService.get_object(key)
+	def move_to_dead_queue(self, key: str, payload: Optional[Dict]):
 		dead_queue_key = self.generate_dead_file_key(key)
 		self.simpleStorageService.put_object(dead_queue_key, payload)
 		self.simpleStorageService.delete_object(key)
-	
+		
 	def generate_dead_file_key(self, key_: str):
 		return self.dead_prefix + self.get_identifier(self.consume_prefix, key_)
 	
