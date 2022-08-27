@@ -6,4 +6,4 @@ ADD status TINYINT NOT NULL;
 ALTER TABLE collector_competitive_lock
 DROP INDEX unique_resource;
 ALTER TABLE collector_competitive_lock
-ADD CONSTRAINT unique_resource UNIQUE (model_name, object_id, tenant_id);
+ADD CONSTRAINT unique_resource UNIQUE (resource_id);
