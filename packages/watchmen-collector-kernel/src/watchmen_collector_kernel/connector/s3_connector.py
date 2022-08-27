@@ -139,7 +139,8 @@ class S3Connector:
 		                                   objectId=key_parts[2],
 		                                   tenantId=self.tenant_id,
 		                                   status=0)
-	
+
+
 	def get_dependency(self, key: str) -> Optional[Dependency]:
 		key_parts = key.split(identifier_delimiter)
 		if len(key_parts) == 5:
@@ -151,11 +152,15 @@ class S3Connector:
 	
 	def check_dependency_finished(self, dependency: Optional[Dependency]) -> bool:
 		if dependency:
-			data = self.lock_service.find_by_dependency(dependency.model_name, dependency.object_id)
-			if len(data) == 0:
+			lock_list = self.lock_service.find_by_dependency(dependency.model_name, dependency.object_id)
+
+			for lock_record in lock_list:
+				print(lock_record)
+
+			if len(lock_list) == 0:
 				return True
-			elif len(data) == 1:
-				if data[0].status == 1:
+			elif len(lock_list) == 1:
+				if lock_list[0].status == 1:
 					return True
 				else:
 					return False
