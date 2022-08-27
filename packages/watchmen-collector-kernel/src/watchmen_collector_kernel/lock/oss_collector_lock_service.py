@@ -79,14 +79,16 @@ class OssCollectorLockService(EntityService):
 		                                       shaper=OSS_COLLECTOR_COMPETITIVE_LOCK_ENTITY_SHAPER)
 		                        )
 	
-	def find_by_dependency(self, model_name: str, object_id: str) -> EntityList:
+	
+	def find_by_dependency(self, model_name: str, object_id: str) -> int:
 		self.storage.connect()
-		return self.storage.find(EntityFinder(
+		return self.storage.count(EntityFinder(
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),
 			criteria=[
 				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name),
-				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='object_id'), right=object_id)
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='object_id'), right=object_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=0)
 			]
 		))
 
