@@ -70,23 +70,31 @@ class S3Connector:
 	def run(self):
 		while True:
 			objects = self.simpleStorageService.list_objects(max_keys=10, prefix=self.consume_prefix)
-			logger.info("objects size ", len(objects))
+			logger.info("start objects size {}".format(len(objects)))
 			if len(objects) == 0:
 				sleep(5)
 			else:
 				for object_ in objects:
-					logger.info("object key ", object_.key)
+					# print(object_.key)
 					result = self.consume(object_)
 					if result == 0:
+						logger.info("successfully process {}".format(object_.key))
 						break
 	
 	def consume(self, object_: ObjectContent) -> int:
 		distributed_lock = get_unique_key_distributed_lock(self.get_resource_lock(object_.key), self.lock_service)
-		if self.ask_lock(distributed_lock):
+		# print(distributed_lock.lock.to_dict())
+		lock_status =  self.ask_lock(distributed_lock)
+
+		logger.info("lock_status {}".format(lock_status))
+		# if lock_status:
+		# 	return
+		#
+		if lock_status:
 			try:
 				need_move = False
 				payload = self.get_payload(object_.key)
-				logger.info("payload", payload)
+				logger.info("payload {}".format(payload))
 				object_key = self.get_identifier(self.consume_prefix, object_.key)
 				if self.validate_key_pattern(object_key):
 					dependency = self.get_dependency(object_key)
@@ -114,7 +122,7 @@ class S3Connector:
 				             stack_info=True)
 				need_move = True
 			except Exception:
-				
+
 				logger.error("process object %s error", object_.key, exc_info=True, stack_info=True)
 				need_move = True
 			finally:
@@ -122,10 +130,13 @@ class S3Connector:
 					if need_move:
 						self.move_to_dead_queue(object_.key, payload)
 					else:
+						# print("simpleStorageService")
 						self.simpleStorageService.delete_object(object_.key)
+						logger.info("simpleStorageService --------")
 				except Exception:
 					logger.error("clean the object on S3 error, will block the consume process", object_.key)
 				finally:
+					logger.info("ask_unlock --------")
 					self.ask_unlock(distributed_lock)
 					return 0
 	
@@ -164,21 +175,28 @@ class S3Connector:
 		                                   objectId=key_parts[2],
 		                                   tenantId=self.tenant_id,
 		                                   status=0)
-	
+
+
 	def get_dependency(self, key: str) -> Optional[Dependency]:
 		key_parts = key.split(identifier_delimiter)
 		if len(key_parts) == 5:
 			return Dependency(model_name=key_parts[3], object_id=key_parts[4])
+		elif len(key_parts) == 3:
+			return Dependency(model_name=key_parts[1], object_id=key_parts[2])
 		else:
 			return None
 	
 	def check_dependency_finished(self, dependency: Optional[Dependency]) -> bool:
 		if dependency:
-			data = self.lock_service.find_by_dependency(dependency.model_name, dependency.object_id)
-			if len(data) == 0:
+			lock_list = self.lock_service.find_by_dependency(dependency.model_name, dependency.object_id)
+
+			for lock_record in lock_list:
+				print(lock_record)
+
+			if len(lock_list) == 0:
 				return True
-			elif len(data) == 1:
-				if data.get('status') == 1:
+			elif len(lock_list) == 1:
+				if lock_list[0].status == 1:
 					return True
 				else:
 					return False
