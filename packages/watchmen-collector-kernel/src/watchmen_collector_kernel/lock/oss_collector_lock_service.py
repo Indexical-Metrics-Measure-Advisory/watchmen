@@ -64,6 +64,7 @@ class OssCollectorLockService(EntityService):
 		)
 	
 	def delete_by_id(self, id_: OssCollectorCompetitiveLockId):
+		self.storage.connect()
 		self.storage.delete_by_id(id_,
 		                          EntityIdHelper(idColumnName='lock_id',
 		                                         name=OSS_COLLECTOR_COMPETITIVE_LOCK_TABLE,
@@ -71,6 +72,7 @@ class OssCollectorLockService(EntityService):
 		                          )
 	
 	def update_one(self, one: Entity) -> int:
+		self.storage.connect()
 		self.storage.update_one(one,
 		                        EntityIdHelper(idColumnName='lock_id',
 		                                       name=OSS_COLLECTOR_COMPETITIVE_LOCK_TABLE,
@@ -78,6 +80,7 @@ class OssCollectorLockService(EntityService):
 		                        )
 	
 	def find_by_dependency(self, model_name: str, object_id: str) -> EntityList:
+		self.storage.connect()
 		return self.storage.find(EntityFinder(
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),
