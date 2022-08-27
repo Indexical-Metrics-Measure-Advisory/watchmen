@@ -9,6 +9,7 @@ from watchmen_collector_kernel.common import S3CollectorSettings
 from watchmen_collector_kernel.lock import get_oss_collector_lock_service, get_unique_key_distributed_lock, \
 	DistributedLock
 from watchmen_collector_kernel.model import OSSCollectorCompetitiveLock
+from watchmen_data_kernel.storage import TopicTrigger
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_storage_s3 import SimpleStorageService, ObjectContent
 
@@ -91,7 +92,9 @@ class S3Connector:
 					payload = self.get_payload(object_.key)
 					if payload:
 						try:
-							self.process(object_.key, self.get_code(object_key), payload)
+							trigger_data = PipelineTriggerData(code=self.get_code(object_key), data=payload, tenantId=self.tenant_id)
+							topic_trigger = self.save_data(trigger_data)
+							self.trigger_pipeline(trigger_data, topic_trigger)
 							self.simpleStorageService.delete_object(object_.key)
 							return STATUS.COMPLETED_TASK
 						except Exception:
@@ -131,6 +134,15 @@ class S3Connector:
 		result = save_topic_data(trigger_data)
 		asyncio.run(handle_trigger_data(trigger_data, result))
 	
+	def save_data(self, trigger_data: PipelineTriggerData) -> TopicTrigger:
+		return save_topic_data(trigger_data)
+	
+	def trigger_pipeline(self, trigger_data: PipelineTriggerData, topic_trigger: TopicTrigger):
+		try:
+			asyncio.run(handle_trigger_data(trigger_data, topic_trigger))
+		except Exception as e:
+			logger.error(e, exc_info=True, stack_info=True)
+	
 	def get_resource_lock(self, key: str) -> OSSCollectorCompetitiveLock:
 		object_key = self.get_identifier(self.consume_prefix, key)
 		key_parts = object_key.split(identifier_delimiter)
@@ -140,7 +152,6 @@ class S3Connector:
 		                                   objectId=key_parts[2],
 		                                   tenantId=self.tenant_id,
 		                                   status=0)
-
 
 	def get_dependency(self, key: str) -> Optional[Dependency]:
 		key_parts = key.split(identifier_delimiter)
