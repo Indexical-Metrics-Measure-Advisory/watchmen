@@ -5,3 +5,5 @@
 /venv
 /packages/watchmen-indicator
 .run/doll-app.run.xml
+*.zip
+*.log
