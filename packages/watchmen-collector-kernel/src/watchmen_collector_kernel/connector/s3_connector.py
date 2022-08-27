@@ -154,15 +154,9 @@ class S3Connector:
 	
 	def check_dependency_finished(self, dependency: Optional[Dependency]) -> bool:
 		if dependency:
-			lock_list = self.lock_service.find_by_dependency(dependency.model_name, dependency.object_id)
-
-			if len(lock_list) == 0:
+			result = self.lock_service.find_by_dependency(dependency.model_name, dependency.object_id)
+			if result == 0:
 				return True
-			elif len(lock_list) == 1:
-				if lock_list[0].status == 1:
-					return True
-				else:
-					return False
 			else:
 				return False
 		else:
