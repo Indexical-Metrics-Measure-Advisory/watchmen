@@ -62,17 +62,18 @@ class S3Connector:
 		try:
 			while True:
 				objects = self.simpleStorageService.list_objects(max_keys=10, prefix=self.consume_prefix)
-				logger.info("objects size ", len(objects))
+				logger.info("objects size {}".format(len(objects)))
 				if len(objects) == 0:
 					sleep(5)
 				else:
 					for object_ in objects:
-						logger.info("object key ", object_.key)
 						result = self.consume(object_)
 						if result == STATUS.CREATE_TASK_FAILED or result == STATUS.DEPENDENCY_FAILED:
+							logger.info("CREATE_TASK_FAILED or DEPENDENCY_FAILED , key is  {}".format(object_.key))
 							continue
 						elif result == STATUS.CHECK_KEY_FAILED or result == STATUS.COMPLETED_TASK or \
 								STATUS.EMPTY_PAYLOAD or result == STATUS.PROCESS_TASK_FAILED:
+							logger.info("CHECK_KEY_FAILED or COMPLETED_TASK or EMPTY_PAYLOAD or PROCESS_TASK_FAILED, key is  {}".format(object_.key))
 							break
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
