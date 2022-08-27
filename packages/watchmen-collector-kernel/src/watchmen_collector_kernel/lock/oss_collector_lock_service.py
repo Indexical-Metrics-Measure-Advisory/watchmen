@@ -57,40 +57,52 @@ class OssCollectorLockService(EntityService):
 		return storable
 	
 	def insert_one(self, lock: OSSCollectorCompetitiveLock):
-		self.storage.connect()
-		self.storage.insert_one(
-			lock,
-			EntityHelper(name=OSS_COLLECTOR_COMPETITIVE_LOCK_TABLE, shaper=OSS_COLLECTOR_COMPETITIVE_LOCK_ENTITY_SHAPER)
-		)
+		try:
+			self.storage.connect()
+			self.storage.insert_one(
+				lock,
+				EntityHelper(name=OSS_COLLECTOR_COMPETITIVE_LOCK_TABLE, shaper=OSS_COLLECTOR_COMPETITIVE_LOCK_ENTITY_SHAPER)
+			)
+		finally:
+			self.storage.close()
 	
 	def delete_by_id(self, id_: OssCollectorCompetitiveLockId):
-		self.storage.connect()
-		self.storage.delete_by_id(id_,
-		                          EntityIdHelper(idColumnName='lock_id',
-		                                         name=OSS_COLLECTOR_COMPETITIVE_LOCK_TABLE,
-		                                         shaper=OSS_COLLECTOR_COMPETITIVE_LOCK_ENTITY_SHAPER)
-		                          )
+		try:
+			self.storage.connect()
+			self.storage.delete_by_id(id_,
+			                          EntityIdHelper(idColumnName='lock_id',
+			                                         name=OSS_COLLECTOR_COMPETITIVE_LOCK_TABLE,
+			                                         shaper=OSS_COLLECTOR_COMPETITIVE_LOCK_ENTITY_SHAPER)
+			                          )
+		finally:
+			self.storage.close()
 	
 	def update_one(self, one: Entity) -> int:
-		self.storage.connect()
-		self.storage.update_one(one,
-		                        EntityIdHelper(idColumnName='lock_id',
-		                                       name=OSS_COLLECTOR_COMPETITIVE_LOCK_TABLE,
-		                                       shaper=OSS_COLLECTOR_COMPETITIVE_LOCK_ENTITY_SHAPER)
-		                        )
+		try:
+			self.storage.connect()
+			self.storage.update_one(one,
+			                        EntityIdHelper(idColumnName='lock_id',
+			                                       name=OSS_COLLECTOR_COMPETITIVE_LOCK_TABLE,
+			                                       shaper=OSS_COLLECTOR_COMPETITIVE_LOCK_ENTITY_SHAPER)
+			                        )
+		finally:
+			self.storage.close()
 	
 	
 	def find_by_dependency(self, model_name: str, object_id: str) -> int:
-		self.storage.connect()
-		return self.storage.count(EntityFinder(
-			name=self.get_entity_name(),
-			shaper=self.get_entity_shaper(),
-			criteria=[
-				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name),
-				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='object_id'), right=object_id),
-				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=0)
-			]
-		))
+		try:
+			self.storage.connect()
+			return self.storage.count(EntityFinder(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='object_id'), right=object_id),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=0)
+				]
+			))
+		finally:
+			self.storage.close()
 
 
 def get_oss_collector_lock_service() -> OssCollectorLockService:
