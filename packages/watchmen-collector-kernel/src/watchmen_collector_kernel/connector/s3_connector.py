@@ -140,7 +140,8 @@ class S3Connector:
 		                                   objectId=key_parts[2],
 		                                   tenantId=self.tenant_id,
 		                                   status=0)
-	
+
+
 	def get_dependency(self, key: str) -> Optional[Dependency]:
 		key_parts = key.split(identifier_delimiter)
 		if len(key_parts) == 5:
