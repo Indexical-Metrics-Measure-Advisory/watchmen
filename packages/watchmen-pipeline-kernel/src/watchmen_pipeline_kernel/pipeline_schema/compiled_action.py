@@ -336,10 +336,10 @@ class CompiledReadRowAction(CompiledReadTopicAction):
 			data = topic_data_service.find(criteria=[statement])
 			count = len(data)
 			if count == 0:
-				raise PipelineKernelException(f'Data not found, {self.on_topic_message()}, by [{[statement]}].')
+				raise PipelineKernelException(f'Data not found, {self.on_topic_message()}, by [{[statement.to_dict()]}].')
 			elif count > 1:
 				raise PipelineKernelException(
-					f'Too many data[count={count}] found, {self.on_topic_message()}, by [{[statement]}].')
+					f'Too many data[count={count}] found, {self.on_topic_message()}, by [{[statement.to_dict()]}].')
 			else:
 				value = data[0]
 				if value is not None:
@@ -432,7 +432,7 @@ class CompiledReadFactorAction(CompiledReadTopicFactorAction):
 			data = topic_data_service.find_straight_values(
 				criteria=[statement], columns=[self.build_straight_column(topic_data_service)])
 			if len(data) == 0:
-				raise PipelineKernelException(f'Data not found, {self.on_topic_message()}, by [{[statement]}].')
+				raise PipelineKernelException(f'Data not found, {self.on_topic_message()}, by [{[statement.to_dict()]}].')
 			else:
 				value = data[0].popitem()[1]
 				if value is not None:
@@ -651,10 +651,10 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 						variables, new_pipeline, action_monitor_log, principal_service, topic_data_service, False)
 				else:
 					# insertion is not allowed
-					raise PipelineKernelException(f'Data not found, {self.on_topic_message()}, by [{[statement]}].')
+					raise PipelineKernelException(f'Data not found, {self.on_topic_message()}, by [{[statement.to_dict()]}].')
 			elif count != 1:
 				raise PipelineKernelException(
-					f'Too many data[count={count}] found, {self.on_topic_message()}, by [{[statement]}].')
+					f'Too many data[count={count}] found, {self.on_topic_message()}, by [{[statement.to_dict()]}].')
 			else:
 				# after several times failures, it is the last try.
 				# do lock loaded data by id, then it cannot be updated by any other threads, processes or nodes.
@@ -672,14 +672,14 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 					if locked_data is None:
 						raise PipelineKernelException(
 							f'Data not found on doing "for update" lock when last try to update, '
-							f'{self.on_topic_message()}, by [{[statement]}].')
+							f'{self.on_topic_message()}, by [{[statement.to_dict()]}].')
 					# found one matched, do update
 					updated_count = self.do_update_with_lock(
 						data[0], variables, new_pipeline, action_monitor_log, principal_service, topic_data_service)
 					if updated_count == 0:
 						raise PipelineKernelException(
 							f'Data not found on doing last try to update, '
-							f'{self.on_topic_message()}, by [{[statement]}].')
+							f'{self.on_topic_message()}, by [{[statement.to_dict()]}].')
 					topic_data_service.get_storage().commit_and_close()
 				except Exception as e:
 					topic_data_service.get_storage().rollback_and_close()
@@ -700,10 +700,10 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 						work(times, False)
 				else:
 					# insertion is not allowed
-					raise PipelineKernelException(f'Data not found, {self.on_topic_message()}, by [{[statement]}].')
+					raise PipelineKernelException(f'Data not found, {self.on_topic_message()}, by [{[statement.to_dict()]}].')
 			elif count != 1:
 				raise PipelineKernelException(
-					f'Too many data[count={count}] found, {self.on_topic_message()}, by [{[statement]}].')
+					f'Too many data[count={count}] found, {self.on_topic_message()}, by [{[statement.to_dict()]}].')
 			else:
 				# found one matched, do update
 				updated_count = self.do_update(
@@ -711,7 +711,7 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 				if updated_count == 0:
 					if not topic_data_service.get_data_entity_helper().is_versioned():
 						raise PipelineKernelException(
-							f'Data not found on do update, {self.on_topic_message()}, by [{[statement]}].')
+							f'Data not found on do update, {self.on_topic_message()}, by [{[statement.to_dict()]}].')
 					elif ask_pipeline_update_retry() and times < ask_pipeline_update_retry_times():
 						# retry interval is based on given settings and random plus 1 - 20 ms
 						# since there are 2 situations will lead update nothing
@@ -728,7 +728,7 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 						last_try()
 					else:
 						raise PipelineKernelException(
-							f'Data not found on do update, {self.on_topic_message()}, by [{[statement]}].')
+							f'Data not found on do update, {self.on_topic_message()}, by [{[statement.to_dict()]}].')
 
 		def create_worker() -> Callable[[], None]:
 			# retry times starts from 0
@@ -782,15 +782,15 @@ class CompiledDeleteRowAction(CompiledDeleteTopicAction):
 			count = len(data)
 			if count == 0:
 				raise PipelineKernelException(
-					f'Data not found before do deletion, {self.on_topic_message()}, by [{[statement]}].')
+					f'Data not found before do deletion, {self.on_topic_message()}, by [{[statement.to_dict()]}].')
 			elif count != 1:
 				raise PipelineKernelException(
-					f'Too many data[count={count}] found, {self.on_topic_message()}, by [{[statement]}].')
+					f'Too many data[count={count}] found, {self.on_topic_message()}, by [{[statement.to_dict()]}].')
 			else:
 				deleted_count, criteria = topic_data_service.delete_by_id_and_version(data[0])
 				if deleted_count == 0:
 					raise PipelineKernelException(
-						f'Data not found on do deletion, {self.on_topic_message()}, by [{[statement]}].')
+						f'Data not found on do deletion, {self.on_topic_message()}, by [{[statement.to_dict()]}].')
 				else:
 					# new pipeline
 					has_id, id_ = topic_data_service.get_data_entity_helper().find_data_id(data[0])
@@ -823,7 +823,7 @@ class CompiledDeleteRowsAction(CompiledDeleteTopicAction):
 					deleted_count, criteria = topic_data_service.delete_by_id_and_version(row)
 					if deleted_count == 0:
 						raise PipelineKernelException(
-							f'Data not found on do deletion, {self.on_topic_message()}, by [{[statement]}], '
+							f'Data not found on do deletion, {self.on_topic_message()}, by [{[statement.to_dict()]}], '
 							f'Bulk deletion stopped.')
 					else:
 						touched.append(row)
