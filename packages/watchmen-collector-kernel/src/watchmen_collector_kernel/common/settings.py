@@ -1,4 +1,3 @@
-
 from watchmen_model.common import SettingsModel
 
 
@@ -11,3 +10,5 @@ class S3CollectorSettings(SettingsModel):
 	tenant_id: int
 	consume_prefix: str
 	dead_prefix: str
+	max_keys: int = 10
+	clean_task_interval: int = 3600
