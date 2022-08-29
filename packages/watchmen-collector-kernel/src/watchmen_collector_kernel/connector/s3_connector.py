@@ -105,7 +105,8 @@ class S3Connector:
 								self.trigger_pipeline(trigger_data, topic_trigger)
 								self.simpleStorageService.delete_object(object_.key)
 								return STATUS.COMPLETED_TASK
-							except Exception:
+							except Exception as e:
+								logger.error(e, exc_info=True, stack_info=True)
 								self.move_to_dead_queue(object_.key, payload)
 								return STATUS.PROCESS_TASK_FAILED
 						else:
