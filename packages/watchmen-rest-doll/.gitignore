@@ -4,3 +4,4 @@
 .DS_Store
 .env
 /src/dask-worker-space
+/src/temp
