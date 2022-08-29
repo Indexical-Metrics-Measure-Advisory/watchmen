@@ -493,7 +493,7 @@ class CompiledWriteTopicAction(CompiledFindByAction):
 			principal_service: PrincipalService) -> None:
 		if self.schema is None:
 			self.parse_topic_schema(action, principal_service)
-		self.parsedMapping = parse_mapping_for_storage(self.schema, factors, principal_service)
+		self.parsedMapping = parse_mapping_for_storage(self.schema, action, factors, principal_service)
 
 	def parse_mapping_row(self, action: MappingRow, principal_service: PrincipalService) -> None:
 		if not isinstance(action, ToTopic) and not isinstance(action, FromTopic):

@@ -15,6 +15,7 @@ import {useForceUpdate} from '@/widgets/basic/utils';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import React from 'react';
+import {AccumulateModeRow} from '../accumulate-mode';
 import {useActionType} from '../action-effect/use-action-type';
 import {FactorsMapping} from '../factors-mapping';
 import {TopicPicker} from '../topic-picker';
@@ -81,5 +82,6 @@ export const InsertRow = (props: {
 		<TopicPicker action={action} topics={topics} prefillMappingFactors={onPrefillClicked} synonymAllowed={false}/>
 		<ActionLeadLabelThin>Use Mapping:</ActionLeadLabelThin>
 		<FactorsMapping action={action} topics={topics} topic={triggerTopic}/>
+		<AccumulateModeRow action={action}/>
 	</>;
 };

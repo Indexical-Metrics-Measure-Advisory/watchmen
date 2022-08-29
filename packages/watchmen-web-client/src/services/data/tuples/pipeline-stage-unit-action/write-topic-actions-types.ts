@@ -18,8 +18,15 @@ export interface MappingRow extends PipelineStageUnitAction {
 	mapping: Array<MappingFactor>;
 }
 
+export enum AccumulateMode {
+	STANDARD = 'standard',
+	REVERSE = 'reverse',
+	CUMULATE = 'cumulate'
+}
+
 export interface WriteTopicAction extends ToTopic, PipelineStageUnitAction {
 	type: WriteTopicActionType;
+	accumulateMode?: AccumulateMode;
 }
 
 export interface InsertRowAction extends WriteTopicAction, MappingRow {
