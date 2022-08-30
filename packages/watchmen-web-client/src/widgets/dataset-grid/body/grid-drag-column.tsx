@@ -68,7 +68,7 @@ export const GridDragColumn = forwardRef((props: {
 				}
 
 				return <DragColumnBodyCell key={`${rowIndex}`}>
-					<span>{`${row[column!.index]}`}</span>
+					<span>{`${row[column!.index] || ''}`}</span>
 				</DragColumnBodyCell>;
 			})}
 		</DragColumnBody>
