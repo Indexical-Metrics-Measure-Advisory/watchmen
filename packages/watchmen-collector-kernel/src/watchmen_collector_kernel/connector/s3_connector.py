@@ -84,6 +84,8 @@ class S3Connector:
 							break
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
+			sleep(300)
+			self.create_connector()
 	
 	def consume(self, object_: ObjectContent) -> str:
 		object_key = self.get_identifier(self.consume_prefix, object_.key)
