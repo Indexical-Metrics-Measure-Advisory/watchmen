@@ -191,6 +191,7 @@ export const ConjunctionWord = styled(EnumValue).attrs({'data-widget': 'dsl-conj
 export const AggregateArithmeticValue = styled(EnumValue).attrs({'data-widget': 'dsl-aggregate-arithmetic'})`
 	font-weight : var(--font-boldest);
 `;
+export const AccumulateModeValue = styled(EnumValue).attrs({'data-widget': 'dsl-accumulate-mode'})``;
 export const Bracket = styled(EnumValue).attrs({'data-widget': 'dsl-bracket'})`
 	color       : var(--danger-color);
 	font-weight : var(--font-boldest);

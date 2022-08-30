@@ -100,7 +100,7 @@ export const Grid = forwardRef((props: {
 						                     data-dragging={def === dragColumn}
 						                     data-last-row={lastRow} data-last-column={lastColumn}
 						                     key={`${rowIndex}-${columnIndex}`}>
-							<span>{`${row[def.index]}`}</span>
+							<span>{`${row[def.index] || ''}`}</span>
 						</GridBodyCell>;
 					})}
 					{autoFill
