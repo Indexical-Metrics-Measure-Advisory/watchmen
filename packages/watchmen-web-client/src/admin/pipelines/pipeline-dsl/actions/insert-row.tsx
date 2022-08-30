@@ -8,6 +8,7 @@ import {Topic} from '@/services/data/tuples/topic-types';
 import React, {Fragment} from 'react';
 import {v4} from 'uuid';
 import {
+	AccumulateModeValue,
 	AggregateArithmeticValue,
 	FactorName,
 	PropName,
@@ -53,5 +54,7 @@ export const InsertRow = (props: { action: PipelineStageUnitAction, topicsMap: M
 				<FactorName>{factor?.name}</FactorName>
 			</Fragment>;
 		})}
+		<PropName indent={7}>accumulate-mode</PropName>
+		<AccumulateModeValue>{action.accumulateMode ?? AccumulateModeValue.STANDARD}</AccumulateModeValue>
 	</>;
 };
