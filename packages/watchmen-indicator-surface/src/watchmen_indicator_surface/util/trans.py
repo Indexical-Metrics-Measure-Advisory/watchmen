@@ -52,14 +52,15 @@ def trans_with_tail(
 	try:
 		returned, tail = action()
 		storage_service.commit_transaction()
-		tail()
-		return returned
 	except HTTPException as e:
 		storage_service.rollback_transaction()
 		raise e
 	except Exception as e:
 		storage_service.rollback_transaction()
 		raise_500(e)
+	else:
+		tail()
+		return returned
 
 
 def trans_readonly(storage_service: StorageService, action: Callable[[], TransReturned]) -> TransReturned:
