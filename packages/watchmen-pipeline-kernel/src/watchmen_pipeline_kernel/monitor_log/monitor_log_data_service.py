@@ -100,6 +100,7 @@ class PipelineMonitorLogDataService:
 
 		page = data_service.page(data_service.get_data_entity_helper().get_entity_pager(
 			criteria=entity_criteria,
+			sort=[EntitySortColumn(name='starttime', method=EntitySortMethod.DESC)],
 			pageable=Pageable(pageNumber=criteria.pageNumber, pageSize=criteria.pageSize)
 		))
 
