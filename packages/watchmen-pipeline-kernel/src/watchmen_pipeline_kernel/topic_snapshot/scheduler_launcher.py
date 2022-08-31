@@ -81,7 +81,7 @@ def create_job(
 			process_date = to_previous_month(get_current_time_in_seconds())
 			run_job(scheduler.schedulerId, process_date)
 
-		day = scheduler.day
+		day = 'last' if scheduler.day == 'L' else scheduler.day
 		return scheduler, ioScheduler.add_job(
 			run, trigger, day=day, hour=hour, minute=minute,
 			id=str(snowflake_generator.next_id()))
