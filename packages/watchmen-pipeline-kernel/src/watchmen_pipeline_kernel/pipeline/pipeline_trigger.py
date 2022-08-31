@@ -31,8 +31,7 @@ class PipelineTrigger:
 			trigger_data: Dict[str, Any], trace_id: PipelineTriggerTraceId,
 			principal_service: PrincipalService,
 			asynchronized: bool,
-			handle_monitor_log: Callable[[PipelineMonitorLog, bool], None],
-			save_trigger_data_skipped: bool = False):
+			handle_monitor_log: Callable[[PipelineMonitorLog, bool], None]):
 		self.storages = RuntimeTopicStorages(principal_service)
 		self.triggerTopicSchema = trigger_topic_schema
 		self.triggerType = trigger_type
