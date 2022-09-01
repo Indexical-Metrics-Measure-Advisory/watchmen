@@ -4,6 +4,7 @@ import {
 	PipelineStageUnitAction
 } from '@/services/data/tuples/pipeline-stage-unit-action/pipeline-stage-unit-action-types';
 import {isInsertRowAction} from '@/services/data/tuples/pipeline-stage-unit-action/pipeline-stage-unit-action-utils';
+import {AccumulateMode} from '@/services/data/tuples/pipeline-stage-unit-action/write-topic-actions-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import React, {Fragment} from 'react';
 import {v4} from 'uuid';
@@ -55,6 +56,6 @@ export const InsertRow = (props: { action: PipelineStageUnitAction, topicsMap: M
 			</Fragment>;
 		})}
 		<PropName indent={7}>accumulate-mode</PropName>
-		<AccumulateModeValue>{action.accumulateMode ?? AccumulateModeValue.STANDARD}</AccumulateModeValue>
+		<AccumulateModeValue>{action.accumulateMode ?? AccumulateMode.STANDARD}</AccumulateModeValue>
 	</>;
 };
