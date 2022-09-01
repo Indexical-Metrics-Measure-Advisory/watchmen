@@ -1,8 +1,11 @@
+from datetime import datetime
+from typing import List
+
 from watchmen_meta.common import EntityService, ask_meta_storage
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, OssCollectorCompetitiveLockId
 from watchmen_storage import EntityShaper, EntityRow, EntityName, TransactionalStorageSPI, \
-	EntityHelper, EntityIdHelper, EntityFinder, ColumnNameLiteral, EntityCriteriaExpression, EntityList, Entity
+	EntityHelper, EntityIdHelper, EntityFinder, ColumnNameLiteral, EntityCriteriaExpression, Entity
 from watchmen_collector_kernel.model import OSSCollectorCompetitiveLock
 
 
@@ -88,7 +91,6 @@ class OssCollectorLockService(EntityService):
 		finally:
 			self.storage.close()
 	
-	
 	def find_by_dependency(self, model_name: str, object_id: str) -> int:
 		try:
 			self.storage.connect()
@@ -104,6 +106,22 @@ class OssCollectorLockService(EntityService):
 		finally:
 			self.storage.close()
 
+	def find_completed_task(self, query_date: datetime) -> List:
+		try:
+			self.storage.connect()
+			return self.storage.find(EntityFinder(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='registered_at'),
+					                         operator="less-than",
+					                         right=query_date),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=1)
+				]
+			))
+		finally:
+			self.storage.close()
+	
 
 def get_oss_collector_lock_service() -> OssCollectorLockService:
 	return OssCollectorLockService(ask_meta_storage())
