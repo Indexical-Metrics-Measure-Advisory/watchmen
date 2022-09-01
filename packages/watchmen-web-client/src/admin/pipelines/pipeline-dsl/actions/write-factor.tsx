@@ -3,6 +3,7 @@ import {
 	PipelineStageUnitAction
 } from '@/services/data/tuples/pipeline-stage-unit-action/pipeline-stage-unit-action-types';
 import {isWriteFactorAction} from '@/services/data/tuples/pipeline-stage-unit-action/pipeline-stage-unit-action-utils';
+import {AccumulateMode} from '@/services/data/tuples/pipeline-stage-unit-action/write-topic-actions-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import React from 'react';
 import {AccumulateModeValue, AggregateArithmeticValue, FactorName, PropName, PropValue, TopicName} from '../dsl-widgets';
@@ -40,7 +41,7 @@ export const WriteFactor = (props: { action: PipelineStageUnitAction, topicsMap:
 		<PropValue>.</PropValue>
 		<FactorName>{factor?.name}</FactorName>
 		<PropName indent={7}>accumulate-mode</PropName>
-		<AccumulateModeValue>{action.accumulateMode ?? AccumulateModeValue.STANDARD}</AccumulateModeValue>
+		<AccumulateModeValue>{action.accumulateMode ?? AccumulateMode.STANDARD}</AccumulateModeValue>
 		<PropName indent={7}>by</PropName>
 		<JointLine joint={action.by} topicsMap={topicsMap} indent={7}/>
 	</>;
