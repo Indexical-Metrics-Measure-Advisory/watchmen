@@ -7,3 +7,4 @@
 .run/doll-app.run.xml
 *.zip
 *.log
+packages/watchmen-rest-doll/log/server.log.1

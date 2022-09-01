@@ -71,7 +71,7 @@ class S3Connector:
 					for object_ in objects:
 						result = self.consume(object_)
 						if result == STATUS.CREATE_TASK_FAILED or result == STATUS.DEPENDENCY_FAILED:
-							logger.info("CREATE_TASK_FAILED or DEPENDENCY_FAILED , key is  {}".format(object_.key))
+							# logger.info("CREATE_TASK_FAILED or DEPENDENCY_FAILED , key is  {}".format(object_.key))
 							continue
 						elif result == STATUS.CHECK_KEY_FAILED or result == STATUS.COMPLETED_TASK or \
 								STATUS.EMPTY_PAYLOAD or result == STATUS.PROCESS_TASK_FAILED:
