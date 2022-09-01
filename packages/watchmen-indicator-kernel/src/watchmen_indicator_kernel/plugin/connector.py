@@ -10,7 +10,9 @@ def call_connector_service(task: AchievementPluginTask, plugin: Plugin):
 	data = {
 		'achievementTaskId': str(task.achievementTaskId),
 		'achievementId': str(task.achievementId),
-		'pluginType': plugin.type
+		'pluginType': plugin.type,
+		"params": plugin.params,
+		"pluginCode": plugin.pluginCode
 	}
 	req = request.Request(ask_plugin_host() + '/task/run', method='POST')
 	req.add_header('Content-Type', 'application/json')
