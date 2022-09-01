@@ -18,6 +18,7 @@ from watchmen_model.pipeline_kernel import PipelineTriggerData
 from watchmen_model.common import Storable
 
 from .handler import save_topic_data, handle_trigger_data
+from .housekeeping import init_task_housekeeping
 
 logger = getLogger(__name__)
 
@@ -35,6 +36,7 @@ class STATUS(str, Enum):
 
 def init_s3_collector(settings: S3CollectorSettings):
 	S3Connector(settings).create_connector()
+	init_task_housekeeping(settings)
 
 
 class Dependency(Storable):
@@ -56,6 +58,7 @@ class S3Connector:
 		self.tenant_id = settings.tenant_id
 		self.consume_prefix = settings.consume_prefix
 		self.dead_prefix = settings.dead_prefix
+		self.maxKeys = settings.max_keys
 	
 	def create_connector(self) -> None:
 		Thread(target=S3Connector.run, args=(self,), daemon=True).start()
@@ -63,7 +66,7 @@ class S3Connector:
 	def run(self):
 		try:
 			while True:
-				objects = self.simpleStorageService.list_objects(max_keys=10, prefix=self.consume_prefix)
+				objects = self.simpleStorageService.list_objects(max_keys=self.maxKeys, prefix=self.consume_prefix)
 				logger.info("objects size {}".format(len(objects)))
 				if len(objects) == 0:
 					sleep(5)
@@ -75,10 +78,14 @@ class S3Connector:
 							continue
 						elif result == STATUS.CHECK_KEY_FAILED or result == STATUS.COMPLETED_TASK or \
 								STATUS.EMPTY_PAYLOAD or result == STATUS.PROCESS_TASK_FAILED:
-							logger.info("CHECK_KEY_FAILED or COMPLETED_TASK or EMPTY_PAYLOAD or PROCESS_TASK_FAILED, key is  {}".format(object_.key))
+							logger.info(
+								"CHECK_KEY_FAILED or COMPLETED_TASK or EMPTY_PAYLOAD or PROCESS_TASK_FAILED, key is  {}".format(
+									object_.key))
 							break
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
+			sleep(300)
+			self.create_connector()
 	
 	def consume(self, object_: ObjectContent) -> str:
 		object_key = self.get_identifier(self.consume_prefix, object_.key)
@@ -87,38 +94,42 @@ class S3Connector:
 			if self.check_dependency_finished(dependency):
 				distributed_lock = get_unique_key_distributed_lock(self.get_resource_lock(object_.key),
 				                                                   self.lock_service)
-				if not self.ask_lock(distributed_lock):
-					return STATUS.CREATE_TASK_FAILED
-				else:
-					payload = self.get_payload(object_.key)
-					if payload:
-						try:
-							trigger_data = PipelineTriggerData(code=self.get_code(object_key), data=payload, tenantId=self.tenant_id)
-							topic_trigger = self.save_data(trigger_data)
-							self.trigger_pipeline(trigger_data, topic_trigger)
-							self.simpleStorageService.delete_object(object_.key)
-							return STATUS.COMPLETED_TASK
-						except Exception:
-							self.move_to_dead_queue(object_.key, payload)
-							return STATUS.PROCESS_TASK_FAILED
-						finally:
-							self.ask_unlock(distributed_lock)
+				try:
+					if not self.ask_lock(distributed_lock):
+						return STATUS.CREATE_TASK_FAILED
 					else:
-						self.move_to_dead_queue(object_.key, payload)
-						self.ask_unlock(distributed_lock)
-						return STATUS.EMPTY_PAYLOAD
+						payload = self.get_payload(object_.key)
+						if payload:
+							try:
+								trigger_data = PipelineTriggerData(code=self.get_code(object_key), data=payload,
+								                                   tenantId=self.tenant_id)
+								topic_trigger = self.save_data(trigger_data)
+								self.trigger_pipeline(trigger_data, topic_trigger)
+								self.simpleStorageService.delete_object(object_.key)
+								return STATUS.COMPLETED_TASK
+							except Exception as e:
+								logger.error(e, exc_info=True, stack_info=True)
+								self.move_to_dead_queue(object_.key, payload)
+								return STATUS.PROCESS_TASK_FAILED
+						else:
+							self.move_to_dead_queue(object_.key, payload)
+							return STATUS.EMPTY_PAYLOAD
+				finally:
+					self.ask_unlock(distributed_lock)
 			else:
 				return STATUS.DEPENDENCY_FAILED
 		else:
 			distributed_lock = get_unique_key_distributed_lock(self.get_resource_lock(object_.key),
 			                                                   self.lock_service)
-			if not self.ask_lock(distributed_lock):
-				return STATUS.CREATE_TASK_FAILED
-			else:
-				payload = self.simpleStorageService.get_object(object_.key)
-				self.move_to_dead_queue(object_.key, payload)
+			try:
+				if not self.ask_lock(distributed_lock):
+					return STATUS.CREATE_TASK_FAILED
+				else:
+					payload = self.simpleStorageService.get_object(object_.key)
+					self.move_to_dead_queue(object_.key, payload)
+					return STATUS.CHECK_KEY_FAILED
+			finally:
 				self.ask_unlock(distributed_lock)
-				return STATUS.CHECK_KEY_FAILED
 	
 	def get_payload(self, key: str) -> Dict:
 		return self.simpleStorageService.get_object(key)
@@ -153,7 +164,7 @@ class S3Connector:
 		                                   objectId=key_parts[2],
 		                                   tenantId=self.tenant_id,
 		                                   status=0)
-
+	
 	def get_dependency(self, key: str) -> Optional[Dependency]:
 		key_parts = key.split(identifier_delimiter)
 		if len(key_parts) == 5:
@@ -190,7 +201,7 @@ class S3Connector:
 		dead_queue_key = self.generate_dead_file_key(key)
 		self.simpleStorageService.put_object(dead_queue_key, payload)
 		self.simpleStorageService.delete_object(key)
-		
+	
 	def generate_dead_file_key(self, key_: str):
 		return self.dead_prefix + self.get_identifier(self.consume_prefix, key_)
 	

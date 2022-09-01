@@ -39,11 +39,14 @@ export const SearchResultBodyRow = styled.div.attrs<{ detail: boolean }>(({detai
 	}
 `;
 export const SearchResultBodyCell = styled.div.attrs({'data-widget': 'monitor-logs-result-body-cell'})`
-	display      : flex;
-	align-items  : center;
-	height       : calc(var(--height) - 1px);
-	padding      : 0 calc(var(--margin) / 2);
-	border-right : var(--border);
+	display       : flex;
+	align-items   : center;
+	height        : calc(var(--height) - 1px);
+	padding       : 0 calc(var(--margin) / 2);
+	border-right  : var(--border);
+	white-space   : nowrap;
+	overflow      : hidden;
+	text-overflow : ellipsis;
 	> span {
 		overflow-x    : hidden;
 		white-space   : nowrap;

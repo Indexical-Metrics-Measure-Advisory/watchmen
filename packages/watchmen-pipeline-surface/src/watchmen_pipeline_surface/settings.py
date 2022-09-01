@@ -32,6 +32,8 @@ class PipelineSurfaceSettings(BaseSettings):
 	S3_COLLECTOR_TENANT: int = 0
 	S3_COLLECTOR_CONSUME_PREFIX = ''
 	S3_COLLECTOR_DEAD_PREFIX = ''
+	S3_COLLECTOR_MAX_KEYS: int = 10
+	S3_COLLECTOR_CLEAN_TASK_INTERVAL: int = 3600
 	
 	class Config:
 		# secrets_dir = '/var/run'
@@ -93,7 +95,9 @@ def ask_s3_connector_settings():
 			token=settings.S3_COLLECTOR_TOKEN,
 			tenant_id=settings.S3_COLLECTOR_TENANT,
 			consume_prefix=settings.S3_COLLECTOR_CONSUME_PREFIX,
-			dead_prefix=settings.S3_COLLECTOR_DEAD_PREFIX
+			dead_prefix=settings.S3_COLLECTOR_DEAD_PREFIX,
+			max_keys=settings.S3_COLLECTOR_MAX_KEYS,
+			clean_task_interval=settings.S3_COLLECTOR_CLEAN_TASK_INTERVAL
 		)
 	
 	return get_s3_collector_settings()

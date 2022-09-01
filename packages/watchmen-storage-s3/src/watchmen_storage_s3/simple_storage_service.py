@@ -62,7 +62,7 @@ class SimpleStorageService:
 			result = self.client.get_object(Bucket=self.bucket_name, Key=key)
 			return json.load(result['Body'])
 		except Boto3Error as e:
-			logger.error(f'Get object failed, detail: {e.__dict__}',stack_info=True,exc_info=True)
+			logger.error(f'Get object failed, detail: {e.__dict__}', stack_info=True, exc_info=True)
 			return None
 	
 	def delete_object(self, key: str) -> int:
@@ -70,7 +70,7 @@ class SimpleStorageService:
 			self.client.delete_object(Bucket=self.bucket_name, Key=key)
 			return 1
 		except Boto3Error as e:
-			logger.error(f'Delete object failed, detail: {e.__dict__}',stack_info=True,exc_info=True)
+			logger.error(f'Delete object failed, detail: {e.__dict__}', stack_info=True, exc_info=True)
 			return 0
 	
 	def delete_multiple_objects(self, prefix: str) -> None:
@@ -87,7 +87,8 @@ class SimpleStorageService:
 			
 			if response.get('Contents', None):
 				objects = ArrayHelper(response['Contents']).map(lambda x: ObjectContent(key=x.get('Key'),
-				                                                                        lastModified=x.get('LastModified'),
+				                                                                        lastModified=x.get(
+					                                                                        'LastModified'),
 				                                                                        eTag=x.get('ETag'),
 				                                                                        size=x.get('Size'),
 				                                                                        storageClass=x.get(
@@ -95,7 +96,7 @@ class SimpleStorageService:
 			else:
 				objects = []
 		except Boto3Error:
-			logger.error("Couldn't get objects for bucket '%s'.", bucket.name,stack_info=True,exc_info=True)
+			logger.error("Couldn't get objects for bucket '%s'.", bucket.name, stack_info=True, exc_info=True)
 			raise
 		else:
 			return objects
