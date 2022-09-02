@@ -32,15 +32,50 @@ class SubjectColumnArithmetic(str, Enum):
 	MINIMUM = 'min'
 
 
+class SubjectColumnAlignment(str, Enum):
+	LEFT = 'left',
+	CENTER = 'center',
+	RIGHT = 'right'
+
+
+class SubjectColumnFormat(str, Enum):
+	USE_GROUP = '#,##0',
+	USE_GROUP_1 = '#,##0.0',
+	USE_GROUP_2 = '#,##0.00',
+	USE_GROUP_3 = '#,##0.000',
+	USE_GROUP_4 = '#,##0.0000',
+	USE_GROUP_5 = '#,##0.00000',
+	USE_GROUP_6 = '#,##0.000000',
+
+
+class SubjectDataSetColumnRenderer(DataModel, BaseModel):
+	alignment: SubjectColumnAlignment
+	format: SubjectColumnFormat
+	highlightNegative: bool
+
+
+def construct_renderer(
+		renderer: Optional[Union[dict, SubjectDataSetColumnRenderer]]) -> Optional[SubjectDataSetColumnRenderer]:
+	if renderer is None:
+		return None
+	elif isinstance(renderer, SubjectDataSetColumnRenderer):
+		return renderer
+	else:
+		return SubjectDataSetColumnRenderer(**renderer)
+
+
 class SubjectDatasetColumn(DataModel, BaseModel):
 	columnId: SubjectDatasetColumnId = None
 	parameter: Parameter
 	alias: str = None
 	arithmetic: SubjectColumnArithmetic = None
+	renderer: SubjectDataSetColumnRenderer = None
 
 	def __setattr__(self, name, value):
 		if name == 'parameter':
 			super().__setattr__(name, construct_parameter(value))
+		elif name == 'renderer':
+			super().__setattr__(name, construct_renderer(value))
 		else:
 			super().__setattr__(name, value)
 

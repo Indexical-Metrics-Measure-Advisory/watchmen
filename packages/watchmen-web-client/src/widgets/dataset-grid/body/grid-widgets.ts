@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 import {TooltipButton} from '../../basic/tooltip-button';
 import {FILLER_MIN_WIDTH, HEADER_HEIGHT, ROW_HEIGHT} from '../constants';
-import {ColumnDef} from '../types';
+import {ColumnAlignment, ColumnDef} from '../types';
 
 interface GridProps {
 	columns: Array<ColumnDef>,
@@ -174,16 +174,37 @@ export const GridBody = styled.div
 `;
 
 export const GridBodyCell = styled.div
-	.attrs<{ lastRow: boolean, column: number, filler?: true }>(({lastRow, column, filler}) => {
-		return {
-			'data-widget': 'dataset-grid-body-cell',
-			style: {
-				gridColumn: column,
-				borderBottom: lastRow ? 0 : 'var(--border)',
-				borderRightColor: filler ? 'transparent' : 'var(--border-color)'
-			}
-		};
-	})<{ lastRow: boolean, lastColumn: boolean, column: number, filler?: true }>`
+	.attrs<{ lastRow: boolean, column: number, filler?: true, alignment?: ColumnAlignment; highlightAsDanger?: boolean }>(
+		({
+			 lastRow, column, filler,
+			 alignment = ColumnAlignment.LEFT, highlightAsDanger = false
+		 }) => {
+			return {
+				'data-widget': 'dataset-grid-body-cell',
+				style: {
+					gridColumn: column,
+					borderBottom: lastRow ? 0 : 'var(--border)',
+					borderRightColor: filler ? 'transparent' : 'var(--border-color)',
+					textAlign: (() => {
+						switch (alignment) {
+							case ColumnAlignment.LEFT:
+								return (void 0);
+							case ColumnAlignment.CENTER:
+								return 'center';
+							case ColumnAlignment.RIGHT:
+								return 'right';
+						}
+					})(),
+					color: (() => {
+						if (highlightAsDanger) {
+							return 'var(--danger-color)';
+						} else {
+							return (void 0);
+						}
+					})()
+				}
+			};
+		})<{ lastRow: boolean, lastColumn: boolean, column: number, filler?: true, alignment?: ColumnAlignment; highlightAsDanger?: boolean }>`
 	display          : flex;
 	position         : relative;
 	align-items      : center;

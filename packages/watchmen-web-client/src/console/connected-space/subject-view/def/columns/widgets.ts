@@ -1,3 +1,5 @@
+import {CheckBox} from '@/widgets/basic/checkbox';
+import {DROPDOWN_Z_INDEX} from '@/widgets/basic/constants';
 import {Dropdown} from '@/widgets/basic/dropdown';
 import {Input} from '@/widgets/basic/input';
 import styled from 'styled-components';
@@ -54,12 +56,12 @@ export const ColumnEditWrapper = styled.div.attrs<{ shorten: boolean }>(({shorte
 	return {
 		'data-widget': 'subject-def-column-edit-wrapper',
 		style: {
-			gridTemplateColumns: shorten ? 'auto auto auto auto 1fr' : (void 0)
+			gridTemplateColumns: shorten ? 'auto auto auto auto auto 1fr' : (void 0)
 		}
 	};
 })<{ shorten: boolean }>`
 	display               : grid;
-	grid-template-columns : auto 1fr auto auto auto;
+	grid-template-columns : auto 1fr auto auto auto auto;
 	grid-row-gap          : calc(var(--margin) / 4);
 	position              : relative;
 	align-self            : stretch;
@@ -165,4 +167,95 @@ export const ArithmeticEditInput = styled(Dropdown).attrs({
 			padding : 0 calc(var(--margin) / 2);
 		}
 	}
+`;
+export const RendererContainer = styled.div.attrs({'data-widget': 'subject-def-column-renderer'})`
+	position : relative;
+`;
+export const RendererButton = styled.div.attrs<{ editorVisible: boolean }>(({editorVisible}) => {
+	return {
+		'data-widget': 'subject-def-column-renderer-button',
+		style: {
+			borderTopLeftRadius: editorVisible ? 0 : (void 0),
+			borderBottomLeftRadius: editorVisible ? 0 : (void 0),
+			boxShadow: editorVisible ? 'var(--param-border), var(--primary-shadow)' : (void 0)
+		}
+	};
+})<{ editorVisible: boolean }>`
+	display         : flex;
+	position        : relative;
+	align-self      : stretch;
+	align-items     : center;
+	justify-content : center;
+	height          : var(--param-height);
+	width           : var(--param-height);;
+	padding         : 0;
+	margin-left     : calc(var(--margin) / 2);
+	border-radius   : calc(var(--param-height) / 2);
+	color           : var(--param-bg-color);
+	box-shadow      : var(--param-border);
+	cursor          : pointer;
+	transition      : color 300ms ease-in-out, box-shadow 300ms ease-in-out, border-radius 300ms ease-in-out;
+	&:before {
+		content          : '';
+		display          : block;
+		position         : absolute;
+		left             : calc(var(--margin) / -2);
+		top              : 50%;
+		height           : 1px;
+		width            : calc(var(--margin) / 2 - 1px);
+		background-color : var(--param-bg-color);
+	}
+	&:hover {
+		color      : var(--primary-color);
+		box-shadow : var(--param-primary-border), var(--primary-hover-shadow);
+		z-index    : 1
+	}
+	> svg {
+		font-size : 0.8em;
+	}
+`;
+export const RendererPanel = styled.div.attrs<{ visible: boolean; x: number; y: number; positionOnTop: boolean }>(
+	({visible, x, y, positionOnTop}) => {
+		return {
+			'data-widget': 'subject-def-column-renderer-panel',
+			style: {
+				top: y ?? (void 0),
+				left: x ?? (void 0),
+				borderTopRightRadius: positionOnTop ? (void 0) : 0,
+				borderBottomRightRadius: positionOnTop ? 0 : (void 0),
+				clipPath: visible
+					? 'polygon(-10px -1000px, calc(100% + 10px) -1000px, calc(100% + 10px) calc(100% + 1000px), -10px calc(100% + 1000px))'
+					: (positionOnTop ? 'polygon(calc(100% + 10px) calc(100% + 10px), calc(100% + 10px) calc(100% + 10px), calc(100% + 10px) calc(100% + 10px), calc(100% + 10px) calc(100% + 10px))' : (void 0))
+			}
+		};
+	})<{ visible: boolean; x: number; y: number; positionOnTop: boolean }>`
+	display               : grid;
+	position              : fixed;
+	grid-template-columns : auto 1fr;
+	grid-column-gap       : calc(var(--margin) / 2);
+	grid-row-gap          : calc(var(--margin) / 4);
+	padding               : calc(var(--margin) / 2);
+	background-color      : var(--bg-color);
+	box-shadow            : var(--param-border), var(--primary-shadow);
+	border-radius         : calc(var(--param-height) / 2);
+	clip-path             : polygon(calc(100% + 10px) -10px, calc(100% + 10px) -10px, calc(100% + 10px) -10px, calc(100% + 10px) -10px);
+	transition            : clip-path 300ms ease-in-out;
+	z-index               : ${DROPDOWN_Z_INDEX};
+`;
+export const RendererItemLabel = styled.div.attrs({'data-widget': 'subject-def-column-renderer-item-label'})`
+	display       : flex;
+	align-items   : center;
+	align-self    : stretch;
+	justify-self  : stretch;
+	font-variant  : petite-caps;
+	font-weight   : var(--font-bold);
+	padding       : 0 calc(var(--margin) / 4);
+	border-radius : calc(var(--param-height) / 2) 0 0 calc(var(--param-height) / 2);
+	white-space   : nowrap;
+`;
+export const RendererItemDropdown = styled(Dropdown).attrs({'data-widget': 'subject-def-column-renderer-item-dropdown'})`
+	width : 150px;
+`;
+export const RendererItemCheckBox = styled(CheckBox).attrs({'data-widget': 'subject-def-column-renderer-item-checkbox'})`
+	margin : calc((var(--height) - var(--checkbox-size)) / 2) 0;
 `;

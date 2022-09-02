@@ -77,6 +77,7 @@ import {
 	faMicroscope,
 	faMinus,
 	faObjectGroup,
+	faPaintRoller,
 	faPalette,
 	faPaperPlane,
 	faParagraph,
@@ -85,7 +86,8 @@ import {
 	faPlay,
 	faPlus,
 	faPowerOff,
-	faPrint, faPuzzlePiece,
+	faPrint,
+	faPuzzlePiece,
 	faQuestionCircle,
 	faQuoteRight,
 	faRandom,
@@ -324,6 +326,7 @@ export const ICON_EXPAND_NODES = faPlus;
 export const ICON_COLLAPSE_NODES = faMinus;
 export const ICON_EXTERNAL_LINK = faExternalLinkAlt;
 export const ICON_SHOW_NAVIGATOR = faBars;
+export const ICON_RENDERER = faPaintRoller;
 
 export const ICON_COMMENTS = faCommentDots;
 export const ICON_CMD_PROMPT = faTerminal;
