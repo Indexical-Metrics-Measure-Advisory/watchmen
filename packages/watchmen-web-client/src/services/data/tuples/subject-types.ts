@@ -16,12 +16,36 @@ export enum SubjectColumnArithmetic {
 	MINIMUM = 'min'
 }
 
+export enum SubjectColumnAlignment {
+	LEFT = 'left',
+	CENTER = 'center',
+	RIGHT = 'right'
+}
+
+export enum SubjectColumnFormat {
+	NONE = 'none',
+	USE_GROUP = '#,##0',
+	USE_GROUP_1 = '#,##0.0',
+	USE_GROUP_2 = '#,##0.00',
+	USE_GROUP_3 = '#,##0.000',
+	USE_GROUP_4 = '#,##0.0000',
+	USE_GROUP_5 = '#,##0.00000',
+	USE_GROUP_6 = '#,##0.000000',
+}
+
+export interface SubjectDataSetColumnRenderer {
+	alignment: SubjectColumnAlignment;
+	format: SubjectColumnFormat;
+	highlightNegative: boolean;
+}
+
 /** column */
 export interface SubjectDataSetColumn {
 	columnId: SubjectDataSetColumnId;
 	parameter: Parameter;
 	alias?: string;
 	arithmetic?: SubjectColumnArithmetic;
+	renderer?: SubjectDataSetColumnRenderer;
 }
 
 /** filter */

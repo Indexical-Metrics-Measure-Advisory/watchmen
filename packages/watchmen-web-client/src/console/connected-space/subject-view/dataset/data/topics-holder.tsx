@@ -1,7 +1,7 @@
 import {ConnectedSpace} from '@/services/data/tuples/connected-space-types';
-import {Subject} from '@/services/data/tuples/subject-types';
+import {Subject, SubjectDataSetColumnRenderer} from '@/services/data/tuples/subject-types';
 import {DEFAULT_COLUMN_WIDTH} from '@/widgets/dataset-grid/constants';
-import {ColumnDefs, ColumnSortBy} from '@/widgets/dataset-grid/types';
+import {ColumnAlignment, ColumnDefs, ColumnFormat, ColumnRenderer, ColumnSortBy} from '@/widgets/dataset-grid/types';
 import React, {Fragment, useEffect, useState} from 'react';
 import {useSubjectDataSetEventBus} from '../subject-dataset-event-bus';
 import {SubjectDataSetEventTypes} from '../subject-dataset-event-bus-types';
@@ -26,6 +26,14 @@ export const TopicsHolder = (props: { connectedSpace: ConnectedSpace, subject: S
 			return;
 		}
 
+		const asGridColumnRenderer = (renderer?: SubjectDataSetColumnRenderer): ColumnRenderer => {
+			return {
+				alignment: renderer?.alignment ?? ColumnAlignment.LEFT,
+				format: renderer?.format ?? ColumnFormat.NONE,
+				highlightNegative: renderer?.highlightNegative ?? false
+			} as ColumnRenderer;
+		};
+
 		const columnDefs = {
 			fixed: [],
 			data: subject.dataset.columns.map((column, columnIndex) => {
@@ -35,7 +43,8 @@ export const TopicsHolder = (props: { connectedSpace: ConnectedSpace, subject: S
 					sort: ColumnSortBy.NONE,
 					fixed: false,
 					width: DEFAULT_COLUMN_WIDTH,
-					index: columnIndex
+					index: columnIndex,
+					renderer: asGridColumnRenderer(column.renderer)
 				};
 			})
 		};

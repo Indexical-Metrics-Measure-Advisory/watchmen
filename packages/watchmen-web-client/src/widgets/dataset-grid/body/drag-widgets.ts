@@ -1,5 +1,6 @@
 import styled from 'styled-components';
 import {HEADER_HEIGHT, ROW_HEIGHT} from '../constants';
+import {ColumnAlignment} from '../types';
 
 interface DragColumnRect {
 	left?: number;
@@ -83,19 +84,45 @@ export const DragColumnBody = styled.div.attrs<{ firstRowOffsetY: number }>(({fi
 	align-items    : stretch;
 	grid-auto-rows : ${ROW_HEIGHT}px;
 `;
-export const DragColumnBodyCell = styled.div.attrs({'data-widget': 'dataset-grid-drag-column-body-cell'})`
-	display: flex;
-	position: relative;
-	align-items: center;
-	font-size: 0.8em;
-	padding: 1px 8px 0;
-	background-color: var(--invert-color);
-	border: var(--border);
-	border-top: 0;
+export const DragColumnBodyCell = styled.div.attrs<{ alignment?: ColumnAlignment; highlightAsDanger?: boolean }>(
+	({
+		 alignment = ColumnAlignment.LEFT, highlightAsDanger = false
+	 }) => {
+		return {
+			'data-widget': 'dataset-grid-drag-column-body-cell',
+			style: {
+				textAlign: (() => {
+					switch (alignment) {
+						case ColumnAlignment.LEFT:
+							return (void 0);
+						case ColumnAlignment.CENTER:
+							return 'center';
+						case ColumnAlignment.RIGHT:
+							return 'right';
+					}
+				})(),
+				color: (() => {
+					if (highlightAsDanger) {
+						return 'var(--danger-color)';
+					} else {
+						return (void 0);
+					}
+				})()
+			}
+		};
+	})<{ alignment?: ColumnAlignment; highlightAsDanger?: boolean }>`
+	display          : flex;
+	position         : relative;
+	align-items      : center;
+	font-size        : 0.8em;
+	padding          : 1px 8px 0;
+	background-color : var(--invert-color);
+	border           : var(--border);
+	border-top       : 0;
 	> span {
-		flex-grow: 1;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
+		flex-grow     : 1;
+		white-space   : nowrap;
+		overflow      : hidden;
+		text-overflow : ellipsis;
 	}
 `;

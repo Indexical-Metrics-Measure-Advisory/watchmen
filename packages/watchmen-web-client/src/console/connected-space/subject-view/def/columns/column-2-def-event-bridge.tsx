@@ -17,10 +17,12 @@ export const Column2DefEventBridge = (props: { subject: Subject, column: Subject
 		on(ColumnEventTypes.CONTENT_CHANGED, onChanged);
 		on(ColumnEventTypes.ALIAS_CHANGED, onChanged);
 		on(ColumnEventTypes.ARITHMETIC_CHANGED, onChanged);
+		on(ColumnEventTypes.RENDERER_CHANGED, onChanged);
 		return () => {
 			off(ColumnEventTypes.CONTENT_CHANGED, onChanged);
 			off(ColumnEventTypes.ALIAS_CHANGED, onChanged);
 			off(ColumnEventTypes.ARITHMETIC_CHANGED, onChanged);
+			off(ColumnEventTypes.RENDERER_CHANGED, onChanged);
 		};
 	}, [on, off, fireDef, column]);
 

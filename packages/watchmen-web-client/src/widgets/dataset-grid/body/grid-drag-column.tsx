@@ -1,7 +1,7 @@
 import React, {ForwardedRef, forwardRef, useEffect, useState} from 'react';
 import {useGridEventBus} from '../grid-event-bus';
 import {GridEventTypes} from '../grid-event-bus-types';
-import {DataColumnDef, DataSetState, DragColumnState} from '../types';
+import {ColumnAlignment, ColumnFormat, DataColumnDef, DataSetState, DragColumnState} from '../types';
 import {
 	DragColumnBody,
 	DragColumnBodyCell,
@@ -9,6 +9,7 @@ import {
 	DragColumnHeader,
 	DragColumnHeaderCell
 } from './drag-widgets';
+import {formatValue} from './utils';
 
 export const GridDragColumn = forwardRef((props: {
 	column?: DataColumnDef;
@@ -50,7 +51,10 @@ export const GridDragColumn = forwardRef((props: {
 		return null;
 	}
 
-	const {width} = column;
+	const {
+		width,
+		renderer: {alignment = ColumnAlignment.LEFT, format = ColumnFormat.NONE, highlightNegative = false} = {}
+	} = column;
 	const {left, height, startRowIndex, endRowIndex, firstRowOffsetY, movementX} = state;
 
 	return <DragColumnContainer left={left} width={width} height={height} movementX={movementX}
@@ -66,9 +70,11 @@ export const GridDragColumn = forwardRef((props: {
 				if (rowIndex < startRowIndex || rowIndex > endRowIndex) {
 					return null;
 				}
+				const {value, highlightAsDanger} = formatValue(row[column!.index], {format, highlightNegative});
 
-				return <DragColumnBodyCell key={`${rowIndex}`}>
-					<span>{`${row[column!.index] || ''}`}</span>
+				return <DragColumnBodyCell alignment={alignment} highlightAsDanger={highlightAsDanger}
+				                           key={`${rowIndex}`}>
+					<span>{value}</span>
 				</DragColumnBodyCell>;
 			})}
 		</DragColumnBody>

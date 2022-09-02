@@ -1,20 +1,33 @@
 import {ChartDataSet} from '@/services/data/tuples/chart-types';
 import {ConnectedSpace} from '@/services/data/tuples/connected-space-types';
-import {Report} from '@/services/data/tuples/report-types';
+import {Report, ReportIndicator} from '@/services/data/tuples/report-types';
 import {Subject} from '@/services/data/tuples/subject-types';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {Grid} from '@/widgets/dataset-grid';
 import {DEFAULT_COLUMN_WIDTH} from '@/widgets/dataset-grid/constants';
 import {GridEventBusProvider, useGridEventBus} from '@/widgets/dataset-grid/grid-event-bus';
 import {GridEventTypes} from '@/widgets/dataset-grid/grid-event-bus-types';
-import {ColumnSortBy, DataPage} from '@/widgets/dataset-grid/types';
+import {ColumnAlignment, ColumnFormat, ColumnRenderer, ColumnSortBy, DataPage} from '@/widgets/dataset-grid/types';
 import {Fragment, useEffect} from 'react';
 import {useReportEditEventBus} from '../report-edit-event-bus';
 import {ReportEditEventTypes} from '../report-edit-event-bus-types';
 import {useReportDataSetEventBus} from './report-dataset-event-bus';
 import {ReportDataSetEventTypes} from './report-dataset-event-bus-types';
 
-const SubjectDataGridController = () => {
+const asColumnRenderer = (subject: Subject, indicator: ReportIndicator): ColumnRenderer => {
+	const {columnId} = indicator;
+	// eslint-disable-next-line
+	const column = (subject.dataset.columns || []).find(column => column.columnId == columnId);
+	return {
+		alignment: ColumnAlignment.LEFT,
+		format: column?.renderer?.format ?? ColumnFormat.NONE,
+		highlightNegative: column?.renderer?.highlightNegative ?? false
+	} as ColumnRenderer;
+};
+
+const ReportDataGridController = (props: { subject: Subject }) => {
+	const {subject} = props;
+
 	const {fire: fireGrid} = useGridEventBus();
 	const {on, off} = useReportDataSetEventBus();
 	useEffect(() => {
@@ -35,7 +48,8 @@ const SubjectDataGridController = () => {
 								name: indicator.name,
 								sort: ColumnSortBy.NONE,
 								fixed: false,
-								width: DEFAULT_COLUMN_WIDTH
+								width: DEFAULT_COLUMN_WIDTH,
+								renderer: asColumnRenderer(subject, indicator)
 							};
 						}), ...(report.dimensions || []).map(dimension => {
 							return {
@@ -55,12 +69,12 @@ const SubjectDataGridController = () => {
 		return () => {
 			off(ReportDataSetEventTypes.DATA_LOADED, onDataLoaded);
 		};
-	}, [on, off, fireGrid]);
+	}, [on, off, fireGrid, subject]);
 
 	return <Fragment/>;
 };
 
-const SubjectDataGridDelegate = (props: { connectedSpace: ConnectedSpace, subject: Subject, report: Report }) => {
+const ReportDataGridDelegate = (props: { connectedSpace: ConnectedSpace, subject: Subject, report: Report }) => {
 	const {connectedSpace, report} = props;
 
 	const {fire: fireReport} = useReportEditEventBus();
@@ -96,7 +110,7 @@ export const ReportDataGrid = (props: { connectedSpace: ConnectedSpace, subject:
 	const {connectedSpace, subject, report} = props;
 
 	return <GridEventBusProvider>
-		<SubjectDataGridDelegate connectedSpace={connectedSpace} subject={subject} report={report}/>
-		<SubjectDataGridController/>
+		<ReportDataGridDelegate connectedSpace={connectedSpace} subject={subject} report={report}/>
+		<ReportDataGridController subject={subject}/>
 	</GridEventBusProvider>;
 };

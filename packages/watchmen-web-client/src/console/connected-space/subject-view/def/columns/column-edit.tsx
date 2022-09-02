@@ -19,6 +19,7 @@ import {ArithmeticEditor} from './arithmetic-edit';
 import {Column2DefEventBridge} from './column-2-def-event-bridge';
 import {ColumnEventBusProvider} from './column-event-bus';
 import {Parameter2ColumnEventBridge} from './parameter-2-column-event-bridge';
+import {RendererEditor} from './renderer-editor';
 import {ColumnEditContainer, ColumnEditWrapper, ColumnIndex} from './widgets';
 
 export const ColumnEditor = (props: {
@@ -56,6 +57,7 @@ export const ColumnEditor = (props: {
 		                   availableTopics={availableTopics} pickedTopics={pickedTopics}/>
 		<AliasEditor column={column}/>
 		<ArithmeticEditor column={column}/>
+		<RendererEditor column={column}/>
 		<DeleteMeButton onClick={onDeleteClicked}>
 			<FontAwesomeIcon icon={ICON_DELETE}/>
 		</DeleteMeButton>
