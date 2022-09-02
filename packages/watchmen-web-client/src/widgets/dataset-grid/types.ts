@@ -6,6 +6,29 @@ export enum ColumnSortBy {
 	DESC = 'desc'
 }
 
+export enum ColumnAlignment {
+	LEFT = 'left',
+	CENTER = 'center',
+	RIGHT = 'right'
+}
+
+export enum ColumnFormat {
+	NONE = 'none',
+	USE_GROUP = '#,##0',
+	USE_GROUP_1 = '#,##0.0',
+	USE_GROUP_2 = '#,##0.00',
+	USE_GROUP_3 = '#,##0.000',
+	USE_GROUP_4 = '#,##0.0000',
+	USE_GROUP_5 = '#,##0.00000',
+	USE_GROUP_6 = '#,##0.000000',
+}
+
+export interface ColumnRenderer {
+	alignment: ColumnAlignment;
+	format: ColumnFormat;
+	highlightNegative: boolean;
+}
+
 export interface ColumnDef {
 	fixed: boolean;
 	width: number;
@@ -15,6 +38,7 @@ export interface ColumnDef {
 export interface DataColumnDef extends ColumnDef {
 	name: string;
 	sort: ColumnSortBy;
+	renderer?: ColumnRenderer;
 }
 
 export interface SequenceColumnDef extends ColumnDef {

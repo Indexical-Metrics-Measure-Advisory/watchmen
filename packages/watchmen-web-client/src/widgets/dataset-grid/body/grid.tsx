@@ -1,9 +1,10 @@
 import React, {ForwardedRef, forwardRef, Fragment, MouseEvent} from 'react';
 import {useGridEventBus} from '../grid-event-bus';
 import {GridEventTypes} from '../grid-event-bus-types';
-import {ColumnDef, DataColumnDef, DataSetState, SequenceColumnDef} from '../types';
+import {ColumnAlignment, ColumnDef, ColumnFormat, DataColumnDef, DataSetState, SequenceColumnDef} from '../types';
 import {GridDatColumnHeaderCell} from './grid-data-column-header-cell';
 import {GridBody, GridBodyCell, GridContainer, GridHeader, GridHeaderCell} from './grid-widgets';
+import {formatValue} from './utils';
 
 export const Grid = forwardRef((props: {
 	displayColumns: Array<DataColumnDef>;
@@ -94,13 +95,22 @@ export const Grid = forwardRef((props: {
 						: null}
 					{displayColumns.map((def, columnIndex, columns) => {
 						const lastColumn = isFixTable && columnIndex === columns.length - 1;
+						const {
+							renderer: {
+								alignment = ColumnAlignment.LEFT,
+								format = ColumnFormat.NONE,
+								highlightNegative = false
+							} = {}
+						} = def;
+						const {value, highlightAsDanger} = formatValue(row[def.index], {format, highlightNegative});
 						return <GridBodyCell lastRow={lastRow} lastColumn={lastColumn}
 						                     column={(columnIndex + (isFixTable ? 1 : 0) + 1) * 2}
+						                     alignment={alignment} highlightAsDanger={highlightAsDanger}
 						                     onClick={onSelectionChanged(rowIndex, columnIndex)}
 						                     data-dragging={def === dragColumn}
 						                     data-last-row={lastRow} data-last-column={lastColumn}
 						                     key={`${rowIndex}-${columnIndex}`}>
-							<span>{`${row[def.index] || ''}`}</span>
+							<span>{value}</span>
 						</GridBodyCell>;
 					})}
 					{autoFill
