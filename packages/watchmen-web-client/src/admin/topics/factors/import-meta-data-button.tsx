@@ -61,6 +61,17 @@ export const ImportMetaDataButton = (props: { topic: Topic }) => {
 		return null;
 	}
 
+	const cleanImportData = (data: Array<any>): Array<any> => {
+		return data.map(row => {
+			return Object.keys(row || {}).reduce((map, key) => {
+				const value = row[key];
+				if (value !== '' && value != null) {
+					map[key] = value;
+				}
+				return map;
+			}, {});
+		});
+	};
 	const onDataFileSelected = async (file: File) => {
 		const name = file.name;
 		try {
@@ -82,9 +93,13 @@ export const ImportMetaDataButton = (props: { topic: Topic }) => {
 							fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Failed to read data file.</AlertLabel>);
 							return;
 						}
+						if ((data || []).length === 0) {
+							fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>No items needs to be imported.</AlertLabel>);
+							return;
+						}
 
 						fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
-							await importTopicData(topic.topicId, data);
+							await importTopicData(topic.topicId, cleanImportData(data));
 						}, () => {
 							fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Data imported.</AlertLabel>);
 						});
@@ -94,8 +109,12 @@ export const ImportMetaDataButton = (props: { topic: Topic }) => {
 				case name.endsWith('.json'): {
 					const content = await file.text();
 					const data = JSON.parse(content);
+					if ((data || []).length === 0) {
+						fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>No items needs to be imported.</AlertLabel>);
+						return;
+					}
 					fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
-						await importTopicData(topic.topicId, data);
+						await importTopicData(topic.topicId, cleanImportData(data));
 					}, () => {
 						fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Data imported.</AlertLabel>);
 					});
