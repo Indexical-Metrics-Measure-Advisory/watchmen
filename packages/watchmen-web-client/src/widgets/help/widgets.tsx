@@ -18,15 +18,14 @@ export const HelpContainer = styled.div.attrs<{ visible: boolean }>(({visible}) 
 		'data-widget': 'help',
 		style: {
 			opacity: visible ? 1 : (void 0),
-			pointerEvents: visible ? 'auto' : (void 0),
-			animation: visible ? (void 0) : 'none'
+			pointerEvents: visible ? 'auto' : (void 0)
 		}
 	};
 })<{ visible: boolean }>`
 	display          : flex;
 	position         : fixed;
-	top              : ${BASE_MARGIN}px;
-	right            : ${BASE_MARGIN}px;
+	top              : ${BASE_MARGIN / 2}px;
+	right            : ${BASE_MARGIN / 2}px;
 	height           : ${BASE_HEIGHT * 1.5}px;
 	border-radius    : ${BASE_HEIGHT * 0.75}px;
 	border           : var(--border);
@@ -37,7 +36,6 @@ export const HelpContainer = styled.div.attrs<{ visible: boolean }>(({visible}) 
 	opacity          : 0;
 	pointer-events   : none;
 	transition       : all 300ms ease-in-out;
-	animation        : ${AutoHide} 300ms ease-in-out 10s forwards;
 	cursor           : pointer;
 	z-index          : ${HELP_Z_INDEX};
 	user-select      : none;
