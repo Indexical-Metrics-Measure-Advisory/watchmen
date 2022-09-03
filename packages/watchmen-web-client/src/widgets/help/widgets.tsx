@@ -1,18 +1,18 @@
-import styled, {keyframes} from 'styled-components';
+import styled from 'styled-components';
 import {Button} from '../basic/button';
 import {BASE_HEIGHT, BASE_MARGIN, HELP_Z_INDEX} from '../basic/constants';
 import {Input} from '../basic/input';
 import {DialogBody} from '../dialog/widgets';
 
-const AutoHide = keyframes`
-	from {
-		opacity : 1;
-	}
-	to {
-		opacity        : 0;
-		pointer-events : none;
-	}
-`;
+// const AutoHide = keyframes`
+// 	from {
+// 		opacity : 1;
+// 	}
+// 	to {
+// 		opacity        : 0;
+// 		pointer-events : none;
+// 	}
+// `;
 export const HelpContainer = styled.div.attrs<{ visible: boolean }>(({visible}) => {
 	return {
 		'data-widget': 'help',
