@@ -69,7 +69,7 @@ export const ImportMetaDataButton = (props: { topic: Topic }) => {
 					map[key] = value;
 				}
 				return map;
-			}, {});
+			}, {} as Record<string, any>);
 		});
 	};
 	const onDataFileSelected = async (file: File) => {
