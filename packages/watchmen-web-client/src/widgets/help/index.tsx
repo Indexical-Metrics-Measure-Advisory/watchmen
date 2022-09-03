@@ -63,7 +63,11 @@ type MatchedItem = {
 const CONTENTS: Array<{ words: string, name: string, url: string }> = [
 	{words: 'admin data zone 管理员 数据区域', name: 'Admin / Data Zone', url: 'admin/data-zone'},
 	{words: 'admin data source 管理员 数据源 数据库/存储', name: 'Admin / Data Source', url: 'admin/data-source'},
-	{words: 'admin external writer 管理员 外部 写 输出数据', name: 'Admin / External Writer', url: 'admin/external-writer'},
+	{
+		words: 'admin external writer 管理员 外部 写 输出数据',
+		name: 'Admin / External Writer',
+		url: 'admin/external-writer'
+	},
 	{words: 'admin user 管理员 用户 账号', name: 'Admin / User', url: 'admin/user'},
 	{words: 'admin user group 管理员 用户组 账号组', name: 'Admin / User Group', url: 'admin/user-group'},
 	{words: 'admin space 管理员 空间 数据集 用户组', name: 'Admin / Space', url: 'admin/space'},
@@ -82,7 +86,11 @@ const CONTENTS: Array<{ words: string, name: string, url: string }> = [
 		name: 'Admin / Pipeline',
 		url: 'admin/pipeline'
 	},
-	{words: 'admin topic pipeline simulator 管理员 数据集 管道 模拟器', name: 'Admin / Simulator', url: 'admin/simulator'},
+	{
+		words: 'admin topic pipeline simulator 管理员 数据集 管道 模拟器',
+		name: 'Admin / Simulator',
+		url: 'admin/simulator'
+	},
 	{
 		words: 'admin topic pipeline monitor logs 管理员 数据集 管道 执行日志',
 		name: 'Admin / Monitor Logs',
@@ -96,11 +104,27 @@ const CONTENTS: Array<{ words: string, name: string, url: string }> = [
 		url: 'console/console-connected-space'
 	},
 	{words: 'console subject 控制台 主题', name: 'Console / Subject', url: 'console/console-subject'},
-	{words: 'console subject report chart 控制台 主题 报表 图表', name: 'Console / Report', url: 'console/console-report'},
+	{
+		words: 'console subject report chart 控制台 主题 报表 图表',
+		name: 'Console / Report',
+		url: 'console/console-report'
+	},
 	{words: 'console dashboard 控制台 仪表盘', name: 'Console / Dashboard', url: 'console/dashboard'},
-	{words: 'dqc data quality center status statistics 数据监控中心 状态', name: 'DQC / Statistics', url: 'dqc/run-statistics'},
-	{words: 'dqc data quality center monitor rules 数据监控中心 规则', name: 'DQC / Monitor Rules', url: 'dqc/monitor-rules'},
-	{words: 'dqc data quality center consanguinity 数据监控中心 血缘', name: 'DQC / Consanguinity', url: 'dqc/consanguinity'},
+	{
+		words: 'dqc data quality center status statistics 数据监控中心 状态',
+		name: 'DQC / Statistics',
+		url: 'dqc/run-statistics'
+	},
+	{
+		words: 'dqc data quality center monitor rules 数据监控中心 规则',
+		name: 'DQC / Monitor Rules',
+		url: 'dqc/monitor-rules'
+	},
+	{
+		words: 'dqc data quality center consanguinity 数据监控中心 血缘',
+		name: 'DQC / Consanguinity',
+		url: 'dqc/consanguinity'
+	},
 	{words: 'dqc data quality center catalog 数据监控中心 目录', name: 'DQC / Catalog', url: 'dqc/catalog'},
 	{words: 'indicator bucket 指标 分桶', name: 'Indicator / Bucket', url: 'indicator/bucket'},
 	{words: 'indicator 指标', name: 'Indicator / Indicator', url: 'indicator/indicator'},
@@ -207,18 +231,19 @@ export const HelpButton = () => {
 			off(EventTypes.SWITCH_HELP_KEY, onHelpKeySwitched);
 		};
 	}, [on, off]);
+	useEffect(() => {
+		if (state.visible) {
+			setTimeout(() => setState(state => {
+				return {...state, visible: false};
+			}), 10000);
+		}
+	}, [state.visible]);
 
 	const onHelpClicked = () => {
 		showHelpDialog(fire, state.key);
 	};
-	const onAnimationEnd = () => {
-		setState(state => {
-			return {...state, visible: false};
-		});
-	};
 
-	return <HelpContainer visible={state.visible}
-	                      onClick={onHelpClicked} onAnimationEnd={onAnimationEnd}>
+	return <HelpContainer visible={state.visible} onClick={onHelpClicked}>
 		<HelpLabel>
 			{isMacLike ? '⌘ + k' : 'CTRL + K'}
 		</HelpLabel>
@@ -244,6 +269,6 @@ export const useHelp = (key: string) => {
 	useEffect(() => {
 		setTimeout(() => {
 			fire(EventTypes.SHOW_HELP, key);
-		}, 10000);
+		}, 30000);
 	});
 };
