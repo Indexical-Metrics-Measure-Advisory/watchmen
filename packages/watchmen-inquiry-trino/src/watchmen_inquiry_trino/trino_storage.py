@@ -304,13 +304,13 @@ class TrinoStorage(TrinoStorageSPI):
 				elements = literal.elements
 				cases = ArrayHelper(elements).filter(lambda x: isinstance(x, Tuple)) \
 					.map(lambda x: (self.build_criteria_statement(x[0]), self.build_literal(x[1]))) \
-					.map(lambda x: f'WHEN {x[0]} THEN {x[1]}') \
+					.map(lambda x: f'WHEN {x[0]} THEN CAST({x[1]} AS VARCHAR)') \
 					.to_list()
 				anyway = ArrayHelper(elements).find(lambda x: not isinstance(x, Tuple))
 				if anyway is None:
 					return f'CASE {ArrayHelper(cases).join(" ")} END'
 				else:
-					return f'CASE {ArrayHelper(cases).join(" ")} ELSE {self.build_literal(anyway)} END'
+					return f'CASE {ArrayHelper(cases).join(" ")} ELSE CAST({self.build_literal(anyway)} AS VARCHAR) END'
 			elif operator == ComputedLiteralOperator.CONCAT:
 				return f'CONCAT({ArrayHelper(literal.elements).map(lambda x: self.build_literal(x)).join(", ")})'
 			elif operator == ComputedLiteralOperator.YEAR_DIFF:
@@ -372,9 +372,9 @@ class TrinoStorage(TrinoStorageSPI):
 		built_left = self.build_literal(expression.left)
 		op = expression.operator
 		if op == EntityCriteriaOperator.IS_EMPTY:
-			return f'{built_left} IS NULL OR {built_left} = \'\''
+			return f'{built_left} IS NULL OR CAST({built_left} AS VARCHAR) = \'\''
 		elif op == EntityCriteriaOperator.IS_NOT_EMPTY:
-			return f'{built_left} IS NOT NULL AND {built_left} != \'\''
+			return f'{built_left} IS NOT NULL AND CAST({built_left} AS VARCHAR) != \'\''
 		elif op == EntityCriteriaOperator.IS_BLANK:
 			return f'TRIM({built_left}) = \'\''
 		elif op == EntityCriteriaOperator.IS_NOT_BLANK:
