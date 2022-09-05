@@ -9,27 +9,18 @@ export const isWriteExternalEnabled = () => process.env.REACT_APP_EXTERNAL_WRITE
 export const isChartScriptInConsoleEnabled = () => process.env.REACT_APP_CHART_SCRIPT_IN_CONSOLE === 'true';
 export const isSaml2MockEnabled = () => process.env.REACT_APP_MOCK_SAML2 === 'true';
 export const isPluginEnabled = () => process.env.REACT_APP_PLUGIN === 'true';
-export const getMaxSubjectDataRows = () => {
+const asNumber = (value: string | undefined, defaultValue: number): number => {
 	try {
-		const rows = parseInt(`${process.env.REACT_APP_MAX_SUBJECT_DATA_ROWS}`);
-		if (isNaN(rows)) {
-			return 50000;
+		const v = parseInt(value ?? '');
+		if (isNaN(v)) {
+			return defaultValue;
 		} else {
-			return rows;
+			return v;
 		}
 	} catch {
-		return 50000;
+		return defaultValue;
 	}
 };
-export const getSubjectDataPageSize= () => {
-	try {
-		const rows = parseInt(`${process.env.REACT_APP_SUBJECT_DATA_PAGE_SIZE}`);
-		if (isNaN(rows)) {
-			return 100;
-		} else {
-			return rows;
-		}
-	} catch {
-		return 100;
-	}
-};
+export const getMaxSubjectDataRows = () => asNumber(process.env.REACT_APP_MAX_SUBJECT_DATA_ROWS, 50000);
+export const getSubjectDataPageSize = () => asNumber(process.env.REACT_APP_SUBJECT_DATA_PAGE_SIZE, 100);
+export const getMaxMonitorLogDataRows = () => asNumber(process.env.REACT_APP_MAX_MONITOR_LOGS_DATASET_ROWS, 10000);

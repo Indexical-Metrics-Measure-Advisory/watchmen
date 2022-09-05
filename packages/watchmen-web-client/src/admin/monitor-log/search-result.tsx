@@ -1,3 +1,4 @@
+import {getMaxMonitorLogDataRows} from '@/feature-switch';
 import {fetchMonitorLogs, MonitorLogCriteria, MonitorLogs, MonitorLogsDataPage} from '@/services/data/admin/logs';
 import {Pipeline} from '@/services/data/tuples/pipeline-types';
 import {Topic} from '@/services/data/tuples/topic-types';
@@ -8,7 +9,6 @@ import {EventTypes} from '@/widgets/events/types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import dayjs from 'dayjs';
 import React, {useEffect, useState} from 'react';
-import {MAX_MONITOR_LOGS_DATASET_SIZE} from './constants';
 import {useMonitorLogEventBus} from './monitor-log-event-bus';
 import {MonitorLogEventTypes} from './monitor-log-event-bus-types';
 import {SearchResultRow} from './result-row';
@@ -101,7 +101,7 @@ export const SearchResult = (props: {
 			async () => await fetchMonitorLogs({
 				criteria: logs.criteria,
 				pageNumber: 1,
-				pageSize: MAX_MONITOR_LOGS_DATASET_SIZE
+				pageSize: getMaxMonitorLogDataRows()
 			}),
 			(data) => download(data));
 	};
