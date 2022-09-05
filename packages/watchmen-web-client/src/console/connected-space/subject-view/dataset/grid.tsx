@@ -1,3 +1,4 @@
+import {getMaxSubjectDataRows} from '@/feature-switch';
 import {DataSetPage} from '@/services/data/console/dataset';
 import {fetchSubjectData} from '@/services/data/console/subject';
 import {ConnectedSpace} from '@/services/data/tuples/connected-space-types';
@@ -9,7 +10,6 @@ import {ColumnDefs, DataPage} from '@/widgets/dataset-grid/types';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Fragment, useEffect} from 'react';
-import {MAX_SUBJECT_DATASET_SIZE} from './constants';
 import {useSubjectDataSetEventBus} from './subject-dataset-event-bus';
 import {SubjectDataSetEventTypes} from './subject-dataset-event-bus-types';
 
@@ -45,7 +45,7 @@ const SubjectDataGridDelegate = (props: { connectedSpace: ConnectedSpace, subjec
 				async () => await fetchSubjectData({
 					subjectId: subject.subjectId,
 					pageNumber: 1,
-					pageSize: MAX_SUBJECT_DATASET_SIZE
+					pageSize: getMaxSubjectDataRows()
 				}),
 				(data) => resolve(data));
 		});

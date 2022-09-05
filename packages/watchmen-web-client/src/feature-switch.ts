@@ -8,4 +8,28 @@ export const isSpaceFilterEnabled = () => process.env.REACT_APP_SPACE_FILTER ===
 export const isWriteExternalEnabled = () => process.env.REACT_APP_EXTERNAL_WRITER_ADAPTERS === 'true';
 export const isChartScriptInConsoleEnabled = () => process.env.REACT_APP_CHART_SCRIPT_IN_CONSOLE === 'true';
 export const isSaml2MockEnabled = () => process.env.REACT_APP_MOCK_SAML2 === 'true';
-export const isPluginEnabled = () => process.env.REACT_APP_PLUGIN === 'true'
+export const isPluginEnabled = () => process.env.REACT_APP_PLUGIN === 'true';
+export const getMaxSubjectDataRows = () => {
+	try {
+		const rows = parseInt(`${process.env.REACT_APP_MAX_SUBJECT_DATA_ROWS}`);
+		if (isNaN(rows)) {
+			return 50000;
+		} else {
+			return rows;
+		}
+	} catch {
+		return 50000;
+	}
+};
+export const getSubjectDataPageSize= () => {
+	try {
+		const rows = parseInt(`${process.env.REACT_APP_SUBJECT_DATA_PAGE_SIZE}`);
+		if (isNaN(rows)) {
+			return 100;
+		} else {
+			return rows;
+		}
+	} catch {
+		return 100;
+	}
+};

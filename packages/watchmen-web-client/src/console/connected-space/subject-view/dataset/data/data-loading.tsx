@@ -1,3 +1,4 @@
+import {getSubjectDataPageSize} from '@/feature-switch';
 import {fetchSubjectData} from '@/services/data/console/subject';
 import {Subject} from '@/services/data/tuples/subject-types';
 import {ICON_LOADING} from '@/widgets/basic/constants';
@@ -6,7 +7,6 @@ import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useEffect, useState} from 'react';
-import {DEFAULT_SUBJECT_DATASET_PAGE_SIZE} from '../constants';
 import {useSubjectDataSetEventBus} from '../subject-dataset-event-bus';
 import {SubjectDataSetEventTypes} from '../subject-dataset-event-bus-types';
 import {SubjectDataSetLoading} from '../widgets';
@@ -17,7 +17,7 @@ const fetchData = async (options: { subject: Subject; pageNumber?: number; }) =>
 	return await fetchSubjectData({
 		subjectId: subject.subjectId,
 		pageNumber,
-		pageSize: DEFAULT_SUBJECT_DATASET_PAGE_SIZE
+		pageSize: getSubjectDataPageSize()
 	});
 };
 
