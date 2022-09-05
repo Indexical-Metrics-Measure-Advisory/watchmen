@@ -405,9 +405,9 @@ class TrinoStorage(TrinoStorageSPI):
 
 		built_right = self.build_literal(expression.right)
 		if op == EntityCriteriaOperator.EQUALS:
-			return f'CAST({built_left} AS VARCHAR) = CAST({built_right} AS VARCHAR)'
+			return f'{built_left} = {built_right}'
 		elif op == EntityCriteriaOperator.NOT_EQUALS:
-			return f'CAST({built_left} AS VARCHAR) != CAST({built_right} AS VARCHAR)'
+			return f'{built_left} != {built_right}'
 		elif op == EntityCriteriaOperator.LESS_THAN:
 			return f'{built_left} < {built_right}'
 		elif op == EntityCriteriaOperator.LESS_THAN_OR_EQUALS:
