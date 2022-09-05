@@ -145,6 +145,7 @@ export const ArithmeticLabel = styled.div.attrs({'data-widget': 'subject-def-col
 	padding          : 0 calc(var(--margin) / 4);
 	border-radius    : calc(var(--param-height) / 2) 0 0 calc(var(--param-height) / 2);
 	box-shadow       : var(--param-top-border), var(--param-bottom-border);
+	white-space      : nowrap;
 `;
 export const ArithmeticEditInput = styled(Dropdown).attrs({
 	'data-widget': 'subject-def-column-arithmetic-edit-input',
