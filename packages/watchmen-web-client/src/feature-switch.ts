@@ -23,3 +23,5 @@ const asNumber = (value: string | undefined, defaultValue: number): number => {
 export const getMaxSubjectDataRows = () => asNumber(process.env.REACT_APP_MAX_SUBJECT_DATA_ROWS, 50000);
 export const getSubjectDataPageSize = () => asNumber(process.env.REACT_APP_SUBJECT_DATA_PAGE_SIZE, 100);
 export const getMaxMonitorLogDataRows = () => asNumber(process.env.REACT_APP_MAX_MONITOR_LOGS_DATASET_ROWS, 10000);
+export const getHelpButtonVisibleDelay = () => asNumber(process.env.REACT_APP_HELP_BUTTON_VISIBLE_DELAY, 30000);
+export const getHelpButtonTimeout = () => asNumber(process.env.REACT_APP_HELP_BUTTON_TIMEOUT, 10000);
