@@ -14,15 +14,21 @@ export const Column2DefEventBridge = (props: { subject: Subject, column: Subject
 		const onChanged = () => {
 			fireDef(SubjectDefEventTypes.DATASET_COLUMN_CHANGED, column);
 		};
+		const onPositionChanged = () => {
+			fireDef(SubjectDefEventTypes.DATASET_COLUMN_POSITION_CHANGED, column);
+			fireDef(SubjectDefEventTypes.DATASET_COLUMN_CHANGED, column);
+		};
 		on(ColumnEventTypes.CONTENT_CHANGED, onChanged);
 		on(ColumnEventTypes.ALIAS_CHANGED, onChanged);
 		on(ColumnEventTypes.ARITHMETIC_CHANGED, onChanged);
 		on(ColumnEventTypes.RENDERER_CHANGED, onChanged);
+		on(ColumnEventTypes.POSITION_CHANGED, onPositionChanged);
 		return () => {
 			off(ColumnEventTypes.CONTENT_CHANGED, onChanged);
 			off(ColumnEventTypes.ALIAS_CHANGED, onChanged);
 			off(ColumnEventTypes.ARITHMETIC_CHANGED, onChanged);
 			off(ColumnEventTypes.RENDERER_CHANGED, onChanged);
+			off(ColumnEventTypes.POSITION_CHANGED, onPositionChanged);
 		};
 	}, [on, off, fireDef, column]);
 

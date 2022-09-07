@@ -238,6 +238,8 @@ export const Jp = {
 			SUBJECT_COLUMN_RENDERER_FORMAT: 'アラインメント',
 			SUBJECT_COLUMN_RENDERER_FORMAT_NONE: 'なし',
 			SUBJECT_COLUMN_RENDERER_HIGHLIGHT_NEGATIVE: '負の値を強調表示',
+			SUBJECT_COLUMN_POSITION_ALREADY_AT_FIRST: 'すでに上にいるため、上に移動できません。',
+			SUBJECT_COLUMN_POSITION_ALREADY_AT_LAST: 'すでに底にあるため、下に移動できません。',
 			ADD_SUBJECT_COLUMN: 'カラムを追加する',
 			CAN_NOT_DELETE_CHILD_FROM_COMPUTED: 'パラメータ数の最小限に達したため、削除できません。',
 			CAN_NOT_ADD_CHILD_INTO_COMPUTED: 'パラメータ数の最大限に達したため、これ以上追加できません。',

@@ -56,12 +56,12 @@ export const ColumnEditWrapper = styled.div.attrs<{ shorten: boolean }>(({shorte
 	return {
 		'data-widget': 'subject-def-column-edit-wrapper',
 		style: {
-			gridTemplateColumns: shorten ? 'auto auto auto auto auto 1fr' : (void 0)
+			gridTemplateColumns: shorten ? 'auto auto auto auto auto auto 1fr' : (void 0)
 		}
 	};
 })<{ shorten: boolean }>`
 	display               : grid;
-	grid-template-columns : auto 1fr auto auto auto auto;
+	grid-template-columns : auto 1fr auto auto auto auto auto;
 	grid-row-gap          : calc(var(--margin) / 4);
 	position              : relative;
 	align-self            : stretch;
@@ -182,20 +182,21 @@ export const RendererButton = styled.div.attrs<{ editorVisible: boolean }>(({edi
 		}
 	};
 })<{ editorVisible: boolean }>`
-	display         : flex;
-	position        : relative;
-	align-self      : stretch;
-	align-items     : center;
-	justify-content : center;
-	height          : var(--param-height);
-	width           : var(--param-height);;
-	padding         : 0;
-	margin-left     : calc(var(--margin) / 2);
-	border-radius   : calc(var(--param-height) / 2);
-	color           : var(--param-bg-color);
-	box-shadow      : var(--param-border);
-	cursor          : pointer;
-	transition      : color 300ms ease-in-out, box-shadow 300ms ease-in-out, border-radius 300ms ease-in-out;
+	display                   : flex;
+	position                  : relative;
+	align-self                : stretch;
+	align-items               : center;
+	justify-content           : center;
+	height                    : var(--param-height);
+	width                     : var(--param-height);;
+	padding                   : 0;
+	margin-left               : calc(var(--margin) / 2);
+	border-top-left-radius    : calc(var(--param-height) / 2);
+	border-bottom-left-radius : calc(var(--param-height) / 2);
+	color                     : var(--param-bg-color);
+	box-shadow                : var(--param-border);
+	cursor                    : pointer;
+	transition                : color 300ms ease-in-out, box-shadow 300ms ease-in-out, border-radius 300ms ease-in-out;
 	&:before {
 		content          : '';
 		display          : block;
@@ -259,4 +260,43 @@ export const RendererItemDropdown = styled(Dropdown).attrs({'data-widget': 'subj
 `;
 export const RendererItemCheckBox = styled(CheckBox).attrs({'data-widget': 'subject-def-column-renderer-item-checkbox'})`
 	margin : calc((var(--height) - var(--checkbox-size)) / 2) 0;
+`;
+export const ColumnPositionContainer = styled.div.attrs({'data-widget': 'subject-def-column-position'})`
+	display     : flex;
+	position    : relative;
+	margin-left : 1px;
+	+ div[data-widget=delete-me-button] {
+		margin-left               : 0;
+		border-top-left-radius    : 0;
+		border-bottom-left-radius : 0;
+		background-color          : var(--bg-color);
+		&:before {
+			display : none;
+		}
+	}
+`;
+const ColumnPositionButton = styled.div`
+	display          : flex;
+	position         : relative;
+	align-self       : stretch;
+	align-items      : center;
+	height           : var(--param-height);
+	padding          : 0 calc(var(--margin) / 4);
+	color            : var(--param-bg-color);
+	background-color : var(--bg-color);
+	box-shadow       : var(--param-border);
+	cursor           : pointer;
+	transition       : color 300ms ease-in-out, box-shadow 300ms ease-in-out;
+	&:hover {
+		color      : var(--primary-color);
+		box-shadow : var(--param-primary-border), var(--primary-hover-shadow);
+		z-index    : 1;
+	}
+	> svg {
+		font-size : 0.8em;
+	}
+`;
+export const ColumnPositionMoveUpButton = styled(ColumnPositionButton).attrs({'data-widget': 'subject-def-column-move-up-button'})`
+`;
+export const ColumnPositionMoveDownButton = styled(ColumnPositionButton).attrs({'data-widget': 'subject-def-column-move-down-button'})`
 `;
