@@ -1,3 +1,4 @@
+import {getHelpButtonTimeout, getHelpButtonVisibleDelay} from '@/feature-switch';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import hotkeys from 'hotkeys-js';
 import React, {ChangeEvent, useEffect, useRef, useState} from 'react';
@@ -235,7 +236,7 @@ export const HelpButton = () => {
 		if (state.visible) {
 			setTimeout(() => setState(state => {
 				return {...state, visible: false};
-			}), 10000);
+			}), getHelpButtonTimeout());
 		}
 	}, [state.visible]);
 
@@ -269,6 +270,6 @@ export const useHelp = (key: string) => {
 	useEffect(() => {
 		setTimeout(() => {
 			fire(EventTypes.SHOW_HELP, key);
-		}, 30000);
+		}, getHelpButtonVisibleDelay());
 	});
 };

@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import {Button} from '../basic/button';
-import {BASE_HEIGHT, BASE_MARGIN, HELP_Z_INDEX} from '../basic/constants';
+import {BASE_HEIGHT, HELP_Z_INDEX} from '../basic/constants';
 import {Input} from '../basic/input';
 import {DialogBody} from '../dialog/widgets';
 
@@ -17,28 +17,30 @@ export const HelpContainer = styled.div.attrs<{ visible: boolean }>(({visible}) 
 	return {
 		'data-widget': 'help',
 		style: {
-			opacity: visible ? 1 : (void 0),
+			transform: visible ? 'translateX(0)' : (void 0),
 			pointerEvents: visible ? 'auto' : (void 0)
 		}
 	};
 })<{ visible: boolean }>`
-	display          : flex;
-	position         : fixed;
-	top              : ${BASE_MARGIN / 2}px;
-	right            : ${BASE_MARGIN / 2}px;
-	height           : ${BASE_HEIGHT * 1.5}px;
-	border-radius    : ${BASE_HEIGHT * 0.75}px;
-	border           : var(--border);
-	border-color     : var(--success-color);
-	border-width     : calc(var(--border-width) * 2);
-	color            : var(--invert-color);
-	background-color : var(--success-color);
-	opacity          : 0;
-	pointer-events   : none;
-	transition       : all 300ms ease-in-out;
-	cursor           : pointer;
-	z-index          : ${HELP_Z_INDEX};
-	user-select      : none;
+	display                   : flex;
+	position                  : fixed;
+	top                       : 0;
+	right                     : 0;
+	//margin-right              : -100%;
+	height                    : ${BASE_HEIGHT}px;
+	border-top-left-radius    : ${BASE_HEIGHT * 0.75}px;
+	border-bottom-left-radius : ${BASE_HEIGHT * 0.75}px;
+	border                    : var(--border);
+	border-color              : var(--success-color);
+	border-width              : calc(var(--border-width) * 2);
+	color                     : var(--invert-color);
+	background-color          : var(--success-color);
+	pointer-events            : none;
+	transform                 : translateX(100%);
+	transition                : transform 300ms ease-in-out;
+	cursor                    : pointer;
+	z-index                   : ${HELP_Z_INDEX};
+	user-select               : none;
 	> * {
 		margin-top : -2px;
 	}
@@ -49,10 +51,10 @@ export const HelpLabel = styled.div.attrs({
 	display      : flex;
 	position     : relative;
 	align-items  : center;
-	height       : ${BASE_HEIGHT * 1.5}px;
+	height       : ${BASE_HEIGHT}px;
 	margin-left  : calc(var(--margin) / 2);
 	margin-right : calc(var(--margin) / 4);
-	font-size    : 1.4em;
+	//font-size    : 1.4em;
 	font-weight  : var(--font-bold);
 `;
 export const HelpIcon = styled.div.attrs({
@@ -62,11 +64,11 @@ export const HelpIcon = styled.div.attrs({
 	position        : relative;
 	align-items     : center;
 	justify-content : center;
-	height          : ${BASE_HEIGHT * 1.5}px;
-	width           : ${BASE_HEIGHT * 1.5}px;
+	height          : ${BASE_HEIGHT}px;
+	width           : ${BASE_HEIGHT}px;
 	> svg {
-		width   : ${BASE_HEIGHT}px;
-		height  : ${BASE_HEIGHT}px;
+		width   : ${BASE_HEIGHT * 0.6}px;
+		height  : ${BASE_HEIGHT * 0.6}px;
 		opacity : 0.8;
 	}
 `;
