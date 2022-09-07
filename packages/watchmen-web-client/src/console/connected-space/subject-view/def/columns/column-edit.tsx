@@ -18,6 +18,7 @@ import {AliasEditor} from './alias-edit';
 import {ArithmeticEditor} from './arithmetic-edit';
 import {Column2DefEventBridge} from './column-2-def-event-bridge';
 import {ColumnEventBusProvider} from './column-event-bus';
+import {ColumnPositionEditor} from './column-position-editor';
 import {Parameter2ColumnEventBridge} from './parameter-2-column-event-bridge';
 import {RendererEditor} from './renderer-editor';
 import {ColumnEditContainer, ColumnEditWrapper, ColumnIndex} from './widgets';
@@ -58,6 +59,7 @@ export const ColumnEditor = (props: {
 		<AliasEditor column={column}/>
 		<ArithmeticEditor column={column}/>
 		<RendererEditor column={column}/>
+		<ColumnPositionEditor subject={subject} column={column}/>
 		<DeleteMeButton onClick={onDeleteClicked}>
 			<FontAwesomeIcon icon={ICON_DELETE}/>
 		</DeleteMeButton>
