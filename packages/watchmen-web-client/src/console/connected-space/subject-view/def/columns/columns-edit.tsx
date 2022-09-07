@@ -21,9 +21,11 @@ export const ColumnsEdit = (props: {
 	useEffect(() => {
 		on(SubjectDefEventTypes.DATASET_COLUMN_ADDED, forceUpdate);
 		on(SubjectDefEventTypes.DATASET_COLUMN_REMOVED, forceUpdate);
+		on(SubjectDefEventTypes.DATASET_COLUMN_POSITION_CHANGED, forceUpdate);
 		return () => {
 			off(SubjectDefEventTypes.DATASET_COLUMN_ADDED, forceUpdate);
 			off(SubjectDefEventTypes.DATASET_COLUMN_REMOVED, forceUpdate);
+			off(SubjectDefEventTypes.DATASET_COLUMN_POSITION_CHANGED, forceUpdate);
 		};
 	}, [on, off, forceUpdate]);
 	const [isVisible] = useState(() => () => subject.dataset.columns.length !== 0);

@@ -17,6 +17,7 @@ export enum SubjectDefEventTypes {
 	DATASET_COLUMN_ADDED = 'dataset-column-added',
 	DATASET_COLUMN_REMOVED = 'dataset-column-removed',
 	DATASET_COLUMN_CHANGED = 'dataset-column-changed',
+	DATASET_COLUMN_POSITION_CHANGED = 'dataset-column-position-changed',
 
 	DATASET_FILTER_ADDED = 'dataset-filter-added',
 	DATASET_FILTER_REMOVED = 'dataset-filter-removed',
@@ -55,6 +56,10 @@ export interface SubjectDefEventBus {
 	fire(type: SubjectDefEventTypes.DATASET_COLUMN_CHANGED, column: SubjectDataSetColumn): this;
 	on(type: SubjectDefEventTypes.DATASET_COLUMN_CHANGED, listener: (column: SubjectDataSetColumn) => void): this;
 	off(type: SubjectDefEventTypes.DATASET_COLUMN_CHANGED, listener: (column: SubjectDataSetColumn) => void): this;
+
+	fire(type: SubjectDefEventTypes.DATASET_COLUMN_POSITION_CHANGED, column: SubjectDataSetColumn): this;
+	on(type: SubjectDefEventTypes.DATASET_COLUMN_POSITION_CHANGED, listener: (column: SubjectDataSetColumn) => void): this;
+	off(type: SubjectDefEventTypes.DATASET_COLUMN_POSITION_CHANGED, listener: (column: SubjectDataSetColumn) => void): this;
 
 	fire(type: SubjectDefEventTypes.DATASET_FILTER_ADDED, filter: SubjectDataSetFilter): this;
 	on(type: SubjectDefEventTypes.DATASET_FILTER_ADDED, listener: (filter: SubjectDataSetFilter) => void): this;

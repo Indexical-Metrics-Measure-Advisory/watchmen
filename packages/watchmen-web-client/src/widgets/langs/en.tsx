@@ -239,6 +239,8 @@ export const En = {
 			SUBJECT_COLUMN_RENDERER_FORMAT: 'Format',
 			SUBJECT_COLUMN_RENDERER_FORMAT_NONE: 'As Is',
 			SUBJECT_COLUMN_RENDERER_HIGHLIGHT_NEGATIVE: 'Highlight Negative',
+			SUBJECT_COLUMN_POSITION_ALREADY_AT_FIRST: 'Cannot move up because already on top.',
+			SUBJECT_COLUMN_POSITION_ALREADY_AT_LAST: 'Cannot move down because already on bottom.',
 			ADD_SUBJECT_COLUMN: 'Add Column',
 			CAN_NOT_DELETE_CHILD_FROM_COMPUTED: 'Cannot delete this because of reach minimum parameter(s).',
 			CAN_NOT_ADD_CHILD_INTO_COMPUTED: 'Cannot add more because of reach maximum parameter(s).',
