@@ -78,7 +78,6 @@ async def load_subject_by_name(name: str,
 
     # TODO user id add
 
-
     def action() -> Subject:
         return subject_service.find_by_name(name)
 
