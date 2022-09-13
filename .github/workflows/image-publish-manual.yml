@@ -19,6 +19,7 @@ on:
         default: 'oracle'
         type: choice
         options:
+          - all
           - oracle
           - mysql
           - mssql
