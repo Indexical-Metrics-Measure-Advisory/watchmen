@@ -71,13 +71,27 @@ def ask_save_subject_action(
 	return action
 
 
-@router.get('/subject/id', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=Subject)
+@router.get('/subject', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=Subject)
 async def load_subject_by_(
-		subject_id: Optional[SubjectId], principal_service: PrincipalService = Depends(get_console_principal)) -> Subject:
+		subject_id: Optional[SubjectId],
+		principal_service: PrincipalService = Depends(get_console_principal)) -> Subject:
+	if is_blank(subject_id):
+		raise_400('Subject id is required.')
+
 	subject_service = get_subject_service(principal_service)
 
+	# noinspection DuplicatedCode
 	def action() -> Subject:
-		return subject_service.find_by_id(subject_id)
+		# noinspection PyTypeChecker
+		subject: Subject = subject_service.find_by_id(subject_id)
+		if subject is None:
+			raise_404()
+		# tenant id must match current principal's
+		if subject.tenantId != principal_service.get_tenant_id():
+			raise_404()
+		if subject.userId != principal_service.get_user_id():
+			raise_404()
+		return subject
 
 	return trans_readonly(subject_service, action)
 
