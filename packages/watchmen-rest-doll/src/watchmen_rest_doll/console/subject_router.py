@@ -71,15 +71,13 @@ def ask_save_subject_action(
 	return action
 
 
-@router.get('/subject/name', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=Subject)
-async def load_subject_by_name(
-		name: str, principal_service: PrincipalService = Depends(get_console_principal)) -> Subject:
+@router.get('/subject/id', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=Subject)
+async def load_subject_by_(
+		subject_id: Optional[SubjectId], principal_service: PrincipalService = Depends(get_console_principal)) -> Subject:
 	subject_service = get_subject_service(principal_service)
 
-	# TODO user id add
-
 	def action() -> Subject:
-		return subject_service.find_by_name(name)
+		return subject_service.find_by_id(subject_id)
 
 	return trans_readonly(subject_service, action)
 
