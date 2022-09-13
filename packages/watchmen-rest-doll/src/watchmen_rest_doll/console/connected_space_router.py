@@ -6,7 +6,6 @@ from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.storage_bridge import parse_parameter_for_storage
-from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_inquiry_kernel.schema import SubjectSchema
 from watchmen_meta.admin import SpaceService, UserService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
@@ -128,7 +127,7 @@ class SubjectDatasetColumnWithType(SubjectDatasetColumn):
 	columnType: str = None
 
 
-def construct_columns_with_type(column: SubjectDatasetColumn) -> SubjectDatasetColumnWithType:
+def construct_columns_with_type(column: Union[dict, SubjectDatasetColumn]) -> Optional[SubjectDatasetColumnWithType]:
 	if column is None:
 		return None
 	elif isinstance(column, SubjectDatasetColumnWithType):
@@ -507,30 +506,27 @@ async def delete_connected_space_by_id_by_super_admin(
 	return trans(connected_space_service, action)
 
 
-## find template connected space with connect id
-
-def add_dataset_column_type(subject_with_type: SubjectWithFactorType,
-                            principal_service: PrincipalService) -> SubjectWithFactorType:
+# find template connected space with connect id
+def add_dataset_column_type(
+		subject_with_type: SubjectWithFactorType, principal_service: PrincipalService) -> SubjectWithFactorType:
 	dataset = subject_with_type.dataset
 	schema = SubjectSchema(subject_with_type, principal_service, True)
 	available_schemas = schema.get_available_schemas()
 
-	def ask_column_type(available_schemas: List[TopicSchema], column: SubjectDatasetColumnWithType,
-	                    principal_service: PrincipalService):
+	def ask_column_type(column: SubjectDatasetColumnWithType):
 		parsed_parameter = parse_parameter_for_storage(
 			column.parameter, available_schemas, principal_service, False)
-		parsed_parameter.parse(column.parameter, available_schemas, principal_service,False)
-		##TODO get first possible type , will fix it in feature
+		parsed_parameter.parse(column.parameter, available_schemas, principal_service, False)
+		# TODO get first possible type , will fix it in feature
 		column_type = parsed_parameter.get_possible_types()[0]
 		column.columnType = column_type
 		return column
 
-	dataset.columns = ArrayHelper(dataset.columns).map(
-		lambda x: ask_column_type(available_schemas, x, principal_service)).to_list()
+	dataset.columns = ArrayHelper(dataset.columns).map(lambda x: ask_column_type(x)).to_list()
 	return subject_with_type
 
 
-def construct_subject_with_type(subject: Subject) -> SubjectWithFactorType:
+def construct_subject_with_type(subject: Union[dict, Subject]) -> Optional[SubjectWithFactorType]:
 	if subject is None:
 		return None
 	elif isinstance(subject, SubjectWithFactorType):
@@ -544,26 +540,21 @@ def add_column_type_to_subjects(subjects: List[Subject], principal_service) -> L
 
 	return ArrayHelper(subject_list_with_type).map(lambda x: add_dataset_column_type(x, principal_service)).to_list()
 
-	return subject_list_with_type
-
 
 @router.get('/connected_space/template/subjects', tags=[UserRole.ADMIN], response_model=List[Subject])
-async def find_template_connected_spaces_by_id(
+async def find_template_subjects_by_id(
 		principal_service: PrincipalService = Depends(
 			get_admin_principal)):
 	connected_space_service = get_connected_space_service(principal_service)
 
-	def action() -> ConnectedSpaceWithSubjects:
-		# noinspection PyTypeChecker.
-		connected_spaces: List[ConnectedSpace] = connected_space_service.find_all_by_user_id(
+	def action() -> List[Subject]:
+		connected_spaces: List[ConnectedSpace] = connected_space_service.find_templates_by_user_id(
 			principal_service.get_user_id(), principal_service.get_tenant_id())
-		template_connected_space_list = ArrayHelper(connected_spaces).filter(lambda x: x.isTemplate).to_list()
 		subject_service: SubjectService = get_subject_service(connected_space_service)
-		template_subject_list = []
-		for template_connected_space in template_connected_space_list:
-			subjects: List[Subject] = subject_service.find_by_connect_id(template_connected_space.connectId)
-			template_subject_list = [*template_subject_list, *subjects]
-		return template_subject_list
+		return ArrayHelper(connected_spaces) \
+			.map(lambda x: subject_service.find_by_connect_id(x.connectId)) \
+			.flatten() \
+			.to_list()
 
-	template_subject_list = trans(connected_space_service, action)
-	return add_column_type_to_subjects(template_subject_list, principal_service)
+	subjects = trans(connected_space_service, action)
+	return add_column_type_to_subjects(subjects, principal_service)
