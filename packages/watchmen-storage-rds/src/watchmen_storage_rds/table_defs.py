@@ -277,8 +277,7 @@ table_inspections = Table(
 	create_pk('inspection_id'), create_str('name', 50),
 	create_tuple_id_column('indicator_id'),
 	create_json('aggregate_arithmetics'),
-	create_str('measure_on', 10),
-	create_tuple_id_column('measure_on_factor_id'), create_tuple_id_column('measure_on_bucket_id'),
+	create_json('measures'),
 	create_str('time_range_measure', 20), create_tuple_id_column('time_range_factor_id'),
 	create_json('time_ranges'),
 	create_str('measure_on_time', 20), create_tuple_id_column('measure_on_time_factor_id'),
@@ -397,7 +396,7 @@ def register_table(topic: Topic) -> None:
 		if last_modified_at >= topic.lastModifiedAt:
 			# do nothing
 			return
-	
+
 	if is_raw_topic(topic):
 		topic_tables[topic.topicId] = (build_by_raw(topic), topic.lastModifiedAt)
 	elif is_aggregation_topic(topic):

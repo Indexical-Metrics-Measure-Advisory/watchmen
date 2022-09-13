@@ -13,6 +13,6 @@ from .inspection import Inspection, InspectionAmPmRange, InspectionDayKindRange,
 	InspectionDayOfWeekRange, InspectionHalfMonthRange, InspectionHalfWeekRange, InspectionHalfYearRange, \
 	InspectionHourKindRange, InspectionHourRange, InspectionMonthRange, InspectionQuarterRange, \
 	InspectionTenDaysRange, InspectionTimeRange, InspectionTimeRangeType, InspectionWeekOfMonthRange, \
-	InspectionWeekOfYearRange, InspectionYearRange, InspectMeasureOn
+	InspectionWeekOfYearRange, InspectionYearRange, InspectMeasureOn, InspectMeasureOnType
 from .measure_method import MeasureMethod
 from .objective_analysis import ObjectiveAnalysis, ObjectiveAnalysisPerspective, ObjectiveAnalysisPerspectiveType

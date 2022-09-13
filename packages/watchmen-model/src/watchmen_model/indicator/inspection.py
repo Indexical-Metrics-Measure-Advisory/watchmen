@@ -11,10 +11,35 @@ from .indicator_criteria import construct_indicator_criteria_list, IndicatorCrit
 from .measure_method import MeasureMethod
 
 
-class InspectMeasureOn(str, Enum):
+class InspectMeasureOnType(str, Enum):
 	NONE = 'none',
 	VALUE = 'value',
 	OTHER = 'other',
+
+
+class InspectMeasureOn(DataModel, BaseModel):
+	# none, measure on indicator value or other factor
+	type: InspectMeasureOnType = None
+	# if measure on factor, factor id must be given
+	factorId: FactorId = None
+	# bucket for any measure on type, or no bucket also allowed if measure on factor rather than indicator value
+	bucketId: BucketId = None
+
+
+def construct_measure_on(measure_on: Optional[Union[dict, InspectMeasureOn]]) -> Optional[InspectMeasureOn]:
+	if measure_on is None:
+		return None
+	elif isinstance(measure_on, InspectMeasureOn):
+		return measure_on
+	else:
+		return InspectMeasureOn(**measure_on)
+
+
+def construct_measures(measures: Optional[list] = None) -> Optional[List[InspectMeasureOn]]:
+	if measures is None:
+		return None
+	else:
+		return ArrayHelper(measures).map(lambda x: construct_measure_on(x)).to_list()
 
 
 class InspectionTimeRangeType(str, Enum):
@@ -169,12 +194,7 @@ class Inspection(TenantBasedTuple, OptimisticLock, BaseModel):
 	indicatorId: IndicatorId = None
 	# indicator value aggregate arithmetic
 	aggregateArithmetics: List[IndicatorAggregateArithmetic] = []
-	# none, measure on indicator value or other factor
-	measureOn: InspectMeasureOn = None
-	# if measure on factor, factor id must be given
-	measureOnFactorId: FactorId = None
-	# bucket for any measure on type, or no bucket also allowed if measure on factor rather than indicator value
-	measureOnBucketId: BucketId = None
+	measures: List[InspectMeasureOn] = None
 	# time range
 	timeRangeMeasure: MeasureMethod = None
 	# time range factor
@@ -188,7 +208,9 @@ class Inspection(TenantBasedTuple, OptimisticLock, BaseModel):
 	criteria: List[IndicatorCriteria] = []
 
 	def __setattr__(self, name, value):
-		if name == 'timeRanges':
+		if name == 'measures':
+			super().__setattr__(name, construct_measures(value))
+		elif name == 'timeRanges':
 			super().__setattr__(name, construct_time_ranges(value))
 		elif name == 'criteria':
 			super().__setattr__(name, construct_indicator_criteria_list(value))
