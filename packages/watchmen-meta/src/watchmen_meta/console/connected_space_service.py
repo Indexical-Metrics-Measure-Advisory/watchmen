@@ -94,6 +94,16 @@ class ConnectedSpaceService(UserBasedTupleService):
 			]
 		))
 
+	def find_templates_by_user_id(self, user_id: UserId, tenant_id: TenantId) -> List[ConnectedSpace]:
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(
+			criteria=[
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='user_id'), right=user_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_template'), right=True),
+			]
+		))
+
 	# noinspection DuplicatedCode
 	def update_name(self, connect_id: ConnectedSpaceId, name: str, user_id: UserId, tenant_id: TenantId) -> datetime:
 		"""
