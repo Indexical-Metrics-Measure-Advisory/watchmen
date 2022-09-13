@@ -3,24 +3,39 @@ import {formatToKGB} from '@/services/utils';
 import {ColumnIndexMap, isColumnIndexAssigned} from '../chart-utils';
 
 export interface XAxisData {
-	columnIndex: number;
+	columnIndexes: Array<number>;
 	data: RowOfAny;
 }
 
 export interface LegendData {
 	existing: boolean;
-	columnIndex: number;
+	columnIndexes: Array<number>;
 	data: RowOfAny;
 }
 
+const joinColumnValues = (row: RowOfAny, columnIndexes: Array<number>): string => {
+	return columnIndexes.map(columnIndex => row[columnIndex]).join(', ');
+};
+
 export const buildXAxis = (data: Array<RowOfAny>, columnIndexMap: ColumnIndexMap): XAxisData => {
-	const columnIndex = isColumnIndexAssigned(columnIndexMap.timeGrouping) ? columnIndexMap.timeGrouping : columnIndexMap.bucketOn;
-	return {
-		columnIndex,
-		data: [...new Set(data.map(row => row[columnIndex]))].sort((t1, t2) => {
-			return `${t1 || ''}`.localeCompare(`${t2 || ''}`, void 0, {numeric: true});
-		})
-	};
+	// noinspection DuplicatedCode
+	if (isColumnIndexAssigned(columnIndexMap.timeGrouping)) {
+		const columnIndex = columnIndexMap.timeGrouping;
+		return {
+			columnIndexes: [columnIndex],
+			data: [...new Set(data.map(row => row[columnIndex]))].sort((t1, t2) => {
+				return `${t1 || ''}`.localeCompare(`${t2 || ''}`, void 0, {numeric: true});
+			})
+		};
+	} else {
+		const columnIndexes = columnIndexMap.bucketOn;
+		return {
+			columnIndexes,
+			data: [...new Set(data.map(row => joinColumnValues(row, columnIndexes)))].sort((t1, t2) => {
+				return `${t1 || ''}`.localeCompare(`${t2 || ''}`, void 0, {numeric: true});
+			})
+		};
+	}
 };
 
 export const buildYAxisOptions = () => {
@@ -34,9 +49,12 @@ export const buildYAxisOptions = () => {
 };
 
 export const buildLegend = (data: Array<RowOfAny>, columnIndexMap: ColumnIndexMap): LegendData => {
-	const existing = isColumnIndexAssigned(columnIndexMap.timeGrouping) && isColumnIndexAssigned(columnIndexMap.bucketOn);
-	const columnIndex = columnIndexMap.bucketOn;
-	return {existing, columnIndex, data: [...new Set(data.map(row => row[columnIndex]))]};
+	const existing = isColumnIndexAssigned(columnIndexMap.timeGrouping) && columnIndexMap.bucketOn.length !== 0;
+	const columnIndexes = columnIndexMap.bucketOn;
+	return {
+		existing, columnIndexes,
+		data: [...new Set(data.map(row => joinColumnValues(row, columnIndexes)))]
+	};
 };
 
 export const buildLegendOptions = (legend: LegendData) => {
@@ -60,7 +78,7 @@ export const buildSeriesOptions = (options: {
 				emphasis: {focus: 'series'},
 				data: xAxis.data.map(xValue => {
 					// eslint-disable-next-line
-					const row = data.find(row => row[xAxis.columnIndex] == xValue && row[legend.columnIndex] == name);
+					const row = data.find(row => joinColumnValues(row, xAxis.columnIndexes) == xValue && joinColumnValues(row, legend.columnIndexes) == name);
 					return row == null ? null : row[columnIndexMap.value];
 				}),
 				label: {show: true, position: 'top', formatter: ({value}: any) => formatToKGB(value)}
@@ -71,7 +89,7 @@ export const buildSeriesOptions = (options: {
 			emphasis: {focus: 'series'},
 			data: xAxis.data.map(xValue => {
 				// eslint-disable-next-line
-				const row = data.find(row => row[xAxis.columnIndex] == xValue);
+				const row = data.find(row => joinColumnValues(row, xAxis.columnIndexes) == xValue);
 				return row == null ? null : row[columnIndexMap.value];
 			}),
 			label: {show: true, position: 'top', formatter: ({value}: any) => formatToKGB(value)}

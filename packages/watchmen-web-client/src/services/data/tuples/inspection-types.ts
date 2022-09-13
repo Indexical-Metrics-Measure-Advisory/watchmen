@@ -7,10 +7,19 @@ import {OptimisticLock, Tuple} from './tuple-types';
 
 export type InspectionId = string;
 
-export enum InspectMeasureOn {
+export enum InspectMeasureOnType {
 	NONE = 'none',
 	VALUE = 'value',
 	OTHER = 'other',
+}
+
+export interface InspectMeasureOn {
+	/** none, measure on indicator value or other factor */
+	type?: InspectMeasureOnType;
+	/** if measure on factor, factor id must be given */
+	factorId?: FactorId;
+	/** bucket for any measure on type, or no bucket also allowed if measure on factor rather than indicator value */
+	bucketId?: BucketId;
 }
 
 export enum InspectionTimeRangeType {
@@ -117,12 +126,7 @@ export interface Inspection extends Tuple, OptimisticLock {
 	indicatorId: IndicatorId;
 	/** indicator value aggregate arithmetic */
 	aggregateArithmetics?: Array<IndicatorAggregateArithmetic>;
-	/** none, measure on indicator value or other factor */
-	measureOn?: InspectMeasureOn;
-	/** if measure on factor, factor id must be given */
-	measureOnFactorId?: FactorId;
-	/** bucket for any measure on type, or no bucket also allowed if measure on factor rather than indicator value */
-	measureOnBucketId?: BucketId;
+	measures?: Array<InspectMeasureOn>;
 	/** time range */
 	timeRangeMeasure?: MeasureMethod;
 	/** time range factor */

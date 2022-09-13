@@ -8,10 +8,9 @@ from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import ComputedParameter, ConstantParameter, DataResult, DataResultSetRow, \
 	FactorId, ParameterComputeType, ParameterCondition, ParameterExpression, ParameterExpressionOperator, \
 	ParameterJoint, ParameterJointType, ParameterKind, SubjectDatasetColumnId, TopicFactorParameter, TopicId
-from watchmen_model.console import Report, ReportDimension, ReportIndicator, ReportIndicatorArithmetic, Subject, \
-	SubjectDatasetColumn
-from watchmen_model.indicator import Indicator, IndicatorAggregateArithmetic, IndicatorCriteria, Inspection, \
-	InspectMeasureOn, MeasureMethod
+from watchmen_model.console import Report, ReportDimension, ReportIndicator, Subject, SubjectDatasetColumn
+from watchmen_model.indicator import Indicator, IndicatorCriteria, Inspection, InspectMeasureOn, InspectMeasureOnType, \
+	MeasureMethod
 from watchmen_utilities import ArrayHelper, is_blank
 from .inspection_data_service import InspectionDataService
 
@@ -30,6 +29,7 @@ class SubjectBaseInspectionDataService(InspectionDataService):
 		super().__init__(inspection, principal_service)
 		self.indicator = indicator
 		self.subject = subject
+		self.FAKE_TOPIC_ID = '1'
 
 	def ask_column_not_found_message(self, column_id: SubjectDatasetColumnId) -> str:
 		return f'Column[id={column_id}] not found on subject[id={self.subject.subjectId}, name={self.subject.name}].'
@@ -46,21 +46,30 @@ class SubjectBaseInspectionDataService(InspectionDataService):
 			raise IndicatorKernelException(self.ask_column_not_found_message(column_id))
 		return column
 
-	def find_column_of_measure_on_dimension(self) -> Optional[SubjectDatasetColumn]:
-		measure_on = self.inspection.measureOn
-		if measure_on is None or measure_on == InspectMeasureOn.NONE:
-			return None
-		if measure_on == InspectMeasureOn.OTHER:
-			measure_on_factor_id = self.inspection.measureOnFactorId
-			if is_blank(measure_on_factor_id):
-				return None
-			return ArrayHelper(self.subject.dataset.columns).find(lambda x: x.columnId == measure_on_factor_id)
-		elif measure_on == InspectMeasureOn.VALUE:
-			return ArrayHelper(self.subject.dataset.columns).find(lambda x: x.columnId == self.indicator.factorId)
-		else:
-			return None
+	def find_columns_of_measure_on_dimension(self) -> List[SubjectDatasetColumn]:
+		"""
+		TODO bucket on subject column is not supported yet.
+		"""
 
-	def find_column_of_measure_on_time_dimension(self) -> Optional[SubjectDatasetColumn]:
+		def find_column_of_measure_on(measure_on: InspectMeasureOn) -> Optional[SubjectDatasetColumn]:
+			if measure_on is None or measure_on.type is None or measure_on.type == InspectMeasureOnType.NONE:
+				return None
+			if measure_on.type == InspectMeasureOnType.OTHER:
+				measure_on_factor_id = measure_on.factorId
+				if is_blank(measure_on_factor_id):
+					return None
+				return ArrayHelper(self.subject.dataset.columns).find(lambda x: x.columnId == measure_on_factor_id)
+			elif measure_on.type == InspectMeasureOnType.VALUE:
+				return ArrayHelper(self.subject.dataset.columns).find(lambda x: x.columnId == self.indicator.factorId)
+			else:
+				return None
+
+		return ArrayHelper(self.inspection.measures) \
+			.map(find_column_of_measure_on) \
+			.filter(lambda x: x is not None) \
+			.to_list()
+
+	def find_column_of_time_group_dimension(self) -> Optional[SubjectDatasetColumn]:
 		time_group_existing, measure_on_time_factor_id, _ = self.has_time_group()
 		if time_group_existing:
 			return ArrayHelper(self.subject.dataset.columns).find(lambda x: x.columnId == measure_on_time_factor_id)
@@ -96,7 +105,7 @@ class SubjectBaseInspectionDataService(InspectionDataService):
 			factor = ArrayHelper(topic.factors).find(lambda x: x.factorId == factor_id)
 			if factor is None:
 				raise IndicatorKernelException(f'Factor[id={factor_id}] not found on topic[id={topic_id}].')
-			if self.has_year_or_month(factor):
+			if self.is_datetime_factor(factor):
 				if time_range_measure == MeasureMethod.YEAR:
 					compute_type = ParameterComputeType.YEAR_OF
 				elif time_range_measure == MeasureMethod.MONTH:
@@ -111,7 +120,7 @@ class SubjectBaseInspectionDataService(InspectionDataService):
 							left=ComputedParameter(
 								kind=ParameterKind.COMPUTED,
 								type=compute_type,
-								parameters=[self.build_topic_factor_parameter('1', time_range_factor_id)]
+								parameters=[self.build_topic_factor_parameter(self.FAKE_TOPIC_ID, time_range_factor_id)]
 							),
 							operator=operator,
 							right=ConstantParameter(kind=ParameterKind.CONSTANT, value=str(right))
@@ -123,7 +132,7 @@ class SubjectBaseInspectionDataService(InspectionDataService):
 					jointType=ParameterJointType.AND,
 					filters=[
 						ParameterExpression(
-							left=self.build_topic_factor_parameter('1', time_range_factor_id),
+							left=self.build_topic_factor_parameter(self.FAKE_TOPIC_ID, time_range_factor_id),
 							operator=operator,
 							right=ConstantParameter(kind=ParameterKind.CONSTANT, value=str(right))
 						)
@@ -134,7 +143,7 @@ class SubjectBaseInspectionDataService(InspectionDataService):
 				jointType=ParameterJointType.AND,
 				filters=[
 					ParameterExpression(
-						left=self.build_topic_factor_parameter('1', time_range_factor_id),
+						left=self.build_topic_factor_parameter(self.FAKE_TOPIC_ID, time_range_factor_id),
 						operator=operator,
 						right=ConstantParameter(kind=ParameterKind.CONSTANT, value=str(right))
 					)
@@ -152,7 +161,7 @@ class SubjectBaseInspectionDataService(InspectionDataService):
 			column = self.find_column(
 				a_criteria.factorId,
 				lambda: f'Column of inspection criteria[{criteria.to_dict()}] not declared.')
-			return self.fake_criteria_to_condition(a_criteria)('1', column.columnId)
+			return self.fake_criteria_to_condition(a_criteria)(self.FAKE_TOPIC_ID, column.columnId)
 
 		return ParameterJoint(
 			jointType=ParameterJointType.AND,
@@ -161,41 +170,32 @@ class SubjectBaseInspectionDataService(InspectionDataService):
 		)
 
 	def fake_to_report(self) -> Report:
+		# build indicators
 		indicators: List[ReportIndicator] = []
-		report_indicator_column_id = self.indicator.factorId
-		arithmetics = self.inspection.aggregateArithmetics
-		if arithmetics is None or len(arithmetics) == 0:
-			indicators.append(ReportIndicator(
-				columnId=report_indicator_column_id, name='_SUM_', arithmetic=ReportIndicatorArithmetic.SUMMARY))
-		else:
-			if IndicatorAggregateArithmetic.COUNT in arithmetics or IndicatorAggregateArithmetic.COUNT.value in arithmetics:
-				indicators.append(ReportIndicator(
-					columnId=report_indicator_column_id, name='_COUNT_', arithmetic=ReportIndicatorArithmetic.COUNT))
-			if IndicatorAggregateArithmetic.SUM in arithmetics or IndicatorAggregateArithmetic.SUM.value in arithmetics:
-				indicators.append(ReportIndicator(
-					columnId=report_indicator_column_id, name='_SUM_', arithmetic=ReportIndicatorArithmetic.SUMMARY))
-			if IndicatorAggregateArithmetic.AVG in arithmetics or IndicatorAggregateArithmetic.AVG.value in arithmetics:
-				indicators.append(ReportIndicator(
-					columnId=report_indicator_column_id, name='_AVG_', arithmetic=ReportIndicatorArithmetic.AVERAGE))
-			if IndicatorAggregateArithmetic.MAX in arithmetics or IndicatorAggregateArithmetic.MAX.value in arithmetics:
-				indicators.append(ReportIndicator(
-					columnId=report_indicator_column_id, name='_MAX_', arithmetic=ReportIndicatorArithmetic.MAXIMUM))
-			if IndicatorAggregateArithmetic.MIN in arithmetics or IndicatorAggregateArithmetic.MIN.value in arithmetics:
-				indicators.append(ReportIndicator(
-					columnId=report_indicator_column_id, name='_MIN_', arithmetic=ReportIndicatorArithmetic.MINIMUM))
+		self.fake_report_indicator(indicators, self.indicator.factorId)
 
+		# build dimensions: measure on 1, measure on 2, ..., time group
 		dimensions: List[ReportDimension] = []
-		bucket_on_column = self.find_column_of_measure_on_dimension()
-		if bucket_on_column is not None:
-			dimensions.append(ReportDimension(columnId=bucket_on_column.columnId, name='_BUCKET_ON_'))
-		time_group_column = self.find_column_of_measure_on_time_dimension()
-		if time_group_column is not None:
-			fake_column = ArrayHelper(self.subject.dataset.columns) \
-				.find(lambda x: x.columnId == self.FAKE_TIME_GROUP_COLUMN_ID)
-			if fake_column is None:
+		# measures to dimensions
+		measure_on_columns = self.find_columns_of_measure_on_dimension()
+
+		def measure_to_dimension(column: SubjectDatasetColumn, index: int) -> None:
+			dimensions.append(ReportDimension(columnId=column.columnId, name=f'_BUCKET_ON_{index}_'))
+
+		ArrayHelper(measure_on_columns) \
+			.each_with_index(lambda x, index: measure_to_dimension(x, index + 1))
+
+		# time group to dimensions
+		time_group_year_or_month_column = ArrayHelper(self.subject.dataset.columns) \
+			.find(lambda x: x.columnId == self.TIME_GROUP_YEAR_OR_MONTH_COLUMN_ID)
+		if time_group_year_or_month_column is not None:
+			dimensions.append(
+				ReportDimension(columnId=self.TIME_GROUP_YEAR_OR_MONTH_COLUMN_ID, name='_TIME_GROUP_'))
+		else:
+			time_group_column = self.find_column_of_time_group_dimension()
+			if time_group_column is not None:
 				dimensions.append(ReportDimension(columnId=time_group_column.columnId, name='_TIME_GROUP_'))
-			else:
-				dimensions.append(ReportDimension(columnId=self.FAKE_TIME_GROUP_COLUMN_ID, name='_TIME_GROUP_'))
+
 		if len(dimensions) == 0:
 			raise IndicatorKernelException('Neither time group nor bucket not found.')
 
@@ -218,49 +218,53 @@ class SubjectBaseInspectionDataService(InspectionDataService):
 		return topic, factor
 
 	def try_to_fake_time_group_column(self):
-		time_group_column = self.find_column_of_measure_on_time_dimension()
+		time_group_column = self.find_column_of_time_group_dimension()
 		if time_group_column is None:
 			return
 		if not isinstance(time_group_column.parameter, TopicFactorParameter):
 			return
 
 		topic, factor = self.find_factor(time_group_column.parameter.topicId, time_group_column.parameter.factorId)
-		# to figure out that the time group column is date type or not
-		# if it is a date type, must fake a new column into subject
-		if self.has_year_or_month(factor):
-			fake_column = self.fake_time_group_column(topic.topicId, factor.factorId, time_group_column.alias)
+		# to figure out that the time group column is datetime type or not
+		# if it is a datetime type, must fake a new column into subject
+		if self.is_datetime_factor(factor):
+			fake_column = self.fake_time_group_year_or_month_column(
+				topic.topicId, factor.factorId, time_group_column.alias)
 			if fake_column is not None:
 				self.subject.dataset.columns.append(fake_column)
 
-	def try_to_fake_measure_on_column(self):
-		measure_on_column = self.find_column_of_measure_on_dimension()
-		if measure_on_column is None:
-			return
-		if not isinstance(measure_on_column.parameter, TopicFactorParameter):
-			return
-
-		topic, factor = self.find_factor(measure_on_column.parameter.topicId, measure_on_column.parameter.factorId)
-
-		measure_on = self.inspection.measureOn
-		measure_on_bucket_id = self.inspection.measureOnBucketId
-		if is_blank(measure_on_bucket_id):
-			if measure_on == InspectMeasureOn.OTHER:
-				# using naturally classification
-				fake_column = SubjectDatasetColumn(
-					columnId='_BUCKET_ON_',  # TODO str(column_index),
-					parameter=TopicFactorParameter(
-						kind=ParameterKind.TOPIC, topicId=topic.topicId, factorId=factor.factorId),
-					alias='_BUCKET_ON_'
-				)
-			else:
-				raise IndicatorKernelException('Measure on bucket not declared.')
-		else:
-			# TODO
-			return
-
-		self.subject.dataset.columns.append(fake_column)
+	# TODO bucket on subject column is not supported yet
+	# def try_to_fake_measure_on_column(self):
+	# 	measure_on_column = self.find_columns_of_measure_on_dimension()
+	# 	if measure_on_column is None:
+	# 		return
+	# 	if not isinstance(measure_on_column.parameter, TopicFactorParameter):
+	# 		return
+	#
+	# 	topic, factor = self.find_factor(measure_on_column.parameter.topicId, measure_on_column.parameter.factorId)
+	#
+	# 	measure_on = self.inspection.measureOn
+	# 	measure_on_bucket_id = self.inspection.measureOnBucketId
+	# 	if is_blank(measure_on_bucket_id):
+	# 		if measure_on == InspectMeasureOnType.OTHER:
+	# 			# using naturally classification
+	# 			fake_column = SubjectDatasetColumn(
+	# 				columnId='_BUCKET_ON_',
+	# 				parameter=TopicFactorParameter(
+	# 					kind=ParameterKind.TOPIC, topicId=topic.topicId, factorId=factor.factorId),
+	# 				alias='_BUCKET_ON_'
+	# 			)
+	# 		else:
+	# 			raise IndicatorKernelException('Measure on bucket not declared.')
+	# 	else:
+	# 		return
+	#
+	# 	self.subject.dataset.columns.append(fake_column)
 
 	def fake_subject(self):
+		"""
+		fake a time group column when declared
+		"""
 		self.try_to_fake_time_group_column()
 
 	def find(self) -> DataResult:

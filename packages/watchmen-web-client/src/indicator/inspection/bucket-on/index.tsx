@@ -1,34 +1,18 @@
-import {BucketId} from '@/services/data/tuples/bucket-types';
-import {FactorId} from '@/services/data/tuples/factor-types';
-import {Inspection, InspectMeasureOn} from '@/services/data/tuples/inspection-types';
+import {Inspection} from '@/services/data/tuples/inspection-types';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
 import {ICON_LOADING} from '@/widgets/basic/constants';
-import {DropdownOption} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {useEffect, useState} from 'react';
+import {v4} from 'uuid';
 import {useInspectionEventBus} from '../inspection-event-bus';
 import {IndicatorForInspection, InspectionEventTypes} from '../inspection-event-bus-types';
 import {buildBucketsAskingParams} from '../utils';
 import {InspectionLabel, LoadingLabel} from '../widgets';
-import {buildBucketOptions, buildMeasureOnOptions} from './utils';
-import {BucketOnContainer, BucketOnDropdown} from './widgets';
-
-interface Buckets {
-	loaded: boolean;
-	data: Array<QueryBucket>;
-}
-
-const safeGetMeasureOn = (inspection?: Inspection): InspectMeasureOn | FactorId | undefined => {
-	if (inspection == null || inspection.measureOn == null) {
-		return InspectMeasureOn.NONE;
-	} else if (inspection.measureOn === InspectMeasureOn.OTHER) {
-		return inspection.measureOnFactorId;
-	} else {
-		return inspection.measureOn;
-	}
-};
+import {BucketOnEditor} from './bucket-on-editor';
+import {Buckets} from './types';
+import {BucketOnContainer, BucketOnRows} from './widgets';
 
 export const BucketOn = () => {
 	const {on, off, fire} = useInspectionEventBus();
@@ -36,7 +20,7 @@ export const BucketOn = () => {
 	const [inspection, setInspection] = useState<Inspection | null>(null);
 	const [indicator, setIndicator] = useState<IndicatorForInspection | null>(null);
 	const [buckets, setBuckets] = useState<Buckets>({loaded: false, data: []});
-	const forceUpdate = useForceUpdate();
+
 	useEffect(() => {
 		const askBuckets = async ({indicator, topic, subject}: IndicatorForInspection): Promise<Array<QueryBucket>> => {
 			return new Promise(resolve => {
@@ -79,6 +63,17 @@ export const BucketOn = () => {
 			off(InspectionEventTypes.INSPECTION_CLEARED, onInspectionCleared);
 		};
 	}, [on, off]);
+	const forceUpdate = useForceUpdate();
+	useEffect(() => {
+		const onBucketOnAdded = () => forceUpdate();
+		const onBucketOnRemoved = () => forceUpdate();
+		on(InspectionEventTypes.BUCKET_ON_ADDED, onBucketOnAdded);
+		on(InspectionEventTypes.BUCKET_ON_REMOVED, onBucketOnRemoved);
+		return () => {
+			off(InspectionEventTypes.BUCKET_ON_ADDED, onBucketOnAdded);
+			off(InspectionEventTypes.BUCKET_ON_REMOVED, onBucketOnRemoved);
+		};
+	}, [on, off, forceUpdate]);
 
 	if (!visible) {
 		return null;
@@ -94,87 +89,17 @@ export const BucketOn = () => {
 		</BucketOnContainer>;
 	}
 
-	const onMeasureOnChange = (option: DropdownOption) => {
-		if (option.value === InspectMeasureOn.NONE) {
-			if (inspection?.measureOn === InspectMeasureOn.NONE) {
-				return;
-			}
-			inspection!.measureOn = InspectMeasureOn.NONE;
-			delete inspection?.measureOnFactorId;
-			delete inspection?.measureOnBucketId;
-		} else if (option.value === InspectMeasureOn.VALUE) {
-			if (inspection?.measureOn === InspectMeasureOn.VALUE) {
-				return;
-			}
-			inspection!.measureOn = InspectMeasureOn.VALUE;
-			delete inspection?.measureOnFactorId;
-			delete inspection?.measureOnBucketId;
-		} else {
-			// eslint-disable-next-line
-			if (inspection?.measureOn === InspectMeasureOn.OTHER && inspection.measureOnFactorId == option.value) {
-				return;
-			}
-			inspection!.measureOnFactorId = option.value;
-			inspection!.measureOn = InspectMeasureOn.OTHER;
-			const bucketOptions = buildBucketOptions({
-				inspection: inspection!,
-				topic: indicator!.topic,
-				subject: indicator!.subject,
-				buckets: buckets.data
-			});
-			if (bucketOptions.available && bucketOptions.options.length > 0) {
-				inspection!.measureOnBucketId = bucketOptions.options[0].value;
-			} else {
-				delete inspection?.measureOnBucketId;
-			}
-		}
-		fire(InspectionEventTypes.BUCKET_ON_CHANGED, inspection!);
-		forceUpdate();
-	};
-	const onBucketChange = (option: DropdownOption) => {
-		const value = option.value;
-		if (!value) {
-			delete inspection?.measureOnBucketId;
-		} else {
-			inspection!.measureOnBucketId = value as BucketId;
-		}
-		fire(InspectionEventTypes.BUCKET_ON_CHANGED, inspection!);
-		forceUpdate();
-	};
-
-	const measureOnOptions = buildMeasureOnOptions({
-		indicator: indicator!.indicator,
-		topic: indicator!.topic,
-		subject: indicator!.subject,
-		buckets: buckets.data
-	});
-	const measureOn = safeGetMeasureOn(inspection ?? (void 0));
-	const bucketOptions = buildBucketOptions({
-		inspection: inspection!,
-		topic: indicator!.topic,
-		subject: indicator!.subject,
-		buckets: buckets.data
-	});
-	const selectedBucketId = (() => {
-		if (measureOn === InspectMeasureOn.NONE) {
-			return (void 0);
-		} else if (measureOn === InspectMeasureOn.VALUE) {
-			return inspection?.measureOnBucketId;
-		} else {
-			return inspection?.measureOnBucketId == null ? '' : inspection.measureOnBucketId;
-		}
-	})();
+	const measures = [...(inspection?.measures || []), {}];
 
 	return <BucketOnContainer>
 		<InspectionLabel>{Lang.INDICATOR.INSPECTION.SELECT_BUCKETING_ON_LABEL}</InspectionLabel>
-		<BucketOnDropdown value={measureOn} options={measureOnOptions} onChange={onMeasureOnChange}
-		                  please={Lang.PLAIN.DROPDOWN_PLACEHOLDER}/>
-		{measureOn === InspectMeasureOn.NONE
-			? null
-			: <BucketOnDropdown value={selectedBucketId}
-			                    options={bucketOptions.options}
-			                    onChange={onBucketChange}
-			                    please={bucketOptions.available ? Lang.PLAIN.DROPDOWN_PLACEHOLDER : Lang.INDICATOR.INSPECTION.SELECT_MEASURE_ON_FIRST}/>
-		}
+		<BucketOnRows>
+			{measures.map(measureOn => {
+				return <BucketOnEditor inspection={inspection!}
+				                       measure={measureOn}
+				                       indicator={indicator!} buckets={buckets}
+				                       key={v4()}/>;
+			})}
+		</BucketOnRows>
 	</BucketOnContainer>;
 };

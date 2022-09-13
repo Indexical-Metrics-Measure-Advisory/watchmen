@@ -465,6 +465,7 @@ export const Jp = {
 			VALUE_TRANSFORM_MIN: '最小値',
 			SELECT_BUCKETING_ON_LABEL: 'バケット方式:',
 			NO_BUCKET_ON: 'バケットは使用されません',
+			MORE_BUCKET_ON: 'より多くのバケット',
 			MEASURE_ON_VALUE: '指標値',
 			SELECT_MEASURE_ON_FIRST: 'まず、バケットデータムを選択してください...',
 			MEASURE_ON_NATURALLY: '自然分類を使用',

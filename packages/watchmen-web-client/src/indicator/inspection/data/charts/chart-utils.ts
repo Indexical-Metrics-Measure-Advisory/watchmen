@@ -1,5 +1,5 @@
 import {IndicatorAggregateArithmetic} from '@/services/data/tuples/indicator-types';
-import {Inspection, InspectMeasureOn} from '@/services/data/tuples/inspection-types';
+import {Inspection, InspectMeasureOnType} from '@/services/data/tuples/inspection-types';
 import {RowOfAny} from '@/services/data/types';
 import {isNotNull} from '@/services/data/utils';
 import {ChartGrowthType, ChartParams, ChartType, ChartUsage} from './types';
@@ -8,7 +8,7 @@ const COLUMN_INDEX_NOT_EXISTS = -1;
 
 export interface ColumnIndexMap {
 	timeGrouping: number;
-	bucketOn: number;
+	bucketOn: Array<number>;
 	value: number;
 }
 
@@ -16,11 +16,10 @@ export const buildAriaOptions = () => {
 	return {aria: {enabled: false, decal: {show: true}}};
 };
 
-const createInitialColumnIndexMap = () => {
+const createInitialColumnIndexMap = (): ColumnIndexMap => {
 	return {
 		timeGrouping: COLUMN_INDEX_NOT_EXISTS,
-		bucketOn: COLUMN_INDEX_NOT_EXISTS,
-		timeRange: COLUMN_INDEX_NOT_EXISTS,
+		bucketOn: [],
 		value: COLUMN_INDEX_NOT_EXISTS
 	};
 };
@@ -29,24 +28,28 @@ export const isColumnIndexAssigned = (columnIndex: number) => {
 	return columnIndex !== COLUMN_INDEX_NOT_EXISTS;
 };
 
-export const buildColumnIndexMap = (inspection: Inspection, arithmetic: IndicatorAggregateArithmetic) => {
+export const buildColumnIndexMap = (inspection: Inspection, arithmetic: IndicatorAggregateArithmetic): ColumnIndexMap => {
 	const columnIndexMap: ColumnIndexMap = createInitialColumnIndexMap();
 	if (inspection.measureOnTimeFactorId != null) {
 		// has time measure
-		if (inspection.measureOn == null || inspection.measureOn === InspectMeasureOn.NONE) {
+		if (inspection.measures == null || inspection.measures.length === 0) {
 			// no bucket measure, time measure is on column index 0
 			columnIndexMap.timeGrouping = 0;
 		} else {
-			// time measure is on column index 1
-			columnIndexMap.bucketOn = 0;
-			columnIndexMap.timeGrouping = 1;
+			// time measure is on next column after all measures
+			columnIndexMap.bucketOn = inspection.measures
+				.filter(measure => measure != null && measure.type !== InspectMeasureOnType.NONE)
+				.map((_, index) => index);
+			columnIndexMap.timeGrouping = columnIndexMap.bucketOn.length;
 		}
 	} else {
 		// no time measure, then has bucket measure
-		columnIndexMap.bucketOn = 0;
+		columnIndexMap.bucketOn = (inspection.measures || [])
+			.filter(measure => measure != null && measure.type !== InspectMeasureOnType.NONE)
+			.map((_, index) => index);
 	}
-	// value columns follow
-	const firstValueColumnIndex = isColumnIndexAssigned(columnIndexMap.timeGrouping) ? (columnIndexMap.timeGrouping + 1) : (columnIndexMap.bucketOn + 1);
+	// value columns
+	const firstValueColumnIndex = isColumnIndexAssigned(columnIndexMap.timeGrouping) ? (columnIndexMap.timeGrouping + 1) : (columnIndexMap.bucketOn.length);
 	columnIndexMap.value = firstValueColumnIndex + (inspection.aggregateArithmetics || []).indexOf(arithmetic);
 
 	return columnIndexMap;
@@ -145,9 +148,7 @@ const rebuildParamsForTimeGrouping = (params: ChartParams): ChartParams => {
 		inspection: (() => {
 			const {inspection} = params;
 			const clone = {...inspection};
-			delete clone.measureOn;
-			delete clone.measureOnFactorId;
-			delete clone.measureOnBucketId;
+			delete clone.measures;
 			return clone;
 		})(),
 		columns,
@@ -180,7 +181,7 @@ export const rebuildParams = (options: {
 
 export const buildChartUsages = (inspection: Inspection, arithmetic: IndicatorAggregateArithmetic): Array<ChartUsage> => {
 	const columnIndexMap = buildColumnIndexMap(inspection, arithmetic);
-	if (isColumnIndexAssigned(columnIndexMap.timeGrouping) && isColumnIndexAssigned(columnIndexMap.bucketOn)) {
+	if (isColumnIndexAssigned(columnIndexMap.timeGrouping) && columnIndexMap.bucketOn.length !== 0) {
 		const arithmetics = inspection.aggregateArithmetics || [];
 		if (arithmetic === IndicatorAggregateArithmetic.AVG && !arithmetics.includes(IndicatorAggregateArithmetic.COUNT)) {
 			return [ChartUsage.BOTH];
@@ -193,7 +194,7 @@ export const buildChartUsages = (inspection: Inspection, arithmetic: IndicatorAg
 		return [ChartUsage.TIME_GROUPING];
 	}
 
-	if (isColumnIndexAssigned(columnIndexMap.bucketOn)) {
+	if (columnIndexMap.bucketOn.length !== 0) {
 		return [ChartUsage.BUCKET_ON];
 	}
 

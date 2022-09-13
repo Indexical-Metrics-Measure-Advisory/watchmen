@@ -465,6 +465,7 @@ export const Zh = {
 			VALUE_TRANSFORM_MIN: '最小值',
 			SELECT_BUCKETING_ON_LABEL: '分桶方式:',
 			NO_BUCKET_ON: '不使用分桶',
+			MORE_BUCKET_ON: '更多分桶',
 			MEASURE_ON_VALUE: '指标值',
 			SELECT_MEASURE_ON_FIRST: '请首先选择分桶基准...',
 			MEASURE_ON_NATURALLY: '使用自然分类',

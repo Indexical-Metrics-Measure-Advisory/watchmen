@@ -4,7 +4,7 @@ import {
 	IndicatorAggregateArithmeticSort,
 	MeasureMethod
 } from '../../tuples/indicator-types';
-import {Inspection, InspectionId, InspectMeasureOn} from '../../tuples/inspection-types';
+import {Inspection, InspectionId, InspectMeasureOnType} from '../../tuples/inspection-types';
 import {QueryInspection} from '../../tuples/query-inspection-types';
 import {isFakedUuid} from '../../tuples/utils';
 import {RowOfAny} from '../../types';
@@ -28,8 +28,7 @@ const OrderPremiumInspection: Inspection = {
 	name: 'Order Premium',
 	indicatorId: INDICATOR_MONTHLY_ORDER_PREMIUM_ON_SUBJECT_ID,
 	aggregateArithmetics: [IndicatorAggregateArithmetic.SUM, IndicatorAggregateArithmetic.AVG],
-	measureOn: InspectMeasureOn.VALUE,
-	measureOnBucketId: BUCKET_AMOUNT_ID,
+	measures: [{type: InspectMeasureOnType.VALUE, bucketId: BUCKET_AMOUNT_ID}],
 	criteria: [],
 	version: 1,
 	createdAt: getCurrentTime(),
@@ -152,53 +151,55 @@ const gatherInspectionData = (inspection: Inspection): Array<RowOfAny> => {
 	const dataset = buildMockInspectionData(buildRangeYears(inspection));
 
 	const transformers: Array<(row: OrderPremiumRow) => OrderPremiumRow> = [];
-	// bucketing
-	if (inspection.measureOn === InspectMeasureOn.VALUE) {
-		transformers.push((row: OrderPremiumRow) => {
-			return {
-				...row,
-				orderSize: Amounts.segments.find(({value: {min = 0, max = 99999999}}) => {
-					return row.premium >= Number(min) && row.premium <= Number(max);
-				})?.name
-			};
-		});
-	} else if (inspection.measureOn === InspectMeasureOn.OTHER) {
-		// eslint-disable-next-line
-		if (inspection.measureOnBucketId == BUCKET_FLOOR_ID) {
+	(inspection.measures || []).forEach(measure => {
+		// bucketing
+		if (measure.type === InspectMeasureOnType.VALUE) {
 			transformers.push((row: OrderPremiumRow) => {
 				return {
 					...row,
-					floorCategory: Floor.segments.find(({value: {min = 0, max = 99999999}}) => {
-						return row.floor >= Number(min) && row.floor <= Number(max);
+					orderSize: Amounts.segments.find(({value: {min = 0, max = 99999999}}) => {
+						return row.premium >= Number(min) && row.premium <= Number(max);
 					})?.name
 				};
 			});
+		} else if (measure.type === InspectMeasureOnType.OTHER) {
 			// eslint-disable-next-line
-		} else if (inspection.measureOnBucketId == BUCKET_CITIES_ID) {
-			transformers.push((row: OrderPremiumRow) => {
-				return {
-					...row,
-					cityGroup: Cities.segments.find(({value}) => {
-						return value.includes(row.city) || value.includes('&others');
-					})?.name
-				};
-			});
-			// eslint-disable-next-line
-		} else if (inspection.measureOnBucketId == BUCKET_CITIES_ISLAND_ID) {
-			transformers.push((row: OrderPremiumRow) => {
-				return {
-					...row,
-					cityGroup: CitiesIsland.segments.find(({value}) => {
-						return value.includes(row.city) || value.includes('&others');
-					})?.name
-				};
-			});
-		} else {
-			transformers.push((row: OrderPremiumRow) => {
-				return {...row, cityGroup: MockCities.find(city => city.code === row.city)?.code};
-			});
+			if (measure.bucketId == BUCKET_FLOOR_ID) {
+				transformers.push((row: OrderPremiumRow) => {
+					return {
+						...row,
+						floorCategory: Floor.segments.find(({value: {min = 0, max = 99999999}}) => {
+							return row.floor >= Number(min) && row.floor <= Number(max);
+						})?.name
+					};
+				});
+				// eslint-disable-next-line
+			} else if (measure.bucketId == BUCKET_CITIES_ID) {
+				transformers.push((row: OrderPremiumRow) => {
+					return {
+						...row,
+						cityGroup: Cities.segments.find(({value}) => {
+							return value.includes(row.city) || value.includes('&others');
+						})?.name
+					};
+				});
+				// eslint-disable-next-line
+			} else if (measure.bucketId == BUCKET_CITIES_ISLAND_ID) {
+				transformers.push((row: OrderPremiumRow) => {
+					return {
+						...row,
+						cityGroup: CitiesIsland.segments.find(({value}) => {
+							return value.includes(row.city) || value.includes('&others');
+						})?.name
+					};
+				});
+			} else {
+				transformers.push((row: OrderPremiumRow) => {
+					return {...row, cityGroup: MockCities.find(city => city.code === row.city)?.code};
+				});
+			}
 		}
-	}
+	});
 
 	// time grouping
 	if (inspection.measureOnTimeFactorId === '203') {
