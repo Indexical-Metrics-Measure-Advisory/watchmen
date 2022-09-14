@@ -77,7 +77,7 @@ async def load_subject_by_(
 	subject_service = get_subject_service(principal_service)
 
 	def action() -> Subject:
-		return subject_service.find_by_id(subject_id)
+		return subject_service.find_tenant_and_user(subject_id)
 
 	return trans_readonly(subject_service, action)
 
