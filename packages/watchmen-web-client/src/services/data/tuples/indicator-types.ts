@@ -116,6 +116,7 @@ export interface Indicator extends Tuple, OptimisticLock {
 	topicOrSubjectId: TopicId | SubjectId;
 	/** is a count indicator when factor is not appointed */
 	factorId?: FactorId | SubjectDataSetColumnId;
+	arithmetic: IndicatorAggregateArithmetic;
 	baseOn: IndicatorBaseOn;
 	/** effective only when factorId is appointed */
 	valueBuckets?: Array<BucketId>;
