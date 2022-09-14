@@ -1,6 +1,6 @@
 import {Enum} from '@/services/data/tuples/enum-types';
 import {findTopicAndFactor} from '@/services/data/tuples/indicator-utils';
-import {Inspection, InspectMeasureOn} from '@/services/data/tuples/inspection-types';
+import {Inspection, InspectMeasureOnType} from '@/services/data/tuples/inspection-types';
 import {isTopicFactorParameter} from '@/services/data/tuples/parameter-utils';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
 import {RowOfAny} from '@/services/data/types';
@@ -62,55 +62,56 @@ export const DataGrid = (props: { inspection: Inspection; indicator: IndicatorFo
 				});
 			};
 
-			const askEnum = async ({topic, subject}: IndicatorForInspection): Promise<Enum | undefined> => {
-				return new Promise(resolve => {
-					if (inspection.measureOnFactorId != null
-						&& inspection.measureOn === InspectMeasureOn.OTHER
-						&& inspection.measureOnBucketId == null) {
-						// measure on a factor and on naturally classification
-						if (topic != null) {
-							// eslint-disable-next-line
-							const factor = (topic.factors || []).find(factor => factor.factorId == inspection.measureOnFactorId);
-							if (factor != null && factor.enumId != null) {
-								fire(InspectionEventTypes.ASK_ENUM, factor.enumId, (enumeration?: Enum) => {
-									resolve(enumeration);
-								});
-								// will resolve in promise, avoid the finally resolve
-								return;
-							}
-						} else if (subject != null) {
-							// eslint-disable-next-line
-							const column = (subject.dataset.columns || []).find(column => column.columnId == inspection.measureOnFactorId);
-							if (column != null && isTopicFactorParameter(column.parameter)) {
-								const {factor} = findTopicAndFactor(column, subject);
+			const askEnumList = ({topic, subject}: IndicatorForInspection
+			): Array<Promise<{ data?: Enum; index: number } | undefined>> => {
+				return (inspection.measures || []).map((measure, index) => {
+					return new Promise(resolve => {
+						if (measure.factorId != null && measure.type === InspectMeasureOnType.OTHER && measure.bucketId == null) {
+							// measure on a factor and on naturally classification
+							if (topic != null) {
+								// eslint-disable-next-line
+								const factor = (topic.factors || []).find(factor => factor.factorId == measure.factorId);
 								if (factor != null && factor.enumId != null) {
 									fire(InspectionEventTypes.ASK_ENUM, factor.enumId, (enumeration?: Enum) => {
-										resolve(enumeration);
+										resolve({data: enumeration, index});
 									});
 									// will resolve in promise, avoid the finally resolve
 									return;
 								}
+							} else if (subject != null) {
+								// eslint-disable-next-line
+								const column = (subject.dataset.columns || []).find(column => column.columnId == measure.factorId);
+								if (column != null && isTopicFactorParameter(column.parameter)) {
+									const {factor} = findTopicAndFactor(column, subject);
+									if (factor != null && factor.enumId != null) {
+										fire(InspectionEventTypes.ASK_ENUM, factor.enumId, (enumeration?: Enum) => {
+											resolve({data: enumeration, index});
+										});
+										// will resolve in promise, avoid the finally resolve
+										return;
+									}
+								}
 							}
 						}
-					}
-					resolve(void 0);
+						resolve(void 0);
+					});
 				});
 			};
 
-			const [buckets, enumeration] = await Promise.all([
-				askBuckets(indicator),
-				askEnum(indicator)
-			]);
-			if (enumeration != null) {
-				// replace enumeration value of data
-				// noinspection TypeScriptUnresolvedVariable
-				const enumItemMap = (enumeration.items || []).reduce((map, item) => {
-					map[item.code] = item.label;
-					return map;
-				}, {} as Record<string, string>);
-				// console.log(JSON.stringify(data));
-				data.map(row => row[0] = row[0] != null ? (enumItemMap[`${row[0]}`] ?? row[0]) : row[0]);
-				// console.log(JSON.stringify(data));
+			const [buckets, ...enumerations] = await Promise.all([askBuckets(indicator), ...askEnumList(indicator)]);
+			if (enumerations != null) {
+				(enumerations as Array<{ data?: Enum; index: number }>)
+					.filter(e => e != null).forEach(({data: e, index}) => {
+					// replace enumeration value of data
+					// noinspection TypeScriptUnresolvedVariable
+					const enumItemMap = (e?.items || []).reduce((map, item) => {
+						map[`${item.code}`] = item.label;
+						return map;
+					}, {} as Record<string, string>);
+					// console.log(JSON.stringify(data));
+					data.map(row => row[index] = row[index] != null ? (enumItemMap[`${row[index]}`] ?? row[index]) : row[index]);
+					// console.log(JSON.stringify(data));
+				});
 			}
 			const columns = buildColumnDefs({inspection, indicator, buckets});
 			const timeColumnIndex = columns.findIndex(column => column.type === ColumnType.TIME);

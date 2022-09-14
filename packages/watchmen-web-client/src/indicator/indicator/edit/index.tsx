@@ -6,6 +6,7 @@ import React, {useEffect} from 'react';
 import {useIndicatorsEventBus} from '../indicators-event-bus';
 import {IndicatorsData, IndicatorsEventTypes} from '../indicators-event-bus-types';
 import {IndicatorDeclarationStep} from '../types';
+import {AggregateItem} from './aggregate-item';
 import {Categories} from './categories';
 import {CreateOrFind} from './create-or-find';
 import {DefineBuckets} from './define-buckets';
@@ -37,6 +38,7 @@ export const IndicatorEditor = () => {
 		<IndicatorsContainer>
 			<CreateOrFind/>
 			<PickTopic/>
+			<AggregateItem/>
 			<MeasureMethods/>
 			<DefineBuckets/>
 			<SaveIndicator/>

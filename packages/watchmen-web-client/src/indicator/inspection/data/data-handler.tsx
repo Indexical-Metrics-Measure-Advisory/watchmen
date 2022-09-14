@@ -55,6 +55,8 @@ export const DataHandler = (props: { inspection: Inspection }) => {
 		on(InspectionEventTypes.INDICATOR_CRITERIA_REMOVED, onInspectionChanged);
 		on(InspectionEventTypes.AGGREGATE_ARITHMETIC_CHANGED, onInspectionChanged);
 		on(InspectionEventTypes.BUCKET_ON_CHANGED, onInspectionChanged);
+		on(InspectionEventTypes.BUCKET_ON_ADDED, onInspectionChanged);
+		on(InspectionEventTypes.BUCKET_ON_REMOVED, onInspectionChanged);
 		on(InspectionEventTypes.TIME_MEASURE_CHANGED, onInspectionChanged);
 		on(InspectionEventTypes.TIME_RANGE_ON_CHANGED, onInspectionChanged);
 		on(InspectionEventTypes.TIME_RANGE_VALUES_CHANGED, onInspectionChanged);
@@ -65,6 +67,8 @@ export const DataHandler = (props: { inspection: Inspection }) => {
 			off(InspectionEventTypes.INDICATOR_CRITERIA_REMOVED, onInspectionChanged);
 			off(InspectionEventTypes.AGGREGATE_ARITHMETIC_CHANGED, onInspectionChanged);
 			off(InspectionEventTypes.BUCKET_ON_CHANGED, onInspectionChanged);
+			off(InspectionEventTypes.BUCKET_ON_ADDED, onInspectionChanged);
+			off(InspectionEventTypes.BUCKET_ON_REMOVED, onInspectionChanged);
 			off(InspectionEventTypes.TIME_MEASURE_CHANGED, onInspectionChanged);
 			off(InspectionEventTypes.TIME_RANGE_ON_CHANGED, onInspectionChanged);
 			off(InspectionEventTypes.TIME_RANGE_VALUES_CHANGED, onInspectionChanged);

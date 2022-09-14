@@ -14,7 +14,7 @@ import {
 	translateComputeTypeToFactorType,
 	tryToTransformToMeasures
 } from '@/services/data/tuples/indicator-utils';
-import {Inspection, InspectMeasureOn} from '@/services/data/tuples/inspection-types';
+import {InspectMeasureOn, InspectMeasureOnType} from '@/services/data/tuples/inspection-types';
 import {isComputedParameter, isTopicFactorParameter} from '@/services/data/tuples/parameter-utils';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
 import {SubjectForIndicator, TopicForIndicator} from '@/services/data/tuples/query-indicator-types';
@@ -56,15 +56,16 @@ export const buildMeasureOnOptions = (options: {
 	topic?: TopicForIndicator;
 	subject?: SubjectForIndicator;
 	buckets: Array<QueryBucket>;
+	ignoreLabel: string;
 }): Array<DropdownOption> => {
-	const {indicator, topic, subject, buckets} = options;
+	const {indicator, topic, subject, buckets, ignoreLabel} = options;
 
 	const canMeasureOnIndicatorValue = couldMeasureOnIndicatorValue(indicator, buckets);
 
 	return [
-		{value: InspectMeasureOn.NONE, label: Lang.INDICATOR.INSPECTION.NO_BUCKET_ON},
+		{value: InspectMeasureOnType.NONE, label: ignoreLabel},
 		...canMeasureOnIndicatorValue ? [{
-			value: InspectMeasureOn.VALUE,
+			value: InspectMeasureOnType.VALUE,
 			label: Lang.INDICATOR.INSPECTION.MEASURE_ON_VALUE
 		}] : [],
 		...(subject?.dataset.columns || []).filter(column => {
@@ -97,16 +98,16 @@ export const buildMeasureOnOptions = (options: {
 };
 
 export const buildBucketOptions = (options: {
-	inspection: Inspection;
+	measure: InspectMeasureOn;
 	topic?: TopicForIndicator;
 	subject?: SubjectForIndicator;
 	buckets: Array<QueryBucket>;
 }): { available: boolean, options: Array<DropdownOption> } => {
-	const {inspection, topic, subject, buckets} = options;
+	const {measure, topic, subject, buckets} = options;
 
-	if (inspection.measureOn == null || inspection.measureOn === InspectMeasureOn.NONE) {
+	if (measure.type == null || measure.type === InspectMeasureOnType.NONE) {
 		return {available: false, options: []};
-	} else if (inspection.measureOn === InspectMeasureOn.VALUE) {
+	} else if (measure.type === InspectMeasureOnType.VALUE) {
 		return {
 			available: true,
 			options: buckets.filter(bucket => bucket.type === BucketType.VALUE)
@@ -119,14 +120,14 @@ export const buildBucketOptions = (options: {
 					return o1.label.localeCompare(o2.label, void 0, {sensitivity: 'base', caseFirst: 'upper'});
 				})
 		};
-	} else if (inspection.measureOn === InspectMeasureOn.OTHER && inspection.measureOnFactorId == null) {
+	} else if (measure.type === InspectMeasureOnType.OTHER && measure.factorId == null) {
 		return {available: false, options: []};
-	} else if (inspection.measureOn === InspectMeasureOn.OTHER && inspection.measureOnFactorId != null) {
+	} else if (measure.type === InspectMeasureOnType.OTHER && measure.factorId != null) {
 		let enumId: EnumId | undefined;
 		let factorType: FactorType | null;
 		if (topic != null) {
 			// eslint-disable-next-line
-			const factor = (topic.factors || []).find(factor => factor.factorId == inspection.measureOnFactorId);
+			const factor = (topic.factors || []).find(factor => factor.factorId == measure.factorId);
 			if (factor == null) {
 				return {available: true, options: []};
 			}
@@ -134,7 +135,7 @@ export const buildBucketOptions = (options: {
 			enumId = factor.enumId;
 		} else if (subject != null) {
 			// eslint-disable-next-line
-			const column = (subject.dataset.columns || []).find(column => column.columnId == inspection.measureOnFactorId);
+			const column = (subject.dataset.columns || []).find(column => column.columnId == measure.factorId);
 			if (column == null) {
 				return {available: true, options: []};
 			}

@@ -5,7 +5,7 @@ import {
 } from '@/services/data/tuples/indicator-criteria-utils';
 import {Indicator, IndicatorAggregateArithmetic, MeasureMethod} from '@/services/data/tuples/indicator-types';
 import {detectMeasures, findTopicAndFactor, isTimePeriodMeasure} from '@/services/data/tuples/indicator-utils';
-import {Inspection, InspectMeasureOn} from '@/services/data/tuples/inspection-types';
+import {Inspection, InspectMeasureOnType} from '@/services/data/tuples/inspection-types';
 import {isTopicFactorParameter} from '@/services/data/tuples/parameter-utils';
 import {QueryByBucketMethod, QueryByEnumMethod, QueryByMeasureMethod} from '@/services/data/tuples/query-bucket-types';
 import {isQueryByEnum, isQueryByMeasure} from '@/services/data/tuples/query-bucket-utils';
@@ -21,10 +21,10 @@ export const createInspection = (): Inspection => {
 		inspectionId,
 		name: `${getCurrentLanguage().PLAIN.NEW_INSPECTION_NAME} ${base64Encode(inspectionId).substring(0, 12)}`,
 		aggregateArithmetics: [IndicatorAggregateArithmetic.SUM],
-		measureOn: InspectMeasureOn.NONE,
+		measures: [],
 		createdAt: getCurrentTime(),
 		lastModifiedAt: getCurrentTime()
-	} as Inspection;
+	} as unknown as Inspection;
 };
 
 export const AggregateArithmeticLabel: Record<IndicatorAggregateArithmetic, string> = {
@@ -80,7 +80,7 @@ export const validateInspection = (options: {
 		}
 	}
 	if (inspection.measureOnTimeFactorId == null
-		&& (inspection.measureOn == null || inspection.measureOn === InspectMeasureOn.NONE)) {
+		&& (inspection.measures == null || inspection.measures.length === 0)) {
 		fail(InspectionInvalidReason.MEASURE_IS_REQUIRED);
 		return;
 	}
@@ -88,11 +88,11 @@ export const validateInspection = (options: {
 		fail(InspectionInvalidReason.MEASURE_ON_TIME_IS_REQUIRED);
 		return;
 	}
-	if (inspection.measureOn === InspectMeasureOn.VALUE && inspection.measureOnBucketId == null) {
+	if ((inspection.measures || []).some(measure => measure.type === InspectMeasureOnType.VALUE && measure.bucketId == null)) {
 		fail(InspectionInvalidReason.INDICATOR_BUCKET_IS_REQUIRED);
 		return;
 	}
-	if (inspection.measureOn === InspectMeasureOn.OTHER && inspection.measureOnFactorId == null) {
+	if ((inspection.measures || []).some(measure => measure.type === InspectMeasureOnType.OTHER && measure.factorId == null)) {
 		fail(InspectionInvalidReason.MEASURE_BUCKET_IS_REQUIRED);
 		return;
 	}
