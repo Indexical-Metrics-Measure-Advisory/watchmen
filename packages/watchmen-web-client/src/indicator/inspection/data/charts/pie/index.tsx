@@ -1,7 +1,7 @@
 import {RowOfAny} from '@/services/data/types';
 import {buildAriaOptions, buildColumnIndexMap, isColumnIndexAssigned} from '../chart-utils';
 import {ChartParams} from '../types';
-import {buildBucketOnNames, buildSingleMeasureNames, buildTimeGroupingNames} from './utils';
+import {buildBucketOnNames, buildSingleMeasureNames, buildTimeGroupingNames, joinColumnValues} from './utils';
 
 const formatter = new Intl.NumberFormat(undefined, {useGrouping: true});
 const build = (params: ChartParams) => {
@@ -9,7 +9,7 @@ const build = (params: ChartParams) => {
 
 	const columnIndexMap = buildColumnIndexMap(inspection, arithmetic);
 
-	if (isColumnIndexAssigned(columnIndexMap.bucketOn) && isColumnIndexAssigned(columnIndexMap.timeGrouping)) {
+	if (columnIndexMap.bucketOn.length !== 0 && isColumnIndexAssigned(columnIndexMap.timeGrouping)) {
 		// 2 measures
 		const timeGroupingNames = buildTimeGroupingNames(data, columnIndexMap);
 		const bucketOnNames = buildBucketOnNames(data, columnIndexMap);
@@ -26,7 +26,7 @@ const build = (params: ChartParams) => {
 						children: bucketOnNames.data.map(bucketOn => {
 							const row = data.find((row: RowOfAny) => {
 								// eslint-disable-next-line
-								return row[timeGroupingNames.columnIndex] == timeGroup && row[bucketOnNames.columnIndex] == bucketOn;
+								return joinColumnValues(row, timeGroupingNames.columnIndexes) == timeGroup && joinColumnValues(row, bucketOnNames.columnIndexes) == bucketOn;
 							});
 							const value = row == null ? null : row[columnIndexMap.value];
 							return {name: bucketOn, children: [{name: '', value}]};
@@ -90,7 +90,7 @@ const build = (params: ChartParams) => {
 				},
 				data: singleMeasureNames.data.map(name => {
 					// eslint-disable-next-line
-					const row = data.find((row: RowOfAny) => row[singleMeasureNames.columnIndex] == name);
+					const row = data.find((row: RowOfAny) => joinColumnValues(row, singleMeasureNames.columnIndexes) == name);
 					const value = row == null ? null : row[columnIndexMap.value];
 					return {name, value};
 				})

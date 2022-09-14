@@ -4,7 +4,7 @@ from typing import List, Optional, Union
 from pydantic import BaseModel
 
 from watchmen_model.common import BucketId, construct_parameter_joint, DataModel, FactorId, IndicatorId, \
-	OptimisticLock, ParameterJoint, SubjectDatasetColumnId, SubjectId, TenantBasedTuple, TopicId, UserGroupId
+	OptimisticLock, ParameterJoint, SubjectDatasetColumnId, SubjectId, TenantBasedTuple, TopicId
 from watchmen_utilities import ArrayHelper
 
 
@@ -83,9 +83,11 @@ class Indicator(TenantBasedTuple, OptimisticLock, BaseModel):
 	name: str = None
 	# when indicator is on topic
 	topicOrSubjectId: Union[TopicId, SubjectId] = None
-	# is a count indicator when factor is not appointed
+	# is a count indicator when factor is not declared
 	# it is columnId when base one a subject
 	factorId: Union[FactorId, SubjectDatasetColumnId] = None
+	# only count can be applied when factor id is not declared
+	arithmetic: IndicatorAggregateArithmetic = None
 	baseOn: IndicatorBaseOn = None
 	category1: str = None
 	category2: str = None

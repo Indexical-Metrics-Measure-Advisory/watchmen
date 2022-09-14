@@ -1,4 +1,4 @@
-import {IndicatorAggregateArithmetic, MeasureMethod} from '@/services/data/tuples/indicator-types';
+import {MeasureMethod} from '@/services/data/tuples/indicator-types';
 import {
 	detectMeasures,
 	findTopicAndFactor,
@@ -15,7 +15,6 @@ import {IndicatorsData} from '../../indicators-event-bus-types';
 import {IndicatorDeclarationStep} from '../../types';
 import {Construct, useConstructed} from '../use-constructed';
 import {useStep} from '../use-step';
-import {AggregateItems} from './aggregate-items';
 import {MeasureItems} from './measure-items';
 import {AvailableMeasureColumn, AvailableMeasureFactor} from './types';
 import {MeasureItemsContainer} from './widgets';
@@ -97,11 +96,6 @@ export const MeasureMethods = () => {
 		measures: filterMeasures(isCategoryMeasure)
 	};
 
-	const aggregates = data?.indicator?.factorId == null
-		? [IndicatorAggregateArithmetic.COUNT]
-		: [IndicatorAggregateArithmetic.COUNT, IndicatorAggregateArithmetic.SUM, IndicatorAggregateArithmetic.AVG,
-			IndicatorAggregateArithmetic.MAX, IndicatorAggregateArithmetic.MIN];
-
 	return <Step index={IndicatorDeclarationStep.MEASURE_METHODS} visible={visible} ref={ref}>
 		<StepTitle visible={visible}>
 			<EmphaticSinkingLabel>{Lang.INDICATOR.INDICATOR.MEASURE_METHODS_TITLE}</EmphaticSinkingLabel>
@@ -111,7 +105,6 @@ export const MeasureMethods = () => {
 				<MeasureItems
 					measures={[geoMeasures, timePeriodMeasures, individualMeasures, organizationMeasures, categoryMeasures]}
 					enums={data?.enums}/>
-				<AggregateItems label={Lang.INDICATOR.INDICATOR.AGGREGATE} aggregates={aggregates}/>
 			</MeasureItemsContainer>
 		</StepBody>
 	</Step>;

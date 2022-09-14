@@ -4,7 +4,7 @@ from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_model.common import InspectionId, TenantId
 from watchmen_model.indicator import Inspection
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityRow, EntityShaper
-from watchmen_utilities import ArrayHelper, is_not_blank
+from watchmen_utilities import ArrayHelper
 
 
 class InspectionShaper(EntityShaper):
@@ -14,9 +14,7 @@ class InspectionShaper(EntityShaper):
 			'name': inspection.name,
 			'indicator_id': inspection.indicatorId,
 			'aggregate_arithmetics': inspection.aggregateArithmetics,
-			'measure_on': inspection.measureOn,
-			'measure_on_factor_id': inspection.measureOnFactorId,
-			'measure_on_bucket_id': inspection.measureOnBucketId,
+			'measures': ArrayHelper(inspection.measures).map(lambda x: x.to_dict()).to_list(),
 			'time_range_measure': inspection.timeRangeMeasure,
 			'time_range_factor_id': inspection.timeRangeFactorId,
 			'time_ranges': ArrayHelper(inspection.timeRanges).map(lambda x: x.to_dict()).to_list(),
@@ -32,9 +30,7 @@ class InspectionShaper(EntityShaper):
 			name=row.get('name'),
 			indicatorId=row.get('indicator_id'),
 			aggregateArithmetics=row.get('aggregate_arithmetics'),
-			measureOn=row.get('measure_on'),
-			measureOnFactorId=row.get('measure_on_factor_id'),
-			measureOnBucketId=row.get('measure_on_bucket_id'),
+			measures=row.get('measures'),
 			timeRangeMeasure=row.get('time_range_measure'),
 			timeRangeFactorId=row.get('time_range_factor_id'),
 			timeRanges=row.get('time_ranges'),

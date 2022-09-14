@@ -14,10 +14,10 @@ import {isReadyToCalculation} from '../utils';
 import {AchievementIndicatorData} from './types';
 
 const replaceYear = (r: string) => (s: string): string => {
-	return s.replace(/year/gi, r);
+	return s.replace(/{&year}/gi, r);
 };
 const replaceMonth = (r: string) => (s: string): string => {
-	return s.replace(/month/gi, r);
+	return s.replace(/{&month}/gi, r);
 };
 const replaceYM = (s: string, funcs: Array<(s: string) => string>) => {
 	return funcs.reduce((s, func) => func(s), s);
@@ -102,10 +102,7 @@ const replace = (options: {
 
 				let newValue = criteria.value || '';
 				if (measures.includes(MeasureMethod.YEAR) && measures.includes(MeasureMethod.MONTH)) {
-					newValue = replaceYM(newValue, [
-						replaceYear(year),
-						replaceMonth(month)
-					]);
+					newValue = replaceYM(newValue, [replaceYear(year), replaceMonth(month)]);
 				} else if (measures.includes(MeasureMethod.YEAR)) {
 					newValue = replaceYear(year)(newValue);
 				} else if (measures.includes(MeasureMethod.MONTH)) {
