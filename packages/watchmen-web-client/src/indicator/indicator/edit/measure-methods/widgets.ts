@@ -39,18 +39,3 @@ export const MeasureFactors = styled.div.attrs({'data-widget': 'measure-factors'
 	position  : relative;
 	flex-wrap : wrap;
 `;
-export const AggregateItemsTitle = styled(MeasureItemsTitle).attrs({'data-widget': 'aggregate-items-title'})`
-	grid-column : 1;
-`;
-export const AggregateItemsBlock = styled.div.attrs({'data-widget': 'aggregate-items-block'})`
-	display     : flex;
-	position    : relative;
-	grid-column : 2 / span 3;
-	flex-wrap   : wrap;
-	margin-left : calc(var(--margin) / -2);
-`;
-export const AggregateItem = styled(ItemBlock).attrs({'data-widget': 'aggregate-item'})`
-	&:after {
-		background-color : var(--warn-color);
-	}
-`;

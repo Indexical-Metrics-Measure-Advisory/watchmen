@@ -1,4 +1,4 @@
-import {Indicator, IndicatorBaseOn} from '../../tuples/indicator-types';
+import {Indicator, IndicatorAggregateArithmetic, IndicatorBaseOn} from '../../tuples/indicator-types';
 import {getCurrentTime} from '../../utils';
 import {BUCKET_AMOUNT_ID} from './mock-data-buckets';
 import {MonthlyOrderPremium, Order, WeeklyOrderPremium} from './mock-data-topics';
@@ -13,6 +13,7 @@ const OrderPremiumIndicator: Indicator = {
 	name: 'Order Premium',
 	topicOrSubjectId: Order.topicId,
 	factorId: Order.factors.find(factor => factor.name === 'premium')?.factorId,
+	arithmetic: IndicatorAggregateArithmetic.SUM,
 	baseOn: IndicatorBaseOn.TOPIC,
 	valueBuckets: [BUCKET_AMOUNT_ID],
 	category1: 'premium',
@@ -25,6 +26,7 @@ export const MonthlyOrderPremiumIndicator: Indicator = {
 	name: 'Monthly Order Premium',
 	topicOrSubjectId: MonthlyOrderPremium.topicId,
 	factorId: MonthlyOrderPremium.factors.find(factor => factor.name === 'premium')?.factorId,
+	arithmetic: IndicatorAggregateArithmetic.SUM,
 	baseOn: IndicatorBaseOn.TOPIC,
 	category1: 'premium',
 	category2: 'short term',
@@ -38,6 +40,7 @@ const WeeklyOrderPremiumIndicator: Indicator = {
 	name: 'Weekly Order Premium',
 	topicOrSubjectId: WeeklyOrderPremium.topicId,
 	factorId: WeeklyOrderPremium.factors.find(factor => factor.name === 'premium')?.factorId,
+	arithmetic: IndicatorAggregateArithmetic.SUM,
 	baseOn: IndicatorBaseOn.TOPIC,
 	category1: 'premium',
 	category2: 'short term',
@@ -51,6 +54,7 @@ const MonthlyOrderPremiumIndicatorOnSubject: Indicator = {
 	name: 'Monthly Order Premium On Subject',
 	topicOrSubjectId: '1',
 	factorId: '6', // premium
+	arithmetic: IndicatorAggregateArithmetic.SUM,
 	baseOn: IndicatorBaseOn.SUBJECT,
 	valueBuckets: [BUCKET_AMOUNT_ID],
 	category1: 'premium',

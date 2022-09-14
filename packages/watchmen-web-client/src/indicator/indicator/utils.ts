@@ -1,4 +1,4 @@
-import {Indicator, IndicatorBaseOn} from '@/services/data/tuples/indicator-types';
+import {Indicator, IndicatorAggregateArithmetic, IndicatorBaseOn} from '@/services/data/tuples/indicator-types';
 import {generateUuid} from '@/services/data/tuples/utils';
 import {getCurrentTime} from '@/services/data/utils';
 
@@ -7,6 +7,7 @@ export const createIndicator = (): Indicator => {
 		indicatorId: generateUuid(),
 		name: '',
 		topicOrSubjectId: '',
+		arithmetic: IndicatorAggregateArithmetic.SUM,
 		baseOn: IndicatorBaseOn.TOPIC,
 		version: 1,
 		createdAt: getCurrentTime(),
