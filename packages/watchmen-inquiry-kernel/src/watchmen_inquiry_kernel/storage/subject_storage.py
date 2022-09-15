@@ -15,7 +15,7 @@ from watchmen_inquiry_kernel.schema import ReportSchema, SubjectSchema
 from watchmen_meta.admin import SpaceService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.console import ConnectedSpaceService
-from watchmen_model.admin import Factor
+from watchmen_model.admin import Factor, TopicKind
 from watchmen_model.admin.space import Space, SpaceFilter
 from watchmen_model.chart import ChartTruncationType
 from watchmen_model.common import ComputedParameter, ConstantParameter, DataModel, DataPage, FactorId, Pageable, \
@@ -171,6 +171,7 @@ class SubjectStorage:
 		factor = self.find_factor(factor_id, topic_schema)
 		data_entity_helper = ask_topic_data_entity_helper(topic_schema)
 		return ColumnNameLiteral(
+			synonym=(topic_schema.get_topic().kind == TopicKind.SYNONYM),
 			entityName=topic_schema.get_topic().topicId,
 			columnName=data_entity_helper.get_column_name(factor.name)
 		)
@@ -280,7 +281,10 @@ class SubjectStorage:
 			# no joins declared, use first one (the only one) from available schemas
 			joins = [FreeJoin(
 				# column name is ignored, because there is no join
-				primary=ColumnNameLiteral(entityName=available_schemas[0].get_topic().topicId)
+				primary=ColumnNameLiteral(
+					synonym=(available_schemas[0].get_topic().kind == TopicKind.SYNONYM),
+					entityName=available_schemas[0].get_topic().topicId
+				)
 			)]
 		else:
 			joins = ArrayHelper(dataset.joins).map(lambda x: self.build_join(x, available_schemas)).to_list()
