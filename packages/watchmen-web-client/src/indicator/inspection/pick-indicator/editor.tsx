@@ -73,8 +73,8 @@ export const PickIndicatorEditor = () => {
 			const {indicator: picked} = indicator;
 			if (picked.factorId == null) {
 				inspection!.aggregateArithmetics = [IndicatorAggregateArithmetic.COUNT];
-			} else if (picked.arithmetic == null) {
-				inspection!.aggregateArithmetics = [picked.arithmetic];
+			} else if (picked.aggregateArithmetic == null) {
+				inspection!.aggregateArithmetics = [picked.aggregateArithmetic];
 			} else {
 				inspection!.aggregateArithmetics = [IndicatorAggregateArithmetic.SUM];
 			}
