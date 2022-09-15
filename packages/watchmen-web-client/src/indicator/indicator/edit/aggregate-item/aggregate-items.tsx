@@ -18,15 +18,15 @@ export const AggregateItems = (props: { indicator: Indicator, aggregates: Array<
 	}
 
 	const onArithmeticClicked = (aggregate: IndicatorAggregateArithmetic) => () => {
-		if (aggregate === indicator.arithmetic) {
+		if (aggregate === indicator.aggregateArithmetic) {
 			return;
 		}
-		indicator.arithmetic = aggregate;
+		indicator.aggregateArithmetic = aggregate;
 		fireIndicator(IndicatorsEventTypes.SAVE_INDICATOR, indicator, noop);
 		forceUpdate();
 	};
 
-	const arithmetic = indicator.arithmetic ?? (indicator.factorId == null ? IndicatorAggregateArithmetic.COUNT : IndicatorAggregateArithmetic.SUM);
+	const arithmetic = indicator.aggregateArithmetic ?? (indicator.factorId == null ? IndicatorAggregateArithmetic.COUNT : IndicatorAggregateArithmetic.SUM);
 
 	return <AggregateItemsBlock>
 		{aggregates.map(aggregate => {

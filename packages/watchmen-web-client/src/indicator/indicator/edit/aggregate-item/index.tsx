@@ -32,9 +32,11 @@ export const AggregateItem = () => {
 			<EmphaticSinkingLabel>{Lang.INDICATOR.INDICATOR.AGGREGATE_ITEM_TITLE}</EmphaticSinkingLabel>
 		</StepTitle>
 		<StepBody visible={visible}>
-			<AggregateItemContainer>
-				<AggregateItems indicator={data?.indicator!} aggregates={aggregates}/>
-			</AggregateItemContainer>
+			{data?.indicator != null
+				? <AggregateItemContainer>
+					<AggregateItems indicator={data?.indicator} aggregates={aggregates}/>
+				</AggregateItemContainer>
+				: null}
 		</StepBody>
 	</Step>;
 };

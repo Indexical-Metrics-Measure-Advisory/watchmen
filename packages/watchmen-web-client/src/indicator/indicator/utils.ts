@@ -7,7 +7,7 @@ export const createIndicator = (): Indicator => {
 		indicatorId: generateUuid(),
 		name: '',
 		topicOrSubjectId: '',
-		arithmetic: IndicatorAggregateArithmetic.SUM,
+		aggregateArithmetic: IndicatorAggregateArithmetic.SUM,
 		baseOn: IndicatorBaseOn.TOPIC,
 		version: 1,
 		createdAt: getCurrentTime(),
