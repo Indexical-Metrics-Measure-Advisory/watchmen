@@ -5,6 +5,7 @@ import {AlertLabel} from '@/widgets/alert/widgets';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
+import {useThrottler} from '@/widgets/throttler';
 import React, {Fragment, useEffect, useState} from 'react';
 import {useIndicatorsEventBus} from './indicators-event-bus';
 import {IndicatorsData, IndicatorsEventTypes} from './indicators-event-bus-types';
@@ -97,25 +98,28 @@ export const IndicatorState = () => {
 			off(IndicatorsEventTypes.PICK_TOPIC_OR_SUBJECT, onPickTopic);
 		};
 	}, [on, off]);
+	const saveQueue = useThrottler();
 	useEffect(() => {
 		const onSaveIndicator = (indicator: Indicator, onSaved: (indicator: Indicator, saved: boolean) => void) => {
-			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
-				async () => await saveIndicator(indicator),
-				() => {
-					const {category1, category2, category3} = indicator;
-					putIfPresent(categories, [], category1);
-					putIfPresent(categories, [category1], category2);
-					putIfPresent(categories, [category1, category2], category3);
-					fire(IndicatorsEventTypes.INDICATOR_SAVED, indicator);
-					onSaved(indicator, true);
-				},
-				() => onSaved(indicator, false));
+			saveQueue.replace(() => {
+				fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
+					async () => await saveIndicator(indicator),
+					() => {
+						const {category1, category2, category3} = indicator;
+						putIfPresent(categories, [], category1);
+						putIfPresent(categories, [category1], category2);
+						putIfPresent(categories, [category1, category2], category3);
+						fire(IndicatorsEventTypes.INDICATOR_SAVED, indicator);
+						onSaved(indicator, true);
+					},
+					() => onSaved(indicator, false));
+			}, 500);
 		};
 		on(IndicatorsEventTypes.SAVE_INDICATOR, onSaveIndicator);
 		return () => {
 			off(IndicatorsEventTypes.SAVE_INDICATOR, onSaveIndicator);
 		};
-	}, [on, off, fire, fireGlobal, categories]);
+	}, [on, off, fire, fireGlobal, saveQueue, categories]);
 	useEffect(() => {
 		const onAskIndicatorCategory = (indicator: Indicator, prefix: QueryIndicatorCategoryParams, onData: (candidates: Array<string>) => void) => {
 			const candidates = findInCache(categories, prefix);

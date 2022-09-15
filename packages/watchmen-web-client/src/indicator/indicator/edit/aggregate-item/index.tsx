@@ -33,7 +33,7 @@ export const AggregateItem = () => {
 		</StepTitle>
 		<StepBody visible={visible}>
 			<AggregateItemContainer>
-				<AggregateItems aggregates={aggregates}/>
+				<AggregateItems indicator={data?.indicator!} aggregates={aggregates}/>
 			</AggregateItemContainer>
 		</StepBody>
 	</Step>;

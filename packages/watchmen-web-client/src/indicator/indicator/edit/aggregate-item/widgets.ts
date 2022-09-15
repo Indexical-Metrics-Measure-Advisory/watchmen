@@ -18,4 +18,10 @@ export const AggregateItem = styled(ItemBlock).attrs({'data-widget': 'aggregate-
 	&:after {
 		background-color : var(--warn-color);
 	}
+	> svg {
+		margin-left  : calc(var(--margin) / 4);
+		margin-right : calc(var(--margin) / -8);
+		height       : calc(var(--height) * 0.5);
+		width        : calc(var(--height) * 0.5);
+	}
 `;
