@@ -36,7 +36,7 @@ class TrinoSchema:
 		self.schema = schema
 		self.topic = topic
 		self.factor_map = ArrayHelper(topic.factors).to_map(lambda x: x.factorId, lambda x: x)
-		self.entity_name = f'{catalog}.{schema}.{as_table_name(topic.name)}'
+		self.entity_name = f'{catalog}.{schema}.{as_table_name(topic)}'
 		self.alias = self.entity_name
 
 	def get_entity_name(self) -> str:
