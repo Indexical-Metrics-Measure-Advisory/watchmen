@@ -51,14 +51,19 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		raise UnexpectedStorageException(
 			'Method[schema_column_data_type_to_factor_type] does not support by rds storage.')
 
+	# noinspection PyMethodMayBeStatic
+	def get_value_from_row_data(self, row: Dict[str, Any], key: str) -> Any:
+		return row.get(key) or row.get(key.lower())
+
 	def schema_column_to_factor(self, column: Dict[str, Any], index: int) -> Factor:
-		factor_type, factor_precision = self.schema_column_data_type_to_factor_type(column.get('COLUMN_TYPE'))
+		factor_type, factor_precision = \
+			self.schema_column_data_type_to_factor_type(self.get_value_from_row_data(column, 'COLUMN_TYPE'))
 		return Factor(
 			factorId=str(index),
 			type=factor_type,
-			name=column.get('COLUMN_NAME'),
-			label=column.get('COLUMN_NAME'),
-			description=column.get('COLUMN_COMMENT'),
+			name=self.get_value_from_row_data(column, 'COLUMN_NAME'),
+			label=self.get_value_from_row_data(column, 'COLUMN_NAME'),
+			description=self.get_value_from_row_data(column, 'COLUMN_COMMENT'),
 			precision=factor_precision
 		)
 
@@ -83,12 +88,12 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		previous_index_group = ''
 		ignore_indexes: Dict[str, bool] = {}
 		for an_index in indexes:
-			index_name = an_index.get('INDEX_NAME')
+			index_name = self.get_value_from_row_data(an_index, 'INDEX_NAME')
 			if index_name in ignore_indexes:
 				# index ignored
 				continue
 
-			column_name = an_index.get('COLUMN_NAME')
+			column_name = self.get_value_from_row_data(an_index, 'COLUMN_NAME')
 			factor: Optional[Factor] = factors_helper.find(lambda x: x.name == column_name)
 			if factor is None:
 				continue
@@ -98,7 +103,7 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 				ignore_indexes[index_name] = True
 				continue
 
-			is_unique = str(an_index.get('NON_UNIQUE')) == '0'
+			is_unique = str(self.get_value_from_row_data(an_index, 'NON_UNIQUE')) == '0'
 			if index_name != previous_index_name:
 				previous_index_name = index_name
 				if is_unique:
