@@ -87,7 +87,7 @@ class Indicator(TenantBasedTuple, OptimisticLock, BaseModel):
 	# it is columnId when base one a subject
 	factorId: Union[FactorId, SubjectDatasetColumnId] = None
 	# only count can be applied when factor id is not declared
-	arithmetic: IndicatorAggregateArithmetic = None
+	aggregateArithmetic: IndicatorAggregateArithmetic = None
 	baseOn: IndicatorBaseOn = None
 	category1: str = None
 	category2: str = None
