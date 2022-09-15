@@ -44,7 +44,7 @@ export const createAchievementIndicator = (achievement: Achievement, indicator: 
 		indicatorId: indicator.indicatorId,
 		name: '',
 		criteria: [],
-		aggregateArithmetic: IndicatorAggregateArithmetic.SUM
+		aggregateArithmetic: indicator.arithmetic ?? (indicator.factorId == null ? IndicatorAggregateArithmetic.COUNT : IndicatorAggregateArithmetic.SUM)
 	};
 	if (achievement.indicators == null) {
 		achievement.indicators = [];

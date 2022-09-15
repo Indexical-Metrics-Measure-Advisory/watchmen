@@ -1,6 +1,4 @@
-import {ICON_COLLAPSE_PANEL, ICON_EXPAND_PANEL} from '@/widgets/basic/constants';
 import {Lang} from '@/widgets/langs';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {useEffect, useState} from 'react';
 import {v4} from 'uuid';
 import {AggregateArithmeticLabel} from '../../utils';
@@ -10,7 +8,7 @@ import {InspectionChartsEventBusProvider, useInspectionChartsEventBus} from './i
 import {InspectionChartsEventTypes} from './inspection-charts-event-bus-types';
 import {ChartParams} from './types';
 import {UsageSelectionButtons} from './usage-selection-buttons';
-import {ChartGroup, ChartGroupButton, ChartGroupButtons, ChartGroupTitle} from './widgets/widgets';
+import {ChartGroup, ChartGroupButtons, ChartGroupTitle} from './widgets/widgets';
 
 // use first aggregate arithmetic to render the thumbnails
 // supporting first 3 types: bar/line/pie
@@ -24,19 +22,19 @@ import {ChartGroup, ChartGroupButton, ChartGroupButtons, ChartGroupTitle} from '
 // 2.2 time group: simple pie
 // 2.3 bucket + time group: sunburst, first is time group, secondary is bucket, and value
 
-const ExpansionButton = () => {
-	const {fire} = useInspectionChartsEventBus();
-	const [expanded, setExpanded] = useState(true);
-
-	const onToggleExpandClicked = () => {
-		fire(InspectionChartsEventTypes.TOGGLE_PANEL, !expanded);
-		setExpanded(!expanded);
-	};
-
-	return <ChartGroupButton onClick={onToggleExpandClicked}>
-		<FontAwesomeIcon icon={expanded ? ICON_COLLAPSE_PANEL : ICON_EXPAND_PANEL}/>
-	</ChartGroupButton>;
-};
+// const ExpansionButton = () => {
+// 	const {fire} = useInspectionChartsEventBus();
+// 	const [expanded, setExpanded] = useState(true);
+//
+// 	const onToggleExpandClicked = () => {
+// 		fire(InspectionChartsEventTypes.TOGGLE_PANEL, !expanded);
+// 		setExpanded(!expanded);
+// 	};
+//
+// 	return <ChartGroupButton onClick={onToggleExpandClicked}>
+// 		<FontAwesomeIcon icon={expanded ? ICON_COLLAPSE_PANEL : ICON_EXPAND_PANEL}/>
+// 	</ChartGroupButton>;
+// };
 
 const AllCharts = (props: ChartParams) => {
 	const {inspection, arithmetic} = props;
@@ -75,7 +73,7 @@ export const ArithmeticChart = (props: ChartParams) => {
 				<span>{Lang.INDICATOR.INSPECTION.VISUALIZATION_LABEL} - {AggregateArithmeticLabel[arithmetic]}</span>
 				<ChartGroupButtons>
 					<UsageSelectionButtons {...props}/>
-					<ExpansionButton/>
+					{/*<ExpansionButton/>*/}
 				</ChartGroupButtons>
 			</ChartGroupTitle>
 			<AllCharts {...props}/>

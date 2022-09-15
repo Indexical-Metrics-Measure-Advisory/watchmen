@@ -66,7 +66,7 @@ export const IndicatorCalculationFormulaContainer = styled.div.attrs<{ expanded:
 	left                  : 0;
 	width                 : 100%;
 	min-width             : 600px;
-	padding               : calc(var(--margin) / 4) var(--margin);
+	padding               : calc(var(--margin) / 2) var(--margin) calc(var(--margin) / 4);
 	border                : var(--border);
 	border-width          : calc(var(--border-width) * 2);
 	border-radius         : 0 0 calc(var(--border-radius) * 2) calc(var(--border-radius) * 2);
@@ -99,4 +99,8 @@ export const IndicatorCalculationFormulaLabel = styled.span.attrs({'data-widget'
 	position     : relative;
 	align-items  : center;
 	font-variant : petite-caps;
+	height       : var(--height);
+	&:first-child {
+		align-self : start;
+	}
 `;
