@@ -1,10 +1,7 @@
 import {Achievement, AchievementIndicator} from '@/services/data/tuples/achievement-types';
-import {IndicatorAggregateArithmetic} from '@/services/data/tuples/indicator-types';
 import {noop} from '@/services/utils';
 import {CheckBox} from '@/widgets/basic/checkbox';
-import {Dropdown} from '@/widgets/basic/dropdown';
 import {InputLines} from '@/widgets/basic/input-lines';
-import {DropdownOption} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
 import {useThrottler} from '@/widgets/throttler';
@@ -27,16 +24,16 @@ export const IndicatorCalculationFormula = (props: {
 	const saveQueue = useThrottler();
 	const forceUpdate = useForceUpdate();
 
-	const onArithmeticChanged = (option: DropdownOption) => {
-		const oldValue = achievementIndicator.aggregateArithmetic;
-		const newValue = option.value as IndicatorAggregateArithmetic;
-		if (oldValue !== newValue) {
-			achievementIndicator.aggregateArithmetic = newValue;
-			fireEdit(AchievementEditEventTypes.INDICATOR_AGGREGATION_CHANGED, achievement, achievementIndicator);
-			fire(AchievementEventTypes.SAVE_ACHIEVEMENT, achievement, noop);
-			forceUpdate();
-		}
-	};
+	// const onArithmeticChanged = (option: DropdownOption) => {
+	// 	const oldValue = achievementIndicator.aggregateArithmetic;
+	// 	const newValue = option.value as IndicatorAggregateArithmetic;
+	// 	if (oldValue !== newValue) {
+	// 		achievementIndicator.aggregateArithmetic = newValue;
+	// 		fireEdit(AchievementEditEventTypes.INDICATOR_AGGREGATION_CHANGED, achievement, achievementIndicator);
+	// 		fire(AchievementEventTypes.SAVE_ACHIEVEMENT, achievement, noop);
+	// 		forceUpdate();
+	// 	}
+	// };
 	const onFormulaChanged = (event: ChangeEvent<HTMLTextAreaElement>) => {
 		achievementIndicator.formula = event.target.value;
 		saveQueue.replace(() => {
@@ -52,11 +49,13 @@ export const IndicatorCalculationFormula = (props: {
 		forceUpdate();
 	};
 
-	const aggregateArithmeticsOptions = [
-		{value: IndicatorAggregateArithmetic.SUM, label: Lang.INDICATOR.INSPECTION.VALUE_TRANSFORM_SUM},
-		{value: IndicatorAggregateArithmetic.AVG, label: Lang.INDICATOR.INSPECTION.VALUE_TRANSFORM_AVG},
-		{value: IndicatorAggregateArithmetic.COUNT, label: Lang.INDICATOR.INSPECTION.VALUE_TRANSFORM_COUNT}
-	];
+	// const aggregateArithmeticsOptions = [
+	// 	{value: IndicatorAggregateArithmetic.SUM, label: Lang.INDICATOR.INSPECTION.VALUE_TRANSFORM_SUM},
+	// 	{value: IndicatorAggregateArithmetic.AVG, label: Lang.INDICATOR.INSPECTION.VALUE_TRANSFORM_AVG},
+	// 	{value: IndicatorAggregateArithmetic.COUNT, label: Lang.INDICATOR.INSPECTION.VALUE_TRANSFORM_COUNT},
+	// 	{value: IndicatorAggregateArithmetic.MIN, label: Lang.INDICATOR.INSPECTION.VALUE_TRANSFORM_MIN},
+	// 	{value: IndicatorAggregateArithmetic.MAX, label: Lang.INDICATOR.INSPECTION.VALUE_TRANSFORM_MAX}
+	// ];
 	const placeholder = `c: value of current period,
 p: value of previous period,
 r: value of increment.
@@ -64,12 +63,12 @@ eg 1: c - p;
 eg 2: interpolation(r, -0.2, 5, 0.2, 20)`;
 
 	return <IndicatorCalculationFormulaContainer expanded={expanded}>
-		<IndicatorCalculationFormulaLabel>
-			{Lang.INDICATOR.ACHIEVEMENT.INDICATOR_AGGREGATE_ARITHMETIC_LABEL}
-		</IndicatorCalculationFormulaLabel>
-		<Dropdown value={achievementIndicator.aggregateArithmetic ?? IndicatorAggregateArithmetic.SUM}
-		          options={aggregateArithmeticsOptions}
-		          onChange={onArithmeticChanged}/>
+		{/*<IndicatorCalculationFormulaLabel>*/}
+		{/*	{Lang.INDICATOR.ACHIEVEMENT.INDICATOR_AGGREGATE_ARITHMETIC_LABEL}*/}
+		{/*</IndicatorCalculationFormulaLabel>*/}
+		{/*<Dropdown value={achievementIndicator.aggregateArithmetic ?? IndicatorAggregateArithmetic.SUM}*/}
+		{/*          options={aggregateArithmeticsOptions}*/}
+		{/*          onChange={onArithmeticChanged}/>*/}
 		<IndicatorCalculationFormulaLabel>
 			{Lang.INDICATOR.ACHIEVEMENT.INDICATOR_FORMULA_LABEL}
 		</IndicatorCalculationFormulaLabel>

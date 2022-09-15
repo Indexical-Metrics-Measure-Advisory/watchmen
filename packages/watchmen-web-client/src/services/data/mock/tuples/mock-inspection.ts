@@ -27,7 +27,7 @@ const OrderPremiumInspection: Inspection = {
 	inspectionId: INSPECTION_ORDER_PREMIUM_ID,
 	name: 'Order Premium',
 	indicatorId: INDICATOR_MONTHLY_ORDER_PREMIUM_ON_SUBJECT_ID,
-	aggregateArithmetics: [IndicatorAggregateArithmetic.SUM, IndicatorAggregateArithmetic.AVG],
+	aggregateArithmetics: [IndicatorAggregateArithmetic.SUM],
 	measures: [{type: InspectMeasureOnType.VALUE, bucketId: BUCKET_AMOUNT_ID}],
 	criteria: [],
 	version: 1,
