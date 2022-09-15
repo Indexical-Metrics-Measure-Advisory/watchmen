@@ -115,6 +115,7 @@ class ComputedLiteral(DataModel):
 
 
 class ColumnNameLiteral(DataModel):
+	synonym: bool = False
 	entityName: Optional[EntityName]
 	columnName: EntityColumnName
 

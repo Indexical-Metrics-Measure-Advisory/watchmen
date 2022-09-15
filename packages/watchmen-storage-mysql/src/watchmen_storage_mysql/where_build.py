@@ -57,7 +57,7 @@ def build_literal(tables: List[Table], a_literal: Literal, build_plain_value: Ca
 				# noinspection PyPropertyAccess
 				return tables[0].c[a_literal.columnName]
 		else:
-			table_name = as_table_name(a_literal.entityName)
+			table_name = as_table_name(a_literal)
 			table = ArrayHelper(tables).find(lambda x: x.name == table_name)
 			if table is None:
 				raise UnexpectedStorageException(f'Entity[{a_literal.entityName}] not found.')

@@ -538,13 +538,13 @@ class TopicDataStorageMongoDB(StorageMongoDB, TopicDataStorageSPI):
 	def append_topic_to_trino(self, topic: Topic) -> None:
 		self.connect()
 		self.connection.insert_one(self.find_document('_schema'), {
-			'table': as_table_name(topic.name),
+			'table': as_table_name(topic),
 			'fields': ArrayHelper(build_to_trino_fields(topic)).map(lambda x: x.to_dict()).to_list()
 		})
 
 	def drop_topic_from_trino(self, topic: Topic) -> None:
 		self.connect()
-		self.connection.delete_many(self.find_document('_schema'), {'table': as_table_name(topic.name)})
+		self.connection.delete_many(self.find_document('_schema'), {'table': as_table_name(topic)})
 
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
 		"""

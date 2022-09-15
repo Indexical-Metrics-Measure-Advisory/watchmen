@@ -13,7 +13,7 @@ from watchmen_data_kernel.meta import TopicService
 from watchmen_data_kernel.topic_schema import cast_value_for_factor, TopicSchema
 from watchmen_data_kernel.utils import MightAVariable, parse_function_in_variable, parse_variable
 from watchmen_model.admin import AccumulateMode, AggregateArithmetic, Factor, FactorType, FromTopic, InsertRowAction, \
-	is_raw_topic, MappingFactor, Topic, ToTopic
+	is_raw_topic, MappingFactor, Topic, TopicKind, ToTopic
 from watchmen_model.admin.pipeline_action_write import InsertOrMergeRowAction, WriteTopicAction
 from watchmen_model.common import ComputedParameter, ConstantParameter, FactorId, Parameter, ParameterComputeType, \
 	ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, \
@@ -114,6 +114,7 @@ def create_ask_factor_statement(
 	data_entity_helper = ask_topic_data_entity_helper(schema)
 
 	return lambda variables, principal_service: ColumnNameLiteral(
+		synonym=(schema.get_topic().kind == TopicKind.SYNONYM),
 		entityName=schema.get_topic().name,
 		columnName=data_entity_helper.get_column_name(factor.name)
 	)
