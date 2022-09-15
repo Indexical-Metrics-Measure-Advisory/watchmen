@@ -1,2 +1,2 @@
 ALTER TABLE indicators
-    ADD arithmetic VARCHAR2(10) NULL;
+    ADD aggregate_arithmetic VARCHAR2(10) NULL;

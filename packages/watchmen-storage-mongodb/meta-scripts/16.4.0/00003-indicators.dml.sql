@@ -2,7 +2,7 @@ db.indicators.updateMany(
     {factorId: {$ne: null}},
     {
         $set: {
-            arithmetic: 'sum'
+            aggregate_arithmetic: 'sum'
         }
     }
 );
@@ -10,7 +10,7 @@ db.indicators.updateMany(
     {factorId: {$eq: null}},
     {
         $set: {
-            arithmetic: 'count'
+            aggregate_arithmetic: 'count'
         }
     }
 );

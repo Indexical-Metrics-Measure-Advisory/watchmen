@@ -255,7 +255,7 @@ table_indicators = Table(
 	'indicators', meta_data,
 	create_pk('indicator_id'), create_str('name', 50),
 	create_tuple_id_column('topic_or_subject_id'), create_tuple_id_column('factor_id'),
-	create_str('arithmetic', 10, False),
+	create_str('aggregate_arithmetic', 10, False),
 	create_str('base_on', 10),
 	create_str('category_1', 100), create_str('category_2', 100), create_str('category_3', 100),
 	create_json('value_buckets'), create_json('relevants'),
