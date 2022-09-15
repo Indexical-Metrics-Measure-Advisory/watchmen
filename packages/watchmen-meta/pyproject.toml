@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-meta"
-version = "16.1.0"
+version = "16.3.11"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -10,13 +10,13 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
-watchmen-auth = { path = "../watchmen-auth", develop = true }
-watchmen-storage = { path = "../watchmen-storage", develop = true }
-watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
-watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
-watchmen-storage-mongodb = { path = "../watchmen-storage-mongodb", develop = true, optional = true }
-watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, optional = true }
-watchmen-storage-postgresql = { path = "../watchmen-storage-postgresql", develop = true, optional = true }
+watchmen-auth = "16.3.11"
+watchmen-storage = "16.3.11"
+watchmen-storage-mysql = { version = "16.3.11", optional = true }
+watchmen-storage-oracle = { version = "16.3.11", optional = true }
+watchmen-storage-mongodb = { version = "16.3.11", optional = true }
+watchmen-storage-mssql = { version = "16.3.11", optional = true }
+watchmen-storage-postgresql = { version = "16.3.11", optional = true }
 
 [tool.poetry.dev-dependencies]
 
