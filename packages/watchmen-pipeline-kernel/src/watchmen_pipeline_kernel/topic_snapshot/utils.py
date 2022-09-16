@@ -169,14 +169,14 @@ def create_snapshot_pipeline(task_topic: Topic, target_topic: Topic) -> Pipeline
 
 
 def rebuild_snapshot_pipeline(pipeline: Pipeline, task_topic: Topic, target_topic: Topic) -> Pipeline:
-	pipeline.topicId = task_topic.topicId,
-	pipeline.name = 'Snapshot catcher, never change me manually',
-	pipeline.type = PipelineTriggerType.INSERT_OR_MERGE,
-	pipeline.conditional = True,
-	pipeline.on = build_pipeline_prerequisite(target_topic),
-	pipeline.stages = build_pipeline_stages(target_topic),
-	pipeline.enabled = True,
-	pipeline.validated = True,
+	pipeline.topicId = task_topic.topicId
+	pipeline.name = 'Snapshot catcher, never change me manually'
+	pipeline.type = PipelineTriggerType.INSERT_OR_MERGE
+	pipeline.conditional = True
+	pipeline.on = build_pipeline_prerequisite(target_topic)
+	pipeline.stages = build_pipeline_stages(target_topic)
+	pipeline.enabled = True
+	pipeline.validated = True
 	return pipeline
 
 
