@@ -17,7 +17,7 @@ from watchmen_model.common import DataModel, TopicId
 from watchmen_model.pipeline_kernel import MonitorLogStage, MonitorLogUnit
 from watchmen_model.pipeline_kernel.pipeline_monitor_log import construct_unit
 from watchmen_pipeline_kernel.common import ask_parallel_actions_count, ask_parallel_actions_dask_temp_dir, \
-	ask_parallel_actions_dask_use_process, PipelineKernelException
+	ask_parallel_actions_dask_use_process, PipelineKernelException, ask_parallel_actions_dask_threads_per_work
 from watchmen_pipeline_kernel.pipeline_schema_interface import CreateQueuePipeline
 from watchmen_pipeline_kernel.topic import RuntimeTopicStorages
 from watchmen_utilities import ArrayHelper
@@ -144,7 +144,7 @@ class DaskClientHolder:
 			config.set(temporary_directory=ask_parallel_actions_dask_temp_dir())
 			self.client = Client(
 				processes=ask_parallel_actions_dask_use_process(),
-				threads_per_worker=1,
+				threads_per_worker=ask_parallel_actions_dask_threads_per_work(),
 				n_workers=ask_parallel_actions_count(),
 			)
 			self.initialized = True
@@ -202,5 +202,10 @@ def distribute_unit_loop(loop: DistributedUnitLoop) -> DistributedUnitLoopResult
 		.map(lambda variableValue: to_dask_args(loop, variableValue)) \
 		.map(lambda x: dask_client.submit(distribute_single_unit, *x, pure=False)) \
 		.to_list()
-	results = dask_client.gather(futures)
+	try:
+		results = dask_client.gather(futures)
+	finally:
+		for f in futures:
+			f.release()
 	return DistributedUnitLoopResult(items=results)
+
