@@ -11,7 +11,7 @@ MonitorJobLockId = TypeVar('MonitorJobLockId', bound=str)
 # noinspection DuplicatedCode
 class MonitorJobLockStatus(str, Enum):
 	READY = 'ready'
-	FAILED = 'fail',
+	FAILED = 'fail'
 	SUCCESS = 'success'
 
 
@@ -22,5 +22,5 @@ class MonitorJobLock(Storable):
 	frequency: MonitorRuleStatisticalInterval = None
 	processDate: date = None
 	status: MonitorJobLockStatus = None
-	userId: UserId = None,
+	userId: UserId = None
 	createdAt: datetime = None
