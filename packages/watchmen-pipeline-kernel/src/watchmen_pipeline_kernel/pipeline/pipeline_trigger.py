@@ -9,7 +9,7 @@ from watchmen_data_kernel.storage import TopicDataService, TopicTrigger
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.admin import Pipeline, PipelineTriggerType, TopicKind
 from watchmen_model.common import PipelineId
-from watchmen_model.pipeline_kernel import PipelineMonitorLog, PipelineTriggerTraceId, TopicDataColumnNames
+from watchmen_model.pipeline_kernel import PipelineMonitorLog, PipelineTriggerTraceId
 from watchmen_pipeline_kernel.common import PipelineKernelException
 from watchmen_pipeline_kernel.pipeline_schema import RuntimePipelineContext
 from watchmen_pipeline_kernel.topic import RuntimeTopicStorages
@@ -25,7 +25,7 @@ def get_pipeline_service(principal_service: PrincipalService) -> PipelineService
 
 class PipelineTrigger:
 	storages: RuntimeTopicStorages
-	
+
 	def __init__(
 			self, trigger_topic_schema: TopicSchema, trigger_type: PipelineTriggerType,
 			trigger_data: Dict[str, Any], trace_id: PipelineTriggerTraceId,
@@ -40,17 +40,17 @@ class PipelineTrigger:
 		self.principalService = principal_service
 		self.asynchronized = asynchronized
 		self.handle_monitor_log = handle_monitor_log
-	
+
 	def ask_topic_data_service(self, schema: TopicSchema) -> TopicDataService:
 		"""
 		ask topic data service
 		"""
 		storage = self.storages.ask_topic_storage(schema)
 		return ask_topic_data_service(schema, storage, self.principalService)
-	
+
 	def prepare_trigger_data(self):
 		self.triggerTopicSchema.prepare_data(self.triggerData, self.principalService)
-	
+
 	def save_trigger_data(self) -> TopicTrigger:
 		if self.triggerTopicSchema.get_topic().kind == TopicKind.SYNONYM:
 			# only insertion is supported on synonym
@@ -78,12 +78,12 @@ class PipelineTrigger:
 				return data_service.trigger_by_delete(self.triggerData)
 			else:
 				raise PipelineKernelException(f'Trigger type[{self.triggerType}] is not supported.')
-	
+
 	# noinspection PyMethodMayBeStatic,DuplicatedCode
 	def should_run(self, trigger_type: PipelineTriggerType, pipeline: Pipeline) -> bool:
 		if not pipeline.enabled:
 			return False
-		
+
 		if trigger_type == PipelineTriggerType.DELETE:
 			return pipeline.type == PipelineTriggerType.DELETE
 		elif trigger_type == PipelineTriggerType.INSERT:
@@ -94,7 +94,7 @@ class PipelineTrigger:
 			return pipeline.type == PipelineTriggerType.INSERT_OR_MERGE
 		else:
 			raise PipelineKernelException(f'Pipeline trigger type[{trigger_type}] is not supported.')
-	
+
 	async def start(self, trigger: TopicTrigger, pipeline_id: Optional[PipelineId] = None) -> None:
 		"""
 		data of trigger must be prepared already
@@ -115,7 +115,7 @@ class PipelineTrigger:
 			else:
 				logger.warning(f'No pipeline needs to be triggered by topic[id={topic.topicId}, name={topic.name}].')
 			return
-		
+
 		pipelines = ArrayHelper(pipelines) \
 			.filter(lambda x: self.should_run(trigger.triggerType, x)).to_list()
 		if len(pipelines) == 0:
@@ -125,7 +125,7 @@ class PipelineTrigger:
 			else:
 				logger.warning(f'No pipeline needs to be triggered by topic[id={topic.topicId}, name={topic.name}].')
 			return
-		
+
 		def construct_queued_pipeline(a_pipeline: Pipeline) -> RuntimePipelineContext:
 			return RuntimePipelineContext(
 				pipeline=a_pipeline,
@@ -136,12 +136,12 @@ class PipelineTrigger:
 				trace_id=self.traceId,
 				data_id=trigger.internalDataId
 			)
-		
+
 		PipelinesDispatcher(
 			contexts=ArrayHelper(pipelines).map(lambda x: construct_queued_pipeline(x)).to_list(),
 			storages=self.storages,
 		).start(self.handle_monitor_log)
-	
+
 	async def invoke(self) -> int:
 		"""
 		trigger data should be prepared and saved
@@ -153,4 +153,3 @@ class PipelineTrigger:
 		else:
 			await self.start(result)
 		return result.internalDataId
-	
