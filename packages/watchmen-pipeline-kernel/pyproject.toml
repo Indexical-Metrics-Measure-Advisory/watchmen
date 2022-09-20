@@ -10,8 +10,8 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
-dask = "^2022.4.0"
-distributed = "^2022.4.0"
+dask = "^2022.9.1"
+distributed = "^2022.9.1"
 APScheduler = "^3.9.1"
 watchmen-data-kernel = { path = "../watchmen-data-kernel", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
