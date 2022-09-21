@@ -10,6 +10,7 @@ class PipelineKernelSettings(BaseSettings):
 	DECRYPT_FACTOR_VALUE: bool = False
 	PIPELINE_PARALLEL_ACTIONS_IN_LOOP_UNIT: bool = False
 	PIPELINE_PARALLEL_ACTIONS_COUNT: int = 8
+	PIPELINE_PARALLEL_ACTIONS_DASK_THREADS_PER_WORK: int = 1
 	PIPELINE_PARALLEL_ACTIONS_DASK_TEMP_DIR: Optional[str] = None
 	PIPELINE_PARALLEL_ACTIONS_DASK_USE_PROCESS: bool = True
 	PIPELINE_STANDARD_EXTERNAL_WRITER: bool = True
@@ -50,6 +51,11 @@ def ask_parallel_actions_dask_temp_dir() -> Optional[str]:
 # noinspection DuplicatedCode
 def ask_parallel_actions_dask_use_process() -> bool:
 	return settings.PIPELINE_PARALLEL_ACTIONS_DASK_USE_PROCESS
+
+
+# noinspection DuplicatedCode
+def ask_parallel_actions_dask_threads_per_work() -> int:
+	return settings.PIPELINE_PARALLEL_ACTIONS_DASK_THREADS_PER_WORK
 
 
 def ask_standard_external_writer_enabled() -> bool:
