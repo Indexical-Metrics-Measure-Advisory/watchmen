@@ -61,7 +61,7 @@ class RuntimeCompiledPipeline(CompiledPipeline):
 		monitor_log = PipelineMonitorLog(
 			# create uid of pipeline monitor log
 			uid=str(ask_snowflake_generator().next_id()),
-			traceId=trace_id, data_id=data_id,
+			traceId=trace_id, dataId=data_id,
 			pipelineId=self.pipeline.pipelineId, topicId=trigger_topic_id,
 			status=MonitorLogStatus.DONE, startTime=now(), spentInMills=0, error=None,
 			oldValue=deepcopy(previous_data) if previous_data is not None else None,
