@@ -9,6 +9,7 @@ logger = getLogger(__name__)
 class PipelineKernelSettings(BaseSettings):
 	DECRYPT_FACTOR_VALUE: bool = False
 	PIPELINE_PARALLEL_ACTIONS_IN_LOOP_UNIT: bool = False
+	PIPELINE_PARALLEL_ACTIONS_USE_MULTITHREADING: bool = False
 	PIPELINE_PARALLEL_ACTIONS_COUNT: int = 8
 	PIPELINE_PARALLEL_ACTIONS_DASK_THREADS_PER_WORK: int = 1
 	PIPELINE_PARALLEL_ACTIONS_DASK_TEMP_DIR: Optional[str] = None
@@ -38,6 +39,10 @@ def ask_decrypt_factor_value() -> bool:
 
 def ask_parallel_actions_in_loop_unit() -> bool:
 	return settings.PIPELINE_PARALLEL_ACTIONS_IN_LOOP_UNIT
+
+
+def ask_parallel_actions_use_multithreading() -> bool:
+	return settings.PIPELINE_PARALLEL_ACTIONS_USE_MULTITHREADING
 
 
 def ask_parallel_actions_count() -> int:
