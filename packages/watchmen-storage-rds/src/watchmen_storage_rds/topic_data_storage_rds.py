@@ -302,7 +302,8 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 
 	# noinspection PyMethodMayBeStatic
 	def has_group_by_column(self, table_columns: List[FreeAggregateColumn]) -> bool:
-		return ArrayHelper(table_columns).some(lambda x: x.arithmetic == FreeAggregateArithmetic.NONE)
+		return ArrayHelper(table_columns) \
+			.some(lambda x: x.arithmetic is None or x.arithmetic == FreeAggregateArithmetic.NONE)
 
 	def build_aggregate_statement(self, aggregator: FreeAggregator) -> Tuple[bool, SQLAlchemyStatement]:
 		"""
@@ -344,7 +345,10 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		data_statement = self.build_free_find_statement(pager)
 
 		aggregated, aggregate_columns = self.fake_aggregate_columns(pager.columns)
-		has_group_by = len(aggregate_columns) != len(pager.columns) and len(aggregate_columns) != 0
+		aggregate_column_count = 0 if not aggregated else \
+			ArrayHelper(aggregate_columns).filter(
+				lambda x: x.arithmetic is not None and x.arithmetic != FreeAggregateArithmetic.NONE).size()
+		has_group_by = aggregate_column_count != len(pager.columns) and aggregate_column_count != 0
 		if aggregated and not has_group_by:
 			# all columns are aggregated, there is one row exactly
 			count = 1
