@@ -3,7 +3,7 @@ from decimal import Decimal
 from logging import getLogger
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from trino.auth import BasicAuthentication, Authentication
+from trino.auth import Authentication, BasicAuthentication
 from trino.dbapi import connect
 
 from watchmen_auth import PrincipalService
@@ -20,7 +20,8 @@ from watchmen_storage import as_table_name, ColumnNameLiteral, ComputedLiteral, 
 	UnsupportedComputationException, UnsupportedCriteriaException
 from watchmen_utilities import ArrayHelper, DateTimeConstants, is_blank, is_decimal, is_not_blank
 from .exception import InquiryTrinoException
-from .settings import ask_trino_basic_auth, ask_trino_host, ask_trino_need_auth, ask_trino_user, ask_trino_auth_type, AuthenticationType
+from .settings import ask_trino_auth_type, ask_trino_basic_auth, ask_trino_host, ask_trino_need_auth, ask_trino_user, \
+	AuthenticationType
 from .trino_storage_spi import TrinoStorageSPI
 
 logger = getLogger(__name__)
@@ -551,7 +552,10 @@ class TrinoStorage(TrinoStorageSPI):
 		data_sql = self.build_find_sql(pager)
 
 		aggregated, aggregate_columns = self.fake_aggregate_columns(pager.columns)
-		has_group_by = len(aggregate_columns) != 0 and len(aggregate_columns) != len(pager.columns)
+		aggregate_column_count = 0 if not aggregated else \
+			ArrayHelper(aggregate_columns).filter(
+				lambda x: x.arithmetic is not None and x.arithmetic != FreeAggregateArithmetic.NONE).size()
+		has_group_by = aggregate_column_count != len(pager.columns) and aggregate_column_count != 0
 		if aggregated and not has_group_by:
 			count = 1
 		else:
@@ -686,7 +690,8 @@ class TrinoStorage(TrinoStorageSPI):
 
 	# noinspection PyMethodMayBeStatic
 	def has_group_by_column(self, table_columns: List[FreeAggregateColumn]) -> bool:
-		return ArrayHelper(table_columns).some(lambda x: x.arithmetic == FreeAggregateArithmetic.NONE)
+		return ArrayHelper(table_columns) \
+			.some(lambda x: x.arithmetic is None or x.arithmetic == FreeAggregateArithmetic.NONE)
 
 	# noinspection DuplicatedCode
 	def free_aggregate_page(self, pager: FreeAggregatePager) -> DataPage:
