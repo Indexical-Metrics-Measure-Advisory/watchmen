@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import Callable, Optional
+from typing import Callable, Optional, Tuple
 
 from pydantic import BaseSettings
 
@@ -34,6 +34,10 @@ class MetaSettings(BaseSettings):
 	SNOWFLAKE_COMPETITIVE_WORKER_HEART_BEAT_INTERVAL: int = 60  # competitive worker heart beat interval, in seconds
 	SNOWFLAKE_COMPETITIVE_WORKER_CREATION_RETRY_TIMES: int = 3  # competitive worker creation max retry times
 	SNOWFLAKE_COMPETITIVE_WORKER_RESTART_ON_SHOWDOWN: bool = False  # competitive worker restart automatically on shutdown
+
+	DATASOURCE_AES_ENABLED: bool = True
+	DATASOURCE_AES_KEY: str = 'hWmZq4t7w9z$C&F)J@NcRfUjXn2r5u8x'  # AES key of data source pwd encryption
+	DATASOURCE_AES_IV: str = 'J@NcRfUjXn2r5u8x'  # AES iv of data source pwd encryption
 
 	ENGINE_INDEX: bool = True
 
@@ -187,6 +191,14 @@ def ask_snowflake_generator() -> SnowflakeGenerator:
 	if snowflake_generator_holder.snowflakeGenerator is None:
 		snowflake_generator_holder.snowflakeGenerator = build_snowflake_generator(ask_meta_storage())
 	return snowflake_generator_holder.snowflakeGenerator
+
+
+def ask_datasource_aes_enabled() -> bool:
+	return settings.DATASOURCE_AES_ENABLED
+
+
+def ask_datasource_aes_params() -> Tuple[str, str]:
+	return settings.DATASOURCE_AES_KEY, settings.DATASOURCE_AES_IV
 
 
 def ask_engine_index_enabled() -> bool:

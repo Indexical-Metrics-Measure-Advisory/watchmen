@@ -3,7 +3,7 @@ from typing import Any, Dict, Union
 
 from watchmen_data_kernel.common import DataKernelException
 from watchmen_model.admin import FactorEncryptMethod
-from watchmen_utilities import is_blank
+from watchmen_utilities import is_blank, is_empty
 from .encryptor import Encryptor
 
 
@@ -31,10 +31,14 @@ class AESEncryptor(Encryptor):
 		return AES.new(self.key, AES.MODE_CFB, self.iv)
 
 	def do_encrypt(self, value: Any) -> Any:
+		if value is None or (isinstance(value, str) and is_empty(value)):
+			return value
 		value = str(value)
-		return b64encode(self.ask_aes().encrypt(value.encode('utf-8'))).decode()
+		return '{AES}' + b64encode(self.ask_aes().encrypt(value.encode('utf-8'))).decode()
 
 	def do_decrypt(self, value: str) -> str:
+		if is_empty(value):
+			return value
 		# remove prefix and decrypt
 		return self.ask_aes().decrypt(b64decode(value[5:])).decode('utf-8')
 
