@@ -5,8 +5,12 @@ import React, {ChangeEvent} from 'react';
 import {useDataSourceEventBus} from '../data-source-event-bus';
 import {DataSourceEventTypes} from '../data-source-event-bus-types';
 
-export const DataSourceConnectInput = (props: { dataSource: DataSource, propName: 'host' | 'port' | 'username' | 'password' | 'name' }) => {
-	const {dataSource, propName} = props;
+export const DataSourceConnectInput = (props: {
+	dataSource: DataSource;
+	propName: 'host' | 'port' | 'username' | 'password' | 'name';
+	placeholder?: string;
+}) => {
+	const {dataSource, propName, placeholder} = props;
 
 	const {fire} = useDataSourceEventBus();
 	const forceUpdate = useForceUpdate();
@@ -18,5 +22,6 @@ export const DataSourceConnectInput = (props: { dataSource: DataSource, propName
 		}
 	};
 
-	return <TuplePropertyInput value={dataSource[propName] || ''} onChange={onCodeChange}/>;
+	return <TuplePropertyInput value={dataSource[propName] || ''} onChange={onCodeChange}
+	                           placeholder={placeholder}/>;
 };
