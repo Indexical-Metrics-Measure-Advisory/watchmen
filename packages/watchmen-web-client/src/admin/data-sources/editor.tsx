@@ -1,5 +1,7 @@
+import {isHideDataSourcePwdEnabled} from '@/feature-switch';
 import {DataSource} from '@/services/data/tuples/data-source-types';
 import {QueryTenantForHolder} from '@/services/data/tuples/query-tenant-types';
+import {isFakedUuid} from '@/services/data/tuples/utils';
 import {TuplePropertyLabel} from '@/widgets/tuple-workbench/tuple-editor';
 import React from 'react';
 import {DataSourceEventBusProvider} from './data-source-event-bus';
@@ -12,6 +14,8 @@ import {HoldByDataSource} from './types';
 
 const DataSourceEditor = (props: { dataSource: DataSource; tenants: Array<QueryTenantForHolder>; }) => {
 	const {dataSource, tenants} = props;
+
+	const pwdPlaceholder = !isFakedUuid(dataSource) && isHideDataSourcePwdEnabled() ? 'Leave empty to keep original password' : '';
 
 	return <DataSourceEventBusProvider>
 		<TuplePropertyLabel>Data Source Code:</TuplePropertyLabel>
@@ -29,7 +33,7 @@ const DataSourceEditor = (props: { dataSource: DataSource; tenants: Array<QueryT
 		<TuplePropertyLabel>Username:</TuplePropertyLabel>
 		<DataSourceConnectInput dataSource={dataSource} propName="username"/>
 		<TuplePropertyLabel>Password:</TuplePropertyLabel>
-		<DataSourceConnectInput dataSource={dataSource} propName="password"/>
+		<DataSourceConnectInput dataSource={dataSource} propName="password" placeholder={pwdPlaceholder}/>
 		<DataSourceParams dataSource={dataSource}/>
 	</DataSourceEventBusProvider>;
 };
