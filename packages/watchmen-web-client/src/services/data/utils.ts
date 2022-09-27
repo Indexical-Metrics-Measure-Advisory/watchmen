@@ -4,6 +4,8 @@ export const isMockService = (): boolean => process.env.REACT_APP_SERVICE_MOCK_F
 export const getServiceHost = (): string => {
 	if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
 		return process.env.REACT_APP_SERVICE_URL!;
+	} else if (process.env.REACT_APP_FORCE_SERVICE_URL === 'true') {
+		return process.env.REACT_APP_SERVICE_URL!;
 	} else {
 		return window.location.protocol + '//' + window.location.host + '/watchmen/';
 	}
