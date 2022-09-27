@@ -1,3 +1,4 @@
+export const isHideDataSourcePwdEnabled = () => process.env.REACT_APP_HIDE_DATASOURCE_PWD === 'true';
 export const isDataQualityCenterEnabled = () => process.env.REACT_APP_DQC_ENABLED === 'true';
 export const isSynonymDQCEnabled = () => isDataQualityCenterEnabled() && process.env.REACT_APP_SYNONYM_DQC_ENABLED === 'true';
 export const isPipelinesDownloadEnabled = () => process.env.REACT_APP_PIPELINES_DOWNLOAD === 'true';
