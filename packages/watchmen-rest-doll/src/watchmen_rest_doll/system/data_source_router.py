@@ -11,15 +11,21 @@ from watchmen_model.common import DataPage, DataSourceId, Pageable
 from watchmen_model.system import DataSource
 from watchmen_rest import get_any_admin_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
-from watchmen_rest_doll.doll import ask_tuple_delete_enabled
+from watchmen_rest_doll.doll import ask_hide_datasource_pwd_enabled, ask_tuple_delete_enabled
 from watchmen_rest_doll.util import trans, trans_readonly
-from watchmen_utilities import is_blank
+from watchmen_utilities import ArrayHelper, is_blank, is_empty
+from .utils import attach_tenant_name
 
 router = APIRouter()
 
 
 def get_data_source_service(principal_service: PrincipalService) -> DataSourceService:
 	return DataSourceService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
+def clear_pwd(data_source: DataSource):
+	if ask_hide_datasource_pwd_enabled():
+		data_source.password = None
 
 
 @router.get('/datasource', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=DataSource)
@@ -40,6 +46,7 @@ async def load_data_source_by_id(
 		data_source: DataSource = data_source_service.find_by_id(data_source_id)
 		if data_source is None:
 			raise_404()
+		clear_pwd(data_source)
 		return data_source
 
 	return trans_readonly(data_source_service, action)
@@ -58,6 +65,11 @@ async def save_data_source(
 			# noinspection PyTypeChecker
 			a_data_source: DataSource = data_source_service.create(a_data_source)
 		else:
+			# if hide pwd enabled and requested pwd is empty, copy from existing
+			if is_empty(a_data_source.password) and ask_hide_datasource_pwd_enabled():
+				existing_data_source: Optional[DataSource] = data_source_service.find_by_id(a_data_source.dataSourceId)
+				if existing_data_source is not None:
+					a_data_source.password = existing_data_source.password
 			# noinspection PyTypeChecker
 			a_data_source: DataSource = data_source_service.update(a_data_source)
 		CacheService.data_source().put(a_data_source)
@@ -89,7 +101,10 @@ async def find_data_sources_by_name(
 			# noinspection PyTypeChecker
 			return data_source_service.find_by_text(query_name, tenant_id, pageable)
 
-	return trans_readonly(data_source_service, action)
+	page = trans_readonly(data_source_service, action)
+	page.data = attach_tenant_name(page.data, principal_service)
+	page.data = ArrayHelper(page.data).each(clear_pwd).to_list()
+	return page
 
 
 @router.get('/datasource/all', tags=[UserRole.ADMIN], response_model=List[DataSource])
@@ -103,7 +118,8 @@ async def find_all_data_sources(
 			tenant_id = principal_service.get_tenant_id()
 		return data_source_service.find_all(tenant_id)
 
-	return trans_readonly(data_source_service, action)
+	data_source_list = attach_tenant_name(trans_readonly(data_source_service, action), principal_service)
+	return ArrayHelper(data_source_list).each(clear_pwd).to_list()
 
 
 @router.delete('/datasource', tags=[UserRole.SUPER_ADMIN], response_model=DataSource)
