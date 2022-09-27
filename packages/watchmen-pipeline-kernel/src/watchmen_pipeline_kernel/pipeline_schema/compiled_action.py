@@ -51,7 +51,7 @@ def get_external_writer_service(principal_service: PrincipalService) -> External
 def find_topic_schema_for_action(action: Union[ToTopic, FromTopic], principal_service: PrincipalService) -> TopicSchema:
 	topic_id = action.topicId
 	if is_blank(topic_id):
-		raise PipelineKernelException(f'Topic not declared in delete action[{action.dict()}].')
+		raise PipelineKernelException(f'Topic not declared in action[{action.dict()}].')
 	topic_service = get_topic_service(principal_service)
 	topic: Optional[Topic] = topic_service.find_by_id(topic_id)
 	if topic is None:
