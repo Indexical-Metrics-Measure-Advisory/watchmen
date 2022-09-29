@@ -238,12 +238,17 @@ class SubjectStorage:
 			return criteria
 
 	def fake_topic_by_subject(self) -> TopicSchema:
+		def as_factor(column: SubjectDatasetColumn, index: int) -> Optional[Factor]:
+			if column.recalculate:
+				return None
+			return Factor(factorId=column.columnId, name=f'column_{index + 1}')
+
 		# important: keep topic name as empty, therefore data storage will use column name only
 		return TopicSchema(Topic(
 			topicId='-1',
 			factors=ArrayHelper(self.schema.get_subject().dataset.columns)
-			.filter(lambda x: not x.recalculate)
-			.map(lambda x: Factor(factorId=x.columnId, name=x.alias))
+			.map_with_index(as_factor)
+			.filter(lambda x: x is not None)
 			.to_list()
 		))
 

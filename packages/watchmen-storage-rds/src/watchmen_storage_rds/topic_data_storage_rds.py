@@ -351,10 +351,10 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		select_from, tables = self.build_free_joins(aggregator.joins)
 		statement = select(self.build_free_columns(aggregator.columns, tables)).select_from(select_from)
 		statement = self.build_criteria_for_statement(tables, statement, aggregator.criteria)
-		# build when recalculate columns existing
-		statement = self.build_recalculate_columns(aggregator.columns, statement)
 		# build aggregate query
 		statement = self.build_fake_aggregation_statement(aggregator.columns, statement)
+		# build when recalculate columns existing
+		statement = self.build_recalculate_columns(aggregator.columns, statement)
 		sub_query = statement.subquery()
 		# build high-order aggregate query
 		aggregate_columns = aggregator.highOrderAggregateColumns
@@ -369,10 +369,10 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		select_from, tables = self.build_free_joins(finder.joins)
 		data_statement = select(self.build_free_columns(finder.columns, tables)).select_from(select_from)
 		data_statement = self.build_criteria_for_statement(tables, data_statement, finder.criteria)
-		# build when recalculate columns existing
-		data_statement = self.build_recalculate_columns(finder.columns, data_statement)
 		# build aggregate query
 		data_statement = self.build_fake_aggregation_statement(finder.columns, data_statement)
+		# build when recalculate columns existing
+		data_statement = self.build_recalculate_columns(finder.columns, data_statement)
 		return data_statement
 
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
