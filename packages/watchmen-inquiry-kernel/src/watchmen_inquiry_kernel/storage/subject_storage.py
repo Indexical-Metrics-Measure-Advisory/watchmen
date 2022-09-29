@@ -15,7 +15,7 @@ from watchmen_inquiry_kernel.schema import ReportSchema, SubjectSchema
 from watchmen_meta.admin import SpaceService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.console import ConnectedSpaceService
-from watchmen_model.admin import Factor, TopicKind
+from watchmen_model.admin import Factor, Topic, TopicKind
 from watchmen_model.admin.space import Space, SpaceFilter
 from watchmen_model.chart import ChartTruncationType
 from watchmen_model.common import ComputedParameter, ConstantParameter, DataModel, DataPage, FactorId, Pageable, \
@@ -237,11 +237,26 @@ class SubjectStorage:
 		else:
 			return criteria
 
+	def fake_topic_by_subject(self) -> TopicSchema:
+		# important: keep topic name as empty, therefore data storage will use column name only
+		return TopicSchema(Topic(
+			topicId='-1',
+			factors=ArrayHelper(self.schema.get_subject().dataset.columns)
+			.filter(lambda x: not x.recalculate)
+			.map(lambda x: Factor(factorId=x.columnId, name=x.alias))
+			.to_list()
+		))
+
 	def ask_storage_finder(self) -> Tuple[FreeFinder, List[List[PossibleParameterType]]]:
 		# build pager
 		subject = self.schema.get_subject()
 		dataset = subject.dataset
 		available_schemas = self.schema.get_available_schemas()
+
+		# for parse parameter of recalculate column
+		# fake a topic by columns which are not declared as recalculate
+		fake_topic_schema = self.fake_topic_by_subject()
+		available_schemas_for_columns = [*available_schemas, fake_topic_schema]
 
 		empty_variables = ask_empty_variables()
 		if dataset.filters is not None and dataset.filters.filters is not None and len(dataset.filters.filters) != 0:
@@ -253,7 +268,7 @@ class SubjectStorage:
 
 		def to_free_column(column: SubjectDatasetColumn) -> Tuple[FreeColumn, List[PossibleParameterType]]:
 			parsed_parameter = parse_parameter_for_storage(
-				column.parameter, available_schemas, self.principalService, False)
+				column.parameter, available_schemas_for_columns, self.principalService, False)
 			literal = parsed_parameter.run(empty_variables, self.principalService)
 			arithmetic = column.arithmetic
 			if arithmetic is None or arithmetic == SubjectColumnArithmetic.NONE:
@@ -271,8 +286,10 @@ class SubjectStorage:
 			else:
 				raise InquiryKernelException(f'Column arithmetic[{arithmetic}] is not supported.')
 			return \
-				FreeColumn(literal=literal, alias=column.alias, arithmetic=column_arithmetic), \
-				parsed_parameter.get_possible_types()
+				FreeColumn(
+					literal=literal, alias=column.alias, arithmetic=column_arithmetic,
+					recalculate=column.recalculate
+				), parsed_parameter.get_possible_types()
 
 		built_columns = ArrayHelper(dataset.columns).map(to_free_column).to_list()
 		columns = ArrayHelper(built_columns).map(lambda x: x[0]).to_list()

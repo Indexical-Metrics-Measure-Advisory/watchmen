@@ -47,10 +47,19 @@ export const ColumnEditContainer = styled.div.attrs({'data-widget': 'subject-def
 	padding-bottom        : calc(var(--margin) / 4);
 `;
 export const ColumnIndex = styled.span.attrs({'data-widget': 'subject-def-column-index'})`
+	position : relative;
 	justify-self : end;
 	line-height  : var(--param-height);
 	font-variant : petite-caps;
 	font-weight  : var(--font-bold);
+	> span:nth-child(2) {
+		display: inline-block;
+		position : absolute;
+		font-weight  : var(--font-boldest);
+		color: var(--danger-color);
+		transform: scale(0.7) translateY(-2px);
+		transform-origin: right bottom;
+	}
 `;
 export const ColumnEditWrapper = styled.div.attrs<{ shorten: boolean }>(({shorten}) => {
 	return {

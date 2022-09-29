@@ -1,4 +1,5 @@
 import {ParameterKind} from '@/services/data/tuples/factor-calculator-types';
+import {Factor} from '@/services/data/tuples/factor-types';
 import {Subject, SubjectDataSetColumn} from '@/services/data/tuples/subject-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {ICON_DELETE} from '@/widgets/basic/constants';
@@ -29,9 +30,9 @@ export const ColumnEditor = (props: {
 	availableTopics: Array<Topic>;
 	pickedTopics: Array<Topic>;
 }) => {
-	const {subject, column, availableTopics, pickedTopics} = props;
+	let {subject, column, availableTopics, pickedTopics} = props;
 
-	const {fire: fireDef} = useSubjectDefEventBus();
+	const {on: onDef, off: offDef, fire: fireDef} = useSubjectDefEventBus();
 	const {on, off} = useParameterEventBus();
 	const forceUpdate = useForceUpdate();
 	useEffect(() => {
@@ -40,6 +41,22 @@ export const ColumnEditor = (props: {
 			off(ParameterEventTypes.FROM_CHANGED, forceUpdate);
 		};
 	}, [on, off, forceUpdate]);
+	useEffect(() => {
+		const onColumnChanged = (aColumn: SubjectDataSetColumn) => {
+			if (aColumn === column) {
+				return;
+			}
+			forceUpdate();
+		};
+		onDef(SubjectDefEventTypes.DATASET_COLUMN_ADDED, forceUpdate);
+		onDef(SubjectDefEventTypes.DATASET_COLUMN_REMOVED, forceUpdate);
+		onDef(SubjectDefEventTypes.DATASET_COLUMN_CHANGED, onColumnChanged);
+		return () => {
+			offDef(SubjectDefEventTypes.DATASET_COLUMN_ADDED, forceUpdate);
+			offDef(SubjectDefEventTypes.DATASET_COLUMN_REMOVED, forceUpdate);
+			offDef(SubjectDefEventTypes.DATASET_COLUMN_CHANGED, onColumnChanged);
+		};
+	}, [onDef, offDef, forceUpdate, column]);
 
 	const onDeleteClicked = () => {
 		const index = subject.dataset.columns.indexOf(column);
@@ -49,15 +66,34 @@ export const ColumnEditor = (props: {
 		}
 	};
 
+	const recalculate = !!column.recalculate;
+
+	if (recalculate) {
+		availableTopics = pickedTopics = [{
+			topicId: '-1',
+			name: 'From Other Columns',
+			factors: subject.dataset.columns.filter(column => !column.recalculate).map(column => {
+				return {
+					factorId: column.columnId,
+					name: column.alias
+				} as Factor;
+			})
+		} as unknown as Topic];
+	}
+
 	// computed parameter collapse/expand
 	return <ColumnEditWrapper shorten={column.parameter.kind === ParameterKind.COMPUTED}>
-		<ParameterFromEditor shorten={column.parameter.kind === ParameterKind.COMPUTED}
-		                     parameter={column.parameter}/>
+		{recalculate
+			? <ParameterFromEditor shorten={column.parameter.kind === ParameterKind.COMPUTED}
+			                       parameter={column.parameter}
+			                       availableKinds={[ParameterKind.COMPUTED]}/>
+			: <ParameterFromEditor shorten={column.parameter.kind === ParameterKind.COMPUTED}
+			                       parameter={column.parameter}/>}
 		<ConstantValueEditor parameter={column.parameter}/>
 		<TopicFactorEditor parameter={column.parameter}
 		                   availableTopics={availableTopics} pickedTopics={pickedTopics}/>
 		<AliasEditor column={column}/>
-		<ArithmeticEditor column={column}/>
+		{recalculate ? null : <ArithmeticEditor column={column}/>}
 		<RendererEditor column={column}/>
 		<ColumnPositionEditor subject={subject} column={column}/>
 		<DeleteMeButton onClick={onDeleteClicked}>
@@ -76,12 +112,16 @@ export const ColumnEdit = (props: {
 }) => {
 	const {subject, column, availableTopics, pickedTopics} = props;
 
+	const recalculate = !!column.recalculate;
 	const index = subject.dataset.columns.indexOf(column) + 1;
 
 	return <ColumnEventBusProvider>
 		<ParameterEventBusProvider>
 			<ColumnEditContainer>
-				<ColumnIndex>{index}</ColumnIndex>
+				<ColumnIndex>
+					<span>{index}</span>
+					{recalculate ? <span>R</span> : null}
+				</ColumnIndex>
 				<ColumnEditor subject={subject} column={column}
 				              availableTopics={availableTopics} pickedTopics={pickedTopics}/>
 			</ColumnEditContainer>
