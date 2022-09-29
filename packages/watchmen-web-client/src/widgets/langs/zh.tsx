@@ -241,6 +241,7 @@ export const Zh = {
 			SUBJECT_COLUMN_POSITION_ALREADY_AT_FIRST: '已经在最前, 无法向前移动.',
 			SUBJECT_COLUMN_POSITION_ALREADY_AT_LAST: '已经在最后, 无法向后移动.',
 			ADD_SUBJECT_COLUMN: '添加数据列',
+			ADD_SUBJECT_RECALCULATE_COLUMN: '添加再计算列',
 			CAN_NOT_DELETE_CHILD_FROM_COMPUTED: '已达到计算函数要求的最少参数个数, 因此不能删除本参数.',
 			CAN_NOT_ADD_CHILD_INTO_COMPUTED: '已达到计算函数要求的最多参数个数, 因此不能添加更多参数.',
 			ADD_COMPUTE_PARAMETER: '添加计算参数',

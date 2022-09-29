@@ -444,13 +444,23 @@ class TrinoStorage(TrinoStorageSPI):
 			raise UnsupportedCriteriaException(f'Unsupported criteria[{statement}].')
 
 	# noinspection PyMethodMayBeStatic
-	def build_free_column(self, table_column: FreeColumn, index: int) -> str:
+	def build_free_column(self, table_column: FreeColumn, index: int, ignore_recalculate: bool = True) -> Optional[str]:
+		"""
+		return none when given column is declared as recalculate
+		"""
+		if ignore_recalculate and table_column.recalculate:
+			return None
+
 		built = self.build_literal(table_column.literal)
 		return f'{built} AS column_{index + 1}'
 
 	def build_free_columns(self, table_columns: Optional[List[FreeColumn]]) -> str:
+		"""
+		recalculate columns are ignored
+		"""
 		return ArrayHelper(table_columns) \
 			.map_with_index(lambda x, index: self.build_free_column(x, index)) \
+			.filter(lambda x: x is not None) \
 			.join(', ')
 
 	def build_criteria(self, criteria: EntityCriteria):
@@ -510,18 +520,41 @@ class TrinoStorage(TrinoStorageSPI):
 		aggregated, aggregate_columns = self.fake_aggregate_columns(table_columns)
 		if aggregated:
 			# noinspection SqlResolve
-			sql = f'SELECT {self.build_free_aggregate_columns(aggregate_columns, "column")} FROM ({sql}) as FQ '
+			sql = f'SELECT {self.build_free_aggregate_columns(aggregate_columns, "column")} FROM ({sql}) AS FQ '
 			has_group_by, group_by = self.build_aggregate_group_by(aggregate_columns)
 			if has_group_by:
 				sql = f'{sql} GROUP BY {group_by}'
 		return sql
 
+	def build_recalculate_sql(self, table_columns: List[FreeColumn], sql: str) -> str:
+		if not ArrayHelper(table_columns).some(lambda x: x.recalculate):
+			# no recalculate column existing
+			return sql
+
+		def build_column(column: FreeColumn, index: int) -> str:
+			name = f'column_{index + 1}'
+			if not column.recalculate:
+				# use original column
+				return name
+			else:
+				# build recalculate column
+				return self.build_free_column(column, index, False)
+
+		def build_columns() -> str:
+			return ArrayHelper(table_columns).map_with_index(lambda x, index: build_column(x, index)).join(', ')
+
+		return f'SELECT {build_columns()} FROM ({sql}) AS AQ'
+
 	def build_find_sql(self, finder: FreeFinder) -> str:
+		# build base query
 		# noinspection SqlResolve
 		sql = f'SELECT {self.build_free_columns(finder.columns)} FROM {self.build_free_joins(finder.joins)}'
 		where = self.build_criteria_for_statement(finder.criteria)
 		if where is not None:
 			sql = f'{sql} WHERE {where}'
+		# build when recalculate columns existing
+		sql = self.build_recalculate_sql(finder.columns, sql)
+		# build aggregate query
 		return self.build_fake_aggregate_columns(finder.columns, sql)
 
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
@@ -560,7 +593,7 @@ class TrinoStorage(TrinoStorageSPI):
 			count = 1
 		else:
 			cursor = self.connection.cursor()
-			count_sql = f'SELECT COUNT(1) FROM ({data_sql}) as CQ'
+			count_sql = f'SELECT COUNT(1) FROM ({data_sql}) AS CQ'
 			self.log_sql(count_sql)
 			cursor.execute(count_sql)
 			count = cursor.fetchall()[0][0]
@@ -621,13 +654,17 @@ class TrinoStorage(TrinoStorageSPI):
 
 	# noinspection SqlResolve
 	def build_aggregate_statement(self, aggregator: FreeAggregator) -> Tuple[bool, str]:
+		# build base query
 		sub_query_sql = f'SELECT {self.build_free_columns(aggregator.columns)} FROM {self.build_free_joins(aggregator.joins)}'
 		where = self.build_criteria_for_statement(aggregator.criteria)
 		if where is not None:
 			sub_query_sql = f'{sub_query_sql} WHERE {where}'
+		# build when recalculate columns existing
+		sub_query_sql = self.build_recalculate_sql(aggregator.columns, sub_query_sql)
+		# build aggregate query
 		sub_query_sql = self.build_fake_aggregate_columns(aggregator.columns, sub_query_sql)
 		sub_query_sql = f'({sub_query_sql}) AS SQ'
-
+		# build high-order aggregate query
 		aggregate_columns = aggregator.highOrderAggregateColumns
 		sql = f'SELECT {self.build_free_aggregate_columns(aggregate_columns)} FROM {sub_query_sql}'
 		# obviously, table is not existing. fake a table of sub query selection to build high order criteria

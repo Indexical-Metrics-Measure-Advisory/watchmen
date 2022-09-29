@@ -196,7 +196,15 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		raise NotImplementedError('build_literal is not implemented.')
 
 	# noinspection PyMethodMayBeStatic
-	def build_free_column(self, table_column: FreeColumn, index: int, tables: List[Table]) -> Label:
+	def build_free_column(
+			self, table_column: FreeColumn, index: int, tables: List[Table],
+			ignore_recalculate: bool = True) -> Optional[Label]:
+		"""
+		return none when given column is declared as recalculate
+		"""
+		if ignore_recalculate and table_column.recalculate:
+			return None
+
 		built = self.build_literal(tables, table_column.literal)
 		if isinstance(built, (str, int, float, Decimal, bool, date, time)):
 			# value won't change after build to literal
@@ -206,8 +214,12 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 
 	# noinspection PyMethodMayBeStatic
 	def build_free_columns(self, table_columns: Optional[List[FreeColumn]], tables: List[Table]) -> List[Label]:
+		"""
+		recalculate columns are ignored
+		"""
 		return ArrayHelper(table_columns) \
 			.map_with_index(lambda x, index: self.build_free_column(x, index, tables)) \
+			.filter(lambda x: x is not None) \
 			.to_list()
 
 	# noinspection PyMethodMayBeStatic
@@ -245,6 +257,28 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		else:
 			# otherwise return statement itself
 			return False, base_statement
+
+	def build_recalculate_columns(
+			self, table_columns: List[FreeColumn], base_statement: SQLAlchemyStatement) -> SQLAlchemyStatement:
+		if not ArrayHelper(table_columns).some(lambda x: x.recalculate):
+			# no recalculate column existing
+			return base_statement
+
+		def build_column(column: FreeColumn, index: int) -> Label:
+			name = f'column_{index + 1}'
+			if not column.recalculate:
+				# use original column
+				return label(name, literal_column(name))
+			else:
+				# build recalculate column
+				return self.build_free_column(column, index, [], False)
+
+		def build_columns() -> List[Label]:
+			return ArrayHelper(table_columns).map_with_index(lambda x, index: build_column(x, index)).to_list()
+
+		sub_query = base_statement.subquery()
+		statement = select(build_columns()).select_from(sub_query)
+		return statement
 
 	def build_fake_aggregation_statement(
 			self, table_columns: List[FreeColumn], base_statement: SQLAlchemyStatement) -> SQLAlchemyStatement:
@@ -305,6 +339,7 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		return ArrayHelper(table_columns) \
 			.some(lambda x: x.arithmetic is None or x.arithmetic == FreeAggregateArithmetic.NONE)
 
+	# noinspection DuplicatedCode
 	def build_aggregate_statement(self, aggregator: FreeAggregator) -> Tuple[bool, SQLAlchemyStatement]:
 		"""
 		build data statement, something like:
@@ -312,22 +347,31 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		FROM (SELECT column1, column2, ..., columnN FROM table GROUP BY column1, column2, ..., columnN) AS sub_query
 		GROUP BY column1, column2, ..., columnN
 		"""
+		# build base query
 		select_from, tables = self.build_free_joins(aggregator.joins)
 		statement = select(self.build_free_columns(aggregator.columns, tables)).select_from(select_from)
 		statement = self.build_criteria_for_statement(tables, statement, aggregator.criteria)
+		# build when recalculate columns existing
+		statement = self.build_recalculate_columns(aggregator.columns, statement)
+		# build aggregate query
 		statement = self.build_fake_aggregation_statement(aggregator.columns, statement)
 		sub_query = statement.subquery()
-
+		# build high-order aggregate query
 		aggregate_columns = aggregator.highOrderAggregateColumns
 		statement = select(self.build_free_aggregate_columns(aggregate_columns)).select_from(sub_query)
 		# obviously, table is not existing. fake a table of sub query selection to build high order criteria
 		statement = self.build_criteria_for_statement([], statement, aggregator.highOrderCriteria)
 		return self.build_aggregate_group_by(aggregate_columns, statement)
 
+	# noinspection DuplicatedCode
 	def build_free_find_statement(self, finder: FreeFinder) -> SQLAlchemyStatement:
+		# build base query
 		select_from, tables = self.build_free_joins(finder.joins)
 		data_statement = select(self.build_free_columns(finder.columns, tables)).select_from(select_from)
 		data_statement = self.build_criteria_for_statement(tables, data_statement, finder.criteria)
+		# build when recalculate columns existing
+		data_statement = self.build_recalculate_columns(finder.columns, data_statement)
+		# build aggregate query
 		data_statement = self.build_fake_aggregation_statement(finder.columns, data_statement)
 		return data_statement
 
