@@ -46,6 +46,7 @@ export interface SubjectDataSetColumn {
 	alias?: string;
 	arithmetic?: SubjectColumnArithmetic;
 	renderer?: SubjectDataSetColumnRenderer;
+	recalculate?: boolean;
 }
 
 /** filter */

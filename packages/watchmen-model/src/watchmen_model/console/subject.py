@@ -70,6 +70,11 @@ class SubjectDatasetColumn(DataModel, BaseModel):
 	alias: str = None
 	arithmetic: SubjectColumnArithmetic = None
 	renderer: SubjectDataSetColumnRenderer = None
+	# recalculated column based on other columns
+	# source of this column must be referred to other column, via columnId or alias
+	# if column is declared as recalculate, arithmetic will be ignored
+	# and refer to another recalculated column is not allowed
+	recalculate: bool = False
 
 	def __setattr__(self, name, value):
 		if name == 'parameter':

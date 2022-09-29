@@ -1,5 +1,9 @@
 import {ParameterExpressionOperator, ParameterJointType} from '@/services/data/tuples/factor-calculator-types';
-import {createConstantParameter, createTopicFactorParameter} from '@/services/data/tuples/parameter-utils';
+import {
+	createComputedParameter,
+	createConstantParameter,
+	createTopicFactorParameter
+} from '@/services/data/tuples/parameter-utils';
 import {
 	Subject,
 	SubjectDataSetColumn,
@@ -27,9 +31,18 @@ export const createSubjectDataSetColumn = (subject: Subject): SubjectDataSetColu
 	return {
 		columnId,
 		alias: newName,
-		parameter: createTopicFactorParameter()
+		parameter: createTopicFactorParameter(),
+		recalculate: false
 	};
 };
+
+export const createSubjectDataSetRecalculateColumn = (subject: Subject): SubjectDataSetColumn => {
+	const column = createSubjectDataSetColumn(subject);
+	column.parameter = createComputedParameter();
+	column.recalculate = true;
+	return column;
+};
+
 export const createSubjectDataSetTopFilter = (): SubjectDataSetFilterJoint => {
 	return {
 		jointType: ParameterJointType.AND,

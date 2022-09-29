@@ -61,6 +61,15 @@ export const createTopicFactorParameter = (topicId?: TopicId, factorId?: FactorI
 export const createConstantParameter = (): ConstantParameter => {
 	return {kind: ParameterKind.CONSTANT, value: ''};
 };
+export const createComputedParameter = (): ComputedParameter => {
+	const parameter = {
+		kind: ParameterKind.COMPUTED,
+		type: ParameterComputeType.ADD,
+		parameters: []
+	} as ComputedParameter;
+	defendComputedParameter(parameter);
+	return parameter;
+};
 
 export const defendComputedParameter = (parameter: ComputedParameter) => {
 	parameter.type = parameter.type || ParameterComputeType.ADD;

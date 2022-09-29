@@ -18,6 +18,7 @@ class FreeColumn(DataModel):
 	literal: Literal
 	alias: str
 	arithmetic: Optional[FreeAggregateArithmetic] = None
+	recalculate: bool = False
 
 
 class FreeJoinType(str, Enum):

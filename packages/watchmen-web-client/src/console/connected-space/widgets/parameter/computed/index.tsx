@@ -34,5 +34,5 @@ const ComputedEdit = (props: {
 };
 
 export const ComputedEditor = styled(ComputedEdit)`
-	grid-column : span 4;
+	grid-column : span 99;
 `;

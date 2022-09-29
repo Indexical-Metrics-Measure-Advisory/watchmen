@@ -2,7 +2,11 @@ import {Subject} from '@/services/data/tuples/subject-types';
 import {ButtonInk} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
 import React, {MouseEvent} from 'react';
-import {createSubjectDataSetColumn, createSubjectDataSetJoin} from '../data-utils';
+import {
+	createSubjectDataSetColumn,
+	createSubjectDataSetJoin,
+	createSubjectDataSetRecalculateColumn
+} from '../data-utils';
 import {useSubjectDefEventBus} from '../subject-def-event-bus';
 import {SubjectDefEventTypes} from '../subject-def-event-bus-types';
 import {HeaderCell} from './header-cell';
@@ -30,6 +34,13 @@ export const Header = (props: {
 		subject.dataset.columns.push(column);
 		fire(SubjectDefEventTypes.DATASET_COLUMN_ADDED, column);
 	};
+	const onAddReCalculateColumnClicked = (event: MouseEvent<HTMLButtonElement>) => {
+		event.preventDefault();
+		event.stopPropagation();
+		const column = createSubjectDataSetRecalculateColumn(subject);
+		subject.dataset.columns.push(column);
+		fire(SubjectDefEventTypes.DATASET_COLUMN_ADDED, column);
+	};
 	const onAddJoinClicked = (event: MouseEvent<HTMLButtonElement>) => {
 		event.preventDefault();
 		event.stopPropagation();
@@ -47,6 +58,9 @@ export const Header = (props: {
 		            onClick={onChangeActiveIndex}>
 			<DefHeaderButton ink={ButtonInk.PRIMARY} onClick={onAddColumnClicked}>
 				<span>{Lang.CONSOLE.CONNECTED_SPACE.ADD_SUBJECT_COLUMN}</span>
+			</DefHeaderButton>
+			<DefHeaderButton ink={ButtonInk.PRIMARY} onClick={onAddReCalculateColumnClicked}>
+				<span>{Lang.CONSOLE.CONNECTED_SPACE.ADD_SUBJECT_RECALCULATE_COLUMN}</span>
 			</DefHeaderButton>
 		</HeaderCell>
 		<HeaderCell active={activeIndex === 3} activeIndex={3} label={Lang.CONSOLE.CONNECTED_SPACE.SUBJECT_FILTER_DATA}

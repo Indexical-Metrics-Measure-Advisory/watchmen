@@ -242,6 +242,7 @@ export const En = {
 			SUBJECT_COLUMN_POSITION_ALREADY_AT_FIRST: 'Cannot move up because already on top.',
 			SUBJECT_COLUMN_POSITION_ALREADY_AT_LAST: 'Cannot move down because already on bottom.',
 			ADD_SUBJECT_COLUMN: 'Add Column',
+			ADD_SUBJECT_RECALCULATE_COLUMN: 'Add Recalculate Column',
 			CAN_NOT_DELETE_CHILD_FROM_COMPUTED: 'Cannot delete this because of reach minimum parameter(s).',
 			CAN_NOT_ADD_CHILD_INTO_COMPUTED: 'Cannot add more because of reach maximum parameter(s).',
 			ADD_COMPUTE_PARAMETER: 'Add Parameter',
