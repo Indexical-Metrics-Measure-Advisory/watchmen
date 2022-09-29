@@ -230,9 +230,10 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		return data
 
 	# noinspection PyMethodMayBeStatic, DuplicatedCode
-	def fake_aggregate_columns(self, table_columns: List[FreeColumn]) -> Tuple[bool, List[FreeAggregateColumn]]:
+	def fake_aggregate_columns(
+			self, table_columns: List[FreeColumn]) -> Tuple[bool, List[Optional[FreeAggregateColumn]]]:
 		"""
-		find aggregate columns from given table columns. recalculate columns are ignored.
+		find aggregate columns from given table columns. recalculate columns are transformed as none.
 		this method is not for high order columns
 		"""
 		aggregated = ArrayHelper(table_columns) \
@@ -240,18 +241,27 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		if not aggregated:
 			return False, []
 		else:
-			return True, ArrayHelper(table_columns).map_with_index(
-				lambda x, index: None if x.recalculate else FreeAggregateColumn(
-					name=f'column_{index + 1}',
-					arithmetic=x.arithmetic,
-					alias=x.alias
-				)).filter(lambda x: x is not None).to_list()
+			def as_column(column: FreeColumn, index: int) -> Optional[FreeAggregateColumn]:
+				if column.recalculate:
+					return None
+				else:
+					return FreeAggregateColumn(
+						name=f'column_{index + 1}',
+						arithmetic=column.arithmetic,
+						alias=column.alias
+					)
+
+			return True, ArrayHelper(table_columns).map_with_index(as_column).to_list()
 
 	# noinspection PyMethodMayBeStatic
 	def build_aggregate_group_by(
-			self, table_columns: List[FreeAggregateColumn], base_statement: SQLAlchemyStatement
+			self, table_columns: List[Optional[FreeAggregateColumn]], base_statement: SQLAlchemyStatement
 	) -> Tuple[bool, SQLAlchemyStatement]:
+		"""
+		column might be none when list is faked
+		"""
 		non_group_columns = ArrayHelper(table_columns) \
+			.filter(lambda x: x is not None) \
 			.filter(lambda x: x.arithmetic is None or x.arithmetic == FreeAggregateArithmetic.NONE) \
 			.to_list()
 		if len(non_group_columns) != 0 and len(non_group_columns) != len(table_columns):
@@ -319,10 +329,20 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 			raise UnexpectedStorageException(f'Aggregate arithmetic[{arithmetic}] is not supported.')
 
 	def build_free_aggregate_columns(
-			self, table_columns: Optional[List[FreeAggregateColumn]], prefix_name: str = 'agg_column') -> List[Label]:
-		return ArrayHelper(table_columns) \
-			.map_with_index(lambda x, index: self.build_free_aggregate_column(x, index, prefix_name)) \
-			.to_list()
+			self, table_columns: Optional[List[Optional[FreeAggregateColumn]]],
+			prefix_name: str = 'agg_column') -> List[Label]:
+		"""
+		note when columns are faked, there might be none is columns list.
+		keep none in list is for keep the column index is correct
+		"""
+
+		def build_column(column: Optional[FreeAggregateColumn], index: int) -> Optional[Label]:
+			if column is None:
+				return None
+			else:
+				return self.build_free_aggregate_column(column, index, prefix_name)
+
+		return ArrayHelper(table_columns).map_with_index(build_column).filter(lambda x: x is not None).to_list()
 
 	# noinspection PyMethodMayBeStatic
 	def deserialize_from_auto_generated_aggregate_columns(
@@ -393,9 +413,12 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		data_statement = self.build_free_find_statement(pager)
 
 		aggregated, aggregate_columns = self.fake_aggregate_columns(pager.columns)
-		aggregate_column_count = 0 if not aggregated else \
-			ArrayHelper(aggregate_columns).filter(
-				lambda x: x.arithmetic is not None and x.arithmetic != FreeAggregateArithmetic.NONE).size()
+		aggregate_column_count = 0
+		if aggregated:
+			aggregate_column_count = ArrayHelper(aggregate_columns) \
+				.filter(lambda x: x is not None) \
+				.filter(lambda x: x.arithmetic is not None and x.arithmetic != FreeAggregateArithmetic.NONE) \
+				.size()
 		has_group_by = aggregate_column_count != len(pager.columns) and aggregate_column_count != 0
 		if aggregated and not has_group_by:
 			# all columns are aggregated, there is one row exactly
