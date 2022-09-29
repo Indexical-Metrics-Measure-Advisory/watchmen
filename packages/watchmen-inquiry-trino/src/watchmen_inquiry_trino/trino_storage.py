@@ -552,10 +552,10 @@ class TrinoStorage(TrinoStorageSPI):
 		where = self.build_criteria_for_statement(finder.criteria)
 		if where is not None:
 			sql = f'{sql} WHERE {where}'
-		# build when recalculate columns existing
-		sql = self.build_recalculate_sql(finder.columns, sql)
 		# build aggregate query
-		return self.build_fake_aggregate_columns(finder.columns, sql)
+		sql = self.build_fake_aggregate_columns(finder.columns, sql)
+		# build when recalculate columns existing
+		return self.build_recalculate_sql(finder.columns, sql)
 
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
 		data_sql = self.build_find_sql(finder)
@@ -659,10 +659,10 @@ class TrinoStorage(TrinoStorageSPI):
 		where = self.build_criteria_for_statement(aggregator.criteria)
 		if where is not None:
 			sub_query_sql = f'{sub_query_sql} WHERE {where}'
-		# build when recalculate columns existing
-		sub_query_sql = self.build_recalculate_sql(aggregator.columns, sub_query_sql)
 		# build aggregate query
 		sub_query_sql = self.build_fake_aggregate_columns(aggregator.columns, sub_query_sql)
+		# build when recalculate columns existing
+		sub_query_sql = self.build_recalculate_sql(aggregator.columns, sub_query_sql)
 		sub_query_sql = f'({sub_query_sql}) AS SQ'
 		# build high-order aggregate query
 		aggregate_columns = aggregator.highOrderAggregateColumns
