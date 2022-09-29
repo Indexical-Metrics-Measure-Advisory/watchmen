@@ -9,6 +9,7 @@ import {
 	ParameterExpressionOperator,
 	ParameterInvalidReasonsLabels
 } from '@/services/data/tuples/factor-calculator-types';
+import {Factor, FactorType} from '@/services/data/tuples/factor-types';
 import {isComputedParameter, isTopicFactorParameter} from '@/services/data/tuples/parameter-utils';
 import {Subject, SubjectDataSetFilterJoint} from '@/services/data/tuples/subject-types';
 import {isExpressionFilter, isJointFilter} from '@/services/data/tuples/subject-utils';
@@ -54,8 +55,14 @@ export const isDefValid = (subject: Subject, topics: Array<Topic>): { valid: boo
 	if (!columns || columns.length === 0) {
 		return {valid: false, messages: ['No columns defined.']};
 	}
+	const recalculateTopics = {
+		topicId: '-1',
+		factors: columns.filter(column => !column.recalculate).map(column => {
+			return {factorId: column.columnId, type: FactorType.TEXT} as Factor;
+		})
+	} as Topic;
 	let columnInvalidMessage = '';
-	const hasInvalidColumn = columns.some(({parameter, alias}, index) => {
+	const hasInvalidColumn = columns.some(({parameter, alias, recalculate}, index) => {
 		if (!alias || alias.trim().length === 0) {
 			columnInvalidMessage = `Column[#${index + 1}] is incorrect caused by no name specified.`;
 			return true;
@@ -65,7 +72,7 @@ export const isDefValid = (subject: Subject, topics: Array<Topic>): { valid: boo
 		}
 		return !isParameterValid4DataSet({
 			parameter,
-			topics,
+			topics: !!recalculate ? [recalculateTopics] : topics,
 			expectedTypes: [AnyFactorType.ANY],
 			array: false,
 			reasons: (reason) => {
@@ -141,8 +148,8 @@ export const isDefValid = (subject: Subject, topics: Array<Topic>): { valid: boo
 		topicIds.push(topicId, secondaryTopicId);
 		return topicIds;
 	}, [] as Array<TopicId>)));
-	const topicIdsInColumns = Array.from(new Set(columns.map(({parameter}) => getTopicIdsFromParameter(parameter)).flat()));
-	const topicIdsInFilters = Array.from(new Set(getTopicIdsFromFilter(filters)));
+	const topicIdsInColumns = Array.from(new Set(columns.map(({parameter}) => getTopicIdsFromParameter(parameter)).flat())).filter(topicId => topicId !== '-1');
+	const topicIdsInFilters = Array.from(new Set(getTopicIdsFromFilter(filters))).filter(topicId => topicId !== '-1');
 	if (topicIdsInJoins.length === 0) {
 		// no join, single source topic
 		if (topicIdsInColumns.length > 1 || topicIdsInFilters.length > 1) {
