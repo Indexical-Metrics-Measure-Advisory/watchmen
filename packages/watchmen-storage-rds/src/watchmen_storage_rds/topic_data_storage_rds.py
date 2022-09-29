@@ -232,16 +232,20 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 	# noinspection PyMethodMayBeStatic, DuplicatedCode
 	def fake_aggregate_columns(self, table_columns: List[FreeColumn]) -> Tuple[bool, List[FreeAggregateColumn]]:
 		"""
-		find aggregate columns from given table columns
+		find aggregate columns from given table columns. recalculate columns are ignored.
+		this method is not for high order columns
 		"""
 		aggregated = ArrayHelper(table_columns) \
 			.some(lambda x: x.arithmetic is not None and x.arithmetic != FreeAggregateArithmetic.NONE)
-		return aggregated, [] if not aggregated else ArrayHelper(table_columns).map_with_index(
-			lambda x, index: FreeAggregateColumn(
-				name=f'column_{index + 1}',
-				arithmetic=x.arithmetic,
-				alias=x.alias
-			)).to_list()
+		if not aggregated:
+			return False, []
+		else:
+			return True, ArrayHelper(table_columns).map_with_index(
+				lambda x, index: None if x.recalculate else FreeAggregateColumn(
+					name=f'column_{index + 1}',
+					arithmetic=x.arithmetic,
+					alias=x.alias
+				)).filter(lambda x: x is not None).to_list()
 
 	# noinspection PyMethodMayBeStatic
 	def build_aggregate_group_by(
