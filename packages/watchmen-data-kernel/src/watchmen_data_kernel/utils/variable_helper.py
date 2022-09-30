@@ -33,7 +33,7 @@ def parse_variable(variable_str: str) -> Tuple[bool, List[MightAVariable]]:
 				return MightAVariable(text=a_tuple[0], variable='')
 			else:
 				# remove variable from first, remove braces from second
-				return MightAVariable(text=a_tuple[0][: (0 - len(a_tuple[1]))], variable=a_tuple[1][1:-1])
+				return MightAVariable(text=a_tuple[0][: (0 - len(a_tuple[1]))], variable=a_tuple[1][1:-1].strip())
 
 		return True, ArrayHelper(parsed[:-1]).map(lambda x: beautify(x)).to_list()
 
