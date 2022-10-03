@@ -10,6 +10,7 @@ from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
 from watchmen_data_kernel.common import ask_storage_echo_enabled
 from watchmen_data_kernel.meta import DataSourceService
+from watchmen_data_kernel.utils import parse_move_date_pattern
 from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import DataPage, FactorId, TopicId
 from watchmen_storage import as_table_name, ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, \
@@ -330,8 +331,20 @@ class TrinoStorage(TrinoStorageSPI):
 					f'DATE_TRUNC(\'day\', {self.build_literal(literal.elements[1])}), ' \
 					f'DATE_TRUNC(\'day\', {self.build_literal(literal.elements[0])}))'
 			elif operator == ComputedLiteralOperator.MOVE_DATE:
-				# TODO
-				return ''
+				# cannot add customized function into trino
+				# split
+				move_to_pattern = parse_move_date_pattern(literal.elements[1])
+
+				def build_move_date_literal(base_literal: str, movement: Tuple[str, str, str]) -> str:
+					location = movement[0]
+					command = movement[1]
+					value_parsed, value = is_decimal(movement[2])
+					if not value_parsed:
+						raise ValueError(f'Date move command[{movement}] is not supported.')
+					value = int(value)
+
+				return ArrayHelper(move_to_pattern) \
+					.reduce(build_move_date_literal, self.build_literal(literal.elements[0]))
 			elif operator == ComputedLiteralOperator.FORMAT_DATE:
 				return \
 					f'DATE_FORMAT({self.build_literal(literal.elements[0])}, ' \
