@@ -247,7 +247,8 @@ class SubjectSchema:
 		joins = dataset.joins
 		if joins is None or len(joins) == 0:
 			# single topic
-			available_schemas = find_topic_schemas(columns, dataset.filters, principal_service)
+			available_columns = ArrayHelper(columns).filter(lambda x: not x.recalculate).to_list()
+			available_schemas = find_topic_schemas(available_columns, dataset.filters, principal_service)
 		else:
 			available_schemas = find_topic_schemas_by_joins(joins, principal_service)
 		if len(available_schemas) == 0:
