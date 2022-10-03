@@ -16,8 +16,8 @@ from watchmen_model.common import DataPage, FactorId, TopicId
 from watchmen_storage import as_table_name, ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, \
 	EntityCriteria, EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, \
 	EntityCriteriaOperator, EntityCriteriaStatement, EntitySortColumn, EntitySortMethod, FreeAggregateArithmetic, \
-	FreeAggregateColumn, FreeAggregatePager, FreeAggregator, FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, \
-	Literal, NoCriteriaForUpdateException, NoFreeJoinException, UnexpectedStorageException, \
+	FreeAggregateColumn, FreeAggregatePager, FreeAggregator, FreeColumn, FreeFinder, FreeJoin, FreeJoinType, \
+	FreePager, Literal, NoCriteriaForUpdateException, NoFreeJoinException, UnexpectedStorageException, \
 	UnsupportedComputationException, UnsupportedCriteriaException
 from watchmen_utilities import ArrayHelper, DateTimeConstants, is_blank, is_decimal, is_not_blank
 from . import TrinoStorageSPI
