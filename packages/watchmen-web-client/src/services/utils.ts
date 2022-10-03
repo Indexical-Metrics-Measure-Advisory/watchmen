@@ -118,3 +118,139 @@ export const translate_date_format = (format: string): string => {
 		return format.replaceAll(key, DATE_FORMAT_MAPPING[key]);
 	}, format);
 };
+
+const isLeapYear = (year: number): boolean => {
+	return year % 400 === 0 || (year % 100 !== 0 && year % 4 === 0);
+};
+
+// month: 0 - 11
+const tryLeapYear = (date: Dayjs, year: number, month: number, dayOfMonth: number): Dayjs => {
+	if (isLeapYear(year) && month + 1 === 2 && dayOfMonth > 28) {
+		return date.year(year).month(2).date(28);
+	} else if ([1, 3, 5, 7, 8, 10, 12].includes(month + 1) && dayOfMonth > 31) {
+		return date.year(year).month(month).date(31);
+	} else if ([4, 6, 9, 11].includes(month + 1) && dayOfMonth > 30) {
+		return date.year(year).month(month).date(30);
+	} else {
+		return date.year(year).month(month).date(dayOfMonth);
+	}
+};
+
+const moveYear = (date: Dayjs, moveType: string, value: number): Dayjs => {
+	if (moveType === '') {
+		return tryLeapYear(date, value, date.month(), date.date());
+	} else if (moveType === '+') {
+		return tryLeapYear(date, date.year() + value, date.month(), date.date());
+	} else if (moveType === '-') {
+		return tryLeapYear(date, date.year() - value, date.month(), date.date());
+	} else {
+		throw new Error(`Date movement command[${moveType}] is not supported.`);
+	}
+};
+
+const moveMonth = (date: Dayjs, moveType: string, value: number): Dayjs => {
+	if (moveType === '') {
+		return tryLeapYear(date, date.year(), value, date.date());
+	} else if (moveType === '+') {
+		const month = Math.floor(value / 12);
+		if (date.month() + 1 + month > 12) {
+			return tryLeapYear(date, date.year() + value % 12 + 1, date.month() + month - 12, date.day());
+		} else {
+			return tryLeapYear(date, date.year() + value % 12, date.month() + month, date.day());
+		}
+	} else if (moveType === '-') {
+		const month = Math.floor(value / 12);
+		if (date.month() + 1 - month < 1) {
+			return tryLeapYear(date, date.year() - value % 12 - 1, date.month() - month + 12, date.day());
+		} else {
+			return tryLeapYear(date, date.year() - value % 12, date.month() - month, date.day());
+		}
+	} else {
+		throw new Error(`Date movement command[${moveType}] is not supported.`);
+	}
+};
+
+const moveDayOfMonth = (date: Dayjs, moveType: string, value: number): Dayjs => {
+	if (value === 99) {
+		if ([1, 3, 5, 7, 8, 10, 12].includes(date.month() + 1)) {
+			return date.date(31);
+		} else if ([4, 6, 9, 11].includes(date.month() + 1)) {
+			return date.date(30);
+		} else {
+			return tryLeapYear(date, date.year(), date.month(), 29);
+		}
+	} else if (moveType === '') {
+		return tryLeapYear(date, date.year(), date.month(), value);
+	} else if (moveType === '+') {
+		return date.add(value, 'day');
+	} else if (moveType === '-') {
+		return date.subtract(value, 'day');
+	} else {
+		throw new Error(`Date movement command[${moveType}] is not supported.`);
+	}
+};
+
+const moveHour = (time: Dayjs, moveType: string, value: number): Dayjs => {
+	if (moveType === '') {
+		return time.hour(value);
+	} else if (moveType === '+') {
+		return time.add(value, 'hour');
+	} else if (moveType === '-') {
+		return time.subtract(value, 'hour');
+	} else {
+		throw new Error(`Date movement command[${moveType}] is not supported.`);
+	}
+};
+
+const moveMinute = (time: Dayjs, moveType: string, value: number): Dayjs => {
+	if (moveType === '') {
+		return time.minute(value);
+	} else if (moveType === '+') {
+		return time.add(value, 'minute');
+	} else if (moveType === '-') {
+		return time.subtract(value, 'minute');
+	} else {
+		throw new Error(`Date movement command[${moveType}] is not supported.`);
+	}
+};
+
+const moveSecond = (time: Dayjs, moveType: string, value: number): Dayjs => {
+	if (moveType === '') {
+		return time.second(value);
+	} else if (moveType === '+') {
+		return time.add(value, 'second');
+	} else if (moveType === '-') {
+		return time.subtract(value, 'second');
+	} else {
+		throw new Error(`Date movement command[${moveType}] is not supported.`);
+	}
+};
+
+const moveDateOrTime = (dateOrTime: Dayjs, movement: Array<string>): Dayjs => {
+	if (!isXaNumber(movement[2])) {
+		throw new Error(`Cannot cast given value[${movement[2]}] to numeric, value of date move must be a number.`);
+	}
+	const value = Number(movement[2]);
+
+	if (movement[0] === 'Y') {
+		return moveYear(dateOrTime, movement[1], value);
+	} else if (movement[0] === 'M') {
+		return moveMonth(dateOrTime, movement[1], value);
+	} else if (movement[0] === 'D') {
+		return moveDayOfMonth(dateOrTime, movement[1], value);
+	} else if (movement[0] === 'h') {
+		return moveHour(dateOrTime, movement[1], value);
+	} else if (movement[0] === 'm') {
+		return moveMinute(dateOrTime, movement[1], value);
+	} else if (movement[0] === 's') {
+		return moveSecond(dateOrTime, movement[1], value);
+	} else {
+		throw new Error(`Date movement command[${movement.join('')}] is not supported.`);
+	}
+};
+
+export const moveDate = (date: Dayjs, movements: Array<Array<string>>): Dayjs => {
+	return movements.reduce((date, movement) => {
+		return moveDateOrTime(date, movement);
+	}, date);
+};

@@ -11,7 +11,8 @@ from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_all_date_formats, ask_time_formats, DataKernelException
 from watchmen_data_kernel.meta import TopicService
 from watchmen_data_kernel.topic_schema import cast_value_for_factor, TopicSchema
-from watchmen_data_kernel.utils import MightAVariable, parse_function_in_variable, parse_variable
+from watchmen_data_kernel.utils import MightAVariable, parse_function_in_variable, parse_move_date_pattern, \
+	parse_variable
 from watchmen_model.admin import AccumulateMode, AggregateArithmetic, Factor, FactorType, FromTopic, InsertRowAction, \
 	is_raw_topic, MappingFactor, Topic, TopicKind, ToTopic
 from watchmen_model.admin.pipeline_action_write import InsertOrMergeRowAction, WriteTopicAction
@@ -21,8 +22,8 @@ from watchmen_model.common import ComputedParameter, ConstantParameter, FactorId
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteriaExpression, \
 	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityCriteriaStatement, Literal
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_date, is_decimal, is_time, \
-	translate_date_format_to_memory
+from watchmen_utilities import ArrayHelper, date_might_with_prefix, get_current_time_in_seconds, is_blank, is_date, \
+	is_decimal, is_time, move_date, translate_date_format_to_memory
 from .ask_from_memory import assert_parameter_count, create_ask_factor_value, parse_parameter_in_memory
 from .topic_utils import ask_topic_data_entity_helper
 from .utils import always_none, compute_date_diff, create_from_previous_trigger_data, \
@@ -331,6 +332,7 @@ def create_date_diff(
 		prefix: str, variable_name: str, function: VariablePredefineFunctions,
 		available_schemas: List[TopicSchema], allow_in_memory_variables: bool
 ) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	# noinspection PyTypeChecker
 	parsed_params = parse_function_in_variable(variable_name, function.value, 2)
 	end_variable_name = parsed_params[0]
 	start_variable_name = parsed_params[1]
@@ -372,7 +374,67 @@ def create_date_diff(
 				else:
 					raise DataKernelException(f'Variable name[{variable_name}] is not supported.')
 				func = create_ask_value_for_computed(operator, [e_date, s_date])
-				return func(variables, principal_service)
+				literal = func(variables, principal_service)
+				if len(prefix) == 0:
+					return literal
+				else:
+					return ComputedLiteral(
+						operator=ComputedLiteralOperator.CONCAT,
+						elements=[prefix, literal]
+					)
+
+		return action
+
+
+# noinspection DuplicatedCode
+def create_move_date(
+		prefix: str, variable_name: str,
+		available_schemas: List[TopicSchema], allow_in_memory_variables: bool
+) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	# noinspection PyTypeChecker
+	parsed_params = parse_function_in_variable(variable_name, VariablePredefineFunctions.MOVE_DATE.value, 2)
+	variable_name = parsed_params[0]
+	move_to = parsed_params[1]
+	if is_blank(move_to):
+		raise DataKernelException(f'Move to[{move_to}] cannot be recognized.')
+	parsed, parsed_date = test_date(variable_name)
+	move_to_pattern = parse_move_date_pattern(move_to)
+
+	if parsed:
+		# noinspection PyUnusedLocal,DuplicatedCode
+		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+			moved_date = move_date(parsed_date, move_to_pattern)
+			return date_might_with_prefix(prefix, moved_date)
+
+		return action
+	else:
+		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+			if parsed:
+				date_parsed = True
+				a_date = parsed_date
+			else:
+				date_parsed, a_date = parse_variable_to_value(
+					variable_name, variables, available_schemas, allow_in_memory_variables,
+					get_date_from_variables, principal_service)
+			if date_parsed:
+				moved_date = move_date(a_date, move_to_pattern)
+				return date_might_with_prefix(prefix, moved_date)
+			else:
+				func = create_ask_value_for_computed(ComputedLiteralOperator.MOVE_DATE, [a_date, move_to])
+				literal = func(variables, principal_service)
+				if len(prefix) == 0:
+					return literal
+				else:
+					return ComputedLiteral(
+						operator=ComputedLiteralOperator.CONCAT,
+						elements=[
+							prefix,
+							ComputedLiteral(
+								operator=ComputedLiteralOperator.FORMAT_DATE,
+								elements=[literal, '%Y-%m-%d']
+							)
+						]
+					)
 
 		return action
 
@@ -381,6 +443,7 @@ def create_date_format(
 		prefix: str, variable_name: str,
 		available_schemas: List[TopicSchema], allow_in_memory_variables: bool
 ) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	# noinspection PyTypeChecker
 	parsed_params = parse_function_in_variable(variable_name, VariablePredefineFunctions.DATE_FORMAT.value, 2)
 	variable_name = parsed_params[0]
 	date_format = parsed_params[1]
@@ -406,11 +469,18 @@ def create_date_format(
 					get_date_from_variables, principal_service)
 			if date_parsed:
 				translated_date_format = translate_date_format_to_memory(date_format)
-				formatted = parsed_date.strftime(translated_date_format)
+				formatted = a_date.strftime(translated_date_format)
 				return formatted if len(prefix) == 0 else f'{prefix}{formatted}'
 			else:
 				func = create_ask_value_for_computed(ComputedLiteralOperator.FORMAT_DATE, [a_date, date_format])
-				return func(variables, principal_service)
+				literal = func(variables, principal_service)
+				if len(prefix) == 0:
+					return literal
+				else:
+					return ComputedLiteral(
+						operator=ComputedLiteralOperator.CONCAT,
+						elements=[prefix, literal]
+					)
 
 		return action
 
@@ -433,12 +503,19 @@ def create_char_length(
 			return length if len(prefix) == 0 else f'{prefix}{length}'
 		else:
 			func = create_ask_value_for_computed(ComputedLiteralOperator.CHAR_LENGTH, [value])
-			return func(variables, principal_service)
+			literal = func(variables, principal_service)
+			if len(prefix) == 0:
+				return literal
+			else:
+				return ComputedLiteral(
+					operator=ComputedLiteralOperator.CONCAT,
+					elements=[prefix, literal]
+				)
 
 	return action
 
 
-# noinspection DuplicatedCode
+# noinspection DuplicatedCode,PyTypeChecker
 def create_run_constant_segment(
 		variable: MightAVariable, available_schemas: List[TopicSchema], allow_in_memory_variables: bool
 ) -> Tuple[Callable[[PipelineVariables, PrincipalService], Any], List[PossibleParameterType]]:
@@ -446,38 +523,52 @@ def create_run_constant_segment(
 	has_prefix = len(prefix) != 0
 	variable_name = variable.variable
 	if variable_name == VariablePredefineFunctions.NEXT_SEQ.value:
+		# next sequence
 		return \
 			create_snowflake_generator(prefix), \
 			[PossibleParameterType.STRING if has_prefix else PossibleParameterType.NUMBER]
 	elif variable_name == VariablePredefineFunctions.NOW.value:
+		# now
 		if has_prefix:
 			value = f'{prefix}{get_current_time_in_seconds().strftime("%Y-%m-%d %H:%M:%S")}'
 			return lambda variables, principal_service: value, [PossibleParameterType.STRING]
 		else:
 			return lambda variables, principal_service: get_current_time_in_seconds(), [PossibleParameterType.DATETIME]
 	elif variable_name.startswith(VariablePredefineFunctions.YEAR_DIFF.value):
+		# year diff
 		return \
 			create_date_diff(
 				prefix, variable_name,
 				VariablePredefineFunctions.YEAR_DIFF, available_schemas, allow_in_memory_variables), \
 			[PossibleParameterType.STRING if has_prefix else PossibleParameterType.NUMBER]
 	elif variable_name.startswith(VariablePredefineFunctions.MONTH_DIFF.value):
+		# month diff
 		return \
 			create_date_diff(
 				prefix, variable_name,
 				VariablePredefineFunctions.MONTH_DIFF, available_schemas, allow_in_memory_variables), \
 			[PossibleParameterType.STRING if has_prefix else PossibleParameterType.NUMBER]
 	elif variable_name.startswith(VariablePredefineFunctions.DAY_DIFF.value):
+		# day diff
 		return \
 			create_date_diff(
 				prefix, variable_name,
 				VariablePredefineFunctions.DAY_DIFF, available_schemas, allow_in_memory_variables), \
 			[PossibleParameterType.STRING if has_prefix else PossibleParameterType.NUMBER]
+	elif variable_name.startswith(VariablePredefineFunctions.MOVE_DATE.value):
+		# move date
+		return \
+			create_move_date(
+				prefix, variable_name, available_schemas, allow_in_memory_variables), \
+			[PossibleParameterType.STRING] if has_prefix else [
+				PossibleParameterType.DATE, PossibleParameterType.DATETIME, PossibleParameterType.TIME]
 	elif variable_name.startswith(VariablePredefineFunctions.DATE_FORMAT.value):
+		# date format
 		return \
 			create_date_format(prefix, variable_name, available_schemas, allow_in_memory_variables), \
 			[PossibleParameterType.STRING]
 	elif variable_name.endswith(VariablePredefineFunctions.LENGTH.value):
+		# char length
 		return \
 			create_char_length(prefix, variable_name, available_schemas, allow_in_memory_variables), \
 			[PossibleParameterType.STRING if has_prefix else PossibleParameterType.NUMBER]
@@ -956,11 +1047,13 @@ class ParsedStorageMappingFactor:
 
 	# noinspection PyMethodMayBeStatic
 	def get_aggregate_assist_column(self, data: Dict[str, Any], return_default: bool):
+		# noinspection PyTypeChecker
 		value = data.get(TopicDataColumnNames.AGGREGATE_ASSIST.value)
 		return {} if return_default and value is None else value
 
 	# noinspection PyMethodMayBeStatic
 	def set_aggregate_assist_column(self, data: Dict[str, Any], assist: Dict[str, Decimal]) -> None:
+		# noinspection PyTypeChecker
 		data[TopicDataColumnNames.AGGREGATE_ASSIST.value] = assist
 
 	def set_aggregate_assist_avg_count(self, data: Dict[str, Any], value: int) -> None:

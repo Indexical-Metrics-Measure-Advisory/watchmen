@@ -54,3 +54,19 @@ def parse_function_in_variable(function_literal: str, function_name: str, parame
 		if is_blank(variable_name):
 			raise DataKernelException(f'Constant[{function_literal}] is not supported.')
 	return variable_names
+
+
+def parse_move_date_pattern(pattern: str) -> List[Tuple[str, str, str]]:
+	"""
+	elements of tuple are
+	1. flag: YMDhms
+	2. operator: +- or empty
+	3. number
+	"""
+	pattern = pattern.strip()
+	segments = findall(r'([YMDhms])\s*([+-]?)\s*(\d+)', pattern)
+	parsed = ArrayHelper(segments).map(lambda x: f'{x[0]}{x[1]}{x[2]}').join('')
+	original = ArrayHelper([*pattern]).filter(lambda x: is_not_blank(x)).join('')
+	if parsed != original:
+		raise DataKernelException(f'Incorrect date move pattern[{pattern}].')
+	return segments

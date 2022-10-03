@@ -260,6 +260,24 @@ export const isDateDiffConstant = (statement: string): { is: boolean, parsed?: P
 		return {is: true, parsed: parsed[0] as ParsedVariablePredefineFunctions};
 	}
 };
+export const isMoveDateConstant = (statement: string): { is: boolean, parsed?: ParsedVariablePredefineFunctions } => {
+	const parsed = [
+		VariablePredefineFunctions.MOVE_DATE
+	].map((func: VariablePredefineFunctions) => {
+		const matched = (statement || '').trim().match(new RegExp(`^(${func})\\s*\\((.+),(.+)\\)$`));
+		if (matched) {
+			const [, f, p1, p2] = matched;
+			return {f: f as VariablePredefineFunctions, params: [p1.trim(), p2.trim()]};
+		} else {
+			return false;
+		}
+	}).filter(x => x !== false);
+	if (parsed.length === 0) {
+		return {is: false};
+	} else {
+		return {is: true, parsed: parsed[0] as ParsedVariablePredefineFunctions};
+	}
+};
 export const isDateFormatConstant = (statement: string): { is: boolean, parsed?: ParsedVariablePredefineFunctions } => {
 	const parsed = [
 		VariablePredefineFunctions.DATE_FORMAT

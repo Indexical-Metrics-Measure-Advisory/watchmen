@@ -242,6 +242,9 @@ def build_literal(
 			return built_date_diff(documents, literal, 'month')
 		elif operator == ComputedLiteralOperator.DAY_DIFF:
 			return built_date_diff(documents, literal, 'day')
+		elif operator == ComputedLiteralOperator.MOVE_DATE:
+			# TODO
+			return ''
 		elif operator == ComputedLiteralOperator.FORMAT_DATE:
 			# noinspection SpellCheckingInspection
 			return {

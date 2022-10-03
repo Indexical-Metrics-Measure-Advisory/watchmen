@@ -8,8 +8,8 @@ from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_all_date_formats, DataKernelException
 from watchmen_meta.common import ask_snowflake_generator
 from watchmen_model.common import VariablePredefineFunctions
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_date, month_diff, truncate_time, \
-	try_to_decimal, year_diff
+from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_date, month_diff, \
+	truncate_time, try_to_decimal, year_diff
 from .variables import PipelineVariables
 
 
