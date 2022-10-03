@@ -329,6 +329,9 @@ class TrinoStorage(TrinoStorageSPI):
 					f'DATE_DIFF(\'day\', ' \
 					f'DATE_TRUNC(\'day\', {self.build_literal(literal.elements[1])}), ' \
 					f'DATE_TRUNC(\'day\', {self.build_literal(literal.elements[0])}))'
+			elif operator == ComputedLiteralOperator.MOVE_DATE:
+				# TODO
+				return ''
 			elif operator == ComputedLiteralOperator.FORMAT_DATE:
 				return \
 					f'DATE_FORMAT({self.build_literal(literal.elements[0])}, ' \

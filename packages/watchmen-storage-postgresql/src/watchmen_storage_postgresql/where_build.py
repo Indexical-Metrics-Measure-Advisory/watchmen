@@ -143,6 +143,9 @@ def build_literal(tables: List[Table], a_literal: Literal, build_plain_value: Ca
 			# make sure each topic storage have this function
 			return func.datediff(
 				build_literal(tables, a_literal.elements[0]), build_literal(tables, a_literal.elements[1]))
+		elif operator == ComputedLiteralOperator.MOVE_DATE:
+			return func.movedate(
+				build_literal(tables, a_literal.elements[0]), a_literal.elements[1])
 		elif operator == ComputedLiteralOperator.FORMAT_DATE:
 			return func.to_char(
 				build_literal(tables, a_literal.elements[0]), translate_date_format(a_literal.elements[1]))

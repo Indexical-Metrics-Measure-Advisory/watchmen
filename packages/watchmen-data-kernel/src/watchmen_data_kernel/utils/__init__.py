@@ -1,1 +1,1 @@
-from .variable_helper import MightAVariable, parse_function_in_variable, parse_variable
+from .variable_helper import MightAVariable, parse_function_in_variable, parse_move_date_pattern, parse_variable

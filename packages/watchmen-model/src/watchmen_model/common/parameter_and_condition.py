@@ -47,6 +47,7 @@ class VariablePredefineFunctions(str, Enum):
 	DAY_DIFF = '&dayDiff',
 	MONTH_DIFF = '&monthDiff',
 	YEAR_DIFF = '&yearDiff'
+	MOVE_DATE = '&moveDate'
 	DATE_FORMAT = '&fmtDate'
 	NOW = '&now'
 
