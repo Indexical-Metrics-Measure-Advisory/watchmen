@@ -84,9 +84,6 @@ def find_topic_schemas_by_constant_parameter(
 		if not parameter_name.startswith('&'):
 			return None
 
-		if parameter_name.strip() == VariablePredefineFunctions.NOW:
-			return None
-
 		names = parameter_name[1:].split('.')
 		if len(names) != 2:
 			raise InquiryKernelException(f'Variable name[{parameter_name}] is not supported.')
