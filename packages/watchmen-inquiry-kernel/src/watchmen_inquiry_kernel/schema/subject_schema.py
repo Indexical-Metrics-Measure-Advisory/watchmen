@@ -83,10 +83,8 @@ def find_topic_schemas_by_constant_parameter(
 	def find_topic_schemas_by_function_parameter(parameter_name: str) -> Optional[TopicSchema]:
 		if not parameter_name.startswith('&'):
 			return None
-		if parameter_name.strip() == VariablePredefineFunctions.NOW:
-			return None
 
-		if parameter_name.strip() == VariablePredefineFunctions.NOW:
+		if parameter_name.strip() == VariablePredefineFunctions.NOW.value:
 			return None
 
 		names = parameter_name[1:].split('.')
