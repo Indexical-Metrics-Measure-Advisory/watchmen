@@ -7,11 +7,15 @@ import {
 	TopicFactorParameter,
 	VariablePredefineFunctions
 } from '@/services/data/tuples/factor-calculator-types';
-import {isDateDiffConstant, isDateFormatConstant} from '@/services/data/tuples/factor-calculator-utils';
+import {
+	isDateDiffConstant,
+	isDateFormatConstant,
+	isMoveDateConstant
+} from '@/services/data/tuples/factor-calculator-utils';
 import {Factor, FactorType} from '@/services/data/tuples/factor-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {getCurrentTime} from '@/services/data/utils';
-import {isXaNumber, translate_date_format} from '@/services/utils';
+import {isXaNumber, moveDate, translate_date_format} from '@/services/utils';
 import dayjs from 'dayjs';
 import {DataRow} from '../../../types';
 import {AllTopics} from '../types';
@@ -145,7 +149,7 @@ const computeVariable = (options: { variable: string, getFirstValue: (propertyNa
 	}
 
 	const parsedFunction = [
-		isDateDiffConstant, isDateFormatConstant
+		isDateDiffConstant, isMoveDateConstant, isDateFormatConstant
 	].reduce((ret: { is: boolean, parsed?: ParsedVariablePredefineFunctions }, parse) => {
 		if (!ret.is) {
 			return parse(variable);
@@ -169,6 +173,10 @@ const computeVariable = (options: { variable: string, getFirstValue: (propertyNa
 			case VariablePredefineFunctions.DAY_DIFF: {
 				const [p1, p2] = params;
 				return dayjs(p2).diff(p1, 'day');
+			}
+			case VariablePredefineFunctions.MOVE_DATE: {
+				const [p1, p2] = params;
+				return moveDate(dayjs(p1), p2);
 			}
 			case VariablePredefineFunctions.DATE_FORMAT: {
 				const [p1, p2] = params;

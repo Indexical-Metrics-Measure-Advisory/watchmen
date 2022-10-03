@@ -104,6 +104,7 @@ class ComputedLiteralOperator(str, Enum):
 	YEAR_DIFF = 'year-diff',
 	MONTH_DIFF = 'month-diff',
 	DAY_DIFF = 'day-diff',
+	MOVE_DATE = 'move-date',
 	FORMAT_DATE = 'format-date',
 
 	CHAR_LENGTH = 'char-length',

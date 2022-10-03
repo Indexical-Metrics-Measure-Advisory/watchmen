@@ -6,6 +6,7 @@ from re import sub
 from typing import Any, List, Optional, Tuple, Union
 
 from .array_helper import ArrayHelper
+from .numeric_helper import is_decimal
 
 
 class DateTimeEncoder(JSONEncoder):
@@ -450,3 +451,209 @@ def to_previous_month(process_date: date) -> date:
 	process_date = process_date.replace(day=1) - timedelta(days=1)
 	# set to first day of previous month
 	return to_start_of_day(process_date.replace(day=1))
+
+
+def move_year(a_date: date, move_type: str, value: int) -> date:
+	def try_leap_year(year: int) -> date:
+		try:
+			return a_date.replace(year=year)
+		except ValueError:
+			# Leap day in a leap year, move date to February 28th
+			return a_date.replace(year=year, day=28)
+
+	if move_type == '':
+		return try_leap_year(value)
+	elif move_type == '+':
+		return try_leap_year(a_date.year + value)
+	elif move_type == '-':
+		return try_leap_year(a_date.year - value)
+	else:
+		raise ValueError(f'Date move command type[{move_type}] is not supported.')
+
+
+def move_month(a_date: date, move_type: str, value: int) -> date:
+	def try_leap_year(to_year: int, to_month: int) -> date:
+		try:
+			return a_date.replace(year=to_year, month=to_month)
+		except ValueError:
+			# Leap day in a leap year, move date to February 28th
+			return a_date.replace(year=to_year, month=to_month, day=28)
+
+	if move_type == '':
+		return try_leap_year(a_date.year, value)
+	elif move_type == '+':
+		year = int(value / 12)
+		month = value % 12
+		if month + a_date.month > 12:
+			return try_leap_year(a_date.year + year + 1, a_date.month + month - 12)
+		else:
+			return try_leap_year(a_date.year + year, a_date.month + month)
+	elif move_type == '-':
+		year = int(value / 12)
+		month = value % 12
+		if a_date.month - month < 1:
+			return try_leap_year(a_date.year - year - 1, a_date.month - month + 12)
+		else:
+			return try_leap_year(a_date.year - year, a_date.month - month)
+	else:
+		raise ValueError(f'Date move command type[{move_type}] is not supported.')
+
+
+def move_day_of_month(a_date: date, move_type: str, value: int) -> date:
+	def try_leap_year(day_of_month: int) -> date:
+		try:
+			return a_date.replace(day=day_of_month)
+		except ValueError:
+			# Leap day in a leap year, move date to February 28th
+			return a_date.replace(day=28)
+
+	if value == 99:
+		month = a_date.month
+		if month == 1 or month == 3 or month == 5 or month == 7 or month == 8 or month == 10 or month == 12:
+			return a_date.replace(day=31)
+		elif month == 4 or month == 6 or month == 9 or month == 1:
+			return a_date.replace(day=30)
+		else:
+			return try_leap_year(29)
+	if move_type == '':
+		return try_leap_year(value) if value == 29 and a_date.month == 2 else a_date.replace(day=value)
+	elif move_type == '+':
+		return a_date + timedelta(days=value)
+	elif move_type == '-':
+		return a_date - timedelta(days=value)
+	else:
+		raise ValueError(f'Date move command type[{move_type}] is not supported.')
+
+
+def move_hour(a_time: Union[time, datetime], move_type: str, value: int) -> Union[time, datetime]:
+	if move_type == '':
+		return a_time.replace(hour=value)
+	elif move_type == '+':
+		if isinstance(a_time, datetime):
+			return a_time + timedelta(hours=value)
+		else:
+			return a_time.replace(hour=(a_time.hour + value) % 24)
+	elif move_type == '-':
+		if isinstance(a_time, datetime):
+			return a_time - timedelta(hours=value)
+		else:
+			# to avoid negative value
+			return a_time.replace(hour=(a_time.hour - (value % 24) + 24) % 24)
+	else:
+		raise ValueError(f'Date move command type[{move_type}] is not supported.')
+
+
+def move_minute(a_time: Union[time, datetime], move_type: str, value: int) -> Union[time, datetime]:
+	if move_type == '':
+		return a_time.replace(minute=value)
+	elif move_type == '+':
+		if isinstance(a_time, datetime):
+			return a_time + timedelta(minutes=value)
+		else:
+			hour = int(value / 60)
+			minute = value % 60
+			if a_time.minute + minute >= 60:
+				return a_time.replace(hour=(a_time.hour + hour + 1) % 24, minute=a_time.minute + minute - 60)
+			else:
+				return a_time.replace(hour=(a_time.hour + hour) % 24, minute=a_time.minute + minute)
+	elif move_type == '-':
+		if isinstance(a_time, datetime):
+			return a_time - timedelta(minutes=value)
+		else:
+			hour = int(value / 60)
+			minute = value % 60
+			if a_time.minute - minute < 0:
+				return a_time.replace(hour=(a_time.hour - hour % 24 - 1 + 24) % 24, minute=a_time.minute - minute + 60)
+			else:
+				return a_time.replace(hour=(a_time.hour - hour % 24 + 24) % 24, minute=a_time.minute - minute)
+	else:
+		raise ValueError(f'Date move command type[{move_type}] is not supported.')
+
+
+def move_second(a_time: Union[time, datetime], move_type: str, value: int) -> Union[time, datetime]:
+	if move_type == '':
+		return a_time.replace(second=value)
+	elif move_type == '+':
+		if isinstance(a_time, datetime):
+			return a_time + timedelta(seconds=value)
+		else:
+			hour = int(value / 3600)
+			minute = int((value % 3600) / 60)
+			second = value % 60
+			if a_time.second + second >= 60:
+				second = second - 60
+				minute = minute + 1
+			if a_time.minute + minute >= 60:
+				minute = minute - 60
+				hour = hour + 1
+			return a_time.replace(
+				hour=(a_time.hour + hour) % 24,
+				minute=a_time.minute + minute,
+				second=a_time.second + second
+			)
+	elif move_type == '-':
+		if isinstance(a_time, datetime):
+			return a_time - timedelta(seconds=value)
+		else:
+			hour = int(value / 3600)
+			minute = int((value % 3600) / 60)
+			second = value % 60
+			if a_time.second - second < 0:
+				second = second - 60
+				minute = minute + 1
+			if a_time.minute - minute < 0:
+				minute = minute - 60
+				hour = hour + 1
+			return a_time.replace(
+				hour=(a_time.hour - hour + 24) % 24,
+				minute=a_time.minute - minute,
+				second=a_time.second - second
+			)
+	else:
+		raise ValueError(f'Date move command type[{move_type}] is not supported.')
+
+
+def move_date_or_time(date_or_time: Union[date, time], movement: Tuple[str, str, str]) -> Union[date, time]:
+	value_parsed, value = is_decimal(movement[2])
+	if not value_parsed:
+		raise ValueError(f'Date move command[{movement}] is not supported.')
+	value = int(value)
+
+	if str == 'Y':
+		return move_year(date_or_time, movement[1], value) if isinstance(date_or_time, date) else date_or_time
+	elif str == 'M':
+		return move_month(date_or_time, movement[1], value) if isinstance(date_or_time, date) else date_or_time
+	elif str == 'D':
+		return move_day_of_month(date_or_time, movement[1], value) if isinstance(date_or_time, date) else date_or_time
+	elif str == 'h':
+		if isinstance(date_or_time, time) or isinstance(date_or_time, datetime):
+			return move_hour(date_or_time, movement[1], value)
+		else:
+			return date_or_time
+	elif str == 'm':
+		if isinstance(date_or_time, time) or isinstance(date_or_time, datetime):
+			return move_minute(date_or_time, movement[1], value)
+		else:
+			return date_or_time
+	elif str == 's':
+		if isinstance(date_or_time, time) or isinstance(date_or_time, datetime):
+			return move_second(date_or_time, movement[1], value)
+		else:
+			return date_or_time
+	else:
+		raise ValueError(f'Date move command[{movement}] is not supported.')
+
+
+def move_date(a_date: date, movements: List[Tuple[str, str, str]]) -> date:
+	return ArrayHelper(movements).reduce(lambda base_date, x: move_date_or_time(base_date, x), a_date)
+
+
+def date_might_with_prefix(prefix: Optional[str], a_date_or_time: Union[date, time]) -> Union[date, time, str]:
+	if isinstance(a_date_or_time, datetime):
+		return a_date_or_time if len(prefix) == 0 else f'{prefix}{a_date_or_time.strftime("%Y-%m-%d %H:%M:%S")}'
+	elif isinstance(a_date_or_time, date):
+		return a_date_or_time if len(prefix) == 0 else f'{prefix}{a_date_or_time.strftime("%Y-%m-%d")}'
+	elif isinstance(a_date_or_time, time):
+		return a_date_or_time if len(prefix) == 0 else f'{prefix}{a_date_or_time.strftime("%H:%M:%S")}'
+	else:
+		return a_date_or_time if len(prefix) == 0 else f'{prefix}{a_date_or_time}'

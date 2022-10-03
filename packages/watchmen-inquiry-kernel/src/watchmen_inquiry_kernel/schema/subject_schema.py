@@ -96,6 +96,7 @@ def find_topic_schemas_by_constant_parameter(
 			raise InquiryKernelException(f'Topic[name={topic_name}] not found.')
 		return schema
 
+	# noinspection PyTypeChecker
 	def find_topic_schemas_by_variable(variable: MightAVariable) -> List[TopicSchema]:
 		if not variable.has_variable():
 			return []
@@ -106,6 +107,8 @@ def find_topic_schemas_by_constant_parameter(
 			parsed_params = parse_function_in_variable(variable_name, VariablePredefineFunctions.MONTH_DIFF.value, 2)
 		elif variable_name.startswith(VariablePredefineFunctions.DAY_DIFF.value):
 			parsed_params = parse_function_in_variable(variable_name, VariablePredefineFunctions.DAY_DIFF.value, 2)
+		elif variable_name.startswith(VariablePredefineFunctions.MOVE_DATE.value):
+			parsed_params = parse_function_in_variable(variable_name, VariablePredefineFunctions.MOVE_DATE.value, 2)
 		elif variable_name.startswith(VariablePredefineFunctions.DATE_FORMAT.value):
 			parsed_params = parse_function_in_variable(variable_name, VariablePredefineFunctions.DATE_FORMAT.value, 2)
 		else:

@@ -8,16 +8,18 @@ from typing import Any, Callable, List, Optional, Tuple, Union
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_all_date_formats, ask_time_formats, DataKernelException
 from watchmen_data_kernel.meta import TopicService
-from watchmen_data_kernel.utils import MightAVariable, parse_function_in_variable, parse_variable
+from watchmen_data_kernel.utils import MightAVariable, parse_function_in_variable, parse_move_date_pattern, \
+	parse_variable
 from watchmen_model.admin import Conditional, Factor, Topic
 from watchmen_model.common import ComputedParameter, ConstantParameter, Parameter, ParameterComputeType, \
 	ParameterCondition, ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, \
 	TopicFactorParameter, VariablePredefineFunctions
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, get_day_of_month, get_day_of_week, \
-	get_half_year, get_month, get_quarter, get_week_of_month, get_week_of_year, get_year, greater_or_equals_date, \
-	greater_or_equals_decimal, greater_or_equals_time, is_blank, is_date, is_date_or_time_instance, is_empty, \
-	is_not_empty, is_numeric_instance, less_or_equals_date, less_or_equals_decimal, less_or_equals_time, \
-	translate_date_format_to_memory, try_to_decimal, value_equals, value_not_equals
+from watchmen_utilities import ArrayHelper, date_might_with_prefix, get_current_time_in_seconds, get_day_of_month, \
+	get_day_of_week, get_half_year, get_month, get_quarter, get_week_of_month, get_week_of_year, get_year, \
+	greater_or_equals_date, greater_or_equals_decimal, greater_or_equals_time, is_blank, is_date, \
+	is_date_or_time_instance, is_empty, is_not_empty, is_numeric_instance, less_or_equals_date, \
+	less_or_equals_decimal, less_or_equals_time, move_date, translate_date_format_to_memory, try_to_decimal, \
+	value_equals, value_not_equals
 from .utils import always_none, compute_date_diff, create_from_previous_trigger_data, \
 	create_get_from_variables_with_prefix, create_previous_trigger_data, create_snowflake_generator, \
 	create_static_str, get_date_from_variables, get_value_from, test_date
@@ -416,6 +418,7 @@ class ParsedMemoryTopicFactorParameter(ParsedMemoryParameter):
 def create_date_diff(
 		prefix: str, variable_name: str, function: VariablePredefineFunctions
 ) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	# noinspection PyTypeChecker
 	parsed_params = parse_function_in_variable(variable_name, function.value, 2)
 	end_variable_name = parsed_params[0]
 	start_variable_name = parsed_params[1]
@@ -444,12 +447,40 @@ def create_date_diff(
 
 	def run(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
 		value = action(variables, principal_service)
-		return value if is_blank(prefix) else f'{prefix}{value}'
+		return value if len(prefix) == 0 else f'{prefix}{value}'
+
+	return run
+
+
+# noinspection DuplicatedCode
+def create_move_date(prefix: str, variable_name: str) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	# noinspection PyTypeChecker
+	parsed_params = parse_function_in_variable(variable_name, VariablePredefineFunctions.MOVE_DATE.value, 2)
+	variable_name = parsed_params[0]
+	move_to = parsed_params[1]
+	if is_blank(move_to):
+		raise DataKernelException(f'Move to[{move_to}] cannot be recognized.')
+	parsed, parsed_date = test_date(variable_name)
+	move_to_pattern = parse_move_date_pattern(move_to)
+	if parsed:
+		# noinspection PyUnusedLocal
+		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+			return move_date(parsed_date, move_to_pattern)
+	else:
+		def action(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+			date_parsed, value, a_date = get_date_from_variables(variables, principal_service, variable_name)
+			if not date_parsed:
+				raise DataKernelException(f'Value[{value}] cannot be parsed to date or datetime.')
+			return move_date(a_date, move_to_pattern)
+
+	def run(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
+		return date_might_with_prefix(prefix, action(variables, principal_service))
 
 	return run
 
 
 def create_date_format(prefix: str, variable_name: str) -> Callable[[PipelineVariables, PrincipalService], Any]:
+	# noinspection PyTypeChecker
 	parsed_params = parse_function_in_variable(variable_name, VariablePredefineFunctions.DATE_FORMAT.value, 2)
 	variable_name = parsed_params[0]
 	date_format = parsed_params[1]
@@ -470,30 +501,40 @@ def create_date_format(prefix: str, variable_name: str) -> Callable[[PipelineVar
 
 	def run(variables: PipelineVariables, principal_service: PrincipalService) -> Any:
 		value = action(variables, principal_service)
-		return value if is_blank(prefix) else f'{prefix}{value}'
+		return value if len(prefix) == 0 else f'{prefix}{value}'
 
 	return run
 
 
-# noinspection DuplicatedCode
+# noinspection DuplicatedCode,PyTypeChecker
 def create_run_constant_segment(variable: MightAVariable) -> Callable[[PipelineVariables, PrincipalService], Any]:
 	prefix = variable.text
 	variable_name = variable.variable
 	if variable_name == VariablePredefineFunctions.NEXT_SEQ.value:
+		# next sequence
 		return create_snowflake_generator(prefix)
 	elif variable_name == VariablePredefineFunctions.NOW.value:
+		# now
 		return lambda variables, principal_service: get_current_time_in_seconds()
 	elif variable_name.startswith(VariablePredefineFunctions.YEAR_DIFF.value):
+		# year diff
 		return create_date_diff(prefix, variable_name, VariablePredefineFunctions.YEAR_DIFF)
 	elif variable_name.startswith(VariablePredefineFunctions.MONTH_DIFF.value):
+		# month diff
 		return create_date_diff(prefix, variable_name, VariablePredefineFunctions.MONTH_DIFF)
 	elif variable_name.startswith(VariablePredefineFunctions.DAY_DIFF.value):
+		# day diff
 		return create_date_diff(prefix, variable_name, VariablePredefineFunctions.DAY_DIFF)
+	elif variable_name.startswith(VariablePredefineFunctions.MOVE_DATE.value):
+		# move date
+		return create_move_date(prefix, variable_name)
 	elif variable_name.startswith(VariablePredefineFunctions.DATE_FORMAT.value):
+		# date format
 		return create_date_format(prefix, variable_name)
 	elif variable_name.startswith(VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA.value):
+		# from previous trigger data
 		if variable_name == VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA.value:
-			if is_blank(prefix):
+			if len(prefix) == 0:
 				return create_previous_trigger_data()
 			else:
 				raise DataKernelException(f'Previous trigger data is a dict, cannot prefix by a string[{prefix}].')

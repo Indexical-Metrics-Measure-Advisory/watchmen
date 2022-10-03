@@ -9,7 +9,8 @@ from watchmen_data_kernel.service import ask_topic_storage
 from watchmen_data_kernel.storage_bridge import ask_topic_data_entity_helper, parse_condition_for_storage, \
 	parse_parameter_for_storage, ParsedStorageCondition, PipelineVariables, PossibleParameterType
 from watchmen_data_kernel.topic_schema import TopicSchema
-from watchmen_data_kernel.utils import MightAVariable, parse_function_in_variable, parse_variable
+from watchmen_data_kernel.utils import MightAVariable, parse_function_in_variable, parse_move_date_pattern, \
+	parse_variable
 from watchmen_inquiry_kernel.common import ask_trino_enabled, ask_use_storage_directly, InquiryKernelException
 from watchmen_inquiry_kernel.schema import ReportSchema, SubjectSchema
 from watchmen_meta.admin import SpaceService
@@ -30,8 +31,8 @@ from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteral
 	EntityCriteriaStatement, EntitySortColumn, EntitySortMethod, FreeAggregateArithmetic, FreeAggregateColumn, \
 	FreeAggregatePager, FreeAggregator, FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, Literal, \
 	TopicDataStorageSPI
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank, is_date, is_decimal, is_not_blank, \
-	is_time, month_diff, translate_date_format_to_memory, truncate_time, year_diff
+from watchmen_utilities import ArrayHelper, date_might_with_prefix, get_current_time_in_seconds, is_blank, is_date, \
+	is_decimal, is_not_blank, is_time, month_diff, move_date, translate_date_format_to_memory, truncate_time, year_diff
 
 
 def ask_empty_variables() -> PipelineVariables:
@@ -657,6 +658,7 @@ class SubjectStorage:
 			self, subject_column_map: SubjectColumnMap,
 			prefix: str, variable_name: str, function: VariablePredefineFunctions
 	) -> Literal:
+		# noinspection PyTypeChecker
 		parsed_params = parse_function_in_variable(variable_name, function.value, 2)
 		end_variable_name = parsed_params[0]
 		start_variable_name = parsed_params[1]
@@ -664,7 +666,7 @@ class SubjectStorage:
 		start_parsed, start_date = self.test_date(start_variable_name)
 		if end_parsed and start_parsed:
 			diff = self.compute_date_diff(function, end_date, start_date, variable_name)
-			return diff if is_blank(prefix) else f'{prefix}{diff}'
+			return diff if len(prefix) == 0 else f'{prefix}{diff}'
 		elif start_parsed:
 			e_date = self.create_column_by_variable(subject_column_map, end_variable_name)
 			s_date = start_date
@@ -683,9 +685,47 @@ class SubjectStorage:
 			operator = ComputedLiteralOperator.DAY_DIFF
 		else:
 			raise InquiryKernelException(f'Variable name[{variable_name}] is not supported.')
-		return ComputedLiteral(operator=operator, elements=[e_date, s_date])
+		if len(prefix) == 0:
+			return ComputedLiteral(operator=operator, elements=[e_date, s_date])
+		else:
+			return ComputedLiteral(
+				operator=ComputedLiteralOperator.CONCAT,
+				elements=[prefix, ComputedLiteral(operator=operator, elements=[e_date, s_date])]
+			)
+
+	def create_move_date(self, subject_column_map: SubjectColumnMap, prefix: str, variable_name: str) -> Literal:
+		# noinspection PyTypeChecker
+		parsed_params = parse_function_in_variable(variable_name, VariablePredefineFunctions.MOVE_DATE.value, 2)
+		variable_name = parsed_params[0]
+		move_to = parsed_params[1]
+		if is_blank(move_to):
+			raise InquiryKernelException(f'Move to[{move_to}] cannot be recognized.')
+		parsed, parsed_date = self.test_date(variable_name)
+		move_to_pattern = parse_move_date_pattern(move_to)
+		if parsed:
+			moved_date = move_date(parsed_date, move_to_pattern)
+			return date_might_with_prefix(prefix, moved_date)
+		else:
+			a_date = self.create_column_by_variable(subject_column_map, variable_name)
+			if len(prefix) == 0:
+				return ComputedLiteral(operator=ComputedLiteralOperator.MOVE_DATE, elements=[a_date, move_to])
+			else:
+				return ComputedLiteral(
+					operator=ComputedLiteralOperator.CONCAT,
+					elements=[
+						prefix,
+						ComputedLiteral(
+							operator=ComputedLiteralOperator.FORMAT_DATE,
+							elements=[
+								ComputedLiteral(operator=ComputedLiteralOperator.MOVE_DATE, elements=[a_date, move_to]),
+								'%Y-%m-%d'
+							]
+						)
+					]
+				)
 
 	def create_date_format(self, subject_column_map: SubjectColumnMap, prefix: str, variable_name: str) -> Literal:
+		# noinspection PyTypeChecker
 		parsed_params = parse_function_in_variable(variable_name, VariablePredefineFunctions.DATE_FORMAT.value, 2)
 		variable_name = parsed_params[0]
 		date_format = parsed_params[1]
@@ -698,21 +738,32 @@ class SubjectStorage:
 			return formatted if len(prefix) == 0 else f'{prefix}{formatted}'
 		else:
 			a_date = self.create_column_by_variable(subject_column_map, variable_name)
-			return ComputedLiteral(operator=ComputedLiteralOperator.FORMAT_DATE, elements=[a_date, date_format])
+			if len(prefix) == 0:
+				return ComputedLiteral(operator=ComputedLiteralOperator.FORMAT_DATE, elements=[a_date, date_format])
+			else:
+				return ComputedLiteral(
+					operator=ComputedLiteralOperator.CONCAT,
+					elements=[
+						prefix,
+						ComputedLiteral(operator=ComputedLiteralOperator.FORMAT_DATE, elements=[a_date, date_format])
+					]
+				)
 
-	# noinspection PyMethodMayBeStatic
+	# noinspection PyMethodMayBeStatic,PyTypeChecker
 	def build_literal_by_report_constant_segment(
 			self, subject_column_map: SubjectColumnMap, variable: MightAVariable
 	) -> TypedLiteral:
 		prefix = variable.text
 		variable_name = variable.variable
 		if variable_name == VariablePredefineFunctions.NEXT_SEQ.value:
+			# next sequence
 			value = ask_snowflake_generator().next_id()
 			if len(prefix) == 0:
 				return TypedLiteral(literal=value, possibleTypes=[PossibleParameterType.NUMBER])
 			else:
 				return TypedLiteral(literal=f'{prefix}{value}', possibleTypes=[PossibleParameterType.STRING])
 		elif variable_name == VariablePredefineFunctions.NOW.value:
+			# now
 			if len(prefix) == 0:
 				return TypedLiteral(
 					literal=get_current_time_in_seconds(), possibleTypes=[PossibleParameterType.DATETIME])
@@ -722,29 +773,41 @@ class SubjectStorage:
 					possibleTypes=[PossibleParameterType.STRING]
 				)
 		elif variable_name.startswith(VariablePredefineFunctions.YEAR_DIFF.value):
+			# year diff
 			return TypedLiteral(
 				literal=self.create_date_diff(
 					subject_column_map, prefix, variable_name, VariablePredefineFunctions.YEAR_DIFF),
 				possibleTypes=[PossibleParameterType.STRING if len(prefix) != 0 else PossibleParameterType.NUMBER]
 			)
 		elif variable_name.startswith(VariablePredefineFunctions.MONTH_DIFF.value):
+			# month diff
 			return TypedLiteral(
 				literal=self.create_date_diff(
 					subject_column_map, prefix, variable_name, VariablePredefineFunctions.MONTH_DIFF),
 				possibleTypes=[PossibleParameterType.STRING if len(prefix) != 0 else PossibleParameterType.NUMBER]
 			)
 		elif variable_name.startswith(VariablePredefineFunctions.DAY_DIFF.value):
+			# day diff
 			return TypedLiteral(
 				literal=self.create_date_diff(
 					subject_column_map, prefix, variable_name, VariablePredefineFunctions.DAY_DIFF),
 				possibleTypes=[PossibleParameterType.STRING if len(prefix) != 0 else PossibleParameterType.NUMBER]
 			)
+		elif variable_name.startswith(VariablePredefineFunctions.MOVE_DATE.value):
+			# move date
+			return TypedLiteral(
+				literal=self.create_move_date(subject_column_map, prefix, variable_name),
+				possibleTypes=[PossibleParameterType.STRING] if len(prefix) != 0 else [
+					PossibleParameterType.DATE, PossibleParameterType.DATETIME, PossibleParameterType.TIME]
+			)
 		elif variable_name.startswith(VariablePredefineFunctions.DATE_FORMAT.value):
+			# date format
 			return TypedLiteral(
 				literal=self.create_date_format(subject_column_map, prefix, variable_name),
 				possibleTypes=[PossibleParameterType.STRING]
 			)
 		elif variable_name.endswith(VariablePredefineFunctions.LENGTH.value):
+			# char length
 			return TypedLiteral(
 				literal=ComputedLiteral(
 					operator=ComputedLiteralOperator.CHAR_LENGTH,
