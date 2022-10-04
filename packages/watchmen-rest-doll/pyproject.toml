@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-rest-doll"
-version = "16.1.0"
+version = "16.3.17"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -13,19 +13,19 @@ python = "^3.9"
 passlib = "^1.7.4"
 bcrypt = "^3.2.0"
 python-multipart = "^0.0.5"
-watchmen-data-surface = { path = "../watchmen-data-surface", develop = true }
-watchmen-pipeline-surface = { path = "../watchmen-pipeline-surface", develop = true }
-watchmen-inquiry-surface = { path = "../watchmen-inquiry-surface", develop = true }
-watchmen-inquiry-trino = { path = "../watchmen-inquiry-trino", develop = true, optional = true }
-watchmen-indicator-surface = { path = "../watchmen-indicator-surface", develop = true }
-watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
-watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
-watchmen-storage-mongodb = { path = "../watchmen-storage-mongodb", develop = true, optional = true }
-watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, optional = true }
-watchmen-storage-postgresql = { path = "../watchmen-storage-postgresql", develop = true, optional = true }
-watchmen-storage-oss = { path = "../watchmen-storage-oss", develop = true, optional = true }
-watchmen-storage-s3 = { path = "../watchmen-storage-s3", develop = true, optional = true }
-watchmen-collector-kernel = { path = "../watchmen-collector-kernel", develop = true, optional = true }
+watchmen-data-surface = "16.3.17"
+watchmen-pipeline-surface = "16.3.17"
+watchmen-inquiry-surface = "16.3.17"
+watchmen-inquiry-trino = { version = "16.3.17", optional = true }
+watchmen-indicator-surface = "16.3.17"
+watchmen-storage-mysql = { version = "16.3.17", optional = true }
+watchmen-storage-oracle = { version = "16.3.17", optional = true }
+watchmen-storage-mongodb = { version = "16.3.17", optional = true }
+watchmen-storage-mssql = { version = "16.3.17", optional = true }
+watchmen-storage-postgresql = { version = "16.3.17", optional = true }
+watchmen-storage-oss = { version = "16.3.17", optional = true }
+watchmen-storage-s3 = { version = "16.3.17", optional = true }
+watchmen-collector-kernel = { version = "16.3.17", optional = true }
 kafka-python = { version = "^2.0.2", optional = true }
 aiokafka = { version = "^0.7.2", optional = true }
 aio-pika = { version = "^7.1.2", optional = true }
