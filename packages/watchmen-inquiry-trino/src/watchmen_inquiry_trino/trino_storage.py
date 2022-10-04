@@ -620,20 +620,16 @@ class TrinoStorage(TrinoStorageSPI):
 		elif isinstance(literal, ComputedLiteral):
 			operator = literal.operator
 			if operator == ComputedLiteralOperator.ADD:
-				return ArrayHelper(literal.elements) \
-					.map(lambda x: self.build_literal(x, self.to_decimal)).join(' + ')
+				return ArrayHelper(literal.elements).map(lambda x: self.build_literal(x, self.to_decimal)).join(' + ')
 			elif operator == ComputedLiteralOperator.SUBTRACT:
-				return ArrayHelper(literal.elements) \
-					.map(lambda x: self.build_literal(x, self.to_decimal)).join(' - ')
+				return ArrayHelper(literal.elements).map(lambda x: self.build_literal(x, self.to_decimal)).join(' - ')
 			elif operator == ComputedLiteralOperator.MULTIPLY:
-				return ArrayHelper(literal.elements) \
-					.map(lambda x: self.build_literal(x, self.to_decimal)).join(' * ')
+				return ArrayHelper(literal.elements).map(lambda x: self.build_literal(x, self.to_decimal)).join(' * ')
 			elif operator == ComputedLiteralOperator.DIVIDE:
-				return ArrayHelper(literal.elements) \
-					.map(lambda x: self.build_literal(x, self.to_decimal)).join(' / ')
+				exp = ArrayHelper(literal.elements).map(lambda x: self.build_literal(x, self.to_decimal)).join(' / ')
+				return f'1.0 * {exp}'
 			elif operator == ComputedLiteralOperator.MODULUS:
-				return ArrayHelper(literal.elements) \
-					.map(lambda x: self.build_literal(x, self.to_decimal)).join(' % ')
+				return ArrayHelper(literal.elements).map(lambda x: self.build_literal(x, self.to_decimal)).join(' % ')
 			elif operator == ComputedLiteralOperator.YEAR_OF:
 				return f'EXTRACT(YEAR FROM {self.build_literal(literal.elements[0])})'
 			elif operator == ComputedLiteralOperator.HALF_YEAR_OF:
