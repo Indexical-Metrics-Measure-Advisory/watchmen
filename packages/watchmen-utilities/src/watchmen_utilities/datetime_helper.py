@@ -619,23 +619,24 @@ def move_date_or_time(date_or_time: Union[date, time], movement: Tuple[str, str,
 		raise ValueError(f'Date move command[{movement}] is not supported.')
 	value = int(value)
 
-	if str == 'Y':
+	location = movement[0]
+	if location == 'Y':
 		return move_year(date_or_time, movement[1], value) if isinstance(date_or_time, date) else date_or_time
-	elif str == 'M':
+	elif location == 'M':
 		return move_month(date_or_time, movement[1], value) if isinstance(date_or_time, date) else date_or_time
-	elif str == 'D':
+	elif location == 'D':
 		return move_day_of_month(date_or_time, movement[1], value) if isinstance(date_or_time, date) else date_or_time
-	elif str == 'h':
+	elif location == 'h':
 		if isinstance(date_or_time, time) or isinstance(date_or_time, datetime):
 			return move_hour(date_or_time, movement[1], value)
 		else:
 			return date_or_time
-	elif str == 'm':
+	elif location == 'm':
 		if isinstance(date_or_time, time) or isinstance(date_or_time, datetime):
 			return move_minute(date_or_time, movement[1], value)
 		else:
 			return date_or_time
-	elif str == 's':
+	elif location == 's':
 		if isinstance(date_or_time, time) or isinstance(date_or_time, datetime):
 			return move_second(date_or_time, movement[1], value)
 		else:
