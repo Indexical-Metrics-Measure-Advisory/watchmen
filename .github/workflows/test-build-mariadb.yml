@@ -3,6 +3,9 @@ name: Test Build Mariadb
 on:
   schedule:
     - cron: "0 0 * * *"
+  push:
+    branches:
+      - 'bugfix/**'
 
 env:
   DB_USER: admin
