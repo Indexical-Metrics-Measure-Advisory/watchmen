@@ -1,0 +1,2 @@
+ALTER TABLE data_sources
+    ALTER COLUMN host NVARCHAR(100);
