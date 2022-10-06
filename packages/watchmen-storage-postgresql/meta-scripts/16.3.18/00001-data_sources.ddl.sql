@@ -1,0 +1,1 @@
+ALTER TABLE data_sources ALTER COLUMN host type VARCHAR(100);
