@@ -147,7 +147,7 @@ def build_literal(tables: List[Table], a_literal: Literal, build_plain_value: Ca
 				text('DAY'),
 				build_literal(tables, a_literal.elements[1]), build_literal(tables, a_literal.elements[0]))
 		elif operator == ComputedLiteralOperator.MOVE_DATE:
-			return func.movedate(
+			return func.dbo.movedate(
 				build_literal(tables, a_literal.elements[0]), a_literal.elements[1])
 		elif operator == ComputedLiteralOperator.FORMAT_DATE:
 			return func.format(
