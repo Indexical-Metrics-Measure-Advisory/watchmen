@@ -453,64 +453,50 @@ def to_previous_month(process_date: date) -> date:
 	return to_start_of_day(process_date.replace(day=1))
 
 
-def move_year(a_date: date, move_type: str, value: int) -> date:
-	def try_leap_year(year: int) -> date:
-		try:
-			return a_date.replace(year=year)
-		except ValueError:
-			# Leap day in a leap year, move date to February 28th
-			return a_date.replace(year=year, day=28)
+def try_to_move_date(a_date: date, to_year: int, to_month: int, to_day_of_month: int) -> date:
+	last_day = last_day_of_month(a_date.replace(year=to_year, month=to_month, day=1))
+	if to_day_of_month > last_day:
+		to_day_of_month = last_day
+	return a_date.replace(year=to_year, month=to_month, day=to_day_of_month)
 
+
+def move_year(a_date: date, move_type: str, value: int) -> date:
 	if move_type == '':
-		return try_leap_year(value)
+		return try_to_move_date(a_date, value, a_date.month, a_date.day)
 	elif move_type == '+':
-		return try_leap_year(a_date.year + value)
+		return try_to_move_date(a_date, a_date.year + value, a_date.month, a_date.day)
 	elif move_type == '-':
-		return try_leap_year(a_date.year - value)
+		return try_to_move_date(a_date, a_date.year - value, a_date.month, a_date.day)
 	else:
 		raise ValueError(f'Date move command type[{move_type}] is not supported.')
 
 
 def move_month(a_date: date, move_type: str, value: int) -> date:
-	def try_leap_year(to_year: int, to_month: int) -> date:
-		try:
-			return a_date.replace(year=to_year, month=to_month)
-		except ValueError:
-			# Leap day in a leap year, move date to February 28th
-			return a_date.replace(year=to_year, month=to_month, day=28)
-
 	if move_type == '':
 		if value > 12:
 			value = 12
 		elif value < 1:
 			value = 1
-		return try_leap_year(a_date.year, value)
+		return try_to_move_date(a_date, a_date.year, value, a_date.day)
 	elif move_type == '+':
 		year = int(value / 12)
 		month = value % 12
 		if month + a_date.month > 12:
-			return try_leap_year(a_date.year + year + 1, a_date.month + month - 12)
+			return try_to_move_date(a_date, a_date.year + year + 1, a_date.month + month - 12, a_date.day)
 		else:
-			return try_leap_year(a_date.year + year, a_date.month + month)
+			return try_to_move_date(a_date, a_date.year + year, a_date.month + month, a_date.day)
 	elif move_type == '-':
 		year = int(value / 12)
 		month = value % 12
 		if a_date.month - month < 1:
-			return try_leap_year(a_date.year - year - 1, a_date.month - month + 12)
+			return try_to_move_date(a_date, a_date.year - year - 1, a_date.month - month + 12, a_date.day)
 		else:
-			return try_leap_year(a_date.year - year, a_date.month - month)
+			return try_to_move_date(a_date, a_date.year - year, a_date.month - month, a_date.day)
 	else:
 		raise ValueError(f'Date move command type[{move_type}] is not supported.')
 
 
 def move_day_of_month(a_date: date, move_type: str, value: int) -> date:
-	def try_leap_year(day_of_month: int) -> date:
-		try:
-			return a_date.replace(day=day_of_month)
-		except ValueError:
-			# Leap day in a leap year, move date to February 28th
-			return a_date.replace(day=28)
-
 	if value == 99:
 		month = a_date.month
 		if month == 1 or month == 3 or month == 5 or month == 7 or month == 8 or month == 10 or month == 12:
@@ -518,18 +504,11 @@ def move_day_of_month(a_date: date, move_type: str, value: int) -> date:
 		elif month == 4 or month == 6 or month == 9 or month == 1:
 			return a_date.replace(day=30)
 		else:
-			return try_leap_year(29)
+			return try_to_move_date(a_date, a_date.year, a_date.month, 29)
 	if move_type == '':
-		month = a_date.month
 		if value < 1:
 			value = 1
-		elif value > 31 and (month == 1 or month == 3 or month == 5 or month == 7 or month == 8 or month == 10 or month == 12):
-			value = 31
-		elif value > 30 and (month == 4 or month == 6 or month == 9 or month == 1):
-			value = 30
-		elif value > 29:
-			value = 29
-		return try_leap_year(value) if value == 29 and a_date.month == 2 else a_date.replace(day=value)
+		return try_to_move_date(a_date, a_date.year, a_date.month, value)
 	elif move_type == '+':
 		return a_date + timedelta(days=value)
 	elif move_type == '-':
