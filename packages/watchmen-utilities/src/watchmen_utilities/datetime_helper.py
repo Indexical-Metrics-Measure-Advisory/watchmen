@@ -480,6 +480,10 @@ def move_month(a_date: date, move_type: str, value: int) -> date:
 			return a_date.replace(year=to_year, month=to_month, day=28)
 
 	if move_type == '':
+		if value > 12:
+			value = 12
+		elif value < 1:
+			value = 1
 		return try_leap_year(a_date.year, value)
 	elif move_type == '+':
 		year = int(value / 12)
@@ -516,6 +520,15 @@ def move_day_of_month(a_date: date, move_type: str, value: int) -> date:
 		else:
 			return try_leap_year(29)
 	if move_type == '':
+		month = a_date.month
+		if value < 1:
+			value = 1
+		elif value > 31 and (month == 1 or month == 3 or month == 5 or month == 7 or month == 8 or month == 10 or month == 12):
+			value = 31
+		elif value > 30 and (month == 4 or month == 6 or month == 9 or month == 1):
+			value = 30
+		elif value > 29:
+			value = 29
 		return try_leap_year(value) if value == 29 and a_date.month == 2 else a_date.replace(day=value)
 	elif move_type == '+':
 		return a_date + timedelta(days=value)
@@ -527,6 +540,10 @@ def move_day_of_month(a_date: date, move_type: str, value: int) -> date:
 
 def move_hour(a_time: Union[time, datetime], move_type: str, value: int) -> Union[time, datetime]:
 	if move_type == '':
+		if value < 0:
+			value = 0
+		elif value > 23:
+			value = 23
 		return a_time.replace(hour=value)
 	elif move_type == '+':
 		if isinstance(a_time, datetime):
@@ -545,6 +562,10 @@ def move_hour(a_time: Union[time, datetime], move_type: str, value: int) -> Unio
 
 def move_minute(a_time: Union[time, datetime], move_type: str, value: int) -> Union[time, datetime]:
 	if move_type == '':
+		if value < 0:
+			value = 0
+		elif value > 59:
+			value = 59
 		return a_time.replace(minute=value)
 	elif move_type == '+':
 		if isinstance(a_time, datetime):
@@ -572,6 +593,10 @@ def move_minute(a_time: Union[time, datetime], move_type: str, value: int) -> Un
 
 def move_second(a_time: Union[time, datetime], move_type: str, value: int) -> Union[time, datetime]:
 	if move_type == '':
+		if value < 0:
+			value = 0
+		elif value > 59:
+			value = 59
 		return a_time.replace(second=value)
 	elif move_type == '+':
 		if isinstance(a_time, datetime):
