@@ -12,17 +12,16 @@ BEGIN
     DECLARE month INT DEFAULT MONTH(a_date);
     DECLARE day_of_month INT DEFAULT DAY(a_date);
     DECLARE last_day_of_month INT DEFAULT DAY(LAST_DAY(a_date));
-    DECLARE hour int DEFAULT HOUR(a_date);
-    DECLARE minute int DEFAULT MINUTE(a_date);
-    DECLARE second int DEFAULT SECOND(a_date);
+    DECLARE hour INT DEFAULT HOUR(a_date);
+    DECLARE minute INT DEFAULT MINUTE(a_date);
+    DECLARE second INT DEFAULT SECOND(a_date);
 
     DECLARE value INT DEFAULT 0;
-    DECLARE movement_value INT DEFAULT 0;
 
     IF location != '' AND movement != '' THEN
         SET value = CAST(movement AS SIGNED INTEGER);
 
-        IF location = 'Y' THEN
+        IF BINARY location = 'Y' THEN
             IF command = '' THEN
                 -- set directly
                 SET year = value;
@@ -35,7 +34,7 @@ BEGIN
             ELSE
                 RETURN a_date;
             END IF;
-        ELSEIF location = 'M' THEN
+        ELSEIF BINARY location = 'M' THEN
             IF command = '' THEN
                 SET month = IF(value < 1, 1, IF(value > 12, 12, value));
             ELSEIF command = '+' THEN
@@ -45,7 +44,7 @@ BEGIN
             ELSE
                 RETURN a_date;
             END IF;
-        ELSEIF location = 'D' THEN
+        ELSEIF BINARY location = 'D' THEN
             IF value = 99 THEN
                 SET day_of_month = 31;
             ELSEIF command = '' THEN
@@ -57,7 +56,7 @@ BEGIN
             ELSE
                 RETURN a_date;
             END IF;
-        ELSEIF location = 'h' THEN
+        ELSEIF BINARY location = 'h' THEN
             IF command = '' THEN
                 SET hour = IF(value < 0, 0, IF(value > 23, 23, value));
             ELSEIF command = '+' THEN
@@ -67,7 +66,7 @@ BEGIN
             ELSE
                 RETURN a_date;
             END IF;
-        ELSEIF location = 'm' THEN
+        ELSEIF BINARY location = 'm' THEN
             IF command = '' THEN
                 SET minute = IF(value < 0, 0, IF(value > 59, 59, value));
             ELSEIF command = '+' THEN
@@ -77,7 +76,7 @@ BEGIN
             ELSE
                 RETURN a_date;
             END IF;
-        ELSEIF location = 's' THEN
+        ELSEIF BINARY location = 's' THEN
             IF command = '' THEN
                 SET second = IF(value < 0, 0, IF(value > 59, 59, value));
             ELSEIF command = '+' THEN
@@ -88,24 +87,25 @@ BEGIN
                 RETURN a_date;
             END IF;
         END IF;
-    END IF;
+        -- if day of month is greater than last day of month, reset it
+        SET last_day_of_month = DAY(LAST_DAY(STR_TO_DATE(
+                DATE_FORMAT(a_date, CONCAT('%Y-', IF(month < 10, CONCAT('0', month), month), '-01')), '%Y-%m-%d')));
+        IF day_of_month > last_day_of_month THEN
+            SET day_of_month = last_day_of_month;
+        END IF;
 
-    -- if day of month is greater than last day of month, reset it
-    SET last_day_of_month = DAY(LAST_DAY(STR_TO_DATE(
-            DATE_FORMAT(a_date, CONCAT('%Y-', IF(month < 10, CONCAT('0', month), month), '-%d')), '%Y-%m-%d')));
-    IF day_of_month > last_day_of_month THEN
-        SET day_of_month = last_day_of_month;
+        RETURN STR_TO_DATE(
+                CONCAT(
+                        year, '-',
+                        IF(month < 10, CONCAT('0', month), month), '-',
+                        IF(day_of_month < 10, CONCAT('0', day_of_month), day_of_month), ' ',
+                        IF(hour < 10, CONCAT('0', hour), hour), ':',
+                        IF(minute < 10, CONCAT('0', minute), minute), ':',
+                        IF(second < 10, CONCAT('0', second), second)
+                    ), '%Y-%m-%d %H:%i:%S');
+    ELSE
+        RETURN a_date;
     END IF;
-
-    RETURN STR_TO_DATE(
-            CONCAT(
-                    year, '-',
-                    IF(month < 10, CONCAT('0', month), month), '-',
-                    IF(day_of_month < 10, CONCAT('0', day_of_month), day_of_month), ' ',
-                    IF(hour < 10, CONCAT('0', hour), hour), ':',
-                    IF(minute < 10, CONCAT('0', minute), minute), ':',
-                    IF(second < 10, CONCAT('0', second), second)
-                ), '%Y-%m-%d %H:%i:%S');
 END |
 
 CREATE FUNCTION MOVEDATE(a_date DATETIME, pattern VARCHAR(100))
