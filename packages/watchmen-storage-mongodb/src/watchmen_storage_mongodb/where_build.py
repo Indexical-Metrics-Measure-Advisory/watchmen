@@ -281,13 +281,6 @@ def build_literal(
 					'c_sub': {'$eq': [{'$arrayElemAt': ['$$this', 1]}, '-']},
 					# value, integer
 					'v': {'$arrayElemAt': ['$$this', 2]},
-					# is feb
-					'm2': {'$eq': [{'$month': '$$value'}, 2]},
-					'lunar': {'$in': [{'$month': '$$value'}, [4, 6, 9, 11]]},
-					# is 29
-					'd29': {'$eq': [{'$dayOfMonth': '$$value'}, 29]},
-					'd30': {'$eq': [{'$dayOfMonth': '$$value'}, 30]},
-					'd31': {'$eq': [{'$dayOfMonth': '$$value'}, 31]},
 					'o_year': {'$year': '$$value'},
 					'o_month': {'$month': '$$value'},
 					'o_day': {'$dayOfMonth': '$$value'},
@@ -297,16 +290,61 @@ def build_literal(
 				}
 
 			def parse_date(replaced: dict, is_set: bool = False) -> dict:
-				return {
-					'$dateFromParts': {
-						'year': replaced.get('year') or '$$o_year',
-						'month': replaced.get('month') or '$$o_month',
-						'day': replaced.get('day') or '$$o_day',
-						'hour': replaced.get('hour') or '$$o_hour',
-						'minute': replaced.get('minute') or '$$o_minute',
-						'second': replaced.get('second') or '$$o_second'
+				if is_set:
+					if replaced.get('year') is not None:
+						# min of exactly date or last day of month
+						return {
+							'$min': [
+								parse_date({
+									'year': replaced.get('year'), 'month': {'$add': ['$$o_month', 1]},
+									'day': 0, 'hour': '$$o_hour', 'minute': '$$o_minute', 'second': '$$o_second'
+								}),
+								parse_date(replaced)
+							]
+						}
+					elif replaced.get('month') is not None:
+						# min of exactly date or last day of month
+						return {
+							'$min': [
+								parse_date({
+									'year': '$$o_year',
+									'month': {'$add': [{'$min': [12, {'$max': [1, replaced.get('month')]}]}, 1]},
+									'day': 0, 'hour': '$$o_hour', 'minute': '$$o_minute', 'second': '$$o_second'
+								}),
+								parse_date({'month': {'$min': [12, {'$max': [1, replaced.get('month')]}]}})
+							]
+						}
+					elif replaced.get('day') is not None:
+						# min of exactly date or last day of month
+						return {
+							'$min': [
+								parse_date({
+									'year': '$$o_year', 'month': {'$add': ['$$o_month', 1]},
+									'day': 0, 'hour': '$$o_hour', 'minute': '$$o_minute', 'second': '$$o_second'
+								}),
+								parse_date({'day': {'$min': [31, {'$max': [1, replaced.get('day')]}]}})
+							]
+						}
+					elif replaced.get('hour') is not None:
+						return parse_date({'hour': {'$min': [23, {'$max': [0, replaced.get('hour')]}]}})
+					elif replaced.get('minute') is not None:
+						return parse_date({'minute': {'$min': [59, {'$max': [0, replaced.get('minute')]}]}})
+					elif replaced.get('second') is not None:
+						return parse_date({'second': {'$min': [59, {'$max': [0, replaced.get('second')]}]}})
+					else:
+						raise UnexpectedStorageException(f'Move date to {replaced} is not supported.')
+				else:
+					# add or subtract, just do it
+					return {
+						'$dateFromParts': {
+							'year': replaced.get('year') or '$$o_year',
+							'month': replaced.get('month') or '$$o_month',
+							'day': replaced.get('day') or '$$o_day',
+							'hour': replaced.get('hour') or '$$o_hour',
+							'minute': replaced.get('minute') or '$$o_minute',
+							'second': replaced.get('second') or '$$o_second'
+						}
 					}
-				}
 
 			def branch(loc: str) -> dict:
 				return {
