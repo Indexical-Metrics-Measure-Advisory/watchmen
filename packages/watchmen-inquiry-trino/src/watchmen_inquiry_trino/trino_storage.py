@@ -20,10 +20,10 @@ from watchmen_storage import as_table_name, ColumnNameLiteral, ComputedLiteral, 
 	FreePager, Literal, NoCriteriaForUpdateException, NoFreeJoinException, UnexpectedStorageException, \
 	UnsupportedComputationException, UnsupportedCriteriaException
 from watchmen_utilities import ArrayHelper, DateTimeConstants, is_blank, is_decimal, is_not_blank
-from .trino_storage_spi import TrinoStorageSPI
 from .exception import InquiryTrinoException
 from .settings import ask_trino_auth_type, ask_trino_basic_auth, ask_trino_host, ask_trino_need_auth, ask_trino_user, \
 	AuthenticationType
+from .trino_storage_spi import TrinoStorageSPI
 
 logger = getLogger(__name__)
 
@@ -599,8 +599,7 @@ class TrinoStorage(TrinoStorageSPI):
 		elif isinstance(value, str):
 			parsed, decimal_value = is_decimal(value)
 			if not parsed:
-				# TODO actually it is failed anyway, raise exception now?
-				return f'CAST(\'{str}\' AS DECIMAL)'
+				return f'CAST({str} AS DECIMAL)'
 			else:
 				return str(decimal_value)
 		else:
@@ -620,16 +619,16 @@ class TrinoStorage(TrinoStorageSPI):
 		elif isinstance(literal, ComputedLiteral):
 			operator = literal.operator
 			if operator == ComputedLiteralOperator.ADD:
-				return ArrayHelper(literal.elements).map(lambda x: self.build_literal(x, self.to_decimal)).join(' + ')
+				return ArrayHelper(literal.elements).map(lambda x: self.to_decimal(self.build_literal(x))).join(' + ')
 			elif operator == ComputedLiteralOperator.SUBTRACT:
-				return ArrayHelper(literal.elements).map(lambda x: self.build_literal(x, self.to_decimal)).join(' - ')
+				return ArrayHelper(literal.elements).map(lambda x: self.to_decimal(self.build_literal(x))).join(' - ')
 			elif operator == ComputedLiteralOperator.MULTIPLY:
-				return ArrayHelper(literal.elements).map(lambda x: self.build_literal(x, self.to_decimal)).join(' * ')
+				return ArrayHelper(literal.elements).map(lambda x: self.to_decimal(self.build_literal(x))).join(' * ')
 			elif operator == ComputedLiteralOperator.DIVIDE:
-				exp = ArrayHelper(literal.elements).map(lambda x: self.build_literal(x, self.to_decimal)).join(' / ')
+				exp = ArrayHelper(literal.elements).map(lambda x: self.to_decimal(self.build_literal(x))).join(' / ')
 				return f'1.0 * {exp}'
 			elif operator == ComputedLiteralOperator.MODULUS:
-				return ArrayHelper(literal.elements).map(lambda x: self.build_literal(x, self.to_decimal)).join(' % ')
+				return ArrayHelper(literal.elements).map(lambda x: self.to_decimal(self.build_literal(x))).join(' % ')
 			elif operator == ComputedLiteralOperator.YEAR_OF:
 				return f'EXTRACT(YEAR FROM {self.build_literal(literal.elements[0])})'
 			elif operator == ComputedLiteralOperator.HALF_YEAR_OF:
@@ -1027,13 +1026,13 @@ class TrinoStorage(TrinoStorageSPI):
 		if arithmetic == FreeAggregateArithmetic.COUNT:
 			return f'COUNT(1) AS {alias}'
 		elif arithmetic == FreeAggregateArithmetic.SUMMARY:
-			return f'SUM({name}) AS {alias}'
+			return f'SUM({self.to_decimal(name)}) AS {alias}'
 		elif arithmetic == FreeAggregateArithmetic.AVERAGE:
-			return f'AVG({name}) AS {alias}'
+			return f'AVG({self.to_decimal(name)}) AS {alias}'
 		elif arithmetic == FreeAggregateArithmetic.MAXIMUM:
-			return f'MAX({name}) AS {alias}'
+			return f'MAX({self.to_decimal(name)}) AS {alias}'
 		elif arithmetic == FreeAggregateArithmetic.MINIMUM:
-			return f'MIN({name}) AS {alias}'
+			return f'MIN({self.to_decimal(name)}) AS {alias}'
 		elif arithmetic == FreeAggregateArithmetic.NONE or arithmetic is None:
 			return f'{name} AS {alias}'
 		else:
