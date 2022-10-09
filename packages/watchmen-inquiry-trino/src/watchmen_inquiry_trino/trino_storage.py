@@ -35,13 +35,13 @@ def get_data_source_service(principal_service: PrincipalService) -> DataSourceSe
 def build_move_year_reduce_func() -> str:
 	command = 'ELEMENT_AT(x, 1)'
 	value = 'ELEMENT_AT(x, 2)'
-	is_not_leap = f'(YEAR({value}) % 4 != 0 OR (YEAR({value}) % 100 = 0 AND YEAR({value}) % 400 != 0))'
+	is_not_leap = f'({value} % 4 != 0 OR ({value} % 100 = 0 AND {value} % 400 != 0))'
 
 	return \
 		f'CASE ' \
 		f' WHEN {command} = \'\' THEN ' \
 		f'  CASE' \
-		f'   WHEN {is_not_leap} AND MONTH({value}) AND DAY_OF_MONTH({value}) = 29 ' \
+		f'   WHEN {is_not_leap} AND MONTH(s) AND DAY_OF_MONTH(s) = 29 ' \
 		f'    THEN DATE_PARSE(DATE_FORMAT(s, CONCAT({value}, \'-%m-28 %H:%i:%S\')), \'%Y-%m-%d %H:%i:%S\') ' \
 		f'   ELSE DATE_PARSE(DATE_FORMAT(s, CONCAT({value}, \'-%m-%d %H:%i:%S\')), \'%Y-%m-%d %H:%i:%S\') ' \
 		f'  END ' \
@@ -62,7 +62,7 @@ def build_move_month_reduce_func() -> str:
 		return f'IF({m} < 10, CONCAT(\'0\', {m}), {m})'
 
 	def direct_set(m: Union[str, int]) -> str:
-		return f'DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-\', {str_month(m)}, \'-%d %H:%i:%S\'), \'%Y-%m-%d %H:%i:%S\')'
+		return f'DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-\', {str_month(m)}, \'-%d %H:%i:%S\')), \'%Y-%m-%d %H:%i:%S\')'
 
 	return \
 		f'CASE ' \
@@ -468,7 +468,7 @@ class TrinoStorage(TrinoStorageSPI):
 
 				# reduce function on pattern array
 				patterns = ArrayHelper(move_to_pattern) \
-					.map(lambda p: f'ARRAY[\'{p[0]}\', \'{p[1]}\', {p[2]}]') \
+					.map(lambda p: f'ARRAY[\'{p[0]}\', \'{p[1]}\', \'{p[2]}\']') \
 					.join(', ')
 				return \
 					f'REDUCE(ARRAY[{patterns}], {self.build_literal(literal.elements[0])}, ' \
