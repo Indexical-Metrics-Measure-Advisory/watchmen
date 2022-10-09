@@ -35,7 +35,9 @@ def get_data_source_service(principal_service: PrincipalService) -> DataSourceSe
 def build_move_year_reduce_func() -> str:
 	command = 'ELEMENT_AT(x, 1)'
 	value = 'ELEMENT_AT(x, 2)'
-	is_not_leap = f'({value} % 4 != 0 OR ({value} % 100 = 0 AND {value} % 400 != 0))'
+	is_not_leap = \
+		f'(CAST({value} AS INTEGER) % 4 != 0 ' \
+		f'OR (CAST({value} AS INTEGER) % 100 = 0 AND CAST({value} AS INTEGER) % 400 != 0))'
 
 	return \
 		f'CASE ' \
