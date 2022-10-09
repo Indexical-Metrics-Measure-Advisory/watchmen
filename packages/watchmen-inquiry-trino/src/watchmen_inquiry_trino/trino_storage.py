@@ -32,230 +32,6 @@ def get_data_source_service(principal_service: PrincipalService) -> DataSourceSe
 	return DataSourceService(principal_service)
 
 
-def build_move_year_literal(base_literal: str, command: str, value: int) -> str:
-	if command == '':
-		if value % 4 != 0 or (value % 100 == 0 and value % 400 != 0):
-			# not leap year, if 02/29, replaced by 02/28
-			return \
-				f'CASE ' \
-				f' WHEN MONTH({base_literal}) = 2 AND DAY_OF_MONTH({base_literal}) = 29 ' \
-				f'  THEN DATE_PARSE(DATE_FORMAT({base_literal}, \'{value}-%m-28 %H:%i:%S\'), \'%Y-%m-%d %H:%i:%S\') ' \
-				f' ELSE DATE_PARSE(DATE_FORMAT({base_literal}, \'{value}-%m-%d %H:%i:%S\'), \'%Y-%m-%d %H:%i:%S\')' \
-				f'END'
-		else:
-			# replace year directly
-			return f'DATE_PARSE(DATE_FORMAT({base_literal}, \'{value}-%m-%d %H:%i:%S\'), \'%Y-%m-%d %H:%i:%S\')'
-	elif command == '+' or command == '-':
-		# 1. not leap year, if 02/29, replaced by 02/28
-		# 2. not leap year, not 02/29, use date_add
-		# 3. leap year, use date_add
-		to_year = f'(YEAR({base_literal}) + {value})' if command == '+' else f'(YEAR({base_literal}) - {value})'
-		is_not_leap = f'({to_year} % 4 != 0 OR ({to_year} % 100 = 0 AND {to_year} % 400 != 0))'
-		is_229 = f'MONTH({base_literal}) = 2 AND DAY_OF_MONTH({base_literal}) = 29'
-		use_228 = f'DATE_PARSE(DATE_FORMAT({base_literal}, CONCAT({to_year}, \'-02-28 %H:%i:%S\')), \'%Y-%m-%d %H:%i:%S\')'
-		offset_year = f'{value}' if command == '+' else f'-{value}'
-		return \
-			f'CASE ' \
-			f' WHEN {is_229} AND {is_not_leap} THEN {use_228} ' \
-			f' ELSE DATE_ADD(\'year\', {offset_year}, {base_literal}) ' \
-			f'END'
-	else:
-		raise UnsupportedComputationException(f'Date move command type[{command}] is not supported.')
-
-
-def build_move_month_literal(base_literal: str, command: str, value: int) -> str:
-	# noinspection DuplicatedCode
-	if command == '':
-		if value < 1 or value > 12:
-			raise UnsupportedComputationException(
-				f'Month must be between 1 and 12 when do set directly on date movement.')
-		str_value = f'0{value}' if value < 10 else f'{value}'
-		to_year = f'YEAR({base_literal})'
-		is_not_leap = f'({to_year} % 4 != 0 OR ({to_year} % 100 = 0 AND {to_year} % 400 != 0))'
-		if value == 2:
-			# not leap year, if 02/29, replaced by 02/28
-			return \
-				f'CASE ' \
-				f' WHEN {is_not_leap} AND DAY_OF_MONTH({base_literal}) = 29 ' \
-				f'  THEN DATE_PARSE(DATE_FORMAT({base_literal}, \'%Y-{str_value}-28 %H:%i:%S\'), \'%Y-%m-%d %H:%i:%S\') ' \
-				f' ELSE DATE_PARSE(DATE_FORMAT({base_literal}, \'%Y-{str_value}-%d %H:%i:%S\'), \'%Y-%m-%d %H:%i:%S\')' \
-				f'END'
-		else:
-			# replace month directly
-			return f'DATE_PARSE(DATE_FORMAT({base_literal}, \'%Y-{str_value}-%d %H:%i:%S\'), \'%Y-%m-%d %H:%i:%S\')'
-	elif command == '+':
-		# 1. not leap year, if 02/29, recalculate year, and replaced by 02/28
-		# 2. not leap year, not 02/29, recalculate year and month
-		# 3. leap year, recalculate year and month
-		year_plus = int(value / 12)
-		month_plus = value % 12
-		to_year = f'(YEAR({base_literal}) + {year_plus})'
-		to_month = f'(MONTH({base_literal}) + {month_plus})'
-		to_month_absolute = f'({to_month} - 12)'
-		is_not_leap = f'({to_year} % 4 != 0 OR ({to_year} % 100 = 0 AND {to_year} % 400 != 0))'
-
-		def concat_228(plus_1_year: bool) -> str:
-			year = f'{to_year} + 1' if plus_1_year else to_year
-			return f'DATE_PARSE(DATE_FORMAT({base_literal}, CONCAT({year}, \'-2-28 %H:%i:%S\')), \'%Y-%c-%d %H:%i:%S\')'
-
-		def concat_not_228(month: str, plus_1_year: bool) -> str:
-			year = f'{to_year} + 1' if plus_1_year else to_year
-			return f'DATE_PARSE(DATE_FORMAT({base_literal}, CONCAT({year}, {month}, \'-%d %H:%i:%S\')), \'%Y-%c-%d %H:%i:%S\')'
-
-		return \
-			f'CASE ' \
-			f' WHEN {is_not_leap} AND DAY_OF_MONTH({base_literal}) = 29 THEN ' \
-			f'  CASE ' \
-			f'   WHEN {to_month} % 12 = 2 AND {to_month} > 12 THEN {concat_228(True)} ' \
-			f'   WHEN {to_month} % 12 = 2 AND {to_month} <= 12 THEN {concat_228(False)} ' \
-			f'   WHEN {to_month} > 12 THEN {concat_not_228(to_month_absolute, True)} ' \
-			f'   WHEN {to_month} <= 12 THEN {concat_not_228(to_month, False)} ' \
-			f'  END ' \
-			f' WHEN {to_month} > 12 THEN {concat_not_228(to_month_absolute, True)} ' \
-			f' ELSE {concat_not_228(to_month, False)} ' \
-			f'END'
-	elif command == '-':
-		# 1. not leap year, if 02/29, recalculate year, and replaced by 02/28
-		# 2. not leap year, not 02/29, recalculate year and month
-		# 3. leap year, recalculate year and month
-		year_plus = int(value / 12)
-		month_plus = value % 12
-		to_year = f'(YEAR({base_literal}) - {year_plus})'
-		to_month = f'(MONTH({base_literal}) - {month_plus})'
-		to_month_absolute = f'({to_month} + 12)'
-		is_not_leap = f'({to_year} % 4 != 0 OR ({to_year} % 100 = 0 AND {to_year} % 400 != 0))'
-
-		def concat_228(minus_1_year: bool) -> str:
-			year = f'{to_year} - 1' if minus_1_year else to_year
-			return f'DATE_PARSE(DATE_FORMAT({base_literal}, CONCAT({year}, \'-2-28 %H:%i:%S\')), \'%Y-%c-%d %H:%i:%S\')'
-
-		def concat_not_228(month: str, minus_1_year: bool) -> str:
-			year = f'{to_year} - 1' if minus_1_year else to_year
-			return f'DATE_PARSE(DATE_FORMAT({base_literal}, CONCAT({year}, {month}, \'-%d %H:%i:%S\')), \'%Y-%c-%d %H:%i:%S\')'
-
-		return \
-			f'CASE ' \
-			f' WHEN {is_not_leap} AND DAY_OF_MONTH({base_literal}) = 29 THEN ' \
-			f'  CASE ' \
-			f'   WHEN {to_month_absolute} % 12 = 2 AND {to_month} < 1 THEN {concat_228(True)} ' \
-			f'   WHEN {to_month_absolute} % 12 = 2 AND {to_month} >= 1 THEN {concat_228(False)} ' \
-			f'   WHEN {to_month} < 1 THEN {concat_not_228(to_month_absolute, True)} ' \
-			f'   WHEN {to_month} >= 1 THEN {concat_not_228(to_month, False)} ' \
-			f'  END ' \
-			f' WHEN {to_month} < 1 THEN {concat_not_228(to_month_absolute, True)} ' \
-			f' ELSE {concat_not_228(to_month, False)} ' \
-			f'END'
-	else:
-		raise UnsupportedComputationException(f'Date move command type[{command}] is not supported.')
-
-
-def build_move_day_of_month_literal(base_literal: str, command: str, value: int) -> str:
-	if value == 99:
-		year = f'YEAR({base_literal}))'
-		month = f'MONTH({base_literal})'
-		is_not_leap = f'({year} % 4 != 0 OR ({year} % 100 = 0 AND {year} % 400 != 0))'
-		return \
-			f'CASE ' \
-			f' WHEN {month} = 1 OR {month} = 3 OR {month} = 5 OR {month} = 7 OR {month} = 8 OR {month} = 10 OR {month} = 12 ' \
-			f'  THEN DATE_PARSE(DATE_FORMAT({base_literal}, \'%Y-%m-31 %H:%i:%S\'), \'%Y-%m-%d %H:%i:%S\') ' \
-			f' WHEN {month} = 4 OR {month} = 6 OR {month} = 9 OR {month} = 11 ' \
-			f'  THEN DATE_PARSE(DATE_FORMAT({base_literal}, \'%Y-%m-30 %H:%i:%S\'), \'%Y-%m-%d %H:%i:%S\') ' \
-			f' WHEN {is_not_leap} THEN DATE_PARSE(DATE_FORMAT({base_literal}, \'%Y-%m-28 %H:%i:%S\'), \'%Y-%m-%d %H:%i:%S\') ' \
-			f' ELSE DATE_PARSE(DATE_FORMAT({base_literal}, \'%Y-%m-29 %H:%i:%S\'), \'%Y-%m-%d %H:%i:%S\') ' \
-			f'END'
-	elif command == '':
-		year = f'YEAR({base_literal}))'
-		month = f'MONTH({base_literal})'
-		is_not_leap = f'({year} % 4 != 0 OR ({year} % 100 = 0 AND {year} % 400 != 0))'
-		return \
-			f'CASE ' \
-			f' WHEN {value} >= 29 AND {month} = 2 AND {is_not_leap} ' \
-			f'  THEN DATE_PARSE(DATE_FORMAT({base_literal}, \'%Y-%m-28 %H:%i:%S\'), \'%Y-%m-%d %H:%i:%S\') ' \
-			f' WHEN {value} >= 29 AND {month} = 2 ' \
-			f'  THEN DATE_PARSE(DATE_FORMAT({base_literal}, \'%Y-%m-29 %H:%i:%S\'), \'%Y-%m-%d %H:%i:%S\') ' \
-			f' WHEN {value} >= 30 AND ({month} = 4 OR {month} = 6 OR {month} = 9 OR {month} = 11) ' \
-			f'  THEN DATE_PARSE(DATE_FORMAT({base_literal}, \'%Y-%m-30 %H:%i:%S\'), \'%Y-%m-%d %H:%i:%S\') ' \
-			f' WHEN {value} >= 31 THEN DATE_PARSE(DATE_FORMAT({base_literal}, \'%Y-%m-31 %H:%i:%S\'), \'%Y-%m-%d %H:%i:%S\') ' \
-			f' ELSE DATE_PARSE(DATE_FORMAT({base_literal}, \'%Y-%m-{value} %H:%i:%S\'), \'%Y-%m-%e %H:%i:%S\') ' \
-			f'END'
-	elif command == '+':
-		return f'DATE_ADD(\'day\', {value}, {base_literal})'
-	elif command == '-':
-		return f'DATE_ADD(\'day\', -{value}, {base_literal})'
-	else:
-		raise UnsupportedComputationException(f'Date move command type[{command}] is not supported.')
-
-
-def build_move_hour_literal(base_literal: str, command: str, value: int) -> str:
-	if command == '':
-		if value < 0 or value > 23:
-			raise UnsupportedComputationException(
-				f'Hour must be between 0 and 23 when do set directly on date movement.')
-		return f'DATE_PARSE(DATE_FORMAT({base_literal}, \'%Y-%m-%d {value}:%i:%S\'), \'%Y-%m-%d %k:%i:%S\')'
-	elif command == '+':
-		return f'DATE_ADD(\'hour\', {value}, {base_literal})'
-	elif command == '-':
-		return f'DATE_ADD(\'hour\', -{value}, {base_literal})'
-	else:
-		raise UnsupportedComputationException(f'Date move command type[{command}] is not supported.')
-
-
-# noinspection DuplicatedCode
-def build_move_minute_literal(base_literal: str, command: str, value: int) -> str:
-	if command == '':
-		if value < 0 or value > 59:
-			raise UnsupportedComputationException(
-				f'Minute must be between 0 and 59 when do set directly on date movement.')
-		minute = f'0{value}' if value < 10 else value
-		return f'DATE_PARSE(DATE_FORMAT({base_literal}, \'%Y-%m-%d %H:{minute}:%S\'), \'%Y-%m-%d %H:%i:%S\')'
-	elif command == '+':
-		return f'DATE_ADD(\'minute\', {value}, {base_literal})'
-	elif command == '-':
-		return f'DATE_ADD(\'minute\', -{value}, {base_literal})'
-	else:
-		raise UnsupportedComputationException(f'Date move command type[{command}] is not supported.')
-
-
-# noinspection DuplicatedCode
-def build_move_second_literal(base_literal: str, command: str, value: int) -> str:
-	if command == '':
-		if value < 0 or value > 59:
-			raise UnsupportedComputationException(
-				f'Second must be between 0 and 59 when do set directly on date movement.')
-		second = f'0{value}' if value < 10 else value
-		return f'DATE_PARSE(DATE_FORMAT({base_literal}, \'%Y-%m-%d %H:%i:{second}\'), \'%Y-%m-%d %H:%i:%S\')'
-	elif command == '+':
-		return f'DATE_ADD(\'second\', {value}, {base_literal})'
-	elif command == '-':
-		return f'DATE_ADD(\'second\', -{value}, {base_literal})'
-	else:
-		raise UnsupportedComputationException(f'Date move command type[{command}] is not supported.')
-
-
-def build_move_date_literal(base_literal: str, movement: Tuple[str, str, str]) -> str:
-	location = movement[0]
-	command = movement[1]
-	value_parsed, value = is_decimal(movement[2])
-	if not value_parsed:
-		raise UnsupportedComputationException(f'Date move command[{movement}] is not supported.')
-	value = int(value)
-
-	if location == 'Y':
-		return build_move_year_literal(base_literal, command, value)
-	elif location == 'M':
-		return build_move_month_literal(base_literal, command, value)
-	elif location == 'D':
-		return build_move_day_of_month_literal(base_literal, command, value)
-	elif location == 'h':
-		return build_move_hour_literal(base_literal, command, value)
-	elif location == 'm':
-		return build_move_minute_literal(base_literal, command, value)
-	elif location == 's':
-		return build_move_second_literal(base_literal, command, value)
-	else:
-		raise UnsupportedComputationException(f'Date move command[{movement}] is not supported.')
-
-
 def build_move_year_reduce_func() -> str:
 	command = 'ELEMENT_AT(x, 1)'
 	value = 'ELEMENT_AT(x, 2)'
@@ -269,9 +45,9 @@ def build_move_year_reduce_func() -> str:
 		f'    THEN DATE_PARSE(DATE_FORMAT(s, CONCAT({value}, \'-%m-28 %H:%i:%S\')), \'%Y-%m-%d %H:%i:%S\') ' \
 		f'   ELSE DATE_PARSE(DATE_FORMAT(s, CONCAT({value}, \'-%m-%d %H:%i:%S\')), \'%Y-%m-%d %H:%i:%S\') ' \
 		f'  END ' \
-		f' WHEN {command} = \'+\' THEN DATE_ADD(\'year\', {value}, s)' \
-		f' WHEN {command} = \'-\' THEN DATE_ADD(\'year\', 0 - {value}, s)' \
-		f' ELSE s' \
+		f' WHEN {command} = \'+\' THEN DATE_ADD(\'year\', {value}, s) ' \
+		f' WHEN {command} = \'-\' THEN DATE_ADD(\'year\', 0 - {value}, s) ' \
+		f' ELSE s ' \
 		f'END'
 
 
@@ -297,12 +73,12 @@ def build_move_month_reduce_func() -> str:
 		f'   WHEN {value} = 2 AND DAY_OF_MONTH(s) = 29 AND {is_not_leap} ' \
 		f'    THEN DATE_PARSE(DATE_FORMAT(s, \'%Y-02-28 %H:%i:%S\'), \'%Y-%m-%d %H:%i:%S\') ' \
 		f'   WHEN {m30} AND DAY_OF_MONTH(s) = 31 ' \
-		f'    THEN DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-\', {str_month(value)},\'-30 %H:%i:%S\'), \'%Y-%m-%d %H:%i:%S\') ' \
+		f'    THEN DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-\', {str_month(value)},\'-30 %H:%i:%S\')), \'%Y-%m-%d %H:%i:%S\') ' \
 		f'   ELSE {direct_set(value)}' \
 		f'  END ' \
-		f' WHEN {command} = \'+\' THEN DATE_ADD(\'month\', {value}, s)' \
-		f' WHEN {command} = \'-\' THEN DATE_ADD(\'month\', 0 - {value}, s)' \
-		f' ELSE s' \
+		f' WHEN {command} = \'+\' THEN DATE_ADD(\'month\', {value}, s) ' \
+		f' WHEN {command} = \'-\' THEN DATE_ADD(\'month\', 0 - {value}, s) ' \
+		f' ELSE s ' \
 		f'END'
 
 
@@ -332,10 +108,10 @@ def build_move_day_of_month_reduce_func() -> str:
 		f'   WHEN {value} >= 29 AND MONTH(s) = 2 THEN {fix_day(29)} ' \
 		f'   WHEN {value} >= 30 AND ({m30}) THEN {fix_day(30)} ' \
 		f'   WHEN {value} >= 31 THEN {fix_day(31)} ' \
-		f'   ELSE DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-%m-\', {value}, \' %H:%i:%S\'), \'%Y-%m-%e %H:%i:%S\') ' \
+		f'   ELSE DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-%m-\', {value}, \' %H:%i:%S\')), \'%Y-%m-%e %H:%i:%S\') ' \
 		f'  END ' \
-		f' WHEN {command} = \'+\' THEN DATE_ADD(\'day\', {value}, s)' \
-		f' WHEN {command} = \'-\' THEN DATE_ADD(\'day\', {value} * -1, s)' \
+		f' WHEN {command} = \'+\' THEN DATE_ADD(\'day\', {value}, s) ' \
+		f' WHEN {command} = \'-\' THEN DATE_ADD(\'day\', {value} * -1, s) ' \
 		f' ELSE s ' \
 		f'END'
 
@@ -346,10 +122,10 @@ def build_move_hour_reduce_func() -> str:
 	return \
 		f'CASE ' \
 		f' WHEN ELEMENT_AT(x, 1) = \'\' ' \
-		f'  THEN DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-%m-%d \', {hour}, \':%i:%S\')), \'%Y-%m-%d %H:%i:%S\')' \
+		f'  THEN DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-%m-%d \', {hour}, \':%i:%S\')), \'%Y-%m-%d %H:%i:%S\') ' \
 		f' WHEN ELEMENT_AT(x, 1) = \'+\' THEN DATE_ADD(\'minute\', ELEMENT_AT(x, 2), s) ' \
-		f' WHEN ELEMENT_AT(x, 1) = \'-\' THEN DATE_ADD(\'minute\', 0 - ELEMENT_AT(x, 2), s)' \
-		f' ELSE s' \
+		f' WHEN ELEMENT_AT(x, 1) = \'-\' THEN DATE_ADD(\'minute\', 0 - ELEMENT_AT(x, 2), s) ' \
+		f' ELSE s ' \
 		f'END'
 
 
@@ -361,8 +137,8 @@ def build_move_minute_reduce_func() -> str:
 		f' WHEN ELEMENT_AT(x, 1) = \'\' ' \
 		f'  THEN DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-%m-%d %H:\', {minute}, \':%S\')), \'%Y-%m-%d %H:%i:%S\')' \
 		f' WHEN ELEMENT_AT(x, 1) = \'+\' THEN DATE_ADD(\'minute\', ELEMENT_AT(x, 2), s) ' \
-		f' WHEN ELEMENT_AT(x, 1) = \'-\' THEN DATE_ADD(\'minute\', 0 - ELEMENT_AT(x, 2), s)' \
-		f' ELSE s' \
+		f' WHEN ELEMENT_AT(x, 1) = \'-\' THEN DATE_ADD(\'minute\', 0 - ELEMENT_AT(x, 2), s) ' \
+		f' ELSE s ' \
 		f'END'
 
 
@@ -374,8 +150,8 @@ def build_move_second_reduce_func() -> str:
 		f' WHEN ELEMENT_AT(x, 1) = \'\' ' \
 		f'  THEN DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-%m-%d %H:%i:\', {second})), \'%Y-%m-%d %H:%i:%S\')' \
 		f' WHEN ELEMENT_AT(x, 1) = \'+\' THEN DATE_ADD(\'second\', ELEMENT_AT(x, 2), s) ' \
-		f' WHEN ELEMENT_AT(x, 1) = \'-\' THEN DATE_ADD(\'second\', 0 - ELEMENT_AT(x, 2), s)' \
-		f' ELSE s' \
+		f' WHEN ELEMENT_AT(x, 1) = \'-\' THEN DATE_ADD(\'second\', 0 - ELEMENT_AT(x, 2), s) ' \
+		f' ELSE s ' \
 		f'END'
 
 
@@ -388,7 +164,7 @@ def build_move_date_reduce_func() -> str:
 		f' WHEN ELEMENT_AT(x, 0) = \'h\' THEN {build_move_hour_reduce_func()} ' \
 		f' WHEN ELEMENT_AT(x, 0) = \'m\' THEN {build_move_minute_reduce_func()} ' \
 		f' WHEN ELEMENT_AT(x, 0) = \'s\' THEN {build_move_second_reduce_func()} ' \
-		f' ELSE s' \
+		f' ELSE s ' \
 		f'END'
 
 
@@ -689,9 +465,6 @@ class TrinoStorage(TrinoStorageSPI):
 				# cannot add customized function into trino
 				# split
 				move_to_pattern = parse_move_date_pattern(literal.elements[1])
-				# nested cases
-				# return ArrayHelper(move_to_pattern) \
-				# 	.reduce(build_move_date_literal, self.build_literal(literal.elements[0]))
 
 				# reduce function on pattern array
 				patterns = ArrayHelper(move_to_pattern) \
