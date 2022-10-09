@@ -45,9 +45,9 @@ def build_move_year_reduce_func() -> str:
 		f'    THEN DATE_PARSE(DATE_FORMAT(s, CONCAT({value}, \'-%m-28 %H:%i:%S\')), \'%Y-%m-%d %H:%i:%S\') ' \
 		f'   ELSE DATE_PARSE(DATE_FORMAT(s, CONCAT({value}, \'-%m-%d %H:%i:%S\')), \'%Y-%m-%d %H:%i:%S\') ' \
 		f'  END ' \
-		f' WHEN {command} = \'+\' THEN DATE_ADD(\'year\', {value}, s)' \
-		f' WHEN {command} = \'-\' THEN DATE_ADD(\'year\', 0 - {value}, s)' \
-		f' ELSE s' \
+		f' WHEN {command} = \'+\' THEN DATE_ADD(\'year\', {value}, s) ' \
+		f' WHEN {command} = \'-\' THEN DATE_ADD(\'year\', 0 - {value}, s) ' \
+		f' ELSE s ' \
 		f'END'
 
 
@@ -73,12 +73,12 @@ def build_move_month_reduce_func() -> str:
 		f'   WHEN {value} = 2 AND DAY_OF_MONTH(s) = 29 AND {is_not_leap} ' \
 		f'    THEN DATE_PARSE(DATE_FORMAT(s, \'%Y-02-28 %H:%i:%S\'), \'%Y-%m-%d %H:%i:%S\') ' \
 		f'   WHEN {m30} AND DAY_OF_MONTH(s) = 31 ' \
-		f'    THEN DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-\', {str_month(value)},\'-30 %H:%i:%S\'), \'%Y-%m-%d %H:%i:%S\') ' \
+		f'    THEN DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-\', {str_month(value)},\'-30 %H:%i:%S\')), \'%Y-%m-%d %H:%i:%S\') ' \
 		f'   ELSE {direct_set(value)}' \
 		f'  END ' \
-		f' WHEN {command} = \'+\' THEN DATE_ADD(\'month\', {value}, s)' \
-		f' WHEN {command} = \'-\' THEN DATE_ADD(\'month\', 0 - {value}, s)' \
-		f' ELSE s' \
+		f' WHEN {command} = \'+\' THEN DATE_ADD(\'month\', {value}, s) ' \
+		f' WHEN {command} = \'-\' THEN DATE_ADD(\'month\', 0 - {value}, s) ' \
+		f' ELSE s ' \
 		f'END'
 
 
@@ -108,10 +108,10 @@ def build_move_day_of_month_reduce_func() -> str:
 		f'   WHEN {value} >= 29 AND MONTH(s) = 2 THEN {fix_day(29)} ' \
 		f'   WHEN {value} >= 30 AND ({m30}) THEN {fix_day(30)} ' \
 		f'   WHEN {value} >= 31 THEN {fix_day(31)} ' \
-		f'   ELSE DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-%m-\', {value}, \' %H:%i:%S\'), \'%Y-%m-%e %H:%i:%S\') ' \
+		f'   ELSE DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-%m-\', {value}, \' %H:%i:%S\')), \'%Y-%m-%e %H:%i:%S\') ' \
 		f'  END ' \
-		f' WHEN {command} = \'+\' THEN DATE_ADD(\'day\', {value}, s)' \
-		f' WHEN {command} = \'-\' THEN DATE_ADD(\'day\', {value} * -1, s)' \
+		f' WHEN {command} = \'+\' THEN DATE_ADD(\'day\', {value}, s) ' \
+		f' WHEN {command} = \'-\' THEN DATE_ADD(\'day\', {value} * -1, s) ' \
 		f' ELSE s ' \
 		f'END'
 
@@ -122,10 +122,10 @@ def build_move_hour_reduce_func() -> str:
 	return \
 		f'CASE ' \
 		f' WHEN ELEMENT_AT(x, 1) = \'\' ' \
-		f'  THEN DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-%m-%d \', {hour}, \':%i:%S\')), \'%Y-%m-%d %H:%i:%S\')' \
+		f'  THEN DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-%m-%d \', {hour}, \':%i:%S\')), \'%Y-%m-%d %H:%i:%S\') ' \
 		f' WHEN ELEMENT_AT(x, 1) = \'+\' THEN DATE_ADD(\'minute\', ELEMENT_AT(x, 2), s) ' \
-		f' WHEN ELEMENT_AT(x, 1) = \'-\' THEN DATE_ADD(\'minute\', 0 - ELEMENT_AT(x, 2), s)' \
-		f' ELSE s' \
+		f' WHEN ELEMENT_AT(x, 1) = \'-\' THEN DATE_ADD(\'minute\', 0 - ELEMENT_AT(x, 2), s) ' \
+		f' ELSE s ' \
 		f'END'
 
 
@@ -137,8 +137,8 @@ def build_move_minute_reduce_func() -> str:
 		f' WHEN ELEMENT_AT(x, 1) = \'\' ' \
 		f'  THEN DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-%m-%d %H:\', {minute}, \':%S\')), \'%Y-%m-%d %H:%i:%S\')' \
 		f' WHEN ELEMENT_AT(x, 1) = \'+\' THEN DATE_ADD(\'minute\', ELEMENT_AT(x, 2), s) ' \
-		f' WHEN ELEMENT_AT(x, 1) = \'-\' THEN DATE_ADD(\'minute\', 0 - ELEMENT_AT(x, 2), s)' \
-		f' ELSE s' \
+		f' WHEN ELEMENT_AT(x, 1) = \'-\' THEN DATE_ADD(\'minute\', 0 - ELEMENT_AT(x, 2), s) ' \
+		f' ELSE s ' \
 		f'END'
 
 
@@ -150,8 +150,8 @@ def build_move_second_reduce_func() -> str:
 		f' WHEN ELEMENT_AT(x, 1) = \'\' ' \
 		f'  THEN DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-%m-%d %H:%i:\', {second})), \'%Y-%m-%d %H:%i:%S\')' \
 		f' WHEN ELEMENT_AT(x, 1) = \'+\' THEN DATE_ADD(\'second\', ELEMENT_AT(x, 2), s) ' \
-		f' WHEN ELEMENT_AT(x, 1) = \'-\' THEN DATE_ADD(\'second\', 0 - ELEMENT_AT(x, 2), s)' \
-		f' ELSE s' \
+		f' WHEN ELEMENT_AT(x, 1) = \'-\' THEN DATE_ADD(\'second\', 0 - ELEMENT_AT(x, 2), s) ' \
+		f' ELSE s ' \
 		f'END'
 
 
@@ -164,7 +164,7 @@ def build_move_date_reduce_func() -> str:
 		f' WHEN ELEMENT_AT(x, 0) = \'h\' THEN {build_move_hour_reduce_func()} ' \
 		f' WHEN ELEMENT_AT(x, 0) = \'m\' THEN {build_move_minute_reduce_func()} ' \
 		f' WHEN ELEMENT_AT(x, 0) = \'s\' THEN {build_move_second_reduce_func()} ' \
-		f' ELSE s' \
+		f' ELSE s ' \
 		f'END'
 
 
