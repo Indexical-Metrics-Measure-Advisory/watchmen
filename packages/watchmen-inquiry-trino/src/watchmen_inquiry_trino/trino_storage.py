@@ -34,16 +34,14 @@ def get_data_source_service(principal_service: PrincipalService) -> DataSourceSe
 
 def build_move_year_reduce_func() -> str:
 	command = 'ELEMENT_AT(x, 1)'
-	value = 'ELEMENT_AT(x, 2)'
-	is_not_leap = \
-		f'(CAST({value} AS INTEGER) % 4 != 0 ' \
-		f'OR (CAST({value} AS INTEGER) % 100 = 0 AND CAST({value} AS INTEGER) % 400 != 0))'
+	value = 'CAST(ELEMENT_AT(x, 2) AS INTEGER)'
+	is_not_leap = f'({value} % 4 != 0 OR ({value} % 100 = 0 AND {value} % 400 != 0))'
 
 	return \
 		f'CASE ' \
 		f' WHEN {command} = \'\' THEN ' \
 		f'  CASE' \
-		f'   WHEN {is_not_leap} AND MONTH(s) AND DAY_OF_MONTH(s) = 29 ' \
+		f'   WHEN {is_not_leap} AND MONTH(s) = 2 AND DAY_OF_MONTH(s) = 29 ' \
 		f'    THEN DATE_PARSE(DATE_FORMAT(s, CONCAT({value}, \'-%m-28 %H:%i:%S\')), \'%Y-%m-%d %H:%i:%S\') ' \
 		f'   ELSE DATE_PARSE(DATE_FORMAT(s, CONCAT({value}, \'-%m-%d %H:%i:%S\')), \'%Y-%m-%d %H:%i:%S\') ' \
 		f'  END ' \
@@ -57,7 +55,7 @@ def build_move_month_reduce_func() -> str:
 	is_not_leap = '(YEAR(s) % 4 != 0 OR (YEAR(s) % 100 = 0 AND YEAR(s) % 400 != 0))'
 
 	command = 'ELEMENT_AT(x, 1)'
-	value = 'ELEMENT_AT(x, 2)'
+	value = 'CAST(ELEMENT_AT(x, 2) AS INTEGER)'
 	m30 = f'{value} = 4 OR {value} = 6 OR {value} = 9 OR {value} = 11'
 
 	def str_month(m: Union[str, int]) -> str:
@@ -90,7 +88,7 @@ def build_move_day_of_month_reduce_func() -> str:
 	is_not_leap = '(YEAR(s) % 4 != 0 OR (YEAR(s) % 100 = 0 AND YEAR(s) % 400 != 0))'
 
 	command = 'ELEMENT_AT(x, 1)'
-	value = 'ELEMENT_AT(x, 2)'
+	value = 'CAST(ELEMENT_AT(x, 2) AS INTEGER)'
 
 	def fix_day(day: int) -> str:
 		return f'DATE_PARSE(DATE_FORMAT(s, \'%Y-%m-{day} %H:%i:%S\'), \'%Y-%m-%d %H:%i:%S\')'
@@ -119,40 +117,43 @@ def build_move_day_of_month_reduce_func() -> str:
 
 
 def build_move_hour_reduce_func() -> str:
-	hour = 'IF(ELEMENT_AT(x, 2) < 10, CONCAT(\'0\', ELEMENT_AT(x, 2)), ELEMENT_AT(x, 2))'
+	value = 'CAST(ELEMENT_AT(x, 2) AS INTEGER)'
+	hour = f'IF({value} < 10, CONCAT(\'0\', {value}), {value})'
 
 	return \
 		f'CASE ' \
 		f' WHEN ELEMENT_AT(x, 1) = \'\' ' \
 		f'  THEN DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-%m-%d \', {hour}, \':%i:%S\')), \'%Y-%m-%d %H:%i:%S\') ' \
-		f' WHEN ELEMENT_AT(x, 1) = \'+\' THEN DATE_ADD(\'minute\', ELEMENT_AT(x, 2), s) ' \
-		f' WHEN ELEMENT_AT(x, 1) = \'-\' THEN DATE_ADD(\'minute\', 0 - ELEMENT_AT(x, 2), s) ' \
+		f' WHEN ELEMENT_AT(x, 1) = \'+\' THEN DATE_ADD(\'minute\', {value}, s) ' \
+		f' WHEN ELEMENT_AT(x, 1) = \'-\' THEN DATE_ADD(\'minute\', 0 - {value}, s) ' \
 		f' ELSE s ' \
 		f'END'
 
 
 def build_move_minute_reduce_func() -> str:
-	minute = 'IF(ELEMENT_AT(x, 2) < 10, CONCAT(\'0\', ELEMENT_AT(x, 2)), ELEMENT_AT(x, 2))'
+	value = 'CAST(ELEMENT_AT(x, 2) AS INTEGER)'
+	minute = f'IF({value} < 10, CONCAT(\'0\', {value}), {value})'
 
 	return \
 		f'CASE ' \
 		f' WHEN ELEMENT_AT(x, 1) = \'\' ' \
 		f'  THEN DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-%m-%d %H:\', {minute}, \':%S\')), \'%Y-%m-%d %H:%i:%S\')' \
-		f' WHEN ELEMENT_AT(x, 1) = \'+\' THEN DATE_ADD(\'minute\', ELEMENT_AT(x, 2), s) ' \
-		f' WHEN ELEMENT_AT(x, 1) = \'-\' THEN DATE_ADD(\'minute\', 0 - ELEMENT_AT(x, 2), s) ' \
+		f' WHEN ELEMENT_AT(x, 1) = \'+\' THEN DATE_ADD(\'minute\', {value}, s) ' \
+		f' WHEN ELEMENT_AT(x, 1) = \'-\' THEN DATE_ADD(\'minute\', 0 - {value}, s) ' \
 		f' ELSE s ' \
 		f'END'
 
 
 def build_move_second_reduce_func() -> str:
-	second = 'IF(ELEMENT_AT(x, 2) < 10, CONCAT(\'0\', ELEMENT_AT(x, 2)), ELEMENT_AT(x, 2))'
+	value = 'CAST(ELEMENT_AT(x, 2) AS INTEGER)'
+	second = f'IF({value} < 10, CONCAT(\'0\', {value}), {value})'
 
 	return \
 		f'CASE ' \
 		f' WHEN ELEMENT_AT(x, 1) = \'\' ' \
 		f'  THEN DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-%m-%d %H:%i:\', {second})), \'%Y-%m-%d %H:%i:%S\')' \
-		f' WHEN ELEMENT_AT(x, 1) = \'+\' THEN DATE_ADD(\'second\', ELEMENT_AT(x, 2), s) ' \
-		f' WHEN ELEMENT_AT(x, 1) = \'-\' THEN DATE_ADD(\'second\', 0 - ELEMENT_AT(x, 2), s) ' \
+		f' WHEN ELEMENT_AT(x, 1) = \'+\' THEN DATE_ADD(\'second\', {value}, s) ' \
+		f' WHEN ELEMENT_AT(x, 1) = \'-\' THEN DATE_ADD(\'second\', 0 - {value}, s) ' \
 		f' ELSE s ' \
 		f'END'
 
