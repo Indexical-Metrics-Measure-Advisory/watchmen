@@ -375,7 +375,7 @@ class TrinoStorage(TrinoStorageSPI):
 		elif isinstance(value, str):
 			parsed, decimal_value = is_decimal(value)
 			if not parsed:
-				return f'CAST({str} AS DECIMAL)'
+				return f'CAST({value} AS DECIMAL)'
 			else:
 				return str(decimal_value)
 		else:
