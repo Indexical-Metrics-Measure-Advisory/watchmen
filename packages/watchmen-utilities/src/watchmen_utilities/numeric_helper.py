@@ -14,7 +14,7 @@ def is_decimal(value: Optional[str]) -> Tuple[bool, Optional[Decimal]]:
 		return False, None
 	try:
 		return True, Decimal(value)
-	except ValueError:
+	except:
 		return False, None
 
 
