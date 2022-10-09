@@ -20,7 +20,7 @@ from watchmen_storage import as_table_name, ColumnNameLiteral, ComputedLiteral, 
 	FreePager, Literal, NoCriteriaForUpdateException, NoFreeJoinException, UnexpectedStorageException, \
 	UnsupportedComputationException, UnsupportedCriteriaException
 from watchmen_utilities import ArrayHelper, DateTimeConstants, is_blank, is_decimal, is_not_blank
-from . import TrinoStorageSPI
+from .trino_storage_spi import TrinoStorageSPI
 from .exception import InquiryTrinoException
 from .settings import ask_trino_auth_type, ask_trino_basic_auth, ask_trino_host, ask_trino_need_auth, ask_trino_user, \
 	AuthenticationType
