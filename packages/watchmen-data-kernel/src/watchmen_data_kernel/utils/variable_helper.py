@@ -56,6 +56,7 @@ def parse_function_in_variable(function_literal: str, function_name: str, parame
 	return variable_names
 
 
+# noinspection DuplicatedCode
 def parse_move_date_pattern(pattern: str) -> List[Tuple[str, str, str]]:
 	"""
 	elements of tuple are
