@@ -34,56 +34,62 @@ def get_data_source_service(principal_service: PrincipalService) -> DataSourceSe
 
 def build_move_year_reduce_func() -> str:
 	command = 'ELEMENT_AT(x, 1)'
-	value = 'CAST(ELEMENT_AT(x, 2) AS INTEGER)'
-	value_str = 'ELEMENT_AT(x, 2)'
-	is_not_leap = f'({value} % 4 != 0 OR ({value} % 100 = 0 AND {value} % 400 != 0))'
+	v = 'CAST(ELEMENT_AT(x, 2) AS INTEGER)'
+	sv = 'ELEMENT_AT(x, 2)'
+	is_not_leap = f'({v} % 4 != 0 OR ({v} % 100 = 0 AND {v} % 400 != 0))'
 
 	return \
 		f'CASE ' \
 		f' WHEN {command} = \'\' THEN ' \
 		f'  CASE' \
 		f'   WHEN {is_not_leap} AND MONTH(s) = 2 AND DAY_OF_MONTH(s) = 29 ' \
-		f'    THEN DATE_PARSE(DATE_FORMAT(s, CONCAT({value_str}, \'-%m-28 %H:%i:%S\')), \'%Y-%m-%d %H:%i:%S\') ' \
-		f'   ELSE DATE_PARSE(DATE_FORMAT(s, CONCAT({value_str}, \'-%m-%d %H:%i:%S\')), \'%Y-%m-%d %H:%i:%S\') ' \
+		f'    THEN DATE_PARSE(CONCAT(DATE_FORMAT(s, \'%m %H:%i:%S \'), {sv}, \'-28\'), \'%m %H:%i:%S %Y-%d\') ' \
+		f'   ELSE DATE_PARSE(CONCAT(DATE_FORMAT(s, \'%m-%d %H:%i:%S \'), {sv}), \'%m-%d %H:%i:%S %Y\') ' \
 		f'  END ' \
-		f' WHEN {command} = \'+\' THEN DATE_ADD(\'year\', {value}, s) ' \
-		f' WHEN {command} = \'-\' THEN DATE_ADD(\'year\', 0 - {value}, s) ' \
+		f' WHEN {command} = \'+\' THEN DATE_ADD(\'year\', {v}, s) ' \
+		f' WHEN {command} = \'-\' THEN DATE_ADD(\'year\', 0 - {v}, s) ' \
 		f' ELSE s ' \
 		f'END'
+
+
+# noinspection SpellCheckingInspection
+def v_sv_rpad0() -> Tuple[str, str, str]:
+	v = 'CAST(ELEMENT_AT(x, 2) AS INTEGER)'
+	sv = 'ELEMENT_AT(x, 2)'
+	r_pad0 = f'IF({v} < 10, CONCAT(\'0\', {sv}), {sv})'
+	return v, sv, r_pad0
 
 
 def build_move_month_reduce_func() -> str:
 	is_not_leap = '(YEAR(s) % 4 != 0 OR (YEAR(s) % 100 = 0 AND YEAR(s) % 400 != 0))'
 
 	command = 'ELEMENT_AT(x, 1)'
-	value = 'CAST(ELEMENT_AT(x, 2) AS INTEGER)'
-	value_str = 'ELEMENT_AT(x, 2)'
-	m30 = f'{value} = 4 OR {value} = 6 OR {value} = 9 OR {value} = 11'
+	v, sv, month = v_sv_rpad0()
+	m30 = f'{v} = 4 OR {v} = 6 OR {v} = 9 OR {v} = 11'
 
-	def fixed_direct_set(v: int) -> str:
-		m = f'0{v}' if v < 10 else f'{v}'
-		return f'DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-{m}-%d %H:%i:%S\')), \'%Y-%m-%d %H:%i:%S\')'
-
-	def str_month() -> str:
-		return f'IF({value} < 10, CONCAT(\'0\', {value_str}), {value_str})'
+	def fixed_direct_set(v_m: int) -> str:
+		m = f'0{v_m}' if v_m < 10 else f'{v_m}'
+		return f'DATE_PARSE(CONCAT(DATE_FORMAT(s, \'%Y-%d %H:%i:%S \'), \'{m}\'), \'%Y-%d %H:%i:%S %m\')'
 
 	def direct_set() -> str:
-		return f'DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-\', {str_month()}, \'-%d %H:%i:%S\')), \'%Y-%m-%d %H:%i:%S\')'
+		return f'DATE_PARSE(CONCAT(DATE_FORMAT(s, \'%Y-%d %H:%i:%S \'), {month}), \'%Y-%d %H:%i:%S %m\')'
 
 	return \
 		f'CASE ' \
 		f' WHEN {command} = \'\' THEN ' \
 		f'  CASE' \
-		f'   WHEN {value} < 1 THEN {fixed_direct_set(1)} ' \
-		f'   WHEN {value} > 12 THEN {fixed_direct_set(12)} ' \
-		f'   WHEN {value} = 2 AND DAY_OF_MONTH(s) = 29 AND {is_not_leap} ' \
-		f'    THEN DATE_PARSE(DATE_FORMAT(s, \'%Y-02-28 %H:%i:%S\'), \'%Y-%m-%d %H:%i:%S\') ' \
-		f'   WHEN {m30} AND DAY_OF_MONTH(s) = 31 ' \
-		f'    THEN DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-\', {str_month()},\'-30 %H:%i:%S\')), \'%Y-%m-%d %H:%i:%S\') ' \
+		f'   WHEN {v} < 1 THEN {fixed_direct_set(1)} ' \
+		f'   WHEN {v} > 12 THEN {fixed_direct_set(12)} ' \
+		f'   WHEN {v} = 2 AND DAY_OF_MONTH(s) > 28 AND {is_not_leap} ' \
+		f'    THEN DATE_PARSE(CONCAT(DATE_FORMAT(s, \'%Y %H:%i:%S \'), \'02-28\'), \'%Y %H:%i:%S %m-%d\') ' \
+		f'   WHEN {v} = 2 AND DAY_OF_MONTH(s) > 29 ' \
+		f'    THEN DATE_PARSE(CONCAT(DATE_FORMAT(s, \'%Y %H:%i:%S \'), \'02-29\'), \'%Y %H:%i:%S %m-%d\') ' \
+		f'   WHEN ({m30}) AND DAY_OF_MONTH(s) = 31 ' \
+		f'    THEN DATE_PARSE(CONCAT(DATE_FORMAT(s, \'%Y %H:%i:%S \'), {month}, \'-30\'), \'%Y %H:%i:%S %m-%d\') ' \
 		f'   ELSE {direct_set()}' \
 		f'  END ' \
-		f' WHEN {command} = \'+\' THEN DATE_ADD(\'month\', {value}, s) ' \
-		f' WHEN {command} = \'-\' THEN DATE_ADD(\'month\', 0 - {value}, s) ' \
+		f' WHEN {command} = \'+\' THEN DATE_ADD(\'month\', {v}, s) ' \
+		f' WHEN {command} = \'-\' THEN DATE_ADD(\'month\', 0 - {v}, s) ' \
 		f' ELSE s ' \
 		f'END'
 
@@ -94,15 +100,14 @@ def build_move_day_of_month_reduce_func() -> str:
 	is_not_leap = '(YEAR(s) % 4 != 0 OR (YEAR(s) % 100 = 0 AND YEAR(s) % 400 != 0))'
 
 	command = 'ELEMENT_AT(x, 1)'
-	value = 'CAST(ELEMENT_AT(x, 2) AS INTEGER)'
-	value_str = 'ELEMENT_AT(x, 2)'
+	v, sv, _ = v_sv_rpad0()
 
 	def fix_day(day: int) -> str:
-		return f'DATE_PARSE(DATE_FORMAT(s, \'%Y-%m-{day} %H:%i:%S\'), \'%Y-%m-%d %H:%i:%S\')'
+		return f'DATE_PARSE(CONCAT(DATE_FORMAT(s, \'%Y-%m %H:%i:%S \'), \'{day}\'), \'%Y-%m %H:%i:%S %d\')'
 
 	return \
 		f'CASE ' \
-		f' WHEN {value} = 99 THEN ' \
+		f' WHEN {v} = 99 THEN ' \
 		f'  CASE ' \
 		f'   WHEN {m31} THEN {fix_day(31)} ' \
 		f'   WHEN {m30} THEN {fix_day(30)} ' \
@@ -111,59 +116,53 @@ def build_move_day_of_month_reduce_func() -> str:
 		f'  END ' \
 		f' WHEN {command} = \'\' THEN ' \
 		f'  CASE ' \
-		f'   WHEN {value} >= 29 AND MONTH(s) = 2 AND {is_not_leap} THEN {fix_day(28)} ' \
-		f'   WHEN {value} >= 29 AND MONTH(s) = 2 THEN {fix_day(29)} ' \
-		f'   WHEN {value} >= 30 AND ({m30}) THEN {fix_day(30)} ' \
-		f'   WHEN {value} >= 31 THEN {fix_day(31)} ' \
-		f'   ELSE DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-%m-\', {value_str}, \' %H:%i:%S\')), \'%Y-%m-%e %H:%i:%S\') ' \
+		f'   WHEN {v} >= 29 AND MONTH(s) = 2 AND {is_not_leap} THEN {fix_day(28)} ' \
+		f'   WHEN {v} >= 29 AND MONTH(s) = 2 THEN {fix_day(29)} ' \
+		f'   WHEN {v} >= 30 AND ({m30}) THEN {fix_day(30)} ' \
+		f'   WHEN {v} >= 31 THEN {fix_day(31)} ' \
+		f'   ELSE DATE_PARSE(CONCAT(DATE_FORMAT(s, \'%Y-%m %H:%i:%S \'), {sv}), \'%Y-%m %H:%i:%S %e\') ' \
 		f'  END ' \
-		f' WHEN {command} = \'+\' THEN DATE_ADD(\'day\', {value}, s) ' \
-		f' WHEN {command} = \'-\' THEN DATE_ADD(\'day\', 0 - {value}, s) ' \
+		f' WHEN {command} = \'+\' THEN DATE_ADD(\'day\', {v}, s) ' \
+		f' WHEN {command} = \'-\' THEN DATE_ADD(\'day\', 0 - {v}, s) ' \
 		f' ELSE s ' \
 		f'END'
 
 
 def build_move_hour_reduce_func() -> str:
-	value = 'CAST(ELEMENT_AT(x, 2) AS INTEGER)'
-	value_str = 'ELEMENT_AT(x, 2)'
-	hour = f'IF({value} < 10, CONCAT(\'0\', {value_str}), {value_str})'
+	v, sv, hour = v_sv_rpad0()
 
 	return \
 		f'CASE ' \
 		f' WHEN ELEMENT_AT(x, 1) = \'\' ' \
-		f'  THEN DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-%m-%d \', {hour}, \':%i:%S\')), \'%Y-%m-%d %H:%i:%S\') ' \
-		f' WHEN ELEMENT_AT(x, 1) = \'+\' THEN DATE_ADD(\'minute\', {value}, s) ' \
-		f' WHEN ELEMENT_AT(x, 1) = \'-\' THEN DATE_ADD(\'minute\', 0 - {value}, s) ' \
+		f'  THEN DATE_PARSE(CONCAT(DATE_FORMAT(s, \'%Y-%m-%d %i:%S:\'), {hour}), \'%Y-%m-%d %i:%S:%H\') ' \
+		f' WHEN ELEMENT_AT(x, 1) = \'+\' THEN DATE_ADD(\'minute\', {v}, s) ' \
+		f' WHEN ELEMENT_AT(x, 1) = \'-\' THEN DATE_ADD(\'minute\', 0 - {v}, s) ' \
 		f' ELSE s ' \
 		f'END'
 
 
 def build_move_minute_reduce_func() -> str:
-	value = 'CAST(ELEMENT_AT(x, 2) AS INTEGER)'
-	value_str = 'ELEMENT_AT(x, 2)'
-	minute = f'IF({value} < 10, CONCAT(\'0\', {value_str}), {value_str})'
+	v, sv, minute = v_sv_rpad0()
 
 	return \
 		f'CASE ' \
 		f' WHEN ELEMENT_AT(x, 1) = \'\' ' \
-		f'  THEN DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-%m-%d %H:\', {minute}, \':%S\')), \'%Y-%m-%d %H:%i:%S\')' \
-		f' WHEN ELEMENT_AT(x, 1) = \'+\' THEN DATE_ADD(\'minute\', {value}, s) ' \
-		f' WHEN ELEMENT_AT(x, 1) = \'-\' THEN DATE_ADD(\'minute\', 0 - {value}, s) ' \
+		f'  THEN DATE_PARSE(CONCAT(DATE_FORMAT(s, \'%Y-%m-%d %H:%S:\'), {minute}), \'%Y-%m-%d %H:%S:%i\')' \
+		f' WHEN ELEMENT_AT(x, 1) = \'+\' THEN DATE_ADD(\'minute\', {v}, s) ' \
+		f' WHEN ELEMENT_AT(x, 1) = \'-\' THEN DATE_ADD(\'minute\', 0 - {v}, s) ' \
 		f' ELSE s ' \
 		f'END'
 
 
 def build_move_second_reduce_func() -> str:
-	value = 'CAST(ELEMENT_AT(x, 2) AS INTEGER)'
-	value_str = 'ELEMENT_AT(x, 2)'
-	second = f'IF({value} < 10, CONCAT(\'0\', {value_str}), {value_str})'
+	v, sv, second = v_sv_rpad0()
 
 	return \
 		f'CASE ' \
 		f' WHEN ELEMENT_AT(x, 1) = \'\' ' \
-		f'  THEN DATE_PARSE(DATE_FORMAT(s, CONCAT(\'%Y-%m-%d %H:%i:\', {second})), \'%Y-%m-%d %H:%i:%S\')' \
-		f' WHEN ELEMENT_AT(x, 1) = \'+\' THEN DATE_ADD(\'second\', {value}, s) ' \
-		f' WHEN ELEMENT_AT(x, 1) = \'-\' THEN DATE_ADD(\'second\', 0 - {value}, s) ' \
+		f'  THEN DATE_PARSE(CONCAT(DATE_FORMAT(s, \'%Y-%m-%d %H:%i:\'), {second}), \'%Y-%m-%d %H:%i:%S\')' \
+		f' WHEN ELEMENT_AT(x, 1) = \'+\' THEN DATE_ADD(\'second\', {v}, s) ' \
+		f' WHEN ELEMENT_AT(x, 1) = \'-\' THEN DATE_ADD(\'second\', 0 - {v}, s) ' \
 		f' ELSE s ' \
 		f'END'
 

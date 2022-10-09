@@ -1,5 +1,6 @@
 from datetime import date, datetime, time
 from decimal import Decimal
+from re import findall
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteria, \
@@ -23,7 +24,7 @@ def to_decimal(value: Any) -> str:
 		raise UnexpectedStorageException(f'Given value[{value}] cannot be casted to a decimal.')
 
 
-def built_date_diff(documents: List[MongoDocument], literal: Literal, unit: str) -> Dict[str, Any]:
+def build_date_diff(documents: List[MongoDocument], literal: Literal, unit: str) -> Dict[str, Any]:
 	return {
 		'$let': {
 			'vars': {
@@ -61,6 +62,23 @@ def built_date_diff(documents: List[MongoDocument], literal: Literal, unit: str)
 			}
 		}
 	}
+
+
+# noinspection DuplicatedCode
+def parse_move_date_pattern(pattern: str) -> List[Tuple[str, str, str]]:
+	"""
+	elements of tuple are
+	1. flag: YMDhms
+	2. operator: +- or empty
+	3. number
+	"""
+	pattern = pattern.strip()
+	segments = findall(r'([YMDhms])\s*([+-]?)\s*(\d+)', pattern)
+	parsed = ArrayHelper(segments).map(lambda x: f'{x[0]}{x[1]}{x[2]}').join('')
+	original = ArrayHelper([*pattern]).filter(lambda x: is_not_blank(x)).join('')
+	if parsed != original:
+		raise UnexpectedStorageException(f'Incorrect date move pattern[{pattern}].')
+	return segments
 
 
 def build_literal(
@@ -239,12 +257,87 @@ def build_literal(
 				}
 			}
 		elif operator == ComputedLiteralOperator.MONTH_DIFF:
-			return built_date_diff(documents, literal, 'month')
+			return build_date_diff(documents, literal, 'month')
 		elif operator == ComputedLiteralOperator.DAY_DIFF:
-			return built_date_diff(documents, literal, 'day')
+			return build_date_diff(documents, literal, 'day')
 		elif operator == ComputedLiteralOperator.MOVE_DATE:
-			# TODO
-			return ''
+			move_to_pattern = parse_move_date_pattern(literal.elements[1])
+			literal = build_literal(documents, literal.elements[0])
+			movements = ArrayHelper(move_to_pattern).map(lambda x: [x[0], x[1], int(x[2])]).to_list()
+
+			def build_variables() -> dict:
+				return {
+					'l_year': {'$eq': [{'$arrayElemAt': ['$$this', 0]}, 'Y']},
+					'l_month': {'$eq': [{'$arrayElemAt': ['$$this', 0]}, 'M']},
+					'l_day': {'$eq': [{'$arrayElemAt': ['$$this', 0]}, 'D']},
+					'l_hour': {'$eq': [{'$arrayElemAt': ['$$this', 0]}, 'h']},
+					'l_minute': {'$eq': [{'$arrayElemAt': ['$$this', 0]}, 'm']},
+					'l_second': {'$eq': [{'$arrayElemAt': ['$$this', 0]}, 's']},
+					# command is empty, set value
+					'c_set': {'$eq': [{'$arrayElemAt': ['$$this', 1]}, '']},
+					# command is plus, add value
+					'c_add': {'$eq': [{'$arrayElemAt': ['$$this', 1]}, '+']},
+					# command is minus, subtract value
+					'c_sub': {'$eq': [{'$arrayElemAt': ['$$this', 1]}, '-']},
+					# value, integer
+					'v': {'$arrayElemAt': ['$$this', 2]},
+					# is feb
+					'm2': {'$eq': [{'$month': '$$value'}, 2]},
+					'lunar': {'$in': [{'$month': '$$value'}, [4, 6, 9, 11]]},
+					# is 29
+					'd29': {'$eq': [{'$dayOfMonth': '$$value'}, 29]},
+					'd30': {'$eq': [{'$dayOfMonth': '$$value'}, 30]},
+					'd31': {'$eq': [{'$dayOfMonth': '$$value'}, 31]},
+					'o_year': {'$year': '$$value'},
+					'o_month': {'$month': '$$value'},
+					'o_day': {'$dayOfMonth': '$$value'},
+					'o_hour': {'$hour': '$$value'},
+					'o_minute': {'$minute': '$$value'},
+					'o_second': {'$second': '$$value'}
+				}
+
+			def parse_date(replaced: dict, is_set: bool = False) -> dict:
+				return {
+					'$dateFromParts': {
+						'year': replaced.get('year') or '$$o_year',
+						'month': replaced.get('month') or '$$o_month',
+						'day': replaced.get('day') or '$$o_day',
+						'hour': replaced.get('hour') or '$$o_hour',
+						'minute': replaced.get('minute') or '$$o_minute',
+						'second': replaced.get('second') or '$$o_second'
+					}
+				}
+
+			def branch(loc: str) -> dict:
+				return {
+					'case': f'$$l_{loc}',
+					'then': {
+						'$switch': {
+							'branches': [
+								{'case': '$$c_set', 'then': parse_date({loc: '$$v'}, True)},
+								{'case': '$$c_add', 'then': parse_date({loc: {'$add': [f'$$o_{loc}', '$$v']}})},
+								{'case': '$$c_sub', 'then': parse_date({loc: {'$subtract': [f'$$o_{loc}', '$$v']}})}
+							],
+							'default': '$$value'
+						}
+					}
+				}
+
+			def branches() -> List[dict]:
+				return ArrayHelper(['year', 'month', 'day', 'hour', 'minute', 'second']).map(branch).to_list()
+
+			return {
+				'$reduce': {
+					'input': movements,
+					'initialValue': literal,
+					'in': {
+						'$let': {
+							'vars': build_variables(),
+							'in': {'$switch': {'branches': branches(), 'default': '$$value'}}
+						}
+					}
+				}
+			}
 		elif operator == ComputedLiteralOperator.FORMAT_DATE:
 			# noinspection SpellCheckingInspection
 			return {
@@ -364,10 +457,13 @@ def build_literal(
 		else:
 			raise UnsupportedComputationException(f'Unsupported computation operator[{operator}].')
 	elif isinstance(literal, datetime):
+		# noinspection PyTypeChecker
 		return literal
 	elif isinstance(literal, date):
+		# noinspection PyTypeChecker
 		return literal
 	elif isinstance(literal, time):
+		# noinspection PyTypeChecker
 		return literal
 	elif build_plain_value is not None:
 		return build_plain_value(literal)
