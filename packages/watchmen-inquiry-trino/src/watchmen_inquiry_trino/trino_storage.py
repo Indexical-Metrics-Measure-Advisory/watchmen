@@ -38,6 +38,15 @@ def build_move_year_reduce_func() -> str:
 	sv = 'ELEMENT_AT(x, 2)'
 	is_not_leap = f'({v} % 4 != 0 OR ({v} % 100 = 0 AND {v} % 400 != 0))'
 
+	# MIN(
+	# DATE_ADD(
+	#   'day',
+	#   -1,
+	#   DATE_PARSE(CONCAT(YEAR(s), '-', MONTH(s) + 1, '-1 ', HOUR(s),':', MINUTE(s), ':', SECOND(s)), \'%Y-%c-%e %H:%i:%S\')
+	# ),
+	# DATE_PARSE(CONCAT(YEAR(s), '-', MONTH(s), '-', DAY_OF_MONTH(s), ' ', HOUR(s),':', MINUTE(s), ':', SECOND(s)), \'%Y-%c-%e %H:%i:%S\'),
+	# )
+
 	return \
 		f'CASE ' \
 		f' WHEN {command} = \'\' THEN ' \
@@ -478,13 +487,64 @@ class TrinoStorage(TrinoStorageSPI):
 				# split
 				move_to_pattern = parse_move_date_pattern(literal.elements[1])
 
+				def build_params(segment: Tuple[str, str, str]) -> str:
+					loc = {'Y': 1, 'M': 2, 'D': 3, 'h': 4, 'm': 5, 's': 6}.get(segment[0])
+					# set -> 0, add -> 1, subtract -> -1
+					cmd = 0 if segment[1] == '' else (1 if segment[1] == '+' else -1)
+					# use negative value if it is subtracting
+					value = int(segment[2]) if cmd != -1 else (0 - int(segment[2]))
+					if cmd != 0:
+						# no computing flags
+						return f'ARRAY[{loc}, {cmd}, {value}]'
+					# -1 means subtract original value,
+					# 1 means add new value (which is the value at index 3 in array)
+					# 0 means no need to compute
+					elif loc == 1:
+						return f'ARRAY[1, 0, {value}, -1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]'
+					elif loc == 2:
+						return f'ARRAY[1, 0, {value}, 0, 0, -1, 1, 0, 0, 0, 0, 0, 0, 0, 0]'
+					elif loc == 3:
+						return f'ARRAY[1, 0, {value}, 0, 0, 0, 0, -1, 1, 0, 0, 0, 0, 0, 0]'
+					elif loc == 4:
+						return f'ARRAY[1, 0, {value}, 0, 0, 0, 0, 0, 0, -1, 1, 0, 0, 0, 0]'
+					elif loc == 5:
+						return f'ARRAY[1, 0, {value}, 0, 0, 0, 0, 0, 0, 0, 0, -1, 1, 0, 0]'
+					elif loc == 6:
+						return f'ARRAY[1, 0, {value}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 1]'
+					else:
+						raise UnexpectedStorageException(
+							f'Location[{segment[0]}] of move date command is not supported.')
+
 				# reduce function on pattern array
-				patterns = ArrayHelper(move_to_pattern) \
-					.map(lambda p: f'ARRAY[\'{p[0]}\', \'{p[1]}\', \'{p[2]}\']') \
-					.join(', ')
-				return \
-					f'REDUCE(ARRAY[{patterns}], {self.build_literal(literal.elements[0])}, ' \
-					f'(s, x) -> {build_move_date_reduce_func()}, s -> s)'
+				patterns = ArrayHelper(move_to_pattern).map(build_params).join(', ')
+				initial = self.build_literal(literal.elements[0])
+				# compute new date according to given values
+				set_year = "DATE_ADD('year', YEAR(s) * ELEMENT_AT(x, 4) + ELEMENT_AT(x, 3) * ELEMENT_AT(x, 5), s)"
+				set_month = f"DATE_ADD('month', MONTH(s) * ELEMENT_AT(x, 6) + ELEMENT_AT(x, 3) * ELEMENT_AT(x, 7), {set_year})"
+				set_day = f"DATE_ADD('day', DAY(s) * ELEMENT_AT(x, 8) + ELEMENT_AT(x, 3) * ELEMENT_AT(x, 9), {set_month})"
+				# compute new date according to given values, but ensure will not to cross month
+				# max value if end day of month
+				set_day_1 = "DATE_ADD('day', DAY(s) * -1 + 1, s)"
+				set_year_day_1 = f"DATE_ADD('year', YEAR(s) * ELEMENT_AT(x, 4) + ELEMENT_AT(x, 3) * ELEMENT_AT(x, 5), {set_day_1}"
+				set_next_month_day_1 = \
+					f"DATE_ADD('month', " \
+					f"MONTH(s) * ELEMENT_AT(x, 6) + ELEMENT_AT(x, 3) * ELEMENT_AT(x, 7) + 1, {set_year_day_1})"
+				end_day_of_month = f"DATE_ADD('day', -1, {set_next_month_day_1})"
+				# get the least date from above two
+				least_day = f'LEAST({end_day_of_month}, {set_day})'
+				# compute time part
+				set_hour = f"DATE_ADD('hour', HOUR(s) * ELEMENT_AT(x, 10) + ELEMENT_AT(x, 3) * ELEMENT_AT(x, 11), {least_day})"
+				set_minute = f"DATE_ADD('minute', MINUTE(s) * ELEMENT_AT(x, 12) + ELEMENT_AT(x, 3) * ELEMENT_AT(x, 13), {set_hour})"
+				set_second = f"DATE_ADD('second', SECOND(s) * ELEMENT_AT(x, 14) + ELEMENT_AT(x, 3) * ELEMENT_AT(x, 15), {set_minute})"
+				set_func = set_second
+				# add/subtract routines are same, value are passed via array. value is negative when do subtract
+				add_or_sub_func = \
+					"DATE_ADD(ELEMENT_AT(ARRAY['year', 'month', 'day', 'hour', 'minute', 'second'], " \
+					"ELEMENT_AT(x, 1)), ELEMENT_AT(x, 3), s)"
+				func_body = f'CASE WHEN ELEMENT_AT(x, 2) = 0 THEN {set_func} ELSE {add_or_sub_func} END'
+				func = f'(s, x) -> {func_body}'
+
+				return f'REDUCE(ARRAY[{patterns}], {initial}, {func}, s -> s)'
 			elif operator == ComputedLiteralOperator.FORMAT_DATE:
 				return \
 					f'DATE_FORMAT({self.build_literal(literal.elements[0])}, ' \
