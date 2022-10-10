@@ -334,26 +334,40 @@ class TrinoStorage(TrinoStorageSPI):
 					loc = {'Y': 1, 'M': 2, 'D': 3, 'h': 4, 'm': 5, 's': 6}.get(segment[0])
 					# set -> 0, add -> 1, subtract -> -1
 					cmd = 0 if segment[1] == '' else (1 if segment[1] == '+' else -1)
-					# use negative value if it is subtracting
-					value = int(segment[2]) if cmd != -1 else (0 - int(segment[2]))
-					if cmd != 0:
+					value = int(segment[2])
+					if cmd == 1:
 						# no computing flags
 						return f'ARRAY[{loc}, {cmd}, {value}]'
+					elif cmd == -1:
+						# use negative value if it is subtracting
+						return f'ARRAY[{loc}, {cmd}, -{value}]'
+
 					# -1 means subtract original value,
 					# 1 means add new value (which is the value at index 3 in array)
 					# 0 means no need to compute
 					elif loc == 1:
+						# year
 						return f'ARRAY[1, 0, {value}, -1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]'
 					elif loc == 2:
-						return f'ARRAY[1, 0, {value}, 0, 0, -1, 1, 0, 0, 0, 0, 0, 0, 0, 0]'
+						# month
+						value = 1 if value < 1 else (12 if value > 12 else value)
+						return f'ARRAY[2, 0, {value}, 0, 0, -1, 1, 0, 0, 0, 0, 0, 0, 0, 0]'
 					elif loc == 3:
-						return f'ARRAY[1, 0, {value}, 0, 0, 0, 0, -1, 1, 0, 0, 0, 0, 0, 0]'
+						# day of month
+						value = 1 if value < 1 else (31 if value > 31 else value)
+						return f'ARRAY[3, 0, {value}, 0, 0, 0, 0, -1, 1, 0, 0, 0, 0, 0, 0]'
 					elif loc == 4:
-						return f'ARRAY[1, 0, {value}, 0, 0, 0, 0, 0, 0, -1, 1, 0, 0, 0, 0]'
+						# hour
+						value = 0 if value < 0 else (23 if value > 23 else value)
+						return f'ARRAY[4, 0, {value}, 0, 0, 0, 0, 0, 0, -1, 1, 0, 0, 0, 0]'
 					elif loc == 5:
-						return f'ARRAY[1, 0, {value}, 0, 0, 0, 0, 0, 0, 0, 0, -1, 1, 0, 0]'
+						# minute
+						value = 0 if value < 0 else (59 if value > 59 else value)
+						return f'ARRAY[5, 0, {value}, 0, 0, 0, 0, 0, 0, 0, 0, -1, 1, 0, 0]'
 					elif loc == 6:
-						return f'ARRAY[1, 0, {value}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 1]'
+						# second
+						value = 0 if value < 0 else (59 if value > 59 else value)
+						return f'ARRAY[6, 0, {value}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 1]'
 					else:
 						raise UnexpectedStorageException(
 							f'Location[{segment[0]}] of move date command is not supported.')
@@ -368,7 +382,7 @@ class TrinoStorage(TrinoStorageSPI):
 				# compute new date according to given values, but ensure will not to cross month
 				# max value if end day of month
 				set_day_1 = "DATE_ADD('day', DAY(s) * -1 + 1, s)"
-				set_year_day_1 = f"DATE_ADD('year', YEAR(s) * ELEMENT_AT(x, 4) + ELEMENT_AT(x, 3) * ELEMENT_AT(x, 5), {set_day_1}"
+				set_year_day_1 = f"DATE_ADD('year', YEAR(s) * ELEMENT_AT(x, 4) + ELEMENT_AT(x, 3) * ELEMENT_AT(x, 5), {set_day_1})"
 				set_next_month_day_1 = \
 					f"DATE_ADD('month', " \
 					f"MONTH(s) * ELEMENT_AT(x, 6) + ELEMENT_AT(x, 3) * ELEMENT_AT(x, 7) + 1, {set_year_day_1})"
