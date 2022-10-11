@@ -90,9 +90,9 @@ export const PluginPicker = (props: {
 					</AlertLabel>,
 					() => {
 						const check = async () => {
-							console.log('check');
+							// console.log('check');
 							const task = await checkAchievementPluginTask(taskId);
-							console.log(task);
+							// console.log(task);
 							if (task.status === AchievementPluginTaskStatus.SUBMITTED || task.status === AchievementPluginTaskStatus.SENT) {
 								setTimeout(check, 5000);
 							} else if (task.status === AchievementPluginTaskStatus.SUCCESS) {
