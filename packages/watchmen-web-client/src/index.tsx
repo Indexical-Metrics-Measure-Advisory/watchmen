@@ -22,6 +22,8 @@ console.info(`%cReact%c${React.version}`,
 	`font-variant:petite-caps;font-weight:bold;text-transform:capitalize;color:white;background-color:rgba(94,119,171,0.9);padding:2px 6px;border-top-left-radius:6px;border-bottom-left-radius:6px;`,
 	`color:white;font-weight:bold;background-color:rgba(255,161,0,0.9);padding:2px 6px;border-top-right-radius:6px;border-bottom-right-radius:6px;`);
 
+document.title = process.env.REACT_APP_DOCUMENT_TITLE || 'Watchmen Web Client, IMMA';
+
 ReactDOM.render(
 	<StrictMode>
 		<App/>
