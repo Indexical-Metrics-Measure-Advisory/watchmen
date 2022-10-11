@@ -10,7 +10,7 @@ class RestSettings(BaseSettings):
 	"""
 	REST settings will not construct by itself, it should be inherited and constructed by inheriting one
 	"""
-	APP_NAME: str = 'Watchmen REST App',
+	APP_NAME: str = 'Watchmen REST App'
 	VERSION: str = '16.0.0'
 	DESCRIPTION: str = 'A lighter platform for data analytics'
 
