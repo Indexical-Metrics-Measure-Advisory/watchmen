@@ -378,6 +378,10 @@ export const computeParameterTypes = (
 				return [{array: false, type: FactorType.NUMBER}];
 			} else if (isDateDiffConstant(name).is) {
 				return [{array: false, type: FactorType.NUMBER}];
+			} else if (isMoveDateConstant(name).is) {
+				return [{array: false, type: FactorType.DATETIME}];
+			} else if (isDateFormatConstant(name).is) {
+				return [{array: false, type: FactorType.TEXT}];
 			}
 			const [first, ...rest] = name.split('.');
 			let firstTypes: ValueTypesOfParameter;
