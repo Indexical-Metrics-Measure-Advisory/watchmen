@@ -1,9 +1,9 @@
 import {isNotNull} from '../utils';
 import {ParameterComputeType} from './factor-calculator-types';
-import {getFactorType, isIndicatorFactor} from './factor-calculator-utils';
+import {getFactorType, isDateDiffConstant, isIndicatorFactor, isMoveDateConstant} from './factor-calculator-utils';
 import {Factor, FactorId, FactorType} from './factor-types';
 import {IndicatorMeasure, MeasureMethod} from './indicator-types';
-import {isComputedParameter, isTopicFactorParameter} from './parameter-utils';
+import {isComputedParameter, isConstantParameter, isTopicFactorParameter} from './parameter-utils';
 import {SubjectForIndicator, TopicForIndicator} from './query-indicator-types';
 import {SubjectDataSetColumn, SubjectDataSetColumnId} from './subject-types';
 import {Topic} from './topic-types';
@@ -314,6 +314,14 @@ export const isIndicatorColumn = (column: SubjectDataSetColumn, subject: Subject
 			ParameterComputeType.DIVIDE,
 			ParameterComputeType.MODULUS
 		].includes(computeType);
+	} else if (isConstantParameter(parameter)) {
+		const segments = (parameter.value || '').match(/([^{]*({[^}]+})?)/g);
+		if (segments == null || segments.length != 1) {
+			return false;
+		} else {
+			const name = segments[0].substring(1, segments[0].length - 1).trim();
+			return isDateDiffConstant(name).is || isMoveDateConstant(name).is;
+		}
 	} else {
 		return false;
 	}
