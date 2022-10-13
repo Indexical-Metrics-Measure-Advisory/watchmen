@@ -316,7 +316,7 @@ export const isIndicatorColumn = (column: SubjectDataSetColumn, subject: Subject
 		].includes(computeType);
 	} else if (isConstantParameter(parameter)) {
 		const segments = (parameter.value || '').match(/([^{]*({[^}]+})?)/g);
-		if (segments == null || segments.length != 1) {
+		if (segments == null || segments.length !== 1) {
 			return false;
 		} else {
 			const name = segments[0].substring(1, segments[0].length - 1).trim();
