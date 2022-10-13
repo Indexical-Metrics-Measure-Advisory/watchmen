@@ -1,6 +1,6 @@
 import {isNotNull} from '../utils';
 import {ParameterComputeType} from './factor-calculator-types';
-import {getFactorType, isDateDiffConstant, isIndicatorFactor, isMoveDateConstant} from './factor-calculator-utils';
+import {getFactorType, isDateDiffConstant, isIndicatorFactor} from './factor-calculator-utils';
 import {Factor, FactorId, FactorType} from './factor-types';
 import {IndicatorMeasure, MeasureMethod} from './indicator-types';
 import {isComputedParameter, isConstantParameter, isTopicFactorParameter} from './parameter-utils';
@@ -320,7 +320,7 @@ export const isIndicatorColumn = (column: SubjectDataSetColumn, subject: Subject
 			return false;
 		} else {
 			const name = segments[0].substring(1, segments[0].length - 1).trim();
-			return isDateDiffConstant(name).is || isMoveDateConstant(name).is;
+			return isDateDiffConstant(name).is;
 		}
 	} else {
 		return false;
