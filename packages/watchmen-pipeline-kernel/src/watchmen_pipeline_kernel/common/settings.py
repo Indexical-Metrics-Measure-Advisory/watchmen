@@ -21,7 +21,8 @@ class PipelineKernelSettings(BaseSettings):
 	PIPELINE_UPDATE_RETRY_INTERVAL: int = 10  # retry interval in milliseconds
 	PIPELINE_UPDATE_RETRY_FORCE: bool = True  # enable force retry after all retries failed
 	PIPELINE_ASYNC_HANDLE_MONITOR_LOG: bool = True  # handle monitor log (might with pipelines) asynchronized
-
+	PIPELINE_DISABLE_MONITOR_LOG: bool = False  # Disable monitor log, will effect rerun function. use for special scenario, like initial data first time.
+	
 	class Config:
 		# secrets_dir = '/var/run'
 		env_file = '.env'
@@ -89,3 +90,7 @@ def ask_pipeline_update_retry_force() -> bool:
 
 def ask_async_handle_monitor_log() -> bool:
 	return settings.PIPELINE_ASYNC_HANDLE_MONITOR_LOG
+
+
+def ask_disable_handle_mointor_log() -> bool:
+	return settings.PIPELINE_DISABLE_MONITOR_LOG
