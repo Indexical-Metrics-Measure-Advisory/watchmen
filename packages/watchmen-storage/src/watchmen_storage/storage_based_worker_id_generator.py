@@ -23,7 +23,7 @@ class CompetitiveWorkerShaper(EntityShaper):
 			'registered_at': entity.registeredAt,
 			'last_beat_at': entity.lastBeatAt
 		}
-
+	
 	def deserialize(self, row: EntityRow) -> CompetitiveWorker:
 		return CompetitiveWorker(
 			ip=row.get('ip'),
@@ -43,7 +43,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 	Table(snowflake_worker_id)
 		ip, process_id, data_center_id, worker_id, registered_at, last_beat_at
 	"""
-
+	
 	def __init__(
 			self,
 			storage: TransactionalStorageSPI,
@@ -54,14 +54,13 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 	):
 		self.storage = storage
 		super().__init__(data_center_id, heart_beat_interval, worker_creation_retry_times, shutdown_listener)
-
-	@staticmethod
-	def is_abandoned(worker: CompetitiveWorker) -> bool:
-		return (get_current_time_in_seconds() - worker.lastBeatAt).days >= 1
-
+	
+	def is_abandoned(self, worker: CompetitiveWorker) -> bool:
+		return (get_current_time_in_seconds() - worker.lastBeatAt).seconds > self.heart_beat_interval + 10
+	
 	def first_declare_myself(self, worker: CompetitiveWorker) -> None:
 		self.storage.begin()
-
+		
 		try:
 			existing_workers = self.storage.find(
 				EntityFinder(
@@ -74,7 +73,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 					]
 				)
 			)
-
+			
 			workers_count = len(existing_workers)
 			if workers_count == 0:
 				# worker not exists
@@ -93,8 +92,8 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 			elif workers_count == 1:
 				# noinspection PyTypeChecker
 				existing_worker: CompetitiveWorker = existing_workers[0]
-				if StorageBasedWorkerIdGenerator.is_abandoned(existing_worker):
-					# worker last beat before 1 day, treat it as abandoned
+				if self.is_abandoned(existing_worker):
+					# worker last beat before (heart_beat_interval + 10) seconds, treat it as abandoned
 					# replace it
 					worker.lastBeatAt = get_current_time_in_seconds()
 					updated_count = self.storage.update_only(
@@ -143,7 +142,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 			self.storage.rollback_and_close()
 			# rethrow exception
 			raise e
-
+	
 	def acquire_alive_worker_ids(self) -> List[int]:
 		self.storage.begin()
 		try:
@@ -167,7 +166,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 			return ArrayHelper(rows).map(lambda x: x.workerId).to_list()
 		finally:
 			self.storage.close()
-
+	
 	def declare_myself(self, worker: CompetitiveWorker) -> None:
 		self.storage.begin()
 		try:
@@ -187,7 +186,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 				raise WorkerDeclarationException(
 					f'Failed to declare worker[dataCenterId={worker.dataCenterId}, workerId={worker.workerId}], '
 					f'certain data not found in storage.')
-
+			
 			self.storage.commit_and_close()
 		except Exception as e:
 			self.storage.rollback_and_close()
