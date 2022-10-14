@@ -56,7 +56,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 		super().__init__(data_center_id, heart_beat_interval, worker_creation_retry_times, shutdown_listener)
 	
 	def is_abandoned(self, worker: CompetitiveWorker) -> bool:
-		return (get_current_time_in_seconds() - worker.lastBeatAt).seconds > self.heart_beat_interval + 10
+		return (get_current_time_in_seconds() - worker.lastBeatAt).seconds > self.heartBeatInterval + 10
 	
 	def first_declare_myself(self, worker: CompetitiveWorker) -> None:
 		self.storage.begin()
@@ -93,7 +93,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 				# noinspection PyTypeChecker
 				existing_worker: CompetitiveWorker = existing_workers[0]
 				if self.is_abandoned(existing_worker):
-					# worker last beat before (heart_beat_interval + 10) seconds, treat it as abandoned
+					# worker last beat before (heartBeatInterval + 10) seconds, treat it as abandoned
 					# replace it
 					worker.lastBeatAt = get_current_time_in_seconds()
 					updated_count = self.storage.update_only(
@@ -108,7 +108,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 								EntityCriteriaExpression(
 									left=ColumnNameLiteral(columnName='last_beat_at'),
 									operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
-									right=(get_current_time_in_seconds() + timedelta(seconds=-(self.heart_beat_interval + 10)))
+									right=(get_current_time_in_seconds() + timedelta(seconds=-(self.heartBeatInterval + 10)))
 								)
 							],
 							update={
