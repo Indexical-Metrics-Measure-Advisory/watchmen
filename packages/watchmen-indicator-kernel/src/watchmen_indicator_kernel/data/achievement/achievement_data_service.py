@@ -23,6 +23,6 @@ class AchievementDataService:
 		super().__init__(principal_service)
 		self.achievement = achievement
 
-	def ask_value(self) -> AchievementResult:
+	def ask_value(self, previous_period: bool = True, same_period_last_cycle: bool = True) -> AchievementResult:
 		# TODO
 		raise IndicatorKernelException('Not implemented yet.')
