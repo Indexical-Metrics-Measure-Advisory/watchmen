@@ -14,8 +14,8 @@ from watchmen_model.indicator import Bucket, CategorySegment, CategorySegmentsHo
 	Inspection, InspectMeasureOn, InspectMeasureOnType, MeasureMethod, NumericSegmentsHolder, NumericValueSegment, \
 	OtherCategorySegmentValue, RangeBucketValueIncluding
 from watchmen_utilities import ArrayHelper, is_blank
-from .bucket_helper import ask_bucket
 from .inspection_data_service import InspectionDataService
+from ..bucket_helper import ask_bucket
 
 
 def get_report_data_service(subject: Subject, report: Report, principal_service: PrincipalService) -> ReportDataService:

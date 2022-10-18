@@ -11,7 +11,7 @@ from watchmen_model.common import FactorId, Parameter, ParameterCondition, Param
 from watchmen_model.console import Report, Subject, SubjectDataset, SubjectDatasetColumn
 from watchmen_model.indicator import AchievementIndicator, Indicator, IndicatorCriteria
 from watchmen_utilities import ArrayHelper, is_blank, is_decimal
-from .achievement_data_service import AchievementDataService
+from .indicator_data_service import AchievementIndicatorDataService
 
 
 def get_report_data_service(subject: Subject, report: Report, principal_service: PrincipalService) -> ReportDataService:
@@ -22,7 +22,7 @@ def get_topic_service(principal_service: PrincipalService) -> TopicService:
 	return TopicService(principal_service)
 
 
-class TopicBaseAchievementDataService(AchievementDataService):
+class TopicBaseAchievementIndicatorDataService(AchievementIndicatorDataService):
 	def __init__(
 			self, achievement_indicator: AchievementIndicator,
 			indicator: Indicator, topic: Topic, principal_service: PrincipalService):
