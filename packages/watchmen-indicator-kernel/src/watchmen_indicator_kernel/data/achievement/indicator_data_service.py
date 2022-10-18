@@ -9,10 +9,10 @@ from watchmen_model.common import ComputedParameter, FactorId, Parameter, Parame
 	TopicFactorParameter, TopicId
 from watchmen_model.console import Report, ReportIndicator, ReportIndicatorArithmetic
 from watchmen_model.indicator import AchievementIndicator, IndicatorAggregateArithmetic
-from .indicator_criteria_service import IndicatorCriteriaService
+from ..indicator_criteria_service import IndicatorCriteriaService
 
 
-class AchievementDataService(IndicatorCriteriaService):
+class AchievementIndicatorDataService(IndicatorCriteriaService):
 	def __init__(self, achievement_indicator: AchievementIndicator, principal_service: PrincipalService):
 		super().__init__(principal_service)
 		self.achievementIndicator = achievement_indicator

@@ -3,12 +3,12 @@ from watchmen_indicator_kernel.common import IndicatorKernelException
 from watchmen_model.common import SubjectId, TopicId
 from watchmen_model.indicator import Indicator, IndicatorBaseOn, Inspection
 from watchmen_utilities import is_not_blank
-from .indicator_helper import ask_indicator
 from .inspection_data_service import InspectionDataService
-from .subject_base_inspection_data_service import SubjectBaseInspectionDataService
-from .subject_helper import ask_subject
-from .topic_base_inspection_data_service import TopicBaseInspectionDataService
-from .topic_helper import ask_topic
+from .subject_base_service import SubjectBaseInspectionDataService
+from .topic_base_service import TopicBaseInspectionDataService
+from ..indicator_helper import ask_indicator
+from ..subject_helper import ask_subject
+from ..topic_helper import ask_topic
 
 
 def get_topic_base_service(

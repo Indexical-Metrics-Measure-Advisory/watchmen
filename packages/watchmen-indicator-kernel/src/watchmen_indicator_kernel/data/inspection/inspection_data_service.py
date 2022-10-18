@@ -9,7 +9,7 @@ from watchmen_model.console import ReportIndicator, ReportIndicatorArithmetic, S
 from watchmen_model.console.subject import SubjectColumnArithmetic
 from watchmen_model.indicator import IndicatorAggregateArithmetic, Inspection, MeasureMethod
 from watchmen_utilities import is_blank
-from .indicator_criteria_service import IndicatorCriteriaService
+from ..indicator_criteria_service import IndicatorCriteriaService
 
 
 class InspectionDataService(IndicatorCriteriaService):
