@@ -18,11 +18,11 @@ class PipelineSurfaceSettings(BaseSettings):
 	RABBITMQ_QUEUE: str = ''
 	RABBITMQ_DURABLE: bool = True
 	RABBITMQ_AUTO_DELETE: bool = False
-	
+
 	KAFKA_CONNECTOR: bool = False
 	KAFKA_BOOTSTRAP_SERVER: str = 'localhost:9092'
 	KAFKA_TOPICS: str = ''
-	
+
 	S3_COLLECTOR_CONNECTOR: bool = False
 	S3_COLLECTOR_ACCESS_KEY_ID: str = None
 	S3_COLLECTOR_SECRET_ACCESS_KEY: str = None
@@ -34,7 +34,7 @@ class PipelineSurfaceSettings(BaseSettings):
 	S3_COLLECTOR_DEAD_PREFIX = ''
 	S3_COLLECTOR_MAX_KEYS: int = 10
 	S3_COLLECTOR_CLEAN_TASK_INTERVAL: int = 3600
-	
+
 	class Config:
 		# secrets_dir = '/var/run'
 		env_file = '.env'
@@ -85,19 +85,16 @@ def ask_s3_connector_enabled() -> bool:
 
 def ask_s3_connector_settings():
 	from watchmen_collector_kernel.common import S3CollectorSettings
-	
-	def get_s3_collector_settings() -> S3CollectorSettings:
-		return S3CollectorSettings(
-			access_key_id=settings.S3_COLLECTOR_ACCESS_KEY_ID,
-			secret_access_key=settings.S3_COLLECTOR_SECRET_ACCESS_KEY,
-			bucket_name=settings.S3_COLLECTOR_BUCKET_NAME,
-			region=settings.S3_COLLECTOR_REGION,
-			token=settings.S3_COLLECTOR_TOKEN,
-			tenant_id=settings.S3_COLLECTOR_TENANT,
-			consume_prefix=settings.S3_COLLECTOR_CONSUME_PREFIX,
-			dead_prefix=settings.S3_COLLECTOR_DEAD_PREFIX,
-			max_keys=settings.S3_COLLECTOR_MAX_KEYS,
-			clean_task_interval=settings.S3_COLLECTOR_CLEAN_TASK_INTERVAL
-		)
-	
-	return get_s3_collector_settings()
+
+	return S3CollectorSettings(
+		access_key_id=settings.S3_COLLECTOR_ACCESS_KEY_ID,
+		secret_access_key=settings.S3_COLLECTOR_SECRET_ACCESS_KEY,
+		bucket_name=settings.S3_COLLECTOR_BUCKET_NAME,
+		region=settings.S3_COLLECTOR_REGION,
+		token=settings.S3_COLLECTOR_TOKEN,
+		tenant_id=settings.S3_COLLECTOR_TENANT,
+		consume_prefix=settings.S3_COLLECTOR_CONSUME_PREFIX,
+		dead_prefix=settings.S3_COLLECTOR_DEAD_PREFIX,
+		max_keys=settings.S3_COLLECTOR_MAX_KEYS,
+		clean_task_interval=settings.S3_COLLECTOR_CLEAN_TASK_INTERVAL
+	)

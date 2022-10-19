@@ -1,16 +1,12 @@
-
+from watchmen_data_kernel.meta import TopicService
+from watchmen_data_kernel.service import ask_topic_data_service, ask_topic_storage
 from watchmen_data_kernel.storage import TopicTrigger
 from watchmen_meta.common import ask_snowflake_generator, ask_super_admin
-
 from watchmen_model.pipeline_kernel import PipelineTriggerData
 from watchmen_pipeline_kernel.pipeline import create_monitor_log_pipeline_invoker, PipelineTrigger
 
 
-from watchmen_data_kernel.meta import TopicService
-from watchmen_data_kernel.service import ask_topic_data_service, ask_topic_storage
-
-
-async def handle_trigger_data(trigger_data: PipelineTriggerData, topic_trigger: TopicTrigger) -> None:
+async def handle_trigger_data(trigger_data: PipelineTriggerData, topic_trigger: TopicTrigger):
 	# use super admin
 	principal_service = ask_super_admin()
 	# change the tenant_id
