@@ -8,3 +8,6 @@
 *.zip
 *.log
 packages/watchmen-rest-doll/log/server.log.1
+packages/watchmen-webhook-server/.idea/modules.xml
+packages/watchmen-webhook-server/.idea/inspectionProfiles/Project_Default.xml
+packages/watchmen-webhook-server/.idea/inspectionProfiles/profiles_settings.xml
