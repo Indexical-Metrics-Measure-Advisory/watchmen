@@ -307,7 +307,7 @@ table_achievement_plugin_tasks = Table(
 	create_tenant_id(), create_user_id(),
 	*create_tuple_audit_columns()
 )
-table_oss_collector_competitive_lock = Table(
+table_collector_competitive_lock = Table(
 	'collector_competitive_lock', meta_data,
 	create_pk('lock_id'), create_str('resource_id', 500),
 	create_str('model_name', 20), create_str('object_id', 100),
@@ -360,7 +360,7 @@ tables: Dict[str, Table] = {
 	'achievements': table_achievements,
 	'objective_analysis': table_objective_analysis,
 	'achievement_plugin_tasks': table_achievement_plugin_tasks,
-	'oss_collector_competitive_lock': table_oss_collector_competitive_lock
+	'collector_competitive_lock': table_collector_competitive_lock
 }
 
 
