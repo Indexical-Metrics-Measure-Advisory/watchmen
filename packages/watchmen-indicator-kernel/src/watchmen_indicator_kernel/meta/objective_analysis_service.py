@@ -14,7 +14,8 @@ class ObjectiveAnalysisShaper(EntityShaper):
 			'analysis_id': analysis.analysisId,
 			'title': analysis.title,
 			'description': analysis.description,
-			'perspectives': ArrayHelper(analysis.perspectives).map(lambda x: x.to_dict()).to_list()
+			'perspectives': ArrayHelper(analysis.perspectives).map(lambda x: x.to_dict()).to_list(),
+			'group_ids': analysis.groupIds
 		})
 
 	def deserialize(self, row: EntityRow) -> ObjectiveAnalysis:
@@ -23,7 +24,8 @@ class ObjectiveAnalysisShaper(EntityShaper):
 			analysisId=row.get('analysis_id'),
 			title=row.get('title'),
 			description=row.get('description'),
-			perspectives=row.get('perspectives')
+			perspectives=row.get('perspectives'),
+			groupIds=row.get('group_ids')
 		))
 
 

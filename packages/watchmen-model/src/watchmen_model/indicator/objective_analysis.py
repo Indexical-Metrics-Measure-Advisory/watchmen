@@ -4,7 +4,7 @@ from typing import List, Optional, Union
 from pydantic import BaseModel
 
 from watchmen_model.common import AchievementId, DataModel, InspectionId, ObjectiveAnalysisId, OptimisticLock, \
-	TenantBasedTuple
+	TenantBasedTuple, UserGroupId
 from watchmen_utilities import ArrayHelper
 
 
@@ -43,6 +43,7 @@ class ObjectiveAnalysis(TenantBasedTuple, OptimisticLock, BaseModel):
 	title: str = None
 	description: str = None
 	perspectives: List[ObjectiveAnalysisPerspective] = []
+	groupIds: List[UserGroupId] = None
 
 	def __setattr__(self, name, value):
 		if name == 'perspectives':
