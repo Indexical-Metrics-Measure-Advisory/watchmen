@@ -1,30 +1,26 @@
-import {FullWidthPage} from '@/widgets/basic/page';
-import {FullWidthPageHeaderContainer, PageTitle} from '@/widgets/basic/page-header';
+import {Router} from '@/routes/types';
 import {HELP_KEYS, useHelp} from '@/widgets/help';
-import {Lang} from '@/widgets/langs';
 import React from 'react';
-import {DataHolder} from './data-holder';
-import {ObjectiveAnalysisEditor} from './editor';
-import {ObjectiveAnalysisNavigator, ObjectiveAnalysisNavigatorControlButton} from './navigator';
-import {ObjectiveAnalysisEventBusProvider} from './objective-analysis-event-bus';
-import {ObjectiveAnalysisBody} from './widgets';
+import {Route, Switch} from 'react-router-dom';
+import {ObjectiveAnalysisEditor} from './edit';
+import ObjectiveAnalysisList from './list';
+import {ObjectiveAnalysisListEventBusProvider} from './objective-analysis-list-event-bus';
+import {ObjectiveAnalysisListState} from './objective-analysis-list-state';
+
+const ObjectiveAnalysisRoute = () => {
+	return <Switch>
+		<Route path={Router.INDICATOR_OBJECTIVE_ANALYSIS_EDIT}><ObjectiveAnalysisEditor/></Route>
+		<Route path={Router.INDICATOR_OBJECTIVE_ANALYSIS}><ObjectiveAnalysisList/></Route>
+	</Switch>;
+};
 
 const IndicatorObjectiveAnalysisIndex = () => {
-	useHelp(HELP_KEYS.INDICATOR_OBJECTIVE_ANALYSIS);
+	useHelp(HELP_KEYS.INDICATOR_INDICATOR);
 
-	return <ObjectiveAnalysisEventBusProvider>
-		<DataHolder/>
-		<FullWidthPage>
-			<FullWidthPageHeaderContainer>
-				<PageTitle>{Lang.INDICATOR.OBJECTIVE_ANALYSIS.TITLE}</PageTitle>
-			</FullWidthPageHeaderContainer>
-			<ObjectiveAnalysisBody>
-				<ObjectiveAnalysisNavigator/>
-				<ObjectiveAnalysisNavigatorControlButton/>
-				<ObjectiveAnalysisEditor/>
-			</ObjectiveAnalysisBody>
-		</FullWidthPage>
-	</ObjectiveAnalysisEventBusProvider>;
+	return <ObjectiveAnalysisListEventBusProvider>
+		<ObjectiveAnalysisListState/>
+		<ObjectiveAnalysisRoute/>
+	</ObjectiveAnalysisListEventBusProvider>;
 };
 
 export default IndicatorObjectiveAnalysisIndex;

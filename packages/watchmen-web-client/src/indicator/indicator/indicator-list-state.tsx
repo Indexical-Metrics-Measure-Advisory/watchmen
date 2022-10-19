@@ -1,4 +1,5 @@
 import {TuplePage} from '@/services/data/query/tuple-page';
+import {Indicator} from '@/services/data/tuples/indicator-types';
 import {QueryIndicator} from '@/services/data/tuples/query-indicator-types';
 import {Fragment, useEffect, useState} from 'react';
 import {useIndicatorsEventBus} from './indicators-event-bus';
@@ -32,6 +33,20 @@ export const IndicatorListState = () => {
 			off(IndicatorsEventTypes.ASK_SEARCHED, onAskSearched);
 		};
 	}, [on, off, data.page, data.searchText]);
+	useEffect(() => {
+		const onIndicatorSaved = (indicator: Indicator) => {
+			// eslint-disable-next-line
+			const existing = data.page?.data?.find(existing => existing.indicatorId == indicator.indicatorId);
+			if (existing != null) {
+				existing.name = indicator.name;
+				existing.description = indicator.description;
+			}
+		};
+		on(IndicatorsEventTypes.INDICATOR_SAVED, onIndicatorSaved);
+		return () => {
+			off(IndicatorsEventTypes.INDICATOR_SAVED, onIndicatorSaved);
+		};
+	}, [on, off, data.page?.data]);
 
 	return <Fragment/>;
 };

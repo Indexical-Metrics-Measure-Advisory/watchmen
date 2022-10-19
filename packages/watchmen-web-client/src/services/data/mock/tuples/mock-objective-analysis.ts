@@ -1,4 +1,9 @@
-import {ObjectiveAnalysis, ObjectiveAnalysisPerspectiveType} from '../../tuples/objective-analysis-types';
+import {TuplePage} from '../../query/tuple-page';
+import {
+	ObjectiveAnalysis,
+	ObjectiveAnalysisId,
+	ObjectiveAnalysisPerspectiveType
+} from '../../tuples/objective-analysis-types';
 import {generateUuid, isFakedUuid} from '../../tuples/utils';
 import {getCurrentTime} from '../../utils';
 import {ACHIEVEMENT_PREMIUM_ID} from './mock-data-achievements';
@@ -28,6 +33,64 @@ export const listMockObjectiveAnalysis = async (): Promise<Array<ObjectiveAnalys
 			}));
 		}, 500);
 	});
+};
+
+export const findMockObjectiveAnalysisPage = async (options: {
+	search: string;
+	pageNumber?: number;
+	pageSize?: number;
+}): Promise<TuplePage<ObjectiveAnalysis>> => {
+	const {pageNumber = 1, pageSize = 9} = options;
+
+	const data = new Array(2).fill(1).map((_, index) => {
+		return {
+			analysisId: `${index + 1}`,
+			title: `Hello world ${index + 1}`,
+			description: 'a\na\na',
+			perspectives: [{
+				perspectiveId: generateUuid(),
+				type: ObjectiveAnalysisPerspectiveType.INSPECTION,
+				relationId: INSPECTION_ORDER_PREMIUM_ID
+			}, {
+				perspectiveId: generateUuid(),
+				type: ObjectiveAnalysisPerspectiveType.ACHIEVEMENT,
+				relationId: ACHIEVEMENT_PREMIUM_ID
+			}],
+			version: 1,
+			createdAt: getCurrentTime(),
+			lastModifiedAt: getCurrentTime()
+		};
+	});
+	return new Promise<TuplePage<ObjectiveAnalysis>>(resolve => {
+		resolve({
+			data,
+			itemCount: data.length,
+			pageNumber,
+			pageSize,
+			pageCount: 1
+		});
+	});
+};
+
+export const fetchMockObjectiveAnalysis = async (analysisId: ObjectiveAnalysisId): Promise<ObjectiveAnalysis> => {
+	// eslint-disable-next-line
+	return {
+		analysisId,
+		title: `Hello world ${analysisId + 1}`,
+		description: 'a\na\na',
+		perspectives: [{
+			perspectiveId: generateUuid(),
+			type: ObjectiveAnalysisPerspectiveType.INSPECTION,
+			relationId: INSPECTION_ORDER_PREMIUM_ID
+		}, {
+			perspectiveId: generateUuid(),
+			type: ObjectiveAnalysisPerspectiveType.ACHIEVEMENT,
+			relationId: ACHIEVEMENT_PREMIUM_ID
+		}],
+		version: 1,
+		createdAt: getCurrentTime(),
+		lastModifiedAt: getCurrentTime()
+	};
 };
 
 let newAnalysisId = 10000;
