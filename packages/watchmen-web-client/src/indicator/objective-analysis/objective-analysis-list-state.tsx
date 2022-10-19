@@ -47,6 +47,7 @@ export const ObjectiveAnalysisListState = () => {
 					return {
 						page: {
 							...(data.page!),
+							// eslint-disable-next-line
 							data: (data.page?.data || []).filter(existing => existing.analysisId != analysis.analysisId)
 						},
 						searchText: data.searchText,
@@ -61,7 +62,7 @@ export const ObjectiveAnalysisListState = () => {
 			off(ObjectiveAnalysisListEventTypes.OBJECTIVE_ANALYSIS_SAVED, onAnalysisSaved);
 			off(ObjectiveAnalysisListEventTypes.OBJECTIVE_ANALYSIS_DELETED, onAnalysisDeleted);
 		};
-	}, [on, off, data.page?.data]);
+	}, [on, off, data.page]);
 
 	return <Fragment/>;
 };
