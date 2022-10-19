@@ -5,7 +5,8 @@ export enum ObjectiveAnalysisListEventTypes {
 	SEARCHED = 'searched',
 	ASK_SEARCHED = 'ask-searched',
 
-	OBJECTIVE_ANALYSIS_SAVED = 'saved'
+	OBJECTIVE_ANALYSIS_SAVED = 'saved',
+	OBJECTIVE_ANALYSIS_DELETED = 'deleted'
 }
 
 export interface ObjectiveAnalysisListEventBus {
@@ -20,4 +21,8 @@ export interface ObjectiveAnalysisListEventBus {
 	fire(type: ObjectiveAnalysisListEventTypes.OBJECTIVE_ANALYSIS_SAVED, analysis: ObjectiveAnalysis): this;
 	on(type: ObjectiveAnalysisListEventTypes.OBJECTIVE_ANALYSIS_SAVED, listener: (analysis: ObjectiveAnalysis) => void): this;
 	off(type: ObjectiveAnalysisListEventTypes.OBJECTIVE_ANALYSIS_SAVED, listener: (analysis: ObjectiveAnalysis) => void): this;
+
+	fire(type: ObjectiveAnalysisListEventTypes.OBJECTIVE_ANALYSIS_DELETED, analysis: ObjectiveAnalysis): this;
+	on(type: ObjectiveAnalysisListEventTypes.OBJECTIVE_ANALYSIS_DELETED, listener: (analysis: ObjectiveAnalysis) => void): this;
+	off(type: ObjectiveAnalysisListEventTypes.OBJECTIVE_ANALYSIS_DELETED, listener: (analysis: ObjectiveAnalysis) => void): this;
 }

@@ -41,9 +41,25 @@ export const ObjectiveAnalysisListState = () => {
 				existing.description = analysis.description;
 			}
 		};
+		const onAnalysisDeleted = (analysis: ObjectiveAnalysis) => {
+			if (data.page != null && data.page.data != null) {
+				setData(data => {
+					return {
+						page: {
+							...(data.page!),
+							data: (data.page?.data || []).filter(existing => existing.analysisId != analysis.analysisId)
+						},
+						searchText: data.searchText,
+						searched: data.searched
+					};
+				});
+			}
+		};
 		on(ObjectiveAnalysisListEventTypes.OBJECTIVE_ANALYSIS_SAVED, onAnalysisSaved);
+		on(ObjectiveAnalysisListEventTypes.OBJECTIVE_ANALYSIS_DELETED, onAnalysisDeleted);
 		return () => {
 			off(ObjectiveAnalysisListEventTypes.OBJECTIVE_ANALYSIS_SAVED, onAnalysisSaved);
+			off(ObjectiveAnalysisListEventTypes.OBJECTIVE_ANALYSIS_DELETED, onAnalysisDeleted);
 		};
 	}, [on, off, data.page?.data]);
 
