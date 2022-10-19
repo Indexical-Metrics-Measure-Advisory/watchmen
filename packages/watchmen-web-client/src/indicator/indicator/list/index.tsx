@@ -50,6 +50,13 @@ export const RealIndicatorList = () => {
 			off(TupleEventTypes.DO_SEARCH_TUPLE, onDoSearchIndicator);
 		};
 	}, [on, off, fire, fireIndicator, fireGlobal]);
+	useEffect(() => {
+		fireIndicator(IndicatorsEventTypes.ASK_SEARCHED, (page?: TuplePage<QueryIndicator>, searchText?: string) => {
+			if (page) {
+				fire(TupleEventTypes.TUPLE_SEARCHED, page, searchText ?? '');
+			}
+		});
+	}, [fire, fireIndicator]);
 
 	return <TupleWorkbench title={Lang.INDICATOR.INDICATOR.LIST_TITLE}
 	                       createButtonLabel={Lang.INDICATOR.INDICATOR.LIST_CREATE_INDICATOR} canCreate={true}

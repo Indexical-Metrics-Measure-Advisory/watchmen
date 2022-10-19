@@ -1,6 +1,7 @@
 import {AchievementId} from '@/services/data/tuples/achievement-types';
 import {ConnectedSpaceId} from '@/services/data/tuples/connected-space-types';
 import {DashboardId} from '@/services/data/tuples/dashboard-types';
+import {ObjectiveAnalysisId} from '@/services/data/tuples/objective-analysis-types';
 import {PipelineId} from '@/services/data/tuples/pipeline-types';
 import {ReportId} from '@/services/data/tuples/report-types';
 import {SubjectId} from '@/services/data/tuples/subject-types';
@@ -37,3 +38,4 @@ export const isDashboardOpened = (dashboardId: DashboardId): boolean => {
 export const toDashboard = (dashboardId: DashboardId) => Router.CONSOLE_DASHBOARD.replace(':dashboardId', dashboardId);
 export const toPipeline = (pipelineId: PipelineId) => Router.ADMIN_PIPELINE.replace(':pipelineId', pipelineId);
 export const toAchievementEdit = (achievementId: AchievementId) => Router.INDICATOR_ACHIEVEMENT_EDIT.replace(':achievementId', achievementId);
+export const toObjectiveAnalysisEdit = (analysisId: ObjectiveAnalysisId) => Router.INDICATOR_OBJECTIVE_ANALYSIS_EDIT.replace(':analysisId', analysisId);

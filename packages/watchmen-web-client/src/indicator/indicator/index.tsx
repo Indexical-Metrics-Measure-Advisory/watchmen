@@ -10,7 +10,7 @@ import IndicatorList from './list';
 
 const IndicatorRoute = () => {
 	return <Switch>
-		<Route path={Router.INDICATOR_INDICATOR_PREPARE}><IndicatorEditor/></Route>
+		<Route path={Router.INDICATOR_INDICATOR_EDIT}><IndicatorEditor/></Route>
 		<Route path={Router.INDICATOR_INDICATORS}><IndicatorList/></Route>
 	</Switch>;
 };

@@ -46,7 +46,9 @@ export const Jp = {
 		OBJECTIVE_ANALYSIS_DESCRIPTION_PLACEHOLDER: 'ここで分析の目的を説明してください...',
 		OBJECTIVE_ANALYSIS_PERSPECTIVE_DESCRIPTION_PLACEHOLDER: 'ここで視点を説明してください...',
 		NONAME_ACHIEVEMENT_INDICATOR: '名前がありません',
-		MISSED_ACHIEVEMENT_INDICATOR_BASE: '未定義です'
+		MISSED_ACHIEVEMENT_INDICATOR_BASE: '未定義です',
+		NEW_OBJECTIVE_ANALYSIS_NAME: '目標達成分析',
+		FIND_OBJECTIVE_ANALYSIS_PLACEHOLDER: '目標達成分析名に基づいて検索します。'
 	},
 	STANDARD: {
 		YES: 'はい',
@@ -508,7 +510,7 @@ export const Jp = {
 			NEW_NAME: '名前を付け',
 			ACHIEVEMENT_IS_REQUIRED: '表示する必要がある実績を選択してください。',
 			PICK_ANOTHER: '他の実績を表示',
-			CREATE_ACHIEVEMENT: '実績を作成',
+			CREATE_ACHIEVEMENT: '新しい実績を作成',
 			NEW_ACHIEVEMENT_PREFIX: '新しい',
 			EXISTING_ACHIEVEMENT_PREFIX: '既存',
 			CREATE_AT: '作成先',
@@ -556,20 +558,25 @@ export const Jp = {
 		},
 		OBJECTIVE_ANALYSIS: {
 			TITLE: '目標達成分析',
+			LABEL: '目標達成分析',
+			CREATE_OBJECTIVE_ANALYSIS: '新しい分析を作成',
+			NEW_OBJECTIVE_ANALYSIS_PREFIX: '新しい',
+			EXISTING_OBJECTIVE_ANALYSIS_PREFIX: '既存',
+			CREATE_AT: '作成先',
+			LAST_MODIFIED_AT: '最終更新日',
 			NAVIGATOR_TITLE: '目次',
 			NAVIGATOR_SEARCH_TOGGLE: '検索バーを切り替え',
 			NAVIGATOR_CREATE_OBJECTIVE_ANALYSIS: '新しい分析を作成',
 			MINIMIZE_NAVIGATOR: '最小化',
 			NO_DATA: '適切なデータがありません。',
-			NO_OBJECTIVE_ANALYSIS_PICKED: '分析が選択されていませんが、新しい分析を',
-			CREATE_OBJECTIVE_ANALYSIS: '作成します',
-			NO_OBJECTIVE_ANALYSIS_PICKED_2: 'か？',
 			ADD_INSPECTION: '洞察の追加',
 			ADD_ACHIEVEMENT: '実績の追加',
 			SWITCH_TO_VIEW_MODE: '表示モードに切り替える',
 			SWITCH_TO_EDIT_MODE: '編集モードに切り替える',
+			DELETE_ME: '削除',
 			DELETE_DIALOG_LABEL: '分析を削除してもよろしいですか？ 削除したものは復元できませんので、ご注意ください。',
 			PERSPECTIVE_DELETE_DIALOG_LABEL: '視点を削除してもよろしいですか？ 削除したものは復元できませんので、ご注意ください。',
+			BACK_TO_LIST: 'リストに戻り',
 			NO_ACHIEVEMENT: '実績が選択されていません。',
 			NO_INSPECTION: '洞察が選択されていません。'
 		}

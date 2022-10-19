@@ -5,7 +5,7 @@ import {Redirect} from 'react-router-dom';
 
 // noinspection JSUnusedLocalSymbols
 const IndicatorEditor = (props: { indicator: Indicator }) => {
-	return <Redirect to={Router.INDICATOR_INDICATOR_PREPARE}/>;
+	return <Redirect to={Router.INDICATOR_INDICATOR_EDIT}/>;
 };
 
 export const renderEditor = (indicator: Indicator) => {

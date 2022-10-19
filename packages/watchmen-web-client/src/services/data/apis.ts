@@ -200,8 +200,10 @@ export const Apis = {
 	CHECK_ACHIEVEMENT_PLUGIN_TASK: 'indicator/achievement/task?task_id=:taskId',
 
 	OBJECTIVE_ANALYSIS_LIST: 'indicator/objective-analysis/list',
+	OBJECTIVE_ANALYSIS_LIST_BY_NAME: 'indicator/objective-analysis/name?query_name=:search',
 	OBJECTIVE_ANALYSIS_CREATE: 'indicator/objective-analysis',
 	OBJECTIVE_ANALYSIS_SAVE: 'indicator/objective-analysis',
+	OBJECTIVE_ANALYSIS_GET: 'indicator/objective-analysis?analysis_id=:analysisId',
 	OBJECTIVE_ANALYSIS_DELETE: 'indicator/objective-analysis/delete?analysis_id=:analysisId'
 };
 
