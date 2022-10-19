@@ -1,3 +1,5 @@
+import {useObjectiveAnalysisListEventBus} from '@/indicator/objective-analysis/objective-analysis-list-event-bus';
+import {ObjectiveAnalysisListEventTypes} from '@/indicator/objective-analysis/objective-analysis-list-event-bus-types';
 import {Router} from '@/routes/types';
 import {deleteObjectiveAnalysis} from '@/services/data/tuples/objective-analysis';
 import {ObjectiveAnalysis, ObjectiveAnalysisPerspectiveType} from '@/services/data/tuples/objective-analysis-types';
@@ -28,6 +30,7 @@ export const Header = (props: { analysis: ObjectiveAnalysis, startOnView: boolea
 
 	const history = useHistory();
 	const {fire: fireGlobal} = useEventBus();
+	const {fire: fireList} = useObjectiveAnalysisListEventBus();
 	const {fire} = useObjectiveAnalysisEventBus();
 	const viewMode = useViewModeSwitch(startOnView);
 
@@ -64,8 +67,9 @@ export const Header = (props: { analysis: ObjectiveAnalysis, startOnView: boolea
 				fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
 					await deleteObjectiveAnalysis(analysis);
 				}, () => {
-					fire(ObjectiveAnalysisEventTypes.DELETED, analysis);
+					fireList(ObjectiveAnalysisListEventTypes.OBJECTIVE_ANALYSIS_DELETED, analysis);
 					fireGlobal(EventTypes.HIDE_DIALOG);
+					history.replace(Router.INDICATOR_OBJECTIVE_ANALYSIS);
 				});
 			},
 			() => fireGlobal(EventTypes.HIDE_DIALOG));
