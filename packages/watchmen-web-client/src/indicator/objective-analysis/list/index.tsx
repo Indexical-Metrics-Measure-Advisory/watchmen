@@ -1,4 +1,4 @@
-import BucketBackground from '@/assets/bucket-background.svg';
+import ObjectiveAnalysisBackground from '@/assets/objective-analysis-background.svg';
 import {toObjectiveAnalysisEdit} from '@/routes/utils';
 import {TuplePage} from '@/services/data/query/tuple-page';
 import {findObjectiveAnalysisPage, saveObjectiveAnalysis} from '@/services/data/tuples/objective-analysis';
@@ -73,7 +73,7 @@ const RealObjectiveAnalysisList = () => {
 	                       tupleLabel={Lang.INDICATOR.OBJECTIVE_ANALYSIS.LABEL}
 	                       newTupleLabelPrefix={Lang.INDICATOR.OBJECTIVE_ANALYSIS.NEW_OBJECTIVE_ANALYSIS_PREFIX}
 	                       existingTupleLabelPrefix={Lang.INDICATOR.OBJECTIVE_ANALYSIS.EXISTING_OBJECTIVE_ANALYSIS_PREFIX}
-	                       tupleImage={BucketBackground} tupleImagePosition="left 120px"
+	                       tupleImage={ObjectiveAnalysisBackground} tupleImagePosition="left 120px"
 	                       renderEditor={renderEditor}
 	                       confirmEditButtonLabel={Lang.ACTIONS.CONFIRM}
 	                       closeEditButtonLabel={Lang.ACTIONS.CLOSE}
