@@ -1,1 +1,1 @@
-from .oss_collector_competitive_lock import OSSCollectorCompetitiveLock
+from .collector_competitive_lock import CollectorCompetitiveLock

@@ -2,10 +2,6 @@ from abc import ABC, abstractmethod
 
 
 class DistributedLock(ABC):
-
-	def __init__(self):
-		pass
-
 	@abstractmethod
 	def lock(self):
 		pass

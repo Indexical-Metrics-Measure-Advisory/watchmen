@@ -41,4 +41,4 @@ NotificationDefinitionId =  TypeVar('NotificationDefinitionId', bound=str)
 SubscriptionEventId = TypeVar('SubscriptionEventId', bound=str)
 SubscriptionEventLockId = TypeVar('SubscriptionEventLockId', bound=str)
 
-OssCollectorCompetitiveLockId = TypeVar('OssCollectorCompetitiveLockId', bound=str)
+CollectorCompetitiveLockId = TypeVar('CollectorCompetitiveLockId', bound=str)
