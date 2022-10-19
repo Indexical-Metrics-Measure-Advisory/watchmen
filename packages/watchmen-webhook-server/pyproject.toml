@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "watchmen-webhook-server"
+version = "16.5.0"
+description = ""
+authors = ["luke0623 <luke0623@outlook.com>"]
+readme = "README.md"
+packages = [{include = "watchmen_webhook_server"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+requests = "^2.28.1"
+fastapi = "^0.75.1"
+uvicorn = "^0.18.3"
+watchmen-meta = { path = "../watchmen-meta", develop = true }
+watchmen-data-kernel = { path = "../watchmen-data-kernel", develop = true }
+watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
+watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
+watchmen-storage-mongodb = { path = "../watchmen-storage-mongodb", develop = true, optional = true }
+watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, optional = true }
+watchmen-storage-postgresql = { path = "../watchmen-storage-postgresql", develop = true, optional = true }
+watchmen-rest = { path = "../watchmen-rest", develop = true }
+watchmen-inquiry-surface = { path = "../watchmen-inquiry-surface", develop = true }
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
