@@ -15,6 +15,7 @@ from .bucket_helper import ask_bucket
 class IndicatorCriteriaService:
 	def __init__(self, principal_service: PrincipalService):
 		self.principalService = principal_service
+		self.FAKE_TOPIC_ID = '1'
 
 	# noinspection PyMethodMayBeStatic,PyUnusedLocal
 	def build_topic_factor_parameter(self, topic_id: TopicId, factor_id: FactorId) -> Parameter:
