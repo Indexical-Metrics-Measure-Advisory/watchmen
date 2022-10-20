@@ -21,6 +21,7 @@ CREATE TABLE subscription_events
     INDEX(tenant_id),
     INDEX(user_id),
     INDEX(notification_id),
+    INDEX(source_id),
     INDEX (created_at),
     INDEX (created_by),
     INDEX (last_modified_at),
