@@ -39,15 +39,6 @@ EVENT_DEFINITION_ENTITY_SHAPER = EventDefinitionShaper()
 
 class EventDefinitionService(TupleService):
 
-	def __init__(
-			self,
-			storage: TransactionalStorageSPI,
-			snowflake_generator: SnowflakeGenerator,
-			principal_service: PrincipalService
-	):
-		super().__init__(storage)
-		self.with_snowflake_generator(snowflake_generator)
-		self.with_principal_service(principal_service)
 
 	def get_storable_id_column_name(self) -> EntityName:
 		return "event_definition_id"

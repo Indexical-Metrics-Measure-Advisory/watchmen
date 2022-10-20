@@ -1,0 +1,26 @@
+CREATE TABLE subscription_events
+(
+    subscription_event_id VARCHAR(50) NOT NULL,
+    notification_id            VARCHAR(50) NOT NULL,
+    event_id         VARCHAR(50) NOT NULL,
+    tenant_id        VARCHAR(50) NOT NULL,
+    user_id          VARCHAR(50) NOT NULL,
+    weekday           VARCHAR(10),
+    day               VARCHAR(10),
+    hour              TINYINT,
+    minute            TINYINT,
+    enabled           TINYINT,
+    created_at       DATETIME    NOT NULL,
+    created_by       VARCHAR(50) NOT NULL,
+    last_modified_at DATETIME    NOT NULL,
+    last_modified_by VARCHAR(50) NOT NULL,
+    version          BIGINT,
+    PRIMARY KEY (subscription_event_id),
+    INDEX(tenant_id),
+    INDEX(user_id),
+    INDEX(notification_id),
+    INDEX (created_at),
+    INDEX (created_by),
+    INDEX (last_modified_at),
+    INDEX (last_modified_by)
+);
