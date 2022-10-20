@@ -29,6 +29,7 @@ class TopicBaseAchievementIndicatorDataService(AchievementIndicatorDataService):
 		super().__init__(achievement_indicator, principal_service)
 		self.indicator = indicator
 		self.topic = topic
+		self.FAKE_INDICATOR_COLUMN_ID = '1'
 
 	def ask_factor_not_found_message(self, factor_id: FactorId) -> str:
 		return f'Factor[id={factor_id}] not found on topic[id={self.topic.topicId}, name={self.topic.name}].'
@@ -49,7 +50,7 @@ class TopicBaseAchievementIndicatorDataService(AchievementIndicatorDataService):
 			self.indicator.factorId,
 			lambda: f'Indicator[id={self.indicator.indicatorId}, name={self.indicator.name}] factor not declared.')
 		return SubjectDatasetColumn(
-			columnId='1',
+			columnId=self.FAKE_INDICATOR_COLUMN_ID,
 			parameter=TopicFactorParameter(
 				kind=ParameterKind.TOPIC, topicId=self.topic.topicId, factorId=indicator_factor.factorId),
 			alias='column_1'
@@ -109,7 +110,7 @@ class TopicBaseAchievementIndicatorDataService(AchievementIndicatorDataService):
 
 	def ask_value(self) -> Optional[Decimal]:
 		subject = self.fake_to_subject()
-		report = self.fake_to_report()('1')
+		report = self.fake_to_report()(self.FAKE_INDICATOR_COLUMN_ID)
 		report_data_service = get_report_data_service(subject, report, self.principalService)
 		data_result = report_data_service.find()
 		if len(data_result.data) == 0:

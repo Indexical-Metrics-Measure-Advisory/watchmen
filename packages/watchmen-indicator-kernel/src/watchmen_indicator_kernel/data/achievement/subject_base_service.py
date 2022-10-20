@@ -70,7 +70,7 @@ class SubjectBaseAchievementIndicatorDataService(AchievementIndicatorDataService
 			column = self.find_column(
 				a_criteria.factorId,
 				lambda: f'Column of achievement indicator criteria[{criteria.to_dict()}] not declared.')
-			return self.fake_criteria_to_condition(a_criteria)('1', column.columnId)
+			return self.fake_criteria_to_condition(a_criteria)(self.FAKE_TOPIC_ID, column.columnId)
 
 		return ParameterJoint(
 			jointType=ParameterJointType.AND,

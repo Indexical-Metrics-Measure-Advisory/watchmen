@@ -29,7 +29,6 @@ class SubjectBaseInspectionDataService(InspectionDataService):
 		super().__init__(inspection, principal_service)
 		self.indicator = indicator
 		self.subject = subject
-		self.FAKE_TOPIC_ID = '1'
 
 	def ask_column_not_found_message(self, column_id: SubjectDatasetColumnId) -> str:
 		return f'Column[id={column_id}] not found on subject[id={self.subject.subjectId}, name={self.subject.name}].'
