@@ -103,7 +103,7 @@ def load_events_by_user_role(user_role: UserRole, principal_service: PrincipalSe
 	return trans_readonly(event_definition_service, action)
 
 
-@router.post('/notification/definition/', tags=[UserRole.ADMIN], response_model=NotificationDefinition)
+@router.post('/notification/definition', tags=[UserRole.ADMIN], response_model=NotificationDefinition)
 def save_notification_definition(notification_definition: NotificationDefinition,
                                  principal_service: PrincipalService = Depends(
 	                                 get_any_principal)) -> NotificationDefinition:
