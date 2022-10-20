@@ -1,8 +1,11 @@
+from typing import Optional, List
+
 from watchmen_meta.common import TupleShaper, TupleService
 from watchmen_meta.common.storage_service import StorableId
-from watchmen_model.common import Tuple, Storable
+from watchmen_model.common import Tuple, Storable, UserId, TenantId
 from watchmen_model.webhook.subscription_event import SubscriptionEvent
-from watchmen_storage import EntityShaper, EntityRow, EntityName
+from watchmen_storage import EntityShaper, EntityRow, EntityName, EntityCriteriaExpression, EntityCriteriaOperator, \
+	ColumnNameLiteral
 
 
 class SubscriptionEventShaper(EntityShaper):
@@ -12,6 +15,7 @@ class SubscriptionEventShaper(EntityShaper):
 			'event_id': subscription_event.eventId,
 			'notification_id': subscription_event.notificationId,
 			'user_id': subscription_event.userId,
+			'source_id':subscription_event.sourceId,
 			'weekday': subscription_event.weekdayay,
 			'day': subscription_event.day,
 			'hour': subscription_event.hour,
@@ -58,3 +62,17 @@ class SubscriptionEventService(TupleService):
 	# noinspection PyMethodMayBeStatic
 	def get_entity_shaper(self) -> EntityShaper:
 		return SUBSCRIPTION_EVENTS_ENTITY_SHAPER
+
+	def find_by_user_id(self, user_id: Optional[UserId], tenant_id: Optional[TenantId]) -> List[SubscriptionEvent]:
+		# always ignore super admin
+		criteria = [
+			EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='user_id'), operator=EntityCriteriaOperator.EQUALS,
+				right=user_id)
+		]
+
+		if tenant_id is not None and len(tenant_id.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria=criteria))
+

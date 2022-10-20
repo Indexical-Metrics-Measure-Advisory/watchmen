@@ -129,15 +129,9 @@ def save_notification_definition(notification_definition: NotificationDefinition
 	             lambda: save_notification_definition_action(notification_definition))
 
 
-# def save_event_definition(event_definition: EventDefinition) -> EventDefinition:
-# 	pass
-#
-#
-# def save_event_definitions(event_definition_list: List[EventDefinition]) -> list[EventDefinition]:
-# 	return [save_event_definition(event_definition) for event_definition in event_definition_list]
 
 
-@router.post('/subscription/event/', tags=[UserRole.ADMIN, UserRole.CONSOLE], response_model=SubscriptionEvent)
+@router.post('/subscription/event', tags=[UserRole.ADMIN, UserRole.CONSOLE], response_model=SubscriptionEvent)
 def save_subscription_event(subscription_event: SubscriptionEvent,
                             principal_service: PrincipalService = Depends(get_any_principal)) -> SubscriptionEvent:
 	validate_tenant_id(subscription_event, principal_service)
@@ -146,6 +140,7 @@ def save_subscription_event(subscription_event: SubscriptionEvent,
 	def save_subscription_event_action(subscription_event: SubscriptionEvent) -> SubscriptionEvent:
 		if subscription_event_service.is_storable_id_faked(subscription_event.subscriptionEventId):
 			subscription_event_service.redress_storable_id(subscription_event)
+			subscription_event.userId = principal_service.userId
 			return subscription_event_service.create(subscription_event)
 		else:
 			existing_subscription_event: Optional[
@@ -159,3 +154,17 @@ def save_subscription_event(subscription_event: SubscriptionEvent,
 
 	return trans(subscription_event_service,
 	             lambda: save_subscription_event_action(subscription_event))
+
+
+@router.get('/subscription/event/user', tags=[UserRole.ADMIN, UserRole.CONSOLE], response_model=List[SubscriptionEvent])
+def load_subscription_events_by_user_id(principal_service: PrincipalService = Depends(get_any_principal))->List[SubscriptionEvent]:
+
+	subscription_event_service: SubscriptionEventService = get_subscription_event_service(principal_service)
+	def action() -> List[SubscriptionEvent]:
+		subscription_event_list: List[SubscriptionEvent] = subscription_event_service.find_by_user_id(principal_service.userId,principal_service.tenantId)
+
+		return subscription_event_list
+
+	return trans_readonly(subscription_event_service, action)
+
+
