@@ -11,8 +11,6 @@ def startup():
 	webhook.on_startup(app)
 
 
-
-
 ArrayHelper([
 	# system
 	health_router.router,
