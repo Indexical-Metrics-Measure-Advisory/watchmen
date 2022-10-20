@@ -26,6 +26,7 @@ class AchievementIndicator(DataModel, BaseModel):
 
 
 MANUAL_COMPUTE_ACHIEVEMENT_INDICATOR_ID = '-1'
+REFERENCE_ACHIEVEMENT_INDICATOR_ID = '-2'
 
 
 class ManualComputeAchievementIndicator(AchievementIndicator):
@@ -37,6 +38,11 @@ class ManualComputeAchievementIndicator(AchievementIndicator):
 	"""
 	indicatorId: IndicatorId = MANUAL_COMPUTE_ACHIEVEMENT_INDICATOR_ID
 	aggregateArithmetic: IndicatorAggregateArithmetic = IndicatorAggregateArithmetic.MAX
+
+
+class ReferenceAchievementIndicator(AchievementIndicator):
+	indicatorId: IndicatorId = REFERENCE_ACHIEVEMENT_INDICATOR_ID
+	achievementId: AchievementId = None
 
 
 class AchievementTimeRangeType(str, Enum):
@@ -53,6 +59,8 @@ def construct_indicator(indicator: Optional[Union[dict, AchievementIndicator]]) 
 		indicator_id = indicator.get('indicatorId')
 		if indicator_id == MANUAL_COMPUTE_ACHIEVEMENT_INDICATOR_ID:
 			return ManualComputeAchievementIndicator(**indicator)
+		elif indicator_id == REFERENCE_ACHIEVEMENT_INDICATOR_ID:
+			return ReferenceAchievementIndicator(**indicator)
 		else:
 			return AchievementIndicator(**indicator)
 
@@ -72,6 +80,7 @@ class Achievement(TenantBasedTuple, OptimisticLock, BaseModel):
 	timeRangeYear: str = None
 	timeRangeMonth: str = None
 	compareWithPreviousTimeRange: bool = False
+	compareWithPreviousCycle: bool = False
 	finalScoreIsRatio: bool = False
 	indicators: List[AchievementIndicator] = []
 	pluginIds: List[PluginId] = []
