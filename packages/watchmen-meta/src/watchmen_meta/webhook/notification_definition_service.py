@@ -44,17 +44,6 @@ class NotificationDefinitionService(TupleService):
 		storable.notificationId = storable_id
 		return storable
 
-	def __init__(
-			self,
-			storage: TransactionalStorageSPI,
-			snowflake_generator: SnowflakeGenerator,
-			principal_service: PrincipalService
-	):
-		super().__init__(storage)
-		self.with_snowflake_generator(snowflake_generator)
-		self.with_principal_service(principal_service)
-
-	# noinspection PyMethodMayBeStatic
 	def get_entity_name(self) -> str:
 		return NOTIFICATION_DEFINITION_ENTITY_NAME
 

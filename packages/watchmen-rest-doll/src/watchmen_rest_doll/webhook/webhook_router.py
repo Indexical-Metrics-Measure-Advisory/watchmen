@@ -53,7 +53,7 @@ def load_notifications_by_user_id(user_id: Optional[UserId] = None,
 	return trans_readonly(notification_definition_service, action)
 
 
-@router.get('/notification', tags=[UserRole.ADMIN, UserRole.CONSOLE], response_model=NotificationDefinition)
+@router.get('/notification/definition', tags=[UserRole.ADMIN, UserRole.CONSOLE], response_model=NotificationDefinition)
 def load_notification_by_id(notification_id: NotificationDefinitionId,
                             principal_service: PrincipalService = Depends(get_any_principal)) -> NotificationDefinition:
 	notification_definition_service: NotificationDefinitionService = get_notification_definition_service(
