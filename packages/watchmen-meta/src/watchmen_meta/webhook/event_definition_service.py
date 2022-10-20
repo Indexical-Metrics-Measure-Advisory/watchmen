@@ -1,13 +1,12 @@
 from typing import List, Optional
 
-from watchmen_auth import PrincipalService
 from watchmen_meta.common import TupleShaper, TupleService
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.admin import UserRole
 from watchmen_model.common import Tuple, Storable
 from watchmen_model.common.tuple_ids import EventDefinitionId, TenantId
 from watchmen_model.webhook.event_defination import EventDefinition
-from watchmen_storage import EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, EntityRow, EntityHelper, \
+from watchmen_storage import EntityShaper, EntityRow, EntityHelper, \
 	EntityIdHelper, EntityCriteriaExpression, ColumnNameLiteral, EntityCriteriaOperator, EntityName
 
 
@@ -38,7 +37,6 @@ EVENT_DEFINITION_ENTITY_SHAPER = EventDefinitionShaper()
 
 
 class EventDefinitionService(TupleService):
-
 
 	def get_storable_id_column_name(self) -> EntityName:
 		return "event_definition_id"

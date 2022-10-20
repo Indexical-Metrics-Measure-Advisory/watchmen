@@ -1,12 +1,9 @@
-from watchmen_auth import PrincipalService
 from watchmen_meta.common import TupleService
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable
-from watchmen_model.common.tuple_ids import SubscriptionEventLockId
 from watchmen_model.webhook.subscription_event import SubscriptionEvent
 from watchmen_model.webhook.subscription_event_lock import SubscriptionEventLock
-from watchmen_storage import EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, EntityRow, EntityHelper, \
-	EntityIdHelper, EntityName
+from watchmen_storage import EntityShaper, EntityRow, EntityName
 
 
 class SubscriptionEventLockShaper(EntityShaper):
@@ -40,7 +37,7 @@ SUBSCRIPTION_EVENT_LOCK_ENTITY_SHAPER = SubscriptionEventLockShaper()
 class SubscriptionEventLockService(TupleService):
 
 	def get_storable_id_column_name(self) -> EntityName:
-		return "subscription_event_id"
+		return "subscription_event_lock_id"
 
 	def get_storable_id(self, storable: SubscriptionEvent) -> StorableId:
 		return storable.subscriptionEventId
@@ -56,18 +53,3 @@ class SubscriptionEventLockService(TupleService):
 	# noinspection PyMethodMayBeStatic
 	def get_entity_shaper(self) -> EntityShaper:
 		return SUBSCRIPTION_EVENT_LOCK_ENTITY_SHAPER
-
-	def get_entity_helper(self) -> EntityHelper:
-		return EntityHelper(name=self.get_entity_name(), shaper=self.get_entity_shaper())
-
-	def generate_subscription_event_lock_id(self) -> SubscriptionEventLockId:
-		return str(self.snowflakeGenerator.next_id())
-
-	# noinspection PyMethodMayBeStatic
-	def get_subscription_event_lock_id_column_name(self) -> str:
-		return 'subscription_event_lock_id'
-
-	def get_entity_id_helper(self) -> EntityIdHelper:
-		return EntityIdHelper(
-			name=self.get_entity_name(), shaper=self.get_entity_shaper(),
-			idColumnName=self.get_subscription_event_lock_id_column_name())
