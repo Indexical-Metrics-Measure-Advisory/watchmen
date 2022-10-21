@@ -231,6 +231,15 @@ table_snapshot_job_locks = MongoDocument(
 		create_tuple_id_column('user_id', False), create_datetime('created_at', False)
 	]
 )
+table_collector_competitive_lock = MongoDocument(
+	name='collector_competitive_lock',
+	columns=[
+		create_pk('lock_id'), create_str('resource_id', False),
+		create_str('model_name', False), create_str('object_id', False),
+		create_datetime('registered_at', False), create_tenant_id(),
+		create_int('status', False)
+	]
+)
 
 # gui
 table_favorites = MongoDocument(
@@ -398,6 +407,7 @@ tables: Dict[str, MongoDocument] = {
 	'pipeline_graphics': table_pipeline_graphics,
 	'snapshot_schedulers': table_snapshot_schedulers,
 	'snapshot_job_locks': table_snapshot_job_locks,
+	'collector_competitive_lock': table_collector_competitive_lock,
 	# console
 	'connected_spaces': table_connected_spaces,
 	'connected_space_graphics': table_connected_space_graphics,
