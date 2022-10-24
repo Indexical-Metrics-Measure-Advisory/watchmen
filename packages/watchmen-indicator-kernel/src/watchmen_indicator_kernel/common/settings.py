@@ -2,8 +2,6 @@ from logging import getLogger
 
 from pydantic import BaseSettings
 
-from watchmen_model.system import DataSourceType
-
 logger = getLogger(__name__)
 
 

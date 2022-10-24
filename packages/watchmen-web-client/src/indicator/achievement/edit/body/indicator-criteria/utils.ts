@@ -138,7 +138,7 @@ export const buildFactorOptions = (defData: IndicatorCriteriaDefData): Array<Dro
 		// };
 		return (defData.subject.dataset.columns || []).filter(column => {
 			// eslint-disable-next-line
-			return true; //indicator.factorId == column.columnId || isColumnSupported(column);
+			return column.recalculate !== true; //indicator.factorId == column.columnId || isColumnSupported(column);
 		}).sort((c1, c2) => {
 			return (c1.alias || '').localeCompare(c2.alias || '', void 0, {
 				sensitivity: 'base',

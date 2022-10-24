@@ -7,6 +7,7 @@ from .achievement_data_service import AchievementDataService
 from .indicator_data_service import AchievementIndicatorDataService
 from .subject_base_service import SubjectBaseAchievementIndicatorDataService
 from .topic_base_service import TopicBaseAchievementIndicatorDataService
+from ..criteria_helper import redress_achievement_indicator
 from ..indicator_helper import ask_indicator
 from ..subject_helper import ask_subject
 from ..topic_helper import ask_topic
@@ -16,16 +17,19 @@ def get_topic_base_service(
 		achievement_indicator: AchievementIndicator, indicator: Indicator, topic_id: TopicId,
 		principal_service: PrincipalService
 ) -> TopicBaseAchievementIndicatorDataService:
-	return TopicBaseAchievementIndicatorDataService(
-		achievement_indicator, indicator, ask_topic(topic_id, principal_service), principal_service)
+	topic = ask_topic(topic_id, principal_service)
+	clone_achievement_indicator = redress_achievement_indicator(achievement_indicator, topic, principal_service)
+	return TopicBaseAchievementIndicatorDataService(clone_achievement_indicator, indicator, topic, principal_service)
 
 
 def get_subject_base_service(
 		achievement_indicator: AchievementIndicator, indicator: Indicator, subject_id: SubjectId,
 		principal_service: PrincipalService
 ) -> SubjectBaseAchievementIndicatorDataService:
+	subject = ask_subject(subject_id, principal_service)
+	clone_achievement_indicator = redress_achievement_indicator(achievement_indicator, subject, principal_service)
 	return SubjectBaseAchievementIndicatorDataService(
-		achievement_indicator, indicator, ask_subject(subject_id, principal_service), principal_service)
+		clone_achievement_indicator, indicator, subject, principal_service)
 
 
 def get_achievement_indicator_data_service(
