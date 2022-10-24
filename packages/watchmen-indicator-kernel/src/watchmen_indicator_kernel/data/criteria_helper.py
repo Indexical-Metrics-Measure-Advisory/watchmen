@@ -1,4 +1,4 @@
-from typing import Union
+from typing import List, Union
 
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.common import IndicatorKernelException
@@ -42,37 +42,40 @@ def redress_achievement_indicator(
 	return clone_achievement_indicator
 
 
-def redress_expression(criteria: IndicatorCriteriaOnExpression) -> None:
-	"""
-	replace {&year}, {&month} by current date
-	:param criteria:
-	:return:
-	"""
+def redress_expression(criteria: IndicatorCriteriaOnExpression) -> List[IndicatorCriteriaOnExpression]:
 	value = criteria.value
 	if is_blank(value):
-		return
+		return [criteria]
 	now = get_current_time_in_seconds()
 	value = value.replace('{&year}', f'{now.year}').replace('{&month}', f'{now.month}')
 	criteria.value = value
+	return [criteria]
 
 
-def redress_single_criteria(criteria: IndicatorCriteria) -> None:
+def redress_single_criteria(criteria: IndicatorCriteria) -> List[IndicatorCriteria]:
 	if isinstance(criteria, IndicatorCriteriaOnExpression):
-		redress_expression(criteria)
+		return redress_expression(criteria)
+	else:
+		return [criteria]
 
 
 def redress_inspection_on_topic(inspection: Inspection):
-	ArrayHelper(inspection.criteria).each(redress_single_criteria)
+	inspection.criteria = ArrayHelper(inspection.criteria).map(redress_single_criteria).flatten().to_list()
 
 
 def redress_inspection_on_subject(inspection: Inspection):
-	ArrayHelper(inspection.criteria).each(redress_single_criteria)
+	inspection.criteria = ArrayHelper(inspection.criteria).map(redress_single_criteria).flatten().to_list()
 
 
 def redress_achievement_indicator_on_topic(achievement_indicator: AchievementIndicator):
-	ArrayHelper(achievement_indicator.criteria).each(redress_single_criteria)
+	achievement_indicator.criteria = ArrayHelper(achievement_indicator.criteria) \
+		.map(redress_single_criteria) \
+		.flatten() \
+		.to_list()
 
 
-def redress_achievement_indicator_on_subject(
-		achievement_indicator: AchievementIndicator):
-	ArrayHelper(achievement_indicator.criteria).each(redress_single_criteria)
+def redress_achievement_indicator_on_subject(achievement_indicator: AchievementIndicator):
+	achievement_indicator.criteria = ArrayHelper(achievement_indicator.criteria) \
+		.map(redress_single_criteria) \
+		.flatten() \
+		.to_list()
