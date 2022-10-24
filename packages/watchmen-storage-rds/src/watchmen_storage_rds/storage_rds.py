@@ -297,13 +297,17 @@ class StorageRDS(TransactionalStorageSPI):
 			if straight_column.arithmetic == EntityColumnAggregateArithmetic.COUNT:
 				return func.count(1).label(self.get_alias_from_straight_column(straight_column))
 			elif straight_column.arithmetic == EntityColumnAggregateArithmetic.SUM:
-				return func.sum(straight_column.columnName).label(self.get_alias_from_straight_column(straight_column))
+				return func.sum(literal_column(straight_column.columnName)) \
+					.label(self.get_alias_from_straight_column(straight_column))
 			elif straight_column.arithmetic == EntityColumnAggregateArithmetic.AVG:
-				return func.avg(straight_column.columnName).label(self.get_alias_from_straight_column(straight_column))
+				return func.avg(literal_column(straight_column.columnName)) \
+					.label(self.get_alias_from_straight_column(straight_column))
 			elif straight_column.arithmetic == EntityColumnAggregateArithmetic.MAX:
-				return func.max(straight_column.columnName).label(self.get_alias_from_straight_column(straight_column))
+				return func.max(literal_column(straight_column.columnName)) \
+					.label(self.get_alias_from_straight_column(straight_column))
 			elif straight_column.arithmetic == EntityColumnAggregateArithmetic.MIN:
-				return func.min(straight_column.columnName).label(self.get_alias_from_straight_column(straight_column))
+				return func.min(literal_column(straight_column.columnName)) \
+					.label(self.get_alias_from_straight_column(straight_column))
 		elif isinstance(straight_column, EntityStraightColumn):
 			return literal_column(straight_column.columnName) \
 				.label(self.get_alias_from_straight_column(straight_column))
