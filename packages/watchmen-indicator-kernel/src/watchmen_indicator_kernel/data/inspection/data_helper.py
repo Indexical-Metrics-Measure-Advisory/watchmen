@@ -6,6 +6,7 @@ from watchmen_utilities import is_not_blank
 from .inspection_data_service import InspectionDataService
 from .subject_base_service import SubjectBaseInspectionDataService
 from .topic_base_service import TopicBaseInspectionDataService
+from ..criteria_helper import redress_inspection
 from ..indicator_helper import ask_indicator
 from ..subject_helper import ask_subject
 from ..topic_helper import ask_topic
@@ -15,16 +16,18 @@ def get_topic_base_service(
 		inspection: Inspection, indicator: Indicator, topic_id: TopicId,
 		principal_service: PrincipalService
 ) -> TopicBaseInspectionDataService:
-	return TopicBaseInspectionDataService(
-		inspection, indicator, ask_topic(topic_id, principal_service), principal_service)
+	topic = ask_topic(topic_id, principal_service)
+	clone_inspection = redress_inspection(inspection, topic, principal_service)
+	return TopicBaseInspectionDataService(clone_inspection, indicator, topic, principal_service)
 
 
 def get_subject_base_service(
 		inspection: Inspection, indicator: Indicator, subject_id: SubjectId,
 		principal_service: PrincipalService
 ) -> SubjectBaseInspectionDataService:
-	return SubjectBaseInspectionDataService(
-		inspection, indicator, ask_subject(subject_id, principal_service), principal_service)
+	subject = ask_subject(subject_id, principal_service)
+	clone_inspection = redress_inspection(inspection, subject, principal_service)
+	return SubjectBaseInspectionDataService(clone_inspection, indicator, subject, principal_service)
 
 
 def get_inspection_data_service(inspection: Inspection, principal_service: PrincipalService) -> InspectionDataService:

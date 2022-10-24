@@ -33,15 +33,23 @@ class ManualComputeAchievementIndicator(AchievementIndicator):
 	"""
 	for manual compute indicator,
 	1. indicatorId fixed as {@link MANUAL_COMPUTE_ACHIEVEMENT_INDICATOR_ID},
-	2. aggregateArithmetics fixed as {@link IndicatorAggregateArithmetic#MAX}, will be ignored anyway in runtime
-	3. criteria fixed as zero length array, will be ignored anyway in runtime
+	2. aggregateArithmetics fixed as {@link IndicatorAggregateArithmetic#MAX}, will be ignored anyway in runtime,
+	3. criteria fixed as zero length array, will be ignored anyway in runtime.
 	"""
 	indicatorId: IndicatorId = MANUAL_COMPUTE_ACHIEVEMENT_INDICATOR_ID
 	aggregateArithmetic: IndicatorAggregateArithmetic = IndicatorAggregateArithmetic.MAX
 
 
 class ReferenceAchievementIndicator(AchievementIndicator):
+	"""
+	for reference achievement indicator,
+	1. indicatorId fixed as {@link REFERENCE_ACHIEVEMENT_INDICATOR_ID},
+	2. aggregateArithmetics fixed as {@link IndicatorAggregateArithmetic#MAX}, will be ignored anyway in runtime,
+	3. criteria fixed as zero length array, will be ignored anyway in runtime,
+	4. any dynamic criteria value should be passed to reference achievement.
+	"""
 	indicatorId: IndicatorId = REFERENCE_ACHIEVEMENT_INDICATOR_ID
+	aggregateArithmetic: IndicatorAggregateArithmetic = IndicatorAggregateArithmetic.MAX
 	achievementId: AchievementId = None
 
 
