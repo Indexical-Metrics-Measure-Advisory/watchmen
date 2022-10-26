@@ -47,12 +47,12 @@ def redress_expression(criteria: IndicatorCriteriaOnExpression) -> List[Indicato
 	if is_blank(value):
 		return [criteria]
 	now = get_current_time_in_seconds()
-	if value.strip().lower() in ['{&yeartoend}', '{&year2end}', '{&ytoe}', '{&y2e}']:
+	if value.strip().lower() in ['{&yeartodate}', '{&year2date}', '{&ytod}', '{&y2d}']:
 		# year to end aka this year
 		criteria.value = f'{now.year}'
 		return [criteria]
 
-	if value.strip().lower() in ['{&monthtoend}', '{&month2end}', '{&mtoe}', '{&m2e}']:
+	if value.strip().lower() in ['{&monthtodate}', '{&month2date}', '{&mtod}', '{&m2d}']:
 		# month to end aka this year & month
 		return [
 			IndicatorCriteriaOnExpression(**criteria.to_dict(), value=f'{now.year}'),
