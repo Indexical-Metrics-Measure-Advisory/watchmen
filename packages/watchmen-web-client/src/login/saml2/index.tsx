@@ -7,6 +7,7 @@ import React, {ChangeEvent, useEffect, useRef, useState} from 'react';
 import {
 	Error,
 	Form,
+	FormAutofillChip,
 	FormBody,
 	FormFooter,
 	FormPart,
@@ -90,6 +91,7 @@ const Saml2Login = () => {
 							<FormRowInput value={account.name || ''} onChange={onValueChange('name')}
 							              onFocus={onNameFocused}
 							              ref={nameRef}/>
+							<FormAutofillChip/>
 						</FormRow>
 						<FormRow>
 							<FormRowIcon icon={faKey}/>
@@ -97,6 +99,7 @@ const Saml2Login = () => {
 							              value={account.credential || ''} onChange={onValueChange('credential')}
 							              onFocus={onPasswordFocused} onBlur={onPasswordBlurred}
 							              ref={credentialRef}/>
+							<FormAutofillChip/>
 						</FormRow>
 					</FormBody>
 					<FormFooter>

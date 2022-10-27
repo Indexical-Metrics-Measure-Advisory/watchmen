@@ -4,7 +4,7 @@ const LightContrastBiggerTheme = {
 	...DefaultTheme,
 
 	code: 'light-contrast-bigger',
-	codeEditorTheme: 'light',
+	// codeEditorTheme: 'light',
 
 	fontColor: '#444444',
 	fontSize: 14

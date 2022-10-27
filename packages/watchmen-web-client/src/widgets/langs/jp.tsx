@@ -570,8 +570,9 @@ export const Jp = {
 		LANGUAGE: '言語',
 		THEME: 'テーマ',
 		THEME_LIGHT: '標準',
-		THEME_LIGHT_CONTRAST_BIGGER: 'ハイコントラスト、大きなフォント',
+		THEME_LIGHT_CONTRAST_BIGGER: '高コントラスト、大きなフォント',
 		THEME_DARK: 'ダーク',
+		THEME_DARK_CONTRAST_BIGGER: 'ダーク、高コントラスト、大きなフォント',
 		PAT: {
 			TITLE: 'パーソナルアクセストークン',
 			CREATE: '新しいトークンを生成する',

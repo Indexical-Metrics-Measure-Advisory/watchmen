@@ -131,16 +131,20 @@ export const FormRowIcon = styled(FontAwesomeIcon).attrs(() => {
 export const FormRowInput = styled(Input).attrs({'data-widget': 'login-body-form-row-input'})`
 	flex-grow     : 1;
 	border        : 0;
-	border-radius : 0 calc(var(--border-radius) * 2) 0 0;
+	border-radius : 0;
 	padding-left  : 0;
 	transition    : none;
 	// for avoid chrome auto fill background
-	box-shadow    : 0 0 0 1000px var(--bg-color) inset;
+	box-shadow    : 0 2px 0 1000px var(--bg-color) inset;
 	&:first-line {
 		font-family : var(--title-font-family);
 		font-size   : var(--font-size);
 		color       : var(--font-color);
 	}
+`;
+export const FormAutofillChip = styled.div`
+	width                   : calc(var(--border-radius) * 2);
+	border-top-right-radius : calc(var(--border-radius) * 2);
 `;
 export const FormFooter = styled.div.attrs({'data-widget': 'login-body-form-footer'})`
 	display               : grid;
