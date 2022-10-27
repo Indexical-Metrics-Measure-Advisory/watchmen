@@ -1,7 +1,4 @@
-import {
-	Achievement,
-	AchievementIndicator
-} from '@/services/data/tuples/achievement-types';
+import {Achievement, AchievementIndicator} from '@/services/data/tuples/achievement-types';
 import {
 	IndicatorCriteria,
 	IndicatorCriteriaOnBucket,
@@ -9,7 +6,9 @@ import {
 } from '@/services/data/tuples/indicator-criteria-types';
 import {
 	getAvailableTimeRangeOnColumn,
-	getAvailableTimeRangeOnFactor, isCriteriaValueVisible, showInputForValue
+	getAvailableTimeRangeOnFactor,
+	isCriteriaValueVisible,
+	showInputForValue
 } from '@/services/data/tuples/indicator-criteria-utils';
 import {MeasureMethod} from '@/services/data/tuples/indicator-types';
 import {tryToTransformColumnToMeasures, tryToTransformToMeasures} from '@/services/data/tuples/indicator-utils';
@@ -19,16 +18,41 @@ import {Input} from '@/widgets/basic/input';
 import {useTooltip} from '@/widgets/basic/tooltip';
 import {DropdownOption, TooltipAlignment} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
-import {ChangeEvent, useEffect, useRef} from 'react';
+import {Lang} from '@/widgets/langs';
+import {ChangeEvent, ReactNode, useEffect, useRef} from 'react';
 import {useAchievementEventBus} from '../../../achievement-event-bus';
 import {AchievementEventTypes} from '../../../achievement-event-bus-types';
 import {useAchievementEditEventBus} from '../achievement-edit-event-bus';
 import {AchievementEditEventTypes} from '../achievement-edit-event-bus-types';
 import {IndicatorCriteriaDefData} from '../types';
-import {
-	getTimeRangePlaceholder
-} from './utils';
-import {IndicatorCriteriaValue} from './widgets';
+import {IndicatorCriteriaValue, IndicatorCriteriaValueTooltip} from './widgets';
+
+const getTimeRangePlaceholder = (year: boolean, month: boolean): ReactNode | undefined => {
+	if (year && month) {
+		return <IndicatorCriteriaValueTooltip>
+			<li>{Lang.PLAIN.INDICATOR_CRITERIA_VARIABLES}</li>
+			<li>{Lang.PLAIN.INDICATOR_CRITERIA_TR_Y2D}</li>
+			<li>{Lang.PLAIN.INDICATOR_CRITERIA_TR_M2D}</li>
+			<li>{Lang.PLAIN.INDICATOR_CRITERIA_TR_LNY}</li>
+			<li>{Lang.PLAIN.INDICATOR_CRITERIA_TR_LNYM}</li>
+			<li>{Lang.PLAIN.INDICATOR_CRITERIA_TR_LNYD}</li>
+			<li>{Lang.PLAIN.INDICATOR_CRITERIA_TR_LNM}</li>
+			<li>{Lang.PLAIN.INDICATOR_CRITERIA_TR_LNMD}</li>
+		</IndicatorCriteriaValueTooltip>;
+	} else if (year) {
+		return <IndicatorCriteriaValueTooltip>
+			<li>{Lang.PLAIN.INDICATOR_CRITERIA_VARIABLES}</li>
+			<li>{Lang.PLAIN.INDICATOR_CRITERIA_TR_YEAR}</li>
+		</IndicatorCriteriaValueTooltip>;
+	} else if (month) {
+		return <IndicatorCriteriaValueTooltip>
+			<li>{Lang.PLAIN.INDICATOR_CRITERIA_VARIABLES}</li>
+			<li>{Lang.PLAIN.INDICATOR_CRITERIA_TR_MONTH}</li>
+		</IndicatorCriteriaValueTooltip>;
+	} else {
+		return (void 0);
+	}
+};
 
 const InputEditor = (props: {
 	achievement: Achievement;

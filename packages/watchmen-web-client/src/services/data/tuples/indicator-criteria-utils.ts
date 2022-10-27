@@ -43,10 +43,11 @@ export const getAvailableTimeRangeOnFactor = (factor?: Factor): { year: boolean;
 		month: measures.includes(MeasureMethod.MONTH)
 	};
 };
-export const getAvailableTimeRangeOnColumn = (column?: SubjectDataSetColumn, subject?: SubjectForIndicator): { year: boolean; month: boolean } => {
+export const getAvailableTimeRangeOnColumn = (column?: SubjectDataSetColumn, subject?: SubjectForIndicator): { year: boolean; month: boolean; date: boolean } => {
 	const measures = (column == null || subject == null) ? [] : tryToTransformColumnToMeasures(column, subject);
 	return {
 		year: measures.includes(MeasureMethod.YEAR),
-		month: measures.includes(MeasureMethod.MONTH)
+		month: measures.includes(MeasureMethod.MONTH),
+		date: measures.includes(MeasureMethod.YEAR) && measures.includes(MeasureMethod.MONTH)
 	};
 };

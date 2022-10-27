@@ -162,7 +162,7 @@ export const SIDE_MENU_MIN_WIDTH = 51;
 export const SIDE_MENU_MAX_WIDTH = 321;
 export const SIDE_MENU_RESIZE_HANDLE_WIDTH = 6;
 
-export const TOOLTIP_MAX_WIDTH = 300;
+export const TOOLTIP_MAX_WIDTH = 320;
 export const TOOLTIP_CARET_OFFSET = 6;
 
 export const PIN_FAVORITE_HEIGHT = 'calc(var(--height) * 1.2 + 1px)';
