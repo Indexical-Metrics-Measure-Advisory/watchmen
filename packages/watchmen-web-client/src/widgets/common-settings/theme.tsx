@@ -12,7 +12,8 @@ import {getCurrentThemeCode} from '../theme/theme-wrapper';
 export const SupportedThemes: Array<DropdownOption> = [
 	{value: 'light', label: Lang.SETTINGS.THEME_LIGHT},
 	{value: 'light-contrast-bigger', label: Lang.SETTINGS.THEME_LIGHT_CONTRAST_BIGGER},
-	{value: 'dark', label: Lang.SETTINGS.THEME_DARK}
+	{value: 'dark', label: Lang.SETTINGS.THEME_DARK},
+	{value: 'dark-contrast-bigger', label: Lang.SETTINGS.THEME_DARK_CONTRAST_BIGGER}
 ];
 
 export const ThemeSettings = (props: { en?: boolean }) => {
@@ -23,7 +24,8 @@ export const ThemeSettings = (props: { en?: boolean }) => {
 		? [
 			{value: 'light', label: 'Light'},
 			{value: 'light-contrast-bigger', label: 'Light Contrast Bigger'},
-			{value: 'dark', label: 'Dark'}
+			{value: 'dark', label: 'Dark'},
+			{value: 'dark-contrast-bigger', label: 'Dark Contrast Bigger'}
 		]
 		: SupportedThemes;
 
