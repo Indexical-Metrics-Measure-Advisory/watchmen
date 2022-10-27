@@ -595,6 +595,7 @@ export const Zh = {
 		THEME_LIGHT: '标准',
 		THEME_LIGHT_CONTRAST_BIGGER: '高对比大字',
 		THEME_DARK: '暗色',
+		THEME_DARK_CONTRAST_BIGGER: '暗色高对比大字',
 		PAT: {
 			TITLE: 'Personal Access Token',
 			CREATE: '创建新Token',
