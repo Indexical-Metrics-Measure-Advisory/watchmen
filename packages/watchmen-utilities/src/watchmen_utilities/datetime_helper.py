@@ -650,6 +650,19 @@ def move_date_or_time(date_or_time: Union[date, time], movement: Tuple[str, str,
 
 
 def move_date(a_date: date, movements: List[Tuple[str, str, str]]) -> date:
+	"""
+	movements[0]: YMDhms
+	movements[1]: empty string,  +, -
+	movements[2]:
+		when movements[1] is plus/minus, any number value
+		otherwise when movements[0] is
+		1. year(Y): 4 digits year,
+		2. month(M): 1 - 12,
+		3. date(D): 1 - end of month,
+		4. hour(h): 0 - 23,
+		5. minute(m): 0 - 59,
+		6. second(m): 0 - 59.
+	"""
 	return ArrayHelper(movements).reduce(lambda base_date, x: move_date_or_time(base_date, x), a_date)
 
 
