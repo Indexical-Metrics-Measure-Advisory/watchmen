@@ -88,7 +88,7 @@ const Saml2Login = () => {
 					<FormBody>
 						<FormRow>
 							<FormRowIcon icon={faUserAstronaut}/>
-							<FormRowInput value={account.name || ''} onChange={onValueChange('name')}
+							<FormRowInput defaultValue={account.name || ''} onChange={onValueChange('name')}
 							              onFocus={onNameFocused}
 							              ref={nameRef}/>
 							<FormAutofillChip/>
@@ -96,7 +96,7 @@ const Saml2Login = () => {
 						<FormRow>
 							<FormRowIcon icon={faKey}/>
 							<FormRowInput type="password"
-							              value={account.credential || ''} onChange={onValueChange('credential')}
+							              defaultValue={account.credential || ''} onChange={onValueChange('credential')}
 							              onFocus={onPasswordFocused} onBlur={onPasswordBlurred}
 							              ref={credentialRef}/>
 							<FormAutofillChip/>
