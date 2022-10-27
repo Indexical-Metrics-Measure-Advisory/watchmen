@@ -581,6 +581,7 @@ export const En = {
 		THEME_LIGHT: 'Light',
 		THEME_LIGHT_CONTRAST_BIGGER: 'Light Contrast Bigger',
 		THEME_DARK: 'Dark',
+		THEME_DARK_CONTRAST_BIGGER: 'Dark Contrast Bigger',
 		PAT: {
 			TITLE: 'Personal Access Token',
 			CREATE: 'Generate New Token',

@@ -11,6 +11,7 @@ import React, {ChangeEvent, Fragment, useEffect, useRef, useState} from 'react';
 import {
 	Error,
 	Form,
+	FormAutofillChip,
 	FormBody,
 	FormFooter,
 	FormPart,
@@ -108,16 +109,18 @@ const RegularLogin = () => {
 					<FormBody>
 						<FormRow>
 							<FormRowIcon icon={faUserAstronaut}/>
-							<FormRowInput value={account.name || ''} onChange={onValueChange('name')}
+							<FormRowInput defaultValue={account.name || ''} onChange={onValueChange('name')}
 							              onFocus={onNameFocused}
 							              ref={nameRef}/>
+							<FormAutofillChip/>
 						</FormRow>
 						<FormRow>
 							<FormRowIcon icon={faKey}/>
 							<FormRowInput type="password"
-							              value={account.credential || ''} onChange={onValueChange('credential')}
+							              defaultValue={account.credential || ''} onChange={onValueChange('credential')}
 							              onFocus={onPasswordFocused} onBlur={onPasswordBlurred}
 							              ref={credentialRef}/>
+							<FormAutofillChip/>
 						</FormRow>
 					</FormBody>
 					<FormFooter>

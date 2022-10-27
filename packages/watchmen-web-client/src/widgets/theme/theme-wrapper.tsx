@@ -5,6 +5,7 @@ import React, {useEffect, useState} from 'react';
 import {createGlobalStyle, ThemeProvider} from 'styled-components';
 import {useEventBus} from '../events/event-bus';
 import {EventTypes} from '../events/types';
+import DarkContrastTheme from './dark-contrast-theme';
 import DarkTheme from './dark-theme';
 import DefaultTheme from './default-theme';
 import LightContrastTheme from './light-contrast-theme';
@@ -97,7 +98,8 @@ const GlobalStyle = createGlobalStyle<{ theme: Theme }>`
 const THEMES: Record<string, Theme> = {
 	[DarkTheme.code]: DarkTheme,
 	[DefaultTheme.code]: DefaultTheme,
-	[LightContrastTheme.code]: LightContrastTheme
+	[LightContrastTheme.code]: LightContrastTheme,
+	[DarkContrastTheme.code]: DarkContrastTheme
 };
 
 const findTheme = (themeCode: string) => {
