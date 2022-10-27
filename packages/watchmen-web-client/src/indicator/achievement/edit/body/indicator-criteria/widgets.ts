@@ -123,6 +123,12 @@ export const IndicatorCriteriaValue = styled.div.attrs({'data-widget': 'indicato
 		//border-color : var(--achievement-indicator-color);
 	}
 `;
+export const IndicatorCriteriaValueTooltip = styled.ul`
+	padding: 0 0 0 calc(var(--margin) / 4);
+	> li:first-child {
+		list-style: none;
+	}
+`
 export const IndicatorCriteriaButtons = styled.div.attrs({'data-widget': 'indicator-criteria-buttons'})`
 	display  : flex;
 	position : relative;

@@ -80,7 +80,7 @@ export const PerspectiveContainer = styled.div.attrs({
 		margin-top       : calc(var(--margin) / 2);
 		width            : 100%;
 		background-image : none;
-		overflow         : auto;
+		overflow         : unset;
 	}
 `;
 export const PerspectiveDescriptorWrapper = styled.div.attrs({

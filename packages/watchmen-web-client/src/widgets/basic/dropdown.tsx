@@ -207,10 +207,10 @@ export const Dropdown = (props: DropdownProps) => {
 			return;
 		}
 		const onScroll = (event: Event) => {
-			if (!state.active || event.target === optionsRef.current) {
+			if (!state.active || event.target === optionsRef.current || containerRef.current == null) {
 				return;
 			}
-			const {top, left, width, height} = getPosition(containerRef.current!);
+			const {top, left, width, height} = getPosition(containerRef.current);
 			const bottom = atBottom(top, height, options.length);
 			setState({...state, atBottom: bottom, top, left, width, height, minWidth: width});
 		};

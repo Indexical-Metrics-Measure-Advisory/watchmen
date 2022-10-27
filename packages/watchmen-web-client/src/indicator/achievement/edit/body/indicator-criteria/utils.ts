@@ -13,7 +13,6 @@ import {
 } from '@/services/data/tuples/indicator-utils';
 import {isNotNull} from '@/services/data/utils';
 import {DropdownOption} from '@/widgets/basic/types';
-import {Lang} from '@/widgets/langs';
 import {IndicatorCriteriaDefData} from '../types';
 
 export const findAvailableBuckets = (criteria: IndicatorCriteria, indicator: Indicator, defData: IndicatorCriteriaDefData): Array<Bucket> => {
@@ -74,18 +73,6 @@ export const buildValueBucketOptions = (criteria: IndicatorCriteria, indicator: 
 			label: bucket.name || 'Noname Bucket'
 		};
 	});
-};
-
-export const getTimeRangePlaceholder = (year: boolean, month: boolean): string | undefined => {
-	if (year && month) {
-		return Lang.PLAIN.INDICATOR_CRITERIA_TIME_RANGE_YEAR_MONTH;
-	} else if (year) {
-		return Lang.PLAIN.INDICATOR_CRITERIA_TIME_RANGE_YEAR;
-	} else if (month) {
-		return Lang.PLAIN.INDICATOR_CRITERIA_TIME_RANGE_MONTH;
-	} else {
-		return (void 0);
-	}
 };
 
 export const buildFactorOptions = (defData: IndicatorCriteriaDefData): Array<DropdownOption> => {
