@@ -135,7 +135,7 @@ export const FormRowInput = styled(Input).attrs({'data-widget': 'login-body-form
 	padding-left  : 0;
 	transition    : none;
 	// for avoid chrome auto fill background
-	box-shadow    : 0 2px 0 1000px var(--bg-color) inset;
+	box-shadow    : 0 0 0 1000px var(--bg-color) inset;
 	&:first-line {
 		font-family : var(--title-font-family);
 		font-size   : var(--font-size);
