@@ -219,9 +219,10 @@ class MixedImportWithIndicator:
 	def refill_indicator_ids(
 			self, indicators: Optional[List[Indicator]],
 			topic_id_map: Dict[TopicId, TopicId], factor_id_map: Dict[FactorId, FactorId],
-			subject_id_map: Dict[SubjectId, SubjectId], bucket_id_map: Dict[BucketId, BucketId]
+			subject_id_map: Dict[SubjectId, SubjectId], bucket_id_map: Dict[BucketId, BucketId],indicator_service:IndicatorService
 	) -> None:
 		def fill_indicator_id(indicator: Indicator) -> None:
+			indicator.indicatorId = indicator_service.generate_storable_id()
 			if indicator.baseOn == IndicatorBaseOn.TOPIC:
 				indicator.topicOrSubjectId = topic_id_map[indicator.topicOrSubjectId]
 				indicator.factorId = factor_id_map[indicator.factorId]
@@ -248,7 +249,7 @@ class MixedImportWithIndicator:
 			.to_list()
 
 		indicator_service = get_indicator_service(user_service)
-		self.refill_indicator_ids(indicators, topic_id_map, factor_id_map, subject_id_map, bucket_id_map)
+		self.refill_indicator_ids(indicators, topic_id_map, factor_id_map, subject_id_map, bucket_id_map,indicator_service)
 		indicator_results = ArrayHelper(indicators) \
 			.each(lambda x: self.clear_user_group_ids(x)) \
 			.map(lambda x: indicator_service.create(x)) \
