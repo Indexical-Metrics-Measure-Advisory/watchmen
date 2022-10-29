@@ -2,7 +2,10 @@ import {ParameterKind, TopicFactorParameter} from '@/services/data/tuples/factor
 import {Factor, FactorType} from '@/services/data/tuples/factor-types';
 import {importPipelines} from '@/services/data/tuples/pipeline';
 import {AggregateArithmetic} from '@/services/data/tuples/pipeline-stage-unit-action/aggregate-arithmetic-types';
-import {WriteTopicActionType} from '@/services/data/tuples/pipeline-stage-unit-action/pipeline-stage-unit-action-types';
+import {
+	SystemActionType,
+	WriteTopicActionType
+} from '@/services/data/tuples/pipeline-stage-unit-action/pipeline-stage-unit-action-types';
 import {
 	InsertRowAction,
 	MappingFactor
@@ -135,28 +138,45 @@ const parsePipelines = (sourceTopic: Topic, targetTopics: ParsedTopics): Array<P
 				stageId: generateUuid(),
 				name: 'Copy data stage',
 				conditional: false,
-				units: [{
-					unitId: generateUuid(),
-					name: 'Copy data unit',
-					conditional: false,
-					loopVariableName: array ? `${loopFactor!.name}` : (void 0),
-					do: [{
-						actionId: generateUuid(),
-						type: WriteTopicActionType.INSERT_ROW,
-						topicId: tailTopic.topicId,
-						mapping: tailTopic.factors.map(tailFactor => {
-							return {
-								source: {
-									kind: ParameterKind.TOPIC,
-									topicId: sourceTopic.topicId,
-									factorId: factorIdMap[tailFactor.factorId]
-								} as TopicFactorParameter,
-								factorId: tailFactor.factorId,
-								arithmetic: AggregateArithmetic.NONE
-							} as MappingFactor;
-						})
-					} as InsertRowAction]
-				}]
+				units: [
+					array ? {
+						unitId: generateUuid(),
+						name: 'Prepare loop variable',
+						conditional: false,
+						do: [{
+							actionId: generateUuid(),
+							type: SystemActionType.COPY_TO_MEMORY,
+							variableName: `${loopFactor!.name}`,
+							source: {
+								kind: ParameterKind.TOPIC,
+								topicId: sourceTopic.topicId,
+								factorId: (sourceTopic.factors || []).find(factor => factor.name == loopFactor!.name)?.factorId
+							}
+						}]
+					} : null,
+					{
+						unitId: generateUuid(),
+						name: 'Copy data unit',
+						conditional: false,
+						loopVariableName: array ? `${loopFactor!.name}` : (void 0),
+						do: [{
+							actionId: generateUuid(),
+							type: WriteTopicActionType.INSERT_ROW,
+							topicId: tailTopic.topicId,
+							mapping: tailTopic.factors.map(tailFactor => {
+								return {
+									source: {
+										kind: ParameterKind.TOPIC,
+										topicId: sourceTopic.topicId,
+										factorId: factorIdMap[tailFactor.factorId]
+									} as TopicFactorParameter,
+									factorId: tailFactor.factorId,
+									arithmetic: AggregateArithmetic.NONE
+								} as MappingFactor;
+							})
+						} as InsertRowAction]
+					}
+				].filter(x => x != null)
 			}],
 			enabled: true,
 			validated: true,
