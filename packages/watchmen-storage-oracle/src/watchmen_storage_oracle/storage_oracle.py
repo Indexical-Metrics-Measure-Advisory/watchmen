@@ -6,8 +6,7 @@ from sqlalchemy import Table, text
 from watchmen_model.admin import FactorType, Topic
 from watchmen_storage import as_table_name, EntityCriteria, EntitySort, Literal
 from watchmen_storage_rds import build_sort_for_statement, SQLAlchemyStatement, StorageRDS, TopicDataStorageRDS
-from .table_creator import build_aggregate_assist_column, build_columns, build_columns_script, build_indexes_script, \
-	build_unique_indexes_script, build_version_column
+from .table_creator import build_columns_script, build_indexes_script, build_unique_indexes_script, build_table_script
 from .where_build import build_criteria_for_statement, build_literal
 
 # noinspection DuplicatedCode
@@ -37,17 +36,7 @@ class TopicDataStorageOracle(StorageOracle, TopicDataStorageRDS):
 			self.connect()
 			entity_name = as_table_name(topic)
 			# noinspection SqlType
-			script = f'''
-CREATE TABLE {entity_name} (
-\tid_ NUMBER(20),
-{build_columns(topic)}
-{build_aggregate_assist_column(topic)}
-{build_version_column(topic)}
-\ttenant_id_ VARCHAR2(50),
-\tinsert_time_ DATE,
-\tupdate_time_ DATE,
-\tCONSTRAINT pk_{entity_name} PRIMARY KEY (id_)
-)'''
+			script = build_table_script(topic)
 			self.connection.execute(text(script))
 			# try to add index
 			for unique_index_script in build_unique_indexes_script(topic):

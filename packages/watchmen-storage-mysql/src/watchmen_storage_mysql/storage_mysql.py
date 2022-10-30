@@ -6,8 +6,7 @@ from sqlalchemy import Table, text
 from watchmen_model.admin import FactorType, Topic
 from watchmen_storage import as_table_name, EntityCriteria, EntitySort, Literal
 from watchmen_storage_rds import build_sort_for_statement, SQLAlchemyStatement, StorageRDS, TopicDataStorageRDS
-from .table_creator import build_aggregate_assist_column, build_columns, build_columns_script, build_indexes, \
-	build_indexes_script, build_unique_indexes, build_unique_indexes_script, build_version_column
+from .table_creator import build_columns_script, build_indexes_script, build_unique_indexes_script, build_table_script
 from .where_build import build_criteria_for_statement, build_literal
 
 # noinspection DuplicatedCode
@@ -30,24 +29,7 @@ class TopicDataStorageMySQL(StorageMySQL, TopicDataStorageRDS):
 	def create_topic_entity(self, topic: Topic) -> None:
 		try:
 			self.connect()
-			entity_name = as_table_name(topic)
-			# noinspection SqlType
-			script = f'''
-CREATE TABLE {entity_name} (
-\tid_ BIGINT,
-{build_columns(topic)}
-{build_aggregate_assist_column(topic)}
-{build_version_column(topic)}
-\ttenant_id_ VARCHAR(50),
-\tinsert_time_ DATETIME,
-\tupdate_time_ DATETIME,
-{build_unique_indexes(topic)}
-{build_indexes(topic)}
-\tINDEX (tenant_id_),
-\tINDEX (insert_time_),
-\tINDEX (update_time_),
-\tPRIMARY KEY (id_)
-)'''
+			script = build_table_script(topic)
 			self.connection.execute(text(script))
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
