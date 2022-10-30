@@ -240,6 +240,23 @@ table_collector_competitive_lock = MongoDocument(
 		create_int('status', False)
 	]
 )
+table_operations = MongoDocument(
+	name='operations',
+	columns=[
+		create_pk('record_id'), create_str('tuple_type', False),
+		create_str('tuple_id', False), create_str('content', False),
+		create_str('version_num', False),
+		create_tenant_id(), *create_tuple_audit_columns()
+	]
+)
+table_versions = MongoDocument(
+	name='versions',
+	columns=[
+		create_pk('version_id'), create_str('previous_version', False),
+		create_str('current_version', False),
+		create_tenant_id(), *create_tuple_audit_columns()
+	]
+)
 
 # gui
 table_favorites = MongoDocument(
@@ -396,6 +413,8 @@ tables: Dict[str, MongoDocument] = {
 	'plugins': table_plugins,
 	'data_sources': table_data_sources,
 	'key_stores': table_key_stores,
+	'operations': table_operations,
+	'versions': table_versions,
 	# admin
 	'users': table_users,
 	'user_groups': table_user_groups,
