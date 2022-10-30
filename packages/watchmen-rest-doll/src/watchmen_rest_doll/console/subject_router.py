@@ -4,8 +4,10 @@ from fastapi import APIRouter, Depends
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
+from watchmen_data_kernel.system import get_current_version
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.console import ConnectedSpaceService, ReportService, SubjectService
+from watchmen_meta.system import RecordOperationService
 from watchmen_model.admin import UserRole
 from watchmen_model.common import SubjectId
 from watchmen_model.console import Report, Subject
@@ -30,6 +32,21 @@ def get_connected_space_service(subject_service: SubjectService) -> ConnectedSpa
 def get_report_service(subject_service: SubjectService) -> ReportService:
 	return ReportService(
 		subject_service.storage, subject_service.snowflakeGenerator, subject_service.principalService)
+
+
+def get_operation_service(subject_service: SubjectService) -> RecordOperationService:
+	return RecordOperationService(subject_service.storage, subject_service.snowflakeGenerator,
+	                              subject_service.principalService)
+
+
+def record_operation(subject: Subject, subject_service: SubjectService) -> None:
+	get_operation_service(subject_service).record_operation("subjects", subject.subjectId, subject,
+	                                                        subject_service,
+	                                                        get_current_version(subject_service.principalService))
+	
+	
+def post_save_subject(subject: Subject, subject_service: SubjectService) -> None:
+	record_operation(subject, subject_service)
 
 
 def ask_save_subject_action(
@@ -66,6 +83,7 @@ def ask_save_subject_action(
 
 			# noinspection PyTypeChecker
 			subject: Subject = subject_service.update(subject)
+		post_save_subject(subject, subject_service)
 		return subject
 
 	return action

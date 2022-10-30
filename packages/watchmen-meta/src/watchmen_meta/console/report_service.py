@@ -145,3 +145,11 @@ class ReportService(UserBasedTupleService):
 			update={'last_visit_time': now}
 		))
 		return now
+	
+	# noinspection DuplicatedCode
+	def find_all(self, tenant_id: Optional[TenantId]) -> List[Report]:
+		criteria = []
+		if tenant_id is not None and len(tenant_id.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria=criteria))

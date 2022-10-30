@@ -327,9 +327,20 @@ table_collector_competitive_lock = Table(
 	create_datetime('registered_at', False), create_tenant_id(),
 	create_int('status', False)
 )
+table_operations = Table(
+	'operations', meta_data,
+	create_pk('record_id'), create_str('tuple_type', 50),
+	create_str('tuple_id', 50), create_json('content'), create_str('version_num', 50),
+	create_tenant_id(), *create_tuple_audit_columns()
+)
+table_versions = Table(
+	'versions', meta_data,
+	create_pk('version_id'), create_str('previous_version', 20),
+	create_str('current_version', 20),
+	create_tenant_id(), *create_tuple_audit_columns()
+)
 
-
-table_subscription_event  = Table(
+table_subscription_event = Table(
 	'subscription_events', meta_data,
 	create_pk('subscription_event_id'),
 	create_tuple_id_column('notification_id'),
@@ -345,7 +356,7 @@ table_subscription_event  = Table(
 
 
 table_notification_definition = Table(
-	'notification_definitions',meta_data,
+	'notification_definitions', meta_data,
 	create_pk('notification_id'),
 	create_str('type',50),
 	create_json('params'),
@@ -402,10 +413,12 @@ tables: Dict[str, Table] = {
 	'objective_analysis': table_objective_analysis,
 	'achievement_plugin_tasks': table_achievement_plugin_tasks,
 	'collector_competitive_lock': table_collector_competitive_lock,
+	'operations': table_operations,
+	'versions': table_versions,
 	# webhook
-	'subscription_event_locks':table_subscription_event_locks,
-	'subscription_events':table_subscription_event,
-	'notification_definitions':table_notification_definition
+	'subscription_event_locks': table_subscription_event_locks,
+	'subscription_events': table_subscription_event,
+	'notification_definitions': table_notification_definition
 
 }
 

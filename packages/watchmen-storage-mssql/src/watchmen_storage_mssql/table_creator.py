@@ -224,3 +224,20 @@ def build_indexes_script(topic: Topic) -> List[str]:
 
 	return ArrayHelper(list(index_groups.values())) \
 		.map_with_index(lambda x, index: build_index(x, index)).to_list()
+
+
+def build_table_script(topic: Topic) -> str:
+	entity_name = as_table_name(topic)
+	# noinspection SqlType
+	script = f'''
+CREATE TABLE {entity_name} (
+\tid_ DECIMAL(20),
+{build_columns(topic)}
+{build_aggregate_assist_column(topic)}
+{build_version_column(topic)}
+\ttenant_id_ NVARCHAR(50),
+\tinsert_time_ DATETIME,
+\tupdate_time_ DATETIME,
+\tCONSTRAINT pk_{entity_name} PRIMARY KEY (id_)
+)'''
+	return script
