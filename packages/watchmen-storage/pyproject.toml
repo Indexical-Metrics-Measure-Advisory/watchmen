@@ -10,7 +10,10 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
+boto3 = "^1.24.20"
 watchmen-model = "16.4.0"
+
+
 
 [tool.poetry.dev-dependencies]
 
