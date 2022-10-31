@@ -1,5 +1,3 @@
-import {useObjectiveAnalysisListEventBus} from '@/indicator/objective-analysis/objective-analysis-list-event-bus';
-import {ObjectiveAnalysisListEventTypes} from '@/indicator/objective-analysis/objective-analysis-list-event-bus-types';
 import {Router} from '@/routes/types';
 import {deleteObjectiveAnalysis} from '@/services/data/tuples/objective-analysis';
 import {ObjectiveAnalysis, ObjectiveAnalysisPerspectiveType} from '@/services/data/tuples/objective-analysis-types';
@@ -19,6 +17,8 @@ import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React from 'react';
 import {useHistory} from 'react-router-dom';
+import {useObjectiveAnalysisListEventBus} from '../../objective-analysis-list-event-bus';
+import {ObjectiveAnalysisListEventTypes} from '../../objective-analysis-list-event-bus-types';
 import {useObjectiveAnalysisEventBus} from '../objective-analysis-event-bus';
 import {ObjectiveAnalysisEventTypes} from '../objective-analysis-event-bus-types';
 import {useViewModeSwitch} from '../use-view-mode-switch';
