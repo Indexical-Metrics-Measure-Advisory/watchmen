@@ -36,7 +36,7 @@ def get_operation_service(report_service: ReportService) -> RecordOperationServi
 def record_operation(report: Report, report_service: ReportService) -> None:
 	get_operation_service(report_service).record_operation("reports", report.reportId, report,
 	                                                       report_service,
-	                                                       get_current_version())
+	                                                       get_current_version(report_service.principalService))
 
 
 def post_save_report(report: Report, report_service: ReportService) -> None:
