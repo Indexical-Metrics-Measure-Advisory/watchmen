@@ -15,10 +15,8 @@ from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blan
 def redress_inspection(
 		inspection: Inspection, topic_or_subject: Union[Topic, Subject],
 		principal_service: PrincipalService) -> Inspection:
-	clone_inspection = Inspection(
-		**inspection.to_dict(),
-		criteria=ArrayHelper(inspection.criteria).map(lambda x: x.to_dict()).to_list()
-	)
+	clone_inspection = Inspection(**inspection.to_dict())
+	clone_inspection.criteria = ArrayHelper(inspection.criteria).map(lambda x: x.to_dict()).to_list()
 	if isinstance(topic_or_subject, Topic):
 		redress_inspection_on_topic(clone_inspection)
 	elif isinstance(topic_or_subject, Subject):
@@ -32,10 +30,9 @@ def redress_inspection(
 def redress_achievement_indicator(
 		achievement_indicator: AchievementIndicator, topic_or_subject: Union[Topic, Subject],
 		principal_service: PrincipalService) -> AchievementIndicator:
-	clone_achievement_indicator = AchievementIndicator(
-		**achievement_indicator.to_dict(),
-		criteria=ArrayHelper(achievement_indicator.criteria).map(lambda x: x.to_dict()).to_list()
-	)
+	clone_achievement_indicator = AchievementIndicator(**achievement_indicator.to_dict())
+	clone_achievement_indicator.criteria = \
+		ArrayHelper(achievement_indicator.criteria).map(lambda x: x.to_dict()).to_list()
 	if isinstance(topic_or_subject, Topic):
 		redress_achievement_indicator_on_topic(clone_achievement_indicator)
 	elif isinstance(topic_or_subject, Subject):
@@ -51,14 +48,14 @@ def redress_year(
 	"""
 	:return:
 		first boolean: true when be processed, otherwise false
-		second array: expression list when be processed, otherwise none
+		second array: expression list when be processed, otherwise put given criteria into array
 	"""
 	if criteria.value.strip() in ['{&year}', '{&y}']:
 		# explicitly given year
 		criteria.value = f'{now.year}'
 		return True, [criteria]
 	else:
-		return False, None
+		return False, [criteria]
 
 
 def redress_month(
@@ -67,14 +64,14 @@ def redress_month(
 	"""
 	:return:
 		first boolean: true when be processed, otherwise false
-		second array: expression list when be processed, otherwise none
+		second array: expression list when be processed, otherwise put given criteria into array
 	"""
 	if criteria.value.strip() in ['{&month}', '{&m}']:
 		# explicitly given year
 		criteria.value = f'{now.month}'
 		return True, [criteria]
 	else:
-		return False, None
+		return False, [criteria]
 
 
 def redress_year_to_end(
@@ -83,14 +80,14 @@ def redress_year_to_end(
 	"""
 	:return:
 		first boolean: true when be processed, otherwise false
-		second array: expression list when be processed, otherwise none
+		second array: expression list when be processed, otherwise put given criteria into array
 	"""
 	if criteria.value.strip() in ['{&yearToDate}', '{&y2d}']:
 		# year to end aka this year
 		criteria.value = f'{now.year}'
 		return True, [criteria]
 	else:
-		return False, None
+		return False, [criteria]
 
 
 def redress_month_to_end(
@@ -103,7 +100,7 @@ def redress_month_to_end(
 			IndicatorCriteriaOnExpression(**criteria.to_dict(), value=f'{now.month}'),
 		]
 	else:
-		return False, None
+		return False, [criteria]
 
 
 def redress_last_years(
@@ -147,7 +144,7 @@ def redress_last_years(
 					**criteria.to_dict(), operator=IndicatorCriteriaOperator.LESS_EQUALS,
 					value='{&moveDate(&now, h23m59s59)}'),
 			]
-	return False, None
+	return False, [criteria]
 
 
 # noinspection PyUnusedLocal
@@ -183,7 +180,7 @@ def redress_last_months(
 					value='{&moveDate(&now, h23m59s59)}'),
 			]
 
-	return False, None
+	return False, [criteria]
 
 
 def redress_expression(criteria: IndicatorCriteriaOnExpression) -> List[IndicatorCriteriaOnExpression]:
