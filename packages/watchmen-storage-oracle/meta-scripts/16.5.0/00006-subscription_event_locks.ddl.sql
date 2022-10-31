@@ -1,12 +1,12 @@
 CREATE TABLE subscription_event_locks
 (
-    subscription_event_lock_id VARCHAR(50) NOT NULL,
-    subscription_event_id            VARCHAR(50) NOT NULL,
-    user_id         VARCHAR(50) NOT NULL,
-    tenant_id        VARCHAR(50) NOT NULL,
-    status           VARCHAR(10) NOT NULL,
-    created_at       TIMESTAMP    NOT NULL,
-    process_date     TIMESTAMP    NOT NULL,
+    subscription_event_lock_id VARCHAR2(50) NOT NULL,
+    subscription_event_id            VARCHAR2(50) NOT NULL,
+    user_id         VARCHAR2(50) NOT NULL,
+    tenant_id        VARCHAR2(50) NOT NULL,
+    status           VARCHAR2(10) NOT NULL,
+    created_at       DATE    NOT NULL,
+    process_date     DATE    NOT NULL,
     CONSTRAINT pk_subscription_event_locks PRIMARY KEY (subscription_event_lock_id)
 
 );
