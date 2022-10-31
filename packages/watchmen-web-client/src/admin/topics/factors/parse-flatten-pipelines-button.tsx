@@ -1,4 +1,4 @@
-import {ParameterKind, TopicFactorParameter} from '@/services/data/tuples/factor-calculator-types';
+import {ConstantParameter, ParameterKind} from '@/services/data/tuples/factor-calculator-types';
 import {Factor, FactorType} from '@/services/data/tuples/factor-types';
 import {importPipelines} from '@/services/data/tuples/pipeline';
 import {AggregateArithmetic} from '@/services/data/tuples/pipeline-stage-unit-action/aggregate-arithmetic-types';
@@ -128,6 +128,10 @@ const parseTopics = (topic: Topic) => {
 
 const parsePipelines = (sourceTopic: Topic, targetTopics: ParsedTopics): Array<Pipeline> => {
 	return Object.values(targetTopics).map(({topic: tailTopic, factorIdMap, array, loopFactor}) => {
+		const hasLoop = array;
+		const loopVariableName = `lv_${(loopFactor?.name || '').replaceAll('.', '_')}`;
+		const mappingPrefix = hasLoop ? `${loopVariableName}.` : '';
+
 		return {
 			pipelineId: generateUuid(),
 			name: `Flatten to [${tailTopic.name}]`,
@@ -139,14 +143,14 @@ const parsePipelines = (sourceTopic: Topic, targetTopics: ParsedTopics): Array<P
 				name: 'Copy data stage',
 				conditional: false,
 				units: [
-					array ? {
+					hasLoop ? {
 						unitId: generateUuid(),
 						name: 'Prepare loop variable',
 						conditional: false,
 						do: [{
 							actionId: generateUuid(),
 							type: SystemActionType.COPY_TO_MEMORY,
-							variableName: `${loopFactor!.name}`,
+							variableName: loopVariableName,
 							source: {
 								kind: ParameterKind.TOPIC,
 								topicId: sourceTopic.topicId,
@@ -159,18 +163,22 @@ const parsePipelines = (sourceTopic: Topic, targetTopics: ParsedTopics): Array<P
 						unitId: generateUuid(),
 						name: 'Copy data unit',
 						conditional: false,
-						loopVariableName: array ? `${loopFactor!.name}` : (void 0),
+						loopVariableName: hasLoop ? loopVariableName : (void 0),
 						do: [{
 							actionId: generateUuid(),
 							type: WriteTopicActionType.INSERT_ROW,
 							topicId: tailTopic.topicId,
 							mapping: tailTopic.factors.map(tailFactor => {
+								const fromFactorId = factorIdMap[tailFactor.factorId];
+								// eslint-disable-next-line
+								const fromFactor = (sourceTopic.factors || []).find(factor => factor.factorId == fromFactorId);
+								let variableName = hasLoop ? fromFactor!.name.substring(loopFactor!.name.length + 1) : fromFactor!.name;
+								variableName = `${mappingPrefix}${variableName}`;
 								return {
 									source: {
-										kind: ParameterKind.TOPIC,
-										topicId: sourceTopic.topicId,
-										factorId: factorIdMap[tailFactor.factorId]
-									} as TopicFactorParameter,
+										kind: ParameterKind.CONSTANT,
+										value: `{${variableName}}`
+									} as ConstantParameter,
 									factorId: tailFactor.factorId,
 									arithmetic: AggregateArithmetic.NONE
 								} as MappingFactor;
