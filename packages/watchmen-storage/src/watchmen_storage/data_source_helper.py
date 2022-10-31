@@ -86,7 +86,7 @@ def remove_params(data_source_params: Optional[List[DataSourceParam]]) -> Option
 
 
 def ask_config_from_secret_value(secrets: Dict, data_source_params: Optional[List[DataSourceParam]]) -> Tuple:
-	# noinspection PyTypeChecker
+	host, port, username, password, name = HOST, PORT, USERNAME, PASSWORD, NAME
 	for param in data_source_params:
 		if param.name == HOST:
 			host = secrets.get(param.value)
@@ -98,5 +98,4 @@ def ask_config_from_secret_value(secrets: Dict, data_source_params: Optional[Lis
 			password = secrets.get(param.value)
 		if param.name == NAME:
 			name = secrets.get(param.value)
-			
 	return host, port, username, password, name
