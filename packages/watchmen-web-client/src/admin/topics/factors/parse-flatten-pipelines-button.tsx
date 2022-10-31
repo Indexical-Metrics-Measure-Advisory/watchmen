@@ -150,6 +150,7 @@ const parsePipelines = (sourceTopic: Topic, targetTopics: ParsedTopics): Array<P
 							source: {
 								kind: ParameterKind.TOPIC,
 								topicId: sourceTopic.topicId,
+								// eslint-disable-next-line
 								factorId: (sourceTopic.factors || []).find(factor => factor.name == loopFactor!.name)?.factorId
 							}
 						}]
