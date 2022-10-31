@@ -43,7 +43,7 @@ interface SubscribeModel {
 }
 
 export const SubscribeDialog = (props: { analysis: ObjectiveAnalysis }) => {
-	// noinspection JSUnusedLocalSymbols
+	// eslint-disable-next-line
 	const {analysis} = props;
 
 	const {fire} = useEventBus();
