@@ -12,6 +12,7 @@ CREATE TABLE subscription_events
     hour              TINYINT,
     minute            TINYINT,
     enabled           TINYINT,
+    status            TINYINT,
     created_at       DATETIME    NOT NULL,
     created_by       VARCHAR(50) NOT NULL,
     last_modified_at DATETIME    NOT NULL,
@@ -20,10 +21,12 @@ CREATE TABLE subscription_events
     PRIMARY KEY (subscription_event_id),
     INDEX(tenant_id),
     INDEX(user_id),
+    INDEX(status),
     INDEX(notification_id),
     INDEX(source_id),
     INDEX (created_at),
     INDEX (created_by),
     INDEX (last_modified_at),
     INDEX (last_modified_by)
+
 );
