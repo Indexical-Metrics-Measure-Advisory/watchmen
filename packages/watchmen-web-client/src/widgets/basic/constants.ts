@@ -102,6 +102,7 @@ import {
 	faSortAmountDown,
 	faSortAmountUpAlt,
 	faSpinner,
+	faSquareRss,
 	faStar,
 	faStarOfLife,
 	faStickyNote,
@@ -327,6 +328,7 @@ export const ICON_COLLAPSE_NODES = faMinus;
 export const ICON_EXTERNAL_LINK = faExternalLinkAlt;
 export const ICON_SHOW_NAVIGATOR = faBars;
 export const ICON_RENDERER = faPaintRoller;
+export const ICON_SUBSCRIBE = faSquareRss;
 
 export const ICON_COMMENTS = faCommentDots;
 export const ICON_CMD_PROMPT = faTerminal;

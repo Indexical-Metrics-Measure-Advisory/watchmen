@@ -580,6 +580,7 @@ export const Jp = {
 			ADD_ACHIEVEMENT: '実績の追加',
 			SWITCH_TO_VIEW_MODE: '表示モードに切り替える',
 			SWITCH_TO_EDIT_MODE: '編集モードに切り替える',
+			SUBSCRIBE: '購読',
 			DELETE_ME: '削除',
 			DELETE_DIALOG_LABEL: '分析を削除してもよろしいですか？ 削除したものは復元できませんので、ご注意ください。',
 			PERSPECTIVE_DELETE_DIALOG_LABEL: '視点を削除してもよろしいですか？ 削除したものは復元できませんので、ご注意ください。',
