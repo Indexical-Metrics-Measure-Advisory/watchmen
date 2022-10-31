@@ -580,6 +580,7 @@ export const Zh = {
 			ADD_ACHIEVEMENT: '添加业绩分析',
 			SWITCH_TO_VIEW_MODE: '查看模式',
 			SWITCH_TO_EDIT_MODE: '编辑模式',
+			SUBSCRIBE: '订阅',
 			DELETE_ME: '删除',
 			DELETE_DIALOG_LABEL: '确认要删除分析吗? 请注意删除动作不能被恢复.',
 			BACK_TO_LIST: '返回列表',

@@ -580,6 +580,7 @@ export const En = {
 			ADD_ACHIEVEMENT: 'Add Achievement',
 			SWITCH_TO_VIEW_MODE: 'Switch to View Mode',
 			SWITCH_TO_EDIT_MODE: 'Switch to Edit Mode',
+			SUBSCRIBE: 'Subscribe',
 			DELETE_ME: 'Delete Me',
 			DELETE_DIALOG_LABEL: 'Are you sure to delete analysis? Please note that deletion cannot be recovered.',
 			BACK_TO_LIST: 'Back to list',
