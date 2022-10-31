@@ -86,7 +86,9 @@ def remove_params(data_source_params: Optional[List[DataSourceParam]]) -> Option
 
 
 def ask_config_from_secret_value(secrets: Dict, data_source_params: Optional[List[DataSourceParam]]) -> Tuple:
-	host, port, username, password, name = HOST, PORT, USERNAME, PASSWORD, NAME
+	host, port, username, password, name = secrets.get(HOST), secrets.get(PORT), \
+	                                       secrets.get(USERNAME), secrets.get(PASSWORD), \
+	                                       secrets.get(NAME)
 	for param in data_source_params:
 		if param.name == HOST:
 			host = secrets.get(param.value)
