@@ -55,9 +55,8 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 		self.storage = storage
 		super().__init__(data_center_id, heart_beat_interval, worker_creation_retry_times, shutdown_listener)
 
-	@staticmethod
-	def is_abandoned(worker: CompetitiveWorker) -> bool:
-		return (get_current_time_in_seconds() - worker.lastBeatAt).days >= 1
+	def is_abandoned(self, worker: CompetitiveWorker) -> bool:
+		return (get_current_time_in_seconds() - worker.lastBeatAt).seconds > self.heartBeatInterval + 60
 
 	def first_declare_myself(self, worker: CompetitiveWorker) -> None:
 		self.storage.begin()
@@ -93,8 +92,8 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 			elif workers_count == 1:
 				# noinspection PyTypeChecker
 				existing_worker: CompetitiveWorker = existing_workers[0]
-				if StorageBasedWorkerIdGenerator.is_abandoned(existing_worker):
-					# worker last beat before 1 day, treat it as abandoned
+				if self.is_abandoned(existing_worker):
+					# worker last beat before (heartBeatInterval + 60) seconds, treat it as abandoned
 					# replace it
 					worker.lastBeatAt = get_current_time_in_seconds()
 					updated_count = self.storage.update_only(
@@ -109,7 +108,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 								EntityCriteriaExpression(
 									left=ColumnNameLiteral(columnName='last_beat_at'),
 									operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
-									right=(get_current_time_in_seconds() + timedelta(days=-1))
+									right=(get_current_time_in_seconds() + timedelta(seconds=-(self.heartBeatInterval + 60)))
 								)
 							],
 							update={
@@ -151,14 +150,14 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 				EntityDistinctValuesFinder(
 					name=SNOWFLAKE_WORKER_ID_TABLE,
 					shaper=COMPETITIVE_WORKER_SHAPER,
-					# workers last beat at in 1 day, means still alive
+					# workers last beat at in （heartBeatInterval + 60） seconds, means still alive
 					criteria=[
 						EntityCriteriaExpression(
 							left=ColumnNameLiteral(columnName='data_center_id'), right=self.dataCenterId),
 						EntityCriteriaExpression(
 							left=ColumnNameLiteral(columnName='last_beat_at'),
 							operator=EntityCriteriaOperator.GREATER_THAN,
-							right=(get_current_time_in_seconds() + timedelta(days=-1))
+							right=(get_current_time_in_seconds() + timedelta(seconds=-(self.heartBeatInterval + 60)))
 						)
 					],
 					distinctColumnNames=['worker_id']
