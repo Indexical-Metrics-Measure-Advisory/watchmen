@@ -25,6 +25,9 @@ const PageHeaderBtn = styled(Button).attrs({'data-widget': 'page-header-button'}
 	width        : var(--height);
 	padding      : 0;
 	margin-right : calc(var(--margin) / 4);
+	&:last-child {
+		margin-right : 0;
+	}
 	&:hover {
 		width         : calc(var(--height) * 1.5);
 		height        : calc(var(--height) * 1.5);
@@ -96,6 +99,6 @@ export const PageHeaderButtonSeparator = styled.div.attrs({'data-widget': 'page-
 	position         : relative;
 	width            : 1px;
 	height           : calc(var(--margin) / 4);
-	margin           : calc(var(--height) / 4) calc(var(--margin) / 4);
+	margin           : calc(var(--height) / 4) calc(var(--margin) / 4) calc(var(--height) / 4) 0;
 	background-color : var(--border-color);
 `;
