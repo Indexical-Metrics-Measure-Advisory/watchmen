@@ -20,6 +20,7 @@ watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, o
 watchmen-storage-postgresql = { path = "../watchmen-storage-postgresql", develop = true, optional = true }
 watchmen-storage-oss = { path = "../watchmen-storage-oss", develop = true, optional = true }
 watchmen-storage-s3 = { path = "../watchmen-storage-s3", develop = true, optional = true }
+boto3 = {version = "^1.24.20", optional = true }
 
 [tool.poetry.dev-dependencies]
 
@@ -31,6 +32,7 @@ mssql = ["watchmen-storage-mssql"]
 postgresql = ["watchmen-storage-postgresql"]
 oss = ["watchmen-storage-oss"]
 s3 = ["watchmen-storage-s3"]
+boto3 = ["boto3"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
