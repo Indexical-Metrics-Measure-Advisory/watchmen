@@ -20,6 +20,7 @@ watchmen-storage-mssql = { version = "16.4.0", optional = true }
 watchmen-storage-postgresql = { version = "16.4.0", optional = true }
 watchmen-storage-oss = { version = "16.4.0", optional = true }
 watchmen-storage-s3 = { version = "16.4.0", optional = true }
+boto3 = {version = "^1.24.20", optional = true }
 
 [tool.poetry.dev-dependencies]
 
@@ -31,6 +32,7 @@ mssql = ["watchmen-storage-mssql"]
 postgresql = ["watchmen-storage-postgresql"]
 oss = ["watchmen-storage-oss"]
 s3 = ["watchmen-storage-s3"]
+boto3 = ["boto3"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
