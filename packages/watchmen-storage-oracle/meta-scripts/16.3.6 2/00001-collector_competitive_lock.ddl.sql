@@ -1,9 +1,0 @@
-ALTER TABLE oss_collector_competitive_lock RENAME TO collector_competitive_lock;
-ALTER TABLE collector_competitive_lock
-ADD tenant_id VARCHAR2(50) NOT NULL;
-ALTER TABLE collector_competitive_lock
-ADD status NUMBER(1) NOT NULL;
-ALTER TABLE collector_competitive_lock
-DROP INDEX u_oss_collector_competitive_lock_1;
-ALTER TABLE collector_competitive_lock
-ADD CONSTRAINT unique_resource UNIQUE (resource_id);
