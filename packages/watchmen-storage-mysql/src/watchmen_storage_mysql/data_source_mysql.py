@@ -1,11 +1,11 @@
-from typing import List, Optional, Tuple, Dict
+from typing import List, Optional
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 
 from watchmen_model.common import DataModel
 from watchmen_model.system import DataSource, DataSourceParam
-from watchmen_storage import DataSourceHelper, secret_used, ask_secrets, remove_params, ask_config_from_secret_value
+from watchmen_storage import DataSourceHelper
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank, serialize_to_json
 from .storage_mysql import StorageMySQL, TopicDataStorageMySQL
 
@@ -40,13 +40,23 @@ class MySQLDataSourceHelper(DataSourceHelper):
 		if len(url) != 0:
 			return MySQLDataSourceHelper.acquire_engine_by_url(url, params)
 		else:
-			return MySQLDataSourceHelper.acquire_engine_by_params(
-				data_source.username, data_source.password,
-				data_source.host, data_source.port,
-				data_source.name,
-				data_source.params,
-				params
-			)
+			if self.use_secret(data_source.params):
+				connection_info = self.ask_config_from_secret_value(data_source.params)
+				return MySQLDataSourceHelper.acquire_engine_by_params(
+					connection_info.username, connection_info.password,
+					connection_info.host, connection_info.port,
+					connection_info.name,
+					connection_info.params,
+					params
+				)
+			else:
+				return MySQLDataSourceHelper.acquire_engine_by_params(
+					data_source.username, data_source.password,
+					data_source.host, data_source.port,
+					data_source.name,
+					data_source.params,
+					params
+				)
 
 	@staticmethod
 	def acquire_engine_by_url(url: str, params: MySQLDataSourceParams) -> Engine:
@@ -92,14 +102,10 @@ class MySQLDataSourceHelper(DataSourceHelper):
 			data_source_params: Optional[List[DataSourceParam]],
 			params: MySQLDataSourceParams
 	) -> Engine:
-		use_secret = secret_used(data_source_params)
-		if use_secret:
-			# noinspection PyTypeChecker
-			host, port, username, password, name = ask_config_from_secret_value(ask_secrets(data_source_params), data_source_params)
 		charset = MySQLDataSourceHelper.find_param(data_source_params, 'charset')
 		if is_blank(charset):
 			data_source_params = MySQLDataSourceHelper.append_param(data_source_params, 'charset', 'utf8')
-		search = MySQLDataSourceHelper.build_url_search(remove_params(data_source_params))
+		search = MySQLDataSourceHelper.build_url_search(data_source_params)
 		if is_not_blank(search):
 			search = f'?{search}'
 		url = f'mysql+pymysql://{username}:{password}@{host}:{port}/{name}{search}'
