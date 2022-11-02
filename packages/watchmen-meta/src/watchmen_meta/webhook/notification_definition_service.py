@@ -4,17 +4,33 @@ from watchmen_meta.common import TupleShaper, TupleService
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Tuple, Storable
 from watchmen_model.common.tuple_ids import UserId, TenantId
-from watchmen_model.webhook.notification_defination import NotificationDefinition
+from watchmen_model.webhook.notification_defination import NotificationDefinition, NotificationParam
 from watchmen_storage import EntityShaper, EntityRow, EntityName, EntityCriteriaOperator, EntityCriteriaExpression, \
 	ColumnNameLiteral
+from watchmen_utilities import ArrayHelper
 
 
 class NotificationDefinitionShaper(EntityShaper):
+
+	@staticmethod
+	def serialize_param(param:NotificationParam):
+		if isinstance(param, dict):
+			return param
+		else:
+			return param.dict()
+
+
+	@staticmethod
+	def serialize_params(params:List[NotificationParam]):
+		if params is None:
+			return None
+		return ArrayHelper(params).map(lambda x: NotificationDefinitionShaper.serialize_param(x)).to_list()
+
 	def serialize(self, notification_definition: NotificationDefinition) -> EntityRow:
 		return TupleShaper.serialize_tenant_based(notification_definition, {
 			'notification_id': notification_definition.notificationId,
 			'type': notification_definition.type,
-			'params': notification_definition.params,
+			'params': NotificationDefinitionShaper.serialize_params(notification_definition.params),
 			'user_id': notification_definition.userId
 		})
 

@@ -1,22 +1,78 @@
-from fastapi import APIRouter
+from typing import Optional
 
-from watchmen_model.common.tuple_ids import NotificationDefinitionId
+from fastapi import APIRouter, Depends
 
+from src.watchmen_indicator_surface.util import trans_readonly
+from watchmen_auth import PrincipalService
+from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage
+from watchmen_meta.webhook.notification_definition_service import NotificationDefinitionService
+from watchmen_meta.webhook.subscription_event_lock_service import SubscriptionEventLockService
+from watchmen_meta.webhook.subscription_event_service import SubscriptionEventService
+from watchmen_model.common.tuple_ids import SubscriptionEventId, NotificationDefinitionId
+from watchmen_model.webhook.notification_defination import NotificationDefinition
+from watchmen_model.webhook.subscription_event import SubscriptionEvent
+from watchmen_rest import get_any_principal
+from watchmen_rest.util import validate_tenant_id
+from watchmen_webhook_server import NotifyService
+from watchmen_webhook_server.integration.index import find_notification_service
 
 router = APIRouter()
 
 
-@router.get('/notify', tags=['webhook'])
-def notify(notification_definition_id: NotificationDefinitionId):
-	# load notification event
+def get_notification_definition_service(principal_service: PrincipalService) -> NotificationDefinitionService:
+	return NotificationDefinitionService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
-	# load event definition
 
-	# load notification definition
+def get_subscription_event_service(principal_service: PrincipalService) -> SubscriptionEventService:
+	return SubscriptionEventService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
-	# check notification method
 
+def get_subscription_event_lock_service(principal_service: PrincipalService) -> SubscriptionEventLockService:
+	return SubscriptionEventLockService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+
+
+def start_event_lock():
 	pass
 
 
 
+@router.get('/notify', tags=['webhook'])
+async def notify(subscription_event_id: SubscriptionEventId,
+                 principal_service: PrincipalService = Depends(get_any_principal)):
+	subscription_event_service: SubscriptionEventService = get_subscription_event_service(principal_service)
+	notification_definition_service: NotificationDefinitionService = get_notification_definition_service(
+		principal_service)
+
+	def load_subscription_event():
+		subscription_event: Optional[SubscriptionEvent] = subscription_event_service.find_by_id(subscription_event_id)
+		validate_tenant_id(subscription_event, principal_service)
+		return subscription_event
+
+	def load_notification(notification_id: NotificationDefinitionId):
+		notification_definition: Optional[NotificationDefinition] = notification_definition_service.find_by_id(
+			notification_id)
+		validate_tenant_id(notification_definition, principal_service)
+		return notification_definition
+
+	subscription_event: SubscriptionEvent = trans_readonly(subscription_event_service, load_subscription_event)
+
+
+
+	notification:NotificationDefinition = trans_readonly(notification_definition_service,
+	                              lambda: load_notification(subscription_event.notificationId))
+	notification_service: NotifyService = find_notification_service(notification.type)
+
+	try:
+		result = await  notification_service.notify(subscription_event, notification)
+		if result:
+			pass
+		# TODO set lock table is successful
+		else:
+			pass
+		# TODO set lock table is failure
+
+	except:
+		# TODO set failure for lock table
+
+		pass
