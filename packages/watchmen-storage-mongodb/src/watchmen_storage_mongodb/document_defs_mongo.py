@@ -378,7 +378,8 @@ table_achievements = MongoDocument(
 	columns=[
 		create_pk('achievement_id'), create_str('name'),
 		create_str('time_range_type'), create_str('time_range_year'), create_str('time_range_month'),
-		create_bool('compare_with_prev_time_range'), create_bool('compare_with_prev_cycle'), create_bool('final_score_is_ratio'),
+		create_bool('compare_with_prev_time_range'), create_bool('compare_with_prev_cycle'),
+		create_bool('final_score_is_ratio'),
 		create_json('indicators'), create_json('plugin_ids'),
 		create_description(),
 		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
@@ -399,6 +400,45 @@ table_achievement_plugin_tasks = MongoDocument(
 		create_str('status'), create_str('url'),
 		create_tenant_id(), create_user_id(),
 		*create_tuple_audit_columns()
+	]
+)
+
+table_subscription_event = MongoDocument(
+	'subscription_events',
+	columns=[
+		create_pk('subscription_event_id'),
+		create_tuple_id_column('notification_id'),
+		create_tuple_id_column('event_id'),
+		create_tuple_id_column("source_id"),
+		create_str('weekday', 10), create_str('day', 10),
+		create_int('hour'), create_int('minute'),
+		create_bool('enabled', False),
+		create_int('status'),
+		create_str('frequency', 10, False),
+		create_user_id(),
+		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+
+	]
+)
+
+table_notification_definition = MongoDocument(
+	'notification_definitions', columns=[
+		create_pk('notification_id'),
+		create_str('type', 50),
+		create_json('params'),
+		create_user_id(),
+		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+	]
+)
+
+table_subscription_event_locks = MongoDocument(
+	'subscription_event_locks', columns=[
+		create_pk('subscription_event_lock_id'), create_tuple_id_column('tenant_id', False),
+		create_tuple_id_column('subscription_event_id', False),
+		create_datetime('process_date', False),
+		create_str('status', 10, False),
+		create_tuple_id_column('user_id', False),
+		create_datetime('created_at', False)
 	]
 )
 
@@ -451,7 +491,11 @@ tables: Dict[str, MongoDocument] = {
 	'objective_analysis': table_objective_analysis,
 	'achievement_plugin_tasks': table_achievement_plugin_tasks,
 	# trino
-	'_schema': table_trino_schema
+	'_schema': table_trino_schema,
+	# webhook
+	'subscription_event_locks': table_subscription_event_locks,
+	'subscription_events': table_subscription_event,
+	'notification_definitions': table_notification_definition
 }
 
 # noinspection DuplicatedCode
