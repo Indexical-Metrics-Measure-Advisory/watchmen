@@ -111,7 +111,7 @@ def save_notification_definition(notification_definition: NotificationDefinition
 	notification_definition_service: NotificationDefinitionService = get_notification_definition_service(
 		principal_service)
 
-	def save_notification_definition_action(notification_definition: NotificationDefinition) -> NotificationDefinition:
+	def save_notification_definition_action() -> NotificationDefinition:
 		if notification_definition_service.is_storable_id_faked(notification_definition.notificationId):
 			notification_definition_service.redress_storable_id(notification_definition)
 			return notification_definition_service.create(notification_definition)
@@ -123,12 +123,9 @@ def save_notification_definition(notification_definition: NotificationDefinition
 				if existing_notification_definition.tenantId != notification_definition.tenantId:
 					raise_403()
 
-			return notification_definition_service.update(notification_definition_service)
+			return notification_definition_service.update(notification_definition)
 
-	return trans(notification_definition_service,
-	             lambda: save_notification_definition_action(notification_definition))
-
-
+	return trans(notification_definition_service,save_notification_definition_action)
 
 
 @router.post('/subscription/event', tags=[UserRole.ADMIN, UserRole.CONSOLE], response_model=SubscriptionEvent)
@@ -137,7 +134,7 @@ def save_subscription_event(subscription_event: SubscriptionEvent,
 	validate_tenant_id(subscription_event, principal_service)
 	subscription_event_service: SubscriptionEventService = get_subscription_event_service(principal_service)
 
-	def save_subscription_event_action(subscription_event: SubscriptionEvent) -> SubscriptionEvent:
+	def save_subscription_event_action() -> SubscriptionEvent:
 		if subscription_event_service.is_storable_id_faked(subscription_event.subscriptionEventId):
 			subscription_event_service.redress_storable_id(subscription_event)
 			subscription_event.userId = principal_service.userId
@@ -152,19 +149,18 @@ def save_subscription_event(subscription_event: SubscriptionEvent,
 
 			return subscription_event_service.update(subscription_event)
 
-	return trans(subscription_event_service,
-	             lambda: save_subscription_event_action(subscription_event))
+	return trans(subscription_event_service,save_subscription_event_action)
 
 
 @router.get('/subscription/event/user', tags=[UserRole.ADMIN, UserRole.CONSOLE], response_model=List[SubscriptionEvent])
-def load_subscription_events_by_user_id(principal_service: PrincipalService = Depends(get_any_principal))->List[SubscriptionEvent]:
-
+def load_subscription_events_by_user_id(principal_service: PrincipalService = Depends(get_any_principal)) -> List[
+	SubscriptionEvent]:
 	subscription_event_service: SubscriptionEventService = get_subscription_event_service(principal_service)
+
 	def action() -> List[SubscriptionEvent]:
-		subscription_event_list: List[SubscriptionEvent] = subscription_event_service.find_by_user_id(principal_service.userId,principal_service.tenantId)
+		subscription_event_list: List[SubscriptionEvent] = subscription_event_service.find_by_user_id(
+			principal_service.userId, principal_service.tenantId)
 
 		return subscription_event_list
 
 	return trans_readonly(subscription_event_service, action)
-
-

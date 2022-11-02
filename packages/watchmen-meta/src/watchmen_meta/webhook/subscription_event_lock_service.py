@@ -39,11 +39,11 @@ class SubscriptionEventLockService(TupleService):
 	def get_storable_id_column_name(self) -> EntityName:
 		return "subscription_event_lock_id"
 
-	def get_storable_id(self, storable: SubscriptionEvent) -> StorableId:
-		return storable.subscriptionEventId
+	def get_storable_id(self, storable: SubscriptionEventLock) -> StorableId:
+		return storable.subscriptionEventLockId
 
-	def set_storable_id(self, storable: SubscriptionEvent, storable_id: StorableId) -> Storable:
-		storable.subscriptionEventId = storable_id
+	def set_storable_id(self, storable: SubscriptionEventLock, storable_id: StorableId) -> Storable:
+		storable.subscriptionEventLockId = storable_id
 		return storable
 
 	# noinspection PyMethodMayBeStatic

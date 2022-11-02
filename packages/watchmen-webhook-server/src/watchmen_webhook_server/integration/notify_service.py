@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-from watchmen_model.webhook.notification_defination import NotificationType
+from watchmen_model.webhook.notification_defination import NotificationType, NotificationDefinition
 from watchmen_model.webhook.subscription_event import SubscriptionEvent
 
 
@@ -12,5 +12,5 @@ class NotifyService(ABC):
 		pass
 
 	@abstractmethod
-	def notify(self, subscription_event: SubscriptionEvent) -> bool:
+	async def notify(self, subscription_event: SubscriptionEvent,notification_definition: NotificationDefinition) -> bool:
 		pass

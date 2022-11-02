@@ -24,7 +24,7 @@ class WebUrlService(NotifyService):
 	def support(self, notification_type: NotificationType) -> bool:
 		return NotificationType.WEB_URL == notification_type
 
-	def notify(self, subscription_event: SubscriptionEvent) -> bool:
+	def notify(self, subscription_event: SubscriptionEvent,notification_definition: NotificationDefinition) -> bool:
 		user_id: UserId = subscription_event.userId
 
 		# start job status
