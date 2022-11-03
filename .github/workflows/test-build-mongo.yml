@@ -21,9 +21,9 @@ jobs:
       uses: supercharge/mongodb-github-action@1.7.0
       with:
         mongodb-version: 4.4
-        mongodb-username: ${{DB_USER}}
-        mongodb-password: ${{DB_PASSWORD}}
-        mongodb-db: ${{DB_DATABASE}}
+        mongodb-username: ${{env.DB_USER}}
+        mongodb-password: ${{env.DB_PASSWORD}}
+        mongodb-db: ${{env.DB_DATABASE}}
 
     - name: Setup python
       uses: actions/setup-python@v3
