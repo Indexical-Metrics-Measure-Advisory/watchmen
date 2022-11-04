@@ -37,6 +37,9 @@ PLUGIN_ENTITY_SHAPER = PluginShaper()
 
 
 class PluginService(TupleService):
+	def should_record_operation(self) -> bool:
+		return False
+
 	def get_entity_name(self) -> str:
 		return PLUGIN_ENTITY_NAME
 

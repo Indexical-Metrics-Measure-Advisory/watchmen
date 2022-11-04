@@ -243,14 +243,15 @@ table_collector_competitive_lock = MongoDocument(
 table_operations = MongoDocument(
 	name='operations',
 	columns=[
-		create_pk('record_id'), create_str('tuple_type', False),
+		create_pk('record_id'), create_str('operation_type', False),
+		create_str('tuple_type', False), create_str('tuple_key', False),
 		create_str('tuple_id', False), create_str('content', False),
 		create_str('version_num', False),
 		create_tenant_id(), *create_tuple_audit_columns()
 	]
 )
-table_versions = MongoDocument(
-	name='versions',
+table_package_versions = MongoDocument(
+	name='package_versions',
 	columns=[
 		create_pk('version_id'), create_str('previous_version', False),
 		create_str('current_version', False),

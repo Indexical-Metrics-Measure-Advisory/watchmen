@@ -63,6 +63,9 @@ INDICATORS_ENTITY_SHAPER = IndicatorShaper()
 
 
 class IndicatorService(TupleService):
+	def should_record_operation(self) -> bool:
+		return False
+
 	def get_entity_name(self) -> str:
 		return INDICATORS_ENTITY_NAME
 

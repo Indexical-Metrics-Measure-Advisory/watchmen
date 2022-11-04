@@ -88,6 +88,9 @@ BUCKET_ENTITY_SHAPER = BucketShaper()
 
 
 class BucketService(TupleService):
+	def should_record_operation(self) -> bool:
+		return False
+
 	def get_entity_name(self) -> str:
 		return BUCKET_ENTITY_NAME
 

@@ -57,6 +57,13 @@ TOPIC_SNAPSHOT_SCHEDULER_ENTITY_SHAPER = TopicSnapshotSchedulerShaper()
 
 
 class TopicSnapshotSchedulerService(TupleService):
+
+	def should_record_operation(self) -> bool:
+		return False
+
+	def get_operation_tuple_type(self) -> str:
+		pass  # need implement when should_record_operation is true
+
 	def get_entity_name(self) -> str:
 		return TOPIC_SNAPSHOT_SCHEDULER_ENTITY_NAME
 

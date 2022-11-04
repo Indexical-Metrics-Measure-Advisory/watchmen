@@ -316,12 +316,13 @@ table_oss_collector_competitive_lock = Table(
 )
 table_operations = Table(
 	'operations', meta_data,
-	create_pk('record_id'), create_str('tuple_type', 50),
+	create_pk('record_id'), create_str('operation_type', 20),
+	create_str('tuple_type', 20), create_str('tuple_key', 20),
 	create_str('tuple_id', 50), create_json('content'), create_str('version_num', 50),
 	create_tenant_id(), *create_tuple_audit_columns()
 )
-table_versions = Table(
-	'versions', meta_data,
+table_package_versions = Table(
+	'package_versions', meta_data,
 	create_pk('version_id'), create_str('previous_version', 20),
 	create_str('current_version', 20),
 	create_tenant_id(), *create_tuple_audit_columns()
@@ -374,7 +375,7 @@ tables: Dict[str, Table] = {
 	'achievement_plugin_tasks': table_achievement_plugin_tasks,
 	'collector_competitive_lock': table_collector_competitive_lock,
 	'operations': table_operations,
-	'versions': table_versions
+	'package_versions': table_package_versions
 
 }
 

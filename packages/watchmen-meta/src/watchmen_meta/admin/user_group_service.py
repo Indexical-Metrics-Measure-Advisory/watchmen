@@ -33,6 +33,9 @@ USER_GROUP_ENTITY_SHAPER = UserGroupShaper()
 
 
 class UserGroupService(TupleService):
+	def should_record_operation(self) -> bool:
+		return False
+
 	def get_entity_name(self) -> str:
 		return USER_GROUP_ENTITY_NAME
 

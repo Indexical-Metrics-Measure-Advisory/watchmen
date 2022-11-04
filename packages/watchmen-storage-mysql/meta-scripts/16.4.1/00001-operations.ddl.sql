@@ -1,7 +1,9 @@
 CREATE TABLE operations
 (
     record_id            VARCHAR(50) NOT NULL,
+    operation_type       VARCHAR(20) NOT NULL,
     tuple_type           VARCHAR(20) NOT NULL,
+    tuple_key            VARCHAR(20) NOT NULL,
     tuple_id             VARCHAR(100) NOT NULL,
     content              JSON,
     version_num          VARCHAR(50) NOT NULL,

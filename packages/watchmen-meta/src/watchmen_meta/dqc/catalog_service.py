@@ -38,6 +38,9 @@ CATALOG_ENTITY_SHAPER = CatalogShaper()
 
 
 class CatalogService(TupleService):
+	def should_record_operation(self) -> bool:
+		return False
+
 	def get_entity_name(self) -> str:
 		return CATALOG_ENTITY_NAME
 

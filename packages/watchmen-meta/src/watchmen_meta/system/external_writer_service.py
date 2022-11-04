@@ -35,6 +35,9 @@ EXTERNAL_WRITER_ENTITY_SHAPER = ExternalWriterShaper()
 
 
 class ExternalWriterService(TupleService):
+	def should_record_operation(self) -> bool:
+		return False
+
 	def get_entity_name(self) -> str:
 		return EXTERNAL_WRITER_ENTITY_NAME
 

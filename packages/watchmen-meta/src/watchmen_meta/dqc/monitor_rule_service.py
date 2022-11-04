@@ -40,6 +40,9 @@ MONITOR_RULE_ENTITY_SHAPER = MonitorRuleShaper()
 
 
 class MonitorRuleService(TupleService):
+	def should_record_operation(self) -> bool:
+		return False
+
 	# noinspection PyMethodMayBeStatic
 	def get_entity_name(self) -> str:
 		return MONITOR_RULE_ENTITY_NAME

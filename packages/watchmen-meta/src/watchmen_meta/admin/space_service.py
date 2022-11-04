@@ -50,6 +50,9 @@ SPACE_ENTITY_SHAPER = SpaceShaper()
 
 
 class SpaceService(TupleService):
+	def should_record_operation(self) -> bool:
+		return True
+
 	def get_entity_name(self) -> str:
 		return SPACE_ENTITY_NAME
 

@@ -32,6 +32,9 @@ ENUM_ENTITY_SHAPER = EnumShaper()
 
 
 class EnumService(TupleService):
+	def should_record_operation(self) -> bool:
+		return False
+
 	def get_entity_name(self) -> str:
 		return ENUM_ENTITY_NAME
 

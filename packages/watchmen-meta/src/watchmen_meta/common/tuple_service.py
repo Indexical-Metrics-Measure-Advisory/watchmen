@@ -1,10 +1,13 @@
 from typing import Optional
-
+from abc import abstractmethod
 from watchmen_auth import PrincipalService
 from watchmen_model.common import Auditable, OptimisticLock, TenantBasedTuple, Tuple
+from watchmen_model.system import Operation, OperationType
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityRow, OptimisticLockException, \
 	SnowflakeGenerator, TransactionalStorageSPI
 from .storage_service import EntityService, TupleId, TupleNotFoundException
+from .operation_service import RecordOperationService
+from .package_version_service import PackageVersionService
 
 
 class AuditableShaper:
@@ -79,12 +82,38 @@ class TupleService(EntityService):
 		self.with_snowflake_generator(snowflake_generator)
 		self.with_principal_service(principal_service)
 
+	@abstractmethod
+	def should_record_operation(self) -> bool:
+		pass
+
+	def get_package_version_service(self) -> PackageVersionService:
+		return PackageVersionService(self.storage, self.snowflakeGenerator, self.principalService)
+
+	def get_operation_service(self) -> RecordOperationService:
+		return RecordOperationService(self.storage, self.snowflakeGenerator, self.principalService)
+
+	def build_operation(self, operation_type: str, a_tuple: Tuple) -> Operation:
+		return Operation(
+			recordId=str(self.snowflakeGenerator.next_id()),
+			operationType=operation_type,
+			tupleKey=self.get_storable_id_column_name(),
+			tupleType=self.get_entity_name(),
+			tupleId=self.get_storable_id(a_tuple),
+			content=self.get_entity_shaper().serialize(a_tuple),
+			versionNum=self.get_package_version_service().find_by_tenant(self.principalService.get_tenant_id()).currVersion,
+			tenantId=self.principalService.tenantId
+		)
+
+	def record_operation(self, operation_type: str, a_tuple: Optional[Tuple]):
+		if a_tuple and self.should_record_operation():
+			self.get_operation_service().record_operation(self.build_operation(operation_type, a_tuple))
+
 	def create(self, a_tuple: Tuple) -> Tuple:
 		self.try_to_prepare_auditable_on_create(a_tuple)
 		if isinstance(a_tuple, OptimisticLock):
 			a_tuple.version = 1
-
 		self.storage.insert_one(a_tuple, self.get_entity_helper())
+		self.record_operation(OperationType.CREATE, a_tuple)
 		return a_tuple
 
 	def update(self, a_tuple: Tuple) -> Tuple:
@@ -125,10 +154,13 @@ class TupleService(EntityService):
 			if updated_count == 0:
 				self.try_to_recover_auditable_on_update(a_tuple, original_last_modified_at, original_last_modified_by)
 				raise TupleNotFoundException('Update 0 row might be caused by tuple not found.')
+		self.record_operation(OperationType.UPDATE, a_tuple)
 		return a_tuple
 
 	def delete(self, tuple_id: TupleId) -> Optional[Tuple]:
-		return self.storage.delete_by_id_and_pull(tuple_id, self.get_entity_id_helper())
+		a_tuple = self.storage.delete_by_id_and_pull(tuple_id, self.get_entity_id_helper())
+		self.record_operation(OperationType.DELETE, a_tuple)
+		return a_tuple
 
 	def find_by_id(self, tuple_id: TupleId) -> Optional[Tuple]:
 		return self.storage.find_by_id(tuple_id, self.get_entity_id_helper())

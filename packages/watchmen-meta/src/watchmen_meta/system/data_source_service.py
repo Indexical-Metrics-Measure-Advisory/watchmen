@@ -83,6 +83,9 @@ DATA_SOURCE_ENTITY_SHAPER = DataSourceShaper()
 
 
 class DataSourceService(TupleService):
+	def should_record_operation(self) -> bool:
+		return False
+
 	def get_entity_name(self) -> str:
 		return DATA_SOURCE_ENTITY_NAME
 

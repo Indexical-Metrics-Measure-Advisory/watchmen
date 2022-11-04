@@ -1,7 +1,9 @@
 CREATE TABLE operations
 (
     record_id            NVARCHAR(50) NOT NULL,
+    operation_type       NVARCHAR(20) NOT NULL,
     tuple_type           NVARCHAR(20) NOT NULL,
+    tuple_key            NVARCHAR(20) NOT NULL,
     tuple_id             NVARCHAR(100) NOT NULL,
     content              NVARCHAR(MAX),
     version_num          NVARCHAR(50) NOT NULL,
