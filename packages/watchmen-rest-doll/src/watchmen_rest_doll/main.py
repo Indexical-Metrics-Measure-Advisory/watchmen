@@ -18,7 +18,7 @@ from .meta_import import connected_space_import_router, dashboard_import_router,
 from .sso.sso_router import install_sso_router
 from .system import data_source_router, external_writer_router, pat_router, plugin_router, tenant_init_router, \
 	tenant_router, operation_router, package_version_router
-from .webhook import webhook_router
+
 
 app = doll.construct()
 
