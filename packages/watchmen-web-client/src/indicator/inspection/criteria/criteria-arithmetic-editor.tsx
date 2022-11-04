@@ -8,9 +8,9 @@ import {
 } from '@/services/data/tuples/indicator-criteria-types';
 import {
 	getCriteriaArithmetic,
+	isCriteriaArithmeticVisible,
 	isIndicatorCriteriaOnBucket,
-	isIndicatorCriteriaOnExpression,
-	isCriteriaArithmeticVisible
+	isIndicatorCriteriaOnExpression
 } from '@/services/data/tuples/indicator-criteria-utils';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import {findTopicAndFactor} from '@/services/data/tuples/indicator-utils';

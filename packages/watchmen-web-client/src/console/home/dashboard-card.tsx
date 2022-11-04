@@ -3,7 +3,7 @@ import {Dashboard} from '@/services/data/tuples/dashboard-types';
 import {ICON_DASHBOARD} from '@/widgets/basic/constants';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import {ConnectedSpaceCardContainer, ConnectedSpaceLastVisit, ConnectedSpaceName} from './widgets';
 
 export const DashboardCard = (props: {
@@ -11,10 +11,10 @@ export const DashboardCard = (props: {
 }) => {
 	const {dashboard} = props;
 
-	const history = useHistory();
+	const navigate = useNavigate();
 
 	const onDashboardClicked = () => {
-		history.push(toDashboard(dashboard.dashboardId));
+		navigate(toDashboard(dashboard.dashboardId));
 	};
 
 	return <ConnectedSpaceCardContainer onClick={onDashboardClicked}>

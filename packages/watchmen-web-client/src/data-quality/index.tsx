@@ -1,7 +1,8 @@
 import {Router} from '@/routes/types';
+import {asDQCRoute, asFallbackNavigate} from '@/routes/utils';
 import {isAdmin, isSuperAdmin} from '@/services/data/account';
-import React from 'react';
-import {Redirect, Route, Switch} from 'react-router-dom';
+import React, {ReactNode} from 'react';
+import {Navigate, Routes} from 'react-router-dom';
 import styled from 'styled-components';
 import {DataQualityCache} from './cache';
 import {DataQualityCacheEventBusProvider} from './cache/cache-event-bus';
@@ -32,12 +33,22 @@ const DataQualityMain = styled.main.attrs<{ scrollable?: boolean }>(({scrollable
 	overflow-y : scroll;
 `;
 
+const asRoute = (path: Router, children: ReactNode,
+                 options: { wrapped?: boolean; scrollable?: boolean } = {wrapped: true, scrollable: true}) => {
+	const {wrapped = true, scrollable = true} = options;
+	if (wrapped) {
+		return asDQCRoute(path, <DataQualityMain scrollable={scrollable}>{children}</DataQualityMain>);
+	} else {
+		return asDQCRoute(path, children);
+	}
+};
+
 const DataQualityIndex = () => {
 	if (!isAdmin()) {
-		return <Redirect to={Router.CONSOLE_HOME}/>;
+		return <Navigate to={Router.CONSOLE_HOME}/>;
 	}
 	if (isSuperAdmin()) {
-		return <Redirect to={Router.ADMIN}/>;
+		return <Navigate to={Router.ADMIN}/>;
 	}
 
 	return <DataQualityContainer>
@@ -45,44 +56,16 @@ const DataQualityIndex = () => {
 			<DataQualityCache/>
 			<DataQualityMenu/>
 
-			<Switch>
-				{/*<Route path={Router.DATA_QUALITY_HOME}>*/}
-				{/*	<DataQualityMain scrollable={false}>*/}
-				{/*		<DataQualityHome/>*/}
-				{/*	</DataQualityMain>*/}
-				{/*</Route>*/}
-				<Route path={Router.DATA_QUALITY_CONSANGUINITY}>
-					<DataQualityMain scrollable={false}>
-						<DataQualityConsanguinity/>
-					</DataQualityMain>
-				</Route>
-				<Route path={Router.DATA_QUALITY_CATALOG}>
-					<DataQualityMain scrollable={false}>
-						<DataQualityCatalog/>
-					</DataQualityMain>
-				</Route>
-				<Route path={Router.DATA_QUALITY_RULES}>
-					<DataQualityMain scrollable={false}>
-						<DataQualityMonitorRules/>
-					</DataQualityMain>
-				</Route>
-				<Route path={Router.DATA_QUALITY_STATISTICS}>
-					<DataQualityMain scrollable={false}>
-						<DataQualityStatistics/>
-					</DataQualityMain>
-				</Route>
-				{/*<Route path={Router.DATA_QUALITY_END_USER}>*/}
-				{/*	<DataQualityMain scrollable={false}>*/}
-				{/*		<DataQualityEndUser/>*/}
-				{/*	</DataQualityMain>*/}
-				{/*</Route>*/}
-				<Route path={Router.DATA_QUALITY_SETTINGS}>
-					<DataQualityMain><DataQualitySettings/></DataQualityMain>
-				</Route>
-				<Route path="*">
-					<Redirect to={Router.DATA_QUALITY_STATISTICS}/>
-				</Route>
-			</Switch>
+			<Routes>
+				{/*{asRoute(Router.DATA_QUALITY_HOME, <DataQualityHome/>, {scrollable: false})}*/}
+				{asRoute(Router.DQC_CONSANGUINITY, <DataQualityConsanguinity/>, {scrollable: false})}
+				{asRoute(Router.DQC_CATALOG, <DataQualityCatalog/>, {scrollable: false})}
+				{asRoute(Router.DQC_RULES, <DataQualityMonitorRules/>, {scrollable: false})}
+				{asRoute(Router.DQC_STATISTICS, <DataQualityStatistics/>, {scrollable: false})}
+				{/*{asRoute(Router.DATA_QUALITY_END_USER, <DataQualityEndUser/>, {scrollable: false})}*/}
+				{asRoute(Router.DQC_SETTINGS, <DataQualitySettings/>)}
+				{asFallbackNavigate(Router.DQC_STATISTICS)}
+			</Routes>
 		</DataQualityCacheEventBusProvider>
 	</DataQualityContainer>;
 };

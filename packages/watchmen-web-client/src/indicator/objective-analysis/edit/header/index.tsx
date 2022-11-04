@@ -5,9 +5,9 @@ import {generateUuid} from '@/services/data/tuples/utils';
 import {AlertLabel} from '@/widgets/alert/widgets';
 import {Button} from '@/widgets/basic/button';
 import {
+	ICON_ACHIEVEMENT,
 	ICON_BACK,
-	ICON_INDICATOR_ACHIEVEMENT,
-	ICON_INDICATOR_INSPECTION,
+	ICON_INSPECTION,
 	ICON_LOCK,
 	ICON_SUBSCRIBE,
 	ICON_THROW_AWAY,
@@ -23,7 +23,7 @@ import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {ChangeEvent, useState} from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import {useObjectiveAnalysisListEventBus} from '../../objective-analysis-list-event-bus';
 import {ObjectiveAnalysisListEventTypes} from '../../objective-analysis-list-event-bus-types';
 import {useObjectiveAnalysisEventBus} from '../objective-analysis-event-bus';
@@ -93,7 +93,7 @@ export const SubscribeDialog = (props: { analysis: ObjectiveAnalysis }) => {
 export const Header = (props: { analysis: ObjectiveAnalysis, startOnView: boolean }) => {
 	const {analysis, startOnView} = props;
 
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire: fireGlobal} = useEventBus();
 	const {fire: fireList} = useObjectiveAnalysisListEventBus();
 	const {fire} = useObjectiveAnalysisEventBus();
@@ -142,13 +142,13 @@ export const Header = (props: { analysis: ObjectiveAnalysis, startOnView: boolea
 				}, () => {
 					fireList(ObjectiveAnalysisListEventTypes.OBJECTIVE_ANALYSIS_DELETED, analysis);
 					fireGlobal(EventTypes.HIDE_DIALOG);
-					history.replace(Router.INDICATOR_OBJECTIVE_ANALYSIS);
+					navigate(Router.IDW_OBJECTIVE_ANALYSIS, {replace: true});
 				});
 			},
 			() => fireGlobal(EventTypes.HIDE_DIALOG));
 	};
 	const onBackClicked = () => {
-		history.replace(Router.INDICATOR_OBJECTIVE_ANALYSIS);
+		navigate(Router.IDW_OBJECTIVE_ANALYSIS, {replace: true});
 	};
 
 	return <PageHeaderHolder>
@@ -167,11 +167,11 @@ export const Header = (props: { analysis: ObjectiveAnalysis, startOnView: boolea
 					<PageHeaderButtonSeparator/>
 					<PageHeaderButton tooltip={Lang.INDICATOR.OBJECTIVE_ANALYSIS.ADD_INSPECTION}
 					                  onClick={onAddInspectionClicked}>
-						<FontAwesomeIcon icon={ICON_INDICATOR_INSPECTION}/>
+						<FontAwesomeIcon icon={ICON_INSPECTION}/>
 					</PageHeaderButton>
 					<PageHeaderButton tooltip={Lang.INDICATOR.OBJECTIVE_ANALYSIS.ADD_ACHIEVEMENT}
 					                  onClick={onAddAchievementClicked}>
-						<FontAwesomeIcon icon={ICON_INDICATOR_ACHIEVEMENT}/>
+						<FontAwesomeIcon icon={ICON_ACHIEVEMENT}/>
 					</PageHeaderButton>
 				</>}
 			<PageHeaderButtonSeparator/>

@@ -1,7 +1,7 @@
 import {Router} from '@/routes/types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useEffect, useState} from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import {AlertLabel} from '../alert/widgets';
 import {ICON_LOADING} from '../basic/constants';
 import {useForceUpdate} from '../basic/utils';
@@ -11,19 +11,19 @@ import {Lang} from '../langs';
 import {RemoteRequestContainer} from './widgets';
 
 export const RemoteRequest = () => {
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {on, off, fire} = useEventBus();
 	const [count, setCount] = useState<number>(0);
 	const forceUpdate = useForceUpdate();
 	useEffect(() => {
 		const on401 = () => {
 			fire(EventTypes.SHOW_ALERT, <AlertLabel>{Lang.ERROR.UNAUTHORIZED}</AlertLabel>, () => {
-				history.replace(Router.LOGIN);
+				navigate(Router.LOGIN, {replace: true});
 			});
 		};
 		const on403 = () => {
 			fire(EventTypes.SHOW_ALERT, <AlertLabel>{Lang.ERROR.ACCESS_DENIED}</AlertLabel>, () => {
-				history.replace(Router.LOGIN);
+				navigate(Router.LOGIN, {replace: true});
 			});
 		};
 		const onOtherError = () => {
@@ -57,7 +57,7 @@ export const RemoteRequest = () => {
 		return () => {
 			off(EventTypes.INVOKE_REMOTE_REQUEST, onInvokeRemoteRequest);
 		};
-	}, [on, off, fire, history, forceUpdate, count]);
+	}, [on, off, fire, navigate, forceUpdate, count]);
 
 	return <RemoteRequestContainer visible={count > 0}>
 		<FontAwesomeIcon icon={ICON_LOADING} spin={true}/>

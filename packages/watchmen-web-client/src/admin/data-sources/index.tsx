@@ -16,7 +16,7 @@ import {TupleWorkbench} from '@/widgets/tuple-workbench';
 import {TupleEventBusProvider, useTupleEventBus} from '@/widgets/tuple-workbench/tuple-event-bus';
 import {TupleEventTypes} from '@/widgets/tuple-workbench/tuple-event-bus-types';
 import React, {useEffect} from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import DataSourceBackground from '../../assets/data-source-background.svg';
 import {useAdminCacheEventBus} from '../cache/cache-event-bus';
 import {AdminCacheEventTypes} from '../cache/cache-event-bus-types';
@@ -118,12 +118,12 @@ const AdminDataSources = () => {
 };
 
 const AdminDataSourcesIndex = () => {
-	const history = useHistory();
+	const navigate = useNavigate();
 	if (!isMultipleDataSourcesEnabled()) {
 		if (isSuperAdmin()) {
-			history.replace(Router.ADMIN_TENANTS);
+			navigate(Router.ADMIN_TENANTS, {replace: true});
 		} else {
-			history.replace(Router.ADMIN_HOME);
+			navigate(Router.ADMIN_HOME, {replace: true});
 		}
 		return null;
 	}

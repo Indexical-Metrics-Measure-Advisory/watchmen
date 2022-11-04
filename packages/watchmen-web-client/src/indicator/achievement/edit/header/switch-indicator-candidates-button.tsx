@@ -1,5 +1,5 @@
 import {Achievement} from '@/services/data/tuples/achievement-types';
-import {ICON_INDICATOR_INDICATOR} from '@/widgets/basic/constants';
+import {ICON_INDICATOR} from '@/widgets/basic/constants';
 import {PageHeaderButton} from '@/widgets/basic/page-header-buttons';
 import {ButtonInk} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
@@ -26,6 +26,6 @@ export const SwitchIndicatorCandidatesButton = (props: { achievement: Achievemen
 	return <PageHeaderButton tooltip={tooltip}
 	                         ink={visible ? ButtonInk.PRIMARY : undefined}
 	                         onClick={onViewModeClicked}>
-		<FontAwesomeIcon icon={ICON_INDICATOR_INDICATOR}/>
+		<FontAwesomeIcon icon={ICON_INDICATOR}/>
 	</PageHeaderButton>;
 };

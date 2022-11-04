@@ -1,5 +1,5 @@
 import {Router} from '@/routes/types';
-import {toDashboard} from '@/routes/utils';
+import {asConsoleDashboardRoute, asFallbackNavigate, toDashboard} from '@/routes/utils';
 import {saveLastSnapshot} from '@/services/data/account/last-snapshot';
 import {LastSnapshot} from '@/services/data/account/last-snapshot-types';
 import {saveDashboard} from '@/services/data/tuples/dashboard';
@@ -11,7 +11,7 @@ import {EventTypes} from '@/widgets/events/types';
 import {HELP_KEYS, useHelp} from '@/widgets/help';
 import {Lang} from '@/widgets/langs';
 import React, {Fragment, useEffect, useState} from 'react';
-import {Redirect, Route, Switch, useHistory, useParams} from 'react-router-dom';
+import {Routes, useNavigate, useParams} from 'react-router-dom';
 import {useConsoleEventBus} from '../console-event-bus';
 import {ConsoleEventTypes} from '../console-event-bus-types';
 import {createDashboard} from '../utils/tuples';
@@ -22,7 +22,7 @@ import {DashboardHeader} from './header';
 const ConsoleDashboard = () => {
 	const {dashboardId} = useParams<{ dashboardId: DashboardId }>();
 
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire: fireGlobal} = useEventBus();
 	const {fire, on, off} = useConsoleEventBus();
 	const [dashboard, setDashboard] = useState<Dashboard | null>(null);
@@ -36,11 +36,11 @@ const ConsoleDashboard = () => {
 				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
 					{Lang.CONSOLE.ERROR.DASHBOARD_NOT_FOUND}
 				</AlertLabel>, () => {
-					history.replace(Router.CONSOLE);
+					navigate(Router.CONSOLE, {replace: true});
 				});
 			}
 		});
-	}, [fire, fireGlobal, history, dashboardId]);
+	}, [fire, fireGlobal, navigate, dashboardId]);
 	useEffect(() => {
 		const onDashboardRemoved = (dashboard: Dashboard) => {
 			// eslint-disable-next-line
@@ -56,10 +56,10 @@ const ConsoleDashboard = () => {
 				}).find(dashboard => dashboard.dashboardId != dashboardId);
 				if (dashboard) {
 					// switch to another one
-					history.replace(toDashboard(dashboard.dashboardId));
+					navigate(toDashboard(dashboard.dashboardId), {replace: true});
 				} else {
 					// no dashboard, to home
-					history.replace(Router.CONSOLE_HOME);
+					navigate(Router.CONSOLE_HOME, {replace: true});
 				}
 			});
 		};
@@ -67,7 +67,7 @@ const ConsoleDashboard = () => {
 		return () => {
 			off(ConsoleEventTypes.DASHBOARD_REMOVED, onDashboardRemoved);
 		};
-	}, [fire, on, off, history, dashboardId]);
+	}, [fire, on, off, navigate, dashboardId]);
 
 	// eslint-disable-next-line
 	if (!dashboard || dashboard.dashboardId != dashboardId) {
@@ -84,7 +84,7 @@ const ConsoleDashboard = () => {
 };
 
 const ConsoleDashboardAuto = () => {
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire: fireGlobal} = useEventBus();
 	const {fire} = useConsoleEventBus();
 	useEffect(() => {
@@ -94,13 +94,13 @@ const ConsoleDashboardAuto = () => {
 				// eslint-disable-next-line
 				if (lastDashboardId && allDashboardIds.some(id => id == lastDashboardId)) {
 					// exists and found in list
-					history.push(toDashboard(lastDashboardId));
+					navigate(toDashboard(lastDashboardId));
 				} else if (dashboards && dashboards.length > 0) {
 					// pick the latest visited one
 					const {dashboardId: firstDashboardId} = [...dashboards].sort((d1, d2) => {
 						return (d2.lastVisitTime || '').localeCompare((d1.lastVisitTime || ''));
 					})[0];
-					history.push(toDashboard(firstDashboardId));
+					navigate(toDashboard(firstDashboardId));
 					try {
 						await saveLastSnapshot({lastDashboardId: firstDashboardId});
 					} catch (e: any) {
@@ -113,25 +113,23 @@ const ConsoleDashboardAuto = () => {
 						async () => await saveDashboard(dashboard),
 						() => {
 							fire(ConsoleEventTypes.DASHBOARD_CREATED, dashboard);
-							history.push(toDashboard(dashboard.dashboardId));
+							navigate(toDashboard(dashboard.dashboardId));
 						});
 				}
 			});
 		});
-	}, [fireGlobal, fire, history]);
+	}, [fireGlobal, fire, navigate]);
 
 	return <Fragment/>;
 };
 
 const ConsoleDashboardIndex = () => {
 	useHelp(HELP_KEYS.CONSOLE_DASHBOARD);
-	return <Switch>
-		<Route path={Router.CONSOLE_DASHBOARD}><ConsoleDashboard/></Route>
-		<Route path={Router.CONSOLE_DASHBOARD_AUTO}><ConsoleDashboardAuto/></Route>
-		<Route path="*">
-			<Redirect to={Router.CONSOLE_DASHBOARD_AUTO}/>
-		</Route>
-	</Switch>;
+	return <Routes>
+		{asConsoleDashboardRoute(Router.CONSOLE_DASHBOARD_EDIT, <ConsoleDashboard/>)}
+		{asConsoleDashboardRoute(Router.CONSOLE_DASHBOARD, <ConsoleDashboardAuto/>)}
+		{asFallbackNavigate(Router.CONSOLE_DASHBOARD)}
+	</Routes>;
 };
 
 export default ConsoleDashboardIndex;

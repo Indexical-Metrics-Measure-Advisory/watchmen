@@ -24,7 +24,7 @@ const reset = (expression: () => void) => setTimeout(() => expression(), 0);
 let waterMark: HTMLDivElement | null = null;
 
 /**
- * water mark for demo enterprise features.
+ * watermark for demo enterprise features.
  * DO NOT REMOVE THIS FOR ANY PURPOSE UNTIL YOU GET COMMERCIAL PERMIT FROM MATRYOSHKA.
  */
 export const WaterMark = (props: { text?: string; text2?: string }) => {

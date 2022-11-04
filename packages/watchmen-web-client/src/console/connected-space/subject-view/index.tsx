@@ -7,7 +7,7 @@ import {EventTypes} from '@/widgets/events/types';
 import {HELP_KEYS, useHelp} from '@/widgets/help';
 import {Lang} from '@/widgets/langs';
 import React, {useEffect, useState} from 'react';
-import {useHistory, useParams} from 'react-router-dom';
+import {useNavigate, useParams} from 'react-router-dom';
 import {SubjectHeader} from './header';
 import {SubjectBodyRouter} from './subject-body-router';
 import {SubjectEventBusProvider} from './subject-event-bus';
@@ -17,7 +17,7 @@ export const SubjectView = (props: { connectedSpace: ConnectedSpace }) => {
 
 	const {subjectId} = useParams<{ subjectId: SubjectId }>();
 
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire: fireGlobal} = useEventBus();
 	const [subject, setSubject] = useState<Subject | null>(null);
 	useEffect(() => {
@@ -27,10 +27,10 @@ export const SubjectView = (props: { connectedSpace: ConnectedSpace }) => {
 			setSubject(subject);
 		} else {
 			fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>{Lang.CONSOLE.ERROR.SUBJECT_NOT_FOUND}</AlertLabel>, () => {
-				history.replace(toConnectedSpace(connectedSpace.connectId));
+				navigate(toConnectedSpace(connectedSpace.connectId), {replace: true});
 			});
 		}
-	}, [connectedSpace.connectId, connectedSpace.subjects, subjectId, fireGlobal, history]);
+	}, [connectedSpace.connectId, connectedSpace.subjects, subjectId, fireGlobal, navigate]);
 	useHelp(HELP_KEYS.CONSOLE_SUBJECT);
 
 	// eslint-disable-next-line

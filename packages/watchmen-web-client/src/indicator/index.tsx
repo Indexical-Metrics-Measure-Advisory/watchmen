@@ -1,7 +1,8 @@
 import {Router} from '@/routes/types';
+import {asFallbackNavigate, asIDWRoute} from '@/routes/utils';
 import {isAdmin} from '@/services/data/account';
-import React from 'react';
-import {Redirect, Route, Switch} from 'react-router-dom';
+import React, {ReactNode} from 'react';
+import {Routes} from 'react-router-dom';
 import styled from 'styled-components';
 import IndicatorBucketsIndex from './bucket';
 import IndicatorIndicatorIndex from './indicator';
@@ -29,50 +30,30 @@ const IndicatorMain = styled.main.attrs<{ scrollable?: boolean }>(({scrollable =
 	overflow-y : scroll;
 `;
 
+const asRoute = (path: Router, children: ReactNode,
+                 options: { wrapped?: boolean; scrollable?: boolean } = {wrapped: true, scrollable: true}) => {
+	const {wrapped = true, scrollable = true} = options;
+	if (wrapped) {
+		return asIDWRoute(path, <IndicatorMain scrollable={scrollable}>{children}</IndicatorMain>);
+	} else {
+		return asIDWRoute(path, children);
+	}
+};
+
 const IndicatorIndex = () => {
 	return <IndicatorContainer>
 		<IndicatorMenu/>
-		<Switch>
+		<Routes>
+			{isAdmin() ? asRoute(Router.IDW_BUCKETS, <IndicatorBucketsIndex/>) : null}
+			{isAdmin() ? asRoute(Router.IDW_INDICATOR_ALL, <IndicatorIndicatorIndex/>) : null}
+			{/*{isAdmin() ? asRoute(Router.IDW_INSPECTION, <IndicatorInspectionIndex/>) : null}*/}
+			{/*{isAdmin() ? asRoute(Router.IDW_ACHIEVEMENT_ALL, <IndicatorAchievementIndex/>) : null}*/}
 			{isAdmin()
-				? <Route path={Router.INDICATOR_BUCKETS}>
-					<IndicatorMain>
-						<IndicatorBucketsIndex/>
-					</IndicatorMain>
-				</Route> : null}
-			{isAdmin()
-				? <Route path={Router.INDICATOR_INDICATORS}>
-					<IndicatorMain>
-						<IndicatorIndicatorIndex/>
-					</IndicatorMain>
-				</Route> : null}
-			{/*{isAdmin()*/}
-			{/*	? <Route path={Router.INDICATOR_INSPECTION}>*/}
-			{/*		<IndicatorMain>*/}
-			{/*			<IndicatorInspectionIndex/>*/}
-			{/*		</IndicatorMain>*/}
-			{/*	</Route> : null}*/}
-			{/*{isAdmin()*/}
-			{/*	? <Route path={Router.INDICATOR_ACHIEVEMENT}>*/}
-			{/*		<IndicatorMain scrollable={false}>*/}
-			{/*			<IndicatorAchievementIndex/>*/}
-			{/*		</IndicatorMain>*/}
-			{/*	</Route> : null}*/}
-			{isAdmin()
-				? <Route path={Router.INDICATOR_OBJECTIVE_ANALYSIS}>
-					<IndicatorMain scrollable={false}>
-						<IndicatorObjectiveAnalysisIndex/>
-					</IndicatorMain>
-				</Route> : null}
-			<Route path={Router.INDICATOR_SETTINGS}>
-				<IndicatorMain>
-					<IndicatorSettingsIndex/>
-				</IndicatorMain>
-			</Route>
-			<Route path="*">
-				<Redirect
-					to={isAdmin() ? Router.INDICATOR_INDICATORS : Router.INDICATOR_OBJECTIVE_ANALYSIS}/>
-			</Route>
-		</Switch>
+				? asRoute(Router.IDW_OBJECTIVE_ANALYSIS_ALL, <IndicatorObjectiveAnalysisIndex/>, {scrollable: false})
+				: null}
+			{asRoute(Router.IDW_SETTINGS, <IndicatorSettingsIndex/>)}
+			{isAdmin() ? asFallbackNavigate(Router.IDW_INDICATOR) : asFallbackNavigate(Router.IDW_OBJECTIVE_ANALYSIS)}
+		</Routes>
 		{/*<WaterMark/>*/}
 	</IndicatorContainer>;
 };

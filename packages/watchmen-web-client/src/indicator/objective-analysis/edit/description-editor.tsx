@@ -1,5 +1,5 @@
 import {ObjectiveAnalysis} from '@/services/data/tuples/objective-analysis-types';
-import {ICON_OBJECTIVE_ANALYSIS} from '@/widgets/basic/constants';
+import {ICON_OBJECTIVE_ANALYSIS_DESC} from '@/widgets/basic/constants';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {useDescription} from './use-description';
@@ -11,7 +11,7 @@ export const DescriptionEditor = (props: { analysis: ObjectiveAnalysis }) => {
 	const {onDescriptionChanged, onDescriptionBlurred} = useDescription(analysis, analysis);
 
 	return <AnalysisDescriptorWrapper>
-		<FontAwesomeIcon icon={ICON_OBJECTIVE_ANALYSIS}/>
+		<FontAwesomeIcon icon={ICON_OBJECTIVE_ANALYSIS_DESC}/>
 		<AnalysisDescriptor value={analysis.description ?? ''}
 		                    onChange={onDescriptionChanged} onBlur={onDescriptionBlurred}
 		                    placeholder={Lang.PLAIN.OBJECTIVE_ANALYSIS_DESCRIPTION_PLACEHOLDER}/>

@@ -181,8 +181,8 @@ export const TUPLE_SEARCH_PAGE_SIZE = 9;
 export const ICON_SWITCH_WORKBENCH = faIgloo;
 export const ICON_CONSOLE = faChalkboard;
 export const ICON_ADMIN = faTools;
-export const ICON_DATA_QUALITY = faCoins;
-export const ICON_INDICATOR = faBusinessTime;
+export const ICON_DQC = faCoins;
+export const ICON_IDW = faBusinessTime;
 export const ICON_HOME = faHome;
 export const ICON_LOGOUT = faPowerOff;
 
@@ -232,9 +232,9 @@ export const ICON_STATISTICS = faCompass;
 export const ICON_END_USER = faChalkboardTeacher;
 
 export const ICON_BUCKETS = faShapes;
-export const ICON_INDICATOR_INDICATOR = faMagnifyingGlassChart;
-export const ICON_INDICATOR_INSPECTION = faMicroscope;
-export const ICON_INDICATOR_ACHIEVEMENT = faRankingStar;
+export const ICON_INDICATOR = faMagnifyingGlassChart;
+export const ICON_INSPECTION = faMicroscope;
+export const ICON_ACHIEVEMENT = faRankingStar;
 export const ICON_TIME_GROUPING = faClock;
 export const ICON_BUCKET_ON = faShapes;
 export const ICON_CHART_BAR = faChartColumn;
@@ -242,9 +242,9 @@ export const ICON_CHART_LINE = faChartLine;
 export const ICON_CHART_PIE = faChartPie;
 export const ICON_CHART_GROWTH_OF_TIME_GROUPING = faArrowTrendUp;
 export const ICON_CHART_GROWTH_OF_TIME_RANGE = faCodeCompare;
-export const ICON_INDICATOR_OBJECTIVE_ANALYSIS = faTowerObservation;
+export const ICON_OBJECTIVE_ANALYSIS = faTowerObservation;
 export const ICON_OBJECTIVE_ANALYSIS_ITEM = faQuoteRight;
-export const ICON_OBJECTIVE_ANALYSIS = faArrowsDownToLine;
+export const ICON_OBJECTIVE_ANALYSIS_DESC = faArrowsDownToLine;
 export const ICON_OBJECTIVE_ANALYSIS_PERSPECTIVE = faArrowsTurnRight;
 
 export const ICON_SECONDARY_SECTION = faCaretRight;

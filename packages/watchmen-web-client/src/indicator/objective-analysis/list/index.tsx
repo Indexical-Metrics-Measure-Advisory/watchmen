@@ -11,7 +11,7 @@ import {TupleWorkbench} from '@/widgets/tuple-workbench';
 import {TupleEventBusProvider, useTupleEventBus} from '@/widgets/tuple-workbench/tuple-event-bus';
 import {TupleEventTypes} from '@/widgets/tuple-workbench/tuple-event-bus-types';
 import React, {useEffect} from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import {useObjectiveAnalysisListEventBus} from '../objective-analysis-list-event-bus';
 import {ObjectiveAnalysisListEventTypes} from '../objective-analysis-list-event-bus-types';
 import {createAnalysis} from '../utils';
@@ -21,7 +21,7 @@ import {renderEditor} from './editor';
 const getKeyOfBucket = (analysis: ObjectiveAnalysis) => analysis.analysisId;
 
 const RealObjectiveAnalysisList = () => {
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire: fireGlobal} = useEventBus();
 	const {on, off, fire} = useTupleEventBus();
 	const {fire: fireAnalysis} = useObjectiveAnalysisListEventBus();
@@ -31,11 +31,11 @@ const RealObjectiveAnalysisList = () => {
 			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
 				return await saveObjectiveAnalysis(analysis);
 			}, () => {
-				history.replace(toObjectiveAnalysisEdit(analysis.analysisId));
+				navigate(toObjectiveAnalysisEdit(analysis.analysisId), {replace: true});
 			});
 		};
 		const onDoEditAnalysis = async (analysis: ObjectiveAnalysis) => {
-			history.replace(toObjectiveAnalysisEdit(analysis.analysisId));
+			navigate(toObjectiveAnalysisEdit(analysis.analysisId), {replace: true});
 		};
 		const onDoSearchAnalysis = async (searchText: string, pageNumber: number) => {
 			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
@@ -57,7 +57,7 @@ const RealObjectiveAnalysisList = () => {
 			off(TupleEventTypes.DO_EDIT_TUPLE, onDoEditAnalysis);
 			off(TupleEventTypes.DO_SEARCH_TUPLE, onDoSearchAnalysis);
 		};
-	}, [on, off, fire, fireAnalysis, fireGlobal, history]);
+	}, [on, off, fire, fireAnalysis, fireGlobal, navigate]);
 	useEffect(() => {
 		fireAnalysis(ObjectiveAnalysisListEventTypes.ASK_SEARCHED, (page?: TuplePage<ObjectiveAnalysis>, searchText?: string) => {
 			if (page) {

@@ -14,7 +14,7 @@ import {EventTypes} from '@/widgets/events/types';
 import {HELP_KEYS, useHelp} from '@/widgets/help';
 import {Lang} from '@/widgets/langs';
 import React, {MouseEvent, useEffect, useRef, useState} from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import {useConsoleEventBus} from '../../console-event-bus';
 import {ConsoleEventTypes} from '../../console-event-bus-types';
 import {CatalogEventBusProvider, useCatalogEventBus} from './catalog-event-bus';
@@ -50,7 +50,7 @@ const CatalogBody = (props: { connectedSpace: ConnectedSpace }) => {
 
 	const svgContainerRef = useRef<HTMLDivElement>(null);
 	const svgRef = useRef<SVGSVGElement>(null);
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire: fireGlobal} = useEventBus();
 	const {fire: fireConsole} = useConsoleEventBus();
 	const {fire, on, off} = useCatalogEventBus();
@@ -64,7 +64,7 @@ const CatalogBody = (props: { connectedSpace: ConnectedSpace }) => {
 			if (!space) {
 				fireGlobal(EventTypes.SHOW_ALERT,
 					<AlertLabel>{Lang.CONSOLE.CONNECTED_SPACE.SPACE_NOT_FOUND}</AlertLabel>, () => {
-						history.replace(Router.CONSOLE);
+						navigate(Router.CONSOLE, {replace: true});
 					});
 			} else {
 				const topicIds = Array.from(new Set(space.topicIds));
@@ -78,13 +78,13 @@ const CatalogBody = (props: { connectedSpace: ConnectedSpace }) => {
 						fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
 							{Lang.CONSOLE.CONNECTED_SPACE.TOPICS_NOT_FOUND}
 						</AlertLabel>, () => {
-							history.replace(Router.CONSOLE);
+							navigate(Router.CONSOLE, {replace: true});
 						});
 					} else if (topics.length !== topicIds.length) {
 						fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
 							{Lang.CONSOLE.CONNECTED_SPACE.TOPICS_COUNT_MISMATCH}
 						</AlertLabel>, () => {
-							history.replace(Router.CONSOLE);
+							navigate(Router.CONSOLE, {replace: true});
 						});
 					} else {
 						fireConsole(ConsoleEventTypes.ASK_CONNECTED_SPACE_GRAPHICS, (graphics: Array<ConnectedSpaceGraphics>) => {
@@ -105,7 +105,7 @@ const CatalogBody = (props: { connectedSpace: ConnectedSpace }) => {
 				});
 			}
 		});
-	}, [connectedSpace.spaceId, connectedSpace.connectId, connectedSpace.subjects, history, fireGlobal, fireConsole]);
+	}, [connectedSpace.spaceId, connectedSpace.connectId, connectedSpace.subjects, navigate, fireGlobal, fireConsole]);
 	useEffect(() => {
 		if (data.graphics && svgContainerRef.current && svgRef.current) {
 			const {width, height} = computeGraphics({graphics: data.graphics, svg: svgRef.current});

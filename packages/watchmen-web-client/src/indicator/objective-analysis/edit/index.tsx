@@ -13,11 +13,11 @@ import {ObjectiveAnalysisEventBusProvider} from './objective-analysis-event-bus'
 import {ObjectiveAnalysisSaver} from './saver';
 
 export const ObjectiveAnalysisEditor = () => {
-	const {analysisId} = useParams<{ analysisId: ObjectiveAnalysisId }>();
+	const analysisId = useParams<{ analysisId: ObjectiveAnalysisId }>().analysisId!;
 
 	const {fire: fireGlobal} = useEventBus();
 	const [analysis, setAnalysis] = useState<ObjectiveAnalysis | null>(null);
-	useHelp(HELP_KEYS.INDICATOR_OBJECTIVE_ANALYSIS);
+	useHelp(HELP_KEYS.IDW_OBJECTIVE_ANALYSIS);
 	useEffect(() => {
 		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
 			return await fetchObjectiveAnalysis(analysisId);

@@ -48,11 +48,11 @@ export enum HELP_KEYS {
 	DQC_MONITOR_RULES = 'monitor rules',
 	DQC_CONSANGUINITY = 'consanguinity',
 	DQC_CATALOG = 'catalog',
-	INDICATOR_BUCKET = 'bucket',
-	INDICATOR_INDICATOR = 'indicator',
-	INDICATOR_INSPECTION = 'inspection',
-	INDICATOR_ACHIEVEMENT = 'achievement',
-	INDICATOR_OBJECTIVE_ANALYSIS = 'objective analysis',
+	IDW_BUCKET = 'bucket',
+	IDW_INDICATOR = 'indicator',
+	IDW_INSPECTION = 'inspection',
+	IDW_ACHIEVEMENT = 'achievement',
+	IDW_OBJECTIVE_ANALYSIS = 'objective analysis',
 	SETTINGS = 'settings'
 }
 

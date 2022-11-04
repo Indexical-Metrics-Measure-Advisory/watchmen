@@ -59,7 +59,7 @@ export const RendererEditor = (props: { column: SubjectDataSetColumn }) => {
 	}, [editorState.constructed]);
 	useEffect(() => {
 		if (!editorState.visible) {
-			setTimeout(() => setEditorState(state => ({...state, constructed: false})), 300);
+			setEditorState(state => ({...state, constructed: false}));
 		}
 	}, [editorState.visible]);
 

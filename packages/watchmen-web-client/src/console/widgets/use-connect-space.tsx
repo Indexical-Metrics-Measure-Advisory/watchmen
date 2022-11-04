@@ -13,7 +13,7 @@ import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import React, {useState} from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import styled from 'styled-components';
 import {useConsoleEventBus} from '../console-event-bus';
 import {ConsoleEventTypes} from '../console-event-bus-types';
@@ -176,13 +176,13 @@ const AvailableSpacesSelector = (props: { spaces: Array<AvailableSpaceInConsole>
 };
 
 export const useConnectSpace = () => {
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire: fireGlobal} = useEventBus();
 	const {fire} = useConsoleEventBus();
 
 	const onSwitchTo = (connectedSpace: ConnectedSpace) => {
 		fire(ConsoleEventTypes.CONNECTED_SPACE_CREATED, connectedSpace);
-		history.push(toConnectedSpace(connectedSpace.connectId));
+		navigate(toConnectedSpace(connectedSpace.connectId));
 	};
 	return () => {
 		fire(ConsoleEventTypes.ASK_AVAILABLE_SPACES, (spaces: Array<AvailableSpaceInConsole>) => {

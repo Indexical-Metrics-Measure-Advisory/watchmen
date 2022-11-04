@@ -1,7 +1,4 @@
-import {
-	Achievement,
-	AchievementIndicator
-} from '@/services/data/tuples/achievement-types';
+import {Achievement, AchievementIndicator} from '@/services/data/tuples/achievement-types';
 import {BucketId} from '@/services/data/tuples/bucket-types';
 import {ComparableTypes} from '@/services/data/tuples/factor-types';
 import {
@@ -12,8 +9,9 @@ import {
 } from '@/services/data/tuples/indicator-criteria-types';
 import {
 	getCriteriaArithmetic,
+	isCriteriaArithmeticVisible,
 	isIndicatorCriteriaOnBucket,
-	isIndicatorCriteriaOnExpression, isCriteriaArithmeticVisible
+	isIndicatorCriteriaOnExpression
 } from '@/services/data/tuples/indicator-criteria-utils';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import {findTopicAndFactor} from '@/services/data/tuples/indicator-utils';

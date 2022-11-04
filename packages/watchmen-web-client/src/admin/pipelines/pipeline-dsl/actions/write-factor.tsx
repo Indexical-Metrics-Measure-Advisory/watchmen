@@ -6,7 +6,14 @@ import {isWriteFactorAction} from '@/services/data/tuples/pipeline-stage-unit-ac
 import {AccumulateMode} from '@/services/data/tuples/pipeline-stage-unit-action/write-topic-actions-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import React from 'react';
-import {AccumulateModeValue, AggregateArithmeticValue, FactorName, PropName, PropValue, TopicName} from '../dsl-widgets';
+import {
+	AccumulateModeValue,
+	AggregateArithmeticValue,
+	FactorName,
+	PropName,
+	PropValue,
+	TopicName
+} from '../dsl-widgets';
 import {JointLine} from '../joint/joint';
 import {ParameterLines} from '../parameter';
 

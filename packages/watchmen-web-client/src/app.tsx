@@ -18,7 +18,7 @@ import QuarterOfYear from 'dayjs/plugin/quarterOfYear';
 import RelativeTime from 'dayjs/plugin/relativeTime';
 import WeekOfYear from 'dayjs/plugin/weekOfYear';
 import React from 'react';
-import {Routes} from './routes';
+import {AppRoutes} from './routes';
 
 // datetime functions
 dayjs.extend(WeekOfYear);
@@ -34,7 +34,7 @@ const app = () => {
 	return <EventBusProvider>
 		<ThemeWrapper/>
 		<Languages/>
-		<Routes/>
+		<AppRoutes/>
 		<Alert/>
 		<NotImplement/>
 		<WaitRemoteData/>

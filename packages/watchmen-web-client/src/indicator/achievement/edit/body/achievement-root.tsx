@@ -50,7 +50,7 @@ export const AchievementRoot = (props: { id: string; achievement: Achievement })
 		return (aAchievement: Achievement) => aAchievement !== achievement;
 	});
 	const forceUpdate = useForceUpdate();
-	const {score: {formatted: score, value: scoreValue } = {}, shouldComputeScore} = useIndicatorValuesAggregator({
+	const {score: {formatted: score, value: scoreValue} = {}, shouldComputeScore} = useIndicatorValuesAggregator({
 		achievement,
 		shouldAvoidIndicatorRemovedAndValuesCalculated: avoidValuesEvent,
 		shouldAvoidFormulaChanged: alwaysAvoidFormulaChanged,

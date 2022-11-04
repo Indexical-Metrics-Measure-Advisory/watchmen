@@ -14,7 +14,7 @@ import {Lang} from '@/widgets/langs';
 import {useThrottler} from '@/widgets/throttler';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useEffect} from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import styled from 'styled-components';
 import {useConnectedSpaceEventBus} from '../../connected-space-event-bus';
 import {ConnectedSpaceEventTypes} from '../../connected-space-event-bus-types';
@@ -61,7 +61,7 @@ const SubjectDelete = (props: { subject: Subject, onRemoved: () => void }) => {
 export const HeaderDeleteSubjectButton = (props: { connectedSpace: ConnectedSpace, subject: Subject }) => {
 	const {connectedSpace, subject} = props;
 
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire: fireGlobal} = useEventBus();
 	const {fire: fireSpace} = useConnectedSpaceEventBus();
 	const {on, off} = useSubjectEventBus();
@@ -98,7 +98,7 @@ export const HeaderDeleteSubjectButton = (props: { connectedSpace: ConnectedSpac
 				}
 				fireSpace(ConnectedSpaceEventTypes.SUBJECT_REMOVED, subject);
 				// back to catalog
-				history.replace(toConnectedSpace(connectedSpace.connectId));
+				navigate(toConnectedSpace(connectedSpace.connectId), {replace: true});
 			});
 	};
 	const onDeleteClicked = () => {

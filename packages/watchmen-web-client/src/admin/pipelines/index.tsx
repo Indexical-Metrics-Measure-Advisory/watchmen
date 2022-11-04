@@ -1,8 +1,9 @@
 import {Router} from '@/routes/types';
+import {asAdminPipelineRoute, asFallbackNavigate} from '@/routes/utils';
 import {FullWidthPage} from '@/widgets/basic/page';
 import {HELP_KEYS, useHelp} from '@/widgets/help';
 import React, {useEffect, useState} from 'react';
-import {Redirect, Route, Switch} from 'react-router-dom';
+import {Routes} from 'react-router-dom';
 import {PipelinesCatalog} from './catalog';
 import {PipelineWorkbench} from './pipeline';
 import {PipelinesEventBusProvider, usePipelinesEventBus} from './pipelines-event-bus';
@@ -12,13 +13,11 @@ import {SettingsHolder} from './settings-loader';
 import {AdminMain} from './widgets';
 
 const PipelinesRouter = () => {
-	return <Switch>
-		<Route path={Router.ADMIN_PIPELINE_CATALOG}><PipelinesCatalog/></Route>
-		<Route path={Router.ADMIN_PIPELINE}><PipelineWorkbench/></Route>
-		<Route path="*">
-			<Redirect to={Router.ADMIN_PIPELINE_CATALOG}/>
-		</Route>
-	</Switch>;
+	return <Routes>
+		{asAdminPipelineRoute(Router.ADMIN_PIPELINE_CATALOG, <PipelinesCatalog/>)}
+		{asAdminPipelineRoute(Router.ADMIN_PIPELINE, <PipelineWorkbench/>)}
+		{asFallbackNavigate(Router.ADMIN_PIPELINE_CATALOG)}
+	</Routes>;
 };
 
 const PipelinesContainerDelegate = () => {

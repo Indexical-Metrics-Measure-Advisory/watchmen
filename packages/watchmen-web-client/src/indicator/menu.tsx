@@ -1,18 +1,15 @@
 import {Router} from '@/routes/types';
-import {findAccount, isAdmin, isSuperAdmin, quit} from '@/services/data/account';
+import {isAdmin, isSuperAdmin} from '@/services/data/account';
 import {
 	ICON_ADMIN,
 	ICON_BUCKETS,
 	ICON_CONSOLE,
-	ICON_DATA_QUALITY,
-	ICON_INDICATOR_INDICATOR,
-	ICON_INDICATOR_OBJECTIVE_ANALYSIS,
+	ICON_DQC,
+	ICON_INDICATOR,
 	ICON_LOGOUT,
+	ICON_OBJECTIVE_ANALYSIS,
 	ICON_SETTINGS,
-	ICON_SWITCH_WORKBENCH,
-	MOCK_ACCOUNT_NAME,
-	SIDE_MENU_MAX_WIDTH,
-	SIDE_MENU_MIN_WIDTH
+	ICON_SWITCH_WORKBENCH
 } from '@/widgets/basic/constants';
 import {SideMenuItem} from '@/widgets/basic/side-menu/side-menu-item';
 import {SideMenuLogo} from '@/widgets/basic/side-menu/side-menu-logo';
@@ -21,12 +18,12 @@ import {SideMenuResizeHandle} from '@/widgets/basic/side-menu/side-menu-resize-h
 import {SideMenuSeparator} from '@/widgets/basic/side-menu/side-menu-separator';
 import {SideMenuSwitchWorkbench} from '@/widgets/basic/side-menu/side-menu-switch-workbench';
 import {SideMenuUser} from '@/widgets/basic/side-menu/side-menu-user';
+import {useSideMenuRoutes} from '@/widgets/basic/side-menu/use-side-menu-routes';
+import {useSideMenuWidth} from '@/widgets/basic/side-menu/use-side-menu-width';
 import {isAdminAvailable, isConsoleAvailable, isDataQualityAvailable} from '@/widgets/common-settings/workbench-utils';
-import {useEventBus} from '@/widgets/events/event-bus';
-import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
-import React, {useEffect, useState} from 'react';
-import {matchPath, useHistory, useLocation} from 'react-router-dom';
+import React from 'react';
+import {matchPath, useLocation} from 'react-router-dom';
 import styled from 'styled-components';
 
 const IndicatorMenuContainer = styled.div.attrs<{ width: number }>(({width}) => {
@@ -70,104 +67,58 @@ const IndicatorMenuContainer = styled.div.attrs<{ width: number }>(({width}) => 
 `;
 
 export const IndicatorMenu = () => {
-	const history = useHistory();
 	const location = useLocation();
-	const {on, off, fire} = useEventBus();
-	const [menuWidth, setMenuWidth] = useState(SIDE_MENU_MIN_WIDTH);
-	useEffect(() => {
-		const onAskMenuWidth = (onWidthGet: (width: number) => void) => {
-			onWidthGet(menuWidth);
-		};
-		on(EventTypes.ASK_SIDE_MENU_WIDTH, onAskMenuWidth);
-		return () => {
-			off(EventTypes.ASK_SIDE_MENU_WIDTH, onAskMenuWidth);
-		};
-	}, [on, off, fire, menuWidth]);
-
-	const onResize = (newWidth: number) => {
-		const width = Math.min(Math.max(newWidth, SIDE_MENU_MIN_WIDTH), SIDE_MENU_MAX_WIDTH);
-		setMenuWidth(width);
-		fire(EventTypes.SIDE_MENU_RESIZED, width);
-	};
-	const onMenuClicked = (path: string) => () => {
-		if (!matchPath(location.pathname, path)) {
-			history.push(path);
-		}
-	};
-	const onLogoutClicked = () => {
-		fire(EventTypes.SHOW_YES_NO_DIALOG,
-			'Bye-bye now?',
-			() => {
-				fire(EventTypes.HIDE_DIALOG);
-				quit();
-				history.push(Router.LOGIN);
-			},
-			() => fire(EventTypes.HIDE_DIALOG));
-	};
-
-	const account = findAccount() || {name: MOCK_ACCOUNT_NAME};
-	const showTooltip = menuWidth / SIDE_MENU_MIN_WIDTH <= 1.5;
+	const {menuWidth, showTooltip, onResize} = useSideMenuWidth();
+	const {account, navigateTo, logout} = useSideMenuRoutes(Lang.CONSOLE.BYE);
 
 	const workbenches = [];
 	if (isConsoleAvailable()) {
-		workbenches.push({
-			label: Lang.CONSOLE.MENU.TO_CONSOLE,
-			icon: ICON_CONSOLE,
-			action: () => onMenuClicked(Router.CONSOLE)()
-		});
+		workbenches.push({label: Lang.CONSOLE.MENU.TO_CONSOLE, icon: ICON_CONSOLE, action: navigateTo(Router.CONSOLE)});
 	}
 	if (isAdminAvailable()) {
-		workbenches.push({
-			label: Lang.CONSOLE.MENU.TO_ADMIN,
-			icon: ICON_ADMIN,
-			action: () => onMenuClicked(Router.ADMIN)()
-		});
+		workbenches.push({label: Lang.CONSOLE.MENU.TO_ADMIN, icon: ICON_ADMIN, action: navigateTo(Router.ADMIN)});
 	}
 	if (isDataQualityAvailable()) {
-		workbenches.push({
-			label: Lang.CONSOLE.MENU.TO_DATA_QUALITY,
-			icon: ICON_DATA_QUALITY,
-			action: () => onMenuClicked(Router.DATA_QUALITY)()
-		});
+		workbenches.push({label: Lang.CONSOLE.MENU.TO_DATA_QUALITY, icon: ICON_DQC, action: navigateTo(Router.DQC)});
 	}
 
 	return <IndicatorMenuContainer width={menuWidth}>
 		<SideMenuLogo title={Lang.INDICATOR.MENU.TITLE}/>
 		<SideMenuItem icon={ICON_BUCKETS} label={Lang.INDICATOR.MENU.BUCKETS}
 		              showTooltip={showTooltip}
-		              active={!!matchPath(location.pathname, Router.INDICATOR_BUCKETS)}
-		              onClick={onMenuClicked(Router.INDICATOR_BUCKETS)}
+		              active={!!matchPath({path: Router.IDW_BUCKETS}, location.pathname)}
+		              onClick={navigateTo(Router.IDW_BUCKETS)}
 		              visible={isAdmin() && !isSuperAdmin()}/>
-		<SideMenuItem icon={ICON_INDICATOR_INDICATOR} label={Lang.INDICATOR.MENU.INDICATORS}
+		<SideMenuItem icon={ICON_INDICATOR} label={Lang.INDICATOR.MENU.INDICATORS}
 		              showTooltip={showTooltip}
-		              active={!!matchPath(location.pathname, Router.INDICATOR_INDICATORS)}
-		              onClick={onMenuClicked(Router.INDICATOR_INDICATORS)}
+		              active={!!matchPath({path: Router.IDW_INDICATOR_ALL}, location.pathname)}
+		              onClick={navigateTo(Router.IDW_INDICATOR)}
 		              visible={isAdmin() && !isSuperAdmin()}/>
-		{/*<SideMenuItem icon={ICON_INDICATOR_INSPECTION} label={Lang.INDICATOR.MENU.INSPECTIONS}*/}
+		{/*<SideMenuItem icon={ICON_INSPECTION} label={Lang.INDICATOR.MENU.INSPECTIONS}*/}
 		{/*              showTooltip={showTooltip}*/}
-		{/*              active={!!matchPath(location.pathname, Router.INDICATOR_INSPECTION)}*/}
-		{/*              onClick={onMenuClicked(Router.INDICATOR_INSPECTION)}*/}
+		{/*              active={!!matchPath({path: Router.IDW_INSPECTION}, location.pathname)}*/}
+		{/*              onClick={navigateTo(Router.IDW_INSPECTION)}*/}
 		{/*              visible={isAdmin() && !isSuperAdmin()}/>*/}
-		{/*<SideMenuItem icon={ICON_INDICATOR_ACHIEVEMENT} label={Lang.INDICATOR.MENU.ACHIEVEMENTS}*/}
+		{/*<SideMenuItem icon={ICON_ACHIEVEMENT} label={Lang.INDICATOR.MENU.ACHIEVEMENTS}*/}
 		{/*              showTooltip={showTooltip}*/}
-		{/*              active={!!matchPath(location.pathname, Router.INDICATOR_ACHIEVEMENT)}*/}
-		{/*              onClick={onMenuClicked(Router.INDICATOR_ACHIEVEMENT)}*/}
+		{/*              active={!!matchPath({path: Router.IDW_ACHIEVEMENT_ALL}, location.pathname)}*/}
+		{/*              onClick={navigateTo(Router.IDW_ACHIEVEMENT)}*/}
 		{/*              visible={isAdmin() && !isSuperAdmin()}/>*/}
-		<SideMenuItem icon={ICON_INDICATOR_OBJECTIVE_ANALYSIS} label={Lang.INDICATOR.MENU.OBJECTIVE_ANALYSIS}
+		<SideMenuItem icon={ICON_OBJECTIVE_ANALYSIS} label={Lang.INDICATOR.MENU.OBJECTIVE_ANALYSIS}
 		              showTooltip={showTooltip}
-		              active={!!matchPath(location.pathname, Router.INDICATOR_OBJECTIVE_ANALYSIS)}
-		              onClick={onMenuClicked(Router.INDICATOR_OBJECTIVE_ANALYSIS)}
+		              active={!!matchPath({path: Router.IDW_OBJECTIVE_ANALYSIS_ALL}, location.pathname)}
+		              onClick={navigateTo(Router.IDW_OBJECTIVE_ANALYSIS)}
 		              visible={isAdmin() && !isSuperAdmin()}/>
 		<SideMenuPlaceholder/>
 		<SideMenuSeparator width={menuWidth}/>
 		<SideMenuItem icon={ICON_SETTINGS} label={Lang.INDICATOR.MENU.SETTINGS} showTooltip={showTooltip}
-		              active={!!matchPath(location.pathname, Router.INDICATOR_SETTINGS)}
-		              onClick={onMenuClicked(Router.INDICATOR_SETTINGS)}/>
+		              active={!!matchPath({path: Router.IDW_SETTINGS}, location.pathname)}
+		              onClick={navigateTo(Router.IDW_SETTINGS)}/>
 		<SideMenuSwitchWorkbench icon={ICON_SWITCH_WORKBENCH}
 		                         workbenches={workbenches}/>
 		<SideMenuSeparator width={menuWidth}/>
 		<SideMenuItem icon={ICON_LOGOUT} label={Lang.INDICATOR.MENU.LOGOUT} showTooltip={showTooltip}
-		              onClick={onLogoutClicked}/>
+		              onClick={logout}/>
 		<SideMenuUser name={account.name}/>
 		<SideMenuResizeHandle width={menuWidth} onResize={onResize}/>
 	</IndicatorMenuContainer>;

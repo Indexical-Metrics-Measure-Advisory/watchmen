@@ -12,7 +12,7 @@ import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import {useConsoleEventBus} from '../../../console-event-bus';
 import {ConsoleEventTypes} from '../../../console-event-bus-types';
 import {isDefValid} from '../data-validator';
@@ -21,7 +21,7 @@ import {isSubjectDataNow} from './utils';
 export const HeaderSubjectDataButton = (props: { connectedSpace: ConnectedSpace, subject: Subject }) => {
 	const {connectedSpace, subject} = props;
 
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire: fireGlobal} = useEventBus();
 	const {fire: fireConsole} = useConsoleEventBus();
 
@@ -43,7 +43,7 @@ export const HeaderSubjectDataButton = (props: { connectedSpace: ConnectedSpace,
 						}
 					</>);
 			} else {
-				history.push(toSubjectData(connectedSpace.connectId, subject.subjectId));
+				navigate(toSubjectData(connectedSpace.connectId, subject.subjectId));
 			}
 		};
 

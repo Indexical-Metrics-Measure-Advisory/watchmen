@@ -6,7 +6,7 @@ import {AlertLabel} from '@/widgets/alert/widgets';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import React, {useEffect, useState} from 'react';
-import {useHistory, useParams} from 'react-router-dom';
+import {useNavigate, useParams} from 'react-router-dom';
 import {useAdminCacheEventBus} from '../../cache/cache-event-bus';
 import {AdminCacheEventTypes} from '../../cache/cache-event-bus-types';
 import {usePipelinesEventBus} from '../pipelines-event-bus';
@@ -23,9 +23,9 @@ interface WorkbenchData {
 }
 
 export const PipelineWorkbench = () => {
-	const {pipelineId} = useParams<{ pipelineId: PipelineId }>();
+	const pipelineId = useParams<{ pipelineId: PipelineId }>().pipelineId!;
 
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire: fireGlobal} = useEventBus();
 	const {fire: fireCache} = useAdminCacheEventBus();
 	const {fire: firePipelines} = usePipelinesEventBus();
@@ -57,13 +57,13 @@ export const PipelineWorkbench = () => {
 			})();
 			if (!pipeline) {
 				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>Given pipeline not found.</AlertLabel>, () => {
-					history.replace(Router.ADMIN);
+					navigate(Router.ADMIN, {replace: true});
 				});
 			} else {
 				setData({topics, pipeline});
 			}
 		});
-	}, [fireGlobal, fireCache, firePipelines, pipelineId, history]);
+	}, [fireGlobal, fireCache, firePipelines, pipelineId, navigate]);
 
 	// eslint-disable-next-line
 	if (!data.pipeline || data.pipeline.pipelineId != pipelineId) {

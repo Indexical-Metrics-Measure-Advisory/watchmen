@@ -5,7 +5,7 @@ import {Achievement} from '@/services/data/tuples/achievement-types';
 import {QueryAchievement} from '@/services/data/tuples/query-achievement-types';
 import {QueryTuple} from '@/services/data/tuples/tuple-types';
 import {Fragment, useEffect, useState} from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import {useAchievementEventBus} from '../achievement-event-bus';
 import {AchievementEventTypes} from '../achievement-event-bus-types';
 
@@ -16,7 +16,7 @@ interface PageData {
 }
 
 export const AchievementState = () => {
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {on, off, fire} = useAchievementEventBus();
 	const [page, setPage] = useState<PageData>({loaded: false});
 	const [achievement, setAchievement] = useState<Achievement | null>(null);
@@ -42,13 +42,13 @@ export const AchievementState = () => {
 	useEffect(() => {
 		const onToEditAchievement = (achievement: Achievement) => {
 			setAchievement(achievement);
-			history.push(toAchievementEdit(achievement.achievementId));
+			navigate(toAchievementEdit(achievement.achievementId));
 		};
 		on(AchievementEventTypes.TO_EDIT_ACHIEVEMENT, onToEditAchievement);
 		return () => {
 			off(AchievementEventTypes.TO_EDIT_ACHIEVEMENT, onToEditAchievement);
 		};
-	}, [on, off, fire, history]);
+	}, [on, off, fire, navigate]);
 	useEffect(() => {
 		const onAskAchievement = (onData: (achievement?: Achievement) => void) => {
 			onData(achievement == null ? (void 0) : achievement);
@@ -74,13 +74,13 @@ export const AchievementState = () => {
 	useEffect(() => {
 		const onBackToQuery = () => {
 			setAchievement(null);
-			history.push(Router.INDICATOR_ACHIEVEMENT_QUERY);
+			navigate(Router.IDW_ACHIEVEMENT);
 		};
 		on(AchievementEventTypes.BACK_TO_QUERY, onBackToQuery);
 		return () => {
 			off(AchievementEventTypes.BACK_TO_QUERY, onBackToQuery);
 		};
-	}, [on, off, history]);
+	}, [on, off, navigate]);
 	useEffect(() => {
 		const onAchievementSaved = (achievement: Achievement) => {
 			if (!page.loaded || page.data == null) {

@@ -7,7 +7,7 @@ import {TooltipAlignment} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import {
 	ReportCard,
 	ReportCardDescription,
@@ -21,9 +21,9 @@ import {
 export const ReportList = (props: { connectedSpace: ConnectedSpace, subject: Subject }) => {
 	const {connectedSpace, subject} = props;
 
-	const history = useHistory();
+	const navigate = useNavigate();
 	const onEditClicked = (report: Report) => () => {
-		history.push(toSubjectReport(connectedSpace.connectId, subject.subjectId, report.reportId));
+		navigate(toSubjectReport(connectedSpace.connectId, subject.subjectId, report.reportId));
 	};
 
 	const reports = subject.reports || [];

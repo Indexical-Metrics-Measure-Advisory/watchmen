@@ -7,7 +7,7 @@ import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import React, {useEffect, useState} from 'react';
-import {useHistory, useParams} from 'react-router-dom';
+import {useNavigate, useParams} from 'react-router-dom';
 import {useConsoleEventBus} from '../console-event-bus';
 import {ConsoleEventTypes} from '../console-event-bus-types';
 import {ConnectedSpaceEventBusProvider} from './connected-space-event-bus';
@@ -16,7 +16,7 @@ import {PageRouter} from './page-router';
 const ConsoleConnectedSpaceIndex = () => {
 	const {connectId: connectedSpaceId} = useParams<{ connectId: ConnectedSpaceId }>();
 
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire: fireGlobal} = useEventBus();
 	const {fire, on, off} = useConsoleEventBus();
 	const [connectedSpace, setConnectedSpace] = useState<ConnectedSpace | null>(null);
@@ -30,11 +30,11 @@ const ConsoleConnectedSpaceIndex = () => {
 				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
 					{Lang.CONSOLE.ERROR.CONNECTED_SPACE_NOT_FOUND}
 				</AlertLabel>, () => {
-					history.replace(Router.CONSOLE);
+					navigate(Router.CONSOLE, {replace: true});
 				});
 			}
 		});
-	}, [fire, fireGlobal, history, connectedSpaceId]);
+	}, [fire, fireGlobal, navigate, connectedSpaceId]);
 	useEffect(() => {
 		const onConnectedSpaceRemoved = (connectedSpace: ConnectedSpace) => {
 			// eslint-disable-next-line
@@ -50,10 +50,10 @@ const ConsoleConnectedSpaceIndex = () => {
 				}).find(connectedSpace => connectedSpace.connectId != connectedSpaceId);
 				if (connectedSpace) {
 					// switch to another one
-					history.replace(toConnectedSpace(connectedSpace.connectId));
+					navigate(toConnectedSpace(connectedSpace.connectId), {replace: true});
 				} else {
 					// no connected space, to home
-					history.replace(Router.CONSOLE_HOME);
+					navigate(Router.CONSOLE_HOME, {replace: true});
 				}
 			});
 		};
@@ -61,7 +61,7 @@ const ConsoleConnectedSpaceIndex = () => {
 		return () => {
 			off(ConsoleEventTypes.CONNECTED_SPACE_REMOVED, onConnectedSpaceRemoved);
 		};
-	}, [fire, on, off, history, connectedSpaceId]);
+	}, [fire, on, off, navigate, connectedSpaceId]);
 
 	// eslint-disable-next-line
 	if (!connectedSpace || connectedSpace.connectId != connectedSpaceId) {

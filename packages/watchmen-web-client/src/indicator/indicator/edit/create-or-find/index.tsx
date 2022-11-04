@@ -9,7 +9,7 @@ import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {useEffect} from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import {SearchItem, SearchText} from '../../../search-text';
 import {SearchTextEventBusProvider, useSearchTextEventBus} from '../../../search-text/search-text-event-bus';
 import {SearchTextEventTypes} from '../../../search-text/search-text-event-bus-types';
@@ -25,7 +25,7 @@ interface IndicatorCandidate extends SearchItem {
 }
 
 const ActivePart = () => {
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire: fireGlobal} = useEventBus();
 	const {fire} = useIndicatorsEventBus();
 	const {fire: fireSearch} = useSearchTextEventBus();
@@ -63,7 +63,7 @@ const ActivePart = () => {
 			Lang.INDICATOR.ON_EDIT,
 			() => {
 				fireGlobal(EventTypes.HIDE_DIALOG);
-				history.push(Router.INDICATOR_INDICATORS);
+				navigate(Router.IDW_INDICATOR);
 			}, () => fireGlobal(EventTypes.HIDE_DIALOG));
 	};
 
@@ -85,7 +85,7 @@ const ActivePart = () => {
 };
 
 const DonePart = () => {
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire: fireGlobal} = useEventBus();
 	const {on, off, fire} = useIndicatorsEventBus();
 	const {data, done, activeStep} = useStep({step: IndicatorDeclarationStep.CREATE_OR_FIND});
@@ -111,7 +111,7 @@ const DonePart = () => {
 			Lang.INDICATOR.ON_EDIT,
 			() => {
 				fireGlobal(EventTypes.HIDE_DIALOG);
-				history.push(Router.INDICATOR_INDICATORS);
+				navigate(Router.IDW_INDICATOR);
 			}, () => fireGlobal(EventTypes.HIDE_DIALOG));
 	};
 

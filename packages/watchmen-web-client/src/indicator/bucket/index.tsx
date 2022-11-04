@@ -180,7 +180,7 @@ const IndicatorBuckets = () => {
 			off(TupleEventTypes.SAVE_TUPLE, onSaveBucket);
 		};
 	}, [on, off, fire, fireGlobal]);
-	useHelp(HELP_KEYS.INDICATOR_BUCKET);
+	useHelp(HELP_KEYS.IDW_BUCKET);
 
 	return <TupleWorkbench title={Lang.INDICATOR.BUCKET.TITLE}
 	                       createButtonLabel={Lang.INDICATOR.BUCKET.CREATE_BUCKET} canCreate={true}

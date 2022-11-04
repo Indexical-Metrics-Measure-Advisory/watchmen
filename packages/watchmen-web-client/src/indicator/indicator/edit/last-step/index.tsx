@@ -4,7 +4,7 @@ import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {useRef} from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import {
 	EmphaticSinkingLabel,
 	Step,
@@ -21,7 +21,7 @@ import {Construct, useConstructed} from '../use-constructed';
 import {useStep} from '../use-step';
 
 export const LastStep = () => {
-	const history = useHistory();
+	const navigate = useNavigate();
 	const ref = useRef<HTMLDivElement>(null);
 	const {fire: fireGlobal} = useEventBus();
 	const {fire} = useIndicatorsEventBus();
@@ -45,7 +45,7 @@ export const LastStep = () => {
 			Lang.INDICATOR.ON_EDIT,
 			() => {
 				fireGlobal(EventTypes.HIDE_DIALOG);
-				history.push(Router.INDICATOR_INDICATORS);
+				navigate(Router.IDW_INDICATOR);
 			}, () => fireGlobal(EventTypes.HIDE_DIALOG));
 	};
 

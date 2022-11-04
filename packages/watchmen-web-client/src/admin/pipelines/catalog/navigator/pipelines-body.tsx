@@ -7,7 +7,7 @@ import {ICON_PIPELINE} from '@/widgets/basic/constants';
 import {TooltipAlignment} from '@/widgets/basic/types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import {
 	NoPipelines,
 	PipelineButton,
@@ -54,7 +54,7 @@ export const PipelinesBody = (props: {
 }) => {
 	const {pipelines: allPipelines, topics, topic, incoming, visible} = props;
 
-	const history = useHistory();
+	const navigate = useNavigate();
 
 	const topicsMap: Map<string, Topic> = topics.reduce((map, topic) => {
 		map.set(topic.topicId, topic);
@@ -70,7 +70,7 @@ export const PipelinesBody = (props: {
 	}
 
 	const onPipelineClicked = (pipeline: Pipeline) => () => {
-		history.push(toPipeline(pipeline.pipelineId));
+		navigate(toPipeline(pipeline.pipelineId));
 	};
 
 	return <PipelinesBodyContainer visible={visible}>

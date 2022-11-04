@@ -2,14 +2,14 @@ import {Router} from '@/routes/types';
 import {VerticalMarginOneUnit} from '@/widgets/basic/margin';
 import {PageHeader} from '@/widgets/basic/page-header';
 import React from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import {ToolboxCard, ToolboxCardDescription, ToolboxCards, ToolboxCardTitle, ToolboxPage} from './widgets';
 
 export const ToolboxList = () => {
-	const history = useHistory();
+	const navigate = useNavigate();
 
 	const onClick = (path: string) => () => {
-		history.push(path);
+		navigate(path);
 	};
 
 	return <ToolboxPage>

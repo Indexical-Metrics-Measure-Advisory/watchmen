@@ -3,7 +3,7 @@ import {ConnectedSpace} from '@/services/data/tuples/connected-space-types';
 import {ICON_CONNECTED_SPACE} from '@/widgets/basic/constants';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import {ConnectedSpaceCardContainer, ConnectedSpaceLastVisit, ConnectedSpaceName} from './widgets';
 
 export const ConnectedSpaceCard = (props: {
@@ -11,10 +11,10 @@ export const ConnectedSpaceCard = (props: {
 }) => {
 	const {connectedSpace} = props;
 
-	const history = useHistory();
+	const navigate = useNavigate();
 
 	const onConnectedSpaceClicked = () => {
-		history.push(toConnectedSpace(connectedSpace.connectId));
+		navigate(toConnectedSpace(connectedSpace.connectId));
 	};
 
 	return <ConnectedSpaceCardContainer onClick={onConnectedSpaceClicked}>

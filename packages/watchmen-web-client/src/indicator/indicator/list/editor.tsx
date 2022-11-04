@@ -1,11 +1,11 @@
 import {Router} from '@/routes/types';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import React from 'react';
-import {Redirect} from 'react-router-dom';
+import {Navigate} from 'react-router-dom';
 
 // noinspection JSUnusedLocalSymbols
 const IndicatorEditor = (props: { indicator: Indicator }) => {
-	return <Redirect to={Router.INDICATOR_INDICATOR_EDIT}/>;
+	return <Navigate to={Router.IDW_INDICATOR_EDIT}/>;
 };
 
 export const renderEditor = (indicator: Indicator) => {

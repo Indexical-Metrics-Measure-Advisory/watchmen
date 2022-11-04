@@ -128,7 +128,7 @@ export const IndicatorCriteriaValueTooltip = styled.ul`
 	> li:first-child {
 		list-style: none;
 	}
-`
+`;
 export const IndicatorCriteriaButtons = styled.div.attrs({'data-widget': 'indicator-criteria-buttons'})`
 	display  : flex;
 	position : relative;

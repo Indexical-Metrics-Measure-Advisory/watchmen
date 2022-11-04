@@ -8,7 +8,7 @@ import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useEffect, useRef, useState} from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import {useConsoleEventBus} from '../console-event-bus';
 import {ConsoleEventTypes} from '../console-event-bus-types';
 import {createDashboard} from '../utils/tuples';
@@ -25,7 +25,7 @@ import {
 } from './widgets';
 
 export const DashboardsSection = () => {
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire: fireGlobal} = useEventBus();
 	const {fire} = useConsoleEventBus();
 	const bodyRef = useRef<HTMLDivElement>(null);
@@ -47,7 +47,7 @@ export const DashboardsSection = () => {
 			async () => await saveDashboard(dashboard),
 			() => {
 				fire(ConsoleEventTypes.DASHBOARD_CREATED, dashboard);
-				history.push(toDashboard(dashboard.dashboardId));
+				navigate(toDashboard(dashboard.dashboardId));
 			});
 	};
 	const onSortClicked = () => {
