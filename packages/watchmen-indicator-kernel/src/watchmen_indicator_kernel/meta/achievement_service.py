@@ -46,6 +46,9 @@ ACHIEVEMENT_ENTITY_SHAPER = AchievementShaper()
 
 
 class AchievementService(TupleService):
+	def should_record_operation(self) -> bool:
+		return False
+
 	def get_entity_name(self) -> str:
 		return ACHIEVEMENT_ENTITY_NAME
 

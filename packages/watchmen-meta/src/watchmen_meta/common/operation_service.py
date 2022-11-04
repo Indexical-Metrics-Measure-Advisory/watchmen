@@ -1,7 +1,9 @@
-from typing import TypeVar, Dict, Any, Optional
+from typing import TypeVar, Optional
+
+from watchmen_auth import PrincipalService
 
 from watchmen_meta.common.storage_service import StorableId
-from watchmen_meta.common import EntityService, TupleShaper, TupleService
+from watchmen_meta.common import EntityService
 
 from watchmen_model.common import Storable
 from watchmen_model.system import Operation
@@ -9,7 +11,8 @@ from watchmen_model.system import Operation
 from watchmen_storage import EntityName, EntityShaper, EntityRow, \
 	EntityCriteriaExpression, ColumnNameLiteral, \
 	EntityCriteriaOperator, EntityStraightValuesFinder, \
-	EntityStraightColumn, EntityStraightAggregateColumn, EntityColumnAggregateArithmetic, EntityDeleter
+	EntityStraightColumn, EntityStraightAggregateColumn, EntityColumnAggregateArithmetic, EntityDeleter, \
+	SnowflakeGenerator, TransactionalStorageSPI
 
 RecordId = TypeVar('RecordId', bound=str)
 
@@ -17,66 +20,77 @@ RecordId = TypeVar('RecordId', bound=str)
 class OperationShaper(EntityShaper):
 	
 	def serialize(self, operation: Operation) -> EntityRow:
-		return TupleShaper.serialize_tenant_based(operation, {
+		return {
 			'record_id': operation.recordId,
+			'operation_type': operation.operationType,
 			'tuple_type': operation.tupleType,
+			'tuple_key': operation.tupleKey,
 			'tuple_id': operation.tupleId,
 			'content': operation.content,
-			'version_num': operation.versionNum
-		})
+			'version_num': operation.versionNum,
+			'tenant_id': operation.tenantId,
+			'created_at': operation.createdAt,
+			'created_by': operation.createdBy,
+			'last_modified_at': operation.lastModifiedAt,
+			'last_modified_by': operation.lastModifiedBy
+		}
 	
 	def deserialize(self, row: EntityRow) -> Operation:
 		# noinspection PyTypeChecker
-		return TupleShaper.deserialize_tenant_based(row, Operation(
+		return Operation(
 			recordId=row.get('record_id'),
+			operationType=row.get('operation_type'),
 			tupleType=row.get('tuple_type'),
+			tupleKey=row.get('tuple_key'),
 			tupleId=row.get('tuple_id'),
 			content=row.get('content'),
-			versionNum=row.get('version_num')
-		))
+			versionNum=row.get('version_num'),
+			tenantId=row.get('tenant_id'),
+			createdAt=row.get('created_at'),
+			createdBy=row.get('created_by'),
+			lastModifiedAt=row.get('last_modified_at'),
+			lastModifiedBy=row.get('last_modified_by')
+		)
 
 
 OPERATIONS_TABLE = 'operations'
 OPERATIONS_ENTITY_SHAPER = OperationShaper()
 
 
-class RecordOperationService(TupleService):
-	
+class RecordOperationService(EntityService):
+
+	def __init__(
+			self,
+			storage: TransactionalStorageSPI,
+			snowflake_generator: SnowflakeGenerator,
+			principal_service: PrincipalService
+	):
+		super().__init__(storage)
+		self.with_snowflake_generator(snowflake_generator)
+		self.with_principal_service(principal_service)
+
 	def get_entity_name(self) -> EntityName:
 		return OPERATIONS_TABLE
 	
 	def get_entity_shaper(self) -> EntityShaper:
 		return OPERATIONS_ENTITY_SHAPER
-	
+
+	# noinspection SpellCheckingInspection
 	def get_storable_id_column_name(self) -> EntityName:
 		return 'record_id'
-	
+
+	# noinspection SpellCheckingInspection
 	def get_storable_id(self, storable: Operation) -> StorableId:
 		return storable.recordId
-	
+
+	# noinspection SpellCheckingInspection
 	def set_storable_id(self, storable: Operation, storable_id: RecordId) -> Storable:
 		storable.recordId = storable_id
 		return storable
-	
-	def record_one(self, operation: Operation):
-		self.create(operation)
-	
-	def build_operation(self, type_: str, id_: str, content: Dict, version) -> Operation:
-		return Operation(
-			**{"recordId": str(self.snowflakeGenerator.next_id()),
-			   "tupleType": type_,
-			   "tupleId": id_,
-			   "content": content,
-			   "versionNum": version,
-			   "tenantId": self.principalService.tenantId}
-		)
 
-	def record_operation(self, entity_type: str, entity_id: str, entity: Any, service: EntityService, version: str):
-		operation = self.build_operation(entity_type,
-		                                 entity_id,
-		                                 service.get_entity_shaper().serialize(entity),
-		                                 version)
-		self.record_one(operation)
+	def record_operation(self, operation: Operation) -> None:
+		self.try_to_prepare_auditable_on_create(operation)
+		self.storage.insert_one(operation, self.get_entity_helper())
 
 	def get_record_ids(self, version_num: str, tuple_type: str):
 		return self.storage.find_straight_values(EntityStraightValuesFinder(
@@ -92,9 +106,8 @@ class RecordOperationService(TupleService):
 			                 EntityStraightColumn(columnName="tuple_id")]
 		))
 
-	def get_operation_by_id(self, id_: str) -> Operation:
-		operation = self.storage.find_by_id(id_, self.get_entity_id_helper())
-		return operation
+	def get_operation_by_id(self, id_: str) -> Optional[Operation]:
+		return self.storage.find_by_id(id_, self.get_entity_id_helper())
 
 	def get_previous_record_id(self, tuple_id: str, version: str) -> Optional[str]:
 		rows = self.storage.find_straight_values(EntityStraightValuesFinder(

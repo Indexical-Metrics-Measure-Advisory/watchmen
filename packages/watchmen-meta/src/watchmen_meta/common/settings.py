@@ -40,7 +40,6 @@ class MetaSettings(BaseSettings):
 	DATASOURCE_AES_IV: str = 'J@NcRfUjXn2r5u8x'  # AES iv of data source pwd encryption
 
 	ENGINE_INDEX: bool = True
-	VERSION_DEFAULT_VALUE = '50.0.0'
 
 	class Config:
 		# secrets_dir = '/var/run'
@@ -208,7 +207,3 @@ def ask_datasource_aes_params() -> Tuple[str, str]:
 
 def ask_engine_index_enabled() -> bool:
 	return settings.ENGINE_INDEX
-
-
-def ask_default_version() -> str:
-	return settings.VERSION_DEFAULT_VALUE

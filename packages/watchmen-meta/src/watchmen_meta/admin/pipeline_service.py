@@ -62,19 +62,25 @@ PIPELINE_ENTITY_SHAPER = PipelineShaper()
 
 
 class PipelineService(TupleService):
+	def should_record_operation(self) -> bool:
+		return True
+
 	def get_entity_name(self) -> str:
 		return PIPELINE_ENTITY_NAME
 
 	def get_entity_shaper(self) -> EntityShaper:
 		return PIPELINE_ENTITY_SHAPER
 
+	# noinspection SpellCheckingInspection
 	def get_storable_id(self, storable: Pipeline) -> PipelineId:
 		return storable.pipelineId
 
+	# noinspection SpellCheckingInspection
 	def set_storable_id(self, storable: Pipeline, storable_id: PipelineId) -> Pipeline:
 		storable.pipelineId = storable_id
 		return storable
 
+	# noinspection SpellCheckingInspection
 	def get_storable_id_column_name(self) -> str:
 		return 'pipeline_id'
 

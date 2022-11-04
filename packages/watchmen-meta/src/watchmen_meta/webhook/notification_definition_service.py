@@ -49,6 +49,9 @@ NOTIFICATION_DEFINITION_ENTITY_SHAPER = NotificationDefinitionShaper()
 
 class NotificationDefinitionService(TupleService):
 
+	def should_record_operation(self) -> bool:
+		return False
+
 	def get_storable_id_column_name(self) -> EntityName:
 		return "notification_id"
 

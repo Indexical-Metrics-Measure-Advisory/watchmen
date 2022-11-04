@@ -13,7 +13,7 @@ from watchmen_utilities import ArrayHelper
 
 class ScriptBuilderMSSQL(ScriptBuilder):
 	
-	def generate_insert_into_statement(self, table_name: str, data: dict) -> str:
+	def sql_insert(self, table_name: str, data: dict) -> str:
 		columns, values = data.keys(), data.values()
 		script = f'''
 INSERT INTO {table_name} ({", ".join(columns)})
@@ -21,7 +21,7 @@ VALUES ({insert_into_statement_build_values(values)});\n
 '''
 		return script
 	
-	def generate_update_statement(self, table_name: str, primary_key: str, data: dict) -> str:
+	def sql_update(self, table_name: str, primary_key: str, data: dict) -> str:
 		sets = []
 		for key, value in data.items():
 			if key == primary_key:
@@ -33,16 +33,16 @@ UPDATE {table_name} SET {", ".join(sets)} WHERE {primary_key} = {id_};\n
 '''
 		return script
 	
-	def generate_create_table_statement(self, topic: Topic) -> str:
+	def sql_create_table(self, topic: Topic) -> str:
 		return f'{build_table_script(topic)}\n{create_index_for_table(as_table_name(topic))}'
 		
-	def generate_alert_table_statement(self, topic: Topic, origin_topic: Topic) -> List[str]:
+	def sql_alert_table(self, topic: Topic, origin_topic: Topic) -> List[str]:
 		return build_columns_script(topic, origin_topic)
 	
-	def generate_unique_indexes_statement(self, topic: Topic) -> List[str]:
+	def sql_unique_indexes(self, topic: Topic) -> List[str]:
 		return build_unique_indexes_script(topic)
 	
-	def generate_index_statement(self, topic: Topic) -> List[str]:
+	def sql_index(self, topic: Topic) -> List[str]:
 		return build_indexes_script(topic)
 
 

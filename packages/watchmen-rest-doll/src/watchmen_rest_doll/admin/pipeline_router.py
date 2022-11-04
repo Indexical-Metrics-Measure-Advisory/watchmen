@@ -8,11 +8,9 @@ from starlette.responses import Response
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
 from watchmen_data_kernel.common import ask_all_date_formats
-from watchmen_data_kernel.system import get_current_version
 from watchmen_meta.admin import PipelineService
 from watchmen_meta.analysis import PipelineIndexService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, TupleService
-from watchmen_meta.system import RecordOperationService
 from watchmen_model.admin import Pipeline, PipelineAction, PipelineStage, PipelineUnit, UserRole
 from watchmen_model.common import PipelineId, TenantId
 from watchmen_rest import get_admin_principal, get_super_admin_principal
@@ -30,17 +28,6 @@ def get_pipeline_service(principal_service: PrincipalService) -> PipelineService
 
 def get_pipeline_index_service(pipeline_service: PipelineService) -> PipelineIndexService:
 	return PipelineIndexService(pipeline_service.storage, pipeline_service.snowflakeGenerator)
-
-
-def get_operation_service(pipeline_service: PipelineService) -> RecordOperationService:
-	return RecordOperationService(pipeline_service.storage, pipeline_service.snowflakeGenerator,
-	                              pipeline_service.principalService)
-
-
-def record_operation(pipeline: Pipeline, pipeline_service: PipelineService) -> None:
-	get_operation_service(pipeline_service).record_operation("pipelines", pipeline.pipelineId, pipeline,
-	                                                         pipeline_service,
-	                                                         get_current_version(pipeline_service.principalService))
 
 
 @router.get('/pipeline', tags=[UserRole.ADMIN], response_model=Pipeline)
@@ -96,7 +83,6 @@ def build_pipeline_cache(pipeline: Pipeline) -> None:
 
 
 def post_save_pipeline(pipeline: Pipeline, pipeline_service: PipelineService) -> None:
-	record_operation(pipeline, pipeline_service)
 	build_pipeline_index(pipeline, pipeline_service)
 	build_pipeline_cache(pipeline)
 
@@ -139,7 +125,6 @@ async def save_pipeline(
 
 
 def post_update_pipeline_name(pipeline: Pipeline, pipeline_service: PipelineService) -> None:
-	record_operation(pipeline, pipeline_service)
 	get_pipeline_index_service(pipeline_service).update_index_on_name_changed(pipeline)
 	CacheService.pipeline().put(pipeline)
 
@@ -171,7 +156,6 @@ async def update_pipeline_name_by_id(
 
 
 def post_update_pipeline_enablement(pipeline: Pipeline, pipeline_service: PipelineService) -> None:
-	record_operation(pipeline, pipeline_service)
 	get_pipeline_index_service(pipeline_service).update_index_on_enablement_changed(pipeline)
 	CacheService.pipeline().put(pipeline)
 

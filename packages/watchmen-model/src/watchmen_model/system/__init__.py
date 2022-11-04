@@ -4,5 +4,5 @@ from .key_store import KeyStore
 from .plugin import Plugin, PluginApplyTo, PluginType
 from .tenant import Tenant
 from .token import PersonalAccessToken, Token
-from .operation import Operation
-from .version import Version
+from .operation import Operation, OperationType
+from .PackageVersion import PackageVersion

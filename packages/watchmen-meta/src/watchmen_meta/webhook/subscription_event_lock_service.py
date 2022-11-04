@@ -36,6 +36,9 @@ SUBSCRIPTION_EVENT_LOCK_ENTITY_SHAPER = SubscriptionEventLockShaper()
 
 class SubscriptionEventLockService(TupleService):
 
+	def should_record_operation(self) -> bool:
+		return False
+
 	def get_storable_id_column_name(self) -> EntityName:
 		return "subscription_event_lock_id"
 

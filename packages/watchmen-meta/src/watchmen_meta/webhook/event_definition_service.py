@@ -38,6 +38,9 @@ EVENT_DEFINITION_ENTITY_SHAPER = EventDefinitionShaper()
 
 class EventDefinitionService(TupleService):
 
+	def should_record_operation(self) -> bool:
+		return False
+
 	def get_storable_id_column_name(self) -> EntityName:
 		return "event_definition_id"
 

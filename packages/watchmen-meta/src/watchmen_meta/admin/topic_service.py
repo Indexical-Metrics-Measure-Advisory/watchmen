@@ -57,6 +57,9 @@ class FactorService:
 
 
 class TopicService(TupleService):
+	def should_record_operation(self) -> bool:
+		return True
+
 	def get_entity_name(self) -> str:
 		return TOPIC_ENTITY_NAME
 
