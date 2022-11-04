@@ -1,5 +1,5 @@
 import {FactorEncryptMethod, FactorType} from '@/services/data/tuples/factor-types';
-import {stringify} from 'csv-stringify/dist/esm/sync';
+import {stringify} from 'csv-stringify/sync';
 import {FactorPrecisions} from '../constants';
 
 export const SAMPLE_FACTORS_JSON = [

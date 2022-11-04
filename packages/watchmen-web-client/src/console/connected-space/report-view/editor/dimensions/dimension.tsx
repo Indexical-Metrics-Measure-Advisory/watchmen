@@ -10,7 +10,7 @@ import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {ChartHelper} from '@/widgets/report/chart-utils';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import React from 'react';
+import React, {ReactNode} from 'react';
 import {useReportEditEventBus} from '../report-edit-event-bus';
 import {ReportEditEventTypes} from '../report-edit-event-bus-types';
 import {PropValue, PropValueDropdown} from '../settings-widgets/widgets';
@@ -86,9 +86,9 @@ export const DimensionEditor = (props: {
 	}
 
 	const scriptOpened = isScriptOpenedInChartOrIrrelevant(connectedSpace, chart);
-	const buildLabel = () => {
+	const buildLabel = (): ReactNode => {
 		// eslint-disable-next-line
-		return dimensionOptions.find(option => option.value == columnId)?.label ?? '?';
+		return (dimensionOptions.find(option => option.value == columnId)?.label ?? '?') as ReactNode;
 	};
 
 	return <DimensionContainer removable={scriptOpened}>

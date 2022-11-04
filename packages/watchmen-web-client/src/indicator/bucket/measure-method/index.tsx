@@ -5,7 +5,7 @@ import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
 import {TuplePropertyDropdown, TuplePropertyLabel} from '@/widgets/tuple-workbench/tuple-editor';
 import {TuplePropertyQuestionMark} from '@/widgets/tuple-workbench/tuple-property-question-mark';
-import React from 'react';
+import React, {ReactNode} from 'react';
 import {useBucketEventBus} from '../bucket-event-bus';
 import {BucketEventTypes} from '../bucket-event-bus-types';
 import {useFixProperty} from '../use-fix-property';
@@ -23,7 +23,7 @@ export const MeasureMethodEditor = (props: { bucket: MeasureBucket; methods: Arr
 		forceUpdate();
 	};
 
-	const label = () => {
+	const label = (): ReactNode => {
 		const option = methods.find(method => method.value === bucket.measure);
 		if (!option) {
 			return null;
@@ -35,7 +35,7 @@ export const MeasureMethodEditor = (props: { bucket: MeasureBucket; methods: Arr
 			label = option.label;
 		}
 		if (typeof label === 'string' || (label as any).$$typeof != null) {
-			return label;
+			return label as ReactNode;
 		} else {
 			return label.node;
 		}

@@ -39,8 +39,8 @@ const ExecutionOperators = (props: {
 
 export const ExecutionDelegate = (props: {
 	content: ExecutionContent;
-	commandLine: ((props: any) => ReactNode) | ReactNode;
-	result?: ((props: any) => ReactNode) | ReactNode;
+	commandLine: ReactNode;
+	result?: ReactNode;
 }) => {
 	const {content, commandLine, result} = props;
 

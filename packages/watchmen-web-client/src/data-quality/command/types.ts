@@ -44,6 +44,6 @@ export interface Command {
 }
 
 export interface HelpCommand extends Command {
-	brief: ((props: any) => ReactNode) | ReactNode;
-	whole: ((props: any) => ReactNode) | ReactNode;
+	brief: ReactNode;
+	whole: ReactNode;
 }
