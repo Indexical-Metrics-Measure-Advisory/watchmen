@@ -8,10 +8,10 @@ import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {Fragment, useEffect} from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 
 const Saml2Callback = () => {
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire} = useEventBus();
 	useEffect(() => {
 		const params = new URLSearchParams(window.location.search);
@@ -45,13 +45,13 @@ const Saml2Callback = () => {
 			if (triggerURL != null && triggerURL.trim().length !== 0) {
 				window.location.replace(triggerURL);
 			} else if (admin || superAdmin) {
-				history.replace(Router.ADMIN);
+				navigate(Router.ADMIN, {replace: true});
 			} else {
-				history.replace(Router.CONSOLE);
+				navigate(Router.CONSOLE, {replace: true});
 			}
 
 		})();
-	}, [fire, history]);
+	}, [fire, navigate]);
 
 	return <Fragment/>;
 };

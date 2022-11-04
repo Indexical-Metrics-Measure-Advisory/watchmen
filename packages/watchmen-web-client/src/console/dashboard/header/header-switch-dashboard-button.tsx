@@ -12,7 +12,7 @@ import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useState} from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import styled from 'styled-components';
 import {useConsoleEventBus} from '../../console-event-bus';
 import {ConsoleEventTypes} from '../../console-event-bus-types';
@@ -65,12 +65,12 @@ const DashboardSwitch = (props: { dashboards: Array<Dashboard>, switchTo: (dashb
 export const HeaderSwitchDashboardButton = (props: { dashboard: Dashboard }) => {
 	const {dashboard} = props;
 
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire: fireGlobal} = useEventBus();
 	const {fire} = useConsoleEventBus();
 
 	const onSwitchTo = (dashboard: Dashboard) => {
-		history.push(toDashboard(dashboard.dashboardId));
+		navigate(toDashboard(dashboard.dashboardId));
 	};
 	const onSwitchDashboardClicked = () => {
 		fire(ConsoleEventTypes.ASK_DASHBOARDS, (dashboards: Array<Dashboard>) => {

@@ -8,7 +8,7 @@ import {InspectionEventBusProvider} from './inspection-event-bus';
 import {InspectionStateHolder} from './state';
 
 const IndicatorInspectionIndex = () => {
-	useHelp(HELP_KEYS.INDICATOR_INSPECTION);
+	useHelp(HELP_KEYS.IDW_INSPECTION);
 
 	return <InspectionEventBusProvider>
 		<InspectionStateHolder/>

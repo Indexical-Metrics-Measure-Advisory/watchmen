@@ -3,8 +3,9 @@ import {findAccount, isAdmin, isSuperAdmin} from '@/services/data/account';
 import {removeSSOTriggerURL, saveCurrentURL} from '@/services/data/login';
 import {RemoteRequest} from '@/widgets/remote-request';
 import React, {lazy, Suspense} from 'react';
-import {BrowserRouter, Redirect, Route, Switch} from 'react-router-dom';
+import {BrowserRouter, Routes} from 'react-router-dom';
 import {Router} from './types';
+import {asFallbackNavigate, asTopRoute} from './utils';
 
 const Login = lazy(() => import(/* webpackChunkName: "login" */ '../login'));
 const Saml2Login = lazy(() => import(/* webpackChunkName: "login-saml2" */ '../login/saml2'));
@@ -20,35 +21,27 @@ export const InternalRoutes = () => {
 	if (account == null) {
 		saveCurrentURL();
 		// not login
-		return <Switch>
-			<Route path={Router.LOGIN}><Login/></Route>
-			{isSaml2MockEnabled() ?
-				<Route path={Router.MOCK_SAML2_LOGIN}><Saml2Login/></Route> : null}
-			<Route path={Router.SAML2_CALLBACK}><Saml2Callback/></Route>
-			<Route path="*">
-				<Redirect to={Router.LOGIN}/>
-			</Route>
-		</Switch>;
+		return <Routes>
+			{asTopRoute(Router.LOGIN, <Login/>)}
+			{isSaml2MockEnabled() ? asTopRoute(Router.MOCK_SAML2_LOGIN, <Saml2Login/>) : null}
+			{asTopRoute(Router.SAML2_CALLBACK, <Saml2Callback/>)}
+			{asFallbackNavigate(Router.LOGIN)}
+		</Routes>;
 	} else {
 		removeSSOTriggerURL();
-		return <Switch>
-			<Route path={Router.ADMIN}><Admin/></Route>
-			{isDataQualityCenterEnabled()
-				? <Route path={Router.DATA_QUALITY}><DataQuality/></Route>
-				: null
-			}
-			<Route path={Router.INDICATOR}><Indicator/></Route>
-			<Route path={Router.CONSOLE}><Console/></Route>
-			<Route path={Router.SHARE}><Share/></Route>
-			<Route path={Router.LOGIN}><Login/></Route>
-			<Route path="*">
-				{isAdmin() || isSuperAdmin() ? <Redirect to={Router.ADMIN}/> : <Redirect to={Router.CONSOLE}/>}
-			</Route>
-		</Switch>;
+		return <Routes>
+			{asTopRoute(Router.ADMIN_ALL, <Admin/>)}
+			{isDataQualityCenterEnabled() ? asTopRoute(Router.DQC_ALL, <DataQuality/>) : null}
+			{asTopRoute(Router.IDW_ALL, <Indicator/>)}
+			{asTopRoute(Router.CONSOLE_ALL, <Console/>)}
+			{asTopRoute(Router.SHARE_ALL, <Share/>)}
+			{asTopRoute(Router.LOGIN, <Login/>)}
+			{isAdmin() || isSuperAdmin() ? asFallbackNavigate(Router.ADMIN) : asFallbackNavigate(Router.CONSOLE)}
+		</Routes>;
 	}
 };
 
-export const Routes = () => {
+export const AppRoutes = () => {
 	return <Suspense fallback={<div/>}>
 		<BrowserRouter basename={process.env.REACT_APP_WEB_CONTEXT}>
 			<RemoteRequest/>

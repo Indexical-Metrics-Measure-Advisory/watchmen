@@ -1,21 +1,14 @@
 import {Router} from '@/routes/types';
-import {findAccount, quit} from '@/services/data/account';
 import {
 	ICON_ADD,
 	ICON_ADMIN,
 	ICON_DASHBOARD,
-	ICON_DATA_QUALITY,
+	ICON_DQC,
 	ICON_HOME,
-	ICON_INDICATOR,
+	ICON_IDW,
 	ICON_LOGOUT,
-	ICON_MAIL,
-	ICON_NOTIFICATION,
 	ICON_SETTINGS,
-	ICON_SWITCH_WORKBENCH,
-	ICON_TIMELINE,
-	MOCK_ACCOUNT_NAME,
-	SIDE_MENU_MAX_WIDTH,
-	SIDE_MENU_MIN_WIDTH
+	ICON_SWITCH_WORKBENCH
 } from '@/widgets/basic/constants';
 import {SideMenuConnectSpace} from '@/widgets/basic/side-menu/side-menu-connect-space';
 import {SideMenuItem} from '@/widgets/basic/side-menu/side-menu-item';
@@ -25,16 +18,16 @@ import {SideMenuResizeHandle} from '@/widgets/basic/side-menu/side-menu-resize-h
 import {SideMenuSeparator} from '@/widgets/basic/side-menu/side-menu-separator';
 import {SideMenuSwitchWorkbench} from '@/widgets/basic/side-menu/side-menu-switch-workbench';
 import {SideMenuUser} from '@/widgets/basic/side-menu/side-menu-user';
+import {useSideMenuRoutes} from '@/widgets/basic/side-menu/use-side-menu-routes';
+import {useSideMenuWidth} from '@/widgets/basic/side-menu/use-side-menu-width';
 import {
 	isAdminAvailable,
 	isDataQualityAvailable,
 	isIndicatorAvailable
 } from '@/widgets/common-settings/workbench-utils';
-import {useEventBus} from '@/widgets/events/event-bus';
-import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
-import React, {useEffect, useState} from 'react';
-import {matchPath, useHistory, useLocation} from 'react-router-dom';
+import React from 'react';
+import {matchPath, useLocation} from 'react-router-dom';
 import styled from 'styled-components';
 import {useConnectSpace} from '../widgets/use-connect-space';
 import {FavoriteMenu} from './side-menu-favorite';
@@ -75,93 +68,32 @@ const ConsoleMenuContainer = styled.div.attrs<{ width: number }>(({width}) => {
 `;
 
 export const ConsoleMenu = () => {
-	const history = useHistory();
 	const location = useLocation();
-	const {on: onGlobal, off: offGlobal, fire: fireGlobal} = useEventBus();
-	const [menuWidth, setMenuWidth] = useState(SIDE_MENU_MIN_WIDTH);
+	const {menuWidth, showTooltip, onResize} = useSideMenuWidth();
+	const {account, navigateTo, logout} = useSideMenuRoutes(Lang.CONSOLE.BYE);
+
 	const onConnectSpaceClicked = useConnectSpace();
-	useEffect(() => {
-		const onAskMenuWidth = (onWidthGet: (width: number) => void) => {
-			onWidthGet(menuWidth);
-		};
-		onGlobal(EventTypes.ASK_SIDE_MENU_WIDTH, onAskMenuWidth);
-		return () => {
-			offGlobal(EventTypes.ASK_SIDE_MENU_WIDTH, onAskMenuWidth);
-		};
-	}, [onGlobal, offGlobal, fireGlobal, menuWidth]);
 
-	const onResize = (newWidth: number) => {
-		const width = Math.min(Math.max(newWidth, SIDE_MENU_MIN_WIDTH), SIDE_MENU_MAX_WIDTH);
-		setMenuWidth(width);
-		fireGlobal(EventTypes.SIDE_MENU_RESIZED, width);
-	};
-	const onMenuClicked = (path: string) => () => {
-		if (!matchPath(location.pathname, path)) {
-			history.push(path);
-		}
-	};
-	const onLogoutClicked = () => {
-		fireGlobal(EventTypes.SHOW_YES_NO_DIALOG,
-			Lang.CONSOLE.BYE,
-			() => {
-				fireGlobal(EventTypes.HIDE_DIALOG);
-				quit();
-				history.push(Router.LOGIN);
-			},
-			() => fireGlobal(EventTypes.HIDE_DIALOG));
-	};
-
-	const account = findAccount() || {name: MOCK_ACCOUNT_NAME};
-	const showTooltip = menuWidth / SIDE_MENU_MIN_WIDTH <= 1.5;
 	const workbenches = [];
 	if (isAdminAvailable()) {
-		workbenches.push({
-			label: Lang.CONSOLE.MENU.TO_ADMIN,
-			icon: ICON_ADMIN,
-			action: () => onMenuClicked(Router.ADMIN)()
-		});
+		workbenches.push({label: Lang.CONSOLE.MENU.TO_ADMIN, icon: ICON_ADMIN, action: navigateTo(Router.ADMIN)});
 	}
 	if (isIndicatorAvailable()) {
-		workbenches.push({
-			label: Lang.CONSOLE.MENU.TO_INDICATOR,
-			icon: ICON_INDICATOR,
-			action: () => onMenuClicked(Router.INDICATOR)()
-		});
+		workbenches.push({label: Lang.CONSOLE.MENU.TO_INDICATOR, icon: ICON_IDW, action: navigateTo(Router.IDW)});
 	}
 	if (isDataQualityAvailable()) {
-		workbenches.push({
-			label: Lang.CONSOLE.MENU.TO_DATA_QUALITY,
-			icon: ICON_DATA_QUALITY,
-			action: () => onMenuClicked(Router.DATA_QUALITY)()
-		});
+		workbenches.push({label: Lang.CONSOLE.MENU.TO_DATA_QUALITY, icon: ICON_DQC, action: navigateTo(Router.DQC)});
 	}
 
 	return <ConsoleMenuContainer width={menuWidth}>
 		<SideMenuLogo title={Lang.CONSOLE.MENU.TITLE}/>
 		<SideMenuItem icon={ICON_HOME} label={Lang.CONSOLE.MENU.HOME} showTooltip={showTooltip}
-		              active={!!matchPath(location.pathname, Router.CONSOLE_HOME)}
-		              onClick={onMenuClicked(Router.CONSOLE_HOME)}/>
+		              active={!!matchPath({path: Router.CONSOLE_HOME}, location.pathname)}
+		              onClick={navigateTo(Router.CONSOLE_HOME)}/>
 		<SideMenuItem icon={ICON_DASHBOARD} label={Lang.CONSOLE.MENU.DASHBOARDS} showTooltip={showTooltip}
-		              active={!!matchPath(location.pathname, Router.CONSOLE_DASHBOARD_AUTO)}
-		              onClick={onMenuClicked(Router.CONSOLE_DASHBOARD_AUTO)}/>
+		              active={!!matchPath({path: Router.CONSOLE_DASHBOARD_ALL}, location.pathname)}
+		              onClick={navigateTo(Router.CONSOLE_DASHBOARD)}/>
 		<FavoriteMenu showTooltip={showTooltip}/>
-		{/* FEAT hide message menus */}
-		<SideMenuSeparator width={menuWidth} visible={false}/>
-		{/* FEAT hide notification menu */}
-		<SideMenuItem icon={ICON_NOTIFICATION} label={Lang.CONSOLE.MENU.NOTIFICATIONS} showTooltip={showTooltip}
-		              active={!!matchPath(location.pathname, Router.CONSOLE_NOTIFICATION)}
-		              onClick={onMenuClicked(Router.CONSOLE_NOTIFICATION)}
-		              visible={false}/>
-		{/* FEAT hide mail menu */}
-		<SideMenuItem icon={ICON_MAIL} label={Lang.CONSOLE.MENU.MAILS} showTooltip={showTooltip}
-		              active={!!matchPath(location.pathname, Router.CONSOLE_MAIL)}
-		              onClick={onMenuClicked(Router.CONSOLE_MAIL)}
-		              visible={false}/>
-		{/* FEAT hide timeline menu */}
-		<SideMenuItem icon={ICON_TIMELINE} label={Lang.CONSOLE.MENU.TIMELINE} showTooltip={showTooltip}
-		              active={!!matchPath(location.pathname, Router.CONSOLE_TIMELINE)}
-		              onClick={onMenuClicked(Router.CONSOLE_TIMELINE)}
-		              visible={false}/>
 		<SideMenuSeparator width={menuWidth}/>
 		<SideMenuSpaces showTooltip={showTooltip}/>
 		<SideMenuConnectSpace icon={ICON_ADD} label={Lang.CONSOLE.MENU.CONNECT_SPACE} showTooltip={showTooltip}
@@ -169,14 +101,13 @@ export const ConsoleMenu = () => {
 		<SideMenuPlaceholder/>
 		<SideMenuSeparator width={menuWidth}/>
 		<SideMenuItem icon={ICON_SETTINGS} label={Lang.CONSOLE.MENU.SETTINGS} showTooltip={showTooltip}
-		              active={!!matchPath(location.pathname, Router.CONSOLE_SETTINGS)}
-		              onClick={onMenuClicked(Router.CONSOLE_SETTINGS)}/>
+		              active={!!matchPath({path: Router.CONSOLE_SETTINGS}, location.pathname)}
+		              onClick={navigateTo(Router.CONSOLE_SETTINGS)}/>
 		<SideMenuSwitchWorkbench icon={ICON_SWITCH_WORKBENCH}
 		                         workbenches={workbenches}
 		                         visible={workbenches.length !== 0}/>
 		<SideMenuSeparator width={menuWidth}/>
-		<SideMenuItem icon={ICON_LOGOUT} label={Lang.CONSOLE.MENU.LOGOUT} showTooltip={showTooltip}
-		              onClick={onLogoutClicked}/>
+		<SideMenuItem icon={ICON_LOGOUT} label={Lang.CONSOLE.MENU.LOGOUT} showTooltip={showTooltip} onClick={logout}/>
 		<SideMenuUser name={account.name}/>
 		<SideMenuResizeHandle width={menuWidth} onResize={onResize}/>
 	</ConsoleMenuContainer>;

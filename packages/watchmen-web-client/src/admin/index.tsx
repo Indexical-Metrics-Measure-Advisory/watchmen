@@ -1,8 +1,9 @@
 import {isMultipleDataSourcesEnabled, isPluginEnabled, isWriteExternalEnabled} from '@/feature-switch';
 import {Router} from '@/routes/types';
+import {asAdminRoute, asFallbackNavigate} from '@/routes/utils';
 import {isAdmin, isSuperAdmin} from '@/services/data/account';
-import React from 'react';
-import {Redirect, Route, Switch} from 'react-router-dom';
+import React, {ReactNode} from 'react';
+import {Navigate, Route, Routes} from 'react-router-dom';
 import styled from 'styled-components';
 import {AdminCache} from './cache';
 import {AdminCacheEventBusProvider} from './cache/cache-event-bus';
@@ -45,9 +46,19 @@ const AdminMain = styled.main.attrs<{ scrollable?: boolean }>(({scrollable = tru
 	overflow-y : scroll;
 `;
 
+const asRoute = (path: Router, children: ReactNode,
+                 options: { wrapped?: boolean; scrollable?: boolean } = {wrapped: true, scrollable: true}) => {
+	const {wrapped = true, scrollable = true} = options;
+	if (wrapped) {
+		return asAdminRoute(path, <AdminMain scrollable={scrollable}>{children}</AdminMain>);
+	} else {
+		return asAdminRoute(path, children);
+	}
+};
+
 const AdminIndex = () => {
 	if (!isAdmin() && !isSuperAdmin()) {
-		return <Redirect to={Router.CONSOLE_HOME}/>;
+		return <Navigate to={Router.CONSOLE_HOME}/>;
 	}
 
 	return <AdminContainer>
@@ -57,43 +68,32 @@ const AdminIndex = () => {
 				<AdminMenu/>
 
 				{isSuperAdmin()
-					? <Switch>
-						<Route path={Router.ADMIN_USERS}><AdminMain><AdminUsers/></AdminMain></Route>
-						<Route path={Router.ADMIN_TENANTS}><AdminMain><AdminTenants/></AdminMain></Route>
+					? <Route>
+						{asRoute(Router.ADMIN_USERS, <AdminUsers/>)}
+						{asRoute(Router.ADMIN_TENANTS, <AdminTenants/>)}
 						{isMultipleDataSourcesEnabled()
-							? <Route path={Router.ADMIN_DATA_SOURCES}><AdminMain><AdminDataSources/></AdminMain></Route>
-							: null}
+							? asRoute(Router.ADMIN_DATA_SOURCES, <AdminDataSources/>) : null}
 						{isWriteExternalEnabled()
-							? <Route path={Router.ADMIN_EXTERNAL_WRITERS}><AdminMain><AdminExternalWriters/></AdminMain></Route>
-							: null}
-						{isPluginEnabled()
-							? <Route path={Router.ADMIN_PLUGINS}><AdminMain><AdminPlugins/></AdminMain></Route>
-							: null}
-						<Route path="*">
-							<Redirect to={Router.ADMIN_TENANTS}/>
-						</Route>
-					</Switch>
-					: <Switch>
-						<Route path={Router.ADMIN_HOME}><AdminMain scrollable={false}><AdminHome/></AdminMain></Route>
-						<Route path={Router.ADMIN_TOPICS}><AdminMain><AdminTopics/></AdminMain></Route>
-						<Route path={Router.ADMIN_ENUMS}><AdminMain><AdminEnums/></AdminMain></Route>
-						{/*<Route path={Router.ADMIN_REPORTS}><AdminMain><AdminReports/></AdminMain></Route>*/}
-						<Route path={Router.ADMIN_SPACES}><AdminMain><AdminSpaces/></AdminMain></Route>
-						<Route path={Router.ADMIN_PIPELINES}><AdminPipelines/></Route>
-						<Route path={Router.ADMIN_USER_GROUPS}><AdminMain><AdminUserGroups/></AdminMain></Route>
-						<Route path={Router.ADMIN_USERS}><AdminMain><AdminUsers/></AdminMain></Route>
-						<Route path={Router.ADMIN_TENANTS}><AdminMain><AdminTenants/></AdminMain></Route>
-						<Route path={Router.ADMIN_MONITOR_LOGS}>
-							<AdminMain scrollable={false}><AdminMonitorLogs/></AdminMain>
-						</Route>
-						<Route path={Router.ADMIN_SIMULATOR}><AdminDebug/></Route>
-						<Route path={Router.ADMIN_TOOLBOX}><AdminMain><AdminToolbox/></AdminMain></Route>
-						<Route path={Router.ADMIN_SETTINGS}><AdminMain><AdminSettings/></AdminMain></Route>
-						{/*		<Route path={Path.ADMIN_TASKS}><Tasks/></Route>*/}
-						<Route path="*">
-							<Redirect to={Router.ADMIN_HOME}/>
-						</Route>
-					</Switch>
+							? asRoute(Router.ADMIN_EXTERNAL_WRITERS, <AdminExternalWriters/>) : null}
+						{isPluginEnabled() ? asRoute(Router.ADMIN_PLUGINS, <AdminPlugins/>) : null}
+						{asFallbackNavigate(Router.ADMIN_TENANTS)}
+					</Route>
+					: <Routes>
+						{asRoute(Router.ADMIN_HOME, <AdminHome/>, {scrollable: false})}
+						{asRoute(Router.ADMIN_TOPICS, <AdminTopics/>)}
+						{asRoute(Router.ADMIN_ENUMS, <AdminEnums/>)}
+						{/*{asRoute(Router.ADMIN_REPORTS, <AdminReports/>)}*/}
+						{asRoute(Router.ADMIN_SPACES, <AdminSpaces/>)}
+						{asRoute(Router.ADMIN_PIPELINES_ALL, <AdminPipelines/>, {wrapped: false})}
+						{asRoute(Router.ADMIN_USER_GROUPS, <AdminUserGroups/>)}
+						{asRoute(Router.ADMIN_USERS, <AdminUsers/>)}
+						{asRoute(Router.ADMIN_TENANTS, <AdminTenants/>)}
+						{asRoute(Router.ADMIN_MONITOR_LOGS, <AdminMonitorLogs/>, {scrollable: false})}
+						{asRoute(Router.ADMIN_SIMULATOR, <AdminDebug/>, {wrapped: false})}
+						{asRoute(Router.ADMIN_TOOLBOX_ALL, <AdminToolbox/>)}
+						{asRoute(Router.ADMIN_SETTINGS, <AdminSettings/>)}
+						{asFallbackNavigate(Router.ADMIN_HOME)}
+					</Routes>
 				}
 				<TopicProfile/>
 			</TopicProfileEventBusProvider>

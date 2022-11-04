@@ -3,7 +3,7 @@ import {ConnectedSpace} from '@/services/data/tuples/connected-space-types';
 import {ICON_EDIT} from '@/widgets/basic/constants';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import React, {MouseEvent, useState} from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import {findSvgRoot} from '../../../utils/in-svg';
 import {useCatalogEventBus} from '../catalog-event-bus';
 import {CatalogEventTypes} from '../catalog-event-bus-types';
@@ -15,7 +15,7 @@ export const SubjectRect = (props: { connectedSpace: ConnectedSpace; subject: As
 	const {subject, rect} = subjectGraphics;
 	const {coordinate, frame: frameRect, name: namePos} = rect;
 
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire} = useCatalogEventBus();
 	const forceUpdate = useForceUpdate();
 	const [dnd, setDnd] = useState<boolean>(false);
@@ -44,7 +44,7 @@ export const SubjectRect = (props: { connectedSpace: ConnectedSpace; subject: As
 	};
 
 	const onSubjectOpenClicked = () => {
-		history.push(toSubject(connectedSpace.connectId, subject.subjectId));
+		navigate(toSubject(connectedSpace.connectId, subject.subjectId));
 	};
 
 	return <SubjectContainer onMouseDown={onMouseDown} coordinate={coordinate}

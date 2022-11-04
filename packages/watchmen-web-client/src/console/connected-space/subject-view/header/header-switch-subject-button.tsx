@@ -13,7 +13,7 @@ import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useState} from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import styled from 'styled-components';
 
 const SwitchDialogBody = styled(DialogBody)`
@@ -64,11 +64,11 @@ const SubjectSwitch = (props: { subjects: Array<Subject>, switchTo: (subject: Su
 export const HeaderSwitchSubjectButton = (props: { connectedSpace: ConnectedSpace, subject: Subject }) => {
 	const {connectedSpace, subject} = props;
 
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire: fireGlobal} = useEventBus();
 
 	const onSwitchTo = (subject: Subject) => {
-		history.push(toSubject(connectedSpace.connectId, subject.subjectId));
+		navigate(toSubject(connectedSpace.connectId, subject.subjectId));
 	};
 	const onSwitchSubjectClicked = () => {
 		// eslint-disable-next-line

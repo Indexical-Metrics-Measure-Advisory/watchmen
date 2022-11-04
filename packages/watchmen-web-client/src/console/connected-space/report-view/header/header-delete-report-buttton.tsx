@@ -17,7 +17,7 @@ import {ReportEventTypes} from '@/widgets/report/report-event-bus-types';
 import {FireTiming, useThrottler} from '@/widgets/throttler';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useEffect, useState} from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import styled from 'styled-components';
 
 interface ReportDataState {
@@ -66,7 +66,7 @@ const ReportDelete = (props: { report: Report, onRemoved: () => void }) => {
 export const HeaderDeleteReportButton = (props: { connectedSpace: ConnectedSpace, subject: Subject, report: Report }) => {
 	const {connectedSpace, subject, report} = props;
 
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire: fireGlobal} = useEventBus();
 	const {on, off, fire} = useReportEventBus();
 	const [changed, setChanged] = useState<ReportDataState>({
@@ -164,9 +164,9 @@ export const HeaderDeleteReportButton = (props: { connectedSpace: ConnectedSpace
 				subject.reports.splice(index, 1);
 			}
 			if (subject.reports.length === 0) {
-				history.replace(toSubjectReports(connectedSpace.connectId, subject.subjectId));
+				navigate(toSubjectReports(connectedSpace.connectId, subject.subjectId), {replace: true});
 			} else {
-				history.replace(toSubjectReport(connectedSpace.connectId, subject.subjectId, subject.reports[0].reportId));
+				navigate(toSubjectReport(connectedSpace.connectId, subject.subjectId, subject.reports[0].reportId), {replace: true});
 			}
 		});
 	};

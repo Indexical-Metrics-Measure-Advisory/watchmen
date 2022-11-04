@@ -71,8 +71,8 @@ const InternalComputeIndicator = (props: {
 
 	return <>
 		<ComputeIndicatorNode id={id} expanded={expanded}
-		                      // onMouseEnter={onMouseEnter}
-		                      onClick={onClicked} ref={ref}>
+			// onMouseEnter={onMouseEnter}
+			                  onClick={onClicked} ref={ref}>
 			<ComputeIndicatorNodeIndex>{index}.</ComputeIndicatorNodeIndex>
 			<ComputeIndicatorNodeName>
 				{name}

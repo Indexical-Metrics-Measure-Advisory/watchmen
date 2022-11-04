@@ -8,7 +8,7 @@ import {TooltipAlignment} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useEffect, useState} from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import {useCatalogEventBus} from '../catalog-event-bus';
 import {CatalogEventTypes} from '../catalog-event-bus-types';
 import {ReportBody} from './report-body';
@@ -19,7 +19,7 @@ import {NavigatorContainer, NavigatorHeader, NavigatorHeaderButton, NavigatorHea
 export const Navigator = (props: { connectedSpace: ConnectedSpace }) => {
 	const {connectedSpace} = props;
 
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {on, off} = useCatalogEventBus();
 	const [visible, setVisible] = useState(false);
 	const [tuples, setTuples] = useState<{ topic?: Topic, subject?: Subject, report?: Report }>({});
@@ -49,12 +49,12 @@ export const Navigator = (props: { connectedSpace: ConnectedSpace }) => {
 
 	const onOpenSubjectClicked = () => {
 		if (tuples && tuples.subject) {
-			history.push(toSubject(connectedSpace.connectId, tuples.subject.subjectId));
+			navigate(toSubject(connectedSpace.connectId, tuples.subject.subjectId));
 		}
 	};
 	const onOpenReportClicked = () => {
 		if (tuples && tuples.subject && tuples.report) {
-			history.push(toSubjectReport(connectedSpace.connectId, tuples.subject.subjectId, tuples.report.reportId));
+			navigate(toSubjectReport(connectedSpace.connectId, tuples.subject.subjectId, tuples.report.reportId));
 		}
 	};
 	const onCloseClicked = () => {

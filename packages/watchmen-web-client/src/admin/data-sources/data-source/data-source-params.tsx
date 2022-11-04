@@ -44,7 +44,7 @@ export const DataSourceParams = (props: { dataSource: DataSource }) => {
 			dataSource.params = [...(dataSource.params || []), param];
 		}
 	};
-	const onParamDelete = (param: DataSourceParam) => () =>  {
+	const onParamDelete = (param: DataSourceParam) => () => {
 		dataSource.params = (dataSource.params || []).filter(p => p !== param);
 		fire(DataSourceEventTypes.DATASOURCE_PARAM_CHANGED, dataSource);
 		forceUpdate();

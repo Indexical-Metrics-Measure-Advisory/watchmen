@@ -1,7 +1,4 @@
-import {
-	Achievement,
-	AchievementIndicator
-} from '@/services/data/tuples/achievement-types';
+import {Achievement, AchievementIndicator} from '@/services/data/tuples/achievement-types';
 import {FactorId} from '@/services/data/tuples/factor-types';
 import {IndicatorCriteria} from '@/services/data/tuples/indicator-criteria-types';
 import {

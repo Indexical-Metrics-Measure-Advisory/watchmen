@@ -12,7 +12,7 @@ import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useState} from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import styled from 'styled-components';
 import {useConsoleEventBus} from '../../../console-event-bus';
 import {ConsoleEventTypes} from '../../../console-event-bus-types';
@@ -65,12 +65,12 @@ const ConnectedSpaceSwitch = (props: { connectedSpaces: Array<ConnectedSpace>, s
 export const HeaderSwitchConnectedSpaceButton = (props: { connectedSpace: ConnectedSpace }) => {
 	const {connectedSpace} = props;
 
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire: fireGlobal} = useEventBus();
 	const {fire} = useConsoleEventBus();
 
 	const onSwitchTo = (connectedSpace: ConnectedSpace) => {
-		history.push(toConnectedSpace(connectedSpace.connectId));
+		navigate(toConnectedSpace(connectedSpace.connectId));
 	};
 	const onSwitchConnectedSpaceClicked = () => {
 		fire(ConsoleEventTypes.ASK_CONNECTED_SPACES, (connectedSpaces: Array<ConnectedSpace>) => {

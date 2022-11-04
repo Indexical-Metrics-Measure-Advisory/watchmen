@@ -8,7 +8,7 @@ import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import {createSubject} from '../../../utils/tuples';
 import {useConnectedSpaceEventBus} from '../../connected-space-event-bus';
 import {ConnectedSpaceEventTypes} from '../../connected-space-event-bus-types';
@@ -16,7 +16,7 @@ import {ConnectedSpaceEventTypes} from '../../connected-space-event-bus-types';
 export const HeaderAddSubjectButton = (props: { connectedSpace: ConnectedSpace }) => {
 	const {connectedSpace} = props;
 
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire: fireGlobal} = useEventBus();
 	const {fire} = useConnectedSpaceEventBus();
 	const onAddSubjectClicked = async () => {
@@ -26,7 +26,7 @@ export const HeaderAddSubjectButton = (props: { connectedSpace: ConnectedSpace }
 			() => {
 				connectedSpace.subjects.push(subject);
 				fire(ConnectedSpaceEventTypes.SUBJECT_ADDED, subject);
-				history.push(toSubject(connectedSpace.connectId, subject.subjectId));
+				navigate(toSubject(connectedSpace.connectId, subject.subjectId));
 			});
 	};
 

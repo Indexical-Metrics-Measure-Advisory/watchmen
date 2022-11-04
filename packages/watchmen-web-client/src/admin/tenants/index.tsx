@@ -16,7 +16,7 @@ import {TupleWorkbench} from '@/widgets/tuple-workbench';
 import {TupleEventBusProvider, useTupleEventBus} from '@/widgets/tuple-workbench/tuple-event-bus';
 import {TupleEventTypes} from '@/widgets/tuple-workbench/tuple-event-bus-types';
 import React, {useEffect} from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import TenantBackground from '../../assets/tenant-background.svg';
 import {renderCard} from './card';
 import {renderEditor} from './editor';
@@ -86,10 +86,10 @@ const AdminTenants = () => {
 	/>;
 };
 const AdminTenantsIndex = () => {
-	const history = useHistory();
+	const navigate = useNavigate();
 
 	if (!isSuperAdmin()) {
-		history.replace(Router.ADMIN_HOME);
+		navigate(Router.ADMIN_HOME, {replace: true});
 		return null;
 	}
 

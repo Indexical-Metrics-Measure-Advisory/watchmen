@@ -8,7 +8,7 @@ import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import React, {Fragment, useEffect, useState} from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 // noinspection ES6PreferShortImport
 import {useConsoleEventBus} from '../../../../console-event-bus';
 // noinspection ES6PreferShortImport
@@ -30,7 +30,7 @@ const computePickedTopics = (subject: Subject, topics: Array<Topic>) => {
 export const SubjectDefDataHolder = (props: { connectedSpace: ConnectedSpace, subject: Subject }) => {
 	const {connectedSpace, subject} = props;
 
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire: fireGlobal} = useEventBus();
 	const {fire: fireConsole} = useConsoleEventBus();
 	const {fire} = useSubjectDefEventBus();
@@ -44,7 +44,7 @@ export const SubjectDefDataHolder = (props: { connectedSpace: ConnectedSpace, su
 				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
 					{Lang.CONSOLE.CONNECTED_SPACE.SPACE_NOT_FOUND}
 				</AlertLabel>, () => {
-					history.replace(Router.CONSOLE);
+					navigate(Router.CONSOLE, {replace: true});
 				});
 			} else {
 				const topicIds = Array.from(new Set(space.topicIds));
@@ -58,13 +58,13 @@ export const SubjectDefDataHolder = (props: { connectedSpace: ConnectedSpace, su
 						fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
 							{Lang.CONSOLE.CONNECTED_SPACE.TOPICS_NOT_FOUND}
 						</AlertLabel>, () => {
-							history.replace(Router.CONSOLE);
+							navigate(Router.CONSOLE, {replace: true});
 						});
 					} else if (topics.length !== topicIds.length) {
 						fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
 							{Lang.CONSOLE.CONNECTED_SPACE.TOPICS_COUNT_MISMATCH}
 						</AlertLabel>, () => {
-							history.replace(Router.CONSOLE);
+							navigate(Router.CONSOLE, {replace: true});
 						});
 					} else {
 						const data = {availableTopics: topics, pickedTopics: computePickedTopics(subject, topics)};
@@ -74,7 +74,7 @@ export const SubjectDefDataHolder = (props: { connectedSpace: ConnectedSpace, su
 				});
 			}
 		});
-	}, [history, fireGlobal, fireConsole, fire, connectedSpace.spaceId, subject]);
+	}, [navigate, fireGlobal, fireConsole, fire, connectedSpace.spaceId, subject]);
 
 	usePickedTopics(data.pickedTopics);
 

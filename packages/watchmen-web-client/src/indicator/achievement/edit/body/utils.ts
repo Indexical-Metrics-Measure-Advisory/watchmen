@@ -1,7 +1,4 @@
-import {
-	Achievement,
-	AchievementIndicator
-} from '@/services/data/tuples/achievement-types';
+import {Achievement, AchievementIndicator} from '@/services/data/tuples/achievement-types';
 import {IndicatorCriteriaOperator} from '@/services/data/tuples/indicator-criteria-types';
 import {
 	isIndicatorCriteriaOnBucket,

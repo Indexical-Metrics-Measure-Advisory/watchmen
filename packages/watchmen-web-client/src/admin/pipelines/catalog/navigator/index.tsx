@@ -16,7 +16,7 @@ import {EventTypes} from '@/widgets/events/types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import dayjs from 'dayjs';
 import React, {MouseEvent, useEffect, useState} from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 // noinspection ES6PreferShortImport
 import {useTopicProfileEventBus} from '../../../topic-profile/topic-profile-event-bus';
 // noinspection ES6PreferShortImport
@@ -41,7 +41,7 @@ export const Navigator = (props: {
 }) => {
 	const {pipelines, topics} = props;
 
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire: fireGlobal} = useEventBus();
 	const {fire: fireProfile} = useTopicProfileEventBus();
 	const {fire: firePipelines} = usePipelinesEventBus();
@@ -92,7 +92,7 @@ export const Navigator = (props: {
 				// will not trigger add into cache
 				// see SettingsHolder of pipelines for more detail
 				firePipelines(PipelinesEventTypes.PIPELINE_ADDED, pipeline);
-				history.push(toPipeline(pipeline.pipelineId));
+				navigate(toPipeline(pipeline.pipelineId));
 			});
 	};
 

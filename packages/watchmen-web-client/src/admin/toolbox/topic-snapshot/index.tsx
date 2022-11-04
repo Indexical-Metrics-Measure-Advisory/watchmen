@@ -6,7 +6,7 @@ import {VerticalMarginOneUnit} from '@/widgets/basic/margin';
 import {FixWidthPage} from '@/widgets/basic/page';
 import {PageHeader} from '@/widgets/basic/page-header';
 import React, {useEffect, useState} from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import {useAdminCacheEventBus} from '../../cache/cache-event-bus';
 import {AdminCacheEventTypes} from '../../cache/cache-event-bus-types';
 import {Criteria} from './criteria';
@@ -14,7 +14,7 @@ import {Results} from './results';
 import {TopicSnapshotEventBusProvider} from './topic-snapshot-event-bus';
 
 export const TopicSnapshot = () => {
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire: fireCache} = useAdminCacheEventBus();
 	const [data, setData] = useState<{ topics: Array<Topic> }>({topics: []});
 	useEffect(() => {
@@ -36,7 +36,7 @@ export const TopicSnapshot = () => {
 		askData();
 	}, [fireCache]);
 
-	const onBackClicked = () => history.push(Router.ADMIN_TOOLBOX);
+	const onBackClicked = () => navigate(Router.ADMIN_TOOLBOX);
 
 	return <TopicSnapshotEventBusProvider>
 		<FixWidthPage>

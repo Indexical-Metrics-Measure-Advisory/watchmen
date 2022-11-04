@@ -32,11 +32,12 @@ const ShareDashboard = (props: { dashboard: Dashboard }) => {
 
 const ShareDashboardIndex = () => {
 	const {dashboardId, token} = useParams<{ dashboardId: DashboardId, token: Token }>();
+	console.log(dashboardId, token);
 	const [state, setState] = useState<ShareDashboardState>({initialized: false});
 	useEffect(() => {
 		(async () => {
 			try {
-				const {dashboard, connectedSpaces} = await fetchSharedDashboard(dashboardId, token);
+				const {dashboard, connectedSpaces} = await fetchSharedDashboard(dashboardId!, token!);
 				setState({initialized: true, dashboardId, dashboard, connectedSpaces});
 			} catch (e: any) {
 				console.error(e);

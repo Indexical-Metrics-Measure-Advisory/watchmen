@@ -4,7 +4,7 @@ import {AchievementEventBusProvider} from './achievement-event-bus';
 import {AchievementRoute} from './route';
 
 const IndicatorAchievementIndex = () => {
-	useHelp(HELP_KEYS.INDICATOR_ACHIEVEMENT);
+	useHelp(HELP_KEYS.IDW_ACHIEVEMENT);
 
 	return <AchievementEventBusProvider>
 		<AchievementRoute/>

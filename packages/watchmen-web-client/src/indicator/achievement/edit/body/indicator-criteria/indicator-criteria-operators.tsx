@@ -1,7 +1,4 @@
-import {
-	Achievement,
-	AchievementIndicator
-} from '@/services/data/tuples/achievement-types';
+import {Achievement, AchievementIndicator} from '@/services/data/tuples/achievement-types';
 import {IndicatorCriteria} from '@/services/data/tuples/indicator-criteria-types';
 import {noop} from '@/services/utils';
 import {ICON_DELETE} from '@/widgets/basic/constants';

@@ -4,7 +4,7 @@ import {FullWidthPage} from '@/widgets/basic/page';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import React, {useEffect, useState} from 'react';
-import {useHistory, useParams} from 'react-router-dom';
+import {useParams} from 'react-router-dom';
 import {useAchievementEventBus} from '../achievement-event-bus';
 import {AchievementEventTypes} from '../achievement-event-bus-types';
 import {AchievementEditPageBody} from './body';
@@ -22,8 +22,7 @@ const InternalAchievementEdit = (props: { achievement: Achievement }) => {
 };
 
 export const AchievementEdit = () => {
-	const history = useHistory();
-	const {achievementId} = useParams<{ achievementId: AchievementId }>();
+	const achievementId = useParams<{ achievementId: AchievementId }>().achievementId!;
 	const {fire: fireGlobal} = useEventBus();
 	const {fire} = useAchievementEventBus();
 	const [achievement, setAchievement] = useState<Achievement | null>(null);
@@ -52,7 +51,7 @@ export const AchievementEdit = () => {
 				setAchievement(aAchievement);
 			}
 		});
-	}, [fire, fireGlobal, history, achievement, achievementId]);
+	}, [fire, fireGlobal, achievement, achievementId]);
 
 	return achievement == null ? null : <InternalAchievementEdit achievement={achievement}/>;
 };

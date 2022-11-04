@@ -8,7 +8,7 @@ import {ConnectedSpace} from '@/services/data/tuples/connected-space-types';
 import {Dashboard} from '@/services/data/tuples/dashboard-types';
 import {HELP_KEYS, useHelp} from '@/widgets/help';
 import React, {useEffect, useState} from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import {AdminLoading} from './admin-loading';
 import {SimulateConsole} from './simulate-console';
 import {AdminDashboardContainer, CreateOne, NoData} from './widgets';
@@ -31,7 +31,7 @@ const AdminDashboard = (props: { dashboard: Dashboard }) => {
 };
 
 const AdminHomeIndex = () => {
-	const history = useHistory();
+	const navigate = useNavigate();
 	const [state, setState] = useState<HomeState>({initialized: false});
 	useEffect(() => {
 		(async () => {
@@ -50,9 +50,7 @@ const AdminHomeIndex = () => {
 	}
 
 	if (state.initialized && (state.dashboard == null || state.connectedSpaces == null || state.connectedSpaces.length === 0)) {
-		const onCreateClicked = () => {
-			history.push(Router.CONSOLE_DASHBOARD_AUTO);
-		};
+		const onCreateClicked = () => navigate(Router.CONSOLE_DASHBOARD);
 		return <AdminLoading label={
 			<>
 				<span>No dashboard defined, </span>

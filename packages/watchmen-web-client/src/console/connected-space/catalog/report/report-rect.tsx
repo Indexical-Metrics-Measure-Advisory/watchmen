@@ -4,7 +4,7 @@ import {Subject} from '@/services/data/tuples/subject-types';
 import {ICON_EDIT} from '@/widgets/basic/constants';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import React, {MouseEvent, useState} from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import {findSvgRoot} from '../../../utils/in-svg';
 import {useCatalogEventBus} from '../catalog-event-bus';
 import {CatalogEventTypes} from '../catalog-event-bus-types';
@@ -16,7 +16,7 @@ export const ReportRect = (props: { connectedSpace: ConnectedSpace; subject: Sub
 	const {report, rect} = reportGraphics;
 	const {coordinate, frame: frameRect, name: namePos} = rect;
 
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire} = useCatalogEventBus();
 	const forceUpdate = useForceUpdate();
 	const [dnd, setDnd] = useState<boolean>(false);
@@ -45,7 +45,7 @@ export const ReportRect = (props: { connectedSpace: ConnectedSpace; subject: Sub
 	};
 
 	const onReportOpenClicked = () => {
-		history.push(toSubjectReport(connectedSpace.connectId, subject.subjectId, report.reportId));
+		navigate(toSubjectReport(connectedSpace.connectId, subject.subjectId, report.reportId));
 	};
 
 	return <ReportContainer onMouseDown={onMouseDown} coordinate={coordinate}

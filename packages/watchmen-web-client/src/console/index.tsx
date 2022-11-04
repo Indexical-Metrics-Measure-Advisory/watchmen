@@ -1,8 +1,9 @@
 import {Router} from '@/routes/types';
+import {asConsoleRoute, asFallbackNavigate} from '@/routes/utils';
 import {findAccount, isSuperAdmin} from '@/services/data/account';
 import {LastSnapshot} from '@/services/data/account/last-snapshot-types';
 import React, {useEffect, useState} from 'react';
-import {Redirect, Route, Switch} from 'react-router-dom';
+import {Navigate, Routes} from 'react-router-dom';
 import styled from 'styled-components';
 import ConsoleConnectedSpace from './connected-space';
 import {ConsoleEventBusProvider, useConsoleEventBus} from './console-event-bus';
@@ -88,18 +89,13 @@ const ConsoleRouter = () => {
 		<ConsoleMain>
 			<ConsoleFavoritePlaceholder/>
 			<ConsoleWorkbench>
-				<Switch>
-					<Route path={Router.CONSOLE_HOME}><ConsoleHome/></Route>
-					<Route path={Router.CONSOLE_CONNECTED_SPACE}><ConsoleConnectedSpace/></Route>
-					<Route path={Router.CONSOLE_DASHBOARD_AUTO}><ConsoleDashboard/></Route>
-					{/*		<Route path={Router.CONSOLE_INBOX}><Inbox/></Route>*/}
-					{/*		<Route path={Router.CONSOLE_NOTIFICATION}><Notification/></Route>*/}
-					{/*		<Route path={Router.CONSOLE_TIMELINE}><Timeline/></Route>*/}
-					<Route path={Router.CONSOLE_SETTINGS}><ConsoleSettings/></Route>
-					<Route path="*">
-						<Redirect to={Router.CONSOLE_HOME}/>
-					</Route>
-				</Switch>
+				<Routes>
+					{asConsoleRoute(Router.CONSOLE_HOME, <ConsoleHome/>)}
+					{asConsoleRoute(Router.CONSOLE_CONNECTED_SPACE_ALL, <ConsoleConnectedSpace/>)}
+					{asConsoleRoute(Router.CONSOLE_DASHBOARD_ALL, <ConsoleDashboard/>)}
+					{asConsoleRoute(Router.CONSOLE_SETTINGS, <ConsoleSettings/>)}
+					{asFallbackNavigate(Router.CONSOLE_HOME)}
+				</Routes>
 			</ConsoleWorkbench>
 		</ConsoleMain>
 		<Favorite/>
@@ -131,11 +127,11 @@ const ConsoleContainerDelegate = () => {
 };
 const ConsoleIndex = () => {
 	if (!findAccount()) {
-		return <Redirect to={Router.LOGIN}/>;
+		return <Navigate to={Router.LOGIN}/>;
 	}
 
 	if (isSuperAdmin()) {
-		return <Redirect to={Router.ADMIN}/>;
+		return <Navigate to={Router.ADMIN}/>;
 	}
 
 	return <ConsoleEventBusProvider>

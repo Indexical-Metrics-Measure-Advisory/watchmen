@@ -14,7 +14,7 @@ import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useState} from 'react';
-import {useHistory} from 'react-router-dom';
+import {useNavigate} from 'react-router-dom';
 import styled from 'styled-components';
 
 const SwitchDialogBody = styled(DialogBody)`
@@ -65,11 +65,11 @@ const ReportSwitch = (props: { reports: Array<Report>, switchTo: (report: Report
 export const HeaderSwitchReportButton = (props: { connectedSpace: ConnectedSpace, subject: Subject, report: Report }) => {
 	const {connectedSpace, subject, report} = props;
 
-	const history = useHistory();
+	const navigate = useNavigate();
 	const {fire: fireGlobal} = useEventBus();
 
 	const onSwitchTo = (report: Report) => {
-		history.push(toSubjectReport(connectedSpace.connectId, subject.subjectId, report.reportId));
+		navigate(toSubjectReport(connectedSpace.connectId, subject.subjectId, report.reportId));
 	};
 	const onSwitchReportClicked = () => {
 		// eslint-disable-next-line

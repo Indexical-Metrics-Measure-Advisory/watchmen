@@ -7,20 +7,20 @@ import {ButtonInk} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React from 'react';
-import {matchPath, useHistory} from 'react-router-dom';
+import {matchPath, useNavigate} from 'react-router-dom';
 
-const isCatalogNow = () => !!matchPath(window.location.pathname, Router.CONSOLE_CONNECTED_SPACE_CATALOG);
+const isCatalogNow = () => !!matchPath({path: Router.CONSOLE_CONNECTED_SPACE_CATALOG}, window.location.pathname);
 
 export const HeaderCatalogButton = (props: { connectedSpace: ConnectedSpace }) => {
 	const {connectedSpace} = props;
 
-	const history = useHistory();
+	const navigate = useNavigate();
 
 	const onCatalogClicked = () => {
 		if (isCatalogNow()) {
 			return;
 		}
-		history.push(toConnectedSpaceCatalog(connectedSpace.connectId));
+		navigate(toConnectedSpaceCatalog(connectedSpace.connectId));
 	};
 
 	return <PageHeaderButton tooltip={Lang.CONSOLE.CONNECTED_SPACE.CATALOG}
