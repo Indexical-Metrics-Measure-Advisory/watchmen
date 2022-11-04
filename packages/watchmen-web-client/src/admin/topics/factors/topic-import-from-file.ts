@@ -9,7 +9,7 @@ import {
 } from '@/services/data/tuples/factor-types';
 import {Topic, TopicType} from '@/services/data/tuples/topic-types';
 import {generateUuid, removeFakeIdPrefix} from '@/services/data/tuples/utils';
-import {parse as parseCSV} from 'csv-parse/dist/esm';
+import {parse as parseCSV} from 'csv-parse';
 import dayjs from 'dayjs';
 import {FactorPrecisions} from '../../topics/constants';
 import {createFactor, createTopic, isFactorCanBeFlatten} from '../utils';

@@ -30,7 +30,7 @@ const writeThemeProperty = (theme: Theme) => {
 		}
 	});
 };
-const GlobalStyle = createGlobalStyle<{ theme: Theme }>`
+const GlobalStyle: any = createGlobalStyle<{ theme: Theme }>`
 	*, *:before, *:after {
 		margin     : 0;
 		padding    : 0;
@@ -130,6 +130,7 @@ export const ThemeWrapper = () => {
 		};
 	}, [on, off]);
 
+	// @ts-ignore
 	return <ThemeProvider theme={theme}>
 		<GlobalStyle/>
 	</ThemeProvider>;

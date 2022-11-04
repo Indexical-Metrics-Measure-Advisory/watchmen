@@ -1,6 +1,6 @@
-import React, {useEffect, useState} from 'react';
+import React, {ReactNode, useEffect, useState} from 'react';
 import {Button} from '../basic/button';
-import {ButtonInk, ReactContent} from '../basic/types';
+import {ButtonInk} from '../basic/types';
 import {useEventBus} from '../events/event-bus';
 import {EventTypes} from '../events/types';
 import {Lang} from '../langs';
@@ -8,7 +8,7 @@ import {AlertBody, AlertContainer, AlertDialog, AlertFooter} from './widgets';
 
 interface AlertState {
 	visible: boolean;
-	content?: ReactContent;
+	content?: ReactNode;
 	onHide?: () => void;
 }
 
@@ -16,7 +16,7 @@ export const Alert = () => {
 	const {on, off, fire} = useEventBus();
 	const [alert, setAlert] = useState<AlertState>({visible: false});
 	useEffect(() => {
-		const show = (content?: ReactContent, onHide?: () => void) => {
+		const show = (content?: ReactNode, onHide?: () => void) => {
 			if (alert.visible) {
 				return;
 			}

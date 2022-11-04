@@ -1,6 +1,6 @@
 import {ReportFunnel, ReportFunnelType} from '@/services/data/tuples/report-types';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import React from 'react';
+import React, {ReactNode} from 'react';
 import {Button} from '../../basic/button';
 import {ICON_DELETE} from '../../basic/constants';
 import {DropdownOption} from '../../basic/types';
@@ -62,7 +62,7 @@ export const RangeEnumEditor = (props: { funnel: ReportFunnel, options: Array<Dr
 				// eslint-disable-next-line
 				const option = options.find(option => option.value == value);
 				return <EnumValue key={value}>
-					<span>{option?.label}</span>
+					<span>{option?.label as ReactNode}</span>
 					<Button onClick={onValueRemove(value!)}>
 						<FontAwesomeIcon icon={ICON_DELETE}/>
 					</Button>
