@@ -14,7 +14,8 @@ class ChangelogXml:
 		             'http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">\n'
 		self.end = '</databaseChangeLog>\n'
 		self.change_sets = []
-	
+
+	# noinspection PyMethodMayBeStatic
 	def generate_change_set(self, id_: str, path: str, dbms: str) -> str:
 		change_set = f'''
 \t<changeSet author="watchmen" id="{id_}" runOnChange="true">

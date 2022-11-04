@@ -4,10 +4,10 @@ from fastapi import APIRouter, Body, Depends
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
-from watchmen_data_kernel.system import get_current_version
+
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.console import ReportService, SubjectService
-from watchmen_meta.system import RecordOperationService
+
 from watchmen_model.admin import UserRole
 from watchmen_model.common import DataPage, Pageable, ReportId, TenantId
 from watchmen_model.console import Report, Subject
@@ -26,21 +26,6 @@ def get_report_service(principal_service: PrincipalService) -> ReportService:
 
 def get_subject_service(report_service: ReportService) -> SubjectService:
 	return SubjectService(report_service.storage, report_service.snowflakeGenerator, report_service.principalService)
-
-
-def get_operation_service(report_service: ReportService) -> RecordOperationService:
-	return RecordOperationService(report_service.storage, report_service.snowflakeGenerator,
-	                              report_service.principalService)
-
-
-def record_operation(report: Report, report_service: ReportService) -> None:
-	get_operation_service(report_service).record_operation("reports", report.reportId, report,
-	                                                       report_service,
-	                                                       get_current_version(report_service.principalService))
-
-
-def post_save_report(report: Report, report_service: ReportService) -> None:
-	record_operation(report, report_service)
 
 
 def ask_save_report_action(
@@ -83,7 +68,6 @@ def ask_save_report_action(
 
 			# noinspection PyTypeChecker
 			report: Report = report_service.update(report)
-		post_save_report(report, report_service)
 		return report
 
 	return action

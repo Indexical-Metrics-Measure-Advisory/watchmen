@@ -27,6 +27,9 @@ TENANT_ENTITY_SHAPER = TenantShaper()
 
 
 class TenantService(TupleService):
+	def should_record_operation(self) -> bool:
+		return False
+
 	def get_entity_name(self) -> str:
 		return TENANT_ENTITY_NAME
 

@@ -34,6 +34,9 @@ OBJECTIVE_ANALYSIS_ENTITY_SHAPER = ObjectiveAnalysisShaper()
 
 
 class ObjectiveAnalysisService(TupleService):
+	def should_record_operation(self) -> bool:
+		return False
+
 	def get_entity_name(self) -> str:
 		return OBJECTIVE_ANALYSIS_ENTITY_NAME
 

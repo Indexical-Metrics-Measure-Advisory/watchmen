@@ -45,6 +45,9 @@ INSPECTION_ENTITY_SHAPER = InspectionShaper()
 
 
 class InspectionService(TupleService):
+	def should_record_operation(self) -> bool:
+		return False
+
 	def get_entity_name(self) -> str:
 		return INSPECTION_ENTITY_NAME
 

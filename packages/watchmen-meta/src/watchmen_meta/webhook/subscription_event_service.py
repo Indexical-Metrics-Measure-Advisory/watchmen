@@ -46,6 +46,9 @@ SUBSCRIPTION_EVENTS_ENTITY_SHAPER = SubscriptionEventShaper()
 
 class SubscriptionEventService(TupleService):
 
+	def should_record_operation(self) -> bool:
+		return False
+
 	def get_storable_id_column_name(self) -> EntityName:
 		return "subscription_event_id"
 

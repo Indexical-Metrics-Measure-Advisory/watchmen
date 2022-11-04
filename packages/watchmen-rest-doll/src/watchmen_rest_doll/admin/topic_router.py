@@ -8,11 +8,10 @@ from watchmen_auth import PrincipalService
 from watchmen_data_kernel.cache import CacheService
 from watchmen_data_kernel.common import ask_all_date_formats
 from watchmen_data_kernel.service import sync_topic_structure_storage
-from watchmen_data_kernel.system import get_current_version
+
 from watchmen_meta.admin import FactorService, PipelineService, TopicService, TopicSnapshotSchedulerService
 from watchmen_meta.analysis import TopicIndexService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
-from watchmen_meta.system import RecordOperationService
 from watchmen_model.admin import Pipeline, Topic, TopicSnapshotScheduler, TopicType, UserRole
 from watchmen_model.common import DataPage, Pageable, TenantId, TopicId
 from watchmen_pipeline_kernel.topic_snapshot import as_snapshot_task_topic_name, create_snapshot_pipeline, \
@@ -39,15 +38,6 @@ def get_factor_service(topic_service: TopicService) -> FactorService:
 def get_topic_index_service(topic_service: TopicService) -> TopicIndexService:
 	return TopicIndexService(topic_service.storage, topic_service.snowflakeGenerator)
 
-
-def get_operation_service(topic_service: TopicService) -> RecordOperationService:
-	return RecordOperationService(topic_service.storage, topic_service.snowflakeGenerator, topic_service.principalService)
-
-
-def record_operation(topic: Topic, topic_service: TopicService) -> None:
-	get_operation_service(topic_service).record_operation("topics", topic.topicId, topic, topic_service,
-	                                                      get_current_version(topic_service.principalService))
-	
 
 def get_snapshot_scheduler_service(topic_service: TopicService) -> TopicSnapshotSchedulerService:
 	return TopicSnapshotSchedulerService(
@@ -91,7 +81,6 @@ def build_topic_index(topic: Topic, topic_service: TopicService) -> None:
 
 
 def post_save_topic(topic: Topic, topic_service: TopicService) -> None:
-	record_operation(topic, topic_service)
 	build_topic_index(topic, topic_service)
 	CacheService.topic().put(topic)
 

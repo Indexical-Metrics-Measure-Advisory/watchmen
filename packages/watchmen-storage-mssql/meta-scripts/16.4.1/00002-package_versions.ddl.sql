@@ -1,4 +1,4 @@
-CREATE TABLE versions
+CREATE TABLE package_versions
 (
     version_id           NVARCHAR(50) NOT NULL,
     previous_version     NVARCHAR(20) NOT NULL,

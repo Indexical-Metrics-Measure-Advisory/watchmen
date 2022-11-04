@@ -3,10 +3,8 @@ from typing import Callable, List, Optional
 from fastapi import APIRouter, Body, Depends
 
 from watchmen_auth import PrincipalService
-from watchmen_data_kernel.system import get_current_version
 from watchmen_meta.admin import SpaceService, TopicService, UserGroupService, UserService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
-from watchmen_meta.system import RecordOperationService
 from watchmen_model.admin import Space, User, UserGroup, UserRole
 from watchmen_model.common import DataPage, Pageable, SpaceId, TenantId, TopicId, UserGroupId
 from watchmen_rest import get_admin_principal, get_console_principal, get_super_admin_principal
@@ -149,21 +147,6 @@ def validate_topics(space_service: SpaceService, topic_ids: List[TopicId], tenan
 		raise_400('Topic ids do not match')
 
 
-def get_operation_service(space_service: SpaceService) -> RecordOperationService:
-	return RecordOperationService(space_service.storage, space_service.snowflakeGenerator,
-	                              space_service.principalService)
-
-
-def record_space_operation(space: Space, space_service: SpaceService) -> None:
-	get_operation_service(space_service).record_operation("spaces", space.spaceId, space,
-	                                                      space_service,
-	                                                      get_current_version(space_service.principalService))
-
-
-def post_save_space(space: Space, space_service: SpaceService) -> None:
-	record_space_operation(space, space_service)
-	
-
 # noinspection PyUnusedLocal
 def ask_save_space_action(space_service: SpaceService, principal_service: PrincipalService) -> Callable[[Space], Space]:
 	def action(space: Space) -> Space:
@@ -199,7 +182,6 @@ def ask_save_space_action(space_service: SpaceService, principal_service: Princi
 			remove_space_from_groups(space_service, space.spaceId, removed_user_group_ids, space.tenantId)
 			# synchronize space to user groups
 			sync_space_to_groups(space_service, space.spaceId, user_group_ids, space.tenantId)
-		post_save_space(space, space_service)
 		return space
 
 	return action

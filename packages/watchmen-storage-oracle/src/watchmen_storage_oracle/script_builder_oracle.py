@@ -15,7 +15,7 @@ oracle_versions = ['21c', '19c', '18c', '12c']
 
 class ScriptBuilderOracle(ScriptBuilder):
 	
-	def generate_insert_into_statement(self, table_name: str, data: dict) -> str:
+	def sql_insert(self, table_name: str, data: dict) -> str:
 		# noinspection PyTypeChecker
 		columns, values, clob_variables = ask_insert_or_update_statement(data)
 		script = f'''
@@ -27,7 +27,7 @@ end;\n
 '''
 		return script
 	
-	def generate_update_statement(self, table_name: str, primary_key: str, data: dict) -> str:
+	def sql_update(self, table_name: str, primary_key: str, data: dict) -> str:
 		# noinspection PyTypeChecker
 		columns, values, clob_variables = ask_insert_or_update_statement(data)
 		update_sets = []
@@ -44,16 +44,16 @@ end;\n
 '''
 		return script
 	
-	def generate_create_table_statement(self, topic: Topic) -> str:
+	def sql_create_table(self, topic: Topic) -> str:
 		return build_table_script(topic)
 	
-	def generate_alert_table_statement(self, topic: Topic, origin_topic: Topic) -> List[str]:
+	def sql_alert_table(self, topic: Topic, origin_topic: Topic) -> List[str]:
 		return build_columns_script(topic, origin_topic)
 	
-	def generate_unique_indexes_statement(self, topic: Topic) -> List[str]:
+	def sql_unique_indexes(self, topic: Topic) -> List[str]:
 		return build_unique_indexes_script(topic)
 	
-	def generate_index_statement(self, topic: Topic) -> List[str]:
+	def sql_index(self, topic: Topic) -> List[str]:
 		return build_indexes_script(topic)
 
 
