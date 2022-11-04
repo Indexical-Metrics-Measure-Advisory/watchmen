@@ -86,11 +86,13 @@ export const PageHeaderButton = (props: {
 	const {tooltip, ink, onClick, children, ...rest} = props;
 
 	return <PageHeaderBtn {...rest} ink={ink} onClick={onClick}>
-		<PageHeaderButtonTooltip>
-			{tooltip}
-		</PageHeaderButtonTooltip>
-		<PageHeaderButtonTooltipCaret icon={faCaretUp}/>
-		{children}
+		<>
+			<PageHeaderButtonTooltip>
+				{tooltip}
+			</PageHeaderButtonTooltip>
+			<PageHeaderButtonTooltipCaret icon={faCaretUp}/>
+			{children}
+		</>
 	</PageHeaderBtn>;
 };
 

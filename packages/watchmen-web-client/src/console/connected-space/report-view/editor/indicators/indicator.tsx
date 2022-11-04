@@ -14,7 +14,7 @@ import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {ChartHelper} from '@/widgets/report/chart-utils';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import React, {useEffect, useState} from 'react';
+import React, {ReactNode, useEffect, useState} from 'react';
 // noinspection ES6PreferShortImport
 import {useConsoleEventBus} from '../../../../console-event-bus';
 // noinspection ES6PreferShortImport
@@ -139,11 +139,11 @@ export const IndicatorEditor = (props: {
 	].filter(x => x) as Array<DropdownOption>;
 
 	const scriptOpened = isScriptOpenedInChartOrIrrelevant(connectedSpace, chart);
-	const buildLabel = () => {
+	const buildLabel = (): ReactNode => {
 		// eslint-disable-next-line
 		const columnLabel = indicatorOptions.find(option => option.value == columnId)?.label ?? '?';
 		if (arithmetic == null || arithmetic === ReportIndicatorArithmetic.NONE) {
-			return columnLabel;
+			return columnLabel as ReactNode;
 		} else {
 			const arithmeticLabel = arithmeticOptions.find(a => a.value === arithmetic)?.label;
 			return <>{arithmeticLabel}({columnLabel})</>;
@@ -167,8 +167,6 @@ export const IndicatorEditor = (props: {
 					</DeleteMeButton>
 				</DeleteMeContainer>
 			</>
-			: <IndicatorPropValue>
-				{buildLabel()}
-			</IndicatorPropValue>}
+			: <IndicatorPropValue>{buildLabel()}</IndicatorPropValue>}
 	</IndicatorContainer>;
 };

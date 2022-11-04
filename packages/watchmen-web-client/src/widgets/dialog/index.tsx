@@ -5,7 +5,7 @@ import {DialogContainer, DialogWrapper} from './widgets';
 
 interface DialogState {
 	visible: boolean;
-	content?: ((props: any) => ReactNode) | ReactNode;
+	content?: ReactNode;
 	wrapperStyle?: CSSProperties;
 }
 
@@ -13,7 +13,7 @@ export const Dialog = () => {
 	const {on, off} = useEventBus();
 	const [dialog, setDialog] = useState<DialogState>({visible: false});
 	const [functions] = useState({
-		show: (content?: ((props: any) => ReactNode) | ReactNode, wrapperStyle?: CSSProperties) => {
+		show: (content?: ReactNode, wrapperStyle?: CSSProperties) => {
 			if (dialog.visible) {
 				return;
 			}

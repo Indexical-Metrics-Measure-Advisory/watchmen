@@ -1,7 +1,5 @@
 import {DetailedHTMLProps, InputHTMLAttributes, ReactNode, SVGProps} from 'react';
 
-export type ReactContent = ((props: any) => ReactNode) | ReactNode;
-
 export enum TooltipAlignment {
 	LEFT = 'left',
 	RIGHT = 'right',
@@ -32,7 +30,7 @@ export enum ButtonInk {
 export type ButtonProps =
 	Omit<DetailedHTMLProps<InputHTMLAttributes<HTMLButtonElement>, HTMLButtonElement>, 'ref' | 'type'>
 	& {
-	children?: ReactContent;
+	children?: ReactNode;
 	ink?: ButtonInk;
 }
 

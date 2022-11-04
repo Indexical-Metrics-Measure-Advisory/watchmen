@@ -312,7 +312,7 @@ export const Dropdown = (props: DropdownProps) => {
 	}
 	const directFromLabel = (option: DropdownOption): DropdownOptionLabel => {
 		return {
-			node: option.label,
+			node: option.label as any,
 			label: option.label as string
 		};
 	};

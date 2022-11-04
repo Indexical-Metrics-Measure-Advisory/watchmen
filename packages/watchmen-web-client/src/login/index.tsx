@@ -85,7 +85,8 @@ const RegularLogin = () => {
 			} else {
 				window.location.replace(Router.CONSOLE);
 			}
-		} catch {
+		} catch (e) {
+			console.error(e);
 			setError(Lang.ERROR.UNPREDICTED);
 			setIng(false);
 		}
