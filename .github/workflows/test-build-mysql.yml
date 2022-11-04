@@ -3,6 +3,9 @@ name: Test Build Mysql
 on:
  schedule:
    - cron: "0 0 * * *"
+  push:
+    branches:
+      - 'bugfix/**'
 
 # on: workflow_dispatch
 
