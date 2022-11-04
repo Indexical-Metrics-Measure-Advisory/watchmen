@@ -22,8 +22,10 @@ const CLI = (props: {
 
 	return <CLIContainer>
 		<WorkingArea>
-			<Greeting>{greeting}</Greeting>
-			{executions}
+			<>
+				<Greeting>{greeting}</Greeting>
+				{executions}
+			</>
 		</WorkingArea>
 		<CommandArea>
 			<CommandLine>

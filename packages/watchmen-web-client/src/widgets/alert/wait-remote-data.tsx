@@ -1,5 +1,4 @@
-import React, {useEffect, useState} from 'react';
-import {ReactContent} from '../basic/types';
+import React, {ReactNode, useEffect, useState} from 'react';
 import {useEventBus} from '../events/event-bus';
 import {EventTypes} from '../events/types';
 import {AlertContainer, WaitRemoteDataBody, WaitRemoveDataDialog} from './widgets';
@@ -7,7 +6,7 @@ import {AlertContainer, WaitRemoteDataBody, WaitRemoveDataDialog} from './widget
 interface WaitRemoteDataState {
 	visible: boolean;
 	request?: () => Promise<any>;
-	content?: ReactContent;
+	content?: ReactNode;
 	onData?: (data: any) => void;
 }
 
@@ -15,7 +14,7 @@ export const WaitRemoteData = () => {
 	const {on, off, fire} = useEventBus();
 	const [waiter, setWaiter] = useState<WaitRemoteDataState>({visible: false});
 	const [functions] = useState({
-		show: (request: () => Promise<void>, content?: ReactContent, onData?: (data: any) => void) => {
+		show: (request: () => Promise<void>, content?: ReactNode, onData?: (data: any) => void) => {
 			if (waiter.visible) {
 				return;
 			}

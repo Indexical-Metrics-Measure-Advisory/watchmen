@@ -1,5 +1,5 @@
 import {CSSProperties, ReactNode} from 'react';
-import {ReactContent, TooltipAlignment, TooltipPosition} from '../basic/types';
+import {TooltipAlignment, TooltipPosition} from '../basic/types';
 import {LanguageObjectType} from '../langs/types';
 
 export enum EventTypes {
@@ -57,9 +57,9 @@ export interface EventBus {
 	off(type: EventTypes.LANGUAGE_CHANGED, listener: (lang: LanguageObjectType) => void): this;
 
 	// alert
-	fire(type: EventTypes.SHOW_ALERT, content?: ReactContent, onHide?: () => void): this;
-	on(type: EventTypes.SHOW_ALERT, listener: (content?: ReactContent, onHide?: () => void) => void): this;
-	off(type: EventTypes.SHOW_ALERT, listener: (content?: ReactContent, onHide?: () => void) => void): this;
+	fire(type: EventTypes.SHOW_ALERT, content?: ReactNode, onHide?: () => void): this;
+	on(type: EventTypes.SHOW_ALERT, listener: (content?: ReactNode, onHide?: () => void) => void): this;
+	off(type: EventTypes.SHOW_ALERT, listener: (content?: ReactNode, onHide?: () => void) => void): this;
 
 	fire(type: EventTypes.HIDE_ALERT): this;
 	on(type: EventTypes.HIDE_ALERT, listener: () => void): this;
@@ -69,9 +69,9 @@ export interface EventBus {
 	on(type: EventTypes.SHOW_NOT_IMPLEMENT, listener: (onHide?: () => void) => void): this;
 	off(type: EventTypes.SHOW_NOT_IMPLEMENT, listener: (onHide?: () => void) => void): this;
 
-	fire(type: EventTypes.SHOW_WAITING, request: () => Promise<void>, content?: ReactContent, onData?: (data: any) => void): this;
-	on(type: EventTypes.SHOW_WAITING, listener: (request: () => Promise<void>, content?: ReactContent, onData?: (data: any) => void) => void): this;
-	off(type: EventTypes.SHOW_WAITING, listener: (request: () => Promise<void>, content?: ReactContent, onData?: (data: any) => void) => void): this;
+	fire(type: EventTypes.SHOW_WAITING, request: () => Promise<void>, content?: ReactNode, onData?: (data: any) => void): this;
+	on(type: EventTypes.SHOW_WAITING, listener: (request: () => Promise<void>, content?: ReactNode, onData?: (data: any) => void) => void): this;
+	off(type: EventTypes.SHOW_WAITING, listener: (request: () => Promise<void>, content?: ReactNode, onData?: (data: any) => void) => void): this;
 
 	// tooltip
 	fire(type: EventTypes.SHOW_TOOLTIP, tooltip: TooltipParam): this;
@@ -83,9 +83,9 @@ export interface EventBus {
 	off(type: EventTypes.HIDE_TOOLTIP, listener: () => void): this;
 
 	// dialog
-	fire(type: EventTypes.SHOW_DIALOG, content?: ReactContent, wrapperStyle?: CSSProperties): this;
-	on(type: EventTypes.SHOW_DIALOG, listener: (content?: ReactContent, wrapperStyle?: CSSProperties) => void): this;
-	off(type: EventTypes.SHOW_DIALOG, listener: (content?: ReactContent, wrapperStyle?: CSSProperties) => void): this;
+	fire(type: EventTypes.SHOW_DIALOG, content?: ReactNode, wrapperStyle?: CSSProperties): this;
+	on(type: EventTypes.SHOW_DIALOG, listener: (content?: ReactNode, wrapperStyle?: CSSProperties) => void): this;
+	off(type: EventTypes.SHOW_DIALOG, listener: (content?: ReactNode, wrapperStyle?: CSSProperties) => void): this;
 
 	fire(type: EventTypes.HIDE_DIALOG): this;
 	on(type: EventTypes.HIDE_DIALOG, listener: () => void): this;

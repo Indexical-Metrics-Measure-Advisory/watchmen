@@ -1,3 +1,4 @@
+import {Buffer} from 'buffer/';
 import dayjs, {Dayjs} from 'dayjs';
 
 export const noop = () => (void 0);
