@@ -1,11 +1,16 @@
 from typing import List, Optional, Tuple
+from abc import abstractmethod
 
 from watchmen_auth import PrincipalService
 from watchmen_model.common import Auditable, OptimisticLock, TenantId, UserBasedTuple, UserId
+from watchmen_model.system import Operation, OperationType
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityRow, SnowflakeGenerator, \
 	TooManyEntitiesFoundException, TransactionalStorageSPI
 from .storage_service import EntityService, TupleId, TupleNotFoundException
 from .tuple_service import AuditableShaper, OptimisticLockShaper
+from .settings import ask_default_package_version
+from .operation_service import RecordOperationService
+from .package_version_service import PackageVersionService
 
 
 class UserBasedTupleShaper:
@@ -44,6 +49,7 @@ class UserBasedTupleService(EntityService):
 	def create(self, a_tuple: UserBasedTuple) -> UserBasedTuple:
 		self.try_to_prepare_auditable_on_create(a_tuple)
 		self.storage.insert_one(a_tuple, self.get_entity_helper())
+		self.record_operation(OperationType.CREATE, a_tuple)
 		return a_tuple
 
 	def update(self, a_tuple: UserBasedTuple) -> UserBasedTuple:
@@ -64,10 +70,13 @@ class UserBasedTupleService(EntityService):
 		if updated_count == 0:
 			self.try_to_recover_auditable_on_update(a_tuple, original_last_modified_at, original_last_modified_by)
 			raise TupleNotFoundException('Update 0 row might be caused by tuple not found.')
+		self.record_operation(OperationType.UPDATE, a_tuple)
 		return a_tuple
 
 	def delete(self, tuple_id: TupleId) -> Optional[UserBasedTuple]:
-		return self.storage.delete_by_id_and_pull(tuple_id, self.get_entity_id_helper())
+		a_tuple = self.storage.delete_by_id_and_pull(tuple_id, self.get_entity_id_helper())
+		self.record_operation(OperationType.DELETE, a_tuple)
+		return a_tuple
 
 	def find_by_id(self, tuple_id: TupleId) -> Optional[UserBasedTuple]:
 		return self.storage.find_one(self.get_entity_finder(
@@ -106,3 +115,35 @@ class UserBasedTupleService(EntityService):
 
 	def delete_by_id(self, tuple_id: TupleId) -> None:
 		self.storage.delete_by_id(tuple_id, self.get_entity_id_helper())
+
+	@abstractmethod
+	def should_record_operation(self) -> bool:
+		pass
+
+	def record_operation(self, operation_type: str, a_tuple: Optional[UserBasedTuple]):
+		if a_tuple and self.should_record_operation():
+			self.get_operation_service().record_operation(self.build_operation(operation_type, a_tuple))
+
+	def get_operation_service(self) -> RecordOperationService:
+		return RecordOperationService(self.storage, self.snowflakeGenerator, self.principalService)
+
+	def build_operation(self, operation_type: str, a_tuple: UserBasedTuple) -> Operation:
+		package_version = self.get_package_version_service().find_by_tenant(self.principalService.get_tenant_id())
+		if package_version:
+			current_version = package_version.currVersion
+		else:
+			current_version = ask_default_package_version()
+
+		return Operation(
+			recordId=str(self.snowflakeGenerator.next_id()),
+			operationType=operation_type,
+			tupleKey=self.get_storable_id_column_name(),
+			tupleType=self.get_entity_name(),
+			tupleId=self.get_storable_id(a_tuple),
+			content=self.get_entity_shaper().serialize(a_tuple),
+			versionNum=current_version,
+			tenantId=self.principalService.tenantId
+		)
+
+	def get_package_version_service(self) -> PackageVersionService:
+		return PackageVersionService(self.storage, self.snowflakeGenerator, self.principalService)

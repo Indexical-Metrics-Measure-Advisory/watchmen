@@ -46,3 +46,6 @@ class AchievementPluginTaskService(UserBasedTupleService):
 			self, storable: AchievementPluginTask, storable_id: AchievementPluginTaskId) -> AchievementPluginTask:
 		storable.achievementTaskId = storable_id
 		return storable
+
+	def should_record_operation(self) -> bool:
+		return False

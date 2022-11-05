@@ -5,7 +5,7 @@ from watchmen_model.common import Auditable, OptimisticLock, TenantBasedTuple, T
 from watchmen_model.system import Operation, OperationType
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityRow, OptimisticLockException, \
 	SnowflakeGenerator, TransactionalStorageSPI
-from . import ask_default_package_version
+from .settings import ask_default_package_version
 from .storage_service import EntityService, TupleId, TupleNotFoundException
 from .operation_service import RecordOperationService
 from .package_version_service import PackageVersionService
