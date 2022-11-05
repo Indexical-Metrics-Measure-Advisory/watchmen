@@ -13,7 +13,7 @@ python = "^3.9"
 passlib = "^1.7.4"
 bcrypt = "^3.2.0"
 python-multipart = "^0.0.5"
-watchmen-data-surface = "16.4.0"
+watchmen-data-surface = "16.4.1"
 watchmen-pipeline-surface = "16.4.0"
 watchmen-inquiry-surface = "16.4.0"
 watchmen-inquiry-trino = { version = "16.4.0", optional = true }
