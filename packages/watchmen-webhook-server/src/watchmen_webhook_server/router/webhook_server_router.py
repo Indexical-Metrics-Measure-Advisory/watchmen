@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends
@@ -11,10 +12,12 @@ from watchmen_meta.webhook.subscription_event_service import SubscriptionEventSe
 from watchmen_model.common.tuple_ids import SubscriptionEventId, NotificationDefinitionId
 from watchmen_model.webhook.notification_defination import NotificationDefinition
 from watchmen_model.webhook.subscription_event import SubscriptionEvent
+from watchmen_model.webhook.subscription_event_lock import SubscriptionEventLock, JobLockStatus
 from watchmen_rest import get_any_principal
 from watchmen_rest.util import validate_tenant_id
 from watchmen_webhook_server import NotifyService
 from watchmen_webhook_server.integration.index import find_notification_service
+from watchmen_webhook_server.utils.trans import trans
 
 router = APIRouter()
 
@@ -31,11 +34,28 @@ def get_subscription_event_lock_service(principal_service: PrincipalService) -> 
 	return SubscriptionEventLockService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
+def start_event_lock(subscription_event:SubscriptionEvent,principal_service: PrincipalService)->SubscriptionEventLock:
 
-def start_event_lock():
+	subscription_event_lock_service = get_subscription_event_lock_service(principal_service)
+
+	subscription_event_lock  = SubscriptionEventLock(
+		subscriptionEventLockId=subscription_event_lock_service.generate_storable_id(),
+		tenantId = principal_service.tenantId,
+		subscriptionEventId = subscription_event.subscriptionEventId,
+		processDate =  datetime.now(),
+		status =JobLockStatus.READY,
+		userId = principal_service.userId,
+		createdAt = datetime.now()
+	)
+	def create_lock_record():
+		return subscription_event_lock_service.create(subscription_event_lock)
+
+	return trans(subscription_event_lock_service,create_lock_record)
+
+
+
+def update_event_lock(subscription_event_lock: SubscriptionEventLock,principal_service: PrincipalService):
 	pass
-
-
 
 @router.get('/notify', tags=['webhook'])
 async def notify(subscription_event_id: SubscriptionEventId,
@@ -43,6 +63,8 @@ async def notify(subscription_event_id: SubscriptionEventId,
 	subscription_event_service: SubscriptionEventService = get_subscription_event_service(principal_service)
 	notification_definition_service: NotificationDefinitionService = get_notification_definition_service(
 		principal_service)
+
+
 
 	def load_subscription_event():
 		subscription_event: Optional[SubscriptionEvent] = subscription_event_service.find_by_id(subscription_event_id)
@@ -57,20 +79,21 @@ async def notify(subscription_event_id: SubscriptionEventId,
 
 	subscription_event: SubscriptionEvent = trans_readonly(subscription_event_service, load_subscription_event)
 
+	## start  lock table
+	start_event_lock(subscription_event)
 
-
-	notification:NotificationDefinition = trans_readonly(notification_definition_service,
-	                              lambda: load_notification(subscription_event.notificationId))
+	notification: NotificationDefinition = trans_readonly(notification_definition_service,
+	                                                      lambda: load_notification(subscription_event.notificationId))
 	notification_service: NotifyService = find_notification_service(notification.type)
 
 	try:
-		result = await  notification_service.notify(subscription_event, notification)
+		result = await notification_service.notify(subscription_event, notification)
 		if result:
 			pass
 		# TODO set lock table is successful
 		else:
 			pass
-		# TODO set lock table is failure
+	# TODO set lock table is failure
 
 	except:
 		# TODO set failure for lock table

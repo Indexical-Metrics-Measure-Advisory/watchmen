@@ -1,22 +1,55 @@
-from typing import Dict
+import json
+import traceback
+from typing import Dict, Optional
 
-from src.watchmen_indicator_surface.meta.indicator_router import get_user_service
+import requests
+
 from watchmen_auth import fake_super_admin, PrincipalService, fake_tenant_admin
+from watchmen_meta.admin import UserService
 from watchmen_model.admin import User
 from watchmen_model.common import UserId
-from watchmen_model.webhook.event_defination import EventDefinition
+from watchmen_model.webhook.event_defination import EventSource
 from watchmen_model.webhook.notification_defination import NotificationType, NotificationDefinition, NotificationParam
 from watchmen_model.webhook.subscription_event import SubscriptionEvent
 from watchmen_utilities import ArrayHelper
 from watchmen_webhook_server import NotifyService, build_data_Loader
-from wetchmen_webhook.api.webhook_service import load_event_definition_by_id, \
-	load_notification_by_id
+from watchmen_webhook_server.integration.notify_service import get_user_service
 
 
-def call_webhook_url(data, token, url):
-	# requests.post()
-	#TODO requests.post()
-	pass
+class WebUrlParams(object):
+	url: str = None
+	headers: Dict[str, str] = None
+
+
+class WebUrlData(object):
+	eventSource:EventSource
+	data:Dict = None
+
+def call_webhook_url(data, web_url_params: WebUrlParams) -> bool:
+	response = requests.post(url=web_url_params.url, data=json.dumps(data), headers=web_url_params.headers)
+	if response.status_code != 200:
+		raise Exception("call web url error {}".format(response.text))
+	else:
+		return True
+
+
+def build_web_url_params(notification_definition: NotificationDefinition):
+	web_url_params = WebUrlParams()
+
+	def convert_params(accumulator: Dict, element: NotificationParam):
+		accumulator[element.name] = element.value
+		return accumulator
+
+	params_dict = ArrayHelper(notification_definition.params).reduce(convert_params, {})
+
+	if "url" in params_dict:
+		web_url_params.url = params_dict["url"]
+		del params_dict['url']
+	else:
+		raise ValueError("url not provided in webhook params")
+
+	web_url_params.headers = params_dict
+	return web_url_params
 
 
 class WebUrlService(NotifyService):
@@ -24,44 +57,25 @@ class WebUrlService(NotifyService):
 	def support(self, notification_type: NotificationType) -> bool:
 		return NotificationType.WEB_URL == notification_type
 
-	def notify(self, subscription_event: SubscriptionEvent,notification_definition: NotificationDefinition) -> bool:
-		user_id: UserId = subscription_event.userId
+	def notify(self, subscription_event: SubscriptionEvent, notification_definition: NotificationDefinition) -> bool:
+		user_id: UserId = subscription_event.user
 
-		# start job status
+		try:
+			web_url_params: WebUrlParams = build_web_url_params(notification_definition)
 
-		notification_definition: NotificationDefinition = load_notification_by_id(subscription_event.notificationId)
-		event_definition: EventDefinition = load_event_definition_by_id(subscription_event.eventId)
+			principal_service: PrincipalService = fake_super_admin()
 
-		# get call back url in params
-		principal_service: PrincipalService = fake_super_admin()
+			user_service: UserService = get_user_service(principal_service)
+			user: Optional[User] = user_service.find_by_id(user_id)
+			tenant_principal_service: PrincipalService = fake_tenant_admin(user.tenantId, user.userId, user.name)
 
-		user_service = get_user_service(principal_service)
-		user: User = user_service.find_by_id(user_id)
+			subscription_event_data = build_data_Loader(subscription_event.eventSource).load_data_from_event_sources(
+				subscription_event.eventSource, subscription_event.sourceId,
+				tenant_principal_service)
 
-		def convert_params(accumulator: Dict, element: NotificationParam):
-			accumulator[element.name] = element.value
-			return accumulator
+			web_url_data:WebUrlData = WebUrlData(eventSource= subscription_event.eventSource,data=subscription_event_data)
+			return call_webhook_url(web_url_data, web_url_params)
+		except Exception as err:
+			print(traceback.format_exc())
+			return False
 
-		params_dict = ArrayHelper.reduce(convert_params, notification_definition.params, {})
-
-		if "url" in params_dict:
-			url = params_dict["url"]
-		else:
-			raise ValueError("url not provided in webhook params")
-		# get token in params_dict
-		token = params_dict.get("token", None)
-
-		data_loader = build_data_Loader(event_definition.eventSource)
-
-		tenant_principal_service: PrincipalService = fake_tenant_admin(user.tenantId, user.userId, user.name)
-
-		data = data_loader.load_data_from_event_sources(event_definition.eventSource, subscription_event.sourceId,
-		                                                tenant_principal_service)
-
-		# call back url
-		call_webhook_url(data, token, url)
-
-		# set success or failure for lock table
-
-
-		pass
