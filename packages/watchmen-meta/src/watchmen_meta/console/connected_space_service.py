@@ -49,6 +49,7 @@ class ConnectedSpaceService(UserBasedTupleService):
 	def get_entity_shaper(self) -> EntityShaper:
 		return CONNECTED_SPACE_ENTITY_SHAPER
 
+	# noinspection SpellCheckingInspection
 	def get_storable_id_column_name(self) -> str:
 		return 'connect_id'
 
@@ -58,6 +59,9 @@ class ConnectedSpaceService(UserBasedTupleService):
 	def set_storable_id(self, storable: ConnectedSpace, storable_id: ConnectedSpaceId) -> ConnectedSpace:
 		storable.connectId = storable_id
 		return storable
+
+	def should_record_operation(self) -> bool:
+		return False
 
 	def find_templates_by_ids(
 			self, connect_ids: List[ConnectedSpaceId], space_id: Optional[SpaceId], tenant_id: TenantId
