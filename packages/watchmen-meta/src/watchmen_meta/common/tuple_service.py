@@ -5,6 +5,7 @@ from watchmen_model.common import Auditable, OptimisticLock, TenantBasedTuple, T
 from watchmen_model.system import Operation, OperationType
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityRow, OptimisticLockException, \
 	SnowflakeGenerator, TransactionalStorageSPI
+from . import ask_default_package_version
 from .storage_service import EntityService, TupleId, TupleNotFoundException
 from .operation_service import RecordOperationService
 from .package_version_service import PackageVersionService
@@ -93,6 +94,12 @@ class TupleService(EntityService):
 		return RecordOperationService(self.storage, self.snowflakeGenerator, self.principalService)
 
 	def build_operation(self, operation_type: str, a_tuple: Tuple) -> Operation:
+		package_version = self.get_package_version_service().find_by_tenant(self.principalService.get_tenant_id())
+		if package_version:
+			current_version = package_version.currVersion
+		else:
+			current_version = ask_default_package_version()
+
 		return Operation(
 			recordId=str(self.snowflakeGenerator.next_id()),
 			operationType=operation_type,
@@ -100,7 +107,7 @@ class TupleService(EntityService):
 			tupleType=self.get_entity_name(),
 			tupleId=self.get_storable_id(a_tuple),
 			content=self.get_entity_shaper().serialize(a_tuple),
-			versionNum=self.get_package_version_service().find_by_tenant(self.principalService.get_tenant_id()).currVersion,
+			versionNum=current_version,
 			tenantId=self.principalService.tenantId
 		)
 
