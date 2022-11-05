@@ -11,7 +11,3 @@ def build_data_Loader(event_source:EventSource):
 	else:
 		raise Exception("Event source is not correct")
 
-
-def init_event_source_definitions():
-	# check event exists
-	print()
