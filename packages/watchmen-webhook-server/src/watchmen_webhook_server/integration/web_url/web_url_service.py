@@ -1,6 +1,6 @@
 from typing import Dict
 
-from src.watchmen_indicator_surface.meta.indicator_router import get_user_service
+from watchmen_indicator_surface.meta.indicator_router import get_user_service
 from watchmen_auth import fake_super_admin, PrincipalService, fake_tenant_admin
 from watchmen_model.admin import User
 from watchmen_model.common import UserId
