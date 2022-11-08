@@ -46,16 +46,16 @@ jobs:
 #        run: |
 #          poetry build
 #          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
-      - name: Package [watchmen-model] and publish to Pypi
-        working-directory: ./packages/watchmen-model
-        run: |
-          poetry build
-          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
-      - name: Package [watchmen-storage] and publish to Pypi
-        working-directory: ./packages/watchmen-storage
-        run: |
-          poetry build
-          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
+#      - name: Package [watchmen-model] and publish to Pypi
+#        working-directory: ./packages/watchmen-model
+#        run: |
+#          poetry build
+#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
+#      - name: Package [watchmen-storage] and publish to Pypi
+#        working-directory: ./packages/watchmen-storage
+#        run: |
+#          poetry build
+#          poetry publish -u '${{ secrets.PIP_USERNAME }}' -p '${{ secrets.PIP_PASSWORD }}'
       - name: Package [watchmen-storage-mongodb] and publish to Pypi
         working-directory: ./packages/watchmen-storage-mongodb
         run: |
