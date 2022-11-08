@@ -18,7 +18,7 @@ from watchmen_storage import as_table_name, ColumnNameLiteral, ComputedLiteral, 
 	EntityCriteriaOperator, EntityCriteriaStatement, EntitySortColumn, EntitySortMethod, FreeAggregateArithmetic, \
 	FreeAggregateColumn, FreeAggregatePager, FreeAggregator, FreeColumn, FreeFinder, FreeJoin, FreeJoinType, \
 	FreePager, Literal, NoCriteriaForUpdateException, NoFreeJoinException, UnexpectedStorageException, \
-	UnsupportedComputationException, UnsupportedCriteriaException
+	UnsupportedComputationException, UnsupportedCriteriaException, ask_datasource_name
 from watchmen_utilities import ArrayHelper, DateTimeConstants, is_blank, is_decimal, is_not_blank
 from .exception import InquiryTrinoException
 from .settings import ask_trino_auth_type, ask_trino_basic_auth, ask_trino_host, ask_trino_need_auth, ask_trino_user, \
@@ -119,7 +119,7 @@ class TrinoStorage(TrinoStorageSPI):
 					f'Data source not declared for topic'
 					f'[id={topic.topicId}, name={topic.name}, dataSourceId={data_source_id}]')
 
-		self.schemas.register(TrinoSchema(catalog=data_source.dataSourceCode, schema=data_source.name, topic=topic))
+		self.schemas.register(TrinoSchema(catalog=data_source.dataSourceCode, schema=ask_datasource_name(data_source), topic=topic))
 
 	@staticmethod
 	def auth() -> Authentication:
