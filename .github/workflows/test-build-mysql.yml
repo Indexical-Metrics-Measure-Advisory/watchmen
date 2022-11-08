@@ -5,7 +5,9 @@ on:
     - cron: "0 0 * * *"
   push:
     branches:
-      - 'bugfix/**'
+      - main
+    paths-ignore:
+      - 'packages/watchmen-test-postman/**'
 
 # on: workflow_dispatch
 

@@ -70,6 +70,9 @@ class SubjectService(UserBasedTupleService):
 		storable.subjectId = storable_id
 		return storable
 
+	def should_record_operation(self) -> bool:
+		return True
+
 	def find_by_name(self, name: str) -> Optional[Subject]:
 		return self.storage.find_one(self.get_entity_finder(
 			criteria=[

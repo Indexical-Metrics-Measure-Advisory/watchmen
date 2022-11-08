@@ -59,3 +59,6 @@ class ConnectedSpaceGraphicService(UserBasedTupleService):
 	def set_storable_id(self, storable: ConnectedSpaceGraphic, storable_id: ConnectedSpaceId) -> ConnectedSpaceGraphic:
 		storable.connectId = storable_id
 		return storable
+
+	def should_record_operation(self) -> bool:
+		return False

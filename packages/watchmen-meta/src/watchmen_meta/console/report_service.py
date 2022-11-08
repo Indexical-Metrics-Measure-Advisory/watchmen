@@ -95,6 +95,9 @@ class ReportService(UserBasedTupleService):
 		storable.reportId = storable_id
 		return storable
 
+	def should_record_operation(self) -> bool:
+		return True
+
 	def find_by_connect_id(self, connect_id: ConnectedSpaceId) -> List[Report]:
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(
