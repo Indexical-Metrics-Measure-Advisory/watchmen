@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from enum import Enum
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any, Callable
 
 from pydantic import BaseModel
 
@@ -27,18 +27,55 @@ AWS_SECRET_KEY = [HOST, PORT, USERNAME, PASSWORD, NAME, SECRET_TYPE, AWS_REGION_
 
 
 class SecretType(str, Enum):
-	AWS = 'aws',
-	ALIYUN = 'aliyun',
+	AWS = 'aws'
+	ALIYUN = 'aliyun'
 	AZURE = 'azure'
 
 
-class RdsConnectionInfo(BaseModel):
+class EngineParams(BaseModel):
 	host: str
 	port: str
 	username: str
 	password: str
 	name: str
-	params: List[DataSourceParam] = []
+	params: List[DataSourceParam] = None
+
+
+def redress_url(value: str) -> str:
+	if value is None:
+		return ''
+	else:
+		return value.strip()
+
+
+def use_secret(data_source_params: Optional[List[DataSourceParam]]) -> bool:
+	return ArrayHelper(data_source_params).find(lambda x: x.name == SECRET_TYPE and x.value is not None) is not None
+
+
+def ask_secret(data_source_params: Optional[List[DataSourceParam]]) -> Dict:
+	return build_secrets_manager(data_source_params).ask_secrets(
+		ArrayHelper(data_source_params).find(lambda x: x.name == SECRET_ID).value)
+
+
+def redress_engine_params(data_source: DataSource) -> EngineParams:
+	if use_secret(data_source.params):
+		secrets = ask_secret(data_source.params)
+		CONNECTION_INFO_KEY = [HOST, PORT, USERNAME, PASSWORD, NAME]
+		return EngineParams(
+			params=ArrayHelper(data_source.params).filter(lambda x: x.name not in AWS_SECRET_KEY).to_list(),
+			**ArrayHelper(data_source.params).filter(lambda x: x.name in CONNECTION_INFO_KEY).to_map(lambda x: x.name,
+			                                                                                         lambda x: secrets.get(x.value)))
+	else:
+		return EngineParams(host=data_source.host,
+		                    port=data_source.port,
+		                    username=data_source.username,
+		                    password=data_source.password,
+		                    name=data_source.name,
+		                    params=data_source.params)
+
+
+def ask_datasource_name(data_source: DataSource) -> str:
+	return redress_engine_params(data_source).name
 
 
 class DataSourceHelper:
@@ -54,22 +91,38 @@ class DataSourceHelper:
 	def acquire_topic_data_storage(self) -> TopicDataStorageSPI:
 		pass
 
-	# noinspection PyMethodMayBeStatic
-	def use_secret(self, data_source_params: Optional[List[DataSourceParam]]) -> bool:
-		return ArrayHelper(data_source_params).find(lambda x: x.name == SECRET_TYPE and x.value is not None) is not None
+	@staticmethod
+	@abstractmethod
+	def acquire_engine_by_url(url: str, params: Any) -> Any:
+		pass
 
-	# noinspection PyMethodMayBeStatic
-	def ask_secret(self, data_source_params: Optional[List[DataSourceParam]]) -> Dict:
-		return build_secrets_manager(data_source_params).ask_secrets(
-			ArrayHelper(data_source_params).find(lambda x: x.name == SECRET_ID).value)
+	@staticmethod
+	@abstractmethod
+	def acquire_engine_by_params(username: str, password: str, host: str, port: str, name: str,
+	                             data_source_params: Optional[List[DataSourceParam]],
+	                             params: Any) -> Any:
+		pass
 
-	def ask_config_from_secret_value(self, data_source_params: Optional[List[DataSourceParam]]) -> RdsConnectionInfo:
-		secrets = self.ask_secret(data_source_params)
-		CONNECTION_INFO_KEY = [HOST, PORT, USERNAME, PASSWORD, NAME]
-		return RdsConnectionInfo(params=ArrayHelper(data_source_params).filter(lambda x: x.name not in AWS_SECRET_KEY).to_list(),
-		                         **ArrayHelper(data_source_params)
-		                         .filter(lambda x: x.name in CONNECTION_INFO_KEY)
-		                         .to_map(lambda x: x.name, lambda x: secrets.get(x.value)))
+	def ask_acquire_engine_by_url(self) -> Callable[[str, List[Any]], Any]:
+		return self.acquire_engine_by_url
+
+	def ask_acquire_engine_by_params(self) -> Callable[[str, str, str, str, str, List[DataSourceParam], Any], Any]:
+		return self.acquire_engine_by_params
+
+	def acquire_engine(self, params: Any) -> Any:
+		data_source = self.dataSource
+		url = redress_url(data_source.url)
+		if len(url) != 0:
+			return self.ask_acquire_engine_by_url()(url, params)
+		else:
+			engine_params = redress_engine_params(data_source)
+			return self.ask_acquire_engine_by_params()(
+				engine_params.username, engine_params.password,
+				engine_params.host, engine_params.port,
+				engine_params.name,
+				engine_params.params,
+				params
+			)
 
 
 def build_secrets_manager(data_source_params: Optional[List[DataSourceParam]]) -> SecretsManger:
