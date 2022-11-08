@@ -373,7 +373,7 @@ tables: Dict[str, Table] = {
 	'achievements': table_achievements,
 	'objective_analysis': table_objective_analysis,
 	'achievement_plugin_tasks': table_achievement_plugin_tasks,
-	'collector_competitive_lock': table_oss_collector_competitive_lock,
+	'oss_collector_competitive_lock': table_oss_collector_competitive_lock,
 	'operations': table_operations,
 	'package_versions': table_package_versions
 
