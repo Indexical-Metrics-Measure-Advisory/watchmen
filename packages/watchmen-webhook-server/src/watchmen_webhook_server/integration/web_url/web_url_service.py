@@ -1,8 +1,9 @@
 import json
-import traceback
+from logging import getLogger
 from typing import Dict, Optional
 
 import requests
+from pydantic import BaseModel
 
 from watchmen_auth import fake_super_admin, PrincipalService, fake_tenant_admin
 from watchmen_meta.admin import UserService
@@ -15,15 +16,18 @@ from watchmen_utilities import ArrayHelper
 from watchmen_webhook_server import NotifyService, build_data_Loader
 from watchmen_webhook_server.integration.notify_service import get_user_service
 
+logger = getLogger(__name__)
 
-class WebUrlParams(object):
+
+class WebUrlParams(BaseModel):
 	url: str = None
 	headers: Dict[str, str] = None
 
 
-class WebUrlData(object):
-	eventSource:EventSource
-	data:Dict = None
+class WebUrlData(BaseModel):
+	eventSource: EventSource
+	data: Dict = None
+
 
 def call_webhook_url(data, web_url_params: WebUrlParams) -> bool:
 	response = requests.post(url=web_url_params.url, data=json.dumps(data), headers=web_url_params.headers)
@@ -62,9 +66,7 @@ class WebUrlService(NotifyService):
 
 		try:
 			web_url_params: WebUrlParams = build_web_url_params(notification_definition)
-
 			principal_service: PrincipalService = fake_super_admin()
-
 			user_service: UserService = get_user_service(principal_service)
 			user: Optional[User] = user_service.find_by_id(user_id)
 			tenant_principal_service: PrincipalService = fake_tenant_admin(user.tenantId, user.userId, user.name)
@@ -73,9 +75,9 @@ class WebUrlService(NotifyService):
 				subscription_event.eventSource, subscription_event.sourceId,
 				tenant_principal_service)
 
-			web_url_data:WebUrlData = WebUrlData(eventSource= subscription_event.eventSource,data=subscription_event_data)
+			web_url_data: WebUrlData = WebUrlData(eventSource=subscription_event.eventSource,
+			                                      data=subscription_event_data)
 			return call_webhook_url(web_url_data, web_url_params)
 		except Exception as err:
-			print(traceback.format_exc())
+			logger.error(err)
 			return False
-

@@ -1,4 +1,5 @@
 from datetime import datetime
+from logging import getLogger
 from typing import Optional
 
 from fastapi import APIRouter, Depends
@@ -21,6 +22,8 @@ from watchmen_webhook_server.utils.trans import trans
 
 router = APIRouter()
 
+logger = getLogger(__name__)
+
 
 def get_notification_definition_service(principal_service: PrincipalService) -> NotificationDefinitionService:
 	return NotificationDefinitionService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
@@ -34,28 +37,36 @@ def get_subscription_event_lock_service(principal_service: PrincipalService) -> 
 	return SubscriptionEventLockService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-def start_event_lock(subscription_event:SubscriptionEvent,principal_service: PrincipalService)->SubscriptionEventLock:
-
+def start_event_lock(subscription_event: SubscriptionEvent,
+                     principal_service: PrincipalService) -> SubscriptionEventLock:
 	subscription_event_lock_service = get_subscription_event_lock_service(principal_service)
 
-	subscription_event_lock  = SubscriptionEventLock(
+	subscription_event_lock = SubscriptionEventLock(
 		subscriptionEventLockId=subscription_event_lock_service.generate_storable_id(),
-		tenantId = principal_service.tenantId,
-		subscriptionEventId = subscription_event.subscriptionEventId,
-		processDate =  datetime.now(),
-		status =JobLockStatus.READY,
-		userId = principal_service.userId,
-		createdAt = datetime.now()
+		tenantId=principal_service.tenantId,
+		subscriptionEventId=subscription_event.subscriptionEventId,
+		processDate=datetime.now(),
+		status=JobLockStatus.READY,
+		userId=principal_service.userId,
+		createdAt=datetime.now()
 	)
+
 	def create_lock_record():
 		return subscription_event_lock_service.create(subscription_event_lock)
 
-	return trans(subscription_event_lock_service,create_lock_record)
+	return trans(subscription_event_lock_service, create_lock_record)
 
 
+def update_event_lock(subscription_event_lock: SubscriptionEventLock, status: JobLockStatus,
+                      principal_service: PrincipalService):
+	subscription_event_lock_service = get_subscription_event_lock_service(principal_service)
+	subscription_event_lock.status = status
 
-def update_event_lock(subscription_event_lock: SubscriptionEventLock,principal_service: PrincipalService):
-	pass
+	def update_lock_record():
+		return subscription_event_lock_service.update(subscription_event_lock)
+
+	return trans(subscription_event_lock_service, update_lock_record)
+
 
 @router.get('/notify', tags=['webhook'])
 async def notify(subscription_event_id: SubscriptionEventId,
@@ -63,8 +74,6 @@ async def notify(subscription_event_id: SubscriptionEventId,
 	subscription_event_service: SubscriptionEventService = get_subscription_event_service(principal_service)
 	notification_definition_service: NotificationDefinitionService = get_notification_definition_service(
 		principal_service)
-
-
 
 	def load_subscription_event():
 		subscription_event: Optional[SubscriptionEvent] = subscription_event_service.find_by_id(subscription_event_id)
@@ -79,8 +88,9 @@ async def notify(subscription_event_id: SubscriptionEventId,
 
 	subscription_event: SubscriptionEvent = trans_readonly(subscription_event_service, load_subscription_event)
 
-	## start  lock table
-	start_event_lock(subscription_event)
+	# start  lock table
+	subscription_event_lock: SubscriptionEventLock = start_event_lock(subscription_event,
+	                                                                  subscription_event_service.principalService)
 
 	notification: NotificationDefinition = trans_readonly(notification_definition_service,
 	                                                      lambda: load_notification(subscription_event.notificationId))
@@ -89,13 +99,11 @@ async def notify(subscription_event_id: SubscriptionEventId,
 	try:
 		result = await notification_service.notify(subscription_event, notification)
 		if result:
-			pass
-		# TODO set lock table is successful
+			update_event_lock(subscription_event_lock, JobLockStatus.SUCCESS,
+			                  subscription_event_service.principalService)
 		else:
-			pass
-	# TODO set lock table is failure
-
+			update_event_lock(subscription_event_lock, JobLockStatus.FAILED,
+			                  subscription_event_service.principalService)
 	except:
-		# TODO set failure for lock table
-
-		pass
+		logger.error("webhook notification error ",exc_info=True, stack_info=True)
+		update_event_lock(subscription_event_lock, JobLockStatus.FAILED, subscription_event_service.principalService)

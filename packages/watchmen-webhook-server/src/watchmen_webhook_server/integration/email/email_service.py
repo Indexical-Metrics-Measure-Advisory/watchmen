@@ -1,9 +1,9 @@
 import smtplib
-import traceback
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formatdate
+from logging import getLogger
 from typing import List
 
 from pydantic import BaseModel
@@ -17,7 +17,7 @@ from watchmen_webhook_server.integration.utils.screen_shot_builder import screen
 #
 #
 COMMASPACE = ', '
-
+logger = getLogger(__name__)
 
 
 class EmailConfiguration(BaseModel):
@@ -80,5 +80,5 @@ class EmailService(NotifyService):
 			send_email_smtp(email_configuration, content, client, pdf)
 			return True
 		except Exception as err:
-			print(traceback.format_exc())
+			logger.error(err, exc_info=True, stack_info=True)
 			return False
