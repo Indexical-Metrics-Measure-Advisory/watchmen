@@ -10,8 +10,8 @@ CREATE TABLE package_versions
     last_modified_by     NVARCHAR(50) NOT NULL,
     CONSTRAINT pk_versions PRIMARY KEY (version_id)
 );
-CREATE INDEX i_operations_1 ON operations (tenant_id);
-CREATE INDEX i_operations_2 ON operations (created_at);
-CREATE INDEX i_operations_3 ON operations (created_by);
-CREATE INDEX i_operations_4 ON operations (last_modified_at);
-CREATE INDEX i_operations_5 ON operations (last_modified_by);
+CREATE INDEX i_package_versions_1 ON package_versions (tenant_id);
+CREATE INDEX i_package_versions_2 ON package_versions (created_at);
+CREATE INDEX i_package_versions_3 ON package_versions (created_by);
+CREATE INDEX i_package_versions_4 ON package_versions (last_modified_at);
+CREATE INDEX i_package_versions_5 ON package_versions (last_modified_by);

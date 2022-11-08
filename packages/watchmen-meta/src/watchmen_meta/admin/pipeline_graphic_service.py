@@ -67,6 +67,9 @@ class PipelineGraphicService(UserBasedTupleService):
 		storable.pipelineGraphId = storable_id
 		return storable
 
+	def should_record_operation(self) -> bool:
+		return False
+
 	# noinspection DuplicatedCode
 	def find_modified_after(
 			self, last_modified_at: datetime, user_id: Optional[UserId], tenant_id: Optional[TenantId]

@@ -73,6 +73,9 @@ class DashboardService(UserBasedTupleService):
 		storable.dashboardId = storable_id
 		return storable
 
+	def should_record_operation(self) -> bool:
+		return False
+
 	# noinspection DuplicatedCode
 	def update_name(self, dashboard_id: DashboardId, name: str, user_id: UserId, tenant_id: TenantId) -> datetime:
 		"""
