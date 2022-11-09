@@ -9,13 +9,13 @@ from watchmen_storage import DataSourceHelper
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank, serialize_to_json
 from .storage_mysql import StorageMySQL, TopicDataStorageMySQL
 
-
+"""
 def redress_url(value: str) -> str:
 	if value is None:
 		return ''
 	else:
 		return value.strip()
-
+"""
 
 def redress_url_by_pymysql(url: str) -> str:
 	if url.startswith('mysql://'):
@@ -34,6 +34,7 @@ class MySQLDataSourceHelper(DataSourceHelper):
 		super().__init__(data_source)
 		self.engine = self.acquire_engine(params)
 
+	"""
 	def acquire_engine(self, params: MySQLDataSourceParams) -> Engine:
 		data_source = self.dataSource
 		url = redress_url(data_source.url)
@@ -57,6 +58,7 @@ class MySQLDataSourceHelper(DataSourceHelper):
 					data_source.params,
 					params
 				)
+	"""
 
 	@staticmethod
 	def acquire_engine_by_url(url: str, params: MySQLDataSourceParams) -> Engine:

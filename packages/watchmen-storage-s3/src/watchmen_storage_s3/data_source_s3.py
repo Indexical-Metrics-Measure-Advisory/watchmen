@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Any
 
 from watchmen_model.common import DataModel
 from watchmen_model.system import DataSource, DataSourceParam
@@ -13,6 +13,7 @@ class S3DataSourceParams(DataModel):
 
 
 class S3DataSourceHelper(DataSourceHelper):
+
 	def __init__(self, data_source: DataSource, params: S3DataSourceParams = S3DataSourceParams()):
 		super().__init__(data_source)
 		self.engine = self.acquire_engine(params)
@@ -28,10 +29,14 @@ class S3DataSourceHelper(DataSourceHelper):
 			params
 		)
 
+	@staticmethod
+	def acquire_engine_by_url(url: str, params: S3DataSourceParams) -> SimpleStorageService:
+		raise NotImplementedError("s3 data source is not support url configuration")
+
 	# noinspection PyUnusedLocal
 	@staticmethod
 	def acquire_engine_by_params(
-			username: str, password: str, host: str, name: str, data_source_params: Optional[List[DataSourceParam]],
+			username: str, password: str, host: str, port: str, name: str, data_source_params: Optional[List[DataSourceParam]],
 			params: S3DataSourceParams
 	) -> SimpleStorageService:
 		
