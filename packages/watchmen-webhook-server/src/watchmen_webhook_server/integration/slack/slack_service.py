@@ -1,0 +1,85 @@
+from logging import getLogger
+from typing import List
+
+import requests
+from pydantic import BaseModel
+
+from watchmen_model.webhook.notification_defination import NotificationDefinition, NotificationType, NotificationParam
+from watchmen_model.webhook.subscription_event import SubscriptionEvent
+from watchmen_webhook_server import NotifyService
+from watchmen_webhook_server.integration.utils.screen_shot_builder import screenshot_page
+
+FILE_UPLOAD = "files.upload"
+
+logger = getLogger(__name__)
+
+class SlackConfiguration(BaseModel):
+	channelId: str = None
+	host: str = "https://slack.com/api/"
+	token: str = "xoxb-4039028070406-4337964006051-j7HzHJ2Lzl2Y6S5a08nD3dr2"
+
+
+def get_slack_configuration(params: List[NotificationParam]):
+	slack_configuration = SlackConfiguration()
+	return slack_configuration
+
+
+class SlackService(NotifyService):
+
+	async def upload_image_and_send(self, image, slack_configuration: SlackConfiguration) -> bool:
+		upload_image_url = slack_configuration.host + FILE_UPLOAD
+		token = slack_configuration.token
+		file_upload = {
+			"file": ("indicator.png",
+			         image, 'png')
+		}
+
+		payload = {
+			"channels": "C041BK5J0HY",
+			"title":"Daily Subscription metric"
+		}
+
+		try:
+			resp = requests.post(
+				url=upload_image_url,
+				headers={'Authorization': "Bearer " + token},
+				files=file_upload,
+				data=payload,
+				stream=True)
+
+		except Exception as e:
+			logger.error(e, exc_info=True, stack_info=True)
+
+		slack_result = resp.json()
+		if "ok" in slack_result:
+			if "true" == slack_result["ok"]:
+				return True
+			else:
+				return False
+		else:
+			return False
+
+
+
+		# upload_image_result = resp.json()
+		# if "image_key" in upload_image_result["data"]:
+		# 	return upload_image_result["data"]["image_key"]
+		# else:
+		# 	raise Exception("upload_image is failed")
+		# pass
+
+	async def send_message_card(self, image_key, slack_configuration: SlackConfiguration) -> bool:
+		pass
+
+	def support(self, notification_type: NotificationType):
+		return notification_type == NotificationType.SLACK
+
+	async def notify(self, subscription_event: SubscriptionEvent,
+	                 notification_definition: NotificationDefinition) -> bool:
+
+		slack_configuration = get_slack_configuration(notification_definition.params)
+
+		image = await screenshot_page(subscription_event.sourceId, subscription_event.eventSource)
+
+		return await self.upload_image_and_send(image, slack_configuration)
+

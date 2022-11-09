@@ -12,7 +12,7 @@ from watchmen_model.webhook.notification_defination import NotificationType, Not
 from watchmen_model.webhook.subscription_event import SubscriptionEvent
 from watchmen_webhook_server import NotifyService
 from watchmen_webhook_server.integration.utils.html_body_builder import build_body
-from watchmen_webhook_server.integration.utils.screen_shot_builder import screenshot_to_pdf
+from watchmen_webhook_server.integration.utils.screen_shot_builder import screenshot_page
 
 #
 #
@@ -76,8 +76,8 @@ class EmailService(NotifyService):
 			email_configuration: EmailConfiguration = build_email_configuration(notification_definition.params)
 			client = build_smtp_connection(email_configuration)
 			content = build_body(subscription_event.sourceId, subscription_event.eventSource)
-			pdf = await screenshot_to_pdf(subscription_event.sourceId, subscription_event.eventSource)
-			send_email_smtp(email_configuration, content, client, pdf)
+			image = await screenshot_page(subscription_event.sourceId, subscription_event.eventSource)
+			send_email_smtp(email_configuration, content, client, image)
 			return True
 		except Exception as err:
 			logger.error(err, exc_info=True, stack_info=True)
