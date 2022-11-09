@@ -79,5 +79,5 @@ class WebUrlService(NotifyService):
 			                                      data=subscription_event_data)
 			return call_webhook_url(web_url_data, web_url_params)
 		except Exception as err:
-			logger.error(err)
+			logger.error(err,stack_info=True)
 			return False

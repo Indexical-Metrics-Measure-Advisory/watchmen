@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from watchmen_model.webhook.notification_defination import NotificationType, NotificationDefinition, NotificationParam
 from watchmen_model.webhook.subscription_event import SubscriptionEvent
 from watchmen_webhook_server import NotifyService
-from watchmen_webhook_server.integration.utils.screen_shot_builder import screenshot_to_pdf
+from watchmen_webhook_server.integration.utils.screen_shot_builder import screenshot_page
 
 SEND_MESSAGE = "message/v4/send/"
 
@@ -108,7 +108,6 @@ class FeishuService(NotifyService):
 		}
 
 		payload = {
-
 			"msg_type": "interactive",
 			"card": {
 				"elements": [
@@ -151,9 +150,12 @@ class FeishuService(NotifyService):
 		## validation configuration
 		feishu_configuration = get_feishu_configuration(notification_definition.params)
 
-		## generate pdf
-		pdf = await screenshot_to_pdf(subscription_event.sourceId, subscription_event.eventSource)
+		## generate image
+		image = await screenshot_page(subscription_event.sourceId, subscription_event.eventSource)
 		## upload image
-		image_key = await self.upload_image(pdf, feishu_configuration)
+		image_key = await self.upload_image(image, feishu_configuration)
 		## send message card
 		return await self.send_message_card(image_key, feishu_configuration)
+
+
+

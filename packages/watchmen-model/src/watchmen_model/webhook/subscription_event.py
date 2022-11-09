@@ -31,3 +31,5 @@ class SubscriptionEvent(TenantBasedTuple, OptimisticLock, BaseModel):
 	enabled: bool = True
 	status:bool = None
 	frequency: TopicSnapshotFrequency = TopicSnapshotFrequency.DAILY
+
+	# TODO exception case monitor
