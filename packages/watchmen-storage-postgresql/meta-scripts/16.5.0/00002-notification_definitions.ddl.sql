@@ -9,7 +9,7 @@ CREATE TABLE notification_definitions
     created_by       VARCHAR(50) NOT NULL,
     last_modified_at TIMESTAMP    NOT NULL,
     last_modified_by VARCHAR(50) NOT NULL,
-    version          DECIMAL(20)
+    version          DECIMAL(20),
     CONSTRAINT pk_notification_definitions PRIMARY KEY (notification_id)
 );
 
