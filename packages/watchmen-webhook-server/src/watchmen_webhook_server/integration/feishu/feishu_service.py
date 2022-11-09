@@ -53,7 +53,6 @@ def get_feishu_configuration(params: List[NotificationParam]) -> FeishuConfig:
 	else:
 		raise Exception("Invalid feishu configuration")
 
-	pass
 
 
 class FeishuService(NotifyService):
