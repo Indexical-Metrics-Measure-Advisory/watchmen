@@ -1,5 +1,7 @@
+from typing import Optional, List
+
 from watchmen_model.common import DataModel
-from watchmen_model.system import DataSource
+from watchmen_model.system import DataSource, DataSourceParam
 from watchmen_storage import DataSourceHelper
 from .engine_mongo import MongoEngine
 from .storage_mongo import StorageMongoDB, TopicDataStorageMongoDB
@@ -42,7 +44,7 @@ class MongoDataSourceHelper(DataSourceHelper):
 
 	@staticmethod
 	def acquire_engine_by_params(
-			username: str, password: str, host: str, port: str, name: str,
+			username: str, password: str, host: str, port: str, name: str, data_source_params: Optional[List[DataSourceParam]],
 			params: MongoDataSourceParams
 	) -> MongoEngine:
 		url = f'mongodb://{username}:{password}@{host}:{port}/{name}'
