@@ -13,15 +13,23 @@ FILE_UPLOAD = "files.upload"
 
 logger = getLogger(__name__)
 
+
 class SlackConfiguration(BaseModel):
 	channelId: str = None
 	host: str = "https://slack.com/api/"
-	token: str = "xoxb-4039028070406-4337964006051-j7HzHJ2Lzl2Y6S5a08nD3dr2"
+	token: str = None
 
 
 def get_slack_configuration(params: List[NotificationParam]):
-	slack_configuration = SlackConfiguration()
-	return slack_configuration
+	if params is not None:
+		params_dict = {notify.name: notify.value for notify in params}
+		slack_configuration = SlackConfiguration()
+		slack_configuration.host = params_dict["host"]
+		slack_configuration.token = params_dict["token"]
+		slack_configuration.channelId = params_dict["channel"]
+		return slack_configuration
+	else:
+		raise Exception("Invalid slack configuration")
 
 
 class SlackService(NotifyService):
@@ -36,7 +44,7 @@ class SlackService(NotifyService):
 
 		payload = {
 			"channels": "C041BK5J0HY",
-			"title":"Daily Subscription metric"
+			"title": "Daily Subscription metric"
 		}
 
 		try:
@@ -51,6 +59,7 @@ class SlackService(NotifyService):
 			logger.error(e, exc_info=True, stack_info=True)
 
 		slack_result = resp.json()
+		print(slack_result)
 		if "ok" in slack_result:
 			if "true" == slack_result["ok"]:
 				return True
@@ -59,14 +68,12 @@ class SlackService(NotifyService):
 		else:
 			return False
 
-
-
-		# upload_image_result = resp.json()
-		# if "image_key" in upload_image_result["data"]:
-		# 	return upload_image_result["data"]["image_key"]
-		# else:
-		# 	raise Exception("upload_image is failed")
-		# pass
+	# upload_image_result = resp.json()
+	# if "image_key" in upload_image_result["data"]:
+	# 	return upload_image_result["data"]["image_key"]
+	# else:
+	# 	raise Exception("upload_image is failed")
+	# pass
 
 	async def send_message_card(self, image_key, slack_configuration: SlackConfiguration) -> bool:
 		pass
@@ -82,4 +89,3 @@ class SlackService(NotifyService):
 		image = await screenshot_page(subscription_event.sourceId, subscription_event.eventSource)
 
 		return await self.upload_image_and_send(image, slack_configuration)
-
