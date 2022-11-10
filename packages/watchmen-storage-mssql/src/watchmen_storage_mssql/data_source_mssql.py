@@ -10,13 +10,6 @@ from watchmen_utilities import is_not_blank, serialize_to_json
 from .storage_mssql import StorageMSSQL, TopicDataStorageMSSQL
 
 
-def redress_url(value: str) -> str:
-	if value is None:
-		return ''
-	else:
-		return value.strip()
-
-
 def redress_url_by_mssql(url: str) -> str:
 	if url.startswith('mssql://'):
 		return url.replace('mssql://', 'mssql+pyodbc://')
@@ -34,20 +27,6 @@ class MSSQLDataSourceHelper(DataSourceHelper):
 	def __init__(self, data_source: DataSource, params: MSSQLDataSourceParams = MSSQLDataSourceParams()):
 		super().__init__(data_source)
 		self.engine = self.acquire_engine(params)
-
-	def acquire_engine(self, params: MSSQLDataSourceParams) -> Engine:
-		data_source = self.dataSource
-		url = redress_url(data_source.url)
-		if len(url) != 0:
-			return MSSQLDataSourceHelper.acquire_engine_by_url(url, params)
-		else:
-			return MSSQLDataSourceHelper.acquire_engine_by_params(
-				data_source.username, data_source.password,
-				data_source.host, data_source.port,
-				data_source.name,
-				data_source.params,
-				params
-			)
 
 	@staticmethod
 	def acquire_engine_by_url(url: str, params: MSSQLDataSourceParams) -> Engine:
