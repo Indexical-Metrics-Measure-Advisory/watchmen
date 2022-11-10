@@ -11,8 +11,9 @@ CREATE TABLE subscription_event_locks
 
 );
 
-CREATE INDEX i_subscription_event_locks_1 ON notification_definitions (tenant_id);
-CREATE INDEX i_subscription_event_locks_2 ON notification_definitions (user_id);
-CREATE INDEX i_subscription_event_locks_3 ON notification_definitions (created_at);
-CREATE INDEX i_subscription_event_locks_4 ON notification_definitions (subscription_event_id);
-CREATE INDEX i_subscription_event_locks_5 ON notification_definitions (process_date);
+CREATE INDEX i_subscription_event_locks_1 ON subscription_event_locks (tenant_id);
+CREATE INDEX i_subscription_event_locks_2 ON subscription_event_locks (user_id);
+CREATE INDEX i_subscription_event_locks_3 ON subscription_event_locks (created_at);
+CREATE INDEX i_subscription_event_locks_4 ON subscription_event_locks (status);
+CREATE INDEX i_subscription_event_locks_5 ON subscription_event_locks (subscription_event_id);
+CREATE INDEX i_subscription_event_locks_6 ON subscription_event_locks (process_date);
