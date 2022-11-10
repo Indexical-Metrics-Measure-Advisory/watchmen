@@ -9,13 +9,6 @@ from watchmen_storage import DataSourceHelper
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank, serialize_to_json
 from .storage_mysql import StorageMySQL, TopicDataStorageMySQL
 
-"""
-def redress_url(value: str) -> str:
-	if value is None:
-		return ''
-	else:
-		return value.strip()
-"""
 
 def redress_url_by_pymysql(url: str) -> str:
 	if url.startswith('mysql://'):
@@ -33,32 +26,6 @@ class MySQLDataSourceHelper(DataSourceHelper):
 	def __init__(self, data_source: DataSource, params: MySQLDataSourceParams = MySQLDataSourceParams()):
 		super().__init__(data_source)
 		self.engine = self.acquire_engine(params)
-
-	"""
-	def acquire_engine(self, params: MySQLDataSourceParams) -> Engine:
-		data_source = self.dataSource
-		url = redress_url(data_source.url)
-		if len(url) != 0:
-			return MySQLDataSourceHelper.acquire_engine_by_url(url, params)
-		else:
-			if self.use_secret(data_source.params):
-				connection_info = self.ask_config_from_secret_value(data_source.params)
-				return MySQLDataSourceHelper.acquire_engine_by_params(
-					connection_info.username, connection_info.password,
-					connection_info.host, connection_info.port,
-					connection_info.name,
-					connection_info.params,
-					params
-				)
-			else:
-				return MySQLDataSourceHelper.acquire_engine_by_params(
-					data_source.username, data_source.password,
-					data_source.host, data_source.port,
-					data_source.name,
-					data_source.params,
-					params
-				)
-	"""
 
 	@staticmethod
 	def acquire_engine_by_url(url: str, params: MySQLDataSourceParams) -> Engine:

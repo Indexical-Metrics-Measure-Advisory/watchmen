@@ -10,13 +10,6 @@ from watchmen_utilities import ArrayHelper, is_blank, is_not_blank, serialize_to
 from .storage_postgresql import StoragePostgreSQL, TopicDataStoragePostgreSQL
 
 
-def redress_url(value: str) -> str:
-	if value is None:
-		return ''
-	else:
-		return value.strip()
-
-
 def redress_url_by_psycopg2(url: str) -> str:
 	if url.startswith('postgresql://'):
 		return url.replace('postgresql://', 'postgresql+psycopg2://')
@@ -33,20 +26,6 @@ class PostgreSQLDataSourceHelper(DataSourceHelper):
 	def __init__(self, data_source: DataSource, params: PostgreSQLDataSourceParams = PostgreSQLDataSourceParams()):
 		super().__init__(data_source)
 		self.engine = self.acquire_engine(params)
-
-	def acquire_engine(self, params: PostgreSQLDataSourceParams) -> Engine:
-		data_source = self.dataSource
-		url = redress_url(data_source.url)
-		if len(url) != 0:
-			return PostgreSQLDataSourceHelper.acquire_engine_by_url(url, params)
-		else:
-			return PostgreSQLDataSourceHelper.acquire_engine_by_params(
-				data_source.username, data_source.password,
-				data_source.host, data_source.port,
-				data_source.name,
-				data_source.params,
-				params
-			)
 
 	@staticmethod
 	def acquire_engine_by_url(url: str, params: PostgreSQLDataSourceParams) -> Engine:

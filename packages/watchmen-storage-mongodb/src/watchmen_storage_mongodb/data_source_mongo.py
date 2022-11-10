@@ -7,13 +7,6 @@ from .engine_mongo import MongoEngine
 from .storage_mongo import StorageMongoDB, TopicDataStorageMongoDB
 
 
-def redress_url(value: str) -> str:
-	if value is None:
-		return ''
-	else:
-		return value.strip()
-
-
 class MongoDataSourceParams(DataModel):
 	echo: bool = False
 	poolRecycle: int = 3600
@@ -23,19 +16,6 @@ class MongoDataSourceHelper(DataSourceHelper):
 	def __init__(self, data_source: DataSource, params: MongoDataSourceParams = MongoDataSourceParams()):
 		super().__init__(data_source)
 		self.engine = self.acquire_engine(params)
-
-	def acquire_engine(self, params: MongoDataSourceParams) -> MongoEngine:
-		data_source = self.dataSource
-		url = redress_url(data_source.url)
-		if len(url) != 0:
-			return MongoDataSourceHelper.acquire_engine_by_url(url, params)
-		else:
-			return self.acquire_engine_by_params(
-				data_source.username, data_source.password,
-				data_source.host, data_source.port,
-				data_source.name,
-				params
-			)
 
 	# noinspection PyUnusedLocal
 	@staticmethod
