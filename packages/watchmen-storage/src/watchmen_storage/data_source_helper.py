@@ -23,7 +23,8 @@ AWS_ACCESS_KEY_ID = "access_key_id"
 AWS_ACCESS_SECRET_ID = "access_secret_id"
 SECRET_ID = "secret_id"
 
-AWS_SECRET_KEY = [HOST, PORT, USERNAME, PASSWORD, NAME, SECRET_TYPE, AWS_REGION_NAME, AWS_ACCESS_KEY_ID, AWS_ACCESS_SECRET_ID, SECRET_ID]
+SECRET_MANGER_KEY = [HOST, PORT, USERNAME, PASSWORD, NAME, SECRET_TYPE, AWS_REGION_NAME, AWS_ACCESS_KEY_ID, AWS_ACCESS_SECRET_ID, SECRET_ID]
+CONNECTION_INFO_KEY = [HOST, PORT, USERNAME, PASSWORD, NAME]
 
 
 class SecretType(str, Enum):
@@ -60,9 +61,8 @@ def ask_secret(data_source_params: Optional[List[DataSourceParam]]) -> Dict:
 def redress_engine_params(data_source: DataSource) -> EngineParams:
 	if use_secret(data_source.params):
 		secrets = ask_secret(data_source.params)
-		CONNECTION_INFO_KEY = [HOST, PORT, USERNAME, PASSWORD, NAME]
 		return EngineParams(
-			params=ArrayHelper(data_source.params).filter(lambda x: x.name not in AWS_SECRET_KEY).to_list(),
+			params=ArrayHelper(data_source.params).filter(lambda x: x.name not in SECRET_MANGER_KEY).to_list(),
 			**ArrayHelper(data_source.params).filter(lambda x: x.name in CONNECTION_INFO_KEY).to_map(lambda x: x.name,
 			                                                                                         lambda x: secrets.get(x.value)))
 	else:
