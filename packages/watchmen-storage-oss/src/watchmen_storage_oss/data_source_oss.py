@@ -18,16 +18,6 @@ class OssDataSourceHelper(DataSourceHelper):
 		super().__init__(data_source)
 		self.engine = self.acquire_engine(params)
 
-	def acquire_engine(self, params: OssDataSourceParams) -> ObjectStorageService:
-		data_source = self.dataSource
-		return OssDataSourceHelper.acquire_engine_by_params(
-			data_source.username,
-			data_source.password,
-			data_source.host,
-			data_source.name,
-			params
-		)
-
 	@staticmethod
 	def acquire_engine_by_url(url: str, params: OssDataSourceParams) -> ObjectStorageService:
 		raise NotImplementedError("oss data source is not support url configuration")

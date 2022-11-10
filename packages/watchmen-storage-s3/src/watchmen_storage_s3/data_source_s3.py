@@ -18,17 +18,6 @@ class S3DataSourceHelper(DataSourceHelper):
 		super().__init__(data_source)
 		self.engine = self.acquire_engine(params)
 
-	def acquire_engine(self, params: S3DataSourceParams) -> SimpleStorageService:
-		data_source = self.dataSource
-		return S3DataSourceHelper.acquire_engine_by_params(
-			data_source.username,
-			data_source.password,
-			data_source.host,
-			data_source.name,
-			data_source.params,
-			params
-		)
-
 	@staticmethod
 	def acquire_engine_by_url(url: str, params: S3DataSourceParams) -> SimpleStorageService:
 		raise NotImplementedError("s3 data source is not support url configuration")
