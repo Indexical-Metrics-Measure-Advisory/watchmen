@@ -22,12 +22,12 @@ CREATE TABLE subscription_events
 );
 
 
-CREATE INDEX i_subscription_events_1 ON notification_definitions (tenant_id);
-CREATE INDEX i_subscription_events_2 ON notification_definitions (user_id);
-CREATE INDEX i_subscription_events_3 ON notification_definitions (created_at);
-CREATE INDEX i_subscription_events_4 ON notification_definitions (created_by);
-CREATE INDEX i_subscription_events_5 ON notification_definitions (last_modified_at);
-CREATE INDEX i_subscription_events_6 ON notification_definitions (last_modified_by);
-CREATE INDEX i_subscription_events_7 ON notification_definitions (status);
-CREATE INDEX i_subscription_events_8 ON notification_definitions (notification_id);
-CREATE INDEX i_subscription_events_9 ON notification_definitions (source_id);
+CREATE INDEX i_subscription_events_1 ON subscription_events (tenant_id);
+CREATE INDEX i_subscription_events_2 ON subscription_events (user_id);
+CREATE INDEX i_subscription_events_3 ON subscription_events (created_at);
+CREATE INDEX i_subscription_events_4 ON subscription_events (created_by);
+CREATE INDEX i_subscription_events_5 ON subscription_events (last_modified_at);
+CREATE INDEX i_subscription_events_6 ON subscription_events (last_modified_by);
+CREATE INDEX i_subscription_events_7 ON subscription_events (status);
+CREATE INDEX i_subscription_events_8 ON subscription_events (notification_id);
+CREATE INDEX i_subscription_events_9 ON subscription_events (source_id);
