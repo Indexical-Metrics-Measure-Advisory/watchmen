@@ -12,7 +12,7 @@ CREATE TABLE subscription_events
     hour              SMALLINT,
     minute            SMALLINT,
     enabled           SMALLINT,
-    status            SMALLINT,
+    status            VARCHAR(10),
     created_at       TIMESTAMP    NOT NULL,
     created_by       VARCHAR(50) NOT NULL,
     last_modified_at TIMESTAMP    NOT NULL,
