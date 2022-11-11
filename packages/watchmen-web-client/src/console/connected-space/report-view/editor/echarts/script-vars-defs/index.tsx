@@ -9,7 +9,7 @@ import {ReportEditEventTypes} from '../../report-edit-event-bus-types';
 import {useChartType} from '../../settings-effect/use-chart-type';
 
 loader.config({
-	paths: {vs: `${process.env.REACT_APP_WEB_CONTEXT === '/' ? '' : process.env.REACT_APP_WEB_CONTEXT}/static/monaco-editor@0.29.1/min/vs`}
+	paths: {vs: `${process.env.REACT_APP_WEB_CONTEXT === '/' ? '' : process.env.REACT_APP_WEB_CONTEXT}/static/monaco-editor@0.34.1/min/vs`}
 	// 'vs/nls': {availableLanguages: {'*': ''}}
 });
 
