@@ -342,7 +342,7 @@ table_subscription_event = Table(
 	create_str('weekday', 10), create_str('day', 10),
 	create_int('hour'), create_int('minute'),
 	create_bool('enabled', False),
-	create_int('status'),
+	create_str('status'),
 	create_str('frequency', 10, False),
 	create_user_id(),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
