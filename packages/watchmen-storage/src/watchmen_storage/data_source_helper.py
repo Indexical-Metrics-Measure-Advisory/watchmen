@@ -126,7 +126,7 @@ class DataSourceHelper:
 
 
 def build_secrets_manager(data_source_params: Optional[List[DataSourceParam]]) -> SecretsManger:
-	secret_params = ArrayHelper(data_source_params).filter(lambda x: x.name in AWS_SECRET_KEY).to_map(lambda x: x.name,
+	secret_params = ArrayHelper(data_source_params).filter(lambda x: x.name in SECRET_MANGER_KEY).to_map(lambda x: x.name,
 	                                                                                                  lambda x: x.value)
 	if secret_params.get(SECRET_TYPE) == SecretType.AWS:
 		from .secrets_manager_aws import AmazonSecretsManger
