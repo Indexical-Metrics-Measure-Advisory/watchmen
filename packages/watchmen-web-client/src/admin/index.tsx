@@ -3,7 +3,7 @@ import {Router} from '@/routes/types';
 import {asAdminRoute, asFallbackNavigate} from '@/routes/utils';
 import {isAdmin, isSuperAdmin} from '@/services/data/account';
 import React, {ReactNode} from 'react';
-import {Navigate, Route, Routes} from 'react-router-dom';
+import {Navigate, Routes} from 'react-router-dom';
 import styled from 'styled-components';
 import {AdminCache} from './cache';
 import {AdminCacheEventBusProvider} from './cache/cache-event-bus';
@@ -68,7 +68,7 @@ const AdminIndex = () => {
 				<AdminMenu/>
 
 				{isSuperAdmin()
-					? <Route>
+					? <Routes>
 						{asRoute(Router.ADMIN_USERS, <AdminUsers/>)}
 						{asRoute(Router.ADMIN_TENANTS, <AdminTenants/>)}
 						{isMultipleDataSourcesEnabled()
@@ -77,7 +77,7 @@ const AdminIndex = () => {
 							? asRoute(Router.ADMIN_EXTERNAL_WRITERS, <AdminExternalWriters/>) : null}
 						{isPluginEnabled() ? asRoute(Router.ADMIN_PLUGINS, <AdminPlugins/>) : null}
 						{asFallbackNavigate(Router.ADMIN_TENANTS)}
-					</Route>
+					</Routes>
 					: <Routes>
 						{asRoute(Router.ADMIN_HOME, <AdminHome/>, {scrollable: false})}
 						{asRoute(Router.ADMIN_TOPICS, <AdminTopics/>)}
