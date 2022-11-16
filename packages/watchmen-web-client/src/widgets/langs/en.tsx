@@ -55,7 +55,8 @@ export const En = {
 		NONAME_ACHIEVEMENT_INDICATOR: 'Noname',
 		MISSED_ACHIEVEMENT_INDICATOR_BASE: 'Missed Indicator',
 		NEW_OBJECTIVE_ANALYSIS_NAME: 'Analysis',
-		FIND_OBJECTIVE_ANALYSIS_PLACEHOLDER: 'Search by analysis name...'
+		FIND_OBJECTIVE_ANALYSIS_PLACEHOLDER: 'Search by analysis name...',
+		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '";"で結合された複数のアドレス。'
 	},
 	STANDARD: {
 		YES: 'Yes',
@@ -588,6 +589,17 @@ export const En = {
 			NO_ACHIEVEMENT: 'No achievement picked.',
 			NO_INSPECTION: 'No inspection picked.'
 		}
+	},
+	SUBSCRIBE: {
+		ON: 'Subscribe On',
+		BY_MAIL: 'Email',
+		MAIL_ADDRESS: 'Mail Address',
+		BY_SLACK: 'Slack',
+		SLACK_CHANNEL: 'Slack Channel',
+		FREQUENCY: 'Frequency',
+		DAILY: 'Daily',
+		WEEKLY: 'Weekly',
+		MONTHLY: 'Monthly'
 	},
 	SETTINGS: {
 		TITLE: 'Settings',

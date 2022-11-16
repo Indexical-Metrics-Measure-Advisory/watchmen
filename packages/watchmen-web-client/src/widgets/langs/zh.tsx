@@ -55,7 +55,8 @@ export const Zh = {
 		NONAME_ACHIEVEMENT_INDICATOR: '未命名',
 		MISSED_ACHIEVEMENT_INDICATOR_BASE: '未定义',
 		NEW_OBJECTIVE_ANALYSIS_NAME: '目标达成分析',
-		FIND_OBJECTIVE_ANALYSIS_PLACEHOLDER: '根据目标达成分析称查找.'
+		FIND_OBJECTIVE_ANALYSIS_PLACEHOLDER: '根据目标达成分析称查找.',
+		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '邮箱地址使用";"分隔.'
 	},
 	STANDARD: {
 		YES: '是',
@@ -588,6 +589,17 @@ export const Zh = {
 			NO_ACHIEVEMENT: '尚未选择业绩分析.',
 			NO_INSPECTION: '尚未选择洞察分析.'
 		}
+	},
+	SUBSCRIBE: {
+		ON: '订阅类型',
+		BY_MAIL: '邮件',
+		MAIL_ADDRESS: '邮箱地址',
+		BY_SLACK: 'Slack',
+		SLACK_CHANNEL: 'Slack频道',
+		FREQUENCY: '订阅周期',
+		DAILY: '每天',
+		WEEKLY: '每周',
+		MONTHLY: '每月'
 	},
 	SETTINGS: {
 		TITLE: '设置',

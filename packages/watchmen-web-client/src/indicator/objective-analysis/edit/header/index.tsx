@@ -37,9 +37,16 @@ enum SubscribeType {
 	SLACK = 'slack'
 }
 
+enum SubscribeFrequency {
+	DAILY = 'daily',
+	WEEKLY = 'weekly',
+	MONTHLY = 'monthly'
+}
+
 interface SubscribeModel {
 	type: SubscribeType;
 	param: string;
+	frequency: SubscribeFrequency;
 }
 
 export const SubscribeDialog = (props: { analysis: ObjectiveAnalysis }) => {
@@ -47,18 +54,29 @@ export const SubscribeDialog = (props: { analysis: ObjectiveAnalysis }) => {
 	const {analysis} = props;
 
 	const {fire} = useEventBus();
-	const [model, setModel] = useState<SubscribeModel>({type: SubscribeType.MAIL, param: ''});
+	const [model, setModel] = useState<SubscribeModel>({
+		type: SubscribeType.MAIL,
+		frequency: SubscribeFrequency.WEEKLY,
+		param: ''
+	});
 
 	const onTypeChanged = (option: DropdownOption) => {
 		const type = option.value as SubscribeType;
 		if (type === model.type) {
 			return;
 		}
-		setModel({type, param: ''});
+		setModel(model => ({...model, type}));
 	};
 	const onParamChanged = (event: ChangeEvent<HTMLInputElement>) => {
 		const value = event.target.value;
-		setModel(model => ({type: model.type, param: value}));
+		setModel(model => ({...model, param: value}));
+	};
+	const onFrequencyChanged = (option: DropdownOption) => {
+		const frequency = option.value as SubscribeFrequency;
+		if (frequency === model.frequency) {
+			return;
+		}
+		setModel(model => ({...model, frequency}));
 	};
 	const onConfirmClicked = () => {
 		fire(EventTypes.SHOW_ALERT, <AlertLabel>Subscribed!</AlertLabel>);
@@ -69,19 +87,26 @@ export const SubscribeDialog = (props: { analysis: ObjectiveAnalysis }) => {
 	};
 
 	const typeOptions = [
-		{value: SubscribeType.MAIL, label: 'Email'},
-		{value: SubscribeType.SLACK, label: 'Slack'}
+		{value: SubscribeType.MAIL, label: Lang.SUBSCRIBE.BY_MAIL},
+		{value: SubscribeType.SLACK, label: Lang.SUBSCRIBE.BY_SLACK}
 	];
-	const label = model.type === SubscribeType.MAIL ? 'Mail Address' : 'Slack Channel';
-	const placeholder = model.type === SubscribeType.MAIL ? 'Multiple addresses joined by ;' : '';
+	const frequencyOptions = [
+		{value: SubscribeFrequency.DAILY, label: Lang.SUBSCRIBE.DAILY},
+		{value: SubscribeFrequency.WEEKLY, label: Lang.SUBSCRIBE.WEEKLY},
+		{value: SubscribeFrequency.MONTHLY, label: Lang.SUBSCRIBE.MONTHLY}
+	];
+	const label = model.type === SubscribeType.MAIL ? Lang.SUBSCRIBE.MAIL_ADDRESS : Lang.SUBSCRIBE.SLACK_CHANNEL;
+	const placeholder = model.type === SubscribeType.MAIL ? Lang.PLAIN.SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER : '';
 
 	return <>
 		<DialogTitle>Subscribe Analysis</DialogTitle>
 		<SubscribeDialogBody>
-			<SubscribeLeadLabel>Subscribe On:</SubscribeLeadLabel>
+			<SubscribeLeadLabel>{Lang.SUBSCRIBE.ON}</SubscribeLeadLabel>
 			<Dropdown value={model.type} options={typeOptions} onChange={onTypeChanged}/>
 			<SubscribeLeadLabel>{label}</SubscribeLeadLabel>
 			<Input value={model.param} placeholder={placeholder} onChange={onParamChanged}/>
+			<SubscribeLeadLabel>{Lang.SUBSCRIBE.FREQUENCY}</SubscribeLeadLabel>
+			<Dropdown value={model.frequency} options={frequencyOptions} onChange={onFrequencyChanged}/>
 		</SubscribeDialogBody>
 		<DialogFooter>
 			<Button ink={ButtonInk.PRIMARY} onClick={onConfirmClicked}>{Lang.ACTIONS.CONFIRM}</Button>

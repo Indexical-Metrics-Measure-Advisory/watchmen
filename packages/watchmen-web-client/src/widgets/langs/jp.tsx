@@ -55,7 +55,8 @@ export const Jp = {
 		NONAME_ACHIEVEMENT_INDICATOR: '名前がありません',
 		MISSED_ACHIEVEMENT_INDICATOR_BASE: '未定義です',
 		NEW_OBJECTIVE_ANALYSIS_NAME: '目標達成分析',
-		FIND_OBJECTIVE_ANALYSIS_PLACEHOLDER: '目標達成分析名に基づいて検索します。'
+		FIND_OBJECTIVE_ANALYSIS_PLACEHOLDER: '目標達成分析名に基づいて検索します。',
+		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '邮箱地址使用";"分隔.'
 	},
 	STANDARD: {
 		YES: 'はい',
@@ -588,6 +589,17 @@ export const Jp = {
 			NO_ACHIEVEMENT: '実績が選択されていません。',
 			NO_INSPECTION: '洞察が選択されていません。'
 		}
+	},
+	SUBSCRIBE: {
+		ON: '種類',
+		BY_MAIL: '電子メール',
+		MAIL_ADDRESS: 'アドレス',
+		BY_SLACK: 'Slack',
+		SLACK_CHANNEL: 'Slackチャンネル',
+		FREQUENCY: 'サイクル',
+		DAILY: '毎日',
+		WEEKLY: '毎週',
+		MONTHLY: '毎月'
 	},
 	SETTINGS: {
 		TITLE: '設定',
