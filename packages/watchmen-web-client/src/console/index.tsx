@@ -121,8 +121,8 @@ const ConsoleContainerDelegate = () => {
 	}, [on, off]);
 
 	return <ConsoleContainer>
-		{initialized ? <ConsoleRouter/> : <ConsoleLoading/>}
 		<SettingsHolder/>
+		{initialized ? <ConsoleRouter/> : <ConsoleLoading/>}
 	</ConsoleContainer>;
 };
 const ConsoleIndex = () => {
