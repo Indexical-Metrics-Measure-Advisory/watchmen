@@ -8,19 +8,20 @@ from watchmen_model.admin import Topic
 from watchmen_model.console import Subject
 from watchmen_model.indicator import AchievementIndicator, IndicatorCriteria, IndicatorCriteriaOnExpression, \
 	IndicatorCriteriaOperator, Inspection
-from watchmen_utilities import ArrayHelper, get_current_time_in_seconds, is_blank
+from watchmen_utilities import ArrayHelper, is_blank
 
 
 # noinspection PyUnusedLocal
 def redress_inspection(
 		inspection: Inspection, topic_or_subject: Union[Topic, Subject],
+		dt: datetime,
 		principal_service: PrincipalService) -> Inspection:
 	clone_inspection = Inspection(**inspection.to_dict())
 	clone_inspection.criteria = ArrayHelper(inspection.criteria).map(lambda x: x.to_dict()).to_list()
 	if isinstance(topic_or_subject, Topic):
-		redress_inspection_on_topic(clone_inspection)
+		redress_inspection_on_topic(clone_inspection, dt)
 	elif isinstance(topic_or_subject, Subject):
-		redress_inspection_on_subject(clone_inspection)
+		redress_inspection_on_subject(clone_inspection, dt)
 	else:
 		raise IndicatorKernelException(f'Source[{topic_or_subject}] of criteria is unsupported.')
 	return clone_inspection
@@ -29,21 +30,22 @@ def redress_inspection(
 # noinspection PyUnusedLocal
 def redress_achievement_indicator(
 		achievement_indicator: AchievementIndicator, topic_or_subject: Union[Topic, Subject],
+		dt: datetime,
 		principal_service: PrincipalService) -> AchievementIndicator:
 	clone_achievement_indicator = AchievementIndicator(**achievement_indicator.to_dict())
 	clone_achievement_indicator.criteria = \
 		ArrayHelper(achievement_indicator.criteria).map(lambda x: x.to_dict()).to_list()
 	if isinstance(topic_or_subject, Topic):
-		redress_achievement_indicator_on_topic(clone_achievement_indicator)
+		redress_achievement_indicator_on_topic(clone_achievement_indicator, dt)
 	elif isinstance(topic_or_subject, Subject):
-		redress_achievement_indicator_on_subject(clone_achievement_indicator)
+		redress_achievement_indicator_on_subject(clone_achievement_indicator, dt)
 	else:
 		raise IndicatorKernelException(f'Source[{topic_or_subject}] of criteria is unsupported.')
 	return clone_achievement_indicator
 
 
 def redress_year(
-		criteria: IndicatorCriteriaOnExpression, now: datetime
+		criteria: IndicatorCriteriaOnExpression, dt: datetime
 ) -> Tuple[bool, Optional[List[IndicatorCriteriaOnExpression]]]:
 	"""
 	:return:
@@ -52,14 +54,14 @@ def redress_year(
 	"""
 	if criteria.value.strip() in ['{&year}', '{&y}']:
 		# explicitly given year
-		criteria.value = f'{now.year}'
+		criteria.value = f'{dt.year}'
 		return True, [criteria]
 	else:
 		return False, [criteria]
 
 
 def redress_month(
-		criteria: IndicatorCriteriaOnExpression, now: datetime
+		criteria: IndicatorCriteriaOnExpression, dt: datetime
 ) -> Tuple[bool, Optional[List[IndicatorCriteriaOnExpression]]]:
 	"""
 	:return:
@@ -68,14 +70,14 @@ def redress_month(
 	"""
 	if criteria.value.strip() in ['{&month}', '{&m}']:
 		# explicitly given year
-		criteria.value = f'{now.month}'
+		criteria.value = f'{dt.month}'
 		return True, [criteria]
 	else:
 		return False, [criteria]
 
 
 def redress_year_to_end(
-		criteria: IndicatorCriteriaOnExpression, now: datetime
+		criteria: IndicatorCriteriaOnExpression, dt: datetime
 ) -> Tuple[bool, Optional[List[IndicatorCriteriaOnExpression]]]:
 	"""
 	:return:
@@ -84,27 +86,27 @@ def redress_year_to_end(
 	"""
 	if criteria.value.strip() in ['{&yearToDate}', '{&y2d}']:
 		# year to end aka this year
-		criteria.value = f'{now.year}'
+		criteria.value = f'{dt.year}'
 		return True, [criteria]
 	else:
 		return False, [criteria]
 
 
 def redress_month_to_end(
-		criteria: IndicatorCriteriaOnExpression, now: datetime
+		criteria: IndicatorCriteriaOnExpression, dt: datetime
 ) -> Tuple[bool, Optional[List[IndicatorCriteriaOnExpression]]]:
 	if criteria.value.strip() in ['{&monthToDate}', '{&m2d}']:
 		# month to end aka this year & month
 		return True, [
-			IndicatorCriteriaOnExpression(**criteria.to_dict(), value=f'{now.year}'),
-			IndicatorCriteriaOnExpression(**criteria.to_dict(), value=f'{now.month}'),
+			IndicatorCriteriaOnExpression(**criteria.to_dict(), value=f'{dt.year}'),
+			IndicatorCriteriaOnExpression(**criteria.to_dict(), value=f'{dt.month}'),
 		]
 	else:
 		return False, [criteria]
 
 
 def redress_last_years(
-		criteria: IndicatorCriteriaOnExpression, now: datetime
+		criteria: IndicatorCriteriaOnExpression, dt: datetime
 ) -> Tuple[bool, Optional[List[IndicatorCriteriaOnExpression]]]:
 	m = match(r'^{&last(\d+)Year(s)?((OnMonth)?|(OnDay)?)}$', criteria.value.strip())
 	if m is None:
@@ -149,7 +151,7 @@ def redress_last_years(
 
 # noinspection PyUnusedLocal
 def redress_last_months(
-		criteria: IndicatorCriteriaOnExpression, now: datetime
+		criteria: IndicatorCriteriaOnExpression, dt: datetime
 ) -> Tuple[bool, Optional[List[IndicatorCriteriaOnExpression]]]:
 	m = match(r'^{&last(\d+)Month(s)?(OnDay)?}$', criteria.value.strip())
 	if m is None:
@@ -183,18 +185,17 @@ def redress_last_months(
 	return False, [criteria]
 
 
-def redress_expression(criteria: IndicatorCriteriaOnExpression) -> List[IndicatorCriteriaOnExpression]:
+def redress_expression(criteria: IndicatorCriteriaOnExpression, dt: datetime) -> List[IndicatorCriteriaOnExpression]:
 	value = criteria.value
 	if is_blank(value):
 		return [criteria]
-	now = get_current_time_in_seconds()
 
 	def process(
 			param: Tuple[bool, Optional[List[IndicatorCriteriaOnExpression]]],
 			func: Callable[
 				[IndicatorCriteriaOnExpression, datetime], Tuple[bool, Optional[List[IndicatorCriteriaOnExpression]]]]
 	) -> Tuple[bool, Optional[List[IndicatorCriteriaOnExpression]]]:
-		return param if param[0] else func(param[1][0], now)
+		return param if param[0] else func(param[1][0], dt)
 
 	return ArrayHelper([
 		redress_year, redress_month,
@@ -203,30 +204,38 @@ def redress_expression(criteria: IndicatorCriteriaOnExpression) -> List[Indicato
 	]).reduce(lambda x, y: process(x, y), (False, [criteria]))[1]
 
 
-def redress_single_criteria(criteria: IndicatorCriteria) -> List[IndicatorCriteria]:
+def redress_single_criteria(criteria: IndicatorCriteria, dt: datetime) -> List[IndicatorCriteria]:
 	if isinstance(criteria, IndicatorCriteriaOnExpression):
-		return redress_expression(criteria)
+		return redress_expression(criteria, dt)
 	else:
 		return [criteria]
 
 
-def redress_inspection_on_topic(inspection: Inspection):
-	inspection.criteria = ArrayHelper(inspection.criteria).map(redress_single_criteria).flatten().to_list()
-
-
-def redress_inspection_on_subject(inspection: Inspection):
-	inspection.criteria = ArrayHelper(inspection.criteria).map(redress_single_criteria).flatten().to_list()
-
-
-def redress_achievement_indicator_on_topic(achievement_indicator: AchievementIndicator):
-	achievement_indicator.criteria = ArrayHelper(achievement_indicator.criteria) \
-		.map(redress_single_criteria) \
+# noinspection DuplicatedCode
+def redress_inspection_on_topic(inspection: Inspection, dt: datetime):
+	inspection.criteria = ArrayHelper(inspection.criteria) \
+		.map(lambda x: redress_single_criteria(x, dt)) \
 		.flatten() \
 		.to_list()
 
 
-def redress_achievement_indicator_on_subject(achievement_indicator: AchievementIndicator):
+def redress_inspection_on_subject(inspection: Inspection, dt: datetime):
+	inspection.criteria = ArrayHelper(inspection.criteria) \
+		.map(lambda x: redress_single_criteria(x, dt)) \
+		.flatten() \
+		.to_list()
+
+
+# noinspection DuplicatedCode
+def redress_achievement_indicator_on_topic(achievement_indicator: AchievementIndicator, dt: datetime):
 	achievement_indicator.criteria = ArrayHelper(achievement_indicator.criteria) \
-		.map(redress_single_criteria) \
+		.map(lambda x: redress_single_criteria(x, dt)) \
+		.flatten() \
+		.to_list()
+
+
+def redress_achievement_indicator_on_subject(achievement_indicator: AchievementIndicator, dt: datetime):
+	achievement_indicator.criteria = ArrayHelper(achievement_indicator.criteria) \
+		.map(lambda x: redress_single_criteria(x, dt)) \
 		.flatten() \
 		.to_list()
