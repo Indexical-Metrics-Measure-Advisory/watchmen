@@ -10,6 +10,7 @@ from watchmen_indicator_kernel.data import get_achievement_indicator_data_servic
 from watchmen_model.admin import UserRole
 from watchmen_model.indicator import AchievementIndicator
 from watchmen_rest import get_console_principal
+from watchmen_utilities import get_current_time_in_seconds
 
 logger = getLogger(__name__)
 router = APIRouter()
@@ -25,9 +26,16 @@ async def load_achievement_data(
 		current: AchievementIndicator, previous: Optional[AchievementIndicator] = None,
 		principal_service: PrincipalService = Depends(get_console_principal)) -> AchievementValues:
 	try:
+		# always use now here, variables should be replaced in client side.
+		now = get_current_time_in_seconds()
+		current_value = get_achievement_indicator_data_service(current, now, principal_service).ask_value()
+		if previous is not None:
+			previous_value = get_achievement_indicator_data_service(previous, now, principal_service).ask_value()
+		else:
+			previous_value = None
 		return AchievementValues(
-			current=get_achievement_indicator_data_service(current, principal_service).ask_value(),
-			previous=None if previous is None else get_achievement_indicator_data_service(previous, principal_service).ask_value()
+			current=current_value,
+			previous=previous_value
 		)
 	except Exception as e:
 		logger.error(e, exc_info=True, stack_info=True)

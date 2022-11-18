@@ -12,7 +12,7 @@ from watchmen_model.admin import UserRole
 from watchmen_model.common import DataResultSet, InspectionId
 from watchmen_rest import get_console_principal
 from watchmen_rest.util import raise_400
-from watchmen_utilities import is_blank
+from watchmen_utilities import get_current_time_in_seconds, is_blank
 
 router = APIRouter()
 
@@ -32,4 +32,5 @@ async def fetch_inspection_data(
 	inspection = trans_readonly(
 		inspection_service, lambda: do_load_inspection_by_id(inspection_id, inspection_service, principal_service))
 
-	return get_inspection_data_service(inspection, principal_service).find_data()
+	now = get_current_time_in_seconds()
+	return get_inspection_data_service(inspection, now, principal_service).find_data()
