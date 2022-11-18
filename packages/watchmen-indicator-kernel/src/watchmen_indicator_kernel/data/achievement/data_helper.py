@@ -3,9 +3,8 @@ from datetime import datetime
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.common import IndicatorKernelException
 from watchmen_model.common import SubjectId, TopicId
-from watchmen_model.indicator import Achievement, AchievementIndicator, Indicator, IndicatorBaseOn
+from watchmen_model.indicator import AchievementIndicator, Indicator, IndicatorBaseOn
 from watchmen_utilities import is_not_blank
-from .achievement_data_service import AchievementDataService
 from .indicator_data_service import AchievementIndicatorDataService
 from .subject_base_service import SubjectBaseAchievementIndicatorDataService
 from .topic_base_service import TopicBaseAchievementIndicatorDataService
@@ -52,7 +51,6 @@ def get_achievement_indicator_data_service(
 	else:
 		raise IndicatorKernelException('Indicator is not based on topic, not supported yet.')
 
-
-def get_achievement_data_service(
-		achievement: Achievement, principal_service: PrincipalService) -> AchievementDataService:
-	return AchievementDataService(achievement, principal_service)
+# def get_achievement_data_service(
+# 		achievement: Achievement, principal_service: PrincipalService) -> AchievementDataService:
+# 	return AchievementDataService(achievement, principal_service)
