@@ -11,7 +11,7 @@ from watchmen_model.common import DataModel
 from watchmen_model.indicator import Achievement, AchievementIndicator, MANUAL_COMPUTE_ACHIEVEMENT_INDICATOR_ID, \
 	REFERENCE_ACHIEVEMENT_INDICATOR_ID
 from watchmen_utilities import ArrayHelper, get_current_time_in_seconds
-from . import get_achievement_indicator_data_service
+from .data_helper import get_achievement_indicator_data_service
 
 
 class AchievementIndicatorFormula:
