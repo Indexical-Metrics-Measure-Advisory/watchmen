@@ -5,7 +5,7 @@ import {Factor, FactorId, FactorType} from './factor-types';
 import {IndicatorMeasure, MeasureMethod} from './indicator-types';
 import {isComputedParameter, isTopicFactorParameter} from './parameter-utils';
 import {SubjectForIndicator, TopicForIndicator} from './query-indicator-types';
-import {SubjectDataSetColumn, SubjectDataSetColumnId} from './subject-types';
+import {SubjectColumnArithmetic, SubjectDataSetColumn, SubjectDataSetColumnId} from './subject-types';
 import {Topic} from './topic-types';
 
 export const tryToTransformToMeasure = (factorOrType: Factor | FactorType): Array<MeasureMethod> | MeasureMethod | undefined => {
@@ -297,7 +297,10 @@ export const findTopicAndFactor = (column: SubjectDataSetColumn, subject?: Subje
 };
 
 export const isIndicatorColumn = (column: SubjectDataSetColumn, subject: SubjectForIndicator): boolean => {
-	const parameter = column.parameter;
+	const {arithmetic, parameter} = column;
+	if (arithmetic === SubjectColumnArithmetic.COUNT || arithmetic === SubjectColumnArithmetic.SUMMARY || arithmetic === SubjectColumnArithmetic.AVERAGE) {
+		return true;
+	}
 	if (isTopicFactorParameter(parameter)) {
 		const {factor} = findTopicAndFactor(column, subject);
 		if (factor != null) {
