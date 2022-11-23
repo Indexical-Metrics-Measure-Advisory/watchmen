@@ -90,7 +90,8 @@ export const FindSection = () => {
 				subjects: {} as Record<SubjectId, Subject>,
 				reports: {} as Record<ReportId, Report>
 			});
-			const searched = findConsoleHomeSearched().filter(item => {
+			const {search: text, data: searched} = findConsoleHomeSearched();
+			const data = (searched || []).filter(item => {
 				if (isDashboard(item)) {
 					return map.dashboards[item.dashboardId] != null;
 				} else if (isReport(item)) {
@@ -103,17 +104,19 @@ export const FindSection = () => {
 					return true;
 				}
 			});
-			setSearched(searched);
+			setSearched(data);
+			setSearchText(text);
 		})();
 	}, [fire]);
 
 	const onSearchTextChanged = async (event: ChangeEvent<HTMLInputElement>) => {
-		setSearchText(event.target.value);
+		const {value} = event.target;
+		setSearchText(value);
 		const existing = await find(
 			() => new Promise<Array<ConnectedSpace>>(resolve => fire(ConsoleEventTypes.ASK_CONNECTED_SPACES, resolve)),
 			() => new Promise<Array<Dashboard>>(resolve => fire(ConsoleEventTypes.ASK_DASHBOARDS, resolve))
 		);
-		const text = event.target.value.toLowerCase();
+		const text = value.toLowerCase();
 		const items = existing
 			.filter(item => (item.name || '').toLowerCase().includes(text))
 			.sort((a, b) => {
@@ -122,7 +125,7 @@ export const FindSection = () => {
 				return (sa - sb !== 0) ? (a.name || '').toLowerCase().localeCompare((b.name || '').toLowerCase()) : (sa - sb);
 			});
 		setSearched(items);
-		saveConsoleHomeSearched(items);
+		saveConsoleHomeSearched(value, items);
 	};
 	const onItemClicked = (item: FoundSubject | ConnectedSpace | Dashboard | FoundReport) => () => {
 		if (isDashboard(item)) {
