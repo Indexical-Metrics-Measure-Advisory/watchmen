@@ -1,6 +1,7 @@
 import React from 'react';
+import {LanguageDeclareType} from './types';
 
-export const Zh = {
+export const Zh: LanguageDeclareType = {
 	$$settings: {
 		code: 'zh',
 		name: '汉语',
@@ -10,6 +11,7 @@ export const Zh = {
 	// anything must be string, should be placed here.
 	// such as input tooltip(string property), tuple name(not for react component)
 	PLAIN: {
+		CONSOLE_SEARCH_PLACEHOLDER: '搜索工作空间, 主题, 图表和仪表盘.',
 		NEW_DASHBOARD_NAME: '仪表盘',
 		DEFAULT_DASHBOARD_NAME: '仪表盘',
 		NEW_CONNECTED_SPACE_NAME: '工作空间',
@@ -152,10 +154,11 @@ export const Zh = {
 			SORT_BY_VISIT_TIME: '按访问时间排序',
 			VIEW_COLLAPSE: '隐藏',
 			VIEW_ALL: '全部显示',
-			CONNECTED_SPACE_TITLE: '已联接的工作空间',
+			CONNECTED_SPACE_TITLE: '最近访问的工作空间',
 			CREATE_CONNECTED_SPACE_BUTTON: '联接工作空间',
-			DASHBOARD_TITLE: '仪表盘',
-			CREATE_DASHBOARD_BUTTON: '创建新仪表盘'
+			DASHBOARD_TITLE: '最近访问的仪表盘',
+			CREATE_DASHBOARD_BUTTON: '创建新仪表盘',
+			NO_RECENT: '没有最近使用项.'
 		},
 		DASHBOARD: {
 			SHARE: '分享',

@@ -13,4 +13,6 @@ type DeepReadonlyObject<T> = {
 	readonly [P in keyof T]: DeepReadonly<T[P]>;
 };
 
+export type LanguageDeclareType = DeepReadonly<typeof En>;
+
 export type LanguageObjectType = DeepReadonly<Omit<typeof En, '$$settings'>>;

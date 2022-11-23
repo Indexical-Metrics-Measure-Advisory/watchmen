@@ -5,18 +5,19 @@ import {useEventBus} from '../events/event-bus';
 import {EventTypes} from '../events/types';
 import {En} from './en';
 import {Jp} from './jp';
-import {LanguageObjectType} from './types';
+import {LanguageDeclareType, LanguageObjectType} from './types';
 import {Zh} from './zh';
 
-type EnType = typeof En;
-const LANGUAGES = {
+// @ts-ignore
+const LANGUAGES: Record<'en' | 'zh' | 'jp', LanguageDeclareType> = {
 	[En.$$settings.code]: En,
-	[Zh.$$settings.code]: Zh as EnType,
-	[Jp.$$settings.code]: Jp as unknown as EnType
+	[Zh.$$settings.code]: Zh,
+	[Jp.$$settings.code]: Jp
 };
 
 const findLanguage = (lang: string) => {
 	const [language, country, variant] = lang.split(/[-_.]/).map(x => (x || '').toLowerCase());
+	// @ts-ignore
 	return LANGUAGES[`${language}_${country}_${variant}`] || LANGUAGES[`${language}_${country}`] || LANGUAGES[language] || En;
 };
 
@@ -49,6 +50,7 @@ export const getLangLabel = (key: string, lang: LanguageObjectType = currentLang
 		if (!fallback) {
 			break;
 		}
+		// @ts-ignore
 		value = keys.reduce((from: any, key) => from ? from[key] : undefined, LANGUAGES[fallback]);
 	}
 	return value;
@@ -110,6 +112,7 @@ export const useLanguage = () => {
 };
 
 export const SupportedLanguages = Object.keys(LANGUAGES)
+	// @ts-ignore
 	.map(code => ({code, name: LANGUAGES[code].$$settings.name}))
 	.sort((n1, n2) => n1.name.toLowerCase().localeCompare(n2.name.toLowerCase()));
 export const getCurrentLanguageCode = () => currentLanguage.$$settings.code;

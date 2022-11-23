@@ -9,13 +9,9 @@ import {
 	faArrowTrendUp,
 	faArrowUp,
 	faBan,
-	faBars,
-	faBell,
-	faBinoculars,
 	faBusinessTime,
 	faCalendarPlus,
 	faCaretDown,
-	faCaretRight,
 	faChalkboard,
 	faChalkboardTeacher,
 	faChartBar,
@@ -25,18 +21,15 @@ import {
 	faCheck,
 	faCheckDouble,
 	faCheckSquare,
-	faCircleExclamation,
 	faCity,
 	faClock,
 	faCloudDownloadAlt,
 	faCode,
 	faCodeCommit,
-	faCodeCompare,
 	faCodeMerge,
 	faCog,
 	faCoins,
 	faCommentDots,
-	faComments,
 	faCompass,
 	faCompress,
 	faCompressAlt,
@@ -54,7 +47,6 @@ import {
 	faExternalLinkSquareAlt,
 	faFeather,
 	faFeatherPointed,
-	faFileCsv,
 	faFileExport,
 	faFileImport,
 	faFilter,
@@ -65,7 +57,6 @@ import {
 	faHighlighter,
 	faHome,
 	faIgloo,
-	faInbox,
 	faLaptopHouse,
 	faLayerGroup,
 	faLevelDownAlt,
@@ -75,7 +66,6 @@ import {
 	faLockOpen,
 	faMagnifyingGlassChart,
 	faMicroscope,
-	faMinus,
 	faObjectGroup,
 	faPaintRoller,
 	faPalette,
@@ -89,7 +79,6 @@ import {
 	faPrint,
 	faPuzzlePiece,
 	faQuestionCircle,
-	faQuoteRight,
 	faRandom,
 	faRankingStar,
 	faRobot,
@@ -110,7 +99,6 @@ import {
 	faSyncAlt,
 	faTable,
 	faTags,
-	faTasks,
 	faTenge,
 	faTerminal,
 	faTh,
@@ -206,7 +194,7 @@ export const ICON_REPORT_INDICATOR = faTenge;
 export const ICON_REPORT_DIMENSION = faRulerCombined;
 export const ICON_FILTER = faFilter;
 export const ICON_BAN = faBan;
-export const ICON_CSV = faFileCsv;
+// export const ICON_CSV = faFileCsv;
 export const ICON_AS_ADMIN_HOME = faLaptopHouse;
 export const ICON_PIPELINE = faWaveSquare;
 export const ICON_STAGE = faObjectGroup;
@@ -217,10 +205,10 @@ export const ICON_BUCKET = faSliders;
 export const ICON_DASHBOARD = faGauge;
 export const ICON_FAVORITE = faStar;
 export const ICON_TEMPLATE = faPaste;
-export const ICON_TASK = faTasks;
-export const ICON_NOTIFICATION = faBell;
-export const ICON_MAIL = faInbox;
-export const ICON_TIMELINE = faComments;
+// export const ICON_TASK = faTasks;
+// export const ICON_NOTIFICATION = faBell;
+// export const ICON_MAIL = faInbox;
+// export const ICON_TIMELINE = faComments;
 export const ICON_MONITOR_LOGS = faEthernet;
 export const ICON_PIPELINE_DEBUG = faDraftingCompass;
 export const ICON_TOOLBOX = faToolbox;
@@ -241,18 +229,19 @@ export const ICON_CHART_BAR = faChartColumn;
 export const ICON_CHART_LINE = faChartLine;
 export const ICON_CHART_PIE = faChartPie;
 export const ICON_CHART_GROWTH_OF_TIME_GROUPING = faArrowTrendUp;
-export const ICON_CHART_GROWTH_OF_TIME_RANGE = faCodeCompare;
+// export const ICON_CHART_GROWTH_OF_TIME_RANGE = faCodeCompare;
 export const ICON_OBJECTIVE_ANALYSIS = faTowerObservation;
-export const ICON_OBJECTIVE_ANALYSIS_ITEM = faQuoteRight;
+// export const ICON_OBJECTIVE_ANALYSIS_ITEM = faQuoteRight;
 export const ICON_OBJECTIVE_ANALYSIS_DESC = faArrowsDownToLine;
 export const ICON_OBJECTIVE_ANALYSIS_PERSPECTIVE = faArrowsTurnRight;
 
-export const ICON_SECONDARY_SECTION = faCaretRight;
+// export const ICON_SECONDARY_SECTION = faCaretRight;
 
 export const ICON_CREATED_AT = faCalendarPlus;
 export const ICON_LAST_MODIFIED_AT = faHighlighter;
 
 // icons for doing something
+// export const ICON_VIEW_ALL = faList;
 export const ICON_ADD = faPlus;
 export const ICON_EDIT = faEdit;
 export const ICON_DISCARD = faBan;
@@ -319,14 +308,14 @@ export const ICON_CLEAR_SCREEN = faHandSparkles;
 export const ICON_MINIMIZE_PANEL = faWindowMinimize;
 export const ICON_MAXIMIZE_PANEL = faWindowMaximize;
 export const ICON_RESTORE_PANEL = faWindowRestore;
-export const ICON_DETECT = faBinoculars;
+// export const ICON_DETECT = faBinoculars;
 export const ICON_WAIT_INPUT = faFeatherPointed;
 export const ICON_LIST_ICON_ASTERISK = faStarOfLife;
 export const ICON_USE_INDICATOR = faHighlighter;
 export const ICON_EXPAND_NODES = faPlus;
-export const ICON_COLLAPSE_NODES = faMinus;
+// export const ICON_COLLAPSE_NODES = faMinus;
 export const ICON_EXTERNAL_LINK = faExternalLinkAlt;
-export const ICON_SHOW_NAVIGATOR = faBars;
+// export const ICON_SHOW_NAVIGATOR = faBars;
 export const ICON_RENDERER = faPaintRoller;
 export const ICON_SUBSCRIBE = faSquareRss;
 
@@ -336,7 +325,7 @@ export const ICON_LOCK = faLockOpen;
 export const ICON_UNLOCK = faLock;
 export const ICON_PERCENTAGE = faPercentage;
 export const ICON_QUESTION_MARK = faQuestionCircle;
-export const ICON_EXCLAMATION_MARK = faCircleExclamation;
+// export const ICON_EXCLAMATION_MARK = faCircleExclamation;
 
 // mock data
 export const MOCK_ACCOUNT_NAME = 'Dr. X';

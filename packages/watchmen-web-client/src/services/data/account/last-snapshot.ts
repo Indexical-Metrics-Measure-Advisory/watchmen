@@ -1,7 +1,11 @@
 import {base64Decode, base64Encode} from '../../utils';
 import {Apis, get, post} from '../apis';
 import {fetchMockLastSnapshot} from '../mock/account/mock-last-snapshot';
-import {LAST_SNAPSHOT_TOKEN} from '../session-constants';
+import {CONSOLE_HOME_SEARCHED, LAST_SNAPSHOT_TOKEN} from '../session-constants';
+import {ConnectedSpace} from '../tuples/connected-space-types';
+import {Dashboard} from '../tuples/dashboard-types';
+import {Report} from '../tuples/report-types';
+import {Subject} from '../tuples/subject-types';
 import {isMockService} from '../utils';
 import {findAccount} from './index';
 import {LastSnapshot} from './last-snapshot-types';
@@ -75,5 +79,32 @@ export const saveLastSnapshot = async (snapshot: Partial<LastSnapshot>): Promise
 		console.log('mock saveLastSnapshot');
 	} else {
 		await post({api: Apis.LAST_SNAPSHOT_SAVE, data: qualifiedSnapshot});
+	}
+};
+
+export type FoundReport = Report & Pick<Subject, 'subjectId'> & Pick<ConnectedSpace, 'connectId'>;
+export type FoundSubject = Subject & Pick<ConnectedSpace, 'connectId'>
+export type FoundItem = FoundSubject | ConnectedSpace | Dashboard | FoundReport;
+
+export const saveConsoleHomeSearched = (data: Array<FoundItem>) => {
+	sessionStorage.setItem(CONSOLE_HOME_SEARCHED, base64Encode(JSON.stringify({account: findAccount()?.name, data})));
+};
+
+export const findConsoleHomeSearched = (): Array<FoundItem> => {
+	const inStorage = sessionStorage.getItem(CONSOLE_HOME_SEARCHED);
+	if (inStorage != null) {
+		try {
+			const {account, data} = JSON.parse(base64Decode(inStorage));
+			if (account === findAccount()?.name) {
+				return data as Array<FoundItem>;
+			} else {
+				return [];
+			}
+		} catch (e) {
+			console.error(e);
+			return [];
+		}
+	} else {
+		return [];
 	}
 };

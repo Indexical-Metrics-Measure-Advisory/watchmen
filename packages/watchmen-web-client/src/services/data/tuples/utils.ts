@@ -35,19 +35,19 @@ export const isTopic = (tuple: Tuple): tuple is Topic => {
 export const isReport = (tuple: Tuple): tuple is Report => {
 	return !!(tuple as any).reportId;
 };
-const isSpace = (tuple: Tuple): tuple is Space => {
+export const isSpace = (tuple: Tuple): tuple is Space => {
 	return !!(tuple as any).spaceId;
 };
-const isUserGroup = (tuple: Tuple): tuple is UserGroup => {
+export const isUserGroup = (tuple: Tuple): tuple is UserGroup => {
 	return !!(tuple as any).userGroupId;
 };
-const isUser = (tuple: Tuple): tuple is User => {
+export const isUser = (tuple: Tuple): tuple is User => {
 	return !!(tuple as any).userId;
 };
-const isDashboard = (tuple: Tuple): tuple is Dashboard => {
+export const isDashboard = (tuple: Tuple): tuple is Dashboard => {
 	return !!(tuple as any).dashboardId;
 };
-const isConnectedSpace = (tuple: Tuple): tuple is ConnectedSpace => {
+export const isConnectedSpace = (tuple: Tuple): tuple is ConnectedSpace => {
 	return !!(tuple as any).connectId;
 };
 export const isSubject = (tuple: Tuple): tuple is Subject => {

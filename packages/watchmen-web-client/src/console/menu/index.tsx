@@ -1,6 +1,5 @@
 import {Router} from '@/routes/types';
 import {
-	ICON_ADD,
 	ICON_ADMIN,
 	ICON_DASHBOARD,
 	ICON_DQC,
@@ -10,7 +9,6 @@ import {
 	ICON_SETTINGS,
 	ICON_SWITCH_WORKBENCH
 } from '@/widgets/basic/constants';
-import {SideMenuConnectSpace} from '@/widgets/basic/side-menu/side-menu-connect-space';
 import {SideMenuItem} from '@/widgets/basic/side-menu/side-menu-item';
 import {SideMenuLogo} from '@/widgets/basic/side-menu/side-menu-logo';
 import {SideMenuPlaceholder} from '@/widgets/basic/side-menu/side-menu-placeholder';
@@ -29,9 +27,7 @@ import {Lang} from '@/widgets/langs';
 import React from 'react';
 import {matchPath, useLocation} from 'react-router-dom';
 import styled from 'styled-components';
-import {useConnectSpace} from '../widgets/use-connect-space';
 import {FavoriteMenu} from './side-menu-favorite';
-import {SideMenuSpaces} from './side-menu-spaces';
 
 const ConsoleMenuContainer = styled.div.attrs<{ width: number }>(({width}) => {
 	return {
@@ -72,7 +68,7 @@ export const ConsoleMenu = () => {
 	const {menuWidth, showTooltip, onResize} = useSideMenuWidth();
 	const {account, navigateTo, logout} = useSideMenuRoutes(Lang.CONSOLE.BYE);
 
-	const onConnectSpaceClicked = useConnectSpace();
+	// const onConnectSpaceClicked = useConnectSpace();
 
 	const workbenches = [];
 	if (isAdminAvailable()) {
@@ -94,10 +90,10 @@ export const ConsoleMenu = () => {
 		              active={!!matchPath({path: Router.CONSOLE_DASHBOARD_ALL}, location.pathname)}
 		              onClick={navigateTo(Router.CONSOLE_DASHBOARD)}/>
 		<FavoriteMenu showTooltip={showTooltip}/>
-		<SideMenuSeparator width={menuWidth}/>
-		<SideMenuSpaces showTooltip={showTooltip}/>
-		<SideMenuConnectSpace icon={ICON_ADD} label={Lang.CONSOLE.MENU.CONNECT_SPACE} showTooltip={showTooltip}
-		                      onClick={onConnectSpaceClicked}/>
+		{/*<SideMenuSeparator width={menuWidth}/>*/}
+		{/*<SideMenuSpaces showTooltip={showTooltip}/>*/}
+		{/*<SideMenuConnectSpace icon={ICON_ADD} label={Lang.CONSOLE.MENU.CONNECT_SPACE} showTooltip={showTooltip}*/}
+		{/*                      onClick={onConnectSpaceClicked}/>*/}
 		<SideMenuPlaceholder/>
 		<SideMenuSeparator width={menuWidth}/>
 		<SideMenuItem icon={ICON_SETTINGS} label={Lang.CONSOLE.MENU.SETTINGS} showTooltip={showTooltip}

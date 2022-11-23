@@ -6,6 +6,8 @@ import {Lang} from '@/widgets/langs';
 import React from 'react';
 import {ConnectedSpacesSection} from './connected-spaces-section';
 import {DashboardsSection} from './dashboards-section';
+import {FindSection} from './find-section';
+import {HomeBody} from './widgets';
 
 const ConsoleHomeIndex = () => {
 	useHelp(HELP_KEYS.CONSOLE_HOME);
@@ -13,8 +15,11 @@ const ConsoleHomeIndex = () => {
 	return <FixWidthPage>
 		<PageHeader title={Lang.CONSOLE.HOME.TITLE}/>
 		<VerticalMarginOneUnit/>
-		<ConnectedSpacesSection/>
-		<DashboardsSection/>
+		<HomeBody>
+			<DashboardsSection/>
+			<ConnectedSpacesSection/>
+			<FindSection/>
+		</HomeBody>
 		<VerticalMarginOneUnit/>
 	</FixWidthPage>;
 };

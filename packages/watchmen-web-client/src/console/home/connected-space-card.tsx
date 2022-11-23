@@ -4,7 +4,7 @@ import {ICON_CONNECTED_SPACE} from '@/widgets/basic/constants';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React from 'react';
 import {useNavigate} from 'react-router-dom';
-import {ConnectedSpaceCardContainer, ConnectedSpaceLastVisit, ConnectedSpaceName} from './widgets';
+import {CardContainer, CardLastVisit, CardName} from './widgets';
 
 export const ConnectedSpaceCard = (props: {
 	connectedSpace: ConnectedSpace;
@@ -17,9 +17,9 @@ export const ConnectedSpaceCard = (props: {
 		navigate(toConnectedSpace(connectedSpace.connectId));
 	};
 
-	return <ConnectedSpaceCardContainer onClick={onConnectedSpaceClicked}>
+	return <CardContainer onClick={onConnectedSpaceClicked}>
 		<FontAwesomeIcon icon={ICON_CONNECTED_SPACE}/>
-		<ConnectedSpaceLastVisit>{connectedSpace.lastVisitTime}</ConnectedSpaceLastVisit>
-		<ConnectedSpaceName>{connectedSpace.name}</ConnectedSpaceName>
-	</ConnectedSpaceCardContainer>;
+		<CardLastVisit>{connectedSpace.lastVisitTime}</CardLastVisit>
+		<CardName>{connectedSpace.name}</CardName>
+	</CardContainer>;
 };

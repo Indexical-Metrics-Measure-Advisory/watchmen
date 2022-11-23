@@ -10,6 +10,7 @@ export const En = {
 	// anything must be string, should be placed here.
 	// such as input tooltip(string property), tuple name(not for react component)
 	PLAIN: {
+		CONSOLE_SEARCH_PLACEHOLDER: 'Search connected space, subject, report or dashboard.',
 		NEW_DASHBOARD_NAME: 'Dashboard',
 		DEFAULT_DASHBOARD_NAME: 'Dashboard',
 		NEW_CONNECTED_SPACE_NAME: 'Connected Space',
@@ -152,10 +153,11 @@ export const En = {
 			SORT_BY_VISIT_TIME: 'Sort by Visit Time',
 			VIEW_COLLAPSE: 'Collapse',
 			VIEW_ALL: 'View All',
-			CONNECTED_SPACE_TITLE: 'Connected Spaces',
+			CONNECTED_SPACE_TITLE: 'Recent Connected Spaces',
 			CREATE_CONNECTED_SPACE_BUTTON: 'Connect Space',
-			DASHBOARD_TITLE: 'Dashboards',
-			CREATE_DASHBOARD_BUTTON: 'Create Dashboard'
+			DASHBOARD_TITLE: 'Recent Dashboards',
+			CREATE_DASHBOARD_BUTTON: 'Create Dashboard',
+			NO_RECENT: 'No recent used.'
 		},
 		DASHBOARD: {
 			SHARE: 'Share',
