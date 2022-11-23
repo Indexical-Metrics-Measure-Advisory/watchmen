@@ -47,7 +47,7 @@ const ConsolePinFavoritePlaceholder = styled.div.attrs<{ favorite: boolean }>(({
 	transition : min-height 300ms ease-in-out, height 300ms ease-in-out;
 `;
 const ConsoleWorkbench = styled.div.attrs({
-	'data-widget': 'console-report-workbench',
+	'data-widget': 'console-workbench',
 	'data-v-scroll': ''
 })`
 	flex-grow  : 1;

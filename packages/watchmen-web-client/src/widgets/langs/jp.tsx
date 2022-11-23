@@ -1,6 +1,7 @@
 import React from 'react';
+import {LanguageDeclareType} from './types';
 
-export const Jp = {
+export const Jp: LanguageDeclareType = {
 	$$settings: {
 		code: 'jp',
 		name: '日本語',
@@ -10,6 +11,7 @@ export const Jp = {
 	// anything must be string, should be placed here.
 	// such as input tooltip(string property), tuple name(not for react component)
 	PLAIN: {
+		CONSOLE_SEARCH_PLACEHOLDER: '連結空間、主題、レポート、ダッシュボードを検索します...',
 		NEW_DASHBOARD_NAME: 'ダッシュボード',
 		DEFAULT_DASHBOARD_NAME: 'ダッシュボード',
 		NEW_CONNECTED_SPACE_NAME: '連結空間',
@@ -152,10 +154,11 @@ export const Jp = {
 			SORT_BY_VISIT_TIME: '訪問時間で並べ替え',
 			VIEW_COLLAPSE: '折りたたむ',
 			VIEW_ALL: '表示',
-			CONNECTED_SPACE_TITLE: '接続された連結空間',
+			CONNECTED_SPACE_TITLE: '最近使用した連結空間',
 			CREATE_CONNECTED_SPACE_BUTTON: '連結空間に接続',
-			DASHBOARD_TITLE: 'ダッシュボード',
-			CREATE_DASHBOARD_BUTTON: 'ダッシュボードを作成する'
+			DASHBOARD_TITLE: '最近使用したダッシュボード',
+			CREATE_DASHBOARD_BUTTON: 'ダッシュボードを作成する',
+			NO_RECENT: '最近使用した項目はありません。'
 		},
 		DASHBOARD: {
 			SHARE: '共有',

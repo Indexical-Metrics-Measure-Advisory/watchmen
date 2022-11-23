@@ -77,5 +77,5 @@ export const asIDWIndicatorRoute = (path: Router, children: ReactNode) => asRout
 export const asIDWAchievementRoute = (path: Router, children: ReactNode) => asRoute(relativeToIDWAchievement)(path, children);
 export const asIDWAnalysisRoute = (path: Router, children: ReactNode) => asRoute(relativeToIDWAnalysis)(path, children);
 export const asShareRoute = (path: Router, children: ReactNode) => asRoute(relativeToShare)(path, children);
-export const asFallbackNavigate = (path: Router) => <Route path="*" element={<Navigate to={path}/>}/>;
+export const asFallbackNavigate = (path: Router) => <Route path="*" element={<Navigate to={path} replace={true}/>}/>;
 export const asFallbackRoute = (children: ReactNode) => <Route path="*" element={children}/>;

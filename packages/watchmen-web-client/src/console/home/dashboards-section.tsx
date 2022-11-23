@@ -1,7 +1,7 @@
 import {toDashboard} from '@/routes/utils';
 import {saveDashboard} from '@/services/data/tuples/dashboard';
 import {Dashboard} from '@/services/data/tuples/dashboard-types';
-import {ICON_ADD, ICON_COLLAPSE_PANEL, ICON_EXPAND_PANEL, ICON_SORT} from '@/widgets/basic/constants';
+import {ICON_ADD} from '@/widgets/basic/constants';
 import {ButtonInk} from '@/widgets/basic/types';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
@@ -21,7 +21,8 @@ import {
 	HomeSectionBody,
 	HomeSectionHeader,
 	HomeSectionHeaderOperators,
-	HomeSectionTitle
+	HomeSectionTitle,
+	NoRecentUse
 } from './widgets';
 
 export const DashboardsSection = () => {
@@ -29,8 +30,8 @@ export const DashboardsSection = () => {
 	const {fire: fireGlobal} = useEventBus();
 	const {fire} = useConsoleEventBus();
 	const bodyRef = useRef<HTMLDivElement>(null);
-	const [sortType, setSortType] = useState<SortType>(SortType.BY_VISIT_TIME);
-	const [viewType, setViewType] = useState<ViewType>(ViewType.ALL);
+	const [sortType] = useState<SortType>(SortType.BY_VISIT_TIME);
+	const [viewType] = useState<ViewType>(ViewType.ALL);
 	const [dashboards, setDashboards] = useState<Array<Dashboard>>([]);
 	useEffect(() => {
 		fire(ConsoleEventTypes.ASK_DASHBOARDS, (newDashboards) => {
@@ -50,22 +51,27 @@ export const DashboardsSection = () => {
 				navigate(toDashboard(dashboard.dashboardId));
 			});
 	};
-	const onSortClicked = () => {
-		setSortType(sortType === SortType.BY_NAME ? SortType.BY_VISIT_TIME : SortType.BY_NAME);
-	};
-	const onViewClicked = () => {
-		setViewType(viewType === ViewType.COLLAPSE ? ViewType.ALL : ViewType.COLLAPSE);
-	};
+	// const onSortClicked = () => {
+	// 	setSortType(sortType === SortType.BY_NAME ? SortType.BY_VISIT_TIME : SortType.BY_NAME);
+	// };
+	// const onViewClicked = () => {
+	// 	setViewType(viewType === ViewType.COLLAPSE ? ViewType.ALL : ViewType.COLLAPSE);
+	// };
 
-	let sortedDashboards;
-	if (sortType === SortType.BY_VISIT_TIME) {
-		sortedDashboards = dashboards.sort((cs1, cs2) => {
-			return (cs2.lastVisitTime || '').localeCompare(cs1.lastVisitTime || '');
-		});
-	} else {
-		sortedDashboards = dashboards.sort((cs1, cs2) => {
-			return cs1.name.toLowerCase().localeCompare(cs2.name.toLowerCase());
-		});
+	const sortedDashboards: Array<Dashboard> = (() => {
+		if (sortType === SortType.BY_VISIT_TIME) {
+			return [...dashboards.sort((cs1, cs2) => {
+				return (cs2.lastVisitTime || '').localeCompare(cs1.lastVisitTime || '');
+			})];
+		} else {
+			// 	sortedDashboards = dashboards.sort((cs1, cs2) => {
+			// 		return cs1.name.toLowerCase().localeCompare(cs2.name.toLowerCase());
+			// 	});
+			return [];
+		}
+	})();
+	if (sortedDashboards.length > 2) {
+		sortedDashboards.length = 2;
 	}
 
 	return <HomeSection>
@@ -76,20 +82,22 @@ export const DashboardsSection = () => {
 					<FontAwesomeIcon icon={ICON_ADD}/>
 					<span>{Lang.CONSOLE.HOME.CREATE_DASHBOARD_BUTTON}</span>
 				</HeaderButton>
-				<HeaderButton ink={ButtonInk.PRIMARY} onClick={onSortClicked}>
-					<FontAwesomeIcon icon={ICON_SORT}/>
-					<span>{sortType === SortType.BY_NAME ? Lang.CONSOLE.HOME.SORT_BY_VISIT_TIME : Lang.CONSOLE.HOME.SORT_BY_NAME}</span>
-				</HeaderButton>
-				<HeaderButton ink={ButtonInk.PRIMARY} onClick={onViewClicked}>
-					<FontAwesomeIcon icon={viewType === ViewType.ALL ? ICON_COLLAPSE_PANEL : ICON_EXPAND_PANEL}/>
-					<span>{viewType === ViewType.ALL ? Lang.CONSOLE.HOME.VIEW_COLLAPSE : Lang.CONSOLE.HOME.VIEW_ALL}</span>
-				</HeaderButton>
+				{/*<HeaderButton ink={ButtonInk.PRIMARY} onClick={onSortClicked}>*/}
+				{/*	<FontAwesomeIcon icon={ICON_SORT}/>*/}
+				{/*	<span>{sortType === SortType.BY_NAME ? Lang.CONSOLE.HOME.SORT_BY_VISIT_TIME : Lang.CONSOLE.HOME.SORT_BY_NAME}</span>*/}
+				{/*</HeaderButton>*/}
+				{/*<HeaderButton ink={ButtonInk.PRIMARY} onClick={onViewClicked}>*/}
+				{/*	<FontAwesomeIcon icon={viewType === ViewType.ALL ? ICON_COLLAPSE_PANEL : ICON_EXPAND_PANEL}/>*/}
+				{/*	<span>{viewType === ViewType.ALL ? Lang.CONSOLE.HOME.VIEW_COLLAPSE : Lang.CONSOLE.HOME.VIEW_ALL}</span>*/}
+				{/*</HeaderButton>*/}
 			</HomeSectionHeaderOperators>
 		</HomeSectionHeader>
 		<HomeSectionBody collapse={viewType !== ViewType.ALL} maxHeight={maxHeight} ref={bodyRef}>
-			{sortedDashboards.map(dashboard => {
-				return <DashboardCard dashboard={dashboard} key={dashboard.dashboardId}/>;
-			})}
+			{sortedDashboards.length === 0
+				? <NoRecentUse>{Lang.CONSOLE.HOME.NO_RECENT}</NoRecentUse>
+				: sortedDashboards.map(dashboard => {
+					return <DashboardCard dashboard={dashboard} key={dashboard.dashboardId}/>;
+				})}
 		</HomeSectionBody>
 	</HomeSection>;
 };

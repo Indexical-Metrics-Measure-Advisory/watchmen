@@ -4,7 +4,7 @@ import {ICON_DASHBOARD} from '@/widgets/basic/constants';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React from 'react';
 import {useNavigate} from 'react-router-dom';
-import {ConnectedSpaceCardContainer, ConnectedSpaceLastVisit, ConnectedSpaceName} from './widgets';
+import {CardContainer, CardLastVisit, CardName} from './widgets';
 
 export const DashboardCard = (props: {
 	dashboard: Dashboard;
@@ -17,9 +17,9 @@ export const DashboardCard = (props: {
 		navigate(toDashboard(dashboard.dashboardId));
 	};
 
-	return <ConnectedSpaceCardContainer onClick={onDashboardClicked}>
+	return <CardContainer onClick={onDashboardClicked}>
 		<FontAwesomeIcon icon={ICON_DASHBOARD}/>
-		<ConnectedSpaceLastVisit>{dashboard.lastVisitTime}</ConnectedSpaceLastVisit>
-		<ConnectedSpaceName>{dashboard.name}</ConnectedSpaceName>
-	</ConnectedSpaceCardContainer>;
+		<CardLastVisit>{dashboard.lastVisitTime}</CardLastVisit>
+		<CardName>{dashboard.name}</CardName>
+	</CardContainer>;
 };
