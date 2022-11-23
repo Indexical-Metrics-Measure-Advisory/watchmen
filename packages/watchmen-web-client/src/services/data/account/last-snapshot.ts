@@ -86,25 +86,29 @@ export type FoundReport = Report & Pick<Subject, 'subjectId'> & Pick<ConnectedSp
 export type FoundSubject = Subject & Pick<ConnectedSpace, 'connectId'>
 export type FoundItem = FoundSubject | ConnectedSpace | Dashboard | FoundReport;
 
-export const saveConsoleHomeSearched = (data: Array<FoundItem>) => {
-	sessionStorage.setItem(CONSOLE_HOME_SEARCHED, base64Encode(JSON.stringify({account: findAccount()?.name, data})));
+export const saveConsoleHomeSearched = (text: string, data: Array<FoundItem>) => {
+	sessionStorage.setItem(CONSOLE_HOME_SEARCHED, base64Encode(JSON.stringify({
+		account: findAccount()?.name,
+		search: text,
+		data
+	})));
 };
 
-export const findConsoleHomeSearched = (): Array<FoundItem> => {
+export const findConsoleHomeSearched = (): { search: string, data: Array<FoundItem> } => {
 	const inStorage = sessionStorage.getItem(CONSOLE_HOME_SEARCHED);
 	if (inStorage != null) {
 		try {
-			const {account, data} = JSON.parse(base64Decode(inStorage));
+			const {account, search, data} = JSON.parse(base64Decode(inStorage));
 			if (account === findAccount()?.name) {
-				return data as Array<FoundItem>;
+				return {search: search || '', data: data as Array<FoundItem>};
 			} else {
-				return [];
+				return {search: '', data: []};
 			}
 		} catch (e) {
 			console.error(e);
-			return [];
+			return {search: '', data: []};
 		}
 	} else {
-		return [];
+		return {search: '', data: []};
 	}
 };
