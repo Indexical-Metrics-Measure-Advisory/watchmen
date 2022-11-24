@@ -7,7 +7,7 @@ import {
 	ICON_DQC,
 	ICON_INDICATOR,
 	ICON_LOGOUT,
-	ICON_OBJECTIVE_ANALYSIS,
+	ICON_OBJECTIVE,
 	ICON_SETTINGS,
 	ICON_SWITCH_WORKBENCH
 } from '@/widgets/basic/constants';
@@ -94,20 +94,10 @@ export const IndicatorMenu = () => {
 		              active={!!matchPath({path: Router.IDW_INDICATOR_ALL}, location.pathname)}
 		              onClick={navigateTo(Router.IDW_INDICATOR)}
 		              visible={isAdmin() && !isSuperAdmin()}/>
-		{/*<SideMenuItem icon={ICON_INSPECTION} label={Lang.INDICATOR.MENU.INSPECTIONS}*/}
-		{/*              showTooltip={showTooltip}*/}
-		{/*              active={!!matchPath({path: Router.IDW_INSPECTION}, location.pathname)}*/}
-		{/*              onClick={navigateTo(Router.IDW_INSPECTION)}*/}
-		{/*              visible={isAdmin() && !isSuperAdmin()}/>*/}
-		{/*<SideMenuItem icon={ICON_ACHIEVEMENT} label={Lang.INDICATOR.MENU.ACHIEVEMENTS}*/}
-		{/*              showTooltip={showTooltip}*/}
-		{/*              active={!!matchPath({path: Router.IDW_ACHIEVEMENT_ALL}, location.pathname)}*/}
-		{/*              onClick={navigateTo(Router.IDW_ACHIEVEMENT)}*/}
-		{/*              visible={isAdmin() && !isSuperAdmin()}/>*/}
-		<SideMenuItem icon={ICON_OBJECTIVE_ANALYSIS} label={Lang.INDICATOR.MENU.OBJECTIVE_ANALYSIS}
+		<SideMenuItem icon={ICON_OBJECTIVE} label={Lang.INDICATOR.MENU.OBJECTIVES}
 		              showTooltip={showTooltip}
-		              active={!!matchPath({path: Router.IDW_OBJECTIVE_ANALYSIS_ALL}, location.pathname)}
-		              onClick={navigateTo(Router.IDW_OBJECTIVE_ANALYSIS)}
+		              active={!!matchPath({path: Router.IDW_OBJECTIVE_ALL}, location.pathname)}
+		              onClick={navigateTo(Router.IDW_OBJECTIVE)}
 		              visible={isAdmin() && !isSuperAdmin()}/>
 		<SideMenuPlaceholder/>
 		<SideMenuSeparator width={menuWidth}/>

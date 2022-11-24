@@ -1,7 +1,5 @@
-import {AchievementId} from '@/services/data/tuples/achievement-types';
 import {ConnectedSpaceId} from '@/services/data/tuples/connected-space-types';
 import {DashboardId} from '@/services/data/tuples/dashboard-types';
-import {ObjectiveAnalysisId} from '@/services/data/tuples/objective-analysis-types';
 import {PipelineId} from '@/services/data/tuples/pipeline-types';
 import {ReportId} from '@/services/data/tuples/report-types';
 import {SubjectId} from '@/services/data/tuples/subject-types';
@@ -38,8 +36,6 @@ export const isDashboardOpened = (dashboardId: DashboardId): boolean => {
 };
 export const toDashboard = (dashboardId: DashboardId) => Router.CONSOLE_DASHBOARD_EDIT.replace(':dashboardId', dashboardId);
 export const toPipeline = (pipelineId: PipelineId) => Router.ADMIN_PIPELINE.replace(':pipelineId', pipelineId);
-export const toAchievementEdit = (achievementId: AchievementId) => Router.IDW_ACHIEVEMENT_EDIT.replace(':achievementId', achievementId);
-export const toObjectiveAnalysisEdit = (analysisId: ObjectiveAnalysisId) => Router.IDW_OBJECTIVE_ANALYSIS_EDIT.replace(':analysisId', analysisId);
 
 export const relativeTo = (path: Router, parent: Router): string => {
 	return path.substring(parent.length);
@@ -54,8 +50,6 @@ export const relativeToSubject = (path: Router): string => relativeTo(path, Rout
 export const relativeToDQC = (path: Router): string => relativeTo(path, Router.DQC);
 export const relativeToIDW = (path: Router): string => relativeTo(path, Router.IDW);
 export const relativeToIDWIndicator = (path: Router): string => relativeTo(path, Router.IDW_INDICATOR);
-export const relativeToIDWAchievement = (path: Router): string => relativeTo(path, Router.IDW_ACHIEVEMENT);
-export const relativeToIDWAnalysis = (path: Router): string => relativeTo(path, Router.IDW_OBJECTIVE_ANALYSIS);
 export const relativeToShare = (path: Router): string => relativeTo(path, Router.SHARE);
 
 export const asTopRoute = (path: Router, children: ReactNode) => <Route path={path} element={children}/>;
@@ -74,8 +68,6 @@ export const asSubjectRoute = (path: Router, children: ReactNode) => asRoute(rel
 export const asDQCRoute = (path: Router, children: ReactNode) => asRoute(relativeToDQC)(path, children);
 export const asIDWRoute = (path: Router, children: ReactNode) => asRoute(relativeToIDW)(path, children);
 export const asIDWIndicatorRoute = (path: Router, children: ReactNode) => asRoute(relativeToIDWIndicator)(path, children);
-export const asIDWAchievementRoute = (path: Router, children: ReactNode) => asRoute(relativeToIDWAchievement)(path, children);
-export const asIDWAnalysisRoute = (path: Router, children: ReactNode) => asRoute(relativeToIDWAnalysis)(path, children);
 export const asShareRoute = (path: Router, children: ReactNode) => asRoute(relativeToShare)(path, children);
 export const asFallbackNavigate = (path: Router) => <Route path="*" element={<Navigate to={path} replace={true}/>}/>;
 export const asFallbackRoute = (children: ReactNode) => <Route path="*" element={children}/>;

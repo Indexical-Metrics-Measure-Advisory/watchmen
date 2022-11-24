@@ -310,6 +310,7 @@ export const En = {
 			INDICATORS: 'Indicators',
 			INSPECTIONS: 'Inspections',
 			ACHIEVEMENTS: 'Achievements',
+			OBJECTIVES: 'Objectives',
 			OBJECTIVE_ANALYSIS: 'Objective Analysis',
 			SETTINGS: 'Settings',
 			LOGOUT: 'Logout'

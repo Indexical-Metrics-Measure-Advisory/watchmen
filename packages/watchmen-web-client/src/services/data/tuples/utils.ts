@@ -1,6 +1,5 @@
 import dayjs from 'dayjs';
 import {v4} from 'uuid';
-import {Achievement} from './achievement-types';
 import {Bucket} from './bucket-types';
 import {Catalog} from './catalog-types';
 import {ConnectedSpace} from './connected-space-types';
@@ -9,8 +8,6 @@ import {DataSource} from './data-source-types';
 import {Enum} from './enum-types';
 import {ExternalWriter} from './external-writer-types';
 import {Indicator} from './indicator-types';
-import {Inspection} from './inspection-types';
-import {ObjectiveAnalysis} from './objective-analysis-types';
 import {Pipeline, PipelinesGraphics} from './pipeline-types';
 import {Plugin} from './plugin-types';
 import {Report} from './report-types';
@@ -74,15 +71,6 @@ export const isIndicator = (tuple: Tuple): tuple is Indicator => {
 export const isBucket = (tuple: Tuple): tuple is Bucket => {
 	return !!(tuple as any).bucketId;
 };
-export const isInspection = (tuple: Tuple): tuple is Inspection => {
-	return !!(tuple as any).inspectionId;
-};
-export const isAchievement = (tuple: Tuple): tuple is Achievement => {
-	return !!(tuple as any).achievementId;
-};
-export const isObjectiveAnalysis = (tuple: Tuple): tuple is ObjectiveAnalysis => {
-	return !!(tuple as any).analysisId;
-};
 export const isCatalog = (tuple: Tuple): tuple is Catalog => {
 	return !!(tuple as any).catalogId;
 };
@@ -104,14 +92,6 @@ export const isFakedUuid = (tuple: Tuple): boolean => {
 		return tuple.schedulerId.startsWith(FAKE_ID_PREFIX);
 	} else if (isCatalog(tuple)) {
 		return tuple.catalogId.startsWith(FAKE_ID_PREFIX);
-	} else if (isObjectiveAnalysis(tuple)) {
-		return tuple.analysisId.startsWith(FAKE_ID_PREFIX);
-	} else if (isAchievement(tuple)) {
-		return tuple.achievementId.startsWith(FAKE_ID_PREFIX);
-	} else if (isInspection(tuple)) {
-		// inspection check must before indicator check
-		// since "indicatorId" also exists in inspection object
-		return tuple.inspectionId.startsWith(FAKE_ID_PREFIX);
 	} else if (isIndicator(tuple)) {
 		// indicator check must before topic check
 		// since "topicId" also exists in indicator object

@@ -2,12 +2,12 @@ import {Router} from '@/routes/types';
 import {asFallbackNavigate, asIDWRoute} from '@/routes/utils';
 import {isAdmin} from '@/services/data/account';
 import React, {ReactNode} from 'react';
-import {Routes} from 'react-router-dom';
+import {Navigate, Routes} from 'react-router-dom';
 import styled from 'styled-components';
 import IndicatorBucketsIndex from './bucket';
 import IndicatorIndicatorIndex from './indicator';
 import {IndicatorMenu} from './menu';
-import IndicatorObjectiveAnalysisIndex from './objective-analysis';
+import IndicatorObjectiveIndex from './objective';
 import IndicatorSettingsIndex from './settings';
 
 const IndicatorContainer = styled.div.attrs({'data-widget': 'indicator'})`
@@ -41,20 +41,19 @@ const asRoute = (path: Router, children: ReactNode,
 };
 
 const IndicatorIndex = () => {
+	if (!isAdmin()) {
+		return <Navigate to={Router.CONSOLE_HOME}/>;
+	}
+
 	return <IndicatorContainer>
 		<IndicatorMenu/>
 		<Routes>
-			{isAdmin() ? asRoute(Router.IDW_BUCKETS, <IndicatorBucketsIndex/>) : null}
-			{isAdmin() ? asRoute(Router.IDW_INDICATOR_ALL, <IndicatorIndicatorIndex/>) : null}
-			{/*{isAdmin() ? asRoute(Router.IDW_INSPECTION, <IndicatorInspectionIndex/>) : null}*/}
-			{/*{isAdmin() ? asRoute(Router.IDW_ACHIEVEMENT_ALL, <IndicatorAchievementIndex/>) : null}*/}
-			{isAdmin()
-				? asRoute(Router.IDW_OBJECTIVE_ANALYSIS_ALL, <IndicatorObjectiveAnalysisIndex/>, {scrollable: false})
-				: null}
+			{asRoute(Router.IDW_BUCKETS, <IndicatorBucketsIndex/>)}
+			{asRoute(Router.IDW_INDICATOR_ALL, <IndicatorIndicatorIndex/>)}
+			{asRoute(Router.IDW_OBJECTIVE_ALL, <IndicatorObjectiveIndex/>)}
 			{asRoute(Router.IDW_SETTINGS, <IndicatorSettingsIndex/>)}
-			{isAdmin() ? asFallbackNavigate(Router.IDW_INDICATOR) : asFallbackNavigate(Router.IDW_OBJECTIVE_ANALYSIS)}
+			{asFallbackNavigate(Router.IDW_INDICATOR)}
 		</Routes>
-		{/*<WaterMark/>*/}
 	</IndicatorContainer>;
 };
 

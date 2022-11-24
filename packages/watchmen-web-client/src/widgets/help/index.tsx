@@ -52,7 +52,7 @@ export enum HELP_KEYS {
 	IDW_INDICATOR = 'indicator',
 	IDW_INSPECTION = 'inspection',
 	IDW_ACHIEVEMENT = 'achievement',
-	IDW_OBJECTIVE_ANALYSIS = 'objective analysis',
+	IDW_OBJECTIVE_ANALYSIS = 'objective',
 	SETTINGS = 'settings'
 }
 
