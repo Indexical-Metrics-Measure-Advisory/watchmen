@@ -42,6 +42,10 @@ export const ReportFunnelHalfWeek: Array<string> = [
 export const ReportFunnelDayKind: Array<string> = [
 	Lang.CALENDAR.WORKDAY, Lang.CALENDAR.WEEKEND, Lang.CALENDAR.HOLIDAY
 ];
+export const ReportFunnelDayOfWeek: Array<string> = [
+	Lang.CALENDAR.SUNDAY, Lang.CALENDAR.MONDAY, Lang.CALENDAR.TUESDAY, Lang.CALENDAR.WEDNESDAY,
+	Lang.CALENDAR.THURSDAY, Lang.CALENDAR.FRIDAY, Lang.CALENDAR.SATURDAY
+];
 export const ReportFunnelHourKind: Array<string> = [
 	Lang.CALENDAR.WORK_TIME, Lang.CALENDAR.OFF_HOURS, Lang.CALENDAR.SLEEPING_TIME
 ];
