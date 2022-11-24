@@ -185,26 +185,7 @@ export const Apis = {
 	BUCKET_LIST_BY_METHODS: 'indicator/bucket/methods',
 	BUCKETS_EXPORT: 'indicator/bucket/export',
 
-	INSPECTION_LIST: 'indicator/inspection/list',
-	INSPECTION_CREATE: 'indicator/inspection',
-	INSPECTION_GET: 'indicator/inspection?inspection_id=:inspectionId',
-	INSPECTION_SAVE: 'indicator/inspection',
-	INSPECTION_DATA: 'indicator/inspection/data?inspection_id=:inspectionId',
-
-	ACHIEVEMENT_LIST_BY_NAME: 'indicator/achievement/name?query_name=:search',
-	ACHIEVEMENT_CREATE: 'indicator/achievement',
-	ACHIEVEMENT_SAVE: 'indicator/achievement',
-	ACHIEVEMENT_GET: 'indicator/achievement?achievement_id=:achievementId',
-	ACHIEVEMENT_INDICATOR_DATA: 'indicator/achievement/data',
-	SUBMIT_ACHIEVEMENT_PLUGIN_TASK: 'indicator/achievement/task?achievement_id=:achievementId&plugin_id=:pluginId',
-	CHECK_ACHIEVEMENT_PLUGIN_TASK: 'indicator/achievement/task?task_id=:taskId',
-
-	OBJECTIVE_ANALYSIS_LIST: 'indicator/objective-analysis/list',
-	OBJECTIVE_ANALYSIS_LIST_BY_NAME: 'indicator/objective-analysis/name?query_name=:search',
-	OBJECTIVE_ANALYSIS_CREATE: 'indicator/objective-analysis',
-	OBJECTIVE_ANALYSIS_SAVE: 'indicator/objective-analysis',
-	OBJECTIVE_ANALYSIS_GET: 'indicator/objective-analysis?analysis_id=:analysisId',
-	OBJECTIVE_ANALYSIS_DELETE: 'indicator/objective-analysis/delete?analysis_id=:analysisId'
+	OBJECTIVE_LIST_BY_NAME: 'indicator/objective/name?query_name=:search'
 };
 
 const buildApi = (api: string, args?: Record<string, any>): string => {

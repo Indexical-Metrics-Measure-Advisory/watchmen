@@ -32,6 +32,7 @@ export const Jp: LanguageDeclareType = {
 		FIND_BUCKET_PLACEHOLDER: 'バケット名 説明に基づいて検索します。',
 		BUCKET_CATEGORY_SEGMENT_VALUE_PLACEHOLDER: '分類値、セグメントに追加することを確認します。',
 		FIND_INDICATOR_VALUE_BUCKETS_PLACEHOLDER: 'バケット名に基づいて検索します。',
+		FIND_OBJECTIVE_PLACEHOLDER: '目標名 説明に基づいて検索します。',
 		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '";"で結合された複数のアドレス。'
 	},
 	STANDARD: {
@@ -410,6 +411,15 @@ export const Jp: LanguageDeclareType = {
 			SEGMENT_LABEL: 'セグメント',
 			PLEASE_SELECT_SEGMENT: '選択した列挙項目を含むセグメントを選択してください。',
 			PLEASE_SELECT_ENUM_ITEM: '少なくとも 1 つの列挙項目を選択してセグメント化に参加してください。'
+		},
+		OBJECTIVE: {
+			LIST_TITLE: '目標',
+			LIST_CREATE_OBJECTIVE: '目標を作成',
+			LIST_LABEL: '目標',
+			NEW_OBJECTIVE_PREFIX: '新しい',
+			EXISTING_OBJECTIVE_PREFIX: '既存',
+			CREATE_AT: '作成先',
+			LAST_MODIFIED_AT: '最終更新日'
 		}
 	},
 	SUBSCRIBE: {

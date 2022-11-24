@@ -18,7 +18,7 @@ import {renderEditor} from './editor';
 
 const getKeyOfIndicator = (indicator: QueryIndicator) => indicator.indicatorId;
 
-export const RealIndicatorList = () => {
+const RealIndicatorList = () => {
 	const {fire: fireGlobal} = useEventBus();
 	const {on, off, fire} = useTupleEventBus();
 	const {fire: fireIndicator} = useIndicatorsEventBus();
