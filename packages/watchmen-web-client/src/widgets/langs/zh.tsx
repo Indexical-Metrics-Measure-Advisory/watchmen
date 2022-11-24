@@ -32,6 +32,7 @@ export const Zh: LanguageDeclareType = {
 		FIND_BUCKET_PLACEHOLDER: '根据分桶名称, 描述查找.',
 		BUCKET_CATEGORY_SEGMENT_VALUE_PLACEHOLDER: '输入分组值, 点击确认加入到分段中.',
 		FIND_INDICATOR_VALUE_BUCKETS_PLACEHOLDER: '根据分桶名称查找.',
+		FIND_OBJECTIVE_PLACEHOLDER: '根据目标名称, 描述查找.',
 		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '使用";"分隔邮箱地址.'
 	},
 	STANDARD: {
@@ -410,6 +411,15 @@ export const Zh: LanguageDeclareType = {
 			SEGMENT_LABEL: '分组',
 			PLEASE_SELECT_SEGMENT: '请选择包含已选择枚举项的分组.',
 			PLEASE_SELECT_ENUM_ITEM: '请至少选择一个枚举项加入到分组.'
+		},
+		OBJECTIVE: {
+			LIST_TITLE: '目标',
+			LIST_CREATE_OBJECTIVE: '创建目标',
+			LIST_LABEL: '目标',
+			NEW_OBJECTIVE_PREFIX: '新',
+			EXISTING_OBJECTIVE_PREFIX: '已存在的',
+			CREATE_AT: '创建于',
+			LAST_MODIFIED_AT: '最后更新于'
 		}
 	},
 	SUBSCRIBE: {

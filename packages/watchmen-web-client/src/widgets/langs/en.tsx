@@ -31,6 +31,7 @@ export const En = {
 		FIND_BUCKET_PLACEHOLDER: 'Search by bucket name, description.',
 		BUCKET_CATEGORY_SEGMENT_VALUE_PLACEHOLDER: 'Key in category value here, confirm to add into segment.',
 		FIND_INDICATOR_VALUE_BUCKETS_PLACEHOLDER: 'Search by bucket name.',
+		FIND_OBJECTIVE_PLACEHOLDER: 'Find by objective name, description',
 		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '";" to separate multiple addresses.'
 	},
 	STANDARD: {
@@ -409,6 +410,15 @@ export const En = {
 			SEGMENT_LABEL: 'Segment',
 			PLEASE_SELECT_SEGMENT: 'Please pick a segment to include selected enumeration items.',
 			PLEASE_SELECT_ENUM_ITEM: 'Please select at lease one enumeration item to add into segment.'
+		},
+		OBJECTIVE: {
+			LIST_TITLE: 'Objectives',
+			LIST_CREATE_OBJECTIVE: 'Define Objective',
+			LIST_LABEL: 'Objective',
+			NEW_OBJECTIVE_PREFIX: 'A New',
+			EXISTING_OBJECTIVE_PREFIX: 'An Existing',
+			CREATE_AT: 'Created At',
+			LAST_MODIFIED_AT: 'Last Modified At'
 		}
 	},
 	SUBSCRIBE: {
