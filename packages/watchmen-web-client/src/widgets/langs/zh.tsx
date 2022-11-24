@@ -311,6 +311,7 @@ export const Zh: LanguageDeclareType = {
 			INDICATORS: '指标',
 			INSPECTIONS: '洞察',
 			ACHIEVEMENTS: '业绩',
+			OBJECTIVES: '目标',
 			OBJECTIVE_ANALYSIS: '指标治理',
 			SETTINGS: '设置',
 			LOGOUT: '登出'

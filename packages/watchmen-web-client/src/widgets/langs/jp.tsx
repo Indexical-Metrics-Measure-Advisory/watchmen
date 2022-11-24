@@ -311,6 +311,7 @@ export const Jp: LanguageDeclareType = {
 			INDICATORS: '指標',
 			INSPECTIONS: '洞察',
 			ACHIEVEMENTS: '実績',
+			OBJECTIVES: '目標',
 			OBJECTIVE_ANALYSIS: '指標ガバナンス',
 			SETTINGS: '設定',
 			LOGOUT: 'ログアウト'
