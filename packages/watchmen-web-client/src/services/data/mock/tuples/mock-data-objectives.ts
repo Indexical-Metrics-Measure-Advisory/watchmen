@@ -3,7 +3,7 @@ import {Objective} from '../../tuples/objective-types';
 
 export const OBJECTIVE_MONTHLY_SALES_ID = '1';
 
-const MonthlySalesObjective: Objective = {
+export const MonthlySalesObjective: Objective = {
 	objectiveId: OBJECTIVE_MONTHLY_SALES_ID,
 	name: 'Monthly Sales',
 	description: '',

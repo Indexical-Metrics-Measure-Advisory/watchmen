@@ -418,7 +418,9 @@ export const En = {
 			NEW_OBJECTIVE_PREFIX: 'A New',
 			EXISTING_OBJECTIVE_PREFIX: 'An Existing',
 			CREATE_AT: 'Created At',
-			LAST_MODIFIED_AT: 'Last Modified At'
+			LAST_MODIFIED_AT: 'Last Modified At',
+			TITLE: 'Define Objective',
+			FAILED_TO_LOAD_OBJECTIVE: 'Failed to load objective, contact your administrator for more information.'
 		}
 	},
 	SUBSCRIBE: {

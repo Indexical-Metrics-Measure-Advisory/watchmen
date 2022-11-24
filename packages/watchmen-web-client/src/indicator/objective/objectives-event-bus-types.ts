@@ -11,7 +11,10 @@ export enum ObjectivesEventTypes {
 	ASK_SEARCHED = 'ask-searched',
 
 	CREATE_OBJECTIVE = 'create-objective',
-	PICK_OBJECTIVE = 'pick-objective'
+	PICK_OBJECTIVE = 'pick-objective',
+
+	ASK_OBJECTIVE = 'ask-objective',
+	OBJECTIVE_SAVED = 'objective-saved'
 }
 
 export interface ObjectivesEventBus {
@@ -30,4 +33,12 @@ export interface ObjectivesEventBus {
 	fire(type: ObjectivesEventTypes.PICK_OBJECTIVE, objectiveId: ObjectiveId, onData: (data: ObjectivesData) => void): this;
 	on(type: ObjectivesEventTypes.PICK_OBJECTIVE, listener: (objectiveId: ObjectiveId, onData: (data: ObjectivesData) => void) => void): this;
 	off(type: ObjectivesEventTypes.PICK_OBJECTIVE, listener: (objectiveId: ObjectiveId, onData: (data: ObjectivesData) => void) => void): this;
+
+	fire(type: ObjectivesEventTypes.ASK_OBJECTIVE, onData: (data?: ObjectivesData) => void): this;
+	on(type: ObjectivesEventTypes.ASK_OBJECTIVE, listener: (onData: (data?: ObjectivesData) => void) => void): this;
+	off(type: ObjectivesEventTypes.ASK_OBJECTIVE, listener: (onData: (data?: ObjectivesData) => void) => void): this;
+
+	fire(type: ObjectivesEventTypes.OBJECTIVE_SAVED, objective: Objective): this;
+	on(type: ObjectivesEventTypes.OBJECTIVE_SAVED, listener: (objective: Objective) => void): this;
+	off(type: ObjectivesEventTypes.OBJECTIVE_SAVED, listener: (objective: Objective) => void): this;
 }

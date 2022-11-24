@@ -1,6 +1,7 @@
-import {DemoObjectives} from '@/services/data/mock/tuples/mock-data-objectives';
+import {DemoObjectives, MonthlySalesObjective} from '@/services/data/mock/tuples/mock-data-objectives';
 import {TuplePage} from '@/services/data/query/tuple-page';
 import {QueryObjective} from '@/services/data/tuples/query-objective-types';
+import {Objective, ObjectiveId} from '../../tuples/objective-types';
 
 export const listMockObjectives = async (options: {
 	search: string;
@@ -19,4 +20,20 @@ export const listMockObjectives = async (options: {
 			});
 		}, 1000);
 	});
+};
+
+export const fetchMockObjective = async (objectiveId: ObjectiveId): Promise<{ objective: Objective }> => {
+	// eslint-disable-next-line
+	const found = DemoObjectives.find(({objectiveId: id}) => id == objectiveId);
+	if (found) {
+		const objective: Objective = JSON.parse(JSON.stringify(found));
+		return {objective};
+	} else {
+		return {
+			objective: {
+				...MonthlySalesObjective,
+				objectiveId
+			}
+		};
+	}
 };
