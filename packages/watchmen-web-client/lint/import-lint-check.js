@@ -70,4 +70,12 @@ files
 			}
 		})
 	});
-console.log(i18nKeys)
+console.log('')
+i18nKeys.forEach((key, index) => {
+	console.log(`${index + 1}.\t` + key.red)
+});
+if (failure) {
+	console.log('Do i18n keys lint validating successfully, please fix the above issues.'.bold.underline.red)
+} else {
+	console.log('Do i18n keys lint validating successfully, no failure found.'.bold.underline.green)
+}

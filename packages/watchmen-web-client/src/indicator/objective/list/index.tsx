@@ -1,4 +1,5 @@
 import ObjectiveBackground from '@/assets/objective-background.svg';
+import {Router} from '@/routes/types';
 import {TuplePage} from '@/services/data/query/tuple-page';
 import {listObjectives} from '@/services/data/tuples/objective';
 import {Objective} from '@/services/data/tuples/objective-types';
@@ -10,14 +11,15 @@ import {Lang} from '@/widgets/langs';
 import {TupleWorkbench} from '@/widgets/tuple-workbench';
 import {TupleEventBusProvider, useTupleEventBus} from '@/widgets/tuple-workbench/tuple-event-bus';
 import {TupleEventTypes} from '@/widgets/tuple-workbench/tuple-event-bus-types';
-import React, {Fragment, useEffect} from 'react';
+import React, {useEffect} from 'react';
+import {Navigate} from 'react-router-dom';
 import {useObjectivesEventBus} from '../objectives-event-bus';
 import {ObjectivesData, ObjectivesEventTypes} from '../objectives-event-bus-types';
 import {renderCard} from './card';
 
 const getKeyOfObjective = (objective: QueryObjective) => objective.objectiveId;
 // noinspection JSUnusedLocalSymbols
-const renderEditor = (objective: Objective) => <Fragment/>;
+const renderEditor = (objective: Objective) => <Navigate to={Router.IDW_OBJECTIVE_EDIT}/>;
 
 const RealObjectiveList = () => {
 	const {fire: fireGlobal} = useEventBus();

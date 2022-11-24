@@ -419,7 +419,9 @@ export const Jp: LanguageDeclareType = {
 			NEW_OBJECTIVE_PREFIX: '新しい',
 			EXISTING_OBJECTIVE_PREFIX: '既存',
 			CREATE_AT: '作成先',
-			LAST_MODIFIED_AT: '最終更新日'
+			LAST_MODIFIED_AT: '最終更新日',
+			TITLE: '目標を準備',
+			FAILED_TO_LOAD_OBJECTIVE: '目標データの読み込みにエラーが発生しました。詳細については、管理者に問い合わせてください。'
 		}
 	},
 	SUBSCRIBE: {

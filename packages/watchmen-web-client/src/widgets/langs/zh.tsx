@@ -419,7 +419,9 @@ export const Zh: LanguageDeclareType = {
 			NEW_OBJECTIVE_PREFIX: '新',
 			EXISTING_OBJECTIVE_PREFIX: '已存在的',
 			CREATE_AT: '创建于',
-			LAST_MODIFIED_AT: '最后更新于'
+			LAST_MODIFIED_AT: '最后更新于',
+			TITLE: '准备目标',
+			FAILED_TO_LOAD_OBJECTIVE: '加载目标数据出现错误, 请联系您的系统管理员以获取更多信息.'
 		}
 	},
 	SUBSCRIBE: {

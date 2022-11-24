@@ -63,7 +63,7 @@ export enum Router {
 	IDW_INDICATOR_EDIT = '/idw/indicator/edit',
 	IDW_OBJECTIVE = '/idw/objective',
 	IDW_OBJECTIVE_ALL = '/idw/objective/*',
-	IDW_OBJECTIVE_EDIT = '/idw/objective/edit:/objectiveId',
+	IDW_OBJECTIVE_EDIT = '/idw/objective/edit',
 	IDW_SETTINGS = '/idw/settings',
 
 	SHARE = '/share',
