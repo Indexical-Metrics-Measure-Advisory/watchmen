@@ -1,7 +1,7 @@
-import {DemoObjectives, MonthlySalesObjective} from '@/services/data/mock/tuples/mock-data-objectives';
-import {TuplePage} from '@/services/data/query/tuple-page';
-import {QueryObjective} from '@/services/data/tuples/query-objective-types';
+import {TuplePage} from '../../query/tuple-page';
 import {Objective, ObjectiveId} from '../../tuples/objective-types';
+import {QueryObjective} from '../../tuples/query-objective-types';
+import {DemoObjectives, MonthlySalesObjective} from './mock-data-objectives';
 
 export const listMockObjectives = async (options: {
 	search: string;

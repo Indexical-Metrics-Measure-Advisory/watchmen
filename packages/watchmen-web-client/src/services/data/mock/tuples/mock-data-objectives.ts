@@ -1,5 +1,5 @@
-import {getCurrentTime} from '@/services/data/utils';
 import {Objective} from '../../tuples/objective-types';
+import {getCurrentTime} from '../../utils';
 
 export const OBJECTIVE_MONTHLY_SALES_ID = '1';
 

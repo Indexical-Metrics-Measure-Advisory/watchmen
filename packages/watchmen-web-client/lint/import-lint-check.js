@@ -5,7 +5,7 @@ require('colors')
 
 const root = path.join(__dirname, '../src');
 const files = getAllFiles(root)
-const failure = files.filter(file => file.endsWith('.tsx') || file.endsWith('.ts'))
+const outsideImports = files.filter(file => file.endsWith('.tsx') || file.endsWith('.ts'))
 	.map(file => file.replace(root, ''))
 	.map(file => ({...path.parse(file), file}))
 	.filter(p => p.dir !== '/')
@@ -19,9 +19,9 @@ const failure = files.filter(file => file.endsWith('.tsx') || file.endsWith('.ts
 		return p1.file.toUpperCase().localeCompare(p2.file.toUpperCase())
 	}).map((p, index) => {
 		console.log(`${index + 1}.\t` + p.file.red)
-	}).length !== 0
+	})
 
-if (failure) {
+if (outsideImports.length !== 0) {
 	console.log('Do import lint validating successfully, please fix the above issues.'.bold.underline.red)
 } else {
 	console.log('Do import lint validating successfully, no failure found.'.bold.underline.green)
@@ -74,7 +74,7 @@ console.log('')
 i18nKeys.forEach((key, index) => {
 	console.log(`${index + 1}.\t` + key.red)
 });
-if (failure) {
+if (i18nKeys.length !== 0) {
 	console.log('Do i18n keys lint validating successfully, please fix the above issues.'.bold.underline.red)
 } else {
 	console.log('Do i18n keys lint validating successfully, no failure found.'.bold.underline.green)
