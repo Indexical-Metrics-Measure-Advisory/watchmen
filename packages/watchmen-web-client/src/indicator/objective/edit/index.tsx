@@ -5,7 +5,10 @@ import React, {useEffect, useState} from 'react';
 import {useObjectivesEventBus} from '../objectives-event-bus';
 import {ObjectiveData, ObjectivesEventTypes} from '../objectives-event-bus-types';
 import {createObjective} from '../utils';
+import {Description} from './description';
 import {Targets} from './targets';
+import {TimeFrame} from './time-frame';
+import {EditObjective} from './types';
 import {ObjectiveContainer} from './widgets';
 
 export const ObjectiveEditor = () => {
@@ -21,14 +24,18 @@ export const ObjectiveEditor = () => {
 		});
 	}, [fire]);
 
-	if (data == null) {
+	if (data == null || data.objective == null) {
 		return null;
 	}
+
+	const editable = data as EditObjective;
 
 	return <FixWidthPage>
 		<PageHeader title={Lang.INDICATOR.OBJECTIVE.TITLE}/>
 		<ObjectiveContainer>
-			<Targets data={data}/>
+			<Targets data={editable}/>
+			<TimeFrame data={editable}/>
+			<Description data={editable}/>
 		</ObjectiveContainer>
 	</FixWidthPage>;
 };

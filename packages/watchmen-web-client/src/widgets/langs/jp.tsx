@@ -33,6 +33,7 @@ export const Jp: LanguageDeclareType = {
 		BUCKET_CATEGORY_SEGMENT_VALUE_PLACEHOLDER: '分類値、セグメントに追加することを確認します。',
 		FIND_INDICATOR_VALUE_BUCKETS_PLACEHOLDER: 'バケット名に基づいて検索します。',
 		FIND_OBJECTIVE_PLACEHOLDER: '目標名 説明に基づいて検索します。',
+		OBJECTIVE_DESCRIPTION_PLACEHOLDER: '目標の説明を入力してください。',
 		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '";"で結合された複数のアドレス。'
 	},
 	STANDARD: {
@@ -423,7 +424,9 @@ export const Jp: LanguageDeclareType = {
 			TITLE: '目標を準備',
 			FAILED_TO_LOAD_OBJECTIVE: '目標データの読み込みにエラーが発生しました。詳細については、管理者に問い合わせてください。',
 			TARGETS_TITLE: '定量的目標値の宣言。',
-			BACK_TO_LIST: 'リストに戻り'
+			BACK_TO_LIST: 'リストに戻り',
+			TIME_FRAME_TITLE: '時間枠の宣言。',
+			DESCRIPTION_TITLE: '説明。'
 		}
 	},
 	SUBSCRIBE: {

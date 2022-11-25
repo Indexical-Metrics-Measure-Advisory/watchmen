@@ -32,6 +32,7 @@ export const En = {
 		BUCKET_CATEGORY_SEGMENT_VALUE_PLACEHOLDER: 'Key in category value here, confirm to add into segment.',
 		FIND_INDICATOR_VALUE_BUCKETS_PLACEHOLDER: 'Search by bucket name.',
 		FIND_OBJECTIVE_PLACEHOLDER: 'Find by objective name, description',
+		OBJECTIVE_DESCRIPTION_PLACEHOLDER: 'Objective description here...',
 		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '";" to separate multiple addresses.'
 	},
 	STANDARD: {
@@ -422,7 +423,9 @@ export const En = {
 			TITLE: 'Define Objective',
 			FAILED_TO_LOAD_OBJECTIVE: 'Failed to load objective, contact your administrator for more information.',
 			TARGETS_TITLE: 'Declare quantitative target values.',
-			BACK_TO_LIST: 'Back to list'
+			BACK_TO_LIST: 'Back to list',
+			TIME_FRAME_TITLE: 'Declare a time frame.',
+			DESCRIPTION_TITLE: 'Description.'
 		}
 	},
 	SUBSCRIBE: {
