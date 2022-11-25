@@ -1,6 +1,7 @@
 import {TuplePage} from '../../query/tuple-page';
 import {Objective, ObjectiveId} from '../../tuples/objective-types';
 import {QueryObjective} from '../../tuples/query-objective-types';
+import {isFakedUuid} from '../../tuples/utils';
 import {DemoObjectives, MonthlySalesObjective} from './mock-data-objectives';
 
 export const listMockObjectives = async (options: {
@@ -36,4 +37,14 @@ export const fetchMockObjective = async (objectiveId: ObjectiveId): Promise<{ ob
 			}
 		};
 	}
+};
+
+let newObjectiveId = 10000;
+export const saveMockObjective = async (objective: Objective): Promise<void> => {
+	return new Promise<void>((resolve) => {
+		if (isFakedUuid(objective)) {
+			objective.objectiveId = `${newObjectiveId++}`;
+		}
+		setTimeout(() => resolve(), 500);
+	});
 };

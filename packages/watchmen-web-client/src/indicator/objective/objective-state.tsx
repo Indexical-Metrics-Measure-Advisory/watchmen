@@ -1,9 +1,10 @@
-import {fetchObjective} from '@/services/data/tuples/objective';
+import {fetchObjective, saveObjective} from '@/services/data/tuples/objective';
 import {Objective, ObjectiveId} from '@/services/data/tuples/objective-types';
 import {AlertLabel} from '@/widgets/alert/widgets';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
+import {useThrottler} from '@/widgets/throttler';
 import React, {Fragment, useEffect, useState} from 'react';
 import {useObjectivesEventBus} from './objectives-event-bus';
 import {ObjectiveData, ObjectivesEventTypes} from './objectives-event-bus-types';
@@ -11,7 +12,7 @@ import {createObjective} from './utils';
 
 export const ObjectiveState = () => {
 	const {fire: fireGlobal} = useEventBus();
-	const {on, off} = useObjectivesEventBus();
+	const {on, off, fire} = useObjectivesEventBus();
 	const [data, setData] = useState<ObjectiveData>({});
 
 	useEffect(() => {
@@ -51,6 +52,24 @@ export const ObjectiveState = () => {
 			off(ObjectivesEventTypes.ASK_OBJECTIVE, onAskObjective);
 		};
 	}, [on, off, data]);
+	const saveQueue = useThrottler();
+	useEffect(() => {
+		const onSaveObjective = (objective: Objective, onSaved: (objective: Objective, saved: boolean) => void) => {
+			saveQueue.replace(() => {
+				fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
+					async () => await saveObjective(objective),
+					() => {
+						fire(ObjectivesEventTypes.OBJECTIVE_SAVED, objective);
+						onSaved(objective, true);
+					},
+					() => onSaved(objective, false));
+			}, 500);
+		};
+		on(ObjectivesEventTypes.SAVE_OBJECTIVE, onSaveObjective);
+		return () => {
+			off(ObjectivesEventTypes.SAVE_OBJECTIVE, onSaveObjective);
+		};
+	}, [on, off, fire, fireGlobal, saveQueue]);
 
 	return <Fragment/>;
 };

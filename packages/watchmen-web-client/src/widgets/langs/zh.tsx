@@ -33,6 +33,7 @@ export const Zh: LanguageDeclareType = {
 		BUCKET_CATEGORY_SEGMENT_VALUE_PLACEHOLDER: '输入分组值, 点击确认加入到分段中.',
 		FIND_INDICATOR_VALUE_BUCKETS_PLACEHOLDER: '根据分桶名称查找.',
 		FIND_OBJECTIVE_PLACEHOLDER: '根据目标名称, 描述查找.',
+		OBJECTIVE_DESCRIPTION_PLACEHOLDER: '请输入目标描述...',
 		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '使用";"分隔邮箱地址.'
 	},
 	STANDARD: {
@@ -423,7 +424,9 @@ export const Zh: LanguageDeclareType = {
 			TITLE: '准备目标',
 			FAILED_TO_LOAD_OBJECTIVE: '加载目标数据出现错误, 请联系您的系统管理员以获取更多信息.',
 			TARGETS_TITLE: '定义量化目标值.',
-			BACK_TO_LIST: '返回列表'
+			BACK_TO_LIST: '返回列表',
+			TIME_FRAME_TITLE: '定义时间窗口.',
+			DESCRIPTION_TITLE: '描述.'
 		}
 	},
 	SUBSCRIBE: {
