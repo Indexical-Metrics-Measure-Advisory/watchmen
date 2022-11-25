@@ -14,7 +14,7 @@ import {TupleEventTypes} from '@/widgets/tuple-workbench/tuple-event-bus-types';
 import React, {useEffect} from 'react';
 import {Navigate} from 'react-router-dom';
 import {useObjectivesEventBus} from '../objectives-event-bus';
-import {ObjectivesData, ObjectivesEventTypes} from '../objectives-event-bus-types';
+import {ObjectiveData, ObjectivesEventTypes} from '../objectives-event-bus-types';
 import {renderCard} from './card';
 
 const getKeyOfObjective = (objective: QueryObjective) => objective.objectiveId;
@@ -32,7 +32,7 @@ const RealObjectiveList = () => {
 			});
 		};
 		const onDoEditObjective = async (queryObjective: QueryObjective) => {
-			fireObjective(ObjectivesEventTypes.PICK_OBJECTIVE, queryObjective.objectiveId, (data: ObjectivesData) => {
+			fireObjective(ObjectivesEventTypes.PICK_OBJECTIVE, queryObjective.objectiveId, (data: ObjectiveData) => {
 				fire(TupleEventTypes.TUPLE_LOADED, data.objective!);
 			});
 		};

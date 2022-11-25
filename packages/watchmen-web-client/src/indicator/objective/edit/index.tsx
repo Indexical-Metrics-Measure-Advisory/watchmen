@@ -3,14 +3,16 @@ import {PageHeader} from '@/widgets/basic/page-header';
 import {Lang} from '@/widgets/langs';
 import React, {useEffect, useState} from 'react';
 import {useObjectivesEventBus} from '../objectives-event-bus';
-import {ObjectivesData, ObjectivesEventTypes} from '../objectives-event-bus-types';
+import {ObjectiveData, ObjectivesEventTypes} from '../objectives-event-bus-types';
 import {createObjective} from '../utils';
+import {Targets} from './targets';
+import {ObjectiveContainer} from './widgets';
 
 export const ObjectiveEditor = () => {
 	const {fire} = useObjectivesEventBus();
-	const [data, setData] = useState<ObjectivesData | null>(null);
+	const [data, setData] = useState<ObjectiveData | null>(null);
 	useEffect(() => {
-		fire(ObjectivesEventTypes.ASK_OBJECTIVE, (data?: ObjectivesData) => {
+		fire(ObjectivesEventTypes.ASK_OBJECTIVE, (data?: ObjectiveData) => {
 			if (data == null || data.objective == null) {
 				setData({objective: createObjective()});
 			} else {
@@ -25,5 +27,8 @@ export const ObjectiveEditor = () => {
 
 	return <FixWidthPage>
 		<PageHeader title={Lang.INDICATOR.OBJECTIVE.TITLE}/>
+		<ObjectiveContainer>
+			<Targets data={data}/>
+		</ObjectiveContainer>
 	</FixWidthPage>;
 };

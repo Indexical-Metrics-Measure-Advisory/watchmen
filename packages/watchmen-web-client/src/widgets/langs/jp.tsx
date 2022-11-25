@@ -421,7 +421,9 @@ export const Jp: LanguageDeclareType = {
 			CREATE_AT: '作成先',
 			LAST_MODIFIED_AT: '最終更新日',
 			TITLE: '目標を準備',
-			FAILED_TO_LOAD_OBJECTIVE: '目標データの読み込みにエラーが発生しました。詳細については、管理者に問い合わせてください。'
+			FAILED_TO_LOAD_OBJECTIVE: '目標データの読み込みにエラーが発生しました。詳細については、管理者に問い合わせてください。',
+			TARGETS_TITLE: '定量的目標値の宣言。',
+			BACK_TO_LIST: 'リストに戻り'
 		}
 	},
 	SUBSCRIBE: {

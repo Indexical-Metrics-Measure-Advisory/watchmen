@@ -17,7 +17,13 @@ const StepContainer = styled.div.attrs<{ visible: boolean }>(({visible}) => {
 	grid-column-gap       : calc(var(--margin) / 2);
 	width                 : 100%;
 `;
-export const SinkingLabel = styled.span`
+export const SinkingLabel = styled.span.attrs<{ grow?: boolean }>(({grow = false}) => {
+	return {
+		style: {
+			flexGrow: grow ? 1 : (void 0)
+		}
+	};
+})<{ grow?: boolean }>`
 	display    : flex;
 	position   : relative;
 	align-self : flex-end;
