@@ -2,7 +2,7 @@ import {TuplePage} from '@/services/data/query/tuple-page';
 import {Objective, ObjectiveId} from '@/services/data/tuples/objective-types';
 import {QueryObjective} from '@/services/data/tuples/query-objective-types';
 
-export interface ObjectivesData {
+export interface ObjectiveData {
 	objective?: Objective;
 }
 
@@ -30,13 +30,13 @@ export interface ObjectivesEventBus {
 	on(type: ObjectivesEventTypes.CREATE_OBJECTIVE, listener: (onCreated: (objective: Objective) => void) => void): this;
 	off(type: ObjectivesEventTypes.CREATE_OBJECTIVE, listener: (onCreated: (objective: Objective) => void) => void): this;
 
-	fire(type: ObjectivesEventTypes.PICK_OBJECTIVE, objectiveId: ObjectiveId, onData: (data: ObjectivesData) => void): this;
-	on(type: ObjectivesEventTypes.PICK_OBJECTIVE, listener: (objectiveId: ObjectiveId, onData: (data: ObjectivesData) => void) => void): this;
-	off(type: ObjectivesEventTypes.PICK_OBJECTIVE, listener: (objectiveId: ObjectiveId, onData: (data: ObjectivesData) => void) => void): this;
+	fire(type: ObjectivesEventTypes.PICK_OBJECTIVE, objectiveId: ObjectiveId, onData: (data: ObjectiveData) => void): this;
+	on(type: ObjectivesEventTypes.PICK_OBJECTIVE, listener: (objectiveId: ObjectiveId, onData: (data: ObjectiveData) => void) => void): this;
+	off(type: ObjectivesEventTypes.PICK_OBJECTIVE, listener: (objectiveId: ObjectiveId, onData: (data: ObjectiveData) => void) => void): this;
 
-	fire(type: ObjectivesEventTypes.ASK_OBJECTIVE, onData: (data?: ObjectivesData) => void): this;
-	on(type: ObjectivesEventTypes.ASK_OBJECTIVE, listener: (onData: (data?: ObjectivesData) => void) => void): this;
-	off(type: ObjectivesEventTypes.ASK_OBJECTIVE, listener: (onData: (data?: ObjectivesData) => void) => void): this;
+	fire(type: ObjectivesEventTypes.ASK_OBJECTIVE, onData: (data?: ObjectiveData) => void): this;
+	on(type: ObjectivesEventTypes.ASK_OBJECTIVE, listener: (onData: (data?: ObjectiveData) => void) => void): this;
+	off(type: ObjectivesEventTypes.ASK_OBJECTIVE, listener: (onData: (data?: ObjectiveData) => void) => void): this;
 
 	fire(type: ObjectivesEventTypes.OBJECTIVE_SAVED, objective: Objective): this;
 	on(type: ObjectivesEventTypes.OBJECTIVE_SAVED, listener: (objective: Objective) => void): this;

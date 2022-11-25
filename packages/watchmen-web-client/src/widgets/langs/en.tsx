@@ -420,7 +420,9 @@ export const En = {
 			CREATE_AT: 'Created At',
 			LAST_MODIFIED_AT: 'Last Modified At',
 			TITLE: 'Define Objective',
-			FAILED_TO_LOAD_OBJECTIVE: 'Failed to load objective, contact your administrator for more information.'
+			FAILED_TO_LOAD_OBJECTIVE: 'Failed to load objective, contact your administrator for more information.',
+			TARGETS_TITLE: 'Declare quantitative target values.',
+			BACK_TO_LIST: 'Back to list'
 		}
 	},
 	SUBSCRIBE: {

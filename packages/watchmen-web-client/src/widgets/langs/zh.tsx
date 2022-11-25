@@ -421,7 +421,9 @@ export const Zh: LanguageDeclareType = {
 			CREATE_AT: '创建于',
 			LAST_MODIFIED_AT: '最后更新于',
 			TITLE: '准备目标',
-			FAILED_TO_LOAD_OBJECTIVE: '加载目标数据出现错误, 请联系您的系统管理员以获取更多信息.'
+			FAILED_TO_LOAD_OBJECTIVE: '加载目标数据出现错误, 请联系您的系统管理员以获取更多信息.',
+			TARGETS_TITLE: '定义量化目标值.',
+			BACK_TO_LIST: '返回列表'
 		}
 	},
 	SUBSCRIBE: {

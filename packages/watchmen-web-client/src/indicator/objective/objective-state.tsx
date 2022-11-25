@@ -6,13 +6,13 @@ import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import React, {Fragment, useEffect, useState} from 'react';
 import {useObjectivesEventBus} from './objectives-event-bus';
-import {ObjectivesData, ObjectivesEventTypes} from './objectives-event-bus-types';
+import {ObjectiveData, ObjectivesEventTypes} from './objectives-event-bus-types';
 import {createObjective} from './utils';
 
 export const ObjectiveState = () => {
 	const {fire: fireGlobal} = useEventBus();
 	const {on, off} = useObjectivesEventBus();
-	const [data, setData] = useState<ObjectivesData>({});
+	const [data, setData] = useState<ObjectiveData>({});
 
 	useEffect(() => {
 		const onCreateObjective = (onCreated: (objective: Objective) => void) => {
@@ -26,7 +26,7 @@ export const ObjectiveState = () => {
 		};
 	}, [on, off]);
 	useEffect(() => {
-		const onPickObjective = async (objectiveId: ObjectiveId, onData: (data: ObjectivesData) => void) => {
+		const onPickObjective = async (objectiveId: ObjectiveId, onData: (data: ObjectiveData) => void) => {
 			try {
 				const data = await fetchObjective(objectiveId);
 				setData(data);
@@ -43,7 +43,7 @@ export const ObjectiveState = () => {
 		};
 	}, [on, off, fireGlobal]);
 	useEffect(() => {
-		const onAskObjective = (onData: (data?: ObjectivesData) => void) => {
+		const onAskObjective = (onData: (data?: ObjectiveData) => void) => {
 			onData(data);
 		};
 		on(ObjectivesEventTypes.ASK_OBJECTIVE, onAskObjective);

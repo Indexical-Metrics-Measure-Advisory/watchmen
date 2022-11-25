@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 
-export const IndicatorsContainer = styled.div.attrs({'data-widget': 'indicators'})`
+export const IndicatorsContainer = styled.div.attrs({'data-widget': 'indicator'})`
 	display        : flex;
 	position       : relative;
 	flex-direction : column;
