@@ -427,7 +427,7 @@ export const En = {
 			TARGETS_TITLE: 'Declare quantitative target values.',
 			BACK_TO_LIST: 'Back to list',
 			TARGET_NAME: 'Name:',
-			TARGET_TOBE: 'Target Value:',
+			TARGET_TOBE: 'To Be Value:',
 			TARGET_TOBE_PLACEHOLDER: 'A numeric value, or a percentage value (ends with %).',
 			TARGET_ASIS: 'As Is Value:',
 			TARGET_ASIS_SET: 'Set Formula',
