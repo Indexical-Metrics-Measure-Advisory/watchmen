@@ -1,4 +1,5 @@
 import React from 'react';
+// a line placeholder to keep the line number is same as other language file
 
 export const En = {
 	$$settings: {
@@ -425,6 +426,18 @@ export const En = {
 			FAILED_TO_LOAD_OBJECTIVE: 'Failed to load objective, contact your administrator for more information.',
 			TARGETS_TITLE: 'Declare quantitative target values.',
 			BACK_TO_LIST: 'Back to list',
+			TARGET_NAME: 'Name:',
+			TARGET_TOBE: 'Target Value:',
+			TARGET_TOBE_PLACEHOLDER: 'A numeric value, or a percentage value (ends with %).',
+			TARGET_ASIS: 'As Is Value:',
+			TARGET_ASIS_SET: 'Set Formula',
+			TARGET_BETTER_SIDE: 'Better Value:',
+			TARGET_BETTER_SIDE_MORE: 'More is better',
+			TARGET_BETTER_SIDE_LESS: 'Less is better',
+			TARGET_ASK_PREVIOUS_CYCLE: 'Include previous cycle (eg. month-on-month)?',
+			TARGET_ASK_CHAIN_CYCLE: 'Include chain cycle (eg. year-on-year)?',
+			REMOVE_TARGET: 'Remove Target',
+			ADD_TARGET: 'Add New Target',
 			TIME_FRAME_TITLE: 'Set a time frame.',
 			FACTORS_TITLE: 'Measure by indicators.',
 			NOT_NOW: 'Not Now',
