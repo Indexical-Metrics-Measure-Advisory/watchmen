@@ -6,6 +6,8 @@ import {useObjectivesEventBus} from '../objectives-event-bus';
 import {ObjectiveData, ObjectivesEventTypes} from '../objectives-event-bus-types';
 import {createObjective} from '../utils';
 import {Description} from './description';
+import {Factors} from './factors';
+import {NameAndSave} from './name-and-save';
 import {Targets} from './targets';
 import {TimeFrame} from './time-frame';
 import {EditObjective} from './types';
@@ -35,6 +37,8 @@ export const ObjectiveEditor = () => {
 		<ObjectiveContainer>
 			<Targets data={editable}/>
 			<TimeFrame data={editable}/>
+			<Factors data={editable}/>
+			<NameAndSave data={editable}/>
 			<Description data={editable}/>
 		</ObjectiveContainer>
 	</FixWidthPage>;

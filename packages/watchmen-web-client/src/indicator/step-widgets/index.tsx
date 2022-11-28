@@ -77,10 +77,10 @@ export const StepTitleConjunctionLabel = styled(ConjunctionLabel)`
 `;
 
 export const Step = forwardRef((props: { index: number; visible?: boolean; children: ReactNode }, ref: ForwardedRef<HTMLDivElement>) => {
-	const {index, visible = true, children} = props;
+	const {index, visible = true, children, ...rest} = props;
 
-	return <StepContainer visible={visible} ref={ref}>
-		<StepIndex>{Lang.INDICATOR.INDICATOR.STEP} {index}.</StepIndex>
+	return <StepContainer visible={visible} {...rest} ref={ref}>
+		<StepIndex>{Lang.INDICATOR.STEP} {index}.</StepIndex>
 		{children}
 		<StepBackground/>
 	</StepContainer>;

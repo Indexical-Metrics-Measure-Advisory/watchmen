@@ -33,6 +33,7 @@ export const Zh: LanguageDeclareType = {
 		BUCKET_CATEGORY_SEGMENT_VALUE_PLACEHOLDER: '输入分组值, 点击确认加入到分段中.',
 		FIND_INDICATOR_VALUE_BUCKETS_PLACEHOLDER: '根据分桶名称查找.',
 		FIND_OBJECTIVE_PLACEHOLDER: '根据目标名称, 描述查找.',
+		OBJECTIVE_NAME_PLACEHOLDER: '请输入用于阅读的名称.',
 		OBJECTIVE_DESCRIPTION_PLACEHOLDER: '请输入目标描述...',
 		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '使用";"分隔邮箱地址.'
 	},
@@ -280,6 +281,7 @@ export const Zh: LanguageDeclareType = {
 			LOGOUT: '登出'
 		},
 		ON_EDIT: '正在编辑中, 所有未保存的数据都将丢失. 是否确定放弃编辑?',
+		STEP: '步骤',
 		INDICATOR: {
 			LIST_TITLE: '指标',
 			LIST_CREATE_INDICATOR: '创建指标',
@@ -289,7 +291,6 @@ export const Zh: LanguageDeclareType = {
 			CREATE_AT: '创建于',
 			LAST_MODIFIED_AT: '最后更新于',
 			TITLE: '准备指标',
-			STEP: '步骤',
 			WAIT_INPUT: '等待输入...',
 			SEARCHING: '努力查找中...',
 			NO_MATCHED: '没有找到匹配的数据.',
@@ -425,7 +426,14 @@ export const Zh: LanguageDeclareType = {
 			FAILED_TO_LOAD_OBJECTIVE: '加载目标数据出现错误, 请联系您的系统管理员以获取更多信息.',
 			TARGETS_TITLE: '定义量化目标值.',
 			BACK_TO_LIST: '返回列表',
-			TIME_FRAME_TITLE: '定义时间窗口.',
+			TIME_FRAME_TITLE: '划定时间窗口.',
+			FACTORS_TITLE: '指标构成.',
+			NOT_NOW: '放弃',
+			SAVE_OBJECTIVE: '保存目标数据',
+			SAVE_NAME: '保存目标名称',
+			REQUIRE_OBJECTIVE_NAME: '需要一个用于阅读的目标名称.',
+			CHANGE_NAME: '修改名称',
+			NAME_TITLE: '设置一个用于阅读的名称.',
 			DESCRIPTION_TITLE: '描述.'
 		}
 	},
