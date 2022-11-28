@@ -39,7 +39,7 @@ export const TargetContainer = styled.div.attrs({'data-widget': 'objective-targe
 		background-color : transparent;
 	}
 	&:before {
-		opacity    : 0.03;
+		opacity    : 0.05;
 		transition : background-color 300ms ease-in-out;
 		z-index    : -2;
 	}
@@ -85,8 +85,11 @@ export const TargetContainer = styled.div.attrs({'data-widget': 'objective-targe
 	}
 `;
 export const ItemNo = styled.span.attrs({'data-widget': 'objective-item-no'})`
-	display     : flex;
-	align-items : center;
+	display      : flex;
+	align-items  : center;
+	font-weight  : var(--font-bold);
+	font-variant : petite-caps;
+	opacity      : 0.7;
 `;
 export const ItemLabel = styled.span.attrs({'data-widget': 'objective-item-label'})`
 	display      : flex;
