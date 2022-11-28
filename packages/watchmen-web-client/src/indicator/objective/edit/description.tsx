@@ -3,7 +3,6 @@ import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
 import {useThrottler} from '@/widgets/throttler';
 import {ChangeEvent} from 'react';
-import {StepBody} from '../../step-widgets';
 import {useObjectivesEventBus} from '../objectives-event-bus';
 import {ObjectivesEventTypes} from '../objectives-event-bus-types';
 import {EditStep} from './edit-step';
@@ -35,10 +34,8 @@ export const Description = (props: { data: EditObjective }) => {
 	};
 
 	return <EditStep index={ObjectiveDeclarationStep.DESCRIPTION} title={Lang.INDICATOR.OBJECTIVE.DESCRIPTION_TITLE}>
-		<StepBody visible={true}>
-			<DescriptionText value={data.objective?.description ?? ''}
-			                 onChange={onDescriptionChanged}
-			                 placeholder={Lang.PLAIN.OBJECTIVE_DESCRIPTION_PLACEHOLDER}/>
-		</StepBody>
+		<DescriptionText value={data.objective?.description ?? ''}
+		                 onChange={onDescriptionChanged}
+		                 placeholder={Lang.PLAIN.OBJECTIVE_DESCRIPTION_PLACEHOLDER}/>
 	</EditStep>;
 };

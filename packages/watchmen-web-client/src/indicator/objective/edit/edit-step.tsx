@@ -1,6 +1,3 @@
-import {ObjectiveDeclarationStep} from '@/indicator/objective/edit/steps';
-import {BackToListButtonContainer} from '@/indicator/objective/edit/widgets';
-import {EmphaticSinkingLabel, Step, StepTitle, StepTitleButton} from '@/indicator/step-widgets';
 import {Router} from '@/routes/types';
 import {ButtonInk} from '@/widgets/basic/types';
 import {useEventBus} from '@/widgets/events/event-bus';
@@ -8,6 +5,9 @@ import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {ReactNode} from 'react';
 import {useNavigate} from 'react-router-dom';
+import {EmphaticSinkingLabel, Step, StepBody, StepTitle, StepTitleButton} from '../../step-widgets';
+import {ObjectiveDeclarationStep} from './steps';
+import {BackToListButtonContainer} from './widgets';
 
 export const EditStep = (props: {
 	index: ObjectiveDeclarationStep;
@@ -38,6 +38,8 @@ export const EditStep = (props: {
 				</BackToListButtonContainer>
 				: null}
 		</StepTitle>
-		{children}
+		<StepBody visible={true}>
+			{children}
+		</StepBody>
 	</Step>;
 };

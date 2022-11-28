@@ -33,6 +33,7 @@ export const Jp: LanguageDeclareType = {
 		BUCKET_CATEGORY_SEGMENT_VALUE_PLACEHOLDER: '分類値、セグメントに追加することを確認します。',
 		FIND_INDICATOR_VALUE_BUCKETS_PLACEHOLDER: 'バケット名に基づいて検索します。',
 		FIND_OBJECTIVE_PLACEHOLDER: '目標名 説明に基づいて検索します。',
+		OBJECTIVE_NAME_PLACEHOLDER: '読むための名前を入力してください。',
 		OBJECTIVE_DESCRIPTION_PLACEHOLDER: '目標の説明を入力してください。',
 		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '";"で結合された複数のアドレス。'
 	},
@@ -280,6 +281,7 @@ export const Jp: LanguageDeclareType = {
 			LOGOUT: 'ログアウト'
 		},
 		ON_EDIT: '編集中、保存されていないデータはすべて失われます。編集を破棄しますか。',
+		STEP: 'ステップ',
 		INDICATOR: {
 			LIST_TITLE: '指標',
 			LIST_CREATE_INDICATOR: '指標を作成',
@@ -289,7 +291,6 @@ export const Jp: LanguageDeclareType = {
 			CREATE_AT: '作成先',
 			LAST_MODIFIED_AT: '最終更新日',
 			TITLE: '指標を準備',
-			STEP: 'ステップ',
 			WAIT_INPUT: '入力を待っている...',
 			SEARCHING: '検索中...',
 			NO_MATCHED: '一致するデータが見つかりませんでした。',
@@ -328,10 +329,10 @@ export const Jp: LanguageDeclareType = {
 			NO_MEASURE_BUCKET: '適切な測定寸法のバケットは見つかりませんでした。',
 			VIEW_MEASURE_BUCKETS: '定義済みの測定寸法のバケットを表示します',
 			IGNORE_DEFINE_BUCKETS: 'バケット定義を無視する',
-			CHANGE_NAME: '名前を変更します',
+			CHANGE_NAME: '名前を変更',
 			NOT_NOW: '捨てる',
 			SAVE_INDICATOR: '指標を保存',
-			SAVE_NAME: '名前を保存する',
+			SAVE_NAME: '名前を保存',
 			REQUIRE_INDICATOR_NAME: '読み取りには指標名が必要です。',
 			RELEVANT_TITLE: '現在の指標に関連する指標は、自動的に検出できます。',
 			INDICATOR_NAME: '関連指標',
@@ -425,7 +426,14 @@ export const Jp: LanguageDeclareType = {
 			FAILED_TO_LOAD_OBJECTIVE: '目標データの読み込みにエラーが発生しました。詳細については、管理者に問い合わせてください。',
 			TARGETS_TITLE: '定量的目標値の宣言。',
 			BACK_TO_LIST: 'リストに戻り',
-			TIME_FRAME_TITLE: '時間枠の宣言。',
+			TIME_FRAME_TITLE: '時間枠を設定。',
+			FACTORS_TITLE: '指標の構成。',
+			NOT_NOW: '捨てる',
+			SAVE_OBJECTIVE: '目標を保存',
+			SAVE_NAME: '名前を保存',
+			REQUIRE_OBJECTIVE_NAME: '読み取りには目標名が必要です。',
+			CHANGE_NAME: '名前を変更',
+			NAME_TITLE: '読むための名前を入力してください。',
 			DESCRIPTION_TITLE: '説明。'
 		}
 	},

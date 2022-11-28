@@ -32,6 +32,7 @@ export const En = {
 		BUCKET_CATEGORY_SEGMENT_VALUE_PLACEHOLDER: 'Key in category value here, confirm to add into segment.',
 		FIND_INDICATOR_VALUE_BUCKETS_PLACEHOLDER: 'Search by bucket name.',
 		FIND_OBJECTIVE_PLACEHOLDER: 'Find by objective name, description',
+		OBJECTIVE_NAME_PLACEHOLDER: 'A human reading name for objective.',
 		OBJECTIVE_DESCRIPTION_PLACEHOLDER: 'Objective description here...',
 		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '";" to separate multiple addresses.'
 	},
@@ -279,6 +280,7 @@ export const En = {
 			LOGOUT: 'Logout'
 		},
 		ON_EDIT: 'Still in editing, all changes will be lost if interrupt. Are you sure to continue?',
+		STEP: 'Step',
 		INDICATOR: {
 			LIST_TITLE: 'Indicators',
 			LIST_CREATE_INDICATOR: 'Define Indicator',
@@ -288,7 +290,6 @@ export const En = {
 			CREATE_AT: 'Created At',
 			LAST_MODIFIED_AT: 'Last Modified At',
 			TITLE: 'Define Indicator',
-			STEP: 'Step',
 			WAIT_INPUT: 'Waiting for input...',
 			SEARCHING: 'Searching...',
 			NO_MATCHED: 'No matching data found.',
@@ -424,7 +425,14 @@ export const En = {
 			FAILED_TO_LOAD_OBJECTIVE: 'Failed to load objective, contact your administrator for more information.',
 			TARGETS_TITLE: 'Declare quantitative target values.',
 			BACK_TO_LIST: 'Back to list',
-			TIME_FRAME_TITLE: 'Declare a time frame.',
+			TIME_FRAME_TITLE: 'Set a time frame.',
+			FACTORS_TITLE: 'Measure by indicators.',
+			NOT_NOW: 'Not Now',
+			SAVE_OBJECTIVE: 'Save Objective',
+			SAVE_NAME: 'Save Name',
+			REQUIRE_OBJECTIVE_NAME: 'A human reading name for objective is required.',
+			CHANGE_NAME: 'Change Name',
+			NAME_TITLE: 'Set a human reading name.',
 			DESCRIPTION_TITLE: 'Description.'
 		}
 	},
