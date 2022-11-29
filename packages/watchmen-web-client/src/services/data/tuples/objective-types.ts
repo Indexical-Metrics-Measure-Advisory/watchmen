@@ -99,7 +99,7 @@ export interface ObjectiveTimeFrame {
 	/** is target in time frame, normally is */
 	kind?: ObjectiveTimeFrameKind;
 	/** only available if kind is LAST_N-* types, should be a positive value */
-	lastN?: number;
+	lastN?: string;
 	/** time frame is cut off till when */
 	till?: ObjectiveTimeFrameTill;
 	/** specify the till time when till is SPECIFIED */

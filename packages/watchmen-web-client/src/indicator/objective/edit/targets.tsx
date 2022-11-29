@@ -27,6 +27,7 @@ const Target = (props: { objective: Objective; target: ObjectiveTarget; index: n
 		save(objective);
 	};
 	const onSetAsIsClicked = () => {
+		// TODO
 	};
 	const onBetterSideChanged = (option: DropdownOption) => {
 		target.betterSide = option.key as ObjectiveTargetBetterSide;

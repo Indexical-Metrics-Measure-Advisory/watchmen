@@ -108,6 +108,29 @@ export const AddTargetButton = styled(Button).attrs({'data-widget': 'objective-a
 		margin-top : calc(var(--margin) / 2);
 	}
 `;
+export const TimeFrameContainer = styled.div.attrs({'data-widget': 'objective-time-frame'})`
+	display               : grid;
+	position              : relative;
+	grid-template-columns : auto auto auto 1fr;
+	grid-column-gap       : calc(var(--margin) / 2);
+	grid-row-gap          : calc(var(--margin) / 4);
+	> div[data-widget=dropdown],
+	> div[data-widget=calendar],
+	> input {
+		justify-self : start;
+		width        : auto;
+		min-width    : 200px;
+	}
+`;
+export const TimeFrameItemLabel = styled(ItemLabel)`
+	transition : opacity 300ms ease-in-out;
+	&[data-visible=false],
+	&[data-visible=false] + input,
+	&[data-visible=false] + div[data-widget=calendar] {
+		opacity        : 0;
+		pointer-events : none;
+	}
+`;
 export const NameInput = styled(Input)`
 	width       : calc(100% - var(--margin) / 2);
 	height      : calc(var(--height) * 1.2);
