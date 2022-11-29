@@ -71,7 +71,7 @@ export const TimeFrame = (props: { data: EditObjective }) => {
 		ObjectiveTimeFrameKind.LAST_N_YEARS, ObjectiveTimeFrameKind.LAST_N_MONTHS,
 		ObjectiveTimeFrameKind.LAST_N_WEEKS, ObjectiveTimeFrameKind.LAST_N_DAYS
 	].includes(timeFrame.kind);
-	const isTillSpecified = timeFrame.till == ObjectiveTimeFrameTill.SPECIFIED;
+	const isTillSpecified = timeFrame.till === ObjectiveTimeFrameTill.SPECIFIED;
 
 	return <EditStep index={ObjectiveDeclarationStep.TIME_FRAME} title={Lang.INDICATOR.OBJECTIVE.TIME_FRAME_TITLE}>
 		<TimeFrameContainer>
