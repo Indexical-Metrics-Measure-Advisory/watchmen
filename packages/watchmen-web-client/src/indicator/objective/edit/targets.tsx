@@ -1,44 +1,44 @@
-import {ObjectiveTarget, ObjectiveTargetBetterSide} from '@/services/data/tuples/objective-types';
+import {Objective, ObjectiveTarget, ObjectiveTargetBetterSide} from '@/services/data/tuples/objective-types';
 import {CheckBox} from '@/widgets/basic/checkbox';
 import {Dropdown} from '@/widgets/basic/dropdown';
 import {Input} from '@/widgets/basic/input';
 import {ButtonInk, DropdownOption} from '@/widgets/basic/types';
-import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
 import {ChangeEvent} from 'react';
 import {EditStep} from './edit-step';
 import {ObjectiveDeclarationStep} from './steps';
 import {EditObjective} from './types';
+import {useSave} from './use-save';
 import {AddTargetButton, ItemLabel, ItemNo, SetTargetAsIsButton, TargetContainer, TargetsContainer} from './widgets';
 
-const Target = (props: { data: ObjectiveTarget; index: number; }) => {
-	const {data, index} = props;
+const Target = (props: { objective: Objective; target: ObjectiveTarget; index: number; }) => {
+	const {objective, target, index} = props;
 
-	const forceUpdate = useForceUpdate();
+	const save = useSave();
 
 	const onNameChanged = (event: ChangeEvent<HTMLInputElement>) => {
 		const {value} = event.target;
-		data.name = value;
-		forceUpdate();
+		target.name = value;
+		save(objective);
 	};
 	const onToBeChanged = (event: ChangeEvent<HTMLInputElement>) => {
 		const {value} = event.target;
-		data.tobe = value;
-		forceUpdate();
+		target.tobe = value;
+		save(objective);
 	};
 	const onSetAsIsClicked = () => {
 	};
 	const onBetterSideChanged = (option: DropdownOption) => {
-		data.betterSide = option.key as ObjectiveTargetBetterSide;
-		forceUpdate();
+		target.betterSide = option.key as ObjectiveTargetBetterSide;
+		save(objective);
 	};
 	const onAskPreviousCycleChanged = (value: boolean) => {
-		data.askPreviousCycle = value;
-		forceUpdate();
+		target.askPreviousCycle = value;
+		save(objective);
 	};
 	const onAskChainCycleChanged = (value: boolean) => {
-		data.askChainCycle = value;
-		forceUpdate();
+		target.askChainCycle = value;
+		save(objective);
 	};
 
 	const betterSideOptions = [
@@ -49,28 +49,28 @@ const Target = (props: { data: ObjectiveTarget; index: number; }) => {
 	return <TargetContainer>
 		<ItemNo>{index === -1 ? '' : `#${index}`}</ItemNo>
 		<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TARGET_NAME}</ItemLabel>
-		<Input value={data.name || ''} onChange={onNameChanged}/>
+		<Input value={target.name || ''} onChange={onNameChanged}/>
 		<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TARGET_TOBE}</ItemLabel>
-		<Input value={data.tobe || ''} onChange={onToBeChanged}/>
+		<Input value={target.tobe || ''} onChange={onToBeChanged}/>
 		<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TARGET_TOBE_PLACEHOLDER}</ItemLabel>
 		<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TARGET_ASIS}</ItemLabel>
 		<SetTargetAsIsButton ink={ButtonInk.PRIMARY} onClick={onSetAsIsClicked}>
 			{Lang.INDICATOR.OBJECTIVE.TARGET_ASIS_SET}
 		</SetTargetAsIsButton>
 		<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TARGET_BETTER_SIDE}</ItemLabel>
-		<Dropdown value={data.betterSide || ObjectiveTargetBetterSide.MORE} options={betterSideOptions}
+		<Dropdown value={target.betterSide || ObjectiveTargetBetterSide.MORE} options={betterSideOptions}
 		          onChange={onBetterSideChanged}/>
 		<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TARGET_ASK_PREVIOUS_CYCLE}</ItemLabel>
-		<CheckBox value={data.askPreviousCycle || false} onChange={onAskPreviousCycleChanged}/>
+		<CheckBox value={target.askPreviousCycle || false} onChange={onAskPreviousCycleChanged}/>
 		<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TARGET_ASK_CHAIN_CYCLE}</ItemLabel>
-		<CheckBox value={data.askChainCycle || false} onChange={onAskChainCycleChanged}/>
+		<CheckBox value={target.askChainCycle || false} onChange={onAskChainCycleChanged}/>
 	</TargetContainer>;
 };
 
 export const Targets = (props: { data: EditObjective }) => {
 	const {data} = props;
 
-	const forceUpdate = useForceUpdate();
+	const save = useSave();
 
 	if (data.objective.targets == null) {
 		data.objective.targets = [];
@@ -78,7 +78,7 @@ export const Targets = (props: { data: EditObjective }) => {
 
 	const onAddClicked = () => {
 		data.objective.targets!.push({} as ObjectiveTarget);
-		forceUpdate();
+		save(data.objective);
 	};
 
 	const targets = data.objective.targets;
@@ -87,7 +87,8 @@ export const Targets = (props: { data: EditObjective }) => {
 	                 backToList={true}>
 		<TargetsContainer>
 			{targets.map((target, index) => {
-				return <Target data={target} index={index + 1} key={`${target.name || ''}-${index}`}/>;
+				return <Target objective={data.objective} target={target} index={index + 1}
+				               key={`${target.name || ''}-${index}`}/>;
 			})}
 			<AddTargetButton ink={ButtonInk.PRIMARY} onClick={onAddClicked}>
 				{Lang.INDICATOR.OBJECTIVE.ADD_TARGET}

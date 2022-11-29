@@ -1,21 +1,15 @@
-import {noop} from '@/services/utils';
-import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
-import {useThrottler} from '@/widgets/throttler';
 import {ChangeEvent} from 'react';
-import {useObjectivesEventBus} from '../objectives-event-bus';
-import {ObjectivesEventTypes} from '../objectives-event-bus-types';
 import {EditStep} from './edit-step';
 import {ObjectiveDeclarationStep} from './steps';
 import {EditObjective} from './types';
+import {useSave} from './use-save';
 import {DescriptionText} from './widgets';
 
 export const Description = (props: { data: EditObjective }) => {
 	const {data} = props;
 
-	const {fire} = useObjectivesEventBus();
-	const saveQueue = useThrottler();
-	const forceUpdate = useForceUpdate();
+	const save = useSave();
 
 	const onDescriptionChanged = (event: ChangeEvent<HTMLTextAreaElement>) => {
 		const {value} = event.target;
@@ -27,10 +21,7 @@ export const Description = (props: { data: EditObjective }) => {
 		}
 
 		data.objective!.description = value;
-		saveQueue.replace(() => {
-			fire(ObjectivesEventTypes.SAVE_OBJECTIVE, data.objective, noop);
-		}, 500);
-		forceUpdate();
+		save(data.objective);
 	};
 
 	return <EditStep index={ObjectiveDeclarationStep.DESCRIPTION} title={Lang.INDICATOR.OBJECTIVE.DESCRIPTION_TITLE}>

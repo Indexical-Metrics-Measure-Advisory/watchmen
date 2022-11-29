@@ -439,6 +439,7 @@ export const Zh: LanguageDeclareType = {
 			REMOVE_TARGET: '移除目标',
 			ADD_TARGET: '添加新目标',
 			TIME_FRAME_TITLE: '划定时间窗口.',
+			VARIABLES_TITLE: '变量定义.',
 			FACTORS_TITLE: '指标构成.',
 			NOT_NOW: '放弃',
 			SAVE_OBJECTIVE: '保存目标数据',

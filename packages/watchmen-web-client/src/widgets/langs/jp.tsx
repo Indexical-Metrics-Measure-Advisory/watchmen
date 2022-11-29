@@ -439,6 +439,7 @@ export const Jp: LanguageDeclareType = {
 			REMOVE_TARGET: '目標を削除',
 			ADD_TARGET: '新しい目標を追加',
 			TIME_FRAME_TITLE: '時間枠を設定。',
+			VARIABLES_TITLE: '変数の定義。',
 			FACTORS_TITLE: '指標の構成。',
 			NOT_NOW: '捨てる',
 			SAVE_OBJECTIVE: '目標を保存',
