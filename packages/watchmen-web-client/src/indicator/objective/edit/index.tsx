@@ -11,6 +11,7 @@ import {NameAndSave} from './name-and-save';
 import {Targets} from './targets';
 import {TimeFrame} from './time-frame';
 import {EditObjective} from './types';
+import {Variables} from './variables';
 import {ObjectiveContainer} from './widgets';
 
 export const ObjectiveEditor = () => {
@@ -37,6 +38,7 @@ export const ObjectiveEditor = () => {
 		<ObjectiveContainer>
 			<Targets data={editable}/>
 			<TimeFrame data={editable}/>
+			<Variables data={editable}/>
 			<Factors data={editable}/>
 			<NameAndSave data={editable}/>
 			<Description data={editable}/>

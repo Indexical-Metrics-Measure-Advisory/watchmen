@@ -439,6 +439,7 @@ export const En = {
 			REMOVE_TARGET: 'Remove Target',
 			ADD_TARGET: 'Add New Target',
 			TIME_FRAME_TITLE: 'Set a time frame.',
+			VARIABLES_TITLE: 'Variables.',
 			FACTORS_TITLE: 'Measure by indicators.',
 			NOT_NOW: 'Not Now',
 			SAVE_OBJECTIVE: 'Save Objective',
