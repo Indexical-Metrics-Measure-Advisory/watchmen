@@ -143,42 +143,126 @@ const computeLastDay = (timeFrame: ObjectiveTimeFrame): Dayjs => {
 };
 const computeLastN = (timeFrame: ObjectiveTimeFrame): number => {
 	const lastN = Number(timeFrame.lastN);
-	return isNaN(lastN) ? 0 : Math.floor(Math.abs(lastN));
+	return isNaN(lastN) ? 1 : Math.floor(Math.abs(lastN));
 };
-const computeFrame = (timeFrame: ObjectiveTimeFrame): Frame | undefined => {
-	const lastDay = computeLastDay(timeFrame);
-	switch (timeFrame.kind) {
-		case ObjectiveTimeFrameKind.NONE:
-			return (void 0);
+const computeFrame = (def: ObjectiveTimeFrame): Frame | undefined => {
+	const lastDay = computeLastDay(def);
+	const n = computeLastN(def);
+	switch (def.kind) {
 		case ObjectiveTimeFrameKind.YEAR:
-			return {from: lastDay.subtract(1, 'year').add(1, 'day'), to: lastDay};
-		case ObjectiveTimeFrameKind.HALF_YEAR:
-			if (timeFrame.till === ObjectiveTimeFrameTill.SPECIFIED) {
-				return {from: lastDay.subtract(6, 'month').add(1, 'day'), to: lastDay};
+			if (lastDay.daysInMonth() === lastDay.date()) {
+				return {from: lastDay.date(1).subtract(11, 'month'), to: lastDay};
 			} else {
-				return {from: lastDay.subtract(5, 'month').date(1), to: lastDay};
+				return {from: lastDay.subtract(1, 'year').add(1, 'day'), to: lastDay};
+			}
+		case ObjectiveTimeFrameKind.HALF_YEAR:
+			if (lastDay.daysInMonth() === lastDay.date()) {
+				return {from: lastDay.date(1).subtract(5, 'month'), to: lastDay};
+			} else {
+				return {from: lastDay.subtract(6, 'month').add(1, 'day'), to: lastDay};
 			}
 		case ObjectiveTimeFrameKind.QUARTER:
 			return {from: lastDay.subtract(1, 'quarter').add(1, 'day'), to: lastDay};
 		case ObjectiveTimeFrameKind.MONTH:
-			if (timeFrame.till === ObjectiveTimeFrameTill.SPECIFIED) {
-				return {from: lastDay.subtract(1, 'month').add(1, 'day'), to: lastDay};
-			} else {
+			if (lastDay.daysInMonth() === lastDay.date()) {
 				return {from: lastDay.date(1), to: lastDay};
+			} else {
+				return {from: lastDay.subtract(1, 'month').add(1, 'day'), to: lastDay};
 			}
 		case ObjectiveTimeFrameKind.WEEK_OF_YEAR:
-			return {from: lastDay.subtract(1, 'week').add(1, 'day'), to: lastDay};
+			if (lastDay.day() === 6) {
+				return {from: lastDay.day(0), to: lastDay};
+			} else {
+				return {from: lastDay.subtract(1, 'week').add(1, 'day'), to: lastDay};
+			}
 		case ObjectiveTimeFrameKind.DAY_OF_MONTH:
 		case ObjectiveTimeFrameKind.DAY_OF_WEEK:
 			return {from: lastDay, to: lastDay};
 		case ObjectiveTimeFrameKind.LAST_N_YEARS:
-			return {from: lastDay.subtract(computeLastN(timeFrame), 'year').add(1, 'day'), to: lastDay};
+			if (lastDay.daysInMonth() === lastDay.date()) {
+				return {from: lastDay.date(1).subtract(11, 'month').subtract(n - 1, 'year'), to: lastDay};
+			} else {
+				return {from: lastDay.subtract(n, 'year').add(1, 'day'), to: lastDay};
+			}
 		case ObjectiveTimeFrameKind.LAST_N_MONTHS:
-			return {from: lastDay.subtract(computeLastN(timeFrame), 'month').add(1, 'day'), to: lastDay};
+			if (lastDay.daysInMonth() === lastDay.date()) {
+				return {from: lastDay.date(1).subtract(n - 1, 'month'), to: lastDay};
+			} else {
+				return {from: lastDay.subtract(n, 'month').add(1, 'day'), to: lastDay};
+			}
 		case ObjectiveTimeFrameKind.LAST_N_WEEKS:
-			return {from: lastDay.subtract(computeLastN(timeFrame), 'week').add(1, 'day'), to: lastDay};
+			if (lastDay.day() === 6) {
+				return {from: lastDay.day(0).subtract(n - 1, 'week'), to: lastDay};
+			} else {
+				return {from: lastDay.subtract(n, 'week').add(1, 'day'), to: lastDay};
+			}
 		case ObjectiveTimeFrameKind.LAST_N_DAYS:
-			return {from: lastDay, to: lastDay};
+			return {from: lastDay.subtract(n - 1), to: lastDay};
+		case ObjectiveTimeFrameKind.NONE:
+		default:
+			return (void 0);
+	}
+};
+const computePreviousFrame = (def: ObjectiveTimeFrame, current?: Frame) => {
+	if (current == null) {
+		return (void 0);
+	}
+	const from = current.from.clone();
+	const n = computeLastN(def);
+	switch (def.kind) {
+		case ObjectiveTimeFrameKind.YEAR:
+			return {from: from.subtract(1, 'year'), to: from.subtract(1, 'day')};
+		case ObjectiveTimeFrameKind.HALF_YEAR:
+			return {from: from.subtract(6, 'month'), to: from.subtract(1, 'day')};
+		case ObjectiveTimeFrameKind.QUARTER:
+			return {from: from.subtract(3, 'month'), to: from.subtract(1, 'day')};
+		case ObjectiveTimeFrameKind.MONTH:
+			return {from: from.subtract(1, 'month'), to: from.subtract(1, 'day')};
+		case ObjectiveTimeFrameKind.WEEK_OF_YEAR:
+			return {from: from.subtract(7, 'day'), to: from.subtract(1, 'day')};
+		case ObjectiveTimeFrameKind.DAY_OF_MONTH:
+		case ObjectiveTimeFrameKind.DAY_OF_WEEK:
+			return {from: from.subtract(1, 'day'), to: from.subtract(1, 'day')};
+		case ObjectiveTimeFrameKind.LAST_N_YEARS:
+			return {from: from.subtract(n, 'year'), to: from.subtract(1, 'day')};
+		case ObjectiveTimeFrameKind.LAST_N_MONTHS:
+			return {from: from.subtract(n, 'month'), to: from.subtract(1, 'day')};
+		case ObjectiveTimeFrameKind.LAST_N_WEEKS:
+			return {from: from.subtract(n, 'week'), to: from.subtract(1, 'day')};
+		case ObjectiveTimeFrameKind.LAST_N_DAYS:
+			return {from: from.subtract(n, 'day'), to: from.subtract(1, 'day')};
+		case ObjectiveTimeFrameKind.NONE:
+		default:
+			return (void 0);
+	}
+};
+const computeChainFrame = (def: ObjectiveTimeFrame, current?: Frame) => {
+	if (current == null) {
+		return (void 0);
+	}
+	const {from, to} = {from: current.from.clone(), to: current.to.clone()};
+	const n = computeLastN(def);
+	switch (def.kind) {
+		case ObjectiveTimeFrameKind.YEAR:
+			return {from: from.subtract(1, 'year'), to: from.subtract(1, 'day')};
+		case ObjectiveTimeFrameKind.HALF_YEAR:
+		case ObjectiveTimeFrameKind.QUARTER:
+		case ObjectiveTimeFrameKind.MONTH:
+		case ObjectiveTimeFrameKind.WEEK_OF_YEAR:
+			return {from: from.subtract(1, 'year'), to: to.subtract(1, 'year')};
+		case ObjectiveTimeFrameKind.DAY_OF_MONTH:
+			return {from: from.subtract(1, 'month'), to: to.subtract(1, 'month')};
+		case ObjectiveTimeFrameKind.DAY_OF_WEEK:
+			return {from: from.subtract(1, 'week'), to: to.subtract(1, 'week')};
+		case ObjectiveTimeFrameKind.LAST_N_YEARS:
+			return {from: from.subtract(n, 'year'), to: from.subtract(1, 'day')};
+		case ObjectiveTimeFrameKind.LAST_N_MONTHS:
+			return {from: from.subtract(n, 'month'), to: from.subtract(1, 'day')};
+		case ObjectiveTimeFrameKind.LAST_N_WEEKS:
+			return {from: from.subtract(n, 'week'), to: from.subtract(1, 'day')};
+		case ObjectiveTimeFrameKind.LAST_N_DAYS:
+			return {from: from.subtract(n, 'day'), to: from.subtract(1, 'day')};
+		case ObjectiveTimeFrameKind.NONE:
 		default:
 			return (void 0);
 	}
@@ -197,27 +281,26 @@ export const TimeFrame = (props: { data: EditObjective }) => {
 
 	const save = useSave();
 
-	const timeFrame = guardTimeFrame(objective);
+	const def = guardTimeFrame(objective);
 
 	const onKindChanged = (option: DropdownOption) => {
-		timeFrame.kind = option.value as ObjectiveTimeFrameKind;
+		def.kind = option.value as ObjectiveTimeFrameKind;
 		guardTimeFrame(objective);
 		save(objective);
 	};
 	const onLastNChanged = (event: ChangeEvent<HTMLInputElement>) => {
-		timeFrame.lastN = event.target.value;
+		def.lastN = event.target.value;
 		save(objective);
 	};
 	const onTillChanged = (option: DropdownOption) => {
-		timeFrame.till = option.value as ObjectiveTimeFrameTill;
+		def.till = option.value as ObjectiveTimeFrameTill;
 		save(objective);
 	};
 	const onSpecifiedTillChanged = (value?: string) => {
-		console.log(value)
 		if (value?.includes(' ')) {
 			value = value?.substring(0, value?.indexOf(' '));
 		}
-		timeFrame.specifiedTill = value ?? '';
+		def.specifiedTill = value ?? '';
 		save(objective);
 	};
 
@@ -244,32 +327,36 @@ export const TimeFrame = (props: { data: EditObjective }) => {
 		{value: ObjectiveTimeFrameTill.SPECIFIED, label: Lang.INDICATOR.OBJECTIVE.TIME_FRAME_TILL_SPECIFIED}
 	];
 
-	const isTimeRelated = timeFrame.kind !== ObjectiveTimeFrameKind.NONE;
+	const isTimeRelated = def.kind !== ObjectiveTimeFrameKind.NONE;
 	const isLastNKind = [
 		ObjectiveTimeFrameKind.LAST_N_YEARS, ObjectiveTimeFrameKind.LAST_N_MONTHS,
 		ObjectiveTimeFrameKind.LAST_N_WEEKS, ObjectiveTimeFrameKind.LAST_N_DAYS
-	].includes(guardKind(timeFrame.kind));
-	const isTillSpecified = timeFrame.till === ObjectiveTimeFrameTill.SPECIFIED;
+	].includes(guardKind(def.kind));
+	const isTillSpecified = def.till === ObjectiveTimeFrameTill.SPECIFIED;
 
-	const currentFrame = computeFrame(timeFrame);
+	const currentFrame = computeFrame(def);
+	const previousFrame = computePreviousFrame(def, currentFrame);
+	const chainFrame = computeChainFrame(def, currentFrame);
 
 	return <EditStep index={ObjectiveDeclarationStep.TIME_FRAME} title={Lang.INDICATOR.OBJECTIVE.TIME_FRAME_TITLE}>
 		<TimeFrameContainer timeRelated={isTimeRelated} lastN={isLastNKind} specifiedTill={isTillSpecified}>
 			<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TIME_FRAME_KIND}</ItemLabel>
-			<Dropdown value={timeFrame.kind || ObjectiveTimeFrameTill.NOW} options={kindOptions}
+			<Dropdown value={def.kind || ObjectiveTimeFrameTill.NOW} options={kindOptions}
 			          onChange={onKindChanged}/>
 			<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TIME_FRAME_N_IS}</ItemLabel>
-			<Input value={timeFrame.lastN || ''} onChange={onLastNChanged}/>
+			<Input value={def.lastN || ''} onChange={onLastNChanged}/>
 			<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TIME_FRAME_TILL}</ItemLabel>
-			<Dropdown value={timeFrame.till || ObjectiveTimeFrameTill.NOW} options={tillOptions}
+			<Dropdown value={def.till || ObjectiveTimeFrameTill.NOW} options={tillOptions}
 			          onChange={onTillChanged}/>
 			<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TIME_FRAME_TILL_SPECIFIED_AT}</ItemLabel>
-			<Calendar value={timeFrame.specifiedTill} onChange={onSpecifiedTillChanged} showTime={false}/>
+			<Calendar value={def.specifiedTill} onChange={onSpecifiedTillChanged} showTime={false}/>
 			<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TIME_FRAME_TILL_SPECIFIED_AT_DESC}</ItemLabel>
 			<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TIME_FRAME_CALCULATED}</ItemLabel>
 			<ItemValue>{renderTimeFrame(currentFrame)}</ItemValue>
 			<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TIME_FRAME_PREVIOUS_CYCLE}</ItemLabel>
+			<ItemValue>{renderTimeFrame(previousFrame)}</ItemValue>
 			<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TIME_FRAME_CHAIN_CYCLE}</ItemLabel>
+			<ItemValue>{renderTimeFrame(chainFrame)}</ItemValue>
 		</TimeFrameContainer>
 	</EditStep>;
 };

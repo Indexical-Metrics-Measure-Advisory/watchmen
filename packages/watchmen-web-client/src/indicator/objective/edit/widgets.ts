@@ -95,6 +95,7 @@ export const ItemLabel = styled.span.attrs({'data-widget': 'objective-item-label
 	display      : flex;
 	position     : relative;
 	align-self   : center;
+	font-size    : 1.1em;
 	font-weight  : var(--font-demo-bold);
 	font-variant : petite-caps;
 `;
@@ -103,6 +104,7 @@ export const ItemValue = styled.span.attrs({'data-widget': 'objective-item-value
 	position    : relative;
 	align-items : center;
 	height      : var(--height);
+	font-size   : 1.1em;
 `;
 export const SetTargetAsIsButton = styled(Button).attrs({'data-widget': 'objective-set-asis-target'})`
 	justify-self : start;
@@ -124,7 +126,7 @@ export const TimeFrameContainer = styled.div.attrs<{
 })<{ timeRelated: boolean; lastN: boolean; specifiedTill: boolean }>`
 	display               : grid;
 	position              : relative;
-	grid-template-columns : auto auto auto auto 1fr;
+	grid-template-columns : auto auto auto auto auto 1fr;
 	grid-column-gap       : calc(var(--margin) / 2);
 	grid-row-gap          : calc(var(--margin) / 4);
 	> div[data-widget=dropdown],
@@ -152,13 +154,22 @@ export const TimeFrameContainer = styled.div.attrs<{
 		pointer-events : ${({timeRelated}) => timeRelated ? (void 0) : 'none'};
 	}
 	> span:nth-child(7),
-	> div[data-widget=calendar]:nth-child(8),
-	> span:nth-child(9) {
+	> div[data-widget=calendar]:nth-child(8) {
 		opacity        : ${({timeRelated, specifiedTill}) => timeRelated && specifiedTill ? (void 0) : 0};
 		pointer-events : ${({timeRelated, specifiedTill}) => timeRelated && specifiedTill ? (void 0) : 'none'};
 	}
 	> span:nth-child(9) {
-		opacity : ${({timeRelated, specifiedTill}) => timeRelated && specifiedTill ? 0.7 : 0};
+		opacity        : ${({timeRelated, specifiedTill}) => timeRelated && specifiedTill ? 0.7 : 0};
+		pointer-events : ${({timeRelated, specifiedTill}) => timeRelated && specifiedTill ? (void 0) : 'none'};
+		grid-column    : span 2;
+	}
+	> span:nth-child(10) {
+		grid-column : 1;
+	}
+	> span:nth-child(11),
+	> span:nth-child(13),
+	> span:nth-child(15) {
+		//font-weight: var(--font-bold);
 	}
 `;
 export const NameInput = styled(Input)`
