@@ -458,6 +458,7 @@ export const Jp: LanguageDeclareType = {
 			TIME_FRAME_TILL_LAST_COMPLETE_CYCLE: '最後の完全なサイクル',
 			TIME_FRAME_TILL_SPECIFIED: '日付を指定',
 			TIME_FRAME_TILL_SPECIFIED_AT: 'で:',
+			TIME_FRAME_TILL_SPECIFIED_AT_DESC: 'これは、指定したタイム ウィンドウの最終日で、指定した日からウィンドウを前方に推定します。',
 			VARIABLES_TITLE: '変数の定義。',
 			FACTORS_TITLE: '指標の構成。',
 			NOT_NOW: '捨てる',

@@ -13,7 +13,7 @@ export const useSave = (): ((objective: Objective) => void) => {
 	return (objective: Objective) => {
 		saveQueue.replace(() => {
 			fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
-		}, 500);
+		}, 2000);
 		forceUpdate();
 	};
 };

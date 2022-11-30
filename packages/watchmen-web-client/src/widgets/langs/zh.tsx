@@ -458,6 +458,7 @@ export const Zh: LanguageDeclareType = {
 			TIME_FRAME_TILL_LAST_COMPLETE_CYCLE: '最后一个完整周期',
 			TIME_FRAME_TILL_SPECIFIED: '指定日期',
 			TIME_FRAME_TILL_SPECIFIED_AT: '于:',
+			TIME_FRAME_TILL_SPECIFIED_AT_DESC: '此为指定时间窗口的最后一天, 从指定日向前推算窗口.',
 			VARIABLES_TITLE: '变量定义.',
 			FACTORS_TITLE: '指标构成.',
 			NOT_NOW: '放弃',

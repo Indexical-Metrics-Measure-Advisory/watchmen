@@ -108,10 +108,17 @@ export const AddTargetButton = styled(Button).attrs({'data-widget': 'objective-a
 		margin-top : calc(var(--margin) / 2);
 	}
 `;
-export const TimeFrameContainer = styled.div.attrs({'data-widget': 'objective-time-frame'})`
+export const TimeFrameContainer = styled.div.attrs<{
+	timeRelated: boolean; lastN: boolean; specifiedTill: boolean
+}>(() => {
+	return {
+		'data-widget': 'objective-time-frame',
+		style: {}
+	};
+})<{ timeRelated: boolean; lastN: boolean; specifiedTill: boolean }>`
 	display               : grid;
 	position              : relative;
-	grid-template-columns : auto auto auto 1fr;
+	grid-template-columns : auto auto auto auto 1fr;
 	grid-column-gap       : calc(var(--margin) / 2);
 	grid-row-gap          : calc(var(--margin) / 4);
 	> div[data-widget=dropdown],
@@ -121,14 +128,31 @@ export const TimeFrameContainer = styled.div.attrs({'data-widget': 'objective-ti
 		width        : auto;
 		min-width    : 200px;
 	}
-`;
-export const TimeFrameItemLabel = styled(ItemLabel)`
-	transition : opacity 300ms ease-in-out;
-	&[data-visible=false],
-	&[data-visible=false] + input,
-	&[data-visible=false] + div[data-widget=calendar] {
-		opacity        : 0;
-		pointer-events : none;
+	> span:nth-child(3),
+	> span:nth-child(5) {
+		transition : opacity 300ms ease-in-out;
+	}
+	> span:nth-child(3),
+	> input:nth-child(4) {
+		opacity        : ${({timeRelated, lastN}) => timeRelated && lastN ? (void 0) : 0};
+		pointer-events : ${({timeRelated, lastN}) => timeRelated && lastN ? (void 0) : 'none'};
+	}
+	> span:nth-child(5) {
+		grid-column : 1;
+	}
+	> span:nth-child(5),
+	> div[data-widget=dropdown]:nth-child(6) {
+		opacity        : ${({timeRelated}) => timeRelated ? (void 0) : 0};
+		pointer-events : ${({timeRelated}) => timeRelated ? (void 0) : 'none'};
+	}
+	> span:nth-child(7),
+	> div[data-widget=calendar]:nth-child(8),
+	> span:nth-child(9) {
+		opacity        : ${({timeRelated, specifiedTill}) => timeRelated && specifiedTill ? (void 0) : 0};
+		pointer-events : ${({timeRelated, specifiedTill}) => timeRelated && specifiedTill ? (void 0) : 'none'};
+	}
+	> span:nth-child(9) {
+		opacity        : ${({timeRelated, specifiedTill}) => timeRelated && specifiedTill ? 0.7 : 0};
 	}
 `;
 export const NameInput = styled(Input)`
