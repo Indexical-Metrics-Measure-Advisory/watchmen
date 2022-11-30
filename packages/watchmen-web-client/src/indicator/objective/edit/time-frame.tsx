@@ -1,4 +1,9 @@
-import {ObjectiveTimeFrameKind, ObjectiveTimeFrameTill} from '@/services/data/tuples/objective-types';
+import {
+	Objective,
+	ObjectiveTimeFrame,
+	ObjectiveTimeFrameKind,
+	ObjectiveTimeFrameTill
+} from '@/services/data/tuples/objective-types';
 import {Calendar} from '@/widgets/basic/calendar';
 import {Dropdown} from '@/widgets/basic/dropdown';
 import {Input} from '@/widgets/basic/input';
@@ -9,13 +14,9 @@ import {EditStep} from './edit-step';
 import {ObjectiveDeclarationStep} from './steps';
 import {EditObjective} from './types';
 import {useSave} from './use-save';
-import {ItemLabel, TimeFrameContainer, TimeFrameItemLabel} from './widgets';
+import {ItemLabel, TimeFrameContainer} from './widgets';
 
-export const TimeFrame = (props: { data: EditObjective }) => {
-	const {data: {objective}} = props;
-
-	const save = useSave();
-
+const guardTimeFrame = (objective: Objective): ObjectiveTimeFrame => {
 	if (objective.timeFrame == null) {
 		objective.timeFrame = {
 			kind: ObjectiveTimeFrameKind.MONTH,
@@ -23,9 +24,27 @@ export const TimeFrame = (props: { data: EditObjective }) => {
 		};
 	}
 	const timeFrame = objective.timeFrame;
+	if (timeFrame.kind == null) {
+		timeFrame.kind = ObjectiveTimeFrameKind.MONTH;
+	}
+	if (timeFrame.till == null) {
+		timeFrame.till = ObjectiveTimeFrameTill.NOW;
+	}
+
+	return timeFrame;
+};
+const guardKind = (kind?: ObjectiveTimeFrameKind): ObjectiveTimeFrameKind => kind || ObjectiveTimeFrameKind.MONTH;
+
+export const TimeFrame = (props: { data: EditObjective }) => {
+	const {data: {objective}} = props;
+
+	const save = useSave();
+
+	const timeFrame = guardTimeFrame(objective);
 
 	const onKindChanged = (option: DropdownOption) => {
 		timeFrame.kind = option.value as ObjectiveTimeFrameKind;
+		guardTimeFrame(objective);
 		save(objective);
 	};
 	const onLastNChanged = (event: ChangeEvent<HTMLInputElement>) => {
@@ -40,7 +59,7 @@ export const TimeFrame = (props: { data: EditObjective }) => {
 		if (value?.includes(' ')) {
 			value = value?.substring(0, value?.indexOf(' '));
 		}
-		timeFrame.specifiedTill = value;
+		timeFrame.specifiedTill = value ?? '';
 		save(objective);
 	};
 
@@ -67,26 +86,26 @@ export const TimeFrame = (props: { data: EditObjective }) => {
 		{value: ObjectiveTimeFrameTill.SPECIFIED, label: Lang.INDICATOR.OBJECTIVE.TIME_FRAME_TILL_SPECIFIED}
 	];
 
-	const isLastNKind = timeFrame.kind != null && [
+	const isTimeRelated = timeFrame.kind !== ObjectiveTimeFrameKind.NONE;
+	const isLastNKind = [
 		ObjectiveTimeFrameKind.LAST_N_YEARS, ObjectiveTimeFrameKind.LAST_N_MONTHS,
 		ObjectiveTimeFrameKind.LAST_N_WEEKS, ObjectiveTimeFrameKind.LAST_N_DAYS
-	].includes(timeFrame.kind);
+	].includes(guardKind(timeFrame.kind));
 	const isTillSpecified = timeFrame.till === ObjectiveTimeFrameTill.SPECIFIED;
 
 	return <EditStep index={ObjectiveDeclarationStep.TIME_FRAME} title={Lang.INDICATOR.OBJECTIVE.TIME_FRAME_TITLE}>
-		<TimeFrameContainer>
+		<TimeFrameContainer timeRelated={isTimeRelated} lastN={isLastNKind} specifiedTill={isTillSpecified}>
 			<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TIME_FRAME_KIND}</ItemLabel>
 			<Dropdown value={timeFrame.kind || ObjectiveTimeFrameTill.NOW} options={kindOptions}
 			          onChange={onKindChanged}/>
-			<TimeFrameItemLabel
-				data-visible={isLastNKind}>{Lang.INDICATOR.OBJECTIVE.TIME_FRAME_N_IS}</TimeFrameItemLabel>
+			<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TIME_FRAME_N_IS}</ItemLabel>
 			<Input value={timeFrame.lastN || ''} onChange={onLastNChanged}/>
 			<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TIME_FRAME_TILL}</ItemLabel>
 			<Dropdown value={timeFrame.till || ObjectiveTimeFrameTill.NOW} options={tillOptions}
 			          onChange={onTillChanged}/>
-			<TimeFrameItemLabel
-				data-visible={isTillSpecified}>{Lang.INDICATOR.OBJECTIVE.TIME_FRAME_TILL_SPECIFIED_AT}</TimeFrameItemLabel>
+			<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TIME_FRAME_TILL_SPECIFIED_AT}</ItemLabel>
 			<Calendar value={timeFrame.specifiedTill} onChange={onSpecifiedTillChanged} showTime={false}/>
+			<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TIME_FRAME_TILL_SPECIFIED_AT_DESC}</ItemLabel>
 		</TimeFrameContainer>
 	</EditStep>;
 };

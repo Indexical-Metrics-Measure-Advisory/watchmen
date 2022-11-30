@@ -458,6 +458,7 @@ export const En = {
 			TIME_FRAME_TILL_LAST_COMPLETE_CYCLE: 'Last Complete Cycle',
 			TIME_FRAME_TILL_SPECIFIED: 'Specified',
 			TIME_FRAME_TILL_SPECIFIED_AT: 'At:',
+			TIME_FRAME_TILL_SPECIFIED_AT_DESC: 'It is last day of specified time frame, and the window is extrapolated forward from the specified day.',
 			VARIABLES_TITLE: 'Variables.',
 			FACTORS_TITLE: 'Measure by indicators.',
 			NOT_NOW: 'Not Now',
