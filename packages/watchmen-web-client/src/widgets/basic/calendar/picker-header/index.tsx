@@ -42,7 +42,7 @@ export const CalendarPickerHeader = (props: { showTime: boolean }) => {
 		</CalendarPickerHeaderDateLabel>
 		{showTime
 			? <CalendarPickerHeaderTimeLabel onClick={onTimeClicked}>
-				{currentDisplayTime}
+				&nbsp;&nbsp;{currentDisplayTime}
 			</CalendarPickerHeaderTimeLabel>
 			: null}
 		<CalendarPickerHeaderPlaceholder/>
