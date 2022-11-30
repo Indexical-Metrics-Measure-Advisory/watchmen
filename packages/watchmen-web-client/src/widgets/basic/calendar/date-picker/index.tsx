@@ -72,8 +72,8 @@ export const DatePicker = (props: {
 	const onYearEndClicked = onDateClicked(today.month(11).date(31));
 	const onPrevYearEndClicked = onDateClicked(today.month(11).date(31).subtract(1, 'year'));
 
-	const onGotoPrevMonthClicked = () => onDateClicked(value.subtract(1, 'month'));
-	const onGotoNextMonthClicked = () => onDateClicked(value.add(1, 'month'));
+	const onGotoPrevMonthClicked = () => onDateClicked(value.subtract(1, 'month'))();
+	const onGotoNextMonthClicked = () => onDateClicked(value.add(1, 'month'))();
 
 	const onClearClicked = () => {
 		const newValue = dayjs();

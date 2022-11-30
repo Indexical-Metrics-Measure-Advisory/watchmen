@@ -98,6 +98,12 @@ export const ItemLabel = styled.span.attrs({'data-widget': 'objective-item-label
 	font-weight  : var(--font-demo-bold);
 	font-variant : petite-caps;
 `;
+export const ItemValue = styled.span.attrs({'data-widget': 'objective-item-value'})`
+	display     : flex;
+	position    : relative;
+	align-items : center;
+	height      : var(--height);
+`;
 export const SetTargetAsIsButton = styled(Button).attrs({'data-widget': 'objective-set-asis-target'})`
 	justify-self : start;
 `;
@@ -152,7 +158,7 @@ export const TimeFrameContainer = styled.div.attrs<{
 		pointer-events : ${({timeRelated, specifiedTill}) => timeRelated && specifiedTill ? (void 0) : 'none'};
 	}
 	> span:nth-child(9) {
-		opacity        : ${({timeRelated, specifiedTill}) => timeRelated && specifiedTill ? 0.7 : 0};
+		opacity : ${({timeRelated, specifiedTill}) => timeRelated && specifiedTill ? 0.7 : 0};
 	}
 `;
 export const NameInput = styled(Input)`
