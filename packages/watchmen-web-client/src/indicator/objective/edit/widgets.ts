@@ -141,7 +141,7 @@ export const TimeFrameContainer = styled.div.attrs<{
 		transition : opacity 300ms ease-in-out;
 	}
 	> span:nth-child(3),
-	> input:nth-child(4) {
+	> div[data-widget=dropdown]:nth-child(4) {
 		opacity        : ${({timeRelated, lastN}) => timeRelated && lastN ? (void 0) : 0};
 		pointer-events : ${({timeRelated, lastN}) => timeRelated && lastN ? (void 0) : 'none'};
 	}

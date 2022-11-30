@@ -452,7 +452,7 @@ export const En = {
 			TIME_FRAME_KIND_LAST_N_MONTHS: 'Last N Months',
 			TIME_FRAME_KIND_LAST_N_WEEKS: 'Last N Weeks',
 			TIME_FRAME_KIND_LAST_N_DAYS: 'Last N Days',
-			TIME_FRAME_N_IS: 'N Is:',
+			TIME_FRAME_N_IS: 'N is:',
 			TIME_FRAME_TILL: 'Till:',
 			TIME_FRAME_TILL_NOW: 'Now',
 			TIME_FRAME_TILL_LAST_COMPLETE_CYCLE: 'Last Complete Cycle',

@@ -6,16 +6,22 @@ import {
 } from '@/services/data/tuples/objective-types';
 import {Calendar} from '@/widgets/basic/calendar';
 import {Dropdown} from '@/widgets/basic/dropdown';
-import {Input} from '@/widgets/basic/input';
 import {DropdownOption} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
 import dayjs, {Dayjs} from 'dayjs';
-import React, {ChangeEvent} from 'react';
+import React from 'react';
 import {EditStep} from './edit-step';
 import {ObjectiveDeclarationStep} from './steps';
 import {EditObjective} from './types';
 import {useSave} from './use-save';
 import {ItemLabel, ItemValue, TimeFrameContainer} from './widgets';
+
+const guardKind = (kind?: ObjectiveTimeFrameKind): ObjectiveTimeFrameKind => kind || ObjectiveTimeFrameKind.MONTH;
+const guardTill = (till?: ObjectiveTimeFrameTill): ObjectiveTimeFrameTill => till || ObjectiveTimeFrameTill.NOW;
+const lastN = (kind: ObjectiveTimeFrameKind) => [
+	ObjectiveTimeFrameKind.LAST_N_YEARS, ObjectiveTimeFrameKind.LAST_N_MONTHS,
+	ObjectiveTimeFrameKind.LAST_N_WEEKS, ObjectiveTimeFrameKind.LAST_N_DAYS
+].includes(kind);
 
 const guardTimeFrame = (objective: Objective): ObjectiveTimeFrame => {
 	if (objective.timeFrame == null) {
@@ -25,16 +31,20 @@ const guardTimeFrame = (objective: Objective): ObjectiveTimeFrame => {
 		};
 	}
 	const timeFrame = objective.timeFrame;
-	if (timeFrame.kind == null) {
-		timeFrame.kind = ObjectiveTimeFrameKind.MONTH;
+	timeFrame.kind = guardKind(timeFrame.kind);
+	if ([
+		ObjectiveTimeFrameKind.LAST_N_YEARS, ObjectiveTimeFrameKind.LAST_N_MONTHS,
+		ObjectiveTimeFrameKind.LAST_N_WEEKS, ObjectiveTimeFrameKind.LAST_N_DAYS
+	].includes(timeFrame.kind) && (timeFrame.lastN || '').trim().length === 0) {
+		timeFrame.lastN = '1';
 	}
-	if (timeFrame.till == null) {
-		timeFrame.till = ObjectiveTimeFrameTill.NOW;
+	timeFrame.till = guardTill(timeFrame.till);
+	if (timeFrame.till === ObjectiveTimeFrameTill.SPECIFIED && (timeFrame.specifiedTill || '').trim().length === 0) {
+		timeFrame.specifiedTill = dayjs().format('YYYY/MM/DD');
 	}
 
 	return timeFrame;
 };
-const guardKind = (kind?: ObjectiveTimeFrameKind): ObjectiveTimeFrameKind => kind || ObjectiveTimeFrameKind.MONTH;
 
 type Frame = { from: Dayjs, to: Dayjs };
 const computeLastDay = (timeFrame: ObjectiveTimeFrame): Dayjs => {
@@ -255,13 +265,13 @@ const computeChainFrame = (def: ObjectiveTimeFrame, current?: Frame) => {
 		case ObjectiveTimeFrameKind.DAY_OF_WEEK:
 			return {from: from.subtract(1, 'week'), to: to.subtract(1, 'week')};
 		case ObjectiveTimeFrameKind.LAST_N_YEARS:
-			return {from: from.subtract(n, 'year'), to: from.subtract(1, 'day')};
+			return {from: from.subtract(n * 2, 'year'), to: from.subtract(1, 'day').subtract(n, 'year')};
 		case ObjectiveTimeFrameKind.LAST_N_MONTHS:
-			return {from: from.subtract(n, 'month'), to: from.subtract(1, 'day')};
+			return {from: from.subtract(1, 'year'), to: to.subtract(1, 'year')};
 		case ObjectiveTimeFrameKind.LAST_N_WEEKS:
-			return {from: from.subtract(n, 'week'), to: from.subtract(1, 'day')};
+			return {from: from.subtract(1, 'year'), to: to.subtract(1, 'year')};
 		case ObjectiveTimeFrameKind.LAST_N_DAYS:
-			return {from: from.subtract(n, 'day'), to: from.subtract(1, 'day')};
+			return {from: from.subtract(1, 'year'), to: to.subtract(1, 'year')};
 		case ObjectiveTimeFrameKind.NONE:
 		default:
 			return (void 0);
@@ -288,12 +298,13 @@ export const TimeFrame = (props: { data: EditObjective }) => {
 		guardTimeFrame(objective);
 		save(objective);
 	};
-	const onLastNChanged = (event: ChangeEvent<HTMLInputElement>) => {
-		def.lastN = event.target.value;
+	const onLastNChanged = (option: DropdownOption) => {
+		def.lastN = option.value as string;
 		save(objective);
 	};
 	const onTillChanged = (option: DropdownOption) => {
 		def.till = option.value as ObjectiveTimeFrameTill;
+		guardTimeFrame(objective);
 		save(objective);
 	};
 	const onSpecifiedTillChanged = (value?: string) => {
@@ -326,12 +337,28 @@ export const TimeFrame = (props: { data: EditObjective }) => {
 		},
 		{value: ObjectiveTimeFrameTill.SPECIFIED, label: Lang.INDICATOR.OBJECTIVE.TIME_FRAME_TILL_SPECIFIED}
 	];
+	const lastNOptions = (() => {
+		const buildOptions = (count: number): Array<DropdownOption> => {
+			return new Array(count).fill(1).map((_, index) => {
+				return {value: `${index + 1}`, label: `${index + 1}`};
+			});
+		};
+		switch (def.kind) {
+			case ObjectiveTimeFrameKind.LAST_N_YEARS:
+				return buildOptions(10);
+			case ObjectiveTimeFrameKind.LAST_N_MONTHS:
+				return buildOptions(60);
+			case ObjectiveTimeFrameKind.LAST_N_WEEKS:
+				return buildOptions(54);
+			case ObjectiveTimeFrameKind.LAST_N_DAYS:
+				return buildOptions(366);
+			default:
+				return [] as Array<DropdownOption>;
+		}
+	})();
 
 	const isTimeRelated = def.kind !== ObjectiveTimeFrameKind.NONE;
-	const isLastNKind = [
-		ObjectiveTimeFrameKind.LAST_N_YEARS, ObjectiveTimeFrameKind.LAST_N_MONTHS,
-		ObjectiveTimeFrameKind.LAST_N_WEEKS, ObjectiveTimeFrameKind.LAST_N_DAYS
-	].includes(guardKind(def.kind));
+	const isLastNKind = lastN(guardKind(def.kind));
 	const isTillSpecified = def.till === ObjectiveTimeFrameTill.SPECIFIED;
 
 	const currentFrame = computeFrame(def);
@@ -344,7 +371,7 @@ export const TimeFrame = (props: { data: EditObjective }) => {
 			<Dropdown value={def.kind || ObjectiveTimeFrameTill.NOW} options={kindOptions}
 			          onChange={onKindChanged}/>
 			<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TIME_FRAME_N_IS}</ItemLabel>
-			<Input value={def.lastN || ''} onChange={onLastNChanged}/>
+			<Dropdown value={def.lastN || ''} options={lastNOptions} onChange={onLastNChanged}/>
 			<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TIME_FRAME_TILL}</ItemLabel>
 			<Dropdown value={def.till || ObjectiveTimeFrameTill.NOW} options={tillOptions}
 			          onChange={onTillChanged}/>
