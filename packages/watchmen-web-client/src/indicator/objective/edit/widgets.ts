@@ -353,6 +353,7 @@ export const VariableValuesContainer = styled.div.attrs({'data-widget': 'objecti
 		border-right  : 0;
 		+ div[data-widget=dropdown] {
 			border-radius : 0 calc(var(--height) / 2) calc(var(--height) / 2) 0;
+			margin-left   : -1px;
 		}
 	}
 `;
