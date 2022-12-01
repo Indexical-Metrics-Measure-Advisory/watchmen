@@ -2,6 +2,13 @@ import {Buffer} from 'buffer/';
 import dayjs, {Dayjs} from 'dayjs';
 
 export const noop = () => (void 0);
+
+export const isBlank = (v?: number | string): boolean => {
+	return v == null || `${v}`.trim().length === 0;
+};
+
+export const isNotBlank = (v?: number | string): boolean => !isBlank(v);
+
 export const base64Encode = (str: string): string => {
 	return Buffer.from(str, 'utf-8').toString('base64');
 };

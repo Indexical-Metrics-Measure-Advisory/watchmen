@@ -106,32 +106,34 @@ export interface ObjectiveTimeFrame {
 	specifiedTill?: string;
 }
 
+export enum ObjectiveVariableKind {
+	SINGLE_VALUE = 'value',
+	BUCKET = 'bucket',
+	RANGE = 'range'
+}
+
 export interface ObjectiveVariable {
 	name: string;
+	kind: ObjectiveVariableKind;
 }
 
 export interface ObjectiveVariableOnValue extends ObjectiveVariable {
+	kind: ObjectiveVariableKind.SINGLE_VALUE;
 	value?: string;
 }
 
 export interface ObjectiveVariableOnBucket extends ObjectiveVariable {
+	kind: ObjectiveVariableKind.BUCKET;
 	bucketId?: BucketId;
 	segmentName?: string;
 }
 
 export interface ObjectiveVariableOnRange extends ObjectiveVariable {
-	includeMin?: boolean;
-	includeMax?: boolean;
-}
-
-export interface ObjectiveVariableOnNumericRange extends ObjectiveVariableOnRange {
-	min?: number;
-	max?: number;
-}
-
-export interface ObjectiveVariableOnTimeRange extends ObjectiveVariableOnRange {
+	kind: ObjectiveVariableKind.RANGE;
 	min?: string;
+	includeMin?: boolean;
 	max?: string;
+	includeMax?: boolean;
 }
 
 export enum ObjectiveFactorKind {

@@ -9,10 +9,23 @@ import {EditStep} from './edit-step';
 import {ObjectiveDeclarationStep} from './steps';
 import {EditObjective} from './types';
 import {useSave} from './use-save';
-import {AddTargetButton, ItemLabel, ItemNo, SetTargetAsIsButton, TargetContainer, TargetsContainer} from './widgets';
+import {
+	AddItemButton,
+	ItemLabel,
+	ItemNo,
+	RemoveItemButton,
+	SetTargetAsIsButton,
+	TargetContainer,
+	TargetsContainer
+} from './widgets';
 
-const Target = (props: { objective: Objective; target: ObjectiveTarget; index: number; }) => {
-	const {objective, target, index} = props;
+const Target = (props: {
+	objective: Objective;
+	target: ObjectiveTarget;
+	index: number;
+	onRemove: (target: ObjectiveTarget) => void;
+}) => {
+	const {objective, target, index, onRemove} = props;
 
 	const save = useSave();
 
@@ -41,6 +54,7 @@ const Target = (props: { objective: Objective; target: ObjectiveTarget; index: n
 		target.askChainCycle = value;
 		save(objective);
 	};
+	const onRemoveClicked = () => onRemove(target);
 
 	const betterSideOptions = [
 		{value: ObjectiveTargetBetterSide.MORE, label: Lang.INDICATOR.OBJECTIVE.TARGET_BETTER_SIDE_MORE},
@@ -65,6 +79,9 @@ const Target = (props: { objective: Objective; target: ObjectiveTarget; index: n
 		<CheckBox value={target.askPreviousCycle || false} onChange={onAskPreviousCycleChanged}/>
 		<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TARGET_ASK_CHAIN_CYCLE}</ItemLabel>
 		<CheckBox value={target.askChainCycle || false} onChange={onAskChainCycleChanged}/>
+		<RemoveItemButton ink={ButtonInk.DANGER} onClick={onRemoveClicked}>
+			{Lang.INDICATOR.OBJECTIVE.REMOVE_TARGET}
+		</RemoveItemButton>
 	</TargetContainer>;
 };
 
@@ -77,6 +94,10 @@ export const Targets = (props: { data: EditObjective }) => {
 		data.objective.targets = [];
 	}
 
+	const onRemove = (target: ObjectiveTarget) => {
+		data.objective.targets!.splice(data.objective.targets!.indexOf(target), 1);
+		save(data.objective);
+	};
 	const onAddClicked = () => {
 		data.objective.targets!.push({} as ObjectiveTarget);
 		save(data.objective);
@@ -89,11 +110,12 @@ export const Targets = (props: { data: EditObjective }) => {
 		<TargetsContainer>
 			{targets.map((target, index) => {
 				return <Target objective={data.objective} target={target} index={index + 1}
+				               onRemove={onRemove}
 				               key={`${target.name || ''}-${index}`}/>;
 			})}
-			<AddTargetButton ink={ButtonInk.PRIMARY} onClick={onAddClicked}>
+			<AddItemButton ink={ButtonInk.PRIMARY} onClick={onAddClicked}>
 				{Lang.INDICATOR.OBJECTIVE.ADD_TARGET}
-			</AddTargetButton>
+			</AddItemButton>
 		</TargetsContainer>
 	</EditStep>;
 };
