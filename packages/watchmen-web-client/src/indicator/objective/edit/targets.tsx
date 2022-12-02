@@ -7,7 +7,6 @@ import {Lang} from '@/widgets/langs';
 import {ChangeEvent} from 'react';
 import {EditStep} from './edit-step';
 import {ObjectiveDeclarationStep} from './steps';
-import {EditObjective} from './types';
 import {useSave} from './use-save';
 import {
 	AddItemButton,
@@ -85,31 +84,31 @@ const Target = (props: {
 	</TargetContainer>;
 };
 
-export const Targets = (props: { data: EditObjective }) => {
-	const {data} = props;
+export const Targets = (props: { objective: Objective }) => {
+	const {objective} = props;
 
 	const save = useSave();
 
-	if (data.objective.targets == null) {
-		data.objective.targets = [];
+	if (objective.targets == null) {
+		objective.targets = [];
 	}
 
 	const onRemove = (target: ObjectiveTarget) => {
-		data.objective.targets!.splice(data.objective.targets!.indexOf(target), 1);
-		save(data.objective);
+		objective.targets!.splice(objective.targets!.indexOf(target), 1);
+		save(objective);
 	};
 	const onAddClicked = () => {
-		data.objective.targets!.push({} as ObjectiveTarget);
-		save(data.objective);
+		objective.targets!.push({} as ObjectiveTarget);
+		save(objective);
 	};
 
-	const targets = data.objective.targets;
+	const targets = objective.targets;
 
 	return <EditStep index={ObjectiveDeclarationStep.TARGETS} title={Lang.INDICATOR.OBJECTIVE.TARGETS_TITLE}
 	                 backToList={true}>
 		<TargetsContainer>
 			{targets.map((target, index) => {
-				return <Target objective={data.objective} target={target} index={index + 1}
+				return <Target objective={objective} target={target} index={index + 1}
 				               onRemove={onRemove}
 				               key={`${target.name || ''}-${index}`}/>;
 			})}

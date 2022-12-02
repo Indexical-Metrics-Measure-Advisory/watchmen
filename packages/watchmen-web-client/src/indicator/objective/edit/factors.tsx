@@ -1,16 +1,16 @@
+import {Objective} from '@/services/data/tuples/objective-types';
 import {Lang} from '@/widgets/langs';
 import {EditStep} from './edit-step';
 import {ObjectiveDeclarationStep} from './steps';
-import {EditObjective} from './types';
 
-export const Factors = (props: { data: EditObjective }) => {
-	const {data} = props;
+export const Factors = (props: { objective: Objective }) => {
+	const {objective} = props;
 
-	if (data.objective.factors == null) {
-		data.objective.factors = [];
+	if (objective.factors == null) {
+		objective.factors = [];
 	}
 
-	const factors = data.objective.factors;
+	const factors = objective.factors;
 
 	return <EditStep index={ObjectiveDeclarationStep.FACTORS} title={Lang.INDICATOR.OBJECTIVE.FACTORS_TITLE}>
 		{factors.map(factor => {

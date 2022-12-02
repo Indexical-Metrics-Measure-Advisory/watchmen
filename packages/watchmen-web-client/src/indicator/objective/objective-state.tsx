@@ -1,5 +1,8 @@
+import {fetchBucket, fetchBucketsByIds, listBuckets} from '@/services/data/tuples/bucket';
+import {Bucket, BucketId} from '@/services/data/tuples/bucket-types';
 import {fetchObjective, saveObjective} from '@/services/data/tuples/objective';
 import {Objective, ObjectiveId} from '@/services/data/tuples/objective-types';
+import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
 import {AlertLabel} from '@/widgets/alert/widgets';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
@@ -7,18 +10,24 @@ import {Lang} from '@/widgets/langs';
 import {useThrottler} from '@/widgets/throttler';
 import React, {Fragment, useEffect, useState} from 'react';
 import {useObjectivesEventBus} from './objectives-event-bus';
-import {ObjectiveData, ObjectivesEventTypes} from './objectives-event-bus-types';
+import {ObjectivesEventTypes} from './objectives-event-bus-types';
 import {createObjective} from './utils';
 
 export const ObjectiveState = () => {
 	const {fire: fireGlobal} = useEventBus();
 	const {on, off, fire} = useObjectivesEventBus();
-	const [data, setData] = useState<ObjectiveData>({});
+	const [editOne, setEditOne] = useState<Objective | null>(null);
+	const [allBuckets, setAllBuckets] = useState<{ loaded: boolean, data: Array<QueryBucket> }>({
+		loaded: false,
+		data: []
+	});
+	const [buckets, setBuckets] = useState<Array<Bucket>>([]);
+	const saveQueue = useThrottler();
 
 	useEffect(() => {
 		const onCreateObjective = (onCreated: (objective: Objective) => void) => {
 			const objective = createObjective();
-			setData({objective});
+			setEditOne(objective);
 			onCreated(objective);
 		};
 		on(ObjectivesEventTypes.CREATE_OBJECTIVE, onCreateObjective);
@@ -27,11 +36,11 @@ export const ObjectiveState = () => {
 		};
 	}, [on, off]);
 	useEffect(() => {
-		const onPickObjective = async (objectiveId: ObjectiveId, onData: (data: ObjectiveData) => void) => {
+		const onPickObjective = async (objectiveId: ObjectiveId, onData: (objective: Objective) => void) => {
 			try {
-				const data = await fetchObjective(objectiveId);
-				setData(data);
-				onData(data);
+				const objective = await fetchObjective(objectiveId);
+				setEditOne(objective);
+				onData(objective);
 			} catch {
 				fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>
 					{Lang.INDICATOR.OBJECTIVE.FAILED_TO_LOAD_OBJECTIVE}
@@ -44,15 +53,65 @@ export const ObjectiveState = () => {
 		};
 	}, [on, off, fireGlobal]);
 	useEffect(() => {
-		const onAskObjective = (onData: (data?: ObjectiveData) => void) => {
-			onData(data);
+		const onAskObjective = (onData: (objective?: Objective) => void) => {
+			onData(editOne == null ? (void 0) : editOne);
 		};
 		on(ObjectivesEventTypes.ASK_OBJECTIVE, onAskObjective);
 		return () => {
 			off(ObjectivesEventTypes.ASK_OBJECTIVE, onAskObjective);
 		};
-	}, [on, off, data]);
-	const saveQueue = useThrottler();
+	}, [on, off, editOne]);
+	useEffect(() => {
+		const onAskBuckets = async (onData: (buckets: Array<QueryBucket>) => void) => {
+			if (!allBuckets.loaded) {
+				const data = (await listBuckets({search: '', pageNumber: 1, pageSize: 9999})).data;
+				setAllBuckets({loaded: true, data});
+				onData(data);
+			} else {
+				onData(allBuckets.data);
+			}
+		};
+		on(ObjectivesEventTypes.ASK_ALL_BUCKETS, onAskBuckets);
+		return () => {
+			off(ObjectivesEventTypes.ASK_ALL_BUCKETS, onAskBuckets);
+		};
+	}, [on, off, allBuckets]);
+	useEffect(() => {
+		const onAskBucketDetails = async (bucketIds: Array<BucketId>, onData: (buckets: Array<Bucket>) => void) => {
+			if (bucketIds.length === 0) {
+				onData([]);
+			} else {
+				// filter the bucket which didn't load yet
+				// eslint-disable-next-line
+				const lackedBucketIds = bucketIds.filter(bucketId => buckets.every(bucket => bucket.bucketId != bucketId));
+				const lackedBuckets = await fetchBucketsByIds(lackedBucketIds);
+				const all = [...lackedBuckets, ...buckets];
+				setBuckets(all);
+				const map = all.reduce((map, bucket) => {
+					map[`${bucket.bucketId}`] = bucket;
+					return map;
+				}, {} as Record<BucketId, Bucket>);
+				onData(bucketIds.map(bucketId => map[bucketId]).filter(bucket => bucket != null));
+			}
+		};
+		const onAskBucket = async (bucketId: BucketId, onData: (bucket: Bucket) => void) => {
+			// eslint-disable-next-line
+			const found = buckets.find(bucket => bucket.bucketId == bucketId);
+			if (found != null) {
+				onData(found);
+			} else {
+				const {bucket} = await fetchBucket(bucketId);
+				setBuckets([...buckets, bucket]);
+				onData(bucket);
+			}
+		};
+		on(ObjectivesEventTypes.ASK_BUCKETS_DETAILS, onAskBucketDetails);
+		on(ObjectivesEventTypes.ASK_BUCKET, onAskBucket);
+		return () => {
+			off(ObjectivesEventTypes.ASK_BUCKETS_DETAILS, onAskBucketDetails);
+			off(ObjectivesEventTypes.ASK_BUCKET, onAskBucket);
+		};
+	}, [on, off, buckets]);
 	useEffect(() => {
 		const onSaveObjective = (objective: Objective, onSaved: (objective: Objective, saved: boolean) => void) => {
 			saveQueue.replace(() => {

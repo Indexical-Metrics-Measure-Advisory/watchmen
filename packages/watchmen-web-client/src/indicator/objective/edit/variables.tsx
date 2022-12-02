@@ -7,6 +7,7 @@ import {
 	ObjectiveVariableOnRange,
 	ObjectiveVariableOnValue
 } from '@/services/data/tuples/objective-types';
+import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
 import {isNotBlank} from '@/services/utils';
 import {Button} from '@/widgets/basic/button';
 import {ICON_COLLAPSE_CONTENT, ICON_DELETE, ICON_EDIT} from '@/widgets/basic/constants';
@@ -15,10 +16,11 @@ import {Input} from '@/widgets/basic/input';
 import {ButtonInk, DropdownOption} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import React, {ChangeEvent, MouseEvent, useState} from 'react';
+import React, {ChangeEvent, MouseEvent, useEffect, useState} from 'react';
+import {useObjectivesEventBus} from '../objectives-event-bus';
+import {ObjectivesEventTypes} from '../objectives-event-bus-types';
 import {EditStep} from './edit-step';
 import {ObjectiveDeclarationStep} from './steps';
-import {EditObjective} from './types';
 import {useSave} from './use-save';
 import {
 	AddItemButton,
@@ -62,13 +64,111 @@ const defendVariableAndRemoveUnnecessary = (variable: ObjectiveVariable) => {
 	}
 };
 
+interface BucketVariableOptions {
+	buckets: Array<DropdownOption>,
+	segments: Array<DropdownOption>
+}
+
+const buildBucketOptions = (
+	variable: ObjectiveVariable, allBuckets: Array<QueryBucket>, selectedBucket: Bucket | null
+): BucketVariableOptions => {
+	if (!isBucketVariable(variable)) {
+		return {buckets: [], segments: []};
+	}
+
+	const bucketOptions: Array<DropdownOption> = allBuckets.map(bucket => {
+		return {value: bucket.bucketId, label: bucket.name};
+	}).sort((b1, b2) => {
+		return (b1.label || '').toLowerCase().localeCompare((b2.label || '').toLowerCase());
+	});
+	const segmentOptions: Array<DropdownOption> = [];
+	if (isNotBlank(variable.bucketId)) {
+		// bucket selected
+		// eslint-disable-next-line
+		const found = allBuckets.find(b => b.bucketId == variable.bucketId);
+		if (found == null) {
+			// selected bucket not found, which means selected bucket doesn't exist anymore
+			bucketOptions.push({
+				value: variable.bucketId!, label: () => {
+					return {
+						node: <IncorrectOptionLabel>
+							{Lang.INDICATOR.OBJECTIVE.VARIABLE_BUCKET_INCORRECT_SELECTED}
+						</IncorrectOptionLabel>, label: ''
+					};
+				}
+			} as DropdownOption);
+			if (isNotBlank(variable.segmentName)) {
+				// there is segment selected
+				// since bucket is not found, which means segment is incorrect anyway
+				segmentOptions.push({
+					value: variable.segmentName, label: () => {
+						return {
+							node: <IncorrectOptionLabel>
+								{Lang.INDICATOR.OBJECTIVE.VARIABLE_BUCKET_SEGMENT_INCORRECT_SELECTED}
+							</IncorrectOptionLabel>, label: ''
+						};
+					}
+				});
+			} else {
+				// there is no segment selected
+				segmentOptions.push({value: '', label: Lang.INDICATOR.OBJECTIVE.VARIABLE_BUCKET_SELECT_FIRST});
+			}
+		} else {
+			// selected bucket found
+			if (selectedBucket != null) {
+				// build available segment options
+				segmentOptions.push(...(selectedBucket.segments || []).map(segment => {
+					return {value: segment.name, label: segment.name};
+				}).sort((s1, s2) => {
+					return (s1.label || '').toLowerCase().localeCompare((s2.label || '').toLowerCase());
+				}));
+				if (isNotBlank(variable.segmentName)) {
+					// there is segment selected
+					// eslint-disable-next-line
+					const found = (selectedBucket.segments || []).find(s => s.name == variable.segmentName);
+					if (found == null) {
+						// selected segment not found, which means it doesn't exist anymore
+						segmentOptions.push({
+							value: variable.segmentName, label: () => {
+								return {
+									node: <IncorrectOptionLabel>
+										{Lang.INDICATOR.OBJECTIVE.VARIABLE_BUCKET_SEGMENT_INCORRECT_SELECTED}
+									</IncorrectOptionLabel>, label: ''
+								};
+							}
+						});
+					}
+				} else if (segmentOptions.length === 0) {
+					segmentOptions.push({
+						value: '',
+						label: Lang.INDICATOR.OBJECTIVE.VARIABLE_BUCKET_SEGMENT_NO_AVAILABLE
+					});
+				}
+			}
+		}
+
+		return {buckets: bucketOptions, segments: segmentOptions};
+	} else {
+		// bucket not selected
+		if (bucketOptions.length === 0) {
+			// no available buckets
+			bucketOptions.push({value: '', label: Lang.INDICATOR.OBJECTIVE.VARIABLE_BUCKET_NO_AVAILABLE});
+		}
+		segmentOptions.push({value: '', label: Lang.INDICATOR.OBJECTIVE.VARIABLE_BUCKET_SELECT_FIRST});
+	}
+	return {buckets: bucketOptions, segments: segmentOptions};
+};
+
 const VariableValues = (props: {
 	objective: Objective;
 	variable: ObjectiveVariable;
-	buckets: Array<Bucket>;
+	buckets: Array<QueryBucket>;
+	selectedBucket: Bucket | null;
 }) => {
-	const {objective, variable, buckets} = props;
+	const {objective, variable, buckets, selectedBucket: initSelectedBucket} = props;
 
+	const {fire} = useObjectivesEventBus();
+	const [selectedBucket, setSelectedBucket] = useState<Bucket | null>(initSelectedBucket);
 	const save = useSave();
 
 	const onValueChanged = (key: 'value' | 'min' | 'max') => (event: ChangeEvent<HTMLInputElement>) => {
@@ -89,7 +189,11 @@ const VariableValues = (props: {
 
 		variableOnBucket.bucketId = bucketId;
 		delete variableOnBucket.segmentName;
-		save(objective);
+
+		fire(ObjectivesEventTypes.ASK_BUCKET, bucketId, (bucket: Bucket) => {
+			setSelectedBucket(bucket);
+			save(objective);
+		});
 	};
 	const onSegmentChanged = (option: DropdownOption) => {
 		const variableOnBucket = variable as ObjectiveVariableOnBucket;
@@ -101,88 +205,7 @@ const VariableValues = (props: {
 		save(objective);
 	};
 
-	const {buckets: bucketOptions, segments: segmentOptions} = (() => {
-		if (!isBucketVariable(variable)) {
-			return {buckets: [], segments: []};
-		}
-
-		const bucketOptions: Array<DropdownOption> = buckets.map(bucket => {
-			return {value: bucket.bucketId, label: bucket.name};
-		}).sort((b1, b2) => {
-			return (b1.label || '').toLowerCase().localeCompare((b2.label || '').toLowerCase());
-		});
-		let segmentOptions: Array<DropdownOption> = [];
-		if (isNotBlank(variable.bucketId)) {
-			// bucket selected
-			// eslint-disable-next-line
-			const bucketFound = buckets.find(b => b.bucketId == variable.bucketId);
-			if (bucketFound == null) {
-				// selected bucket not found
-				bucketOptions.push({
-					value: variable.bucketId!, label: () => {
-						return {
-							node: <IncorrectOptionLabel>
-								{Lang.INDICATOR.OBJECTIVE.VARIABLE_BUCKET_INCORRECT_SELECTED}
-							</IncorrectOptionLabel>, label: ''
-						};
-					}
-				} as DropdownOption);
-				if (isNotBlank(variable.segmentName)) {
-					segmentOptions.push({
-						value: variable.segmentName, label: () => {
-							return {
-								node: <IncorrectOptionLabel>
-									{Lang.INDICATOR.OBJECTIVE.VARIABLE_BUCKET_SEGMENT_INCORRECT_SELECTED}
-								</IncorrectOptionLabel>, label: ''
-							};
-						}
-					});
-				}
-			} else {
-				// selected bucket found
-				segmentOptions = (() => {
-					if (isBucketVariable(variable) && variable.bucketId != null) {
-						// eslint-disable-next-line
-						return (buckets.find(bucket => bucket.bucketId == variable.bucketId)?.segments || []).map(segment => {
-							return {value: segment.name, label: segment.name};
-						}).sort((s1, s2) => {
-							return (s1.label || '').toLowerCase().localeCompare((s2.label || '').toLowerCase());
-						});
-					} else {
-						return [];
-					}
-				})();
-				if (isNotBlank(variable.segmentName)) {
-					// eslint-disable-next-line
-					const segmentFound = (bucketFound.segments || []).find(s => s.name == variable.segmentName);
-					if (segmentFound == null) {
-						segmentOptions.push({
-							value: variable.segmentName, label: () => {
-								return {
-									node: <IncorrectOptionLabel>
-										{Lang.INDICATOR.OBJECTIVE.VARIABLE_BUCKET_SEGMENT_INCORRECT_SELECTED}
-									</IncorrectOptionLabel>, label: ''
-								};
-							}
-						});
-					}
-				}
-			}
-
-			if (segmentOptions.length === 0) {
-				segmentOptions.push({value: '', label: Lang.INDICATOR.OBJECTIVE.VARIABLE_BUCKET_SEGMENT_NO_AVAILABLE});
-			}
-			return {buckets: bucketOptions, segments: segmentOptions};
-		} else {
-			// bucket not selected
-			segmentOptions = [{value: '', label: Lang.INDICATOR.OBJECTIVE.VARIABLE_BUCKET_SELECT_FIRST}];
-		}
-		if (bucketOptions.length === 0) {
-			// no available buckets
-			bucketOptions.push({value: '', label: Lang.INDICATOR.OBJECTIVE.VARIABLE_BUCKET_NO_AVAILABLE});
-		}
-		return {buckets: bucketOptions, segments: segmentOptions};
-	})();
+	const {buckets: bucketOptions, segments: segmentOptions} = buildBucketOptions(variable, buckets, selectedBucket);
 
 	return <VariableValuesContainer>
 		{isValueVariable(variable) ? <Input value={variable.value ?? ''} onChange={onValueChanged('value')}/> : null}
@@ -213,9 +236,10 @@ const Variable = (props: {
 	variable: ObjectiveVariable;
 	index: number;
 	onRemove: (variable: ObjectiveVariable) => void;
-	buckets: Array<Bucket>;
+	buckets: Array<QueryBucket>;
+	selectedBucket: Bucket | null;
 }) => {
-	const {objective, variable, index, onRemove, buckets} = props;
+	const {objective, variable, index, onRemove, buckets, selectedBucket} = props;
 
 	const [editing, setEditing] = useState(false);
 	const save = useSave();
@@ -275,40 +299,73 @@ const Variable = (props: {
 				{editing ? <FontAwesomeIcon icon={ICON_COLLAPSE_CONTENT}/> : <FontAwesomeIcon icon={ICON_EDIT}/>}
 			</VariableKindIcon>
 		</VariableKindContainer>
-		<VariableValues objective={objective} variable={variable} buckets={buckets}/>
+		<VariableValues objective={objective} variable={variable} buckets={buckets} selectedBucket={selectedBucket}/>
 		<RemoveItemButton ink={ButtonInk.DANGER} onClick={onRemoveClicked}>
 			<FontAwesomeIcon icon={ICON_DELETE}/>
 		</RemoveItemButton>
 	</VariableContainer>;
 };
 
-export const Variables = (props: { data: EditObjective }) => {
-	const {data} = props;
+export const Variables = (props: { objective: Objective }) => {
+	const {objective} = props;
 
-	const [buckets] = useState<Array<Bucket>>([]);
-	const save = useSave();
-
-	if (data.objective.variables == null) {
-		data.objective.variables = [];
+	if (objective.variables == null) {
+		objective.variables = [];
 	}
 
+	const {fire} = useObjectivesEventBus();
+	const [buckets, setBuckets] = useState<{ all: Array<QueryBucket>, selected: Array<Bucket> }>({
+		all: [],
+		selected: []
+	});
+	const save = useSave();
+	useEffect(() => {
+		fire(ObjectivesEventTypes.ASK_ALL_BUCKETS, (buckets: Array<QueryBucket>) => {
+			if (buckets.length === 0) {
+				// do nothing, no bucket
+				return;
+			}
+
+			const selectedBucketIds: Array<BucketId> = (objective.variables || [])
+				.filter(v => isBucketVariable(v) && isNotBlank(v.bucketId))
+				.map(v => (v as ObjectiveVariableOnBucket).bucketId)
+				.filter(bucketId => isNotBlank(bucketId)) as Array<BucketId>;
+			fire(ObjectivesEventTypes.ASK_BUCKETS_DETAILS, selectedBucketIds, (selectedBuckets: Array<Bucket>) => {
+				setBuckets({all: buckets, selected: selectedBuckets});
+			});
+		});
+	}, [fire, objective.variables]);
+
 	const onRemove = (variable: ObjectiveVariable) => {
-		data.objective.variables!.splice(data.objective.variables!.indexOf(variable), 1);
-		save(data.objective);
+		objective.variables!.splice(objective.variables!.indexOf(variable), 1);
+		save(objective);
 	};
 	const onAddClicked = () => {
-		data.objective.variables!.push({kind: ObjectiveVariableKind.SINGLE_VALUE} as ObjectiveVariable);
-		save(data.objective);
+		objective.variables!.push({kind: ObjectiveVariableKind.SINGLE_VALUE} as ObjectiveVariable);
+		save(objective);
 	};
 
-	const variables = data.objective.variables;
+	const variables = objective.variables;
+	const findSelectedBucket = (variable: ObjectiveVariable): Bucket | null => {
+		if (!isBucketVariable(variable)) {
+			return null;
+		}
+		const bucketId = variable.bucketId;
+		if (!isNotBlank(bucketId)) {
+			return null;
+		}
+
+		// eslint-disable-next-line
+		return buckets.selected.find(bucket => bucket.bucketId == bucketId) ?? null;
+	};
 
 	return <EditStep index={ObjectiveDeclarationStep.VARIABLES} title={Lang.INDICATOR.OBJECTIVE.VARIABLES_TITLE}>
 		<VariablesContainer>
 			{variables.map((variable, index) => {
-				return <Variable objective={data.objective} variable={variable} index={index + 1}
+				return <Variable objective={objective} variable={variable} index={index + 1}
 				                 onRemove={onRemove}
-				                 buckets={buckets}
+				                 buckets={buckets.all}
+				                 selectedBucket={findSelectedBucket(variable)}
 				                 key={`${variable.name || ''}-${index}`}/>;
 			})}
 			<AddItemButton ink={ButtonInk.PRIMARY} onClick={onAddClicked}>

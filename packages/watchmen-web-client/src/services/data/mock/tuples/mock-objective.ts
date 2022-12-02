@@ -23,19 +23,13 @@ export const listMockObjectives = async (options: {
 	});
 };
 
-export const fetchMockObjective = async (objectiveId: ObjectiveId): Promise<{ objective: Objective }> => {
+export const fetchMockObjective = async (objectiveId: ObjectiveId): Promise<Objective> => {
 	// eslint-disable-next-line
 	const found = DemoObjectives.find(({objectiveId: id}) => id == objectiveId);
 	if (found) {
-		const objective: Objective = JSON.parse(JSON.stringify(found));
-		return {objective};
+		return JSON.parse(JSON.stringify(found));
 	} else {
-		return {
-			objective: {
-				...MonthlySalesObjective,
-				objectiveId
-			}
-		};
+		return {...MonthlySalesObjective, objectiveId};
 	}
 };
 
