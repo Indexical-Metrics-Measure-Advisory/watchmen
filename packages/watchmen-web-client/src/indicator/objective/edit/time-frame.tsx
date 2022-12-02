@@ -12,7 +12,6 @@ import dayjs, {Dayjs} from 'dayjs';
 import React from 'react';
 import {EditStep} from './edit-step';
 import {ObjectiveDeclarationStep} from './steps';
-import {EditObjective} from './types';
 import {useSave} from './use-save';
 import {ItemLabel, ItemValue, TimeFrameContainer} from './widgets';
 
@@ -286,8 +285,8 @@ const renderTimeFrame = (frame?: Frame): string => {
 	}
 };
 
-export const TimeFrame = (props: { data: EditObjective }) => {
-	const {data: {objective}} = props;
+export const TimeFrame = (props: { objective: Objective }) => {
+	const {objective} = props;
 
 	const save = useSave();
 

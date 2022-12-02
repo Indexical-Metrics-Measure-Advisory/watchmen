@@ -21,12 +21,11 @@ export const listObjectives = async (options: {
 	}
 };
 
-export const fetchObjective = async (objectiveId: ObjectiveId): Promise<{ objective: Objective }> => {
+export const fetchObjective = async (objectiveId: ObjectiveId): Promise<Objective> => {
 	if (isMockService()) {
 		return await fetchMockObjective(objectiveId);
 	} else {
-		const objective: Objective = await get({api: Apis.OBJECTIVE_GET, search: {objectiveId}});
-		return {objective};
+		return await get({api: Apis.OBJECTIVE_GET, search: {objectiveId}});
 	}
 };
 
