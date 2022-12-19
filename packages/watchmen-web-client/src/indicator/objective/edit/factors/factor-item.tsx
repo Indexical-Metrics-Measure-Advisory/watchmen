@@ -10,12 +10,11 @@ import {ButtonInk} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {ChangeEvent, useEffect} from 'react';
-import {useParameterEventBus} from '../parameter-event-bus';
-import {ParameterEventTypes} from '../parameter-event-bus-types';
 import {ComputedEditor} from '../parameter/compute';
-import {ParameterEventBusProvider} from '../parameter/parameter-event-bus';
+import {ParameterEventBusProvider, useParameterEventBus} from '../parameter/parameter-event-bus';
+import {ParameterEventTypes} from '../parameter/parameter-event-bus-types';
+import {createFactorParameter} from '../parameter/utils';
 import {useSave} from '../use-save';
-import {createFactorParameter} from '../utils';
 import {ItemNo, RemoveItemButton} from '../widgets';
 import {FactorContainer} from './widgets';
 
