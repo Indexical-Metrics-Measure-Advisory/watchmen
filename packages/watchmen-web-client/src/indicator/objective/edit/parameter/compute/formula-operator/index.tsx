@@ -3,7 +3,8 @@ import {ICON_EDIT} from '@/widgets/basic/constants';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {MouseEvent} from 'react';
-import {useSave} from '../../use-save';
+import {useParameterEventBus} from '../../parameter-event-bus';
+import {ParameterEventTypes} from '../../parameter-event-bus-types';
 import {useFormulaOperator} from './use-formula-operator';
 import {
 	FormulaOperatorContainer,
@@ -14,16 +15,14 @@ import {
 } from './widgets';
 
 export const FormulaOperatorEditor = (props: { objective: Objective; parameter: ComputedObjectiveParameter }) => {
-	const {objective, parameter} = props;
+	const {parameter} = props;
 
-	const save = useSave();
+	const {fire} = useParameterEventBus();
 
-	const {
-		containerRef, dropdownState, onOperatorClicked, onOperatorSelected
-	} = useFormulaOperator(parameter);
+	const {containerRef, dropdownState, onOperatorClicked, onOperatorSelected} = useFormulaOperator(parameter);
 	const onClicked = (operator: ObjectiveFormulaOperator) => (event: MouseEvent<HTMLDivElement>) => {
 		onOperatorSelected(operator)(event);
-		save(objective);
+		fire(ParameterEventTypes.COMPUTE_OPERATOR_CHANGED, parameter);
 	};
 
 	const ObjectiveFormulaOperatorLabels: Record<ObjectiveFormulaOperator, string> = {
@@ -41,7 +40,7 @@ export const FormulaOperatorEditor = (props: { objective: Objective; parameter: 
 		[ObjectiveFormulaOperator.INTERPOLATE]: Lang.PARAMETER.COMPUTE_TYPE.INTERPOLATE,
 		[ObjectiveFormulaOperator.CASE_THEN]: Lang.PARAMETER.COMPUTE_TYPE.CASE_THEN
 	};
-	const availableOperators = Object.values(ObjectiveFormulaOperator).filter(op => op != ObjectiveFormulaOperator.NONE);
+	const availableOperators = Object.values(ObjectiveFormulaOperator).filter(op => op !== ObjectiveFormulaOperator.NONE);
 
 	return <FormulaOperatorContainer onClick={onOperatorClicked} ref={containerRef}>
 		<FormulaOperatorLabel>{ObjectiveFormulaOperatorLabels[parameter.operator]}</FormulaOperatorLabel>

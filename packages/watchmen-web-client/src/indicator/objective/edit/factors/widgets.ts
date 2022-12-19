@@ -13,4 +13,7 @@ export const FactorContainer = styled(ItemContainer).attrs({'data-widget': 'obje
 	> input:nth-child(2) {
 		width : 400px;
 	}
+	> div[data-widget=objective-computation] {
+		grid-column: 2 / span 3;
+	}
 `;
