@@ -26,6 +26,7 @@ const FormulaEditor = (props: { objective: Objective; factor: ObjectiveFactor })
 	const {on, off} = useParameterEventBus();
 	useEffect(() => {
 		const onParamChanged = () => {
+			console.log('changed')
 			save(objective);
 		};
 		on(ParameterEventTypes.PARAM_CHANGED, onParamChanged);

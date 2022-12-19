@@ -1,5 +1,6 @@
 import {useParameterFromChanged} from '@/indicator/objective/edit/parameter/use-parameter-from-changed';
 import {Objective, ObjectiveParameter} from '@/services/data/tuples/objective-types';
+import {useForceUpdate} from '@/widgets/basic/utils';
 import React, {ChangeEvent} from 'react';
 import {useParameterEventBus} from '../parameter-event-bus';
 import {ParameterEventTypes} from '../parameter-event-bus-types';
@@ -11,6 +12,7 @@ export const ConstantEditor = (props: { objective: Objective; parameter: Objecti
 
 	const {fire} = useParameterEventBus();
 	useParameterFromChanged();
+	const forceUpdate = useForceUpdate();
 
 	if (!isConstantParameter(parameter)) {
 		return null;
@@ -23,6 +25,7 @@ export const ConstantEditor = (props: { objective: Objective; parameter: Objecti
 		}
 		parameter.value = value;
 		fire(ParameterEventTypes.CONSTANT_VALUE_CHANGED, parameter);
+		forceUpdate();
 	};
 
 	return <ConstantContainer>
