@@ -31,6 +31,7 @@ export interface ConstantObjectiveParameter extends ObjectiveParameter {
 }
 
 export enum ObjectiveFormulaOperator {
+	NONE = 'none',
 	ADD = 'add',
 	SUBTRACT = 'subtract',
 	MULTIPLY = 'multiply',
@@ -40,9 +41,6 @@ export enum ObjectiveFormulaOperator {
 	FLOOR = 'floor',
 	CEIL = 'ceil',
 	ABS = 'abs',
-	SQRT = 'sqrt',
-	POW = 'pow',
-
 	MAX = 'max',
 	MIN = 'min',
 	INTERPOLATE = 'interpolate',
@@ -143,7 +141,7 @@ export enum ObjectiveFactorKind {
 }
 
 export interface ObjectiveFactor {
-	factorId: ObjectiveFactorId;
+	uuid: ObjectiveFactorId;
 	kind: ObjectiveFactorKind;
 	name: ObjectiveFactorName;
 	formula?: ComputedObjectiveParameter;

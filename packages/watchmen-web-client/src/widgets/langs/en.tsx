@@ -603,7 +603,14 @@ export const En = {
 			WEEK_OF_MONTH: 'Week of Month',
 			DAY_OF_MONTH: 'Day of Month',
 			DAY_OF_WEEK: 'Day of Week',
-			CASE_THEN: 'Case Then'
+			CASE_THEN: 'Case Then',
+			ROUND: 'Round',
+			FLOOR: 'Floor',
+			CEIL: 'Ceil',
+			ABS: 'Abs',
+			MAX: 'Max of',
+			MIN: 'Min of',
+			INTERPOLATE: 'Interpolate'
 		},
 		EXPRESSION_OPERATOR: {
 			EMPTY: 'Is Empty',

@@ -28,7 +28,7 @@ export const Factors = (props: { objective: Objective }) => {
 	const uuid = () => {
 		let id = generateUuid();
 		// eslint-disable-next-line
-		while (objective.factors!.some(factor => factor.factorId === id)) {
+		while (objective.factors!.some(factor => factor.uuid === id)) {
 			id = generateUuid();
 		}
 		return id;
@@ -39,11 +39,11 @@ export const Factors = (props: { objective: Objective }) => {
 		save(objective);
 	};
 	const onAddIndicatorClicked = () => {
-		objective.factors!.push({factorId: uuid(), kind: ObjectiveFactorKind.INDICATOR} as ObjectiveFactorOnIndicator);
+		objective.factors!.push({uuid: uuid(), kind: ObjectiveFactorKind.INDICATOR} as ObjectiveFactorOnIndicator);
 		save(objective);
 	};
 	const onAddComputedIndicatorClicked = () => {
-		objective.factors!.push({factorId: uuid(), kind: ObjectiveFactorKind.COMPUTED} as ObjectiveFactorOnComputation);
+		objective.factors!.push({uuid: uuid(), kind: ObjectiveFactorKind.COMPUTED} as ObjectiveFactorOnComputation);
 		save(objective);
 	};
 
@@ -54,7 +54,7 @@ export const Factors = (props: { objective: Objective }) => {
 			{factors.map((factor, index) => {
 				return <FactorItem objective={objective} factor={factor} index={index + 1}
 				                   onRemove={onRemove}
-				                   key={factor.factorId}/>;
+				                   key={factor.uuid}/>;
 			})}
 			<ItemsButtons>
 				<AddItemButton ink={ButtonInk.PRIMARY} onClick={onAddIndicatorClicked}>

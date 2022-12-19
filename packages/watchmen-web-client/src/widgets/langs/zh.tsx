@@ -603,7 +603,14 @@ export const Zh: LanguageDeclareType = {
 			WEEK_OF_MONTH: '周(按月度)',
 			DAY_OF_MONTH: '天(按月度)',
 			DAY_OF_WEEK: '天(按周)',
-			CASE_THEN: '条件转换'
+			CASE_THEN: '条件转换',
+			ROUND: '四舍五入',
+			FLOOR: '截断位数',
+			CEIL: '进位',
+			ABS: '绝对值',
+			MAX: '最大值',
+			MIN: '最小值',
+			INTERPOLATE: '插值'
 		},
 		EXPRESSION_OPERATOR: {
 			EMPTY: '为空',

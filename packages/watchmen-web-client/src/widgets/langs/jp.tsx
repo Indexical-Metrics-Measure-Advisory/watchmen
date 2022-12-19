@@ -603,7 +603,14 @@ export const Jp: LanguageDeclareType = {
 			WEEK_OF_MONTH: '月の週',
 			DAY_OF_MONTH: '月の日',
 			DAY_OF_WEEK: '週の日',
-			CASE_THEN: 'ケース'
+			CASE_THEN: 'ケース',
+			ROUND: 'Round',
+			FLOOR: 'Floor',
+			CEIL: 'Ceil',
+			ABS: '絶対値',
+			MAX: '最大値',
+			MIN: '最小値',
+			INTERPOLATE: 'Interpolate'
 		},
 		EXPRESSION_OPERATOR: {
 			EMPTY: '空',
