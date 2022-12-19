@@ -37,7 +37,7 @@ export const ParameterFormulaDefsMap: Record<ObjectiveFormulaOperator, Parameter
 	[ObjectiveFormulaOperator.ABS]: {name: ObjectiveFormulaOperator.ABS, parameterCount: 1},
 	[ObjectiveFormulaOperator.MAX]: {name: ObjectiveFormulaOperator.MAX, minParameterCount: 1},
 	[ObjectiveFormulaOperator.MIN]: {name: ObjectiveFormulaOperator.MIN, minParameterCount: 1},
-	[ObjectiveFormulaOperator.INTERPOLATE]: {name: ObjectiveFormulaOperator.INTERPOLATE, minParameterCount: 5},
+	[ObjectiveFormulaOperator.INTERPOLATE]: {name: ObjectiveFormulaOperator.INTERPOLATE, parameterCount: 5},
 	[ObjectiveFormulaOperator.CASE_THEN]: {name: ObjectiveFormulaOperator.CASE_THEN, minParameterCount: 1}
 };
 
@@ -72,6 +72,12 @@ export const defendFormulaParameter = (parameter: ComputedObjectiveParameter) =>
 			} else {
 				parameter.parameters[1] = createConstantParameter('0');
 			}
+		} else if (ObjectiveFormulaOperator.INTERPOLATE === parameter.operator) {
+			[1, 2, 3, 4].forEach(index => {
+				if (!isConstantParameter(parameter.parameters[index])) {
+					parameter.parameters[index] = createConstantParameter();
+				}
+			});
 		}
 	}
 };
