@@ -1,9 +1,9 @@
-import {useParameterFromChanged} from '@/indicator/objective/edit/parameter/use-parameter-from-changed';
 import {Objective, ObjectiveParameter} from '@/services/data/tuples/objective-types';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import React, {ChangeEvent} from 'react';
 import {useParameterEventBus} from '../parameter-event-bus';
 import {ParameterEventTypes} from '../parameter-event-bus-types';
+import {useParameterFromChanged} from '../use-parameter-from-changed';
 import {isConstantParameter} from '../utils';
 import {ConstantContainer, ConstantInput} from './widgets';
 
