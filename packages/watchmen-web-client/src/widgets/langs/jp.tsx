@@ -35,7 +35,8 @@ export const Jp: LanguageDeclareType = {
 		FIND_OBJECTIVE_PLACEHOLDER: '目標名 説明に基づいて検索します。',
 		OBJECTIVE_NAME_PLACEHOLDER: '読むための名前を入力してください。',
 		OBJECTIVE_DESCRIPTION_PLACEHOLDER: '目標の説明を入力してください。',
-		OBJECTIVE_VARIABLE_NAME_PLACEHOLDER: '変数名.',
+		OBJECTIVE_VARIABLE_NAME_PLACEHOLDER: '変数名。',
+		OBJECTIVE_FACTOR_NAME_PLACEHOLDER: '指標名。',
 		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '";"で結合された複数のアドレス。'
 	},
 	STANDARD: {
@@ -483,6 +484,8 @@ export const Jp: LanguageDeclareType = {
 			ADD_VARIABLE: '新しい変数を追加',
 			REMOVE_VARIABLE: '変数を削除',
 			FACTORS_TITLE: '指標の構成。',
+			ADD_INDICATOR: '指標を追加',
+			ADD_COMPUTED_INDICATOR: '計算指標を追加',
 			NOT_NOW: '捨てる',
 			SAVE_OBJECTIVE: '目標を保存',
 			SAVE_NAME: '名前を保存',
