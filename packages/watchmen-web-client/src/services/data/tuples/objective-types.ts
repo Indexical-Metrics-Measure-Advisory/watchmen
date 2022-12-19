@@ -18,10 +18,11 @@ export interface ObjectiveParameter {
 }
 
 export type ObjectiveFactorName = string;
+export type ObjectiveFactorId = string;
 
 export interface ReferObjectiveParameter extends ObjectiveParameter {
 	kind: ObjectiveParameterType.REFER;
-	name: ObjectiveFactorName;
+	uuid: ObjectiveFactorId;
 }
 
 export interface ConstantObjectiveParameter extends ObjectiveParameter {
@@ -142,6 +143,7 @@ export enum ObjectiveFactorKind {
 }
 
 export interface ObjectiveFactor {
+	factorId: ObjectiveFactorId;
 	kind: ObjectiveFactorKind;
 	name: ObjectiveFactorName;
 	formula?: ComputedObjectiveParameter;

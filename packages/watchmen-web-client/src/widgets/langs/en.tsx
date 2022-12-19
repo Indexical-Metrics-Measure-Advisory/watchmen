@@ -36,6 +36,7 @@ export const En = {
 		OBJECTIVE_NAME_PLACEHOLDER: 'A human reading name for objective.',
 		OBJECTIVE_DESCRIPTION_PLACEHOLDER: 'Objective description here...',
 		OBJECTIVE_VARIABLE_NAME_PLACEHOLDER: 'Variable name.',
+		OBJECTIVE_FACTOR_NAME_PLACEHOLDER: 'Indicator name.',
 		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '";" to separate multiple addresses.'
 	},
 	STANDARD: {
@@ -483,6 +484,8 @@ export const En = {
 			ADD_VARIABLE: 'Add New Variable',
 			REMOVE_VARIABLE: 'Remove Variable',
 			FACTORS_TITLE: 'Measure by indicators.',
+			ADD_INDICATOR: 'Add Indicator',
+			ADD_COMPUTED_INDICATOR: 'Add Computation',
 			NOT_NOW: 'Not Now',
 			SAVE_OBJECTIVE: 'Save Objective',
 			SAVE_NAME: 'Save Name',

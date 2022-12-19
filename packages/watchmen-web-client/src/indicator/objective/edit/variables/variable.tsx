@@ -4,8 +4,7 @@ import {
 	ObjectiveVariable,
 	ObjectiveVariableKind,
 	ObjectiveVariableOnBucket,
-	ObjectiveVariableOnRange,
-	ObjectiveVariableOnValue
+	ObjectiveVariableOnRange
 } from '@/services/data/tuples/objective-types';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
 import {isNotBlank} from '@/services/utils';
@@ -16,53 +15,19 @@ import {Input} from '@/widgets/basic/input';
 import {ButtonInk, DropdownOption} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import React, {ChangeEvent, MouseEvent, useEffect, useState} from 'react';
-import {useObjectivesEventBus} from '../objectives-event-bus';
-import {ObjectivesEventTypes} from '../objectives-event-bus-types';
-import {EditStep} from './edit-step';
-import {ObjectiveDeclarationStep} from './steps';
-import {useSave} from './use-save';
+import React, {ChangeEvent, MouseEvent, useState} from 'react';
+import {useObjectivesEventBus} from '../../objectives-event-bus';
+import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
+import {useSave} from '../use-save';
+import {IncorrectOptionLabel, ItemLabel, ItemNo, RemoveItemButton} from '../widgets';
+import {defendVariableAndRemoveUnnecessary, isBucketVariable, isRangeVariable, isValueVariable} from './utils';
 import {
-	AddItemButton,
-	IncorrectOptionLabel,
-	ItemLabel,
-	ItemNo,
-	RemoveItemButton,
 	VariableContainer,
 	VariableKindButton,
 	VariableKindContainer,
 	VariableKindIcon,
-	VariablesContainer,
 	VariableValuesContainer
 } from './widgets';
-
-const isValueVariable = (variable: ObjectiveVariable): variable is ObjectiveVariableOnValue => variable.kind === ObjectiveVariableKind.SINGLE_VALUE;
-const isRangeVariable = (variable: ObjectiveVariable): variable is ObjectiveVariableOnRange => variable.kind === ObjectiveVariableKind.RANGE;
-const isBucketVariable = (variable: ObjectiveVariable): variable is ObjectiveVariableOnBucket => variable.kind === ObjectiveVariableKind.BUCKET;
-const defendVariableAndRemoveUnnecessary = (variable: ObjectiveVariable) => {
-	if (isValueVariable(variable)) {
-		variable.value = variable.value ?? (variable as unknown as ObjectiveVariableOnRange).min;
-		delete (variable as unknown as ObjectiveVariableOnRange).min;
-		delete (variable as unknown as ObjectiveVariableOnRange).max;
-		delete (variable as unknown as ObjectiveVariableOnRange).includeMin;
-		delete (variable as unknown as ObjectiveVariableOnRange).includeMax;
-		delete (variable as unknown as ObjectiveVariableOnBucket).bucketId;
-		delete (variable as unknown as ObjectiveVariableOnBucket).segmentName;
-	} else if (isRangeVariable(variable)) {
-		variable.min = variable.min ?? (variable as unknown as ObjectiveVariableOnValue).value;
-		variable.includeMin = variable.includeMin ?? true;
-		variable.includeMax = variable.includeMax ?? true;
-		delete (variable as unknown as ObjectiveVariableOnValue).value;
-		delete (variable as unknown as ObjectiveVariableOnBucket).bucketId;
-		delete (variable as unknown as ObjectiveVariableOnBucket).segmentName;
-	} else if (isBucketVariable(variable)) {
-		delete (variable as unknown as ObjectiveVariableOnValue).value;
-		delete (variable as unknown as ObjectiveVariableOnRange).min;
-		delete (variable as unknown as ObjectiveVariableOnRange).max;
-		delete (variable as unknown as ObjectiveVariableOnRange).includeMin;
-		delete (variable as unknown as ObjectiveVariableOnRange).includeMax;
-	}
-};
 
 interface BucketVariableOptions {
 	buckets: Array<DropdownOption>,
@@ -158,7 +123,6 @@ const buildBucketOptions = (
 	}
 	return {buckets: bucketOptions, segments: segmentOptions};
 };
-
 const VariableValues = (props: {
 	objective: Objective;
 	variable: ObjectiveVariable;
@@ -231,7 +195,7 @@ const VariableValues = (props: {
 	</VariableValuesContainer>;
 };
 
-const Variable = (props: {
+export const Variable = (props: {
 	objective: Objective;
 	variable: ObjectiveVariable;
 	index: number;
@@ -300,77 +264,8 @@ const Variable = (props: {
 			</VariableKindIcon>
 		</VariableKindContainer>
 		<VariableValues objective={objective} variable={variable} buckets={buckets} selectedBucket={selectedBucket}/>
-		<RemoveItemButton ink={ButtonInk.DANGER} onClick={onRemoveClicked}>
+		<RemoveItemButton ink={ButtonInk.DANGER} data-as-icon={true} onClick={onRemoveClicked}>
 			<FontAwesomeIcon icon={ICON_DELETE}/>
 		</RemoveItemButton>
 	</VariableContainer>;
-};
-
-export const Variables = (props: { objective: Objective }) => {
-	const {objective} = props;
-
-	if (objective.variables == null) {
-		objective.variables = [];
-	}
-
-	const {fire} = useObjectivesEventBus();
-	const [buckets, setBuckets] = useState<{ all: Array<QueryBucket>, selected: Array<Bucket> }>({
-		all: [],
-		selected: []
-	});
-	const save = useSave();
-	useEffect(() => {
-		fire(ObjectivesEventTypes.ASK_ALL_BUCKETS, (buckets: Array<QueryBucket>) => {
-			if (buckets.length === 0) {
-				// do nothing, no bucket
-				return;
-			}
-
-			const selectedBucketIds: Array<BucketId> = (objective.variables || [])
-				.filter(v => isBucketVariable(v) && isNotBlank(v.bucketId))
-				.map(v => (v as ObjectiveVariableOnBucket).bucketId)
-				.filter(bucketId => isNotBlank(bucketId)) as Array<BucketId>;
-			fire(ObjectivesEventTypes.ASK_BUCKETS_DETAILS, selectedBucketIds, (selectedBuckets: Array<Bucket>) => {
-				setBuckets({all: buckets, selected: selectedBuckets});
-			});
-		});
-	}, [fire, objective.variables]);
-
-	const onRemove = (variable: ObjectiveVariable) => {
-		objective.variables!.splice(objective.variables!.indexOf(variable), 1);
-		save(objective);
-	};
-	const onAddClicked = () => {
-		objective.variables!.push({kind: ObjectiveVariableKind.SINGLE_VALUE} as ObjectiveVariable);
-		save(objective);
-	};
-
-	const variables = objective.variables;
-	const findSelectedBucket = (variable: ObjectiveVariable): Bucket | null => {
-		if (!isBucketVariable(variable)) {
-			return null;
-		}
-		const bucketId = variable.bucketId;
-		if (!isNotBlank(bucketId)) {
-			return null;
-		}
-
-		// eslint-disable-next-line
-		return buckets.selected.find(bucket => bucket.bucketId == bucketId) ?? null;
-	};
-
-	return <EditStep index={ObjectiveDeclarationStep.VARIABLES} title={Lang.INDICATOR.OBJECTIVE.VARIABLES_TITLE}>
-		<VariablesContainer>
-			{variables.map((variable, index) => {
-				return <Variable objective={objective} variable={variable} index={index + 1}
-				                 onRemove={onRemove}
-				                 buckets={buckets.all}
-				                 selectedBucket={findSelectedBucket(variable)}
-				                 key={`${variable.name || ''}-${index}`}/>;
-			})}
-			<AddItemButton ink={ButtonInk.PRIMARY} onClick={onAddClicked}>
-				{Lang.INDICATOR.OBJECTIVE.ADD_VARIABLE}
-			</AddItemButton>
-		</VariablesContainer>
-	</EditStep>;
 };

@@ -1,9 +1,9 @@
 import {Objective} from '@/services/data/tuples/objective-types';
 import {Lang} from '@/widgets/langs';
 import {ChangeEvent} from 'react';
-import {EditStep} from './edit-step';
-import {ObjectiveDeclarationStep} from './steps';
-import {useSave} from './use-save';
+import {EditStep} from '../edit-step';
+import {ObjectiveDeclarationStep} from '../steps';
+import {useSave} from '../use-save';
 import {DescriptionText} from './widgets';
 
 export const Description = (props: { objective: Objective }) => {

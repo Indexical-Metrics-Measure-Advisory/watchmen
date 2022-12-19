@@ -36,6 +36,7 @@ export const Zh: LanguageDeclareType = {
 		OBJECTIVE_NAME_PLACEHOLDER: '请输入用于阅读的名称.',
 		OBJECTIVE_DESCRIPTION_PLACEHOLDER: '请输入目标描述...',
 		OBJECTIVE_VARIABLE_NAME_PLACEHOLDER: '变量名.',
+		OBJECTIVE_FACTOR_NAME_PLACEHOLDER: '指标名.',
 		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '使用";"分隔邮箱地址.'
 	},
 	STANDARD: {
@@ -483,6 +484,8 @@ export const Zh: LanguageDeclareType = {
 			ADD_VARIABLE: '添加新变量',
 			REMOVE_VARIABLE: '移除变量',
 			FACTORS_TITLE: '指标构成.',
+			ADD_INDICATOR: '添加指标',
+			ADD_COMPUTED_INDICATOR: '添加计算指标',
 			NOT_NOW: '放弃',
 			SAVE_OBJECTIVE: '保存目标数据',
 			SAVE_NAME: '保存目标名称',
