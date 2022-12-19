@@ -3,9 +3,14 @@ import {
 	ConstantObjectiveParameter,
 	ObjectiveFactorId,
 	ObjectiveFormulaOperator,
+	ObjectiveParameter,
 	ObjectiveParameterType,
 	ReferObjectiveParameter
 } from '@/services/data/tuples/objective-types';
+
+export const isReferParameter = (param: ObjectiveParameter): param is ReferObjectiveParameter => param.kind === ObjectiveParameterType.REFER;
+export const isConstantParameter = (param: ObjectiveParameter): param is ConstantObjectiveParameter => param.kind === ObjectiveParameterType.CONSTANT;
+export const isComputedParameter = (param: ObjectiveParameter): param is ComputedObjectiveParameter => param.kind === ObjectiveParameterType.COMPUTED;
 
 export interface ParameterFormulaDef {
 	/**
@@ -59,14 +64,52 @@ export const defendFormulaParameter = (parameter: ComputedObjectiveParameter) =>
 		if ([
 			ObjectiveFormulaOperator.ROUND, ObjectiveFormulaOperator.FLOOR, ObjectiveFormulaOperator.CEIL
 		].includes(parameter.operator)) {
-			if (parameter.parameters[1].kind !== ObjectiveParameterType.CONSTANT) {
-				parameter.parameters[1] = createConstantParameter('0');
-			} else {
-				const value = (parameter.parameters[1] as ConstantObjectiveParameter).value;
+			if (isConstantParameter(parameter.parameters[1])) {
+				const value = parameter.parameters[1].value;
 				if (!/\d/.test(value)) {
 					(parameter.parameters[1] as ConstantObjectiveParameter).value = '0';
 				}
+			} else {
+				parameter.parameters[1] = createConstantParameter('0');
 			}
 		}
+	}
+};
+
+export const canAddMoreParameter = (parent: ComputedObjectiveParameter) => {
+	const operator = parent.operator;
+	const calculatorDef = ParameterFormulaDefsMap[operator];
+	const maxParamCount = calculatorDef.maxParameterCount || calculatorDef.parameterCount || Infinity;
+	const currentCount = parent.parameters.length;
+	return currentCount < maxParamCount;
+};
+
+export const canDeleteAnyParameter = (parent: ComputedObjectiveParameter) => {
+	const operator = parent.operator;
+	const calculatorDef = ParameterFormulaDefsMap[operator];
+	const minParamCount = calculatorDef.minParameterCount || calculatorDef.parameterCount || 1;
+	const currentCount = parent.parameters.length;
+	return currentCount > minParamCount;
+};
+
+export const defendParameterAndRemoveUnnecessary = (parameter: ObjectiveParameter) => {
+	if (isReferParameter(parameter)) {
+		const old = parameter as any;
+		delete old.value;
+		delete old.operator;
+		delete old.parameters;
+		parameter.uuid = parameter.uuid || '';
+	} else if (isConstantParameter(parameter)) {
+		const old = parameter as any;
+		delete old.uuid;
+		delete old.operator;
+		delete old.parameters;
+		parameter.value = parameter.value || '';
+	} else if (isComputedParameter(parameter)) {
+		const old = parameter as any;
+		delete old.uuid;
+		delete old.value;
+		parameter.operator = parameter.operator || ObjectiveFormulaOperator.ADD;
+		parameter.parameters = old.parameters || [createFactorParameter(), createFactorParameter()];
 	}
 };

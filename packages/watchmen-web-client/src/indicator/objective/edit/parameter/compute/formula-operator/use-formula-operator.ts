@@ -1,7 +1,7 @@
 import {ComputedObjectiveParameter, ObjectiveFormulaOperator} from '@/services/data/tuples/objective-types';
 import {useCollapseFixedThing} from '@/widgets/basic/utils';
 import {MouseEvent, useRef, useState} from 'react';
-import {defendFormulaParameter} from '../utils';
+import {defendFormulaParameter} from '../../utils';
 import {FORMULA_OPERATOR_DROPDOWN_HEIGHT} from './widgets';
 
 export interface FormulaOperatorDropdownState {

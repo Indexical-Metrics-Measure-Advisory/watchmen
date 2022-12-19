@@ -1,6 +1,7 @@
-import {Computation} from '@/indicator/objective/edit/compute';
+import {useParameterEventBus} from '@/indicator/objective/edit/parameter/parameter-event-bus';
+import {ParameterEventTypes} from '@/indicator/objective/edit/parameter/parameter-event-bus-types';
+import {createFactorParameter} from '@/indicator/objective/edit/parameter/utils';
 import {
-	ComputedObjectiveParameter,
 	Objective,
 	ObjectiveFactor,
 	ObjectiveFormulaOperator,
@@ -11,10 +12,36 @@ import {Input} from '@/widgets/basic/input';
 import {ButtonInk} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import React, {ChangeEvent} from 'react';
+import React, {ChangeEvent, useEffect} from 'react';
+import {ComputedEditor} from '../parameter/compute';
+import {ParameterEventBusProvider} from '../parameter/parameter-event-bus';
 import {useSave} from '../use-save';
 import {ItemNo, RemoveItemButton} from '../widgets';
 import {FactorContainer} from './widgets';
+
+const FormulaEditor = (props: { objective: Objective; factor: ObjectiveFactor }) => {
+	const {objective, factor} = props;
+
+	const save = useSave(false);
+	const {on, off} = useParameterEventBus();
+	useEffect(() => {
+		const onParamChanged = () => {
+			save(objective);
+		};
+		on(ParameterEventTypes.PARAM_CHANGED, onParamChanged);
+		return () => {
+			off(ParameterEventTypes.PARAM_CHANGED, onParamChanged);
+		};
+	});
+
+	const parameter = factor.formula || {
+		kind: ObjectiveParameterType.COMPUTED,
+		operator: ObjectiveFormulaOperator.ADD,
+		parameters: [createFactorParameter(), createFactorParameter()]
+	};
+
+	return <ComputedEditor objective={objective} parameter={parameter}/>;
+};
 
 export const FactorItem = (props: {
 	objective: Objective;
@@ -32,18 +59,6 @@ export const FactorItem = (props: {
 		save(objective);
 	};
 	const onRemoveClicked = () => onRemove(factor);
-	const getFormulaParameter = () => {
-		return factor.formula || {
-			kind: ObjectiveParameterType.COMPUTED,
-			operator: ObjectiveFormulaOperator.ADD,
-			parameters: []
-		};
-	};
-	const setFormulaParameter = (parameter: ComputedObjectiveParameter) => {
-		if (parameter !== factor.formula) {
-			factor.formula = parameter;
-		}
-	};
 
 	return <FactorContainer>
 		<ItemNo>{index === -1 ? '' : `#${index}`}</ItemNo>
@@ -52,6 +67,8 @@ export const FactorItem = (props: {
 		<RemoveItemButton ink={ButtonInk.DANGER} data-as-icon={true} onClick={onRemoveClicked}>
 			<FontAwesomeIcon icon={ICON_DELETE}/>
 		</RemoveItemButton>
-		<Computation objective={objective} get={getFormulaParameter} set={setFormulaParameter}/>
+		<ParameterEventBusProvider>
+			<FormulaEditor objective={objective} factor={factor}/>
+		</ParameterEventBusProvider>
 	</FactorContainer>;
 };
