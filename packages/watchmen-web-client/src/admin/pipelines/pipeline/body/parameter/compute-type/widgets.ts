@@ -14,14 +14,14 @@ export const ParameterComputeTypeContainer = styled.div.attrs<{ valid: boolean }
 	margin-right     : var(--margin);
 	cursor           : pointer;
 	outline          : none;
-	box-shadow       : ${({valid}) => valid ? 'var(--param-border)' : 'var(--param-danger-border)'};;
+	box-shadow       : ${({valid}) => valid ? 'var(--param-border)' : 'var(--param-danger-border)'};
 	transition       : box-shadow 300ms ease-in-out;
 	&:hover {
 		z-index    : 1;
 		box-shadow : ${({valid}) => valid ? 'var(--primary-hover-shadow)' : 'var(--danger-hover-shadow)'};
 		> div[data-widget="parameter-computed-type-label"],
 		> div[data-widget="parameter-computed-type-icon"] {
-			color : ${({valid}) => valid ? 'var(--warn-color)' : 'var(--danger-color)'};;
+			color : ${({valid}) => valid ? 'var(--warn-color)' : 'var(--danger-color)'};
 		}
 	}
 	&:before {

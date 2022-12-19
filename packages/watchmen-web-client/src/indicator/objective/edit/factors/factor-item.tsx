@@ -1,4 +1,11 @@
-import {Objective, ObjectiveFactor} from '@/services/data/tuples/objective-types';
+import {Computation} from '@/indicator/objective/edit/compute';
+import {
+	ComputedObjectiveParameter,
+	Objective,
+	ObjectiveFactor,
+	ObjectiveFormulaOperator,
+	ObjectiveParameterType
+} from '@/services/data/tuples/objective-types';
 import {ICON_DELETE} from '@/widgets/basic/constants';
 import {Input} from '@/widgets/basic/input';
 import {ButtonInk} from '@/widgets/basic/types';
@@ -25,6 +32,18 @@ export const FactorItem = (props: {
 		save(objective);
 	};
 	const onRemoveClicked = () => onRemove(factor);
+	const getFormulaParameter = () => {
+		return factor.formula || {
+			kind: ObjectiveParameterType.COMPUTED,
+			operator: ObjectiveFormulaOperator.ADD,
+			parameters: []
+		};
+	};
+	const setFormulaParameter = (parameter: ComputedObjectiveParameter) => {
+		if (parameter !== factor.formula) {
+			factor.formula = parameter;
+		}
+	};
 
 	return <FactorContainer>
 		<ItemNo>{index === -1 ? '' : `#${index}`}</ItemNo>
@@ -33,5 +52,6 @@ export const FactorItem = (props: {
 		<RemoveItemButton ink={ButtonInk.DANGER} data-as-icon={true} onClick={onRemoveClicked}>
 			<FontAwesomeIcon icon={ICON_DELETE}/>
 		</RemoveItemButton>
+		<Computation objective={objective} get={getFormulaParameter} set={setFormulaParameter}/>
 	</FactorContainer>;
 };
