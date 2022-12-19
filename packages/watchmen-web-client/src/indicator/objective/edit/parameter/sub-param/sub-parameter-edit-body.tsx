@@ -5,7 +5,6 @@ import React from 'react';
 import {ComputedEditor} from '../compute';
 import {ConstantEditor} from '../constant';
 import {FactorEditor} from '../factor';
-// import {ConstantEditor} from '../constant';
 import {useSubParamDelete} from './use-sub-param-delete';
 import {RemoveMeButton} from './widgets';
 

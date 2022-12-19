@@ -1,6 +1,3 @@
-import {useParameterEventBus} from '@/indicator/objective/edit/parameter/parameter-event-bus';
-import {ParameterEventTypes} from '@/indicator/objective/edit/parameter/parameter-event-bus-types';
-import {createFactorParameter} from '@/indicator/objective/edit/parameter/utils';
 import {
 	Objective,
 	ObjectiveFactor,
@@ -13,9 +10,12 @@ import {ButtonInk} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {ChangeEvent, useEffect} from 'react';
+import {useParameterEventBus} from '../parameter-event-bus';
+import {ParameterEventTypes} from '../parameter-event-bus-types';
 import {ComputedEditor} from '../parameter/compute';
 import {ParameterEventBusProvider} from '../parameter/parameter-event-bus';
 import {useSave} from '../use-save';
+import {createFactorParameter} from '../utils';
 import {ItemNo, RemoveItemButton} from '../widgets';
 import {FactorContainer} from './widgets';
 
@@ -26,7 +26,7 @@ const FormulaEditor = (props: { objective: Objective; factor: ObjectiveFactor })
 	const {on, off} = useParameterEventBus();
 	useEffect(() => {
 		const onParamChanged = () => {
-			console.log('changed')
+			console.log('changed');
 			save(objective);
 		};
 		on(ParameterEventTypes.PARAM_CHANGED, onParamChanged);
