@@ -537,7 +537,8 @@ export const En = {
 		FROM: 'From',
 		FROM_TOPIC: 'Topic',
 		FROM_CONSTANT: 'Constant',
-		FROM_COMPUTED: 'Compute'
+		FROM_COMPUTED: 'Compute',
+		FROM_INDICATOR: 'Refer'
 	},
 	FACTOR: {
 		SEQUENCE: 'Sequence',
@@ -615,12 +616,17 @@ export const En = {
 			DAY_OF_WEEK: 'Day of Week',
 			CASE_THEN: 'Case Then',
 			ROUND: 'Round',
+			ROUND_DIGITS: 'Digits',
 			FLOOR: 'Floor',
 			CEIL: 'Ceil',
 			ABS: 'Abs',
 			MAX: 'Max of',
 			MIN: 'Min of',
-			INTERPOLATE: 'Interpolate'
+			INTERPOLATE: 'Linear Interpolate',
+			INTERPOLATE_MIN_VALUE: 'Bottom Value',
+			INTERPOLATE_MIN_VALUE_TO: 'Bottom Value Map To',
+			INTERPOLATE_MAX_VALUE: 'Top Value',
+			INTERPOLATE_MAX_VALUE_TO: 'Top Value Map To'
 		},
 		EXPRESSION_OPERATOR: {
 			EMPTY: 'Is Empty',

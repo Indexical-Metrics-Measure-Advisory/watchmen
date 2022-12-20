@@ -17,9 +17,10 @@ import {SubParameterEditContainer} from './widgets';
 export const SubParameterEditor = (props: {
 	objective: Objective;
 	parent: ComputedObjectiveParameter; parameter: ObjectiveParameter; onDeleted: () => void;
+	fixFrom?: boolean; fromLabel?: string;
 	factors: Array<ObjectiveFactor>;
 }) => {
-	const {objective, parameter, parent, onDeleted, factors} = props;
+	const {objective, parameter, parent, onDeleted, fixFrom = false, fromLabel, factors} = props;
 
 	const {on, off} = useParameterEventBus();
 	const forceUpdate = useForceUpdate();
@@ -32,7 +33,7 @@ export const SubParameterEditor = (props: {
 
 	return <SubParameterEditContainer shorten={parameter.kind === ObjectiveParameterType.COMPUTED}>
 		<SubParameterCondition objective={objective} parent={parent} parameter={parameter} factors={factors}/>
-		<ParameterFromEditor parameter={parameter}/>
+		<ParameterFromEditor parameter={parameter} fix={fixFrom} label={fromLabel}/>
 		<SubParameterEditBody objective={objective}
 		                      parent={parent} parameter={parameter} onDeleted={onDeleted}
 		                      factors={factors}/>
