@@ -37,7 +37,6 @@ export const En = {
 		OBJECTIVE_DESCRIPTION_PLACEHOLDER: 'Objective description here...',
 		OBJECTIVE_VARIABLE_NAME_PLACEHOLDER: 'Variable name.',
 		OBJECTIVE_FACTOR_NAME_PLACEHOLDER: 'Indicator name.',
-		UNNAMED_FACTOR: 'Noname Indicator',
 		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '";" to separate multiple addresses.'
 	},
 	STANDARD: {
@@ -495,6 +494,9 @@ export const En = {
 			NAME_TITLE: 'Set a human reading name.',
 			DESCRIPTION_TITLE: 'Description.',
 			FACTOR_PLACEHOLDER: 'Indicator?',
+			NONAME_FACTOR: 'Noname Indicator',
+			INCORRECT_FACTOR: 'Unknown indicator',
+			NO_AVAILABLE_FACTOR: 'No available indicator.',
 			ADD_SUB_PARAMETER: 'Add Parameter',
 			CANNOT_ADD_COMPUTATION_PARAMETER: 'Cannot add more because of reach maximum parameter(s).',
 			CANNOT_DELETE_COMPUTATION_PARAMETER: 'Cannot delete this because of reach minimum parameter(s).',

@@ -1,4 +1,5 @@
 import {ObjectiveFactorId, ReferObjectiveParameter} from '@/services/data/tuples/objective-types';
+import {isBlank} from '@/services/utils';
 import {DropdownOption} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {useParameterEventBus} from '../parameter-event-bus';
@@ -11,7 +12,11 @@ export const useFactor = (parameter: ReferObjectiveParameter) => {
 	const {uuid} = parameter;
 
 	const onFactorChange = (option: DropdownOption) => {
-		parameter.uuid = option.value as ObjectiveFactorId;
+		if (isBlank(option.value)) {
+			parameter.uuid = '';
+		} else {
+			parameter.uuid = option.value as ObjectiveFactorId;
+		}
 		forceUpdate();
 		fire(ParameterEventTypes.FACTOR_CHANGED, parameter);
 	};

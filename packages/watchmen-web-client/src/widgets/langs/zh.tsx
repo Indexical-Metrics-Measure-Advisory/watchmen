@@ -37,7 +37,6 @@ export const Zh: LanguageDeclareType = {
 		OBJECTIVE_DESCRIPTION_PLACEHOLDER: '请输入目标描述...',
 		OBJECTIVE_VARIABLE_NAME_PLACEHOLDER: '变量名.',
 		OBJECTIVE_FACTOR_NAME_PLACEHOLDER: '指标名.',
-		UNNAMED_FACTOR: '未命名指标',
 		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '使用";"分隔邮箱地址.'
 	},
 	STANDARD: {
@@ -495,6 +494,9 @@ export const Zh: LanguageDeclareType = {
 			NAME_TITLE: '设置一个用于阅读的名称.',
 			DESCRIPTION_TITLE: '描述.',
 			FACTOR_PLACEHOLDER: '指标?',
+			NONAME_FACTOR: '未命名指标',
+			INCORRECT_FACTOR: '无法定位的指标',
+			NO_AVAILABLE_FACTOR: '没有可供选择的指标.',
 			ADD_SUB_PARAMETER: '添加参数',
 			CANNOT_ADD_COMPUTATION_PARAMETER: '已经达到最大参数个数, 不能进行添加.',
 			CANNOT_DELETE_COMPUTATION_PARAMETER: '已经达到最小参数个数, 不能进行删除.',

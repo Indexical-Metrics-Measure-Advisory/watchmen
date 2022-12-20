@@ -30,10 +30,10 @@ export const FactorDropdown = styled(Dropdown).attrs<{ valid: boolean }>({'data-
 	background-color : var(--bg-color);
 	min-width        : 300px;
 	&:hover,
-	&:focus {
+	&:focus-within {
 		z-index    : 1;
 		box-shadow : ${({valid}) => valid ? 'var(--primary-hover-shadow)' : 'var(--danger-hover-shadow)'};
-		> div[data-widget="dropdown-options-container"] {
+		> div[data-widget=dropdown-options-container] {
 			box-shadow : ${({valid}) => valid ? 'var(--param-border)' : 'var(--danger-hover-shadow)'};
 		}
 	}
@@ -43,7 +43,7 @@ export const FactorDropdown = styled(Dropdown).attrs<{ valid: boolean }>({'data-
 	> svg {
 		color : ${({valid}) => valid ? (void 0) : 'var(--danger-color)'};
 	}
-	> div[data-widget="dropdown-options-container"] {
+	> div[data-widget=dropdown-options-container] {
 		border     : 0;
 		box-shadow : var(--param-border);
 		> span {
