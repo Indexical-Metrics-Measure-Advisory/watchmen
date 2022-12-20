@@ -23,7 +23,7 @@ export const ParameterFromEditor = (props: { parameter: ObjectiveParameter }) =>
 	return <ParameterFromEditContainer onClick={onStartEditing} tabIndex={0} onBlur={onBlur}>
 		<ParameterTypeButton active={true} edit={editing}
 		                     onClick={onFromChanged(parameter.kind)}>
-			From {OptionsLabel[parameter.kind]}
+			{OptionsLabel[parameter.kind]}
 		</ParameterTypeButton>
 		{candidates.map(candidate => {
 			return <ParameterTypeButton active={false} edit={editing}

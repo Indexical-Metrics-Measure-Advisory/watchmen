@@ -37,10 +37,11 @@ const FormulaEditor = (props: { objective: Objective; factor: ObjectiveFactor })
 		operator: ObjectiveFormulaOperator.ADD,
 		parameters: [createFactorParameter(), createFactorParameter()]
 	};
+	const factors = (objective.factors || []).filter(f => f !== factor);
 
 	return <>
 		<FormulaItemLabel>Formula</FormulaItemLabel>
-		<ComputedEditor objective={objective} parameter={parameter}/>
+		<ComputedEditor objective={objective} parameter={parameter} factors={factors}/>
 	</>;
 };
 

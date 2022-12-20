@@ -1,9 +1,15 @@
 import {
+	CaseThenObjectiveParameter,
 	ComputedObjectiveParameter,
 	ConstantObjectiveParameter,
 	ObjectiveFactorId,
 	ObjectiveFormulaOperator,
 	ObjectiveParameter,
+	ObjectiveParameterCondition,
+	ObjectiveParameterExpression,
+	ObjectiveParameterExpressionOperator,
+	ObjectiveParameterJoint,
+	ObjectiveParameterJointType,
 	ObjectiveParameterType,
 	ReferObjectiveParameter
 } from '@/services/data/tuples/objective-types';
@@ -11,6 +17,7 @@ import {
 export const isReferParameter = (param: ObjectiveParameter): param is ReferObjectiveParameter => param.kind === ObjectiveParameterType.REFER;
 export const isConstantParameter = (param: ObjectiveParameter): param is ConstantObjectiveParameter => param.kind === ObjectiveParameterType.CONSTANT;
 export const isComputedParameter = (param: ObjectiveParameter): param is ComputedObjectiveParameter => param.kind === ObjectiveParameterType.COMPUTED;
+export const isCaseThenParameter = (param: ObjectiveParameter): param is CaseThenObjectiveParameter => isComputedParameter(param) && param.operator === ObjectiveFormulaOperator.CASE_THEN;
 
 export interface ParameterFormulaDef {
 	/**
@@ -118,4 +125,25 @@ export const defendParameterAndRemoveUnnecessary = (parameter: ObjectiveParamete
 		parameter.operator = parameter.operator || ObjectiveFormulaOperator.ADD;
 		parameter.parameters = old.parameters || [createFactorParameter(), createFactorParameter()];
 	}
+};
+
+export const isJointParameter = (condition: ObjectiveParameterCondition): condition is ObjectiveParameterJoint => {
+	return !!(condition as any).conj;
+};
+export const isExpressionParameter = (condition: ObjectiveParameterCondition): condition is ObjectiveParameterExpression => {
+	return !isJointParameter(condition);
+};
+
+export const createFactorEqualsConstantParameter = (): ObjectiveParameterExpression => {
+	return {
+		left: createFactorParameter(),
+		operator: ObjectiveParameterExpressionOperator.EQUALS,
+		right: createConstantParameter()
+	};
+};
+export const createJointParameter = (conjunction?: ObjectiveParameterJointType): ObjectiveParameterJoint => {
+	return {
+		conj: conjunction || ObjectiveParameterJointType.AND,
+		filters: [createFactorEqualsConstantParameter()]
+	};
 };

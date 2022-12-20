@@ -1,6 +1,7 @@
 import {
 	ComputedObjectiveParameter,
 	Objective,
+	ObjectiveFactor,
 	ObjectiveParameter,
 	ObjectiveParameterType
 } from '@/services/data/tuples/objective-types';
@@ -15,11 +16,10 @@ import {SubParameterEditContainer} from './widgets';
 
 export const SubParameterEditor = (props: {
 	objective: Objective;
-	parent: ComputedObjectiveParameter;
-	parameter: ObjectiveParameter;
-	onDeleted: () => void;
+	parent: ComputedObjectiveParameter; parameter: ObjectiveParameter; onDeleted: () => void;
+	factors: Array<ObjectiveFactor>;
 }) => {
-	const {objective, parameter, parent, onDeleted} = props;
+	const {objective, parameter, parent, onDeleted, factors} = props;
 
 	const {on, off} = useParameterEventBus();
 	const forceUpdate = useForceUpdate();
@@ -31,8 +31,10 @@ export const SubParameterEditor = (props: {
 	}, [on, off, forceUpdate]);
 
 	return <SubParameterEditContainer shorten={parameter.kind === ObjectiveParameterType.COMPUTED}>
-		<SubParameterCondition parent={parent} parameter={parameter}/>
+		<SubParameterCondition objective={objective} parent={parent} parameter={parameter} factors={factors}/>
 		<ParameterFromEditor parameter={parameter}/>
-		<SubParameterEditBody objective={objective} parent={parent} parameter={parameter} onDeleted={onDeleted}/>
+		<SubParameterEditBody objective={objective}
+		                      parent={parent} parameter={parameter} onDeleted={onDeleted}
+		                      factors={factors}/>
 	</SubParameterEditContainer>;
 };

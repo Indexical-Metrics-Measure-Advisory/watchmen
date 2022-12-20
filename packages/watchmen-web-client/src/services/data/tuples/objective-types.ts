@@ -54,6 +54,43 @@ export interface ComputedObjectiveParameter extends ObjectiveParameter {
 	parameters: Array<ObjectiveParameter>;
 }
 
+export enum ObjectiveParameterJointType {
+	AND = 'and',
+	OR = 'or',
+}
+
+export interface ObjectiveParameterCondition {
+}
+
+export enum ObjectiveParameterExpressionOperator {
+	EQUALS = 'equals',
+	NOT_EQUALS = 'not-equals',
+	LESS = 'less',
+	LESS_EQUALS = 'less-equals',
+	MORE = 'more',
+	MORE_EQUALS = 'more-equals',
+}
+
+export interface ObjectiveParameterExpression extends ObjectiveParameterCondition {
+	left: ObjectiveParameter;
+	operator: ObjectiveParameterExpressionOperator;
+	right: ObjectiveParameter;
+}
+
+export interface ObjectiveParameterJoint extends ObjectiveParameterCondition {
+	conj: ObjectiveParameterJointType;
+	filters: Array<ObjectiveParameterCondition>;
+}
+
+export interface ConditionalObjectiveParameter extends ObjectiveParameter {
+	on: ObjectiveParameterJoint;
+}
+
+export interface CaseThenObjectiveParameter extends ComputedObjectiveParameter {
+	operator: ObjectiveFormulaOperator.CASE_THEN;
+	parameters: Array<ConditionalObjectiveParameter>;
+}
+
 export enum ObjectiveTargetBetterSide {
 	LESS = 'less',
 	MORE = 'more'

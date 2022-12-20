@@ -37,6 +37,7 @@ export const Jp: LanguageDeclareType = {
 		OBJECTIVE_DESCRIPTION_PLACEHOLDER: '目標の説明を入力してください。',
 		OBJECTIVE_VARIABLE_NAME_PLACEHOLDER: '変数名。',
 		OBJECTIVE_FACTOR_NAME_PLACEHOLDER: '指標名。',
+		UNNAMED_FACTOR: '名前なし指標',
 		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '";"で結合された複数のアドレス。'
 	},
 	STANDARD: {
@@ -232,8 +233,8 @@ export const Jp: LanguageDeclareType = {
 			NO_DATASET_FILTER_FOR_SUBJECT: 'フィルタは定義されていません。定義しますか',
 			CREATE_DATASET_FILTER_WHEN_NONE: '始める',
 			NO_DATASET_FILTER_FOR_SUBJECT_2: 'か？',
-			ADD_SUB_EXPRESSION_FILTER: 'フィルタの条件を追加する',
-			ADD_SUB_JOINT_FILTER: 'サブ結合を追加する',
+			ADD_SUB_EXPRESSION_FILTER: 'フィルタの条件を追加',
+			ADD_SUB_JOINT_FILTER: 'サブ結合を追加',
 			NO_DATASET_JOIN_FOR_SUBJECT: '結合は定義されていません。定義しますか',
 			CREATE_DATASET_JOIN_WHEN_NONE: '始める',
 			NO_DATASET_JOIN_FOR_SUBJECT_2: 'か？',
@@ -492,7 +493,14 @@ export const Jp: LanguageDeclareType = {
 			REQUIRE_OBJECTIVE_NAME: '読み取りには目標名が必要です。',
 			CHANGE_NAME: '名前を変更',
 			NAME_TITLE: '読むための名前を入力してください。',
-			DESCRIPTION_TITLE: '説明。'
+			DESCRIPTION_TITLE: '説明。',
+			FACTOR_PLACEHOLDER: '指標？',
+			ADD_SUB_PARAMETER: 'パラメータを追加',
+			CANNOT_ADD_COMPUTATION_PARAMETER: 'パラメータの最大数に達しており、追加できません。',
+			CANNOT_DELETE_COMPUTATION_PARAMETER: 'パラメータの最小数に達しており、削除できません。',
+			EXPRESSION: '式',
+			ADD_SUB_EXPRESSION: 'フィルタの条件を追加',
+			ADD_SUB_JOINT: 'サブ結合を追加'
 		}
 	},
 	SUBSCRIBE: {
