@@ -1,6 +1,6 @@
 import {TuplePage} from '@/services/data/query/tuple-page';
 import {Bucket, BucketId} from '@/services/data/tuples/bucket-types';
-import {Objective, ObjectiveFactor, ObjectiveId} from '@/services/data/tuples/objective-types';
+import {Objective, ObjectiveFactor, ObjectiveId, ObjectiveTarget} from '@/services/data/tuples/objective-types';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
 import {QueryObjective} from '@/services/data/tuples/query-objective-types';
 
@@ -18,6 +18,8 @@ export enum ObjectivesEventTypes {
 	FACTOR_NAME_CHANGED = 'factor-name-changed',
 	FACTOR_ADDED = 'factor-added',
 	FACTOR_REMOVED = 'factor-removed',
+
+	TARGET_ASIS_TYPE_CHANGED = 'target-as-is-type-changed',
 
 	ASK_ALL_BUCKETS = 'ask-all-buckets',
 	ASK_BUCKETS_DETAILS = 'ask-buckets-details',
@@ -64,6 +66,10 @@ export interface ObjectivesEventBus {
 	fire(type: ObjectivesEventTypes.FACTOR_REMOVED, objective: Objective, factor: ObjectiveFactor): this;
 	on(type: ObjectivesEventTypes.FACTOR_REMOVED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;
 	off(type: ObjectivesEventTypes.FACTOR_REMOVED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;
+
+	fire(type: ObjectivesEventTypes.TARGET_ASIS_TYPE_CHANGED, objective: Objective, target: ObjectiveTarget): this;
+	on(type: ObjectivesEventTypes.TARGET_ASIS_TYPE_CHANGED, listener: (objective: Objective, target: ObjectiveTarget) => void): this;
+	off(type: ObjectivesEventTypes.TARGET_ASIS_TYPE_CHANGED, listener: (objective: Objective, target: ObjectiveTarget) => void): this;
 
 	fire(type: ObjectivesEventTypes.ASK_ALL_BUCKETS, onData: (buckets: Array<QueryBucket>) => void): this;
 	on(type: ObjectivesEventTypes.ASK_ALL_BUCKETS, listener: (onData: (buckets: Array<QueryBucket>) => void) => void): this;
