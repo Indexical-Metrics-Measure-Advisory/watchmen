@@ -1,9 +1,12 @@
 import {Objective, ObjectiveTarget} from '@/services/data/tuples/objective-types';
+import {noop} from '@/services/utils';
 import {ButtonInk} from '@/widgets/basic/types';
+import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
+import {useObjectivesEventBus} from '../../objectives-event-bus';
+import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 import {EditStep} from '../edit-step';
 import {ObjectiveDeclarationStep} from '../steps';
-import {useSave} from '../use-save';
 import {AddItemButton} from '../widgets';
 import {Target} from './target';
 import {TargetsContainer} from './widgets';
@@ -11,7 +14,8 @@ import {TargetsContainer} from './widgets';
 export const Targets = (props: { objective: Objective }) => {
 	const {objective} = props;
 
-	const save = useSave();
+	const {fire} = useObjectivesEventBus();
+	const forceUpdate = useForceUpdate();
 
 	if (objective.targets == null) {
 		objective.targets = [];
@@ -19,11 +23,13 @@ export const Targets = (props: { objective: Objective }) => {
 
 	const onRemove = (target: ObjectiveTarget) => {
 		objective.targets!.splice(objective.targets!.indexOf(target), 1);
-		save(objective);
+		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
+		forceUpdate();
 	};
 	const onAddClicked = () => {
 		objective.targets!.push({} as ObjectiveTarget);
-		save(objective);
+		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
+		forceUpdate();
 	};
 
 	const targets = objective.targets;

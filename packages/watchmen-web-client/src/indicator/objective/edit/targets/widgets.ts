@@ -27,6 +27,11 @@ export const TargetContainer = styled(RibItemContainer).attrs({'data-widget': 'o
 		grid-column : 4 / span 5;
 		opacity     : 0.7;
 	}
+	> span:nth-child(7) {
+		align-self  : start;
+		height      : var(--height);
+		line-height : var(--height);
+	}
 	> div:nth-child(12) {
 		margin-right : var(--margin);
 	}
@@ -34,7 +39,25 @@ export const TargetContainer = styled(RibItemContainer).attrs({'data-widget': 'o
 		align-self : center;
 	}
 `;
+export const AsisContainer = styled.div.attrs({'data-widget': 'objective-asis'})`
+	display               : grid;
+	position              : relative;
+	grid-column           : 3 / span 6;
+	grid-template-columns : auto 1fr;
+	> div[data-widget=objective-computation] {
+		grid-column : 2;
+	}
+`
 export const SetTargetAsIsButton = styled(Button).attrs({'data-widget': 'objective-set-asis-target'})`
 	justify-self  : start;
-	border-radius : calc(var(--height) / 2);
+	height        : var(--param-height);
+	margin-top    : calc((var(--height) - var(--param-height)) / 2);
+	border-radius : calc(var(--param-height) / 2) 0 0 calc(var(--param-height) / 2);
+	box-shadow    : var(--param-primary-border);
+	+ div[data-widget=objective-computation] {
+		> div[data-widget=objective-formula-operator] {
+			border-top-left-radius    : 0;
+			border-bottom-left-radius : 0;
+		}
+	}
 `;
