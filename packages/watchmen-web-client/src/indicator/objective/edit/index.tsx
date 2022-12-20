@@ -1,4 +1,3 @@
-import {UserGroup} from '@/indicator/objective/edit/user-group';
 import {Objective} from '@/services/data/tuples/objective-types';
 import {FixWidthPage} from '@/widgets/basic/page';
 import {PageHeader} from '@/widgets/basic/page-header';
@@ -12,6 +11,7 @@ import {Factors} from './factors';
 import {NameAndSave} from './name-and-save';
 import {Targets} from './targets';
 import {TimeFrame} from './time-frame';
+import {UserGroup} from './user-group';
 import {Variables} from './variables';
 import {ObjectiveContainer} from './widgets';
 
