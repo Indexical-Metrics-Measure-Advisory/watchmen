@@ -1,5 +1,7 @@
 import {fetchBucket, fetchBucketsByIds, listBuckets} from '@/services/data/tuples/bucket';
 import {Bucket, BucketId} from '@/services/data/tuples/bucket-types';
+import {listAllIndicators} from '@/services/data/tuples/indicator';
+import {Indicator} from '@/services/data/tuples/indicator-types';
 import {fetchObjective, saveObjective} from '@/services/data/tuples/objective';
 import {Objective, ObjectiveId} from '@/services/data/tuples/objective-types';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
@@ -24,6 +26,9 @@ export const ObjectiveState = () => {
 	});
 	const [buckets, setBuckets] = useState<Array<Bucket>>([]);
 	const [userGroups, setUserGroups] = useState<{ loaded: boolean, data: Array<QueryUserGroupForHolder> }>({
+		loaded: false, data: []
+	});
+	const [indicators, setIndicators] = useState<{ loaded: boolean, data: Array<Indicator> }>({
 		loaded: false, data: []
 	});
 	const saveQueue = useThrottler();
@@ -131,6 +136,21 @@ export const ObjectiveState = () => {
 			off(ObjectivesEventTypes.ASK_USER_GROUPS, onAskUserGroups);
 		};
 	}, [on, off, userGroups]);
+	useEffect(() => {
+		const onAskIndicators = async (onData: (data: Array<Indicator>) => void) => {
+			if (!indicators.loaded) {
+				const data = await listAllIndicators();
+				setIndicators({loaded: true, data});
+				onData(data);
+			} else {
+				onData(indicators.data);
+			}
+		};
+		on(ObjectivesEventTypes.ASK_INDICATORS, onAskIndicators);
+		return () => {
+			off(ObjectivesEventTypes.ASK_INDICATORS, onAskIndicators);
+		};
+	}, [on, off, indicators]);
 	useEffect(() => {
 		const onSaveObjective = (objective: Objective, onSaved: (objective: Objective, saved: boolean) => void) => {
 			saveQueue.replace(() => {
