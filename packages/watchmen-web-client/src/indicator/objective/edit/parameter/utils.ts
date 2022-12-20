@@ -33,7 +33,7 @@ export interface ParameterFormulaDef {
 }
 
 export const ParameterFormulaDefsMap: Record<ObjectiveFormulaOperator, ParameterFormulaDef> = {
-	[ObjectiveFormulaOperator.NONE]: {name: ObjectiveFormulaOperator.NONE, parameterCount: 1},
+	[ObjectiveFormulaOperator.NONE]: {name: ObjectiveFormulaOperator.NONE, parameterCount: 0},
 	[ObjectiveFormulaOperator.ADD]: {name: ObjectiveFormulaOperator.ADD, minParameterCount: 2},
 	[ObjectiveFormulaOperator.SUBTRACT]: {name: ObjectiveFormulaOperator.SUBTRACT, minParameterCount: 2},
 	[ObjectiveFormulaOperator.MULTIPLY]: {name: ObjectiveFormulaOperator.MULTIPLY, minParameterCount: 2},
@@ -58,11 +58,11 @@ export const createConstantParameter = (value?: string): ConstantObjectiveParame
 export const defendFormulaParameter = (parameter: ComputedObjectiveParameter) => {
 	parameter.operator = parameter.operator || ObjectiveFormulaOperator.ADD;
 	const calculatorDef = ParameterFormulaDefsMap[parameter.operator];
-	const maxParamCount = calculatorDef.maxParameterCount || calculatorDef.parameterCount || Infinity;
+	const maxParamCount = (calculatorDef.maxParameterCount || calculatorDef.parameterCount) ?? Infinity;
 	if (parameter.parameters.length > maxParamCount) {
 		parameter.parameters.length = maxParamCount;
 	}
-	const minParamCount = calculatorDef.minParameterCount || calculatorDef.parameterCount || 1;
+	const minParamCount = (calculatorDef.minParameterCount || calculatorDef.parameterCount) ?? 1;
 	if (parameter.parameters.length < minParamCount) {
 		const existingCount = parameter.parameters.length;
 		new Array(minParamCount - existingCount).fill(1).forEach(() => {

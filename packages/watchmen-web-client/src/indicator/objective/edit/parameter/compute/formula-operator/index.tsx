@@ -14,8 +14,10 @@ import {
 	FormulaOperatorOption
 } from './widgets';
 
-export const FormulaOperatorEditor = (props: { objective: Objective; parameter: ComputedObjectiveParameter }) => {
-	const {parameter} = props;
+export const FormulaOperatorEditor = (props: {
+	objective: Objective; parameter: ComputedObjectiveParameter; hasAsIs: boolean;
+}) => {
+	const {parameter, hasAsIs} = props;
 
 	const {fire} = useParameterEventBus();
 
@@ -26,7 +28,7 @@ export const FormulaOperatorEditor = (props: { objective: Objective; parameter: 
 	};
 
 	const ObjectiveFormulaOperatorLabels: Record<ObjectiveFormulaOperator, string> = {
-		[ObjectiveFormulaOperator.NONE]: '',
+		[ObjectiveFormulaOperator.NONE]: Lang.PARAMETER.COMPUTE_TYPE.NONE,
 		[ObjectiveFormulaOperator.ADD]: Lang.PARAMETER.COMPUTE_TYPE.ADD,
 		[ObjectiveFormulaOperator.SUBTRACT]: Lang.PARAMETER.COMPUTE_TYPE.SUBTRACT,
 		[ObjectiveFormulaOperator.MULTIPLY]: Lang.PARAMETER.COMPUTE_TYPE.MULTIPLY,
@@ -40,7 +42,9 @@ export const FormulaOperatorEditor = (props: { objective: Objective; parameter: 
 		[ObjectiveFormulaOperator.INTERPOLATE]: Lang.PARAMETER.COMPUTE_TYPE.INTERPOLATE,
 		[ObjectiveFormulaOperator.CASE_THEN]: Lang.PARAMETER.COMPUTE_TYPE.CASE_THEN
 	};
-	const availableOperators = Object.values(ObjectiveFormulaOperator).filter(op => op !== ObjectiveFormulaOperator.NONE);
+	const availableOperators = Object.values(ObjectiveFormulaOperator).filter(op => {
+		return op === ObjectiveFormulaOperator.NONE ? hasAsIs : true;
+	});
 
 	return <FormulaOperatorContainer onClick={onOperatorClicked} ref={containerRef}>
 		<FormulaOperatorLabel>{ObjectiveFormulaOperatorLabels[parameter.operator]}</FormulaOperatorLabel>

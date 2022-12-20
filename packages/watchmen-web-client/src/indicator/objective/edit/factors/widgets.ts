@@ -25,29 +25,17 @@ export const FactorContainer = styled(RibItemContainer).attrs({'data-widget': 'o
 	}
 `;
 export const FormulaItemLabel = styled(ItemLabel)`
-	grid-column   : 2;
-	font-weight   : var(--font-bold);
-	align-self    : start;
-	margin-top    : calc((var(--height) - var(--param-height)) / 2);
-	height        : var(--param-height);
-	line-height   : var(--param-height);
-	color         : var(--invert-color);
-	border-radius : calc(var(--param-height) / 2) 0 0 calc(var(--param-height) / 2);
-	padding       : 0 calc(var(--margin) / 2);
-	box-shadow    : var(--param-border);
-	overflow      : hidden;
-	&:before {
-		content          : '';
-		display          : block;
-		position         : absolute;
-		top              : 0;
-		left             : 0;
-		width            : 100%;
-		height           : 100%;
-		background-color : var(--primary-color);
-		opacity          : 0.5;
-		z-index          : -1;
-	}
+	grid-column      : 2;
+	font-weight      : var(--font-bold);
+	align-self       : start;
+	margin-top       : calc((var(--height) - var(--param-height)) / 2);
+	height           : var(--param-height);
+	line-height      : var(--param-height);
+	background-color : var(--param-bg-color);
+	border-radius    : calc(var(--param-height) / 2) 0 0 calc(var(--param-height) / 2);
+	padding          : 0 calc(var(--margin) / 2);
+	box-shadow       : var(--param-border);
+	overflow         : hidden;
 	+ div[data-widget=objective-computation] {
 		margin-left : calc(var(--margin) / -2);
 		> div[data-widget=objective-formula-operator] {
