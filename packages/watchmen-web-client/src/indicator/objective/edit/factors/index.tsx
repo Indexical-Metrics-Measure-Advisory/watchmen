@@ -1,3 +1,4 @@
+import {Indicator} from '@/services/data/tuples/indicator-types';
 import {
 	Objective,
 	ObjectiveFactor,
@@ -10,7 +11,7 @@ import {noop} from '@/services/utils';
 import {ButtonInk} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {useObjectivesEventBus} from '../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 import {EditStep} from '../edit-step';
@@ -23,7 +24,17 @@ export const Factors = (props: { objective: Objective }) => {
 	const {objective} = props;
 
 	const {fire} = useObjectivesEventBus();
+	const [indicators, setIndicators] = useState<{ loaded: boolean; data: Array<Indicator> }>({
+		loaded: false, data: []
+	});
 	const forceUpdate = useForceUpdate();
+	useEffect(() => {
+		if (!indicators.loaded) {
+			fire(ObjectivesEventTypes.ASK_INDICATORS, (data: Array<Indicator>) => {
+				setIndicators({loaded: true, data});
+			});
+		}
+	}, [fire, indicators.loaded]);
 
 	if (objective.factors == null) {
 		objective.factors = [];
@@ -66,6 +77,7 @@ export const Factors = (props: { objective: Objective }) => {
 			{factors.map((factor, index) => {
 				return <FactorItem objective={objective} factor={factor} index={index + 1}
 				                   onRemove={onRemove}
+				                   indicators={indicators.data}
 				                   key={factor.uuid}/>;
 			})}
 			<ItemsButtons>

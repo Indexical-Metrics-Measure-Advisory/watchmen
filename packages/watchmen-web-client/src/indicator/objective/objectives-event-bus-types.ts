@@ -1,5 +1,6 @@
 import {TuplePage} from '@/services/data/query/tuple-page';
 import {Bucket, BucketId} from '@/services/data/tuples/bucket-types';
+import {Indicator} from '@/services/data/tuples/indicator-types';
 import {Objective, ObjectiveFactor, ObjectiveId, ObjectiveTarget} from '@/services/data/tuples/objective-types';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
 import {QueryObjective} from '@/services/data/tuples/query-objective-types';
@@ -26,7 +27,9 @@ export enum ObjectivesEventTypes {
 	ASK_BUCKETS_DETAILS = 'ask-buckets-details',
 	ASK_BUCKET = 'ask-bucket',
 
-	ASK_USER_GROUPS = 'ask-user-groups'
+	ASK_USER_GROUPS = 'ask-user-groups',
+
+	ASK_INDICATORS = 'ask-indicators'
 }
 
 export interface ObjectivesEventBus {
@@ -89,4 +92,8 @@ export interface ObjectivesEventBus {
 	fire(type: ObjectivesEventTypes.ASK_USER_GROUPS, onData: (groups: Array<QueryUserGroupForHolder>) => void): this;
 	on(type: ObjectivesEventTypes.ASK_USER_GROUPS, listener: (onData: (groups: Array<QueryUserGroupForHolder>) => void) => void): this;
 	off(type: ObjectivesEventTypes.ASK_USER_GROUPS, listener: (onData: (groups: Array<QueryUserGroupForHolder>) => void) => void): this;
+
+	fire(type: ObjectivesEventTypes.ASK_INDICATORS, onData: (groups: Array<Indicator>) => void): this;
+	on(type: ObjectivesEventTypes.ASK_INDICATORS, listener: (onData: (groups: Array<Indicator>) => void) => void): this;
+	off(type: ObjectivesEventTypes.ASK_INDICATORS, listener: (onData: (groups: Array<Indicator>) => void) => void): this;
 }
