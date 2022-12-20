@@ -12,9 +12,12 @@ export enum ObjectivesEventTypes {
 	PICK_OBJECTIVE = 'pick-objective',
 
 	ASK_OBJECTIVE = 'ask-objective',
-	FACTOR_NAME_CHANGED = 'factor-name-changed',
 	SAVE_OBJECTIVE = 'save-objective',
 	OBJECTIVE_SAVED = 'objective-saved',
+
+	FACTOR_NAME_CHANGED = 'factor-name-changed',
+	FACTOR_ADDED = 'factor-added',
+	FACTOR_REMOVED = 'factor-removed',
 
 	ASK_ALL_BUCKETS = 'ask-all-buckets',
 	ASK_BUCKETS_DETAILS = 'ask-buckets-details',
@@ -42,10 +45,6 @@ export interface ObjectivesEventBus {
 	on(type: ObjectivesEventTypes.ASK_OBJECTIVE, listener: (onData: (objective?: Objective) => void) => void): this;
 	off(type: ObjectivesEventTypes.ASK_OBJECTIVE, listener: (onData: (objective?: Objective) => void) => void): this;
 
-	fire(type: ObjectivesEventTypes.FACTOR_NAME_CHANGED, objective: Objective, factor: ObjectiveFactor): this;
-	on(type: ObjectivesEventTypes.FACTOR_NAME_CHANGED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;
-	off(type: ObjectivesEventTypes.FACTOR_NAME_CHANGED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;
-
 	fire(type: ObjectivesEventTypes.SAVE_OBJECTIVE, objective: Objective, onSaved: (objective: Objective, saved: boolean) => void): this;
 	on(type: ObjectivesEventTypes.SAVE_OBJECTIVE, listener: (objective: Objective, onSaved: (objective: Objective, saved: boolean) => void) => void): this;
 	off(type: ObjectivesEventTypes.SAVE_OBJECTIVE, listener: (objective: Objective, onSaved: (objective: Objective, saved: boolean) => void) => void): this;
@@ -53,6 +52,18 @@ export interface ObjectivesEventBus {
 	fire(type: ObjectivesEventTypes.OBJECTIVE_SAVED, objective: Objective): this;
 	on(type: ObjectivesEventTypes.OBJECTIVE_SAVED, listener: (objective: Objective) => void): this;
 	off(type: ObjectivesEventTypes.OBJECTIVE_SAVED, listener: (objective: Objective) => void): this;
+
+	fire(type: ObjectivesEventTypes.FACTOR_NAME_CHANGED, objective: Objective, factor: ObjectiveFactor): this;
+	on(type: ObjectivesEventTypes.FACTOR_NAME_CHANGED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;
+	off(type: ObjectivesEventTypes.FACTOR_NAME_CHANGED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;
+
+	fire(type: ObjectivesEventTypes.FACTOR_ADDED, objective: Objective, factor: ObjectiveFactor): this;
+	on(type: ObjectivesEventTypes.FACTOR_ADDED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;
+	off(type: ObjectivesEventTypes.FACTOR_ADDED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;
+
+	fire(type: ObjectivesEventTypes.FACTOR_REMOVED, objective: Objective, factor: ObjectiveFactor): this;
+	on(type: ObjectivesEventTypes.FACTOR_REMOVED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;
+	off(type: ObjectivesEventTypes.FACTOR_REMOVED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;
 
 	fire(type: ObjectivesEventTypes.ASK_ALL_BUCKETS, onData: (buckets: Array<QueryBucket>) => void): this;
 	on(type: ObjectivesEventTypes.ASK_ALL_BUCKETS, listener: (onData: (buckets: Array<QueryBucket>) => void) => void): this;

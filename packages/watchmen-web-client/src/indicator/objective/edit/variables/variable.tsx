@@ -7,18 +7,18 @@ import {
 	ObjectiveVariableOnRange
 } from '@/services/data/tuples/objective-types';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
-import {isNotBlank} from '@/services/utils';
+import {isNotBlank, noop} from '@/services/utils';
 import {Button} from '@/widgets/basic/button';
 import {ICON_COLLAPSE_CONTENT, ICON_DELETE, ICON_EDIT} from '@/widgets/basic/constants';
 import {Dropdown} from '@/widgets/basic/dropdown';
 import {Input} from '@/widgets/basic/input';
 import {ButtonInk, DropdownOption} from '@/widgets/basic/types';
+import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {ChangeEvent, MouseEvent, useState} from 'react';
 import {useObjectivesEventBus} from '../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
-import {useSave} from '../use-save';
 import {IncorrectOptionLabel, ItemLabel, ItemNo, RemoveItemButton} from '../widgets';
 import {defendVariableAndRemoveUnnecessary, isBucketVariable, isRangeVariable, isValueVariable} from './utils';
 import {
@@ -133,15 +133,17 @@ const VariableValues = (props: {
 
 	const {fire} = useObjectivesEventBus();
 	const [selectedBucket, setSelectedBucket] = useState<Bucket | null>(initSelectedBucket);
-	const save = useSave();
+	const forceUpdate = useForceUpdate();
 
 	const onValueChanged = (key: 'value' | 'min' | 'max') => (event: ChangeEvent<HTMLInputElement>) => {
 		(variable as any)[key] = event.target.value;
-		save(objective);
+		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
+		forceUpdate();
 	};
 	const onIncludeChanged = (key: 'includeMin' | 'includeMax') => () => {
 		(variable as ObjectiveVariableOnRange)[key] = !(variable as ObjectiveVariableOnRange)[key];
-		save(objective);
+		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
+		forceUpdate();
 	};
 	const onBucketChanged = (option: DropdownOption) => {
 		const variableOnBucket = variable as ObjectiveVariableOnBucket;
@@ -156,7 +158,8 @@ const VariableValues = (props: {
 
 		fire(ObjectivesEventTypes.ASK_BUCKET, bucketId, (bucket: Bucket) => {
 			setSelectedBucket(bucket);
-			save(objective);
+			fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
+			forceUpdate();
 		});
 	};
 	const onSegmentChanged = (option: DropdownOption) => {
@@ -166,7 +169,8 @@ const VariableValues = (props: {
 			return;
 		}
 		variableOnBucket.segmentName = segmentName;
-		save(objective);
+		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
+		forceUpdate();
 	};
 
 	const {buckets: bucketOptions, segments: segmentOptions} = buildBucketOptions(variable, buckets, selectedBucket);
@@ -205,13 +209,15 @@ export const Variable = (props: {
 }) => {
 	const {objective, variable, index, onRemove, buckets, selectedBucket} = props;
 
+	const {fire} = useObjectivesEventBus();
 	const [editing, setEditing] = useState(false);
-	const save = useSave();
+	const forceUpdate = useForceUpdate();
 
 	const onNameChanged = (event: ChangeEvent<HTMLInputElement>) => {
 		const {value} = event.target;
 		variable.name = value;
-		save(objective);
+		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
+		forceUpdate();
 	};
 	const onStartEditing = () => setEditing(true);
 	const onBlur = () => setEditing(false);
@@ -225,7 +231,8 @@ export const Variable = (props: {
 			variable.kind = kind;
 			defendVariableAndRemoveUnnecessary(variable);
 			setEditing(false);
-			save(objective);
+			fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
+			forceUpdate();
 		}
 	};
 	const onIconClicked = (event: MouseEvent<HTMLDivElement>) => {

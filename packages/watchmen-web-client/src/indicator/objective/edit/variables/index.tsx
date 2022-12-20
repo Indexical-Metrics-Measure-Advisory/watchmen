@@ -6,15 +6,15 @@ import {
 	ObjectiveVariableOnBucket
 } from '@/services/data/tuples/objective-types';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
-import {isNotBlank} from '@/services/utils';
+import {isNotBlank, noop} from '@/services/utils';
 import {ButtonInk} from '@/widgets/basic/types';
+import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
 import React, {useEffect, useState} from 'react';
 import {useObjectivesEventBus} from '../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 import {EditStep} from '../edit-step';
 import {ObjectiveDeclarationStep} from '../steps';
-import {useSave} from '../use-save';
 import {AddItemButton} from '../widgets';
 import {isBucketVariable} from './utils';
 import {Variable} from './variable';
@@ -32,7 +32,7 @@ export const Variables = (props: { objective: Objective }) => {
 		all: [],
 		selected: []
 	});
-	const save = useSave();
+	const forceUpdate = useForceUpdate();
 	useEffect(() => {
 		fire(ObjectivesEventTypes.ASK_ALL_BUCKETS, (buckets: Array<QueryBucket>) => {
 			if (buckets.length === 0) {
@@ -52,11 +52,13 @@ export const Variables = (props: { objective: Objective }) => {
 
 	const onRemove = (variable: ObjectiveVariable) => {
 		objective.variables!.splice(objective.variables!.indexOf(variable), 1);
-		save(objective);
+		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
+		forceUpdate();
 	};
 	const onAddClicked = () => {
 		objective.variables!.push({kind: ObjectiveVariableKind.SINGLE_VALUE} as ObjectiveVariable);
-		save(objective);
+		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
+		forceUpdate();
 	};
 
 	const variables = objective.variables;

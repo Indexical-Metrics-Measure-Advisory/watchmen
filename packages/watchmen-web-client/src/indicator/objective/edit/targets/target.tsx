@@ -1,48 +1,53 @@
 import {Objective, ObjectiveTarget, ObjectiveTargetBetterSide} from '@/services/data/tuples/objective-types';
+import {noop} from '@/services/utils';
 import {CheckBox} from '@/widgets/basic/checkbox';
 import {Dropdown} from '@/widgets/basic/dropdown';
 import {Input} from '@/widgets/basic/input';
 import {ButtonInk, DropdownOption} from '@/widgets/basic/types';
+import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
 import {ChangeEvent} from 'react';
-import {useSave} from '../use-save';
+import {useObjectivesEventBus} from '../../objectives-event-bus';
+import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 import {ItemLabel, ItemNo, RemoveItemButton} from '../widgets';
-import {SetTargetAsIsButton, TargetContainer} from './widgets';
+import {AsIs} from './as-is';
+import {TargetContainer} from './widgets';
 
 export const Target = (props: {
-	objective: Objective;
-	target: ObjectiveTarget;
-	index: number;
+	objective: Objective; target: ObjectiveTarget; index: number;
 	onRemove: (target: ObjectiveTarget) => void;
 }) => {
 	const {objective, target, index, onRemove} = props;
 
-	const save = useSave();
+	const {fire} = useObjectivesEventBus();
+	const forceUpdate = useForceUpdate();
 
 	const onNameChanged = (event: ChangeEvent<HTMLInputElement>) => {
 		const {value} = event.target;
 		target.name = value;
-		save(objective);
+		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
+		forceUpdate();
 	};
 	const onToBeChanged = (event: ChangeEvent<HTMLInputElement>) => {
 		const {value} = event.target;
 		target.tobe = value;
-		save(objective);
-	};
-	const onSetAsIsClicked = () => {
-		// TODO
+		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
+		forceUpdate();
 	};
 	const onBetterSideChanged = (option: DropdownOption) => {
 		target.betterSide = option.key as ObjectiveTargetBetterSide;
-		save(objective);
+		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
+		forceUpdate();
 	};
 	const onAskPreviousCycleChanged = (value: boolean) => {
 		target.askPreviousCycle = value;
-		save(objective);
+		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
+		forceUpdate();
 	};
 	const onAskChainCycleChanged = (value: boolean) => {
 		target.askChainCycle = value;
-		save(objective);
+		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
+		forceUpdate();
 	};
 	const onRemoveClicked = () => onRemove(target);
 
@@ -59,9 +64,7 @@ export const Target = (props: {
 		<Input value={target.tobe || ''} onChange={onToBeChanged}/>
 		<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TARGET_TOBE_PLACEHOLDER}</ItemLabel>
 		<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TARGET_ASIS}</ItemLabel>
-		<SetTargetAsIsButton ink={ButtonInk.PRIMARY} onClick={onSetAsIsClicked}>
-			{Lang.INDICATOR.OBJECTIVE.TARGET_ASIS_SET}
-		</SetTargetAsIsButton>
+		<AsIs objective={objective} target={target}/>
 		<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TARGET_BETTER_SIDE}</ItemLabel>
 		<Dropdown value={target.betterSide || ObjectiveTargetBetterSide.MORE} options={betterSideOptions}
 		          onChange={onBetterSideChanged}/>

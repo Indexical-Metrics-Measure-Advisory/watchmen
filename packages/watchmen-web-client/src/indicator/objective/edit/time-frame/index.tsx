@@ -1,12 +1,15 @@
 import {Objective, ObjectiveTimeFrameKind, ObjectiveTimeFrameTill} from '@/services/data/tuples/objective-types';
+import {noop} from '@/services/utils';
 import {Calendar} from '@/widgets/basic/calendar';
 import {Dropdown} from '@/widgets/basic/dropdown';
 import {DropdownOption} from '@/widgets/basic/types';
+import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
 import React from 'react';
+import {useObjectivesEventBus} from '../../objectives-event-bus';
+import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 import {EditStep} from '../edit-step';
 import {ObjectiveDeclarationStep} from '../steps';
-import {useSave} from '../use-save';
 import {ItemLabel, ItemValue} from '../widgets';
 import {
 	computeChainFrame,
@@ -22,30 +25,35 @@ import {TimeFrameContainer} from './widgets';
 export const TimeFrame = (props: { objective: Objective }) => {
 	const {objective} = props;
 
-	const save = useSave();
+	const {fire} = useObjectivesEventBus();
+	const forceUpdate = useForceUpdate();
 
 	const def = guardTimeFrame(objective);
 
 	const onKindChanged = (option: DropdownOption) => {
 		def.kind = option.value as ObjectiveTimeFrameKind;
 		guardTimeFrame(objective);
-		save(objective);
+		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
+		forceUpdate();
 	};
 	const onLastNChanged = (option: DropdownOption) => {
 		def.lastN = option.value as string;
-		save(objective);
+		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
+		forceUpdate();
 	};
 	const onTillChanged = (option: DropdownOption) => {
 		def.till = option.value as ObjectiveTimeFrameTill;
 		guardTimeFrame(objective);
-		save(objective);
+		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
+		forceUpdate();
 	};
 	const onSpecifiedTillChanged = (value?: string) => {
 		if (value?.includes(' ')) {
 			value = value?.substring(0, value?.indexOf(' '));
 		}
 		def.specifiedTill = value ?? '';
-		save(objective);
+		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
+		forceUpdate();
 	};
 
 	const kindOptions = [

@@ -4,8 +4,10 @@ import {
 	ObjectiveFormulaOperator,
 	ObjectiveParameterType
 } from '@/services/data/tuples/objective-types';
+import {noop} from '@/services/utils';
 import {Input} from '@/widgets/basic/input';
 import {ButtonInk} from '@/widgets/basic/types';
+import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
 import React, {ChangeEvent, useEffect} from 'react';
 import {useObjectivesEventBus} from '../../objectives-event-bus';
@@ -14,7 +16,6 @@ import {ComputedEditor} from '../parameter/compute';
 import {ParameterEventBusProvider, useParameterEventBus} from '../parameter/parameter-event-bus';
 import {ParameterEventTypes} from '../parameter/parameter-event-bus-types';
 import {createFactorParameter} from '../parameter/utils';
-import {useSave} from '../use-save';
 import {isIndicatorFactor} from '../utils';
 import {ItemNo, RemoveItemButton} from '../widgets';
 import {FactorContainer, FormulaItemLabel} from './widgets';
@@ -22,15 +23,15 @@ import {FactorContainer, FormulaItemLabel} from './widgets';
 const FormulaEditor = (props: { objective: Objective; factor: ObjectiveFactor }) => {
 	const {objective, factor} = props;
 
-	const save = useSave(false);
+	const {fire: fireObjective} = useObjectivesEventBus();
 	const {on, off} = useParameterEventBus();
 	useEffect(() => {
-		const onParamChanged = () => save(objective);
+		const onParamChanged = () => fireObjective(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
 		on(ParameterEventTypes.PARAM_CHANGED, onParamChanged);
 		return () => {
 			off(ParameterEventTypes.PARAM_CHANGED, onParamChanged);
 		};
-	});
+	}, [on, off, fireObjective, objective]);
 
 	if (factor.formula == null) {
 		factor.formula = isIndicatorFactor(factor)
@@ -56,29 +57,35 @@ const FormulaEditor = (props: { objective: Objective; factor: ObjectiveFactor })
 	</>;
 };
 
-export const FactorItem = (props: {
-	objective: Objective;
-	factor: ObjectiveFactor;
-	index: number;
-	onRemove: (factor: ObjectiveFactor) => void;
-}) => {
-	const {objective, factor, index, onRemove} = props;
+export const FactorName = (props: { objective: Objective; factor: ObjectiveFactor }) => {
+	const {objective, factor} = props;
 
 	const {fire} = useObjectivesEventBus();
-	const save = useSave();
+	const forceUpdate = useForceUpdate();
 
 	const onNameChanged = (event: ChangeEvent<HTMLInputElement>) => {
 		const {value} = event.target;
 		factor.name = value;
 		fire(ObjectivesEventTypes.FACTOR_NAME_CHANGED, objective, factor);
-		save(objective);
+		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
+		forceUpdate();
 	};
+
+	return <Input value={factor.name || ''} onChange={onNameChanged}
+	              placeholder={Lang.PLAIN.OBJECTIVE_FACTOR_NAME_PLACEHOLDER}/>;
+};
+
+export const FactorItem = (props: {
+	objective: Objective; factor: ObjectiveFactor; index: number;
+	onRemove: (factor: ObjectiveFactor) => void;
+}) => {
+	const {objective, factor, index, onRemove} = props;
+
 	const onRemoveClicked = () => onRemove(factor);
 
 	return <FactorContainer>
 		<ItemNo>{index === -1 ? '' : `#${index}`}</ItemNo>
-		<Input value={factor.name || ''} onChange={onNameChanged}
-		       placeholder={Lang.PLAIN.OBJECTIVE_FACTOR_NAME_PLACEHOLDER}/>
+		<FactorName objective={objective} factor={factor}/>
 		<ParameterEventBusProvider>
 			<FormulaEditor objective={objective} factor={factor}/>
 		</ParameterEventBusProvider>

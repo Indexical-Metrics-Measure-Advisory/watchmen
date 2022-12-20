@@ -6,12 +6,15 @@ import {
 	ObjectiveFactorOnIndicator
 } from '@/services/data/tuples/objective-types';
 import {generateUuid} from '@/services/data/tuples/utils';
+import {noop} from '@/services/utils';
 import {ButtonInk} from '@/widgets/basic/types';
+import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
 import React from 'react';
+import {useObjectivesEventBus} from '../../objectives-event-bus';
+import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 import {EditStep} from '../edit-step';
 import {ObjectiveDeclarationStep} from '../steps';
-import {useSave} from '../use-save';
 import {AddItemButton, ItemsButtons} from '../widgets';
 import {FactorItem} from './factor-item';
 import {FactorsContainer} from './widgets';
@@ -19,7 +22,8 @@ import {FactorsContainer} from './widgets';
 export const Factors = (props: { objective: Objective }) => {
 	const {objective} = props;
 
-	const save = useSave();
+	const {fire} = useObjectivesEventBus();
+	const forceUpdate = useForceUpdate();
 
 	if (objective.factors == null) {
 		objective.factors = [];
@@ -36,15 +40,23 @@ export const Factors = (props: { objective: Objective }) => {
 
 	const onRemove = (factor: ObjectiveFactor) => {
 		objective.factors!.splice(objective.factors!.indexOf(factor), 1);
-		save(objective);
+		fire(ObjectivesEventTypes.FACTOR_REMOVED, objective, factor);
+		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
+		forceUpdate();
 	};
 	const onAddIndicatorClicked = () => {
-		objective.factors!.push({uuid: uuid(), kind: ObjectiveFactorKind.INDICATOR} as ObjectiveFactorOnIndicator);
-		save(objective);
+		const factor = {uuid: uuid(), kind: ObjectiveFactorKind.INDICATOR} as ObjectiveFactorOnIndicator;
+		objective.factors!.push(factor);
+		fire(ObjectivesEventTypes.FACTOR_ADDED, objective, factor);
+		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
+		forceUpdate();
 	};
 	const onAddComputedIndicatorClicked = () => {
-		objective.factors!.push({uuid: uuid(), kind: ObjectiveFactorKind.COMPUTED} as ObjectiveFactorOnComputation);
-		save(objective);
+		const factor = {uuid: uuid(), kind: ObjectiveFactorKind.COMPUTED} as ObjectiveFactorOnComputation;
+		objective.factors!.push(factor);
+		fire(ObjectivesEventTypes.FACTOR_ADDED, objective, factor);
+		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
+		forceUpdate();
 	};
 
 	const factors = objective.factors;
