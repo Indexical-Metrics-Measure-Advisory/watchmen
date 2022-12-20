@@ -1,3 +1,4 @@
+import {UserGroup} from '@/indicator/objective/edit/user-group';
 import {Objective} from '@/services/data/tuples/objective-types';
 import {FixWidthPage} from '@/widgets/basic/page';
 import {PageHeader} from '@/widgets/basic/page-header';
@@ -40,6 +41,7 @@ export const ObjectiveEditor = () => {
 			<Factors objective={objective}/>
 			<NameAndSave objective={objective}/>
 			<Description objective={objective}/>
+			<UserGroup objective={objective}/>
 		</ObjectiveContainer>
 	</FixWidthPage>;
 };

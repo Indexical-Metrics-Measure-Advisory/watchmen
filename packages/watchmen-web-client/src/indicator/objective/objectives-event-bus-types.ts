@@ -3,6 +3,7 @@ import {Bucket, BucketId} from '@/services/data/tuples/bucket-types';
 import {Objective, ObjectiveFactor, ObjectiveId, ObjectiveTarget} from '@/services/data/tuples/objective-types';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
 import {QueryObjective} from '@/services/data/tuples/query-objective-types';
+import {QueryUserGroupForHolder} from '@/services/data/tuples/query-user-group-types';
 
 export enum ObjectivesEventTypes {
 	SEARCHED = 'searched',
@@ -23,7 +24,9 @@ export enum ObjectivesEventTypes {
 
 	ASK_ALL_BUCKETS = 'ask-all-buckets',
 	ASK_BUCKETS_DETAILS = 'ask-buckets-details',
-	ASK_BUCKET = 'ask-bucket'
+	ASK_BUCKET = 'ask-bucket',
+
+	ASK_USER_GROUPS = 'ask-user-groups'
 }
 
 export interface ObjectivesEventBus {
@@ -82,4 +85,8 @@ export interface ObjectivesEventBus {
 	fire(type: ObjectivesEventTypes.ASK_BUCKET, bucketId: BucketId, onData: (bucket: Bucket) => void): this;
 	on(type: ObjectivesEventTypes.ASK_BUCKET, listener: (bucketId: BucketId, onData: (bucket: Bucket) => void) => void): this;
 	off(type: ObjectivesEventTypes.ASK_BUCKET, listener: (bucketId: BucketId, onData: (bucket: Bucket) => void) => void): this;
+
+	fire(type: ObjectivesEventTypes.ASK_USER_GROUPS, onData: (groups: Array<QueryUserGroupForHolder>) => void): this;
+	on(type: ObjectivesEventTypes.ASK_USER_GROUPS, listener: (onData: (groups: Array<QueryUserGroupForHolder>) => void) => void): this;
+	off(type: ObjectivesEventTypes.ASK_USER_GROUPS, listener: (onData: (groups: Array<QueryUserGroupForHolder>) => void) => void): this;
 }

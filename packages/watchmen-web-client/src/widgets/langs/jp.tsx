@@ -495,6 +495,7 @@ export const Jp: LanguageDeclareType = {
 			CHANGE_NAME: '名前を変更',
 			NAME_TITLE: '読むための名前を入力してください。',
 			DESCRIPTION_TITLE: '説明。',
+			USER_GROUP_TITLE: 'ユーザーグループに割り当てます。',
 			FACTOR_PLACEHOLDER: '指標？',
 			NONAME_FACTOR: '名前なし指標',
 			INCORRECT_FACTOR: '配置できない指標。',

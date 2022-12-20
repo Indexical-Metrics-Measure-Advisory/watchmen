@@ -4,5 +4,6 @@ export enum ObjectiveDeclarationStep {
 	VARIABLES,
 	FACTORS,
 	NAME,
-	DESCRIPTION
+	DESCRIPTION,
+	USER_GROUP
 }
