@@ -70,7 +70,7 @@ export const Target = (props: {
 		<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TARGET_ASK_CHAIN_CYCLE}</ItemLabel>
 		<CheckBox value={target.askChainCycle || false} onChange={onAskChainCycleChanged}/>
 		<RemoveItemButton ink={ButtonInk.DANGER} onClick={onRemoveClicked}>
-			{Lang.INDICATOR.OBJECTIVE.REMOVE_TARGET}
+			{Lang.ACTIONS.REMOVE}
 		</RemoveItemButton>
 	</TargetContainer>;
 };
