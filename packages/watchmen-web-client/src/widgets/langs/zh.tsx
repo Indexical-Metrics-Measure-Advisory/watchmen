@@ -537,7 +537,8 @@ export const Zh: LanguageDeclareType = {
 		FROM: '来源',
 		FROM_TOPIC: '数据集',
 		FROM_CONSTANT: '常量值',
-		FROM_COMPUTED: '计算值'
+		FROM_COMPUTED: '计算值',
+		FROM_INDICATOR: '指标引用'
 	},
 	FACTOR: {
 		SEQUENCE: '序列号',
@@ -615,12 +616,17 @@ export const Zh: LanguageDeclareType = {
 			DAY_OF_WEEK: '天(按周)',
 			CASE_THEN: '条件转换',
 			ROUND: '四舍五入',
-			FLOOR: '截断位数',
+			ROUND_DIGITS: '位数',
+			FLOOR: '截位',
 			CEIL: '进位',
 			ABS: '绝对值',
 			MAX: '最大值',
 			MIN: '最小值',
-			INTERPOLATE: '插值'
+			INTERPOLATE: '线性插值',
+			INTERPOLATE_MIN_VALUE: '下边界值',
+			INTERPOLATE_MIN_VALUE_TO: '下边界映射值',
+			INTERPOLATE_MAX_VALUE: '上边界值',
+			INTERPOLATE_MAX_VALUE_TO: '上边界映射值'
 		},
 		EXPRESSION_OPERATOR: {
 			EMPTY: '为空',

@@ -537,7 +537,8 @@ export const Jp: LanguageDeclareType = {
 		FROM: 'から',
 		FROM_TOPIC: 'トピック',
 		FROM_CONSTANT: '定数値',
-		FROM_COMPUTED: '計算'
+		FROM_COMPUTED: '計算',
+		FROM_INDICATOR: '指標参照'
 	},
 	FACTOR: {
 		SEQUENCE: 'シーケンス',
@@ -615,12 +616,17 @@ export const Jp: LanguageDeclareType = {
 			DAY_OF_WEEK: '週の日',
 			CASE_THEN: 'ケース',
 			ROUND: 'Round',
+			ROUND_DIGITS: '数値の桁数',
 			FLOOR: 'Floor',
 			CEIL: 'Ceil',
 			ABS: '絶対値',
 			MAX: '最大値',
 			MIN: '最小値',
-			INTERPOLATE: 'Interpolate'
+			INTERPOLATE: '線形補間',
+			INTERPOLATE_MIN_VALUE: '下の境界値',
+			INTERPOLATE_MIN_VALUE_TO: '下境界マップ値',
+			INTERPOLATE_MAX_VALUE: '上境界値',
+			INTERPOLATE_MAX_VALUE_TO: '上境界マップ値'
 		},
 		EXPRESSION_OPERATOR: {
 			EMPTY: '空',
