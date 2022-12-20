@@ -1,4 +1,4 @@
-import {ComputedObjectiveParameter, Objective} from '@/services/data/tuples/objective-types';
+import {ComputedObjectiveParameter, Objective, ObjectiveFactor} from '@/services/data/tuples/objective-types';
 import React from 'react';
 import {v4} from 'uuid';
 import {ParameterEventBusProvider} from '../parameter-event-bus';
@@ -9,11 +9,10 @@ import {useSubParameterChanged} from './use-computed-parameter';
 import {ParametersContainer} from './widgets';
 
 export const Parameters = (props: {
-	objective: Objective;
-	parameter: ComputedObjectiveParameter;
-	notifyChangeToParent: () => void;
+	objective: Objective; parameter: ComputedObjectiveParameter; notifyChangeToParent: () => void;
+	factors: Array<ObjectiveFactor>;
 }) => {
-	const {objective, parameter, notifyChangeToParent} = props;
+	const {objective, parameter, notifyChangeToParent, factors} = props;
 
 	const {onDeleted, onAdded} = useSubParameterChanged(parameter);
 
@@ -21,8 +20,9 @@ export const Parameters = (props: {
 		{parameter.parameters.map(param => {
 			return <ParameterEventBusProvider key={v4()}>
 				<HierarchicalEventBridge notifyChangeToParent={notifyChangeToParent}/>
-				<SubParameterEditor objective={objective} parameter={param} parent={parameter}
-				                    onDeleted={onDeleted(param)}/>
+				<SubParameterEditor objective={objective}
+				                    parent={parameter} parameter={param} onDeleted={onDeleted(param)}
+				                    factors={factors}/>
 			</ParameterEventBusProvider>;
 		})}
 		<SubParameterAdd parent={parameter} onAdded={onAdded()}/>

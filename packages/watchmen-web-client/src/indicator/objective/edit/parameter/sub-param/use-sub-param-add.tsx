@@ -6,19 +6,18 @@ import React from 'react';
 import {canAddMoreParameter, createFactorParameter} from '../utils';
 
 export const useSubParamAdd = (
-	parentParameter: ComputedObjectiveParameter,
-	onAdded: (parameter: ObjectiveParameter) => void,
-	maxCountAlertLabel: string
+	parent: ComputedObjectiveParameter,
+	onAdded: (parameter: ObjectiveParameter) => void, maxCountAlertLabel: string
 ) => {
 	const {fire: fireGlobal} = useEventBus();
 
 	return () => {
-		const canAdd = canAddMoreParameter(parentParameter);
+		const canAdd = canAddMoreParameter(parent);
 		if (!canAdd) {
 			fireGlobal(EventTypes.SHOW_ALERT, <AlertLabel>{maxCountAlertLabel}</AlertLabel>);
 		} else {
 			const parameter = createFactorParameter();
-			parentParameter.parameters.push(parameter);
+			parent.parameters.push(parameter);
 			onAdded(parameter);
 		}
 	};
