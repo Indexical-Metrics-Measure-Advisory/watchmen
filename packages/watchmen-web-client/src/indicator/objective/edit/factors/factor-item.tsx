@@ -1,3 +1,4 @@
+import {isIndicatorFactor} from '@/indicator/objective/edit/utils';
 import {
 	Objective,
 	ObjectiveFactor,
@@ -34,11 +35,13 @@ const FormulaEditor = (props: { objective: Objective; factor: ObjectiveFactor })
 		operator: ObjectiveFormulaOperator.ADD,
 		parameters: [createFactorParameter(), createFactorParameter()]
 	};
+	const hasAsIs = isIndicatorFactor(factor);
 	const factors = (objective.factors || []).filter(f => f !== factor);
 
 	return <>
 		<FormulaItemLabel>Formula</FormulaItemLabel>
-		<ComputedEditor objective={objective} parameter={parameter} factors={factors}/>
+		<ComputedEditor objective={objective} parameter={parameter} factors={factors}
+		                hasAsIs={hasAsIs}/>
 	</>;
 };
 
