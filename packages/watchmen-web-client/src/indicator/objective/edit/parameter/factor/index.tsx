@@ -1,4 +1,3 @@
-import {IncorrectOptionLabel} from '@/admin/pipelines/pipeline/body/action/write-to-external/widgets';
 import {
 	Objective,
 	ObjectiveFactor,
@@ -7,19 +6,31 @@ import {
 } from '@/services/data/tuples/objective-types';
 import {isBlank} from '@/services/utils';
 import {DropdownOption} from '@/widgets/basic/types';
+import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
-import React from 'react';
+import React, {useEffect} from 'react';
+import {useObjectivesEventBus} from '../../../objectives-event-bus';
+import {ObjectivesEventTypes} from '../../../objectives-event-bus-types';
 import {useParameterFromChanged} from '../use-parameter-from-changed';
 import {isReferParameter} from '../utils';
 import {useFactor} from './use-factor';
-import {FactorDropdown, FactorEditContainer} from './widgets';
+import {FactorDropdown, FactorEditContainer, IncorrectOptionLabel} from './widgets';
 
 const RealFactorEditor = (props: {
 	objective: Objective; parameter: ReferObjectiveParameter; factors: Array<ObjectiveFactor>;
 }) => {
 	const {parameter, factors} = props;
 
+	const {on, off} = useObjectivesEventBus();
 	const {onFactorChange, uuid} = useFactor(parameter);
+	const forceUpdate = useForceUpdate();
+	useEffect(() => {
+		const onFactorNameChanged = () => forceUpdate();
+		on(ObjectivesEventTypes.FACTOR_NAME_CHANGED, onFactorNameChanged);
+		return () => {
+			off(ObjectivesEventTypes.FACTOR_NAME_CHANGED, onFactorNameChanged);
+		};
+	}, [on, off, forceUpdate]);
 
 	const factorOptions: Array<DropdownOption> = factors.map(factor => {
 		return {

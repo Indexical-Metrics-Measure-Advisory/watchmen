@@ -35,7 +35,7 @@ const ParametersEditor = (props: {
 		return () => {
 			off(ParameterEventTypes.COMPUTE_OPERATOR_CHANGED, onOperatorChanged);
 		};
-	}, [on, off]);
+	}, [on, off, forceUpdate, parameter]);
 
 	if (parameter.operator === ObjectiveFormulaOperator.NONE) {
 		return null;

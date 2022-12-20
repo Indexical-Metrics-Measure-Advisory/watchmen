@@ -1,6 +1,6 @@
 import {TuplePage} from '@/services/data/query/tuple-page';
 import {Bucket, BucketId} from '@/services/data/tuples/bucket-types';
-import {Objective, ObjectiveId} from '@/services/data/tuples/objective-types';
+import {Objective, ObjectiveFactor, ObjectiveId} from '@/services/data/tuples/objective-types';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
 import {QueryObjective} from '@/services/data/tuples/query-objective-types';
 
@@ -12,6 +12,7 @@ export enum ObjectivesEventTypes {
 	PICK_OBJECTIVE = 'pick-objective',
 
 	ASK_OBJECTIVE = 'ask-objective',
+	FACTOR_NAME_CHANGED = 'factor-name-changed',
 	SAVE_OBJECTIVE = 'save-objective',
 	OBJECTIVE_SAVED = 'objective-saved',
 
@@ -40,6 +41,10 @@ export interface ObjectivesEventBus {
 	fire(type: ObjectivesEventTypes.ASK_OBJECTIVE, onData: (objective?: Objective) => void): this;
 	on(type: ObjectivesEventTypes.ASK_OBJECTIVE, listener: (onData: (objective?: Objective) => void) => void): this;
 	off(type: ObjectivesEventTypes.ASK_OBJECTIVE, listener: (onData: (objective?: Objective) => void) => void): this;
+
+	fire(type: ObjectivesEventTypes.FACTOR_NAME_CHANGED, objective: Objective, factor: ObjectiveFactor): this;
+	on(type: ObjectivesEventTypes.FACTOR_NAME_CHANGED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;
+	off(type: ObjectivesEventTypes.FACTOR_NAME_CHANGED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;
 
 	fire(type: ObjectivesEventTypes.SAVE_OBJECTIVE, objective: Objective, onSaved: (objective: Objective, saved: boolean) => void): this;
 	on(type: ObjectivesEventTypes.SAVE_OBJECTIVE, listener: (objective: Objective, onSaved: (objective: Objective, saved: boolean) => void) => void): this;
