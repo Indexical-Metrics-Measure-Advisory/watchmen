@@ -3,6 +3,8 @@ import {Bucket, BucketId} from '@/services/data/tuples/bucket-types';
 import {fetchObjective, saveObjective} from '@/services/data/tuples/objective';
 import {Objective, ObjectiveId} from '@/services/data/tuples/objective-types';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
+import {QueryUserGroupForHolder} from '@/services/data/tuples/query-user-group-types';
+import {listUserGroups} from '@/services/data/tuples/user-group';
 import {AlertLabel} from '@/widgets/alert/widgets';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
@@ -18,10 +20,12 @@ export const ObjectiveState = () => {
 	const {on, off, fire} = useObjectivesEventBus();
 	const [editOne, setEditOne] = useState<Objective | null>(null);
 	const [allBuckets, setAllBuckets] = useState<{ loaded: boolean, data: Array<QueryBucket> }>({
-		loaded: false,
-		data: []
+		loaded: false, data: []
 	});
 	const [buckets, setBuckets] = useState<Array<Bucket>>([]);
+	const [userGroups, setUserGroups] = useState<{ loaded: boolean, data: Array<QueryUserGroupForHolder> }>({
+		loaded: false, data: []
+	});
 	const saveQueue = useThrottler();
 
 	useEffect(() => {
@@ -112,6 +116,21 @@ export const ObjectiveState = () => {
 			off(ObjectivesEventTypes.ASK_BUCKET, onAskBucket);
 		};
 	}, [on, off, buckets]);
+	useEffect(() => {
+		const onAskUserGroups = async (onData: (groups: Array<QueryUserGroupForHolder>) => void) => {
+			if (!userGroups.loaded) {
+				const data = (await listUserGroups({search: '', pageNumber: 1, pageSize: 9999})).data;
+				setUserGroups({loaded: true, data});
+				onData(data);
+			} else {
+				onData(userGroups.data);
+			}
+		};
+		on(ObjectivesEventTypes.ASK_USER_GROUPS, onAskUserGroups);
+		return () => {
+			off(ObjectivesEventTypes.ASK_USER_GROUPS, onAskUserGroups);
+		};
+	}, [on, off, userGroups]);
 	useEffect(() => {
 		const onSaveObjective = (objective: Objective, onSaved: (objective: Objective, saved: boolean) => void) => {
 			saveQueue.replace(() => {

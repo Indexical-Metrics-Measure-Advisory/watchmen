@@ -495,6 +495,7 @@ export const Zh: LanguageDeclareType = {
 			CHANGE_NAME: '修改名称',
 			NAME_TITLE: '设置一个用于阅读的名称.',
 			DESCRIPTION_TITLE: '描述.',
+			USER_GROUP_TITLE: '授权给用户组.',
 			FACTOR_PLACEHOLDER: '指标?',
 			NONAME_FACTOR: '未命名指标',
 			INCORRECT_FACTOR: '无法定位的指标',

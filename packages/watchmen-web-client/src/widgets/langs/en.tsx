@@ -495,6 +495,7 @@ export const En = {
 			CHANGE_NAME: 'Change Name',
 			NAME_TITLE: 'Set a human reading name.',
 			DESCRIPTION_TITLE: 'Description.',
+			USER_GROUP_TITLE: 'Assign to user group.',
 			FACTOR_PLACEHOLDER: 'Indicator?',
 			NONAME_FACTOR: 'Noname Indicator',
 			INCORRECT_FACTOR: 'Unknown indicator',
