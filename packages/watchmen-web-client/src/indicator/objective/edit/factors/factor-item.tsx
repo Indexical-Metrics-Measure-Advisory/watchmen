@@ -83,7 +83,7 @@ export const FactorItem = (props: {
 			<FormulaEditor objective={objective} factor={factor}/>
 		</ParameterEventBusProvider>
 		<RemoveItemButton ink={ButtonInk.DANGER} onClick={onRemoveClicked}>
-			{Lang.INDICATOR.OBJECTIVE.REMOVE_TARGET}
+			{Lang.ACTIONS.REMOVE}
 		</RemoveItemButton>
 	</FactorContainer>;
 };
