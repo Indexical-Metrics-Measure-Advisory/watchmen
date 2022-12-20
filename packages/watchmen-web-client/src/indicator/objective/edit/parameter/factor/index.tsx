@@ -1,9 +1,11 @@
+import {IncorrectOptionLabel} from '@/admin/pipelines/pipeline/body/action/write-to-external/widgets';
 import {
 	Objective,
 	ObjectiveFactor,
 	ObjectiveParameter,
 	ReferObjectiveParameter
 } from '@/services/data/tuples/objective-types';
+import {isBlank} from '@/services/utils';
 import {DropdownOption} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
 import React from 'react';
@@ -20,10 +22,35 @@ const RealFactorEditor = (props: {
 	const {onFactorChange, uuid} = useFactor(parameter);
 
 	const factorOptions: Array<DropdownOption> = factors.map(factor => {
-		return {value: factor.uuid, label: factor.name};
+		return {
+			value: factor.uuid, label: factor.name || (() => {
+				return {
+					node: <>{Lang.INDICATOR.OBJECTIVE.NONAME_FACTOR}</>,
+					label: ''
+				};
+			})
+		};
 	});
 
-	const factorValid = true;
+	// eslint-disable-next-line
+	const factorValid = isBlank(uuid) || factors.find(f => f.uuid == uuid) != null;
+	if (!factorValid) {
+		factorOptions.push({
+			value: '', label: () => {
+				return {
+					node: <IncorrectOptionLabel>{Lang.INDICATOR.OBJECTIVE.INCORRECT_FACTOR}</IncorrectOptionLabel>,
+					label: ''
+				};
+			}
+		});
+	}
+	if (factorOptions.length === 0) {
+		factorOptions.push({
+			value: '', label: () => {
+				return {node: <>{Lang.INDICATOR.OBJECTIVE.NO_AVAILABLE_FACTOR}</>, label: ''};
+			}
+		});
+	}
 
 	return <FactorEditContainer>
 		<FactorDropdown value={uuid || ''} options={factorOptions} onChange={onFactorChange}

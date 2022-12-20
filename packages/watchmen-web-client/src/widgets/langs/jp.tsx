@@ -37,7 +37,6 @@ export const Jp: LanguageDeclareType = {
 		OBJECTIVE_DESCRIPTION_PLACEHOLDER: '目標の説明を入力してください。',
 		OBJECTIVE_VARIABLE_NAME_PLACEHOLDER: '変数名。',
 		OBJECTIVE_FACTOR_NAME_PLACEHOLDER: '指標名。',
-		UNNAMED_FACTOR: '名前なし指標',
 		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '";"で結合された複数のアドレス。'
 	},
 	STANDARD: {
@@ -495,6 +494,9 @@ export const Jp: LanguageDeclareType = {
 			NAME_TITLE: '読むための名前を入力してください。',
 			DESCRIPTION_TITLE: '説明。',
 			FACTOR_PLACEHOLDER: '指標？',
+			NONAME_FACTOR: '名前なし指標',
+			INCORRECT_FACTOR: '配置できない指標。',
+			NO_AVAILABLE_FACTOR: '選択可能な指標はありません。',
 			ADD_SUB_PARAMETER: 'パラメータを追加',
 			CANNOT_ADD_COMPUTATION_PARAMETER: 'パラメータの最大数に達しており、追加できません。',
 			CANNOT_DELETE_COMPUTATION_PARAMETER: 'パラメータの最小数に達しており、削除できません。',
