@@ -101,7 +101,7 @@ export interface ObjectiveTarget {
 	/** to be value, should be a numeric value, a percentage value */
 	tobe?: string;
 	/** as is formula */
-	asis?: ComputedObjectiveParameter;
+	asis?: ComputedObjectiveParameter | ObjectiveFactorId;
 	/** which side is better, with computed as is value vs to be value. */
 	betterSide?: ObjectiveTargetBetterSide;
 	/** this July vs this June if time frame is on month, month-on-month */

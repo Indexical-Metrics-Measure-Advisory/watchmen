@@ -1,4 +1,3 @@
-import {Button} from '@/widgets/basic/button';
 import styled from 'styled-components';
 import {RibItemContainer} from '../widgets';
 
@@ -39,7 +38,7 @@ export const TargetContainer = styled(RibItemContainer).attrs({'data-widget': 'o
 		align-self : center;
 	}
 `;
-export const AsisContainer = styled.div.attrs({'data-widget': 'objective-asis'})`
+export const AsIsContainer = styled.div.attrs({'data-widget': 'objective-as-is'})`
 	display               : grid;
 	position              : relative;
 	grid-column           : 3 / span 6;
@@ -47,17 +46,91 @@ export const AsisContainer = styled.div.attrs({'data-widget': 'objective-asis'})
 	> div[data-widget=objective-computation] {
 		grid-column : 2;
 	}
-`
-export const SetTargetAsIsButton = styled(Button).attrs({'data-widget': 'objective-set-asis-target'})`
-	justify-self  : start;
-	height        : var(--param-height);
-	margin-top    : calc((var(--height) - var(--param-height)) / 2);
-	border-radius : calc(var(--param-height) / 2) 0 0 calc(var(--param-height) / 2);
-	box-shadow    : var(--param-primary-border);
+`;
+export const AsIsTypeContainer = styled.div.attrs({'data-widget': 'objective-as-is-type-edit'})`
+	display          : flex;
+	position         : relative;
+	align-items      : center;
+	align-self       : start;
+	justify-self     : start;
+	font-variant     : petite-caps;
+	font-weight      : var(--font-demi-bold);
+	height           : var(--param-height);
+	background-color : var(--param-bg-color);
+	border-radius    : calc(var(--param-height) / 2) 0 0 calc(var(--param-height) / 2);
+	margin-top       : calc(var(--height) / 2 - var(--param-height) / 2);
+	box-shadow       : var(--param-border);
+	cursor           : pointer;
+	outline          : none;
+	transition       : box-shadow 300ms ease-in-out;
+	&:hover {
+		box-shadow : var(--primary-hover-shadow);
+	}
 	+ div[data-widget=objective-computation] {
 		> div[data-widget=objective-formula-operator] {
 			border-top-left-radius    : 0;
 			border-bottom-left-radius : 0;
 		}
+	}
+	+ div[data-widget=parameter-factor-edit] {
+		margin-left: 0;
+		> div:first-child {
+			border-top-left-radius    : 0;
+			border-bottom-left-radius : 0;
+		}
+	}
+`;
+export const AsIsTypeButton = styled.div.attrs<{ active: boolean, edit: boolean }>(({active, edit}) => {
+	return {
+		'data-widget': 'objective-as-is-type-button',
+		style: {
+			display: (edit || active) ? (void 0) : 'none',
+			backgroundColor: active ? (void 0) : 'var(--bg-color)',
+			boxShadow: active ? (void 0) : 'var(--param-left-border)'
+		}
+	};
+})<{ active: boolean, edit: boolean }>`
+	display      : flex;
+	align-items  : center;
+	font-variant : petite-caps;
+	font-weight  : var(--font-demi-bold);
+	height       : var(--param-height);
+	padding      : 0 calc(var(--margin) / 2);
+	white-space  : nowrap;
+	transition   : color 300ms ease-in-out;
+	&:hover {
+		color : ${({active}) => active ? (void 0) : 'var(--warn-color)'};
+	}
+`;
+export const AsIsTypeIcon = styled.div.attrs({'data-widget': 'objective-as-is-type-icon'})`
+	display         : flex;
+	position        : relative;
+	align-items     : center;
+	justify-content : center;
+	padding         : 0 calc(var(--margin) / 2);
+	width           : 20px;
+	height          : 20px;
+	&[data-expanded=true] {
+		&:before {
+			display : none;
+		}
+		> svg {
+			transform  : rotateZ(180deg);
+			transition : transform 300ms ease-in-out;
+		}
+	}
+	&:before {
+		content          : '';
+		display          : block;
+		position         : absolute;
+		top              : 25%;
+		left             : 0;
+		width            : 1px;
+		height           : 50%;
+		background-color : var(--invert-color);
+		opacity          : 0.5;
+	}
+	> svg {
+		font-size : 0.8em;
 	}
 `;
