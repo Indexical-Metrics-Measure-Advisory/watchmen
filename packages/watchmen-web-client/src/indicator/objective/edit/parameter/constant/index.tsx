@@ -1,5 +1,6 @@
 import {Objective, ObjectiveParameter} from '@/services/data/tuples/objective-types';
 import {useForceUpdate} from '@/widgets/basic/utils';
+import {Lang} from '@/widgets/langs';
 import React, {ChangeEvent} from 'react';
 import {useParameterEventBus} from '../parameter-event-bus';
 import {ParameterEventTypes} from '../parameter-event-bus-types';
@@ -29,6 +30,7 @@ export const ConstantEditor = (props: { objective: Objective; parameter: Objecti
 	};
 
 	return <ConstantContainer>
-		<ConstantInput value={parameter.value || ''} onChange={onValueChange}/>
+		<ConstantInput placeholder={Lang.PLAIN.OBJECTIVE_FORMULA_CONSTANT_PLACEHOLDER}
+		               value={parameter.value || ''} onChange={onValueChange}/>
 	</ConstantContainer>;
 };
