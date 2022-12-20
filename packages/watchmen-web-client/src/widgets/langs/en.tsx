@@ -37,6 +37,7 @@ export const En = {
 		OBJECTIVE_DESCRIPTION_PLACEHOLDER: 'Objective description here...',
 		OBJECTIVE_VARIABLE_NAME_PLACEHOLDER: 'Variable name.',
 		OBJECTIVE_FACTOR_NAME_PLACEHOLDER: 'Indicator name.',
+		OBJECTIVE_FORMULA_CONSTANT_PLACEHOLDER: 'Use "{}" to include variables.',
 		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '";" to separate multiple addresses.'
 	},
 	STANDARD: {
