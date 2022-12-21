@@ -27,9 +27,9 @@ export enum ObjectivesEventTypes {
 	ASK_BUCKETS_DETAILS = 'ask-buckets-details',
 	ASK_BUCKET = 'ask-bucket',
 
-	ASK_USER_GROUPS = 'ask-user-groups',
+	ASK_ALL_USER_GROUPS = 'ask-all-user-groups',
 
-	ASK_INDICATORS = 'ask-indicators'
+	ASK_ALL_INDICATORS = 'ask-all-indicators'
 }
 
 export interface ObjectivesEventBus {
@@ -89,11 +89,11 @@ export interface ObjectivesEventBus {
 	on(type: ObjectivesEventTypes.ASK_BUCKET, listener: (bucketId: BucketId, onData: (bucket: Bucket) => void) => void): this;
 	off(type: ObjectivesEventTypes.ASK_BUCKET, listener: (bucketId: BucketId, onData: (bucket: Bucket) => void) => void): this;
 
-	fire(type: ObjectivesEventTypes.ASK_USER_GROUPS, onData: (groups: Array<QueryUserGroupForHolder>) => void): this;
-	on(type: ObjectivesEventTypes.ASK_USER_GROUPS, listener: (onData: (groups: Array<QueryUserGroupForHolder>) => void) => void): this;
-	off(type: ObjectivesEventTypes.ASK_USER_GROUPS, listener: (onData: (groups: Array<QueryUserGroupForHolder>) => void) => void): this;
+	fire(type: ObjectivesEventTypes.ASK_ALL_USER_GROUPS, onData: (groups: Array<QueryUserGroupForHolder>) => void): this;
+	on(type: ObjectivesEventTypes.ASK_ALL_USER_GROUPS, listener: (onData: (groups: Array<QueryUserGroupForHolder>) => void) => void): this;
+	off(type: ObjectivesEventTypes.ASK_ALL_USER_GROUPS, listener: (onData: (groups: Array<QueryUserGroupForHolder>) => void) => void): this;
 
-	fire(type: ObjectivesEventTypes.ASK_INDICATORS, onData: (groups: Array<Indicator>) => void): this;
-	on(type: ObjectivesEventTypes.ASK_INDICATORS, listener: (onData: (groups: Array<Indicator>) => void) => void): this;
-	off(type: ObjectivesEventTypes.ASK_INDICATORS, listener: (onData: (groups: Array<Indicator>) => void) => void): this;
+	fire(type: ObjectivesEventTypes.ASK_ALL_INDICATORS, onData: (groups: Array<Indicator>) => void): this;
+	on(type: ObjectivesEventTypes.ASK_ALL_INDICATORS, listener: (onData: (groups: Array<Indicator>) => void) => void): this;
+	off(type: ObjectivesEventTypes.ASK_ALL_INDICATORS, listener: (onData: (groups: Array<Indicator>) => void) => void): this;
 }

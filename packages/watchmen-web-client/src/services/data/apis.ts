@@ -185,6 +185,7 @@ export const Apis = {
 	BUCKET_LIST_BY_METHODS: 'indicator/bucket/methods',
 	BUCKETS_EXPORT: 'indicator/bucket/export',
 
+	// TODO NEW APIS NEED TO BE IMPLEMENTED AT BACKEND
 	OBJECTIVE_LIST_BY_NAME: 'indicator/objective/name?query_name=:search',
 	OBJECTIVE_GET: 'indicator/objective?objective_id=:objectiveId',
 	OBJECTIVE_CREATE: 'indicator/objective',
