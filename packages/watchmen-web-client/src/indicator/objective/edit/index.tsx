@@ -1,4 +1,3 @@
-import {useInitializeBuckets} from '@/indicator/objective/edit/state/use-initialize-buckets';
 import {FixWidthPage} from '@/widgets/basic/page';
 import {PageHeader} from '@/widgets/basic/page-header';
 import {Lang} from '@/widgets/langs';
@@ -6,7 +5,7 @@ import React from 'react';
 import {Description} from './description';
 import {Factors} from './factors';
 import {NameAndSave} from './name-and-save';
-import {useInitializeObjective} from './state/use-initialize-objective';
+import {usePrepareObjective} from './state';
 import {Targets} from './targets';
 import {TimeFrame} from './time-frame';
 import {UserGroup} from './user-group';
@@ -14,15 +13,12 @@ import {Variables} from './variables';
 import {ObjectiveContainer} from './widgets';
 
 export const ObjectiveEditor = () => {
-	const objective = useInitializeObjective();
-	const bucketsInitialized = useInitializeBuckets(objective);
-
-	if (objective == null || !bucketsInitialized) {
+	const {objective, initialized} = usePrepareObjective();
+	if (!initialized || objective == null) {
 		return null;
 	}
 
 	// render when all reference data ready
-
 	return <FixWidthPage>
 		<PageHeader title={Lang.INDICATOR.OBJECTIVE.TITLE}/>
 		<ObjectiveContainer>

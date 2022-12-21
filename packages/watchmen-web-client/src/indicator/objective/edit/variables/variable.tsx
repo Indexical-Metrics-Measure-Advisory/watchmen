@@ -156,8 +156,8 @@ const VariableValues = (props: {
 		variableOnBucket.bucketId = bucketId;
 		delete variableOnBucket.segmentName;
 
-		fire(ObjectivesEventTypes.ASK_BUCKET, bucketId, (bucket: Bucket) => {
-			setSelectedBucket(bucket);
+		fire(ObjectivesEventTypes.ASK_BUCKET, bucketId, (bucket?: Bucket) => {
+			setSelectedBucket(bucket ?? null);
 			fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
 			forceUpdate();
 		});

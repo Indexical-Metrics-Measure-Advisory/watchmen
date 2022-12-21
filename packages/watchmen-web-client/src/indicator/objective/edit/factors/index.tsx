@@ -1,3 +1,4 @@
+import {useAskIndicators} from '@/indicator/objective/edit/hooks/use-ask-indicators';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import {
 	Objective,
@@ -11,7 +12,7 @@ import {noop} from '@/services/utils';
 import {ButtonInk} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {useObjectivesEventBus} from '../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 import {EditStep} from '../edit-step';
@@ -20,21 +21,22 @@ import {AddItemButton, ItemsButtons} from '../widgets';
 import {FactorItem} from './factor-item';
 import {FactorsContainer} from './widgets';
 
+interface Indicators {
+	initialized: boolean;
+	all: Array<Indicator>;
+}
+
 export const Factors = (props: { objective: Objective }) => {
 	const {objective} = props;
 
 	const {fire} = useObjectivesEventBus();
-	const [indicators, setIndicators] = useState<{ loaded: boolean; data: Array<Indicator> }>({
-		loaded: false, data: []
-	});
+	const [indicators, setIndicators] = useState<Indicators>({initialized: false, all: []});
 	const forceUpdate = useForceUpdate();
-	useEffect(() => {
-		if (!indicators.loaded) {
-			fire(ObjectivesEventTypes.ASK_ALL_INDICATORS, (data: Array<Indicator>) => {
-				setIndicators({loaded: true, data});
-			});
-		}
-	}, [fire, indicators.loaded]);
+	useAskIndicators({
+		objective,
+		shouldAsk: () => !indicators.initialized,
+		onLoad: (all) => setIndicators({initialized: true, all})
+	});
 
 	if (objective.factors == null) {
 		objective.factors = [];
@@ -77,7 +79,7 @@ export const Factors = (props: { objective: Objective }) => {
 			{factors.map((factor, index) => {
 				return <FactorItem objective={objective} factor={factor} index={index + 1}
 				                   onRemove={onRemove}
-				                   indicators={indicators.data}
+				                   indicators={indicators.all}
 				                   key={factor.uuid}/>;
 			})}
 			<ItemsButtons>
