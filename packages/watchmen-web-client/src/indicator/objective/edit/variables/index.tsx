@@ -33,7 +33,7 @@ export const Variables = (props: { objective: Objective }) => {
 	const [buckets, setBuckets] = useState<Buckets>({initialized: false, all: [], selected: []});
 	useAskBuckets({
 		objective,
-		shouldAsk: () => !buckets.initialized,
+		shouldStartAsk: () => !buckets.initialized,
 		detailBucketIds: (objective) => Promise.resolve(askVariableBucketIds(objective)),
 		onLoad: (all, details) => setBuckets({initialized: true, all, selected: details})
 	});

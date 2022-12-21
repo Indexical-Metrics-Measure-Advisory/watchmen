@@ -7,18 +7,18 @@ import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 
 export const useAskBuckets = (options: {
 	objective?: Objective | null;
-	shouldAsk: () => boolean;
+	shouldStartAsk: () => boolean;
 	// keep it unchanged
 	detailBucketIds: (objective: Objective) => Promise<Array<BucketId>>;
 	// keep it unchanged
 	onLoad: (all: Array<QueryBucket>, details: Array<Bucket>) => void;
 }) => {
-	const {objective, shouldAsk, detailBucketIds, onLoad} = options;
+	const {objective, shouldStartAsk, detailBucketIds, onLoad} = options;
 
 	const {fire} = useObjectivesEventBus();
 
 	useEffect(() => {
-		if (objective == null || !shouldAsk()) {
+		if (objective == null || !shouldStartAsk()) {
 			return;
 		}
 		fire(ObjectivesEventTypes.ASK_ALL_BUCKETS, async (all: Array<QueryBucket>) => {
@@ -32,5 +32,5 @@ export const useAskBuckets = (options: {
 				});
 			}
 		});
-	}, [fire, objective, shouldAsk, detailBucketIds, onLoad]);
+	}, [fire, objective, shouldStartAsk, detailBucketIds, onLoad]);
 };
