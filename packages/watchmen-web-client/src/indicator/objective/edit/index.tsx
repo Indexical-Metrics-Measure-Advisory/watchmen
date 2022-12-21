@@ -1,14 +1,12 @@
-import {Objective} from '@/services/data/tuples/objective-types';
+import {useInitializeBuckets} from '@/indicator/objective/edit/state/use-initialize-buckets';
 import {FixWidthPage} from '@/widgets/basic/page';
 import {PageHeader} from '@/widgets/basic/page-header';
 import {Lang} from '@/widgets/langs';
-import React, {useEffect, useState} from 'react';
-import {useObjectivesEventBus} from '../objectives-event-bus';
-import {ObjectivesEventTypes} from '../objectives-event-bus-types';
-import {createObjective} from '../utils';
+import React from 'react';
 import {Description} from './description';
 import {Factors} from './factors';
 import {NameAndSave} from './name-and-save';
+import {useInitializeObjective} from './state/use-initialize-objective';
 import {Targets} from './targets';
 import {TimeFrame} from './time-frame';
 import {UserGroup} from './user-group';
@@ -16,21 +14,14 @@ import {Variables} from './variables';
 import {ObjectiveContainer} from './widgets';
 
 export const ObjectiveEditor = () => {
-	const {fire} = useObjectivesEventBus();
-	const [objective, setObjective] = useState<Objective | null>(null);
-	useEffect(() => {
-		fire(ObjectivesEventTypes.ASK_OBJECTIVE, (objective?: Objective) => {
-			if (objective == null) {
-				setObjective(createObjective());
-			} else {
-				setObjective(objective);
-			}
-		});
-	}, [fire]);
+	const objective = useInitializeObjective();
+	const bucketsInitialized = useInitializeBuckets(objective);
 
-	if (objective == null) {
+	if (objective == null || !bucketsInitialized) {
 		return null;
 	}
+
+	// render when all reference data ready
 
 	return <FixWidthPage>
 		<PageHeader title={Lang.INDICATOR.OBJECTIVE.TITLE}/>

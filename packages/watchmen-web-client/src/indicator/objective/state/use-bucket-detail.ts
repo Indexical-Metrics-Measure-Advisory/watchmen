@@ -4,9 +4,11 @@ import {useEffect, useState} from 'react';
 import {useObjectivesEventBus} from '../objectives-event-bus';
 import {ObjectivesEventTypes} from '../objectives-event-bus-types';
 
+type Buckets = Record<BucketId, Bucket>
+
 export const useBucketDetail = () => {
 	const {on, off} = useObjectivesEventBus();
-	const [buckets, setBuckets] = useState<Array<Bucket>>([]);
+	const [buckets] = useState<Buckets>({});
 	useEffect(() => {
 		const onAskBucketDetails = async (bucketIds: Array<BucketId>, onData: (buckets: Array<Bucket>) => void) => {
 			if (bucketIds.length === 0) {
@@ -14,25 +16,22 @@ export const useBucketDetail = () => {
 			} else {
 				// filter the bucket which didn't load yet
 				// eslint-disable-next-line
-				const lackedBucketIds = bucketIds.filter(bucketId => buckets.every(bucket => bucket.bucketId != bucketId));
+				const lackedBucketIds = bucketIds.filter(bucketId => buckets[`${bucketId}`] == null);
 				const lackedBuckets = await fetchBucketsByIds(lackedBucketIds);
-				const all = [...lackedBuckets, ...buckets];
-				setBuckets(all);
-				const map = all.reduce((map, bucket) => {
-					map[`${bucket.bucketId}`] = bucket;
-					return map;
-				}, {} as Record<BucketId, Bucket>);
-				onData(bucketIds.map(bucketId => map[bucketId]).filter(bucket => bucket != null));
+				// sync to state
+				lackedBuckets.map(bucket => buckets[`${bucket.bucketId}`] = bucket);
+				onData(bucketIds.map(bucketId => buckets[`${bucketId}`]).filter(bucket => bucket != null));
 			}
 		};
 		const onAskBucket = async (bucketId: BucketId, onData: (bucket: Bucket) => void) => {
 			// eslint-disable-next-line
-			const found = buckets.find(bucket => bucket.bucketId == bucketId);
+			const found = buckets[`${bucketId}`];
 			if (found != null) {
 				onData(found);
 			} else {
 				const {bucket} = await fetchBucket(bucketId);
-				setBuckets([...buckets, bucket]);
+				// sync to state
+				buckets[`${bucket.bucketId}`] = bucket;
 				onData(bucket);
 			}
 		};
