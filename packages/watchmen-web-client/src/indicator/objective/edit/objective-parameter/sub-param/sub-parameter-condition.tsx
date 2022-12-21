@@ -6,10 +6,10 @@ import {
 	ObjectiveParameter
 } from '@/services/data/tuples/objective-types';
 import React from 'react';
+import {isCaseThenParameter} from '../../param-utils';
 import {ConditionalEditor} from '../conditional';
 import {useParameterEventBus} from '../parameter-event-bus';
 import {ParameterEventTypes} from '../parameter-event-bus-types';
-import {isCaseThenParameter} from '../utils';
 import {SubParameterConditionContainer} from './widgets';
 
 export const SubParameterCondition = (props: {

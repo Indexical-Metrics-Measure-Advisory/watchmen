@@ -7,10 +7,10 @@ import {
 } from '@/services/data/tuples/objective-types';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {useEffect} from 'react';
+import {isComputedParameter} from '../../param-utils';
 import {useParameterEventBus} from '../parameter-event-bus';
 import {ParameterEventTypes} from '../parameter-event-bus-types';
 import {useParameterFromChanged} from '../use-parameter-from-changed';
-import {isComputedParameter} from '../utils';
 import {FormulaOperatorEditor} from './formula-operator';
 import {Parameters} from './parameters';
 import {useDelegateComputedParameterChildChangedToMe} from './use-computed-parameter';

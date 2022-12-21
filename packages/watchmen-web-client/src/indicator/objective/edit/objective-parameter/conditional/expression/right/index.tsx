@@ -1,7 +1,7 @@
 import {Objective, ObjectiveFactor, ObjectiveParameterExpression} from '@/services/data/tuples/objective-types';
 import {useForceUpdate} from '@/widgets/basic/utils';
-import {ParameterEventBusProvider} from '@/widgets/parameter/parameter-event-bus';
 import React, {useEffect} from 'react';
+import {ParameterEventBusProvider} from '../../../parameter-event-bus';
 import {useExpressionEventBus} from '../../event-bus/expression-event-bus';
 import {ExpressionEventTypes} from '../../event-bus/expression-event-bus-types';
 import {ExpressionSide} from '../expression-side';

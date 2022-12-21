@@ -1,6 +1,6 @@
-import {useParameterEventBus} from '@/widgets/parameter/parameter-event-bus';
-import {ParameterEventTypes} from '@/widgets/parameter/parameter-event-bus-types';
 import React, {Fragment, useEffect} from 'react';
+import {useParameterEventBus} from '../../parameter-event-bus';
+import {ParameterEventTypes} from '../../parameter-event-bus-types';
 
 export const Parameter2ExpressionBridge = (props: { onChange: () => void }) => {
 	const {onChange} = props;

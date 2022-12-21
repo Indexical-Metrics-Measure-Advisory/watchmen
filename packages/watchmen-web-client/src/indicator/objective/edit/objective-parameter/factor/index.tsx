@@ -11,8 +11,8 @@ import {Lang} from '@/widgets/langs';
 import React, {useEffect} from 'react';
 import {useObjectivesEventBus} from '../../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../../objectives-event-bus-types';
+import {isReferParameter} from '../../param-utils';
 import {useParameterFromChanged} from '../use-parameter-from-changed';
-import {isReferParameter} from '../utils';
 import {useFactor} from './use-factor';
 import {FactorDropdown, FactorEditContainer, IncorrectOptionLabel} from './widgets';
 

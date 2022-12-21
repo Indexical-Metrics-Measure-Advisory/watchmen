@@ -1,8 +1,8 @@
 import {ObjectiveParameter, ObjectiveParameterType} from '@/services/data/tuples/objective-types';
 import {MouseEvent, useState} from 'react';
+import {defendParameterAndRemoveUnnecessary} from '../../param-utils';
 import {useParameterEventBus} from '../parameter-event-bus';
 import {ParameterEventTypes} from '../parameter-event-bus-types';
-import {defendParameterAndRemoveUnnecessary} from '../utils';
 
 export const useParamFrom = (parameter: ObjectiveParameter) => {
 	const {fire} = useParameterEventBus();

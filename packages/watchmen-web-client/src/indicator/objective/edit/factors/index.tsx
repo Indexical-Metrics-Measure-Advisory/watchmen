@@ -59,7 +59,7 @@ export const Factors = (props: { objective: Objective }) => {
 	};
 	const onAddIndicatorClicked = () => {
 		const factor = {
-			uuid: uuid(), kind: ObjectiveFactorKind.INDICATOR, conditional: true
+			uuid: uuid(), kind: ObjectiveFactorKind.INDICATOR, conditional: false
 		} as ObjectiveFactorOnIndicator;
 		objective.factors!.push(factor);
 		fire(ObjectivesEventTypes.FACTOR_ADDED, objective, factor);

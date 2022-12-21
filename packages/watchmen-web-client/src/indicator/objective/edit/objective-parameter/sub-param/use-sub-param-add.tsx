@@ -3,7 +3,7 @@ import {AlertLabel} from '@/widgets/alert/widgets';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import React from 'react';
-import {canAddMoreParameter, createFactorParameter} from '../utils';
+import {canAddMoreParameter, createFactorParameter} from '../../param-utils';
 
 export const useSubParamAdd = (
 	parent: ComputedObjectiveParameter,

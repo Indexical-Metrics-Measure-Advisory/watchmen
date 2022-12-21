@@ -7,7 +7,7 @@ import {
 import {useForceUpdate} from '@/widgets/basic/utils';
 import React, {useEffect} from 'react';
 import {v4} from 'uuid';
-import {isExpressionParameter, isJointParameter} from '../../utils';
+import {isExpressionParameter, isJointParameter} from '../../../param-utils';
 import {Condition} from '../condition';
 import {useJointEventBus} from '../event-bus/joint-event-bus';
 import {JointEventTypes} from '../event-bus/joint-event-bus-types';

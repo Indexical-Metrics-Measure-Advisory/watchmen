@@ -1,5 +1,7 @@
 import {BucketId} from './bucket-types';
+import {FactorId} from './factor-types';
 import {IndicatorId} from './indicator-types';
+import {SubjectDataSetColumnId} from './subject-types';
 import {TenantId} from './tenant-types';
 import {OptimisticLock, Tuple} from './tuple-types';
 import {UserGroupHolder} from './user-group-types';
@@ -19,9 +21,14 @@ export interface ObjectiveParameter {
 export type ObjectiveFactorName = string;
 export type ObjectiveFactorId = string;
 
+/**
+ * it's a multiple purposes object.
+ * when it is used in factor/target formula, {@link #uuid} should refer to another objective factor.
+ * and when it is used in factor filter, {@link #uuid} should refer to factor from topic or column from subject dataset.
+ */
 export interface ReferObjectiveParameter extends ObjectiveParameter {
 	kind: ObjectiveParameterType.REFER;
-	uuid: ObjectiveFactorId;
+	uuid: ObjectiveFactorId | FactorId | SubjectDataSetColumnId;
 }
 
 export interface ConstantObjectiveParameter extends ObjectiveParameter {
@@ -35,6 +42,15 @@ export enum ObjectiveFormulaOperator {
 	SUBTRACT = 'subtract',
 	MULTIPLY = 'multiply',
 	DIVIDE = 'divide',
+	MODULUS = 'modulus',
+	YEAR_OF = 'year-of',
+	HALF_YEAR_OF = 'half-year-of',
+	QUARTER_OF = 'quarter-of',
+	MONTH_OF = 'month-of',
+	WEEK_OF_YEAR = 'week-of-year',
+	WEEK_OF_MONTH = 'week-of-month',
+	DAY_OF_MONTH = 'day-of-month',
+	DAY_OF_WEEK = 'day-of-week',
 
 	ROUND = 'round',
 	FLOOR = 'floor',
@@ -62,12 +78,16 @@ export interface ObjectiveParameterCondition {
 }
 
 export enum ObjectiveParameterExpressionOperator {
+	EMPTY = 'empty',
+	NOT_EMPTY = 'not-empty',
 	EQUALS = 'equals',
 	NOT_EQUALS = 'not-equals',
 	LESS = 'less',
 	LESS_EQUALS = 'less-equals',
 	MORE = 'more',
 	MORE_EQUALS = 'more-equals',
+	IN = 'in',
+	NOT_IN = 'not-in',
 }
 
 export interface ObjectiveParameterExpression extends ObjectiveParameterCondition {
