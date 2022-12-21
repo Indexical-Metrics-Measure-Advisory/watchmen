@@ -492,6 +492,7 @@ export const En = {
 			INDICATOR_PLACEHOLDER: 'Indicator?',
 			INCORRECT_INDICATOR: 'Unknown indicator',
 			NO_AVAILABLE_INDICATOR: 'No available indicator.',
+			FACTOR_INDICATOR_NOT_READY: 'is available only when indicator selected.',
 			ADD_INDICATOR: 'Add Indicator',
 			ADD_COMPUTED_INDICATOR: 'Add Computation',
 			NOT_NOW: 'Not Now',

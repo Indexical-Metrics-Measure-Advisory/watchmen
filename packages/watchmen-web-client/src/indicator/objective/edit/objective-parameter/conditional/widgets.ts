@@ -2,6 +2,7 @@ import styled from 'styled-components';
 
 export const ConditionalContainer = styled.div.attrs({'data-widget': 'conditional'})`
 	display               : grid;
+	position              : relative;
 	grid-template-columns : 1fr;
 	grid-row-gap          : calc(var(--margin) / 4);
 	grid-auto-rows        : minmax(var(--height), auto);

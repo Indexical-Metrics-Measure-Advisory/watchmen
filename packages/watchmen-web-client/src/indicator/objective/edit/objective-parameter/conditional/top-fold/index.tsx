@@ -6,6 +6,7 @@ import {ConditionalEventTypes} from '../conditional-event-bus-types';
 import {JointFold} from '../joint-fold';
 
 export const TopFold = (props: { conditional: ConditionalObjectiveParameter }) => {
+	// noinspection DuplicatedCode
 	const {conditional} = props;
 
 	const {on, off} = useConditionalEventBus();

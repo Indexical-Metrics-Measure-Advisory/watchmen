@@ -14,11 +14,11 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {MouseEvent, useEffect, useState} from 'react';
 import {useObjectivesEventBus} from '../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
-import {ComputedEditor} from '../parameter/compute';
-import {FactorEditor} from '../parameter/factor';
-import {ParameterEventBusProvider, useParameterEventBus} from '../parameter/parameter-event-bus';
-import {ParameterEventTypes} from '../parameter/parameter-event-bus-types';
-import {createFactorParameter} from '../parameter/utils';
+import {ComputedEditor} from '../objective-parameter/compute';
+import {FactorEditor} from '../objective-parameter/factor';
+import {ParameterEventBusProvider, useParameterEventBus} from '../objective-parameter/parameter-event-bus';
+import {ParameterEventTypes} from '../objective-parameter/parameter-event-bus-types';
+import {createFactorParameter} from '../objective-parameter/utils';
 import {AsIsContainer, AsIsTypeButton, AsIsTypeContainer, AsIsTypeIcon} from './widgets';
 
 const isReferIndicator = (target: ObjectiveTarget): boolean => {
