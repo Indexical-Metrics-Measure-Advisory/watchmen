@@ -1,9 +1,9 @@
 import {TuplePage} from '@/services/data/query/tuple-page';
 import {Objective} from '@/services/data/tuples/objective-types';
 import {QueryObjective} from '@/services/data/tuples/query-objective-types';
-import {Fragment, useEffect, useState} from 'react';
-import {useObjectivesEventBus} from './objectives-event-bus';
-import {ObjectivesEventTypes} from './objectives-event-bus-types';
+import {useEffect, useState} from 'react';
+import {useObjectivesEventBus} from '../objectives-event-bus';
+import {ObjectivesEventTypes} from '../objectives-event-bus-types';
 
 interface ListData {
 	page?: TuplePage<QueryObjective>;
@@ -11,7 +11,7 @@ interface ListData {
 	searched: boolean;
 }
 
-export const ObjectiveListState = () => {
+export const useObjectiveList = () => {
 	const {on, off} = useObjectivesEventBus();
 	const [data, setData] = useState<ListData>({searched: false});
 
@@ -47,6 +47,4 @@ export const ObjectiveListState = () => {
 			off(ObjectivesEventTypes.OBJECTIVE_SAVED, onObjectiveSaved);
 		};
 	}, [on, off, data.page?.data]);
-
-	return <Fragment/>;
 };

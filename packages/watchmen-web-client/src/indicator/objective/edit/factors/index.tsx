@@ -30,7 +30,7 @@ export const Factors = (props: { objective: Objective }) => {
 	const forceUpdate = useForceUpdate();
 	useEffect(() => {
 		if (!indicators.loaded) {
-			fire(ObjectivesEventTypes.ASK_INDICATORS, (data: Array<Indicator>) => {
+			fire(ObjectivesEventTypes.ASK_ALL_INDICATORS, (data: Array<Indicator>) => {
 				setIndicators({loaded: true, data});
 			});
 		}

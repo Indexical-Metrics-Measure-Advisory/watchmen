@@ -5,9 +5,8 @@ import React from 'react';
 import {Routes} from 'react-router-dom';
 import {ObjectiveEditor} from './edit';
 import ObjectiveList from './list';
-import {ObjectiveListState} from './objective-list-state';
-import {ObjectiveState} from './objective-state';
 import {ObjectivesEventBusProvider} from './objectives-event-bus';
+import {ObjectivesState} from './state';
 
 const ObjectiveRoute = () => {
 	return <Routes>
@@ -21,8 +20,7 @@ const ObjectiveIndex = () => {
 	useHelp(HELP_KEYS.IDW_OBJECTIVE);
 
 	return <ObjectivesEventBusProvider>
-		<ObjectiveListState/>
-		<ObjectiveState/>
+		<ObjectivesState/>
 		<ObjectiveRoute/>
 	</ObjectivesEventBusProvider>;
 };

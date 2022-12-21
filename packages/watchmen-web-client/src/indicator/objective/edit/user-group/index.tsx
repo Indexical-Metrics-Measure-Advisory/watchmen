@@ -17,7 +17,7 @@ export const UserGroup = (props: { objective: Objective }) => {
 	});
 	useEffect(() => {
 		if (!userGroups.loaded) {
-			fire(ObjectivesEventTypes.ASK_USER_GROUPS, (groups: Array<QueryUserGroupForHolder>) => {
+			fire(ObjectivesEventTypes.ASK_ALL_USER_GROUPS, (groups: Array<QueryUserGroupForHolder>) => {
 				setUserGroups({loaded: true, data: groups});
 			});
 		}
