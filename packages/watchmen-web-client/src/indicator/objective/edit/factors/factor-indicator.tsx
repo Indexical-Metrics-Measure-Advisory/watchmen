@@ -1,4 +1,3 @@
-import {FactorFilter} from '@/indicator/objective/edit/factors/filter';
 import {Indicator, IndicatorId} from '@/services/data/tuples/indicator-types';
 import {Objective, ObjectiveFactor} from '@/services/data/tuples/objective-types';
 import {isBlank, noop} from '@/services/utils';
@@ -9,6 +8,7 @@ import React from 'react';
 import {useObjectivesEventBus} from '../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 import {isIndicatorFactor} from '../utils';
+import {FactorFilter} from './filter';
 import {FactorItemLabel, IncorrectOptionLabel, IndicatorDropdown} from './widgets';
 
 export const FactorIndicator = (props: { objective: Objective; factor: ObjectiveFactor; indicators: Array<Indicator>; }) => {
@@ -55,7 +55,7 @@ export const FactorIndicator = (props: { objective: Objective; factor: Objective
 	}
 
 	// eslint-disable-next-line
-	const selectedIndicator =  indicators.find(indicator => indicator.indicatorId == factor.indicatorId);
+	const selectedIndicator = indicators.find(indicator => indicator.indicatorId == factor.indicatorId);
 
 	return <>
 		<FactorItemLabel>{Lang.INDICATOR.OBJECTIVE.FACTOR_INDICATOR}</FactorItemLabel>

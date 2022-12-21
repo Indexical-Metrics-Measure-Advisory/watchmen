@@ -493,6 +493,7 @@ export const Jp: LanguageDeclareType = {
 			NO_AVAILABLE_INDICATOR: '選択可能な指標はありません。',
 			INDICATOR_PLACEHOLDER: '指標？',
 			FACTOR_INDICATOR_NOT_READY: '今設定することはできません、最初に指標を選択してください。',
+			FACTOR_NO_FILTER: 'すべてのデータ',
 			ADD_INDICATOR: '指標を追加',
 			ADD_COMPUTED_INDICATOR: '計算指標を追加',
 			NOT_NOW: '捨てる',

@@ -1,4 +1,3 @@
-import {useAskIndicators} from '@/indicator/objective/edit/hooks/use-ask-indicators';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import {
 	Objective,
@@ -16,6 +15,7 @@ import React, {useState} from 'react';
 import {useObjectivesEventBus} from '../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 import {EditStep} from '../edit-step';
+import {useAskIndicators} from '../hooks/use-ask-indicators';
 import {ObjectiveDeclarationStep} from '../steps';
 import {AddItemButton, ItemsButtons} from '../widgets';
 import {FactorItem} from './factor-item';
@@ -58,7 +58,9 @@ export const Factors = (props: { objective: Objective }) => {
 		forceUpdate();
 	};
 	const onAddIndicatorClicked = () => {
-		const factor = {uuid: uuid(), kind: ObjectiveFactorKind.INDICATOR} as ObjectiveFactorOnIndicator;
+		const factor = {
+			uuid: uuid(), kind: ObjectiveFactorKind.INDICATOR, conditional: true
+		} as ObjectiveFactorOnIndicator;
 		objective.factors!.push(factor);
 		fire(ObjectivesEventTypes.FACTOR_ADDED, objective, factor);
 		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);

@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 
-export const FactorFilterContainer = styled.div.attrs({'data-widget': 'objective-factor-filter'})`
+export const FilterContainer = styled.div.attrs({'data-widget': 'objective-factor-filter'})`
 	display               : grid;
 	position              : relative;
 	grid-template-columns : 1fr;
@@ -9,7 +9,7 @@ export const FactorFilterContainer = styled.div.attrs({'data-widget': 'objective
 	margin-left           : calc(var(--margin) / -2);
 	margin-right          : calc(var(--margin) / 2);
 `;
-export const IndicatorNotReady = styled.div.attrs({'data-widget': 'objective-factor-indicator-not-ready'})`
+export const IndicatorNotReady = styled.div.attrs({'data-widget': 'objective-factor-filter-indicator-not-ready'})`
 	display          : flex;
 	position         : relative;
 	align-items      : center;
@@ -21,4 +21,7 @@ export const IndicatorNotReady = styled.div.attrs({'data-widget': 'objective-fac
 	width            : 300px;
 	border-radius    : 0 calc(var(--param-height) / 2) calc(var(--param-height) / 2) 0;
 	box-shadow       : var(--param-border);
+`;
+export const FilterHeader = styled.div.attrs({'data-widget': 'objective-factor-filter-header'})`
+	display : flex;
 `;
