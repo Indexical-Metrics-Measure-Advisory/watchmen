@@ -1,3 +1,4 @@
+import {FactorFilter} from '@/indicator/objective/edit/factors/filter';
 import {Indicator, IndicatorId} from '@/services/data/tuples/indicator-types';
 import {Objective, ObjectiveFactor} from '@/services/data/tuples/objective-types';
 import {isBlank, noop} from '@/services/utils';
@@ -53,11 +54,15 @@ export const FactorIndicator = (props: { objective: Objective; factor: Objective
 		});
 	}
 
+	// eslint-disable-next-line
+	const selectedIndicator =  indicators.find(indicator => indicator.indicatorId == factor.indicatorId);
+
 	return <>
 		<FactorItemLabel>{Lang.INDICATOR.OBJECTIVE.FACTOR_INDICATOR}</FactorItemLabel>
 		<IndicatorDropdown value={factor.indicatorId ?? ''} options={options} onChange={onIndicatorChanged}
 		                   please={Lang.INDICATOR.OBJECTIVE.INDICATOR_PLACEHOLDER}
 		                   valid={indicatorValid}/>
 		<FactorItemLabel>{Lang.INDICATOR.OBJECTIVE.FACTOR_INDICATOR_FILTER}</FactorItemLabel>
+		<FactorFilter objective={objective} factor={factor} indicator={selectedIndicator}/>
 	</>;
 };

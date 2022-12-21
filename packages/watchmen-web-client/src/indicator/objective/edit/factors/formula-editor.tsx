@@ -9,10 +9,10 @@ import {Lang} from '@/widgets/langs';
 import React, {useEffect} from 'react';
 import {useObjectivesEventBus} from '../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
-import {ComputedEditor} from '../parameter/compute';
-import {useParameterEventBus} from '../parameter/parameter-event-bus';
-import {ParameterEventTypes} from '../parameter/parameter-event-bus-types';
-import {createFactorParameter} from '../parameter/utils';
+import {ComputedEditor} from '../objective-parameter/compute';
+import {useParameterEventBus} from '../objective-parameter/parameter-event-bus';
+import {ParameterEventTypes} from '../objective-parameter/parameter-event-bus-types';
+import {createFactorParameter} from '../objective-parameter/utils';
 import {isIndicatorFactor} from '../utils';
 import {FactorItemLabel} from './widgets';
 

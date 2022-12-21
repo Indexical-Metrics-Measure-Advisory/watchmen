@@ -3,7 +3,7 @@ import {Objective, ObjectiveFactor} from '@/services/data/tuples/objective-types
 import {ButtonInk} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
 import React from 'react';
-import {ParameterEventBusProvider} from '../parameter/parameter-event-bus';
+import {ParameterEventBusProvider} from '../objective-parameter/parameter-event-bus';
 import {ItemNo, RemoveItemButton} from '../widgets';
 import {FactorIndicator} from './factor-indicator';
 import {FactorName} from './factor-name';
