@@ -27,7 +27,7 @@ export const useAskBuckets = (options: {
 				onLoad(all, []);
 			} else {
 				const bucketIds: Array<BucketId> = await detailBucketIds(objective);
-				fire(ObjectivesEventTypes.ASK_BUCKETS_DETAILS, bucketIds, (details: Array<Bucket>) => {
+				fire(ObjectivesEventTypes.ASK_BUCKETS, bucketIds, (details: Array<Bucket>) => {
 					onLoad(all, details);
 				});
 			}

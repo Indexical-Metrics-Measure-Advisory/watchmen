@@ -35,10 +35,10 @@ export const useBucketDetail = () => {
 				onData(bucket);
 			}
 		};
-		on(ObjectivesEventTypes.ASK_BUCKETS_DETAILS, onAskBucketDetails);
+		on(ObjectivesEventTypes.ASK_BUCKETS, onAskBucketDetails);
 		on(ObjectivesEventTypes.ASK_BUCKET, onAskBucket);
 		return () => {
-			off(ObjectivesEventTypes.ASK_BUCKETS_DETAILS, onAskBucketDetails);
+			off(ObjectivesEventTypes.ASK_BUCKETS, onAskBucketDetails);
 			off(ObjectivesEventTypes.ASK_BUCKET, onAskBucket);
 		};
 	}, [on, off, buckets]);

@@ -2,7 +2,7 @@ import {TuplePage} from '@/services/data/query/tuple-page';
 import {Bucket, BucketId} from '@/services/data/tuples/bucket-types';
 import {Indicator, IndicatorId} from '@/services/data/tuples/indicator-types';
 import {Objective, ObjectiveFactor, ObjectiveId, ObjectiveTarget} from '@/services/data/tuples/objective-types';
-import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
+import {QueryBucket, QueryByBucketMethod} from '@/services/data/tuples/query-bucket-types';
 import {SubjectForIndicator} from '@/services/data/tuples/query-indicator-types';
 import {QueryObjective} from '@/services/data/tuples/query-objective-types';
 import {QueryUserGroupForHolder} from '@/services/data/tuples/query-user-group-types';
@@ -27,7 +27,8 @@ export enum ObjectivesEventTypes {
 	TARGET_ASIS_TYPE_CHANGED = 'target-as-is-type-changed',
 
 	ASK_ALL_BUCKETS = 'ask-all-buckets',
-	ASK_BUCKETS_DETAILS = 'ask-buckets-details',
+	ASK_BUCKET_ID_BY_MEASURE = 'ask-bucket-id-by-measure',
+	ASK_BUCKETS = 'ask-buckets-details',
 	ASK_BUCKET = 'ask-bucket',
 
 	ASK_ALL_USER_GROUPS = 'ask-all-user-groups',
@@ -87,9 +88,13 @@ export interface ObjectivesEventBus {
 	on(type: ObjectivesEventTypes.ASK_ALL_BUCKETS, listener: (onData: (buckets: Array<QueryBucket>) => void) => void): this;
 	off(type: ObjectivesEventTypes.ASK_ALL_BUCKETS, listener: (onData: (buckets: Array<QueryBucket>) => void) => void): this;
 
-	fire(type: ObjectivesEventTypes.ASK_BUCKETS_DETAILS, bucketIds: Array<BucketId>, onData: (buckets: Array<Bucket>) => void): this;
-	on(type: ObjectivesEventTypes.ASK_BUCKETS_DETAILS, listener: (bucketIds: Array<BucketId>, onData: (buckets: Array<Bucket>) => void) => void): this;
-	off(type: ObjectivesEventTypes.ASK_BUCKETS_DETAILS, listener: (bucketIds: Array<BucketId>, onData: (buckets: Array<Bucket>) => void) => void): this;
+	fire(type: ObjectivesEventTypes.ASK_BUCKET_ID_BY_MEASURE, method: QueryByBucketMethod, onData: (bucketIds: Array<BucketId>) => void): this;
+	on(type: ObjectivesEventTypes.ASK_BUCKET_ID_BY_MEASURE, listener: (method: QueryByBucketMethod, onData: (bucketIds: Array<BucketId>) => void) => void): this;
+	off(type: ObjectivesEventTypes.ASK_BUCKET_ID_BY_MEASURE, listener: (method: QueryByBucketMethod, onData: (bucketIds: Array<BucketId>) => void) => void): this;
+
+	fire(type: ObjectivesEventTypes.ASK_BUCKETS, bucketIds: Array<BucketId>, onData: (buckets: Array<Bucket>) => void): this;
+	on(type: ObjectivesEventTypes.ASK_BUCKETS, listener: (bucketIds: Array<BucketId>, onData: (buckets: Array<Bucket>) => void) => void): this;
+	off(type: ObjectivesEventTypes.ASK_BUCKETS, listener: (bucketIds: Array<BucketId>, onData: (buckets: Array<Bucket>) => void) => void): this;
 
 	fire(type: ObjectivesEventTypes.ASK_BUCKET, bucketId: BucketId, onData: (bucket?: Bucket) => void): this;
 	on(type: ObjectivesEventTypes.ASK_BUCKET, listener: (bucketId: BucketId, onData: (bucket?: Bucket) => void) => void): this;
