@@ -19,8 +19,8 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {ChangeEvent, MouseEvent, useState} from 'react';
 import {useObjectivesEventBus} from '../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
+import {defendVariableAndRemoveUnnecessary, isBucketVariable, isRangeVariable, isValueVariable} from '../utils';
 import {IncorrectOptionLabel, ItemLabel, ItemNo, RemoveItemButton} from '../widgets';
-import {defendVariableAndRemoveUnnecessary, isBucketVariable, isRangeVariable, isValueVariable} from './utils';
 import {
 	VariableContainer,
 	VariableKindButton,
