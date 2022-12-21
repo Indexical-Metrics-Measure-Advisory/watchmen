@@ -47,7 +47,7 @@ const RealFactorEditor = (props: {
 	const factorValid = isBlank(uuid) || factors.find(f => f.uuid == uuid) != null;
 	if (!factorValid) {
 		factorOptions.push({
-			value: '', label: () => {
+			value: uuid || '', label: () => {
 				return {
 					node: <IncorrectOptionLabel>{Lang.INDICATOR.OBJECTIVE.INCORRECT_FACTOR}</IncorrectOptionLabel>,
 					label: ''
