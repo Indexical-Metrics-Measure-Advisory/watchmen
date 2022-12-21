@@ -493,6 +493,7 @@ export const Zh: LanguageDeclareType = {
 			NO_AVAILABLE_INDICATOR: '没有可供选择的指标.',
 			INDICATOR_PLACEHOLDER: '指标?',
 			FACTOR_INDICATOR_NOT_READY: '现在无法设置, 请先选择指标.',
+			FACTOR_NO_FILTER: '所有数据',
 			ADD_INDICATOR: '添加指标',
 			ADD_COMPUTED_INDICATOR: '添加计算指标',
 			NOT_NOW: '放弃',

@@ -1,5 +1,4 @@
 import {BucketId} from './bucket-types';
-import {ParameterJoint} from './factor-calculator-types';
 import {IndicatorId} from './indicator-types';
 import {TenantId} from './tenant-types';
 import {OptimisticLock, Tuple} from './tuple-types';
@@ -187,8 +186,9 @@ export interface ObjectiveFactor {
 export interface ObjectiveFactorOnIndicator extends ObjectiveFactor {
 	kind: ObjectiveFactorKind.INDICATOR;
 	indicatorId?: IndicatorId;
+	conditional: boolean;
 	/** objective variables are available in constant value */
-	filter?: ParameterJoint;
+	filter?: ObjectiveParameterJoint;
 }
 
 export interface ObjectiveFactorOnComputation extends ObjectiveFactor {
