@@ -26,6 +26,10 @@ export const findTopicIds = async (
 	askIndicator: (indicatorId: IndicatorId) => Promise<Indicator | null>
 ): Promise<Array<TopicId>> => {
 	const indicators = await findIndicators(objective, askIndicator);
+	return findTopicIdsByIndicators(indicators);
+};
+
+export const findTopicIdsByIndicators = (indicators: Array<Indicator>): Array<TopicId> => {
 	const map: Record<TopicId, boolean> = {};
 	indicators
 		.filter(indicator => indicator.baseOn === IndicatorBaseOn.TOPIC)
@@ -40,6 +44,10 @@ export const findSubjectIds = async (
 	askIndicator: (indicatorId: IndicatorId) => Promise<Indicator | null>
 ): Promise<Array<SubjectId>> => {
 	const indicators = await findIndicators(objective, askIndicator);
+	return findSubjectIdsByIndicators(indicators);
+};
+
+export const findSubjectIdsByIndicators = (indicators: Array<Indicator>): Array<SubjectId> => {
 	const map: Record<SubjectId, boolean> = {};
 	indicators
 		.filter(indicator => indicator.baseOn === IndicatorBaseOn.SUBJECT)
