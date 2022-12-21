@@ -38,6 +38,7 @@ export const Jp: LanguageDeclareType = {
 		OBJECTIVE_VARIABLE_NAME_PLACEHOLDER: '変数名。',
 		OBJECTIVE_FACTOR_NAME_PLACEHOLDER: '指標名。',
 		OBJECTIVE_FORMULA_CONSTANT_PLACEHOLDER: '定義済みの変数を参照するには、"{}" を使用します。',
+		OBJECTIVE_FACTOR_FILTER_CONSTANT_PLACEHOLDER: '定義済みの変数を参照するには、"{}" を使用します。',
 		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '";"で結合された複数のアドレス。'
 	},
 	STANDARD: {

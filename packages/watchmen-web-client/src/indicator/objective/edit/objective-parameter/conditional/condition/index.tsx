@@ -1,5 +1,5 @@
 import {Objective, ObjectiveFactor, ObjectiveParameterCondition} from '@/services/data/tuples/objective-types';
-import {isExpressionParameter, isJointParameter} from '../../utils';
+import {isExpressionParameter, isJointParameter} from '../../../param-utils';
 import {ExpressionEventBusProvider} from '../event-bus/expression-event-bus';
 import {JointEventBusProvider} from '../event-bus/joint-event-bus';
 import {Expression} from '../expression';

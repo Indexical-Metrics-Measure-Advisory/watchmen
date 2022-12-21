@@ -3,7 +3,7 @@ import {AlertLabel} from '@/widgets/alert/widgets';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import React from 'react';
-import {canDeleteAnyParameter} from '../utils';
+import {canDeleteAnyParameter} from '../../param-utils';
 
 export const useSubParamDelete = (
 	parent: ComputedObjectiveParameter, parameterToBeDelete: ObjectiveParameter,

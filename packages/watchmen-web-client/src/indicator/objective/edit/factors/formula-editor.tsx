@@ -12,7 +12,7 @@ import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 import {ComputedEditor} from '../objective-parameter/compute';
 import {useParameterEventBus} from '../objective-parameter/parameter-event-bus';
 import {ParameterEventTypes} from '../objective-parameter/parameter-event-bus-types';
-import {createFactorParameter} from '../objective-parameter/utils';
+import {createFactorParameter} from '../param-utils';
 import {isIndicatorFactor} from '../utils';
 import {FactorItemLabel} from './widgets';
 

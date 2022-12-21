@@ -2,10 +2,10 @@ import {Objective, ObjectiveParameter} from '@/services/data/tuples/objective-ty
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
 import React, {ChangeEvent} from 'react';
+import {isConstantParameter} from '../../param-utils';
 import {useParameterEventBus} from '../parameter-event-bus';
 import {ParameterEventTypes} from '../parameter-event-bus-types';
 import {useParameterFromChanged} from '../use-parameter-from-changed';
-import {isConstantParameter} from '../utils';
 import {ConstantContainer, ConstantInput} from './widgets';
 
 export const ConstantEditor = (props: { objective: Objective; parameter: ObjectiveParameter }) => {

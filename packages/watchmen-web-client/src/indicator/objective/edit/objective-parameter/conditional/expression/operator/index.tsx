@@ -1,3 +1,5 @@
+// noinspection DuplicatedCode
+
 import {
 	ObjectiveParameterExpression,
 	ObjectiveParameterExpressionOperator
@@ -26,15 +28,6 @@ const AvailableOperators = [
 	ObjectiveParameterExpressionOperator.MORE,
 	ObjectiveParameterExpressionOperator.MORE_EQUALS
 ];
-
-const FilterExpressionOperatorLabels: Record<ObjectiveParameterExpressionOperator, string> = {
-	[ObjectiveParameterExpressionOperator.EQUALS]: Lang.PARAMETER.EXPRESSION_OPERATOR.EQUALS,
-	[ObjectiveParameterExpressionOperator.NOT_EQUALS]: Lang.PARAMETER.EXPRESSION_OPERATOR.NOT_EQUALS,
-	[ObjectiveParameterExpressionOperator.LESS]: Lang.PARAMETER.EXPRESSION_OPERATOR.LESS,
-	[ObjectiveParameterExpressionOperator.LESS_EQUALS]: Lang.PARAMETER.EXPRESSION_OPERATOR.LESS_EQUALS,
-	[ObjectiveParameterExpressionOperator.MORE]: Lang.PARAMETER.EXPRESSION_OPERATOR.MORE,
-	[ObjectiveParameterExpressionOperator.MORE_EQUALS]: Lang.PARAMETER.EXPRESSION_OPERATOR.MORE_EQUALS
-};
 
 interface DropdownState {
 	visible: boolean;
@@ -79,6 +72,19 @@ export const ExpressionOperator = (props: { expression: ObjectiveParameterExpres
 			fire(ExpressionEventTypes.OPERATOR_CHANGED, expression);
 			setState({visible: false, top: 0, left: 0});
 		}
+	};
+
+	const FilterExpressionOperatorLabels: Record<ObjectiveParameterExpressionOperator, string> = {
+		[ObjectiveParameterExpressionOperator.EMPTY]: Lang.PARAMETER.EXPRESSION_OPERATOR.EMPTY,
+		[ObjectiveParameterExpressionOperator.NOT_EMPTY]: Lang.PARAMETER.EXPRESSION_OPERATOR.NOT_EMPTY,
+		[ObjectiveParameterExpressionOperator.EQUALS]: Lang.PARAMETER.EXPRESSION_OPERATOR.EQUALS,
+		[ObjectiveParameterExpressionOperator.NOT_EQUALS]: Lang.PARAMETER.EXPRESSION_OPERATOR.NOT_EQUALS,
+		[ObjectiveParameterExpressionOperator.LESS]: Lang.PARAMETER.EXPRESSION_OPERATOR.LESS,
+		[ObjectiveParameterExpressionOperator.LESS_EQUALS]: Lang.PARAMETER.EXPRESSION_OPERATOR.LESS_EQUALS,
+		[ObjectiveParameterExpressionOperator.MORE]: Lang.PARAMETER.EXPRESSION_OPERATOR.MORE,
+		[ObjectiveParameterExpressionOperator.MORE_EQUALS]: Lang.PARAMETER.EXPRESSION_OPERATOR.MORE_EQUALS,
+		[ObjectiveParameterExpressionOperator.IN]: Lang.PARAMETER.EXPRESSION_OPERATOR.IN,
+		[ObjectiveParameterExpressionOperator.NOT_IN]: Lang.PARAMETER.EXPRESSION_OPERATOR.NOT_IN
 	};
 
 	return <ExpressionOperatorContainer onClick={onStartClicked} ref={containerRef}>

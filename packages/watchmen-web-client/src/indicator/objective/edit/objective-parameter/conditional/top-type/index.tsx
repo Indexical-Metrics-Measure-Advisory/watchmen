@@ -2,7 +2,7 @@ import {ConditionalObjectiveParameter, ObjectiveParameterJointType} from '@/serv
 import {ICON_COLLAPSE_CONTENT, ICON_EDIT} from '@/widgets/basic/constants';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {MouseEvent, useState} from 'react';
-import {createFactorEqualsConstantParameter} from '../../utils';
+import {createFactorEqualsConstantParameter} from '../../../param-utils';
 import {useConditionalEventBus} from '../conditional-event-bus';
 import {ConditionalEventTypes} from '../conditional-event-bus-types';
 import {useJointEventBus} from '../event-bus/joint-event-bus';

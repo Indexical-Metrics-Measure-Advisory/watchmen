@@ -3,7 +3,7 @@ import {ICON_ADD} from '@/widgets/basic/constants';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React from 'react';
-import {canAddMoreParameter} from '../utils';
+import {canAddMoreParameter} from '../../param-utils';
 import {useSubParamAdd} from './use-sub-param-add';
 import {ParameterAddButton, ParameterAddContainer} from './widgets';
 

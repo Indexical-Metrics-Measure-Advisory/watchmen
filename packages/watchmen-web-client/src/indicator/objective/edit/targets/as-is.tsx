@@ -18,7 +18,7 @@ import {ComputedEditor} from '../objective-parameter/compute';
 import {FactorEditor} from '../objective-parameter/factor';
 import {ParameterEventBusProvider, useParameterEventBus} from '../objective-parameter/parameter-event-bus';
 import {ParameterEventTypes} from '../objective-parameter/parameter-event-bus-types';
-import {createFactorParameter} from '../objective-parameter/utils';
+import {createFactorParameter} from '../param-utils';
 import {AsIsContainer, AsIsTypeButton, AsIsTypeContainer, AsIsTypeIcon} from './widgets';
 
 const isReferIndicator = (target: ObjectiveTarget): boolean => {

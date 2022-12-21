@@ -8,7 +8,7 @@ import React from 'react';
 import {useObjectivesEventBus} from '../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 import {isIndicatorFactor} from '../utils';
-import {FactorFilter} from './filter';
+import {ConditionalEditor} from './conditional';
 import {FactorItemLabel, IncorrectOptionLabel, IndicatorDropdown} from './widgets';
 
 export const FactorIndicator = (props: { objective: Objective; factor: ObjectiveFactor; indicators: Array<Indicator>; }) => {
@@ -24,10 +24,17 @@ export const FactorIndicator = (props: { objective: Objective; factor: Objective
 	const onIndicatorChanged = (option: DropdownOption) => {
 		if (isBlank(option.value)) {
 			factor.indicatorId = '';
+			// eslint-disable-next-line
+		} else if (factor.indicatorId == option.value) {
+			// not change, do nothing
+			return;
 		} else {
 			factor.indicatorId = option.value as IndicatorId;
 		}
 		forceUpdate();
+		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
+	};
+	const onFilterChanged = () => {
 		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
 	};
 
@@ -63,6 +70,7 @@ export const FactorIndicator = (props: { objective: Objective; factor: Objective
 		                   please={Lang.INDICATOR.OBJECTIVE.INDICATOR_PLACEHOLDER}
 		                   valid={indicatorValid}/>
 		<FactorItemLabel>{Lang.INDICATOR.OBJECTIVE.FACTOR_INDICATOR_FILTER}</FactorItemLabel>
-		<FactorFilter objective={objective} factor={factor} indicator={selectedIndicator}/>
+		<ConditionalEditor objective={objective} factor={factor} indicator={selectedIndicator}
+		                   onChange={onFilterChanged}/>
 	</>;
 };
