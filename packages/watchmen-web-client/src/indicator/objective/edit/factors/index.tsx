@@ -34,7 +34,7 @@ export const Factors = (props: { objective: Objective }) => {
 	const forceUpdate = useForceUpdate();
 	useAskIndicators({
 		objective,
-		shouldAsk: () => !indicators.initialized,
+		shouldStartAsk: () => !indicators.initialized,
 		onLoad: (all) => setIndicators({initialized: true, all})
 	});
 

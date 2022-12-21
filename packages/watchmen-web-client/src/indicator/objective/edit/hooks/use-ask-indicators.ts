@@ -6,20 +6,20 @@ import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 
 export const useAskIndicators = (options: {
 	objective?: Objective | null;
-	shouldAsk: () => boolean;
+	shouldStartAsk: () => boolean;
 	// keep it unchanged
 	onLoad: (all: Array<Indicator>) => void;
 }) => {
-	const {objective, shouldAsk, onLoad} = options;
+	const {objective, shouldStartAsk, onLoad} = options;
 
 	const {fire} = useObjectivesEventBus();
 
 	useEffect(() => {
-		if (objective == null || !shouldAsk()) {
+		if (objective == null || !shouldStartAsk()) {
 			return;
 		}
 		fire(ObjectivesEventTypes.ASK_ALL_INDICATORS, (all: Array<Indicator>) => {
 			onLoad(all);
 		});
-	}, [fire, objective, shouldAsk, onLoad]);
+	}, [fire, objective, shouldStartAsk, onLoad]);
 };

@@ -6,7 +6,7 @@ export const useInitializeIndicators = (objective?: Objective | null) => {
 	const [initialized, setInitialized] = useState(false);
 	useAskIndicators({
 		objective,
-		shouldAsk: () => !initialized,
+		shouldStartAsk: () => !initialized,
 		onLoad: () => setInitialized(true)
 	});
 
