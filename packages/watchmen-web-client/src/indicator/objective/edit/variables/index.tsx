@@ -34,7 +34,7 @@ export const Variables = (props: { objective: Objective }) => {
 	useAskBuckets({
 		objective,
 		shouldAsk: () => !buckets.initialized,
-		detailBucketIds: askVariableBucketIds,
+		detailBucketIds: (objective) => Promise.resolve(askVariableBucketIds(objective)),
 		onLoad: (all, details) => setBuckets({initialized: true, all, selected: details})
 	});
 	const forceUpdate = useForceUpdate();

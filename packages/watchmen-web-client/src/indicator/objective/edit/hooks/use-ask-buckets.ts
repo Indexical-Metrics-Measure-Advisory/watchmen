@@ -9,7 +9,7 @@ export const useAskBuckets = (options: {
 	objective?: Objective | null;
 	shouldAsk: () => boolean;
 	// keep it unchanged
-	detailBucketIds: (objective: Objective) => Array<BucketId>;
+	detailBucketIds: (objective: Objective) => Promise<Array<BucketId>>;
 	// keep it unchanged
 	onLoad: (all: Array<QueryBucket>, details: Array<Bucket>) => void;
 }) => {
@@ -21,16 +21,16 @@ export const useAskBuckets = (options: {
 		if (objective == null || !shouldAsk()) {
 			return;
 		}
-		fire(ObjectivesEventTypes.ASK_ALL_BUCKETS, (all: Array<QueryBucket>) => {
+		fire(ObjectivesEventTypes.ASK_ALL_BUCKETS, async (all: Array<QueryBucket>) => {
 			if (all.length === 0) {
 				// no bucket
 				onLoad(all, []);
 			} else {
-				const bucketIds: Array<BucketId> = detailBucketIds(objective);
+				const bucketIds: Array<BucketId> = await detailBucketIds(objective);
 				fire(ObjectivesEventTypes.ASK_BUCKETS_DETAILS, bucketIds, (details: Array<Bucket>) => {
 					onLoad(all, details);
 				});
 			}
 		});
-	}, [fire, objective, detailBucketIds, onLoad]);
+	}, [fire, objective, shouldAsk, detailBucketIds, onLoad]);
 };

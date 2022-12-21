@@ -1,10 +1,13 @@
 import {TuplePage} from '@/services/data/query/tuple-page';
 import {Bucket, BucketId} from '@/services/data/tuples/bucket-types';
-import {Indicator} from '@/services/data/tuples/indicator-types';
+import {Indicator, IndicatorId} from '@/services/data/tuples/indicator-types';
 import {Objective, ObjectiveFactor, ObjectiveId, ObjectiveTarget} from '@/services/data/tuples/objective-types';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
+import {SubjectForIndicator} from '@/services/data/tuples/query-indicator-types';
 import {QueryObjective} from '@/services/data/tuples/query-objective-types';
 import {QueryUserGroupForHolder} from '@/services/data/tuples/query-user-group-types';
+import {SubjectId} from '@/services/data/tuples/subject-types';
+import {Topic, TopicId} from '@/services/data/tuples/topic-types';
 
 export enum ObjectivesEventTypes {
 	SEARCHED = 'searched',
@@ -29,7 +32,10 @@ export enum ObjectivesEventTypes {
 
 	ASK_ALL_USER_GROUPS = 'ask-all-user-groups',
 
-	ASK_ALL_INDICATORS = 'ask-all-indicators'
+	ASK_ALL_INDICATORS = 'ask-all-indicators',
+	ASK_INDICATOR = 'ask-indicator',
+	ASK_TOPIC = 'ask-topic',
+	ASK_SUBJECT = 'ask-subject',
 }
 
 export interface ObjectivesEventBus {
@@ -85,9 +91,9 @@ export interface ObjectivesEventBus {
 	on(type: ObjectivesEventTypes.ASK_BUCKETS_DETAILS, listener: (bucketIds: Array<BucketId>, onData: (buckets: Array<Bucket>) => void) => void): this;
 	off(type: ObjectivesEventTypes.ASK_BUCKETS_DETAILS, listener: (bucketIds: Array<BucketId>, onData: (buckets: Array<Bucket>) => void) => void): this;
 
-	fire(type: ObjectivesEventTypes.ASK_BUCKET, bucketId: BucketId, onData: (bucket: Bucket) => void): this;
-	on(type: ObjectivesEventTypes.ASK_BUCKET, listener: (bucketId: BucketId, onData: (bucket: Bucket) => void) => void): this;
-	off(type: ObjectivesEventTypes.ASK_BUCKET, listener: (bucketId: BucketId, onData: (bucket: Bucket) => void) => void): this;
+	fire(type: ObjectivesEventTypes.ASK_BUCKET, bucketId: BucketId, onData: (bucket?: Bucket) => void): this;
+	on(type: ObjectivesEventTypes.ASK_BUCKET, listener: (bucketId: BucketId, onData: (bucket?: Bucket) => void) => void): this;
+	off(type: ObjectivesEventTypes.ASK_BUCKET, listener: (bucketId: BucketId, onData: (bucket?: Bucket) => void) => void): this;
 
 	fire(type: ObjectivesEventTypes.ASK_ALL_USER_GROUPS, onData: (groups: Array<QueryUserGroupForHolder>) => void): this;
 	on(type: ObjectivesEventTypes.ASK_ALL_USER_GROUPS, listener: (onData: (groups: Array<QueryUserGroupForHolder>) => void) => void): this;
@@ -96,4 +102,16 @@ export interface ObjectivesEventBus {
 	fire(type: ObjectivesEventTypes.ASK_ALL_INDICATORS, onData: (groups: Array<Indicator>) => void): this;
 	on(type: ObjectivesEventTypes.ASK_ALL_INDICATORS, listener: (onData: (groups: Array<Indicator>) => void) => void): this;
 	off(type: ObjectivesEventTypes.ASK_ALL_INDICATORS, listener: (onData: (groups: Array<Indicator>) => void) => void): this;
+
+	fire(type: ObjectivesEventTypes.ASK_INDICATOR, indicatorId: IndicatorId, onData: (indicator?: Indicator) => void): this;
+	on(type: ObjectivesEventTypes.ASK_INDICATOR, listener: (indicatorId: IndicatorId, onData: (indicator?: Indicator) => void) => void): this;
+	off(type: ObjectivesEventTypes.ASK_INDICATOR, listener: (indicatorId: IndicatorId, onData: (indicator?: Indicator) => void) => void): this;
+
+	fire(type: ObjectivesEventTypes.ASK_TOPIC, topicId: TopicId, onData: (topic?: Topic) => void): this;
+	on(type: ObjectivesEventTypes.ASK_TOPIC, listener: (topicId: TopicId, onData: (topic?: Topic) => void) => void): this;
+	off(type: ObjectivesEventTypes.ASK_TOPIC, listener: (topicId: TopicId, onData: (topic?: Topic) => void) => void): this;
+
+	fire(type: ObjectivesEventTypes.ASK_SUBJECT, subjectId: SubjectId, onData: (subject?: SubjectForIndicator) => void): this;
+	on(type: ObjectivesEventTypes.ASK_SUBJECT, listener: (subjectId: SubjectId, onData: (subject?: SubjectForIndicator) => void) => void): this;
+	off(type: ObjectivesEventTypes.ASK_SUBJECT, listener: (subjectId: SubjectId, onData: (subject?: SubjectForIndicator) => void) => void): this;
 }
