@@ -231,6 +231,7 @@ table_snapshot_job_locks = MongoDocument(
 		create_tuple_id_column('user_id', False), create_datetime('created_at', False)
 	]
 )
+# system
 table_collector_competitive_lock = MongoDocument(
 	name='collector_competitive_lock',
 	columns=[
@@ -334,6 +335,16 @@ table_monitor_job_locks = MongoDocument(
 )
 # indicator
 # noinspection DuplicatedCode
+table_buckets = MongoDocument(
+	name='buckets',
+	columns=[
+		create_pk('bucket_id'), create_str('name'),
+		create_str('type', False), create_str('include'),
+		create_str('measure'), create_tuple_id_column('enum_id'),
+		create_json('segments'), create_description(),
+		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+	]
+)
 table_indicators = MongoDocument(
 	name='indicators',
 	columns=[
@@ -348,49 +359,13 @@ table_indicators = MongoDocument(
 		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 	]
 )
-table_buckets = MongoDocument(
-	name='buckets',
+table_objectives = MongoDocument(
+	name='objectives',
 	columns=[
-		create_pk('bucket_id'), create_str('name'),
-		create_str('type', False), create_str('include'),
-		create_str('measure'), create_tuple_id_column('enum_id'),
-		create_json('segments'), create_description(),
-		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
-	]
-)
-
-# noinspection DuplicatedCode
-table_inspections = MongoDocument(
-	name='inspections',
-	columns=[
-		create_pk('inspection_id'), create_str('name'),
-		create_tuple_id_column('indicator_id'),
-		create_json('aggregate_arithmetics'),
-		create_json('measures'),
-		create_str('time_range_measure'), create_tuple_id_column('time_range_factor_id'),
-		create_json('time_ranges'),
-		create_str('measure_on_time'), create_tuple_id_column('measure_on_time_factor_id'),
-		create_json('criteria'),
-		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
-	]
-)
-table_achievements = MongoDocument(
-	name='achievements',
-	columns=[
-		create_pk('achievement_id'), create_str('name'),
-		create_str('time_range_type'), create_str('time_range_year'), create_str('time_range_month'),
-		create_bool('compare_with_prev_time_range'), create_bool('compare_with_prev_cycle'),
-		create_bool('final_score_is_ratio'),
-		create_json('indicators'), create_json('plugin_ids'),
+		create_pk('objective_id'), create_str('name'),
 		create_description(),
-		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
-	]
-)
-table_objective_analysis = MongoDocument(
-	name='objective_analysis',
-	columns=[
-		create_pk('analysis_id'), create_str('title'),
-		create_description(), create_json('perspectives'), create_json('group_ids'),
+		create_json('time_frame'), create_json('targets'), create_json('variables'), create_json('factors'),
+		create_json('group_ids'),
 		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 	]
 )
@@ -411,11 +386,11 @@ table_subscription_event = MongoDocument(
 		create_tuple_id_column('notification_id'),
 		create_tuple_id_column('event_id'),
 		create_tuple_id_column("source_id"),
-		create_str('weekday', 10), create_str('day', 10),
+		create_str('weekday'), create_str('day'),
 		create_int('hour'), create_int('minute'),
 		create_bool('enabled', False),
 		create_int('status'),
-		create_str('frequency', 10, False),
+		create_str('frequency', False),
 		create_user_id(),
 		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 
@@ -425,7 +400,7 @@ table_subscription_event = MongoDocument(
 table_notification_definition = MongoDocument(
 	'notification_definitions', columns=[
 		create_pk('notification_id'),
-		create_str('type', 50),
+		create_str('type'),
 		create_json('params'),
 		create_user_id(),
 		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
@@ -437,7 +412,7 @@ table_subscription_event_locks = MongoDocument(
 		create_pk('subscription_event_lock_id'), create_tuple_id_column('tenant_id', False),
 		create_tuple_id_column('subscription_event_id', False),
 		create_datetime('process_date', False),
-		create_str('status', 10, False),
+		create_str('status', False),
 		create_tuple_id_column('user_id', False),
 		create_datetime('created_at', False)
 	]
@@ -454,8 +429,6 @@ tables: Dict[str, MongoDocument] = {
 	'plugins': table_plugins,
 	'data_sources': table_data_sources,
 	'key_stores': table_key_stores,
-	'operations': table_operations,
-	'versions': table_versions,
 	# admin
 	'users': table_users,
 	'user_groups': table_user_groups,
@@ -467,7 +440,6 @@ tables: Dict[str, MongoDocument] = {
 	'pipeline_graphics': table_pipeline_graphics,
 	'snapshot_schedulers': table_snapshot_schedulers,
 	'snapshot_job_locks': table_snapshot_job_locks,
-	'collector_competitive_lock': table_collector_competitive_lock,
 	# console
 	'connected_spaces': table_connected_spaces,
 	'connected_space_graphics': table_connected_space_graphics,
@@ -487,16 +459,18 @@ tables: Dict[str, MongoDocument] = {
 	# indicator
 	'buckets': table_buckets,
 	'indicators': table_indicators,
-	'inspections': table_inspections,
-	'achievements': table_achievements,
-	'objective_analysis': table_objective_analysis,
+	'objectives': table_objectives,
 	'achievement_plugin_tasks': table_achievement_plugin_tasks,
-	# trino
-	'_schema': table_trino_schema,
+	# system
+	'collector_competitive_lock': table_collector_competitive_lock,
+	'operations': table_operations,
+	'package_versions': table_package_versions,
 	# webhook
 	'subscription_event_locks': table_subscription_event_locks,
 	'subscription_events': table_subscription_event,
-	'notification_definitions': table_notification_definition
+	'notification_definitions': table_notification_definition,
+	# trino
+	'_schema': table_trino_schema,
 }
 
 # noinspection DuplicatedCode

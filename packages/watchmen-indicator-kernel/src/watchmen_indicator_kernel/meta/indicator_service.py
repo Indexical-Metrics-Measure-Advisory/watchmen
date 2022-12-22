@@ -18,10 +18,6 @@ class IndicatorShaper(EntityShaper):
 		else:
 			return a_filter.dict()
 
-
-
-
-
 	def serialize(self, indicator: Indicator) -> EntityRow:
 		return TupleShaper.serialize_tenant_based(indicator, {
 			'indicator_id': indicator.indicatorId,

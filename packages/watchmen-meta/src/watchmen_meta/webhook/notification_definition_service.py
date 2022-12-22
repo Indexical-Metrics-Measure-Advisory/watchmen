@@ -1,27 +1,25 @@
 from typing import List, Optional
 
-from watchmen_meta.common import TupleShaper, TupleService
+from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_meta.common.storage_service import StorableId
-from watchmen_model.common import Tuple, Storable
-from watchmen_model.common.tuple_ids import UserId, TenantId
+from watchmen_model.common import Storable, TenantId, Tuple, UserId
 from watchmen_model.webhook.notification_defination import NotificationDefinition, NotificationParam
-from watchmen_storage import EntityShaper, EntityRow, EntityName, EntityCriteriaOperator, EntityCriteriaExpression, \
-	ColumnNameLiteral
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, EntityName, EntityRow, \
+	EntityShaper
 from watchmen_utilities import ArrayHelper
 
 
 class NotificationDefinitionShaper(EntityShaper):
 
 	@staticmethod
-	def serialize_param(param:NotificationParam):
+	def serialize_param(param: NotificationParam):
 		if isinstance(param, dict):
 			return param
 		else:
 			return param.dict()
 
-
 	@staticmethod
-	def serialize_params(params:List[NotificationParam]):
+	def serialize_params(params: List[NotificationParam]):
 		if params is None:
 			return None
 		return ArrayHelper(params).map(lambda x: NotificationDefinitionShaper.serialize_param(x)).to_list()

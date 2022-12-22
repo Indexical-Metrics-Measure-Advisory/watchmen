@@ -1,8 +1,7 @@
 from datetime import date, datetime
 from enum import Enum
 
-from watchmen_model.common import Storable
-from watchmen_model.common.tuple_ids import SubscriptionEventLockId, TenantId, UserId, SubscriptionEventId
+from watchmen_model.common import Storable, SubscriptionEventId, SubscriptionEventLockId, TenantId, UserId
 
 
 class JobLockStatus(str, Enum):

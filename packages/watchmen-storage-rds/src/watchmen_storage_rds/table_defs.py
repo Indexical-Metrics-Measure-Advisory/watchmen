@@ -250,12 +250,16 @@ table_monitor_job_locks = Table(
 	create_tuple_id_column('user_id', False), create_datetime('created_at', False)
 )
 
-
-
-
-
 # indicator
 # noinspection DuplicatedCode
+table_buckets = Table(
+	'buckets', meta_data,
+	create_pk('bucket_id'), create_str('name', 50),
+	create_str('type', 20, False), create_str('include', 20),
+	create_str('measure', 20), create_tuple_id_column('enum_id'),
+	create_json('segments'), create_description(),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+)
 table_indicators = Table(
 	'indicators', meta_data,
 	create_pk('indicator_id'), create_str('name', 50),
@@ -268,43 +272,16 @@ table_indicators = Table(
 	create_description(),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
-table_buckets = Table(
-	'buckets', meta_data,
-	create_pk('bucket_id'), create_str('name', 50),
-	create_str('type', 20, False), create_str('include', 20),
-	create_str('measure', 20), create_tuple_id_column('enum_id'),
-	create_json('segments'), create_description(),
+table_objectives = Table(
+	'objectives', meta_data,
+	create_pk('objective_id'), create_str('name', 100),
+	create_description(),
+	create_json('time_frame'), create_json('targets'), create_json('variables'), create_json('factors'),
+	create_json('group_ids'),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 
 # noinspection DuplicatedCode
-table_inspections = Table(
-	'inspections', meta_data,
-	create_pk('inspection_id'), create_str('name', 50),
-	create_tuple_id_column('indicator_id'),
-	create_json('aggregate_arithmetics'),
-	create_json('measures'),
-	create_str('time_range_measure', 20), create_tuple_id_column('time_range_factor_id'),
-	create_json('time_ranges'),
-	create_str('measure_on_time', 20), create_tuple_id_column('measure_on_time_factor_id'),
-	create_json('criteria'),
-	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
-)
-table_achievements = Table(
-	'achievements', meta_data,
-	create_pk('achievement_id'), create_str('name', 50),
-	create_str('time_range_type', 10), create_str('time_range_year', 10), create_str('time_range_month', 10),
-	create_bool('compare_with_prev_time_range'), create_bool('compare_with_prev_cycle'), create_bool('final_score_is_ratio'),
-	create_json('indicators'), create_json('plugin_ids'),
-	create_description(),
-	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
-)
-table_objective_analysis = Table(
-	'objective_analysis', meta_data,
-	create_pk('analysis_id'), create_str('title', 100),
-	create_description(), create_json('perspectives'), create_json('group_ids'),
-	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
-)
 table_achievement_plugin_tasks = Table(
 	'achievement_plugin_tasks', meta_data,
 	create_pk('achievement_task_id'), create_tuple_id_column('achievement_id'), create_tuple_id_column('plugin_id'),
@@ -312,6 +289,7 @@ table_achievement_plugin_tasks = Table(
 	create_tenant_id(), create_user_id(),
 	*create_tuple_audit_columns()
 )
+# system
 table_collector_competitive_lock = Table(
 	'collector_competitive_lock', meta_data,
 	create_pk('lock_id'), create_str('resource_id', 500),
@@ -347,17 +325,14 @@ table_subscription_event = Table(
 	create_user_id(),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
-
-
 table_notification_definition = Table(
 	'notification_definitions', meta_data,
 	create_pk('notification_id'),
-	create_str('type',50),
+	create_str('type', 50),
 	create_json('params'),
 	create_user_id(),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
-
 table_subscription_event_locks = Table(
 	'subscription_event_locks', meta_data,
 	create_pk('subscription_event_lock_id'), create_tuple_id_column('tenant_id', False),
@@ -367,9 +342,6 @@ table_subscription_event_locks = Table(
 	create_tuple_id_column('user_id', False),
 	create_datetime('created_at', False)
 )
-
-
-
 
 # noinspection DuplicatedCode
 tables: Dict[str, Table] = {
@@ -412,10 +384,9 @@ tables: Dict[str, Table] = {
 	# indicator
 	'buckets': table_buckets,
 	'indicators': table_indicators,
-	'inspections': table_inspections,
-	'achievements': table_achievements,
-	'objective_analysis': table_objective_analysis,
+	'objectives': table_objectives,
 	'achievement_plugin_tasks': table_achievement_plugin_tasks,
+	# system
 	'collector_competitive_lock': table_collector_competitive_lock,
 	'operations': table_operations,
 	'package_versions': table_package_versions,
