@@ -62,7 +62,7 @@ const RealFactorEditor = (props: {
 			value: uuid || '', label: () => {
 				return {
 					node:
-						<IncorrectOptionLabel>{Lang.INDICATOR.OBJECTIVE.INCORRECT_FACTOR_FILTER_FACTOR_OR_COLUMN}</IncorrectOptionLabel>,
+						<IncorrectOptionLabel>{Lang.INDICATOR.OBJECTIVE.REFER_INDICATOR_FILTER_ON_INCORRECT_FACTOR_OR_COLUMN}</IncorrectOptionLabel>,
 					label: ''
 				};
 			}
@@ -71,14 +71,14 @@ const RealFactorEditor = (props: {
 	if (factorOptions.length === 0) {
 		factorOptions.push({
 			value: '', label: () => {
-				return {node: <>{Lang.INDICATOR.OBJECTIVE.NO_AVAILABLE_FACTOR_FILTER_FACTOR_OR_COLUMN}</>, label: ''};
+				return {node: <>{Lang.INDICATOR.OBJECTIVE.REFER_INDICATOR_FILTER_NO_AVAILABLE_FACTOR_OR_COLUMN}</>, label: ''};
 			}
 		});
 	}
 
 	const please = indicator.baseOn === IndicatorBaseOn.TOPIC
-		? Lang.INDICATOR.OBJECTIVE.FACTOR_FILTER_TOPIC_PLACEHOLDER
-		: Lang.INDICATOR.OBJECTIVE.FACTOR_FILTER_SUBJECT_PLACEHOLDER;
+		? Lang.INDICATOR.OBJECTIVE.REFER_INDICATOR_ON_TOPIC_FILTER_PLACEHOLDER
+		: Lang.INDICATOR.OBJECTIVE.REFER_INDICATOR_ON_SUBJECT_FILTER_PLACEHOLDER;
 
 	return <FactorEditContainer>
 		<FactorDropdown value={uuid || ''} options={factorOptions} onChange={onFactorChange}

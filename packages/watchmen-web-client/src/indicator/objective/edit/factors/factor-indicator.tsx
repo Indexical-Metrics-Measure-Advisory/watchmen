@@ -47,7 +47,7 @@ export const FactorIndicator = (props: { objective: Objective; factor: Objective
 		options.push({
 			value: '', label: () => {
 				return {
-					node: <IncorrectOptionLabel>{Lang.INDICATOR.OBJECTIVE.INCORRECT_INDICATOR}</IncorrectOptionLabel>,
+					node: <IncorrectOptionLabel>{Lang.INDICATOR.OBJECTIVE.REFER_INDICATOR_BUT_INCORRECT}</IncorrectOptionLabel>,
 					label: ''
 				};
 			}
@@ -56,7 +56,7 @@ export const FactorIndicator = (props: { objective: Objective; factor: Objective
 	if (options.length === 0) {
 		options.push({
 			value: '', label: () => {
-				return {node: <>{Lang.INDICATOR.OBJECTIVE.NO_AVAILABLE_INDICATOR}</>, label: ''};
+				return {node: <>{Lang.INDICATOR.OBJECTIVE.REFER_INDICATOR_BUT_NO_AVAILABLE}</>, label: ''};
 			}
 		});
 	}
@@ -67,7 +67,7 @@ export const FactorIndicator = (props: { objective: Objective; factor: Objective
 	return <>
 		<FactorItemLabel>{Lang.INDICATOR.OBJECTIVE.FACTOR_INDICATOR}</FactorItemLabel>
 		<IndicatorDropdown value={factor.indicatorId ?? ''} options={options} onChange={onIndicatorChanged}
-		                   please={Lang.INDICATOR.OBJECTIVE.INDICATOR_PLACEHOLDER}
+		                   please={Lang.INDICATOR.OBJECTIVE.REFER_INDICATOR_PLACEHOLDER}
 		                   valid={indicatorValid}/>
 		<FactorItemLabel>{Lang.INDICATOR.OBJECTIVE.FACTOR_INDICATOR_FILTER}</FactorItemLabel>
 		<ConditionalEditor objective={objective} factor={factor} indicator={selectedIndicator}
