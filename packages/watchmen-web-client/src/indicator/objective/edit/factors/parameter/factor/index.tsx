@@ -61,8 +61,9 @@ const RealFactorEditor = (props: {
 		factorOptions.push({
 			value: uuid || '', label: () => {
 				return {
-					node:
-						<IncorrectOptionLabel>{Lang.INDICATOR.OBJECTIVE.REFER_INDICATOR_FILTER_ON_INCORRECT_FACTOR_OR_COLUMN}</IncorrectOptionLabel>,
+					node: <IncorrectOptionLabel>
+						{Lang.INDICATOR.OBJECTIVE.REFER_INDICATOR_FILTER_ON_INCORRECT_FACTOR_OR_COLUMN}
+					</IncorrectOptionLabel>,
 					label: ''
 				};
 			}
@@ -70,9 +71,7 @@ const RealFactorEditor = (props: {
 	}
 	if (factorOptions.length === 0) {
 		factorOptions.push({
-			value: '', label: () => {
-				return {node: <>{Lang.INDICATOR.OBJECTIVE.REFER_INDICATOR_FILTER_NO_AVAILABLE_FACTOR_OR_COLUMN}</>, label: ''};
-			}
+			value: '', label: Lang.INDICATOR.OBJECTIVE.REFER_INDICATOR_FILTER_NO_AVAILABLE_FACTOR_OR_COLUMN
 		});
 	}
 

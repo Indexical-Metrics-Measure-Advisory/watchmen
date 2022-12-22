@@ -11,7 +11,9 @@ export type ObjectiveId = string;
 export enum ObjectiveParameterType {
 	REFER = 'refer',
 	CONSTANT = 'constant',
-	COMPUTED = 'computed'
+	COMPUTED = 'computed',
+	// only available on factor indicator filter
+	BUCKET = 'bucket'
 }
 
 export interface ObjectiveParameter {
@@ -67,6 +69,12 @@ export interface ComputedObjectiveParameter extends ObjectiveParameter {
 	kind: ObjectiveParameterType.COMPUTED;
 	operator: ObjectiveFormulaOperator;
 	parameters: Array<ObjectiveParameter>;
+}
+
+export interface BucketObjectiveParameter extends ObjectiveParameter {
+	kind: ObjectiveParameterType.BUCKET;
+	bucketId: BucketId;
+	segmentName: string;
 }
 
 export enum ObjectiveParameterJointType {

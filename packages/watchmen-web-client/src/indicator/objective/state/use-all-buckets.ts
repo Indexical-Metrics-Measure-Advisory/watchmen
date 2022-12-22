@@ -32,19 +32,20 @@ export const useAllBuckets = () => {
 			}
 		};
 		const onAskBucketIdByMeasure = (method: QueryByBucketMethod, onData: (bucketIds: Array<BucketId>) => void) => {
+			console.log(method, buckets);
 			if (isQueryByEnum(method)) {
-				onData(Object.values(buckets).filter(bucket => isEnumMeasureBucket(bucket) && bucket.enumId === method.enumId));
+				onData(Object.values(buckets.data).filter(bucket => isEnumMeasureBucket(bucket) && bucket.enumId === method.enumId).map(bucket => bucket.bucketId));
 			} else if (isQueryByMeasure(method)) {
-				onData(Object.values(buckets).filter(bucket => isMeasureBucket(bucket) && bucket.measure === method.method));
+				onData(Object.values(buckets.data).filter(bucket => isMeasureBucket(bucket) && bucket.measure === method.method).map(bucket => bucket.bucketId));
 			} else {
 				onData([]);
 			}
 		};
 		on(ObjectivesEventTypes.ASK_ALL_BUCKETS, onAskBuckets);
-		on(ObjectivesEventTypes.ASK_BUCKET_ID_BY_MEASURE, onAskBucketIdByMeasure);
+		on(ObjectivesEventTypes.ASK_BUCKET_IDS_BY_MEASURE, onAskBucketIdByMeasure);
 		return () => {
 			off(ObjectivesEventTypes.ASK_ALL_BUCKETS, onAskBuckets);
-			off(ObjectivesEventTypes.ASK_BUCKET_ID_BY_MEASURE, onAskBucketIdByMeasure);
+			off(ObjectivesEventTypes.ASK_BUCKET_IDS_BY_MEASURE, onAskBucketIdByMeasure);
 		};
 	}, [on, off, buckets]);
 };

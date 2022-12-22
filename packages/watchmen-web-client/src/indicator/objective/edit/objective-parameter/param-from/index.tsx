@@ -6,12 +6,6 @@ import React from 'react';
 import {useParamFrom} from './use-param-from';
 import {ParameterFromEditContainer, ParameterFromIcon, ParameterTypeButton} from './widgets';
 
-const OptionsLabel: Record<ObjectiveParameterType, string> = {
-	[ObjectiveParameterType.REFER]: Lang.PARAM.FROM_INDICATOR,
-	[ObjectiveParameterType.CONSTANT]: Lang.PARAM.FROM_CONSTANT,
-	[ObjectiveParameterType.COMPUTED]: Lang.PARAM.FROM_COMPUTED
-};
-
 export const ParameterFromEditor = (props: {
 	parameter: ObjectiveParameter,
 	fix?: boolean; label?: string;
@@ -23,6 +17,12 @@ export const ParameterFromEditor = (props: {
 	const candidates = fix ? [] : [
 		ObjectiveParameterType.REFER, ObjectiveParameterType.CONSTANT, ObjectiveParameterType.COMPUTED
 	].filter(candidate => candidate !== parameter.kind);
+	const OptionsLabel: Record<ObjectiveParameterType, string> = {
+		[ObjectiveParameterType.REFER]: Lang.PARAM.FROM_INDICATOR,
+		[ObjectiveParameterType.CONSTANT]: Lang.PARAM.FROM_CONSTANT,
+		[ObjectiveParameterType.COMPUTED]: Lang.PARAM.FROM_COMPUTED,
+		[ObjectiveParameterType.BUCKET]: Lang.PARAM.FROM_BUCKET
+	};
 
 	return <ParameterFromEditContainer onClick={onStartEditing} tabIndex={0} onBlur={onBlur}>
 		<ParameterTypeButton active={true} edit={editing}

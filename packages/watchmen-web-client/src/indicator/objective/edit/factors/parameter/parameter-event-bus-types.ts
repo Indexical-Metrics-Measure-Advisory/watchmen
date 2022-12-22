@@ -1,6 +1,7 @@
 // noinspection DuplicatedCode
 
 import {
+	BucketObjectiveParameter,
 	ComputedObjectiveParameter,
 	ConstantObjectiveParameter,
 	ObjectiveParameter,
@@ -20,6 +21,8 @@ export enum ParameterEventTypes {
 	CONSTANT_VALUE_CHANGED = 'constant-value-changed',
 
 	FACTOR_CHANGED = 'factor-changed',
+	BUCKET_CHANGED = 'bucket-changed',
+	BUCKET_SEGMENT_CHANGED = 'bucket-segment-changed',
 
 	COMPUTE_OPERATOR_CHANGED = 'compute-operator-changed',
 	COMPUTE_CONTENT_CHANGED = 'compute-content-changed',
@@ -47,6 +50,14 @@ export interface ParameterEventBus {
 	fire(type: ParameterEventTypes.FACTOR_CHANGED, parameter: ReferObjectiveParameter): this;
 	on(type: ParameterEventTypes.FACTOR_CHANGED, listener: (parameter: ReferObjectiveParameter) => void): this;
 	off(type: ParameterEventTypes.FACTOR_CHANGED, listener: (parameter: ReferObjectiveParameter) => void): this;
+
+	fire(type: ParameterEventTypes.BUCKET_CHANGED, parameter: BucketObjectiveParameter): this;
+	on(type: ParameterEventTypes.BUCKET_CHANGED, listener: (parameter: BucketObjectiveParameter) => void): this;
+	off(type: ParameterEventTypes.BUCKET_CHANGED, listener: (parameter: BucketObjectiveParameter) => void): this;
+
+	fire(type: ParameterEventTypes.BUCKET_SEGMENT_CHANGED, parameter: BucketObjectiveParameter): this;
+	on(type: ParameterEventTypes.BUCKET_SEGMENT_CHANGED, listener: (parameter: BucketObjectiveParameter) => void): this;
+	off(type: ParameterEventTypes.BUCKET_SEGMENT_CHANGED, listener: (parameter: BucketObjectiveParameter) => void): this;
 
 	fire(type: ParameterEventTypes.COMPUTE_OPERATOR_CHANGED, parameter: ComputedObjectiveParameter): this;
 	on(type: ParameterEventTypes.COMPUTE_OPERATOR_CHANGED, listener: (parameter: ComputedObjectiveParameter) => void): this;
