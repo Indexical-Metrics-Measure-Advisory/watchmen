@@ -1,13 +1,12 @@
 from typing import List, Optional
 
-from watchmen_meta.common import TupleShaper, TupleService
+from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.admin import UserRole
-from watchmen_model.common import Tuple, Storable
-from watchmen_model.common.tuple_ids import EventDefinitionId, TenantId
+from watchmen_model.common import EventDefinitionId, Storable, TenantId, Tuple
 from watchmen_model.webhook.event_defination import EventDefinition
-from watchmen_storage import EntityShaper, EntityRow, EntityHelper, \
-	EntityIdHelper, EntityCriteriaExpression, ColumnNameLiteral, EntityCriteriaOperator, EntityName
+from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaOperator, EntityHelper, \
+	EntityIdHelper, EntityName, EntityRow, EntityShaper
 
 
 class EventDefinitionShaper(EntityShaper):
