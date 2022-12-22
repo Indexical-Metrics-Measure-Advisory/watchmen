@@ -20,9 +20,9 @@ export enum JointEventTypes {
 }
 
 export interface JointEventBus {
-	fire(type: JointEventTypes.JOINT_TYPE_CHANGED, joint: ObjectiveParameterJoint): this;
-	on(type: JointEventTypes.JOINT_TYPE_CHANGED, listener: (joint: ObjectiveParameterJoint) => void): this;
-	off(type: JointEventTypes.JOINT_TYPE_CHANGED, listener: (joint: ObjectiveParameterJoint) => void): this;
+	fire(type: JointEventTypes.JOINT_TYPE_CHANGED, joint?: ObjectiveParameterJoint): this;
+	on(type: JointEventTypes.JOINT_TYPE_CHANGED, listener: (joint?: ObjectiveParameterJoint) => void): this;
+	off(type: JointEventTypes.JOINT_TYPE_CHANGED, listener: (joint?: ObjectiveParameterJoint) => void): this;
 
 	fire(type: JointEventTypes.SUB_EXPRESSION_ADDED, expression: ObjectiveParameterExpression, parent: ObjectiveParameterJoint): this;
 	on(type: JointEventTypes.SUB_EXPRESSION_ADDED, listener: (expression: ObjectiveParameterExpression, parent: ObjectiveParameterJoint) => void): this;
