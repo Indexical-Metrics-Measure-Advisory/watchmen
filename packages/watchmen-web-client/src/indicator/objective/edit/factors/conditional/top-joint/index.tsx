@@ -33,7 +33,11 @@ export const TopJoint = (props: {
 		return null;
 	}
 
-	const joint = conditional == null ? factor.filter! : conditional.on;
+	const joint = conditional == null ? factor.filter : conditional.on;
+
+	if (joint == null) {
+		return null;
+	}
 
 	return <JointBody>
 		<JointElements objective={objective} factor={factor} indicator={indicator} joint={joint}/>

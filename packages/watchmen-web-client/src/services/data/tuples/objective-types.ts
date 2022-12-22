@@ -110,7 +110,8 @@ export interface ObjectiveParameterJoint extends ObjectiveParameterCondition {
 }
 
 export interface ConditionalObjectiveParameter extends ObjectiveParameter {
-	on: ObjectiveParameterJoint;
+	on?: ObjectiveParameterJoint;
+	conditional: boolean;
 }
 
 export interface CaseThenObjectiveParameter extends ComputedObjectiveParameter {
