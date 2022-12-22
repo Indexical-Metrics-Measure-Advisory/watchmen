@@ -1,19 +1,14 @@
 import {BucketId} from '@/services/data/tuples/bucket-types';
-import {Indicator, IndicatorId, MeasureMethod} from '@/services/data/tuples/indicator-types';
-import {
-	findTopicAndFactor,
-	tryToTransformColumnToMeasures,
-	tryToTransformToMeasures
-} from '@/services/data/tuples/indicator-utils';
+import {Indicator, IndicatorId} from '@/services/data/tuples/indicator-types';
 import {Objective} from '@/services/data/tuples/objective-types';
-import {QueryByBucketMethod, QueryByEnumMethod, QueryByMeasureMethod} from '@/services/data/tuples/query-bucket-types';
+import {QueryByBucketMethod} from '@/services/data/tuples/query-bucket-types';
 import {SubjectForIndicator} from '@/services/data/tuples/query-indicator-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {useState} from 'react';
 import {useObjectivesEventBus} from '../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 import {useAskBuckets} from '../hooks/use-ask-buckets';
-import {askVariableBucketIds} from '../utils';
+import {askVariableBucketIds, computeMeasureMethodOnColumn, computeMeasureMethodOnFactor} from '../utils';
 import {findIndicators, findSubjectIdsByIndicators, findTopicIdsByIndicators} from './utils';
 
 export const useInitializeBuckets = (objective: Objective | null | undefined, shouldStart: boolean) => {
@@ -43,22 +38,14 @@ export const useInitializeBuckets = (objective: Objective | null | undefined, sh
 		}))).filter(topic => topic != null) as Array<Topic>;
 		const bucketIdsFromTopics = (await Promise.all(
 			topics.map(topic => {
-				return (topic.factors || [])
-					.reduce((measures, factor) => {
-						tryToTransformToMeasures(factor).forEach(method => {
-							if (method !== MeasureMethod.ENUM) {
-								measures.push({method} as QueryByMeasureMethod);
-							} else if (factor.enumId != null) {
-								measures.push({enumId: factor.enumId, method: MeasureMethod.ENUM} as QueryByEnumMethod);
-							}
-						});
-						return measures;
-					}, [] as Array<QueryByBucketMethod>);
+				return (topic.factors || []).reduce((measures, factor) => {
+					return [...measures, ...computeMeasureMethodOnFactor(factor)];
+				}, [] as Array<QueryByBucketMethod>);
 			})
 				.flat()
 				.map(method => {
 					return new Promise<Array<BucketId>>(resolve => {
-						fire(ObjectivesEventTypes.ASK_BUCKET_ID_BY_MEASURE, method, resolve);
+						fire(ObjectivesEventTypes.ASK_BUCKET_IDS_BY_MEASURE, method, resolve);
 					});
 				}))).flat();
 
@@ -72,26 +59,13 @@ export const useInitializeBuckets = (objective: Objective | null | undefined, sh
 		const bucketIdsFromSubjects = (await Promise.all(
 			subjects.map(subject => {
 				return ((subject as SubjectForIndicator).dataset.columns || []).reduce((measures, column) => {
-					tryToTransformColumnToMeasures(column, subject).forEach(method => {
-						if (method !== MeasureMethod.ENUM) {
-							measures.push({method} as QueryByMeasureMethod);
-						} else {
-							const {factor} = findTopicAndFactor(column, subject);
-							if (factor != null && factor.enumId != null) {
-								measures.push({
-									enumId: factor.enumId,
-									method: MeasureMethod.ENUM
-								} as QueryByEnumMethod);
-							}
-						}
-					});
-					return measures;
+					return [...measures, ...computeMeasureMethodOnColumn(column, subject)];
 				}, [] as Array<QueryByBucketMethod>);
 			})
 				.flat()
 				.map(method => {
 					return new Promise<Array<BucketId>>(resolve => {
-						fire(ObjectivesEventTypes.ASK_BUCKET_ID_BY_MEASURE, method, resolve);
+						fire(ObjectivesEventTypes.ASK_BUCKET_IDS_BY_MEASURE, method, resolve);
 					});
 				}))).flat();
 

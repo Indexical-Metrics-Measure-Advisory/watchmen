@@ -1,4 +1,5 @@
 import {
+	BucketObjectiveParameter,
 	CaseThenObjectiveParameter,
 	ComputedObjectiveParameter,
 	ConstantObjectiveParameter,
@@ -18,6 +19,7 @@ export const isReferParameter = (param: ObjectiveParameter): param is ReferObjec
 export const isConstantParameter = (param: ObjectiveParameter): param is ConstantObjectiveParameter => param.kind === ObjectiveParameterType.CONSTANT;
 export const isComputedParameter = (param: ObjectiveParameter): param is ComputedObjectiveParameter => param.kind === ObjectiveParameterType.COMPUTED;
 export const isCaseThenParameter = (param: ObjectiveParameter): param is CaseThenObjectiveParameter => isComputedParameter(param) && param.operator === ObjectiveFormulaOperator.CASE_THEN;
+export const isBucketParameter = (param: ObjectiveParameter): param is BucketObjectiveParameter => param.kind === ObjectiveParameterType.BUCKET;
 
 export interface ParameterFormulaDef {
 	/**

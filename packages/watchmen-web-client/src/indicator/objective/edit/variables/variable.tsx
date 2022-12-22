@@ -41,6 +41,7 @@ const buildBucketOptions = (
 		return {buckets: [], segments: []};
 	}
 
+	// build bucket options
 	const bucketOptions: Array<DropdownOption> = allBuckets.map(bucket => {
 		return {value: bucket.bucketId, label: bucket.name};
 	}).sort((b1, b2) => {
@@ -68,47 +69,41 @@ const buildBucketOptions = (
 				segmentOptions.push({
 					value: variable.segmentName, label: () => {
 						return {
-							node: <IncorrectOptionLabel>
-								{Lang.INDICATOR.OBJECTIVE.VARIABLE_BUCKET_SEGMENT_INCORRECT_SELECTED}
-							</IncorrectOptionLabel>, label: ''
+							node: <IncorrectOptionLabel>{variable.segmentName}</IncorrectOptionLabel>,
+							label: variable.segmentName
 						};
 					}
-				});
+				} as DropdownOption);
 			} else {
 				// there is no segment selected
 				segmentOptions.push({value: '', label: Lang.INDICATOR.OBJECTIVE.VARIABLE_BUCKET_SELECT_FIRST});
 			}
-		} else {
+		} else if (selectedBucket != null) {
 			// selected bucket found
-			if (selectedBucket != null) {
-				// build available segment options
-				segmentOptions.push(...(selectedBucket.segments || []).map(segment => {
-					return {value: segment.name, label: segment.name};
-				}).sort((s1, s2) => {
-					return (s1.label || '').toLowerCase().localeCompare((s2.label || '').toLowerCase());
-				}));
-				if (isNotBlank(variable.segmentName)) {
-					// there is segment selected
-					// eslint-disable-next-line
-					const found = (selectedBucket.segments || []).find(s => s.name == variable.segmentName);
-					if (found == null) {
-						// selected segment not found, which means it doesn't exist anymore
-						segmentOptions.push({
-							value: variable.segmentName, label: () => {
-								return {
-									node: <IncorrectOptionLabel>
-										{Lang.INDICATOR.OBJECTIVE.VARIABLE_BUCKET_SEGMENT_INCORRECT_SELECTED}
-									</IncorrectOptionLabel>, label: ''
-								};
-							}
-						});
-					}
-				} else if (segmentOptions.length === 0) {
+			// build available segment options
+			segmentOptions.push(...(selectedBucket.segments || []).map(segment => {
+				return {value: segment.name, label: segment.name};
+			}));
+			if (isNotBlank(variable.segmentName)) {
+				// there is segment selected
+				// eslint-disable-next-line
+				const found = (selectedBucket.segments || []).find(s => s.name == variable.segmentName);
+				if (found == null) {
+					// selected segment not found, which means it doesn't exist anymore
 					segmentOptions.push({
-						value: '',
-						label: Lang.INDICATOR.OBJECTIVE.VARIABLE_BUCKET_SEGMENT_NO_AVAILABLE
-					});
+						value: variable.segmentName, label: () => {
+							return {
+								node: <IncorrectOptionLabel>{variable.segmentName}</IncorrectOptionLabel>,
+								label: variable.segmentName
+							};
+						}
+					} as DropdownOption);
 				}
+			} else if (segmentOptions.length === 0) {
+				segmentOptions.push({
+					value: '',
+					label: Lang.INDICATOR.OBJECTIVE.VARIABLE_BUCKET_SEGMENT_NO_AVAILABLE
+				});
 			}
 		}
 
