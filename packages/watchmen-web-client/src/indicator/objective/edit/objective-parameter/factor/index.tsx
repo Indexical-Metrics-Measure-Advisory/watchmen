@@ -36,7 +36,7 @@ const RealFactorEditor = (props: {
 		return {
 			value: factor.uuid, label: factor.name || (() => {
 				return {
-					node: <>{Lang.INDICATOR.OBJECTIVE.NONAME_FACTOR}</>,
+					node: <>{Lang.INDICATOR.OBJECTIVE.REFER_FACTOR_BUT_NONAME}</>,
 					label: ''
 				};
 			})
@@ -49,7 +49,7 @@ const RealFactorEditor = (props: {
 		factorOptions.push({
 			value: uuid || '', label: () => {
 				return {
-					node: <IncorrectOptionLabel>{Lang.INDICATOR.OBJECTIVE.INCORRECT_FACTOR}</IncorrectOptionLabel>,
+					node: <IncorrectOptionLabel>{Lang.INDICATOR.OBJECTIVE.REFER_FACTOR_BUT_INCORRECT}</IncorrectOptionLabel>,
 					label: ''
 				};
 			}
@@ -58,14 +58,14 @@ const RealFactorEditor = (props: {
 	if (factorOptions.length === 0) {
 		factorOptions.push({
 			value: '', label: () => {
-				return {node: <>{Lang.INDICATOR.OBJECTIVE.NO_AVAILABLE_FACTOR}</>, label: ''};
+				return {node: <>{Lang.INDICATOR.OBJECTIVE.REFER_FACTOR_BUT_NO_AVAILABLE}</>, label: ''};
 			}
 		});
 	}
 
 	return <FactorEditContainer>
 		<FactorDropdown value={uuid || ''} options={factorOptions} onChange={onFactorChange}
-		                please={Lang.INDICATOR.OBJECTIVE.FACTOR_PLACEHOLDER} valid={factorValid}/>
+		                please={Lang.INDICATOR.OBJECTIVE.REFER_FACTOR_PLACEHOLDER} valid={factorValid}/>
 	</FactorEditContainer>;
 };
 

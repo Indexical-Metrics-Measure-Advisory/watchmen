@@ -44,7 +44,9 @@ export const FormulaEditor = (props: { objective: Objective; factor: ObjectiveFa
 	}
 
 	const hasAsIs = isIndicatorFactor(factor);
-	const factors = (objective.factors || []).filter(f => f !== factor);
+	const factors = isIndicatorFactor(factor)
+		? (objective.factors || []).map(f => f === factor ? ({...factor, name: Lang.INDICATOR.OBJECTIVE.FACTOR_REFER_SELF}): factor)
+		: (objective.factors || []).filter(f => f !== factor);
 
 	return <>
 		<FactorItemLabel>{Lang.INDICATOR.OBJECTIVE.FACTOR_FORMULA}</FactorItemLabel>

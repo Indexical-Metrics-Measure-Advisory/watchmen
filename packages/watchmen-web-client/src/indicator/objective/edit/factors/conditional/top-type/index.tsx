@@ -120,7 +120,7 @@ export const TopType = (props: { factor: ObjectiveFactorOnIndicator; conditional
 		.filter(type => type !== filterType)
 		.filter(type => conditional != null ? type !== TopTypeFilterType.NO_FILTER : true);
 	const OptionsLabel = {
-		[TopTypeFilterType.NO_FILTER]: Lang.INDICATOR.OBJECTIVE.FACTOR_NO_FILTER,
+		[TopTypeFilterType.NO_FILTER]: Lang.INDICATOR.OBJECTIVE.REFER_INDICATOR_ON_NO_FILTER,
 		[TopTypeFilterType.AND]: 'And',
 		[TopTypeFilterType.OR]: 'Or'
 	};

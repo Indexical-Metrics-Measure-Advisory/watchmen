@@ -26,7 +26,7 @@ export const ConditionalEditor = (props: {
 
 	if (indicator == null) {
 		return <FilterContainer isTop={true}>
-			<IndicatorNotReady>{Lang.INDICATOR.OBJECTIVE.FACTOR_INDICATOR_NOT_READY}</IndicatorNotReady>
+			<IndicatorNotReady>{Lang.INDICATOR.OBJECTIVE.REFER_INDICATOR_BUT_NOT_READY}</IndicatorNotReady>
 		</FilterContainer>;
 	}
 

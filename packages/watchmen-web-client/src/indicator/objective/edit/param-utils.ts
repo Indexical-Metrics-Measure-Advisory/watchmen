@@ -77,24 +77,24 @@ export const defendFormulaParameter = (parameter: ComputedObjectiveParameter) =>
 		new Array(minParamCount - existingCount).fill(1).forEach(() => {
 			parameter.parameters.push(createFactorParameter());
 		});
-		if ([
-			ObjectiveFormulaOperator.ROUND, ObjectiveFormulaOperator.FLOOR, ObjectiveFormulaOperator.CEIL
-		].includes(parameter.operator)) {
-			if (isConstantParameter(parameter.parameters[1])) {
-				const value = parameter.parameters[1].value;
-				if (!/\d/.test(value)) {
-					(parameter.parameters[1] as ConstantObjectiveParameter).value = '0';
-				}
-			} else {
-				parameter.parameters[1] = createConstantParameter('0');
+	}
+	if ([
+		ObjectiveFormulaOperator.ROUND, ObjectiveFormulaOperator.FLOOR, ObjectiveFormulaOperator.CEIL
+	].includes(parameter.operator)) {
+		if (isConstantParameter(parameter.parameters[1])) {
+			const value = parameter.parameters[1].value;
+			if (!/\d/.test(value)) {
+				(parameter.parameters[1] as ConstantObjectiveParameter).value = '0';
 			}
-		} else if (ObjectiveFormulaOperator.INTERPOLATE === parameter.operator) {
-			[1, 2, 3, 4].forEach(index => {
-				if (!isConstantParameter(parameter.parameters[index])) {
-					parameter.parameters[index] = createConstantParameter();
-				}
-			});
+		} else {
+			parameter.parameters[1] = createConstantParameter('0');
 		}
+	} else if (ObjectiveFormulaOperator.INTERPOLATE === parameter.operator) {
+		[1, 2, 3, 4].forEach(index => {
+			if (!isConstantParameter(parameter.parameters[index])) {
+				parameter.parameters[index] = createConstantParameter();
+			}
+		});
 	}
 };
 
