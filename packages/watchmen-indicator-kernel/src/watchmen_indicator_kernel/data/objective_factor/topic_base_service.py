@@ -1,27 +1,32 @@
+from decimal import Decimal
+from typing import Optional
+
 from watchmen_auth import PrincipalService
-from watchmen_data_kernel.meta import TopicService
-# from watchmen_indicator_kernel.common import IndicatorKernelException
 from watchmen_inquiry_kernel.storage import ReportDataService
-# from watchmen_model.admin import Factor, Topic
-# from watchmen_model.common import FactorId, Parameter, ParameterCondition, ParameterJoint, ParameterJointType, \
-# 	ParameterKind, TopicFactorParameter, TopicId
+from watchmen_model.admin import Topic
 from watchmen_model.console import Report, Subject
-# from watchmen_model.indicator import Indicator
-# from watchmen_utilities import ArrayHelper, is_blank, is_decimal
-from .indicator_data_service import AchievementIndicatorDataService
+from watchmen_model.indicator import Indicator, Objective, ObjectiveFactorOnIndicator
+from .data_service import ObjectiveFactorDataService
 
 
 def get_report_data_service(subject: Subject, report: Report, principal_service: PrincipalService) -> ReportDataService:
 	return ReportDataService(subject, report, principal_service, True)
 
 
-def get_topic_service(principal_service: PrincipalService) -> TopicService:
-	return TopicService(principal_service)
+class TopicBaseObjectiveFactorDataService(ObjectiveFactorDataService):
+	def __init__(
+			self, objective: Objective, objective_factor: ObjectiveFactorOnIndicator, indicator: Indicator,
+			topic: Topic,
+			principal_service: PrincipalService):
+		super().__init__(objective, objective_factor, indicator, principal_service)
+		self.topic = topic
 
+	def get_topic(self) -> Topic:
+		return self.topic
 
-# TODO REFACTOR-OBJECTIVE ACHIEVEMENT BREAK DOWN DATA SERVICE, ON TOPIC
-class TopicBaseAchievementIndicatorDataService(AchievementIndicatorDataService):
-	pass
+	def ask_value(self) -> Optional[Decimal]:
+		# TODO REFACTOR-OBJECTIVE ACHIEVEMENT BREAK DOWN DATA SERVICE, ON TOPIC
+		pass
 # def __init__(
 # 		self, achievement_indicator: AchievementIndicator,
 # 		indicator: Indicator, topic: Topic, principal_service: PrincipalService):
@@ -72,7 +77,7 @@ class TopicBaseAchievementIndicatorDataService(AchievementIndicatorDataService):
 # 	def to_condition(a_criteria: IndicatorCriteria) -> ParameterCondition:
 # 		factor = self.find_factor(
 # 			a_criteria.factorId,
-# 			lambda: f'Factor of achievement indicator criteria[{criteria.to_dict()}] not declared.')
+# 			lambda: f'Factor of objective_factor indicator criteria[{criteria.to_dict()}] not declared.')
 # 		return self.fake_criteria_to_condition(a_criteria)(self.topic.topicId, factor.factorId)
 #
 # 	return ParameterJoint(
