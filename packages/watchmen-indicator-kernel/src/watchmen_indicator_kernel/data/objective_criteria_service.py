@@ -1,19 +1,32 @@
-# from watchmen_auth import PrincipalService
-# from watchmen_indicator_kernel.common import IndicatorKernelException
-# from watchmen_model.common import BucketId, ConstantParameter, FactorId, Parameter, ParameterCondition, \
-# 	ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, ParameterKind, \
-# 	TopicFactorParameter, TopicId
-# from watchmen_model.indicator import CategorySegment, CategorySegmentsHolder, NumericSegmentsHolder, \
-# 	NumericValueSegment, OtherCategorySegmentValue, RangeBucketValueIncluding
-# from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
-# from .bucket_helper import ask_bucket
+from watchmen_auth import PrincipalService
+from watchmen_model.indicator import Indicator, Objective, ObjectiveFactorOnIndicator
 
 
 # TODO REFACTOR-OBJECTIVE INDICATOR CRITERIA SERVICE
-class IndicatorCriteriaService:
-	pass
-# def __init__(self, principal_service: PrincipalService):
-# 	self.principalService = principal_service
+
+
+class ObjectiveCriteriaService:
+	def __init__(
+			self,
+			objective: Objective, objective_factor: ObjectiveFactorOnIndicator, indicator: Indicator,
+			principal_service: PrincipalService):
+		self.principalService = principal_service
+		self.objective = objective
+		self.objectiveFactor = objective_factor
+		self.indicator = indicator
+
+	def get_principal_service(self) -> PrincipalService:
+		return self.principalService
+
+	def get_objective(self) -> Objective:
+		return self.objective
+
+	def get_objective_factor(self) -> ObjectiveFactorOnIndicator:
+		return self.objectiveFactor
+
+	def get_indicator(self) -> Indicator:
+		return self.indicator
+
 # 	self.FAKE_TOPIC_ID = '1'
 #
 # # noinspection PyMethodMayBeStatic,PyUnusedLocal

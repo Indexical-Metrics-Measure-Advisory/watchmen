@@ -6,11 +6,11 @@
 # from watchmen_model.console.subject import SubjectColumnArithmetic
 # from watchmen_model.indicator import IndicatorAggregateArithmetic, MeasureMethod
 # from watchmen_utilities import is_blank
-from ..indicator_criteria_service import IndicatorCriteriaService
+from ..objective_criteria_service import ObjectiveCriteriaService
 
 
 # TODO REFACTOR-OBJECTIVE ACHIEVEMENT BREAK DOWN DATA SERVICE
-class InspectionDataService(IndicatorCriteriaService):
+class InspectionDataService(ObjectiveCriteriaService):
 	pass
 # def __init__(self, inspection: Inspection, principal_service: PrincipalService):
 # 	super().__init__(principal_service)

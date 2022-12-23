@@ -35,10 +35,10 @@ router = APIRouter()
 # 	# noinspection DuplicatedCode
 # 	def action(achievement_id: AchievementId, plugin_id: PluginId) -> Tuple[AchievementPluginTask, Plugin]:
 # 		achievement_service = get_achievement_service(task_service)
-# 		achievement: Optional[Achievement] = achievement_service.find_by_id(achievement_id)
-# 		if achievement is None:
+# 		objective_factor: Optional[Achievement] = achievement_service.find_by_id(achievement_id)
+# 		if objective_factor is None:
 # 			raise_404('Achievement not found.')
-# 		if achievement.tenantId != principal_service.get_tenant_id():
+# 		if objective_factor.tenantId != principal_service.get_tenant_id():
 # 			raise_404('Achievement not found.')
 #
 # 		plugin_service = get_plugin_service(task_service)
@@ -48,7 +48,7 @@ router = APIRouter()
 # 		if plugin.tenantId != principal_service.get_tenant_id():
 # 			raise_404('Achievement plugin not found.')
 # 		if plugin.applyTo != PluginApplyTo.ACHIEVEMENT:
-# 			raise_400('Plugin is not for achievement.')
+# 			raise_400('Plugin is not for objective_factor.')
 #
 # 		task = AchievementPluginTask(
 # 			achievementId=achievement_id,
@@ -67,7 +67,7 @@ router = APIRouter()
 #
 #
 # @router.post(
-# 	'/indicator/achievement/task', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=AchievementPluginTask)
+# 	'/indicator/objective_factor/task', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=AchievementPluginTask)
 # def create_task(
 # 		achievement_id: Optional[AchievementId], plugin_id: Optional[PluginId],
 # 		principal_service: PrincipalService = Depends(get_console_principal)
@@ -85,7 +85,7 @@ router = APIRouter()
 #
 #
 # @router.get(
-# 	'/indicator/achievement/task', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=AchievementPluginTask)
+# 	'/indicator/objective_factor/task', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=AchievementPluginTask)
 # def check_task_status(
 # 		task_id: Optional[AchievementPluginTaskId],
 # 		principal_service: PrincipalService = Depends(get_console_principal)
@@ -117,7 +117,7 @@ router = APIRouter()
 #
 #
 # @router.post(
-# 	'/indicator/achievement/task/result', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
+# 	'/indicator/objective_factor/task/result', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
 # def write_back_task_result(
 # 		result: TaskResult,
 # 		principal_service: PrincipalService = Depends(get_any_admin_principal)

@@ -160,7 +160,11 @@ export const computeFrame = (def: ObjectiveTimeFrame): Frame | undefined => {
 				return {from: lastDay.subtract(6, 'month').add(1, 'day'), to: lastDay};
 			}
 		case ObjectiveTimeFrameKind.QUARTER:
-			return {from: lastDay.subtract(1, 'quarter').add(1, 'day'), to: lastDay};
+			if (lastDay.daysInMonth() === lastDay.date()) {
+				return {from: lastDay.date(1).subtract(2, 'month'), to: lastDay};
+			} else {
+				return {from: lastDay.subtract(3, 'month').add(1, 'day'), to: lastDay};
+			}
 		case ObjectiveTimeFrameKind.MONTH:
 			if (lastDay.daysInMonth() === lastDay.date()) {
 				return {from: lastDay.date(1), to: lastDay};
@@ -168,11 +172,7 @@ export const computeFrame = (def: ObjectiveTimeFrame): Frame | undefined => {
 				return {from: lastDay.subtract(1, 'month').add(1, 'day'), to: lastDay};
 			}
 		case ObjectiveTimeFrameKind.WEEK_OF_YEAR:
-			if (lastDay.day() === 6) {
-				return {from: lastDay.day(0), to: lastDay};
-			} else {
-				return {from: lastDay.subtract(1, 'week').add(1, 'day'), to: lastDay};
-			}
+			return {from: lastDay.subtract(6, 'day'), to: lastDay};
 		case ObjectiveTimeFrameKind.DAY_OF_MONTH:
 		case ObjectiveTimeFrameKind.DAY_OF_WEEK:
 			return {from: lastDay, to: lastDay};
@@ -189,11 +189,7 @@ export const computeFrame = (def: ObjectiveTimeFrame): Frame | undefined => {
 				return {from: lastDay.subtract(n, 'month').add(1, 'day'), to: lastDay};
 			}
 		case ObjectiveTimeFrameKind.LAST_N_WEEKS:
-			if (lastDay.day() === 6) {
-				return {from: lastDay.day(0).subtract(n - 1, 'week'), to: lastDay};
-			} else {
-				return {from: lastDay.subtract(n, 'week').add(1, 'day'), to: lastDay};
-			}
+			return {from: lastDay.subtract(n * 7 - 1, 'day'), to: lastDay};
 		case ObjectiveTimeFrameKind.LAST_N_DAYS:
 			return {from: lastDay.subtract(n - 1), to: lastDay};
 		case ObjectiveTimeFrameKind.NONE:
