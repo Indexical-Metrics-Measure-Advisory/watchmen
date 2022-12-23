@@ -1,4 +1,6 @@
 from watchmen_auth import PrincipalService
+from watchmen_inquiry_kernel.storage import ReportDataService
+from watchmen_model.console import Report, Subject
 from watchmen_model.indicator import Indicator, Objective, ObjectiveFactorOnIndicator
 
 
@@ -26,6 +28,11 @@ class ObjectiveCriteriaService:
 
 	def get_indicator(self) -> Indicator:
 		return self.indicator
+
+	# noinspection PyMethodMayBeStatic
+	def get_report_data_service(
+			self, subject: Subject, report: Report, principal_service: PrincipalService) -> ReportDataService:
+		return ReportDataService(subject, report, principal_service, True)
 
 # 	self.FAKE_TOPIC_ID = '1'
 #

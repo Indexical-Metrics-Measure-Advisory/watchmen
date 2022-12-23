@@ -2,15 +2,9 @@ from decimal import Decimal
 from typing import Optional
 
 from watchmen_auth import PrincipalService
-from watchmen_inquiry_kernel.storage import ReportDataService
 from watchmen_model.admin import Topic
-from watchmen_model.console import Report, Subject
 from watchmen_model.indicator import Indicator, Objective, ObjectiveFactorOnIndicator
 from .data_service import ObjectiveFactorDataService
-
-
-def get_report_data_service(subject: Subject, report: Report, principal_service: PrincipalService) -> ReportDataService:
-	return ReportDataService(subject, report, principal_service, True)
 
 
 class TopicBaseObjectiveFactorDataService(ObjectiveFactorDataService):
