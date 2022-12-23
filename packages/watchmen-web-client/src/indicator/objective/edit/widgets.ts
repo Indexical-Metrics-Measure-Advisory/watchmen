@@ -127,6 +127,7 @@ export const RibItemContainer = styled(ItemContainer)`
 		left             : 0;
 		width            : calc(100% - calc(var(--margin) / 2));
 		height           : 100%;
+		border-radius   : calc(var(--border-radius) * 2);
 		background-color : transparent;
 	}
 	&:before {
@@ -135,7 +136,6 @@ export const RibItemContainer = styled(ItemContainer)`
 		z-index    : -2;
 	}
 	&:after {
-		border-radius : calc(var(--border-radius) * 2);
 		border-width  : 2px;
 		border-color  : transparent;
 		border-style  : dashed;
