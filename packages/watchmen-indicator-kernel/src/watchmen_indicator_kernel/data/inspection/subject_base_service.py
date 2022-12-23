@@ -1,23 +1,11 @@
 from watchmen_auth import PrincipalService
-from watchmen_data_kernel.meta import TopicService
-# from watchmen_indicator_kernel.common import IndicatorKernelException
 from watchmen_inquiry_kernel.storage import ReportDataService
-# from watchmen_model.admin import Factor, Topic
-# from watchmen_model.common import ComputedParameter, ConstantParameter, DataResult, DataResultSetRow, \
-# 	FactorId, ParameterComputeType, ParameterCondition, ParameterExpression, ParameterExpressionOperator, \
-# 	ParameterJoint, ParameterJointType, ParameterKind, SubjectDatasetColumnId, TopicFactorParameter, TopicId
 from watchmen_model.console import Report, Subject
-# from watchmen_model.indicator import Indicator, MeasureMethod
-# from watchmen_utilities import ArrayHelper, is_blank
 from .inspection_data_service import InspectionDataService
 
 
 def get_report_data_service(subject: Subject, report: Report, principal_service: PrincipalService) -> ReportDataService:
 	return ReportDataService(subject, report, principal_service, True)
-
-
-def get_topic_service(principal_service: PrincipalService) -> TopicService:
-	return TopicService(principal_service)
 
 
 # TODO REFACTOR-OBJECTIVE ACHIEVEMENT BREAK DOWN DATA SERVICE, ON SUBJECT

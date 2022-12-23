@@ -1,11 +1,3 @@
-# from watchmen_auth import PrincipalService
-# from watchmen_model.admin import Factor, FactorType
-# from watchmen_model.common import ComputedParameter, DataResult, DataResultSet, FactorId, ParameterComputeType, \
-# 	ParameterKind, SubjectDatasetColumnId, TopicFactorParameter, TopicId
-# from watchmen_model.console import ReportIndicator, ReportIndicatorArithmetic, SubjectDatasetColumn
-# from watchmen_model.console.subject import SubjectColumnArithmetic
-# from watchmen_model.indicator import IndicatorAggregateArithmetic, MeasureMethod
-# from watchmen_utilities import is_blank
 from ..objective_criteria_service import ObjectiveCriteriaService
 
 
