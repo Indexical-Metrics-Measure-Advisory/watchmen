@@ -1,14 +1,12 @@
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.common import IndicatorKernelException
-from watchmen_indicator_kernel.data.indicator_helper import ask_indicator
 from watchmen_model.common import SubjectId, TopicId
 from watchmen_model.indicator import Indicator, IndicatorBaseOn, Objective, ObjectiveFactorOnIndicator
 from watchmen_utilities import is_blank, is_not_blank
 from .data_service import ObjectiveFactorDataService
 from .subject_base_service import SubjectBaseObjectiveFactorDataService
 from .topic_base_service import TopicBaseObjectiveFactorDataService
-from ..subject_helper import ask_subject
-from ..topic_helper import ask_topic
+from ..utils import ask_indicator, ask_subject, ask_topic
 
 
 def get_topic_base_service(
