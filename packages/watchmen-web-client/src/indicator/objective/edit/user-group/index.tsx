@@ -23,6 +23,10 @@ export const UserGroup = (props: { objective: Objective }) => {
 		}
 	}, [fire, userGroups.loaded]);
 
+	if (objective.userGroupIds == null) {
+		objective.userGroupIds = [];
+	}
+
 	return <EditStep index={ObjectiveDeclarationStep.USER_GROUP} title={Lang.INDICATOR.OBJECTIVE.USER_GROUP_TITLE}>
 		<UserGroupPicker objective={objective} codes={userGroups.data}/>
 	</EditStep>;

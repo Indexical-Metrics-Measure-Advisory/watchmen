@@ -6,7 +6,7 @@ import {TupleItemPicker} from '@/widgets/tuple-workbench/tuple-item-picker';
 import React from 'react';
 
 const hasUserGroup = (space: Space) => !!space.userGroupIds && space.userGroupIds.length > 0;
-const getUserGroupIds = (space: Space): Array<UserGroupId> => space.userGroupIds;
+const getUserGroupIds = (space: Space): Array<UserGroupId> => space.userGroupIds || [];
 const findNameFromUserGroups = (userGroupId: UserGroupId, userGroups: Array<QueryUserGroupForHolder>): string => {
 	// eslint-disable-next-line
 	return userGroups.find(userGroup => userGroup.userGroupId == userGroupId)!.name;
