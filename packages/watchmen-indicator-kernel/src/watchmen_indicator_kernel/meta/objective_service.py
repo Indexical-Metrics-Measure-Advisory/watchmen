@@ -25,7 +25,7 @@ class ObjectiveShaper(EntityShaper):
 			# 'relevants': ArrayHelper(objective.relevants).map(lambda x: x.to_dict()).to_list(),
 			# 'filter': IndicatorShaper.serialize_filter(objective.filter),
 			'description': objective.description,
-			'time_Frame': self.serialize_time_frame(objective.timeFrame),
+			'time_frame': self.serialize_time_frame(objective.timeFrame),
 			'targets': ArrayHelper(objective.targets).map(lambda x: x.to_dict()).to_list(),
 			'variables': ArrayHelper(objective.variables).map(lambda x: x.to_dict()).to_list(),
 			'factors': ArrayHelper(objective.factors).map(lambda x: x.to_dict()).to_list(),
