@@ -27,8 +27,8 @@ export const ObjectiveEditor = () => {
 			<Variables objective={objective}/>
 			<Factors objective={objective}/>
 			<NameAndSave objective={objective}/>
-			<Description objective={objective}/>
 			<UserGroup objective={objective}/>
+			<Description objective={objective}/>
 		</ObjectiveContainer>
 	</FixWidthPage>;
 };
