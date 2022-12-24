@@ -13,6 +13,7 @@ CREATE TABLE objectives
     created_by       VARCHAR(50) NOT NULL,
     last_modified_at DATETIME    NOT NULL,
     last_modified_by VARCHAR(50) NOT NULL,
+    version          BIGINT,
     PRIMARY KEY (objective_id),
     INDEX (name),
     INDEX (tenant_id),
