@@ -34,7 +34,11 @@ export const listUsers = async (options: {
 	if (isMockService()) {
 		return listMockUsers(options);
 	} else {
-		return await page({api: Apis.USER_LIST_BY_NAME, search: {search}, pageable: {pageNumber, pageSize}});
+		const pageable: TuplePage<UserOnServer> = await page({
+			api: Apis.USER_LIST_BY_NAME,
+			search: {search}, pageable: {pageNumber, pageSize}
+		});
+		return {...pageable, data: (pageable.data || []).map(user => transformFromServer(user))};
 	}
 };
 
@@ -84,6 +88,7 @@ export const listUsersForHolder = async (search: string): Promise<Array<QueryUse
 	if (isMockService()) {
 		return listMockUsersForHolder(search);
 	} else {
-		return await get({api: Apis.USER_LIST_FOR_HOLDER_BY_NAME, search: {search}});
+		return (await get({api: Apis.USER_LIST_FOR_HOLDER_BY_NAME, search: {search}}))
+			.map((user: UserOnServer) => transformFromServer(user));
 	}
 };
