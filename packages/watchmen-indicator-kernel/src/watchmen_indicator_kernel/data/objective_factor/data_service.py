@@ -7,7 +7,7 @@ from watchmen_indicator_kernel.common import IndicatorKernelException
 from watchmen_model.common import SubjectDatasetColumnId
 from watchmen_model.console import Report, ReportIndicator, ReportIndicatorArithmetic
 from watchmen_model.indicator import Indicator, IndicatorAggregateArithmetic, Objective, ObjectiveFactorOnIndicator
-from ..objective_criteria_service import ObjectiveCriteriaService
+from ..objective_criteria_service import ObjectiveCriteriaService, TimeFrame
 
 
 class ObjectiveFactorDataService(ObjectiveCriteriaService):
@@ -55,5 +55,5 @@ class ObjectiveFactorDataService(ObjectiveCriteriaService):
 		], dimensions=[])
 
 	@abstractmethod
-	def ask_value(self) -> Optional[Decimal]:
+	def ask_value(self, time_frame: Optional[TimeFrame]) -> Optional[Decimal]:
 		pass

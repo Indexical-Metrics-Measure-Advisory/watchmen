@@ -1,10 +1,24 @@
+from abc import abstractmethod
+from datetime import datetime
+from typing import Optional, Tuple
+
 from watchmen_auth import PrincipalService
 from watchmen_inquiry_kernel.storage import ReportDataService
+from watchmen_model.common import ComputedParameter, Parameter, ParameterCondition, ParameterExpression, \
+	ParameterJoint, ParameterJointType, ParameterKind, TopicFactorParameter, TopicId
 from watchmen_model.console import Report, Subject
-from watchmen_model.indicator import Indicator, Objective, ObjectiveFactorOnIndicator
+from watchmen_model.indicator import BucketObjectiveParameter, ComputedObjectiveParameter, ConstantObjectiveParameter, \
+	Indicator, Objective, ObjectiveFactorOnIndicator, ObjectiveParameter, ObjectiveParameterCondition, \
+	ObjectiveParameterExpression, ObjectiveParameterJoint, ObjectiveParameterJointType, ReferObjectiveParameter
+from watchmen_utilities import ArrayHelper
+from .utils import translate_computation_operator_in_factor_filter, translate_expression_operator
+from ..common import IndicatorKernelException
 
 
-# TODO REFACTOR-OBJECTIVE INDICATOR CRITERIA SERVICE
+class TimeFrame:
+	def __init__(self, start: datetime, end: datetime):
+		self.start = start
+		self.end = end
 
 
 class ObjectiveCriteriaService:
@@ -26,13 +40,104 @@ class ObjectiveCriteriaService:
 	def get_objective_factor(self) -> ObjectiveFactorOnIndicator:
 		return self.objectiveFactor
 
+	def on_factor_msg(self) -> str:
+		return \
+			f'objective factor[' \
+			f'objectiveId={self.get_objective().objectiveId}, ' \
+			f'factorUuid={self.get_objective_factor().uuid}]'
+
 	def get_indicator(self) -> Indicator:
 		return self.indicator
 
+	def has_indicator_filter(self) -> bool:
+		indicator = self.get_indicator()
+		return \
+				indicator.filter is not None \
+				and indicator.filter.enabled \
+				and indicator.filter.joint is not None \
+				and indicator.filter.joint.filters is not None \
+				and len(indicator.filter.joint.filters) != 0
+
 	# noinspection PyMethodMayBeStatic
-	def get_report_data_service(
-			self, subject: Subject, report: Report, principal_service: PrincipalService) -> ReportDataService:
-		return ReportDataService(subject, report, principal_service, True)
+	def get_report_data_service(self, subject: Subject, report: Report) -> ReportDataService:
+		return ReportDataService(subject, report, self.get_principal_service(), True)
+
+	# noinspection PyMethodMayBeStatic
+	def as_time_frame(self, frame: Optional[Tuple[datetime, datetime]]) -> Optional[TimeFrame]:
+		return None if frame is None else TimeFrame(start=frame[0], end=frame[1])
+
+	# def fake_criteria_to_condition(
+	# 		self, criteria: ObjectiveParameterCondition, topic_id: TopicId, factor_id: FactorId) -> ParameterCondition:
+	# 	if isinstance(criteria, IndicatorCriteriaOnBucket):
+	# 		return self.fake_bucket_criteria_to_condition(
+	# 			criteria.bucketId, criteria.bucketSegmentName)(topic_id, factor_id)
+	# 	elif isinstance(criteria, IndicatorCriteriaOnExpression):
+	# 		return self.fake_value_criteria_to_condition(criteria.operator, criteria.value)(topic_id, factor_id)
+	# 	else:
+	# 		data = criteria.to_dict()
+	# 		if is_not_blank(data.get('bucketId')) and is_not_blank(data.get('bucketSegmentName')):
+	# 			return self.fake_bucket_criteria_to_condition(
+	# 				data.get('bucketId'), data.get('bucketSegmentName'))(topic_id, factor_id)
+	# 		elif data.get('operator') is not None and is_not_blank(str(data.get('value'))):
+	# 			return self.fake_value_criteria_to_condition(
+	# 				data.get('operator'), str(data.get('value')))(topic_id, factor_id)
+	# 		else:
+	# 			raise IndicatorKernelException(f'Indicator criteria[{data}] not supported.')
+	@abstractmethod
+	def ask_filter_base_id(self) -> TopicId:
+		raise NotImplementedError('Function ask_filter_base_id not implemented yet.')
+
+	def translate_conditional_parameter(self, parameter: ObjectiveParameter) -> Parameter:
+		return Parameter(
+			conditional=parameter.conditional,
+			on=None if parameter.on is None else self.translate_parameter_condition(parameter.on)
+		)
+
+	def translate_parameter(self, parameter: ObjectiveParameter) -> Parameter:
+		if isinstance(parameter, ReferObjectiveParameter):
+			uuid = parameter.uuid
+			return TopicFactorParameter(kind=ParameterKind.TOPIC, topicId=self.ask_filter_base_id(), factorId=uuid)
+		elif isinstance(parameter, ConstantObjectiveParameter):
+			# TODO
+			raise NotImplementedError('ConstantObjectiveParameter not implemented yet.')
+		elif isinstance(parameter, ComputedObjectiveParameter):
+			translated_parameters = ArrayHelper(parameter.parameters) \
+				.map(lambda x: self.translate_conditional_parameter) \
+				.to_list()
+			return ComputedParameter(
+				kind=ParameterKind.COMPUTED,
+				operator=translate_computation_operator_in_factor_filter(parameter.operator),
+				parameter=translated_parameters
+			)
+		elif isinstance(parameter, BucketObjectiveParameter):
+			# TODO
+			raise NotImplementedError('BucketObjectiveParameter not implemented yet.')
+		else:
+			raise IndicatorKernelException(f'Objective parameter[{parameter.to_dict()}] not supported.')
+
+	def translate_parameter_condition(self, condition: ObjectiveParameterCondition) -> ParameterCondition:
+		if isinstance(condition, ObjectiveParameterJoint):
+			return ParameterJoint(
+				jointType=ParameterJointType.OR if condition.conj == ObjectiveParameterJointType.OR else ParameterJointType.AND,
+				filters=ArrayHelper(condition.filters).map(lambda x: self.translate_parameter_condition(x)).to_list()
+			)
+		elif isinstance(condition, ObjectiveParameterExpression):
+			left = self.translate_parameter(condition.left)
+			right = self.translate_parameter(condition.right)
+			return ParameterExpression(
+				left=left,
+				operator=translate_expression_operator(condition.operator),
+				right=right
+			)
+		else:
+			raise IndicatorKernelException(f'Objective parameter condition[{condition.to_dict()}] not supported.')
+# topic = self.get_topic()
+# factor = find_factor(topic, condition.factorId)
+# if factor is None:
+# 	raise IndicatorKernelException(
+# 		f'One of objective factor criteria[{conditions.to_dict()}] not declared, on {self.on_factor_msg()}.')
+# return self.fake_criteria_to_condition(condition, topic.topicId, factor.factorId)
+
 
 # 	self.FAKE_TOPIC_ID = '1'
 #
@@ -203,26 +308,5 @@ class ObjectiveCriteriaService:
 # 			operator=expression_operator,
 # 			right=self.build_value_criteria_right(topic_id, factor_id, value)
 # 		)
-#
-# 	return action
-#
-# def fake_criteria_to_condition(
-# 		self, criteria: IndicatorCriteria) -> Callable[[TopicId, FactorId], ParameterCondition]:
-# 	def action(topic_id: TopicId, factor_id: FactorId) -> ParameterCondition:
-# 		if isinstance(criteria, IndicatorCriteriaOnBucket):
-# 			return self.fake_bucket_criteria_to_condition(
-# 				criteria.bucketId, criteria.bucketSegmentName)(topic_id, factor_id)
-# 		elif isinstance(criteria, IndicatorCriteriaOnExpression):
-# 			return self.fake_value_criteria_to_condition(criteria.operator, criteria.value)(topic_id, factor_id)
-# 		else:
-# 			data = criteria.to_dict()
-# 			if is_not_blank(data.get('bucketId')) and is_not_blank(data.get('bucketSegmentName')):
-# 				return self.fake_bucket_criteria_to_condition(
-# 					data.get('bucketId'), data.get('bucketSegmentName'))(topic_id, factor_id)
-# 			elif data.get('operator') is not None and is_not_blank(str(data.get('value'))):
-# 				return self.fake_value_criteria_to_condition(
-# 					data.get('operator'), str(data.get('value')))(topic_id, factor_id)
-# 			else:
-# 				raise IndicatorKernelException(f'Indicator criteria[{data}] not supported.')
 #
 # 	return action
