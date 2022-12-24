@@ -21,8 +21,7 @@ from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_pipeline_kernel.pipeline import create_monitor_log_pipeline_invoker, PipelineTrigger
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaJoint, \
 	EntityCriteriaJointConjunction
-from watchmen_utilities import ArrayHelper
-from watchmen_utilities.datetime_helper import last_day_of_month
+from watchmen_utilities import ArrayHelper, last_day_of_month
 from .scheduler_registrar import topic_snapshot_jobs
 from ..common import PipelineKernelException
 

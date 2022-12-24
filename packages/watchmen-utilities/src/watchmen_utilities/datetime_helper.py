@@ -43,8 +43,12 @@ def truncate_time(value: Union[date, datetime]) -> datetime:
 			.replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=None)
 
 
+def to_last_day_of_month(a_date: date) -> date:
+	return (a_date.replace(day=1) + timedelta(days=31)).replace(day=1) - timedelta(days=1)
+
+
 def last_day_of_month(a_date: date) -> int:
-	return ((a_date.replace(day=1) + timedelta(days=31)).replace(day=1) - timedelta(days=1)).day
+	return to_last_day_of_month(a_date).day
 
 
 def year_diff(end_date: date, start_date: date) -> int:

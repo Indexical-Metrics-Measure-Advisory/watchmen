@@ -21,5 +21,4 @@ export const CalendarPicker = (props: {
 		{showTime ? <TimePicker/> : null}
 		<YearMonthPicker/>
 	</CalendarPickerContainer>;
-
 };

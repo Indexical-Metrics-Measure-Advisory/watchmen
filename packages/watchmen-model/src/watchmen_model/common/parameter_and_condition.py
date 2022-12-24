@@ -16,6 +16,7 @@ class ParameterKind(str, Enum):
 	COMPUTED = 'computed'
 
 
+# noinspection DuplicatedCode
 class AvoidFastApiError:
 	on: Optional[ParameterJoint] = None
 
@@ -75,6 +76,7 @@ class ParameterComputeType(str, Enum):
 	CASE_THEN = 'case-then'
 
 
+# noinspection DuplicatedCode
 class ComputedParameter(Parameter):
 	kind: ParameterKind.COMPUTED = ParameterKind.COMPUTED
 	type: ParameterComputeType = ParameterComputeType.NONE
@@ -107,6 +109,7 @@ class ParameterJoint(ParameterCondition, BaseModel):
 			super().__setattr__(name, value)
 
 
+# noinspection DuplicatedCode
 class ParameterExpressionOperator(str, Enum):
 	EMPTY = 'empty',
 	NOT_EMPTY = 'not-empty',

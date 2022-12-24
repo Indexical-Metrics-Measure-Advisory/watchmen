@@ -32,7 +32,7 @@ export const ExpressionOperatorContainer = styled.div.attrs({'data-widget': 'exp
 		right                     : 100%;
 		width                     : calc(var(--margin) / 2 - 1px);
 		height                    : calc(var(--margin) / 4 + var(--param-height) + 3px);
-		border-bottom-left-radius : ${({hasRight}) => hasRight ? (void 0) : 'var(--border-radius)'};;
+		border-bottom-left-radius : ${({hasRight}) => hasRight ? (void 0) : 'var(--border-radius)'};
 		z-index                   : -1;
 		box-shadow                : var(--param-left-border), var(--param-bottom-border);
 	}

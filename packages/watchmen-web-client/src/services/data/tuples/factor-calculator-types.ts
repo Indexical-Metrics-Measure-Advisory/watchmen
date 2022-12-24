@@ -78,7 +78,7 @@ export enum ParameterExpressionOperator {
 	MORE = 'more',
 	MORE_EQUALS = 'more-equals',
 	IN = 'in',
-	NOT_IN = 'not-in',
+	NOT_IN = 'not-in'
 }
 
 export interface ParameterCondition {

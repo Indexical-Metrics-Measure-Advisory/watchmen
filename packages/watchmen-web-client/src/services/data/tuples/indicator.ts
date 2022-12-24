@@ -6,7 +6,9 @@ import {
 	fetchMockIndicatorCategories,
 	fetchMockIndicatorsForSelection,
 	fetchMockRelevantIndicators,
+	fetchMockSubjectForIndicator,
 	fetchMockSubjectsForIndicatorSelection,
+	fetchMockTopicForIndicator,
 	fetchMockTopicsForIndicatorSelection,
 	listAllMockIndicators,
 	listMockIndicators,
@@ -23,7 +25,8 @@ import {
 	SubjectForIndicator,
 	TopicForIndicator
 } from './query-indicator-types';
-import {TopicId} from './topic-types';
+import {SubjectId} from './subject-types';
+import {Topic, TopicId} from './topic-types';
 import {isFakedUuid} from './utils';
 
 export const listIndicators = async (options: {
@@ -88,6 +91,22 @@ export const fetchEnumsForTopic = async (topicId: TopicId): Promise<Array<EnumFo
 	}
 };
 
+export const fetchTopicForIndicator = async (topicId: TopicId): Promise<Topic> => {
+	if (isMockService()) {
+		return await fetchMockTopicForIndicator(topicId);
+	} else {
+		return await get({api: Apis.TOPIC_GET, search: {topicId}});
+	}
+};
+
+export const fetchSubjectForIndicator = async (subjectId: SubjectId): Promise<SubjectForIndicator> => {
+	if (isMockService()) {
+		return await fetchMockSubjectForIndicator(subjectId);
+	} else {
+		return await get({api: Apis.SUBJECT_FOR_INDICATOR_GET, search: {subjectId}});
+	}
+};
+
 export const fetchIndicator = async (indicatorId: IndicatorId): Promise<{ indicator: Indicator; topic?: TopicForIndicator; subject?: SubjectForIndicator; enums?: Array<EnumForIndicator>; }> => {
 	if (isMockService()) {
 		return await fetchMockIndicator(indicatorId);
@@ -96,9 +115,9 @@ export const fetchIndicator = async (indicatorId: IndicatorId): Promise<{ indica
 		let topic: TopicForIndicator | undefined = (void 0);
 		let subject: SubjectForIndicator | undefined = (void 0);
 		if (indicator.baseOn === IndicatorBaseOn.TOPIC) {
-			topic = await get({api: Apis.TOPIC_GET, search: {topicId: indicator.topicOrSubjectId}});
+			topic = await fetchTopicForIndicator(indicator.topicOrSubjectId);
 		} else if (indicator.baseOn === IndicatorBaseOn.SUBJECT) {
-			subject = await get({api: Apis.SUBJECT_FOR_INDICATOR_GET, search: {subjectId: indicator.topicOrSubjectId}});
+			subject = await fetchSubjectForIndicator(indicator.topicOrSubjectId);
 		}
 		return {indicator, topic, subject};
 	}
