@@ -1,10 +1,20 @@
 from decimal import Decimal
-from typing import Optional
+from typing import List, Optional, Tuple
 
 from watchmen_auth import PrincipalService
+from watchmen_indicator_kernel.common import IndicatorKernelException
 from watchmen_model.admin import Topic
-from watchmen_model.indicator import Indicator, Objective, ObjectiveFactorOnIndicator
+from watchmen_model.common import ParameterJoint, ParameterJointType, ParameterKind, \
+	SubjectDatasetColumnId, TopicFactorParameter, TopicId
+from watchmen_model.console import Subject, SubjectDataset, SubjectDatasetColumn
+from watchmen_model.indicator import Indicator, Objective, ObjectiveFactorOnIndicator, ObjectiveParameterJointType
+from watchmen_utilities import ArrayHelper, is_decimal
 from .data_service import ObjectiveFactorDataService
+from ..objective_criteria_service import TimeFrame
+from ..utils import find_factor
+
+FAKED_ONLY_COLUMN_ID = 'FAKED_ONLY_COLUMN_ID'
+FAKED_ONLY_COLUMN_NAME = 'faked_only_column_name'
 
 
 class TopicBaseObjectiveFactorDataService(ObjectiveFactorDataService):
@@ -18,42 +28,77 @@ class TopicBaseObjectiveFactorDataService(ObjectiveFactorDataService):
 	def get_topic(self) -> Topic:
 		return self.topic
 
-	def ask_value(self) -> Optional[Decimal]:
+	def ask_filter_base_id(self) -> TopicId:
+		return self.get_topic().topicId
+
+	def fake_indicator_factor_to_dataset_column(self) -> Tuple[SubjectDatasetColumn, SubjectDatasetColumnId]:
+		indicator = self.get_indicator()
+		topic = self.get_topic()
+		factor = find_factor(topic, indicator.factorId)
+		# factor must be declared
+		if factor is None:
+			raise IndicatorKernelException(
+				f'Indicator[id={indicator.indicatorId}, name={indicator.name}] factor not declared, on {self.on_factor_msg()}.')
+		return SubjectDatasetColumn(
+			columnId=FAKED_ONLY_COLUMN_ID,
+			parameter=TopicFactorParameter(
+				kind=ParameterKind.TOPIC, topicId=topic.topicId, factorId=factor.factorId),
+			alias=FAKED_ONLY_COLUMN_NAME
+		), FAKED_ONLY_COLUMN_ID
+
+	def fake_criteria_to_dataset_filter(self) -> Optional[ParameterJoint]:
+		objective_factor = self.get_objective_factor()
+		if not objective_factor.conditional:
+			# ask all data
+			return None
+
+		factor_filter = objective_factor.filter
+
+		if factor_filter is None or factor_filter.filters is None:
+			# no filter declared
+			return None
+
+		conditions = ArrayHelper(factor_filter.filters).filter(lambda x: x is not None).to_list()
+		if len(conditions) == 0:
+			return None
+
+		return ParameterJoint(
+			jointType=ParameterJointType.OR if factor_filter.conj == ObjectiveParameterJointType.OR else ParameterJointType.AND,
+			filters=ArrayHelper(conditions).map(self.translate_parameter_condition).to_list()
+		)
+
+	def build_filters(self) -> Optional[ParameterJoint]:
+		a_filter = self.fake_criteria_to_dataset_filter()
+		if self.has_indicator_filter():
+			if a_filter is not None:
+				return ParameterJoint(
+					jointType=ParameterJointType.AND,
+					filters=[a_filter, self.indicator.filter.joint]
+				)
+			else:
+				return self.indicator.filter.joint
+		else:
+			return a_filter
+
+	def fake_to_subject(self) -> Tuple[Subject, SubjectDatasetColumnId]:
+		only_column, only_column_id = self.fake_indicator_factor_to_dataset_column()
+		dataset_columns: List[SubjectDatasetColumn] = [only_column]
+		dataset_filters: Optional[ParameterJoint] = self.build_filters()
+		return Subject(dataset=SubjectDataset(columns=dataset_columns, filters=dataset_filters)), only_column_id
+
+	def ask_value(self, time_frame: Optional[TimeFrame]) -> Optional[Decimal]:
 		# TODO REFACTOR-OBJECTIVE ACHIEVEMENT BREAK DOWN DATA SERVICE, ON TOPIC
-		pass
-# def __init__(
-# 		self, achievement_indicator: AchievementIndicator,
-# 		indicator: Indicator, topic: Topic, principal_service: PrincipalService):
-# 	super().__init__(achievement_indicator, principal_service)
-# 	self.indicator = indicator
-# 	self.topic = topic
-# 	self.FAKE_INDICATOR_COLUMN_ID = '1'
-#
-# def ask_factor_not_found_message(self, factor_id: FactorId) -> str:
-# 	return f'Factor[id={factor_id}] not found on topic[id={self.topic.topicId}, name={self.topic.name}].'
-#
-# # noinspection DuplicatedCode
-# def find_factor(
-# 		self, factor_id: Optional[FactorId],
-# 		on_factor_id_missed: Callable[[], str]) -> Factor:
-# 	if is_blank(factor_id):
-# 		raise IndicatorKernelException(on_factor_id_missed())
-# 	factor: Optional[Factor] = ArrayHelper(self.topic.factors).find(lambda x: x.factorId == factor_id)
-# 	if factor is None:
-# 		raise IndicatorKernelException(self.ask_factor_not_found_message(factor_id))
-# 	return factor
-#
-# def fake_indicator_factor_to_dataset_column(self) -> SubjectDatasetColumn:
-# 	indicator_factor = self.find_factor(
-# 		self.indicator.factorId,
-# 		lambda: f'Indicator[id={self.indicator.indicatorId}, name={self.indicator.name}] factor not declared.')
-# 	return SubjectDatasetColumn(
-# 		columnId=self.FAKE_INDICATOR_COLUMN_ID,
-# 		parameter=TopicFactorParameter(
-# 			kind=ParameterKind.TOPIC, topicId=self.topic.topicId, factorId=indicator_factor.factorId),
-# 		alias='column_1'
-# 	)
-#
+		subject, only_column_id = self.fake_to_subject()
+		report = self.fake_to_report(only_column_id)
+		report_data_service = self.get_report_data_service(subject, report)
+		data_result = report_data_service.find()
+		if len(data_result.data) == 0:
+			return Decimal('0')
+		else:
+			value = data_result.data[0][0]
+			parsed, decimal_value = is_decimal(value)
+			return decimal_value if parsed else Decimal('0')
+
 # def build_value_criteria_left(self, topic_id: TopicId, factor_id: FactorId, value: Optional[str]) -> Parameter:
 # 	if is_blank(value):
 # 		return super().build_value_criteria_left(topic_id, factor_id, value)
@@ -61,59 +106,3 @@ class TopicBaseObjectiveFactorDataService(ObjectiveFactorDataService):
 # 	return self.build_value_criteria_left_on_factor(
 # 		topic_id, factor_id, value,
 # 		lambda: ArrayHelper(self.topic.factors).find(lambda x: x.factorId == factor_id))
-#
-# # noinspection DuplicatedCode
-# def fake_criteria_to_dataset_filter(self) -> Optional[ParameterJoint]:
-# 	criteria = ArrayHelper(self.achievementIndicator.criteria).filter(lambda x: x is not None).to_list()
-# 	if len(criteria) == 0:
-# 		return None
-#
-# 	def to_condition(a_criteria: IndicatorCriteria) -> ParameterCondition:
-# 		factor = self.find_factor(
-# 			a_criteria.factorId,
-# 			lambda: f'Factor of objective_factor indicator criteria[{criteria.to_dict()}] not declared.')
-# 		return self.fake_criteria_to_condition(a_criteria)(self.topic.topicId, factor.factorId)
-#
-# 	return ParameterJoint(
-# 		jointType=ParameterJointType.AND,
-# 		filters=ArrayHelper(criteria).map(to_condition).to_list()
-# 	)
-#
-# def has_indicator_filter(self) -> bool:
-# 	return \
-# 			self.indicator.filter is not None \
-# 			and self.indicator.filter.enabled \
-# 			and self.indicator.filter.joint is not None \
-# 			and self.indicator.filter.joint.filters is not None \
-# 			and len(self.indicator.filter.joint.filters) != 0
-#
-# # noinspection DuplicatedCode
-# def build_filters(self) -> Optional[ParameterJoint]:
-# 	a_filter = self.fake_criteria_to_dataset_filter()
-# 	if self.has_indicator_filter():
-# 		if a_filter is not None:
-# 			return ParameterJoint(
-# 				jointType=ParameterJointType.AND,
-# 				filters=[a_filter, self.indicator.filter.joint]
-# 			)
-# 		else:
-# 			return self.indicator.filter.joint
-# 	else:
-# 		return a_filter
-#
-# def fake_to_subject(self) -> Subject:
-# 	dataset_columns: List[SubjectDatasetColumn] = [self.fake_indicator_factor_to_dataset_column()]
-# 	dataset_filters: Optional[ParameterJoint] = self.build_filters()
-# 	return Subject(dataset=SubjectDataset(columns=dataset_columns, filters=dataset_filters))
-#
-# def ask_value(self) -> Optional[Decimal]:
-# 	subject = self.fake_to_subject()
-# 	report = self.fake_to_report()(self.FAKE_INDICATOR_COLUMN_ID)
-# 	report_data_service = get_report_data_service(subject, report, self.principalService)
-# 	data_result = report_data_service.find()
-# 	if len(data_result.data) == 0:
-# 		return Decimal('0')
-# 	else:
-# 		value = data_result.data[0][0]
-# 		parsed, decimal_value = is_decimal(value)
-# 		return decimal_value if parsed else Decimal('0')

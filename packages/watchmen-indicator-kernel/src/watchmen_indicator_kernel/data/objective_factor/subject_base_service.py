@@ -5,6 +5,7 @@ from watchmen_auth import PrincipalService
 from watchmen_model.console import Subject
 from watchmen_model.indicator import Indicator, Objective, ObjectiveFactorOnIndicator
 from .data_service import ObjectiveFactorDataService
+from ..objective_criteria_service import TimeFrame
 
 
 class SubjectBaseObjectiveFactorDataService(ObjectiveFactorDataService):
@@ -18,7 +19,7 @@ class SubjectBaseObjectiveFactorDataService(ObjectiveFactorDataService):
 	def get_subject(self) -> Subject:
 		return self.subject
 
-	def ask_value(self) -> Optional[Decimal]:
+	def ask_value(self, time_frame: Optional[TimeFrame]) -> Optional[Decimal]:
 		# TODO REFACTOR-OBJECTIVE ACHIEVEMENT BREAK DOWN DATA SERVICE, ON SUBJECT
 		pass
 # def __init__(
