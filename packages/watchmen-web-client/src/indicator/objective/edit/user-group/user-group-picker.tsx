@@ -10,7 +10,7 @@ import {useObjectivesEventBus} from '../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 
 const hasUserGroup = (objective: Objective) => !!objective.userGroupIds && objective.userGroupIds.length > 0;
-const getUserGroupIds = (objective: Objective): Array<UserGroupId> => objective.userGroupIds;
+const getUserGroupIds = (objective: Objective): Array<UserGroupId> => objective.userGroupIds || [];
 const findNameFromUserGroups = (userGroupId: UserGroupId, userGroups: Array<QueryUserGroupForHolder>): string => {
 	// eslint-disable-next-line
 	return userGroups.find(userGroup => userGroup.userGroupId == userGroupId)!.name;
@@ -18,7 +18,7 @@ const findNameFromUserGroups = (userGroupId: UserGroupId, userGroups: Array<Quer
 const getIdOfUserGroup = (userGroup: QueryUserGroupForHolder) => userGroup.userGroupId;
 const getNameOfUserGroup = (userGroup: QueryUserGroupForHolder) => userGroup.name;
 // eslint-disable-next-line
-const isUserGroupPicked = (objective: Objective) => (userGroup: QueryUserGroupForHolder) => objective.userGroupIds.some(userGroupId => userGroupId == userGroup.userGroupId);
+const isUserGroupPicked = (objective: Objective) => (userGroup: QueryUserGroupForHolder) => (objective.userGroupIds || []).some(userGroupId => userGroupId == userGroup.userGroupId);
 
 export const UserGroupPicker = (props: { objective: Objective; codes: Array<QueryUserGroupForHolder> }) => {
 	const {objective, codes} = props;
