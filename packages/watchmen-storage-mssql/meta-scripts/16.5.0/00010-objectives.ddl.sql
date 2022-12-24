@@ -13,6 +13,7 @@ CREATE TABLE objectives
     created_by       NVARCHAR(50) NOT NULL,
     last_modified_at DATETIME     NOT NULL,
     last_modified_by NVARCHAR(50) NOT NULL,
+    version          DECIMAL(20),
     CONSTRAINT pk_objectives PRIMARY KEY (objective_id)
 );
 CREATE INDEX i_objectives_1 ON objectives (name);
