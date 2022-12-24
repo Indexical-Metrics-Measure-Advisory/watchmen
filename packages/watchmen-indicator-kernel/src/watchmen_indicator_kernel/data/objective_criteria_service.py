@@ -4,13 +4,16 @@ from typing import Optional, Tuple
 
 from watchmen_auth import PrincipalService
 from watchmen_inquiry_kernel.storage import ReportDataService
-from watchmen_model.common import ComputedParameter, Parameter, ParameterCondition, ParameterExpression, \
+from watchmen_model.common import BucketId, ComputedParameter, Parameter, ParameterCondition, ParameterExpression, \
 	ParameterJoint, ParameterJointType, ParameterKind, TopicFactorParameter, TopicId
 from watchmen_model.console import Report, Subject
-from watchmen_model.indicator import BucketObjectiveParameter, ComputedObjectiveParameter, ConstantObjectiveParameter, \
-	Indicator, Objective, ObjectiveFactorOnIndicator, ObjectiveParameter, ObjectiveParameterCondition, \
-	ObjectiveParameterExpression, ObjectiveParameterJoint, ObjectiveParameterJointType, ReferObjectiveParameter
-from watchmen_utilities import ArrayHelper
+from watchmen_model.indicator import BucketObjectiveParameter, ComputedObjectiveParameter, \
+	ConstantObjectiveParameter, \
+	Indicator, Objective, ObjectiveFactorOnIndicator, ObjectiveParameter, \
+	ObjectiveParameterCondition, \
+	ObjectiveParameterExpression, ObjectiveParameterExpressionOperator, ObjectiveParameterJoint, \
+	ObjectiveParameterJointType, ReferObjectiveParameter
+from watchmen_utilities import ArrayHelper, is_blank
 from .utils import translate_computation_operator_in_factor_filter, translate_expression_operator
 from ..common import IndicatorKernelException
 
@@ -87,31 +90,66 @@ class ObjectiveCriteriaService:
 	def ask_filter_base_id(self) -> TopicId:
 		raise NotImplementedError('Function ask_filter_base_id not implemented yet.')
 
-	def translate_conditional_parameter(self, parameter: ObjectiveParameter) -> Parameter:
-		return Parameter(
-			conditional=parameter.conditional,
-			on=None if parameter.on is None else self.translate_parameter_condition(parameter.on)
-		)
+	def build_bucket_to_condition(
+			self, bucket_id: BucketId, segment_name: str,
+	) -> ParameterCondition:
+		raise NotImplementedError('Function ask_filter_base_id not implemented yet.')
 
-	def translate_parameter(self, parameter: ObjectiveParameter) -> Parameter:
+	# bucket = ask_bucket(bucket_id, self.get_principal_service())
+	# segment = ArrayHelper(bucket.segments).find(lambda x: x.name == segment_name)
+	# if segment is None:
+	# 	raise IndicatorKernelException(f'Bucket segment[bucketId=[{bucket_id}], name={segment_name}] not found.')
+	# if isinstance(bucket, NumericSegmentsHolder):
+	# 	include = bucket.include
+	# 	return self.fake_numeric_segment_to_condition(include, segment)(topic_id, factor_id)
+	# elif isinstance(bucket, CategorySegmentsHolder):
+	# 	return self.fake_category_segment_to_condition(segment, bucket.segments)(topic_id, factor_id)
+	# else:
+	# 	bucket_data = bucket.to_dict()
+	# 	if bucket_data.get('include') is not None:
+	# 		return self.fake_numeric_segment_to_condition(
+	# 			bucket_data.get('include'), segment)(topic_id, factor_id)
+	# 	else:
+	# 		# noinspection PyTypeChecker
+	# 		return self.fake_category_segment_to_condition(segment, bucket.segments)(topic_id, factor_id)
+
+	def translate_parameter(
+			self, parameter: ObjectiveParameter, use_conditional: bool
+	) -> Parameter:
+		if use_conditional:
+			conditional = parameter.conditional,
+			on = None if parameter.on is None else self.translate_parameter_condition(parameter.on)
+		else:
+			conditional = False
+			on = None
+
 		if isinstance(parameter, ReferObjectiveParameter):
 			uuid = parameter.uuid
-			return TopicFactorParameter(kind=ParameterKind.TOPIC, topicId=self.ask_filter_base_id(), factorId=uuid)
+			return TopicFactorParameter(
+				kind=ParameterKind.TOPIC,
+				conditional=conditional, on=on,
+				topicId=self.ask_filter_base_id(), factorId=uuid
+			)
 		elif isinstance(parameter, ConstantObjectiveParameter):
 			# TODO
 			raise NotImplementedError('ConstantObjectiveParameter not implemented yet.')
 		elif isinstance(parameter, ComputedObjectiveParameter):
 			translated_parameters = ArrayHelper(parameter.parameters) \
-				.map(lambda x: self.translate_conditional_parameter) \
+				.map(lambda x: self.translate_parameter(x, True)) \
 				.to_list()
 			return ComputedParameter(
 				kind=ParameterKind.COMPUTED,
+				conditional=conditional, on=on,
 				operator=translate_computation_operator_in_factor_filter(parameter.operator),
 				parameter=translated_parameters
 			)
 		elif isinstance(parameter, BucketObjectiveParameter):
-			# TODO
-			raise NotImplementedError('BucketObjectiveParameter not implemented yet.')
+			bucket_id = parameter.bucketId
+			if is_blank(bucket_id):
+				raise IndicatorKernelException('Bucket id of parameter[{parameter.to_dict()}] not declared.')
+			segment_name = parameter.segmentName
+			if is_blank(segment_name):
+				raise IndicatorKernelException(f'Bucket segment name of parameter[{parameter.to_dict()}] not declared.')
 		else:
 			raise IndicatorKernelException(f'Objective parameter[{parameter.to_dict()}] not supported.')
 
@@ -122,13 +160,56 @@ class ObjectiveCriteriaService:
 				filters=ArrayHelper(condition.filters).map(lambda x: self.translate_parameter_condition(x)).to_list()
 			)
 		elif isinstance(condition, ObjectiveParameterExpression):
-			left = self.translate_parameter(condition.left)
-			right = self.translate_parameter(condition.right)
-			return ParameterExpression(
-				left=left,
-				operator=translate_expression_operator(condition.operator),
-				right=right
-			)
+			left = condition.left
+			operator = condition.operator
+			right = condition.right
+
+			if left is None:
+				raise IndicatorKernelException(
+					f'Objective expression condition[{condition.to_dict()}] not supported, left not declared.')
+			if isinstance(left, BucketObjectiveParameter):
+				raise IndicatorKernelException(
+					f'Objective expression condition[{condition.to_dict()}] not supported, left cannot be bucket.')
+			if isinstance(left, ConstantObjectiveParameter):
+				# TODO check left part contains bucket or not
+				value = left.value
+				raise NotImplementedError('Function ask_filter_base_id not implemented yet.')
+
+			if right is None:
+				if operator != ObjectiveParameterExpressionOperator.EMPTY \
+						and operator != ObjectiveParameterExpressionOperator.NOT_EMPTY:
+					raise IndicatorKernelException(
+						f'Objective expression condition[{condition.to_dict()}] not supported, '
+						f'right not declared when operator is not one of empty/not-empty.')
+			if right is not None and isinstance(condition.right, BucketObjectiveParameter):
+				if operator != ObjectiveParameterExpressionOperator.EQUALS \
+						and operator != ObjectiveParameterExpressionOperator.NOT_EQUALS:
+					raise IndicatorKernelException(
+						f'Objective expression condition[{condition.to_dict()}] not supported, '
+						f'right cannot be bucket when operator is not one of equals/not-equals.')
+
+			translated_left = self.translate_parameter(condition.left, False)
+			if right is None:
+				# no right declared, should be empty/not-empty
+				return ParameterExpression(
+					left=translated_left,
+					operator=translate_expression_operator(condition.operator),
+					right=None
+				)
+
+			if isinstance(right, BucketObjectiveParameter):
+				# TODO translate operator and right
+				raise NotImplementedError('Function ask_filter_base_id not implemented yet.')
+			elif isinstance(right, ConstantObjectiveParameter):
+				# TODO check right part contains bucket or not
+				raise NotImplementedError('Function ask_filter_base_id not implemented yet.')
+			else:
+				right = self.translate_parameter(condition.right, False)
+				return ParameterExpression(
+					left=left,
+					operator=translate_expression_operator(condition.operator),
+					right=right
+				)
 		else:
 			raise IndicatorKernelException(f'Objective parameter condition[{condition.to_dict()}] not supported.')
 # topic = self.get_topic()
@@ -241,34 +322,6 @@ class ObjectiveCriteriaService:
 # 				operator=ParameterExpressionOperator.IN,
 # 				right=values
 # 			)
-#
-# 	return action
-#
-# def fake_bucket_criteria_to_condition(
-# 		self, bucket_id: Optional[BucketId], bucket_segment_name: Optional[str]
-# ) -> Callable[[TopicId, FactorId], ParameterCondition]:
-# 	def action(topic_id: TopicId, factor_id: FactorId) -> ParameterCondition:
-# 		if is_blank(bucket_id):
-# 			raise IndicatorKernelException('Bucket of indicator criteria not declared.')
-# 		if is_blank(bucket_segment_name):
-# 			raise IndicatorKernelException('Bucket segment name of indicator criteria not declared.')
-# 		bucket = ask_bucket(bucket_id, self.principalService)
-# 		segment = ArrayHelper(bucket.segments).find(lambda x: x.name == bucket_segment_name)
-# 		if segment is None:
-# 			raise IndicatorKernelException(f'Bucket segment[name={bucket_segment_name}] not found.')
-# 		if isinstance(bucket, NumericSegmentsHolder):
-# 			include = bucket.include
-# 			return self.fake_numeric_segment_to_condition(include, segment)(topic_id, factor_id)
-# 		elif isinstance(bucket, CategorySegmentsHolder):
-# 			return self.fake_category_segment_to_condition(segment, bucket.segments)(topic_id, factor_id)
-# 		else:
-# 			bucket_data = bucket.to_dict()
-# 			if bucket_data.get('include') is not None:
-# 				return self.fake_numeric_segment_to_condition(
-# 					bucket_data.get('include'), segment)(topic_id, factor_id)
-# 			else:
-# 				# noinspection PyTypeChecker
-# 				return self.fake_category_segment_to_condition(segment, bucket.segments)(topic_id, factor_id)
 #
 # 	return action
 #
