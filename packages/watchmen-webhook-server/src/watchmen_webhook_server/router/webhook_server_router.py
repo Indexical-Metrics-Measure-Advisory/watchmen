@@ -105,5 +105,5 @@ async def notify(subscription_event_id: SubscriptionEventId,
 			update_event_lock(subscription_event_lock, JobLockStatus.FAILED,
 			                  subscription_event_service.principalService)
 	except:
-		logger.error("webhook notification error ",exc_info=True, stack_info=True)
+		logger.error("webhook notification error ", exc_info=True, stack_info=True)
 		update_event_lock(subscription_event_lock, JobLockStatus.FAILED, subscription_event_service.principalService)
