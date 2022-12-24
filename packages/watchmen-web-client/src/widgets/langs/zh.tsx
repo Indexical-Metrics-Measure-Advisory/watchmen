@@ -516,6 +516,7 @@ export const Zh: LanguageDeclareType = {
 			NAME_TITLE: '设置一个用于阅读的名称.',
 			DESCRIPTION_TITLE: '描述.',
 			USER_GROUP_TITLE: '授权给用户组.',
+			GRANT_USER_GROUP: '授权',
 			REFER_FACTOR_PLACEHOLDER: '请选择指标...',
 			REFER_FACTOR_BUT_NONAME: '未命名指标',
 			REFER_FACTOR_BUT_INCORRECT: '无法定位的指标',
