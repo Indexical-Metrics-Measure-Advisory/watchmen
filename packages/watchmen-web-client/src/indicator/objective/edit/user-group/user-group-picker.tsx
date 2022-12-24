@@ -3,6 +3,7 @@ import {QueryUserGroupForHolder} from '@/services/data/tuples/query-user-group-t
 import {listUserGroupsForHolder} from '@/services/data/tuples/user-group';
 import {UserGroupId} from '@/services/data/tuples/user-group-types';
 import {noop} from '@/services/utils';
+import {Lang} from '@/widgets/langs';
 import {TupleItemPicker} from '@/widgets/tuple-workbench/tuple-item-picker';
 import React from 'react';
 import {useObjectivesEventBus} from '../../objectives-event-bus';
@@ -48,7 +49,7 @@ export const UserGroupPicker = (props: { objective: Objective; codes: Array<Quer
 		}
 	};
 
-	return <TupleItemPicker actionLabel={'Grant to User Group'}
+	return <TupleItemPicker actionLabel={Lang.INDICATOR.OBJECTIVE.GRANT_USER_GROUP}
 	                        holder={objective} codes={codes}
 	                        isHolding={hasUserGroup} getHoldIds={getUserGroupIds} getNameOfHold={findNameFromUserGroups}
 	                        listCandidates={listUserGroupsForHolder} getIdOfCandidate={getIdOfUserGroup}

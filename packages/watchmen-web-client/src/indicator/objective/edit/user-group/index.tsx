@@ -24,6 +24,6 @@ export const UserGroup = (props: { objective: Objective }) => {
 	}, [fire, userGroups.loaded]);
 
 	return <EditStep index={ObjectiveDeclarationStep.USER_GROUP} title={Lang.INDICATOR.OBJECTIVE.USER_GROUP_TITLE}>
-		<UserGroupPicker objective={objective} codes={[]}/>
+		<UserGroupPicker objective={objective} codes={userGroups.data}/>
 	</EditStep>;
 };
