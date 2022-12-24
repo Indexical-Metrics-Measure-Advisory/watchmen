@@ -29,15 +29,14 @@ DashboardId = TypeVar('DashboardId', bound=str)
 
 BucketId = TypeVar('BucketId', bound=str)
 IndicatorId = TypeVar('IndicatorId', bound=str)
-InspectionId = TypeVar('InspectionId', bound=str)
-AchievementId = TypeVar('AchievementId', bound=str)
-ObjectiveAnalysisId = TypeVar('ObjectiveAnalysisId', bound=str)
+ObjectiveId = TypeVar('ObjectiveId', bound=str)
+ObjectiveFactorId = TypeVar('ObjectiveFactorId', bound=str)
 AchievementPluginTaskId = TypeVar('AchievementPluginTaskId', bound=str)
 
 PatId = TypeVar('PatId', bound=str)
 
 EventDefinitionId = TypeVar('EventDefinitionId', bound=str)
-NotificationDefinitionId =  TypeVar('NotificationDefinitionId', bound=str)
+NotificationDefinitionId = TypeVar('NotificationDefinitionId', bound=str)
 SubscriptionEventId = TypeVar('SubscriptionEventId', bound=str)
 SubscriptionEventLockId = TypeVar('SubscriptionEventLockId', bound=str)
 

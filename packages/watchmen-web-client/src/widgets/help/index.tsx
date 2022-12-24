@@ -50,9 +50,7 @@ export enum HELP_KEYS {
 	DQC_CATALOG = 'catalog',
 	IDW_BUCKET = 'bucket',
 	IDW_INDICATOR = 'indicator',
-	IDW_INSPECTION = 'inspection',
-	IDW_ACHIEVEMENT = 'achievement',
-	IDW_OBJECTIVE_ANALYSIS = 'objective',
+	IDW_OBJECTIVE = 'objective',
 	SETTINGS = 'settings'
 }
 
@@ -129,12 +127,10 @@ const CONTENTS: Array<{ words: string, name: string, url: string }> = [
 	{words: 'dqc data quality center catalog 数据监控中心 目录', name: 'DQC / Catalog', url: 'dqc/catalog'},
 	{words: 'indicator bucket 指标 分桶', name: 'Indicator / Bucket', url: 'indicator/bucket'},
 	{words: 'indicator 指标', name: 'Indicator / Indicator', url: 'indicator/indicator'},
-	{words: 'indicator inspection 指标 洞察', name: 'Indicator / Inspection', url: 'indicator/inspection'},
-	{words: 'indicator achievement 指标 业绩', name: 'Indicator / Achievement', url: 'indicator/achievement'},
 	{
 		words: 'indicator inspection achievement objective analysis perspective 指标 洞察 业绩 目标 分析 视角 观点',
-		name: 'Indicator / Objective Analysis',
-		url: 'indicator/objective-analysis'
+		name: 'Indicator / Objective',
+		url: 'indicator/objective'
 	},
 	{words: 'settings configuration options 设置 配置', name: 'Settings', url: 'web-client-index#language'}
 ];

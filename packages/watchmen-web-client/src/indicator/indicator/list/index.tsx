@@ -1,4 +1,5 @@
 import IndicatorBackground from '@/assets/indicator-background.svg';
+import {Router} from '@/routes/types';
 import {TuplePage} from '@/services/data/query/tuple-page';
 import {listIndicators} from '@/services/data/tuples/indicator';
 import {Indicator} from '@/services/data/tuples/indicator-types';
@@ -11,14 +12,16 @@ import {TupleWorkbench} from '@/widgets/tuple-workbench';
 import {TupleEventBusProvider, useTupleEventBus} from '@/widgets/tuple-workbench/tuple-event-bus';
 import {TupleEventTypes} from '@/widgets/tuple-workbench/tuple-event-bus-types';
 import React, {useEffect} from 'react';
+import {Navigate} from 'react-router-dom';
 import {useIndicatorsEventBus} from '../indicators-event-bus';
 import {IndicatorsData, IndicatorsEventTypes} from '../indicators-event-bus-types';
 import {renderCard} from './card';
-import {renderEditor} from './editor';
 
 const getKeyOfIndicator = (indicator: QueryIndicator) => indicator.indicatorId;
+// noinspection JSUnusedLocalSymbols
+const renderEditor = (indicator: Indicator) => <Navigate to={Router.IDW_INDICATOR_EDIT}/>;
 
-export const RealIndicatorList = () => {
+const RealIndicatorList = () => {
 	const {fire: fireGlobal} = useEventBus();
 	const {on, off, fire} = useTupleEventBus();
 	const {fire: fireIndicator} = useIndicatorsEventBus();

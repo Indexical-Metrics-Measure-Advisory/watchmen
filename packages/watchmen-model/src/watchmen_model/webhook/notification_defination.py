@@ -3,8 +3,7 @@ from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
-from watchmen_model.common import TenantBasedTuple, OptimisticLock, DataModel
-from watchmen_model.common.tuple_ids import NotificationDefinitionId, UserId
+from watchmen_model.common import DataModel, NotificationDefinitionId, OptimisticLock, TenantBasedTuple, UserId
 from watchmen_utilities import ArrayHelper
 
 

@@ -4,8 +4,8 @@ from typing import Optional
 from pydantic import BaseModel
 
 from watchmen_model.admin import TopicSnapshotFrequency
-from watchmen_model.common import OptimisticLock, TenantBasedTuple
-from watchmen_model.common.tuple_ids import NotificationDefinitionId, SubscriptionEventId, EventDefinitionId, UserId
+from watchmen_model.common import NotificationDefinitionId, OptimisticLock, SubscriptionEventId, TenantBasedTuple, \
+	UserId
 from watchmen_model.webhook.event_defination import EventSource
 
 
@@ -16,12 +16,12 @@ class ContentType(Enum):
 class SubscriptionEvent(TenantBasedTuple, OptimisticLock, BaseModel):
 	subscriptionEventId: SubscriptionEventId = None
 	# eventId: EventDefinitionId = None
-	eventCode :str = None
-	eventSource:EventSource = None
+	eventCode: str = None
+	eventSource: EventSource = None
 	notificationId: NotificationDefinitionId = None
 	sourceId: str = None
 	userId: UserId = None
-	contentType :ContentType = None
+	contentType: ContentType = None
 	# only for weekly
 	weekday: Optional[str]
 	# only for monthly
@@ -29,7 +29,7 @@ class SubscriptionEvent(TenantBasedTuple, OptimisticLock, BaseModel):
 	hour: Optional[int] = None
 	minute: Optional[int] = None
 	enabled: bool = True
-	status:bool = None
+	status: bool = None
 	frequency: TopicSnapshotFrequency = TopicSnapshotFrequency.DAILY
 
-	# TODO exception case monitor
+# TODO exception case monitor

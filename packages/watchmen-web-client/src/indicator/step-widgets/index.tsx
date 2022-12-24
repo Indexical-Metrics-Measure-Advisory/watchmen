@@ -17,7 +17,13 @@ const StepContainer = styled.div.attrs<{ visible: boolean }>(({visible}) => {
 	grid-column-gap       : calc(var(--margin) / 2);
 	width                 : 100%;
 `;
-export const SinkingLabel = styled.span`
+export const SinkingLabel = styled.span.attrs<{ grow?: boolean }>(({grow = false}) => {
+	return {
+		style: {
+			flexGrow: grow ? 1 : (void 0)
+		}
+	};
+})<{ grow?: boolean }>`
 	display    : flex;
 	position   : relative;
 	align-self : flex-end;
@@ -71,10 +77,10 @@ export const StepTitleConjunctionLabel = styled(ConjunctionLabel)`
 `;
 
 export const Step = forwardRef((props: { index: number; visible?: boolean; children: ReactNode }, ref: ForwardedRef<HTMLDivElement>) => {
-	const {index, visible = true, children} = props;
+	const {index, visible = true, children, ...rest} = props;
 
-	return <StepContainer visible={visible} ref={ref}>
-		<StepIndex>{Lang.INDICATOR.INDICATOR.STEP} {index}.</StepIndex>
+	return <StepContainer visible={visible} {...rest} ref={ref}>
+		<StepIndex>{Lang.INDICATOR.STEP} {index}.</StepIndex>
 		{children}
 		<StepBackground/>
 	</StepContainer>;

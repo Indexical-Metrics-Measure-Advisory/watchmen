@@ -9,8 +9,8 @@ import {
 	SubjectForIndicator,
 	TopicForIndicator
 } from '../../tuples/query-indicator-types';
-import {SubjectColumnArithmetic, SubjectDataSetFilter, SubjectDataSetJoin} from '../../tuples/subject-types';
-import {TopicId, TopicKind, TopicType} from '../../tuples/topic-types';
+import {SubjectColumnArithmetic, SubjectDataSetFilter, SubjectDataSetJoin, SubjectId} from '../../tuples/subject-types';
+import {Topic, TopicId, TopicKind, TopicType} from '../../tuples/topic-types';
 import {isFakedUuid} from '../../tuples/utils';
 import {DemoTopics, MonthlyOrderPremium} from '../tuples/mock-data-topics';
 import {DemoConnectedSpaces} from './mock-data-connected-spaces';
@@ -90,6 +90,7 @@ export const fetchMockTopicsForIndicatorSelection = async (text: string): Promis
 	});
 };
 
+// noinspection JSUnusedLocalSymbols
 export const fetchMockSubjectsForIndicatorSelection = async (text: string): Promise<Array<SubjectForIndicator>> => {
 	return new Promise<Array<SubjectForIndicator>>(resolve => {
 		// const matchedText = text.toUpperCase();
@@ -116,32 +117,56 @@ export const fetchMockEnumsForTopic = async (topicId: TopicId): Promise<Array<En
 	});
 };
 
+const findTopic = async (topicId: TopicId): Promise<{ topic: Topic, enums: Array<EnumForIndicator> }> => {
+	// eslint-disable-next-line
+	const topic = DemoTopics.find(({topicId: id}) => id == topicId)!;
+	const {data: demoEnums} = await listMockEnums({search: ''});
+	const enums = (topic.factors || []).filter(factor => factor.enumId)
+		// eslint-disable-next-line
+		.map(factor => demoEnums.find(enumeration => enumeration.enumId == factor.enumId))
+		.filter(enumeration => enumeration != null) as Array<EnumForIndicator>;
+	return {topic, enums};
+};
+
+export const fetchMockTopicForIndicator = async (topicId: TopicId): Promise<Topic> => {
+	return new Promise<Topic>(resolve => {
+		setTimeout(async () => {
+			const {topic} = await findTopic(topicId);
+			resolve(topic);
+		}, 500);
+	});
+};
+
+const findSubject = (subjectId: SubjectId): SubjectForIndicator => {
+	// eslint-disable-next-line
+	if (subjectId == MOCK_SUBJECT.subjectId) {
+		return JSON.parse(JSON.stringify(MOCK_SUBJECT));
+	}
+	const foundSubject = DemoConnectedSpaces
+		.filter(connectedSpace => !(connectedSpace.subjects == null || connectedSpace.subjects.length === 0))
+		.map(connectedSpace => connectedSpace.subjects)
+		.flat()
+		// eslint-disable-next-line
+		.find(subject => subject.subjectId == subjectId);
+	return JSON.parse(JSON.stringify(foundSubject ?? MOCK_SUBJECT));
+};
+
+export const fetchMockSubjectForIndicator = async (subjectId: SubjectId): Promise<SubjectForIndicator> => {
+	return new Promise<SubjectForIndicator>(resolve => {
+		setTimeout(() => resolve(findSubject(subjectId)), 500);
+	});
+};
+
 export const fetchMockIndicator = async (indicatorId: IndicatorId): Promise<{ indicator: Indicator; topic?: TopicForIndicator; subject?: SubjectForIndicator; enums?: Array<EnumForIndicator>; }> => {
 	// eslint-disable-next-line
 	const found = DemoIndicators.find(({indicatorId: id}) => id == indicatorId);
 	if (found) {
 		const indicator: Indicator = JSON.parse(JSON.stringify(found));
 		if (indicator.baseOn === IndicatorBaseOn.TOPIC) {
-			// eslint-disable-next-line
-			const topic = DemoTopics.find(({topicId: id}) => id == indicator.topicOrSubjectId)!;
-			const {data: demoEnums} = await listMockEnums({search: ''});
-			const enums = (topic.factors || []).filter(factor => factor.enumId)
-				// eslint-disable-next-line
-				.map(factor => demoEnums.find(enumeration => enumeration.enumId == factor.enumId))
-				.filter(enumeration => enumeration != null) as Array<EnumForIndicator>;
+			const {topic, enums} = await findTopic(indicator.topicOrSubjectId);
 			return {indicator, topic, enums};
-			// eslint-disable-next-line
-		} else if (indicator.topicOrSubjectId == MOCK_SUBJECT.subjectId) {
-			return {indicator, subject: JSON.parse(JSON.stringify(MOCK_SUBJECT))};
 		} else {
-			const foundSubject = DemoConnectedSpaces
-				.filter(connectedSpace => !(connectedSpace.subjects == null || connectedSpace.subjects.length === 0))
-				.map(connectedSpace => connectedSpace.subjects)
-				.flat()
-				// eslint-disable-next-line
-				.find(subject => subject.subjectId == indicator.topicOrSubjectId);
-			const subject = JSON.parse(JSON.stringify(foundSubject ?? MOCK_SUBJECT));
-			return {indicator, subject};
+			return {indicator, subject: findSubject(indicator.topicOrSubjectId)};
 		}
 	} else {
 		return {
@@ -165,6 +190,7 @@ export const saveMockIndicator = async (indicator: Indicator): Promise<void> => 
 	});
 };
 
+// noinspection JSUnusedLocalSymbols
 export const fetchMockRelevantIndicators = async (indicatorId: IndicatorId): Promise<Array<Indicator>> => {
 	return new Promise<Array<Indicator>>(resolve => {
 		setTimeout(() => {
@@ -173,6 +199,7 @@ export const fetchMockRelevantIndicators = async (indicatorId: IndicatorId): Pro
 	});
 };
 
+// noinspection JSUnusedLocalSymbols
 export const fetchMockIndicatorCategories = async (prefix: QueryIndicatorCategoryParams): Promise<Array<string>> => {
 	return new Promise<Array<string>>(resolve => {
 		setTimeout(() => {

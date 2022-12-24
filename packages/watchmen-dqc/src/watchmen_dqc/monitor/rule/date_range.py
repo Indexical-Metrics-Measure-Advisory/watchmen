@@ -3,6 +3,7 @@ from typing import Tuple
 
 from watchmen_dqc.common import DqcException
 from watchmen_model.dqc import MonitorRuleStatisticalInterval
+from watchmen_utilities import to_last_day_of_month
 
 
 def as_range(start_date: date, end_date: date) -> Tuple[datetime, datetime]:
@@ -26,7 +27,7 @@ def compute_date_range(process_date: date, frequency: MonitorRuleStatisticalInte
 		return as_range(sunday, saturday)
 	elif frequency == MonitorRuleStatisticalInterval.MONTHLY:
 		day_one = process_date.replace(day=1)
-		day_last = (day_one + timedelta(days=31)).replace(day=1) - timedelta(days=1)
+		day_last = to_last_day_of_month(day_one)
 		return as_range(day_one, day_last)
 	else:
 		raise DqcException(f'Given frequency[{frequency}] is not supported.')

@@ -73,12 +73,14 @@ export const CalendarPickerHeaderIcon = styled(FontAwesomeIcon)`
 	margin-right : calc(var(--margin) / 2);
 `;
 export const CalendarPickerHeaderDateLabel = styled.span`
-	margin-right : calc(var(--margin) / 2);
-	font-weight  : var(--font-bold);
-	cursor       : pointer;
+	font-weight     : var(--font-bold);
+	cursor          : pointer;
+	text-decoration : underline;
 `;
 export const CalendarPickerHeaderTimeLabel = styled.span`
-	cursor : pointer;
+	font-weight     : var(--font-bold);
+	cursor          : pointer;
+	text-decoration : underline;
 `;
 export const CalendarPickerHeaderPlaceholder = styled.span`
 	flex-grow : 1;

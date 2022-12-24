@@ -197,7 +197,7 @@ export const RendererButton = styled.div.attrs<{ editorVisible: boolean }>(({edi
 	align-items               : center;
 	justify-content           : center;
 	height                    : var(--param-height);
-	width                     : var(--param-height);;
+	width                     : var(--param-height);
 	padding                   : 0;
 	margin-left               : calc(var(--margin) / 2);
 	border-top-left-radius    : calc(var(--param-height) / 2);
