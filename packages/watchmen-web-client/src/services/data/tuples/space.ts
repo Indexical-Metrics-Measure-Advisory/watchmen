@@ -47,7 +47,12 @@ export const listSpaces = async (options: {
 	if (isMockService()) {
 		return listMockSpaces(options);
 	} else {
-		return await page({api: Apis.SPACE_LIST_BY_NAME, search: {search}, pageable: {pageNumber, pageSize}});
+		const pageable: TuplePage<SpaceOnServer> = await page({
+			api: Apis.SPACE_LIST_BY_NAME,
+			search: {search}, pageable: {pageNumber, pageSize}
+		});
+		return {...pageable, data: (pageable.data || []).map(space => transformFromServer(space))};
+
 	}
 };
 
@@ -127,7 +132,8 @@ export const listSpacesForHolder = async (search: string): Promise<Array<QuerySp
 	if (isMockService()) {
 		return listMockSpacesForHolder(search);
 	} else {
-		return await get({api: Apis.SPACE_LIST_FOR_HOLDER_BY_NAME, search: {search}});
+		return (await get({api: Apis.SPACE_LIST_FOR_HOLDER_BY_NAME, search: {search}}))
+			.map((space: SpaceOnServer) => transformFromServer(space));
 	}
 };
 
