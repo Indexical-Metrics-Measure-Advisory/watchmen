@@ -1,21 +1,24 @@
-from abc import abstractmethod
 from datetime import datetime
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 from watchmen_auth import PrincipalService
+from watchmen_indicator_kernel.common import IndicatorKernelException
 from watchmen_inquiry_kernel.storage import ReportDataService
-from watchmen_model.common import BucketId, ComputedParameter, Parameter, ParameterCondition, ParameterExpression, \
-	ParameterJoint, ParameterJointType, ParameterKind, TopicFactorParameter, TopicId
+from watchmen_model.common import BucketId, ComputedParameter, ConstantParameter, Parameter, ParameterCondition, \
+	ParameterExpression, \
+	ParameterExpressionOperator, ParameterJoint, ParameterJointType, ParameterKind, TopicFactorParameter, TopicId
 from watchmen_model.console import Report, Subject
-from watchmen_model.indicator import BucketObjectiveParameter, ComputedObjectiveParameter, \
-	ConstantObjectiveParameter, \
-	Indicator, Objective, ObjectiveFactorOnIndicator, ObjectiveParameter, \
-	ObjectiveParameterCondition, \
-	ObjectiveParameterExpression, ObjectiveParameterExpressionOperator, ObjectiveParameterJoint, \
-	ObjectiveParameterJointType, ReferObjectiveParameter
-from watchmen_utilities import ArrayHelper, is_blank
-from .utils import translate_computation_operator_in_factor_filter, translate_expression_operator
-from ..common import IndicatorKernelException
+from watchmen_model.indicator import BucketObjectiveParameter, CategorySegment, CategorySegmentsHolder, \
+	ComputedObjectiveParameter, \
+	ConstantObjectiveParameter, Indicator, NumericSegmentsHolder, NumericValueSegment, Objective, \
+	ObjectiveFactorOnIndicator, \
+	ObjectiveParameter, \
+	ObjectiveParameterCondition, ObjectiveParameterExpression, ObjectiveParameterExpressionOperator, \
+	ObjectiveParameterJoint, ObjectiveParameterJointType, ObjectiveVariable, ObjectiveVariableOnBucket, \
+	ObjectiveVariableOnRange, ObjectiveVariableOnValue, OtherCategorySegmentValue, RangeBucketValueIncluding, \
+	ReferObjectiveParameter
+from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
+from .utils import ask_bucket, translate_computation_operator_in_factor_filter, translate_expression_operator
 
 
 class TimeFrame:
@@ -39,6 +42,9 @@ class ObjectiveCriteriaService:
 
 	def get_objective(self) -> Objective:
 		return self.objective
+
+	def get_objective_variables(self) -> List[ObjectiveVariable]:
+		return ArrayHelper(self.get_objective().variables).filter(lambda x: x is not None).to_list()
 
 	def get_objective_factor(self) -> ObjectiveFactorOnIndicator:
 		return self.objectiveFactor
@@ -86,36 +92,40 @@ class ObjectiveCriteriaService:
 	# 				data.get('operator'), str(data.get('value')))(topic_id, factor_id)
 	# 		else:
 	# 			raise IndicatorKernelException(f'Indicator criteria[{data}] not supported.')
-	@abstractmethod
 	def ask_filter_base_id(self) -> TopicId:
+		"""
+		ask the entity id of filter base, it is what indicator based.
+		"""
 		raise NotImplementedError('Function ask_filter_base_id not implemented yet.')
 
-	def build_bucket_to_condition(
-			self, bucket_id: BucketId, segment_name: str,
-	) -> ParameterCondition:
-		raise NotImplementedError('Function ask_filter_base_id not implemented yet.')
+	def find_objective_variable_from_constant(
+			self, parameter: ConstantObjectiveParameter) -> Optional[ObjectiveVariable]:
+		"""
+		true when detect bucket or range variable in constant
+		"""
+		value = parameter.value
+		if is_blank(value):
+			return None
+		value = value.strip()
+		if not value.startswith('{') or not value.endswith('}'):
+			return None
+		value = value.lstrip('{').rstrip('}').strip()
+		if not value.startswith('&'):
+			return None
+		value = value.lstrip('&')
+		if value.startswith(' '):
+			raise IndicatorKernelException(f'Illegal constant value[{value}] on {self.on_factor_msg()}.')
+		value = value.strip()
 
-	# bucket = ask_bucket(bucket_id, self.get_principal_service())
-	# segment = ArrayHelper(bucket.segments).find(lambda x: x.name == segment_name)
-	# if segment is None:
-	# 	raise IndicatorKernelException(f'Bucket segment[bucketId=[{bucket_id}], name={segment_name}] not found.')
-	# if isinstance(bucket, NumericSegmentsHolder):
-	# 	include = bucket.include
-	# 	return self.fake_numeric_segment_to_condition(include, segment)(topic_id, factor_id)
-	# elif isinstance(bucket, CategorySegmentsHolder):
-	# 	return self.fake_category_segment_to_condition(segment, bucket.segments)(topic_id, factor_id)
-	# else:
-	# 	bucket_data = bucket.to_dict()
-	# 	if bucket_data.get('include') is not None:
-	# 		return self.fake_numeric_segment_to_condition(
-	# 			bucket_data.get('include'), segment)(topic_id, factor_id)
-	# 	else:
-	# 		# noinspection PyTypeChecker
-	# 		return self.fake_category_segment_to_condition(segment, bucket.segments)(topic_id, factor_id)
+		def is_variable_matched(variable: ObjectiveVariable) -> bool:
+			name = '' if is_blank(variable.name) else variable.name.strip()
+			return name == value
 
-	def translate_parameter(
-			self, parameter: ObjectiveParameter, use_conditional: bool
-	) -> Parameter:
+		# return true if any variable is referred
+		variables = self.get_objective_variables()
+		return ArrayHelper(variables).find(is_variable_matched)
+
+	def translate_parameter(self, parameter: ObjectiveParameter, use_conditional: bool) -> Parameter:
 		if use_conditional:
 			conditional = parameter.conditional,
 			on = None if parameter.on is None else self.translate_parameter_condition(parameter.on)
@@ -124,6 +134,7 @@ class ObjectiveCriteriaService:
 			on = None
 
 		if isinstance(parameter, ReferObjectiveParameter):
+			# refer to indicator base
 			uuid = parameter.uuid
 			return TopicFactorParameter(
 				kind=ParameterKind.TOPIC,
@@ -131,8 +142,12 @@ class ObjectiveCriteriaService:
 				topicId=self.ask_filter_base_id(), factorId=uuid
 			)
 		elif isinstance(parameter, ConstantObjectiveParameter):
-			# TODO
-			raise NotImplementedError('ConstantObjectiveParameter not implemented yet.')
+			# always be normal constant, special cases are processed in condition translation
+			return ConstantParameter(
+				kind=ParameterKind.CONSTANT,
+				conditional=conditional, on=on,
+				value=parameter.value
+			)
 		elif isinstance(parameter, ComputedObjectiveParameter):
 			translated_parameters = ArrayHelper(parameter.parameters) \
 				.map(lambda x: self.translate_parameter(x, True)) \
@@ -143,15 +158,206 @@ class ObjectiveCriteriaService:
 				operator=translate_computation_operator_in_factor_filter(parameter.operator),
 				parameter=translated_parameters
 			)
-		elif isinstance(parameter, BucketObjectiveParameter):
-			bucket_id = parameter.bucketId
-			if is_blank(bucket_id):
-				raise IndicatorKernelException('Bucket id of parameter[{parameter.to_dict()}] not declared.')
-			segment_name = parameter.segmentName
-			if is_blank(segment_name):
-				raise IndicatorKernelException(f'Bucket segment name of parameter[{parameter.to_dict()}] not declared.')
 		else:
-			raise IndicatorKernelException(f'Objective parameter[{parameter.to_dict()}] not supported.')
+			raise IndicatorKernelException(
+				f'Objective parameter[{parameter.to_dict()}] not supported, on {self.on_factor_msg()}.')
+
+	# noinspection PyMethodMayBeStatic
+	def fake_numeric_segment_to_condition(
+			self,
+			include: Union[RangeBucketValueIncluding, str], segment: Union[NumericValueSegment, dict], invert: bool,
+			left: Parameter
+	) -> ParameterCondition:
+		if isinstance(include, str):
+			include = RangeBucketValueIncluding(include)
+		if not isinstance(segment, NumericValueSegment):
+			segment = NumericValueSegment(**segment)
+		if segment.value is None:
+			raise IndicatorKernelException(f'Numeric bucket segment not declared, on {self.on_factor_msg()}].')
+
+		min_value = segment.value.min
+		max_value = segment.value.max
+		if include == RangeBucketValueIncluding.INCLUDE_MIN:
+			operator_min = ParameterExpressionOperator.MORE_EQUALS
+			# include min, means not include max
+			operator_max = ParameterExpressionOperator.LESS
+		else:
+			operator_min = ParameterExpressionOperator.MORE
+		# not include min, means include max
+		operator_max = ParameterExpressionOperator.LESS_EQUALS
+		if invert:
+			# reverse conjunction and operator
+			joint_type = ParameterJointType.OR
+			if operator_min == ParameterExpressionOperator.MORE_EQUALS:
+				operator_min = ParameterExpressionOperator.LESS
+			else:
+				operator_min = ParameterExpressionOperator.LESS_EQUALS
+			if operator_max == ParameterExpressionOperator.LESS:
+				operator_max = ParameterExpressionOperator.MORE_EQUALS
+			else:
+				operator_max = ParameterExpressionOperator.MORE
+		else:
+			joint_type = ParameterJointType.AND
+
+		if is_not_blank(min_value) and is_not_blank(max_value):
+			return ParameterJoint(
+				jointType=joint_type,
+				filters=[
+					ParameterExpression(left=left, operator=operator_min, right=min_value),
+					ParameterExpression(left=left, operator=operator_max, right=max_value)
+				]
+			)
+		elif is_not_blank(min_value):
+			return ParameterExpression(left=left, operator=operator_min, right=min_value)
+		elif is_not_blank(max_value):
+			return ParameterExpression(left=left, operator=operator_max, right=max_value)
+		else:
+			raise IndicatorKernelException(
+				'Neither minimum not maximum value of numeric value segment is declared.')
+
+	# noinspection PyMethodMayBeStatic
+	def gather_defined_category_values(self, segments: Optional[List[Union[CategorySegment, dict]]]) -> List[str]:
+		def gather(segment: CategorySegment, values: List[str]) -> List[str]:
+			ArrayHelper(segment.value).filter(lambda x: is_not_blank(x)).each(lambda x: values.append(x)).to_list()
+			return values
+
+		return ArrayHelper(segments) \
+			.filter(lambda x: x is not None) \
+			.map(lambda x: x if isinstance(x, CategorySegment) else CategorySegment(**x)) \
+			.reduce(lambda values, x: gather(x, values), [])
+
+	def fake_category_segment_to_condition(
+			self,
+			segment: Union[CategorySegment, dict], segments: Optional[List[Union[CategorySegment, dict]]], invert: bool,
+			left: Parameter
+	) -> ParameterCondition:
+		if not isinstance(segment, CategorySegment):
+			segment = CategorySegment(**segment)
+
+		values = ArrayHelper(segment.value).filter(lambda x: is_not_blank(x)).to_list()
+		if len(values) == 0:
+			raise IndicatorKernelException('Value of category segment not declared.')
+		if len(values) == 1 and values[0] == OtherCategorySegmentValue:
+			# other values
+			values = self.gather_defined_category_values(segments)
+			if len(values) == 0:
+				raise IndicatorKernelException('Values rather than others of category segment not declared.')
+			if invert:
+				return ParameterExpression(left=left, operator=ParameterExpressionOperator.IN, right=values)
+			else:
+				return ParameterExpression(left=left, operator=ParameterExpressionOperator.NOT_IN, right=values)
+		else:
+			if invert:
+				return ParameterExpression(left=left, operator=ParameterExpressionOperator.NOT_IN, right=values)
+			else:
+				return ParameterExpression(left=left, operator=ParameterExpressionOperator.IN, right=values)
+
+	def translate_expression_with_bucket_on_right(
+			self,
+			bucket_id: Optional[BucketId], segment_name: Optional[str],
+			condition: ObjectiveParameterExpression, translated_left: Parameter
+	) -> ParameterCondition:
+		operator = condition.operator
+
+		if is_blank(bucket_id):
+			raise IndicatorKernelException(
+				f'Objective expression condition[{condition.to_dict()}] not supported, '
+				f'because bucket not declared, on {self.on_factor_msg()}.')
+		if is_blank(segment_name):
+			raise IndicatorKernelException(
+				f'Objective expression condition[{condition.to_dict()}] not supported, '
+				f'because segment not declared, on {self.on_factor_msg()}.')
+		bucket = ask_bucket(bucket_id, self.get_principal_service())
+		segment = ArrayHelper(bucket.segments).find(lambda x: x.name == segment_name)
+		if segment is None:
+			raise IndicatorKernelException(
+				f'Objective expression condition[{condition.to_dict()}] not supported, '
+				f'because segment[bucketId=[{bucket_id}], name={segment_name}] not found, '
+				f'on {self.on_factor_msg()}.')
+		if isinstance(bucket, NumericSegmentsHolder):
+			include = bucket.include
+			return self.fake_numeric_segment_to_condition(
+				include, segment, operator == ObjectiveParameterExpressionOperator.NOT_EQUALS, translated_left)
+		elif isinstance(bucket, CategorySegmentsHolder):
+			return self.fake_category_segment_to_condition(
+				segment, bucket.segments, operator == ObjectiveParameterExpressionOperator.NOT_EQUALS,
+				translated_left)
+		else:
+			bucket_data = bucket.to_dict()
+			include = bucket_data.get('include')
+			if include is not None:
+				return self.fake_numeric_segment_to_condition(
+					include, segment, operator == ObjectiveParameterExpressionOperator.NOT_EQUALS,
+					translated_left)
+			else:
+				# noinspection PyTypeChecker
+				return self.fake_category_segment_to_condition(
+					segment, bucket.segments, operator == ObjectiveParameterExpressionOperator.NOT_EQUALS,
+					translated_left)
+
+	def check_left(self, condition: ObjectiveParameterExpression) -> ObjectiveParameter:
+		left = condition.left
+		if left is None:
+			# left side must be declared
+			raise IndicatorKernelException(
+				f'Objective expression condition[{condition.to_dict()}] not supported, because left not declared, '
+				f'on {self.on_factor_msg()}.')
+		if isinstance(left, BucketObjectiveParameter):
+			# left side cannot be bucket parameter
+			raise IndicatorKernelException(
+				f'Objective expression condition[{condition.to_dict()}] not supported, because left cannot be bucket, '
+				f'on {self.on_factor_msg()}.')
+		if isinstance(left, ConstantObjectiveParameter):
+			# when left is constant
+			variable = self.find_objective_variable_from_constant(left)
+			if isinstance(variable, ObjectiveVariableOnBucket) or isinstance(variable, ObjectiveVariableOnRange):
+				# can not refer to bucket variable or range variable
+				raise IndicatorKernelException(
+					f'Objective expression condition[{condition.to_dict()}] not supported, '
+					f'because using bucket or range variable in left, '
+					f'on {self.on_factor_msg()}.')
+		return left
+
+	def check_right(self, condition: ObjectiveParameterExpression) -> Optional[ObjectiveParameter]:
+		left = condition.left
+		operator = condition.operator
+		right = condition.right
+		if right is None:
+			# when right is not declared
+			if operator != ObjectiveParameterExpressionOperator.EMPTY \
+					and operator != ObjectiveParameterExpressionOperator.NOT_EMPTY:
+				# operator must be empty or not-empty
+				raise IndicatorKernelException(
+					f'Objective expression condition[{condition.to_dict()}] not supported, '
+					f'right not declared when operator is not one of empty/not-empty, on {self.on_factor_msg()}.')
+		if right is not None:
+			# when right is declared
+			if isinstance(right, BucketObjectiveParameter):
+				# when right is bucket parameter
+				if operator != ObjectiveParameterExpressionOperator.EQUALS \
+						and operator != ObjectiveParameterExpressionOperator.NOT_EQUALS:
+					# operator must be equals or not-equals
+					raise IndicatorKernelException(
+						f'Objective expression condition[{condition.to_dict()}] not supported, '
+						f'because right cannot be bucket when operator is not one of equals/not-equals, '
+						f'on {self.on_factor_msg()}.')
+				if not isinstance(left, ReferObjectiveParameter):
+					# left must be reference parameter
+					raise IndicatorKernelException(
+						f'Objective expression condition[{condition.to_dict()}] not supported, '
+						f'because using bucket in right and left is not refer parameter, '
+						f'on {self.on_factor_msg()}.')
+			elif isinstance(right, ConstantObjectiveParameter):
+				# when right is constant parameter
+				variable = self.find_objective_variable_from_constant(right)
+				if isinstance(variable, ObjectiveVariableOnBucket) \
+						or isinstance(variable, ObjectiveVariableOnRange):
+					# refer to bucket variable or range variable is not allowed
+					raise IndicatorKernelException(
+						f'Objective expression condition[{condition.to_dict()}] not supported, '
+						f'because using bucket or range variable in left, '
+						f'on {self.on_factor_msg()}.')
+		return right
 
 	def translate_parameter_condition(self, condition: ObjectiveParameterCondition) -> ParameterCondition:
 		if isinstance(condition, ObjectiveParameterJoint):
@@ -160,206 +366,77 @@ class ObjectiveCriteriaService:
 				filters=ArrayHelper(condition.filters).map(lambda x: self.translate_parameter_condition(x)).to_list()
 			)
 		elif isinstance(condition, ObjectiveParameterExpression):
-			left = condition.left
+			left = self.check_left(condition)
 			operator = condition.operator
-			right = condition.right
-
-			if left is None:
-				raise IndicatorKernelException(
-					f'Objective expression condition[{condition.to_dict()}] not supported, left not declared.')
-			if isinstance(left, BucketObjectiveParameter):
-				raise IndicatorKernelException(
-					f'Objective expression condition[{condition.to_dict()}] not supported, left cannot be bucket.')
-			if isinstance(left, ConstantObjectiveParameter):
-				# TODO check left part contains bucket or not
-				value = left.value
-				raise NotImplementedError('Function ask_filter_base_id not implemented yet.')
-
-			if right is None:
-				if operator != ObjectiveParameterExpressionOperator.EMPTY \
-						and operator != ObjectiveParameterExpressionOperator.NOT_EMPTY:
-					raise IndicatorKernelException(
-						f'Objective expression condition[{condition.to_dict()}] not supported, '
-						f'right not declared when operator is not one of empty/not-empty.')
-			if right is not None and isinstance(condition.right, BucketObjectiveParameter):
-				if operator != ObjectiveParameterExpressionOperator.EQUALS \
-						and operator != ObjectiveParameterExpressionOperator.NOT_EQUALS:
-					raise IndicatorKernelException(
-						f'Objective expression condition[{condition.to_dict()}] not supported, '
-						f'right cannot be bucket when operator is not one of equals/not-equals.')
+			right = self.check_right(condition)
 
 			translated_left = self.translate_parameter(condition.left, False)
 			if right is None:
 				# no right declared, should be empty/not-empty
 				return ParameterExpression(
 					left=translated_left,
-					operator=translate_expression_operator(condition.operator),
+					operator=translate_expression_operator(operator),
 					right=None
 				)
-
-			if isinstance(right, BucketObjectiveParameter):
-				# TODO translate operator and right
-				raise NotImplementedError('Function ask_filter_base_id not implemented yet.')
+			elif isinstance(right, BucketObjectiveParameter):
+				# right is bucket parameter
+				return self.translate_expression_with_bucket_on_right(
+					right.bucketId, right.segmentName, condition, translated_left)
 			elif isinstance(right, ConstantObjectiveParameter):
-				# TODO check right part contains bucket or not
-				raise NotImplementedError('Function ask_filter_base_id not implemented yet.')
+				# right is constant parameter
+				variable = self.find_objective_variable_from_constant(right)
+				if variable is None:
+					# not refer any factor variable, treated as normal
+					return ParameterExpression(
+						left=left,
+						operator=translate_expression_operator(operator),
+						right=self.translate_parameter(right, False)
+					)
+				elif isinstance(variable, ObjectiveVariableOnBucket):
+					# refer to bucket variable
+					return self.translate_expression_with_bucket_on_right(
+						variable.bucketId, variable.segmentName, condition, translated_left)
+				elif isinstance(variable, ObjectiveVariableOnRange):
+					# refer to range variable
+					op_min = ParameterExpressionOperator.MORE_EQUALS if variable.includeMin else ParameterExpressionOperator.MORE
+					op_max = ParameterExpressionOperator.LESS_EQUALS if variable.includeMax else ParameterExpressionOperator.LESS
+					exp_min = None
+					exp_max = None
+					if is_not_blank(variable.min):
+						exp_min = ParameterExpression(
+							left=left, operator=op_min,
+							right=ConstantParameter(kind=ParameterKind.CONSTANT, value=variable.min))
+					elif is_not_blank(variable.max):
+						exp_max = ParameterExpression(
+							left=left, operator=op_max,
+							right=ConstantParameter(kind=ParameterKind.CONSTANT, value=variable.max))
+					if exp_min is not None and exp_max is not None:
+						return ParameterJoint(jointType=ParameterJointType.AND, filters=[exp_min, exp_max])
+					elif exp_min is not None:
+						return exp_min
+					elif exp_max is not None:
+						return exp_max
+					else:
+						raise IndicatorKernelException(
+							f'Objective parameter condition[{condition.to_dict()}] not supported, '
+							f'because neither min nor max declared, '
+							f'on {self.on_factor_msg()}.')
+				elif isinstance(variable, ObjectiveVariableOnValue):
+					# no special, treated as normal constant
+					return ParameterExpression(
+						left=left,
+						operator=translate_expression_operator(operator),
+						right=ConstantParameter(kind=ParameterKind.CONSTANT, value=variable.value)
+					)
+				else:
+					raise IndicatorKernelException(
+						f'Objective parameter condition[{condition.to_dict()}] not supported, on {self.on_factor_msg()}.')
 			else:
-				right = self.translate_parameter(condition.right, False)
 				return ParameterExpression(
 					left=left,
-					operator=translate_expression_operator(condition.operator),
-					right=right
+					operator=translate_expression_operator(operator),
+					right=self.translate_parameter(right, False)
 				)
 		else:
-			raise IndicatorKernelException(f'Objective parameter condition[{condition.to_dict()}] not supported.')
-# topic = self.get_topic()
-# factor = find_factor(topic, condition.factorId)
-# if factor is None:
-# 	raise IndicatorKernelException(
-# 		f'One of objective factor criteria[{conditions.to_dict()}] not declared, on {self.on_factor_msg()}.')
-# return self.fake_criteria_to_condition(condition, topic.topicId, factor.factorId)
-
-
-# 	self.FAKE_TOPIC_ID = '1'
-#
-# # noinspection PyMethodMayBeStatic,PyUnusedLocal
-# def build_topic_factor_parameter(self, topic_id: TopicId, factor_id: FactorId) -> Parameter:
-# 	return TopicFactorParameter(kind=ParameterKind.TOPIC, topicId=topic_id, factorId=factor_id)
-#
-# # noinspection PyMethodMayBeStatic
-# def fake_numeric_segment_to_condition(
-# 		self, include: Union[RangeBucketValueIncluding, str],
-# 		segment: Union[NumericValueSegment, dict]) -> Callable[[TopicId, FactorId], ParameterCondition]:
-# 	if isinstance(include, str):
-# 		include = RangeBucketValueIncluding(include)
-# 	if not isinstance(segment, NumericValueSegment):
-# 		segment = NumericValueSegment(**segment)
-# 	if segment.value is None:
-# 		raise IndicatorKernelException('Numeric bucket segment not declared.')
-#
-# 	def action(topic_id: TopicId, factor_id: FactorId) -> ParameterCondition:
-# 		min_value = segment.value.min
-# 		max_value = segment.value.max
-# 		if include == RangeBucketValueIncluding.INCLUDE_MIN:
-# 			operator_min = ParameterExpressionOperator.MORE_EQUALS
-# 		else:
-# 			operator_min = ParameterExpressionOperator.MORE
-# 		if include == RangeBucketValueIncluding.INCLUDE_MIN:
-# 			operator_max = ParameterExpressionOperator.LESS
-# 		else:
-# 			operator_max = ParameterExpressionOperator.LESS_EQUALS
-# 		if is_not_blank(min_value) and is_not_blank(max_value):
-# 			return ParameterJoint(
-# 				jointType=ParameterJointType.AND,
-# 				filters=[
-# 					ParameterExpression(
-# 						left=self.build_topic_factor_parameter(topic_id, factor_id),
-# 						operator=operator_min,
-# 						right=min_value
-# 					),
-# 					ParameterExpression(
-# 						left=self.build_topic_factor_parameter(topic_id, factor_id),
-# 						operator=operator_max,
-# 						right=max_value
-# 					)
-# 				]
-# 			)
-# 		elif is_not_blank(min_value):
-# 			return ParameterExpression(
-# 				left=self.build_topic_factor_parameter(topic_id, factor_id),
-# 				operator=operator_min,
-# 				right=min_value
-# 			)
-# 		elif is_not_blank(max_value):
-# 			return ParameterExpression(
-# 				left=self.build_topic_factor_parameter(topic_id, factor_id),
-# 				operator=operator_max,
-# 				right=max_value
-# 			)
-# 		else:
-# 			raise IndicatorKernelException(
-# 				'Neither minimum not maximum value of numeric value segment is declared.')
-#
-# 	return action
-#
-# # noinspection PyMethodMayBeStatic
-# def gather_defined_category_values(self, segments: Optional[List[Union[CategorySegment, dict]]]) -> List[str]:
-# 	def gather(segment: CategorySegment, values: List[str]) -> List[str]:
-# 		ArrayHelper(segment.value).filter(lambda x: is_not_blank(x)).each(lambda x: values.append(x)).to_list()
-# 		return values
-#
-# 	return ArrayHelper(segments) \
-# 		.filter(lambda x: x is not None) \
-# 		.map(lambda x: x if isinstance(x, CategorySegment) else CategorySegment(**x)) \
-# 		.reduce(lambda values, x: gather(x, values), [])
-#
-# def fake_category_segment_to_condition(
-# 		self, segment: Union[CategorySegment, dict],
-# 		segments: Optional[List[Union[CategorySegment, dict]]]
-# ) -> Callable[[TopicId, FactorId], ParameterExpression]:
-# 	if not isinstance(segment, CategorySegment):
-# 		segment = CategorySegment(**segment)
-#
-# 	def action(topic_id: TopicId, factor_id: FactorId) -> ParameterExpression:
-# 		values = ArrayHelper(segment.value).filter(lambda x: is_not_blank(x)).to_list()
-# 		if len(values) == 0:
-# 			raise IndicatorKernelException('Value of category segment not declared.')
-# 		if len(values) == 1 and values[0] == OtherCategorySegmentValue:
-# 			# other values
-# 			values = self.gather_defined_category_values(segments)
-# 			if len(values) == 0:
-# 				raise IndicatorKernelException('No values rather than others of category segment not declared.')
-# 			return ParameterExpression(
-# 				left=TopicFactorParameter(
-# 					kind=ParameterKind.TOPIC, topicId=topic_id, factorId=factor_id),
-# 				operator=ParameterExpressionOperator.NOT_IN,
-# 				right=values
-# 			)
-# 		else:
-# 			return ParameterExpression(
-# 				left=TopicFactorParameter(
-# 					kind=ParameterKind.TOPIC, topicId=topic_id, factorId=factor_id),
-# 				operator=ParameterExpressionOperator.IN,
-# 				right=values
-# 			)
-#
-# 	return action
-#
-# # noinspection PyMethodMayBeStatic,PyUnusedLocal
-# def build_value_criteria_left(self, topic_id: TopicId, factor_id: FactorId, value: Optional[str]) -> Parameter:
-# 	return self.build_topic_factor_parameter(topic_id, factor_id)
-#
-# # noinspection PyMethodMayBeStatic,PyUnusedLocal
-# def build_value_criteria_right(self, topic_id: TopicId, factor_id: FactorId, value: Optional[str]):
-# 	return ConstantParameter(kind=ParameterKind.CONSTANT, value=value)
-#
-# # noinspection PyMethodMayBeStatic
-# def fake_value_criteria_to_condition(
-# 		self, operator: Optional[IndicatorCriteriaOperator], value: Optional[str]
-# ) -> Callable[[TopicId, FactorId], ParameterExpression]:
-# 	def action(topic_id: TopicId, factor_id: FactorId) -> ParameterExpression:
-# 		if operator is None:
-# 			raise IndicatorKernelException('Operator of indicator criteria not declared.')
-# 		if is_blank(value):
-# 			raise IndicatorKernelException('Compare value of indicator criteria not declared.')
-# 		if operator == IndicatorCriteriaOperator.EQUALS:
-# 			expression_operator = ParameterExpressionOperator.EQUALS
-# 		elif operator == IndicatorCriteriaOperator.NOT_EQUALS:
-# 			expression_operator = ParameterExpressionOperator.NOT_EQUALS
-# 		elif operator == IndicatorCriteriaOperator.LESS:
-# 			expression_operator = ParameterExpressionOperator.LESS
-# 		elif operator == IndicatorCriteriaOperator.LESS_EQUALS:
-# 			expression_operator = ParameterExpressionOperator.LESS_EQUALS
-# 		elif operator == IndicatorCriteriaOperator.MORE:
-# 			expression_operator = ParameterExpressionOperator.MORE
-# 		elif operator == IndicatorCriteriaOperator.MORE_EQUALS:
-# 			expression_operator = ParameterExpressionOperator.MORE_EQUALS
-# 		else:
-# 			raise IndicatorKernelException(f'Criteria value operator[{operator}] is not supported.')
-# 		return ParameterExpression(
-# 			left=self.build_value_criteria_left(topic_id, factor_id, value),
-# 			operator=expression_operator,
-# 			right=self.build_value_criteria_right(topic_id, factor_id, value)
-# 		)
-#
-# 	return action
+			raise IndicatorKernelException(
+				f'Objective parameter condition[{condition.to_dict()}] not supported, on {self.on_factor_msg()}.')

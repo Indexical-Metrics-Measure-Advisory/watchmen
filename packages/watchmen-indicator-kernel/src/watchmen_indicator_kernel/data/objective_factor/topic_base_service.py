@@ -87,7 +87,6 @@ class TopicBaseObjectiveFactorDataService(ObjectiveFactorDataService):
 		return Subject(dataset=SubjectDataset(columns=dataset_columns, filters=dataset_filters)), only_column_id
 
 	def ask_value(self, time_frame: Optional[TimeFrame]) -> Optional[Decimal]:
-		# TODO REFACTOR-OBJECTIVE ACHIEVEMENT BREAK DOWN DATA SERVICE, ON TOPIC
 		subject, only_column_id = self.fake_to_subject()
 		report = self.fake_to_report(only_column_id)
 		report_data_service = self.get_report_data_service(subject, report)
@@ -98,11 +97,3 @@ class TopicBaseObjectiveFactorDataService(ObjectiveFactorDataService):
 			value = data_result.data[0][0]
 			parsed, decimal_value = is_decimal(value)
 			return decimal_value if parsed else Decimal('0')
-
-# def build_value_criteria_left(self, topic_id: TopicId, factor_id: FactorId, value: Optional[str]) -> Parameter:
-# 	if is_blank(value):
-# 		return super().build_value_criteria_left(topic_id, factor_id, value)
-#
-# 	return self.build_value_criteria_left_on_factor(
-# 		topic_id, factor_id, value,
-# 		lambda: ArrayHelper(self.topic.factors).find(lambda x: x.factorId == factor_id))
