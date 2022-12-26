@@ -1,3 +1,4 @@
+from logging import getLogger
 from typing import List, Union, Optional
 
 from networkx import MultiDiGraph
@@ -15,6 +16,9 @@ from watchmen_lineage.model.lineage import PipelineFacet, TopicFacet, TopicFacto
 from watchmen_lineage.service.builder.loader import LineageBuilder
 from watchmen_lineage.utils.utils import parse_parameter
 
+
+
+logger = getLogger(__name__)
 
 def get_pipeline_service(principal_service: PrincipalService) -> PipelineService:
 	return PipelineService(ask_meta_storage(), ask_snowflake_generator(), principal_service)

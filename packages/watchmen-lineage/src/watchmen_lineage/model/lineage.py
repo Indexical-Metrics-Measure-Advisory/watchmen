@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import List, Dict, Optional
 
+from fastapi.openapi.models import Reference
 from pydantic import BaseModel
 from watchmen_model.admin import FactorType, Topic
 from watchmen_model.common import TopicId, SubjectId, DashboardId, PipelineId, PipelineStageId, PipelineUnitId, \
@@ -40,6 +41,7 @@ class RelationType(Enum):
 	ReadAndCondition = "ReadAndCondition"
 	Query = "Query"
 	Recalculate = "Recalculate"
+	ConstantsReference = "ConstantsReference"
 
 
 
