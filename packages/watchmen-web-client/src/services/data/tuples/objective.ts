@@ -1,4 +1,3 @@
-import {UserGroupId} from '@/services/data/tuples/user-group-types';
 import {findAccount} from '../account';
 import {Apis, get, page, post} from '../apis';
 import {fetchMockObjective, listMockObjectives, saveMockObjective} from '../mock/tuples/mock-objective';
@@ -6,6 +5,7 @@ import {TuplePage} from '../query/tuple-page';
 import {isMockService} from '../utils';
 import {Objective, ObjectiveId} from './objective-types';
 import {QueryObjective} from './query-objective-types';
+import {UserGroupId} from './user-group-types';
 import {isFakedUuid} from './utils';
 
 type ObjectiveOnServer = Omit<Objective, 'userGroupIds'> & { groupIds: Array<UserGroupId> };
