@@ -17,21 +17,21 @@ import {ExpressionSideContainer} from './widgets';
 export const ExpressionSide = (props: {
 	objective: Objective; factor: ObjectiveFactorOnIndicator; indicator: Indicator;
 	expression: ObjectiveParameterExpression; parameter: ObjectiveParameter; leftSide: boolean;
-	bucketEnabled?: boolean; buckets?: Array<Bucket>;
+	bucketEnabled?: boolean; buckets?: Array<Bucket>; timeFrameEnabled?: boolean;
 }) => {
 	const {objective, factor, indicator, parameter, leftSide} = props;
-	const {bucketEnabled, buckets} = ((): { bucketEnabled: boolean; buckets: Array<Bucket> } => {
+	const {bucketEnabled, buckets, timeFrameEnabled} = (() => {
 		if (leftSide) {
 			// disable bucket selection on left side
-			return {bucketEnabled: false, buckets: []};
+			return {bucketEnabled: false, buckets: [], timeFrameEnabled: false};
 		} else {
-			const {bucketEnabled = false, buckets = []} = props;
-			return {bucketEnabled, buckets};
+			const {bucketEnabled = false, buckets = [], timeFrameEnabled} = props;
+			return {bucketEnabled, buckets, timeFrameEnabled};
 		}
 	})();
 
 	return <ExpressionSideContainer>
-		<ParameterFromEditor parameter={parameter} bucketEnabled={bucketEnabled}/>
+		<ParameterFromEditor parameter={parameter} bucketEnabled={bucketEnabled} timeFrameEnabled={timeFrameEnabled}/>
 		<FactorEditor objective={objective} factor={factor} indicator={indicator} parameter={parameter}/>
 		<ConstantEditor objective={objective} factor={factor} indicator={indicator} parameter={parameter}/>
 		<ComputedEditor objective={objective} factor={factor} indicator={indicator} parameter={parameter}/>

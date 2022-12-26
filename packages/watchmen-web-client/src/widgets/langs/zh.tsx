@@ -563,7 +563,8 @@ export const Zh: LanguageDeclareType = {
 		FROM_CONSTANT: '常量值',
 		FROM_COMPUTED: '计算值',
 		FROM_INDICATOR: '指标引用',
-		FROM_BUCKET: '分桶'
+		FROM_BUCKET: '分桶',
+		FROM_TIME_FRAME: '时间窗口'
 	},
 	FACTOR: {
 		SEQUENCE: '序列号',

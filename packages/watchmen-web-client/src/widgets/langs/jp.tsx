@@ -563,7 +563,8 @@ export const Jp: LanguageDeclareType = {
 		FROM_CONSTANT: '定数値',
 		FROM_COMPUTED: '計算',
 		FROM_INDICATOR: '指標参照',
-		FROM_BUCKET: 'バケット'
+		FROM_BUCKET: 'バケット',
+		FROM_TIME_FRAME: '時間枠'
 	},
 	FACTOR: {
 		SEQUENCE: 'シーケンス',

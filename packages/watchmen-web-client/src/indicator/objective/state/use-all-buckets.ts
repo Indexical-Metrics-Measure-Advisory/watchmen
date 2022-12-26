@@ -32,7 +32,6 @@ export const useAllBuckets = () => {
 			}
 		};
 		const onAskBucketIdByMeasure = (method: QueryByBucketMethod, onData: (bucketIds: Array<BucketId>) => void) => {
-			console.log(method, buckets);
 			if (isQueryByEnum(method)) {
 				onData(Object.values(buckets.data).filter(bucket => isEnumMeasureBucket(bucket) && bucket.enumId === method.enumId).map(bucket => bucket.bucketId));
 			} else if (isQueryByMeasure(method)) {
