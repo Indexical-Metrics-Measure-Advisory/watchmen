@@ -21,7 +21,8 @@ export const ParameterFromEditor = (props: {
 		[ObjectiveParameterType.REFER]: Lang.PARAM.FROM_INDICATOR,
 		[ObjectiveParameterType.CONSTANT]: Lang.PARAM.FROM_CONSTANT,
 		[ObjectiveParameterType.COMPUTED]: Lang.PARAM.FROM_COMPUTED,
-		[ObjectiveParameterType.BUCKET]: Lang.PARAM.FROM_BUCKET
+		[ObjectiveParameterType.BUCKET]: Lang.PARAM.FROM_BUCKET,
+		[ObjectiveParameterType.TIME_FRAME]: Lang.PARAM.FROM_TIME_FRAME,
 	};
 
 	return <ParameterFromEditContainer onClick={onStartEditing} tabIndex={0} onBlur={onBlur}>

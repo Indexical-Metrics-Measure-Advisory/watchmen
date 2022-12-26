@@ -5,6 +5,7 @@ import {
 	ObjectiveFactorOnIndicator,
 	ObjectiveParameterExpression,
 	ObjectiveParameterExpressionOperator,
+	ObjectiveTimeFrameKind,
 	ReferObjectiveParameter
 } from '@/services/data/tuples/objective-types';
 import {SubjectForIndicator} from '@/services/data/tuples/query-indicator-types';
@@ -22,11 +23,12 @@ import {ExpressionSide} from '../expression-side';
 import {Parameter2ExpressionBridge} from '../parameter-2-expression-bridge';
 
 interface BucketState {
-	enabled: boolean;
+	bucketEnabled: boolean;
 	buckets: Array<Bucket>;
+	timeFrameEnabled: boolean;
 }
 
-const disableBucket = () => ({enabled: false, buckets: []});
+const disableSpecialTypes = () => ({bucketEnabled: false, buckets: [], timeFrameEnabled: false});
 
 export const RightPart = (props: {
 	objective: Objective; factor: ObjectiveFactorOnIndicator; indicator: Indicator;
@@ -37,7 +39,7 @@ export const RightPart = (props: {
 
 	const {fire: fireObjective} = useObjectivesEventBus();
 	const {on, off, fire} = useExpressionEventBus();
-	const [bucketState, setBucketState] = useState<BucketState>(disableBucket());
+	const [specialTypes, setSpecialTypes] = useState<BucketState>(disableSpecialTypes());
 	useEffect(() => {
 		const gatherBucketIdsFromTopic = async (left: ReferObjectiveParameter): Promise<Array<BucketId>> => {
 			if (indicator.baseOn !== IndicatorBaseOn.TOPIC) {
@@ -93,18 +95,19 @@ export const RightPart = (props: {
 				});
 			});
 		};
-		const computeBucketState = async () => {
+		const computeSpecialTypes = async () => {
 			const operator = expression.operator;
 			if (operator !== ObjectiveParameterExpressionOperator.EQUALS && operator !== ObjectiveParameterExpressionOperator.NOT_EQUALS) {
-				setBucketState(disableBucket());
+				setSpecialTypes(disableSpecialTypes());
 				return;
 			}
 
 			const left = expression.left;
 			if (left == null || !isReferParameter(left)) {
-				setBucketState(disableBucket());
+				setSpecialTypes(disableSpecialTypes());
 				return;
 			}
+			const timeFrameEnabled = objective.timeFrame != null && objective.timeFrame.kind != null && objective.timeFrame.kind !== ObjectiveTimeFrameKind.NONE;
 			const bucketIds = (await Promise.all([gatherBucketIdsFromTopic(left), gatherBucketIdsFromSubject(left)])).flat();
 			const buckets = (await Promise.all(bucketIds.map(bucketId => {
 				return new Promise<Bucket | null>(resolve => {
@@ -112,20 +115,20 @@ export const RightPart = (props: {
 				});
 			}))).filter(bucket => bucket != null) as Array<Bucket>;
 			if (buckets.length === 0) {
-				setBucketState(disableBucket());
+				setSpecialTypes({...disableSpecialTypes(), timeFrameEnabled});
 			} else {
-				setBucketState({enabled: true, buckets});
+				setSpecialTypes({bucketEnabled: true, buckets, timeFrameEnabled});
 			}
 		};
-		const onLeftChanged = () => computeBucketState();
-		const onOperatorChanged = () => computeBucketState();
+		const onLeftChanged = () => computeSpecialTypes();
+		const onOperatorChanged = () => computeSpecialTypes();
 		on(ExpressionEventTypes.LEFT_CHANGED, onLeftChanged);
 		on(ExpressionEventTypes.OPERATOR_CHANGED, onOperatorChanged);
 		return () => {
 			off(ExpressionEventTypes.LEFT_CHANGED, onLeftChanged);
 			off(ExpressionEventTypes.OPERATOR_CHANGED, onOperatorChanged);
 		};
-	}, [on, off, fireObjective, indicator, expression]);
+	}, [on, off, fireObjective, objective, indicator, expression]);
 
 	const onRightParameterChanged = () => {
 		fire(ExpressionEventTypes.RIGHT_CHANGED, expression);
@@ -135,6 +138,7 @@ export const RightPart = (props: {
 		<Parameter2ExpressionBridge onChange={onRightParameterChanged}/>
 		<ExpressionSide objective={objective} factor={factor} indicator={indicator}
 		                expression={expression} parameter={expression.right} leftSide={false}
-		                bucketEnabled={bucketState.enabled} buckets={bucketState.buckets}/>
+		                bucketEnabled={specialTypes.bucketEnabled} buckets={specialTypes.buckets}
+		                timeFrameEnabled={specialTypes.timeFrameEnabled}/>
 	</ParameterEventBusProvider>;
 };

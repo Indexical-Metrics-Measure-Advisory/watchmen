@@ -13,7 +13,8 @@ export enum ObjectiveParameterType {
 	CONSTANT = 'constant',
 	COMPUTED = 'computed',
 	// only available on factor indicator filter
-	BUCKET = 'bucket'
+	BUCKET = 'bucket',
+	TIME_FRAME = 'time-frame'
 }
 
 export interface ObjectiveParameter {
@@ -75,6 +76,10 @@ export interface BucketObjectiveParameter extends ObjectiveParameter {
 	kind: ObjectiveParameterType.BUCKET;
 	bucketId: BucketId;
 	segmentName: string;
+}
+
+export interface TimeFrameObjectiveParameter extends ObjectiveParameter {
+	kind: ObjectiveParameterType.TIME_FRAME;
 }
 
 export enum ObjectiveParameterJointType {

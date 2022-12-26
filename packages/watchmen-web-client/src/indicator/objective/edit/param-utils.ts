@@ -12,7 +12,8 @@ import {
 	ObjectiveParameterJoint,
 	ObjectiveParameterJointType,
 	ObjectiveParameterType,
-	ReferObjectiveParameter
+	ReferObjectiveParameter,
+	TimeFrameObjectiveParameter
 } from '@/services/data/tuples/objective-types';
 
 export const isReferParameter = (param: ObjectiveParameter): param is ReferObjectiveParameter => param.kind === ObjectiveParameterType.REFER;
@@ -20,6 +21,7 @@ export const isConstantParameter = (param: ObjectiveParameter): param is Constan
 export const isComputedParameter = (param: ObjectiveParameter): param is ComputedObjectiveParameter => param.kind === ObjectiveParameterType.COMPUTED;
 export const isCaseThenParameter = (param: ObjectiveParameter): param is CaseThenObjectiveParameter => isComputedParameter(param) && param.operator === ObjectiveFormulaOperator.CASE_THEN;
 export const isBucketParameter = (param: ObjectiveParameter): param is BucketObjectiveParameter => param.kind === ObjectiveParameterType.BUCKET;
+export const isTimeFrameParameter = (param: ObjectiveParameter): param is TimeFrameObjectiveParameter => param.kind === ObjectiveParameterType.TIME_FRAME;
 
 export interface ParameterFormulaDef {
 	/**

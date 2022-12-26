@@ -563,7 +563,8 @@ export const En = {
 		FROM_CONSTANT: 'Constant',
 		FROM_COMPUTED: 'Compute',
 		FROM_INDICATOR: 'Refer',
-		FROM_BUCKET: 'Bucket'
+		FROM_BUCKET: 'Bucket',
+		FROM_TIME_FRAME: 'Time Frame'
 	},
 	FACTOR: {
 		SEQUENCE: 'Sequence',
