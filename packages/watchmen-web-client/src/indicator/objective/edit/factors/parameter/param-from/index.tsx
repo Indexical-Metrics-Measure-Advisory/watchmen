@@ -20,7 +20,6 @@ const getAvailableTypes = (parameter: ObjectiveParameter, bucketEnabled: boolean
 	const filterTimeFrameType = (type: ObjectiveParameterType) => {
 		return type !== ObjectiveParameterType.TIME_FRAME || isTimeFrameParameter(parameter) || timeFrameEnabled;
 	};
-	console.log(parameter, bucketEnabled, timeFrameEnabled);
 	return AvailableTypes.filter(type => filterBucketType(type) && filterTimeFrameType(type));
 };
 
