@@ -12,4 +12,5 @@ from .objective import BucketObjectiveParameter, ComputedObjectiveParameter, Con
 	ObjectiveParameterExpression, ObjectiveParameterExpressionOperator, ObjectiveParameterJoint, \
 	ObjectiveParameterJointType, ObjectiveParameterType, ObjectiveTarget, ObjectiveTargetBetterSide, \
 	ObjectiveTimeFrame, ObjectiveTimeFrameKind, ObjectiveTimeFrameTill, ObjectiveVariable, ObjectiveVariableKind, \
-	ObjectiveVariableOnBucket, ObjectiveVariableOnRange, ObjectiveVariableOnValue, ReferObjectiveParameter
+	ObjectiveVariableOnBucket, ObjectiveVariableOnRange, ObjectiveVariableOnValue, ReferObjectiveParameter, \
+	TimeFrameObjectiveParameter
