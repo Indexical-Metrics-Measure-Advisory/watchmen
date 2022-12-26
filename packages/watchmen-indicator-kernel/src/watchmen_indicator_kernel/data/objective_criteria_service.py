@@ -379,6 +379,10 @@ class ObjectiveCriteriaService:
 		return right
 
 	# noinspection PyMethodMayBeStatic
+	def use_move_date_func(self, dt: datetime) -> str:
+		return f'{{&moveDate(&now, H{dt.year}M{dt.month}D{dt.day}h{dt.hour}m{dt.minute}s{dt.second})}}'
+
+	# noinspection PyMethodMayBeStatic
 	def as_joint_type(self, conj: Optional[ObjectiveParameterJointType]) -> ParameterJointType:
 		return ParameterJointType.OR if conj == ObjectiveParameterJointType.OR else ParameterJointType.AND
 
@@ -419,17 +423,11 @@ class ObjectiveCriteriaService:
 						ParameterExpression(
 							left=left, operator=ParameterExpressionOperator.MORE_EQUALS,
 							right=ConstantParameter(
-								kind=ParameterKind.CONSTANT,
-								value=time_frame.start
-							)
-						),
+								kind=ParameterKind.CONSTANT, value=self.use_move_date_func(time_frame.start))),
 						ParameterExpression(
 							left=left, operator=ParameterExpressionOperator.LESS_EQUALS,
 							right=ConstantParameter(
-								kind=ParameterKind.CONSTANT,
-								value=time_frame.end
-							)
-						)
+								kind=ParameterKind.CONSTANT, value=self.use_move_date_func(time_frame.end)))
 					]
 				)
 			elif isinstance(right, ConstantObjectiveParameter):
