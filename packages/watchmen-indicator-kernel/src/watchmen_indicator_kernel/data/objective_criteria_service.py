@@ -5,18 +5,16 @@ from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.common import IndicatorKernelException
 from watchmen_inquiry_kernel.storage import ReportDataService
 from watchmen_model.common import BucketId, ComputedParameter, ConstantParameter, Parameter, ParameterCondition, \
-	ParameterExpression, \
-	ParameterExpressionOperator, ParameterJoint, ParameterJointType, ParameterKind, TopicFactorParameter, TopicId
+	ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, ParameterKind, \
+	TopicFactorParameter, TopicId
 from watchmen_model.console import Report, Subject
 from watchmen_model.indicator import BucketObjectiveParameter, CategorySegment, CategorySegmentsHolder, \
-	ComputedObjectiveParameter, \
-	ConstantObjectiveParameter, Indicator, NumericSegmentsHolder, NumericValueSegment, Objective, \
-	ObjectiveFactorOnIndicator, \
-	ObjectiveParameter, \
-	ObjectiveParameterCondition, ObjectiveParameterExpression, ObjectiveParameterExpressionOperator, \
-	ObjectiveParameterJoint, ObjectiveParameterJointType, ObjectiveVariable, ObjectiveVariableOnBucket, \
-	ObjectiveVariableOnRange, ObjectiveVariableOnValue, OtherCategorySegmentValue, RangeBucketValueIncluding, \
-	ReferObjectiveParameter
+	ComputedObjectiveParameter, ConstantObjectiveParameter, Indicator, NumericSegmentsHolder, NumericValueSegment, \
+	Objective, ObjectiveFactorOnIndicator, ObjectiveParameter, ObjectiveParameterCondition, \
+	ObjectiveParameterExpression, ObjectiveParameterExpressionOperator, ObjectiveParameterJoint, \
+	ObjectiveParameterJointType, ObjectiveVariable, ObjectiveVariableOnBucket, ObjectiveVariableOnRange, \
+	ObjectiveVariableOnValue, OtherCategorySegmentValue, RangeBucketValueIncluding, ReferObjectiveParameter, \
+	TimeFrameObjectiveParameter
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 from .utils import ask_bucket, translate_computation_operator_in_factor_filter, translate_expression_operator
 
@@ -125,10 +123,12 @@ class ObjectiveCriteriaService:
 		variables = self.get_objective_variables()
 		return ArrayHelper(variables).find(is_variable_matched)
 
-	def translate_parameter(self, parameter: ObjectiveParameter, use_conditional: bool) -> Parameter:
+	def translate_parameter(
+			self, parameter: ObjectiveParameter, use_conditional: bool,
+			time_frame: Optional[TimeFrame]) -> Parameter:
 		if use_conditional:
 			conditional = parameter.conditional,
-			on = None if parameter.on is None else self.translate_parameter_condition(parameter.on)
+			on = None if parameter.on is None else self.translate_parameter_condition(parameter.on, time_frame)
 		else:
 			conditional = False
 			on = None
@@ -150,7 +150,7 @@ class ObjectiveCriteriaService:
 			)
 		elif isinstance(parameter, ComputedObjectiveParameter):
 			translated_parameters = ArrayHelper(parameter.parameters) \
-				.map(lambda x: self.translate_parameter(x, True)) \
+				.map(lambda x: self.translate_parameter(x, True, time_frame)) \
 				.to_list()
 			return ComputedParameter(
 				kind=ParameterKind.COMPUTED,
@@ -178,13 +178,13 @@ class ObjectiveCriteriaService:
 		min_value = segment.value.min
 		max_value = segment.value.max
 		if include == RangeBucketValueIncluding.INCLUDE_MIN:
-			operator_min = ParameterExpressionOperator.MORE_EQUALS
 			# include min, means not include max
+			operator_min = ParameterExpressionOperator.MORE_EQUALS
 			operator_max = ParameterExpressionOperator.LESS
 		else:
+			# not include min, means include max
 			operator_min = ParameterExpressionOperator.MORE
-		# not include min, means include max
-		operator_max = ParameterExpressionOperator.LESS_EQUALS
+			operator_max = ParameterExpressionOperator.LESS_EQUALS
 		if invert:
 			# reverse conjunction and operator
 			joint_type = ParameterJointType.OR
@@ -302,12 +302,18 @@ class ObjectiveCriteriaService:
 			raise IndicatorKernelException(
 				f'Objective expression condition[{condition.to_dict()}] not supported, because left not declared, '
 				f'on {self.on_factor_msg()}.')
-		if isinstance(left, BucketObjectiveParameter):
+		elif isinstance(left, BucketObjectiveParameter):
 			# left side cannot be bucket parameter
 			raise IndicatorKernelException(
 				f'Objective expression condition[{condition.to_dict()}] not supported, because left cannot be bucket, '
 				f'on {self.on_factor_msg()}.')
-		if isinstance(left, ConstantObjectiveParameter):
+		elif isinstance(left, TimeFrameObjectiveParameter):
+			# left side cannot be time frame parameter
+			raise IndicatorKernelException(
+				f'Objective expression condition[{condition.to_dict()}] not supported, '
+				f'because left cannot be time frame, '
+				f'on {self.on_factor_msg()}.')
+		elif isinstance(left, ConstantObjectiveParameter):
 			# when left is constant
 			variable = self.find_objective_variable_from_constant(left)
 			if isinstance(variable, ObjectiveVariableOnBucket) or isinstance(variable, ObjectiveVariableOnRange):
@@ -318,7 +324,9 @@ class ObjectiveCriteriaService:
 					f'on {self.on_factor_msg()}.')
 		return left
 
-	def check_right(self, condition: ObjectiveParameterExpression) -> Optional[ObjectiveParameter]:
+	def check_right(
+			self, condition: ObjectiveParameterExpression, time_frame: Optional[TimeFrame]
+	) -> Optional[ObjectiveParameter]:
 		left = condition.left
 		operator = condition.operator
 		right = condition.right
@@ -330,58 +338,100 @@ class ObjectiveCriteriaService:
 				raise IndicatorKernelException(
 					f'Objective expression condition[{condition.to_dict()}] not supported, '
 					f'right not declared when operator is not one of empty/not-empty, on {self.on_factor_msg()}.')
-		if right is not None:
-			# when right is declared
-			if isinstance(right, BucketObjectiveParameter):
-				# when right is bucket parameter
-				if operator != ObjectiveParameterExpressionOperator.EQUALS \
-						and operator != ObjectiveParameterExpressionOperator.NOT_EQUALS:
-					# operator must be equals or not-equals
-					raise IndicatorKernelException(
-						f'Objective expression condition[{condition.to_dict()}] not supported, '
-						f'because right cannot be bucket when operator is not one of equals/not-equals, '
-						f'on {self.on_factor_msg()}.')
-				if not isinstance(left, ReferObjectiveParameter):
-					# left must be reference parameter
-					raise IndicatorKernelException(
-						f'Objective expression condition[{condition.to_dict()}] not supported, '
-						f'because using bucket in right and left is not refer parameter, '
-						f'on {self.on_factor_msg()}.')
-			elif isinstance(right, ConstantObjectiveParameter):
-				# when right is constant parameter
-				variable = self.find_objective_variable_from_constant(right)
-				if isinstance(variable, ObjectiveVariableOnBucket) \
-						or isinstance(variable, ObjectiveVariableOnRange):
-					# refer to bucket variable or range variable is not allowed
-					raise IndicatorKernelException(
-						f'Objective expression condition[{condition.to_dict()}] not supported, '
-						f'because using bucket or range variable in left, '
-						f'on {self.on_factor_msg()}.')
+		elif isinstance(right, BucketObjectiveParameter):
+			# when right is bucket parameter
+			if operator != ObjectiveParameterExpressionOperator.EQUALS \
+					and operator != ObjectiveParameterExpressionOperator.NOT_EQUALS:
+				# operator must be equals or not-equals
+				raise IndicatorKernelException(
+					f'Objective expression condition[{condition.to_dict()}] not supported, '
+					f'because right cannot be bucket when operator is not one of equals/not-equals, '
+					f'on {self.on_factor_msg()}.')
+			if not isinstance(left, ReferObjectiveParameter):
+				# left must be reference parameter
+				raise IndicatorKernelException(
+					f'Objective expression condition[{condition.to_dict()}] not supported, '
+					f'because using bucket in right and left is not refer parameter, '
+					f'on {self.on_factor_msg()}.')
+		elif isinstance(right, TimeFrameObjectiveParameter):
+			if operator != ObjectiveParameterExpressionOperator.EQUALS \
+					and operator != ObjectiveParameterExpressionOperator.NOT_EQUALS:
+				# operator must be equals or not-equals
+				raise IndicatorKernelException(
+					f'Objective expression condition[{condition.to_dict()}] not supported, '
+					f'because right cannot be time frame when operator is not one of equals/not-equals, '
+					f'on {self.on_factor_msg()}.')
+			if time_frame is None:
+				raise IndicatorKernelException(
+					f'Objective expression condition[{condition.to_dict()}] not supported, '
+					f'because time frame parameter declared, but no time frame passed, '
+					f'on {self.on_factor_msg()}.')
+		elif isinstance(right, ConstantObjectiveParameter):
+			# when right is constant parameter
+			variable = self.find_objective_variable_from_constant(right)
+			if isinstance(variable, ObjectiveVariableOnBucket) \
+					or isinstance(variable, ObjectiveVariableOnRange):
+				# refer to bucket variable or range variable is not allowed
+				raise IndicatorKernelException(
+					f'Objective expression condition[{condition.to_dict()}] not supported, '
+					f'because using bucket or range variable in left, '
+					f'on {self.on_factor_msg()}.')
 		return right
 
-	def translate_parameter_condition(self, condition: ObjectiveParameterCondition) -> ParameterCondition:
+	# noinspection PyMethodMayBeStatic
+	def as_joint_type(self, conj: Optional[ObjectiveParameterJointType]) -> ParameterJointType:
+		return ParameterJointType.OR if conj == ObjectiveParameterJointType.OR else ParameterJointType.AND
+
+	def translate_parameter_conditions(
+			self, conditions: List[ObjectiveParameterCondition], time_frame: Optional[TimeFrame]
+	) -> List[ParameterCondition]:
+		return ArrayHelper(conditions) \
+			.map(lambda x: self.translate_parameter_condition(x, time_frame)) \
+			.to_list()
+
+	def translate_parameter_condition(
+			self, condition: ObjectiveParameterCondition, time_frame: Optional[TimeFrame]) -> ParameterCondition:
 		if isinstance(condition, ObjectiveParameterJoint):
 			return ParameterJoint(
-				jointType=ParameterJointType.OR if condition.conj == ObjectiveParameterJointType.OR else ParameterJointType.AND,
-				filters=ArrayHelper(condition.filters).map(lambda x: self.translate_parameter_condition(x)).to_list()
+				jointType=self.as_joint_type(condition.conj),
+				filters=self.translate_parameter_conditions(condition.filters, time_frame)
 			)
 		elif isinstance(condition, ObjectiveParameterExpression):
 			left = self.check_left(condition)
 			operator = condition.operator
-			right = self.check_right(condition)
+			right = self.check_right(condition, time_frame)
 
-			translated_left = self.translate_parameter(condition.left, False)
+			translated_left = self.translate_parameter(condition.left, False, time_frame)
 			if right is None:
 				# no right declared, should be empty/not-empty
 				return ParameterExpression(
 					left=translated_left,
 					operator=translate_expression_operator(operator),
-					right=None
-				)
+					right=None)
 			elif isinstance(right, BucketObjectiveParameter):
 				# right is bucket parameter
 				return self.translate_expression_with_bucket_on_right(
 					right.bucketId, right.segmentName, condition, translated_left)
+			elif isinstance(right, TimeFrameObjectiveParameter):
+				return ParameterJoint(
+					jointType=ParameterJointType.AND,
+					filters=[
+						ParameterExpression(
+							left=left, operator=ParameterExpressionOperator.MORE_EQUALS,
+							right=ConstantParameter(
+								kind=ParameterKind.CONSTANT,
+								value=time_frame.start
+							)
+						),
+						ParameterExpression(
+							left=left, operator=ParameterExpressionOperator.LESS_EQUALS,
+							right=ConstantParameter(
+								kind=ParameterKind.CONSTANT,
+								value=time_frame.end
+							)
+						)
+					]
+				)
 			elif isinstance(right, ConstantObjectiveParameter):
 				# right is constant parameter
 				variable = self.find_objective_variable_from_constant(right)
@@ -390,7 +440,7 @@ class ObjectiveCriteriaService:
 					return ParameterExpression(
 						left=left,
 						operator=translate_expression_operator(operator),
-						right=self.translate_parameter(right, False)
+						right=self.translate_parameter(right, False, time_frame)
 					)
 				elif isinstance(variable, ObjectiveVariableOnBucket):
 					# refer to bucket variable
@@ -435,7 +485,7 @@ class ObjectiveCriteriaService:
 				return ParameterExpression(
 					left=left,
 					operator=translate_expression_operator(operator),
-					right=self.translate_parameter(right, False)
+					right=self.translate_parameter(right, False, time_frame)
 				)
 		else:
 			raise IndicatorKernelException(

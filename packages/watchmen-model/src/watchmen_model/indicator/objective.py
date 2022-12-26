@@ -86,7 +86,9 @@ class ObjectiveParameterType(str, Enum):
 	CONSTANT = 'constant',
 	COMPUTED = 'computed',
 	# only available on factor indicator filter
-	BUCKET = 'bucket'
+	BUCKET = 'bucket',
+	# only available on factor indicator filter
+	TIME_FRAME = 'time-frame'
 
 
 # noinspection DuplicatedCode
@@ -164,6 +166,10 @@ class BucketObjectiveParameter(ObjectiveParameter):
 	kind: ObjectiveParameterType.BUCKET = ObjectiveParameterType.BUCKET
 	bucketId: Optional[BucketId] = None
 	segmentName: Optional[str] = None
+
+
+class TimeFrameObjectiveParameter(ObjectiveParameter):
+	kind: ObjectiveParameterType.TIME_FRAME = ObjectiveParameterType.TIME_FRAME
 
 
 class ObjectiveParameterCondition(DataModel, BaseModel):

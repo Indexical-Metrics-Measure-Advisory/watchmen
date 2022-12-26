@@ -4,10 +4,10 @@ from typing import List, Optional, Tuple
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.common import IndicatorKernelException
 from watchmen_model.admin import Topic
-from watchmen_model.common import ParameterJoint, ParameterJointType, ParameterKind, \
-	SubjectDatasetColumnId, TopicFactorParameter, TopicId
+from watchmen_model.common import ParameterJoint, ParameterJointType, ParameterKind, SubjectDatasetColumnId, \
+	TopicFactorParameter, TopicId
 from watchmen_model.console import Subject, SubjectDataset, SubjectDatasetColumn
-from watchmen_model.indicator import Indicator, Objective, ObjectiveFactorOnIndicator, ObjectiveParameterJointType
+from watchmen_model.indicator import Indicator, Objective, ObjectiveFactorOnIndicator
 from watchmen_utilities import ArrayHelper, is_decimal
 from .data_service import ObjectiveFactorDataService
 from ..objective_criteria_service import TimeFrame
@@ -46,7 +46,7 @@ class TopicBaseObjectiveFactorDataService(ObjectiveFactorDataService):
 			alias=FAKED_ONLY_COLUMN_NAME
 		), FAKED_ONLY_COLUMN_ID
 
-	def fake_criteria_to_dataset_filter(self) -> Optional[ParameterJoint]:
+	def fake_criteria_to_dataset_filter(self, time_frame: Optional[TimeFrame]) -> Optional[ParameterJoint]:
 		objective_factor = self.get_objective_factor()
 		if not objective_factor.conditional:
 			# ask all data
@@ -63,12 +63,11 @@ class TopicBaseObjectiveFactorDataService(ObjectiveFactorDataService):
 			return None
 
 		return ParameterJoint(
-			jointType=ParameterJointType.OR if factor_filter.conj == ObjectiveParameterJointType.OR else ParameterJointType.AND,
-			filters=ArrayHelper(conditions).map(self.translate_parameter_condition).to_list()
-		)
+			jointType=self.as_joint_type(factor_filter.conj),
+			filters=self.translate_parameter_conditions(conditions, time_frame))
 
-	def build_filters(self) -> Optional[ParameterJoint]:
-		a_filter = self.fake_criteria_to_dataset_filter()
+	def build_filters(self, time_frame: Optional[TimeFrame]) -> Optional[ParameterJoint]:
+		a_filter = self.fake_criteria_to_dataset_filter(time_frame)
 		if self.has_indicator_filter():
 			if a_filter is not None:
 				return ParameterJoint(
@@ -80,14 +79,14 @@ class TopicBaseObjectiveFactorDataService(ObjectiveFactorDataService):
 		else:
 			return a_filter
 
-	def fake_to_subject(self) -> Tuple[Subject, SubjectDatasetColumnId]:
+	def fake_to_subject(self, time_frame: Optional[TimeFrame]) -> Tuple[Subject, SubjectDatasetColumnId]:
 		only_column, only_column_id = self.fake_indicator_factor_to_dataset_column()
 		dataset_columns: List[SubjectDatasetColumn] = [only_column]
-		dataset_filters: Optional[ParameterJoint] = self.build_filters()
+		dataset_filters: Optional[ParameterJoint] = self.build_filters(time_frame)
 		return Subject(dataset=SubjectDataset(columns=dataset_columns, filters=dataset_filters)), only_column_id
 
 	def ask_value(self, time_frame: Optional[TimeFrame]) -> Optional[Decimal]:
-		subject, only_column_id = self.fake_to_subject()
+		subject, only_column_id = self.fake_to_subject(time_frame)
 		report = self.fake_to_report(only_column_id)
 		report_data_service = self.get_report_data_service(subject, report)
 		data_result = report_data_service.find()
