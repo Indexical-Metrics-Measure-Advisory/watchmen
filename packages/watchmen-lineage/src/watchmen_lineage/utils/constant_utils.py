@@ -211,13 +211,16 @@ def is_punctuation(key: str):
 
 def is_word(key: str):
 	return key == 'word'
+#
 
 
-print(parse_constant_parameter("{constant}"))
-# #
-print(parse_constant_parameter("{x.t}  {b.s}"))
+
+#
+# print(parse_constant_parameter("{constant}"))
+# # #
+# print(parse_constant_parameter("{x.t}  {b.s}"))
 # print(parse_constant_parameter("{da.b.c}  {b.s}"))
 # print(parse_constant_parameter("{&nextSeq}"))
 # print(parse_constant_parameter("{&moveDate(ts.dd,Y+1)}"))
 # print(parse_constant_parameter("{&x.daa}"))
-# print(parse_constant_parameter("{&dateDiff(test.date,&now)}"))
+# print(parse_constant_parameter("{&dateDiff(test.date,test2.date2)}"))

@@ -1,3 +1,4 @@
+from logging import getLogger
 from typing import List
 
 from networkx import MultiDiGraph
@@ -7,7 +8,7 @@ from watchmen_data_kernel.meta import TopicService
 from watchmen_lineage.model.ast import ConstantAST, FuncParameter, FuncAst
 from watchmen_lineage.model.lineage import LineageNode, LineageRelation, TopicFactorFacet, \
 	TypeOfAnalysis, RelationType, RelationTypeHolders, PipelineFacet, ReadFromMemoryHolder, ReadFactorHolder, \
-	ReadTopicHolder, SubjectFacet
+	ReadTopicHolder, SubjectFacet, SubjectTopicHolder
 from watchmen_lineage.service.builder import graphic_builder
 from watchmen_lineage.utils.constant_utils import parse_constant_parameter
 from watchmen_model.admin import FactorType, Topic, Factor
@@ -16,6 +17,7 @@ from watchmen_model.common import ParameterComputeType, TopicFactorParameter, Pa
 from watchmen_utilities import ArrayHelper
 
 
+logger = getLogger(__name__)
 def get_source_and_target_key(edge):
 	lineage_relation = LineageRelation()
 	lineage_relation.sourceId = edge[0]
@@ -66,53 +68,68 @@ def isRecalculateColumnTopic(topic_id: TopicId):
 
 
 def process_ast(asts: List[ConstantAST], parent_facet: LineageNode, target_factor_facet: TopicFactorFacet,
-                graphic: MultiDiGraph,principal_service:PrincipalService):
-	##
+                graphic: MultiDiGraph, principal_service: PrincipalService):
 	for ast in asts:
-
-		if isinstance(parent_facet,PipelineFacet):
-		## is funcAst
-			if ast.funcAst:
-				for function_param in ast.funcAst.params:
-					if isinstance(function_param,FuncParameter):
-						process_func_parameter_for_pipeline(function_param, graphic, parent_facet, target_factor_facet, principal_service)
-					elif isinstance(function_param,FuncAst):
-						pass #TODO
-					elif isinstance(function_param,ConstantAST):
-						pass #TODO
-			else:
-				constant_process_for_pipeline(ast.params, graphic, parent_facet, target_factor_facet)
-		elif isinstance(parent_facet,SubjectFacet):
-			if ast.funcAst:
-				pass
-			else:
-				pass
-			# elif isinstance(parent_facet,Da)
+		if ast.funcAst:
+			for function_param in ast.funcAst.params:
+				if isinstance(function_param, FuncParameter):
+					__process_constant(function_param, graphic, parent_facet, principal_service, target_factor_facet)
+				elif isinstance(function_param, FuncAst):
+					pass  # TODO
+				elif isinstance(function_param, ConstantAST):
+					pass  # TODO
+		else:
+			__process_constant(function_param, graphic, parent_facet, principal_service, target_factor_facet)
 
 
-def constant_process_for_subject(parameter_list,graphic,parent_facet,target_factor_facet):
-	if len(parameter_list) == 1:
-		func_parameter: FuncParameter = parameter_list[0]
+def __process_constant(function_param, graphic, parent_facet, principal_service, target_factor_facet):
+	if isinstance(parent_facet, PipelineFacet):
+		process_func_parameter_for_pipeline(function_param, graphic, parent_facet, target_factor_facet,
+		                                    principal_service)
+	elif isinstance(parent_facet, SubjectFacet):
+		process_func_parameter_for_subject(function_param, graphic, parent_facet,
+		                                   target_factor_facet,
+		                                   principal_service)
+	else:
+		logger.error("current don't support")
+
+
+def constant_process_for_subject(parameter_list, graphic, parent_facet, target_factor_facet):
+	for func_parameter in parameter_list:
+	# if len(parameter_list) == 1:
+	# 	func_parameter: FuncParameter = parameter_list[0]
 		constant_process_for_subject(func_parameter, graphic, parent_facet, target_factor_facet)
-
-	pass
-
-
-def process_func_parameter_for_subject(func_parameter, graphic, parent_facet, target_factor_facet, principal_service:PrincipalService):
+	# else:
+	# 	pass  # TODO
 
 
-	pass
+def process_func_parameter_for_subject(func_parameter, graphic, parent_facet: SubjectFacet, target_factor_facet,
+                                       principal_service: PrincipalService):
+	variable_name = func_parameter.value[0]
+	if variable_name in parent_facet.topicsHolder:
+		subject_topic_holder: SubjectTopicHolder = parent_facet.topicsHolder[variable_name]
+		topic: Topic = subject_topic_holder.topic
+		factor: Factor = find_factor(topic, func_parameter.method)
+		source_factor_facet = TopicFactorFacet(nodeId=factor.factorId, parentId=topic.topicId)
+		graphic_builder.add_edge_with_relation(graphic, source_factor_facet,
+		                                       target_factor_facet, RelationType.ConstantsReference,
+		                                       None,
+		                                       parent_facet.get_attributes(), parent_facet.lineageType)
 
 
 def constant_process_for_pipeline(parameter_list, graphic, parent_facet, target_factor_facet):
-	if len(parameter_list) == 1:
-		func_parameter: FuncParameter = parameter_list[0]
+	for func_parameter in parameter_list:
+	# if len(parameter_list) == 1:
+	# 	func_parameter: FuncParameter = parameter_list[0]
 		process_func_parameter_for_pipeline(func_parameter, graphic, parent_facet, target_factor_facet)
+
 
 def find_factor(topic: Topic, factor_name: str) -> Factor:
 	return ArrayHelper(topic.factors).find(lambda x: x.name == factor_name)
 
-def process_func_parameter_for_pipeline(func_parameter, graphic, parent_facet, target_factor_facet, principal_service:PrincipalService):
+
+def process_func_parameter_for_pipeline(func_parameter, graphic, parent_facet, target_factor_facet,
+                                        principal_service: PrincipalService):
 	variable_name = func_parameter.value[0]
 	if variable_name in parent_facet.readFromMemoryContext:
 		holder: ReadFromMemoryHolder = parent_facet.readFromMemoryContext[variable_name]
@@ -131,31 +148,26 @@ def process_func_parameter_for_pipeline(func_parameter, graphic, parent_facet, t
 		                                       None,
 		                                       parent_facet.get_attributes(), parent_facet.lineageType)
 
-	elif variable_name in parent_facet.readRowContext :
+	elif variable_name in parent_facet.readRowContext:
 		holder: ReadTopicHolder = parent_facet.readRowContext[variable_name]
 		factor_name = func_parameter.method
 		topic_service = TopicService(principal_service)
-		topic:Topic = topic_service.find_by_id(holder.topicId)
-		factor:Factor = find_factor(topic,factor_name)
+		topic: Topic = topic_service.find_by_id(holder.topicId)
+		factor: Factor = find_factor(topic, factor_name)
 		source_factor_facet = TopicFactorFacet(nodeId=factor.factorId, parentId=topic.topicId)
 		graphic_builder.add_edge_with_relation(graphic, source_factor_facet,
-	                                       target_factor_facet, RelationType.ReadAndWrite,
-	                                       None,
-	                                       parent_facet.get_attributes(), parent_facet.lineageType)
+		                                       target_factor_facet, RelationType.ReadAndWrite,
+		                                       None,
+		                                       parent_facet.get_attributes(), parent_facet.lineageType)
 
-
-
-
-
-
-		## load topic
-		# factor_name = func_parameter.value[1]
+	## load topic
+	# factor_name = func_parameter.value[1]
 	else:
 		print("variable_name {} is not in pipeline context ".format(variable_name))
 
 
 def parse_parameter(graphic, source: Parameter, target_factor_facet, relation_info: RelationTypeHolders,
-                    parent_facet: LineageNode,principal_service:PrincipalService):
+                    parent_facet: LineageNode, principal_service: PrincipalService):
 	if source.kind == ParameterKind.TOPIC:
 		source: TopicFactorParameter = source
 		source_factor_facet = TopicFactorFacet(nodeId=source.factorId, parentId=source.topicId)
@@ -166,7 +178,7 @@ def parse_parameter(graphic, source: Parameter, target_factor_facet, relation_in
 		source: ConstantParameter = source
 		if source.value:
 			asts: List[ConstantAST] = parse_constant_parameter(source.value)
-			process_ast(asts, parent_facet, target_factor_facet, graphic,principal_service)
+			process_ast(asts, parent_facet, target_factor_facet, graphic, principal_service)
 		else:
 			print("source value is empty")
 
@@ -178,15 +190,15 @@ def parse_parameter(graphic, source: Parameter, target_factor_facet, relation_in
 		if is_number_calculate(source):
 			for compute_factor in source.parameters:
 				parse_parameter(graphic, compute_factor, target_factor_facet, relation_info,
-				                parent_facet,principal_service)
+				                parent_facet, principal_service)
 		elif is_datetime_compute(source):
 			if len(source.parameters) == 1:
 				compute_factor = source.parameters[0]
 				parse_parameter(graphic, compute_factor, target_factor_facet, relation_info,
-				                parent_facet,principal_service)
+				                parent_facet, principal_service)
 			else:
 				raise Exception("source parameter length must is 1 ")
 		elif source.type == ParameterComputeType.CASE_THEN:
 			for compute_factor in source.parameters:
 				parse_parameter(graphic, compute_factor, target_factor_facet, relation_info,
-				                parent_facet,principal_service)
+				                parent_facet, principal_service)
