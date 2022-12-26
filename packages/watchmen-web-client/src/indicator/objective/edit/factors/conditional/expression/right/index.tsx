@@ -115,7 +115,7 @@ export const RightPart = (props: {
 				});
 			}))).filter(bucket => bucket != null) as Array<Bucket>;
 			if (buckets.length === 0) {
-				setSpecialTypes({...disableSpecialTypes(), timeFrameEnabled});
+				setSpecialTypes({bucketEnabled: false, buckets: [], timeFrameEnabled});
 			} else {
 				setSpecialTypes({bucketEnabled: true, buckets, timeFrameEnabled});
 			}
