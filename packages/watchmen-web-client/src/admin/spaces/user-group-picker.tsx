@@ -9,7 +9,7 @@ const hasUserGroup = (space: Space) => !!space.userGroupIds && space.userGroupId
 const getUserGroupIds = (space: Space): Array<UserGroupId> => space.userGroupIds || [];
 const findNameFromUserGroups = (userGroupId: UserGroupId, userGroups: Array<QueryUserGroupForHolder>): string => {
 	// eslint-disable-next-line
-	return userGroups.find(userGroup => userGroup.userGroupId == userGroupId)!.name;
+	return (userGroups.find(userGroup => userGroup.userGroupId == userGroupId)?.name ?? 'Unknown User Group') || 'Noname User Group';
 };
 const removeUserGroup = (space: Space) => (userGroupOrId: string | QueryUserGroupForHolder) => {
 	let userGroupId: UserGroupId;

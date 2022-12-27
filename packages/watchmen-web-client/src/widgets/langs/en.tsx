@@ -87,6 +87,10 @@ export const En = {
 		CREDENTIAL_EMPTY: 'Credential is required to enjoy the journey.',
 		FAIL: 'Name or credential cannot be identified now.'
 	},
+	ADMIN: {
+		UNKNOWN_USER_GROUP: 'Unknown User Group',
+		NONAME_USER_GROUP: 'Noname User Group'
+	},
 	DATASET: {
 		UNFIX_COLUMN: 'Unfix Me and Follows',
 		FIX_COLUMN: 'Fix Columns to Here',
