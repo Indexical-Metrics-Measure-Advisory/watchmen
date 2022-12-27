@@ -36,7 +36,7 @@ export const isSuperAdmin = (): boolean => {
 };
 
 export const findToken = (): string | null => {
-	return sessionStorage.getItem(ACCOUNT_TOKEN);
+	return sessionStorage.getItem(ACCOUNT_TOKEN) || '';
 };
 
 export const saveTokenIntoSession = (token: Token) => {
