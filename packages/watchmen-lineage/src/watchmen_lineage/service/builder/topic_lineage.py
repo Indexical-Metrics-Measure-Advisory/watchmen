@@ -1,15 +1,15 @@
 from typing import List
 
 from networkx import MultiDiGraph
-from watchmen_auth import PrincipalService
-from watchmen_meta.admin import TopicService
-from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage
-from watchmen_model.admin import Topic, Factor, TopicKind
 
 from src.watchmen_indicator_surface.util import trans_readonly
+from watchmen_auth import PrincipalService
 from watchmen_lineage.model.lineage import TopicFacet, TopicFactorFacet
 from watchmen_lineage.service.builder import graphic_builder
 from watchmen_lineage.service.builder.loader import LineageBuilder
+from watchmen_meta.admin import TopicService
+from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage
+from watchmen_model.admin import Topic, Factor, TopicKind
 
 
 def get_topic_service(principal_service: PrincipalService) -> TopicService:
@@ -38,7 +38,7 @@ class TopicLineageBuilder(LineageBuilder):
 	@staticmethod
 	def build_factor_facet(factor_list: List[Factor], topic_facet: TopicFacet, graphic: MultiDiGraph):
 		for factor in factor_list:
-			factor_facet = TopicFactorFacet(parentId=topic_facet.nodeId, nodeId=factor.factorId,nodeType=factor.type)
+			factor_facet = TopicFactorFacet(parentId=topic_facet.nodeId, nodeId=factor.factorId, nodeType=factor.type)
 			graphic_builder.add_factor_facet_node(graphic, factor_facet)
 
 		return graphic

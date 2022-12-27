@@ -2,20 +2,20 @@ from typing import Dict
 
 import networkx as nx
 from networkx import MultiDiGraph
-from watchmen_auth import PrincipalService
-from watchmen_model.common import TopicId, FactorId, SubjectId, SubjectDatasetColumnId
 
+from watchmen_auth import PrincipalService
 from watchmen_lineage.model.lineage import LineageType, TopicFactorFacet, LineageNode, \
 	RelationDirection, DatasetColumnFacet, LineageRelation
 from watchmen_lineage.service.builder.index import get_builder
 from watchmen_lineage.service.builder.loader import LineageBuilder
 from watchmen_lineage.utils.id_utils import build_node_id, parse_node_id
 from watchmen_lineage.utils.utils import get_source_and_target_key
+from watchmen_model.common import TopicId, FactorId, SubjectId, SubjectDatasetColumnId
 
 
 class LineageService(object):
 	graphByTenant: Dict[str, MultiDiGraph] = {}
-	all_load_sequence = [LineageType.TOPIC, LineageType.PIPELINE, LineageType.SUBJECT]
+	all_load_sequence = [LineageType.TOPIC, LineageType.PIPELINE, LineageType.SUBJECT, LineageType.INDICATOR]
 
 	def init_tenant_all_lineage_data(self, principal_service: PrincipalService):
 		"""

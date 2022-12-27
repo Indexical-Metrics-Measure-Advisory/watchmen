@@ -16,8 +16,9 @@ from watchmen_model.common import ParameterComputeType, TopicFactorParameter, Pa
 	ComputedParameter, TopicId, ConstantParameter
 from watchmen_utilities import ArrayHelper
 
-
 logger = getLogger(__name__)
+
+
 def get_source_and_target_key(edge):
 	lineage_relation = LineageRelation()
 	lineage_relation.sourceId = edge[0]
@@ -96,11 +97,13 @@ def __process_constant(function_param, graphic, parent_facet, principal_service,
 
 def constant_process_for_subject(parameter_list, graphic, parent_facet, target_factor_facet):
 	for func_parameter in parameter_list:
-	# if len(parameter_list) == 1:
-	# 	func_parameter: FuncParameter = parameter_list[0]
+		# if len(parameter_list) == 1:
+		# 	func_parameter: FuncParameter = parameter_list[0]
 		constant_process_for_subject(func_parameter, graphic, parent_facet, target_factor_facet)
-	# else:
-	# 	pass  # TODO
+
+
+# else:
+# 	pass  # TODO
 
 
 def process_func_parameter_for_subject(func_parameter, graphic, parent_facet: SubjectFacet, target_factor_facet,
@@ -119,8 +122,8 @@ def process_func_parameter_for_subject(func_parameter, graphic, parent_facet: Su
 
 def constant_process_for_pipeline(parameter_list, graphic, parent_facet, target_factor_facet):
 	for func_parameter in parameter_list:
-	# if len(parameter_list) == 1:
-	# 	func_parameter: FuncParameter = parameter_list[0]
+		# if len(parameter_list) == 1:
+		# 	func_parameter: FuncParameter = parameter_list[0]
 		process_func_parameter_for_pipeline(func_parameter, graphic, parent_facet, target_factor_facet)
 
 

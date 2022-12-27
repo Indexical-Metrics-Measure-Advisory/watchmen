@@ -18,8 +18,8 @@ from watchmen_model.admin import Topic
 from watchmen_model.common import ParameterKind, ComputedParameter, TopicFactorParameter, Parameter
 from watchmen_model.console import Subject, SubjectDatasetColumn
 
-
 logger = getLogger(__name__)
+
 
 def get_subject_service(principal_service: PrincipalService) -> SubjectService:
 	return SubjectService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
