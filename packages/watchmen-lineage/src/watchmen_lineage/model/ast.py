@@ -4,15 +4,14 @@ from typing import List
 from pydantic import BaseModel
 
 
-
-class MethodType(str,Enum):
+class MethodType(str, Enum):
 	Function = "Function"
 	Factor = "factor"
 
 
 class AstMethod(BaseModel):
-	type :MethodType = None
-	value :str = None
+	type: MethodType = None
+	value: str = None
 
 
 class ConstantType(str, Enum):
@@ -23,14 +22,13 @@ class ConstantType(str, Enum):
 class FuncParameter(BaseModel):
 	paramType: str = None
 	value: List = []
-	method:str = None
-
+	method: str = None
 
 
 class FuncAst(BaseModel):
 	name: str = None
 	params: List = []
-	method:str = None
+	method: str = None
 
 
 class ConstantAST(BaseModel):

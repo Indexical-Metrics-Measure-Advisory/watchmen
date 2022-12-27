@@ -1,8 +1,8 @@
 from enum import Enum
 from typing import List, Dict, Optional
 
-from fastapi.openapi.models import Reference
 from pydantic import BaseModel
+
 from watchmen_model.admin import FactorType, Topic
 from watchmen_model.common import TopicId, SubjectId, DashboardId, PipelineId, PipelineStageId, PipelineUnitId, \
 	PipelineActionId, FactorId, Parameter
@@ -16,7 +16,7 @@ class LineageType(Enum):
 	COLUMN = "COLUMN"
 	REPORT = "REPORT"
 	DASHBOARD = "DASHBOARD"
-	ATOM = "ATOM"
+	INDICATOR = "INDICATOR"
 	DERIVATIVE = "DERIVATIVE"
 	OBJECTIVE = "OBJECTIVE"
 
@@ -42,7 +42,6 @@ class RelationType(Enum):
 	Query = "Query"
 	Recalculate = "Recalculate"
 	ConstantsReference = "ConstantsReference"
-
 
 
 class RelationTypeHolders(BaseModel):
@@ -80,7 +79,7 @@ class ReadTopicHolder(BaseModel):
 
 
 class ReadFromMemoryHolder(BaseModel):
-	parameter:Parameter
+	parameter: Parameter
 
 
 class PipelineFacet(LineageNode):
@@ -127,13 +126,13 @@ class DatasetColumnFacet(LineageNode):
 
 
 class SubjectTopicHolder(BaseModel):
-	topic:Topic = None
+	topic: Topic = None
 
 
 class SubjectFacet(LineageNode):
 	lineageType: LineageType = LineageType.SUBJECT
 	relations: List[LineageRelation] = []
-	topicsHolder:Dict[str,SubjectTopicHolder] = {}
+	topicsHolder: Dict[str, SubjectTopicHolder] = {}
 
 	def get_attributes(self):
 		attributes = {
@@ -154,8 +153,8 @@ class DashboardFacet(LineageNode):
 	relations: List[LineageRelation] = []
 
 
-class MetricAtomFacet(LineageNode):
-	lineageType: LineageType = LineageType.ATOM
+class IndicatorFacet(LineageNode):
+	lineageType: LineageType = LineageType.INDICATOR
 	relations: List[LineageRelation] = []
 
 
