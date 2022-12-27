@@ -87,6 +87,10 @@ export const Zh: LanguageDeclareType = {
 		CREDENTIAL_EMPTY: '请输入密码.',
 		FAIL: '用户名或者密码未能验证通过.'
 	},
+	ADMIN: {
+		UNKNOWN_USER_GROUP: '未知用户组',
+		NONAME_USER_GROUP: '未命名用户组'
+	},
 	DATASET: {
 		UNFIX_COLUMN: '解锁本列以及之后已锁定列',
 		FIX_COLUMN: '锁定至本列',

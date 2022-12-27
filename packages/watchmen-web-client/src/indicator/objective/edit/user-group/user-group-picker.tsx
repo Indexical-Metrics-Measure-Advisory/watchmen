@@ -13,7 +13,7 @@ const hasUserGroup = (objective: Objective) => !!objective.userGroupIds && objec
 const getUserGroupIds = (objective: Objective): Array<UserGroupId> => objective.userGroupIds || [];
 const findNameFromUserGroups = (userGroupId: UserGroupId, userGroups: Array<QueryUserGroupForHolder>): string => {
 	// eslint-disable-next-line
-	return userGroups.find(userGroup => userGroup.userGroupId == userGroupId)!.name;
+	return (userGroups.find(userGroup => userGroup.userGroupId == userGroupId)?.name ?? Lang.ADMIN.UNKNOWN_USER_GROUP) || Lang.ADMIN.NONAME_USER_GROUP;
 };
 const getIdOfUserGroup = (userGroup: QueryUserGroupForHolder) => userGroup.userGroupId;
 const getNameOfUserGroup = (userGroup: QueryUserGroupForHolder) => userGroup.name;

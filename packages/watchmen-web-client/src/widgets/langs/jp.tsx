@@ -87,6 +87,10 @@ export const Jp: LanguageDeclareType = {
 		CREDENTIAL_EMPTY: 'パスワードを入力してください。',
 		FAIL: 'アカウントまたはパスワードの認証に失敗しました。'
 	},
+	ADMIN: {
+		UNKNOWN_USER_GROUP: '不明なユーザー グループ',
+		NONAME_USER_GROUP: '名前のないユーザー グループ'
+	},
 	DATASET: {
 		UNFIX_COLUMN: 'これ以降のカラムの固定を解除すうｒ',
 		FIX_COLUMN: 'このカラムに固定する',

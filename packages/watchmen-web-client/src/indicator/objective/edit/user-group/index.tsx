@@ -28,6 +28,8 @@ export const UserGroup = (props: { objective: Objective }) => {
 	}
 
 	return <EditStep index={ObjectiveDeclarationStep.USER_GROUP} title={Lang.INDICATOR.OBJECTIVE.USER_GROUP_TITLE}>
-		<UserGroupPicker objective={objective} codes={userGroups.data}/>
+		{userGroups.loaded
+			? <UserGroupPicker objective={objective} codes={userGroups.data}/>
+			: null}
 	</EditStep>;
 };
