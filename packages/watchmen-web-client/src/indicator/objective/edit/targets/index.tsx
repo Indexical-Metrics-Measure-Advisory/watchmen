@@ -1,4 +1,5 @@
 import {Objective, ObjectiveTarget} from '@/services/data/tuples/objective-types';
+import {generateUuid} from '@/services/data/tuples/utils';
 import {noop} from '@/services/utils';
 import {ButtonInk} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
@@ -27,7 +28,11 @@ export const Targets = (props: { objective: Objective }) => {
 		forceUpdate();
 	};
 	const onAddClicked = () => {
-		objective.targets!.push({} as ObjectiveTarget);
+		let uuid = generateUuid();
+		while ((objective.targets || []).some(target => target.uuid === uuid)) {
+			uuid = generateUuid();
+		}
+		objective.targets!.push({uuid} as ObjectiveTarget);
 		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
 		forceUpdate();
 	};
