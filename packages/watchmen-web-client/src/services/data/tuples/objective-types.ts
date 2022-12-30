@@ -23,6 +23,7 @@ export interface ObjectiveParameter {
 
 export type ObjectiveFactorName = string;
 export type ObjectiveFactorId = string;
+export type ObjectiveTargetId = string;
 
 /**
  * it's a multiple purposes object.
@@ -130,6 +131,7 @@ export enum ObjectiveTargetBetterSide {
 }
 
 export interface ObjectiveTarget {
+	uuid: ObjectiveTargetId;
 	name: string;
 	/** to be value, should be a numeric value, a percentage value */
 	tobe?: string;
