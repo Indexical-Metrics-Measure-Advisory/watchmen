@@ -7,6 +7,7 @@ from pydantic import BaseModel
 
 from watchmen_model.common import BucketId, DataModel, FactorId, IndicatorId, ObjectiveFactorId, ObjectiveId, \
 	OptimisticLock, SubjectDatasetColumnId, TenantBasedTuple, UserGroupId
+from watchmen_model.common.tuple_ids import ObjectiveTargetId
 from watchmen_utilities import ArrayHelper
 
 ObjectiveFactorName = TypeVar('ObjectiveFactorName', bound=str)
@@ -270,6 +271,8 @@ def construct_asis(
 
 
 class ObjectiveTarget(DataModel, BaseModel):
+	uuid:ObjectiveTargetId = None
+
 	name: Optional[str] = None
 	# to be value, should be a numeric value, a percentage value
 	tobe: Optional[str] = None
