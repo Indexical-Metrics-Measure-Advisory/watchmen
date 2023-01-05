@@ -3,7 +3,7 @@ from typing import Dict
 from networkx import MultiDiGraph
 
 from watchmen_lineage.model.lineage import TopicFacet, TopicFactorFacet, PipelineFacet, LineageType, RelationType, \
-	DatasetColumnFacet, IndicatorFacet
+	DatasetColumnFacet, IndicatorFacet, LineageNode
 from watchmen_lineage.utils.id_utils import build_node_id
 
 
@@ -36,14 +36,21 @@ def add_indicator_facet(graphic: MultiDiGraph, indicator_facet: IndicatorFacet):
 	return graphic
 
 
-def add_edge_with_relation(graphic: MultiDiGraph, source_facet: TopicFactorFacet,
-                           target_facet: TopicFactorFacet, relationType: RelationType, arithmetic: str,
+def add_edge_with_relation(graphic: MultiDiGraph, source_facet: LineageNode,
+                           target_facet: LineageNode, relationType: RelationType, arithmetic: str,
                            attributes: Dict, lineage_type: LineageType = None):
 	source_node_id = build_node_id(source_facet)
 	target_node_id = build_node_id(target_facet)
 	graphic.add_edge(source_node_id, target_node_id, type=lineage_type.value, relation_type=relationType.value,
 	                 arithmetic=arithmetic,
 	                 **attributes)
+	return graphic
+
+
+def add_edge_with_source_and_target(graphic: MultiDiGraph, source,target,relation_type,lineage_type):
+	source_node_id = build_node_id(source)
+	target_node_id = build_node_id(target)
+	graphic.add_edge(source_node_id, target_node_id, type=lineage_type.value, relation_type=relation_type.value)
 	return graphic
 
 
