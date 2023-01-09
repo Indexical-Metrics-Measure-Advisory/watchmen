@@ -29,6 +29,7 @@ export const Targets = (props: { objective: Objective }) => {
 	};
 	const onAddClicked = () => {
 		let uuid = generateUuid();
+		// eslint-disable-next-line
 		while ((objective.targets || []).some(target => target.uuid === uuid)) {
 			uuid = generateUuid();
 		}
