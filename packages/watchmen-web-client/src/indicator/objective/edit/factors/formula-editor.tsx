@@ -45,7 +45,14 @@ export const FormulaEditor = (props: { objective: Objective; factor: ObjectiveFa
 
 	const hasAsIs = isIndicatorFactor(factor);
 	const factors = isIndicatorFactor(factor)
-		? (objective.factors || []).map(f => f === factor ? ({...factor, name: Lang.INDICATOR.OBJECTIVE.FACTOR_REFER_SELF}): factor)
+		? (objective.factors || []).map(f => {
+			return f === factor
+				? ({
+					...f,
+					name: <>{f.name} ({Lang.INDICATOR.OBJECTIVE.FACTOR_REFER_SELF})</> as unknown as string
+				})
+				: f;
+		})
 		: (objective.factors || []).filter(f => f !== factor);
 
 	return <>

@@ -531,9 +531,9 @@ export const En = {
 			EXPRESSION: 'Expression',
 			ADD_SUB_EXPRESSION: 'Add Sub Expression',
 			ADD_SUB_JOINT: 'Add Sub Joint',
-			TEST_FACTOR: 'Test Definition',
-			TEST_FACTOR_CLICK: 'Click and try to retrieve value',
-			TEST_FACTOR_GET_NONE: 'No value retrieved from server side.'
+			TEST_FACTOR: 'Value',
+			TEST_FACTOR_CLICK: 'Click to retrieve',
+			TEST_FACTOR_GET_NONE: 'No data retrieved from server side.'
 		}
 	},
 	SUBSCRIBE: {

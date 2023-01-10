@@ -531,9 +531,9 @@ export const Jp: LanguageDeclareType = {
 			EXPRESSION: '式',
 			ADD_SUB_EXPRESSION: 'フィルタの条件を追加',
 			ADD_SUB_JOINT: 'サブ結合を追加',
-			TEST_FACTOR: 'テスト定義',
-			TEST_FACTOR_CLICK: '指標値を取得してみてください',
-			TEST_FACTOR_GET_NONE: '指標値は取得されていません。'
+			TEST_FACTOR: '指標値',
+			TEST_FACTOR_CLICK: 'クリックして取得',
+			TEST_FACTOR_GET_NONE: 'データが取得されない。'
 		}
 	},
 	SUBSCRIBE: {
