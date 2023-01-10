@@ -2,7 +2,8 @@ from decimal import Decimal
 from typing import Optional
 
 from watchmen_auth import PrincipalService
-from watchmen_model.console import Subject
+from watchmen_model.common import ParameterJoint, ParameterJointType, SubjectId
+from watchmen_model.console import Report, Subject, SubjectDataset
 from watchmen_model.indicator import Indicator, Objective, ObjectiveFactorOnIndicator
 from .data_service import ObjectiveFactorDataService
 from ..objective_criteria_service import TimeFrame
@@ -19,74 +20,41 @@ class SubjectBaseObjectiveFactorDataService(ObjectiveFactorDataService):
 	def get_subject(self) -> Subject:
 		return self.subject
 
+	def ask_filter_base_id(self) -> SubjectId:
+		return self.get_subject().subjectId
+
+	def fake_criteria_to_report(self, report: Report, time_frame: Optional[TimeFrame]):
+		report_filter = self.fake_criteria_to_filter(time_frame)
+		if report_filter is not None:
+			report.filters = report_filter
+
+	def fake_to_subject(self) -> Subject:
+		"""
+		to add indicator filter into subject, return a new subject for query purpose, only for this time.
+		"""
+		subject = self.get_subject()
+		columns = subject.dataset.columns
+		original_subject_filter = subject.dataset.filters
+		if self.has_indicator_filter():
+			if original_subject_filter is not None:
+				subject_filter = ParameterJoint(
+					jointType=ParameterJointType.AND,
+					filters=[original_subject_filter, self.indicator.filter.joint]
+				)
+			else:
+				subject_filter = self.indicator.filter.joint
+		else:
+			subject_filter = original_subject_filter
+		return Subject(dataset=SubjectDataset(columns=columns, filters=subject_filter))
+
 	def ask_value(self, time_frame: Optional[TimeFrame]) -> Optional[Decimal]:
-		# TODO REFACTOR-OBJECTIVE ACHIEVEMENT BREAK DOWN DATA SERVICE, ON SUBJECT
-		pass
-# def __init__(
-# 		self, achievement_indicator: AchievementIndicator,
-# 		indicator: Indicator, subject: Subject, principal_service: PrincipalService):
-# 	super().__init__(achievement_indicator, principal_service)
-# 	self.indicator = indicator
-# 	self.subject = subject
-#
-# def ask_column_not_found_message(self, column_id: SubjectDatasetColumnId) -> str:
-# 	return f'Column[id={column_id}] not found on subject[id={self.subject.subjectId}, name={self.subject.name}].'
-#
-# # noinspection DuplicatedCode
-# def find_column(
-# 		self, column_id: Optional[SubjectDatasetColumnId],
-# 		on_factor_id_missed: Callable[[], str]) -> SubjectDatasetColumn:
-# 	if is_blank(column_id):
-# 		raise IndicatorKernelException(on_factor_id_missed())
-# 	column: Optional[SubjectDatasetColumn] = ArrayHelper(self.subject.dataset.columns) \
-# 		.find(lambda x: x.columnId == column_id)
-# 	if column is None:
-# 		raise IndicatorKernelException(self.ask_column_not_found_message(column_id))
-# 	return column
-#
-# def build_value_criteria_left(self, topic_id: TopicId, factor_id: FactorId, value: Optional[str]) -> Parameter:
-# 	if is_blank(value):
-# 		return super().build_value_criteria_left(topic_id, factor_id, value)
-#
-# 	column: SubjectDatasetColumn = ArrayHelper(self.subject.dataset.columns).find(lambda x: x.columnId == factor_id)
-# 	parameter = column.parameter
-# 	if isinstance(parameter, TopicFactorParameter):
-# 		def ask_factor() -> Factor:
-# 			topic = get_topic_service(self.principalService).find_by_id(parameter.topicId)
-# 			return ArrayHelper(topic.factors).find(lambda x: x.factorId == parameter.factorId)
-#
-# 		return self.build_value_criteria_left_on_factor(topic_id, factor_id, value, ask_factor)
-# 	else:
-# 		return super().build_value_criteria_left(topic_id, factor_id, value)
-#
-# # noinspection DuplicatedCode
-# def fake_criteria_to_report(self) -> Optional[ParameterJoint]:
-# 	criteria = ArrayHelper(self.achievementIndicator.criteria).filter(lambda x: x is not None).to_list()
-# 	if len(criteria) == 0:
-# 		return None
-#
-# 	def to_condition(a_criteria: IndicatorCriteria) -> ParameterCondition:
-# 		column = self.find_column(
-# 			a_criteria.factorId,
-# 			lambda: f'Column of objective_factor indicator criteria[{criteria.to_dict()}] not declared.')
-# 		return self.fake_criteria_to_condition(a_criteria)(self.FAKE_TOPIC_ID, column.columnId)
-#
-# 	return ParameterJoint(
-# 		jointType=ParameterJointType.AND,
-# 		filters=ArrayHelper(criteria).map(to_condition).to_list()
-# 	)
-#
-# def ask_value(self) -> Optional[Decimal]:
-# 	report_indicator_column_id = self.indicator.factorId
-# 	report = self.fake_to_report()(report_indicator_column_id)
-# 	report_filter = self.fake_criteria_to_report()
-# 	if report_filter is not None:
-# 		report.filters = report_filter
-# 	report_data_service = get_report_data_service(self.subject, report, self.principalService)
-# 	data_result = report_data_service.find()
-# 	if len(data_result.data) == 0:
-# 		return Decimal('0')
-# 	else:
-# 		value = data_result.data[0][0]
-# 		parsed, decimal_value = is_decimal(value)
-# 		return decimal_value if parsed else Decimal('0')
+		# the indicator factor, actually which is column from subject, is the indicator column of report
+		report_indicator_column_id = self.indicator.factorId
+		# fake report
+		report = self.fake_to_report(report_indicator_column_id)
+		# fake objective factor to report factor, since they are both based on subject itself
+		self.fake_criteria_to_report(report, time_frame)
+		# merge indicator filter to subject filter
+		report_data_service = self.get_report_data_service(self.fake_to_subject(), report)
+		data_result = report_data_service.find()
+		return self.get_value_from_result(data_result)

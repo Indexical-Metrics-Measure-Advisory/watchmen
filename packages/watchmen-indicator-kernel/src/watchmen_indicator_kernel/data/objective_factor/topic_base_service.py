@@ -8,7 +8,6 @@ from watchmen_model.common import ParameterJoint, ParameterJointType, ParameterK
 	TopicFactorParameter, TopicId
 from watchmen_model.console import Subject, SubjectDataset, SubjectDatasetColumn
 from watchmen_model.indicator import Indicator, Objective, ObjectiveFactorOnIndicator
-from watchmen_utilities import ArrayHelper, is_decimal
 from .data_service import ObjectiveFactorDataService
 from ..objective_criteria_service import TimeFrame
 from ..utils import find_factor
@@ -46,28 +45,8 @@ class TopicBaseObjectiveFactorDataService(ObjectiveFactorDataService):
 			alias=FAKED_ONLY_COLUMN_NAME
 		), FAKED_ONLY_COLUMN_ID
 
-	def fake_criteria_to_dataset_filter(self, time_frame: Optional[TimeFrame]) -> Optional[ParameterJoint]:
-		objective_factor = self.get_objective_factor()
-		if not objective_factor.conditional:
-			# ask all data
-			return None
-
-		factor_filter = objective_factor.filter
-
-		if factor_filter is None or factor_filter.filters is None:
-			# no filter declared
-			return None
-
-		conditions = ArrayHelper(factor_filter.filters).filter(lambda x: x is not None).to_list()
-		if len(conditions) == 0:
-			return None
-
-		return ParameterJoint(
-			jointType=self.as_joint_type(factor_filter.conj),
-			filters=self.translate_parameter_conditions(conditions, time_frame))
-
 	def build_filters(self, time_frame: Optional[TimeFrame]) -> Optional[ParameterJoint]:
-		a_filter = self.fake_criteria_to_dataset_filter(time_frame)
+		a_filter = self.fake_criteria_to_filter(time_frame)
 		if self.has_indicator_filter():
 			if a_filter is not None:
 				return ParameterJoint(
@@ -90,9 +69,4 @@ class TopicBaseObjectiveFactorDataService(ObjectiveFactorDataService):
 		report = self.fake_to_report(only_column_id)
 		report_data_service = self.get_report_data_service(subject, report)
 		data_result = report_data_service.find()
-		if len(data_result.data) == 0:
-			return Decimal('0')
-		else:
-			value = data_result.data[0][0]
-			parsed, decimal_value = is_decimal(value)
-			return decimal_value if parsed else Decimal('0')
+		return self.get_value_from_result(data_result)
