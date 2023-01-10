@@ -28,7 +28,7 @@ class ObjectiveFactorValue(BaseModel):
 	value: Optional[Decimal] = None
 
 
-@router.post('/indicator/objective-factor', tags=[UserRole.ADMIN], response_model=ObjectiveFactorValue)
+@router.post('/indicator/objective-factor/data', tags=[UserRole.ADMIN], response_model=ObjectiveFactorValue)
 async def load_achievement_data(
 		objective: Objective, factor: ObjectiveFactorOnIndicator,
 		principal_service: PrincipalService = Depends(get_admin_principal)) -> ObjectiveFactorValue:

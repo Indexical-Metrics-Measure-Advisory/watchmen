@@ -74,6 +74,7 @@ export const Factors = (props: { objective: Objective }) => {
 		forceUpdate();
 	};
 	const onTestClicked = () => {
+		// TODO
 	};
 
 	const factors = objective.factors || [];
