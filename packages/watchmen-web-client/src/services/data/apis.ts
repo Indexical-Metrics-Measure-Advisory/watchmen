@@ -189,7 +189,7 @@ export const Apis = {
 	OBJECTIVE_GET: 'indicator/objective?objective_id=:objectiveId',
 	OBJECTIVE_CREATE: 'indicator/objective',
 	OBJECTIVE_SAVE: 'indicator/objective',
-	OBJECTIVE_FACTOR_VALUE: 'indicator/objective-factor'
+	OBJECTIVE_FACTOR_VALUE: 'indicator/objective-factor/data'
 };
 
 const buildApi = (api: string, args?: Record<string, any>): string => {
