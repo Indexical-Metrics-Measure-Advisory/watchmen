@@ -46,7 +46,7 @@ export const Targets = (props: { objective: Objective }) => {
 			{targets.map((target, index) => {
 				return <Target objective={objective} target={target} index={index + 1}
 				               onRemove={onRemove}
-				               key={`${target.name || ''}-${index}`}/>;
+				               key={target.uuid}/>;
 			})}
 			<AddItemButton ink={ButtonInk.PRIMARY} onClick={onAddClicked}>
 				{Lang.INDICATOR.OBJECTIVE.ADD_TARGET}
