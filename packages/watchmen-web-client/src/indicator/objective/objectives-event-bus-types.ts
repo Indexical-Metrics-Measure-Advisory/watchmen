@@ -21,6 +21,8 @@ export enum ObjectivesEventTypes {
 	OBJECTIVE_SAVED = 'objective-saved',
 
 	FACTOR_NAME_CHANGED = 'factor-name-changed',
+	FACTOR_INDICATOR_CHANGED = 'factor-indicator-changed',
+	FACTOR_FILTER_CHANGED = 'factor-filter-changed',
 	FACTOR_ADDED = 'factor-added',
 	FACTOR_REMOVED = 'factor-removed',
 
@@ -71,6 +73,14 @@ export interface ObjectivesEventBus {
 	fire(type: ObjectivesEventTypes.FACTOR_NAME_CHANGED, objective: Objective, factor: ObjectiveFactor): this;
 	on(type: ObjectivesEventTypes.FACTOR_NAME_CHANGED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;
 	off(type: ObjectivesEventTypes.FACTOR_NAME_CHANGED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;
+
+	fire(type: ObjectivesEventTypes.FACTOR_INDICATOR_CHANGED, objective: Objective, factor: ObjectiveFactor): this;
+	on(type: ObjectivesEventTypes.FACTOR_INDICATOR_CHANGED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;
+	off(type: ObjectivesEventTypes.FACTOR_INDICATOR_CHANGED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;
+
+	fire(type: ObjectivesEventTypes.FACTOR_FILTER_CHANGED, objective: Objective, factor: ObjectiveFactor): this;
+	on(type: ObjectivesEventTypes.FACTOR_FILTER_CHANGED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;
+	off(type: ObjectivesEventTypes.FACTOR_FILTER_CHANGED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;
 
 	fire(type: ObjectivesEventTypes.FACTOR_ADDED, objective: Objective, factor: ObjectiveFactor): this;
 	on(type: ObjectivesEventTypes.FACTOR_ADDED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;

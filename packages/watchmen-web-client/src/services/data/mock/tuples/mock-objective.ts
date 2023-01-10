@@ -1,5 +1,5 @@
 import {TuplePage} from '../../query/tuple-page';
-import {Objective, ObjectiveId} from '../../tuples/objective-types';
+import {Objective, ObjectiveFactor, ObjectiveId} from '../../tuples/objective-types';
 import {QueryObjective} from '../../tuples/query-objective-types';
 import {isFakedUuid} from '../../tuples/utils';
 import {DemoObjectives, MonthlySalesObjective} from './mock-data-objectives';
@@ -40,5 +40,11 @@ export const saveMockObjective = async (objective: Objective): Promise<void> => 
 			objective.objectiveId = `${newObjectiveId++}`;
 		}
 		setTimeout(() => resolve(), 500);
+	});
+};
+
+export const askMockObjectiveFactorValue = async (objective: Objective, factor: ObjectiveFactor): Promise<{ value?: number }> => {
+	return new Promise<{ value?: number }>(resolve => {
+		setTimeout(() => resolve({value: Math.random() * 10000}));
 	});
 };

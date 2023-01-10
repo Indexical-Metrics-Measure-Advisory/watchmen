@@ -1,3 +1,4 @@
+import {FactorItemTest} from '@/indicator/objective/edit/factors/factor-item-test';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import {Objective, ObjectiveFactor} from '@/services/data/tuples/objective-types';
 import {ButtonInk} from '@/widgets/basic/types';
@@ -26,6 +27,7 @@ export const FactorItem = (props: {
 		<ParameterEventBusProvider>
 			<FormulaEditor objective={objective} factor={factor}/>
 		</ParameterEventBusProvider>
+		<FactorItemTest objective={objective} factor={factor}/>
 		<RemoveItemButton ink={ButtonInk.DANGER} onClick={onRemoveClicked}>
 			{Lang.ACTIONS.REMOVE}
 		</RemoveItemButton>
