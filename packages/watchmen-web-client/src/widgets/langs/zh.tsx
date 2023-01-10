@@ -531,9 +531,9 @@ export const Zh: LanguageDeclareType = {
 			EXPRESSION: '参数表达式',
 			ADD_SUB_EXPRESSION: '添加过滤条件',
 			ADD_SUB_JOINT: '添加子联合条件',
-			TEST_FACTOR: '测试定义',
-			TEST_FACTOR_CLICK: '点击获取指标值',
-			TEST_FACTOR_GET_NONE: '没有获取到指标值.'
+			TEST_FACTOR: '指标值',
+			TEST_FACTOR_CLICK: '点击获取值',
+			TEST_FACTOR_GET_NONE: '没有获取到数据.'
 		}
 	},
 	SUBSCRIBE: {
