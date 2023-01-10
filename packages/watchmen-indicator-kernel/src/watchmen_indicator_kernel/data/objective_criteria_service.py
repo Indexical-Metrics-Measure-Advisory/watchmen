@@ -6,7 +6,7 @@ from watchmen_indicator_kernel.common import IndicatorKernelException
 from watchmen_inquiry_kernel.storage import ReportDataService
 from watchmen_model.common import BucketId, ComputedParameter, ConstantParameter, Parameter, ParameterCondition, \
 	ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, ParameterKind, \
-	TopicFactorParameter, TopicId
+	SubjectId, TopicFactorParameter, TopicId
 from watchmen_model.console import Report, Subject
 from watchmen_model.indicator import BucketObjectiveParameter, CategorySegment, CategorySegmentsHolder, \
 	ComputedObjectiveParameter, ConstantObjectiveParameter, Indicator, NumericSegmentsHolder, NumericValueSegment, \
@@ -73,24 +73,7 @@ class ObjectiveCriteriaService:
 	def as_time_frame(self, frame: Optional[Tuple[datetime, datetime]]) -> Optional[TimeFrame]:
 		return None if frame is None else TimeFrame(start=frame[0], end=frame[1])
 
-	# def fake_criteria_to_condition(
-	# 		self, criteria: ObjectiveParameterCondition, topic_id: TopicId, factor_id: FactorId) -> ParameterCondition:
-	# 	if isinstance(criteria, IndicatorCriteriaOnBucket):
-	# 		return self.fake_bucket_criteria_to_condition(
-	# 			criteria.bucketId, criteria.bucketSegmentName)(topic_id, factor_id)
-	# 	elif isinstance(criteria, IndicatorCriteriaOnExpression):
-	# 		return self.fake_value_criteria_to_condition(criteria.operator, criteria.value)(topic_id, factor_id)
-	# 	else:
-	# 		data = criteria.to_dict()
-	# 		if is_not_blank(data.get('bucketId')) and is_not_blank(data.get('bucketSegmentName')):
-	# 			return self.fake_bucket_criteria_to_condition(
-	# 				data.get('bucketId'), data.get('bucketSegmentName'))(topic_id, factor_id)
-	# 		elif data.get('operator') is not None and is_not_blank(str(data.get('value'))):
-	# 			return self.fake_value_criteria_to_condition(
-	# 				data.get('operator'), str(data.get('value')))(topic_id, factor_id)
-	# 		else:
-	# 			raise IndicatorKernelException(f'Indicator criteria[{data}] not supported.')
-	def ask_filter_base_id(self) -> TopicId:
+	def ask_filter_base_id(self) -> Union[TopicId, SubjectId]:
 		"""
 		ask the entity id of filter base, it is what indicator based.
 		"""
