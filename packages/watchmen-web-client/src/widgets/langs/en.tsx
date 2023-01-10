@@ -532,7 +532,7 @@ export const En = {
 			ADD_SUB_EXPRESSION: 'Add Sub Expression',
 			ADD_SUB_JOINT: 'Add Sub Joint',
 			TEST_FACTOR: 'Value',
-			TEST_FACTOR_CLICK: 'Click to retrieve',
+			TEST_FACTOR_CLICK: 'Click to retrieve values',
 			TEST_FACTOR_GET_NONE: 'No data retrieved from server side.'
 		}
 	},

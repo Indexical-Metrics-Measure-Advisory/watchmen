@@ -1,4 +1,3 @@
-import {FactorItemTest} from '@/indicator/objective/edit/factors/factor-item-test';
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import {Objective, ObjectiveFactor} from '@/services/data/tuples/objective-types';
 import {ButtonInk} from '@/widgets/basic/types';
@@ -7,6 +6,7 @@ import React from 'react';
 import {ParameterEventBusProvider} from '../objective-parameter/parameter-event-bus';
 import {ItemNo, RemoveItemButton} from '../widgets';
 import {FactorIndicator} from './factor-indicator';
+import {FactorItemTest} from './factor-item-test';
 import {FactorName} from './factor-name';
 import {FormulaEditor} from './formula-editor';
 import {FactorContainer} from './widgets';

@@ -73,8 +73,10 @@ export const Factors = (props: { objective: Objective }) => {
 		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
 		forceUpdate();
 	};
+	const onTestClicked = () => {
+	};
 
-	const factors = objective.factors;
+	const factors = objective.factors || [];
 
 	return <EditStep index={ObjectiveDeclarationStep.FACTORS} title={Lang.INDICATOR.OBJECTIVE.FACTORS_TITLE}>
 		<FactorsContainer>
@@ -91,6 +93,11 @@ export const Factors = (props: { objective: Objective }) => {
 				<AddItemButton ink={ButtonInk.PRIMARY} onClick={onAddComputedIndicatorClicked}>
 					{Lang.INDICATOR.OBJECTIVE.ADD_COMPUTED_INDICATOR}
 				</AddItemButton>
+				{factors.length !== 0
+					? <AddItemButton ink={ButtonInk.PRIMARY} onClick={onTestClicked}>
+						{Lang.INDICATOR.OBJECTIVE.TEST_FACTOR_CLICK}
+					</AddItemButton>
+					: null}
 			</ItemsButtons>
 		</FactorsContainer>
 	</EditStep>;

@@ -1,14 +1,10 @@
-import {isIndicatorFactor} from '@/indicator/objective/edit/utils';
-import {useObjectivesEventBus} from '@/indicator/objective/objectives-event-bus';
-import {ObjectivesEventTypes} from '@/indicator/objective/objectives-event-bus-types';
-import {findAccount} from '@/services/data/account';
-import {askObjectiveFactorValue} from '@/services/data/tuples/objective';
 import {Objective, ObjectiveFactor} from '@/services/data/tuples/objective-types';
 import {isBlank} from '@/services/utils';
-import {useEventBus} from '@/widgets/events/event-bus';
-import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import React, {useEffect, useState} from 'react';
+import {useObjectivesEventBus} from '../../objectives-event-bus';
+import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
+import {isIndicatorFactor} from '../utils';
 import {FactorItemLabel, TestValue, TestValueContainer} from './widgets';
 
 enum TestStatus {
@@ -20,7 +16,8 @@ enum TestStatus {
 
 interface TestState {
 	status: TestStatus;
-	value?: number;
+	valueBeforeFormula?: number;
+	valueAfterFormula?: number;
 }
 
 export const FactorItemTest = (props: {
@@ -28,7 +25,6 @@ export const FactorItemTest = (props: {
 }) => {
 	const {objective, factor} = props;
 
-	const {fire: fireGlobal} = useEventBus();
 	const {on, off} = useObjectivesEventBus();
 	const [state, setState] = useState<TestState>(() => {
 		if (isIndicatorFactor(factor)) {
@@ -75,30 +71,30 @@ export const FactorItemTest = (props: {
 		</>;
 	}
 
-	const onTestValueClicked = () => {
-		if (isBlank(objective.tenantId)) {
-			objective.tenantId = findAccount()?.tenantId;
-		}
-		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
-			return await askObjectiveFactorValue(objective, factor);
-		}, ({value}) => {
-			setState({status: TestStatus.VALUE_RETRIEVED, value});
-		});
-	};
+	// const onTestValueClicked = () => {
+	// 	if (isBlank(objective.tenantId)) {
+	// 		objective.tenantId = findAccount()?.tenantId;
+	// 	}
+	// 	fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST, async () => {
+	// 		return await askObjectiveFactorValue(objective, factor);
+	// 	}, ({value}) => {
+	// 		setState({status: TestStatus.VALUE_RETRIEVED, value});
+	// 	});
+	// };
 
-	if (state.status === TestStatus.VALUE_RETRIEVED && state.value != null) {
-		const v = new Intl.NumberFormat(undefined, {useGrouping: true}).format(state.value);
+	if (state.status === TestStatus.VALUE_RETRIEVED && state.valueBeforeFormula != null) {
+		const v = new Intl.NumberFormat(undefined, {useGrouping: true}).format(state.valueBeforeFormula);
 		return <>
 			<FactorItemLabel>{Lang.INDICATOR.OBJECTIVE.TEST_FACTOR}</FactorItemLabel>
 			<TestValueContainer>
-				<TestValue onClick={onTestValueClicked}>{v}</TestValue>
+				<TestValue>{v}</TestValue>
 			</TestValueContainer>
 		</>;
-	} else if (state.status === TestStatus.VALUE_RETRIEVED && state.value == null) {
+	} else if (state.status === TestStatus.VALUE_RETRIEVED && state.valueBeforeFormula == null) {
 		return <>
 			<FactorItemLabel>{Lang.INDICATOR.OBJECTIVE.TEST_FACTOR}</FactorItemLabel>
 			<TestValueContainer>
-				<TestValue onClick={onTestValueClicked}>{Lang.INDICATOR.OBJECTIVE.TEST_FACTOR_GET_NONE}</TestValue>
+				<TestValue>{Lang.INDICATOR.OBJECTIVE.TEST_FACTOR_GET_NONE}</TestValue>
 			</TestValueContainer>
 		</>;
 	}
@@ -106,7 +102,7 @@ export const FactorItemTest = (props: {
 	return <>
 		<FactorItemLabel>{Lang.INDICATOR.OBJECTIVE.TEST_FACTOR}</FactorItemLabel>
 		<TestValueContainer>
-			<TestValue onClick={onTestValueClicked}>{Lang.INDICATOR.OBJECTIVE.TEST_FACTOR_CLICK}</TestValue>
+			<TestValue/>
 		</TestValueContainer>
 	</>;
 };
