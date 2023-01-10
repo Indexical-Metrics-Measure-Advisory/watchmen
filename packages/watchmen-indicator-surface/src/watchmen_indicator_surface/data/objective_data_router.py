@@ -7,12 +7,21 @@ from pydantic import BaseModel
 
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.data import compute_time_frame, get_objective_factor_data_service
+from watchmen_indicator_kernel.meta import IndicatorService
+from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import UserRole
-from watchmen_model.indicator import Objective, ObjectiveFactorOnIndicator, ObjectiveTimeFrame, ObjectiveTimeFrameKind
-from watchmen_rest import get_console_principal
+from watchmen_model.indicator import Indicator, Objective, ObjectiveFactorOnIndicator, ObjectiveTimeFrame, \
+	ObjectiveTimeFrameKind
+from watchmen_rest import get_admin_principal
+from watchmen_rest.util import raise_400, raise_403
+from watchmen_utilities import is_blank
 
 logger = getLogger(__name__)
 router = APIRouter()
+
+
+def get_indicator_service(principal_service: PrincipalService) -> IndicatorService:
+	return IndicatorService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
 class ObjectiveFactorValue(BaseModel):
@@ -22,8 +31,19 @@ class ObjectiveFactorValue(BaseModel):
 @router.post('/indicator/objective-factor', tags=[UserRole.ADMIN], response_model=ObjectiveFactorValue)
 async def load_achievement_data(
 		objective: Objective, objective_factor: ObjectiveFactorOnIndicator,
-		principal_service: PrincipalService = Depends(get_console_principal)) -> ObjectiveFactorValue:
+		principal_service: PrincipalService = Depends(get_admin_principal)) -> ObjectiveFactorValue:
 	try:
+		if objective.tenantId != principal_service.get_tenant_id():
+			raise_403()
+
+		if is_blank(objective_factor.indicatorId):
+			raise_400('Indicator of objective factor must be identified.')
+
+		# noinspection PyTypeChecker
+		indicator: Indicator = get_indicator_service(principal_service).find_by_id(objective_factor.indicatorId)
+		if indicator.tenantId != principal_service.get_tenant_id():
+			raise_403()
+
 		objective_factor_data_service = get_objective_factor_data_service(
 			objective, objective_factor, principal_service)
 		if objective.timeFrame is None:
