@@ -32,9 +32,11 @@ export const FactorIndicator = (props: { objective: Objective; factor: Objective
 			factor.indicatorId = option.value as IndicatorId;
 		}
 		forceUpdate();
+		fire(ObjectivesEventTypes.FACTOR_INDICATOR_CHANGED, objective, factor);
 		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
 	};
 	const onFilterChanged = () => {
+		fire(ObjectivesEventTypes.FACTOR_FILTER_CHANGED, objective, factor);
 		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
 	};
 
@@ -47,7 +49,8 @@ export const FactorIndicator = (props: { objective: Objective; factor: Objective
 		options.push({
 			value: '', label: () => {
 				return {
-					node: <IncorrectOptionLabel>{Lang.INDICATOR.OBJECTIVE.REFER_INDICATOR_BUT_INCORRECT}</IncorrectOptionLabel>,
+					node:
+						<IncorrectOptionLabel>{Lang.INDICATOR.OBJECTIVE.REFER_INDICATOR_BUT_INCORRECT}</IncorrectOptionLabel>,
 					label: ''
 				};
 			}

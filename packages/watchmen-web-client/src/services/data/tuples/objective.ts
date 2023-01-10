@@ -1,9 +1,14 @@
 import {findAccount} from '../account';
 import {Apis, get, page, post} from '../apis';
-import {fetchMockObjective, listMockObjectives, saveMockObjective} from '../mock/tuples/mock-objective';
+import {
+	askMockObjectiveFactorValue,
+	fetchMockObjective,
+	listMockObjectives,
+	saveMockObjective
+} from '../mock/tuples/mock-objective';
 import {TuplePage} from '../query/tuple-page';
 import {isMockService} from '../utils';
-import {Objective, ObjectiveId} from './objective-types';
+import {Objective, ObjectiveFactor, ObjectiveId} from './objective-types';
 import {QueryObjective} from './query-objective-types';
 import {UserGroupId} from './user-group-types';
 import {isFakedUuid} from './utils';
@@ -65,5 +70,16 @@ export const saveObjective = async (objective: Objective): Promise<void> => {
 		objective.tenantId = data.tenantId;
 		objective.version = data.version;
 		objective.lastModifiedAt = data.lastModifiedAt;
+	}
+};
+
+export const askObjectiveFactorValue = async (objective: Objective, factor: ObjectiveFactor): Promise<{ value?: number }> => {
+	if (isMockService()) {
+		return askMockObjectiveFactorValue(objective, factor);
+	} else {
+		return await post({
+			api: Apis.OBJECTIVE_FACTOR_VALUE,
+			data: {objective: transformToServer(objective), factor}
+		});
 	}
 };

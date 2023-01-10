@@ -188,7 +188,8 @@ export const Apis = {
 	OBJECTIVE_LIST_BY_NAME: 'indicator/objective/name?query_name=:search',
 	OBJECTIVE_GET: 'indicator/objective?objective_id=:objectiveId',
 	OBJECTIVE_CREATE: 'indicator/objective',
-	OBJECTIVE_SAVE: 'indicator/objective'
+	OBJECTIVE_SAVE: 'indicator/objective',
+	OBJECTIVE_FACTOR_VALUE: 'indicator/objective-factor'
 };
 
 const buildApi = (api: string, args?: Record<string, any>): string => {
