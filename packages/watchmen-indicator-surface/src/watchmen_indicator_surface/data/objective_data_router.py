@@ -30,22 +30,24 @@ class ObjectiveFactorValue(BaseModel):
 
 @router.post('/indicator/objective-factor', tags=[UserRole.ADMIN], response_model=ObjectiveFactorValue)
 async def load_achievement_data(
-		objective: Objective, objective_factor: ObjectiveFactorOnIndicator,
+		objective: Objective, factor: ObjectiveFactorOnIndicator,
 		principal_service: PrincipalService = Depends(get_admin_principal)) -> ObjectiveFactorValue:
+	"""
+	get objective factor value
+	"""
 	try:
 		if objective.tenantId != principal_service.get_tenant_id():
 			raise_403()
 
-		if is_blank(objective_factor.indicatorId):
+		if is_blank(factor.indicatorId):
 			raise_400('Indicator of objective factor must be identified.')
 
 		# noinspection PyTypeChecker
-		indicator: Indicator = get_indicator_service(principal_service).find_by_id(objective_factor.indicatorId)
+		indicator: Indicator = get_indicator_service(principal_service).find_by_id(factor.indicatorId)
 		if indicator.tenantId != principal_service.get_tenant_id():
 			raise_403()
 
-		objective_factor_data_service = get_objective_factor_data_service(
-			objective, objective_factor, principal_service)
+		objective_factor_data_service = get_objective_factor_data_service(objective, factor, principal_service)
 		if objective.timeFrame is None:
 			objective.timeFrame = ObjectiveTimeFrame(kind=ObjectiveTimeFrameKind.NONE)
 		time_frame = compute_time_frame(objective.timeFrame)
