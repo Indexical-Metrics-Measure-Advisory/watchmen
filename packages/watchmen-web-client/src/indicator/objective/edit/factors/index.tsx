@@ -17,6 +17,7 @@ import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 import {EditStep} from '../edit-step';
 import {useAskIndicators} from '../hooks/use-ask-indicators';
 import {ObjectiveDeclarationStep} from '../steps';
+import {isIndicatorFactor} from '../utils';
 import {AddItemButton, ItemsButtons} from '../widgets';
 import {FactorItem} from './factor-item';
 import {FactorsContainer} from './widgets';
@@ -77,7 +78,8 @@ export const Factors = (props: { objective: Objective }) => {
 		// TODO
 	};
 
-	const factors = objective.factors || [];
+	const factors: Array<ObjectiveFactor> = objective.factors || [];
+	const couldTest = factors.some(f => isIndicatorFactor(f));
 
 	return <EditStep index={ObjectiveDeclarationStep.FACTORS} title={Lang.INDICATOR.OBJECTIVE.FACTORS_TITLE}>
 		<FactorsContainer>
@@ -94,7 +96,7 @@ export const Factors = (props: { objective: Objective }) => {
 				<AddItemButton ink={ButtonInk.PRIMARY} onClick={onAddComputedIndicatorClicked}>
 					{Lang.INDICATOR.OBJECTIVE.ADD_COMPUTED_INDICATOR}
 				</AddItemButton>
-				{factors.length !== 0
+				{couldTest
 					? <AddItemButton ink={ButtonInk.PRIMARY} onClick={onTestClicked}>
 						{Lang.INDICATOR.OBJECTIVE.TEST_FACTOR_CLICK}
 					</AddItemButton>
