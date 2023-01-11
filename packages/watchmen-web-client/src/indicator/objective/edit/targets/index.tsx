@@ -1,14 +1,16 @@
-import {Objective, ObjectiveTarget} from '@/services/data/tuples/objective-types';
+import {Objective, ObjectiveFactor, ObjectiveTarget} from '@/services/data/tuples/objective-types';
 import {generateUuid} from '@/services/data/tuples/utils';
 import {noop} from '@/services/utils';
 import {ButtonInk} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
+import React from 'react';
 import {useObjectivesEventBus} from '../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 import {EditStep} from '../edit-step';
 import {ObjectiveDeclarationStep} from '../steps';
-import {AddItemButton} from '../widgets';
+import {isIndicatorFactor} from '../utils';
+import {AddItemButton, ItemsButtons} from '../widgets';
 import {Target} from './target';
 import {TargetsContainer} from './widgets';
 
@@ -37,8 +39,13 @@ export const Targets = (props: { objective: Objective }) => {
 		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
 		forceUpdate();
 	};
+	const onTestClicked = () => {
+		// TODO
+	};
 
-	const targets = objective.targets;
+	const targets: Array<ObjectiveTarget> = objective.targets || [];
+	const factors: Array<ObjectiveFactor> = objective.factors || [];
+	const couldTest = targets.length !== 0 && factors.some(f => isIndicatorFactor(f));
 
 	return <EditStep index={ObjectiveDeclarationStep.TARGETS} title={Lang.INDICATOR.OBJECTIVE.TARGETS_TITLE}
 	                 backToList={true}>
@@ -48,9 +55,16 @@ export const Targets = (props: { objective: Objective }) => {
 				               onRemove={onRemove}
 				               key={target.uuid}/>;
 			})}
-			<AddItemButton ink={ButtonInk.PRIMARY} onClick={onAddClicked}>
-				{Lang.INDICATOR.OBJECTIVE.ADD_TARGET}
-			</AddItemButton>
+			<ItemsButtons>
+				<AddItemButton ink={ButtonInk.PRIMARY} onClick={onAddClicked}>
+					{Lang.INDICATOR.OBJECTIVE.ADD_TARGET}
+				</AddItemButton>
+				{couldTest
+					? <AddItemButton ink={ButtonInk.PRIMARY} onClick={onTestClicked}>
+						{Lang.INDICATOR.OBJECTIVE.TEST_FACTOR_CLICK}
+					</AddItemButton>
+					: null}
+			</ItemsButtons>
 		</TargetsContainer>
 	</EditStep>;
 };
