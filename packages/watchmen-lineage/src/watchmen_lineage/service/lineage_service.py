@@ -4,19 +4,19 @@ import networkx as nx
 from networkx import MultiDiGraph
 
 from watchmen_auth import PrincipalService
-from watchmen_lineage.model.lineage import LineageType, TopicFactorFacet, LineageNode, \
-	RelationDirection, DatasetColumnFacet, LineageRelation
+from watchmen_lineage.model.lineage import DatasetColumnFacet, LineageNode, LineageRelation, LineageType, \
+	RelationDirection, TopicFactorFacet
 from watchmen_lineage.service.builder.index import get_builder
 from watchmen_lineage.service.builder.loader import LineageBuilder
 from watchmen_lineage.utils.id_utils import build_node_id, parse_node_id
 from watchmen_lineage.utils.utils import get_source_and_target_key
-from watchmen_model.common import TopicId, FactorId, SubjectId, SubjectDatasetColumnId
-from watchmen_model.common.tuple_ids import ObjectiveTargetId
+from watchmen_model.common import FactorId, ObjectiveTargetId, SubjectDatasetColumnId, SubjectId, TopicId
 
 
 class LineageService(object):
 	graphByTenant: Dict[str, MultiDiGraph] = {}
-	all_load_sequence = [LineageType.TOPIC, LineageType.PIPELINE, LineageType.SUBJECT, LineageType.INDICATOR,LineageType.OBJECTIVE]
+	all_load_sequence = [LineageType.TOPIC, LineageType.PIPELINE, LineageType.SUBJECT, LineageType.INDICATOR,
+	                     LineageType.OBJECTIVE]
 
 	def init_tenant_all_lineage_data(self, principal_service: PrincipalService):
 		"""
@@ -53,10 +53,7 @@ class LineageService(object):
 		tenant_node_graph: MultiDiGraph = self.get_graph_by_tenant(principal_service)
 		return self.__get_lineage(factor_facet, RelationDirection.IN, tenant_node_graph)
 
-
-	def find_lineage_by_objective_target(self, objective_target_id:ObjectiveTargetId):
-
-
+	def find_lineage_by_objective_target(self, objective_target_id: ObjectiveTargetId):
 
 		pass
 
