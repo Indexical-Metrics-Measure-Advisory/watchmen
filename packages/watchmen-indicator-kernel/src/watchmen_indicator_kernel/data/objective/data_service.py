@@ -1,8 +1,30 @@
 from decimal import Decimal
-from typing import Optional
+from typing import List, Optional
+
+from pydantic import BaseModel
 
 from watchmen_auth import PrincipalService
-from watchmen_model.indicator import Objective, ObjectiveFormulaOperator
+from watchmen_model.common import ObjectiveFactorId, ObjectiveTargetId
+from watchmen_model.indicator import Objective
+
+
+class ObjectiveTargetValues(BaseModel):
+	uuid: ObjectiveTargetId = None
+	value: Optional[Decimal] = None
+	previousValue: Optional[Decimal] = None
+	chainValue: Optional[Decimal] = None
+
+
+class ObjectiveFactorValues(BaseModel):
+	uuid: ObjectiveFactorId = None
+	value: Optional[Decimal] = None
+	previousValue: Optional[Decimal] = None
+	chainValue: Optional[Decimal] = None
+
+
+class ObjectiveValues(BaseModel):
+	targets: List[ObjectiveTargetValues]
+	factors: List[ObjectiveFactorValues]
 
 
 class ObjectiveDataService:
@@ -16,15 +38,18 @@ class ObjectiveDataService:
 	def get_objective(self) -> Objective:
 		return self.objective
 
-	def compute_value(self, value: Optional[Decimal]) -> Optional[Decimal]:
-		if value is None:
-			return value
+	# def compute_value(self, value: Optional[Decimal]) -> Optional[Decimal]:
+	# 	if value is None:
+	# 		return value
+	#
+	# 	objective_factor = self.get_objective_factor()
+	# 	formula = objective_factor.formula
+	# 	if formula is None or formula.operator == ObjectiveFormulaOperator.NONE:
+	# 		return value
 
-		objective_factor = self.get_objective_factor()
-		formula = objective_factor.formula
-		if formula is None or formula.operator == ObjectiveFormulaOperator.NONE:
-			return value
-
+	def ask_values(self) -> ObjectiveValues:
+		# TODO
+		pass
 # formula_operator = formula.operator
 # if formula_operator == ObjectiveFormulaOperator.ADD:
 # elif formula_operator == ObjectiveFormulaOperator.SUBTRACT:

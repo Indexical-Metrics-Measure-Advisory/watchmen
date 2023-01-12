@@ -1,16 +1,16 @@
 from decimal import Decimal
 from logging import getLogger
-from typing import List, Optional
+from typing import Optional
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from watchmen_auth import PrincipalService
-from watchmen_indicator_kernel.data import compute_time_frame, get_objective_factor_data_service
+from watchmen_indicator_kernel.data import compute_time_frame, get_objective_data_service, \
+	get_objective_factor_data_service, ObjectiveValues
 from watchmen_indicator_kernel.meta import IndicatorService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import UserRole
-from watchmen_model.common import ObjectiveFactorId, ObjectiveTargetId
 from watchmen_model.indicator import Indicator, Objective, ObjectiveFactorOnIndicator, ObjectiveTimeFrame, \
 	ObjectiveTimeFrameKind
 from watchmen_rest import get_admin_principal
@@ -25,30 +25,14 @@ def get_indicator_service(principal_service: PrincipalService) -> IndicatorServi
 	return IndicatorService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-class ObjectiveTargetValues:
-	uuid: ObjectiveTargetId = None
-	value: Optional[Decimal] = None
-	previousValue: Optional[Decimal] = None
-	chainValue: Optional[Decimal] = None
-
-
-class ObjectiveFactorValues:
-	uuid: ObjectiveFactorId = None
-	value: Optional[Decimal] = None
-	previousValue: Optional[Decimal] = None
-	chainValue: Optional[Decimal] = None
-
-
-class ObjectiveValues:
-	targets: List[ObjectiveTargetValues]
-	factors: List[ObjectiveFactorValues]
-
-
 @router.post('/indicator/objective/data', tags=[UserRole.ADMIN], response_model=ObjectiveValues)
 async def load_objective_data(
 		objective: Objective, principal_service: PrincipalService = Depends(get_admin_principal)) -> ObjectiveValues:
-	# TODO
-	pass
+	if objective.tenantId != principal_service.get_tenant_id():
+		raise_403()
+
+	objective_data_service = get_objective_data_service(objective, principal_service)
+	return objective_data_service.ask_values()
 
 
 class ObjectiveFactorValue(BaseModel):
@@ -60,7 +44,7 @@ async def load_objective_factor_data(
 		objective: Objective, factor: ObjectiveFactorOnIndicator,
 		principal_service: PrincipalService = Depends(get_admin_principal)) -> ObjectiveFactorValue:
 	"""
-	get objective factor value
+	get objective factor value on current time frame, if exists
 	"""
 	try:
 		if objective.tenantId != principal_service.get_tenant_id():
