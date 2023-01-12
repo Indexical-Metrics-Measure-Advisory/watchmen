@@ -1,4 +1,5 @@
 import {Router} from '@/routes/types';
+import {toAbsoluteUrl} from '@/routes/utils';
 import {saveAccountIntoSession} from '@/services/data/account';
 import {askLoginConfig, login} from '@/services/data/login';
 import {Account, LoginConfig, LoginMethod} from '@/services/data/login/types';
@@ -81,9 +82,9 @@ const RegularLogin = () => {
 				tenantId
 			});
 			if (admin || superAdmin) {
-				window.location.replace(Router.ADMIN);
+				window.location.replace(toAbsoluteUrl(Router.ADMIN));
 			} else {
-				window.location.replace(Router.CONSOLE);
+				window.location.replace(toAbsoluteUrl(Router.CONSOLE));
 			}
 		} catch (e) {
 			console.error(e);

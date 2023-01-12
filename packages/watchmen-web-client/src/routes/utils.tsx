@@ -71,3 +71,18 @@ export const asIDWIndicatorRoute = (path: Router, children: ReactNode) => asRout
 export const asShareRoute = (path: Router, children: ReactNode) => asRoute(relativeToShare)(path, children);
 export const asFallbackNavigate = (path: Router) => <Route path="*" element={<Navigate to={path} replace={true}/>}/>;
 export const asFallbackRoute = (children: ReactNode) => <Route path="*" element={children}/>;
+export const getWebContext = (): string => {
+	const context = process.env.REACT_APP_WEB_CONTEXT;
+	if (context == null || context.trim().length === 0) {
+		return '';
+	} else if (context.trim() === '/') {
+		return '';
+	} else if (context.trim().endsWith('/')) {
+		return context.trim().substr(0, context.trim().length - 1);
+	} else {
+		return context.trim();
+	}
+};
+export const toAbsoluteUrl = (path: Router): string => {
+	return `${getWebContext()}${path}`;
+};
