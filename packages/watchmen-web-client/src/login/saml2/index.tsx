@@ -63,7 +63,7 @@ const Saml2Login = () => {
 		setIng(true);
 
 		setTimeout(() => {
-			const url = `${getSaml2CallbackUrl()}?accountName=${account.name}&SAMLResponse=3VZbj%2BI2FP4rKO8mjhNCYg1I06&RelayState=http%3A%2F%2F127.0.0.1%3A8000%2Fsaml%2Flogin&SigAlg=http%3A%2F%2Fwww.w3.org%2F2001%2F04%2Fxmldsig-more%23rsa-sha256&Signature=VTSM64kZOG8pHk4aPKfCD541RSP3ltH38pPdmtnGAmRnQ4zF9i/irODsfrLdCDCsmRpa2lLkkilTywBE2JYbAi/m7+zPT95o2xOngVOk3FDw3Ymn29eR0JehOl/im2GXHJxvSJ9cJjHto9x/BluD/6qvW0yXKFkex47tAI4SI7iizG7V+IZOYv/SoJdjTKOadRZCrbeCPgWGraORCe1LhQEaoID5ylx+y0CQBQ3Dwpamnh5CS0kbgnyOgl0QrE15ag/9+b2R3uizIYeIRU3ws58OB8+9K1rX0JcTH4AWEj8dSsTiq5QESFpghG8e2uhmjkdW7mcbFPiv1mn/W8soHg==`;
+			const url = `${getSaml2CallbackUrl()}?accountName=${account.name}`;
 			window.location.replace(url);
 		}, 2000);
 	};
