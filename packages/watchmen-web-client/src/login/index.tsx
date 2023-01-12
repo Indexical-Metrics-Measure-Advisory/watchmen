@@ -81,9 +81,9 @@ const RegularLogin = () => {
 				tenantId
 			});
 			if (admin || superAdmin) {
-				window.location.replace(Router.ADMIN);
+				window.location.replace(`${process.env.REACT_APP_WEB_CONTEXT === '/' ? '' : process.env.REACT_APP_WEB_CONTEXT}${Router.ADMIN}`);
 			} else {
-				window.location.replace(Router.CONSOLE);
+				window.location.replace(`${process.env.REACT_APP_WEB_CONTEXT === '/' ? '' : process.env.REACT_APP_WEB_CONTEXT}${Router.CONSOLE}`);
 			}
 		} catch {
 			setError(Lang.ERROR.UNPREDICTED);
