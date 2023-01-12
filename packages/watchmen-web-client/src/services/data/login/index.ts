@@ -1,5 +1,6 @@
 import {isSaml2MockEnabled} from '@/feature-switch';
 import {Router} from '@/routes/types';
+import {getWebContext} from '@/routes/utils';
 import {saveTokenIntoSession} from '../account';
 import {Apis, get, post} from '../apis';
 import {mockLogin} from '../mock/mock-login';
@@ -40,18 +41,6 @@ export const login = async (account: Account): Promise<LoginResponse> => {
 	}
 };
 
-const getWebContext = (): string => {
-	const context = process.env.REACT_APP_WEB_CONTEXT;
-	if (context == null || context.trim().length === 0) {
-		return '';
-	} else if (context.trim() === '/') {
-		return '';
-	} else if (context.trim().endsWith('/')) {
-		return context.trim().substr(0, context.trim().length - 1);
-	} else {
-		return context.trim();
-	}
-};
 const getSaml2MockUrl = (): string => {
 	const protocol = window.location.protocol;
 	const host = window.location.host;
