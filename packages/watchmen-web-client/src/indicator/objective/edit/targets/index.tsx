@@ -8,6 +8,7 @@ import React from 'react';
 import {useObjectivesEventBus} from '../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 import {EditStep} from '../edit-step';
+import {useValuesFetched} from '../hooks/use-ask-values';
 import {ObjectiveDeclarationStep} from '../steps';
 import {isIndicatorFactor} from '../utils';
 import {AddItemButton, ItemsButtons} from '../widgets';
@@ -18,6 +19,7 @@ export const Targets = (props: { objective: Objective }) => {
 	const {objective} = props;
 
 	const {fire} = useObjectivesEventBus();
+	const {findTargetValues} = useValuesFetched();
 	const forceUpdate = useForceUpdate();
 
 	if (objective.targets == null) {
@@ -39,9 +41,7 @@ export const Targets = (props: { objective: Objective }) => {
 		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
 		forceUpdate();
 	};
-	const onTestClicked = () => {
-		// TODO
-	};
+	const onTestClicked = () => fire(ObjectivesEventTypes.ASK_VALUES);
 
 	const targets: Array<ObjectiveTarget> = objective.targets || [];
 	const factors: Array<ObjectiveFactor> = objective.factors || [];
@@ -52,6 +52,7 @@ export const Targets = (props: { objective: Objective }) => {
 		<TargetsContainer>
 			{targets.map((target, index) => {
 				return <Target objective={objective} target={target} index={index + 1}
+				               values={findTargetValues(target)}
 				               onRemove={onRemove}
 				               key={target.uuid}/>;
 			})}

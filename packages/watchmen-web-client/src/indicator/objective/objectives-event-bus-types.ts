@@ -1,7 +1,13 @@
 import {TuplePage} from '@/services/data/query/tuple-page';
 import {Bucket, BucketId} from '@/services/data/tuples/bucket-types';
 import {Indicator, IndicatorId} from '@/services/data/tuples/indicator-types';
-import {Objective, ObjectiveFactor, ObjectiveId, ObjectiveTarget} from '@/services/data/tuples/objective-types';
+import {
+	Objective,
+	ObjectiveFactor,
+	ObjectiveId,
+	ObjectiveTarget,
+	ObjectiveValues
+} from '@/services/data/tuples/objective-types';
 import {QueryBucket, QueryByBucketMethod} from '@/services/data/tuples/query-bucket-types';
 import {SubjectForIndicator} from '@/services/data/tuples/query-indicator-types';
 import {QueryObjective} from '@/services/data/tuples/query-objective-types';
@@ -39,6 +45,9 @@ export enum ObjectivesEventTypes {
 	ASK_INDICATOR = 'ask-indicator',
 	ASK_TOPIC = 'ask-topic',
 	ASK_SUBJECT = 'ask-subject',
+
+	ASK_VALUES = 'ask-values',
+	VALUES_FETCHED = 'values-fetched'
 }
 
 export interface ObjectivesEventBus {
@@ -129,4 +138,12 @@ export interface ObjectivesEventBus {
 	fire(type: ObjectivesEventTypes.ASK_SUBJECT, subjectId: SubjectId, onData: (subject?: SubjectForIndicator) => void): this;
 	on(type: ObjectivesEventTypes.ASK_SUBJECT, listener: (subjectId: SubjectId, onData: (subject?: SubjectForIndicator) => void) => void): this;
 	off(type: ObjectivesEventTypes.ASK_SUBJECT, listener: (subjectId: SubjectId, onData: (subject?: SubjectForIndicator) => void) => void): this;
+
+	fire(type: ObjectivesEventTypes.ASK_VALUES): this;
+	on(type: ObjectivesEventTypes.ASK_VALUES, listener: () => void): this;
+	off(type: ObjectivesEventTypes.ASK_VALUES, listener: () => void): this;
+
+	fire(type: ObjectivesEventTypes.VALUES_FETCHED, values: ObjectiveValues): this;
+	on(type: ObjectivesEventTypes.VALUES_FETCHED, listener: (values: ObjectiveValues) => void): this;
+	off(type: ObjectivesEventTypes.VALUES_FETCHED, listener: (values: ObjectiveValues) => void): this;
 }

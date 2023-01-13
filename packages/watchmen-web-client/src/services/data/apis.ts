@@ -189,6 +189,7 @@ export const Apis = {
 	OBJECTIVE_GET: 'indicator/objective?objective_id=:objectiveId',
 	OBJECTIVE_CREATE: 'indicator/objective',
 	OBJECTIVE_SAVE: 'indicator/objective',
+	OBJECTIVE_VALUES: 'indicator/objective/data',
 	OBJECTIVE_FACTOR_VALUE: 'indicator/objective-factor/data'
 };
 

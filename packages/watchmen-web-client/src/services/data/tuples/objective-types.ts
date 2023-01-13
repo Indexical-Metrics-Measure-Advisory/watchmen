@@ -241,3 +241,25 @@ export interface Objective extends Tuple, OptimisticLock, UserGroupHolder {
 	factors?: Array<ObjectiveFactor>;
 	tenantId?: TenantId;
 }
+
+export interface ObjectiveTargetValues {
+	uuid: ObjectiveTargetId;
+	currentValue?: number;
+	previousValue?: number;
+	chainValue?: number;
+	failed: boolean;
+}
+
+export interface ObjectiveFactorValues {
+	uuid: ObjectiveFactorId;
+	currentValue?: number;
+	previousValue?: number;
+	chainValue?: number;
+	failed: boolean;
+}
+
+export interface ObjectiveValues {
+	targets: Array<ObjectiveTargetValues>;
+	factors: Array<ObjectiveFactorValues>;
+}
+
