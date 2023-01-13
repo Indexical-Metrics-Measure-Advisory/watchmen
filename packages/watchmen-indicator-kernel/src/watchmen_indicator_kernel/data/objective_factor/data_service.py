@@ -8,7 +8,8 @@ from watchmen_model.common import DataResult, ParameterJoint, SubjectDatasetColu
 from watchmen_model.console import Report, ReportIndicator, ReportIndicatorArithmetic
 from watchmen_model.indicator import Indicator, IndicatorAggregateArithmetic, Objective, ObjectiveFactorOnIndicator
 from watchmen_utilities import ArrayHelper, is_decimal
-from ..objective_criteria_service import ObjectiveCriteriaService, TimeFrame
+from watchmen_indicator_kernel.data.objective_factor.objective_criteria_service import ObjectiveCriteriaService
+from ..utils.time_frame import TimeFrame
 
 
 class ObjectiveFactorDataService(ObjectiveCriteriaService):

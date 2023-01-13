@@ -6,7 +6,7 @@ from watchmen_model.common import ParameterJoint, ParameterJointType, SubjectId
 from watchmen_model.console import Report, Subject, SubjectDataset
 from watchmen_model.indicator import Indicator, Objective, ObjectiveFactorOnIndicator
 from .data_service import ObjectiveFactorDataService
-from ..objective_criteria_service import TimeFrame
+from ..utils.time_frame import TimeFrame
 
 
 class SubjectBaseObjectiveFactorDataService(ObjectiveFactorDataService):

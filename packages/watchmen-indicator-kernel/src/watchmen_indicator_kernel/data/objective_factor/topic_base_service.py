@@ -9,7 +9,7 @@ from watchmen_model.common import ParameterJoint, ParameterJointType, ParameterK
 from watchmen_model.console import Subject, SubjectDataset, SubjectDatasetColumn
 from watchmen_model.indicator import Indicator, Objective, ObjectiveFactorOnIndicator
 from .data_service import ObjectiveFactorDataService
-from ..objective_criteria_service import TimeFrame
+from ..utils.time_frame import TimeFrame
 from ..utils import find_factor
 
 FAKED_ONLY_COLUMN_ID = 'FAKED_ONLY_COLUMN_ID'
