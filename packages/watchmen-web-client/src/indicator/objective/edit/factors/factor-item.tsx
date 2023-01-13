@@ -1,5 +1,5 @@
 import {Indicator} from '@/services/data/tuples/indicator-types';
-import {Objective, ObjectiveFactor} from '@/services/data/tuples/objective-types';
+import {Objective, ObjectiveFactor, ObjectiveFactorValues} from '@/services/data/tuples/objective-types';
 import {ButtonInk} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
 import React from 'react';
@@ -13,10 +13,11 @@ import {FactorContainer} from './widgets';
 
 export const FactorItem = (props: {
 	objective: Objective; factor: ObjectiveFactor; index: number;
+	values?: ObjectiveFactorValues;
 	onRemove: (factor: ObjectiveFactor) => void;
 	indicators: Array<Indicator>;
 }) => {
-	const {objective, factor, index, onRemove, indicators} = props;
+	const {objective, factor, index, values, onRemove, indicators} = props;
 
 	const onRemoveClicked = () => onRemove(factor);
 
@@ -27,7 +28,7 @@ export const FactorItem = (props: {
 		<ParameterEventBusProvider>
 			<FormulaEditor objective={objective} factor={factor}/>
 		</ParameterEventBusProvider>
-		<FactorItemTest objective={objective} factor={factor}/>
+		<FactorItemTest objective={objective} factor={factor} values={values}/>
 		<RemoveItemButton ink={ButtonInk.DANGER} onClick={onRemoveClicked}>
 			{Lang.ACTIONS.REMOVE}
 		</RemoveItemButton>

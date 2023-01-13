@@ -1,5 +1,5 @@
 import {TuplePage} from '../../query/tuple-page';
-import {Objective, ObjectiveFactor, ObjectiveId} from '../../tuples/objective-types';
+import {Objective, ObjectiveFactor, ObjectiveId, ObjectiveValues} from '../../tuples/objective-types';
 import {QueryObjective} from '../../tuples/query-objective-types';
 import {isFakedUuid} from '../../tuples/utils';
 import {DemoObjectives, MonthlySalesObjective} from './mock-data-objectives';
@@ -46,5 +46,34 @@ export const saveMockObjective = async (objective: Objective): Promise<void> => 
 export const askMockObjectiveFactorValue = async (objective: Objective, factor: ObjectiveFactor): Promise<{ value?: number }> => {
 	return new Promise<{ value?: number }>(resolve => {
 		setTimeout(() => resolve({value: Math.random() * 10000}));
+	});
+};
+
+export const askMockObjectiveValues = async (objective: Objective): Promise<ObjectiveValues> => {
+	return new Promise<ObjectiveValues>(resolve => {
+		setTimeout(() => {
+			resolve({
+				factors: (objective.factors || []).map(factor => {
+					const value = Math.random() * 10000;
+					return {
+						uuid: factor.uuid,
+						currentValue: value,
+						previousValue: value * 0.9,
+						chainValue: value * 0.8,
+						failed: false
+					};
+				}),
+				targets: (objective.targets || []).map(target => {
+					const value = Math.random() * 10000;
+					return {
+						uuid: target.uuid,
+						currentValue: value,
+						previousValue: value * 0.9,
+						chainValue: value * 0.8,
+						failed: false
+					};
+				})
+			});
+		}, 3000);
 	});
 };

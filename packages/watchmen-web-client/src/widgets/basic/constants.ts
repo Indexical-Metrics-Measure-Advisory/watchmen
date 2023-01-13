@@ -4,8 +4,10 @@ import {
 	faAngleRight,
 	faArrowAltCircleDown,
 	faArrowDown,
+	faArrowRightLong,
 	faArrowsDownToLine,
 	faArrowsTurnRight,
+	faArrowTrendDown,
 	faArrowTrendUp,
 	faArrowUp,
 	faBan,
@@ -313,6 +315,10 @@ export const ICON_LOCK = faLockOpen;
 export const ICON_UNLOCK = faLock;
 export const ICON_PERCENTAGE = faPercentage;
 export const ICON_QUESTION_MARK = faQuestionCircle;
+
+export const ICON_VOLUME_INCREASE = faArrowTrendUp;
+export const ICON_VOLUME_DECREASE = faArrowTrendDown;
+export const ICON_VOLUME_NO_CHANGE = faArrowRightLong;
 
 // mock data
 export const MOCK_ACCOUNT_NAME = 'Dr. X';

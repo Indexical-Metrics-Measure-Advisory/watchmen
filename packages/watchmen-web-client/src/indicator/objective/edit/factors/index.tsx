@@ -16,6 +16,7 @@ import {useObjectivesEventBus} from '../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 import {EditStep} from '../edit-step';
 import {useAskIndicators} from '../hooks/use-ask-indicators';
+import {useValuesFetched} from '../hooks/use-ask-values';
 import {ObjectiveDeclarationStep} from '../steps';
 import {isIndicatorFactor} from '../utils';
 import {AddItemButton, ItemsButtons} from '../widgets';
@@ -32,6 +33,7 @@ export const Factors = (props: { objective: Objective }) => {
 
 	const {fire} = useObjectivesEventBus();
 	const [indicators, setIndicators] = useState<Indicators>({initialized: false, all: []});
+	const {findFactorValues} = useValuesFetched();
 	const forceUpdate = useForceUpdate();
 	useAskIndicators({
 		objective,
@@ -74,9 +76,7 @@ export const Factors = (props: { objective: Objective }) => {
 		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
 		forceUpdate();
 	};
-	const onTestClicked = () => {
-		// TODO
-	};
+	const onTestClicked = () => fire(ObjectivesEventTypes.ASK_VALUES);
 
 	const factors: Array<ObjectiveFactor> = objective.factors || [];
 	const couldTest = factors.some(f => isIndicatorFactor(f));
@@ -85,6 +85,7 @@ export const Factors = (props: { objective: Objective }) => {
 		<FactorsContainer>
 			{factors.map((factor, index) => {
 				return <FactorItem objective={objective} factor={factor} index={index + 1}
+				                   values={findFactorValues(factor)}
 				                   onRemove={onRemove}
 				                   indicators={indicators.all}
 				                   key={factor.uuid}/>;
