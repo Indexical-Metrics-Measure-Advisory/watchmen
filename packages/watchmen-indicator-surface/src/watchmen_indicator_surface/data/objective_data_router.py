@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from watchmen_auth import PrincipalService
-from watchmen_indicator_kernel.data import compute_time_frame, get_objective_data_service, \
+from watchmen_indicator_kernel.data import as_time_frame, compute_time_frame, get_objective_data_service, \
 	get_objective_factor_data_service, ObjectiveValues
 from watchmen_indicator_kernel.meta import IndicatorService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
@@ -62,7 +62,7 @@ async def load_objective_factor_data(
 		if objective.timeFrame is None:
 			objective.timeFrame = ObjectiveTimeFrame(kind=ObjectiveTimeFrameKind.NONE)
 		time_frame = compute_time_frame(objective.timeFrame)
-		value = objective_factor_data_service.ask_value(time_frame)
+		value = objective_factor_data_service.ask_value(as_time_frame(time_frame))
 		return ObjectiveFactorValue(value=value)
 	except Exception as e:
 		logger.error(e, exc_info=True, stack_info=True)

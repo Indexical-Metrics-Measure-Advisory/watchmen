@@ -1,4 +1,4 @@
-from ..objective_criteria_service import ObjectiveCriteriaService
+from watchmen_indicator_kernel.data.objective_factor.objective_criteria_service import ObjectiveCriteriaService
 
 
 # TODO REFACTOR-OBJECTIVE ACHIEVEMENT BREAK DOWN DATA SERVICE

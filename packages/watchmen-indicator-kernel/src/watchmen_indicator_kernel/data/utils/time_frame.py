@@ -7,6 +7,19 @@ from watchmen_utilities import get_current_time_in_seconds, is_blank, is_date, i
 	move_month, move_year, to_last_day_of_month
 
 
+class TimeFrame:
+	def __init__(self, start: datetime, end: datetime):
+		self.start = start
+		self.end = end
+
+
+def as_time_frame(duration: Optional[Tuple[datetime, datetime]]) -> Optional[TimeFrame]:
+	if duration is None:
+		return None
+	else:
+		return TimeFrame(start=duration[0], end=duration[1])
+
+
 def compute_last_day(timeFrame: ObjectiveTimeFrame) -> datetime:
 	if timeFrame.till == ObjectiveTimeFrameTill.LAST_COMPLETE_CYCLE:
 		now_time = get_current_time_in_seconds()

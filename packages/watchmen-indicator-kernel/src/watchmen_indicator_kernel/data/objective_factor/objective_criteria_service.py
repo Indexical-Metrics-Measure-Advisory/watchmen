@@ -3,10 +3,12 @@ from typing import List, Optional, Tuple, Union
 
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.common import IndicatorKernelException
+from watchmen_indicator_kernel.data.utils import ask_bucket, TimeFrame, \
+	translate_computation_operator_in_factor_filter, translate_expression_operator
 from watchmen_inquiry_kernel.storage import ReportDataService
 from watchmen_model.common import BucketId, ComputedParameter, ConstantParameter, Parameter, ParameterCondition, \
-	ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, ParameterKind, \
-	SubjectId, TopicFactorParameter, TopicId
+	ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, ParameterKind, SubjectId, \
+	TopicFactorParameter, TopicId
 from watchmen_model.console import Report, Subject
 from watchmen_model.indicator import BucketObjectiveParameter, CategorySegment, CategorySegmentsHolder, \
 	ComputedObjectiveParameter, ConstantObjectiveParameter, Indicator, NumericSegmentsHolder, NumericValueSegment, \
@@ -16,13 +18,6 @@ from watchmen_model.indicator import BucketObjectiveParameter, CategorySegment, 
 	ObjectiveVariableOnValue, OtherCategorySegmentValue, RangeBucketValueIncluding, ReferObjectiveParameter, \
 	TimeFrameObjectiveParameter
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
-from .utils import ask_bucket, translate_computation_operator_in_factor_filter, translate_expression_operator
-
-
-class TimeFrame:
-	def __init__(self, start: datetime, end: datetime):
-		self.start = start
-		self.end = end
 
 
 class ObjectiveCriteriaService:
