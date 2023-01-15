@@ -46,11 +46,11 @@ export const ItemsButtons = styled.div.attrs({'data-widget': 'objective-buttons'
 			margin-top : 0;
 		}
 	}
-	> button:first-child {
+	> button:first-child:not(:last-child) {
 		border-top-right-radius    : 0;
 		border-bottom-right-radius : 0;
 	}
-	> button:last-child {
+	> button:last-child:not(:first-child) {
 		border-top-left-radius    : 0;
 		border-bottom-left-radius : 0;
 	}

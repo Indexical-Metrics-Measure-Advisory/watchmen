@@ -16,7 +16,9 @@ import {useObjectivesEventBus} from '../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 import {EditStep} from '../edit-step';
 import {useAskIndicators} from '../hooks/use-ask-indicators';
+import {useValuesFetched} from '../hooks/use-ask-values';
 import {ObjectiveDeclarationStep} from '../steps';
+import {isIndicatorFactor} from '../utils';
 import {AddItemButton, ItemsButtons} from '../widgets';
 import {FactorItem} from './factor-item';
 import {FactorsContainer} from './widgets';
@@ -31,6 +33,7 @@ export const Factors = (props: { objective: Objective }) => {
 
 	const {fire} = useObjectivesEventBus();
 	const [indicators, setIndicators] = useState<Indicators>({initialized: false, all: []});
+	const {findFactorValues} = useValuesFetched();
 	const forceUpdate = useForceUpdate();
 	useAskIndicators({
 		objective,
@@ -73,13 +76,16 @@ export const Factors = (props: { objective: Objective }) => {
 		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
 		forceUpdate();
 	};
+	const onTestClicked = () => fire(ObjectivesEventTypes.ASK_VALUES);
 
-	const factors = objective.factors;
+	const factors: Array<ObjectiveFactor> = objective.factors || [];
+	const couldTest = factors.some(f => isIndicatorFactor(f));
 
 	return <EditStep index={ObjectiveDeclarationStep.FACTORS} title={Lang.INDICATOR.OBJECTIVE.FACTORS_TITLE}>
 		<FactorsContainer>
 			{factors.map((factor, index) => {
 				return <FactorItem objective={objective} factor={factor} index={index + 1}
+				                   values={findFactorValues(factor)}
 				                   onRemove={onRemove}
 				                   indicators={indicators.all}
 				                   key={factor.uuid}/>;
@@ -91,6 +97,11 @@ export const Factors = (props: { objective: Objective }) => {
 				<AddItemButton ink={ButtonInk.PRIMARY} onClick={onAddComputedIndicatorClicked}>
 					{Lang.INDICATOR.OBJECTIVE.ADD_COMPUTED_INDICATOR}
 				</AddItemButton>
+				{couldTest
+					? <AddItemButton ink={ButtonInk.PRIMARY} onClick={onTestClicked}>
+						{Lang.INDICATOR.OBJECTIVE.TEST_FACTOR_CLICK}
+					</AddItemButton>
+					: null}
 			</ItemsButtons>
 		</FactorsContainer>
 	</EditStep>;

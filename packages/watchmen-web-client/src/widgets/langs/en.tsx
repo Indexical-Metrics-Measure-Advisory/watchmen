@@ -446,6 +446,11 @@ export const En = {
 			TARGET_BETTER_SIDE_LESS: 'Less is better',
 			TARGET_ASK_PREVIOUS_CYCLE: 'Include previous cycle (eg. month-on-month)?',
 			TARGET_ASK_CHAIN_CYCLE: 'Include chain cycle (eg. year-on-year)?',
+			TARGET_VALUES: 'Values:',
+			TARGET_CURRENT_VALUE: 'Current',
+			TARGET_PREVIOUS_VALUE: 'Previous',
+			TARGET_CHAIN_VALUE: 'Chain',
+			TARGET_FINISH_RATE: 'Rate',
 			ADD_TARGET: 'Add New Target',
 			TIME_FRAME_TITLE: 'Set a time frame.',
 			TIME_FRAME_KIND: 'Kind:',
@@ -530,7 +535,10 @@ export const En = {
 			CANNOT_DELETE_COMPUTATION_PARAMETER: 'Cannot delete this because of reach minimum parameter(s).',
 			EXPRESSION: 'Expression',
 			ADD_SUB_EXPRESSION: 'Add Sub Expression',
-			ADD_SUB_JOINT: 'Add Sub Joint'
+			ADD_SUB_JOINT: 'Add Sub Joint',
+			TEST_FACTOR: 'Value',
+			TEST_FACTOR_CLICK: 'Click to retrieve values',
+			TEST_FACTOR_GET_NONE: 'No data retrieved from server side.'
 		}
 	},
 	SUBSCRIBE: {

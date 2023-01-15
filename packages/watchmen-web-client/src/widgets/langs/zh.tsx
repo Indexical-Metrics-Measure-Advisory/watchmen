@@ -446,6 +446,11 @@ export const Zh: LanguageDeclareType = {
 			TARGET_BETTER_SIDE_LESS: '值越小越好',
 			TARGET_ASK_PREVIOUS_CYCLE: '包含环比?',
 			TARGET_ASK_CHAIN_CYCLE: '包含同比?',
+			TARGET_VALUES: '值:',
+			TARGET_CURRENT_VALUE: '当前',
+			TARGET_PREVIOUS_VALUE: '环比',
+			TARGET_CHAIN_VALUE: '同比',
+			TARGET_FINISH_RATE: '完成率',
 			ADD_TARGET: '添加新目标',
 			TIME_FRAME_TITLE: '划定时间窗口.',
 			TIME_FRAME_KIND: '窗口类型:',
@@ -530,7 +535,10 @@ export const Zh: LanguageDeclareType = {
 			CANNOT_DELETE_COMPUTATION_PARAMETER: '已经达到最小参数个数, 不能进行删除.',
 			EXPRESSION: '参数表达式',
 			ADD_SUB_EXPRESSION: '添加过滤条件',
-			ADD_SUB_JOINT: '添加子联合条件'
+			ADD_SUB_JOINT: '添加子联合条件',
+			TEST_FACTOR: '指标值',
+			TEST_FACTOR_CLICK: '点击获取指标值',
+			TEST_FACTOR_GET_NONE: '没有获取到数据.'
 		}
 	},
 	SUBSCRIBE: {

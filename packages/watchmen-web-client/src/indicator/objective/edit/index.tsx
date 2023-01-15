@@ -4,6 +4,7 @@ import {Lang} from '@/widgets/langs';
 import React from 'react';
 import {Description} from './description';
 import {Factors} from './factors';
+import {ObjectiveValuesHandler} from './hooks/use-ask-values';
 import {NameAndSave} from './name-and-save';
 import {usePrepareObjective} from './state';
 import {Targets} from './targets';
@@ -20,6 +21,7 @@ export const ObjectiveEditor = () => {
 
 	// render when all reference data ready
 	return <FixWidthPage>
+		<ObjectiveValuesHandler objective={objective}/>
 		<PageHeader title={Lang.INDICATOR.OBJECTIVE.TITLE}/>
 		<ObjectiveContainer>
 			<Targets objective={objective}/>
