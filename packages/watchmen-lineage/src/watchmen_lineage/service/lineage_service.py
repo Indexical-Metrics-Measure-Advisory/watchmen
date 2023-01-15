@@ -16,7 +16,8 @@ from watchmen_model.common.tuple_ids import ObjectiveTargetId
 
 class LineageService(object):
 	graphByTenant: Dict[str, MultiDiGraph] = {}
-	all_load_sequence = [LineageType.TOPIC, LineageType.PIPELINE, LineageType.SUBJECT, LineageType.INDICATOR,LineageType.OBJECTIVE]
+	all_load_sequence = [LineageType.TOPIC, LineageType.PIPELINE, LineageType.SUBJECT, LineageType.INDICATOR,
+	                     LineageType.OBJECTIVE]
 
 	def init_tenant_all_lineage_data(self, principal_service: PrincipalService):
 		"""
@@ -53,10 +54,7 @@ class LineageService(object):
 		tenant_node_graph: MultiDiGraph = self.get_graph_by_tenant(principal_service)
 		return self.__get_lineage(factor_facet, RelationDirection.IN, tenant_node_graph)
 
-
-	def find_lineage_by_objective_target(self, objective_target_id:ObjectiveTargetId):
-
-
+	def find_lineage_by_objective_target(self, objective_target_id: ObjectiveTargetId):
 
 		pass
 

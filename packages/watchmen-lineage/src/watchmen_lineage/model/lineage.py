@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from watchmen_model.admin import FactorType, Topic
 from watchmen_model.common import TopicId, SubjectId, DashboardId, PipelineId, PipelineStageId, PipelineUnitId, \
 	PipelineActionId, FactorId, Parameter, ObjectiveFactorId, ObjectiveId
-from watchmen_model.indicator import ObjectiveFactor, Objective
+from watchmen_model.indicator import ObjectiveFactor
 
 
 class LineageType(Enum):
@@ -45,7 +45,6 @@ class RelationType(Enum):
 	Query = "Query"
 	Recalculate = "Recalculate"
 	ConstantsReference = "ConstantsReference"
-
 
 
 class RelationTypeHolders(BaseModel):
@@ -161,27 +160,24 @@ class IndicatorFacet(LineageNode):
 	lineageType: LineageType = LineageType.INDICATOR
 	relations: List[LineageRelation] = []
 
+
 #
 # class MetricDerivativeFacet(LineageNode):
 # 	lineageType: LineageType = LineageType.DERIVATIVE
 # 	relations: List[LineageRelation] = []
 
 
-
-
 class ObjectiveFacet(LineageNode):
 	lineageType: LineageType = LineageType.OBJECTIVE
 	relations: List[LineageRelation] = []
-	objectiveFactorHolders:Dict[ObjectiveFactorId,ObjectiveFactor] = {}
+	objectiveFactorHolders: Dict[ObjectiveFactorId, ObjectiveFactor] = {}
 
 
 class ObjectiveTargetFacet(LineageNode):
-	pass
+	lineageType: LineageType = LineageType.OBJECTIVE_TARGET
+	parentId: ObjectiveId = None
 
 
 class ObjectiveFactorFacet(LineageNode):
 	lineageType: LineageType = LineageType.OBJECTIVE_INDICATOR
-	parentId:ObjectiveId = None
-
-
-
+	parentId: ObjectiveId = None
