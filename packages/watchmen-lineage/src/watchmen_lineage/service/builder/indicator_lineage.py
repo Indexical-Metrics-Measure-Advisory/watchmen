@@ -18,7 +18,7 @@ def get_indicator_service(principal_service: PrincipalService) -> IndicatorServi
 
 
 class IndicatorLineageBuilder(LineageBuilder):
-	def build(self, graphic:MultiDiGraph, principal_service: PrincipalService):
+	def build(self, graphic: MultiDiGraph, principal_service: PrincipalService):
 
 		indicator_service: IndicatorService = get_indicator_service(principal_service)
 
@@ -29,7 +29,8 @@ class IndicatorLineageBuilder(LineageBuilder):
 
 		self.build_indicator_facet(indicator_list, graphic, principal_service)
 
-	def build_indicator_facet(self, indicator_list: List[Indicator], graphic:MultiDiGraph, principal_service:PrincipalService):
+	def build_indicator_facet(self, indicator_list: List[Indicator], graphic: MultiDiGraph,
+	                          principal_service: PrincipalService):
 		for indicator in indicator_list:
 			if is_valid_factor_id(indicator.factorId):
 				indicator_facet = IndicatorFacet(nodeId=indicator.indicatorId)

@@ -14,9 +14,6 @@ lineage_service.graph_json(principal_service)
 result = lineage_service.fine_lineage_by_factor("1047572886203731968", "78bf3da4f719485aa6ffeb7a7dd24c5a",
                                                 principal_service)
 
-
-
-
 print(result.json())
 
 # FACTOR_78bf3da4f719485aa6ffeb7a7dd24c5a_1047572886203731968

@@ -47,7 +47,7 @@ def add_edge_with_relation(graphic: MultiDiGraph, source_facet: LineageNode,
 	return graphic
 
 
-def add_edge_with_source_and_target(graphic: MultiDiGraph, source,target,relation_type,lineage_type):
+def add_edge_with_source_and_target(graphic: MultiDiGraph, source, target, relation_type, lineage_type):
 	source_node_id = build_node_id(source)
 	target_node_id = build_node_id(target)
 	graphic.add_edge(source_node_id, target_node_id, type=lineage_type.value, relation_type=relation_type.value)
