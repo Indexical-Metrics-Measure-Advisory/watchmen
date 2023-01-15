@@ -1,14 +1,17 @@
-import {Objective, ObjectiveTarget} from '@/services/data/tuples/objective-types';
+import {Objective, ObjectiveFactor, ObjectiveTarget} from '@/services/data/tuples/objective-types';
 import {generateUuid} from '@/services/data/tuples/utils';
 import {noop} from '@/services/utils';
 import {ButtonInk} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
+import React from 'react';
 import {useObjectivesEventBus} from '../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 import {EditStep} from '../edit-step';
+import {useValuesFetched} from '../hooks/use-ask-values';
 import {ObjectiveDeclarationStep} from '../steps';
-import {AddItemButton} from '../widgets';
+import {isIndicatorFactor} from '../utils';
+import {AddItemButton, ItemsButtons} from '../widgets';
 import {Target} from './target';
 import {TargetsContainer} from './widgets';
 
@@ -16,6 +19,7 @@ export const Targets = (props: { objective: Objective }) => {
 	const {objective} = props;
 
 	const {fire} = useObjectivesEventBus();
+	const {findTargetValues} = useValuesFetched();
 	const forceUpdate = useForceUpdate();
 
 	if (objective.targets == null) {
@@ -29,6 +33,7 @@ export const Targets = (props: { objective: Objective }) => {
 	};
 	const onAddClicked = () => {
 		let uuid = generateUuid();
+		// eslint-disable-next-line
 		while ((objective.targets || []).some(target => target.uuid === uuid)) {
 			uuid = generateUuid();
 		}
@@ -36,20 +41,31 @@ export const Targets = (props: { objective: Objective }) => {
 		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
 		forceUpdate();
 	};
+	const onTestClicked = () => fire(ObjectivesEventTypes.ASK_VALUES);
 
-	const targets = objective.targets;
+	const targets: Array<ObjectiveTarget> = objective.targets || [];
+	const factors: Array<ObjectiveFactor> = objective.factors || [];
+	const couldTest = targets.length !== 0 && factors.some(f => isIndicatorFactor(f));
 
 	return <EditStep index={ObjectiveDeclarationStep.TARGETS} title={Lang.INDICATOR.OBJECTIVE.TARGETS_TITLE}
 	                 backToList={true}>
 		<TargetsContainer>
 			{targets.map((target, index) => {
 				return <Target objective={objective} target={target} index={index + 1}
+				               values={findTargetValues(target)}
 				               onRemove={onRemove}
-				               key={`${target.name || ''}-${index}`}/>;
+				               key={target.uuid}/>;
 			})}
-			<AddItemButton ink={ButtonInk.PRIMARY} onClick={onAddClicked}>
-				{Lang.INDICATOR.OBJECTIVE.ADD_TARGET}
-			</AddItemButton>
+			<ItemsButtons>
+				<AddItemButton ink={ButtonInk.PRIMARY} onClick={onAddClicked}>
+					{Lang.INDICATOR.OBJECTIVE.ADD_TARGET}
+				</AddItemButton>
+				{couldTest
+					? <AddItemButton ink={ButtonInk.PRIMARY} onClick={onTestClicked}>
+						{Lang.INDICATOR.OBJECTIVE.TEST_FACTOR_CLICK}
+					</AddItemButton>
+					: null}
+			</ItemsButtons>
 		</TargetsContainer>
 	</EditStep>;
 };

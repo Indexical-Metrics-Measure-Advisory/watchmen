@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import {RibItemContainer} from '../widgets';
+import {ItemLabel, RibItemContainer} from '../widgets';
 
 export const TargetsContainer = styled.div.attrs({'data-widget': 'objective-targets'})`
 	display               : grid;
@@ -16,7 +16,8 @@ export const TargetContainer = styled(RibItemContainer).attrs({'data-widget': 'o
 	}
 	> span:nth-child(4),
 	> span:nth-child(7),
-	> span:nth-child(9) {
+	> span:nth-child(9),
+	> span:nth-child(15) {
 		grid-column : 2;
 	}
 	> input:nth-child(5) {
@@ -33,6 +34,11 @@ export const TargetContainer = styled(RibItemContainer).attrs({'data-widget': 'o
 	}
 	> div:nth-child(12) {
 		margin-right : var(--margin);
+	}
+	> span:nth-child(15) {
+		height      : var(--height);
+		align-self  : start;
+		align-items : center;
 	}
 	> div[data-widget=checkbox] {
 		align-self : center;
@@ -73,7 +79,7 @@ export const AsIsTypeContainer = styled.div.attrs({'data-widget': 'objective-as-
 		}
 	}
 	+ div[data-widget=parameter-factor-edit] {
-		margin-left: 0;
+		margin-left : 0;
 		> div:first-child {
 			border-top-left-radius    : 0;
 			border-bottom-left-radius : 0;
@@ -134,3 +140,39 @@ export const AsIsTypeIcon = styled.div.attrs({'data-widget': 'objective-as-is-ty
 		font-size : 0.8em;
 	}
 `;
+export const Values = styled.div.attrs({'data-widget': 'objective-target-values'})`
+	display               : grid;
+	position              : relative;
+	align-items           : center;
+	grid-column           : span 5;
+	grid-template-columns : auto auto auto 1fr;
+	grid-column-gap       : calc(var(--margin) / 2);
+	grid-row-gap          : calc(var(--margin) / 4);
+	> span {
+		height      : var(--height);
+		align-items : center;
+	}
+	> span:first-child, > span:nth-child(3), > span:nth-child(5), > span:nth-child(9) {
+		opacity : 0.7;
+	}
+	> span:nth-child(5), > span:nth-child(6), > span:nth-child(7), > span:nth-child(8) {
+		grid-row : 2;
+	}
+	> span:nth-child(9), > span:nth-child(10), > span:nth-child(11), > span:nth-child(12) {
+		grid-row : 3;
+	}
+`;
+export const RatioLabel = styled(ItemLabel)`
+	> svg {
+		margin-left : calc(var(--margin) / 4);
+		&[data-better=true] {
+			color : var(--success-color);
+		}
+		&[data-better=false] {
+			color : var(--danger-color);
+		}
+		&[data-better=keep] {
+			opacity : 0.7;
+		}
+	}
+`

@@ -1,7 +1,13 @@
 import {TuplePage} from '@/services/data/query/tuple-page';
 import {Bucket, BucketId} from '@/services/data/tuples/bucket-types';
 import {Indicator, IndicatorId} from '@/services/data/tuples/indicator-types';
-import {Objective, ObjectiveFactor, ObjectiveId, ObjectiveTarget} from '@/services/data/tuples/objective-types';
+import {
+	Objective,
+	ObjectiveFactor,
+	ObjectiveId,
+	ObjectiveTarget,
+	ObjectiveValues
+} from '@/services/data/tuples/objective-types';
 import {QueryBucket, QueryByBucketMethod} from '@/services/data/tuples/query-bucket-types';
 import {SubjectForIndicator} from '@/services/data/tuples/query-indicator-types';
 import {QueryObjective} from '@/services/data/tuples/query-objective-types';
@@ -21,6 +27,8 @@ export enum ObjectivesEventTypes {
 	OBJECTIVE_SAVED = 'objective-saved',
 
 	FACTOR_NAME_CHANGED = 'factor-name-changed',
+	FACTOR_INDICATOR_CHANGED = 'factor-indicator-changed',
+	FACTOR_FILTER_CHANGED = 'factor-filter-changed',
 	FACTOR_ADDED = 'factor-added',
 	FACTOR_REMOVED = 'factor-removed',
 
@@ -37,6 +45,9 @@ export enum ObjectivesEventTypes {
 	ASK_INDICATOR = 'ask-indicator',
 	ASK_TOPIC = 'ask-topic',
 	ASK_SUBJECT = 'ask-subject',
+
+	ASK_VALUES = 'ask-values',
+	VALUES_FETCHED = 'values-fetched'
 }
 
 export interface ObjectivesEventBus {
@@ -71,6 +82,14 @@ export interface ObjectivesEventBus {
 	fire(type: ObjectivesEventTypes.FACTOR_NAME_CHANGED, objective: Objective, factor: ObjectiveFactor): this;
 	on(type: ObjectivesEventTypes.FACTOR_NAME_CHANGED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;
 	off(type: ObjectivesEventTypes.FACTOR_NAME_CHANGED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;
+
+	fire(type: ObjectivesEventTypes.FACTOR_INDICATOR_CHANGED, objective: Objective, factor: ObjectiveFactor): this;
+	on(type: ObjectivesEventTypes.FACTOR_INDICATOR_CHANGED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;
+	off(type: ObjectivesEventTypes.FACTOR_INDICATOR_CHANGED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;
+
+	fire(type: ObjectivesEventTypes.FACTOR_FILTER_CHANGED, objective: Objective, factor: ObjectiveFactor): this;
+	on(type: ObjectivesEventTypes.FACTOR_FILTER_CHANGED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;
+	off(type: ObjectivesEventTypes.FACTOR_FILTER_CHANGED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;
 
 	fire(type: ObjectivesEventTypes.FACTOR_ADDED, objective: Objective, factor: ObjectiveFactor): this;
 	on(type: ObjectivesEventTypes.FACTOR_ADDED, listener: (objective: Objective, factor: ObjectiveFactor) => void): this;
@@ -119,4 +138,12 @@ export interface ObjectivesEventBus {
 	fire(type: ObjectivesEventTypes.ASK_SUBJECT, subjectId: SubjectId, onData: (subject?: SubjectForIndicator) => void): this;
 	on(type: ObjectivesEventTypes.ASK_SUBJECT, listener: (subjectId: SubjectId, onData: (subject?: SubjectForIndicator) => void) => void): this;
 	off(type: ObjectivesEventTypes.ASK_SUBJECT, listener: (subjectId: SubjectId, onData: (subject?: SubjectForIndicator) => void) => void): this;
+
+	fire(type: ObjectivesEventTypes.ASK_VALUES): this;
+	on(type: ObjectivesEventTypes.ASK_VALUES, listener: () => void): this;
+	off(type: ObjectivesEventTypes.ASK_VALUES, listener: () => void): this;
+
+	fire(type: ObjectivesEventTypes.VALUES_FETCHED, values: ObjectiveValues): this;
+	on(type: ObjectivesEventTypes.VALUES_FETCHED, listener: (values: ObjectiveValues) => void): this;
+	off(type: ObjectivesEventTypes.VALUES_FETCHED, listener: (values: ObjectiveValues) => void): this;
 }

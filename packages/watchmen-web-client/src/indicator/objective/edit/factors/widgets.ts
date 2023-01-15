@@ -38,7 +38,8 @@ export const FactorItemLabel = styled(ItemLabel)`
 	box-shadow       : var(--param-border);
 	overflow         : hidden;
 	+ div[data-widget=objective-computation] {
-		margin-left : calc(var(--margin) / -2);
+		margin-left  : calc(var(--margin) / -2);
+		margin-right : calc(var(--margin) / 2);
 		> div[data-widget=objective-formula-operator] {
 			border-top-left-radius    : 0;
 			border-bottom-left-radius : 0;
@@ -83,4 +84,29 @@ export const IndicatorDropdown = styled(Dropdown).attrs<{ valid: boolean }>({})<
 export const IncorrectOptionLabel = styled.span.attrs({'data-widget': 'incorrect-option'})`
 	color           : var(--danger-color);
 	text-decoration : line-through;
+`;
+export const TestValueContainer = styled.div.attrs({'data-widget': 'objective-factor-test-value-container'})`
+	display               : grid;
+	position              : relative;
+	grid-template-columns : 1fr;
+	grid-row-gap          : calc(var(--margin) / 4);
+	grid-auto-rows        : minmax(var(--height), auto);
+	grid-column           : 3 / span 2;
+	margin-left           : calc(var(--margin) / -2);
+	margin-right          : calc(var(--margin) / 2);
+`;
+export const TestValue = styled.div.attrs({'data-widget': 'objective-factor-test-value'})`
+	display          : flex;
+	position         : relative;
+	align-items      : center;
+	justify-self     : start;
+	font-variant     : petite-caps;
+	background-color : var(--bg-color);
+	padding          : 0 calc(var(--margin) / 2);
+	height           : var(--param-height);
+	min-width        : 200px;
+	margin-top       : calc(var(--height) / 2 - var(--param-height) / 2);
+	border-radius    : 0 calc(var(--param-height) / 2) calc(var(--param-height) / 2) 0;
+	box-shadow       : var(--param-border);
+	cursor           : pointer;
 `;

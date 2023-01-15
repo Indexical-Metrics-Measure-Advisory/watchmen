@@ -446,6 +446,11 @@ export const Jp: LanguageDeclareType = {
 			TARGET_BETTER_SIDE_LESS: '値が小さいほど良い',
 			TARGET_ASK_PREVIOUS_CYCLE: '以前の期間との比較は含まれていますかd？',
 			TARGET_ASK_CHAIN_CYCLE: '前のサイクルの同じ期間と比較されますか？',
+			TARGET_VALUES: '値:',
+			TARGET_CURRENT_VALUE: '現在',
+			TARGET_PREVIOUS_VALUE: 'リング',
+			TARGET_CHAIN_VALUE: '同期比',
+			TARGET_FINISH_RATE: '完了率',
 			ADD_TARGET: '新しい目標を追加',
 			TIME_FRAME_TITLE: '時間枠を設定。',
 			TIME_FRAME_KIND: '時間枠の種類:',
@@ -530,7 +535,10 @@ export const Jp: LanguageDeclareType = {
 			CANNOT_DELETE_COMPUTATION_PARAMETER: 'パラメータの最小数に達しており、削除できません。',
 			EXPRESSION: '式',
 			ADD_SUB_EXPRESSION: 'フィルタの条件を追加',
-			ADD_SUB_JOINT: 'サブ結合を追加'
+			ADD_SUB_JOINT: 'サブ結合を追加',
+			TEST_FACTOR: '指標値',
+			TEST_FACTOR_CLICK: 'クリックして指標値を取得',
+			TEST_FACTOR_GET_NONE: 'データが取得されない。'
 		}
 	},
 	SUBSCRIBE: {
