@@ -7,15 +7,17 @@ from typing import Any, Dict, Optional
 from time import sleep
 
 from watchmen_collector_kernel.common import S3CollectorSettings
-from watchmen_collector_kernel.lock import DistributedLock, get_collector_lock_service, get_unique_key_distributed_lock
+
 from watchmen_collector_kernel.model import CollectorCompetitiveLock
+from watchmen_collector_kernel.service import get_collector_competitive_lock_service
+from .connector import Connector
 from watchmen_data_kernel.storage import TopicTrigger
-from watchmen_meta.common import ask_snowflake_generator
+from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage
 from watchmen_model.common import Storable
 from watchmen_model.pipeline_kernel import PipelineTriggerData
 from watchmen_storage_s3 import ObjectContent, SimpleStorageService
-from .handler import handle_trigger_data, save_topic_data
-from .housekeeping import init_task_housekeeping
+from watchmen_collector_surface.connects.handler import handle_trigger_data, save_topic_data
+from watchmen_collector_kernel.task.task_housekeeping import init_task_housekeeping
 
 logger = getLogger(__name__)
 
@@ -39,19 +41,19 @@ def init_s3_collector(settings: S3CollectorSettings):
 class Dependency(Storable):
 	model_name: str
 	object_id: str
+	sequence: int
 
 
-class S3Connector:
+class S3Connector(Connector):
 
 	def __init__(self, settings: S3CollectorSettings):
+		super().__init__(ask_meta_storage())
 		self.simpleStorageService = SimpleStorageService(
 			access_key_id=settings.access_key_id,
 			access_key_secret=settings.secret_access_key,
 			endpoint=settings.region,
 			bucket_name=settings.bucket_name,
 			params=None)
-		self.lock_service = get_collector_lock_service()
-		self.snowflakeGenerator = ask_snowflake_generator()
 		self.token = settings.token
 		self.tenant_id = settings.tenant_id
 		self.consume_prefix = settings.consume_prefix
@@ -96,8 +98,11 @@ class S3Connector:
 		if self.validate_key_pattern(object_key):
 			dependency = self.get_dependency(object_key)
 			if self.check_dependency_finished(dependency):
+				"""
 				distributed_lock = get_unique_key_distributed_lock(
 					self.get_resource_lock(object_.key), self.lock_service)
+				"""
+				distributed_lock = self.get_resource_lock(object_.key)
 				try:
 					if not self.ask_lock(distributed_lock):
 						return ResultStatus.CREATE_TASK_FAILED
@@ -123,8 +128,11 @@ class S3Connector:
 			else:
 				return ResultStatus.DEPENDENCY_FAILED
 		else:
+			"""
 			distributed_lock = get_unique_key_distributed_lock(
 				self.get_resource_lock(object_.key), self.lock_service)
+			"""
+			distributed_lock = self.get_resource_lock(object_.key)
 			try:
 				if not self.ask_lock(distributed_lock):
 					return ResultStatus.CREATE_TASK_FAILED
@@ -137,14 +145,6 @@ class S3Connector:
 
 	def get_payload(self, key: str) -> Dict:
 		return self.simpleStorageService.get_object(key)
-
-	# noinspection PyMethodMayBeStatic
-	def ask_lock(self, lock: DistributedLock) -> bool:
-		return lock.try_lock_nowait()
-
-	# noinspection PyMethodMayBeStatic
-	def ask_unlock(self, lock: DistributedLock) -> bool:
-		return lock.unlock()
 
 	def process(self, key: str, code: str, payload: Dict[str, Any] = None):
 		logger.info("start to process %s and %s", code, key)

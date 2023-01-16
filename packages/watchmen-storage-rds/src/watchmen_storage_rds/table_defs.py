@@ -297,6 +297,24 @@ table_collector_competitive_lock = Table(
 	create_datetime('registered_at', False), create_tenant_id(),
 	create_int('status', False)
 )
+table_collector_tasks = Table(
+	'collector_tasks', meta_data,
+	create_pk('task_id'), create_str('resource_id', 500),
+	create_json('content'),
+	create_str('model_name', 20), create_str('object_id', 100),
+	create_int('status', False), create_str('result', 500),
+	create_tenant_id(),
+	*create_tuple_audit_columns()
+)
+table_collector_integrated_records = Table(
+	'collector_integrated_records', meta_data,
+	create_pk('integrated_record_id'), create_str('resource_id', 500),
+	create_json('data_content'),
+	create_str('model_name', 20), create_str('object_id', 100),
+	create_json('dependency'), create_int('need_merge_json', True),
+	create_json('root_node'),
+	create_tenant_id(), *create_tuple_audit_columns()
+)
 table_operations = Table(
 	'operations', meta_data,
 	create_pk('record_id'), create_str('operation_type', 20),
@@ -388,6 +406,8 @@ tables: Dict[str, Table] = {
 	'achievement_plugin_tasks': table_achievement_plugin_tasks,
 	# system
 	'collector_competitive_lock': table_collector_competitive_lock,
+	'collector_tasks': table_collector_tasks,
+	'collector_integrated_records': table_collector_integrated_records,
 	'operations': table_operations,
 	'package_versions': table_package_versions,
 	# webhook

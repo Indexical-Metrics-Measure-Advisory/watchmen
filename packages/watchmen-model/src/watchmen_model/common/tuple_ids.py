@@ -42,3 +42,6 @@ SubscriptionEventId = TypeVar('SubscriptionEventId', bound=str)
 SubscriptionEventLockId = TypeVar('SubscriptionEventLockId', bound=str)
 
 CollectorCompetitiveLockId = TypeVar('CollectorCompetitiveLockId', bound=str)
+CollectorTaskId = TypeVar('CollectorTaskId', bound=str)
+CollectorIntegratedRecordId = TypeVar('CollectorIntegratedRecordId', bound=str)
+CollectorChangeRecordId = TypeVar('CollectorChangeRecordId', bound=str)

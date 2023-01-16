@@ -3,6 +3,7 @@ from typing import Any, Callable, Dict, Optional, Tuple
 
 from fastapi import FastAPI
 
+from watchmen_collector_surface import collector_surface
 from watchmen_meta.auth import build_find_user_by_name, build_find_user_by_pat
 from watchmen_model.admin import User
 from watchmen_pipeline_surface import pipeline_surface
@@ -77,8 +78,13 @@ class DollApp(RestApp):
 	def init_pipeline_surface(self) -> None:
 		pipeline_surface.init()
 
+	# noinspection PyMethodMayBeStatic
+	def init_collector_surface(self) -> None:
+		collector_surface.init()
+
 	def on_startup(self, app: FastAPI) -> None:
 		self.init_pipeline_surface()
+		self.init_collector_surface()
 
 
 doll = DollApp(DollSettings())

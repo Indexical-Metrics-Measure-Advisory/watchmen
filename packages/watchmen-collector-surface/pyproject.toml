@@ -1,27 +1,23 @@
 [tool.poetry]
-name = "watchmen-pipeline-surface"
+name = "watchmen-collector-surface"
 version = "16.1.0"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
 packages = [
-    { include = "watchmen_pipeline_surface", from = "src" }
+    { include = "watchmen_collector_surface", from = "src" }
 ]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-watchmen-pipeline-kernel = { path = "../watchmen-pipeline-kernel", develop = true }
-watchmen-rest = { path = "../watchmen-rest", develop = true }
+watchmen-collector-kernel = { path = "../watchmen-collector-kernel", develop = true }
 watchmen-storage-mysql = { path = "../watchmen-storage-mysql", develop = true, optional = true }
 watchmen-storage-oracle = { path = "../watchmen-storage-oracle", develop = true, optional = true }
 watchmen-storage-mongodb = { path = "../watchmen-storage-mongodb", develop = true, optional = true }
 watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, optional = true }
 watchmen-storage-postgresql = { path = "../watchmen-storage-postgresql", develop = true, optional = true }
-watchmen-collector-surface = { path = "../watchmen-collector-surface", develop = true, optional = true }
-kafka-python = { version = "^2.0.2", optional = true }
-aiokafka = { version = "^0.7.2", optional = true }
-aio-pika = { version = "^7.1.2", optional = true }
-requests = { version = "^2.27.1", optional = true }
+watchmen-storage-oss = { path = "../watchmen-storage-oss", develop = true, optional = true }
+watchmen-storage-s3 = { path = "../watchmen-storage-s3", develop = true, optional = true }
 
 [tool.poetry.dev-dependencies]
 
@@ -31,12 +27,10 @@ oracle = ["watchmen-storage-oracle"]
 mongodb = ["watchmen-storage-mongodb"]
 mssql = ["watchmen-storage-mssql"]
 postgresql = ["watchmen-storage-postgresql"]
-collector = ["watchmen-collector-kernel"]
-kafka = ["kafka-python", "aiokafka"]
-rabbitmq = ["aio-pika"]
-standard_ext_writer = ["requests"]
-es_ext_writer = []
+oss = ["watchmen-storage-oss"]
+s3 = ["watchmen-storage-s3"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
