@@ -1,0 +1,3 @@
+from .collector_competitive_lock_service import get_collector_competitive_lock_service, CollectorCompetitiveLockService
+from .collector_integrated_record_service import get_collector_integrated_record_service, CollectorIntegratedRecordService
+from .collector_task_service import get_collector_task_service

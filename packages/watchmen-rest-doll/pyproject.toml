@@ -25,7 +25,7 @@ watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, o
 watchmen-storage-postgresql = { path = "../watchmen-storage-postgresql", develop = true, optional = true }
 watchmen-storage-oss = { path = "../watchmen-storage-oss", develop = true, optional = true }
 watchmen-storage-s3 = { path = "../watchmen-storage-s3", develop = true, optional = true }
-watchmen-collector-kernel = { path = "../watchmen-collector-kernel", develop = true, optional = true }
+watchmen-collector-surface = { path = "../watchmen-collector-surface", develop = true, optional = true }
 kafka-python = { version = "^2.0.2", optional = true }
 aiokafka = { version = "^0.7.2", optional = true }
 aio-pika = { version = "^7.1.2", optional = true }

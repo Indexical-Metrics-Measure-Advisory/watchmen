@@ -1,3 +1,1 @@
-from .distributed_lock import DistributedLock
-from .collector_lock_service import get_collector_lock_service
-from .unique_key_distributed_lock import get_unique_key_distributed_lock
+from .competitive_lock_service import get_competitive_lock_service
