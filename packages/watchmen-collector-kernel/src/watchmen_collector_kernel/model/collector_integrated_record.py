@@ -18,7 +18,7 @@ class Dependency(BaseModel):
 
 class CollectorIntegratedRecord(TenantBasedTuple, BaseModel):
 	integratedRecordId: str
-	resourceId: str  # globally unique
+	resourceId: str  # globally unique, globally monotonically increasing
 	dataContent: str
 	modelName: str
 	objectId: str

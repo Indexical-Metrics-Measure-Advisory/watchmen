@@ -9,7 +9,7 @@ CREATE TABLE collector_change_records
     created_by          VARCHAR(50) NOT NULL,
     last_modified_at    DATETIME    NOT NULL,
     last_modified_by    VARCHAR(50) NOT NULL,
-    PRIMARY KEY (record_id),
+    PRIMARY KEY (change_record_id),
     INDEX(tenant_id),
     INDEX (created_at),
     INDEX (created_by),
