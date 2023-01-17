@@ -44,7 +44,7 @@ class ResultStatus(str, Enum):
 
 def init_s3_collector(settings: S3CollectorSettings):
 	S3Connector(settings).create_connector()
-	init_task_housekeeping(settings)
+	init_task_housekeeping()
 
 
 class Dependency(Storable):
