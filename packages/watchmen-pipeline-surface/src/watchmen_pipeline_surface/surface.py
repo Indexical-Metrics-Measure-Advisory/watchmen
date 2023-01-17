@@ -18,12 +18,6 @@ class PipelineSurface:
 		if ask_rabbitmq_connector_enabled():
 			init_rabbitmq(ask_rabbitmq_connector_settings())
 
-	# noinspection PyMethodMayBeStatic
-	def init_s3_connector(self) -> None:
-		if ask_s3_connector_enabled():
-			from watchmen_collector_surface.connects import init_s3_collector
-			init_s3_collector(ask_s3_connector_settings())
-
 	def init_connectors(self) -> None:
 		self.init_kafka_connector()
 		self.init_rabbitmq_connector()
