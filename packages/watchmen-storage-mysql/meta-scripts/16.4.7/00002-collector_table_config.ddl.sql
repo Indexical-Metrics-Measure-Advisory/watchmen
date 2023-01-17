@@ -20,7 +20,7 @@ CREATE TABLE collector_table_config
     last_modified_by    VARCHAR(50) NOT NULL,
     version             BIGINT,
     PRIMARY KEY (config_id),
-    UNIQUE KEY unique_name(name)
+    UNIQUE KEY unique_name(name),
     INDEX (tenant_id),
     INDEX (created_at),
     INDEX (created_by),
