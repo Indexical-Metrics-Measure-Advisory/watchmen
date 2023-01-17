@@ -1,6 +1,7 @@
 from logging import getLogger
 from pydantic import BaseSettings
-from watchmen_collector_kernel.common import S3CollectorSettings
+
+from watchmen_collector_surface.connects import S3CollectorSettings
 
 logger = getLogger(__name__)
 
