@@ -10,6 +10,7 @@ ArrayAction = Callable[[Any], None]
 ArrayWithIndexAction = Callable[[Any, int], None]
 ArrayCompare = Callable[[Any, Any], bool]
 ArrayReduce = Callable[[Any, Any], Any]
+ArraySort = Callable[[Any, Any], int]
 
 
 def equals(a: Any, b: Any) -> bool:
@@ -123,7 +124,7 @@ class ArrayHelper:
 			new_list.append(func(an_element, index))
 		return ArrayHelper(new_list)
 
-	def reduce(self, func: ArrayReduce, accumulator: Optional[Any]) -> Any:
+	def reduce(self, func: ArrayReduce, accumulator: Optional[Any] = None) -> Any:
 		if len(self.aList) == 0:
 			return accumulator
 
@@ -212,3 +213,34 @@ class ArrayHelper:
 
 	def size(self) -> int:
 		return len(self.aList)
+
+	# noinspection PyMethodMayBeStatic
+	def __quick_sort_partition(self, a_list: List[Any], start_pos: int, end_pos: int, func: ArraySort) -> int:
+		the_one = a_list[start_pos]
+
+		i = start_pos
+		j = end_pos
+
+		while i < j:
+			while func(a_list[j], the_one) >= 0 and i < j:
+				j = j - 1
+
+			while func(a_list[i], the_one) <= 0 and i < j:
+				i = i + 1
+
+			a_list[i], a_list[j] = a_list[j], a_list[i]
+
+		a_list[i], a_list[start_pos] = a_list[start_pos], a_list[i]
+
+		return i
+
+	def __quick_sort(self, a_list: List[Any], start_pos: int, end_pos: int, func: ArraySort):
+		if start_pos < end_pos:
+			index = self.__quick_sort_partition(a_list, start_pos, end_pos, func)
+
+			self.__quick_sort(a_list, start_pos, index - 1, func)
+			self.__quick_sort(a_list, index + 1, end_pos, func)
+
+	def sort(self, func: ArraySort) -> ArrayHelper:
+		self.__quick_sort(self.aList, 0, len(self.aList) - 1, func)
+		return self

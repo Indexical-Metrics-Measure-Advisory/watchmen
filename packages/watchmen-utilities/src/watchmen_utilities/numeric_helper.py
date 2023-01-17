@@ -12,8 +12,8 @@ def is_decimal(value: Optional[str]) -> Tuple[bool, Optional[Decimal]]:
 	"""
 	if value is None:
 		return False, None
+	# noinspection PyBroadException
 	try:
-
 		return True, Decimal(value)
 	except:
 		return False, None
