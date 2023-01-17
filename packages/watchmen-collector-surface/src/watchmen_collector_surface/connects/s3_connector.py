@@ -5,15 +5,11 @@ from threading import Thread
 from typing import Any, Dict, Optional
 
 from time import sleep
-
-from watchmen_collector_kernel.common import S3CollectorSettings
-
 from watchmen_collector_kernel.model import CollectorCompetitiveLock
-from watchmen_collector_kernel.service import get_collector_competitive_lock_service
 from .connector import Connector
 from watchmen_data_kernel.storage import TopicTrigger
 from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage
-from watchmen_model.common import Storable
+from watchmen_model.common import Storable, SettingsModel
 from watchmen_model.pipeline_kernel import PipelineTriggerData
 from watchmen_storage_s3 import ObjectContent, SimpleStorageService
 from watchmen_collector_surface.connects.handler import handle_trigger_data, save_topic_data
@@ -22,6 +18,19 @@ from watchmen_collector_kernel.task.task_housekeeping import init_task_housekeep
 logger = getLogger(__name__)
 
 identifier_delimiter = "~"
+
+
+class S3CollectorSettings(SettingsModel):
+	access_key_id: str
+	secret_access_key: str
+	bucket_name: str
+	region: str
+	token: str
+	tenant_id: int
+	consume_prefix: str
+	dead_prefix: str
+	max_keys: int = 10
+	clean_task_interval: int = 3600
 
 
 class ResultStatus(str, Enum):
