@@ -5,17 +5,16 @@ from typing import List
 
 from time import sleep
 
-from watchmen_collector_kernel.common import S3CollectorSettings
 from watchmen_collector_kernel.service import get_collector_competitive_lock_service
 from watchmen_collector_kernel.model import CollectorCompetitiveLock
 
 
 class CleanTask:
 
-	def __init__(self, settings: S3CollectorSettings):
+	def __init__(self):
 		self.lock_service = get_collector_competitive_lock_service()
 		self.processed_date = []
-		self.cleanTaskInterval = settings.clean_task_interval
+		self.cleanTaskInterval = 3600
 
 	def run(self):
 		try:
@@ -57,6 +56,6 @@ class CleanTask:
 		Thread(target=CleanTask.run, args=(self,), daemon=True).start()
 
 
-def init_task_housekeeping(settings: S3CollectorSettings):
-	clean_task = CleanTask(settings)
+def init_task_housekeeping():
+	clean_task = CleanTask()
 	Thread(target=CleanTask.run, args=(clean_task,), daemon=True).start()
