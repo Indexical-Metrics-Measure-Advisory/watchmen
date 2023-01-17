@@ -1,4 +1,4 @@
-from watchmen_collector_surface import get_collector_surface_routers
+# from watchmen_collector_surface import get_collector_surface_routers
 from watchmen_data_surface import get_data_surface_routers
 from watchmen_indicator_surface import get_indicator_surface_routers
 from watchmen_inquiry_surface import get_inquiry_surface_routers
@@ -64,4 +64,4 @@ ArrayHelper(get_data_surface_routers()).each(lambda x: app.include_router(x))
 ArrayHelper(get_pipeline_surface_routers()).each(lambda x: app.include_router(x))
 ArrayHelper(get_inquiry_surface_routers()).each(lambda x: app.include_router(x))
 ArrayHelper(get_indicator_surface_routers()).each(lambda x: app.include_router(x))
-ArrayHelper(get_collector_surface_routers()).each(lambda x: app.include_router(x))
+# ArrayHelper(get_collector_surface_routers()).each(lambda x: app.include_router(x))
