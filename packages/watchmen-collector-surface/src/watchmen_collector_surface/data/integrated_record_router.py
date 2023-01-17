@@ -18,7 +18,7 @@ def get_integrated_record_service(principal_service: PrincipalService) -> Collec
 	return CollectorIntegratedRecordService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-@router.post('/integrated/record', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=CollectorIntegratedRecord)
+@router.post('/collector/integrated/record', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=CollectorIntegratedRecord)
 async def save_integrated_record(
 		record: CollectorIntegratedRecord, principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> CollectorIntegratedRecord:
