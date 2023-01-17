@@ -347,8 +347,7 @@ class ObjectiveCriteriaService:
 		elif isinstance(right, ConstantObjectiveParameter):
 			# when right is constant parameter
 			variable = self.find_objective_variable_from_constant(right)
-			if isinstance(variable, ObjectiveVariableOnBucket) \
-					or isinstance(variable, ObjectiveVariableOnRange):
+			if isinstance(variable, ObjectiveVariableOnBucket) or isinstance(variable, ObjectiveVariableOnRange):
 				# refer to bucket variable or range variable is not allowed
 				raise IndicatorKernelException(
 					f'Objective expression condition[{condition.to_dict()}] not supported, '
