@@ -8,6 +8,12 @@ on:
       - main
     paths-ignore:
       - 'packages/watchmen-test-postman/**'
+      - 'packages/watchmen-web-client/**'
+      - 'packages/watchmen-storage-mongodb/**'
+      - 'packages/watchmen-storage-mssql/**'
+      - 'packages/watchmen-storage-oracle/**'
+      - 'packages/watchmen-storage-postgresql/**'
+      - 'packages/watchmen-storage-s3/**'
 
 # on: workflow_dispatch
 
