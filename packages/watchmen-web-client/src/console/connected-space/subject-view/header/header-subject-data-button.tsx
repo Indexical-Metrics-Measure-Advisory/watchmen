@@ -12,7 +12,7 @@ import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React from 'react';
-import {useHistory} from 'react-router-dom';
+import {useHistory, useLocation} from 'react-router-dom';
 import {useConsoleEventBus} from '../../../console-event-bus';
 import {ConsoleEventTypes} from '../../../console-event-bus-types';
 import {isDefValid} from '../data-validator';
@@ -22,11 +22,12 @@ export const HeaderSubjectDataButton = (props: { connectedSpace: ConnectedSpace,
 	const {connectedSpace, subject} = props;
 
 	const history = useHistory();
+	const location = useLocation();
 	const {fire: fireGlobal} = useEventBus();
 	const {fire: fireConsole} = useConsoleEventBus();
 
 	const onDataClicked = async () => {
-		if (isSubjectDataNow()) {
+		if (isSubjectDataNow(location)) {
 			return;
 		}
 		const handle = ({valid, messages}: { valid: boolean, messages: Array<string> }) => {
@@ -67,7 +68,7 @@ export const HeaderSubjectDataButton = (props: { connectedSpace: ConnectedSpace,
 	};
 
 	return <PageHeaderButton tooltip={Lang.CONSOLE.CONNECTED_SPACE.SUBJECT_DATA}
-	                         ink={isSubjectDataNow() ? ButtonInk.PRIMARY : (void 0)}
+	                         ink={isSubjectDataNow(location) ? ButtonInk.PRIMARY : (void 0)}
 	                         onClick={onDataClicked}>
 		<FontAwesomeIcon icon={ICON_SUBJECT_DATA}/>
 	</PageHeaderButton>;
