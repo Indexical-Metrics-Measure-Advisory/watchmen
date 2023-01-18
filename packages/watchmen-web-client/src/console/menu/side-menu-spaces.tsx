@@ -4,7 +4,7 @@ import {ICON_CONNECTED_SPACE} from '@/widgets/basic/constants';
 import {SideMenuItem} from '@/widgets/basic/side-menu/side-menu-item';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import React, {useEffect, useState} from 'react';
-import {useNavigate} from 'react-router-dom';
+import {useLocation, useNavigate} from 'react-router-dom';
 import styled from 'styled-components';
 import {useConsoleEventBus} from '../console-event-bus';
 import {ConsoleEventTypes} from '../console-event-bus-types';
@@ -31,6 +31,7 @@ export const SideMenuSpaces = (props: { showTooltip: boolean }) => {
 	const {showTooltip} = props;
 
 	const navigate = useNavigate();
+	const location = useLocation();
 	const {fire, on, off} = useConsoleEventBus();
 	const [spaces, setSpaces] = useState<Array<ConnectedSpace>>([]);
 	const forceUpdate = useForceUpdate();
@@ -61,7 +62,7 @@ export const SideMenuSpaces = (props: { showTooltip: boolean }) => {
 	}, [on, off, forceUpdate]);
 
 	const onSpaceClicked = (space: ConnectedSpace) => () => {
-		if (isConnectedSpaceOpened(space.connectId)) {
+		if (isConnectedSpaceOpened(space.connectId, location)) {
 			return;
 		}
 
