@@ -2,19 +2,15 @@ import {Consanguinity} from '@/services/data/tuples/consanguinity';
 import {fetchConsanguinity} from '@/services/data/tuples/objective';
 import {Objective} from '@/services/data/tuples/objective-types';
 import {Button} from '@/widgets/basic/button';
+import {ICON_LOADING} from '@/widgets/basic/constants';
 import {ButtonInk} from '@/widgets/basic/types';
-import {DialogBody, DialogFooter} from '@/widgets/dialog/widgets';
+import {DialogFooter} from '@/widgets/dialog/widgets';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
+import {Lang} from '@/widgets/langs';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useEffect, useState} from 'react';
-import styled from 'styled-components';
-
-const ConsanguinityDialogBody = styled(DialogBody)`
-	display               : grid;
-	grid-template-columns : 1fr;
-	grid-template-rows    : auto auto 1fr auto auto auto;
-	margin-bottom         : var(--margin);
-`;
+import {ConsanguinityDialogBody, Loading} from './widgets';
 
 interface State {
 	loaded: boolean;
@@ -42,7 +38,10 @@ export const ObjectiveConsanguinityDiagram = (props: { objective: Objective }) =
 	if (!state.loaded) {
 		return <>
 			<ConsanguinityDialogBody>
-
+				<Loading>
+					<FontAwesomeIcon icon={ICON_LOADING} spin={true}/>
+					<span>{Lang.PLAIN.LOADING}</span>
+				</Loading>
 			</ConsanguinityDialogBody>
 			<DialogFooter>
 				<Button ink={ButtonInk.WAIVE} onClick={onCloseClicked}>Close</Button>
