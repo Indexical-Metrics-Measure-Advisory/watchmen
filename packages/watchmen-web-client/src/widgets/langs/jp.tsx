@@ -452,6 +452,7 @@ export const Jp: LanguageDeclareType = {
 			TARGET_CHAIN_VALUE: '同期比',
 			TARGET_FINISH_RATE: '完了率',
 			ADD_TARGET: '新しい目標を追加',
+			TARGET_CONSANGUINITY: 'データの血族関係',
 			TIME_FRAME_TITLE: '時間枠を設定。',
 			TIME_FRAME_KIND: '時間枠の種類:',
 			TIME_FRAME_KIND_NONE: '非時間枠関連',
@@ -537,8 +538,8 @@ export const Jp: LanguageDeclareType = {
 			ADD_SUB_EXPRESSION: 'フィルタの条件を追加',
 			ADD_SUB_JOINT: 'サブ結合を追加',
 			TEST_FACTOR: '指標値',
-			TEST_FACTOR_CLICK: 'クリックして指標値を取得',
-			TEST_FACTOR_GET_NONE: 'データが取得されない。'
+			TEST_VALUE_CLICK: 'クリックして値を取得',
+			TEST_VALUE_GET_NONE: 'データが取得されない。'
 		}
 	},
 	SUBSCRIBE: {

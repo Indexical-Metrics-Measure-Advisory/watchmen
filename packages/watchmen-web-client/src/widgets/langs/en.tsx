@@ -452,6 +452,7 @@ export const En = {
 			TARGET_CHAIN_VALUE: 'Chain',
 			TARGET_FINISH_RATE: 'Rate',
 			ADD_TARGET: 'Add New Target',
+			TARGET_CONSANGUINITY: 'Consanguinity',
 			TIME_FRAME_TITLE: 'Set a time frame.',
 			TIME_FRAME_KIND: 'Kind:',
 			TIME_FRAME_KIND_NONE: 'Not Time Frame Related',
@@ -537,8 +538,8 @@ export const En = {
 			ADD_SUB_EXPRESSION: 'Add Sub Expression',
 			ADD_SUB_JOINT: 'Add Sub Joint',
 			TEST_FACTOR: 'Value',
-			TEST_FACTOR_CLICK: 'Click to retrieve values',
-			TEST_FACTOR_GET_NONE: 'No data retrieved from server side.'
+			TEST_VALUE_CLICK: 'Click to retrieve values',
+			TEST_VALUE_GET_NONE: 'No data retrieved from server side.'
 		}
 	},
 	SUBSCRIBE: {

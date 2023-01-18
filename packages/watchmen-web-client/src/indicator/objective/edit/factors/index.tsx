@@ -99,7 +99,7 @@ export const Factors = (props: { objective: Objective }) => {
 				</AddItemButton>
 				{couldTest
 					? <AddItemButton ink={ButtonInk.PRIMARY} onClick={onTestClicked}>
-						{Lang.INDICATOR.OBJECTIVE.TEST_FACTOR_CLICK}
+						{Lang.INDICATOR.OBJECTIVE.TEST_VALUE_CLICK}
 					</AddItemButton>
 					: null}
 			</ItemsButtons>
