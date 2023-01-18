@@ -6,7 +6,7 @@ import {useForceUpdate} from '@/widgets/basic/utils';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {useObjectivesEventBus} from '../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 import {ObjectiveConsanguinityDiagram} from '../consanguinity';
@@ -22,9 +22,20 @@ export const Targets = (props: { objective: Objective }) => {
 	const {objective} = props;
 
 	const {fire: fireGlobal} = useEventBus();
-	const {fire} = useObjectivesEventBus();
+	const {on, off, fire} = useObjectivesEventBus();
 	const {findTargetValues} = useValuesFetched();
 	const forceUpdate = useForceUpdate();
+	useEffect(() => {
+		const onFactorChanged = () => forceUpdate();
+		on(ObjectivesEventTypes.FACTOR_ADDED, onFactorChanged);
+		on(ObjectivesEventTypes.FACTOR_REMOVED, onFactorChanged);
+		on(ObjectivesEventTypes.FACTOR_INDICATOR_CHANGED, onFactorChanged);
+		return () => {
+			off(ObjectivesEventTypes.FACTOR_ADDED, onFactorChanged);
+			off(ObjectivesEventTypes.FACTOR_REMOVED, onFactorChanged);
+			off(ObjectivesEventTypes.FACTOR_INDICATOR_CHANGED, onFactorChanged);
+		}
+	}, [on, off, forceUpdate])
 
 	if (objective.targets == null) {
 		objective.targets = [];
