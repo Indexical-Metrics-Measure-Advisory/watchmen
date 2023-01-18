@@ -2,6 +2,7 @@ import {ConnectedSpace} from '@/services/data/tuples/connected-space-types';
 import {Subject} from '@/services/data/tuples/subject-types';
 import {PageHeaderButtons, PageHeaderButtonSeparator} from '@/widgets/basic/page-header-buttons';
 import React from 'react';
+import {useLocation} from 'react-router-dom';
 import {HeaderCatalogButton} from '../../header/header-catalog-button';
 import {HeaderAddReportButton} from './header-add-report-button';
 import {HeaderDeleteSubjectButton} from './header-delete-subject-buttton';
@@ -14,13 +15,15 @@ import {isSubjectReportNow} from './utils';
 export const SubjectHeaderButtons = (props: { connectedSpace: ConnectedSpace, subject: Subject }) => {
 	const {connectedSpace, subject} = props;
 
+	const location = useLocation();
+
 	return <PageHeaderButtons>
 		<HeaderCatalogButton connectedSpace={connectedSpace}/>
 		<PageHeaderButtonSeparator/>
 		<HeaderSubjectDefButton connectedSpace={connectedSpace} subject={subject}/>
 		<HeaderSubjectDataButton connectedSpace={connectedSpace} subject={subject}/>
 		<HeaderSubjectReportButton connectedSpace={connectedSpace} subject={subject}/>
-		{isSubjectReportNow()
+		{isSubjectReportNow(location)
 			? <>
 				<PageHeaderButtonSeparator/>
 				<HeaderAddReportButton connectedSpace={connectedSpace} subject={subject}/>

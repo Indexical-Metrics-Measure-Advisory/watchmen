@@ -5,7 +5,7 @@ import {ConnectedSpace} from '@/services/data/tuples/connected-space-types';
 import {Subject} from '@/services/data/tuples/subject-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import React, {Fragment, useEffect, useState} from 'react';
-import {Routes, useNavigate} from 'react-router-dom';
+import {Routes, useLocation, useNavigate} from 'react-router-dom';
 import {useConsoleEventBus} from '../../console-event-bus';
 import {ConsoleEventTypes} from '../../console-event-bus-types';
 import {isDefValid} from './data-validator';
@@ -19,11 +19,15 @@ export const SubjectBodyRouter = (props: { connectedSpace: ConnectedSpace, subje
 	const {connectedSpace, subject} = props;
 
 	const navigate = useNavigate();
+	const location = useLocation();
 	const {fire: fireConsole} = useConsoleEventBus();
 	const [initialized, setInitialized] = useState(false);
 	useEffect(() => {
+		if (initialized) {
+			return;
+		}
 		const handle = ({valid}: { valid: boolean }) => {
-			if (!valid && !isSubjectDefNow()) {
+			if (!valid && !isSubjectDefNow(location)) {
 				navigate(toSubjectDef(connectedSpace.connectId, subject.subjectId), {replace: true});
 			} else {
 				setInitialized(true);
@@ -47,7 +51,7 @@ export const SubjectBodyRouter = (props: { connectedSpace: ConnectedSpace, subje
 				});
 			}
 		});
-	}, [fireConsole, navigate, connectedSpace, subject]);
+	}, [fireConsole, navigate, location, connectedSpace, subject, initialized]);
 
 	if (!initialized) {
 		return <Fragment/>;

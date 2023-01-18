@@ -1,6 +1,12 @@
 import {Router} from '@/routes/types';
-import {matchPath} from 'react-router-dom';
+import {Location, matchPath} from 'react-router-dom';
 
-export const isSubjectDefNow = () => !!matchPath({path: Router.CONSOLE_CONNECTED_SPACE_SUBJECT_DEF}, window.location.pathname);
-export const isSubjectDataNow = () => !!matchPath({path: Router.CONSOLE_CONNECTED_SPACE_SUBJECT_DATA}, window.location.pathname);
-export const isSubjectReportNow = () => !!matchPath({path: Router.CONSOLE_CONNECTED_SPACE_SUBJECT_REPORT}, window.location.pathname);
+export const isSubjectDefNow = (location: Location) => {
+	return !!matchPath({path: Router.CONSOLE_CONNECTED_SPACE_SUBJECT_DEF}, location.pathname);
+};
+export const isSubjectDataNow = (location: Location) => {
+	return !!matchPath({path: Router.CONSOLE_CONNECTED_SPACE_SUBJECT_DATA}, location.pathname);
+}
+export const isSubjectReportNow = (location: Location) => {
+	return !!matchPath({path: Router.CONSOLE_CONNECTED_SPACE_SUBJECT_REPORT}, location.pathname);
+}
