@@ -1,4 +1,5 @@
 import {TuplePage} from '../../query/tuple-page';
+import {Consanguinity} from '../../tuples/consanguinity';
 import {Objective, ObjectiveFactor, ObjectiveId, ObjectiveValues} from '../../tuples/objective-types';
 import {QueryObjective} from '../../tuples/query-objective-types';
 import {isFakedUuid} from '../../tuples/utils';
@@ -75,5 +76,13 @@ export const askMockObjectiveValues = async (objective: Objective): Promise<Obje
 				})
 			});
 		}, 3000);
+	});
+};
+
+export const fetchMockConsanguinity = async (objective: Objective): Promise<Consanguinity> => {
+	return new Promise<Consanguinity>(resolve => {
+		setTimeout(() => {
+			resolve({});
+		}, 1000);
 	});
 };
