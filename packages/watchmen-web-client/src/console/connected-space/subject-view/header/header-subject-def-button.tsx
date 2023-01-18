@@ -7,23 +7,24 @@ import {ButtonInk} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React from 'react';
-import {useHistory} from 'react-router-dom';
+import {useHistory, useLocation} from 'react-router-dom';
 import {isSubjectDefNow} from './utils';
 
 export const HeaderSubjectDefButton = (props: { connectedSpace: ConnectedSpace, subject: Subject }) => {
 	const {connectedSpace, subject} = props;
 
 	const history = useHistory();
+	const location = useLocation();
 
 	const onDefClicked = () => {
-		if (isSubjectDefNow()) {
+		if (isSubjectDefNow(location)) {
 			return;
 		}
 		history.push(toSubjectDef(connectedSpace.connectId, subject.subjectId));
 	};
 
 	return <PageHeaderButton tooltip={Lang.CONSOLE.CONNECTED_SPACE.SUBJECT_DEF}
-	                         ink={isSubjectDefNow() ? ButtonInk.PRIMARY : (void 0)}
+	                         ink={isSubjectDefNow(location) ? ButtonInk.PRIMARY : (void 0)}
 	                         onClick={onDefClicked}>
 		<FontAwesomeIcon icon={ICON_SUBJECT_DEF}/>
 	</PageHeaderButton>;
