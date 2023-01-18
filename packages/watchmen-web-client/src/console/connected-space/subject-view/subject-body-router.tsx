@@ -23,9 +23,6 @@ export const SubjectBodyRouter = (props: { connectedSpace: ConnectedSpace, subje
 	const {fire: fireConsole} = useConsoleEventBus();
 	const [initialized, setInitialized] = useState(false);
 	useEffect(() => {
-		if (initialized) {
-			return;
-		}
 		const handle = ({valid}: { valid: boolean }) => {
 			if (!valid && !isSubjectDefNow(location)) {
 				navigate(toSubjectDef(connectedSpace.connectId, subject.subjectId), {replace: true});
@@ -51,7 +48,7 @@ export const SubjectBodyRouter = (props: { connectedSpace: ConnectedSpace, subje
 				});
 			}
 		});
-	}, [fireConsole, navigate, location, connectedSpace, subject, initialized]);
+	}, [fireConsole, navigate, location, connectedSpace, subject]);
 
 	if (!initialized) {
 		return <Fragment/>;
