@@ -64,7 +64,7 @@ const TargetValues = (props: { target: ObjectiveTarget; values?: ObjectiveTarget
 
 	if (values.failed) {
 		return <>
-			<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TEST_FACTOR_GET_NONE}</ItemLabel>
+			<ItemLabel>{Lang.INDICATOR.OBJECTIVE.TEST_VALUE_GET_NONE}</ItemLabel>
 			<Values/>
 		</>;
 	}

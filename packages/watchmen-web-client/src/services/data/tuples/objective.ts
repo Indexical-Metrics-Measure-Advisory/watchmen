@@ -3,12 +3,14 @@ import {Apis, get, page, post} from '../apis';
 import {
 	askMockObjectiveFactorValue,
 	askMockObjectiveValues,
+	fetchMockConsanguinity,
 	fetchMockObjective,
 	listMockObjectives,
 	saveMockObjective
 } from '../mock/tuples/mock-objective';
 import {TuplePage} from '../query/tuple-page';
 import {isMockService} from '../utils';
+import {Consanguinity} from './consanguinity';
 import {Objective, ObjectiveFactor, ObjectiveId, ObjectiveValues} from './objective-types';
 import {QueryObjective} from './query-objective-types';
 import {UserGroupId} from './user-group-types';
@@ -90,5 +92,33 @@ export const askObjectiveValues = async (objective: Objective): Promise<Objectiv
 		return askMockObjectiveValues(objective);
 	} else {
 		return await post({api: Apis.OBJECTIVE_VALUES});
+	}
+};
+
+export const fetchConsanguinity = async (objective: Objective): Promise<Consanguinity> => {
+	if (isMockService()) {
+		return fetchMockConsanguinity(objective);
+	} else {
+		await saveObjective(objective);
+		const all = await Promise.all<Consanguinity>((objective.targets || []).map(async target => {
+			return await get({
+				api: Apis.OBJECTIVE_FACTOR_CONSANGUINITY,
+				search: {objectiveId: objective.objectiveId, targetId: target.uuid}
+			});
+		}));
+		// merge
+		return all.reduce((consanguinity, one) => {
+			(Object.keys(one) as Array<keyof Consanguinity>).forEach((key) => {
+				if (one[key] == null) {
+					return;
+				}
+				if (consanguinity[key] == null) {
+					consanguinity[key] = [];
+				}
+				// @ts-ignore
+				consanguinity[key]!.push(...(one[key]));
+			});
+			return consanguinity;
+		}, {} as Consanguinity);
 	}
 };

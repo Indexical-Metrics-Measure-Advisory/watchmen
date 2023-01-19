@@ -262,4 +262,3 @@ export interface ObjectiveValues {
 	targets: Array<ObjectiveTargetValues>;
 	factors: Array<ObjectiveFactorValues>;
 }
-

@@ -4,33 +4,48 @@ import {PipelineId} from '@/services/data/tuples/pipeline-types';
 import {ReportId} from '@/services/data/tuples/report-types';
 import {SubjectId} from '@/services/data/tuples/subject-types';
 import {ReactNode} from 'react';
-import {matchPath, Navigate, Route} from 'react-router-dom';
+import {Location, matchPath, Navigate, Route} from 'react-router-dom';
 import {Router} from './types';
 
-export const isConnectedSpaceOpened = (connectedSpaceId: ConnectedSpaceId): boolean => {
-	const match = matchPath<'connectId', string>({path: Router.CONSOLE_CONNECTED_SPACE}, window.location.pathname);
+export const isConnectedSpaceOpened = (connectedSpaceId: ConnectedSpaceId, location: Location): boolean => {
+	const match = matchPath<'connectId', string>({path: Router.CONSOLE_CONNECTED_SPACE}, location.pathname);
 	// eslint-disable-next-line
 	return !!match && match.params.connectId == connectedSpaceId;
 };
-export const toConnectedSpace = (connectedSpaceId: ConnectedSpaceId) => Router.CONSOLE_CONNECTED_SPACE.replace(':connectId', connectedSpaceId);
-export const toConnectedSpaceCatalog = (connectedSpaceId: ConnectedSpaceId) => Router.CONSOLE_CONNECTED_SPACE_CATALOG.replace(':connectId', connectedSpaceId);
+export const toConnectedSpace = (connectedSpaceId: ConnectedSpaceId) => {
+	return Router.CONSOLE_CONNECTED_SPACE.replace(':connectId', connectedSpaceId);
+};
+export const toConnectedSpaceCatalog = (connectedSpaceId: ConnectedSpaceId) => {
+	return Router.CONSOLE_CONNECTED_SPACE_CATALOG.replace(':connectId', connectedSpaceId);
+};
 export const toSubject = (connectedSpaceId: ConnectedSpaceId, subjectId: SubjectId) => {
-	return Router.CONSOLE_CONNECTED_SPACE_SUBJECT.replace(':connectId', connectedSpaceId).replace(':subjectId', subjectId);
+	return Router.CONSOLE_CONNECTED_SPACE_SUBJECT
+		.replace(':connectId', connectedSpaceId)
+		.replace(':subjectId', subjectId);
 };
 export const toSubjectDef = (connectedSpaceId: ConnectedSpaceId, subjectId: SubjectId) => {
-	return Router.CONSOLE_CONNECTED_SPACE_SUBJECT_DEF.replace(':connectId', connectedSpaceId).replace(':subjectId', subjectId);
+	return Router.CONSOLE_CONNECTED_SPACE_SUBJECT_DEF
+		.replace(':connectId', connectedSpaceId)
+		.replace(':subjectId', subjectId);
 };
 export const toSubjectData = (connectedSpaceId: ConnectedSpaceId, subjectId: SubjectId) => {
-	return Router.CONSOLE_CONNECTED_SPACE_SUBJECT_DATA.replace(':connectId', connectedSpaceId).replace(':subjectId', subjectId);
+	return Router.CONSOLE_CONNECTED_SPACE_SUBJECT_DATA
+		.replace(':connectId', connectedSpaceId)
+		.replace(':subjectId', subjectId);
 };
 export const toSubjectReports = (connectedSpaceId: ConnectedSpaceId, subjectId: SubjectId) => {
-	return Router.CONSOLE_CONNECTED_SPACE_SUBJECT_REPORT.replace(':connectId', connectedSpaceId).replace(':subjectId', subjectId);
+	return Router.CONSOLE_CONNECTED_SPACE_SUBJECT_REPORT
+		.replace(':connectId', connectedSpaceId)
+		.replace(':subjectId', subjectId);
 };
 export const toSubjectReport = (connectedSpaceId: ConnectedSpaceId, subjectId: SubjectId, reportId: ReportId) => {
-	return Router.CONSOLE_CONNECTED_SPACE_SUBJECT_REPORT_EDIT.replace(':connectId', connectedSpaceId).replace(':subjectId', subjectId).replace(':reportId', reportId);
+	return Router.CONSOLE_CONNECTED_SPACE_SUBJECT_REPORT_EDIT
+		.replace(':connectId', connectedSpaceId)
+		.replace(':subjectId', subjectId)
+		.replace(':reportId', reportId);
 };
-export const isDashboardOpened = (dashboardId: DashboardId): boolean => {
-	const match = matchPath<'dashboardId', string>({path: Router.CONSOLE_DASHBOARD_EDIT}, window.location.pathname);
+export const isDashboardOpened = (dashboardId: DashboardId, location: Location): boolean => {
+	const match = matchPath<'dashboardId', string>({path: Router.CONSOLE_DASHBOARD_EDIT}, location.pathname);
 	// eslint-disable-next-line
 	return !!match && match.params.dashboardId == dashboardId;
 };

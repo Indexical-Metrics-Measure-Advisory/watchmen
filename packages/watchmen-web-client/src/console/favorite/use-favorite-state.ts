@@ -6,7 +6,7 @@ import {Dashboard, DashboardId} from '@/services/data/tuples/dashboard-types';
 import {ICON_CONNECTED_SPACE, ICON_DASHBOARD} from '@/widgets/basic/constants';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {MouseEvent, useEffect, useState} from 'react';
-import {useNavigate} from 'react-router-dom';
+import {useLocation, useNavigate} from 'react-router-dom';
 import {useConsoleEventBus} from '../console-event-bus';
 import {ConsoleEventTypes} from '../console-event-bus-types';
 import {RenderItem, StateData} from './types';
@@ -41,6 +41,7 @@ const buildFavoriteItems = (data: StateData) => {
 
 export const useFavoriteState = () => {
 	const navigate = useNavigate();
+	const location = useLocation();
 	const {on, off, fire} = useConsoleEventBus();
 	const [data, setData] = useState<StateData>({
 		connectedSpaces: [],
@@ -166,11 +167,11 @@ export const useFavoriteState = () => {
 
 	const onItemClicked = (id: string, type: 'dashboard' | 'connected-space') => () => {
 		if (type === 'dashboard') {
-			if (!isDashboardOpened(id)) {
+			if (!isDashboardOpened(id, location)) {
 				navigate(toDashboard(id));
 			}
 		} else if (type === 'connected-space') {
-			if (!isConnectedSpaceOpened(id)) {
+			if (!isConnectedSpaceOpened(id, location)) {
 				navigate(toConnectedSpace(id));
 			}
 		}
