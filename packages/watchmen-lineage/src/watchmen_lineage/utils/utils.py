@@ -79,8 +79,8 @@ def process_ast(asts: List[ConstantAST], parent_facet: LineageNode, target_facto
 					pass  # TODO
 				elif isinstance(function_param, ConstantAST):
 					pass  # TODO
-		else:
-			__process_constant(function_param, graphic, parent_facet, principal_service, target_factor_facet)
+				else:
+					__process_constant(function_param, graphic, parent_facet, principal_service, target_factor_facet)
 
 
 def __process_constant(function_param, graphic, parent_facet, principal_service, target_factor_facet):
@@ -108,11 +108,16 @@ def constant_process_for_subject(parameter_list, graphic, parent_facet, target_f
 
 def process_func_parameter_for_subject(func_parameter, graphic, parent_facet: SubjectFacet, target_factor_facet,
                                        principal_service: PrincipalService):
+	if type(func_parameter) == str:
+		return
 	variable_name = func_parameter.value[0]
 	if variable_name in parent_facet.topicsHolder:
 		subject_topic_holder: SubjectTopicHolder = parent_facet.topicsHolder[variable_name]
 		topic: Topic = subject_topic_holder.topic
+		# print(func_parameter)
 		factor: Factor = find_factor(topic, func_parameter.method)
+
+
 		source_factor_facet = TopicFactorFacet(nodeId=factor.factorId, parentId=topic.topicId)
 		graphic_builder.add_edge_with_relation(graphic, source_factor_facet,
 		                                       target_factor_facet, RelationType.ConstantsReference,
@@ -180,6 +185,7 @@ def parse_parameter(graphic, source: Parameter, target_factor_facet, relation_in
 	elif source.kind == ParameterKind.CONSTANT:
 		source: ConstantParameter = source
 		if source.value:
+			print(source.value)
 			asts: List[ConstantAST] = parse_constant_parameter(source.value)
 			process_ast(asts, parent_facet, target_factor_facet, graphic, principal_service)
 		else:
@@ -205,3 +211,6 @@ def parse_parameter(graphic, source: Parameter, target_factor_facet, relation_in
 			for compute_factor in source.parameters:
 				parse_parameter(graphic, compute_factor, target_factor_facet, relation_info,
 				                parent_facet, principal_service)
+
+
+

@@ -49,9 +49,10 @@ class SubjectLineageBuilder(LineageBuilder):
 	def __process_column_parameter(self, parameter, subject_facet, topic_service):
 		if parameter.kind == ParameterKind.TOPIC and not isRecalculateColumnTopic(parameter.topicId):
 			parameter: TopicFactorParameter = parameter
-			topic: Topic = topic_service.find_by_id(parameter.topicId)
-			if topic.name not in subject_facet.topicsHolder:
-				subject_facet.topicsHolder[topic.name] = SubjectTopicHolder(topic=topic)
+			if parameter.topicId:
+				topic: Topic = topic_service.find_by_id(parameter.topicId)
+				if topic and topic.name not in subject_facet.topicsHolder:
+					subject_facet.topicsHolder[topic.name] = SubjectTopicHolder(topic=topic)
 
 		elif parameter.kind == ParameterKind.COMPUTED:
 			parameter: ComputedParameter = parameter
@@ -78,11 +79,11 @@ class SubjectLineageBuilder(LineageBuilder):
 
 	def build_subject_columns_facet(self, subject: Subject, column: SubjectDatasetColumn, graphic: MultiDiGraph,
 	                                principal_service: PrincipalService):
-		subject_facet = SubjectFacet(nodeId=subject.subjectId)
+		subject_facet = SubjectFacet(nodeId=subject.subjectId,name = subject.name)
 		self.build_subject_topic_dict(subject, subject_facet, principal_service)
 		if column.recalculate:
 			dataset_column_facet: DatasetColumnFacet = DatasetColumnFacet(nodeId=column.columnId,
-			                                                              parentId=subject.subjectId)
+			                                                              parentId=subject.subjectId,name =column.alias)
 			graphic_builder.add_subject_column_node(graphic, dataset_column_facet)
 			if column.parameter.kind == ParameterKind.COMPUTED:
 				parameter: ComputedParameter = column.parameter
@@ -102,7 +103,7 @@ class SubjectLineageBuilder(LineageBuilder):
 
 		else:
 			dataset_column_facet: DatasetColumnFacet = DatasetColumnFacet(nodeId=column.columnId,
-			                                                              parentId=subject.subjectId)
+			                                                              parentId=subject.subjectId,name =column.alias)
 			graphic_builder.add_subject_column_node(graphic, dataset_column_facet)
 			relation_info = RelationTypeHolders(type=RelationType.Query, arithmetic=column.arithmetic)
 			parse_parameter(graphic, column.parameter, dataset_column_facet, relation_info

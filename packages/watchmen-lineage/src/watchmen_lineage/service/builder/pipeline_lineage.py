@@ -5,6 +5,7 @@ from networkx import MultiDiGraph
 
 from src.watchmen_indicator_surface.util import trans_readonly
 from watchmen_auth import PrincipalService
+from watchmen_lineage.lineage_setting import ask_system_topic_lineage
 from watchmen_lineage.model.lineage import PipelineFacet, TopicFacet, TopicFactorFacet, RelationType, \
 	RelationTypeHolders, ReadFactorHolder, ReadTopicHolder, ReadFromMemoryHolder
 from watchmen_lineage.service.builder.loader import LineageBuilder
@@ -25,17 +26,21 @@ def get_pipeline_service(principal_service: PrincipalService) -> PipelineService
 
 def is_valid_factor_id(factorId):
 	"""
-	always return True
+	ask_system_topic_lineage for open system topic lineage
 	:param factorId:
 	:return:
 	"""
-	return True
+	if ask_system_topic_lineage():
+		if factorId.startswith("dra-f"):
+			return False
+		else:
+			return True
+	else:
+		return True
 
 
-# if factorId.startswith("dra-f"):
-# 	return False
-# else:
-# 	return True
+
+
 
 
 class PipelineLineageBuilder(LineageBuilder):

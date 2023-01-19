@@ -2,15 +2,18 @@ from typing import Dict
 
 import networkx as nx
 from networkx import MultiDiGraph
+import sys
+from pydantic import BaseModel
 
 from watchmen_auth import PrincipalService
 from watchmen_lineage.model.lineage import DatasetColumnFacet, LineageNode, LineageRelation, LineageType, \
-	RelationDirection, TopicFactorFacet
+	RelationDirection, TopicFactorFacet, ObjectiveTargetFacet
 from watchmen_lineage.service.builder.index import get_builder
 from watchmen_lineage.service.builder.loader import LineageBuilder
 from watchmen_lineage.utils.id_utils import build_node_id, parse_node_id
+from watchmen_lineage.utils.size_utils import total_size
 from watchmen_lineage.utils.utils import get_source_and_target_key
-from watchmen_model.common import FactorId, ObjectiveTargetId, SubjectDatasetColumnId, SubjectId, TopicId
+from watchmen_model.common import FactorId, ObjectiveTargetId, SubjectDatasetColumnId, SubjectId, TopicId, ObjectiveId
 
 
 class LineageService(object):
@@ -28,6 +31,10 @@ class LineageService(object):
 			builder: LineageBuilder = get_builder(lineage_type)
 			builder.build(tenant_node_graph, principal_service)
 
+
+	def build_lineage_data(self,lineage_type:LineageType,data):
+		pass
+
 	def get_graph_by_tenant(self, principal_service: PrincipalService) -> MultiDiGraph:
 		"""
 
@@ -39,6 +46,10 @@ class LineageService(object):
 		else:
 			self.graphByTenant[principal_service.tenantId] = nx.MultiDiGraph()
 			return self.graphByTenant[principal_service.tenantId]
+
+
+	def update_lineage_data(self,lineage_type:LineageType,source_data:BaseModel):
+		pass
 
 	def fine_lineage_by_factor(self, topic_id: TopicId, factor_id: FactorId,
 	                           principal_service: PrincipalService) -> TopicFactorFacet:
@@ -53,9 +64,13 @@ class LineageService(object):
 		tenant_node_graph: MultiDiGraph = self.get_graph_by_tenant(principal_service)
 		return self.__get_lineage(factor_facet, RelationDirection.IN, tenant_node_graph)
 
-	def find_lineage_by_objective_target(self, objective_target_id: ObjectiveTargetId):
+	def find_lineage_by_objective_target(self, objective_target_id: ObjectiveTargetId,objective_id:ObjectiveId,principal_service: PrincipalService):
+		objective_target_facet: ObjectiveTargetFacet = ObjectiveTargetFacet(nodeId=objective_target_id,parentId=objective_id)
+		tenant_node_graph: MultiDiGraph = self.get_graph_by_tenant(principal_service)
+		attributes = self.__get_node(tenant_node_graph,build_node_id(objective_target_facet))
+		objective_target_facet.name = attributes.get('name')
+		return self.__get_lineage(objective_target_facet, RelationDirection.IN, tenant_node_graph)
 
-		pass
 
 	def find_lineage_by_subject_column(self, subject_id: SubjectId, column_id: SubjectDatasetColumnId,
 	                                   principal_service: PrincipalService) -> DatasetColumnFacet:
@@ -77,7 +92,8 @@ class LineageService(object):
 		if edges:
 			for edge in edges:
 				lineage: LineageRelation = get_source_and_target_key(edge)
-				lineage_node: LineageNode = parse_node_id(lineage.sourceId)
+				attributes:Dict = self.__get_node(tenant_node_graph, lineage.sourceId)
+				lineage_node: LineageNode = parse_node_id(lineage.sourceId,attributes)
 				lineage.subNode = lineage_node
 				self.__get_lineage(lineage_node, direction, tenant_node_graph)
 				facet.relations.append(lineage)
@@ -92,8 +108,17 @@ class LineageService(object):
 		elif direction == RelationDirection.OUT:
 			return graphic.out_edges(node_id, data=True)
 
+	@staticmethod
+	def __get_node(graphic: MultiDiGraph, node_id:str):
+		return graphic.nodes[node_id]
+
+
+
 	def graph_json(self, principal_service: PrincipalService):
 		graphic = self.get_graph_by_tenant(principal_service)
 		graph_json = nx.node_link_data(graphic)
-		print(graph_json)
+		# print(graph_json)
+
+		# print("The size of the dictionary is {} key".format(self.count_keys(graph_json)))
+		print(total_size(graph_json))
 		return graph_json

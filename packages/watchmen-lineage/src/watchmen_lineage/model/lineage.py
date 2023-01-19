@@ -3,10 +3,11 @@ from typing import List, Dict, Optional
 
 from pydantic import BaseModel
 
-from watchmen_model.admin import FactorType, Topic
+from watchmen_model.admin import FactorType, Topic, Factor
 from watchmen_model.common import TopicId, SubjectId, DashboardId, PipelineId, PipelineStageId, PipelineUnitId, \
 	PipelineActionId, FactorId, Parameter, ObjectiveFactorId, ObjectiveId
-from watchmen_model.indicator import ObjectiveFactor
+from watchmen_model.console import Subject, SubjectDataset, SubjectDatasetColumn
+from watchmen_model.indicator import ObjectiveFactor, Objective, ObjectiveTarget, Indicator
 
 
 class LineageType(Enum):
@@ -20,8 +21,8 @@ class LineageType(Enum):
 	INDICATOR = "INDICATOR"
 	DERIVATIVE = "DERIVATIVE"
 	OBJECTIVE = "OBJECTIVE"
-	OBJECTIVE_TARGET = "OBJECTIVE_TARGET"
-	OBJECTIVE_INDICATOR = "OBJECTIVE_INDICATOR"
+	OBJECTIVE_TARGET = "OBJECTIVE-TARGET"
+	OBJECTIVE_INDICATOR = "OBJECTIVE-INDICATOR"
 
 
 class TypeOfAnalysis(Enum):
@@ -53,6 +54,7 @@ class RelationTypeHolders(BaseModel):
 
 
 class LineageNode(BaseModel):
+	name: str = None
 	nodeId: str = None
 	attributes: Dict = {}
 	inCount: int = None
@@ -69,7 +71,7 @@ class LineageRelation(BaseModel):
 	relationType: RelationType = None
 	subNode: LineageNode = None
 	attributes: Dict = None
-	direction: RelationDirection = None
+# direction: RelationDirection = None
 
 
 class ReadFactorHolder(BaseModel):
@@ -161,12 +163,6 @@ class IndicatorFacet(LineageNode):
 	relations: List[LineageRelation] = []
 
 
-#
-# class MetricDerivativeFacet(LineageNode):
-# 	lineageType: LineageType = LineageType.DERIVATIVE
-# 	relations: List[LineageRelation] = []
-
-
 class ObjectiveFacet(LineageNode):
 	lineageType: LineageType = LineageType.OBJECTIVE
 	relations: List[LineageRelation] = []
@@ -176,8 +172,66 @@ class ObjectiveFacet(LineageNode):
 class ObjectiveTargetFacet(LineageNode):
 	lineageType: LineageType = LineageType.OBJECTIVE_TARGET
 	parentId: ObjectiveId = None
+	relations: List[LineageRelation] = []
 
 
 class ObjectiveFactorFacet(LineageNode):
 	lineageType: LineageType = LineageType.OBJECTIVE_INDICATOR
 	parentId: ObjectiveId = None
+	relations: List[LineageRelation] = []
+
+
+
+
+
+class CidModel(BaseModel):
+	cid: str = None
+
+
+class ObjectiveTargetLineage(ObjectiveTarget, CidModel):
+	pass
+
+
+class ObjectiveFactorLineage(ObjectiveFactor, CidModel):
+	pass
+
+
+class ObjectiveLineage(Objective):
+	targets: List[ObjectiveTargetLineage] = []
+	factors: List[ObjectiveFactorLineage] = []
+
+
+class FactorLineage(Factor, CidModel):
+	pass
+
+
+class TopicLineage(Topic):
+	factors: List[FactorLineage] = []
+
+
+class SubjectDatasetColumnLineage(SubjectDatasetColumn, CidModel):
+	pass
+
+
+class SubjectDatasetLineage(SubjectDataset):
+	columns: List[SubjectDatasetColumnLineage] = []
+
+
+class SubjectLineage(Subject):
+	dataset: SubjectDatasetLineage = None
+
+
+class IndicatorLineage(Indicator,CidModel):
+	pass
+
+
+
+
+class LineageResult(BaseModel):
+	relations: List[LineageRelation] = []
+	objectives:List[ObjectiveLineage] = []
+	topics:List[TopicLineage] = []
+	subjects:List[SubjectLineage] =[]
+	indicators:List[IndicatorLineage] = []
+
+

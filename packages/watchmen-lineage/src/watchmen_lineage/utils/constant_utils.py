@@ -24,7 +24,7 @@ grammar_dict = {
 }
 
 function_dictionary = {'nextSeq', 'dateDiff', 'now', 'sum', 'length', 'old', 'count', 'monthDiff', 'yearDiff',
-                       'fmtDate', 'moveDate'}
+                       'fmtDate', 'moveDate',"dayDiff"}
 
 
 def ask_function(curr_word):
@@ -124,7 +124,7 @@ def process_punctuation(ch, constant_value: str, context: AstContext, current_as
 		current_param, current_ast = call_method(constant_value, current_ast, context, current_param)
 		current = ASTObject.method
 	elif "," == ch:
-		current_param = split_param(constant_value, current_ast, current_param, current, context)
+		current_param,context = split_param(constant_value, current_ast, current_param, current, context)
 	return '', context, current_ast, current_param, current
 
 
@@ -137,8 +137,10 @@ def split_param(constant_value: str, current_ast: ConstantAST, current_param: Fu
 
 	current_ast.funcAst.params.append(current_param)
 	current_param = None
+	if context == AstContext.START_FUNCTION_PARAMETER:
+	   context = AstContext.START_PARAMETER
 
-	return current_param
+	return current_param,context
 
 
 def call_method(constant_value, current_ast: ConstantAST, context: AstContext, current_param: FuncParameter):
@@ -215,11 +217,12 @@ def is_word(key: str):
 
 
 #
-# print(parse_constant_parameter("{constant}"))
+# print(parse_constant_parameter("{&dayDiff(&now,eb_policy_listing.effective_dt)}"))
 # # #
 # print(parse_constant_parameter("{x.t}  {b.s}"))
 # print(parse_constant_parameter("{da.b.c}  {b.s}"))
 # print(parse_constant_parameter("{&nextSeq}"))
-# print(parse_constant_parameter("{&moveDate(ts.dd,Y+1)}"))
+print(parse_constant_parameter("{&moveDate(eb_policy_listing.expiry_dt,Y+3D99)}"))
+
 # print(parse_constant_parameter("{&x.daa}"))
 # print(parse_constant_parameter("{&dateDiff(test.date,test2.date2)}"))

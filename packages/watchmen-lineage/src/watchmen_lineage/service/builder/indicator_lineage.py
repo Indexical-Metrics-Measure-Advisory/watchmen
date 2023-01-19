@@ -33,7 +33,8 @@ class IndicatorLineageBuilder(LineageBuilder):
 	                          principal_service: PrincipalService):
 		for indicator in indicator_list:
 			if is_valid_factor_id(indicator.factorId):
-				indicator_facet = IndicatorFacet(nodeId=indicator.indicatorId)
+				indicator_facet = IndicatorFacet(nodeId=indicator.indicatorId,name= indicator.name)
+				graphic_builder.add_indicator_facet(graphic,indicator_facet)
 				if indicator.baseOn == IndicatorBaseOn.TOPIC:
 					topic_facet: TopicFactorFacet = TopicFactorFacet(nodeId=indicator.factorId,
 					                                                 parentId=indicator.topicOrSubjectId)
