@@ -452,6 +452,7 @@ export const Zh: LanguageDeclareType = {
 			TARGET_CHAIN_VALUE: '同比',
 			TARGET_FINISH_RATE: '完成率',
 			ADD_TARGET: '添加新目标',
+			TARGET_CONSANGUINITY: '数据血缘',
 			TIME_FRAME_TITLE: '划定时间窗口.',
 			TIME_FRAME_KIND: '窗口类型:',
 			TIME_FRAME_KIND_NONE: '非时间窗口相关',
@@ -537,8 +538,8 @@ export const Zh: LanguageDeclareType = {
 			ADD_SUB_EXPRESSION: '添加过滤条件',
 			ADD_SUB_JOINT: '添加子联合条件',
 			TEST_FACTOR: '指标值',
-			TEST_FACTOR_CLICK: '点击获取指标值',
-			TEST_FACTOR_GET_NONE: '没有获取到数据.'
+			TEST_VALUE_CLICK: '点击获取值',
+			TEST_VALUE_GET_NONE: '没有获取到数据.'
 		}
 	},
 	SUBSCRIBE: {

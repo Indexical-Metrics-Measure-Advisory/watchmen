@@ -15,7 +15,7 @@ export const FactorItemTest = (props: {
 
 	if (values.failed) {
 		return <>
-			<FactorItemLabel>{Lang.INDICATOR.OBJECTIVE.TEST_FACTOR_GET_NONE}</FactorItemLabel>
+			<FactorItemLabel>{Lang.INDICATOR.OBJECTIVE.TEST_VALUE_GET_NONE}</FactorItemLabel>
 			<TestValueContainer>
 				<TestValue/>
 			</TestValueContainer>
