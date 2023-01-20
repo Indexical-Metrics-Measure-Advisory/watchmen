@@ -1,15 +1,13 @@
+import {ConsanguinityEventTypes, useConsanguinityEventBus} from '@/consanguinity';
 import {Objective, ObjectiveFactor, ObjectiveTarget} from '@/services/data/tuples/objective-types';
 import {generateUuid} from '@/services/data/tuples/utils';
 import {noop} from '@/services/utils';
 import {ButtonInk} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
-import {useEventBus} from '@/widgets/events/event-bus';
-import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import React, {useEffect} from 'react';
 import {useObjectivesEventBus} from '../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
-import {ObjectiveConsanguinityDiagram} from '../consanguinity';
 import {EditStep} from '../edit-step';
 import {useValuesFetched} from '../hooks/use-ask-values';
 import {ObjectiveDeclarationStep} from '../steps';
@@ -21,8 +19,8 @@ import {TargetsContainer} from './widgets';
 export const Targets = (props: { objective: Objective }) => {
 	const {objective} = props;
 
-	const {fire: fireGlobal} = useEventBus();
 	const {on, off, fire} = useObjectivesEventBus();
+	const {fire: fireConsanguinity} = useConsanguinityEventBus();
 	const {findTargetValues} = useValuesFetched();
 	const forceUpdate = useForceUpdate();
 	useEffect(() => {
@@ -34,8 +32,8 @@ export const Targets = (props: { objective: Objective }) => {
 			off(ObjectivesEventTypes.FACTOR_ADDED, onFactorChanged);
 			off(ObjectivesEventTypes.FACTOR_REMOVED, onFactorChanged);
 			off(ObjectivesEventTypes.FACTOR_INDICATOR_CHANGED, onFactorChanged);
-		}
-	}, [on, off, forceUpdate])
+		};
+	}, [on, off, forceUpdate]);
 
 	if (objective.targets == null) {
 		objective.targets = [];
@@ -58,12 +56,11 @@ export const Targets = (props: { objective: Objective }) => {
 	};
 	const onTestClicked = () => fire(ObjectivesEventTypes.ASK_VALUES);
 	const onConsanguinityClicked = () => {
-		fireGlobal(EventTypes.SHOW_DIALOG, <ObjectiveConsanguinityDiagram objective={objective}/>, {
-			marginTop: '10vh',
-			marginLeft: '20%',
-			width: '60%',
-			height: '80vh'
-		});
+		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, (_, saved) => {
+			if (saved) {
+				fireConsanguinity(ConsanguinityEventTypes.ASK_SINGLE_OBJECTIVE, objective);
+			}
+		}, true);
 	};
 
 	const targets: Array<ObjectiveTarget> = objective.targets || [];

@@ -1051,5 +1051,24 @@ export const Jp: LanguageDeclareType = {
 		SLEEPING_TIME: '睡眠時間',
 		AM: '朝',
 		PM: '午後'
+	},
+	CONSANGUINITY: {
+		OBJECTIVE_TARGET_BLOCK_LABEL: '目標',
+		OBJECTIVE_FACTOR_BLOCK_LABEL: '測定方法',
+		INDICATOR_BLOCK_LABEL: '指標',
+		SUBJECT_BLOCK_LABEL: '主題',
+		REPORT_BLOCK_LABEL: 'フィルタ',
+		TOPIC_BLOCK_LABEL: 'トピック',
+		BUCKET_BLOCK_LABEL: 'バケット',
+		ENUM_BLOCK_LABEL: '列挙',
+		NO_OBJECTIVE_TARGET_FOUND: '目標定義が見つかりませんでした。',
+		NONAME_OBJECTIVE_TARGET: '名前のない目標',
+		NONAME_OBJECTIVE_FACTOR: '名前のない測定方法',
+		NONAME_INDICATOR: '名前のない指標',
+		NONAME_SUBJECT: '名前のない主題',
+		NONAME_REPORT: '名前のないフィルタ',
+		NONAME_TOPIC: '名前のないトピック',
+		NONAME_BUCKET: '名前のないバケット',
+		NONAME_ENUM: '名前のない列挙'
 	}
 };

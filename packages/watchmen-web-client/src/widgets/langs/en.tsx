@@ -1051,5 +1051,24 @@ export const En = {
 		SLEEPING_TIME: 'Sleeping Time',
 		AM: 'AM',
 		PM: 'PM'
+	},
+	CONSANGUINITY: {
+		OBJECTIVE_TARGET_BLOCK_LABEL: 'Targets',
+		OBJECTIVE_FACTOR_BLOCK_LABEL: 'Measure Indicators',
+		INDICATOR_BLOCK_LABEL: 'Indicators',
+		SUBJECT_BLOCK_LABEL: 'Subjects',
+		REPORT_BLOCK_LABEL: 'Reports',
+		TOPIC_BLOCK_LABEL: 'Topics',
+		BUCKET_BLOCK_LABEL: 'Buckets',
+		ENUM_BLOCK_LABEL: 'Enums',
+		NO_OBJECTIVE_TARGET_FOUND: 'No objective target found.',
+		NONAME_OBJECTIVE_TARGET: 'Noname Objective Target',
+		NONAME_OBJECTIVE_FACTOR: 'Noname Measure Indicator',
+		NONAME_INDICATOR: 'Noname Indicator',
+		NONAME_SUBJECT: 'Noname Subject',
+		NONAME_REPORT: 'Noname Report',
+		NONAME_TOPIC: 'Noname Topic',
+		NONAME_BUCKET: 'Noname Bucket',
+		NONAME_ENUM: 'Noname Enum'
 	}
 };

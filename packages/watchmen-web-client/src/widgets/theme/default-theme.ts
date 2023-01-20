@@ -170,7 +170,12 @@ const DefaultTheme = {
 	achievementCategoryColor: 'var(--info-color)',
 	achievementCandidateColor: 'var(--success-color)',
 	achievementScoreSumColor: 'rgb(69,146,70)',
-	achievementPluginColor: 'rgb(215,124,99)'
+	achievementPluginColor: 'rgb(215,124,99)',
+
+	consanguinityContainerBgColor: '#F3F4F5',
+	consanguinityBlockBgColor: '#ECEDEE',
+	consanguinityBlockShadow: '5px 5px 15px 0 rgb(0 0 0 / 10%) inset, -10px -10px 10px 0 #fff inset',
+	consanguinityNodeShadow: '5px 5px 15px 0 rgba(0,0,0,0.3)'
 };
 
 export default DefaultTheme;

@@ -1,8 +1,17 @@
+import {MonthlyOrderPremiumIndicator} from '@/services/data/mock/tuples/mock-data-indicators';
 import {TuplePage} from '../../query/tuple-page';
-import {Consanguinity} from '../../tuples/consanguinity';
+import {
+	Consanguinity,
+	ConsanguinityIndicator,
+	ConsanguinityLineType,
+	ConsanguinityObjective,
+	ConsanguinityObjectiveFactor,
+	ConsanguinityObjectiveTarget,
+	ConsanguinityUniqueId
+} from '../../tuples/consanguinity';
 import {Objective, ObjectiveFactor, ObjectiveId, ObjectiveValues} from '../../tuples/objective-types';
 import {QueryObjective} from '../../tuples/query-objective-types';
-import {isFakedUuid} from '../../tuples/utils';
+import {generateUuid, isFakedUuid} from '../../tuples/utils';
 import {DemoObjectives, MonthlySalesObjective} from './mock-data-objectives';
 
 export const listMockObjectives = async (options: {
@@ -82,7 +91,53 @@ export const askMockObjectiveValues = async (objective: Objective): Promise<Obje
 export const fetchMockConsanguinity = async (objective: Objective): Promise<Consanguinity> => {
 	return new Promise<Consanguinity>(resolve => {
 		setTimeout(() => {
-			resolve({});
+			const cidMap: Record<ConsanguinityUniqueId, boolean> = {};
+			const askCid = (): ConsanguinityUniqueId => {
+				const cid = generateUuid();
+				if (cidMap[cid]) {
+					return askCid();
+				} else {
+					cidMap[cid] = true;
+					return cid;
+				}
+			};
+
+			const objectives = DemoObjectives.map(objective => {
+				const cloned: Objective = JSON.parse(JSON.stringify(objective));
+				(cloned.targets || []).forEach(target => (target as ConsanguinityObjectiveTarget)['@cid'] = askCid());
+				(cloned.factors || []).forEach(factor => (factor as ConsanguinityObjectiveFactor)['@cid'] = askCid());
+				return cloned as unknown as ConsanguinityObjective;
+			});
+			const indicators: Array<ConsanguinityIndicator> = [
+				{...MonthlyOrderPremiumIndicator, '@cid': askCid()}
+			];
+
+			resolve({
+				objectives, indicators,
+				relations: [
+					{
+						'@cid': objectives[0].targets[0]['@cid'],
+						from: [{
+							'@cid': objectives[0].factors[0]['@cid'],
+							type: ConsanguinityLineType.OBJECTIVE_FACTOR_TO_TARGET__REFER
+						}]
+					},
+					{
+						'@cid': objectives[0].targets[1]['@cid'],
+						from: [{
+							'@cid': objectives[0].factors[0]['@cid'],
+							type: ConsanguinityLineType.OBJECTIVE_FACTOR_TO_TARGET__COMPUTE
+						}]
+					},
+					{
+						'@cid': objectives[0].factors[0]['@cid'],
+						from: [{
+							'@cid': indicators[0]['@cid'],
+							type: ConsanguinityLineType.INDICATOR_TO_OBJECTIVE_FACTOR
+						}]
+					}
+				]
+			});
 		}, 1000);
 	});
 };

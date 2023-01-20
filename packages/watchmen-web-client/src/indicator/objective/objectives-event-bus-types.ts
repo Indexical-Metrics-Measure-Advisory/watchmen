@@ -71,9 +71,9 @@ export interface ObjectivesEventBus {
 	on(type: ObjectivesEventTypes.ASK_OBJECTIVE, listener: (onData: (objective?: Objective) => void) => void): this;
 	off(type: ObjectivesEventTypes.ASK_OBJECTIVE, listener: (onData: (objective?: Objective) => void) => void): this;
 
-	fire(type: ObjectivesEventTypes.SAVE_OBJECTIVE, objective: Objective, onSaved: (objective: Objective, saved: boolean) => void): this;
-	on(type: ObjectivesEventTypes.SAVE_OBJECTIVE, listener: (objective: Objective, onSaved: (objective: Objective, saved: boolean) => void) => void): this;
-	off(type: ObjectivesEventTypes.SAVE_OBJECTIVE, listener: (objective: Objective, onSaved: (objective: Objective, saved: boolean) => void) => void): this;
+	fire(type: ObjectivesEventTypes.SAVE_OBJECTIVE, objective: Objective, onSaved: (objective: Objective, saved: boolean) => void, immediately?: boolean): this;
+	on(type: ObjectivesEventTypes.SAVE_OBJECTIVE, listener: (objective: Objective, onSaved: (objective: Objective, saved: boolean) => void, immediately?: boolean) => void): this;
+	off(type: ObjectivesEventTypes.SAVE_OBJECTIVE, listener: (objective: Objective, onSaved: (objective: Objective, saved: boolean) => void, immediately?: boolean) => void): this;
 
 	fire(type: ObjectivesEventTypes.OBJECTIVE_SAVED, objective: Objective): this;
 	on(type: ObjectivesEventTypes.OBJECTIVE_SAVED, listener: (objective: Objective) => void): this;
