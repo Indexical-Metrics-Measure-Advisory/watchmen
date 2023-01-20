@@ -13,8 +13,9 @@ export const useSaveObjective = () => {
 	const saveQueue = useThrottler();
 
 	useEffect(() => {
-		const onSaveObjective = (objective: Objective, onSaved: (objective: Objective, saved: boolean) => void) => {
-			saveQueue.replace(() => {
+		const onSaveObjective = (objective: Objective, onSaved: (objective: Objective, saved: boolean) => void, immediately?: boolean) => {
+			if (immediately) {
+				saveQueue.clear(false);
 				fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
 					async () => await saveObjective(objective),
 					() => {
@@ -22,7 +23,17 @@ export const useSaveObjective = () => {
 						onSaved(objective, true);
 					},
 					() => onSaved(objective, false));
-			}, 500);
+			} else {
+				saveQueue.replace(() => {
+					fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
+						async () => await saveObjective(objective),
+						() => {
+							fire(ObjectivesEventTypes.OBJECTIVE_SAVED, objective);
+							onSaved(objective, true);
+						},
+						() => onSaved(objective, false));
+				}, 500);
+			}
 		};
 		on(ObjectivesEventTypes.SAVE_OBJECTIVE, onSaveObjective);
 		return () => {

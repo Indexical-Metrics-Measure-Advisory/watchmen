@@ -496,7 +496,7 @@ export const Zh: LanguageDeclareType = {
 			VARIABLE_BUCKET_SEGMENT_NO_AVAILABLE: '没有可供选择的分段.',
 			ADD_VARIABLE: '添加新变量',
 			REMOVE_VARIABLE: '移除变量',
-			FACTORS_TITLE: '指标构成.',
+			FACTORS_TITLE: '测量方法.',
 			FACTOR_INDICATOR: '指标',
 			FACTOR_INDICATOR_FILTER: '过滤条件',
 			FACTOR_FORMULA: '计算方法',
@@ -1051,5 +1051,24 @@ export const Zh: LanguageDeclareType = {
 		SLEEPING_TIME: '睡眠时间',
 		AM: '上午',
 		PM: '下午'
+	},
+	CONSANGUINITY: {
+		OBJECTIVE_TARGET_BLOCK_LABEL: '目标',
+		OBJECTIVE_FACTOR_BLOCK_LABEL: '测量方法',
+		INDICATOR_BLOCK_LABEL: '指标',
+		SUBJECT_BLOCK_LABEL: '主题',
+		REPORT_BLOCK_LABEL: '图表',
+		TOPIC_BLOCK_LABEL: '数据集',
+		BUCKET_BLOCK_LABEL: '数据分桶',
+		ENUM_BLOCK_LABEL: '枚举',
+		NO_OBJECTIVE_TARGET_FOUND: '没有找到目标定义.',
+		NONAME_OBJECTIVE_TARGET: '未命名目标',
+		NONAME_OBJECTIVE_FACTOR: '未命名测量方法',
+		NONAME_INDICATOR: '未命名指标',
+		NONAME_SUBJECT: '未命名主题',
+		NONAME_REPORT: '未命名图表',
+		NONAME_TOPIC: '未命名数据集',
+		NONAME_BUCKET: '未命名数据分桶',
+		NONAME_ENUM: '未命名枚举'
 	}
 };

@@ -59,6 +59,7 @@ export const IndicatorDropdown = styled(Dropdown).attrs<{ valid: boolean }>({})<
 	width            : unset;
 	margin-top       : calc(var(--height) / 2 - var(--param-height) / 2);
 	margin-left      : calc(var(--margin) / -2);
+	margin-bottom    : calc(var(--height) / 2 - var(--param-height) / 2);
 	&:hover,
 	&:focus-within {
 		z-index    : 1;

@@ -1,3 +1,4 @@
+import {ConsanguinityDiagram, ConsanguinityEventBusProvider} from '@/consanguinity';
 import {FixWidthPage} from '@/widgets/basic/page';
 import {PageHeader} from '@/widgets/basic/page-header';
 import {Lang} from '@/widgets/langs';
@@ -23,14 +24,17 @@ export const ObjectiveEditor = () => {
 	return <FixWidthPage>
 		<ObjectiveValuesHandler objective={objective}/>
 		<PageHeader title={Lang.INDICATOR.OBJECTIVE.TITLE}/>
-		<ObjectiveContainer>
-			<Targets objective={objective}/>
-			<TimeFrame objective={objective}/>
-			<Variables objective={objective}/>
-			<Factors objective={objective}/>
-			<NameAndSave objective={objective}/>
-			<UserGroup objective={objective}/>
-			<Description objective={objective}/>
-		</ObjectiveContainer>
+		<ConsanguinityEventBusProvider>
+			<ObjectiveContainer>
+				<Targets objective={objective}/>
+				<TimeFrame objective={objective}/>
+				<Variables objective={objective}/>
+				<Factors objective={objective}/>
+				<NameAndSave objective={objective}/>
+				<UserGroup objective={objective}/>
+				<Description objective={objective}/>
+			</ObjectiveContainer>
+			<ConsanguinityDiagram/>
+		</ConsanguinityEventBusProvider>
 	</FixWidthPage>;
 };
