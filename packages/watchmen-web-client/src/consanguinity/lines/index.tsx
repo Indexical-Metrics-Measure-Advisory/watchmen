@@ -1,4 +1,5 @@
 import {Consanguinity, ConsanguinityUniqueId} from '@/services/data/tuples/consanguinity';
+import {generateUuid} from '@/services/data/tuples/utils';
 import {useEffect, useRef, useState} from 'react';
 import {
 	DiagramIndicatorMap,
@@ -85,7 +86,7 @@ export const ConsanguinityLines = (props: {
 
 	return <ConsanguinityLinesContainer ref={ref}>
 		{lines.data.map(line => {
-			return <ConsanguinityLine data={line}/>;
+			return <ConsanguinityLine data={line} key={generateUuid()}/>;
 		})}
 	</ConsanguinityLinesContainer>;
 };

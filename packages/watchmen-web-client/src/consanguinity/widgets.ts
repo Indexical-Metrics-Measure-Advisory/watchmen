@@ -1,18 +1,13 @@
 import styled from 'styled-components';
 
 export const ConsanguinityDiagram = styled.div.attrs({
-	'data-widget': 'consanguinity',
-	'data-v-scroll': '',
-	'data-h-scroll': ''
+	'data-widget': 'consanguinity'
 })`
-	display               : grid;
-	position              : relative;
-	flex-grow             : 1;
-	grid-column-gap       : calc(var(--margin) * 1.5);
-	grid-row-gap          : calc(var(--margin) * 1.5);
-	overflow              : auto;
-	padding-bottom        : calc(var(--margin) / 1);
-	padding-right         : calc(var(--margin) / 1);
+	display         : grid;
+	position        : relative;
+	flex-grow       : 1;
+	grid-column-gap : calc(var(--margin) * 1.5);
+	grid-row-gap    : calc(var(--margin) * 1.5);
 `;
 export const ConsanguinityBlockContainer = styled.div.attrs({'data-widget': 'consanguinity-block'})`
 	display        : flex;

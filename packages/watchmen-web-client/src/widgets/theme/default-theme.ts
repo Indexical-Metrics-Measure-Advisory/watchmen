@@ -175,7 +175,8 @@ const DefaultTheme = {
 	consanguinityContainerBgColor: '#F3F4F5',
 	consanguinityBlockBgColor: '#ECEDEE',
 	consanguinityBlockShadow: '5px 5px 15px 0 rgb(0 0 0 / 10%) inset, -10px -10px 10px 0 #fff inset',
-	consanguinityNodeShadow: '5px 5px 15px 0 rgba(0,0,0,0.3)'
+	consanguinityNodeShadow: '5px 5px 15px 0 rgba(0,0,0,0.3)',
+	consanguinityLineColor: 'rgb(161, 161, 161)'
 };
 
 export default DefaultTheme;
