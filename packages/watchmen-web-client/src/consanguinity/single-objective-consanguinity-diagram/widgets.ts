@@ -37,7 +37,7 @@ export const Loading = styled.div`
 	}
 `;
 export const ObjectiveConsanguinityDiagram = styled(ConsanguinityDiagram)`
-	grid-template-columns : repeat(1fr, 4);
+	grid-template-columns : repeat(4, 1fr);
 	grid-template-rows    : auto 1fr;
 	> div[data-widget=consanguinity-block]:nth-child(5) {
 		grid-column : 1 / span 4;
