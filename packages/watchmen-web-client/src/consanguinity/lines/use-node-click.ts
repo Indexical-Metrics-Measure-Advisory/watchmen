@@ -3,23 +3,35 @@ import {useEffect, useState} from 'react';
 // noinspection ES6PreferShortImport
 import {useConsanguinityEventBus} from '../consanguinity-event-bus';
 // noinspection ES6PreferShortImport
-import {ConsanguinityEventTypes} from '../consanguinity-event-bus-types';
+import {ConsanguinityEventTypes, RouteConsanguinityUniqueIds} from '../consanguinity-event-bus-types';
 
-export enum LineActive {
+export enum LineActiveStatus {
 	NONE = 'none',
-	SELECTED = 'selected'
+	SELECTED = 'selected',
+	DIRECT = 'direct',
+	SAME_ROUTE = 'same-route'
 }
 
 export const useNodeClick = (fromCid: ConsanguinityUniqueId, toCid: ConsanguinityUniqueId) => {
+	const [active, setActive] = useState<LineActiveStatus>(LineActiveStatus.NONE);
 	const {on, off} = useConsanguinityEventBus();
-	const [active, setActive] = useState(LineActive.NONE);
 	useEffect(() => {
-		const onNodeSelected = (cid: ConsanguinityUniqueId) => {
-			setActive((cid === fromCid || cid === toCid) ? LineActive.SELECTED : LineActive.NONE);
+		const onActiveSameRoute = (cids: RouteConsanguinityUniqueIds) => {
+			const {center, direct, sameRoute} = cids;
+			if (center === toCid) {
+				// direct with center
+				setActive(LineActiveStatus.SELECTED);
+			} else if (direct.includes(toCid)) {
+				setActive(LineActiveStatus.SAME_ROUTE);
+			} else if (sameRoute.includes(fromCid) && sameRoute.includes(toCid)) {
+				setActive(LineActiveStatus.SAME_ROUTE);
+			} else {
+				setActive(LineActiveStatus.NONE);
+			}
 		};
-		on(ConsanguinityEventTypes.NODE_SELECTED, onNodeSelected);
+		on(ConsanguinityEventTypes.ACTIVE_SAME_ROUTE, onActiveSameRoute);
 		return () => {
-			off(ConsanguinityEventTypes.NODE_SELECTED, onNodeSelected);
+			off(ConsanguinityEventTypes.ACTIVE_SAME_ROUTE, onActiveSameRoute);
 		};
 	}, [on, off, fromCid, toCid]);
 	return {active};

@@ -71,13 +71,7 @@ export const ConsanguinityLines = (props: {
 		topicFactorMap: DiagramTopicFactorMap;
 	}
 }) => {
-	const {
-		consanguinity,
-		maps: {
-			objectiveTargetMap: targetMap, objectiveFactorMap: factorMap,
-			indicatorMap, subjectColumnMap, topicFactorMap
-		}
-	} = props;
+	const {consanguinity} = props;
 
 	const ref = useRef<HTMLDivElement>(null);
 	const [lines, setLines] = useState<{ painted: boolean; data: Array<LineData> }>({painted: false, data: []});

@@ -26,12 +26,30 @@ export const ConsanguinityLineContainer = styled.svg.attrs<{ rect: LineData }>((
 	display  : block;
 	position : absolute;
 	&[data-active=selected] {
-		z-index : 2;
+		z-index : 3;
 		> path[data-type=start] {
-			fill : var(--consanguinity-line-active-color);
+			fill : var(--consanguinity-line-selected-color);
 		}
 		> path[data-type=line] {
-			stroke : var(--consanguinity-line-active-color);
+			stroke : var(--consanguinity-line-selected-color);
+		}
+	}
+	&[data-active=direct] {
+		z-index : 2;
+		> path[data-type=start] {
+			fill : var(--consanguinity-line-direct-color);
+		}
+		> path[data-type=line] {
+			stroke : var(--consanguinity-line-direct-color);
+		}
+	}
+	&[data-active=same-route] {
+		z-index : 1;
+		> path[data-type=start] {
+			fill : var(--consanguinity-line-same-route-color);
+		}
+		> path[data-type=line] {
+			stroke : var(--consanguinity-line-same-route-color);
 		}
 	}
 	> path[data-type=start] {

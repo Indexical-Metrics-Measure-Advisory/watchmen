@@ -29,6 +29,20 @@ export const NodeContainer = styled.div.attrs({'data-widget': 'consanguinity-nod
 			background-color : var(--consanguinity-node-selected-bg-color);
 		}
 	}
+	&[data-active=direct] {
+		color : var(--invert-color);
+		box-shadow     : var(--consanguinity-node-direct-shadow);
+		&:before {
+			background-color : var(--consanguinity-node-direct-bg-color);
+		}
+	}
+	&[data-active=same-route] {
+		color : var(--invert-color);
+		box-shadow     : var(--consanguinity-node-same-route-shadow);
+		&:before {
+			background-color : var(--consanguinity-node-same-route-bg-color);
+		}
+	}
 `;
 export const NodeTitle = styled.div.attrs({'data-widget': 'consanguinity-node-title'})`
 	display         : flex;
@@ -71,6 +85,22 @@ export const NodeItem = styled.div.attrs({'data-widget': 'consanguinity-node-ite
 		color            : var(--invert-color);
 		background-color : var(--consanguinity-node-selected-bg-color);
 		border-color     : var(--consanguinity-node-selected-bg-color);
+		&:not(:first-child) {
+			border-top-color : transparent;
+		}
+	}
+	&[data-active=direct] {
+		color            : var(--invert-color);
+		background-color : var(--consanguinity-node-direct-bg-color);
+		border-color     : var(--consanguinity-node-direct-bg-color);
+		&:not(:first-child) {
+			border-top-color : transparent;
+		}
+	}
+	&[data-active=same-route] {
+		color            : var(--invert-color);
+		background-color : var(--consanguinity-node-same-route-bg-color);
+		border-color     : var(--consanguinity-node-same-route-bg-color);
 		&:not(:first-child) {
 			border-top-color : transparent;
 		}

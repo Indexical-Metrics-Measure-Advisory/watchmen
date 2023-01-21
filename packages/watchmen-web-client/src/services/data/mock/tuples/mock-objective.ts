@@ -1,4 +1,3 @@
-import {IndicatorAggregateArithmetic} from '@/services/data/tuples/indicator-types';
 import {TuplePage} from '../../query/tuple-page';
 import {
 	Consanguinity,
@@ -11,6 +10,7 @@ import {
 	ConsanguinitySubjectColumn,
 	ConsanguinityUniqueId
 } from '../../tuples/consanguinity';
+import {IndicatorAggregateArithmetic} from '../../tuples/indicator-types';
 import {Objective, ObjectiveFactor, ObjectiveId, ObjectiveValues} from '../../tuples/objective-types';
 import {QueryObjective} from '../../tuples/query-objective-types';
 import {SubjectColumnArithmetic} from '../../tuples/subject-types';
@@ -185,6 +185,34 @@ export const fetchMockConsanguinity = async (objective: Objective): Promise<Cons
 						}]
 					},
 					{
+						'@cid': objectives[0].factors[0]['@cid'],
+						from: [{
+							'@cid': indicators[0]['@cid'],
+							type: ConsanguinityLineType.INDICATOR_TO_OBJECTIVE_FACTOR
+						}]
+					},
+					{
+						'@cid': objectives[0].factors[1]['@cid'],
+						from: [{
+							'@cid': objectives[0].factors[0]['@cid'],
+							type: ConsanguinityLineType.OBJECTIVE_FACTOR_TO_FACTOR__COMPUTE
+						}]
+					},
+					{
+						'@cid': objectives[0].factors[2]['@cid'],
+						from: [{
+							'@cid': objectives[0].factors[0]['@cid'],
+							type: ConsanguinityLineType.OBJECTIVE_FACTOR_TO_FACTOR__COMPUTE
+						}]
+					},
+					{
+						'@cid': objectives[0].factors[3]['@cid'],
+						from: [{
+							'@cid': objectives[0].factors[0]['@cid'],
+							type: ConsanguinityLineType.OBJECTIVE_FACTOR_TO_FACTOR__COMPUTE
+						}]
+					},
+					{
 						'@cid': objectives[0].factors[4]['@cid'],
 						from: [{
 							'@cid': objectives[0].factors[1]['@cid'],
@@ -205,13 +233,6 @@ export const fetchMockConsanguinity = async (objective: Objective): Promise<Cons
 						}, {
 							'@cid': objectives[0].factors[4]['@cid'],
 							type: ConsanguinityLineType.OBJECTIVE_FACTOR_TO_FACTOR__COMPUTE
-						}]
-					},
-					{
-						'@cid': objectives[0].factors[0]['@cid'],
-						from: [{
-							'@cid': indicators[0]['@cid'],
-							type: ConsanguinityLineType.INDICATOR_TO_OBJECTIVE_FACTOR
 						}]
 					},
 					{

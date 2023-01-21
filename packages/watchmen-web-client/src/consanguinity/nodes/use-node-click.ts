@@ -1,34 +1,44 @@
 import {ConsanguinityUniqueId} from '@/services/data/tuples/consanguinity';
+import {generateUuid} from '@/services/data/tuples/utils';
 import {useEffect, useState} from 'react';
 // noinspection ES6PreferShortImport
 import {useConsanguinityEventBus} from '../consanguinity-event-bus';
 // noinspection ES6PreferShortImport
-import {ConsanguinityEventTypes} from '../consanguinity-event-bus-types';
+import {ConsanguinityEventTypes, RouteConsanguinityUniqueIds} from '../consanguinity-event-bus-types';
 
-export enum NodeActive {
+export enum NodeActiveStatus {
 	NONE = 'none',
-	SELECTED = 'selected'
+	SELECTED = 'selected',
+	DIRECT = 'direct',
+	SAME_ROUTE = 'same-route'
 }
 
 export const useNodeClick = (cid: ConsanguinityUniqueId) => {
-	const [active, setActive] = useState(NodeActive.NONE);
+	const [active, setActive] = useState<NodeActiveStatus>(NodeActiveStatus.NONE);
 	const {on, off, fire} = useConsanguinityEventBus();
 	useEffect(() => {
-		const onNodeSelected = (id: ConsanguinityUniqueId) => {
-			if (id !== cid) {
-				setActive(NodeActive.NONE);
+		const onActiveSameRoute = (cids: RouteConsanguinityUniqueIds) => {
+			const {center, direct, sameRoute} = cids;
+			if (center === cid) {
+				setActive(NodeActiveStatus.SELECTED);
+			} else if (direct.includes(cid)) {
+				setActive(NodeActiveStatus.DIRECT);
+			} else if (sameRoute.includes(cid)) {
+				setActive(NodeActiveStatus.SAME_ROUTE);
+			} else {
+				setActive(NodeActiveStatus.NONE);
 			}
 		};
-		on(ConsanguinityEventTypes.NODE_SELECTED, onNodeSelected);
+		on(ConsanguinityEventTypes.ACTIVE_SAME_ROUTE, onActiveSameRoute);
 		return () => {
-			off(ConsanguinityEventTypes.NODE_SELECTED, onNodeSelected);
+			off(ConsanguinityEventTypes.ACTIVE_SAME_ROUTE, onActiveSameRoute);
 		};
 	}, [on, off, cid]);
 
 	return {
 		active, onClick: () => {
-			setActive(NodeActive.SELECTED);
-			fire(ConsanguinityEventTypes.NODE_SELECTED, cid);
+			const eventId = generateUuid();
+			fire(ConsanguinityEventTypes.NODE_SELECTED, cid, eventId);
 		}
 	};
 };
