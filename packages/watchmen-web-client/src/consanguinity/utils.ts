@@ -1,4 +1,4 @@
-import {Consanguinity} from '@/services/data/tuples/consanguinity';
+import {Consanguinity, ConsanguinitySubject, ConsanguinityTopic} from '@/services/data/tuples/consanguinity';
 import {
 	DiagramIndicatorList,
 	DiagramIndicatorMap,
@@ -53,7 +53,15 @@ export const getIndicators = (consanguinity: Consanguinity): { list: DiagramIndi
 	return {list: indicators, map};
 };
 export const getSubjects = (consanguinity: Consanguinity): { list: DiagramSubjectList, map: DiagramSubjectColumnMap } => {
-	const subjects = (consanguinity.subjects || []);
+	const subjects = (consanguinity.subjects || [])
+		.map(subject => (JSON.parse(JSON.stringify(subject))) as ConsanguinitySubject)
+		.map(subject => {
+			subject.columns = (subject.columns || []).map(column => {
+				return {...column, subject};
+			});
+			return subject;
+		})
+		.flat() as DiagramSubjectList;
 	const map = subjects.reduce((map, subject) => {
 		(subject.columns || []).forEach(column => {
 			map[column['@cid']] = {...column, subject};
@@ -64,7 +72,15 @@ export const getSubjects = (consanguinity: Consanguinity): { list: DiagramSubjec
 	return {list: subjects, map};
 };
 export const getTopics = (consanguinity: Consanguinity): { list: DiagramTopicList, map: DiagramTopicFactorMap } => {
-	const topics = (consanguinity.topics || []);
+	const topics = (consanguinity.topics || [])
+		.map(topic => (JSON.parse(JSON.stringify(topic))) as ConsanguinityTopic)
+		.map(topic => {
+			topic.factors = (topic.factors || []).map(factor => {
+				return {...factor, topic};
+			});
+			return topic;
+		})
+		.flat() as DiagramTopicList;
 	const map = topics.reduce((map, topic) => {
 		(topic.factors || []).forEach(factor => {
 			map[factor['@cid']] = {...factor, topic};

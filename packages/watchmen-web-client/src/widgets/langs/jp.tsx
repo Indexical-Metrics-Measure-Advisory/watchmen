@@ -1066,6 +1066,7 @@ export const Jp: LanguageDeclareType = {
 		NONAME_OBJECTIVE_FACTOR: '名前のない測定方法',
 		NONAME_INDICATOR: '名前のない指標',
 		NONAME_SUBJECT: '名前のない主題',
+		NONAME_SUBJECT_COLUMN: '名前のない列',
 		NONAME_REPORT: '名前のないフィルタ',
 		NONAME_TOPIC: '名前のないトピック',
 		NONAME_BUCKET: '名前のないバケット',

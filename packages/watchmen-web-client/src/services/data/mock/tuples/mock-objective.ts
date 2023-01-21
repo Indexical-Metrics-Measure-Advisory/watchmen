@@ -1,3 +1,4 @@
+import {IndicatorAggregateArithmetic} from '@/services/data/tuples/indicator-types';
 import {TuplePage} from '../../query/tuple-page';
 import {
 	Consanguinity,
@@ -6,10 +7,13 @@ import {
 	ConsanguinityObjective,
 	ConsanguinityObjectiveFactor,
 	ConsanguinityObjectiveTarget,
+	ConsanguinitySubject,
+	ConsanguinitySubjectColumn,
 	ConsanguinityUniqueId
 } from '../../tuples/consanguinity';
 import {Objective, ObjectiveFactor, ObjectiveId, ObjectiveValues} from '../../tuples/objective-types';
 import {QueryObjective} from '../../tuples/query-objective-types';
+import {SubjectColumnArithmetic} from '../../tuples/subject-types';
 import {generateUuid, isFakedUuid} from '../../tuples/utils';
 import {MonthlyOrderPremiumIndicator} from './mock-data-indicators';
 import {DemoObjectives, MonthlySalesObjective} from './mock-data-objectives';
@@ -119,11 +123,28 @@ export const fetchMockConsanguinity = async (objective: Objective): Promise<Cons
 				return cloned as unknown as ConsanguinityObjective;
 			});
 			const indicators: Array<ConsanguinityIndicator> = [
-				{...MonthlyOrderPremiumIndicator, '@cid': askCid()}
+				{...MonthlyOrderPremiumIndicator, '@cid': askCid()},
+				{
+					indicatorId: generateUuid(), name: 'Quarterly Order Premium',
+					aggregateArithmetic: IndicatorAggregateArithmetic.SUM, '@cid': askCid()
+				}
+			];
+			const subjects: Array<ConsanguinitySubject> = [
+				{
+					subjectId: generateUuid(), name: 'Order Premium', columns: [
+						{
+							columnId: generateUuid(), alias: 'Premium Amount',
+							recalculate: false, arithmetic: SubjectColumnArithmetic.SUMMARY,
+							'@cid': askCid()
+						} as ConsanguinitySubjectColumn,
+						{columnId: generateUuid(), alias: 'Year', '@cid': askCid()} as ConsanguinitySubjectColumn,
+						{columnId: generateUuid(), alias: 'Month', '@cid': askCid()} as ConsanguinitySubjectColumn
+					]
+				}
 			];
 
 			resolve({
-				objectives, indicators,
+				objectives, indicators, subjects,
 				relations: [
 					{
 						'@cid': objectives[0].targets[0]['@cid'],
@@ -191,6 +212,20 @@ export const fetchMockConsanguinity = async (objective: Objective): Promise<Cons
 						from: [{
 							'@cid': indicators[0]['@cid'],
 							type: ConsanguinityLineType.INDICATOR_TO_OBJECTIVE_FACTOR
+						}]
+					},
+					{
+						'@cid': indicators[0]['@cid'],
+						from: [{
+							'@cid': subjects[0].columns[0]['@cid'],
+							type: ConsanguinityLineType.SUBJECT_COLUMN_TO_INDICATOR__REFER
+						}]
+					},
+					{
+						'@cid': indicators[1]['@cid'],
+						from: [{
+							'@cid': subjects[0].columns[0]['@cid'],
+							type: ConsanguinityLineType.SUBJECT_COLUMN_TO_INDICATOR__REFER
 						}]
 					}
 				]

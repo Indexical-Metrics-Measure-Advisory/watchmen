@@ -6,10 +6,10 @@ import {NodeContainer, NodeTitle} from './widgets';
 export const IndicatorNode = (props: { data: DiagramIndicator }) => {
 	const {data} = props;
 
-	const {selected, onClick} = useNodeClick(data['@cid']);
+	const {active, onClick} = useNodeClick(data['@cid']);
 
 	return <NodeContainer data-node-type="indicator" data-node-id={data['@cid']}
-	                      data-selected={selected} onClick={onClick}>
+	                      data-active={active} onClick={onClick}>
 		<NodeTitle>
 			{(data.name || '').trim() || Lang.CONSANGUINITY.NONAME_INDICATOR}
 		</NodeTitle>

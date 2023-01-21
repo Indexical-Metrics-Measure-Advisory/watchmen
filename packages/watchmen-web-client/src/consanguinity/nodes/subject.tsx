@@ -1,6 +1,18 @@
+import {useNodeClick} from '@/consanguinity/nodes/use-node-click';
 import {Lang} from '@/widgets/langs';
-import {DiagramSubject} from '../types';
-import {NodeContainer, NodeTitle} from './widgets';
+import {DiagramSubject, DiagramSubjectColumn} from '../types';
+import {NodeContainer, NodeItem, NodeItems, NodeTitle} from './widgets';
+
+const SubjectColumnNode = (props: { subject: DiagramSubject, column: DiagramSubjectColumn }) => {
+	const {column} = props;
+
+	const {active, onClick} = useNodeClick(column['@cid']);
+
+	return <NodeItem data-node-type="subject-column" data-node-id={column['@cid']}
+	                 data-active={active} onClick={onClick}>
+		{(column.alias || '').trim() || Lang.CONSANGUINITY.NONAME_SUBJECT_COLUMN}
+	</NodeItem>;
+};
 
 export const SubjectNode = (props: { data: DiagramSubject }) => {
 	const {data} = props;
@@ -9,5 +21,10 @@ export const SubjectNode = (props: { data: DiagramSubject }) => {
 		<NodeTitle>
 			{(data.name || '').trim() || Lang.CONSANGUINITY.NONAME_SUBJECT}
 		</NodeTitle>
+		<NodeItems>
+			{(data.columns || []).map(column => {
+				return <SubjectColumnNode subject={data} column={column} key={column.columnId}/>;
+			})}
+		</NodeItems>
 	</NodeContainer>;
 };

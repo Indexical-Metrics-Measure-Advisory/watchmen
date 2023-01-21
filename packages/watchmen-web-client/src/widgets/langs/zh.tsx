@@ -1066,6 +1066,7 @@ export const Zh: LanguageDeclareType = {
 		NONAME_OBJECTIVE_FACTOR: '未命名测量方法',
 		NONAME_INDICATOR: '未命名指标',
 		NONAME_SUBJECT: '未命名主题',
+		NONAME_SUBJECT_COLUMN: '未命名列',
 		NONAME_REPORT: '未命名图表',
 		NONAME_TOPIC: '未命名数据集',
 		NONAME_BUCKET: '未命名数据分桶',

@@ -19,7 +19,9 @@ const computeD = (data: LineData) => {
 		return {
 			line: [
 				`M ${data.startX} ${data.startY}`,
-				`Q ${data.startX !== 0 ? data.startX - 32 : 32} ${data.startY}, ${data.width / 2} ${data.height / 2}`,
+				`Q ${data.startX < data.endX
+					? (data.startX + (data.endX - data.startX) / 3)
+					: (data.startX - (data.startX - data.endX) / 3)} ${data.startY}, ${data.width / 2} ${Math.min(data.startY, data.endY) + Math.abs(data.startY - data.endY) / 2}`,
 				`T ${data.endX} ${data.endY}`
 			].join(' '),
 			start: data.startX < data.endX

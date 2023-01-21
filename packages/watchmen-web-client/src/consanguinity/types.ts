@@ -25,12 +25,12 @@ export type DiagramIndicatorMap = Record<ConsanguinityUniqueId, DiagramIndicator
 
 export type DiagramSubjectColumn = ConsanguinitySubjectColumn & { subject: ConsanguinitySubject }
 export type DiagramSubjectColumnMap = Record<ConsanguinityUniqueId, DiagramSubjectColumn>;
-export type DiagramSubject = ConsanguinitySubject;
+export type DiagramSubject = Omit<ConsanguinitySubject, 'columns'> & { columns: Array<DiagramSubjectColumn> };
 export type DiagramSubjectList = Array<DiagramSubject>
 
 export type DiagramTopicFactor = ConsanguinityTopicFactor & { topic: ConsanguinityTopic }
 export type DiagramTopicFactorMap = Record<ConsanguinityUniqueId, DiagramTopicFactor>;
-export type DiagramTopic = ConsanguinityTopic;
+export type DiagramTopic = Omit<ConsanguinityTopic, 'factors'> & { factors: Array<DiagramTopicFactor> };
 export type DiagramTopicList = Array<DiagramTopic>
 
 export type DiagramRelations = {

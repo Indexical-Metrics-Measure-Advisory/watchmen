@@ -5,13 +5,18 @@ import {useConsanguinityEventBus} from '../consanguinity-event-bus';
 // noinspection ES6PreferShortImport
 import {ConsanguinityEventTypes} from '../consanguinity-event-bus-types';
 
+export enum NodeActive {
+	NONE = 'none',
+	SELECTED = 'selected'
+}
+
 export const useNodeClick = (cid: ConsanguinityUniqueId) => {
-	const [selected, setSelected] = useState(false);
+	const [active, setActive] = useState(NodeActive.NONE);
 	const {on, off, fire} = useConsanguinityEventBus();
 	useEffect(() => {
 		const onNodeSelected = (id: ConsanguinityUniqueId) => {
 			if (id !== cid) {
-				setSelected(false);
+				setActive(NodeActive.NONE);
 			}
 		};
 		on(ConsanguinityEventTypes.NODE_SELECTED, onNodeSelected);
@@ -21,8 +26,8 @@ export const useNodeClick = (cid: ConsanguinityUniqueId) => {
 	}, [on, off, cid]);
 
 	return {
-		selected, onClick: () => {
-			setSelected(true);
+		active, onClick: () => {
+			setActive(NodeActive.SELECTED);
 			fire(ConsanguinityEventTypes.NODE_SELECTED, cid);
 		}
 	};
