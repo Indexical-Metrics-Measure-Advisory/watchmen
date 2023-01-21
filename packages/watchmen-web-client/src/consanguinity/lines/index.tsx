@@ -10,6 +10,7 @@ import {
 } from '../types';
 import {getRelations} from '../utils';
 import {LineData, LineType} from './types';
+import {useNodeClick} from './use-node-click';
 import {ConsanguinityLineContainer, ConsanguinityLinesContainer} from './widgets';
 
 const computeD = (data: LineData) => {
@@ -47,9 +48,12 @@ const computeD = (data: LineData) => {
 const ConsanguinityLine = (props: { data: LineData }) => {
 	const {data} = props;
 
+	const {active} = useNodeClick(data.fromCid, data.toCid);
 	const {line, start} = computeD(data);
 
-	return <ConsanguinityLineContainer rect={data} data-node-from-id={data.fromCid} data-node-to-id={data.toCid}>
+	return <ConsanguinityLineContainer rect={data}
+	                                   data-node-from-id={data.fromCid} data-node-to-id={data.toCid}
+	                                   data-active={active}>
 		<path data-type="line" d={line}/>
 		<path data-type="start" d={start}/>
 	</ConsanguinityLineContainer>;

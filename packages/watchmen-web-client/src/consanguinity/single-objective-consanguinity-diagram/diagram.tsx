@@ -9,6 +9,8 @@ import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useEffect, useState} from 'react';
+// noinspection ES6PreferShortImport
+import {ConsanguinityEventBusProvider} from '../consanguinity-event-bus';
 import {ConsanguinityLines} from '../lines';
 import {IndicatorNode, ObjectiveFactorNode, ObjectiveTargetNode, SubjectNode, TopicNode} from '../nodes';
 import {getIndicators, getObjectiveFactors, getObjectiveTargets, getSubjects, getTopics} from '../utils';
@@ -78,7 +80,7 @@ export const SingleObjectiveConsanguinityDiagram = (props: { objective: Objectiv
 	const {list: subjects, map: subjectColumnMap} = getSubjects(consanguinity);
 	const {list: topics, map: topicFactorMap} = getTopics(consanguinity);
 
-	return <>
+	return <ConsanguinityEventBusProvider>
 		<ConsanguinityDialogBody>
 			<ObjectiveConsanguinityDiagram>
 				<ConsanguinityBlockContainer>
@@ -130,5 +132,5 @@ export const SingleObjectiveConsanguinityDiagram = (props: { objective: Objectiv
 		<DialogFooter>
 			<Button onClick={onCloseClicked}>{Lang.ACTIONS.CLOSE}</Button>
 		</DialogFooter>
-	</>;
+	</ConsanguinityEventBusProvider>;
 };
