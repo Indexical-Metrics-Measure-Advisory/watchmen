@@ -1069,6 +1069,7 @@ export const Jp: LanguageDeclareType = {
 		NONAME_SUBJECT_COLUMN: '名前のない列',
 		NONAME_REPORT: '名前のないフィルタ',
 		NONAME_TOPIC: '名前のないトピック',
+		NONAME_TOPIC_FACTOR: '名前のないファクター',
 		NONAME_BUCKET: '名前のないバケット',
 		NONAME_ENUM: '名前のない列挙'
 	}

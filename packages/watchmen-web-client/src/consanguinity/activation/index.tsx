@@ -5,17 +5,9 @@ import {Fragment, useEffect} from 'react';
 import {useConsanguinityEventBus} from '../consanguinity-event-bus';
 // noinspection ES6PreferShortImport
 import {ConsanguinityEventTypes} from '../consanguinity-event-bus-types';
-import {
-	DiagramIndicatorMap,
-	DiagramObjectiveFactorMap,
-	DiagramObjectiveTargetMap,
-	DiagramSubjectColumnMap,
-	DiagramTopicFactorMap
-} from '../types';
-import {getRelations} from '../utils';
+import {DiagramDataMap, DiagramRelation} from '../types';
 
-const buildDirectIdsFinder = (consanguinity: Consanguinity): ((cids: Array<ConsanguinityUniqueId>, from: boolean) => Array<ConsanguinityUniqueId>) => {
-	const relations = getRelations(consanguinity);
+const buildDirectIdsFinder = (consanguinity: Consanguinity, relations: Array<DiagramRelation>): ((cids: Array<ConsanguinityUniqueId>, from: boolean) => Array<ConsanguinityUniqueId>) => {
 	const relationMap = relations.reduce((map, relation) => {
 		const {from, to} = relation;
 		if (map[from] == null) {
@@ -33,31 +25,28 @@ const buildDirectIdsFinder = (consanguinity: Consanguinity): ((cids: Array<Consa
 		return map;
 	}, {} as Record<ConsanguinityUniqueId, { from: Array<ConsanguinityUniqueId>, to: Array<ConsanguinityUniqueId> }>);
 	return (cids: Array<ConsanguinityUniqueId>, from: boolean): Array<ConsanguinityUniqueId> => {
-		return cids.map(cid => relationMap[cid]).flat().reduce((all, directIds) => {
-			(from ? directIds.from : directIds.to).forEach(cid => {
-				if (!all.map[cid]) {
-					all.list.push(cid);
-				}
-			});
-			return all;
-		}, {
-			list: [] as Array<ConsanguinityUniqueId>,
-			map: {} as Record<ConsanguinityUniqueId, boolean>
-		}).list;
+		return cids.map(cid => relationMap[cid])
+			.filter(directIds => directIds != null)
+			.reduce((all, directIds) => {
+				(from ? directIds.from : directIds.to).forEach(cid => {
+					if (!all.map[cid]) {
+						all.list.push(cid);
+					}
+				});
+				return all;
+			}, {
+				list: [] as Array<ConsanguinityUniqueId>,
+				map: {} as Record<ConsanguinityUniqueId, boolean>
+			}).list;
 	};
 };
 
 export const ConsanguinityActivation = (props: {
 	consanguinity: Consanguinity;
-	maps: {
-		objectiveTargetMap: DiagramObjectiveTargetMap;
-		objectiveFactorMap: DiagramObjectiveFactorMap;
-		indicatorMap: DiagramIndicatorMap;
-		subjectColumnMap: DiagramSubjectColumnMap;
-		topicFactorMap: DiagramTopicFactorMap;
-	}
+	relations: Array<DiagramRelation>;
+	maps: DiagramDataMap;
 }) => {
-	const {consanguinity} = props;
+	const {consanguinity, relations} = props;
 
 	const {on, off, fire} = useConsanguinityEventBus();
 	const saveQueue = useThrottler();
@@ -65,7 +54,7 @@ export const ConsanguinityActivation = (props: {
 	useEffect(() => {
 		const onNodeSelected = (cid: ConsanguinityUniqueId) => {
 			saveQueue.replace(() => {
-				const findRelevantIds = buildDirectIdsFinder(consanguinity);
+				const findRelevantIds = buildDirectIdsFinder(consanguinity, relations);
 				const found = [true].map(direction => {
 					// direct
 					const directIds = findRelevantIds([cid], direction).filter(found => found !== cid);
@@ -108,7 +97,7 @@ export const ConsanguinityActivation = (props: {
 		return () => {
 			off(ConsanguinityEventTypes.NODE_SELECTED, onNodeSelected);
 		};
-	}, [on, off, fire, saveQueue, consanguinity]);
+	}, [on, off, fire, saveQueue, consanguinity, relations]);
 
 	return <Fragment/>;
 };

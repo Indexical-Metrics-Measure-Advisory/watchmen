@@ -1,3 +1,5 @@
+import {FactorType} from '@/services/data/tuples/factor-types';
+import {TopicKind, TopicType} from '@/services/data/tuples/topic-types';
 import {TuplePage} from '../../query/tuple-page';
 import {
 	Consanguinity,
@@ -8,6 +10,8 @@ import {
 	ConsanguinityObjectiveTarget,
 	ConsanguinitySubject,
 	ConsanguinitySubjectColumn,
+	ConsanguinityTopic,
+	ConsanguinityTopicFactor,
 	ConsanguinityUniqueId
 } from '../../tuples/consanguinity';
 import {IndicatorAggregateArithmetic} from '../../tuples/indicator-types';
@@ -142,9 +146,36 @@ export const fetchMockConsanguinity = async (objective: Objective): Promise<Cons
 					]
 				}
 			];
+			const topics: Array<ConsanguinityTopic> = [
+				{
+					topicId: generateUuid(), name: 'Order', kind: TopicKind.BUSINESS, type: TopicType.DISTINCT,
+					factors: [
+						{
+							factorId: generateUuid(), name: 'OrderNo', type: FactorType.TEXT, '@cid': askCid()
+						} as ConsanguinityTopicFactor,
+						{
+							factorId: generateUuid(), name: 'OrderDate', type: FactorType.DATE, '@cid': askCid()
+						} as ConsanguinityTopicFactor
+					]
+				},
+				{
+					topicId: generateUuid(), name: 'Order Item', kind: TopicKind.BUSINESS, type: TopicType.DISTINCT,
+					factors: [
+						{
+							factorId: generateUuid(), name: 'OrderNo', type: FactorType.TEXT, '@cid': askCid()
+						} as ConsanguinityTopicFactor,
+						{
+							factorId: generateUuid(), name: 'OrderItemSeq', type: FactorType.NUMBER, '@cid': askCid()
+						} as ConsanguinityTopicFactor,
+						{
+							factorId: generateUuid(), name: 'Premium', type: FactorType.NUMBER, '@cid': askCid()
+						} as ConsanguinityTopicFactor
+					]
+				}
+			];
 
 			resolve({
-				objectives, indicators, subjects,
+				objectives, indicators, subjects, topics,
 				relations: [
 					{
 						'@cid': objectives[0].targets[0]['@cid'],
@@ -247,6 +278,33 @@ export const fetchMockConsanguinity = async (objective: Objective): Promise<Cons
 						from: [{
 							'@cid': subjects[0].columns[0]['@cid'],
 							type: ConsanguinityLineType.SUBJECT_COLUMN_TO_INDICATOR__REFER
+						}]
+					},
+					{
+						'@cid': subjects[0].columns[0]['@cid'],
+						from: [{
+							'@cid': topics[0].factors[0]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_SUBJECT_COLUMN__COMPUTE
+						}, {
+							'@cid': topics[1].factors[0]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_SUBJECT_COLUMN__COMPUTE
+						}, {
+							'@cid': topics[1].factors[2]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_SUBJECT_COLUMN__COMPUTE
+						}]
+					},
+					{
+						'@cid': subjects[0].columns[1]['@cid'],
+						from: [{
+							'@cid': topics[0].factors[1]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_SUBJECT_COLUMN__COMPUTE
+						}]
+					},
+					{
+						'@cid': subjects[0].columns[2]['@cid'],
+						from: [{
+							'@cid': topics[0].factors[1]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_SUBJECT_COLUMN__COMPUTE
 						}]
 					}
 				]

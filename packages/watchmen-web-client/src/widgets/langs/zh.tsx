@@ -1069,6 +1069,7 @@ export const Zh: LanguageDeclareType = {
 		NONAME_SUBJECT_COLUMN: '未命名列',
 		NONAME_REPORT: '未命名图表',
 		NONAME_TOPIC: '未命名数据集',
+		NONAME_TOPIC_FACTOR: '未命名数据因子',
 		NONAME_BUCKET: '未命名数据分桶',
 		NONAME_ENUM: '未命名枚举'
 	}

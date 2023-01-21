@@ -23,7 +23,8 @@ export const useNodeClick = (fromCid: ConsanguinityUniqueId, toCid: Consanguinit
 				setActive(LineActiveStatus.SELECTED);
 			} else if (direct.includes(toCid)) {
 				setActive(LineActiveStatus.SAME_ROUTE);
-			} else if (sameRoute.includes(fromCid) && sameRoute.includes(toCid)) {
+			} else if (((center === fromCid || direct.includes(fromCid) || sameRoute.includes(fromCid)) && sameRoute.includes(toCid))
+				|| ((direct.includes(toCid) || sameRoute.includes(toCid)) && sameRoute.includes(fromCid))) {
 				setActive(LineActiveStatus.SAME_ROUTE);
 			} else {
 				setActive(LineActiveStatus.NONE);
