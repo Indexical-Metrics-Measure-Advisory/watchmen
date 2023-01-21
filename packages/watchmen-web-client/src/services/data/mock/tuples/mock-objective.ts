@@ -164,6 +164,29 @@ export const fetchMockConsanguinity = async (objective: Objective): Promise<Cons
 						}]
 					},
 					{
+						'@cid': objectives[0].factors[4]['@cid'],
+						from: [{
+							'@cid': objectives[0].factors[1]['@cid'],
+							type: ConsanguinityLineType.OBJECTIVE_FACTOR_TO_FACTOR__COMPUTE
+						}, {
+							'@cid': objectives[0].factors[2]['@cid'],
+							type: ConsanguinityLineType.OBJECTIVE_FACTOR_TO_FACTOR__COMPUTE
+						}, {
+							'@cid': objectives[0].factors[3]['@cid'],
+							type: ConsanguinityLineType.OBJECTIVE_FACTOR_TO_FACTOR__COMPUTE
+						}]
+					},
+					{
+						'@cid': objectives[0].factors[5]['@cid'],
+						from: [{
+							'@cid': objectives[0].factors[0]['@cid'],
+							type: ConsanguinityLineType.OBJECTIVE_FACTOR_TO_FACTOR__COMPUTE
+						}, {
+							'@cid': objectives[0].factors[4]['@cid'],
+							type: ConsanguinityLineType.OBJECTIVE_FACTOR_TO_FACTOR__COMPUTE
+						}]
+					},
+					{
 						'@cid': objectives[0].factors[0]['@cid'],
 						from: [{
 							'@cid': indicators[0]['@cid'],
