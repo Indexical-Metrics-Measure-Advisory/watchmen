@@ -1066,6 +1066,7 @@ export const En = {
 		NONAME_OBJECTIVE_FACTOR: 'Noname Measure Indicator',
 		NONAME_INDICATOR: 'Noname Indicator',
 		NONAME_SUBJECT: 'Noname Subject',
+		NONAME_SUBJECT_COLUMN: 'Noname Column',
 		NONAME_REPORT: 'Noname Report',
 		NONAME_TOPIC: 'Noname Topic',
 		NONAME_BUCKET: 'Noname Bucket',

@@ -25,7 +25,8 @@ export const ConsanguinityLineContainer = styled.svg.attrs<{ rect: LineData }>((
 })<{ rect: LineData }>`
 	display  : block;
 	position : absolute;
-	&[data-active=true] {
+	&[data-active=selected] {
+		z-index : 2;
 		> path[data-type=start] {
 			fill : var(--consanguinity-line-active-color);
 		}
@@ -38,7 +39,7 @@ export const ConsanguinityLineContainer = styled.svg.attrs<{ rect: LineData }>((
 		stroke         : transparent;
 		stroke-width   : 1px;
 		stroke-linecap : round;
-		transition     : color 300ms ease-in-out;
+		transition     : all 300ms ease-in-out;
 	}
 	> path[data-type=line] {
 		fill           : transparent;
@@ -46,6 +47,6 @@ export const ConsanguinityLineContainer = styled.svg.attrs<{ rect: LineData }>((
 		stroke-width   : 2px;
 		stroke-linecap : round;
 		stroke-opacity : 0.9;
-		transition     : color 300ms ease-in-out;
+		transition     : all 300ms ease-in-out;
 	}
 `;

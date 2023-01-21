@@ -6,10 +6,10 @@ import {NodeContainer, NodeTitle} from './widgets';
 export const ObjectiveTargetNode = (props: { data: DiagramObjectiveTarget }) => {
 	const {data} = props;
 
-	const {selected, onClick} = useNodeClick(data['@cid']);
+	const {active, onClick} = useNodeClick(data['@cid']);
 
 	return <NodeContainer data-node-type="objective-target" data-node-id={data['@cid']}
-	                      data-selected={selected} onClick={onClick}>
+	                      data-active={active} onClick={onClick}>
 		<NodeTitle>
 			{(data.name || '').trim() || Lang.CONSANGUINITY.NONAME_OBJECTIVE_TARGET}
 		</NodeTitle>
