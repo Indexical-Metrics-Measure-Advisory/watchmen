@@ -48,7 +48,7 @@ export const ConsanguinityLines = (props: {
 		const data = computeLines(maps, relations, allNodes);
 		setLines({painted: true, data: data});
 		// eslint-disable-next-line
-	}, [lines.painted, relations]);
+	}, [lines.painted]);
 
 	return <ConsanguinityLinesContainer ref={ref}>
 		{lines.data.map(line => {

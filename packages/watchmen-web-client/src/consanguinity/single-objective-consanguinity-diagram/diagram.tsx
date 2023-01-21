@@ -8,7 +8,7 @@ import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import React, {useEffect, useState} from 'react';
+import React, {RefObject, useEffect, useRef, useState} from 'react';
 import {ConsanguinityActivation} from '../activation';
 // noinspection ES6PreferShortImport
 import {ConsanguinityEventBusProvider} from '../consanguinity-event-bus';
@@ -68,7 +68,7 @@ const computeLineType = (maps: DiagramDataMap, fromCid: ConsanguinityUniqueId, t
 		}
 	} else if (maps.topicFactors[fromCid] != null) {
 		if (maps.indicators[toCid] != null) {
-			return LineType.SUBJECT_TO_INDICATOR;
+			return LineType.TOPIC_TO_INDICATOR;
 		} else if (maps.subjectColumns[toCid] != null) {
 			return LineType.TOPIC_TO_SUBJECT;
 		} else {
@@ -136,16 +136,36 @@ const computeLines = (maps: DiagramDataMap, relations: Array<DiagramRelation>, n
 			case LineType.SAME_SUBJECT:
 				break;
 			case LineType.TOPIC_TO_INDICATOR:
+				lineData.top = toNode.top;
+				lineData.height = fromNode.top + fromNode.height - toNode.top;
+				lineData.startY = lineData.height - fromNode.height / 2;
+				lineData.endY = toNode.height / 2;
+				if (fromNode.left < toNode.left - 16) {
+					lineData.left = fromNode.left + fromNode.width;
+					lineData.width = toNode.left + toNode.width - lineData.left + 200;
+					lineData.startX = 0;
+					lineData.endX = toNode.left + toNode.width - lineData.left;
+				} else if (fromNode.left > toNode.left + 16) {
+					lineData.left = toNode.left + toNode.width;
+					lineData.width = fromNode.left + fromNode.width - lineData.left + 200;
+					lineData.startX = fromNode.left + fromNode.width - lineData.left;
+					lineData.endX = 0;
+				} else {
+					lineData.left = fromNode.left + fromNode.width;
+					lineData.width = 200;
+					lineData.startX = 0;
+					lineData.endX = toNode.left + toNode.width - lineData.left;
+				}
 				break;
 			case LineType.TOPIC_TO_SUBJECT:
 				lineData.top = toNode.top;
 				lineData.left = fromNode.left + fromNode.width;
 				lineData.width = toNode.left + toNode.width + 200;
 				lineData.height = fromNode.top + fromNode.height - toNode.top;
-				lineData.startX = toNode.left + toNode.width - lineData.left;
-				lineData.startY = toNode.height / 2;
-				lineData.endX = fromNode.left + fromNode.width;
-				lineData.endY = fromNode.top + fromNode.height / 2;
+				lineData.startX = 0;
+				lineData.startY = lineData.height - fromNode.height / 2;
+				lineData.endX = toNode.left + toNode.width - lineData.left;
+				lineData.endY = toNode.height / 2;
 				break;
 			case LineType.TOPIC_BLOCK:
 				break;
@@ -156,55 +176,109 @@ const computeLines = (maps: DiagramDataMap, relations: Array<DiagramRelation>, n
 	}).filter(x => x != null) as Array<LineData>;
 };
 
-const computeLine = (data: LineData): LineSVG => {
-	const startRadius = 5;
-	switch (data.type) {
-		case LineType.OBJECTIVE_FACTOR_BLOCK:
-			return {
-				line: [
-					data.startY < data.endY ? `M ${data.startX} ${data.startY + 1}` : `M ${data.startX} ${data.startY - 1}`,
-					data.startY < data.endY ? `L ${data.startX} ${data.startY + 10}` : `L ${data.startX} ${data.startY - 10}`,
-					data.startY < data.endY ? `A 10 10 0 0 0 ${data.startX + 10} ${data.startY + 16}` : `A 10 10 0 0 1 ${data.startX + 10} ${data.startY - 16}`,
-					data.startY < data.endY ? `L ${data.endX - 32} ${data.startY + 16}` : `L ${data.endX - 32} ${data.startY - 16}`,
-					data.startY < data.endY
-						? `Q ${data.endX + 112} ${data.startY + 16}, ${data.endX + 1} ${data.endY}`
-						: `Q ${data.endX + 112} ${data.startY - 16}, ${data.endX + 1} ${data.endY}`
-				].join(' '),
-				start: data.startY < data.endY
-					? `M ${data.startX - startRadius} ${data.startY} A ${startRadius} ${startRadius} 0 0 0 ${data.startX + startRadius} ${data.startY} Z`
-					: `M ${data.startX - startRadius} ${data.startY} A ${startRadius} ${startRadius} 0 0 1 ${data.startX + startRadius} ${data.startY} Z`
-			};
-		case LineType.OBJECTIVE_FACTOR_TO_TARGET:
-		case LineType.INDICATOR_TO_OBJECTIVE_FACTOR:
-		case LineType.SUBJECT_TO_INDICATOR:
-			return {
-				line: [
-					`M ${data.startX} ${data.startY}`,
-					`Q ${data.startX < data.endX
-						? (data.startX + (data.endX - data.startX) / 3)
-						: (data.startX - (data.startX - data.endX) / 3)} ${data.startY}, ${data.width / 2} ${Math.min(data.startY, data.endY) + Math.abs(data.startY - data.endY) / 2}`,
-					`T ${data.endX} ${data.endY}`
-				].join(' '),
-				start: data.startX < data.endX
-					? `M ${data.startX} ${data.startY - startRadius} A ${startRadius} ${startRadius} 0 0 1 ${data.startX} ${data.startY + startRadius} Z`
-					: `M ${data.startX} ${data.startY - startRadius} A ${startRadius} ${startRadius} 0 0 0 ${data.startX} ${data.startY + startRadius} Z`
-			};
-		case LineType.SAME_SUBJECT:
-		case LineType.TOPIC_TO_INDICATOR:
-		case LineType.TOPIC_TO_SUBJECT:
-			return {
-				line: `M ${data.startX} ${data.startY}`,
-				start: `M ${data.startX} ${data.startY - startRadius} A ${startRadius} ${startRadius} 0 0 1 ${data.startX} ${data.startY + startRadius} Z`
-			};
-		case LineType.TOPIC_BLOCK:
-		case LineType.UNKNOWN:
-			return {line: '', start: ''};
-	}
+const buildComputeLine = (topicRef: RefObject<HTMLDivElement>) => {
+	return (data: LineData): LineSVG => {
+		const startRadius = 5;
+		switch (data.type) {
+			case LineType.OBJECTIVE_FACTOR_BLOCK:
+				return {
+					line: [
+						data.startY < data.endY ? `M ${data.startX} ${data.startY + 1}` : `M ${data.startX} ${data.startY - 1}`,
+						data.startY < data.endY ? `L ${data.startX} ${data.startY + 10}` : `L ${data.startX} ${data.startY - 10}`,
+						data.startY < data.endY ? `A 10 10 0 0 0 ${data.startX + 10} ${data.startY + 16}` : `A 10 10 0 0 1 ${data.startX + 10} ${data.startY - 16}`,
+						data.startY < data.endY ? `L ${data.endX - 32} ${data.startY + 16}` : `L ${data.endX - 32} ${data.startY - 16}`,
+						data.startY < data.endY
+							? `Q ${data.endX + 112} ${data.startY + 16}, ${data.endX + 1} ${data.endY}`
+							: `Q ${data.endX + 112} ${data.startY - 16}, ${data.endX + 1} ${data.endY}`
+					].join(' '),
+					start: data.startY < data.endY
+						? `M ${data.startX - startRadius} ${data.startY} A ${startRadius} ${startRadius} 0 0 0 ${data.startX + startRadius} ${data.startY} Z`
+						: `M ${data.startX - startRadius} ${data.startY} A ${startRadius} ${startRadius} 0 0 1 ${data.startX + startRadius} ${data.startY} Z`
+				};
+			case LineType.OBJECTIVE_FACTOR_TO_TARGET:
+			case LineType.INDICATOR_TO_OBJECTIVE_FACTOR:
+			case LineType.SUBJECT_TO_INDICATOR:
+				return {
+					line: [
+						`M ${data.startX} ${data.startY}`,
+						`Q ${data.startX < data.endX
+							? (data.startX + (data.endX - data.startX) / 3)
+							: (data.startX - (data.startX - data.endX) / 3)} ${data.startY}, ${data.width / 2} ${Math.min(data.startY, data.endY) + Math.abs(data.startY - data.endY) / 2}`,
+						`T ${data.endX} ${data.endY}`
+					].join(' '),
+					start: data.startX < data.endX
+						? `M ${data.startX} ${data.startY - startRadius} A ${startRadius} ${startRadius} 0 0 1 ${data.startX} ${data.startY + startRadius} Z`
+						: `M ${data.startX} ${data.startY - startRadius} A ${startRadius} ${startRadius} 0 0 0 ${data.startX} ${data.startY + startRadius} Z`
+				};
+			case LineType.SAME_SUBJECT:
+				return {line: '', start: ''};
+			case LineType.TOPIC_TO_INDICATOR: {
+				if (topicRef.current == null) {
+					return {line: '', start: ''};
+				}
+				const parent = topicRef.current.parentElement!;
+				const topicBlockTop = topicRef.current.getBoundingClientRect().top - parent.getBoundingClientRect().top + parent.scrollTop - data.top + 14;
+
+				const startX = data.startX + 16;
+				return {
+					line: [
+						`M ${data.startX + 1} ${data.startY}`,
+						startX !== data.endX ? `L ${data.startX + 24} ${data.startY}` : `L ${data.endX + 24} ${data.startY}`,
+						startX !== data.endX
+							? `A 32 32 0 0 0 ${data.startX + 56} ${data.startY - 32}`
+							: `A 32 32 0 0 0 ${data.endX + 56} ${data.startY - 32}`,
+						startX !== data.endX ? `L ${data.startX + 56} ${topicBlockTop}` : `L ${data.endX + 56} ${topicBlockTop}`,
+						startX > data.endX
+							? `A 32 32 0 0 0 ${data.startX + 24} ${topicBlockTop - 32}`
+							: (startX < data.endX ? `A 32 32 0 0 1 ${data.startX + 88} ${topicBlockTop - 32}` : ''),
+						startX > data.endX
+							? `L ${data.endX + 88} ${topicBlockTop - 32}`
+							: (startX < data.endX ? `L ${data.endX + 24} ${topicBlockTop - 32}` : ''),
+						startX > data.endX
+							? `A 32 32 0 0 1 ${data.endX + 56} ${topicBlockTop - 64}`
+							: (startX < data.endX ? `A 32 32 0 0 0 ${data.endX + 56} ${topicBlockTop - 64}` : ''),
+						startX > data.endX
+							? `L ${data.endX + 56} ${data.endY + 32}`
+							: (startX < data.endX ? `L ${data.endX + 56} ${data.endY + 32}` : `L ${data.endX + 56} ${data.endY + 32}`),
+						`A 32 32 0 0 0 ${data.endX + 24} ${data.endY}`,
+						`L ${data.endX} ${data.endY}`
+					].join(' '),
+					start: `M ${data.startX} ${data.startY - startRadius} A ${startRadius} ${startRadius} 0 0 1 ${data.startX} ${data.startY + startRadius} Z`
+				};
+			}
+			case LineType.TOPIC_TO_SUBJECT: {
+				if (topicRef.current == null) {
+					return {line: '', start: ''};
+				}
+				const parent = topicRef.current.parentElement!;
+				const topicBlockTop = topicRef.current.getBoundingClientRect().top - parent.getBoundingClientRect().top + parent.scrollTop - data.top + 30;
+				return {
+					line: [
+						`M ${data.startX + 1} ${data.startY}`,
+						`L ${data.startX + 40} ${data.startY}`,
+						`A 32 32 0 0 0 ${data.startX + 72} ${data.startY - 32}`,
+						`L ${data.startX + 72} ${topicBlockTop}`,
+						data.startX !== data.endX ? `A 32 32 0 0 1 ${data.startX + 104} ${topicBlockTop - 32}` : '',
+						data.startX !== data.endX ? `L ${data.endX + 40} ${topicBlockTop - 32}` : '',
+						data.startX !== data.endX ? `A 32 32 0 0 0 ${data.endX + 72} ${topicBlockTop - 64}` : '',
+						data.startX !== data.endX ? `L ${data.endX + 72} ${data.endY + 32}` : `L ${data.endX + 72} ${data.endY + 32}`,
+						`A 32 32 0 0 0 ${data.endX + 40} ${data.endY}`,
+						`L ${data.endX} ${data.endY}`
+					].join(' '),
+					start: `M ${data.startX} ${data.startY - startRadius} A ${startRadius} ${startRadius} 0 0 1 ${data.startX} ${data.startY + startRadius} Z`
+				};
+			}
+			case LineType.TOPIC_BLOCK:
+			case LineType.UNKNOWN:
+				return {line: '', start: ''};
+		}
+	};
 };
 
 export const SingleObjectiveConsanguinityDiagram = (props: { objective: Objective }) => {
 	const {objective} = props;
 
+	const topicRef = useRef<HTMLDivElement>(null);
 	const {fire} = useEventBus();
 	const [state, setState] = useState<State>({
 		loaded: false, relations: [], maps: {
@@ -306,7 +380,7 @@ export const SingleObjectiveConsanguinityDiagram = (props: { objective: Objectiv
 						})}
 					</ObjectiveConsanguinityBlockBody>
 				</ConsanguinityBlockContainer>
-				<ConsanguinityBlockContainer>
+				<ConsanguinityBlockContainer ref={topicRef}>
 					<ConsanguinityBlockLabel>{Lang.CONSANGUINITY.TOPIC_BLOCK_LABEL}</ConsanguinityBlockLabel>
 					<ObjectiveConsanguinityBlockBody>
 						{state.maps.topics.list.map(topic => {
@@ -315,7 +389,7 @@ export const SingleObjectiveConsanguinityDiagram = (props: { objective: Objectiv
 					</ObjectiveConsanguinityBlockBody>
 				</ConsanguinityBlockContainer>
 				<ConsanguinityLines consanguinity={state.data!} relations={state.relations}
-				                    computeLines={computeLines} computeLine={computeLine} maps={maps}/>
+				                    computeLines={computeLines} computeLine={buildComputeLine(topicRef)} maps={maps}/>
 				<ConsanguinityActivation consanguinity={state.data!} relations={state.relations} maps={maps}/>
 			</ObjectiveConsanguinityDiagram>
 		</ConsanguinityDialogBody>

@@ -131,6 +131,10 @@ export const fetchMockConsanguinity = async (objective: Objective): Promise<Cons
 				{
 					indicatorId: generateUuid(), name: 'Quarterly Order Premium',
 					aggregateArithmetic: IndicatorAggregateArithmetic.SUM, '@cid': askCid()
+				},
+				{
+					indicatorId: generateUuid(), name: 'Yearly Order Premium',
+					aggregateArithmetic: IndicatorAggregateArithmetic.SUM, '@cid': askCid()
 				}
 			];
 			const subjects: Array<ConsanguinitySubject> = [
@@ -155,6 +159,29 @@ export const fetchMockConsanguinity = async (objective: Objective): Promise<Cons
 						} as ConsanguinityTopicFactor,
 						{
 							factorId: generateUuid(), name: 'OrderDate', type: FactorType.DATE, '@cid': askCid()
+						} as ConsanguinityTopicFactor
+					]
+				},
+				{
+					topicId: generateUuid(), name: 'OrderHolder', kind: TopicKind.BUSINESS, type: TopicType.DISTINCT,
+					factors: [
+						{
+							factorId: generateUuid(), name: 'Name', type: FactorType.TEXT, '@cid': askCid()
+						} as ConsanguinityTopicFactor,
+						{
+							factorId: generateUuid(),
+							name: 'DateOfBirth',
+							type: FactorType.DATE_OF_BIRTH,
+							'@cid': askCid()
+						} as ConsanguinityTopicFactor
+					]
+				},
+				{
+					topicId: generateUuid(), name: 'OrderDeliveryHistory',
+					kind: TopicKind.BUSINESS, type: TopicType.DISTINCT,
+					factors: [
+						{
+							factorId: generateUuid(), name: 'OperateDate', type: FactorType.TEXT, '@cid': askCid()
 						} as ConsanguinityTopicFactor
 					]
 				},
@@ -281,15 +308,28 @@ export const fetchMockConsanguinity = async (objective: Objective): Promise<Cons
 						}]
 					},
 					{
+						'@cid': indicators[2]['@cid'],
+						from: [{
+							'@cid': topics[1].factors[0]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_INDICATOR__REFER
+						}, {
+							'@cid': topics[2].factors[0]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_INDICATOR__REFER
+						}, {
+							'@cid': topics[3].factors[0]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_INDICATOR__REFER
+						}]
+					},
+					{
 						'@cid': subjects[0].columns[0]['@cid'],
 						from: [{
 							'@cid': topics[0].factors[0]['@cid'],
 							type: ConsanguinityLineType.TOPIC_FACTOR_TO_SUBJECT_COLUMN__COMPUTE
 						}, {
-							'@cid': topics[1].factors[0]['@cid'],
+							'@cid': topics[3].factors[0]['@cid'],
 							type: ConsanguinityLineType.TOPIC_FACTOR_TO_SUBJECT_COLUMN__COMPUTE
 						}, {
-							'@cid': topics[1].factors[2]['@cid'],
+							'@cid': topics[3].factors[2]['@cid'],
 							type: ConsanguinityLineType.TOPIC_FACTOR_TO_SUBJECT_COLUMN__COMPUTE
 						}]
 					},
