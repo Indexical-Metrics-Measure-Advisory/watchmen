@@ -217,31 +217,29 @@ const buildComputeLine = (topicRef: RefObject<HTMLDivElement>) => {
 					return {line: '', start: ''};
 				}
 				const parent = topicRef.current.parentElement!;
-				const topicBlockTop = topicRef.current.getBoundingClientRect().top - parent.getBoundingClientRect().top + parent.scrollTop - data.top + 14;
+				const topicBlockTop = topicRef.current.getBoundingClientRect().top - parent.getBoundingClientRect().top + parent.scrollTop - data.top - 2;
 
 				const startX = data.startX + 16;
 				return {
 					line: [
 						`M ${data.startX + 1} ${data.startY}`,
-						startX !== data.endX ? `L ${data.startX + 24} ${data.startY}` : `L ${data.endX + 24} ${data.startY}`,
+						startX !== data.endX ? `L ${data.startX + 40} ${data.startY}` : `L ${data.endX + 24} ${data.startY}`,
 						startX !== data.endX
-							? `A 32 32 0 0 0 ${data.startX + 56} ${data.startY - 32}`
-							: `A 32 32 0 0 0 ${data.endX + 56} ${data.startY - 32}`,
-						startX !== data.endX ? `L ${data.startX + 56} ${topicBlockTop}` : `L ${data.endX + 56} ${topicBlockTop}`,
+							? `A 16 16 0 0 0 ${data.startX + 56} ${data.startY - 16}`
+							: `A 16 16 0 0 0 ${data.endX + 40} ${data.startY - 16}`,
+						startX !== data.endX ? `L ${data.startX + 56} ${topicBlockTop}` : `L ${data.endX + 40} ${topicBlockTop}`,
 						startX > data.endX
-							? `A 32 32 0 0 0 ${data.startX + 24} ${topicBlockTop - 32}`
-							: (startX < data.endX ? `A 32 32 0 0 1 ${data.startX + 88} ${topicBlockTop - 32}` : ''),
+							? `A 16 16 0 0 0 ${data.startX + 40} ${topicBlockTop - 16}`
+							: (startX < data.endX ? `A 16 16 0 0 1 ${data.startX + 72} ${topicBlockTop - 16}` : ''),
 						startX > data.endX
-							? `L ${data.endX + 88} ${topicBlockTop - 32}`
-							: (startX < data.endX ? `L ${data.endX + 24} ${topicBlockTop - 32}` : ''),
+							? `L ${data.endX + 56} ${topicBlockTop - 16}`
+							: (startX < data.endX ? `L ${data.endX + 24} ${topicBlockTop - 16}` : ''),
 						startX > data.endX
-							? `A 32 32 0 0 1 ${data.endX + 56} ${topicBlockTop - 64}`
-							: (startX < data.endX ? `A 32 32 0 0 0 ${data.endX + 56} ${topicBlockTop - 64}` : ''),
-						startX > data.endX
-							? `L ${data.endX + 56} ${data.endY + 32}`
-							: (startX < data.endX ? `L ${data.endX + 56} ${data.endY + 32}` : `L ${data.endX + 56} ${data.endY + 32}`),
-						`A 32 32 0 0 0 ${data.endX + 24} ${data.endY}`,
-						`L ${data.endX} ${data.endY}`
+							? `A 16 16 0 0 1 ${data.endX + 40} ${topicBlockTop - 32}`
+							: (startX < data.endX ? `A 16 16 0 0 0 ${data.endX + 40} ${topicBlockTop - 32}` : ''),
+						`L ${data.endX + 40} ${data.endY + 16}`,
+						`A 16 16 0 0 0 ${data.endX + 24} ${data.endY}`,
+						`L ${data.endX + 1} ${data.endY}`
 					].join(' '),
 					start: `M ${data.startX} ${data.startY - startRadius} A ${startRadius} ${startRadius} 0 0 1 ${data.startX} ${data.startY + startRadius} Z`
 				};
@@ -255,14 +253,14 @@ const buildComputeLine = (topicRef: RefObject<HTMLDivElement>) => {
 				return {
 					line: [
 						`M ${data.startX + 1} ${data.startY}`,
-						`L ${data.startX + 40} ${data.startY}`,
-						`A 32 32 0 0 0 ${data.startX + 72} ${data.startY - 32}`,
-						`L ${data.startX + 72} ${topicBlockTop}`,
-						data.startX !== data.endX ? `A 32 32 0 0 1 ${data.startX + 104} ${topicBlockTop - 32}` : '',
-						data.startX !== data.endX ? `L ${data.endX + 40} ${topicBlockTop - 32}` : '',
-						data.startX !== data.endX ? `A 32 32 0 0 0 ${data.endX + 72} ${topicBlockTop - 64}` : '',
-						data.startX !== data.endX ? `L ${data.endX + 72} ${data.endY + 32}` : `L ${data.endX + 72} ${data.endY + 32}`,
-						`A 32 32 0 0 0 ${data.endX + 40} ${data.endY}`,
+						`L ${data.startX + 56} ${data.startY}`,
+						`A 16 16 0 0 0 ${data.startX + 72} ${data.startY - 16}`,
+						`L ${data.startX + 72} ${topicBlockTop - 16}`,
+						data.startX !== data.endX ? `A 16 16 0 0 1 ${data.startX + 88} ${topicBlockTop - 32}` : '',
+						data.startX !== data.endX ? `L ${data.endX + 56} ${topicBlockTop - 32}` : '',
+						data.startX !== data.endX ? `A 16 16 0 0 0 ${data.endX + 72} ${topicBlockTop - 48}` : '',
+						`L ${data.endX + 72} ${data.endY + 16}`,
+						`A 16 16 0 0 0 ${data.endX + 56} ${data.endY}`,
 						`L ${data.endX} ${data.endY}`
 					].join(' '),
 					start: `M ${data.startX} ${data.startY - startRadius} A ${startRadius} ${startRadius} 0 0 1 ${data.startX} ${data.startY + startRadius} Z`

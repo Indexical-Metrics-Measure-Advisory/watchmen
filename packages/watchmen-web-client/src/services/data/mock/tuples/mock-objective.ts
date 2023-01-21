@@ -310,6 +310,9 @@ export const fetchMockConsanguinity = async (objective: Objective): Promise<Cons
 					{
 						'@cid': indicators[2]['@cid'],
 						from: [{
+							'@cid': topics[0].factors[0]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_INDICATOR__REFER
+						}, {
 							'@cid': topics[1].factors[0]['@cid'],
 							type: ConsanguinityLineType.TOPIC_FACTOR_TO_INDICATOR__REFER
 						}, {
@@ -324,6 +327,12 @@ export const fetchMockConsanguinity = async (objective: Objective): Promise<Cons
 						'@cid': subjects[0].columns[0]['@cid'],
 						from: [{
 							'@cid': topics[0].factors[0]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_SUBJECT_COLUMN__COMPUTE
+						}, {
+							'@cid': topics[1].factors[0]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_SUBJECT_COLUMN__COMPUTE
+						}, {
+							'@cid': topics[2].factors[0]['@cid'],
 							type: ConsanguinityLineType.TOPIC_FACTOR_TO_SUBJECT_COLUMN__COMPUTE
 						}, {
 							'@cid': topics[3].factors[0]['@cid'],
