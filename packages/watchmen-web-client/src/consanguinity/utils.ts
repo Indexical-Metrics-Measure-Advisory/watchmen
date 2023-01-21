@@ -6,7 +6,7 @@ import {
 	DiagramObjectiveFactorMap,
 	DiagramObjectiveTargetList,
 	DiagramObjectiveTargetMap,
-	DiagramRelations,
+	DiagramRelation,
 	DiagramSubjectColumnMap,
 	DiagramSubjectList,
 	DiagramTopicFactorMap,
@@ -91,7 +91,7 @@ export const getTopics = (consanguinity: Consanguinity): { list: DiagramTopicLis
 	return {list: topics, map};
 };
 
-export const getRelations = (consanguinity: Consanguinity): Array<DiagramRelations> => {
+export const getRelations = (consanguinity: Consanguinity): Array<DiagramRelation> => {
 	return (consanguinity.relations || []).map(relation => {
 		const {'@cid': cid, from} = relation;
 		return (from || []).map(({'@cid': fromCid, type}) => {
