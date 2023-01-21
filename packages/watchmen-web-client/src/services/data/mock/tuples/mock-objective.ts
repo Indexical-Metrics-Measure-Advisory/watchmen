@@ -1,4 +1,3 @@
-import {MonthlyOrderPremiumIndicator} from '@/services/data/mock/tuples/mock-data-indicators';
 import {TuplePage} from '../../query/tuple-page';
 import {
 	Consanguinity,
@@ -12,6 +11,7 @@ import {
 import {Objective, ObjectiveFactor, ObjectiveId, ObjectiveValues} from '../../tuples/objective-types';
 import {QueryObjective} from '../../tuples/query-objective-types';
 import {generateUuid, isFakedUuid} from '../../tuples/utils';
+import {MonthlyOrderPremiumIndicator} from './mock-data-indicators';
 import {DemoObjectives, MonthlySalesObjective} from './mock-data-objectives';
 
 export const listMockObjectives = async (options: {

@@ -1,5 +1,5 @@
-import {LineData} from '@/consanguinity/lines/types';
 import styled from 'styled-components';
+import {LineData} from './types';
 
 export const ConsanguinityLinesContainer = styled.div.attrs({'data-widget': 'consanguinity-lines'})`
 	display          : block;
@@ -19,17 +19,26 @@ export const ConsanguinityLineContainer = styled.svg.attrs<{ rect: LineData }>((
 			top: rect.top,
 			left: rect.left,
 			width: rect.width,
-			height: rect.height,
+			height: rect.height
 		}
 	};
 })<{ rect: LineData }>`
 	display  : block;
 	position : absolute;
+	&[data-active=true] {
+		> path[data-type=start] {
+			fill : var(--consanguinity-line-active-color);
+		}
+		> path[data-type=line] {
+			stroke : var(--consanguinity-line-active-color);
+		}
+	}
 	> path[data-type=start] {
 		fill           : var(--consanguinity-line-color);
 		stroke         : transparent;
 		stroke-width   : 1px;
 		stroke-linecap : round;
+		transition     : color 300ms ease-in-out;
 	}
 	> path[data-type=line] {
 		fill           : transparent;
@@ -37,5 +46,6 @@ export const ConsanguinityLineContainer = styled.svg.attrs<{ rect: LineData }>((
 		stroke-width   : 2px;
 		stroke-linecap : round;
 		stroke-opacity : 0.9;
+		transition     : color 300ms ease-in-out;
 	}
 `;
