@@ -25,7 +25,13 @@ export const ConsanguinityLineContainer = styled.svg.attrs<{ rect: LineData }>((
 })<{ rect: LineData }>`
 	display  : block;
 	position : absolute;
-	> path {
+	> path[data-type=start] {
+		fill           : var(--consanguinity-line-color);
+		stroke         : transparent;
+		stroke-width   : 1px;
+		stroke-linecap : round;
+	}
+	> path[data-type=line] {
 		fill           : transparent;
 		stroke         : var(--consanguinity-line-color);
 		stroke-width   : 2px;

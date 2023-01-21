@@ -104,8 +104,18 @@ export const fetchMockConsanguinity = async (objective: Objective): Promise<Cons
 
 			const objectives = DemoObjectives.map(objective => {
 				const cloned: Objective = JSON.parse(JSON.stringify(objective));
-				(cloned.targets || []).forEach(target => (target as ConsanguinityObjectiveTarget)['@cid'] = askCid());
-				(cloned.factors || []).forEach(factor => (factor as ConsanguinityObjectiveFactor)['@cid'] = askCid());
+				cloned.targets = [
+					...(cloned.targets || []).map(target => {
+						(target as ConsanguinityObjectiveTarget)['@cid'] = askCid();
+						return target;
+					})
+				];
+				cloned.factors = [
+					...((cloned.factors || []).map(factor => {
+						(factor as ConsanguinityObjectiveFactor)['@cid'] = askCid();
+						return factor;
+					}))
+				];
 				return cloned as unknown as ConsanguinityObjective;
 			});
 			const indicators: Array<ConsanguinityIndicator> = [
@@ -125,7 +135,31 @@ export const fetchMockConsanguinity = async (objective: Objective): Promise<Cons
 					{
 						'@cid': objectives[0].targets[1]['@cid'],
 						from: [{
+							'@cid': objectives[0].factors[2]['@cid'],
+							type: ConsanguinityLineType.OBJECTIVE_FACTOR_TO_TARGET__REFER
+						}]
+					},
+					{
+						'@cid': objectives[0].targets[2]['@cid'],
+						from: [{
+							'@cid': objectives[0].factors[4]['@cid'],
+							type: ConsanguinityLineType.OBJECTIVE_FACTOR_TO_TARGET__REFER
+						}]
+					},
+					{
+						'@cid': objectives[0].targets[3]['@cid'],
+						from: [{
+							'@cid': objectives[0].factors[5]['@cid'],
+							type: ConsanguinityLineType.OBJECTIVE_FACTOR_TO_TARGET__COMPUTE
+						}]
+					},
+					{
+						'@cid': objectives[0].targets[4]['@cid'],
+						from: [{
 							'@cid': objectives[0].factors[0]['@cid'],
+							type: ConsanguinityLineType.OBJECTIVE_FACTOR_TO_TARGET__COMPUTE
+						}, {
+							'@cid': objectives[0].factors[5]['@cid'],
 							type: ConsanguinityLineType.OBJECTIVE_FACTOR_TO_TARGET__COMPUTE
 						}]
 					},

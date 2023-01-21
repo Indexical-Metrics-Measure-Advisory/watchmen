@@ -17,12 +17,19 @@ const ConsanguinityLine = (props: { data: LineData }) => {
 
 	const d = [
 		`M ${data.startX} ${data.startY}`,
-		// `H 16`,
-		`Q ${data.width / 2 + 16} ${data.startY}, ${data.width / 2 - 8} ${Math.abs(data.startY - data.endY) / 2 + data.endY}`,
-		`T ${data.endX} ${data.endY}`].join(' ');
+		`Q ${data.startX !== 0 ? data.startX - 32 : 32} ${data.startY}, ${data.width / 2} ${data.height / 2}`,
+		`T ${data.endX} ${data.endY}`
+	].join(' ');
 
-	return <ConsanguinityLineContainer rect={data}>
-		<path d={d}/>
+	const startRadius = 5;
+
+	return <ConsanguinityLineContainer rect={data} data-node-from-id={data.fromCid} data-node-to-id={data.toCid}>
+		<path data-type="line" d={d}/>
+		{data.startX < data.endX
+			? <path data-type="start"
+			        d={`M ${data.startX} ${data.startY - startRadius} A ${startRadius} ${startRadius} 0 0 1 ${data.startX} ${data.startY + startRadius} Z`}/>
+			: <path data-type="start"
+			        d={`M ${data.startX} ${data.startY - startRadius} A ${startRadius} ${startRadius} 0 0 0 ${data.startX} ${data.startY + startRadius} Z`}/>}
 	</ConsanguinityLineContainer>;
 };
 
@@ -60,22 +67,28 @@ export const ConsanguinityLines = (props: {
 			if (!fromNode || !toNode) {
 				return null;
 			}
-			const lineData: LineData = {top: 0, left: 0, width: 0, height: 0, startX: 0, startY: 0, endX: 0, endY: 0};
+			const lineData: LineData = {
+				fromCid: from, toCid: to,
+				top: 0, left: 0, width: 0, height: 0, startX: 0, startY: 0, endX: 0, endY: 0
+			};
 			if (toNode.left + toNode.width < fromNode.left) {
+				// to is at left of from
 				lineData.left = toNode.left + toNode.width;
 				lineData.width = fromNode.left - lineData.left;
 				if (fromNode.top > toNode.top) {
+					// from is at bottom
 					lineData.top = toNode.top;
 					lineData.height = fromNode.top + fromNode.height - lineData.top;
-					lineData.startY = lineData.height - fromNode.height / 2;
-					lineData.endX = lineData.width;
 					lineData.endY = toNode.height / 2;
+					lineData.startX = lineData.width;
+					lineData.startY = lineData.height - fromNode.height / 2;
 				} else {
+					// from is same as to, or from is at top
 					lineData.top = fromNode.top;
 					lineData.height = toNode.top + toNode.height - lineData.top;
-					lineData.startY = lineData.height - toNode.height / 2;
-					lineData.endX = lineData.width;
-					lineData.endY = fromNode.height / 2;
+					lineData.endY = lineData.height - toNode.height / 2;
+					lineData.startX = lineData.width;
+					lineData.startY = fromNode.height / 2;
 				}
 			}
 			return lineData;
