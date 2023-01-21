@@ -38,6 +38,7 @@ export const NodeTitle = styled.div.attrs({'data-widget': 'consanguinity-node-ti
 	font-variant    : petite-caps;
 	font-weight     : var(--font-bold);
 	min-height      : calc(var(--height) * 1.5);
+	text-align      : center;
 `;
 export const NodeItems = styled.div.attrs({'data-widget': 'consanguinity-node-items'})`
 	display        : flex;
