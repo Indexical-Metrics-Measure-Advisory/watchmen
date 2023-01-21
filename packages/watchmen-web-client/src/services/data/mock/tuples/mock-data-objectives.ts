@@ -1,8 +1,8 @@
 import {
-	ComputedObjectiveParameter,
 	ConstantObjectiveParameter,
 	Objective,
 	ObjectiveFactorKind,
+	ObjectiveFactorOnComputation,
 	ObjectiveFactorOnIndicator,
 	ObjectiveFormulaOperator,
 	ObjectiveParameterType,
@@ -17,45 +17,119 @@ import {INDICATOR_MONTHLY_ORDER_PREMIUM_ID} from './mock-data-indicators';
 
 export const OBJECTIVE_MONTHLY_SALES_ID = '1';
 
-const MONTHLY_PREMIUM_FACTOR_ID = generateUuid();
+const REVENUE_FACTOR_ID = generateUuid();
+const MATERIAL_COST_FACTOR_ID = generateUuid();
+const SALES_COST_FACTOR_ID = generateUuid();
+const TAX_COST_FACTOR_ID = generateUuid();
+const ALL_COST_FACTOR_ID = generateUuid();
+const PROFIT_FACTOR_ID = generateUuid();
 
 export const MonthlySalesObjective: Objective = {
 	objectiveId: OBJECTIVE_MONTHLY_SALES_ID,
-	name: 'Monthly Sales',
+	name: 'Monthly Budget',
 	description: '',
 	targets: [
 		{
-			uuid: generateUuid(), name: 'Monthly Premium Amount',
-			tobe: '1000000', asis: MONTHLY_PREMIUM_FACTOR_ID, betterSide: ObjectiveTargetBetterSide.MORE
+			uuid: generateUuid(), name: 'Revenue',
+			tobe: '1000000', asis: REVENUE_FACTOR_ID, betterSide: ObjectiveTargetBetterSide.MORE
 		},
 		{
-			uuid: generateUuid(), name: 'Monthly Profit Amount',
-			tobe: '200000', asis: {
-				kind: ObjectiveParameterType.COMPUTED, operator: ObjectiveFormulaOperator.MULTIPLY,
+			uuid: generateUuid(), name: 'Sales Cost',
+			tobe: '150000', asis: SALES_COST_FACTOR_ID, betterSide: ObjectiveTargetBetterSide.LESS
+		},
+		{
+			uuid: generateUuid(), name: 'Cost Amount',
+			tobe: '900000', asis: ALL_COST_FACTOR_ID, betterSide: ObjectiveTargetBetterSide.LESS
+		},
+		{
+			uuid: generateUuid(), name: 'Profit Amount',
+			tobe: '100000', asis: PROFIT_FACTOR_ID, betterSide: ObjectiveTargetBetterSide.MORE
+		},
+		{
+			uuid: generateUuid(), name: 'Profit Rate',
+			tobe: '10%', asis: {
+				kind: ObjectiveParameterType.COMPUTED, operator: ObjectiveFormulaOperator.DIVIDE,
 				parameters: [
-					{kind: ObjectiveParameterType.REFER, uuid: MONTHLY_PREMIUM_FACTOR_ID} as ReferObjectiveParameter,
-					{
-						kind: ObjectiveParameterType.COMPUTED, operator: ObjectiveFormulaOperator.ROUND,
-						parameters: [
-							{
-								kind: ObjectiveParameterType.CONSTANT,
-								value: '{&ProfitRate}'
-							} as ConstantObjectiveParameter
-						]
-					} as ComputedObjectiveParameter
+					{kind: ObjectiveParameterType.REFER, uuid: PROFIT_FACTOR_ID} as ReferObjectiveParameter,
+					{kind: ObjectiveParameterType.REFER, uuid: REVENUE_FACTOR_ID} as ReferObjectiveParameter
 				]
 			},
 			betterSide: ObjectiveTargetBetterSide.MORE
 		}
 	],
 	variables: [
-		{name: 'ProfitRate', kind: ObjectiveVariableKind.SINGLE_VALUE, value: '20.4'} as ObjectiveVariableOnValue
+		{name: 'MaterialCostRate', kind: ObjectiveVariableKind.SINGLE_VALUE, value: '0.68'} as ObjectiveVariableOnValue,
+		{name: 'SalesCostRate', kind: ObjectiveVariableKind.SINGLE_VALUE, value: '0.15'} as ObjectiveVariableOnValue,
+		{name: 'TaxCostRate', kind: ObjectiveVariableKind.SINGLE_VALUE, value: '0.07'} as ObjectiveVariableOnValue
 	],
 	factors: [
 		{
-			uuid: MONTHLY_PREMIUM_FACTOR_ID, kind: ObjectiveFactorKind.INDICATOR, name: 'Monthly Premium',
+			uuid: REVENUE_FACTOR_ID, kind: ObjectiveFactorKind.INDICATOR, name: 'Revenue',
 			indicatorId: INDICATOR_MONTHLY_ORDER_PREMIUM_ID
-		} as ObjectiveFactorOnIndicator
+		} as ObjectiveFactorOnIndicator,
+		{
+			uuid: MATERIAL_COST_FACTOR_ID, kind: ObjectiveFactorKind.COMPUTED, name: 'Material Cost',
+			formula: {
+				kind: ObjectiveParameterType.COMPUTED,
+				operator: ObjectiveFormulaOperator.MULTIPLY,
+				parameters: [
+					{
+						kind: ObjectiveParameterType.REFER,
+						uuid: REVENUE_FACTOR_ID
+					} as ReferObjectiveParameter,
+					{kind: ObjectiveParameterType.CONSTANT, value: '{&MaterialCostRate}'} as ConstantObjectiveParameter
+				]
+			}
+		} as ObjectiveFactorOnComputation,
+		{
+			uuid: SALES_COST_FACTOR_ID, kind: ObjectiveFactorKind.COMPUTED, name: 'Sales Cost',
+			formula: {
+				kind: ObjectiveParameterType.COMPUTED,
+				operator: ObjectiveFormulaOperator.MULTIPLY,
+				parameters: [
+					{
+						kind: ObjectiveParameterType.REFER,
+						uuid: REVENUE_FACTOR_ID
+					} as ReferObjectiveParameter,
+					{kind: ObjectiveParameterType.CONSTANT, value: '{&SalesCostRate}'} as ConstantObjectiveParameter
+				]
+			}
+		} as ObjectiveFactorOnComputation,
+		{
+			uuid: TAX_COST_FACTOR_ID, kind: ObjectiveFactorKind.COMPUTED, name: 'Tax Cost',
+			formula: {
+				kind: ObjectiveParameterType.COMPUTED,
+				operator: ObjectiveFormulaOperator.MULTIPLY,
+				parameters: [
+					{
+						kind: ObjectiveParameterType.REFER,
+						uuid: REVENUE_FACTOR_ID
+					} as ReferObjectiveParameter,
+					{kind: ObjectiveParameterType.CONSTANT, value: '{&TaxCostRate}}'} as ConstantObjectiveParameter
+				]
+			}
+		} as ObjectiveFactorOnComputation,
+		{
+			uuid: ALL_COST_FACTOR_ID, kind: ObjectiveFactorKind.COMPUTED, name: 'All Cost',
+			formula: {
+				kind: ObjectiveParameterType.COMPUTED, operator: ObjectiveFormulaOperator.ADD,
+				parameters: [
+					{kind: ObjectiveParameterType.REFER, uuid: MATERIAL_COST_FACTOR_ID} as ReferObjectiveParameter,
+					{kind: ObjectiveParameterType.REFER, uuid: SALES_COST_FACTOR_ID} as ReferObjectiveParameter,
+					{kind: ObjectiveParameterType.REFER, uuid: TAX_COST_FACTOR_ID} as ReferObjectiveParameter
+				]
+			}
+		} as ObjectiveFactorOnComputation,
+		{
+			uuid: PROFIT_FACTOR_ID, kind: ObjectiveFactorKind.COMPUTED, name: 'Profit Amount',
+			formula: {
+				kind: ObjectiveParameterType.COMPUTED, operator: ObjectiveFormulaOperator.SUBTRACT,
+				parameters: [
+					{kind: ObjectiveParameterType.REFER, uuid: REVENUE_FACTOR_ID} as ReferObjectiveParameter,
+					{kind: ObjectiveParameterType.REFER, uuid: ALL_COST_FACTOR_ID} as ReferObjectiveParameter
+				]
+			}
+		} as ObjectiveFactorOnComputation
 	],
 	userGroupIds: [],
 	version: 1,

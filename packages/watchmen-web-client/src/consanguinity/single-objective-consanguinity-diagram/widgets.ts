@@ -39,6 +39,7 @@ export const Loading = styled.div`
 export const ObjectiveConsanguinityDiagram = styled(ConsanguinityDiagram)`
 	grid-template-columns : repeat(4, 1fr);
 	grid-template-rows    : auto 1fr;
+	overflow-y            : auto;
 	> div[data-widget=consanguinity-block]:nth-child(5) {
 		grid-column : 1 / span 4;
 	}

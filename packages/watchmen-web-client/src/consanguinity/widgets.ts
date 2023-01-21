@@ -1,7 +1,9 @@
 import styled from 'styled-components';
 
 export const ConsanguinityDiagram = styled.div.attrs({
-	'data-widget': 'consanguinity'
+	'data-widget': 'consanguinity',
+	'data-v-scroll': '',
+	'data-h-scroll': ''
 })`
 	display         : grid;
 	position        : relative;
