@@ -1,6 +1,6 @@
-import {useNodeClick} from '@/consanguinity/nodes/use-node-click';
 import {Lang} from '@/widgets/langs';
 import {DiagramSubject, DiagramSubjectColumn} from '../types';
+import {useNodeClick} from './use-node-click';
 import {NodeContainer, NodeItem, NodeItems, NodeTitle} from './widgets';
 
 const SubjectColumnNode = (props: { subject: DiagramSubject, column: DiagramSubjectColumn }) => {

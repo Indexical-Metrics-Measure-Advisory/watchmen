@@ -9,6 +9,7 @@ import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useEffect, useState} from 'react';
+import {ConsanguinityActivation} from '../activation';
 // noinspection ES6PreferShortImport
 import {ConsanguinityEventBusProvider} from '../consanguinity-event-bus';
 import {ConsanguinityLines} from '../lines';
@@ -124,6 +125,10 @@ export const SingleObjectiveConsanguinityDiagram = (props: { objective: Objectiv
 					</ObjectiveConsanguinityBlockBody>
 				</ConsanguinityBlockContainer>
 				<ConsanguinityLines consanguinity={consanguinity} maps={{
+					objectiveTargetMap: targetMap, objectiveFactorMap: factorMap,
+					indicatorMap, subjectColumnMap, topicFactorMap
+				}}/>
+				<ConsanguinityActivation consanguinity={consanguinity} maps={{
 					objectiveTargetMap: targetMap, objectiveFactorMap: factorMap,
 					indicatorMap, subjectColumnMap, topicFactorMap
 				}}/>

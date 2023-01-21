@@ -176,10 +176,16 @@ const DefaultTheme = {
 	consanguinityBlockBgColor: '#ECEDEE',
 	consanguinityBlockShadow: '5px 5px 15px 0 rgb(0 0 0 / 10%) inset, -10px -10px 10px 0 #fff inset',
 	consanguinityNodeSelectedBgColor: 'var(--danger-color)',
+	consanguinityNodeDirectBgColor: 'rgb(225,134,110)',
+	consanguinityNodeSameRouteBgColor: 'rgb(217,183,152)',
 	consanguinityNodeShadow: '5px 5px 15px 0 rgba(0,0,0,0.3)',
-	consanguinityNodeSelectedShadow: '5px 5px 15px 0 var(--danger-color)',
+	consanguinityNodeSelectedShadow: '5px 5px 15px 0 var(--consanguinity-node-selected-bg-color)',
+	consanguinityNodeDirectShadow: '5px 5px 15px 0 var(--consanguinity-node-direct-bg-color)',
+	consanguinityNodeSameRouteShadow: '5px 5px 15px 0 var(--consanguinity-node-same-route-bg-color)',
 	consanguinityLineColor: 'rgb(161, 161, 161)',
-	consanguinityLineActiveColor: 'var(--danger-color)'
+	consanguinityLineSelectedColor: 'var(--consanguinity-node-selected-bg-color)',
+	consanguinityLineDirectColor: 'var(--consanguinity-node-direct-bg-color)',
+	consanguinityLineSameRouteColor: 'var(--consanguinity-node-same-route-bg-color)'
 };
 
 export default DefaultTheme;
