@@ -1,5 +1,12 @@
 import styled from 'styled-components';
 
+export const NodeWrapper = styled.div.attrs({'data-widget': 'consanguinity-node-wrapper'})`
+	display  : flex;
+	position : relative;
+	> div {
+		flex-grow: 1;
+	}
+`;
 export const NodeContainer = styled.div.attrs({'data-widget': 'consanguinity-node'})`
 	display        : flex;
 	position       : relative;

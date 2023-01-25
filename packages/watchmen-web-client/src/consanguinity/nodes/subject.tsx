@@ -2,7 +2,7 @@ import {ConsanguinityUniqueId} from '@/services/data/tuples/consanguinity';
 import {Lang} from '@/widgets/langs';
 import {DiagramRelation, DiagramSubject, DiagramSubjectColumn} from '../types';
 import {useNodeClick} from './use-node-click';
-import {NodeContainer, NodeItem, NodeItems, NodeTitle} from './widgets';
+import {NodeContainer, NodeItem, NodeItems, NodeTitle, NodeWrapper} from './widgets';
 
 const SubjectColumnNode = (props: { subject: DiagramSubject, column: DiagramSubjectColumn }) => {
 	const {column} = props;
@@ -25,14 +25,16 @@ export const SubjectNode = (props: { data: DiagramSubject; relations: Array<Diag
 	}, {} as Record<ConsanguinityUniqueId, boolean>);
 	const columns = (data.columns || []).filter(column => map[column['@cid']] != null);
 
-	return <NodeContainer data-node-type="subject" data-node-id={data.subjectId}>
-		<NodeTitle>
-			{(data.name || '').trim() || Lang.CONSANGUINITY.NONAME_SUBJECT}
-		</NodeTitle>
-		<NodeItems>
-			{columns.map(column => {
-				return <SubjectColumnNode subject={data} column={column} key={column.columnId}/>;
-			})}
-		</NodeItems>
-	</NodeContainer>;
+	return <NodeWrapper>
+		<NodeContainer data-node-type="subject" data-node-id={data.subjectId}>
+			<NodeTitle>
+				{(data.name || '').trim() || Lang.CONSANGUINITY.NONAME_SUBJECT}
+			</NodeTitle>
+			<NodeItems>
+				{columns.map(column => {
+					return <SubjectColumnNode subject={data} column={column} key={column.columnId}/>;
+				})}
+			</NodeItems>
+		</NodeContainer>
+	</NodeWrapper>;
 };

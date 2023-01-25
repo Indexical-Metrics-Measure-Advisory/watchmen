@@ -171,9 +171,9 @@ const computeLines = (maps: DiagramDataMap, relations: Array<DiagramRelation>, n
 			case LineType.TOPIC_BLOCK:
 				const containerNode = fromNode.node.closest('div[data-widget=consanguinity]')!;
 				const containerNodeRect = containerNode.getBoundingClientRect();
-				const fromTopicNode = fromNode.node.closest('div[data-node-type=topic]')!;
+				const fromTopicNode = fromNode.node.closest('div[data-widget=consanguinity-node-wrapper]')!;
 				const fromTopicNodeRect = fromTopicNode.getBoundingClientRect();
-				const toTopicNode = toNode.node.closest('div[data-node-type=topic]')!;
+				const toTopicNode = toNode.node.closest('div[data-widget=consanguinity-node-wrapper]')!;
 				const toTopicNodeRect = toTopicNode.getBoundingClientRect();
 				if (fromNode.top > toNode.top) {
 					// from at bottom, to at top
