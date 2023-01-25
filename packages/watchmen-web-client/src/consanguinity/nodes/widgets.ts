@@ -4,6 +4,7 @@ export const NodeContainer = styled.div.attrs({'data-widget': 'consanguinity-nod
 	display        : flex;
 	position       : relative;
 	flex-direction : column;
+	align-self     : start;
 	min-height     : calc(var(--height) * 2);
 	border-radius  : calc(var(--height) / 2);
 	padding        : calc(var(--margin) / 4) calc(var(--margin) / 2);
@@ -23,22 +24,22 @@ export const NodeContainer = styled.div.attrs({'data-widget': 'consanguinity-nod
 		transition       : background-color 300ms ease-in-out;
 	}
 	&[data-active=selected] {
-		color : var(--invert-color);
-		box-shadow     : var(--consanguinity-node-selected-shadow);
+		color      : var(--invert-color);
+		box-shadow : var(--consanguinity-node-selected-shadow);
 		&:before {
 			background-color : var(--consanguinity-node-selected-bg-color);
 		}
 	}
 	&[data-active=direct] {
-		color : var(--invert-color);
-		box-shadow     : var(--consanguinity-node-direct-shadow);
+		color      : var(--invert-color);
+		box-shadow : var(--consanguinity-node-direct-shadow);
 		&:before {
 			background-color : var(--consanguinity-node-direct-bg-color);
 		}
 	}
 	&[data-active=same-route] {
-		color : var(--invert-color);
-		box-shadow     : var(--consanguinity-node-same-route-shadow);
+		color      : var(--invert-color);
+		box-shadow : var(--consanguinity-node-same-route-shadow);
 		&:before {
 			background-color : var(--consanguinity-node-same-route-bg-color);
 		}

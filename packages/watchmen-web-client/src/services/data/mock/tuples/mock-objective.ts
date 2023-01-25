@@ -1,5 +1,3 @@
-import {FactorType} from '@/services/data/tuples/factor-types';
-import {TopicKind, TopicType} from '@/services/data/tuples/topic-types';
 import {TuplePage} from '../../query/tuple-page';
 import {
 	Consanguinity,
@@ -14,10 +12,12 @@ import {
 	ConsanguinityTopicFactor,
 	ConsanguinityUniqueId
 } from '../../tuples/consanguinity';
+import {FactorType} from '../../tuples/factor-types';
 import {IndicatorAggregateArithmetic} from '../../tuples/indicator-types';
 import {Objective, ObjectiveFactor, ObjectiveId, ObjectiveValues} from '../../tuples/objective-types';
 import {QueryObjective} from '../../tuples/query-objective-types';
 import {SubjectColumnArithmetic} from '../../tuples/subject-types';
+import {TopicKind, TopicType} from '../../tuples/topic-types';
 import {generateUuid, isFakedUuid} from '../../tuples/utils';
 import {MonthlyOrderPremiumIndicator} from './mock-data-indicators';
 import {DemoObjectives, MonthlySalesObjective} from './mock-data-objectives';
@@ -195,7 +195,99 @@ export const fetchMockConsanguinity = async (objective: Objective): Promise<Cons
 							factorId: generateUuid(), name: 'OrderItemSeq', type: FactorType.NUMBER, '@cid': askCid()
 						} as ConsanguinityTopicFactor,
 						{
-							factorId: generateUuid(), name: 'Premium', type: FactorType.NUMBER, '@cid': askCid()
+							factorId: generateUuid(), name: 'Price', type: FactorType.NUMBER, '@cid': askCid()
+						} as ConsanguinityTopicFactor,
+						{
+							factorId: generateUuid(), name: 'Discount', type: FactorType.NUMBER, '@cid': askCid()
+						} as ConsanguinityTopicFactor,
+						{
+							factorId: generateUuid(), name: 'Amount', type: FactorType.NUMBER, '@cid': askCid()
+						} as ConsanguinityTopicFactor
+					]
+				},
+				{
+					topicId: generateUuid(), name: 'Raw Order Part 1', kind: TopicKind.BUSINESS, type: TopicType.RAW,
+					factors: [
+						{
+							factorId: generateUuid(), name: 'OrderNo', type: FactorType.TEXT, '@cid': askCid()
+						} as ConsanguinityTopicFactor,
+						{
+							factorId: generateUuid(), name: 'HolderName',
+							type: FactorType.UNSIGNED, '@cid': askCid()
+						} as ConsanguinityTopicFactor
+					]
+				},
+				{
+					topicId: generateUuid(), name: 'Raw Order Part 2', kind: TopicKind.BUSINESS, type: TopicType.RAW,
+					factors: [
+						{
+							factorId: generateUuid(), name: 'OrderNo', type: FactorType.TEXT, '@cid': askCid()
+						} as ConsanguinityTopicFactor,
+						{
+							factorId: generateUuid(), name: 'OrderDate', type: FactorType.DATE, '@cid': askCid()
+						} as ConsanguinityTopicFactor
+					]
+				},
+				{
+					topicId: generateUuid(), name: 'Raw Order Item 1', kind: TopicKind.BUSINESS, type: TopicType.RAW,
+					factors: [
+						{
+							factorId: generateUuid(), name: 'OrderNo', type: FactorType.TEXT, '@cid': askCid()
+						} as ConsanguinityTopicFactor,
+						{
+							factorId: generateUuid(), name: 'OrderItemSeq', type: FactorType.NUMBER, '@cid': askCid()
+						} as ConsanguinityTopicFactor,
+						{
+							factorId: generateUuid(), name: 'Price', type: FactorType.NUMBER, '@cid': askCid()
+						} as ConsanguinityTopicFactor,
+						{
+							factorId: generateUuid(), name: 'Amount', type: FactorType.NUMBER, '@cid': askCid()
+						} as ConsanguinityTopicFactor
+					]
+				},
+				{
+					topicId: generateUuid(), name: 'Raw Order Item 2', kind: TopicKind.BUSINESS, type: TopicType.RAW,
+					factors: [
+						{
+							factorId: generateUuid(), name: 'OrderNo', type: FactorType.TEXT, '@cid': askCid()
+						} as ConsanguinityTopicFactor,
+						{
+							factorId: generateUuid(), name: 'OrderItemSeq', type: FactorType.NUMBER, '@cid': askCid()
+						} as ConsanguinityTopicFactor,
+						{
+							factorId: generateUuid(), name: 'Discount', type: FactorType.NUMBER, '@cid': askCid()
+						} as ConsanguinityTopicFactor
+					]
+				},
+				{
+					topicId: generateUuid(), name: 'Test 1', kind: TopicKind.BUSINESS, type: TopicType.RAW,
+					factors: [
+						{
+							factorId: generateUuid(), name: 'OrderNo', type: FactorType.TEXT, '@cid': askCid()
+						} as ConsanguinityTopicFactor
+					]
+				},
+				{
+					topicId: generateUuid(), name: 'Test 2', kind: TopicKind.BUSINESS, type: TopicType.RAW,
+					factors: [
+						{
+							factorId: generateUuid(), name: 'OrderNo', type: FactorType.TEXT, '@cid': askCid()
+						} as ConsanguinityTopicFactor
+					]
+				},
+				{
+					topicId: generateUuid(), name: 'Test 3', kind: TopicKind.BUSINESS, type: TopicType.RAW,
+					factors: [
+						{
+							factorId: generateUuid(), name: 'OrderNo', type: FactorType.TEXT, '@cid': askCid()
+						} as ConsanguinityTopicFactor
+					]
+				},
+				{
+					topicId: generateUuid(), name: 'Test 4', kind: TopicKind.BUSINESS, type: TopicType.RAW,
+					factors: [
+						{
+							factorId: generateUuid(), name: 'OrderNo', type: FactorType.TEXT, '@cid': askCid()
 						} as ConsanguinityTopicFactor
 					]
 				}
@@ -353,7 +445,86 @@ export const fetchMockConsanguinity = async (objective: Objective): Promise<Cons
 						'@cid': subjects[0].columns[2]['@cid'],
 						from: [{
 							'@cid': topics[0].factors[1]['@cid'],
-							type: ConsanguinityLineType.TOPIC_FACTOR_TO_SUBJECT_COLUMN__COMPUTE
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_TOPIC_FACTOR__COPY
+						}]
+					},
+					{
+						'@cid': topics[0].factors[0]['@cid'],
+						from: [{
+							'@cid': topics[4].factors[0]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_TOPIC_FACTOR__COPY
+						}]
+					},
+					{
+						'@cid': topics[0].factors[1]['@cid'],
+						from: [{
+							'@cid': topics[5].factors[1]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_TOPIC_FACTOR__COPY
+						}]
+					},
+					{
+						'@cid': topics[1].factors[0]['@cid'],
+						from: [{
+							'@cid': topics[4].factors[1]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_TOPIC_FACTOR__COPY
+						}]
+					},
+					{
+						'@cid': topics[2].factors[0]['@cid'],
+						from: [{
+							'@cid': topics[4].factors[1]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_TOPIC_FACTOR__COPY
+						}]
+					},
+					{
+						'@cid': topics[5].factors[1]['@cid'],
+						from: [{
+							'@cid': topics[4].factors[1]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_TOPIC_FACTOR__COPY
+						}]
+					},
+					{
+						'@cid': topics[6].factors[1]['@cid'],
+						from: [{
+							'@cid': topics[0].factors[0]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_TOPIC_FACTOR__COPY
+						}, {
+							'@cid': topics[1].factors[0]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_TOPIC_FACTOR__COPY
+						}, {
+							'@cid': topics[2].factors[0]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_TOPIC_FACTOR__COPY
+						}, {
+							'@cid': topics[3].factors[0]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_TOPIC_FACTOR__COPY
+						}, {
+							'@cid': topics[4].factors[0]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_TOPIC_FACTOR__COPY
+						}, {
+							'@cid': topics[5].factors[0]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_TOPIC_FACTOR__COPY
+						}, {
+							'@cid': topics[7].factors[0]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_TOPIC_FACTOR__COPY
+						}, {
+							'@cid': topics[8].factors[0]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_TOPIC_FACTOR__COPY
+						}, {
+							'@cid': topics[9].factors[0]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_TOPIC_FACTOR__COPY
+						}, {
+							'@cid': topics[10].factors[0]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_TOPIC_FACTOR__COPY
+						}, {
+							'@cid': topics[11].factors[0]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_TOPIC_FACTOR__COPY
+						}]
+					},
+					{
+						'@cid': topics[9].factors[0]['@cid'],
+						from: [{
+							'@cid': topics[4].factors[1]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_TOPIC_FACTOR__COPY
 						}]
 					}
 				]

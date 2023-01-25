@@ -48,6 +48,7 @@ export const ObjectiveConsanguinityDiagram = styled(ConsanguinityDiagram)`
 			display               : grid;
 			grid-template-columns : repeat(4, 1fr);
 			grid-column-gap       : calc(var(--margin) * 3.5);
+			grid-row-gap          : calc(var(--margin) * 2);
 		}
 	}
 `;

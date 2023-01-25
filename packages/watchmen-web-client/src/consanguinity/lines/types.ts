@@ -14,7 +14,9 @@ export enum LineType {
 
 export interface LineData {
 	fromCid: ConsanguinityUniqueId;
+	fromNode: HTMLElement;
 	toCid: ConsanguinityUniqueId;
+	toNode: HTMLElement;
 	top: number;
 	left: number;
 	width: number;
@@ -31,6 +33,7 @@ export interface NodeRect {
 	left: number;
 	width: number;
 	height: number;
+	node: HTMLElement;
 }
 
 export type NodeRectMap = Record<ConsanguinityUniqueId, NodeRect>;
