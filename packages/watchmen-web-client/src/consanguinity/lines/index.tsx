@@ -2,7 +2,7 @@ import {Consanguinity, ConsanguinityUniqueId} from '@/services/data/tuples/consa
 import {generateUuid} from '@/services/data/tuples/utils';
 import {useEffect, useRef, useState} from 'react';
 import {DiagramDataMap, DiagramRelation} from '../types';
-import {LineData, LineSVG, NodeRectMap} from './types';
+import {LineData, LineSVG, NodeRect, NodeRectMap} from './types';
 import {useNodeClick} from './use-node-click';
 import {ConsanguinityLineContainer, ConsanguinityLinesContainer} from './widgets';
 
@@ -41,10 +41,10 @@ export const ConsanguinityLines = (props: {
 		const allNodes = Array.from(parent.querySelectorAll<HTMLDivElement>('div[data-node-id]')).reduce((map, node) => {
 			const {top, left, width, height} = node.getBoundingClientRect();
 			map[(node as HTMLDivElement).getAttribute('data-node-id')!] = {
-				top: top - parentTop, left: left - parentLeft, width, height
-			};
+				top: top - parentTop, left: left - parentLeft, width, height, node
+			} as NodeRect;
 			return map;
-		}, {} as Record<ConsanguinityUniqueId, { top: number, left: number, width: number, height: number }>);
+		}, {} as Record<ConsanguinityUniqueId, NodeRect>);
 		const data = computeLines(maps, relations, allNodes);
 		setLines({painted: true, data: data});
 		// eslint-disable-next-line

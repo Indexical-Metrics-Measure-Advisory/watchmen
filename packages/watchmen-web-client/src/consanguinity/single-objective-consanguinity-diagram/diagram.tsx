@@ -87,7 +87,8 @@ const computeLines = (maps: DiagramDataMap, relations: Array<DiagramRelation>, n
 			return null;
 		}
 		const lineData: LineData = {
-			type: computeLineType(maps, from, to), fromCid: from, toCid: to,
+			type: computeLineType(maps, from, to),
+			fromCid: from, fromNode: fromNode.node, toCid: to, toNode: toNode.node,
 			top: 0, left: 0, width: 0, height: 0, startX: 0, startY: 0, endX: 0, endY: 0
 		};
 		switch (lineData.type) {
@@ -160,7 +161,7 @@ const computeLines = (maps: DiagramDataMap, relations: Array<DiagramRelation>, n
 			case LineType.TOPIC_TO_SUBJECT:
 				lineData.top = toNode.top;
 				lineData.left = fromNode.left + fromNode.width;
-				lineData.width = toNode.left + toNode.width + 200;
+				lineData.width = toNode.left + toNode.width - lineData.left + 200;
 				lineData.height = fromNode.top + fromNode.height - toNode.top;
 				lineData.startX = 0;
 				lineData.startY = lineData.height - fromNode.height / 2;
@@ -168,6 +169,34 @@ const computeLines = (maps: DiagramDataMap, relations: Array<DiagramRelation>, n
 				lineData.endY = toNode.height / 2;
 				break;
 			case LineType.TOPIC_BLOCK:
+				const containerNode = fromNode.node.closest('div[data-widget=consanguinity]')!;
+				const containerNodeRect = containerNode.getBoundingClientRect();
+				const fromTopicNode = fromNode.node.closest('div[data-node-type=topic]')!;
+				const fromTopicNodeRect = fromTopicNode.getBoundingClientRect();
+				const toTopicNode = toNode.node.closest('div[data-node-type=topic]')!;
+				const toTopicNodeRect = toTopicNode.getBoundingClientRect();
+				if (fromNode.top > toNode.top) {
+					// from at bottom, to at top
+					lineData.top = toTopicNodeRect.top - containerNodeRect.top;
+					lineData.height = fromTopicNodeRect.top + fromTopicNodeRect.height - toTopicNodeRect.top + 32;
+				} else {
+					// from at top, to at bottom; or same
+					lineData.top = fromTopicNodeRect.top - containerNodeRect.top;
+					lineData.height = toTopicNodeRect.top + toTopicNodeRect.height - fromTopicNodeRect.top + 32;
+				}
+				lineData.startY = fromNode.top - lineData.top + fromNode.height / 2;
+				lineData.endY = toNode.top - lineData.top + toNode.height / 2;
+				if (fromNode.left > toNode.left) {
+					// from at right, to at left
+					lineData.left = toTopicNodeRect.left - 32 - containerNodeRect.left;
+					lineData.width = fromNode.left + fromNode.width + 200 - lineData.left;
+				} else {
+					// from at left, to at right; or same
+					lineData.left = fromTopicNodeRect.left - 32 - containerNodeRect.left;
+					lineData.width = toNode.left + toNode.width + 200 - lineData.left;
+				}
+				lineData.startX = fromNode.left + fromNode.width - lineData.left;
+				lineData.endX = toNode.left - lineData.left;
 				break;
 			case LineType.UNKNOWN:
 				break;
@@ -176,7 +205,7 @@ const computeLines = (maps: DiagramDataMap, relations: Array<DiagramRelation>, n
 	}).filter(x => x != null) as Array<LineData>;
 };
 
-const buildComputeLine = (topicRef: RefObject<HTMLDivElement>) => {
+const buildComputeLine = (topicBlockRef: RefObject<HTMLDivElement>) => {
 	return (data: LineData): LineSVG => {
 		const startRadius = 5;
 		switch (data.type) {
@@ -213,11 +242,11 @@ const buildComputeLine = (topicRef: RefObject<HTMLDivElement>) => {
 			case LineType.SAME_SUBJECT:
 				return {line: '', start: ''};
 			case LineType.TOPIC_TO_INDICATOR: {
-				if (topicRef.current == null) {
+				if (topicBlockRef.current == null) {
 					return {line: '', start: ''};
 				}
-				const parent = topicRef.current.parentElement!;
-				const topicBlockTop = topicRef.current.getBoundingClientRect().top - parent.getBoundingClientRect().top + parent.scrollTop - data.top - 2;
+				const parent = topicBlockRef.current.parentElement!;
+				const topicBlockTop = topicBlockRef.current.getBoundingClientRect().top - parent.getBoundingClientRect().top + parent.scrollTop - data.top - 2;
 
 				const startX = data.startX + 16;
 				return {
@@ -245,11 +274,11 @@ const buildComputeLine = (topicRef: RefObject<HTMLDivElement>) => {
 				};
 			}
 			case LineType.TOPIC_TO_SUBJECT: {
-				if (topicRef.current == null) {
+				if (topicBlockRef.current == null) {
 					return {line: '', start: ''};
 				}
-				const parent = topicRef.current.parentElement!;
-				const topicBlockTop = topicRef.current.getBoundingClientRect().top - parent.getBoundingClientRect().top + parent.scrollTop - data.top + 30;
+				const parent = topicBlockRef.current.parentElement!;
+				const topicBlockTop = topicBlockRef.current.getBoundingClientRect().top - parent.getBoundingClientRect().top + parent.scrollTop - data.top + 30;
 				return {
 					line: [
 						`M ${data.startX + 1} ${data.startY}`,
@@ -267,6 +296,49 @@ const buildComputeLine = (topicRef: RefObject<HTMLDivElement>) => {
 				};
 			}
 			case LineType.TOPIC_BLOCK:
+				if (topicBlockRef.current == null) {
+					return {line: '', start: ''};
+				}
+				// const allChildrenNodes = Array.from(topicBlockRef.current.querySelector('div[data-widget=consanguinity-block-body]')!.children);
+				// const fromTopicNode = data.fromNode.closest('div[data-node-type=topic]')!;
+				// const fromTopicIndex = allChildrenNodes.indexOf(fromTopicNode);
+				// const toTopicNode = data.toNode.closest('div[data-node-type=topic]')!;
+				// const toTopicIndex = allChildrenNodes.indexOf(toTopicNode);
+
+				// 4 columns
+				// const atSameColumn = (fromTopicIndex % 4) === (toTopicIndex % 4);
+				// const atSameRow = Math.floor(fromTopicIndex / 4) === Math.floor(toTopicIndex / 4);
+				// gap is 112 (margin * 3.5), plus 32 (padding between topic/factor), plus 1 for tolerance
+				const toAtLeft = data.endX > data.startX;
+				// const isNeighboring = toAtLeft && Math.abs(data.startX - data.endX) <= 145;
+				// const toAtTop = !atSameRow && Math.floor(toTopicIndex / 4) < Math.floor(fromTopicIndex / 4);
+				// const isAbsolutelyHorizontal = data.startY === data.endY;
+				// const isDirectlyHorizontalLink = isNeighboring && isAbsolutelyHorizontal;
+
+				// console.log(toAtTop);
+				// allChildrenNodes, fromTopicIndex, fromTopicNode, toTopicIndex, toTopicNode,
+				// isVertical, isNeighboring, data.startX, data.startY, data.endX, data.endY);
+				return {
+					line: [
+						`M ${data.startX + 1} ${data.startY}`,
+						`L ${data.startX + 16} ${data.startY}`,
+						`A 16 16 0 0 1 ${data.startX + 32} ${data.startY + 16}`,
+						`L ${data.startX + 32} ${data.height - 32}`,
+						toAtLeft
+							? `A 16 16 0 0 0 ${data.startX + 48} ${data.height - 16}`
+							: `A 16 16 0 0 1 ${data.startX + 16} ${data.height - 16}`,
+						toAtLeft
+							? `L ${data.endX - 48} ${data.height - 16}`
+							: `L ${data.endX - 16} ${data.height - 16}`,
+						toAtLeft
+							? `A 16 16 0 0 0 ${data.endX - 32} ${data.height - 32}`
+							: `A 16 16 0 0 1 ${data.endX - 32} ${data.height - 32}`,
+						`L ${data.endX - 32} ${data.endY + 16}`,
+						`A 16 16 0 0 1 ${data.endX - 16} ${data.endY}`,
+						`L ${data.endX} ${data.endY}`
+					].join(' '),
+					start: `M ${data.startX} ${data.startY - startRadius} A ${startRadius} ${startRadius} 0 0 1 ${data.startX} ${data.startY + startRadius} Z`
+				};
 			case LineType.UNKNOWN:
 				return {line: '', start: ''};
 		}
@@ -276,7 +348,7 @@ const buildComputeLine = (topicRef: RefObject<HTMLDivElement>) => {
 export const SingleObjectiveConsanguinityDiagram = (props: { objective: Objective }) => {
 	const {objective} = props;
 
-	const topicRef = useRef<HTMLDivElement>(null);
+	const topicBlockRef = useRef<HTMLDivElement>(null);
 	const {fire} = useEventBus();
 	const [state, setState] = useState<State>({
 		loaded: false, relations: [], maps: {
@@ -378,7 +450,7 @@ export const SingleObjectiveConsanguinityDiagram = (props: { objective: Objectiv
 						})}
 					</ObjectiveConsanguinityBlockBody>
 				</ConsanguinityBlockContainer>
-				<ConsanguinityBlockContainer ref={topicRef}>
+				<ConsanguinityBlockContainer ref={topicBlockRef}>
 					<ConsanguinityBlockLabel>{Lang.CONSANGUINITY.TOPIC_BLOCK_LABEL}</ConsanguinityBlockLabel>
 					<ObjectiveConsanguinityBlockBody>
 						{state.maps.topics.list.map(topic => {
@@ -387,7 +459,8 @@ export const SingleObjectiveConsanguinityDiagram = (props: { objective: Objectiv
 					</ObjectiveConsanguinityBlockBody>
 				</ConsanguinityBlockContainer>
 				<ConsanguinityLines consanguinity={state.data!} relations={state.relations}
-				                    computeLines={computeLines} computeLine={buildComputeLine(topicRef)} maps={maps}/>
+				                    computeLines={computeLines} computeLine={buildComputeLine(topicBlockRef)}
+				                    maps={maps}/>
 				<ConsanguinityActivation consanguinity={state.data!} relations={state.relations} maps={maps}/>
 			</ObjectiveConsanguinityDiagram>
 		</ConsanguinityDialogBody>
