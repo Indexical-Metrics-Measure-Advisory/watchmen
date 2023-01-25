@@ -446,7 +446,7 @@ export const SingleObjectiveConsanguinityDiagram = (props: { objective: Objectiv
 					<ConsanguinityBlockLabel>{Lang.CONSANGUINITY.SUBJECT_BLOCK_LABEL}</ConsanguinityBlockLabel>
 					<ObjectiveConsanguinityBlockBody>
 						{state.maps.subjects.list.map(subject => {
-							return <SubjectNode data={subject} key={subject.subjectId}/>;
+							return <SubjectNode data={subject} relations={state.relations} key={subject.subjectId}/>;
 						})}
 					</ObjectiveConsanguinityBlockBody>
 				</ConsanguinityBlockContainer>
@@ -454,7 +454,7 @@ export const SingleObjectiveConsanguinityDiagram = (props: { objective: Objectiv
 					<ConsanguinityBlockLabel>{Lang.CONSANGUINITY.TOPIC_BLOCK_LABEL}</ConsanguinityBlockLabel>
 					<ObjectiveConsanguinityBlockBody>
 						{state.maps.topics.list.map(topic => {
-							return <TopicNode data={topic} key={topic.topicId}/>;
+							return <TopicNode data={topic} relations={state.relations} key={topic.topicId}/>;
 						})}
 					</ObjectiveConsanguinityBlockBody>
 				</ConsanguinityBlockContainer>
