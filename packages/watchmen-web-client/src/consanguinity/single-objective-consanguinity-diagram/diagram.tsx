@@ -188,11 +188,11 @@ const computeLines = (maps: DiagramDataMap, relations: Array<DiagramRelation>, n
 				lineData.endY = toNode.top - lineData.top + toNode.height / 2;
 				if (fromNode.left > toNode.left) {
 					// from at right, to at left
-					lineData.left = toTopicNodeRect.left - 32 - containerNodeRect.left;
+					lineData.left = toTopicNodeRect.left - 100 - containerNodeRect.left;
 					lineData.width = fromNode.left + fromNode.width + 200 - lineData.left;
 				} else {
 					// from at left, to at right; or same
-					lineData.left = fromTopicNodeRect.left - 32 - containerNodeRect.left;
+					lineData.left = fromTopicNodeRect.left - 100 - containerNodeRect.left;
 					lineData.width = toNode.left + toNode.width + 200 - lineData.left;
 				}
 				lineData.startX = fromNode.left + fromNode.width - lineData.left;
@@ -203,6 +203,248 @@ const computeLines = (maps: DiagramDataMap, relations: Array<DiagramRelation>, n
 		}
 		return lineData;
 	}).filter(x => x != null) as Array<LineData>;
+};
+
+const computeColumnIndexes = (fromTopicIndex: number, toTopicIndex: number) => {
+	const fromColumnIndex = fromTopicIndex % 4;
+	const toColumnIndex = toTopicIndex % 4;
+	return {
+		atSameColumn: fromColumnIndex === toColumnIndex,
+		fromAtLeft: fromColumnIndex < toColumnIndex, toAtLeft: fromColumnIndex > toColumnIndex,
+		adjoining: (fromColumnIndex + 1) === toColumnIndex,
+		fromColumnIndex, toColumnIndex
+	};
+};
+const computeRowIndexes = (fromTopicIndex: number, toTopicIndex: number) => {
+	const fromRowIndex = Math.floor(fromTopicIndex / 4);
+	const toRowIndex = Math.floor(toTopicIndex / 4);
+	return {
+		atSameRow: fromRowIndex === toRowIndex,
+		fromAtTop: fromRowIndex < toRowIndex, toAtTop: fromRowIndex > toRowIndex,
+		fromRowIndex, toRowIndex
+	};
+};
+
+const computeTopic2TopicLine = (topicBlockRef: RefObject<HTMLDivElement>, data: LineData): Array<string> => {
+	// const topicBlockRect = topicBlockRef.current!.getBoundingClientRect();
+	const allChildrenNodes = Array.from(topicBlockRef.current!.querySelector('div[data-widget=consanguinity-block-body]')!.children);
+	const fromTopicNode = data.fromNode.closest('div[data-widget=consanguinity-node-wrapper]')!;
+	const fromTopicIndex = allChildrenNodes.indexOf(fromTopicNode);
+	const toTopicNode = data.toNode.closest('div[data-widget=consanguinity-node-wrapper]')!;
+	const toTopicIndex = allChildrenNodes.indexOf(toTopicNode);
+
+	// 4 columns
+	const {atSameColumn, fromAtLeft, toAtLeft, adjoining} = computeColumnIndexes(fromTopicIndex, toTopicIndex);
+	const {atSameRow, fromAtTop, toAtTop} = computeRowIndexes(fromTopicIndex, toTopicIndex);
+
+	switch (true) {
+		case fromAtLeft && fromAtTop: {
+			// ******************************************* //
+			//      ┍--------┑       ┍--------┑
+			//      │  from  │ >--╮  │        │
+			//      ┕--------┙    │  ┕--------┙
+			//                    ╰--------------╮
+			//                                   │    ┍--------┑
+			//                                   ╰--> │   to   │
+			//                                        ┕--------┙
+			// or
+			//      ┍--------┑
+			//      │  from  │ >--╮
+			//      ┕--------┙    │
+			//                    │
+			//                    │    ┍--------┑
+			//                    ╰--> │   to   │
+			//                         ┕--------┙
+			// ******************************************* //
+			const fromTopicNodeRect = fromTopicNode.getBoundingClientRect();
+			return [
+				`M ${data.startX + 1} ${data.startY}`,
+				`L ${data.startX + 40} ${data.startY}`,
+				`A 16 16 0 0 1 ${data.startX + 56} ${data.startY + 16}`,
+				adjoining ? '' : `L ${data.startX + 56} ${fromTopicNodeRect.height + 24}`,
+				adjoining ? '' : `A 16 16 0 0 0 ${data.startX + 72} ${fromTopicNodeRect.height + 40}`,
+				adjoining ? '' : `L ${data.endX - 104} ${fromTopicNodeRect.height + 40}`,
+				adjoining ? '' : `A 16 16 0 0 1 ${data.endX - 88} ${fromTopicNodeRect.height + 56}`,
+				`L ${data.endX - 88} ${data.endY - 16}`,
+				`A 16 16 0 0 0 ${data.endX - 72} ${data.endY}`,
+				`L ${data.endX} ${data.endY}`
+			];
+		}
+		case atSameColumn && fromAtTop:
+		case toAtLeft && fromAtTop: {
+			// ******************************************* //
+			//      ┍--------┑
+			//      │  from  │ >--╮
+			//      ┕--------┙    │
+			// ╭------------------╯
+			// │    ┍--------┑
+			// ╰--> │   to   │
+			//      ┕--------┙
+			// or
+			//      ┍--------┑     ┍--------┑
+			//      │        │     │  from  │ >--╮
+			//      ┕--------┙     ┕--------┙    │
+			// ╭---------------------------------╯
+			// │    ┍--------┑
+			// ╰--> │   to   │
+			//      ┕--------┙
+			// ******************************************* //
+			const fromTopicNodeRect = fromTopicNode.getBoundingClientRect();
+			return [
+				`M ${data.startX + 1} ${data.startY}`,
+				`L ${data.startX + 40} ${data.startY}`,
+				`A 16 16 0 0 1 ${data.startX + 56} ${data.startY + 16}`,
+				`L ${data.startX + 56} ${fromTopicNodeRect.height}`,
+				`A 16 16 0 0 1 ${data.startX + 40} ${fromTopicNodeRect.height + 16}`,
+				`L ${data.endX - 24} ${fromTopicNodeRect.height + 16}`,
+				`A 16 16 0 0 0 ${data.endX - 40} ${fromTopicNodeRect.height + 32}`,
+				`L ${data.endX - 40} ${data.endY - 16}`,
+				`A 16 16 0 0 0 ${data.endX - 24} ${data.endY}`,
+				`L ${data.endX} ${data.endY}`
+			];
+		}
+		case atSameRow && adjoining && data.startY === data.endY: {
+			// ******************************************* //
+			//      ┍--------┑       ┍--------┑
+			//      │  from  │ >---> │   to   │
+			//      ┕--------┙       ┕--------┙
+			// ******************************************* //
+			return [
+				`M ${data.startX + 1} ${data.startY}`,
+				`L ${data.endX} ${data.endY}`
+			];
+		}
+		case atSameRow && adjoining: {
+			// ******************************************* //
+			//      ┍--------┑         ┍--------┑
+			//      │        │ >--╮    │        │
+			//      │  from  │    │    │   to   │
+			//      │        │    ╰--> │        │
+			//      +--------┙         +--------┙
+			// or
+			//      ┍--------┑         ┍--------┑
+			//      │        │    ╭--> │        │
+			//      │  from  │    │    │   to   │
+			//      │        │ >--╯    │        │
+			//      ┕--------┙         ┕--------┙
+			// ******************************************* //
+			const centerX = Math.min(data.startX, data.endX) + Math.abs(data.endX - data.startX) / 2;
+			const centerY = Math.min(data.startY, data.endY) + Math.abs(data.endY - data.startY) / 2;
+			return [
+				`M ${data.startX + 1} ${data.startY}`,
+				`L ${data.startX + 16} ${data.startY}`,
+				`Q ${centerX} ${data.startY}, ${centerX} ${centerY}`,
+				`T ${data.endX - 16} ${data.endY}`,
+				`L ${data.endX} ${data.endY}`
+			];
+		}
+		case fromAtLeft && atSameRow: {
+			// ******************************************* //
+			//      ┍--------┑       ┍--------┑       ┍--------┑
+			//      │  from  │ >--╮  │        │  ╭--> │   to   │
+			//      ┕--------┙    │  ┕--------┙  │    ┕--------┙
+			//                    ╰--------------╯
+			// ******************************************* //
+			return [
+				`M ${data.startX + 1} ${data.startY}`,
+				`L ${data.startX + 40} ${data.startY}`,
+				`A 16 16 0 0 1 ${data.startX + 56} ${data.startY + 16}`,
+				`L ${data.startX + 56} ${data.height - 24}`,
+				`A 16 16 0 0 0 ${data.startX + 72} ${data.height - 8}`,
+				`L ${data.endX - 104} ${data.height - 8}`,
+				`A 16 16 0 0 0 ${data.endX - 88} ${data.height - 24}`,
+				`L ${data.endX - 88} ${data.endY + 16}`,
+				`A 16 16 0 0 1 ${data.endX - 72} ${data.endY}`,
+				`L ${data.endX} ${data.endY}`
+			];
+		}
+		case toAtLeft && atSameRow: {
+			// ******************************************* //
+			//      ┍--------┑              ┍--------┑
+			// ╭--> │   to   │              │  from  │ >--╮
+			// │    ┕--------┙              ┕--------┙    │
+			// ╰------------------------------------------╯
+			// ******************************************* //
+			return [
+				`M ${data.startX + 1} ${data.startY}`,
+				`L ${data.startX + 40} ${data.startY}`,
+				`A 16 16 0 0 1 ${data.startX + 56} ${data.startY + 16}`,
+				`L ${data.startX + 56} ${data.height - 24}`,
+				`A 16 16 0 0 1 ${data.startX + 40} ${data.height - 8}`,
+				`L ${data.endX - 24} ${data.height - 8}`,
+				`A 16 16 0 0 1 ${data.endX - 40} ${data.height - 24}`,
+				`L ${data.endX - 40} ${data.endY + 16}`,
+				`A 16 16 0 0 1 ${data.endX - 24} ${data.endY}`,
+				`L ${data.endX} ${data.endY}`
+			];
+		}
+		case fromAtLeft && toAtTop: {
+			// ******************************************* //
+			//                                        ┍--------┑
+			//                                   ╭--> │   to   │
+			//                                   │    ┕--------┙
+			//                    ╭--------------╯
+			//      ┍--------┑    │  ┍--------┑
+			//      │  from  │ >--╯  │        │
+			//      ┕--------┙       ┕--------┙
+			// or
+			//                         ┍--------┑
+			//                    ╭--> │   to   │
+			//                    │    ┕--------┙
+			//      ┍--------┑    │
+			//      │  from  │ >--╯
+			//      ┕--------┙
+			// ******************************************* //
+			const fromTopicNodeRect = fromTopicNode.getBoundingClientRect();
+			return [
+				`M ${data.startX + 1} ${data.startY}`,
+				`L ${data.startX + 40} ${data.startY}`,
+				`A 16 16 0 0 0 ${data.startX + 56} ${data.startY - 16}`,
+				adjoining ? '' : `L ${data.startX + 56} ${data.height - fromTopicNodeRect.height - 32 - 8}`,
+				adjoining ? '' : `A 16 16 0 0 1 ${data.startX + 72} ${data.height - fromTopicNodeRect.height - 32 - 24}`,
+				adjoining ? '' : `L ${data.endX - 104} ${data.height - fromTopicNodeRect.height - 32 - 24}`,
+				adjoining ? '' : `A 16 16 0 0 0 ${data.endX - 88} ${data.height - fromTopicNodeRect.height - 32 - 40}`,
+				`L ${data.endX - 88} ${data.endY + 16}`,
+				`A 16 16 0 0 1 ${data.endX - 72} ${data.endY}`,
+				`L ${data.endX} ${data.endY}`
+			];
+		}
+		case atSameColumn && toAtTop:
+		case toAtLeft && toAtTop: {
+			// ******************************************* //
+			//      ┍--------┑
+			// ╭--> │   to   │
+			// │    ┕--------┙
+			// ╰------------------╮
+			//      ┍--------┑    │
+			//      │  from  │ >--╯
+			//      ┕--------┙
+			// or
+			//      ┍--------┑     ┍--------┑
+			// ╭--> │   to   │     │        │
+			// │    ┕--------┙     ┕--------┙
+			// ╰-------------------------------- ╮
+			//                     ┍--------┑    │
+			//                     │  from  │ >--╯
+			//                     ┕--------┙
+			// ******************************************* //
+			const fromTopicNodeRect = fromTopicNode.getBoundingClientRect();
+			return [
+				`M ${data.startX + 1} ${data.startY}`,
+				`L ${data.startX + 40} ${data.startY}`,
+				`A 16 16 0 0 0 ${data.startX + 56} ${data.startY - 16}`,
+				`L ${data.startX + 56} ${data.height - fromTopicNodeRect.height - 32 - 8}`,
+				`A 16 16 0 0 0 ${data.startX + 40} ${data.height - fromTopicNodeRect.height - 32 - 24}`,
+				`L ${data.endX - 24} ${data.height - fromTopicNodeRect.height - 32 - 24}`,
+				`A 16 16 0 0 1 ${data.endX - 40} ${data.height - fromTopicNodeRect.height - 32 - 40}`,
+				`L ${data.endX - 40} ${data.endY + 16}`,
+				`A 16 16 0 0 1 ${data.endX - 24} ${data.endY}`,
+				`L ${data.endX} ${data.endY}`
+			];
+		}
+		default:
+			return [];
+	}
 };
 
 const buildComputeLine = (topicBlockRef: RefObject<HTMLDivElement>) => {
@@ -217,12 +459,13 @@ const buildComputeLine = (topicBlockRef: RefObject<HTMLDivElement>) => {
 						data.startY < data.endY ? `A 10 10 0 0 0 ${data.startX + 10} ${data.startY + 16}` : `A 10 10 0 0 1 ${data.startX + 10} ${data.startY - 16}`,
 						data.startY < data.endY ? `L ${data.endX - 32} ${data.startY + 16}` : `L ${data.endX - 32} ${data.startY - 16}`,
 						data.startY < data.endY
-							? `Q ${data.endX + 112} ${data.startY + 16}, ${data.endX + 1} ${data.endY}`
-							: `Q ${data.endX + 112} ${data.startY - 16}, ${data.endX + 1} ${data.endY}`
+							? `C ${data.endX + 88} ${data.startY + 16}, ${data.endX + 88} ${data.endY}, ${data.endX + 1} ${data.endY}`
+							: `C ${data.endX + 88} ${data.startY - 16}, ${data.endX + 88} ${data.endY}, ${data.endX + 1} ${data.endY}`
 					].join(' '),
 					start: data.startY < data.endY
 						? `M ${data.startX - startRadius} ${data.startY} A ${startRadius} ${startRadius} 0 0 0 ${data.startX + startRadius} ${data.startY} Z`
-						: `M ${data.startX - startRadius} ${data.startY} A ${startRadius} ${startRadius} 0 0 1 ${data.startX + startRadius} ${data.startY} Z`
+						: `M ${data.startX - startRadius} ${data.startY} A ${startRadius} ${startRadius} 0 0 1 ${data.startX + startRadius} ${data.startY} Z`,
+					end: `M ${data.endX} ${data.endY} L ${data.endX + 8} ${data.endY - 5} L ${data.endX + 8} ${data.endY + 5} Z`
 				};
 			case LineType.OBJECTIVE_FACTOR_TO_TARGET:
 			case LineType.INDICATOR_TO_OBJECTIVE_FACTOR:
@@ -230,14 +473,12 @@ const buildComputeLine = (topicBlockRef: RefObject<HTMLDivElement>) => {
 				return {
 					line: [
 						`M ${data.startX} ${data.startY}`,
-						`Q ${data.startX < data.endX
-							? (data.startX + (data.endX - data.startX) / 3)
-							: (data.startX - (data.startX - data.endX) / 3)} ${data.startY}, ${data.width / 2} ${Math.min(data.startY, data.endY) + Math.abs(data.startY - data.endY) / 2}`,
-						`T ${data.endX} ${data.endY}`
+						`C ${(data.startX + (data.endX - data.startX) / 4 * 3)} ${data.startY},`,
+						`${(data.startX + (data.endX - data.startX) / 4)} ${data.endY},`,
+						`${data.endX} ${data.endY}`
 					].join(' '),
-					start: data.startX < data.endX
-						? `M ${data.startX} ${data.startY - startRadius} A ${startRadius} ${startRadius} 0 0 1 ${data.startX} ${data.startY + startRadius} Z`
-						: `M ${data.startX} ${data.startY - startRadius} A ${startRadius} ${startRadius} 0 0 0 ${data.startX} ${data.startY + startRadius} Z`
+					start: `M ${data.startX} ${data.startY - startRadius} A ${startRadius} ${startRadius} 0 0 0 ${data.startX} ${data.startY + startRadius} Z`,
+					end: `M ${data.endX} ${data.endY} L ${data.endX + 8} ${data.endY - 5} L ${data.endX + 8} ${data.endY + 5} Z`
 				};
 			case LineType.SAME_SUBJECT:
 				return {line: '', start: ''};
@@ -270,7 +511,8 @@ const buildComputeLine = (topicBlockRef: RefObject<HTMLDivElement>) => {
 						`A 16 16 0 0 0 ${data.endX + 24} ${data.endY}`,
 						`L ${data.endX + 1} ${data.endY}`
 					].join(' '),
-					start: `M ${data.startX} ${data.startY - startRadius} A ${startRadius} ${startRadius} 0 0 1 ${data.startX} ${data.startY + startRadius} Z`
+					start: `M ${data.startX} ${data.startY - startRadius} A ${startRadius} ${startRadius} 0 0 1 ${data.startX} ${data.startY + startRadius} Z`,
+					end: `M ${data.endX} ${data.endY} L ${data.endX + 8} ${data.endY - 5} L ${data.endX + 8} ${data.endY + 5} Z`
 				};
 			}
 			case LineType.TOPIC_TO_SUBJECT: {
@@ -292,52 +534,18 @@ const buildComputeLine = (topicBlockRef: RefObject<HTMLDivElement>) => {
 						`A 16 16 0 0 0 ${data.endX + 56} ${data.endY}`,
 						`L ${data.endX} ${data.endY}`
 					].join(' '),
-					start: `M ${data.startX} ${data.startY - startRadius} A ${startRadius} ${startRadius} 0 0 1 ${data.startX} ${data.startY + startRadius} Z`
+					start: `M ${data.startX} ${data.startY - startRadius} A ${startRadius} ${startRadius} 0 0 1 ${data.startX} ${data.startY + startRadius} Z`,
+					end: `M ${data.endX} ${data.endY} L ${data.endX + 8} ${data.endY - 5} L ${data.endX + 8} ${data.endY + 5} Z`
 				};
 			}
 			case LineType.TOPIC_BLOCK:
 				if (topicBlockRef.current == null) {
 					return {line: '', start: ''};
 				}
-				// const allChildrenNodes = Array.from(topicBlockRef.current.querySelector('div[data-widget=consanguinity-block-body]')!.children);
-				// const fromTopicNode = data.fromNode.closest('div[data-node-type=topic]')!;
-				// const fromTopicIndex = allChildrenNodes.indexOf(fromTopicNode);
-				// const toTopicNode = data.toNode.closest('div[data-node-type=topic]')!;
-				// const toTopicIndex = allChildrenNodes.indexOf(toTopicNode);
-
-				// 4 columns
-				// const atSameColumn = (fromTopicIndex % 4) === (toTopicIndex % 4);
-				// const atSameRow = Math.floor(fromTopicIndex / 4) === Math.floor(toTopicIndex / 4);
-				// gap is 112 (margin * 3.5), plus 32 (padding between topic/factor), plus 1 for tolerance
-				const toAtLeft = data.endX > data.startX;
-				// const isNeighboring = toAtLeft && Math.abs(data.startX - data.endX) <= 145;
-				// const toAtTop = !atSameRow && Math.floor(toTopicIndex / 4) < Math.floor(fromTopicIndex / 4);
-				// const isAbsolutelyHorizontal = data.startY === data.endY;
-				// const isDirectlyHorizontalLink = isNeighboring && isAbsolutelyHorizontal;
-
-				// console.log(toAtTop);
-				// allChildrenNodes, fromTopicIndex, fromTopicNode, toTopicIndex, toTopicNode,
-				// isVertical, isNeighboring, data.startX, data.startY, data.endX, data.endY);
 				return {
-					line: [
-						`M ${data.startX + 1} ${data.startY}`,
-						`L ${data.startX + 16} ${data.startY}`,
-						`A 16 16 0 0 1 ${data.startX + 32} ${data.startY + 16}`,
-						`L ${data.startX + 32} ${data.height - 32}`,
-						toAtLeft
-							? `A 16 16 0 0 0 ${data.startX + 48} ${data.height - 16}`
-							: `A 16 16 0 0 1 ${data.startX + 16} ${data.height - 16}`,
-						toAtLeft
-							? `L ${data.endX - 48} ${data.height - 16}`
-							: `L ${data.endX - 16} ${data.height - 16}`,
-						toAtLeft
-							? `A 16 16 0 0 0 ${data.endX - 32} ${data.height - 32}`
-							: `A 16 16 0 0 1 ${data.endX - 32} ${data.height - 32}`,
-						`L ${data.endX - 32} ${data.endY + 16}`,
-						`A 16 16 0 0 1 ${data.endX - 16} ${data.endY}`,
-						`L ${data.endX} ${data.endY}`
-					].join(' '),
-					start: `M ${data.startX} ${data.startY - startRadius} A ${startRadius} ${startRadius} 0 0 1 ${data.startX} ${data.startY + startRadius} Z`
+					line: computeTopic2TopicLine(topicBlockRef, data).join(' '),
+					start: `M ${data.startX} ${data.startY - startRadius} A ${startRadius} ${startRadius} 0 0 1 ${data.startX} ${data.startY + startRadius} Z`,
+					end: `M ${data.endX} ${data.endY} L ${data.endX - 8} ${data.endY - 5} L ${data.endX - 8} ${data.endY + 5} Z`
 				};
 			case LineType.UNKNOWN:
 				return {line: '', start: ''};

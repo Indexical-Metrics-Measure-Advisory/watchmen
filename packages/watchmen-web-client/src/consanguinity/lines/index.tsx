@@ -10,13 +10,14 @@ const ConsanguinityLine = (props: { data: LineData; compute: (data: LineData) =>
 	const {data, compute} = props;
 
 	const {active} = useNodeClick(data.fromCid, data.toCid);
-	const {line, start} = compute(data);
+	const {line, start, end} = compute(data);
 
 	return <ConsanguinityLineContainer rect={data}
 	                                   data-node-from-id={data.fromCid} data-node-to-id={data.toCid}
 	                                   data-active={active}>
 		<path data-type="line" d={line}/>
 		<path data-type="start" d={start}/>
+		{end != null ? <path data-type="end" d={end}/> : null}
 	</ConsanguinityLineContainer>;
 };
 

@@ -27,7 +27,7 @@ export const ConsanguinityLineContainer = styled.svg.attrs<{ rect: LineData }>((
 	position : absolute;
 	&[data-active=selected] {
 		z-index : 3;
-		> path[data-type=start] {
+		> path[data-type=start], > path[data-type=end] {
 			fill : var(--consanguinity-line-selected-color);
 		}
 		> path[data-type=line] {
@@ -36,7 +36,7 @@ export const ConsanguinityLineContainer = styled.svg.attrs<{ rect: LineData }>((
 	}
 	&[data-active=direct] {
 		z-index : 2;
-		> path[data-type=start] {
+		> path[data-type=start], > path[data-type=end] {
 			fill : var(--consanguinity-line-direct-color);
 		}
 		> path[data-type=line] {
@@ -45,14 +45,14 @@ export const ConsanguinityLineContainer = styled.svg.attrs<{ rect: LineData }>((
 	}
 	&[data-active=same-route] {
 		z-index : 1;
-		> path[data-type=start] {
+		> path[data-type=start], > path[data-type=end] {
 			fill : var(--consanguinity-line-same-route-color);
 		}
 		> path[data-type=line] {
 			stroke : var(--consanguinity-line-same-route-color);
 		}
 	}
-	> path[data-type=start] {
+	> path[data-type=start], > path[data-type=end] {
 		fill           : var(--consanguinity-line-color);
 		stroke         : transparent;
 		stroke-width   : 1px;
@@ -64,6 +64,7 @@ export const ConsanguinityLineContainer = styled.svg.attrs<{ rect: LineData }>((
 		stroke         : var(--consanguinity-line-color);
 		stroke-width   : 2px;
 		stroke-linecap : round;
+		stroke-linejoin: round;
 		stroke-opacity : 0.9;
 		transition     : all 300ms ease-in-out;
 	}

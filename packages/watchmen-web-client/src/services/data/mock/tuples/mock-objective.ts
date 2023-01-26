@@ -272,6 +272,9 @@ export const fetchMockConsanguinity = async (objective: Objective): Promise<Cons
 					factors: [
 						{
 							factorId: generateUuid(), name: 'OrderNo', type: FactorType.TEXT, '@cid': askCid()
+						} as ConsanguinityTopicFactor,
+						{
+							factorId: generateUuid(), name: 'OrderDate', type: FactorType.DATE, '@cid': askCid()
 						} as ConsanguinityTopicFactor
 					]
 				},
@@ -477,8 +480,28 @@ export const fetchMockConsanguinity = async (objective: Objective): Promise<Cons
 						}]
 					},
 					{
+						'@cid': topics[3].factors[0]['@cid'],
+						from: [{
+							'@cid': topics[8].factors[0]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_TOPIC_FACTOR__COPY
+						}]
+					},
+					{
+						'@cid': topics[5].factors[0]['@cid'],
+						from: [{
+							'@cid': topics[4].factors[0]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_TOPIC_FACTOR__COPY
+						}, {
+							'@cid': topics[4].factors[1]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_TOPIC_FACTOR__COPY
+						}]
+					},
+					{
 						'@cid': topics[5].factors[1]['@cid'],
 						from: [{
+							'@cid': topics[4].factors[0]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_TOPIC_FACTOR__COPY
+						}, {
 							'@cid': topics[4].factors[1]['@cid'],
 							type: ConsanguinityLineType.TOPIC_FACTOR_TO_TOPIC_FACTOR__COPY
 						}]
@@ -524,6 +547,13 @@ export const fetchMockConsanguinity = async (objective: Objective): Promise<Cons
 						'@cid': topics[9].factors[0]['@cid'],
 						from: [{
 							'@cid': topics[4].factors[1]['@cid'],
+							type: ConsanguinityLineType.TOPIC_FACTOR_TO_TOPIC_FACTOR__COPY
+						}]
+					},
+					{
+						'@cid': topics[10].factors[0]['@cid'],
+						from: [{
+							'@cid': topics[8].factors[0]['@cid'],
 							type: ConsanguinityLineType.TOPIC_FACTOR_TO_TOPIC_FACTOR__COPY
 						}]
 					}
