@@ -41,4 +41,5 @@ export type NodeRectMap = Record<ConsanguinityUniqueId, NodeRect>;
 export interface LineSVG {
 	line: string;
 	start: string;
+	end?: string;
 }
