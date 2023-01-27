@@ -1,4 +1,4 @@
-CREATE TABLE collector_cdc_config
+CREATE TABLE collector_audit_column_query_config
 (
     config_id           VARCHAR(50) NOT NULL,
     name                VARCHAR(50) NOT NULL,

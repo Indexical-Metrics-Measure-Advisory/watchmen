@@ -8,7 +8,7 @@ class JoinKey(Storable):
 	child_key: str
 
 
-class CollectorTableConfig(TenantBasedTuple, OptimisticLock, BaseModel):
+class CollectorAuditColumnQueryConfig(TenantBasedTuple, OptimisticLock, BaseModel):
 	config_id: str
 	name: str
 	table_name: str

@@ -1,5 +1,5 @@
 from .collector_competitive_lock import CollectorCompetitiveLock
-from .collector_cdc_config import CollectorTableConfig
 from .collector_task import CollectorTask, ResultStatus, TaskStatus
 from .collector_integrated_record import CollectorIntegratedRecord, Dependency
 from .collector_change_record import CollectorChangeRecord
+from .collector_audit_column_query_config import CollectorAuditColumnQueryConfig

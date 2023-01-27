@@ -1,5 +1,5 @@
 from watchmen_auth import PrincipalService
-from watchmen_collector_kernel.model import CollectorTask, ResultStatus
+from watchmen_collector_kernel.model import CollectorTask
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, CollectorTaskId

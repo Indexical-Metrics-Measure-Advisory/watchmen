@@ -14,7 +14,7 @@ class CollectorIntegratedRecordShaper(EntityShaper):
 		return TupleShaper.serialize_tenant_based(entity, {
 			'integrated_record_id': entity.integratedRecordId,
 			'resource_id': entity.resourceId,
-			'data_content': entity.content,
+			'data_content': entity.dataContent,
 			'model_name': entity.modelName,
 			'object_id': entity.objectId,
 			'dependency': entity.dependencies,
@@ -27,7 +27,7 @@ class CollectorIntegratedRecordShaper(EntityShaper):
 		return TupleShaper.deserialize_tenant_based(row, CollectorIntegratedRecord(
 			integratedRecordId=row.get('integrated_record_id'),
 			resourceId=row.get('resource_id'),
-			content=row.get('data_content'),
+			dataContent=row.get('data_content'),
 			modelName=row.get('model_name'),
 			objectId=row.get('object_id'),
 			dependencies=row.get('dependency'),

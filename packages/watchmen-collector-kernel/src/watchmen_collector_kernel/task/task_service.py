@@ -26,7 +26,7 @@ class TaskService:
 	def consume_task(self, task: CollectorTask, executed: Callable[[str, Dict, str], None]) -> ResultStatus:
 		try:
 			executed(task.modelName, task.content, task.tenantId)
-			self.update_task_result(task.taskId, int(TaskStatus.SUCCESS), ResultStatus.COMPLETED_TASK)
+			self.update_task_result(task, int(TaskStatus.SUCCESS), ResultStatus.COMPLETED_TASK)
 			return ResultStatus.COMPLETED_TASK
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)

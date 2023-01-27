@@ -315,6 +315,18 @@ table_collector_integrated_records = Table(
 	create_json('root_node'),
 	create_tenant_id(), *create_tuple_audit_columns()
 )
+table_collector_audit_column_query_config = Table(
+	'collector_audit_column_query_config', meta_data,
+    create_pk('config_id'), create_str('name', 50),
+    create_str('table_name', 50), create_str('model_name', 50),
+	create_str('parent_name', 50), create_json('join_key'),
+	create_int('disabled'), create_str('filter_criteria', 50),
+	create_str('dependency', 50), create_int('triggered'),
+	create_str('audit_column', 50), create_str('data_source_id', 50),
+	create_int('is_list'),
+	create_tenant_id(), *create_tuple_audit_columns(),
+	create_optimistic_lock()
+)
 table_operations = Table(
 	'operations', meta_data,
 	create_pk('record_id'), create_str('operation_type', 20),
@@ -408,6 +420,7 @@ tables: Dict[str, Table] = {
 	'collector_competitive_lock': table_collector_competitive_lock,
 	'collector_tasks': table_collector_tasks,
 	'collector_integrated_records': table_collector_integrated_records,
+	'collector_audit_column_query_config': table_collector_audit_column_query_config,
 	'operations': table_operations,
 	'package_versions': table_package_versions,
 	# webhook
