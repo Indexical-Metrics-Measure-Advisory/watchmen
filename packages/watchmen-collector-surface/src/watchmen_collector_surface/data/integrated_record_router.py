@@ -1,21 +1,20 @@
 from typing import Callable, Optional
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 
 from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.model import CollectorIntegratedRecord
-from watchmen_collector_kernel.service import CollectorIntegratedRecordService
+from watchmen_collector_kernel.integrated_record import IntegratedRecordService
 from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage
 from watchmen_model.admin import UserRole
 from watchmen_rest import get_any_admin_principal
-from watchmen_rest.util import validate_tenant_id, raise_403
-from watchmen_rest_doll.util import trans
+from watchmen_rest.util import validate_tenant_id, raise_403, raise_500
 
 router = APIRouter()
 
 
-def get_integrated_record_service(principal_service: PrincipalService) -> CollectorIntegratedRecordService:
-	return CollectorIntegratedRecordService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+def get_integrated_record_service(principal_service: PrincipalService) -> IntegratedRecordService:
+	return IntegratedRecordService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
 @router.post('/collector/integrated/record', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=CollectorIntegratedRecord)
@@ -25,12 +24,12 @@ async def save_integrated_record(
 	validate_tenant_id(record, principal_service)
 	integrated_record_service = get_integrated_record_service(principal_service)
 	action = ask_save_integrated_record_action(integrated_record_service, principal_service)
-	return trans(integrated_record_service, lambda: action(record))
+	return action(record)
 
 
 # noinspection PyUnusedLocal
 def ask_save_integrated_record_action(
-		integrated_record_service: CollectorIntegratedRecordService, principal_service: PrincipalService
+		integrated_record_service: IntegratedRecordService, principal_service: PrincipalService
 ) -> Callable[[CollectorIntegratedRecord], CollectorIntegratedRecord]:
 	def action(record: CollectorIntegratedRecord) -> CollectorIntegratedRecord:
 		if integrated_record_service.is_storable_id_faked(record.integratedRecordId):
