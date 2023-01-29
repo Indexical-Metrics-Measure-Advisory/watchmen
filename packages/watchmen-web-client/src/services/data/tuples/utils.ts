@@ -146,3 +146,25 @@ export const isFakedUuid = (tuple: Tuple): boolean => {
 export const prettifyDateTimeToMinute = (datetime?: string) => {
 	return datetime ? dayjs(datetime).format('YYYY/M/DD H:m') : '';
 };
+
+export const replaceKeys = (base: any, replacement: Record<string, string>) => {
+	switch (true) {
+		case base == null:
+		case ['string', 'number', 'boolean', 'function', 'bigint', 'symbol'].includes(typeof base):
+			return base;
+		case Array.isArray(base):
+			// @ts-ignore
+			return base.map(item => replaceKeys(item, replacement));
+		default:
+			return Object.keys(base).reduce((newOne, key) => {
+				if (replacement[key] != null) {
+					// @ts-ignore
+					newOne[replacement[key]] = base[key];
+				} else {
+					// @ts-ignore
+					newOne[key] = base[key];
+				}
+				return newOne;
+			}, {} as object);
+	}
+};

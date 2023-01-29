@@ -14,7 +14,7 @@ import {Consanguinity} from './consanguinity';
 import {Objective, ObjectiveFactor, ObjectiveId, ObjectiveValues} from './objective-types';
 import {QueryObjective} from './query-objective-types';
 import {UserGroupId} from './user-group-types';
-import {isFakedUuid} from './utils';
+import {isFakedUuid, replaceKeys} from './utils';
 
 type ObjectiveOnServer = Omit<Objective, 'userGroupIds'> & { groupIds: Array<UserGroupId> };
 
@@ -107,7 +107,7 @@ export const fetchConsanguinity = async (objective: Objective): Promise<Consangu
 			});
 		}));
 		// merge
-		return all.reduce((consanguinity, one) => {
+		return replaceKeys(all.reduce((consanguinity, one) => {
 			(Object.keys(one) as Array<keyof Consanguinity>).forEach((key) => {
 				if (one[key] == null) {
 					return;
@@ -119,6 +119,6 @@ export const fetchConsanguinity = async (objective: Objective): Promise<Consangu
 				consanguinity[key]!.push(...(one[key]));
 			});
 			return consanguinity;
-		}, {} as Consanguinity);
+		}, {} as Consanguinity), {cid_: '@cid', from_: 'from'});
 	}
 };
