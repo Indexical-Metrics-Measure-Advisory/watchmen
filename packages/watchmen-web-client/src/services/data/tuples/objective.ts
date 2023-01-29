@@ -100,25 +100,8 @@ export const fetchConsanguinity = async (objective: Objective): Promise<Consangu
 		return fetchMockConsanguinity(objective);
 	} else {
 		await saveObjective(objective);
-		const all = await Promise.all<Consanguinity>((objective.targets || []).map(async target => {
-			return await get({
-				api: Apis.OBJECTIVE_FACTOR_CONSANGUINITY,
-				search: {objectiveId: objective.objectiveId, targetId: target.uuid}
-			});
-		}));
+		const data = await get({api: Apis.OBJECTIVE_CONSANGUINITY, search: {objectiveId: objective.objectiveId}});
 		// merge
-		return replaceKeys(all.reduce((consanguinity, one) => {
-			(Object.keys(one) as Array<keyof Consanguinity>).forEach((key) => {
-				if (one[key] == null) {
-					return;
-				}
-				if (consanguinity[key] == null) {
-					consanguinity[key] = [];
-				}
-				// @ts-ignore
-				consanguinity[key]!.push(...(one[key]));
-			});
-			return consanguinity;
-		}, {} as Consanguinity), {cid_: '@cid', from_: 'from'});
+		return replaceKeys(data, {cid_: '@cid', from_: 'from'});
 	}
 };
