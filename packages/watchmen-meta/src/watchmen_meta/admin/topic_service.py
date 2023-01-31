@@ -51,8 +51,8 @@ class FactorService:
 		"""
 		return exactly the given factor
 		"""
-		# if TupleService.is_storable_id_faked(factor.factorId):
-		# 	factor.factorId = self.generate_factor_id()
+		if TupleService.is_storable_id_faked(factor.factorId):
+			factor.factorId = self.generate_factor_id()
 		return factor
 
 

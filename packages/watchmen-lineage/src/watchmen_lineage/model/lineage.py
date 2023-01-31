@@ -19,7 +19,6 @@ class LineageType(Enum):
 	REPORT = "REPORT"
 	DASHBOARD = "DASHBOARD"
 	INDICATOR = "INDICATOR"
-	DERIVATIVE = "DERIVATIVE"
 	OBJECTIVE = "OBJECTIVE"
 	OBJECTIVE_TARGET = "OBJECTIVE-TARGET"
 	OBJECTIVE_INDICATOR = "OBJECTIVE-INDICATOR"
@@ -71,6 +70,10 @@ class LineageRelation(BaseModel):
 	relationType: RelationType = None
 	subNode: LineageNode = None
 	attributes: Dict = None
+
+
+
+
 # direction: RelationDirection = None
 
 
@@ -181,11 +184,8 @@ class ObjectiveFactorFacet(LineageNode):
 	relations: List[LineageRelation] = []
 
 
-
-
-
 class CidModel(BaseModel):
-	cid: str = None
+	cid_: str = None
 
 
 class ObjectiveTargetLineage(ObjectiveTarget, CidModel):
@@ -221,17 +221,25 @@ class SubjectLineage(Subject):
 	dataset: SubjectDatasetLineage = None
 
 
-class IndicatorLineage(Indicator,CidModel):
+class IndicatorLineage(Indicator, CidModel):
 	pass
 
 
 
+# class Lineage(CidModel):
+# 	type:str = None
+class RelationshipLineage(CidModel):
+	from_:List = []
+	type: str = None
+
+
 
 class LineageResult(BaseModel):
-	relations: List[LineageRelation] = []
-	objectives:List[ObjectiveLineage] = []
-	topics:List[TopicLineage] = []
-	subjects:List[SubjectLineage] =[]
-	indicators:List[IndicatorLineage] = []
-
-
+	relations: List[RelationshipLineage] = []
+	objectives: List[ObjectiveLineage] = []
+	topics: List[TopicLineage] = []
+	subjects: List[SubjectLineage] = []
+	indicators: List[IndicatorLineage] = []
+	buckets: List = []
+	enums: List = []
+	reports: List = []
