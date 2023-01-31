@@ -1,5 +1,5 @@
-import {Subject} from '@/services/data/tuples/subject-types';
 import {Consanguinity, ConsanguinitySubjectColumn} from './consanguinity-types';
+import {Subject} from './subject-types';
 
 export const redressSubjectsToClientType = (consanguinity: Consanguinity): Consanguinity => {
 	if (consanguinity.subjects == null) {
