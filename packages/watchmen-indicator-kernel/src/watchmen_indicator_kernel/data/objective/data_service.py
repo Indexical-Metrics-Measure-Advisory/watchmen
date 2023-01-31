@@ -403,7 +403,7 @@ class ObjectiveDataService:
 			)
 			parsed = parse_parameter_in_memory(param, self.get_principal_service())
 			variables = PipelineVariables(None, self.variablesOnValueMap, None)
-			return parsed.value(variables, self.get_principal_service())
+			return True, parsed.value(variables, self.get_principal_service())
 		elif isinstance(parameter, ComputedObjectiveParameter):
 			compute_operator = parameter.operator
 
@@ -514,12 +514,16 @@ class ObjectiveDataService:
 			self.ask_indicator_factor_value(factor, factor_values[factor.uuid], get_time_frame, set_value)
 
 		if factor.formula is not None:
-			computed, value = self.compute_parameter_value(factor.formula, factor_values, ask_value)
-			if computed:
-				# noinspection PyPep8Naming
-				set_value(factor_values[factor.uuid], value)
+			if isinstance(factor.formula, ComputedObjectiveParameter) \
+					and factor.formula.operator == ObjectiveFormulaOperator.NONE:
+				# as-is, do nothing
+				pass
 			else:
-				factor_values[factor.uuid].failed = True
+				computed, value = self.compute_parameter_value(factor.formula, factor_values, ask_value)
+				if computed:
+					set_value(factor_values[factor.uuid], value)
+				else:
+					factor_values[factor.uuid].failed = True
 
 	def compute_factor_value_on_current_time_frame(
 			self, factor: ObjectiveFactor, factor_values: Dict[ObjectiveFactorId, TempObjectiveFactorValues]):
