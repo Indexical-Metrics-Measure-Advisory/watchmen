@@ -150,6 +150,7 @@ class IdentifiedStorableService(StorageService):
 		return str(self.snowflakeGenerator.next_id())
 
 	def redress_storable_id(self, storable: Storable) -> Storable:
+
 		"""
 		return exactly the given tuple, replace by generated id if it is faked
 		"""
