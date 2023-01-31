@@ -74,10 +74,10 @@ class ObjectiveDataService:
 			self.previousTimeFrame = None
 			self.chainTimeFrame = None
 		else:
-			time_frame_start, time_frame_end = compute_time_frame(time_frame)
-			self.currentTimeFrame = as_time_frame((time_frame_start, time_frame_end))
-			self.previousTimeFrame = compute_previous_frame(time_frame, (time_frame_start, time_frame_end))
-			self.chainTimeFrame = compute_chain_frame(time_frame, (time_frame_start, time_frame_end))
+			time_frame_tuple = compute_time_frame(time_frame)
+			self.currentTimeFrame = as_time_frame(time_frame_tuple)
+			self.previousTimeFrame = as_time_frame(compute_previous_frame(time_frame, time_frame_tuple))
+			self.chainTimeFrame = as_time_frame(compute_chain_frame(time_frame, time_frame_tuple))
 		# gather variables which can be used in formula
 		self.variablesOnValueMap: Dict[str, str] = {}
 		single_value_variables: List[ObjectiveVariableOnValue] = ArrayHelper(objective.variables) \
