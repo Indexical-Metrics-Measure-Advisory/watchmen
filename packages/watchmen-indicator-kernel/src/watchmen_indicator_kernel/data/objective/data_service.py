@@ -1,5 +1,6 @@
 from datetime import date
 from decimal import Decimal
+from logging import getLogger
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from math import ceil, floor
@@ -18,6 +19,8 @@ from watchmen_utilities import ArrayHelper, get_day_of_month, get_day_of_week, g
 	get_week_of_month, get_week_of_year, get_year, is_blank, is_date, is_decimal, is_not_blank
 from ..objective_factor import get_objective_factor_data_service
 from ..utils import as_time_frame, compute_chain_frame, compute_previous_frame, compute_time_frame, TimeFrame
+
+logger = getLogger(__name__)
 
 
 class ObjectiveTargetValues(BaseModel):
@@ -123,7 +126,8 @@ class ObjectiveDataService:
 				self.get_objective(), factor, self.get_principal_service())
 			value = objective_factor_data_service.ask_value(get_time_frame())
 			set_to(values, value)
-		except:
+		except Exception as e:
+			logger.error(e, exc_info=True, stack_info=True)
 			values.failed = True
 
 	def gather_direct_dependencies(
