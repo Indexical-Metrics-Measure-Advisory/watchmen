@@ -404,11 +404,18 @@ def construct_variables(variables: Optional[list] = None) -> Optional[List[Objec
 def construct_factor(factor: Optional[Union[dict, ObjectiveFactor]]) -> Optional[ObjectiveFactor]:
 	if factor is None:
 		return None
-	elif isinstance(factor, ObjectiveFactor):
+	elif isinstance(factor, ObjectiveFactorOnIndicator):
+		return factor
+	elif isinstance(factor, ObjectiveFactorOnComputation):
 		return factor
 	else:
-		# noinspection PyArgumentList
-		return ObjectiveFactor(**factor)
+		kind = factor.get('kind')
+		if kind == ObjectiveFactorKind.INDICATOR:
+			return ObjectiveFactorOnIndicator(**factor)
+		elif kind == ObjectiveFactorKind.COMPUTED:
+			return ObjectiveFactorOnComputation(**factor)
+		else:
+			raise Exception(f'Objective factor kind[{kind}] cannot be recognized.')
 
 
 def construct_factors(factors: Optional[list] = None) -> Optional[List[ObjectiveFactor]]:
