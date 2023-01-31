@@ -49,6 +49,8 @@ def construct_parameter(parameter: Optional[Union[dict, ObjectiveParameter]]) ->
 			return ComputedObjectiveParameter(**parameter)
 		elif kind == ObjectiveParameterType.BUCKET:
 			return BucketObjectiveParameter(**parameter)
+		elif kind == ObjectiveParameterType.TIME_FRAME:
+			return TimeFrameObjectiveParameter(**parameter)
 		else:
 			raise Exception(f'Parameter kind[{kind}] cannot be recognized.')
 
