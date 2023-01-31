@@ -398,11 +398,11 @@ class ObjectiveCriteriaService:
 					jointType=ParameterJointType.AND,
 					filters=[
 						ParameterExpression(
-							left=left, operator=ParameterExpressionOperator.MORE_EQUALS,
+							left=translated_left, operator=ParameterExpressionOperator.MORE_EQUALS,
 							right=ConstantParameter(
 								kind=ParameterKind.CONSTANT, value=self.use_move_date_func(time_frame.start))),
 						ParameterExpression(
-							left=left, operator=ParameterExpressionOperator.LESS_EQUALS,
+							left=translated_left, operator=ParameterExpressionOperator.LESS_EQUALS,
 							right=ConstantParameter(
 								kind=ParameterKind.CONSTANT, value=self.use_move_date_func(time_frame.end)))
 					]
@@ -413,7 +413,7 @@ class ObjectiveCriteriaService:
 				if variable is None:
 					# not refer any factor variable, treated as normal
 					return ParameterExpression(
-						left=left,
+						left=translated_left,
 						operator=translate_expression_operator(operator),
 						right=self.translate_parameter(right, False, time_frame)
 					)
@@ -429,11 +429,11 @@ class ObjectiveCriteriaService:
 					exp_max = None
 					if is_not_blank(variable.min):
 						exp_min = ParameterExpression(
-							left=left, operator=op_min,
+							left=translated_left, operator=op_min,
 							right=ConstantParameter(kind=ParameterKind.CONSTANT, value=variable.min))
 					elif is_not_blank(variable.max):
 						exp_max = ParameterExpression(
-							left=left, operator=op_max,
+							left=translated_left, operator=op_max,
 							right=ConstantParameter(kind=ParameterKind.CONSTANT, value=variable.max))
 					if exp_min is not None and exp_max is not None:
 						return ParameterJoint(jointType=ParameterJointType.AND, filters=[exp_min, exp_max])
@@ -449,7 +449,7 @@ class ObjectiveCriteriaService:
 				elif isinstance(variable, ObjectiveVariableOnValue):
 					# no special, treated as normal constant
 					return ParameterExpression(
-						left=left,
+						left=translated_left,
 						operator=translate_expression_operator(operator),
 						right=ConstantParameter(kind=ParameterKind.CONSTANT, value=variable.value)
 					)
@@ -458,7 +458,7 @@ class ObjectiveCriteriaService:
 						f'Objective parameter condition[{condition.to_dict()}] not supported, on {self.on_factor_msg()}.')
 			else:
 				return ParameterExpression(
-					left=left,
+					left=translated_left,
 					operator=translate_expression_operator(operator),
 					right=self.translate_parameter(right, False, time_frame)
 				)
