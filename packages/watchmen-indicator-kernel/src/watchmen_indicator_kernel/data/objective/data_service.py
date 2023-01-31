@@ -192,7 +192,7 @@ class ObjectiveDataService:
 		"""
 
 		def as_sorted(factor: ObjectiveFactor) -> SortableObjectiveFactor:
-			sof = SortableObjectiveFactor(factor=factor, invalid=False)
+			sof = SortableObjectiveFactor(factor=factor, invalid=False, depends=[], allDepends=[])
 			if isinstance(factor, ObjectiveFactorOnComputation) and factor.formula is None:
 				sof.invalid = True
 				return sof
@@ -215,9 +215,9 @@ class ObjectiveDataService:
 		# as sorted, factor should be flagged as invalid if direct dependencies are invalid.
 		sorted_factors = ArrayHelper(factors).map(as_sorted)
 		sorted_factor_map: Dict[ObjectiveFactorId, SortableObjectiveFactor] = \
-			sorted_factors.to_map(lambda x: x.uuid, lambda x: x)
+			sorted_factors.to_map(lambda x: x.factor.uuid, lambda x: x)
 		return sorted_factors \
-			.map(lambda x: self.gather_all_dependencies(x, sorted_factor_map)) \
+			.each(lambda x: self.gather_all_dependencies(x, sorted_factor_map)) \
 			.filter(lambda x: not x.invalid) \
 			.sort(compare) \
 			.to_list()
