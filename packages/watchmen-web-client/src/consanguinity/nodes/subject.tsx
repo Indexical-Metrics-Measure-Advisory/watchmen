@@ -1,4 +1,4 @@
-import {ConsanguinityUniqueId} from '@/services/data/tuples/consanguinity';
+import {ConsanguinityUniqueId} from '@/services/data/tuples/consanguinity-types';
 import {Lang} from '@/widgets/langs';
 import {DiagramRelation, DiagramSubject, DiagramSubjectColumn} from '../types';
 import {useNodeClick} from './use-node-click';

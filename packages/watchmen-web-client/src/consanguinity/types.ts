@@ -9,7 +9,7 @@ import {
 	ConsanguinityTopic,
 	ConsanguinityTopicFactor,
 	ConsanguinityUniqueId
-} from '@/services/data/tuples/consanguinity';
+} from '@/services/data/tuples/consanguinity-types';
 
 export type DiagramObjectiveTarget = ConsanguinityObjectiveTarget & { objective: ConsanguinityObjective };
 export type DiagramObjectiveTargetList = Array<DiagramObjectiveTarget>;

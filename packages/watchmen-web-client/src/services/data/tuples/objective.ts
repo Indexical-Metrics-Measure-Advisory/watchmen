@@ -1,3 +1,4 @@
+import {redressSubjectsToClientType} from '@/services/data/tuples/consanguinity';
 import {findAccount} from '../account';
 import {Apis, get, page, post} from '../apis';
 import {
@@ -10,7 +11,7 @@ import {
 } from '../mock/tuples/mock-objective';
 import {TuplePage} from '../query/tuple-page';
 import {isMockService} from '../utils';
-import {Consanguinity} from './consanguinity';
+import {Consanguinity} from './consanguinity-types';
 import {Objective, ObjectiveFactor, ObjectiveId, ObjectiveValues} from './objective-types';
 import {QueryObjective} from './query-objective-types';
 import {UserGroupId} from './user-group-types';
@@ -102,6 +103,6 @@ export const fetchConsanguinity = async (objective: Objective): Promise<Consangu
 		await saveObjective(objective);
 		const data = await get({api: Apis.OBJECTIVE_CONSANGUINITY, search: {objectiveId: objective.objectiveId}});
 		// merge
-		return replaceKeys(data, {cid_: '@cid', from_: 'from'});
+		return replaceKeys(redressSubjectsToClientType(data), {cid_: '@cid', from_: 'from'});
 	}
 };

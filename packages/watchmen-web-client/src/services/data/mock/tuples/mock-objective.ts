@@ -11,7 +11,7 @@ import {
 	ConsanguinityTopic,
 	ConsanguinityTopicFactor,
 	ConsanguinityUniqueId
-} from '../../tuples/consanguinity';
+} from '../../tuples/consanguinity-types';
 import {FactorType} from '../../tuples/factor-types';
 import {IndicatorAggregateArithmetic} from '../../tuples/indicator-types';
 import {Objective, ObjectiveFactor, ObjectiveId, ObjectiveValues} from '../../tuples/objective-types';

@@ -1,4 +1,4 @@
-import {ConsanguinityUniqueId} from '@/services/data/tuples/consanguinity';
+import {ConsanguinityUniqueId} from '@/services/data/tuples/consanguinity-types';
 import {Lang} from '@/widgets/langs';
 import React from 'react';
 import {DiagramRelation, DiagramTopic, DiagramTopicFactor} from '../types';

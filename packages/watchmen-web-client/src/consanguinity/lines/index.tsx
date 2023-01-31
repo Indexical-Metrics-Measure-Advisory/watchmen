@@ -1,4 +1,4 @@
-import {Consanguinity, ConsanguinityUniqueId} from '@/services/data/tuples/consanguinity';
+import {Consanguinity, ConsanguinityUniqueId} from '@/services/data/tuples/consanguinity-types';
 import {generateUuid} from '@/services/data/tuples/utils';
 import {useEffect, useRef, useState} from 'react';
 import {DiagramDataMap, DiagramRelation} from '../types';

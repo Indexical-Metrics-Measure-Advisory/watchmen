@@ -1,4 +1,4 @@
-import {ConsanguinityUniqueId} from '@/services/data/tuples/consanguinity';
+import {ConsanguinityUniqueId} from '@/services/data/tuples/consanguinity-types';
 import {useEffect, useState} from 'react';
 // noinspection ES6PreferShortImport
 import {useConsanguinityEventBus} from '../consanguinity-event-bus';

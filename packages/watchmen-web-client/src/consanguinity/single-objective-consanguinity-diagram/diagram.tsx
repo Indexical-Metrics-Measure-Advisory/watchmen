@@ -1,4 +1,4 @@
-import {Consanguinity, ConsanguinityUniqueId} from '@/services/data/tuples/consanguinity';
+import {Consanguinity, ConsanguinityUniqueId} from '@/services/data/tuples/consanguinity-types';
 import {fetchConsanguinity} from '@/services/data/tuples/objective';
 import {Objective} from '@/services/data/tuples/objective-types';
 import {Button} from '@/widgets/basic/button';

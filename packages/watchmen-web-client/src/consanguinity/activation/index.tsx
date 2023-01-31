@@ -1,4 +1,4 @@
-import {Consanguinity, ConsanguinityUniqueId} from '@/services/data/tuples/consanguinity';
+import {Consanguinity, ConsanguinityUniqueId} from '@/services/data/tuples/consanguinity-types';
 import {useThrottler} from '@/widgets/throttler';
 import {Fragment, useEffect} from 'react';
 // noinspection ES6PreferShortImport
