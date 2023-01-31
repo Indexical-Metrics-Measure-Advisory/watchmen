@@ -45,7 +45,7 @@ class SubjectBaseObjectiveFactorDataService(ObjectiveFactorDataService):
 				subject_filter = self.indicator.filter.joint
 		else:
 			subject_filter = original_subject_filter
-		return Subject(dataset=SubjectDataset(columns=columns, filters=subject_filter))
+		return Subject(dataset=SubjectDataset(columns=columns, filters=subject_filter, joins=subject.dataset.joins))
 
 	def ask_value(self, time_frame: Optional[TimeFrame]) -> Optional[Decimal]:
 		# the indicator factor, actually which is column from subject, is the indicator column of report
