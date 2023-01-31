@@ -357,7 +357,7 @@ class ObjectiveCriteriaService:
 
 	# noinspection PyMethodMayBeStatic
 	def use_move_date_func(self, dt: datetime) -> str:
-		return f'{{&moveDate(&now, H{dt.year}M{dt.month}D{dt.day}h{dt.hour}m{dt.minute}s{dt.second})}}'
+		return f'{{&moveDate(&now, Y{dt.year}M{dt.month}D{dt.day}h{dt.hour}m{dt.minute}s{dt.second})}}'
 
 	# noinspection PyMethodMayBeStatic
 	def as_joint_type(self, conj: Optional[ObjectiveParameterJointType]) -> ParameterJointType:
