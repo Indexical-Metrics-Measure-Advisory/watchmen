@@ -92,7 +92,7 @@ export const askObjectiveValues = async (objective: Objective): Promise<Objectiv
 	if (isMockService()) {
 		return askMockObjectiveValues(objective);
 	} else {
-		return await post({api: Apis.OBJECTIVE_VALUES});
+		return await post({api: Apis.OBJECTIVE_VALUES, data: transformToServer(objective)});
 	}
 };
 
