@@ -7,13 +7,13 @@ from watchmen_lineage.service.builder.topic_lineage import TopicLineageBuilder
 
 
 def get_builder(lineage_type: LineageType):
-	if lineage_type == LineageType.TOPIC:
-		return TopicLineageBuilder()
+	if lineage_type == LineageType.TOPIC or lineage_type == LineageType.FACTOR:
+		return TopicLineageBuilder(LineageType.TOPIC )
 	elif lineage_type == LineageType.PIPELINE:
-		return PipelineLineageBuilder()
-	elif lineage_type == LineageType.SUBJECT:
-		return SubjectLineageBuilder()
+		return PipelineLineageBuilder(LineageType.PIPELINE)
+	elif lineage_type == LineageType.SUBJECT or lineage_type == LineageType.COLUMN:
+		return SubjectLineageBuilder(LineageType.SUBJECT)
 	elif lineage_type == LineageType.INDICATOR:
-		return IndicatorLineageBuilder()
-	elif lineage_type == LineageType.OBJECTIVE:
-		return ObjectiveLineageBuilder()
+		return IndicatorLineageBuilder(LineageType.INDICATOR)
+	elif lineage_type == LineageType.OBJECTIVE or lineage_type == LineageType.OBJECTIVE_TARGET or lineage_type == LineageType.OBJECTIVE_INDICATOR:
+		return ObjectiveLineageBuilder(LineageType.OBJECTIVE)

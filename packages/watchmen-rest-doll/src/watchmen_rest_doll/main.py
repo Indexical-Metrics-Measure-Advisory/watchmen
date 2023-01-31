@@ -1,6 +1,7 @@
 from watchmen_data_surface import get_data_surface_routers
 from watchmen_indicator_surface import get_indicator_surface_routers
 from watchmen_inquiry_surface import get_inquiry_surface_routers
+from watchmen_lineage.router import lineage_router
 from watchmen_pipeline_surface import get_pipeline_surface_routers
 from watchmen_rest.system import health_router
 from watchmen_utilities import ArrayHelper
@@ -55,6 +56,9 @@ ArrayHelper([
 	webhook_router.router,
 	# analysis
 	topic_index_router.router, pipeline_index_router.router
+
+
+
 ]).each(lambda x: app.include_router(x))
 
 install_sso_router(app)
@@ -63,6 +67,9 @@ ArrayHelper(get_data_surface_routers()).each(lambda x: app.include_router(x))
 ArrayHelper(get_pipeline_surface_routers()).each(lambda x: app.include_router(x))
 ArrayHelper(get_inquiry_surface_routers()).each(lambda x: app.include_router(x))
 ArrayHelper(get_indicator_surface_routers()).each(lambda x: app.include_router(x))
+
+app.include_router(lineage_router.router)
+
 if doll.ask_collector_enabled():
 	from watchmen_collector_surface import get_collector_surface_routers
 	ArrayHelper(get_collector_surface_routers()).each(lambda x: app.include_router(x))

@@ -222,7 +222,7 @@ def is_word(key: str):
 # print(parse_constant_parameter("{x.t}  {b.s}"))
 # print(parse_constant_parameter("{da.b.c}  {b.s}"))
 # print(parse_constant_parameter("{&nextSeq}"))
-print(parse_constant_parameter("{&moveDate(eb_policy_listing.expiry_dt,Y+3D99)}"))
+print(parse_constant_parameter("{&daydiff(dataset_clm_case.settle_approve_date,dataset_clm_case.report_time)}"))
 
 # print(parse_constant_parameter("{&x.daa}"))
 # print(parse_constant_parameter("{&dateDiff(test.date,test2.date2)}"))
