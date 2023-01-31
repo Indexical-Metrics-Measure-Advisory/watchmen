@@ -616,6 +616,7 @@ class ObjectiveDataService:
 				if not computed_factor_values.chainAsked:
 					self.compute_factor_value_on_chain_time_frame(computed_factor_values.factor, factor_values)
 				values.chainValue = computed_factor_values.chainValue
+		return values
 
 	def ask_values(self) -> ObjectiveValues:
 		# get factors
