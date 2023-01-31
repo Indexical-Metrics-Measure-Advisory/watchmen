@@ -159,10 +159,10 @@ export const replaceKeys = (base: any, replacement: Record<string, string>) => {
 			return Object.keys(base).reduce((newOne, key) => {
 				if (replacement[key] != null) {
 					// @ts-ignore
-					newOne[replacement[key]] = base[key];
+					newOne[replacement[key]] = replaceKeys(base[key], replacement);
 				} else {
 					// @ts-ignore
-					newOne[key] = base[key];
+					newOne[key] = replaceKeys(base[key], replacement);
 				}
 				return newOne;
 			}, {} as object);
