@@ -1,4 +1,4 @@
-import {ConsanguinityUniqueId} from '@/services/data/tuples/consanguinity';
+import {ConsanguinityUniqueId} from '@/services/data/tuples/consanguinity-types';
 import {generateUuid} from '@/services/data/tuples/utils';
 import {useEffect, useState} from 'react';
 // noinspection ES6PreferShortImport

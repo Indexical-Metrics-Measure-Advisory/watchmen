@@ -1,4 +1,4 @@
-import {ConsanguinityUniqueId} from '@/services/data/tuples/consanguinity';
+import {ConsanguinityUniqueId} from '@/services/data/tuples/consanguinity-types';
 import {Objective} from '@/services/data/tuples/objective-types';
 
 export enum ConsanguinityEventTypes {

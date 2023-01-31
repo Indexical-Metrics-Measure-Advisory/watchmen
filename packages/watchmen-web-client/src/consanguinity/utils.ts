@@ -1,4 +1,4 @@
-import {Consanguinity, ConsanguinitySubject, ConsanguinityTopic} from '@/services/data/tuples/consanguinity';
+import {Consanguinity, ConsanguinitySubject, ConsanguinityTopic} from '@/services/data/tuples/consanguinity-types';
 import {
 	DiagramIndicatorList,
 	DiagramIndicatorMap,

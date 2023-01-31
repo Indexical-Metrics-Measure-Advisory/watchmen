@@ -1,4 +1,4 @@
-import {ConsanguinityUniqueId} from '@/services/data/tuples/consanguinity';
+import {ConsanguinityUniqueId} from '@/services/data/tuples/consanguinity-types';
 
 export enum LineType {
 	OBJECTIVE_FACTOR_TO_TARGET = 'objective-factor-to-target',
