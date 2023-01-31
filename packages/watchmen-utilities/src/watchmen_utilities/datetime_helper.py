@@ -665,7 +665,7 @@ def move_date(a_date: date, movements: List[Tuple[str, str, str]]) -> date:
 		3. date(D): 1 - end of month,
 		4. hour(h): 0 - 23,
 		5. minute(m): 0 - 59,
-		6. second(m): 0 - 59.
+		6. second(s): 0 - 59.
 	"""
 	return ArrayHelper(movements).reduce(lambda base_date, x: move_date_or_time(base_date, x), a_date)
 
