@@ -3,7 +3,7 @@ from typing import List, Optional
 from networkx import MultiDiGraph
 from pydantic import BaseModel
 
-from src.watchmen_indicator_surface.util import trans_readonly
+from watchmen_indicator_surface.util import trans_readonly
 from watchmen_auth import PrincipalService
 from watchmen_lineage.model.lineage import TopicFacet, TopicFactorFacet, TopicLineage, LineageType
 from watchmen_lineage.service.builder import graphic_builder
@@ -11,7 +11,6 @@ from watchmen_lineage.service.builder.loader import LineageBuilder
 from watchmen_lineage.utils.id_utils import build_node_id
 from watchmen_meta.admin import TopicService
 from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage
-from watchmen_meta.common.storage_service import TupleId
 from watchmen_model.admin import Topic, Factor, TopicKind
 
 

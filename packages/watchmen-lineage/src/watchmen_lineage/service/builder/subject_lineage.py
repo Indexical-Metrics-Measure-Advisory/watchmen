@@ -4,9 +4,9 @@ from typing import List, Optional
 from networkx import MultiDiGraph
 from pydantic import BaseModel
 
-from src.watchmen_indicator_surface.util import trans_readonly
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.meta import TopicService
+from watchmen_indicator_surface.util import trans_readonly
 from watchmen_lineage.model.lineage import DatasetColumnFacet, RelationType, SubjectFacet, RelationTypeHolders, \
 	SubjectTopicHolder, SubjectLineage, LineageType
 from watchmen_lineage.service.builder import graphic_builder
@@ -15,7 +15,6 @@ from watchmen_lineage.utils import utils
 from watchmen_lineage.utils.id_utils import build_node_id
 from watchmen_lineage.utils.utils import parse_parameter, isRecalculateColumnTopic
 from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage
-from watchmen_meta.common.storage_service import TupleId
 from watchmen_meta.console import SubjectService
 from watchmen_model.admin import Topic
 from watchmen_model.common import ParameterKind, ComputedParameter, TopicFactorParameter, Parameter
@@ -34,29 +33,27 @@ def get_topic_service(principal_service: PrincipalService) -> TopicService:
 
 class SubjectLineageBuilder(LineageBuilder):
 
-	def __init__(self,lineage_type:LineageType):
+	def __init__(self, lineage_type: LineageType):
 		self.type = lineage_type.value
 
 	def build_partial(self, graphic, data: BaseModel, principal_service: PrincipalService):
 		pass
 
-
-
-	def add_cid(self,subject:Subject,lineage_node:DatasetColumnFacet):
-		subject_lineage:SubjectLineage = SubjectLineage.parse_obj(subject.dict())
+	def add_cid(self, subject: Subject, lineage_node: DatasetColumnFacet):
+		subject_lineage: SubjectLineage = SubjectLineage.parse_obj(subject.dict())
 		for column in subject_lineage.dataset.columns:
 			if column.columnId == lineage_node.nodeId:
 				column.cid_ = build_node_id(lineage_node)
 
 		return subject_lineage
-	def load_one(self,principal_service: PrincipalService,lineage_node:DatasetColumnFacet)->Optional[Subject]:
+
+	def load_one(self, principal_service: PrincipalService, lineage_node: DatasetColumnFacet) -> Optional[Subject]:
 		subject_service: SubjectService = get_subject_service(principal_service)
 
 		def load() -> Optional[Subject]:
 			return subject_service.find_by_id(lineage_node.parentId)
 
 		return trans_readonly(subject_service, load)
-
 
 	def build(self, graphic, principal_service: PrincipalService):
 		subject_service: SubjectService = get_subject_service(principal_service)
@@ -106,11 +103,11 @@ class SubjectLineageBuilder(LineageBuilder):
 
 	def build_subject_columns_facet(self, subject: Subject, column: SubjectDatasetColumn, graphic: MultiDiGraph,
 	                                principal_service: PrincipalService):
-		subject_facet = SubjectFacet(nodeId=subject.subjectId,name = subject.name)
+		subject_facet = SubjectFacet(nodeId=subject.subjectId, name=subject.name)
 		self.build_subject_topic_dict(subject, subject_facet, principal_service)
 		if column.recalculate:
 			dataset_column_facet: DatasetColumnFacet = DatasetColumnFacet(nodeId=column.columnId,
-			                                                              parentId=subject.subjectId,name =column.alias)
+			                                                              parentId=subject.subjectId, name=column.alias)
 			graphic_builder.add_subject_column_node(graphic, dataset_column_facet)
 			if column.parameter.kind == ParameterKind.COMPUTED:
 				parameter: ComputedParameter = column.parameter
@@ -130,7 +127,7 @@ class SubjectLineageBuilder(LineageBuilder):
 
 		else:
 			dataset_column_facet: DatasetColumnFacet = DatasetColumnFacet(nodeId=column.columnId,
-			                                                              parentId=subject.subjectId,name =column.alias)
+			                                                              parentId=subject.subjectId, name=column.alias)
 			graphic_builder.add_subject_column_node(graphic, dataset_column_facet)
 			relation_info = RelationTypeHolders(type=RelationType.Query, arithmetic=column.arithmetic)
 			parse_parameter(graphic, column.parameter, dataset_column_facet, relation_info
