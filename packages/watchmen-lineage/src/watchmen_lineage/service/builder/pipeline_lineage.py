@@ -4,7 +4,7 @@ from typing import List, Union, Optional
 from networkx import MultiDiGraph
 from pydantic import BaseModel
 
-from src.watchmen_indicator_surface.util import trans_readonly
+from watchmen_indicator_surface.util import trans_readonly
 from watchmen_auth import PrincipalService
 from watchmen_lineage.lineage_setting import ask_system_topic_lineage
 from watchmen_lineage.model.lineage import PipelineFacet, TopicFacet, TopicFactorFacet, RelationType, \

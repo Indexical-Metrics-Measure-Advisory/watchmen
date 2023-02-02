@@ -2,8 +2,8 @@ from typing import List, Dict, Optional
 
 from pydantic import BaseModel
 
-from src.watchmen_indicator_kernel.meta import ObjectiveService
-from src.watchmen_indicator_surface.util import trans_readonly
+from watchmen_indicator_kernel.meta import ObjectiveService
+from watchmen_indicator_surface.util import trans_readonly
 from watchmen_auth import PrincipalService
 from watchmen_lineage.model.lineage import ObjectiveFacet, IndicatorFacet, RelationType, LineageType, \
 	ObjectiveFactorFacet, ObjectiveTargetFacet, LineageNode, ObjectiveLineage
