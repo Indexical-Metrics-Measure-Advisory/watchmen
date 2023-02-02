@@ -185,7 +185,7 @@ def parse_parameter(graphic, source: Parameter, target_factor_facet, relation_in
 	elif source.kind == ParameterKind.CONSTANT:
 		source: ConstantParameter = source
 		if source.value:
-			print(source.value)
+			# print(source.value)
 			asts: List[ConstantAST] = parse_constant_parameter(source.value)
 			process_ast(asts, parent_facet, target_factor_facet, graphic, principal_service)
 		else:

@@ -20,31 +20,30 @@ from watchmen_model.console import Subject
 from watchmen_model.indicator import Indicator, Objective
 
 
-
 def get_objective_service(principal_service: PrincipalService) -> ObjectiveService:
 	return ObjectiveService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
-
 class LineageService(object):
 	graphByTenant: Dict[str, MultiDiGraph] = {}
-	all_load_sequence = [LineageType.TOPIC, LineageType.PIPELINE, LineageType.SUBJECT, LineageType.INDICATOR,
-	                     LineageType.OBJECTIVE]
+	load_sequence = [LineageType.TOPIC, LineageType.PIPELINE, LineageType.SUBJECT, LineageType.INDICATOR,
+	                 LineageType.OBJECTIVE]
+
+	def __int__(self):
+		pass
 
 	def init_tenant_all_lineage_data(self, principal_service: PrincipalService):
-
 
 		"""
 
 		:param principal_service:
 		"""
 		tenant_node_graph: MultiDiGraph = self.get_graph_by_tenant(principal_service)
-		for lineage_type in self.all_load_sequence:
+		for lineage_type in self.load_sequence:
 			builder: LineageBuilder = get_builder(lineage_type)
 			builder.build(tenant_node_graph, principal_service)
 
-
-	def build_lineage_data(self,lineage_type:LineageType,data):
+	def build_lineage_data(self, lineage_type: LineageType, data):
 		pass
 
 	def get_graph_by_tenant(self, principal_service: PrincipalService) -> MultiDiGraph:
@@ -59,9 +58,7 @@ class LineageService(object):
 			self.graphByTenant[principal_service.tenantId] = nx.MultiDiGraph()
 			return self.graphByTenant[principal_service.tenantId]
 
-
-
-	def __get_model_key(self,lineage_node):
+	def __get_model_key(self, lineage_node):
 		if hasattr(lineage_node, "parentId"):
 			return lineage_node.parentId
 		else:
@@ -80,29 +77,32 @@ class LineageService(object):
 		tenant_node_graph: MultiDiGraph = self.get_graph_by_tenant(principal_service)
 		return self.__get_lineage(factor_facet, RelationDirection.IN, tenant_node_graph)
 
-	def find_lineage_by_objective_target(self, objective_target_id: ObjectiveTargetId,objective_id:ObjectiveId,principal_service: PrincipalService):
-		objective_target_facet: ObjectiveTargetFacet = ObjectiveTargetFacet(nodeId=objective_target_id,parentId=objective_id)
+	def find_lineage_by_objective_target(self, objective_target_id: ObjectiveTargetId, objective_id: ObjectiveId,
+	                                     principal_service: PrincipalService):
+		objective_target_facet: ObjectiveTargetFacet = ObjectiveTargetFacet(nodeId=objective_target_id,
+		                                                                    parentId=objective_id)
 		tenant_node_graph: MultiDiGraph = self.get_graph_by_tenant(principal_service)
-		attributes = self.__get_node(tenant_node_graph,build_node_id(objective_target_facet))
+		attributes = self.__get_node(tenant_node_graph, build_node_id(objective_target_facet))
 		objective_target_facet.name = attributes.get('name')
 		# return self.__get_lineage(objective_target_facet, RelationDirection.IN, tenant_node_graph)
-		lineage_result:LineageResult = LineageResult()
-		relation_lineage_dict:Dict[str,RelationshipLineage]={}
-		self.__get_lineage_result(objective_target_facet, RelationDirection.IN, tenant_node_graph,relation_lineage_dict)
+		lineage_result: LineageResult = LineageResult()
+		relation_lineage_dict: Dict[str, RelationshipLineage] = {}
+		self.__get_lineage_result(objective_target_facet, RelationDirection.IN, tenant_node_graph,
+		                          relation_lineage_dict)
 		lineage_result.relations = list(relation_lineage_dict.values())
-		self.merge_relation_model_data(tenant_node_graph,lineage_result,principal_service)
+		self.merge_relation_model_data(tenant_node_graph, lineage_result, principal_service)
 		return lineage_result
 
-	def find_lineage_by_objective(self, objective_id:ObjectiveId,principal_service: PrincipalService):
+	def find_lineage_by_objective(self, objective_id: ObjectiveId, principal_service: PrincipalService):
 		lineage_result: LineageResult = LineageResult()
 		relation_lineage_dict: Dict[str, RelationshipLineage] = {}
 
-		objective_service:ObjectiveService = get_objective_service(principal_service)
+		objective_service: ObjectiveService = get_objective_service(principal_service)
 
 		def load() -> Optional[Objective]:
 			return objective_service.find_by_id(objective_id)
 
-		objective:Objective = trans_readonly(objective_service, load)
+		objective: Objective = trans_readonly(objective_service, load)
 		tenant_node_graph: MultiDiGraph = self.get_graph_by_tenant(principal_service)
 		for target in objective.targets:
 			objective_target_facet: ObjectiveTargetFacet = ObjectiveTargetFacet(nodeId=target.uuid,
@@ -115,14 +115,9 @@ class LineageService(object):
 			                          relation_lineage_dict)
 
 		lineage_result.relations = list(relation_lineage_dict.values())
-		self.merge_relation_model_data(tenant_node_graph, lineage_result, principal_service)
+		return self.merge_relation_model_data(tenant_node_graph, lineage_result, principal_service)
 
-		return lineage_result
-
-
-
-
-	def build_cid_model(self,builder,relation_model_dict,lineage_node,principal_service):
+	def build_cid_model(self, builder, relation_model_dict, lineage_node, principal_service):
 		builder_name = builder.type
 		model_key = builder_name + "_" + self.__get_model_key(lineage_node)
 
@@ -134,10 +129,9 @@ class LineageService(object):
 			model_result = builder.load_one(principal_service, lineage_node)
 			result_model_lineage = builder.add_cid(model_result, lineage_node)
 			relation_model_dict[model_key] = result_model_lineage
-			# return result_model_lineage
 
-
-	def merge_relation_model_data(self,tenant_node_graph,lineage_result:LineageResult,principal_service: PrincipalService):
+	def merge_relation_model_data(self, tenant_node_graph, lineage_result: LineageResult,
+	                              principal_service: PrincipalService):
 
 		relation_model_dict: Dict[str, BaseModel] = {}
 
@@ -145,9 +139,12 @@ class LineageService(object):
 			attributes: Dict = self.__get_node(tenant_node_graph, relation.cid_)
 			lineage_node: LineageNode = parse_node_id(relation.cid_, attributes)
 			builder: LineageBuilder = get_builder(lineage_node.lineageType)
-			self.build_cid_model(builder,relation_model_dict,lineage_node,principal_service)
+			self.build_cid_model(builder, relation_model_dict, lineage_node, principal_service)
 
+		return self.__add_to_lineage_result(lineage_result, relation_model_dict)
 
+	@staticmethod
+	def __add_to_lineage_result(lineage_result, relation_model_dict)->LineageResult:
 		for relation_model in relation_model_dict.values():
 			if relation_model:
 				if isinstance(relation_model, Topic):
@@ -159,8 +156,7 @@ class LineageService(object):
 				elif isinstance(relation_model, Objective):
 					lineage_result.objectives.append(relation_model)
 				else:
-					print(lineage_result)
-
+					raise Exception("current lineage type {} is not supported".format(type(relation_model)))
 		return lineage_result
 
 	def find_lineage_by_subject_column(self, subject_id: SubjectId, column_id: SubjectDatasetColumnId,
@@ -176,20 +172,21 @@ class LineageService(object):
 		tenant_node_graph: MultiDiGraph = self.get_graph_by_tenant(principal_service)
 		return self.__get_lineage(subject_column_facet, RelationDirection.IN, tenant_node_graph)
 
-
-	def __find_relationship_with_cid(self,relation_lineage_dict,node_id):
+	def __find_relationship_with_cid(self, relation_lineage_dict, node_id):
 		if node_id in relation_lineage_dict:
 			return relation_lineage_dict[node_id]
 		else:
 			relation_lineage: RelationshipLineage = RelationshipLineage()
 			relation_lineage.cid_ = node_id
-			relation_lineage_dict[node_id]=relation_lineage
+			relation_lineage_dict[node_id] = relation_lineage
 			return relation_lineage
 
-	def first_true(self,iterable, node_id):
+	@staticmethod
+	def first_true(iterable, node_id):
 		return next((x for x in iterable if x.cid_ == node_id), None)
 
-	def __get_lineage_result(self, facet: LineageNode, direction: RelationDirection, tenant_node_graph: MultiDiGraph,relation_lineage_dict :Dict[str,RelationshipLineage]):
+	def __get_lineage_result(self, facet: LineageNode, direction: RelationDirection, tenant_node_graph: MultiDiGraph,
+	                         relation_lineage_dict: Dict[str, RelationshipLineage]):
 		node_id: str = build_node_id(facet)
 		relation_lineage: RelationshipLineage = self.__find_relationship_with_cid(relation_lineage_dict, node_id)
 		edges = self.__get_edges(tenant_node_graph, direction, node_id)
@@ -200,12 +197,10 @@ class LineageService(object):
 				relation_lineage_edge.cid_ = lineage.sourceId
 				attributes: Dict = self.__get_node(tenant_node_graph, lineage.sourceId)
 				lineage_node: LineageNode = parse_node_id(lineage.sourceId, attributes)
-				find_one_result = self.first_true(relation_lineage.from_,lineage.sourceId)
+				find_one_result = self.first_true(relation_lineage.from_, lineage.sourceId)
 				if find_one_result is None:
 					relation_lineage.from_.append(relation_lineage_edge)
-				self.__get_lineage_result(lineage_node, direction, tenant_node_graph,relation_lineage_dict)
-
-
+				self.__get_lineage_result(lineage_node, direction, tenant_node_graph, relation_lineage_dict)
 
 	def __get_lineage(self, facet: LineageNode, direction: RelationDirection, tenant_node_graph: MultiDiGraph) -> \
 			LineageNode:
@@ -214,8 +209,8 @@ class LineageService(object):
 		if edges:
 			for edge in edges:
 				lineage: LineageRelation = get_source_and_target_key(edge)
-				attributes:Dict = self.__get_node(tenant_node_graph, lineage.sourceId)
-				lineage_node: LineageNode = parse_node_id(lineage.sourceId,attributes)
+				attributes: Dict = self.__get_node(tenant_node_graph, lineage.sourceId)
+				lineage_node: LineageNode = parse_node_id(lineage.sourceId, attributes)
 				lineage.subNode = lineage_node
 				self.__get_lineage(lineage_node, direction, tenant_node_graph)
 				facet.relations.append(lineage)
@@ -231,20 +226,17 @@ class LineageService(object):
 			return graphic.out_edges(node_id, data=True)
 
 	@staticmethod
-	def __get_node(graphic: MultiDiGraph, node_id:str):
+	def __get_node(graphic: MultiDiGraph, node_id: str):
 		return graphic.nodes[node_id]
-
-
 
 	def graph_json(self, principal_service: PrincipalService):
 		graphic = self.get_graph_by_tenant(principal_service)
 		graph_json = nx.node_link_data(graphic)
+		print(graph_json)
 		return graph_json
 
-
-	def build_partial_lineage(self, model:BaseModel , lineage_type:LineageType, principal_service:PrincipalService):
+	def build_partial_lineage(self, model: BaseModel, lineage_type: LineageType, principal_service: PrincipalService):
 
 		tenant_node_graph: MultiDiGraph = self.get_graph_by_tenant(principal_service)
 		builder: LineageBuilder = get_builder(lineage_type)
-		builder.build_partial(tenant_node_graph,model)
-
+		builder.build_partial(tenant_node_graph, model)
