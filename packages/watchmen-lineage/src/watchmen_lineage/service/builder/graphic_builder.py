@@ -16,7 +16,7 @@ def add_topic_facet_node(graphic: MultiDiGraph, topic_facet: TopicFacet):
 
 def add_factor_facet_node(graphic: MultiDiGraph, factor_facet: TopicFactorFacet):
 	# facet_id = build_node_id(factor_facet)
-	graphic.add_node(build_node_id(factor_facet), factor_type=factor_facet.nodeType.value,name=factor_facet.name)
+	graphic.add_node(build_node_id(factor_facet), factor_type=factor_facet.nodeType.value, name=factor_facet.name)
 	return graphic
 
 
@@ -33,9 +33,6 @@ def add_edge_topic_factor(graphic: MultiDiGraph, topic_facet: TopicFacet, topic_
 # 	if not graphic.has_node(facet_id):
 # 		graphic.add_node(build_node_id(indicator_facet), name=indicator_facet.name)
 # 	return graphic
-
-
-
 
 
 def add_edge_with_relation(graphic: MultiDiGraph, source_facet: LineageNode,
@@ -64,7 +61,7 @@ def add_pipeline_node(graphic: MultiDiGraph, pipeline_facet: PipelineFacet):
 def add_subject_column_node(graphic: MultiDiGraph, subject_column_facet: DatasetColumnFacet) -> MultiDiGraph:
 	# facet_id = build_node_id(subject_column_facet)
 
-	graphic.add_node(build_node_id(subject_column_facet),name=subject_column_facet.name)
+	graphic.add_node(build_node_id(subject_column_facet), name=subject_column_facet.name)
 
 
 def add_indicator_facet(graphic: MultiDiGraph, indicator_facet: IndicatorFacet):
@@ -92,6 +89,7 @@ def add_objective_target_facet(graphic: MultiDiGraph, objective_target_facet: Ob
 	# else:
 	# 	graphic.nodes[build_node_id(indicator_facet)]
 	return graphic
+
 
 def add_edge_subject_column_to_column(graphic: MultiDiGraph, source_facet: DatasetColumnFacet,
                                       target_facet: DatasetColumnFacet):

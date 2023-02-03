@@ -117,7 +117,6 @@ def process_func_parameter_for_subject(func_parameter, graphic, parent_facet: Su
 		# print(func_parameter)
 		factor: Factor = find_factor(topic, func_parameter.method)
 
-
 		source_factor_facet = TopicFactorFacet(nodeId=factor.factorId, parentId=topic.topicId)
 		graphic_builder.add_edge_with_relation(graphic, source_factor_facet,
 		                                       target_factor_facet, RelationType.ConstantsReference,
@@ -211,6 +210,3 @@ def parse_parameter(graphic, source: Parameter, target_factor_facet, relation_in
 			for compute_factor in source.parameters:
 				parse_parameter(graphic, compute_factor, target_factor_facet, relation_info,
 				                parent_facet, principal_service)
-
-
-

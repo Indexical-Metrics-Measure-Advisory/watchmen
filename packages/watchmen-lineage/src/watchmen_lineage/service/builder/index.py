@@ -8,7 +8,7 @@ from watchmen_lineage.service.builder.topic_lineage import TopicLineageBuilder
 
 def get_builder(lineage_type: LineageType):
 	if lineage_type == LineageType.TOPIC or lineage_type == LineageType.FACTOR:
-		return TopicLineageBuilder(LineageType.TOPIC )
+		return TopicLineageBuilder(LineageType.TOPIC)
 	elif lineage_type == LineageType.PIPELINE:
 		return PipelineLineageBuilder(LineageType.PIPELINE)
 	elif lineage_type == LineageType.SUBJECT or lineage_type == LineageType.COLUMN:

@@ -10,7 +10,6 @@ lineage_service.init_tenant_all_lineage_data(principal_service)
 
 lineage_service.graph_json(principal_service)
 
-
 # result = lineage_service.fine_lineage_by_factor("963837989900259328", "6270b3713bee4d1db483db37c8734ff0",
 #                                                 principal_service)
 #
