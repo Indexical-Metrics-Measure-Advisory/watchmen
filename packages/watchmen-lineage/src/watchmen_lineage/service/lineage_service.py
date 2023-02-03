@@ -144,7 +144,7 @@ class LineageService(object):
 		return self.__add_to_lineage_result(lineage_result, relation_model_dict)
 
 	@staticmethod
-	def __add_to_lineage_result(lineage_result, relation_model_dict)->LineageResult:
+	def __add_to_lineage_result(lineage_result, relation_model_dict) -> LineageResult:
 		for relation_model in relation_model_dict.values():
 			if relation_model:
 				if isinstance(relation_model, Topic):

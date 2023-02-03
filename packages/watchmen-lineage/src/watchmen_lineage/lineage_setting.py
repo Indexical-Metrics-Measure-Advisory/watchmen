@@ -8,7 +8,7 @@ logger = getLogger(__name__)
 class LineageSettings(BaseSettings):
 	LINEAGE_FLAG: bool = False
 	IS_CACHE_LINEAGE_GRAPH: bool = False
-	SYSTEM_TOPIC_LINEAGE :bool = False
+	SYSTEM_TOPIC_LINEAGE: bool = False
 
 
 settings = LineageSettings()

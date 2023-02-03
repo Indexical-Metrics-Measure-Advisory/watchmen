@@ -72,8 +72,6 @@ class LineageRelation(BaseModel):
 	attributes: Dict = None
 
 
-
-
 # direction: RelationDirection = None
 
 
@@ -225,13 +223,11 @@ class IndicatorLineage(Indicator, CidModel):
 	pass
 
 
-
 # class Lineage(CidModel):
 # 	type:str = None
 class RelationshipLineage(CidModel):
-	from_:List = []
+	from_: List = []
 	type: str = None
-
 
 
 class LineageResult(BaseModel):

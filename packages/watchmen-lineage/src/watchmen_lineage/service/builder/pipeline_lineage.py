@@ -4,8 +4,8 @@ from typing import List, Union, Optional
 from networkx import MultiDiGraph
 from pydantic import BaseModel
 
-from watchmen_indicator_surface.util import trans_readonly
 from watchmen_auth import PrincipalService
+from watchmen_indicator_surface.util import trans_readonly
 from watchmen_lineage.lineage_setting import ask_system_topic_lineage
 from watchmen_lineage.model.lineage import PipelineFacet, TopicFacet, TopicFactorFacet, RelationType, \
 	RelationTypeHolders, ReadFactorHolder, ReadTopicHolder, ReadFromMemoryHolder, LineageResult, LineageNode, \
@@ -42,28 +42,24 @@ def is_valid_factor_id(factorId):
 		return True
 
 
-
-
-
 class PipelineLineageBuilder(LineageBuilder):
 
-	def __init__(self,lineage_type:LineageType):
+	def __init__(self, lineage_type: LineageType):
 		self.type = lineage_type.value
+
 	def add_cid(self, lineage_result: LineageResult, model: BaseModel, lineage_node: LineageNode):
 		pass
 
 	def build_partial(self, graphic, data: BaseModel, principal_service: PrincipalService):
 		pass
 
-
-	def load_one(self,principal_service: PrincipalService,model_id:TupleId):
+	def load_one(self, principal_service: PrincipalService, model_id: TupleId):
 		pipeline_service = get_pipeline_service(principal_service)
 
 		def load() -> Optional[Pipeline]:
 			return pipeline_service.find_by_id(model_id)
 
 		return trans_readonly(pipeline_service, load)
-
 
 	def build(self, graphic: MultiDiGraph, principal_service: PrincipalService):
 

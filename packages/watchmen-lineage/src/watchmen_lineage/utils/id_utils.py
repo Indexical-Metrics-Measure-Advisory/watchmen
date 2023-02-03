@@ -4,23 +4,23 @@ from watchmen_lineage.model.lineage import LineageType, LineageNode, TopicFactor
 	DatasetColumnFacet, ObjectiveTargetFacet, ObjectiveFactorFacet, IndicatorFacet
 
 
-def parse_node_id(node_id: str,attributes:Dict) -> LineageNode:
+def parse_node_id(node_id: str, attributes: Dict) -> LineageNode:
 	node_result = node_id.split("_")
 	lineage_type = node_result[0]
 
 	if lineage_type == LineageType.TOPIC.value:
-		return TopicFacet(nodeId=node_result[1],name = attributes.get("name"))
+		return TopicFacet(nodeId=node_result[1], name=attributes.get("name"))
 	elif lineage_type == LineageType.FACTOR.value:
-		return TopicFactorFacet(nodeId=node_result[1], parentId=node_result[2],name = attributes.get("name"))
+		return TopicFactorFacet(nodeId=node_result[1], parentId=node_result[2], name=attributes.get("name"))
 	elif lineage_type == LineageType.PIPELINE.value:
 		pipeline_facet = PipelineFacet(nodeId=node_result[1])
 		return pipeline_facet
 	elif lineage_type == LineageType.SUBJECT.value:
-		return DatasetColumnFacet(nodeId=node_result[1], parentId=node_result[2],name = attributes.get("name"))
+		return DatasetColumnFacet(nodeId=node_result[1], parentId=node_result[2], name=attributes.get("name"))
 	elif lineage_type == LineageType.OBJECTIVE_TARGET.value:
-		return ObjectiveTargetFacet(nodeId=node_result[1], parentId=node_result[2],name = attributes.get("name"))
+		return ObjectiveTargetFacet(nodeId=node_result[1], parentId=node_result[2], name=attributes.get("name"))
 	elif lineage_type == LineageType.OBJECTIVE_INDICATOR.value:
-		return ObjectiveFactorFacet(nodeId=node_result[1], parentId=node_result[2],name = attributes.get("name"))
+		return ObjectiveFactorFacet(nodeId=node_result[1], parentId=node_result[2], name=attributes.get("name"))
 	elif lineage_type == LineageType.INDICATOR.value:
 		return IndicatorFacet(nodeId=node_result[1])
 	else:

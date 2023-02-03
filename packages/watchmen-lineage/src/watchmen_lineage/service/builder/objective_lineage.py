@@ -2,9 +2,9 @@ from typing import List, Dict, Optional
 
 from pydantic import BaseModel
 
+from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.meta import ObjectiveService
 from watchmen_indicator_surface.util import trans_readonly
-from watchmen_auth import PrincipalService
 from watchmen_lineage.model.lineage import ObjectiveFacet, IndicatorFacet, RelationType, LineageType, \
 	ObjectiveFactorFacet, ObjectiveTargetFacet, LineageNode, ObjectiveLineage
 from watchmen_lineage.service.builder import graphic_builder
@@ -12,8 +12,7 @@ from watchmen_lineage.service.builder.loader import LineageBuilder
 from watchmen_lineage.utils.id_utils import build_node_id
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.common import ObjectiveFactorId
-from watchmen_model.indicator import Objective, ObjectiveFactor, ComputedObjectiveParameter, ObjectiveParameter, \
-	ReferObjectiveParameter, \
+from watchmen_model.indicator import Objective, ObjectiveFactor, ComputedObjectiveParameter, ReferObjectiveParameter, \
 	ConstantObjectiveParameter, BucketObjectiveParameter, TimeFrameObjectiveParameter, ObjectiveFactorKind, \
 	ObjectiveTarget
 
@@ -96,8 +95,8 @@ class ObjectiveLineageBuilder(LineageBuilder):
 			                      principal_service)
 
 	def __process_objective_parameter(self, graphic, objective_parameter, objective_facet,
-	                                       principal_service: PrincipalService,
-	                                       objective_target_facet: ObjectiveTargetFacet):
+	                                  principal_service: PrincipalService,
+	                                  objective_target_facet: ObjectiveTargetFacet):
 
 		if isinstance(objective_parameter, ReferObjectiveParameter):
 			objective_parameter: ReferObjectiveParameter = objective_parameter
@@ -129,7 +128,7 @@ class ObjectiveLineageBuilder(LineageBuilder):
 			computed_parameter: ComputedObjectiveParameter = target.asis
 			for parameter in computed_parameter.parameters:
 				self.__process_objective_parameter(graphic, parameter, objective_facet, principal_service,
-				                                        objective_target_facet)
+				                                   objective_target_facet)
 		else:
 			objective_factor_id = target.asis
 			objective_factor_facet: ObjectiveFactorFacet = ObjectiveFactorFacet(nodeId=objective_factor_id,
@@ -158,25 +157,25 @@ class ObjectiveLineageBuilder(LineageBuilder):
 				indicator_facet: IndicatorFacet = IndicatorFacet(nodeId=objective_factor.indicatorId)
 				graphic_builder.add_edge_with_source_and_target(graphic, indicator_facet, objective_factor_facet,
 				                                                RelationType.Direct, LineageType.OBJECTIVE_INDICATOR)
+
 			elif isinstance(facet, IndicatorFacet):
 				graphic_builder.add_edge_with_source_and_target(graphic, facet, objective_factor_facet,
 				                                                RelationType.Direct, LineageType.OBJECTIVE_INDICATOR)
-			elif isinstance(facet, ObjectiveTargetFacet):
+
+			elif isinstance(facet, ObjectiveTargetFacet) or isinstance(facet, ObjectiveFactorFacet):
 				graphic_builder.add_edge_with_source_and_target(graphic, objective_factor_facet, facet,
 				                                                RelationType.Direct, LineageType.OBJECTIVE_TARGET)
-
-			elif isinstance(facet,ObjectiveFactorFacet):
-				graphic_builder.add_edge_with_source_and_target(graphic, objective_factor_facet, facet,
-				                                                RelationType.Direct, LineageType.OBJECTIVE_TARGET)
-
+			#
+			# elif :
+			# 	graphic_builder.add_edge_with_source_and_target(graphic, objective_factor_facet, facet,
+			# 	                                                RelationType.Direct, LineageType.OBJECTIVE_TARGET)
 
 		elif objective_factor.kind == ObjectiveFactorKind.COMPUTED:
 			objective_factor_facet = ObjectiveFactorFacet(nodeId=objective_factor.uuid,
 			                                              parentId=objective_facet.nodeId, name=objective_factor.name)
 			for objective_parameter in objective_factor.formula.parameters:
-				self.__process_objective_parameter(graphic, objective_parameter,objective_facet,
-				                                   principal_service,objective_factor_facet)
-
+				self.__process_objective_parameter(graphic, objective_parameter, objective_facet,
+				                                   principal_service, objective_factor_facet)
 
 	def __process_formula(self, graphic, computation_factor: ComputedObjectiveParameter, objective_factor_facet,
 	                      principal_service):
@@ -184,8 +183,8 @@ class ObjectiveLineageBuilder(LineageBuilder):
 			self.__process_objective_parameter(graphic, objective_parameter, objective_factor_facet,
 			                                   principal_service)
 
-
-	def __build_indicator_factor_holders(self, objective):
+	@staticmethod
+	def __build_indicator_factor_holders(objective):
 		objective_factor_holders: Dict[ObjectiveFactorId, ObjectiveFactor] = {}
 		for objective_factor in objective.factors:
 			objective_factor_holders[objective_factor.uuid] = objective_factor
