@@ -4,8 +4,8 @@ import networkx as nx
 from networkx import MultiDiGraph
 from pydantic import BaseModel
 
-from src.watchmen_indicator_kernel.meta import ObjectiveService
-from src.watchmen_indicator_surface.util import trans_readonly
+from watchmen_indicator_kernel.meta import ObjectiveService
+from watchmen_indicator_surface.util import trans_readonly
 from watchmen_auth import PrincipalService
 from watchmen_lineage.model.lineage import DatasetColumnFacet, LineageNode, LineageRelation, LineageType, \
 	RelationDirection, TopicFactorFacet, ObjectiveTargetFacet, LineageResult, RelationshipLineage

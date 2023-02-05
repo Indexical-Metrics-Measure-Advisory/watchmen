@@ -1,54 +1,47 @@
 from abc import ABC
 from typing import Dict, List, Callable
 
-from watchmen_collector_kernel.lock import get_competitive_lock_service
-from watchmen_collector_kernel.model import CollectorCompetitiveLock, CollectorTask, Dependency, ResultStatus
-from watchmen_collector_kernel.task import get_task_service
-from watchmen_model.common import CollectorTaskId
+
+from watchmen_collector_kernel.model import CompetitiveLock, ScheduledTask, Dependency, ResultStatus
+from watchmen_collector_kernel.service import try_lock_nowait, unlock, get_task_service
+from watchmen_collector_kernel.storage import get_competitive_lock_service
+from watchmen_model.common import ScheduledTaskId
 from .handler import pipeline_data
-from watchmen_meta.common import ask_snowflake_generator
+from watchmen_meta.common import ask_snowflake_generator, ask_super_admin
 from watchmen_storage import TransactionalStorageSPI
-from watchmen_utilities import get_current_time_in_seconds
 
 
 class Connector(ABC):
 
 	def __init__(self, storage: TransactionalStorageSPI):
 		self.storage = storage
-		self.snowflakeGenerator = ask_snowflake_generator()
+		self.snowflake_generator = ask_snowflake_generator()
+		self.principle_service = ask_super_admin()
 		self.competitive_lock_service = get_competitive_lock_service(self.storage)
-		self.task_service = get_task_service(self.storage)
+		self.task_service = get_task_service(self.storage, self.snowflake_generator, self.principle_service)
 
 	# noinspection PyMethodMayBeStatic
-	def ask_lock(self, lock: CollectorCompetitiveLock) -> bool:
-		return self.competitive_lock_service.try_lock_nowait(lock)
+	def ask_lock(self, lock: CompetitiveLock) -> bool:
+		return try_lock_nowait(self.competitive_lock_service, lock)
 
 	# noinspection PyMethodMayBeStatic
-	def ask_unlock(self, lock: CollectorCompetitiveLock) -> bool:
-		return self.competitive_lock_service.unlock(lock)
+	def ask_unlock(self, lock: CompetitiveLock) -> bool:
+		return unlock(self.competitive_lock_service, lock)
 
-	def get_resource_lock(self, resource_id: str, tenant_id: str) -> CollectorCompetitiveLock:
-		return CollectorCompetitiveLock(
-			lockId=self.snowflakeGenerator.next_id(),
-			resourceId=resource_id,
-			registeredAt=get_current_time_in_seconds(),
-			tenantId=tenant_id,
-			status=0)
-
-	def create_task(self, task: CollectorTask) -> CollectorTask:
+	def create_task(self, task: ScheduledTask) -> ScheduledTask:
 		return self.task_service.create_task(task)
 
-	def process_task(self, task: CollectorTask, executed: Callable[[str, Dict, str], None]) -> ResultStatus:
+	def process_task(self, task: ScheduledTask, executed: Callable[[str, Dict, str], None]) -> ResultStatus:
 		return self.task_service.consume_task(task, executed)
 
-	def find_task_by_id(self, task_id: CollectorTaskId) -> CollectorTask:
+	def find_task_by_id(self, task_id: ScheduledTaskId) -> ScheduledTask:
 		try:
 			self.storage.connect()
 			return self.task_service.find_task_by_id(task_id)
 		finally:
 			self.storage.close()
 
-	def task_result(self, task: CollectorTask, status: int, result: str):
+	def task_result(self, task: ScheduledTask, status: int, result: str):
 		try:
 			self.storage.connect()
 			self.task_service.update_task_result(task, status, result)
@@ -71,7 +64,7 @@ class Connector(ABC):
 
 	def get_collector_task(self, resource_id: str, content: Dict, model_name: str, object_id: str, dependencies: List,
 	                       tenant_id: str):
-		return CollectorTask(
+		return ScheduledTask(
 			taskId=self.snowflakeGenerator.next_id(),
 			resourceId=resource_id,
 			content=content,

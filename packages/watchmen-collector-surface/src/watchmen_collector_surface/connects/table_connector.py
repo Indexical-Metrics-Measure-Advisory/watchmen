@@ -1,11 +1,11 @@
-from watchmen_collector_kernel.model import CollectorTask, ResultStatus, TaskStatus
-from watchmen_collector_kernel.service import get_collector_integrated_record_service
+from watchmen_collector_kernel.model import ScheduledTask, ResultStatus, TaskStatus
+from watchmen_collector_kernel.storage import get_integrated_record_service
 from logging import getLogger
 from threading import Thread
 
 from time import sleep
 
-from watchmen_model.common import CollectorIntegratedRecordId
+from watchmen_model.common import IntegratedRecordId
 from .connector import Connector
 from .handler import pipeline_data
 from watchmen_meta.common import ask_meta_storage, ask_super_admin
@@ -23,9 +23,9 @@ class TableConnector(Connector):
 	def __init__(self):
 		super().__init__(ask_meta_storage())
 		self.principal_service = ask_super_admin()
-		self.collector_integrated_record_service = get_collector_integrated_record_service(self.storage,
-		                                                                                   self.snowflakeGenerator,
-		                                                                                   self.principal_service)
+		self.integrated_record_service = get_integrated_record_service(self.storage,
+		                                                               self.snowflake_generator,
+		                                                               self.principal_service)
 
 	def create_connector(self) -> None:
 		Thread(target=TableConnector.run, args=(self,), daemon=True).start()
@@ -67,14 +67,14 @@ class TableConnector(Connector):
 	def find_all_integrated_record_ids(self) -> EntityList:
 		try:
 			self.storage.connect()
-			return self.collector_integrated_record_service.find_distinct_values()
+			return self.integrated_record_service.find_distinct_values()
 		finally:
 			self.storage.close()
 
-	def move_integrated_record_to_task(self, integrated_record_id: CollectorIntegratedRecordId) -> CollectorTask:
+	def move_integrated_record_to_task(self, integrated_record_id: IntegratedRecordId) -> ScheduledTask:
 		self.storage.begin()
 		try:
-			record = self.collector_integrated_record_service.find_by_id(
+			record = self.integrated_record_service.find_by_id(
 				integrated_record_id)
 			task = self.create_task(self.get_collector_task(record.resourceId,
 			                                                record.dataContent,
@@ -82,7 +82,7 @@ class TableConnector(Connector):
 			                                                record.objectId,
 			                                                record.dependencies,
 			                                                record.tenantId))
-			self.collector_integrated_record_service.delete(record.integratedRecordId)
+			self.integrated_record_service.delete(record.integratedRecordId)
 			self.storage.commit_and_close()
 			return task
 		except Exception as e:
