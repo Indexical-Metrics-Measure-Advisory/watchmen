@@ -1,1 +1,0 @@
-from .integrated_record_service import IntegratedRecordService

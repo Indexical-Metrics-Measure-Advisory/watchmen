@@ -8,10 +8,10 @@ from .parameter_and_condition import ComputedParameter, ConstantParameter, const
 	ParameterJointType, ParameterKind, TopicFactorParameter, VariablePredefineFunctions
 from .storable import Auditable, LastVisit, OptimisticLock, Storable
 from .tuple import TenantBasedTuple, Tuple, UserBasedTuple
-from .tuple_ids import AchievementPluginTaskId, BucketId, CollectorCompetitiveLockId, ConnectedSpaceId, DashboardId, \
+from .tuple_ids import AchievementPluginTaskId, BucketId, CompetitiveLockId, ConnectedSpaceId, DashboardId, \
 	DataSourceId, EnumId, EnumItemId, EventDefinitionId, ExternalWriterId, FactorId, IndicatorId, \
 	NotificationDefinitionId, ObjectiveFactorId, ObjectiveId, ObjectiveTargetId, PatId, PipelineActionId, \
 	PipelineGraphicId, PipelineId, PipelineStageId, PipelineUnitId, PluginId, ReportFunnelId, ReportId, SpaceId, \
 	SubjectDatasetColumnId, SubjectId, SubscriptionEventId, SubscriptionEventLockId, TenantId, TopicId, UserGroupId, \
-	UserId, CollectorCompetitiveLockId, CollectorTaskId, CollectorIntegratedRecordId, CollectorChangeRecordId, \
-	CollectorAuditColumnQueryConfigId
+	UserId, ScheduledTaskId, IntegratedRecordId, ChangeRecordId, ChangeJsonId, CollectorModelConfigId, \
+	CollectorTableConfigId, EventTriggerId, ModelTriggerId, TableTriggerId

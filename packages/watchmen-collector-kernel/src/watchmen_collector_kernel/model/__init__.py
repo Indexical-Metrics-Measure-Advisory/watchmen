@@ -1,5 +1,12 @@
-from .collector_competitive_lock import CollectorCompetitiveLock
-from .collector_task import CollectorTask, ResultStatus, TaskStatus
-from .collector_integrated_record import CollectorIntegratedRecord, Dependency
-from .collector_change_record import CollectorChangeRecord
-from .collector_audit_column_query_config import CollectorAuditColumnQueryConfig
+from .competitive_lock import CompetitiveLock
+from .scheduled_task import ScheduledTask, TaskStatus, ResultStatus
+from .integrated_record import IntegratedRecord, Dependency
+
+from .collector_model_config import CollectorModelConfig
+from .collector_table_config import CollectorTableConfig
+from .trigger_event import TriggerEvent
+from .trigger_model import TriggerModel
+from .trigger_table import TriggerTable
+from .change_data_record import ChangeDataRecord
+from .change_data_json import ChangeDataJson
+
