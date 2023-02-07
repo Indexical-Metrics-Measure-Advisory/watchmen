@@ -67,10 +67,6 @@ class TriggerTableService(TupleService):
 				self.get_entity_finder_for_columns(
 					criteria=[EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_finished'), right=0)],
 					distinctColumnNames=['table_trigger_id',
-					                     'table_name',
-					                     'model_name',
-					                     'model_trigger_id',
-					                     'event_trigger_id',
 					                     'tenant_id'],
 					distinctValueOnSingleColumn=False)
 			)

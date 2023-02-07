@@ -53,8 +53,8 @@ class TableExtractor:
 			sleep(30)
 			self.create_table_extraction()
 
-	def already_finished(self, trigger_table_id: TableTriggerId) -> bool:
-		trigger_table = self.trigger_table_service.find_by_id(trigger_table_id)
+	# noinspection PyMethodMayBeStatic
+	def is_already_finished(self, trigger_table: TriggerTable) -> bool:
 		return trigger_table.isFinished
 
 	# noinspection PyMethodMayBeStatic
@@ -62,15 +62,15 @@ class TableExtractor:
 		return event.startTime, event.endTime
 
 	def trigger_table_listener(self):
-		trigger_tables = self.trigger_table_service.find_unfinished()
-		for trigger in trigger_tables:
-			lock = get_resource_lock(self.snowflake_generator.next_id(),
-			                         trigger.tableName,
-			                         trigger.tenantId)
+		trigger_table_ids_list = self.trigger_table_service.find_unfinished()
+		for trigger_table_ids in trigger_table_ids_list:
+			lock = get_resource_lock(str(self.snowflake_generator.next_id()),
+			                         trigger_table_ids.tableTriggerId,
+			                         trigger_table_ids.tenantId)
 			try:
 				if try_lock_nowait(self.competitive_lock_service, lock):
-					# noinspection PyUnresolvedReferences
-					if self.already_finished(trigger.tableTriggerId):
+					trigger = self.trigger_table_service.find_by_id(trigger_table_ids.tableTriggerId)
+					if self.is_already_finished(trigger):
 						continue
 					else:
 						# noinspection PyUnresolvedReferences

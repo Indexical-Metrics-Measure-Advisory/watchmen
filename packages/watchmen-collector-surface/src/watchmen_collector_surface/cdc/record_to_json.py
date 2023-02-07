@@ -49,7 +49,7 @@ class RecordToJsonService:
 		try:
 			while True:
 				self.change_data_record_listener()
-				sleep(5)
+				sleep(1)
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
 			sleep(60)
@@ -62,7 +62,7 @@ class RecordToJsonService:
 	def change_data_record_listener(self):
 		record_ids_list = self.change_record_service.find_unmerged_record_ids()
 		for record_ids in record_ids_list:
-			lock = get_resource_lock(self.snowflake_generator.next_id(),
+			lock = get_resource_lock(str(self.snowflake_generator.next_id()),
 			                         record_ids.changeRecordId,
 			                         record_ids.tenantId)
 			try:
