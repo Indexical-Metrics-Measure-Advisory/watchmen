@@ -15,14 +15,15 @@ class CollectorTableConfigShaper(EntityShaper):
 			'config_id': config.configId,
 			'name': config.name,
 			'table_name': config.tableName,
+			'primary_key': config.primaryKey,
 			'model_name': config.modelName,
 			'parent_name': config.parentName,
-			'join_key': config.joinKey,
-			'dependOn': config.dependOn,
-			'triggered': config.triggered,
+			'join_keys': config.joinKeys,
+			'depend_on': config.dependOn,
 			'audit_column': config.auditColumn,
 			'data_source_id': config.dataSourceId,
-			'is_list': config.isList
+			'is_list': config.isList,
+			'triggered': config.triggered
 		})
 
 	def deserialize(self, row: EntityRow) -> CollectorTableConfig:
@@ -31,14 +32,15 @@ class CollectorTableConfigShaper(EntityShaper):
 			configId=row.get('config_id'),
 			name=row.get('name'),
 			tableName=row.get('table_name'),
+			primaryKey=row.get('primary_key'),
 			modelName=row.get('model_name'),
 			parentName=row.get('parent_name'),
-			joinKey=row.get('join_key'),
+			joinKeys=row.get('join_keys'),
 			dependOn=row.get('depend_on'),
-			triggered=row.get('triggered'),
 			auditColumn=row.get('audit_column'),
 			dataSourceId=row.get('data_source_id'),
-			isList=row.get('is_list')
+			isList=row.get('is_list'),
+			triggered=row.get('triggered')
 		))
 
 
@@ -142,13 +144,12 @@ class CollectorTableConfigService(TupleService):
 		finally:
 			self.storage.close()
 
-	def find_by_tenant_and_model(self,
-	                             tenant_id: TenantId,
-	                             model_name: str) -> Optional[List[CollectorTableConfig]]:
+	def find_by_model_name(self,
+	                       model_name: str) -> Optional[List[CollectorTableConfig]]:
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(
 			criteria=[
-				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=self.principalService.get_tenant_id()),
 				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name)]
 		))
 

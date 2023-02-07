@@ -1,11 +1,12 @@
-from typing import Callable
+from typing import Callable, List
 
 from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.model import TriggerEvent, CollectorModelConfig, TriggerModel, TriggerTable, \
 	CollectorTableConfig
 
 from watchmen_collector_kernel.storage import TriggerModelService, TriggerTableService, TriggerEventService, \
-	get_trigger_model_service, get_collector_model_config_service
+	get_trigger_model_service, get_collector_model_config_service, get_trigger_table_service, \
+	CollectorTableConfigService, get_collector_table_config_service
 from watchmen_meta.common import TupleService
 from watchmen_model.common import Storable
 
@@ -85,6 +86,26 @@ def save_trigger_table(trigger_table_service: TriggerTableService,
 	trigger_table_service.create(trigger_table)
 
 
+def get_trigger_table_action(trigger_model_service: TriggerModelService,
+                             trigger_model: TriggerModel) -> Callable[[CollectorTableConfig], TriggerTable]:
+	def create_trigger_table_action(table_config: CollectorTableConfig) -> TriggerTable:
+		trigger_table = get_trigger_table(trigger_model, table_config)
+		trigger_table_service = get_trigger_table_service(trigger_model_service.storage,
+		                                                  trigger_model_service.snowflakeGenerator,
+		                                                  trigger_model_service.principalService)
+		# noinspection PyTypeChecker
+		return save_trigger_table(trigger_table_service,
+		                          trigger_table,
+		                          trigger_table_service.principalService)
+
+	return create_trigger_table_action
+
+
+def get_table_configs_by_model(collector_table_config_service: CollectorTableConfigService,
+                               model_config: CollectorModelConfig) -> List[CollectorTableConfig]:
+	return collector_table_config_service.find_by_model_name(model_config.modelName)
+
+
 def trigger_collector(trigger_event_service: TriggerEventService,
                       trigger_event: TriggerEvent,
                       principal_service: PrincipalService, ) -> TriggerEvent:
@@ -98,8 +119,20 @@ def trigger_collector(trigger_event_service: TriggerEventService,
 		model_configs = model_config_service.find_by_tenant(principal_service.get_tenant_id())
 		# noinspection PyTypeChecker
 		trigger_model_action = get_trigger_model_action(trigger_event_service, trigger_event)
+		trigger_model_service = get_trigger_model_service(trigger_event_service.storage,
+		                                                  trigger_event_service.snowflakeGenerator,
+		                                                  trigger_event_service.principalService)
 		# noinspection PyTypeChecker
-		ArrayHelper(model_configs).each(lambda model_config: trigger_model_action(model_config))
+		table_config_service = get_collector_table_config_service(trigger_event_service.storage,
+		                                                          trigger_event_service.snowflakeGenerator,
+		                                                          trigger_event_service.principalService)
+		for model_config in model_configs:
+			trigger_model = trigger_model_action(model_config)
+			trigger_table_action = get_trigger_table_action(trigger_model_service, trigger_model)
+			table_configs = get_table_configs_by_model(table_config_service, model_config)
+			for table_config in table_configs:
+				trigger_table_action(table_config)
+
 		trigger_event_service.commit_transaction()
 	except Exception as e:
 		trigger_event_service.rollback_transaction()

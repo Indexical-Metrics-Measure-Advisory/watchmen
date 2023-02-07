@@ -18,8 +18,9 @@ class CollectorTableConfig(TenantBasedTuple, OptimisticLock, BaseModel):
 	modelName: str = None
 	parentName: str = None
 	joinKeys: List[JoinKey] = None
-	dependOn: Dict = None
+	dependOn: List[Dict] = None
 	auditColumn: str = None
 	dataSourceId: str = None
 	isList: bool = False
+	triggered: bool = False
 

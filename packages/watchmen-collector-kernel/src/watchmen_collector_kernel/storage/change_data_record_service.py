@@ -19,6 +19,7 @@ class ChangeDataRecordShaper(EntityShaper):
 			                                          'data_id': entity.dataId,
 			                                          'root_table_name': entity.rootTableName,
 			                                          'root_data_id': entity.rootDataId,
+			                                          'is_merged': entity.isMerged,
 			                                          'table_trigger_id': entity.tableTriggerId,
 			                                          'model_trigger_id': entity.modelTriggerId,
 			                                          'event_trigger_id': entity.eventTriggerId
@@ -34,6 +35,7 @@ class ChangeDataRecordShaper(EntityShaper):
 			                                            dataId=row.get('data_id'),
 			                                            rootTableName=row.get('root_table_name'),
 			                                            rootDataId=row.get('root_data_id'),
+			                                            isMerged=row.get('is_merged'),
 			                                            tableTriggerId=row.get('table_trigger_id'),
 			                                            modelTriggerId=row.get('model_trigger_id'),
 			                                            eventTriggerId=row.get('event_trigger_id')
@@ -71,17 +73,7 @@ class ChangeDataRecordService(TupleService):
 	def create_change_record(self, record: ChangeDataRecord) -> None:
 		self.begin_transaction()
 		try:
-			self.storage.insert_one(record)
-			self.commit_transaction()
-		except Exception as e:
-			self.rollback_transaction()
-			raise e
-
-	# noinspection PyTypeChecker
-	def create_change_records(self, records: List[ChangeDataRecord]) -> None:
-		self.begin_transaction()
-		try:
-			self.storage.insert_all(records)
+			self.create(record)
 			self.commit_transaction()
 		except Exception as e:
 			self.rollback_transaction()
@@ -100,12 +92,12 @@ class ChangeDataRecordService(TupleService):
 		finally:
 			self.close_transaction()
 
-	def find_distinct_values_by_unfinished(self) -> List:
+	def find_unmerged_record_ids(self) -> List:
 		self.begin_transaction()
 		try:
 			return self.storage.find_distinct_values(self.get_entity_finder_for_columns(
 				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_finished'), right=False)
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_merged'), right=False)
 				],
 				distinctColumnNames=['change_record_id', 'tenant_id'],
 				distinctValueOnSingleColumn=False
@@ -117,7 +109,7 @@ class ChangeDataRecordService(TupleService):
 		self.begin_transaction()
 		try:
 			# noinspection PyTypeChecker
-			return self.storage.find_by_id(change_record_id)
+			return self.find_by_id(change_record_id)
 		finally:
 			self.close_transaction()
 
