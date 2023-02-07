@@ -32,23 +32,28 @@ interface TopicFactorCandidate extends SearchItem {
 
 interface SubjectColumnCandidate extends SearchItem {
 	subject: SubjectForIndicator;
-	column: SubjectDataSetColumn;
+	column?: SubjectDataSetColumn;
 }
 
-const TopicFactorCandidateItem = (props: { topic: TopicForIndicator; factor: Factor }) => {
+const TopicFactorCandidateItem = (props: { topic: TopicForIndicator; factor?: Factor }) => {
 	const {topic, factor} = props;
 
+	const name = factor == null ? topic.name : `${topic.name}.${factor.name}`;
+
 	return <>
-		<CandidateName>{topic.name}.{factor.name}</CandidateName>
+		<CandidateName>{name}</CandidateName>
 		<CandidateBaseOn>
 			{Lang.INDICATOR.INDICATOR.INDICATOR_ON_TOPIC}
 		</CandidateBaseOn>
 	</>;
 };
-const SubjectColumnCandidateItem = (props: { subject: SubjectForIndicator; column: SubjectDataSetColumn }) => {
+const SubjectColumnCandidateItem = (props: { subject: SubjectForIndicator; column?: SubjectDataSetColumn }) => {
 	const {subject, column} = props;
+
+	const name = column == null ? subject.name : `${subject.name}.${column.alias}`;
+
 	return <>
-		<CandidateName>{subject.name}.{column.alias}</CandidateName>
+		<CandidateName>{name}</CandidateName>
 		<CandidateBaseOn>
 			{Lang.INDICATOR.INDICATOR.INDICATOR_ON_SUBJECT}
 		</CandidateBaseOn>
@@ -87,20 +92,30 @@ const ActivePart = (props: { data?: IndicatorsData; visible: boolean }) => {
 										key: `factor-${candidate.topicId}-${factor.factorId}`,
 										text: <TopicFactorCandidateItem topic={candidate} factor={factor}/>
 									};
-								})
+								}),
+								{
+									topic: candidate, key: `factor-${candidate.topicId}`,
+									text: <TopicFactorCandidateItem topic={candidate}/>
+								}
 							];
 						}).flat(),
 						...subjects.map(candidate => {
-							return (candidate.dataset.columns || []).filter(column => {
-								return isIndicatorColumn(column, candidate);
-							}).map(column => {
-								return {
-									subject: candidate,
-									column,
-									key: `column-${candidate.subjectId}-${column.columnId}`,
-									text: <SubjectColumnCandidateItem subject={candidate} column={column}/>
-								};
-							});
+							return [
+								...(candidate.dataset.columns || []).filter(column => {
+									return isIndicatorColumn(column, candidate);
+								}).map(column => {
+									return {
+										subject: candidate,
+										column,
+										key: `column-${candidate.subjectId}-${column.columnId}`,
+										text: <SubjectColumnCandidateItem subject={candidate} column={column}/>
+									};
+								}),
+								{
+									subject: candidate, key: `column-${candidate.subjectId}`,
+									text: <SubjectColumnCandidateItem subject={candidate}/>
+								}
+							];
 						}).flat()
 					]);
 				}, () => resolve([]));
@@ -119,7 +134,7 @@ const ActivePart = (props: { data?: IndicatorsData; visible: boolean }) => {
 			data!.enums = await fetchEnumsForTopic(item.topic.topicId);
 		} else {
 			indicator!.topicOrSubjectId = item.subject.subjectId;
-			indicator!.factorId = item.column.columnId;
+			indicator!.factorId = item.column?.columnId;
 			indicator!.baseOn = IndicatorBaseOn.SUBJECT;
 			data!.subject = item.subject;
 			// TODO ask enums for subject
