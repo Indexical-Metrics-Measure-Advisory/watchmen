@@ -293,9 +293,7 @@ table_achievement_plugin_tasks = Table(
 table_competitive_lock = Table(
 	'competitive_lock', meta_data,
 	create_pk('lock_id'), create_str('resource_id', 500),
-	create_str('model_name', 20), create_str('object_id', 100),
-	create_datetime('registered_at', False), create_tenant_id(),
-	create_int('status', False)
+	create_datetime('registered_at', False), create_tenant_id()
 )
 table_scheduled_task = Table(
 	'scheduled_task', meta_data,
@@ -318,7 +316,7 @@ table_integrated_record = Table(
 table_collector_model_config = Table(
 	'collector_model_config', meta_data,
 	create_pk('model_id'), create_str('model_name', 50),
-	create_str('depend_on', 50), create_str('raw_topic_code', 50),
+	create_json('depend_on', 50), create_str('raw_topic_code', 50),
 	create_tenant_id(), *create_tuple_audit_columns(),
 	create_optimistic_lock()
 )
@@ -326,8 +324,8 @@ table_collector_table_config = Table(
 	'collector_table_config', meta_data,
 	create_pk('config_id'), create_str('name', 50),
 	create_str('table_name', 50), create_str('primary_key', 50),
-	create_str('model_name', 50), create_str('parent_name', 50), create_json('join_key'),
-	create_str('dependency', 50), create_int('triggered'),
+	create_str('model_name', 50), create_str('parent_name', 50), create_json('join_keys'),
+	create_json('depend_on'), create_int('triggered'),
 	create_str('audit_column', 50), create_str('data_source_id', 50),
 	create_int('is_list'),
 	create_tenant_id(), *create_tuple_audit_columns(),
@@ -361,6 +359,7 @@ table_change_data_record = Table(
 	'change_data_record', meta_data,
 	create_pk('change_record_id'), create_str('model_name', 50), create_str('table_name', 50),
 	create_str('data_id', 50), create_str('root_table_name', 50), create_str('root_data_id', 50),
+	create_int('is_merged'),
 	create_str('table_trigger_id', 50), create_str('model_trigger_id', 50), create_str('event_trigger_id', 50),
 	create_tenant_id(), *create_tuple_audit_columns()
 )

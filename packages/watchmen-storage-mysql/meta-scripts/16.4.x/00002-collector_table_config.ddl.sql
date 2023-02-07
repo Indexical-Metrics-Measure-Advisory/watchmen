@@ -11,6 +11,7 @@ CREATE TABLE collector_table_config
 	audit_column        VARCHAR(50) NOT NULL,
     data_source_id      VARCHAR(50) NOT NULL,
     is_list             TINYINT     NOT NULL,
+    triggered           TINYINT     NOT NULL,
     version             BIGINT      NOT NULL,
     tenant_id           VARCHAR(50) NOT NULL,
     created_at          DATETIME    NOT NULL,
