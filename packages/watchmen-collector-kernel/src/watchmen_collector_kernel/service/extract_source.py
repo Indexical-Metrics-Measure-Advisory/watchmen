@@ -7,7 +7,7 @@ from watchmen_data_kernel.service import ask_topic_storage, ask_topic_data_servi
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.admin import Topic, TopicKind
 from watchmen_storage import EntityCriteriaExpression, ColumnNameLiteral, EntityCriteriaOperator, \
-	EntityDistinctValuesFinder, EntityCriteria, EntityFinder
+	EntityDistinctValuesFinder, EntityCriteria
 from watchmen_utilities import get_current_time_in_seconds
 
 
@@ -28,13 +28,13 @@ class SourceTableExtractor:
 	def fake_extracted_table_to_topic(self, config: CollectorTableConfig) -> Topic:
 		#  Fake synonym topic to visit source table
 		topic = Topic(topicId=self.fake_topic_id(config.configId),
-		              name=config.name,
+		              name=config.tableName,
 		              dataSourceId=config.dataSourceId,
 		              kind=TopicKind.SYNONYM,
 		              tenantId=self.principal_service.tenantId
 		              )
 		topic_storage = ask_topic_storage(topic, self.principal_service)
-		factors = topic_storage.ask_synonym_factors(config.name)
+		factors = topic_storage.ask_synonym_factors(config.tableName)
 		topic.factors = factors
 		now = get_current_time_in_seconds()
 		topic.createdAt = now
@@ -46,7 +46,7 @@ class SourceTableExtractor:
 	def find_change_data_ids(self, start_time: datetime, end_time: datetime) -> Optional[List[Dict[str, Any]]]:
 		try:
 			self.storage.connect()
-			return self.service.find_distinct_values(EntityDistinctValuesFinder(
+			return self.service.find_distinct_values(
 				criteria=[
 					EntityCriteriaExpression(
 						left=ColumnNameLiteral(columnName=self.config.auditColumn),
@@ -57,16 +57,9 @@ class SourceTableExtractor:
 						operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
 						right=end_time)
 				],
-				distinctColumnNames=[self.config.primaryKey],
-				distinctValueOnSingleColumn=False
-			))
-		finally:
-			self.storage.close()
-
-	def find_by_id(self, id_: int) -> Optional[Dict[str, Any]]:
-		try:
-			self.storage.connect()
-			return self.service.find_data_by_id(id_)
+				column_names=[self.config.primaryKey],
+				distinct_value_on_single_column=False
+			)
 		finally:
 			self.storage.close()
 

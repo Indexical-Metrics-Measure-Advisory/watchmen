@@ -12,7 +12,7 @@ class LockClean:
 
 	def __init__(self):
 		self.lock_service = get_competitive_lock_service(ask_meta_storage())
-		self.cleanInterval = 3600
+		self.cleanInterval = 600
 
 	def run(self):
 		try:
@@ -25,7 +25,7 @@ class LockClean:
 			self.restart()
 
 	def clean_lock(self):
-		query_time = datetime.now() - timedelta(minutes=15)
+		query_time = datetime.now() - timedelta(minutes=1)
 		locks = self.lock_service.find_overtime_lock(query_time)
 		for lock in locks:
 			self.lock_service.delete_by_id(lock.lockId)

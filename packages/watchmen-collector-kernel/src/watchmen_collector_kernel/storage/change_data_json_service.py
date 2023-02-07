@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.model import ChangeDataJson
@@ -70,13 +70,17 @@ class ChangeDataJsonService(TupleService):
 		storable.changeRecordId = storable_id
 		return storable
 
-	def find_change_json_by_resource_id(self, resource_id: str) -> Optional[ChangeDataJson]:
+	def find_id_by_unique_key(self, table_name: str, data_id: str, event_trigger_id: str) -> List:
 		try:
 			self.storage.connect()
-			return self.storage.find_one(self.get_entity_finder(
+			return self.storage.find_distinct_values(self.get_entity_finder_for_columns(
 				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='resource_id'), right=resource_id)
-				]
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='table_name'), right=table_name),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='data_id'), right=data_id),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'), right=event_trigger_id)
+				],
+				distinctColumnNames=['change_json_id'],
+				distinctValueOnSingleColumn=False
 			))
 		finally:
 			self.storage.close()

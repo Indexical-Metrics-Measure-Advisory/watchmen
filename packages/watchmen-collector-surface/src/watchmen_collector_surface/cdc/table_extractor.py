@@ -2,9 +2,10 @@ from datetime import datetime
 from logging import getLogger
 from threading import Thread
 from typing import Tuple, Dict
-
+from time import sleep
 from watchmen_collector_kernel.model import TriggerEvent, ChangeDataRecord, TriggerTable, CollectorTableConfig
 from watchmen_collector_kernel.service import try_lock_nowait, unlock, SourceTableExtractor
+from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.storage import get_trigger_table_service, get_competitive_lock_service, \
 	get_collector_table_config_service, get_trigger_event_service, get_change_data_record_service
 from watchmen_meta.common import ask_super_admin, ask_snowflake_generator, ask_meta_storage
@@ -12,6 +13,10 @@ from watchmen_model.common import TableTriggerId
 from watchmen_utilities import ArrayHelper
 
 logger = getLogger(__name__)
+
+
+def init_table_extractor():
+	TableExtractor().create_thread()
 
 
 class TableExtractor:
@@ -34,7 +39,7 @@ class TableExtractor:
 		                                                                 self.snowflake_generator,
 		                                                                 self.principal_service)
 
-	def create_table_extraction(self) -> None:
+	def create_thread(self) -> None:
 		Thread(target=TableExtractor.run, args=(self,), daemon=True).start()
 
 	# noinspection PyUnresolvedReferences
@@ -42,9 +47,10 @@ class TableExtractor:
 		try:
 			while True:
 				self.trigger_table_listener()
+				sleep(1)
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
-			sleep(120)
+			sleep(30)
 			self.create_table_extraction()
 
 	def already_finished(self, trigger_table_id: TableTriggerId) -> bool:
@@ -58,7 +64,6 @@ class TableExtractor:
 	def trigger_table_listener(self):
 		trigger_tables = self.trigger_table_service.find_unfinished()
 		for trigger in trigger_tables:
-			# noinspection PyUnresolvedReferences
 			lock = get_resource_lock(self.snowflake_generator.next_id(),
 			                         trigger.tableName,
 			                         trigger.tenantId)
@@ -69,7 +74,7 @@ class TableExtractor:
 						continue
 					else:
 						# noinspection PyUnresolvedReferences
-						config = self.collector_table_config_service.find_by_name(trigger.tableName)
+						config = self.collector_table_config_service.find_by_table_name(trigger.tableName)
 						trigger_event = self.trigger_event_service.find_event_by_id(trigger.eventTriggerId)
 						source_records = SourceTableExtractor(config,
 						                                      self.principal_service) \
@@ -108,7 +113,9 @@ class TableExtractor:
 			modelName=model_name,
 			tableName=table_name,
 			dataId=data_id,
+			isMerged=False,
 			tableTriggerId=table_trigger_id,
 			modelTriggerId=model_trigger_id,
-			eventTriggerId=event_trigger_id
+			eventTriggerId=event_trigger_id,
+			tenantId=self.principal_service.get_tenant_id()
 		)

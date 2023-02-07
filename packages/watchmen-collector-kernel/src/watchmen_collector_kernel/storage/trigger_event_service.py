@@ -56,7 +56,7 @@ class TriggerEventService(TupleService):
 		try:
 			self.storage.connect()
 			# noinspection PyTypeChecker
-			return self.storage.find_by_id(event_trigger_id)
+			return self.storage.find_by_id(event_trigger_id, self.get_entity_id_helper())
 		finally:
 			self.storage.close()
 
