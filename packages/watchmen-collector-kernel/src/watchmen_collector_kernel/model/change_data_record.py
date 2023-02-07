@@ -5,7 +5,7 @@ class ChangeDataRecord(TenantBasedTuple):
 	changeRecordId: str
 	modelName: str
 	tableName: str
-	dataId: int
+	dataId: str
 	rootTableName: str
 	rootDataId: str
 	isMerged: bool
