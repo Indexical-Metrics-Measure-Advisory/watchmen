@@ -16,7 +16,7 @@ class TriggerTableShaper(EntityShaper):
 			'table_trigger_id': entity.tableTriggerId,
 			'table_name': entity.tableName,
 			'model_name': entity.modelName,
-			'is_finished': entity.is_finished,
+			'is_finished': entity.isFinished,
 			'model_trigger_id': entity.modelTriggerId,
 			'event_trigger_id': entity.eventTriggerId
 		})
@@ -27,7 +27,7 @@ class TriggerTableShaper(EntityShaper):
 			tableTriggerId=row.get('table_trigger_id'),
 			tableName=row.get('table_name'),
 			modelName=row.get('model_name'),
-			is_finished=row.get('is_finished'),
+			isFinished=row.get('is_finished'),
 			modelTriggerId=row.get('model_trigger_id'),
 			eventTriggerId=row.get('event_trigger_id')
 		))
@@ -66,7 +66,8 @@ class TriggerTableService(TupleService):
 			return self.storage.find_distinct_values(
 				self.get_entity_finder_for_columns(
 					criteria=[EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_finished'), right=0)],
-					distinctColumnNames=['table_trigger_id', 'table_name', 'tenant_id'],
+					distinctColumnNames=['table_trigger_id',
+					                     'tenant_id'],
 					distinctValueOnSingleColumn=False)
 			)
 		finally:
@@ -75,7 +76,7 @@ class TriggerTableService(TupleService):
 	def find_by_id(self, trigger_id: TableTriggerId) -> Optional[TriggerTable]:
 		self.begin_transaction()
 		try:
-			return self.storage.find_by_id(trigger_id)
+			return self.storage.find_by_id(trigger_id, self.get_entity_id_helper())
 		finally:
 			self.close_transaction()
 

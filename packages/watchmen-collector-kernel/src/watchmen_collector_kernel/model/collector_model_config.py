@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict
 from watchmen_model.common import TenantBasedTuple, OptimisticLock
 from pydantic import BaseModel
 
@@ -6,6 +6,6 @@ from pydantic import BaseModel
 class CollectorModelConfig(TenantBasedTuple, OptimisticLock, BaseModel):
 	modelId: str
 	modelName: str
-	depend_on: List[str]
+	dependOn: List[str]
 	rawTopicCode: str
 

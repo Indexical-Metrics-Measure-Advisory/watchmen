@@ -1,4 +1,3 @@
-
 from logging import getLogger
 from typing import Optional, Dict, Any, Tuple
 
@@ -8,7 +7,8 @@ from watchmen_collector_kernel.model.collector_table_config import JoinKey
 from .extract_source import SourceTableExtractor
 from watchmen_collector_kernel.storage import get_collector_table_config_service
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
-from watchmen_storage import EntityCriteriaExpression, ColumnNameLiteral, EntityCriteriaStatement
+from watchmen_storage import EntityCriteriaExpression, ColumnNameLiteral, EntityCriteriaStatement, \
+	TransactionalStorageSPI, SnowflakeGenerator
 from watchmen_utilities import ArrayHelper
 
 logger = getLogger(__name__)
@@ -16,9 +16,11 @@ logger = getLogger(__name__)
 
 class DataCaptureService:
 
-	def __init__(self, principal_service: PrincipalService):
-		self.meta_storage = ask_meta_storage()
-		self.snowflake_generator = ask_snowflake_generator()
+	def __init__(self, storage: TransactionalStorageSPI,
+	             snowflake_generator: SnowflakeGenerator,
+	             principal_service: PrincipalService):
+		self.meta_storage = storage
+		self.snowflake_generator = snowflake_generator
 		self.principal_service = principal_service
 		self.collector_table_config_service = get_collector_table_config_service(self.meta_storage,
 		                                                                         self.snowflake_generator,
@@ -63,6 +65,8 @@ class DataCaptureService:
 			ArrayHelper(child_data).each(lambda child: self.build_json(table_config, child))
 
 		child_configs = self.collector_table_config_service.find_by_parent_name(config.name)
-		if len(child_configs) == 0:
+		if child_configs:
+			ArrayHelper(child_configs).each(lambda child_config: get_child_data(child_config))
+		else:
 			return
-		ArrayHelper(child_configs).each(lambda child_config: get_child_data(child_config))
+

@@ -22,6 +22,8 @@ class CollectorSurfaceSettings(BaseSettings):
 	S3_COLLECTOR_MAX_KEYS: int = 10
 	S3_COLLECTOR_CLEAN_TASK_INTERVAL: int = 3600
 
+	QUERY_BASED_CHANGE_DATA_CAPTURE: bool = False
+
 	class Config:
 		# secrets_dir = '/var/run'
 		env_file = '.env'
@@ -31,6 +33,10 @@ class CollectorSurfaceSettings(BaseSettings):
 
 settings = CollectorSurfaceSettings()
 logger.info(f'Collector surface settings[{settings.dict()}].')
+
+
+def ask_query_based_change_data_capture_enabled() -> bool:
+	return settings.QUERY_BASED_CHANGE_DATA_CAPTURE
 
 
 def ask_integrated_record_collector_enabled() -> bool:
