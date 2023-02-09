@@ -11,8 +11,7 @@ from time import sleep
 
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_change_data_record_service, \
-	get_integrated_record_service, get_change_data_json_service, get_collector_table_config_service
-from watchmen_model.common import ChangeRecordId
+	get_change_data_json_service, get_collector_table_config_service
 from watchmen_meta.common import ask_meta_storage, ask_super_admin, ask_snowflake_generator
 
 logger = getLogger(__name__)
@@ -56,26 +55,29 @@ class RecordToJsonService:
 			self.create_thread()
 
 	# noinspection PyMethodMayBeStatic
-	def is_already_merged(self, change_record: ChangeDataRecord) -> bool:
+	def is_merged(self, change_record: ChangeDataRecord) -> bool:
 		return change_record.isMerged
 
 	def change_data_record_listener(self):
-		record_ids_list = self.change_record_service.find_unmerged_record_ids()
-		for record_ids in record_ids_list:
+		# Not a complete record, just change_record_id and tenant_id
+		# Can not use for record operation.
+		unmerged_records = self.change_record_service.find_unmerged_records()
+		for unmerged_record in unmerged_records:
 			lock = get_resource_lock(str(self.snowflake_generator.next_id()),
-			                         record_ids.changeRecordId,
-			                         record_ids.tenantId)
+			                         unmerged_record.changeRecordId,
+			                         unmerged_record.tenantId)
 			try:
 				if try_lock_nowait(self.competitive_lock_service, lock):
-					change_data_record = self.change_record_service.find_change_record_by_id(record_ids.changeRecordId)
-					if self.is_already_merged(change_data_record):
+					change_data_record = self.change_record_service.find_change_record_by_id(
+						unmerged_record.changeRecordId)
+					if self.is_merged(change_data_record):
 						continue
 					else:
 						config = self.table_config_service.find_by_table_name(change_data_record.tableName)
 						is_existed, change_record, change_json = \
 							self.merge_json(config, change_data_record)
 						if is_existed:
-							break
+							self.change_record_service.update_change_record(change_record)
 						else:
 							self.change_record_service.begin_transaction()
 							try:
@@ -89,10 +91,10 @@ class RecordToJsonService:
 				unlock(self.competitive_lock_service, lock)
 
 	def is_existed(self, change_record: ChangeDataRecord) -> bool:
-		change_record_ids = self.change_json_service.find_id_by_unique_key(change_record.tableName,
-		                                                                   change_record.dataId,
-		                                                                   change_record.eventTriggerId)
-		if len(change_record_ids) == 1:
+		change_json_ids = self.change_json_service.find_id_by_unique_key(change_record.tableName,
+		                                                                 change_record.dataId,
+		                                                                 change_record.eventTriggerId)
+		if len(change_json_ids) == 1:
 			return True
 		else:
 			return False

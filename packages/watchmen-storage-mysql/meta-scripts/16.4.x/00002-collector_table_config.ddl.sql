@@ -4,6 +4,7 @@ CREATE TABLE collector_table_config
     name                VARCHAR(50) NOT NULL,
     table_name          VARCHAR(50) NOT NULL,
     primary_key         VARCHAR(50) NOT NULL,
+    object_key          VARCHAR(50) NOT NULL,
     model_name          VARCHAR(50) NOT NULL,
     parent_name         VARCHAR(50),
     join_keys           JSON,

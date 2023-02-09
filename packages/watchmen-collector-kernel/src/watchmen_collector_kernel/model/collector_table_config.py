@@ -15,6 +15,7 @@ class CollectorTableConfig(TenantBasedTuple, OptimisticLock, BaseModel):
 	name: str = None
 	tableName: str = None
 	primaryKey: str = None
+	objectKey: str = None
 	modelName: str = None
 	parentName: str = None
 	joinKeys: List[JoinKey] = None
