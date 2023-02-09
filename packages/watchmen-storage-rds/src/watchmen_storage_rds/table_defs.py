@@ -323,7 +323,7 @@ table_collector_model_config = Table(
 table_collector_table_config = Table(
 	'collector_table_config', meta_data,
 	create_pk('config_id'), create_str('name', 50),
-	create_str('table_name', 50), create_str('primary_key', 50),
+	create_str('table_name', 50), create_str('primary_key', 50), create_str('object_key', 50),
 	create_str('model_name', 50), create_str('parent_name', 50), create_json('join_keys'),
 	create_json('depend_on'), create_int('triggered'),
 	create_str('audit_column', 50), create_str('data_source_id', 50),
@@ -350,6 +350,7 @@ table_trigger_table = Table(
 	'trigger_table', meta_data,
 	create_pk('table_trigger_id'), create_str('table_name', 50),
 	create_str('model_name', 50), create_int('data_count'),
+	create_int('is_extracted'),
 	create_int('is_finished'),
 	create_str('model_trigger_id', 50),
 	create_str('event_trigger_id', 50),

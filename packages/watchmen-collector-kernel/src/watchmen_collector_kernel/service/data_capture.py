@@ -6,7 +6,6 @@ from watchmen_collector_kernel.model import CollectorTableConfig
 from watchmen_collector_kernel.model.collector_table_config import JoinKey
 from .extract_source import SourceTableExtractor
 from watchmen_collector_kernel.storage import get_collector_table_config_service
-from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_storage import EntityCriteriaExpression, ColumnNameLiteral, EntityCriteriaStatement, \
 	TransactionalStorageSPI, SnowflakeGenerator
 from watchmen_utilities import ArrayHelper

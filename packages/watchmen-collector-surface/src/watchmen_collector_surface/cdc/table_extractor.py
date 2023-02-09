@@ -9,7 +9,6 @@ from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.storage import get_trigger_table_service, get_competitive_lock_service, \
 	get_collector_table_config_service, get_trigger_event_service, get_change_data_record_service
 from watchmen_meta.common import ask_super_admin, ask_snowflake_generator, ask_meta_storage
-from watchmen_model.common import TableTriggerId
 from watchmen_utilities import ArrayHelper
 
 logger = getLogger(__name__)
@@ -25,6 +24,9 @@ class TableExtractor:
 		self.meta_storage = ask_meta_storage()
 		self.snowflake_generator = ask_snowflake_generator()
 		self.principal_service = ask_super_admin()
+		self.trigger_event_service = get_trigger_event_service(self.meta_storage,
+		                                                       self.snowflake_generator,
+		                                                       self.principal_service)
 		self.trigger_table_service = get_trigger_table_service(self.meta_storage,
 		                                                       self.snowflake_generator,
 		                                                       self.principal_service)
@@ -32,9 +34,6 @@ class TableExtractor:
 		self.collector_table_config_service = get_collector_table_config_service(self.meta_storage,
 		                                                                         self.snowflake_generator,
 		                                                                         self.principal_service)
-		self.trigger_event_service = get_trigger_event_service(self.meta_storage,
-		                                                       self.snowflake_generator,
-		                                                       self.principal_service)
 		self.change_data_record_service = get_change_data_record_service(self.meta_storage,
 		                                                                 self.snowflake_generator,
 		                                                                 self.principal_service)
@@ -54,34 +53,54 @@ class TableExtractor:
 			self.create_table_extraction()
 
 	# noinspection PyMethodMayBeStatic
-	def is_already_finished(self, trigger_table: TriggerTable) -> bool:
+	def is_finished(self, trigger_table: TriggerTable) -> bool:
 		return trigger_table.isFinished
+
+	# noinspection PyMethodMayBeStatic
+	def is_extracted(self, trigger_table: TriggerTable) -> bool:
+		return trigger_table.isExtracted
+
+	# noinspection PyMethodMayBeStatic
+	def set_extracted(self, trigger_table: TriggerTable, count: int) -> TriggerTable:
+		trigger_table.isExtracted = True
+		trigger_table.dataCount = count
+		return trigger_table
 
 	# noinspection PyMethodMayBeStatic
 	def get_time_window(self, event: TriggerEvent) -> Tuple[datetime, datetime]:
 		return event.startTime, event.endTime
 
 	def trigger_table_listener(self):
-		trigger_table_ids_list = self.trigger_table_service.find_unfinished()
-		for trigger_table_ids in trigger_table_ids_list:
+		unfinished_trigger_tables = self.trigger_table_service.find_unfinished()
+		for unfinished_trigger_table in unfinished_trigger_tables:
 			lock = get_resource_lock(str(self.snowflake_generator.next_id()),
-			                         trigger_table_ids.tableTriggerId,
-			                         trigger_table_ids.tenantId)
+			                         unfinished_trigger_table.tableTriggerId,
+			                         unfinished_trigger_table.tenantId)
 			try:
 				if try_lock_nowait(self.competitive_lock_service, lock):
-					trigger = self.trigger_table_service.find_by_id(trigger_table_ids.tableTriggerId)
-					if self.is_already_finished(trigger):
+					trigger = self.trigger_table_service.find_by_id(unfinished_trigger_table.tableTriggerId)
+					if self.is_finished(trigger):
 						continue
 					else:
-						# noinspection PyUnresolvedReferences
-						config = self.collector_table_config_service.find_by_table_name(trigger.tableName)
-						trigger_event = self.trigger_event_service.find_event_by_id(trigger.eventTriggerId)
-						source_records = SourceTableExtractor(config,
-						                                      self.principal_service) \
-							.find_change_data_ids(*self.get_time_window(trigger_event))
-						ArrayHelper(source_records) \
-							.map(lambda source_record: self.save_change_data_record(config, trigger, source_record))
-						break
+						if self.is_extracted(trigger):
+							continue
+						else:
+							# noinspection PyUnresolvedReferences
+							config = self.collector_table_config_service.find_by_table_name(trigger.tableName)
+							trigger_event = self.trigger_event_service.find_event_by_id(trigger.eventTriggerId)
+							source_records = SourceTableExtractor(config,
+							                                      self.principal_service) \
+								.find_change_data_ids(*self.get_time_window(trigger_event))
+							existed_records = self.change_data_record_service.find_existed_records(trigger.tableTriggerId)
+
+							def record_compare(source_record: Dict, existed_record: ChangeDataRecord) -> bool:
+								return existed_record.dataId == source_record.get(config.primaryKey)
+
+							ArrayHelper(source_records).difference(existed_records, record_compare) \
+								.each(lambda source_record: self.save_change_data_record(config, trigger, source_record))
+							data_count = ArrayHelper(source_records).size()
+							self.trigger_table_service.update_table_trigger(self.set_extracted(trigger, data_count))
+							break
 			finally:
 				unlock(self.competitive_lock_service, lock)
 
@@ -92,11 +111,11 @@ class TableExtractor:
 		self.change_data_record_service.create_change_record(change_data_record)
 
 	def source_to_change(self, config: CollectorTableConfig,
-	                     trigger_table: TriggerTable, source_code: Dict) -> ChangeDataRecord:
+	                     trigger_table: TriggerTable, source_record: Dict) -> ChangeDataRecord:
 		return self.get_change_data_record(
 			trigger_table.modelName,
 			trigger_table.tableName,
-			source_code.get(config.primaryKey),
+			source_record.get(config.primaryKey),
 			trigger_table.tableTriggerId,
 			trigger_table.modelTriggerId,
 			trigger_table.eventTriggerId

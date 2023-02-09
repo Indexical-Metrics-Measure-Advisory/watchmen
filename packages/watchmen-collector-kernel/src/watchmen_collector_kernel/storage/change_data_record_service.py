@@ -79,20 +79,17 @@ class ChangeDataRecordService(TupleService):
 			self.rollback_transaction()
 			raise e
 
-	def find_unfinished(self) -> Optional[List[ChangeDataRecord]]:
+	def update_change_record(self, record: ChangeDataRecord) -> Optional[List[ChangeDataRecord]]:
 		self.begin_transaction()
 		try:
 			# noinspection PyTypeChecker
-			return self.storage.find_all(
-				self.get_entity_finder(
-					criteria=[EntityCriteriaExpression(
-						left=ColumnNameLiteral(columnName='is_finished'), right=0)]
-				)
-			)
-		finally:
-			self.close_transaction()
+			self.update(record)
+			self.commit_transaction()
+		except Exception as e:
+			self.rollback_transaction()
+			raise e
 
-	def find_unmerged_record_ids(self) -> List:
+	def find_unmerged_records(self) -> List:
 		self.begin_transaction()
 		try:
 			return self.storage.find_distinct_values(self.get_entity_finder_for_columns(
@@ -105,11 +102,37 @@ class ChangeDataRecordService(TupleService):
 		finally:
 			self.close_transaction()
 
+	def count_unmerged_records(self) -> int:
+		self.begin_transaction()
+		try:
+			# noinspection PyTypeChecker
+			return self.storage.count(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_merged'), right=False)
+				]
+			))
+		finally:
+			self.close_transaction()
+
 	def find_change_record_by_id(self, change_record_id: ChangeRecordId) -> ChangeDataRecord:
 		self.begin_transaction()
 		try:
 			# noinspection PyTypeChecker
 			return self.find_by_id(change_record_id)
+		finally:
+			self.close_transaction()
+
+	def find_existed_records(self, table_trigger_id: str) -> List[ChangeDataRecord]:
+		self.begin_transaction()
+		try:
+			# noinspection PyTypeChecker
+			return self.storage.find_distinct_values((self.get_entity_finder_for_columns(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='table_trigger_id'), right=table_trigger_id),
+				],
+				distinctColumnNames=['change_record_id', 'data_id', 'tenant_id'],
+				distinctValueOnSingleColumn=False
+			)))
 		finally:
 			self.close_transaction()
 

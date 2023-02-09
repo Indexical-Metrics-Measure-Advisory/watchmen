@@ -16,6 +16,7 @@ class TriggerTableShaper(EntityShaper):
 			'table_trigger_id': entity.tableTriggerId,
 			'table_name': entity.tableName,
 			'model_name': entity.modelName,
+			'is_extracted': entity.isExtracted,
 			'is_finished': entity.isFinished,
 			'model_trigger_id': entity.modelTriggerId,
 			'event_trigger_id': entity.eventTriggerId
@@ -27,6 +28,7 @@ class TriggerTableShaper(EntityShaper):
 			tableTriggerId=row.get('table_trigger_id'),
 			tableName=row.get('table_name'),
 			modelName=row.get('model_name'),
+			isExtracted=row.get('is_extracted'),
 			isFinished=row.get('is_finished'),
 			modelTriggerId=row.get('model_trigger_id'),
 			eventTriggerId=row.get('event_trigger_id')
@@ -58,6 +60,16 @@ class TriggerTableService(TupleService):
 			self, storable: TriggerTable, storable_id: TableTriggerId) -> Storable:
 		storable.tableTriggerId = storable_id
 		return storable
+
+	def update_table_trigger(self, trigger: TriggerTable):
+		self.begin_transaction()
+		try:
+			result = self.update(trigger)
+			self.commit_transaction()
+			return result
+		except Exception as e:
+			self.rollback_transaction()
+			raise e
 
 	def find_unfinished(self) -> Optional[List[TriggerTable]]:
 		self.begin_transaction()

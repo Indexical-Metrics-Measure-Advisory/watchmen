@@ -16,6 +16,7 @@ CREATE TABLE change_data_record
     last_modified_at    DATETIME    NOT NULL,
     last_modified_by    VARCHAR(50) NOT NULL,
     PRIMARY KEY (change_record_id),
+    UNIQUE KEY unique_data(table_trigger_id, table_name, data_id),
     INDEX (tenant_id),
     INDEX (created_at),
     INDEX (created_by),
