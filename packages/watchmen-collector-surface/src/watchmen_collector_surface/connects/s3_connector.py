@@ -5,15 +5,15 @@ from threading import Thread
 from typing import Any, Dict, Optional
 
 from time import sleep
-from watchmen_collector_kernel.model import CollectorCompetitiveLock
+from watchmen_collector_kernel.model import CompetitiveLock
 from .connector import Connector
 from watchmen_data_kernel.storage import TopicTrigger
-from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage
+from watchmen_meta.common import ask_meta_storage
 from watchmen_model.common import Storable, SettingsModel
 from watchmen_model.pipeline_kernel import PipelineTriggerData
 from watchmen_storage_s3 import ObjectContent, SimpleStorageService
 from watchmen_collector_surface.connects.handler import handle_trigger_data, save_topic_data
-from watchmen_collector_kernel.task.task_housekeeping import init_task_housekeeping
+from watchmen_collector_kernel.service.task_housekeeping import init_task_housekeeping
 
 logger = getLogger(__name__)
 
@@ -172,10 +172,10 @@ class S3Connector(Connector):
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
 
-	def get_resource_lock(self, key: str) -> CollectorCompetitiveLock:
+	def get_resource_lock(self, key: str) -> CompetitiveLock:
 		object_key = self.get_identifier(self.consume_prefix, key)
 		key_parts = object_key.split(identifier_delimiter)
-		return CollectorCompetitiveLock(
+		return CompetitiveLock(
 			lockId=self.snowflakeGenerator.next_id(),
 			resourceId=key,
 			modelName=key_parts[1],

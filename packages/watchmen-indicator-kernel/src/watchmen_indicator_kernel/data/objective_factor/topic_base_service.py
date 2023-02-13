@@ -7,10 +7,9 @@ from watchmen_model.admin import Topic
 from watchmen_model.common import ParameterJoint, ParameterJointType, ParameterKind, SubjectDatasetColumnId, \
 	TopicFactorParameter, TopicId
 from watchmen_model.console import Subject, SubjectDataset, SubjectDatasetColumn
-from watchmen_model.indicator import Indicator, Objective, ObjectiveFactorOnIndicator
+from watchmen_model.indicator import Indicator, IndicatorAggregateArithmetic, Objective, ObjectiveFactorOnIndicator
 from .data_service import ObjectiveFactorDataService
-from ..utils.time_frame import TimeFrame
-from ..utils import find_factor
+from ..utils import find_factor, TimeFrame
 
 FAKED_ONLY_COLUMN_ID = 'FAKED_ONLY_COLUMN_ID'
 FAKED_ONLY_COLUMN_NAME = 'faked_only_column_name'
@@ -36,8 +35,12 @@ class TopicBaseObjectiveFactorDataService(ObjectiveFactorDataService):
 		factor = find_factor(topic, indicator.factorId)
 		# factor must be declared
 		if factor is None:
-			raise IndicatorKernelException(
-				f'Indicator[id={indicator.indicatorId}, name={indicator.name}] factor not declared, on {self.on_factor_msg()}.')
+			if indicator.aggregateArithmetic != IndicatorAggregateArithmetic.COUNT:
+				raise IndicatorKernelException(
+					f'Indicator[id={indicator.indicatorId}, name={indicator.name}] factor not declared, on {self.on_factor_msg()}.')
+			else:
+				# factor not declared, and it is a count aggregation, therefore any factor should be ok
+				factor = topic.factors[0]
 		return SubjectDatasetColumn(
 			columnId=FAKED_ONLY_COLUMN_ID,
 			parameter=TopicFactorParameter(

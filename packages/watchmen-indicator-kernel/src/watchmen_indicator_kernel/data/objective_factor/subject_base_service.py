@@ -4,9 +4,10 @@ from typing import Optional
 from watchmen_auth import PrincipalService
 from watchmen_model.common import ParameterJoint, ParameterJointType, SubjectId
 from watchmen_model.console import Report, Subject, SubjectDataset
-from watchmen_model.indicator import Indicator, Objective, ObjectiveFactorOnIndicator
+from watchmen_model.indicator import Indicator, IndicatorAggregateArithmetic, Objective, ObjectiveFactorOnIndicator
 from .data_service import ObjectiveFactorDataService
 from ..utils.time_frame import TimeFrame
+from ...common import IndicatorKernelException
 
 
 class SubjectBaseObjectiveFactorDataService(ObjectiveFactorDataService):
@@ -48,8 +49,16 @@ class SubjectBaseObjectiveFactorDataService(ObjectiveFactorDataService):
 		return Subject(dataset=SubjectDataset(columns=columns, filters=subject_filter, joins=subject.dataset.joins))
 
 	def ask_value(self, time_frame: Optional[TimeFrame]) -> Optional[Decimal]:
+		indicator = self.get_indicator()
 		# the indicator factor, actually which is column from subject, is the indicator column of report
-		report_indicator_column_id = self.indicator.factorId
+		report_indicator_column_id = indicator.factorId
+		if report_indicator_column_id is None:
+			if self.indicator.aggregateArithmetic != IndicatorAggregateArithmetic.COUNT:
+				raise IndicatorKernelException(
+					f'Indicator[id={indicator.indicatorId}, name={indicator.name}] column not declared, on {self.on_factor_msg()}.')
+			else:
+				# column not declared, and it is a count aggregation, therefore any factor should be ok
+				report_indicator_column_id = self.get_subject().dataset.columns[0].columnId
 		# fake report
 		report = self.fake_to_report(report_indicator_column_id)
 		# fake objective factor to report factor, since they are both based on subject itself
