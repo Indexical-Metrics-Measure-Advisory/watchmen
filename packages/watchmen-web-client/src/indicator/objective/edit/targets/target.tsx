@@ -206,7 +206,7 @@ export const Target = (props: {
 		forceUpdate();
 	};
 	const onBetterSideChanged = (option: DropdownOption) => {
-		target.betterSide = option.key as ObjectiveTargetBetterSide;
+		target.betterSide = option.value as ObjectiveTargetBetterSide;
 		fire(ObjectivesEventTypes.SAVE_OBJECTIVE, objective, noop);
 		forceUpdate();
 	};
