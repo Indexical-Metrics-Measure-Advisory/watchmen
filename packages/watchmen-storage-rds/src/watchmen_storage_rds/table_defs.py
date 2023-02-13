@@ -290,15 +290,13 @@ table_achievement_plugin_tasks = Table(
 	*create_tuple_audit_columns()
 )
 # system
-table_collector_competitive_lock = Table(
-	'collector_competitive_lock', meta_data,
+table_competitive_lock = Table(
+	'competitive_lock', meta_data,
 	create_pk('lock_id'), create_str('resource_id', 500),
-	create_str('model_name', 20), create_str('object_id', 100),
-	create_datetime('registered_at', False), create_tenant_id(),
-	create_int('status', False)
+	create_datetime('registered_at', False), create_tenant_id()
 )
-table_collector_tasks = Table(
-	'collector_tasks', meta_data,
+table_scheduled_task = Table(
+	'scheduled_task', meta_data,
 	create_pk('task_id'), create_str('resource_id', 500),
 	create_json('content'),
 	create_str('model_name', 20), create_str('object_id', 100),
@@ -306,8 +304,8 @@ table_collector_tasks = Table(
 	create_tenant_id(),
 	*create_tuple_audit_columns()
 )
-table_collector_integrated_records = Table(
-	'collector_integrated_records', meta_data,
+table_integrated_record = Table(
+	'integrated_record', meta_data,
 	create_pk('integrated_record_id'), create_str('resource_id', 500),
 	create_json('data_content'),
 	create_str('model_name', 20), create_str('object_id', 100),
@@ -315,17 +313,64 @@ table_collector_integrated_records = Table(
 	create_json('root_node'),
 	create_tenant_id(), *create_tuple_audit_columns()
 )
-table_collector_audit_column_query_config = Table(
-	'collector_audit_column_query_config', meta_data,
-    create_pk('config_id'), create_str('name', 50),
-    create_str('table_name', 50), create_str('model_name', 50),
-	create_str('parent_name', 50), create_json('join_key'),
-	create_int('disabled'), create_str('filter_criteria', 50),
-	create_str('dependency', 50), create_int('triggered'),
+table_collector_model_config = Table(
+	'collector_model_config', meta_data,
+	create_pk('model_id'), create_str('model_name', 50),
+	create_json('depend_on', 50), create_str('raw_topic_code', 50),
+	create_tenant_id(), *create_tuple_audit_columns(),
+	create_optimistic_lock()
+)
+table_collector_table_config = Table(
+	'collector_table_config', meta_data,
+	create_pk('config_id'), create_str('name', 50),
+	create_str('table_name', 50), create_str('primary_key', 50), create_str('object_key', 50),
+	create_str('model_name', 50), create_str('parent_name', 50), create_json('join_keys'),
+	create_json('depend_on'), create_int('triggered'),
 	create_str('audit_column', 50), create_str('data_source_id', 50),
 	create_int('is_list'),
 	create_tenant_id(), *create_tuple_audit_columns(),
 	create_optimistic_lock()
+)
+table_trigger_event = Table(
+	'trigger_event', meta_data,
+	create_pk('event_trigger_id'),
+	create_date('start_time'), create_date('end_time'),
+	create_int('is_finished'),
+	create_tenant_id(), *create_tuple_audit_columns()
+)
+table_trigger_model = Table(
+	'trigger_model', meta_data,
+	create_pk('model_trigger_id'),
+	create_str('model_name', 50),
+	create_int('is_finished'),
+	create_str('event_trigger_id', 50),
+	create_tenant_id(), *create_tuple_audit_columns()
+)
+table_trigger_table = Table(
+	'trigger_table', meta_data,
+	create_pk('table_trigger_id'), create_str('table_name', 50),
+	create_str('model_name', 50), create_int('data_count'),
+	create_int('is_extracted'),
+	create_int('is_finished'),
+	create_str('model_trigger_id', 50),
+	create_str('event_trigger_id', 50),
+	create_tenant_id(), *create_tuple_audit_columns()
+)
+table_change_data_record = Table(
+	'change_data_record', meta_data,
+	create_pk('change_record_id'), create_str('model_name', 50), create_str('table_name', 50),
+	create_str('data_id', 50), create_str('root_table_name', 50), create_str('root_data_id', 50),
+	create_int('is_merged'),
+	create_str('table_trigger_id', 50), create_str('model_trigger_id', 50), create_str('event_trigger_id', 50),
+	create_tenant_id(), *create_tuple_audit_columns()
+)
+table_change_data_json = Table(
+	'change_data_json', meta_data,
+	create_pk('change_json_id'), create_str('model_name', 50), create_str('object_id', 50),
+	create_str('table_name', 50), create_str('data_id', 50),
+	create_json('content'), create_json('depend_on'),
+	create_str('table_trigger_id', 50), create_str('model_trigger_id', 50), create_str('event_trigger_id', 50),
+	create_tenant_id(), *create_tuple_audit_columns()
 )
 table_operations = Table(
 	'operations', meta_data,
@@ -417,17 +462,23 @@ tables: Dict[str, Table] = {
 	'objectives': table_objectives,
 	'achievement_plugin_tasks': table_achievement_plugin_tasks,
 	# system
-	'collector_competitive_lock': table_collector_competitive_lock,
-	'collector_tasks': table_collector_tasks,
-	'collector_integrated_records': table_collector_integrated_records,
-	'collector_audit_column_query_config': table_collector_audit_column_query_config,
+	'competitive_lock': table_competitive_lock,
+	'scheduled_task': table_scheduled_task,
+	'integrated_record': table_integrated_record,
 	'operations': table_operations,
 	'package_versions': table_package_versions,
 	# webhook
 	'subscription_event_locks': table_subscription_event_locks,
 	'subscription_events': table_subscription_event,
-	'notification_definitions': table_notification_definition
-
+	'notification_definitions': table_notification_definition,
+	# collector
+	'collector_model_config': table_collector_model_config,
+	'collector_table_config': table_collector_table_config,
+	'trigger_event': table_trigger_event,
+	'trigger_model': table_trigger_model,
+	'trigger_table': table_trigger_table,
+	'change_data_record': table_change_data_record,
+	'change_data_json': table_change_data_json
 }
 
 
@@ -444,6 +495,8 @@ def find_table(table_name: str) -> Table:
 	table = tables.get(table_name)
 	if table is None:
 		table = find_from_topic_tables(table_name)
+	if table is None:
+		table = find_from_extract_tables(table_name)
 	if table is None:
 		raise UnexpectedStorageException(f'Table[{table_name}] definition not found.')
 	return table
@@ -471,3 +524,21 @@ def register_table(topic: Topic) -> None:
 		topic_tables[topic.topicId] = (build_by_aggregation(topic), topic.lastModifiedAt)
 	else:
 		topic_tables[topic.topicId] = (build_by_regular(topic), topic.lastModifiedAt)
+
+
+extract_tables: Dict[str, Table] = {}
+
+
+def find_from_extract_tables(table_name: str) -> Optional[Table]:
+	found = extract_tables.get(table_name)
+	if found is None:
+		return None
+	else:
+		return found[0]
+
+
+def register_extract_table(table: Table) -> None:
+	existing = extract_tables.get(table.name)
+	if existing is not None:
+		return
+	extract_tables[table.name] = table
