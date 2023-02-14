@@ -4,11 +4,11 @@ from typing import Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.common import IndicatorKernelException
+from watchmen_indicator_kernel.data.objective_factor.objective_criteria_service import ObjectiveCriteriaService
 from watchmen_model.common import DataResult, ParameterJoint, SubjectDatasetColumnId
 from watchmen_model.console import Report, ReportIndicator, ReportIndicatorArithmetic
 from watchmen_model.indicator import Indicator, IndicatorAggregateArithmetic, Objective, ObjectiveFactorOnIndicator
 from watchmen_utilities import ArrayHelper, is_decimal
-from watchmen_indicator_kernel.data.objective_factor.objective_criteria_service import ObjectiveCriteriaService
 from ..utils.time_frame import TimeFrame
 
 
@@ -87,4 +87,8 @@ class ObjectiveFactorDataService(ObjectiveCriteriaService):
 
 	@abstractmethod
 	def ask_value(self, time_frame: Optional[TimeFrame]) -> Optional[Decimal]:
+		pass
+
+	@abstractmethod
+	def ask_breakdown_values(self, time_frame: Optional[TimeFrame]) -> DataResult:
 		pass

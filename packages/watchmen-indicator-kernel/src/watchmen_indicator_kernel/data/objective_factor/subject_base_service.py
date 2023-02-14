@@ -1,8 +1,8 @@
 from decimal import Decimal
-from typing import Optional
+from typing import Optional, Tuple
 
 from watchmen_auth import PrincipalService
-from watchmen_model.common import ParameterJoint, ParameterJointType, SubjectId
+from watchmen_model.common import DataResult, ParameterJoint, ParameterJointType, SubjectId
 from watchmen_model.console import Report, Subject, SubjectDataset
 from watchmen_model.indicator import Indicator, IndicatorAggregateArithmetic, Objective, ObjectiveFactorOnIndicator
 from .data_service import ObjectiveFactorDataService
@@ -24,7 +24,7 @@ class SubjectBaseObjectiveFactorDataService(ObjectiveFactorDataService):
 	def ask_filter_base_id(self) -> SubjectId:
 		return self.get_subject().subjectId
 
-	def fake_criteria_to_report(self, report: Report, time_frame: Optional[TimeFrame]):
+	def fake_time_frame_to_report(self, report: Report, time_frame: Optional[TimeFrame]):
 		report_filter = self.fake_criteria_to_filter(time_frame)
 		if report_filter is not None:
 			report.filters = report_filter
@@ -48,7 +48,7 @@ class SubjectBaseObjectiveFactorDataService(ObjectiveFactorDataService):
 			subject_filter = original_subject_filter
 		return Subject(dataset=SubjectDataset(columns=columns, filters=subject_filter, joins=subject.dataset.joins))
 
-	def ask_value(self, time_frame: Optional[TimeFrame]) -> Optional[Decimal]:
+	def fake_a_report(self, time_frame: Optional[TimeFrame]) -> Tuple[Subject, Report]:
 		indicator = self.get_indicator()
 		# the indicator factor, actually which is column from subject, is the indicator column of report
 		report_indicator_column_id = indicator.factorId
@@ -62,8 +62,20 @@ class SubjectBaseObjectiveFactorDataService(ObjectiveFactorDataService):
 		# fake report
 		report = self.fake_to_report(report_indicator_column_id)
 		# fake objective factor to report factor, since they are both based on subject itself
-		self.fake_criteria_to_report(report, time_frame)
+		self.fake_time_frame_to_report(report, time_frame)
+		subject = self.fake_to_subject()
+		return subject, report
+
+	def ask_value(self, time_frame: Optional[TimeFrame]) -> Optional[Decimal]:
+		subject, report = self.fake_a_report(time_frame)
 		# merge indicator filter to subject filter
-		report_data_service = self.get_report_data_service(self.fake_to_subject(), report)
+		report_data_service = self.get_report_data_service(subject, report)
 		data_result = report_data_service.find()
 		return self.get_value_from_result(data_result)
+
+	def ask_breakdown_values(self, time_frame: Optional[TimeFrame]) -> DataResult:
+		subject, report = self.fake_a_report(time_frame)
+		# TODO ADD GROUPING COLUMNS
+		# merge indicator filter to subject filter
+		report_data_service = self.get_report_data_service(subject, report)
+		return report_data_service.find()
