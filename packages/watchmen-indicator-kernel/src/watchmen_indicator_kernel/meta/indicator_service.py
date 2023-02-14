@@ -155,8 +155,8 @@ class IndicatorService(TupleService):
 			distinctValueOnSingleColumn=True
 		))
 		if len(prefix) == 0:
-			return ArrayHelper(values).map(lambda x: x.category1).to_list()
+			return ArrayHelper(values).filter(lambda  x : x.category1).map(lambda x: x.category1).to_list()
 		elif len(prefix) == 1:
-			return ArrayHelper(values).map(lambda x: x.category2).to_list()
+			return ArrayHelper(values).filter(lambda  x : x.category2).map(lambda x: x.category2).to_list()
 		else:
-			return ArrayHelper(values).map(lambda x: x.category3).to_list()
+			return ArrayHelper(values).filter(lambda  x : x.category3).map(lambda x: x.category3).to_list()
