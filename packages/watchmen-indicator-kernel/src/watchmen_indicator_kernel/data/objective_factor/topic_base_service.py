@@ -4,9 +4,9 @@ from typing import List, Optional, Tuple
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.common import IndicatorKernelException
 from watchmen_model.admin import Topic
-from watchmen_model.common import ParameterJoint, ParameterJointType, ParameterKind, SubjectDatasetColumnId, \
-	TopicFactorParameter, TopicId
-from watchmen_model.console import Subject, SubjectDataset, SubjectDatasetColumn
+from watchmen_model.common import DataResult, ParameterJoint, ParameterJointType, ParameterKind, \
+	SubjectDatasetColumnId, TopicFactorParameter, TopicId
+from watchmen_model.console import Report, Subject, SubjectDataset, SubjectDatasetColumn
 from watchmen_model.indicator import Indicator, IndicatorAggregateArithmetic, Objective, ObjectiveFactorOnIndicator
 from .data_service import ObjectiveFactorDataService
 from ..utils import find_factor, TimeFrame
@@ -67,9 +67,19 @@ class TopicBaseObjectiveFactorDataService(ObjectiveFactorDataService):
 		dataset_filters: Optional[ParameterJoint] = self.build_filters(time_frame)
 		return Subject(dataset=SubjectDataset(columns=dataset_columns, filters=dataset_filters)), only_column_id
 
-	def ask_value(self, time_frame: Optional[TimeFrame]) -> Optional[Decimal]:
+	def fake_a_report(self, time_frame: Optional[TimeFrame]) -> Tuple[Subject, Report]:
 		subject, only_column_id = self.fake_to_subject(time_frame)
 		report = self.fake_to_report(only_column_id)
+		return subject, report
+
+	def ask_value(self, time_frame: Optional[TimeFrame]) -> Optional[Decimal]:
+		subject, report = self.fake_a_report(time_frame)
 		report_data_service = self.get_report_data_service(subject, report)
 		data_result = report_data_service.find()
 		return self.get_value_from_result(data_result)
+
+	def ask_breakdown_values(self, time_frame: Optional[TimeFrame]) -> DataResult:
+		subject, report = self.fake_a_report(time_frame)
+		# TODO ADD GROUPING COLUMNS
+		report_data_service = self.get_report_data_service(subject, report)
+		return report_data_service.find()
