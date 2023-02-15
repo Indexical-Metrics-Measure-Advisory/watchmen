@@ -1,6 +1,6 @@
 from typing import Dict, List
 
-from watchmen_model.common import TenantBasedTuple, ScheduledTaskId
+from watchmen_model.common import TenantBasedTuple, ScheduledTaskId, Storable
 from pydantic import BaseModel
 from enum import Enum, IntEnum
 
@@ -22,20 +22,18 @@ class TaskStatus(IntEnum):
 	SUSPEND = 3
 
 
-class MergeJson:
-	tableName: str
-	uniqueColumn: str
-	uniqueValue: str
-	dataSourceId: str
+class Dependence(Storable, BaseModel):
+	modelName: str
+	objectId: str
 
 
 class ScheduledTask(TenantBasedTuple, BaseModel):
 	taskId: ScheduledTaskId
-	resourceId: str
+	resourceId: str  # global unique, monotonous increase
 	content: Dict
 	modelName: str
 	objectId: str
-	dependencies: List
+	dependencies: List[Dependence]
 	status: TaskStatus
 	result: str
 

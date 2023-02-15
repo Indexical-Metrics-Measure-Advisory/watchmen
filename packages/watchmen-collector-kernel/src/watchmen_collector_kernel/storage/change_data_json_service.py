@@ -1,12 +1,14 @@
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
 from watchmen_auth import PrincipalService
+from watchmen_collector_kernel.common import IS_POSTED, CHANGE_JSON_ID, TENANT_ID
 from watchmen_collector_kernel.model import ChangeDataJson
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, ChangeJsonId
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
-	ColumnNameLiteral, EntityCriteriaExpression
+	ColumnNameLiteral, EntityCriteriaExpression, EntityStraightValuesFinder, EntityStraightColumn, EntitySortColumn, \
+	EntitySortMethod
 
 
 class ChangeDataJsonShaper(EntityShaper):
@@ -70,6 +72,29 @@ class ChangeDataJsonService(TupleService):
 		storable.changeRecordId = storable_id
 		return storable
 
+	def find_unposted_jsons(self) -> List[Dict[str, Any]]:
+		self.begin_transaction()
+		try:
+			return self.storage.find_straight_values(EntityStraightValuesFinder(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=IS_POSTED), right=False)
+				],
+				straightColumns=[EntityStraightColumn(columnName=CHANGE_JSON_ID),
+				                 EntityStraightColumn(columnName=TENANT_ID)]
+			))
+		finally:
+			self.close_transaction()
+
+	def find_json_by_id(self, change_json_id: str) -> ChangeDataJson:
+		self.begin_transaction()
+		try:
+			# noinspection PyTypeChecker
+			return self.find_by_id(change_json_id)
+		finally:
+			self.close_transaction()
+
 	def find_id_by_unique_key(self, table_name: str, data_id: str, event_trigger_id: str) -> List:
 		try:
 			self.storage.connect()
@@ -81,6 +106,20 @@ class ChangeDataJsonService(TupleService):
 				],
 				distinctColumnNames=['change_json_id'],
 				distinctValueOnSingleColumn=False
+			))
+		finally:
+			self.storage.close()
+
+	def find_by_object_id(self, model_name: str, object_id: str, event_trigger_id: str) -> List:
+		try:
+			self.storage.connect()
+			return self.storage.find(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='object_id'), right=object_id),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'), right=event_trigger_id)
+				],
+				sort=[EntitySortColumn(name='sequence', method=EntitySortMethod.ASC)]
 			))
 		finally:
 			self.storage.close()

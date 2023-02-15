@@ -54,13 +54,6 @@ class CollectorModelConfigService(TupleService):
 		storable.modelId = storable_id
 		return storable
 
-	def find_by_tenant(self, tenant_id: TenantId) -> Optional[List[CollectorModelConfig]]:
-		# noinspection PyTypeChecker
-		return self.storage.find(self.get_entity_finder(
-			criteria=[
-				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)]
-		))
-
 	def create_model_config(self, model_config: CollectorModelConfig) -> CollectorModelConfig:
 		try:
 			self.storage.connect()
@@ -68,6 +61,23 @@ class CollectorModelConfigService(TupleService):
 			return self.create(model_config)
 		finally:
 			self.storage.close()
+
+	def find_by_tenant(self, tenant_id: TenantId) -> Optional[List[CollectorModelConfig]]:
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(
+			criteria=[
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)]
+		))
+
+	def find_by_name(self, model_name: str) -> Optional[CollectorModelConfig]:
+		self.begin_transaction()
+		try:
+			return self.storage.find_one(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='name'), right=model_name)]
+			))
+		finally:
+			self.close_transaction()
 
 
 def get_collector_model_config_service(storage: TransactionalStorageSPI,

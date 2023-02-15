@@ -1,22 +1,11 @@
-CREATE TABLE collector_table_config
+CREATE TABLE collector_plugin_config
 (
-    config_id           VARCHAR(50) NOT NULL,
+    plugin_id           VARCHAR(50) NOT NULL,
     name                VARCHAR(50) NOT NULL,
     table_name          VARCHAR(50) NOT NULL,
     primary_key         JSON NOT NULL,
-    object_key          VARCHAR(50) NOT NULL,
-    sequence_key        VARCHAR(50),
-    model_name          VARCHAR(50) NOT NULL,
-    parent_name         VARCHAR(50),
-    label               VARCHAR(50),
-    join_keys           JSON,
-	depend_on           JSON,
-	audit_column        VARCHAR(50) NOT NULL,
-	conditions          VARCHAR(50),
+	conditions          JSON NOT NULL,
     data_source_id      VARCHAR(50) NOT NULL,
-    plugin_id           VARCHAR(50)
-    is_list             TINYINT     NOT NULL,
-    triggered           TINYINT     NOT NULL,
     version             BIGINT      NOT NULL,
     tenant_id           VARCHAR(50) NOT NULL,
     created_at          DATETIME    NOT NULL,

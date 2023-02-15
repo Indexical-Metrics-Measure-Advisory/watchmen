@@ -6,8 +6,7 @@ from watchmen_collector_kernel.model import CollectorTableConfig
 from watchmen_data_kernel.service import ask_topic_storage, ask_topic_data_service
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.admin import Topic, TopicKind
-from watchmen_storage import EntityCriteriaExpression, ColumnNameLiteral, EntityCriteriaOperator, \
-	EntityDistinctValuesFinder, EntityCriteria
+from watchmen_storage import EntityCriteriaExpression, ColumnNameLiteral, EntityCriteriaOperator, EntityCriteria
 from watchmen_utilities import get_current_time_in_seconds
 
 
@@ -44,54 +43,34 @@ class SourceTableExtractor:
 		return topic
 
 	def find_change_data_ids(self, start_time: datetime, end_time: datetime) -> Optional[List[Dict[str, Any]]]:
-		try:
-			self.storage.connect()
-			return self.service.find_distinct_values(
-				criteria=[
-					EntityCriteriaExpression(
-						left=ColumnNameLiteral(columnName=self.config.auditColumn),
-						operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
-						right=start_time),
-					EntityCriteriaExpression(
-						left=ColumnNameLiteral(columnName=self.config.auditColumn),
-						operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
-						right=end_time)
-				],
-				column_names=[self.config.primaryKey],
-				distinct_value_on_single_column=False
-			)
-		finally:
-			self.storage.close()
+		return self.service.find_straight_values(
+			criteria=[
+				EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName=self.config.auditColumn),
+					operator=EntityCriteriaOperator.GREATER_THAN_OR_EQUALS,
+					right=start_time),
+				EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName=self.config.auditColumn),
+					operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
+					right=end_time)
+			],
+			columns=[*self.config.primaryKey]
+		)
 
-	def find_by_data_id(self, pk_column: str, data_id: str) -> Optional[Dict[str, Any]]:
-		try:
-			self.storage.connect()
-			results = self.service.find(
-				[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=pk_column), right=data_id)
-				]
-			)
-			if len(results) == 1:
-				return results[0]
-			else:
-				raise RuntimeError(f'too many results with find_one()')
-		finally:
-			self.storage.close()
+	def find_by_data_id(self, criteria: EntityCriteria) -> Optional[Dict[str, Any]]:
+		results = self.service.find(criteria)
+		if len(results) == 1:
+			return results[0]
+		elif len(results) == 0:
+			return None
+		else:
+			raise RuntimeError(f'too many results with {criteria} find')
 
 	def find(self, criteria: EntityCriteria) -> Optional[List[Dict[str, Any]]]:
-		try:
-			self.storage.connect()
-			return self.service.find(criteria)
-		finally:
-			self.storage.close()
+		return self.service.find(criteria)
 
-	def find_ids(self, criteria: EntityCriteria) -> List[Dict[str, Any]]:
-		try:
-			self.storage.connect()
-			return self.service.find_distinct_values(EntityDistinctValuesFinder(
-				criteria=criteria,
-				distinctColumnNames=[self.config.primaryKey],
-				distinctValueOnSingleColumn=False
-			))
-		finally:
-			self.storage.close()
+	def find_pk_columns(self, criteria: EntityCriteria) -> List[Dict[str, Any]]:
+		return self.service.find_straight_values(
+			criteria=criteria,
+			columns=[*self.config.primaryKey]
+		)

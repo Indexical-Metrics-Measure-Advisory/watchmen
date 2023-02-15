@@ -1,5 +1,4 @@
 from .competitive_lock_service import get_competitive_lock_service, CompetitiveLockService
-from .integrated_record_service import get_integrated_record_service, IntegratedRecordService
 from .scheduled_task_service import get_scheduled_task_service, ScheduledTaskService
 
 

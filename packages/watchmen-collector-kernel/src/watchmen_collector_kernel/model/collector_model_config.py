@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List
 from watchmen_model.common import TenantBasedTuple, OptimisticLock
 from pydantic import BaseModel
 
@@ -8,4 +8,5 @@ class CollectorModelConfig(TenantBasedTuple, OptimisticLock, BaseModel):
 	modelName: str
 	dependOn: List[str]
 	rawTopicCode: str
+	is_paralleled: bool
 

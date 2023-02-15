@@ -1,7 +1,8 @@
-from .cdc import init_table_extractor, init_record_listener
-from .settings import ask_integrated_record_collector_enabled, ask_s3_collector_enabled, \
-	ask_s3_connector_settings, ask_query_based_change_data_capture_enabled
-from watchmen_collector_surface.connects import init_collector_integrated_record, init_s3_collector
+from .cdc import init_table_extractor, init_record_listener, init_json_listener
+from .settings import ask_s3_collector_enabled, \
+	ask_s3_connector_settings, ask_query_based_change_data_capture_enabled, ask_task_listener_enabled
+from watchmen_collector_surface.connects import init_s3_collector
+from .task import init_task_listener
 
 
 class CollectorSurface:
@@ -14,11 +15,12 @@ class CollectorSurface:
 		if ask_query_based_change_data_capture_enabled():
 			init_table_extractor()
 			init_record_listener()
+			init_json_listener()
 
 	# noinspection PyMethodMayBeStatic
-	def init_integrated_record_collector(self) -> None:
-		if ask_integrated_record_collector_enabled():
-			init_collector_integrated_record()
+	def init_task_listener(self) -> None:
+		if ask_task_listener_enabled():
+			init_task_listener()
 
 	# noinspection PyMethodMayBeStatic
 	def init_s3_connector(self) -> None:
@@ -27,7 +29,7 @@ class CollectorSurface:
 
 	def init(self) -> None:
 		self.init_s3_connector()
-		self.init_integrated_record_collector()
+		self.init_task_listener()
 		self.init_query_based_change_data_capture()
 
 
