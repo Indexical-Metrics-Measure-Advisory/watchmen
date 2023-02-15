@@ -12,7 +12,7 @@ CREATE TABLE collector_plugin_config
     created_by          VARCHAR(50) NOT NULL,
     last_modified_at    DATETIME    NOT NULL,
     last_modified_by    VARCHAR(50) NOT NULL,
-    PRIMARY KEY (config_id),
+    PRIMARY KEY (plugin_id),
     UNIQUE KEY unique_name(name),
     INDEX (tenant_id),
     INDEX (created_at),
