@@ -1,11 +1,14 @@
+from typing import Optional, List, Any, Dict
+
 from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.model import ScheduledTask
+from watchmen_collector_kernel.model.scheduled_task import Dependence
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, ScheduledTaskId
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, \
-	EntityCriteriaExpression, ColumnNameLiteral, SnowflakeGenerator, EntityList, EntitySortColumn, EntitySortMethod, \
-	EntityCriteriaJoint, EntityCriteriaJointConjunction
+	EntityCriteriaExpression, ColumnNameLiteral, SnowflakeGenerator, EntitySortColumn, EntitySortMethod, \
+	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityStraightValuesFinder, EntityStraightColumn
 
 
 class ScheduledTaskShaper(EntityShaper):
@@ -61,40 +64,78 @@ class ScheduledTaskService(TupleService):
 		storable.taskId = storable_id
 		return storable
 
-	def update_result_by_task_id(self, task_id: ScheduledTaskId, status: int, result: str):
-		self.storage.update(self.get_entity_updater(
-			criteria=[EntityCriteriaExpression(left=ColumnNameLiteral(columnName='task_id'), right=task_id)],
-			update={'status': status,
-			        'result': result}
-		))
+	def create_task(self, task: ScheduledTask) -> ScheduledTask:
+		self.begin_transaction()
+		try:
+			task = self.create(task)
+			self.commit_transaction()
+			# noinspection PyTypeChecker
+			return task
+		except Exception as e:
+			self.rollback_transaction()
+			raise e
 
-	def find_by_dependency(self, model_name: str, object_id: str) -> int:
-		return self.storage.count(self.get_entity_finder(criteria=[
-			EntityCriteriaExpression(left=ColumnNameLiteral(columnName='object_id'), right=object_id),
-			EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name),
-			EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=0)
-		]))
+	def update_task(self, task: ScheduledTask) -> ScheduledTask:
+		self.begin_transaction()
+		try:
+			task = self.update(task)
+			self.commit_transaction()
+			# noinspection PyTypeChecker
+			return task
+		except Exception as e:
+			self.rollback_transaction()
+			raise e
 
-	def count_by_resource_id(self, resource_id: str) -> int:
-		return self.storage.count(self.get_entity_finder(criteria=[
-			EntityCriteriaExpression(left=ColumnNameLiteral(columnName='resource_id'), right=resource_id)
-		]))
+	def find_task_by_id(self, task_id: ScheduledTaskId) -> Optional[ScheduledTask]:
+		self.begin_transaction()
+		try:
+			return self.find_by_id(task_id)
+		finally:
+			self.close_transaction()
 
-	def find_all_not_complete_task_ids(self) -> EntityList:
-		return self.storage.find_distinct_values(self.get_entity_finder_for_columns(
-			criteria=[EntityCriteriaJoint(
-				conjunction=EntityCriteriaJointConjunction.OR,
-				children=[
-					EntityCriteriaExpression(
-						left=ColumnNameLiteral(columnName='status'), right=3),
-					EntityCriteriaExpression(
-						left=ColumnNameLiteral(columnName='status'), right=0)
-				]
-			)],
-			distinctColumnNames=['task_id', 'resource_id', 'tenant_id'],
-			distinctValueOnSingleColumn=False,
-			sort=[EntitySortColumn(name='resource_id', method=EntitySortMethod.ASC)]
-		))
+	def find_unfinished_tasks(self) -> List[Dict[str, Any]]:
+		self.begin_transaction()
+		try:
+			return self.storage.find_straight_values(EntityStraightValuesFinder(
+				name=self.get_entity_name(),
+				criteria=[EntityCriteriaJoint(
+					conjunction=EntityCriteriaJointConjunction.OR,
+					children=[
+						EntityCriteriaExpression(
+							left=ColumnNameLiteral(columnName='status'), right=3),
+						EntityCriteriaExpression(
+							left=ColumnNameLiteral(columnName='status'), right=0)
+					]
+				)],
+				straightColumns=[EntityStraightColumn(columnName='task_id'),
+				                 EntityStraightColumn(columnName='resource_id'),
+				                 EntityStraightColumn(columnName='tenant_id')],
+				sort=[EntitySortColumn(name='resource_id', method=EntitySortMethod.ASC)]
+			))
+		finally:
+			self.close_transaction()
+
+	def find_by_dependence(self, dependence: Dependence) -> List[Dict[str, Any]]:
+		self.begin_transaction()
+		try:
+			return self.storage.find_straight_values(EntityStraightValuesFinder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='object_id'), right=dependence.objectId),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=dependence.modelName)],
+				straightColumns=['task_id', 'resource_id', 'tenant_id', 'status']
+			))
+		finally:
+			self.close_transaction()
+
+	def find_by_resource_id(self, resource_id: str) -> List[Dict[str, Any]]:
+		self.begin_transaction()
+		try:
+			return self.storage.find_straight_values(EntityStraightValuesFinder(
+				criteria=[EntityCriteriaExpression(left=ColumnNameLiteral(columnName='resource_id'), right=resource_id)],
+				straightColumns=['task_id', 'resource_id', 'tenant_id']
+			))
+		finally:
+			self.close_transaction()
 
 
 def get_scheduled_task_service(storage: TransactionalStorageSPI,

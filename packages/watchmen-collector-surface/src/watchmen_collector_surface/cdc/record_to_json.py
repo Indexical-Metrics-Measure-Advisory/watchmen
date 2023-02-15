@@ -1,5 +1,7 @@
+from traceback import format_exc
 from typing import Dict, Tuple, Optional
 
+from watchmen_collector_kernel.common import CHANGE_RECORD_ID, TENANT_ID
 from watchmen_collector_kernel.model import CollectorTableConfig, \
 	ChangeDataRecord, ChangeDataJson
 from watchmen_collector_kernel.service import try_lock_nowait, unlock, \
@@ -13,6 +15,7 @@ from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_change_data_record_service, \
 	get_change_data_json_service, get_collector_table_config_service
 from watchmen_meta.common import ask_meta_storage, ask_super_admin, ask_snowflake_generator
+from watchmen_utilities import ArrayHelper
 
 logger = getLogger(__name__)
 
@@ -64,37 +67,49 @@ class RecordToJsonService:
 		unmerged_records = self.change_record_service.find_unmerged_records()
 		for unmerged_record in unmerged_records:
 			lock = get_resource_lock(str(self.snowflake_generator.next_id()),
-			                         unmerged_record.changeRecordId,
-			                         unmerged_record.tenantId)
+			                         unmerged_record.get(CHANGE_RECORD_ID),
+			                         unmerged_record.get(TENANT_ID))
 			try:
 				if try_lock_nowait(self.competitive_lock_service, lock):
 					change_data_record = self.change_record_service.find_change_record_by_id(
-						unmerged_record.changeRecordId)
+						unmerged_record.get(CHANGE_RECORD_ID))
 					if self.is_merged(change_data_record):
 						continue
 					else:
-						config = self.table_config_service.find_by_table_name(change_data_record.tableName)
-						is_existed, change_record, change_json = \
-							self.merge_json(config, change_data_record)
-						if is_existed:
-							self.change_record_service.update_change_record(change_record)
-						else:
-							self.change_record_service.begin_transaction()
-							try:
-								self.change_record_service.update(change_record)
-								self.change_json_service.create(change_json)
-								self.change_record_service.commit_transaction()
-							except Exception as e:
-								self.change_record_service.rollback_transaction()
-								raise e
+						try:
+							self.process_record(change_data_record)
+						except Exception as e:
+							logger.error(e, exc_info=True, stack_info=True)
+							self.update_process_result(change_data_record, format_exc())
 			finally:
 				unlock(self.competitive_lock_service, lock)
+
+	def update_process_result(self, change_data_record: ChangeDataRecord, result: str) -> None:
+		change_data_record.isMerged = True
+		change_data_record.result = result
+		self.change_record_service.update_change_record(change_data_record)
+
+	def process_record(self, change_data_record: ChangeDataRecord) -> None:
+		config = self.table_config_service.find_by_table_name(change_data_record.tableName)
+		is_existed, change_record, change_json = \
+			self.merge_json(config, change_data_record)
+		if is_existed:
+			self.change_record_service.update_change_record(change_record)
+		else:
+			self.change_record_service.begin_transaction()
+			try:
+				self.change_record_service.update(change_record)
+				self.change_json_service.create(change_json)
+				self.change_record_service.commit_transaction()
+			except Exception as e:
+				self.change_record_service.rollback_transaction()
+				raise e
 
 	def is_existed(self, change_record: ChangeDataRecord) -> bool:
 		change_json_ids = self.change_json_service.find_id_by_unique_key(change_record.tableName,
 		                                                                 change_record.dataId,
 		                                                                 change_record.eventTriggerId)
-		if len(change_json_ids) == 1:
+		if ArrayHelper(change_json_ids).size() == 1:
 			return True
 		else:
 			return False
@@ -110,10 +125,10 @@ class RecordToJsonService:
 		                           change_data_record,
 		                           root_config.tableName,
 		                           root_data)
-		json_data = root_data.copy()
 		if self.is_existed(change_data_record):
 			return True, change_data_record, None
 		else:
+			json_data = root_data.copy()
 			self.data_capture_service.build_json(root_config, json_data)
 			change_data_json = self.get_change_data_json(change_data_record,
 			                                             root_config,

@@ -7,6 +7,7 @@ CREATE TABLE change_data_record
     root_table_name     VARCHAR(50),
     root_data_id        VARCHAR(50),
     is_merged           TINYINT  NOT NULL,
+    result              VARCHAR(500),
     table_trigger_id    VARCHAR(50) NOT NULL,
     model_trigger_id    VARCHAR(50) NOT NULL,
     event_trigger_id    VARCHAR(50) NOT NULL,

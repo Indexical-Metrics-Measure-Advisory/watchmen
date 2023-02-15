@@ -9,6 +9,7 @@ class ChangeDataRecord(TenantBasedTuple):
 	rootTableName: str
 	rootDataId: str
 	isMerged: bool
+	result: str
 	tableTriggerId: str
 	modelTriggerId: str
 	eventTriggerId: str

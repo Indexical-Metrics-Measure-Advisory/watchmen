@@ -85,7 +85,6 @@ class TableExtractor:
 						if self.is_extracted(trigger):
 							continue
 						else:
-							# noinspection PyUnresolvedReferences
 							config = self.collector_table_config_service.find_by_table_name(trigger.tableName)
 							trigger_event = self.trigger_event_service.find_event_by_id(trigger.eventTriggerId)
 							source_records = SourceTableExtractor(config,

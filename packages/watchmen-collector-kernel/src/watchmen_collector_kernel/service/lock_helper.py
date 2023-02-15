@@ -23,5 +23,4 @@ def get_resource_lock(lock_id: str, resource_id: str, tenant_id: str) -> Competi
 		lockId=lock_id,
 		resourceId=resource_id,
 		registeredAt=get_current_time_in_seconds(),
-		tenantId=tenant_id,
-		status=0)
+		tenantId=tenant_id)

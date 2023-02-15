@@ -1,8 +1,9 @@
-from typing import Dict
+from typing import Dict, List
 
 from pydantic import BaseModel
 
 from watchmen_model.common import TenantBasedTuple
+from .scheduled_task import Dependence
 
 
 class ChangeDataJson(TenantBasedTuple, BaseModel):
@@ -10,8 +11,11 @@ class ChangeDataJson(TenantBasedTuple, BaseModel):
 	resourceId: str
 	modelName: str
 	objectId: str
+	sequence: str
 	content: Dict
-	dependOn: Dict
+	dependOn: List[Dependence]
+	isPosted: bool
+	result: str
 	tableTriggerId: str
 	modelTriggerId: str
 	eventTriggerId: str

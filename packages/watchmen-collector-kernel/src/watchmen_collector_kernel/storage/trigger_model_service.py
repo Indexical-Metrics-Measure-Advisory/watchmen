@@ -1,3 +1,5 @@
+from typing import Optional
+
 from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.model import TriggerModel
 from watchmen_meta.common import TupleShaper, TupleService
@@ -51,6 +53,13 @@ class TriggerModelService(TupleService):
 			self, storable: TriggerModel, storable_id: ModelTriggerId) -> Storable:
 		storable.modelTriggerId = storable_id
 		return storable
+
+	def find_trigger_by_id(self, trigger_id: str) -> Optional[TriggerModel]:
+		self.begin_transaction()
+		try:
+			return self.find_by_id(trigger_id)
+		finally:
+			self.close_transaction()
 
 
 def get_trigger_model_service(storage: TransactionalStorageSPI,

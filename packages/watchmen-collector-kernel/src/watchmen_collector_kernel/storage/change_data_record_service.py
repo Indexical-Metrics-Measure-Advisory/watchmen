@@ -1,12 +1,13 @@
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 from watchmen_auth import PrincipalService
+from watchmen_collector_kernel.common import CHANGE_RECORD_ID, TENANT_ID, IS_MERGED
 from watchmen_collector_kernel.model import ChangeDataRecord
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, ChangeRecordId
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
-	EntityCriteriaExpression, ColumnNameLiteral
+	EntityCriteriaExpression, ColumnNameLiteral, EntityStraightValuesFinder, EntityStraightColumn
 
 
 class ChangeDataRecordShaper(EntityShaper):
@@ -79,12 +80,13 @@ class ChangeDataRecordService(TupleService):
 			self.rollback_transaction()
 			raise e
 
-	def update_change_record(self, record: ChangeDataRecord) -> Optional[List[ChangeDataRecord]]:
+	def update_change_record(self, record: ChangeDataRecord) -> Optional[ChangeDataRecord]:
 		self.begin_transaction()
 		try:
-			# noinspection PyTypeChecker
-			self.update(record)
+			result = self.update(record)
 			self.commit_transaction()
+			# noinspection PyTypeChecker
+			return result
 		except Exception as e:
 			self.rollback_transaction()
 			raise e
@@ -92,12 +94,14 @@ class ChangeDataRecordService(TupleService):
 	def find_unmerged_records(self) -> List:
 		self.begin_transaction()
 		try:
-			return self.storage.find_distinct_values(self.get_entity_finder_for_columns(
+			return self.storage.find_straight_values(EntityStraightValuesFinder(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
 				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_merged'), right=False)
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=IS_MERGED), right=False)
 				],
-				distinctColumnNames=['change_record_id', 'tenant_id'],
-				distinctValueOnSingleColumn=False
+				straightColumns=[EntityStraightColumn(columnName=CHANGE_RECORD_ID),
+				                 EntityStraightColumn(columnName=TENANT_ID)]
 			))
 		finally:
 			self.close_transaction()
@@ -108,7 +112,7 @@ class ChangeDataRecordService(TupleService):
 			# noinspection PyTypeChecker
 			return self.storage.count(self.get_entity_finder(
 				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_merged'), right=False)
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=IS_MERGED), right=False)
 				]
 			))
 		finally:
@@ -122,17 +126,18 @@ class ChangeDataRecordService(TupleService):
 		finally:
 			self.close_transaction()
 
-	def find_existed_records(self, table_trigger_id: str) -> List[ChangeDataRecord]:
+	def find_existed_records(self, table_trigger_id: str) -> List[Dict]:
 		self.begin_transaction()
 		try:
 			# noinspection PyTypeChecker
-			return self.storage.find_distinct_values((self.get_entity_finder_for_columns(
+			return self.storage.find_straight_values(EntityStraightValuesFinder(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
 				criteria=[
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='table_trigger_id'), right=table_trigger_id),
 				],
-				distinctColumnNames=['change_record_id', 'data_id', 'tenant_id'],
-				distinctValueOnSingleColumn=False
-			)))
+				straightColumns=[EntityStraightColumn(columnName="'data_id'")]
+			))
 		finally:
 			self.close_transaction()
 

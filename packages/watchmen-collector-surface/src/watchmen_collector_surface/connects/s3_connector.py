@@ -1,19 +1,14 @@
-import asyncio
-from enum import Enum
 from logging import getLogger
 from threading import Thread
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from time import sleep
-from watchmen_collector_kernel.model import CompetitiveLock
-from .connector import Connector
-from watchmen_data_kernel.storage import TopicTrigger
-from watchmen_meta.common import ask_meta_storage
-from watchmen_model.common import Storable, SettingsModel
-from watchmen_model.pipeline_kernel import PipelineTriggerData
-from watchmen_storage_s3 import ObjectContent, SimpleStorageService
-from watchmen_collector_surface.connects.handler import handle_trigger_data, save_topic_data
-from watchmen_collector_kernel.service.task_housekeeping import init_task_housekeeping
+from watchmen_collector_kernel.model.scheduled_task import Dependence, ScheduledTask
+from watchmen_collector_kernel.service.lock_helper import get_resource_lock, try_lock_nowait, unlock
+from watchmen_collector_kernel.storage import get_scheduled_task_service, get_competitive_lock_service
+from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
+from watchmen_model.common import SettingsModel
+from watchmen_storage_s3 import SimpleStorageService
 
 logger = getLogger(__name__)
 
@@ -26,37 +21,20 @@ class S3CollectorSettings(SettingsModel):
 	bucket_name: str
 	region: str
 	token: str
-	tenant_id: int
+	tenant_id: str
 	consume_prefix: str
 	dead_prefix: str
 	max_keys: int = 10
 	clean_task_interval: int = 3600
 
 
-class ResultStatus(str, Enum):
-	CHECK_KEY_FAILED = "CHECK_KEY_FAILED"
-	DEPENDENCY_FAILED = "DEPENDENCY_FAILED"
-	CREATE_TASK_FAILED = "CREATE_TASK_FAILED"
-	EMPTY_PAYLOAD = "EMPTY_PAYLOAD"
-	COMPLETED_TASK = "COMPLETED_TASK"
-	PROCESS_TASK_FAILED = "PROCESS_TASK_FAILED"
-
-
 def init_s3_collector(settings: S3CollectorSettings):
-	S3Connector(settings).create_connector()
-	init_task_housekeeping()
+	S3Connector(settings).create_thread()
 
 
-class Dependency(Storable):
-	model_name: str
-	object_id: str
-	sequence: int
-
-
-class S3Connector(Connector):
+class S3Connector:
 
 	def __init__(self, settings: S3CollectorSettings):
-		super().__init__(ask_meta_storage())
 		self.simpleStorageService = SimpleStorageService(
 			access_key_id=settings.access_key_id,
 			access_key_secret=settings.secret_access_key,
@@ -68,18 +46,18 @@ class S3Connector(Connector):
 		self.consume_prefix = settings.consume_prefix
 		self.dead_prefix = settings.dead_prefix
 		self.maxKeys = settings.max_keys
+		self.storage = ask_meta_storage()
+		self.snowflake_generator = ask_snowflake_generator()
+		self.principle_service = ask_super_admin()
+		self.competitive_lock_service = get_competitive_lock_service(self.storage)
+		self.scheduled_task_service = get_scheduled_task_service(self.storage,
+		                                                         self.snowflake_generator,
+		                                                         self.principle_service)
 
-	def create_connector(self) -> None:
+	def create_thread(self) -> None:
 		Thread(target=S3Connector.run, args=(self,), daemon=True).start()
 
 	def run(self):
-		def should_ignore(r: str) -> bool:
-			return \
-				r == ResultStatus.CHECK_KEY_FAILED \
-				or r == ResultStatus.COMPLETED_TASK \
-				or r == ResultStatus.EMPTY_PAYLOAD \
-				or r == ResultStatus.PROCESS_TASK_FAILED
-
 		try:
 			while True:
 				objects = self.simpleStorageService.list_objects(max_keys=self.maxKeys, prefix=self.consume_prefix)
@@ -88,144 +66,56 @@ class S3Connector(Connector):
 					sleep(5)
 				else:
 					for object_ in objects:
-						result = self.consume(object_)
-						if result == ResultStatus.CREATE_TASK_FAILED or result == ResultStatus.DEPENDENCY_FAILED:
-							# logger.info("CREATE_TASK_FAILED or DEPENDENCY_FAILED , key is  {}".format(object_.key))
-							continue
-						elif should_ignore(result):
-							logger.info(
-								"CHECK_KEY_FAILED or COMPLETED_TASK or EMPTY_PAYLOAD or PROCESS_TASK_FAILED, key is  {}".format(
-									object_.key))
-							break
+						lock = get_resource_lock(str(self.snowflake_generator.next_id()),
+						                         object_.key,
+						                         self.tenant_id)
+						try:
+							if try_lock_nowait(self.competitive_lock_service, lock):
+								existed_task = self.scheduled_task_service.find_by_resource_id(object_.key)
+								if existed_task:
+									continue
+								else:
+									self.scheduled_task_service.create_task(self.get_task(object_))
+									self.simpleStorageService.delete_object(object_.key)
+						finally:
+							unlock(self.competitive_lock_service, lock)
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
-			sleep(300)
-			self.create_connector()
-
-	def consume(self, object_: ObjectContent) -> str:
-		object_key = self.get_identifier(self.consume_prefix, object_.key)
-		if self.validate_key_pattern(object_key):
-			dependency = self.get_dependency(object_key)
-			if self.check_dependency_finished(dependency):
-				"""
-				distributed_lock = get_unique_key_distributed_lock(
-					self.get_resource_lock(object_.key), self.lock_service)
-				"""
-				distributed_lock = self.get_resource_lock(object_.key)
-				try:
-					if not self.ask_lock(distributed_lock):
-						return ResultStatus.CREATE_TASK_FAILED
-					else:
-						payload = self.get_payload(object_.key)
-						if payload:
-							try:
-								trigger_data = PipelineTriggerData(
-									code=self.get_code(object_key), data=payload, tenantId=self.tenant_id)
-								topic_trigger = self.save_data(trigger_data)
-								self.trigger_pipeline(trigger_data, topic_trigger)
-								self.simpleStorageService.delete_object(object_.key)
-								return ResultStatus.COMPLETED_TASK
-							except Exception as e:
-								logger.error(e, exc_info=True, stack_info=True)
-								self.move_to_dead_queue(object_.key, payload)
-								return ResultStatus.PROCESS_TASK_FAILED
-						else:
-							self.move_to_dead_queue(object_.key, payload)
-							return ResultStatus.EMPTY_PAYLOAD
-				finally:
-					self.ask_unlock(distributed_lock)
-			else:
-				return ResultStatus.DEPENDENCY_FAILED
-		else:
-			"""
-			distributed_lock = get_unique_key_distributed_lock(
-				self.get_resource_lock(object_.key), self.lock_service)
-			"""
-			distributed_lock = self.get_resource_lock(object_.key)
-			try:
-				if not self.ask_lock(distributed_lock):
-					return ResultStatus.CREATE_TASK_FAILED
-				else:
-					payload = self.simpleStorageService.get_object(object_.key)
-					self.move_to_dead_queue(object_.key, payload)
-					return ResultStatus.CHECK_KEY_FAILED
-			finally:
-				self.ask_unlock(distributed_lock)
-
-	def get_payload(self, key: str) -> Dict:
-		return self.simpleStorageService.get_object(key)
-
-	def process(self, key: str, code: str, payload: Dict[str, Any] = None):
-		logger.info("start to process %s and %s", code, key)
-		trigger_data = PipelineTriggerData(code=code, data=payload, tenantId=self.tenant_id)
-		result = save_topic_data(trigger_data)
-		asyncio.run(handle_trigger_data(trigger_data, result))
+			sleep(60)
+			self.create_thread()
 
 	# noinspection PyMethodMayBeStatic
-	def save_data(self, trigger_data: PipelineTriggerData) -> TopicTrigger:
-		return save_topic_data(trigger_data)
-
-	# noinspection PyMethodMayBeStatic
-	def trigger_pipeline(self, trigger_data: PipelineTriggerData, topic_trigger: TopicTrigger):
-		try:
-			asyncio.run(handle_trigger_data(trigger_data, topic_trigger))
-		except Exception as e:
-			logger.error(e, exc_info=True, stack_info=True)
-
-	def get_resource_lock(self, key: str) -> CompetitiveLock:
-		object_key = self.get_identifier(self.consume_prefix, key)
+	def get_dependency(self, object_: Any) -> Optional[Dependence]:
+		object_key = object_.key.removeprefix(self.consume_prefix)
 		key_parts = object_key.split(identifier_delimiter)
-		return CompetitiveLock(
-			lockId=self.snowflakeGenerator.next_id(),
-			resourceId=key,
-			modelName=key_parts[1],
-			objectId=key_parts[2],
-			tenantId=self.tenant_id,
-			status=0)
-
-	# noinspection PyMethodMayBeStatic
-	def get_dependency(self, key: str) -> Optional[Dependency]:
-		key_parts = key.split(identifier_delimiter)
 		if len(key_parts) == 5:
-			return Dependency(model_name=key_parts[3], object_id=key_parts[4])
+			return Dependence(modelName=key_parts[3], objectId=key_parts[4])
 		elif len(key_parts) == 3:
-			return Dependency(model_name=key_parts[1], object_id=key_parts[2])
+			return Dependence(modelName=key_parts[1], objectId=key_parts[2])
 		else:
 			return None
 
-	def check_dependency_finished(self, dependency: Optional[Dependency]) -> bool:
-		if dependency:
-			result = self.lock_service.find_by_dependency(dependency.model_name, dependency.object_id)
-			if result == 0:
-				return True
-			else:
-				return False
-		else:
-			return True
+	def get_model_name(self, object_: Any) -> str:
+		object_key = object_.key.removeprefix(self.consume_prefix)
+		key_parts = object_key.split(identifier_delimiter)
+		return key_parts[1]
+
+	def get_object_id(self, object_: Any) -> str:
+		object_key = object_.key.removeprefix(self.consume_prefix)
+		key_parts = object_key.split(identifier_delimiter)
+		return key_parts[2]
+
+	def get_task(self, object_: Any) -> ScheduledTask:
+		return ScheduledTask(taskId=self.snowflake_generator.next_id(),
+		                     resourceId=object_.key,
+		                     content=self.simpleStorageService.get_object(object_.key),
+		                     modelName=self.get_model_name(object_),
+		                     objectId=self.get_object_id(object_),
+		                     dependencies=[self.get_dependency(object_)],
+		                     status=0,
+		                     result=None)
 
 	# noinspection PyMethodMayBeStatic
 	def get_code(self, identifier: str) -> str:
 		key_parts = identifier.split(identifier_delimiter)
 		return 'raw_' + key_parts[1].lower()
-
-	# noinspection PyMethodMayBeStatic
-	def validate_key_pattern(self, identifier: str) -> bool:
-		key_parts = identifier.split(identifier_delimiter)
-		if len(key_parts) == 3:
-			return True
-		elif len(key_parts) == 5:
-			return True
-		else:
-			return False
-
-	def move_to_dead_queue(self, key: str, payload: Optional[Dict]):
-		dead_queue_key = self.generate_dead_file_key(key)
-		self.simpleStorageService.put_object(dead_queue_key, payload)
-		self.simpleStorageService.delete_object(key)
-
-	def generate_dead_file_key(self, key_: str):
-		return self.dead_prefix + self.get_identifier(self.consume_prefix, key_)
-
-	@staticmethod
-	def get_identifier(prefix, key) -> str:
-		return key.removeprefix(prefix)
