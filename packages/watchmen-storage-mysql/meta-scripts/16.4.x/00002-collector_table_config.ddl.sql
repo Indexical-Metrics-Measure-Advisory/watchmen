@@ -14,7 +14,7 @@ CREATE TABLE collector_table_config
 	audit_column        VARCHAR(50) NOT NULL,
 	conditions          VARCHAR(50),
     data_source_id      VARCHAR(50) NOT NULL,
-    plugin_id           VARCHAR(50)
+    plugin_id           VARCHAR(50),
     is_list             TINYINT     NOT NULL,
     triggered           TINYINT     NOT NULL,
     version             BIGINT      NOT NULL,
