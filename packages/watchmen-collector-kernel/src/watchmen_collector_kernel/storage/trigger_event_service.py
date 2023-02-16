@@ -1,9 +1,13 @@
+from typing import List, Dict, Any
+
 from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.model import TriggerEvent
 from watchmen_meta.common import TupleShaper, TupleService
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, EventTriggerId
-from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator
+from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
+	EntityStraightValuesFinder, EntityCriteriaStatement, EntityCriteriaExpression, ColumnNameLiteral, \
+	EntityStraightColumn, EntitySortColumn, EntitySortMethod
 
 
 class TriggerEventShaper(EntityShaper):
@@ -59,6 +63,19 @@ class TriggerEventService(TupleService):
 			return self.storage.find_by_id(event_trigger_id, self.get_entity_id_helper())
 		finally:
 			self.storage.close()
+
+	def find_unfinished_events(self) -> List[Dict[str, Any]]:
+		self.begin_transaction()
+		try:
+			return self.storage.find_straight_values(EntityStraightValuesFinder(
+				name=self.get_entity_name(),
+				criteria=[EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_finished'), right=False)],
+				straightColumns=[EntityStraightColumn(columnName=self.get_storable_id_column_name()),
+				                 EntityStraightColumn(columnName='tenant_id')],
+				sort=[EntitySortColumn(name=self.get_storable_id_column_name(), method=EntitySortMethod.ASC)]
+			))
+		finally:
+			self.close_transaction()
 
 
 def get_trigger_event_service(storage: TransactionalStorageSPI,

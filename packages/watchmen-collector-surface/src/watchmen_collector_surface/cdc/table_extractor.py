@@ -1,14 +1,17 @@
 from datetime import datetime
 from logging import getLogger
 from threading import Thread
-from typing import Tuple, Dict
+from typing import Tuple, Dict, List
 from time import sleep
-from watchmen_collector_kernel.model import TriggerEvent, ChangeDataRecord, TriggerTable, CollectorTableConfig
-from watchmen_collector_kernel.service import try_lock_nowait, unlock, SourceTableExtractor
+from watchmen_collector_kernel.model import TriggerEvent, ChangeDataRecord, TriggerTable, CollectorTableConfig, \
+	Condition
+from watchmen_collector_kernel.service import try_lock_nowait, unlock, SourceTableExtractor, CriteriaBuilder, \
+	build_audit_criteria
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.storage import get_trigger_table_service, get_competitive_lock_service, \
 	get_collector_table_config_service, get_trigger_event_service, get_change_data_record_service
 from watchmen_meta.common import ask_super_admin, ask_snowflake_generator, ask_meta_storage
+from watchmen_storage import EntityCriteria
 from watchmen_utilities import ArrayHelper
 
 logger = getLogger(__name__)
@@ -46,15 +49,10 @@ class TableExtractor:
 		try:
 			while True:
 				self.trigger_table_listener()
-				sleep(1)
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
-			sleep(30)
+			sleep(5)
 			self.create_table_extraction()
-
-	# noinspection PyMethodMayBeStatic
-	def is_finished(self, trigger_table: TriggerTable) -> bool:
-		return trigger_table.isFinished
 
 	# noinspection PyMethodMayBeStatic
 	def is_extracted(self, trigger_table: TriggerTable) -> bool:
@@ -72,36 +70,47 @@ class TableExtractor:
 
 	def trigger_table_listener(self):
 		unfinished_trigger_tables = self.trigger_table_service.find_unfinished()
-		for unfinished_trigger_table in unfinished_trigger_tables:
-			lock = get_resource_lock(str(self.snowflake_generator.next_id()),
-			                         unfinished_trigger_table.tableTriggerId,
-			                         unfinished_trigger_table.tenantId)
-			try:
-				if try_lock_nowait(self.competitive_lock_service, lock):
-					trigger = self.trigger_table_service.find_by_id(unfinished_trigger_table.tableTriggerId)
-					if self.is_finished(trigger):
-						continue
-					else:
+		if len(unfinished_trigger_tables) == 0:
+			sleep(5)
+		else:
+			for unfinished_trigger_table in unfinished_trigger_tables:
+				lock = get_resource_lock(str(self.snowflake_generator.next_id()),
+				                         unfinished_trigger_table.tableTriggerId,
+				                         unfinished_trigger_table.tenantId)
+				try:
+					if try_lock_nowait(self.competitive_lock_service, lock):
+						trigger = self.trigger_table_service.find_by_id(unfinished_trigger_table.tableTriggerId)
 						if self.is_extracted(trigger):
 							continue
 						else:
 							config = self.collector_table_config_service.find_by_table_name(trigger.tableName)
 							trigger_event = self.trigger_event_service.find_event_by_id(trigger.eventTriggerId)
-							source_records = SourceTableExtractor(config,
-							                                      self.principal_service) \
-								.find_change_data_ids(*self.get_time_window(trigger_event))
-							existed_records = self.change_data_record_service.find_existed_records(trigger.tableTriggerId)
+
+							def prepare_query_criteria(variables_: Dict,
+							                           conditions: List[Condition]) -> EntityCriteria:
+								return CriteriaBuilder(variables_).build_criteria(conditions)
+
+							start_time, end_time = self.get_time_window(trigger_event)
+							variables = {
+								'start_time': start_time,
+								'end_time': end_time
+							}
+							source_records = SourceTableExtractor(config, self.principal_service).find_change_data(
+								ArrayHelper(build_audit_criteria(config.auditColumn, start_time, end_time)).grab(
+									prepare_query_criteria(variables, config.conditions)).to_list())
+							existed_records = self.change_data_record_service.find_existed_records(
+								trigger.tableTriggerId)
 
 							def record_compare(source_record: Dict, existed_record: ChangeDataRecord) -> bool:
 								return existed_record.dataId == source_record.get(config.primaryKey)
 
-							ArrayHelper(source_records).difference(existed_records, record_compare) \
-								.each(lambda source_record: self.save_change_data_record(config, trigger, source_record))
+							ArrayHelper(source_records).difference(existed_records, record_compare).each(
+								lambda source_record: self.save_change_data_record(config, trigger, source_record))
 							data_count = ArrayHelper(source_records).size()
 							self.trigger_table_service.update_table_trigger(self.set_extracted(trigger, data_count))
 							break
-			finally:
-				unlock(self.competitive_lock_service, lock)
+				finally:
+					unlock(self.competitive_lock_service, lock)
 
 	def save_change_data_record(self, config: CollectorTableConfig,
 	                            trigger_table: TriggerTable,

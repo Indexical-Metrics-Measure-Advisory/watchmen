@@ -323,14 +323,6 @@ table_collector_table_config = Table(
 	create_tenant_id(), *create_tuple_audit_columns(),
 	create_optimistic_lock()
 )
-table_collector_plugin_config = Table(
-	'collector_plugin_config', meta_data,
-	create_pk('plugin_id'), create_str('name', 50),
-	create_str('table_name', 50), create_json('primary_key', 50),
-	create_json('conditions'), create_str('data_source_id', 50),
-	create_tenant_id(), *create_tuple_audit_columns(),
-	create_optimistic_lock()
-)
 table_trigger_event = Table(
 	'trigger_event', meta_data,
 	create_pk('event_trigger_id'),
@@ -473,7 +465,6 @@ tables: Dict[str, Table] = {
 	# collector
 	'collector_model_config': table_collector_model_config,
 	'collector_table_config': table_collector_table_config,
-	'collector_plugin_config': table_collector_plugin_config,
 	'trigger_event': table_trigger_event,
 	'trigger_model': table_trigger_model,
 	'trigger_table': table_trigger_table,

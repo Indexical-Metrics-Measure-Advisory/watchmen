@@ -124,6 +124,19 @@ class ChangeDataJsonService(TupleService):
 		finally:
 			self.storage.close()
 
+	def is_model_finished(self, model_trigger_id: str) -> bool:
+		self.begin_transaction()
+		try:
+			# noinspection PyTypeChecker
+			return self.storage.count(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'), right=model_trigger_id),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=IS_POSTED), right=False)
+				]
+			)) == 0
+		finally:
+			self.close_transaction()
+
 
 def get_change_data_json_service(storage: TransactionalStorageSPI,
                                  snowflake_generator: SnowflakeGenerator,

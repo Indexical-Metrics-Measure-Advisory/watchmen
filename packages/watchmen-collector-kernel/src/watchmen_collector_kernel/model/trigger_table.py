@@ -7,6 +7,5 @@ class TriggerTable(TenantBasedTuple):
 	dataCount: int
 	modelName: str
 	isExtracted: bool = False
-	isFinished: bool = False
 	modelTriggerId: str
 	eventTriggerId: str

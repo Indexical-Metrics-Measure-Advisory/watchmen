@@ -4,6 +4,8 @@ from .scheduled_task_service import get_scheduled_task_service, ScheduledTaskSer
 
 from .collector_model_config_service import get_collector_model_config_service, CollectorModelConfigService
 from .collector_table_config_service import get_collector_table_config_service, CollectorTableConfigService
+
+
 from .trigger_event_service import get_trigger_event_service, TriggerEventService
 from .trigger_model_service import get_trigger_model_service, TriggerModelService
 from .trigger_table_service import get_trigger_table_service, TriggerTableService
