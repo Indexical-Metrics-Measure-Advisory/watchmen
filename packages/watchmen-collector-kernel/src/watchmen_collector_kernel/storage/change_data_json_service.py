@@ -124,13 +124,13 @@ class ChangeDataJsonService(TupleService):
 		finally:
 			self.storage.close()
 
-	def is_model_finished(self, model_trigger_id: str) -> bool:
+	def is_event_finished(self, event_trigger_id: str) -> bool:
 		self.begin_transaction()
 		try:
 			# noinspection PyTypeChecker
 			return self.storage.count(self.get_entity_finder(
 				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'), right=model_trigger_id),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'), right=event_trigger_id),
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=IS_POSTED), right=False)
 				]
 			)) == 0

@@ -64,24 +64,23 @@ class CollectorEventListener:
 			return True
 		else:
 			if self.is_all_tables_extracted(trigger_model):
-				if self.is_all_records_merged(trigger_model):
-					if self.is_all_json_posted(trigger_model):
-						trigger_model.isFinished = True
-						self.trigger_model_service.begin_transaction()
-						try:
-							self.trigger_model_service.update(trigger_model)
-							self.trigger_model_service.commit_transaction()
-						except Exception as e:
-							self.trigger_event_service.rollback_transaction()
-							raise e
-						return True
-			return False
+				trigger_model.isFinished = True
+				self.trigger_model_service.begin_transaction()
+				try:
+					self.trigger_model_service.update(trigger_model)
+					self.trigger_model_service.commit_transaction()
+				except Exception as e:
+					self.trigger_event_service.rollback_transaction()
+					raise e
+				return True
+			else:
+				return False
 
-	def is_all_records_merged(self, trigger_model: TriggerModel) -> bool:
-		return self.data_record_service.is_model_finished(trigger_model.modelTriggerId)
+	def is_all_records_merged(self, trigger_event: TriggerEvent) -> bool:
+		return self.data_record_service.is_event_finished(trigger_event.eventTriggerId)
 
-	def is_all_json_posted(self, trigger_model: TriggerModel) -> bool:
-		return self.data_json_service.is_model_finished(trigger_model.modelTriggerId)
+	def is_all_json_posted(self, trigger_event: TriggerEvent) -> bool:
+		return self.data_json_service.is_event_finished(trigger_event.eventTriggerId)
 
 	def is_all_tables_extracted(self, trigger_model: TriggerModel) -> bool:
 		return ArrayHelper(
@@ -109,7 +108,7 @@ class CollectorEventListener:
 						if self.is_finished(event):
 							continue
 						else:
-							if self.is_all_models_finished(event):
+							if self.is_all_models_finished(event) and self.is_all_records_merged(event) and self.is_all_json_posted(event):
 								event.isFinished = True
 								self.trigger_event_service.begin_transaction()
 								try:
