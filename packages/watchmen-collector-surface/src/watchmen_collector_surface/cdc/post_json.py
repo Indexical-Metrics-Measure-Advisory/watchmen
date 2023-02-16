@@ -45,38 +45,43 @@ class PostJsonService:
 		try:
 			while True:
 				self.change_data_json_listener()
-				sleep(1)
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
-			sleep(60)
+			sleep(5)
 			self.create_thread()
 
 	def change_data_json_listener(self):
+		# noinspection SpellCheckingInspection
 		unposted_jsons = self.change_json_service.find_unposted_jsons()
-		for unposted_json in unposted_jsons:
-			lock = get_resource_lock(str(self.snowflake_generator.next_id()),
-			                         unposted_json.get(CHANGE_JSON_ID),
-			                         unposted_json.get(TENANT_ID))
-			try:
-				if try_lock_nowait(self.competitive_lock_service, lock):
-					change_data_json = self.change_json_service.find_json_by_id(
-						unposted_json.get(CHANGE_JSON_ID))
-					if self.is_posted(change_data_json):
-						continue
-					else:
-						try:
-							if self.can_post(change_data_json):
-								self.post_json(change_data_json)
-							else:
-								continue
-						except Exception as e:
-							logger.error(e, exc_info=True, stack_info=True)
-							change_data_json.isPosted = True
-							change_data_json.result = format_exc()
-							self.change_json_service.update(change_data_json)
-			finally:
-				unlock(self.competitive_lock_service, lock)
+		if len(unposted_jsons) == 0:
+			sleep(5)
+		else:
+			# noinspection SpellCheckingInspection
+			for unposted_json in unposted_jsons:
+				lock = get_resource_lock(str(self.snowflake_generator.next_id()),
+				                         unposted_json.get(CHANGE_JSON_ID),
+				                         unposted_json.get(TENANT_ID))
+				try:
+					if try_lock_nowait(self.competitive_lock_service, lock):
+						change_data_json = self.change_json_service.find_json_by_id(
+							unposted_json.get(CHANGE_JSON_ID))
+						if self.is_posted(change_data_json):
+							continue
+						else:
+							try:
+								if self.can_post(change_data_json):
+									self.post_json(change_data_json)
+								else:
+									continue
+							except Exception as e:
+								logger.error(e, exc_info=True, stack_info=True)
+								change_data_json.isPosted = True
+								change_data_json.result = format_exc()
+								self.change_json_service.update(change_data_json)
+				finally:
+					unlock(self.competitive_lock_service, lock)
 
+	# noinspection PyMethodMayBeStatic
 	def is_posted(self, change_json: ChangeDataJson) -> bool:
 		return change_json.isPosted
 

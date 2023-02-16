@@ -51,10 +51,9 @@ class RecordToJsonService:
 		try:
 			while True:
 				self.change_data_record_listener()
-				sleep(1)
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
-			sleep(60)
+			sleep(5)
 			self.create_thread()
 
 	# noinspection PyMethodMayBeStatic
@@ -65,24 +64,27 @@ class RecordToJsonService:
 		# Not a complete record, just change_record_id and tenant_id
 		# Can not use for record operation.
 		unmerged_records = self.change_record_service.find_unmerged_records()
-		for unmerged_record in unmerged_records:
-			lock = get_resource_lock(str(self.snowflake_generator.next_id()),
-			                         unmerged_record.get(CHANGE_RECORD_ID),
-			                         unmerged_record.get(TENANT_ID))
-			try:
-				if try_lock_nowait(self.competitive_lock_service, lock):
-					change_data_record = self.change_record_service.find_change_record_by_id(
-						unmerged_record.get(CHANGE_RECORD_ID))
-					if self.is_merged(change_data_record):
-						continue
-					else:
-						try:
-							self.process_record(change_data_record)
-						except Exception as e:
-							logger.error(e, exc_info=True, stack_info=True)
-							self.update_process_result(change_data_record, format_exc())
-			finally:
-				unlock(self.competitive_lock_service, lock)
+		if len(unmerged_records) == 0:
+			sleep(5)
+		else:
+			for unmerged_record in unmerged_records:
+				lock = get_resource_lock(str(self.snowflake_generator.next_id()),
+				                         unmerged_record.get(CHANGE_RECORD_ID),
+				                         unmerged_record.get(TENANT_ID))
+				try:
+					if try_lock_nowait(self.competitive_lock_service, lock):
+						change_data_record = self.change_record_service.find_change_record_by_id(
+							unmerged_record.get(CHANGE_RECORD_ID))
+						if self.is_merged(change_data_record):
+							continue
+						else:
+							try:
+								self.process_record(change_data_record)
+							except Exception as e:
+								logger.error(e, exc_info=True, stack_info=True)
+								self.update_process_result(change_data_record, format_exc())
+				finally:
+					unlock(self.competitive_lock_service, lock)
 
 	def update_process_result(self, change_data_record: ChangeDataRecord, result: str) -> None:
 		change_data_record.isMerged = True
@@ -119,8 +121,9 @@ class RecordToJsonService:
 	               change_data_record: ChangeDataRecord) -> Tuple[bool,
 	                                                              ChangeDataRecord,
 	                                                              Optional[ChangeDataJson]]:
+		data = self.data_capture_service.find_data_by_data_id(config, change_data_record.dataId)
 		root_config, root_data = self.data_capture_service.find_parent_node(config,
-		                                                                    change_data_record.dataId)
+		                                                                    data)
 		self.fill_record_root_info(config,
 		                           change_data_record,
 		                           root_config.tableName,

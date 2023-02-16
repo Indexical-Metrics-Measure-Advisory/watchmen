@@ -11,7 +11,6 @@ from watchmen_meta.common import TupleService
 from watchmen_model.common import Storable
 
 from watchmen_rest.util import validate_tenant_id
-from watchmen_utilities import ArrayHelper
 
 
 # noinspection SpellCheckingInspection

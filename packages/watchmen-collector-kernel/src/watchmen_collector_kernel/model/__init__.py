@@ -3,7 +3,6 @@ from .scheduled_task import ScheduledTask, TaskStatus, ResultStatus
 
 from .collector_model_config import CollectorModelConfig
 from .collector_table_config import CollectorTableConfig
-from .collector_plugin_config import CollectorPluginConfig
 
 from .trigger_event import TriggerEvent
 from .trigger_model import TriggerModel
