@@ -66,7 +66,6 @@ class CollectorTableConfig(TenantBasedTuple, OptimisticLock, BaseModel):
 	dataSourceId: str = None
 	isList: bool = False
 	triggered: bool = False
-	pluginId: str = None
 
 	def __setattr__(self, name, value):
 		if name == 'joinKeys':
