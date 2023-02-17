@@ -5,6 +5,7 @@ CREATE TABLE change_data_json
     object_id           VARCHAR(50),
     table_name          VARCHAR(50) NOT NULL,
     data_id             VARCHAR(50) NOT NULL,
+    sequence            BIGINT,
     content             JSON,
     depend_on           JSON,
     is_posted           TINYINT  NOT NULL,

@@ -64,7 +64,7 @@ def new_trigger_table(table_name: str,
 		tableName=table_name,
 		dataCount=0,
 		modelName=model_name,
-		isFinished=False,
+		isExtracted=False,
 		modelTriggerId=model_trigger_id,
 		eventTriggerId=event_trigger_id
 	)

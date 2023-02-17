@@ -1,6 +1,6 @@
 from typing import Union  # noqa
 
-from sqlalchemy import asc, desc
+from sqlalchemy import asc, desc, text
 
 from watchmen_storage import EntitySort, EntitySortColumn, EntitySortMethod, UnsupportedSortMethodException
 from watchmen_utilities import ArrayHelper
@@ -9,9 +9,9 @@ from .types import SQLAlchemyStatement
 
 def build_sort_column(column: EntitySortColumn):
 	if column.method == EntitySortMethod.ASC:
-		return asc(column.name)
+		return asc(text(column.name))
 	elif column.method == EntitySortMethod.DESC:
-		return desc(column.name)
+		return desc(text(column.name))
 	else:
 		raise UnsupportedSortMethodException(f'Unsupported sort method[{column.method}].')
 

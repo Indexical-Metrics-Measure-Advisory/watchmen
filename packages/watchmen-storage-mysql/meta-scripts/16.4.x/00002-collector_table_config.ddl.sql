@@ -12,7 +12,7 @@ CREATE TABLE collector_table_config
     join_keys           JSON,
 	depend_on           JSON,
 	audit_column        VARCHAR(50) NOT NULL,
-	conditions          VARCHAR(50),
+	conditions          JSON,
     data_source_id      VARCHAR(50) NOT NULL,
     plugin_id           VARCHAR(50),
     is_list             TINYINT     NOT NULL,

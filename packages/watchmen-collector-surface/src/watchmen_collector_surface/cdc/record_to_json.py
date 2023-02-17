@@ -11,6 +11,7 @@ from threading import Thread
 
 from time import sleep
 
+from watchmen_collector_kernel.service.extract_utils import build_data_id
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_change_data_record_service, \
 	get_change_data_json_service, get_collector_table_config_service
@@ -145,7 +146,7 @@ class RecordToJsonService:
 	                          root_table_name: str,
 	                          root_data: Dict):
 		change_data_record.rootTableName = root_table_name
-		change_data_record.rootDataId = root_data.get(config.primaryKey)
+		change_data_record.rootDataId = build_data_id(root_data, config.primaryKey)
 		change_data_record.isMerged = True
 
 	def get_change_data_json(self, change_data_record: ChangeDataRecord,
@@ -157,9 +158,10 @@ class RecordToJsonService:
 			modelName=change_data_record.modelName,
 			objectId=root_data.get(root_config.objectKey),
 			tableName=change_data_record.tableName,
-			dataId=root_data.get(root_config.primaryKey),
+			dataId=build_data_id(root_data, root_config.primaryKey),
 			content=content,
 			dependOn=[],
+			isPosted=False,
 			tableTriggerId=change_data_record.tableTriggerId,
 			modelTriggerId=change_data_record.modelTriggerId,
 			eventTriggerId=change_data_record.eventTriggerId,

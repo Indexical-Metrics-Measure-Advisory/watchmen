@@ -75,7 +75,7 @@ class TriggerTableService(TupleService):
 			# noinspection PyTypeChecker
 			return self.storage.find_distinct_values(
 				self.get_entity_finder_for_columns(
-					criteria=[EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_extracted'), right=0)],
+					criteria=[EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_extracted'), right=False)],
 					distinctColumnNames=['table_trigger_id',
 					                     'tenant_id'],
 					distinctValueOnSingleColumn=False)

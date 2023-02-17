@@ -1,6 +1,10 @@
 from datetime import datetime
 from logging import getLogger
 from typing import Dict, Any, List
+
+import numpy as np
+from numpy import ndarray
+
 from watchmen_collector_kernel.model.collector_table_config import JoinKey
 from watchmen_storage import EntityCriteriaExpression, ColumnNameLiteral, EntityCriteriaStatement, EntityCriteria, \
 	EntityCriteriaOperator
@@ -26,7 +30,7 @@ def build_data_id(data_: Dict[str, Any], primary_key: List[str]) -> str:
 	return ArrayHelper(primary_key).map(lambda column_name: data_.get(column_name)).join(COMMA)
 
 
-def revert_data_id(data_id: str) -> List[str]:
+def revert_data_id(data_id: str) -> List:
 	return data_id.split(COMMA)
 
 
@@ -51,3 +55,9 @@ def build_audit_criteria(audit_column_name: str, start_time: datetime, end_time:
 			operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
 			right=end_time),
 	]
+
+
+def cal_array2d_diff(array_0: ndarray, array_1: ndarray) -> ndarray:
+	array_0_rows = array_0.view([('', array_0.dtype)] * array_0.shape[1])
+	array_1_rows = array_1.view([('', array_1.dtype)] * array_1.shape[1])
+	return np.setdiff1d(array_0_rows, array_1_rows).view(array_0.dtype).reshape(-1, array_0.shape[1])

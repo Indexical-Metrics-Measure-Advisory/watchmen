@@ -22,6 +22,7 @@ class ChangeDataJsonShaper(EntityShaper):
 			                                          'data_id': entity.dataId,
 			                                          'content': entity.content,
 			                                          'depend_on': entity.dependOn,
+			                                          'is_posted': entity.isPosted,
 			                                          'table_trigger_id': entity.tableTriggerId,
 			                                          'model_trigger_id': entity.modelTriggerId,
 			                                          'event_trigger_id': entity.eventTriggerId
@@ -38,6 +39,7 @@ class ChangeDataJsonShaper(EntityShaper):
 			                                            dataId=row.get('data_id'),
 			                                            content=row.get('content'),
 			                                            dependOn=row.get('depend_on'),
+			                                            isPosted=row.get('is_posted'),
 			                                            tableTriggerId=row.get('table_trigger_id'),
 			                                            modelTriggerId=row.get('model_trigger_id'),
 			                                            eventTriggerId=row.get('event_trigger_id')
@@ -72,7 +74,17 @@ class ChangeDataJsonService(TupleService):
 		storable.changeRecordId = storable_id
 		return storable
 
-	def find_unposted_jsons(self) -> List[Dict[str, Any]]:
+	def update_change_data_json(self, storable: ChangeDataJson) -> ChangeDataJson:
+		self.begin_transaction()
+		try:
+			self.update(storable)
+			self.commit_transaction()
+			return storable
+		except Exception as e:
+			self.rollback_transaction()
+			raise e
+
+	def find_not_posted_json(self) -> List[Dict[str, Any]]:
 		self.begin_transaction()
 		try:
 			return self.storage.find_straight_values(EntityStraightValuesFinder(

@@ -6,8 +6,8 @@ from watchmen_collector_kernel.model import CollectorTableConfig
 from watchmen_data_kernel.service import ask_topic_storage, ask_topic_data_service
 from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.admin import Topic, TopicKind
-from watchmen_storage import EntityCriteria
-from watchmen_utilities import get_current_time_in_seconds
+from watchmen_storage import EntityCriteria, EntityStraightColumn
+from watchmen_utilities import get_current_time_in_seconds, ArrayHelper
 
 
 class SourceTableExtractor:
@@ -43,22 +43,29 @@ class SourceTableExtractor:
 		return topic
 
 	def find_change_data(self, criteria: EntityCriteria) -> Optional[List[Dict[str, Any]]]:
-		return self.service.find_straight_values(
+		return self.lower_key(self.service.find_straight_values(
 			criteria=criteria,
-			columns=[*self.config.primaryKey]
-		)
+			columns=ArrayHelper(self.config.primaryKey).map(
+				lambda column_name: EntityStraightColumn(columnName=column_name)
+			).to_list()
+		))
 
 	def find_by_id(self, primary_key: List[str], values: List[str]) -> Optional[Dict[str, Any]]:
 		results = self.service.find(build_criteria_by_primary_key(primary_key, values))
 		if len(results) == 1:
-			return results[0]
+			return self.lower_key(results)[0]
 		elif len(results) == 0:
 			return None
 		else:
 			raise RuntimeError(f'too many results with {primary_key} find {values}')
 
 	def find(self, criteria: EntityCriteria) -> Optional[List[Dict[str, Any]]]:
-		return self.service.find(criteria)
+		return self.lower_key(self.service.find(criteria))
 
 	def exists(self, criteria: EntityCriteria) -> bool:
 		return self.service.exists(criteria)
+
+	# noinspection PyMethodMayBeStatic
+	def lower_key(self, data_: List) -> Optional[List[Dict]]:
+		return ArrayHelper(data_).map(
+			lambda row: {k.lower(): v for k, v in row.items()}).to_list()

@@ -343,7 +343,6 @@ table_trigger_table = Table(
 	create_pk('table_trigger_id'), create_str('table_name', 50),
 	create_str('model_name', 50), create_int('data_count'),
 	create_int('is_extracted'),
-	create_int('is_finished'),
 	create_str('model_trigger_id', 50),
 	create_str('event_trigger_id', 50),
 	create_tenant_id(), *create_tuple_audit_columns()
