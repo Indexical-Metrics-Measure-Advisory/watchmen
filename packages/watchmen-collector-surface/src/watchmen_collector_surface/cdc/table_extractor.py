@@ -3,10 +3,15 @@ from logging import getLogger
 from threading import Thread
 from typing import Tuple, Dict, List
 from time import sleep
+
+import numpy as np
+from numpy import ndarray
+
 from watchmen_collector_kernel.model import TriggerEvent, ChangeDataRecord, TriggerTable, CollectorTableConfig, \
 	Condition
 from watchmen_collector_kernel.service import try_lock_nowait, unlock, SourceTableExtractor, CriteriaBuilder, \
 	build_audit_criteria
+from watchmen_collector_kernel.service.extract_utils import revert_data_id, cal_array2d_diff
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.storage import get_trigger_table_service, get_competitive_lock_service, \
 	get_collector_table_config_service, get_trigger_event_service, get_change_data_record_service
@@ -52,7 +57,7 @@ class TableExtractor:
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
 			sleep(5)
-			self.create_table_extraction()
+			self.create_thread()
 
 	# noinspection PyMethodMayBeStatic
 	def is_extracted(self, trigger_table: TriggerTable) -> bool:
@@ -95,17 +100,19 @@ class TableExtractor:
 								'start_time': start_time,
 								'end_time': end_time
 							}
+
 							source_records = SourceTableExtractor(config, self.principal_service).find_change_data(
-								ArrayHelper(build_audit_criteria(config.auditColumn, start_time, end_time)).grab(
-									prepare_query_criteria(variables, config.conditions)).to_list())
+								ArrayHelper(
+									build_audit_criteria(config.auditColumn, start_time, end_time)).to_list().extend(
+									prepare_query_criteria(variables, config.conditions)
+								)
+							)
 							existed_records = self.change_data_record_service.find_existed_records(
 								trigger.tableTriggerId)
-
-							def record_compare(source_record: Dict, existed_record: ChangeDataRecord) -> bool:
-								return existed_record.dataId == source_record.get(config.primaryKey)
-
-							ArrayHelper(source_records).difference(existed_records, record_compare).each(
-								lambda source_record: self.save_change_data_record(config, trigger, source_record))
+							diffs = self.get_diffs(source_records, existed_records).tolist()
+							logger.info(f'source_records: {len(source_records)}, existed_records: {len(existed_records)}, diffs: {len(diffs)}')
+							for item in diffs:
+								self.save_change_data_record(config, trigger, ','.join(str(item)))
 							data_count = ArrayHelper(source_records).size()
 							self.trigger_table_service.update_table_trigger(self.set_extracted(trigger, data_count))
 							break
@@ -114,16 +121,16 @@ class TableExtractor:
 
 	def save_change_data_record(self, config: CollectorTableConfig,
 	                            trigger_table: TriggerTable,
-	                            source_record: Dict) -> None:
-		change_data_record = self.source_to_change(config, trigger_table, source_record)
+	                            data_id: str) -> None:
+		change_data_record = self.source_to_change(config, trigger_table, data_id)
 		self.change_data_record_service.create_change_record(change_data_record)
 
 	def source_to_change(self, config: CollectorTableConfig,
-	                     trigger_table: TriggerTable, source_record: Dict) -> ChangeDataRecord:
+	                     trigger_table: TriggerTable, data_id: str) -> ChangeDataRecord:
 		return self.get_change_data_record(
 			trigger_table.modelName,
 			trigger_table.tableName,
-			source_record.get(config.primaryKey),
+			data_id,
 			trigger_table.tableTriggerId,
 			trigger_table.modelTriggerId,
 			trigger_table.eventTriggerId
@@ -146,3 +153,12 @@ class TableExtractor:
 			eventTriggerId=event_trigger_id,
 			tenantId=self.principal_service.get_tenant_id()
 		)
+
+	def get_diffs(self, source_records, existed_records) -> ndarray:
+		source_array = np.asarray(
+			ArrayHelper(source_records).map(lambda source_record: list(source_record.values())[:]).to_list()
+		)
+		existed_array = np.asarray(
+			ArrayHelper(existed_records).map(lambda existed_record: revert_data_id(existed_record.get('data_id'))).to_list()
+		)
+		return cal_array2d_diff(source_array, existed_array)

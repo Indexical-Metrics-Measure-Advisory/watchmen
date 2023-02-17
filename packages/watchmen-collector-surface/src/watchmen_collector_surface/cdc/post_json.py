@@ -51,20 +51,18 @@ class PostJsonService:
 			self.create_thread()
 
 	def change_data_json_listener(self):
-		# noinspection SpellCheckingInspection
-		unposted_jsons = self.change_json_service.find_unposted_jsons()
-		if len(unposted_jsons) == 0:
+		not_posted_json = self.change_json_service.find_not_posted_json()
+		if len(not_posted_json) == 0:
 			sleep(5)
 		else:
-			# noinspection SpellCheckingInspection
-			for unposted_json in unposted_jsons:
+			for json_record in not_posted_json:
 				lock = get_resource_lock(str(self.snowflake_generator.next_id()),
-				                         unposted_json.get(CHANGE_JSON_ID),
-				                         unposted_json.get(TENANT_ID))
+				                         json_record.get(CHANGE_JSON_ID),
+				                         json_record.get(TENANT_ID))
 				try:
 					if try_lock_nowait(self.competitive_lock_service, lock):
 						change_data_json = self.change_json_service.find_json_by_id(
-							unposted_json.get(CHANGE_JSON_ID))
+							json_record.get(CHANGE_JSON_ID))
 						if self.is_posted(change_data_json):
 							continue
 						else:
@@ -77,7 +75,7 @@ class PostJsonService:
 								logger.error(e, exc_info=True, stack_info=True)
 								change_data_json.isPosted = True
 								change_data_json.result = format_exc()
-								self.change_json_service.update(change_data_json)
+								self.change_json_service.update_change_data_json(change_data_json)
 				finally:
 					unlock(self.competitive_lock_service, lock)
 
@@ -105,12 +103,12 @@ class PostJsonService:
 			return False
 
 	def is_sequenced(self, change_json: ChangeDataJson) -> bool:
-		jsons = self.change_json_service.find_by_object_id(change_json.modelName,
-		                                                   change_json.objectId,
-		                                                   change_json.eventTriggerId)
+		json = self.change_json_service.find_by_object_id(change_json.modelName,
+		                                                  change_json.objectId,
+		                                                  change_json.eventTriggerId)
 
 		def is_finished(sequenced_json: ChangeDataJson) -> bool:
-			if sequenced_json.sequence < change_json.sequence:
+			if compare_sequence(sequenced_json.sequence, change_json.sequence):
 				if sequenced_json.isPosted:
 					return True
 				else:
@@ -118,7 +116,13 @@ class PostJsonService:
 			else:
 				return True
 
-		return ArrayHelper(jsons).every(is_finished)
+		def compare_sequence(sequence_0, sequence_1) -> bool:
+			if sequence_0 and sequence_1:
+				return sequence_0 < sequence_1
+			else:
+				return False
+
+		return ArrayHelper(json).every(is_finished)
 
 	def post_json(self, change_json: ChangeDataJson) -> ScheduledTask:
 		task = self.get_scheduled_task(change_json)
@@ -141,8 +145,9 @@ class PostJsonService:
 			modelName=change_json.modelName,
 			objectId=change_json.objectId,
 			dependencies=change_json.dependOn,
-			status=TaskStatus.INITIAL,
-			result=None
+			status=TaskStatus.INITIAL.value,
+			result=None,
+			tenantId=change_json.tenantId
 		)
 
 	# noinspection PyMethodMayBeStatic

@@ -32,14 +32,13 @@ def ask_save_table_config_action(
 		collector_table_config_service: CollectorTableConfigService, principal_service: PrincipalService
 ) -> Callable[[CollectorTableConfig], CollectorTableConfig]:
 	def action(config: CollectorTableConfig) -> CollectorTableConfig:
-		if collector_table_config_service.is_storable_id_faked(config.config_id):
+		if collector_table_config_service.is_storable_id_faked(config.configId):
 			collector_table_config_service.redress_storable_id(config)
 			# noinspection PyTypeChecker
 			config = collector_table_config_service.create_config(config)
 		else:
 			# noinspection PyTypeChecker
-			existing_table_config: Optional[CollectorTableConfig] = \
-				collector_table_config_service.find_by_id(config.config_id)
+			existing_table_config: Optional[CollectorTableConfig] = collector_table_config_service.find_config_by_id(config.configId)
 			if existing_table_config is not None:
 				if existing_table_config.tenantId != config.tenantId:
 					raise_403()

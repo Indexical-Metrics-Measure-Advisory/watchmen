@@ -94,7 +94,7 @@ class CollectorTableConfigService(TupleService):
 			self.rollback_transaction()
 			raise e
 
-	def find_by_id(self, config_id: str) -> Optional[CollectorTableConfig]:
+	def find_config_by_id(self, config_id: str) -> Optional[CollectorTableConfig]:
 		self.begin_transaction()
 		try:
 			return self.find_by_id(config_id)

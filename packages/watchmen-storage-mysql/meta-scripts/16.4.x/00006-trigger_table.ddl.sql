@@ -5,7 +5,6 @@ CREATE TABLE trigger_table
     data_count          int,
     model_name          VARCHAR(500) NOT NULL,
     is_extracted        TINYINT  NOT NULL,
-    is_finished         TINYINT  NOT NULL,
     model_trigger_id    VARCHAR(50) NOT NULL,
     event_trigger_id    VARCHAR(50) NOT NULL,
     tenant_id           VARCHAR(50) NOT NULL,

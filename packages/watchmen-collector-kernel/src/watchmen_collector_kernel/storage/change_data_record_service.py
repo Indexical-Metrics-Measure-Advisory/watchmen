@@ -136,7 +136,7 @@ class ChangeDataRecordService(TupleService):
 				criteria=[
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='table_trigger_id'), right=table_trigger_id),
 				],
-				straightColumns=[EntityStraightColumn(columnName="'data_id'")]
+				straightColumns=[EntityStraightColumn(columnName='data_id')]
 			))
 		finally:
 			self.close_transaction()

@@ -74,7 +74,7 @@ class CollectorModelConfigService(TupleService):
 		try:
 			return self.storage.find_one(self.get_entity_finder(
 				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='name'), right=model_name)]
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name)]
 			))
 		finally:
 			self.close_transaction()
