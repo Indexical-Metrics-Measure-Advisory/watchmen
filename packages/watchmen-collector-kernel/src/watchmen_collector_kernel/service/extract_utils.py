@@ -3,7 +3,6 @@ from logging import getLogger
 from typing import Dict, Any, List
 
 import numpy as np
-from numpy import ndarray
 
 from watchmen_collector_kernel.model.collector_table_config import JoinKey
 from watchmen_storage import EntityCriteriaExpression, ColumnNameLiteral, EntityCriteriaStatement, EntityCriteria, \
@@ -44,7 +43,7 @@ def build_criteria_by_join_key(join_key: JoinKey, data: Dict, is_child: bool = F
 	return EntityCriteriaExpression(left=ColumnNameLiteral(columnName=column_name), right=column_value)
 
 
-def build_audit_criteria(audit_column_name: str, start_time: datetime, end_time: datetime) -> EntityCriteria:
+def build_audit_column_criteria(audit_column_name: str, start_time: datetime, end_time: datetime) -> EntityCriteria:
 	return [
 		EntityCriteriaExpression(
 			left=ColumnNameLiteral(columnName=audit_column_name),
@@ -57,7 +56,7 @@ def build_audit_criteria(audit_column_name: str, start_time: datetime, end_time:
 	]
 
 
-def cal_array2d_diff(array_0: ndarray, array_1: ndarray) -> ndarray:
+def cal_array2d_diff(array_0: np.ndarray, array_1: np.ndarray) -> np.ndarray:
 	array_0_rows = array_0.view([('', array_0.dtype)] * array_0.shape[1])
 	array_1_rows = array_1.view([('', array_1.dtype)] * array_1.shape[1])
 	return np.setdiff1d(array_0_rows, array_1_rows).view(array_0.dtype).reshape(-1, array_0.shape[1])

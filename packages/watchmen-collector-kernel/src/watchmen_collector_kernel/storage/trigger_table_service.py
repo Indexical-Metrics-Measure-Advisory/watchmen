@@ -17,6 +17,7 @@ class TriggerTableShaper(EntityShaper):
 			'table_name': entity.tableName,
 			'model_name': entity.modelName,
 			'is_extracted': entity.isExtracted,
+			'data_count': entity.dataCount,
 			'model_trigger_id': entity.modelTriggerId,
 			'event_trigger_id': entity.eventTriggerId
 		})
@@ -28,6 +29,7 @@ class TriggerTableShaper(EntityShaper):
 			tableName=row.get('table_name'),
 			modelName=row.get('model_name'),
 			isExtracted=row.get('is_extracted'),
+			dataCount=row.get('data_count'),
 			modelTriggerId=row.get('model_trigger_id'),
 			eventTriggerId=row.get('event_trigger_id')
 		))
@@ -52,6 +54,7 @@ class TriggerTableService(TupleService):
 		return 'table_trigger_id'
 
 	def get_storable_id(self, storable: TriggerTable) -> StorableId:
+		# noinspection PyTypeChecker
 		return storable.tableTriggerId
 
 	def set_storable_id(
@@ -90,7 +93,7 @@ class TriggerTableService(TupleService):
 		finally:
 			self.close_transaction()
 
-	def find_by_model_trigger_id(self, model_trigger_id: str) -> List[TriggerTable]:
+	def find_by_model_trigger_id(self, model_trigger_id: int) -> List[TriggerTable]:
 		self.begin_transaction()
 		try:
 			# noinspection PyTypeChecker

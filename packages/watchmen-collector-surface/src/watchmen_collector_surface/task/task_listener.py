@@ -47,7 +47,7 @@ class TaskListener:
 	def task_listener(self) -> None:
 		unfinished_tasks = self.scheduled_task_service.find_unfinished_tasks()
 		for unfinished_task in unfinished_tasks:
-			lock = get_resource_lock(str(self.snowflake_generator.next_id()),
+			lock = get_resource_lock(self.snowflake_generator.next_id(),
 			                         unfinished_task.get('resource_id'),
 			                         unfinished_task.get(TENANT_ID))
 			try:
@@ -57,7 +57,7 @@ class TaskListener:
 					if self.is_finished(task):
 						continue
 					else:
-						if self.task_service.check_dependencies(task.dependencies):
+						if self.task_service.is_dependencies_finished(task.dependencies):
 							self.task_service.consume_task(task, pipeline_data)
 							break
 						else:

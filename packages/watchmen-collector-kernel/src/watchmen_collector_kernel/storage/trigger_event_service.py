@@ -6,7 +6,7 @@ from watchmen_meta.common import TupleShaper, TupleService
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, EventTriggerId
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
-	EntityStraightValuesFinder, EntityCriteriaStatement, EntityCriteriaExpression, ColumnNameLiteral, \
+	EntityStraightValuesFinder, EntityCriteriaExpression, ColumnNameLiteral, \
 	EntityStraightColumn, EntitySortColumn, EntitySortMethod
 
 
@@ -49,6 +49,7 @@ class TriggerEventService(TupleService):
 		return 'event_trigger_id'
 
 	def get_storable_id(self, storable: TriggerEvent) -> StorableId:
+		# noinspection PyTypeChecker
 		return storable.eventTriggerId
 
 	def set_storable_id(

@@ -2,13 +2,13 @@ from typing import Optional, List, Any, Dict
 
 from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.model import ScheduledTask
-from watchmen_collector_kernel.model.scheduled_task import Dependence
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, ScheduledTaskId
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, \
 	EntityCriteriaExpression, ColumnNameLiteral, SnowflakeGenerator, EntitySortColumn, EntitySortMethod, \
-	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityStraightValuesFinder, EntityStraightColumn
+	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityStraightValuesFinder, EntityStraightColumn, \
+	EntityCriteriaOperator
 
 
 class ScheduledTaskShaper(EntityShaper):
@@ -16,9 +16,11 @@ class ScheduledTaskShaper(EntityShaper):
 		return TupleShaper.serialize_tenant_based(entity, {
 			'task_id': entity.taskId,
 			'resource_id': entity.resourceId,
+			'topic_code': entity.topicCode,
 			'content': entity.content,
 			'model_name': entity.modelName,
 			'object_id': entity.objectId,
+			'dependence': entity.dependence,
 			'tenant_id': entity.tenantId,
 			'status': entity.status,
 			'result': entity.result
@@ -29,9 +31,11 @@ class ScheduledTaskShaper(EntityShaper):
 		return TupleShaper.deserialize_tenant_based(row, ScheduledTask(
 			taskId=row.get('task_id'),
 			resourceId=row.get('resource_id'),
+			topicCode=row.get('topic_code'),
 			content=row.get('content'),
 			modelName=row.get('model_name'),
 			objectId=row.get('object_id'),
+			dependence=row.get('dependence'),
 			tenantId=row.get('tenant_id'),
 			status=row.get('status'),
 			result=row.get('result')
@@ -102,8 +106,6 @@ class ScheduledTaskService(TupleService):
 					conjunction=EntityCriteriaJointConjunction.OR,
 					children=[
 						EntityCriteriaExpression(
-							left=ColumnNameLiteral(columnName='status'), right=3),
-						EntityCriteriaExpression(
 							left=ColumnNameLiteral(columnName='status'), right=0)
 					]
 				)],
@@ -115,14 +117,18 @@ class ScheduledTaskService(TupleService):
 		finally:
 			self.close_transaction()
 
-	def find_by_dependence(self, dependence: Dependence) -> List[Dict[str, Any]]:
+	def find_by_dependence(self, dependence: List[str]) -> List[Dict[str, Any]]:
 		self.begin_transaction()
 		try:
 			return self.storage.find_straight_values(EntityStraightValuesFinder(
+				name=self.get_entity_name(),
 				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='object_id'), right=dependence.objectId),
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=dependence.modelName)],
-				straightColumns=['task_id', 'resource_id', 'tenant_id', 'status']
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='task_id'),
+					                         operator=EntityCriteriaOperator.IN,
+					                         right=dependence),
+					],
+				straightColumns=['task_id', 'resource_id', 'tenant_id', 'status'],
+				sort=[EntitySortColumn(name='task_id', method=EntitySortMethod.ASC)]
 			))
 		finally:
 			self.close_transaction()
@@ -131,6 +137,7 @@ class ScheduledTaskService(TupleService):
 		self.begin_transaction()
 		try:
 			return self.storage.find_straight_values(EntityStraightValuesFinder(
+				name=self.get_entity_name(),
 				criteria=[EntityCriteriaExpression(left=ColumnNameLiteral(columnName='resource_id'), right=resource_id)],
 				straightColumns=['task_id', 'resource_id', 'tenant_id']
 			))

@@ -49,6 +49,7 @@ class TriggerModelService(TupleService):
 		return 'model_trigger_id'
 
 	def get_storable_id(self, storable: TriggerModel) -> StorableId:
+		# noinspection PyTypeChecker
 		return storable.modelTriggerId
 
 	def set_storable_id(
@@ -56,7 +57,7 @@ class TriggerModelService(TupleService):
 		storable.modelTriggerId = storable_id
 		return storable
 
-	def find_trigger_by_id(self, trigger_id: str) -> Optional[TriggerModel]:
+	def find_trigger_by_id(self, trigger_id: int) -> Optional[TriggerModel]:
 		self.begin_transaction()
 		try:
 			return self.find_by_id(trigger_id)
@@ -75,7 +76,7 @@ class TriggerModelService(TupleService):
 		finally:
 			self.close_transaction()
 
-	def find_by_event_trigger_id(self, event_trigger_id: str) -> List[TriggerModel]:
+	def find_by_event_trigger_id(self, event_trigger_id: int) -> List[TriggerModel]:
 		self.begin_transaction()
 		try:
 			# noinspection PyTypeChecker

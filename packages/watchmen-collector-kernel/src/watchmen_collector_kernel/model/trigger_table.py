@@ -2,10 +2,10 @@ from watchmen_model.common import TenantBasedTuple
 
 
 class TriggerTable(TenantBasedTuple):
-	tableTriggerId: str
+	tableTriggerId: int
 	tableName: str
 	dataCount: int
 	modelName: str
 	isExtracted: bool = False
-	modelTriggerId: str
-	eventTriggerId: str
+	modelTriggerId: int
+	eventTriggerId: int
