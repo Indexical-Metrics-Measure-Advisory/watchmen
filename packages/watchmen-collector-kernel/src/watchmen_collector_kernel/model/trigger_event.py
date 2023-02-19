@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 
 class TriggerEvent(TenantBasedTuple, BaseModel):
-	eventTriggerId: str
+	eventTriggerId: int
 	startTime: datetime
 	endTime: datetime
 	isFinished: bool = False

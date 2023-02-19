@@ -3,7 +3,9 @@ from threading import Thread
 from typing import Any, Optional
 
 from time import sleep
-from watchmen_collector_kernel.model.scheduled_task import Dependence, ScheduledTask
+
+from watchmen_collector_kernel.model.change_data_json import Dependence
+from watchmen_collector_kernel.model.scheduled_task import ScheduledTask
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock, try_lock_nowait, unlock
 from watchmen_collector_kernel.storage import get_scheduled_task_service, get_competitive_lock_service
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
@@ -66,7 +68,7 @@ class S3Connector:
 					sleep(5)
 				else:
 					for object_ in objects:
-						lock = get_resource_lock(str(self.snowflake_generator.next_id()),
+						lock = get_resource_lock(self.snowflake_generator.next_id(),
 						                         object_.key,
 						                         self.tenant_id)
 						try:

@@ -64,6 +64,7 @@ class ChangeDataRecordService(TupleService):
 
 	# noinspection SpellCheckingInspection
 	def get_storable_id(self, storable: ChangeDataRecord) -> StorableId:
+		# noinspection PyTypeChecker
 		return storable.changeRecordId
 
 	# noinspection SpellCheckingInspection
@@ -126,7 +127,7 @@ class ChangeDataRecordService(TupleService):
 		finally:
 			self.close_transaction()
 
-	def find_existed_records(self, table_trigger_id: str) -> List[Dict]:
+	def find_existed_records(self, table_trigger_id: int) -> List[Dict]:
 		self.begin_transaction()
 		try:
 			# noinspection PyTypeChecker
@@ -141,7 +142,7 @@ class ChangeDataRecordService(TupleService):
 		finally:
 			self.close_transaction()
 
-	def is_event_finished(self, event_trigger_id: str) -> bool:
+	def is_event_finished(self, event_trigger_id: int) -> bool:
 		self.begin_transaction()
 		try:
 			# noinspection PyTypeChecker

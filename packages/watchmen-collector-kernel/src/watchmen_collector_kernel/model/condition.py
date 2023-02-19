@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+from datetime import date, datetime
 from enum import Enum
 from typing import Optional, List, Union, Dict
 
@@ -30,7 +32,7 @@ class Condition(DataModel, BaseModel):
 class ConditionExpression(Condition):
 	columnName: str
 	operator: ConditionOperator = ConditionOperator.EQUALS
-	columnValue: Optional[Union[List[int], List[str], int, str]] = None
+	columnValue: Optional[Union[List[int], List[str], int, str, date, datetime]] = None
 
 
 class ConditionJointConjunction(str, Enum):

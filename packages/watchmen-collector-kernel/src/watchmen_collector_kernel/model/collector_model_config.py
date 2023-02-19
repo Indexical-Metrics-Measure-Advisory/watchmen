@@ -8,5 +8,5 @@ class CollectorModelConfig(TenantBasedTuple, OptimisticLock, BaseModel):
 	modelName: str
 	dependOn: List[str]
 	rawTopicCode: str
-	is_paralleled: bool
+	isParalleled: bool
 

@@ -292,14 +292,15 @@ table_achievement_plugin_tasks = Table(
 # system
 table_competitive_lock = Table(
 	'competitive_lock', meta_data,
-	create_pk('lock_id'), create_str('resource_id', 500),
+	create_pk('lock_id', Integer), create_str('resource_id', 500),
 	create_datetime('registered_at', False), create_tenant_id()
 )
 table_scheduled_task = Table(
 	'scheduled_task', meta_data,
-	create_pk('task_id'), create_str('resource_id', 500),
-	create_json('content'),
+	create_pk('task_id', Integer), create_str('resource_id', 500),
+	create_str('topic_code', 50), create_json('content'),
 	create_str('model_name', 20), create_str('object_id', 100),
+	create_json('dependence'),
 	create_int('status', False), create_str('result', 500),
 	create_tenant_id(),
 	*create_tuple_audit_columns()
@@ -307,7 +308,8 @@ table_scheduled_task = Table(
 table_collector_model_config = Table(
 	'collector_model_config', meta_data,
 	create_pk('model_id'), create_str('model_name', 50),
-	create_json('depend_on', 50), create_str('raw_topic_code', 50),
+	create_json('depend_on'), create_str('raw_topic_code', 50),
+	create_int('is_paralleled'),
 	create_tenant_id(), *create_tuple_audit_columns(),
 	create_optimistic_lock()
 )
@@ -325,42 +327,42 @@ table_collector_table_config = Table(
 )
 table_trigger_event = Table(
 	'trigger_event', meta_data,
-	create_pk('event_trigger_id'),
+	create_pk('event_trigger_id', Integer),
 	create_date('start_time'), create_date('end_time'),
-	create_int('is_finished'),
+	create_int('is_finished', False),
 	create_tenant_id(), *create_tuple_audit_columns()
 )
 table_trigger_model = Table(
 	'trigger_model', meta_data,
-	create_pk('model_trigger_id'),
+	create_pk('model_trigger_id', Integer),
 	create_str('model_name', 50),
-	create_int('is_finished'),
-	create_str('event_trigger_id', 50),
+	create_int('is_finished', False),
+	create_int('event_trigger_id', False),
 	create_tenant_id(), *create_tuple_audit_columns()
 )
 table_trigger_table = Table(
 	'trigger_table', meta_data,
-	create_pk('table_trigger_id'), create_str('table_name', 50),
+	create_pk('table_trigger_id', Integer), create_str('table_name', 50),
 	create_str('model_name', 50), create_int('data_count'),
-	create_int('is_extracted'),
-	create_str('model_trigger_id', 50),
-	create_str('event_trigger_id', 50),
+	create_int('is_extracted', False),
+	create_int('model_trigger_id', False),
+	create_int('event_trigger_id', False),
 	create_tenant_id(), *create_tuple_audit_columns()
 )
 table_change_data_record = Table(
 	'change_data_record', meta_data,
-	create_pk('change_record_id'), create_str('model_name', 50), create_str('table_name', 50),
+	create_pk('change_record_id', Integer), create_str('model_name', 50), create_str('table_name', 50),
 	create_str('data_id', 50), create_str('root_table_name', 50), create_str('root_data_id', 50),
-	create_int('is_merged'),
-	create_str('table_trigger_id', 50), create_str('model_trigger_id', 50), create_str('event_trigger_id', 50),
+	create_int('is_merged', False),
+	create_int('table_trigger_id', False), create_int('model_trigger_id', False), create_int('event_trigger_id', False),
 	create_tenant_id(), *create_tuple_audit_columns()
 )
 table_change_data_json = Table(
 	'change_data_json', meta_data,
-	create_pk('change_json_id'), create_str('model_name', 50), create_str('object_id', 50),
+	create_pk('change_json_id', Integer), create_str('model_name', 50), create_str('object_id', 50),
 	create_str('table_name', 50), create_str('data_id', 50),
-	create_json('content'), create_json('depend_on'), create_int('is_posted'),
-	create_str('table_trigger_id', 50), create_str('model_trigger_id', 50), create_str('event_trigger_id', 50),
+	create_json('content'), create_json('depend_on'), create_int('is_posted', False), create_int('task_id', True),
+	create_int('table_trigger_id', False), create_int('model_trigger_id', False), create_int('event_trigger_id', False),
 	create_tenant_id(), *create_tuple_audit_columns()
 )
 table_operations = Table(

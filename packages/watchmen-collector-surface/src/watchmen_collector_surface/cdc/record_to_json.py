@@ -69,7 +69,7 @@ class RecordToJsonService:
 			sleep(5)
 		else:
 			for unmerged_record in unmerged_records:
-				lock = get_resource_lock(str(self.snowflake_generator.next_id()),
+				lock = get_resource_lock(self.snowflake_generator.next_id(),
 				                         unmerged_record.get(CHANGE_RECORD_ID),
 				                         unmerged_record.get(TENANT_ID))
 				try:

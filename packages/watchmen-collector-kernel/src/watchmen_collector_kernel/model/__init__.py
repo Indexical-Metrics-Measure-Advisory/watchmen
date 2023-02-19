@@ -1,5 +1,5 @@
 from .competitive_lock import CompetitiveLock
-from .scheduled_task import ScheduledTask, TaskStatus, ResultStatus
+from .scheduled_task import ScheduledTask, TaskStatus
 
 from .collector_model_config import CollectorModelConfig
 from .collector_table_config import CollectorTableConfig

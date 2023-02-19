@@ -2,7 +2,7 @@ from watchmen_model.common import TenantBasedTuple
 
 
 class ChangeDataRecord(TenantBasedTuple):
-	changeRecordId: str
+	changeRecordId: int
 	modelName: str
 	tableName: str
 	dataId: str
@@ -10,8 +10,8 @@ class ChangeDataRecord(TenantBasedTuple):
 	rootDataId: str
 	isMerged: bool
 	result: str
-	tableTriggerId: str
-	modelTriggerId: str
-	eventTriggerId: str
+	tableTriggerId: int
+	modelTriggerId: int
+	eventTriggerId: int
 
 

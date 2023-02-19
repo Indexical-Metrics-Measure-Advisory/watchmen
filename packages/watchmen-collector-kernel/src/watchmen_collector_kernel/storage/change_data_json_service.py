@@ -1,4 +1,4 @@
-from typing import Optional, List, Dict, Any
+from typing import List, Dict, Any
 
 from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.common import IS_POSTED, CHANGE_JSON_ID, TENANT_ID
@@ -23,6 +23,7 @@ class ChangeDataJsonShaper(EntityShaper):
 			                                          'content': entity.content,
 			                                          'depend_on': entity.dependOn,
 			                                          'is_posted': entity.isPosted,
+			                                          'task_id': entity.taskId,
 			                                          'table_trigger_id': entity.tableTriggerId,
 			                                          'model_trigger_id': entity.modelTriggerId,
 			                                          'event_trigger_id': entity.eventTriggerId
@@ -40,6 +41,7 @@ class ChangeDataJsonShaper(EntityShaper):
 			                                            content=row.get('content'),
 			                                            dependOn=row.get('depend_on'),
 			                                            isPosted=row.get('is_posted'),
+			                                            taskId=row.get('task_id'),
 			                                            tableTriggerId=row.get('table_trigger_id'),
 			                                            modelTriggerId=row.get('model_trigger_id'),
 			                                            eventTriggerId=row.get('event_trigger_id')
@@ -65,8 +67,8 @@ class ChangeDataJsonService(TupleService):
 	def get_storable_id_column_name(self) -> EntityName:
 		return 'change_json_id'
 
-	# noinspection SpellCheckingInspection
 	def get_storable_id(self, storable: ChangeDataJson) -> StorableId:
+		# noinspection PyTypeChecker
 		return storable.changeJsonId
 
 	# noinspection SpellCheckingInspection
@@ -122,21 +124,21 @@ class ChangeDataJsonService(TupleService):
 		finally:
 			self.storage.close()
 
-	def find_by_object_id(self, model_name: str, object_id: str, event_trigger_id: str) -> List:
+	def find_by_object_id(self, model_name: str, object_id: str, model_trigger_id: int) -> List:
 		try:
 			self.storage.connect()
 			return self.storage.find(self.get_entity_finder(
 				criteria=[
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name),
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='object_id'), right=object_id),
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'), right=event_trigger_id)
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'), right=model_trigger_id)
 				],
 				sort=[EntitySortColumn(name='sequence', method=EntitySortMethod.ASC)]
 			))
 		finally:
 			self.storage.close()
 
-	def is_event_finished(self, event_trigger_id: str) -> bool:
+	def is_event_finished(self, event_trigger_id: int) -> bool:
 		self.begin_transaction()
 		try:
 			# noinspection PyTypeChecker

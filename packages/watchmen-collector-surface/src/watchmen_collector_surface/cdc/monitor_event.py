@@ -99,7 +99,7 @@ class CollectorEventListener:
 			sleep(10)
 		else:
 			for unfinished_event in unfinished_events:
-				lock = get_resource_lock(str(self.snowflake_generator.next_id()),
+				lock = get_resource_lock(self.snowflake_generator.next_id(),
 				                         unfinished_event.get('event_trigger_id'),
 				                         unfinished_event.get(TENANT_ID))
 				try:
