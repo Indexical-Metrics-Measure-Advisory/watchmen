@@ -3,6 +3,7 @@ from .bucket import Bucket, BucketSegment, BucketType, CategoryMeasureBucket, Ca
 	CategorySegmentValue, EnumMeasureBucket, MeasureBucket, NumericSegmentsHolder, NumericSegmentValue, \
 	NumericValueBucket, NumericValueMeasureBucket, NumericValueSegment, OtherCategorySegmentValue, \
 	RangeBucketValueIncluding
+from .derived_objective import DerivedObjective
 from .indicator import Indicator, IndicatorAggregateArithmetic, IndicatorBaseOn, IndicatorFilter, RelevantIndicator, \
 	RelevantIndicatorType
 from .measure_method import MeasureMethod

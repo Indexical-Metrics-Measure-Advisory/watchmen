@@ -1,4 +1,5 @@
 from .achievement_task_service import AchievementPluginTaskService
 from .bucket_service import BucketService
+from .derived_objective_service import DerivedObjectiveService
 from .indicator_service import IndicatorService
 from .objective_service import ObjectiveService
