@@ -334,7 +334,7 @@ class StorageRDS(TransactionalStorageSPI):
 				return func.min(literal_column(straight_column.columnName)) \
 					.label(self.get_alias_from_straight_column(straight_column))
 		elif isinstance(straight_column, EntityStraightColumn):
-			return literal_column(straight_column.columnName) \
+			return literal_column(straight_column.columnName, straight_column.columnType) \
 				.label(self.get_alias_from_straight_column(straight_column))
 
 		raise UnsupportedStraightColumnException(f'Straight column[{straight_column.to_dict()}] is not supported.')

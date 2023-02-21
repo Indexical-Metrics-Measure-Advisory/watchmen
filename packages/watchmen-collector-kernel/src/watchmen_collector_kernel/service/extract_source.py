@@ -50,14 +50,14 @@ class SourceTableExtractor:
 			).to_list()
 		))
 
-	def find_by_id(self, primary_key: List[str], values: List[str]) -> Optional[Dict[str, Any]]:
-		results = self.service.find(build_criteria_by_primary_key(primary_key, values))
+	def find_by_id(self, data_id: Dict) -> Optional[Dict[str, Any]]:
+		results = self.service.find(build_criteria_by_primary_key(data_id))
 		if len(results) == 1:
 			return self.lower_key(results)[0]
 		elif len(results) == 0:
 			return None
 		else:
-			raise RuntimeError(f'too many results with {primary_key} find {values}')
+			raise RuntimeError(f'too many results with {data_id} find')
 
 	def find(self, criteria: EntityCriteria) -> Optional[List[Dict[str, Any]]]:
 		return self.lower_key(self.service.find(criteria))

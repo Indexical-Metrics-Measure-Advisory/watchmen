@@ -7,7 +7,7 @@ from .extract_source import SourceTableExtractor
 from watchmen_collector_kernel.storage import get_collector_table_config_service
 from watchmen_storage import TransactionalStorageSPI, SnowflakeGenerator
 from watchmen_utilities import ArrayHelper
-from .extract_utils import build_criteria_by_join_key, revert_data_id
+from .extract_utils import build_criteria_by_join_key
 
 logger = getLogger(__name__)
 
@@ -24,9 +24,8 @@ class DataCaptureService:
 		                                                                         self.snowflake_generator,
 		                                                                         self.principal_service)
 
-	def find_data_by_data_id(self, config: CollectorTableConfig, data_id: str) -> Optional[Dict[str, Any]]:
-		return SourceTableExtractor(config, self.principal_service).find_by_id(config.primaryKey,
-		                                                                       revert_data_id(data_id))
+	def find_data_by_data_id(self, config: CollectorTableConfig, data_id: Dict) -> Optional[Dict[str, Any]]:
+		return SourceTableExtractor(config, self.principal_service).find_by_id(data_id)
 
 	def find_parent_node(self, config: CollectorTableConfig,
 	                     data_: Dict) -> Tuple[CollectorTableConfig, Optional[Dict[str, Any]]]:
@@ -47,14 +46,15 @@ class DataCaptureService:
 	               data: Dict):
 		child_configs = self.collector_table_config_service.find_by_parent_name(config.name)
 		if child_configs:
-			ArrayHelper(child_configs).map(lambda child_config: self.get_child_data(child_config, config, data))
+			ArrayHelper(child_configs).map(lambda child_config: self.get_child_data(child_config, data))
 
-	def get_child_data(self, child_config: CollectorTableConfig, config: CollectorTableConfig, data_: Dict):
+	def get_child_data(self, child_config: CollectorTableConfig, data_: Dict):
 		child_data = SourceTableExtractor(child_config, self.principal_service).find(
-			ArrayHelper(config.joinKeys).map(lambda join_key: build_criteria_by_join_key(join_key, data_, True)).to_list()
+			ArrayHelper(child_config.joinKeys).map(lambda join_key: build_criteria_by_join_key(join_key, data_, True)).to_list()
 		)
-		if child_config.isList:
-			data_[child_config.label] = child_data
-		else:
-			data_[child_config.label] = child_data[0]
-		ArrayHelper(child_data).each(lambda child: self.build_json(child_config, child))
+		if child_data:
+			if child_config.isList:
+				data_[child_config.label] = child_data
+			else:
+				data_[child_config.label] = child_data[0]
+			ArrayHelper(child_data).each(lambda child: self.build_json(child_config, child))
