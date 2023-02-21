@@ -1,3 +1,5 @@
+from typing import Union
+
 from sqlalchemy.exc import IntegrityError
 
 from watchmen_collector_kernel.model import CompetitiveLock
@@ -18,10 +20,9 @@ def unlock(lock_service: CompetitiveLockService, lock: CompetitiveLock) -> bool:
 	return True
 
 
-def get_resource_lock(lock_id: str, resource_id: str, tenant_id: str) -> CompetitiveLock:
+def get_resource_lock(lock_id: int, resource_id: Union[str, int], tenant_id: str) -> CompetitiveLock:
 	return CompetitiveLock(
 		lockId=lock_id,
 		resourceId=resource_id,
 		registeredAt=get_current_time_in_seconds(),
-		tenantId=tenant_id,
-		status=0)
+		tenantId=tenant_id)

@@ -11,7 +11,6 @@ from watchmen_meta.common import TupleService
 from watchmen_model.common import Storable
 
 from watchmen_rest.util import validate_tenant_id
-from watchmen_utilities import ArrayHelper
 
 
 # noinspection SpellCheckingInspection
@@ -65,7 +64,7 @@ def new_trigger_table(table_name: str,
 		tableName=table_name,
 		dataCount=0,
 		modelName=model_name,
-		isFinished=False,
+		isExtracted=False,
 		modelTriggerId=model_trigger_id,
 		eventTriggerId=event_trigger_id
 	)

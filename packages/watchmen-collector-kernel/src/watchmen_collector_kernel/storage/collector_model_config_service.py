@@ -15,7 +15,8 @@ class CollectorModelConfigShaper(EntityShaper):
 			'model_id': config.modelId,
 			'model_name': config.modelName,
 			'depend_on': config.dependOn,
-			'raw_topic_code': config.rawTopicCode
+			'raw_topic_code': config.rawTopicCode,
+			'is_paralleled': config.isParalleled
 		})
 
 	def deserialize(self, row: EntityRow) -> CollectorModelConfig:
@@ -24,7 +25,8 @@ class CollectorModelConfigShaper(EntityShaper):
 			modelId=row.get('model_id'),
 			modelName=row.get('model_name'),
 			dependOn=row.get('depend_on'),
-			rawTopicCode=row.get('raw_topic_code')
+			rawTopicCode=row.get('raw_topic_code'),
+			isParalleled=row.get('is_paralleled')
 		))
 
 
@@ -54,13 +56,6 @@ class CollectorModelConfigService(TupleService):
 		storable.modelId = storable_id
 		return storable
 
-	def find_by_tenant(self, tenant_id: TenantId) -> Optional[List[CollectorModelConfig]]:
-		# noinspection PyTypeChecker
-		return self.storage.find(self.get_entity_finder(
-			criteria=[
-				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)]
-		))
-
 	def create_model_config(self, model_config: CollectorModelConfig) -> CollectorModelConfig:
 		try:
 			self.storage.connect()
@@ -68,6 +63,41 @@ class CollectorModelConfigService(TupleService):
 			return self.create(model_config)
 		finally:
 			self.storage.close()
+
+	def update_model_config(self, model_config: CollectorModelConfig) -> CollectorModelConfig:
+		try:
+			self.storage.connect()
+			# noinspection PyTypeChecker
+			return self.update(model_config)
+		finally:
+			self.storage.close()
+
+	def find_by_model_id(self, model_id: str) -> Optional[CollectorModelConfig]:
+		self.begin_transaction()
+		try:
+			return self.storage.find_one(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_id'), right=model_id)]
+			))
+		finally:
+			self.close_transaction()
+
+	def find_by_tenant(self, tenant_id: TenantId) -> Optional[List[CollectorModelConfig]]:
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(
+			criteria=[
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)]
+		))
+
+	def find_by_name(self, model_name: str) -> Optional[CollectorModelConfig]:
+		self.begin_transaction()
+		try:
+			return self.storage.find_one(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name)]
+			))
+		finally:
+			self.close_transaction()
 
 
 def get_collector_model_config_service(storage: TransactionalStorageSPI,

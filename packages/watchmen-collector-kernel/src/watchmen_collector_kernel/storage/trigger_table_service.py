@@ -17,7 +17,7 @@ class TriggerTableShaper(EntityShaper):
 			'table_name': entity.tableName,
 			'model_name': entity.modelName,
 			'is_extracted': entity.isExtracted,
-			'is_finished': entity.isFinished,
+			'data_count': entity.dataCount,
 			'model_trigger_id': entity.modelTriggerId,
 			'event_trigger_id': entity.eventTriggerId
 		})
@@ -29,7 +29,7 @@ class TriggerTableShaper(EntityShaper):
 			tableName=row.get('table_name'),
 			modelName=row.get('model_name'),
 			isExtracted=row.get('is_extracted'),
-			isFinished=row.get('is_finished'),
+			dataCount=row.get('data_count'),
 			modelTriggerId=row.get('model_trigger_id'),
 			eventTriggerId=row.get('event_trigger_id')
 		))
@@ -54,6 +54,7 @@ class TriggerTableService(TupleService):
 		return 'table_trigger_id'
 
 	def get_storable_id(self, storable: TriggerTable) -> StorableId:
+		# noinspection PyTypeChecker
 		return storable.tableTriggerId
 
 	def set_storable_id(
@@ -77,7 +78,7 @@ class TriggerTableService(TupleService):
 			# noinspection PyTypeChecker
 			return self.storage.find_distinct_values(
 				self.get_entity_finder_for_columns(
-					criteria=[EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_finished'), right=0)],
+					criteria=[EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_extracted'), right=False)],
 					distinctColumnNames=['table_trigger_id',
 					                     'tenant_id'],
 					distinctValueOnSingleColumn=False)
@@ -89,6 +90,18 @@ class TriggerTableService(TupleService):
 		self.begin_transaction()
 		try:
 			return self.storage.find_by_id(trigger_id, self.get_entity_id_helper())
+		finally:
+			self.close_transaction()
+
+	def find_by_model_trigger_id(self, model_trigger_id: int) -> List[TriggerTable]:
+		self.begin_transaction()
+		try:
+			# noinspection PyTypeChecker
+			return self.storage.find(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'), right=model_trigger_id)
+				]
+			))
 		finally:
 			self.close_transaction()
 

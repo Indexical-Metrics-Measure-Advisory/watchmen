@@ -24,6 +24,7 @@ async def save_event_trigger(
 	func_trigger_collector = get_trigger_collector()
 	if trigger_event_service.is_storable_id_faked(event.eventTriggerId):
 		trigger_event_service.redress_storable_id(event)
+		event.isFinished = False
 		trigger_event = func_trigger_collector(trigger_event_service,
 		                                       event,
 		                                       principal_service)
