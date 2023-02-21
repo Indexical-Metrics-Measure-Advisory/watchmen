@@ -8,7 +8,7 @@ logger = getLogger(__name__)
 
 class CollectorSurfaceSettings(BaseSettings):
 
-	INTEGRATED_RECORD_COLLECTOR: bool = False
+	TASK_LISTENER_ON: bool = False
 
 	S3_COLLECTOR: bool = False
 	S3_COLLECTOR_ACCESS_KEY_ID: str = None
@@ -39,8 +39,8 @@ def ask_query_based_change_data_capture_enabled() -> bool:
 	return settings.QUERY_BASED_CHANGE_DATA_CAPTURE
 
 
-def ask_integrated_record_collector_enabled() -> bool:
-	return settings.INTEGRATED_RECORD_COLLECTOR
+def ask_task_listener_enabled() -> bool:
+	return settings.TASK_LISTENER_ON
 
 
 def ask_s3_collector_enabled() -> bool:

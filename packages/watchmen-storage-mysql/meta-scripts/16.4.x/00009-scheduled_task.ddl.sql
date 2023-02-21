@@ -2,10 +2,11 @@ CREATE TABLE scheduled_task
 (
     task_id             BIGINT      NOT NULL,
     resource_id         VARCHAR(50) NOT NULL,
+    topic_code          VARCHAR(50) NOT NULL,
     content             JSON,
     model_name          VARCHAR(50) NOT NULL,
     object_id           VARCHAR(50) NOT NULL,
-	dependency          JSON,
+	dependence          JSON,
 	status              TINYINT     NOT NULL,
 	result              VARCHAR(500),
     tenant_id           VARCHAR(50) NOT NULL,

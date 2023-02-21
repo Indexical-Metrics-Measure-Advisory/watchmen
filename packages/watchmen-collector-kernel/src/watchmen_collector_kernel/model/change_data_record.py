@@ -1,16 +1,19 @@
+from typing import Dict, Optional
+
 from watchmen_model.common import TenantBasedTuple
 
 
 class ChangeDataRecord(TenantBasedTuple):
-	changeRecordId: str
+	changeRecordId: int
 	modelName: str
 	tableName: str
-	dataId: str
+	dataId: Dict
 	rootTableName: str
-	rootDataId: str
+	rootDataId: Dict
 	isMerged: bool
-	tableTriggerId: str
-	modelTriggerId: str
-	eventTriggerId: str
+	result: str
+	tableTriggerId: int
+	modelTriggerId: int
+	eventTriggerId: int
 
 

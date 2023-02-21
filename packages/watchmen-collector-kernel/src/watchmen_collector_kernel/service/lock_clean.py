@@ -12,7 +12,7 @@ class LockClean:
 
 	def __init__(self):
 		self.lock_service = get_competitive_lock_service(ask_meta_storage())
-		self.cleanInterval = 600
+		self.cleanInterval = 60
 
 	def run(self):
 		try:

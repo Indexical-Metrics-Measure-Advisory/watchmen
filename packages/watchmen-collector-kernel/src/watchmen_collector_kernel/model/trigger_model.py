@@ -2,7 +2,7 @@ from watchmen_model.common import TenantBasedTuple
 
 
 class TriggerModel(TenantBasedTuple):
-	modelTriggerId: str
+	modelTriggerId: int
 	modelName: str
 	isFinished: bool = False
-	eventTriggerId: str
+	eventTriggerId: int

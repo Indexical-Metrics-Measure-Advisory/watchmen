@@ -13,5 +13,5 @@ from .tuple_ids import AchievementPluginTaskId, BucketId, CompetitiveLockId, Con
 	NotificationDefinitionId, ObjectiveFactorId, ObjectiveId, ObjectiveTargetId, PatId, PipelineActionId, \
 	PipelineGraphicId, PipelineId, PipelineStageId, PipelineUnitId, PluginId, ReportFunnelId, ReportId, SpaceId, \
 	SubjectDatasetColumnId, SubjectId, SubscriptionEventId, SubscriptionEventLockId, TenantId, TopicId, UserGroupId, \
-	UserId, ScheduledTaskId, IntegratedRecordId, ChangeRecordId, ChangeJsonId, CollectorModelConfigId, \
+	UserId, ScheduledTaskId, ChangeRecordId, ChangeJsonId, CollectorModelConfigId, \
 	CollectorTableConfigId, EventTriggerId, ModelTriggerId, TableTriggerId

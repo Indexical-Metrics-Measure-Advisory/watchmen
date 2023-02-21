@@ -1,12 +1,14 @@
-from typing import Optional, List
+from typing import List, Dict, Any, Optional
 
 from watchmen_auth import PrincipalService
+from watchmen_collector_kernel.common import IS_POSTED, CHANGE_JSON_ID, TENANT_ID
 from watchmen_collector_kernel.model import ChangeDataJson
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, ChangeJsonId
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
-	ColumnNameLiteral, EntityCriteriaExpression
+	ColumnNameLiteral, EntityCriteriaExpression, EntityStraightValuesFinder, EntityStraightColumn, EntitySortColumn, \
+	EntitySortMethod
 
 
 class ChangeDataJsonShaper(EntityShaper):
@@ -14,12 +16,15 @@ class ChangeDataJsonShaper(EntityShaper):
 		return TupleShaper.serialize_tenant_based(entity,
 		                                          {
 			                                          'change_json_id': entity.changeJsonId,
+			                                          'resource_id': entity.resourceId,
 			                                          'model_name': entity.modelName,
 			                                          'object_id': entity.objectId,
 			                                          'table_name': entity.tableName,
 			                                          'data_id': entity.dataId,
 			                                          'content': entity.content,
 			                                          'depend_on': entity.dependOn,
+			                                          'is_posted': entity.isPosted,
+			                                          'task_id': entity.taskId,
 			                                          'table_trigger_id': entity.tableTriggerId,
 			                                          'model_trigger_id': entity.modelTriggerId,
 			                                          'event_trigger_id': entity.eventTriggerId
@@ -30,12 +35,15 @@ class ChangeDataJsonShaper(EntityShaper):
 		return TupleShaper.deserialize_tenant_based(row,
 		                                            ChangeDataJson(
 			                                            changeJsonId=row.get('change_json_id'),
+			                                            resourceId=row.get('resource_id'),
 			                                            modelName=row.get('model_name'),
 			                                            objectId=row.get('object_id'),
 			                                            tableName=row.get('table_name'),
 			                                            dataId=row.get('data_id'),
 			                                            content=row.get('content'),
 			                                            dependOn=row.get('depend_on'),
+			                                            isPosted=row.get('is_posted'),
+			                                            taskId=row.get('task_id'),
 			                                            tableTriggerId=row.get('table_trigger_id'),
 			                                            modelTriggerId=row.get('model_trigger_id'),
 			                                            eventTriggerId=row.get('event_trigger_id')
@@ -61,8 +69,8 @@ class ChangeDataJsonService(TupleService):
 	def get_storable_id_column_name(self) -> EntityName:
 		return 'change_json_id'
 
-	# noinspection SpellCheckingInspection
 	def get_storable_id(self, storable: ChangeDataJson) -> StorableId:
+		# noinspection PyTypeChecker
 		return storable.changeJsonId
 
 	# noinspection SpellCheckingInspection
@@ -70,20 +78,76 @@ class ChangeDataJsonService(TupleService):
 		storable.changeRecordId = storable_id
 		return storable
 
-	def find_id_by_unique_key(self, table_name: str, data_id: str, event_trigger_id: str) -> List:
+	def update_change_data_json(self, storable: ChangeDataJson) -> ChangeDataJson:
+		self.begin_transaction()
+		try:
+			self.update(storable)
+			self.commit_transaction()
+			return storable
+		except Exception as e:
+			self.rollback_transaction()
+			raise e
+
+	def find_not_posted_json(self) -> List[Dict[str, Any]]:
+		self.begin_transaction()
+		try:
+			return self.storage.find_straight_values(EntityStraightValuesFinder(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=IS_POSTED), right=False)
+				],
+				straightColumns=[EntityStraightColumn(columnName=CHANGE_JSON_ID),
+				                 EntityStraightColumn(columnName=TENANT_ID)]
+			))
+		finally:
+			self.close_transaction()
+
+	def find_json_by_id(self, change_json_id: str) -> ChangeDataJson:
+		self.begin_transaction()
+		try:
+			# noinspection PyTypeChecker
+			return self.find_by_id(change_json_id)
+		finally:
+			self.close_transaction()
+
+	def find_id_by_resource_id(self, resource_id: str) -> Optional[ChangeDataJson]:
 		try:
 			self.storage.connect()
-			return self.storage.find_distinct_values(self.get_entity_finder_for_columns(
+			return self.storage.find_one(self.get_entity_finder(
 				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='table_name'), right=table_name),
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='data_id'), right=data_id),
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'), right=event_trigger_id)
-				],
-				distinctColumnNames=['change_json_id'],
-				distinctValueOnSingleColumn=False
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='resource_id'), right=resource_id)
+				]
 			))
 		finally:
 			self.storage.close()
+
+	def find_by_object_id(self, model_name: str, object_id: str, model_trigger_id: int) -> List:
+		try:
+			self.storage.connect()
+			return self.storage.find(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='object_id'), right=object_id),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'), right=model_trigger_id)
+				],
+				sort=[EntitySortColumn(name='sequence', method=EntitySortMethod.ASC)]
+			))
+		finally:
+			self.storage.close()
+
+	def is_event_finished(self, event_trigger_id: int) -> bool:
+		self.begin_transaction()
+		try:
+			# noinspection PyTypeChecker
+			return self.storage.count(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'), right=event_trigger_id),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=IS_POSTED), right=False)
+				]
+			)) == 0
+		finally:
+			self.close_transaction()
 
 
 def get_change_data_json_service(storage: TransactionalStorageSPI,

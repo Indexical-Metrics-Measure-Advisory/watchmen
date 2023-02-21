@@ -4,9 +4,10 @@ from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.model import CollectorTableConfig
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_meta.common.storage_service import StorableId
-from watchmen_model.common import Storable, TenantId
+from watchmen_model.common import Storable
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
 	EntityCriteriaExpression, ColumnNameLiteral
+from watchmen_utilities import ArrayHelper
 
 
 class CollectorTableConfigShaper(EntityShaper):
@@ -19,8 +20,10 @@ class CollectorTableConfigShaper(EntityShaper):
 			'object_key': config.objectKey,
 			'model_name': config.modelName,
 			'parent_name': config.parentName,
-			'join_keys': config.joinKeys,
-			'depend_on': config.dependOn,
+			'join_keys': ArrayHelper(config.joinKeys).map(lambda x: x.to_dict()).to_list(),
+			'depend_on': ArrayHelper(config.dependOn).map(lambda x: x.to_dict()).to_list(),
+			'conditions': ArrayHelper(config.conditions).map(lambda x: x.to_dict()).to_list(),
+			'label': config.label,
 			'audit_column': config.auditColumn,
 			'data_source_id': config.dataSourceId,
 			'is_list': config.isList,
@@ -39,6 +42,8 @@ class CollectorTableConfigShaper(EntityShaper):
 			parentName=row.get('parent_name'),
 			joinKeys=row.get('join_keys'),
 			dependOn=row.get('depend_on'),
+			conditions=row.get('conditions'),
+			label=row.get('label'),
 			auditColumn=row.get('audit_column'),
 			dataSourceId=row.get('data_source_id'),
 			isList=row.get('is_list'),
@@ -94,7 +99,7 @@ class CollectorTableConfigService(TupleService):
 			self.rollback_transaction()
 			raise e
 
-	def find_by_id(self, config_id: CollectorTableConfig) -> Optional[CollectorTableConfig]:
+	def find_config_by_id(self, config_id: str) -> Optional[CollectorTableConfig]:
 		self.begin_transaction()
 		try:
 			return self.find_by_id(config_id)
@@ -135,7 +140,7 @@ class CollectorTableConfigService(TupleService):
 		try:
 			self.storage.connect()
 			# noinspection PyTypeChecker
-			return self.storage.find_one(
+			return self.storage.find(
 				self.get_entity_finder(
 					criteria=[
 						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='parent_name'),
