@@ -64,6 +64,24 @@ class CollectorModelConfigService(TupleService):
 		finally:
 			self.storage.close()
 
+	def update_model_config(self, model_config: CollectorModelConfig) -> CollectorModelConfig:
+		try:
+			self.storage.connect()
+			# noinspection PyTypeChecker
+			return self.update(model_config)
+		finally:
+			self.storage.close()
+
+	def find_by_model_id(self, model_id: str) -> Optional[CollectorModelConfig]:
+		self.begin_transaction()
+		try:
+			return self.storage.find_one(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_id'), right=model_id)]
+			))
+		finally:
+			self.close_transaction()
+
 	def find_by_tenant(self, tenant_id: TenantId) -> Optional[List[CollectorModelConfig]]:
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(

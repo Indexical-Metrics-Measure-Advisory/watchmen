@@ -6,11 +6,12 @@ from time import sleep
 
 import numpy as np
 
+from watchmen_collector_kernel.common import COMMA
 from watchmen_collector_kernel.model import TriggerEvent, ChangeDataRecord, TriggerTable, CollectorTableConfig, \
 	Condition
 from watchmen_collector_kernel.service import try_lock_nowait, unlock, SourceTableExtractor, CriteriaBuilder, \
 	build_audit_column_criteria
-from watchmen_collector_kernel.service.extract_utils import revert_data_id, cal_array2d_diff, build_data_id
+from watchmen_collector_kernel.service.extract_utils import cal_array2d_diff, build_data_id, get_data_id
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.storage import get_trigger_table_service, get_competitive_lock_service, \
 	get_collector_table_config_service, get_trigger_event_service, get_change_data_record_service
@@ -95,47 +96,43 @@ class TableExtractor:
 								return CriteriaBuilder(variables_).build_criteria(conditions)
 
 							start_time, end_time = self.get_time_window(trigger_event)
+							criteria = build_audit_column_criteria(config.auditColumn, start_time, end_time)
 							variables = {
 								'start_time': start_time,
 								'end_time': end_time
 							}
-
+							criteria.extend(prepare_query_criteria(variables, config.conditions))
 							source_records = SourceTableExtractor(config, self.principal_service).find_change_data(
-								ArrayHelper(
-									build_audit_column_criteria(config.auditColumn, start_time, end_time)).to_list().extend(
-									prepare_query_criteria(variables, config.conditions)
-								)
+								criteria
 							)
 							existed_records = self.change_data_record_service.find_existed_records(
 								trigger.tableTriggerId)
 							if existed_records:
-								diff_records = self.get_diff(source_records, existed_records)
+								diff_records: List[List] = self.get_diff(source_records, existed_records)
 								logger.info(
 									f'source_records: {len(source_records)}, existed_records: {len(existed_records)}, diffs: {len(diff_records)}'
 								)
-								for item in diff_records:
-									self.save_change_data_record(config, trigger, ','.join(str(item)))
+								for diff_record in diff_records:
+									self.save_change_data_record(trigger, build_data_id(config.primaryKey, diff_record))
 							else:
-								diff_records = source_records
 								logger.info(
-									f'source_records: {len(source_records)}, existed_records: {len(existed_records)}, diffs: {len(diff_records)}'
+									f'source_records: {len(source_records)}, existed_records: {len(existed_records)}'
 								)
-								ArrayHelper(diff_records).map(
-									lambda record: self.save_change_data_record(config, trigger, build_data_id(record, config.primaryKey)))
+								ArrayHelper(source_records).map(
+									lambda record: self.save_change_data_record(trigger, get_data_id(config.primaryKey, record)))
 							data_count = ArrayHelper(source_records).size()
 							self.trigger_table_service.update_table_trigger(self.set_extracted(trigger, data_count))
 							break
 				finally:
 					unlock(self.competitive_lock_service, lock)
 
-	def save_change_data_record(self, config: CollectorTableConfig,
+	def save_change_data_record(self,
 	                            trigger_table: TriggerTable,
-	                            data_id: str) -> None:
-		change_data_record = self.source_to_change(config, trigger_table, data_id)
+	                            data_id: Dict) -> None:
+		change_data_record = self.source_to_change(trigger_table, data_id)
 		self.change_data_record_service.create_change_record(change_data_record)
 
-	def source_to_change(self, config: CollectorTableConfig,
-	                     trigger_table: TriggerTable, data_id: str) -> ChangeDataRecord:
+	def source_to_change(self, trigger_table: TriggerTable, data_id: Dict) -> ChangeDataRecord:
 		return self.get_change_data_record(
 			trigger_table.modelName,
 			trigger_table.tableName,
@@ -145,12 +142,13 @@ class TableExtractor:
 			trigger_table.eventTriggerId
 		)
 
-	def get_change_data_record(self, model_name: str,
+	def get_change_data_record(self,
+	                           model_name: str,
 	                           table_name: str,
-	                           data_id: str,
-	                           table_trigger_id: str,
-	                           model_trigger_id: str,
-	                           event_trigger_id: str) -> ChangeDataRecord:
+	                           data_id: Dict,
+	                           table_trigger_id: int,
+	                           model_trigger_id: int,
+	                           event_trigger_id: int) -> ChangeDataRecord:
 		return ChangeDataRecord(
 			changeRecordId=self.snowflake_generator.next_id(),
 			modelName=model_name,
@@ -169,6 +167,6 @@ class TableExtractor:
 			ArrayHelper(source_records).map(lambda source_record: list(source_record.values())[:]).to_list()
 		)
 		existed_array = np.asarray(
-			ArrayHelper(existed_records).map(lambda existed_record: revert_data_id(existed_record.get('data_id'))).to_list()
+			ArrayHelper(existed_records).map(lambda existed_record: list(existed_record.values())[:]).to_list()
 		)
 		return cal_array2d_diff(source_array, existed_array).tolist()

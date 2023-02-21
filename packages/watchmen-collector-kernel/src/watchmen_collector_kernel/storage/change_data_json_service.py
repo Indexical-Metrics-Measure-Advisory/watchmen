@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.common import IS_POSTED, CHANGE_JSON_ID, TENANT_ID
@@ -16,6 +16,7 @@ class ChangeDataJsonShaper(EntityShaper):
 		return TupleShaper.serialize_tenant_based(entity,
 		                                          {
 			                                          'change_json_id': entity.changeJsonId,
+			                                          'resource_id': entity.resourceId,
 			                                          'model_name': entity.modelName,
 			                                          'object_id': entity.objectId,
 			                                          'table_name': entity.tableName,
@@ -34,6 +35,7 @@ class ChangeDataJsonShaper(EntityShaper):
 		return TupleShaper.deserialize_tenant_based(row,
 		                                            ChangeDataJson(
 			                                            changeJsonId=row.get('change_json_id'),
+			                                            resourceId=row.get('resource_id'),
 			                                            modelName=row.get('model_name'),
 			                                            objectId=row.get('object_id'),
 			                                            tableName=row.get('table_name'),
@@ -109,17 +111,13 @@ class ChangeDataJsonService(TupleService):
 		finally:
 			self.close_transaction()
 
-	def find_id_by_unique_key(self, table_name: str, data_id: str, event_trigger_id: str) -> List:
+	def find_id_by_resource_id(self, resource_id: str) -> Optional[ChangeDataJson]:
 		try:
 			self.storage.connect()
-			return self.storage.find_distinct_values(self.get_entity_finder_for_columns(
+			return self.storage.find_one(self.get_entity_finder(
 				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='table_name'), right=table_name),
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='data_id'), right=data_id),
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'), right=event_trigger_id)
-				],
-				distinctColumnNames=['change_json_id'],
-				distinctValueOnSingleColumn=False
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='resource_id'), right=resource_id)
+				]
 			))
 		finally:
 			self.storage.close()

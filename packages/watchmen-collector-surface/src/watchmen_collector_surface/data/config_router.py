@@ -68,20 +68,20 @@ def ask_save_model_config_action(
 		model_config_service: CollectorModelConfigService, principal_service: PrincipalService
 ) -> Callable[[CollectorModelConfig], CollectorModelConfig]:
 	def action(config: CollectorModelConfig) -> CollectorModelConfig:
-		if model_config_service.is_storable_id_faked(config.config_id):
+		if model_config_service.is_storable_id_faked(config.modelId):
 			model_config_service.redress_storable_id(config)
 			# noinspection PyTypeChecker
 			config: CollectorModelConfig = model_config_service.create_model_config(config)
 		else:
 			# noinspection PyTypeChecker
 			existing_model_config: Optional[CollectorModelConfig] = \
-				model_config_service.find_by_id(config.config_id)
+				model_config_service.find_by_model_id(config.modelId)
 			if existing_model_config is not None:
 				if existing_model_config.tenantId != config.tenantId:
 					raise_403()
 			# noinspection PyTypeChecker
 			config: CollectorModelConfig = \
-				model_config_service.update(config)
+				model_config_service.update_model_config(config)
 
 		return config
 

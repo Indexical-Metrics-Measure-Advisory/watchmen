@@ -1,5 +1,7 @@
 from typing import List, Optional, Dict
 
+from sqlalchemy import literal_column, JSON
+
 from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.common import CHANGE_RECORD_ID, TENANT_ID, IS_MERGED
 from watchmen_collector_kernel.model import ChangeDataRecord
@@ -7,7 +9,9 @@ from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, ChangeRecordId
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
-	EntityCriteriaExpression, ColumnNameLiteral, EntityStraightValuesFinder, EntityStraightColumn
+	EntityCriteriaExpression, ColumnNameLiteral, EntityStraightValuesFinder, EntityStraightColumn, \
+	EntityDistinctValuesFinder
+from watchmen_utilities import ArrayHelper
 
 
 class ChangeDataRecordShaper(EntityShaper):
@@ -21,6 +25,7 @@ class ChangeDataRecordShaper(EntityShaper):
 			                                          'root_table_name': entity.rootTableName,
 			                                          'root_data_id': entity.rootDataId,
 			                                          'is_merged': entity.isMerged,
+			                                          'result': entity.result,
 			                                          'table_trigger_id': entity.tableTriggerId,
 			                                          'model_trigger_id': entity.modelTriggerId,
 			                                          'event_trigger_id': entity.eventTriggerId
@@ -37,6 +42,7 @@ class ChangeDataRecordShaper(EntityShaper):
 			                                            rootTableName=row.get('root_table_name'),
 			                                            rootDataId=row.get('root_data_id'),
 			                                            isMerged=row.get('is_merged'),
+			                                            result=row.get('result'),
 			                                            tableTriggerId=row.get('table_trigger_id'),
 			                                            modelTriggerId=row.get('model_trigger_id'),
 			                                            eventTriggerId=row.get('event_trigger_id')
@@ -131,14 +137,18 @@ class ChangeDataRecordService(TupleService):
 		self.begin_transaction()
 		try:
 			# noinspection PyTypeChecker
-			return self.storage.find_straight_values(EntityStraightValuesFinder(
-				name=self.get_entity_name(),
-				shaper=self.get_entity_shaper(),
-				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='table_trigger_id'), right=table_trigger_id),
-				],
-				straightColumns=[EntityStraightColumn(columnName='data_id')]
-			))
+			result = self.storage.find_straight_values(
+				EntityStraightValuesFinder(
+					name=self.get_entity_name(),
+					shaper=self.get_entity_shaper(),
+					criteria=[
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='table_trigger_id'),
+						                         right=table_trigger_id)
+					],
+					straightColumns=[EntityStraightColumn(columnName='data_id', columnType=JSON)]
+					)
+				)
+			return ArrayHelper(result).map(lambda x: x.get('data_id')).to_list()
 		finally:
 			self.close_transaction()
 
@@ -148,7 +158,8 @@ class ChangeDataRecordService(TupleService):
 			# noinspection PyTypeChecker
 			return self.storage.count(self.get_entity_finder(
 				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'), right=event_trigger_id),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'),
+					                         right=event_trigger_id),
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=IS_MERGED), right=False)
 				]
 			)) == 0

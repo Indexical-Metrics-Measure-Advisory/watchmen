@@ -59,10 +59,10 @@ class CollectorTableConfig(TenantBasedTuple, OptimisticLock, BaseModel):
 	modelName: str = None
 	parentName: str = None
 	label: str = None
-	joinKeys: List[JoinKey] = None
-	dependOn: List[Dependence] = None
+	joinKeys: List[JoinKey] = []
+	dependOn: List[Dependence] = []
 	auditColumn: str = None
-	conditions: List[Condition] = None
+	conditions: List[Condition] = []
 	dataSourceId: str = None
 	isList: bool = False
 	triggered: bool = False
@@ -70,9 +70,9 @@ class CollectorTableConfig(TenantBasedTuple, OptimisticLock, BaseModel):
 	def __setattr__(self, name, value):
 		if name == 'joinKeys':
 			super().__setattr__(name, construct_join_keys(value))
-		if name == 'dependOn':
+		elif name == 'dependOn':
 			super().__setattr__(name, construct_depend_on(value))
-		if name == 'conditions':
+		elif name == 'conditions':
 			super().__setattr__(name, construct_conditions(value))
 		else:
 			super().__setattr__(name, value)

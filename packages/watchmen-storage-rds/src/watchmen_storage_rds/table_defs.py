@@ -318,7 +318,7 @@ table_collector_table_config = Table(
 	create_pk('config_id'), create_str('name', 50),
 	create_str('table_name', 50), create_json('primary_key'), create_str('object_key', 50),
 	create_str('model_name', 50), create_str('parent_name', 50), create_json('join_keys'),
-	create_json('conditions'),
+	create_json('conditions'), create_str('label', 50),
 	create_json('depend_on'), create_int('triggered'),
 	create_str('audit_column', 50), create_str('data_source_id', 50),
 	create_int('is_list'),
@@ -352,15 +352,16 @@ table_trigger_table = Table(
 table_change_data_record = Table(
 	'change_data_record', meta_data,
 	create_pk('change_record_id', Integer), create_str('model_name', 50), create_str('table_name', 50),
-	create_str('data_id', 50), create_str('root_table_name', 50), create_str('root_data_id', 50),
-	create_int('is_merged', False),
+	create_json('data_id'), create_str('root_table_name', 50), create_json('root_data_id'),
+	create_int('is_merged', False), create_str('result', 500),
 	create_int('table_trigger_id', False), create_int('model_trigger_id', False), create_int('event_trigger_id', False),
 	create_tenant_id(), *create_tuple_audit_columns()
 )
 table_change_data_json = Table(
 	'change_data_json', meta_data,
-	create_pk('change_json_id', Integer), create_str('model_name', 50), create_str('object_id', 50),
-	create_str('table_name', 50), create_str('data_id', 50),
+	create_pk('change_json_id', Integer), create_str('resource_id', 100),
+	create_str('model_name', 50), create_str('object_id', 50),
+	create_str('table_name', 50), create_json('data_id'),
 	create_json('content'), create_json('depend_on'), create_int('is_posted', False), create_int('task_id', True),
 	create_int('table_trigger_id', False), create_int('model_trigger_id', False), create_int('event_trigger_id', False),
 	create_tenant_id(), *create_tuple_audit_columns()

@@ -3,6 +3,7 @@ from __future__ import annotations
 from abc import abstractmethod
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, TypeVar, Union
+from sqlalchemy.types import TypeEngine
 
 from watchmen_model.common import DataModel, Pageable, Storable
 
@@ -161,6 +162,7 @@ class EntityDistinctValuesFinder(EntityFinder):
 class EntityStraightColumn(DataModel):
 	columnName: EntityColumnName  # original name
 	alias: Optional[EntityColumnName]  # alias name
+	columnType: Optional[TypeEngine] = None  # literal column type
 
 
 class EntityColumnAggregateArithmetic(str, Enum):

@@ -8,39 +8,28 @@ from watchmen_collector_kernel.model.collector_table_config import JoinKey
 from watchmen_storage import EntityCriteriaExpression, ColumnNameLiteral, EntityCriteriaStatement, EntityCriteria, \
 	EntityCriteriaOperator
 from watchmen_utilities import ArrayHelper
-from watchmen_collector_kernel.common import COMMA
 
 logger = getLogger(__name__)
 
 
-def build_criteria_by_primary_key(primary_key: List[str], values: List[str]) -> List[EntityCriteriaExpression]:
-	if len(primary_key) != len(values):
-		raise ValueError(
-			f'The number of primary key fields {len(primary_key)} does not match the number of values {len(values)}'
-		)
-	else:
-		def build_criteria(column_name: str, index_: int) -> EntityCriteriaExpression:
-			return EntityCriteriaExpression(left=ColumnNameLiteral(columnName=column_name), right=values[index_])
+def get_data_id(primary_key: List[str], data_: Dict[str, Any]) -> Dict:
+	data_id = {}
 
-		return ArrayHelper(primary_key).map_with_index(build_criteria).to_list()
+	def set_data_id(column_name: str, data_dict: Dict):
+		data_id[column_name] = data_dict.get(column_name)
+
+	ArrayHelper(primary_key).each(lambda column_name: set_data_id(column_name, data_))
+	return data_id
 
 
-def build_data_id(data_: Dict[str, Any], primary_key: List[str]) -> str:
-	return ArrayHelper(primary_key).map(lambda column_name: data_.get(column_name)).join(COMMA)
+def build_data_id(primary_key: List[str], values: List) -> Dict:
+	data_id = {}
 
+	def set_data_id(column_name: str, index: int, data_list: List):
+		data_id[column_name] = data_list[index]
 
-def revert_data_id(data_id: str) -> List:
-	return data_id.split(COMMA)
-
-
-def build_criteria_by_join_key(join_key: JoinKey, data: Dict, is_child: bool = False) -> EntityCriteriaStatement:
-	if is_child:
-		column_name = join_key.child_key
-		column_value = data.get(join_key.parent_key)
-	else:
-		column_name = join_key.parentKey
-		column_value = data.get(join_key.childKey)
-	return EntityCriteriaExpression(left=ColumnNameLiteral(columnName=column_name), right=column_value)
+	ArrayHelper(primary_key).each_with_index(lambda column_name, index: set_data_id(column_name, index, values))
+	return data_id
 
 
 def build_audit_column_criteria(audit_column_name: str, start_time: datetime, end_time: datetime) -> EntityCriteria:
@@ -54,6 +43,25 @@ def build_audit_column_criteria(audit_column_name: str, start_time: datetime, en
 			operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
 			right=end_time),
 	]
+
+
+def build_criteria_by_primary_key(data_id: Dict) -> List[EntityCriteriaExpression]:
+	criteria = []
+	for key, value in data_id.items():
+		criteria.append(
+			EntityCriteriaExpression(left=ColumnNameLiteral(columnName=key), right=value)
+		)
+	return criteria
+
+
+def build_criteria_by_join_key(join_key: JoinKey, data: Dict, is_child: bool = False) -> EntityCriteriaStatement:
+	if is_child:
+		column_name = join_key.childKey
+		column_value = data.get(join_key.parentKey)
+	else:
+		column_name = join_key.parentKey
+		column_value = data.get(join_key.childKey)
+	return EntityCriteriaExpression(left=ColumnNameLiteral(columnName=column_name), right=column_value)
 
 
 def cal_array2d_diff(array_0: np.ndarray, array_1: np.ndarray) -> np.ndarray:
