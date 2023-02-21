@@ -10,13 +10,13 @@ from watchmen_utilities import ArrayHelper
 
 class ObjectiveShaper(EntityShaper):
 	# noinspection PyMethodMayBeStatic
-	def serialize_time_frame(self, a_filter: ObjectiveTimeFrame) -> Optional[dict]:
-		if a_filter is None:
+	def serialize_time_frame(self, time_frame: Optional[ObjectiveTimeFrame]) -> Optional[dict]:
+		if time_frame is None:
 			return None
-		elif isinstance(a_filter, dict):
-			return a_filter
+		elif isinstance(time_frame, dict):
+			return time_frame
 		else:
-			return a_filter.dict()
+			return time_frame.dict()
 
 	def serialize(self, objective: Objective) -> EntityRow:
 		return TupleShaper.serialize_tenant_based(objective, {
@@ -106,6 +106,7 @@ class ObjectiveService(TupleService):
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))
+
 	def find_all(self, tenant_id: Optional[TenantId]) -> List[Objective]:
 		criteria = []
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
