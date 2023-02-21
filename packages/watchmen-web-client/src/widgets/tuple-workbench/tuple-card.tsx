@@ -38,15 +38,21 @@ export const TupleProfileButton = styled(TooltipButton).attrs({'data-widget': 't
 	align-self : start;
 `;
 export const TupleCardDescription = styled.div.attrs({'data-widget': 'tuple-card-description'})`
-	display     : flex;
-	flex-grow   : 1;
-	position    : relative;
-	word-break  : break-word;
-	font-size   : 0.9em;
-	opacity     : 0.8;
-	margin-top  : calc(var(--margin) / 2);
-	min-height  : 3.5em;
-	line-height : 1.5em;
+	display            : flex;
+	display            : -webkit-box;
+	flex-grow          : 1;
+	position           : relative;
+	word-break         : break-word;
+	font-size          : 0.9em;
+	opacity            : 0.8;
+	margin-top         : calc(var(--margin) / 2);
+	min-height         : 3.5em;
+	line-height        : 1.5em;
+	-webkit-line-clamp : 8;
+	-webkit-line-break : after-white-space;
+	-webkit-box-orient : vertical;
+	white-space        : normal;
+	overflow           : hidden;
 `;
 export const TupleCardStatistics = styled.div.attrs({'data-widget': 'tuple-card-statistics'})`
 	display         : flex;
