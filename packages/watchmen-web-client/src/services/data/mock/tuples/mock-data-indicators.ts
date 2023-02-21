@@ -17,6 +17,13 @@ const OrderPremiumIndicator: Indicator = {
 	baseOn: IndicatorBaseOn.TOPIC,
 	valueBuckets: [BUCKET_AMOUNT_ID],
 	category1: 'premium',
+	description: `Purchase order cycle time
+This is the total time spent on a purchase order throughout the process—from purchase order creation through approval, receipt, invoice generation, and payment completion. It primarily focuses on the purchase order and excludes the production and delivery of the product itself. This KPI is measured in either hours or days.
+
+A lower cycle time indicates that you have a fast and systemized procurement team. You can also categorize suppliers based on their cycle time. For instance, suppliers with a cycle time of 4 days or less could be grouped under short while suppliers with cycle time ranging from 5-8 days could be grouped under medium and suppliers with cycle time above 8 days could be grouped under long. This metric comes in handy when you have to identify the right supplier to respond to urgent orders and fulfill them quickly.
+
+Cost of purchase order
+This KPI measures the average cost of processing a purchase order, from its creation to closing of the invoice. There’s no hard and fast rule when it comes to calculating this metric since the factors influencing the processing cost vary from firm to firm based on their size and industry. Each firm uses a different set of components to determine the average processing cost. That said, the main components used to calculate this metric are the total time spent (broken down further by tasks) and the number of staff directly or indirectly involved in each step. This is why firms that manually process purchase orders have a higher average cost compared to firms that have automated the entire process. By consistently tracking the cost of purchase orders, you can improve the efficiency of the procure-to-pay cycle, which will lead to reduced errors and lower costs.`,
 	version: 1,
 	createdAt: getCurrentTime(),
 	lastModifiedAt: getCurrentTime()
