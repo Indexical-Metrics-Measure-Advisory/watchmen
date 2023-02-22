@@ -1,3 +1,4 @@
+import {DerivedObjective} from '@/services/data/tuples/derived-objective-types';
 import dayjs from 'dayjs';
 import {v4} from 'uuid';
 import {Bucket} from './bucket-types';
@@ -75,6 +76,9 @@ export const isBucket = (tuple: Tuple): tuple is Bucket => {
 export const isObjective = (tuple: Tuple): tuple is Objective => {
 	return !!(tuple as any).objectiveId;
 };
+export const isDerivedObjective = (tuple: Tuple): tuple is DerivedObjective => {
+	return !!(tuple as any).derivedObjectiveId;
+};
 export const isCatalog = (tuple: Tuple): tuple is Catalog => {
 	return !!(tuple as any).catalogId;
 };
@@ -98,6 +102,8 @@ export const isFakedUuid = (tuple: Tuple): boolean => {
 		return tuple.catalogId.startsWith(FAKE_ID_PREFIX);
 	} else if (isObjective(tuple)) {
 		return tuple.objectiveId.startsWith(FAKE_ID_PREFIX);
+	} else if (isDerivedObjective(tuple)) {
+		return tuple.derivedObjectiveId.startsWith(FAKE_ID_PREFIX);
 	} else if (isIndicator(tuple)) {
 		// indicator check must before topic check
 		// since "topicId" also exists in indicator object

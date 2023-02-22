@@ -369,6 +369,16 @@ table_objectives = MongoDocument(
 		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 	]
 )
+table_derived_objectives = MongoDocument(
+	name='derived_objectives',
+	columns=[
+		create_pk('derived_objective_id'),
+		create_str('name', False), create_description(),
+		create_tuple_id_column('objective_id', False), create_json('definition'),
+		create_tenant_id(), create_user_id(), create_last_visit_time(), *create_tuple_audit_columns()
+	]
+)
+
 table_achievement_plugin_tasks = MongoDocument(
 	name='achievement_plugin_tasks',
 	columns=[
@@ -460,6 +470,7 @@ tables: Dict[str, MongoDocument] = {
 	'buckets': table_buckets,
 	'indicators': table_indicators,
 	'objectives': table_objectives,
+	'derived_objectives': table_derived_objectives,
 	'achievement_plugin_tasks': table_achievement_plugin_tasks,
 	# system
 	'collector_competitive_lock': table_collector_competitive_lock,
