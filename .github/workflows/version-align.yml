@@ -138,11 +138,23 @@ jobs:
         with:
           module-name: watchmen-collector-kernel
           target-version: ${{ inputs.version }}
+      - name: Change version [watchmen-collector-surface]
+        uses: ./.github/actions/change-poetry-version/
+        id: change-poetry-version-collector-surface
+        with:
+          module-name: watchmen-collector-surface
+          target-version: ${{ inputs.version }}
       - name: Change version [watchmen-pipeline-surface]
         uses: ./.github/actions/change-poetry-version/
         id: change-poetry-version-pipeline-surface
         with:
           module-name: watchmen-pipeline-surface
+          target-version: ${{ inputs.version }}
+      - name: Change version [watchmen-lineage]
+        uses: ./.github/actions/change-poetry-version/
+        id: change-poetry-version-lineage
+        with:
+          module-name: watchmen-lineage
           target-version: ${{ inputs.version }}
       - name: Change version [watchmen-inquiry-trino]
         uses: ./.github/actions/change-poetry-version/
