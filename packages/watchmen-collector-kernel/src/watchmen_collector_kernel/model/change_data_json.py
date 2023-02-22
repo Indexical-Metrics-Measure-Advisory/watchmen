@@ -20,7 +20,7 @@ class ChangeDataJson(TenantBasedTuple, BaseModel):
 	dataId: Dict
 	dependOn: List[Dependence]
 	isPosted: bool
-	result: str
+	result: Dict
 	taskId: int
 	tableTriggerId: int
 	modelTriggerId: int

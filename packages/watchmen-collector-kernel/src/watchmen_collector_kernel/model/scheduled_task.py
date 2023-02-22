@@ -17,6 +17,11 @@ class TaskStatus(IntEnum):
 	FAILED = 2
 
 
+class Dependence(Storable, BaseModel):
+	modelName: str
+	objectId: str
+
+
 class ScheduledTask(TenantBasedTuple, BaseModel):
 	taskId: ScheduledTaskId
 	resourceId: str  # global unique, monotonous increase
@@ -24,7 +29,8 @@ class ScheduledTask(TenantBasedTuple, BaseModel):
 	content: Dict
 	modelName: str
 	objectId: str
-	dependence: List[int]
+	dependOn: List[Dependence]
+	parentTaskId: List[int]
 	status: TaskStatus
-	result: str
+	result: Dict
 

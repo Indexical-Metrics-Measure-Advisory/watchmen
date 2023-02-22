@@ -57,7 +57,7 @@ class TaskListener:
 					if self.is_finished(task):
 						continue
 					else:
-						if self.task_service.is_dependencies_finished(task.dependencies):
+						if self.task_service.is_dependencies_finished(task):
 							self.task_service.consume_task(task, pipeline_data)
 							break
 						else:

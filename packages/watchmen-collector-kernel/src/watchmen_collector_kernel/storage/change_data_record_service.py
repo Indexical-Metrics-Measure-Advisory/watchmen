@@ -163,6 +163,20 @@ class ChangeDataRecordService(TupleService):
 		finally:
 			self.close_transaction()
 
+	def is_model_finished(self, model_trigger_id: int) -> bool:
+		self.begin_transaction()
+		try:
+			# noinspection PyTypeChecker
+			return self.storage.count(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'),
+					                         right=model_trigger_id),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=IS_MERGED), right=False)
+				]
+			)) == 0
+		finally:
+			self.close_transaction()
+
 
 def get_change_data_record_service(storage: TransactionalStorageSPI,
                                    snowflake_generator: SnowflakeGenerator,

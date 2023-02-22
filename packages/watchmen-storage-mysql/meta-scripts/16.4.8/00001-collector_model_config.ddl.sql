@@ -1,7 +1,7 @@
 CREATE TABLE collector_model_config
 (
     model_id            VARCHAR(50)     NOT NULL,
-    model_name          VARCHAR(500)    NOT NULL,
+    model_name          VARCHAR(50)    NOT NULL,
     depend_on           JSON,
     raw_topic_code      VARCHAR(50)     NOT NULL,
     is_paralleled       TINYINT,
