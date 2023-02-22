@@ -1,7 +1,7 @@
 CREATE TABLE trigger_table
 (
     table_trigger_id    BIGINT          NOT NULL,
-    table_name          VARCHAR(100)    NOT NULL,
+    table_name          VARCHAR(50)    NOT NULL,
     data_count          BIGINT,
     model_name          VARCHAR(50)     NOT NULL,
     is_extracted        TINYINT         NOT NULL,

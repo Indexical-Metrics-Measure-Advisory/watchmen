@@ -27,12 +27,12 @@ class CollectorSurface:
 
 	# noinspection PyMethodMayBeStatic
 	def init_s3_connector(self) -> None:
-		if ask_s3_collector_enabled():
+		if ask_task_listener_enabled() and ask_s3_collector_enabled():
 			init_s3_collector(ask_s3_connector_settings())
 
 	def init(self) -> None:
-		self.init_s3_connector()
 		self.init_task_listener()
+		self.init_s3_connector()
 		self.init_query_based_change_data_capture()
 
 

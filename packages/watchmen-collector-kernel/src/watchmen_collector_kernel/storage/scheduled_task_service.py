@@ -20,7 +20,8 @@ class ScheduledTaskShaper(EntityShaper):
 			'content': entity.content,
 			'model_name': entity.modelName,
 			'object_id': entity.objectId,
-			'dependence': entity.dependence,
+			'depend_on': entity.dependOn,
+			'parent_task_id': entity.parentTaskId,
 			'tenant_id': entity.tenantId,
 			'status': entity.status,
 			'result': entity.result
@@ -35,7 +36,8 @@ class ScheduledTaskShaper(EntityShaper):
 			content=row.get('content'),
 			modelName=row.get('model_name'),
 			objectId=row.get('object_id'),
-			dependence=row.get('dependence'),
+			dependOn=row.get('depend_on'),
+			parentTaskId=row.get('parent_task_id'),
 			tenantId=row.get('tenant_id'),
 			status=row.get('status'),
 			result=row.get('result')
@@ -103,7 +105,6 @@ class ScheduledTaskService(TupleService):
 			return self.storage.find_straight_values(EntityStraightValuesFinder(
 				name=self.get_entity_name(),
 				criteria=[EntityCriteriaJoint(
-					conjunction=EntityCriteriaJointConjunction.OR,
 					children=[
 						EntityCriteriaExpression(
 							left=ColumnNameLiteral(columnName='status'), right=0)
@@ -113,22 +114,6 @@ class ScheduledTaskService(TupleService):
 				                 EntityStraightColumn(columnName='resource_id'),
 				                 EntityStraightColumn(columnName='tenant_id')],
 				sort=[EntitySortColumn(name='resource_id', method=EntitySortMethod.ASC)]
-			))
-		finally:
-			self.close_transaction()
-
-	def find_by_dependence(self, dependence: List[str]) -> List[Dict[str, Any]]:
-		self.begin_transaction()
-		try:
-			return self.storage.find_straight_values(EntityStraightValuesFinder(
-				name=self.get_entity_name(),
-				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='task_id'),
-					                         operator=EntityCriteriaOperator.IN,
-					                         right=dependence),
-					],
-				straightColumns=['task_id', 'resource_id', 'tenant_id', 'status'],
-				sort=[EntitySortColumn(name='task_id', method=EntitySortMethod.ASC)]
 			))
 		finally:
 			self.close_transaction()
@@ -144,6 +129,24 @@ class ScheduledTaskService(TupleService):
 		finally:
 			self.close_transaction()
 
+	def is_dependent_task_finished(self, model_name: str, object_id: str, tenant_id: str) -> bool:
+		self.begin_transaction()
+		try:
+			# noinspection PyTypeChecker
+			return self.storage.count(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'),
+					                         right=model_name),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='object_id'),
+					                         right=object_id),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'),
+					                         right=0),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'),
+					                         right=tenant_id)
+				]
+			)) == 0
+		finally:
+			self.close_transaction()
 
 def get_scheduled_task_service(storage: TransactionalStorageSPI,
                                snowflake_generator: SnowflakeGenerator,

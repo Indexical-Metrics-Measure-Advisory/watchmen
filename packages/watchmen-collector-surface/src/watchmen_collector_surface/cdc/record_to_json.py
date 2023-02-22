@@ -1,3 +1,4 @@
+from traceback import format_exc
 from typing import Dict, Tuple, Optional, List
 
 from watchmen_collector_kernel.common import CHANGE_RECORD_ID, TENANT_ID, WAVE
@@ -12,7 +13,7 @@ from threading import Thread
 
 from time import sleep
 
-from watchmen_collector_kernel.service.extract_utils import build_data_id, get_data_id
+from watchmen_collector_kernel.service.extract_utils import get_data_id
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_change_data_record_service, \
 	get_change_data_json_service, get_collector_table_config_service
@@ -82,9 +83,10 @@ class RecordToJsonService:
 						else:
 							try:
 								self.process_record(change_data_record)
+								break
 							except Exception as e:
 								logger.error(e, exc_info=True, stack_info=True)
-								self.update_process_result(change_data_record, repr(e))
+								self.update_process_result(change_data_record, format_exc())
 				finally:
 					unlock(self.competitive_lock_service, lock)
 

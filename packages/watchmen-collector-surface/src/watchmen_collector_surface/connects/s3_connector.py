@@ -75,10 +75,12 @@ class S3Connector:
 							if try_lock_nowait(self.competitive_lock_service, lock):
 								existed_task = self.scheduled_task_service.find_by_resource_id(object_.key)
 								if existed_task:
+									self.simpleStorageService.delete_object(object_.key)
 									continue
 								else:
 									self.scheduled_task_service.create_task(self.get_task(object_))
 									self.simpleStorageService.delete_object(object_.key)
+									break
 						finally:
 							unlock(self.competitive_lock_service, lock)
 		except Exception as e:

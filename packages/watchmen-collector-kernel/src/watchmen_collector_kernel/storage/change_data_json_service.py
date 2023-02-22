@@ -1,7 +1,7 @@
 from typing import List, Dict, Any, Optional
 
 from watchmen_auth import PrincipalService
-from watchmen_collector_kernel.common import IS_POSTED, CHANGE_JSON_ID, TENANT_ID
+from watchmen_collector_kernel.common import IS_POSTED, CHANGE_JSON_ID, TENANT_ID, MODEL_TRIGGER_ID
 from watchmen_collector_kernel.model import ChangeDataJson
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_meta.common.storage_service import StorableId
@@ -88,14 +88,15 @@ class ChangeDataJsonService(TupleService):
 			self.rollback_transaction()
 			raise e
 
-	def find_not_posted_json(self) -> List[Dict[str, Any]]:
+	def find_not_posted_json(self, model_trigger_id: int) -> List[Dict[str, Any]]:
 		self.begin_transaction()
 		try:
 			return self.storage.find_straight_values(EntityStraightValuesFinder(
 				name=self.get_entity_name(),
 				shaper=self.get_entity_shaper(),
 				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=IS_POSTED), right=False)
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=IS_POSTED), right=False),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=MODEL_TRIGGER_ID), right=model_trigger_id)
 				],
 				straightColumns=[EntityStraightColumn(columnName=CHANGE_JSON_ID),
 				                 EntityStraightColumn(columnName=TENANT_ID)]
@@ -143,6 +144,19 @@ class ChangeDataJsonService(TupleService):
 			return self.storage.count(self.get_entity_finder(
 				criteria=[
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'), right=event_trigger_id),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=IS_POSTED), right=False)
+				]
+			)) == 0
+		finally:
+			self.close_transaction()
+
+	def is_model_finished(self, model_trigger_id: int) -> bool:
+		self.begin_transaction()
+		try:
+			# noinspection PyTypeChecker
+			return self.storage.count(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'), right=model_trigger_id),
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=IS_POSTED), right=False)
 				]
 			)) == 0

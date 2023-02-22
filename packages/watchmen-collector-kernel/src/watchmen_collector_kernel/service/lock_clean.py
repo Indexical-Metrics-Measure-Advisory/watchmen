@@ -25,7 +25,7 @@ class LockClean:
 			self.restart()
 
 	def clean_lock(self):
-		query_time = datetime.now() - timedelta(minutes=1)
+		query_time = datetime.now() - timedelta(minutes=120)
 		locks = self.lock_service.find_overtime_lock(query_time)
 		for lock in locks:
 			self.lock_service.delete_by_id(lock.lockId)
