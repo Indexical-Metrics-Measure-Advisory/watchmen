@@ -1,7 +1,5 @@
 from typing import List, Optional, Dict
 
-from sqlalchemy import literal_column, JSON
-
 from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.common import CHANGE_RECORD_ID, TENANT_ID, IS_MERGED
 from watchmen_collector_kernel.model import ChangeDataRecord
@@ -9,8 +7,7 @@ from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, ChangeRecordId
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
-	EntityCriteriaExpression, ColumnNameLiteral, EntityStraightValuesFinder, EntityStraightColumn, \
-	EntityDistinctValuesFinder
+	EntityCriteriaExpression, ColumnNameLiteral, EntityStraightValuesFinder, EntityStraightColumn, EntityColumnType
 from watchmen_utilities import ArrayHelper
 
 
@@ -145,7 +142,7 @@ class ChangeDataRecordService(TupleService):
 						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='table_trigger_id'),
 						                         right=table_trigger_id)
 					],
-					straightColumns=[EntityStraightColumn(columnName='data_id', columnType=JSON)]
+					straightColumns=[EntityStraightColumn(columnName='data_id', columnType=EntityColumnType.JSON)]
 					)
 				)
 			return ArrayHelper(result).map(lambda x: x.get('data_id')).to_list()

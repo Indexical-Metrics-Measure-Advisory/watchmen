@@ -3,7 +3,6 @@ from __future__ import annotations
 from abc import abstractmethod
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, TypeVar, Union
-from sqlalchemy.types import TypeEngine
 
 from watchmen_model.common import DataModel, Pageable, Storable
 
@@ -159,10 +158,20 @@ class EntityDistinctValuesFinder(EntityFinder):
 	distinctValueOnSingleColumn: bool = False  # distinct value when it is True and only one column assigned
 
 
+class EntityColumnType(str, Enum):
+	INTEGER = 'integer',
+	STRING = 'string',
+	TEXT = 'text',
+	BOOLEAN = 'boolean',
+	DATE = 'date',
+	DATETIME = 'datetime',
+	JSON = 'json'
+
+
 class EntityStraightColumn(DataModel):
 	columnName: EntityColumnName  # original name
 	alias: Optional[EntityColumnName]  # alias name
-	columnType: Optional[TypeEngine] = None  # literal column type
+	columnType: Optional[EntityColumnType] = None  # literal column type
 
 
 class EntityColumnAggregateArithmetic(str, Enum):
