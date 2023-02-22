@@ -17,8 +17,8 @@ CREATE TABLE objectives
     CONSTRAINT pk_objectives PRIMARY KEY (objective_id)
 );
 CREATE INDEX i_objectives_1 ON objectives (name);
-CREATE INDEX i_objectives_3 ON objectives (tenant_id);
-CREATE INDEX i_objectives_4 ON objectives (created_at);
-CREATE INDEX i_objectives_5 ON objectives (created_by);
-CREATE INDEX i_objectives_6 ON objectives (last_modified_at);
-CREATE INDEX i_objectives_7 ON objectives (last_modified_by);
+CREATE INDEX i_objectives_2 ON objectives (tenant_id);
+CREATE INDEX i_objectives_3 ON objectives (created_at);
+CREATE INDEX i_objectives_4 ON objectives (created_by);
+CREATE INDEX i_objectives_5 ON objectives (last_modified_at);
+CREATE INDEX i_objectives_6 ON objectives (last_modified_by);
