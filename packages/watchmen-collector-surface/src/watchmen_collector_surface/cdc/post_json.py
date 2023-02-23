@@ -5,7 +5,7 @@ from traceback import format_exc
 from typing import List
 
 from watchmen_collector_kernel.common import TENANT_ID, CHANGE_JSON_ID, WAVE
-from watchmen_collector_kernel.model import ChangeDataJson, ScheduledTask, TaskStatus, TriggerModel, \
+from watchmen_collector_kernel.model import ChangeDataJson, ScheduledTask, TriggerModel, \
 	CollectorModelConfig, TriggerEvent
 
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock, try_lock_nowait, unlock
@@ -62,7 +62,10 @@ class PostJsonService:
 
 	def change_data_json_listener(self):
 		unfinished_events = self.trigger_event_service.find_unfinished_events()
-		ArrayHelper(unfinished_events).each(self.process_models)
+		if len(unfinished_events) == 0:
+			sleep(1)
+		else:
+			ArrayHelper(unfinished_events).each(self.process_models)
 
 	def process_models(self, unfinished_event: TriggerEvent):
 		trigger_models = self.trigger_model_service.find_by_event_trigger_id(unfinished_event.get('event_trigger_id'))
@@ -198,7 +201,7 @@ class PostJsonService:
 			modelName=change_json.modelName,
 			objectId=change_json.objectId,
 			dependence=self.get_dependent_tasks(change_json),
-			status=TaskStatus.INITIAL.value,
+			isFinished=False,
 			result=None,
 			tenantId=change_json.tenantId
 		)
