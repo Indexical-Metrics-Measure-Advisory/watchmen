@@ -318,7 +318,7 @@ table_scheduled_task = Table(
 	create_str('topic_code', 50), create_json('content'),
 	create_str('model_name', 20), create_str('object_id', 100),
 	create_json('depend_on'), create_json('parent_task_id'),
-	create_int('status', False), create_json('result'),
+	create_int('is_finished', False), create_json('result'),
 	create_tenant_id(),
 	*create_tuple_audit_columns()
 )
