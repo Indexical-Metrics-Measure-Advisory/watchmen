@@ -10,7 +10,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
-watchmen-pipeline-kernel = "16.4.0"
+watchmen-data-kernel = "16.4.0"
 watchmen-storage-mysql = { version = "16.4.0", optional = true }
 watchmen-storage-oracle = { version = "16.4.0", optional = true }
 watchmen-storage-mongodb = { version = "16.4.0", optional = true }
