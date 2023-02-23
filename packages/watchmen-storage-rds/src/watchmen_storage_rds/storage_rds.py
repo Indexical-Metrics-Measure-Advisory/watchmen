@@ -21,7 +21,7 @@ from watchmen_utilities import ArrayHelper, is_blank, serialize_to_json
 from .settings import ask_connection_leak_time_in_seconds, ask_detect_connection_leak_enabled, \
 	ask_print_connection_leak_interval
 from .table_defs import find_table
-from .types import SQLAlchemyStatement
+from .types import SQLAlchemyStatement, get_column_type
 
 logger = getLogger(__name__)
 
@@ -309,7 +309,7 @@ class StorageRDS(TransactionalStorageSPI):
 		if len(finder.distinctColumnNames) != 1 or not finder.distinctValueOnSingleColumn:
 			statement = select(*ArrayHelper(finder.distinctColumnNames).map(text).to_list()).select_from(table)
 		else:
-			statement = select(distinct(finder.distinctColumnNames[0])).select_from(table)
+			statement = select(distinct(text(finder.distinctColumnNames[0]))).select_from(table)
 		return self.find_on_statement_by_finder(table, statement, finder)
 
 	# noinspection PyMethodMayBeStatic
@@ -334,7 +334,7 @@ class StorageRDS(TransactionalStorageSPI):
 				return func.min(literal_column(straight_column.columnName)) \
 					.label(self.get_alias_from_straight_column(straight_column))
 		elif isinstance(straight_column, EntityStraightColumn):
-			return literal_column(straight_column.columnName) \
+			return literal_column(straight_column.columnName, get_column_type(straight_column.columnType)) \
 				.label(self.get_alias_from_straight_column(straight_column))
 
 		raise UnsupportedStraightColumnException(f'Straight column[{straight_column.to_dict()}] is not supported.')

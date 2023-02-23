@@ -307,12 +307,82 @@ table_achievement_plugin_tasks = Table(
 	create_tenant_id(), create_user_id(),
 	*create_tuple_audit_columns()
 )
-table_oss_collector_competitive_lock = Table(
-	'collector_competitive_lock', meta_data,
-	create_pk('lock_id'), create_str('resource_id', 500),
+table_competitive_lock = Table(
+	'competitive_lock', meta_data,
+	create_pk('lock_id', Integer), create_str('resource_id', 500),
+	create_datetime('registered_at', False), create_tenant_id()
+)
+table_scheduled_task = Table(
+	'scheduled_task', meta_data,
+	create_pk('task_id', Integer), create_str('resource_id', 500),
+	create_str('topic_code', 50), create_json('content'),
 	create_str('model_name', 20), create_str('object_id', 100),
-	create_datetime('registered_at', False), create_tenant_id(),
-	create_int('status', False)
+	create_json('depend_on'), create_json('parent_task_id'),
+	create_int('status', False), create_json('result'),
+	create_tenant_id(),
+	*create_tuple_audit_columns()
+)
+table_collector_model_config = Table(
+	'collector_model_config', meta_data,
+	create_pk('model_id'), create_str('model_name', 50),
+	create_json('depend_on'), create_str('raw_topic_code', 50),
+	create_int('is_paralleled'),
+	create_tenant_id(), *create_tuple_audit_columns(),
+	create_optimistic_lock()
+)
+table_collector_table_config = Table(
+	'collector_table_config', meta_data,
+	create_pk('config_id'), create_str('name', 50),
+	create_str('table_name', 50), create_json('primary_key'), create_str('object_key', 50),
+	create_str('model_name', 50), create_str('parent_name', 50), create_json('join_keys'),
+	create_json('conditions'), create_str('label', 50),
+	create_json('depend_on'), create_int('triggered'),
+	create_str('audit_column', 50), create_str('data_source_id', 50),
+	create_int('is_list'),
+	create_tenant_id(), *create_tuple_audit_columns(),
+	create_optimistic_lock()
+)
+table_trigger_event = Table(
+	'trigger_event', meta_data,
+	create_pk('event_trigger_id', Integer),
+	create_date('start_time'), create_date('end_time'),
+	create_int('is_finished', False),
+	create_tenant_id(), *create_tuple_audit_columns()
+)
+table_trigger_model = Table(
+	'trigger_model', meta_data,
+	create_pk('model_trigger_id', Integer),
+	create_str('model_name', 50),
+	create_int('is_finished', False),
+	create_int('event_trigger_id', False),
+	create_tenant_id(), *create_tuple_audit_columns()
+)
+table_trigger_table = Table(
+	'trigger_table', meta_data,
+	create_pk('table_trigger_id', Integer), create_str('table_name', 50),
+	create_str('model_name', 50), create_int('data_count'),
+	create_int('is_extracted', False),
+	create_int('model_trigger_id', False),
+	create_int('event_trigger_id', False),
+	create_tenant_id(), *create_tuple_audit_columns()
+)
+table_change_data_record = Table(
+	'change_data_record', meta_data,
+	create_pk('change_record_id', Integer), create_str('model_name', 50), create_str('table_name', 50),
+	create_json('data_id'), create_str('root_table_name', 50), create_json('root_data_id'),
+	create_int('is_merged', False), create_json('result'),
+	create_int('table_trigger_id', False), create_int('model_trigger_id', False), create_int('event_trigger_id', False),
+	create_tenant_id(), *create_tuple_audit_columns()
+)
+table_change_data_json = Table(
+	'change_data_json', meta_data,
+	create_pk('change_json_id', Integer), create_str('resource_id', 100),
+	create_str('model_name', 50), create_str('object_id', 50),
+	create_str('table_name', 50), create_json('data_id'),
+	create_json('content'), create_json('depend_on'), create_int('is_posted', False), create_int('task_id', True),
+	create_json('result'),
+	create_int('table_trigger_id', False), create_int('model_trigger_id', False), create_int('event_trigger_id', False),
+	create_tenant_id(), *create_tuple_audit_columns()
 )
 table_operations = Table(
 	'operations', meta_data,
@@ -373,9 +443,18 @@ tables: Dict[str, Table] = {
 	'achievements': table_achievements,
 	'objective_analysis': table_objective_analysis,
 	'achievement_plugin_tasks': table_achievement_plugin_tasks,
-	'oss_collector_competitive_lock': table_oss_collector_competitive_lock,
+	'competitive_lock': table_competitive_lock,
+	'scheduled_task': table_scheduled_task,
 	'operations': table_operations,
-	'package_versions': table_package_versions
+	'package_versions': table_package_versions,
+	# collector
+	'collector_model_config': table_collector_model_config,
+	'collector_table_config': table_collector_table_config,
+	'trigger_event': table_trigger_event,
+	'trigger_model': table_trigger_model,
+	'trigger_table': table_trigger_table,
+	'change_data_record': table_change_data_record,
+	'change_data_json': table_change_data_json
 
 }
 
