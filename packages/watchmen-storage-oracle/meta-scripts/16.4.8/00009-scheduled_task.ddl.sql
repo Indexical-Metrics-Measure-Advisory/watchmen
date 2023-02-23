@@ -8,7 +8,7 @@ CREATE TABLE scheduled_task
     object_id           VARCHAR2(50)    NOT NULL,
     depend_on           CLOB,
     parent_task_id      CLOB,
-	status              NUMBER(1)       NOT NULL,
+	is_finished         NUMBER(1)       NOT NULL,
 	result              CLOB,
     tenant_id           VARCHAR2(50)    NOT NULL,
     created_at          DATE            NOT NULL,

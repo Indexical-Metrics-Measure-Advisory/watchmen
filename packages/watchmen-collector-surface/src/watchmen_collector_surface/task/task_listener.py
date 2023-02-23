@@ -67,8 +67,4 @@ class TaskListener:
 
 	# noinspection PyMethodMayBeStatic
 	def is_finished(self, task: ScheduledTask) -> bool:
-		if task.status == TaskStatus.SUCCESS:
-			return True
-		elif task.status == TaskStatus.FAILED:
-			return True
-		return False
+		return task.isFinished

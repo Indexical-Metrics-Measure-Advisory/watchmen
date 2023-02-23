@@ -23,7 +23,7 @@ class ScheduledTaskShaper(EntityShaper):
 			'depend_on': entity.dependOn,
 			'parent_task_id': entity.parentTaskId,
 			'tenant_id': entity.tenantId,
-			'status': entity.status,
+			'isFinished': entity.isFinished,
 			'result': entity.result
 		})
 
@@ -39,7 +39,7 @@ class ScheduledTaskShaper(EntityShaper):
 			dependOn=row.get('depend_on'),
 			parentTaskId=row.get('parent_task_id'),
 			tenantId=row.get('tenant_id'),
-			status=row.get('status'),
+			isFinished=row.get('is_finished'),
 			result=row.get('result')
 		))
 
@@ -107,7 +107,7 @@ class ScheduledTaskService(TupleService):
 				criteria=[EntityCriteriaJoint(
 					children=[
 						EntityCriteriaExpression(
-							left=ColumnNameLiteral(columnName='status'), right=0)
+							left=ColumnNameLiteral(columnName='is_finished'), right=False)
 					]
 				)],
 				straightColumns=[EntityStraightColumn(columnName='task_id'),
@@ -139,8 +139,8 @@ class ScheduledTaskService(TupleService):
 					                         right=model_name),
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='object_id'),
 					                         right=object_id),
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'),
-					                         right=0),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_finished'),
+					                         right=False),
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'),
 					                         right=tenant_id)
 				]
