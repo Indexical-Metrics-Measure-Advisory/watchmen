@@ -23,7 +23,7 @@ class ScheduledTaskShaper(EntityShaper):
 			'depend_on': entity.dependOn,
 			'parent_task_id': entity.parentTaskId,
 			'tenant_id': entity.tenantId,
-			'isFinished': entity.isFinished,
+			'is_finished': entity.isFinished,
 			'result': entity.result
 		})
 
