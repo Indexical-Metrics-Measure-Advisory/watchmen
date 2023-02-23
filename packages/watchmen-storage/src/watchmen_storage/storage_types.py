@@ -158,9 +158,20 @@ class EntityDistinctValuesFinder(EntityFinder):
 	distinctValueOnSingleColumn: bool = False  # distinct value when it is True and only one column assigned
 
 
+class EntityColumnType(str, Enum):
+	INTEGER = 'integer',
+	STRING = 'string',
+	TEXT = 'text',
+	BOOLEAN = 'boolean',
+	DATE = 'date',
+	DATETIME = 'datetime',
+	JSON = 'json'
+
+
 class EntityStraightColumn(DataModel):
 	columnName: EntityColumnName  # original name
 	alias: Optional[EntityColumnName]  # alias name
+	columnType: Optional[EntityColumnType] = None  # literal column type
 
 
 class EntityColumnAggregateArithmetic(str, Enum):

@@ -25,7 +25,7 @@ watchmen-storage-mssql = { version = "16.4.0", optional = true }
 watchmen-storage-postgresql = { version = "16.4.0", optional = true }
 watchmen-storage-oss = { version = "16.4.0", optional = true }
 watchmen-storage-s3 = { version = "16.4.0", optional = true }
-watchmen-collector-kernel = { version = "16.4.0", optional = true }
+watchmen-collector-surface = { version = "16.4.0", optional = true }
 kafka-python = { version = "^2.0.2", optional = true }
 aiokafka = { version = "^0.7.2", optional = true }
 aio-pika = { version = "^7.1.2", optional = true }
@@ -46,7 +46,7 @@ mssql = ["watchmen-storage-mssql"]
 postgresql = ["watchmen-storage-postgresql"]
 oss = ["watchmen-storage-oss"]
 s3 = ["watchmen-storage-s3"]
-collector = ["watchmen-collector-kernel"]
+collector = ["watchmen-collector-surface"]
 kafka = ["kafka-python", "aiokafka"]
 rabbit = ["aio-pika"]
 prometheus = ["starlette-prometheus"]

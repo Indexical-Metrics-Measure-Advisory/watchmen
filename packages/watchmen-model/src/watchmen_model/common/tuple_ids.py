@@ -36,4 +36,12 @@ AchievementPluginTaskId = TypeVar('AchievementPluginTaskId', bound=str)
 
 PatId = TypeVar('PatId', bound=str)
 
-OssCollectorCompetitiveLockId = TypeVar('OssCollectorCompetitiveLockId', bound=str)
+CompetitiveLockId = TypeVar('CompetitiveLockId', bound=int)
+ScheduledTaskId = TypeVar('ScheduledTaskId', bound=int)
+ChangeRecordId = TypeVar('ChangeRecordId', bound=int)
+ChangeJsonId = TypeVar('ChangeJsonId', bound=int)
+CollectorModelConfigId = TypeVar('CollectorModelConfigId', bound=str)
+CollectorTableConfigId = TypeVar('CollectorTableConfigId', bound=str)
+EventTriggerId = TypeVar('EventTriggerId', bound=int)
+ModelTriggerId = TypeVar('ModelTriggerId', bound=int)
+TableTriggerId = TypeVar('TableTriggerId', bound=int)

@@ -29,3 +29,5 @@ class DollSettings(RestSettings):
 	SAML_SP_ASSERT_URL: str = ''
 	SAML_SP_ASSERT_BINDING: str = 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect'
 	SAML_SP_X509CERT: str = ''
+
+	COLLECTOR_ON: bool = False

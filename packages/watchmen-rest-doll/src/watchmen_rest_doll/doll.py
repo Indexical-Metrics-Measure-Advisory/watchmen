@@ -77,8 +77,19 @@ class DollApp(RestApp):
 	def init_pipeline_surface(self) -> None:
 		pipeline_surface.init()
 
+	def ask_collector_enabled(self) -> bool:
+		return self.get_settings().COLLECTOR_ON
+
+	# noinspection PyMethodMayBeStatic
+	def init_collector_surface(self) -> None:
+		if self.ask_collector_enabled():
+			from watchmen_collector_surface import collector_surface
+			collector_surface.init()
+		pass
+
 	def on_startup(self, app: FastAPI) -> None:
 		self.init_pipeline_surface()
+		self.init_collector_surface()
 
 
 doll = DollApp(DollSettings())
@@ -118,3 +129,7 @@ def ask_saml2_enabled() -> bool:
 
 def ask_saml2_settings() -> Dict:
 	return doll.ask_saml2_settings()
+
+
+def ask_collector_enabled() -> bool:
+	return doll.ask_collector_enabled()
