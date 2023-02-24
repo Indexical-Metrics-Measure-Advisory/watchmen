@@ -1,21 +1,21 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 
 import networkx as nx
 from networkx import MultiDiGraph
 from pydantic import BaseModel
 
-from watchmen_indicator_kernel.meta import ObjectiveService
-from watchmen_indicator_surface.util import trans_readonly
 from watchmen_auth import PrincipalService
+from watchmen_indicator_kernel.meta import ObjectiveService
 from watchmen_lineage.model.lineage import DatasetColumnFacet, LineageNode, LineageRelation, LineageType, \
-	RelationDirection, TopicFactorFacet, ObjectiveTargetFacet, LineageResult, RelationshipLineage
+	RelationDirection, TopicFactorFacet, ObjectiveTargetFacet, LineageResult, RelationshipLineage, IndicatorFacet
 from watchmen_lineage.service.builder.index import get_builder
 from watchmen_lineage.service.builder.loader import LineageBuilder
 from watchmen_lineage.utils.id_utils import build_node_id, parse_node_id
-from watchmen_lineage.utils.utils import get_source_and_target_key
+from watchmen_lineage.utils.utils import get_source_and_target_key, trans_readonly
 from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage
 from watchmen_model.admin import Topic
-from watchmen_model.common import FactorId, ObjectiveTargetId, SubjectDatasetColumnId, SubjectId, TopicId, ObjectiveId
+from watchmen_model.common import FactorId, ObjectiveTargetId, SubjectDatasetColumnId, SubjectId, TopicId, ObjectiveId, \
+	IndicatorId
 from watchmen_model.console import Subject
 from watchmen_model.indicator import Indicator, Objective
 
@@ -240,3 +240,53 @@ class LineageService(object):
 		tenant_node_graph: MultiDiGraph = self.get_graph_by_tenant(principal_service)
 		builder: LineageBuilder = get_builder(lineage_type)
 		builder.build_partial(tenant_node_graph, model)
+
+	def load_relevant_indicators(self, indicator_id: IndicatorId, principal_service: PrincipalService):
+
+		tenant_node_graph: MultiDiGraph = self.get_graph_by_tenant(principal_service)
+
+		indicator_facet: IndicatorFacet = IndicatorFacet(nodeId=indicator_id)
+
+		node_id = build_node_id(indicator_facet)
+
+		siblings = self.find_indicators_with_same_deeper_parent(tenant_node_graph, node_id, node_id, [])
+		indicator_list = []
+		for sibling in siblings:
+			indicator_facet: IndicatorFacet = parse_node_id(sibling)
+			indicator_list.append(indicator_facet.nodeId)
+		return indicator_list
+
+	@staticmethod
+	def is_factor(node_id: str):
+		return isinstance(parse_node_id(node_id, {}), TopicFactorFacet)
+
+	@staticmethod
+	def is_subject_column(node_id: str):
+		return isinstance(parse_node_id(node_id, {}), DatasetColumnFacet)
+
+	@staticmethod
+	def is_indicator(node: str):
+		return isinstance(parse_node_id(node, {}), IndicatorFacet)
+
+	@staticmethod
+	def __get_node_parent(graph: MultiDiGraph, node_id: str):
+		parent_nodes = list(graph.predecessors(node_id))
+		return parent_nodes
+
+	def __find_sub_node(self, graph: MultiDiGraph, source_node, parent_node, siblings):
+		for sibling in graph.successors(parent_node):
+			if sibling != source_node and self.is_indicator(sibling):
+				siblings.append(sibling)
+			elif self.is_factor(sibling) or self.is_subject_column(sibling):
+				self.__find_sub_node(graph, source_node, sibling, siblings)
+
+		return siblings
+
+	def find_indicators_with_same_deeper_parent(self, graph, source_node, node, siblings: List):
+		parent_nodes = self.__get_node_parent(graph, node)
+		for parent_node in parent_nodes:
+			self.__find_sub_node(graph, source_node, parent_node, siblings)
+			# Recursively find siblings in the parent node's subtree
+			self.find_indicators_with_same_deeper_parent(graph, source_node, parent_node, siblings)
+
+		return siblings
