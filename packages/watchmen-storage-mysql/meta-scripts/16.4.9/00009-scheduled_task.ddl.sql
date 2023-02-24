@@ -8,7 +8,7 @@ CREATE TABLE scheduled_task
     object_id           VARCHAR(50) NOT NULL,
     depend_on           JSON,
     parent_task_id      JSON,
-	status              TINYINT     NOT NULL,
+	is_finished         TINYINT     NOT NULL,
 	result              JSON,
     tenant_id           VARCHAR(50) NOT NULL,
     created_at          DATETIME    NOT NULL,

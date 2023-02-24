@@ -3,7 +3,7 @@ from traceback import format_exc
 from typing import Callable, Dict, Optional, List
 
 from watchmen_auth import PrincipalService
-from watchmen_collector_kernel.model import ScheduledTask, TaskStatus
+from watchmen_collector_kernel.model import ScheduledTask
 from watchmen_collector_kernel.model.scheduled_task import Dependence
 from watchmen_collector_kernel.storage import get_scheduled_task_service
 from watchmen_model.common import ScheduledTaskId
@@ -31,11 +31,11 @@ class TaskService:
 	def consume_task(self, task: ScheduledTask, executed: Callable[[str, Dict, str], None]) -> ScheduledTask:
 		try:
 			executed(task.topicCode, task.content, task.tenantId)
-			task.status = int(TaskStatus.SUCCESS)
+			task.isFinished = True
 			return self.scheduled_task_service.update_task(task)
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
-			task.status = int(TaskStatus.FAILED)
+			task.isFinished = True
 			task.result = format_exc()
 			return self.scheduled_task_service.update_task(task)
 

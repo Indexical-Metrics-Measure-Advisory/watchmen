@@ -2,19 +2,13 @@ from typing import Dict, List
 
 from watchmen_model.common import TenantBasedTuple, ScheduledTaskId, Storable
 from pydantic import BaseModel
-from enum import Enum, IntEnum
+from enum import Enum
 
 
 class Result(str, Enum):
 	DEPENDENCY_FAILED = "DEPENDENCY_FAILED"
 	PROCESS_TASK_SUCCESS = "PROCESS_TASK_SUCCESS"
 	PROCESS_TASK_FAILED = "PROCESS_TASK_FAILED"
-
-
-class TaskStatus(IntEnum):
-	INITIAL = 0
-	SUCCESS = 1
-	FAILED = 2
 
 
 class Dependence(Storable, BaseModel):
@@ -31,6 +25,6 @@ class ScheduledTask(TenantBasedTuple, BaseModel):
 	objectId: str
 	dependOn: List[Dependence]
 	parentTaskId: List[int]
-	status: TaskStatus
+	isFinished: bool
 	result: Dict
 
