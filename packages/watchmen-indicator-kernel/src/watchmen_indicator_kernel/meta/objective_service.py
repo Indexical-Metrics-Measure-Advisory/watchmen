@@ -107,6 +107,17 @@ class ObjectiveService(TupleService):
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))
 
+	def find_by_ids(self, objective_ids: List[ObjectiveId], tenant_id: Optional[TenantId]) -> List[Objective]:
+		criteria = [
+			EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='objective_id'), operator=EntityCriteriaOperator.IN,
+				right=objective_ids)
+		]
+		if tenant_id is not None and len(tenant_id.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria))
+
 	def find_all(self, tenant_id: Optional[TenantId]) -> List[Objective]:
 		criteria = []
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
