@@ -8,7 +8,7 @@ import {useForceUpdate} from '@/widgets/basic/utils';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
-import {useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {
 	EmphaticSinkingLabel,
 	Step,
@@ -50,6 +50,18 @@ export const Relevant = () => {
 			setVisible(false);
 		}
 	});
+	useEffect(() => {
+		if (constructed === Construct.WAIT || detected) {
+			return;
+		}
+		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
+			async () => {
+				return await fetchRelevantIndicators(data!.indicator!.indicatorId!);
+			}, (indicators: Array<Indicator>) => {
+				setIndicators(indicators);
+				setDetected(true);
+			});
+	}, [constructed, detected])
 
 	if (constructed === Construct.WAIT) {
 		return null;
