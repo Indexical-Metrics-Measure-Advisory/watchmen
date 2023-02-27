@@ -1,5 +1,3 @@
-import {useConsoleEventBus} from '@/console/console-event-bus';
-import {ConsoleEventTypes} from '@/console/console-event-bus-types';
 import {deleteDerivedObjective} from '@/services/data/tuples/derived-objective';
 import {DerivedObjective} from '@/services/data/tuples/derived-objective-types';
 import {Button} from '@/widgets/basic/button';
@@ -14,6 +12,8 @@ import {useThrottler} from '@/widgets/throttler';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {useEffect} from 'react';
 import styled from 'styled-components';
+import {useConsoleEventBus} from '../../console-event-bus';
+import {ConsoleEventTypes} from '../../console-event-bus-types';
 
 const DeleteDialogBody = styled(DialogBody)`
 	flex-direction : column;

@@ -15,7 +15,7 @@ import {
 import {FactorType} from '../../tuples/factor-types';
 import {IndicatorAggregateArithmetic} from '../../tuples/indicator-types';
 import {Objective, ObjectiveFactor, ObjectiveId, ObjectiveValues} from '../../tuples/objective-types';
-import {QueryObjective} from '../../tuples/query-objective-types';
+import {QueryObjective, QueryObjectiveForHolder} from '../../tuples/query-objective-types';
 import {SubjectColumnArithmetic} from '../../tuples/subject-types';
 import {TopicKind, TopicType} from '../../tuples/topic-types';
 import {generateUuid, isFakedUuid} from '../../tuples/utils';
@@ -560,5 +560,17 @@ export const fetchMockConsanguinity = async (objective: Objective): Promise<Cons
 				]
 			});
 		}, 1000);
+	});
+};
+
+export const listMockObjectivesForHolder = async (search: string): Promise<Array<QueryObjectiveForHolder>> => {
+	return new Promise((resolve) => {
+		setTimeout(() => {
+			resolve(
+				DemoObjectives.filter((x) =>
+					x.name.toUpperCase().includes(search.toUpperCase())
+				)
+			);
+		}, 500);
 	});
 };

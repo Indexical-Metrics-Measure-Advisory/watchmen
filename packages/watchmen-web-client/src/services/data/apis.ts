@@ -186,6 +186,8 @@ export const Apis = {
 	BUCKETS_EXPORT: 'indicator/bucket/export',
 
 	OBJECTIVE_LIST_BY_NAME: 'indicator/objective/name?query_name=:search',
+	OBJECTIVE_LIST_FOR_HOLDER_BY_NAME: 'indicator/objective/list/name?query_name=:search',
+	OBJECTIVE_BY_IDS: 'indicator/objective/ids',
 	OBJECTIVE_GET: 'indicator/objective?objective_id=:objectiveId',
 	OBJECTIVE_CREATE: 'indicator/objective',
 	OBJECTIVE_SAVE: 'indicator/objective',

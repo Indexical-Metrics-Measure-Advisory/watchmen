@@ -3,7 +3,7 @@ import {FactorId} from './factor-types';
 import {IndicatorId} from './indicator-types';
 import {SubjectDataSetColumnId} from './subject-types';
 import {TenantId} from './tenant-types';
-import {OptimisticLock, Tuple} from './tuple-types';
+import {OptimisticLock, Tuple, TupleHolder} from './tuple-types';
 import {UserGroupHolder} from './user-group-types';
 
 export type ObjectiveId = string;
@@ -261,4 +261,8 @@ export interface ObjectiveFactorValues {
 export interface ObjectiveValues {
 	targets: Array<ObjectiveTargetValues>;
 	factors: Array<ObjectiveFactorValues>;
+}
+
+export interface ObjectiveHolder extends TupleHolder {
+	objectiveIds: Array<ObjectiveId>;
 }

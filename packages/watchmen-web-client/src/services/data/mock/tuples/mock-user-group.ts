@@ -1,4 +1,5 @@
 import {TuplePage} from '../../query/tuple-page';
+import {QueryObjectiveForHolder} from '../../tuples/query-objective-types';
 import {QuerySpaceForHolder} from '../../tuples/query-space-types';
 import {QueryUserGroup, QueryUserGroupForHolder} from '../../tuples/query-user-group-types';
 import {QueryUserForHolder} from '../../tuples/query-user-types';
@@ -33,7 +34,13 @@ export const listMockUserGroups = async (options: {
 	});
 };
 
-export const fetchMockUserGroup = async (userGroupId: UserGroupId): Promise<{ userGroup: UserGroup; users: Array<QueryUserForHolder>; spaces: Array<QuerySpaceForHolder> }> => {
+export const fetchMockUserGroup = async (
+	userGroupId: UserGroupId): Promise<{
+	userGroup: UserGroup;
+	users: Array<QueryUserForHolder>;
+	spaces: Array<QuerySpaceForHolder>;
+	objectives: Array<QueryObjectiveForHolder>;
+}> => {
 	let userGroup: UserGroup;
 	switch (userGroupId) {
 		case '1':
@@ -43,6 +50,7 @@ export const fetchMockUserGroup = async (userGroupId: UserGroupId): Promise<{ us
 				description: 'South-center market analysis squad.',
 				userIds: ['1', '2', '3', '4', '5'],
 				spaceIds: ['1'],
+				objectiveIds: ['1'],
 				version: 1,
 				createdAt: getCurrentTime(),
 				lastModifiedAt: getCurrentTime()
@@ -50,7 +58,7 @@ export const fetchMockUserGroup = async (userGroupId: UserGroupId): Promise<{ us
 			break;
 		case '2':
 			userGroup = {
-				userGroupId, name: 'Delaware', userIds: [], spaceIds: [],
+				userGroupId, name: 'Delaware', userIds: [], spaceIds: [], objectiveIds: [],
 				version: 1,
 				createdAt: getCurrentTime(),
 				lastModifiedAt: getCurrentTime()
@@ -58,7 +66,7 @@ export const fetchMockUserGroup = async (userGroupId: UserGroupId): Promise<{ us
 			break;
 		case '3':
 			userGroup = {
-				userGroupId, name: 'Hawaii', userIds: [], spaceIds: [],
+				userGroupId, name: 'Hawaii', userIds: [], spaceIds: [], objectiveIds: [],
 				version: 1,
 				createdAt: getCurrentTime(),
 				lastModifiedAt: getCurrentTime()
@@ -66,7 +74,7 @@ export const fetchMockUserGroup = async (userGroupId: UserGroupId): Promise<{ us
 			break;
 		case '4':
 			userGroup = {
-				userGroupId, name: 'Alaska', userIds: [], spaceIds: [],
+				userGroupId, name: 'Alaska', userIds: [], spaceIds: [], objectiveIds: [],
 				version: 1,
 				createdAt: getCurrentTime(),
 				lastModifiedAt: getCurrentTime()
@@ -74,7 +82,7 @@ export const fetchMockUserGroup = async (userGroupId: UserGroupId): Promise<{ us
 			break;
 		case '5':
 			userGroup = {
-				userGroupId, name: 'Missouri', userIds: [], spaceIds: [],
+				userGroupId, name: 'Missouri', userIds: [], spaceIds: [], objectiveIds: [],
 				version: 1,
 				createdAt: getCurrentTime(),
 				lastModifiedAt: getCurrentTime()
@@ -82,7 +90,7 @@ export const fetchMockUserGroup = async (userGroupId: UserGroupId): Promise<{ us
 			break;
 		case '6':
 			userGroup = {
-				userGroupId, name: 'Arkansas', userIds: [], spaceIds: [],
+				userGroupId, name: 'Arkansas', userIds: [], spaceIds: [], objectiveIds: [],
 				version: 1,
 				createdAt: getCurrentTime(),
 				lastModifiedAt: getCurrentTime()
@@ -90,7 +98,7 @@ export const fetchMockUserGroup = async (userGroupId: UserGroupId): Promise<{ us
 			break;
 		default:
 			userGroup = {
-				userGroupId, name: 'Mock User Group', userIds: [], spaceIds: [],
+				userGroupId, name: 'Mock User Group', userIds: [], spaceIds: [], objectiveIds: [],
 				version: 1,
 				createdAt: getCurrentTime(),
 				lastModifiedAt: getCurrentTime()
@@ -105,7 +113,8 @@ export const fetchMockUserGroup = async (userGroupId: UserGroupId): Promise<{ us
 			{userId: '4', name: 'Walter Kovacs'},
 			{userId: '5', name: 'Jeffrey Dean Morgan'}
 		],
-		spaces: [{spaceId: '1', name: 'Quotation & Order'}]
+		spaces: [{spaceId: '1', name: 'Quotation & Order'}],
+		objectives: [{objectiveId: '1', name: 'Monthly Budget'}]
 	};
 };
 

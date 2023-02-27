@@ -9,6 +9,7 @@ import {
 } from '../mock/tuples/mock-user-group';
 import {TuplePage} from '../query/tuple-page';
 import {isMockService} from '../utils';
+import {QueryObjectiveForHolder} from './query-objective-types';
 import {QuerySpaceForHolder} from './query-space-types';
 import {QueryUserGroup, QueryUserGroupForHolder} from './query-user-group-types';
 import {QueryUserForHolder} from './query-user-types';
@@ -35,7 +36,7 @@ export const listUserGroups = async (options: {
 
 export const fetchUserGroup = async (
 	userGroupId: UserGroupId
-): Promise<{ userGroup: UserGroup; users: Array<QueryUserForHolder>; spaces: Array<QuerySpaceForHolder> }> => {
+): Promise<{ userGroup: UserGroup; users: Array<QueryUserForHolder>; spaces: Array<QuerySpaceForHolder>; objectives: Array<QueryObjectiveForHolder> }> => {
 	if (isMockService()) {
 		return fetchMockUserGroup(userGroupId);
 	} else {
@@ -44,7 +45,7 @@ export const fetchUserGroup = async (
 		const fetchUsers = async (): Promise<Array<QueryUserForHolder>> => {
 			const {userIds} = userGroup;
 			if (userIds && userIds.length > 0) {
-				return await post({api: Apis.USER_BY_IDS, data: userGroup.userIds});
+				return await post({api: Apis.USER_BY_IDS, data: userIds});
 			} else {
 				return [];
 			}
@@ -52,14 +53,23 @@ export const fetchUserGroup = async (
 		const fetchSpaces = async (): Promise<Array<QuerySpaceForHolder>> => {
 			const {spaceIds} = userGroup;
 			if (spaceIds && spaceIds.length > 0) {
-				return await post({api: Apis.SPACE_BY_IDS, data: userGroup.spaceIds});
+				return await post({api: Apis.SPACE_BY_IDS, data: spaceIds});
 			} else {
 				return [];
 			}
 		};
-		const [users, spaces] = await Promise.all([fetchUsers(), fetchSpaces()]);
+		const fetchObjectives = async (): Promise<Array<QueryObjectiveForHolder>> => {
+			const {objectiveIds} = userGroup;
+			if (objectiveIds && objectiveIds.length > 0) {
+				return await post({api: Apis.OBJECTIVE_BY_IDS, data: objectiveIds});
+			} else {
+				return [];
+			}
+		};
 
-		return {userGroup, users, spaces};
+		const [users, spaces, objectives] = await Promise.all([fetchUsers(), fetchSpaces(), fetchObjectives()]);
+
+		return {userGroup, users, spaces, objectives};
 	}
 };
 
