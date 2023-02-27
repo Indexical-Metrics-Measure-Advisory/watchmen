@@ -40,7 +40,8 @@ export const En = {
 		OBJECTIVE_FORMULA_CONSTANT_PLACEHOLDER: 'Use "{}" to include variables.',
 		OBJECTIVE_FACTOR_FILTER_CONSTANT_PLACEHOLDER: 'Use "{}" to include variables.',
 		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '";" to separate multiple addresses.',
-		NEW_DERIVED_OBJECTIVE_NAME: 'Objective'
+		NEW_DERIVED_OBJECTIVE_NAME: 'Objective',
+		DEFAULT_DERIVED_OBJECTIVE_NAME: 'Objective'
 	},
 	STANDARD: {
 		YES: 'Yes',
@@ -287,7 +288,14 @@ export const En = {
 			CREATE_DIALOG_CHOOSE_TEMPLATE_LABEL: 'Please select favorite objective',
 			TEMPLATE: 'Objective',
 			NO_MORE_OBJECTIVE: 'No objective exists, contact your administrator for more information.',
-			NO_OBJECTIVE_SELECTED: 'No objective selected.'
+			NO_OBJECTIVE_SELECTED: 'No objective selected.',
+			ADD_INTO_FAVORITE: 'Add into Favorite',
+			REMOVE_FROM_FAVORITE: 'Remove from Favorite',
+			ADD_DERIVED_OBJECTIVE: 'Create Objective',
+			SWITCH_DERIVED_OBJECTIVE: 'Switch Objective',
+			SWITCH_DIALOG_LABEL: 'Please select objective',
+			DELETE_DIALOG_LABEL: 'Are you sure to delete objective? Please note that deletion cannot be recovered.',
+			DELETE_ME: 'Delete Me'
 		}
 	},
 	INDICATOR: {

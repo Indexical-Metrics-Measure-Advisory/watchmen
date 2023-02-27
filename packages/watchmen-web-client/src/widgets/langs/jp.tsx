@@ -40,7 +40,8 @@ export const Jp: LanguageDeclareType = {
 		OBJECTIVE_FORMULA_CONSTANT_PLACEHOLDER: '定義済みの変数を参照するには、"{}" を使用します。',
 		OBJECTIVE_FACTOR_FILTER_CONSTANT_PLACEHOLDER: '定義済みの変数を参照するには、"{}" を使用します。',
 		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '";"で結合された複数のアドレス。',
-		NEW_DERIVED_OBJECTIVE_NAME: '目標'
+		NEW_DERIVED_OBJECTIVE_NAME: '目標',
+		DEFAULT_DERIVED_OBJECTIVE_NAME: '目標'
 	},
 	STANDARD: {
 		YES: 'はい',
@@ -287,7 +288,14 @@ export const Jp: LanguageDeclareType = {
 			CREATE_DIALOG_CHOOSE_TEMPLATE_LABEL: '目標テンプレートを選択してください',
 			TEMPLATE: '目標',
 			NO_MORE_OBJECTIVE: '目標テンプレートの定義が見つかりません。詳細については、管理者に問い合わせてください。',
-			NO_OBJECTIVE_SELECTED: '目標テンプレートが選択されていません。'
+			NO_OBJECTIVE_SELECTED: '目標テンプレートが選択されていません。',
+			ADD_INTO_FAVORITE: 'お気に入りに追加',
+			REMOVE_FROM_FAVORITE: 'お気に入りから削除',
+			ADD_DERIVED_OBJECTIVE: 'テンプレートから目標を作成',
+			SWITCH_DERIVED_OBJECTIVE: '目標に切り替える',
+			SWITCH_DIALOG_LABEL: '目標を選択してください',
+			DELETE_DIALOG_LABEL: '目標を削除してもよろしいですか？ 削除したものは復元できませんので、ご注意ください。',
+			DELETE_ME: '削除'
 		}
 	},
 	INDICATOR: {
