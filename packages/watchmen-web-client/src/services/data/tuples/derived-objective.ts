@@ -1,5 +1,10 @@
 import {Apis, get} from '../apis';
-import {fetchMockDerivedObjectives, saveMockDerivedObjective} from '../mock/tuples/mock-derived-objectives';
+import {
+	deleteMockDerivedObjective,
+	fetchMockDerivedObjectives,
+	renameMockDerivedObjective,
+	saveMockDerivedObjective
+} from '../mock/tuples/mock-derived-objectives';
 import {isMockService} from '../utils';
 import {DerivedObjective} from './derived-objective-types';
 import {isFakedUuid} from './utils';
@@ -26,5 +31,27 @@ export const connectAsDerivedObjective = async (derivedObjective: DerivedObjecti
 		derivedObjective.derivedObjectiveId = data.derivedObjectiveId;
 		derivedObjective.definition = data.definition;
 		derivedObjective.lastModifiedAt = data.lastModifiedAt;
+	}
+};
+
+export const renameDerivedObjective = async (derivedObjective: DerivedObjective): Promise<void> => {
+	if (isMockService()) {
+		return renameMockDerivedObjective(derivedObjective);
+	} else {
+		await get({
+			api: Apis.DERIVED_OBJECTIVE_RENAME,
+			search: {derivedObjectiveId: derivedObjective.derivedObjectiveId, name: derivedObjective.name}
+		});
+	}
+};
+
+export const deleteDerivedObjective = async (derivedObjective: DerivedObjective): Promise<void> => {
+	if (isMockService()) {
+		return deleteMockDerivedObjective(derivedObjective);
+	} else {
+		await get({
+			api: Apis.DERIVED_OBJECTIVE_DELETE,
+			search: {derivedObjectiveId: derivedObjective.derivedObjectiveId}
+		});
 	}
 };

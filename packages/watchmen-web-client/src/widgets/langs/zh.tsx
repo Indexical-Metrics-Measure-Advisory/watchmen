@@ -40,7 +40,8 @@ export const Zh: LanguageDeclareType = {
 		OBJECTIVE_FORMULA_CONSTANT_PLACEHOLDER: '使用"{}"引用预定义变量.',
 		OBJECTIVE_FACTOR_FILTER_CONSTANT_PLACEHOLDER: '使用"{}"引用预定义变量.',
 		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '使用";"分隔邮箱地址.',
-		NEW_DERIVED_OBJECTIVE_NAME: '目标'
+		NEW_DERIVED_OBJECTIVE_NAME: '目标',
+		DEFAULT_DERIVED_OBJECTIVE_NAME: '目标'
 	},
 	STANDARD: {
 		YES: '是',
@@ -287,7 +288,14 @@ export const Zh: LanguageDeclareType = {
 			CREATE_DIALOG_CHOOSE_TEMPLATE_LABEL: '请选择需要的目标模板',
 			TEMPLATE: '目标',
 			NO_MORE_OBJECTIVE: '没有目标模板可以使用, 请联系您的系统管理员以获取更多信息.',
-			NO_OBJECTIVE_SELECTED: '没有选择目标模板.'
+			NO_OBJECTIVE_SELECTED: '没有选择目标模板.',
+			ADD_INTO_FAVORITE: '收藏',
+			REMOVE_FROM_FAVORITE: '取消收藏',
+			ADD_DERIVED_OBJECTIVE: '从模板创建目标',
+			SWITCH_DERIVED_OBJECTIVE: '切换目标',
+			SWITCH_DIALOG_LABEL: '请选择目标',
+			DELETE_DIALOG_LABEL: '确认要删除目标吗? 请注意删除动作不能被恢复.',
+			DELETE_ME: '删除'
 		}
 	},
 	INDICATOR: {

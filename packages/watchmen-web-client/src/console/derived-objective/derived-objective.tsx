@@ -1,5 +1,11 @@
 import {DerivedObjective} from '@/services/data/tuples/derived-objective-types';
+import React from 'react';
+import {Header} from './header';
 
 export const DerivedObjectivePage = (props: { derivedObjective: DerivedObjective }) => {
-	return <div></div>;
+	const {derivedObjective} = props;
+
+	return <>
+		<Header derivedObjective={derivedObjective}/>
+	</>;
 };

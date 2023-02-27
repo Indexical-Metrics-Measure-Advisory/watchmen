@@ -10,8 +10,8 @@ import {saveFavorite} from '@/services/data/console/favorite';
 import {Favorite} from '@/services/data/console/favorite-types';
 import {ConnectedSpace, ConnectedSpaceId} from '@/services/data/tuples/connected-space-types';
 import {Dashboard, DashboardId} from '@/services/data/tuples/dashboard-types';
-import {DerivedObjective} from '@/services/data/tuples/derived-objective-types';
-import {ICON_CONNECTED_SPACE, ICON_DASHBOARD} from '@/widgets/basic/constants';
+import {DerivedObjective, DerivedObjectiveId} from '@/services/data/tuples/derived-objective-types';
+import {ICON_CONNECTED_SPACE, ICON_DASHBOARD, ICON_OBJECTIVE} from '@/widgets/basic/constants';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {MouseEvent, useEffect, useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
@@ -26,10 +26,8 @@ const buildFavoriteItems = (data: StateData) => {
 			const connectedSpace = data.connectedSpaces.find(space => space.connectId == connectedSpaceId);
 			if (connectedSpace) {
 				return {
-					id: connectedSpace.connectId,
-					name: connectedSpace.name,
-					icon: ICON_CONNECTED_SPACE,
-					type: 'connected-space'
+					id: connectedSpace.connectId, name: connectedSpace.name,
+					icon: ICON_CONNECTED_SPACE, type: RenderItemType.CONNECTED_SPACE
 				};
 			} else {
 				return null;
@@ -39,7 +37,22 @@ const buildFavoriteItems = (data: StateData) => {
 			// eslint-disable-next-line
 			const dashboard = data.dashboards.find(dashboard => dashboard.dashboardId == dashboardId);
 			if (dashboard) {
-				return {id: dashboard.dashboardId, name: dashboard.name, icon: ICON_DASHBOARD, type: 'dashboard'};
+				return {
+					id: dashboard.dashboardId, name: dashboard.name, icon: ICON_DASHBOARD,
+					type: RenderItemType.DASHBOARD
+				};
+			} else {
+				return null;
+			}
+		}).filter(x => !!x) as Array<RenderItem>,
+		...data.derivedObjectiveIds.map(derivedObjectiveId => {
+			// eslint-disable-next-line
+			const derivedObjective = data.derivedObjectives.find(objective => objective.derivedObjectiveId == derivedObjectiveId);
+			if (derivedObjective) {
+				return {
+					id: derivedObjective.derivedObjectiveId, name: derivedObjective.name,
+					icon: ICON_OBJECTIVE, type: RenderItemType.DERIVED_OBJECTIVE
+				};
 			} else {
 				return null;
 			}
@@ -103,6 +116,32 @@ export const useFavoriteState = () => {
 		};
 	}, [on, off]);
 	useEffect(() => {
+		const onDerivedObjectiveAddedIntoFavorite = (derivedObjectiveId: DerivedObjectiveId) => {
+			setData(data => {
+				return {
+					...data,
+					derivedObjectiveIds: Array.from(new Set([...data.derivedObjectiveIds, derivedObjectiveId]))
+				};
+			});
+		};
+		const onDerivedObjectiveRemovedFromFavorite = (derivedObjectiveId: DerivedObjectiveId) => {
+			setData(data => {
+				return {
+					...data,
+					// eslint-disable-next-line
+					derivedObjectiveIds: data.derivedObjectiveIds.filter(id => id != derivedObjectiveId)
+				};
+			});
+		};
+
+		on(ConsoleEventTypes.DERIVED_OBJECTIVE_ADDED_INTO_FAVORITE, onDerivedObjectiveAddedIntoFavorite);
+		on(ConsoleEventTypes.DERIVED_OBJECTIVE_REMOVED_FROM_FAVORITE, onDerivedObjectiveRemovedFromFavorite);
+		return () => {
+			off(ConsoleEventTypes.DERIVED_OBJECTIVE_ADDED_INTO_FAVORITE, onDerivedObjectiveAddedIntoFavorite);
+			off(ConsoleEventTypes.DERIVED_OBJECTIVE_REMOVED_FROM_FAVORITE, onDerivedObjectiveRemovedFromFavorite);
+		};
+	}, [on, off]);
+	useEffect(() => {
 		const onDashboardCreated = (dashboard: Dashboard) => {
 			setData(data => {
 				return {...data, dashboards: Array.from(new Set([...data.dashboards, dashboard]))};
@@ -142,6 +181,27 @@ export const useFavoriteState = () => {
 		};
 	}, [on, off]);
 	useEffect(() => {
+		const onDerivedObjectiveCreated = (derivedObjective: DerivedObjective) => {
+			setData(data => {
+				return {...data, derivedObjectives: Array.from(new Set([...data.derivedObjectives, derivedObjective]))};
+			});
+		};
+		const onDerivedObjectiveRemoved = (derivedObjective: DerivedObjective) => {
+			setData(data => {
+				return {
+					...data,
+					derivedObjectives: data.derivedObjectives.filter(exists => exists !== derivedObjective)
+				};
+			});
+		};
+		on(ConsoleEventTypes.DERIVED_OBJECTIVE_CREATED, onDerivedObjectiveCreated);
+		on(ConsoleEventTypes.DERIVED_OBJECTIVE_REMOVED, onDerivedObjectiveRemoved);
+		return () => {
+			off(ConsoleEventTypes.DERIVED_OBJECTIVE_CREATED, onDerivedObjectiveCreated);
+			off(ConsoleEventTypes.DERIVED_OBJECTIVE_REMOVED, onDerivedObjectiveRemoved);
+		};
+	}, [on, off]);
+	useEffect(() => {
 		fire(ConsoleEventTypes.ASK_FAVORITE, ({dashboardIds, connectedSpaceIds, derivedObjectiveIds}: Favorite) => {
 			fire(ConsoleEventTypes.ASK_CONNECTED_SPACES, (connectedSpaces: Array<ConnectedSpace>) => {
 				fire(ConsoleEventTypes.ASK_DASHBOARDS, (dashboards: Array<Dashboard>) => {
@@ -170,11 +230,19 @@ export const useFavoriteState = () => {
 				forceUpdate();
 			}
 		};
+		const onDerivedObjectiveRenamed = (derivedObjective: DerivedObjective) => {
+			// eslint-disable-next-line
+			if (data.derivedObjectiveIds.some(derivedObjectiveId => derivedObjectiveId == derivedObjective.derivedObjectiveId)) {
+				forceUpdate();
+			}
+		};
 		on(ConsoleEventTypes.DASHBOARD_RENAMED, onDashboardRenamed);
 		on(ConsoleEventTypes.CONNECTED_SPACE_RENAMED, onConnectedSpaceRenamed);
+		on(ConsoleEventTypes.DERIVED_OBJECTIVE_RENAMED, onDerivedObjectiveRenamed);
 		return () => {
 			off(ConsoleEventTypes.DASHBOARD_RENAMED, onDashboardRenamed);
 			off(ConsoleEventTypes.CONNECTED_SPACE_RENAMED, onConnectedSpaceRenamed);
+			off(ConsoleEventTypes.DERIVED_OBJECTIVE_RENAMED, onDerivedObjectiveRenamed);
 		};
 	}, [on, off, data.dashboardIds, data.connectedSpaceIds, forceUpdate]);
 
