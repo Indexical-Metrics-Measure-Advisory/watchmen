@@ -39,7 +39,8 @@ export const Zh: LanguageDeclareType = {
 		OBJECTIVE_FACTOR_NAME_PLACEHOLDER: '指标名.',
 		OBJECTIVE_FORMULA_CONSTANT_PLACEHOLDER: '使用"{}"引用预定义变量.',
 		OBJECTIVE_FACTOR_FILTER_CONSTANT_PLACEHOLDER: '使用"{}"引用预定义变量.',
-		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '使用";"分隔邮箱地址.'
+		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '使用";"分隔邮箱地址.',
+		NEW_DERIVED_OBJECTIVE_NAME: '目标'
 	},
 	STANDARD: {
 		YES: '是',
@@ -108,6 +109,7 @@ export const Zh: LanguageDeclareType = {
 		ERROR: {
 			DASHBOARD_NOT_FOUND: '未找到指定的仪表盘数据.',
 			CONNECTED_SPACE_NOT_FOUND: '未找到指定的已联接工作空间.',
+			DERIVED_OBJECTIVE_NOT_FOUND: '未找到指定的目标.',
 			SUBJECT_NOT_FOUND: '未找到指定的主题.',
 			REPORT_NOT_FOUND: '未找到指定的图表.'
 		},
@@ -138,6 +140,8 @@ export const Zh: LanguageDeclareType = {
 			VIEW_ALL: '全部显示',
 			CONNECTED_SPACE_TITLE: '最近访问的工作空间',
 			CREATE_CONNECTED_SPACE_BUTTON: '联接工作空间',
+			DERIVED_OBJECTIVE_TITLE: '最近访问的目标',
+			CREATE_DERIVED_OBJECTIVE_BUTTON: '创建新目标',
 			DASHBOARD_TITLE: '最近访问的仪表盘',
 			CREATE_DASHBOARD_BUTTON: '创建新仪表盘',
 			NO_RECENT: '没有最近使用项.'
@@ -278,6 +282,12 @@ export const Zh: LanguageDeclareType = {
 			CREATE_REPORT_FILTER: '开始',
 			REPORT_NO_FILTER_2: '吗?',
 			REPORT_NO_FUNNEL: '没有启用数据漏斗.'
+		},
+		DERIVED_OBJECTIVE: {
+			CREATE_DIALOG_CHOOSE_TEMPLATE_LABEL: '请选择需要的目标模板',
+			TEMPLATE: '目标',
+			NO_MORE_OBJECTIVE: '没有目标模板可以使用, 请联系您的系统管理员以获取更多信息.',
+			NO_OBJECTIVE_SELECTED: '没有选择目标模板.'
 		}
 	},
 	INDICATOR: {

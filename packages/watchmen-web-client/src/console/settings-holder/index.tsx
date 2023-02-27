@@ -7,6 +7,7 @@ import {ConsoleEventTypes} from '../console-event-bus-types';
 import {HoldSettings} from './types';
 import {useConnectedSpace} from './use-connected-space';
 import {useDashboard} from './use-dashboard';
+import {useDerivedObjective} from './use-derived-objective';
 import {useReplier} from './use-replier';
 
 export const SettingsHolder = () => {
@@ -16,14 +17,18 @@ export const SettingsHolder = () => {
 		initialized: false,
 		connectedSpaces: [],
 		connectedSpaceGraphics: [],
+		derivedObjectives: [],
+
 		availableSpaces: [],
 		availableTopics: [],
+		availableObjectives: [],
 		enums: [],
 		dashboards: [],
 
 		favorite: {
 			connectedSpaceIds: [],
-			dashboardIds: []
+			dashboardIds: [],
+			derivedObjectiveIds: []
 		},
 		lastSnapshot: {
 			favoritePin: false,
@@ -50,6 +55,7 @@ export const SettingsHolder = () => {
 
 	useDashboard({setHoldSettings});
 	useConnectedSpace({setHoldSettings});
+	useDerivedObjective({setHoldSettings});
 
 	return <Fragment/>;
 };

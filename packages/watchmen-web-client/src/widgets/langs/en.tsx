@@ -39,7 +39,8 @@ export const En = {
 		OBJECTIVE_FACTOR_NAME_PLACEHOLDER: 'Indicator name.',
 		OBJECTIVE_FORMULA_CONSTANT_PLACEHOLDER: 'Use "{}" to include variables.',
 		OBJECTIVE_FACTOR_FILTER_CONSTANT_PLACEHOLDER: 'Use "{}" to include variables.',
-		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '";" to separate multiple addresses.'
+		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '";" to separate multiple addresses.',
+		NEW_DERIVED_OBJECTIVE_NAME: 'Objective'
 	},
 	STANDARD: {
 		YES: 'Yes',
@@ -108,6 +109,7 @@ export const En = {
 		ERROR: {
 			DASHBOARD_NOT_FOUND: 'Given dashboard not found.',
 			CONNECTED_SPACE_NOT_FOUND: 'Given connected space not found.',
+			DERIVED_OBJECTIVE_NOT_FOUND: 'Objective not found.',
 			SUBJECT_NOT_FOUND: 'Given subject not found.',
 			REPORT_NOT_FOUND: 'Given report not found.'
 		},
@@ -138,6 +140,8 @@ export const En = {
 			VIEW_ALL: 'View All',
 			CONNECTED_SPACE_TITLE: 'Recent Connected Spaces',
 			CREATE_CONNECTED_SPACE_BUTTON: 'Connect Space',
+			DERIVED_OBJECTIVE_TITLE: 'Recent Objectives',
+			CREATE_DERIVED_OBJECTIVE_BUTTON: 'Create Objective',
 			DASHBOARD_TITLE: 'Recent Dashboards',
 			CREATE_DASHBOARD_BUTTON: 'Create Dashboard',
 			NO_RECENT: 'No recent used.'
@@ -278,6 +282,12 @@ export const En = {
 			CREATE_REPORT_FILTER: 'create now',
 			REPORT_NO_FILTER_2: '?',
 			REPORT_NO_FUNNEL: 'No funnel enabled.'
+		},
+		DERIVED_OBJECTIVE: {
+			CREATE_DIALOG_CHOOSE_TEMPLATE_LABEL: 'Please select favorite objective',
+			TEMPLATE: 'Objective',
+			NO_MORE_OBJECTIVE: 'No objective exists, contact your administrator for more information.',
+			NO_OBJECTIVE_SELECTED: 'No objective selected.'
 		}
 	},
 	INDICATOR: {

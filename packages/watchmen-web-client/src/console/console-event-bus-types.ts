@@ -3,7 +3,9 @@ import {Favorite} from '@/services/data/console/favorite-types';
 import {AvailableSpaceInConsole, ConsoleSettings} from '@/services/data/console/settings-types';
 import {ConnectedSpace, ConnectedSpaceGraphics, ConnectedSpaceId} from '@/services/data/tuples/connected-space-types';
 import {Dashboard, DashboardId} from '@/services/data/tuples/dashboard-types';
+import {DerivedObjective, DerivedObjectiveId} from '@/services/data/tuples/derived-objective-types';
 import {Enum, EnumId} from '@/services/data/tuples/enum-types';
+import {Objective} from '@/services/data/tuples/objective-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 
 export enum FavoriteState {
@@ -27,6 +29,8 @@ export enum ConsoleEventTypes {
 	DASHBOARD_REMOVED_FROM_FAVORITE = 'dashboard-removed-from-favorite',
 	CONNECTED_SPACE_ADDED_INTO_FAVORITE = 'connected-space-added-into-favorite',
 	CONNECTED_SPACE_REMOVED_FROM_FAVORITE = 'connected-space-removed-from-favorite',
+	DERIVED_OBJECTIVE_ADDED_INTO_FAVORITE = 'derived-objective-added-into-favorite',
+	DERIVED_OBJECTIVE_REMOVED_FROM_FAVORITE = 'derived-objective-removed-from-favorite',
 
 	DASHBOARD_CREATED = 'dashboard-created',
 	DASHBOARD_RENAMED = 'dashboard-renamed',
@@ -35,8 +39,11 @@ export enum ConsoleEventTypes {
 	CONNECTED_SPACE_CREATED = 'connected-space-created',
 	CONNECTED_SPACE_RENAMED = 'connected-space-renamed',
 	CONNECTED_SPACE_REMOVED = 'connected-space-removed',
-
 	CONNECTED_SPACE_GRAPHICS_CHANGED = 'connected-space-graphics-changed',
+
+	DERIVED_OBJECTIVE_CREATED = 'derived-objective-created',
+	DERIVED_OBJECTIVE_RENAMED = 'derived-objective-renamed',
+	DERIVED_OBJECTIVE_REMOVED = 'derived-objective-removed',
 
 	// ask data
 	ASK_LAST_SNAPSHOT = 'ask-last-snapshot',
@@ -44,8 +51,10 @@ export enum ConsoleEventTypes {
 	ASK_CONNECTED_SPACES = 'ask-connected-spaces',
 	ASK_CONNECTED_SPACE_GRAPHICS = 'ask-connected-space-graphics',
 	ASK_DASHBOARDS = 'ask-dashboards',
+	ASK_DERIVED_OBJECTIVES = 'ask-derived-objectives',
 	ASK_AVAILABLE_SPACES = 'ask-available-spaces',
 	ASK_AVAILABLE_TOPICS = 'ask-available-topics',
+	ASK_AVAILABLE_OBJECTIVES = 'ask-available-objectives',
 	ASK_ENUM = 'ask-enum',
 }
 
@@ -96,6 +105,14 @@ export interface ConsoleEventBus {
 	on(type: ConsoleEventTypes.CONNECTED_SPACE_REMOVED_FROM_FAVORITE, listener: (connectedSpaceId: ConnectedSpaceId) => void): this;
 	off(type: ConsoleEventTypes.CONNECTED_SPACE_REMOVED_FROM_FAVORITE, listener: (connectedSpaceId: ConnectedSpaceId) => void): this;
 
+	fire(type: ConsoleEventTypes.DERIVED_OBJECTIVE_ADDED_INTO_FAVORITE, derivedObjectiveId: DerivedObjectiveId): this;
+	on(type: ConsoleEventTypes.DERIVED_OBJECTIVE_ADDED_INTO_FAVORITE, listener: (derivedObjectiveId: DerivedObjectiveId) => void): this;
+	off(type: ConsoleEventTypes.DERIVED_OBJECTIVE_ADDED_INTO_FAVORITE, listener: (derivedObjectiveId: DerivedObjectiveId) => void): this;
+
+	fire(type: ConsoleEventTypes.DERIVED_OBJECTIVE_REMOVED_FROM_FAVORITE, derivedObjectiveId: DerivedObjectiveId): this;
+	on(type: ConsoleEventTypes.DERIVED_OBJECTIVE_REMOVED_FROM_FAVORITE, listener: (derivedObjectiveId: DerivedObjectiveId) => void): this;
+	off(type: ConsoleEventTypes.DERIVED_OBJECTIVE_REMOVED_FROM_FAVORITE, listener: (derivedObjectiveId: DerivedObjectiveId) => void): this;
+
 	// dashboard
 	fire(type: ConsoleEventTypes.DASHBOARD_CREATED, dashboard: Dashboard): this;
 	on(type: ConsoleEventTypes.DASHBOARD_CREATED, listener: (dashboard: Dashboard) => void): this;
@@ -126,6 +143,19 @@ export interface ConsoleEventBus {
 	on(type: ConsoleEventTypes.CONNECTED_SPACE_GRAPHICS_CHANGED, listener: (graphics: ConnectedSpaceGraphics) => void): this;
 	off(type: ConsoleEventTypes.CONNECTED_SPACE_GRAPHICS_CHANGED, listener: (graphics: ConnectedSpaceGraphics) => void): this;
 
+	// derived objective
+	fire(type: ConsoleEventTypes.DERIVED_OBJECTIVE_CREATED, derivedObjective: DerivedObjective): this;
+	on(type: ConsoleEventTypes.DERIVED_OBJECTIVE_CREATED, listener: (derivedObjective: DerivedObjective) => void): this;
+	off(type: ConsoleEventTypes.DERIVED_OBJECTIVE_CREATED, listener: (derivedObjective: DerivedObjective) => void): this;
+
+	fire(type: ConsoleEventTypes.DERIVED_OBJECTIVE_RENAMED, derivedObjective: DerivedObjective): this;
+	on(type: ConsoleEventTypes.DERIVED_OBJECTIVE_RENAMED, listener: (derivedObjective: DerivedObjective) => void): this;
+	off(type: ConsoleEventTypes.DERIVED_OBJECTIVE_RENAMED, listener: (derivedObjective: DerivedObjective) => void): this;
+
+	fire(type: ConsoleEventTypes.DERIVED_OBJECTIVE_REMOVED, derivedObjective: DerivedObjective): this;
+	on(type: ConsoleEventTypes.DERIVED_OBJECTIVE_REMOVED, listener: (derivedObjective: DerivedObjective) => void): this;
+	off(type: ConsoleEventTypes.DERIVED_OBJECTIVE_REMOVED, listener: (derivedObjective: DerivedObjective) => void): this;
+
 	// ask state or data
 	fire(type: ConsoleEventTypes.ASK_LAST_SNAPSHOT, onData: (lastSnapshot: LastSnapshot) => void): this;
 	on(type: ConsoleEventTypes.ASK_LAST_SNAPSHOT, listener: (onData: (lastSnapshot: LastSnapshot) => void) => void): this;
@@ -147,6 +177,10 @@ export interface ConsoleEventBus {
 	on(type: ConsoleEventTypes.ASK_DASHBOARDS, listener: (onData: (dashboards: Array<Dashboard>) => void) => void): this;
 	off(type: ConsoleEventTypes.ASK_DASHBOARDS, listener: (onData: (dashboards: Array<Dashboard>) => void) => void): this;
 
+	fire(type: ConsoleEventTypes.ASK_DERIVED_OBJECTIVES, onData: (derivedObjectives: Array<DerivedObjective>) => void): this;
+	on(type: ConsoleEventTypes.ASK_DERIVED_OBJECTIVES, listener: (onData: (derivedObjectives: Array<DerivedObjective>) => void) => void): this;
+	off(type: ConsoleEventTypes.ASK_DERIVED_OBJECTIVES, listener: (onData: (derivedObjectives: Array<DerivedObjective>) => void) => void): this;
+
 	fire(type: ConsoleEventTypes.ASK_AVAILABLE_SPACES, onData: (availableSpaces: Array<AvailableSpaceInConsole>) => void): this;
 	on(type: ConsoleEventTypes.ASK_AVAILABLE_SPACES, listener: (onData: (availableSpaces: Array<AvailableSpaceInConsole>) => void) => void): this;
 	off(type: ConsoleEventTypes.ASK_AVAILABLE_SPACES, listener: (onData: (availableSpaces: Array<AvailableSpaceInConsole>) => void) => void): this;
@@ -154,6 +188,10 @@ export interface ConsoleEventBus {
 	fire(type: ConsoleEventTypes.ASK_AVAILABLE_TOPICS, onData: (availableTopics: Array<Topic>) => void): this;
 	on(type: ConsoleEventTypes.ASK_AVAILABLE_TOPICS, listener: (onData: (availableTopics: Array<Topic>) => void) => void): this;
 	off(type: ConsoleEventTypes.ASK_AVAILABLE_TOPICS, listener: (onData: (availableTopics: Array<Topic>) => void) => void): this;
+
+	fire(type: ConsoleEventTypes.ASK_AVAILABLE_OBJECTIVES, onData: (availableObjectives: Array<Objective>) => void): this;
+	on(type: ConsoleEventTypes.ASK_AVAILABLE_OBJECTIVES, listener: (onData: (availableObjectives: Array<Objective>) => void) => void): this;
+	off(type: ConsoleEventTypes.ASK_AVAILABLE_OBJECTIVES, listener: (onData: (availableObjectives: Array<Objective>) => void) => void): this;
 
 	fire(type: ConsoleEventTypes.ASK_ENUM, enumId: EnumId, onData: (enumeration?: Enum) => void): this;
 	on(type: ConsoleEventTypes.ASK_ENUM, listener: (enumId: EnumId, onData: (enumeration?: Enum) => void) => void): this;

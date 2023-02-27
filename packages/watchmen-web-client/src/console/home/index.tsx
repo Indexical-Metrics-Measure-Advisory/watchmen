@@ -6,6 +6,7 @@ import {Lang} from '@/widgets/langs';
 import React from 'react';
 import {ConnectedSpacesSection} from './connected-spaces-section';
 import {DashboardsSection} from './dashboards-section';
+import {DerivedObjectivesSection} from './derived-objectives-section';
 import {FindSection} from './find-section';
 import {HomeBody} from './widgets';
 
@@ -17,6 +18,7 @@ const ConsoleHomeIndex = () => {
 		<VerticalMarginOneUnit/>
 		<HomeBody>
 			<DashboardsSection/>
+			<DerivedObjectivesSection/>
 			<ConnectedSpacesSection/>
 			<FindSection/>
 		</HomeBody>

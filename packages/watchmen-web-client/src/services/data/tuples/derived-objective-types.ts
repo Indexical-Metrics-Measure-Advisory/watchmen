@@ -1,6 +1,6 @@
-import {Tuple} from '@/services/data/tuples/tuple-types';
-import {DateTime} from '@/services/data/types';
+import {DateTime} from '../types';
 import {Objective, ObjectiveId} from './objective-types';
+import {Tuple} from './tuple-types';
 
 export type DerivedObjectiveId = string;
 

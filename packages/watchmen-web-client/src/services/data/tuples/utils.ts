@@ -1,4 +1,3 @@
-import {DerivedObjective} from '@/services/data/tuples/derived-objective-types';
 import dayjs from 'dayjs';
 import {v4} from 'uuid';
 import {Bucket} from './bucket-types';
@@ -6,6 +5,7 @@ import {Catalog} from './catalog-types';
 import {ConnectedSpace} from './connected-space-types';
 import {Dashboard} from './dashboard-types';
 import {DataSource} from './data-source-types';
+import {DerivedObjective} from './derived-objective-types';
 import {Enum} from './enum-types';
 import {ExternalWriter} from './external-writer-types';
 import {Indicator} from './indicator-types';
