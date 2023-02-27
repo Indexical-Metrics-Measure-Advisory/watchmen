@@ -5,7 +5,7 @@ from watchmen_model.common import DataPage, ObjectiveId, Pageable, TenantId
 from watchmen_model.indicator import Objective, ObjectiveTimeFrame
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityCriteriaJoint, \
 	EntityCriteriaJointConjunction, EntityCriteriaOperator, EntityRow, EntityShaper
-from watchmen_utilities import ArrayHelper
+from watchmen_utilities import ArrayHelper, is_not_blank
 
 
 class ObjectiveShaper(EntityShaper):
@@ -106,6 +106,17 @@ class ObjectiveService(TupleService):
 		if tenant_id is not None and len(tenant_id.strip()) != 0:
 			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
 		return self.storage.page(self.get_entity_pager(criteria=criteria, pageable=pageable))
+
+	# noinspection DuplicatedCode
+	def find_by_name(self, text: Optional[str], tenant_id: Optional[TenantId]) -> List[Objective]:
+		criteria = []
+		if is_not_blank(text):
+			criteria.append(EntityCriteriaExpression(
+				left=ColumnNameLiteral(columnName='name'), operator=EntityCriteriaOperator.LIKE, right=text.strip()))
+		if tenant_id is not None and len(tenant_id.strip()) != 0:
+			criteria.append(EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id))
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(criteria=criteria))
 
 	def find_by_ids(self, objective_ids: List[ObjectiveId], tenant_id: Optional[TenantId]) -> List[Objective]:
 		criteria = [
