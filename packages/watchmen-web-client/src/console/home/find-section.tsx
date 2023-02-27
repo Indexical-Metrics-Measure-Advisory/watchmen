@@ -1,20 +1,23 @@
-import {toConnectedSpace, toDashboard, toSubject, toSubjectReport} from '@/routes/utils';
-import {
-	findConsoleHomeSearched,
-	FoundItem,
-	FoundReport,
-	FoundSubject,
-	saveConsoleHomeSearched
-} from '@/services/data/account/last-snapshot';
+import {toConnectedSpace, toDashboard, toDerivedObjective, toSubject, toSubjectReport} from '@/routes/utils';
+import {findConsoleHomeSearched, FoundItem, saveConsoleHomeSearched} from '@/services/data/account/last-snapshot';
 import {ConnectedSpace, ConnectedSpaceId} from '@/services/data/tuples/connected-space-types';
 import {Dashboard, DashboardId} from '@/services/data/tuples/dashboard-types';
+import {DerivedObjective, DerivedObjectiveId} from '@/services/data/tuples/derived-objective-types';
 import {Report, ReportId} from '@/services/data/tuples/report-types';
 import {Subject, SubjectId} from '@/services/data/tuples/subject-types';
-import {generateUuid, isConnectedSpace, isDashboard, isReport, isSubject} from '@/services/data/tuples/utils';
+import {
+	generateUuid,
+	isConnectedSpace,
+	isDashboard,
+	isDerivedObjective,
+	isReport,
+	isSubject
+} from '@/services/data/tuples/utils';
 import {
 	ICON_CONNECTED_SPACE,
 	ICON_DASHBOARD,
 	ICON_FAVORITE,
+	ICON_OBJECTIVE,
 	ICON_REPORT,
 	ICON_SUBJECT
 } from '@/widgets/basic/constants';
@@ -39,9 +42,10 @@ import {
 
 const find = async (
 	askConnectedSpaces: () => Promise<Array<ConnectedSpace>>,
-	askDashboards: () => Promise<Array<Dashboard>>
+	askDashboards: () => Promise<Array<Dashboard>>,
+	askDerivedObjectives: () => Promise<Array<DerivedObjective>>
 ): Promise<Array<FoundItem>> => {
-	const [connectedSpaces, dashboards] = await Promise.all([askConnectedSpaces(), askDashboards()]);
+	const [connectedSpaces, dashboards, derivedObjectives] = await Promise.all([askConnectedSpaces(), askDashboards(), askDerivedObjectives()]);
 	const subjects = connectedSpaces.map(cs => {
 		return (cs.subjects || []).map(s => {
 			return {
@@ -59,7 +63,7 @@ const find = async (
 			};
 		});
 	}).flat();
-	return [...connectedSpaces, ...subjects, ...reports, ...dashboards];
+	return [...connectedSpaces, ...subjects, ...reports, ...dashboards, ...derivedObjectives];
 };
 
 export const FindSection = () => {
@@ -71,7 +75,8 @@ export const FindSection = () => {
 		(async () => {
 			const existing = await find(
 				() => new Promise<Array<ConnectedSpace>>(resolve => fire(ConsoleEventTypes.ASK_CONNECTED_SPACES, resolve)),
-				() => new Promise<Array<Dashboard>>(resolve => fire(ConsoleEventTypes.ASK_DASHBOARDS, resolve))
+				() => new Promise<Array<Dashboard>>(resolve => fire(ConsoleEventTypes.ASK_DASHBOARDS, resolve)),
+				() => new Promise<Array<DerivedObjective>>(resolve => fire(ConsoleEventTypes.ASK_DERIVED_OBJECTIVES, resolve))
 			);
 			const map = existing.reduce((map, item) => {
 				if (isDashboard(item)) {
@@ -82,10 +87,13 @@ export const FindSection = () => {
 					map.subjects[item.subjectId] = item;
 				} else if (isConnectedSpace(item)) {
 					map.connectedSpaces[item.connectId] = item;
+				} else if (isDerivedObjective(item)) {
+					map.derivedObjectives[item.derivedObjectiveId] = item;
 				}
 				return map;
 			}, {
 				dashboards: {} as Record<DashboardId, Dashboard>,
+				derivedObjectives: {} as Record<DerivedObjectiveId, DerivedObjective>,
 				connectedSpaces: {} as Record<ConnectedSpaceId, ConnectedSpace>,
 				subjects: {} as Record<SubjectId, Subject>,
 				reports: {} as Record<ReportId, Report>
@@ -100,6 +108,8 @@ export const FindSection = () => {
 					return map.subjects[item.subjectId] != null;
 				} else if (isConnectedSpace(item)) {
 					return map.connectedSpaces[item.connectId] != null;
+				} else if (isDerivedObjective(item)) {
+					return map.derivedObjectives[item.derivedObjectiveId] != null;
 				} else {
 					return true;
 				}
@@ -114,7 +124,8 @@ export const FindSection = () => {
 		setSearchText(value);
 		const existing = await find(
 			() => new Promise<Array<ConnectedSpace>>(resolve => fire(ConsoleEventTypes.ASK_CONNECTED_SPACES, resolve)),
-			() => new Promise<Array<Dashboard>>(resolve => fire(ConsoleEventTypes.ASK_DASHBOARDS, resolve))
+			() => new Promise<Array<Dashboard>>(resolve => fire(ConsoleEventTypes.ASK_DASHBOARDS, resolve)),
+			() => new Promise<Array<DerivedObjective>>(resolve => fire(ConsoleEventTypes.ASK_DERIVED_OBJECTIVES, resolve))
 		);
 		const text = value.toLowerCase();
 		const items = existing
@@ -127,7 +138,7 @@ export const FindSection = () => {
 		setSearched(items);
 		saveConsoleHomeSearched(value, items);
 	};
-	const onItemClicked = (item: FoundSubject | ConnectedSpace | Dashboard | FoundReport) => () => {
+	const onItemClicked = (item: FoundItem) => () => {
 		if (isDashboard(item)) {
 			navigate(toDashboard(item.dashboardId));
 		} else if (isReport(item)) {
@@ -136,10 +147,12 @@ export const FindSection = () => {
 			navigate(toSubject(item.connectId, item.subjectId));
 		} else if (isConnectedSpace(item)) {
 			navigate(toConnectedSpace(item.connectId));
+		} else if (isDerivedObjective(item)) {
+			navigate(toDerivedObjective(item.derivedObjectiveId));
 		}
 	};
 
-	const asItemKey = (item: FoundSubject | ConnectedSpace | Dashboard | FoundReport): string => {
+	const asItemKey = (item: FoundItem): string => {
 		if (isDashboard(item)) {
 			return `dashboard-${item.dashboardId}`;
 		} else if (isReport(item)) {
@@ -148,11 +161,13 @@ export const FindSection = () => {
 			return `subject-${item.subjectId}`;
 		} else if (isConnectedSpace(item)) {
 			return `connected-space-${item.connectId}`;
+		} else if (isDerivedObjective(item)) {
+			return `derived-objective-${item.derivedObjectiveId}`;
 		} else {
 			return generateUuid();
 		}
 	};
-	const asItemIcon = (item: FoundSubject | ConnectedSpace | Dashboard | FoundReport): IconDefinition => {
+	const asItemIcon = (item: FoundItem): IconDefinition => {
 		switch (true) {
 			case isDashboard(item):
 				return ICON_DASHBOARD;
@@ -162,6 +177,8 @@ export const FindSection = () => {
 				return ICON_SUBJECT;
 			case isConnectedSpace(item):
 				return ICON_CONNECTED_SPACE;
+			case isDerivedObjective(item):
+				return ICON_OBJECTIVE;
 			default:
 				return ICON_FAVORITE;
 		}

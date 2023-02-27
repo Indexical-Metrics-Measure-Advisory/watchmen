@@ -4,6 +4,7 @@ import {fetchMockLastSnapshot} from '../mock/account/mock-last-snapshot';
 import {CONSOLE_HOME_SEARCHED, LAST_SNAPSHOT_TOKEN} from '../session-constants';
 import {ConnectedSpace} from '../tuples/connected-space-types';
 import {Dashboard} from '../tuples/dashboard-types';
+import {DerivedObjective} from '../tuples/derived-objective-types';
 import {Report} from '../tuples/report-types';
 import {Subject} from '../tuples/subject-types';
 import {isMockService} from '../utils';
@@ -84,7 +85,7 @@ export const saveLastSnapshot = async (snapshot: Partial<LastSnapshot>): Promise
 
 export type FoundReport = Report & Pick<Subject, 'subjectId'> & Pick<ConnectedSpace, 'connectId'>;
 export type FoundSubject = Subject & Pick<ConnectedSpace, 'connectId'>
-export type FoundItem = FoundSubject | ConnectedSpace | Dashboard | FoundReport;
+export type FoundItem = FoundSubject | ConnectedSpace | Dashboard | FoundReport | DerivedObjective;
 
 export const saveConsoleHomeSearched = (text: string, data: Array<FoundItem>) => {
 	sessionStorage.setItem(CONSOLE_HOME_SEARCHED, base64Encode(JSON.stringify({

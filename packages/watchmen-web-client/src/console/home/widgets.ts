@@ -7,7 +7,7 @@ export const HomeBody = styled.div.attrs({'data-widgets': 'console-home-body'})`
 	position              : relative;
 	grid-template-columns : repeat(3, calc(33.333333% - var(--margin) / 3));
 	grid-column-gap       : calc(var(--margin) * 2);
-	grid-template-rows    : auto 1fr;
+	grid-template-rows    : auto auto 1fr;
 	grid-row-gap          : var(--margin);
 `;
 export const HomeSection = styled.div.attrs({'data-widget': 'console-home-section'})`
@@ -20,7 +20,7 @@ export const HomeSection = styled.div.attrs({'data-widget': 'console-home-sectio
 	}
 	&:last-child {
 		grid-column : 2 / span 2;
-		grid-row    : 1 / span 2;
+		grid-row    : 1 / span 3;
 	}
 `;
 export const HomeSectionHeader = styled.div.attrs({'data-widget': 'console-home-section-header'})`
