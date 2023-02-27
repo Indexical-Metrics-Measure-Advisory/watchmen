@@ -20,7 +20,7 @@ import {renderEditor} from './editor';
 
 const createUserGroup = (): UserGroup => {
 	return {
-		userGroupId: generateUuid(), name: '', spaceIds: [], userIds: [],
+		userGroupId: generateUuid(), name: '', spaceIds: [], userIds: [], objectiveIds: [],
 		version: 1,
 		createdAt: getCurrentTime(),
 		lastModifiedAt: getCurrentTime()
@@ -28,8 +28,8 @@ const createUserGroup = (): UserGroup => {
 };
 
 const fetchUserGroupAndCodes = async (queryUserGroup: QueryUserGroup) => {
-	const {userGroup, spaces, users} = await fetchUserGroup(queryUserGroup.userGroupId);
-	return {tuple: userGroup, spaces, users};
+	const {userGroup, spaces, users, objectives} = await fetchUserGroup(queryUserGroup.userGroupId);
+	return {tuple: userGroup, spaces, users, objectives};
 };
 
 const getKeyOfUserGroup = (userGroup: QueryUserGroup) => userGroup.userGroupId;

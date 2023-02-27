@@ -11,7 +11,7 @@ const findNameFromSpaces = (spaceId: SpaceId, spaces: Array<QuerySpaceForHolder>
 	// eslint-disable-next-line
 	return spaces.find(space => space.spaceId == spaceId)!.name;
 };
-const removeSpace = (userGroup: UserGroup) => (spaceOrId: string | QuerySpaceForHolder) => {
+const removeSpace = (userGroup: UserGroup) => (spaceOrId: SpaceId | QuerySpaceForHolder) => {
 	let spaceId: SpaceId;
 	if (typeof spaceOrId === 'string') {
 		spaceId = spaceOrId;

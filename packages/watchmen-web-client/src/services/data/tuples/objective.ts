@@ -6,6 +6,7 @@ import {
 	fetchMockConsanguinity,
 	fetchMockObjective,
 	listMockObjectives,
+	listMockObjectivesForHolder,
 	saveMockObjective
 } from '../mock/tuples/mock-objective';
 import {TuplePage} from '../query/tuple-page';
@@ -13,7 +14,7 @@ import {isMockService} from '../utils';
 import {redressSubjectsToClientType} from './consanguinity';
 import {Consanguinity} from './consanguinity-types';
 import {Objective, ObjectiveFactor, ObjectiveId, ObjectiveValues} from './objective-types';
-import {QueryObjective} from './query-objective-types';
+import {QueryObjective, QueryObjectiveForHolder} from './query-objective-types';
 import {UserGroupId} from './user-group-types';
 import {isFakedUuid, replaceKeys} from './utils';
 
@@ -47,6 +48,15 @@ export const listObjectives = async (options: {
 		});
 		return {...pageable, data: (pageable.data || []).map(objective => transformFromServer(objective))};
 
+	}
+};
+
+export const listObjectivesForHolder = async (search: string): Promise<Array<QueryObjectiveForHolder>> => {
+	if (isMockService()) {
+		return listMockObjectivesForHolder(search);
+	} else {
+		return (await get({api: Apis.OBJECTIVE_LIST_FOR_HOLDER_BY_NAME, search: {search}}))
+			.map((objective: ObjectiveOnServer) => transformFromServer(objective));
 	}
 };
 
