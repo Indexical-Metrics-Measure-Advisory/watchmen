@@ -4,17 +4,17 @@ from fastapi import APIRouter, Depends
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
-from watchmen_indicator_kernel.meta import DerivedObjectiveService
+from watchmen_indicator_kernel.meta import DerivedObjectiveService, ObjectiveService
 from watchmen_indicator_surface.settings import ask_tuple_delete_enabled
 from watchmen_indicator_surface.util import trans, trans_readonly
 from watchmen_meta.admin import UserService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import UserRole
-from watchmen_model.common import DerivedObjectiveId
-from watchmen_model.indicator import DerivedObjective
+from watchmen_model.common import DerivedObjectiveId, ObjectiveId
+from watchmen_model.indicator import DerivedObjective, Objective
 from watchmen_rest import get_console_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
-from watchmen_utilities import is_blank
+from watchmen_utilities import get_current_time_in_seconds, is_blank
 
 router = APIRouter()
 
@@ -23,10 +23,47 @@ def get_derived_objective_service(principal_service: PrincipalService) -> Derive
 	return DerivedObjectiveService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
+def get_objective_service(derived_objective_service: DerivedObjectiveService) -> ObjectiveService:
+	return ObjectiveService(
+		derived_objective_service.storage, derived_objective_service.snowflakeGenerator,
+		derived_objective_service.principalService)
+
+
 def get_user_service(derived_objective_service: DerivedObjectiveService) -> UserService:
 	return UserService(
 		derived_objective_service.storage, derived_objective_service.snowflakeGenerator,
 		derived_objective_service.principalService)
+
+
+@router.get(
+	'/indicator/derived-objective/connect', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=DerivedObjective)
+async def connect_as_derived_objective(
+		objective_id: Optional[ObjectiveId], name: Optional[str], template_ids: Optional[str],
+		principal_service: PrincipalService = Depends(get_console_principal)
+) -> DerivedObjective:
+	if is_blank(objective_id):
+		raise_400('Objective id is required.')
+
+	derived_objective_service = get_derived_objective_service(principal_service)
+
+	def action() -> DerivedObjective:
+		objective_service = get_objective_service(derived_objective_service)
+		objective: Optional[Objective] = objective_service.find_by_id(objective_id)
+		if objective is None:
+			raise_400('Incorrect objective id.')
+		if objective.tenantId != principal_service.get_tenant_id():
+			raise_403()
+
+		derived_objective = DerivedObjective(name=name, objectiveId=objective_id, definition=objective)
+		derived_objective_service.redress_storable_id(derived_objective)
+		derived_objective.userId = principal_service.get_user_id()
+		derived_objective.tenantId = principal_service.get_tenant_id()
+		derived_objective.lastVisitTime = get_current_time_in_seconds()
+		# noinspection PyTypeChecker
+		derived_objective: DerivedObjective = derived_objective_service.create(derived_objective)
+		return derived_objective
+
+	return trans(derived_objective_service, action)
 
 
 @router.get(
