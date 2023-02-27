@@ -5,7 +5,7 @@ import {HeaderAddParagraphButton} from './header-add-paragraph-button';
 import {HeaderAddReportButton} from './header-add-report-button';
 import {HeaderAutoRefreshButton} from './header-auto-refresh-button';
 import {HeaderCreateDashboardButton} from './header-create-dashboard-button';
-import {HeaderDeleteMeButton} from './header-delete-me-buttton';
+import {HeaderDeleteMeButton} from './header-delete-me-button';
 import {HeaderFavoriteButton} from './header-favorite-button';
 import {HeaderManualRefreshButton} from './header-manual-refresh-button';
 import {HeaderPrintButton} from './header-print-button';

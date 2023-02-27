@@ -5,7 +5,7 @@ import React from 'react';
 import {HeaderCatalogButton} from '../../header/header-catalog-button';
 import {HeaderAddSubjectButton} from './header-add-subject-button';
 import {HeaderCreateConnectedSpaceButton} from './header-create-connected-space-button';
-import {HeaderDeleteConnectedSpaceButton} from './header-delete-connected-space-buttton';
+import {HeaderDeleteConnectedSpaceButton} from './header-delete-connected-space-button';
 import {HeaderFavoriteButton} from './header-favorite-button';
 import {HeaderSwitchConnectedSpaceButton} from './header-switch-connected-space-button';
 import {HeaderTemplateButton} from './header-template-button';

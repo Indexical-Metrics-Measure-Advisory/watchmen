@@ -6,7 +6,7 @@ import React from 'react';
 import {HeaderCatalogButton} from '../../header/header-catalog-button';
 import {HeaderSubjectButton} from '../../header/header-subject-button';
 import {HeaderAddReportButton} from './header-add-report-button';
-import {HeaderDeleteReportButton} from './header-delete-report-buttton';
+import {HeaderDeleteReportButton} from './header-delete-report-button';
 import {HeaderSwitchReportButton} from './header-switch-report-button';
 
 export const ReportHeaderButtons = (props: { connectedSpace: ConnectedSpace, subject: Subject, report: Report }) => {

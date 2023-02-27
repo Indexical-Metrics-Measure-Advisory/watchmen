@@ -5,9 +5,9 @@ import {PageHeaderButtons, PageHeaderButtonSeparator} from '@/widgets/basic/page
 import React from 'react';
 import {AssembledPipelinesGraphics} from '../types';
 import {HeaderCreateGraphicsButton} from './header-create-graphics-button';
-import {HeaderDeleteMeButton} from './header-delete-me-buttton';
-import {HeaderExportButton} from './header-export-buttton';
-import {HeaderImportButton} from './header-import-buttton';
+import {HeaderDeleteMeButton} from './header-delete-me-button';
+import {HeaderExportButton} from './header-export-button';
+import {HeaderImportButton} from './header-import-button';
 import {HeaderPickTopicsButton} from './header-pick-topics-button';
 import {HeaderSwitchGraphicsButton} from './header-switch-graphics-button';
 
