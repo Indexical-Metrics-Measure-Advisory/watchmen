@@ -244,7 +244,7 @@ export const useFavoriteState = () => {
 			off(ConsoleEventTypes.CONNECTED_SPACE_RENAMED, onConnectedSpaceRenamed);
 			off(ConsoleEventTypes.DERIVED_OBJECTIVE_RENAMED, onDerivedObjectiveRenamed);
 		};
-	}, [on, off, data.dashboardIds, data.connectedSpaceIds, forceUpdate]);
+	}, [on, off, data.dashboardIds, data.connectedSpaceIds, data.derivedObjectiveIds, forceUpdate]);
 
 	const onItemClicked = (id: string, type: RenderItemType) => () => {
 		if (type === RenderItemType.DASHBOARD) {
