@@ -73,6 +73,24 @@ async def find_objectives_by_name(
 	return trans_readonly(objective_service, action)
 
 
+@router.get('/indicator/objective/list/name', tags=[UserRole.ADMIN], response_model=List[Objective])
+async def find_objectives_by_name(
+		query_name: Optional[str], principal_service: PrincipalService = Depends(get_console_principal)
+) -> List[Objective]:
+	objective_service = get_objective_service(principal_service)
+
+	def action() -> List[Objective]:
+		tenant_id: TenantId = principal_service.get_tenant_id()
+		if is_blank(query_name):
+			# noinspection PyTypeChecker
+			return objective_service.find_by_name(None, tenant_id)
+		else:
+			# noinspection PyTypeChecker
+			return objective_service.find_by_name(query_name, tenant_id)
+
+	return trans_readonly(objective_service, action)
+
+
 class QueryObjectiveDataPage(DataPage):
 	data: List[Objective]
 
@@ -91,6 +109,22 @@ async def find_objectives_page_by_name(
 		else:
 			# noinspection PyTypeChecker
 			return objective_service.find_page_by_text(query_name, tenant_id, pageable)
+
+	return trans_readonly(objective_service, action)
+
+
+@router.post('/indicator/objective/ids', tags=[UserRole.ADMIN], response_model=List[Objective])
+async def find_objectives_by_ids(
+		objective_ids: List[ObjectiveId], principal_service: PrincipalService = Depends(get_console_principal)
+) -> List[Objective]:
+	if len(objective_ids) == 0:
+		return []
+
+	objective_service = get_objective_service(principal_service)
+
+	def action() -> List[Objective]:
+		tenant_id: TenantId = principal_service.get_tenant_id()
+		return objective_service.find_by_ids(objective_ids, tenant_id)
 
 	return trans_readonly(objective_service, action)
 
@@ -211,7 +245,7 @@ async def save_objective(
 			an_objective.groupIds = user_group_ids
 			# noinspection PyTypeChecker
 			an_objective: Objective = objective_service.create(an_objective)
-			# synchronize space to user groups
+			# synchronize objective to user groups
 			sync_objective_to_groups(objective_service, objective.objectiveId, user_group_ids, objective.tenantId)
 		else:
 			# noinspection PyTypeChecker
