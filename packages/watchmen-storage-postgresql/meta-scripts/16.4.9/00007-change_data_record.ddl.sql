@@ -5,7 +5,7 @@ CREATE TABLE change_data_record
     table_name              VARCHAR(50)      NOT NULL,
     data_id                 JSON             NOT NULL,
     root_table_name         VARCHAR(50),
-    root_data_id            JSON
+    root_data_id            JSON,
     is_merged               SMALLINT         NOT NULL,
     result                  JSON,
     table_trigger_id        DECIMAL(20)      NOT NULL,

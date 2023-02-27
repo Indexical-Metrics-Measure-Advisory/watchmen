@@ -1,6 +1,7 @@
 from logging import getLogger
-from typing import List
+from typing import List, Callable, TypeVar
 
+from fastapi import HTTPException
 from networkx import MultiDiGraph
 
 from watchmen_auth import PrincipalService
@@ -11,9 +12,11 @@ from watchmen_lineage.model.lineage import LineageNode, LineageRelation, TopicFa
 	ReadTopicHolder, SubjectFacet, SubjectTopicHolder
 from watchmen_lineage.service.builder import graphic_builder
 from watchmen_lineage.utils.constant_utils import parse_constant_parameter
+from watchmen_meta.common import StorageService
 from watchmen_model.admin import FactorType, Topic, Factor
 from watchmen_model.common import ParameterComputeType, TopicFactorParameter, Parameter, ParameterKind, \
 	ComputedParameter, TopicId, ConstantParameter
+from watchmen_rest.util import raise_500
 from watchmen_utilities import ArrayHelper
 
 logger = getLogger(__name__)
@@ -210,3 +213,15 @@ def parse_parameter(graphic, source: Parameter, target_factor_facet, relation_in
 			for compute_factor in source.parameters:
 				parse_parameter(graphic, compute_factor, target_factor_facet, relation_info,
 				                parent_facet, principal_service)
+
+TransReturned = TypeVar('TransReturned')
+def trans_readonly(storage_service: StorageService, action: Callable[[], TransReturned]) -> TransReturned:
+	storage_service.begin_transaction()
+	try:
+		return action()
+	except HTTPException as e:
+		raise e
+	except Exception as e:
+		raise_500(e)
+	finally:
+		storage_service.close_transaction()
