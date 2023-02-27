@@ -8,7 +8,7 @@ CREATE TABLE scheduled_task
     object_id           NVARCHAR(50)      NOT NULL,
     depend_on           NVARCHAR(MAX),
     parent_task_id      NVARCHAR(MAX),
-	status              TINYINT           NOT NULL,
+	is_finished         TINYINT           NOT NULL,
 	result              NVARCHAR(MAX),
     tenant_id           NVARCHAR(50)      NOT NULL,
     created_at          DATETIME          NOT NULL,

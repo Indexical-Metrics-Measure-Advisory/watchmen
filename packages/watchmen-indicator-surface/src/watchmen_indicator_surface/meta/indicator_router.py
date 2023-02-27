@@ -6,6 +6,7 @@ from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.meta import IndicatorService
 from watchmen_indicator_surface.settings import ask_tuple_delete_enabled
 from watchmen_indicator_surface.util import trans, trans_readonly
+from watchmen_lineage.service.lineage_service import LineageService
 from watchmen_meta.admin import UserService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import UserRole
@@ -16,6 +17,8 @@ from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_
 from watchmen_utilities import is_blank
 
 router = APIRouter()
+
+lineage_service = LineageService()
 
 
 def get_indicator_service(principal_service: PrincipalService) -> IndicatorService:
@@ -136,7 +139,8 @@ async def find_relevant_indicators(
 		raise_400('Indicator id is required.')
 
 	indicator_service = get_indicator_service(principal_service)
-
+	## TODO remove after build_partial_lineage
+	lineage_service.init_tenant_all_lineage_data(principal_service)
 	def action() -> List[Indicator]:
 		# noinspection PyTypeChecker
 		indicator: Indicator = indicator_service.find_by_id(indicator_id)
@@ -145,8 +149,9 @@ async def find_relevant_indicators(
 		# tenant id must match current principal's
 		if indicator.tenantId != principal_service.get_tenant_id():
 			raise_404()
-		# TODO find relevant indicators
-		return []
+
+		indicator_id_list = lineage_service.load_relevant_indicators(indicator.indicatorId,principal_service)
+		return indicator_service.find_by_ids(indicator_id_list,principal_service.get_tenant_id())
 
 	return trans_readonly(indicator_service, action)
 

@@ -3,7 +3,7 @@ from threading import Thread
 from time import sleep
 
 from watchmen_collector_kernel.common import TENANT_ID
-from watchmen_collector_kernel.model import ScheduledTask, TaskStatus
+from watchmen_collector_kernel.model import ScheduledTask
 from .handler import pipeline_data
 from watchmen_collector_kernel.service import try_lock_nowait, unlock, get_task_service
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock
@@ -67,8 +67,4 @@ class TaskListener:
 
 	# noinspection PyMethodMayBeStatic
 	def is_finished(self, task: ScheduledTask) -> bool:
-		if task.status == TaskStatus.SUCCESS:
-			return True
-		elif task.status == TaskStatus.FAILED:
-			return True
-		return False
+		return task.isFinished

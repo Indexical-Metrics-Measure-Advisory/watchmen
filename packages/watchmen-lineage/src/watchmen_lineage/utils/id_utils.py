@@ -4,9 +4,11 @@ from watchmen_lineage.model.lineage import LineageType, LineageNode, TopicFactor
 	DatasetColumnFacet, ObjectiveTargetFacet, ObjectiveFactorFacet, IndicatorFacet
 
 
-def parse_node_id(node_id: str, attributes: Dict) -> LineageNode:
+def parse_node_id(node_id: str, attributes: Dict = None) -> LineageNode:
 	node_result = node_id.split("_")
 	lineage_type = node_result[0]
+	if attributes is None:
+		attributes = {}
 
 	if lineage_type == LineageType.TOPIC.value:
 		return TopicFacet(nodeId=node_result[1], name=attributes.get("name"))
