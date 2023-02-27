@@ -9,7 +9,7 @@ const hasObjective = (userGroup: UserGroup) => !!userGroup.objectiveIds && userG
 const getObjectiveIds = (userGroup: UserGroup): Array<ObjectiveId> => userGroup.objectiveIds;
 const findNameFromObjectives = (objectiveId: ObjectiveId, objectives: Array<QueryObjectiveForHolder>): string => {
 	// eslint-disable-next-line
-	return objectives.find(objective => objective.objectiveId == objectiveId)!.name;
+	return (objectives.find(objective => objective.objectiveId == objectiveId)?.name ?? 'Unknown Objective') || 'Noname Objective';
 };
 const removeObjective = (userGroup: UserGroup) => (objectiveOrId: ObjectiveId | QueryObjectiveForHolder) => {
 	let objectiveId: ObjectiveId;
