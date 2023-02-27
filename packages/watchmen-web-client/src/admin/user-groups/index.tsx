@@ -44,7 +44,9 @@ const AdminUserGroups = () => {
 		const onDoEditUserGroup = async (queryUserGroup: QueryUserGroup) => {
 			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
 				async () => await fetchUserGroupAndCodes(queryUserGroup),
-				({tuple, spaces, users}) => fire(TupleEventTypes.TUPLE_LOADED, tuple, {spaces, users}));
+				({tuple, spaces, users, objectives}) => fire(TupleEventTypes.TUPLE_LOADED, tuple, {
+					spaces, users, objectives
+				}));
 		};
 		const onDoSearchUserGroup = async (searchText: string, pageNumber: number) => {
 			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
