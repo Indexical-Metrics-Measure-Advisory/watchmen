@@ -12,7 +12,8 @@ class FavoriteShaper(EntityShaper):
 	def serialize(self, favorite: Favorite) -> EntityRow:
 		row = {
 			'connected_space_ids': favorite.connectedSpaceIds,
-			'dashboard_ids': favorite.dashboardIds
+			'dashboard_ids': favorite.dashboardIds,
+			'derived_objective_ids': favorite.derivedObjectiveIds
 		}
 		row = UserBasedTupleShaper.serialize(favorite, row)
 		row = LastVisitShaper.serialize(favorite, row)
@@ -21,7 +22,8 @@ class FavoriteShaper(EntityShaper):
 	def deserialize(self, row: EntityRow) -> Favorite:
 		favorite = Favorite(
 			connectedSpaceIds=row.get('connected_space_ids'),
-			dashboardIds=row.get('dashboard_ids')
+			dashboardIds=row.get('dashboard_ids'),
+			derivedObjectiveIds=row.get('derived_objective_ids')
 		)
 		# noinspection PyTypeChecker
 		favorite: Favorite = UserBasedTupleShaper.deserialize(row, favorite)
@@ -72,6 +74,7 @@ class FavoriteService(StorageService):
 			update={
 				'connected_space_ids': favorite.connectedSpaceIds,
 				'dashboard_ids': favorite.dashboardIds,
+				'derived_objective_ids': favorite.derivedObjectiveIds,
 				'last_visit_time': favorite.lastVisitTime
 			}
 		))
