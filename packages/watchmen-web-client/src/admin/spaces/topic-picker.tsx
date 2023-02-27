@@ -11,7 +11,7 @@ const hasTopic = (space: Space) => !!space.topicIds && space.topicIds.length > 0
 const getTopicIds = (space: Space): Array<TopicId> => space.topicIds;
 const findNameFromTopics = (topicId: TopicId, topics: Array<QueryTopicForHolder>): string => {
 	// eslint-disable-next-line
-	return topics.find(topic => topic.topicId == topicId)!.name;
+	return (topics.find(topic => topic.topicId == topicId)?.name ?? 'Unknown Topic') || 'Noname Topic';
 };
 const getIdOfTopic = (topic: QueryTopicForHolder) => topic.topicId;
 const getNameOfTopic = (topic: QueryTopicForHolder) => topic.name;

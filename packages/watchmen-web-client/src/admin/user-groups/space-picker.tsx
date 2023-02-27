@@ -9,7 +9,7 @@ const hasSpace = (userGroup: UserGroup) => !!userGroup.spaceIds && userGroup.spa
 const getSpaceIds = (userGroup: UserGroup): Array<SpaceId> => userGroup.spaceIds;
 const findNameFromSpaces = (spaceId: SpaceId, spaces: Array<QuerySpaceForHolder>): string => {
 	// eslint-disable-next-line
-	return spaces.find(space => space.spaceId == spaceId)!.name;
+	return (spaces.find(space => space.spaceId == spaceId)?.name ?? 'Unknown Space') || 'Noname Space';
 };
 const removeSpace = (userGroup: UserGroup) => (spaceOrId: SpaceId | QuerySpaceForHolder) => {
 	let spaceId: SpaceId;
