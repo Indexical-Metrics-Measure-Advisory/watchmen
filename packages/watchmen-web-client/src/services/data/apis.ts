@@ -195,7 +195,7 @@ export const Apis = {
 	OBJECTIVE_TARGET_CONSANGUINITY: 'indicator/objective/target/consanguinity?objective_id=:objectiveId&target_id=:targetId',
 
 	OBJECTIVES_AVAILABLE: 'indicator/objective/available',
-	OBJECTIVE_CONNECT: 'indicator/objective/connect?objective_id=:objectiveId&name=:name',
+	OBJECTIVE_CONNECT: 'indicator/derived-objective/connect?objective_id=:objectiveId&name=:name',
 	DERIVED_OBJECTIVES_MINE: 'indicator/derived-objective/list',
 	DERIVED_OBJECTIVE_RENAME: 'indicator/derived-objective/rename?derived_objective_id=:derivedObjectiveId&name=:name',
 	DERIVED_OBJECTIVE_DELETE: 'indicator/derived-objective/delete?derived_objective_id=:derivedObjectiveId'
