@@ -3,8 +3,10 @@ import {Favorite} from '@/services/data/console/favorite-types';
 import {AvailableSpaceInConsole} from '@/services/data/console/settings-types';
 import {ConnectedSpace, ConnectedSpaceGraphics} from '@/services/data/tuples/connected-space-types';
 import {Dashboard} from '@/services/data/tuples/dashboard-types';
+import {DerivedObjective} from '@/services/data/tuples/derived-objective-types';
 import {fetchEnum} from '@/services/data/tuples/enum';
 import {Enum, EnumId} from '@/services/data/tuples/enum-types';
+import {Objective} from '@/services/data/tuples/objective-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {useEffect, useState} from 'react';
 import {useConsoleEventBus} from '../console-event-bus';
@@ -38,11 +40,17 @@ export const useReplier = (options: { holdSettings: HoldSettings }) => {
 		const onAskDashboards = (onData: (dashboards: Array<Dashboard>) => void) => {
 			onData(holdSettings.dashboards);
 		};
+		const onAskDerivedObjectives = (onData: (derivedObjectives: Array<DerivedObjective>) => void) => {
+			onData(holdSettings.derivedObjectives);
+		};
 		const onAskAvailableSpaces = (onData: (availableSpaces: Array<AvailableSpaceInConsole>) => void) => {
 			onData(holdSettings.availableSpaces);
 		};
 		const onAskAvailableTopics = (onData: (availableTopics: Array<Topic>) => void) => {
 			onData(holdSettings.availableTopics);
+		};
+		const onAskAvailableObjectives = (onData: (availableObjectives: Array<Objective>) => void) => {
+			onData(holdSettings.availableObjectives);
 		};
 		const onAskEnum = (enumId: EnumId, onData: (enumeration?: Enum) => void) => {
 			// eslint-disable-next-line
@@ -99,9 +107,12 @@ export const useReplier = (options: { holdSettings: HoldSettings }) => {
 		on(ConsoleEventTypes.ASK_CONNECTED_SPACES, onAskConnectedSpaces);
 		on(ConsoleEventTypes.ASK_CONNECTED_SPACE_GRAPHICS, onAskConnectedSpaceGraphics);
 		on(ConsoleEventTypes.ASK_DASHBOARDS, onAskDashboards);
+		on(ConsoleEventTypes.ASK_DERIVED_OBJECTIVES, onAskDerivedObjectives);
+
 		on(ConsoleEventTypes.ASK_AVAILABLE_SPACES, onAskAvailableSpaces);
 		on(ConsoleEventTypes.ASK_AVAILABLE_TOPICS, onAskAvailableTopics);
 		on(ConsoleEventTypes.ASK_ENUM, onAskEnum);
+		on(ConsoleEventTypes.ASK_AVAILABLE_OBJECTIVES, onAskAvailableObjectives);
 		return () => {
 			off(ConsoleEventTypes.ASK_SETTINGS_LOADED, onAskSettingsLoaded);
 
@@ -111,17 +122,20 @@ export const useReplier = (options: { holdSettings: HoldSettings }) => {
 			off(ConsoleEventTypes.ASK_CONNECTED_SPACES, onAskConnectedSpaces);
 			off(ConsoleEventTypes.ASK_CONNECTED_SPACE_GRAPHICS, onAskConnectedSpaceGraphics);
 			off(ConsoleEventTypes.ASK_DASHBOARDS, onAskDashboards);
+			off(ConsoleEventTypes.ASK_DERIVED_OBJECTIVES, onAskDerivedObjectives);
+
 			off(ConsoleEventTypes.ASK_AVAILABLE_SPACES, onAskAvailableSpaces);
 			off(ConsoleEventTypes.ASK_AVAILABLE_TOPICS, onAskAvailableTopics);
 			off(ConsoleEventTypes.ASK_ENUM, onAskEnum);
+			off(ConsoleEventTypes.ASK_AVAILABLE_OBJECTIVES, onAskAvailableObjectives);
 		};
 	}, [
 		on, off, fire,
 		holdSettings.initialized,
 		holdSettings.lastSnapshot, holdSettings.favorite,
 		holdSettings.connectedSpaces, holdSettings.connectedSpaceGraphics, holdSettings.dashboards,
-		holdSettings.availableSpaces,
-		holdSettings.availableTopics,
-		holdSettings.enums, enumPromises
+		holdSettings.derivedObjectives,
+		holdSettings.availableSpaces, holdSettings.availableTopics,
+		holdSettings.enums, enumPromises, holdSettings.availableObjectives
 	]);
 };

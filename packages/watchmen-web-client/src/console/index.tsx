@@ -10,6 +10,7 @@ import {ConsoleEventBusProvider, useConsoleEventBus} from './console-event-bus';
 import {ConsoleEventTypes} from './console-event-bus-types';
 import {ConsoleLoading} from './console-loading';
 import ConsoleDashboard from './dashboard';
+import ConsoleDerivedObjective from './derived-objective';
 import {Favorite} from './favorite';
 import ConsoleHome from './home';
 import {ConsoleMenu} from './menu';
@@ -92,6 +93,7 @@ const ConsoleRouter = () => {
 				<Routes>
 					{asConsoleRoute(Router.CONSOLE_HOME, <ConsoleHome/>)}
 					{asConsoleRoute(Router.CONSOLE_CONNECTED_SPACE_ALL, <ConsoleConnectedSpace/>)}
+					{asConsoleRoute(Router.CONSOLE_DERIVED_OBJECTIVE_ALL, <ConsoleDerivedObjective/>)}
 					{asConsoleRoute(Router.CONSOLE_DASHBOARD_ALL, <ConsoleDashboard/>)}
 					{asConsoleRoute(Router.CONSOLE_SETTINGS, <ConsoleSettings/>)}
 					{asFallbackNavigate(Router.CONSOLE_HOME)}

@@ -1,7 +1,9 @@
 import {ChartType} from '@/services/data/tuples/chart-types';
 import {ConnectedSpace} from '@/services/data/tuples/connected-space-types';
 import {Dashboard} from '@/services/data/tuples/dashboard-types';
+import {DerivedObjective} from '@/services/data/tuples/derived-objective-types';
 import {ParameterJointType} from '@/services/data/tuples/factor-calculator-types';
+import {Objective} from '@/services/data/tuples/objective-types';
 import {Report} from '@/services/data/tuples/report-types';
 import {SpaceId} from '@/services/data/tuples/space-types';
 import {Subject} from '@/services/data/tuples/subject-types';
@@ -61,6 +63,19 @@ export const createReport = (name?: string): Report => {
 		dimensions: [],
 		rect: {x: 32, y: 32, width: 480, height: 300},
 		chart: {type: ChartType.COUNT},
+		lastVisitTime: getCurrentTime(),
+		createdAt: getCurrentTime(),
+		lastModifiedAt: getCurrentTime()
+	};
+};
+
+export const createDerivedObjective = (objective: Objective, name?: string): DerivedObjective => {
+	const derivedObjectiveId = generateUuid();
+	return {
+		derivedObjectiveId,
+		name: name || `${getCurrentLanguage().PLAIN.NEW_DERIVED_OBJECTIVE_NAME} ${base64Encode(derivedObjectiveId).substring(0, 12)}`,
+		objectiveId: objective.objectiveId,
+		definition: objective,
 		lastVisitTime: getCurrentTime(),
 		createdAt: getCurrentTime(),
 		lastModifiedAt: getCurrentTime()

@@ -1,5 +1,6 @@
 import {ConnectedSpaceId} from '@/services/data/tuples/connected-space-types';
 import {DashboardId} from '@/services/data/tuples/dashboard-types';
+import {DerivedObjectiveId} from '@/services/data/tuples/derived-objective-types';
 import {PipelineId} from '@/services/data/tuples/pipeline-types';
 import {ReportId} from '@/services/data/tuples/report-types';
 import {SubjectId} from '@/services/data/tuples/subject-types';
@@ -50,6 +51,15 @@ export const isDashboardOpened = (dashboardId: DashboardId, location: Location):
 	return !!match && match.params.dashboardId == dashboardId;
 };
 export const toDashboard = (dashboardId: DashboardId) => Router.CONSOLE_DASHBOARD_EDIT.replace(':dashboardId', dashboardId);
+export const isDerivedObjectiveOpened = (derivedObjectiveId: DerivedObjectiveId, location: Location): boolean => {
+	const match = matchPath<'objectiveId', string>({path: Router.CONSOLE_DERIVED_OBJECTIVE}, location.pathname);
+	// eslint-disable-next-line
+	return !!match && match.params.objectiveId == derivedObjectiveId;
+};
+export const toDerivedObjective = (derivedObjectiveId: DerivedObjectiveId) => {
+	return Router.CONSOLE_DERIVED_OBJECTIVE.replace(':objectiveId', derivedObjectiveId);
+};
+
 export const toPipeline = (pipelineId: PipelineId) => Router.ADMIN_PIPELINE.replace(':pipelineId', pipelineId);
 
 export const relativeTo = (path: Router, parent: Router): string => {

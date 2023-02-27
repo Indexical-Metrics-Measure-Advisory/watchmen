@@ -1,15 +1,23 @@
-import {isConnectedSpaceOpened, isDashboardOpened, toConnectedSpace, toDashboard} from '@/routes/utils';
+import {
+	isConnectedSpaceOpened,
+	isDashboardOpened,
+	isDerivedObjectiveOpened,
+	toConnectedSpace,
+	toDashboard,
+	toDerivedObjective
+} from '@/routes/utils';
 import {saveFavorite} from '@/services/data/console/favorite';
 import {Favorite} from '@/services/data/console/favorite-types';
 import {ConnectedSpace, ConnectedSpaceId} from '@/services/data/tuples/connected-space-types';
 import {Dashboard, DashboardId} from '@/services/data/tuples/dashboard-types';
+import {DerivedObjective} from '@/services/data/tuples/derived-objective-types';
 import {ICON_CONNECTED_SPACE, ICON_DASHBOARD} from '@/widgets/basic/constants';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {MouseEvent, useEffect, useState} from 'react';
 import {useLocation, useNavigate} from 'react-router-dom';
 import {useConsoleEventBus} from '../console-event-bus';
 import {ConsoleEventTypes} from '../console-event-bus-types';
-import {RenderItem, StateData} from './types';
+import {RenderItem, RenderItemType, StateData} from './types';
 
 const buildFavoriteItems = (data: StateData) => {
 	return [
@@ -44,10 +52,9 @@ export const useFavoriteState = () => {
 	const location = useLocation();
 	const {on, off, fire} = useConsoleEventBus();
 	const [data, setData] = useState<StateData>({
-		connectedSpaces: [],
-		dashboards: [],
-		connectedSpaceIds: [],
-		dashboardIds: []
+		connectedSpaces: [], connectedSpaceIds: [],
+		dashboards: [], dashboardIds: [],
+		derivedObjectives: [], derivedObjectiveIds: []
 	});
 	useEffect(() => {
 		const onDashboardAddedIntoFavorite = (dashboardId: DashboardId) => {
@@ -135,10 +142,16 @@ export const useFavoriteState = () => {
 		};
 	}, [on, off]);
 	useEffect(() => {
-		fire(ConsoleEventTypes.ASK_FAVORITE, ({dashboardIds, connectedSpaceIds}: Favorite) => {
+		fire(ConsoleEventTypes.ASK_FAVORITE, ({dashboardIds, connectedSpaceIds, derivedObjectiveIds}: Favorite) => {
 			fire(ConsoleEventTypes.ASK_CONNECTED_SPACES, (connectedSpaces: Array<ConnectedSpace>) => {
 				fire(ConsoleEventTypes.ASK_DASHBOARDS, (dashboards: Array<Dashboard>) => {
-					setData({connectedSpaces, dashboards, connectedSpaceIds, dashboardIds});
+					fire(ConsoleEventTypes.ASK_DERIVED_OBJECTIVES, (derivedObjectives: Array<DerivedObjective>) => {
+						setData({
+							connectedSpaces, connectedSpaceIds,
+							dashboards, dashboardIds,
+							derivedObjectives, derivedObjectiveIds
+						});
+					});
 				});
 			});
 		});
@@ -165,36 +178,46 @@ export const useFavoriteState = () => {
 		};
 	}, [on, off, data.dashboardIds, data.connectedSpaceIds, forceUpdate]);
 
-	const onItemClicked = (id: string, type: 'dashboard' | 'connected-space') => () => {
-		if (type === 'dashboard') {
+	const onItemClicked = (id: string, type: RenderItemType) => () => {
+		if (type === RenderItemType.DASHBOARD) {
 			if (!isDashboardOpened(id, location)) {
 				navigate(toDashboard(id));
 			}
-		} else if (type === 'connected-space') {
+		} else if (type === RenderItemType.CONNECTED_SPACE) {
 			if (!isConnectedSpaceOpened(id, location)) {
 				navigate(toConnectedSpace(id));
+			}
+		} else if (type === RenderItemType.DERIVED_OBJECTIVE) {
+			if (!isDerivedObjectiveOpened(id, location)) {
+				navigate(toDerivedObjective(id));
 			}
 		}
 		fire(ConsoleEventTypes.HIDE_FAVORITE);
 	};
-	const onItemRemoveClicked = (id: string, type: 'dashboard' | 'connected-space') => async (event: MouseEvent<HTMLButtonElement>) => {
+	const onItemRemoveClicked = (id: string, type: RenderItemType) => async (event: MouseEvent<HTMLButtonElement>) => {
 		event.preventDefault();
 		event.stopPropagation();
 		let dashboardIds = data.dashboardIds;
 		let connectedSpaceIds = data.connectedSpaceIds;
-		if (type === 'dashboard') {
+		let derivedObjectiveIds = data.derivedObjectiveIds;
+		if (type === RenderItemType.DASHBOARD) {
 			// eslint-disable-next-line
 			dashboardIds = dashboardIds.filter(dashboardId => id != dashboardId);
 			fire(ConsoleEventTypes.DASHBOARD_REMOVED_FROM_FAVORITE, id);
-		} else if (type === 'connected-space') {
+		} else if (type === RenderItemType.CONNECTED_SPACE) {
 			// eslint-disable-next-line
 			connectedSpaceIds = connectedSpaceIds.filter(connectedSpaceId => id != connectedSpaceId);
 			fire(ConsoleEventTypes.CONNECTED_SPACE_REMOVED_FROM_FAVORITE, id);
+		} else if (type === RenderItemType.DERIVED_OBJECTIVE) {
+			// eslint-disable-next-line
+			derivedObjectiveIds = derivedObjectiveIds.filter(derivedObjectiveId => id != derivedObjectiveId);
+			fire(ConsoleEventTypes.DERIVED_OBJECTIVE_REMOVED_FROM_FAVORITE, id);
 		}
 		try {
 			await saveFavorite({
 				connectedSpaceIds: connectedSpaceIds || [],
-				dashboardIds: dashboardIds || []
+				dashboardIds: dashboardIds || [],
+				derivedObjectiveIds: derivedObjectiveIds || []
 			});
 		} catch (e: any) {
 			// ignore

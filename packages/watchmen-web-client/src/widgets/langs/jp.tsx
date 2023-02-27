@@ -39,7 +39,8 @@ export const Jp: LanguageDeclareType = {
 		OBJECTIVE_FACTOR_NAME_PLACEHOLDER: '指標名。',
 		OBJECTIVE_FORMULA_CONSTANT_PLACEHOLDER: '定義済みの変数を参照するには、"{}" を使用します。',
 		OBJECTIVE_FACTOR_FILTER_CONSTANT_PLACEHOLDER: '定義済みの変数を参照するには、"{}" を使用します。',
-		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '";"で結合された複数のアドレス。'
+		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '";"で結合された複数のアドレス。',
+		NEW_DERIVED_OBJECTIVE_NAME: '目標'
 	},
 	STANDARD: {
 		YES: 'はい',
@@ -108,6 +109,7 @@ export const Jp: LanguageDeclareType = {
 		ERROR: {
 			DASHBOARD_NOT_FOUND: '該当ダッシュボードが見つかりません。',
 			CONNECTED_SPACE_NOT_FOUND: '該当連結空間が見つかりません。',
+			DERIVED_OBJECTIVE_NOT_FOUND: '該当目標が見つかりません。',
 			SUBJECT_NOT_FOUND: '該当主題が見つかりません。',
 			REPORT_NOT_FOUND: '該当レポートが見つかりません。'
 		},
@@ -138,6 +140,8 @@ export const Jp: LanguageDeclareType = {
 			VIEW_ALL: '表示',
 			CONNECTED_SPACE_TITLE: '最近使用した連結空間',
 			CREATE_CONNECTED_SPACE_BUTTON: '連結空間に接続',
+			DERIVED_OBJECTIVE_TITLE: '最近使用した目標',
+			CREATE_DERIVED_OBJECTIVE_BUTTON: '目標を作成する',
 			DASHBOARD_TITLE: '最近使用したダッシュボード',
 			CREATE_DASHBOARD_BUTTON: 'ダッシュボードを作成する',
 			NO_RECENT: '最近使用した項目はありません。'
@@ -278,6 +282,12 @@ export const Jp: LanguageDeclareType = {
 			CREATE_REPORT_FILTER: '始める',
 			REPORT_NO_FILTER_2: 'か？',
 			REPORT_NO_FUNNEL: 'じょうごが有効になっていない。'
+		},
+		DERIVED_OBJECTIVE: {
+			CREATE_DIALOG_CHOOSE_TEMPLATE_LABEL: '目標テンプレートを選択してください',
+			TEMPLATE: '目標',
+			NO_MORE_OBJECTIVE: '目標テンプレートの定義が見つかりません。詳細については、管理者に問い合わせてください。',
+			NO_OBJECTIVE_SELECTED: '目標テンプレートが選択されていません。'
 		}
 	},
 	INDICATOR: {
