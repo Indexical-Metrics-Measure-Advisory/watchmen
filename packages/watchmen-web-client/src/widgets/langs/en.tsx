@@ -295,7 +295,8 @@ export const En = {
 			SWITCH_DERIVED_OBJECTIVE: 'Switch Objective',
 			SWITCH_DIALOG_LABEL: 'Please select objective',
 			DELETE_DIALOG_LABEL: 'Are you sure to delete objective? Please note that deletion cannot be recovered.',
-			DELETE_ME: 'Delete Me'
+			DELETE_ME: 'Delete Me',
+			UNKNOWN_TARGET_NAME: 'Unknown target'
 		}
 	},
 	INDICATOR: {

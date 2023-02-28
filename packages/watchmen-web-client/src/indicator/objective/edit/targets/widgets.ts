@@ -165,14 +165,5 @@ export const Values = styled.div.attrs({'data-widget': 'objective-target-values'
 export const RatioLabel = styled(ItemLabel)`
 	> svg {
 		margin-left : calc(var(--margin) / 4);
-		&[data-better=true] {
-			color : var(--success-color);
-		}
-		&[data-better=false] {
-			color : var(--danger-color);
-		}
-		&[data-better=keep] {
-			opacity : 0.7;
-		}
 	}
 `

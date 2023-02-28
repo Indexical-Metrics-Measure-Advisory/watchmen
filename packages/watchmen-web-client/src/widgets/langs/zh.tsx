@@ -295,7 +295,8 @@ export const Zh: LanguageDeclareType = {
 			SWITCH_DERIVED_OBJECTIVE: '切换目标',
 			SWITCH_DIALOG_LABEL: '请选择目标',
 			DELETE_DIALOG_LABEL: '确认要删除目标吗? 请注意删除动作不能被恢复.',
-			DELETE_ME: '删除'
+			DELETE_ME: '删除',
+			UNKNOWN_TARGET_NAME: '未命名目标'
 		}
 	},
 	INDICATOR: {

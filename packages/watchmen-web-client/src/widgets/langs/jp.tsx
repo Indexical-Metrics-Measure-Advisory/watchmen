@@ -295,7 +295,8 @@ export const Jp: LanguageDeclareType = {
 			SWITCH_DERIVED_OBJECTIVE: '目標に切り替える',
 			SWITCH_DIALOG_LABEL: '目標を選択してください',
 			DELETE_DIALOG_LABEL: '目標を削除してもよろしいですか？ 削除したものは復元できませんので、ご注意ください。',
-			DELETE_ME: '削除'
+			DELETE_ME: '削除',
+			UNKNOWN_TARGET_NAME: '不明な目標'
 		}
 	},
 	INDICATOR: {
