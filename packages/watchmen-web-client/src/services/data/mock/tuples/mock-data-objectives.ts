@@ -31,7 +31,8 @@ export const MonthlySalesObjective: Objective = {
 	targets: [
 		{
 			uuid: generateUuid(), name: 'Revenue',
-			tobe: '1000000', asis: REVENUE_FACTOR_ID, betterSide: ObjectiveTargetBetterSide.MORE
+			tobe: '1000000', asis: REVENUE_FACTOR_ID, betterSide: ObjectiveTargetBetterSide.MORE,
+			askPreviousCycle: true, askChainCycle: true
 		},
 		{
 			uuid: generateUuid(), name: 'Sales Cost',

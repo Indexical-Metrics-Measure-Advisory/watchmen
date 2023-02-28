@@ -11,5 +11,4 @@ export const Header = (props: { derivedObjective: DerivedObjective }) => {
 		<HeaderNameEditor derivedObjective={derivedObjective}/>
 		<HeaderButtons derivedObjective={derivedObjective}/>
 	</PageHeaderHolder>;
-
 };
