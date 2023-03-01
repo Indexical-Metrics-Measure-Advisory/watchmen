@@ -75,7 +75,7 @@ export interface ObjectiveEventBus {
 	on(type: ObjectiveEventTypes.VALUES_FETCHED, listener: (values: ObjectiveValues) => void): this;
 	off(type: ObjectiveEventTypes.VALUES_FETCHED, listener: (values: ObjectiveValues) => void): this;
 
-	fire(type: ObjectiveEventTypes.SWITCH_VARIABLES_VISIBLE): this;
-	on(type: ObjectiveEventTypes.SWITCH_VARIABLES_VISIBLE, listener: () => void): this;
-	off(type: ObjectiveEventTypes.SWITCH_VARIABLES_VISIBLE, listener: () => void): this;
+	fire(type: ObjectiveEventTypes.SWITCH_VARIABLES_VISIBLE, switchTo: boolean): this;
+	on(type: ObjectiveEventTypes.SWITCH_VARIABLES_VISIBLE, listener: (switchTo: boolean) => void): this;
+	off(type: ObjectiveEventTypes.SWITCH_VARIABLES_VISIBLE, listener: (switchTo: boolean) => void): this;
 }

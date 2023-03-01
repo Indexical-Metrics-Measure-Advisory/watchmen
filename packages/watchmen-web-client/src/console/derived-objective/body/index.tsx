@@ -1,11 +1,11 @@
-import {useObjectiveEventBus} from '@/console/derived-objective/objective-event-bus';
-import {ObjectiveEventTypes} from '@/console/derived-objective/objective-event-bus-types';
 import {DerivedObjective} from '@/services/data/tuples/derived-objective-types';
-import {ObjectiveTarget} from '@/services/data/tuples/objective-types';
 import React, {useEffect, useState} from 'react';
 import {useValuesFetched} from '../hooks/use-ask-values';
-import {Target} from './target';
-import {BodyContainer, TargetsContainer} from './widgets';
+import {useObjectiveEventBus} from '../objective-event-bus';
+import {ObjectiveEventTypes} from '../objective-event-bus-types';
+import {Targets} from './targets';
+import {Variables} from './variables';
+import {BodyContainer} from './widgets';
 
 export const Body = (props: { derivedObjective: DerivedObjective }) => {
 	const {derivedObjective} = props;
@@ -21,17 +21,8 @@ export const Body = (props: { derivedObjective: DerivedObjective }) => {
 		}
 	}, [fire, initialized]);
 
-	const {definition: objective} = derivedObjective;
-
-	const targets: Array<ObjectiveTarget> = objective.targets || [];
-
 	return <BodyContainer>
-		<TargetsContainer>
-			{targets.map((target, index) => {
-				return <Target objective={objective} target={target} index={index + 1}
-				               values={findTargetValues(target)}
-				               key={target.uuid}/>;
-			})}
-		</TargetsContainer>
+		<Variables derivedObjective={derivedObjective}/>
+		<Targets derivedObjective={derivedObjective} findTargetValues={findTargetValues}/>
 	</BodyContainer>;
 };

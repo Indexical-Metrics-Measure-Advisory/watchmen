@@ -20,7 +20,7 @@ export const HeaderVariablesButton = () => {
 
 	const onVisibleClicked = () => {
 		setVisible(!visible);
-		fire(ObjectiveEventTypes.SWITCH_VARIABLES_VISIBLE);
+		fire(ObjectiveEventTypes.SWITCH_VARIABLES_VISIBLE, !visible);
 	};
 
 	const tooltip = visible ? Lang.CONSOLE.DERIVED_OBJECTIVE.HIDE_VARIABLES : Lang.CONSOLE.DERIVED_OBJECTIVE.SHOW_VARIABLES;
