@@ -296,6 +296,9 @@ export const En = {
 			SWITCH_DIALOG_LABEL: 'Please select objective',
 			DELETE_DIALOG_LABEL: 'Are you sure to delete objective? Please note that deletion cannot be recovered.',
 			DELETE_ME: 'Delete Me',
+			REFRESH_VALUES: 'Refresh',
+			SHOW_VARIABLES: 'Show Variables',
+			HIDE_VARIABLES: 'Hide Variables',
 			UNKNOWN_TARGET_NAME: 'Unknown target'
 		}
 	},

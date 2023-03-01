@@ -320,6 +320,7 @@ export const ICON_QUESTION_MARK = faQuestionCircle;
 export const ICON_VOLUME_INCREASE = faArrowTrendUp;
 export const ICON_VOLUME_DECREASE = faArrowTrendDown;
 export const ICON_VOLUME_NO_CHANGE = faArrowRightLong;
+export const ICON_VARIABLES = faSliders;
 
 // mock data
 export const MOCK_ACCOUNT_NAME = 'Dr. X';
