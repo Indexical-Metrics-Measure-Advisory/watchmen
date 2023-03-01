@@ -299,7 +299,8 @@ export const En = {
 			REFRESH_VALUES: 'Refresh',
 			SHOW_VARIABLES: 'Show Variables',
 			HIDE_VARIABLES: 'Hide Variables',
-			UNKNOWN_TARGET_NAME: 'Unknown target'
+			UNKNOWN_TARGET_NAME: 'Unknown target',
+			UNKNOWN_VARIABLE_NAME: 'Unknown variable'
 		}
 	},
 	INDICATOR: {

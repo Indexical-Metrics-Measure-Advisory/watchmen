@@ -27,9 +27,9 @@ export enum ObjectiveEventTypes {
 }
 
 export interface ObjectiveEventBus {
-	fire(type: ObjectiveEventTypes.SAVE, objective: Objective, onSaved: (objective: Objective, saved: boolean) => void, immediately?: boolean): this;
-	on(type: ObjectiveEventTypes.SAVE, listener: (objective: Objective, onSaved: (objective: Objective, saved: boolean) => void, immediately?: boolean) => void): this;
-	off(type: ObjectiveEventTypes.SAVE, listener: (objective: Objective, onSaved: (objective: Objective, saved: boolean) => void, immediately?: boolean) => void): this;
+	fire(type: ObjectiveEventTypes.SAVE, onSaved: (saved: boolean) => void, immediately?: boolean): this;
+	on(type: ObjectiveEventTypes.SAVE, listener: (onSaved: (saved: boolean) => void, immediately?: boolean) => void): this;
+	off(type: ObjectiveEventTypes.SAVE, listener: (onSaved: (saved: boolean) => void, immediately?: boolean) => void): this;
 
 	fire(type: ObjectiveEventTypes.SAVED, objective: Objective): this;
 	on(type: ObjectiveEventTypes.SAVED, listener: (objective: Objective) => void): this;

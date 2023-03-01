@@ -299,7 +299,8 @@ export const Zh: LanguageDeclareType = {
 			REFRESH_VALUES: '刷新',
 			SHOW_VARIABLES: '显示变量设定',
 			HIDE_VARIABLES: '隐藏变量设定',
-			UNKNOWN_TARGET_NAME: '未命名目标'
+			UNKNOWN_TARGET_NAME: '未命名目标',
+			UNKNOWN_VARIABLE_NAME: '未命名变量'
 		}
 	},
 	INDICATOR: {

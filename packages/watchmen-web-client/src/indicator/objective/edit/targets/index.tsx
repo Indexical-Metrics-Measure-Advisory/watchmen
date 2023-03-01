@@ -1,5 +1,6 @@
 import {ConsanguinityEventTypes, useConsanguinityEventBus} from '@/consanguinity';
 import {Objective, ObjectiveFactor, ObjectiveTarget} from '@/services/data/tuples/objective-types';
+import {isIndicatorFactor} from '@/services/data/tuples/objective-utils';
 import {generateUuid} from '@/services/data/tuples/utils';
 import {noop} from '@/services/utils';
 import {ButtonInk} from '@/widgets/basic/types';
@@ -11,7 +12,6 @@ import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 import {EditStep} from '../edit-step';
 import {useValuesFetched} from '../hooks/use-ask-values';
 import {ObjectiveDeclarationStep} from '../steps';
-import {isIndicatorFactor} from '../utils';
 import {AddItemButton, ItemsButtons} from '../widgets';
 import {Target} from './target';
 import {TargetsContainer} from './widgets';

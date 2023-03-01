@@ -1,5 +1,6 @@
 import {Bucket} from '@/services/data/tuples/bucket-types';
 import {Objective, ObjectiveVariable, ObjectiveVariableKind} from '@/services/data/tuples/objective-types';
+import {isBucketVariable} from '@/services/data/tuples/objective-utils';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
 import {isNotBlank, noop} from '@/services/utils';
 import {ButtonInk} from '@/widgets/basic/types';
@@ -11,7 +12,7 @@ import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 import {EditStep} from '../edit-step';
 import {useAskBuckets} from '../hooks/use-ask-buckets';
 import {ObjectiveDeclarationStep} from '../steps';
-import {askVariableBucketIds, isBucketVariable} from '../utils';
+import {askVariableBucketIds} from '../utils';
 import {AddItemButton} from '../widgets';
 import {Variable} from './variable';
 import {VariablesContainer} from './widgets';

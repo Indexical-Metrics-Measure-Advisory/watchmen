@@ -1,5 +1,6 @@
 import {Indicator, IndicatorId} from '@/services/data/tuples/indicator-types';
 import {Objective, ObjectiveFactor} from '@/services/data/tuples/objective-types';
+import {isIndicatorFactor} from '@/services/data/tuples/objective-utils';
 import {isBlank, noop} from '@/services/utils';
 import {DropdownOption} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
@@ -7,7 +8,6 @@ import {Lang} from '@/widgets/langs';
 import React from 'react';
 import {useObjectivesEventBus} from '../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
-import {isIndicatorFactor} from '../utils';
 import {ConditionalEditor} from './conditional';
 import {FactorItemLabel, IncorrectOptionLabel, IndicatorDropdown} from './widgets';
 

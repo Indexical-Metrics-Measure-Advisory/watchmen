@@ -299,7 +299,8 @@ export const Jp: LanguageDeclareType = {
 			REFRESH_VALUES: 'リフレッシュ',
 			SHOW_VARIABLES: '変数設定を表示',
 			HIDE_VARIABLES: '変数設定を非表示',
-			UNKNOWN_TARGET_NAME: '不明な目標'
+			UNKNOWN_TARGET_NAME: '不明な目標',
+			UNKNOWN_VARIABLE_NAME: '不明な変数'
 		}
 	},
 	INDICATOR: {

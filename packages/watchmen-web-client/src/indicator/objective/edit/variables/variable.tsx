@@ -6,6 +6,7 @@ import {
 	ObjectiveVariableOnBucket,
 	ObjectiveVariableOnRange
 } from '@/services/data/tuples/objective-types';
+import {isBucketVariable, isRangeVariable, isValueVariable} from '@/services/data/tuples/objective-utils';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
 import {isNotBlank, noop} from '@/services/utils';
 import {Button} from '@/widgets/basic/button';
@@ -19,7 +20,7 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {ChangeEvent, MouseEvent, useState} from 'react';
 import {useObjectivesEventBus} from '../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
-import {defendVariableAndRemoveUnnecessary, isBucketVariable, isRangeVariable, isValueVariable} from '../utils';
+import {defendVariableAndRemoveUnnecessary} from '../utils';
 import {IncorrectOptionLabel, ItemLabel, ItemNo, RemoveItemButton} from '../widgets';
 import {
 	VariableContainer,
