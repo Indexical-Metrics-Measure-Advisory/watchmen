@@ -18,9 +18,9 @@ CREATE TABLE scheduled_task
     CONSTRAINT pk_scheduled_task PRIMARY KEY (task_id)
 );
 CREATE UNIQUE INDEX u_scheduled_task_1 ON scheduled_task (resource_id);
-CREATE INDEX i_change_data_json_1 ON scheduled_task (tenant_id);
-CREATE INDEX i_change_data_json_2 ON scheduled_task (created_at);
-CREATE INDEX i_change_data_json_3 ON scheduled_task (created_by);
-CREATE INDEX i_change_data_json_4 ON scheduled_task (last_modified_at);
-CREATE INDEX i_change_data_json_5 ON scheduled_task (last_modified_by);
-CREATE INDEX i_change_data_json_6 ON scheduled_task (object_id, model_name);
+CREATE INDEX i_scheduled_task_1 ON scheduled_task (tenant_id);
+CREATE INDEX i_scheduled_task_2 ON scheduled_task (created_at);
+CREATE INDEX i_scheduled_task_3 ON scheduled_task (created_by);
+CREATE INDEX i_scheduled_task_4 ON scheduled_task (last_modified_at);
+CREATE INDEX i_scheduled_task_5 ON scheduled_task (last_modified_by);
+CREATE INDEX i_scheduled_task_6 ON scheduled_task (object_id, model_name);
