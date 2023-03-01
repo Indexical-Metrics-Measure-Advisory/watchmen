@@ -4,11 +4,12 @@ import {Objective} from '@/services/data/tuples/objective-types';
 import {QueryByBucketMethod} from '@/services/data/tuples/query-bucket-types';
 import {SubjectForIndicator} from '@/services/data/tuples/query-indicator-types';
 import {Topic} from '@/services/data/tuples/topic-types';
+import {askVariableBucketIds} from '@/widgets/objective/utils';
 import {useState} from 'react';
 import {useObjectivesEventBus} from '../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 import {useAskBuckets} from '../hooks/use-ask-buckets';
-import {askVariableBucketIds, computeMeasureMethodOnColumn, computeMeasureMethodOnFactor} from '../utils';
+import {computeMeasureMethodOnColumn, computeMeasureMethodOnFactor} from '../utils';
 import {findIndicators, findSubjectIdsByIndicators, findTopicIdsByIndicators} from './utils';
 
 export const useInitializeBuckets = (objective: Objective | null | undefined, shouldStart: boolean) => {

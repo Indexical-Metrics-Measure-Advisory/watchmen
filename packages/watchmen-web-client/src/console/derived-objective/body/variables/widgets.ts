@@ -93,3 +93,9 @@ export const RangeVariableContainer = styled.div.attrs({'data-widget': 'derived-
 	}
 `;
 export const RangeVariableConjunction = styled.span``;
+export const BucketVariableContainer = styled.div.attrs({'data-widget': 'derived-objective-variable-bucket'})`
+	display               : grid;
+	position              : relative;
+	grid-template-columns : 1fr 1fr;
+	align-items           : center;
+`;

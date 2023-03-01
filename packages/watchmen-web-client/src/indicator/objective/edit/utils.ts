@@ -1,4 +1,3 @@
-import {BucketId} from '@/services/data/tuples/bucket-types';
 import {Factor} from '@/services/data/tuples/factor-types';
 import {MeasureMethod} from '@/services/data/tuples/indicator-types';
 import {
@@ -7,7 +6,6 @@ import {
 	tryToTransformToMeasures
 } from '@/services/data/tuples/indicator-utils';
 import {
-	Objective,
 	ObjectiveVariable,
 	ObjectiveVariableOnBucket,
 	ObjectiveVariableOnRange,
@@ -17,7 +15,6 @@ import {isBucketVariable, isRangeVariable, isValueVariable} from '@/services/dat
 import {QueryByBucketMethod, QueryByEnumMethod, QueryByMeasureMethod} from '@/services/data/tuples/query-bucket-types';
 import {SubjectForIndicator} from '@/services/data/tuples/query-indicator-types';
 import {SubjectDataSetColumn} from '@/services/data/tuples/subject-types';
-import {isNotBlank} from '@/services/utils';
 
 export const defendVariableAndRemoveUnnecessary = (variable: ObjectiveVariable) => {
 	if (isValueVariable(variable)) {
@@ -42,13 +39,6 @@ export const defendVariableAndRemoveUnnecessary = (variable: ObjectiveVariable) 
 		delete (variable as unknown as ObjectiveVariableOnRange).includeMin;
 		delete (variable as unknown as ObjectiveVariableOnRange).includeMax;
 	}
-};
-
-export const askVariableBucketIds = (objective: Objective): Array<BucketId> => {
-	return (objective.variables || [])
-		.filter(v => isBucketVariable(v) && isNotBlank(v.bucketId))
-		.map(v => (v as ObjectiveVariableOnBucket).bucketId)
-		.filter(bucketId => isNotBlank(bucketId)) as Array<BucketId>;
 };
 
 export const computeMeasureMethodOnFactor = (factor: Factor): Array<QueryByBucketMethod> => {

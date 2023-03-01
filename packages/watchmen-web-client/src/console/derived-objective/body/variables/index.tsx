@@ -7,7 +7,9 @@ import {ObjectiveEventTypes} from '../../objective-event-bus-types';
 import {Variable} from './variable';
 import {VariablesContainer, VariablesTitle} from './widgets';
 
-export const Variables = (props: { derivedObjective: DerivedObjective }) => {
+export const Variables = (props: {
+	derivedObjective: DerivedObjective;
+}) => {
 	const {derivedObjective} = props;
 
 	const {on, off} = useObjectiveEventBus();

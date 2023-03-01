@@ -8,7 +8,7 @@ import {
 } from '@/services/data/tuples/objective-types';
 import {isBucketVariable, isRangeVariable, isValueVariable} from '@/services/data/tuples/objective-utils';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
-import {isNotBlank, noop} from '@/services/utils';
+import {noop} from '@/services/utils';
 import {Button} from '@/widgets/basic/button';
 import {ICON_COLLAPSE_CONTENT, ICON_DELETE, ICON_EDIT} from '@/widgets/basic/constants';
 import {Dropdown} from '@/widgets/basic/dropdown';
@@ -16,12 +16,13 @@ import {Input} from '@/widgets/basic/input';
 import {ButtonInk, DropdownOption} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
+import {buildBucketOptions} from '@/widgets/objective/utils';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {ChangeEvent, MouseEvent, useState} from 'react';
 import {useObjectivesEventBus} from '../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 import {defendVariableAndRemoveUnnecessary} from '../utils';
-import {IncorrectOptionLabel, ItemLabel, ItemNo, RemoveItemButton} from '../widgets';
+import {ItemLabel, ItemNo, RemoveItemButton} from '../widgets';
 import {
 	VariableContainer,
 	VariableKindButton,
@@ -30,95 +31,6 @@ import {
 	VariableValuesContainer
 } from './widgets';
 
-interface BucketVariableOptions {
-	buckets: Array<DropdownOption>,
-	segments: Array<DropdownOption>
-}
-
-const buildBucketOptions = (
-	variable: ObjectiveVariable, allBuckets: Array<QueryBucket>, selectedBucket: Bucket | null
-): BucketVariableOptions => {
-	if (!isBucketVariable(variable)) {
-		return {buckets: [], segments: []};
-	}
-
-	// build bucket options
-	const bucketOptions: Array<DropdownOption> = allBuckets.map(bucket => {
-		return {value: bucket.bucketId, label: bucket.name};
-	}).sort((b1, b2) => {
-		return (b1.label || '').toLowerCase().localeCompare((b2.label || '').toLowerCase());
-	});
-	const segmentOptions: Array<DropdownOption> = [];
-	if (isNotBlank(variable.bucketId)) {
-		// bucket selected
-		// eslint-disable-next-line
-		const found = allBuckets.find(b => b.bucketId == variable.bucketId);
-		if (found == null) {
-			// selected bucket not found, which means selected bucket doesn't exist anymore
-			bucketOptions.push({
-				value: variable.bucketId!, label: () => {
-					return {
-						node: <IncorrectOptionLabel>
-							{Lang.INDICATOR.OBJECTIVE.VARIABLE_BUCKET_INCORRECT_SELECTED}
-						</IncorrectOptionLabel>, label: ''
-					};
-				}
-			} as DropdownOption);
-			if (isNotBlank(variable.segmentName)) {
-				// there is segment selected
-				// since bucket is not found, which means segment is incorrect anyway
-				segmentOptions.push({
-					value: variable.segmentName, label: () => {
-						return {
-							node: <IncorrectOptionLabel>{variable.segmentName}</IncorrectOptionLabel>,
-							label: variable.segmentName
-						};
-					}
-				} as DropdownOption);
-			} else {
-				// there is no segment selected
-				segmentOptions.push({value: '', label: Lang.INDICATOR.OBJECTIVE.VARIABLE_BUCKET_SELECT_FIRST});
-			}
-		} else if (selectedBucket != null) {
-			// selected bucket found
-			// build available segment options
-			segmentOptions.push(...(selectedBucket.segments || []).map(segment => {
-				return {value: segment.name, label: segment.name};
-			}));
-			if (isNotBlank(variable.segmentName)) {
-				// there is segment selected
-				// eslint-disable-next-line
-				const found = (selectedBucket.segments || []).find(s => s.name == variable.segmentName);
-				if (found == null) {
-					// selected segment not found, which means it doesn't exist anymore
-					segmentOptions.push({
-						value: variable.segmentName, label: () => {
-							return {
-								node: <IncorrectOptionLabel>{variable.segmentName}</IncorrectOptionLabel>,
-								label: variable.segmentName
-							};
-						}
-					} as DropdownOption);
-				}
-			} else if (segmentOptions.length === 0) {
-				segmentOptions.push({
-					value: '',
-					label: Lang.INDICATOR.OBJECTIVE.VARIABLE_BUCKET_SEGMENT_NO_AVAILABLE
-				});
-			}
-		}
-
-		return {buckets: bucketOptions, segments: segmentOptions};
-	} else {
-		// bucket not selected
-		if (bucketOptions.length === 0) {
-			// no available buckets
-			bucketOptions.push({value: '', label: Lang.INDICATOR.OBJECTIVE.VARIABLE_BUCKET_NO_AVAILABLE});
-		}
-		segmentOptions.push({value: '', label: Lang.INDICATOR.OBJECTIVE.VARIABLE_BUCKET_SELECT_FIRST});
-	}
-	return {buckets: bucketOptions, segments: segmentOptions};
-};
 const VariableValues = (props: {
 	objective: Objective;
 	variable: ObjectiveVariable;
