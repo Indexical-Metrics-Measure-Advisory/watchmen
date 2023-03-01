@@ -8,26 +8,17 @@ import {
 } from '@/services/data/tuples/indicator-utils';
 import {
 	Objective,
-	ObjectiveFactor,
-	ObjectiveFactorKind,
-	ObjectiveFactorOnComputation,
-	ObjectiveFactorOnIndicator,
 	ObjectiveVariable,
-	ObjectiveVariableKind,
 	ObjectiveVariableOnBucket,
 	ObjectiveVariableOnRange,
 	ObjectiveVariableOnValue
 } from '@/services/data/tuples/objective-types';
+import {isBucketVariable, isRangeVariable, isValueVariable} from '@/services/data/tuples/objective-utils';
 import {QueryByBucketMethod, QueryByEnumMethod, QueryByMeasureMethod} from '@/services/data/tuples/query-bucket-types';
 import {SubjectForIndicator} from '@/services/data/tuples/query-indicator-types';
 import {SubjectDataSetColumn} from '@/services/data/tuples/subject-types';
 import {isNotBlank} from '@/services/utils';
 
-export const isIndicatorFactor = (factor: ObjectiveFactor): factor is ObjectiveFactorOnIndicator => factor.kind === ObjectiveFactorKind.INDICATOR;
-export const isComputedFactor = (factor: ObjectiveFactor): factor is ObjectiveFactorOnComputation => factor.kind === ObjectiveFactorKind.COMPUTED;
-export const isValueVariable = (variable: ObjectiveVariable): variable is ObjectiveVariableOnValue => variable.kind === ObjectiveVariableKind.SINGLE_VALUE;
-export const isRangeVariable = (variable: ObjectiveVariable): variable is ObjectiveVariableOnRange => variable.kind === ObjectiveVariableKind.RANGE;
-export const isBucketVariable = (variable: ObjectiveVariable): variable is ObjectiveVariableOnBucket => variable.kind === ObjectiveVariableKind.BUCKET;
 export const defendVariableAndRemoveUnnecessary = (variable: ObjectiveVariable) => {
 	if (isValueVariable(variable)) {
 		variable.value = variable.value ?? (variable as unknown as ObjectiveVariableOnRange).min;

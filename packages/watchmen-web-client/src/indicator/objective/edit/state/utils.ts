@@ -1,9 +1,9 @@
 import {Indicator, IndicatorBaseOn, IndicatorId} from '@/services/data/tuples/indicator-types';
 import {Objective, ObjectiveFactorOnIndicator} from '@/services/data/tuples/objective-types';
+import {isIndicatorFactor} from '@/services/data/tuples/objective-utils';
 import {SubjectId} from '@/services/data/tuples/subject-types';
 import {TopicId} from '@/services/data/tuples/topic-types';
 import {isNotBlank} from '@/services/utils';
-import {isIndicatorFactor} from '../utils';
 
 export const findIndicators = async (
 	objective: Objective,

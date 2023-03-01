@@ -4,6 +4,7 @@ import {
 	ObjectiveFormulaOperator,
 	ObjectiveParameterType
 } from '@/services/data/tuples/objective-types';
+import {isIndicatorFactor} from '@/services/data/tuples/objective-utils';
 import {noop} from '@/services/utils';
 import {Lang} from '@/widgets/langs';
 import React, {useEffect} from 'react';
@@ -13,7 +14,6 @@ import {ComputedEditor} from '../objective-parameter/compute';
 import {useParameterEventBus} from '../objective-parameter/parameter-event-bus';
 import {ParameterEventTypes} from '../objective-parameter/parameter-event-bus-types';
 import {createFactorParameter} from '../param-utils';
-import {isIndicatorFactor} from '../utils';
 import {FactorItemLabel} from './widgets';
 
 export const FormulaEditor = (props: { objective: Objective; factor: ObjectiveFactor }) => {

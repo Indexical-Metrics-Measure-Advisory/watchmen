@@ -1,9 +1,9 @@
-import {ICON_VOLUME_DECREASE, ICON_VOLUME_INCREASE, ICON_VOLUME_NO_CHANGE} from '@/widgets/basic/constants';
-import {BetterThanBase, VolumeChange} from '@/widgets/objective/utils';
 import {IconDefinition} from '@fortawesome/fontawesome-svg-core';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React from 'react';
 import styled from 'styled-components';
+import {ICON_VOLUME_DECREASE, ICON_VOLUME_INCREASE, ICON_VOLUME_NO_CHANGE} from '../basic/constants';
+import {BetterThanBase, VolumeChange} from '../objective/utils';
 
 const VolumeChangeIcons: Record<VolumeChange, IconDefinition> = {
 	[VolumeChange.INCREASE]: ICON_VOLUME_INCREASE,
