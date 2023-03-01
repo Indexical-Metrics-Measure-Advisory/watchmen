@@ -66,6 +66,39 @@ async def connect_as_derived_objective(
 	return trans(derived_objective_service, action)
 
 
+@router.post('/indicator/derived-objective', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=DerivedObjective)
+async def save_derived_objective(
+		derived_objective: DerivedObjective, principal_service: PrincipalService = Depends(get_console_principal)
+) -> DerivedObjective:
+	derived_objective_service = get_derived_objective_service(principal_service)
+
+	# noinspection DuplicatedCode
+	def action(a_derived_objective: DerivedObjective) -> DerivedObjective:
+		a_derived_objective.userId = principal_service.get_user_id()
+		a_derived_objective.tenantId = principal_service.get_tenant_id()
+		a_derived_objective.lastVisitTime = get_current_time_in_seconds()
+		if derived_objective_service.is_storable_id_faked(a_derived_objective.derivedObjectiveId):
+			derived_objective_service.redress_storable_id(a_derived_objective)
+			# noinspection PyTypeChecker
+			a_derived_objective: DerivedObjective = derived_objective_service.create(a_derived_objective)
+		else:
+			# noinspection PyTypeChecker
+			existing_derived_objective: Optional[DerivedObjective] = \
+				derived_objective_service.find_by_id(a_derived_objective.derivedObjectiveId)
+			if existing_derived_objective is not None:
+				if existing_derived_objective.tenantId != a_derived_objective.tenantId:
+					raise_403()
+				if existing_derived_objective.userId != a_derived_objective.userId:
+					raise_403()
+
+			# noinspection PyTypeChecker
+			a_derived_objective: DerivedObjective = derived_objective_service.update(a_derived_objective)
+
+		return a_derived_objective
+
+	return trans(derived_objective_service, lambda: action(derived_objective))
+
+
 @router.get(
 	'/indicator/derived-objective/list', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=List[DerivedObjective])
 async def find_my_derived_objectives(
