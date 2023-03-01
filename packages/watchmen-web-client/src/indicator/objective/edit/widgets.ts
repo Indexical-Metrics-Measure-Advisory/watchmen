@@ -161,7 +161,3 @@ export const RibItemContainer = styled(ItemContainer)`
 		pointer-events : none;
 	}
 `;
-export const IncorrectOptionLabel = styled.span.attrs({'data-widget': 'incorrect-option'})`
-	color           : var(--danger-color);
-	text-decoration : line-through;
-`;

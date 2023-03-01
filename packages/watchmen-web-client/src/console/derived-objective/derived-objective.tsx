@@ -2,6 +2,7 @@ import {DerivedObjective} from '@/services/data/tuples/derived-objective-types';
 import React from 'react';
 import {Body} from './body';
 import {Header} from './header';
+import {ObjectiveBucketsHolder} from './objective-buckets-holder';
 import {ObjectiveEventBusProvider} from './objective-event-bus';
 import {ObjectiveStateHandler} from './objective-state-holder';
 import {ObjectiveValuesHandler} from './objective-values-holder';
@@ -11,6 +12,7 @@ export const DerivedObjectivePage = (props: { derivedObjective: DerivedObjective
 
 	return <ObjectiveEventBusProvider>
 		<ObjectiveStateHandler derivedObjective={derivedObjective}/>
+		<ObjectiveBucketsHolder/>
 		<ObjectiveValuesHandler derivedObjective={derivedObjective}/>
 		<Header derivedObjective={derivedObjective}/>
 		<Body derivedObjective={derivedObjective}/>

@@ -111,7 +111,7 @@ export const MonthlySalesObjective: Objective = {
 						kind: ObjectiveParameterType.REFER,
 						uuid: REVENUE_FACTOR_ID
 					} as ReferObjectiveParameter,
-					{kind: ObjectiveParameterType.CONSTANT, value: '{&TaxCostRate}}'} as ConstantObjectiveParameter
+					{kind: ObjectiveParameterType.CONSTANT, value: '{&TaxCostRate}'} as ConstantObjectiveParameter
 				]
 			}
 		} as ObjectiveFactorOnComputation,
