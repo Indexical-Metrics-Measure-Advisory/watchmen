@@ -98,4 +98,15 @@ export const BucketVariableContainer = styled.div.attrs({'data-widget': 'derived
 	position              : relative;
 	grid-template-columns : 1fr 1fr;
 	align-items           : center;
+	> div[data-widget=dropdown]:first-child {
+		border-top-right-radius    : 0;
+		border-bottom-right-radius : 0;
+	}
+	> div[data-widget=dropdown]:last-child {
+		border-top-left-radius    : 0;
+		border-bottom-left-radius : 0;
+		border-left-color         : transparent;
+		margin-left               : -1px;
+		width                     : calc(100% + 1px);
+	}
 `;
