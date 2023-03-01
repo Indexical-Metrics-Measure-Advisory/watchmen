@@ -8,6 +8,7 @@ import {
 	ObjectiveParameterType,
 	ObjectiveTargetBetterSide,
 	ObjectiveVariableKind,
+	ObjectiveVariableOnRange,
 	ObjectiveVariableOnValue,
 	ReferObjectiveParameter
 } from '../../tuples/objective-types';
@@ -61,7 +62,11 @@ export const MonthlySalesObjective: Objective = {
 	variables: [
 		{name: 'MaterialCostRate', kind: ObjectiveVariableKind.SINGLE_VALUE, value: '0.68'} as ObjectiveVariableOnValue,
 		{name: 'SalesCostRate', kind: ObjectiveVariableKind.SINGLE_VALUE, value: '0.15'} as ObjectiveVariableOnValue,
-		{name: 'TaxCostRate', kind: ObjectiveVariableKind.SINGLE_VALUE, value: '0.07'} as ObjectiveVariableOnValue
+		{name: 'TaxCostRate', kind: ObjectiveVariableKind.SINGLE_VALUE, value: '0.07'} as ObjectiveVariableOnValue,
+		{
+			name: 'RangeSample', kind: ObjectiveVariableKind.RANGE,
+			includeMin: false, includeMax: true, min: "1", max: "100"
+		} as ObjectiveVariableOnRange
 	],
 	factors: [
 		{
