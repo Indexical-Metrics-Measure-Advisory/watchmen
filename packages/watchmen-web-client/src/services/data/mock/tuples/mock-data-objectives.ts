@@ -8,12 +8,14 @@ import {
 	ObjectiveParameterType,
 	ObjectiveTargetBetterSide,
 	ObjectiveVariableKind,
+	ObjectiveVariableOnBucket,
 	ObjectiveVariableOnRange,
 	ObjectiveVariableOnValue,
 	ReferObjectiveParameter
 } from '../../tuples/objective-types';
 import {generateUuid} from '../../tuples/utils';
 import {getCurrentTime} from '../../utils';
+import {BUCKET_CITIES_ID} from './mock-data-buckets';
 import {INDICATOR_MONTHLY_ORDER_PREMIUM_ID} from './mock-data-indicators';
 
 export const OBJECTIVE_MONTHLY_SALES_ID = '1';
@@ -65,8 +67,12 @@ export const MonthlySalesObjective: Objective = {
 		{name: 'TaxCostRate', kind: ObjectiveVariableKind.SINGLE_VALUE, value: '0.07'} as ObjectiveVariableOnValue,
 		{
 			name: 'RangeSample', kind: ObjectiveVariableKind.RANGE,
-			includeMin: false, includeMax: true, min: "1", max: "100"
-		} as ObjectiveVariableOnRange
+			includeMin: false, includeMax: true, min: '1', max: '100'
+		} as ObjectiveVariableOnRange,
+		{
+			name: 'BucketSample', kind: ObjectiveVariableKind.BUCKET,
+			bucketId: BUCKET_CITIES_ID, segmentName: 'NY'
+		} as ObjectiveVariableOnBucket
 	],
 	factors: [
 		{
