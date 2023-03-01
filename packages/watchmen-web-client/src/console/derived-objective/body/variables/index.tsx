@@ -1,10 +1,11 @@
 import {DerivedObjective} from '@/services/data/tuples/derived-objective-types';
 import {ObjectiveVariable} from '@/services/data/tuples/objective-types';
+import {Lang} from '@/widgets/langs';
 import React, {useEffect, useState} from 'react';
 import {useObjectiveEventBus} from '../../objective-event-bus';
 import {ObjectiveEventTypes} from '../../objective-event-bus-types';
 import {Variable} from './variable';
-import {VariablesContainer} from './widgets';
+import {VariablesContainer, VariablesTitle} from './widgets';
 
 export const Variables = (props: { derivedObjective: DerivedObjective }) => {
 	const {derivedObjective} = props;
@@ -25,6 +26,7 @@ export const Variables = (props: { derivedObjective: DerivedObjective }) => {
 	const variables: Array<ObjectiveVariable> = objective.variables || [];
 
 	return <VariablesContainer data-visible={visible}>
+		<VariablesTitle>{Lang.CONSOLE.DERIVED_OBJECTIVE.VARIABLES_TITLE}</VariablesTitle>
 		{variables.map((variable, index) => {
 			return <Variable objective={objective} variable={variable} index={index + 1}
 			                 key={`${variable.name || ''}-${index}`}/>;

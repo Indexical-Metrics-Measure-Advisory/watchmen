@@ -300,6 +300,7 @@ export const Zh: LanguageDeclareType = {
 			SHOW_VARIABLES: '显示变量设定',
 			HIDE_VARIABLES: '隐藏变量设定',
 			UNKNOWN_TARGET_NAME: '未命名目标',
+			VARIABLES_TITLE: '条件变量',
 			UNKNOWN_VARIABLE_NAME: '未命名变量'
 		}
 	},

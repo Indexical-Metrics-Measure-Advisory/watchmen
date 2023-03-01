@@ -1,6 +1,6 @@
 import {Bucket, BucketId} from '@/services/data/tuples/bucket-types';
 import {Indicator, IndicatorId} from '@/services/data/tuples/indicator-types';
-import {Objective, ObjectiveValues} from '@/services/data/tuples/objective-types';
+import {ObjectiveValues} from '@/services/data/tuples/objective-types';
 import {QueryBucket, QueryByBucketMethod} from '@/services/data/tuples/query-bucket-types';
 import {SubjectForIndicator} from '@/services/data/tuples/query-indicator-types';
 import {SubjectId} from '@/services/data/tuples/subject-types';
@@ -31,9 +31,9 @@ export interface ObjectiveEventBus {
 	on(type: ObjectiveEventTypes.SAVE, listener: (onSaved: (saved: boolean) => void, immediately?: boolean) => void): this;
 	off(type: ObjectiveEventTypes.SAVE, listener: (onSaved: (saved: boolean) => void, immediately?: boolean) => void): this;
 
-	fire(type: ObjectiveEventTypes.SAVED, objective: Objective): this;
-	on(type: ObjectiveEventTypes.SAVED, listener: (objective: Objective) => void): this;
-	off(type: ObjectiveEventTypes.SAVED, listener: (objective: Objective) => void): this;
+	fire(type: ObjectiveEventTypes.SAVED): this;
+	on(type: ObjectiveEventTypes.SAVED, listener: () => void): this;
+	off(type: ObjectiveEventTypes.SAVED, listener: () => void): this;
 
 	fire(type: ObjectiveEventTypes.ASK_ALL_BUCKETS, onData: (buckets: Array<QueryBucket>) => void): this;
 	on(type: ObjectiveEventTypes.ASK_ALL_BUCKETS, listener: (onData: (buckets: Array<QueryBucket>) => void) => void): this;

@@ -1,4 +1,4 @@
-import {Apis, get} from '../apis';
+import {Apis, get, post} from '../apis';
 import {
 	deleteMockDerivedObjective,
 	fetchMockDerivedObjectives,
@@ -42,6 +42,19 @@ export const renameDerivedObjective = async (derivedObjective: DerivedObjective)
 			api: Apis.DERIVED_OBJECTIVE_RENAME,
 			search: {derivedObjectiveId: derivedObjective.derivedObjectiveId, name: derivedObjective.name}
 		});
+	}
+};
+
+export const saveDerivedObjective = async (derivedObjective: DerivedObjective): Promise<void> => {
+	if (isMockService()) {
+		return saveMockDerivedObjective(derivedObjective);
+	} else if (isFakedUuid(derivedObjective)) {
+		const data = await post({api: Apis.DERIVED_OBJECTIVE_CREATE, data: derivedObjective});
+		derivedObjective.derivedObjectiveId = data.derivedObjectiveId;
+		derivedObjective.lastModifiedAt = data.lastModifiedAt;
+	} else {
+		const data = await post({api: Apis.DERIVED_OBJECTIVE_SAVE, data: derivedObjective});
+		derivedObjective.lastModifiedAt = data.lastModifiedAt;
 	}
 };
 

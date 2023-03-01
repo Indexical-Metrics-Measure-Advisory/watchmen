@@ -300,6 +300,7 @@ export const En = {
 			SHOW_VARIABLES: 'Show Variables',
 			HIDE_VARIABLES: 'Hide Variables',
 			UNKNOWN_TARGET_NAME: 'Unknown target',
+			VARIABLES_TITLE: 'Criteria Variables',
 			UNKNOWN_VARIABLE_NAME: 'Unknown variable'
 		}
 	},

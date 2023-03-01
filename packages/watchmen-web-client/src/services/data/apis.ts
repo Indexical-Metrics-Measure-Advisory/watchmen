@@ -198,6 +198,8 @@ export const Apis = {
 
 	OBJECTIVES_AVAILABLE: 'indicator/objective/available',
 	OBJECTIVE_CONNECT: 'indicator/derived-objective/connect?objective_id=:objectiveId&name=:name',
+	DERIVED_OBJECTIVE_CREATE: 'indicator/derived-objective',
+	DERIVED_OBJECTIVE_SAVE: 'indicator/derived-objective',
 	DERIVED_OBJECTIVES_MINE: 'indicator/derived-objective/list',
 	DERIVED_OBJECTIVE_RENAME: 'indicator/derived-objective/rename?derived_objective_id=:derivedObjectiveId&name=:name',
 	DERIVED_OBJECTIVE_DELETE: 'indicator/derived-objective/delete?derived_objective_id=:derivedObjectiveId'
