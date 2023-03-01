@@ -21,7 +21,9 @@ export enum ObjectiveEventTypes {
 	ASK_SUBJECT = 'ask-subject',
 
 	ASK_VALUES = 'ask-values',
-	VALUES_FETCHED = 'values-fetched'
+	VALUES_FETCHED = 'values-fetched',
+
+	SWITCH_VARIABLES_VISIBLE = 'switch-variables-visible'
 }
 
 export interface ObjectiveEventBus {
@@ -72,4 +74,8 @@ export interface ObjectiveEventBus {
 	fire(type: ObjectiveEventTypes.VALUES_FETCHED, values: ObjectiveValues): this;
 	on(type: ObjectiveEventTypes.VALUES_FETCHED, listener: (values: ObjectiveValues) => void): this;
 	off(type: ObjectiveEventTypes.VALUES_FETCHED, listener: (values: ObjectiveValues) => void): this;
+
+	fire(type: ObjectiveEventTypes.SWITCH_VARIABLES_VISIBLE): this;
+	on(type: ObjectiveEventTypes.SWITCH_VARIABLES_VISIBLE, listener: () => void): this;
+	off(type: ObjectiveEventTypes.SWITCH_VARIABLES_VISIBLE, listener: () => void): this;
 }
