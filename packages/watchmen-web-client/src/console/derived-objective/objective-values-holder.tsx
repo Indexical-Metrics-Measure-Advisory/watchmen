@@ -1,4 +1,3 @@
-import {SAVE_TIMEOUT} from '@/services/constants';
 import {DerivedObjective} from '@/services/data/tuples/derived-objective-types';
 import {askObjectiveValues} from '@/services/data/tuples/objective';
 import {ObjectiveValues} from '@/services/data/tuples/objective-types';
@@ -23,7 +22,7 @@ export const ObjectiveValuesHandler = (props: { derivedObjective: DerivedObjecti
 				fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
 					async () => await askObjectiveValues(objective),
 					(values: ObjectiveValues) => fire(ObjectiveEventTypes.VALUES_FETCHED, values));
-			}, SAVE_TIMEOUT);
+			}, 300);
 		};
 		on(ObjectiveEventTypes.ASK_VALUES, onAskValues);
 		return () => {
