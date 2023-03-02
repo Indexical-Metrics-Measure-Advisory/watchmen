@@ -1,4 +1,3 @@
-import {SAVE_TIMEOUT} from '@/services/constants';
 import {askObjectiveValues} from '@/services/data/tuples/objective';
 import {
 	Objective,
@@ -28,7 +27,7 @@ export const ObjectiveValuesHandler = (props: { objective: Objective }) => {
 				fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
 					async () => await askObjectiveValues(objective),
 					(values: ObjectiveValues) => fire(ObjectivesEventTypes.VALUES_FETCHED, values));
-			}, SAVE_TIMEOUT);
+			}, 300);
 		};
 		on(ObjectivesEventTypes.ASK_VALUES, onAskValues);
 		return () => {
