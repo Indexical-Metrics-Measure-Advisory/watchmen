@@ -1119,7 +1119,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n    \"connectedSpaceIds\": [],\n    \"dashboardIds\": []\n}",
+									"raw": "{\n    \"connectedSpaceIds\": [],\n    \"dashboardIds\": [],\n    \"derived_objective_ids\": []\n}",
 									"options": {
 										"raw": {
 											"language": "json"
