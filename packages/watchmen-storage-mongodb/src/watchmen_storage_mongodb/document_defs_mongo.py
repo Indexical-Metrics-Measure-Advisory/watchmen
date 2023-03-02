@@ -264,7 +264,7 @@ table_package_versions = MongoDocument(
 table_favorites = MongoDocument(
 	name='favorites',
 	columns=[
-		create_json('connected_space_ids'), create_json('dashboard_ids'),
+		create_json('connected_space_ids'), create_json('dashboard_ids'), create_json('derived_objective_ids'),
 		create_tenant_id(), create_user_id(primary_key=True), create_last_visit_time()
 	]
 )

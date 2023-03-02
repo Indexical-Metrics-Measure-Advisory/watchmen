@@ -191,7 +191,7 @@ table_snapshot_job_locks = Table(
 # noinspection DuplicatedCode
 table_favorites = Table(
 	'favorites', meta_data,
-	create_json('connected_space_ids'), create_json('dashboard_ids'),
+	create_json('connected_space_ids'), create_json('dashboard_ids'), create_json('derived_objective_ids'),
 	create_tenant_id(), create_user_id(primary_key=True), create_last_visit_time()
 )
 table_last_snapshot = Table(
