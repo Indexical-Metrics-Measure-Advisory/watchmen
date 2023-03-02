@@ -207,9 +207,9 @@ export const useFavoriteState = () => {
 				fire(ConsoleEventTypes.ASK_DASHBOARDS, (dashboards: Array<Dashboard>) => {
 					fire(ConsoleEventTypes.ASK_DERIVED_OBJECTIVES, (derivedObjectives: Array<DerivedObjective>) => {
 						setData({
-							connectedSpaces, connectedSpaceIds,
-							dashboards, dashboardIds,
-							derivedObjectives, derivedObjectiveIds
+							connectedSpaces, connectedSpaceIds: connectedSpaceIds || [],
+							dashboards, dashboardIds: dashboardIds || [],
+							derivedObjectives, derivedObjectiveIds: derivedObjectiveIds || []
 						});
 					});
 				});
