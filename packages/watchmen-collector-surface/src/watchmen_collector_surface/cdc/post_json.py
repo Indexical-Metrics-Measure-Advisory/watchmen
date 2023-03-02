@@ -63,7 +63,7 @@ class PostJsonService:
 	def change_data_json_listener(self):
 		unfinished_events = self.trigger_event_service.find_unfinished_events()
 		if len(unfinished_events) == 0:
-			sleep(1)
+			sleep(5)
 		else:
 			ArrayHelper(unfinished_events).each(self.process_models)
 
@@ -75,7 +75,7 @@ class PostJsonService:
 			if model_config.dependOn is None or self.is_all_dependent_trigger_model_finished(model_config,
 			                                                                                 trigger_model):
 				if model_config.isParalleled or self.is_sequenced_trigger_model_finished(trigger_model):
-					self.process_change_data_json(trigger_model)
+					self.process_change_data_json(model_config, trigger_model)
 				else:
 					logger.debug(f'model config is paralleled: {model_config.isParalleled}')
 			else:
@@ -83,7 +83,7 @@ class PostJsonService:
 
 		ArrayHelper(trigger_models).each(process_model)
 
-	def process_change_data_json(self, trigger_model: TriggerModel):
+	def process_change_data_json(self, model_config: CollectorModelConfig, trigger_model: TriggerModel):
 		not_posted_json = self.change_json_service.find_not_posted_json(trigger_model.modelTriggerId)
 		if len(not_posted_json) == 0:
 			sleep(1)
@@ -100,9 +100,8 @@ class PostJsonService:
 							continue
 						else:
 							try:
-								model_config = self.model_config_service.find_by_name(change_data_json.modelName)
 								if self.can_post(model_config, change_data_json):
-									self.post_json(change_data_json)
+									self.post_json(model_config, change_data_json)
 									break
 								else:
 									continue
@@ -157,11 +156,11 @@ class PostJsonService:
 				return False
 
 	def is_sequenced(self, change_json: ChangeDataJson) -> bool:
-		json = self.change_json_service.find_by_object_id(change_json.modelName,
-		                                                  change_json.objectId,
-		                                                  change_json.modelTriggerId)
+		json_records = self.change_json_service.find_by_object_id(change_json.modelName,
+		                                                          change_json.objectId,
+		                                                          change_json.modelTriggerId)
 
-		def is_finished(sequenced_json: ChangeDataJson) -> bool:
+		def sequenced(sequenced_json: ChangeDataJson) -> bool:
 			if compare_sequence(sequenced_json.sequence, change_json.sequence):
 				if sequenced_json.isPosted:
 					return True
@@ -176,10 +175,10 @@ class PostJsonService:
 			else:
 				return False
 
-		return ArrayHelper(json).every(is_finished)
+		return ArrayHelper(json_records).every(sequenced)
 
-	def post_json(self, change_json: ChangeDataJson) -> ScheduledTask:
-		task = self.get_scheduled_task(change_json)
+	def post_json(self, model_config: CollectorModelConfig, change_json: ChangeDataJson) -> ScheduledTask:
+		task = self.get_scheduled_task(model_config, change_json)
 		self.scheduled_task_service.begin_transaction()
 		try:
 			self.scheduled_task_service.create(task)
@@ -192,7 +191,7 @@ class PostJsonService:
 			self.scheduled_task_service.rollback_transaction()
 			raise e
 
-	def get_scheduled_task(self, change_json: ChangeDataJson) -> ScheduledTask:
+	def get_scheduled_task(self, model_config: CollectorModelConfig, change_json: ChangeDataJson) -> ScheduledTask:
 		return ScheduledTask(
 			taskId=self.snowflake_generator.next_id(),
 			resourceId=self.generate_resource_id(change_json),
@@ -200,7 +199,8 @@ class PostJsonService:
 			content=change_json.content,
 			modelName=change_json.modelName,
 			objectId=change_json.objectId,
-			dependence=self.get_dependent_tasks(change_json),
+			dependOn=change_json.dependOn,
+			parentTaskId=[] if model_config.isParalleled else self.get_dependent_tasks(change_json),
 			isFinished=False,
 			result=None,
 			tenantId=change_json.tenantId
@@ -210,25 +210,19 @@ class PostJsonService:
 		return self.model_config_service.find_by_name(change_json.modelName).rawTopicCode
 
 	def get_dependent_tasks(self, change_json: ChangeDataJson) -> List[int]:
-		dependencies = change_json.dependOn
+		json_records = self.change_json_service.find_by_object_id(change_json.modelName,
+		                                                          change_json.objectId,
+		                                                          change_json.modelTriggerId)
 
-		def get_dependent_change_json(instance: PostJsonService,
-		                              model_name: str,
-		                              object_id: str,
-		                              event_trigger_id: int) ->  List[ChangeDataJson]:
-			return instance.change_json_service.find_by_object_id(model_name, object_id, event_trigger_id)
+		def is_dependent_task(dependent_json_record: ChangeDataJson, current_json_record: ChangeDataJson) -> bool:
+			if dependent_json_record.sequence < current_json_record.sequence:
+				return True
+			else:
+				return False
 
-		return ArrayHelper(dependencies).map(
-			lambda dependence: get_dependent_change_json(self, dependence.modelName,
-			                                             dependence.objectId,
-			                                             change_json.eventTriggerId)
-		).filter(self.has_task_id).map(self.get_dependent_task).to_list()
-
-	def has_task_id(self, change_json: ChangeDataJson) -> bool:
-		if change_json.taskId:
-			return True
-		else:
-			return False
+		return ArrayHelper(json_records).filter(
+			lambda json_record: is_dependent_task(json_record, change_json)
+		).map(lambda json_record: self.get_dependent_task(json_record)).to_list()
 
 	def get_dependent_task(self, change_json: ChangeDataJson) -> int:
 		return change_json.taskId
