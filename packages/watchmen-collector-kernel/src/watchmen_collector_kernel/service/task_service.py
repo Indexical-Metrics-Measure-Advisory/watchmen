@@ -49,10 +49,7 @@ class TaskService:
 
 	# noinspection PyMethodMayBeStatic
 	def is_finished(self, task: ScheduledTask) -> bool:
-		if task.status == TaskStatus.SUCCESS or task.status == TaskStatus.FAILED:
-			return True
-		else:
-			return False
+		return task.isFinished
 
 	def is_dependence_finished(self, depend_on: Optional[List[Dependence]], tenant_id: str) -> bool:
 		if ArrayHelper(depend_on).every(lambda dependence: self.is_dependent_task_finished(dependence, tenant_id)):
