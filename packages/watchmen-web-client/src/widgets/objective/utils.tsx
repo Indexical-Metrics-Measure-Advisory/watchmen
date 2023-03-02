@@ -9,8 +9,8 @@ import {
 import {isBucketVariable} from '@/services/data/tuples/objective-utils';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
 import {isNotBlank} from '@/services/utils';
-import {DropdownOption} from '@/widgets/basic/types';
 import styled from 'styled-components';
+import {DropdownOption} from '../basic/types';
 import {Lang} from '../langs';
 import {createNumberFormat} from '../report/chart-utils/number-format';
 

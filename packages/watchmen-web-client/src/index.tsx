@@ -46,3 +46,7 @@ root.render(<App/>);
 // Learn more about service workers: https://bit.ly/CRA-PWA
 serviceWorker.unregister();
 
+export {buildLastNOptions} from '@/widgets/objective/options-utils';
+export {buildTillOptions} from '@/widgets/objective/options-utils';
+export {buildKindOptions} from '@/widgets/objective/options-utils';
+export {findTimeFrameKindLabel} from '@/widgets/objective/options-utils';

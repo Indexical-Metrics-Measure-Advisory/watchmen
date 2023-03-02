@@ -7,11 +7,15 @@ export const VariablesContainer = styled.div.attrs({'data-widget': 'derived-obje
 	grid-column-gap       : var(--margin);
 	grid-row-gap          : calc(var(--margin) / 2);
 	margin-bottom         : var(--margin);
+	padding-bottom        : calc(var(--margin) / 2);
+	border-bottom         : var(--border);
 	transition            : height 300ms ease-in-out;
 	&[data-visible=false] {
-		height        : 0;
-		margin-bottom : 0;
-		overflow      : hidden;
+		height         : 0;
+		margin-bottom  : 0;
+		padding-bottom : 0;
+		border-bottom  : 0;
+		overflow       : hidden;
 	}
 `;
 export const VariablesTitle = styled.div.attrs({'data-widget': 'derived-objective-variables-title'})`
@@ -30,6 +34,7 @@ export const VariableName = styled.div.attrs({'data-widget': 'derived-objective-
 	position     : relative;
 	align-items  : center;
 	font-variant : petite-caps;
+	font-weight  : var(--font-bold);
 	opacity      : 0.8;
 `;
 export const RangeVariableContainer = styled.div.attrs({'data-widget': 'derived-objective-variable-range'})`
