@@ -76,6 +76,7 @@ export const createDerivedObjective = (objective: Objective, name?: string): Der
 		name: name || `${getCurrentLanguage().PLAIN.NEW_DERIVED_OBJECTIVE_NAME} ${base64Encode(derivedObjectiveId).substring(0, 12)}`,
 		objectiveId: objective.objectiveId,
 		definition: objective,
+		breakdownTargets: [],
 		lastVisitTime: getCurrentTime(),
 		createdAt: getCurrentTime(),
 		lastModifiedAt: getCurrentTime()

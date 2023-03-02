@@ -30,7 +30,6 @@ class BreakdownDimension(DataModel, BaseModel):
 	"""
 	when type is VALUE, which means no bucket, no time measure method. use the original value as dimension
 	"""
-	# none, measure on indicator value or other factor
 	type: BreakdownDimensionType = None
 	# if measure on factor, factor id must be given
 	factorOrColumnId: Union[FactorId, SubjectDatasetColumnId] = None
