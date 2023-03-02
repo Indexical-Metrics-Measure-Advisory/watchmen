@@ -1,3 +1,4 @@
+import {Frame} from '@/indicator/objective/edit/time-frame/types';
 import {
 	Objective,
 	ObjectiveTimeFrame,
@@ -5,7 +6,6 @@ import {
 	ObjectiveTimeFrameTill
 } from '@/services/data/tuples/objective-types';
 import dayjs, {Dayjs} from 'dayjs';
-import {Frame} from './types';
 
 export const guardKind = (kind?: ObjectiveTimeFrameKind): ObjectiveTimeFrameKind => kind || ObjectiveTimeFrameKind.MONTH;
 const guardTill = (till?: ObjectiveTimeFrameTill): ObjectiveTimeFrameTill => till || ObjectiveTimeFrameTill.NOW;

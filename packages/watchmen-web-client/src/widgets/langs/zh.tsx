@@ -301,7 +301,20 @@ export const Zh: LanguageDeclareType = {
 			HIDE_VARIABLES: '隐藏变量设定',
 			UNKNOWN_TARGET_NAME: '未命名目标',
 			VARIABLES_TITLE: '条件变量',
-			UNKNOWN_VARIABLE_NAME: '未命名变量'
+			UNKNOWN_VARIABLE_NAME: '未命名变量',
+			TIME_FRAME_TITLE: '时间窗口',
+			NOT_TIME_RELATED: '目标没有指定时间窗口.',
+			TIME_FRAME_KIND_YEAR: '年度',
+			TIME_FRAME_KIND_HALF_YEAR: '半年度',
+			TIME_FRAME_KIND_QUARTER: '季度',
+			TIME_FRAME_KIND_MONTH: '月度',
+			TIME_FRAME_KIND_WEEK_OF_YEAR: '每周',
+			TIME_FRAME_KIND_DAY_OF_MONTH: '按月每天',
+			TIME_FRAME_KIND_DAY_OF_WEEK: '按周每天',
+			TIME_FRAME_KIND_LAST_N_YEARS: '最近若干年',
+			TIME_FRAME_KIND_LAST_N_MONTHS: '最近若干月',
+			TIME_FRAME_KIND_LAST_N_WEEKS: '最近若干周',
+			TIME_FRAME_KIND_LAST_N_DAYS: '最近若干天'
 		}
 	},
 	INDICATOR: {

@@ -5,12 +5,7 @@ import {Dropdown} from '@/widgets/basic/dropdown';
 import {DropdownOption} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
-import React from 'react';
-import {useObjectivesEventBus} from '../../objectives-event-bus';
-import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
-import {EditStep} from '../edit-step';
-import {ObjectiveDeclarationStep} from '../steps';
-import {ItemLabel, ItemValue} from '../widgets';
+import {buildKindOptions, buildLastNOptions, buildTillOptions} from '@/widgets/objective/options-utils';
 import {
 	computeChainFrame,
 	computeFrame,
@@ -19,7 +14,13 @@ import {
 	guardTimeFrame,
 	lastN,
 	renderTimeFrame
-} from './utils';
+} from '@/widgets/objective/time-frame-utils';
+import React from 'react';
+import {useObjectivesEventBus} from '../../objectives-event-bus';
+import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
+import {EditStep} from '../edit-step';
+import {ObjectiveDeclarationStep} from '../steps';
+import {ItemLabel, ItemValue} from '../widgets';
 import {TimeFrameContainer} from './widgets';
 
 export const TimeFrame = (props: { objective: Objective }) => {
@@ -56,47 +57,9 @@ export const TimeFrame = (props: { objective: Objective }) => {
 		forceUpdate();
 	};
 
-	const kindOptions = [
-		{value: ObjectiveTimeFrameKind.NONE, label: Lang.INDICATOR.OBJECTIVE.TIME_FRAME_KIND_NONE},
-		{value: ObjectiveTimeFrameKind.YEAR, label: Lang.INDICATOR.OBJECTIVE.TIME_FRAME_KIND_YEAR},
-		{value: ObjectiveTimeFrameKind.HALF_YEAR, label: Lang.INDICATOR.OBJECTIVE.TIME_FRAME_KIND_HALF_YEAR},
-		{value: ObjectiveTimeFrameKind.QUARTER, label: Lang.INDICATOR.OBJECTIVE.TIME_FRAME_KIND_QUARTER},
-		{value: ObjectiveTimeFrameKind.MONTH, label: Lang.INDICATOR.OBJECTIVE.TIME_FRAME_KIND_MONTH},
-		{value: ObjectiveTimeFrameKind.WEEK_OF_YEAR, label: Lang.INDICATOR.OBJECTIVE.TIME_FRAME_KIND_WEEK_OF_YEAR},
-		{value: ObjectiveTimeFrameKind.DAY_OF_MONTH, label: Lang.INDICATOR.OBJECTIVE.TIME_FRAME_KIND_DAY_OF_MONTH},
-		{value: ObjectiveTimeFrameKind.DAY_OF_WEEK, label: Lang.INDICATOR.OBJECTIVE.TIME_FRAME_KIND_DAY_OF_WEEK},
-		{value: ObjectiveTimeFrameKind.LAST_N_YEARS, label: Lang.INDICATOR.OBJECTIVE.TIME_FRAME_KIND_LAST_N_YEARS},
-		{value: ObjectiveTimeFrameKind.LAST_N_MONTHS, label: Lang.INDICATOR.OBJECTIVE.TIME_FRAME_KIND_LAST_N_MONTHS},
-		{value: ObjectiveTimeFrameKind.LAST_N_WEEKS, label: Lang.INDICATOR.OBJECTIVE.TIME_FRAME_KIND_LAST_N_WEEKS},
-		{value: ObjectiveTimeFrameKind.LAST_N_DAYS, label: Lang.INDICATOR.OBJECTIVE.TIME_FRAME_KIND_LAST_N_DAYS}
-	];
-	const tillOptions = [
-		{value: ObjectiveTimeFrameTill.NOW, label: Lang.INDICATOR.OBJECTIVE.TIME_FRAME_TILL_NOW},
-		{
-			value: ObjectiveTimeFrameTill.LAST_COMPLETE_CYCLE,
-			label: Lang.INDICATOR.OBJECTIVE.TIME_FRAME_TILL_LAST_COMPLETE_CYCLE
-		},
-		{value: ObjectiveTimeFrameTill.SPECIFIED, label: Lang.INDICATOR.OBJECTIVE.TIME_FRAME_TILL_SPECIFIED}
-	];
-	const lastNOptions = (() => {
-		const buildOptions = (count: number): Array<DropdownOption> => {
-			return new Array(count).fill(1).map((_, index) => {
-				return {value: `${index + 1}`, label: `${index + 1}`};
-			});
-		};
-		switch (def.kind) {
-			case ObjectiveTimeFrameKind.LAST_N_YEARS:
-				return buildOptions(10);
-			case ObjectiveTimeFrameKind.LAST_N_MONTHS:
-				return buildOptions(60);
-			case ObjectiveTimeFrameKind.LAST_N_WEEKS:
-				return buildOptions(54);
-			case ObjectiveTimeFrameKind.LAST_N_DAYS:
-				return buildOptions(366);
-			default:
-				return [] as Array<DropdownOption>;
-		}
-	})();
+	const kindOptions = buildKindOptions();
+	const tillOptions = buildTillOptions();
+	const lastNOptions = buildLastNOptions(def);
 
 	const isTimeRelated = def.kind !== ObjectiveTimeFrameKind.NONE;
 	const isLastNKind = lastN(guardKind(def.kind));

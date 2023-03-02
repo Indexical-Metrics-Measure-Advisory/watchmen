@@ -4,6 +4,7 @@ import {useValuesFetched} from '../hooks/use-ask-values';
 import {useObjectiveEventBus} from '../objective-event-bus';
 import {ObjectiveEventTypes} from '../objective-event-bus-types';
 import {Targets} from './targets';
+import {TimeFrame} from './time-frame';
 import {Variables} from './variables';
 import {BodyContainer} from './widgets';
 
@@ -22,6 +23,7 @@ export const Body = (props: { derivedObjective: DerivedObjective }) => {
 	}, [fire, initialized]);
 
 	return <BodyContainer>
+		<TimeFrame derivedObjective={derivedObjective}/>
 		<Variables derivedObjective={derivedObjective}/>
 		<Targets derivedObjective={derivedObjective} findTargetValues={findTargetValues}/>
 	</BodyContainer>;

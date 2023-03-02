@@ -301,7 +301,20 @@ export const En = {
 			HIDE_VARIABLES: 'Hide Variables',
 			UNKNOWN_TARGET_NAME: 'Unknown target',
 			VARIABLES_TITLE: 'Criteria Variables',
-			UNKNOWN_VARIABLE_NAME: 'Unknown variable'
+			UNKNOWN_VARIABLE_NAME: 'Unknown variable',
+			TIME_FRAME_TITLE: 'Time Frame',
+			NOT_TIME_RELATED: 'Objective is not time related.',
+			TIME_FRAME_KIND_YEAR: 'Yearly',
+			TIME_FRAME_KIND_HALF_YEAR: 'Half Yearly',
+			TIME_FRAME_KIND_QUARTER: 'Quarterly',
+			TIME_FRAME_KIND_MONTH: 'Monthly',
+			TIME_FRAME_KIND_WEEK_OF_YEAR: 'Weekly',
+			TIME_FRAME_KIND_DAY_OF_MONTH: 'Daily, Of Month',
+			TIME_FRAME_KIND_DAY_OF_WEEK: 'Daily, Of Week',
+			TIME_FRAME_KIND_LAST_N_YEARS: 'Last N Years',
+			TIME_FRAME_KIND_LAST_N_MONTHS: 'Last N Months',
+			TIME_FRAME_KIND_LAST_N_WEEKS: 'Last N Weeks',
+			TIME_FRAME_KIND_LAST_N_DAYS: 'Last N Days'
 		}
 	},
 	INDICATOR: {

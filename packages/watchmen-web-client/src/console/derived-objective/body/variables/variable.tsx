@@ -13,7 +13,7 @@ export const Variable = (props: {
 	const {objective, variable} = props;
 
 	return <>
-		<VariableName>{variable.name || Lang.CONSOLE.DERIVED_OBJECTIVE.UNKNOWN_VARIABLE_NAME}</VariableName>
+		<VariableName>{variable.name || Lang.CONSOLE.DERIVED_OBJECTIVE.UNKNOWN_VARIABLE_NAME}:</VariableName>
 		{isValueVariable(variable) ? <ValueVariableEditor objective={objective} variable={variable}/> : null}
 		{isRangeVariable(variable) ? <RangeVariableEditor objective={objective} variable={variable}/> : null}
 		{isBucketVariable(variable) ? <BucketVariableEditor objective={objective} variable={variable}/> : null}

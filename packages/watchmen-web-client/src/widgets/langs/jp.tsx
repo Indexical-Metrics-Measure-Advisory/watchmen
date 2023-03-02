@@ -301,7 +301,20 @@ export const Jp: LanguageDeclareType = {
 			HIDE_VARIABLES: '変数設定を非表示',
 			UNKNOWN_TARGET_NAME: '不明な目標',
 			VARIABLES_TITLE: '条件変数',
-			UNKNOWN_VARIABLE_NAME: '不明な変数'
+			UNKNOWN_VARIABLE_NAME: '不明な変数',
+			TIME_FRAME_TITLE: '時間枠',
+			NOT_TIME_RELATED: '目標に指定された時間枠がありません。',
+			TIME_FRAME_KIND_YEAR: '毎年',
+			TIME_FRAME_KIND_HALF_YEAR: '半年ごと',
+			TIME_FRAME_KIND_QUARTER: '季刊',
+			TIME_FRAME_KIND_MONTH: '毎月',
+			TIME_FRAME_KIND_WEEK_OF_YEAR: 'ウィークリー',
+			TIME_FRAME_KIND_DAY_OF_MONTH: '毎月、毎日',
+			TIME_FRAME_KIND_DAY_OF_WEEK: '毎日',
+			TIME_FRAME_KIND_LAST_N_YEARS: '近年',
+			TIME_FRAME_KIND_LAST_N_MONTHS: 'ここ数ヶ月',
+			TIME_FRAME_KIND_LAST_N_WEEKS: 'ここ数週間',
+			TIME_FRAME_KIND_LAST_N_DAYS: '最近の日'
 		}
 	},
 	INDICATOR: {
