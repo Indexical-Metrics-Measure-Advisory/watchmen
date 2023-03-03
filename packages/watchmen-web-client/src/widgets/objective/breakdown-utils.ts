@@ -1,9 +1,10 @@
+import {IndicatorId} from '@/services/data/tuples/indicator-types';
 import {
 	ComputedObjectiveParameter,
 	ConditionalObjectiveParameter,
 	Objective,
 	ObjectiveFactor,
-	ObjectiveFactorId,
+	ObjectiveFactorId, ObjectiveFactorOnIndicator,
 	ObjectiveParameterJoint,
 	ObjectiveTarget
 } from '@/services/data/tuples/objective-types';
@@ -64,34 +65,53 @@ const findFactorRelations = (
 	}
 };
 
-export const parseBreakdown = (objective: Objective, target: ObjectiveTarget): { could: boolean, factor?: ObjectiveFactor } => {
+export const parseBreakdown = (objective: Objective, target: ObjectiveTarget): { could: boolean, indicatorId?: IndicatorId } => {
 	if (target.asis == null) {
 		return {could: false};
 	}
+
 	const usedFactorIds: Array<ObjectiveFactorId> = [];
+
+	// find directly referred factor by given target
 	if (typeof target.asis === 'string') {
 		usedFactorIds.push(target.asis);
 	} else {
 		findReferredFactorIdsFromComputedParameter(target.asis, usedFactorIds);
 	}
 
+	// build all factors map
 	const allFactorMap = (objective.factors || []).reduce((map, factor) => {
 		map[factor.uuid] = factor;
 		return map;
 	}, {} as Record<ObjectiveFactorId, ObjectiveFactor>);
-	const factors: Array<ObjectiveFactor> = usedFactorIds
+	// build used factors
+	const usedFactors: Array<ObjectiveFactor> = usedFactorIds
 		.filter(factorId => isNotBlank(factorId))
 		.map(factorId => allFactorMap[factorId])
 		.filter(factor => factor != null);
-	const usedFactorMap = factors.reduce((map, factor) => {
+	// build used factors map
+	const usedFactorMap = usedFactors.reduce((map, factor) => {
 		map[factor.uuid] = factor;
 		return map;
 	}, {} as Record<ObjectiveFactorId, ObjectiveFactor>);
-	factors.forEach(factor => findFactorRelations(factor, allFactorMap, usedFactorMap));
+	// find related factors for each used factor
+	usedFactors.forEach(factor => findFactorRelations(factor, allFactorMap, usedFactorMap));
 
-	if (Object.keys(usedFactorMap).length === 1) {
-		return {could: true, factor: usedFactorMap[Object.keys(usedFactorMap)[0]]};
-	} else {
-		return {could: false};
+	// find indicator factors
+	const indicatorFactors: Array<ObjectiveFactorOnIndicator> = Object.keys(usedFactorMap)
+		.map(factorId => usedFactorMap[factorId])
+		.filter(factor => isIndicatorFactor(factor)) as Array<ObjectiveFactorOnIndicator>;
+	// gather indicator from factors
+	const indicatorIds = indicatorFactors.reduce((all, factor) => {
+		if (isNotBlank(factor.indicatorId) && all.map[factor.indicatorId!] == null) {
+			all.map[factor.indicatorId!] = true;
+			all.ids.push(factor.indicatorId!);
+		}
+		return all;
+	}, {map: {}, ids: []} as { map: Record<IndicatorId, true>; ids: Array<IndicatorId> }).ids;
+	// only single indicator based can be breakdown
+	if (indicatorIds.length === 1) {
+		return {could: true, indicatorId: indicatorIds[0]};
 	}
+	return {could: false};
 };

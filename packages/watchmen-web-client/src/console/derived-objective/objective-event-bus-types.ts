@@ -1,10 +1,9 @@
 import {Bucket, BucketId} from '@/services/data/tuples/bucket-types';
-import {Indicator, IndicatorId} from '@/services/data/tuples/indicator-types';
+import {IndicatorId} from '@/services/data/tuples/indicator-types';
 import {ObjectiveValues} from '@/services/data/tuples/objective-types';
 import {QueryBucket, QueryByBucketMethod} from '@/services/data/tuples/query-bucket-types';
-import {SubjectForIndicator} from '@/services/data/tuples/query-indicator-types';
-import {SubjectId} from '@/services/data/tuples/subject-types';
 import {Topic, TopicId} from '@/services/data/tuples/topic-types';
+import {IndicatorData} from './types';
 
 export enum ObjectiveEventTypes {
 	SAVE = 'save',
@@ -15,10 +14,8 @@ export enum ObjectiveEventTypes {
 	ASK_BUCKETS = 'ask-buckets-details',
 	ASK_BUCKET = 'ask-bucket',
 
-	ASK_ALL_INDICATORS = 'ask-all-indicators',
-	ASK_INDICATOR = 'ask-indicator',
+	ASK_INDICATOR_DATA = 'ask-indicator-data',
 	ASK_TOPIC = 'ask-topic',
-	ASK_SUBJECT = 'ask-subject',
 
 	ASK_VALUES = 'ask-values',
 	VALUES_FETCHED = 'values-fetched',
@@ -51,21 +48,13 @@ export interface ObjectiveEventBus {
 	on(type: ObjectiveEventTypes.ASK_BUCKET, listener: (bucketId: BucketId, onData: (bucket?: Bucket) => void) => void): this;
 	off(type: ObjectiveEventTypes.ASK_BUCKET, listener: (bucketId: BucketId, onData: (bucket?: Bucket) => void) => void): this;
 
-	fire(type: ObjectiveEventTypes.ASK_ALL_INDICATORS, onData: (groups: Array<Indicator>) => void): this;
-	on(type: ObjectiveEventTypes.ASK_ALL_INDICATORS, listener: (onData: (groups: Array<Indicator>) => void) => void): this;
-	off(type: ObjectiveEventTypes.ASK_ALL_INDICATORS, listener: (onData: (groups: Array<Indicator>) => void) => void): this;
-
-	fire(type: ObjectiveEventTypes.ASK_INDICATOR, indicatorId: IndicatorId, onData: (indicator?: Indicator) => void): this;
-	on(type: ObjectiveEventTypes.ASK_INDICATOR, listener: (indicatorId: IndicatorId, onData: (indicator?: Indicator) => void) => void): this;
-	off(type: ObjectiveEventTypes.ASK_INDICATOR, listener: (indicatorId: IndicatorId, onData: (indicator?: Indicator) => void) => void): this;
+	fire(type: ObjectiveEventTypes.ASK_INDICATOR_DATA, indicatorId: IndicatorId, onData: (data?: IndicatorData) => void): this;
+	on(type: ObjectiveEventTypes.ASK_INDICATOR_DATA, listener: (indicatorId: IndicatorId, onData: (data?: IndicatorData) => void) => void): this;
+	off(type: ObjectiveEventTypes.ASK_INDICATOR_DATA, listener: (indicatorId: IndicatorId, onData: (data?: IndicatorData) => void) => void): this;
 
 	fire(type: ObjectiveEventTypes.ASK_TOPIC, topicId: TopicId, onData: (topic?: Topic) => void): this;
 	on(type: ObjectiveEventTypes.ASK_TOPIC, listener: (topicId: TopicId, onData: (topic?: Topic) => void) => void): this;
 	off(type: ObjectiveEventTypes.ASK_TOPIC, listener: (topicId: TopicId, onData: (topic?: Topic) => void) => void): this;
-
-	fire(type: ObjectiveEventTypes.ASK_SUBJECT, subjectId: SubjectId, onData: (subject?: SubjectForIndicator) => void): this;
-	on(type: ObjectiveEventTypes.ASK_SUBJECT, listener: (subjectId: SubjectId, onData: (subject?: SubjectForIndicator) => void) => void): this;
-	off(type: ObjectiveEventTypes.ASK_SUBJECT, listener: (subjectId: SubjectId, onData: (subject?: SubjectForIndicator) => void) => void): this;
 
 	fire(type: ObjectiveEventTypes.ASK_VALUES): this;
 	on(type: ObjectiveEventTypes.ASK_VALUES, listener: () => void): this;

@@ -315,7 +315,12 @@ export const En = {
 			TIME_FRAME_KIND_LAST_N_MONTHS: 'Last N Months',
 			TIME_FRAME_KIND_LAST_N_WEEKS: 'Last N Weeks',
 			TIME_FRAME_KIND_LAST_N_DAYS: 'Last N Days',
-			BREAKDOWN: 'Breakdown'
+			BREAKDOWN: 'Breakdown',
+			HIDE_BREAKDOWN: 'Hide Breakdown',
+			DIMENSION_ON_INDICATOR_VALUE: 'On Objective Value',
+			ADD_FIRST_BREAKDOWN_DIMENSION: 'Add first dimension',
+			ADD_BREAKDOWN_DIMENSION: 'Add dimension',
+			VALUE_AS_DIMENSION: 'Using Naturally Classification'
 		}
 	},
 	INDICATOR: {

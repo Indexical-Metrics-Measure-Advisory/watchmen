@@ -315,7 +315,12 @@ export const Zh: LanguageDeclareType = {
 			TIME_FRAME_KIND_LAST_N_MONTHS: '最近若干月',
 			TIME_FRAME_KIND_LAST_N_WEEKS: '最近若干周',
 			TIME_FRAME_KIND_LAST_N_DAYS: '最近若干天',
-			BREAKDOWN: '下挖'
+			BREAKDOWN: '下挖',
+			HIDE_BREAKDOWN: '隐藏下挖数据',
+			DIMENSION_ON_INDICATOR_VALUE: '使用目标值',
+			ADD_FIRST_BREAKDOWN_DIMENSION: '添加维度',
+			ADD_BREAKDOWN_DIMENSION: '添加维度',
+			VALUE_AS_DIMENSION: '使用自然分类'
 		}
 	},
 	INDICATOR: {

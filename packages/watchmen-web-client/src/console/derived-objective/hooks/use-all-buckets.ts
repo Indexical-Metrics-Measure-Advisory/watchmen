@@ -10,6 +10,7 @@ import {ObjectiveEventTypes} from '../objective-event-bus-types';
 interface AllBucketsState {
 	loaded: boolean;
 	data: Record<BucketId, QueryBucket>;
+	requester?: Promise<Array<QueryBucket>>;
 }
 
 export const useAllBuckets = () => {
@@ -19,14 +20,28 @@ export const useAllBuckets = () => {
 	useEffect(() => {
 		const onAskBuckets = async (onData: (buckets: Array<QueryBucket>) => void) => {
 			if (!buckets.loaded) {
-				const data = (await listBuckets({search: '', pageNumber: 1, pageSize: 9999})).data;
-				setBuckets({
-					loaded: true, data: data.reduce((map, bucket) => {
-						map[`${bucket.bucketId}`] = bucket;
-						return map;
-					}, {} as Record<BucketId, QueryBucket>)
-				});
-				onData(data);
+				if (buckets.requester == null) {
+					setBuckets({
+						loaded: false, data: {},
+						requester: new Promise<Array<QueryBucket>>(async resolve => {
+							try {
+								const data = (await listBuckets({search: '', pageNumber: 1, pageSize: 9999})).data;
+								const buckets = data.reduce((map, bucket) => {
+									map[`${bucket.bucketId}`] = bucket;
+									return map;
+								}, {} as Record<BucketId, QueryBucket>);
+								setBuckets({loaded: true, data: buckets});
+								onData(data);
+								resolve(data);
+							} catch {
+								onData([]);
+								resolve([]);
+							}
+						})
+					});
+				} else {
+					onData(await buckets.requester);
+				}
 			} else {
 				onData(Object.values(buckets.data));
 			}
