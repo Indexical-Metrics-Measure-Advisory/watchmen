@@ -41,7 +41,8 @@ export const En = {
 		OBJECTIVE_FACTOR_FILTER_CONSTANT_PLACEHOLDER: 'Use "{}" to include variables.',
 		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '";" to separate multiple addresses.',
 		NEW_DERIVED_OBJECTIVE_NAME: 'Objective',
-		DEFAULT_DERIVED_OBJECTIVE_NAME: 'Objective'
+		DEFAULT_DERIVED_OBJECTIVE_NAME: 'Objective',
+		NEW_DERIVED_OBJECTIVE_TARGET_BREAKDOWN_NAME: 'Breakdown'
 	},
 	STANDARD: {
 		YES: 'Yes',

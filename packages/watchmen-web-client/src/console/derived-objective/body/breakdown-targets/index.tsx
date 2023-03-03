@@ -41,9 +41,9 @@ const BreakdownTargetsSection = (props: {
 	const {loaded, ...rest} = def;
 
 	return <BreakdownTargetsContainer>
-		{breakdownTargets.map(breakdownTarget => {
+		{breakdownTargets.map((breakdownTarget, index) => {
 			return <BreakdownTargetSection derivedObjective={derivedObjective} target={target}
-			                               def={rest} breakdown={breakdownTarget}
+			                               def={rest} breakdown={breakdownTarget} index={index}
 			                               values={values} key={v4()}/>;
 		})}
 	</BreakdownTargetsContainer>;

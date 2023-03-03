@@ -1,8 +1,6 @@
 import {listBuckets} from '@/services/data/tuples/bucket';
 import {BucketId} from '@/services/data/tuples/bucket-types';
-import {isEnumMeasureBucket, isMeasureBucket} from '@/services/data/tuples/bucket-utils';
-import {QueryBucket, QueryByBucketMethod} from '@/services/data/tuples/query-bucket-types';
-import {isQueryByEnum, isQueryByMeasure} from '@/services/data/tuples/query-bucket-utils';
+import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
 import {useEffect, useState} from 'react';
 import {useObjectiveEventBus} from '../objective-event-bus';
 import {ObjectiveEventTypes} from '../objective-event-bus-types';
@@ -46,20 +44,9 @@ export const useAllBuckets = () => {
 				onData(Object.values(buckets.data));
 			}
 		};
-		const onAskBucketIdByMeasure = (method: QueryByBucketMethod, onData: (bucketIds: Array<BucketId>) => void) => {
-			if (isQueryByEnum(method)) {
-				onData(Object.values(buckets.data).filter(bucket => isEnumMeasureBucket(bucket) && bucket.enumId === method.enumId).map(bucket => bucket.bucketId));
-			} else if (isQueryByMeasure(method)) {
-				onData(Object.values(buckets.data).filter(bucket => isMeasureBucket(bucket) && bucket.measure === method.method).map(bucket => bucket.bucketId));
-			} else {
-				onData([]);
-			}
-		};
 		on(ObjectiveEventTypes.ASK_ALL_BUCKETS, onAskBuckets);
-		on(ObjectiveEventTypes.ASK_BUCKET_IDS_BY_MEASURE, onAskBucketIdByMeasure);
 		return () => {
 			off(ObjectiveEventTypes.ASK_ALL_BUCKETS, onAskBuckets);
-			off(ObjectiveEventTypes.ASK_BUCKET_IDS_BY_MEASURE, onAskBucketIdByMeasure);
 		};
 	}, [on, off, buckets]);
 };
