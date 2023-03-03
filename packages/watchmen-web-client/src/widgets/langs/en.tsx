@@ -314,7 +314,8 @@ export const En = {
 			TIME_FRAME_KIND_LAST_N_YEARS: 'Last N Years',
 			TIME_FRAME_KIND_LAST_N_MONTHS: 'Last N Months',
 			TIME_FRAME_KIND_LAST_N_WEEKS: 'Last N Weeks',
-			TIME_FRAME_KIND_LAST_N_DAYS: 'Last N Days'
+			TIME_FRAME_KIND_LAST_N_DAYS: 'Last N Days',
+			BREAKDOWN: 'Breakdown'
 		}
 	},
 	INDICATOR: {

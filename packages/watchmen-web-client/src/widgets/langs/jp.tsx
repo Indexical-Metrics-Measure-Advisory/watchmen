@@ -314,7 +314,8 @@ export const Jp: LanguageDeclareType = {
 			TIME_FRAME_KIND_LAST_N_YEARS: '近年',
 			TIME_FRAME_KIND_LAST_N_MONTHS: 'ここ数ヶ月',
 			TIME_FRAME_KIND_LAST_N_WEEKS: 'ここ数週間',
-			TIME_FRAME_KIND_LAST_N_DAYS: '最近の日'
+			TIME_FRAME_KIND_LAST_N_DAYS: '最近の日',
+			BREAKDOWN: '内訳'
 		}
 	},
 	INDICATOR: {

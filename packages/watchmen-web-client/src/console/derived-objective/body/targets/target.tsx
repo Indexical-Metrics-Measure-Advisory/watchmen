@@ -1,5 +1,9 @@
-import {Objective, ObjectiveTarget, ObjectiveTargetValues} from '@/services/data/tuples/objective-types';
+import {DerivedObjective} from '@/services/data/tuples/derived-objective-types';
+import {ObjectiveTarget, ObjectiveTargetValues} from '@/services/data/tuples/objective-types';
+import {DwarfButton} from '@/widgets/basic/button';
+import {ButtonInk} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
+import {parseBreakdown} from '@/widgets/objective/breakdown-utils';
 import {ObjectiveValueGrowthIcon} from '@/widgets/objective/growth-icon';
 import {asDisplayValue, asFinishRatio, asIncreaseRatio, asValues, fromTobe} from '@/widgets/objective/utils';
 import React from 'react';
@@ -13,12 +17,20 @@ import {
 	ValuePlaceholder
 } from './widgets';
 
-const TargetTitle = (props: { target: ObjectiveTarget; index: number }) => {
-	const {target, index} = props;
+const TargetTitle = (props: {
+	target: ObjectiveTarget; index: number;
+	breakdown: boolean; onBreakdownClicked?: () => void;
+}) => {
+	const {target, index, breakdown, onBreakdownClicked} = props;
 
 	return <TargetName>
 		<TargetIndex>#{index}</TargetIndex>
 		<span>{target.name || Lang.CONSOLE.DERIVED_OBJECTIVE.UNKNOWN_TARGET_NAME}</span>
+		{breakdown
+			? <DwarfButton ink={ButtonInk.INFO} onClick={onBreakdownClicked}>
+				{Lang.CONSOLE.DERIVED_OBJECTIVE.BREAKDOWN}
+			</DwarfButton>
+			: null}
 	</TargetName>;
 };
 
@@ -101,30 +113,42 @@ const TargetChainValueRow = (props: {
 };
 
 export const Target = (props: {
-	objective: Objective; target: ObjectiveTarget; index: number; values?: ObjectiveTargetValues
+	derivedObjective: DerivedObjective; target: ObjectiveTarget; index: number; values?: ObjectiveTargetValues
 }) => {
-	const {target, index, values} = props;
+	const {derivedObjective, target, index, values} = props;
 
 	if (values == null) {
 		return <TargetCard>
-			<TargetTitle target={target} index={index}/>
+			<TargetTitle target={target} index={index} breakdown={false}/>
 		</TargetCard>;
 	}
 
 	if (values.failed) {
 		return <TargetCard>
-			<TargetTitle target={target} index={index}/>
+			<TargetTitle target={target} index={index} breakdown={false}/>
 			<TargetValueRow>
 				<TargetValueLabel data-failed={true}>{Lang.INDICATOR.OBJECTIVE.TEST_VALUE_GET_NONE}</TargetValueLabel>
 			</TargetValueRow>
 		</TargetCard>;
 	}
 
+	const onBreakdownClicked = () => {
+
+	};
+
 	const {has: hasTobe, percentage = false, value: tobeValue} = fromTobe(target.tobe);
 	const {current: currentValue, previous: previousValue, chain: chainValue} = asValues({values, percentage});
 
+	const breakdownTargets = (derivedObjective.breakdownTargets ?? []).filter(breakdownTarget => {
+		// eslint-disable-next-line eqeqeq
+		return breakdownTarget.targetId == target.uuid;
+	});
+	const hasBreakdown = breakdownTargets.length !== 0;
+	const {could: couldBreakdown, factor: breakdownFactor} = parseBreakdown(derivedObjective.definition, target);
+
 	return <TargetCard>
-		<TargetTitle target={target} index={index}/>
+		<TargetTitle target={target} index={index}
+		             breakdown={couldBreakdown} onBreakdownClicked={onBreakdownClicked}/>
 		<TargetCurrentValueRow hasTobe={hasTobe}
 		                       currentValue={currentValue} tobeValue={tobeValue} percentage={percentage}/>
 		<TargetPreviousValueRow target={target}

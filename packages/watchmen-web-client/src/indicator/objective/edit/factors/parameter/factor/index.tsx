@@ -5,6 +5,7 @@ import {
 	ObjectiveParameter,
 	ReferObjectiveParameter
 } from '@/services/data/tuples/objective-types';
+import {isReferParameter} from '@/services/data/tuples/objective-utils';
 import {SubjectForIndicator} from '@/services/data/tuples/query-indicator-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {Tuple} from '@/services/data/tuples/tuple-types';
@@ -15,7 +16,6 @@ import {Lang} from '@/widgets/langs';
 import React, {useEffect, useState} from 'react';
 import {useObjectivesEventBus} from '../../../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../../../objectives-event-bus-types';
-import {isReferParameter} from '../../../param-utils';
 import {useParameterFromChanged} from '../use-parameter-from-changed';
 import {useFactor} from './use-factor';
 import {FactorDropdown, FactorEditContainer, IncorrectOptionLabel} from './widgets';
