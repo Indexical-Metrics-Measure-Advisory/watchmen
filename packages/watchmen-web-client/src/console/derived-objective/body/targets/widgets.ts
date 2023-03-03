@@ -15,6 +15,20 @@ export const TargetCard = styled.div.attrs({'data-widget': 'derived-objective-ta
 	border-radius  : calc(var(--border-radius) * 2);
 	box-shadow     : var(--shadow);
 	transition     : all 300ms ease-in-out;
+	&[data-breakdown-visible=true] {
+		display               : grid;
+		grid-template-columns : 1fr auto auto auto auto;
+		grid-column           : span 3;
+		align-items           : center;
+		> div:first-child {
+			grid-column  : 1;
+			margin-right : var(--marign);
+		}
+		> span {
+			grid-template-columns : repeat(2, auto 1fr);
+			margin                : 0 var(--marign) 0 0;
+		}
+	}
 	&:hover {
 		box-shadow : var(--hover-shadow);
 	}

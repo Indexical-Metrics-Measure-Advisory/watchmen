@@ -315,7 +315,12 @@ export const Jp: LanguageDeclareType = {
 			TIME_FRAME_KIND_LAST_N_MONTHS: 'ここ数ヶ月',
 			TIME_FRAME_KIND_LAST_N_WEEKS: 'ここ数週間',
 			TIME_FRAME_KIND_LAST_N_DAYS: '最近の日',
-			BREAKDOWN: '内訳'
+			BREAKDOWN: '内訳',
+			HIDE_BREAKDOWN: '内訳を隠す',
+			DIMENSION_ON_INDICATOR_VALUE: '目標値を使用',
+			ADD_FIRST_BREAKDOWN_DIMENSION: 'ディメンションの追加',
+			ADD_BREAKDOWN_DIMENSION: 'ディメンションの追加',
+			VALUE_AS_DIMENSION: '自然分類を使用'
 		}
 	},
 	INDICATOR: {
