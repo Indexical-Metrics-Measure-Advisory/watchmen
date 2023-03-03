@@ -15,9 +15,10 @@ export const BreakdownTargetContainer = styled.div.attrs({'data-widget': 'derive
 	margin-top            : calc(var(--margin) / 2);
 `;
 export const BreakdownTargetDimensions = styled.div.attrs({'data-widget': 'derived-objective-breakdown-target-dimensions'})`
-	display               : flex;
+	display               : grid;
 	position              : relative;
-	flex-direction: column;
+	grid-template-columns : 1fr;
+	grid-row-gap          : calc(var(--margin) / 2);
 `;
 export const BreakdownTargetDimension = styled.div.attrs({'data-widget': 'derived-objective-breakdown-target-dimension'})`
 	display               : grid;
@@ -41,11 +42,12 @@ export const BreakdownTargetDimension = styled.div.attrs({'data-widget': 'derive
 			box-shadow   : var(--danger-shadow);
 			border-color : var(--danger-color);
 			color        : var(--danger-color);
-			//color            : var(--invert-color);
 		}
 	}
 	> div:first-child:last-child {
-		grid-column : span 3;
+		grid-column                : span 3;
+		border-top-right-radius    : var(--border-radius);
+		border-bottom-right-radius : var(--border-radius);
 	}
 `;
 export const BreakdownTargetData = styled.div.attrs({'data-widget': 'derived-objective-breakdown-target-data'})`

@@ -27,8 +27,9 @@ export const BreakdownTargetDimensionRow = (props: {
 	derivedObjective: DerivedObjective;
 	target: ObjectiveTarget; breakdown: BreakdownTarget; dimension: BreakdownDimension;
 	def: DefForBreakdownDimension;
+	onAdded: () => void; onRemoved: () => void;
 }) => {
-	const {def: {indicator, topic, subject, buckets}, breakdown, dimension} = props;
+	const {def: {indicator, topic, subject, buckets}, breakdown, dimension, onAdded, onRemoved} = props;
 
 	const forceUpdate = useForceUpdate();
 
@@ -58,9 +59,25 @@ export const BreakdownTargetDimensionRow = (props: {
 			delete dimension.timeMeasureMethod;
 		}
 		forceUpdate();
+		if (!(breakdown.dimensions || []).includes(dimension)) {
+			// add
+			if (breakdown.dimensions == null) {
+				breakdown.dimensions = [];
+			}
+			breakdown.dimensions.push(dimension);
+			onAdded();
+		}
 	};
 	const onDimensionOnChanged = (option: DropdownOption) => {
 		(option as DimensionOnOption).onSelect();
+	};
+	const onDeleteClicked = () => {
+		if (breakdown.dimensions == null) {
+			return;
+		}
+		const index = breakdown.dimensions.findIndex(d => d === dimension);
+		breakdown.dimensions.splice(index, 1);
+		onRemoved();
 	};
 
 	const factorOrColumnOptions = buildMeasureOnOptions({
@@ -117,6 +134,16 @@ export const BreakdownTargetDimensionRow = (props: {
 	const please = (breakdown.dimensions ?? []).length === 0
 		? Lang.CONSOLE.DERIVED_OBJECTIVE.ADD_FIRST_BREAKDOWN_DIMENSION
 		: Lang.CONSOLE.DERIVED_OBJECTIVE.ADD_BREAKDOWN_DIMENSION;
+	const askDimensionOn = () => {
+		if (dimension.type === BreakdownDimensionType.VALUE) {
+			return '';
+		} else if (dimension.type === BreakdownDimensionType.BUCKET) {
+			return `bucket-${dimension.bucketId}`;
+		} else if (dimension.type === BreakdownDimensionType.TIME_RELATED) {
+			return `time-${dimension.timeMeasureMethod}`;
+		}
+	};
+	const dimensionOn = askDimensionOn();
 
 	return <BreakdownTargetDimension>
 		<Dropdown value={dimension.factorOrColumnId} options={factorOrColumnOptions}
@@ -124,10 +151,9 @@ export const BreakdownTargetDimensionRow = (props: {
 		          please={please}/>
 		{selected
 			? <>
-				<Dropdown value={dimension.factorOrColumnId} options={dimensionOnOptions}
-				          onChange={onDimensionOnChanged}
-				          please={please}/>
-				<Button>
+				<Dropdown value={dimensionOn} options={dimensionOnOptions}
+				          onChange={onDimensionOnChanged}/>
+				<Button onClick={onDeleteClicked}>
 					<FontAwesomeIcon icon={ICON_DELETE}/>
 				</Button>
 			</>

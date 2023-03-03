@@ -1,10 +1,10 @@
-import {BreakdownDimension, BreakdownTarget, DerivedObjective} from '@/services/data/tuples/derived-objective-types';
+import {BreakdownTarget, DerivedObjective} from '@/services/data/tuples/derived-objective-types';
 import {ObjectiveTarget, ObjectiveTargetValues} from '@/services/data/tuples/objective-types';
-import {v4} from 'uuid';
+import React from 'react';
 import {BreakdownEventBusProvider} from './breakdown-event-bus';
-import {BreakdownTargetDimensionRow} from './breakdown-target-dimension';
+import {BreakdownTargetDimensionsSection} from './breakdown-target-dimensions';
 import {DefForBreakdownDimension} from './types';
-import {BreakdownTargetContainer, BreakdownTargetData, BreakdownTargetDimensions} from './widgets';
+import {BreakdownTargetContainer, BreakdownTargetData} from './widgets';
 
 export const BreakdownTargetSection = (props: {
 	derivedObjective: DerivedObjective;
@@ -14,24 +14,10 @@ export const BreakdownTargetSection = (props: {
 }) => {
 	const {derivedObjective, target, def, breakdown} = props;
 
-	const dimensions = breakdown.dimensions ?? [];
-
 	return <BreakdownEventBusProvider>
 		<BreakdownTargetContainer>
-			<BreakdownTargetDimensions>
-				{dimensions.map(dimension => {
-					return <BreakdownTargetDimensionRow derivedObjective={derivedObjective}
-					                                    target={target} breakdown={breakdown}
-					                                    dimension={dimension}
-					                                    def={def}
-					                                    key={v4()}/>;
-				})}
-				{/** add dimension */}
-				<BreakdownTargetDimensionRow derivedObjective={derivedObjective}
-				                             target={target} breakdown={breakdown}
-				                             dimension={{} as BreakdownDimension}
-				                             def={def}/>
-			</BreakdownTargetDimensions>
+			<BreakdownTargetDimensionsSection derivedObjective={derivedObjective} target={target} breakdown={breakdown}
+			                                  def={def}/>
 			<BreakdownTargetData>
 
 			</BreakdownTargetData>

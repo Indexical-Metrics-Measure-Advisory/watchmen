@@ -29,6 +29,7 @@ export interface BreakdownDimension {
 
 export interface BreakdownTarget {
 	targetId: ObjectiveTargetId;
+	name: string;
 	dimensions: Array<BreakdownDimension>;
 }
 
