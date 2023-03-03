@@ -314,7 +314,8 @@ export const Zh: LanguageDeclareType = {
 			TIME_FRAME_KIND_LAST_N_YEARS: '最近若干年',
 			TIME_FRAME_KIND_LAST_N_MONTHS: '最近若干月',
 			TIME_FRAME_KIND_LAST_N_WEEKS: '最近若干周',
-			TIME_FRAME_KIND_LAST_N_DAYS: '最近若干天'
+			TIME_FRAME_KIND_LAST_N_DAYS: '最近若干天',
+			BREAKDOWN: '下挖'
 		}
 	},
 	INDICATOR: {

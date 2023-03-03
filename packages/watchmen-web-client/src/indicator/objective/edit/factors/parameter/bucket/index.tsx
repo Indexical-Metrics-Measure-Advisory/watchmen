@@ -6,11 +6,11 @@ import {
 	ObjectiveFactorOnIndicator,
 	ObjectiveParameter
 } from '@/services/data/tuples/objective-types';
+import {isBucketParameter} from '@/services/data/tuples/objective-utils';
 import {isBlank} from '@/services/utils';
 import {DropdownOption} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
 import React from 'react';
-import {isBucketParameter} from '../../../param-utils';
 import {useParameterFromChanged} from '../use-parameter-from-changed';
 import {useBucket} from './use-bucket';
 import {BucketDropdown, BucketEditContainer, IncorrectOptionLabel, SegmentDropdown} from './widgets';

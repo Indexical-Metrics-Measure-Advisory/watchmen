@@ -15,7 +15,7 @@ export const Targets = (props: {
 
 	return <TargetsContainer>
 		{targets.map((target, index) => {
-			return <Target objective={objective} target={target} index={index + 1}
+			return <Target derivedObjective={derivedObjective} target={target} index={index + 1}
 			               values={findTargetValues(target)}
 			               key={target.uuid}/>;
 		})}

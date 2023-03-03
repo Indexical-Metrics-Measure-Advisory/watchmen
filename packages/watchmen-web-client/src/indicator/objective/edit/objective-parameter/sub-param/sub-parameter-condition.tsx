@@ -5,8 +5,8 @@ import {
 	ObjectiveFactor,
 	ObjectiveParameter
 } from '@/services/data/tuples/objective-types';
+import {isCaseThenParameter} from '@/services/data/tuples/objective-utils';
 import React from 'react';
-import {isCaseThenParameter} from '../../param-utils';
 import {ConditionalEditor} from '../conditional';
 import {useParameterEventBus} from '../parameter-event-bus';
 import {ParameterEventTypes} from '../parameter-event-bus-types';

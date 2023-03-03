@@ -20,16 +20,18 @@ export const TargetCard = styled.div.attrs({'data-widget': 'derived-objective-ta
 	}
 `;
 export const TargetName = styled.div.attrs({'data-widget': 'derived-objective-target-name'})`
-	display       : flex;
-	position      : relative;
-	grid-column   : span 3;
-	align-items   : center;
-	font-size     : 1.4em;
-	font-weight   : var(--font-bold);
-	font-variant  : petite-caps;
-	min-height    : var(--tall-height);
-	margin-bottom : calc(var(--margin) / 2);
-	opacity       : 0.8;
+	display      : flex;
+	position     : relative;
+	grid-column  : span 3;
+	align-items  : center;
+	font-size    : 1.4em;
+	font-weight  : var(--font-bold);
+	font-variant : petite-caps;
+	min-height   : calc(var(--height) * 1.5);
+	opacity      : 0.8;
+	> span:nth-child(2) {
+		flex-grow : 1;
+	}
 `;
 export const TargetIndex = styled.span.attrs({'data-widget': 'derived-objective-target-index'})`
 	font-size    : 0.5em;

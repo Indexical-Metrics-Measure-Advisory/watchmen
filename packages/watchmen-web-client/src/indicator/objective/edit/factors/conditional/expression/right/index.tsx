@@ -8,13 +8,13 @@ import {
 	ObjectiveTimeFrameKind,
 	ReferObjectiveParameter
 } from '@/services/data/tuples/objective-types';
+import {isReferParameter} from '@/services/data/tuples/objective-utils';
 import {SubjectForIndicator} from '@/services/data/tuples/query-indicator-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {isBlank, isNotBlank} from '@/services/utils';
 import React, {useEffect, useState} from 'react';
 import {useObjectivesEventBus} from '../../../../../objectives-event-bus';
 import {ObjectivesEventTypes} from '../../../../../objectives-event-bus-types';
-import {isReferParameter} from '../../../../param-utils';
 import {computeMeasureMethodOnColumn, computeMeasureMethodOnFactor} from '../../../../utils';
 import {ParameterEventBusProvider} from '../../../parameter/parameter-event-bus';
 import {useExpressionEventBus} from '../../event-bus/expression-event-bus';

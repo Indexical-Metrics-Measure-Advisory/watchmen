@@ -1,9 +1,9 @@
 import {Indicator} from '@/services/data/tuples/indicator-types';
 import {Objective, ObjectiveFactorOnIndicator, ObjectiveParameter} from '@/services/data/tuples/objective-types';
+import {isConstantParameter} from '@/services/data/tuples/objective-utils';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
 import React, {ChangeEvent} from 'react';
-import {isConstantParameter} from '../../../param-utils';
 import {useParameterEventBus} from '../parameter-event-bus';
 import {ParameterEventTypes} from '../parameter-event-bus-types';
 import {useParameterFromChanged} from '../use-parameter-from-changed';

@@ -1,9 +1,9 @@
 import {ObjectiveParameter, ObjectiveParameterType} from '@/services/data/tuples/objective-types';
+import {isBucketParameter, isTimeFrameParameter} from '@/services/data/tuples/objective-utils';
 import {ICON_COLLAPSE_CONTENT, ICON_EDIT} from '@/widgets/basic/constants';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React from 'react';
-import {isBucketParameter, isTimeFrameParameter} from '../../../param-utils';
 import {useParamFrom} from './use-param-from';
 import {ParameterFromEditContainer, ParameterFromIcon, ParameterTypeButton} from './widgets';
 

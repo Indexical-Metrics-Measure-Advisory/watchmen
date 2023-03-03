@@ -1,27 +1,17 @@
 import {
-	BucketObjectiveParameter,
-	CaseThenObjectiveParameter,
 	ComputedObjectiveParameter,
 	ConstantObjectiveParameter,
 	ObjectiveFactorId,
 	ObjectiveFormulaOperator,
 	ObjectiveParameter,
-	ObjectiveParameterCondition,
 	ObjectiveParameterExpression,
 	ObjectiveParameterExpressionOperator,
 	ObjectiveParameterJoint,
 	ObjectiveParameterJointType,
 	ObjectiveParameterType,
-	ReferObjectiveParameter,
-	TimeFrameObjectiveParameter
+	ReferObjectiveParameter
 } from '@/services/data/tuples/objective-types';
-
-export const isReferParameter = (param: ObjectiveParameter): param is ReferObjectiveParameter => param.kind === ObjectiveParameterType.REFER;
-export const isConstantParameter = (param: ObjectiveParameter): param is ConstantObjectiveParameter => param.kind === ObjectiveParameterType.CONSTANT;
-export const isComputedParameter = (param: ObjectiveParameter): param is ComputedObjectiveParameter => param.kind === ObjectiveParameterType.COMPUTED;
-export const isCaseThenParameter = (param: ObjectiveParameter): param is CaseThenObjectiveParameter => isComputedParameter(param) && param.operator === ObjectiveFormulaOperator.CASE_THEN;
-export const isBucketParameter = (param: ObjectiveParameter): param is BucketObjectiveParameter => param.kind === ObjectiveParameterType.BUCKET;
-export const isTimeFrameParameter = (param: ObjectiveParameter): param is TimeFrameObjectiveParameter => param.kind === ObjectiveParameterType.TIME_FRAME;
+import {isComputedParameter, isConstantParameter, isReferParameter} from '@/services/data/tuples/objective-utils';
 
 export interface ParameterFormulaDef {
 	/**
@@ -138,13 +128,6 @@ export const defendParameterAndRemoveUnnecessary = (parameter: ObjectiveParamete
 		parameter.operator = parameter.operator || ObjectiveFormulaOperator.ADD;
 		parameter.parameters = old.parameters || [createFactorParameter(), createFactorParameter()];
 	}
-};
-
-export const isJointParameter = (condition: ObjectiveParameterCondition): condition is ObjectiveParameterJoint => {
-	return !!(condition as any).conj;
-};
-export const isExpressionParameter = (condition: ObjectiveParameterCondition): condition is ObjectiveParameterExpression => {
-	return !isJointParameter(condition);
 };
 
 export const createFactorEqualsConstantParameter = (): ObjectiveParameterExpression => {

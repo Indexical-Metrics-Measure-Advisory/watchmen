@@ -5,9 +5,9 @@ import {
 	ObjectiveFormulaOperator,
 	ObjectiveParameter
 } from '@/services/data/tuples/objective-types';
+import {isComputedParameter} from '@/services/data/tuples/objective-utils';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {useEffect} from 'react';
-import {isComputedParameter} from '../../param-utils';
 import {useParameterEventBus} from '../parameter-event-bus';
 import {ParameterEventTypes} from '../parameter-event-bus-types';
 import {useParameterFromChanged} from '../use-parameter-from-changed';
