@@ -5,7 +5,7 @@ import {
 	DerivedObjective
 } from '@/services/data/tuples/derived-objective-types';
 import {ObjectiveTarget} from '@/services/data/tuples/objective-types';
-import {isNotBlank} from '@/services/utils';
+import {isNotBlank, noop} from '@/services/utils';
 import {Button} from '@/widgets/basic/button';
 import {ICON_DELETE} from '@/widgets/basic/constants';
 import {Dropdown} from '@/widgets/basic/dropdown';
@@ -15,6 +15,8 @@ import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React from 'react';
+import {useObjectiveEventBus} from '../../objective-event-bus';
+import {ObjectiveEventTypes} from '../../objective-event-bus-types';
 import {DefForBreakdownDimension, DimensionCandidate} from './types';
 import {buildMeasureOnOptions} from './utils';
 import {BreakdownTargetDimension} from './widgets';
@@ -31,6 +33,7 @@ export const BreakdownTargetDimensionRow = (props: {
 }) => {
 	const {def: {indicator, topic, subject, buckets}, breakdown, dimension, onAdded, onRemoved} = props;
 
+	const {fire} = useObjectiveEventBus();
 	const forceUpdate = useForceUpdate();
 
 	const onFactorOrColumnChanged = (option: DropdownOption) => {
@@ -67,6 +70,7 @@ export const BreakdownTargetDimensionRow = (props: {
 			breakdown.dimensions.push(dimension);
 			onAdded();
 		}
+		fire(ObjectiveEventTypes.SAVE, noop);
 	};
 	const onDimensionOnChanged = (option: DropdownOption) => {
 		(option as DimensionOnOption).onSelect();
@@ -78,6 +82,7 @@ export const BreakdownTargetDimensionRow = (props: {
 		const index = breakdown.dimensions.findIndex(d => d === dimension);
 		breakdown.dimensions.splice(index, 1);
 		onRemoved();
+		fire(ObjectiveEventTypes.SAVE, noop);
 	};
 
 	const factorOrColumnOptions = buildMeasureOnOptions({
@@ -105,6 +110,7 @@ export const BreakdownTargetDimensionRow = (props: {
 					delete dimension.bucketId;
 					delete dimension.timeMeasureMethod;
 					forceUpdate();
+					fire(ObjectiveEventTypes.SAVE, noop);
 				}
 			});
 		}
@@ -115,6 +121,7 @@ export const BreakdownTargetDimensionRow = (props: {
 					dimension.bucketId = bucket.bucketId;
 					delete dimension.timeMeasureMethod;
 					forceUpdate();
+					fire(ObjectiveEventTypes.SAVE, noop);
 				}
 			});
 		});
@@ -125,6 +132,7 @@ export const BreakdownTargetDimensionRow = (props: {
 					delete dimension.bucketId;
 					dimension.timeMeasureMethod = timeMeasureMethod;
 					forceUpdate();
+					fire(ObjectiveEventTypes.SAVE, noop);
 				}
 			});
 		});
