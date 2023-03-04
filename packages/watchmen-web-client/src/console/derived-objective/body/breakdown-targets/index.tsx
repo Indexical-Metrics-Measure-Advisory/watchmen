@@ -12,11 +12,11 @@ import {v4} from 'uuid';
 import {useObjectiveEventBus} from '../../objective-event-bus';
 import {ObjectiveEventTypes} from '../../objective-event-bus-types';
 import {IndicatorData} from '../../types';
-import {useTargetEventBus} from '../targets/target-event-bus';
-import {TargetEventTypes} from '../targets/target-event-bus-types';
-import {createBreakdownTarget} from '../targets/utils';
-import {BreakdownTargetSection} from './breakdown-target';
-import {DefForBreakdownDimension} from './types';
+import {BreakdownTargetSection} from '../breakdown-target';
+import {useTargetEventBus} from '../target/target-event-bus';
+import {TargetEventTypes} from '../target/target-event-bus-types';
+import {DefForBreakdownDimension} from '../types';
+import {createBreakdownTarget} from '../utils';
 import {BreakdownTargetsBottomBar, BreakdownTargetsContainer} from './widgets';
 
 interface DefinitionData extends DefForBreakdownDimension {

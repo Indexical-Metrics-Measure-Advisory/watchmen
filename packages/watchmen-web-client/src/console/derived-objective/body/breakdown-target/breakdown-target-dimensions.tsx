@@ -9,12 +9,12 @@ import React, {useEffect, useState} from 'react';
 import {v4} from 'uuid';
 import {useObjectiveEventBus} from '../../objective-event-bus';
 import {ObjectiveEventTypes} from '../../objective-event-bus-types';
-import {useTargetEventBus} from '../targets/target-event-bus';
-import {TargetEventTypes} from '../targets/target-event-bus-types';
+import {useTargetEventBus} from '../target/target-event-bus';
+import {TargetEventTypes} from '../target/target-event-bus-types';
+import {DefForBreakdownDimension} from '../types';
 import {BreakdownTargetDimensionRow} from './breakdown-target-dimension';
 import {useBreakdownTargetEventBus} from './breakdown-target-event-bus';
 import {BreakdownTargetEventTypes} from './breakdown-target-event-bus-types';
-import {DefForBreakdownDimension} from './types';
 import {BreakdownTargetDimensions} from './widgets';
 
 export const BreakdownTargetDimensionsSection = (props: {
@@ -68,6 +68,10 @@ export const BreakdownTargetDimensionsSection = (props: {
 	}, [fire, onBreakdown, offBreakdown, forceUpdate, readyForValues, breakdown]);
 
 	const dimensions = breakdown.dimensions ?? [];
+
+	const onGetValuesClicked = () => {
+
+	};
 	const onRemoveClicked = () => {
 		fireTarget(TargetEventTypes.REMOVE_BREAKDOWN, breakdown);
 	};
@@ -84,7 +88,7 @@ export const BreakdownTargetDimensionsSection = (props: {
 		                             target={target} breakdown={breakdown} dimension={{} as BreakdownDimension}
 		                             def={def}/>
 		{readyForValues
-			? <DwarfButton ink={ButtonInk.PRIMARY}>
+			? <DwarfButton ink={ButtonInk.PRIMARY} onClick={onGetValuesClicked}>
 				{Lang.CONSOLE.DERIVED_OBJECTIVE.ASK_BREAKDOWN_VALUES}
 			</DwarfButton>
 			: null}
