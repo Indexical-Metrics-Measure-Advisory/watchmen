@@ -1,4 +1,4 @@
-import {DerivedObjective} from '@/services/data/tuples/derived-objective-types';
+import {BreakdownTarget, DerivedObjective} from '@/services/data/tuples/derived-objective-types';
 import {ObjectiveTarget, ObjectiveTargetValues} from '@/services/data/tuples/objective-types';
 import {DwarfButton} from '@/widgets/basic/button';
 import {ButtonInk} from '@/widgets/basic/types';
@@ -17,11 +17,11 @@ import {createBreakdownTarget} from './utils';
 import {TargetCard} from './widgets';
 
 const hasBreakdown = (derivedObjective: DerivedObjective, target: ObjectiveTarget) => {
-	const breakdownTargets = (derivedObjective.breakdownTargets ?? []).filter(breakdownTarget => {
+	const breakdowns = (derivedObjective.breakdownTargets ?? []).filter(breakdownTarget => {
 		// eslint-disable-next-line eqeqeq
 		return breakdownTarget.targetId == target.uuid;
 	});
-	return breakdownTargets.length !== 0;
+	return breakdowns.length !== 0;
 };
 
 export const ValuedTarget = (props: {
@@ -32,7 +32,7 @@ export const ValuedTarget = (props: {
 	const {on, off} = useTargetEventBus();
 	const [isBreakdownVisible, setBreakdownVisible] = useState(hasBreakdown(derivedObjective, target));
 	useEffect(() => {
-		const onBreakdownRemoved = () => {
+		const onBreakdownRemoved = (breakdown: BreakdownTarget) => {
 			const breakdownExisting = hasBreakdown(derivedObjective, target);
 			if (!breakdownExisting && isBreakdownVisible) {
 				setBreakdownVisible(false);

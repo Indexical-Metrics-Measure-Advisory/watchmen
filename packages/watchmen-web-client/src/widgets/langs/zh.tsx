@@ -323,7 +323,8 @@ export const Zh: LanguageDeclareType = {
 			DIMENSION_ON_INDICATOR_VALUE: '使用目标值',
 			ADD_FIRST_BREAKDOWN_DIMENSION: '添加维度',
 			ADD_BREAKDOWN_DIMENSION: '添加维度',
-			VALUE_AS_DIMENSION: '使用自然分类'
+			VALUE_AS_DIMENSION: '使用自然分类',
+			ASK_BREAKDOWN_VALUES: '获取下挖数据'
 		}
 	},
 	INDICATOR: {

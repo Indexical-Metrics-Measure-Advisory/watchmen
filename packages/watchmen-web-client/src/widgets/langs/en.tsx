@@ -323,7 +323,8 @@ export const En = {
 			DIMENSION_ON_INDICATOR_VALUE: 'On Objective Value',
 			ADD_FIRST_BREAKDOWN_DIMENSION: 'Add first dimension',
 			ADD_BREAKDOWN_DIMENSION: 'Add dimension',
-			VALUE_AS_DIMENSION: 'Using Naturally Classification'
+			VALUE_AS_DIMENSION: 'Using Naturally Classification',
+			ASK_BREAKDOWN_VALUES: 'Get Values'
 		}
 	},
 	INDICATOR: {

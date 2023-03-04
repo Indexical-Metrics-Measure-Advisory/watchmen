@@ -1,16 +1,11 @@
 import {BreakdownTarget, DerivedObjective} from '@/services/data/tuples/derived-objective-types';
 import {ObjectiveTarget, ObjectiveTargetValues} from '@/services/data/tuples/objective-types';
 import {noop} from '@/services/utils';
-import {DwarfButton} from '@/widgets/basic/button';
 import {PageTitleEditor} from '@/widgets/basic/page-title-editor';
-import {ButtonInk} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
-import {Lang} from '@/widgets/langs';
 import React from 'react';
 import {useObjectiveEventBus} from '../../objective-event-bus';
 import {ObjectiveEventTypes} from '../../objective-event-bus-types';
-import {useTargetEventBus} from '../targets/target-event-bus';
-import {TargetEventTypes} from '../targets/target-event-bus-types';
 import {BreakdownTargetDimensionsSection} from './breakdown-target-dimensions';
 import {BreakdownTargetEventBusProvider} from './breakdown-target-event-bus';
 import {DefForBreakdownDimension} from './types';
@@ -19,10 +14,9 @@ import {BreakdownTargetContainer, BreakdownTargetData, BreakdownTargetTitleConta
 const BreakdownTargetTitle = (props: {
 	derivedObjective: DerivedObjective; breakdown: BreakdownTarget; index: number;
 }) => {
-	const {derivedObjective, breakdown, index} = props;
+	const {breakdown, index} = props;
 
 	const {fire} = useObjectiveEventBus();
-	const {fire: fireTarget} = useTargetEventBus();
 	const forceUpdate = useForceUpdate();
 
 	const onNameChange = async (name: string) => {
@@ -35,23 +29,11 @@ const BreakdownTargetTitle = (props: {
 		forceUpdate();
 		fire(ObjectiveEventTypes.SAVE, noop);
 	};
-	const onRemoveClicked = () => {
-		if (derivedObjective.breakdownTargets == null) {
-			derivedObjective.breakdownTargets = [];
-		}
-		const index = derivedObjective.breakdownTargets.findIndex(item => item === breakdown);
-		derivedObjective.breakdownTargets.splice(index, 1);
-		fireTarget(TargetEventTypes.BREAKDOWN_REMOVED, breakdown);
-		fire(ObjectiveEventTypes.SAVE, noop);
-	};
 
 	return <BreakdownTargetTitleContainer>
 		<span>#{index + 1}</span>
 		<PageTitleEditor title={breakdown.name || ''} defaultTitle=""
 		                 onChange={onNameChange} onChangeComplete={onNameChangeComplete}/>
-		<DwarfButton ink={ButtonInk.DANGER} onClick={onRemoveClicked}>
-			{Lang.CONSOLE.DERIVED_OBJECTIVE.REMOVE_BREAKDOWN}
-		</DwarfButton>
 	</BreakdownTargetTitleContainer>;
 };
 

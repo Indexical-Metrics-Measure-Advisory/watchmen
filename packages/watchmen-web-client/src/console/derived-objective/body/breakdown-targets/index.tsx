@@ -25,10 +25,10 @@ interface DefinitionData extends DefForBreakdownDimension {
 
 const BreakdownTargetsSection = (props: {
 	derivedObjective: DerivedObjective;
-	target: ObjectiveTarget; indicatorId: IndicatorId; breakdownTargets: Array<BreakdownTarget>;
+	target: ObjectiveTarget; indicatorId: IndicatorId; breakdowns: Array<BreakdownTarget>;
 	values: ObjectiveTargetValues;
 }) => {
-	const {derivedObjective, target, indicatorId, breakdownTargets, values} = props;
+	const {derivedObjective, target, indicatorId, breakdowns, values} = props;
 
 	const {fire} = useObjectiveEventBus();
 	const {fire: fireTarget} = useTargetEventBus();
@@ -48,19 +48,14 @@ const BreakdownTargetsSection = (props: {
 	}
 
 	const onAddClicked = () => {
-		if (derivedObjective.breakdownTargets == null) {
-			derivedObjective.breakdownTargets = [];
-		}
-		const breakdownTarget = createBreakdownTarget(target.uuid);
-		derivedObjective.breakdownTargets.push(breakdownTarget);
-		fireTarget(TargetEventTypes.BREAKDOWN_ADDED, breakdownTarget);
-		fire(ObjectiveEventTypes.SAVE, noop);
+		const breakdown = createBreakdownTarget(target.uuid);
+		fireTarget(TargetEventTypes.ADD_BREAKDOWN, breakdown);
 	};
 
 	const {loaded, ...rest} = def;
 
 	return <BreakdownTargetsContainer>
-		{breakdownTargets.map((breakdownTarget, index) => {
+		{breakdowns.map((breakdownTarget, index) => {
 			return <BreakdownTargetSection derivedObjective={derivedObjective} target={target}
 			                               def={rest} breakdown={breakdownTarget} index={index}
 			                               values={values} key={v4()}/>;
@@ -80,26 +75,43 @@ export const BreakdownTargets = (props: {
 }) => {
 	const {derivedObjective, target, indicatorId, values} = props;
 
-	const {on: onTarget, off: offTarget} = useTargetEventBus();
+	const {fire} = useObjectiveEventBus();
+	const {fire: fireTarget, on: onTarget, off: offTarget} = useTargetEventBus();
 	const forceUpdate = useForceUpdate();
 	useEffect(() => {
-		const onBreakdownAdded = () => forceUpdate();
-		const onBreakdownRemoved = () => forceUpdate();
-		onTarget(TargetEventTypes.BREAKDOWN_ADDED, onBreakdownAdded);
-		onTarget(TargetEventTypes.BREAKDOWN_REMOVED, onBreakdownRemoved);
-		return () => {
-			offTarget(TargetEventTypes.BREAKDOWN_ADDED, onBreakdownAdded);
-			offTarget(TargetEventTypes.BREAKDOWN_REMOVED, onBreakdownRemoved);
+		const onAddBreakdown = (breakdown: BreakdownTarget) => {
+			if (derivedObjective.breakdownTargets == null) {
+				derivedObjective.breakdownTargets = [];
+			}
+			derivedObjective.breakdownTargets.push(breakdown);
+			forceUpdate();
+			fire(ObjectiveEventTypes.SAVE, noop);
 		};
-	}, [onTarget, offTarget, forceUpdate]);
+		const onRemoveBreakdown = (breakdown: BreakdownTarget) => {
+			if (derivedObjective.breakdownTargets == null) {
+				derivedObjective.breakdownTargets = [];
+			}
+			const index = derivedObjective.breakdownTargets.findIndex(item => item === breakdown);
+			derivedObjective.breakdownTargets.splice(index, 1);
+			forceUpdate();
+			fire(ObjectiveEventTypes.SAVE, noop);
+			fireTarget(TargetEventTypes.BREAKDOWN_REMOVED, breakdown);
+		};
+		onTarget(TargetEventTypes.ADD_BREAKDOWN, onAddBreakdown);
+		onTarget(TargetEventTypes.REMOVE_BREAKDOWN, onRemoveBreakdown);
+		return () => {
+			offTarget(TargetEventTypes.ADD_BREAKDOWN, onAddBreakdown);
+			offTarget(TargetEventTypes.REMOVE_BREAKDOWN, onRemoveBreakdown);
+		};
+	}, [fire, fireTarget, onTarget, offTarget, forceUpdate, derivedObjective]);
 
 	// eslint-disable-next-line eqeqeq
-	const breakdownTargets = derivedObjective.breakdownTargets.filter(breakdownTarget => breakdownTarget.targetId == target.uuid);
-	if (breakdownTargets.length === 0) {
+	const breakdowns = derivedObjective.breakdownTargets.filter(breakdownTarget => breakdownTarget.targetId == target.uuid);
+	if (breakdowns.length === 0) {
 		return null;
 	}
 
 	return <BreakdownTargetsSection derivedObjective={derivedObjective} target={target} indicatorId={indicatorId}
-	                                breakdownTargets={breakdownTargets}
+	                                breakdowns={breakdowns}
 	                                values={values}/>;
 };
