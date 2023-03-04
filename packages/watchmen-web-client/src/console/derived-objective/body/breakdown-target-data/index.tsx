@@ -29,7 +29,7 @@ export const BreakdownTargetData = (props: {
 }) => {
 	const {derivedObjective, target, breakdown, def} = props;
 
-	const {on: onBreakdown, off: offBreakdown} = useBreakdownTargetEventBus();
+	const {on: onBreakdown, off: offBreakdown, fire: fireBreakdown} = useBreakdownTargetEventBus();
 	const [painted, setPainted] = useState(false);
 	const [columns, setColumns] = useState<Array<Column>>(buildColumns(target, breakdown, def));
 	const [values, setValues] = useState<ObjectiveTargetBreakdownValues | null>(null);
@@ -62,6 +62,16 @@ export const BreakdownTargetData = (props: {
 			offBreakdown(BreakdownTargetEventTypes.VALUES_FETCHED, onValuesFetched);
 		};
 	}, [onBreakdown, offBreakdown, target, breakdown, def]);
+	useEffect(() => {
+		if (painted) {
+			return;
+		}
+		const hasDimension = (breakdown.dimensions ?? []).length !== 0;
+		if (!hasDimension) {
+			return;
+		}
+		fireBreakdown(BreakdownTargetEventTypes.ASK_VALUES);
+	}, [fireBreakdown, painted]);
 
 	const hasDimension = (breakdown.dimensions ?? []).length !== 0;
 
