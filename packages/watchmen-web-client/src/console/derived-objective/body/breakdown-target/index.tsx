@@ -13,7 +13,7 @@ export const BreakdownTargetSection = (props: {
 	target: ObjectiveTarget; breakdown: BreakdownTarget; index: number; def: DefForBreakdownDimension;
 	values: ObjectiveTargetValues
 }) => {
-	const {derivedObjective, target, index, def, breakdown} = props;
+	const {derivedObjective, target, index, breakdown, def} = props;
 
 	return <BreakdownTargetEventBusProvider>
 		<BreakdownTargetContainer data-on-share={true}>

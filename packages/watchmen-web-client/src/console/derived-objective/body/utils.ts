@@ -17,12 +17,17 @@ import {isComputedParameter, isTopicFactorParameter} from '@/services/data/tuple
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
 import {SubjectForIndicator, TopicForIndicator} from '@/services/data/tuples/query-indicator-types';
 import {SubjectDataSetColumnId} from '@/services/data/tuples/subject-types';
+import {generateUuid} from '@/services/data/tuples/utils';
 import {isNotBlank} from '@/services/utils';
 import {Lang} from '@/widgets/langs';
 import {DimensionCandidate} from './types';
 
 export const createBreakdownTarget = (targetId: ObjectiveTargetId): BreakdownTarget => {
-	return {targetId, name: Lang.PLAIN.NEW_DERIVED_OBJECTIVE_TARGET_BREAKDOWN_NAME, dimensions: []};
+	return {
+		uuid: generateUuid(), targetId,
+		name: Lang.PLAIN.NEW_DERIVED_OBJECTIVE_TARGET_BREAKDOWN_NAME,
+		dimensions: []
+	};
 };
 
 interface Candidate {

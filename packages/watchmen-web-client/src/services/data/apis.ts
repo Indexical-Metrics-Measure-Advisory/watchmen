@@ -202,7 +202,8 @@ export const Apis = {
 	DERIVED_OBJECTIVE_SAVE: 'indicator/derived-objective',
 	DERIVED_OBJECTIVES_MINE: 'indicator/derived-objective/list',
 	DERIVED_OBJECTIVE_RENAME: 'indicator/derived-objective/rename?derived_objective_id=:derivedObjectiveId&name=:name',
-	DERIVED_OBJECTIVE_DELETE: 'indicator/derived-objective/delete?derived_objective_id=:derivedObjectiveId'
+	DERIVED_OBJECTIVE_DELETE: 'indicator/derived-objective/delete?derived_objective_id=:derivedObjectiveId',
+	OBJECTIVE_TARGET_BREAKDOWN_VALUES: 'indicator/derived-objective/breakdown/data'
 };
 
 const buildApi = (api: string, args?: Record<string, any>): string => {

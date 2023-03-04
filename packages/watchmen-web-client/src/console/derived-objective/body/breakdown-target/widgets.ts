@@ -44,6 +44,7 @@ export const BreakdownTargetDimensionsContainer = styled.div.attrs({'data-widget
 	grid-template-columns : 1fr auto;
 	grid-column-gap       : calc(var(--margin) / 2);
 	grid-row-gap          : calc(var(--margin) / 2);
+	align-content         : start;
 	> button {
 		justify-self : flex-end;
 	}
