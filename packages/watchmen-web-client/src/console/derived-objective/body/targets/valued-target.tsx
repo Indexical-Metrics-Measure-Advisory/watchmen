@@ -1,5 +1,3 @@
-import {useTargetEventBus} from '@/console/derived-objective/body/targets/target-event-bus';
-import {TargetEventTypes} from '@/console/derived-objective/body/targets/target-event-bus-types';
 import {DerivedObjective} from '@/services/data/tuples/derived-objective-types';
 import {ObjectiveTarget, ObjectiveTargetValues} from '@/services/data/tuples/objective-types';
 import {DwarfButton} from '@/widgets/basic/button';
@@ -11,6 +9,8 @@ import React, {useEffect, useState} from 'react';
 import {BreakdownTargets} from '../breakdown-targets';
 import {TargetChainValueRow} from './target-chain-value-row';
 import {TargetCurrentValueRow} from './target-current-value-row';
+import {useTargetEventBus} from './target-event-bus';
+import {TargetEventTypes} from './target-event-bus-types';
 import {TargetPreviousValueRow} from './target-previous-value-row';
 import {TargetTitle} from './target-title';
 import {createBreakdownTarget} from './utils';
