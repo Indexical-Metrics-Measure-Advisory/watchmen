@@ -1,6 +1,3 @@
-import {useTargetEventBus} from '@/console/derived-objective/body/targets/target-event-bus';
-import {TargetEventTypes} from '@/console/derived-objective/body/targets/target-event-bus-types';
-import {createBreakdownTarget} from '@/console/derived-objective/body/targets/utils';
 import {BreakdownTarget, DerivedObjective} from '@/services/data/tuples/derived-objective-types';
 import {IndicatorId} from '@/services/data/tuples/indicator-types';
 import {ObjectiveTarget, ObjectiveTargetValues} from '@/services/data/tuples/objective-types';
@@ -15,6 +12,9 @@ import {v4} from 'uuid';
 import {useObjectiveEventBus} from '../../objective-event-bus';
 import {ObjectiveEventTypes} from '../../objective-event-bus-types';
 import {IndicatorData} from '../../types';
+import {useTargetEventBus} from '../targets/target-event-bus';
+import {TargetEventTypes} from '../targets/target-event-bus-types';
+import {createBreakdownTarget} from '../targets/utils';
 import {BreakdownTargetSection} from './breakdown-target';
 import {DefForBreakdownDimension} from './types';
 import {BreakdownTargetsBottomBar, BreakdownTargetsContainer} from './widgets';
