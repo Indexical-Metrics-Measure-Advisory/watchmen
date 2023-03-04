@@ -50,7 +50,7 @@ export const BreakdownTargetDimensionsSection = (props: {
 			if (index !== -1) {
 				breakdown.dimensions.splice(index, 1);
 			}
-			if ((breakdown.dimensions ?? []).length !== 0) {
+			if ((breakdown.dimensions ?? []).length === 0) {
 				setReadyForValues(false);
 			} else {
 				forceUpdate();

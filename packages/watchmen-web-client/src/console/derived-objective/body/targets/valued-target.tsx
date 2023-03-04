@@ -1,4 +1,4 @@
-import {BreakdownTarget, DerivedObjective} from '@/services/data/tuples/derived-objective-types';
+import {DerivedObjective} from '@/services/data/tuples/derived-objective-types';
 import {ObjectiveTarget, ObjectiveTargetValues} from '@/services/data/tuples/objective-types';
 import {DwarfButton} from '@/widgets/basic/button';
 import {ButtonInk} from '@/widgets/basic/types';
@@ -32,7 +32,7 @@ export const ValuedTarget = (props: {
 	const {on, off} = useTargetEventBus();
 	const [isBreakdownVisible, setBreakdownVisible] = useState(hasBreakdown(derivedObjective, target));
 	useEffect(() => {
-		const onBreakdownRemoved = (breakdown: BreakdownTarget) => {
+		const onBreakdownRemoved = () => {
 			const breakdownExisting = hasBreakdown(derivedObjective, target);
 			if (!breakdownExisting && isBreakdownVisible) {
 				setBreakdownVisible(false);
