@@ -33,6 +33,7 @@ ObjectiveId = TypeVar('ObjectiveId', bound=str)
 ObjectiveFactorId = TypeVar('ObjectiveFactorId', bound=str)
 ObjectiveTargetId = TypeVar('ObjectiveTargetId', bound=str)
 DerivedObjectiveId = TypeVar('DerivedObjectiveId', bound=str)
+BreakdownTargetId = TypeVar('BreakdownTargetId', bound=str)
 AchievementPluginTaskId = TypeVar('AchievementPluginTaskId', bound=str)
 
 PatId = TypeVar('PatId', bound=str)

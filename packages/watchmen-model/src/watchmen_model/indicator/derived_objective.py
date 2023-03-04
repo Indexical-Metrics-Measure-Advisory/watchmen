@@ -58,6 +58,7 @@ def construct_breakdown_dimensions(dimensions: Optional[list] = None) -> Optiona
 
 
 class BreakdownTarget(DataModel, BaseModel):
+	uuid: BreakdownTargetId;
 	targetId: ObjectiveTargetId = None
 	name: str = None
 	dimensions: List[BreakdownDimension] = []
