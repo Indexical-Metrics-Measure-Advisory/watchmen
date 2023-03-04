@@ -25,7 +25,7 @@ export const Variables = (props: { derivedObjective: DerivedObjective; }) => {
 	const {definition: objective} = derivedObjective;
 	const variables: Array<ObjectiveVariable> = objective.variables || [];
 
-	return <VariablesContainer data-visible={visible}>
+	return <VariablesContainer data-visible={visible} data-hide-on-share={true}>
 		<VariablesTitle>{Lang.CONSOLE.DERIVED_OBJECTIVE.VARIABLES_TITLE}</VariablesTitle>
 		{variables.map((variable, index) => {
 			return <Variable objective={objective} variable={variable} index={index + 1}

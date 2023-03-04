@@ -12,13 +12,13 @@ export const Target = (props: {
 	const {derivedObjective, target, index, values} = props;
 
 	if (values == null) {
-		return <TargetCard>
+		return <TargetCard data-hide-on-share={true}>
 			<TargetTitle target={target} index={index} breakdown={false}/>
 		</TargetCard>;
 	}
 
 	if (values.failed) {
-		return <TargetCard>
+		return <TargetCard data-hide-on-share={true}>
 			<TargetTitle target={target} index={index} breakdown={false}/>
 			<TargetValueRow>
 				<TargetValueLabel data-failed={true}>{Lang.INDICATOR.OBJECTIVE.TEST_VALUE_GET_NONE}</TargetValueLabel>

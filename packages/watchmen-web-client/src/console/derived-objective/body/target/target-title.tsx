@@ -15,7 +15,7 @@ export const TargetTitle = (props: {
 		<TargetIndex>#{index}</TargetIndex>
 		<span>{target.name || Lang.CONSOLE.DERIVED_OBJECTIVE.UNKNOWN_TARGET_NAME}</span>
 		{breakdown
-			? <DwarfButton ink={ButtonInk.INFO} onClick={onBreakdownClicked}>
+			? <DwarfButton ink={ButtonInk.INFO} onClick={onBreakdownClicked} data-hide-on-share={true}>
 				{Lang.CONSOLE.DERIVED_OBJECTIVE.BREAKDOWN}
 			</DwarfButton>
 			: null}

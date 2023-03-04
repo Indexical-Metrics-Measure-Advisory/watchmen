@@ -63,7 +63,7 @@ export const ValuedTarget = (props: {
 
 	const {could: couldBreakdown, indicatorId} = parseBreakdown(derivedObjective.definition, target);
 
-	return <TargetCard data-breakdown-visible={isBreakdownVisible}>
+	return <TargetCard data-breakdown-visible={isBreakdownVisible} data-on-share={true}>
 		<TargetTitle target={target} index={index}
 		             breakdown={couldBreakdown && (!hasBreakdown || !isBreakdownVisible)}
 		             onBreakdownClicked={onBreakdownClicked}/>
@@ -74,7 +74,7 @@ export const ValuedTarget = (props: {
 		<TargetChainValueRow target={target}
 		                     currentValue={currentValue} chainValue={chainValue} percentage={percentage}/>
 		{isBreakdownVisible
-			? <DwarfButton ink={ButtonInk.PRIMARY} onClick={onHideBreakdownClicked}>
+			? <DwarfButton ink={ButtonInk.PRIMARY} onClick={onHideBreakdownClicked} data-hide-on-share={true}>
 				{Lang.CONSOLE.DERIVED_OBJECTIVE.HIDE_BREAKDOWN}
 			</DwarfButton>
 			: null}
