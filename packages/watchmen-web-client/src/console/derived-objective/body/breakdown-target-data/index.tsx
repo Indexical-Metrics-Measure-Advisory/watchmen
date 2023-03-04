@@ -71,7 +71,7 @@ export const BreakdownTargetData = (props: {
 			return;
 		}
 		fireBreakdown(BreakdownTargetEventTypes.ASK_VALUES);
-	}, [fireBreakdown, painted]);
+	}, [fireBreakdown, painted, breakdown.dimensions]);
 
 	const hasDimension = (breakdown.dimensions ?? []).length !== 0;
 
