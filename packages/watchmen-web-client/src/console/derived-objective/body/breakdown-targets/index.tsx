@@ -60,7 +60,7 @@ const BreakdownTargetsSection = (props: {
 			                               def={rest} breakdown={breakdownTarget} index={index}
 			                               values={values} key={v4()}/>;
 		})}
-		<BreakdownTargetsBottomBar>
+		<BreakdownTargetsBottomBar data-hide-on-share={true}>
 			<DwarfButton ink={ButtonInk.PRIMARY} onClick={onAddClicked}>
 				{Lang.CONSOLE.DERIVED_OBJECTIVE.ADD_BREAKDOWN}
 			</DwarfButton>

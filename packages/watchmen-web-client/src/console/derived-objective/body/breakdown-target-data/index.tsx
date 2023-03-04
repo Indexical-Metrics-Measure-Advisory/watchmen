@@ -85,7 +85,7 @@ export const BreakdownTargetData = (props: {
 		onBreakdown(BreakdownTargetEventTypes.DIMENSION_ADDED, onDimensionAdded);
 		onBreakdown(BreakdownTargetEventTypes.DIMENSION_CHANGED, onDimensionChanged);
 		onBreakdown(BreakdownTargetEventTypes.DIMENSION_REMOVED, onDimensionRemoved);
-	}, [onBreakdown, offBreakdown]);
+	}, [onBreakdown, offBreakdown, painted, target, breakdown, def]);
 
 	const hasDimension = (breakdown.dimensions ?? []).length !== 0;
 

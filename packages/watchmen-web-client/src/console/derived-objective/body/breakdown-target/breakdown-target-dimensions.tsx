@@ -81,7 +81,7 @@ export const BreakdownTargetDimensions = (props: {
 		fireTarget(TargetEventTypes.REMOVE_BREAKDOWN, breakdown);
 	};
 
-	return <BreakdownTargetDimensionsContainer>
+	return <BreakdownTargetDimensionsContainer data-hide-on-share={true}>
 		{dimensions.map(dimension => {
 			return <BreakdownTargetDimension derivedObjective={derivedObjective}
 			                                 target={target} breakdown={breakdown} dimension={dimension}
