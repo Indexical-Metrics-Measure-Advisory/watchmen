@@ -8,7 +8,6 @@ import {ButtonInk} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
 import {useEffect, useState} from 'react';
-import {v4} from 'uuid';
 import {useObjectiveEventBus} from '../../objective-event-bus';
 import {ObjectiveEventTypes} from '../../objective-event-bus-types';
 import {IndicatorData} from '../../types';
@@ -55,10 +54,10 @@ const BreakdownTargetsSection = (props: {
 	const {loaded, ...rest} = def;
 
 	return <BreakdownTargetsContainer>
-		{breakdowns.map((breakdownTarget, index) => {
+		{breakdowns.map((breakdown, index) => {
 			return <BreakdownTargetSection derivedObjective={derivedObjective} target={target}
-			                               def={rest} breakdown={breakdownTarget} index={index}
-			                               values={values} key={v4()}/>;
+			                               def={rest} breakdown={breakdown} index={index}
+			                               values={values} key={breakdown.uuid}/>;
 		})}
 		<BreakdownTargetsBottomBar data-hide-on-share={true}>
 			<DwarfButton ink={ButtonInk.PRIMARY} onClick={onAddClicked}>
