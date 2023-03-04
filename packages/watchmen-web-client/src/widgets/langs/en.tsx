@@ -318,6 +318,8 @@ export const En = {
 			TIME_FRAME_KIND_LAST_N_DAYS: 'Last N Days',
 			BREAKDOWN: 'Breakdown',
 			HIDE_BREAKDOWN: 'Hide Breakdown',
+			ADD_BREAKDOWN: 'Add Breakdown',
+			REMOVE_BREAKDOWN: 'Remove Breakdown',
 			DIMENSION_ON_INDICATOR_VALUE: 'On Objective Value',
 			ADD_FIRST_BREAKDOWN_DIMENSION: 'Add first dimension',
 			ADD_BREAKDOWN_DIMENSION: 'Add dimension',

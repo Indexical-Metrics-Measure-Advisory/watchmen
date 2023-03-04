@@ -1,3 +1,5 @@
+import {useTargetEventBus} from '@/console/derived-objective/body/targets/target-event-bus';
+import {TargetEventTypes} from '@/console/derived-objective/body/targets/target-event-bus-types';
 import {DerivedObjective} from '@/services/data/tuples/derived-objective-types';
 import {ObjectiveTarget, ObjectiveTargetValues} from '@/services/data/tuples/objective-types';
 import {DwarfButton} from '@/widgets/basic/button';
@@ -5,7 +7,7 @@ import {ButtonInk} from '@/widgets/basic/types';
 import {Lang} from '@/widgets/langs';
 import {parseBreakdown} from '@/widgets/objective/breakdown-utils';
 import {asValues, fromTobe} from '@/widgets/objective/utils';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {BreakdownTargets} from '../breakdown-targets';
 import {TargetChainValueRow} from './target-chain-value-row';
 import {TargetCurrentValueRow} from './target-current-value-row';
@@ -27,7 +29,20 @@ export const ValuedTarget = (props: {
 }) => {
 	const {derivedObjective, target, index, values} = props;
 
+	const {on, off} = useTargetEventBus();
 	const [isBreakdownVisible, setBreakdownVisible] = useState(hasBreakdown(derivedObjective, target));
+	useEffect(() => {
+		const onBreakdownRemoved = () => {
+			const breakdownExisting = hasBreakdown(derivedObjective, target);
+			if (!breakdownExisting && isBreakdownVisible) {
+				setBreakdownVisible(false);
+			}
+		};
+		on(TargetEventTypes.BREAKDOWN_REMOVED, onBreakdownRemoved);
+		return () => {
+			off(TargetEventTypes.BREAKDOWN_REMOVED, onBreakdownRemoved);
+		};
+	}, [on, off, derivedObjective, target, isBreakdownVisible]);
 
 	const onBreakdownClicked = () => {
 		if (!hasBreakdown(derivedObjective, target)) {
@@ -59,7 +74,7 @@ export const ValuedTarget = (props: {
 		<TargetChainValueRow target={target}
 		                     currentValue={currentValue} chainValue={chainValue} percentage={percentage}/>
 		{isBreakdownVisible
-			? <DwarfButton ink={ButtonInk.INFO} onClick={onHideBreakdownClicked}>
+			? <DwarfButton ink={ButtonInk.PRIMARY} onClick={onHideBreakdownClicked}>
 				{Lang.CONSOLE.DERIVED_OBJECTIVE.HIDE_BREAKDOWN}
 			</DwarfButton>
 			: null}

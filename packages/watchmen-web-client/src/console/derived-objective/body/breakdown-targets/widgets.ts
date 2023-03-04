@@ -14,15 +14,24 @@ export const BreakdownTargetContainer = styled.div.attrs({'data-widget': 'derive
 	grid-template-columns : minmax(300px, 30%) 1fr;
 	grid-column-gap       : var(--margin);
 	margin-top            : calc(var(--margin) / 2);
+	margin-bottom         : calc(var(--margin) / 2);
+	&:hover {
+		> div[data-widget=derived-objective-breakdown-target-title] > button {
+			opacity        : 1;
+			pointer-events : auto;
+		}
+	}
 `;
-export const BreakdownTargetTitleContainer = styled.div.attrs({'data-widget': ''})`
+export const BreakdownTargetTitleContainer = styled.div.attrs({'data-widget': 'derived-objective-breakdown-target-title'})`
 	display               : grid;
 	position              : relative;
-	grid-template-columns : auto 1fr;
+	grid-template-columns : auto 1fr auto;
 	grid-column-gap       : calc(var(--margin) / 4);
 	align-items           : center;
 	grid-column           : span 2;
 	margin-bottom         : calc(var(--margin) / 2);
+	border-bottom         : var(--border);
+	height                : var(--height);
 	> span:first-child {
 		font-weight : var(--font-bold);
 		opacity     : 0.5;
@@ -34,18 +43,21 @@ export const BreakdownTargetTitleContainer = styled.div.attrs({'data-widget': ''
 			font-size : 1.2em;
 		}
 		> input {
-			padding             : calc(var(--margin) / 4);
-			border-bottom       : var(--border);
-			border-bottom-color : transparent;
-			border-radius       : 0;
-			opacity             : 0.8;
+			padding       : calc(var(--margin) / 4);
+			border-radius : 0;
+			opacity       : 0.8;
 			&:hover, &:focus {
-				border-bottom-color : var(--primary-color);
-				box-shadow          : none;
+				box-shadow : none;
 			}
 		}
 	}
-`
+	> button {
+		position       : absolute;
+		right          : 0;
+		opacity        : 0;
+		pointer-events : none;
+	}
+`;
 export const BreakdownTargetDimensions = styled.div.attrs({'data-widget': 'derived-objective-breakdown-target-dimensions'})`
 	display               : grid;
 	position              : relative;
@@ -94,4 +106,10 @@ export const BreakdownTargetData = styled.div.attrs({'data-widget': 'derived-obj
 	display     : block;
 	position    : relative;
 	border-left : var(--border);
+`;
+export const BreakdownTargetsBottomBar = styled.div.attrs({'data-widget': 'derived-objective-breakdown-targets-bottom-bar'})`
+	display         : flex;
+	position        : relative;
+	justify-content : flex-end;
+	margin-top      : calc(var(--margin) / 2);
 `;
