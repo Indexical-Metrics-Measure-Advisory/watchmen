@@ -12,7 +12,8 @@ export const BodyContainer = styled.div.attrs({
 	padding        : var(--margin);
 	overflow-y     : auto;
 	overflow-x     : hidden;
-	&[data-on-share=true] {
+	@media print {
+		padding : var(--margin) 0 0 0;
 		div[data-hide-on-share=true],
 		button[data-hide-on-share=true] {
 			display : none;

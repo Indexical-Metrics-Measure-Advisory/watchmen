@@ -82,8 +82,8 @@ export const PageHeaderHolderContainer = styled.div.attrs({'data-widget': 'page-
 `;
 
 export const PageHeaderHolder = (props: { children: ReactNode }) => {
-	const {children} = props;
-	return <PageHeaderHolderContainer>
+	const {children, ...rest} = props;
+	return <PageHeaderHolderContainer {...rest}>
 		{children}
 	</PageHeaderHolderContainer>;
 };
