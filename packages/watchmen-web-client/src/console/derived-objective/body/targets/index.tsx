@@ -1,8 +1,8 @@
 import {DerivedObjective} from '@/services/data/tuples/derived-objective-types';
 import {ObjectiveTarget, ObjectiveTargetValues} from '@/services/data/tuples/objective-types';
 import React from 'react';
-import {Target} from './target';
-import {TargetEventBusProvider} from './target-event-bus';
+import {Target} from '../target';
+import {TargetEventBusProvider} from '../target/target-event-bus';
 import {TargetsContainer} from './widgets';
 
 export const Targets = (props: {

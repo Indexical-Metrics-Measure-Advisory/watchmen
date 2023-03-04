@@ -7,13 +7,13 @@ import {parseBreakdown} from '@/widgets/objective/breakdown-utils';
 import {asValues, fromTobe} from '@/widgets/objective/utils';
 import React, {useEffect, useState} from 'react';
 import {BreakdownTargets} from '../breakdown-targets';
+import {createBreakdownTarget} from '../utils';
 import {TargetChainValueRow} from './target-chain-value-row';
 import {TargetCurrentValueRow} from './target-current-value-row';
 import {useTargetEventBus} from './target-event-bus';
 import {TargetEventTypes} from './target-event-bus-types';
 import {TargetPreviousValueRow} from './target-previous-value-row';
 import {TargetTitle} from './target-title';
-import {createBreakdownTarget} from './utils';
 import {TargetCard} from './widgets';
 
 const hasBreakdown = (derivedObjective: DerivedObjective, target: ObjectiveTarget) => {

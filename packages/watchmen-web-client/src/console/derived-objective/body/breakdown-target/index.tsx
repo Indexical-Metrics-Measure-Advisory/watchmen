@@ -6,10 +6,11 @@ import {useForceUpdate} from '@/widgets/basic/utils';
 import React from 'react';
 import {useObjectiveEventBus} from '../../objective-event-bus';
 import {ObjectiveEventTypes} from '../../objective-event-bus-types';
+import {BreakdownTargetData} from '../breakdown-target-data';
+import {DefForBreakdownDimension} from '../types';
 import {BreakdownTargetDimensionsSection} from './breakdown-target-dimensions';
 import {BreakdownTargetEventBusProvider} from './breakdown-target-event-bus';
-import {DefForBreakdownDimension} from './types';
-import {BreakdownTargetContainer, BreakdownTargetData, BreakdownTargetTitleContainer} from './widgets';
+import {BreakdownTargetContainer, BreakdownTargetTitleContainer} from './widgets';
 
 const BreakdownTargetTitle = (props: {
 	derivedObjective: DerivedObjective; breakdown: BreakdownTarget; index: number;

@@ -3,7 +3,7 @@ import {
 	isEnumMeasureBucket,
 	isNumericValueMeasureBucket
 } from '@/services/data/tuples/bucket-utils';
-import {BreakdownDimensionType} from '@/services/data/tuples/derived-objective-types';
+import {BreakdownDimensionType, BreakdownTarget} from '@/services/data/tuples/derived-objective-types';
 import {Factor, FactorId, FactorType} from '@/services/data/tuples/factor-types';
 import {Indicator, MeasureMethod} from '@/services/data/tuples/indicator-types';
 import {
@@ -12,6 +12,7 @@ import {
 	translateComputeTypeToFactorType,
 	tryToTransformToMeasures
 } from '@/services/data/tuples/indicator-utils';
+import {ObjectiveTargetId} from '@/services/data/tuples/objective-types';
 import {isComputedParameter, isTopicFactorParameter} from '@/services/data/tuples/parameter-utils';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
 import {SubjectForIndicator, TopicForIndicator} from '@/services/data/tuples/query-indicator-types';
@@ -19,6 +20,10 @@ import {SubjectDataSetColumnId} from '@/services/data/tuples/subject-types';
 import {isNotBlank} from '@/services/utils';
 import {Lang} from '@/widgets/langs';
 import {DimensionCandidate} from './types';
+
+export const createBreakdownTarget = (targetId: ObjectiveTargetId): BreakdownTarget => {
+	return {targetId, name: Lang.PLAIN.NEW_DERIVED_OBJECTIVE_TARGET_BREAKDOWN_NAME, dimensions: []};
+};
 
 interface Candidate {
 	could: boolean;
@@ -37,7 +42,6 @@ interface Could extends Candidate {
 const could = (candidate: Candidate): candidate is Could => {
 	return candidate.could;
 };
-
 const findMeasureOnIndicatorValue = (indicator: Indicator, buckets: Array<QueryBucket>): Candidate => {
 	const could = isNotBlank(indicator.factorId)
 		&& indicator.valueBuckets != null
@@ -53,7 +57,6 @@ const findMeasureOnIndicatorValue = (indicator: Indicator, buckets: Array<QueryB
 	}
 	return COULD_NOT;
 };
-
 const findFactorMeasureMethods = (
 	factorOrColumnId: FactorId | SubjectDataSetColumnId, factorOrType: Factor | FactorType, buckets: Array<QueryBucket>
 ): Candidate => {
@@ -107,7 +110,6 @@ const findFactorMeasureMethods = (
 
 	return COULD_NOT;
 };
-
 export const buildMeasureOnOptions = (options: {
 	indicator: Indicator;
 	topic?: TopicForIndicator;

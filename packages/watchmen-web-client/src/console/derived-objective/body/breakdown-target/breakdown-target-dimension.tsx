@@ -15,10 +15,10 @@ import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React from 'react';
+import {DefForBreakdownDimension, DimensionCandidate} from '../types';
+import {buildMeasureOnOptions} from '../utils';
 import {useBreakdownTargetEventBus} from './breakdown-target-event-bus';
 import {BreakdownTargetEventTypes} from './breakdown-target-event-bus-types';
-import {DefForBreakdownDimension, DimensionCandidate} from './types';
-import {buildMeasureOnOptions} from './utils';
 import {BreakdownTargetDimension} from './widgets';
 
 interface DimensionOnOption extends DropdownOption {
