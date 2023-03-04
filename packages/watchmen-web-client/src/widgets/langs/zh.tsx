@@ -324,7 +324,8 @@ export const Zh: LanguageDeclareType = {
 			ADD_FIRST_BREAKDOWN_DIMENSION: '添加维度',
 			ADD_BREAKDOWN_DIMENSION: '添加维度',
 			VALUE_AS_DIMENSION: '使用自然分类',
-			ASK_BREAKDOWN_VALUES: '获取下挖数据'
+			ASK_BREAKDOWN_VALUES: '获取下挖数据',
+			BREAKDOWN_NO_DIMENSION: '没有定义维度.'
 		}
 	},
 	INDICATOR: {

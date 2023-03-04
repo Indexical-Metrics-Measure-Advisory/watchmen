@@ -38,7 +38,7 @@ export const BreakdownTargetTitleContainer = styled.div.attrs({'data-widget': 'd
 		}
 	}
 `;
-export const BreakdownTargetDimensions = styled.div.attrs({'data-widget': 'derived-objective-breakdown-target-dimensions'})`
+export const BreakdownTargetDimensionsContainer = styled.div.attrs({'data-widget': 'derived-objective-breakdown-target-dimensions'})`
 	display               : grid;
 	position              : relative;
 	grid-template-columns : 1fr auto;
@@ -48,7 +48,7 @@ export const BreakdownTargetDimensions = styled.div.attrs({'data-widget': 'deriv
 		justify-self : flex-end;
 	}
 `;
-export const BreakdownTargetDimension = styled.div.attrs({'data-widget': 'derived-objective-breakdown-target-dimension'})`
+export const BreakdownTargetDimensionContainer = styled.div.attrs({'data-widget': 'derived-objective-breakdown-target-dimension'})`
 	display               : grid;
 	position              : relative;
 	grid-template-columns : repeat(2, calc(50% - 16px)) 32px;
