@@ -75,7 +75,7 @@ export const BreakdownTargetDimensions = (props: {
 	const dimensions = breakdown.dimensions ?? [];
 
 	const onGetValuesClicked = () => {
-		fireTarget(TargetEventTypes.ASK_VALUES, breakdown);
+		fireBreakdown(BreakdownTargetEventTypes.ASK_VALUES);
 	};
 	const onRemoveClicked = () => {
 		fireTarget(TargetEventTypes.REMOVE_BREAKDOWN, breakdown);
@@ -96,7 +96,7 @@ export const BreakdownTargetDimensions = (props: {
 			? <DwarfButton ink={ButtonInk.PRIMARY} onClick={onGetValuesClicked}>
 				{Lang.CONSOLE.DERIVED_OBJECTIVE.ASK_BREAKDOWN_VALUES}
 			</DwarfButton>
-			: null}
+			: <span/>}
 		<DwarfButton ink={ButtonInk.DANGER} onClick={onRemoveClicked}>
 			{Lang.CONSOLE.DERIVED_OBJECTIVE.REMOVE_BREAKDOWN}
 		</DwarfButton>

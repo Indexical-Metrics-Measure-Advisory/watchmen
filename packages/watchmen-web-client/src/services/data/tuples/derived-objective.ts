@@ -1,12 +1,15 @@
+import {transformToServer} from '@/services/data/tuples/objective';
+import {Objective, ObjectiveTarget} from '@/services/data/tuples/objective-types';
 import {Apis, get, post} from '../apis';
 import {
+	askMockObjectiveTargetBreakdownValues,
 	deleteMockDerivedObjective,
 	fetchMockDerivedObjectives,
 	renameMockDerivedObjective,
 	saveMockDerivedObjective
 } from '../mock/tuples/mock-derived-objectives';
 import {isMockService} from '../utils';
-import {DerivedObjective} from './derived-objective-types';
+import {BreakdownTarget, DerivedObjective, ObjectiveTargetBreakdownValues} from './derived-objective-types';
 import {isFakedUuid} from './utils';
 
 export const fetchDerivedObjectives = async (): Promise<Array<DerivedObjective>> => {
@@ -66,5 +69,21 @@ export const deleteDerivedObjective = async (derivedObjective: DerivedObjective)
 			api: Apis.DERIVED_OBJECTIVE_DELETE,
 			search: {derivedObjectiveId: derivedObjective.derivedObjectiveId}
 		});
+	}
+};
+
+export const askObjectiveTargetBreakdownValues = async (
+	objective: Objective, target: ObjectiveTarget, breakdown: BreakdownTarget
+): Promise<ObjectiveTargetBreakdownValues> => {
+	if (isMockService()) {
+		return askMockObjectiveTargetBreakdownValues(objective, target, breakdown);
+	} else {
+		const data = await post({
+			api: Apis.OBJECTIVE_TARGET_BREAKDOWN_VALUES, data: {
+				objectiveId: transformToServer(objective),
+				target, breakdown
+			}
+		});
+		return {...data, breakdownUuid: breakdown.uuid};
 	}
 };

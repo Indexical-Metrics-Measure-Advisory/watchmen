@@ -24,7 +24,7 @@ const transformFromServer = (objective: ObjectiveOnServer): Objective => {
 	const {groupIds, ...rest} = objective;
 	return {userGroupIds: groupIds, ...rest};
 };
-const transformToServer = (objective: Objective): ObjectiveOnServer => {
+export const transformToServer = (objective: Objective): ObjectiveOnServer => {
 	const {userGroupIds, ...rest} = objective;
 	return {
 		groupIds: userGroupIds,

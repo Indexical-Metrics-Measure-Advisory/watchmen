@@ -325,7 +325,9 @@ export const Jp: LanguageDeclareType = {
 			ADD_BREAKDOWN_DIMENSION: 'ディメンションの追加',
 			VALUE_AS_DIMENSION: '自然分類を使用',
 			ASK_BREAKDOWN_VALUES: 'データを取得',
-			BREAKDOWN_NO_DIMENSION: 'ディメンションが定義されていません。'
+			BREAKDOWN_NO_DIMENSION: 'ディメンションが定義されていません。',
+			FAILED_ON_FETCH_BREAKDOWN_VALUES: 'データを取得できません。詳細については、管理者に問い合わせてください。',
+			NO_DATA_FETCHED_BREAKDOWN_VALUES: 'データがありません。'
 		}
 	},
 	INDICATOR: {

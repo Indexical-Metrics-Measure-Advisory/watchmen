@@ -7,6 +7,7 @@ import {SubjectDataSetColumnId} from './subject-types';
 import {Tuple} from './tuple-types';
 
 export type DerivedObjectiveId = string;
+export type BreakdownTargetId = string;
 
 export enum BreakdownDimensionType {
 	VALUE = 'value',
@@ -28,6 +29,7 @@ export interface BreakdownDimension {
 }
 
 export interface BreakdownTarget {
+	uuid: BreakdownTargetId;
 	targetId: ObjectiveTargetId;
 	name: string;
 	dimensions: Array<BreakdownDimension>;
@@ -41,4 +43,17 @@ export interface DerivedObjective extends Tuple {
 	definition: Objective;
 	breakdownTargets: Array<BreakdownTarget>;
 	lastVisitTime: DateTime;
+}
+
+export interface ObjectiveTargetBreakdownValueRow {
+	dimensions: Array<string | number | true | null | undefined>;
+	currentValue?: number;
+	previousValue?: number;
+	chainValue?: number;
+}
+
+export interface ObjectiveTargetBreakdownValues {
+	breakdownUuid: BreakdownTargetId;
+	data: Array<ObjectiveTargetBreakdownValueRow>;
+	failed: boolean;
 }

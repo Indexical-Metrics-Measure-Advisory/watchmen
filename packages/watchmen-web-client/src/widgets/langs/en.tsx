@@ -325,7 +325,9 @@ export const En = {
 			ADD_BREAKDOWN_DIMENSION: 'Add dimension',
 			VALUE_AS_DIMENSION: 'Using Naturally Classification',
 			ASK_BREAKDOWN_VALUES: 'Get Values',
-			BREAKDOWN_NO_DIMENSION: 'No dimension declared.'
+			BREAKDOWN_NO_DIMENSION: 'No dimension declared.',
+			FAILED_ON_FETCH_BREAKDOWN_VALUES: 'Failed on get values.',
+			NO_DATA_FETCHED_BREAKDOWN_VALUES: 'No data.'
 		}
 	},
 	INDICATOR: {

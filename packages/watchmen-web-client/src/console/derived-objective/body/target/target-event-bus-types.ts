@@ -5,8 +5,6 @@ export enum TargetEventTypes {
 	REMOVE_BREAKDOWN = 'remove-breakdown',
 
 	BREAKDOWN_REMOVED = 'breakdown-removed',
-
-	ASK_VALUES = 'ask-values'
 }
 
 export interface TargetEventBus {
@@ -21,8 +19,4 @@ export interface TargetEventBus {
 	fire(type: TargetEventTypes.BREAKDOWN_REMOVED, breakdown: BreakdownTarget): this;
 	on(type: TargetEventTypes.BREAKDOWN_REMOVED, listener: (breakdown: BreakdownTarget) => void): this;
 	off(type: TargetEventTypes.BREAKDOWN_REMOVED, listener: (breakdown: BreakdownTarget) => void): this;
-
-	fire(type: TargetEventTypes.ASK_VALUES, breakdown: BreakdownTarget): this;
-	on(type: TargetEventTypes.ASK_VALUES, listener: (breakdown: BreakdownTarget) => void): this;
-	off(type: TargetEventTypes.ASK_VALUES, listener: (breakdown: BreakdownTarget) => void): this;
 }
