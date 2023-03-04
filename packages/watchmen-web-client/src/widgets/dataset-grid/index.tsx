@@ -9,15 +9,15 @@ import {DataSetGridContainer} from './widgets';
 
 /**
  * structure and data of grid are passed to this component through event {@link GridEventTypes.DATA_LOADED}.<br>
- * if pagination feature is on, handle {@link props.onPageChange} to provide data, also via event {@link GridEventTypes.DATA_LOADED}.<br>
- * for {@link props.simulating}, through toggle and upload button is in grid itself,
+ * if pagination feature is on, handle {@link onPageChange} to provide data, also via event {@link GridEventTypes.DATA_LOADED}.<br>
+ * for {@link simulating}, through toggle and upload button is in grid itself,
  * switch value will be sent by {@link GridEventTypes.SIMULATOR_SWITCHED}, handle it and repaint grid, otherwise ui will not be changed.<br>
  * for {@link GridEventTypes.SIMULATE_DATA_UPLOADED} fired by upload button, handle it and notify grid via event {@link GridEventTypes.DATA_LOADED}.
  *
  * @param props.hasColumns columns exists or not.
  * @param props.simulateEnabled enable simulate feature, disable pageable related features when simulate is on. default false(feature off).
  * @param props.simulating currently is simulated or not
- * @param props.pageable enable pagination, default true(feature on). will be ignored when {@link props.simulateEnabled} is on.
+ * @param props.pageable enable pagination, default true(feature on). will be ignored when {@link simulateEnabled} is on.
  * @param props.onPageChange invokes when page change, must pass this parameter when pagination is on.
  * @param props.downloadAll invokes when download all button clicked, must pass this parameter when pagination is on.
  * @param props.languagesSupport enable i18n supporting, default true(feature on).

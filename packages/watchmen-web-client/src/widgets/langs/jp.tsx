@@ -323,7 +323,8 @@ export const Jp: LanguageDeclareType = {
 			DIMENSION_ON_INDICATOR_VALUE: '目標値を使用',
 			ADD_FIRST_BREAKDOWN_DIMENSION: 'ディメンションの追加',
 			ADD_BREAKDOWN_DIMENSION: 'ディメンションの追加',
-			VALUE_AS_DIMENSION: '自然分類を使用'
+			VALUE_AS_DIMENSION: '自然分類を使用',
+			ASK_BREAKDOWN_VALUES: 'データを取得'
 		}
 	},
 	INDICATOR: {

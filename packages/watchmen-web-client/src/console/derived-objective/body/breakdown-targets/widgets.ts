@@ -15,12 +15,6 @@ export const BreakdownTargetContainer = styled.div.attrs({'data-widget': 'derive
 	grid-column-gap       : var(--margin);
 	margin-top            : calc(var(--margin) / 2);
 	margin-bottom         : calc(var(--margin) / 2);
-	&:hover {
-		> div[data-widget=derived-objective-breakdown-target-title] > button {
-			opacity        : 1;
-			pointer-events : auto;
-		}
-	}
 `;
 export const BreakdownTargetTitleContainer = styled.div.attrs({'data-widget': 'derived-objective-breakdown-target-title'})`
 	display               : grid;
@@ -51,23 +45,22 @@ export const BreakdownTargetTitleContainer = styled.div.attrs({'data-widget': 'd
 			}
 		}
 	}
-	> button {
-		position       : absolute;
-		right          : 0;
-		opacity        : 0;
-		pointer-events : none;
-	}
 `;
 export const BreakdownTargetDimensions = styled.div.attrs({'data-widget': 'derived-objective-breakdown-target-dimensions'})`
 	display               : grid;
 	position              : relative;
-	grid-template-columns : 1fr;
+	grid-template-columns : 1fr auto;
+	grid-column-gap       : calc(var(--margin) / 2);
 	grid-row-gap          : calc(var(--margin) / 2);
+	> button {
+		justify-self : flex-end;
+	}
 `;
 export const BreakdownTargetDimension = styled.div.attrs({'data-widget': 'derived-objective-breakdown-target-dimension'})`
 	display               : grid;
 	position              : relative;
 	grid-template-columns : repeat(2, calc(50% - 16px)) 32px;
+	grid-column           : span 2;
 	> div[data-widget=dropdown]:first-child {
 		border-top-right-radius    : 0;
 		border-bottom-right-radius : 0;
