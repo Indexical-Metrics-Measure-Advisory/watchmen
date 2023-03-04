@@ -12,12 +12,12 @@ import {ObjectiveEventTypes} from '../../objective-event-bus-types';
 import {useTargetEventBus} from '../target/target-event-bus';
 import {TargetEventTypes} from '../target/target-event-bus-types';
 import {DefForBreakdownDimension} from '../types';
-import {BreakdownTargetDimensionRow} from './breakdown-target-dimension';
+import {BreakdownTargetDimension} from './breakdown-target-dimension';
 import {useBreakdownTargetEventBus} from './breakdown-target-event-bus';
 import {BreakdownTargetEventTypes} from './breakdown-target-event-bus-types';
-import {BreakdownTargetDimensions} from './widgets';
+import {BreakdownTargetDimensionsContainer} from './widgets';
 
-export const BreakdownTargetDimensionsSection = (props: {
+export const BreakdownTargetDimensions = (props: {
 	derivedObjective: DerivedObjective;
 	target: ObjectiveTarget; breakdown: BreakdownTarget;
 	def: DefForBreakdownDimension;
@@ -26,7 +26,7 @@ export const BreakdownTargetDimensionsSection = (props: {
 
 	const {fire} = useObjectiveEventBus();
 	const {fire: fireTarget} = useTargetEventBus();
-	const {on: onBreakdown, off: offBreakdown} = useBreakdownTargetEventBus();
+	const {fire: fireBreakdown, on: onBreakdown, off: offBreakdown} = useBreakdownTargetEventBus();
 	const [readyForValues, setReadyForValues] = useState((breakdown.dimensions ?? []).length !== 0);
 	const forceUpdate = useForceUpdate();
 	useEffect(() => {
@@ -35,11 +35,15 @@ export const BreakdownTargetDimensionsSection = (props: {
 				breakdown.dimensions = [];
 			}
 			breakdown.dimensions.push(dimension);
-			setReadyForValues(true);
+			if (!readyForValues) {
+				setReadyForValues(true);
+			} else {
+				forceUpdate();
+			}
+			fireBreakdown(BreakdownTargetEventTypes.DIMENSION_ADDED, dimension);
 			fire(ObjectiveEventTypes.SAVE, noop);
 		};
 		const onDimensionChanged = () => {
-			console.log(readyForValues);
 			if (!readyForValues) {
 				setReadyForValues(true);
 			}
@@ -55,6 +59,7 @@ export const BreakdownTargetDimensionsSection = (props: {
 			} else {
 				forceUpdate();
 			}
+			fireBreakdown(BreakdownTargetEventTypes.DIMENSION_REMOVED, dimension);
 			fire(ObjectiveEventTypes.SAVE, noop);
 		};
 		onBreakdown(BreakdownTargetEventTypes.ADD_DIMENSION, onDimensionAdded);
@@ -65,28 +70,28 @@ export const BreakdownTargetDimensionsSection = (props: {
 			offBreakdown(BreakdownTargetEventTypes.DIMENSION_CHANGED, onDimensionChanged);
 			offBreakdown(BreakdownTargetEventTypes.REMOVE_DIMENSION, onDimensionRemoved);
 		};
-	}, [fire, onBreakdown, offBreakdown, forceUpdate, readyForValues, breakdown]);
+	}, [fire, fireBreakdown, onBreakdown, offBreakdown, forceUpdate, readyForValues, breakdown]);
 
 	const dimensions = breakdown.dimensions ?? [];
 
 	const onGetValuesClicked = () => {
-
+		fireTarget(TargetEventTypes.ASK_VALUES, breakdown);
 	};
 	const onRemoveClicked = () => {
 		fireTarget(TargetEventTypes.REMOVE_BREAKDOWN, breakdown);
 	};
 
-	return <BreakdownTargetDimensions>
+	return <BreakdownTargetDimensionsContainer>
 		{dimensions.map(dimension => {
-			return <BreakdownTargetDimensionRow derivedObjective={derivedObjective}
-			                                    target={target} breakdown={breakdown} dimension={dimension}
-			                                    def={def}
-			                                    key={v4()}/>;
+			return <BreakdownTargetDimension derivedObjective={derivedObjective}
+			                                 target={target} breakdown={breakdown} dimension={dimension}
+			                                 def={def}
+			                                 key={v4()}/>;
 		})}
 		{/** add dimension */}
-		<BreakdownTargetDimensionRow derivedObjective={derivedObjective}
-		                             target={target} breakdown={breakdown} dimension={{} as BreakdownDimension}
-		                             def={def}/>
+		<BreakdownTargetDimension derivedObjective={derivedObjective}
+		                          target={target} breakdown={breakdown} dimension={{} as BreakdownDimension}
+		                          def={def}/>
 		{readyForValues
 			? <DwarfButton ink={ButtonInk.PRIMARY} onClick={onGetValuesClicked}>
 				{Lang.CONSOLE.DERIVED_OBJECTIVE.ASK_BREAKDOWN_VALUES}
@@ -95,5 +100,5 @@ export const BreakdownTargetDimensionsSection = (props: {
 		<DwarfButton ink={ButtonInk.DANGER} onClick={onRemoveClicked}>
 			{Lang.CONSOLE.DERIVED_OBJECTIVE.REMOVE_BREAKDOWN}
 		</DwarfButton>
-	</BreakdownTargetDimensions>;
+	</BreakdownTargetDimensionsContainer>;
 };

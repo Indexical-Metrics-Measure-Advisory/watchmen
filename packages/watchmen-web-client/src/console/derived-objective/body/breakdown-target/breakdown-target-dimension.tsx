@@ -19,13 +19,13 @@ import {DefForBreakdownDimension, DimensionCandidate} from '../types';
 import {buildMeasureOnOptions} from '../utils';
 import {useBreakdownTargetEventBus} from './breakdown-target-event-bus';
 import {BreakdownTargetEventTypes} from './breakdown-target-event-bus-types';
-import {BreakdownTargetDimension} from './widgets';
+import {BreakdownTargetDimensionContainer} from './widgets';
 
 interface DimensionOnOption extends DropdownOption {
 	onSelect: () => void;
 }
 
-export const BreakdownTargetDimensionRow = (props: {
+export const BreakdownTargetDimension = (props: {
 	derivedObjective: DerivedObjective;
 	target: ObjectiveTarget; breakdown: BreakdownTarget; dimension: BreakdownDimension;
 	def: DefForBreakdownDimension;
@@ -138,7 +138,7 @@ export const BreakdownTargetDimensionRow = (props: {
 	};
 	const dimensionOn = askDimensionOn();
 
-	return <BreakdownTargetDimension>
+	return <BreakdownTargetDimensionContainer>
 		<Dropdown value={dimension.factorOrColumnId} options={factorOrColumnOptions}
 		          onChange={onFactorOrColumnChanged}
 		          please={please}/>
@@ -151,5 +151,5 @@ export const BreakdownTargetDimensionRow = (props: {
 				</Button>
 			</>
 			: null}
-	</BreakdownTargetDimension>;
+	</BreakdownTargetDimensionContainer>;
 };
