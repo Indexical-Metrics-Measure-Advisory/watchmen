@@ -1,5 +1,3 @@
-import {transformToServer} from '@/services/data/tuples/objective';
-import {Objective, ObjectiveTarget} from '@/services/data/tuples/objective-types';
 import {Apis, get, post} from '../apis';
 import {
 	askMockObjectiveTargetBreakdownValues,
@@ -10,6 +8,8 @@ import {
 } from '../mock/tuples/mock-derived-objectives';
 import {isMockService} from '../utils';
 import {BreakdownTarget, DerivedObjective, ObjectiveTargetBreakdownValues} from './derived-objective-types';
+import {transformToServer} from './objective';
+import {Objective, ObjectiveTarget} from './objective-types';
 import {isFakedUuid} from './utils';
 
 export const fetchDerivedObjectives = async (): Promise<Array<DerivedObjective>> => {
