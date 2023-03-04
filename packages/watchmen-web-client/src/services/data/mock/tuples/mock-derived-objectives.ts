@@ -1,5 +1,5 @@
-import {Objective, ObjectiveTarget} from '@/services/data/tuples/objective-types';
 import {BreakdownTarget, DerivedObjective, ObjectiveTargetBreakdownValues} from '../../tuples/derived-objective-types';
+import {Objective, ObjectiveTarget} from '../../tuples/objective-types';
 import {isFakedUuid} from '../../tuples/utils';
 import {DemoDerivedObjectives} from './mock-data-derived-objectives';
 

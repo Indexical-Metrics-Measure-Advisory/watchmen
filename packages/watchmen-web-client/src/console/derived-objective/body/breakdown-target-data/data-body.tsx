@@ -1,4 +1,3 @@
-import {Column} from '@/console/derived-objective/body/breakdown-target-data/types';
 import {
 	BreakdownTarget,
 	DerivedObjective,
@@ -8,6 +7,7 @@ import {ObjectiveTarget, ObjectiveTargetBetterSide} from '@/services/data/tuples
 import {Lang} from '@/widgets/langs';
 import {asDisplayValue, fromTobe} from '@/widgets/objective/utils';
 import {v4} from 'uuid';
+import {Column} from './types';
 import {BreakdownTargetDataTableBody, BreakdownTargetDataTableRow, BreakdownTargetDataTableRowCell} from './widgets';
 
 export const DataBody = (props: {
