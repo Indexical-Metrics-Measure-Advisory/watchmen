@@ -32,7 +32,7 @@ const ShareDashboard = (props: { dashboard: Dashboard }) => {
 
 const ShareDashboardIndex = () => {
 	const {dashboardId, token} = useParams<{ dashboardId: DashboardId, token: Token }>();
-	console.log(dashboardId, token);
+	// console.log(dashboardId, token);
 	const [state, setState] = useState<ShareDashboardState>({initialized: false});
 	useEffect(() => {
 		(async () => {
