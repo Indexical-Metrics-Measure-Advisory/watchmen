@@ -4,7 +4,9 @@ import React from 'react';
 import {HeaderCreateButton} from './header-create-button';
 import {HeaderDeleteButton} from './header-delete-button';
 import {HeaderFavoriteButton} from './header-favorite-button';
+import {HeaderPrintButton} from './header-print-button';
 import {HeaderRefreshButton} from './header-refresh-button';
+import {HeaderShareButton} from './header-share-button';
 import {HeaderSwitchButton} from './header-switch-button';
 import {HeaderVariablesButton} from './header-variables-button';
 
@@ -13,6 +15,8 @@ export const HeaderButtons = (props: { derivedObjective: DerivedObjective }) => 
 
 		return <PageHeaderButtons>
 			<HeaderFavoriteButton derivedObjective={derivedObjective}/>
+			<HeaderShareButton derivedObjective={derivedObjective}/>
+			<HeaderPrintButton/>
 			<PageHeaderButtonSeparator/>
 			<HeaderVariablesButton/>
 			<HeaderRefreshButton/>

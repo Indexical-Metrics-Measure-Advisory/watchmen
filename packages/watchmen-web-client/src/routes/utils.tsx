@@ -57,7 +57,7 @@ export const isDerivedObjectiveOpened = (derivedObjectiveId: DerivedObjectiveId,
 	return !!match && match.params.objectiveId == derivedObjectiveId;
 };
 export const toDerivedObjective = (derivedObjectiveId: DerivedObjectiveId) => {
-	return Router.CONSOLE_DERIVED_OBJECTIVE.replace(':objectiveId', derivedObjectiveId);
+	return Router.CONSOLE_DERIVED_OBJECTIVE.replace(':derivedObjectiveId', derivedObjectiveId);
 };
 
 export const toPipeline = (pipelineId: PipelineId) => Router.ADMIN_PIPELINE.replace(':pipelineId', pipelineId);

@@ -27,7 +27,7 @@ export const connectAsDerivedObjective = async (derivedObjective: DerivedObjecti
 		const data = await get({
 			api: Apis.OBJECTIVE_CONNECT,
 			search: {
-				objectiveId: derivedObjective.objectiveId,
+				derivedObjectiveId: derivedObjective.objectiveId,
 				name: derivedObjective.name
 			}
 		});
@@ -80,7 +80,7 @@ export const askObjectiveTargetBreakdownValues = async (
 	} else {
 		const data = await post({
 			api: Apis.OBJECTIVE_TARGET_BREAKDOWN_VALUES, data: {
-				objectiveId: transformToServer(objective),
+				objective: transformToServer(objective),
 				target, breakdown
 			}
 		});

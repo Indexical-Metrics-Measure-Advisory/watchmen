@@ -13,7 +13,7 @@ import {ConsoleEventTypes} from '../console-event-bus-types';
 import {DerivedObjectivePage} from './derived-objective';
 
 const ConsoleDerivedObjectiveIndex = () => {
-	const {objectiveId: derivedObjectiveId} = useParams<{ objectiveId: DerivedObjectiveId }>();
+	const {derivedObjectiveId} = useParams<{ derivedObjectiveId: DerivedObjectiveId }>();
 
 	const navigate = useNavigate();
 	const {fire: fireGlobal} = useEventBus();

@@ -41,6 +41,9 @@ export const HelpContainer = styled.div.attrs<{ visible: boolean }>(({visible}) 
 	cursor                    : pointer;
 	z-index                   : ${HELP_Z_INDEX};
 	user-select               : none;
+	@media print {
+		display: none;
+	}
 	> * {
 		margin-top : -2px;
 	}

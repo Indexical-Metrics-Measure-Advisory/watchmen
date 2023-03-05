@@ -146,6 +146,7 @@ export const Apis = {
 	// any
 	// SUBJECT_SHARE_GET: 'share/subject?subject_id=:subjectId&&token=:token',
 	DASHBOARD_SHARE_GET: 'dashboard/shared?dashboard_id=:dashboardId&token=:token',
+	DERIVED_OBJECTIVE_SHARE_GET: 'indicator/derived-objective/shared?derived_objective_id=:derivedObjectiveId&token=:token',
 
 	QUERY_LOG: 'pipeline/log',
 	QUERY_RULE: 'dqc/monitor/rules?grade=:grade&topic_id=:topicId',
@@ -197,7 +198,7 @@ export const Apis = {
 	OBJECTIVE_TARGET_CONSANGUINITY: 'indicator/objective/target/consanguinity?objective_id=:objectiveId&target_id=:targetId',
 
 	OBJECTIVES_AVAILABLE: 'indicator/objective/available',
-	OBJECTIVE_CONNECT: 'indicator/derived-objective/connect?objective_id=:objectiveId&name=:name',
+	OBJECTIVE_CONNECT: 'indicator/derived-objective/connect?objective_id=:derivedObjectiveId&name=:name',
 	DERIVED_OBJECTIVE_CREATE: 'indicator/derived-objective',
 	DERIVED_OBJECTIVE_SAVE: 'indicator/derived-objective',
 	DERIVED_OBJECTIVES_MINE: 'indicator/derived-objective/list',
