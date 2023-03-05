@@ -78,7 +78,8 @@ export const Zh: LanguageDeclareType = {
 		COLLAPSE: '收拢',
 		MINIMIZE: '最小化',
 		MAXIMIZE: '最大化',
-		RESTORE: '复原'
+		RESTORE: '复原',
+		SUBSCRIBE: '订阅'
 	},
 	LOGIN: {
 		PRODUCT_TITLE: <>Indexical Metrics <span>&</span> Measure Advisory</>,
@@ -605,7 +606,8 @@ export const Zh: LanguageDeclareType = {
 		FREQUENCY: '订阅周期',
 		DAILY: '每天',
 		WEEKLY: '每周',
-		MONTHLY: '每月'
+		MONTHLY: '每月',
+		SUBSCRIPTION_SUBMITTED: '已成功提交订阅.'
 	},
 	SETTINGS: {
 		TITLE: '设置',

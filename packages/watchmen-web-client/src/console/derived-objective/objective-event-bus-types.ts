@@ -17,7 +17,9 @@ export enum ObjectiveEventTypes {
 	ASK_VALUES = 'ask-values',
 	VALUES_FETCHED = 'values-fetched',
 
-	SWITCH_VARIABLES_VISIBLE = 'switch-variables-visible'
+	SWITCH_VARIABLES_VISIBLE = 'switch-variables-visible',
+
+	TIME_FRAME_CHANGED = 'time-frame-changed'
 }
 
 export interface ObjectiveEventBus {
@@ -56,4 +58,8 @@ export interface ObjectiveEventBus {
 	fire(type: ObjectiveEventTypes.SWITCH_VARIABLES_VISIBLE, switchTo: boolean): this;
 	on(type: ObjectiveEventTypes.SWITCH_VARIABLES_VISIBLE, listener: (switchTo: boolean) => void): this;
 	off(type: ObjectiveEventTypes.SWITCH_VARIABLES_VISIBLE, listener: (switchTo: boolean) => void): this;
+
+	fire(type: ObjectiveEventTypes.TIME_FRAME_CHANGED): this;
+	on(type: ObjectiveEventTypes.TIME_FRAME_CHANGED, listener: () => void): this;
+	off(type: ObjectiveEventTypes.TIME_FRAME_CHANGED, listener: () => void): this;
 }

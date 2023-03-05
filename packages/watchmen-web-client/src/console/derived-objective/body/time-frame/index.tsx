@@ -57,12 +57,14 @@ export const TimeFrame = (props: { derivedObjective: DerivedObjective; }) => {
 
 	const onLastNChanged = (option: DropdownOption) => {
 		timeFrame.lastN = option.value as string;
+		fire(ObjectiveEventTypes.TIME_FRAME_CHANGED);
 		fire(ObjectiveEventTypes.SAVE, noop);
 		forceUpdate();
 	};
 	const onTillChanged = (option: DropdownOption) => {
 		timeFrame.till = option.value as ObjectiveTimeFrameTill;
 		guardTimeFrame(objective);
+		fire(ObjectiveEventTypes.TIME_FRAME_CHANGED);
 		fire(ObjectiveEventTypes.SAVE, noop);
 		forceUpdate();
 	};
@@ -71,6 +73,7 @@ export const TimeFrame = (props: { derivedObjective: DerivedObjective; }) => {
 			value = value?.substring(0, value?.indexOf(' '));
 		}
 		timeFrame.specifiedTill = value ?? '';
+		fire(ObjectiveEventTypes.TIME_FRAME_CHANGED);
 		fire(ObjectiveEventTypes.SAVE, noop);
 		forceUpdate();
 	};
