@@ -47,9 +47,6 @@ export const AvailableTemplateTableCell = styled.div`
 export const AvailableSpaceDropdown = styled(Dropdown)`
 	margin-top : calc(var(--margin) / 4);
 `;
-export const ErrorMessage = styled.div`
-	display     : flex;
-	position    : relative;
-	align-items : center;
-	color       : var(--danger-color);
+export const AvailableObjectiveDropdown = styled(Dropdown)`
+	margin-top : calc(var(--margin) / 4);
 `;

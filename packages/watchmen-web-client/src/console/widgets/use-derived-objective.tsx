@@ -1,11 +1,10 @@
 import {toDerivedObjective} from '@/routes/utils';
 import {connectAsDerivedObjective} from '@/services/data/tuples/derived-objective';
-import {DerivedObjective, DerivedObjectiveId} from '@/services/data/tuples/derived-objective-types';
+import {DerivedObjective} from '@/services/data/tuples/derived-objective-types';
 import {Objective} from '@/services/data/tuples/objective-types';
 import {AlertLabel} from '@/widgets/alert/widgets';
 import {Button} from '@/widgets/basic/button';
-import {CheckBox} from '@/widgets/basic/checkbox';
-import {ButtonInk} from '@/widgets/basic/types';
+import {ButtonInk, DropdownOption} from '@/widgets/basic/types';
 import {DialogFooter, DialogLabel} from '@/widgets/dialog/widgets';
 import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
@@ -15,74 +14,45 @@ import {useNavigate} from 'react-router-dom';
 import {useConsoleEventBus} from '../console-event-bus';
 import {ConsoleEventTypes} from '../console-event-bus-types';
 import {createDerivedObjective} from '../utils/tuples';
-import {
-	AvailableTemplateTable,
-	AvailableTemplateTableCell,
-	AvailableTemplateTableHeaderCell,
-	AvailableTemplateTableRow,
-	ErrorMessage,
-	ShareDialogBody
-} from './widget';
+import {AvailableObjectiveDropdown, ShareDialogBody} from './widget';
 
 const AvailableTemplatesSelector = (props: {
-	templates: Array<Objective>;
+	objectives: Array<Objective>;
 	switchTo: (derivedObjective: DerivedObjective) => void;
 }) => {
-	const {templates, switchTo} = props;
+	const {objectives, switchTo} = props;
 
 	const {fire} = useEventBus();
-	const [message, setMessage] = useState<string | null>(null);
-	const [selectedObjectiveId, setSelectedObjectiveId] = useState<DerivedObjectiveId | null>(null);
+	const [selection, setSelection] = useState(objectives[0]);
 
-	const isTemplateSelected = (derivedObjectiveId: DerivedObjectiveId) => {
-		// eslint-disable-next-line eqeqeq
-		return derivedObjectiveId == selectedObjectiveId;
-	};
-	const onTemplateSelected = (derivedObjectiveId: DerivedObjectiveId) => (value: boolean) => {
-		if (value) {
-			setSelectedObjectiveId(derivedObjectiveId);
-			setMessage(null);
-		} else {
-			setSelectedObjectiveId(null);
-		}
+	const onChange = (option: DropdownOption) => {
+		setSelection(option.value as Objective);
 	};
 	const onConfirmClicked = async () => {
-		if (selectedObjectiveId == null) {
-			setMessage(Lang.CONSOLE.DERIVED_OBJECTIVE.NO_OBJECTIVE_SELECTED);
-			return;
-		}
-		fire(EventTypes.HIDE_DIALOG);
-		// eslint-disable-next-line eqeqeq
-		const derivedObjective = createDerivedObjective(templates.find(template => template.objectiveId == selectedObjectiveId)!);
+		const derivedObjective = createDerivedObjective(selection);
 		fire(EventTypes.INVOKE_REMOTE_REQUEST,
 			async () => await connectAsDerivedObjective(derivedObjective),
-			() => switchTo(derivedObjective));
+			() => {
+				fire(EventTypes.HIDE_DIALOG);
+				switchTo(derivedObjective);
+			});
 	};
 	const onCancelClicked = () => {
 		fire(EventTypes.HIDE_DIALOG);
 	};
 
+	const options = objectives.map(objective => {
+		return {
+			value: objective,
+			label: objective.name,
+			key: objective.objectiveId
+		};
+	});
+
 	return <>
 		<ShareDialogBody>
 			<DialogLabel>{Lang.CONSOLE.DERIVED_OBJECTIVE.CREATE_DIALOG_CHOOSE_TEMPLATE_LABEL}</DialogLabel>
-			<AvailableTemplateTable>
-				<AvailableTemplateTableRow>
-					<AvailableTemplateTableHeaderCell/>
-					<AvailableTemplateTableHeaderCell/>
-					<AvailableTemplateTableHeaderCell>{Lang.CONSOLE.DERIVED_OBJECTIVE.TEMPLATE}</AvailableTemplateTableHeaderCell>
-				</AvailableTemplateTableRow>
-				{templates.map((template, index) => {
-					return <AvailableTemplateTableRow key={template.objectiveId}>
-						<AvailableTemplateTableCell>{index + 1}</AvailableTemplateTableCell>
-						<AvailableTemplateTableCell>
-							<CheckBox value={isTemplateSelected(template.objectiveId)}
-							          onChange={onTemplateSelected(template.objectiveId)}/>
-						</AvailableTemplateTableCell>
-						<AvailableTemplateTableCell>{template.name || 'Noname'}</AvailableTemplateTableCell>
-					</AvailableTemplateTableRow>;
-				})}
-			</AvailableTemplateTable>
-			{message == null ? null : <ErrorMessage>{message}</ErrorMessage>}
+			<AvailableObjectiveDropdown value={selection} options={options} onChange={onChange}/>
 		</ShareDialogBody>
 		<DialogFooter>
 			<Button ink={ButtonInk.PRIMARY} onClick={onConfirmClicked}>{Lang.ACTIONS.CONFIRM}</Button>
@@ -112,7 +82,7 @@ export const useDerivedObjective = () => {
 					<AlertLabel>{Lang.CONSOLE.DERIVED_OBJECTIVE.NO_MORE_OBJECTIVE}</AlertLabel>);
 			} else {
 				fireGlobal(EventTypes.SHOW_DIALOG,
-					<AvailableTemplatesSelector templates={availableObjectives} switchTo={onSwitchTo}/>);
+					<AvailableTemplatesSelector objectives={availableObjectives} switchTo={onSwitchTo}/>);
 			}
 		});
 	};

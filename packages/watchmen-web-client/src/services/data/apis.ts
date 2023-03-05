@@ -144,7 +144,6 @@ export const Apis = {
 	PAT_DELETE: 'pat/delete?pat_id=:patId',
 
 	// any
-	// SUBJECT_SHARE_GET: 'share/subject?subject_id=:subjectId&&token=:token',
 	DASHBOARD_SHARE_GET: 'dashboard/shared?dashboard_id=:dashboardId&token=:token',
 	DERIVED_OBJECTIVE_SHARE_GET: 'indicator/derived-objective/shared?derived_objective_id=:derivedObjectiveId&token=:token',
 
