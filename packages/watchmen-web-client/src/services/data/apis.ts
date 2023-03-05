@@ -198,13 +198,14 @@ export const Apis = {
 	OBJECTIVE_TARGET_CONSANGUINITY: 'indicator/objective/target/consanguinity?objective_id=:objectiveId&target_id=:targetId',
 
 	OBJECTIVES_AVAILABLE: 'indicator/objective/available',
-	OBJECTIVE_CONNECT: 'indicator/derived-objective/connect?objective_id=:derivedObjectiveId&name=:name',
+	OBJECTIVE_CONNECT: 'indicator/derived-objective/connect?objective_id=:objectiveId&name=:name',
 	DERIVED_OBJECTIVE_CREATE: 'indicator/derived-objective',
 	DERIVED_OBJECTIVE_SAVE: 'indicator/derived-objective',
 	DERIVED_OBJECTIVES_MINE: 'indicator/derived-objective/list',
 	DERIVED_OBJECTIVE_RENAME: 'indicator/derived-objective/rename?derived_objective_id=:derivedObjectiveId&name=:name',
 	DERIVED_OBJECTIVE_DELETE: 'indicator/derived-objective/delete?derived_objective_id=:derivedObjectiveId',
-	OBJECTIVE_TARGET_BREAKDOWN_VALUES: 'indicator/derived-objective/breakdown/data'
+	OBJECTIVE_TARGET_BREAKDOWN_VALUES: 'indicator/derived-objective/breakdown/data',
+	DERIVED_OBJECTIVE_SUBSCRIBE: 'indicator/derived-objective/subscribe?derived_objective_id=:derivedObjectiveId'
 };
 
 const buildApi = (api: string, args?: Record<string, any>): string => {

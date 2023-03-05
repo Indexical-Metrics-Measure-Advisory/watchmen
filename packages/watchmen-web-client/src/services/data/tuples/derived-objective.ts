@@ -6,8 +6,14 @@ import {
 	renameMockDerivedObjective,
 	saveMockDerivedObjective
 } from '../mock/tuples/mock-derived-objectives';
+import {Subscription} from '../subscribe';
 import {isMockService} from '../utils';
-import {BreakdownTarget, DerivedObjective, ObjectiveTargetBreakdownValues} from './derived-objective-types';
+import {
+	BreakdownTarget,
+	DerivedObjective,
+	DerivedObjectiveId,
+	ObjectiveTargetBreakdownValues
+} from './derived-objective-types';
 import {transformToServer} from './objective';
 import {Objective, ObjectiveTarget} from './objective-types';
 import {isFakedUuid} from './utils';
@@ -27,7 +33,7 @@ export const connectAsDerivedObjective = async (derivedObjective: DerivedObjecti
 		const data = await get({
 			api: Apis.OBJECTIVE_CONNECT,
 			search: {
-				derivedObjectiveId: derivedObjective.objectiveId,
+				objectiveId: derivedObjective.objectiveId,
 				name: derivedObjective.name
 			}
 		});
@@ -85,5 +91,15 @@ export const askObjectiveTargetBreakdownValues = async (
 			}
 		});
 		return {...data, breakdownUuid: breakdown.uuid};
+	}
+};
+
+export const submitDerivedObjectiveSubscription = async (derivedObjectiveId: DerivedObjectiveId, subscription: Subscription): Promise<void> => {
+	if (isMockService()) {
+		return new Promise(resolve => setTimeout(() => resolve(), 300));
+	} else {
+		await post({
+			api: Apis.DERIVED_OBJECTIVE_SUBSCRIBE, search: {derivedObjectiveId}, data: {subscription}
+		});
 	}
 };

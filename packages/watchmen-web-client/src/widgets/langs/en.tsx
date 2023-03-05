@@ -78,7 +78,8 @@ export const En = {
 		COLLAPSE: 'Collapse',
 		MINIMIZE: 'Minimize',
 		MAXIMIZE: 'Maximize',
-		RESTORE: 'Restore'
+		RESTORE: 'Restore',
+		SUBSCRIBE: 'Subscribe'
 	},
 	LOGIN: {
 		PRODUCT_TITLE: <>Indexical Metrics <span>&</span> Measure Advisory</>,
@@ -605,7 +606,8 @@ export const En = {
 		FREQUENCY: 'Frequency',
 		DAILY: 'Daily',
 		WEEKLY: 'Weekly',
-		MONTHLY: 'Monthly'
+		MONTHLY: 'Monthly',
+		SUBSCRIPTION_SUBMITTED: 'Subscription submitted.'
 	},
 	SETTINGS: {
 		TITLE: 'Settings',

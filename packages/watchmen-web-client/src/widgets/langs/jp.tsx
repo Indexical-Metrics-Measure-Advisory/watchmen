@@ -78,7 +78,8 @@ export const Jp: LanguageDeclareType = {
 		COLLAPSE: '閉じる',
 		MINIMIZE: '最小化する',
 		MAXIMIZE: '最大化する',
-		RESTORE: '戻す'
+		RESTORE: '戻す',
+		SUBSCRIBE: '購読'
 	},
 	LOGIN: {
 		PRODUCT_TITLE: <>Indexical Metrics <span>&</span> Measure Advisory</>,
@@ -605,7 +606,8 @@ export const Jp: LanguageDeclareType = {
 		FREQUENCY: 'サイクル',
 		DAILY: '毎日',
 		WEEKLY: '毎週',
-		MONTHLY: '毎月'
+		MONTHLY: '毎月',
+		SUBSCRIPTION_SUBMITTED: 'サブスクリプションが正常に送信されました。'
 	},
 	SETTINGS: {
 		TITLE: '設定',
