@@ -327,7 +327,11 @@ export const En = {
 			ASK_BREAKDOWN_VALUES: 'Get Values',
 			BREAKDOWN_NO_DIMENSION: 'No dimension declared.',
 			FAILED_ON_FETCH_BREAKDOWN_VALUES: 'Failed on get values.',
-			NO_DATA_FETCHED_BREAKDOWN_VALUES: 'No data.'
+			NO_DATA_FETCHED_BREAKDOWN_VALUES: 'No data.',
+			SHARE: 'Share',
+			PRINT: 'Print',
+			SHARE_DIALOG_LABEL: 'Copy following url, and share to where you want.',
+			URL_COPIED: 'URL copied.'
 		}
 	},
 	INDICATOR: {

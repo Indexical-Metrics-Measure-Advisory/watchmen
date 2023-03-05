@@ -327,7 +327,11 @@ export const Jp: LanguageDeclareType = {
 			ASK_BREAKDOWN_VALUES: 'データを取得',
 			BREAKDOWN_NO_DIMENSION: 'ディメンションが定義されていません。',
 			FAILED_ON_FETCH_BREAKDOWN_VALUES: 'データを取得できません。詳細については、管理者に問い合わせてください。',
-			NO_DATA_FETCHED_BREAKDOWN_VALUES: 'データがありません。'
+			NO_DATA_FETCHED_BREAKDOWN_VALUES: 'データがありません。',
+			SHARE: '共有',
+			PRINT: '印刷',
+			SHARE_DIALOG_LABEL: 'URLをコピーして共有する。',
+			URL_COPIED: 'URLをコピーしました。'
 		}
 	},
 	INDICATOR: {

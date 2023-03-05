@@ -17,7 +17,7 @@ export const ObjectiveStateHandler = (props: { derivedObjective: DerivedObjectiv
 	useEffect(() => saveQueue.clear(true), [derivedObjective, saveQueue]);
 	useEffect(() => {
 		const onAskValues = () => {
-			console.log(derivedObjective);
+			// console.log(derivedObjective);
 			saveQueue.replace(() => {
 				fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
 					async () => await saveDerivedObjective(derivedObjective),

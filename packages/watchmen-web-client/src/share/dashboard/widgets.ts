@@ -7,7 +7,7 @@ export const ShareDashboardContainer = styled.div.attrs({'data-widget': 'shared-
 `;
 export const NoData = styled.div.attrs<{ background: string }>(({background}) => {
 	return {
-		'data-widget': 'admin-dashboard-no-data',
+		'data-widget': 'dashboard-no-data',
 		style: {
 			backgroundImage: `url(${background})`
 		}

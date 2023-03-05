@@ -327,7 +327,11 @@ export const Zh: LanguageDeclareType = {
 			ASK_BREAKDOWN_VALUES: '获取下挖数据',
 			BREAKDOWN_NO_DIMENSION: '没有定义维度.',
 			FAILED_ON_FETCH_BREAKDOWN_VALUES: '无法获取数据, 请联系您的系统管理员以获取更多信息.',
-			NO_DATA_FETCHED_BREAKDOWN_VALUES: '没有数据.'
+			NO_DATA_FETCHED_BREAKDOWN_VALUES: '没有数据.',
+			SHARE: '分享',
+			PRINT: '打印',
+			SHARE_DIALOG_LABEL: '复制下面的链接, 然后分享.',
+			URL_COPIED: '链接已复制至剪贴板.'
 		}
 	},
 	INDICATOR: {

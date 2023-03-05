@@ -8,8 +8,8 @@ import {TimeFrame} from './time-frame';
 import {Variables} from './variables';
 import {BodyContainer} from './widgets';
 
-export const Body = (props: { derivedObjective: DerivedObjective }) => {
-	const {derivedObjective} = props;
+export const Body = (props: { derivedObjective: DerivedObjective; share?: boolean }) => {
+	const {derivedObjective, share = false} = props;
 
 	const {fire} = useObjectiveEventBus();
 	const [initialized, setInitialized] = useState(false);
@@ -22,7 +22,7 @@ export const Body = (props: { derivedObjective: DerivedObjective }) => {
 		}
 	}, [fire, initialized]);
 
-	return <BodyContainer>
+	return <BodyContainer data-on-share={share}>
 		<TimeFrame derivedObjective={derivedObjective}/>
 		<Variables derivedObjective={derivedObjective}/>
 		<Targets derivedObjective={derivedObjective} findTargetValues={findTargetValues}/>

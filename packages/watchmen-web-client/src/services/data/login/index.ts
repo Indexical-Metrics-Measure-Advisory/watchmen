@@ -5,6 +5,8 @@ import {saveTokenIntoSession} from '../account';
 import {Apis, get, post} from '../apis';
 import {mockLogin} from '../mock/mock-login';
 import {UserRole} from '../tuples/user-types';
+import {generateUuid} from '../tuples/utils';
+import {Token} from '../types';
 import {doFetch, getServiceHost, isMockService} from '../utils';
 import {Account, LoginConfig, LoginMethod, LoginResponse, Saml2LoginRequest, SSOLoginResponse} from './types';
 
@@ -106,4 +108,8 @@ export const exchangeOnSaml2 = async (request: Saml2LoginRequest): Promise<SSOLo
 			tenantId: response.tenantId
 		};
 	}
+};
+
+export const askShareToken = async (): Promise<Token> => {
+	return generateUuid();
 };
