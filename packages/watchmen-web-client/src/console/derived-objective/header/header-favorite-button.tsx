@@ -28,7 +28,7 @@ export const HeaderFavoriteButton = (props: { derivedObjective: DerivedObjective
 	useEffect(() => {
 		fire(ConsoleEventTypes.ASK_FAVORITE, ({derivedObjectiveIds}: Favorite) => {
 			// eslint-disable-next-line
-			const found = derivedObjectiveIds.find(derivedObjectiveId => derivedObjectiveId == derivedObjective.derivedObjectiveId);
+			const found = (derivedObjectiveIds ?? []).find(derivedObjectiveId => derivedObjectiveId == derivedObjective.derivedObjectiveId);
 			if (found) {
 				setFavorite(true);
 			} else if (!found) {
