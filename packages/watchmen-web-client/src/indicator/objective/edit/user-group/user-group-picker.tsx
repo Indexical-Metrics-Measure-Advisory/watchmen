@@ -4,6 +4,7 @@ import {listUserGroupsForHolder} from '@/services/data/tuples/user-group';
 import {UserGroupId} from '@/services/data/tuples/user-group-types';
 import {noop} from '@/services/utils';
 import {Lang} from '@/widgets/langs';
+import {TupleEventBusProvider} from '@/widgets/tuple-workbench/tuple-event-bus';
 import {TupleItemPicker} from '@/widgets/tuple-workbench/tuple-item-picker';
 import React from 'react';
 import {useObjectivesEventBus} from '../../objectives-event-bus';
@@ -49,10 +50,12 @@ export const UserGroupPicker = (props: { objective: Objective; codes: Array<Quer
 		}
 	};
 
-	return <TupleItemPicker actionLabel={Lang.INDICATOR.OBJECTIVE.GRANT_USER_GROUP}
-	                        holder={objective} codes={codes}
-	                        isHolding={hasUserGroup} getHoldIds={getUserGroupIds} getNameOfHold={findNameFromUserGroups}
-	                        listCandidates={listUserGroupsForHolder} getIdOfCandidate={getIdOfUserGroup}
-	                        getNameOfCandidate={getNameOfUserGroup} isCandidateHold={isUserGroupPicked(objective)}
-	                        removeHold={removeUserGroup(objective)} addHold={addUserGroup(objective)}/>;
+	return <TupleEventBusProvider>
+		<TupleItemPicker actionLabel={Lang.INDICATOR.OBJECTIVE.GRANT_USER_GROUP}
+		                 holder={objective} codes={codes}
+		                 isHolding={hasUserGroup} getHoldIds={getUserGroupIds} getNameOfHold={findNameFromUserGroups}
+		                 listCandidates={listUserGroupsForHolder} getIdOfCandidate={getIdOfUserGroup}
+		                 getNameOfCandidate={getNameOfUserGroup} isCandidateHold={isUserGroupPicked(objective)}
+		                 removeHold={removeUserGroup(objective)} addHold={addUserGroup(objective)}/>
+	</TupleEventBusProvider>;
 };
