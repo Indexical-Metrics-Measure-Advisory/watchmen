@@ -498,8 +498,6 @@ def find_table(table_name: str) -> Table:
 	if table is None:
 		table = find_from_topic_tables(table_name)
 	if table is None:
-		table = find_from_extract_tables(table_name)
-	if table is None:
 		raise UnexpectedStorageException(f'Table[{table_name}] definition not found.')
 	return table
 
@@ -526,21 +524,3 @@ def register_table(topic: Topic) -> None:
 		topic_tables[topic.topicId] = (build_by_aggregation(topic), topic.lastModifiedAt)
 	else:
 		topic_tables[topic.topicId] = (build_by_regular(topic), topic.lastModifiedAt)
-
-
-extract_tables: Dict[str, Table] = {}
-
-
-def find_from_extract_tables(table_name: str) -> Optional[Table]:
-	found = extract_tables.get(table_name)
-	if found is None:
-		return None
-	else:
-		return found[0]
-
-
-def register_extract_table(table: Table) -> None:
-	existing = extract_tables.get(table.name)
-	if existing is not None:
-		return
-	extract_tables[table.name] = table
