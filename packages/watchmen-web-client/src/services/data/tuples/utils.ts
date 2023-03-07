@@ -100,10 +100,10 @@ export const isFakedUuid = (tuple: Tuple): boolean => {
 		return tuple.schedulerId.startsWith(FAKE_ID_PREFIX);
 	} else if (isCatalog(tuple)) {
 		return tuple.catalogId.startsWith(FAKE_ID_PREFIX);
-	} else if (isObjective(tuple)) {
-		return tuple.objectiveId.startsWith(FAKE_ID_PREFIX);
 	} else if (isDerivedObjective(tuple)) {
 		return tuple.derivedObjectiveId.startsWith(FAKE_ID_PREFIX);
+	} else if (isObjective(tuple)) {
+		return tuple.objectiveId.startsWith(FAKE_ID_PREFIX);
 	} else if (isIndicator(tuple)) {
 		// indicator check must before topic check
 		// since "topicId" also exists in indicator object
