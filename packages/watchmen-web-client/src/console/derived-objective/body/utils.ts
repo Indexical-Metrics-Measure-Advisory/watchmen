@@ -104,13 +104,17 @@ const findFactorMeasureMethods = (
 		}
 		return {
 			could: true, factorOrColumnId,
-			onValue: false, buckets: availableBuckets, timeMeasureMethods: availableTimeMeasureMethods
+			onValue: types.includes(BreakdownDimensionType.VALUE),
+			buckets: availableBuckets, timeMeasureMethods: availableTimeMeasureMethods
 		} as Could;
 	} else if (availableTimeMeasureMethods.length !== 0) {
 		return {
 			could: true, factorOrColumnId,
-			onValue: false, buckets: [], timeMeasureMethods: availableTimeMeasureMethods
+			onValue: types.includes(BreakdownDimensionType.VALUE),
+			buckets: [], timeMeasureMethods: availableTimeMeasureMethods
 		} as Could;
+	} else if (types.includes(BreakdownDimensionType.VALUE)) {
+		return {could: true, factorOrColumnId, onValue: true, buckets: [], timeMeasureMethods: []} as Could;
 	}
 
 	return COULD_NOT;
