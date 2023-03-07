@@ -32,7 +32,9 @@ export const RemoteRequest = () => {
 		const onInvokeRemoteRequest = async (request: () => Promise<any>, success?: (data?: any) => void, failure?: (error?: any) => void, disableAlert?: boolean) => {
 			// console.trace();
 			count.value = count.value + 1;
-			forceUpdate();
+			if (count.value === 1) {
+				forceUpdate();
+			}
 			try {
 				const data = await request();
 				success && success(data);
@@ -51,7 +53,9 @@ export const RemoteRequest = () => {
 				failure && failure(e);
 			} finally {
 				count.value = count.value - 1;
-				forceUpdate();
+				if (count.value === 0) {
+					forceUpdate();
+				}
 			}
 		};
 		on(EventTypes.INVOKE_REMOTE_REQUEST, onInvokeRemoteRequest);
