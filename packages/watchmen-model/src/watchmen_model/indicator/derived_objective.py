@@ -4,9 +4,9 @@ from typing import List, Optional, Union
 from pydantic import BaseModel
 
 from watchmen_model.common import Auditable, BucketId, DataModel, DerivedObjectiveId, FactorId, LastVisit, \
-	ObjectiveId, ObjectiveTargetId, SubjectDatasetColumnId, UserBasedTuple
+	ObjectiveId, ObjectiveTargetId, SubjectDatasetColumnId, UserBasedTuple, BreakdownTargetId
 from watchmen_utilities import ArrayHelper
-from . import MeasureMethod
+from .measure_method import MeasureMethod
 from .objective import Objective
 
 
