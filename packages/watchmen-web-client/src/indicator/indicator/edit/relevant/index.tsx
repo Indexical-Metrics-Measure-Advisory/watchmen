@@ -40,7 +40,7 @@ export const Relevant = () => {
 	const [detected, setDetected] = useState(false);
 	const [indicators, setIndicators] = useState<Array<Indicator>>([]);
 	const forceUpdate = useForceUpdate();
-	const {data, done} = useStep({
+	const {data, active, done} = useStep({
 		step: IndicatorDeclarationStep.RELEVANT_INDICATORS,
 		active: () => setConstructed(Construct.ACTIVE),
 		done: () => setConstructed(Construct.DONE),
@@ -51,7 +51,7 @@ export const Relevant = () => {
 		}
 	});
 	useEffect(() => {
-		if (constructed === Construct.WAIT || detected) {
+		if (!(active || done) || constructed === Construct.WAIT || detected) {
 			return;
 		}
 		fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
