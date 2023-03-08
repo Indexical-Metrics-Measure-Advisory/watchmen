@@ -102,7 +102,7 @@ class PostJsonService:
 							try:
 								if self.can_post(model_config, change_data_json):
 									self.post_json(model_config, change_data_json)
-									break
+									# break
 								else:
 									continue
 							except Exception as e:

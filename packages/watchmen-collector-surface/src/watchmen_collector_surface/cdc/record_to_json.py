@@ -83,7 +83,7 @@ class RecordToJsonService:
 						else:
 							try:
 								self.process_record(change_data_record)
-								break
+								# break
 							except Exception as e:
 								logger.error(e, exc_info=True, stack_info=True)
 								self.update_process_result(change_data_record, format_exc())

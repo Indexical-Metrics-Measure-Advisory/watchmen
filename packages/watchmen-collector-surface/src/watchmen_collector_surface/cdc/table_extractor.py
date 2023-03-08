@@ -137,6 +137,7 @@ class TableExtractor:
 			trigger_table.modelName,
 			trigger_table.tableName,
 			data_id,
+			trigger_table.tenantId,
 			trigger_table.tableTriggerId,
 			trigger_table.modelTriggerId,
 			trigger_table.eventTriggerId
@@ -146,6 +147,7 @@ class TableExtractor:
 	                           model_name: str,
 	                           table_name: str,
 	                           data_id: Dict,
+	                           tenant_id: str,
 	                           table_trigger_id: int,
 	                           model_trigger_id: int,
 	                           event_trigger_id: int) -> ChangeDataRecord:
@@ -158,7 +160,7 @@ class TableExtractor:
 			tableTriggerId=table_trigger_id,
 			modelTriggerId=model_trigger_id,
 			eventTriggerId=event_trigger_id,
-			tenantId=self.principal_service.get_tenant_id()
+			tenantId=tenant_id
 		)
 
 	# noinspection PyMethodMayBeStatic
