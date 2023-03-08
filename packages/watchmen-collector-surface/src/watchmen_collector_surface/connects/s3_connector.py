@@ -4,8 +4,7 @@ from typing import Any, Optional
 
 from time import sleep
 
-from watchmen_collector_kernel.model.change_data_json import Dependence
-from watchmen_collector_kernel.model.scheduled_task import ScheduledTask
+from watchmen_collector_kernel.model.scheduled_task import ScheduledTask, Dependence
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock, try_lock_nowait, unlock
 from watchmen_collector_kernel.storage import get_scheduled_task_service, get_competitive_lock_service
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
@@ -85,7 +84,7 @@ class S3Connector:
 							unlock(self.competitive_lock_service, lock)
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
-			sleep(60)
+			sleep(5)
 			self.create_thread()
 
 	# noinspection PyMethodMayBeStatic
@@ -93,33 +92,38 @@ class S3Connector:
 		object_key = object_.key.removeprefix(self.consume_prefix)
 		key_parts = object_key.split(identifier_delimiter)
 		if len(key_parts) == 5:
-			return Dependence(modelName=key_parts[3], objectId=key_parts[4])
-		elif len(key_parts) == 3:
-			return Dependence(modelName=key_parts[1], objectId=key_parts[2])
+			return Dependence(modelName=key_parts[3].lower(), objectId=key_parts[4])
 		else:
 			return None
 
 	def get_model_name(self, object_: Any) -> str:
 		object_key = object_.key.removeprefix(self.consume_prefix)
 		key_parts = object_key.split(identifier_delimiter)
-		return key_parts[1]
+		return key_parts[1].lower()
 
 	def get_object_id(self, object_: Any) -> str:
 		object_key = object_.key.removeprefix(self.consume_prefix)
 		key_parts = object_key.split(identifier_delimiter)
 		return key_parts[2]
 
+	def get_resource_id(self, object_: Any) -> str:
+		object_key = object_.key.removeprefix(self.consume_prefix)
+		key_parts = object_key.split(identifier_delimiter)
+		return key_parts[0]
+
+	def get_topic_code(self, object_: Any) -> str:
+		object_key = object_.key.removeprefix(self.consume_prefix)
+		key_parts = object_key.split(identifier_delimiter)
+		return 'raw_' + key_parts[1].lower()
+
 	def get_task(self, object_: Any) -> ScheduledTask:
 		return ScheduledTask(taskId=self.snowflake_generator.next_id(),
-		                     resourceId=object_.key,
+		                     resourceId=self.get_resource_id(object_),
+		                     topicCode=self.get_topic_code(object_),
 		                     content=self.simpleStorageService.get_object(object_.key),
 		                     modelName=self.get_model_name(object_),
 		                     objectId=self.get_object_id(object_),
-		                     dependencies=[self.get_dependency(object_)],
-		                     status=0,
-		                     result=None)
-
-	# noinspection PyMethodMayBeStatic
-	def get_code(self, identifier: str) -> str:
-		key_parts = identifier.split(identifier_delimiter)
-		return 'raw_' + key_parts[1].lower()
+		                     dependOn=[self.get_dependency(object_)],
+		                     isFinished=False,
+		                     result=None,
+		                     tenantId=self.tenant_id)
