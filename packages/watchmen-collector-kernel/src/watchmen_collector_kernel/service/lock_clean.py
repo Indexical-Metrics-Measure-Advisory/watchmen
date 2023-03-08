@@ -4,6 +4,7 @@ from threading import Thread
 
 from time import sleep
 
+from watchmen_collector_kernel.common import ask_lock_clean_interval, ask_lock_clean_timeout
 from watchmen_collector_kernel.storage import get_competitive_lock_service
 from watchmen_meta.common import ask_meta_storage
 
@@ -12,7 +13,8 @@ class LockClean:
 
 	def __init__(self):
 		self.lock_service = get_competitive_lock_service(ask_meta_storage())
-		self.cleanInterval = 60
+		self.cleanInterval = ask_lock_clean_interval()
+		self.cleanTimeout = ask_lock_clean_timeout()
 
 	def run(self):
 		try:
@@ -25,7 +27,7 @@ class LockClean:
 			self.restart()
 
 	def clean_lock(self):
-		query_time = datetime.now() - timedelta(minutes=120)
+		query_time = datetime.now() - timedelta(seconds=self.cleanTimeout)
 		locks = self.lock_service.find_overtime_lock(query_time)
 		for lock in locks:
 			self.lock_service.delete_by_id(lock.lockId)

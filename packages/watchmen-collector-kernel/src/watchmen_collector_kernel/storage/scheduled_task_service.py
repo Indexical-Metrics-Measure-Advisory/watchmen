@@ -1,5 +1,9 @@
 from typing import Optional, List, Any, Dict
 
+from watchmen_utilities import ArrayHelper
+
+from watchmen_collector_kernel.model.scheduled_task import Dependence
+
 from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.model import ScheduledTask
 from watchmen_meta.common import TupleService, TupleShaper
@@ -12,6 +16,20 @@ from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalS
 
 
 class ScheduledTaskShaper(EntityShaper):
+
+	@staticmethod
+	def serialize_dependence(dependence: Dependence) -> dict:
+		if isinstance(dependence, dict):
+			return dependence
+		else:
+			return dependence.dict()
+
+	@staticmethod
+	def serialize_depend_on(depend_on: Optional[List[Dependence]]) -> Optional[list]:
+		if depend_on is None:
+			return None
+		return ArrayHelper(depend_on).map(lambda x: ScheduledTaskShaper.serialize_dependence(x)).to_list()
+
 	def serialize(self, entity: ScheduledTask) -> EntityRow:
 		return TupleShaper.serialize_tenant_based(entity, {
 			'task_id': entity.taskId,
@@ -20,7 +38,7 @@ class ScheduledTaskShaper(EntityShaper):
 			'content': entity.content,
 			'model_name': entity.modelName,
 			'object_id': entity.objectId,
-			'depend_on': entity.dependOn,
+			'depend_on': ScheduledTaskShaper.serialize_depend_on(entity.dependOn),
 			'parent_task_id': entity.parentTaskId,
 			'tenant_id': entity.tenantId,
 			'is_finished': entity.isFinished,
@@ -123,8 +141,11 @@ class ScheduledTaskService(TupleService):
 		try:
 			return self.storage.find_straight_values(EntityStraightValuesFinder(
 				name=self.get_entity_name(),
-				criteria=[EntityCriteriaExpression(left=ColumnNameLiteral(columnName='resource_id'), right=resource_id)],
-				straightColumns=['task_id', 'resource_id', 'tenant_id']
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='resource_id'), right=resource_id)],
+				straightColumns=[EntityStraightColumn(columnName='task_id'),
+				                 EntityStraightColumn(columnName='resource_id'),
+				                 EntityStraightColumn(columnName='tenant_id')]
 			))
 		finally:
 			self.close_transaction()
@@ -147,6 +168,7 @@ class ScheduledTaskService(TupleService):
 			)) == 0
 		finally:
 			self.close_transaction()
+
 
 def get_scheduled_task_service(storage: TransactionalStorageSPI,
                                snowflake_generator: SnowflakeGenerator,
