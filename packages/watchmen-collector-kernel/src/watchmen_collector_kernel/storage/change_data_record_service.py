@@ -122,7 +122,7 @@ class ChangeDataRecordService(TupleService):
 		finally:
 			self.close_transaction()
 
-	def find_change_record_by_id(self, change_record_id: ChangeRecordId) -> ChangeDataRecord:
+	def find_change_record_by_id(self, change_record_id: ChangeRecordId) -> Optional[ChangeDataRecord]:
 		self.begin_transaction()
 		try:
 			# noinspection PyTypeChecker

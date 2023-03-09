@@ -99,14 +99,10 @@ class PostJsonService:
 					if try_lock_nowait(self.competitive_lock_service, lock):
 						change_data_json = self.change_json_service.find_json_by_id(
 							json_record.get(CHANGE_JSON_ID))
-						if self.is_posted(change_data_json):
-							continue
-						else:
+						if change_data_json:
 							try:
 								if self.can_post(model_config, change_data_json):
 									self.post_json(model_config, change_data_json)
-								else:
-									continue
 							except Exception as e:
 								logger.error(e, exc_info=True, stack_info=True)
 								change_data_json.isPosted = True
