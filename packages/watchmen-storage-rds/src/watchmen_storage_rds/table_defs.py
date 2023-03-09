@@ -312,6 +312,16 @@ table_scheduled_task = Table(
 	create_tenant_id(),
 	*create_tuple_audit_columns()
 )
+table_scheduled_task_history = Table(
+	'scheduled_task_history', meta_data,
+	create_pk('task_id', Integer), create_str('resource_id', 500),
+	create_str('topic_code', 50), create_json('content'),
+	create_str('model_name', 20), create_str('object_id', 100),
+	create_json('depend_on'), create_json('parent_task_id'),
+	create_int('is_finished', False), create_json('result'),
+	create_tenant_id(),
+	*create_tuple_audit_columns()
+)
 table_collector_model_config = Table(
 	'collector_model_config', meta_data,
 	create_pk('model_id'), create_str('model_name', 50),
@@ -364,8 +374,26 @@ table_change_data_record = Table(
 	create_int('table_trigger_id', False), create_int('model_trigger_id', False), create_int('event_trigger_id', False),
 	create_tenant_id(), *create_tuple_audit_columns()
 )
+table_change_data_record_history = Table(
+	'change_data_record_history', meta_data,
+	create_pk('change_record_id', Integer), create_str('model_name', 50), create_str('table_name', 50),
+	create_json('data_id'), create_str('root_table_name', 50), create_json('root_data_id'),
+	create_int('is_merged', False), create_json('result'),
+	create_int('table_trigger_id', False), create_int('model_trigger_id', False), create_int('event_trigger_id', False),
+	create_tenant_id(), *create_tuple_audit_columns()
+)
 table_change_data_json = Table(
 	'change_data_json', meta_data,
+	create_pk('change_json_id', Integer), create_str('resource_id', 100),
+	create_str('model_name', 50), create_str('object_id', 50),
+	create_str('table_name', 50), create_json('data_id'),
+	create_json('content'), create_json('depend_on'), create_int('is_posted', False), create_int('task_id', True),
+	create_json('result'),
+	create_int('table_trigger_id', False), create_int('model_trigger_id', False), create_int('event_trigger_id', False),
+	create_tenant_id(), *create_tuple_audit_columns()
+)
+table_change_data_json_history = Table(
+	'change_data_json_history', meta_data,
 	create_pk('change_json_id', Integer), create_str('resource_id', 100),
 	create_str('model_name', 50), create_str('object_id', 50),
 	create_str('table_name', 50), create_json('data_id'),
@@ -467,6 +495,7 @@ tables: Dict[str, Table] = {
 	# system
 	'competitive_lock': table_competitive_lock,
 	'scheduled_task': table_scheduled_task,
+	'scheduled_task_history': table_scheduled_task_history,
 	'operations': table_operations,
 	'package_versions': table_package_versions,
 	# webhook
@@ -480,7 +509,9 @@ tables: Dict[str, Table] = {
 	'trigger_model': table_trigger_model,
 	'trigger_table': table_trigger_table,
 	'change_data_record': table_change_data_record,
-	'change_data_json': table_change_data_json
+	'change_data_record_history': table_change_data_record_history,
+	'change_data_json': table_change_data_json,
+	'change_data_json_history': table_change_data_json_history
 }
 
 

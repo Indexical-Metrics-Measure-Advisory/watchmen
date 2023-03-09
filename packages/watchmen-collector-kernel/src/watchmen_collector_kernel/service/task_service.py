@@ -5,7 +5,7 @@ from typing import Callable, Dict, Optional, List
 from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.model import ScheduledTask
 from watchmen_collector_kernel.model.scheduled_task import Dependence
-from watchmen_collector_kernel.storage import get_scheduled_task_service
+from watchmen_collector_kernel.storage import get_scheduled_task_service, get_scheduled_task_history_service
 from watchmen_model.common import ScheduledTaskId
 from watchmen_storage import TransactionalStorageSPI, SnowflakeGenerator
 from watchmen_utilities import ArrayHelper
@@ -26,18 +26,31 @@ class TaskService:
 		self.scheduled_task_service = get_scheduled_task_service(self.storage,
 		                                                         self.snowflake_generator,
 		                                                         self.principal_service)
+		self.scheduled_task_history_service = get_scheduled_task_history_service(self.storage,
+		                                                                         self.snowflake_generator,
+		                                                                         self.principal_service)
 
 	# noinspection PyMethodMayBeStatic
 	def consume_task(self, task: ScheduledTask, executed: Callable[[str, Dict, str], None]) -> ScheduledTask:
 		try:
 			executed(task.topicCode, task.content, task.tenantId)
-			task.isFinished = True
-			return self.scheduled_task_service.update_task(task)
+			return self.update_task_result(task)
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
 			task.isFinished = True
 			task.result = format_exc()
 			return self.scheduled_task_service.update_task(task)
+
+	def update_task_result(self, task: ScheduledTask) -> ScheduledTask:
+		self.scheduled_task_service.begin_transaction()
+		try:
+			task.isFinished = True
+			self.scheduled_task_history_service.create(task)
+			self.scheduled_task_service.delete(task.taskId)
+			self.scheduled_task_service.commit_transaction()
+			return task
+		except Exception as e:
+			raise e
 
 	def is_dependencies_finished(self, task: ScheduledTask) -> bool:
 		return ArrayHelper(task.parentTaskId).every(self.is_parent_task_finished) \
@@ -45,7 +58,10 @@ class TaskService:
 
 	def is_parent_task_finished(self, task_id: ScheduledTaskId) -> bool:
 		existed_task = self.scheduled_task_service.find_task_by_id(task_id)
-		return self.is_finished(existed_task)
+		if existed_task:
+			return self.is_finished(existed_task)
+		else:
+			return True
 
 	# noinspection PyMethodMayBeStatic
 	def is_finished(self, task: ScheduledTask) -> bool:
