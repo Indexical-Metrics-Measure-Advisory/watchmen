@@ -25,7 +25,7 @@ export const useDerivedObjective = (options: {
 				favorite: {
 					...holdSettings.favorite,
 					// eslint-disable-next-line
-					derivedObjectiveIds: holdSettings.favorite.derivedObjectiveIds.filter(id => id != derivedObjective.derivedObjectiveId)
+					derivedObjectiveIds: (holdSettings.favorite.derivedObjectiveIds ?? []).filter(id => id != derivedObjective.derivedObjectiveId)
 				}
 			}));
 		};
@@ -34,7 +34,7 @@ export const useDerivedObjective = (options: {
 				...holdSettings,
 				favorite: {
 					...holdSettings.favorite,
-					derivedObjectiveIds: Array.from(new Set<string>([...holdSettings.favorite.derivedObjectiveIds, derivedObjectiveId]))
+					derivedObjectiveIds: Array.from(new Set<string>([...(holdSettings.favorite.derivedObjectiveIds ?? []), derivedObjectiveId]))
 				}
 			}));
 		};
@@ -44,7 +44,7 @@ export const useDerivedObjective = (options: {
 				favorite: {
 					...holdSettings.favorite,
 					// eslint-disable-next-line
-					derivedObjectiveIds: holdSettings.favorite.derivedObjectiveIds.filter(id => id != derivedObjectiveId)
+					derivedObjectiveIds: (holdSettings.favorite.derivedObjectiveIds ?? []).filter(id => id != derivedObjectiveId)
 				}
 			}));
 		};

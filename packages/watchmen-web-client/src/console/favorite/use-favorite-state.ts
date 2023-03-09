@@ -120,7 +120,7 @@ export const useFavoriteState = () => {
 			setData(data => {
 				return {
 					...data,
-					derivedObjectiveIds: Array.from(new Set([...data.derivedObjectiveIds, derivedObjectiveId]))
+					derivedObjectiveIds: Array.from(new Set([...(data.derivedObjectiveIds ?? []), derivedObjectiveId]))
 				};
 			});
 		};
@@ -129,7 +129,7 @@ export const useFavoriteState = () => {
 				return {
 					...data,
 					// eslint-disable-next-line
-					derivedObjectiveIds: data.derivedObjectiveIds.filter(id => id != derivedObjectiveId)
+					derivedObjectiveIds: (data.derivedObjectiveIds ?? []).filter(id => id != derivedObjectiveId)
 				};
 			});
 		};
@@ -232,7 +232,7 @@ export const useFavoriteState = () => {
 		};
 		const onDerivedObjectiveRenamed = (derivedObjective: DerivedObjective) => {
 			// eslint-disable-next-line
-			if (data.derivedObjectiveIds.some(derivedObjectiveId => derivedObjectiveId == derivedObjective.derivedObjectiveId)) {
+			if ((data.derivedObjectiveIds ?? []).some(derivedObjectiveId => derivedObjectiveId == derivedObjective.derivedObjectiveId)) {
 				forceUpdate();
 			}
 		};
@@ -265,9 +265,9 @@ export const useFavoriteState = () => {
 	const onItemRemoveClicked = (id: string, type: RenderItemType) => async (event: MouseEvent<HTMLButtonElement>) => {
 		event.preventDefault();
 		event.stopPropagation();
-		let dashboardIds = data.dashboardIds;
-		let connectedSpaceIds = data.connectedSpaceIds;
-		let derivedObjectiveIds = data.derivedObjectiveIds;
+		let dashboardIds = data.dashboardIds ?? [];
+		let connectedSpaceIds = data.connectedSpaceIds ?? [];
+		let derivedObjectiveIds = data.derivedObjectiveIds ?? [];
 		if (type === RenderItemType.DASHBOARD) {
 			// eslint-disable-next-line
 			dashboardIds = dashboardIds.filter(dashboardId => id != dashboardId);
@@ -283,9 +283,9 @@ export const useFavoriteState = () => {
 		}
 		try {
 			await saveFavorite({
-				connectedSpaceIds: connectedSpaceIds || [],
-				dashboardIds: dashboardIds || [],
-				derivedObjectiveIds: derivedObjectiveIds || []
+				connectedSpaceIds: connectedSpaceIds ?? [],
+				dashboardIds: dashboardIds ?? [],
+				derivedObjectiveIds: derivedObjectiveIds ?? []
 			});
 		} catch (e: any) {
 			// ignore
