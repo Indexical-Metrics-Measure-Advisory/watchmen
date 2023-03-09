@@ -85,9 +85,7 @@ class RecordToJsonService:
 					if try_lock_nowait(self.competitive_lock_service, lock):
 						change_data_record = self.change_record_service.find_change_record_by_id(
 							unmerged_record.get(CHANGE_RECORD_ID))
-						if self.is_merged(change_data_record):
-							continue
-						else:
+						if change_data_record:
 							try:
 								self.process_record(change_data_record)
 							except Exception as e:
