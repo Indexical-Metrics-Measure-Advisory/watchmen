@@ -63,7 +63,7 @@ export const HeaderFavoriteButton = (props: { derivedObjective: DerivedObjective
 			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
 				async () => await saveFavorite({
 					...favorite,
-					derivedObjectiveIds: Array.from(new Set([...favorite.derivedObjectiveIds, derivedObjective.derivedObjectiveId]))
+					derivedObjectiveIds: Array.from(new Set([...(favorite.derivedObjectiveIds ?? []), derivedObjective.derivedObjectiveId]))
 				}),
 				() => fire(ConsoleEventTypes.DERIVED_OBJECTIVE_ADDED_INTO_FAVORITE, derivedObjective.derivedObjectiveId));
 		});
