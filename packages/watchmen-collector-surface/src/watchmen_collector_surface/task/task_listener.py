@@ -54,7 +54,7 @@ class TaskListener:
 				if try_lock_nowait(self.competitive_lock_service, lock):
 					# noinspection PyUnresolvedReferences
 					task = self.scheduled_task_service.find_task_by_id(unfinished_task.get('task_id'))
-					if self.is_finished(task):
+					if task is None:
 						continue
 					else:
 						if self.task_service.is_dependencies_finished(task):

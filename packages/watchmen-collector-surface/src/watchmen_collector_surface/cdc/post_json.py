@@ -11,7 +11,7 @@ from watchmen_collector_kernel.model import ChangeDataJson, ScheduledTask, Trigg
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock, try_lock_nowait, unlock
 from watchmen_collector_kernel.storage import get_change_data_json_service, get_competitive_lock_service, \
 	get_scheduled_task_service, get_collector_model_config_service, get_trigger_model_service, \
-	get_trigger_event_service, get_change_data_record_service
+	get_trigger_event_service, get_change_data_record_service, get_change_data_json_history_service
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
 from watchmen_utilities import ArrayHelper
 
@@ -35,6 +35,9 @@ class PostJsonService:
 		self.change_json_service = get_change_data_json_service(self.storage,
 		                                                        self.snowflake_generator,
 		                                                        self.principle_service)
+		self.change_json_history_service = get_change_data_json_history_service(self.storage,
+		                                                                        self.snowflake_generator,
+		                                                                        self.principle_service)
 		self.scheduled_task_service = get_scheduled_task_service(self.storage,
 		                                                         self.snowflake_generator,
 		                                                         self.principle_service)
@@ -102,16 +105,24 @@ class PostJsonService:
 							try:
 								if self.can_post(model_config, change_data_json):
 									self.post_json(model_config, change_data_json)
-									# break
 								else:
 									continue
 							except Exception as e:
 								logger.error(e, exc_info=True, stack_info=True)
 								change_data_json.isPosted = True
 								change_data_json.result = format_exc()
-								self.change_json_service.update_change_data_json(change_data_json)
+								self.update_process_result(change_data_json)
 				finally:
 					unlock(self.competitive_lock_service, lock)
+
+	def update_process_result(self, change_data_json: ChangeDataJson):
+		self.change_json_service.begin_transaction()
+		try:
+			self.change_json_history_service.create(change_data_json)
+			self.change_json_service.delete(change_data_json.changeJsonId)
+			self.change_json_service.commit_transaction()
+		except Exception as e:
+			raise e
 
 	# noinspection PyMethodMayBeStatic
 	def is_posted(self, change_json: ChangeDataJson) -> bool:
@@ -130,6 +141,7 @@ class PostJsonService:
 		else:
 			return True
 
+	# noinspection PyMethodMayBeStatic
 	def is_dependent_model(self, trigger_model: TriggerModel, model_config: CollectorModelConfig) -> bool:
 		if trigger_model.modelName in model_config.dependOn:
 			return True
@@ -184,7 +196,8 @@ class PostJsonService:
 			self.scheduled_task_service.create(task)
 			change_json.isPosted = True
 			change_json.taskId = task.taskId
-			self.change_json_service.update(change_json)
+			self.change_json_history_service.create(change_json)
+			self.change_json_service.delete(change_json.changeJsonId)
 			self.scheduled_task_service.commit_transaction()
 			return task
 		except Exception as e:
@@ -210,9 +223,9 @@ class PostJsonService:
 		return self.model_config_service.find_by_name(change_json.modelName).rawTopicCode
 
 	def get_dependent_tasks(self, change_json: ChangeDataJson) -> List[int]:
-		json_records = self.change_json_service.find_by_object_id(change_json.modelName,
-		                                                          change_json.objectId,
-		                                                          change_json.modelTriggerId)
+		json_records = self.change_json_history_service.find_by_object_id(change_json.modelName,
+		                                                                  change_json.objectId,
+		                                                                  change_json.modelTriggerId)
 
 		def is_dependent_task(dependent_json_record: ChangeDataJson, current_json_record: ChangeDataJson) -> bool:
 			if dependent_json_record.sequence < current_json_record.sequence:
