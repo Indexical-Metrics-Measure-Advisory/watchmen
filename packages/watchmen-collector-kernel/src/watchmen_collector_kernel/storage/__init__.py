@@ -1,5 +1,6 @@
 from .competitive_lock_service import get_competitive_lock_service, CompetitiveLockService
 from .scheduled_task_service import get_scheduled_task_service, ScheduledTaskService
+from .scheduled_task_history_service import get_scheduled_task_history_service, ScheduledTaskHistoryService
 
 
 from .collector_model_config_service import get_collector_model_config_service, CollectorModelConfigService
@@ -9,8 +10,11 @@ from .collector_table_config_service import get_collector_table_config_service, 
 from .trigger_event_service import get_trigger_event_service, TriggerEventService
 from .trigger_model_service import get_trigger_model_service, TriggerModelService
 from .trigger_table_service import get_trigger_table_service, TriggerTableService
+
 from .change_data_record_service import get_change_data_record_service, ChangeDataRecordService
+from .change_data_record_history_service import get_change_data_record_history_service, ChangeDataRecordHistoryService
 from .change_data_json_service import get_change_data_json_service, ChangeDataJsonService
+from .change_data_json_history_service import get_change_data_json_history_service, ChangeDataJsonHistoryService
 
 
 

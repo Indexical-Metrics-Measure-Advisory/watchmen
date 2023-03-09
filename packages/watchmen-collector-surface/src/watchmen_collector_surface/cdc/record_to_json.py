@@ -16,7 +16,8 @@ from time import sleep
 from watchmen_collector_kernel.service.extract_utils import get_data_id
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_change_data_record_service, \
-	get_change_data_json_service, get_collector_table_config_service
+	get_change_data_json_service, get_collector_table_config_service, get_change_data_record_history_service, \
+	get_change_data_json_history_service
 from watchmen_meta.common import ask_meta_storage, ask_super_admin, ask_snowflake_generator
 from watchmen_utilities import ArrayHelper
 
@@ -40,9 +41,15 @@ class RecordToJsonService:
 		self.change_record_service = get_change_data_record_service(self.storage,
 		                                                            self.snowflake_generator,
 		                                                            self.principle_service)
+		self.change_record_history_service = get_change_data_record_history_service(self.storage,
+		                                                                            self.snowflake_generator,
+		                                                                            self.principle_service)
 		self.change_json_service = get_change_data_json_service(self.storage,
 		                                                        self.snowflake_generator,
 		                                                        self.principle_service)
+		self.change_json_history_service = get_change_data_json_history_service(self.storage,
+		                                                                        self.snowflake_generator,
+		                                                                        self.principle_service)
 		self.data_capture_service = DataCaptureService(self.storage,
 		                                               self.snowflake_generator,
 		                                               self.principle_service)
@@ -83,7 +90,6 @@ class RecordToJsonService:
 						else:
 							try:
 								self.process_record(change_data_record)
-								# break
 							except Exception as e:
 								logger.error(e, exc_info=True, stack_info=True)
 								self.update_process_result(change_data_record, format_exc())
@@ -93,29 +99,42 @@ class RecordToJsonService:
 	def update_process_result(self, change_data_record: ChangeDataRecord, result: str) -> None:
 		change_data_record.isMerged = True
 		change_data_record.result = result
-		self.change_record_service.update_change_record(change_data_record)
+		self.change_record_service.begin_transaction()
+		try:
+			self.change_record_history_service.create(change_data_record)
+			self.change_record_service.delete(change_data_record.changeRecordId)
+			self.change_record_service.commit_transaction()
+		except Exception as e:
+			raise e
 
 	def process_record(self, change_data_record: ChangeDataRecord) -> None:
 		config = self.table_config_service.find_by_table_name(change_data_record.tableName)
 		is_existed, change_record, change_json = self.merge_json(config, change_data_record)
-		if is_existed:
-			self.change_record_service.update_change_record(change_record)
-		else:
-			self.change_record_service.begin_transaction()
-			try:
-				self.change_record_service.update(change_record)
+		self.change_record_service.begin_transaction()
+		try:
+			if is_existed:
+				self.change_record_history_service.create(change_record)
+				self.change_record_service.delete(change_record.changeRecordId)
+			else:
 				self.change_json_service.create(change_json)
-				self.change_record_service.commit_transaction()
-			except Exception as e:
-				self.change_record_service.rollback_transaction()
-				raise e
+				self.change_record_history_service.create(change_record)
+				self.change_record_service.delete(change_record.changeRecordId)
+			self.change_record_service.commit_transaction()
+		except Exception as e:
+			self.change_record_service.rollback_transaction()
+			raise e
 
 	def is_existed(self, change_record: ChangeDataRecord) -> Tuple[bool, Optional[ChangeDataJson]]:
 		existed_change_json = self.change_json_service.find_id_by_resource_id(self.generate_resource_id(change_record))
 		if existed_change_json:
 			return True, existed_change_json
-		else:
-			return False, None
+
+		existed_history_change_json = self.change_json_history_service.find_id_by_resource_id(
+			self.generate_resource_id(change_record))
+		if existed_history_change_json:
+			return True, existed_history_change_json
+
+		return False, None
 
 	def merge_json(self,
 	               config: CollectorTableConfig,
@@ -138,6 +157,7 @@ class RecordToJsonService:
 			                                             root_config,
 			                                             root_data,
 			                                             json_data)
+			change_data_record.isMerged = True
 			return False, change_data_record, change_data_json
 
 	# noinspection PyMethodMayBeStatic
@@ -175,6 +195,7 @@ class RecordToJsonService:
 		for key, value in change_record.rootDataId.items():
 			resource_id_list.append(f'{value}')
 		resource_id_list.append(f'{change_record.rootTableName}')
+		resource_id_list.append(f'{change_record.modelName}')
 		resource_id_list.append(f'{change_record.eventTriggerId}')
 		return WAVE.join(resource_id_list)
 
