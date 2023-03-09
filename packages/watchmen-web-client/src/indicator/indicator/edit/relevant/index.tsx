@@ -61,7 +61,7 @@ export const Relevant = () => {
 				setIndicators(indicators);
 				setDetected(true);
 			});
-	}, [fireGlobal, data, constructed, detected]);
+	}, [fireGlobal, data, active, done, constructed, detected]);
 
 	if (constructed === Construct.WAIT) {
 		return null;
