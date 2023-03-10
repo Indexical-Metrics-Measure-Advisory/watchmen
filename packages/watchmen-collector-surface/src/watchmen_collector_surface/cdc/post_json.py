@@ -100,22 +100,35 @@ class PostJsonService:
 						change_data_json = self.change_json_service.find_json_by_id(
 							json_record.get(CHANGE_JSON_ID))
 						# perhaps have been processed by other dolls, remove to history table.
+						# and also need to consider duplicated json record.
 						if change_data_json:
-							try:
-								if self.can_post(model_config, change_data_json):
-									self.post_json(model_config, change_data_json)
-							except Exception as e:
-								logger.error(e, exc_info=True, stack_info=True)
+							if not self.is_duplicated(change_data_json):
+								try:
+									if self.can_post(model_config, change_data_json):
+										self.post_json(model_config, change_data_json)
+								except Exception as e:
+									logger.error(e, exc_info=True, stack_info=True)
+									change_data_json.isPosted = True
+									change_data_json.result = format_exc()
+									self.update_result(change_data_json)
+							else:
 								change_data_json.isPosted = True
-								change_data_json.result = format_exc()
-								self.update_process_result(change_data_json)
+								self.update_result(change_data_json, True)
 				finally:
 					unlock(self.competitive_lock_service, lock)
 
-	def update_process_result(self, change_data_json: ChangeDataJson):
+	def is_duplicated(self, change_data_json: ChangeDataJson) -> bool:
+		existed_json = self.change_json_history_service.find_by_resource_id(change_data_json.resourceId)
+		if existed_json:
+			return True
+		else:
+			return False
+
+	def update_result(self, change_data_json: ChangeDataJson, is_duplicated: bool = False):
 		self.change_json_service.begin_transaction()
 		try:
-			self.change_json_history_service.create(change_data_json)
+			if not is_duplicated:
+				self.change_json_history_service.create(change_data_json)
 			# noinspection PyTypeChecker
 			self.change_json_service.delete(change_data_json.changeJsonId)
 			self.change_json_service.commit_transaction()
@@ -196,6 +209,7 @@ class PostJsonService:
 			change_json.isPosted = True
 			change_json.taskId = task.taskId
 			self.change_json_history_service.create(change_json)
+			# noinspection PyTypeChecker
 			self.change_json_service.delete(change_json.changeJsonId)
 			self.scheduled_task_service.commit_transaction()
 			return task
@@ -236,6 +250,7 @@ class PostJsonService:
 			lambda json_record: is_dependent_task(json_record, change_json)
 		).map(lambda json_record: self.get_dependent_task(json_record)).to_list()
 
+	# noinspection PyMethodMayBeStatic
 	def get_dependent_task(self, change_json: ChangeDataJson) -> int:
 		return change_json.taskId
 
