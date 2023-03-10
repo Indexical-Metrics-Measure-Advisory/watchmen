@@ -1,5 +1,3 @@
-from typing import Optional
-
 from watchmen_collector_kernel.storage.change_data_json_service import ChangeDataJsonShaper, ChangeDataJsonService
 
 from watchmen_auth import PrincipalService
@@ -7,8 +5,7 @@ from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.model import ChangeDataJson
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, ChangeJsonId
-from watchmen_storage import EntityName, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
-	EntityCriteriaExpression, ColumnNameLiteral, EntitySortColumn, EntitySortMethod
+from watchmen_storage import EntityName, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator
 
 
 class ChangeDataJsonHistoryShaper(ChangeDataJsonShaper):

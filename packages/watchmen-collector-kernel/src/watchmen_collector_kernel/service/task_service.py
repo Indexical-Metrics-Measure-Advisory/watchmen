@@ -53,8 +53,7 @@ class TaskService:
 			raise e
 
 	def is_dependencies_finished(self, task: ScheduledTask) -> bool:
-		return ArrayHelper(task.parentTaskId).every(self.is_parent_task_finished) \
-		       and self.is_dependence_finished(task.dependOn, task.tenantId)
+		return ArrayHelper(task.parentTaskId).every(self.is_parent_task_finished) and self.is_dependence_finished(task.dependOn, task.tenantId)
 
 	def is_parent_task_finished(self, task_id: ScheduledTaskId) -> bool:
 		existed_task = self.scheduled_task_service.find_task_by_id(task_id)
