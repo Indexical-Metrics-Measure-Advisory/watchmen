@@ -85,6 +85,7 @@ class RecordToJsonService:
 					if try_lock_nowait(self.competitive_lock_service, lock):
 						change_data_record = self.change_record_service.find_change_record_by_id(
 							unmerged_record.get(CHANGE_RECORD_ID))
+						# perhaps have been processed by other dolls, remove to history table.
 						if change_data_record:
 							try:
 								self.process_record(change_data_record)
@@ -100,6 +101,7 @@ class RecordToJsonService:
 		self.change_record_service.begin_transaction()
 		try:
 			self.change_record_history_service.create(change_data_record)
+			# noinspection PyTypeChecker
 			self.change_record_service.delete(change_data_record.changeRecordId)
 			self.change_record_service.commit_transaction()
 		except Exception as e:
@@ -112,10 +114,12 @@ class RecordToJsonService:
 		try:
 			if is_existed:
 				self.change_record_history_service.create(change_record)
+				# noinspection PyTypeChecker
 				self.change_record_service.delete(change_record.changeRecordId)
 			else:
 				self.change_json_service.create(change_json)
 				self.change_record_history_service.create(change_record)
+				# noinspection PyTypeChecker
 				self.change_record_service.delete(change_record.changeRecordId)
 			self.change_record_service.commit_transaction()
 		except Exception as e:
@@ -128,7 +132,8 @@ class RecordToJsonService:
 			return True, existed_change_json
 
 		existed_history_change_json = self.change_json_history_service.find_id_by_resource_id(
-			self.generate_resource_id(change_record))
+			self.generate_resource_id(change_record)
+		)
 		if existed_history_change_json:
 			return True, existed_history_change_json
 
@@ -197,6 +202,7 @@ class RecordToJsonService:
 		resource_id_list.append(f'{change_record.eventTriggerId}')
 		return WAVE.join(resource_id_list)
 
+	# noinspection PyMethodMayBeStatic
 	def get_dependencies(self, config: CollectorTableConfig, data_: Dict) -> List[Dependence]:
 
 		def get_dependence(dependence_config: DependenceConfig) -> Dependence:
