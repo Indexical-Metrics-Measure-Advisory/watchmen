@@ -99,6 +99,7 @@ class PostJsonService:
 					if try_lock_nowait(self.competitive_lock_service, lock):
 						change_data_json = self.change_json_service.find_json_by_id(
 							json_record.get(CHANGE_JSON_ID))
+						# perhaps have been processed by other dolls, remove to history table.
 						if change_data_json:
 							try:
 								if self.can_post(model_config, change_data_json):
@@ -115,6 +116,7 @@ class PostJsonService:
 		self.change_json_service.begin_transaction()
 		try:
 			self.change_json_history_service.create(change_data_json)
+			# noinspection PyTypeChecker
 			self.change_json_service.delete(change_data_json.changeJsonId)
 			self.change_json_service.commit_transaction()
 		except Exception as e:
@@ -124,6 +126,7 @@ class PostJsonService:
 	def is_posted(self, change_json: ChangeDataJson) -> bool:
 		return change_json.isPosted
 
+	# noinspection PyMethodMayBeStatic
 	def is_paralleled(self, model_config: CollectorModelConfig) -> bool:
 		return model_config.is_paralleled
 

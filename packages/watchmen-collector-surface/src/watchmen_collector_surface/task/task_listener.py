@@ -54,9 +54,8 @@ class TaskListener:
 				if try_lock_nowait(self.competitive_lock_service, lock):
 					# noinspection PyUnresolvedReferences
 					task = self.scheduled_task_service.find_task_by_id(unfinished_task.get('task_id'))
-					if task is None:
-						continue
-					else:
+					# perhaps have been processed by other dolls, remove to history table.
+					if task:
 						if self.task_service.is_dependencies_finished(task):
 							self.task_service.consume_task(task, pipeline_data)
 							break
