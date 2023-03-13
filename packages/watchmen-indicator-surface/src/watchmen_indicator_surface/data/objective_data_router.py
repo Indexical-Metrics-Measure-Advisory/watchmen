@@ -113,7 +113,6 @@ def load_objective_target_breakdown_values(breakdown_request :ObjectiveBreakdown
 
 		dataset:DataResult =  objective_factor_data_service.ask_breakdown_values(as_time_frame(time_frame),breakdown_target)
 
-		print(dataset)
 		return build_breakdown_result(dataset)
 
 
