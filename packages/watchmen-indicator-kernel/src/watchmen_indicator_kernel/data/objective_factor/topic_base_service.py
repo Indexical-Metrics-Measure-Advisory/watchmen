@@ -1,11 +1,12 @@
 from decimal import Decimal
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Dict
 
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.common import IndicatorKernelException
-from watchmen_model.admin import Topic, Factor, FactorType, Enum
+from watchmen_model.admin import Topic, Factor, FactorType, Enum, EnumItem
 from watchmen_model.common import DataResult, ParameterJoint, ParameterJointType, ParameterKind, \
-	SubjectDatasetColumnId, TopicFactorParameter, TopicId, DataResultSetRow, ComputedParameter, ParameterComputeType
+	SubjectDatasetColumnId, TopicFactorParameter, TopicId, DataResultSetRow, ComputedParameter, ParameterComputeType, \
+	DataResultSet
 from watchmen_model.console import Report, Subject, SubjectDataset, SubjectDatasetColumn, ReportDimension
 from watchmen_model.indicator import Indicator, IndicatorAggregateArithmetic, Objective, ObjectiveFactorOnIndicator, \
 	MeasureMethod
@@ -156,24 +157,36 @@ class TopicBaseObjectiveFactorDataService(ObjectiveFactorDataService):
 		else:
 			return False
 
-
-	def __find_enum_for_dimensions(self, breakdown_target: BreakdownTarget):
-		result ={}
-		for index,dimension in enumerate(breakdown_target.dimensions):
+	def __find_enum_for_dimensions(self, breakdown_target: BreakdownTarget)->Dict[int,Enum]:
+		result = {}
+		for index, dimension in enumerate(breakdown_target.dimensions):
 			factor_id = dimension.factorOrColumnId
 			topic: Topic = self.get_topic()
 			factor: Factor = find_factor(topic, factor_id)
 			if factor is None:
 				raise Exception("factor id is not found {}".format(factor_id))
 			if self.__is_enum_factor(factor):
-				enum:Enum = ask_enum(factor.enumId,self.principalService)
-				print(enum.items)
+				enum: Enum = ask_enum(factor.enumId, self.principalService)
 				result[index] = enum
 
 		return result
 
+	def __replace_result_data_for_enum(self, data_result:DataResult, enum_dict: Dict[int, Enum])->DataResultSet:
+		for row_index, data_row in enumerate(data_result.data):
+			for index, data in enumerate(data_row[1:]):
+				if index in enum_dict:
+					enum_items = enum_dict[index].items
+					enum_label = self.__find_enum_items_value(enum_items, data)
+					if enum_label:
+						data_result.data[row_index][index + 1] = enum_label
 
+		return data_result.data
 
+	@staticmethod
+	def __find_enum_items_value(enum_items: List[EnumItem], value)->str:
+		for item in enum_items:
+			if item.code == value:
+				return item.label
 
 	def ask_breakdown_values(self, time_frame: Optional[TimeFrame], breakdown_target: BreakdownTarget) -> DataResult:
 		subject, column_id = self.__fake_to_subject_for_breakdown(time_frame, breakdown_target)
@@ -181,11 +194,9 @@ class TopicBaseObjectiveFactorDataService(ObjectiveFactorDataService):
 		report_data_service = self.get_report_data_service(subject, report)
 		# reorder columns, move indicators to tail of row
 		data_result = report_data_service.find()
+		enum_dict = self.__find_enum_for_dimensions(breakdown_target)
 
-		enum = self.__find_enum_for_dimensions(breakdown_target)
-		print(enum.items())
-		# move_column_count = len(report.indicators)
 		return DataResult(
 			columns=data_result.columns,
-			data=data_result.data
+			data=self.__replace_result_data_for_enum(data_result, enum_dict)
 		)
