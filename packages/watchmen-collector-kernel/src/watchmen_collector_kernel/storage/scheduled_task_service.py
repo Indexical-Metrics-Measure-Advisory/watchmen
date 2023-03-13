@@ -11,8 +11,7 @@ from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, ScheduledTaskId
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, \
 	EntityCriteriaExpression, ColumnNameLiteral, SnowflakeGenerator, EntitySortColumn, EntitySortMethod, \
-	EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityStraightValuesFinder, EntityStraightColumn, \
-	EntityCriteriaOperator
+	EntityCriteriaJoint, EntityStraightValuesFinder, EntityStraightColumn
 
 
 class ScheduledTaskShaper(EntityShaper):

@@ -9,7 +9,9 @@ from .trigger_model import TriggerModel
 from .trigger_table import TriggerTable
 
 from .change_data_record import ChangeDataRecord
+from .change_data_record_history import ChangeDataRecordHistory
 from .change_data_json import ChangeDataJson
+from .change_data_json_history import ChangeDataJsonHistory
 
 from .condition import construct_conditions, Condition, ConditionJoint, ConditionExpression, \
 	ConditionJointConjunction

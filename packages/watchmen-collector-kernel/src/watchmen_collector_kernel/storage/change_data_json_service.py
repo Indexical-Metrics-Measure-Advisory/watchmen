@@ -114,7 +114,7 @@ class ChangeDataJsonService(TupleService):
 		finally:
 			self.close_transaction()
 
-	def find_id_by_resource_id(self, resource_id: str) -> Optional[ChangeDataJson]:
+	def find_by_resource_id(self, resource_id: str) -> Optional[ChangeDataJson]:
 		try:
 			self.storage.connect()
 			return self.storage.find_one(self.get_entity_finder(
