@@ -12,7 +12,7 @@ from watchmen_data_kernel.service import sync_topic_structure_storage
 from watchmen_meta.admin import FactorService, PipelineService, TopicService, TopicSnapshotSchedulerService
 from watchmen_meta.analysis import TopicIndexService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
-from watchmen_model.admin import Pipeline, Topic, TopicSnapshotScheduler, TopicType, UserRole
+from watchmen_model.admin import Pipeline, Topic, TopicSnapshotScheduler, TopicType, UserRole, TopicKind
 from watchmen_model.common import DataPage, Pageable, TenantId, TopicId
 from watchmen_pipeline_kernel.topic_snapshot import as_snapshot_task_topic_name, create_snapshot_pipeline, \
 	create_snapshot_target_topic, create_snapshot_task_topic, rebuild_snapshot_pipeline, \
@@ -366,3 +366,18 @@ async def delete_topic_by_id_by_super_admin(
 		return topic
 
 	return trans(topic_service, action)
+
+
+@router.get("/topic/index/rebuild",tags=[UserRole.ADMIN])
+async def rebuild_topics_index(principal_service: PrincipalService = Depends(get_admin_principal)):
+	topic_service = get_topic_service(principal_service)
+	index_service = get_topic_index_service(topic_service)
+	def action():
+		topic_list:List[Topic] = topic_service.find_all(principal_service.get_tenant_id())
+		for topic in topic_list:
+			if topic.kind == TopicKind.BUSINESS:
+				index_service.build_index(topic)
+
+	trans(topic_service, action)
+
+

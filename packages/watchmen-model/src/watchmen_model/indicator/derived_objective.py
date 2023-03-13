@@ -52,7 +52,7 @@ def construct_breakdown_dimension(dimension: Optional[Union[dict, BreakdownDimen
 
 def construct_breakdown_dimensions(dimensions: Optional[list] = None) -> Optional[List[BreakdownDimension]]:
 	if dimensions is None:
-		return None
+		return []
 	else:
 		return ArrayHelper(dimensions).map(lambda x: construct_breakdown_dimension(x)).to_list()
 
@@ -74,14 +74,14 @@ def construct_breakdown_target(target: Optional[Union[dict, BreakdownTarget]]) -
 	if target is None:
 		return None
 	elif isinstance(target, BreakdownTarget):
-		return target
+		return target.dict()
 	else:
 		return BreakdownTarget(**target)
 
 
 def construct_breakdown_targets(targets: Optional[list] = None) -> Optional[List[BreakdownTarget]]:
 	if targets is None:
-		return None
+		return []
 	else:
 		return ArrayHelper(targets).map(lambda x: construct_breakdown_target(x)).to_list()
 
@@ -92,7 +92,7 @@ class DerivedObjective(UserBasedTuple, Auditable, LastVisit, BaseModel):
 	description: str = None
 	objectiveId: ObjectiveId
 	definition: Objective
-	breakdownTargets: List[BreakdownTarget] = []
+	breakdownTargets: List[BreakdownTarget] = None
 
 	def __setattr__(self, name, value):
 		if name == 'definition':
@@ -101,3 +101,8 @@ class DerivedObjective(UserBasedTuple, Auditable, LastVisit, BaseModel):
 			super().__setattr__(name, construct_breakdown_targets(value))
 		else:
 			super().__setattr__(name, value)
+
+
+
+
+

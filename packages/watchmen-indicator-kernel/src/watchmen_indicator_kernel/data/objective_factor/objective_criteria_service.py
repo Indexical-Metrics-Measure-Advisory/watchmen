@@ -20,6 +20,7 @@ from watchmen_model.indicator import BucketObjectiveParameter, CategorySegment, 
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 
 
+
 class ObjectiveCriteriaService:
 	def __init__(
 			self,

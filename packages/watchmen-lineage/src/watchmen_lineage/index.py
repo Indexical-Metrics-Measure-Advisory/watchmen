@@ -4,14 +4,21 @@ from watchmen_lineage.service.lineage_service import LineageService
 
 lineage_service = LineageService()
 
-principal_service: PrincipalService = fake_tenant_admin("959140947265562624")
+principal_service: PrincipalService = fake_tenant_admin("1047472206839607296")
 
 lineage_service.init_tenant_all_lineage_data(principal_service)
 
 lineage_service.graph_json(principal_service)
 
+
+print(lineage_service.load_relevant_indicators("1078711287888358400",principal_service))
+
 # result = lineage_service.fine_lineage_by_factor("963837989900259328", "6270b3713bee4d1db483db37c8734ff0",
 #                                                 principal_service)
+
+
+
+
 #
 
 # print(result.json())
