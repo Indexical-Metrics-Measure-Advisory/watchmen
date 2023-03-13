@@ -1,6 +1,6 @@
 from decimal import Decimal
 from logging import getLogger
-from typing import Optional
+from typing import Optional, List
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
@@ -8,17 +8,30 @@ from pydantic import BaseModel
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.data import as_time_frame, compute_time_frame, get_objective_data_service, \
 	get_objective_factor_data_service, ObjectiveValues
+from watchmen_indicator_kernel.data.objective_factor.data_service import ObjectiveTargetBreakdownValues, \
+	ObjectiveTargetBreakdownValueRow
 from watchmen_indicator_kernel.meta import IndicatorService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import UserRole
+from watchmen_model.common import DataResult
 from watchmen_model.indicator import Indicator, Objective, ObjectiveFactorOnIndicator, ObjectiveTimeFrame, \
-	ObjectiveTimeFrameKind
+	ObjectiveTimeFrameKind, ObjectiveTarget, ComputedObjectiveParameter
+from watchmen_model.indicator.derived_objective import BreakdownTarget
 from watchmen_rest import get_admin_principal
 from watchmen_rest.util import raise_400, raise_403
 from watchmen_utilities import is_blank
 
 logger = getLogger(__name__)
 router = APIRouter()
+
+
+class ObjectiveBreakdownRequest(BaseModel):
+	objective:Objective = None
+	breakdown:BreakdownTarget = None
+	target:ObjectiveTarget = None
+
+
+
 
 
 def get_indicator_service(principal_service: PrincipalService) -> IndicatorService:
@@ -67,3 +80,58 @@ async def load_objective_factor_data(
 	except Exception as e:
 		logger.error(e, exc_info=True, stack_info=True)
 		return ObjectiveFactorValue()
+
+
+
+def __find_objective_factor(objective,objective_factor_id):
+	for objective_factor in objective.factors:
+		if objective_factor.uuid ==objective_factor_id:
+			return  objective_factor
+
+
+@router.post("/indicator/derived-objective/breakdown/data",tags=[UserRole.ADMIN])
+def load_objective_target_breakdown_values(breakdown_request :ObjectiveBreakdownRequest,
+                                           principal_service: PrincipalService = Depends(get_admin_principal))->ObjectiveTargetBreakdownValues:
+
+		objective_target = breakdown_request.target
+		objective = breakdown_request.objective
+		breakdown_target = breakdown_request.breakdown
+
+		if objective.tenantId != principal_service.get_tenant_id():
+			raise_403()
+
+		if isinstance(objective_target.asis,ComputedObjectiveParameter):
+			return None
+
+		objective_factor_id = objective_target.asis
+		factor :ObjectiveFactorOnIndicator = __find_objective_factor(objective,objective_factor_id)
+
+		objective_factor_data_service = get_objective_factor_data_service(objective, factor, principal_service)
+		if objective.timeFrame is None:
+			objective.timeFrame = ObjectiveTimeFrame(kind=ObjectiveTimeFrameKind.NONE)
+		time_frame = compute_time_frame(objective.timeFrame)
+
+		dataset:DataResult =  objective_factor_data_service.ask_breakdown_values(as_time_frame(time_frame),breakdown_target)
+
+		print(dataset)
+		return build_breakdown_result(dataset)
+
+
+def build_breakdown_result(dataset):
+	objective_target_breakdown = ObjectiveTargetBreakdownValues()
+	for data in dataset.data:
+		row = ObjectiveTargetBreakdownValueRow()
+		row.dimensions = data[1:]
+		row.currentValue = data[0]
+		objective_target_breakdown.data.append(row)
+	return objective_target_breakdown
+
+
+
+
+
+
+
+
+
+

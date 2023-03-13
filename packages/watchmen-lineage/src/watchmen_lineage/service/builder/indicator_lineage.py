@@ -53,7 +53,6 @@ class IndicatorLineageBuilder(LineageBuilder):
 	def add_cid(self, indicator: Indicator, lineage_node: IndicatorFacet):
 		indicator_lineage: IndicatorLineage = IndicatorLineage.parse_obj(indicator.dict())
 		indicator_lineage.cid_ = build_node_id(lineage_node)
-
 		return indicator_lineage
 
 	def load_all(self, principal_service: PrincipalService):
