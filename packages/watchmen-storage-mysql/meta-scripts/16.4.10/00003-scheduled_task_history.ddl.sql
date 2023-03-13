@@ -1,0 +1,26 @@
+CREATE TABLE scheduled_task_history
+(
+    task_id             BIGINT      NOT NULL,
+    resource_id         VARCHAR(50) NOT NULL,
+    topic_code          VARCHAR(50) NOT NULL,
+    content             JSON,
+    model_name          VARCHAR(50) NOT NULL,
+    object_id           VARCHAR(50) NOT NULL,
+    depend_on           JSON,
+    parent_task_id      JSON,
+	is_finished         TINYINT     NOT NULL,
+	result              JSON,
+    tenant_id           VARCHAR(50) NOT NULL,
+    created_at          DATETIME    NOT NULL,
+    created_by          VARCHAR(50) NOT NULL,
+    last_modified_at    DATETIME    NOT NULL,
+    last_modified_by    VARCHAR(50) NOT NULL,
+    PRIMARY KEY (task_id),
+    UNIQUE KEY unique_resource_id(resource_id),
+    INDEX (object_id, model_name),
+    INDEX (tenant_id),
+    INDEX (created_at),
+    INDEX (created_by),
+    INDEX (last_modified_at),
+    INDEX (last_modified_by)
+);

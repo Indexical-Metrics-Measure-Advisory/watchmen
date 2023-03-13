@@ -11,7 +11,7 @@ from watchmen_collector_kernel.model import ChangeDataJson, ScheduledTask, Trigg
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock, try_lock_nowait, unlock
 from watchmen_collector_kernel.storage import get_change_data_json_service, get_competitive_lock_service, \
 	get_scheduled_task_service, get_collector_model_config_service, get_trigger_model_service, \
-	get_trigger_event_service, get_change_data_record_service
+	get_trigger_event_service, get_change_data_record_service, get_change_data_json_history_service
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
 from watchmen_utilities import ArrayHelper
 
@@ -35,6 +35,9 @@ class PostJsonService:
 		self.change_json_service = get_change_data_json_service(self.storage,
 		                                                        self.snowflake_generator,
 		                                                        self.principle_service)
+		self.change_json_history_service = get_change_data_json_history_service(self.storage,
+		                                                                        self.snowflake_generator,
+		                                                                        self.principle_service)
 		self.scheduled_task_service = get_scheduled_task_service(self.storage,
 		                                                         self.snowflake_generator,
 		                                                         self.principle_service)
@@ -96,27 +99,47 @@ class PostJsonService:
 					if try_lock_nowait(self.competitive_lock_service, lock):
 						change_data_json = self.change_json_service.find_json_by_id(
 							json_record.get(CHANGE_JSON_ID))
-						if self.is_posted(change_data_json):
-							continue
-						else:
-							try:
-								if self.can_post(model_config, change_data_json):
-									self.post_json(model_config, change_data_json)
-									# break
-								else:
-									continue
-							except Exception as e:
-								logger.error(e, exc_info=True, stack_info=True)
+						# perhaps have been processed by other dolls, remove to history table.
+						# and also need to consider duplicated json record.
+						if change_data_json:
+							if not self.is_duplicated(change_data_json):
+								try:
+									if self.can_post(model_config, change_data_json):
+										self.post_json(model_config, change_data_json)
+								except Exception as e:
+									logger.error(e, exc_info=True, stack_info=True)
+									change_data_json.isPosted = True
+									change_data_json.result = format_exc()
+									self.update_result(change_data_json)
+							else:
 								change_data_json.isPosted = True
-								change_data_json.result = format_exc()
-								self.change_json_service.update_change_data_json(change_data_json)
+								self.update_result(change_data_json, True)
 				finally:
 					unlock(self.competitive_lock_service, lock)
+
+	def is_duplicated(self, change_data_json: ChangeDataJson) -> bool:
+		existed_json = self.change_json_history_service.find_by_resource_id(change_data_json.resourceId)
+		if existed_json:
+			return True
+		else:
+			return False
+
+	def update_result(self, change_data_json: ChangeDataJson, is_duplicated: bool = False):
+		self.change_json_service.begin_transaction()
+		try:
+			if not is_duplicated:
+				self.change_json_history_service.create(change_data_json)
+			# noinspection PyTypeChecker
+			self.change_json_service.delete(change_data_json.changeJsonId)
+			self.change_json_service.commit_transaction()
+		except Exception as e:
+			raise e
 
 	# noinspection PyMethodMayBeStatic
 	def is_posted(self, change_json: ChangeDataJson) -> bool:
 		return change_json.isPosted
 
+	# noinspection PyMethodMayBeStatic
 	def is_paralleled(self, model_config: CollectorModelConfig) -> bool:
 		return model_config.is_paralleled
 
@@ -130,6 +153,7 @@ class PostJsonService:
 		else:
 			return True
 
+	# noinspection PyMethodMayBeStatic
 	def is_dependent_model(self, trigger_model: TriggerModel, model_config: CollectorModelConfig) -> bool:
 		if trigger_model.modelName in model_config.dependOn:
 			return True
@@ -184,7 +208,9 @@ class PostJsonService:
 			self.scheduled_task_service.create(task)
 			change_json.isPosted = True
 			change_json.taskId = task.taskId
-			self.change_json_service.update(change_json)
+			self.change_json_history_service.create(change_json)
+			# noinspection PyTypeChecker
+			self.change_json_service.delete(change_json.changeJsonId)
 			self.scheduled_task_service.commit_transaction()
 			return task
 		except Exception as e:
@@ -210,9 +236,9 @@ class PostJsonService:
 		return self.model_config_service.find_by_name(change_json.modelName).rawTopicCode
 
 	def get_dependent_tasks(self, change_json: ChangeDataJson) -> List[int]:
-		json_records = self.change_json_service.find_by_object_id(change_json.modelName,
-		                                                          change_json.objectId,
-		                                                          change_json.modelTriggerId)
+		json_records = self.change_json_history_service.find_by_object_id(change_json.modelName,
+		                                                                  change_json.objectId,
+		                                                                  change_json.modelTriggerId)
 
 		def is_dependent_task(dependent_json_record: ChangeDataJson, current_json_record: ChangeDataJson) -> bool:
 			if dependent_json_record.sequence < current_json_record.sequence:
@@ -224,6 +250,7 @@ class PostJsonService:
 			lambda json_record: is_dependent_task(json_record, change_json)
 		).map(lambda json_record: self.get_dependent_task(json_record)).to_list()
 
+	# noinspection PyMethodMayBeStatic
 	def get_dependent_task(self, change_json: ChangeDataJson) -> int:
 		return change_json.taskId
 
