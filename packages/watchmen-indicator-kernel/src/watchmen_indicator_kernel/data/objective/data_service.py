@@ -659,3 +659,14 @@ class ObjectiveDataService:
 		return ObjectiveValues(
 			factors=ArrayHelper(list(factor_values.values())).map(formalize_factor_values).to_list(),
 			targets=target_values)
+
+
+
+	def ask_breakdown_values(self):
+
+
+
+
+
+		pass
+

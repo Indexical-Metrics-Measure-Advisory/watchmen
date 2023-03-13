@@ -83,6 +83,8 @@ class EnumService(TupleService):
 		return self.storage.find(self.get_entity_finder(criteria))
 
 
+
+
 class EnumItemShaper(EntityShaper):
 	def serialize(self, enum_item: EnumItem) -> EntityRow:
 		return {

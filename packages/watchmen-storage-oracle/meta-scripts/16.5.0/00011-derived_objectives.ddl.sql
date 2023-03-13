@@ -5,6 +5,7 @@ CREATE TABLE derived_objectives
     description          VARCHAR2(1024),
     objective_id         VARCHAR2(50)  NOT NULL,
     definition           CLOB,
+    breakdown_targets    CLOB,
     user_id              VARCHAR2(50)  NOT NULL,
     tenant_id            VARCHAR2(50)  NOT NULL,
     last_visit_time      DATE          NOT NULL,

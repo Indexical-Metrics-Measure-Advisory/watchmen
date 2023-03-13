@@ -1,10 +1,11 @@
 from decimal import Decimal
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 
 from watchmen_auth import PrincipalService
 from watchmen_model.common import DataResult, ParameterJoint, ParameterJointType, SubjectId
 from watchmen_model.console import Report, Subject, SubjectDataset
 from watchmen_model.indicator import Indicator, IndicatorAggregateArithmetic, Objective, ObjectiveFactorOnIndicator
+from watchmen_model.indicator.derived_objective import BreakdownTarget
 from .data_service import ObjectiveFactorDataService
 from ..utils.time_frame import TimeFrame
 from ...common import IndicatorKernelException
@@ -73,7 +74,7 @@ class SubjectBaseObjectiveFactorDataService(ObjectiveFactorDataService):
 		data_result = report_data_service.find()
 		return self.get_value_from_result(data_result)
 
-	def ask_breakdown_values(self, time_frame: Optional[TimeFrame]) -> DataResult:
+	def ask_breakdown_values(self, time_frame: Optional[TimeFrame],breakdown_target :BreakdownTarget) -> DataResult:
 		subject, report = self.fake_a_report(time_frame)
 		# TODO ADD GROUPING COLUMNS
 		# merge indicator filter to subject filter
