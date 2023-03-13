@@ -1,0 +1,4 @@
+ALTER TABLE enum_items
+MODIFY code VARCHAR2(200);
+ALTER TABLE enum_items
+MODIFY label VARCHAR2(1000);

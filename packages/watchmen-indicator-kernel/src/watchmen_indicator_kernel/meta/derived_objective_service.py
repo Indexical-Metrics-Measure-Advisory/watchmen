@@ -4,8 +4,9 @@ from typing import List, Optional
 from watchmen_meta.common import AuditableShaper, LastVisitShaper, TupleNotFoundException, UserBasedTupleService, \
 	UserBasedTupleShaper
 from watchmen_model.common import DerivedObjectiveId, TenantId, UserId
-from watchmen_model.indicator import DerivedObjective, Objective
+from watchmen_model.indicator import DerivedObjective, Objective, BreakdownTarget
 from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, EntityRow, EntityShaper
+from watchmen_utilities import ArrayHelper
 
 
 class DerivedObjectiveShaper(EntityShaper):
@@ -18,13 +19,30 @@ class DerivedObjectiveShaper(EntityShaper):
 		else:
 			return objective.dict()
 
+
+	def serialize_to_dict(
+			self,
+			data:Optional[BreakdownTarget]
+	) -> Optional[dict]:
+		if data is None:
+			return None
+		elif isinstance(data, dict):
+			return data
+		else:
+			return data.dict()
+
+
+
+
 	def serialize(self, derived_objective: DerivedObjective) -> EntityRow:
 		row = {
 			'derived_objective_id': derived_objective.derivedObjectiveId,
 			'name': derived_objective.name,
 			'description': derived_objective.description,
 			'objective_id': derived_objective.objectiveId,
-			'definition': self.serialize_objective(derived_objective.definition)
+			'definition': self.serialize_objective(derived_objective.definition),
+			"breakdown_targets": ArrayHelper(derived_objective.breakdownTargets).map(lambda x: self.serialize_to_dict(x)).to_list(),
+
 		}
 		row = AuditableShaper.serialize(derived_objective, row)
 		row = UserBasedTupleShaper.serialize(derived_objective, row)
@@ -37,7 +55,8 @@ class DerivedObjectiveShaper(EntityShaper):
 			name=row.get('name'),
 			description=row.get('description'),
 			objectiveId=row.get('objective_id'),
-			definition=row.get('definition')
+			definition=row.get('definition'),
+			breakdownTargets=row.get("breakdown_targets")
 		)
 		# noinspection PyTypeChecker
 		derived_objective: DerivedObjective = AuditableShaper.deserialize(row, derived_objective)
@@ -46,6 +65,8 @@ class DerivedObjectiveShaper(EntityShaper):
 		# noinspection PyTypeChecker
 		derived_objective: DerivedObjective = LastVisitShaper.deserialize(row, derived_objective)
 		return derived_objective
+
+
 
 
 DERIVED_OBJECTIVE_ENTITY_NAME = 'derived_objectives'

@@ -5,6 +5,7 @@ CREATE TABLE derived_objectives
     description          NVARCHAR(1024),
     objective_id         NVARCHAR(50)  NOT NULL,
     definition           NVARCHAR(MAX),
+    breakdown_targets    NVARCHAR(MAX),
     user_id              NVARCHAR(50)  NOT NULL,
     tenant_id            NVARCHAR(50)  NOT NULL,
     last_visit_time      DATETIME      NOT NULL,

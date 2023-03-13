@@ -38,7 +38,7 @@ def get_user_service(derived_objective_service: DerivedObjectiveService) -> User
 @router.get(
 	'/indicator/derived-objective/connect', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=DerivedObjective)
 async def connect_as_derived_objective(
-		objective_id: Optional[ObjectiveId], name: Optional[str], template_ids: Optional[str],
+		objective_id: Optional[ObjectiveId], name: Optional[str],
 		principal_service: PrincipalService = Depends(get_console_principal)
 ) -> DerivedObjective:
 	if is_blank(objective_id):

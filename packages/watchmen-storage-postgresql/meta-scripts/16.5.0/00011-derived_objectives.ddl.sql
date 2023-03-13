@@ -5,6 +5,7 @@ CREATE TABLE derived_objectives
     description          VARCHAR(1024),
     objective_id         VARCHAR(50)  NOT NULL,
     definition           JSON,
+    breakdown_targets    JSON,
     user_id              VARCHAR(50)  NOT NULL,
     tenant_id            VARCHAR(50)  NOT NULL,
     last_visit_time      DATE         NOT NULL,

@@ -111,7 +111,7 @@ class ObjectiveLineageBuilder(LineageBuilder):
 			objective_parameter: ComputedObjectiveParameter = objective_parameter
 			for parameter in objective_parameter.parameters:
 				self.__process_objective_parameter(graphic, parameter, objective_facet,
-				                                   principal_service)
+				                                   principal_service,objective_target_facet)
 
 		elif isinstance(objective_parameter, BucketObjectiveParameter):
 			# Currently, it is not handled. This situation only occurs in the filter

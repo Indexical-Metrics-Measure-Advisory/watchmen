@@ -10,6 +10,7 @@ from watchmen_lineage.model.lineage import DatasetColumnFacet, LineageNode, Line
 	RelationDirection, TopicFactorFacet, ObjectiveTargetFacet, LineageResult, RelationshipLineage, IndicatorFacet
 from watchmen_lineage.service.builder.index import get_builder
 from watchmen_lineage.service.builder.loader import LineageBuilder
+from watchmen_lineage.service.lineage_cache import lineage_cache_manager
 from watchmen_lineage.utils.id_utils import build_node_id, parse_node_id
 from watchmen_lineage.utils.utils import get_source_and_target_key, trans_readonly
 from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage
@@ -33,6 +34,8 @@ class LineageService(object):
 		pass
 
 	def init_tenant_all_lineage_data(self, principal_service: PrincipalService):
+
+
 
 		"""
 

@@ -25,6 +25,7 @@ def get_subject_base_service(
 	return SubjectBaseObjectiveFactorDataService(objective, objective_factor, indicator, subject, principal_service)
 
 
+
 def get_objective_factor_data_service(
 		objective: Objective, objective_factor: ObjectiveFactorOnIndicator, principal_service: PrincipalService
 ) -> ObjectiveFactorDataService:
@@ -41,6 +42,8 @@ def get_objective_factor_data_service(
 		raise IndicatorKernelException(
 			f'Indicator[indicatorId={indicator_id}] not found for objective factor'
 			f'[objectiveId={objective.objectiveId}, factorId={objective_factor.uuid}].')
+
+
 	topic_or_subject_id = indicator.topicOrSubjectId
 	base_on = indicator.baseOn
 	if base_on == IndicatorBaseOn.TOPIC and is_not_blank(topic_or_subject_id):
