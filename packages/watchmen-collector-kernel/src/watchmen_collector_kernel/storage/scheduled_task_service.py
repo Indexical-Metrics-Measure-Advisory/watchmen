@@ -1,5 +1,6 @@
 from typing import Optional, List, Any, Dict
 
+from watchmen_collector_kernel.common import ask_partial_size
 from watchmen_utilities import ArrayHelper
 
 from watchmen_collector_kernel.model.scheduled_task import Dependence
@@ -8,7 +9,7 @@ from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.model import ScheduledTask
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_meta.common.storage_service import StorableId
-from watchmen_model.common import Storable, ScheduledTaskId
+from watchmen_model.common import Storable, ScheduledTaskId, Pageable
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, \
 	EntityCriteriaExpression, ColumnNameLiteral, SnowflakeGenerator, EntitySortColumn, EntitySortMethod, \
 	EntityCriteriaJoint, EntityStraightValuesFinder, EntityStraightColumn
@@ -131,6 +132,33 @@ class ScheduledTaskService(TupleService):
 				                 EntityStraightColumn(columnName='resource_id'),
 				                 EntityStraightColumn(columnName='tenant_id')],
 				sort=[EntitySortColumn(name='resource_id', method=EntitySortMethod.ASC)]
+			))
+		finally:
+			self.close_transaction()
+
+	def find_partial_tasks(self) -> List[ScheduledTask]:
+		self.begin_transaction()
+		try:
+			return self.storage.page(self.get_entity_pager(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_finished'), right=False)
+				],
+				pageable=Pageable(pageNumber=1, pageSize=ask_partial_size())
+			)).data
+		finally:
+			self.close_transaction()
+
+	def is_existed(self, task: ScheduledTask) -> bool:
+		self.begin_transaction()
+		try:
+			return self.storage.exists(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(
+							columnName=self.get_storable_id_column_name()
+						),
+						right=task.taskId)
+				]
 			))
 		finally:
 			self.close_transaction()

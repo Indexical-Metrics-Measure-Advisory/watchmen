@@ -7,6 +7,7 @@ logger = getLogger(__name__)
 class CollectorSettings(BaseSettings):
 	LOCK_CLEAN_INTERVAL: int = 60
 	LOCK_CLEAN_TIMEOUT: int = 3600
+	PARTIAL_SIZE: int = 10000
 
 	class Config:
 		# secrets_dir = '/var/run'
@@ -25,3 +26,7 @@ def ask_lock_clean_interval() -> int:
 
 def ask_lock_clean_timeout() -> int:
 	return collector_settings.LOCK_CLEAN_TIMEOUT
+
+
+def ask_partial_size() -> int:
+	return collector_settings.PARTIAL_SIZE

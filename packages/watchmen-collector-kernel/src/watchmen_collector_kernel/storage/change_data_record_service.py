@@ -1,13 +1,14 @@
 from typing import List, Optional, Dict
 
 from watchmen_auth import PrincipalService
-from watchmen_collector_kernel.common import CHANGE_RECORD_ID, TENANT_ID, IS_MERGED
+from watchmen_collector_kernel.common import CHANGE_RECORD_ID, TENANT_ID, IS_MERGED, ask_partial_size
 from watchmen_collector_kernel.model import ChangeDataRecord
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_meta.common.storage_service import StorableId
-from watchmen_model.common import Storable, ChangeRecordId
+from watchmen_model.common import Storable, ChangeRecordId, Pageable
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
-	EntityCriteriaExpression, ColumnNameLiteral, EntityStraightValuesFinder, EntityStraightColumn, EntityColumnType
+	EntityCriteriaExpression, ColumnNameLiteral, EntityStraightValuesFinder, EntityStraightColumn, EntityColumnType, \
+	EntityPager
 from watchmen_utilities import ArrayHelper
 
 
@@ -110,13 +111,28 @@ class ChangeDataRecordService(TupleService):
 		finally:
 			self.close_transaction()
 
-	def count_unmerged_records(self) -> int:
+	def find_partial_records(self) -> List[ChangeDataRecord]:
 		self.begin_transaction()
 		try:
-			# noinspection PyTypeChecker
-			return self.storage.count(self.get_entity_finder(
+			return self.storage.page(self.get_entity_pager(
 				criteria=[
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=IS_MERGED), right=False)
+				],
+				pageable=Pageable(pageNumber=1, pageSize=ask_partial_size())
+			)).data
+		finally:
+			self.close_transaction()
+
+	def is_existed(self, change_record: ChangeDataRecord) -> bool:
+		self.begin_transaction()
+		try:
+			return self.storage.exists(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(
+							columnName=self.get_storable_id_column_name()
+						),
+						right=change_record.changeRecordId)
 				]
 			))
 		finally:
@@ -143,8 +159,8 @@ class ChangeDataRecordService(TupleService):
 						                         right=table_trigger_id)
 					],
 					straightColumns=[EntityStraightColumn(columnName='data_id', columnType=EntityColumnType.JSON)]
-					)
 				)
+			)
 			return ArrayHelper(result).map(lambda x: x.get('data_id')).to_list()
 		finally:
 			self.close_transaction()

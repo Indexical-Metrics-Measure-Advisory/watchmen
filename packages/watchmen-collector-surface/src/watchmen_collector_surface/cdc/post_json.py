@@ -87,21 +87,25 @@ class PostJsonService:
 		ArrayHelper(trigger_models).each(process_model)
 
 	def process_change_data_json(self, model_config: CollectorModelConfig, trigger_model: TriggerModel):
-		not_posted_json = self.change_json_service.find_not_posted_json(trigger_model.modelTriggerId)
+		# not_posted_json = self.change_json_service.find_not_posted_json(trigger_model.modelTriggerId)
+		not_posted_json = self.change_json_service.find_partial_json(trigger_model.modelTriggerId)
 		if len(not_posted_json) == 0:
 			sleep(1)
 		else:
 			for json_record in not_posted_json:
 				lock = get_resource_lock(self.snowflake_generator.next_id(),
-				                         json_record.get(CHANGE_JSON_ID),
-				                         json_record.get(TENANT_ID))
+				                         json_record.changeJsonId,
+				                         json_record.tenantId)
 				try:
 					if try_lock_nowait(self.competitive_lock_service, lock):
+						"""
 						change_data_json = self.change_json_service.find_json_by_id(
 							json_record.get(CHANGE_JSON_ID))
+						"""
+						change_data_json = json_record
 						# perhaps have been processed by other dolls, remove to history table.
 						# and also need to consider duplicated json record.
-						if change_data_json:
+						if self.change_json_service.is_existed(change_data_json):
 							if not self.is_duplicated(change_data_json):
 								try:
 									if self.can_post(model_config, change_data_json):

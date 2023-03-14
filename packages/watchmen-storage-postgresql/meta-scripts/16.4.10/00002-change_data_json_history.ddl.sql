@@ -1,4 +1,4 @@
-CREATE TABLE change_data_json
+CREATE TABLE change_data_json_history
 (
     change_json_id      DECIMAL(20)      NOT NULL,
     resource_id         VARCHAR(100)     NOT NULL,
@@ -20,14 +20,14 @@ CREATE TABLE change_data_json
     created_by          VARCHAR(50)      NOT NULL,
     last_modified_at    TIMESTAMP        NOT NULL,
     last_modified_by    VARCHAR(50)      NOT NULL,
-    CONSTRAINT pk_change_data_json PRIMARY KEY (change_json_id)
+    CONSTRAINT pk_change_data_json_history PRIMARY KEY (change_json_id)
 );
-CREATE UNIQUE INDEX u_change_data_json_1 ON change_data_json (resource_id);
-CREATE INDEX i_change_data_json_1 ON change_data_json (tenant_id);
-CREATE INDEX i_change_data_json_2 ON change_data_json (created_at);
-CREATE INDEX i_change_data_json_3 ON change_data_json (created_by);
-CREATE INDEX i_change_data_json_4 ON change_data_json (last_modified_at);
-CREATE INDEX i_change_data_json_5 ON change_data_json (last_modified_by);
-CREATE INDEX i_change_data_json_6 ON change_data_json (table_trigger_id);
-CREATE INDEX i_change_data_json_7 ON change_data_json (model_trigger_id);
-CREATE INDEX i_change_data_json_8 ON change_data_json (event_trigger_id);
+CREATE UNIQUE INDEX u_scheduled_task_history_1 ON scheduled_task_history (resource_id);
+CREATE INDEX i_scheduled_task_history_1 ON scheduled_task_history (tenant_id);
+CREATE INDEX i_scheduled_task_history_2 ON scheduled_task_history (created_at);
+CREATE INDEX i_scheduled_task_history_3 ON scheduled_task_history (created_by);
+CREATE INDEX i_scheduled_task_history_4 ON scheduled_task_history (last_modified_at);
+CREATE INDEX i_scheduled_task_history_5 ON scheduled_task_history (last_modified_by);
+CREATE INDEX i_scheduled_task_history_6 ON scheduled_task_history (table_trigger_id);
+CREATE INDEX i_scheduled_task_history_7 ON scheduled_task_history (model_trigger_id);
+CREATE INDEX i_scheduled_task_history_8 ON scheduled_task_history (event_trigger_id);
