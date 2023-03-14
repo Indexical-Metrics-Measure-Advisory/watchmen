@@ -1,7 +1,7 @@
 from typing import List, Dict, Any, Optional
 
 from watchmen_auth import PrincipalService
-from watchmen_collector_kernel.common import IS_POSTED, CHANGE_JSON_ID, TENANT_ID, MODEL_TRIGGER_ID
+from watchmen_collector_kernel.common import IS_POSTED, CHANGE_JSON_ID, TENANT_ID, MODEL_TRIGGER_ID, ask_partial_size
 from watchmen_collector_kernel.model import ChangeDataJson
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_meta.common.storage_service import StorableId
@@ -115,7 +115,7 @@ class ChangeDataJsonService(TupleService):
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=MODEL_TRIGGER_ID),
 					                         right=model_trigger_id)
 				],
-				pageable=Pageable(pageNumber=1, pageSize=1000)
+				pageable=Pageable(pageNumber=1, pageSize=ask_partial_size())
 			)).data
 		finally:
 			self.close_transaction()

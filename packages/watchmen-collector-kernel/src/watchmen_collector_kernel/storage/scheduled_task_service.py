@@ -1,5 +1,6 @@
 from typing import Optional, List, Any, Dict
 
+from watchmen_collector_kernel.common import ask_partial_size
 from watchmen_utilities import ArrayHelper
 
 from watchmen_collector_kernel.model.scheduled_task import Dependence
@@ -142,7 +143,7 @@ class ScheduledTaskService(TupleService):
 				criteria=[
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_finished'), right=False)
 				],
-				pageable=Pageable(pageNumber=1, pageSize=1000)
+				pageable=Pageable(pageNumber=1, pageSize=ask_partial_size())
 			)).data
 		finally:
 			self.close_transaction()
