@@ -5,9 +5,8 @@ from typing import Optional
 from fastapi import APIRouter, Depends
 from watchmen_webhook_server import NotifyService
 from watchmen_webhook_server.integration.index import find_notification_service
-from watchmen_webhook_server.utils.trans import trans
+from watchmen_webhook_server.utils.trans import trans, trans_readonly
 
-from src.watchmen_indicator_surface.util import trans_readonly
 from watchmen_auth import PrincipalService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_meta.webhook.notification_definition_service import NotificationDefinitionService
