@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.data import as_time_frame, compute_time_frame, get_objective_data_service, \
-	get_objective_factor_data_service, ObjectiveValues
+	get_objective_factor_data_service, ObjectiveValues, compute_previous_frame, compute_chain_frame
 from watchmen_indicator_kernel.data.objective_factor.data_service import ObjectiveTargetBreakdownValues, \
 	ObjectiveTargetBreakdownValueRow
 from watchmen_indicator_kernel.meta import IndicatorService
@@ -89,7 +89,7 @@ def __find_objective_factor(objective,objective_factor_id):
 			return  objective_factor
 
 
-@router.post("/indicator/derived-objective/breakdown/data",tags=[UserRole.ADMIN])
+@router.post("/indicator/derived-objective/breakdown/data",tags=[UserRole.ADMIN],response_model=ObjectiveTargetBreakdownValues)
 def load_objective_target_breakdown_values(breakdown_request :ObjectiveBreakdownRequest,
                                            principal_service: PrincipalService = Depends(get_admin_principal))->ObjectiveTargetBreakdownValues:
 
@@ -113,10 +113,34 @@ def load_objective_target_breakdown_values(breakdown_request :ObjectiveBreakdown
 
 		dataset:DataResult =  objective_factor_data_service.ask_breakdown_values(as_time_frame(time_frame),breakdown_target)
 
-		return build_breakdown_result(dataset)
+		breakdown_values:ObjectiveTargetBreakdownValues = build_breakdown_result(dataset)
+		if objective_target.askPreviousCycle:
+			previous_time_frame = as_time_frame(compute_previous_frame(objective.timeFrame, time_frame))
+			dataset_previous: DataResult = objective_factor_data_service.ask_breakdown_values(previous_time_frame, breakdown_target)
 
 
-def build_breakdown_result(dataset):
+
+		elif objective_target.askChainCycle:
+			chain_time_frame = as_time_frame(compute_chain_frame(objective.timeFrame, time_frame))
+
+
+		return breakdown_values
+
+
+def merge_previous(breakdown_values:ObjectiveTargetBreakdownValues,dataset_previous: DataResult):
+	##find merge index for breakdown  {key: demintionkeys ,value:index }
+
+
+
+
+
+
+
+
+
+	pass
+
+def build_breakdown_result(dataset)->ObjectiveTargetBreakdownValues:
 	objective_target_breakdown = ObjectiveTargetBreakdownValues()
 	for data in dataset.data:
 		row = ObjectiveTargetBreakdownValueRow()

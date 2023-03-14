@@ -662,11 +662,4 @@ class ObjectiveDataService:
 
 
 
-	def ask_breakdown_values(self):
-
-
-
-
-
-		pass
 
