@@ -5,7 +5,7 @@ from watchmen_collector_kernel.common import IS_POSTED, CHANGE_JSON_ID, TENANT_I
 from watchmen_collector_kernel.model import ChangeDataJson
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_meta.common.storage_service import StorableId
-from watchmen_model.common import Storable, ChangeJsonId
+from watchmen_model.common import Storable, ChangeJsonId, Pageable
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
 	ColumnNameLiteral, EntityCriteriaExpression, EntityStraightValuesFinder, EntityStraightColumn, EntitySortColumn, \
 	EntitySortMethod
@@ -102,6 +102,35 @@ class ChangeDataJsonService(TupleService):
 				],
 				straightColumns=[EntityStraightColumn(columnName=CHANGE_JSON_ID),
 				                 EntityStraightColumn(columnName=TENANT_ID)]
+			))
+		finally:
+			self.close_transaction()
+
+	def find_partial_json(self, model_trigger_id: int) -> List[ChangeDataJson]:
+		self.begin_transaction()
+		try:
+			return self.storage.page(self.get_entity_pager(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=IS_POSTED), right=False),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=MODEL_TRIGGER_ID),
+					                         right=model_trigger_id)
+				],
+				pageable=Pageable(pageNumber=1, pageSize=1000)
+			)).data
+		finally:
+			self.close_transaction()
+
+	def is_existed(self, change_json: ChangeDataJson) -> bool:
+		self.begin_transaction()
+		try:
+			return self.storage.exists(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(
+						left=ColumnNameLiteral(
+							columnName=self.get_storable_id_column_name()
+						),
+						right=change_json.changeJsonId)
+				]
 			))
 		finally:
 			self.close_transaction()
