@@ -360,15 +360,16 @@ class ObjectiveCriteriaService:
 					f'Objective expression condition[{condition.to_dict()}] not supported, '
 					f'because time frame parameter declared, but no time frame passed, '
 					f'on {self.on_factor_msg()}.')
-		elif isinstance(right, ConstantObjectiveParameter):
-			# when right is constant parameter
-			variable = self.find_objective_variable_from_constant(right)
-			if isinstance(variable, ObjectiveVariableOnBucket) or isinstance(variable, ObjectiveVariableOnRange):
-				# refer to bucket variable or range variable is not allowed
-				raise IndicatorKernelException(
-					f'Objective expression condition[{condition.to_dict()}] not supported, '
-					f'because using bucket or range variable in left, '
-					f'on {self.on_factor_msg()}.')
+		# elif isinstance(right, ConstantObjectiveParameter):
+		# 	# when right is constant parameter
+		# 	variable = self.find_objective_variable_from_constant(right)
+		# 	if isinstance(variable, ObjectiveVariableOnBucket) or isinstance(variable, ObjectiveVariableOnRange):
+		# 		pass
+		# 		# refer to bucket variable or range variable is not allowed
+		# 		# raise IndicatorKernelException(
+		# 		# 	f'Objective expression condition[{condition.to_dict()}] not supported, '
+		# 		# 	f'because using bucket or range variable in left, '
+		# 		# 	f'on {self.on_factor_msg()}.')
 		return right
 
 	# noinspection PyMethodMayBeStatic
