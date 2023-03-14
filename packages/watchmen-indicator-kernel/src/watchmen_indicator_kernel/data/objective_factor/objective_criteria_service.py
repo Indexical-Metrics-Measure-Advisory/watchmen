@@ -20,7 +20,6 @@ from watchmen_model.indicator import BucketObjectiveParameter, CategorySegment, 
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 
 
-
 class ObjectiveCriteriaService:
 	def __init__(
 			self,
@@ -182,14 +181,22 @@ class ObjectiveCriteriaService:
 			return ParameterJoint(
 				jointType=joint_type,
 				filters=[
-					ParameterExpression(left=left, operator=operator_min, right=min_value),
-					ParameterExpression(left=left, operator=operator_max, right=max_value)
+					ParameterExpression(
+						left=left, operator=operator_min,
+						right=ConstantParameter(kind=ParameterKind.CONSTANT, value=min_value)),
+					ParameterExpression(
+						left=left, operator=operator_max,
+						right=ConstantParameter(kind=ParameterKind.CONSTANT, value=max_value))
 				]
 			)
 		elif is_not_blank(min_value):
-			return ParameterExpression(left=left, operator=operator_min, right=min_value)
+			return ParameterExpression(
+				left=left, operator=operator_min,
+				right=ConstantParameter(kind=ParameterKind.CONSTANT, value=min_value))
 		elif is_not_blank(max_value):
-			return ParameterExpression(left=left, operator=operator_max, right=max_value)
+			return ParameterExpression(
+				left=left, operator=operator_max,
+				right=ConstantParameter(kind=ParameterKind.CONSTANT, value=max_value))
 		else:
 			raise IndicatorKernelException(
 				'Neither minimum not maximum value of numeric value segment is declared.')
@@ -222,14 +229,22 @@ class ObjectiveCriteriaService:
 			if len(values) == 0:
 				raise IndicatorKernelException('Values rather than others of category segment not declared.')
 			if invert:
-				return ParameterExpression(left=left, operator=ParameterExpressionOperator.IN, right=values)
+				return ParameterExpression(
+					left=left, operator=ParameterExpressionOperator.IN,
+					right=ConstantParameter(kind=ParameterKind.CONSTANT, value=ArrayHelper(values).join(',')))
 			else:
-				return ParameterExpression(left=left, operator=ParameterExpressionOperator.NOT_IN, right=values)
+				return ParameterExpression(
+					left=left, operator=ParameterExpressionOperator.NOT_IN,
+					right=ConstantParameter(kind=ParameterKind.CONSTANT, value=ArrayHelper(values).join(',')))
 		else:
 			if invert:
-				return ParameterExpression(left=left, operator=ParameterExpressionOperator.NOT_IN, right=values)
+				return ParameterExpression(
+					left=left, operator=ParameterExpressionOperator.NOT_IN,
+					right=ConstantParameter(kind=ParameterKind.CONSTANT, value=ArrayHelper(values).join(',')))
 			else:
-				return ParameterExpression(left=left, operator=ParameterExpressionOperator.IN, right=values)
+				return ParameterExpression(
+					left=left, operator=ParameterExpressionOperator.IN,
+					right=ConstantParameter(kind=ParameterKind.CONSTANT, value=ArrayHelper(values).join(',')))
 
 	def translate_expression_with_bucket_on_right(
 			self,
