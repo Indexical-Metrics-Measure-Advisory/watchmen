@@ -392,8 +392,15 @@ def construct_variable(variable: Optional[Union[dict, ObjectiveVariable]]) -> Op
 	elif isinstance(variable, ObjectiveVariable):
 		return variable
 	else:
-		# noinspection PyArgumentList
-		return ObjectiveVariable(**variable)
+		kind = variable.get('kind')
+		if kind == ObjectiveVariableKind.SINGLE_VALUE:
+			return ObjectiveVariableOnValue(**variable)
+		elif kind == ObjectiveVariableKind.RANGE:
+			return ObjectiveVariableOnRange(**variable)
+		elif kind == ObjectiveVariableKind.BUCKET:
+			return ObjectiveVariableOnBucket(**variable)
+		else:
+			raise Exception(f'Objective variable kind[{kind}] cannot be recognized.')
 
 
 def construct_variables(variables: Optional[list] = None) -> Optional[List[ObjectiveVariable]]:
