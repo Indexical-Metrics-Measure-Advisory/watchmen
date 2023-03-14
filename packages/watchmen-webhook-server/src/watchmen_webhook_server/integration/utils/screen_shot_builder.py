@@ -5,7 +5,7 @@ from watchmen_model.webhook.event_defination import EventSource
 
 # TODO move url to settings
 def get_source_url(event_source: EventSource):
-	return 'https://h2o.ai/'
+	return 'http://localhost:3000/console/objective/derived/1084885339157993472'
 
 
 
@@ -20,3 +20,7 @@ async def screenshot_page(source_id: str, source_type: EventSource):
 	screen = await page.screenshot(fullPage=True)
 	await browser.close()
 	return screen
+
+
+
+
