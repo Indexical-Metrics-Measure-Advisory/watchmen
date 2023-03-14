@@ -1,7 +1,7 @@
 from typing import List, Optional, Dict
 
 from watchmen_auth import PrincipalService
-from watchmen_collector_kernel.common import CHANGE_RECORD_ID, TENANT_ID, IS_MERGED
+from watchmen_collector_kernel.common import CHANGE_RECORD_ID, TENANT_ID, IS_MERGED, ask_partial_size
 from watchmen_collector_kernel.model import ChangeDataRecord
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_meta.common.storage_service import StorableId
@@ -118,7 +118,7 @@ class ChangeDataRecordService(TupleService):
 				criteria=[
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=IS_MERGED), right=False)
 				],
-				pageable=Pageable(pageNumber=1, pageSize=1000)
+				pageable=Pageable(pageNumber=1, pageSize=ask_partial_size())
 			)).data
 		finally:
 			self.close_transaction()
