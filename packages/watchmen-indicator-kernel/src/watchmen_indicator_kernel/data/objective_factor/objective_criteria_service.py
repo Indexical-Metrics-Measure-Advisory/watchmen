@@ -360,6 +360,8 @@ class ObjectiveCriteriaService:
 					f'Objective expression condition[{condition.to_dict()}] not supported, '
 					f'because time frame parameter declared, but no time frame passed, '
 					f'on {self.on_factor_msg()}.')
+
+			## remove below check ,already supported
 		# elif isinstance(right, ConstantObjectiveParameter):
 		# 	# when right is constant parameter
 		# 	variable = self.find_objective_variable_from_constant(right)
