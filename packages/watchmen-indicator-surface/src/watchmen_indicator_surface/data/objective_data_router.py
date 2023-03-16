@@ -119,6 +119,7 @@ def load_objective_target_breakdown_values(breakdown_request :ObjectiveBreakdown
 
 		breakdown_values:ObjectiveTargetBreakdownValues = build_breakdown_result(dataset,BreakdownValueType.Current)
 
+		# build key for merge dimension 
 		dimensions_dict: Dict[str, ObjectiveTargetBreakdownValueRow] = {}
 		for breakdown_row in breakdown_values.data:
 			key: str = build_key_from_list(breakdown_row.dimensions)
@@ -127,12 +128,10 @@ def load_objective_target_breakdown_values(breakdown_request :ObjectiveBreakdown
 			else:
 				dimensions_dict[key] = breakdown_row
 
-
 		if objective_target.askPreviousCycle:
 			previous_time_frame = as_time_frame(compute_previous_frame(objective.timeFrame, time_frame))
 			dataset_previous: DataResult = objective_factor_data_service.ask_breakdown_values(previous_time_frame, breakdown_target)
 			dimensions_dict = merge_dimension(dimensions_dict,dataset_previous,BreakdownValueType.PreviousCycle)
-
 
 		elif objective_target.askChainCycle:
 			chain_time_frame = as_time_frame(compute_chain_frame(objective.timeFrame, time_frame))
@@ -174,7 +173,6 @@ def merge_dimension(dimension_dict:Dict[str,ObjectiveTargetBreakdownValueRow],da
 	##find merge index for breakdown  {key: dimensionskeys ,value:index }
 	new_dimension_dict = build_dimensions_dict(build_breakdown_result(dataset_new,value_type))
 	dimension_dict_after_merge = merge_dicts(dimension_dict,new_dimension_dict)
-
 	return dimension_dict_after_merge
 
 
@@ -182,7 +180,7 @@ def merge_dicts(dimension_dict:Dict[str,ObjectiveTargetBreakdownValueRow], dimen
     merged_dict = dimension_dict.copy()  # Make a copy of dict1 to avoid modifying it
     for key, value in dimension_dict_new.items():
         if key in merged_dict:
-            # If the key exists in both dictionaries, combine the values
+            # If the key exists in both dictionaries, merge values
             if value.previousValue:
 	            merged_dict[key].previousValue = value.previousValue
             elif value.chainValue:
