@@ -14,7 +14,7 @@ const Admin = lazy(() => import(/* webpackChunkName: "admin" */ '../admin'));
 const DataQuality = lazy(() => import(/* webpackChunkName: "data-quality" */ '../data-quality'));
 const Indicator = lazy(() => import(/* webpackChunkName: "indicator" */ '../indicator'));
 const Console = lazy(() => import(/* webpackChunkName: "console" */ '../console'));
-const Share = lazy(() => import(/* webpackChunkName: "console" */ '../share'));
+const Share = lazy(() => import(/* webpackChunkName: "share" */ '../share'));
 
 export const InternalRoutes = () => {
 	const account = findAccount();
@@ -25,6 +25,7 @@ export const InternalRoutes = () => {
 			{asTopRoute(Router.LOGIN, <Login/>)}
 			{isSaml2MockEnabled() ? asTopRoute(Router.MOCK_SAML2_LOGIN, <Saml2Login/>) : null}
 			{asTopRoute(Router.SAML2_CALLBACK, <Saml2Callback/>)}
+			{asTopRoute(Router.SHARE_ALL, <Share/>)}
 			{asFallbackNavigate(Router.LOGIN)}
 		</Routes>;
 	} else {
@@ -34,7 +35,6 @@ export const InternalRoutes = () => {
 			{isDataQualityCenterEnabled() ? asTopRoute(Router.DQC_ALL, <DataQuality/>) : null}
 			{asTopRoute(Router.IDW_ALL, <Indicator/>)}
 			{asTopRoute(Router.CONSOLE_ALL, <Console/>)}
-			{asTopRoute(Router.SHARE_ALL, <Share/>)}
 			{asTopRoute(Router.LOGIN, <Login/>)}
 			{isAdmin() || isSuperAdmin() ? asFallbackNavigate(Router.ADMIN) : asFallbackNavigate(Router.CONSOLE)}
 		</Routes>;
