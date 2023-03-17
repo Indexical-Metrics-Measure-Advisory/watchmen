@@ -7,6 +7,6 @@ export const buildDashboardShareUrl = async (dashboard: Dashboard): Promise<stri
 	const {protocol, host} = window.location;
 	const path = Router.SHARE_DASHBOARD
 		.replace(':dashboardId', dashboard.dashboardId)
-		.replace(':token', await askShareToken());
+		.replace(':token', askShareToken());
 	return `${protocol}//${host}${path}`;
 };
