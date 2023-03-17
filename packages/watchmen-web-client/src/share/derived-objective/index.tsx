@@ -40,23 +40,23 @@ const ShareDerivedObjective = (props: { derivedObjective: DerivedObjective }) =>
 };
 
 const ShareDerivedObjectiveIndex = () => {
-	const {objectiveId, token} = useParams<{ objectiveId: DerivedObjectiveId, token: Token }>();
+	const {derivedObjectiveId, token} = useParams<{ derivedObjectiveId: DerivedObjectiveId, token: Token }>();
 	// console.log(objectiveId, token);
 	const [state, setState] = useState<ShareDerivedObjectiveState>({initialized: false});
 	useEffect(() => {
 		(async () => {
 			try {
-				const {derivedObjective} = await fetchSharedDerivedObjective(objectiveId!, token!);
-				setState({initialized: true, derivedObjectiveId: objectiveId, derivedObjective});
+				const {derivedObjective} = await fetchSharedDerivedObjective(derivedObjectiveId!, token!);
+				setState({initialized: true, derivedObjectiveId: derivedObjectiveId, derivedObjective});
 			} catch (e: any) {
 				console.error(e);
-				setState({initialized: true, derivedObjectiveId: objectiveId});
+				setState({initialized: true, derivedObjectiveId: derivedObjectiveId});
 			}
 		})();
-	}, [objectiveId, token]);
+	}, [derivedObjectiveId, token]);
 
 	// eslint-disable-next-line
-	if (!state.initialized || (state.initialized && state.derivedObjectiveId != objectiveId)) {
+	if (!state.initialized || (state.initialized && state.derivedObjectiveId != derivedObjectiveId)) {
 		return <ShareNothing label={Lang.CONSOLE.LOADING}/>;
 	}
 
