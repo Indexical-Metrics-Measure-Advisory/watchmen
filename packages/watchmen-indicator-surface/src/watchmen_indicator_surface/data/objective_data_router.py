@@ -119,7 +119,7 @@ def load_objective_target_breakdown_values(breakdown_request :ObjectiveBreakdown
 
 		breakdown_values:ObjectiveTargetBreakdownValues = build_breakdown_result(dataset,BreakdownValueType.Current)
 
-		# build key for merge dimension 
+		# build key for merge dimension
 		dimensions_dict: Dict[str, ObjectiveTargetBreakdownValueRow] = {}
 		for breakdown_row in breakdown_values.data:
 			key: str = build_key_from_list(breakdown_row.dimensions)

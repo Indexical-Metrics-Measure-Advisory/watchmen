@@ -12,7 +12,8 @@ from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import UserRole
 from watchmen_model.common import DerivedObjectiveId, ObjectiveId
 from watchmen_model.indicator import DerivedObjective, Objective
-from watchmen_rest import get_console_principal, get_super_admin_principal
+from watchmen_rest import get_console_principal, get_super_admin_principal, get_principal_by_jwt, \
+	retrieve_authentication_manager
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_utilities import get_current_time_in_seconds, is_blank
 
@@ -192,3 +193,21 @@ async def delete_derived_objective_by_id_by_super_admin(
 		return existing_derived_objective
 
 	return trans(derived_objective_service, action)
+
+
+@router.get('/indicator/derived-objective/shared', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=DerivedObjective)
+def load_share_derived_objective_by_id_and_token(derived_objective_id:DerivedObjectiveId,token:str)->DerivedObjective:
+
+	principal_service: PrincipalService = get_principal_by_jwt(
+		retrieve_authentication_manager(), token, [UserRole.CONSOLE, UserRole.ADMIN])
+
+	derived_objective_service = get_derived_objective_service(principal_service)
+	def action() -> DerivedObjective:
+		# noinspection PyTypeChecker
+		existing_derived_objective: Optional[DerivedObjective] = \
+			derived_objective_service.find_by_id(derived_objective_id)
+		if existing_derived_objective is None:
+			raise_404()
+		return existing_derived_objective
+
+	return trans_readonly(derived_objective_service, action)
