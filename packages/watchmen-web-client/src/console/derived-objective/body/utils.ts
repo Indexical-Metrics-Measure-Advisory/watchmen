@@ -1,6 +1,7 @@
 import {
 	isCategoryMeasureBucket,
 	isEnumMeasureBucket,
+	isNumericValueBucket,
 	isNumericValueMeasureBucket
 } from '@/services/data/tuples/bucket-utils';
 import {BreakdownDimensionType, BreakdownTarget} from '@/services/data/tuples/derived-objective-types';
@@ -69,6 +70,7 @@ const findFactorMeasureMethods = (
 	const availableBuckets: Array<QueryBucket> = [];
 	const availableTimeMeasureMethods: Array<MeasureMethod> = [];
 	const factorType = typeof factorOrType === 'string' ? factorOrType : factorOrType.type;
+	// corresponding enumeration can be detected only when given factorOrType is a factor
 	if (typeof factorOrType !== 'string') {
 		if (factorOrType.enumId != null) {
 			// enumeration factor always can be measured, no matter related bucket existed or not
@@ -86,18 +88,26 @@ const findFactorMeasureMethods = (
 		}
 	}
 
-	const measures = tryToTransformToMeasures(factorType);
-	const timeMeasures = measures.filter(measure => isTimePeriodMeasure(measure));
-	if (timeMeasures.length !== 0) {
-		types.push(BreakdownDimensionType.TIME_RELATED);
-		availableTimeMeasureMethods.push(...timeMeasures);
+	if ([FactorType.NUMBER, FactorType.UNSIGNED].includes(factorType)) {
+		// for numeric values
+		availableBuckets.push(...buckets.filter(isNumericValueBucket));
+	} else {
+		// for non-numeric values
+		const measures = tryToTransformToMeasures(factorType);
+		const timeMeasures = measures.filter(measure => isTimePeriodMeasure(measure));
+		// time based
+		if (timeMeasures.length !== 0) {
+			types.push(BreakdownDimensionType.TIME_RELATED);
+			availableTimeMeasureMethods.push(...timeMeasures);
+		}
+		// special factor types
+		availableBuckets.push(...measures.filter(measure => !isTimePeriodMeasure(measure)).map(measure => {
+			return buckets.filter(bucket => {
+				return (isNumericValueMeasureBucket(bucket) && bucket.measure === measure)
+					|| (isCategoryMeasureBucket(bucket) && bucket.measure === measure);
+			});
+		}).flat());
 	}
-	availableBuckets.push(...measures.filter(measure => !isTimePeriodMeasure(measure)).map(measure => {
-		return buckets.filter(bucket => {
-			return (isNumericValueMeasureBucket(bucket) && bucket.measure === measure)
-				|| (isCategoryMeasureBucket(bucket) && bucket.measure === measure);
-		});
-	}).flat());
 	if (availableBuckets.length !== 0) {
 		if (!types.includes(BreakdownDimensionType.BUCKET)) {
 			types.push(BreakdownDimensionType.BUCKET);
@@ -120,10 +130,7 @@ const findFactorMeasureMethods = (
 	return COULD_NOT;
 };
 export const buildMeasureOnOptions = (options: {
-	indicator: Indicator;
-	topic?: TopicForIndicator;
-	subject?: SubjectForIndicator;
-	buckets: Array<QueryBucket>;
+	indicator: Indicator; topic?: TopicForIndicator; subject?: SubjectForIndicator; buckets: Array<QueryBucket>;
 }): Array<DimensionCandidate> => {
 	const {indicator, topic, subject, buckets} = options;
 

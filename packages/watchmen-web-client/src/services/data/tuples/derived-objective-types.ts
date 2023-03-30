@@ -10,8 +10,19 @@ export type DerivedObjectiveId = string;
 export type BreakdownTargetId = string;
 
 export enum BreakdownDimensionType {
+	/**
+	 * factor or column could be as nature classified dimension, which is by its original value
+	 * such as enum factor
+	 */
 	VALUE = 'value',
+	/**
+	 * factor or column could be classified by buckets.
+	 * bucket might be detected by special factor or column type, or just simple numeric value
+	 */
 	BUCKET = 'bucket',
+	/**
+	 * factor or column could be classified on date or time perspective
+	 */
 	TIME_RELATED = 'time'
 }
 

@@ -163,25 +163,32 @@ const factorToIndicatorMeasures = (factorOrColumnId: FactorId | SubjectDataSetCo
 };
 
 export const translateComputeTypeToFactorType = (computeType: ParameterComputeType): FactorType | null => {
-	if (computeType === ParameterComputeType.YEAR_OF) {
-		return FactorType.YEAR;
-	} else if (computeType === ParameterComputeType.HALF_YEAR_OF) {
-		return FactorType.HALF_YEAR;
-	} else if (computeType === ParameterComputeType.QUARTER_OF) {
-		return FactorType.QUARTER;
-	} else if (computeType === ParameterComputeType.MONTH_OF) {
-		return FactorType.MONTH;
-	} else if (computeType === ParameterComputeType.WEEK_OF_YEAR) {
-		return FactorType.WEEK_OF_YEAR;
-	} else if (computeType === ParameterComputeType.WEEK_OF_MONTH) {
-		return FactorType.WEEK_OF_MONTH;
-	} else if (computeType === ParameterComputeType.DAY_OF_MONTH) {
-		return FactorType.DAY_OF_MONTH;
-	} else if (computeType === ParameterComputeType.DAY_OF_WEEK) {
-		return FactorType.DAY_OF_WEEK;
-	} else {
-		// TODO case then is ignored now
-		return null;
+	switch (computeType) {
+		case ParameterComputeType.YEAR_OF:
+			return FactorType.YEAR;
+		case ParameterComputeType.HALF_YEAR_OF:
+			return FactorType.HALF_YEAR;
+		case ParameterComputeType.QUARTER_OF:
+			return FactorType.QUARTER;
+		case ParameterComputeType.MONTH_OF:
+			return FactorType.MONTH;
+		case ParameterComputeType.WEEK_OF_YEAR:
+			return FactorType.WEEK_OF_YEAR;
+		case ParameterComputeType.WEEK_OF_MONTH:
+			return FactorType.WEEK_OF_MONTH;
+		case ParameterComputeType.DAY_OF_MONTH:
+			return FactorType.DAY_OF_MONTH;
+		case ParameterComputeType.DAY_OF_WEEK:
+			return FactorType.DAY_OF_WEEK;
+		case ParameterComputeType.ADD:
+		case ParameterComputeType.SUBTRACT:
+		case ParameterComputeType.MULTIPLY:
+		case ParameterComputeType.DIVIDE:
+		case ParameterComputeType.MODULUS:
+			return FactorType.NUMBER;
+		default:
+			// TODO case then is ignored now
+			return null;
 	}
 };
 
@@ -271,7 +278,10 @@ export const isCategoryMeasure = (measure: MeasureMethod): boolean => {
 	return [MeasureMethod.BOOLEAN, MeasureMethod.ENUM].includes(measure);
 };
 
-export const findTopicAndFactor = (column: SubjectDataSetColumn, subject?: SubjectForIndicator): { topic?: Topic, factor?: Factor } => {
+export const findTopicAndFactor = (column: SubjectDataSetColumn, subject?: SubjectForIndicator): {
+	topic?: Topic,
+	factor?: Factor
+} => {
 	if (subject == null) {
 		return {};
 	}
