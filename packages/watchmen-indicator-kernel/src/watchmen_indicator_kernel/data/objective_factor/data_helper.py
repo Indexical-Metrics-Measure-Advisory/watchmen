@@ -26,6 +26,8 @@ def get_subject_base_service(
 
 
 
+
+
 def get_objective_factor_data_service(
 		objective: Objective, objective_factor: ObjectiveFactorOnIndicator, principal_service: PrincipalService
 ) -> ObjectiveFactorDataService:
