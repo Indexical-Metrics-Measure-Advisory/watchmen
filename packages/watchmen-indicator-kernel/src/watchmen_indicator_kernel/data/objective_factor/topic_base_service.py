@@ -1,25 +1,26 @@
 from decimal import Decimal
-from typing import List, Optional, Tuple, Dict
+from typing import List, Optional, Tuple, Dict, Callable
 
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.common import IndicatorKernelException
 from watchmen_model.admin import Topic, Factor, FactorType, Enum, EnumItem
 from watchmen_model.common import DataResult, ParameterJoint, ParameterJointType, ParameterKind, \
 	SubjectDatasetColumnId, TopicFactorParameter, TopicId, DataResultSetRow, ComputedParameter, ParameterComputeType, \
-	DataResultSet
+	DataResultSet, BucketId, ConstantParameter, ParameterExpression, ParameterExpressionOperator, Parameter, FactorId
 from watchmen_model.console import Report, Subject, SubjectDataset, SubjectDatasetColumn, ReportDimension
 from watchmen_model.indicator import Indicator, IndicatorAggregateArithmetic, Objective, ObjectiveFactorOnIndicator, \
-	MeasureMethod
-from watchmen_model.indicator.derived_objective import BreakdownTarget, BreakdownDimension
-from watchmen_utilities import ArrayHelper
+	MeasureMethod, Bucket, CategorySegmentsHolder, CategorySegment, OtherCategorySegmentValue
+from watchmen_model.indicator.derived_objective import BreakdownTarget, BreakdownDimension, BreakdownDimensionType
+from watchmen_utilities import ArrayHelper, is_blank
 from .data_service import ObjectiveFactorDataService
-from ..utils import find_factor, TimeFrame
+from ..utils import find_factor, TimeFrame, ask_bucket
 from ..utils.enum import ask_enum
 
 FAKED_ONLY_COLUMN_ID = 'FAKED_ONLY_COLUMN_ID'
 FAKED_ONLY_COLUMN_NAME = 'faked_only_column_name'
 FAKED_DIMENSION_ID = 'faked_dimension_id'
 FAKED_DIMENSION_NAME = 'faked_dimension_name'
+MEASURE_ON_COLUMN_ID: str = 'measure_on_column'
 
 
 class TopicBaseObjectiveFactorDataService(ObjectiveFactorDataService):
@@ -93,11 +94,48 @@ class TopicBaseObjectiveFactorDataService(ObjectiveFactorDataService):
 		else:
 			raise Exception("measure Method {} is not correct ".format(measure_method.value))
 
+	def load_bucket_data(self,bucket_id:BucketId)->Bucket:
+		bucket:Bucket = ask_bucket(bucket_id,self.get_principal_service())
+		return bucket
+
+	def to_category_segments_bucket(self, bucket: Bucket) -> CategorySegmentsHolder:
+		if isinstance(bucket, CategorySegmentsHolder):
+			return bucket
+		else:
+			return CategorySegmentsHolder(**bucket.to_dict())
+
+	def to_category_case_route(self, segment: CategorySegment, factor: Factor) -> Parameter:
+		return ConstantParameter(
+			kind=ParameterKind.CONSTANT,
+			conditional=True,
+			on=ParameterJoint(
+				jointType=ParameterJointType.AND,
+				filters=[
+					ParameterExpression(
+						left=TopicFactorParameter(
+							kind=ParameterKind.TOPIC, topicId=self.topic.topicId, factorId=factor.factorId),
+						operator=ParameterExpressionOperator.IN,
+						right=ConstantParameter(value=segment.value)
+					),
+				]
+			),
+			value=segment.name
+		)
+	def find_factor(
+			self, factor_id: Optional[FactorId],
+			on_factor_id_missed: Callable[[], str]) -> Factor:
+		if is_blank(factor_id):
+			raise IndicatorKernelException(on_factor_id_missed())
+		factor: Optional[Factor] = ArrayHelper(self.topic.factors).find(lambda x: x.factorId == factor_id)
+		if factor is None:
+			raise IndicatorKernelException(self.ask_factor_not_found_message(factor_id))
+		return factor
 	def fake_breakdown_dimensions_to_columns(self, breakdown_dimensions: List[BreakdownDimension]) -> List[
 		SubjectDatasetColumn]:
 		dataset_columns: List[SubjectDatasetColumn] = []
 		topic = self.get_topic()
 		for index, breakdown_dim in enumerate(breakdown_dimensions):
+			measure_on_factor = self.find_factor(breakdown_dim.factorOrColumnId, lambda: 'Measure on factor not declared.')
 			if breakdown_dim.timeMeasureMethod:
 				computer_column = ComputedParameter()
 				computer_column.type = self.__mapping_param_compute_type_to_measure_type(
@@ -109,6 +147,36 @@ class TopicBaseObjectiveFactorDataService(ObjectiveFactorDataService):
 				dataset_columns.append(SubjectDatasetColumn(columnId=f'{FAKED_DIMENSION_ID}_{index}'
 				                                            , parameter=computer_column
 				                                            ))
+
+			elif breakdown_dim.type == 	BreakdownDimensionType.BUCKET:
+				if breakdown_dim.bucketId is None:
+					raise Exception("BreakdownDimensionType is BUCKET , but bucketId is None")
+				bucket = self.to_category_segments_bucket(self.load_bucket_data(breakdown_dim.bucketId))
+				segments = ArrayHelper(bucket.segments) \
+					.filter(lambda x: x.value is not None and len(x.value) != 0).to_list()
+				if len(segments) == 0:
+					raise IndicatorKernelException('Category segments not declared.')
+				anyway_segment: CategorySegment = ArrayHelper(segments) \
+					.find(lambda x: len(x.value) == 1 and x.value[0] == OtherCategorySegmentValue)
+				if anyway_segment is not None:
+					conditional_routes = ArrayHelper(segments).filter(lambda x: x != anyway_segment).to_list()
+					anyway_route = ConstantParameter(kind=ParameterKind.CONSTANT, value=anyway_segment.name)
+				else:
+					conditional_routes = segments
+					anyway_route = ConstantParameter(kind=ParameterKind.CONSTANT, value='-')
+
+				dataset_columns.append(SubjectDatasetColumn(
+					columnId=f'{MEASURE_ON_COLUMN_ID}_{index}',
+					parameter=ComputedParameter(
+						kind=ParameterKind.COMPUTED, type=ParameterComputeType.CASE_THEN,
+						parameters=[
+							*ArrayHelper(conditional_routes).map(
+								lambda x: self.to_category_case_route(x, measure_on_factor)).to_list(),
+							anyway_route
+						]
+					),
+					alias=f'column_{MEASURE_ON_COLUMN_ID}_{index}'
+				))
 			else:
 				dataset_columns.append(SubjectDatasetColumn(columnId=f'{FAKED_DIMENSION_ID}_{index}'
 				                                            , parameter=TopicFactorParameter(
@@ -130,6 +198,8 @@ class TopicBaseObjectiveFactorDataService(ObjectiveFactorDataService):
 		# TODO build filter
 		dataset_filters: Optional[ParameterJoint] = self.build_filters(time_frame)
 
+
+
 		return Subject(dataset=SubjectDataset(columns=dataset_columns, filters=dataset_filters)), column_id
 
 	def __fake_to_report_for_breakdown(self, subject: Subject, column_id: SubjectDatasetColumnId):
@@ -141,11 +211,17 @@ class TopicBaseObjectiveFactorDataService(ObjectiveFactorDataService):
 			dimensions.append(ReportDimension(columnId=column.columnId, name=f'_BUCKET_ON_{index}_'))
 
 		ArrayHelper(subject.dataset.columns) \
-			.filter(lambda x: x.columnId.startswith(FAKED_DIMENSION_ID)) \
+			.filter(lambda x: x.columnId.startswith(FAKED_DIMENSION_ID) or x.columnId.startswith(MEASURE_ON_COLUMN_ID)) \
 			.each_with_index(lambda x, index: measure_to_dimension(x, index + 1))
 
 		report.dimensions = dimensions
 		return report
+
+	# def fake_measure_on_to_dataset_column(self) -> List[SubjectDatasetColumn]:
+	# 	return ArrayHelper(self..measures) \
+	# 		.map_with_index(lambda x, index: self.fake_measure_on_column(x, index + 1)) \
+	# 		.filter(lambda x: x is not None) \
+	# 		.to_list()
 
 	@staticmethod
 	def move_indicators_to_tail(row: DataResultSetRow, move_count: int) -> DataResultSetRow:
