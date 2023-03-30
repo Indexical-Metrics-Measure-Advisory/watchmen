@@ -77,10 +77,7 @@ export const BreakdownTargetDimension = (props: {
 	};
 
 	const factorOrColumnOptions = buildMeasureOnOptions({
-		indicator: indicator!,
-		topic: topic,
-		subject: subject,
-		buckets: buckets
+		indicator: indicator!, topic, subject, buckets
 	});
 	const selected = isNotBlank(dimension.factorOrColumnId);
 	const buildDimensionOnOptions = (): Array<DimensionOnOption> => {
