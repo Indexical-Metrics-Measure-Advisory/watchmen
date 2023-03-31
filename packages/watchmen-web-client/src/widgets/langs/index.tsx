@@ -6,13 +6,15 @@ import {EventTypes} from '../events/types';
 import {En} from './en';
 import {Jp} from './jp';
 import {LanguageDeclareType, LanguageObjectType} from './types';
+import { VI } from './vi';
 import {Zh} from './zh';
 
 // @ts-ignore
 const LANGUAGES: Record<'en' | 'zh' | 'jp', LanguageDeclareType> = {
 	[En.$$settings.code]: En,
 	[Zh.$$settings.code]: Zh,
-	[Jp.$$settings.code]: Jp
+	[Jp.$$settings.code]: Jp,
+	[VI.$$settings.code]: VI
 };
 
 const findLanguage = (lang: string) => {
