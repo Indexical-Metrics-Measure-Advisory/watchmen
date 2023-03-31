@@ -24,7 +24,7 @@ export const AggregateItem = () => {
 
 	const aggregates = data?.indicator?.factorId == null
 		? [IndicatorAggregateArithmetic.COUNT]
-		: [IndicatorAggregateArithmetic.COUNT, IndicatorAggregateArithmetic.SUM, IndicatorAggregateArithmetic.AVG,
+		: [IndicatorAggregateArithmetic.COUNT, IndicatorAggregateArithmetic.DISTINCT_COUNT,IndicatorAggregateArithmetic.SUM, IndicatorAggregateArithmetic.AVG,
 			IndicatorAggregateArithmetic.MAX, IndicatorAggregateArithmetic.MIN];
 
 	return <Step index={IndicatorDeclarationStep.AGGREGATE_ITEM} visible={visible} ref={ref}>

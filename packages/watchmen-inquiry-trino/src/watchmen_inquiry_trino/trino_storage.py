@@ -729,6 +729,8 @@ class TrinoStorage(TrinoStorageSPI):
 		arithmetic = table_column.arithmetic
 		if arithmetic == FreeAggregateArithmetic.COUNT:
 			return f'COUNT(1) AS {alias}'
+		elif arithmetic == FreeAggregateArithmetic.DISTINCT_COUNT:
+			return f'COUNT(DISTINCT {name}) AS {alias}'
 		elif arithmetic == FreeAggregateArithmetic.SUMMARY:
 			return f'SUM({self.to_decimal(name)}) AS {alias}'
 		elif arithmetic == FreeAggregateArithmetic.AVERAGE:

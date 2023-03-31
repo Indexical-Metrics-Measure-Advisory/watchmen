@@ -345,6 +345,8 @@ class SubjectStorage:
 			raise InquiryKernelException(f'Cannot match subject dataset column by given indicator[{indicator.dict()}].')
 		if indicator.arithmetic == ReportIndicatorArithmetic.COUNT:
 			arithmetic = FreeAggregateArithmetic.COUNT
+		elif indicator.arithmetic == ReportIndicatorArithmetic.DISTINCT_COUNT:
+			arithmetic = FreeAggregateArithmetic.DISTINCT_COUNT
 		elif indicator.arithmetic == ReportIndicatorArithmetic.SUMMARY:
 			arithmetic = FreeAggregateArithmetic.SUMMARY
 		elif indicator.arithmetic == ReportIndicatorArithmetic.AVERAGE:

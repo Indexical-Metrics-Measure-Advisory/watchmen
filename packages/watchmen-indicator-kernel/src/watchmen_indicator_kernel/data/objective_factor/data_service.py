@@ -271,6 +271,10 @@ class ObjectiveFactorDataService(ObjectiveCriteriaService):
 		elif match_arithmetic(arithmetic, IndicatorAggregateArithmetic.MIN):
 			report_indicator_name = '_MIN_'
 			report_indicator_arithmetic = ReportIndicatorArithmetic.MINIMUM
+
+		elif match_arithmetic(arithmetic, IndicatorAggregateArithmetic.DISTINCT_COUNT):
+			report_indicator_name = '_DISTINCT_COUNT_'
+			report_indicator_arithmetic = ReportIndicatorArithmetic.DISTINCT_COUNT
 		else:
 			raise IndicatorKernelException(f'Indicator aggregate arithmetics[{arithmetic}] is not supported.')
 

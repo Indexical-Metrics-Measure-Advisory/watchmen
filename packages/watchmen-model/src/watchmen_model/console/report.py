@@ -14,6 +14,7 @@ from .utils import construct_rect
 class ReportIndicatorArithmetic(str, Enum):
 	NONE = 'none'
 	COUNT = 'count'
+	DISTINCT_COUNT = 'distinct_count'
 	SUMMARY = 'sum'
 	AVERAGE = 'avg'
 	MAXIMUM = 'max'
