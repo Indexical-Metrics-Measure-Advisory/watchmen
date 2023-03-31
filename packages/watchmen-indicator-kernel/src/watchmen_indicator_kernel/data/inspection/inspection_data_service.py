@@ -8,7 +8,7 @@ class InspectionDataService(ObjectiveCriteriaService):
 # 	super().__init__(principal_service)
 # 	self.inspection = inspection
 # 	self.TIME_GROUP_YEAR_OR_MONTH_COLUMN_ID: str = 'time_group_year_or_month_column'
-#
+# #
 # def has_time_group(self) -> Tuple[bool, Optional[FactorId], Optional[MeasureMethod]]:
 # 	measure_on_time_factor_id = self.inspection.measureOnTimeFactorId
 # 	if is_blank(measure_on_time_factor_id):
@@ -18,16 +18,16 @@ class InspectionDataService(ObjectiveCriteriaService):
 # 		return False, None, None
 #
 # 	return True, measure_on_time_factor_id, measure_on_time
-#
-# # noinspection PyMethodMayBeStatic
-# def is_datetime_factor(self, factor_or_type: Union[Factor, FactorType]) -> bool:
-# 	factor_type = factor_or_type.type if isinstance(factor_or_type, Factor) else factor_or_type
-# 	return \
-# 		factor_type == FactorType.DATETIME \
-# 		or factor_type == FactorType.FULL_DATETIME \
-# 		or factor_type == FactorType.DATE \
-# 		or factor_type == FactorType.DATE_OF_BIRTH
-#
+# #
+# # # noinspection PyMethodMayBeStatic
+# # def is_datetime_factor(self, factor_or_type: Union[Factor, FactorType]) -> bool:
+# # 	factor_type = factor_or_type.type if isinstance(factor_or_type, Factor) else factor_or_type
+# # 	return \
+# # 		factor_type == FactorType.DATETIME \
+# # 		or factor_type == FactorType.FULL_DATETIME \
+# # 		or factor_type == FactorType.DATE \
+# # 		or factor_type == FactorType.DATE_OF_BIRTH
+# #
 # def fake_time_group_year_or_month_column(
 # 		self, topic_id: TopicId, factor_id: FactorId, name: str) -> Optional[SubjectDatasetColumn]:
 # 	"""
@@ -63,32 +63,32 @@ class InspectionDataService(ObjectiveCriteriaService):
 # 		)
 # 	else:
 # 		return None
-#
-# def fake_report_indicator(self, indicators: List[ReportIndicator], columnId: SubjectDatasetColumnId) -> None:
-# 	arithmetics = self.inspection.aggregateArithmetics
-# 	if arithmetics is None or len(arithmetics) == 0:
-# 		indicators.append(
-# 			ReportIndicator(columnId=columnId, name='_SUM_', arithmetic=ReportIndicatorArithmetic.SUMMARY))
-# 	else:
-# 		if IndicatorAggregateArithmetic.COUNT in arithmetics or IndicatorAggregateArithmetic.COUNT.value in arithmetics:
-# 			indicators.append(
-# 				ReportIndicator(columnId=columnId, name='_COUNT_', arithmetic=ReportIndicatorArithmetic.COUNT))
-# 		if IndicatorAggregateArithmetic.SUM in arithmetics or IndicatorAggregateArithmetic.SUM.value in arithmetics:
-# 			indicators.append(
-# 				ReportIndicator(columnId=columnId, name='_SUM_', arithmetic=ReportIndicatorArithmetic.SUMMARY))
-# 		if IndicatorAggregateArithmetic.AVG in arithmetics or IndicatorAggregateArithmetic.AVG.value in arithmetics:
-# 			indicators.append(
-# 				ReportIndicator(columnId=columnId, name='_AVG_', arithmetic=ReportIndicatorArithmetic.AVERAGE))
-# 		if IndicatorAggregateArithmetic.MAX in arithmetics or IndicatorAggregateArithmetic.MAX.value in arithmetics:
-# 			indicators.append(
-# 				ReportIndicator(columnId=columnId, name='_MAX_', arithmetic=ReportIndicatorArithmetic.MAXIMUM))
-# 		if IndicatorAggregateArithmetic.MIN in arithmetics or IndicatorAggregateArithmetic.MIN.value in arithmetics:
-# 			indicators.append(
-# 				ReportIndicator(columnId=columnId, name='_MIN_', arithmetic=ReportIndicatorArithmetic.MINIMUM))
-#
-# @abstractmethod
-# def find(self) -> DataResult:
-# 	pass
-#
-# def find_data(self) -> DataResultSet:
-# 	return self.find().data
+# #
+# # def fake_report_indicator(self, indicators: List[ReportIndicator], columnId: SubjectDatasetColumnId) -> None:
+# # 	arithmetics = self.inspection.aggregateArithmetics
+# # 	if arithmetics is None or len(arithmetics) == 0:
+# # 		indicators.append(
+# # 			ReportIndicator(columnId=columnId, name='_SUM_', arithmetic=ReportIndicatorArithmetic.SUMMARY))
+# # 	else:
+# # 		if IndicatorAggregateArithmetic.COUNT in arithmetics or IndicatorAggregateArithmetic.COUNT.value in arithmetics:
+# # 			indicators.append(
+# # 				ReportIndicator(columnId=columnId, name='_COUNT_', arithmetic=ReportIndicatorArithmetic.COUNT))
+# # 		if IndicatorAggregateArithmetic.SUM in arithmetics or IndicatorAggregateArithmetic.SUM.value in arithmetics:
+# # 			indicators.append(
+# # 				ReportIndicator(columnId=columnId, name='_SUM_', arithmetic=ReportIndicatorArithmetic.SUMMARY))
+# # 		if IndicatorAggregateArithmetic.AVG in arithmetics or IndicatorAggregateArithmetic.AVG.value in arithmetics:
+# # 			indicators.append(
+# # 				ReportIndicator(columnId=columnId, name='_AVG_', arithmetic=ReportIndicatorArithmetic.AVERAGE))
+# # 		if IndicatorAggregateArithmetic.MAX in arithmetics or IndicatorAggregateArithmetic.MAX.value in arithmetics:
+# # 			indicators.append(
+# # 				ReportIndicator(columnId=columnId, name='_MAX_', arithmetic=ReportIndicatorArithmetic.MAXIMUM))
+# # 		if IndicatorAggregateArithmetic.MIN in arithmetics or IndicatorAggregateArithmetic.MIN.value in arithmetics:
+# # 			indicators.append(
+# # 				ReportIndicator(columnId=columnId, name='_MIN_', arithmetic=ReportIndicatorArithmetic.MINIMUM))
+# #
+# # @abstractmethod
+# # def find(self) -> DataResult:
+# # 	pass
+# #
+# # def find_data(self) -> DataResultSet:
+# # 	return self.find().data
