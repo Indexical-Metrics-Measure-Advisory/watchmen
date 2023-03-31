@@ -176,6 +176,7 @@ class EntityStraightColumn(DataModel):
 
 class EntityColumnAggregateArithmetic(str, Enum):
 	COUNT = 'count',
+	DISTINCT_COUNT = 'distinct_count'
 	SUM = 'sum',
 	AVG = 'avg',
 	MAX = 'max',

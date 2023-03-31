@@ -7,6 +7,7 @@ from .storage_types import ColumnNameLiteral, EntityCriteria, EntitySortColumn, 
 
 class FreeAggregateArithmetic(str, Enum):
 	NONE = 'none'
+	DISTINCT_COUNT = 'distinct_count'
 	COUNT = 'count'
 	SUMMARY = 'sum'
 	AVERAGE = 'avg'

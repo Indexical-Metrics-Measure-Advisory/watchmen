@@ -10,6 +10,7 @@ from watchmen_utilities import ArrayHelper
 
 class IndicatorAggregateArithmetic(str, Enum):
 	COUNT = 'count'
+	DISTINCT_COUNT = 'distinct_count'
 	SUM = 'sum'
 	AVG = 'avg'
 	MAX = 'max'
