@@ -598,7 +598,7 @@ export const Jp: LanguageDeclareType = {
 		}
 	},
 	SUBSCRIBE: {
-		ON: '種類',
+		ON: '電子メールボックスを購読する。',
 		BY_MAIL: '電子メール',
 		MAIL_ADDRESS: 'アドレス',
 		BY_SLACK: 'Slack',

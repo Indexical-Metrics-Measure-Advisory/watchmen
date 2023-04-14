@@ -14,6 +14,7 @@ class UserShaper(EntityShaper):
 			'name': user.name,
 			'nickname': user.nickName,
 			'password': user.password,
+			'email': user.email,
 			'is_active': user.isActive,
 			'group_ids': user.groupIds,
 			'role': user.role,
@@ -26,6 +27,7 @@ class UserShaper(EntityShaper):
 			name=row.get('name'),
 			nickName=row.get('nickname'),
 			password=row.get('password'),
+			email=row.get('email'),
 			isActive=row.get('is_active'),
 			groupIds=row.get('group_ids'),
 			role=row.get('role')
