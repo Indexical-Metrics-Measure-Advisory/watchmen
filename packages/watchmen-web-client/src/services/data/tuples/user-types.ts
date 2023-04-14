@@ -16,6 +16,7 @@ export interface User extends Tuple, OptimisticLock, UserGroupHolder {
 	role: UserRole;
 	nickName: string;
 	password: string;
+	email?: string;
 	// only works on super admin login. otherwise, it is undefined
 	tenantId?: TenantId;
 }

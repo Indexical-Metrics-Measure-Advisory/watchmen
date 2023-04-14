@@ -68,6 +68,7 @@ table_users = Table(
 	'users', meta_data,
 	create_pk('user_id'),
 	create_str('name', 50, False), create_str('nickname', 50), create_str('password', 100),
+	create_str('email', 100),
 	create_bool('is_active'), create_json('group_ids'), create_str('role', 50),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )

@@ -598,7 +598,7 @@ export const En = {
 		}
 	},
 	SUBSCRIBE: {
-		ON: 'Subscribe On',
+		ON: 'Subscribe via email.',
 		BY_MAIL: 'Email',
 		MAIL_ADDRESS: 'Mail Address',
 		BY_SLACK: 'Slack',
