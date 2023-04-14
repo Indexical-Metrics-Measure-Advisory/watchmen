@@ -23,7 +23,7 @@ const UserEditor = (props: { user: User, codes?: HoldByUser }) => {
 	const {fire} = useTupleEventBus();
 	const forceUpdate = useForceUpdate();
 
-	const onPropChange = (prop: 'name' | 'nickName' | 'password') => (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+	const onPropChange = (prop: 'name' | 'nickName' | 'password' | 'email') => (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
 		if (user[prop] !== event.target.value) {
 			user[prop] = event.target.value;
 			fire(TupleEventTypes.CHANGE_TUPLE_STATE, TupleState.CHANGED);
@@ -59,6 +59,8 @@ const UserEditor = (props: { user: User, codes?: HoldByUser }) => {
 		<TuplePropertyLabel>Password:</TuplePropertyLabel>
 		<TuplePropertyInput value={user.password || ''} onChange={onPropChange('password')}
 		                    placeholder="Leave empty if keep password"/>
+		<TuplePropertyLabel>Email:</TuplePropertyLabel>
+		<TuplePropertyInput value={user.email || ''} onChange={onPropChange('email')}/>
 		<TuplePropertyLabel>User Role:</TuplePropertyLabel>
 		<TuplePropertyDropdown value={user.role || UserRole.CONSOLE} options={roleOptions} onChange={onRoleChange}/>
 		{isSuperAdmin()
