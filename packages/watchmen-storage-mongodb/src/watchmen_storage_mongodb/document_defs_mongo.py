@@ -85,6 +85,7 @@ table_users = MongoDocument(
 	columns=[
 		create_pk('user_id'),
 		create_str('name', False), create_str('nickname'), create_str('password'),
+		create_str('email'),
 		create_bool('is_active'), create_json('group_ids'), create_str('role'),
 		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 	]

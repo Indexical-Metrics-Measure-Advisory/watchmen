@@ -8,7 +8,6 @@ import {
 } from '@/services/data/tuples/objective-types';
 import {Button} from '@/widgets/basic/button';
 import {ICON_SUBSCRIBE} from '@/widgets/basic/constants';
-import {Input} from '@/widgets/basic/input';
 import {PageHeaderButton} from '@/widgets/basic/page-header-buttons';
 import {ButtonInk} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
@@ -18,7 +17,7 @@ import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {guardTimeFrame} from '@/widgets/objective/time-frame-utils';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import React, {ChangeEvent, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import styled from 'styled-components';
 import {useObjectiveEventBus} from '../objective-event-bus';
 import {ObjectiveEventTypes} from '../objective-event-bus-types';
@@ -83,14 +82,14 @@ const DerivedObjectiveSubscribe = (props: { derivedObjective: DerivedObjective; 
 
 	const {fire} = useEventBus();
 	const [state, setState] = useState(false);
-	const [subscription, setSubscription] = useState<Subscription>({mail: '', slack: '', frequency});
+	const [subscription] = useState<Subscription>({mail: '', slack: '', frequency});
 
-	const onMailChanged = (event: ChangeEvent<HTMLInputElement>) => {
-		setSubscription(state => ({...state, mail: event.target.value}));
-	};
-	const onSlackChanged = (event: ChangeEvent<HTMLInputElement>) => {
-		setSubscription(state => ({...state, slack: event.target.value}));
-	};
+	// const onMailChanged = (event: ChangeEvent<HTMLInputElement>) => {
+	// 	setSubscription(state => ({...state, mail: event.target.value}));
+	// };
+	// const onSlackChanged = (event: ChangeEvent<HTMLInputElement>) => {
+	// 	setSubscription(state => ({...state, slack: event.target.value}));
+	// };
 	const onSubscribeClicked = async () => {
 		setState(false);
 		fire(EventTypes.INVOKE_REMOTE_REQUEST,
@@ -110,11 +109,11 @@ const DerivedObjectiveSubscribe = (props: { derivedObjective: DerivedObjective; 
 	return <>
 		<ShareDialogBody>
 			<DialogLabel>{Lang.SUBSCRIBE.ON}</DialogLabel>
-			<DialogLabel>{Lang.SUBSCRIBE.BY_MAIL}</DialogLabel>
-			<Input value={subscription.mail} onChange={onMailChanged}
-			       placeholder={Lang.PLAIN.SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER}/>
-			<DialogLabel>{Lang.SUBSCRIBE.BY_SLACK}</DialogLabel>
-			<Input value={subscription.slack} onChange={onSlackChanged}/>
+			{/*<DialogLabel>{Lang.SUBSCRIBE.BY_MAIL}</DialogLabel>*/}
+			{/*<Input value={subscription.mail} onChange={onMailChanged}*/}
+			{/*       placeholder={Lang.PLAIN.SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER}/>*/}
+			{/*<DialogLabel>{Lang.SUBSCRIBE.BY_SLACK}</DialogLabel>*/}
+			{/*<Input value={subscription.slack} onChange={onSlackChanged}/>*/}
 			<DialogLabel>{Lang.SUBSCRIBE.FREQUENCY}</DialogLabel>
 			<DialogLabel>{frequencyLabel}</DialogLabel>
 			{state ? <DialogLabel>{Lang.SUBSCRIBE.SUBSCRIPTION_SUBMITTED}</DialogLabel> : null}

@@ -598,7 +598,7 @@ export const Zh: LanguageDeclareType = {
 		}
 	},
 	SUBSCRIBE: {
-		ON: '订阅类型',
+		ON: '订阅到我的邮箱.',
 		BY_MAIL: '邮件',
 		MAIL_ADDRESS: '邮箱地址',
 		BY_SLACK: 'Slack',

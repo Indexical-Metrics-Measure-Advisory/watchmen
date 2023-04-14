@@ -18,6 +18,7 @@ class User(TenantBasedTuple, OptimisticLock, BaseModel):
 	name: str = None
 	nickName: str = None
 	password: str = None
+	email: str = None
 	isActive: bool = True
 	groupIds: List[UserGroupId] = None
 	role: UserRole = None
