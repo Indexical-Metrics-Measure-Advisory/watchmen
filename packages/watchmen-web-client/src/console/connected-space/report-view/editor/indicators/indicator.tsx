@@ -134,6 +134,7 @@ export const IndicatorEditor = (props: {
 		{value: ReportIndicatorArithmetic.SUMMARY, label: Lang.CHART.ARITHMETIC_SUMMARY},
 		{value: ReportIndicatorArithmetic.AVERAGE, label: Lang.CHART.ARITHMETIC_AVERAGE},
 		{value: ReportIndicatorArithmetic.COUNT, label: Lang.CHART.ARITHMETIC_COUNT},
+		{value: ReportIndicatorArithmetic.DISTINCT_COUNT, label: Lang.CHART.ARITHMETIC_DISTINCT_COUNT},
 		{value: ReportIndicatorArithmetic.MAXIMUM, label: Lang.CHART.ARITHMETIC_MAX},
 		{value: ReportIndicatorArithmetic.MINIMUM, label: Lang.CHART.ARITHMETIC_MIN}
 	].filter(x => x) as Array<DropdownOption>;
