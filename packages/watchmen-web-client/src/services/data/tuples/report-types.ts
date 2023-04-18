@@ -7,6 +7,7 @@ import {Tuple} from './tuple-types';
 
 export enum ReportIndicatorArithmetic {
 	NONE = 'none',
+	DISTINCT_COUNT = 'distinct_count',
 	COUNT = 'count',
 	SUMMARY = 'sum',
 	AVERAGE = 'avg',

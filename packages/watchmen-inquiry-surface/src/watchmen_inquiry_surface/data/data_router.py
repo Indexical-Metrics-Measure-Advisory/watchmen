@@ -131,6 +131,8 @@ async def query_dataset(
 		arithmetic = ReportIndicatorArithmetic.NONE
 		if indicator.arithmetic == SubjectDatasetCriteriaIndicatorArithmetic.COUNT:
 			arithmetic = ReportIndicatorArithmetic.COUNT
+		elif indicator.arithmetic == SubjectDatasetCriteriaIndicatorArithmetic.DISTINCT_COUNT:
+			arithmetic = ReportIndicatorArithmetic.DISTINCT_COUNT
 		elif indicator.arithmetic == SubjectDatasetCriteriaIndicatorArithmetic.SUMMARY:
 			arithmetic = ReportIndicatorArithmetic.SUMMARY
 		elif indicator.arithmetic == SubjectDatasetCriteriaIndicatorArithmetic.AVERAGE:
