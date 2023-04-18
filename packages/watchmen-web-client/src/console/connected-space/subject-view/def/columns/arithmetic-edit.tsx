@@ -27,6 +27,7 @@ export const ArithmeticEditor = (props: { column: SubjectDataSetColumn }) => {
 	const arithmetics = [
 		{value: SubjectColumnArithmetic.NONE, label: Lang.CONSOLE.CONNECTED_SPACE.SUBJECT_COLUMN_ARITHMETIC_NONE},
 		{value: SubjectColumnArithmetic.COUNT, label: Lang.CONSOLE.CONNECTED_SPACE.SUBJECT_COLUMN_ARITHMETIC_COUNT},
+		{value: SubjectColumnArithmetic.DISTINCT_COUNT, label: Lang.CONSOLE.CONNECTED_SPACE.SUBJECT_COLUMN_ARITHMETIC_DISTINCT_COUNT},
 		{value: SubjectColumnArithmetic.SUMMARY, label: Lang.CONSOLE.CONNECTED_SPACE.SUBJECT_COLUMN_ARITHMETIC_SUMMARY},
 		{value: SubjectColumnArithmetic.AVERAGE, label: Lang.CONSOLE.CONNECTED_SPACE.SUBJECT_COLUMN_ARITHMETIC_AVERAGE},
 		{value: SubjectColumnArithmetic.MAXIMUM, label: Lang.CONSOLE.CONNECTED_SPACE.SUBJECT_COLUMN_ARITHMETIC_MAX},
