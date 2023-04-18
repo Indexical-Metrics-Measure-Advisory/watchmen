@@ -279,6 +279,8 @@ class SubjectStorage:
 			arithmetic = column.arithmetic
 			if arithmetic is None or arithmetic == SubjectColumnArithmetic.NONE:
 				column_arithmetic = FreeAggregateArithmetic.NONE
+			elif arithmetic == SubjectColumnArithmetic.DISTINCT_COUNT:
+				column_arithmetic = FreeAggregateArithmetic.DISTINCT_COUNT
 			elif arithmetic == SubjectColumnArithmetic.COUNT:
 				column_arithmetic = FreeAggregateArithmetic.COUNT
 			elif arithmetic == SubjectColumnArithmetic.SUMMARY:
@@ -459,7 +461,7 @@ class SubjectStorage:
 			a_start_value, an_end_value = to_decimal(a_start_value, an_end_value)
 			return \
 				None if a_start_value is None else a_start_value.to_integral(), \
-				None if an_end_value is None else an_end_value.to_integral()
+					None if an_end_value is None else an_end_value.to_integral()
 
 		if funnel_type == ReportFunnelType.NUMERIC:
 			return to_decimal(start_value, end_value)
