@@ -526,7 +526,7 @@ def create_run_constant_segment(
 		# next sequence
 		return \
 			create_snowflake_generator(prefix), \
-			[PossibleParameterType.STRING if has_prefix else PossibleParameterType.NUMBER]
+				[PossibleParameterType.STRING if has_prefix else PossibleParameterType.NUMBER]
 	elif variable_name == VariablePredefineFunctions.NOW.value:
 		# now
 		if has_prefix:
@@ -540,38 +540,38 @@ def create_run_constant_segment(
 			create_date_diff(
 				prefix, variable_name,
 				VariablePredefineFunctions.YEAR_DIFF, available_schemas, allow_in_memory_variables), \
-			[PossibleParameterType.STRING if has_prefix else PossibleParameterType.NUMBER]
+				[PossibleParameterType.STRING if has_prefix else PossibleParameterType.NUMBER]
 	elif variable_name.startswith(VariablePredefineFunctions.MONTH_DIFF.value):
 		# month diff
 		return \
 			create_date_diff(
 				prefix, variable_name,
 				VariablePredefineFunctions.MONTH_DIFF, available_schemas, allow_in_memory_variables), \
-			[PossibleParameterType.STRING if has_prefix else PossibleParameterType.NUMBER]
+				[PossibleParameterType.STRING if has_prefix else PossibleParameterType.NUMBER]
 	elif variable_name.startswith(VariablePredefineFunctions.DAY_DIFF.value):
 		# day diff
 		return \
 			create_date_diff(
 				prefix, variable_name,
 				VariablePredefineFunctions.DAY_DIFF, available_schemas, allow_in_memory_variables), \
-			[PossibleParameterType.STRING if has_prefix else PossibleParameterType.NUMBER]
+				[PossibleParameterType.STRING if has_prefix else PossibleParameterType.NUMBER]
 	elif variable_name.startswith(VariablePredefineFunctions.MOVE_DATE.value):
 		# move date
 		return \
 			create_move_date(
 				prefix, variable_name, available_schemas, allow_in_memory_variables), \
-			[PossibleParameterType.STRING] if has_prefix else [
-				PossibleParameterType.DATE, PossibleParameterType.DATETIME, PossibleParameterType.TIME]
+				[PossibleParameterType.STRING] if has_prefix else [
+					PossibleParameterType.DATE, PossibleParameterType.DATETIME, PossibleParameterType.TIME]
 	elif variable_name.startswith(VariablePredefineFunctions.DATE_FORMAT.value):
 		# date format
 		return \
 			create_date_format(prefix, variable_name, available_schemas, allow_in_memory_variables), \
-			[PossibleParameterType.STRING]
+				[PossibleParameterType.STRING]
 	elif variable_name.endswith(VariablePredefineFunctions.LENGTH.value):
 		# char length
 		return \
 			create_char_length(prefix, variable_name, available_schemas, allow_in_memory_variables), \
-			[PossibleParameterType.STRING if has_prefix else PossibleParameterType.NUMBER]
+				[PossibleParameterType.STRING if has_prefix else PossibleParameterType.NUMBER]
 
 	if allow_in_memory_variables:
 		if variable_name.startswith(VariablePredefineFunctions.FROM_PREVIOUS_TRIGGER_DATA.value):
@@ -584,11 +584,11 @@ def create_run_constant_segment(
 				raise DataKernelException(f'Constant[{variable_name}] is not supported.')
 			return \
 				create_from_previous_trigger_data(prefix, variable_name[length + 1:]), \
-				[PossibleParameterType.STRING if has_prefix else PossibleParameterType.ANY_VALUE]
+					[PossibleParameterType.STRING if has_prefix else PossibleParameterType.ANY_VALUE]
 		else:
 			return \
 				create_get_from_variables_with_prefix(prefix, variable_name), \
-				[PossibleParameterType.STRING if has_prefix else PossibleParameterType.ANY_VALUE]
+					[PossibleParameterType.STRING if has_prefix else PossibleParameterType.ANY_VALUE]
 	else:
 		# recover to original string
 		return create_static_str(f'{prefix}{{{variable_name}}}'), [PossibleParameterType.STRING]
@@ -1021,7 +1021,7 @@ def parse_conditional_parameter_for_storage(
 ) -> Tuple[ParsedStorageCondition, ParsedStorageParameter]:
 	return \
 		parse_condition_for_storage(parameter.on, available_schemas, principal_service, allow_in_memory_variables), \
-		parse_parameter_for_storage(parameter, available_schemas, principal_service, allow_in_memory_variables)
+			parse_parameter_for_storage(parameter, available_schemas, principal_service, allow_in_memory_variables)
 
 
 class ParsedStorageMappingFactor:
@@ -1067,16 +1067,16 @@ class ParsedStorageMappingFactor:
 		parsed, decimal_value = is_decimal(value)
 		return decimal_value if parsed else 0
 
-	def get_original_value(self, original_data: Optional[Dict[str, Any]]) -> int:
+	def get_original_value(self, original_data: Optional[Dict[str, Any]]) -> Decimal:
 		"""
 		return 0 when not found or cannot be parsed to decimal
 		"""
 		value = original_data.get(self.factor.name)
 		parsed, decimal_value = is_decimal(value)
 		if parsed:
-			return int(decimal_value)
+			return decimal_value
 		else:
-			return 0
+			return Decimal('0')
 
 	def compute_current_value(self, variables: PipelineVariables, principal_service: PrincipalService) -> Decimal:
 		value = self.parsedParameter.value(variables, principal_service)
@@ -1094,7 +1094,7 @@ class ParsedStorageMappingFactor:
 			self, variables: PipelineVariables, principal_service: PrincipalService) -> Tuple[Decimal, Decimal]:
 		return \
 			self.compute_previous_value(variables, principal_service), \
-			self.compute_current_value(variables, principal_service)
+				self.compute_current_value(variables, principal_service)
 
 	def run(
 			self, data: Dict[str, Any], original_data: Optional[Dict[str, Any]], variables: PipelineVariables,
@@ -1201,10 +1201,10 @@ class ParsedStorageMappingFactor:
 					value = 1
 			elif self.accumulateMode == AccumulateMode.CUMULATE:
 				# using force cumulating explicitly, ignore previous data anyway, always add 1
-				value = self.get_original_value(original_data) + 1
+				value = int(self.get_original_value(original_data)) + 1
 			elif variables.has_previous_trigger_data():
 				# has previous data, it used to be triggered
-				value = self.get_original_value(original_data)
+				value = int(self.get_original_value(original_data))
 				if self.accumulateMode == AccumulateMode.REVERSE:
 					# reverse the last accumulating, subtract 1
 					if value <= 0:
@@ -1221,7 +1221,7 @@ class ParsedStorageMappingFactor:
 					'There is no previous trigger data, therefore reverse count cannot be performed here.')
 			else:
 				# no previous data, count + 1
-				value = self.get_original_value(original_data) + 1
+				value = int(self.get_original_value(original_data)) + 1
 		else:
 			value = self.parsedParameter.value(variables, principal_service)
 			# value for mapping is computed in memory
