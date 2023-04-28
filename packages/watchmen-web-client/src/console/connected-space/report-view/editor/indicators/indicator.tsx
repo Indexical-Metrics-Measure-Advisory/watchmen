@@ -38,7 +38,7 @@ export const IndicatorEditor = (props: {
 	indicator: ReportIndicator;
 	onDelete: (indicator: ReportIndicator) => void;
 }) => {
-	const {connectedSpace, subject, report, indicator, onDelete} = props;
+	const {subject, report, indicator, onDelete} = props;
 	const {chart} = report;
 	const {type: chartType} = chart;
 
@@ -150,7 +150,7 @@ export const IndicatorEditor = (props: {
 	// 	}
 	// };
 
-	return <IndicatorContainer removable={scriptOpened}>
+	return <IndicatorContainer removable={true}> {/*removable={scriptOpened}>*/}
 		<IndicatorIndexLabel>{index}</IndicatorIndexLabel>
 		{/*{scriptOpened*/}
 		{/*	? <>*/}

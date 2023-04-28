@@ -29,7 +29,7 @@ export const DimensionEditor = (props: {
 	dimension: ReportDimension;
 	onDelete: (dimension: ReportDimension) => void;
 }) => {
-	const {connectedSpace, subject, report, dimension, onDelete} = props;
+	const {subject, report, dimension, onDelete} = props;
 	const {chart} = report;
 	const {type: chartType} = chart;
 
