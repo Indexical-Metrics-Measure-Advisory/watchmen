@@ -94,7 +94,7 @@ def __find_objective_factor(objective, objective_factor_id):
 
 @router.post("/indicator/derived-objective/breakdown/data", tags=[UserRole.ADMIN],
              response_model=ObjectiveTargetBreakdownValues)
-def load_objective_target_breakdown_values(breakdown_request: ObjectiveBreakdownRequest,
+async def load_objective_target_breakdown_values(breakdown_request: ObjectiveBreakdownRequest,
                                            principal_service: PrincipalService = Depends(
 	                                           get_admin_principal)) -> ObjectiveTargetBreakdownValues:
 	objective_target = breakdown_request.target
