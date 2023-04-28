@@ -12,6 +12,7 @@ packages = [
 python = "^3.9"
 boto3 = {version = "^1.24.20", optional = true }
 watchmen-model = { path = "../watchmen-model", develop = true }
+sqlparse = "^0.4.4"
 
 [tool.poetry.dev-dependencies]
 

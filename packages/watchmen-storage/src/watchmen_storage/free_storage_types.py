@@ -1,7 +1,8 @@
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Callable
 
 from watchmen_model.common import DataModel, Pageable
+from .sql_analysis.ast_vister import QueryPerformance
 from .storage_types import ColumnNameLiteral, EntityCriteria, EntitySortColumn, Literal
 
 
@@ -38,6 +39,7 @@ class FreeFinder(DataModel):
 	columns: List[FreeColumn] = None
 	joins: List[FreeJoin] = None
 	criteria: Optional[EntityCriteria] = None
+	preExecutor: Optional[Callable[[QueryPerformance,bool],None]] = None
 
 
 class FreeAggregateColumn(DataModel):
