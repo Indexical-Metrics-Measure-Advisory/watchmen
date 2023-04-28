@@ -9,6 +9,7 @@ export type SubjectDataSetColumnId = string;
 
 export enum SubjectColumnArithmetic {
 	NONE = 'none',
+	DISTINCT_COUNT = 'distinct_count',
 	COUNT = 'count',
 	SUMMARY = 'sum',
 	AVERAGE = 'avg',

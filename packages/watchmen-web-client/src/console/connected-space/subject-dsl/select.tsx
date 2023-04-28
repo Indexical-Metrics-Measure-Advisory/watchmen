@@ -3,7 +3,7 @@ import {Topic} from '@/services/data/tuples/topic-types';
 import {Lang} from '@/widgets/langs';
 import React, {Fragment} from 'react';
 import {v4} from 'uuid';
-import {Alias, Comma, NewLine, ParameterLine} from './literal';
+import {Alias, Comma, NewLine, ParameterAggregator, ParameterLine} from './literal';
 import {PrettyComputed, PrettyConstant, PrettyFactor} from './literal-types';
 import {buildTopicsMap, fromParameter} from './literal-utils';
 import {EmptyPart, PartContent} from './widgets';
@@ -43,7 +43,9 @@ export const Select = (props: {
 			? columns.map((column, columnIndex, all) => {
 				const {alias, built} = column;
 				return <Fragment key={v4()}>
-					<ParameterLine pretty={built}/>
+					<ParameterAggregator arithmetic={column.arithmetic}>
+						<ParameterLine pretty={built}/>
+					</ParameterAggregator>
 					<Alias name={alias}/>
 					{columnIndex === all.length - 1 ? null : <Comma/>}
 					{columnIndex === all.length - 1 ? null : <NewLine/>}

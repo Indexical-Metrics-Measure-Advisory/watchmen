@@ -91,6 +91,13 @@ export const FactorNode = styled.span.attrs({'data-widget': 'factor-name'})`
 `;
 export const NamePair = styled.span.attrs({'data-widget': 'name-pair'})`
 `;
+export const AggregatorLine = styled.span.attrs({'data-widget': 'aggregate-func'})`
+	font-variant   : petite-caps;
+	font-weight    : var(--font-bold);
+	color          : var(--warn-color);
+	font-style     : italic;
+	text-transform : uppercase;
+`;
 export const AliasNode = styled.span.attrs({'data-widget': 'alias-name'})`
 	line-height : var(--line-height);
 	font-weight : var(--font-demi-bold);

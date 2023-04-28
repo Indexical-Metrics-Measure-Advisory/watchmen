@@ -25,6 +25,7 @@ class SubjectDatasetJoin(DataModel, BaseModel):
 
 class SubjectColumnArithmetic(str, Enum):
 	NONE = 'none'
+	DISTINCT_COUNT = 'distinct_count'
 	COUNT = 'count'
 	SUMMARY = 'sum'
 	AVERAGE = 'avg'
@@ -161,6 +162,7 @@ class Subject(UserBasedTuple, Auditable, LastVisit, BaseModel):
 
 class SubjectDatasetCriteriaIndicatorArithmetic(str, Enum):
 	NONE = 'none'
+	DISTINCT_COUNT = 'distinct_count'
 	COUNT = 'count'
 	SUMMARY = 'sum'
 	AVERAGE = 'avg'
