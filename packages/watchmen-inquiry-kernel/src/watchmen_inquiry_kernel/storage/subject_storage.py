@@ -280,6 +280,8 @@ class SubjectStorage:
 			arithmetic = column.arithmetic
 			if arithmetic is None or arithmetic == SubjectColumnArithmetic.NONE:
 				column_arithmetic = FreeAggregateArithmetic.NONE
+			elif arithmetic == SubjectColumnArithmetic.DISTINCT_COUNT:
+				column_arithmetic = FreeAggregateArithmetic.DISTINCT_COUNT
 			elif arithmetic == SubjectColumnArithmetic.COUNT:
 				column_arithmetic = FreeAggregateArithmetic.COUNT
 			elif arithmetic == SubjectColumnArithmetic.SUMMARY:

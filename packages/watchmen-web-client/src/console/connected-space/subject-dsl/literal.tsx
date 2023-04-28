@@ -1,6 +1,6 @@
 import {ParameterComputeType, ParameterKind} from '@/services/data/tuples/factor-calculator-types';
 import {Factor} from '@/services/data/tuples/factor-types';
-import {TopicJoinType} from '@/services/data/tuples/subject-types';
+import {SubjectColumnArithmetic, TopicJoinType} from '@/services/data/tuples/subject-types';
 import {Topic} from '@/services/data/tuples/topic-types';
 import {Lang} from '@/widgets/langs';
 import React, {Fragment, ReactNode} from 'react';
@@ -8,6 +8,7 @@ import {v4} from 'uuid';
 import {ParameterComputeTypeLabels} from '../widgets/parameter/constants';
 import {PrettyComputed, PrettyConstant, PrettyFactor} from './literal-types';
 import {
+	AggregatorLine,
 	AliasNode,
 	AsNode,
 	BracketNode,
@@ -119,6 +120,25 @@ export const ComputedLine = (props: { pretty: PrettyComputed }) => {
 			</Fragment>;
 		})}
 	</ComputeStatement>;
+};
+export const ParameterAggregator = (props: { arithmetic?: SubjectColumnArithmetic; children: ReactNode }) => {
+	const {arithmetic, children} = props;
+
+	if (arithmetic == null || arithmetic === SubjectColumnArithmetic.NONE) {
+		return <>{children}</>;
+	} else if (arithmetic !== SubjectColumnArithmetic.DISTINCT_COUNT) {
+		return <>
+			<AggregatorLine>{arithmetic}(</AggregatorLine>
+			{children}
+			<AggregatorLine>)</AggregatorLine>
+		</>;
+	} else {
+		return <>
+			<AggregatorLine>count(distinct </AggregatorLine>
+			{children}
+			<AggregatorLine>)</AggregatorLine>
+		</>;
+	}
 };
 export const ParameterLine = (props: { pretty: PrettyConstant | PrettyFactor | PrettyComputed | null }) => {
 	const {pretty} = props;
