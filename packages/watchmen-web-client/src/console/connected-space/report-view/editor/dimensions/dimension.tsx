@@ -10,11 +10,10 @@ import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import {ChartHelper} from '@/widgets/report/chart-utils';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import React, {ReactNode} from 'react';
+import React from 'react';
 import {useReportEditEventBus} from '../report-edit-event-bus';
 import {ReportEditEventTypes} from '../report-edit-event-bus-types';
 import {PropValue, PropValueDropdown} from '../settings-widgets/widgets';
-import {isScriptOpenedInChartOrIrrelevant} from '../utils';
 import {
 	DeleteMeButton,
 	DeleteMeContainer,
@@ -85,27 +84,27 @@ export const DimensionEditor = (props: {
 		});
 	}
 
-	const scriptOpened = isScriptOpenedInChartOrIrrelevant(connectedSpace, chart);
-	const buildLabel = (): ReactNode => {
-		// eslint-disable-next-line
-		return (dimensionOptions.find(option => option.value == columnId)?.label ?? '?') as ReactNode;
-	};
+	// const scriptOpened = isScriptOpenedInChartOrIrrelevant(connectedSpace, chart);
+	// const buildLabel = (): ReactNode => {
+	// 	// eslint-disable-next-line
+	// 	return (dimensionOptions.find(option => option.value == columnId)?.label ?? '?') as ReactNode;
+	// };
 
-	return <DimensionContainer removable={scriptOpened}>
+	return <DimensionContainer removable={true}> {/*removable={scriptOpened}>*/}
 		<DimensionIndexLabel>{index}</DimensionIndexLabel>
-		{scriptOpened
-			? <>
-				<PropValue>
-					<PropValueDropdown value={columnId} options={dimensionOptions}
-					                   placeholder={Lang.CHART.PLEASE_SELECT_DIMENSION}
-					                   onValueChange={onColumnChange}/>
-				</PropValue>
-				<DeleteMeContainer>
-					<DeleteMeButton onClick={onDeleteClicked}>
-						<FontAwesomeIcon icon={ICON_DELETE}/>
-					</DeleteMeButton>
-				</DeleteMeContainer>
-			</>
-			: <PropValue>{buildLabel()}</PropValue>}
+		{/*{scriptOpened*/}
+		{/*	? <>*/}
+		<PropValue>
+			<PropValueDropdown value={columnId} options={dimensionOptions}
+			                   placeholder={Lang.CHART.PLEASE_SELECT_DIMENSION}
+			                   onValueChange={onColumnChange}/>
+		</PropValue>
+		<DeleteMeContainer>
+			<DeleteMeButton onClick={onDeleteClicked}>
+				<FontAwesomeIcon icon={ICON_DELETE}/>
+			</DeleteMeButton>
+		</DeleteMeContainer>
+		{/*</>*/}
+		{/*: <PropValue>{buildLabel()}</PropValue>}*/}
 	</DimensionContainer>;
 };
