@@ -182,7 +182,6 @@ async def delete_derived_objective_by_id_by_super_admin(
 
 	derived_objective_service = get_derived_objective_service(principal_service)
 
-	# noinspection DuplicatedCode
 	def action() -> DerivedObjective:
 		# noinspection PyTypeChecker
 		existing_derived_objective: Optional[DerivedObjective] = \
@@ -203,7 +202,7 @@ def load_share_derived_objective_by_id_and_token(derived_objective_id:DerivedObj
 
 	derived_objective_service = get_derived_objective_service(principal_service)
 	def action() -> DerivedObjective:
-		# noinspection PyTypeChecker
+
 		existing_derived_objective: Optional[DerivedObjective] = \
 			derived_objective_service.find_by_id(derived_objective_id)
 		if existing_derived_objective is None:

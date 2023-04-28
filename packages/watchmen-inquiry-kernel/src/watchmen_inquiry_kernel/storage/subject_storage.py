@@ -26,6 +26,7 @@ from watchmen_model.common import ComputedParameter, ConstantParameter, DataMode
 from watchmen_model.console import ConnectedSpace, ReportDimension, ReportFunnel, ReportFunnelType, ReportIndicator, \
 	ReportIndicatorArithmetic, SubjectDatasetColumn, SubjectDatasetJoin, SubjectJoinType
 from watchmen_model.console.subject import Subject, SubjectColumnArithmetic
+from watchmen_pipeline_kernel.pipeline.sql_performance_invoker import create_sql_performance_pipeline_invoker
 from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteria, \
 	EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, \
 	EntityCriteriaStatement, EntitySortColumn, EntitySortMethod, FreeAggregateArithmetic, FreeAggregateColumn, \
@@ -317,7 +318,9 @@ class SubjectStorage:
 		storage = ask_topic_storage(self.schema.get_primary_topic_schema(), self.principalService)
 		# register topic, in case of it is not registered yet
 		ArrayHelper(available_schemas).each(lambda x: storage.register_topic(x.get_topic()))
-		return FreeFinder(columns=columns, joins=joins, criteria=criteria), possible_types_list
+		return FreeFinder(columns=columns, joins=joins, criteria=criteria,
+		                  preExecutor=create_sql_performance_pipeline_invoker(str(ask_snowflake_generator().next_id()),
+		                                                                      self.principalService)), possible_types_list
 
 	def find(self) -> List[Dict[str, Any]]:
 		finder, _ = self.ask_storage_finder()
@@ -329,7 +332,9 @@ class SubjectStorage:
 			columns=finder.columns,
 			joins=finder.joins,
 			criteria=finder.criteria,
-			pageable=pageable
+			pageable=pageable,
+			preExecutor=create_sql_performance_pipeline_invoker(str(ask_snowflake_generator().next_id()),
+			                                                    self.principalService)
 		)
 
 	def page(self, pageable: Pageable) -> DataPage:
@@ -1153,7 +1158,9 @@ class SubjectStorage:
 			highOrderAggregateColumns=self.build_aggregate_columns(report_schema),
 			highOrderCriteria=self.build_high_order_criteria(report_schema, possible_types_list),
 			highOrderSortColumns=self.build_sort_columns(report_schema),
-			highOrderTruncation=report_schema.get_truncation_count()
+			highOrderTruncation=report_schema.get_truncation_count(),
+			preExecutor=create_sql_performance_pipeline_invoker(str(ask_snowflake_generator().next_id()),
+			                                                    self.principalService)
 		)
 
 	def aggregate_find(self, report_schema: ReportSchema) -> List[Dict[str, Any]]:
@@ -1170,7 +1177,9 @@ class SubjectStorage:
 			highOrderCriteria=aggregator.highOrderCriteria,
 			highOrderSortColumns=aggregator.highOrderSortColumns,
 			highOrderTruncation=aggregator.highOrderTruncation,
-			pageable=pageable
+			pageable=pageable,
+			preExecutor=create_sql_performance_pipeline_invoker(str(ask_snowflake_generator().next_id()),
+			                                                    self.principalService)
 		)
 
 	def aggregate_page(self, report_schema: ReportSchema, pageable: Pageable) -> DataPage:
