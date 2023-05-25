@@ -328,6 +328,10 @@ class SubjectStorage:
 		finder, _ = self.ask_storage_finder()
 		return self.find_data(lambda agent: agent.free_find(finder))
 
+	def find_sql(self) -> str:
+		# TODO
+		pass
+
 	def ask_storage_pager(self, pageable: Pageable) -> FreePager:
 		finder, _ = self.ask_storage_finder()
 		return FreePager(
@@ -342,6 +346,10 @@ class SubjectStorage:
 	def page(self, pageable: Pageable) -> DataPage:
 		return self.find_data(
 			lambda agent: agent.free_page(self.ask_storage_pager(pageable)))
+
+	def page_sql(self, pageable: Pageable) -> str:
+		# TODO
+		pass
 
 	# noinspection PyMethodMayBeStatic
 	def build_aggregate_column_by_indicator(
@@ -1170,6 +1178,7 @@ class SubjectStorage:
 			lambda agent: agent.free_aggregate_find(self.ask_storage_aggregator(report_schema)))
 
 	def aggregate_find_sql(self, report_schema: ReportSchema) -> str:
+		# TODO
 		pass
 
 	def ask_storage_aggregate_pager(
@@ -1193,6 +1202,7 @@ class SubjectStorage:
 			lambda agent: agent.free_aggregate_page(self.ask_storage_aggregate_pager(report_schema, pageable)))
 
 	def aggregate_page_sql(self, report_schema: ReportSchema, pageable: Pageable) -> str:
+		# TODO
 		pass
 
 	# noinspection PyMethodMayBeStatic
