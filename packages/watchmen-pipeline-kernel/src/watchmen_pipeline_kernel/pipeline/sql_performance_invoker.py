@@ -1,5 +1,4 @@
 import asyncio
-from asyncio import ensure_future, run
 from logging import getLogger
 from typing import Callable
 
@@ -14,7 +13,9 @@ from . import create_monitor_log_pipeline_invoker
 from .pipeline_trigger import PipelineTrigger
 from ..common.settings import ask_query_monitor_log
 
+# noinspection DuplicatedCode
 logger = getLogger(__name__)
+
 
 def get_topic_service(principal_service: PrincipalService) -> TopicService:
 	return TopicService(principal_service)
