@@ -1166,10 +1166,11 @@ class SubjectStorage:
 		)
 
 	def aggregate_find(self, report_schema: ReportSchema) -> List[Dict[str, Any]]:
-		return self.find_data(lambda agent: agent.free_aggregate_find(self.ask_storage_aggregator(report_schema)))
+		return self.find_data(
+			lambda agent: agent.free_aggregate_find(self.ask_storage_aggregator(report_schema)))
 
 	def aggregate_find_sql(self, report_schema: ReportSchema) -> str:
-		return self.find_data(lambda agent: agent.free_aggregate_find(self.ask_storage_aggregator(report_schema)))
+		pass
 
 	def ask_storage_aggregate_pager(
 			self, report_schema: ReportSchema, pageable: Pageable) -> FreeAggregatePager:
@@ -1192,8 +1193,7 @@ class SubjectStorage:
 			lambda agent: agent.free_aggregate_page(self.ask_storage_aggregate_pager(report_schema, pageable)))
 
 	def aggregate_page_sql(self, report_schema: ReportSchema, pageable: Pageable) -> str:
-		return self.find_data(
-			lambda agent: agent.free_aggregate_page(self.ask_storage_aggregate_pager(report_schema, pageable)))
+		pass
 
 	# noinspection PyMethodMayBeStatic
 	def do_find(
