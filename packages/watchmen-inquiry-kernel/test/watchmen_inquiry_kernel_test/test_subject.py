@@ -147,7 +147,7 @@ class TestSubject(TestCase):
 		)
 		subject_data_service = SubjectDataService(subject, create_fake_principal_service())
 		page = subject_data_service.page(Pageable(pageNumber=1, pageSize=100))
-		print(page)
+		# print(page)
 
 		report = Report(
 			indicators=[
@@ -169,4 +169,4 @@ class TestSubject(TestCase):
 		)
 		report_data_service = ReportDataService(subject, report, create_fake_principal_service(), False)
 		data = report_data_service.find()
-		print(data)
+		# print(data)
