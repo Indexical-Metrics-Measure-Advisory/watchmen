@@ -17,10 +17,10 @@ class TestTrino(TestCase):
 		# noinspection SqlIdentifier
 		cur.execute('SELECT * FROM system.runtime.nodes')
 		rows = cur.fetchall()
-		print(rows)
+		# print(rows)
 		cur.execute('show catalogs')
 		rows = cur.fetchall()
-		print(rows)
+		# print(rows)
 
 		# '''1' as X,
 		# false as X,
@@ -35,4 +35,4 @@ class TestTrino(TestCase):
 			"   WHERE CASE WHEN user_id != '1' THEN 'X' ELSE 'Y' END = 'X'"
 			") as u")
 		rows = cur.fetchall()
-		print(rows)
+		# print(rows)
