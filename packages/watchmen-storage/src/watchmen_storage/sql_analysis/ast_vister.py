@@ -1,17 +1,18 @@
 from pydantic import BaseModel
-from sqlparse.sql import Token, Identifier, Parenthesis, Function, IdentifierList, Where, Comparison, Case
+from sqlparse.sql import Case, Comparison, Function, Identifier, IdentifierList, Parenthesis, Token, Where
 
 
 class SqlContext(BaseModel):
-	status: str =None
-	sub_status: str =None
-	table: list =[]
+	status: str = None
+	sub_status: str = None
+	table: list = []
 	group_by: list = []
-	joins: list =[]
+	joins: list = []
 	where: list = []
-	columns: dict ={"level_0":[],"level_1":[],"level_2":[]}
-	function:list = []
-	level:int = -1
+	columns: dict = {"level_0": [], "level_1": [], "level_2": []}
+	function: list = []
+	level: int = -1
+
 
 class SqlColumn(BaseModel):
 	"""
@@ -55,13 +56,14 @@ class WhereColumn(BaseModel):
 
 
 class QueryPerformance(BaseModel):
-	topic_dimensions:str = None
-	column_dimensions:str = None
-	execution_time:int = None
-	data_volume:int = None
-	join_dimensions:str = None
-	where_dimensions:str = None
-	group_by_dimensions:str = None
+	topic_dimensions: str = None
+	column_dimensions: str = None
+	execution_time: int = None
+	data_volume: int = None
+	join_dimensions: str = None
+	where_dimensions: str = None
+	group_by_dimensions: str = None
+	sql: str = None
 
 
 def build_function(name):
@@ -93,7 +95,7 @@ def add_column(context, value: str):
 		column_dict[key].append(column)
 
 
-def add_column_as(context:SqlContext, value):
+def add_column_as(context: SqlContext, value):
 	if context.level == 0:
 		column_dict = context.columns
 		column = column_dict["level_0"][-1]
@@ -110,13 +112,25 @@ def add_column_as(context:SqlContext, value):
 
 def find_operator(token: Token):
 	"""
+<<<<<<< HEAD
 
+=======
+>>>>>>> c20bb07bb6cb048116b0b6c8bb3a9db672087700
 	:param token:
 	:return:
 	"""
 	for sub_token in token.tokens:
 		if isinstance(sub_token, Token):
+<<<<<<< HEAD
 			if sub_token.normalized == "=" or sub_token.normalized == ">" or sub_token.normalized == "<" or sub_token.normalized == ">=" or sub_token.normalized == "<=" or sub_token.normalized == "!=":
+=======
+			if sub_token.normalized == "=" \
+					or sub_token.normalized == ">" \
+					or sub_token.normalized == "<" \
+					or sub_token.normalized == ">=" \
+					or sub_token.normalized == "<=" \
+					or sub_token.normalized == "!=":
+>>>>>>> c20bb07bb6cb048116b0b6c8bb3a9db672087700
 				return sub_token.normalized
 
 
@@ -140,7 +154,7 @@ def add_column_topic(context, value):
 		column_dict["level_2"].append(column)
 
 
-def set_status(context:SqlContext, token: Token):
+def set_status(context: SqlContext, token: Token):
 	if token.is_keyword and token.value.upper() == 'SELECT':
 		context.status = "select"
 		context.level = context.level + 1
@@ -164,6 +178,10 @@ def set_status(context:SqlContext, token: Token):
 		function = build_function(token.value)
 		context.function.append(function)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> c20bb07bb6cb048116b0b6c8bb3a9db672087700
 def get_current_column(context):
 	column_dict = context.columns
 	level = context.level
@@ -171,11 +189,20 @@ def get_current_column(context):
 	return column_dict[key][-1]
 
 
+<<<<<<< HEAD
 class TokenVister:
 
 	def support(self, ast):
 		return isinstance(ast, Token)
 
+=======
+class TokenVisitor:
+	# noinspection PyMethodMayBeStatic
+	def support(self, ast):
+		return isinstance(ast, Token)
+
+	# noinspection PyUnusedLocal
+>>>>>>> c20bb07bb6cb048116b0b6c8bb3a9db672087700
 	def process(self, token: Token, context, visitor_list, previous_token: Token = None, next_token: Token = None):
 		if self.ignore_value(token):
 			return None
@@ -186,12 +213,27 @@ class TokenVister:
 				return None
 		elif token.is_keyword or value_is_function(token.value):
 			set_status(context, token)
+<<<<<<< HEAD
 
 		elif not token.is_keyword and not token.is_group and not token.is_whitespace and not token.value.startswith(
 				"anon"):
 			if token.value == ".":
 				context.status = "dot"
 			elif (context.sub_status == "IN" or context.sub_status == "THEN" or context.sub_status=="ELSE" or context.sub_status=="END") and context.status == "case":
+=======
+		elif not token.is_keyword \
+				and not token.is_group \
+				and not token.is_whitespace \
+				and not token.value.startswith("anon"):
+			if token.value == ".":
+				context.status = "dot"
+			elif (
+					context.sub_status == "IN"
+					or context.sub_status == "THEN"
+					or context.sub_status == "ELSE"
+					or context.sub_status == "END") \
+					and context.status == "case":
+>>>>>>> c20bb07bb6cb048116b0b6c8bb3a9db672087700
 				return None
 			elif token.value == "IN" and context.status == "case":
 				context.sub_status = "IN"
@@ -208,11 +250,15 @@ class TokenVister:
 				else:
 					add_column(context, token.value)
 			else:
-				if token.value.startswith("topic_") and not context.status == "where"  :
+				if token.value.startswith("topic_") and not context.status == "where":
 					add_column_topic(context, token.value)
 				else:
 					add_column(context, token.value)
 
+<<<<<<< HEAD
+=======
+	# noinspection PyMethodMayBeStatic
+>>>>>>> c20bb07bb6cb048116b0b6c8bb3a9db672087700
 	def process_end_function(self, context):
 		context.sub_status = "end_function"
 		function_list = context.function
@@ -220,6 +266,7 @@ class TokenVister:
 		column.function = function_list
 		context.function = []
 
+<<<<<<< HEAD
 	def ignore_value(self, token):
 		return token.is_whitespace or token.value == "(" or token.value == "." or token.value == "," or token.value == ";" or token.value == "##"
 
@@ -229,6 +276,24 @@ class IdentifierVister:
 	def support(self, ast):
 		return isinstance(ast, Identifier)
 
+=======
+	# noinspection PyMethodMayBeStatic
+	def ignore_value(self, token):
+		return token.is_whitespace \
+			or token.value == "(" \
+			or token.value == "." \
+			or token.value == "," \
+			or token.value == ";" \
+			or token.value == "##"
+
+
+class IdentifierVisitor:
+	# noinspection PyMethodMayBeStatic
+	def support(self, ast):
+		return isinstance(ast, Identifier)
+
+	# noinspection PyMethodMayBeStatic
+>>>>>>> c20bb07bb6cb048116b0b6c8bb3a9db672087700
 	def process(self, token: Identifier, context, visitor_list, previous_token: Token = None, next_token: Token = None):
 		if token.is_group:
 			for sub_token in token.tokens:
@@ -237,6 +302,7 @@ class IdentifierVister:
 					visitor.process(sub_token, context, visitor_list, previous_token, next_token)
 
 
+<<<<<<< HEAD
 class ParenthesisVister:
 	def support(self, ast):
 		return isinstance(ast, Parenthesis)
@@ -246,6 +312,20 @@ class ParenthesisVister:
 		if context.sub_status == "function":
 			context.sub_status = "start_function"
 		if (context.sub_status == "IN" or context.sub_status=="THEN")and context.status=="case" :
+=======
+class ParenthesisVisitor:
+	# noinspection PyMethodMayBeStatic
+	def support(self, ast):
+		return isinstance(ast, Parenthesis)
+
+	# noinspection PyMethodMayBeStatic
+	def process(
+			self, token: Parenthesis, context, visitor_list, previous_token: Token = None,
+			next_token: Token = None):
+		if context.sub_status == "function":
+			context.sub_status = "start_function"
+		if (context.sub_status == "IN" or context.sub_status == "THEN") and context.status == "case":
+>>>>>>> c20bb07bb6cb048116b0b6c8bb3a9db672087700
 			return None
 		if token.M_OPEN and token.M_CLOSE:
 			for sub_token in token.tokens:
@@ -254,11 +334,20 @@ class ParenthesisVister:
 					visitor.process(sub_token, context, visitor_list, previous_token, next_token)
 
 
+<<<<<<< HEAD
 class FunctionVister:
 
 	def support(self, ast):
 		return isinstance(ast, Function)
 
+=======
+class FunctionVisitor:
+	# noinspection PyMethodMayBeStatic
+	def support(self, ast):
+		return isinstance(ast, Function)
+
+	# noinspection PyMethodMayBeStatic
+>>>>>>> c20bb07bb6cb048116b0b6c8bb3a9db672087700
 	def process(self, token: Function, context, visitor_list, previous_token: Token = None, next_token: Token = None):
 		# if context.status == "select":
 		context.sub_status = "function"
@@ -269,6 +358,7 @@ class FunctionVister:
 					visitor.process(sub_token, context, visitor_list, previous_token, next_token)
 
 
+<<<<<<< HEAD
 class IdentifierListVister:
 
 	def support(self, ast):
@@ -276,6 +366,17 @@ class IdentifierListVister:
 
 	def process(self, token: IdentifierList, context, visitor_list, previous_token: Token = None,
 	            next_token: Token = None):
+=======
+class IdentifierListVisitor:
+	# noinspection PyMethodMayBeStatic
+	def support(self, ast):
+		return isinstance(ast, IdentifierList)
+
+	# noinspection PyMethodMayBeStatic
+	def process(
+			self, token: IdentifierList, context, visitor_list, previous_token: Token = None,
+			next_token: Token = None):
+>>>>>>> c20bb07bb6cb048116b0b6c8bb3a9db672087700
 		if token.is_group:
 			for sub_token in token.tokens:
 				visitor = find_visitor(visitor_list, sub_token)
@@ -283,6 +384,7 @@ class IdentifierListVister:
 					visitor.process(sub_token, context, visitor_list, previous_token, next_token)
 
 
+<<<<<<< HEAD
 class WhereVister:
 
 	def support(self, ast):
@@ -290,6 +392,17 @@ class WhereVister:
 
 	def process(self, token: IdentifierList, context, visitor_list, previous_token: Token = None,
 	            next_token: Token = None):
+=======
+class WhereVisitor:
+	# noinspection PyMethodMayBeStatic
+	def support(self, ast):
+		return isinstance(ast, Where)
+
+	# noinspection PyMethodMayBeStatic
+	def process(
+			self, token: IdentifierList, context, visitor_list, previous_token: Token = None,
+			next_token: Token = None):
+>>>>>>> c20bb07bb6cb048116b0b6c8bb3a9db672087700
 		context.status = "where"
 		if token.is_group:
 			for sub_token in token.tokens:
@@ -299,22 +412,39 @@ class WhereVister:
 
 
 class ComparisonVisitor:
+<<<<<<< HEAD
 	def support(self, ast):
 		return isinstance(ast, Comparison)
 
 	def process(self, token: Comparison, context:SqlContext, visitor_list, previous_token: Token = None,
 	            next_token: Token = None):
+=======
+	# noinspection PyMethodMayBeStatic
+	def support(self, ast):
+		return isinstance(ast, Comparison)
+
+	# noinspection PyMethodMayBeStatic, PyUnusedLocal
+	def process(
+			self, token: Comparison, context: SqlContext, visitor_list, previous_token: Token = None,
+			next_token: Token = None):
+>>>>>>> c20bb07bb6cb048116b0b6c8bb3a9db672087700
 		if context.status == "case" and context.sub_status == "WHEN":
 			left_table, left = token.left.normalized.split(".")
 			add_column_topic(context, left_table)
 			add_column(context, left)
+<<<<<<< HEAD
 
+=======
+>>>>>>> c20bb07bb6cb048116b0b6c8bb3a9db672087700
 		elif context.status == "where":
 			left_table, left = token.left.normalized.split(".")
 			operator = find_operator(token)
 			value = token.right.value
 			context.where.append(WhereColumn(table=left_table, name=left, operator=operator, value=value))
+<<<<<<< HEAD
 
+=======
+>>>>>>> c20bb07bb6cb048116b0b6c8bb3a9db672087700
 		elif token.is_group and token.left and token.right and not context.status == "case":
 			left_table, left = token.left.normalized.split(".")
 			right_table, right = token.right.normalized.split(".")
@@ -324,6 +454,7 @@ class ComparisonVisitor:
 
 
 class CaseVisitor:
+<<<<<<< HEAD
 	def support(self, ast):
 		return isinstance(ast, Case)
 
@@ -334,6 +465,19 @@ class CaseVisitor:
 			for sub_token in token.tokens:
 
 
+=======
+	# noinspection PyMethodMayBeStatic
+	def support(self, ast):
+		return isinstance(ast, Case)
+
+	# noinspection PyMethodMayBeStatic
+	def process(
+			self, token: Case, context, visitor_list, previous_token: Token = None,
+			next_token: Token = None):
+		context.status = "case"
+		if token.is_group:
+			for sub_token in token.tokens:
+>>>>>>> c20bb07bb6cb048116b0b6c8bb3a9db672087700
 				visitor = find_visitor(visitor_list, sub_token)
 				if visitor:
 					visitor.process(sub_token, context, visitor_list, previous_token, next_token)
