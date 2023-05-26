@@ -27,9 +27,17 @@ class SubjectDataService:
 			data=self.get_schema().translate_to_array_table(data)
 		)
 
+	def find_sql(self) -> str:
+		storage = SubjectStorage(self.schema, self.principalService)
+		return storage.find_sql()
+
 	def page(self, pageable: Pageable) -> DataPage:
 		storage = SubjectStorage(self.schema, self.principalService)
 		page = storage.page(pageable)
 		# translate to a data table
 		page.data = self.get_schema().translate_to_array_table(page.data)
 		return page
+
+	def page_sql(self, pageable: Pageable) -> str:
+		storage = SubjectStorage(self.schema, self.principalService)
+		return storage.page_sql(pageable)

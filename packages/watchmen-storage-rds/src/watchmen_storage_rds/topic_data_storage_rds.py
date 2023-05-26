@@ -15,7 +15,7 @@ from watchmen_storage import as_table_name, EntityHelper, FreeAggregateArithmeti
 	FreeAggregatePager, FreeAggregator, FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, Literal, \
 	NoFreeJoinException, TopicDataStorageSPI, UnexpectedStorageException
 from watchmen_storage.settings import ask_sql_analyzer_on
-from watchmen_storage.sql_analysis.ast_vister import SqlContext, QueryPerformance
+from watchmen_storage.sql_analysis.ast_visitor import QueryPerformance
 from watchmen_storage.sql_analysis.parse_sql import SqlParser
 from watchmen_utilities import ArrayHelper, is_not_blank
 from .storage_rds import StorageRDS
@@ -55,7 +55,7 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		raise UnexpectedStorageException(
 			'Method[schema_column_data_type_to_factor_type] does not support by rds storage.')
 
-
+	# noinspection PyMethodMayBeStatic
 	def get_value_from_row_data(self, row: Dict[str, Any], key: str) -> Any:
 		return row.get(key) or row.get(key.lower())
 
@@ -405,30 +405,37 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		data_statement = self.build_recalculate_columns(finder.columns, data_statement)
 		return data_statement
 
-	def extract_sql(self,sql_query)->QueryPerformance:
+	# noinspection PyMethodMayBeStatic
+	def extract_sql(self, sql_query) -> QueryPerformance:
 		if ask_sql_analyzer_on():
 			sql = str(sql_query)
 			sql_parser = SqlParser()
 			return sql_parser.parse(sql)
 
-
 	def free_find(self, finder: FreeFinder) -> List[Dict[str, Any]]:
 		data_statement = self.build_free_find_statement(finder)
-		print("----------")
+		# print("----------")
 		sql = data_statement.compile(dialect=self.connection.dialect, compile_kwargs={"literal_binds": True})
-		query_performance =  self.extract_sql(sql)
+		query_performance = self.extract_sql(sql)
+		if finder.commandOnly:
+			query_performance.execution_time = 0
+			query_performance.data_volume = 0
+			if finder.queryPfmMonitor:
+				finder.queryPfmMonitor(query_performance, True)
+			return []
 
-
+		# noinspection DuplicatedCode
 		start = timer()
+		# noinspection DuplicatedCode
 		results = self.connection.execute(data_statement).mappings().all()
 		end = timer()
 
 		query_performance.execution_time = end - start
 		query_performance.data_volume = len(results)
-		print(query_performance)
+		# print(query_performance)
 
-		if finder.preExecutor:
-			finder.preExecutor(query_performance, True)
+		if finder.queryPfmMonitor:
+			finder.queryPfmMonitor(query_performance, True)
 
 		return ArrayHelper(results) \
 			.map(lambda x: self.deserialize_from_auto_generated_columns(x, finder.columns)) \
@@ -458,14 +465,19 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 			if count == 0:
 				return empty_page
 
-
 		page_number, max_page_number = self.compute_page(count, page_size, pager.pageable.pageNumber)
 		data_statement = self.build_offset_for_statement(data_statement, page_size, page_number)
 
-		print("----------")
-		sql = data_statement.compile(dialect=self.connection.dialect,compile_kwargs={"literal_binds": True})
+		# print("----------")
+		sql = data_statement.compile(dialect=self.connection.dialect, compile_kwargs={"literal_binds": True})
 		query_performance = self.extract_sql(sql)
-		print("----------")
+		# print("----------")
+		if pager.commandOnly:
+			query_performance.execution_time = 0
+			query_performance.data_volume = 0
+			if pager.queryPfmMonitor:
+				pager.queryPfmMonitor(query_performance, True)
+			return self.create_empty_page(page_size)
 
 		start = timer()
 		results = self.connection.execute(data_statement).mappings().all()
@@ -473,10 +485,9 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 
 		query_performance.execution_time = end - start
 		query_performance.data_volume = len(results)
-		print(query_performance)
-		if pager.preExecutor:
-			pager.preExecutor(query_performance,True)
-
+		# print(query_performance)
+		if pager.queryPfmMonitor:
+			pager.queryPfmMonitor(query_performance, True)
 
 		results = ArrayHelper(results) \
 			.map(lambda x: self.deserialize_from_auto_generated_columns(x, pager.columns)) \
@@ -496,24 +507,29 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		if aggregator.highOrderTruncation is not None and aggregator.highOrderTruncation > 0:
 			data_statement = data_statement.limit(aggregator.highOrderTruncation)
 
+		# noinspection DuplicatedCode
 		sql = data_statement.compile(dialect=self.connection.dialect, compile_kwargs={"literal_binds": True})
 		query_performance = self.extract_sql(sql)
+		if aggregator.commandOnly:
+			query_performance.execution_time = 0
+			query_performance.data_volume = 0
+			if aggregator.queryPfmMonitor:
+				aggregator.queryPfmMonitor(query_performance, True)
+			return []
+
 		start = timer()
-		print("-----adad-----")
+		# print("-----adad-----")
 		results = self.connection.execute(data_statement).mappings().all()
 		end = timer()
-		print("-------asdadd---")
+		# print("-------asdadd---")
 		query_performance.execution_time = end - start
 		query_performance.data_volume = len(results)
-		print(query_performance)
-		if aggregator.preExecutor:
-			aggregator.preExecutor(query_performance, False)
-
+		# print(query_performance)
+		if aggregator.queryPfmMonitor:
+			aggregator.queryPfmMonitor(query_performance, False)
 
 		def deserialize(row: Dict[str, Any]) -> Dict[str, Any]:
 			return self.deserialize_from_auto_generated_aggregate_columns(row, aggregator.highOrderAggregateColumns)
-
-
 
 		return ArrayHelper(results).map(lambda x: deserialize(x)).to_list()
 
@@ -537,20 +553,26 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		data_statement = self.build_sort_for_statement(data_statement, pager.highOrderSortColumns)
 		page_number, max_page_number = self.compute_page(count, page_size, pager.pageable.pageNumber)
 		data_statement = self.build_offset_for_statement(data_statement, page_size, page_number)
-		print("----------")
-		sql  = data_statement.compile(dialect=self.connection.dialect, compile_kwargs={"literal_binds": True})
+		# print("----------")
+		sql = data_statement.compile(dialect=self.connection.dialect, compile_kwargs={"literal_binds": True})
 		query_performance = self.extract_sql(sql)
-		print("----------")
+		if pager.commandOnly:
+			query_performance.execution_time = 0
+			query_performance.data_volume = 0
+			if pager.queryPfmMonitor:
+				pager.queryPfmMonitor(query_performance, True)
+			return self.create_empty_page(page_size)
+
+		# print("----------")
 		start = timer()
 		results = self.connection.execute(data_statement).mappings().all()
 		end = timer()
 		query_performance.execution_time = end - start
 		query_performance.data_volume = len(results)
-		print(query_performance)
+		# print(query_performance)
 
-		if pager.preExecutor:
-			pager.preExecutor(query_performance,True)
-
+		if pager.queryPfmMonitor:
+			pager.queryPfmMonitor(query_performance, True)
 
 		def deserialize(row: Dict[str, Any]) -> Dict[str, Any]:
 			return self.deserialize_from_auto_generated_aggregate_columns(row, pager.highOrderAggregateColumns)

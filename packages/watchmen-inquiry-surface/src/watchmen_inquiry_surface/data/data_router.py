@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 from fastapi import APIRouter, Body, Depends
 
@@ -35,10 +35,7 @@ def get_report_data_service(subject: Subject, report: Report, principal_service:
 	return ReportDataService(subject, report, principal_service)
 
 
-@router.post('/subject/data', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=DataPage)
-async def fetch_subject_data(
-		subject_id: Optional[SubjectId], pageable: Pageable = Body(...),
-		principal_service: PrincipalService = Depends(get_console_principal)) -> DataPage:
+def ask_subject(subject_id: Optional[SubjectId], principal_service: PrincipalService) -> Subject:
 	if is_blank(subject_id):
 		raise_400('Subject id is required.')
 
@@ -46,13 +43,26 @@ async def fetch_subject_data(
 	if subject is None:
 		raise_400(f'Incorrect subject id[{subject_id}].')
 
+	return subject
+
+
+@router.post('/subject/data', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=DataPage)
+async def fetch_subject_data(
+		subject_id: Optional[SubjectId], pageable: Pageable = Body(...),
+		principal_service: PrincipalService = Depends(get_console_principal)) -> DataPage:
+	subject = ask_subject(subject_id, principal_service)
 	return get_subject_data_service(subject, principal_service).page(pageable)
 
 
-@router.get('/report/data', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=DataResult)
-async def fetch_report_data(
-		report_id: Optional[ReportId],
-		principal_service: PrincipalService = Depends(get_console_principal)) -> DataResult:
+@router.post('/subject/data/sql', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=str)
+async def fetch_subject_data_sql(
+		subject_id: Optional[SubjectId], pageable: Pageable = Body(...),
+		principal_service: PrincipalService = Depends(get_console_principal)) -> str:
+	subject = ask_subject(subject_id, principal_service)
+	return get_subject_data_service(subject, principal_service).page_sql(pageable)
+
+
+def ask_report(report_id: Optional[ReportId], principal_service: PrincipalService) -> Tuple[Subject, Report]:
 	if is_blank(report_id):
 		raise_400('Report id is required.')
 
@@ -68,13 +78,26 @@ async def fetch_report_data(
 	if subject is None:
 		raise_400(f'Subject not found by report[id={report_id}].')
 
+	return subject, report
+
+
+@router.get('/report/data', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=DataResult)
+async def fetch_report_data(
+		report_id: Optional[ReportId],
+		principal_service: PrincipalService = Depends(get_console_principal)) -> DataResult:
+	subject, report = ask_report(report_id, principal_service)
 	return get_report_data_service(subject, report, principal_service).find()
 
 
-@router.post('/report/temporary', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=DataResult)
-async def fetch_report_data_temporary(
-		report: Report,
-		principal_service: PrincipalService = Depends(get_console_principal)) -> DataResult:
+@router.get('/report/data/sql', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=str)
+async def fetch_report_data_sql(
+		report_id: Optional[ReportId],
+		principal_service: PrincipalService = Depends(get_console_principal)) -> str:
+	subject, report = ask_report(report_id, principal_service)
+	return get_report_data_service(subject, report, principal_service).find_sql()
+
+
+def ask_report_temporary(report: Report, principal_service: PrincipalService) -> Tuple[Subject, Report]:
 	report_id = report.reportId
 	subject_id = report.subjectId
 	if is_blank(report_id) and is_blank(subject_id):
@@ -95,13 +118,28 @@ async def fetch_report_data_temporary(
 	if subject is None:
 		raise_400(f'Subject not found by report[id={report_id}, subjectId={subject_id}].')
 
+	return subject, report
+
+
+@router.post('/report/temporary', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=DataResult)
+async def fetch_report_data_temporary(
+		report: Report,
+		principal_service: PrincipalService = Depends(get_console_principal)) -> DataResult:
+	subject, report = ask_report_temporary(report, principal_service)
 	return get_report_data_service(subject, report, principal_service).find()
 
 
-@router.post('/subject/data/criteria', tags=[UserRole.ADMIN], response_model=DataPage)
-async def query_dataset(
-		criteria: SubjectDatasetCriteria,
-		principal_service: PrincipalService = Depends(get_console_principal)) -> DataPage:
+@router.post('/report/temporary/sql', tags=[UserRole.CONSOLE, UserRole.ADMIN], response_model=str)
+async def fetch_report_data_temporary(
+		report: Report,
+		principal_service: PrincipalService = Depends(get_console_principal)) -> str:
+	subject, report = ask_report_temporary(report, principal_service)
+	return get_report_data_service(subject, report, principal_service).find_sql()
+
+
+def ask_subject_criteria(
+		criteria: SubjectDatasetCriteria, principal_service: PrincipalService
+) -> Tuple[Subject, Report, Pageable]:
 	subject_id = criteria.subjectId
 	subject_name = criteria.subjectName
 	indicators = criteria.indicators
@@ -236,4 +274,20 @@ async def query_dataset(
 		pageSize=page_size
 	)
 
+	return subject, report, pageable
+
+
+@router.post('/subject/data/criteria', tags=[UserRole.ADMIN], response_model=DataPage)
+async def query_dataset(
+		criteria: SubjectDatasetCriteria,
+		principal_service: PrincipalService = Depends(get_console_principal)) -> DataPage:
+	subject, report, pageable = ask_subject_criteria(criteria, principal_service)
 	return get_report_data_service(subject, report, principal_service).page(pageable)
+
+
+@router.post('/subject/data/criteria/sql', tags=[UserRole.ADMIN], response_model=str)
+async def query_dataset(
+		criteria: SubjectDatasetCriteria,
+		principal_service: PrincipalService = Depends(get_console_principal)) -> str:
+	subject, report, pageable = ask_subject_criteria(criteria, principal_service)
+	return get_report_data_service(subject, report, principal_service).page_sql(pageable)
