@@ -18,10 +18,13 @@ class ReportDataService:
 	def get_report(self) -> Report:
 		return self.schema.get_report()
 
-	def find(self) -> DataResult:
+	def create_subject_storage(self) -> SubjectStorage:
 		subject_schema = self.subject_data_service.get_schema()
 		principal_service = self.subject_data_service.get_principal_service()
-		storage = SubjectStorage(subject_schema, principal_service)
+		return SubjectStorage(subject_schema, principal_service)
+
+	def find(self) -> DataResult:
+		storage = self.create_subject_storage()
 		data = storage.aggregate_find(self.get_schema())
 
 		return DataResult(
@@ -29,11 +32,17 @@ class ReportDataService:
 			data=self.get_schema().translate_to_array_table(data)
 		)
 
+	def find_sql(self) -> str:
+		storage = self.create_subject_storage()
+		return storage.aggregate_find_sql(self.get_schema())
+
 	def page(self, pageable: Pageable) -> DataPage:
-		subject_schema = self.subject_data_service.get_schema()
-		principal_service = self.subject_data_service.get_principal_service()
-		storage = SubjectStorage(subject_schema, principal_service)
+		storage = self.create_subject_storage()
 		page = storage.aggregate_page(self.get_schema(), pageable)
 		# translate to a data table
 		page.data = self.get_schema().translate_to_array_table(page.data)
 		return page
+
+	def page_sql(self, pageable: Pageable) -> str:
+		storage = self.create_subject_storage()
+		return storage.aggregate_page_sql(self.get_schema(), pageable)
