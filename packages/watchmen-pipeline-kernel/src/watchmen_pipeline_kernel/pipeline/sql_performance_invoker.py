@@ -44,9 +44,4 @@ def create_sql_performance_pipeline_invoker(
 		)
 
 		asyncio.create_task(trigger.invoke())
-
-<<<<<<< HEAD
-
-=======
->>>>>>> c20bb07bb6cb048116b0b6c8bb3a9db672087700
 	return handle_sql_performance_log

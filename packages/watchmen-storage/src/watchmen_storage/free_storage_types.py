@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Callable, List, Optional
 
 from watchmen_model.common import DataModel, Pageable
-from .sql_analysis.ast_vister import QueryPerformance
+from .sql_analysis.ast_visitor import QueryPerformance
 from .storage_types import ColumnNameLiteral, EntityCriteria, EntitySortColumn, Literal
 
 
@@ -39,6 +39,7 @@ class FreeFinder(DataModel):
 	columns: List[FreeColumn] = None
 	joins: List[FreeJoin] = None
 	criteria: Optional[EntityCriteria] = None
+	commandOnly: bool = False
 	queryPfmMonitor: Optional[Callable[[QueryPerformance, bool], None]] = None
 
 

@@ -1,6 +1,6 @@
 import sqlparse
 
-from watchmen_storage.sql_analysis.ast_vister import CaseVisitor, ComparisonVisitor, FunctionVisitor, \
+from watchmen_storage.sql_analysis.ast_visitor import CaseVisitor, ComparisonVisitor, FunctionVisitor, \
 	IdentifierListVisitor, IdentifierVisitor, ParenthesisVisitor, QueryPerformance, SqlColumn, SqlContext, TokenVisitor, \
 	WhereVisitor
 
