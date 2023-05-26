@@ -3,6 +3,8 @@ from datetime import date
 from decimal import Decimal
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
+from watchmen_pipeline_kernel.pipeline.sql_performance_invoker import create_sql_performance_pipeline_invoker
+
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_all_date_formats, ask_time_formats
 from watchmen_data_kernel.service import ask_topic_storage
@@ -26,7 +28,6 @@ from watchmen_model.common import ComputedParameter, ConstantParameter, DataMode
 from watchmen_model.console import ConnectedSpace, ReportDimension, ReportFunnel, ReportFunnelType, ReportIndicator, \
 	ReportIndicatorArithmetic, SubjectDatasetColumn, SubjectDatasetJoin, SubjectJoinType
 from watchmen_model.console.subject import Subject, SubjectColumnArithmetic
-from watchmen_pipeline_kernel.pipeline.sql_performance_invoker import create_sql_performance_pipeline_invoker
 from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteralOperator, EntityCriteria, \
 	EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, \
 	EntityCriteriaStatement, EntitySortColumn, EntitySortMethod, FreeAggregateArithmetic, FreeAggregateColumn, \
@@ -318,13 +319,18 @@ class SubjectStorage:
 		storage = ask_topic_storage(self.schema.get_primary_topic_schema(), self.principalService)
 		# register topic, in case of it is not registered yet
 		ArrayHelper(available_schemas).each(lambda x: storage.register_topic(x.get_topic()))
-		return FreeFinder(columns=columns, joins=joins, criteria=criteria,
-		                  preExecutor=create_sql_performance_pipeline_invoker(str(ask_snowflake_generator().next_id()),
-		                                                                      self.principalService)), possible_types_list
+		return FreeFinder(
+			columns=columns, joins=joins, criteria=criteria,
+			queryPfmMonitor=create_sql_performance_pipeline_invoker(
+				str(ask_snowflake_generator().next_id()), self.principalService)), possible_types_list
 
 	def find(self) -> List[Dict[str, Any]]:
 		finder, _ = self.ask_storage_finder()
 		return self.find_data(lambda agent: agent.free_find(finder))
+
+	def find_sql(self) -> str:
+		# TODO
+		pass
 
 	def ask_storage_pager(self, pageable: Pageable) -> FreePager:
 		finder, _ = self.ask_storage_finder()
@@ -333,13 +339,17 @@ class SubjectStorage:
 			joins=finder.joins,
 			criteria=finder.criteria,
 			pageable=pageable,
-			preExecutor=create_sql_performance_pipeline_invoker(str(ask_snowflake_generator().next_id()),
-			                                                    self.principalService)
+			queryPfmMonitor=create_sql_performance_pipeline_invoker(
+				str(ask_snowflake_generator().next_id()), self.principalService)
 		)
 
 	def page(self, pageable: Pageable) -> DataPage:
 		return self.find_data(
 			lambda agent: agent.free_page(self.ask_storage_pager(pageable)))
+
+	def page_sql(self, pageable: Pageable) -> str:
+		# TODO
+		pass
 
 	# noinspection PyMethodMayBeStatic
 	def build_aggregate_column_by_indicator(
@@ -1159,12 +1169,17 @@ class SubjectStorage:
 			highOrderCriteria=self.build_high_order_criteria(report_schema, possible_types_list),
 			highOrderSortColumns=self.build_sort_columns(report_schema),
 			highOrderTruncation=report_schema.get_truncation_count(),
-			preExecutor=create_sql_performance_pipeline_invoker(str(ask_snowflake_generator().next_id()),
-			                                                    self.principalService)
+			queryPfmMonitor=create_sql_performance_pipeline_invoker(
+				str(ask_snowflake_generator().next_id()), self.principalService)
 		)
 
 	def aggregate_find(self, report_schema: ReportSchema) -> List[Dict[str, Any]]:
-		return self.find_data(lambda agent: agent.free_aggregate_find(self.ask_storage_aggregator(report_schema)))
+		return self.find_data(
+			lambda agent: agent.free_aggregate_find(self.ask_storage_aggregator(report_schema)))
+
+	def aggregate_find_sql(self, report_schema: ReportSchema) -> str:
+		# TODO
+		pass
 
 	def ask_storage_aggregate_pager(
 			self, report_schema: ReportSchema, pageable: Pageable) -> FreeAggregatePager:
@@ -1178,13 +1193,17 @@ class SubjectStorage:
 			highOrderSortColumns=aggregator.highOrderSortColumns,
 			highOrderTruncation=aggregator.highOrderTruncation,
 			pageable=pageable,
-			preExecutor=create_sql_performance_pipeline_invoker(str(ask_snowflake_generator().next_id()),
-			                                                    self.principalService)
+			queryPfmMonitor=create_sql_performance_pipeline_invoker(
+				str(ask_snowflake_generator().next_id()), self.principalService)
 		)
 
 	def aggregate_page(self, report_schema: ReportSchema, pageable: Pageable) -> DataPage:
 		return self.find_data(
 			lambda agent: agent.free_aggregate_page(self.ask_storage_aggregate_pager(report_schema, pageable)))
+
+	def aggregate_page_sql(self, report_schema: ReportSchema, pageable: Pageable) -> str:
+		# TODO
+		pass
 
 	# noinspection PyMethodMayBeStatic
 	def do_find(

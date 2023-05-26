@@ -235,7 +235,7 @@ class LineageService(object):
 	def graph_json(self, principal_service: PrincipalService):
 		graphic = self.get_graph_by_tenant(principal_service)
 		graph_json = nx.node_link_data(graphic)
-		print(graph_json)
+		# print(graph_json)
 		return graph_json
 
 	def build_partial_lineage(self, model: BaseModel, lineage_type: LineageType, principal_service: PrincipalService):
