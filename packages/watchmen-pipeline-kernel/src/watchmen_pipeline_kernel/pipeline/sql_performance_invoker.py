@@ -54,3 +54,4 @@ def create_sql_performance_pipeline_invoker(
 		return handle_sql_performance_log
 	else:
 		return ignore_performance_log
+

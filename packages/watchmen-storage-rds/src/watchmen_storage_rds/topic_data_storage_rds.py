@@ -55,6 +55,7 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 		raise UnexpectedStorageException(
 			'Method[schema_column_data_type_to_factor_type] does not support by rds storage.')
 
+	# noinspection PyMethodMayBeStatic
 	def get_value_from_row_data(self, row: Dict[str, Any], key: str) -> Any:
 		return row.get(key) or row.get(key.lower())
 
