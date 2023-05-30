@@ -32,7 +32,8 @@ from watchmen_storage import ColumnNameLiteral, ComputedLiteral, ComputedLiteral
 	EntityCriteriaExpression, EntityCriteriaJoint, EntityCriteriaJointConjunction, EntityCriteriaOperator, \
 	EntityCriteriaStatement, EntitySortColumn, EntitySortMethod, FreeAggregateArithmetic, FreeAggregateColumn, \
 	FreeAggregatePager, FreeAggregator, FreeColumn, FreeFinder, FreeJoin, FreeJoinType, FreePager, Literal, \
-	QueryPerformance, TopicDataStorageSPI
+	 TopicDataStorageSPI
+from watchmen_storage.sql_analysis.ast_visitor import QueryPerformance
 from watchmen_utilities import ArrayHelper, date_might_with_prefix, get_current_time_in_seconds, is_blank, is_date, \
 	is_decimal, is_not_blank, is_time, month_diff, move_date, translate_date_format_to_memory, truncate_time, year_diff
 

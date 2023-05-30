@@ -18,9 +18,10 @@ from watchmen_model.common import DataResult
 from watchmen_model.indicator import Indicator, Objective, ObjectiveFactorOnIndicator, ObjectiveTimeFrame, \
 	ObjectiveTimeFrameKind, ObjectiveTarget, ComputedObjectiveParameter
 from watchmen_model.indicator.derived_objective import BreakdownTarget
+from watchmen_model.indicator.objective_report import ObjectiveReport, CellTargetValue
 from watchmen_rest import get_admin_principal
 from watchmen_rest.util import raise_400, raise_403
-from watchmen_utilities import is_blank, ArrayHelper
+from watchmen_utilities import is_blank
 
 logger = getLogger(__name__)
 router = APIRouter()
@@ -210,3 +211,17 @@ def build_breakdown_result(dataset, value_type: BreakdownValueType) -> Objective
 			row.chainValue = data[0]
 		objective_target_breakdown.data.append(row)
 	return objective_target_breakdown
+
+
+
+def build_dataset_with_objectives(objective_report:ObjectiveReport)->DataResult:
+	cell_list: List[CellTargetValue] = objective_report.cells
+
+	## find objective
+
+	## build objective data service
+
+
+	## get target and compute value for each target
+
+	pass
