@@ -8,7 +8,8 @@ from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.admin import PipelineTriggerType
 from watchmen_model.pipeline_kernel import PipelineTriggerTraceId
 from watchmen_pipeline_kernel.common import PipelineKernelException
-from watchmen_storage.sql_analysis.ast_vister import QueryPerformance
+from watchmen_storage.sql_analysis.ast_visitor import QueryPerformance
+# from watchmen_storage.sql_analysis.ast_vister import QueryPerformance
 from . import create_monitor_log_pipeline_invoker
 from .pipeline_trigger import PipelineTrigger
 from ..common.settings import ask_query_monitor_log

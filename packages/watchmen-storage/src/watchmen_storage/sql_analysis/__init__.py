@@ -1,1 +1,1 @@
-from ast_visitor import QueryPerformance
+# from ast_visitor import QueryPerformance
