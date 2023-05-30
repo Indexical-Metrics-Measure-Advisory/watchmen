@@ -8,7 +8,7 @@ from .settings import ask_decimal_fraction_digits, ask_decimal_integral_digits, 
 	ask_object_storage_need_date_directory, ask_store_json_in_clob
 from .snowflake import InvalidSystemClockException, SnowflakeGenerator
 from .snowflake_worker_id_generator import immutable_worker_id, WorkerIdGenerator
-from .sql_analysis import QueryPerformance
+# from .sql_analysis import QueryPerformance
 from .storage_based_worker_id_generator import COMPETITIVE_WORKER_SHAPER, CompetitiveWorkerShaper, \
 	SNOWFLAKE_WORKER_ID_TABLE, StorageBasedWorkerIdGenerator
 from .storage_exception import EntityNotFoundException, InsertConflictException, NoCriteriaForUpdateException, \
