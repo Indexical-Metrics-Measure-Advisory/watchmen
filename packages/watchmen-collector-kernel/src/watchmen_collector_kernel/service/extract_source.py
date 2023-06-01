@@ -1,3 +1,4 @@
+import json
 from typing import Optional, List, Dict, Any
 
 from watchmen_auth import PrincipalService
@@ -8,6 +9,28 @@ from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.admin import Topic, TopicKind
 from watchmen_storage import EntityCriteria, EntityStraightColumn
 from watchmen_utilities import get_current_time_in_seconds, ArrayHelper
+
+
+class LinkNode:
+
+	def __init__(self, item: str):
+		self.item = item
+		self.next = None
+
+
+class LinkList:
+
+	def __init__(self):
+		self.head = LinkNode("")
+
+	def create_tail(self, li) -> LinkNode:
+		self.head = LinkNode(li[0])
+		tail = self.head
+		for element in li[1:]:
+			node = LinkNode(element)
+			tail.next = node
+			tail = node
+		return self.head
 
 
 class SourceTableExtractor:
@@ -50,17 +73,21 @@ class SourceTableExtractor:
 			).to_list()
 		))
 
+	def find_one_change_data(self, criteria: EntityCriteria = None) -> Optional[List[Dict[str, Any]]]:
+		return self.lower_key(self.service.find_limited_values(criteria=criteria, limit=1))
+
 	def find_by_id(self, data_id: Dict) -> Optional[Dict[str, Any]]:
 		results = self.service.find(build_criteria_by_primary_key(data_id))
 		if len(results) == 1:
-			return self.lower_key(results)[0]
+			return self.process_json_columns(self.lower_key(results))[0]
 		elif len(results) == 0:
 			return None
 		else:
 			raise RuntimeError(f'too many results with {data_id} find')
 
 	def find(self, criteria: EntityCriteria) -> Optional[List[Dict[str, Any]]]:
-		return self.lower_key(self.service.find(criteria))
+		data_ = self.lower_key(self.service.find(criteria))
+		return self.process_json_columns(data_)
 
 	def exists(self, criteria: EntityCriteria) -> bool:
 		return self.service.exists(criteria)
@@ -69,3 +96,54 @@ class SourceTableExtractor:
 	def lower_key(self, data_: List) -> Optional[List[Dict]]:
 		return ArrayHelper(data_).map(
 			lambda row: {k.lower(): v for k, v in row.items()}).to_list()
+
+	# noinspection PyMethodMayBeStatic
+	def process_json_columns(self, data_: List) -> Optional[List[Dict]]:
+		json_columns = self.config.jsonColumns
+
+		def process_json_ignored(ignored_path_list: List[str], data_dict: Dict) -> Dict:
+
+			def ignored_path(data_need_ignored: Dict, json_ignored_path: str) -> Dict:
+				ignored_list = json_ignored_path.split(".")
+				ignored_link_head = LinkList().create_tail(ignored_list)
+
+				def ignored(data_ignored: Dict, node: LinkNode) -> Optional[Dict]:
+					if data_ignored is None:
+						return None
+					if node.item in data_ignored:
+						if node.next is not None:
+							temp = data_ignored[node.item]
+							data_ignored[node.item] = ignored(temp, node.next)
+							return data_ignored
+						else:
+							del data_ignored[node.item]
+							return data_ignored
+					else:
+						return data_ignored
+
+				return ignored(data_need_ignored, ignored_link_head)
+
+			return ArrayHelper(ignored_path_list).reduce(ignored_path, data_dict)
+
+		def change_column_value(row: Dict) -> Dict:
+			for key, value in row.items():
+				for column in json_columns:
+					if key == column.columnName:
+						if value:
+							tmp_data = json.loads(value)
+							if column.ignoredPath:
+								tmp_data = process_json_ignored(column.ignoredPath, tmp_data)
+							row[key] = tmp_data
+						else:
+							pass
+			return row
+
+		if json_columns:
+			return ArrayHelper(data_).map(lambda row: change_column_value(row)).to_list()
+		else:
+			return data_
+
+
+
+
+

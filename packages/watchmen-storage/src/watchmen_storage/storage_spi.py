@@ -5,7 +5,7 @@ from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import DataPage
 from .free_storage_types import FreeAggregatePager, FreeAggregator, FreeFinder, FreePager
 from .storage_types import Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
-	EntityIdHelper, EntityList, EntityPager, EntityStraightValuesFinder, EntityUpdater
+	EntityIdHelper, EntityList, EntityPager, EntityStraightValuesFinder, EntityUpdater, EntityLimitedFinder
 
 
 class StorageSPI(ABC):
@@ -111,6 +111,10 @@ class StorageSPI(ABC):
 
 	@abstractmethod
 	def find(self, finder: EntityFinder) -> EntityList:
+		pass
+
+	@abstractmethod
+	def find_limited(self, finder: EntityLimitedFinder) -> EntityList:
 		pass
 
 	@abstractmethod
