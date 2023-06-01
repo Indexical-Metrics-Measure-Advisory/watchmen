@@ -318,6 +318,15 @@ class TopicDataService(TopicStructureService):
 		finally:
 			storage.close()
 
+	def find_limited_values(self, criteria: EntityCriteria, limit: int) -> List[Dict[str, Any]]:
+		data_entity_helper = self.get_data_entity_helper()
+		storage = self.get_storage()
+		try:
+			storage.connect()
+			return storage.find_limited(data_entity_helper.get_limited_finder(criteria, limit))
+		finally:
+			storage.close()
+
 	def insert(self, data: Dict[str, Any]) -> Dict[str, Any]:
 		"""
 		assign id and version, audit columns

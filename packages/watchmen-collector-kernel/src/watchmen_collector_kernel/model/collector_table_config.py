@@ -17,6 +17,27 @@ class Dependence(Storable, BaseModel):
 	objectKey: str  # the dependent column
 
 
+class JsonColumn(Storable, BaseModel):
+	columnName: str
+	ignoredPath: List[str]
+
+
+def construct_json_column(json_column: Union[JsonColumn, Dict]) -> Optional[JsonColumn]:
+	if json_column is None:
+		return None
+	elif isinstance(json_column, JsonColumn):
+		return json_column
+	else:
+		return JsonColumn(**json_column)
+
+
+def construct_json_columns(json_columns: Optional[List[Union[JsonColumn, Dict]]]) -> Optional[List[JsonColumn]]:
+	if json_columns is None:
+		return None
+	else:
+		return ArrayHelper(json_columns).map(lambda x: construct_json_column(x)).to_list()
+
+
 def construct_join_key(join_key: Union[JoinKey, Dict]) -> Optional[JoinKey]:
 	if join_key is None:
 		return None
@@ -62,6 +83,7 @@ class CollectorTableConfig(TenantBasedTuple, OptimisticLock, BaseModel):
 	joinKeys: List[JoinKey] = []
 	dependOn: List[Dependence] = []
 	auditColumn: str = None
+	jsonColumns: List[JsonColumn] = None
 	conditions: List[Condition] = []
 	dataSourceId: str = None
 	isList: bool = False
@@ -74,5 +96,7 @@ class CollectorTableConfig(TenantBasedTuple, OptimisticLock, BaseModel):
 			super().__setattr__(name, construct_depend_on(value))
 		elif name == 'conditions':
 			super().__setattr__(name, construct_conditions(value))
+		elif name == 'jsonColumns':
+			super().__setattr__(name, construct_json_columns(value))
 		else:
 			super().__setattr__(name, value)

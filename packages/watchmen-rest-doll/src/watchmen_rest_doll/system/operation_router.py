@@ -38,10 +38,8 @@ async def build_package_script(principal_service: PrincipalService = Depends(get
 def ask_build_scripts_action(operation_service: RecordOperationService) -> Callable[
 	[], PackageZipFile]:
 	def action() -> PackageZipFile:
-		package_version_service = get_package_version_service(operation_service)
 		builder = OperationScriptBuilder(operation_service)
 		package_zip_file = builder.build_all().package_zip()
-		package_version_service.increase_package_version()
 		return package_zip_file
 	
 	return action

@@ -16,7 +16,7 @@ from watchmen_storage import ask_disable_compiled_cache, ColumnNameLiteral, Enti
 	EntityId, EntityIdHelper, EntityList, EntityNotFoundException, EntityPager, EntitySort, \
 	EntityStraightAggregateColumn, EntityStraightColumn, EntityStraightValuesFinder, EntityUpdater, \
 	TooManyEntitiesFoundException, TransactionalStorageSPI, UnexpectedStorageException, \
-	UnsupportedStraightColumnException
+	UnsupportedStraightColumnException, EntityLimitedFinder
 from watchmen_utilities import ArrayHelper, is_blank, serialize_to_json
 from .settings import ask_connection_leak_time_in_seconds, ask_detect_connection_leak_enabled, \
 	ask_print_connection_leak_interval
@@ -303,6 +303,15 @@ class StorageRDS(TransactionalStorageSPI):
 		table = self.find_table(finder.name)
 		statement = select(table)
 		return self.find_on_statement_by_finder(table, statement, finder)
+
+	def find_limited(self, finder: EntityLimitedFinder) -> EntityList:
+		table = self.find_table(finder.name)
+		statement = select(table)
+		statement = self.build_criteria_for_statement([table], statement, finder.criteria)
+		statement = self.build_sort_for_statement(statement, finder.sort)
+		statement = self.build_offset_for_statement(statement, finder.limit, 1)
+		results = self.connection.execute(statement).mappings().all()
+		return ArrayHelper(results).map(lambda x: dict(x)).map(finder.shaper.deserialize).to_list()
 
 	def find_distinct_values(self, finder: EntityDistinctValuesFinder) -> EntityList:
 		table = self.find_table(finder.name)
