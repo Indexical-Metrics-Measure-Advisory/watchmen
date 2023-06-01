@@ -110,13 +110,13 @@ class TableExtractor:
 							if existed_records:
 								diff_records: List[List] = self.get_diff(source_records, existed_records)
 								logger.info(
-									f'source_records: {len(source_records)}, existed_records: {len(existed_records)}, diffs: {len(diff_records)}'
+									f'table_name: {config.tableName}, source_records: {len(source_records)}, existed_records: {len(existed_records)}, diffs: {len(diff_records)}'
 								)
 								for diff_record in diff_records:
 									self.save_change_data_record(trigger, build_data_id(config.primaryKey, diff_record))
 							else:
 								logger.info(
-									f'source_records: {len(source_records)}, existed_records: {len(existed_records)}'
+									f'table_name: {config.tableName}, source_records: {len(source_records)}, existed_records: {len(existed_records)}'
 								)
 								ArrayHelper(source_records).map(
 									lambda record: self.save_change_data_record(trigger, get_data_id(config.primaryKey, record)))

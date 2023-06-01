@@ -17,7 +17,7 @@ router = APIRouter()
 
 
 @router.post('/package_version', tags=[UserRole.ADMIN], response_model=PackageVersion)
-async def save_topic(
+async def save_package_version(
 		package_version: PackageVersion, principal_service: PrincipalService = Depends(get_admin_principal)
 ) -> PackageVersion:
 	validate_tenant_id(package_version, principal_service)

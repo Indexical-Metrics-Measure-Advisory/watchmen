@@ -23,6 +23,7 @@ class CollectorTableConfigShaper(EntityShaper):
 			'join_keys': ArrayHelper(config.joinKeys).map(lambda x: x.to_dict()).to_list(),
 			'depend_on': ArrayHelper(config.dependOn).map(lambda x: x.to_dict()).to_list(),
 			'conditions': ArrayHelper(config.conditions).map(lambda x: x.to_dict()).to_list(),
+			'json_columns': ArrayHelper(config.jsonColumns).map(lambda x: x.to_dict()).to_list(),
 			'label': config.label,
 			'audit_column': config.auditColumn,
 			'data_source_id': config.dataSourceId,
@@ -43,6 +44,7 @@ class CollectorTableConfigShaper(EntityShaper):
 			joinKeys=row.get('join_keys'),
 			dependOn=row.get('depend_on'),
 			conditions=row.get('conditions'),
+			jsonColumns=row.get('json_columns'),
 			label=row.get('label'),
 			auditColumn=row.get('audit_column'),
 			dataSourceId=row.get('data_source_id'),
@@ -157,7 +159,9 @@ class CollectorTableConfigService(TupleService):
 		return self.storage.find(self.get_entity_finder(
 			criteria=[
 				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=self.principalService.get_tenant_id()),
-				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name)]
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='triggered'), right=True)
+			]
 		))
 
 

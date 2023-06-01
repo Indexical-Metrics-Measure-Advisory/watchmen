@@ -9,7 +9,8 @@ from watchmen_model.common import Pageable, TenantId
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
 from watchmen_storage import ColumnNameLiteral, EntityColumnName, EntityCriteria, EntityCriteriaExpression, \
 	EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityIdHelper, EntityPager, EntitySort, \
-	EntityStraightColumn, EntityStraightValuesFinder, EntityUpdate, EntityUpdater, SnowflakeGenerator
+	EntityStraightColumn, EntityStraightValuesFinder, EntityUpdate, EntityUpdater, SnowflakeGenerator, \
+	EntityLimitedFinder
 from .shaper import TopicShaper
 
 
@@ -108,6 +109,16 @@ class TopicDataEntityHelper:
 			criteria=criteria,
 			sort=sort,
 			straightColumns=columns
+		)
+
+	def get_limited_finder(self, criteria: EntityCriteria, limit: int, sort: Optional[EntitySort] = None):
+		entity_helper = self.get_entity_helper()
+		return EntityLimitedFinder(
+			name=entity_helper.name,
+			shaper=entity_helper.shaper,
+			criteria=criteria,
+			sort=sort,
+			limit=limit
 		)
 
 	def get_entity_updater(self, criteria: EntityCriteria, update: EntityUpdate) -> EntityUpdater:

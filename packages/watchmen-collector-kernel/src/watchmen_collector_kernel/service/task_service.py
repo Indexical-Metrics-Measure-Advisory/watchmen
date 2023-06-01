@@ -1,3 +1,4 @@
+import json
 from logging import getLogger
 from traceback import format_exc
 from typing import Callable, Dict, Optional, List
@@ -82,3 +83,10 @@ def get_task_service(storage: TransactionalStorageSPI,
                      snowflake_generator: SnowflakeGenerator,
                      principal_service: PrincipalService) -> TaskService:
 	return TaskService(storage, snowflake_generator, principal_service)
+
+
+# for collector prepare
+def save_json_to_local(topic_name: str, content: Dict):
+	file_path = f'{topic_name}.json'
+	with open(file_path, 'w') as f:
+		json.dump([content], f)

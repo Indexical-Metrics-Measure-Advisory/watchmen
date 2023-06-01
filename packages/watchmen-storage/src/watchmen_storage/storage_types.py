@@ -153,6 +153,10 @@ class EntityFinder(EntityHelper):
 	sort: Optional[EntitySort] = None
 
 
+class EntityLimitedFinder(EntityFinder):
+	limit: Optional[int] = None
+
+
 class EntityDistinctValuesFinder(EntityFinder):
 	distinctColumnNames: List[EntityColumnName] = None
 	distinctValueOnSingleColumn: bool = False  # distinct value when it is True and only one column assigned
