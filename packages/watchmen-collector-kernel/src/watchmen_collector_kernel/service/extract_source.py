@@ -127,8 +127,35 @@ class SourceTableExtractor:
 
 			return ArrayHelper(ignored_path_list).reduce(ignored_path, data_dict)
 
-		def process_need_flatten(data_need_flatten: List[Tuple[str, int]]) -> str:
-			return ','.join(data_need_flatten)
+		def process_need_flatten(data_need_flatten: Optional[Tuple[List[Tuple[str, int]], str]]) -> Optional[str]:
+			if isinstance(data_need_flatten, List):
+				return ','.join(data_need_flatten)
+			else:
+				return data_need_flatten
+
+		def process_flatten_path(flatten_path_list: List[str], data_dict: Dict) -> Dict:
+
+			def flatten_path(data_need_flatten: Dict, json_flatten_path: str) -> Dict:
+				flatten_list = json_flatten_path.split(".")
+				flatten_link_head = LinkList().create_tail(flatten_list)
+
+				def flatten(data_flattened: Dict, node: LinkNode) -> Optional[Dict]:
+					if data_flattened is None:
+						return None
+					if node.item in data_flattened:
+						if node.next is not None:
+							temp = data_flattened[node.item]
+							data_flattened[node.item] = flatten(temp, node.next)
+							return data_flattened
+						else:
+							data_flattened[node.item] = process_need_flatten(data_flattened[node.item])
+							return data_flattened
+					else:
+						return data_flattened
+
+				return flatten(data_need_flatten, flatten_link_head)
+
+			return ArrayHelper(flatten_path_list).reduce(flatten_path, data_dict)
 
 		def change_column_value(row: Dict) -> Dict:
 			for key, value in row.items():
@@ -140,10 +167,14 @@ class SourceTableExtractor:
 							except ValueError:
 								logger.error(f'table_name: {self.config.tableName}, column: {key}, value: {value}, is not json string')
 								break
-							if column.ignoredPath:
-								tmp_data = process_json_ignored(column.ignoredPath, tmp_data)
 							if column.needFlatten:
 								tmp_data = process_need_flatten(tmp_data)
+							else:
+								if column.ignoredPath:
+									tmp_data = process_json_ignored(column.ignoredPath, tmp_data)
+
+								if column.flattenPath:
+									tmp_data = process_flatten_path(column.flattenPath, tmp_data)
 							row[key] = tmp_data
 						else:
 							pass

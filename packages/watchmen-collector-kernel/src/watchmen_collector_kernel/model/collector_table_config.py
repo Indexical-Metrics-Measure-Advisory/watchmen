@@ -21,6 +21,7 @@ class JsonColumn(Storable, BaseModel):
 	columnName: str = None
 	ignoredPath: List[str] = None
 	needFlatten: bool = None
+	flattenPath: List[str] = None
 
 
 def construct_json_column(json_column: Union[JsonColumn, Dict]) -> Optional[JsonColumn]:
