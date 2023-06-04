@@ -18,8 +18,9 @@ class Dependence(Storable, BaseModel):
 
 
 class JsonColumn(Storable, BaseModel):
-	columnName: str
-	ignoredPath: List[str]
+	columnName: str = None
+	ignoredPath: List[str] = None
+	needFlatten: bool = None
 
 
 def construct_json_column(json_column: Union[JsonColumn, Dict]) -> Optional[JsonColumn]:
