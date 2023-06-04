@@ -6,7 +6,6 @@ from time import sleep
 
 import numpy as np
 
-from watchmen_collector_kernel.common import COMMA
 from watchmen_collector_kernel.model import TriggerEvent, ChangeDataRecord, TriggerTable, CollectorTableConfig, \
 	Condition
 from watchmen_collector_kernel.service import try_lock_nowait, unlock, SourceTableExtractor, CriteriaBuilder, \

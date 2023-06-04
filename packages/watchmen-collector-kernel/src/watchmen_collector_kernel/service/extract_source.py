@@ -1,6 +1,6 @@
 import json
-from typing import Optional, List, Dict, Any
-
+from typing import Optional, List, Dict, Any, Tuple
+from logging import getLogger
 from watchmen_auth import PrincipalService
 from .extract_utils import build_criteria_by_primary_key
 from watchmen_collector_kernel.model import CollectorTableConfig
@@ -9,6 +9,8 @@ from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.admin import Topic, TopicKind
 from watchmen_storage import EntityCriteria, EntityStraightColumn
 from watchmen_utilities import get_current_time_in_seconds, ArrayHelper
+
+logger = getLogger(__name__)
 
 
 class LinkNode:
@@ -125,14 +127,23 @@ class SourceTableExtractor:
 
 			return ArrayHelper(ignored_path_list).reduce(ignored_path, data_dict)
 
+		def process_need_flatten(data_need_flatten: List[Tuple[str, int]]) -> str:
+			return ','.join(data_need_flatten)
+
 		def change_column_value(row: Dict) -> Dict:
 			for key, value in row.items():
 				for column in json_columns:
 					if key == column.columnName:
 						if value:
-							tmp_data = json.loads(value)
+							try:
+								tmp_data = json.loads(value)
+							except ValueError:
+								logger.error(f'table_name: {self.config.tableName}, column: {key}, value: {value}, is not json string')
+								break
 							if column.ignoredPath:
 								tmp_data = process_json_ignored(column.ignoredPath, tmp_data)
+							if column.needFlatten:
+								tmp_data = process_need_flatten(tmp_data)
 							row[key] = tmp_data
 						else:
 							pass
@@ -142,8 +153,3 @@ class SourceTableExtractor:
 			return ArrayHelper(data_).map(lambda row: change_column_value(row)).to_list()
 		else:
 			return data_
-
-
-
-
-
