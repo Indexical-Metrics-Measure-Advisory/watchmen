@@ -1,7 +1,7 @@
 from __future__ import annotations
 from pydantic import BaseModel
 from enum import Enum
-from typing import List, Tuple, Any, Optional
+from typing import List, Any, Optional
 from io import BytesIO, StringIO
 import zipfile
 
@@ -10,7 +10,7 @@ from watchmen_data_kernel.meta import DataSourceService
 from watchmen_meta.admin import TopicService
 from watchmen_meta.common import RecordOperationService, ask_meta_storage_type, PackageVersionService
 
-from watchmen_model.system import Operation, DataSourceType, OperationType
+from watchmen_model.system import Operation, DataSourceType
 from watchmen_model.admin import Topic
 
 from watchmen_storage_rds import ScriptBuilder
@@ -52,10 +52,14 @@ TUPLE_SEQUENCE = {
 }
 
 
+
+
+
 class OperationScriptBuilder:
 
-	def __init__(self, operation_service: RecordOperationService):
+	def __init__(self, operation_service: RecordOperationService,topic_service:TopicService):
 		self.operation_service = operation_service
+		self.topic_service = topic_service
 		self.meta_script_builder = script_builder_factory(ask_meta_storage_type())
 		self.package_version = PackageVersionService(operation_service.storage,
 		                                             operation_service.snowflakeGenerator,
@@ -72,8 +76,9 @@ class OperationScriptBuilder:
 
 	def build(self, tuple_type: TupleType):
 		record_ids = self.get_record_ids_with_current_version(tuple_type)
+		have_create_record = self.have_create_record(tuple_type)
 		if len(record_ids) != 0:
-			self.make_sql_scripts(record_ids, tuple_type)
+			self.make_sql_scripts(record_ids, tuple_type,have_create_record)
 		return self
 
 	def get_record_ids_with_current_version(self, tuple_type: TupleType) -> List[str]:
@@ -82,14 +87,22 @@ class OperationScriptBuilder:
 		record_ids = ArrayHelper(record_rows).map(lambda x: x.get("record_id")).to_list()
 		return record_ids
 
-	def make_sql_scripts(self, record_ids: List[str], tuple_type: str):
+	def have_create_record(self,tuple_type: TupleType):
+		create_records = self.operation_service.get_record_with_create_type(self.package_version.currVersion,
+		                                                                    tuple_type)
+		if create_records:
+			return True
+		else:
+			return False
+
+	def make_sql_scripts(self, record_ids: List[str], tuple_type: str,have_create_record:bool):
 		# noinspection PyTypeChecker
 		file_name = f"{TUPLE_SEQUENCE.get(tuple_type)}-{tuple_type}.dml.sql"
 		file = StringIO()
 		try:
 			for sequence, record_id in enumerate(record_ids, start=1):
 				operation = self.operation_service.get_operation_by_id(record_id)
-				file.write(self.build_meta_script_file(operation))
+				file.write(self.build_meta_script_file(operation,have_create_record))
 				if operation.tupleType == TupleType.TOPICS:
 					self.build_data_script_file(operation, sequence)
 			# noinspection PyUnresolvedReferences,PyUnboundLocalVariable
@@ -98,14 +111,13 @@ class OperationScriptBuilder:
 		finally:
 			file.close()
 
-	def build_meta_script_file(self, operation: Operation) -> str:
-		if operation.operationType == OperationType.UPDATE:
-			return self.meta_script_builder.sql_update(operation.tupleType, operation.tupleKey, operation.content)
-		elif operation.operationType == OperationType.CREATE:
+	def build_meta_script_file(self, operation: Operation,have_create_record:bool) -> str:
+		if have_create_record:
 			return self.meta_script_builder.sql_insert(operation.tupleType, operation.content)
 		else:
-			NotImplemented(
-				f"The operation type: {operation.operationType} is not supported. The record id: {operation.recordId}")
+			return self.meta_script_builder.sql_update(operation.tupleType, operation.tupleKey, operation.content)
+
+
 
 	# noinspection PyTypeChecker
 	def build_data_script_file(self, operation: Operation, sequence: int):
@@ -120,13 +132,13 @@ class OperationScriptBuilder:
 			                      *builder.sql_index(new)]))
 			return file
 
-		topic_service = get_topic_service(self.operation_service)
-		topic: Topic = topic_service.get_entity_shaper().deserialize(operation.content)
-
-		# if topic.dataSourceId is None:
-		# 	raise RuntimeError(f"{topic.name} doesn't have datasource.")
+		topic:Topic = self.topic_service.find_by_id(operation.tupleId)
+		if topic is None:
+			return
+		if topic.dataSourceId is None:
+			raise RuntimeError(f"{topic.name} doesn't have datasource.")
 		#
-		# datasource = DataSourceService(self.operation_service.principalService).find_by_id(topic.dataSourceId)
+		datasource = DataSourceService(self.operation_service.principalService).find_by_id(topic.dataSourceId)
 		data_script_builder = script_builder_factory(DataSourceType.MYSQL)
 		file_name = build_file_name(sequence, f"topic_{topic.name}.ddl.sql")
 		file = StringIO()

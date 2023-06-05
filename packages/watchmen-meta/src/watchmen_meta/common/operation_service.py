@@ -6,7 +6,7 @@ from watchmen_meta.common.storage_service import StorableId
 from watchmen_meta.common import EntityService
 
 from watchmen_model.common import Storable
-from watchmen_model.system import Operation
+from watchmen_model.system import Operation, OperationType
 
 from watchmen_storage import EntityName, EntityShaper, EntityRow, \
 	EntityCriteriaExpression, ColumnNameLiteral, \
@@ -105,6 +105,23 @@ class RecordOperationService(EntityService):
 			                                               arithmetic=EntityColumnAggregateArithmetic.MAX),
 			                 EntityStraightColumn(columnName="tuple_id")]
 		))
+
+	def get_record_with_create_type(self, version_num: str, tuple_type: str):
+		return self.storage.find_straight_values(EntityStraightValuesFinder(
+			name=self.get_entity_name(),
+			shaper=self.get_entity_shaper(),
+			criteria=[
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tuple_type'), right=tuple_type),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='version_num'), right=version_num),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'),
+				                         right=self.principalService.tenantId),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='operation_type'),
+				                         right=OperationType.CREATE),
+			],
+			straightColumns=[EntityStraightColumn(columnName="record_id",
+			                                               arithmetic=EntityColumnAggregateArithmetic.MAX)]
+		))
+
 
 	def get_operation_by_id(self, id_: str) -> Optional[Operation]:
 		return self.storage.find_by_id(id_, self.get_entity_id_helper())

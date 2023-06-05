@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends
 from starlette.responses import Response
 
 from watchmen_auth import PrincipalService
+from watchmen_data_kernel.meta import TopicService
 
 from watchmen_data_kernel.system import OperationScriptBuilder, PackageZipFile
 
@@ -22,6 +23,10 @@ def get_operation_service(principal_service: PrincipalService) -> RecordOperatio
 	return RecordOperationService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
+def get_topic_service(principal_service: PrincipalService)->TopicService:
+	return TopicService(principal_service)
+
+
 def get_package_version_service(operation_service: RecordOperationService) -> PackageVersionService:
 	return PackageVersionService(operation_service.storage, operation_service.snowflakeGenerator, operation_service.principalService)
 
@@ -38,7 +43,7 @@ async def build_package_script(principal_service: PrincipalService = Depends(get
 def ask_build_scripts_action(operation_service: RecordOperationService) -> Callable[
 	[], PackageZipFile]:
 	def action() -> PackageZipFile:
-		builder = OperationScriptBuilder(operation_service)
+		builder = OperationScriptBuilder(operation_service,get_topic_service(operation_service.principalService))
 		package_zip_file = builder.build_all().package_zip()
 		return package_zip_file
 	
