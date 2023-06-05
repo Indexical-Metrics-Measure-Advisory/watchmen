@@ -172,6 +172,7 @@ class SubjectDatasetCriteriaIndicatorArithmetic(str, Enum):
 
 class SubjectDatasetCriteriaIndicator(BaseModel):
 	name: str = None
+	columnId:str = None
 	arithmetic: SubjectDatasetCriteriaIndicatorArithmetic = None
 	alias: str = None
 

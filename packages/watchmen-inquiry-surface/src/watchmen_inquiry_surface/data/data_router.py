@@ -120,13 +120,13 @@ async def query_dataset(
 		raise_400(f'Subject not found by given criteria[id={subject_id}, name={subject_name}].')
 
 	subject_column_map: Dict[str, SubjectDatasetColumn] = ArrayHelper(subject.dataset.columns) \
-		.to_map(lambda x: x.alias, lambda x: x)
+		.to_map(lambda x: x.columnId, lambda x: x)
 
 	def to_report_indicator(indicator: SubjectDatasetCriteriaIndicator) -> ReportIndicator:
-		name = indicator.name
-		dataset_column = subject_column_map.get(name)
+		columnId = indicator.columnId
+		dataset_column = subject_column_map.get(columnId)
 		if dataset_column is None:
-			raise_400(f'Cannot find column[name={name}] from subject.')
+			raise_400(f'Cannot find column[columnId={columnId}] from subject.')
 
 		arithmetic = ReportIndicatorArithmetic.NONE
 		if indicator.arithmetic == SubjectDatasetCriteriaIndicatorArithmetic.COUNT:
