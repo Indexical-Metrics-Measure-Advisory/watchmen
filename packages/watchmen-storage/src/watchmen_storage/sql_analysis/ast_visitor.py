@@ -342,10 +342,13 @@ class ComparisonVisitor:
 			add_column_topic(context, left_table)
 			add_column(context, left)
 		elif context.status == "where":
-			left_table, left = token.left.normalized.split(".")
-			operator = find_operator(token)
-			value = token.right.value
-			context.where.append(WhereColumn(table=left_table, name=left, operator=operator, value=value))
+			if "." in token.left.normalized:
+				left_table, left = token.left.normalized.split(".")
+				operator = find_operator(token)
+				value = token.right.value
+				context.where.append(WhereColumn(table=left_table, name=left, operator=operator, value=value))
+
+
 		elif token.is_group and token.left and token.right and not context.status == "case":
 			left_table, left = token.left.normalized.split(".")
 			right_table, right = token.right.normalized.split(".")
