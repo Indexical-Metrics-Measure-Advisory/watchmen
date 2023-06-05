@@ -123,11 +123,11 @@ class OperationScriptBuilder:
 		topic_service = get_topic_service(self.operation_service)
 		topic: Topic = topic_service.get_entity_shaper().deserialize(operation.content)
 
-		if topic.dataSourceId is None:
-			raise RuntimeError(f"{topic.name} doesn't have datasource.")
-
-		datasource = DataSourceService(self.operation_service.principalService).find_by_id(topic.dataSourceId)
-		data_script_builder = script_builder_factory(datasource.dataSourceType)
+		# if topic.dataSourceId is None:
+		# 	raise RuntimeError(f"{topic.name} doesn't have datasource.")
+		#
+		# datasource = DataSourceService(self.operation_service.principalService).find_by_id(topic.dataSourceId)
+		data_script_builder = script_builder_factory(DataSourceType.MYSQL)
 		file_name = build_file_name(sequence, f"topic_{topic.name}.ddl.sql")
 		file = StringIO()
 		try:
@@ -144,7 +144,7 @@ class OperationScriptBuilder:
 				self.data_files.append(
 					SqlScriptFile(name=file_name,
 					              content=create_topic_table_file(data_script_builder, topic).getvalue(),
-					              data_source_type=datasource.dataSourceType)
+					              data_source_type=DataSourceType.MYSQL)
 				)
 		finally:
 			file.close()

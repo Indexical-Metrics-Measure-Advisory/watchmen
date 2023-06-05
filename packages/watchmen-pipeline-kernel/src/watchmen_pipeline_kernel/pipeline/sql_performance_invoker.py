@@ -12,6 +12,7 @@ from watchmen_storage.sql_analysis.ast_visitor import QueryPerformance
 # from watchmen_storage.sql_analysis.ast_vister import QueryPerformance
 from . import create_monitor_log_pipeline_invoker
 from .pipeline_trigger import PipelineTrigger
+from ..common.settings import ask_query_monitor_log
 
 # noinspection DuplicatedCode
 logger = getLogger(__name__)
@@ -45,4 +46,12 @@ def create_sql_performance_pipeline_invoker(
 		)
 
 		asyncio.create_task(trigger.invoke())
-	return handle_sql_performance_log
+
+
+	def ignore_performance_log(sql_performance_log: QueryPerformance, asynchronized: bool):
+		pass
+
+	if ask_query_monitor_log():
+		return handle_sql_performance_log
+	else:
+		return ignore_performance_log
