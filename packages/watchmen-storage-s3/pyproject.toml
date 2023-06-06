@@ -10,7 +10,6 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
-boto3 = "^1.24.20"
 watchmen-storage = "16.5.0"
 
 [tool.poetry.dev-dependencies]
