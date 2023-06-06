@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "watchmen-storage-s3"
-version = "16.5.0"
+version = "16.5.5"
 description = ""
 authors = ["botlikes <75356972+botlikes456@users.noreply.github.com>"]
 license = "MIT"
@@ -10,7 +10,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.9"
-watchmen-storage = "16.5.0"
+watchmen-storage = "16.5.5"
 
 [tool.poetry.dev-dependencies]
 
