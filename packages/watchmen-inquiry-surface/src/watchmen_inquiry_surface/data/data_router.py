@@ -164,7 +164,7 @@ def ask_subject_criteria(
 		columnId = indicator.columnId
 		dataset_column = subject_column_map.get(columnId)
 		if dataset_column is None:
-			raise_400(f'Cannot find column[columnId={columnId}] from subject.')
+			raise_400(f'cannot find column[columnId={columnId}] from subject.')
 
 		arithmetic = ReportIndicatorArithmetic.NONE
 		if indicator.arithmetic == SubjectDatasetCriteriaIndicatorArithmetic.COUNT:
