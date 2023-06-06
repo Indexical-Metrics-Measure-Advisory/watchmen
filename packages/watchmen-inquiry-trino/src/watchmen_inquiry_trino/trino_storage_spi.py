@@ -5,7 +5,7 @@ from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import DataPage
 from watchmen_storage import Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
 	EntityIdHelper, EntityList, EntityPager, EntityStraightValuesFinder, EntityUpdater, FreeAggregatePager, \
-	FreeAggregator, FreeFinder, FreePager, TopicDataStorageSPI
+	FreeAggregator, FreeFinder, FreePager, TopicDataStorageSPI, EntityLimitedFinder
 from .exception import InquiryTrinoException
 
 
@@ -171,6 +171,12 @@ class TrinoStorageSPI(TopicDataStorageSPI):
 		not supported by trino
 		"""
 		raise InquiryTrinoException('Method[find_straight_values] does not support by trino storage.')
+
+	def find_limited(self, finder: EntityLimitedFinder) -> EntityList:
+		"""
+		not supported by trino
+		"""
+		raise InquiryTrinoException('Method[find_limited] does not support by trino storage.')
 
 	def find_all(self, helper: EntityHelper) -> EntityList:
 		"""
