@@ -106,17 +106,20 @@ class RecordOperationService(EntityService):
 			                 EntityStraightColumn(columnName="tuple_id")]
 		))
 
-	def get_record_with_create_type(self, version_num: str, tuple_type: str):
+	def get_record_with_create_type(self, version_num: str, tuple_type: str,tuple_id:str):
 		return self.storage.find_straight_values(EntityStraightValuesFinder(
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),
 			criteria=[
 				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tuple_type'), right=tuple_type),
 				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='version_num'), right=version_num),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tuple_id'),
+				                         right=tuple_id),
 				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'),
 				                         right=self.principalService.tenantId),
 				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='operation_type'),
 				                         right=OperationType.CREATE),
+
 			],
 			straightColumns=[EntityStraightColumn(columnName="record_id",
 			                                               arithmetic=EntityColumnAggregateArithmetic.MAX)]
