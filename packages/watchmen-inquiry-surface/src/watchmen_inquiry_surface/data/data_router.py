@@ -161,10 +161,10 @@ def ask_subject_criteria(
 		.to_map(lambda x: x.columnId, lambda x: x)
 
 	def to_report_indicator(indicator: SubjectDatasetCriteriaIndicator) -> ReportIndicator:
-		columnId = indicator.columnId
-		dataset_column = subject_column_map.get(columnId)
+		column_id = indicator.columnId
+		dataset_column = subject_column_map.get(column_id)
 		if dataset_column is None:
-			raise_400(f'Cannot find column[columnId={columnId}] from subject.')
+			raise_400(f'Cannot find column[columnId={column_id}] from subject.')
 
 		arithmetic = ReportIndicatorArithmetic.NONE
 		if indicator.arithmetic == SubjectDatasetCriteriaIndicatorArithmetic.COUNT:
@@ -286,6 +286,14 @@ async def query_dataset(
 
 
 @router.post('/subject/data/criteria/sql', tags=[UserRole.ADMIN], response_model=str)
+async def query_dataset(
+		criteria: SubjectDatasetCriteria,
+		principal_service: PrincipalService = Depends(get_console_principal)) -> str:
+	subject, report, pageable = ask_subject_criteria(criteria, principal_service)
+	return get_report_data_service(subject, report, principal_service).find_sql()
+
+
+@router.post('/subject/data/criteria/page-sql', tags=[UserRole.ADMIN], response_model=str)
 async def query_dataset(
 		criteria: SubjectDatasetCriteria,
 		principal_service: PrincipalService = Depends(get_console_principal)) -> str:
