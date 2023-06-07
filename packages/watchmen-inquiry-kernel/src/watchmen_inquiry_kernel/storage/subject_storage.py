@@ -3,6 +3,7 @@ from datetime import date
 from decimal import Decimal
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
+from watchmen_inquiry_kernel.common.utils import process_sql
 from watchmen_pipeline_kernel.pipeline.sql_performance_invoker import create_sql_performance_pipeline_invoker
 
 from watchmen_auth import PrincipalService
@@ -1202,7 +1203,7 @@ class SubjectStorage:
 		aggregator.commandOnly = True
 		aggregator.queryPfmMonitor = sql_monitor.create_monitor()
 		self.find_data(lambda agent: agent.free_aggregate_find(aggregator))
-		return sql_monitor.sql
+		return process_sql(sql_monitor.sql)
 
 	def ask_storage_aggregate_pager(
 			self, report_schema: ReportSchema, pageable: Pageable) -> FreeAggregatePager:
