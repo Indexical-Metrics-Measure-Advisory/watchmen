@@ -8,6 +8,7 @@ import zipfile
 from watchmen_data_kernel.meta import DataSourceService
 
 from watchmen_meta.admin import TopicService
+from watchmen_meta.admin.topic_service import TopicShaper
 from watchmen_meta.common import RecordOperationService, ask_meta_storage_type, PackageVersionService
 
 from watchmen_model.system import Operation, DataSourceType
@@ -76,9 +77,9 @@ class OperationScriptBuilder:
 
 	def build(self, tuple_type: TupleType):
 		record_ids = self.get_record_ids_with_current_version(tuple_type)
-		have_create_record = self.have_create_record(tuple_type)
+
 		if len(record_ids) != 0:
-			self.make_sql_scripts(record_ids, tuple_type,have_create_record)
+			self.make_sql_scripts(record_ids, tuple_type)
 		return self
 
 	def get_record_ids_with_current_version(self, tuple_type: TupleType) -> List[str]:
@@ -87,21 +88,22 @@ class OperationScriptBuilder:
 		record_ids = ArrayHelper(record_rows).map(lambda x: x.get("record_id")).to_list()
 		return record_ids
 
-	def have_create_record(self,tuple_type: TupleType):
+	def have_create_record(self,tuple_type: TupleType,tuple_id:str):
 		create_records = self.operation_service.get_record_with_create_type(self.package_version.currVersion,
-		                                                                    tuple_type)
+		                                                                    tuple_type,tuple_id)
 		if create_records:
 			return True
 		else:
 			return False
 
-	def make_sql_scripts(self, record_ids: List[str], tuple_type: str,have_create_record:bool):
+	def make_sql_scripts(self, record_ids: List[str], tuple_type: str):
 		# noinspection PyTypeChecker
 		file_name = f"{TUPLE_SEQUENCE.get(tuple_type)}-{tuple_type}.dml.sql"
 		file = StringIO()
 		try:
 			for sequence, record_id in enumerate(record_ids, start=1):
 				operation = self.operation_service.get_operation_by_id(record_id)
+				have_create_record = self.have_create_record(tuple_type,operation.tupleId)
 				file.write(self.build_meta_script_file(operation,have_create_record))
 				if operation.tupleType == TupleType.TOPICS:
 					self.build_data_script_file(operation, sequence)
@@ -112,6 +114,7 @@ class OperationScriptBuilder:
 			file.close()
 
 	def build_meta_script_file(self, operation: Operation,have_create_record:bool) -> str:
+
 		if have_create_record:
 			return self.meta_script_builder.sql_insert(operation.tupleType, operation.content)
 		else:
@@ -146,7 +149,7 @@ class OperationScriptBuilder:
 			record_id = self.operation_service.get_previous_record_id(operation.tupleId, operation.versionNum)
 			if record_id:
 				previous_operation = self.operation_service.get_operation_by_id(record_id)
-				previous_topic = topic_service.get_entity_shaper().deserialize(previous_operation.content)
+				previous_topic = TopicShaper().deserialize(previous_operation.content)
 				self.data_files.append(
 					SqlScriptFile(name=file_name,
 					              content=alert_topic_table_file(data_script_builder, topic, previous_topic).getvalue(),
