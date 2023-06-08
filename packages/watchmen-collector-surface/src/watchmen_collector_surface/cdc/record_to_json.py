@@ -1,7 +1,7 @@
 from traceback import format_exc
 from typing import Dict, Tuple, Optional, List, Any
 
-from watchmen_collector_kernel.common import CHANGE_RECORD_ID, TENANT_ID, WAVE
+from watchmen_collector_kernel.common import WAVE
 from watchmen_collector_kernel.model import CollectorTableConfig, \
 	ChangeDataRecord, ChangeDataJson
 from watchmen_collector_kernel.model.change_data_json import Dependence

@@ -16,6 +16,7 @@ class TriggerModelShaper(EntityShaper):
 		return TupleShaper.serialize_tenant_based(entity, {
 			'model_trigger_id': entity.modelTriggerId,
 			'model_name': entity.modelName,
+			'priority': entity.priority,
 			'is_finished': entity.isFinished,
 			'event_trigger_id': entity.eventTriggerId
 		})
@@ -25,6 +26,7 @@ class TriggerModelShaper(EntityShaper):
 		return TupleShaper.deserialize_tenant_based(row, TriggerModel(
 			modelTriggerId=row.get('model_trigger_id'),
 			modelName=row.get('model_name'),
+			priority=row.get('priority'),
 			isFinished=row.get('is_finished'),
 			eventTriggerId=row.get('event_trigger_id')
 		))
