@@ -15,6 +15,7 @@ class CollectorModelConfigShaper(EntityShaper):
 			'model_id': config.modelId,
 			'model_name': config.modelName,
 			'depend_on': config.dependOn,
+			'priority': config.priority,
 			'raw_topic_code': config.rawTopicCode,
 			'is_paralleled': config.isParalleled
 		})
@@ -25,6 +26,7 @@ class CollectorModelConfigShaper(EntityShaper):
 			modelId=row.get('model_id'),
 			modelName=row.get('model_name'),
 			dependOn=row.get('depend_on'),
+			priority=row.get('priority'),
 			rawTopicCode=row.get('raw_topic_code'),
 			isParalleled=row.get('is_paralleled')
 		))

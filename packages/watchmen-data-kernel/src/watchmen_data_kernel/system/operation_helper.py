@@ -53,12 +53,9 @@ TUPLE_SEQUENCE = {
 }
 
 
-
-
-
 class OperationScriptBuilder:
 
-	def __init__(self, operation_service: RecordOperationService,topic_service:TopicService):
+	def __init__(self, operation_service: RecordOperationService, topic_service: TopicService):
 		self.operation_service = operation_service
 		self.topic_service = topic_service
 		self.meta_script_builder = script_builder_factory(ask_meta_storage_type())
@@ -88,9 +85,9 @@ class OperationScriptBuilder:
 		record_ids = ArrayHelper(record_rows).map(lambda x: x.get("record_id")).to_list()
 		return record_ids
 
-	def have_create_record(self,tuple_type: TupleType,tuple_id:str):
+	def have_create_record(self, tuple_type: TupleType, tuple_id: str):
 		create_records = self.operation_service.get_record_with_create_type(self.package_version.currVersion,
-		                                                                    tuple_type,tuple_id)
+		                                                                    tuple_type, tuple_id)
 		if create_records:
 			return True
 		else:
@@ -103,8 +100,8 @@ class OperationScriptBuilder:
 		try:
 			for sequence, record_id in enumerate(record_ids, start=1):
 				operation = self.operation_service.get_operation_by_id(record_id)
-				have_create_record = self.have_create_record(tuple_type,operation.tupleId)
-				file.write(self.build_meta_script_file(operation,have_create_record))
+				have_create_record = self.have_create_record(tuple_type, operation.tupleId)
+				file.write(self.build_meta_script_file(operation, have_create_record))
 				if operation.tupleType == TupleType.TOPICS:
 					self.build_data_script_file(operation, sequence)
 			# noinspection PyUnresolvedReferences,PyUnboundLocalVariable
@@ -113,14 +110,12 @@ class OperationScriptBuilder:
 		finally:
 			file.close()
 
-	def build_meta_script_file(self, operation: Operation,have_create_record:bool) -> str:
+	def build_meta_script_file(self, operation: Operation, have_create_record: bool) -> str:
 
 		if have_create_record:
 			return self.meta_script_builder.sql_insert(operation.tupleType, operation.content)
 		else:
 			return self.meta_script_builder.sql_update(operation.tupleType, operation.tupleKey, operation.content)
-
-
 
 	# noinspection PyTypeChecker
 	def build_data_script_file(self, operation: Operation, sequence: int):
@@ -135,14 +130,14 @@ class OperationScriptBuilder:
 			                      *builder.sql_index(new)]))
 			return file
 
-		topic:Topic = self.topic_service.find_by_id(operation.tupleId)
+		topic: Topic = self.topic_service.find_by_id(operation.tupleId)
 		if topic is None:
 			return
 		if topic.dataSourceId is None:
 			raise RuntimeError(f"{topic.name} doesn't have datasource.")
 		#
 		datasource = DataSourceService(self.operation_service.principalService).find_by_id(topic.dataSourceId)
-		data_script_builder = script_builder_factory(DataSourceType.MYSQL)
+		data_script_builder = script_builder_factory(datasource.dataSourceType)
 		file_name = build_file_name(sequence, f"topic_{topic.name}.ddl.sql")
 		file = StringIO()
 		try:

@@ -7,6 +7,7 @@ class CollectorModelConfig(TenantBasedTuple, OptimisticLock, BaseModel):
 	modelId: str
 	modelName: str
 	dependOn: List[str]
+	priority: int = 0
 	rawTopicCode: str
 	isParalleled: bool
 
