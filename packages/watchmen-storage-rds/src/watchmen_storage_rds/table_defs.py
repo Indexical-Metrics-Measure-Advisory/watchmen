@@ -327,7 +327,7 @@ table_collector_model_config = Table(
 	'collector_model_config', meta_data,
 	create_pk('model_id'), create_str('model_name', 50),
 	create_json('depend_on'), create_str('raw_topic_code', 50),
-	create_int('is_paralleled'),
+	create_int('is_paralleled'), create_int('priority', False),
 	create_tenant_id(), *create_tuple_audit_columns(),
 	create_optimistic_lock()
 )
@@ -353,7 +353,7 @@ table_trigger_event = Table(
 table_trigger_model = Table(
 	'trigger_model', meta_data,
 	create_pk('model_trigger_id', Integer),
-	create_str('model_name', 50),
+	create_str('model_name', 50), create_int('priority', False),
 	create_int('is_finished', False),
 	create_int('event_trigger_id', False),
 	create_tenant_id(), *create_tuple_audit_columns()

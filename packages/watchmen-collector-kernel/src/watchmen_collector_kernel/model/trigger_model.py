@@ -5,4 +5,5 @@ class TriggerModel(TenantBasedTuple):
 	modelTriggerId: int
 	modelName: str
 	isFinished: bool = False
+	priority: int
 	eventTriggerId: int

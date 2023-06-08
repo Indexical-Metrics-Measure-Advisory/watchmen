@@ -4,7 +4,7 @@ from time import sleep
 from traceback import format_exc
 from typing import List
 
-from watchmen_collector_kernel.common import TENANT_ID, CHANGE_JSON_ID, WAVE
+from watchmen_collector_kernel.common import WAVE
 from watchmen_collector_kernel.model import ChangeDataJson, ScheduledTask, TriggerModel, \
 	CollectorModelConfig, TriggerEvent
 
@@ -75,19 +75,33 @@ class PostJsonService:
 
 		def process_model(trigger_model: TriggerModel):
 			model_config = self.model_config_service.find_by_name(trigger_model.modelName)
-			if model_config.dependOn is None or self.is_all_dependent_trigger_model_finished(model_config,
-			                                                                                 trigger_model):
-				if model_config.isParalleled or self.is_sequenced_trigger_model_finished(trigger_model):
+			if check_priority(trigger_model):
+				if model_config.isParalleled or self.is_sequenced_trigger_model_record_to_json_finished(trigger_model):
 					self.process_change_data_json(model_config, trigger_model)
 				else:
-					logger.debug(f'model config is paralleled: {model_config.isParalleled}')
+					logger.debug(
+						f'model is not paralleled, and wait for finish record to json: {model_config.isParalleled}')
 			else:
-				logger.debug(f'depend on: {model_config.dependOn}')
+				logger.debug(f'priority not fit: {trigger_model.priority}')
+
+		def check_priority(trigger_model: TriggerModel) -> bool:
+			if trigger_model.priority == 0:
+				return True
+			else:
+				all_trigger_model = self.trigger_model_service.find_by_event_trigger_id(trigger_model.eventTriggerId)
+				return ArrayHelper(all_trigger_model).filter(
+					lambda trigger: is_higher_priority_model(trigger, trigger_model)
+				).every(self.is_trigger_model_post_json_finished)
+
+		def is_higher_priority_model(trigger_model: TriggerModel, current_trigger_model: TriggerModel) -> bool:
+			if trigger_model.priority < current_trigger_model.priority:
+				return True
+			else:
+				return False
 
 		ArrayHelper(trigger_models).each(process_model)
 
 	def process_change_data_json(self, model_config: CollectorModelConfig, trigger_model: TriggerModel):
-		# not_posted_json = self.change_json_service.find_not_posted_json(trigger_model.modelTriggerId)
 		not_posted_json = self.change_json_service.find_partial_json(trigger_model.modelTriggerId)
 		if len(not_posted_json) == 0:
 			sleep(1)
@@ -98,10 +112,6 @@ class PostJsonService:
 				                         json_record.tenantId)
 				try:
 					if try_lock_nowait(self.competitive_lock_service, lock):
-						"""
-						change_data_json = self.change_json_service.find_json_by_id(
-							json_record.get(CHANGE_JSON_ID))
-						"""
 						change_data_json = json_record
 						# perhaps have been processed by other dolls, remove to history table.
 						# and also need to consider duplicated json record.
@@ -153,7 +163,7 @@ class PostJsonService:
 			all_trigger_model = self.trigger_model_service.find_by_event_trigger_id(trigger_model.eventTriggerId)
 			return ArrayHelper(all_trigger_model).filter(
 				lambda trigger: self.is_dependent_model(trigger, model_config)
-			).every(self.is_trigger_model_finished)
+			).every(self.is_trigger_model_post_json_finished)
 		else:
 			return True
 
@@ -164,12 +174,12 @@ class PostJsonService:
 		else:
 			return False
 
-	def is_trigger_model_finished(self, trigger_model: TriggerModel) -> bool:
+	def is_trigger_model_post_json_finished(self, trigger_model: TriggerModel) -> bool:
 		return trigger_model.isFinished and self.change_record_service.is_model_finished(trigger_model.modelTriggerId) \
 		       and self.change_json_service.is_model_finished(trigger_model.modelTriggerId)
 
-	def is_sequenced_trigger_model_finished(self, trigger_model: TriggerModel) -> bool:
-		if self.is_trigger_model_finished(trigger_model):
+	def is_sequenced_trigger_model_record_to_json_finished(self, trigger_model: TriggerModel) -> bool:
+		if trigger_model.isFinished:
 			return self.change_record_service.is_model_finished(trigger_model.modelTriggerId)
 		else:
 			return False

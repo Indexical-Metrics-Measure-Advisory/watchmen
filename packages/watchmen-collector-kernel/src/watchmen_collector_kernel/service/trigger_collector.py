@@ -21,16 +21,17 @@ def redress_storable_id(tuple_service: TupleService,
 		tuple_service.redress_storable_id(a_tuple)
 
 
-def new_trigger_model(model_name: str, event_trigger_id: str) -> TriggerModel:
+def new_trigger_model(model_name: str, priority: int, event_trigger_id: int) -> TriggerModel:
 	return TriggerModel(
 		modelName=model_name,
+		priority=priority,
 		is_finished=False,
 		eventTriggerId=event_trigger_id
 	)
 
 
 def get_trigger_model(event_trigger: TriggerEvent, model_config: CollectorModelConfig) -> TriggerModel:
-	return new_trigger_model(model_config.modelName, event_trigger.eventTriggerId)
+	return new_trigger_model(model_config.modelName, model_config.priority, event_trigger.eventTriggerId)
 
 
 def save_trigger_model(trigger_model_service: TriggerModelService,
