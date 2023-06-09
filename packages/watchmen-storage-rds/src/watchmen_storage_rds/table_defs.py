@@ -323,9 +323,17 @@ table_scheduled_task_history = Table(
 	create_tenant_id(),
 	*create_tuple_audit_columns()
 )
+table_collector_module_config = Table(
+	'collector_module_config', meta_data,
+	create_pk('module_id'), create_str('module_name', 50),
+	create_int('priority', False), create_int('priority', False),
+	create_tenant_id(), *create_tuple_audit_columns(),
+	create_optimistic_lock()
+)
 table_collector_model_config = Table(
 	'collector_model_config', meta_data,
 	create_pk('model_id'), create_str('model_name', 50),
+	create_str('module_id', 50),
 	create_json('depend_on'), create_str('raw_topic_code', 50),
 	create_int('is_paralleled'), create_int('priority', False),
 	create_tenant_id(), *create_tuple_audit_columns(),
@@ -350,11 +358,20 @@ table_trigger_event = Table(
 	create_int('is_finished', False),
 	create_tenant_id(), *create_tuple_audit_columns()
 )
+table_trigger_module = Table(
+	'trigger_module', meta_data,
+	create_pk('module_trigger_id', Integer),
+	create_str('module_name', 50), create_int('priority', False),
+	create_int('is_finished', False),
+	create_int('event_trigger_id', False),
+	create_tenant_id(), *create_tuple_audit_columns()
+)
 table_trigger_model = Table(
 	'trigger_model', meta_data,
 	create_pk('model_trigger_id', Integer),
 	create_str('model_name', 50), create_int('priority', False),
 	create_int('is_finished', False),
+	create_int('module_trigger_id', False),
 	create_int('event_trigger_id', False),
 	create_tenant_id(), *create_tuple_audit_columns()
 )
@@ -364,6 +381,7 @@ table_trigger_table = Table(
 	create_str('model_name', 50), create_int('data_count'),
 	create_int('is_extracted', False),
 	create_int('model_trigger_id', False),
+	create_int('module_trigger_id', False),
 	create_int('event_trigger_id', False),
 	create_tenant_id(), *create_tuple_audit_columns()
 )
@@ -372,7 +390,8 @@ table_change_data_record = Table(
 	create_pk('change_record_id', Integer), create_str('model_name', 50), create_str('table_name', 50),
 	create_json('data_id'), create_str('root_table_name', 50), create_json('root_data_id'),
 	create_int('is_merged', False), create_json('result'),
-	create_int('table_trigger_id', False), create_int('model_trigger_id', False), create_int('event_trigger_id', False),
+	create_int('table_trigger_id', False), create_int('model_trigger_id', False),
+	create_int('module_trigger_id', False), create_int('event_trigger_id', False),
 	create_tenant_id(), *create_tuple_audit_columns()
 )
 table_change_data_record_history = Table(
@@ -380,7 +399,8 @@ table_change_data_record_history = Table(
 	create_pk('change_record_id', Integer), create_str('model_name', 50), create_str('table_name', 50),
 	create_json('data_id'), create_str('root_table_name', 50), create_json('root_data_id'),
 	create_int('is_merged', False), create_json('result'),
-	create_int('table_trigger_id', False), create_int('model_trigger_id', False), create_int('event_trigger_id', False),
+	create_int('table_trigger_id', False), create_int('model_trigger_id', False),
+	create_int('module_trigger_id', False), create_int('event_trigger_id', False),
 	create_tenant_id(), *create_tuple_audit_columns()
 )
 table_change_data_json = Table(
@@ -390,7 +410,8 @@ table_change_data_json = Table(
 	create_str('table_name', 50), create_json('data_id'),
 	create_json('content'), create_json('depend_on'), create_int('is_posted', False), create_int('task_id', True),
 	create_json('result'),
-	create_int('table_trigger_id', False), create_int('model_trigger_id', False), create_int('event_trigger_id', False),
+	create_int('table_trigger_id', False), create_int('model_trigger_id', False),
+	create_int('module_trigger_id', False), create_int('event_trigger_id', False),
 	create_tenant_id(), *create_tuple_audit_columns()
 )
 table_change_data_json_history = Table(
@@ -400,7 +421,8 @@ table_change_data_json_history = Table(
 	create_str('table_name', 50), create_json('data_id'),
 	create_json('content'), create_json('depend_on'), create_int('is_posted', False), create_int('task_id', True),
 	create_json('result'),
-	create_int('table_trigger_id', False), create_int('model_trigger_id', False), create_int('event_trigger_id', False),
+	create_int('table_trigger_id', False), create_int('model_trigger_id', False),
+	create_int('module_trigger_id', False), create_int('event_trigger_id', False),
 	create_tenant_id(), *create_tuple_audit_columns()
 )
 table_operations = Table(
@@ -504,9 +526,11 @@ tables: Dict[str, Table] = {
 	'subscription_events': table_subscription_event,
 	'notification_definitions': table_notification_definition,
 	# collector
+	'collector_module_config': table_collector_module_config,
 	'collector_model_config': table_collector_model_config,
 	'collector_table_config': table_collector_table_config,
 	'trigger_event': table_trigger_event,
+	'trigger_module': table_trigger_module,
 	'trigger_model': table_trigger_model,
 	'trigger_table': table_trigger_table,
 	'change_data_record': table_change_data_record,

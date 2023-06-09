@@ -8,4 +8,5 @@ class TriggerTable(TenantBasedTuple):
 	modelName: str
 	isExtracted: bool = False
 	modelTriggerId: int
+	moduleTriggerId: int
 	eventTriggerId: int

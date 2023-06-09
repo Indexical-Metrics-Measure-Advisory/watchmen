@@ -19,6 +19,7 @@ class TriggerTableShaper(EntityShaper):
 			'is_extracted': entity.isExtracted,
 			'data_count': entity.dataCount,
 			'model_trigger_id': entity.modelTriggerId,
+			'module_trigger_id': entity.moduleTriggerId,
 			'event_trigger_id': entity.eventTriggerId
 		})
 
@@ -31,6 +32,7 @@ class TriggerTableShaper(EntityShaper):
 			isExtracted=row.get('is_extracted'),
 			dataCount=row.get('data_count'),
 			modelTriggerId=row.get('model_trigger_id'),
+			moduleTriggerId=row.get('module_trigger_id'),
 			eventTriggerId=row.get('event_trigger_id')
 		))
 

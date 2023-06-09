@@ -14,6 +14,7 @@ class ChangeDataRecord(TenantBasedTuple):
 	result: Dict
 	tableTriggerId: int
 	modelTriggerId: int
+	moduleTriggerId: int
 	eventTriggerId: int
 
 
