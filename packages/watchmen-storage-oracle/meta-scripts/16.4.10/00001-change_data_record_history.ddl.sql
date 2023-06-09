@@ -5,7 +5,7 @@ CREATE TABLE change_data_record_history
     table_name              VARCHAR2(50)    NOT NULL,
     data_id                 CLOB            NOT NULL,
     root_table_name         VARCHAR2(50),
-    root_data_id            CLOB
+    root_data_id            CLOB,
     is_merged               NUMBER(1)       NOT NULL,
     result                  CLOB,
     table_trigger_id        NUMBER(20)      NOT NULL,
