@@ -1,10 +1,12 @@
 from .competitive_lock import CompetitiveLock
 from .scheduled_task import ScheduledTask
 
+from .collector_module_config import CollectorModuleConfig
 from .collector_model_config import CollectorModelConfig
 from .collector_table_config import CollectorTableConfig
 
 from .trigger_event import TriggerEvent
+from .trigger_module import TriggerModule
 from .trigger_model import TriggerModel
 from .trigger_table import TriggerTable
 

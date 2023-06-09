@@ -139,6 +139,7 @@ class TableExtractor:
 			trigger_table.tenantId,
 			trigger_table.tableTriggerId,
 			trigger_table.modelTriggerId,
+			trigger_table.moduleTriggerId,
 			trigger_table.eventTriggerId
 		)
 
@@ -149,6 +150,7 @@ class TableExtractor:
 	                           tenant_id: str,
 	                           table_trigger_id: int,
 	                           model_trigger_id: int,
+	                           module_trigger_id: int,
 	                           event_trigger_id: int) -> ChangeDataRecord:
 		return ChangeDataRecord(
 			changeRecordId=self.snowflake_generator.next_id(),
@@ -158,6 +160,7 @@ class TableExtractor:
 			isMerged=False,
 			tableTriggerId=table_trigger_id,
 			modelTriggerId=model_trigger_id,
+			moduleTriggerId=module_trigger_id,
 			eventTriggerId=event_trigger_id,
 			tenantId=tenant_id
 		)

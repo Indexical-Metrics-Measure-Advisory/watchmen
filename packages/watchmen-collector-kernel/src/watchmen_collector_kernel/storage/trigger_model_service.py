@@ -18,6 +18,7 @@ class TriggerModelShaper(EntityShaper):
 			'model_name': entity.modelName,
 			'priority': entity.priority,
 			'is_finished': entity.isFinished,
+			'module_trigger_id': entity.moduleTriggerId,
 			'event_trigger_id': entity.eventTriggerId
 		})
 
@@ -28,6 +29,7 @@ class TriggerModelShaper(EntityShaper):
 			modelName=row.get('model_name'),
 			priority=row.get('priority'),
 			isFinished=row.get('is_finished'),
+			moduleTriggerId=row.get('module_trigger_id'),
 			eventTriggerId=row.get('event_trigger_id')
 		))
 
@@ -90,6 +92,17 @@ class TriggerModelService(TupleService):
 		finally:
 			self.close_transaction()
 
+	def find_by_module_trigger_id(self, module_trigger_id: int) -> List[TriggerModel]:
+		self.begin_transaction()
+		try:
+			# noinspection PyTypeChecker
+			return self.storage.find(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='module_trigger_id'), right=module_trigger_id)
+				]
+			))
+		finally:
+			self.close_transaction()
 
 def get_trigger_model_service(storage: TransactionalStorageSPI,
                               snowflake_generator: SnowflakeGenerator,

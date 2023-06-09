@@ -3,11 +3,13 @@ from .scheduled_task_service import get_scheduled_task_service, ScheduledTaskSer
 from .scheduled_task_history_service import get_scheduled_task_history_service, ScheduledTaskHistoryService
 
 
+from .collector_module_config_service import get_collector_module_config_service, CollectorModuleConfigService
 from .collector_model_config_service import get_collector_model_config_service, CollectorModelConfigService
 from .collector_table_config_service import get_collector_table_config_service, CollectorTableConfigService
 
 
 from .trigger_event_service import get_trigger_event_service, TriggerEventService
+from .trigger_module_service import get_trigger_module_service, TriggerModuleService
 from .trigger_model_service import get_trigger_model_service, TriggerModelService
 from .trigger_table_service import get_trigger_table_service, TriggerTableService
 

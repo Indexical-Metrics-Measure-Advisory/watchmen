@@ -6,12 +6,14 @@ from typing import List
 
 from watchmen_collector_kernel.common import WAVE
 from watchmen_collector_kernel.model import ChangeDataJson, ScheduledTask, TriggerModel, \
-	CollectorModelConfig, TriggerEvent
+	CollectorModelConfig, TriggerEvent, TriggerModule
 
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock, try_lock_nowait, unlock
 from watchmen_collector_kernel.storage import get_change_data_json_service, get_competitive_lock_service, \
 	get_scheduled_task_service, get_collector_model_config_service, get_trigger_model_service, \
-	get_trigger_event_service, get_change_data_record_service, get_change_data_json_history_service
+	get_trigger_event_service, get_change_data_record_service, get_change_data_json_history_service, \
+	get_collector_module_config_service, get_trigger_module_service
+
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
 from watchmen_utilities import ArrayHelper
 
@@ -41,9 +43,15 @@ class PostJsonService:
 		self.scheduled_task_service = get_scheduled_task_service(self.storage,
 		                                                         self.snowflake_generator,
 		                                                         self.principle_service)
+		self.module_config_service = get_collector_module_config_service(self.storage,
+		                                                                 self.snowflake_generator,
+		                                                                 self.principle_service)
 		self.model_config_service = get_collector_model_config_service(self.storage,
 		                                                               self.snowflake_generator,
 		                                                               self.principle_service)
+		self.trigger_module_service = get_trigger_module_service(self.storage,
+		                                                       self.snowflake_generator,
+		                                                       self.principle_service)
 		self.trigger_model_service = get_trigger_model_service(self.storage,
 		                                                       self.snowflake_generator,
 		                                                       self.principle_service)
@@ -68,10 +76,36 @@ class PostJsonService:
 		if len(unfinished_events) == 0:
 			sleep(5)
 		else:
-			ArrayHelper(unfinished_events).each(self.process_models)
+			ArrayHelper(unfinished_events).each(self.process_modules)
 
-	def process_models(self, unfinished_event: TriggerEvent):
-		trigger_models = self.trigger_model_service.find_by_event_trigger_id(unfinished_event.get('event_trigger_id'))
+	def process_modules(self, unfinished_event: TriggerEvent):
+		trigger_modules = self.trigger_module_service.find_by_event_trigger_id(unfinished_event.get('event_trigger_id'))
+
+		def is_higher_priority_module(trigger_module: TriggerModule, current_trigger_module: TriggerModule) -> bool:
+			if trigger_module.priority < current_trigger_module.priority:
+				return True
+			else:
+				return False
+
+		def check_module_priority(trigger_module: TriggerModule) -> bool:
+			if trigger_module.priority == 0:
+				return True
+			else:
+				all_trigger_modules = self.trigger_module_service.find_by_event_trigger_id(trigger_module.eventTriggerId)
+				return ArrayHelper(all_trigger_modules).filter(
+					lambda trigger: is_higher_priority_module(trigger, trigger_module)
+				).every(self.is_trigger_module_finished)
+
+		def process_module(trigger_module: TriggerModule):
+			if check_module_priority(trigger_module):
+				self.process_models(trigger_module)
+			else:
+				logger.debug(f'module {trigger_module.moduleName} priority not fit: {trigger_module.priority}')
+
+		ArrayHelper(trigger_modules).each(process_module)
+
+	def process_models(self, trigger_module: TriggerModule):
+		trigger_models = self.trigger_model_service.find_by_module_trigger_id(trigger_module.moduleTriggerId)
 
 		def process_model(trigger_model: TriggerModel):
 			model_config = self.model_config_service.find_by_name(trigger_model.modelName)
@@ -88,7 +122,7 @@ class PostJsonService:
 			if trigger_model.priority == 0:
 				return True
 			else:
-				all_trigger_model = self.trigger_model_service.find_by_event_trigger_id(trigger_model.eventTriggerId)
+				all_trigger_model = self.trigger_model_service.find_by_module_trigger_id(trigger_model.moduleTriggerId)
 				return ArrayHelper(all_trigger_model).filter(
 					lambda trigger: is_higher_priority_model(trigger, trigger_model)
 				).every(self.is_trigger_model_post_json_finished)
@@ -173,6 +207,11 @@ class PostJsonService:
 			return True
 		else:
 			return False
+
+	def is_trigger_module_finished(self, trigger_module: TriggerModule) -> bool:
+		return trigger_module.isFinished and self.change_record_service.is_module_finished(trigger_module.moduleTriggerId) \
+		       and self.change_json_service.is_module_finished(trigger_module.moduleTriggerId)
+
 
 	def is_trigger_model_post_json_finished(self, trigger_model: TriggerModel) -> bool:
 		return trigger_model.isFinished and self.change_record_service.is_model_finished(trigger_model.modelTriggerId) \
