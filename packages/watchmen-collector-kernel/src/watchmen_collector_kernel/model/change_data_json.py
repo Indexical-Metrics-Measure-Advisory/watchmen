@@ -24,5 +24,6 @@ class ChangeDataJson(TenantBasedTuple, BaseModel):
 	taskId: int
 	tableTriggerId: int
 	modelTriggerId: int
+	moduleTriggerId: int
 	eventTriggerId: int
 

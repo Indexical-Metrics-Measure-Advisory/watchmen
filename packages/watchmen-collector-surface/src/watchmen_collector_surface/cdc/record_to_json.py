@@ -188,6 +188,7 @@ class RecordToJsonService:
 			isPosted=False,
 			tableTriggerId=change_data_record.tableTriggerId,
 			modelTriggerId=change_data_record.modelTriggerId,
+			moduleTriggerId=change_data_record.moduleTriggerId,
 			eventTriggerId=change_data_record.eventTriggerId,
 			tenantId=change_data_record.tenantId
 		)
