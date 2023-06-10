@@ -32,7 +32,7 @@ class CollectorSurfaceSettings(BaseSettings):
 
 
 settings = CollectorSurfaceSettings()
-logger.info(f'Collector surface settings[{settings.dict()}].')
+# logger.info(f'Collector surface settings[{settings.dict()}].')
 
 
 def ask_query_based_change_data_capture_enabled() -> bool:

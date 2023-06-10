@@ -1,3 +1,7 @@
 # comment
 poetry.lock
 .icloud
+*.log
+*.LOG
+*.LoG
+*.log.*
