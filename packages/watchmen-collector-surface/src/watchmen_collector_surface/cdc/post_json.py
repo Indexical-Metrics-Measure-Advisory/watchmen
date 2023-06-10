@@ -137,33 +137,30 @@ class PostJsonService:
 
 	def process_change_data_json(self, model_config: CollectorModelConfig, trigger_model: TriggerModel):
 		not_posted_json = self.change_json_service.find_partial_json(trigger_model.modelTriggerId)
-		if len(not_posted_json) == 0:
-			sleep(1)
-		else:
-			for json_record in not_posted_json:
-				lock = get_resource_lock(self.snowflake_generator.next_id(),
-				                         json_record.changeJsonId,
-				                         json_record.tenantId)
-				try:
-					if try_lock_nowait(self.competitive_lock_service, lock):
-						change_data_json = json_record
-						# perhaps have been processed by other dolls, remove to history table.
-						# and also need to consider duplicated json record.
-						if self.change_json_service.is_existed(change_data_json):
-							if not self.is_duplicated(change_data_json):
-								try:
-									if self.can_post(model_config, change_data_json):
-										self.post_json(model_config, change_data_json)
-								except Exception as e:
-									logger.error(e, exc_info=True, stack_info=True)
-									change_data_json.isPosted = True
-									change_data_json.result = format_exc()
-									self.update_result(change_data_json)
-							else:
+		for json_record in not_posted_json:
+			lock = get_resource_lock(self.snowflake_generator.next_id(),
+			                         json_record.changeJsonId,
+			                         json_record.tenantId)
+			try:
+				if try_lock_nowait(self.competitive_lock_service, lock):
+					change_data_json = json_record
+					# perhaps have been processed by other dolls, have remove to history table.
+					# and also need to consider duplicated json record.
+					if self.change_json_service.is_existed(change_data_json):
+						if not self.is_duplicated(change_data_json):
+							try:
+								if self.can_post(model_config, change_data_json):
+									self.post_json(model_config, change_data_json)
+							except Exception as e:
+								logger.error(e, exc_info=True, stack_info=True)
 								change_data_json.isPosted = True
-								self.update_result(change_data_json, True)
-				finally:
-					unlock(self.competitive_lock_service, lock)
+								change_data_json.result = format_exc()
+								self.update_result(change_data_json)
+						else:
+							change_data_json.isPosted = True
+							self.update_result(change_data_json, True)
+			finally:
+				unlock(self.competitive_lock_service, lock)
 
 	def is_duplicated(self, change_data_json: ChangeDataJson) -> bool:
 		existed_json = self.change_json_history_service.find_by_resource_id(change_data_json.resourceId)
