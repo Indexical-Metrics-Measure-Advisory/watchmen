@@ -220,6 +220,10 @@ class TopicDataStorageSPI(TransactionalStorageSPI):
 	def ask_synonym_factors(self, table_name: str) -> List[Factor]:
 		pass
 
+	@abstractmethod
+	def ask_reflect_factors(self, table_name: str) -> List[Factor]:
+		pass
+
 	# noinspection PyMethodMayBeStatic
 	def is_free_find_supported(self) -> bool:
 		return True

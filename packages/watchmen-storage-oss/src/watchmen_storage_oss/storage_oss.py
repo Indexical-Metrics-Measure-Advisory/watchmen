@@ -5,7 +5,8 @@ from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import DataPage
 from watchmen_storage import Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
 	EntityIdHelper, EntityList, EntityPager, EntityStraightValuesFinder, EntityUpdater, FreeAggregatePager, \
-	FreeAggregator, FreeFinder, FreePager, TopicDataStorageSPI, TransactionalStorageSPI, UnexpectedStorageException
+	FreeAggregator, FreeFinder, FreePager, TopicDataStorageSPI, TransactionalStorageSPI, UnexpectedStorageException, \
+	EntityLimitedFinder
 from .object_defs_oss import find_directory, register_directory
 from .object_storage_service import ObjectStorageService
 
@@ -13,6 +14,7 @@ logger = getLogger(__name__)
 
 
 class StorageOss(TransactionalStorageSPI):
+
 	def __init__(self, oss_client: ObjectStorageService):
 		self.oss_client = oss_client
 
@@ -198,6 +200,12 @@ class StorageOss(TransactionalStorageSPI):
 		"""
 		raise UnexpectedStorageException('Method[find_straight_values] does not support by oss storage.')
 
+	def find_limited(self, finder: EntityLimitedFinder) -> EntityList:
+		"""
+		not supported by oss
+		"""
+		raise UnexpectedStorageException('Method[find_limited] does not support by oss storage.')
+
 	def find_all(self, helper: EntityHelper) -> EntityList:
 		"""
 		not supported by oss
@@ -249,6 +257,12 @@ class TopicDataStorageOss(StorageOss, TopicDataStorageSPI):
 		not supported by oss
 		"""
 		raise UnexpectedStorageException('Method[ask_synonym_factors] does not support by oss storage.')
+
+	def ask_reflect_factors(self, table_name: str) -> List[Factor]:
+		"""
+		not supported by oss
+		"""
+		raise UnexpectedStorageException('Method[ask_reflect_factors] does not support by oss storage.')
 
 	# noinspection PyMethodMayBeStatic
 	def is_free_find_supported(self) -> bool:
