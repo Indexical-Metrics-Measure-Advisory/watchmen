@@ -6,3 +6,7 @@
 /src/dask-worker-space
 .icloud
 /src/temp
+*.log
+*.LOG
+*.LoG
+*.log.*

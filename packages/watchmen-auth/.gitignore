@@ -3,3 +3,8 @@
 *.pyc
 .DS_Store
 .icloud
+*.log
+*.LOG
+*.LoG
+
+*.log.*
