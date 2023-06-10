@@ -10,7 +10,7 @@ class IndicatorKernelSettings(BaseSettings):
 
 
 settings = IndicatorKernelSettings()
-logger.info(f'Indicator kernel settings[{settings.dict()}].')
+# logger.info(f'Indicator kernel settings[{settings.dict()}].')
 
 
 def ask_plugin_host() -> str:

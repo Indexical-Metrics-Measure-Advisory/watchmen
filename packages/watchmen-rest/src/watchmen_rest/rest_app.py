@@ -20,7 +20,7 @@ logger = getLogger(f'app.{__name__}')
 class RestApp:
 	def __init__(self, settings: RestSettings):
 		self.settings = settings
-		logger.info(f'Application settings[{settings.dict()}].')
+		# logger.info(f'Application settings[{settings.dict()}].')
 
 	def get_settings(self) -> RestSettings:
 		return self.settings
