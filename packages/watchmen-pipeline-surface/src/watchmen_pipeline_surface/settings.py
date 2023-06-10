@@ -31,7 +31,7 @@ class PipelineSurfaceSettings(BaseSettings):
 
 
 settings = PipelineSurfaceSettings()
-logger.info(f'Pipeline surface settings[{settings.dict()}].')
+# logger.info(f'Pipeline surface settings[{settings.dict()}].')
 
 
 def ask_kafka_connector_enabled() -> bool:

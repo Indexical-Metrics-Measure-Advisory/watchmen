@@ -16,7 +16,6 @@ class DataSurfaceSettings(BaseSettings):
 
 
 settings = DataSurfaceSettings()
-logger.info(f'Data surface settings[{settings.dict()}].')
 
 
 def ask_truncate_topic_data() -> bool:

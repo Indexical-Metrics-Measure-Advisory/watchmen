@@ -12,7 +12,7 @@ class LineageSettings(BaseSettings):
 
 
 settings = LineageSettings()
-logger.info(f'Inquiry trino settings[{settings.dict()}].')
+# logger.info(f'Inquiry trino settings[{settings.dict()}].')
 
 
 def ask_lineage_flag() -> bool:

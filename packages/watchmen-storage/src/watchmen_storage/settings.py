@@ -20,7 +20,7 @@ class StorageSettings(BaseSettings):
 
 
 storage_settings = StorageSettings()
-logger.info(f'Storage settings[{storage_settings.dict()}].')
+# logger.info(f'Storage settings[{storage_settings.dict()}].')
 
 
 def ask_sql_analyzer_on() -> bool:
