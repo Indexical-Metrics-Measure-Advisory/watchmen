@@ -58,7 +58,7 @@ class SourceTableExtractor:
 		              tenantId=self.principal_service.tenantId
 		              )
 		topic_storage = ask_topic_storage(topic, self.principal_service)
-		factors = topic_storage.ask_synonym_factors(config.tableName)
+		factors = topic_storage.ask_reflect_factors(config.tableName)
 		topic.factors = factors
 		now = get_current_time_in_seconds()
 		topic.createdAt = now

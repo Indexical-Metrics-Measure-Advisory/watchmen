@@ -44,7 +44,8 @@ class MongoConnection:
 	def insert_many(self, document: MongoDocument, data: List[Dict[str, Any]]) -> None:
 		self.collection(document.name).insert_many(data)
 
-	def update_by_id(self, document: MongoDocument, data: Dict[str, Any], object_id: Union[ObjectId, str, int]) -> UpdateResult:
+	def update_by_id(self, document: MongoDocument, data: Dict[str, Any],
+	                 object_id: Union[ObjectId, str, int]) -> UpdateResult:
 		return self.collection(document.name).update_many({'_id': object_id}, {'$set': data})
 
 	def update_many(self, document: MongoDocument, data: Dict[str, Any], criteria: Dict[str, Any]) -> UpdateResult:
@@ -102,6 +103,13 @@ class MongoConnection:
 				# noinspection PyProtectedMember
 				del item['_id']
 		return results
+
+	def find_limited(self, document: MongoDocument, limit: int,
+	                 criteria: Dict[str, Any], sort: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+		if sort is None:
+			return list(self.collection(document.name).find(filter={'$expr': criteria}).limit(limit))
+		else:
+			return list(self.collection(document.name).find(filter={'$expr': criteria}, sort=sort).limit(limit))
 
 	def exists(self, document: MongoDocument, criteria: Dict[str, any]) -> bool:
 		return self.count(document, criteria) != 0
