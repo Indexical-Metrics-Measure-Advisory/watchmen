@@ -157,6 +157,34 @@ class SourceTableExtractor:
 
 			return ArrayHelper(flatten_path_list).reduce(flatten_path, data_dict)
 
+		def process_json_path(inner_json_path_list: List[str], data_dict: Dict) -> Dict:
+
+			def json_path(data_need_load: Dict, inner_json_path: str) -> Dict:
+				json_path_list = inner_json_path.split(".")
+				json_path_link_head = LinkList().create_tail(json_path_list)
+
+				def load(data_loaded: Dict, node: LinkNode) -> Optional[Dict]:
+					if data_loaded is None:
+						return None
+					if node.item in data_loaded:
+						if node.next is not None:
+							temp = data_loaded[node.item]
+							data_loaded[node.item] = load(temp, node.next)
+							return data_loaded
+						else:
+							if data_loaded[node.item]:
+								try:
+									data_loaded[node.item] = json.loads(data_loaded[node.item])
+									return data_loaded
+								except ValueError:
+									logger.error(f'json node name: {node.item}')
+					else:
+						return data_loaded
+
+				return load(data_need_load, json_path_link_head)
+
+			return ArrayHelper(inner_json_path_list).reduce(json_path, data_dict)
+
 		def change_column_value(row: Dict) -> Dict:
 			for key, value in row.items():
 				for column in json_columns:
@@ -175,6 +203,10 @@ class SourceTableExtractor:
 
 								if column.flattenPath:
 									tmp_data = process_flatten_path(column.flattenPath, tmp_data)
+
+								if column.jsonPath:
+									tmp_data = process_json_path(column.jsonPath, tmp_data)
+
 							row[key] = tmp_data
 						else:
 							pass
