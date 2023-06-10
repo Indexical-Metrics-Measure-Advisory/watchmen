@@ -10,7 +10,7 @@ CREATE TABLE trigger_module
     created_by          VARCHAR(50)  NOT NULL,
     last_modified_at    DATETIME     NOT NULL,
     last_modified_by    VARCHAR(50)  NOT NULL,
-    PRIMARY KEY (model_trigger_id),
+    PRIMARY KEY (module_trigger_id),
     INDEX (tenant_id),
     INDEX (created_at),
     INDEX (created_by),
