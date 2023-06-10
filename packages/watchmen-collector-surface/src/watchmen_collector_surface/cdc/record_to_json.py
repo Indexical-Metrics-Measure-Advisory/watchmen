@@ -71,30 +71,18 @@ class RecordToJsonService:
 		return change_record.isMerged
 
 	def change_data_record_listener(self):
-		# unmerged_records = self.change_record_service.find_unmerged_records()
 		unmerged_records = self.change_record_service.find_partial_records()
 		if len(unmerged_records) == 0:
 			sleep(5)
 		else:
 			for unmerged_record in unmerged_records:
-				# Not a complete record, just change_record_id and tenant_id
-				# Can not use for record operation.
-				"""
-				lock = get_resource_lock(self.snowflake_generator.next_id(),
-				                         unmerged_record.get(CHANGE_RECORD_ID),
-				                         unmerged_record.get(TENANT_ID))
-				"""
 				lock = get_resource_lock(self.snowflake_generator.next_id(),
 				                         unmerged_record.changeRecordId,
 				                         unmerged_record.tenantId)
 				try:
 					if try_lock_nowait(self.competitive_lock_service, lock):
-						"""
-						change_data_record = self.change_record_service.find_change_record_by_id(
-							unmerged_record.get(CHANGE_RECORD_ID))
-						"""
 						change_data_record = unmerged_record
-						# perhaps have been processed by other dolls, remove to history table.
+						# perhaps have been processed by other dolls.
 						if self.change_record_service.is_existed(change_data_record):
 							try:
 								self.process_record(change_data_record)
@@ -188,6 +176,7 @@ class RecordToJsonService:
 			isPosted=False,
 			tableTriggerId=change_data_record.tableTriggerId,
 			modelTriggerId=change_data_record.modelTriggerId,
+			moduleTriggerId=change_data_record.moduleTriggerId,
 			eventTriggerId=change_data_record.eventTriggerId,
 			tenantId=change_data_record.tenantId
 		)

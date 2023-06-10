@@ -28,6 +28,7 @@ class ChangeDataJsonShaper(EntityShaper):
 			                                          'task_id': entity.taskId,
 			                                          'table_trigger_id': entity.tableTriggerId,
 			                                          'model_trigger_id': entity.modelTriggerId,
+			                                          'module_trigger_id': entity.moduleTriggerId,
 			                                          'event_trigger_id': entity.eventTriggerId
 		                                          })
 
@@ -48,6 +49,7 @@ class ChangeDataJsonShaper(EntityShaper):
 			                                            taskId=row.get('task_id'),
 			                                            tableTriggerId=row.get('table_trigger_id'),
 			                                            modelTriggerId=row.get('model_trigger_id'),
+			                                            moduleTriggerId=row.get('module_trigger_id'),
 			                                            eventTriggerId=row.get('event_trigger_id')
 		                                            ))
 
@@ -188,6 +190,19 @@ class ChangeDataJsonService(TupleService):
 			return self.storage.count(self.get_entity_finder(
 				criteria=[
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_trigger_id'), right=model_trigger_id),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=IS_POSTED), right=False)
+				]
+			)) == 0
+		finally:
+			self.close_transaction()
+
+	def is_module_finished(self, module_trigger_id: int) -> bool:
+		self.begin_transaction()
+		try:
+			# noinspection PyTypeChecker
+			return self.storage.count(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='module_trigger_id'), right=module_trigger_id),
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=IS_POSTED), right=False)
 				]
 			)) == 0

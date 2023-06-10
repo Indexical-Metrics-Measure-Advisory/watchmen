@@ -3,11 +3,12 @@ from threading import Thread
 from time import sleep
 
 from watchmen_collector_kernel.common import TENANT_ID
-from watchmen_collector_kernel.model import TriggerEvent, TriggerModel, TriggerTable
+from watchmen_collector_kernel.model import TriggerEvent, TriggerModel, TriggerTable, TriggerModule
 from watchmen_collector_kernel.service import try_lock_nowait, unlock
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_trigger_event_service, \
-	get_trigger_model_service, get_trigger_table_service, get_change_data_record_service, get_change_data_json_service
+	get_trigger_model_service, get_trigger_table_service, get_change_data_record_service, get_change_data_json_service, \
+	get_trigger_module_service
 from watchmen_meta.common import ask_snowflake_generator, ask_super_admin, ask_meta_storage
 from watchmen_utilities import ArrayHelper
 
@@ -26,6 +27,9 @@ class CollectorEventListener:
 		self.principle_service = ask_super_admin()
 		self.competitive_lock_service = get_competitive_lock_service(self.storage)
 		self.trigger_event_service = get_trigger_event_service(self.storage,
+		                                                       self.snowflake_generator,
+		                                                       self.principle_service)
+		self.trigger_module_service = get_trigger_module_service(self.storage,
 		                                                       self.snowflake_generator,
 		                                                       self.principle_service)
 		self.trigger_model_service = get_trigger_model_service(self.storage,
@@ -54,9 +58,32 @@ class CollectorEventListener:
 			sleep(60)
 			self.create_thread()
 
-	def is_all_models_finished(self, event: TriggerEvent) -> bool:
+	def is_all_modules_finished(self, event: TriggerEvent) -> bool:
 		return ArrayHelper(
-			self.trigger_model_service.find_by_event_trigger_id(event.eventTriggerId)
+			self.trigger_module_service.find_by_event_trigger_id(event.eventTriggerId)).every(
+			lambda trigger_module: self.is_trigger_module_finished(trigger_module)
+		)
+
+	def is_trigger_module_finished(self, trigger_module: TriggerModule) -> bool:
+		if trigger_module.isFinished:
+			return True
+		else:
+			if self.is_all_models_finished(trigger_module):
+				trigger_module.isFinished = True
+				self.trigger_module_service.begin_transaction()
+				try:
+					self.trigger_module_service.update(trigger_module)
+					self.trigger_model_service.commit_transaction()
+				except Exception as e:
+					self.trigger_event_service.rollback_transaction()
+					raise e
+				return True
+			else:
+				return False
+
+	def is_all_models_finished(self, trigger_module: TriggerModule) -> bool:
+		return ArrayHelper(
+			self.trigger_model_service.find_by_module_trigger_id(trigger_module.moduleTriggerId)
 		).every(lambda trigger_model: self.is_trigger_model_finished(trigger_model))
 
 	def is_trigger_model_finished(self, trigger_model: TriggerModel) -> bool:
@@ -108,7 +135,7 @@ class CollectorEventListener:
 						if self.is_finished(event):
 							continue
 						else:
-							if self.is_all_models_finished(event) and self.is_all_records_merged(event) and self.is_all_json_posted(event):
+							if self.is_all_modules_finished(event) and self.is_all_records_merged(event) and self.is_all_json_posted(event):
 								event.isFinished = True
 								self.trigger_event_service.begin_transaction()
 								try:

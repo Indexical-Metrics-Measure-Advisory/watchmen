@@ -1,6 +1,6 @@
 from typing import Union
 
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, OperationalError
 
 from watchmen_collector_kernel.model import CompetitiveLock
 from watchmen_collector_kernel.storage.competitive_lock_service import CompetitiveLockService
@@ -11,6 +11,8 @@ def try_lock_nowait(lock_service: CompetitiveLockService, lock: CompetitiveLock)
 	try:
 		lock_service.insert_one(lock)
 		return True
+	except OperationalError:
+		return False
 	except IntegrityError:
 		return False
 
