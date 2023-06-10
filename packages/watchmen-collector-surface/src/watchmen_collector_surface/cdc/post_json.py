@@ -209,7 +209,6 @@ class PostJsonService:
 		return trigger_module.isFinished and self.change_record_service.is_module_finished(trigger_module.moduleTriggerId) \
 		       and self.change_json_service.is_module_finished(trigger_module.moduleTriggerId)
 
-
 	def is_trigger_model_post_json_finished(self, trigger_model: TriggerModel) -> bool:
 		return trigger_model.isFinished and self.change_record_service.is_model_finished(trigger_model.modelTriggerId) \
 		       and self.change_json_service.is_model_finished(trigger_model.modelTriggerId)
