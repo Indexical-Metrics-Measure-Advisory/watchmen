@@ -16,7 +16,7 @@ class InquirySurfaceSettings(BaseSettings):
 
 
 settings = InquirySurfaceSettings()
-logger.info(f'Inquiry surface settings[{settings.dict()}].')
+# logger.info(f'Inquiry surface settings[{settings.dict()}].')
 
 
 def ask_dataset_page_max_rows() -> int:

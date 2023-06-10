@@ -32,7 +32,7 @@ class KernelSettings(BaseSettings):
 
 
 settings = KernelSettings()
-logger.info(f'Inquiry trino settings[{settings.dict()}].')
+# logger.info(f'Inquiry trino settings[{settings.dict()}].')
 
 
 def ask_trino_host() -> Tuple[str, int]:
