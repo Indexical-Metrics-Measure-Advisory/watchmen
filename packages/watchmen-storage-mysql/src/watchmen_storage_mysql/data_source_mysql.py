@@ -35,8 +35,7 @@ class MySQLDataSourceHelper(DataSourceHelper):
 			future=True,
 			pool_recycle=params.poolRecycle,
 			json_serializer=serialize_to_json,
-			encoding='utf-8',
-			pool_pre_ping=True
+			encoding='utf-8'
 		)
 
 	# noinspection DuplicatedCode
