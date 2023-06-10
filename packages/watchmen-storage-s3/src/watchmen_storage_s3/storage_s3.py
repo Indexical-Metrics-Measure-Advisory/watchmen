@@ -5,7 +5,8 @@ from watchmen_model.admin import Factor, Topic
 from watchmen_model.common import DataPage
 from watchmen_storage import Entity, EntityDeleter, EntityDistinctValuesFinder, EntityFinder, EntityHelper, EntityId, \
 	EntityIdHelper, EntityList, EntityPager, EntityStraightValuesFinder, EntityUpdater, FreeAggregatePager, \
-	FreeAggregator, FreeFinder, FreePager, TopicDataStorageSPI, TransactionalStorageSPI, UnexpectedStorageException
+	FreeAggregator, FreeFinder, FreePager, TopicDataStorageSPI, TransactionalStorageSPI, UnexpectedStorageException, \
+	EntityLimitedFinder
 from .object_defs_s3 import find_directory, register_directory
 from .simple_storage_service import SimpleStorageService
 
@@ -198,6 +199,12 @@ class StorageS3(TransactionalStorageSPI):
 		"""
 		raise UnexpectedStorageException('Method[find_straight_values] does not support by S3 storage.')
 
+	def find_limited(self, finder: EntityLimitedFinder) -> EntityList:
+		"""
+		not supported by S3
+		"""
+		raise UnexpectedStorageException('Method[find_limited] does not support by S3 storage.')
+
 	def find_all(self, helper: EntityHelper) -> EntityList:
 		"""
 		not supported by S3
@@ -225,6 +232,7 @@ class StorageS3(TransactionalStorageSPI):
 
 # noinspection DuplicatedCode
 class TopicDataStorageS3(StorageS3, TopicDataStorageSPI):
+
 	def register_topic(self, topic: Topic) -> None:
 		register_directory(topic)
 
@@ -249,6 +257,12 @@ class TopicDataStorageS3(StorageS3, TopicDataStorageSPI):
 		not supported by S3
 		"""
 		raise UnexpectedStorageException('Method[ask_synonym_factors] does not support by S3 storage.')
+
+	def ask_reflect_factors(self, table_name: str) -> List[Factor]:
+		"""
+		not supported by S3
+		"""
+		raise UnexpectedStorageException('Method[ask_reflect_factors] does not support by S3 storage.')
 
 	# noinspection PyMethodMayBeStatic
 	def is_free_find_supported(self) -> bool:

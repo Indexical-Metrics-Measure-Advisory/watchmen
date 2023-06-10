@@ -40,6 +40,12 @@ class TrinoStorageSPI(TopicDataStorageSPI):
 		"""
 		raise InquiryTrinoException('Method[ask_synonym_factors] does not support by trino storage.')
 
+	def ask_reflect_factors(self, table_name: str) -> List[Factor]:
+		"""
+		not supported by trino
+		"""
+		raise InquiryTrinoException('Method[ask_reflect_factors] does not support by trino storage.')
+
 	def begin(self) -> None:
 		"""
 		not supported by trino

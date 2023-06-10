@@ -8,7 +8,7 @@ from watchmen_storage import as_table_name, Entity, EntityColumnAggregateArithme
 	EntityNotFoundException, EntityPager, EntityRow, EntityStraightAggregateColumn, EntityStraightColumn, \
 	EntityStraightValuesFinder, EntityUpdater, FreeAggregatePager, FreeAggregator, FreeFinder, FreePager, \
 	TooManyEntitiesFoundException, TopicDataStorageSPI, TransactionalStorageSPI, UnexpectedStorageException, \
-	UnsupportedStraightColumnException
+	UnsupportedStraightColumnException, EntityLimitedFinder
 from watchmen_utilities import ArrayHelper, is_blank
 from .document_defs_mongo import find_document, register_document
 from .document_mongo import MongoDocument
@@ -295,6 +295,17 @@ class StorageMongoDB(TransactionalStorageSPI):
 			.map(finder.shaper.deserialize) \
 			.to_list()
 
+	def find_limited(self, finder: EntityLimitedFinder) -> EntityList:
+		document = self.find_document(finder.name)
+		where = build_criteria_for_statement([document], finder.criteria)
+		sort = build_sort_for_statement(finder.sort)
+		limit = finder.limit
+		results = self.connection.find_limited(document, limit, where, sort)
+		return ArrayHelper(results) \
+			.map(self.remove_object_id) \
+			.map(finder.shaper.deserialize) \
+			.to_list()
+
 	def find_distinct_values(self, finder: EntityDistinctValuesFinder) -> EntityList:
 		document = self.find_document(finder.name)
 		where = build_criteria_for_statement([document], finder.criteria)
@@ -531,6 +542,12 @@ class TopicDataStorageMongoDB(StorageMongoDB, TopicDataStorageSPI):
 		not supported by mongo
 		"""
 		raise UnexpectedStorageException('Method[ask_synonym_factors] does not support by mongo storage.')
+
+	def ask_reflect_factors(self, table_name: str) -> List[Factor]:
+		"""
+		not supported by mongo
+		"""
+		raise UnexpectedStorageException('Method[ask_reflect_factors] does not support by mongo storage.')
 
 	def is_free_find_supported(self) -> bool:
 		return False

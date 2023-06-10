@@ -21,6 +21,7 @@ from watchmen_utilities import ArrayHelper, is_not_blank
 from .storage_rds import StorageRDS
 from .table_defs import register_table
 from .types import SQLAlchemyStatement
+from .table_reflector import ask_columns
 
 logger = getLogger(__name__)
 
@@ -126,6 +127,13 @@ class TopicDataStorageRDS(StorageRDS, TopicDataStorageSPI):
 			return factors
 		finally:
 			self.close()
+
+	def ask_reflect_factors(self, table_name: str) -> List[Factor]:
+		columns = ask_columns(table_name, self.engine)
+		factors = ArrayHelper(columns) \
+			.map_with_index(lambda x, index: self.schema_column_to_factor(x, index + 1)) \
+			.to_list()
+		return factors
 
 	# noinspection PyMethodMayBeStatic
 	def build_single_on(self, join: FreeJoin, primary_table: Table, secondary_table: Table) -> Any:
