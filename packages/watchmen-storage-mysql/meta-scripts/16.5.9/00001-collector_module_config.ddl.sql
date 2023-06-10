@@ -2,7 +2,7 @@ CREATE TABLE collector_module_config
 (
     module_id           VARCHAR(50)     NOT NULL,
     module_name         VARCHAR(50)     NOT NULL,
-    priority            BIGINT          NOT NULL,,
+    priority            BIGINT          NOT NULL,
     version             BIGINT,
     tenant_id           VARCHAR(50)     NOT NULL,
     created_at          DATETIME        NOT NULL,
