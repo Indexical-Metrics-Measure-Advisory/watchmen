@@ -7,7 +7,7 @@ logger = getLogger(__name__)
 class CollectorSettings(BaseSettings):
 	LOCK_CLEAN_INTERVAL: int = 60
 	LOCK_CLEAN_TIMEOUT: int = 3600
-	PARTIAL_SIZE: int = 10000
+	PARTIAL_SIZE: int = 100
 
 	class Config:
 		# secrets_dir = '/var/run'
