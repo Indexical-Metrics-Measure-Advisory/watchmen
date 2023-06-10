@@ -6,6 +6,7 @@ from pydantic import BaseModel
 class CollectorModelConfig(TenantBasedTuple, OptimisticLock, BaseModel):
 	modelId: str
 	modelName: str
+	moduleId: str
 	dependOn: List[str]
 	priority: int = 0
 	rawTopicCode: str

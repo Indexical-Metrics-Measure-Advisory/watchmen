@@ -14,6 +14,7 @@ class CollectorModelConfigShaper(EntityShaper):
 		return TupleShaper.serialize_tenant_based(config, {
 			'model_id': config.modelId,
 			'model_name': config.modelName,
+			'module_id': config.moduleId,
 			'depend_on': config.dependOn,
 			'priority': config.priority,
 			'raw_topic_code': config.rawTopicCode,
@@ -25,6 +26,7 @@ class CollectorModelConfigShaper(EntityShaper):
 		return TupleShaper.deserialize_tenant_based(row, CollectorModelConfig(
 			modelId=row.get('model_id'),
 			modelName=row.get('model_name'),
+			moduleId=row.get('module_id'),
 			dependOn=row.get('depend_on'),
 			priority=row.get('priority'),
 			rawTopicCode=row.get('raw_topic_code'),
@@ -100,6 +102,13 @@ class CollectorModelConfigService(TupleService):
 			))
 		finally:
 			self.close_transaction()
+
+	def find_by_module_id(self, module_id: str) -> Optional[List[CollectorModelConfig]]:
+		# noinspection PyTypeChecker
+		return self.storage.find(self.get_entity_finder(
+			criteria=[
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='module_id'), right=module_id)]
+		))
 
 
 def get_collector_model_config_service(storage: TransactionalStorageSPI,

@@ -18,7 +18,7 @@ RecordId = TypeVar('RecordId', bound=str)
 
 
 class OperationShaper(EntityShaper):
-	
+
 	def serialize(self, operation: Operation) -> EntityRow:
 		return {
 			'record_id': operation.recordId,
@@ -34,7 +34,7 @@ class OperationShaper(EntityShaper):
 			'last_modified_at': operation.lastModifiedAt,
 			'last_modified_by': operation.lastModifiedBy
 		}
-	
+
 	def deserialize(self, row: EntityRow) -> Operation:
 		# noinspection PyTypeChecker
 		return Operation(
@@ -71,7 +71,7 @@ class RecordOperationService(EntityService):
 
 	def get_entity_name(self) -> EntityName:
 		return OPERATIONS_TABLE
-	
+
 	def get_entity_shaper(self) -> EntityShaper:
 		return OPERATIONS_ENTITY_SHAPER
 
@@ -99,14 +99,15 @@ class RecordOperationService(EntityService):
 			criteria=[
 				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tuple_type'), right=tuple_type),
 				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='version_num'), right=version_num),
-				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=self.principalService.tenantId)
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'),
+				                         right=self.principalService.tenantId)
 			],
 			straightColumns=[EntityStraightAggregateColumn(columnName="record_id",
 			                                               arithmetic=EntityColumnAggregateArithmetic.MAX),
 			                 EntityStraightColumn(columnName="tuple_id")]
 		))
 
-	def get_record_with_create_type(self, version_num: str, tuple_type: str,tuple_id:str):
+	def get_record_with_create_type(self, version_num: str, tuple_type: str, tuple_id: str):
 		return self.storage.find_straight_values(EntityStraightValuesFinder(
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),
@@ -122,9 +123,8 @@ class RecordOperationService(EntityService):
 
 			],
 			straightColumns=[EntityStraightColumn(columnName="record_id",
-			                                               arithmetic=EntityColumnAggregateArithmetic.MAX)]
+			                                      arithmetic=EntityColumnAggregateArithmetic.MAX)]
 		))
-
 
 	def get_operation_by_id(self, id_: str) -> Optional[Operation]:
 		return self.storage.find_by_id(id_, self.get_entity_id_helper())
@@ -146,13 +146,14 @@ class RecordOperationService(EntityService):
 			                                               arithmetic=EntityColumnAggregateArithmetic.MAX)]
 		))
 		return rows[0].get("record_id")
-	
+
 	def clean_operations(self, tuple_type: str) -> int:
 		return self.storage.delete(EntityDeleter(
 			name=self.get_entity_name(),
 			shaper=self.get_entity_shaper(),
 			criteria=[
 				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tuple_type'), right=tuple_type),
-				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=self.principalService.tenantId)
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'),
+				                         right=self.principalService.tenantId)
 			]
 		))

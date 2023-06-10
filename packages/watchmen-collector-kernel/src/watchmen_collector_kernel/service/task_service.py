@@ -34,8 +34,7 @@ class TaskService:
 	# noinspection PyMethodMayBeStatic
 	def consume_task(self, task: ScheduledTask, executed: Callable[[str, Dict, str], None]) -> ScheduledTask:
 		try:
-			# executed(task.topicCode, task.content, task.tenantId)
-			print(f"{task.taskId} is consumed, topic code is {task.topicCode}")
+			executed(task.topicCode, task.content, task.tenantId)
 			return self.update_task_result(task)
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)

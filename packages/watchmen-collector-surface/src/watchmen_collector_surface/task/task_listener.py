@@ -45,17 +45,15 @@ class TaskListener:
 			self.create_thread()
 
 	def task_listener(self) -> None:
-		# unfinished_tasks = self.scheduled_task_service.find_unfinished_tasks()
 		unfinished_tasks = self.scheduled_task_service.find_partial_tasks()
+		if len(unfinished_tasks) == 0:
+			sleep(5)
 		for unfinished_task in unfinished_tasks:
 			lock = get_resource_lock(self.snowflake_generator.next_id(),
 			                         unfinished_task.resourceId,
 			                         unfinished_task.tenantId)
 			try:
 				if try_lock_nowait(self.competitive_lock_service, lock):
-					# noinspection PyUnresolvedReferences
-					# task = self.scheduled_task_service.find_task_by_id(unfinished_task.get('task_id'))
-					# perhaps have been processed by other dolls, remove to history table.
 					if self.scheduled_task_service.is_existed(unfinished_task):
 						if self.task_service.is_dependencies_finished(unfinished_task):
 							self.task_service.consume_task(unfinished_task, pipeline_data)
