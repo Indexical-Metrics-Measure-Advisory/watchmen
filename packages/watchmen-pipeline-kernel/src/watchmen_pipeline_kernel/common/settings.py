@@ -31,7 +31,7 @@ class PipelineKernelSettings(BaseSettings):
 
 
 settings = PipelineKernelSettings()
-logger.info(f'Pipeline kernel settings[{settings.dict()}].')
+# logger.info(f'Pipeline kernel settings[{settings.dict()}].')
 
 
 def ask_decrypt_factor_value() -> bool:

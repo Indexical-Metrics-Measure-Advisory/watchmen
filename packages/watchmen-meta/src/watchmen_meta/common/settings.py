@@ -50,7 +50,7 @@ class MetaSettings(BaseSettings):
 
 
 settings = MetaSettings()
-logger.info(f'Meta settings[{settings.dict()}].')
+# logger.info(f'Meta settings[{settings.dict()}].')
 
 
 def ask_super_admin() -> PrincipalService:

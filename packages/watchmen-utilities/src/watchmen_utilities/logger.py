@@ -75,4 +75,4 @@ def init_log():
 		file_log_handler.setFormatter(formatter)
 		logger.addHandler(file_log_handler)
 
-	logger.info(f'Logger settings[{settings.dict()}].')
+	# logger.info(f'Logger settings[{settings.dict()}].')

@@ -50,7 +50,7 @@ class KernelSettings(BaseSettings):
 
 
 settings = KernelSettings()
-logger.info(f'Data kernel settings[{settings.dict()}].')
+# logger.info(f'Data kernel settings[{settings.dict()}].')
 
 full_datetime_formats = list(settings.FULL_DATETIME_FORMATS)
 datetime_formats = list(settings.DATETIME_FORMATS)
