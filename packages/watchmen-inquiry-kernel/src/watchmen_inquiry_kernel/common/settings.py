@@ -17,7 +17,7 @@ class KernelSettings(BaseSettings):
 
 
 settings = KernelSettings()
-logger.info(f'Inquiry kernel settings[{settings.dict()}].')
+# logger.info(f'Inquiry kernel settings[{settings.dict()}].')
 
 
 def ask_use_storage_directly() -> bool:
