@@ -16,7 +16,6 @@ class IndicatorSurfaceSettings(BaseSettings):
 
 
 settings = IndicatorSurfaceSettings()
-logger.info(f'Indicator surface settings[{settings.dict()}].')
 
 
 def ask_tuple_delete_enabled() -> bool:
