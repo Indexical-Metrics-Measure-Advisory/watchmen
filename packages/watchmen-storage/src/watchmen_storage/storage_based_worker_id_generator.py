@@ -106,6 +106,10 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 								EntityCriteriaExpression(
 									left=ColumnNameLiteral(columnName='worker_id'), right=worker.workerId),
 								EntityCriteriaExpression(
+									left=ColumnNameLiteral(columnName='ip'), right=existing_worker.ip),
+								EntityCriteriaExpression(
+									left=ColumnNameLiteral(columnName='process_id'), right=existing_worker.processId),
+								EntityCriteriaExpression(
 									left=ColumnNameLiteral(columnName='last_beat_at'),
 									operator=EntityCriteriaOperator.LESS_THAN_OR_EQUALS,
 									right=(get_current_time_in_seconds() + timedelta(seconds=-(self.heartBeatInterval + 60)))
