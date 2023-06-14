@@ -12,7 +12,7 @@ CREATE TABLE derived_objectives_report
     created_by           NVARCHAR(50)  NOT NULL,
     last_modified_at     DATETIME      NOT NULL,
     last_modified_by     NVARCHAR(50)  NOT NULL,
-    CONSTRAINT pk_derived_objectives PRIMARY KEY (derivderived_objective_report_ided_objective_id)
+    CONSTRAINT pk_derived_objectives PRIMARY KEY (derived_objective_report_id)
 );
 CREATE INDEX i_derived_objectives_1 ON derived_objectives_report (name);
 CREATE INDEX i_derived_objectives_2 ON derived_objectives_report (objective_report_id);
