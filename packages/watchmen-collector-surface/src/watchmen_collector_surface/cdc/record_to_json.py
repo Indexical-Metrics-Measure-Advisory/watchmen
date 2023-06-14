@@ -112,6 +112,8 @@ class RecordToJsonService:
 		except Exception as e:
 			self.change_record_service.rollback_transaction()
 			raise e
+		finally:
+			self.change_record_service.close_transaction()
 
 	def process_record(self, change_data_record: ChangeDataRecord) -> None:
 		config = self.table_config_service.find_by_table_name(change_data_record.tableName)
