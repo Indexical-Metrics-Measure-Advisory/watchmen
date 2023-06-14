@@ -660,6 +660,66 @@ class ObjectiveDataService:
 			factors=ArrayHelper(list(factor_values.values())).map(formalize_factor_values).to_list(),
 			targets=target_values)
 
+	def ask_target_value(self, target: ObjectiveTarget):
+		factors = self.objective.factors
+		factor_values: Dict[ObjectiveFactorId, TempObjectiveFactorValues] = ArrayHelper(factors) \
+			.map(lambda x: TempObjectiveFactorValues(uuid=x.uuid, factor=x)) \
+			.to_map(lambda x: x.uuid, lambda x: x)
+		# sort by formula dependency, invalid factors are filtered already
+		sorted_factors: List[SortableObjectiveFactor] = self.sort_factors(factors)
+		valid_factor_ids = ArrayHelper(sorted_factors).map(lambda x: x.factor.uuid).to_list()
 
+		def fail_factor(factor: TempObjectiveFactorValues):
+			factor.failed = True
+
+		# set factor as failed if it is not in valid list
+		ArrayHelper(list(factor_values.values())) \
+			.filter(lambda x: x.uuid not in valid_factor_ids) \
+			.each(fail_factor)
+
+		# compute factor values on current time frame
+		ArrayHelper(sorted_factors) \
+			.each(lambda x: self.compute_factor_value_on_current_time_frame(x.factor, factor_values))
+
+		# compute target values
+		# targets = [target]
+		# target_values = ArrayHelper(targets).map(lambda x: self.compute_target_value(x, factor_values)).to_list()
+		#
+		# def formalize_factor_values(values: TempObjectiveFactorValues) -> ObjectiveFactorValues:
+		# 	return ObjectiveFactorValues(
+		# 		uuid=values.uuid,
+		# 		currentValue=values.currentValue, previousValue=values.previousValue, chainValue=values.chainValue,
+		# 		failed=values.failed
+		# 	)
+
+		return self.compute_target_value(target, factor_values)
+
+	def find_factors_in_parameter(self,objective_parameter:ObjectiveParameter,factors:List[ObjectiveFactor],objective:Objective):
+		if isinstance(objective_parameter,ReferObjectiveParameter):
+			ArrayHelper(objective.factors).each(lambda x: factors.append(x) if x.uuid == objective_parameter.uuid else None)
+		elif isinstance(objective_parameter,ConstantObjectiveParameter):
+			pass
+		elif isinstance(objective_parameter,ComputedObjectiveParameter):
+			for parameter in objective_parameter.parameters:
+				self.find_factors_in_parameter(parameter,factors,objective)
+
+
+		pass
+	def find_factors_by_target(self, target: ObjectiveTarget, objective: Objective) -> List[ObjectiveFactor]:
+
+		factors: List[ObjectiveFactor] = []
+
+		if isinstance(target.asis, ComputedObjectiveParameter):
+			computed_objective_parameter: ComputedObjectiveParameter = target.asis
+			for parameter in computed_objective_parameter.parameters:
+				self.find_factors_in_parameter(parameter)
+
+
+		else:
+			factor_id = target.asis
+			ArrayHelper(objective.factors).each(lambda x: factors.append(x) if x.uuid == factor_id else None)
+
+
+		return factors
 
 

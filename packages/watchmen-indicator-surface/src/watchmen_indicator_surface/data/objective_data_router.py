@@ -7,18 +7,21 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from watchmen_auth import PrincipalService
-from watchmen_indicator_kernel.data import as_time_frame, compute_chain_frame, compute_previous_frame, \
-	compute_time_frame, get_objective_data_service, get_objective_factor_data_service, ObjectiveDataService, \
-	ObjectiveTargetBreakdownValueRow, ObjectiveTargetBreakdownValues, ObjectiveTargetValues, ObjectiveValues
-from watchmen_indicator_kernel.meta import IndicatorService, ObjectiveService
+from watchmen_indicator_kernel.data import as_time_frame, compute_time_frame, get_objective_data_service, \
+	get_objective_factor_data_service, ObjectiveValues, compute_previous_frame, compute_chain_frame
+from watchmen_indicator_kernel.data.objective.data_service import ObjectiveDataService, ObjectiveTargetValues
+from watchmen_indicator_kernel.data.objective_factor.data_service import ObjectiveTargetBreakdownValues, \
+	ObjectiveTargetBreakdownValueRow
+
+from watchmen_indicator_kernel.meta import ObjectiveService, IndicatorService
 from watchmen_indicator_surface.util import trans_readonly
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import UserRole
 from watchmen_model.common import DataResult, ObjectiveId, ObjectiveTargetId
-from watchmen_model.indicator import ComputedObjectiveParameter, Indicator, Objective, ObjectiveFactorOnIndicator, \
-	ObjectiveTarget, ObjectiveTimeFrame, ObjectiveTimeFrameKind
+from watchmen_model.indicator import Indicator, Objective, ObjectiveFactorOnIndicator, ObjectiveTimeFrame, \
+	ObjectiveTimeFrameKind, ObjectiveTarget, ComputedObjectiveParameter
 from watchmen_model.indicator.derived_objective import BreakdownTarget
-from watchmen_model.indicator.objective_report import CellTarget, ObjectiveReport
+from watchmen_model.indicator.objective_report import ObjectiveReport, CellTarget
 from watchmen_rest import get_admin_principal
 from watchmen_rest.util import raise_400, raise_403
 from watchmen_utilities import is_blank
@@ -41,6 +44,9 @@ class BreakdownValueType(str, Enum):
 
 def get_indicator_service(principal_service: PrincipalService) -> IndicatorService:
 	return IndicatorService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+def get_objective_service(principal_service: PrincipalService) -> ObjectiveService:
+	return ObjectiveService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
 def get_objective_service(principal_service: PrincipalService) -> ObjectiveService:
@@ -267,7 +273,7 @@ def build_all_objective_data_service(
 			if objective_report.timeFrame:
 				objective.timeFrame = objective_report.timeFrame
 
-			# merge parameters
+			## merge parameters
 			if objective_report.variables:
 				objective.variables = objective_report.variables
 

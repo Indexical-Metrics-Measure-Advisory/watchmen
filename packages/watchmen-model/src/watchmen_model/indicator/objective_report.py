@@ -1,5 +1,6 @@
 from typing import Dict, List, Optional, Union
 
+from _decimal import Decimal
 from pydantic import BaseModel
 
 from watchmen_model.common import Auditable, LastVisit, UserBasedTuple
@@ -13,11 +14,20 @@ class Variable(BaseModel):
 	name: str = None
 	value: str = None
 
-class CellTargetValue(BaseModel):
+
+class CellValue(BaseModel):
+	currentValue: Decimal = None
+	previousValue: Decimal = None
+	chainValue: Decimal = None
+	failed: bool = False
+
+
+class CellTarget(BaseModel):
 	name: str = None
 	row: str = None
 	cell: str = None
 	objectiveId: str = None
+	value: CellValue = CellValue()
 	targetId: str = None
 	parameters: Dict = None
 
@@ -69,7 +79,6 @@ def construct_variable(variable: Optional[Union[dict, ObjectiveVariable]]) -> Op
 		else:
 			raise Exception(f'Objective variable kind[{kind}] cannot be recognized.')
 
-
 def construct_variables(variables: Optional[list] = None) -> Optional[List[ObjectiveVariable]]:
 	if variables is None:
 		return None
@@ -84,3 +93,12 @@ class ObjectiveReport(UserBasedTuple, Auditable, LastVisit, BaseModel):
 	timeFrame: ObjectiveTimeFrame = []
 	cells: List[CellTarget] = []
 
+	def __setattr__(self, name, value):
+		if name == 'cells':
+			super().__setattr__(name, construct_cells(value))
+		elif name == 'targets':
+			super().__setattr__(name, construct_targets(value))
+		elif name == 'variables':
+			super().__setattr__(name, construct_variables(value))
+		else:
+			super().__setattr__(name, value)
