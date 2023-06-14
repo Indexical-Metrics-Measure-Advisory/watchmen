@@ -179,6 +179,8 @@ class PostJsonService:
 			self.change_json_service.commit_transaction()
 		except Exception as e:
 			raise e
+		finally:
+			self.change_json_service.close_transaction()
 
 	# noinspection PyMethodMayBeStatic
 	def is_posted(self, change_json: ChangeDataJson) -> bool:
@@ -265,6 +267,8 @@ class PostJsonService:
 		except Exception as e:
 			self.scheduled_task_service.rollback_transaction()
 			raise e
+		finally:
+			self.scheduled_task_service.close_transaction()
 
 	def get_scheduled_task(self, model_config: CollectorModelConfig, change_json: ChangeDataJson) -> ScheduledTask:
 		return ScheduledTask(
