@@ -9,16 +9,19 @@ from pydantic import BaseModel
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.data import as_time_frame, compute_time_frame, get_objective_data_service, \
 	get_objective_factor_data_service, ObjectiveValues, compute_previous_frame, compute_chain_frame
+from watchmen_indicator_kernel.data.objective.data_service import ObjectiveDataService, ObjectiveTargetValues
 from watchmen_indicator_kernel.data.objective_factor.data_service import ObjectiveTargetBreakdownValues, \
 	ObjectiveTargetBreakdownValueRow
-from watchmen_indicator_kernel.meta import IndicatorService
+
+from watchmen_indicator_kernel.meta import ObjectiveService, IndicatorService
+from watchmen_indicator_surface.util import trans_readonly
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import UserRole
-from watchmen_model.common import DataResult
+from watchmen_model.common import DataResult, ObjectiveId, ObjectiveTargetId
 from watchmen_model.indicator import Indicator, Objective, ObjectiveFactorOnIndicator, ObjectiveTimeFrame, \
 	ObjectiveTimeFrameKind, ObjectiveTarget, ComputedObjectiveParameter
 from watchmen_model.indicator.derived_objective import BreakdownTarget
-from watchmen_model.indicator.objective_report import ObjectiveReport, CellTargetValue
+from watchmen_model.indicator.objective_report import ObjectiveReport, CellTarget
 from watchmen_rest import get_admin_principal
 from watchmen_rest.util import raise_400, raise_403
 from watchmen_utilities import is_blank
@@ -41,6 +44,9 @@ class BreakdownValueType(str, Enum):
 
 def get_indicator_service(principal_service: PrincipalService) -> IndicatorService:
 	return IndicatorService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
+
+def get_objective_service(principal_service: PrincipalService) -> ObjectiveService:
+	return ObjectiveService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
 
 @router.post('/indicator/objective/data', tags=[UserRole.ADMIN], response_model=ObjectiveValues)
@@ -214,14 +220,90 @@ def build_breakdown_result(dataset, value_type: BreakdownValueType) -> Objective
 
 
 
-def build_dataset_with_objectives(objective_report:ObjectiveReport)->DataResult:
-	cell_list: List[CellTargetValue] = objective_report.cells
-
-	## find objective
-
-	## build objective data service
+def get_objective_target_value(objective_target:ObjectiveTarget,objective_data_service:ObjectiveDataService)->ObjectiveTargetValues:
+	return objective_data_service.ask_target_value(objective_target)
 
 
-	## get target and compute value for each target
+def __find_target_in_objective(objective:Objective,target_id:ObjectiveTargetId)->ObjectiveTarget:
+	for target in objective.targets:
+		if target.uuid == target_id:
+			return target
+	raise Exception("target not found")
 
-	pass
+
+
+
+
+
+
+def find_objective_target(objective_id:ObjectiveId,target_id:ObjectiveTargetId,principal_service: PrincipalService )->ObjectiveTarget:
+	objective_service: ObjectiveService = get_objective_service(principal_service)
+	objective:Objective = objective_service.find_by_id(objective_id)
+
+	if objective is None:
+		raise Exception("objective not found")
+	else:
+		objective_target :ObjectiveTarget = __find_target_in_objective(objective,target_id)
+		return objective_target
+
+
+def build_all_objective_data_service(cell_list,principal_service:PrincipalService,objective_report:ObjectiveReport)->Dict[str,ObjectiveDataService]:
+	objective_data_service_cache:Dict[str,ObjectiveDataService] ={}
+	objective_service: ObjectiveService = get_objective_service(principal_service)
+
+	def find_objective(objective_id) -> Objective:
+		# noinspection PyTypeChecker
+		objective: Objective = objective_service.find_by_id(objective_id)
+		if objective is None:
+			raise Exception("objective not found")
+
+		return objective
+
+	for cell in cell_list :
+		if cell.objectiveId not in objective_data_service_cache:
+			objective: Objective = trans_readonly(objective_service, lambda: find_objective(cell.objectiveId))
+			if objective_report.timeFrame:
+				objective.timeFrame = objective_report.timeFrame
+
+			## merge parameters
+			if objective_report.variables:
+				objective.variables = objective_report.variables
+
+			objective_data_service = get_objective_data_service(objective, principal_service)
+			objective_data_service_cache[cell.objectiveId] = objective_data_service
+
+	return objective_data_service_cache
+
+
+@router.post("/indicator/objectives/targets/report",tags=[UserRole.ADMIN,UserRole.CONSOLE], response_model=ObjectiveReport)
+def build_dataset_with_objectives(objective_report:ObjectiveReport,principal_service: PrincipalService = Depends(
+	                                           get_admin_principal))->ObjectiveReport:
+	cell_list: List[CellTarget] = objective_report.cells
+
+	objective_service_cache:Dict[str,ObjectiveDataService] = build_all_objective_data_service(cell_list,principal_service,objective_report)
+
+	objective_service: ObjectiveService = get_objective_service(principal_service)
+
+	def find_objective(objective_id) -> Objective:
+		# noinspection PyTypeChecker
+		objective: Objective = objective_service.find_by_id(objective_id)
+
+		if objective is None:
+			raise Exception("objective not found")
+
+		return objective
+
+	for cell in cell_list:
+		objective: Objective = trans_readonly(objective_service, lambda: find_objective(cell.objectiveId))
+		if objective is None:
+			raise Exception("objective not found")
+		else:
+			objective_target: ObjectiveTarget = __find_target_in_objective(objective, cell.targetId)
+
+		objective_value :ObjectiveTargetValues = get_objective_target_value(objective_target,objective_service_cache.get(cell.objectiveId))
+		cell.value.chainValue = objective_value.chainValue
+		cell.value.previousValue = objective_value.previousValue
+		cell.value.currentValue = objective_value.currentValue
+		cell.value.failed = objective_value.failed
+
+	return objective_report
