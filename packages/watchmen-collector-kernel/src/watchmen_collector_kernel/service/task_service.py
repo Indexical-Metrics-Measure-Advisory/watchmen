@@ -41,6 +41,7 @@ class TaskService:
 			task.result = format_exc()
 			return self.update_task_result(task)
 
+
 	def update_task_result(self, task: ScheduledTask) -> ScheduledTask:
 		self.scheduled_task_service.begin_transaction()
 		try:
@@ -51,6 +52,8 @@ class TaskService:
 			return task
 		except Exception as e:
 			raise e
+		finally:
+			self.scheduled_task_service.close_transaction()
 
 	def is_dependencies_finished(self, task: ScheduledTask) -> bool:
 		return ArrayHelper(task.parentTaskId).every(self.is_parent_task_finished) and self.is_dependence_finished(task.dependOn, task.tenantId)
