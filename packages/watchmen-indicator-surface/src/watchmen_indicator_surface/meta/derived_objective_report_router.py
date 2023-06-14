@@ -29,7 +29,6 @@ def get_derived_objective_report_service(principal_service: PrincipalService) ->
 def get_objective_report_service(principal_service: PrincipalService) -> ObjectiveReportService:
 	return ObjectiveReportService(ask_meta_storage(), ask_snowflake_generator(), principal_service)
 
-
 def get_user_service(derived_objective_service: DerivedObjectiveService) -> UserService:
 	return UserService(
 		derived_objective_service.storage, derived_objective_service.snowflakeGenerator,
