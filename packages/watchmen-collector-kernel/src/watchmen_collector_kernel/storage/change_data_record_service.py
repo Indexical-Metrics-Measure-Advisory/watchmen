@@ -86,6 +86,9 @@ class ChangeDataRecordService(TupleService):
 		except Exception as e:
 			self.rollback_transaction()
 			raise e
+		finally:
+			self.close_transaction()
+
 
 	def update_change_record(self, record: ChangeDataRecord) -> Optional[ChangeDataRecord]:
 		self.begin_transaction()
@@ -97,6 +100,8 @@ class ChangeDataRecordService(TupleService):
 		except Exception as e:
 			self.rollback_transaction()
 			raise e
+		finally:
+			self.close_transaction()
 
 	def find_unmerged_records(self) -> List:
 		self.begin_transaction()
