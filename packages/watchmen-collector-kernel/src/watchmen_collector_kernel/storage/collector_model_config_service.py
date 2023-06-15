@@ -77,8 +77,9 @@ class CollectorModelConfigService(TupleService):
 			self.storage.close()
 
 	def find_by_model_id(self, model_id: str) -> Optional[CollectorModelConfig]:
-		self.begin_transaction()
+
 		try:
+			self.begin_transaction()
 			return self.storage.find_one(self.get_entity_finder(
 				criteria=[
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_id'), right=model_id)]
@@ -94,8 +95,9 @@ class CollectorModelConfigService(TupleService):
 		))
 
 	def find_by_name(self, model_name: str) -> Optional[CollectorModelConfig]:
-		self.begin_transaction()
+
 		try:
+			self.begin_transaction()
 			return self.storage.find_one(self.get_entity_finder(
 				criteria=[
 					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name)]
