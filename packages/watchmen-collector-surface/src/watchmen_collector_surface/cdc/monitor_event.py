@@ -144,7 +144,10 @@ class CollectorEventListener:
 								except Exception as e:
 									self.trigger_event_service.rollback_transaction()
 									raise e
+								finally:
+									self.trigger_event_service.close_transaction()
 								break
+
 				finally:
 					unlock(self.competitive_lock_service, lock)
 
