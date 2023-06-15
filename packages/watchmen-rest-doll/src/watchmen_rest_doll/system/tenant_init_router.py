@@ -17,7 +17,7 @@ from watchmen_rest import get_any_admin_principal
 from watchmen_rest.util import raise_400, raise_404
 from watchmen_rest_doll.admin import ask_save_pipeline_action, ask_save_topic_action
 from watchmen_rest_doll.util import trans
-# from watchmen_storage.sql_analysis.topic_generator import ask_query_performance_topics, ask_query_performance_pipelines
+from watchmen_storage.sql_analysis.topic_generator import ask_query_performance_topics, ask_query_performance_pipelines
 from watchmen_utilities import ArrayHelper, is_blank
 
 router = APIRouter()
@@ -95,11 +95,10 @@ async def init_tenant(
 		create_topics_and_pipelines(
 			topics, lambda source_topics: ask_dqc_pipelines(source_topics),
 			tenant_id, meta_tenant_service, principal_service)
-		# topics = ask_query_performance_topics()
-		"""
+		topics = ask_query_performance_topics()
 		create_topics_and_pipelines(
 			topics, lambda source_topics: ask_query_performance_pipelines(source_topics),
 			tenant_id, meta_tenant_service, principal_service)
-		"""
+
 
 	trans(meta_tenant_service, action)
