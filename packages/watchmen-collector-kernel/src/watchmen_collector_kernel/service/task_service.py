@@ -41,7 +41,6 @@ class TaskService:
 			task.result = format_exc()
 			return self.update_task_result(task)
 
-
 	def update_task_result(self, task: ScheduledTask) -> ScheduledTask:
 		self.scheduled_task_service.begin_transaction()
 		try:
@@ -51,6 +50,7 @@ class TaskService:
 			self.scheduled_task_service.commit_transaction()
 			return task
 		except Exception as e:
+			self.scheduled_task_service.rollback_transaction()
 			raise e
 		finally:
 			self.scheduled_task_service.close_transaction()

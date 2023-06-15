@@ -39,7 +39,7 @@ class CriteriaBuilder:
 
 	def parse_condition_value(self, condition_value: Any) -> Any:
 		if isinstance(condition_value, str):
-			if condition_value.startswith(LEFT_BRACE) and condition_value.startswith(RIGHT_BRACE):
+			if condition_value.startswith(LEFT_BRACE) and condition_value.endswith(RIGHT_BRACE):
 				variable_name = condition_value.removeprefix(LEFT_BRACE).removesuffix(RIGHT_BRACE)
 				variable_value = self.variables.get(variable_name)
 				parsed, value = is_date(variable_value, ask_all_date_formats())
