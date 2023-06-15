@@ -1,0 +1,1 @@
+ALTER TABLE scheduled_task ALTER COLUMN resource_id NVARCHAR(500);
