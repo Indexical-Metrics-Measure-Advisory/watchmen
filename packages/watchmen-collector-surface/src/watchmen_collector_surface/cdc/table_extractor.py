@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 from logging import getLogger
 from threading import Thread
@@ -23,8 +24,9 @@ from watchmen_utilities import ArrayHelper
 # from fastapi import FastAPI, BackgroundTasks
 
 
-logger = getLogger(__name__)
-scheduler = BackgroundScheduler()
+logger = logging.getLogger('apscheduler')
+logger.setLevel(logging.ERROR)
+scheduler = BackgroundScheduler(logger=None)
 
 
 def init_table_extractor():

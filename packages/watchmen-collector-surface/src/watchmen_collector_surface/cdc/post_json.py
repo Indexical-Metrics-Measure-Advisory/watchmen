@@ -1,3 +1,4 @@
+import logging
 from logging import getLogger
 from threading import Thread
 
@@ -20,8 +21,9 @@ from watchmen_collector_surface.settings import ask_fastapi_job, ask_post_json_w
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
 from watchmen_utilities import ArrayHelper
 
-logger = getLogger(__name__)
-scheduler = BackgroundScheduler()
+logger = logging.getLogger('apscheduler')
+logger.setLevel(logging.ERROR)
+scheduler = BackgroundScheduler(logger=None)
 
 def init_json_listener():
 	PostJsonService().create_thread()
