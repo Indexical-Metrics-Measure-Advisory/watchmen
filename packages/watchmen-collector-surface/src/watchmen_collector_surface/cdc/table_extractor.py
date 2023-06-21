@@ -3,10 +3,11 @@ from logging import getLogger
 from threading import Thread
 from typing import Tuple, Dict, List, Any
 from time import sleep
+from apscheduler.schedulers.background import BackgroundScheduler
 
 import numpy as np
 
-from watchmen_collector_kernel.model import TriggerEvent, ChangeDataRecord, TriggerTable, CollectorTableConfig, \
+from watchmen_collector_kernel.model import TriggerEvent, ChangeDataRecord, TriggerTable, \
 	Condition
 from watchmen_collector_kernel.service import try_lock_nowait, unlock, SourceTableExtractor, CriteriaBuilder, \
 	build_audit_column_criteria
@@ -14,11 +15,16 @@ from watchmen_collector_kernel.service.extract_utils import cal_array2d_diff, bu
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.storage import get_trigger_table_service, get_competitive_lock_service, \
 	get_collector_table_config_service, get_trigger_event_service, get_change_data_record_service
+from watchmen_collector_surface.settings import ask_fastapi_job, ask_table_wait
 from watchmen_meta.common import ask_super_admin, ask_snowflake_generator, ask_meta_storage
 from watchmen_storage import EntityCriteria
 from watchmen_utilities import ArrayHelper
 
+# from fastapi import FastAPI, BackgroundTasks
+
+
 logger = getLogger(__name__)
+scheduler = BackgroundScheduler()
 
 
 def init_table_extractor():
@@ -46,7 +52,12 @@ class TableExtractor:
 		                                                                 self.principal_service)
 
 	def create_thread(self) -> None:
-		Thread(target=TableExtractor.run, args=(self,), daemon=True).start()
+		if ask_fastapi_job():
+			scheduler.add_job(TableExtractor.run, 'interval', seconds=ask_table_wait(),args=(self,))
+			scheduler.start()
+		else:
+			Thread(target=TableExtractor.run, args=(self,), daemon=True).start()
+
 
 	# noinspection PyUnresolvedReferences
 	def run(self):

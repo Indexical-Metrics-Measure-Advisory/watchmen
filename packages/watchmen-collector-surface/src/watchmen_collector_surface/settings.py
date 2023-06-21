@@ -23,6 +23,10 @@ class CollectorSurfaceSettings(BaseSettings):
 	S3_COLLECTOR_CLEAN_TASK_INTERVAL: int = 3600
 
 	QUERY_BASED_CHANGE_DATA_CAPTURE: bool = False
+	USE_FASTAPI_SCHEDULE_JOB :bool = True
+	TABLE_EXTRACTOR_WAIT:int = 3
+	RECORD_TO_JSON_WAIT:int= 2
+	POST_JSON_WAIT:int = 1
 
 	class Config:
 		# secrets_dir = '/var/run'
@@ -37,6 +41,18 @@ settings = CollectorSurfaceSettings()
 def ask_query_based_change_data_capture_enabled() -> bool:
 	return settings.QUERY_BASED_CHANGE_DATA_CAPTURE
 
+
+def ask_table_wait():
+	return settings.TABLE_EXTRACTOR_WAIT
+
+def ask_record_json_wait():
+	return settings.RECORD_TO_JSON_WAIT
+
+def ask_post_json_wait():
+	return settings.POST_JSON_WAIT
+
+def ask_fastapi_job()->bool:
+	return settings.USE_FASTAPI_SCHEDULE_JOB
 
 def ask_task_listener_enabled() -> bool:
 	return settings.TASK_LISTENER_ON

@@ -1,6 +1,8 @@
 from traceback import format_exc
 from typing import Dict, Tuple, Optional, List, Any
 
+from apscheduler.schedulers.background import BackgroundScheduler
+
 from watchmen_collector_kernel.common import WAVE
 from watchmen_collector_kernel.model import CollectorTableConfig, \
 	ChangeDataRecord, ChangeDataJson
@@ -18,10 +20,12 @@ from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_change_data_record_service, \
 	get_change_data_json_service, get_collector_table_config_service, get_change_data_record_history_service, \
 	get_change_data_json_history_service
+from watchmen_collector_surface.settings import ask_fastapi_job, ask_record_json_wait
 from watchmen_meta.common import ask_meta_storage, ask_super_admin, ask_snowflake_generator
 from watchmen_utilities import ArrayHelper
 
 logger = getLogger(__name__)
+scheduler = BackgroundScheduler()
 
 
 def init_record_listener():
@@ -55,7 +59,11 @@ class RecordToJsonService:
 		                                               self.principle_service)
 
 	def create_thread(self) -> None:
-		Thread(target=RecordToJsonService.run, args=(self,), daemon=True).start()
+		if ask_fastapi_job():
+			scheduler.add_job(RecordToJsonService.run, 'interval', seconds=ask_record_json_wait(), args=(self,))
+			scheduler.start()
+		else:
+			Thread(target=RecordToJsonService.run, args=(self,), daemon=True).start()
 
 	def run(self):
 		try:
