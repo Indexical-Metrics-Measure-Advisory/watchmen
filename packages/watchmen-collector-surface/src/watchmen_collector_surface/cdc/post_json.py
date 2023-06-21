@@ -1,5 +1,7 @@
 from logging import getLogger
 from threading import Thread
+
+from apscheduler.schedulers.background import BackgroundScheduler
 from time import sleep
 from traceback import format_exc
 from typing import List
@@ -13,12 +15,13 @@ from watchmen_collector_kernel.storage import get_change_data_json_service, get_
 	get_scheduled_task_service, get_collector_model_config_service, get_trigger_model_service, \
 	get_trigger_event_service, get_change_data_record_service, get_change_data_json_history_service, \
 	get_collector_module_config_service, get_trigger_module_service
+from watchmen_collector_surface.settings import ask_fastapi_job, ask_post_json_wait
 
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
 from watchmen_utilities import ArrayHelper
 
 logger = getLogger(__name__)
-
+scheduler = BackgroundScheduler()
 
 def init_json_listener():
 	PostJsonService().create_thread()
@@ -60,7 +63,11 @@ class PostJsonService:
 		                                                       self.principle_service)
 
 	def create_thread(self) -> None:
-		Thread(target=PostJsonService.run, args=(self,), daemon=True).start()
+		if ask_fastapi_job():
+			scheduler.add_job(PostJsonService.run, 'interval', seconds=ask_post_json_wait(), args=(self,))
+			scheduler.start()
+		else:
+			Thread(target=PostJsonService.run, args=(self,), daemon=True).start()
 
 	def run(self):
 		try:
