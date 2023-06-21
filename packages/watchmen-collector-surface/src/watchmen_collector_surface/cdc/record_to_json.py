@@ -1,3 +1,4 @@
+import logging
 from traceback import format_exc
 from typing import Dict, Tuple, Optional, List, Any
 
@@ -24,8 +25,10 @@ from watchmen_collector_surface.settings import ask_fastapi_job, ask_record_json
 from watchmen_meta.common import ask_meta_storage, ask_super_admin, ask_snowflake_generator
 from watchmen_utilities import ArrayHelper
 
-logger = getLogger(__name__)
-scheduler = BackgroundScheduler()
+# logger = getLogger(__name__)
+logger = logging.getLogger('apscheduler')
+logger.setLevel(logging.ERROR)
+scheduler = BackgroundScheduler(logger=None)
 
 
 def init_record_listener():
