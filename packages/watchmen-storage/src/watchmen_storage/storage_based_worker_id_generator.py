@@ -146,6 +146,8 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 			self.storage.rollback_and_close()
 			# rethrow exception
 			raise e
+		finally:
+			self.storage.close()
 
 	def acquire_alive_worker_ids(self) -> List[int]:
 		self.storage.begin()
