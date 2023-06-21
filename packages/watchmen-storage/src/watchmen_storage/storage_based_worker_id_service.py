@@ -1,13 +1,13 @@
-from watchmen_meta.common import StorageService
-from watchmen_storage import ColumnNameLiteral, EntityCriteriaExpression, \
-	TransactionalStorageSPI, COMPETITIVE_WORKER_SHAPER, SNOWFLAKE_WORKER_ID_TABLE, \
-	EntityDeleter
+
+from .storage_spi import TransactionalStorageSPI
+from .storage_types import EntityDeleter, EntityCriteriaExpression, ColumnNameLiteral
+from .storage_based_worker_id_generator import SNOWFLAKE_WORKER_ID_TABLE, COMPETITIVE_WORKER_SHAPER
 
 
-class StorageBasedWorkerIdService(StorageService):
+class StorageBasedWorkerIdService:
 
 	def __init__(self, storage: TransactionalStorageSPI):
-		super().__init__(storage)
+		self.storage = storage
 
 	def release_worker(self, data_center_id: int, worker_id: int) -> None:
 		self.storage.begin()
