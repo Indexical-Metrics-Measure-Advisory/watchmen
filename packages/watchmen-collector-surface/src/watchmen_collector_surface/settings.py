@@ -28,6 +28,7 @@ class CollectorSurfaceSettings(BaseSettings):
 	RECORD_TO_JSON_WAIT:int= 2
 	POST_JSON_WAIT:int = 1
 	TASK_SCHEDULE_WAIT:int = 1
+	MONITOR_EVENT_WAIT:int = 1
 
 	class Config:
 		# secrets_dir = '/var/run'
@@ -54,6 +55,9 @@ def ask_post_json_wait():
 
 def ask_task_listener():
 	return settings.TASK_SCHEDULE_WAIT
+
+def ask_monitor_event_wait():
+	return settings.MONITOR_EVENT_WAIT
 
 def ask_fastapi_job()->bool:
 	return settings.USE_FASTAPI_SCHEDULE_JOB
