@@ -1,5 +1,8 @@
+import logging
 from logging import getLogger
 from threading import Thread
+
+from apscheduler.schedulers.background import BackgroundScheduler
 from time import sleep
 
 from watchmen_collector_kernel.common import TENANT_ID
@@ -9,11 +12,14 @@ from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_trigger_event_service, \
 	get_trigger_model_service, get_trigger_table_service, get_change_data_record_service, get_change_data_json_service, \
 	get_trigger_module_service
+from watchmen_collector_surface.settings import ask_fastapi_job, ask_monitor_event_wait
 from watchmen_meta.common import ask_snowflake_generator, ask_super_admin, ask_meta_storage
 from watchmen_utilities import ArrayHelper
 
 logger = getLogger(__name__)
-
+logger = logging.getLogger('apscheduler')
+logger.setLevel(logging.ERROR)
+scheduler = BackgroundScheduler(logger=None)
 
 def init_event_listener():
 	CollectorEventListener().create_thread()
@@ -46,7 +52,11 @@ class CollectorEventListener:
 		                                                      self.principle_service)
 
 	def create_thread(self) -> None:
-		Thread(target=CollectorEventListener.run, args=(self,), daemon=True).start()
+		if ask_fastapi_job():
+			scheduler.add_job(CollectorEventListener.run, 'interval', seconds=ask_monitor_event_wait(), args=(self,))
+			scheduler.start()
+		else:
+			Thread(target=CollectorEventListener.run, args=(self,), daemon=True).start()
 
 	def run(self):
 		try:
