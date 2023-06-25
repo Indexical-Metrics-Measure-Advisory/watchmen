@@ -25,6 +25,7 @@ logger = logging.getLogger('apscheduler')
 logger.setLevel(logging.ERROR)
 scheduler = BackgroundScheduler(logger=None)
 
+
 def init_json_listener():
 	PostJsonService().create_thread()
 

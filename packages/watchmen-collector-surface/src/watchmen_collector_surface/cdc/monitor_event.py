@@ -21,6 +21,7 @@ logger = logging.getLogger('apscheduler')
 logger.setLevel(logging.ERROR)
 scheduler = BackgroundScheduler(logger=None)
 
+
 def init_event_listener():
 	CollectorEventListener().create_thread()
 
@@ -36,8 +37,8 @@ class CollectorEventListener:
 		                                                       self.snowflake_generator,
 		                                                       self.principle_service)
 		self.trigger_module_service = get_trigger_module_service(self.storage,
-		                                                       self.snowflake_generator,
-		                                                       self.principle_service)
+		                                                         self.snowflake_generator,
+		                                                         self.principle_service)
 		self.trigger_model_service = get_trigger_model_service(self.storage,
 		                                                       self.snowflake_generator,
 		                                                       self.principle_service)
@@ -145,7 +146,8 @@ class CollectorEventListener:
 						if self.is_finished(event):
 							continue
 						else:
-							if self.is_all_modules_finished(event) and self.is_all_records_merged(event) and self.is_all_json_posted(event):
+							if self.is_all_modules_finished(event) and self.is_all_records_merged(
+									event) and self.is_all_json_posted(event):
 								event.isFinished = True
 								self.trigger_event_service.begin_transaction()
 								try:
