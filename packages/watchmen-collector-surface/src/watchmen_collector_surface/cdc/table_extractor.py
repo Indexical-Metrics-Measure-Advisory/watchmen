@@ -136,55 +136,55 @@ class TableExtractor:
 					unlock(self.competitive_lock_service, lock)
 
 
-def save_change_data_record(self,
-                            trigger_table: TriggerTable,
-                            data_id: Dict) -> None:
-	change_data_record = self.source_to_change(trigger_table, data_id)
-	self.change_data_record_service.create_change_record(change_data_record)
+	def save_change_data_record(self,
+	                            trigger_table: TriggerTable,
+	                            data_id: Dict) -> None:
+		change_data_record = self.source_to_change(trigger_table, data_id)
+		self.change_data_record_service.create_change_record(change_data_record)
 
 
-def source_to_change(self, trigger_table: TriggerTable, data_id: Dict) -> ChangeDataRecord:
-	return self.get_change_data_record(
-		trigger_table.modelName,
-		trigger_table.tableName,
-		data_id,
-		trigger_table.tenantId,
-		trigger_table.tableTriggerId,
-		trigger_table.modelTriggerId,
-		trigger_table.moduleTriggerId,
-		trigger_table.eventTriggerId
-	)
+	def source_to_change(self, trigger_table: TriggerTable, data_id: Dict) -> ChangeDataRecord:
+		return self.get_change_data_record(
+			trigger_table.modelName,
+			trigger_table.tableName,
+			data_id,
+			trigger_table.tenantId,
+			trigger_table.tableTriggerId,
+			trigger_table.modelTriggerId,
+			trigger_table.moduleTriggerId,
+			trigger_table.eventTriggerId
+		)
 
 
-def get_change_data_record(self,
-                           model_name: str,
-                           table_name: str,
-                           data_id: Dict,
-                           tenant_id: str,
-                           table_trigger_id: int,
-                           model_trigger_id: int,
-                           module_trigger_id: int,
-                           event_trigger_id: int) -> ChangeDataRecord:
-	return ChangeDataRecord(
-		changeRecordId=self.snowflake_generator.next_id(),
-		modelName=model_name,
-		tableName=table_name,
-		dataId=data_id,
-		isMerged=False,
-		tableTriggerId=table_trigger_id,
-		modelTriggerId=model_trigger_id,
-		moduleTriggerId=module_trigger_id,
-		eventTriggerId=event_trigger_id,
-		tenantId=tenant_id
-	)
+	def get_change_data_record(self,
+	                           model_name: str,
+	                           table_name: str,
+	                           data_id: Dict,
+	                           tenant_id: str,
+	                           table_trigger_id: int,
+	                           model_trigger_id: int,
+	                           module_trigger_id: int,
+	                           event_trigger_id: int) -> ChangeDataRecord:
+		return ChangeDataRecord(
+			changeRecordId=self.snowflake_generator.next_id(),
+			modelName=model_name,
+			tableName=table_name,
+			dataId=data_id,
+			isMerged=False,
+			tableTriggerId=table_trigger_id,
+			modelTriggerId=model_trigger_id,
+			moduleTriggerId=module_trigger_id,
+			eventTriggerId=event_trigger_id,
+			tenantId=tenant_id
+		)
 
 
-# noinspection PyMethodMayBeStatic
-def get_diff(self, source_records, existed_records) -> Any:
-	source_array = np.asarray(
-		ArrayHelper(source_records).map(lambda source_record: list(source_record.values())[:]).to_list()
-	)
-	existed_array = np.asarray(
-		ArrayHelper(existed_records).map(lambda existed_record: list(existed_record.values())[:]).to_list()
-	)
-	return cal_array2d_diff(source_array, existed_array).tolist()
+	# noinspection PyMethodMayBeStatic
+	def get_diff(self, source_records, existed_records) -> Any:
+		source_array = np.asarray(
+			ArrayHelper(source_records).map(lambda source_record: list(source_record.values())[:]).to_list()
+		)
+		existed_array = np.asarray(
+			ArrayHelper(existed_records).map(lambda existed_record: list(existed_record.values())[:]).to_list()
+		)
+		return cal_array2d_diff(source_array, existed_array).tolist()
