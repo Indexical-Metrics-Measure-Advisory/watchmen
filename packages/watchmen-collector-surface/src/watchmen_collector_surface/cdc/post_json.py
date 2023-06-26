@@ -23,10 +23,11 @@ from watchmen_utilities import ArrayHelper
 
 logger = logging.getLogger('apscheduler')
 logger.setLevel(logging.ERROR)
+# logger = getLogger(__name__)
 scheduler = BackgroundScheduler(logger=None)
 
-def init_json_listener():
-	PostJsonService().create_thread()
+# def init_json_listener():
+# 	PostJsonService().create_thread()
 
 
 class PostJsonService:
@@ -64,10 +65,10 @@ class PostJsonService:
 		                                                       self.snowflake_generator,
 		                                                       self.principle_service)
 
-	def create_thread(self) -> None:
+	def create_thread(self,scheduler) -> None:
 		if ask_fastapi_job():
 			scheduler.add_job(PostJsonService.run, 'interval', seconds=ask_post_json_wait(), args=(self,))
-			scheduler.start()
+
 		else:
 			Thread(target=PostJsonService.run, args=(self,), daemon=True).start()
 
@@ -77,15 +78,15 @@ class PostJsonService:
 				self.change_data_json_listener()
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
-			sleep(5)
-			self.create_thread()
+			# sleep(5)
+			# self.create_thread()
 
 	def change_data_json_listener(self):
 		unfinished_events = self.trigger_event_service.find_unfinished_events()
-		if len(unfinished_events) == 0:
-			sleep(5)
-		else:
-			ArrayHelper(unfinished_events).each(self.process_modules)
+		# if len(unfinished_events) == 0:
+		# 	sleep(5)
+		# else:
+		ArrayHelper(unfinished_events).each(self.process_modules)
 
 	def process_modules(self, unfinished_event: TriggerEvent):
 		trigger_modules = self.trigger_module_service.find_by_event_trigger_id(unfinished_event.get('event_trigger_id'))

@@ -23,12 +23,12 @@ class CollectorSurfaceSettings(BaseSettings):
 	S3_COLLECTOR_CLEAN_TASK_INTERVAL: int = 3600
 
 	QUERY_BASED_CHANGE_DATA_CAPTURE: bool = False
-	USE_FASTAPI_SCHEDULE_JOB :bool = True
+	USE_FASTAPI_SCHEDULE_JOB :bool = False
 	TABLE_EXTRACTOR_WAIT:int = 3
-	RECORD_TO_JSON_WAIT:int= 2
+	RECORD_TO_JSON_WAIT:int= 3
 	POST_JSON_WAIT:int = 1
 	TASK_SCHEDULE_WAIT:int = 1
-	MONITOR_EVENT_WAIT:int = 1
+	MONITOR_EVENT_WAIT:int = 60
 
 	class Config:
 		# secrets_dir = '/var/run'
