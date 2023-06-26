@@ -3,6 +3,7 @@ from threading import Thread
 from traceback import format_exc
 from typing import Dict, Tuple, Optional, List, Any
 
+from time import sleep
 from watchmen_collector_kernel.common import WAVE
 from watchmen_collector_kernel.model import CollectorTableConfig, \
 	ChangeDataRecord, ChangeDataJson
@@ -24,8 +25,8 @@ logger = logging.getLogger('apscheduler')
 logger.setLevel(logging.ERROR)
 
 
-# def init_record_listener():
-# 	RecordToJsonService().create_thread()
+def init_record_listener():
+	RecordToJsonService().create_thread()
 
 
 class RecordToJsonService:
@@ -54,7 +55,7 @@ class RecordToJsonService:
 		                                               self.snowflake_generator,
 		                                               self.principle_service)
 
-	def create_thread(self, scheduler) -> None:
+	def create_thread(self, scheduler=None) -> None:
 		if ask_fastapi_job():
 			scheduler.add_job(RecordToJsonService.run, 'interval', seconds=ask_record_json_wait(), args=(self,))
 		else:
@@ -66,8 +67,8 @@ class RecordToJsonService:
 				self.change_data_record_listener()
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
-		# sleep(5)
-		# self.create_thread()
+			sleep(5)
+			self.create_thread()
 
 	# noinspection PyMethodMayBeStatic
 	def is_merged(self, change_record: ChangeDataRecord) -> bool:
@@ -75,25 +76,25 @@ class RecordToJsonService:
 
 	def change_data_record_listener(self):
 		unmerged_records = self.change_record_service.find_partial_records()
-		# if len(unmerged_records) == 0:
-		# 	sleep(5)
-		# else:
-		for unmerged_record in unmerged_records:
-			lock = get_resource_lock(self.snowflake_generator.next_id(),
-			                         unmerged_record.changeRecordId,
-			                         unmerged_record.tenantId)
-			try:
-				if try_lock_nowait(self.competitive_lock_service, lock):
-					change_data_record = unmerged_record
-					# perhaps have been processed by other dolls.
-					if self.change_record_service.is_existed(change_data_record):
-						try:
-							self.process_record(change_data_record)
-						except Exception as e:
-							logger.error(e, exc_info=True, stack_info=True)
-							self.update_result(change_data_record, format_exc())
-			finally:
-				unlock(self.competitive_lock_service, lock)
+		if len(unmerged_records) == 0:
+			sleep(5)
+		else:
+			for unmerged_record in unmerged_records:
+				lock = get_resource_lock(self.snowflake_generator.next_id(),
+				                         unmerged_record.changeRecordId,
+				                         unmerged_record.tenantId)
+				try:
+					if try_lock_nowait(self.competitive_lock_service, lock):
+						change_data_record = unmerged_record
+						# perhaps have been processed by other dolls.
+						if self.change_record_service.is_existed(change_data_record):
+							try:
+								self.process_record(change_data_record)
+							except Exception as e:
+								logger.error(e, exc_info=True, stack_info=True)
+								self.update_result(change_data_record, format_exc())
+				finally:
+					unlock(self.competitive_lock_service, lock)
 
 
 def update_result(self, change_data_record: ChangeDataRecord, result: str) -> None:
