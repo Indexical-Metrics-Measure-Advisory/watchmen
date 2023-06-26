@@ -58,7 +58,7 @@ class CollectorEventListener:
 	def run(self):
 		try:
 			while True:
-				self.event_listener(self)
+				self.event_listener()
 				sleep(60)
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
@@ -160,6 +160,6 @@ class CollectorEventListener:
 					unlock(self.competitive_lock_service, lock)
 
 
-# noinspection PyMethodMayBeStatic
-def is_finished(self, event: TriggerEvent) -> bool:
-	return event.isFinished
+	# noinspection PyMethodMayBeStatic
+	def is_finished(self, event: TriggerEvent) -> bool:
+		return event.isFinished
