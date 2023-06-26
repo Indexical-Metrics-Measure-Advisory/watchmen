@@ -15,11 +15,11 @@ from ..settings import ask_fastapi_job, ask_task_listener
 
 logger = logging.getLogger('apscheduler')
 logger.setLevel(logging.ERROR)
-scheduler = BackgroundScheduler(logger=None)
+# scheduler = BackgroundScheduler(logger=None)
 
 
-def init_task_listener():
-	TaskListener().create_thread()
+# def init_task_listener():
+# 	TaskListener().create_thread()
 
 
 class TaskListener:
@@ -36,11 +36,11 @@ class TaskListener:
 		                                     self.snowflake_generator,
 		                                     self.principle_service)
 
-	def create_thread(self) -> None:
-		# Thread(target=TaskListener.run, args=(self,), daemon=True).start()
+	def create_thread(self,scheduler) -> None:
+		Thread(target=TaskListener.run, args=(self,), daemon=True).start()
 		if ask_fastapi_job():
 			scheduler.add_job(TaskListener.run, 'interval', seconds=ask_task_listener(),args=(self,))
-			scheduler.start()
+
 		else:
 			Thread(target=TaskListener.run, args=(self,), daemon=True).start()
 
@@ -50,13 +50,13 @@ class TaskListener:
 				self.task_listener()
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
-			sleep(60)
-			self.create_thread()
+			# sleep(60)
+			# self.create_thread()
 
 	def task_listener(self) -> None:
 		unfinished_tasks = self.scheduled_task_service.find_partial_tasks()
-		if len(unfinished_tasks) == 0:
-			sleep(5)
+		# if len(unfinished_tasks) == 0:
+		# 	sleep(5)
 		for unfinished_task in unfinished_tasks:
 			lock = get_resource_lock(self.snowflake_generator.next_id(),
 			                         unfinished_task.resourceId,
