@@ -141,159 +141,159 @@ async def fetch_report_data_temporary(
 	return get_report_data_service(subject, report, principal_service).find_sql()
 
 
-def ask_subject_criteria(
-		criteria: SubjectDatasetCriteria, principal_service: PrincipalService
-) -> Tuple[Subject, Report, Pageable]:
-	subject_id = criteria.subjectId
-	subject_name = criteria.subjectName
-	indicators = criteria.indicators
-	conditions = criteria.conditions
+# def ask_subject_criteria(
+# 		criteria: SubjectDatasetCriteria, principal_service: PrincipalService
+# ) -> Tuple[Subject, Report, Pageable]:
+# 	subject_id = criteria.subjectId
+# 	subject_name = criteria.subjectName
+# 	indicators = criteria.indicators
+# 	conditions = criteria.conditions
+#
+# 	if is_blank(subject_id) and is_blank(subject_name):
+# 		raise_400('At least one of subject id or subject name needs to be provided.')
+# 	if indicators is None or len(indicators) == 0:
+# 		raise_400('At least one indicator needs to be declared.')
+#
+# 	if is_not_blank(subject_id):
+# 		subject: Optional[Subject] = get_subject_service(principal_service).find_by_id(subject_id)
+# 	else:
+# 		subject: Optional[Subject] = get_subject_service(principal_service).find_by_name(subject_name)
+# 	if subject is None:
+# 		raise_400(f'Subject not found by given criteria[id={subject_id}, name={subject_name}].')
+#
+# 	subject_column_map: Dict[str, SubjectDatasetColumn] = ArrayHelper(subject.dataset.columns) \
+# 		.to_map(lambda x: x.columnId, lambda x: x)
+#
+#
+#
+# 	def to_report_indicator(indicator: SubjectDatasetCriteriaIndicator) -> ReportIndicator:
+# 		column_id = indicator.columnId
+# 		dataset_column = subject_column_map.get(column_id)
+# 		if dataset_column is None:
+# 			raise_400(f'Cannot find column[columnId={column_id}] from subject.')
+#
+# 		arithmetic = ReportIndicatorArithmetic.NONE
+# 		if indicator.arithmetic == SubjectDatasetCriteriaIndicatorArithmetic.COUNT:
+# 			arithmetic = ReportIndicatorArithmetic.COUNT
+# 		elif indicator.arithmetic == SubjectDatasetCriteriaIndicatorArithmetic.DISTINCT_COUNT:
+# 			arithmetic = ReportIndicatorArithmetic.DISTINCT_COUNT
+# 		elif indicator.arithmetic == SubjectDatasetCriteriaIndicatorArithmetic.SUMMARY:
+# 			arithmetic = ReportIndicatorArithmetic.SUMMARY
+# 		elif indicator.arithmetic == SubjectDatasetCriteriaIndicatorArithmetic.AVERAGE:
+# 			arithmetic = ReportIndicatorArithmetic.AVERAGE
+# 		elif indicator.arithmetic == SubjectDatasetCriteriaIndicatorArithmetic.MAXIMUM:
+# 			arithmetic = ReportIndicatorArithmetic.MAXIMUM
+# 		elif indicator.arithmetic == SubjectDatasetCriteriaIndicatorArithmetic.MINIMUM:
+# 			arithmetic = ReportIndicatorArithmetic.MINIMUM
+# 		elif indicator.arithmetic == SubjectDatasetCriteriaIndicatorArithmetic.NONE or indicator.arithmetic is None:
+# 			arithmetic = ReportIndicatorArithmetic.NONE
+# 		else:
+# 			raise_400(f'Indicator arithmetic[{indicator.arithmetic}] is not supported.')
+#
+# 		return ReportIndicator(
+# 			columnId=dataset_column.columnId,
+# 			arithmetic=arithmetic,
+# 			name=indicator.alias
+# 		)
+#
+# 	def to_report_joint(joint: ParameterJoint) -> ParameterJoint:
+# 		return ParameterJoint(
+# 			jointType=ParameterJointType.AND if joint.jointType is None else joint.jointType,
+# 			filters=ArrayHelper(joint.filters).map(to_report_filter).to_list()
+# 		)
+#
+# 	def translate_topic_factor(param: TopicFactorParameter) -> TopicFactorParameter:
+# 		factor_id = param.factorId  # alias name on subject
+# 		dataset_column = subject_column_map.get(factor_id)
+# 		if dataset_column is None:
+# 			logger.warning(f'Cannot find column[name={factor_id}] from subject.')
+# 			return TopicFactorParameter(
+# 				kind=ParameterKind.TOPIC,
+# 				factorId=factor_id
+# 			)
+# 		# topicId is not need here since subject will be build as a sub query
+# 		return TopicFactorParameter(
+# 			kind=ParameterKind.TOPIC,
+# 			factorId=dataset_column.columnId
+# 		)
+#
+# 	def translate_constant(param: ConstantParameter) -> ConstantParameter:
+# 		# in constant, use alias name from subject columns
+# 		# translate is not needed here
+# 		return ConstantParameter(
+# 			kind=ParameterKind.CONSTANT,
+# 			value=param.value
+# 		)
+#
+# 	def translate_computed(param: ComputedParameter) -> ComputedParameter:
+# 		return ComputedParameter(
+# 			kind=ParameterKind.COMPUTED,
+# 			conditional=param.conditional,
+# 			on=to_report_joint(param.on) if param.on is not None else None,
+# 			type=param.type,
+# 			parameters=ArrayHelper(param.parameters).map(translate_parameter).to_list()
+# 		)
+#
+# 	def translate_parameter(parameter: Parameter) -> Parameter:
+# 		if isinstance(parameter, TopicFactorParameter):
+# 			return translate_topic_factor(parameter)
+# 		elif isinstance(parameter, ConstantParameter):
+# 			return translate_constant(parameter)
+# 		elif isinstance(parameter, ComputedParameter):
+# 			return translate_computed(parameter)
+# 		else:
+# 			raise_400(f'Cannot determine given expression[{parameter.dict()}].')
+#
+# 	def to_report_expression(expression: ParameterExpression) -> ParameterExpression:
+# 		return ParameterExpression(
+# 			left=translate_parameter(expression.left),
+# 			operator=expression.operator,
+# 			right=None if expression.right is None else translate_parameter(expression.right)
+# 		)
+#
+# 	def to_report_filter(condition: ParameterCondition) -> ParameterCondition:
+# 		if isinstance(condition, ParameterExpression):
+# 			return to_report_expression(condition)
+# 		elif isinstance(condition, ParameterJoint):
+# 			return to_report_joint(condition)
+# 		else:
+# 			raise_400(f'Cannot determine given condition[{condition.dict()}].')
+#
+# 	if conditions is None or len(conditions) == 0:
+# 		filters = None
+# 	else:
+# 		filters = ParameterJoint(
+# 			jointType=ParameterJointType.AND,
+# 			filters=ArrayHelper(conditions).map(to_report_filter).to_list()
+# 		)
+#
+#
+# 	for indicators in criteria.indicators:
+# 		pass
+#
+# 	# fake a report to query data
+# 	report = Report(
+# 		indicators=ArrayHelper(indicators).map(to_report_indicator).to_list(),
+# 		filters=filters
+# 	)
+#
+# 	page_size = ask_dataset_page_max_rows()
+# 	if criteria.pageSize is None or criteria.pageSize < 1 or criteria.pageSize > page_size:
+# 		page_size = ask_dataset_page_max_rows()
+# 	else:
+# 		page_size = criteria.pageSize
+#
+# 	pageable = Pageable(
+# 		pageNumber=1 if criteria.pageNumber is None or criteria.pageNumber < 1 else criteria.pageNumber,
+# 		pageSize=page_size
+# 	)
+#
+# 	return subject, report, pageable
+#
+#
 
-	if is_blank(subject_id) and is_blank(subject_name):
-		raise_400('At least one of subject id or subject name needs to be provided.')
-	if indicators is None or len(indicators) == 0:
-		raise_400('At least one indicator needs to be declared.')
 
-	if is_not_blank(subject_id):
-		subject: Optional[Subject] = get_subject_service(principal_service).find_by_id(subject_id)
-	else:
-		subject: Optional[Subject] = get_subject_service(principal_service).find_by_name(subject_name)
-	if subject is None:
-		raise_400(f'Subject not found by given criteria[id={subject_id}, name={subject_name}].')
-
-	subject_column_map: Dict[str, SubjectDatasetColumn] = ArrayHelper(subject.dataset.columns) \
-		.to_map(lambda x: x.columnId, lambda x: x)
-
-
-
-	def to_report_indicator(indicator: SubjectDatasetCriteriaIndicator) -> ReportIndicator:
-		column_id = indicator.columnId
-		dataset_column = subject_column_map.get(column_id)
-		if dataset_column is None:
-			raise_400(f'Cannot find column[columnId={column_id}] from subject.')
-
-		arithmetic = ReportIndicatorArithmetic.NONE
-		if indicator.arithmetic == SubjectDatasetCriteriaIndicatorArithmetic.COUNT:
-			arithmetic = ReportIndicatorArithmetic.COUNT
-		elif indicator.arithmetic == SubjectDatasetCriteriaIndicatorArithmetic.DISTINCT_COUNT:
-			arithmetic = ReportIndicatorArithmetic.DISTINCT_COUNT
-		elif indicator.arithmetic == SubjectDatasetCriteriaIndicatorArithmetic.SUMMARY:
-			arithmetic = ReportIndicatorArithmetic.SUMMARY
-		elif indicator.arithmetic == SubjectDatasetCriteriaIndicatorArithmetic.AVERAGE:
-			arithmetic = ReportIndicatorArithmetic.AVERAGE
-		elif indicator.arithmetic == SubjectDatasetCriteriaIndicatorArithmetic.MAXIMUM:
-			arithmetic = ReportIndicatorArithmetic.MAXIMUM
-		elif indicator.arithmetic == SubjectDatasetCriteriaIndicatorArithmetic.MINIMUM:
-			arithmetic = ReportIndicatorArithmetic.MINIMUM
-		elif indicator.arithmetic == SubjectDatasetCriteriaIndicatorArithmetic.NONE or indicator.arithmetic is None:
-			arithmetic = ReportIndicatorArithmetic.NONE
-		else:
-			raise_400(f'Indicator arithmetic[{indicator.arithmetic}] is not supported.')
-
-		return ReportIndicator(
-			columnId=dataset_column.columnId,
-			arithmetic=arithmetic,
-			name=indicator.alias
-		)
-
-	def to_report_joint(joint: ParameterJoint) -> ParameterJoint:
-		return ParameterJoint(
-			jointType=ParameterJointType.AND if joint.jointType is None else joint.jointType,
-			filters=ArrayHelper(joint.filters).map(to_report_filter).to_list()
-		)
-
-	def translate_topic_factor(param: TopicFactorParameter) -> TopicFactorParameter:
-		factor_id = param.factorId  # alias name on subject
-		dataset_column = subject_column_map.get(factor_id)
-		if dataset_column is None:
-			logger.warning(f'Cannot find column[name={factor_id}] from subject.')
-			return TopicFactorParameter(
-				kind=ParameterKind.TOPIC,
-				factorId=factor_id
-			)
-		# topicId is not need here since subject will be build as a sub query
-		return TopicFactorParameter(
-			kind=ParameterKind.TOPIC,
-			factorId=dataset_column.columnId
-		)
-
-	def translate_constant(param: ConstantParameter) -> ConstantParameter:
-		# in constant, use alias name from subject columns
-		# translate is not needed here
-		return ConstantParameter(
-			kind=ParameterKind.CONSTANT,
-			value=param.value
-		)
-
-	def translate_computed(param: ComputedParameter) -> ComputedParameter:
-		return ComputedParameter(
-			kind=ParameterKind.COMPUTED,
-			conditional=param.conditional,
-			on=to_report_joint(param.on) if param.on is not None else None,
-			type=param.type,
-			parameters=ArrayHelper(param.parameters).map(translate_parameter).to_list()
-		)
-
-	def translate_parameter(parameter: Parameter) -> Parameter:
-		if isinstance(parameter, TopicFactorParameter):
-			return translate_topic_factor(parameter)
-		elif isinstance(parameter, ConstantParameter):
-			return translate_constant(parameter)
-		elif isinstance(parameter, ComputedParameter):
-			return translate_computed(parameter)
-		else:
-			raise_400(f'Cannot determine given expression[{parameter.dict()}].')
-
-	def to_report_expression(expression: ParameterExpression) -> ParameterExpression:
-		return ParameterExpression(
-			left=translate_parameter(expression.left),
-			operator=expression.operator,
-			right=None if expression.right is None else translate_parameter(expression.right)
-		)
-
-	def to_report_filter(condition: ParameterCondition) -> ParameterCondition:
-		if isinstance(condition, ParameterExpression):
-			return to_report_expression(condition)
-		elif isinstance(condition, ParameterJoint):
-			return to_report_joint(condition)
-		else:
-			raise_400(f'Cannot determine given condition[{condition.dict()}].')
-
-	if conditions is None or len(conditions) == 0:
-		filters = None
-	else:
-		filters = ParameterJoint(
-			jointType=ParameterJointType.AND,
-			filters=ArrayHelper(conditions).map(to_report_filter).to_list()
-		)
-
-
-	for indicators in criteria.indicators:
-		pass
-
-	# fake a report to query data
-	report = Report(
-		indicators=ArrayHelper(indicators).map(to_report_indicator).to_list(),
-		filters=filters
-	)
-
-	page_size = ask_dataset_page_max_rows()
-	if criteria.pageSize is None or criteria.pageSize < 1 or criteria.pageSize > page_size:
-		page_size = ask_dataset_page_max_rows()
-	else:
-		page_size = criteria.pageSize
-
-	pageable = Pageable(
-		pageNumber=1 if criteria.pageNumber is None or criteria.pageNumber < 1 else criteria.pageNumber,
-		pageSize=page_size
-	)
-
-	return subject, report, pageable
-
-
-
-
-def build_fake_subject(criteria: SubjectDatasetCriteria,subject:Subject)->Subject:
+def build_fake_subject(criteria: SubjectDatasetCriteria,subject:Subject)-> tuple[Subject, Pageable]:
 
 	# fake_subject = Subject()
 
