@@ -1,8 +1,6 @@
 import logging
-from logging import getLogger
 from threading import Thread
 
-from apscheduler.schedulers.background import BackgroundScheduler
 from time import sleep
 
 from watchmen_collector_kernel.common import TENANT_ID
@@ -16,14 +14,12 @@ from watchmen_collector_surface.settings import ask_fastapi_job, ask_monitor_eve
 from watchmen_meta.common import ask_snowflake_generator, ask_super_admin, ask_meta_storage
 from watchmen_utilities import ArrayHelper
 
-logger = getLogger(__name__)
 logger = logging.getLogger('apscheduler')
 logger.setLevel(logging.ERROR)
-scheduler = BackgroundScheduler(logger=None)
 
 
-def init_event_listener():
-	CollectorEventListener().create_thread()
+# def init_event_listener():
+# 	CollectorEventListener().create_thread()
 
 
 class CollectorEventListener:
@@ -52,10 +48,10 @@ class CollectorEventListener:
 		                                                      self.snowflake_generator,
 		                                                      self.principle_service)
 
-	def create_thread(self) -> None:
+	def create_thread(self, scheduler) -> None:
 		if ask_fastapi_job():
 			scheduler.add_job(CollectorEventListener.run, 'interval', seconds=ask_monitor_event_wait(), args=(self,))
-			scheduler.start()
+
 		else:
 			Thread(target=CollectorEventListener.run, args=(self,), daemon=True).start()
 
@@ -66,8 +62,8 @@ class CollectorEventListener:
 				sleep(60)
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
-			sleep(60)
-			self.create_thread()
+		# sleep(60)
+		# self.create_thread()
 
 	def is_all_modules_finished(self, event: TriggerEvent) -> bool:
 		return ArrayHelper(
@@ -133,36 +129,37 @@ class CollectorEventListener:
 
 	def event_listener(self) -> None:
 		unfinished_events = self.trigger_event_service.find_unfinished_events()
-		if len(unfinished_events) == 0:
-			sleep(10)
-		else:
-			for unfinished_event in unfinished_events:
-				lock = get_resource_lock(self.snowflake_generator.next_id(),
-				                         unfinished_event.get('event_trigger_id'),
-				                         unfinished_event.get(TENANT_ID))
-				try:
-					if try_lock_nowait(self.competitive_lock_service, lock):
-						event = self.trigger_event_service.find_event_by_id(unfinished_event.get('event_trigger_id'))
-						if self.is_finished(event):
-							continue
-						else:
-							if self.is_all_modules_finished(event) and self.is_all_records_merged(
-									event) and self.is_all_json_posted(event):
-								event.isFinished = True
-								self.trigger_event_service.begin_transaction()
-								try:
-									self.trigger_event_service.update(event)
-									self.trigger_event_service.commit_transaction()
-								except Exception as e:
-									self.trigger_event_service.rollback_transaction()
-									raise e
-								finally:
-									self.trigger_event_service.close_transaction()
-								break
+		# if len(unfinished_events) == 0:
+		# 	sleep(10)
+		# else:
+		for unfinished_event in unfinished_events:
+			lock = get_resource_lock(self.snowflake_generator.next_id(),
+			                         unfinished_event.get('event_trigger_id'),
+			                         unfinished_event.get(TENANT_ID))
+			try:
+				if try_lock_nowait(self.competitive_lock_service, lock):
+					event = self.trigger_event_service.find_event_by_id(unfinished_event.get('event_trigger_id'))
+					if self.is_finished(event):
+						continue
+					else:
+						if self.is_all_modules_finished(event) and self.is_all_records_merged(
+								event) and self.is_all_json_posted(event):
+							event.isFinished = True
+							self.trigger_event_service.begin_transaction()
+							try:
+								self.trigger_event_service.update(event)
+								self.trigger_event_service.commit_transaction()
+							except Exception as e:
+								self.trigger_event_service.rollback_transaction()
+								raise e
+							finally:
+								self.trigger_event_service.close_transaction()
+							break
 
-				finally:
-					unlock(self.competitive_lock_service, lock)
+			finally:
+				unlock(self.competitive_lock_service, lock)
 
-	# noinspection PyMethodMayBeStatic
-	def is_finished(self, event: TriggerEvent) -> bool:
-		return event.isFinished
+
+# noinspection PyMethodMayBeStatic
+def is_finished(self, event: TriggerEvent) -> bool:
+	return event.isFinished
