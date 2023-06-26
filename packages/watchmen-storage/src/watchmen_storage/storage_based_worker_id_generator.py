@@ -121,7 +121,7 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 								'registered_at': worker.registeredAt,
 								'last_beat_at': worker.lastBeatAt
 							}
-						)
+						), True
 					)
 					# handle update failed when other process already did it, may raise exception
 					if updated_count == 0:
