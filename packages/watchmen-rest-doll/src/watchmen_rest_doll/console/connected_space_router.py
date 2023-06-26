@@ -514,13 +514,16 @@ def add_dataset_column_type(
 	available_schemas = schema.get_available_schemas()
 
 	def ask_column_type(column: SubjectDatasetColumnWithType):
-		parsed_parameter = parse_parameter_for_storage(
-			column.parameter, available_schemas, principal_service, False)
-		parsed_parameter.parse(column.parameter, available_schemas, principal_service, False)
-		# TODO get first possible type , will fix it in feature
-		column_type = parsed_parameter.get_possible_types()[0]
-		column.columnType = column_type
-		return column
+		if not column.recalculate:
+			parsed_parameter = parse_parameter_for_storage(
+				column.parameter, available_schemas, principal_service, False)
+			parsed_parameter.parse(column.parameter, available_schemas, principal_service, False)
+			# TODO get first possible type , will fix it in feature
+			column_type = parsed_parameter.get_possible_types()[0]
+			column.columnType = column_type
+			return column
+		else:
+			return column
 
 	dataset.columns = ArrayHelper(dataset.columns).map(lambda x: ask_column_type(x)).to_list()
 	return subject_with_type
