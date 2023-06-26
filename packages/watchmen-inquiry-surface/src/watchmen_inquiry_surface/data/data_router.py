@@ -1,3 +1,4 @@
+from logging import getLogger
 from typing import Dict, Optional, Tuple
 
 from fastapi import APIRouter, Body, Depends
@@ -12,11 +13,14 @@ from watchmen_model.common import ComputedParameter, ConstantParameter, DataPage
 	SubjectId, TopicFactorParameter
 from watchmen_model.console import Report, ReportIndicator, ReportIndicatorArithmetic, Subject, SubjectDatasetColumn, \
 	SubjectDatasetCriteria, SubjectDatasetCriteriaIndicator, SubjectDatasetCriteriaIndicatorArithmetic
+from watchmen_model.console.subject import SubjectColumnArithmetic
 from watchmen_rest import get_console_principal
 from watchmen_rest.util import raise_400
 from watchmen_utilities import ArrayHelper, is_blank, is_not_blank
 
 router = APIRouter()
+
+logger = getLogger(__name__)
 
 
 def get_subject_service(principal_service: PrincipalService) -> SubjectService:
@@ -160,6 +164,8 @@ def ask_subject_criteria(
 	subject_column_map: Dict[str, SubjectDatasetColumn] = ArrayHelper(subject.dataset.columns) \
 		.to_map(lambda x: x.columnId, lambda x: x)
 
+
+
 	def to_report_indicator(indicator: SubjectDatasetCriteriaIndicator) -> ReportIndicator:
 		column_id = indicator.columnId
 		dataset_column = subject_column_map.get(column_id)
@@ -200,7 +206,11 @@ def ask_subject_criteria(
 		factor_id = param.factorId  # alias name on subject
 		dataset_column = subject_column_map.get(factor_id)
 		if dataset_column is None:
-			raise_400(f'Cannot find column[name={factor_id}] from subject.')
+			logger.warning(f'Cannot find column[name={factor_id}] from subject.')
+			return TopicFactorParameter(
+				kind=ParameterKind.TOPIC,
+				factorId=factor_id
+			)
 		# topicId is not need here since subject will be build as a sub query
 		return TopicFactorParameter(
 			kind=ParameterKind.TOPIC,
@@ -257,6 +267,10 @@ def ask_subject_criteria(
 			filters=ArrayHelper(conditions).map(to_report_filter).to_list()
 		)
 
+
+	for indicators in criteria.indicators:
+		pass
+
 	# fake a report to query data
 	report = Report(
 		indicators=ArrayHelper(indicators).map(to_report_indicator).to_list(),
@@ -277,25 +291,162 @@ def ask_subject_criteria(
 	return subject, report, pageable
 
 
+
+
+def build_fake_subject(criteria: SubjectDatasetCriteria,subject:Subject)->Subject:
+
+	# fake_subject = Subject()
+
+	indicators = criteria.indicators
+	dataset  = subject.dataset
+	# columns = dataset.columns
+	conditions = criteria.conditions
+	new_columns = []
+
+
+	subject_column_map: Dict[str, SubjectDatasetColumn] = ArrayHelper(subject.dataset.columns) \
+		.to_map(lambda x: x.columnId, lambda x: x)
+
+	for indicator in indicators:
+		columnId = indicator.columnId
+		if columnId not in subject_column_map:
+			raise_400(f'Indicator columnId[{columnId}] is not found in subject dataset.')
+		else:
+			old_column = subject_column_map.get(columnId)
+			old_column.arithmetic =indicator.arithmetic
+			new_columns.append(old_column)
+	subject.dataset.columns = new_columns
+
+	def to_report_joint(joint: ParameterJoint) -> ParameterJoint:
+		return ParameterJoint(
+			jointType=ParameterJointType.AND if joint.jointType is None else joint.jointType,
+			filters=ArrayHelper(joint.filters).map(to_report_filter).to_list()
+		)
+
+	def translate_topic_factor(param: TopicFactorParameter) -> TopicFactorParameter:
+		factor_id = param.factorId  # alias name on subject
+		dataset_column = subject_column_map.get(factor_id)
+		if dataset_column is None:
+			logger.warning(f'Cannot find column[name={factor_id}] from subject.')
+			return TopicFactorParameter(
+				kind=ParameterKind.TOPIC,
+				factorId=factor_id
+			)
+		# topicId is not need here since subject will be build as a sub query
+		return TopicFactorParameter(
+			kind=ParameterKind.TOPIC,
+			factorId=dataset_column.columnId
+		)
+
+	def translate_constant(param: ConstantParameter) -> ConstantParameter:
+		# in constant, use alias name from subject columns
+		# translate is not needed here
+		return ConstantParameter(
+			kind=ParameterKind.CONSTANT,
+			value=param.value
+		)
+
+	def translate_computed(param: ComputedParameter) -> ComputedParameter:
+		return ComputedParameter(
+			kind=ParameterKind.COMPUTED,
+			conditional=param.conditional,
+			on=to_report_joint(param.on) if param.on is not None else None,
+			type=param.type,
+			parameters=ArrayHelper(param.parameters).map(translate_parameter).to_list()
+		)
+
+	def translate_parameter(parameter: Parameter) -> Parameter:
+		if isinstance(parameter, TopicFactorParameter):
+			return translate_topic_factor(parameter)
+		elif isinstance(parameter, ConstantParameter):
+			return translate_constant(parameter)
+		elif isinstance(parameter, ComputedParameter):
+			return translate_computed(parameter)
+		else:
+			raise_400(f'Cannot determine given expression[{parameter.dict()}].')
+
+	def to_report_expression(expression: ParameterExpression) -> ParameterExpression:
+		return ParameterExpression(
+			left=translate_parameter(expression.left),
+			operator=expression.operator,
+			right=None if expression.right is None else translate_parameter(expression.right)
+		)
+
+	def to_report_filter(condition: ParameterCondition) -> ParameterCondition:
+		if isinstance(condition, ParameterExpression):
+			return to_report_expression(condition)
+		elif isinstance(condition, ParameterJoint):
+			return to_report_joint(condition)
+		else:
+			raise_400(f'Cannot determine given condition[{condition.dict()}].')
+
+
+	if conditions is None or len(conditions) == 0:
+		filters = None
+	else:
+		filters = ParameterJoint(
+			jointType=ParameterJointType.AND,
+			filters=ArrayHelper(conditions).map(to_report_filter).to_list()
+		)
+
+	subject.filters = filters
+
+	page_size = ask_dataset_page_max_rows()
+	if criteria.pageSize is None or criteria.pageSize < 1 or criteria.pageSize > page_size:
+		page_size = ask_dataset_page_max_rows()
+	else:
+		page_size = criteria.pageSize
+
+	pageable = Pageable(
+		pageNumber=1 if criteria.pageNumber is None or criteria.pageNumber < 1 else criteria.pageNumber,
+		pageSize=page_size
+	)
+
+	return  subject,pageable
+
+
+
+
 @router.post('/subject/data/criteria', tags=[UserRole.ADMIN], response_model=DataPage)
 async def query_dataset(
 		criteria: SubjectDatasetCriteria,
 		principal_service: PrincipalService = Depends(get_console_principal)) -> DataPage:
-	subject, report, pageable = ask_subject_criteria(criteria, principal_service)
-	return get_report_data_service(subject, report, principal_service).page(pageable)
+	subject_id = criteria.subjectId
+	subject_name = criteria.subjectName
+	subject = await load_subject(principal_service, subject_id, subject_name)
+	subject,  pageable = build_fake_subject(criteria, subject)
+
+	return get_subject_data_service(subject,  principal_service).page(pageable)
+
+
+async def load_subject(principal_service, subject_id, subject_name):
+	if is_not_blank(subject_id):
+		subject: Optional[Subject] = get_subject_service(principal_service).find_by_id(subject_id)
+	else:
+		subject: Optional[Subject] = get_subject_service(principal_service).find_by_name(subject_name)
+	if subject is None:
+		raise_400(f'Subject not found by given criteria[id={subject_id}, name={subject_name}].')
+	return subject
 
 
 @router.post('/subject/data/criteria/sql', tags=[UserRole.ADMIN], response_model=str)
 async def query_dataset(
 		criteria: SubjectDatasetCriteria,
 		principal_service: PrincipalService = Depends(get_console_principal)) -> str:
-	subject, report, pageable = ask_subject_criteria(criteria, principal_service)
-	return get_report_data_service(subject, report, principal_service).find_sql()
+	subject_id = criteria.subjectId
+	subject_name = criteria.subjectName
+	subject = await load_subject(principal_service, subject_id, subject_name)
+	subject, pageable = build_fake_subject(criteria, subject)
+	return get_subject_data_service(subject, principal_service).find_sql()
 
 
 @router.post('/subject/data/criteria/page-sql', tags=[UserRole.ADMIN], response_model=str)
 async def query_dataset(
 		criteria: SubjectDatasetCriteria,
 		principal_service: PrincipalService = Depends(get_console_principal)) -> str:
-	subject, report, pageable = ask_subject_criteria(criteria, principal_service)
-	return get_report_data_service(subject, report, principal_service).page_sql(pageable)
+
+	subject_id = criteria.subjectId
+	subject_name = criteria.subjectName
+	subject = await load_subject(principal_service, subject_id, subject_name)
+	subject, pageable = build_fake_subject(criteria, subject)
+	return get_subject_data_service(subject, principal_service).page_sql(pageable)
