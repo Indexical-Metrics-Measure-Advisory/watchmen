@@ -15,6 +15,8 @@ from ..settings import ask_fastapi_job, ask_task_listener
 
 logger = logging.getLogger('apscheduler')
 logger.setLevel(logging.ERROR)
+
+
 # scheduler = BackgroundScheduler(logger=None)
 
 
@@ -36,10 +38,9 @@ class TaskListener:
 		                                     self.snowflake_generator,
 		                                     self.principle_service)
 
-	def create_thread(self,scheduler=None) -> None:
-		Thread(target=TaskListener.run, args=(self,), daemon=True).start()
+	def create_thread(self, scheduler=None) -> None:
 		if ask_fastapi_job():
-			scheduler.add_job(TaskListener.run, 'interval', seconds=ask_task_listener(),args=(self,))
+			scheduler.add_job(TaskListener.run, 'interval', seconds=ask_task_listener(), args=(self,))
 
 		else:
 			Thread(target=TaskListener.run, args=(self,), daemon=True).start()

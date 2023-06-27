@@ -19,7 +19,7 @@ from watchmen_rest.util import validate_tenant_id, raise_403
 
 router = APIRouter()
 
-scheduler= BackgroundScheduler()
+scheduler = BackgroundScheduler()
 
 
 @router.post('/collector/task', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_model=ScheduledTask)
@@ -33,9 +33,10 @@ async def save_task(
 	action = ask_save_scheduled_task_action(scheduled_task_service, principal_service)
 	return action(task)
 
+
 @router.on_event("shutdown")
 def shutdown_event():
-    scheduler.shutdown()
+	scheduler.shutdown()
 
 
 def add_collector_job():
@@ -45,6 +46,7 @@ def add_collector_job():
 	CollectorEventListener().create_thread(scheduler)
 	TaskListener().create_thread(scheduler)
 	scheduler.start()
+
 
 # noinspection PyUnusedLocal
 def ask_save_scheduled_task_action(
@@ -68,5 +70,3 @@ def ask_save_scheduled_task_action(
 		return scheduled_task
 
 	return action
-
-

@@ -31,7 +31,6 @@ class CollectorSurface:
 				init_event_listener()
 				init_task_listener()
 
-
 	# noinspection PyMethodMayBeStatic
 	def init_task_listener(self) -> None:
 		if ask_task_listener_enabled():
