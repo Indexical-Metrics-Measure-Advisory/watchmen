@@ -9,6 +9,8 @@ class CollectorSettings(BaseSettings):
 	LOCK_CLEAN_TIMEOUT: int = 3600
 	PARTIAL_SIZE: int = 100
 
+	COLLECTOR_CONFIG_CACHE_ENABLED: bool = True  # enable collector config cache heart beat
+
 	class Config:
 		# secrets_dir = '/var/run'
 		env_file = '.env'
@@ -30,3 +32,7 @@ def ask_lock_clean_timeout() -> int:
 
 def ask_partial_size() -> int:
 	return collector_settings.PARTIAL_SIZE
+
+
+def ask_collector_config_cache_enabled() -> bool:
+	return collector_settings.COLLECTOR_CONFIG_CACHE_ENABLED

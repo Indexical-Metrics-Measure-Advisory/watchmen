@@ -12,8 +12,9 @@ from watchmen_collector_kernel.model import ChangeDataJson, ScheduledTask, Trigg
 	CollectorModelConfig, TriggerEvent, TriggerModule
 
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock, try_lock_nowait, unlock
+from watchmen_collector_kernel.service.model_config_service import get_model_config_service
 from watchmen_collector_kernel.storage import get_change_data_json_service, get_competitive_lock_service, \
-	get_scheduled_task_service, get_collector_model_config_service, get_trigger_model_service, \
+	get_scheduled_task_service, get_trigger_model_service, \
 	get_trigger_event_service, get_change_data_record_service, get_change_data_json_history_service, \
 	get_collector_module_config_service, get_trigger_module_service
 from watchmen_collector_surface.settings import ask_fastapi_job, ask_post_json_wait
@@ -21,10 +22,10 @@ from watchmen_collector_surface.settings import ask_fastapi_job, ask_post_json_w
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator, ask_super_admin
 from watchmen_utilities import ArrayHelper
 
+
 logger = logging.getLogger('apscheduler')
 logger.setLevel(logging.ERROR)
-# logger = getLogger(__name__)
-scheduler = BackgroundScheduler(logger=None)
+
 
 def init_json_listener():
 	PostJsonService().create_thread()
@@ -52,12 +53,15 @@ class PostJsonService:
 		self.module_config_service = get_collector_module_config_service(self.storage,
 		                                                                 self.snowflake_generator,
 		                                                                 self.principle_service)
+		"""
 		self.model_config_service = get_collector_model_config_service(self.storage,
 		                                                               self.snowflake_generator,
 		                                                               self.principle_service)
+		"""
+		self.model_config_service = get_model_config_service(self.principle_service)
 		self.trigger_module_service = get_trigger_module_service(self.storage,
-		                                                       self.snowflake_generator,
-		                                                       self.principle_service)
+		                                                         self.snowflake_generator,
+		                                                         self.principle_service)
 		self.trigger_model_service = get_trigger_model_service(self.storage,
 		                                                       self.snowflake_generator,
 		                                                       self.principle_service)
@@ -65,7 +69,7 @@ class PostJsonService:
 		                                                       self.snowflake_generator,
 		                                                       self.principle_service)
 
-	def create_thread(self,scheduler=None) -> None:
+	def create_thread(self, scheduler=None) -> None:
 		if ask_fastapi_job():
 			scheduler.add_job(PostJsonService.run, 'interval', seconds=ask_post_json_wait(), args=(self,))
 
@@ -101,7 +105,8 @@ class PostJsonService:
 			if trigger_module.priority == 0:
 				return True
 			else:
-				all_trigger_modules = self.trigger_module_service.find_by_event_trigger_id(trigger_module.eventTriggerId)
+				all_trigger_modules = self.trigger_module_service.find_by_event_trigger_id(
+					trigger_module.eventTriggerId)
 				return ArrayHelper(all_trigger_modules).filter(
 					lambda trigger: is_higher_priority_module(trigger, trigger_module)
 				).every(self.is_trigger_module_finished)
@@ -218,7 +223,8 @@ class PostJsonService:
 			return False
 
 	def is_trigger_module_finished(self, trigger_module: TriggerModule) -> bool:
-		return trigger_module.isFinished and self.change_record_service.is_module_finished(trigger_module.moduleTriggerId) \
+		return trigger_module.isFinished and self.change_record_service.is_module_finished(
+			trigger_module.moduleTriggerId) \
 		       and self.change_json_service.is_module_finished(trigger_module.moduleTriggerId)
 
 	def is_trigger_model_post_json_finished(self, trigger_model: TriggerModel) -> bool:
