@@ -36,7 +36,7 @@ class TaskListener:
 		                                     self.snowflake_generator,
 		                                     self.principle_service)
 
-	def create_thread(self) -> None:
+	def create_thread(self,scheduler=None) -> None:
 		# Thread(target=TaskListener.run, args=(self,), daemon=True).start()
 		if ask_fastapi_job():
 			scheduler.add_job(TaskListener.run, 'interval', seconds=ask_task_listener(),args=(self,))
