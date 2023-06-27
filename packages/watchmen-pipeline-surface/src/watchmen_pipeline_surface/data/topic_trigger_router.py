@@ -135,6 +135,6 @@ async def rerun_by_topic_data(
 		else:
 			# use previous data of last monitor log to trigger
 			await start_pipeline(
-				schema, trace_id, data_id, unwrapped_data, log.oldValue, pipeline_id, principal_service)
+				schema, trace_id, data_id, unwrapped_data, log.data_["oldValue"], pipeline_id, principal_service)
 
 	return PipelineTriggerResult(received=True, traceId=trace_id, internalDataId=str(data_id))
