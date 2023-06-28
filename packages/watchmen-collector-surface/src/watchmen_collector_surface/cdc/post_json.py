@@ -88,7 +88,8 @@ class PostJsonService:
 	def change_data_json_listener(self):
 		unfinished_events = self.trigger_event_service.find_unfinished_events()
 		if len(unfinished_events) == 0:
-			sleep(5)
+			# sleep(5)
+			pass
 		else:
 			ArrayHelper(unfinished_events).each(self.process_modules)
 
