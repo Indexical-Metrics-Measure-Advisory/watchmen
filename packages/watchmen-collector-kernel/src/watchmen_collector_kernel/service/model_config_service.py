@@ -18,9 +18,6 @@ class ModelConfigService:
 	def find_by_name(self, model_name: str) -> Optional[CollectorModelConfig]:
 		config = CollectorCacheService.model_config().get(model_name)
 		if config is not None:
-			if config.tenantId != self.principalService.get_tenant_id():
-				raise CollectorKernelException(
-					f'Model config[name={model_name}] not belongs to current tenant[id={self.principalService.get_tenant_id()}].')
 			return config
 
 		storage_service = get_collector_model_config_service(

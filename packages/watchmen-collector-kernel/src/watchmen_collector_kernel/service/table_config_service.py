@@ -20,9 +20,6 @@ class TableConfigService:
 	def find_by_table_name(self, table_name: str) -> Optional[CollectorTableConfig]:
 		config = CollectorCacheService.table_config().get_config_by_table_name(table_name)
 		if config is not None:
-			if config.tenantId != self.principalService.get_tenant_id():
-				raise CollectorKernelException(
-					f'Table config[table name={table_name}] not belongs to current tenant[id={self.principalService.get_tenant_id()}].')
 			return config
 
 		storage_service = get_collector_table_config_service(
@@ -38,9 +35,6 @@ class TableConfigService:
 	def find_by_name(self, name: str) -> Optional[CollectorTableConfig]:
 		config = CollectorCacheService.table_config().get_config_by_name(name)
 		if config is not None:
-			if config.tenantId != self.principalService.get_tenant_id():
-				raise CollectorKernelException(
-					f'Table config[name={name}] not belongs to current tenant[id={self.principalService.get_tenant_id()}].')
 			return config
 
 		storage_service = get_collector_table_config_service(
