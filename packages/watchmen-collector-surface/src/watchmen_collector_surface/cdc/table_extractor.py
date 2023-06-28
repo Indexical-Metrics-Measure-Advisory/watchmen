@@ -85,7 +85,8 @@ class TableExtractor:
 	def trigger_table_listener(self):
 		unfinished_trigger_tables = self.trigger_table_service.find_unfinished()
 		if len(unfinished_trigger_tables) == 0:
-			sleep(5)
+			# sleep(5)
+			pass
 		else:
 			for unfinished_trigger_table in unfinished_trigger_tables:
 				lock = get_resource_lock(self.snowflake_generator.next_id(),
