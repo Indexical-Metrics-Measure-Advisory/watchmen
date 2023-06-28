@@ -77,14 +77,14 @@ class RecordToJsonService:
 
 	def change_data_record_listener(self):
 		unmerged_records = self.change_record_service.find_partial_records()
-		if len(unmerged_records) == 0:
-			sleep(5)
-		else:
-			for unmerged_record in unmerged_records:
-				lock = get_resource_lock(self.snowflake_generator.next_id(),
+		# if len(unmerged_records) == 0:
+		# 	sleep(5)
+		# else:
+		for unmerged_record in unmerged_records:
+			lock = get_resource_lock(self.snowflake_generator.next_id(),
 				                         unmerged_record.changeRecordId,
 				                         unmerged_record.tenantId)
-				try:
+			try:
 					if try_lock_nowait(self.competitive_lock_service, lock):
 						change_data_record = unmerged_record
 						# perhaps have been processed by other dolls.
@@ -94,7 +94,7 @@ class RecordToJsonService:
 							except Exception as e:
 								logger.error(e, exc_info=True, stack_info=True)
 								self.update_result(change_data_record, format_exc())
-				finally:
+			finally:
 					unlock(self.competitive_lock_service, lock)
 
 	def update_result(self, change_data_record: ChangeDataRecord, result: str) -> None:

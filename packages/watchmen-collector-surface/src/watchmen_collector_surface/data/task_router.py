@@ -10,7 +10,6 @@ from watchmen_collector_surface.cdc.monitor_event import CollectorEventListener
 from watchmen_collector_surface.cdc.post_json import PostJsonService
 from watchmen_collector_surface.cdc.record_to_json import RecordToJsonService
 from watchmen_collector_surface.cdc.table_extractor import TableExtractor
-from watchmen_collector_surface.settings import ask_table_wait
 from watchmen_collector_surface.task.task_listener import TaskListener
 from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage
 from watchmen_model.admin import UserRole
