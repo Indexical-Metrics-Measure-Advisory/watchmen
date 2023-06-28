@@ -66,11 +66,7 @@ def create_topics_and_pipelines(
 			pipeline_create(pipeline)
 
 
-@router.get('/tenant/init', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
-async def init_tenant(
-		tenant_id: Optional[TenantId],
-		principal_service: PrincipalService = Depends(get_any_admin_principal)
-) -> None:
+def validate_tenant_id(principal_service, tenant_id):
 	if is_blank(tenant_id):
 		if principal_service.is_super_admin():
 			raise_400('Tenant id is required.')
@@ -84,6 +80,13 @@ async def init_tenant(
 			if tenant is None:
 				raise_404(f'Tenant[id={tenant_id}] not found.')
 
+
+@router.get('/tenant/init', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
+async def init_tenant(
+		tenant_id: Optional[TenantId],
+		principal_service: PrincipalService = Depends(get_any_admin_principal)
+) -> None:
+	validate_tenant_id(principal_service, tenant_id)
 	meta_tenant_service = get_meta_tenant_service(principal_service)
 
 	def action() -> None:
@@ -100,5 +103,49 @@ async def init_tenant(
 			topics, lambda source_topics: ask_query_performance_pipelines(source_topics),
 			tenant_id, meta_tenant_service, principal_service)
 
+	trans(meta_tenant_service, action)
+
+
+@router.get('/tenant/init/pipeline', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
+async def tenant_init_pipeline_monitor(tenant_id: Optional[TenantId],
+                                       principal_service: PrincipalService = Depends(get_any_admin_principal)) -> None:
+	validate_tenant_id(principal_service, tenant_id)
+	meta_tenant_service = get_meta_tenant_service(principal_service)
+
+	def action() -> None:
+		topics = ask_pipeline_monitor_topics()
+		create_topics_and_pipelines(
+			topics, lambda source_topics: ask_pipeline_monitor_pipelines(source_topics),
+			tenant_id, meta_tenant_service, principal_service)
+
+	trans(meta_tenant_service, action)
+
+
+@router.get('/tenant/init/dqc', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
+async def tenant_init_dqc(tenant_id: Optional[TenantId],
+                          principal_service: PrincipalService = Depends(get_any_admin_principal)) -> None:
+	validate_tenant_id(principal_service, tenant_id)
+	meta_tenant_service = get_meta_tenant_service(principal_service)
+
+	def action() -> None:
+		topics = ask_dqc_topics()
+		create_topics_and_pipelines(
+			topics, lambda source_topics: ask_dqc_pipelines(source_topics),
+			tenant_id, meta_tenant_service, principal_service)
+
+	trans(meta_tenant_service, action)
+
+
+@router.get('/tenant/init/query', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN], response_class=Response)
+async def tenant_init_query_monitor(tenant_id: Optional[TenantId],
+                                    principal_service: PrincipalService = Depends(get_any_admin_principal)) -> None:
+	validate_tenant_id(principal_service, tenant_id)
+	meta_tenant_service = get_meta_tenant_service(principal_service)
+
+	def action() -> None:
+		topics = ask_query_performance_topics()
+		create_topics_and_pipelines(
+			topics, lambda source_topics: ask_query_performance_pipelines(source_topics),
+			tenant_id, meta_tenant_service, principal_service)
 
 	trans(meta_tenant_service, action)

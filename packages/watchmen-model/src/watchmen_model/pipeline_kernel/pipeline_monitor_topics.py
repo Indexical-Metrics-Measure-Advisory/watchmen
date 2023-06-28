@@ -23,7 +23,7 @@ def ask_pipeline_monitor_topics() -> List[Topic]:
 					flatten=True, indexGroup=FactorIndexGroup.INDEX_3, precision='50'),
 				Factor(factorId='rpml-f-5', name='prerequisite', type=FactorType.BOOLEAN),
 				Factor(factorId='rpml-f-6', name='prerequisiteDefinedAs', type=FactorType.OBJECT),
-				Factor(factorId='rpml-f-7', name='status', type=FactorType.TEXT, flatten=True),
+				Factor(factorId='rpml-f-7', name='status', type=FactorType.TEXT, flatten=True,precision='20'),
 				Factor(factorId='rpml-f-8', name='startTime', type=FactorType.FULL_DATETIME, flatten=True),
 				Factor(factorId='rpml-f-9', name='spentInMills', type=FactorType.UNSIGNED, flatten=True),
 				Factor(factorId='rpml-f-10', name='error', type=FactorType.TEXT),
@@ -65,8 +65,21 @@ def ask_pipeline_monitor_topics() -> List[Topic]:
 				Factor(factorId='rpml-f-46', name='stages.units.actions.error', type=FactorType.TEXT),
 				Factor(
 					factorId='rpml-f-47', name='dataId', type=FactorType.NUMBER,
-					flatten=True, indexGroup=FactorIndexGroup.INDEX_4, precision='20'),
+					flatten=True,indexGroup=FactorIndexGroup.INDEX_4)
 			],
 			description='Pipeline monitor log raw topic.'
+		),
+		Topic(
+			name='pipeline_monitor_error_log',
+			kind=TopicKind.SYSTEM,
+			type=TopicType.DISTINCT,
+			factors=[
+				Factor(factorId='rpml-f-1', name='traceId', type=FactorType.TEXT, indexGroup=FactorIndexGroup.INDEX_1),
+				Factor(factorId='rpml-f-2', name='dataId', type=FactorType.TEXT, indexGroup=FactorIndexGroup.INDEX_2),
+				Factor(factorId='rpml-f-3', name='status', type=FactorType.TEXT),
+				Factor(factorId='rpml-f-4', name='topicId', type=FactorType.TEXT, indexGroup=FactorIndexGroup.INDEX_4),
+				Factor(factorId='rpml-f-5', name='pipelineId', type=FactorType.TEXT, indexGroup=FactorIndexGroup.INDEX_5)
+			],
+			description='Pipeline error monitor'
 		)
 	]
