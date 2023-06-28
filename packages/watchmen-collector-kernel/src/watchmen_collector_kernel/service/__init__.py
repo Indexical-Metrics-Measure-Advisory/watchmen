@@ -6,3 +6,4 @@ from .extract_source import SourceTableExtractor
 from .task_service import get_task_service
 from .criteria_builder import CriteriaBuilder
 from .extract_utils import build_audit_column_criteria, cal_array2d_diff, build_data_id, get_data_id
+from .table_config_service import get_table_config_service
