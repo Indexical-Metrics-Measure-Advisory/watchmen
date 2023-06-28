@@ -12,6 +12,7 @@ from watchmen_model.common import DataPage, Pageable, TenantId
 from watchmen_model.dqc import ask_dqc_pipelines, ask_dqc_topics
 from watchmen_model.pipeline_kernel import ask_pipeline_monitor_pipelines, ask_pipeline_monitor_topics
 from watchmen_model.system import Tenant
+from watchmen_model.system.query_topic_generator import ask_query_performance_pipelines,ask_query_performance_topics
 from watchmen_rest import get_any_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404
 from watchmen_rest_doll.admin import ask_save_pipeline_action, ask_save_topic_action
@@ -101,6 +102,11 @@ async def save_tenant(
 					topics, lambda source_topics: ask_dqc_pipelines(source_topics),
 					a_tenant.tenantId, tenant_service, principal_service
 				)
+			topics = ask_query_performance_topics()
+			create_topics_and_pipelines(
+				topics, lambda source_topics: ask_query_performance_pipelines(source_topics),
+				a_tenant.tenantId, tenant_service,  principal_service)
+
 		else:
 			# noinspection PyTypeChecker
 			a_tenant: Tenant = tenant_service.update(a_tenant)
