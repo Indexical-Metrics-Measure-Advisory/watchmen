@@ -20,6 +20,7 @@ watchmen-storage-mssql = { path = "../watchmen-storage-mssql", develop = true, o
 watchmen-storage-postgresql = { path = "../watchmen-storage-postgresql", develop = true, optional = true }
 watchmen-storage-oss = { path = "../watchmen-storage-oss", develop = true, optional = true }
 watchmen-storage-s3 = { path = "../watchmen-storage-s3", develop = true, optional = true }
+uvloop = "^0.17.0"
 
 
 [tool.poetry.dev-dependencies]
