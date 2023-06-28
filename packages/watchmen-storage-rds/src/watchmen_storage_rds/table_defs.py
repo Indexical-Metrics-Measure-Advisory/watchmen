@@ -326,7 +326,7 @@ table_scheduled_task_history = Table(
 table_collector_module_config = Table(
 	'collector_module_config', meta_data,
 	create_pk('module_id'), create_str('module_name', 50),
-	create_int('priority', False), create_int('priority', False),
+	create_int('priority', False),
 	create_tenant_id(), *create_tuple_audit_columns(),
 	create_optimistic_lock()
 )

@@ -9,7 +9,7 @@ import numpy as np
 from watchmen_collector_kernel.model import TriggerEvent, ChangeDataRecord, TriggerTable, \
 	Condition
 from watchmen_collector_kernel.service import try_lock_nowait, unlock, SourceTableExtractor, CriteriaBuilder, \
-	build_audit_column_criteria
+	build_audit_column_criteria, get_table_config_service
 from watchmen_collector_kernel.service.extract_utils import cal_array2d_diff, build_data_id, get_data_id
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.storage import get_trigger_table_service, get_competitive_lock_service, \
@@ -46,6 +46,7 @@ class TableExtractor:
 		self.collector_table_config_service = get_collector_table_config_service(self.meta_storage,
 		                                                                         self.snowflake_generator,
 		                                                                         self.principal_service)
+		self.table_config_service = get_table_config_service(self.principal_service)
 		self.change_data_record_service = get_change_data_record_service(self.meta_storage,
 		                                                                 self.snowflake_generator,
 		                                                                 self.principal_service)
@@ -96,7 +97,7 @@ class TableExtractor:
 						if self.is_extracted(trigger):
 							continue
 						else:
-							config = self.collector_table_config_service.find_by_table_name(trigger.tableName)
+							config = self.table_config_service.find_by_table_name(trigger.tableName)
 							trigger_event = self.trigger_event_service.find_event_by_id(trigger.eventTriggerId)
 
 							def prepare_query_criteria(variables_: Dict,

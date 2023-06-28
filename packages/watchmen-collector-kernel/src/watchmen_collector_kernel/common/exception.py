@@ -1,0 +1,2 @@
+class CollectorKernelException(Exception):
+	pass

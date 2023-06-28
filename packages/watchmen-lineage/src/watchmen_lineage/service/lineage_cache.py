@@ -3,9 +3,9 @@ from cacheout import Cache
 from watchmen_data_kernel.cache import InternalCache, configure_cache, find_cache
 from watchmen_model.common import TenantId
 
+
 class LineageByTenantIdCache(Cache):
 	pass
-
 
 
 configure_cache('LINEAGE_BY_TENANT_ID', {'cache_class': LineageByTenantIdCache, 'maxsize': 16})
@@ -15,12 +15,12 @@ def get_lineage_by_tenant_id_cache() -> LineageByTenantIdCache:
 	# noinspection PyTypeChecker
 	return find_cache('COMPILED_PIPELINE_BY_ID')
 
+
 def get_lineage_by_tenant_id_cache():
 	pass
 
 
 class LineageCache:
-
 
 	def __init__(self):
 		self.tenant_graph_by_tenant = InternalCache(cache=get_lineage_by_tenant_id_cache)

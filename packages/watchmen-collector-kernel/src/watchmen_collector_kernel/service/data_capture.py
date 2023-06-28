@@ -3,6 +3,7 @@ from typing import Optional, Dict, Any, Tuple
 
 from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.model import CollectorTableConfig
+from .table_config_service import get_table_config_service
 from .extract_source import SourceTableExtractor
 from watchmen_collector_kernel.storage import get_collector_table_config_service
 from watchmen_storage import TransactionalStorageSPI, SnowflakeGenerator
@@ -23,6 +24,7 @@ class DataCaptureService:
 		self.collector_table_config_service = get_collector_table_config_service(self.meta_storage,
 		                                                                         self.snowflake_generator,
 		                                                                         self.principal_service)
+		self.table_config_service = get_table_config_service(self.principal_service)
 
 	def find_data_by_data_id(self, config: CollectorTableConfig, data_id: Dict) -> Optional[Dict[str, Any]]:
 		return SourceTableExtractor(config, self.principal_service).find_by_id(data_id)
@@ -30,7 +32,7 @@ class DataCaptureService:
 	def find_parent_node(self, config: CollectorTableConfig,
 	                     data_: Dict) -> Tuple[CollectorTableConfig, Optional[Dict[str, Any]]]:
 		if config.parentName:
-			parent_config = self.collector_table_config_service.find_by_name(config.parentName)
+			parent_config = self.table_config_service.find_by_name(config.parentName)
 			parent_data = SourceTableExtractor(parent_config, self.principal_service).find(
 				ArrayHelper(config.joinKeys).map(lambda join_key: build_criteria_by_join_key(join_key, data_)).to_list()
 			)
@@ -44,7 +46,7 @@ class DataCaptureService:
 	def build_json(self,
 	               config: CollectorTableConfig,
 	               data: Dict):
-		child_configs = self.collector_table_config_service.find_by_parent_name(config.name)
+		child_configs = self.table_config_service.find_by_parent_name(config.name)
 		if child_configs:
 			ArrayHelper(child_configs).map(lambda child_config: self.get_child_data(child_config, data))
 

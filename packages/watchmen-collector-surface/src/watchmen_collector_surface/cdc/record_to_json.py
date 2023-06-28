@@ -10,7 +10,7 @@ from watchmen_collector_kernel.model import CollectorTableConfig, \
 from watchmen_collector_kernel.model.change_data_json import Dependence
 from watchmen_collector_kernel.model.collector_table_config import Dependence as DependenceConfig
 from watchmen_collector_kernel.service import try_lock_nowait, unlock, \
-	DataCaptureService
+	DataCaptureService, get_table_config_service
 from watchmen_collector_kernel.service.extract_utils import get_data_id
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_change_data_record_service, \
@@ -34,26 +34,27 @@ class RecordToJsonService:
 	def __init__(self):
 		self.storage = ask_meta_storage()
 		self.snowflake_generator = ask_snowflake_generator()
-		self.principle_service = ask_super_admin()
+		self.principal_service = ask_super_admin()
 		self.competitive_lock_service = get_competitive_lock_service(self.storage)
-		self.table_config_service = get_collector_table_config_service(self.storage,
-		                                                               self.snowflake_generator,
-		                                                               self.principle_service)
+		self.collector_table_config_service = get_collector_table_config_service(self.storage,
+		                                                                         self.snowflake_generator,
+		                                                                         self.principal_service)
+		self.table_config_service = get_table_config_service(self.principal_service)
 		self.change_record_service = get_change_data_record_service(self.storage,
 		                                                            self.snowflake_generator,
-		                                                            self.principle_service)
+		                                                            self.principal_service)
 		self.change_record_history_service = get_change_data_record_history_service(self.storage,
 		                                                                            self.snowflake_generator,
-		                                                                            self.principle_service)
+		                                                                            self.principal_service)
 		self.change_json_service = get_change_data_json_service(self.storage,
 		                                                        self.snowflake_generator,
-		                                                        self.principle_service)
+		                                                        self.principal_service)
 		self.change_json_history_service = get_change_data_json_history_service(self.storage,
 		                                                                        self.snowflake_generator,
-		                                                                        self.principle_service)
+		                                                                        self.principal_service)
 		self.data_capture_service = DataCaptureService(self.storage,
 		                                               self.snowflake_generator,
-		                                               self.principle_service)
+		                                               self.principal_service)
 
 	def create_thread(self, scheduler=None) -> None:
 		if ask_fastapi_job():
@@ -96,12 +97,10 @@ class RecordToJsonService:
 				finally:
 					unlock(self.competitive_lock_service, lock)
 
-
 	def update_result(self, change_data_record: ChangeDataRecord, result: str) -> None:
 		change_data_record.isMerged = True
 		change_data_record.result = result
 		self.finish_and_backup_record(change_data_record, None, False)
-
 
 	def finish_and_backup_record(self,
 	                             change_data_record: ChangeDataRecord,
@@ -121,7 +120,6 @@ class RecordToJsonService:
 		finally:
 			self.change_record_service.close_transaction()
 
-
 	def process_record(self, change_data_record: ChangeDataRecord) -> None:
 		config = self.table_config_service.find_by_table_name(change_data_record.tableName)
 		root_config, root_data, record = self.find_root(config, change_data_record)
@@ -133,10 +131,10 @@ class RecordToJsonService:
 			record.isMerged = True
 			self.finish_and_backup_record(record, change_json, True)
 
-
-	def find_root(self, config: CollectorTableConfig, change_data_record: ChangeDataRecord) -> Tuple[CollectorTableConfig,
-	Optional[Dict[str, Any]],
-	ChangeDataRecord]:
+	def find_root(self, config: CollectorTableConfig, change_data_record: ChangeDataRecord) -> Tuple[
+		CollectorTableConfig,
+		Optional[Dict[str, Any]],
+		ChangeDataRecord]:
 		data = self.data_capture_service.find_data_by_data_id(config, change_data_record.dataId)
 		root_config, root_data = self.data_capture_service.find_parent_node(config,
 		                                                                    data)
@@ -144,14 +142,12 @@ class RecordToJsonService:
 		change_data_record.rootDataId = get_data_id(root_config.primaryKey, root_data)
 		return root_config, root_data, change_data_record
 
-
 	def create_json(self, root_config: CollectorTableConfig,
 	                root_data: Optional[Dict[str, Any]],
 	                change_data_record: ChangeDataRecord) -> ChangeDataJson:
 		json_data = root_data.copy()
 		self.data_capture_service.build_json(root_config, json_data)
 		return self.get_change_data_json(change_data_record, root_config, root_data, json_data)
-
 
 	def is_duplicated(self, change_record: ChangeDataRecord) -> bool:
 		resource_id = self.generate_resource_id(change_record)
@@ -163,7 +159,6 @@ class RecordToJsonService:
 			return True
 		return False
 
-
 	# noinspection PyMethodMayBeStatic
 	def fill_record_root_info(self, config: CollectorTableConfig,
 	                          change_data_record: ChangeDataRecord,
@@ -172,7 +167,6 @@ class RecordToJsonService:
 		change_data_record.rootTableName = root_table_name
 		change_data_record.rootDataId = get_data_id(config.primaryKey, root_data)
 		change_data_record.isMerged = True
-
 
 	def get_change_data_json(self, change_data_record: ChangeDataRecord,
 	                         root_config: CollectorTableConfig,
@@ -195,7 +189,6 @@ class RecordToJsonService:
 			tenantId=change_data_record.tenantId
 		)
 
-
 	# noinspection PyMethodMayBeStatic
 	def generate_resource_id(self, change_record: ChangeDataRecord) -> str:
 		resource_id_list = []
@@ -205,7 +198,6 @@ class RecordToJsonService:
 		resource_id_list.append(f'{change_record.modelName}')
 		resource_id_list.append(f'{change_record.eventTriggerId}')
 		return WAVE.join(resource_id_list)
-
 
 	# noinspection PyMethodMayBeStatic
 	def get_dependencies(self, config: CollectorTableConfig, data_: Dict) -> List[Dependence]:
