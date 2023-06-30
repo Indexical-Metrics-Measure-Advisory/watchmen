@@ -6,7 +6,7 @@ from typing import Dict, Tuple, Optional, List, Any
 from time import sleep
 from watchmen_collector_kernel.common import WAVE
 from watchmen_collector_kernel.model import CollectorTableConfig, \
-	ChangeDataRecord, ChangeDataJson
+	ChangeDataRecord, ChangeDataJson, Status
 from watchmen_collector_kernel.model.change_data_json import Dependence
 from watchmen_collector_kernel.model.collector_table_config import Dependence as DependenceConfig
 from watchmen_collector_kernel.service import try_lock_nowait, unlock, \
@@ -75,30 +75,35 @@ class RecordToJsonService:
 	def is_merged(self, change_record: ChangeDataRecord) -> bool:
 		return change_record.isMerged
 
+	# noinspection PyMethodMayBeStatic
+	def change_status(self, record: ChangeDataRecord, status: int) -> ChangeDataRecord:
+		record.status = status
+		return record
+
+	def find_records_and_locked(self) -> List[ChangeDataRecord]:
+		self.change_record_service.begin_transaction()
+		try:
+			records = self.change_record_service.find_records_and_locked()
+			results = ArrayHelper(records).map(lambda record: self.change_status(record, Status.EXECUTING.value))\
+				.map(lambda record: self.change_record_service.update(record)).to_list()
+			self.change_record_service.commit_transaction()
+			return results
+		finally:
+			self.change_record_service.close_transaction()
+
 	def change_data_record_listener(self):
-		unmerged_records = self.change_record_service.find_partial_records()
-		# if len(unmerged_records) == 0:
-		# 	sleep(5)
-		# else:
+		unmerged_records = self.find_records_and_locked()
 		for unmerged_record in unmerged_records:
-			lock = get_resource_lock(self.snowflake_generator.next_id(),
-				                         unmerged_record.changeRecordId,
-				                         unmerged_record.tenantId)
+			change_data_record = unmerged_record
 			try:
-					if try_lock_nowait(self.competitive_lock_service, lock):
-						change_data_record = unmerged_record
-						# perhaps have been processed by other dolls.
-						if self.change_record_service.is_existed(change_data_record):
-							try:
-								self.process_record(change_data_record)
-							except Exception as e:
-								logger.error(e, exc_info=True, stack_info=True)
-								self.update_result(change_data_record, format_exc())
-			finally:
-					unlock(self.competitive_lock_service, lock)
+				self.process_record(change_data_record)
+			except Exception as e:
+				logger.error(e, exc_info=True, stack_info=True)
+				self.update_result(change_data_record, format_exc())
 
 	def update_result(self, change_data_record: ChangeDataRecord, result: str) -> None:
 		change_data_record.isMerged = True
+		change_data_record.status = Status.FAIL.value
 		change_data_record.result = result
 		self.finish_and_backup_record(change_data_record, None, False)
 
@@ -125,10 +130,12 @@ class RecordToJsonService:
 		root_config, root_data, record = self.find_root(config, change_data_record)
 		if self.is_duplicated(record):
 			record.isMerged = True
+			record.status = Status.SUCCESS.value
 			self.finish_and_backup_record(record, None, False)
 		else:
 			change_json = self.create_json(root_config, root_data, change_data_record)
 			record.isMerged = True
+			record.status = Status.SUCCESS.value
 			self.finish_and_backup_record(record, change_json, True)
 
 	def find_root(self, config: CollectorTableConfig, change_data_record: ChangeDataRecord) -> Tuple[

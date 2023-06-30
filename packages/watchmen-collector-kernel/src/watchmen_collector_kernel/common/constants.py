@@ -9,6 +9,7 @@ IS_FINISHED = 'is_finished'
 IS_EXTRACTED = 'is_extracted'
 IS_MERGED = 'is_merged'
 IS_POSTED = 'is_posted'
+STATUS = 'status'
 
 LEFT_BRACE = '{'
 RIGHT_BRACE = '}'
