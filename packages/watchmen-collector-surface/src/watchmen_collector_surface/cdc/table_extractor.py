@@ -7,7 +7,7 @@ from typing import Tuple, Dict, List, Any
 import numpy as np
 
 from watchmen_collector_kernel.model import TriggerEvent, ChangeDataRecord, TriggerTable, \
-	Condition
+	Condition, Status
 from watchmen_collector_kernel.service import try_lock_nowait, unlock, SourceTableExtractor, CriteriaBuilder, \
 	build_audit_column_criteria, get_table_config_service
 from watchmen_collector_kernel.service.extract_utils import cal_array2d_diff, build_data_id, get_data_id
@@ -173,6 +173,7 @@ class TableExtractor:
 			tableName=table_name,
 			dataId=data_id,
 			isMerged=False,
+			status=Status.INITIAL.value,
 			tableTriggerId=table_trigger_id,
 			modelTriggerId=model_trigger_id,
 			moduleTriggerId=module_trigger_id,
