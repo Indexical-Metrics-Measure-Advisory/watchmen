@@ -1,8 +1,5 @@
 import logging
-from logging import getLogger
 from threading import Thread
-
-from apscheduler.schedulers.background import BackgroundScheduler
 from time import sleep
 
 from watchmen_collector_kernel.model import ScheduledTask
@@ -15,7 +12,6 @@ from ..settings import ask_fastapi_job, ask_task_listener
 
 logger = logging.getLogger('apscheduler')
 logger.setLevel(logging.ERROR)
-# scheduler = BackgroundScheduler(logger=None)
 
 
 def init_task_listener():
@@ -36,10 +32,9 @@ class TaskListener:
 		                                     self.snowflake_generator,
 		                                     self.principle_service)
 
-	def create_thread(self,scheduler=None) -> None:
-		# Thread(target=TaskListener.run, args=(self,), daemon=True).start()
+	def create_thread(self, scheduler=None) -> None:
 		if ask_fastapi_job():
-			scheduler.add_job(TaskListener.run, 'interval', seconds=ask_task_listener(),args=(self,))
+			scheduler.add_job(TaskListener.run, 'interval', seconds=ask_task_listener(), args=(self,))
 
 		else:
 			Thread(target=TaskListener.run, args=(self,), daemon=True).start()
@@ -67,7 +62,6 @@ class TaskListener:
 						if self.scheduled_task_service.is_existed(unfinished_task):
 							if self.task_service.is_dependencies_finished(unfinished_task):
 								self.task_service.consume_task(unfinished_task, pipeline_data)
-								break
 							else:
 								continue
 				finally:
