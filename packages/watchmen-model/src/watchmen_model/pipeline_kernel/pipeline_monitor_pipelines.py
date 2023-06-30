@@ -60,6 +60,9 @@ def ask_pipeline_monitor_pipelines(topics: List[Topic]) -> List[Pipeline]:
 							MappingFactor(
 								source=find_source_parameter(topic_raw, 'pipelineId'),
 								factorId=find_factor(topic_error, 'pipelineId').factorId),
+							MappingFactor(
+								source=find_source_parameter(topic_raw, 'uid'),
+								factorId=find_factor(topic_error, 'uid').factorId),
 
 						]
 					)]
