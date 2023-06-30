@@ -77,8 +77,10 @@ def ask_pipeline_monitor_topics() -> List[Topic]:
 				Factor(factorId='rpml-f-1', name='traceId', type=FactorType.TEXT, indexGroup=FactorIndexGroup.INDEX_1),
 				Factor(factorId='rpml-f-2', name='dataId', type=FactorType.TEXT, indexGroup=FactorIndexGroup.INDEX_2),
 				Factor(factorId='rpml-f-3', name='status', type=FactorType.TEXT),
-				Factor(factorId='rpml-f-4', name='topicId', type=FactorType.TEXT, indexGroup=FactorIndexGroup.INDEX_4),
-				Factor(factorId='rpml-f-5', name='pipelineId', type=FactorType.TEXT, indexGroup=FactorIndexGroup.INDEX_5)
+				Factor(factorId='rpml-f-4', name='topicId', type=FactorType.TEXT),
+				Factor(factorId='rpml-f-5', name='pipelineId', type=FactorType.TEXT),
+				Factor(factorId='rpml-f-6', name='uid', type=FactorType.TEXT,indexGroup=FactorIndexGroup.INDEX_3)
+
 			],
 			description='Pipeline error monitor'
 		)
