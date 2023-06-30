@@ -1,14 +1,14 @@
 from typing import List, Optional, Dict
 
 from watchmen_auth import PrincipalService
-from watchmen_collector_kernel.common import CHANGE_RECORD_ID, TENANT_ID, IS_MERGED, ask_partial_size
+from watchmen_collector_kernel.common import CHANGE_RECORD_ID, TENANT_ID, IS_MERGED, ask_partial_size, STATUS
 from watchmen_collector_kernel.model import ChangeDataRecord
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, ChangeRecordId, Pageable
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
 	EntityCriteriaExpression, ColumnNameLiteral, EntityStraightValuesFinder, EntityStraightColumn, EntityColumnType, \
-	EntityPager
+	EntityPager, EntityLimitedFinder
 from watchmen_utilities import ArrayHelper
 
 
@@ -23,6 +23,7 @@ class ChangeDataRecordShaper(EntityShaper):
 			                                          'root_table_name': entity.rootTableName,
 			                                          'root_data_id': entity.rootDataId,
 			                                          'is_merged': entity.isMerged,
+			                                          'status': entity.status,
 			                                          'result': entity.result,
 			                                          'table_trigger_id': entity.tableTriggerId,
 			                                          'model_trigger_id': entity.modelTriggerId,
@@ -41,6 +42,7 @@ class ChangeDataRecordShaper(EntityShaper):
 			                                            rootTableName=row.get('root_table_name'),
 			                                            rootDataId=row.get('root_data_id'),
 			                                            isMerged=row.get('is_merged'),
+			                                            status=row.get('status'),
 			                                            result=row.get('result'),
 			                                            tableTriggerId=row.get('table_trigger_id'),
 			                                            modelTriggerId=row.get('model_trigger_id'),
@@ -89,7 +91,6 @@ class ChangeDataRecordService(TupleService):
 		finally:
 			self.close_transaction()
 
-
 	def update_change_record(self, record: ChangeDataRecord) -> Optional[ChangeDataRecord]:
 		self.begin_transaction()
 		try:
@@ -129,6 +130,17 @@ class ChangeDataRecordService(TupleService):
 			)).data
 		finally:
 			self.close_transaction()
+
+	def find_records_and_locked(self, limit: int = None) -> List:
+		return self.storage.find_for_update_skip_locked(
+			EntityLimitedFinder(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=STATUS), right=0)
+				],
+				limit=limit if limit is not None else ask_partial_size()
+			))
 
 	def is_existed(self, change_record: ChangeDataRecord) -> bool:
 		self.begin_transaction()
