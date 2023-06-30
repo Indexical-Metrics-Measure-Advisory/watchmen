@@ -215,6 +215,15 @@ class ChangeDataRecordService(TupleService):
 			self.close_transaction()
 
 
+	def count_records(self):
+		self.begin_transaction()
+		try:
+			# noinspection PyTypeChecker
+			return self.storage.count()
+		finally:
+			self.close_transaction()
+
+
 def get_change_data_record_service(storage: TransactionalStorageSPI,
                                    snowflake_generator: SnowflakeGenerator,
                                    principal_service: PrincipalService
