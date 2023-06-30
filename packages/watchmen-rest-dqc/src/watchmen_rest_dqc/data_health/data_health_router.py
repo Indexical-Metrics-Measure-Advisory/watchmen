@@ -38,3 +38,8 @@ async  def run_monitor(start_date:Optional[str],end_date:Optional[str],principal
 		pipeline_error_result.errorSummary[topic_name+"[pipeline: "+pipeline_name+"]"] = len(value_list)
 
 	return monitor_result
+
+
+
+
+
