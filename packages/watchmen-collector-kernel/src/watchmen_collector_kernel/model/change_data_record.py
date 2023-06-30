@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict
 
 from watchmen_model.common import TenantBasedTuple
 
@@ -11,6 +11,7 @@ class ChangeDataRecord(TenantBasedTuple):
 	rootTableName: str
 	rootDataId: Dict
 	isMerged: bool
+	status: int
 	result: Dict
 	tableTriggerId: int
 	modelTriggerId: int

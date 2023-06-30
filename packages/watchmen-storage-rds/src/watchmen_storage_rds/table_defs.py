@@ -389,7 +389,7 @@ table_change_data_record = Table(
 	'change_data_record', meta_data,
 	create_pk('change_record_id', Integer), create_str('model_name', 50), create_str('table_name', 50),
 	create_json('data_id'), create_str('root_table_name', 50), create_json('root_data_id'),
-	create_int('is_merged', False), create_json('result'),
+	create_int('is_merged', False), create_int('status', False), create_json('result'),
 	create_int('table_trigger_id', False), create_int('model_trigger_id', False),
 	create_int('module_trigger_id', False), create_int('event_trigger_id', False),
 	create_tenant_id(), *create_tuple_audit_columns()
@@ -398,7 +398,7 @@ table_change_data_record_history = Table(
 	'change_data_record_history', meta_data,
 	create_pk('change_record_id', Integer), create_str('model_name', 50), create_str('table_name', 50),
 	create_json('data_id'), create_str('root_table_name', 50), create_json('root_data_id'),
-	create_int('is_merged', False), create_json('result'),
+	create_int('is_merged', False), create_int('status', False), create_json('result'),
 	create_int('table_trigger_id', False), create_int('model_trigger_id', False),
 	create_int('module_trigger_id', False), create_int('event_trigger_id', False),
 	create_tenant_id(), *create_tuple_audit_columns()
