@@ -53,7 +53,7 @@ class TableExtractor:
 
 	def create_thread(self, scheduler=None) -> None:
 		if ask_fastapi_job():
-			scheduler.add_job(TableExtractor.trigger_table_listener, 'interval', seconds=ask_table_extract_wait(), args=(self,))
+			scheduler.add_job(TableExtractor.event_loop_run, 'interval', seconds=ask_table_extract_wait(), args=(self,))
 
 		else:
 			Thread(target=TableExtractor.run, args=(self,), daemon=True).start()
