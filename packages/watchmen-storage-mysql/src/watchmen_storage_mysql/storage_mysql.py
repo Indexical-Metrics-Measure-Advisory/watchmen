@@ -23,7 +23,7 @@ class StorageMySQL(StorageRDS):
 	def build_sort_for_statement(self, statement: SQLAlchemyStatement, sort: EntitySort) -> SQLAlchemyStatement:
 		return build_sort_for_statement(statement, sort)
 
-
+	
 class TopicDataStorageMySQL(StorageMySQL, TopicDataStorageRDS):
 	# noinspection SqlResolve
 	def create_topic_entity(self, topic: Topic) -> None:

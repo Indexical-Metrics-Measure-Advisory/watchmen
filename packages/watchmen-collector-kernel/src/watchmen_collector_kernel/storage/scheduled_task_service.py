@@ -1,6 +1,6 @@
 from typing import Optional, List, Any, Dict
 
-from watchmen_collector_kernel.common import ask_partial_size
+from watchmen_collector_kernel.common import ask_partial_size, STATUS
 from watchmen_utilities import ArrayHelper
 
 from watchmen_collector_kernel.model.scheduled_task import Dependence
@@ -12,7 +12,7 @@ from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, ScheduledTaskId, Pageable
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, \
 	EntityCriteriaExpression, ColumnNameLiteral, SnowflakeGenerator, EntitySortColumn, EntitySortMethod, \
-	EntityCriteriaJoint, EntityStraightValuesFinder, EntityStraightColumn
+	EntityCriteriaJoint, EntityStraightValuesFinder, EntityStraightColumn, EntityLimitedFinder
 
 
 class ScheduledTaskShaper(EntityShaper):
@@ -42,6 +42,7 @@ class ScheduledTaskShaper(EntityShaper):
 			'parent_task_id': entity.parentTaskId,
 			'tenant_id': entity.tenantId,
 			'is_finished': entity.isFinished,
+			'status': entity.status,
 			'result': entity.result
 		})
 
@@ -58,6 +59,7 @@ class ScheduledTaskShaper(EntityShaper):
 			parentTaskId=row.get('parent_task_id'),
 			tenantId=row.get('tenant_id'),
 			isFinished=row.get('is_finished'),
+			status=row.get('status'),
 			result=row.get('result')
 		))
 
@@ -147,6 +149,17 @@ class ScheduledTaskService(TupleService):
 			)).data
 		finally:
 			self.close_transaction()
+
+	def find_tasks_and_locked(self, limit: int = None) -> List:
+		return self.storage.find_for_update_skip_locked(
+			EntityLimitedFinder(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=STATUS), right=0)
+				],
+				limit=limit if limit is not None else ask_partial_size()
+			))
 
 	def is_existed(self, task: ScheduledTask) -> bool:
 		self.begin_transaction()
