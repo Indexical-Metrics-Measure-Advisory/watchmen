@@ -136,7 +136,8 @@ class CollectorEventListener:
 	def event_listener(self) -> None:
 		unfinished_events = self.trigger_event_service.find_unfinished_events()
 		if len(unfinished_events) == 0:
-			sleep(10)
+			if not ask_fastapi_job():
+				sleep(10)
 		else:
 			for unfinished_event in unfinished_events:
 				lock = get_resource_lock(self.snowflake_generator.next_id(),

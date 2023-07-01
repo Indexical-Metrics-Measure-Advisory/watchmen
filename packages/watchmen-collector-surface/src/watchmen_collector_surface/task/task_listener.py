@@ -75,7 +75,8 @@ class TaskListener:
 	def task_listener(self) -> None:
 		unfinished_tasks = self.find_tasks_and_locked()
 		if len(unfinished_tasks) == 0:
-			sleep(5)
+			if not ask_fastapi_job():
+				sleep(5)
 		else:
 			for unfinished_task in unfinished_tasks:
 				if self.task_service.is_dependencies_finished(unfinished_task):

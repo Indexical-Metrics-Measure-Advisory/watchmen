@@ -95,7 +95,12 @@ class RecordToJsonService:
 			self.change_record_service.close_transaction()
 
 	def change_data_record_listener(self):
+
 		unmerged_records = self.find_records_and_locked()
+		if len(unmerged_records) == 0:
+			if not ask_fastapi_job():
+				sleep(5)
+
 		for unmerged_record in unmerged_records:
 			change_data_record = unmerged_record
 			try:
