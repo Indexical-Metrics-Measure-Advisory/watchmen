@@ -11,6 +11,7 @@ from watchmen_pipeline_kernel.common import PipelineKernelException
 from .pipeline_trigger import PipelineTrigger
 
 logger = getLogger(__name__)
+logger.setLevel("ERROR")
 
 
 def get_topic_service(principal_service: PrincipalService) -> TopicService:
