@@ -9,18 +9,16 @@ from watchmen_collector_kernel.model import CollectorTableConfig, \
 	ChangeDataRecord, ChangeDataJson, Status
 from watchmen_collector_kernel.model.change_data_json import Dependence
 from watchmen_collector_kernel.model.collector_table_config import Dependence as DependenceConfig
-from watchmen_collector_kernel.service import try_lock_nowait, unlock, \
-	DataCaptureService, get_table_config_service
+from watchmen_collector_kernel.service import DataCaptureService, get_table_config_service
 from watchmen_collector_kernel.service.extract_utils import get_data_id
-from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_change_data_record_service, \
 	get_change_data_json_service, get_collector_table_config_service, get_change_data_record_history_service, \
 	get_change_data_json_history_service
-from watchmen_collector_surface.settings import ask_fastapi_job, ask_record_json_wait
+from watchmen_collector_surface.settings import ask_fastapi_job, ask_record_to_json_wait
 from watchmen_meta.common import ask_meta_storage, ask_super_admin, ask_snowflake_generator
 from watchmen_utilities import ArrayHelper
 
-# logger = getLogger(__name__)
+
 logger = logging.getLogger('apscheduler')
 logger.setLevel(logging.ERROR)
 
@@ -58,9 +56,15 @@ class RecordToJsonService:
 
 	def create_thread(self, scheduler=None) -> None:
 		if ask_fastapi_job():
-			scheduler.add_job(RecordToJsonService.run, 'interval', seconds=ask_record_json_wait(), args=(self,))
+			scheduler.add_job(RecordToJsonService.event_loop_run, 'interval', seconds=ask_record_to_json_wait(), args=(self,))
 		else:
 			Thread(target=RecordToJsonService.run, args=(self,), daemon=True).start()
+
+	def event_loop_run(self):
+		try:
+			self.change_data_record_listener()
+		except Exception as e:
+			logger.error(e, exc_info=True, stack_info=True)
 
 	def run(self):
 		try:
@@ -84,8 +88,7 @@ class RecordToJsonService:
 		self.change_record_service.begin_transaction()
 		try:
 			records = self.change_record_service.find_records_and_locked()
-			results = ArrayHelper(records).map(lambda record: self.change_status(record, Status.EXECUTING.value))\
-				.map(lambda record: self.change_record_service.update(record)).to_list()
+			results = ArrayHelper(records).map(lambda record: self.change_status(record, Status.EXECUTING.value)).map(lambda record: self.change_record_service.update(record)).to_list()
 			self.change_record_service.commit_transaction()
 			return results
 		finally:
@@ -189,6 +192,7 @@ class RecordToJsonService:
 			content=content,
 			dependOn=self.get_dependencies(root_config, root_data),
 			isPosted=False,
+			status=Status.INITIAL.value,
 			tableTriggerId=change_data_record.tableTriggerId,
 			modelTriggerId=change_data_record.modelTriggerId,
 			moduleTriggerId=change_data_record.moduleTriggerId,

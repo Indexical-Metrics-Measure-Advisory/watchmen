@@ -43,11 +43,11 @@ def ask_query_based_change_data_capture_enabled() -> bool:
 	return settings.QUERY_BASED_CHANGE_DATA_CAPTURE
 
 
-def ask_table_wait():
+def ask_table_extract_wait():
 	return settings.TABLE_EXTRACTOR_WAIT
 
 
-def ask_record_json_wait():
+def ask_record_to_json_wait():
 	return settings.RECORD_TO_JSON_WAIT
 
 

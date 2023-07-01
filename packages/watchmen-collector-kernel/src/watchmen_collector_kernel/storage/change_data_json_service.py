@@ -1,14 +1,15 @@
 from typing import List, Dict, Any, Optional
 
 from watchmen_auth import PrincipalService
-from watchmen_collector_kernel.common import IS_POSTED, CHANGE_JSON_ID, TENANT_ID, MODEL_TRIGGER_ID, ask_partial_size
+from watchmen_collector_kernel.common import IS_POSTED, CHANGE_JSON_ID, TENANT_ID, MODEL_TRIGGER_ID, ask_partial_size, \
+	STATUS
 from watchmen_collector_kernel.model import ChangeDataJson
 from watchmen_meta.common import TupleService, TupleShaper
 from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, ChangeJsonId, Pageable
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
 	ColumnNameLiteral, EntityCriteriaExpression, EntityStraightValuesFinder, EntityStraightColumn, EntitySortColumn, \
-	EntitySortMethod
+	EntitySortMethod, EntityLimitedFinder
 
 
 class ChangeDataJsonShaper(EntityShaper):
@@ -24,6 +25,7 @@ class ChangeDataJsonShaper(EntityShaper):
 			                                          'content': entity.content,
 			                                          'depend_on': entity.dependOn,
 			                                          'is_posted': entity.isPosted,
+			                                          'status': entity.status,
 			                                          'result': entity.result,
 			                                          'task_id': entity.taskId,
 			                                          'table_trigger_id': entity.tableTriggerId,
@@ -45,6 +47,7 @@ class ChangeDataJsonShaper(EntityShaper):
 			                                            content=row.get('content'),
 			                                            dependOn=row.get('depend_on'),
 			                                            isPosted=row.get('is_posted'),
+			                                            status=row.get('status'),
 			                                            result=row.get('result'),
 			                                            taskId=row.get('task_id'),
 			                                            tableTriggerId=row.get('table_trigger_id'),
@@ -121,6 +124,19 @@ class ChangeDataJsonService(TupleService):
 			)).data
 		finally:
 			self.close_transaction()
+
+	def find_json_and_locked(self, model_trigger_id: int, limit: int = None) -> List:
+		return self.storage.find_for_update_skip_locked(
+			EntityLimitedFinder(
+				name=self.get_entity_name(),
+				shaper=self.get_entity_shaper(),
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=STATUS), right=0),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName=MODEL_TRIGGER_ID),
+					                         right=model_trigger_id)
+				],
+				limit=limit if limit is not None else ask_partial_size()
+			))
 
 	def is_existed(self, change_json: ChangeDataJson) -> bool:
 		self.begin_transaction()

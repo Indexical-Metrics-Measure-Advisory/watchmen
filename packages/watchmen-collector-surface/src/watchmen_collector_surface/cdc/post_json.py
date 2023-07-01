@@ -9,7 +9,7 @@ from typing import List
 
 from watchmen_collector_kernel.common import WAVE
 from watchmen_collector_kernel.model import ChangeDataJson, ScheduledTask, TriggerModel, \
-	CollectorModelConfig, TriggerEvent, TriggerModule
+	CollectorModelConfig, TriggerEvent, TriggerModule, Status
 
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock, try_lock_nowait, unlock
 from watchmen_collector_kernel.service.model_config_service import get_model_config_service
@@ -71,10 +71,16 @@ class PostJsonService:
 
 	def create_thread(self, scheduler=None) -> None:
 		if ask_fastapi_job():
-			scheduler.add_job(PostJsonService.run, 'interval', seconds=ask_post_json_wait(), args=(self,))
+			scheduler.add_job(PostJsonService.event_loop_run, 'interval', seconds=ask_post_json_wait(), args=(self,))
 
 		else:
 			Thread(target=PostJsonService.run, args=(self,), daemon=True).start()
+
+	def event_loop_run(self):
+		try:
+			self.change_data_json_listener()
+		except Exception as e:
+			logger.error(e, exc_info=True, stack_info=True)
 
 	def run(self):
 		try:
@@ -87,11 +93,7 @@ class PostJsonService:
 
 	def change_data_json_listener(self):
 		unfinished_events = self.trigger_event_service.find_unfinished_events()
-		if len(unfinished_events) == 0:
-			# sleep(5)
-			pass
-		else:
-			ArrayHelper(unfinished_events).each(self.process_modules)
+		ArrayHelper(unfinished_events).each(self.process_modules)
 
 	def process_modules(self, unfinished_event: TriggerEvent):
 		trigger_modules = self.trigger_module_service.find_by_event_trigger_id(unfinished_event.get('event_trigger_id'))
@@ -151,32 +153,37 @@ class PostJsonService:
 
 		ArrayHelper(trigger_models).each(process_model)
 
+	# noinspection PyMethodMayBeStatic
+	def change_status(self, change_data_json: ChangeDataJson, status: int) -> ChangeDataJson:
+		change_data_json.status = status
+		return change_data_json
+
+	def find_json_and_locked(self, model_trigger_id: int) -> List[ChangeDataJson]:
+		self.change_json_service.begin_transaction()
+		try:
+			records = self.change_json_service.find_json_and_locked(model_trigger_id)
+			results = ArrayHelper(records).map(lambda record: self.change_status(record, Status.EXECUTING.value)).map(lambda record: self.change_json_service.update(record)).to_list()
+			self.change_json_service.commit_transaction()
+			return results
+		finally:
+			self.change_json_service.close_transaction()
+
 	def process_change_data_json(self, model_config: CollectorModelConfig, trigger_model: TriggerModel):
-		not_posted_json = self.change_json_service.find_partial_json(trigger_model.modelTriggerId)
+		not_posted_json = self.find_json_and_locked(trigger_model.modelTriggerId)
 		for json_record in not_posted_json:
-			lock = get_resource_lock(self.snowflake_generator.next_id(),
-			                         json_record.changeJsonId,
-			                         json_record.tenantId)
-			try:
-				if try_lock_nowait(self.competitive_lock_service, lock):
-					change_data_json = json_record
-					# perhaps have been processed by other dolls, have remove to history table.
-					# and also need to consider duplicated json record.
-					if self.change_json_service.is_existed(change_data_json):
-						if not self.is_duplicated(change_data_json):
-							try:
-								if self.can_post(model_config, change_data_json):
-									self.post_json(model_config, change_data_json)
-							except Exception as e:
-								logger.error(e, exc_info=True, stack_info=True)
-								change_data_json.isPosted = True
-								change_data_json.result = format_exc()
-								self.update_result(change_data_json)
-						else:
-							change_data_json.isPosted = True
-							self.update_result(change_data_json, True)
-			finally:
-				unlock(self.competitive_lock_service, lock)
+			change_data_json = json_record
+			if not self.is_duplicated(change_data_json):
+				try:
+					if self.can_post(model_config, change_data_json):
+						self.post_json(model_config, change_data_json)
+				except Exception as e:
+					logger.error(e, exc_info=True, stack_info=True)
+					change_data_json.isPosted = True
+					change_data_json.result = format_exc()
+					self.update_result(change_data_json)
+			else:
+				change_data_json.isPosted = True
+				self.update_result(change_data_json, True)
 
 	def is_duplicated(self, change_data_json: ChangeDataJson) -> bool:
 		existed_json = self.change_json_history_service.find_by_resource_id(change_data_json.resourceId)
@@ -298,6 +305,7 @@ class PostJsonService:
 			dependOn=change_json.dependOn,
 			parentTaskId=[] if model_config.isParalleled else self.get_dependent_tasks(change_json),
 			isFinished=False,
+			status=Status.INITIAL.value,
 			result=None,
 			tenantId=change_json.tenantId
 		)

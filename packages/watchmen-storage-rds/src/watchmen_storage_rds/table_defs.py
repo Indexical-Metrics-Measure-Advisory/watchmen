@@ -309,7 +309,8 @@ table_scheduled_task = Table(
 	create_str('topic_code', 50), create_json('content'),
 	create_str('model_name', 20), create_str('object_id', 100),
 	create_json('depend_on'), create_json('parent_task_id'),
-	create_int('is_finished', False), create_json('result'),
+	create_int('is_finished', False),
+	create_int('status', False), create_json('result'),
 	create_tenant_id(),
 	*create_tuple_audit_columns()
 )
@@ -319,7 +320,8 @@ table_scheduled_task_history = Table(
 	create_str('topic_code', 50), create_json('content'),
 	create_str('model_name', 20), create_str('object_id', 100),
 	create_json('depend_on'), create_json('parent_task_id'),
-	create_int('is_finished', False), create_json('result'),
+	create_int('is_finished', False),
+	create_int('status', False), create_json('result'),
 	create_tenant_id(),
 	*create_tuple_audit_columns()
 )
@@ -409,7 +411,7 @@ table_change_data_json = Table(
 	create_str('model_name', 50), create_str('object_id', 50),
 	create_str('table_name', 50), create_json('data_id'),
 	create_json('content'), create_json('depend_on'), create_int('is_posted', False), create_int('task_id', True),
-	create_json('result'),
+	create_int('status', False), create_json('result'),
 	create_int('table_trigger_id', False), create_int('model_trigger_id', False),
 	create_int('module_trigger_id', False), create_int('event_trigger_id', False),
 	create_tenant_id(), *create_tuple_audit_columns()
@@ -420,7 +422,7 @@ table_change_data_json_history = Table(
 	create_str('model_name', 50), create_str('object_id', 50),
 	create_str('table_name', 50), create_json('data_id'),
 	create_json('content'), create_json('depend_on'), create_int('is_posted', False), create_int('task_id', True),
-	create_json('result'),
+	create_int('status', False), create_json('result'),
 	create_int('table_trigger_id', False), create_int('model_trigger_id', False),
 	create_int('module_trigger_id', False), create_int('event_trigger_id', False),
 	create_tenant_id(), *create_tuple_audit_columns()

@@ -1,8 +1,11 @@
 import logging
 from threading import Thread
 from time import sleep
+from typing import List
 
-from watchmen_collector_kernel.model import ScheduledTask
+from watchmen_utilities import ArrayHelper
+
+from watchmen_collector_kernel.model import ScheduledTask, Status
 from watchmen_collector_kernel.service import try_lock_nowait, unlock, get_task_service
 from watchmen_collector_kernel.service.lock_helper import get_resource_lock
 from watchmen_collector_kernel.storage import get_competitive_lock_service, get_scheduled_task_service
@@ -34,10 +37,16 @@ class TaskListener:
 
 	def create_thread(self, scheduler=None) -> None:
 		if ask_fastapi_job():
-			scheduler.add_job(TaskListener.run, 'interval', seconds=ask_task_listener(), args=(self,))
+			scheduler.add_job(TaskListener.event_loop_run, 'interval', seconds=ask_task_listener(), args=(self,))
 
 		else:
 			Thread(target=TaskListener.run, args=(self,), daemon=True).start()
+
+	def event_loop_run(self):
+		try:
+			self.task_listener()
+		except Exception as e:
+			logger.error(e, exc_info=True, stack_info=True)
 
 	def run(self):
 		try:
@@ -48,24 +57,31 @@ class TaskListener:
 			sleep(60)
 			self.create_thread()
 
+	# noinspection PyMethodMayBeStatic
+	def change_status(self, task: ScheduledTask, status: int) -> ScheduledTask:
+		task.status = status
+		return task
+
+	def find_tasks_and_locked(self) -> List[ScheduledTask]:
+		self.scheduled_task_service.begin_transaction()
+		try:
+			tasks = self.scheduled_task_service.find_tasks_and_locked()
+			results = ArrayHelper(tasks).map(lambda task: self.change_status(task, Status.EXECUTING.value)).map(lambda task: self.scheduled_task_service.update(task)).to_list()
+			self.scheduled_task_service.commit_transaction()
+			return results
+		finally:
+			self.scheduled_task_service.close_transaction()
+
 	def task_listener(self) -> None:
-		unfinished_tasks = self.scheduled_task_service.find_partial_tasks()
+		unfinished_tasks = self.find_tasks_and_locked()
 		if len(unfinished_tasks) == 0:
 			sleep(5)
 		else:
 			for unfinished_task in unfinished_tasks:
-				lock = get_resource_lock(self.snowflake_generator.next_id(),
-				                         unfinished_task.resourceId,
-				                         unfinished_task.tenantId)
-				try:
-					if try_lock_nowait(self.competitive_lock_service, lock):
-						if self.scheduled_task_service.is_existed(unfinished_task):
-							if self.task_service.is_dependencies_finished(unfinished_task):
-								self.task_service.consume_task(unfinished_task, pipeline_data)
-							else:
-								continue
-				finally:
-					unlock(self.competitive_lock_service, lock)
+				if self.task_service.is_dependencies_finished(unfinished_task):
+					self.task_service.consume_task(unfinished_task, pipeline_data)
+				else:
+					continue
 
 	# noinspection PyMethodMayBeStatic
 	def is_finished(self, task: ScheduledTask) -> bool:

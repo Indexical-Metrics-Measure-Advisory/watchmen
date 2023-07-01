@@ -4,7 +4,7 @@ from traceback import format_exc
 from typing import Callable, Dict, Optional, List
 
 from watchmen_auth import PrincipalService
-from watchmen_collector_kernel.model import ScheduledTask
+from watchmen_collector_kernel.model import ScheduledTask, Status
 from watchmen_collector_kernel.model.scheduled_task import Dependence
 from watchmen_collector_kernel.storage import get_scheduled_task_service, get_scheduled_task_history_service
 from watchmen_model.common import ScheduledTaskId
@@ -35,9 +35,11 @@ class TaskService:
 	def consume_task(self, task: ScheduledTask, executed: Callable[[str, Dict, str], None]) -> ScheduledTask:
 		try:
 			executed(task.topicCode, task.content, task.tenantId)
+			task.status = Status.SUCCESS.value
 			return self.update_task_result(task)
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
+			task.status = Status.FAIL.value
 			task.result = format_exc()
 			return self.update_task_result(task)
 
@@ -56,7 +58,8 @@ class TaskService:
 			self.scheduled_task_service.close_transaction()
 
 	def is_dependencies_finished(self, task: ScheduledTask) -> bool:
-		return ArrayHelper(task.parentTaskId).every(self.is_parent_task_finished) and self.is_dependence_finished(task.dependOn, task.tenantId)
+		return ArrayHelper(task.parentTaskId).every(self.is_parent_task_finished) and self.is_dependence_finished(
+			task.dependOn, task.tenantId)
 
 	def is_parent_task_finished(self, task_id: ScheduledTaskId) -> bool:
 		existed_task = self.scheduled_task_service.find_task_by_id(task_id)

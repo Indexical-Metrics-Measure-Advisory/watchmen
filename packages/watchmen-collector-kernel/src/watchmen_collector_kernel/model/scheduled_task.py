@@ -44,6 +44,7 @@ class ScheduledTask(TenantBasedTuple, BaseModel):
 	dependOn: List[Dependence]
 	parentTaskId: List[int]
 	isFinished: bool
+	status: int
 	result: Dict
 
 	def __setattr__(self, name, value):
