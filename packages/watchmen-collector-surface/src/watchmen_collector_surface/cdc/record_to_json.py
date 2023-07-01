@@ -88,6 +88,7 @@ class RecordToJsonService:
 		self.change_record_service.begin_transaction()
 		try:
 			records = self.change_record_service.find_records_and_locked()
+			## TODO bulk update
 			results = ArrayHelper(records).map(lambda record: self.change_status(record, Status.EXECUTING.value)).map(lambda record: self.change_record_service.update(record)).to_list()
 			self.change_record_service.commit_transaction()
 			return results
