@@ -25,8 +25,8 @@ class CollectorSurfaceSettings(BaseSettings):
 	USE_FASTAPI_SCHEDULE_JOB: bool = False
 	TABLE_EXTRACTOR_WAIT: int = 3
 	RECORD_TO_JSON_WAIT: int = 3
-	POST_JSON_WAIT: int = 1
-	TASK_SCHEDULE_WAIT: int = 1
+	POST_JSON_WAIT: int = 3
+	TASK_SCHEDULE_WAIT: int = 3
 	MONITOR_EVENT_WAIT: int = 60
 
 	class Config:

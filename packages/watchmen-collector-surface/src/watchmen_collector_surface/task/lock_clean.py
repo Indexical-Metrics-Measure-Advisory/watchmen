@@ -19,7 +19,7 @@ class LockClean:
 
 	def create_thread(self, scheduler=None) -> None:
 		if ask_fastapi_job():
-			scheduler.add_job(LockClean.run, 'interval', seconds=self.cleanInterval, args=(self,))
+			scheduler.add_job(LockClean.event_loop_run, 'interval', seconds=self.cleanInterval, args=(self,))
 
 		else:
 			Thread(target=LockClean.run, args=(self,), daemon=True).start()

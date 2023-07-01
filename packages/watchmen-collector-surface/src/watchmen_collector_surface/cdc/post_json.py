@@ -93,7 +93,11 @@ class PostJsonService:
 
 	def change_data_json_listener(self):
 		unfinished_events = self.trigger_event_service.find_unfinished_events()
-		ArrayHelper(unfinished_events).each(self.process_modules)
+		if unfinished_events is None or len(unfinished_events) == 0:
+			if not ask_fastapi_job():
+				sleep(5)
+		else:
+			ArrayHelper(unfinished_events).each(self.process_modules)
 
 	def process_modules(self, unfinished_event: TriggerEvent):
 		trigger_modules = self.trigger_module_service.find_by_event_trigger_id(unfinished_event.get('event_trigger_id'))
