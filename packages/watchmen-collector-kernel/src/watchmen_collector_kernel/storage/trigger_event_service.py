@@ -77,6 +77,18 @@ class TriggerEventService(TupleService):
 			))
 		finally:
 			self.close_transaction()
+	def find_finished_events(self) -> List[Dict[str, Any]]:
+		self.begin_transaction()
+		try:
+			return self.storage.find_straight_values(EntityStraightValuesFinder(
+				name=self.get_entity_name(),
+				criteria=[EntityCriteriaExpression(left=ColumnNameLiteral(columnName='is_finished'), right=True)],
+				straightColumns=[EntityStraightColumn(columnName=self.get_storable_id_column_name()),
+				                 EntityStraightColumn(columnName='tenant_id')],
+				sort=[EntitySortColumn(name=self.get_storable_id_column_name(), method=EntitySortMethod.ASC)]
+			))
+		finally:
+			self.close_transaction()
 
 
 def get_trigger_event_service(storage: TransactionalStorageSPI,
