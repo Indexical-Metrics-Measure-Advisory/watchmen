@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import APIRouter, Depends
 
 from watchmen_auth import PrincipalService
@@ -29,3 +31,19 @@ async def save_event_trigger(
 		                                       event,
 		                                       principal_service)
 		return trigger_event
+
+
+@router.get("/collector/trigger/events/unfinished", tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],response_model=List[TriggerEvent])
+async def load_event_triggers_unfinished(principal_service: PrincipalService = Depends(get_any_admin_principal)):
+	trigger_event_service = get_trigger_event_service(ask_meta_storage(),
+	                                                  ask_snowflake_generator(),
+	                                                  principal_service)
+	return trigger_event_service.find_unfinished_events()
+
+
+@router.get('/collector/trigger/events/finish', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],response_model=List[TriggerEvent])
+async def load_event_triggers_unfinished(principal_service: PrincipalService = Depends(get_any_admin_principal)):
+	trigger_event_service = get_trigger_event_service(ask_meta_storage(),
+	                                                  ask_snowflake_generator(),
+	                                                  principal_service)
+	return trigger_event_service.find_finished_events()
