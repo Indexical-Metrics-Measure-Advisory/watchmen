@@ -53,10 +53,16 @@ class TableExtractor:
 
 	def create_thread(self, scheduler=None) -> None:
 		if ask_fastapi_job():
-			scheduler.add_job(TableExtractor.run, 'interval', seconds=ask_table_extract_wait(), args=(self,))
+			scheduler.add_job(TableExtractor.trigger_table_listener, 'interval', seconds=ask_table_extract_wait(), args=(self,))
 
 		else:
 			Thread(target=TableExtractor.run, args=(self,), daemon=True).start()
+
+	def event_loop_run(self):
+		try:
+			self.trigger_table_listener()
+		except Exception as e:
+			logger.error(e, exc_info=True, stack_info=True)
 
 	# noinspection PyUnresolvedReferences
 	def run(self):
@@ -85,8 +91,8 @@ class TableExtractor:
 	def trigger_table_listener(self):
 		unfinished_trigger_tables = self.trigger_table_service.find_unfinished()
 		if len(unfinished_trigger_tables) == 0:
-			# sleep(5)
-			pass
+			if not  ask_fastapi_job():
+				sleep(5)
 		else:
 			for unfinished_trigger_table in unfinished_trigger_tables:
 				lock = get_resource_lock(self.snowflake_generator.next_id(),
