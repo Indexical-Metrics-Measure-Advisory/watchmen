@@ -1,2 +1,2 @@
 ALTER TABLE change_data_json
-    ADD status BIGINT;
+    ADD status NUMBER(1);
