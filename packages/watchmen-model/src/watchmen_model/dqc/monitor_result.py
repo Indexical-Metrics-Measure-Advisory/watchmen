@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 from pydantic import BaseModel
 
@@ -11,7 +11,7 @@ class RawTopicMonitorResult(BaseModel):
 class PipelineMonitorResult(BaseModel):
 	errorCount:int = None
 	errorSummary:Dict = {}
-	errorDetails:Any = {}
+	errorDetails:List[Any] = []
 
 class MonitorResult(BaseModel):
 	hasError:bool = False

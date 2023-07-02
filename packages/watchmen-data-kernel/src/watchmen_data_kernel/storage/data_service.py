@@ -166,6 +166,19 @@ class TopicDataService(TopicStructureService):
 		topic_data: Optional[Dict[str, Any]] = storage.find_by_id(id_, data_entity_helper.get_entity_id_helper())
 		return topic_data
 
+
+	def find_one(self, criteria: EntityCriteria) -> Optional[Dict[str, Any]]:
+		"""
+		return topic data
+		"""
+		data_entity_helper = self.get_data_entity_helper()
+		storage = self.get_storage()
+		try:
+			storage.connect()
+			return storage.find_one(data_entity_helper.get_entity_finder(criteria))
+		finally:
+			storage.close()
+
 	def find_previous_data_by_id(
 			self, id_: int, raise_on_not_found: bool = False, close_storage: bool = False
 	) -> Optional[Dict[str, Any]]:
