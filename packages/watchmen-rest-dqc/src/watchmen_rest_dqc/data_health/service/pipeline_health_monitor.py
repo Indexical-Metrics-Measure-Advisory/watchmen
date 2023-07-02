@@ -6,8 +6,8 @@ from watchmen_data_kernel.common import DataKernelException
 from watchmen_data_kernel.meta import TopicService,PipelineService
 from watchmen_data_kernel.service import ask_topic_storage, ask_topic_data_service
 from watchmen_data_kernel.topic_schema import TopicSchema
+from watchmen_model.dqc.monitor_result import PipelineMonitorResult
 from watchmen_model.pipeline_kernel import TopicDataColumnNames
-from watchmen_rest_dqc.data_health.monitor_result import PipelineMonitorResult
 from watchmen_storage import EntityCriteriaExpression, ColumnNameLiteral, EntityCriteriaOperator
 
 
