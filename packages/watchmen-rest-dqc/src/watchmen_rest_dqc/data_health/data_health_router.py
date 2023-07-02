@@ -6,8 +6,8 @@ from fastapi import Depends, APIRouter
 from watchmen_auth import PrincipalService
 from watchmen_data_kernel.common import ask_all_date_formats
 from watchmen_model.admin import UserRole
+from watchmen_model.dqc.monitor_result import MonitorResult, PipelineMonitorResult
 from watchmen_rest import get_admin_principal
-from watchmen_rest_dqc.data_health.monitor_result import MonitorResult, PipelineMonitorResult
 from watchmen_rest_dqc.data_health.service.pipeline_health_monitor import PipelineMonitorHealthService
 from watchmen_utilities import is_date, ArrayHelper
 

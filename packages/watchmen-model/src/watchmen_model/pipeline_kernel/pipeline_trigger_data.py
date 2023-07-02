@@ -33,6 +33,7 @@ class PipelineTriggerResult(BaseModel):
 	type must be str since length of value beyonds the limitation of serialization of javascript json number
 	"""
 	internalDataId: str
+	logId:str = None
 
 
 class TopicDataColumnNames(str, Enum):

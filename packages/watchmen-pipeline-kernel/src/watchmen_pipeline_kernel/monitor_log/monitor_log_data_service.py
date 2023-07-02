@@ -33,6 +33,9 @@ class PipelineMonitorLogDataService:
 	def get_topic_schema(self):
 		return find_topic_schema('raw_pipeline_monitor_log', self.principalService)
 
+	def get_error_topic_schema(self):
+		return find_topic_schema('pipeline_monitor_error_log', self.principalService)
+
 	def ask_storages(self):
 		return RuntimeTopicStorages(self.principalService)
 
@@ -109,3 +112,21 @@ class PipelineMonitorLogDataService:
 			.map(lambda x: PipelineMonitorLog(**x)) \
 			.to_list()
 		return page
+
+
+	def find_error_log_with_uid(self,uid:str)->PipelineMonitorLog:
+		schema = self.get_topic_schema()
+		storage = self.ask_storages().ask_topic_storage(schema)
+		data_service = ask_topic_data_service(schema, storage, self.principalService)
+
+		criteria = [
+			EntityCriteriaExpression(left=ColumnNameLiteral(columnName='uid'), right=uid)
+		]
+
+		monitor_log = data_service.find_one(criteria)
+		return PipelineMonitorLog(**monitor_log)
+
+
+
+
+
