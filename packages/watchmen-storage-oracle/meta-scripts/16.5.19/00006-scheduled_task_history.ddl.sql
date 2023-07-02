@@ -1,2 +1,2 @@
 ALTER TABLE scheduled_task_history
-    ADD status BIGINT;
+    ADD status NUMBER(1);
