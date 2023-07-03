@@ -43,7 +43,9 @@ export const Zh: LanguageDeclareType = {
 		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '使用";"分隔邮箱地址.',
 		NEW_DERIVED_OBJECTIVE_NAME: '目标',
 		DEFAULT_DERIVED_OBJECTIVE_NAME: '目标',
-		NEW_DERIVED_OBJECTIVE_TARGET_BREAKDOWN_NAME: '数据下挖'
+		NEW_DERIVED_OBJECTIVE_TARGET_BREAKDOWN_NAME: '数据下挖',
+		CONVERGENCE_NAME_PLACEHOLDER: '请输入用于阅读的名称.',
+		CONVERGENCE_DESCRIPTION_PLACEHOLDER: '请输入汇聚描述...'
 	},
 	STANDARD: {
 		YES: '是',
@@ -607,7 +609,13 @@ export const Zh: LanguageDeclareType = {
 			EXISTING_CONVERGENCE_PREFIX: '已存在的',
 			CREATE_AT: '创建于',
 			LAST_MODIFIED_AT: '最后更新于',
-			FAILED_TO_LOAD_CONVERGENCE: '加载汇聚数据出现错误, 请联系您的系统管理员以获取更多信息.'
+			FAILED_TO_LOAD_CONVERGENCE: '加载汇聚数据出现错误, 请联系您的系统管理员以获取更多信息.',
+			TITLE: '准备汇聚',
+			CHANGE_NAME: '修改名称',
+			NAME_TITLE: '设置一个用于阅读的名称.',
+			DESCRIPTION_TITLE: '描述.',
+			USER_GROUP_TITLE: '授权给用户组.',
+			GRANT_USER_GROUP: '授权',
 		}
 	},
 	SUBSCRIBE: {

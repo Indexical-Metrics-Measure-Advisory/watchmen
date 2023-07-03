@@ -43,7 +43,9 @@ export const En = {
 		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '";" to separate multiple addresses.',
 		NEW_DERIVED_OBJECTIVE_NAME: 'Objective',
 		DEFAULT_DERIVED_OBJECTIVE_NAME: 'Objective',
-		NEW_DERIVED_OBJECTIVE_TARGET_BREAKDOWN_NAME: 'Breakdown'
+		NEW_DERIVED_OBJECTIVE_TARGET_BREAKDOWN_NAME: 'Breakdown',
+		CONVERGENCE_NAME_PLACEHOLDER: 'A human reading name for convergence.',
+		CONVERGENCE_DESCRIPTION_PLACEHOLDER: 'Convergence description here...'
 	},
 	STANDARD: {
 		YES: 'Yes',
@@ -607,7 +609,13 @@ export const En = {
 			EXISTING_CONVERGENCE_PREFIX: 'An Existing',
 			CREATE_AT: 'Created At',
 			LAST_MODIFIED_AT: 'Last Modified At',
-			FAILED_TO_LOAD_CONVERGENCE: 'Failed to load convergence, contact your administrator for more information.'
+			FAILED_TO_LOAD_CONVERGENCE: 'Failed to load convergence, contact your administrator for more information.',
+			TITLE: 'Define Convergence',
+			CHANGE_NAME: 'Change Name',
+			NAME_TITLE: 'Set a human reading name.',
+			DESCRIPTION_TITLE: 'Description.',
+			USER_GROUP_TITLE: 'Grant to user group.',
+			GRANT_USER_GROUP: 'Grant Access'
 		}
 	},
 	SUBSCRIBE: {

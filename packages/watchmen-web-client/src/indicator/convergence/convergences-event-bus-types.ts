@@ -1,6 +1,6 @@
 import {TuplePage} from '@/services/data/query/tuple-page';
 import {Bucket, BucketId} from '@/services/data/tuples/bucket-types';
-import {Convergence, ConvergenceId, ConvergenceValues} from '@/services/data/tuples/convergence-types';
+import {Convergence, ConvergenceId} from '@/services/data/tuples/convergence-types';
 import {QueryBucket, QueryByBucketMethod} from '@/services/data/tuples/query-bucket-types';
 import {QueryConvergence} from '@/services/data/tuples/query-convergence-types';
 import {QueryUserGroupForHolder} from '@/services/data/tuples/query-user-group-types';
@@ -21,10 +21,7 @@ export enum ConvergencesEventTypes {
 	ASK_BUCKETS = 'ask-buckets-details',
 	ASK_BUCKET = 'ask-bucket',
 
-	ASK_ALL_USER_GROUPS = 'ask-all-user-groups',
-
-	ASK_VALUES = 'ask-values',
-	VALUES_FETCHED = 'values-fetched'
+	ASK_ALL_USER_GROUPS = 'ask-all-user-groups'
 }
 
 export interface ConvergencesEventBus {
@@ -75,12 +72,4 @@ export interface ConvergencesEventBus {
 	fire(type: ConvergencesEventTypes.ASK_ALL_USER_GROUPS, onData: (groups: Array<QueryUserGroupForHolder>) => void): this;
 	on(type: ConvergencesEventTypes.ASK_ALL_USER_GROUPS, listener: (onData: (groups: Array<QueryUserGroupForHolder>) => void) => void): this;
 	off(type: ConvergencesEventTypes.ASK_ALL_USER_GROUPS, listener: (onData: (groups: Array<QueryUserGroupForHolder>) => void) => void): this;
-
-	fire(type: ConvergencesEventTypes.ASK_VALUES): this;
-	on(type: ConvergencesEventTypes.ASK_VALUES, listener: () => void): this;
-	off(type: ConvergencesEventTypes.ASK_VALUES, listener: () => void): this;
-
-	fire(type: ConvergencesEventTypes.VALUES_FETCHED, values: ConvergenceValues): this;
-	on(type: ConvergencesEventTypes.VALUES_FETCHED, listener: (values: ConvergenceValues) => void): this;
-	off(type: ConvergencesEventTypes.VALUES_FETCHED, listener: (values: ConvergenceValues) => void): this;
 }
