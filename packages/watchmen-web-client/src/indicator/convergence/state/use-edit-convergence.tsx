@@ -1,5 +1,3 @@
-import {useConvergencesEventBus} from '@/indicator/convergence/convergences-event-bus';
-import {ConvergencesEventTypes} from '@/indicator/convergence/convergences-event-bus-types';
 import {fetchConvergence} from '@/services/data/tuples/convergence';
 import {Convergence, ConvergenceId} from '@/services/data/tuples/convergence-types';
 import {AlertLabel} from '@/widgets/alert/widgets';
@@ -7,6 +5,8 @@ import {useEventBus} from '@/widgets/events/event-bus';
 import {EventTypes} from '@/widgets/events/types';
 import {Lang} from '@/widgets/langs';
 import React, {useEffect, useState} from 'react';
+import {useConvergencesEventBus} from '../convergences-event-bus';
+import {ConvergencesEventTypes} from '../convergences-event-bus-types';
 import {createConvergence} from '../utils';
 
 export const useEditConvergence = () => {

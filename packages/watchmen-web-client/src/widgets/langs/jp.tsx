@@ -43,7 +43,9 @@ export const Jp: LanguageDeclareType = {
 		SUBSCRIBE_MAIL_ADDRESS_PLACEHOLDER: '";"で結合された複数のアドレス。',
 		NEW_DERIVED_OBJECTIVE_NAME: '目標',
 		DEFAULT_DERIVED_OBJECTIVE_NAME: '目標',
-		NEW_DERIVED_OBJECTIVE_TARGET_BREAKDOWN_NAME: '内訳'
+		NEW_DERIVED_OBJECTIVE_TARGET_BREAKDOWN_NAME: '内訳',
+		CONVERGENCE_NAME_PLACEHOLDER: '読むための名前を入力してください。',
+		CONVERGENCE_DESCRIPTION_PLACEHOLDER: '収束の説明を入力してください。'
 	},
 	STANDARD: {
 		YES: 'はい',
@@ -607,7 +609,13 @@ export const Jp: LanguageDeclareType = {
 			EXISTING_CONVERGENCE_PREFIX: '既存',
 			CREATE_AT: '作成先',
 			LAST_MODIFIED_AT: '最終更新日',
-			FAILED_TO_LOAD_CONVERGENCE: '収束データの読み込みにエラーが発生しました。詳細については、管理者に問い合わせてください。'
+			FAILED_TO_LOAD_CONVERGENCE: '収束データの読み込みにエラーが発生しました。詳細については、管理者に問い合わせてください。',
+			TITLE: '収束を準備',
+			CHANGE_NAME: '名前を変更',
+			NAME_TITLE: '読むための名前を入力してください。',
+			DESCRIPTION_TITLE: '説明。',
+			USER_GROUP_TITLE: 'ユーザーグループに付与します。',
+			GRANT_USER_GROUP: 'アクセス権の付与'
 		}
 	},
 	SUBSCRIBE: {
