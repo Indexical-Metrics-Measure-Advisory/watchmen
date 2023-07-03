@@ -51,6 +51,7 @@ export enum HELP_KEYS {
 	IDW_BUCKET = 'bucket',
 	IDW_INDICATOR = 'indicator',
 	IDW_OBJECTIVE = 'objective',
+	IDW_CONVERGENCE = 'convergence',
 	SETTINGS = 'settings'
 }
 

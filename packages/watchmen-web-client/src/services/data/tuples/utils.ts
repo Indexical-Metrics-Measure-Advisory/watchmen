@@ -3,6 +3,7 @@ import {v4} from 'uuid';
 import {Bucket} from './bucket-types';
 import {Catalog} from './catalog-types';
 import {ConnectedSpace} from './connected-space-types';
+import {Convergence} from './convergence-types';
 import {Dashboard} from './dashboard-types';
 import {DataSource} from './data-source-types';
 import {DerivedObjective} from './derived-objective-types';
@@ -88,13 +89,18 @@ export const isTopicSnapshotScheduler = (tuple: Tuple): tuple is TopicSnapshotSc
 export const isPlugin = (tuple: Tuple): tuple is Plugin => {
 	return !!(tuple as any).pluginId;
 };
+export const isConvergence = (tuple: Tuple): tuple is Convergence => {
+	return !!(tuple as any).convergenceId;
+};
 
 export const generateUuid = (): string => `${FAKE_ID_PREFIX}${v4().replace(/-/g, '')}`;
 export const isFakedUuidForGraphics = (graphics: PipelinesGraphics): boolean => {
 	return graphics.pipelineGraphId.startsWith(FAKE_ID_PREFIX);
 };
 export const isFakedUuid = (tuple: Tuple): boolean => {
-	if (isPlugin(tuple)) {
+	if (isConvergence(tuple)) {
+		return tuple.convergenceId.startsWith(FAKE_ID_PREFIX);
+	} else if (isPlugin(tuple)) {
 		return tuple.pluginId.startsWith(FAKE_ID_PREFIX);
 	} else if (isTopicSnapshotScheduler(tuple)) {
 		return tuple.schedulerId.startsWith(FAKE_ID_PREFIX);

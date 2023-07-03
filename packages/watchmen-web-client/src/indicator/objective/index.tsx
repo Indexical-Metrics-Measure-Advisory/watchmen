@@ -1,5 +1,5 @@
 import {Router} from '@/routes/types';
-import {asFallbackNavigate, asIDWIndicatorRoute} from '@/routes/utils';
+import {asFallbackNavigate, asIDWObjectiveRoute} from '@/routes/utils';
 import {HELP_KEYS, useHelp} from '@/widgets/help';
 import React from 'react';
 import {Routes} from 'react-router-dom';
@@ -10,8 +10,8 @@ import {ObjectivesState} from './state';
 
 const ObjectiveRoute = () => {
 	return <Routes>
-		{asIDWIndicatorRoute(Router.IDW_OBJECTIVE_EDIT, <ObjectiveEditor/>)}
-		{asIDWIndicatorRoute(Router.IDW_OBJECTIVE, <ObjectiveList/>)}
+		{asIDWObjectiveRoute(Router.IDW_OBJECTIVE_EDIT, <ObjectiveEditor/>)}
+		{asIDWObjectiveRoute(Router.IDW_OBJECTIVE, <ObjectiveList/>)}
 		{asFallbackNavigate(Router.IDW_OBJECTIVE)}
 	</Routes>;
 };

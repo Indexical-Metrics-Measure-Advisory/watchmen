@@ -3,7 +3,7 @@ import {isAdmin, isSuperAdmin} from '@/services/data/account';
 import {
 	ICON_ADMIN,
 	ICON_BUCKETS,
-	ICON_CONSOLE,
+	ICON_CONSOLE, ICON_CONVERGENCE,
 	ICON_DQC,
 	ICON_INDICATOR,
 	ICON_LOGOUT,
@@ -98,6 +98,11 @@ export const IndicatorMenu = () => {
 		              showTooltip={showTooltip}
 		              active={!!matchPath({path: Router.IDW_OBJECTIVE_ALL}, location.pathname)}
 		              onClick={navigateTo(Router.IDW_OBJECTIVE)}
+		              visible={isAdmin() && !isSuperAdmin()}/>
+		<SideMenuItem icon={ICON_CONVERGENCE} label={Lang.INDICATOR.MENU.CONVERGENCES}
+		              showTooltip={showTooltip}
+		              active={!!matchPath({path: Router.IDW_CONVERGENCE_ALL}, location.pathname)}
+		              onClick={navigateTo(Router.IDW_CONVERGENCE)}
 		              visible={isAdmin() && !isSuperAdmin()}/>
 		<SideMenuPlaceholder/>
 		<SideMenuSeparator width={menuWidth}/>
