@@ -66,6 +66,9 @@ export enum Router {
 	IDW_OBJECTIVE = '/idw/objective',
 	IDW_OBJECTIVE_ALL = '/idw/objective/*',
 	IDW_OBJECTIVE_EDIT = '/idw/objective/edit',
+	IDW_CONVERGENCE = '/idw/convergence',
+	IDW_CONVERGENCE_ALL = '/idw/convergence/*',
+	IDW_CONVERGENCE_EDIT = '/idw/convergence/edit',
 	IDW_SETTINGS = '/idw/settings',
 
 	SHARE = '/share',

@@ -5,7 +5,7 @@ import {
 	faArrowAltCircleDown,
 	faArrowDown,
 	faArrowRightLong,
-	faArrowsDownToLine,
+	faArrowsDownToLine, faArrowsToDot,
 	faArrowsTurnRight,
 	faArrowTrendDown,
 	faArrowTrendUp,
@@ -231,6 +231,7 @@ export const ICON_OBJECTIVE = faTowerObservation;
 export const ICON_OBJECTIVE_ANALYSIS_DESC = faArrowsDownToLine;
 export const ICON_OBJECTIVE_ANALYSIS_PERSPECTIVE = faArrowsTurnRight;
 export const ICON_DERIVED_OBJECTIVE = faTowerObservation;
+export const ICON_CONVERGENCE = faArrowsToDot;
 
 export const ICON_CREATED_AT = faCalendarPlus;
 export const ICON_LAST_MODIFIED_AT = faHighlighter;
