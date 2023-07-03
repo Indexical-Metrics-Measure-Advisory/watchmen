@@ -14,10 +14,17 @@ export enum ConvergenceVariableType {
 	FREE_WALK = 'free-walk'
 }
 
+export enum ConvergenceVariableAxis {
+	X = 'x', Y = 'y'
+}
+
 export interface ConvergenceVariable {
 	uuid: ConvergenceVariableId;
 	type: ConvergenceVariableType;
 	name: string;
+	axis: ConvergenceVariableAxis;
+	/** variable priority in axis */
+	priority: number;
 }
 
 export enum ConvergenceTimeFrameVariableKind {
