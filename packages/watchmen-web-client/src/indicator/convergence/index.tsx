@@ -4,12 +4,13 @@ import {HELP_KEYS, useHelp} from '@/widgets/help';
 import React from 'react';
 import {Routes} from 'react-router-dom';
 import {ConvergencesEventBusProvider} from './convergences-event-bus';
+import {ConvergenceEditor} from './edit';
 import ConvergenceList from './list';
 import {ConvergencesState} from './state';
 
 const ConvergenceRoute = () => {
 	return <Routes>
-		{/*{asIDWConvergenceRoute(Router.IDW_CONVERGENCE_EDIT, <ConvergenceEditor/>)}*/}
+		{asIDWConvergenceRoute(Router.IDW_CONVERGENCE_EDIT, <ConvergenceEditor/>)}
 		{asIDWConvergenceRoute(Router.IDW_CONVERGENCE, <ConvergenceList/>)}
 		{asFallbackNavigate(Router.IDW_CONVERGENCE)}
 	</Routes>;
