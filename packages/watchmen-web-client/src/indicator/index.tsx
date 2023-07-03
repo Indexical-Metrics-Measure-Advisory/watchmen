@@ -5,6 +5,7 @@ import React, {ReactNode} from 'react';
 import {Navigate, Routes} from 'react-router-dom';
 import styled from 'styled-components';
 import IndicatorBucketsIndex from './bucket';
+import IndicatorConvergenceIndex from './convergence';
 import IndicatorIndicatorIndex from './indicator';
 import {IndicatorMenu} from './menu';
 import IndicatorObjectiveIndex from './objective';
@@ -51,6 +52,7 @@ const IndicatorIndex = () => {
 			{asRoute(Router.IDW_BUCKETS, <IndicatorBucketsIndex/>)}
 			{asRoute(Router.IDW_INDICATOR_ALL, <IndicatorIndicatorIndex/>)}
 			{asRoute(Router.IDW_OBJECTIVE_ALL, <IndicatorObjectiveIndex/>)}
+			{asRoute(Router.IDW_CONVERGENCE_ALL, <IndicatorConvergenceIndex/>)}
 			{asRoute(Router.IDW_SETTINGS, <IndicatorSettingsIndex/>)}
 			{asFallbackNavigate(Router.IDW_INDICATOR)}
 		</Routes>

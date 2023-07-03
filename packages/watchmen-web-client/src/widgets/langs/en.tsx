@@ -33,6 +33,7 @@ export const En = {
 		BUCKET_CATEGORY_SEGMENT_VALUE_PLACEHOLDER: 'Key in category value here, confirm to add into segment.',
 		FIND_INDICATOR_VALUE_BUCKETS_PLACEHOLDER: 'Search by bucket name.',
 		FIND_OBJECTIVE_PLACEHOLDER: 'Find by objective name, description',
+		FIND_CONVERGENCE_PLACEHOLDER: 'Find by convergence name, description',
 		OBJECTIVE_NAME_PLACEHOLDER: 'A human reading name for objective.',
 		OBJECTIVE_DESCRIPTION_PLACEHOLDER: 'Objective description here...',
 		OBJECTIVE_VARIABLE_NAME_PLACEHOLDER: 'Variable name.',
@@ -342,6 +343,7 @@ export const En = {
 			BUCKETS: 'Buckets',
 			INDICATORS: 'Indicators',
 			OBJECTIVES: 'Objectives',
+			CONVERGENCES: 'Convergences',
 			SETTINGS: 'Settings',
 			LOGOUT: 'Logout'
 		},
@@ -596,6 +598,16 @@ export const En = {
 			TEST_FACTOR: 'Value',
 			TEST_VALUE_CLICK: 'Click to retrieve values',
 			TEST_VALUE_GET_NONE: 'No data retrieved from server side.'
+		},
+		CONVERGENCE: {
+			LIST_TITLE: 'Convergences',
+			LIST_CREATE_CONVERGENCE: 'Define Convergence',
+			LIST_LABEL: 'Convergence',
+			NEW_CONVERGENCE_PREFIX: 'A New',
+			EXISTING_CONVERGENCE_PREFIX: 'An Existing',
+			CREATE_AT: 'Created At',
+			LAST_MODIFIED_AT: 'Last Modified At',
+			FAILED_TO_LOAD_CONVERGENCE: 'Failed to load convergence, contact your administrator for more information.'
 		}
 	},
 	SUBSCRIBE: {

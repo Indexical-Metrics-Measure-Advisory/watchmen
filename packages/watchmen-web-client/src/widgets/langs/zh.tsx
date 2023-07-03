@@ -33,6 +33,7 @@ export const Zh: LanguageDeclareType = {
 		BUCKET_CATEGORY_SEGMENT_VALUE_PLACEHOLDER: '输入分组值, 点击确认加入到分段中.',
 		FIND_INDICATOR_VALUE_BUCKETS_PLACEHOLDER: '根据分桶名称查找.',
 		FIND_OBJECTIVE_PLACEHOLDER: '根据目标名称, 描述查找.',
+		FIND_CONVERGENCE_PLACEHOLDER: '根据汇聚名称, 描述查找.',
 		OBJECTIVE_NAME_PLACEHOLDER: '请输入用于阅读的名称.',
 		OBJECTIVE_DESCRIPTION_PLACEHOLDER: '请输入目标描述...',
 		OBJECTIVE_VARIABLE_NAME_PLACEHOLDER: '变量名.',
@@ -342,6 +343,7 @@ export const Zh: LanguageDeclareType = {
 			BUCKETS: '分桶',
 			INDICATORS: '指标',
 			OBJECTIVES: '目标',
+			CONVERGENCES: '汇聚',
 			SETTINGS: '设置',
 			LOGOUT: '登出'
 		},
@@ -596,6 +598,16 @@ export const Zh: LanguageDeclareType = {
 			TEST_FACTOR: '指标值',
 			TEST_VALUE_CLICK: '点击获取值',
 			TEST_VALUE_GET_NONE: '没有获取到数据.'
+		},
+		CONVERGENCE: {
+			LIST_TITLE: '汇聚',
+			LIST_CREATE_CONVERGENCE: '创建汇聚',
+			LIST_LABEL: '汇聚',
+			NEW_CONVERGENCE_PREFIX: '新',
+			EXISTING_CONVERGENCE_PREFIX: '已存在的',
+			CREATE_AT: '创建于',
+			LAST_MODIFIED_AT: '最后更新于',
+			FAILED_TO_LOAD_CONVERGENCE: '加载汇聚数据出现错误, 请联系您的系统管理员以获取更多信息.'
 		}
 	},
 	SUBSCRIBE: {

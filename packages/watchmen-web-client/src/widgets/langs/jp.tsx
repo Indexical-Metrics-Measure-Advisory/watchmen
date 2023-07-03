@@ -33,6 +33,7 @@ export const Jp: LanguageDeclareType = {
 		BUCKET_CATEGORY_SEGMENT_VALUE_PLACEHOLDER: '分類値、セグメントに追加することを確認します。',
 		FIND_INDICATOR_VALUE_BUCKETS_PLACEHOLDER: 'バケット名に基づいて検索します。',
 		FIND_OBJECTIVE_PLACEHOLDER: '目標名 説明に基づいて検索します。',
+		FIND_CONVERGENCE_PLACEHOLDER: '収束名 説明に基づいて検索します。',
 		OBJECTIVE_NAME_PLACEHOLDER: '読むための名前を入力してください。',
 		OBJECTIVE_DESCRIPTION_PLACEHOLDER: '目標の説明を入力してください。',
 		OBJECTIVE_VARIABLE_NAME_PLACEHOLDER: '変数名。',
@@ -342,6 +343,7 @@ export const Jp: LanguageDeclareType = {
 			BUCKETS: 'バケット',
 			INDICATORS: '指標',
 			OBJECTIVES: '目標',
+			CONVERGENCES: '収束',
 			SETTINGS: '設定',
 			LOGOUT: 'ログアウト'
 		},
@@ -596,6 +598,16 @@ export const Jp: LanguageDeclareType = {
 			TEST_FACTOR: '指標値',
 			TEST_VALUE_CLICK: 'クリックして値を取得',
 			TEST_VALUE_GET_NONE: 'データが取得されない。'
+		},
+		CONVERGENCE: {
+			LIST_TITLE: '収束',
+			LIST_CREATE_CONVERGENCE: '収束を作成',
+			LIST_LABEL: '収束',
+			NEW_CONVERGENCE_PREFIX: '新しい',
+			EXISTING_CONVERGENCE_PREFIX: '既存',
+			CREATE_AT: '作成先',
+			LAST_MODIFIED_AT: '最終更新日',
+			FAILED_TO_LOAD_CONVERGENCE: '収束データの読み込みにエラーが発生しました。詳細については、管理者に問い合わせてください。'
 		}
 	},
 	SUBSCRIBE: {
