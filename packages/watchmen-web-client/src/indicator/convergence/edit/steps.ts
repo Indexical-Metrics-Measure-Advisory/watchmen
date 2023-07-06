@@ -1,8 +1,5 @@
 export enum ConvergenceDeclarationStep {
-	TARGETS = 1,
-	TIME_FRAME,
-	VARIABLES,
-	FACTORS,
+	DEF = 1,
 	NAME,
 	USER_GROUP,
 	DESCRIPTION

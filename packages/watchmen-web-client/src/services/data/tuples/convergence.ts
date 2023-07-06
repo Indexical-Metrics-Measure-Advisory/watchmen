@@ -38,7 +38,7 @@ export const listConvergences = async (options: {
 		return listMockConvergences(options);
 	} else {
 		const pageable: TuplePage<ConvergenceOnServer> = await page({
-			api: Apis.OBJECTIVE_LIST_BY_NAME,
+			api: Apis.CONVERGENCE_LIST_BY_NAME,
 			search: {search}, pageable: {pageNumber, pageSize}
 		});
 		return {...pageable, data: (pageable.data || []).map(convergence => transformFromServer(convergence))};
@@ -50,7 +50,7 @@ export const listConvergencesForHolder = async (search: string): Promise<Array<Q
 	if (isMockService()) {
 		return listMockConvergencesForHolder(search);
 	} else {
-		return (await get({api: Apis.OBJECTIVE_LIST_FOR_HOLDER_BY_NAME, search: {search}}))
+		return (await get({api: Apis.CONVERGENCE_LIST_FOR_HOLDER_BY_NAME, search: {search}}))
 			.map((convergence: ConvergenceOnServer) => transformFromServer(convergence));
 	}
 };
@@ -59,7 +59,7 @@ export const fetchConvergence = async (convergenceId: ConvergenceId): Promise<Co
 	if (isMockService()) {
 		return await fetchMockConvergence(convergenceId);
 	} else {
-		const convergence = await get({api: Apis.OBJECTIVE_GET, search: {convergenceId}});
+		const convergence = await get({api: Apis.CONVERGENCE_GET, search: {convergenceId}});
 		return transformFromServer(convergence);
 	}
 };
@@ -69,13 +69,13 @@ export const saveConvergence = async (convergence: Convergence): Promise<void> =
 	if (isMockService()) {
 		return saveMockConvergence(convergence);
 	} else if (isFakedUuid(convergence)) {
-		const data = await post({api: Apis.OBJECTIVE_CREATE, data: transformToServer(convergence)});
+		const data = await post({api: Apis.CONVERGENCE_CREATE, data: transformToServer(convergence)});
 		convergence.convergenceId = data.convergenceId;
 		convergence.tenantId = data.tenantId;
 		convergence.version = data.version;
 		convergence.lastModifiedAt = data.lastModifiedAt;
 	} else {
-		const data = await post({api: Apis.OBJECTIVE_SAVE, data: transformToServer(convergence)});
+		const data = await post({api: Apis.CONVERGENCE_SAVE, data: transformToServer(convergence)});
 		convergence.tenantId = data.tenantId;
 		convergence.version = data.version;
 		convergence.lastModifiedAt = data.lastModifiedAt;

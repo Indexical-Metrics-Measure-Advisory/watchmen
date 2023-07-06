@@ -21,10 +21,8 @@ export enum ConvergenceVariableAxis {
 export interface ConvergenceVariable {
 	uuid: ConvergenceVariableId;
 	type: ConvergenceVariableType;
-	name: string;
+	name?: string;
 	axis: ConvergenceVariableAxis;
-	/** variable priority in axis */
-	priority: number;
 }
 
 export enum ConvergenceTimeFrameVariableKind {
@@ -45,7 +43,8 @@ export interface ConvergenceTimeFrameVariable extends ConvergenceVariable {
 	type: ConvergenceVariableType.TIMEFRAME;
 	/** use kind and till to compute values */
 	kind: ConvergenceTimeFrameVariableKind;
-	till: DateTime;
+	till?: DateTime;
+	times: number;
 	values: Array<TimeFrameConvergenceVariableValue>;
 }
 
@@ -71,6 +70,10 @@ export interface ConvergenceTarget {
 	objectiveId: ObjectiveId;
 	targetId: ObjectiveTargetId;
 	mapping: Array<ConvergenceTargetVariableMapping>;
+	/** starts from 0 */
+	row: number;
+	/** starts from 0 */
+	col: number;
 }
 
 export interface Convergence extends Tuple, OptimisticLock, UserGroupHolder {
