@@ -68,6 +68,7 @@ export const XAxis = styled.div.attrs({'data-widget': 'convergence-def-x-axis'})
 	}
 	> div[data-widget=dropdown]:first-child:last-child {
 		border-color : transparent;
+		width        : auto;
 	}
 `;
 export const XAxisLegendCellContainer = styled(XAxis)`

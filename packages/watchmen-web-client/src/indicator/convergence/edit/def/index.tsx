@@ -106,7 +106,9 @@ export const Def = (props: { convergence: Convergence }) => {
 				<Dropdown options={addAxisOptions} value={null} onChange={onAxisAddChanged(ConvergenceVariableAxis.Y)}
 				          please={Lang.INDICATOR.CONVERGENCE.Y_AXIS_ADD_PLACEHOLDER}/>
 			</YAxis>
-			<TargetsGrid></TargetsGrid>
+			<TargetsGrid>
+
+			</TargetsGrid>
 		</DefGrid>
 	</EditStep>;
 };
