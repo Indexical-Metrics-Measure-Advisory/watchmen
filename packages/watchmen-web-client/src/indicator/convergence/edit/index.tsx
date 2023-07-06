@@ -2,6 +2,7 @@ import {FixWidthPage} from '@/widgets/basic/page';
 import {PageHeader} from '@/widgets/basic/page-header';
 import {Lang} from '@/widgets/langs';
 import React from 'react';
+import {Def} from './def';
 import {Description} from './description';
 import {NameAndSave} from './name-and-save';
 import {usePrepareConvergence} from './state';
@@ -19,6 +20,7 @@ export const ConvergenceEditor = () => {
 		{/*<ObjectiveValuesHandler objective={objective}/>*/}
 		<PageHeader title={Lang.INDICATOR.CONVERGENCE.TITLE}/>
 		<ConvergenceContainer>
+			<Def convergence={convergence}/>
 			<NameAndSave convergence={convergence}/>
 			<UserGroup convergence={convergence}/>
 			<Description convergence={convergence}/>

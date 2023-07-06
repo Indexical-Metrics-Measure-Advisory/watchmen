@@ -1,6 +1,6 @@
 import {TuplePage} from '@/services/data/query/tuple-page';
 import {Bucket, BucketId} from '@/services/data/tuples/bucket-types';
-import {Convergence, ConvergenceId} from '@/services/data/tuples/convergence-types';
+import {Convergence, ConvergenceId, ConvergenceVariable} from '@/services/data/tuples/convergence-types';
 import {QueryBucket, QueryByBucketMethod} from '@/services/data/tuples/query-bucket-types';
 import {QueryConvergence} from '@/services/data/tuples/query-convergence-types';
 import {QueryUserGroupForHolder} from '@/services/data/tuples/query-user-group-types';
@@ -11,6 +11,8 @@ export enum ConvergencesEventTypes {
 
 	CREATE_CONVERGENCE = 'create-convergence',
 	PICK_CONVERGENCE = 'pick-convergence',
+
+	DELETE_VARIABLE = 'delete-variable',
 
 	ASK_CONVERGENCE = 'ask-convergence',
 	SAVE_CONVERGENCE = 'save-convergence',
@@ -40,6 +42,10 @@ export interface ConvergencesEventBus {
 	fire(type: ConvergencesEventTypes.PICK_CONVERGENCE, convergenceId: ConvergenceId, onData: (convergence: Convergence) => void): this;
 	on(type: ConvergencesEventTypes.PICK_CONVERGENCE, listener: (convergenceId: ConvergenceId, onData: (convergence: Convergence) => void) => void): this;
 	off(type: ConvergencesEventTypes.PICK_CONVERGENCE, listener: (convergenceId: ConvergenceId, onData: (convergence: Convergence) => void) => void): this;
+
+	fire(type: ConvergencesEventTypes.DELETE_VARIABLE, convergence: Convergence, variable: ConvergenceVariable): this;
+	on(type: ConvergencesEventTypes.DELETE_VARIABLE, listener: (convergence: Convergence, variable: ConvergenceVariable) => void): this;
+	off(type: ConvergencesEventTypes.DELETE_VARIABLE, listener: (convergence: Convergence, variable: ConvergenceVariable) => void): this;
 
 	fire(type: ConvergencesEventTypes.ASK_CONVERGENCE, onData: (convergence?: Convergence) => void): this;
 	on(type: ConvergencesEventTypes.ASK_CONVERGENCE, listener: (onData: (convergence?: Convergence) => void) => void): this;
