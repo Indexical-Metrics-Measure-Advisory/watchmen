@@ -204,7 +204,13 @@ export const Apis = {
 	DERIVED_OBJECTIVE_RENAME: 'indicator/derived-objective/rename?derived_objective_id=:derivedObjectiveId&name=:name',
 	DERIVED_OBJECTIVE_DELETE: 'indicator/derived-objective/delete?derived_objective_id=:derivedObjectiveId',
 	OBJECTIVE_TARGET_BREAKDOWN_VALUES: 'indicator/derived-objective/breakdown/data',
-	DERIVED_OBJECTIVE_SUBSCRIBE: 'indicator/derived-objective/subscribe?derived_objective_id=:derivedObjectiveId'
+	DERIVED_OBJECTIVE_SUBSCRIBE: 'indicator/derived-objective/subscribe?derived_objective_id=:derivedObjectiveId',
+
+	CONVERGENCE_LIST_BY_NAME: 'indicator/convergence/name?query_name=:search',
+	CONVERGENCE_LIST_FOR_HOLDER_BY_NAME: 'indicator/convergence/list/name?query_name=:search',
+	CONVERGENCE_GET: 'indicator/convergence?convergence_id=:convergenceId',
+	CONVERGENCE_CREATE: 'indicator/convergence',
+	CONVERGENCE_SAVE: 'indicator/convergence',
 };
 
 const buildApi = (api: string, args?: Record<string, any>): string => {
