@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Optional, Dict
 
 from watchmen_auth import PrincipalService
@@ -8,7 +9,7 @@ from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, ChangeRecordId, Pageable
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
 	EntityCriteriaExpression, ColumnNameLiteral, EntityStraightValuesFinder, EntityStraightColumn, EntityColumnType, \
-	EntityPager, EntityLimitedFinder
+	EntityPager, EntityLimitedFinder, EntityCriteriaOperator
 from watchmen_utilities import ArrayHelper
 
 
@@ -226,14 +227,25 @@ class ChangeDataRecordService(TupleService):
 		finally:
 			self.close_transaction()
 
+	def count_change_data_record(self, event_trigger_id: int) -> int:
+		return self.storage.count(self.get_entity_finder(
+			criteria=[
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'),
+				                         right=event_trigger_id)
+			]
+		))
 
-	def count_records(self):
-		self.begin_transaction()
+	def find_timeout_record(self, query_time: datetime) -> List:
 		try:
-			# noinspection PyTypeChecker
-			return self.storage.count()
+			self.storage.connect()
+			return self.storage.find(self.get_entity_finder(criteria=[
+				EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName='last_modified_at'),
+					operator=EntityCriteriaOperator.LESS_THAN, right=query_time),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=1)
+			]))
 		finally:
-			self.close_transaction()
+			self.storage.close()
 
 
 def get_change_data_record_service(storage: TransactionalStorageSPI,

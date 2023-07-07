@@ -36,38 +36,38 @@ class PostJsonService:
 	def __init__(self):
 		self.storage = ask_meta_storage()
 		self.snowflake_generator = ask_snowflake_generator()
-		self.principle_service = ask_super_admin()
+		self.principal_service = ask_super_admin()
 		self.competitive_lock_service = get_competitive_lock_service(self.storage)
 		self.change_record_service = get_change_data_record_service(self.storage,
 		                                                            self.snowflake_generator,
-		                                                            self.principle_service)
+		                                                            self.principal_service)
 		self.change_json_service = get_change_data_json_service(self.storage,
 		                                                        self.snowflake_generator,
-		                                                        self.principle_service)
+		                                                        self.principal_service)
 		self.change_json_history_service = get_change_data_json_history_service(self.storage,
 		                                                                        self.snowflake_generator,
-		                                                                        self.principle_service)
+		                                                                        self.principal_service)
 		self.scheduled_task_service = get_scheduled_task_service(self.storage,
 		                                                         self.snowflake_generator,
-		                                                         self.principle_service)
+		                                                         self.principal_service)
 		self.module_config_service = get_collector_module_config_service(self.storage,
 		                                                                 self.snowflake_generator,
-		                                                                 self.principle_service)
+		                                                                 self.principal_service)
 		"""
 		self.model_config_service = get_collector_model_config_service(self.storage,
 		                                                               self.snowflake_generator,
-		                                                               self.principle_service)
+		                                                               self.principal_service)
 		"""
-		self.model_config_service = get_model_config_service(self.principle_service)
+		self.model_config_service = get_model_config_service(self.principal_service)
 		self.trigger_module_service = get_trigger_module_service(self.storage,
 		                                                         self.snowflake_generator,
-		                                                         self.principle_service)
+		                                                         self.principal_service)
 		self.trigger_model_service = get_trigger_model_service(self.storage,
 		                                                       self.snowflake_generator,
-		                                                       self.principle_service)
+		                                                       self.principal_service)
 		self.trigger_event_service = get_trigger_event_service(self.storage,
 		                                                       self.snowflake_generator,
-		                                                       self.principle_service)
+		                                                       self.principal_service)
 
 	def create_thread(self, scheduler=None) -> None:
 		if ask_fastapi_job():
@@ -183,6 +183,7 @@ class PostJsonService:
 				except Exception as e:
 					logger.error(e, exc_info=True, stack_info=True)
 					change_data_json.isPosted = True
+					change_data_json.status = Status.FAIL.value
 					change_data_json.result = format_exc()
 					self.update_result(change_data_json)
 			else:
@@ -286,6 +287,7 @@ class PostJsonService:
 		try:
 			self.scheduled_task_service.create(task)
 			change_json.isPosted = True
+			change_json.status = Status.SUCCESS.value
 			change_json.taskId = task.taskId
 			self.change_json_history_service.create(change_json)
 			# noinspection PyTypeChecker
@@ -311,7 +313,8 @@ class PostJsonService:
 			isFinished=False,
 			status=Status.INITIAL.value,
 			result=None,
-			tenantId=change_json.tenantId
+			tenantId=change_json.tenantId,
+			eventId=change_json.eventTriggerId
 		)
 
 	def get_topic_code(self, change_json: ChangeDataJson) -> str:

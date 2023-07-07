@@ -22,17 +22,21 @@ def redress_storable_id(tuple_service: TupleService,
 		tuple_service.redress_storable_id(a_tuple)
 
 
-def new_trigger_module(module_name: str, priority: int, event_trigger_id: int) -> TriggerModule:
+def new_trigger_module(module_name: str, priority: int, event_trigger_id: int, tenant_id: str) -> TriggerModule:
 	return TriggerModule(
 		moduleName=module_name,
 		priority=priority,
 		is_finished=False,
-		eventTriggerId=event_trigger_id
+		eventTriggerId=event_trigger_id,
+		tenantId=tenant_id
 	)
 
 
 def get_trigger_module(event_trigger: TriggerEvent, module_config: CollectorModuleConfig) -> TriggerModule:
-	return new_trigger_module(module_config.moduleName, module_config.priority, event_trigger.eventTriggerId)
+	return new_trigger_module(module_config.moduleName,
+	                          module_config.priority,
+	                          event_trigger.eventTriggerId,
+	                          event_trigger.tenantId)
 
 
 def save_trigger_module(trigger_module_service: TriggerModuleService,
@@ -58,13 +62,18 @@ def get_trigger_module_action(trigger_event_service: TriggerEventService,
 	return create_trigger_module_action
 
 
-def new_trigger_model(model_name: str, priority: int, module_trigger_id: int, event_trigger_id: int) -> TriggerModel:
+def new_trigger_model(model_name: str,
+                      priority: int,
+                      module_trigger_id: int,
+                      event_trigger_id: int,
+                      tenant_id: str) -> TriggerModel:
 	return TriggerModel(
 		modelName=model_name,
 		priority=priority,
-		is_finished=False,
+		isFinished=False,
 		moduleTriggerId=module_trigger_id,
-		eventTriggerId=event_trigger_id
+		eventTriggerId=event_trigger_id,
+		tenantId=tenant_id
 	)
 
 
@@ -72,7 +81,8 @@ def get_trigger_model(module_trigger: TriggerModule, model_config: CollectorMode
 	return new_trigger_model(model_config.modelName,
 	                         model_config.priority,
 	                         module_trigger.moduleTriggerId,
-	                         module_trigger.eventTriggerId)
+	                         module_trigger.eventTriggerId,
+	                         module_trigger.tenantId)
 
 
 def save_trigger_model(trigger_model_service: TriggerModelService,
@@ -107,7 +117,8 @@ def new_trigger_table(table_name: str,
                       model_name: str,
                       model_trigger_id: int,
                       module_trigger_id: int,
-                      event_trigger_id: int) -> TriggerTable:
+                      event_trigger_id: int,
+                      tenant_id: str) -> TriggerTable:
 	return TriggerTable(
 		tableName=table_name,
 		dataCount=0,
@@ -115,7 +126,8 @@ def new_trigger_table(table_name: str,
 		isExtracted=False,
 		modelTriggerId=model_trigger_id,
 		moduleTriggerId=module_trigger_id,
-		eventTriggerId=event_trigger_id
+		eventTriggerId=event_trigger_id,
+		tenantId=tenant_id
 	)
 
 
@@ -124,7 +136,8 @@ def get_trigger_table(model_trigger: TriggerModel, table_config: CollectorTableC
 	                         table_config.modelName,
 	                         model_trigger.modelTriggerId,
 	                         model_trigger.moduleTriggerId,
-	                         model_trigger.eventTriggerId)
+	                         model_trigger.eventTriggerId,
+	                         model_trigger.tenantId)
 
 
 def save_trigger_table(trigger_table_service: TriggerTableService,
@@ -157,7 +170,7 @@ def get_table_configs_by_model(collector_table_config_service: CollectorTableCon
 
 def trigger_collector(trigger_event_service: TriggerEventService,
                       trigger_event: TriggerEvent,
-                      principal_service: PrincipalService, ) -> TriggerEvent:
+                      principal_service: PrincipalService) -> TriggerEvent:
 	trigger_event_service.begin_transaction()
 	try:
 		# noinspection PyTypeChecker
