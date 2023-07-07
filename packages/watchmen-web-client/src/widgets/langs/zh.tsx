@@ -631,6 +631,7 @@ export const Zh: LanguageDeclareType = {
 			VARIABLE_TIMEFRAME_KIND_YEAR: '年度',
 			X_AXIS_ADD_PLACEHOLDER: '添加维度到横轴',
 			Y_AXIS_ADD_PLACEHOLDER: '添加维度到纵轴',
+			PLEASE_SELECT_TARGET: '请选择...',
 			FREEZE_DEF: '锁定维度',
 			UNFREEZE_DEF: '解锁维度',
 			VARIABLE_NOT_FILLED: '请确认已正确填写所定义轴维度的所有属性值.',
