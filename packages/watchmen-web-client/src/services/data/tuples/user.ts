@@ -42,7 +42,11 @@ export const listUsers = async (options: {
 	}
 };
 
-export const fetchUser = async (userId: UserId, ignoreGroups: boolean = false): Promise<{ user: User; groups: Array<QueryUserGroupForHolder>; tenants: Array<QueryTenant> }> => {
+export const fetchUser = async (userId: UserId, ignoreGroups: boolean = false): Promise<{
+	user: User;
+	groups: Array<QueryUserGroupForHolder>;
+	tenants: Array<QueryTenant>
+}> => {
 	if (isMockService()) {
 		return fetchMockUser(userId);
 	} else {

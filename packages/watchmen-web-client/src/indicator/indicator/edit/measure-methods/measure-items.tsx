@@ -4,7 +4,11 @@ import {MeasureFactorItems} from './measure-factor-items';
 import {AvailableMeasureColumn, AvailableMeasureFactor} from './types';
 
 export const MeasureItems = (props: {
-	measures: Array<{ key: string; label: string; measures: Array<AvailableMeasureFactor> | Array<AvailableMeasureColumn> }>;
+	measures: Array<{
+		key: string;
+		label: string;
+		measures: Array<AvailableMeasureFactor> | Array<AvailableMeasureColumn>
+	}>;
 	enums?: Array<EnumForIndicator>
 }) => {
 	const {measures, enums = []} = props;

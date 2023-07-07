@@ -44,7 +44,10 @@ export const fetchEnum = async (enumId: EnumId): Promise<Enum> => {
 	}
 };
 
-export const fetchEnumAndParents = async (enumId: EnumId): Promise<{ enumeration: Enum; parents: Array<QueryEnumForHolder> }> => {
+export const fetchEnumAndParents = async (enumId: EnumId): Promise<{
+	enumeration: Enum;
+	parents: Array<QueryEnumForHolder>
+}> => {
 	if (isMockService()) {
 		const {enumeration} = await fetchMockEnum(enumId);
 		const parents = await listEnumsForHolder();
@@ -91,7 +94,11 @@ export const listEnumsForHolder = async (): Promise<Array<QueryEnumForHolder>> =
 	}
 };
 
-export const importEnumItems = async (items: Array<{ enumId?: EnumId, name?: string, items: Array<EnumItem> }>): Promise<void> => {
+export const importEnumItems = async (items: Array<{
+	enumId?: EnumId,
+	name?: string,
+	items: Array<EnumItem>
+}>): Promise<void> => {
 	if (isMockService()) {
 		// do nothing
 	} else {

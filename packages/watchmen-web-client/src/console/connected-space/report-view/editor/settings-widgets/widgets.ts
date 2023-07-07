@@ -8,7 +8,9 @@ import {PercentageValueEditor} from '@/widgets/value-editor/percentage-value-edi
 import {TextValueEditor} from '@/widgets/value-editor/text-value-editor';
 import styled from 'styled-components';
 
-export const SectionContainer = styled.div.attrs<{ expanded: boolean }>({'data-widget': 'chart-settings-section'})<{ expanded: boolean }>`
+export const SectionContainer = styled.div.attrs<{ expanded: boolean }>({'data-widget': 'chart-settings-section'})<{
+	expanded: boolean
+}>`
 	display      : flex;
 	position     : relative;
 	grid-column  : 1 / span 2;

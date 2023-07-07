@@ -46,7 +46,8 @@ export const ConvergencePicker = (props: {
 
 	return <TupleItemPicker actionLabel={label}
 	                        holder={userGroup} codes={codes}
-	                        isHolding={hasConvergence} getHoldIds={getConvergenceIds} getNameOfHold={findNameFromConvergences}
+	                        isHolding={hasConvergence} getHoldIds={getConvergenceIds}
+	                        getNameOfHold={findNameFromConvergences}
 	                        listCandidates={listConvergencesForHolder} getIdOfCandidate={getIdOfConvergence}
 	                        getNameOfCandidate={getNameOfConvergence} isCandidateHold={isConvergencePicked(userGroup)}
 	                        removeHold={removeConvergence(userGroup)} addHold={addConvergence(userGroup)}/>;

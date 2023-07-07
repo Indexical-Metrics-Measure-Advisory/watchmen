@@ -174,7 +174,13 @@ export const GridBody = styled.div
 `;
 
 export const GridBodyCell = styled.div
-	.attrs<{ lastRow: boolean, column: number, filler?: true, alignment?: ColumnAlignment; highlightAsDanger?: boolean }>(
+	.attrs<{
+		lastRow: boolean,
+		column: number,
+		filler?: true,
+		alignment?: ColumnAlignment;
+		highlightAsDanger?: boolean
+	}>(
 		({
 			 lastRow, column, filler,
 			 alignment = ColumnAlignment.LEFT, highlightAsDanger = false
@@ -204,7 +210,14 @@ export const GridBodyCell = styled.div
 					})()
 				}
 			};
-		})<{ lastRow: boolean, lastColumn: boolean, column: number, filler?: true, alignment?: ColumnAlignment; highlightAsDanger?: boolean }>`
+		})<{
+	lastRow: boolean,
+	lastColumn: boolean,
+	column: number,
+	filler?: true,
+	alignment?: ColumnAlignment;
+	highlightAsDanger?: boolean
+}>`
 	display          : flex;
 	position         : relative;
 	align-items      : center;

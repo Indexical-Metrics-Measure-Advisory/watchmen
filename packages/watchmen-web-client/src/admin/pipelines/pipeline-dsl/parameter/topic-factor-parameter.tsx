@@ -4,7 +4,12 @@ import {Topic} from '@/services/data/tuples/topic-types';
 import React from 'react';
 import {FactorName, PropName, PropValue, TopicName} from '../dsl-widgets';
 
-export const TopicFactorParameterLine = (props: { parameter: Parameter, topicsMap: Map<string, Topic>, inList: boolean, indent: number }) => {
+export const TopicFactorParameterLine = (props: {
+	parameter: Parameter,
+	topicsMap: Map<string, Topic>,
+	inList: boolean,
+	indent: number
+}) => {
 	const {parameter, topicsMap, inList, indent} = props;
 
 	if (!isTopicFactorParameter(parameter)) {

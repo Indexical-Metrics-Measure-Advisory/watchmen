@@ -21,7 +21,10 @@ export const fetchPipelinesSettingsData = async (): Promise<PipelinesSettings> =
 	return {pipelines, topics, graphics, dataSources, externalWriters};
 };
 
-const fetchUpdatedPipelinesGraphics = async (lastModifiedTime: Dayjs, existingGraphicsIds: Array<PipelinesGraphicsId>): Promise<{ updated: Array<PipelinesGraphics>, removed: Array<PipelinesGraphicsId> }> => {
+const fetchUpdatedPipelinesGraphics = async (lastModifiedTime: Dayjs, existingGraphicsIds: Array<PipelinesGraphicsId>): Promise<{
+	updated: Array<PipelinesGraphics>,
+	removed: Array<PipelinesGraphicsId>
+}> => {
 	if (isMockService()) {
 		return {updated: [], removed: []};
 	} else {

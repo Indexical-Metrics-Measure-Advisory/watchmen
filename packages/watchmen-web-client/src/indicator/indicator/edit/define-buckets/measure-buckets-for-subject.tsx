@@ -60,7 +60,11 @@ const ColumnMeasureBuckets = (props: {
 	</>;
 };
 
-export const MeasureBucketsForSubject = (props: { indicator: Indicator; subject?: SubjectForIndicator, enums?: Array<EnumForIndicator> }) => {
+export const MeasureBucketsForSubject = (props: {
+	indicator: Indicator;
+	subject?: SubjectForIndicator,
+	enums?: Array<EnumForIndicator>
+}) => {
 	const {subject, enums} = props;
 
 	const {fire: fireGlobal} = useEventBus();

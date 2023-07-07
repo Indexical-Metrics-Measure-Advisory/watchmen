@@ -22,7 +22,11 @@ import {
 import {useSortType} from './use-sort-type';
 import {EnumItems, renderBySortType} from './utils';
 
-export const SegmentCategoryValuesCell = (props: { bucket: EnumMeasureBucket, segment: CategorySegment; enum?: EnumItems }) => {
+export const SegmentCategoryValuesCell = (props: {
+	bucket: EnumMeasureBucket,
+	segment: CategorySegment;
+	enum?: EnumItems
+}) => {
 	const {bucket, segment, enum: enumeration} = props;
 
 	const {on, off} = useBucketEventBus();

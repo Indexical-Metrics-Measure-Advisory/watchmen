@@ -7,7 +7,11 @@ import React from 'react';
 import {Factors} from './factors';
 import {FactorsMappingEventBusProvider} from './factors-mapping-event-bus';
 
-export const FactorsMapping = (props: { action: WriteTopicAction & MappingRow, topics: Array<Topic>, topic: Topic }) => {
+export const FactorsMapping = (props: {
+	action: WriteTopicAction & MappingRow,
+	topics: Array<Topic>,
+	topic: Topic
+}) => {
 	const {action, topics, topic} = props;
 
 	return <FactorsMappingEventBusProvider>

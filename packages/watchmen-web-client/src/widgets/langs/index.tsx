@@ -6,7 +6,7 @@ import {EventTypes} from '../events/types';
 import {En} from './en';
 import {Jp} from './jp';
 import {LanguageDeclareType, LanguageObjectType} from './types';
-import { VI } from './vi';
+import {VI} from './vi';
 import {Zh} from './zh';
 
 // @ts-ignore

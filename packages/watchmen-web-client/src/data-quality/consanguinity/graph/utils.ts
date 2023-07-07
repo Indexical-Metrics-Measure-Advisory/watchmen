@@ -193,7 +193,16 @@ export const compute = (options: {
 			triggerOn: 'mousemove',
 			formatter: ({
 				            data: {name, factor, topic, pipeline, value, linkType}
-			            }: { data: { name: string, factor: Factor, topic: Topic, pipeline: Pipeline, value: number, linkType: LinkType } }) => {
+			            }: {
+				data: {
+					name: string,
+					factor: Factor,
+					topic: Topic,
+					pipeline: Pipeline,
+					value: number,
+					linkType: LinkType
+				}
+			}) => {
 				if (name) {
 					// noinspection CssUnresolvedCustomProperty
 					return `<span style="font-variant: petite-caps;font-weight: bold;color:var(--info-color)">${name}</span>`;

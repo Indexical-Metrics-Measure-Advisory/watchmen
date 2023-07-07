@@ -43,7 +43,12 @@ export const FormulaOperatorIcon = styled.div.attrs({'data-widget': 'objective-f
 	}
 `;
 export const FORMULA_OPERATOR_DROPDOWN_HEIGHT = 200;
-export const FormulaOperatorDropdown = styled.div.attrs<{ visible: boolean, top?: number, bottom?: number, left: number }>(
+export const FormulaOperatorDropdown = styled.div.attrs<{
+	visible: boolean,
+	top?: number,
+	bottom?: number,
+	left: number
+}>(
 	({visible, top, bottom, left}) => {
 		return {
 			'data-widget': 'parameter-computed-type-dropdown',

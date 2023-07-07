@@ -13,7 +13,10 @@ import {
 	DiagramTopicList
 } from './types';
 
-export const getObjectiveTargets = (consanguinity: Consanguinity): { list: DiagramObjectiveTargetList, map: DiagramObjectiveTargetMap } => {
+export const getObjectiveTargets = (consanguinity: Consanguinity): {
+	list: DiagramObjectiveTargetList,
+	map: DiagramObjectiveTargetMap
+} => {
 	const targets = (consanguinity.objectives || [])
 		.map(objective => {
 			return (objective.targets || []).map(target => {
@@ -28,7 +31,10 @@ export const getObjectiveTargets = (consanguinity: Consanguinity): { list: Diagr
 
 	return {list: targets, map};
 };
-export const getObjectiveFactors = (consanguinity: Consanguinity): { list: DiagramObjectiveFactorList, map: DiagramObjectiveFactorMap } => {
+export const getObjectiveFactors = (consanguinity: Consanguinity): {
+	list: DiagramObjectiveFactorList,
+	map: DiagramObjectiveFactorMap
+} => {
 	const factors = (consanguinity.objectives || [])
 		.map(objective => {
 			return (objective.factors || []).map(factor => {
@@ -43,7 +49,10 @@ export const getObjectiveFactors = (consanguinity: Consanguinity): { list: Diagr
 
 	return {list: factors, map};
 };
-export const getIndicators = (consanguinity: Consanguinity): { list: DiagramIndicatorList, map: DiagramIndicatorMap } => {
+export const getIndicators = (consanguinity: Consanguinity): {
+	list: DiagramIndicatorList,
+	map: DiagramIndicatorMap
+} => {
 	const indicators = (consanguinity.indicators || []);
 	const map = indicators.reduce((map, indicator) => {
 		map[indicator['@cid']] = indicator;
@@ -52,7 +61,10 @@ export const getIndicators = (consanguinity: Consanguinity): { list: DiagramIndi
 
 	return {list: indicators, map};
 };
-export const getSubjects = (consanguinity: Consanguinity): { list: DiagramSubjectList, map: DiagramSubjectColumnMap } => {
+export const getSubjects = (consanguinity: Consanguinity): {
+	list: DiagramSubjectList,
+	map: DiagramSubjectColumnMap
+} => {
 	const subjects = (consanguinity.subjects || [])
 		.map(subject => (JSON.parse(JSON.stringify(subject))) as ConsanguinitySubject)
 		.map(subject => {

@@ -25,7 +25,10 @@ const DerivedObjectiveDropdown = styled(Dropdown)`
 	margin-top : calc(var(--margin) / 4);
 `;
 
-const DerivedObjectiveSwitch = (props: { derivedObjectives: Array<DerivedObjective>, switchTo: (derivedObjective: DerivedObjective) => void }) => {
+const DerivedObjectiveSwitch = (props: {
+	derivedObjectives: Array<DerivedObjective>,
+	switchTo: (derivedObjective: DerivedObjective) => void
+}) => {
 	const {derivedObjectives, switchTo} = props;
 
 	const {fire} = useEventBus();

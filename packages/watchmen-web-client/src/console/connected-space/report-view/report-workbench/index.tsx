@@ -4,7 +4,12 @@ import {Subject} from '@/services/data/tuples/subject-types';
 import {ReportEditor} from '../editor';
 import {WorkbenchContainer} from './widgets';
 
-export const ReportWorkbench = (props: { connectedSpace: ConnectedSpace; subject: Subject; report: Report; editable: boolean }) => {
+export const ReportWorkbench = (props: {
+	connectedSpace: ConnectedSpace;
+	subject: Subject;
+	report: Report;
+	editable: boolean
+}) => {
 	const {connectedSpace, subject, report, editable} = props;
 
 	return <WorkbenchContainer>

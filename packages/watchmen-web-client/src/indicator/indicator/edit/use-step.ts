@@ -10,7 +10,12 @@ export interface StepState {
 	data?: IndicatorsData;
 }
 
-export const useStep = (options: { step: IndicatorDeclarationStep, active?: () => void, done?: () => void, dropped?: () => void }): StepState => {
+export const useStep = (options: {
+	step: IndicatorDeclarationStep,
+	active?: () => void,
+	done?: () => void,
+	dropped?: () => void
+}): StepState => {
 	const {step, active, done, dropped} = options;
 
 	const {on, off} = useIndicatorsEventBus();

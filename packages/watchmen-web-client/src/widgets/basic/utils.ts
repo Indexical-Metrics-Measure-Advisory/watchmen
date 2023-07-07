@@ -64,7 +64,10 @@ export const downloadAsZip = async (files: ZipFiles, zipName: string) => {
 	link.click();
 };
 
-export const downloadAsCSV = (content: string, fileName: string | Array<string>, options?: { date?: true, datetime?: true }) => {
+export const downloadAsCSV = (content: string, fileName: string | Array<string>, options?: {
+	date?: true,
+	datetime?: true
+}) => {
 	const {date = false, datetime = false} = options ?? {};
 	const link = document.createElement('a');
 	link.href = 'data:text/csv;charset=utf-8,' + encodeURI(content);

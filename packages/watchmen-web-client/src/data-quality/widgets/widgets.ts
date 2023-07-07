@@ -10,25 +10,25 @@ export const GreetingContainer = styled.div.attrs({'data-widgets': 'data-quality
 	border-bottom: var(--border);
 `;
 export const GreetingIcon = styled.div.attrs({'data-widgets': 'data-quality-greeting-icon'})`
-	grid-row: span 2;
-	display: flex;
-	position: relative;
-	align-items: center;
-	justify-content: center;
-	color: var(--success-color);
-	font-size: 30px;
+	grid-row        : span 2;
+	display         : flex;
+	position        : relative;
+	align-items     : center;
+	justify-content : center;
+	color           : var(--success-color);
+	font-size       : 30px;
 	&:before {
-		content: '';
-		display: block;
-		position: absolute;
-		left: 0;
-		right: 0;
-		width: 100%;
-		height: 100%;
-		background-color: var(--primary-color);
-		border-radius: calc(var(--border-radius) * 2);
-		opacity: 0.2;
-		z-index: -1;
+		content          : '';
+		display          : block;
+		position         : absolute;
+		left             : 0;
+		right            : 0;
+		width            : 100%;
+		height           : 100%;
+		background-color : var(--primary-color);
+		border-radius    : calc(var(--border-radius) * 2);
+		opacity          : 0.2;
+		z-index          : -1;
 	}
 `;
 export const GreetingTitle = styled.div.attrs({'data-widgets': 'data-quality-greeting-title'})`

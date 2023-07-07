@@ -639,7 +639,7 @@ export const Zh: LanguageDeclareType = {
 			NAME_TITLE: '设置一个用于阅读的名称.',
 			DESCRIPTION_TITLE: '描述.',
 			USER_GROUP_TITLE: '授权给用户组.',
-			GRANT_USER_GROUP: '授权',
+			GRANT_USER_GROUP: '授权'
 		}
 	},
 	SUBSCRIBE: {

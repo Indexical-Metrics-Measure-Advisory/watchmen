@@ -3,7 +3,8 @@ import {isAdmin, isSuperAdmin} from '@/services/data/account';
 import {
 	ICON_ADMIN,
 	ICON_BUCKETS,
-	ICON_CONSOLE, ICON_CONVERGENCE,
+	ICON_CONSOLE,
+	ICON_CONVERGENCE,
 	ICON_DQC,
 	ICON_INDICATOR,
 	ICON_LOGOUT,

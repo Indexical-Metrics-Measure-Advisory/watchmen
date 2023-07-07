@@ -25,7 +25,11 @@ import {
 	ShareDialogBody
 } from './widget';
 
-const AvailableTemplatesSelector = (props: { spaceId: SpaceId, templates: Array<ConnectedSpaceTemplate>, switchTo: (connectedSpace: ConnectedSpace) => void }) => {
+const AvailableTemplatesSelector = (props: {
+	spaceId: SpaceId,
+	templates: Array<ConnectedSpaceTemplate>,
+	switchTo: (connectedSpace: ConnectedSpace) => void
+}) => {
 	const {spaceId, templates, switchTo} = props;
 
 	const {fire} = useEventBus();
@@ -80,7 +84,10 @@ const AvailableTemplatesSelector = (props: { spaceId: SpaceId, templates: Array<
 	</>;
 };
 
-const AvailableSpacesSelector = (props: { spaces: Array<AvailableSpaceInConsole>, switchTo: (connectedSpace: ConnectedSpace) => void }) => {
+const AvailableSpacesSelector = (props: {
+	spaces: Array<AvailableSpaceInConsole>,
+	switchTo: (connectedSpace: ConnectedSpace) => void
+}) => {
 	const {spaces, switchTo} = props;
 
 	const {fire} = useEventBus();

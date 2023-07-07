@@ -13,7 +13,11 @@ import {TopicNameInput} from './topic/topic-name-input';
 import {TopicTypeInput} from './topic/topic-type-input';
 import {HoldByTopic} from './types';
 
-const TopicEditor = (props: { topic: Topic, enums: Array<QueryEnumForHolder>, dataSources: Array<QueryDataSourceForHolder> }) => {
+const TopicEditor = (props: {
+	topic: Topic,
+	enums: Array<QueryEnumForHolder>,
+	dataSources: Array<QueryDataSourceForHolder>
+}) => {
 	const {topic, enums, dataSources} = props;
 
 	return <TopicEventBusProvider>

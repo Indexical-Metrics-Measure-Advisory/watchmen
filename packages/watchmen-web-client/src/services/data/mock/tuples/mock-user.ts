@@ -57,7 +57,11 @@ export const listMockUsers = async (options: {
 	});
 };
 
-export const fetchMockUser = async (userId: UserId): Promise<{ user: User; groups: Array<QueryUserGroupForHolder>; tenants: Array<QueryTenant> }> => {
+export const fetchMockUser = async (userId: UserId): Promise<{
+	user: User;
+	groups: Array<QueryUserGroupForHolder>;
+	tenants: Array<QueryTenant>
+}> => {
 	let user;
 	switch (userId) {
 		case '1':

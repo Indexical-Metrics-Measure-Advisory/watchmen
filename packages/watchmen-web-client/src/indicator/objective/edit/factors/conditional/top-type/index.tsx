@@ -3,7 +3,10 @@ import React from 'react';
 import {ConditionalTopType} from './for-conditional';
 import {FactorTopType} from './for-factor';
 
-export const TopType = (props: { factor: ObjectiveFactorOnIndicator; conditional?: ConditionalObjectiveParameter; }) => {
+export const TopType = (props: {
+	factor: ObjectiveFactorOnIndicator;
+	conditional?: ConditionalObjectiveParameter;
+}) => {
 	const {factor, conditional} = props;
 
 	if (conditional == null) {

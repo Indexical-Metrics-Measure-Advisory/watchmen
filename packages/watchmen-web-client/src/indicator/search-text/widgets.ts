@@ -58,7 +58,11 @@ export const SearchInput = styled(Input).attrs<{ buttonFirst: boolean; buttonVis
 	border-radius : calc(var(--height) * 0.6);
 	font-size     : 1.2em;
 `;
-export const SearchButton = styled(StepTitleButton).attrs<{ buttonFirst: boolean; alwaysShowSearchInput: boolean; finding: boolean }>(
+export const SearchButton = styled(StepTitleButton).attrs<{
+	buttonFirst: boolean;
+	alwaysShowSearchInput: boolean;
+	finding: boolean
+}>(
 	({buttonFirst, alwaysShowSearchInput, finding}) => {
 		return {
 			'data-widget': 'search-button',

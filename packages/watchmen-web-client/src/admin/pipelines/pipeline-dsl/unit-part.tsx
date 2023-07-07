@@ -7,7 +7,12 @@ import {ActionsPart} from './actions-part';
 import {ConditionalLine} from './conditonal';
 import {PropName, PropNameInListFirst, PropValue, VariableName} from './dsl-widgets';
 
-export const UnitPart = (props: { pipeline: Pipeline, stage: PipelineStage, unit: PipelineStageUnit, topicsMap: Map<string, Topic> }) => {
+export const UnitPart = (props: {
+	pipeline: Pipeline,
+	stage: PipelineStage,
+	unit: PipelineStageUnit,
+	topicsMap: Map<string, Topic>
+}) => {
 	const {pipeline, stage, unit, topicsMap} = props;
 
 	return <>

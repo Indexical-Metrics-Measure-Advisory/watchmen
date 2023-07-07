@@ -6,7 +6,11 @@ import {BucketEventTypes} from '../bucket-event-bus-types';
 import {SegmentPropInput} from '../segments/widgets';
 import {SegmentValueCellContainer} from './widgets';
 
-export const SegmentValueCell = (props: { holder: NumericSegmentsHolder, segment: NumericValueSegment, index: 0 | 1 }) => {
+export const SegmentValueCell = (props: {
+	holder: NumericSegmentsHolder,
+	segment: NumericValueSegment,
+	index: 0 | 1
+}) => {
 	const {holder, segment, index} = props;
 
 	const {fire} = useBucketEventBus();
