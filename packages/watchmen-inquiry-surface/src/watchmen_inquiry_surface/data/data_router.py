@@ -293,13 +293,11 @@ async def fetch_report_data_temporary(
 #
 
 
-def build_fake_subject(criteria: SubjectDatasetCriteria,subject:Subject)-> tuple[Subject, Pageable]:
-
+def build_fake_subject(criteria: SubjectDatasetCriteria, subject: Subject) -> tuple[Subject, Pageable]:
 	fake_subject = Subject()
 	indicators = criteria.indicators
 	conditions = criteria.conditions
 	new_columns = []
-
 
 	subject_column_map: Dict[str, SubjectDatasetColumn] = ArrayHelper(subject.dataset.columns) \
 		.to_map(lambda x: x.columnId, lambda x: x)
@@ -310,7 +308,7 @@ def build_fake_subject(criteria: SubjectDatasetCriteria,subject:Subject)-> tuple
 			raise_400(f'Indicator columnId[{columnId}] is not found in subject dataset.')
 		else:
 			old_column = subject_column_map.get(columnId)
-			old_column.arithmetic =indicator.arithmetic
+			old_column.arithmetic = indicator.arithmetic
 			new_columns.append(old_column)
 	subject.dataset.columns = new_columns
 
@@ -328,7 +326,7 @@ def build_fake_subject(criteria: SubjectDatasetCriteria,subject:Subject)-> tuple
 			return TopicFactorParameter(
 				kind=ParameterKind.TOPIC,
 				factorId=factor_id,
-				topicId = param.topicId
+				topicId=param.topicId
 			)
 		# topicId is not need here since subject will be build as a sub query
 		return TopicFactorParameter(
@@ -378,10 +376,8 @@ def build_fake_subject(criteria: SubjectDatasetCriteria,subject:Subject)-> tuple
 		else:
 			raise_400(f'Cannot determine given condition[{condition.dict()}].')
 
-
 	if conditions is not None and len(conditions) > 0:
 		subject.dataset.filters = ArrayHelper(conditions).map(to_report_filter).to_list()[0]
-
 
 	page_size = ask_dataset_page_max_rows()
 	if criteria.pageSize is None or criteria.pageSize < 1 or criteria.pageSize > page_size:
@@ -394,9 +390,7 @@ def build_fake_subject(criteria: SubjectDatasetCriteria,subject:Subject)-> tuple
 		pageSize=page_size
 	)
 
-	return  subject,pageable
-
-
+	return subject, pageable
 
 
 @router.post('/subject/data/criteria', tags=[UserRole.ADMIN], response_model=DataPage)
@@ -406,9 +400,9 @@ async def query_dataset(
 	subject_id = criteria.subjectId
 	subject_name = criteria.subjectName
 	subject = await load_subject(principal_service, subject_id, subject_name)
-	subject,  pageable = build_fake_subject(criteria, subject)
+	subject, pageable = build_fake_subject(criteria, subject)
 
-	return get_subject_data_service(subject,  principal_service).page(pageable)
+	return get_subject_data_service(subject, principal_service).page(pageable)
 
 
 async def load_subject(principal_service, subject_id, subject_name):
@@ -427,7 +421,7 @@ async def query_dataset(
 		principal_service: PrincipalService = Depends(get_console_principal)) -> str:
 	subject_id = criteria.subjectId
 	subject_name = criteria.subjectName
-	subject:Subject = await load_subject(principal_service, subject_id, subject_name)
+	subject: Subject = await load_subject(principal_service, subject_id, subject_name)
 	subject, pageable = build_fake_subject(criteria, subject)
 	return get_subject_data_service(subject, principal_service).find_sql()
 
@@ -436,9 +430,8 @@ async def query_dataset(
 async def query_dataset(
 		criteria: SubjectDatasetCriteria,
 		principal_service: PrincipalService = Depends(get_console_principal)) -> str:
-
 	subject_id = criteria.subjectId
 	subject_name = criteria.subjectName
-	subject:Subject = await load_subject(principal_service, subject_id, subject_name)
+	subject: Subject = await load_subject(principal_service, subject_id, subject_name)
 	subject, pageable = build_fake_subject(criteria, subject)
 	return get_subject_data_service(subject, principal_service).page_sql(pageable)

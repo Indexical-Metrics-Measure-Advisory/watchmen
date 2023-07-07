@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Dict, Any, Optional
 
 from watchmen_auth import PrincipalService
@@ -9,7 +10,7 @@ from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, ChangeJsonId, Pageable
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, SnowflakeGenerator, \
 	ColumnNameLiteral, EntityCriteriaExpression, EntityStraightValuesFinder, EntityStraightColumn, EntitySortColumn, \
-	EntitySortMethod, EntityLimitedFinder
+	EntitySortMethod, EntityLimitedFinder, EntityCriteriaOperator
 
 
 class ChangeDataJsonShaper(EntityShaper):
@@ -224,6 +225,26 @@ class ChangeDataJsonService(TupleService):
 			)) == 0
 		finally:
 			self.close_transaction()
+
+	def count_change_data_json(self, event_trigger_id: int) -> int:
+		return self.storage.count(self.get_entity_finder(
+			criteria=[
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_trigger_id'),
+				                         right=event_trigger_id)
+			]
+		))
+
+	def find_timeout_json(self, query_time: datetime) -> List:
+		try:
+			self.storage.connect()
+			return self.storage.find(self.get_entity_finder(criteria=[
+				EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName='last_modified_at'),
+					operator=EntityCriteriaOperator.LESS_THAN, right=query_time),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=1)
+			]))
+		finally:
+			self.storage.close()
 
 
 def get_change_data_json_service(storage: TransactionalStorageSPI,

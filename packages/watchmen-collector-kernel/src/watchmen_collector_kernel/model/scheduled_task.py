@@ -46,6 +46,7 @@ class ScheduledTask(TenantBasedTuple, BaseModel):
 	isFinished: bool
 	status: int
 	result: Dict
+	eventId: str
 
 	def __setattr__(self, name, value):
 		if name == 'dependOn':

@@ -311,6 +311,7 @@ table_scheduled_task = Table(
 	create_json('depend_on'), create_json('parent_task_id'),
 	create_int('is_finished', False),
 	create_int('status', False), create_json('result'),
+	create_str('event_id', 200, False),
 	create_tenant_id(),
 	*create_tuple_audit_columns()
 )
@@ -322,6 +323,7 @@ table_scheduled_task_history = Table(
 	create_json('depend_on'), create_json('parent_task_id'),
 	create_int('is_finished', False),
 	create_int('status', False), create_json('result'),
+	create_str('event_id', 200, False),
 	create_tenant_id(),
 	*create_tuple_audit_columns()
 )
@@ -357,7 +359,9 @@ table_trigger_event = Table(
 	'trigger_event', meta_data,
 	create_pk('event_trigger_id', Integer),
 	create_date('start_time'), create_date('end_time'),
-	create_int('is_finished', False),
+	create_int('is_finished', False), create_int('status', False),
+	create_int('type', False),
+	create_str('table_name', 50), create_json('records'),
 	create_tenant_id(), *create_tuple_audit_columns()
 )
 table_trigger_module = Table(
