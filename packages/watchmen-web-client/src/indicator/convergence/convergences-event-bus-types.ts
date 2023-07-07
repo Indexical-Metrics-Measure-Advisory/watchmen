@@ -4,6 +4,7 @@ import {Convergence, ConvergenceId, ConvergenceVariable} from '@/services/data/t
 import {Objective, ObjectiveId} from '@/services/data/tuples/objective-types';
 import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
 import {QueryConvergence} from '@/services/data/tuples/query-convergence-types';
+import {QueryObjective} from '@/services/data/tuples/query-objective-types';
 import {QueryUserGroupForHolder} from '@/services/data/tuples/query-user-group-types';
 
 export enum ConvergencesEventTypes {
@@ -23,7 +24,9 @@ export enum ConvergencesEventTypes {
 	ASK_BUCKETS = 'ask-buckets-details',
 	ASK_BUCKET = 'ask-bucket',
 
+	ASK_ALL_OBJECTIVES = 'ask-all-objectives',
 	ASK_OBJECTIVES = 'ask-objectives',
+	ASK_OBJECTIVE = 'ask-objective',
 
 	ASK_ALL_USER_GROUPS = 'ask-all-user-groups'
 }
@@ -73,9 +76,17 @@ export interface ConvergencesEventBus {
 	on(type: ConvergencesEventTypes.ASK_BUCKET, listener: (bucketId: BucketId, onData: (bucket?: Bucket) => void) => void): this;
 	off(type: ConvergencesEventTypes.ASK_BUCKET, listener: (bucketId: BucketId, onData: (bucket?: Bucket) => void) => void): this;
 
+	fire(type: ConvergencesEventTypes.ASK_ALL_OBJECTIVES, onData: (objectives: Array<QueryObjective>) => void): this;
+	on(type: ConvergencesEventTypes.ASK_ALL_OBJECTIVES, listener: (onData: (objectives: Array<QueryObjective>) => void) => void): this;
+	off(type: ConvergencesEventTypes.ASK_ALL_OBJECTIVES, listener: (onData: (objectives: Array<QueryObjective>) => void) => void): this;
+
 	fire(type: ConvergencesEventTypes.ASK_OBJECTIVES, objectiveIds: Array<ObjectiveId>, onData: (objectives: Array<Objective>) => void): this;
 	on(type: ConvergencesEventTypes.ASK_OBJECTIVES, listener: (objectiveIds: Array<ObjectiveId>, onData: (objectives: Array<Objective>) => void) => void): this;
 	off(type: ConvergencesEventTypes.ASK_OBJECTIVES, listener: (objectiveIds: Array<ObjectiveId>, onData: (objectives: Array<Objective>) => void) => void): this;
+
+	fire(type: ConvergencesEventTypes.ASK_OBJECTIVE, objectiveId: ObjectiveId, onData: (objective?: Objective) => void): this;
+	on(type: ConvergencesEventTypes.ASK_OBJECTIVE, listener: (objectiveId: ObjectiveId, onData: (objective?: Objective) => void) => void): this;
+	off(type: ConvergencesEventTypes.ASK_OBJECTIVE, listener: (objectiveId: ObjectiveId, onData: (objective?: Objective) => void) => void): this;
 
 	fire(type: ConvergencesEventTypes.ASK_ALL_USER_GROUPS, onData: (groups: Array<QueryUserGroupForHolder>) => void): this;
 	on(type: ConvergencesEventTypes.ASK_ALL_USER_GROUPS, listener: (onData: (groups: Array<QueryUserGroupForHolder>) => void) => void): this;

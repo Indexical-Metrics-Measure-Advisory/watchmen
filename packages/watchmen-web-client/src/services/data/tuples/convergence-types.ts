@@ -63,8 +63,9 @@ export interface ConvergenceFreeWalkVariable extends ConvergenceVariable {
 }
 
 export interface ConvergenceTargetVariableMapping {
+	uuid: string;
 	objectiveVariableName: string;
-	variableId: ConvergenceVariableId;
+	variableId?: ConvergenceVariableId;
 }
 
 export interface ConvergenceTarget {

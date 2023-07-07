@@ -4,7 +4,7 @@ import {
 	askMockObjectiveFactorValue,
 	askMockObjectiveValues,
 	fetchMockConsanguinity,
-	fetchMockObjective,
+	fetchMockObjective, fetchMockObjectivesByIds,
 	listMockObjectives,
 	listMockObjectivesForHolder,
 	saveMockObjective
@@ -60,6 +60,14 @@ export const listObjectivesForHolder = async (search: string): Promise<Array<Que
 	}
 };
 
+export const fetchObjectivesByIds = async (objectiveIds: Array<ObjectiveId>): Promise<Array<Objective>> => {
+	if (isMockService()) {
+		return await fetchMockObjectivesByIds(objectiveIds);
+	} else {
+		return await post({api: Apis.OBJECTIVE_BY_IDS, data: objectiveIds});
+	}
+};
+
 export const fetchObjective = async (objectiveId: ObjectiveId): Promise<Objective> => {
 	if (isMockService()) {
 		return await fetchMockObjective(objectiveId);
@@ -87,7 +95,9 @@ export const saveObjective = async (objective: Objective): Promise<void> => {
 	}
 };
 
-export const askObjectiveFactorValue = async (objective: Objective, factor: ObjectiveFactor): Promise<{ value?: number }> => {
+export const askObjectiveFactorValue = async (objective: Objective, factor: ObjectiveFactor): Promise<{
+	value?: number
+}> => {
 	if (isMockService()) {
 		return askMockObjectiveFactorValue(objective, factor);
 	} else {

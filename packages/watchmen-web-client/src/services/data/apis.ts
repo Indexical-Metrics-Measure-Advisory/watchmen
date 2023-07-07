@@ -180,7 +180,6 @@ export const Apis = {
 	BUCKET_SAVE: 'indicator/bucket',
 	BUCKET_GET: 'indicator/bucket?bucket_id=:bucketId',
 	BUCKET_LIST_FOR_INDICATOR_VALUE: 'indicator/bucket/numeric-value?query_name=:search',
-	/** bucketIds is joined by comma */
 	BUCKET_LIST_BY_IDS: 'indicator/bucket/ids',
 	BUCKET_LIST_BY_METHODS: 'indicator/bucket/methods',
 	BUCKETS_EXPORT: 'indicator/bucket/export',

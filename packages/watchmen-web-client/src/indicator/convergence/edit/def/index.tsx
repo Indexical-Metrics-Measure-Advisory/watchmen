@@ -11,8 +11,8 @@ import {useConvergencesEventBus} from '../../convergences-event-bus';
 import {ConvergencesEventTypes} from '../../convergences-event-bus-types';
 import {EditStep} from '../edit-step';
 import {ConvergenceDeclarationStep} from '../steps';
-import {ObjectiveEditGrid} from './objective-edit-grid';
 import {AxisEditGrid} from './axis-edit-grid';
+import {ObjectiveEditGrid} from './objective-edit-grid';
 
 export const Def = (props: { convergence: Convergence }) => {
 	const {convergence} = props;
@@ -65,7 +65,8 @@ export const Def = (props: { convergence: Convergence }) => {
 		}
 	};
 
-	return <EditStep index={ConvergenceDeclarationStep.DEF} title={Lang.INDICATOR.CONVERGENCE.DEF_TITLE}>
+	return <EditStep index={ConvergenceDeclarationStep.DEF} title={Lang.INDICATOR.CONVERGENCE.DEF_TITLE}
+	                 data-step="def">
 		{axisFrozen
 			? <ObjectiveEditGrid convergence={convergence} unfreeze={unfreeze}/>
 			: <AxisEditGrid convergence={convergence} freeze={freeze}/>}

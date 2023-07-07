@@ -631,6 +631,7 @@ export const Jp: LanguageDeclareType = {
 			VARIABLE_TIMEFRAME_KIND_YEAR: '毎年',
 			X_AXIS_ADD_PLACEHOLDER: '横軸に次元を追加',
 			Y_AXIS_ADD_PLACEHOLDER: '縦軸に次元を追加',
+			PLEASE_SELECT_TARGET: '...を選択してください',
 			FREEZE_DEF: '次元をロック',
 			UNFREEZE_DEF: '次元のロック解除',
 			VARIABLE_NOT_FILLED: '定義された軸の凡例の属性値が正しく入力されているか確認してください。',

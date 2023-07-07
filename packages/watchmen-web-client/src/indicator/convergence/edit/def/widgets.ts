@@ -26,7 +26,7 @@ export const ObjectiveEditGridContainer = styled.div.attrs<{
 		return {
 			'data-widget': 'convergence-def-grid',
 			style: {
-				gridTemplateRows: `${xCount === 0 ? 'minmax(var(--tall-height), auto)' : new Array(xCount).fill('auto').join(' ')} 1fr ${new Array(yComputedCount).fill('1fr').join(' ')}`,
+				gridTemplateRows: `${xCount === 0 ? 'minmax(var(--tall-height), auto)' : new Array(xCount).fill('auto').join(' ')} ${new Array(yComputedCount).fill('1fr').join(' ')}`,
 				gridTemplateColumns: `${yCount === 0 ? 'minmax(200px, auto)' : new Array(yCount).fill('auto').join(' ')} ${new Array(xComputedCount).fill('1fr').join(' ')}`
 			}
 		};
@@ -258,13 +258,25 @@ export const TargetCell = styled.div.attrs<{
 		}
 	};
 })<{ row: number; column: number; lastRow: boolean; lastColumn: boolean }>`
-	display         : flex;
-	position        : relative;
-	align-items     : center;
-	justify-content : center;
-	border-top      : var(--border);
-	border-left     : var(--border);
-	min-height      : var(--tall-height);
+	display               : grid;
+	position              : relative;
+	align-items           : center;
+	align-content         : start;
+	grid-template-columns : auto auto 1fr;
+	grid-column-gap       : calc(var(--margin) / 2);
+	grid-row-gap          : calc(var(--margin) / 4);
+	border-top            : var(--border);
+	border-left           : var(--border);
+	min-height            : var(--tall-height);
+	padding               : calc(var(--margin) / 2);
+	> div[data-widget=dropdown]:first-child {
+		grid-column : span 3;
+	}
+	> span:nth-child(3n + 2) {
+		font-weight  : var(--font-demi-bold);
+		font-variant : petite-caps;
+		white-space  : nowrap;
+	}
 `;
 export const FreezeButton = styled(Button)`
 	min-width : 200px;

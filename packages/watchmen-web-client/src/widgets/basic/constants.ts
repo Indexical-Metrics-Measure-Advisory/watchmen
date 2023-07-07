@@ -65,7 +65,7 @@ import {
 	faLevelUpAlt,
 	faLink,
 	faLock,
-	faLockOpen,
+	faLockOpen, faLongArrowLeft,
 	faMagnifyingGlassChart,
 	faMicroscope,
 	faObjectGroup,
@@ -310,6 +310,7 @@ export const ICON_EXPAND_NODES = faPlus;
 export const ICON_EXTERNAL_LINK = faExternalLinkAlt;
 export const ICON_RENDERER = faPaintRoller;
 export const ICON_SUBSCRIBE = faSquareRss;
+export const ICON_COPY_TO_LEFT = faLongArrowLeft;
 
 export const ICON_COMMENTS = faCommentDots;
 export const ICON_CMD_PROMPT = faTerminal;

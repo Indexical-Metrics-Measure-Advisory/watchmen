@@ -61,7 +61,9 @@ export const saveMockObjective = async (objective: Objective): Promise<void> => 
 	});
 };
 
-export const askMockObjectiveFactorValue = async (objective: Objective, factor: ObjectiveFactor): Promise<{ value?: number }> => {
+export const askMockObjectiveFactorValue = async (objective: Objective, factor: ObjectiveFactor): Promise<{
+	value?: number
+}> => {
 	return new Promise<{ value?: number }>(resolve => {
 		setTimeout(() => resolve({value: Math.random() * 10000}));
 	});
@@ -572,5 +574,16 @@ export const listMockObjectivesForHolder = async (search: string): Promise<Array
 				)
 			);
 		}, 500);
+	});
+};
+
+export const fetchMockObjectivesByIds = async (objectiveIds: Array<ObjectiveId>): Promise<Array<Objective>> => {
+	return new Promise<Array<Objective>>((resolve) => {
+		setTimeout(() => {
+			resolve(DemoObjectives
+				// eslint-disable-next-line
+				.filter(objective => objectiveIds.some(objectiveId => objectiveId == objective.objectiveId))
+			);
+		}, 1000);
 	});
 };
