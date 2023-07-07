@@ -207,9 +207,10 @@ export const Apis = {
 
 	CONVERGENCE_LIST_BY_NAME: 'indicator/convergence/name?query_name=:search',
 	CONVERGENCE_LIST_FOR_HOLDER_BY_NAME: 'indicator/convergence/list/name?query_name=:search',
+	CONVERGENCE_BY_IDS: 'indicator/convergence/ids',
 	CONVERGENCE_GET: 'indicator/convergence?convergence_id=:convergenceId',
 	CONVERGENCE_CREATE: 'indicator/convergence',
-	CONVERGENCE_SAVE: 'indicator/convergence',
+	CONVERGENCE_SAVE: 'indicator/convergence'
 };
 
 const buildApi = (api: string, args?: Record<string, any>): string => {
