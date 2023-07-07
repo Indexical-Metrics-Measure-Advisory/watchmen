@@ -3,27 +3,18 @@ import {
 	ConvergenceTimeFrameVariable,
 	ConvergenceTimeFrameVariableKind
 } from '@/services/data/tuples/convergence-types';
-import {formatTime, getCurrentTime} from '@/services/data/utils';
+import {getCurrentTime} from '@/services/data/utils';
 import {noop} from '@/services/utils';
 import {Calendar} from '@/widgets/basic/calendar';
 import {Dropdown} from '@/widgets/basic/dropdown';
 import {DropdownOption} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
-import dayjs, {Dayjs, ManipulateType} from 'dayjs';
 import {useConvergencesEventBus} from '../../convergences-event-bus';
 import {ConvergencesEventTypes} from '../../convergences-event-bus-types';
+import {computeTimeFrameValues} from './utils';
 import {XAxisLegendCell} from './xaxis-legend-cell';
 import {YAxisLegendCell} from './yaxis-legend-cell';
-
-const computeRangeValues = (till: Dayjs, times: number) => (unit: ManipulateType, multiply: number = 1) => {
-	return new Array(times).fill(1).map((_, index) => {
-		return {
-			start: formatTime(till.subtract((index + 1) * multiply, unit).add(1, 'day').hour(0).minute(0).second(0)),
-			end: formatTime(till.subtract(index * multiply, unit).hour(23).minute(59).second(59))
-		};
-	}).reverse();
-};
 
 const TimeframeVariable = (props: { convergence: Convergence; variable: ConvergenceTimeFrameVariable }) => {
 	const {convergence, variable} = props;
@@ -32,30 +23,7 @@ const TimeframeVariable = (props: { convergence: Convergence; variable: Converge
 	const forceUpdate = useForceUpdate();
 
 	const computeValues = () => {
-		const times = isNaN(Number(variable.times)) ? 1 : Number(variable.times);
-		const till = dayjs(variable.till || getCurrentTime().substring(0, 10));
-		const compute = computeRangeValues(till, times);
-
-		switch (variable.kind) {
-			case ConvergenceTimeFrameVariableKind.DAY:
-				variable.values = compute('day');
-				break;
-			case ConvergenceTimeFrameVariableKind.WEEK:
-				variable.values = compute('week');
-				break;
-			case ConvergenceTimeFrameVariableKind.MONTH:
-				variable.values = compute('month');
-				break;
-			case ConvergenceTimeFrameVariableKind.QUARTER:
-				variable.values = compute('month', 3);
-				break;
-			case ConvergenceTimeFrameVariableKind.HALF_YEAR:
-				variable.values = compute('month', 6);
-				break;
-			case ConvergenceTimeFrameVariableKind.YEAR:
-				variable.values = compute('year');
-				break;
-		}
+		computeTimeFrameValues(variable);
 		fire(ConvergencesEventTypes.SAVE_CONVERGENCE, convergence, noop);
 		forceUpdate();
 	};

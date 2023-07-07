@@ -7,6 +7,7 @@ import {UserGroupHolder} from './user-group-types';
 
 export type ConvergenceId = string;
 export type ConvergenceVariableId = string;
+export type ConvergenceTargetId = string;
 
 export enum ConvergenceVariableType {
 	TIMEFRAME = 'timeframe',
@@ -67,6 +68,7 @@ export interface ConvergenceTargetVariableMapping {
 }
 
 export interface ConvergenceTarget {
+	uuid: ConvergenceTargetId;
 	objectiveId: ObjectiveId;
 	targetId: ObjectiveTargetId;
 	mapping: Array<ConvergenceTargetVariableMapping>;
