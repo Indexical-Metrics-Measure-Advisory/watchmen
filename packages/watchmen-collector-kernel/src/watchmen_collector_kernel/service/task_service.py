@@ -35,18 +35,17 @@ class TaskService:
 	def consume_task(self, task: ScheduledTask, executed: Callable[[str, Dict, str], None]) -> ScheduledTask:
 		try:
 			executed(task.topicCode, task.content, task.tenantId)
-			task.status = Status.SUCCESS.value
-			return self.update_task_result(task)
+			return self.update_task_result(task, Status.SUCCESS.value)
 		except Exception as e:
 			logger.error(e, exc_info=True, stack_info=True)
-			task.status = Status.FAIL.value
 			task.result = format_exc()
-			return self.update_task_result(task)
+			return self.update_task_result(task, Status.FAIL.value)
 
-	def update_task_result(self, task: ScheduledTask) -> ScheduledTask:
+	def update_task_result(self, task: ScheduledTask, status: int) -> ScheduledTask:
 		self.scheduled_task_service.begin_transaction()
 		try:
 			task.isFinished = True
+			task.status = status
 			self.scheduled_task_history_service.create(task)
 			self.scheduled_task_service.delete(task.taskId)
 			self.scheduled_task_service.commit_transaction()

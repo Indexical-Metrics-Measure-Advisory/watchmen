@@ -1,5 +1,7 @@
 from typing import List, Optional, Dict
 
+from watchmen_model.common import TenantId
+
 from watchmen_collector_kernel.model import CollectorTableConfig
 
 from watchmen_data_kernel.cache import InternalCache
@@ -15,6 +17,10 @@ class TableConfigCache:
 		self.ByNameCache = InternalCache(cache=get_table_config_by_name_cache)
 		self.ByTableNameCache = InternalCache(cache=get_table_config_by_table_name_cache)
 		self.ByParentNameCache = InternalCache(cache=get_table_configs_by_parent_name_cache)
+
+	# noinspection PyMethodMayBeStatic
+	def to_tenant_and_name_key(self, name: str, tenant_id: TenantId) -> str:
+		return f'{tenant_id}-{name}'
 
 	def put_config_by_name(self, table_config: CollectorTableConfig) -> Optional[CollectorTableConfig]:
 		if ask_collector_config_cache_enabled():

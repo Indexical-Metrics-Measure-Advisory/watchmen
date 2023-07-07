@@ -3,7 +3,7 @@ from .scheduler import ask_collector_job_scheduler
 from .settings import ask_s3_collector_enabled, \
 	ask_s3_connector_settings, ask_query_based_change_data_capture_enabled, ask_task_listener_enabled, ask_fastapi_job
 from watchmen_collector_surface.connects import init_s3_collector
-from .task import init_task_listener, init_lock_clean
+from .task import init_task_listener, init_clean
 
 
 class CollectorSurface:
@@ -25,7 +25,7 @@ class CollectorSurface:
 				init_json_listener()
 				init_event_listener()
 				init_task_listener()
-				init_lock_clean()
+				init_clean()
 
 	# noinspection PyMethodMayBeStatic
 	def init_s3_connector(self) -> None:

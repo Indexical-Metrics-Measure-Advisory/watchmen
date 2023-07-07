@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.model import TriggerEvent
@@ -17,7 +17,11 @@ class TriggerEventShaper(EntityShaper):
 			'event_trigger_id': entity.eventTriggerId,
 			'start_time': entity.startTime,
 			'end_time': entity.endTime,
-			'is_finished': entity.isFinished
+			'is_finished': entity.isFinished,
+			'status': entity.status,
+			'type': entity.type,
+			'table_name': entity.tableName,
+			'records': entity.records
 		})
 
 	def deserialize(self, row: EntityRow) -> TriggerEvent:
@@ -26,7 +30,11 @@ class TriggerEventShaper(EntityShaper):
 			eventTriggerId=row.get('event_trigger_id'),
 			startTime=row.get('start_time'),
 			endTime=row.get('end_time'),
-			isFinished=row.get('is_finished')
+			isFinished=row.get('is_finished'),
+			status=row.get('status'),
+			type=row.get('type'),
+			tableName=row.get('table_name'),
+			records=row.get('records')
 		))
 
 
@@ -57,6 +65,32 @@ class TriggerEventService(TupleService):
 		storable.eventTriggerId = storable_id
 		return storable
 
+	def create_trigger_event(self, trigger_event: TriggerEvent) -> TriggerEvent:
+		self.begin_transaction()
+		try:
+			event = self.create(trigger_event)
+			self.commit_transaction()
+			# noinspection PyTypeChecker
+			return event
+		except Exception as e:
+			self.rollback_transaction()
+			raise e
+		finally:
+			self.close_transaction()
+
+	def update_trigger_event(self, trigger_event: TriggerEvent) -> Optional[TriggerEvent]:
+		self.begin_transaction()
+		try:
+			result = self.update(trigger_event)
+			self.commit_transaction()
+			# noinspection PyTypeChecker
+			return result
+		except Exception as e:
+			self.rollback_transaction()
+			raise e
+		finally:
+			self.close_transaction()
+
 	def find_event_by_id(self, event_trigger_id: EventTriggerId) -> TriggerEvent:
 		try:
 			self.storage.connect()
@@ -77,6 +111,7 @@ class TriggerEventService(TupleService):
 			))
 		finally:
 			self.close_transaction()
+
 	def find_finished_events(self) -> List[Dict[str, Any]]:
 		self.begin_transaction()
 		try:
@@ -87,6 +122,39 @@ class TriggerEventService(TupleService):
 				                 EntityStraightColumn(columnName='tenant_id')],
 				sort=[EntitySortColumn(name=self.get_storable_id_column_name(), method=EntitySortMethod.ASC)]
 			))
+		finally:
+			self.close_transaction()
+
+	def find_initial_event_by_tenant_id(self, tenant_id: str) -> Optional[TriggerEvent]:
+		self.begin_transaction()
+		try:
+			res = self.storage.find(self.get_entity_finder(
+				criteria=[EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=0),
+				          EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)],
+				sort=[EntitySortColumn(name=self.get_storable_id_column_name(), method=EntitySortMethod.ASC)]
+			))
+			if res:
+				# noinspection PyTypeChecker
+				return res[0]
+			else:
+				return None
+		finally:
+			self.close_transaction()
+
+	def find_executing_event_by_tenant_id(self, tenant_id: str) -> Optional[TriggerEvent]:
+		self.begin_transaction()
+		try:
+			res = self.storage.find(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=1),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id),
+				    ]
+			))
+			if res:
+				# noinspection PyTypeChecker
+				return res[0]
+			else:
+				return None
 		finally:
 			self.close_transaction()
 
