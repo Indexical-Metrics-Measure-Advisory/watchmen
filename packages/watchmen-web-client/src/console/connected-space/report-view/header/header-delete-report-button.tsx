@@ -63,7 +63,11 @@ const ReportDelete = (props: { report: Report, onRemoved: () => void }) => {
 	</>;
 };
 
-export const HeaderDeleteReportButton = (props: { connectedSpace: ConnectedSpace, subject: Subject, report: Report }) => {
+export const HeaderDeleteReportButton = (props: {
+	connectedSpace: ConnectedSpace,
+	subject: Subject,
+	report: Report
+}) => {
 	const {connectedSpace, subject, report} = props;
 
 	const navigate = useNavigate();

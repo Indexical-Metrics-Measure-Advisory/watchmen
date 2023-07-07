@@ -16,7 +16,11 @@ const Labels: Record<ParameterExpressionOperator, string> = {
 	[ParameterExpressionOperator.IN]: 'In',
 	[ParameterExpressionOperator.NOT_IN]: 'Not In'
 };
-export const ExpressionLine = (props: { expression: ParameterExpression, topicsMap: Map<string, Topic>, indent: number }) => {
+export const ExpressionLine = (props: {
+	expression: ParameterExpression,
+	topicsMap: Map<string, Topic>,
+	indent: number
+}) => {
 	const {expression, topicsMap, indent} = props;
 
 	if (!expression) {

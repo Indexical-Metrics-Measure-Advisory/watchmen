@@ -48,7 +48,9 @@ export const fetchMockRules = async (options: { criteria: MonitorRulesCriteria }
 	}
 };
 
-export const fetchMockMonitorRuleLogs = async (options: { criteria: MonitorRuleLogCriteria }): Promise<MonitorRuleLogs> => {
+export const fetchMockMonitorRuleLogs = async (options: {
+	criteria: MonitorRuleLogCriteria
+}): Promise<MonitorRuleLogs> => {
 	const {criteria: {ruleCode, topicId}} = options;
 	const codes = Object.values(MonitorRuleCode);
 

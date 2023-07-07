@@ -107,7 +107,12 @@ export const fetchSubjectForIndicator = async (subjectId: SubjectId): Promise<Su
 	}
 };
 
-export const fetchIndicator = async (indicatorId: IndicatorId): Promise<{ indicator: Indicator; topic?: TopicForIndicator; subject?: SubjectForIndicator; enums?: Array<EnumForIndicator>; }> => {
+export const fetchIndicator = async (indicatorId: IndicatorId): Promise<{
+	indicator: Indicator;
+	topic?: TopicForIndicator;
+	subject?: SubjectForIndicator;
+	enums?: Array<EnumForIndicator>;
+}> => {
 	if (isMockService()) {
 		return await fetchMockIndicator(indicatorId);
 	} else {

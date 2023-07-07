@@ -25,7 +25,10 @@ const ConnectedSpaceDropdown = styled(Dropdown)`
 	margin-top : calc(var(--margin) / 4);
 `;
 
-const ConnectedSpaceSwitch = (props: { connectedSpaces: Array<ConnectedSpace>, switchTo: (connectedSpace: ConnectedSpace) => void }) => {
+const ConnectedSpaceSwitch = (props: {
+	connectedSpaces: Array<ConnectedSpace>,
+	switchTo: (connectedSpace: ConnectedSpace) => void
+}) => {
 	const {connectedSpaces, switchTo} = props;
 
 	const {fire} = useEventBus();

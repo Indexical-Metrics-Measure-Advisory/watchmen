@@ -96,7 +96,12 @@ const FunnelEnumHandler = (props: { subject: Subject; funnel: ReportFunnel }) =>
 	return <Fragment/>;
 };
 
-const FunnelEditorDelegate = (props: { subject: Subject; report: Report; funnel: ReportFunnel; pairJoint: ReactNode }) => {
+const FunnelEditorDelegate = (props: {
+	subject: Subject;
+	report: Report;
+	funnel: ReportFunnel;
+	pairJoint: ReactNode
+}) => {
 	const {subject, report, funnel, pairJoint} = props;
 
 	const {on: onReport, off: offReport, fire: fireReport} = useReportEditEventBus();

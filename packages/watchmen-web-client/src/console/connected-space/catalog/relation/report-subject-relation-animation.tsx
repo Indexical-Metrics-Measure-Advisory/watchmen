@@ -8,7 +8,11 @@ import {useCatalogEventBus} from '../catalog-event-bus';
 import {CatalogEventTypes} from '../catalog-event-bus-types';
 import {AssembledConnectedSpaceGraphics, GraphicsRole} from '../types';
 
-export const ReportSubjectRelationAnimation = (props: { graphics: AssembledConnectedSpaceGraphics, subject: Subject, report: Report }) => {
+export const ReportSubjectRelationAnimation = (props: {
+	graphics: AssembledConnectedSpaceGraphics,
+	subject: Subject,
+	report: Report
+}) => {
 	const {graphics, subject, report} = props;
 
 	const {on, off} = useCatalogEventBus();

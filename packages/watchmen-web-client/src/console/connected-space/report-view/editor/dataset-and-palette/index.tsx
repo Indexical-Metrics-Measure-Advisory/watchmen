@@ -79,7 +79,11 @@ enum TABS {
 	SCRIPT_VARS = 'script-vars'
 }
 
-export const ReportDataSetAndPalette = (props: { connectedSpace: ConnectedSpace, subject: Subject, report: Report }) => {
+export const ReportDataSetAndPalette = (props: {
+	connectedSpace: ConnectedSpace,
+	subject: Subject,
+	report: Report
+}) => {
 	const {connectedSpace, subject, report} = props;
 	const {chart} = report;
 

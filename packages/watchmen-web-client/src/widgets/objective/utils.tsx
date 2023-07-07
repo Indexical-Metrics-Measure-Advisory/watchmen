@@ -97,7 +97,11 @@ export interface IncreaseRatio {
 	better?: BetterThanBase;
 }
 
-export const asIncreaseRatio = (options: { base: number, value: number, betterSide?: ObjectiveTargetBetterSide }): IncreaseRatio => {
+export const asIncreaseRatio = (options: {
+	base: number,
+	value: number,
+	betterSide?: ObjectiveTargetBetterSide
+}): IncreaseRatio => {
 	const {base, value, betterSide} = options;
 	if (base === 0) {
 		return {ratio: 'N/A'};

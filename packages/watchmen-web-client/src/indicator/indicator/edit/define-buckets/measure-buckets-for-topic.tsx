@@ -56,7 +56,11 @@ const FactorMeasureBuckets = (props: {
 	</>;
 };
 
-export const MeasureBucketsForTopic = (props: { indicator: Indicator; topic?: TopicForIndicator, enums?: Array<EnumForIndicator> }) => {
+export const MeasureBucketsForTopic = (props: {
+	indicator: Indicator;
+	topic?: TopicForIndicator,
+	enums?: Array<EnumForIndicator>
+}) => {
 	const {topic, enums} = props;
 
 	const {fire: fireGlobal} = useEventBus();

@@ -199,8 +199,13 @@ ${generateTopicMonitorRulesMarkdown({
 };
 
 export const generateTopics = (options: {
-	topicsMap: TopicsMap; pipelinesMap: PipelinesMap; dataSourcesMap: DataSourcesMap; enumsMap: EnumsMap; monitorRulesMap: MonitorRulesMap;
-	topicRelations: TopicRelationMap; pipelineRelations: PipelineRelationMap;
+	topicsMap: TopicsMap;
+	pipelinesMap: PipelinesMap;
+	dataSourcesMap: DataSourcesMap;
+	enumsMap: EnumsMap;
+	monitorRulesMap: MonitorRulesMap;
+	topicRelations: TopicRelationMap;
+	pipelineRelations: PipelineRelationMap;
 	sectionIndex: number;
 }): string => {
 	const {

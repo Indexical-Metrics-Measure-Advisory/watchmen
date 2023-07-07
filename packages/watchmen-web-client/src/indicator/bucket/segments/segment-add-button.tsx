@@ -8,7 +8,10 @@ import React from 'react';
 import {useBucketEventBus} from '../bucket-event-bus';
 import {BucketEventTypes} from '../bucket-event-bus-types';
 
-export const SegmentAddButton = <B extends Bucket, S extends BucketSegment>(props: { bucket: B; createSegment: (bucket: B) => S; }) => {
+export const SegmentAddButton = <B extends Bucket, S extends BucketSegment>(props: {
+	bucket: B;
+	createSegment: (bucket: B) => S;
+}) => {
 	const {bucket, createSegment} = props;
 
 	const {fire} = useBucketEventBus();

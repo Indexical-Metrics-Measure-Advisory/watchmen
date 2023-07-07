@@ -90,7 +90,12 @@ const MarkdownSvgPalette = (props: { pipelines: Array<Pipeline> }) => {
 	const {fire, on, off} = useCatalogEventBus();
 	const ref = useRef<HTMLDivElement>(null);
 	const svgRef = useRef<SVGSVGElement>(null);
-	const [state, setState] = useState<{ topics: Array<Topic>, assembled: AssembledPipelinesGraphics | null, toComputeGraphics: boolean, svgSize: Partial<GraphicsSize> }>({
+	const [state, setState] = useState<{
+		topics: Array<Topic>,
+		assembled: AssembledPipelinesGraphics | null,
+		toComputeGraphics: boolean,
+		svgSize: Partial<GraphicsSize>
+	}>({
 		topics: [],
 		assembled: null,
 		toComputeGraphics: false,

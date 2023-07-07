@@ -23,7 +23,12 @@ import {
 	getVersionColumnName
 } from './utils';
 
-const buildColumnOnCreate = (options: { topic: Topic, columnName: string, columnType: string, should?: (topic: Topic) => boolean }) => {
+const buildColumnOnCreate = (options: {
+	topic: Topic,
+	columnName: string,
+	columnType: string,
+	should?: (topic: Topic) => boolean
+}) => {
 	const {topic, columnName, columnType, should} = options;
 	if (!should || should(topic)) {
 		return `\t\t\t<column name="${columnName}" type="\${${columnType}}"/>`;

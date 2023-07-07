@@ -272,7 +272,10 @@ export const computeTopicSelection = (options: { topicId: TopicId; graphics: Ass
 	return computeBlockSelection(topicGraphics);
 };
 
-export const computeSubjectSelection = (options: { subjectId: SubjectId; graphics: AssembledConnectedSpaceGraphics }) => {
+export const computeSubjectSelection = (options: {
+	subjectId: SubjectId;
+	graphics: AssembledConnectedSpaceGraphics
+}) => {
 	const {graphics, subjectId} = options;
 
 	// eslint-disable-next-line

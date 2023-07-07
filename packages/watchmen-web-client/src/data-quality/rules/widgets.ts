@@ -65,7 +65,9 @@ export const SearchResultTargetLabel = styled.div.attrs({'data-widget': 'rules-r
 		margin-left : calc(var(--margin) / 4);
 	}
 `;
-export const SearchResultHeader = styled.div.attrs<{ grade: MonitorRuleGrade.GLOBAL | MonitorRuleGrade.TOPIC }>(({grade}) => {
+export const SearchResultHeader = styled.div.attrs<{
+	grade: MonitorRuleGrade.GLOBAL | MonitorRuleGrade.TOPIC
+}>(({grade}) => {
 	return {
 		'data-widget': 'rules-result-header',
 		style: {

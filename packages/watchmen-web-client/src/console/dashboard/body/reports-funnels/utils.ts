@@ -46,7 +46,10 @@ export const gatherTopicIds = (defs: FunnelDefs): Array<TopicId> => {
 	)] as Array<TopicId>;
 };
 
-export const fillFunnelDefsByEnumIds = (funnelDefs: FunnelDefs, topics: Array<Topic>): { defs: FunnelDefs; enumIds: Array<EnumId> } => {
+export const fillFunnelDefsByEnumIds = (funnelDefs: FunnelDefs, topics: Array<Topic>): {
+	defs: FunnelDefs;
+	enumIds: Array<EnumId>
+} => {
 	return Object.keys(funnelDefs).reduce((data, funnelId) => {
 		const def = funnelDefs[funnelId];
 		if (!def.topicId) {

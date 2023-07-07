@@ -5,7 +5,11 @@ import {Indicator, IndicatorBaseOn} from '@/services/data/tuples/indicator-types
 import {isNotNull} from '@/services/data/utils';
 import {base64Encode} from '@/services/utils';
 
-const generateBaseOn = (options: { indicator: Indicator; connectedSpaces: Array<ConnectedSpace>; topicsMap: TopicsMap; }): string => {
+const generateBaseOn = (options: {
+	indicator: Indicator;
+	connectedSpaces: Array<ConnectedSpace>;
+	topicsMap: TopicsMap;
+}): string => {
 	const {indicator, connectedSpaces, topicsMap} = options;
 
 	if (indicator.baseOn === IndicatorBaseOn.TOPIC) {

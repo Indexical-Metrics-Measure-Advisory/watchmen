@@ -5,7 +5,10 @@ import {useFilterEventBus} from '../filter-event-bus';
 import {FilterEventTypes} from '../filter-event-bus-types';
 import {JointFold} from '../joint-fold';
 
-export const TopFold = (props: { factor: ObjectiveFactorOnIndicator; conditional?: ConditionalObjectiveParameter; }) => {
+export const TopFold = (props: {
+	factor: ObjectiveFactorOnIndicator;
+	conditional?: ConditionalObjectiveParameter;
+}) => {
 	const {factor, conditional} = props;
 
 	const {on, off} = useFilterEventBus();

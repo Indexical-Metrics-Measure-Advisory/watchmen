@@ -165,10 +165,16 @@ const findOnCondition = (condition: ParameterJoint, result: UsedFactors, variabl
 	});
 };
 
-export const buildPipelineRelation = (options: { pipeline: Pipeline; topicsMap: MappedTopicsMap }): PipelineRelation => {
+export const buildPipelineRelation = (options: {
+	pipeline: Pipeline;
+	topicsMap: MappedTopicsMap
+}): PipelineRelation => {
 	const {pipeline, topicsMap} = options;
 
-	const findFactorsByTrigger = (pipeline: Pipeline, topicsMap: MappedTopicsMap): { topic?: Topic; factorIds: Array<FactorId> } => {
+	const findFactorsByTrigger = (pipeline: Pipeline, topicsMap: MappedTopicsMap): {
+		topic?: Topic;
+		factorIds: Array<FactorId>
+	} => {
 		const triggerFactorIds: Array<FactorId> = [];
 		const triggerTopic = topicsMap[pipeline.topicId]?.topic;
 		if (triggerTopic) {

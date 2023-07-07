@@ -62,7 +62,11 @@ const ReportSwitch = (props: { reports: Array<Report>, switchTo: (report: Report
 	</>;
 };
 
-export const HeaderSwitchReportButton = (props: { connectedSpace: ConnectedSpace, subject: Subject, report: Report }) => {
+export const HeaderSwitchReportButton = (props: {
+	connectedSpace: ConnectedSpace,
+	subject: Subject,
+	report: Report
+}) => {
 	const {connectedSpace, subject, report} = props;
 
 	const navigate = useNavigate();

@@ -66,11 +66,11 @@ export const GridResizeShade = styled.div.attrs<{ visible: boolean }>(({visible}
 		style: {width: visible ? '100%' : (void 0)}
 	};
 })<{ visible: boolean }>`
-	display: block;
-	position: absolute;
-	z-index: 20;
-	top: 0;
-	left: 0;
-	width: 0;
-	height: 100%;
+	display  : block;
+	position : absolute;
+	z-index  : 20;
+	top      : 0;
+	left     : 0;
+	width    : 0;
+	height   : 100%;
 `;

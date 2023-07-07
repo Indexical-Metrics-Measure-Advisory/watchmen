@@ -6,7 +6,11 @@ import {useForceUpdate} from '@/widgets/basic/utils';
 import React from 'react';
 import {getTopicName} from '../../utils';
 
-export const AnotherTopicParameter = (props: { params: MonitorRuleParameters, currentTopic?: Topic, topics: Array<Topic> }) => {
+export const AnotherTopicParameter = (props: {
+	params: MonitorRuleParameters,
+	currentTopic?: Topic,
+	topics: Array<Topic>
+}) => {
 	const {params, currentTopic, topics} = props;
 
 	const forceUpdate = useForceUpdate();

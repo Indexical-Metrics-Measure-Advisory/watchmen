@@ -67,7 +67,10 @@ export enum ConsanguinityLineType {
 }
 
 export type ConsanguinityLine<T extends ConsanguinityLineType> = { '@cid': ConsanguinityUniqueId, type: T }
-export type ConsanguinityRelationship<F extends ConsanguinityLine<ConsanguinityLineType>> = { '@cid': ConsanguinityUniqueId, from: Array<F> }
+export type ConsanguinityRelationship<F extends ConsanguinityLine<ConsanguinityLineType>> = {
+	'@cid': ConsanguinityUniqueId,
+	from: Array<F>
+}
 // objective factor -> objective target
 export type ConsanguinityLineFromObjectiveFactorToObjectiveTarget =
 	ConsanguinityLine<ConsanguinityLineType.OBJECTIVE_FACTOR_TO_TARGET__REFER | ConsanguinityLineType.OBJECTIVE_FACTOR_TO_TARGET__COMPUTE>

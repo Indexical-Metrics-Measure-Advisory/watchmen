@@ -64,7 +64,12 @@ export const ExpressionOperatorIcon = styled.div.attrs({'data-widget': 'expressi
 	}
 `;
 export const EXPRESSION_OPERATOR_DROPDOWN_HEIGHT = 200;
-export const ExpressionOperatorDropdown = styled.div.attrs<{ visible: boolean, top?: number, bottom?: number, left: number }>(
+export const ExpressionOperatorDropdown = styled.div.attrs<{
+	visible: boolean,
+	top?: number,
+	bottom?: number,
+	left: number
+}>(
 	({visible, top, bottom, left}) => {
 		return {
 			'data-widget': 'expression-operator-dropdown',

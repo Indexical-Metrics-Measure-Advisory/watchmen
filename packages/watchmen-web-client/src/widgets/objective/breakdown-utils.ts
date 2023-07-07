@@ -4,7 +4,8 @@ import {
 	ConditionalObjectiveParameter,
 	Objective,
 	ObjectiveFactor,
-	ObjectiveFactorId, ObjectiveFactorOnIndicator,
+	ObjectiveFactorId,
+	ObjectiveFactorOnIndicator,
 	ObjectiveParameterJoint,
 	ObjectiveTarget
 } from '@/services/data/tuples/objective-types';
@@ -65,7 +66,10 @@ const findFactorRelations = (
 	}
 };
 
-export const parseBreakdown = (objective: Objective, target: ObjectiveTarget): { could: boolean, indicatorId?: IndicatorId } => {
+export const parseBreakdown = (objective: Objective, target: ObjectiveTarget): {
+	could: boolean,
+	indicatorId?: IndicatorId
+} => {
 	if (target.asis == null) {
 		return {could: false};
 	}

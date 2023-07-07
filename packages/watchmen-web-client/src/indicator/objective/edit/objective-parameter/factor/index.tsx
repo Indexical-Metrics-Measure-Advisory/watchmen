@@ -49,7 +49,8 @@ const RealFactorEditor = (props: {
 		factorOptions.push({
 			value: uuid || '', label: () => {
 				return {
-					node: <IncorrectOptionLabel>{Lang.INDICATOR.OBJECTIVE.REFER_FACTOR_BUT_INCORRECT}</IncorrectOptionLabel>,
+					node:
+						<IncorrectOptionLabel>{Lang.INDICATOR.OBJECTIVE.REFER_FACTOR_BUT_INCORRECT}</IncorrectOptionLabel>,
 					label: ''
 				};
 			}

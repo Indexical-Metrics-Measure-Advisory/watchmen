@@ -37,7 +37,10 @@ export const createUnknownFactor = (factorId: FactorId, name: string = 'Unknown 
 	};
 };
 
-export const findSelectedTopic = (topics: Array<Topic>, topicId?: TopicId, extraTopicName?: string): { selected: Topic | null, extra: Topic | null } => {
+export const findSelectedTopic = (topics: Array<Topic>, topicId?: TopicId, extraTopicName?: string): {
+	selected: Topic | null,
+	extra: Topic | null
+} => {
 	let selectedTopic: Topic | null = null, extraTopic: Topic | null = null;
 	if (topicId) {
 		// eslint-disable-next-line
@@ -53,7 +56,10 @@ export const findSelectedTopic = (topics: Array<Topic>, topicId?: TopicId, extra
  * find selected factor by given topic & factorId.
  * create extra factor when selection not found, and let selected to be extra one.
  */
-export const findSelectedFactor = (topic?: Topic | null, factorId?: FactorId, extraFactorName?: string): { selected: Factor | null, extra: Factor | null } => {
+export const findSelectedFactor = (topic?: Topic | null, factorId?: FactorId, extraFactorName?: string): {
+	selected: Factor | null,
+	extra: Factor | null
+} => {
 	let selectedFactor: Factor | null = null;
 	let extraFactor: Factor | null = null;
 	if (factorId) {

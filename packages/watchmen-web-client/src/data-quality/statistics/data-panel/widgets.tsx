@@ -144,7 +144,9 @@ export const DataPanelBodyDataCell = styled.div.attrs({'data-widget': 'data-pane
 export const DataPanelBodyNoDataCell = styled(DataPanelBodyDataCell)`
 	grid-column : span 4;
 `;
-export const DataPanelBodyBreakdownCell = styled(DataPanelBodyDataCell).attrs<{ breakdown: boolean }>({})<{ breakdown: boolean }>`
+export const DataPanelBodyBreakdownCell = styled(DataPanelBodyDataCell).attrs<{ breakdown: boolean }>({})<{
+	breakdown: boolean
+}>`
 	&:hover > span {
 		text-decoration : underline;
 		cursor          : pointer;

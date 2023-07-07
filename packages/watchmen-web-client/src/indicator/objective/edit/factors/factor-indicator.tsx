@@ -11,7 +11,11 @@ import {ObjectivesEventTypes} from '../../objectives-event-bus-types';
 import {ConditionalEditor} from './conditional';
 import {FactorItemLabel, IncorrectOptionLabel, IndicatorDropdown} from './widgets';
 
-export const FactorIndicator = (props: { objective: Objective; factor: ObjectiveFactor; indicators: Array<Indicator>; }) => {
+export const FactorIndicator = (props: {
+	objective: Objective;
+	factor: ObjectiveFactor;
+	indicators: Array<Indicator>;
+}) => {
 	const {objective, factor, indicators} = props;
 
 	const {fire} = useObjectivesEventBus();

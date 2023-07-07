@@ -2,7 +2,12 @@ import styled from 'styled-components';
 import {DROPDOWN_Z_INDEX} from '../../basic/constants';
 
 export const PARAMETER_TYPE_DROPDOWN_HEIGHT = 200;
-export const ParameterComputeTypeDropdown = styled.div.attrs<{ visible: boolean, top?: number, bottom?: number, left: number }>(
+export const ParameterComputeTypeDropdown = styled.div.attrs<{
+	visible: boolean,
+	top?: number,
+	bottom?: number,
+	left: number
+}>(
 	({visible, top, bottom, left}) => {
 		return {
 			'data-widget': 'parameter-computed-type-dropdown',

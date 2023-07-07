@@ -14,7 +14,7 @@ export const Description = (props: { objective: Objective }) => {
 
 	const {fire} = useObjectivesEventBus();
 	const forceUpdate = useForceUpdate();
-	
+
 	const onDescriptionChanged = (event: ChangeEvent<HTMLTextAreaElement>) => {
 		const {value} = event.target;
 

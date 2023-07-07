@@ -4,7 +4,11 @@ import React from 'react';
 import {BooleanValue, PropName} from './dsl-widgets';
 import {JointLine} from './joint/joint';
 
-export const ConditionalLine = (props: { conditional: Conditional, topicsMap: Map<string, Topic>, indent?: number }) => {
+export const ConditionalLine = (props: {
+	conditional: Conditional,
+	topicsMap: Map<string, Topic>,
+	indent?: number
+}) => {
 	const {conditional, topicsMap, indent = 0} = props;
 
 	if (!conditional.conditional) {

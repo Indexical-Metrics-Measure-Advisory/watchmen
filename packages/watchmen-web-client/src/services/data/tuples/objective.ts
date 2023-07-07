@@ -4,7 +4,8 @@ import {
 	askMockObjectiveFactorValue,
 	askMockObjectiveValues,
 	fetchMockConsanguinity,
-	fetchMockObjective, fetchMockObjectivesByIds,
+	fetchMockObjective,
+	fetchMockObjectivesByIds,
 	listMockObjectives,
 	listMockObjectivesForHolder,
 	saveMockObjective

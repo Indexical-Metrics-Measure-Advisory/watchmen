@@ -223,7 +223,10 @@ export const FactorBlockValueSampleColumn = styled(FactorBlockColumn)`
 		}
 	}
 `;
-export const ValuePercentage = styled.div.attrs<{ valueCount: string, percentage: number }>({'data-widget': 'value-percentage'})<{ valueCount: string, percentage: number }>`
+export const ValuePercentage = styled.div.attrs<{
+	valueCount: string,
+	percentage: number
+}>({'data-widget': 'value-percentage'})<{ valueCount: string, percentage: number }>`
 	display          : flex;
 	position         : relative;
 	align-items      : center;

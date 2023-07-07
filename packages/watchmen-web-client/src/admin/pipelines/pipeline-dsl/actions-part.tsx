@@ -7,7 +7,12 @@ import {v4} from 'uuid';
 import {ActionPart} from './action-part';
 import {LineComment, PropName} from './dsl-widgets';
 
-export const ActionsPart = (props: { pipeline: Pipeline, stage: PipelineStage, unit: PipelineStageUnit, topicsMap: Map<string, Topic> }) => {
+export const ActionsPart = (props: {
+	pipeline: Pipeline,
+	stage: PipelineStage,
+	unit: PipelineStageUnit,
+	topicsMap: Map<string, Topic>
+}) => {
 	const {pipeline, stage, unit, topicsMap} = props;
 
 	const stageIndex = pipeline.stages.indexOf(stage) + 1;

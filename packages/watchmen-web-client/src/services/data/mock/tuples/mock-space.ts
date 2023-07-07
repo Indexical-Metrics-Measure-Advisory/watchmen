@@ -53,7 +53,11 @@ export const listMockSpacesForExport = async (): Promise<Array<Space>> => {
 	});
 };
 
-export const fetchMockSpace = async (spaceId: SpaceId): Promise<{ space: Space; groups: Array<QueryUserGroupForHolder>; topics: Array<QueryTopicForHolder> }> => {
+export const fetchMockSpace = async (spaceId: SpaceId): Promise<{
+	space: Space;
+	groups: Array<QueryUserGroupForHolder>;
+	topics: Array<QueryTopicForHolder>
+}> => {
 	return {
 		space: {
 			spaceId,

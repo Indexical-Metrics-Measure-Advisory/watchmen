@@ -157,7 +157,12 @@ export const fetchMockSubjectForIndicator = async (subjectId: SubjectId): Promis
 	});
 };
 
-export const fetchMockIndicator = async (indicatorId: IndicatorId): Promise<{ indicator: Indicator; topic?: TopicForIndicator; subject?: SubjectForIndicator; enums?: Array<EnumForIndicator>; }> => {
+export const fetchMockIndicator = async (indicatorId: IndicatorId): Promise<{
+	indicator: Indicator;
+	topic?: TopicForIndicator;
+	subject?: SubjectForIndicator;
+	enums?: Array<EnumForIndicator>;
+}> => {
 	// eslint-disable-next-line
 	const found = DemoIndicators.find(({indicatorId: id}) => id == indicatorId);
 	if (found) {

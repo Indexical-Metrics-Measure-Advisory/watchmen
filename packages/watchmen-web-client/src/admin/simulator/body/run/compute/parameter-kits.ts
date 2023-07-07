@@ -142,7 +142,11 @@ export const castParameterValueType = (options: {
 // use timestamp(13 digits) instead, just for simulator
 let currentSnowflakeId = new Date().getTime();
 
-const computeVariable = (options: { variable: string, getFirstValue: (propertyName: string) => any, throws: () => void }): any => {
+const computeVariable = (options: {
+	variable: string,
+	getFirstValue: (propertyName: string) => any,
+	throws: () => void
+}): any => {
 	const {variable, getFirstValue, throws} = options;
 	if (variable.trim().length === 0) {
 		return null;
