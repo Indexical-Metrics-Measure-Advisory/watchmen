@@ -10,7 +10,7 @@ from watchmen_collector_kernel.storage import get_trigger_model_service, get_col
 from watchmen_meta.common import ask_snowflake_generator, ask_meta_storage, ask_super_admin
 
 from .trigger_collector import get_trigger_module_action, get_trigger_model_action, get_model_configs_by_module, \
-	get_trigger_table_action, get_table_configs_by_model, save_trigger_table, save_trigger_model, save_trigger_module
+	get_trigger_table_action, save_trigger_table, save_trigger_model, save_trigger_module
 
 
 def trigger_event_by_default(trigger_event: TriggerEvent):
@@ -49,7 +49,7 @@ def trigger_event_by_default(trigger_event: TriggerEvent):
 			for model_config in model_configs:
 				trigger_model = trigger_model_action(model_config)
 				trigger_table_action = get_trigger_table_action(trigger_model_service, trigger_model)
-				table_configs = get_table_configs_by_model(table_config_service, model_config)
+				table_configs = table_config_service.find_by_model_name(model_config.modelName, trigger_event.tenantId)
 				for table_config in table_configs:
 					trigger_table_action(table_config)
 

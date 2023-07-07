@@ -170,12 +170,11 @@ class CollectorTableConfigService(TupleService):
 		finally:
 			self.storage.close()
 
-	def find_by_model_name(self,
-	                       model_name: str) -> Optional[List[CollectorTableConfig]]:
+	def find_by_model_name(self, model_name: str, tenant_id: str) -> Optional[List[CollectorTableConfig]]:
 		# noinspection PyTypeChecker
 		return self.storage.find(self.get_entity_finder(
 			criteria=[
-				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=self.principalService.get_tenant_id()),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id),
 				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name),
 				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='triggered'), right=True)
 			]
