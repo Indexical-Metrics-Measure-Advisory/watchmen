@@ -123,6 +123,23 @@ class CollectorTableConfigService(TupleService):
 		finally:
 			self.storage.close()
 
+	def find_by_table_name_and_tenant_id(self, table_name: str, tenant_id: str) -> Optional[CollectorTableConfig]:
+		try:
+			self.storage.connect()
+			# noinspection PyTypeChecker
+			return self.storage.find_one(
+				self.get_entity_finder(
+					criteria=[
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='table_name'),
+						                         right=table_name),
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'),
+						                         right=tenant_id)
+					]
+				)
+			)
+		finally:
+			self.storage.close()
+
 	def find_by_name(self, name: str) -> Optional[CollectorTableConfig]:
 		try:
 			self.storage.connect()

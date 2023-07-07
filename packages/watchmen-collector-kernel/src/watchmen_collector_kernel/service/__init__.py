@@ -1,5 +1,6 @@
-from .lock_helper import try_lock_nowait, unlock
+from .lock_helper import try_lock_nowait, get_resource_lock, unlock
 from .trigger_collector import get_trigger_collector
+from .trigger_event_helper import trigger_event_by_default, trigger_event_by_table, trigger_event_by_records
 from .data_capture import DataCaptureService
 from .extract_source import SourceTableExtractor
 from .task_service import get_task_service
