@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional, List, Any, Dict
 
 from watchmen_collector_kernel.common import ask_partial_size, STATUS
@@ -12,7 +13,7 @@ from watchmen_meta.common.storage_service import StorableId
 from watchmen_model.common import Storable, ScheduledTaskId, Pageable
 from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalStorageSPI, \
 	EntityCriteriaExpression, ColumnNameLiteral, SnowflakeGenerator, EntitySortColumn, EntitySortMethod, \
-	EntityCriteriaJoint, EntityStraightValuesFinder, EntityStraightColumn, EntityLimitedFinder
+	EntityCriteriaJoint, EntityStraightValuesFinder, EntityStraightColumn, EntityLimitedFinder, EntityCriteriaOperator
 
 
 class ScheduledTaskShaper(EntityShaper):
@@ -43,7 +44,8 @@ class ScheduledTaskShaper(EntityShaper):
 			'tenant_id': entity.tenantId,
 			'is_finished': entity.isFinished,
 			'status': entity.status,
-			'result': entity.result
+			'result': entity.result,
+			'event_id': entity.eventId
 		})
 
 	def deserialize(self, row: EntityRow) -> ScheduledTask:
@@ -60,7 +62,8 @@ class ScheduledTaskShaper(EntityShaper):
 			tenantId=row.get('tenant_id'),
 			isFinished=row.get('is_finished'),
 			status=row.get('status'),
-			result=row.get('result')
+			result=row.get('result'),
+			eventId=row.get('event_id')
 		))
 
 
@@ -208,6 +211,26 @@ class ScheduledTaskService(TupleService):
 			)) == 0
 		finally:
 			self.close_transaction()
+
+	def count_scheduled_task(self, event_trigger_id: int) -> int:
+		return self.storage.count(self.get_entity_finder(
+			criteria=[
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='event_id'),
+				                         right=event_trigger_id)
+			]
+		))
+
+	def find_timeout_task(self, query_time: datetime) -> List:
+		try:
+			self.storage.connect()
+			return self.storage.find(self.get_entity_finder(criteria=[
+				EntityCriteriaExpression(
+					left=ColumnNameLiteral(columnName='last_modified_at'),
+					operator=EntityCriteriaOperator.LESS_THAN, right=query_time),
+				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='status'), right=1)
+			]))
+		finally:
+			self.storage.close()
 
 
 def get_scheduled_task_service(storage: TransactionalStorageSPI,

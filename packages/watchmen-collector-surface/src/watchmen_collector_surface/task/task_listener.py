@@ -26,14 +26,14 @@ class TaskListener:
 	def __init__(self):
 		self.storage = ask_meta_storage()
 		self.snowflake_generator = ask_snowflake_generator()
-		self.principle_service = ask_super_admin()
+		self.principal_service = ask_super_admin()
 		self.competitive_lock_service = get_competitive_lock_service(self.storage)
 		self.scheduled_task_service = get_scheduled_task_service(self.storage,
 		                                                         self.snowflake_generator,
-		                                                         self.principle_service)
+		                                                         self.principal_service)
 		self.task_service = get_task_service(self.storage,
 		                                     self.snowflake_generator,
-		                                     self.principle_service)
+		                                     self.principal_service)
 
 	def create_thread(self, scheduler=None) -> None:
 		if ask_fastapi_job():
@@ -66,7 +66,11 @@ class TaskListener:
 		self.scheduled_task_service.begin_transaction()
 		try:
 			tasks = self.scheduled_task_service.find_tasks_and_locked()
-			results = ArrayHelper(tasks).map(lambda task: self.change_status(task, Status.EXECUTING.value)).map(lambda task: self.scheduled_task_service.update(task)).to_list()
+			results = ArrayHelper(tasks).map(
+				lambda task: self.change_status(task, Status.EXECUTING.value)
+			).map(
+				lambda task: self.scheduled_task_service.update(task)
+			).to_list()
 			self.scheduled_task_service.commit_transaction()
 			return results
 		finally:

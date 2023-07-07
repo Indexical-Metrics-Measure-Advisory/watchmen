@@ -88,15 +88,18 @@ class RecordToJsonService:
 		self.change_record_service.begin_transaction()
 		try:
 			records = self.change_record_service.find_records_and_locked()
-			## TODO bulk update
-			results = ArrayHelper(records).map(lambda record: self.change_status(record, Status.EXECUTING.value)).map(lambda record: self.change_record_service.update(record)).to_list()
+			# TODO bulk update. No need
+			results = ArrayHelper(records).map(
+				lambda record: self.change_status(record, Status.EXECUTING.value)
+			).map(
+				lambda record: self.change_record_service.update(record)
+			).to_list()
 			self.change_record_service.commit_transaction()
 			return results
 		finally:
 			self.change_record_service.close_transaction()
 
 	def change_data_record_listener(self):
-
 		unmerged_records = self.find_records_and_locked()
 		if len(unmerged_records) == 0:
 			if not ask_fastapi_job():

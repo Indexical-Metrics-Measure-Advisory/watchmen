@@ -19,8 +19,6 @@ from watchmen_meta.common import ask_super_admin, ask_snowflake_generator, ask_m
 from watchmen_storage import EntityCriteria
 from watchmen_utilities import ArrayHelper
 
-# from fastapi import FastAPI, BackgroundTasks
-
 
 logger = logging.getLogger('apscheduler')
 logger.setLevel(logging.ERROR)
@@ -91,7 +89,7 @@ class TableExtractor:
 	def trigger_table_listener(self):
 		unfinished_trigger_tables = self.trigger_table_service.find_unfinished()
 		if len(unfinished_trigger_tables) == 0:
-			if not  ask_fastapi_job():
+			if not ask_fastapi_job():
 				sleep(5)
 		else:
 			for unfinished_trigger_table in unfinished_trigger_tables:
@@ -143,13 +141,11 @@ class TableExtractor:
 				finally:
 					unlock(self.competitive_lock_service, lock)
 
-
 	def save_change_data_record(self,
 	                            trigger_table: TriggerTable,
 	                            data_id: Dict) -> None:
 		change_data_record = self.source_to_change(trigger_table, data_id)
 		self.change_data_record_service.create_change_record(change_data_record)
-
 
 	def source_to_change(self, trigger_table: TriggerTable, data_id: Dict) -> ChangeDataRecord:
 		return self.get_change_data_record(
@@ -162,7 +158,6 @@ class TableExtractor:
 			trigger_table.moduleTriggerId,
 			trigger_table.eventTriggerId
 		)
-
 
 	def get_change_data_record(self,
 	                           model_name: str,
@@ -186,7 +181,6 @@ class TableExtractor:
 			eventTriggerId=event_trigger_id,
 			tenantId=tenant_id
 		)
-
 
 	# noinspection PyMethodMayBeStatic
 	def get_diff(self, source_records, existed_records) -> Any:
