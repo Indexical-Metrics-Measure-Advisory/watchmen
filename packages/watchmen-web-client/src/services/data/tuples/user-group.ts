@@ -1,3 +1,4 @@
+import {QueryConvergenceForHolder} from '@/services/data/tuples/query-convergence-types';
 import {findAccount} from '../account';
 import {Apis, get, page, post} from '../apis';
 import {
@@ -36,7 +37,13 @@ export const listUserGroups = async (options: {
 
 export const fetchUserGroup = async (
 	userGroupId: UserGroupId
-): Promise<{ userGroup: UserGroup; users: Array<QueryUserForHolder>; spaces: Array<QuerySpaceForHolder>; objectives: Array<QueryObjectiveForHolder> }> => {
+): Promise<{
+	userGroup: UserGroup;
+	users: Array<QueryUserForHolder>;
+	spaces: Array<QuerySpaceForHolder>;
+	objectives: Array<QueryObjectiveForHolder>;
+	convergences: Array<QueryConvergenceForHolder>;
+}> => {
 	if (isMockService()) {
 		return fetchMockUserGroup(userGroupId);
 	} else {
@@ -66,10 +73,22 @@ export const fetchUserGroup = async (
 				return [];
 			}
 		};
+		const fetchConvergences = async (): Promise<Array<QueryConvergenceForHolder>> => {
+			const {convergenceIds} = userGroup;
+			if (convergenceIds && convergenceIds.length > 0) {
+				return await post({api: Apis.CONVERGENCE_BY_IDS, data: convergenceIds});
+			} else {
+				return [];
+			}
+		};
 
-		const [users, spaces, objectives] = await Promise.all([fetchUsers(), fetchSpaces(), fetchObjectives()]);
+		const [
+			users, spaces, objectives, convergences
+		] = await Promise.all([
+			fetchUsers(), fetchSpaces(), fetchObjectives(), fetchConvergences()
+		]);
 
-		return {userGroup, users, spaces, objectives};
+		return {userGroup, users, spaces, objectives, convergences};
 	}
 };
 

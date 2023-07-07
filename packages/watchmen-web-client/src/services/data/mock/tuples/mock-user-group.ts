@@ -1,3 +1,4 @@
+import {QueryConvergenceForHolder} from '@/services/data/tuples/query-convergence-types';
 import {TuplePage} from '../../query/tuple-page';
 import {QueryObjectiveForHolder} from '../../tuples/query-objective-types';
 import {QuerySpaceForHolder} from '../../tuples/query-space-types';
@@ -40,6 +41,7 @@ export const fetchMockUserGroup = async (
 	users: Array<QueryUserForHolder>;
 	spaces: Array<QuerySpaceForHolder>;
 	objectives: Array<QueryObjectiveForHolder>;
+	convergences: Array<QueryConvergenceForHolder>;
 }> => {
 	let userGroup: UserGroup;
 	switch (userGroupId) {
@@ -51,6 +53,7 @@ export const fetchMockUserGroup = async (
 				userIds: ['1', '2', '3', '4', '5'],
 				spaceIds: ['1'],
 				objectiveIds: ['1'],
+				convergenceIds: ['1'],
 				version: 1,
 				createdAt: getCurrentTime(),
 				lastModifiedAt: getCurrentTime()
@@ -58,7 +61,7 @@ export const fetchMockUserGroup = async (
 			break;
 		case '2':
 			userGroup = {
-				userGroupId, name: 'Delaware', userIds: [], spaceIds: [], objectiveIds: [],
+				userGroupId, name: 'Delaware', userIds: [], spaceIds: [], objectiveIds: [], convergenceIds: [],
 				version: 1,
 				createdAt: getCurrentTime(),
 				lastModifiedAt: getCurrentTime()
@@ -66,7 +69,7 @@ export const fetchMockUserGroup = async (
 			break;
 		case '3':
 			userGroup = {
-				userGroupId, name: 'Hawaii', userIds: [], spaceIds: [], objectiveIds: [],
+				userGroupId, name: 'Hawaii', userIds: [], spaceIds: [], objectiveIds: [], convergenceIds: [],
 				version: 1,
 				createdAt: getCurrentTime(),
 				lastModifiedAt: getCurrentTime()
@@ -74,7 +77,7 @@ export const fetchMockUserGroup = async (
 			break;
 		case '4':
 			userGroup = {
-				userGroupId, name: 'Alaska', userIds: [], spaceIds: [], objectiveIds: [],
+				userGroupId, name: 'Alaska', userIds: [], spaceIds: [], objectiveIds: [], convergenceIds: [],
 				version: 1,
 				createdAt: getCurrentTime(),
 				lastModifiedAt: getCurrentTime()
@@ -82,7 +85,7 @@ export const fetchMockUserGroup = async (
 			break;
 		case '5':
 			userGroup = {
-				userGroupId, name: 'Missouri', userIds: [], spaceIds: [], objectiveIds: [],
+				userGroupId, name: 'Missouri', userIds: [], spaceIds: [], objectiveIds: [], convergenceIds: [],
 				version: 1,
 				createdAt: getCurrentTime(),
 				lastModifiedAt: getCurrentTime()
@@ -90,7 +93,7 @@ export const fetchMockUserGroup = async (
 			break;
 		case '6':
 			userGroup = {
-				userGroupId, name: 'Arkansas', userIds: [], spaceIds: [], objectiveIds: [],
+				userGroupId, name: 'Arkansas', userIds: [], spaceIds: [], objectiveIds: [], convergenceIds: [],
 				version: 1,
 				createdAt: getCurrentTime(),
 				lastModifiedAt: getCurrentTime()
@@ -98,7 +101,7 @@ export const fetchMockUserGroup = async (
 			break;
 		default:
 			userGroup = {
-				userGroupId, name: 'Mock User Group', userIds: [], spaceIds: [], objectiveIds: [],
+				userGroupId, name: 'Mock User Group', userIds: [], spaceIds: [], objectiveIds: [], convergenceIds: [],
 				version: 1,
 				createdAt: getCurrentTime(),
 				lastModifiedAt: getCurrentTime()
@@ -114,7 +117,8 @@ export const fetchMockUserGroup = async (
 			{userId: '5', name: 'Jeffrey Dean Morgan'}
 		],
 		spaces: [{spaceId: '1', name: 'Quotation & Order'}],
-		objectives: [{objectiveId: '1', name: 'Monthly Budget'}]
+		objectives: [{objectiveId: '1', name: 'Monthly Budget'}],
+		convergences: [{convergenceId: '1', name: 'Mock Convergence'}]
 	};
 };
 

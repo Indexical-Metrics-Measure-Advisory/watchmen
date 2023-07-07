@@ -20,7 +20,7 @@ import {renderEditor} from './editor';
 
 const createUserGroup = (): UserGroup => {
 	return {
-		userGroupId: generateUuid(), name: '', spaceIds: [], userIds: [], objectiveIds: [],
+		userGroupId: generateUuid(), name: '', spaceIds: [], userIds: [], objectiveIds: [], convergenceIds: [],
 		version: 1,
 		createdAt: getCurrentTime(),
 		lastModifiedAt: getCurrentTime()
@@ -28,8 +28,8 @@ const createUserGroup = (): UserGroup => {
 };
 
 const fetchUserGroupAndCodes = async (queryUserGroup: QueryUserGroup) => {
-	const {userGroup, spaces, users, objectives} = await fetchUserGroup(queryUserGroup.userGroupId);
-	return {tuple: userGroup, spaces, users, objectives};
+	const {userGroup, spaces, users, objectives, convergences} = await fetchUserGroup(queryUserGroup.userGroupId);
+	return {tuple: userGroup, spaces, users, objectives, convergences};
 };
 
 const getKeyOfUserGroup = (userGroup: QueryUserGroup) => userGroup.userGroupId;
@@ -44,8 +44,8 @@ const AdminUserGroups = () => {
 		const onDoEditUserGroup = async (queryUserGroup: QueryUserGroup) => {
 			fireGlobal(EventTypes.INVOKE_REMOTE_REQUEST,
 				async () => await fetchUserGroupAndCodes(queryUserGroup),
-				({tuple, spaces, users, objectives}) => fire(TupleEventTypes.TUPLE_LOADED, tuple, {
-					spaces, users, objectives
+				({tuple, spaces, users, objectives, convergences}) => fire(TupleEventTypes.TUPLE_LOADED, tuple, {
+					spaces, users, objectives, convergences
 				}));
 		};
 		const onDoSearchUserGroup = async (searchText: string, pageNumber: number) => {

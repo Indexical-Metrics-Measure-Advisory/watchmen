@@ -1,3 +1,5 @@
+import {ConvergencePicker} from '@/admin/user-groups/convergence-picker';
+import {QueryConvergenceForHolder} from '@/services/data/tuples/query-convergence-types';
 import {QueryObjectiveForHolder} from '@/services/data/tuples/query-objective-types';
 import {QuerySpaceForHolder} from '@/services/data/tuples/query-space-types';
 import {QueryUserForHolder} from '@/services/data/tuples/query-user-types';
@@ -18,7 +20,8 @@ const UserGroupEditor = (props: { userGroup: UserGroup, codes?: HoldByUserGroup 
 		codes: {
 			users = [] as Array<QueryUserForHolder>,
 			spaces = [] as Array<QuerySpaceForHolder>,
-			objectives = [] as Array<QueryObjectiveForHolder>
+			objectives = [] as Array<QueryObjectiveForHolder>,
+			convergences = [] as Array<QueryConvergenceForHolder>
 		} = {}
 	} = props;
 
@@ -45,8 +48,10 @@ const UserGroupEditor = (props: { userGroup: UserGroup, codes?: HoldByUserGroup 
 		<TuplePropertyInputLines value={userGroup.description || ''} onChange={onPropChange('description')}/>
 		<TuplePropertyLabel>Spaces:</TuplePropertyLabel>
 		<SpacePicker label="Assign Space" userGroup={userGroup} codes={spaces}/>
-		<TuplePropertyLabel>Spaces:</TuplePropertyLabel>
+		<TuplePropertyLabel>Objectives:</TuplePropertyLabel>
 		<ObjectivePicker label="Assign Objective" userGroup={userGroup} codes={objectives}/>
+		<TuplePropertyLabel>Convergences:</TuplePropertyLabel>
+		<ConvergencePicker label="Assign Convergence" userGroup={userGroup} codes={convergences}/>
 		<TuplePropertyLabel>Users:</TuplePropertyLabel>
 		<UserPicker label="Include User" userGroup={userGroup} codes={users}/>
 	</>;
