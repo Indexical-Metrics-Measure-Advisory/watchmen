@@ -5,7 +5,10 @@ import {JointEventTypes} from './event-bus/joint-event-bus-types';
 import {useFilterEventBus} from './filter-event-bus';
 import {FilterEventTypes} from './filter-event-bus-types';
 
-export const TopJoint2ConditionalBridge = (props: { factor: ObjectiveFactor; conditional?: ConditionalObjectiveParameter; }) => {
+export const TopJoint2ConditionalBridge = (props: {
+	factor: ObjectiveFactor;
+	conditional?: ConditionalObjectiveParameter;
+}) => {
 	const {factor, conditional} = props;
 
 	const {fire: fireConditional} = useFilterEventBus();

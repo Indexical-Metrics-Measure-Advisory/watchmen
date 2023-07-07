@@ -11,7 +11,11 @@ import {CatalogEventTypes} from '../catalog-event-bus-types';
 import {AssembledReportGraphics, GraphicsRole} from '../types';
 import {OpenSubjectButton, OpenSubjectButtonIcon, ReportBlock, ReportContainer, ReportNameText} from './widgets';
 
-export const ReportRect = (props: { connectedSpace: ConnectedSpace; subject: Subject, report: AssembledReportGraphics }) => {
+export const ReportRect = (props: {
+	connectedSpace: ConnectedSpace;
+	subject: Subject,
+	report: AssembledReportGraphics
+}) => {
 	const {connectedSpace, subject, report: reportGraphics} = props;
 	const {report, rect} = reportGraphics;
 	const {coordinate, frame: frameRect, name: namePos} = rect;

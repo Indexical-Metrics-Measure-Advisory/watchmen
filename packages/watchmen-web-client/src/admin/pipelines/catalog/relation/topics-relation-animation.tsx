@@ -7,7 +7,11 @@ import {useCatalogEventBus} from '../catalog-event-bus';
 import {CatalogEventTypes} from '../catalog-event-bus-types';
 import {AssembledPipelinesGraphics, GraphicsRole} from '../types';
 
-export const TopicsRelationAnimation = (props: { graphics: AssembledPipelinesGraphics, source: Topic, target: Topic }) => {
+export const TopicsRelationAnimation = (props: {
+	graphics: AssembledPipelinesGraphics,
+	source: Topic,
+	target: Topic
+}) => {
 	const {graphics, source, target} = props;
 
 	const {on, off} = useCatalogEventBus();

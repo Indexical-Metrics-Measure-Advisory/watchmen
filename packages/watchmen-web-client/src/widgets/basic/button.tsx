@@ -201,7 +201,9 @@ const SpinIcon = styled(FontAwesomeIcon).attrs<{ spin: boolean }>(({spin}) => {
 	transition : margin-right 300ms ease-in-out, opacity 300ms ease-in-out;
 `;
 
-export const LoadingButton = forwardRef((props: ButtonProps & { spin?: boolean }, ref: ForwardedRef<HTMLButtonElement>) => {
+export const LoadingButton = forwardRef((props: ButtonProps & {
+	spin?: boolean
+}, ref: ForwardedRef<HTMLButtonElement>) => {
 	const {children, spin, ...rest} = props;
 
 	return <Button {...rest} ref={ref}>

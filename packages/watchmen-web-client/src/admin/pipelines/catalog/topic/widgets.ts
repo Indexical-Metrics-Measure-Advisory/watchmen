@@ -14,7 +14,12 @@ export const TopicContainer = styled.g.attrs<{ coordinate: BlockCoordinate }>(({
 	return {transform: `translate(${x}, ${y})`};
 })<{ coordinate: BlockCoordinate }>``;
 
-export const TopicBlock = styled.rect.attrs<{ frame: BlockFrame, dnd: boolean, topicType: TopicType, topicKind: TopicKind }>(
+export const TopicBlock = styled.rect.attrs<{
+	frame: BlockFrame,
+	dnd: boolean,
+	topicType: TopicType,
+	topicKind: TopicKind
+}>(
 	({frame: {x, y, width, height}, dnd, topicType, topicKind}) => {
 		return {
 			x, y, width, height, rx: 6, ry: 6,

@@ -111,7 +111,9 @@ const computeAndSetCursor = (options: {
 	changeBehavior(canResize ? Behavior.CAN_RESIZE : Behavior.PICK_COLUMN);
 };
 
-const findPickedColumn = (options: PickColumnOptions & { matchColumnIndex: (widths: Array<number>, offsetLeft: number) => number }): PickedColumn => {
+const findPickedColumn = (options: PickColumnOptions & {
+	matchColumnIndex: (widths: Array<number>, offsetLeft: number) => number
+}): PickedColumn => {
 	const {wrapperLeft, table, mouseClientX, columnDefs, isFixTable, rowNoColumnWidth, matchColumnIndex} = options;
 
 	const tableColumnDefs = isFixTable ? columnDefs.fixed : columnDefs.data;
@@ -225,7 +227,12 @@ export const GridWrapper = (props: { data: DataSetState; languagesSupport: boole
 		};
 	}, [on, off, fire, columnDefs.fixed, columnDefs.data, forceUpdate]);
 
-	const manageCursor = (options: { table: HTMLDivElement | null, mouseClientX: number, mouseClientY: number, avoidResize: boolean }) => {
+	const manageCursor = (options: {
+		table: HTMLDivElement | null,
+		mouseClientX: number,
+		mouseClientY: number,
+		avoidResize: boolean
+	}) => {
 		const {table} = options;
 		if (!table) {
 			// target is wrapper itself, when mouse in left-bottom corner and there is horizontal scroll bar shown

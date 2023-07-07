@@ -5,7 +5,12 @@ import React, {ReactNode} from 'react';
 import {useExpanded} from '../unit-effect/use-expanded';
 import {UnitBodyContainer} from './widgets';
 
-export const UnitBody = (props: { pipeline: Pipeline, stage: PipelineStage, unit: PipelineStageUnit, children: ReactNode }) => {
+export const UnitBody = (props: {
+	pipeline: Pipeline,
+	stage: PipelineStage,
+	unit: PipelineStageUnit,
+	children: ReactNode
+}) => {
 	const {pipeline, stage, unit, children} = props;
 
 	const expanded = useExpanded(pipeline, stage, unit);

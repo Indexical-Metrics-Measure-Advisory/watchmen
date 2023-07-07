@@ -7,7 +7,12 @@ import {Filters} from './filters';
 import {NoFilter} from './no-filter';
 import {ReportFilterContainer} from './widgets';
 
-export const FilterTab = (props: { connectedSpace: ConnectedSpace, subject: Subject, report: Report, active: boolean }) => {
+export const FilterTab = (props: {
+	connectedSpace: ConnectedSpace,
+	subject: Subject,
+	report: Report,
+	active: boolean
+}) => {
 	const {connectedSpace, subject, report, active} = props;
 
 	if (!active) {

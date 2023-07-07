@@ -1,9 +1,9 @@
-import { base64Decode, base64Encode } from "../../utils";
-import { ACCOUNT_KEY_IN_SESSION, ACCOUNT_TOKEN } from "../session-constants";
-import { Token } from "../types";
-import { SessionAccount } from "./types";
+import {base64Decode, base64Encode} from '../../utils';
+import {ACCOUNT_KEY_IN_SESSION, ACCOUNT_TOKEN} from '../session-constants';
+import {Token} from '../types';
+import {SessionAccount} from './types';
 
-export const saveAccountIntoSession = ({ name, admin, super: superAdmin, tenantId }: SessionAccount) => {
+export const saveAccountIntoSession = ({name, admin, super: superAdmin, tenantId}: SessionAccount) => {
 	sessionStorage.setItem(
 		ACCOUNT_KEY_IN_SESSION,
 		base64Encode(
@@ -11,7 +11,7 @@ export const saveAccountIntoSession = ({ name, admin, super: superAdmin, tenantI
 				name,
 				admin,
 				super: superAdmin,
-				tenantId,
+				tenantId
 			})
 		)
 	);
@@ -41,7 +41,7 @@ export const isSuperAdmin = (): boolean => {
 };
 
 export const findToken = (): string | null => {
-	return sessionStorage.getItem(ACCOUNT_TOKEN) || "";
+	return sessionStorage.getItem(ACCOUNT_TOKEN) || '';
 };
 
 export const saveTokenIntoSession = (token: Token) => {

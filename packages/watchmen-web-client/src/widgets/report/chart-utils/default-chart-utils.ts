@@ -218,7 +218,10 @@ export abstract class DefaultChartUtils implements ChartUtils {
 		return Math.min(getDimensionColumnIndexOffset(report), this.getMaxIndicatorCount());
 	};
 
-	protected buildDescartesByDimensions(report: Report, dataset: ChartDataSet): Array<{ value: any, row: ChartDataSetRow }> {
+	protected buildDescartesByDimensions(report: Report, dataset: ChartDataSet): Array<{
+		value: any,
+		row: ChartDataSetRow
+	}> {
 		const {data} = dataset;
 		const {dimensions} = report;
 

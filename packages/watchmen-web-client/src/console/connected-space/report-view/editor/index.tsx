@@ -56,7 +56,12 @@ const ManualRefresh = (props: { report: Report }) => {
 	</ReportPartButton>;
 };
 
-export const ReportEditor = (props: { connectedSpace: ConnectedSpace, subject: Subject, report: Report, editable: boolean }) => {
+export const ReportEditor = (props: {
+	connectedSpace: ConnectedSpace,
+	subject: Subject,
+	report: Report,
+	editable: boolean
+}) => {
 	const {connectedSpace, subject, report, editable} = props;
 
 	const containerRef = useRef<HTMLDivElement>(null);

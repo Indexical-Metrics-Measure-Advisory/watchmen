@@ -1,6 +1,8 @@
 import styled from 'styled-components';
 
-export const ParameterComputeTypeContainer = styled.div.attrs<{ valid: boolean }>({'data-widget': 'parameter-computed-type'})<{ valid: boolean }>`
+export const ParameterComputeTypeContainer = styled.div.attrs<{
+	valid: boolean
+}>({'data-widget': 'parameter-computed-type'})<{ valid: boolean }>`
 	display          : flex;
 	position         : relative;
 	align-self       : start;

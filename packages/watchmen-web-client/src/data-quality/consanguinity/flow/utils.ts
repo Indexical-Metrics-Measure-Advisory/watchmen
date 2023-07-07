@@ -130,7 +130,9 @@ export const compute = (options: {
 			triggerOn: 'mousemove',
 			formatter: ({
 				            data: {name, source, target, value, pipeline}
-			            }: { data: { name: string, source: string, target: string, value: number, pipeline: string } }) => {
+			            }: {
+				data: { name: string, source: string, target: string, value: number, pipeline: string }
+			}) => {
 				if (name) {
 					// noinspection CssUnresolvedCustomProperty
 					return `<span style="font-variant: petite-caps;font-weight: bold;color:var(--info-color)">${name}</span>`;

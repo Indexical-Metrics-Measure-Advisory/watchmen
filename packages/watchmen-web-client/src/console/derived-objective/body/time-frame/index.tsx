@@ -87,7 +87,7 @@ export const TimeFrame = (props: { derivedObjective: DerivedObjective; }) => {
 	const previousFrame = computePreviousFrame(timeFrame, currentFrame);
 	const chainFrame = computeChainFrame(timeFrame, currentFrame);
 
-	return <TimeFrameContainer data-visible={visible}  data-hide-on-share={true}>
+	return <TimeFrameContainer data-visible={visible} data-hide-on-share={true}>
 		<TimeFrameTitle>{Lang.CONSOLE.DERIVED_OBJECTIVE.TIME_FRAME_TITLE}</TimeFrameTitle>
 		<TimeFrameVariablesRow>
 			<TimeFrameLabel>{findTimeFrameKindLabel(timeFrame)}</TimeFrameLabel>

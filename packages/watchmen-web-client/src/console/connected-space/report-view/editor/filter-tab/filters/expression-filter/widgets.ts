@@ -95,7 +95,9 @@ export const ExpressionSide = styled.div.attrs<{ shorten: boolean, visible: bool
 	}
 `;
 
-export const ExpressionOperatorContainer = styled.div.attrs({'data-widget': 'expression-operator'})<{ hasRight: boolean }>`
+export const ExpressionOperatorContainer = styled.div.attrs({'data-widget': 'expression-operator'})<{
+	hasRight: boolean
+}>`
 	display          : flex;
 	grid-column      : span 3;
 	position         : relative;
@@ -154,7 +156,12 @@ export const ExpressionOperatorIcon = styled.div.attrs({'data-widget': 'expressi
 	}
 `;
 export const EXPRESSION_OPERATOR_DROPDOWN_HEIGHT = 200;
-export const ExpressionOperatorDropdown = styled.div.attrs<{ visible: boolean, top?: number, bottom?: number, left: number }>(
+export const ExpressionOperatorDropdown = styled.div.attrs<{
+	visible: boolean,
+	top?: number,
+	bottom?: number,
+	left: number
+}>(
 	({visible, top, bottom, left}) => {
 		return {
 			'data-widget': 'expression-operator-dropdown',

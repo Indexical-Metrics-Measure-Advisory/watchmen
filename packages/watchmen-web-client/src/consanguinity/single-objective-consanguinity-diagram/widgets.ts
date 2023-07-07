@@ -1,6 +1,6 @@
-import {ConsanguinityBlockBody, ConsanguinityDiagram} from '../widgets';
 import {DialogBody} from '@/widgets/dialog/widgets';
 import styled from 'styled-components';
+import {ConsanguinityBlockBody, ConsanguinityDiagram} from '../widgets';
 
 export const ConsanguinityDialogBody = styled(DialogBody)`
 	display       : flex;
@@ -56,4 +56,4 @@ export const ObjectiveConsanguinityBlockBody = styled(ConsanguinityBlockBody)`
 	display               : grid;
 	grid-row-gap          : var(--margin);
 	align-content         : start;
-`
+`;

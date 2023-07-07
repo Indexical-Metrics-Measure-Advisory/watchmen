@@ -11,7 +11,11 @@ import {ConditionalEditor} from '../../conditional';
 import {useActionEventBus} from '../action-event-bus';
 import {ActionEventTypes} from '../action-event-bus-types';
 
-export const FindByCondition = (props: { action: FindBy & (FromTopic | ToTopic), topics: Array<Topic>, topic: Topic }) => {
+export const FindByCondition = (props: {
+	action: FindBy & (FromTopic | ToTopic),
+	topics: Array<Topic>,
+	topic: Topic
+}) => {
 	const {action, topics, topic} = props;
 
 	const {on, off, fire} = useActionEventBus();

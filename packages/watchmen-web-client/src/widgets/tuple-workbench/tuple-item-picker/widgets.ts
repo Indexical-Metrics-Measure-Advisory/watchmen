@@ -23,7 +23,11 @@ export const TupleItemOperatorsContainer = styled.div.attrs({'data-widget': 'tup
 	height   : var(--height);
 	width    : 100%;
 `;
-export const TupleItemPickerSearchInput = styled(Input).attrs<{ 'data-widget'?: string, visible: boolean, dropdownPosition: PickerDropdownPosition }>(
+export const TupleItemPickerSearchInput = styled(Input).attrs<{
+	'data-widget'?: string,
+	visible: boolean,
+	dropdownPosition: PickerDropdownPosition
+}>(
 	({'data-widget': widget, visible, dropdownPosition}) => {
 		const dropdownAtBottom = dropdownPosition === PickerDropdownPosition.BOTTOM;
 		return {
@@ -60,7 +64,9 @@ export const TupleItemPickerButton = styled(RoundDwarfButton).attrs<{ 'data-widg
 	left       : 0;
 	transition : all 300ms ease-in-out;
 `;
-export const TupleItemPickerButtonIcon = styled(FontAwesomeIcon).attrs<{ 'data-standalone': boolean }>(({'data-standalone': standalone}) => {
+export const TupleItemPickerButtonIcon = styled(FontAwesomeIcon).attrs<{
+	'data-standalone': boolean
+}>(({'data-standalone': standalone}) => {
 	return {
 		'data-widget': 'tuple-property-item-picker-button-icon',
 		style: {

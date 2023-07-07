@@ -22,7 +22,10 @@ const ConnectedSpaceDropdown = styled(Dropdown)`
 	margin-top : calc(var(--margin) / 4);
 `;
 
-const GraphicsSwitch = (props: { graphics: Array<PipelinesGraphics>, switchTo: (graphics: PipelinesGraphics) => void }) => {
+const GraphicsSwitch = (props: {
+	graphics: Array<PipelinesGraphics>,
+	switchTo: (graphics: PipelinesGraphics) => void
+}) => {
 	const {graphics, switchTo} = props;
 
 	const {fire} = useEventBus();
@@ -59,7 +62,10 @@ const GraphicsSwitch = (props: { graphics: Array<PipelinesGraphics>, switchTo: (
 	</>;
 };
 
-export const HeaderSwitchGraphicsButton = (props: { allGraphics: Array<PipelinesGraphics>, graphics: AssembledPipelinesGraphics }) => {
+export const HeaderSwitchGraphicsButton = (props: {
+	allGraphics: Array<PipelinesGraphics>,
+	graphics: AssembledPipelinesGraphics
+}) => {
 	const {allGraphics, graphics} = props;
 
 	const {fire: fireGlobal} = useEventBus();

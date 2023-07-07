@@ -7,7 +7,12 @@ import {ComputeType, PropName, PropValue, Whitespace} from '../dsl-widgets';
 import {JointLine} from '../joint/joint';
 import {ParameterLines} from './index';
 
-export const ComputeParameterLine = (props: { parameter: Parameter, topicsMap: Map<string, Topic>, inList: boolean, indent: number }) => {
+export const ComputeParameterLine = (props: {
+	parameter: Parameter,
+	topicsMap: Map<string, Topic>,
+	inList: boolean,
+	indent: number
+}) => {
 	const {parameter, topicsMap, inList, indent} = props;
 
 	if (!isComputedParameter(parameter)) {

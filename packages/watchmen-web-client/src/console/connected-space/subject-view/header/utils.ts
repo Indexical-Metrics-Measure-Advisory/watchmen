@@ -6,7 +6,7 @@ export const isSubjectDefNow = (location: Location) => {
 };
 export const isSubjectDataNow = (location: Location) => {
 	return !!matchPath({path: Router.CONSOLE_CONNECTED_SPACE_SUBJECT_DATA}, location.pathname);
-}
+};
 export const isSubjectReportNow = (location: Location) => {
 	return !!matchPath({path: Router.CONSOLE_CONNECTED_SPACE_SUBJECT_REPORT}, location.pathname);
-}
+};

@@ -166,4 +166,4 @@ export const RatioLabel = styled(ItemLabel)`
 	> svg {
 		margin-left : calc(var(--margin) / 4);
 	}
-`
+`;

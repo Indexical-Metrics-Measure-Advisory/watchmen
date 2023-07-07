@@ -74,7 +74,12 @@ ${bucket.segments.map(segment => {
 	}
 };
 
-const generateBucketMarkdown = (options: { bucket: Bucket, enumsMap: EnumsMap; index: number, sectionIndex: number; }): string => {
+const generateBucketMarkdown = (options: {
+	bucket: Bucket,
+	enumsMap: EnumsMap;
+	index: number,
+	sectionIndex: number;
+}): string => {
 	const {bucket, enumsMap, index, sectionIndex} = options;
 
 	return `## ${sectionIndex}.${index + 1}. ${bucket.name || 'Noname Bucket'} #${bucket.bucketId}<span id="bucket-${bucket.bucketId}"/>
