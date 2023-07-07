@@ -7,6 +7,7 @@ import {
 	ConvergenceVariableAxis
 } from '@/services/data/tuples/convergence-types';
 import {isBucketVariable, isFreeWalkVariable, isTimeFrameVariable} from '@/services/data/tuples/convergence-utils';
+import {Objective, ObjectiveId} from '@/services/data/tuples/objective-types';
 import {generateUuid} from '@/services/data/tuples/utils';
 import {isNotBlank} from '@/services/utils';
 import {Lang} from '@/widgets/langs';
@@ -23,24 +24,52 @@ import {
 	YAxisFrozenLegendCellContainer
 } from './widgets';
 
+interface State {
+	buckets: Array<Bucket>;
+	objectives: Array<Objective>;
+}
+
 export const ObjectiveEditGrid = (props: { convergence: Convergence, unfreeze: () => void }) => {
 	const {convergence, unfreeze} = props;
 
 	const {fire} = useConvergencesEventBus();
-	const [buckets, setBuckets] = useState<Array<Bucket>>([]);
+	const [state, setState] = useState<State>({buckets: [], objectives: []});
 	useEffect(() => {
 		const bucketIds = (convergence.variables || [])
 			.filter(isBucketVariable)
 			.map(variable => variable.bucketId)
 			.filter(isNotBlank)
 			// eslint-disable-next-line eqeqeq
-			.filter(bucketId => buckets.every(bucket => bucket.bucketId != bucketId));
-		fire(ConvergencesEventTypes.ASK_BUCKETS, bucketIds, (buckets: Array<Bucket>) => {
-			if (buckets.length !== 0) {
-				setBuckets(existing => [...existing, ...buckets]);
-			}
-		});
-	}, [fire, convergence.variables, buckets]);
+			.filter(bucketId => state.buckets.every(bucket => bucket.bucketId != bucketId));
+		const objectiveIds = Object.keys((convergence.targets || [])
+			.filter(target => isNotBlank(target.objectiveId) && isNotBlank(target.targetId))
+			.reduce((map, target) => {
+				map[`${target.objectiveId}`] = true;
+				return map;
+			}, {} as Record<ObjectiveId, true>))
+			// eslint-disable-next-line eqeqeq
+			.filter(objectiveId => state.objectives.every(objective => objective.objectiveId != objectiveId));
+		(async () => {
+			const [buckets, objectives] = await Promise.all([
+				new Promise<Array<Bucket>>(resolve => {
+					fire(ConvergencesEventTypes.ASK_BUCKETS, bucketIds, (buckets: Array<Bucket>) => {
+						resolve(buckets);
+					});
+				}),
+				new Promise<Array<Objective>>(resolve => {
+					fire(ConvergencesEventTypes.ASK_OBJECTIVES, objectiveIds, (objectives: Array<Objective>) => {
+						resolve(objectives);
+					});
+				})
+			]);
+			setState(state => {
+				return {
+					buckets: [...state.buckets, ...buckets],
+					objectives: [...state.objectives, ...objectives]
+				};
+			});
+		})();
+	}, [fire, convergence.targets, convergence.variables, state.buckets, state.objectives]);
 	const xVariables = (convergence.variables || []).filter(variable => variable.axis === ConvergenceVariableAxis.X);
 	const xRowsCount = xVariables.length ?? 0;
 	const yVariables = (convergence.variables || []).filter(variable => variable.axis === ConvergenceVariableAxis.Y);
@@ -77,7 +106,7 @@ export const ObjectiveEditGrid = (props: { convergence: Convergence, unfreeze: (
 				};
 			} else if (isBucketVariable(variable)) {
 				// eslint-disable-next-line eqeqeq
-				const bucket = buckets.find(bucket => bucket.bucketId == variable.bucketId);
+				const bucket = state.buckets.find(bucket => bucket.bucketId == variable.bucketId);
 				if (bucket == null) {
 					return {variable, cells: [<>{variable.name}</>]};
 				} else {

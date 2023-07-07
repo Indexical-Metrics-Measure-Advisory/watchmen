@@ -1,7 +1,8 @@
 import {TuplePage} from '@/services/data/query/tuple-page';
 import {Bucket, BucketId} from '@/services/data/tuples/bucket-types';
 import {Convergence, ConvergenceId, ConvergenceVariable} from '@/services/data/tuples/convergence-types';
-import {QueryBucket, QueryByBucketMethod} from '@/services/data/tuples/query-bucket-types';
+import {Objective, ObjectiveId} from '@/services/data/tuples/objective-types';
+import {QueryBucket} from '@/services/data/tuples/query-bucket-types';
 import {QueryConvergence} from '@/services/data/tuples/query-convergence-types';
 import {QueryUserGroupForHolder} from '@/services/data/tuples/query-user-group-types';
 
@@ -19,9 +20,10 @@ export enum ConvergencesEventTypes {
 	CONVERGENCE_SAVED = 'convergence-saved',
 
 	ASK_ALL_BUCKETS = 'ask-all-buckets',
-	ASK_BUCKET_IDS_BY_MEASURE = 'ask-bucket-id-by-measure',
 	ASK_BUCKETS = 'ask-buckets-details',
 	ASK_BUCKET = 'ask-bucket',
+
+	ASK_OBJECTIVES = 'ask-objectives',
 
 	ASK_ALL_USER_GROUPS = 'ask-all-user-groups'
 }
@@ -63,10 +65,6 @@ export interface ConvergencesEventBus {
 	on(type: ConvergencesEventTypes.ASK_ALL_BUCKETS, listener: (onData: (buckets: Array<QueryBucket>) => void) => void): this;
 	off(type: ConvergencesEventTypes.ASK_ALL_BUCKETS, listener: (onData: (buckets: Array<QueryBucket>) => void) => void): this;
 
-	fire(type: ConvergencesEventTypes.ASK_BUCKET_IDS_BY_MEASURE, method: QueryByBucketMethod, onData: (bucketIds: Array<BucketId>) => void): this;
-	on(type: ConvergencesEventTypes.ASK_BUCKET_IDS_BY_MEASURE, listener: (method: QueryByBucketMethod, onData: (bucketIds: Array<BucketId>) => void) => void): this;
-	off(type: ConvergencesEventTypes.ASK_BUCKET_IDS_BY_MEASURE, listener: (method: QueryByBucketMethod, onData: (bucketIds: Array<BucketId>) => void) => void): this;
-
 	fire(type: ConvergencesEventTypes.ASK_BUCKETS, bucketIds: Array<BucketId>, onData: (buckets: Array<Bucket>) => void): this;
 	on(type: ConvergencesEventTypes.ASK_BUCKETS, listener: (bucketIds: Array<BucketId>, onData: (buckets: Array<Bucket>) => void) => void): this;
 	off(type: ConvergencesEventTypes.ASK_BUCKETS, listener: (bucketIds: Array<BucketId>, onData: (buckets: Array<Bucket>) => void) => void): this;
@@ -74,6 +72,10 @@ export interface ConvergencesEventBus {
 	fire(type: ConvergencesEventTypes.ASK_BUCKET, bucketId: BucketId, onData: (bucket?: Bucket) => void): this;
 	on(type: ConvergencesEventTypes.ASK_BUCKET, listener: (bucketId: BucketId, onData: (bucket?: Bucket) => void) => void): this;
 	off(type: ConvergencesEventTypes.ASK_BUCKET, listener: (bucketId: BucketId, onData: (bucket?: Bucket) => void) => void): this;
+
+	fire(type: ConvergencesEventTypes.ASK_OBJECTIVES, objectiveIds: Array<ObjectiveId>, onData: (objectives: Array<Objective>) => void): this;
+	on(type: ConvergencesEventTypes.ASK_OBJECTIVES, listener: (objectiveIds: Array<ObjectiveId>, onData: (objectives: Array<Objective>) => void) => void): this;
+	off(type: ConvergencesEventTypes.ASK_OBJECTIVES, listener: (objectiveIds: Array<ObjectiveId>, onData: (objectives: Array<Objective>) => void) => void): this;
 
 	fire(type: ConvergencesEventTypes.ASK_ALL_USER_GROUPS, onData: (groups: Array<QueryUserGroupForHolder>) => void): this;
 	on(type: ConvergencesEventTypes.ASK_ALL_USER_GROUPS, listener: (onData: (groups: Array<QueryUserGroupForHolder>) => void) => void): this;

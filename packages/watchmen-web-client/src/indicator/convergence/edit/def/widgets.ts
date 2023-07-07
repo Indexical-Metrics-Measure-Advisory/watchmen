@@ -68,7 +68,8 @@ export const LeadCorner = styled.div.attrs<{ yCount: number; xCount: number }>(
 		opacity          : 0.3;
 	}
 	> button {
-		height: 100%;
+		height     : 100%;
+		min-height : var(--height);
 	}
 `;
 export const XAxis = styled.div.attrs({'data-widget': 'convergence-def-x-axis'})`

@@ -1,5 +1,3 @@
-import {useConvergencesEventBus} from '@/indicator/convergence/convergences-event-bus';
-import {ConvergencesEventTypes} from '@/indicator/convergence/convergences-event-bus-types';
 import {Convergence, ConvergenceVariable} from '@/services/data/tuples/convergence-types';
 import {ICON_DELETE} from '@/widgets/basic/constants';
 import {Input} from '@/widgets/basic/input';
@@ -7,7 +5,9 @@ import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import React, {ChangeEvent, ReactNode} from 'react';
-import {XRemoveMeButton, XAxisLegendCellContainer, XVariableContent} from './widgets';
+import {useConvergencesEventBus} from '../../convergences-event-bus';
+import {ConvergencesEventTypes} from '../../convergences-event-bus-types';
+import {XAxisLegendCellContainer, XRemoveMeButton, XVariableContent} from './widgets';
 
 export const XAxisLegendCell = (props: {
 	convergence: Convergence; variable: ConvergenceVariable;
@@ -25,7 +25,7 @@ export const XAxisLegendCell = (props: {
 	};
 	const onDeleteClicked = () => {
 		fire(ConvergencesEventTypes.DELETE_VARIABLE, convergence, variable);
-	}
+	};
 
 	return <XAxisLegendCellContainer>
 		<span>{Lang.INDICATOR.CONVERGENCE.VARIABLE_NAME}</span>
