@@ -15,7 +15,7 @@ export const EditStep = (props: {
 	backToList?: boolean;
 	children?: ReactNode;
 }) => {
-	const {index, title, backToList = false, children} = props;
+	const {index, title, backToList = false, children, ...rest} = props;
 
 	const navigate = useNavigate();
 	const {fire: fireGlobal} = useEventBus();
@@ -27,7 +27,7 @@ export const EditStep = (props: {
 		}, () => fireGlobal(EventTypes.HIDE_DIALOG));
 	};
 
-	return <Step index={index}>
+	return <Step index={index} {...rest}>
 		<StepTitle visible={true}>
 			<EmphaticSinkingLabel grow={true}>{title}</EmphaticSinkingLabel>
 			{backToList

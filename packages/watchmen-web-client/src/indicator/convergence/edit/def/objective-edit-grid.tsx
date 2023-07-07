@@ -1,17 +1,25 @@
 import {Bucket} from '@/services/data/tuples/bucket-types';
 import {
 	Convergence,
+	ConvergenceTarget,
+	ConvergenceTargetVariableMapping,
 	ConvergenceTimeFrameVariable,
 	ConvergenceTimeFrameVariableKind,
 	ConvergenceVariable,
 	ConvergenceVariableAxis
 } from '@/services/data/tuples/convergence-types';
 import {isBucketVariable, isFreeWalkVariable, isTimeFrameVariable} from '@/services/data/tuples/convergence-utils';
-import {Objective, ObjectiveId} from '@/services/data/tuples/objective-types';
+import {Objective, ObjectiveId, ObjectiveTarget} from '@/services/data/tuples/objective-types';
+import {QueryObjective} from '@/services/data/tuples/query-objective-types';
 import {generateUuid} from '@/services/data/tuples/utils';
-import {isNotBlank} from '@/services/utils';
+import {isBlank, isNotBlank, noop} from '@/services/utils';
+import {ICON_COPY_TO_LEFT} from '@/widgets/basic/constants';
+import {Dropdown} from '@/widgets/basic/dropdown';
+import {DropdownOption} from '@/widgets/basic/types';
+import {useForceUpdate} from '@/widgets/basic/utils';
 import {Lang} from '@/widgets/langs';
-import {useEffect, useState} from 'react';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {Fragment, useEffect, useState} from 'react';
 import {useConvergencesEventBus} from '../../convergences-event-bus';
 import {ConvergencesEventTypes} from '../../convergences-event-bus-types';
 import {computeTimeFrameValues} from './utils';
@@ -24,23 +32,52 @@ import {
 	YAxisFrozenLegendCellContainer
 } from './widgets';
 
-interface State {
-	buckets: Array<Bucket>;
-	objectives: Array<Objective>;
+interface CandidateState {
+	initialized: boolean;
+	objectiveCandidates: Array<QueryObjective>;
 }
+
+interface BucketState {
+	data: Array<Bucket>;
+}
+
+interface ObjectiveState {
+	data: Array<Objective>;
+}
+
+const NOT_SELECTED = '-';
 
 export const ObjectiveEditGrid = (props: { convergence: Convergence, unfreeze: () => void }) => {
 	const {convergence, unfreeze} = props;
 
 	const {fire} = useConvergencesEventBus();
-	const [state, setState] = useState<State>({buckets: [], objectives: []});
+	const [candidates, setCandidates] = useState<CandidateState>({initialized: false, objectiveCandidates: []});
+	const [buckets, setBuckets] = useState<BucketState>({data: []});
+	const [objectives, setObjectives] = useState<ObjectiveState>({data: []});
+	useEffect(() => {
+		if (candidates.initialized) {
+			return;
+		}
+		fire(ConvergencesEventTypes.ASK_ALL_OBJECTIVES, (objectives: Array<QueryObjective>) => {
+			setCandidates({initialized: true, objectiveCandidates: objectives});
+		});
+	}, [fire, candidates]);
 	useEffect(() => {
 		const bucketIds = (convergence.variables || [])
 			.filter(isBucketVariable)
 			.map(variable => variable.bucketId)
 			.filter(isNotBlank)
 			// eslint-disable-next-line eqeqeq
-			.filter(bucketId => state.buckets.every(bucket => bucket.bucketId != bucketId));
+			.filter(bucketId => buckets.data.every(bucket => bucket.bucketId != bucketId));
+		if (bucketIds.length !== 0) {
+			fire(ConvergencesEventTypes.ASK_BUCKETS, bucketIds, (buckets: Array<Bucket>) => {
+				setBuckets(state => {
+					return {data: [...state.data, ...buckets]};
+				});
+			});
+		}
+	}, [fire, convergence.variables, buckets]);
+	useEffect(() => {
 		const objectiveIds = Object.keys((convergence.targets || [])
 			.filter(target => isNotBlank(target.objectiveId) && isNotBlank(target.targetId))
 			.reduce((map, target) => {
@@ -48,28 +85,62 @@ export const ObjectiveEditGrid = (props: { convergence: Convergence, unfreeze: (
 				return map;
 			}, {} as Record<ObjectiveId, true>))
 			// eslint-disable-next-line eqeqeq
-			.filter(objectiveId => state.objectives.every(objective => objective.objectiveId != objectiveId));
-		(async () => {
-			const [buckets, objectives] = await Promise.all([
-				new Promise<Array<Bucket>>(resolve => {
-					fire(ConvergencesEventTypes.ASK_BUCKETS, bucketIds, (buckets: Array<Bucket>) => {
-						resolve(buckets);
-					});
-				}),
-				new Promise<Array<Objective>>(resolve => {
-					fire(ConvergencesEventTypes.ASK_OBJECTIVES, objectiveIds, (objectives: Array<Objective>) => {
-						resolve(objectives);
-					});
-				})
-			]);
-			setState(state => {
-				return {
-					buckets: [...state.buckets, ...buckets],
-					objectives: [...state.objectives, ...objectives]
-				};
+			.filter(objectiveId => objectives.data.every(objective => objective.objectiveId != objectiveId));
+		if (objectiveIds.length !== 0) {
+			fire(ConvergencesEventTypes.ASK_OBJECTIVES, objectiveIds, (objectives: Array<Objective>) => {
+				setObjectives(state => {
+					return {data: [...state.data, ...objectives]};
+				});
 			});
-		})();
-	}, [fire, convergence.targets, convergence.variables, state.buckets, state.objectives]);
+		}
+	}, [fire, convergence.targets, objectives.data]);
+	const forceUpdate = useForceUpdate();
+
+	const onTargetChanged = (rowIndex: number, columnIndex: number, target?: ConvergenceTarget) => (option: DropdownOption) => {
+		const selected = option as unknown as DropdownOption & { objective: Objective, target: ObjectiveTarget };
+		if (target == null) {
+			if (option.value === NOT_SELECTED) {
+				// still nothing
+			} else {
+				target = {
+					uuid: generateUuid(),
+					objectiveId: selected.objective.objectiveId,
+					targetId: selected.target.uuid,
+					mapping: (selected.objective.variables || []).map(variable => {
+						return {uuid: generateUuid(), objectiveVariableName: variable.name};
+					}),
+					row: rowIndex, col: columnIndex
+				};
+				if (convergence.targets == null) {
+					convergence.targets = [];
+				}
+				convergence.targets.push(target);
+				fire(ConvergencesEventTypes.SAVE_CONVERGENCE, convergence, noop);
+				forceUpdate();
+			}
+		} else {
+			if (option.value === NOT_SELECTED) {
+				// removed
+				convergence.targets = (convergence.targets || []).filter(t => t !== target);
+				fire(ConvergencesEventTypes.SAVE_CONVERGENCE, convergence, noop);
+				forceUpdate();
+			} else {
+				target.objectiveId = selected.objective.objectiveId;
+				target.targetId = selected.target.uuid;
+				target.mapping = (selected.objective.variables || []).map(variable => {
+					return {uuid: generateUuid(), objectiveVariableName: variable.name};
+				});
+				fire(ConvergencesEventTypes.SAVE_CONVERGENCE, convergence, noop);
+				forceUpdate();
+			}
+		}
+	};
+	const onMapVariableChanged = (map: ConvergenceTargetVariableMapping) => (option: DropdownOption) => {
+		map.variableId = option.value as string;
+		fire(ConvergencesEventTypes.SAVE_CONVERGENCE, convergence, noop);
+		forceUpdate();
+	};
+
 	const xVariables = (convergence.variables || []).filter(variable => variable.axis === ConvergenceVariableAxis.X);
 	const xRowsCount = xVariables.length ?? 0;
 	const yVariables = (convergence.variables || []).filter(variable => variable.axis === ConvergenceVariableAxis.Y);
@@ -106,7 +177,7 @@ export const ObjectiveEditGrid = (props: { convergence: Convergence, unfreeze: (
 				};
 			} else if (isBucketVariable(variable)) {
 				// eslint-disable-next-line eqeqeq
-				const bucket = state.buckets.find(bucket => bucket.bucketId == variable.bucketId);
+				const bucket = buckets.data.find(bucket => bucket.bucketId == variable.bucketId);
 				if (bucket == null) {
 					return {variable, cells: [<>{variable.name}</>]};
 				} else {
@@ -127,6 +198,24 @@ export const ObjectiveEditGrid = (props: { convergence: Convergence, unfreeze: (
 	const yAxisColumns = computeAxisSeries(yVariables);
 	const xComputedCount: number = Math.max(1, xAxisRows.reduce((count, {cells}) => Math.max(count, cells.length), 0));
 	const yComputedCount: number = Math.max(1, yAxisColumns.reduce((count, {cells}) => Math.max(count, cells.length), 0));
+
+	const objectiveTargetOptions = [
+		{value: NOT_SELECTED, label: Lang.INDICATOR.CONVERGENCE.PLEASE_SELECT_TARGET},
+		...candidates.objectiveCandidates.map(objective => {
+			return (objective.targets || []).map(target => {
+				return {
+					value: `${objective.objectiveId} - ${target.uuid}`,
+					label: `${objective.name || ''} - ${target.name || ''}`,
+					objective, target
+				};
+			});
+		}).flat()
+	];
+	const mapVariableOptions: Array<DropdownOption> = (convergence.variables || [])
+		.filter(variable => !isFreeWalkVariable(variable))
+		.map(variable => {
+			return {value: variable.uuid, label: variable.name ?? ''};
+		});
 
 	return <ObjectiveEditGridContainer yCount={yColumnsCount} xCount={xRowsCount} xComputedCount={xComputedCount}
 	                                   yComputedCount={yComputedCount}>
@@ -177,11 +266,26 @@ export const ObjectiveEditGrid = (props: { convergence: Convergence, unfreeze: (
 			})}
 		{new Array(xComputedCount).fill(1).map((_, columnIndex, columns) => {
 			return new Array(yComputedCount).fill(1).map((_, rowIndex, rows) => {
+				// eslint-disable-next-line eqeqeq
+				const target = (convergence.targets || []).find(target => target.row == rowIndex && target.col == columnIndex);
+				const id = (target == null || isBlank(target.objectiveId) || isBlank(target.targetId))
+					? NOT_SELECTED
+					: `${target?.objectiveId} - ${target?.targetId}`;
 				return <TargetCell row={Math.max(xRowsCount, 1) + rowIndex + 1}
 				                   column={Math.max(yColumnsCount, 1) + columnIndex + 1}
 				                   lastRow={rowIndex === rows.length - 1}
 				                   lastColumn={columnIndex === columns.length - 1}
 				                   key={`${rowIndex}-${columnIndex}`}>
+					<Dropdown options={objectiveTargetOptions} value={id}
+					          onChange={onTargetChanged(rowIndex, columnIndex, target)}/>
+					{(target?.mapping || []).map((map, index) => {
+						return <Fragment key={map.uuid}>
+							<span>#{index + 1} {map.objectiveVariableName}</span>
+							<span><FontAwesomeIcon icon={ICON_COPY_TO_LEFT}/></span>
+							<Dropdown value={map.variableId} options={mapVariableOptions}
+							          onChange={onMapVariableChanged(map)}/>
+						</Fragment>;
+					})}
 				</TargetCell>;
 			});
 		})}

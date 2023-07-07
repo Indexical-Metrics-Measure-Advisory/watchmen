@@ -631,6 +631,7 @@ export const En = {
 			VARIABLE_TIMEFRAME_KIND_YEAR: 'Annually',
 			X_AXIS_ADD_PLACEHOLDER: 'Add legend into X-Axis',
 			Y_AXIS_ADD_PLACEHOLDER: 'Add legend into Y-Axis',
+			PLEASE_SELECT_TARGET: 'Please select...',
 			FREEZE_DEF: 'Freeze Legends',
 			UNFREEZE_DEF: 'Unfreeze Legends',
 			VARIABLE_NOT_FILLED: 'Please confirm that all attribute values for the defined axis legend have been correctly filled in.',
