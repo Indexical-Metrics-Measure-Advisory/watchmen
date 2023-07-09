@@ -7,6 +7,8 @@ import {
 	ObjectiveFormulaOperator,
 	ObjectiveParameterType,
 	ObjectiveTargetBetterSide,
+	ObjectiveTimeFrameKind,
+	ObjectiveTimeFrameTill,
 	ObjectiveVariableKind,
 	ObjectiveVariableOnBucket,
 	ObjectiveVariableOnRange,
@@ -31,6 +33,12 @@ export const MonthlySalesObjective: Objective = {
 	objectiveId: OBJECTIVE_MONTHLY_SALES_ID,
 	name: 'Monthly Budget',
 	description: '',
+	timeFrame: {
+		kind: ObjectiveTimeFrameKind.LAST_N_DAYS,
+		lastN: '3',
+		till: ObjectiveTimeFrameTill.SPECIFIED,
+		specifiedTill: getCurrentTime()
+	},
 	targets: [
 		{
 			uuid: generateUuid(), name: 'Revenue',

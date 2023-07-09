@@ -60,16 +60,19 @@ export interface ConvergenceFreeWalkVariable extends ConvergenceVariable {
 	values: Array<string>;
 }
 
+export type CONVERGENCE_TARGET_VARIABLE_MAPPING_IGNORED = '#';
+
 export interface ConvergenceTargetVariableMapping {
 	uuid: ConvergenceTargetVariableMappingId;
 	objectiveVariableName: string;
-	variableId?: ConvergenceVariableId;
+	variableId?: ConvergenceVariableId | CONVERGENCE_TARGET_VARIABLE_MAPPING_IGNORED;
 }
 
 export interface ConvergenceTarget {
 	uuid: ConvergenceTargetId;
 	objectiveId: ObjectiveId;
 	targetId: ObjectiveTargetId;
+	useTimeFrame: boolean;
 	mapping: Array<ConvergenceTargetVariableMapping>;
 	/** starts from 0 */
 	row: number;

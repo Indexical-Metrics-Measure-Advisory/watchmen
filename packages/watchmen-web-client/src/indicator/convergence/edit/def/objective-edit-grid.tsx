@@ -13,7 +13,8 @@ import {Objective, ObjectiveId, ObjectiveTarget} from '@/services/data/tuples/ob
 import {QueryObjective} from '@/services/data/tuples/query-objective-types';
 import {generateUuid} from '@/services/data/tuples/utils';
 import {isBlank, isNotBlank, noop} from '@/services/utils';
-import {ICON_COPY_TO_LEFT} from '@/widgets/basic/constants';
+import {CheckBox} from '@/widgets/basic/checkbox';
+import {ICON_COPY_TO_RIGHT} from '@/widgets/basic/constants';
 import {Dropdown} from '@/widgets/basic/dropdown';
 import {DropdownOption} from '@/widgets/basic/types';
 import {useForceUpdate} from '@/widgets/basic/utils';
@@ -106,6 +107,7 @@ export const ObjectiveEditGrid = (props: { convergence: Convergence, unfreeze: (
 					uuid: generateUuid(),
 					objectiveId: selected.objective.objectiveId,
 					targetId: selected.target.uuid,
+					useTimeFrame: selected.objective.timeFrame != null,
 					mapping: (selected.objective.variables || []).map(variable => {
 						return {uuid: generateUuid(), objectiveVariableName: variable.name};
 					}),
@@ -124,9 +126,13 @@ export const ObjectiveEditGrid = (props: { convergence: Convergence, unfreeze: (
 				convergence.targets = (convergence.targets || []).filter(t => t !== target);
 				fire(ConvergencesEventTypes.SAVE_CONVERGENCE, convergence, noop);
 				forceUpdate();
+				// eslint-disable-next-line eqeqeq
+			} else if (target.objectiveId == selected.objective.objectiveId && target.targetId == selected.target.uuid) {
+				// not change, do nothing
 			} else {
 				target.objectiveId = selected.objective.objectiveId;
 				target.targetId = selected.target.uuid;
+				target.useTimeFrame = selected.objective.timeFrame != null;
 				target.mapping = (selected.objective.variables || []).map(variable => {
 					return {uuid: generateUuid(), objectiveVariableName: variable.name};
 				});
@@ -211,11 +217,20 @@ export const ObjectiveEditGrid = (props: { convergence: Convergence, unfreeze: (
 			});
 		}).flat()
 	];
-	const mapVariableOptions: Array<DropdownOption> = (convergence.variables || [])
-		.filter(variable => !isFreeWalkVariable(variable))
-		.map(variable => {
-			return {value: variable.uuid, label: variable.name ?? ''};
-		});
+	const onTargetUseTimeFrameChanged = (target?: ConvergenceTarget) => (value: boolean) => {
+		if (target == null) {
+			return;
+		}
+		target.useTimeFrame = value;
+	};
+	const mapVariableOptions: Array<DropdownOption> = [
+		{value: '', label: Lang.INDICATOR.CONVERGENCE.VARIABLE_MAPPING_IGNORED},
+		...(convergence.variables || [])
+			.filter(variable => !isFreeWalkVariable(variable))
+			.map(variable => {
+				return {value: variable.uuid, label: variable.name ?? ''};
+			})
+	];
 
 	return <ObjectiveEditGridContainer yCount={yColumnsCount} xCount={xRowsCount} xComputedCount={xComputedCount}
 	                                   yComputedCount={yComputedCount}>
@@ -267,23 +282,38 @@ export const ObjectiveEditGrid = (props: { convergence: Convergence, unfreeze: (
 		{new Array(xComputedCount).fill(1).map((_, columnIndex, columns) => {
 			return new Array(yComputedCount).fill(1).map((_, rowIndex, rows) => {
 				// eslint-disable-next-line eqeqeq
-				const target = (convergence.targets || []).find(target => target.row == rowIndex && target.col == columnIndex);
-				const id = (target == null || isBlank(target.objectiveId) || isBlank(target.targetId))
+				const convergenceTarget = (convergence.targets || []).find(target => target.row == rowIndex && target.col == columnIndex);
+				const id = (convergenceTarget == null || isBlank(convergenceTarget.objectiveId) || isBlank(convergenceTarget.targetId))
 					? NOT_SELECTED
-					: `${target?.objectiveId} - ${target?.targetId}`;
+					: `${convergenceTarget?.objectiveId} - ${convergenceTarget?.targetId}`;
+				// find objective, might not select yet
+				// eslint-disable-next-line eqeqeq
+				const objective = objectives.data.find(objective => objective.objectiveId == convergenceTarget?.objectiveId);
+				const couldUseTimeFrame = objective != null ? objective.timeFrame != null : false;
 				return <TargetCell row={Math.max(xRowsCount, 1) + rowIndex + 1}
 				                   column={Math.max(yColumnsCount, 1) + columnIndex + 1}
 				                   lastRow={rowIndex === rows.length - 1}
 				                   lastColumn={columnIndex === columns.length - 1}
 				                   key={`${rowIndex}-${columnIndex}`}>
 					<Dropdown options={objectiveTargetOptions} value={id}
-					          onChange={onTargetChanged(rowIndex, columnIndex, target)}/>
-					{(target?.mapping || []).map((map, index) => {
+					          onChange={onTargetChanged(rowIndex, columnIndex, convergenceTarget)}/>
+					{couldUseTimeFrame
+						? <>
+							<span/>
+							<span>{Lang.INDICATOR.CONVERGENCE.TARGET_USE_TIME_FRAME}</span>
+							<CheckBox value={convergenceTarget?.useTimeFrame ?? false}
+							          onChange={onTargetUseTimeFrameChanged(convergenceTarget)}/>
+							<span/>
+						</>
+						: null}
+					{(convergenceTarget?.mapping || []).map((map, index) => {
 						return <Fragment key={map.uuid}>
-							<span>#{index + 1} {map.objectiveVariableName}</span>
-							<span><FontAwesomeIcon icon={ICON_COPY_TO_LEFT}/></span>
+							<span>#{index + 1}</span>
 							<Dropdown value={map.variableId} options={mapVariableOptions}
-							          onChange={onMapVariableChanged(map)}/>
+							          onChange={onMapVariableChanged(map)}
+							          please={Lang.INDICATOR.CONVERGENCE.VARIABLE_MAPPING_SOURCE_PLACEHOLDER}/>
+							<span><FontAwesomeIcon icon={ICON_COPY_TO_RIGHT}/></span>
+							<span>{map.objectiveVariableName}</span>
 						</Fragment>;
 					})}
 				</TargetCell>;
