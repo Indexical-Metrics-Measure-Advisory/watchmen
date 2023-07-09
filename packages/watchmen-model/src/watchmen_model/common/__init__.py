@@ -9,7 +9,8 @@ from .parameter_and_condition import ComputedParameter, ConstantParameter, const
 from .storable import Auditable, LastVisit, OptimisticLock, Storable
 from .tuple import TenantBasedTuple, Tuple, UserBasedTuple
 from .tuple_ids import AchievementPluginTaskId, BreakdownTargetId, BucketId, ChangeJsonId, ChangeRecordId, \
-	CollectorModelConfigId, CollectorTableConfigId, CompetitiveLockId, ConnectedSpaceId, DashboardId, DataSourceId, \
+	CollectorModelConfigId, CollectorTableConfigId, CompetitiveLockId, ConnectedSpaceId, ConvergenceId, \
+	ConvergenceTargetId, ConvergenceTargetVariableMappingId, ConvergenceVariableId, DashboardId, DataSourceId, \
 	DerivedObjectiveId, EnumId, EnumItemId, EventDefinitionId, EventTriggerId, ExternalWriterId, FactorId, \
 	IndicatorId, ModelTriggerId, NotificationDefinitionId, ObjectiveFactorId, ObjectiveId, ObjectiveTargetId, PatId, \
 	PipelineActionId, PipelineGraphicId, PipelineId, PipelineStageId, PipelineUnitId, PluginId, ReportFunnelId, \

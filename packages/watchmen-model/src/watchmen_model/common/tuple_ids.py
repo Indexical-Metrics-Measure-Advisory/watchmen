@@ -37,6 +37,10 @@ ObjectiveTargetId = TypeVar('ObjectiveTargetId', bound=str)
 DerivedObjectiveId = TypeVar('DerivedObjectiveId', bound=str)
 BreakdownTargetId = TypeVar('BreakdownTargetId', bound=str)
 AchievementPluginTaskId = TypeVar('AchievementPluginTaskId', bound=str)
+ConvergenceId = TypeVar('ConvergenceId', bound=str)
+ConvergenceVariableId = TypeVar('ConvergenceVariableId', bound=str)
+ConvergenceTargetVariableMappingId = TypeVar('ConvergenceTargetVariableMappingId', bound=str)
+ConvergenceTargetId = TypeVar('ConvergenceTargetId', bound=str)
 
 PatId = TypeVar('PatId', bound=str)
 

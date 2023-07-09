@@ -1,24 +1,19 @@
-from typing import Optional, List
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends
 
 from watchmen_auth import PrincipalService
-from watchmen_indicator_kernel.meta.objective_report_service import ObjectiveReportService
+from watchmen_indicator_kernel.meta import ObjectiveReportService
 from watchmen_indicator_surface.util import trans, trans_readonly
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import UserRole
 from watchmen_model.common import TenantId
 from watchmen_model.indicator.objective_report import ObjectiveReport
 from watchmen_rest import get_admin_principal, get_console_principal
-from watchmen_rest.util import validate_tenant_id, raise_403
+from watchmen_rest.util import raise_403, validate_tenant_id
 from watchmen_utilities import is_blank
 
 router = APIRouter()
-
-
-
-
-
 
 
 def get_objective_report_service(principal_service: PrincipalService) -> ObjectiveReportService:
@@ -27,7 +22,8 @@ def get_objective_report_service(principal_service: PrincipalService) -> Objecti
 
 @router.post('/indicator/objective/report', tags=[UserRole.ADMIN], response_model=ObjectiveReport)
 async def save_objective_report(
-		objective_report: ObjectiveReport, principal_service: PrincipalService = Depends(get_admin_principal)) -> ObjectiveReport:
+		objective_report: ObjectiveReport,
+		principal_service: PrincipalService = Depends(get_admin_principal)) -> ObjectiveReport:
 	validate_tenant_id(objective_report, principal_service)
 	objective_report_service = get_objective_report_service(principal_service)
 
@@ -35,23 +31,24 @@ async def save_objective_report(
 	def action(an_objective_report: ObjectiveReport) -> ObjectiveReport:
 		if objective_report_service.is_storable_id_faked(an_objective_report.objectiveReportId):
 			objective_report_service.redress_storable_id(an_objective_report)
-			an_objective: ObjectiveReport = objective_report_service.create(ObjectiveReport)
-			# synchronize objective to user groups
+			# noinspection PyTypeChecker
+			an_objective: ObjectiveReport = objective_report_service.create(an_objective_report)
+		# synchronize objective to user groups
 		else:
 			# noinspection PyTypeChecker
-			existing_objective_report: Optional[ObjectiveReport] = objective_report_service.find_by_id(an_objective_report.objectiveId)
+			existing_objective_report: Optional[ObjectiveReport] = objective_report_service.find_by_id(
+				an_objective_report.objectiveId)
 			if existing_objective_report is not None:
 				if existing_objective_report.tenantId != an_objective_report.tenantId:
 					raise_403()
 
-
 			# noinspection PyTypeChecker
 			an_objective: ObjectiveReport = objective_report_service.update(an_objective_report)
-
 
 		return an_objective
 
 	return trans(objective_report_service, lambda: action(objective_report))
+
 
 @router.get('/indicator/objective/report/name', tags=[UserRole.ADMIN], response_model=List[ObjectiveReport])
 async def find_objectives_by_name(
@@ -69,4 +66,3 @@ async def find_objectives_by_name(
 			return objective_report_service.find_by_name(query_name, tenant_id)
 
 	return trans_readonly(objective_report_service, action)
-

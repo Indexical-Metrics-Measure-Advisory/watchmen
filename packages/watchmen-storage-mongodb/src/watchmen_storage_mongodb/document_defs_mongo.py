@@ -379,6 +379,16 @@ table_derived_objectives = MongoDocument(
 		create_tenant_id(), create_user_id(), create_last_visit_time(), *create_tuple_audit_columns()
 	]
 )
+table_convergences = MongoDocument(
+	name='convergences',
+	columns=[
+		create_pk('convergence_id'), create_str('name'),
+		create_description(),
+		create_json('targets'), create_json('variables'),
+		create_json('group_ids'),
+		create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
+	]
+)
 
 table_achievement_plugin_tasks = MongoDocument(
 	name='achievement_plugin_tasks',
@@ -472,6 +482,7 @@ tables: Dict[str, MongoDocument] = {
 	'indicators': table_indicators,
 	'objectives': table_objectives,
 	'derived_objectives': table_derived_objectives,
+	'convergences': table_convergences,
 	'achievement_plugin_tasks': table_achievement_plugin_tasks,
 	# system
 	'collector_competitive_lock': table_collector_competitive_lock,
