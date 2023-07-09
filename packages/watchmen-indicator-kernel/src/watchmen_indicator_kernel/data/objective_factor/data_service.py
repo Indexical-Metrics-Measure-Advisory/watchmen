@@ -1,41 +1,38 @@
 from abc import abstractmethod
 from decimal import Decimal
 from enum import Enum
-from typing import Optional, List, Tuple, Union, Dict
+from typing import Dict, List, Optional, Union
 
 from pydantic import BaseModel
 
 from watchmen_auth import PrincipalService
 from watchmen_indicator_kernel.common import IndicatorKernelException
 from watchmen_indicator_kernel.data.objective_factor.objective_criteria_service import ObjectiveCriteriaService
-from watchmen_model.admin import Factor, Topic, FactorType, EnumItem
-from watchmen_model.common import DataResult, ParameterJoint, SubjectDatasetColumnId, ConstantParameter, ParameterKind, \
-	ComputedParameter, ParameterComputeType, Parameter, ParameterJointType, ParameterExpression, TopicFactorParameter, \
-	ParameterExpressionOperator, TopicId, BucketId, DataResultSet
+from watchmen_model.admin import EnumItem, Factor, FactorType
+from watchmen_model.common import BucketId, ComputedParameter, ConstantParameter, DataResult, DataResultSet, Parameter, \
+	ParameterComputeType, ParameterExpression, ParameterExpressionOperator, ParameterJoint, ParameterJointType, \
+	ParameterKind, SubjectDatasetColumnId, TopicFactorParameter, TopicId
 from watchmen_model.console import Report, ReportIndicator, ReportIndicatorArithmetic, SubjectDatasetColumn
-from watchmen_model.indicator import Indicator, IndicatorAggregateArithmetic, Objective, ObjectiveFactorOnIndicator, \
-	CategorySegmentsHolder, Bucket, CategorySegment, OtherCategorySegmentValue, MeasureMethod, BucketType, \
-	RangeBucketValueIncluding, NumericSegmentsHolder, NumericValueSegment
-from watchmen_model.indicator.derived_objective import BreakdownTarget, BreakdownDimension
+from watchmen_model.indicator import Bucket, BucketType, CategorySegment, CategorySegmentsHolder, Indicator, \
+	IndicatorAggregateArithmetic, MeasureMethod, NumericSegmentsHolder, NumericValueSegment, Objective, \
+	ObjectiveFactorOnIndicator, OtherCategorySegmentValue, RangeBucketValueIncluding
+from watchmen_model.indicator.derived_objective import BreakdownDimension, BreakdownTarget
 from watchmen_utilities import ArrayHelper, is_decimal
-from ..utils import ask_bucket, find_factor
+from ..utils import ask_bucket
 from ..utils.time_frame import TimeFrame
 
 
-
-class ObjectiveTargetBreakdownValueRow (BaseModel):
-	dimensions: List =[]
+class ObjectiveTargetBreakdownValueRow(BaseModel):
+	dimensions: List = []
 	currentValue: Optional[Decimal] = None
 	previousValue: Optional[Decimal] = None
-	chainValue: Optional[Decimal]= None
+	chainValue: Optional[Decimal] = None
 
 
-class ObjectiveTargetBreakdownValues (BaseModel):
+class ObjectiveTargetBreakdownValues(BaseModel):
 	breakdownUuid: str = None
 	data: List[ObjectiveTargetBreakdownValueRow] = []
 	failed: bool = False
-
-
 
 
 class ObjectiveFactorDataService(ObjectiveCriteriaService):
@@ -73,10 +70,10 @@ class ObjectiveFactorDataService(ObjectiveCriteriaService):
 	def is_datetime_factor(factor_or_type: Union[Factor, FactorType]) -> bool:
 		factor_type = factor_or_type.type if isinstance(factor_or_type, Factor) else factor_or_type
 		return \
-			factor_type == FactorType.DATETIME \
-			or factor_type == FactorType.FULL_DATETIME \
-			or factor_type == FactorType.DATE \
-			or factor_type == FactorType.DATE_OF_BIRTH
+				factor_type == FactorType.DATETIME \
+				or factor_type == FactorType.FULL_DATETIME \
+				or factor_type == FactorType.DATE \
+				or factor_type == FactorType.DATE_OF_BIRTH
 
 	@staticmethod
 	def find_enum_items_value(enum_items: List[EnumItem], value) -> str:
@@ -91,8 +88,8 @@ class ObjectiveFactorDataService(ObjectiveCriteriaService):
 		else:
 			return False
 
-	def load_bucket_data(self,bucket_id:BucketId)->Bucket:
-		bucket:Bucket = ask_bucket(bucket_id,self.get_principal_service())
+	def load_bucket_data(self, bucket_id: BucketId) -> Bucket:
+		bucket: Bucket = ask_bucket(bucket_id, self.get_principal_service())
 		return bucket
 
 	@staticmethod
@@ -103,7 +100,7 @@ class ObjectiveFactorDataService(ObjectiveCriteriaService):
 			return CategorySegmentsHolder(**bucket.to_dict())
 
 	@staticmethod
-	def to_category_case_route(segment: CategorySegment, factor: Factor, topic_id:TopicId) -> Parameter:
+	def to_category_case_route(segment: CategorySegment, factor: Factor, topic_id: TopicId) -> Parameter:
 		return ConstantParameter(
 			kind=ParameterKind.CONSTANT,
 			conditional=True,
@@ -129,7 +126,7 @@ class ObjectiveFactorDataService(ObjectiveCriteriaService):
 
 	def to_numeric_range_case_route(
 			self, segment: NumericValueSegment, include: RangeBucketValueIncluding,
-			factor: Factor,topic_id:TopicId
+			factor: Factor, topic_id: TopicId
 	) -> Parameter:
 		name = segment.name
 		min_value = segment.value.min
@@ -142,19 +139,19 @@ class ObjectiveFactorDataService(ObjectiveCriteriaService):
 			max_operator = ParameterExpressionOperator.LESS_EQUALS
 
 		filters = ArrayHelper([
-					None if min_value is  None else ParameterExpression(
-						left=TopicFactorParameter(
-							kind=ParameterKind.TOPIC, topicId=topic_id, factorId=factor.factorId),
-						operator=min_operator,
-						right=ConstantParameter(value=min_value)
-					),
-					None if max_value is None else ParameterExpression(
-						left=TopicFactorParameter(
-							kind=ParameterKind.TOPIC, topicId=topic_id, factorId=factor.factorId),
-						operator=max_operator,
-						right=ConstantParameter(value=max_value)
-					)
-				]).filter(lambda x: x is not None).to_list()
+			None if min_value is None else ParameterExpression(
+				left=TopicFactorParameter(
+					kind=ParameterKind.TOPIC, topicId=topic_id, factorId=factor.factorId),
+				operator=min_operator,
+				right=ConstantParameter(value=min_value)
+			),
+			None if max_value is None else ParameterExpression(
+				left=TopicFactorParameter(
+					kind=ParameterKind.TOPIC, topicId=topic_id, factorId=factor.factorId),
+				operator=max_operator,
+				right=ConstantParameter(value=max_value)
+			)
+		]).filter(lambda x: x is not None).to_list()
 		return ConstantParameter(
 			kind=ParameterKind.CONSTANT,
 			conditional=True,
@@ -164,7 +161,9 @@ class ObjectiveFactorDataService(ObjectiveCriteriaService):
 			),
 			value=name
 		)
-	def build_bucket_dataset_column(self, breakdown_dim:BreakdownDimension, index,measure_on_factor:Factor ,topic_id:TopicId):
+
+	def build_bucket_dataset_column(self, breakdown_dim: BreakdownDimension, index, measure_on_factor: Factor,
+	                                topic_id: TopicId):
 		if breakdown_dim.bucketId is None:
 			raise Exception("BreakdownDimensionType is BUCKET , but bucketId is None")
 		bucket = self.to_category_segments_bucket(self.load_bucket_data(breakdown_dim.bucketId))
@@ -187,7 +186,7 @@ class ObjectiveFactorDataService(ObjectiveCriteriaService):
 					kind=ParameterKind.COMPUTED, type=ParameterComputeType.CASE_THEN,
 					parameters=[
 						*ArrayHelper(conditional_routes).map(
-							lambda x: self.to_category_case_route(x, measure_on_factor,topic_id)).to_list(),
+							lambda x: self.to_category_case_route(x, measure_on_factor, topic_id)).to_list(),
 						anyway_route
 					]
 				),
@@ -205,13 +204,14 @@ class ObjectiveFactorDataService(ObjectiveCriteriaService):
 				.to_list()
 			if len(segments) == 0:
 				raise IndicatorKernelException('Numeric range segments not declared.')
-			subject_column =  SubjectDatasetColumn(
+			subject_column = SubjectDatasetColumn(
 				columnId=f'{self.MEASURE_ON_COLUMN_ID}_{index}',
 				parameter=ComputedParameter(
 					kind=ParameterKind.COMPUTED, type=ParameterComputeType.CASE_THEN,
 					parameters=[
 						*ArrayHelper(segments).map(
-							lambda x: self.to_numeric_range_case_route(x, include, measure_on_factor,topic_id)).to_list(),
+							lambda x: self.to_numeric_range_case_route(x, include, measure_on_factor,
+							                                           topic_id)).to_list(),
 						# an anyway route, additional
 						ConstantParameter(kind=ParameterKind.CONSTANT, value='-')
 					]
@@ -220,6 +220,7 @@ class ObjectiveFactorDataService(ObjectiveCriteriaService):
 			)
 
 			return subject_column
+
 	def fake_criteria_to_filter(self, time_frame: Optional[TimeFrame]) -> Optional[ParameterJoint]:
 		objective_factor = self.get_objective_factor()
 		if not objective_factor.conditional:
@@ -282,7 +283,6 @@ class ObjectiveFactorDataService(ObjectiveCriteriaService):
 			ReportIndicator(columnId=column_id, name=report_indicator_name, arithmetic=report_indicator_arithmetic)
 		], dimensions=[])
 
-
 	# noinspection PyMethodMayBeStatic
 	def get_value_from_result(self, data_result: DataResult) -> Decimal:
 		if len(data_result.data) == 0:
@@ -297,5 +297,5 @@ class ObjectiveFactorDataService(ObjectiveCriteriaService):
 		pass
 
 	@abstractmethod
-	def ask_breakdown_values(self, time_frame: Optional[TimeFrame],breakdown_target :BreakdownTarget) -> DataResult:
+	def ask_breakdown_values(self, time_frame: Optional[TimeFrame], breakdown_target: BreakdownTarget) -> DataResult:
 		pass
