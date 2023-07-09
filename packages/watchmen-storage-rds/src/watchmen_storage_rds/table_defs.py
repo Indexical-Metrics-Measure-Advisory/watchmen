@@ -76,7 +76,7 @@ table_user_groups = Table(
 	'user_groups', meta_data,
 	create_pk('user_group_id'),
 	create_str('name', 50, False), create_description(),
-	create_json('user_ids'), create_json('space_ids'),create_json("objective_ids"),
+	create_json('user_ids'), create_json('space_ids'), create_json("objective_ids"),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 table_spaces = Table(
@@ -285,8 +285,16 @@ table_derived_objectives = Table(
 	'derived_objectives', meta_data,
 	create_pk('derived_objective_id'),
 	create_str('name', 100, False), create_description(),
-	create_tuple_id_column('objective_id', False), create_json('definition'),create_json('breakdown_targets'),
+	create_tuple_id_column('objective_id', False), create_json('definition'), create_json('breakdown_targets'),
 	create_tenant_id(), create_user_id(), create_last_visit_time(), *create_tuple_audit_columns()
+)
+table_convergences = Table(
+	'convergences', meta_data,
+	create_pk('convergence_id'), create_str('name', 100),
+	create_description(),
+	create_json('targets'), create_json('variables'),
+	create_json('group_ids'),
+	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 
 # noinspection DuplicatedCode
@@ -520,6 +528,7 @@ tables: Dict[str, Table] = {
 	'indicators': table_indicators,
 	'objectives': table_objectives,
 	'derived_objectives': table_derived_objectives,
+	'convergences': table_convergences,
 	'achievement_plugin_tasks': table_achievement_plugin_tasks,
 	# system
 	'competitive_lock': table_competitive_lock,

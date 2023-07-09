@@ -7,6 +7,7 @@ import {UserGroupHolder} from './user-group-types';
 
 export type ConvergenceId = string;
 export type ConvergenceVariableId = string;
+export type ConvergenceTargetVariableMappingId = string;
 export type ConvergenceTargetId = string;
 
 export enum ConvergenceVariableType {
@@ -49,9 +50,6 @@ export interface ConvergenceTimeFrameVariable extends ConvergenceVariable {
 	values: Array<TimeFrameConvergenceVariableValue>;
 }
 
-/**
- * values will not be saved
- */
 export interface ConvergenceBucketVariable extends ConvergenceVariable {
 	type: ConvergenceVariableType.BUCKET;
 	bucketId: BucketId;
@@ -63,7 +61,7 @@ export interface ConvergenceFreeWalkVariable extends ConvergenceVariable {
 }
 
 export interface ConvergenceTargetVariableMapping {
-	uuid: string;
+	uuid: ConvergenceTargetVariableMappingId;
 	objectiveVariableName: string;
 	variableId?: ConvergenceVariableId;
 }

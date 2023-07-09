@@ -3,6 +3,9 @@ from .bucket import Bucket, BucketSegment, BucketType, CategoryMeasureBucket, Ca
 	CategorySegmentValue, EnumMeasureBucket, MeasureBucket, NumericSegmentsHolder, NumericSegmentValue, \
 	NumericValueBucket, NumericValueMeasureBucket, NumericValueSegment, OtherCategorySegmentValue, \
 	RangeBucketValueIncluding
+from .convergence import Convergence, ConvergenceBucketVariable, ConvergenceFreeWalkVariable, ConvergenceTarget, \
+	ConvergenceTargetVariableMapping, ConvergenceTimeFrameVariable, ConvergenceVariable, ConvergenceVariableAxis, \
+	ConvergenceVariableType, ConvergenceTimeFrameVariableKind, TimeFrameConvergenceVariableValue
 from .derived_objective import BreakdownDimension, BreakdownDimensionType, BreakdownTarget, DerivedObjective
 from .indicator import Indicator, IndicatorAggregateArithmetic, IndicatorBaseOn, IndicatorFilter, RelevantIndicator, \
 	RelevantIndicatorType
