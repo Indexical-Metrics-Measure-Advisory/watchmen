@@ -38,6 +38,7 @@ async def find_objectives_by_name(
 ) -> List[Objective]:
 	objective_service = get_objective_service(principal_service)
 
+	# noinspection DuplicatedCode
 	def action() -> List[Objective]:
 		tenant_id: TenantId = principal_service.get_tenant_id()
 		objectives: List[Objective]

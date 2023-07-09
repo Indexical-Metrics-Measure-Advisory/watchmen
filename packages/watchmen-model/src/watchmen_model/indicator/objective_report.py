@@ -1,12 +1,12 @@
-from typing import List, Dict, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from _decimal import Decimal
 from pydantic import BaseModel
 
-from watchmen_model.common import UserBasedTuple, Auditable, LastVisit
+from watchmen_model.common import Auditable, LastVisit, UserBasedTuple
 from watchmen_model.common.tuple_ids import ObjectiveReportId
-from watchmen_model.indicator import ObjectiveTimeFrame, ObjectiveVariable, ObjectiveTarget, ObjectiveVariableOnBucket, \
-	ObjectiveVariableOnValue, ObjectiveVariableKind, ObjectiveVariableOnRange
+from watchmen_model.indicator import ObjectiveTarget, ObjectiveTimeFrame, ObjectiveVariable, ObjectiveVariableKind, \
+	ObjectiveVariableOnBucket, ObjectiveVariableOnRange, ObjectiveVariableOnValue
 from watchmen_utilities import ArrayHelper
 
 
@@ -47,16 +47,22 @@ def construct_target(target: Optional[Union[dict, ObjectiveTarget]]) -> Optional
 	else:
 		# noinspection PyArgumentList
 		return ObjectiveTarget(**target)
+
+
 def construct_cell(cell: Optional[dict] = None) -> Optional[CellTarget]:
 	if cell is None:
 		return None
 	else:
 		return CellTarget(**cell)
+
+
 def construct_targets(targets: Optional[list] = None) -> Optional[List[ObjectiveTarget]]:
 	if targets is None:
 		return None
 	else:
 		return ArrayHelper(targets).map(lambda x: construct_target(x)).to_list()
+
+
 def construct_variable(variable: Optional[Union[dict, ObjectiveVariable]]) -> Optional[ObjectiveVariable]:
 	if variable is None:
 		return None
@@ -73,15 +79,18 @@ def construct_variable(variable: Optional[Union[dict, ObjectiveVariable]]) -> Op
 		else:
 			raise Exception(f'Objective variable kind[{kind}] cannot be recognized.')
 
+
 def construct_variables(variables: Optional[list] = None) -> Optional[List[ObjectiveVariable]]:
 	if variables is None:
 		return None
 	else:
 		return ArrayHelper(variables).map(lambda x: construct_variable(x)).to_list()
+
+
 class ObjectiveReport(UserBasedTuple, Auditable, LastVisit, BaseModel):
-	objectiveReportId :ObjectiveReportId = None
+	objectiveReportId: ObjectiveReportId = None
 	name: str = None
-	variables: List[ObjectiveVariable]  = []
+	variables: List[ObjectiveVariable] = []
 	timeFrame: ObjectiveTimeFrame = []
 	cells: List[CellTarget] = []
 

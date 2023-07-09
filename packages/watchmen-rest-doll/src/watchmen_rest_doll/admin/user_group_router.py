@@ -3,12 +3,12 @@ from typing import Callable, List, Optional, Union
 from fastapi import APIRouter, Body, Depends
 
 from watchmen_auth import PrincipalService
-from watchmen_indicator_kernel.meta import ObjectiveService
+from watchmen_indicator_kernel.meta import ConvergenceService, ObjectiveService
 from watchmen_meta.admin import SpaceService, UserGroupService, UserService
 from watchmen_meta.common import ask_meta_storage, ask_snowflake_generator
 from watchmen_model.admin import Space, User, UserGroup, UserRole
-from watchmen_model.common import DataPage, ObjectiveId, Pageable, SpaceId, TenantId, UserGroupId, UserId
-from watchmen_model.indicator import Objective
+from watchmen_model.common import ConvergenceId, DataPage, ObjectiveId, Pageable, SpaceId, TenantId, UserGroupId, UserId
+from watchmen_model.indicator import Convergence, Objective
 from watchmen_rest import get_admin_principal, get_super_admin_principal
 from watchmen_rest.util import raise_400, raise_403, raise_404, validate_tenant_id
 from watchmen_rest_doll.doll import ask_tuple_delete_enabled
@@ -34,6 +34,11 @@ def get_space_service(user_group_service: UserGroupService) -> SpaceService:
 
 def get_objective_service(user_group_service: UserGroupService) -> ObjectiveService:
 	return ObjectiveService(
+		user_group_service.storage, user_group_service.snowflakeGenerator, user_group_service.principalService)
+
+
+def get_convergence_service(user_group_service: UserGroupService) -> ConvergenceService:
+	return ConvergenceService(
 		user_group_service.storage, user_group_service.snowflakeGenerator, user_group_service.principalService)
 
 
@@ -231,6 +236,86 @@ class SyncUserGroupChangeWithObjective:
 sync_user_group_change_with_objective_handler = SyncUserGroupChangeWithObjective()
 
 
+class SyncUserGroupChangeWithConvergence:
+	# noinspection PyMethodMayBeStatic
+	def has_user_group_id(self, convergence: Convergence, user_group_id: UserGroupId) -> bool:
+		if convergence.groupIds is None:
+			return False
+		elif len(convergence.groupIds) == 0:
+			return False
+		else:
+			return user_group_id in convergence.groupIds
+
+	# noinspection PyMethodMayBeStatic
+	def append_user_group_id(self, convergence: Convergence, user_group_id: UserGroupId) -> Convergence:
+		if convergence.groupIds is None:
+			convergence.groupIds = [user_group_id]
+		else:
+			convergence.groupIds.append(user_group_id)
+		return convergence
+
+	# noinspection PyMethodMayBeStatic
+	def remove_user_group_id(self, convergence: Convergence, user_group_id: UserGroupId) -> Convergence:
+		convergence.groupIds = ArrayHelper(convergence.groupIds).filter(lambda y: y != user_group_id).to_list()
+		return convergence
+
+	# noinspection PyMethodMayBeStatic
+	def update_convergence(self, service: ConvergenceService, convergence: Convergence) -> None:
+		service.update(convergence)
+
+	# noinspection DuplicatedCode,PyMethodMayBeStatic
+	def sync_on_create(
+			self, user_group_id: UserGroupId, convergence_ids: Optional[List[ConvergenceId]],
+			tenant_id: TenantId, user_group_service: UserGroupService):
+		if convergence_ids is None:
+			return
+
+		given_count = len(convergence_ids)
+		if given_count == 0:
+			# do nothing
+			return
+
+		convergence_service = get_convergence_service(user_group_service)
+		holders = convergence_service.find_by_ids(convergence_ids, tenant_id)
+		found_count = len(holders)
+		if given_count != found_count:
+			raise_400('Convergence ids do not match.')
+
+		ArrayHelper(holders) \
+			.filter(lambda x: not self.has_user_group_id(x, user_group_id)) \
+			.map(lambda x: self.append_user_group_id(x, user_group_id)) \
+			.each(lambda x: self.update_convergence(convergence_service, x))
+
+	# noinspection DuplicatedCode
+	def sync_on_update(
+			self, user_group_id: UserGroupId, convergence_ids: Optional[List[ConvergenceId]],
+			removed_convergence_ids: Optional[List[ConvergenceId]], tenant_id: TenantId,
+			user_group_service: UserGroupService):
+		if removed_convergence_ids is None:
+			return
+
+		given_count = len(removed_convergence_ids)
+		if given_count == 0:
+			# do nothing
+			return
+
+		convergence_service = get_convergence_service(user_group_service)
+		holders = convergence_service.find_by_ids(removed_convergence_ids, tenant_id)
+		found_count = len(holders)
+		if given_count != found_count:
+			raise_400('Convergence ids do not match.')
+
+		ArrayHelper(holders) \
+			.filter(lambda x: self.has_user_group_id(x, user_group_id)) \
+			.map(lambda x: self.remove_user_group_id(x, user_group_id)) \
+			.each(lambda x: self.update_convergence(convergence_service, x))
+
+		self.sync_on_create(user_group_id, convergence_ids, tenant_id, user_group_service)
+
+
+sync_user_group_change_with_convergence_handler = SyncUserGroupChangeWithConvergence()
+
+
 # noinspection PyUnusedLocal
 def ask_save_user_group_action(
 		user_group_service: UserGroupService, principal_service: PrincipalService) -> Callable[[UserGroup], UserGroup]:
@@ -254,6 +339,10 @@ def ask_save_user_group_action(
 			objective_ids = ArrayHelper(user_group.objectiveIds).distinct().to_list()
 			sync_user_group_change_with_objective_handler.sync_on_create(
 				user_group.userGroupId, objective_ids, user_group.tenantId, user_group_service)
+
+			convergence_ids = ArrayHelper(user_group.convergenceIds).distinct().to_list()
+			sync_user_group_change_with_convergence_handler.sync_on_create(
+				user_group.userGroupId, convergence_ids, user_group.tenantId, user_group_service)
 		else:
 			# noinspection PyTypeChecker,DuplicatedCode
 			existing_user_group: Optional[UserGroup] = user_group_service.find_by_id(user_group.userGroupId)
@@ -290,6 +379,12 @@ def ask_save_user_group_action(
 				user_group.userGroupId, objective_ids, removed_objective_ids, user_group.tenantId,
 				user_group_service)
 
+			convergence_ids = ArrayHelper(user_group.convergenceIds).distinct().to_list()
+			removed_convergence_ids = ArrayHelper(existing_user_group.convergenceIds) \
+				.difference(convergence_ids).to_list()
+			sync_user_group_change_with_convergence_handler.sync_on_update(
+				user_group.userGroupId, convergence_ids, removed_convergence_ids, user_group.tenantId,
+				user_group_service)
 		return user_group
 
 	return action
