@@ -262,7 +262,7 @@ export const TargetCell = styled.div.attrs<{
 	position              : relative;
 	align-items           : center;
 	align-content         : start;
-	grid-template-columns : auto auto 1fr;
+	grid-template-columns : auto auto auto 1fr;
 	grid-column-gap       : calc(var(--margin) / 2);
 	grid-row-gap          : calc(var(--margin) / 4);
 	border-top            : var(--border);
@@ -270,9 +270,25 @@ export const TargetCell = styled.div.attrs<{
 	min-height            : var(--tall-height);
 	padding               : calc(var(--margin) / 2);
 	> div[data-widget=dropdown]:first-child {
-		grid-column : span 3;
+		grid-column   : span 4;
+		margin-bottom : calc(var(--margin) / 4);
 	}
-	> span:nth-child(3n + 2) {
+	> div[data-widget=dropdown]:not(:first-child) {
+		min-width : 150px;
+	}
+	> span:nth-child(3),
+	> span:nth-child(4n) {
+		display         : flex;
+		position        : relative;
+		align-items     : center;
+		justify-content : center;
+		min-height      : var(--height);
+	}
+	> span:nth-child(3) {
+		justify-content : start;
+	}
+	> span:nth-child(3),
+	> span:nth-child(4n + 1) {
 		font-weight  : var(--font-demi-bold);
 		font-variant : petite-caps;
 		white-space  : nowrap;
