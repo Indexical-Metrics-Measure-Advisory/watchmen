@@ -638,6 +638,8 @@ export const Jp: LanguageDeclareType = {
 			FREEZE_DEF: '次元をロック',
 			UNFREEZE_DEF: '次元のロック解除',
 			VARIABLE_NOT_FILLED: '定義された軸の凡例の属性値が正しく入力されているか確認してください。',
+			ASK_VALUES: '定義完了、データをリクエストしてください',
+			BACK_TO_DEF: '定義に戻る',
 			CHANGE_NAME: '名前を変更',
 			NAME_TITLE: '読むための名前を入力してください。',
 			DESCRIPTION_TITLE: '説明。',

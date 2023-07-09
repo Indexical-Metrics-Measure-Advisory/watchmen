@@ -1,6 +1,18 @@
 import {Button} from '@/widgets/basic/button';
 import styled from 'styled-components';
 
+export const DefContainer = styled.div.attrs({
+	'data-widget': 'convergence-def-container',
+	'data-v-scroll': '',
+	'data-h-scroll': ''
+})`
+	display      : block;
+	position     : relative;
+	overflow     : auto;
+	margin-left  : calc(var(--margin) * -1);
+	padding-left : var(--margin);
+	margin-right : calc(var(--margin) / 2);
+`;
 export const AxisEditGridContainer = styled.div.attrs<{ yCount: number; xCount: number }>(
 	({yCount}) => {
 		return {
@@ -306,4 +318,83 @@ export const FreezeButton = styled(Button)`
 		z-index          : -1;
 		opacity          : 0.3;
 	}
+`;
+export const AskValuesButton = styled(Button)`
+	margin-top    : var(--margin);
+	border-radius : calc(var(--height) / 2);
+`;
+export const ValuesGridContainer = styled.div.attrs<{ rows: number; columns: number }>(
+	({rows, columns}) => {
+		return {
+			'data-widget': 'convergence-values-grid',
+			style: {
+				gridTemplateColumns: rows === 0
+					? `${new Array(columns).fill('auto').join(' ')}`
+					: `auto ${new Array(columns).fill('auto').join(' ')}`
+			}
+		};
+	})<{ rows: number; columns: number }>`
+	display  : grid;
+	position : relative;
+`;
+export const ValueColumnHeader = styled.div.attrs<{ row: number; column: number; columns: number; last: boolean }>(
+	({row, column, columns, last}) => {
+		return {
+			'data-widget': 'convergence-values-grid-column-header',
+			style: {
+				gridRow: row,
+				gridColumn: `${column} / span ${columns}`,
+				borderRight: last ? 'var(--border)' : (void 0),
+				borderTopRightRadius: (row === 1 && last) ? 'var(--border-radius)' : (void 0)
+			}
+		};
+	})<{ row: number; column: number; columns: number; last: boolean }>`
+	display         : flex;
+	position        : relative;
+	align-items     : center;
+	justify-content : center;
+	padding         : calc(var(--margin) / 2);
+	border-top      : var(--border);
+	border-left     : var(--border);
+`;
+export const ValueRowHeader = styled.div.attrs<{ row: number; column: number; rows: number; last: boolean }>(
+	({row, column, rows, last}) => {
+		return {
+			'data-widget': 'convergence-values-grid-row-header',
+			style: {
+				gridRow: `${row} / span ${rows}`,
+				gridColumn: column,
+				borderBottom: last ? 'var(--border)' : (void 0),
+				borderBottomLeftRadius: (column === 1 && last) ? 'var(--border-radius)' : (void 0)
+			}
+		};
+	})<{ row: number; column: number; rows: number; last: boolean }>`
+	display         : flex;
+	position        : relative;
+	align-items     : center;
+	justify-content : center;
+	padding         : calc(var(--margin) / 2);
+	border-top      : var(--border);
+	border-left     : var(--border);
+`;
+export const ValueCell = styled.div.attrs<{ row: number; column: number; lastColumn: boolean; lastRow: boolean }>(
+	({row, column, lastColumn, lastRow}) => {
+		return {
+			'data-widget': 'convergence-values-grid-value-cell',
+			style: {
+				gridRow: row,
+				gridColumn: column,
+				borderRight: lastColumn ? 'var(--border)' : (void 0),
+				borderBottom: lastRow ? 'var(--border)' : (void 0),
+				borderBottomRightRadius: (lastRow && lastColumn) ? 'var(--border-radius)' : (void 0)
+			}
+		};
+	})<{ row: number; column: number; lastColumn: boolean; lastRow: boolean }>`
+	display         : flex;
+	position        : relative;
+	align-items     : center;
+	justify-content : end;
+	padding         : calc(var(--margin) / 2);
+	border-top      : var(--border);
+	border-left     : var(--border);
 `;
