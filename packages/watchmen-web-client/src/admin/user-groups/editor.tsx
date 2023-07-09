@@ -1,4 +1,3 @@
-import {ConvergencePicker} from '@/admin/user-groups/convergence-picker';
 import {QueryConvergenceForHolder} from '@/services/data/tuples/query-convergence-types';
 import {QueryObjectiveForHolder} from '@/services/data/tuples/query-objective-types';
 import {QuerySpaceForHolder} from '@/services/data/tuples/query-space-types';
@@ -9,6 +8,7 @@ import {TuplePropertyInput, TuplePropertyInputLines, TuplePropertyLabel} from '@
 import {useTupleEventBus} from '@/widgets/tuple-workbench/tuple-event-bus';
 import {TupleEventTypes, TupleState} from '@/widgets/tuple-workbench/tuple-event-bus-types';
 import React, {ChangeEvent} from 'react';
+import {ConvergencePicker} from './convergence-picker';
 import {ObjectivePicker} from './objective-picker';
 import {SpacePicker} from './space-picker';
 import {HoldByUserGroup} from './types';

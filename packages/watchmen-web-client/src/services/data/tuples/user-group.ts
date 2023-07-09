@@ -1,4 +1,3 @@
-import {QueryConvergenceForHolder} from '@/services/data/tuples/query-convergence-types';
 import {findAccount} from '../account';
 import {Apis, get, page, post} from '../apis';
 import {
@@ -10,6 +9,7 @@ import {
 } from '../mock/tuples/mock-user-group';
 import {TuplePage} from '../query/tuple-page';
 import {isMockService} from '../utils';
+import {QueryConvergenceForHolder} from './query-convergence-types';
 import {QueryObjectiveForHolder} from './query-objective-types';
 import {QuerySpaceForHolder} from './query-space-types';
 import {QueryUserGroup, QueryUserGroupForHolder} from './query-user-group-types';
