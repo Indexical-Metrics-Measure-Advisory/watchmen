@@ -1,5 +1,5 @@
-import {QueryConvergenceForHolder} from '@/services/data/tuples/query-convergence-types';
 import {TuplePage} from '../../query/tuple-page';
+import {QueryConvergenceForHolder} from '../../tuples/query-convergence-types';
 import {QueryObjectiveForHolder} from '../../tuples/query-objective-types';
 import {QuerySpaceForHolder} from '../../tuples/query-space-types';
 import {QueryUserGroup, QueryUserGroupForHolder} from '../../tuples/query-user-group-types';
