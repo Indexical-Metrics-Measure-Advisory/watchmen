@@ -55,7 +55,7 @@ export const AxisEditGrid = (props: { convergence: Convergence, freeze: () => vo
 			? null
 			: {value: ConvergenceVariableType.FREE_WALK, label: Lang.INDICATOR.CONVERGENCE.VARIABLE_TYPE_FREE_WALK},
 		{value: ConvergenceVariableType.BUCKET, label: Lang.INDICATOR.CONVERGENCE.VARIABLE_TYPE_BUCKET},
-		xVariables.some(variable => isTimeFrameVariable(variable))
+		(convergence.variables || []).some(variable => isTimeFrameVariable(variable))
 			? null
 			: {value: ConvergenceVariableType.TIMEFRAME, label: Lang.INDICATOR.CONVERGENCE.VARIABLE_TYPE_TIMEFRAME}
 	].filter(x => x != null) as Array<DropdownOption>;
@@ -64,7 +64,7 @@ export const AxisEditGrid = (props: { convergence: Convergence, freeze: () => vo
 			? null
 			: {value: ConvergenceVariableType.FREE_WALK, label: Lang.INDICATOR.CONVERGENCE.VARIABLE_TYPE_FREE_WALK},
 		{value: ConvergenceVariableType.BUCKET, label: Lang.INDICATOR.CONVERGENCE.VARIABLE_TYPE_BUCKET},
-		yVariables.some(variable => isTimeFrameVariable(variable))
+		(convergence.variables || []).some(variable => isTimeFrameVariable(variable))
 			? null
 			: {value: ConvergenceVariableType.TIMEFRAME, label: Lang.INDICATOR.CONVERGENCE.VARIABLE_TYPE_TIMEFRAME}
 	].filter(x => x != null) as Array<DropdownOption>;
