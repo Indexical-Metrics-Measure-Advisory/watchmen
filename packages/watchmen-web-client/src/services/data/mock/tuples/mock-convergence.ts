@@ -1,5 +1,5 @@
 import {TuplePage} from '../../query/tuple-page';
-import {Convergence, ConvergenceId} from '../../tuples/convergence-types';
+import {Convergence, ConvergenceData, ConvergenceId} from '../../tuples/convergence-types';
 import {QueryConvergence, QueryConvergenceForHolder} from '../../tuples/query-convergence-types';
 import {isFakedUuid} from '../../tuples/utils';
 import {AMockConvergence, DemoConvergences} from './mock-data-convergences';
@@ -40,6 +40,30 @@ export const saveMockConvergence = async (convergence: Convergence): Promise<voi
 			convergence.convergenceId = `${newConvergenceId++}`;
 		}
 		setTimeout(() => resolve(), 500);
+	});
+};
+
+export const askMockConvergenceValues = async (convergenceId: ConvergenceId): Promise<ConvergenceData> => {
+	const format = new Intl.NumberFormat(undefined, {
+		useGrouping: true,
+		maximumFractionDigits: 2
+	}).format;
+	return new Promise<ConvergenceData>((resolve) => {
+		setTimeout(() => resolve({
+			xAxis: [
+				{name: 'Electronic Products', segments: [{name: 'Jan, 23'}, {name: 'Feb, 23'}, {name: 'Mar, 23'}]},
+				{name: 'Daily Necessities', segments: [{name: 'Jan, 23'}, {name: 'Feb, 23'}, {name: 'Mar, 23'}]}
+			],
+			yAxis: [
+				{name: 'NY', segments: [{name: 'Sold'}, {name: 'In Stock'}]},
+				{name: 'New Hampshire', segments: [{name: 'Sold'}, {name: 'In Stock'}]}
+			],
+			values: new Array(4).fill(1).map((_, row) => {
+				return new Array(6).fill(1).map((_, col) => {
+					return {row, col, value: format(Math.random() * 1000 + 10000), failed: false};
+				});
+			}).flat()
+		}), 500);
 	});
 };
 

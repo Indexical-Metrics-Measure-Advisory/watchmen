@@ -638,6 +638,8 @@ export const En = {
 			FREEZE_DEF: 'Freeze Legends',
 			UNFREEZE_DEF: 'Unfreeze Legends',
 			VARIABLE_NOT_FILLED: 'Please confirm that all attribute values for the defined axis legend have been correctly filled in.',
+			ASK_VALUES: 'Definition Accomplished, Ask Data',
+			BACK_TO_DEF: 'Back to Definition',
 			CHANGE_NAME: 'Change Name',
 			NAME_TITLE: 'Set a human reading name.',
 			DESCRIPTION_TITLE: 'Description.',

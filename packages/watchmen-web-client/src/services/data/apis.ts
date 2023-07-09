@@ -210,7 +210,8 @@ export const Apis = {
 	CONVERGENCE_BY_IDS: 'indicator/convergence/ids',
 	CONVERGENCE_GET: 'indicator/convergence?convergence_id=:convergenceId',
 	CONVERGENCE_CREATE: 'indicator/convergence',
-	CONVERGENCE_SAVE: 'indicator/convergence'
+	CONVERGENCE_SAVE: 'indicator/convergence',
+	CONVERGENCE_VALUES: 'indicator/convergence/data'
 };
 
 const buildApi = (api: string, args?: Record<string, any>): string => {
