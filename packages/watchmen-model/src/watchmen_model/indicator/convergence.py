@@ -85,10 +85,13 @@ class ConvergenceFreeWalkVariable(ConvergenceVariable):
 	values: List[str] = []
 
 
+CONVERGENCE_TARGET_VARIABLE_MAPPING_IGNORED = '#'
+
+
 class ConvergenceTargetVariableMapping:
 	uuid: ConvergenceTargetVariableMappingId = None
 	objectiveVariableName: str = None
-	variableId: ConvergenceVariableId = None
+	variableId: Union[ConvergenceVariableId, CONVERGENCE_TARGET_VARIABLE_MAPPING_IGNORED] = None
 
 
 def construct_target_mapping(target: Optional[Union[dict, ConvergenceTargetVariableMapping]]) -> Optional[
@@ -113,6 +116,7 @@ class ConvergenceTarget(DataModel, BaseModel):
 	uuid: ConvergenceTargetId = None
 	objectiveId: ObjectiveId = None
 	targetId: ObjectiveTargetId = None
+	useTimeFrame: bool = None
 	mapping: List[ConvergenceTargetVariableMapping]
 	# starts from 0
 	row: int = None
