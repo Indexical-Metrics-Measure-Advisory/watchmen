@@ -1,6 +1,7 @@
 import {findAccount} from '../account';
 import {Apis, get, page, post} from '../apis';
 import {
+	askMockConvergenceValues,
 	fetchMockConvergence,
 	listMockConvergences,
 	listMockConvergencesForHolder,
@@ -8,7 +9,7 @@ import {
 } from '../mock/tuples/mock-convergence';
 import {TuplePage} from '../query/tuple-page';
 import {isMockService} from '../utils';
-import {Convergence, ConvergenceId} from './convergence-types';
+import {Convergence, ConvergenceData, ConvergenceId} from './convergence-types';
 import {QueryConvergence, QueryConvergenceForHolder} from './query-convergence-types';
 import {UserGroupId} from './user-group-types';
 import {isFakedUuid} from './utils';
@@ -79,5 +80,13 @@ export const saveConvergence = async (convergence: Convergence): Promise<void> =
 		convergence.tenantId = data.tenantId;
 		convergence.version = data.version;
 		convergence.lastModifiedAt = data.lastModifiedAt;
+	}
+};
+
+export const askConvergenceValues = async (convergenceId: ConvergenceId): Promise<ConvergenceData> => {
+	if (isMockService()) {
+		return askMockConvergenceValues(convergenceId);
+	} else {
+		return await get({api: Apis.CONVERGENCE_VALUES, search: {convergenceId}});
 	}
 };

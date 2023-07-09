@@ -638,6 +638,8 @@ export const Zh: LanguageDeclareType = {
 			FREEZE_DEF: '锁定维度',
 			UNFREEZE_DEF: '解锁维度',
 			VARIABLE_NOT_FILLED: '请确认已正确填写所定义轴维度的所有属性值.',
+			ASK_VALUES: '定义完毕, 请求数据',
+			BACK_TO_DEF: '返回定义',
 			CHANGE_NAME: '修改名称',
 			NAME_TITLE: '设置一个用于阅读的名称.',
 			DESCRIPTION_TITLE: '描述.',

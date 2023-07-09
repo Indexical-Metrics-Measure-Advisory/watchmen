@@ -92,3 +92,21 @@ export interface Convergence extends Tuple, OptimisticLock, UserGroupHolder {
 export interface ConvergenceHolder extends TupleHolder {
 	convergenceIds: Array<ConvergenceId>;
 }
+
+export interface ConvergenceAxisSegment {
+	name: string;
+	segments?: Array<ConvergenceAxisSegment>;
+}
+
+export interface ConvergenceCellValue {
+	row: number;
+	col: number;
+	value?: string;
+	failed: boolean;
+}
+
+export interface ConvergenceData {
+	xAxis: Array<ConvergenceAxisSegment>;
+	yAxis: Array<ConvergenceAxisSegment>;
+	values: Array<ConvergenceCellValue>;
+}
