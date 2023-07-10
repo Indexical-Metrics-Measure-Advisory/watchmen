@@ -222,6 +222,7 @@ export const ObjectiveEditGrid = (props: { convergence: Convergence, unfreeze: (
 			return;
 		}
 		target.useTimeFrame = value;
+		forceUpdate();
 	};
 	const mapVariableOptions: Array<DropdownOption> = [
 		{value: '', label: Lang.INDICATOR.CONVERGENCE.VARIABLE_MAPPING_IGNORED},
