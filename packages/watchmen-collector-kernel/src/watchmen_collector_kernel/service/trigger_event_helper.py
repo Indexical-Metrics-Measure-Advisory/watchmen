@@ -57,6 +57,8 @@ def trigger_event_by_default(trigger_event: TriggerEvent):
 	except Exception as e:
 		trigger_event_service.rollback_transaction()
 		raise e
+	finally:
+		trigger_event_service.close_transaction()
 
 	# noinspection PyTypeChecker
 	return trigger_event
@@ -109,6 +111,8 @@ def trigger_event_by_table(trigger_event: TriggerEvent):
 	except Exception as e:
 		trigger_event_service.rollback_transaction()
 		raise e
+	finally:
+		trigger_event_service.close_transaction()
 
 	# noinspection PyTypeChecker
 	return trigger_event
@@ -249,6 +253,8 @@ def trigger_event_by_records(trigger_event: TriggerEvent):
 	except Exception as e:
 		trigger_event_service.rollback_transaction()
 		raise e
+	finally:
+		trigger_event_service.close_transaction()
 
 	# noinspection PyTypeChecker
 	return trigger_event

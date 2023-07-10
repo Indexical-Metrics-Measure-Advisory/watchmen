@@ -197,3 +197,5 @@ class StorageBasedWorkerIdGenerator(CompetitiveWorkerIdGenerator):
 		except Exception as e:
 			self.storage.rollback_and_close()
 			raise e
+		finally:
+			self.storage.close()

@@ -103,6 +103,8 @@ class ScheduledTaskService(TupleService):
 		except Exception as e:
 			self.rollback_transaction()
 			raise e
+		finally:
+			self.close_transaction()
 
 	def update_task(self, task: ScheduledTask) -> ScheduledTask:
 		self.begin_transaction()
@@ -114,6 +116,8 @@ class ScheduledTaskService(TupleService):
 		except Exception as e:
 			self.rollback_transaction()
 			raise e
+		finally:
+			self.close_transaction()
 
 	def find_task_by_id(self, task_id: ScheduledTaskId) -> Optional[ScheduledTask]:
 		self.begin_transaction()
