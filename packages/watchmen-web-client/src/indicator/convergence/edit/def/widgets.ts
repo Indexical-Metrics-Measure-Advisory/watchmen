@@ -9,8 +9,6 @@ export const DefContainer = styled.div.attrs({
 	display      : block;
 	position     : relative;
 	overflow     : auto;
-	margin-left  : calc(var(--margin) * -1);
-	padding-left : var(--margin);
 	margin-right : calc(var(--margin) / 2);
 `;
 export const AxisEditGridContainer = styled.div.attrs<{ yCount: number; xCount: number }>(
@@ -234,6 +232,7 @@ export const YRemoveMeButton = styled.div.attrs({'data-widget': 'remove-me-butto
 	align-self      : center;
 	align-items     : center;
 	justify-content : center;
+	min-width       : 120px;
 	width           : 100%;
 	height          : var(--height);
 	border-radius   : calc(var(--border-radius) * 2);
@@ -322,6 +321,7 @@ export const FreezeButton = styled(Button)`
 export const AskValuesButton = styled(Button)`
 	margin-top    : var(--margin);
 	border-radius : calc(var(--height) / 2);
+	justify-self  : start;
 `;
 export const ValuesGridContainer = styled.div.attrs<{ rows: number; columns: number }>(
 	({rows, columns}) => {
