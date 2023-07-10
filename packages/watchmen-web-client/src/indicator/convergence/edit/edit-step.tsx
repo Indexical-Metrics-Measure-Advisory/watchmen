@@ -23,7 +23,7 @@ export const EditStep = (props: {
 	const onBackToListClicked = () => {
 		fireGlobal(EventTypes.SHOW_YES_NO_DIALOG, Lang.INDICATOR.ON_EDIT, () => {
 			fireGlobal(EventTypes.HIDE_DIALOG);
-			navigate(Router.IDW_OBJECTIVE);
+			navigate(Router.IDW_CONVERGENCE);
 		}, () => fireGlobal(EventTypes.HIDE_DIALOG));
 	};
 
@@ -33,7 +33,7 @@ export const EditStep = (props: {
 			{backToList
 				? <BackToListButtonContainer>
 					<StepTitleButton ink={ButtonInk.WAIVE} onClick={onBackToListClicked}>
-						{Lang.INDICATOR.OBJECTIVE.BACK_TO_LIST}
+						{Lang.INDICATOR.CONVERGENCE.BACK_TO_LIST}
 					</StepTitleButton>
 				</BackToListButtonContainer>
 				: null}

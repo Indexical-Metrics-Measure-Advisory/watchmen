@@ -612,6 +612,7 @@ export const Jp: LanguageDeclareType = {
 			LAST_MODIFIED_AT: '最終更新日',
 			FAILED_TO_LOAD_CONVERGENCE: '収束データの読み込みにエラーが発生しました。詳細については、管理者に問い合わせてください。',
 			TITLE: '収束を準備',
+			BACK_TO_LIST: 'リストに戻り',
 			DEF_TITLE: '定義。',
 			VARIABLE_NAME: '名前',
 			VARIABLE_TYPE_FREE_WALK: '無料定義',
