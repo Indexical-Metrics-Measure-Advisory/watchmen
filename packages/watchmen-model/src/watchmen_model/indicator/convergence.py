@@ -21,7 +21,7 @@ class ConvergenceVariableAxis(str, Enum):
 
 class ConvergenceVariable(DataModel, BaseModel):
 	uuid: ConvergenceVariableId = None
-	type: ConvergenceVariableType
+	type: ConvergenceVariableType = None
 	name: str = None
 	axis: ConvergenceVariableAxis = None
 
@@ -35,7 +35,7 @@ class ConvergenceTimeFrameVariableKind(str, Enum):
 	DAY = 'day'
 
 
-class TimeFrameConvergenceVariableValue:
+class TimeFrameConvergenceVariableValue(DataModel, BaseModel):
 	start: str = None
 	end: str = None
 
@@ -61,9 +61,9 @@ def construct_timeframe_variable_values(
 
 
 class ConvergenceTimeFrameVariable(ConvergenceVariable):
-	type: ConvergenceVariableType.TIMEFRAME
+	type: ConvergenceVariableType = ConvergenceVariableType.TIMEFRAME
 	# use kind and till to compute values
-	kind: ConvergenceTimeFrameVariableKind
+	kind: ConvergenceTimeFrameVariableKind = None
 	till: str = None
 	times: int = None
 	values: List[TimeFrameConvergenceVariableValue] = []
@@ -76,22 +76,23 @@ class ConvergenceTimeFrameVariable(ConvergenceVariable):
 
 
 class ConvergenceBucketVariable(ConvergenceVariable):
-	type: ConvergenceVariableType.BUCKET
+	type: ConvergenceVariableType = ConvergenceVariableType.BUCKET
 	bucketId: BucketId = None
 
 
 class ConvergenceFreeWalkVariable(ConvergenceVariable):
-	type: ConvergenceVariableType.FREE_WALK
+	type: ConvergenceVariableType = ConvergenceVariableType.FREE_WALK
 	values: List[str] = []
 
 
 CONVERGENCE_TARGET_VARIABLE_MAPPING_IGNORED = '#'
 
 
-class ConvergenceTargetVariableMapping:
+class ConvergenceTargetVariableMapping(DataModel, BaseModel):
 	uuid: ConvergenceTargetVariableMappingId = None
 	objectiveVariableName: str = None
-	variableId: Union[ConvergenceVariableId, CONVERGENCE_TARGET_VARIABLE_MAPPING_IGNORED] = None
+	#CONVERGENCE_TARGET_VARIABLE_MAPPING_IGNORED
+	variableId: ConvergenceVariableId = None
 
 
 def construct_target_mapping(target: Optional[Union[dict, ConvergenceTargetVariableMapping]]) -> Optional[
@@ -117,7 +118,7 @@ class ConvergenceTarget(DataModel, BaseModel):
 	objectiveId: ObjectiveId = None
 	targetId: ObjectiveTargetId = None
 	useTimeFrame: bool = None
-	mapping: List[ConvergenceTargetVariableMapping]
+	mapping: List[ConvergenceTargetVariableMapping] = []
 	# starts from 0
 	row: int = None
 	# starts from 0
