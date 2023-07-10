@@ -612,6 +612,7 @@ export const Zh: LanguageDeclareType = {
 			LAST_MODIFIED_AT: '最后更新于',
 			FAILED_TO_LOAD_CONVERGENCE: '加载汇聚数据出现错误, 请联系您的系统管理员以获取更多信息.',
 			TITLE: '准备汇聚',
+			BACK_TO_LIST: '返回列表',
 			DEF_TITLE: '定义.',
 			VARIABLE_NAME: '名称',
 			VARIABLE_TYPE_FREE_WALK: '自由定义',

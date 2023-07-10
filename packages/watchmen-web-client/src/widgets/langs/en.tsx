@@ -612,6 +612,7 @@ export const En = {
 			LAST_MODIFIED_AT: 'Last Modified At',
 			FAILED_TO_LOAD_CONVERGENCE: 'Failed to load convergence, contact your administrator for more information.',
 			TITLE: 'Define Convergence',
+			BACK_TO_LIST: 'Back to list',
 			DEF_TITLE: 'Definition.',
 			VARIABLE_NAME: 'Name',
 			VARIABLE_TYPE_FREE_WALK: 'Free walk',
