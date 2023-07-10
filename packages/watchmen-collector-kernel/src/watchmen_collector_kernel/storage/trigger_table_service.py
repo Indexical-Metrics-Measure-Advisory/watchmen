@@ -73,6 +73,8 @@ class TriggerTableService(TupleService):
 		except Exception as e:
 			self.rollback_transaction()
 			raise e
+		finally:
+			self.close_transaction()
 
 	def find_unfinished(self) -> Optional[List[TriggerTable]]:
 		self.begin_transaction()

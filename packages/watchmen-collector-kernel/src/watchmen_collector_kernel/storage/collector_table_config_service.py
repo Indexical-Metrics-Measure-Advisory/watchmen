@@ -89,6 +89,8 @@ class CollectorTableConfigService(TupleService):
 		except Exception as e:
 			self.rollback_transaction()
 			raise e
+		finally:
+			self.close_transaction()
 
 	# noinspection PyTypeChecker
 	def update_config(self, config: CollectorTableConfig) -> CollectorTableConfig:
@@ -100,6 +102,8 @@ class CollectorTableConfigService(TupleService):
 		except Exception as e:
 			self.rollback_transaction()
 			raise e
+		finally:
+			self.close_transaction()
 
 	def find_config_by_id(self, config_id: str) -> Optional[CollectorTableConfig]:
 		self.begin_transaction()

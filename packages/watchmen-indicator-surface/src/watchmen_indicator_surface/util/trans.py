@@ -23,6 +23,8 @@ def trans(storage_service: StorageService, action: Callable[[], TransReturned]) 
 	except Exception as e:
 		storage_service.rollback_transaction()
 		raise_500(e)
+	finally:
+		storage_service.close_transaction()
 
 
 # noinspection DuplicatedCode
@@ -42,6 +44,8 @@ def trans_with_fail_over(
 		logger.error(e, exc_info=True, stack_info=True)
 		storage_service.rollback_transaction()
 		return fail_over()
+	finally:
+		storage_service.close_transaction()
 
 
 # noinspection DuplicatedCode
@@ -61,6 +65,7 @@ def trans_with_tail(
 	else:
 		tail()
 		return returned
+
 
 
 def trans_readonly(storage_service: StorageService, action: Callable[[], TransReturned]) -> TransReturned:
