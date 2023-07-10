@@ -101,7 +101,7 @@ export const Def = (props: { convergence: Convergence }) => {
 	};
 
 	return <EditStep index={ConvergenceDeclarationStep.DEF} title={Lang.INDICATOR.CONVERGENCE.DEF_TITLE}
-	                 data-step="def">
+	                 backToList={true} data-step="def">
 		<DefContainer>
 			{!values.visible && axisFrozen
 				? <ObjectiveEditGrid convergence={convergence} unfreeze={unfreeze}/>
@@ -112,13 +112,13 @@ export const Def = (props: { convergence: Convergence }) => {
 			{values.visible
 				? <ValuesGrid convergence={convergence} data={values.data!}/>
 				: null}
-			{values.visible
-				? <AskValuesButton ink={ButtonInk.PRIMARY} onClick={onBackToDefClicked}>
-					{Lang.INDICATOR.CONVERGENCE.BACK_TO_DEF}
-				</AskValuesButton>
-				: <AskValuesButton ink={ButtonInk.PRIMARY} onClick={onAskValuesClicked}>
-					{Lang.INDICATOR.CONVERGENCE.ASK_VALUES}
-				</AskValuesButton>}
 		</DefContainer>
+		{values.visible
+			? <AskValuesButton ink={ButtonInk.PRIMARY} onClick={onBackToDefClicked}>
+				{Lang.INDICATOR.CONVERGENCE.BACK_TO_DEF}
+			</AskValuesButton>
+			: <AskValuesButton ink={ButtonInk.PRIMARY} onClick={onAskValuesClicked}>
+				{Lang.INDICATOR.CONVERGENCE.ASK_VALUES}
+			</AskValuesButton>}
 	</EditStep>;
 };
