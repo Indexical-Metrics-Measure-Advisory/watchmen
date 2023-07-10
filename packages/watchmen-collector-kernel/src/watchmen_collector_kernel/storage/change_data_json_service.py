@@ -95,6 +95,8 @@ class ChangeDataJsonService(TupleService):
 		except Exception as e:
 			self.rollback_transaction()
 			raise e
+		finally:
+			self.close_transaction()
 
 	def find_not_posted_json(self, model_trigger_id: int) -> List[Dict[str, Any]]:
 		self.begin_transaction()

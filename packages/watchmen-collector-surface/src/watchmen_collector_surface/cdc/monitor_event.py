@@ -96,6 +96,9 @@ class CollectorEventListener:
 				except Exception as e:
 					self.trigger_event_service.rollback_transaction()
 					raise e
+				finally:
+					self.trigger_event_service.close_transaction()
+
 				return True
 			else:
 				return False
@@ -118,6 +121,8 @@ class CollectorEventListener:
 				except Exception as e:
 					self.trigger_event_service.rollback_transaction()
 					raise e
+				finally:
+					self.trigger_event_service.close_transaction()
 				return True
 			else:
 				return False

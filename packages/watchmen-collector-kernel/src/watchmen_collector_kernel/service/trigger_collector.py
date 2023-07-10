@@ -213,6 +213,8 @@ def trigger_collector(trigger_event_service: TriggerEventService,
 	except Exception as e:
 		trigger_event_service.rollback_transaction()
 		raise e
+	finally:
+		trigger_event_service.close_transaction()
 
 	# noinspection PyTypeChecker
 	return trigger_event

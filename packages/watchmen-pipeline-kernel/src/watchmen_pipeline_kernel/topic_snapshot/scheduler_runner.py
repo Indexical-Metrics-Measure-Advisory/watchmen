@@ -70,6 +70,8 @@ def try_to_lock_scheduler(
 	except Exception:
 		lock_service.rollback_transaction()
 		return None, False
+	finally:
+		lock_service.close_transaction()
 
 
 # noinspection PyBroadException
@@ -82,6 +84,8 @@ def update_job_row_count(lock: TopicSnapshotJobLock, row_count: int, principal_s
 		lock_service.commit_transaction()
 	except Exception:
 		lock_service.rollback_transaction()
+	finally:
+		lock_service.close_transaction()
 
 
 # noinspection PyBroadException
@@ -95,6 +99,8 @@ def accomplish_job(
 		lock_service.commit_transaction()
 	except Exception:
 		lock_service.rollback_transaction()
+	finally:
+		lock_service.close_transaction()
 
 
 # noinspection PyBroadException
@@ -111,6 +117,8 @@ def try_to_accomplish_job(lock_id: TopicSnapshotJobLockId, principal_service: Pr
 				f'Topic snapshot job[lockId={lock.lockId}, schedulerId={lock.schedulerId}] accomplished successfully.')
 	except Exception:
 		lock_service.rollback_transaction()
+	finally:
+		lock_service.close_transaction()
 
 
 def build_snapshot_tag(process_date: date, frequency: TopicSnapshotFrequency) -> str:

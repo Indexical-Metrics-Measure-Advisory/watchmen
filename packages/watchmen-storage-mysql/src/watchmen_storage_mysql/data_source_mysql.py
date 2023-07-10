@@ -22,6 +22,7 @@ class MySQLDataSourceParams(DataModel):
 	poolRecycle: int = 3600
 
 
+
 class MySQLDataSourceHelper(DataSourceHelper):
 	def __init__(self, data_source: DataSource, params: MySQLDataSourceParams = MySQLDataSourceParams()):
 		super().__init__(data_source)
@@ -36,7 +37,9 @@ class MySQLDataSourceHelper(DataSourceHelper):
 			pool_recycle=params.poolRecycle,
 			json_serializer=serialize_to_json,
 			encoding='utf-8',
-			pool_pre_ping=True
+			pool_pre_ping=True,
+		    # pool_size = 2,
+			# max_overflow = 0
 		)
 
 	# noinspection DuplicatedCode
