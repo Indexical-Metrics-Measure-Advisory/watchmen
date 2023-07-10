@@ -684,6 +684,8 @@ class CompiledInsertOrMergeRowAction(CompiledInsertion, CompiledUpdate):
 				except Exception as e:
 					topic_data_service.get_storage().rollback_and_close()
 					raise e
+				finally:
+					topic_data_service.get_storage().close()
 
 		def work(times: int, is_insert_allowed: bool) -> None:
 			topic_data_service = self.ask_topic_data_service(self.schema, storages, principal_service)
