@@ -154,15 +154,15 @@ def construct_variable(variable: Optional[Union[dict, ConvergenceVariable]]) -> 
 	elif isinstance(variable, ConvergenceVariable):
 		return variable
 	else:
-		kind = variable.get('type')
-		if kind == ConvergenceVariableType.BUCKET:
+		type = variable.get('type')
+		if type == ConvergenceVariableType.BUCKET:
 			return ConvergenceBucketVariable(**variable)
-		elif kind == ConvergenceVariableType.TIMEFRAME:
+		elif type == ConvergenceVariableType.TIMEFRAME:
 			return ConvergenceTimeFrameVariable(**variable)
-		elif kind == ConvergenceVariableType.FREE_WALK:
+		elif type == ConvergenceVariableType.FREE_WALK:
 			return ConvergenceFreeWalkVariable(**variable)
 		else:
-			raise Exception(f'Convergence variable kind[{kind}] cannot be recognized.')
+			raise Exception(f'Convergence variable type[{type}] cannot be recognized.')
 
 
 def construct_variables(variables: Optional[list] = None) -> Optional[List[ConvergenceVariable]]:
