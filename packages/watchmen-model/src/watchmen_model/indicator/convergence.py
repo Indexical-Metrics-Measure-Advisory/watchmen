@@ -154,7 +154,7 @@ def construct_variable(variable: Optional[Union[dict, ConvergenceVariable]]) -> 
 	elif isinstance(variable, ConvergenceVariable):
 		return variable
 	else:
-		kind = variable.get('kind')
+		kind = variable.get('type')
 		if kind == ConvergenceVariableType.BUCKET:
 			return ConvergenceBucketVariable(**variable)
 		elif kind == ConvergenceVariableType.TIMEFRAME:
