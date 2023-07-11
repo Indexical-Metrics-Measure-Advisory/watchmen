@@ -175,6 +175,8 @@ def try_to_lock_topic_for_monitor(
 	except Exception:
 		lock_service.rollback_transaction()
 		return None, False
+	finally:
+		lock_service.close_transaction()
 
 
 # noinspection PyBroadException
@@ -187,6 +189,8 @@ def accomplish_job(lock: MonitorJobLock, status: MonitorJobLockStatus, principal
 		lock_service.commit_transaction()
 	except Exception:
 		lock_service.rollback_transaction()
+	finally:
+		lock_service.close_transaction()
 
 
 def run_monitor_rules(
