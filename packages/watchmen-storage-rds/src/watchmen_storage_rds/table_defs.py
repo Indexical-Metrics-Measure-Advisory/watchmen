@@ -77,6 +77,7 @@ table_user_groups = Table(
 	create_pk('user_group_id'),
 	create_str('name', 50, False), create_description(),
 	create_json('user_ids'), create_json('space_ids'), create_json("objective_ids"),
+	create_json("convergence_ids"),
 	create_tenant_id(), *create_tuple_audit_columns(), create_optimistic_lock()
 )
 table_spaces = Table(
