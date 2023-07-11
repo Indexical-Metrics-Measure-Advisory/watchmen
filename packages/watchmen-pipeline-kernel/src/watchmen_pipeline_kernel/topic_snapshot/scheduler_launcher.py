@@ -27,8 +27,8 @@ def get_topic_service(principal_service: PrincipalService) -> TopicService:
 	return TopicService(principal_service)
 
 
+scheduler_service = get_topic_snapshot_scheduler_service(fake_super_admin())
 def find_enabled_jobs() -> List[TopicSnapshotScheduler]:
-	scheduler_service = get_topic_snapshot_scheduler_service(fake_super_admin())
 	scheduler_service.begin_transaction()
 	try:
 		return scheduler_service.find_all_enabled()
