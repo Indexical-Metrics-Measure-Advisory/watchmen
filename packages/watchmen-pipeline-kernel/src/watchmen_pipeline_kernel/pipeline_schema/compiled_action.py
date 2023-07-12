@@ -167,7 +167,7 @@ class CompiledAlarmAction(CompiledAction):
 				def work() -> None:
 					value = self.parsedMessage.value(variables, principal_service)
 					action_monitor_log.touched = {'data': value}
-					logger.error(f'[PIPELINE] [ALARM] [{self.severity.upper()}] {value}')
+					# logger.error(f'[PIPELINE] [ALARM] [{self.severity.upper()}] {value}')
 
 				return self.safe_run(action_monitor_log, work)
 		except Exception as e:
