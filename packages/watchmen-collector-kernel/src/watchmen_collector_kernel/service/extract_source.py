@@ -115,7 +115,12 @@ class SourceTableExtractor:
 					if node.item in data_ignored:
 						if node.next is not None:
 							temp = data_ignored[node.item]
-							data_ignored[node.item] = ignored(temp, node.next)
+							if isinstance(temp, List):
+								data_ignored[node.item] = ArrayHelper(temp).map(
+									lambda item: ignored(item, node.next)
+								).to_list()
+							else:
+								data_ignored[node.item] = ignored(temp, node.next)
 							return data_ignored
 						else:
 							del data_ignored[node.item]
@@ -145,7 +150,12 @@ class SourceTableExtractor:
 					if node.item in data_flattened:
 						if node.next is not None:
 							temp = data_flattened[node.item]
-							data_flattened[node.item] = flatten(temp, node.next)
+							if isinstance(temp, List):
+								data_flattened[node.item] = ArrayHelper(temp).map(
+									lambda item: flatten(item, node.next)
+								).to_list()
+							else:
+								data_flattened[node.item] = flatten(temp, node.next)
 							return data_flattened
 						else:
 							data_flattened[node.item] = process_need_flatten(data_flattened[node.item])
@@ -169,7 +179,12 @@ class SourceTableExtractor:
 					if node.item in data_loaded:
 						if node.next is not None:
 							temp = data_loaded[node.item]
-							data_loaded[node.item] = load(temp, node.next)
+							if isinstance(temp, List):
+								data_loaded[node.item] = ArrayHelper(temp).map(
+									lambda item: load(item, node.next)
+								).to_list()
+							else:
+								data_loaded[node.item] = load(temp, node.next)
 							return data_loaded
 						else:
 							if data_loaded[node.item]:
