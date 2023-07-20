@@ -43,7 +43,6 @@ class CleanOfTimeout:
 	def create_thread(self, scheduler=None) -> None:
 		if ask_fastapi_job():
 			scheduler.add_job(CleanOfTimeout.event_loop_run, 'interval', seconds=self.cleanInterval, args=(self,))
-
 		else:
 			Thread(target=CleanOfTimeout.run, args=(self,), daemon=True).start()
 

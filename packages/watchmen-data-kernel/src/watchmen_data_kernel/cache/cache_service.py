@@ -1,6 +1,6 @@
 from logging import getLogger
 from threading import Thread
-from typing import Optional
+from typing import Optional, List
 
 from time import sleep
 
@@ -72,6 +72,17 @@ def heart_beat_on_pipelines() -> None:
 				CacheService.pipeline().put(loaded)
 	finally:
 		pipeline_service.close_transaction()
+
+
+# def find_pipeline_by_topic(topic_id: str,pipeline_service:PipelineService) -> List[Pipeline]:
+# 	pipeline_service.begin_transaction()
+# 	try:
+# 		pipeline_list:List[Pipeline] = pipeline_service.find_by_topic_id(topic_id)
+# 		return  pipeline_list
+# 	finally:
+# 		pipeline_service.close_transaction()
+
+
 
 
 def heart_beat_on_topics() -> None:
