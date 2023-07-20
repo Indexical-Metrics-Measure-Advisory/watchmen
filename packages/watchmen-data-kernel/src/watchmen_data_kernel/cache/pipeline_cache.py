@@ -49,8 +49,8 @@ class PipelineCache:
 			self.fire_pipeline_removed(pipeline)
 			if existing.topicId != pipeline.topicId:
 				# trigger topic changed
-				pipeline_by_topic_cache.remove_one(existing.topicId, existing.pipelineId)
-				pipeline_by_topic_cache.append_one(pipeline.topicId, pipeline.pipelineId)
+				pipeline_by_topic_cache.remove(existing.topicId)
+				# pipeline_by_topic_cache.append_one(pipeline.topicId, pipeline.pipelineId)
 		else:
 			# new pipline
 			pipeline_by_topic_cache.append_one(pipeline.topicId, pipeline.pipelineId)
@@ -63,7 +63,7 @@ class PipelineCache:
 	def remove(self, pipeline_id: PipelineId) -> Optional[Pipeline]:
 		existing: Optional[Pipeline] = self.byIdCache.remove(pipeline_id)
 		if existing is not None:
-			pipeline_by_topic_cache.remove_one(existing.topicId, existing.pipelineId)
+			pipeline_by_topic_cache.remove(existing.topicId)
 		return existing
 
 	def all(self) -> List[Pipeline]:
