@@ -34,7 +34,7 @@ class KernelSettings(BaseSettings):
 
 	KERNEL_CACHE: bool = True  # enable kernel cache, keep it enabled in production
 	KERNEL_CACHE_HEART_BEAT: bool = True  # enable kernel cache heart beat
-	KERNEL_CACHE_HEART_BEAT_INTERVAL: int = 10  # kernel cache heart beat interval, in seconds
+	KERNEL_CACHE_HEART_BEAT_INTERVAL: int = 60  # kernel cache heart beat interval, in seconds
 
 	TOPIC_SNAPSHOT_SCHEDULER_HEART_BEAT_INTERVAL: int = 30  # topic snapshot scheduler heart beat interval, in seconds
 
