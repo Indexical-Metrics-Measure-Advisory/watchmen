@@ -15,15 +15,15 @@ class ModelConfigService:
 	def __init__(self, principal_service: PrincipalService):
 		self.principalService = principal_service
 
-	def find_by_name(self, model_name: str) -> Optional[CollectorModelConfig]:
-		config = CollectorCacheService.model_config().get(model_name)
+	def find_by_name(self, model_name: str, tenant_id: str) -> Optional[CollectorModelConfig]:
+		config = CollectorCacheService.model_config().get(model_name, tenant_id)
 		if config is not None:
 			return config
 
 		storage_service = get_collector_model_config_service(
 			ask_meta_storage(), ask_snowflake_generator(), self.principalService
 		)
-		model_config: CollectorModelConfig = storage_service.find_by_name(model_name)
+		model_config: CollectorModelConfig = storage_service.find_by_name(model_name, tenant_id)
 		if model_config is None:
 			return None
 

@@ -1,6 +1,7 @@
-from typing import Callable, Optional
+from typing import Callable, Optional, Dict, List
 
 from fastapi import APIRouter, Depends
+from watchmen_collector_kernel.service import DataCaptureService
 
 from watchmen_auth import PrincipalService
 from watchmen_collector_kernel.model import CollectorTableConfig, CollectorModelConfig, CollectorModuleConfig
@@ -17,7 +18,7 @@ router = APIRouter()
 
 @router.post('/collector/table/config', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],
              response_model=CollectorTableConfig)
-async def save_query_config(
+async def save_table_config(
 		config: CollectorTableConfig, principal_service: PrincipalService = Depends(get_any_admin_principal)
 ) -> CollectorTableConfig:
 	validate_tenant_id(config, principal_service)
@@ -126,3 +127,25 @@ def ask_save_module_config_action(
 		return config
 
 	return action
+
+
+@router.get('/collector/json/template', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],
+            response_model=List[Dict])
+async def create_json_template(principal_service: PrincipalService = Depends(get_any_admin_principal)) -> List[Dict]:
+	collector_model_config_service = get_collector_model_config_service(ask_meta_storage(),
+	                                                                    ask_snowflake_generator(),
+	                                                                    principal_service)
+	collector_table_config_service = get_collector_table_config_service(ask_meta_storage(),
+	                                                                    ask_snowflake_generator(),
+	                                                                    principal_service)
+	data_capture_service = DataCaptureService(ask_meta_storage(),
+	                                          ask_snowflake_generator(),
+	                                          principal_service)
+	models = collector_model_config_service.find_by_tenant(principal_service.tenantId)
+	results = []
+	for model in models:
+		table_config = collector_table_config_service.find_root_table_config(model.modelName, model.tenantId)
+		if table_config:
+			json_data = data_capture_service.build_json_template(table_config[0])
+			results.append({"topicCode": model.rawTopicCode, "data": json_data})
+	return results

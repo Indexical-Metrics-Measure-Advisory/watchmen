@@ -41,27 +41,13 @@ class CleanOfTimeout:
 		self.timeout = ask_collector_timeout()
 
 	def create_thread(self, scheduler=None) -> None:
-		if ask_fastapi_job():
-			scheduler.add_job(CleanOfTimeout.event_loop_run, 'interval', seconds=self.cleanInterval, args=(self,))
-
-		else:
-			Thread(target=CleanOfTimeout.run, args=(self,), daemon=True).start()
+		scheduler.add_job(CleanOfTimeout.event_loop_run, 'interval', seconds=self.cleanInterval, args=(self,))
 
 	def event_loop_run(self):
 		try:
 			self.clean_listener()
 		except Exception as e:
 			getLogger(__name__).error(e, exc_info=True, stack_info=True)
-
-	def run(self):
-		try:
-			while True:
-				self.clean_listener()
-				sleep(self.cleanInterval)
-		except Exception as e:
-			getLogger(__name__).error(e, exc_info=True, stack_info=True)
-			sleep(60)
-			self.create_thread()
 
 	def clean_listener(self) -> None:
 		lock = get_resource_lock(self.snowflake_generator.next_id(),

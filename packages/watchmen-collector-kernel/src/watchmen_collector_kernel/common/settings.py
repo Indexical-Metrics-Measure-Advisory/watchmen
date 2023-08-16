@@ -10,7 +10,8 @@ class CollectorSettings(BaseSettings):
 	COLLECTOR_TIMEOUT: int = 600
 	PARTIAL_SIZE: int = 100
 
-	COLLECTOR_CONFIG_CACHE_ENABLED: bool = True  # enable collector config cache heart beat
+	COLLECTOR_CONFIG_CACHE_ENABLED: bool = True
+
 
 	class Config:
 		# secrets_dir = '/var/run'

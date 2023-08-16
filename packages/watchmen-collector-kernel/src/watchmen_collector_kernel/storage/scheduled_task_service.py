@@ -18,19 +18,6 @@ from watchmen_storage import EntityName, EntityRow, EntityShaper, TransactionalS
 
 class ScheduledTaskShaper(EntityShaper):
 
-	@staticmethod
-	def serialize_dependence(dependence: Dependence) -> dict:
-		if isinstance(dependence, dict):
-			return dependence
-		else:
-			return dependence.dict()
-
-	@staticmethod
-	def serialize_depend_on(depend_on: Optional[List[Dependence]]) -> Optional[list]:
-		if depend_on is None:
-			return None
-		return ArrayHelper(depend_on).map(lambda x: ScheduledTaskShaper.serialize_dependence(x)).to_list()
-
 	def serialize(self, entity: ScheduledTask) -> EntityRow:
 		return TupleShaper.serialize_tenant_based(entity, {
 			'task_id': entity.taskId,
@@ -39,7 +26,7 @@ class ScheduledTaskShaper(EntityShaper):
 			'content': entity.content,
 			'model_name': entity.modelName,
 			'object_id': entity.objectId,
-			'depend_on': ScheduledTaskShaper.serialize_depend_on(entity.dependOn),
+			'depend_on': ArrayHelper(entity.dependOn).map(lambda x: x.to_dict()).to_list(),
 			'parent_task_id': entity.parentTaskId,
 			'tenant_id': entity.tenantId,
 			'is_finished': entity.isFinished,
@@ -235,6 +222,19 @@ class ScheduledTaskService(TupleService):
 			]))
 		finally:
 			self.storage.close()
+
+	def is_model_finished(self, model_name: str, tenant_id: str) -> bool:
+		self.begin_transaction()
+		try:
+			# noinspection PyTypeChecker
+			return self.storage.count(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
+				]
+			)) == 0
+		finally:
+			self.close_transaction()
 
 
 def get_scheduled_task_service(storage: TransactionalStorageSPI,

@@ -46,7 +46,7 @@ class DataCaptureService:
 	def build_json(self,
 	               config: CollectorTableConfig,
 	               data: Dict):
-		child_configs = self.table_config_service.find_by_parent_name(config.name)
+		child_configs = self.table_config_service.find_by_parent_name(config.name, config.tenantId)
 		if child_configs:
 			ArrayHelper(child_configs).map(lambda child_config: self.get_child_data(child_config, data))
 
@@ -60,3 +60,16 @@ class DataCaptureService:
 			else:
 				data_[child_config.label] = child_data[0]
 			ArrayHelper(child_data).each(lambda child: self.build_json(child_config, child))
+
+	def build_json_template(self, config: CollectorTableConfig, data_: Dict = None) -> Dict:
+		record = SourceTableExtractor(config, self.principal_service).find_one_data()
+		if data_:
+			if config.isList:
+				data_[config.label] = record
+			else:
+				data_[config.label] = record[0]
+		else:
+			data_ = record[0]
+		child_configs = self.table_config_service.find_by_parent_name(config.name, config.tenantId)
+		ArrayHelper(child_configs).map(lambda child_config: self.build_json_template(child_config, record[0]))
+		return data_

@@ -87,18 +87,23 @@ class CollectorModelConfigService(TupleService):
 			self.close_transaction()
 
 	def find_by_tenant(self, tenant_id: TenantId) -> Optional[List[CollectorModelConfig]]:
-		# noinspection PyTypeChecker
-		return self.storage.find(self.get_entity_finder(
-			criteria=[
-				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)]
-		))
+		try:
+			self.begin_transaction()
+			# noinspection PyTypeChecker
+			return self.storage.find(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)]
+			))
+		finally:
+			self.close_transaction()
 
-	def find_by_name(self, model_name: str) -> Optional[CollectorModelConfig]:
-		self.begin_transaction()
+	def find_by_name(self, model_name: str, tenant_id: str) -> Optional[CollectorModelConfig]:
 		try:
 			return self.storage.find_one(self.get_entity_finder(
 				criteria=[
-					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name)]
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'), right=model_name),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
+				]
 			))
 		finally:
 			self.close_transaction()

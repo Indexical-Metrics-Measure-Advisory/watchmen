@@ -1,9 +1,22 @@
 from logging import getLogger
 from pydantic import BaseSettings
+from watchmen_model.common import SettingsModel
 
-from watchmen_collector_surface.connects import S3CollectorSettings
 
 logger = getLogger(__name__)
+
+
+class S3CollectorSettings(SettingsModel):
+	access_key_id: str
+	secret_access_key: str
+	bucket_name: str
+	region: str
+	token: str
+	tenant_id: str
+	consume_prefix: str
+	dead_prefix: str
+	max_keys: int = 10
+	clean_task_interval: int = 3600
 
 
 class CollectorSurfaceSettings(BaseSettings):
@@ -20,6 +33,7 @@ class CollectorSurfaceSettings(BaseSettings):
 	S3_COLLECTOR_DEAD_PREFIX = ''
 	S3_COLLECTOR_MAX_KEYS: int = 10
 	S3_COLLECTOR_CLEAN_TASK_INTERVAL: int = 3600
+	S3_COLLECTOR_WAIT: int = 5
 
 	QUERY_BASED_CHANGE_DATA_CAPTURE: bool = False
 	USE_FASTAPI_SCHEDULE_JOB: bool = False
@@ -55,7 +69,7 @@ def ask_post_json_wait():
 	return settings.POST_JSON_WAIT
 
 
-def ask_task_listener():
+def ask_task_listener_wait():
 	return settings.TASK_SCHEDULE_WAIT
 
 
@@ -88,3 +102,7 @@ def ask_s3_connector_settings():
 		max_keys=settings.S3_COLLECTOR_MAX_KEYS,
 		clean_task_interval=settings.S3_COLLECTOR_CLEAN_TASK_INTERVAL
 	)
+
+
+def ask_s3_connector_wait() -> int:
+	return settings.S3_COLLECTOR_WAIT

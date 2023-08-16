@@ -138,7 +138,7 @@ class RecordToJsonService:
 			self.change_record_service.close_transaction()
 
 	def process_record(self, change_data_record: ChangeDataRecord) -> None:
-		config = self.table_config_service.find_by_table_name(change_data_record.tableName)
+		config = self.table_config_service.find_by_table_name(change_data_record.tableName, change_data_record.tenantId)
 		root_config, root_data, record = self.find_root(config, change_data_record)
 		if self.is_duplicated(record):
 			record.isMerged = True
