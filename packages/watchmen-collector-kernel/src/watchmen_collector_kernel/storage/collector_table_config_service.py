@@ -112,7 +112,7 @@ class CollectorTableConfigService(TupleService):
 		finally:
 			self.close_transaction()
 
-	def find_by_table_name(self, table_name: str) -> Optional[CollectorTableConfig]:
+	def find_by_table_name(self, table_name: str, tenant_id: str) -> Optional[CollectorTableConfig]:
 		try:
 			self.storage.connect()
 			# noinspection PyTypeChecker
@@ -120,7 +120,9 @@ class CollectorTableConfigService(TupleService):
 				self.get_entity_finder(
 					criteria=[
 						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='table_name'),
-						                         right=table_name)
+						                         right=table_name),
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'),
+						                         right=tenant_id)
 					]
 				)
 			)
@@ -144,7 +146,7 @@ class CollectorTableConfigService(TupleService):
 		finally:
 			self.storage.close()
 
-	def find_by_name(self, name: str) -> Optional[CollectorTableConfig]:
+	def find_by_name(self, name: str, tenant_id: str) -> Optional[CollectorTableConfig]:
 		try:
 			self.storage.connect()
 			# noinspection PyTypeChecker
@@ -152,14 +154,16 @@ class CollectorTableConfigService(TupleService):
 				self.get_entity_finder(
 					criteria=[
 						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='name'),
-						                         right=name)
+						                         right=name),
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'),
+						                         right=tenant_id),
 					]
 				)
 			)
 		finally:
 			self.storage.close()
 
-	def find_by_parent_name(self, parent_name: str) -> Optional[List[CollectorTableConfig]]:
+	def find_by_parent_name(self, parent_name: str, tenant_id: str) -> Optional[List[CollectorTableConfig]]:
 		try:
 			self.storage.connect()
 			# noinspection PyTypeChecker
@@ -167,7 +171,9 @@ class CollectorTableConfigService(TupleService):
 				self.get_entity_finder(
 					criteria=[
 						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='parent_name'),
-						                         right=parent_name)
+						                         right=parent_name),
+						EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'),
+						                         right=tenant_id)
 					]
 				)
 			)
@@ -183,6 +189,21 @@ class CollectorTableConfigService(TupleService):
 				EntityCriteriaExpression(left=ColumnNameLiteral(columnName='triggered'), right=True)
 			]
 		))
+
+	def find_root_table_config(self, model_name: str, tenant_id: str) -> Optional[CollectorTableConfig]:
+		try:
+			self.storage.connect()
+			# noinspection PyTypeChecker
+			return self.storage.find(self.get_entity_finder(
+				criteria=[
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='model_name'),
+					                         right=model_name),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='parent_name'), operator='is-empty'),
+					EntityCriteriaExpression(left=ColumnNameLiteral(columnName='tenant_id'), right=tenant_id)
+				]
+			))
+		finally:
+			self.storage.close()
 
 
 def get_collector_table_config_service(storage: TransactionalStorageSPI,

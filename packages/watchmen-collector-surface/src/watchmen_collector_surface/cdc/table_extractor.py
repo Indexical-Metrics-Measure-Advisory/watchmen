@@ -102,7 +102,7 @@ class TableExtractor:
 						if self.is_extracted(trigger):
 							continue
 						else:
-							config = self.table_config_service.find_by_table_name(trigger.tableName)
+							config = self.table_config_service.find_by_table_name(trigger.tableName, trigger.tenantId)
 							trigger_event = self.trigger_event_service.find_event_by_id(trigger.eventTriggerId)
 
 							def prepare_query_criteria(variables_: Dict,

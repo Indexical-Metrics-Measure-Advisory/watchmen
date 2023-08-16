@@ -1,8 +1,6 @@
 import logging
-from logging import getLogger
 from threading import Thread
 
-from apscheduler.schedulers.background import BackgroundScheduler
 from time import sleep
 from traceback import format_exc
 from typing import List
@@ -11,7 +9,6 @@ from watchmen_collector_kernel.common import WAVE
 from watchmen_collector_kernel.model import ChangeDataJson, ScheduledTask, TriggerModel, \
 	CollectorModelConfig, TriggerEvent, TriggerModule, Status
 
-from watchmen_collector_kernel.service.lock_helper import get_resource_lock, try_lock_nowait, unlock
 from watchmen_collector_kernel.service.model_config_service import get_model_config_service
 from watchmen_collector_kernel.storage import get_change_data_json_service, get_competitive_lock_service, \
 	get_scheduled_task_service, get_trigger_model_service, \
@@ -53,11 +50,6 @@ class PostJsonService:
 		self.module_config_service = get_collector_module_config_service(self.storage,
 		                                                                 self.snowflake_generator,
 		                                                                 self.principal_service)
-		"""
-		self.model_config_service = get_collector_model_config_service(self.storage,
-		                                                               self.snowflake_generator,
-		                                                               self.principal_service)
-		"""
 		self.model_config_service = get_model_config_service(self.principal_service)
 		self.trigger_module_service = get_trigger_module_service(self.storage,
 		                                                         self.snowflake_generator,
@@ -130,7 +122,7 @@ class PostJsonService:
 		trigger_models = self.trigger_model_service.find_by_module_trigger_id(trigger_module.moduleTriggerId)
 
 		def process_model(trigger_model: TriggerModel):
-			model_config = self.model_config_service.find_by_name(trigger_model.modelName)
+			model_config = self.model_config_service.find_by_name(trigger_model.modelName, trigger_model.tenantId)
 			if check_priority(trigger_model):
 				if model_config.isParalleled or self.is_sequenced_trigger_model_record_to_json_finished(trigger_model):
 					self.process_change_data_json(model_config, trigger_model)
@@ -242,7 +234,8 @@ class PostJsonService:
 
 	def is_trigger_model_post_json_finished(self, trigger_model: TriggerModel) -> bool:
 		return trigger_model.isFinished and self.change_record_service.is_model_finished(trigger_model.modelTriggerId) \
-		       and self.change_json_service.is_model_finished(trigger_model.modelTriggerId)
+		       and self.change_json_service.is_model_finished(trigger_model.modelTriggerId) \
+		       and self.scheduled_task_service.is_model_finished(trigger_model.modelName, trigger_model.tenantId)
 
 	def is_sequenced_trigger_model_record_to_json_finished(self, trigger_model: TriggerModel) -> bool:
 		if trigger_model.isFinished:
@@ -318,7 +311,7 @@ class PostJsonService:
 		)
 
 	def get_topic_code(self, change_json: ChangeDataJson) -> str:
-		return self.model_config_service.find_by_name(change_json.modelName).rawTopicCode
+		return self.model_config_service.find_by_name(change_json.modelName, change_json.tenantId).rawTopicCode
 
 	def get_dependent_tasks(self, change_json: ChangeDataJson) -> List[int]:
 		json_records = self.change_json_history_service.find_by_object_id(change_json.modelName,
