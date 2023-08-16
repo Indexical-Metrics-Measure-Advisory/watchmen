@@ -11,7 +11,7 @@ CREATE TABLE collector_module_config
     last_modified_by    NVARCHAR(50)     NOT NULL,
     CONSTRAINT pk_collector_module_config PRIMARY KEY (module_id)
 );
-CREATE UNIQUE INDEX u_collector_module_config_1 ON topics (module_name);
+CREATE UNIQUE INDEX u_collector_module_config_1 ON collector_module_config (module_name);
 CREATE INDEX i_collector_module_config_1 ON collector_module_config (tenant_id);
 CREATE INDEX i_collector_module_config_2 ON collector_module_config (created_at);
 CREATE INDEX i_collector_module_config_3 ON collector_module_config (created_by);

@@ -1,1 +1,1 @@
-from .s3_connector import init_s3_collector, S3CollectorSettings
+from .s3_connector import S3CollectorSettings, S3Connector

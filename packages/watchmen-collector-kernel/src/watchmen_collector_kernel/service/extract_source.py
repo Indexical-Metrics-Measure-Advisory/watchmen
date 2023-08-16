@@ -9,6 +9,8 @@ from watchmen_data_kernel.topic_schema import TopicSchema
 from watchmen_model.admin import Topic, TopicKind
 from watchmen_storage import EntityCriteria, EntityStraightColumn
 from watchmen_utilities import get_current_time_in_seconds, ArrayHelper
+from watchmen_collector_kernel.cache import CollectorCacheService
+
 
 logger = getLogger(__name__)
 
@@ -40,7 +42,7 @@ class SourceTableExtractor:
 	def __init__(self, config: CollectorTableConfig, principal_service: PrincipalService):
 		self.config = config
 		self.principal_service = principal_service
-		self.topic = self.fake_extracted_table_to_topic(self.config)
+		self.topic = self.build_topic_by_config(self.config)
 		self.storage = ask_topic_storage(self.topic, self.principal_service)
 		self.storage.register_topic(self.topic)
 		self.service = ask_topic_data_service(TopicSchema(self.topic), self.storage, principal_service)
@@ -67,6 +69,15 @@ class SourceTableExtractor:
 		topic.lastModifiedBy = self.principal_service.get_user_id()
 		return topic
 
+	def build_topic_by_config(self, config: CollectorTableConfig) -> Topic:
+		topic = CollectorCacheService.collector_topic().get_topic_by_id(self.fake_topic_id(config.configId))
+		if topic is not None:
+			return topic
+
+		topic = self.fake_extracted_table_to_topic(self.config)
+		CollectorCacheService.collector_topic().put_topic_by_id(topic)
+		return topic
+
 	def find_change_data(self, criteria: EntityCriteria) -> Optional[List[Dict[str, Any]]]:
 		return self.lower_key(self.service.find_straight_values(
 			criteria=criteria,
@@ -75,8 +86,12 @@ class SourceTableExtractor:
 			).to_list()
 		))
 
-	def find_one_change_data(self, criteria: EntityCriteria = None) -> Optional[List[Dict[str, Any]]]:
-		return self.lower_key(self.service.find_limited_values(criteria=criteria, limit=1))
+	def find_one_data(self, criteria: EntityCriteria = None) -> Optional[List[Dict[str, Any]]]:
+		result = self.service.find_limited_values(criteria=criteria, limit=1)
+		if result:
+			return self.lower_key(result)
+		else:
+			return [ArrayHelper(self.topic.factors).to_map(lambda factor: factor.name.lower(), lambda factor: None)]
 
 	def find_by_id(self, data_id: Dict) -> Optional[Dict[str, Any]]:
 		results = self.service.find(build_criteria_by_primary_key(data_id))
