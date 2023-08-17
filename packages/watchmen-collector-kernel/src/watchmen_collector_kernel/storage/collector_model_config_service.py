@@ -98,6 +98,7 @@ class CollectorModelConfigService(TupleService):
 			self.close_transaction()
 
 	def find_by_name(self, model_name: str, tenant_id: str) -> Optional[CollectorModelConfig]:
+		self.begin_transaction()
 		try:
 			return self.storage.find_one(self.get_entity_finder(
 				criteria=[
