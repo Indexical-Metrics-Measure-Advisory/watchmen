@@ -35,7 +35,7 @@ jobs:
       - name: Run db meta script
         run: |
           script_path=./packages/watchmen-storage-mssql/meta-scripts
-          for version in `ls ${script_path}`
+          for version in `ls -v ${script_path}`
             do
               if [ -d ${script_path}/$version ];then
                 for file in ${script_path}/$version/*
@@ -48,7 +48,7 @@ jobs:
       - name: Run db data script
         run: |
           script_path=./packages/watchmen-storage-mssql/data-scripts
-          for version in `ls ${script_path}`
+          for version in `ls -v ${script_path}`
             do
               if [ -d ${script_path}/$version ];then
                 for file in ${script_path}/$version/*
