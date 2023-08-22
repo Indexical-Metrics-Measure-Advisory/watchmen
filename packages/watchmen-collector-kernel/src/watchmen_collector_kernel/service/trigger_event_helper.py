@@ -49,7 +49,7 @@ def trigger_event_by_default(trigger_event: TriggerEvent):
 			for model_config in model_configs:
 				trigger_model = trigger_model_action(model_config)
 				trigger_table_action = get_trigger_table_action(trigger_model_service, trigger_model)
-				table_configs = table_config_service.find_by_model_name(model_config.modelName, trigger_event.tenantId)
+				table_configs = table_config_service.find_by_model_name(model_config.modelName, model_config.tenantId)
 				for table_config in table_configs:
 					trigger_table_action(table_config)
 
@@ -82,7 +82,7 @@ def trigger_event_by_table(trigger_event: TriggerEvent):
 
 	table_config = table_config_service.find_by_table_name_and_tenant_id(trigger_event.tableName,
 	                                                                     trigger_event.tenantId)
-	model_config = model_config_service.find_by_name(table_config.modelName, trigger_event.tenantId)
+	model_config = model_config_service.find_by_name(table_config.modelName, table_config.tenantId)
 
 	module_config = module_config_service.find_by_module_id(model_config.moduleId)
 
@@ -136,7 +136,7 @@ def trigger_event_by_records(trigger_event: TriggerEvent):
 
 	table_config = table_config_service.find_by_table_name_and_tenant_id(trigger_event.tableName,
 	                                                                     trigger_event.tenantId)
-	model_config = model_config_service.find_by_name(table_config.modelName, trigger_event.tenantId)
+	model_config = model_config_service.find_by_name(table_config.modelName, table_config.tenantId)
 	module_config = module_config_service.find_by_module_id(model_config.moduleId)
 
 	trigger_event_service.begin_transaction()
