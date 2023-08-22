@@ -190,7 +190,7 @@ class CollectorTableConfigService(TupleService):
 			]
 		))
 
-	def find_root_table_config(self, model_name: str, tenant_id: str) -> Optional[CollectorTableConfig]:
+	def find_root_table_config(self, model_name: str, tenant_id: str) -> Optional[List[CollectorTableConfig]]:
 		try:
 			self.storage.connect()
 			# noinspection PyTypeChecker

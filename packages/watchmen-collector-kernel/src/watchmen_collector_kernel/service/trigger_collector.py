@@ -165,7 +165,7 @@ def get_trigger_table_action(trigger_model_service: TriggerModelService,
 
 def get_table_configs_by_model(collector_table_config_service: CollectorTableConfigService,
                                model_config: CollectorModelConfig) -> List[CollectorTableConfig]:
-	return collector_table_config_service.find_by_model_name(model_config.modelName)
+	return collector_table_config_service.find_by_model_name(model_config.modelName, model_config.tenantId)
 
 
 def trigger_collector(trigger_event_service: TriggerEventService,

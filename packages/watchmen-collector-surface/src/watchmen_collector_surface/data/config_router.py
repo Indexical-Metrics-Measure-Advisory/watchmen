@@ -129,7 +129,7 @@ def ask_save_module_config_action(
 	return action
 
 
-@router.get('/collector/json/template', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],
+@router.get('/collector/json/template/all', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],
             response_model=List[Dict])
 async def create_json_template(principal_service: PrincipalService = Depends(get_any_admin_principal)) -> List[Dict]:
 	collector_model_config_service = get_collector_model_config_service(ask_meta_storage(),
@@ -149,3 +149,23 @@ async def create_json_template(principal_service: PrincipalService = Depends(get
 			json_data = data_capture_service.build_json_template(table_config[0])
 			results.append({"topicCode": model.rawTopicCode, "data": json_data})
 	return results
+
+
+@router.get('/collector/json/template/model', tags=[UserRole.ADMIN, UserRole.SUPER_ADMIN],
+            response_model=Dict)
+async def create_json_template(model_name: str, principal_service: PrincipalService = Depends(get_any_admin_principal)) -> Dict:
+	collector_model_config_service = get_collector_model_config_service(ask_meta_storage(),
+	                                                                    ask_snowflake_generator(),
+	                                                                    principal_service)
+	collector_table_config_service = get_collector_table_config_service(ask_meta_storage(),
+	                                                                    ask_snowflake_generator(),
+	                                                                    principal_service)
+	data_capture_service = DataCaptureService(ask_meta_storage(),
+	                                          ask_snowflake_generator(),
+	                                          principal_service)
+	model = collector_model_config_service.find_by_name(model_name, principal_service.tenantId)
+
+	table_config = collector_table_config_service.find_root_table_config(model.modelName, model.tenantId)
+	if table_config:
+		json_data = data_capture_service.build_json_template(table_config[0])
+		return {"topicCode": model.rawTopicCode, "data": json_data}
