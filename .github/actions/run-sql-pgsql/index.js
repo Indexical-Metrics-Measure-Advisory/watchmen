@@ -19,20 +19,34 @@ try {
         try {
             var client = await pool.connect()
 
-            async function travel(dir) {
-                for (const file of fs.readdirSync(dir)){
-                    var pathname = path.join(dir, file)
-                    if (fs.statSync(pathname).isDirectory()) {
-                        await travel(pathname)
-                    } else {
-                        console.log(pathname)
-                        sql = fs.readFileSync(pathname).toString();
-                        await client.query(sql)
-                    }
-                }
+            function sort_version(f1: any, f2: any): number {
+                const f1_ver_list: string[] = f1.split('.');
+	            const f2_ver_list: string[] = f2.split('.');
+	            for(let i = 0; i<3; i++)
+		        if (parseInt(f1_ver_list[i]) < parseInt(f2_ver_list[i])){
+			        return -1
+		        }
+	            return 1
             }
 
-            await travel(meta_script_path)
+            function is_version_path(file_path: string): boolean {
+	            const rExp : RegExp = new RegExp('\\d+\.\\d+\.\\d+');
+	            return rExp.test(file_path)
+            }
+
+            const path = fs.readdirSync(meta_script_path);
+            const  = []
+            for(let file_path of path){
+		        if (is_version_path(file_path)){
+			        sorted_version.push(file_path)
+		        }
+	        }
+	        sorted_version.sort(sort_version)
+            for (const file of sorted_version){
+                var pathname = path.join(dir, file)
+                sql = fs.readFileSync(pathname).toString();
+                await client.query(sql)
+            }
         } finally {
             client.release()
             pool.end()
