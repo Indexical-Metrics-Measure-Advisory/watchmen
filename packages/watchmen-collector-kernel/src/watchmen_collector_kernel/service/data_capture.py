@@ -32,7 +32,7 @@ class DataCaptureService:
 	def find_parent_node(self, config: CollectorTableConfig,
 	                     data_: Dict) -> Tuple[CollectorTableConfig, Optional[Dict[str, Any]]]:
 		if config.parentName:
-			parent_config = self.table_config_service.find_by_name(config.parentName)
+			parent_config = self.table_config_service.find_by_name(config.parentName, config.tenantId)
 			parent_data = SourceTableExtractor(parent_config, self.principal_service).find(
 				ArrayHelper(config.joinKeys).map(lambda join_key: build_criteria_by_join_key(join_key, data_)).to_list()
 			)
