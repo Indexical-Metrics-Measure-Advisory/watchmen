@@ -35,7 +35,7 @@ try {
             }
 
             const path = fs.readdirSync(meta_script_path);
-            const  = []
+            const sorted_version = []
             for(let file_path of path){
 		        if (is_version_path(file_path)){
 			        sorted_version.push(file_path)
